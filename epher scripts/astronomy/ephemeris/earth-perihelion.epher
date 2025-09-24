@@ -1,0 +1,81 @@
+/* ============================================================================
+earth-perihelion.epher -- Earth's perihelion and aphelion of the year
+
+Finds the instants of Earth's perihelion and aphelion in a knob
+year and their distances, from the engine's Earth-Sun distance
+(dist(10, jd) - the Sun's geocentric distance IS the Earth-Sun
+distance; solar-ephemeris VSOP2013, JPL-Horizons-validated). Each
+distance sample costs real time, so the search is deliberately
+small: three coarse samples five days apart bracket each extremum
+(Meeus ch. 38 puts the perihelion in the first days of January
+and the aphelion in the first days of July), and the vertex of
+the parabola through the three samples locates the instant:
+
+  x_v = x2 + h (f1 - f3) / (2 (f1 - 2 f2 + f3))
+
+Perihelion 2026 lands on Jan 3 and aphelion on Jul 6. The
+distance curve is extremely flat at its extrema, so the TIME is
+the weakly determined quantity: against the canon the parabolic
+instant is good to about half an hour at the perihelion and a few
+hours at the aphelion, while the DISTANCE is good to 1e-7 AU.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/earth-perihelion.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\earth-perihelion.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/earth-perihelion.epher
+In the REPL:             load one of the paths above
+
+Knob: the year below.
+============================================================================ */
+
+// ---- the knob ---------------------------------------------------------------------
+const year = 2026
+
+// ---- perihelion: samples around January 6 -------------------------------------------
+const p1 = dist(10, jd(year, 1, 1))
+const p2 = dist(10, jd(year, 1, 6))
+const p3 = dist(10, jd(year, 1, 11))
+const pv = jd(year, 1, 6) + 5 * (p1 - p3) / (2 * (p1 - 2 * p2 + p3))
+const pdv = dist(10, pv)
+
+// ---- aphelion: samples around July 6 -----------------------------------------------------
+const a1 = dist(10, jd(year, 7, 1))
+const a2 = dist(10, jd(year, 7, 6))
+const a3 = dist(10, jd(year, 7, 11))
+const av = jd(year, 7, 6) + 5 * (a1 - a3) / (2 * (a1 - 2 * a2 + a3))
+const adv = dist(10, av)
+
+// ---- results ----------------------------------------------------------------------------
+print("Earth,", year)
+print("perihelion:", iso(pv), " at", pdv, "AU")
+print("aphelion:  ", iso(av), " at", adv, "AU")
+
+/* Self-checks: the distances sit near 0.9833 AU and 1.0167 AU;
+each vertex is flanked by larger (smaller) samples, so it is a
+true minimum (maximum); and the known 2026 canon dates are Jan 3
+and Jul 6. */
+print("perihelion distance sane (0.9832..0.9834):", pdv > 0.9832 and pdv < 0.9834)
+print("aphelion distance sane (1.0166..1.0168):", adv > 1.0166 and adv < 1.0168)
+print("perihelion vertex is a minimum:", pdv < p1 and pdv < p3)
+print("aphelion vertex is a maximum:", adv > a1 and adv > a3)
+
+/* ---- expected output ----
+= 2026
+= 0.983327401357
+= 0.983320159904
+= 0.983468225641
+= 2461044.23313
+= 0.983302916009
+= 1.01657943493
+= 1.01664380714
+= 1.01660046
+= 2461227.98796
+= 1.01664482194
+= Earth, 2026
+= perihelion: 2026-01-03T17:35:43  at 0.983302916009 AU
+= aphelion:   2026-07-06T11:42:40  at 1.01664482194 AU
+= perihelion distance sane (0.9832..0.9834): true
+= aphelion distance sane (1.0166..1.0168): true
+= perihelion vertex is a minimum: true
+= aphelion vertex is a maximum: true
+*/

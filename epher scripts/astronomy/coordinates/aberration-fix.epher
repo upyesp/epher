@@ -1,0 +1,94 @@
+/* ============================================================================
+aberration-fix.epher -- annual aberration of a star's position
+
+Corrects a catalog position for the annual aberration of light:
+Earth's motion around the Sun makes every star appear displaced
+toward the apex of Earth's way (the point 90 degrees of ecliptic
+longitude behind the Sun) by up to kappa = 20.49552 arcsec. The
+script builds the apex from the Sun's geometric longitude (the
+Meeus ch. 25 low-precision Sun), then displaces the star's unit
+vector by the aberration angle beta = kappa / 206265 and reads the
+shifted right ascension and declination (the vector form of the
+corrections in Meeus ch. 23 / Duffett-Smith, "Aberration").
+
+Accuracy: the Sun longitude series is good to ~0.01 deg, so the
+apex direction and the correction are good to a few thousandths of
+an arcsecond; the classical maximum shift is kappa itself.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/aberration-fix.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\aberration-fix.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/aberration-fix.epher
+In the REPL:             load one of the paths above
+
+Knobs: the catalog J2000 position (Vega below) and the date.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------------------
+const ara = 279.23473479       // Vega, J2000 degrees
+const ade = 38.78368896
+const t = jd(2026, 9, 10, 0)
+
+// ---- helpers ------------------------------------------------------------------------------
+def wrap(x) = x - 360 * floor(x / 360)
+def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
+def T(j) = (j - 2451545) / 36525
+// the Sun's geometric longitude (Meeus ch. 25, low precision)
+def sunlon(j) = wrap(280.46646 + 36000.76983 * T(j) + 0.0003032 * T(j) ^ 2 + (1.914602 - 0.004817 * T(j) - 0.000014 * T(j) ^ 2) * sin(rad(357.52911 + 35999.05029 * T(j) - 0.0001537 * T(j) ^ 2)) + (0.019993 - 0.000101 * T(j)) * sin(rad(2 * (357.52911 + 35999.05029 * T(j) - 0.0001537 * T(j) ^ 2))) + 0.000289 * sin(rad(3 * (357.52911 + 35999.05029 * T(j) - 0.0001537 * T(j) ^ 2))))
+// the apex: 90 deg behind the Sun, converted to equatorial
+def apexra(j) = deg(atan2(sin(rad(sunlon(j) - 90)) * cos(rad(23.4393)), cos(rad(sunlon(j) - 90))))
+def apexde(j) = deg(asin(sin(rad(sunlon(j) - 90)) * sin(rad(23.4393))))
+def wrapang(x) = x - 360 * floor(x / 360)
+
+// ---- the displacement ----------------------------------------------------------------------
+// star unit vector, apex unit vector, shifted unit vector
+sx = cos(rad(ade)) * cos(rad(ara))
+sy = cos(rad(ade)) * sin(rad(ara))
+sz = sin(rad(ade))
+ax = cos(rad(apexde(t))) * cos(rad(apexra(t)))
+ay = cos(rad(apexde(t))) * sin(rad(apexra(t)))
+az = sin(rad(apexde(t)))
+kx = sx + 20.49552 / 206265 * ax
+ky = sy + 20.49552 / 206265 * ay
+kz = sz + 20.49552 / 206265 * az
+ara2 = wrapang(deg(atan2(ky, kx)))
+ade2 = deg(atan2(kz, sqrt(kx ^ 2 + ky ^ 2)))
+
+// ---- results ------------------------------------------------------------------------------
+print("Vega at", iso(t))
+print("catalog:  ra", deg2hms(ara), " dec", deg2dms(ade))
+print("shifted:  ra", deg2hms(ara2), " dec", deg2dms(ade2))
+print("shift in ra * cos(dec):", spread(ara2 - ara) * cos(rad(ade)) * 3600, "arcsec")
+print("shift in dec:          ", (ade2 - ade) * 3600, "arcsec")
+print("apex at ra", deg2hms(apexra(t)), " dec", deg2dms(apexde(t)))
+
+/* Self-check: a star exactly at the apex cannot shift at all - the
+aberration displacement is toward the apex. Re-run the machinery
+with the apex itself as the star: the shift must vanish. */
+ax2 = wrapang(deg(atan2(ay + 20.49552 / 206265 * ay, ax + 20.49552 / 206265 * ax)))
+print("star at apex shifts < 1e-6 arcsec:", abs(spread(ax2 - apexra(t)) * cos(rad(apexde(t))) * 3600) < 1e-6)
+
+/* ---- expected output ----
+= 279.23473479
+= 38.78368896
+= 2461293.5
+= 0.125096463633
+= -0.769413127869
+= 0.626381922991
+= 0.219476835595
+= 0.895111689364
+= 0.388078577353
+= 0.125118271947
+= -0.769324185103
+= 0.626420484415
+= 279.237366374
+= 38.788436491
+= Vega at 2026-09-10T00:00:00
+= catalog:  ra 18h 36m 56s  dec 38° 47' 1"
+= shifted:  ra 18h 36m 57s  dec 38° 47' 18"
+= shift in ra * cos(dec): 7.38490511387 arcsec
+= shift in dec:           17.091111499 arcsec
+= apex at ra 5h 4m 54s  dec 22° 50' 6"
+= 76.2231643101
+= star at apex shifts < 1e-6 arcsec: true
+*/

@@ -1,0 +1,11 @@
+{
+  "comment": "The sublimelsp client configuration for epher. Installed as LSP-epher: see README.md. The command path must point at your epher-lsp binary; the README has the download lines.",
+  "clients": {
+    "epher": {
+      "enabled": true,
+      "command": ["epher-lsp"],
+      "selector": "source.epher",
+      "priority_selector": "source.epher"
+    }
+  }
+}

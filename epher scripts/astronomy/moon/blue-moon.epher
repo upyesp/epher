@@ -1,0 +1,105 @@
+/* ============================================================================
+blue-moon.epher -- which months of a year hold two full moons
+
+Lists the calendar months of one year that carry two full moons (the
+traditional "blue moon": the second full moon in one month) from the
+full-moon series of chapter 49 of Jean Meeus, "Astronomical Algorithms"
+(2nd ed., Willmann-Bell, 1998): the mean phase (eq. 49.1), the periodic
+corrections of table 49.A full-moon column and the planetary
+corrections of table 49.C - the same series full-moons.epher carries.
+Each full moon is bucketed by its calendar month with the date built-in
+(guide 1.18), and equal neighbours mark the doubled month.
+
+A year with thirteen full moons (twelve lunations straddling the
+calendar, 365 days versus the 354.4-day twelve-moon year) always has
+one month with two; two such months appear when February holds none
+(2018 did: Jan and Mar doubled, Feb moonless). Meeus discusses the
+calendar spread in "Mathematical Astronomy Morsels", in the essay on
+months with five lunar phases.
+
+Accuracy: the series fixes each full moon to about a minute for
+2000-2100; only a full moon within a minute of a month boundary could
+move to the neighbouring month, and none does in 2026.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/blue-moon.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\blue-moon.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/blue-moon.epher
+In the REPL:             load one of the paths above
+
+Knobs: `year` below (2026 has its doubled month in May).
+============================================================================ */
+
+// ---- the knob ----------------------------------------------------------------
+const year = 2026
+
+// ---- Meeus ch. 49: mean elements, angles in degrees (eq. 49.3-49.7) -----------
+def e3(t) = 1 - 0.002516 * t - 0.0000074 * t ^ 2      // Earth's orbital eccentricity (no unit)
+def mp(k) = 201.5643 + 385.81693528 * k               // Moon's mean anomaly, degrees
+def ms(k) = 2.5534 + 29.10535670 * k                  // Sun's mean anomaly, degrees
+def mf(k) = 160.7108 + 390.67050284 * k               // Moon's argument of latitude, degrees
+def node(k) = 124.7746 - 1.56375588 * k               // Moon's ascending node, degrees
+
+// ---- mean full-moon instant in JD: k counts lunations, full moons end in .5 --
+def base(k) = 2451550.09766 + 29.530588861 * k + 0.00015437 * (k / 1236.85) ^ 2 - 0.000000150 * (k / 1236.85) ^ 3 + 0.00000000073 * (k / 1236.85) ^ 4
+
+// ---- periodic corrections in days, table 49.A full-moon column, by size -------
+def corr_a(k) = -0.40614 * sin(rad(mp(k))) + 0.17302 * e3(k / 1236.85) * sin(rad(ms(k))) + 0.01614 * sin(rad(2 * mp(k))) + 0.01043 * sin(rad(2 * mf(k))) + 0.00734 * e3(k / 1236.85) * sin(rad(mp(k) - ms(k))) - 0.00515 * e3(k / 1236.85) * sin(rad(mp(k) + ms(k))) + 0.00209 * e3(k / 1236.85) ^ 2 * sin(rad(2 * ms(k))) - 0.00111 * sin(rad(mp(k) - 2 * mf(k)))
+def corr_b(k) = -0.00057 * sin(rad(mp(k) + 2 * mf(k))) + 0.00056 * e3(k / 1236.85) * sin(rad(2 * mp(k) + ms(k))) - 0.00042 * sin(rad(3 * mp(k))) + 0.00042 * e3(k / 1236.85) * sin(rad(ms(k) + 2 * mf(k))) + 0.00038 * e3(k / 1236.85) * sin(rad(ms(k) - 2 * mf(k))) - 0.00024 * e3(k / 1236.85) * sin(rad(2 * mp(k) - ms(k)))
+def corr_c(k) = -0.00017 * sin(rad(node(k))) - 0.00007 * sin(rad(mp(k) + 2 * ms(k))) + 0.00004 * sin(rad(2 * mp(k) - 2 * mf(k))) + 0.00004 * sin(rad(3 * ms(k))) + 0.00003 * sin(rad(mp(k) + ms(k) - 2 * mf(k))) + 0.00003 * sin(rad(2 * mp(k) + 2 * mf(k))) - 0.00003 * sin(rad(mp(k) + ms(k) + 2 * mf(k))) + 0.00003 * sin(rad(mp(k) - ms(k) + 2 * mf(k))) - 0.00002 * sin(rad(mp(k) - ms(k) - 2 * mf(k))) - 0.00002 * sin(rad(3 * mp(k) + ms(k))) + 0.00002 * sin(rad(4 * mp(k)))
+
+// ---- planetary corrections in days, table 49.C --------------------------------
+// A1's T^2 term is under a second and is omitted (Meeus, note to 49.C).
+def a1(k) = 299.77 + 0.107408 * k
+def a2(k) = 251.88 + 0.016321 * k
+def a3(k) = 251.83 + 26.651886 * k
+def a4(k) = 349.42 + 36.412478 * k
+def a5(k) = 84.66 + 18.206239 * k
+def a6(k) = 141.74 + 53.303771 * k
+def a7(k) = 207.14 + 2.453732 * k
+def a8(k) = 154.84 + 7.306860 * k
+def a9(k) = 34.52 + 27.261239 * k
+def a10(k) = 207.19 + 0.121824 * k
+def a11(k) = 291.34 + 1.844379 * k
+def a12(k) = 161.72 + 24.198154 * k
+def a13(k) = 239.56 + 25.513099 * k
+def a14(k) = 331.55 + 3.592518 * k
+def corr_d(k) = 0.000325 * sin(rad(a1(k))) + 0.000165 * sin(rad(a2(k))) + 0.000164 * sin(rad(a3(k))) + 0.000126 * sin(rad(a4(k))) + 0.000110 * sin(rad(a5(k))) + 0.000062 * sin(rad(a6(k))) + 0.000060 * sin(rad(a7(k))) + 0.000056 * sin(rad(a8(k))) + 0.000047 * sin(rad(a9(k))) + 0.000042 * sin(rad(a10(k))) + 0.000040 * sin(rad(a11(k))) + 0.000037 * sin(rad(a12(k))) + 0.000035 * sin(rad(a13(k))) + 0.000023 * sin(rad(a14(k)))
+
+// ---- the instant of full moon for lunation k ----------------------------------
+def fullmoon(k) = base(k) + corr_a(k) + corr_b(k) + corr_c(k) + corr_d(k)
+
+// ---- bucketing helpers --------------------------------------------------------
+def kfirst(jd0) = ceil((jd0 - 2451550.09766) / 29.530588861 - 0.5) + 0.5  // first full moon on/after Jan 1
+def mname(m) = if m == 1 then "January" else if m == 2 then "February" else if m == 3 then "March" else if m == 4 then "April" else if m == 5 then "May" else if m == 6 then "June" else if m == 7 then "July" else if m == 8 then "August" else if m == 9 then "September" else if m == 10 then "October" else if m == 11 then "November" else "December"
+def mon(k) = date(fullmoon(k))[2]                          // calendar month of the lunation's full moon
+def nfull(k0, i, c) = if i >= 13 then c else if fullmoon(k0 + i) < jd(year + 1, 1, 1) then nfull(k0, i + 1, c + 1) else c   // full moons of the year
+def findb(k0, n, i) = if i >= n - 1 then -1 else if mon(k0 + i + 1) == mon(k0 + i) then i else findb(k0, n, i + 1)  // first doubled month's index
+def restb(k0, n, i) = if i >= n - 1 then "" else if mon(k0 + i + 1) == mon(k0 + i) then ", " + mname(mon(k0 + i)) + restb(k0, n, i + 1) else restb(k0, n, i + 1)  // later doubled months
+def allb(k0, n, i) = if i >= n - 1 then "" else if mon(k0 + i + 1) == mon(k0 + i) then mname(mon(k0 + i)) + restb(k0, n, i + 1) else allb(k0, n, i + 1)  // all doubled months, comma-joined
+
+// ---- results ------------------------------------------------------------------
+k0 = kfirst(jd(year, 1, 1))
+count = nfull(k0, 0, 0)
+j = findb(k0, count, 0)
+print("full moons in", year, ":", count)
+print(if allb(k0, count, 0) == "" then "no month holds two full moons" else "month(s) with two full moons: " + allb(k0, count, 0))
+
+/* The doubled month's two full moons, and the engine cross-check (the
+built-in ephemeris knows nothing of the series above): the Moon's lit
+face at both instants reads its full-moon ceiling. The ceiling is
+0.9986, not 1, because the Moon runs up to 5 degrees off the ecliptic
+(see full-moons.epher for the geometry). */
+print("the pair:", iso(fullmoon(k0 + j)), "and", iso(fullmoon(k0 + j + 1)), "UT")
+print("self-check, illum at them:", illum(11, fullmoon(k0 + j)), "and", illum(11, fullmoon(k0 + j + 1)))
+
+/* ---- expected output ----
+= 2026
+= 321.5
+= 13
+= 4
+= full moons in 2026 : 13
+= month(s) with two full moons: May
+= the pair: 2026-05-01T17:24:25 and 2026-05-31T08:46:26 UT
+= self-check, illum at them: 0.9984 and 0.9981
+*/

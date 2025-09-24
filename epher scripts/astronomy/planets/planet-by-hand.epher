@@ -1,0 +1,118 @@
+/* ============================================================================
+planet-by-hand.epher -- one planet's position the 18th-century way
+
+Computes the geocentric right ascension and declination of Jupiter for a
+chosen date from first principles: the planet's mean Keplerian elements
+(Meeus, "Astronomical Algorithms" 2nd ed., ch. 31, table 31.A - the
+Standish & Williams 1992 elements, mean ecliptic and equinox of J2000,
+valid 1800-2050), Kepler's equation (the built-in kepler), the reduction
+of the orbital-plane position to ecliptic rectangular coordinates (ch.
+32-33), the perturbation terms of Jupiter's mean anomaly (ch. 31's
+b/c/s/f row - the Jupiter-Saturn great inequality), the Earth's own
+position from its EM-Bary element row, a two-pass light-time correction
+(ch. 33), the J2000 obliquity rotation to equatorial coordinates, and
+the IAU 1976 precession to the equinox of date (ch. 24). The result is
+compared with the engine's ra/decl (solar-ephemeris crate, VSOP2013,
+JPL-Horizons-validated; guide 1.29).
+
+Accuracy: an educational grade, not an ephemeris grade. The elements
+method reproduces the heliocentric position to a few hundredths of a
+degree at best, and the hand calculation stops at mean-of-date
+coordinates (light time included, but no nutation and no aberration),
+while the engine gives apparent coordinates. Expect the printed mismatch
+to be of the order of an arcminute or two - the point of the exercise is
+exactly to show how far a pencil-and-ephemeris calculation gets against
+an arcsecond ephemeris.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-by-hand.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-by-hand.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-by-hand.epher
+In the REPL:             load one of the paths above
+
+Knobs: the instant `t`. This file carries Jupiter's element row; swap in
+another row from planet-elements-table.epher to change planet.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const planet = 5                // Jupiter (its element row is carried below)
+const t = jd(2026, 10, 1, 12)   // 2026-10-01 12:00 UT
+
+// ---- ch. 31: mean elements at the date (T in centuries from J2000.0) ---------
+def T(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def wrap360(x) = x - 360 * floor(x / 360)
+// Jupiter: a, e, i, L, longitude of perihelion, node (linear rates).
+def a5(j) = 5.20288700 - 0.00011607 * T(j)
+def e5(j) = 0.04838624 - 0.00013253 * T(j)
+def i5(j) = 1.30439695 - 0.00183714 * T(j)
+def L5(j) = wrap360(34.39644051 + 3034.74612775 * T(j))
+def pi5(j) = wrap360(14.72847983 + 0.21252668 * T(j))
+def om5(j) = wrap360(100.47390909 + 0.20469106 * T(j))
+// Earth (EM Bary) row: inclination ~0 and node 0, so only omega rotates it.
+def aE(j) = 1.00000261 + 0.00000562 * T(j)
+def eE(j) = 0.01671123 - 0.00004392 * T(j)
+def LE(j) = wrap360(100.46457166 + 35999.37244981 * T(j))
+def piE(j) = wrap360(102.93768193 + 0.32327364 * T(j))
+// Perturbation terms of Jupiter's mean anomaly: M = L - pi + bT^2 + c cos fT + s sin fT.
+def pert5(j) = -0.00012452 * T(j) ^ 2 + 0.06064060 * cos(rad(38.35125000 * T(j))) - 0.35635438 * sin(rad(38.35125000 * T(j)))
+def M5(j) = wrap360(L5(j) - pi5(j) + pert5(j))
+def ME(j) = wrap360(LE(j) - piE(j))
+
+// ---- heliocentric rectangular coordinates (ch. 32-33), J2000 ecliptic -------
+def xp5(j) = a5(j) * (cos(rad(kepler(M5(j), e5(j)))) - e5(j))     // in-orbit x'
+def yp5(j) = a5(j) * sqrt(1 - e5(j) ^ 2) * sin(rad(kepler(M5(j), e5(j))))
+def xpE(j) = aE(j) * (cos(rad(kepler(ME(j), eE(j)))) - eE(j))
+def ypE(j) = aE(j) * sqrt(1 - eE(j) ^ 2) * sin(rad(kepler(ME(j), eE(j))))
+// Rotation to the ecliptic (ch. 33 matrix) with w = perihelion - node.
+def cw5(j) = cos(rad(pi5(j) - om5(j)))
+def sw5(j) = sin(rad(pi5(j) - om5(j)))
+def co5(j) = cos(rad(om5(j)))
+def so5(j) = sin(rad(om5(j)))
+def hx5(j) = (cw5(j) * co5(j) - sw5(j) * so5(j) * cos(rad(i5(j)))) * xp5(j) + (-sw5(j) * co5(j) - cw5(j) * so5(j) * cos(rad(i5(j)))) * yp5(j)
+def hy5(j) = (cw5(j) * so5(j) + sw5(j) * co5(j) * cos(rad(i5(j)))) * xp5(j) + (-sw5(j) * so5(j) + cw5(j) * co5(j) * cos(rad(i5(j)))) * yp5(j)
+def hz5(j) = sw5(j) * sin(rad(i5(j))) * xp5(j) + cw5(j) * sin(rad(i5(j))) * yp5(j)
+def hxE(j) = xpE(j) * cos(rad(piE(j))) - ypE(j) * sin(rad(piE(j)))
+def hyE(j) = xpE(j) * sin(rad(piE(j))) + ypE(j) * cos(rad(piE(j)))
+// Geocentric ecliptic vector = planet minus Earth (ch. 33), in AU.
+def gx(j) = hx5(j) - hxE(j)
+def gy(j) = hy5(j) - hyE(j)
+def gz(j) = hz5(j)
+def gdist(j) = sqrt(gx(j) ^ 2 + gy(j) ^ 2 + gz(j) ^ 2)
+def glon(j) = deg(atan2(gy(j), gx(j)))
+def glat(j) = deg(asin(gz(j) / gdist(j)))
+
+// ---- light time (ch. 33): two passes to the emission instant ----------------
+def lt(j) = gdist(j) / 173.144632674     // AU / (AU per day) = days
+def j1() = t - lt(t)
+def j2() = t - lt(j1())
+
+// ---- to equatorial of date: obliquity rotation, then precession (ch. 13/24) -
+def rotz(a, v) = {v[1] * cos(rad(a)) - v[2] * sin(rad(a)), v[1] * sin(rad(a)) + v[2] * cos(rad(a)), v[3]}
+def roty(a, v) = {v[1] * cos(rad(a)) + v[3] * sin(rad(a)), v[2], -v[1] * sin(rad(a)) + v[3] * cos(rad(a))}
+def zeta(j) = (2306.2181 * T(j) + 0.30188 * T(j) ^ 2 + 0.017998 * T(j) ^ 3) / 3600
+def zang(j) = (2306.2181 * T(j) + 1.09468 * T(j) ^ 2 + 0.018203 * T(j) ^ 3) / 3600
+def theta(j) = (2004.3109 * T(j) - 0.42665 * T(j) ^ 2 - 0.041833 * T(j) ^ 3) / 3600
+def pre(j, v) = rotz(zeta(j), roty(-theta(j), rotz(zang(j), v)))   // J2000 to the equinox of date
+def eqt(j) = {gx(j), gy(j) * cos(rad(23.4392911)) - gz(j) * sin(rad(23.4392911)), gy(j) * sin(rad(23.4392911)) + gz(j) * cos(rad(23.4392911))}
+def vd(j) = pre(j, eqt(j))
+def rah(j) = if deg(atan2(vd(j)[2], vd(j)[1])) < 0 then deg(atan2(vd(j)[2], vd(j)[1])) + 360 else deg(atan2(vd(j)[2], vd(j)[1]))
+def dch(j) = deg(asin(vd(j)[3] / sqrt(vd(j)[1] ^ 2 + vd(j)[2] ^ 2 + vd(j)[3] ^ 2)))
+
+// ---- results ------------------------------------------------------------------
+print("Jupiter by hand from mean elements at", iso(t), "UT")
+print("geocentric: longitude", wrap360(glon(j2())), "deg, latitude", glat(j2()), "deg, distance", gdist(j2()), "AU")
+print("light-time to Earth:", lt(j1()) * 1440, "minutes")
+print("geocentric ra/dec by hand:", deg2hms(rah(j2())), deg2dms(dch(j2())))
+print("engine ra/dec:            ", deg2hms(ra(planet, t)), deg2dms(decl(planet, t)))
+print("mismatch: ", 60 * (rah(j2()) - ra(planet, t)) * cos(rad(decl(planet, t))), "arcmin in ra (x cos dec),", 60 * (dch(j2()) - decl(planet, t)), "arcmin in dec")
+
+/* ---- expected output ----
+= 5
+= 2461315
+= Jupiter by hand from mean elements at 2026-10-01T12:00:00 UT
+= geocentric: longitude 139.323298712 deg, latitude 0.59646700564 deg, distance 5.91339052718 AU
+= light-time to Earth: 49.1801691378 minutes
+= geocentric ra/dec by hand: 9h 29m 13s 15° 28' 32"
+= engine ra/dec:             9h 29m 10s 15° 28' 55"
+= mismatch:  0.899139389729 arcmin in ra (x cos dec), -0.374270837509 arcmin in dec
+*/

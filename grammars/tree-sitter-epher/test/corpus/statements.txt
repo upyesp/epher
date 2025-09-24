@@ -1,0 +1,120 @@
+================================================================================
+Assignments, constants, and destructuring
+================================================================================
+
+x = 40 + 2
+const answer = 42
+{x, _} = {1, 2}
+
+---
+
+(source
+  (assignment
+    (identifier)
+    (additive_expression
+      (number)
+      (number)))
+  (constant_definition
+    (identifier)
+    (number))
+  (destructuring
+    (identifier)
+    (list
+      (number)
+      (number))))
+
+================================================================================
+Functions, both body forms
+================================================================================
+
+def hypot(a, b) = sqrt(a ^ 2 + b ^ 2)
+def fact(n) do
+  if n <= 1 then 1 else n * fact(n - 1)
+end
+
+---
+
+(source
+  (function_definition
+    (identifier)
+    (identifier)
+    (identifier)
+    (call_expression
+      (identifier)
+      (additive_expression
+        (power_expression
+          (identifier)
+          (number))
+        (power_expression
+          (identifier)
+          (number)))))
+  (function_definition
+    (identifier)
+    (identifier)
+    (expression_statement
+      (comparison_expression
+        (identifier)
+        (number))
+      (number)
+      (multiplicative_expression
+        (identifier)
+        (call_expression
+          (identifier)
+          (additive_expression
+            (identifier)
+            (number)))))))
+
+================================================================================
+Return, break, continue
+================================================================================
+
+def f(n) do
+  for i in 1 to n do
+    if i > 5 then
+      return i
+    end
+  end
+end
+
+while true do
+  break
+end
+
+for i in 1 to 3 do
+  continue
+end
+
+---
+
+(source
+  (function_definition
+    (identifier)
+    (identifier)
+    (for_statement
+      (identifier)
+      (range_expression
+        (number)
+        (identifier))
+      (if_statement
+        (comparison_expression
+          (identifier)
+          (number))
+        (return_statement
+          (identifier)))))
+  (expression_statement
+    (identifier))
+  (expression_statement
+    (identifier))
+  (while_statement
+    (identifier)
+    (break_statement))
+  (expression_statement
+    (identifier))
+  (for_statement
+    (identifier)
+    (range_expression
+      (number)
+      (number))
+    (continue_statement))
+  (expression_statement
+    (identifier)))

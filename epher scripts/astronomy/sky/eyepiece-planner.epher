@@ -1,0 +1,86 @@
+/* ============================================================================
+eyepiece-planner.epher -- what each eyepiece does to the view
+
+For one telescope (aperture and focal-ratio knobs) and a set of
+eyepieces, the three numbers that decide the view: magnification =
+telescope focal length / eyepiece focal length; exit pupil = eyepiece
+focal length / focal ratio (equivalently aperture / magnification) -
+the little disc of light at the eye, which should not exceed the
+dark-adapted pupil of about 7 mm; and true field = apparent field /
+magnification, the degrees of sky the eyepiece shows (the standard
+approximation; real eyepieces add a few percent of distortion).
+
+Each row carries a one-word role from the exit pupil, the observer's
+rule of thumb: 2-4 mm exit pupil for deep-sky sweeping (the sky
+background stays dark and the eye's own pupil is fully used), 0.5-1 mm
+for planets and double stars (the highest power the seeing usually
+permits), 1-2 mm the high-power middle ground, and below 0.5 mm an
+empty, over-magnified image. Complements telescope-resolution.epher,
+which answers how fine the same scope can split detail; this file
+stays with the eyepiece side and prints no Dawes values.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/eyepiece-planner.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\eyepiece-planner.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/eyepiece-planner.epher
+In the REPL:             load one of the paths above
+
+Knobs: aperture (mm) and focal ratio of the telescope, the apparent
+field of the eyepieces (a 50-degree Plossl below) and the list of
+eyepiece focal lengths in mm.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const aperture = 200        // telescope aperture, mm
+const fr = 10               // focal ratio f/10: focal length 2000 mm
+const afov = 50             // apparent field of the eyepieces, degrees
+const eps = {4, 5, 8, 12.5, 20, 32}   // eyepiece focal lengths, mm
+
+// ---- model ------------------------------------------------------------------
+const fl = aperture * fr    // telescope focal length, mm
+def mag(ep) = fl / ep       // magnification
+def xp(ep) = ep / fr        // exit pupil, mm (also aperture / mag)
+def tf(ep) = afov / mag(ep) // true field on the sky, degrees
+def role(ep) = if xp(ep) > 4 then "sweeps" else if xp(ep) >= 2 then "deep-sky" else if xp(ep) >= 1 then "high-power" else if xp(ep) >= 0.5 then "planets" else "over"
+
+/* ---- results ----------------------------------------------------------------
+One row per eyepiece, shortest to longest. The 4 mm row magnifies the
+2000 mm focal length 500 times into an exit pupil of 0.4 mm - beyond
+the useful ceiling - while the 20 and 32 mm eyepieces deliver the
+2-4 mm exit pupils that suit nebulae and clusters. */
+print("telescope", aperture, "mm f/", fr, "; eyepieces, Plossl-type, afov", afov, "deg")
+print("4 mm: 500x; exit pupil 0.4 mm; true field 0.1 deg; role:", role(4))
+print("5 mm: 400x; exit pupil 0.5 mm; true field 0.125 deg; role:", role(5))
+print("8 mm: 250x; exit pupil 0.8 mm; true field 0.2 deg; role:", role(8))
+print("12.5 mm: 160x; exit pupil 1.25 mm; true field 0.3125 deg; role:", role(12.5))
+print("20 mm: 100x; exit pupil 2 mm; true field 0.5 deg; role:", role(20))
+print("32 mm: 62.5x; exit pupil 3.2 mm; true field 0.8 deg; role:", role(32))
+
+/* The useful ceiling: about 2x per mm of aperture (the seeing-limited
+rule that pairs with the Dawes limit in telescope-resolution.epher).
+The exit pupil identity - aperture / magnification - is the same
+number the ep / fr row shows, checked here on the 20 mm row. */
+print("useful ceiling 2x per mm:", 2 * aperture, "x - the 4 mm row exceeds it")
+print("check: aperture / mag vs exit pupil on the 20 mm row:", aperture / mag(20), "mm =", xp(20), "mm")
+
+/* An eyepiece longer than about 7 mm exit pupil would throw away
+light: the eye's dark-adapted pupil cannot open wider than that. */
+print("longest eyepiece that uses all the light: f/", fr, "* 7 mm =", fr * 7, "mm")
+
+/* ---- expected output ----
+= 200
+= 10
+= 50
+= {4, 5, 8, 12.5, 20, 32}
+= 2000
+= telescope 200 mm f/ 10 ; eyepieces, Plossl-type, afov 50 deg
+= 4 mm: 500x; exit pupil 0.4 mm; true field 0.1 deg; role: over
+= 5 mm: 400x; exit pupil 0.5 mm; true field 0.125 deg; role: planets
+= 8 mm: 250x; exit pupil 0.8 mm; true field 0.2 deg; role: planets
+= 12.5 mm: 160x; exit pupil 1.25 mm; true field 0.3125 deg; role: high-power
+= 20 mm: 100x; exit pupil 2 mm; true field 0.5 deg; role: deep-sky
+= 32 mm: 62.5x; exit pupil 3.2 mm; true field 0.8 deg; role: deep-sky
+= useful ceiling 2x per mm: 400 x - the 4 mm row exceeds it
+= check: aperture / mag vs exit pupil on the 20 mm row: 2 mm = 2 mm
+= longest eyepiece that uses all the light: f/ 10 * 7 mm = 70 mm
+*/

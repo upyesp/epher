@@ -1,0 +1,88 @@
+/* ============================================================================
+twilight-times.epher -- when the sky darkens: twilight for a place
+
+Computes sunrise/sunset and the three twilight bands for a place and
+date: civil (Sun 6 degrees below the horizon), nautical (12 degrees)
+and astronomical (18 degrees). The engine's rise/set events use the
+standard -0.833-degree horizon, so the bands come from the hour-angle
+formula at custom horizons: cos(H) = (sin(h0) - sin(lat) sin(dec)) /
+(cos(lat) cos(dec)), with the Sun's declination at the day's transit
+from the built-in accessors (decl, transit; guide 1.29) and each
+event time = transit -/+ 4 minutes per degree of hour angle, as UT.
+
+Method and source: the standard hour-angle method of the USNO
+(Explanatory Supplement ch. 12 notes, aa.usno.navy.mil/faq/rs_algor)
+and NOAA's solar calculator (gml.noaa.gov/grad/solcalc/calcdetails.html);
+the same bands timeanddate lists per day. Duffett-Smith, "Practical
+Astronomy", 4th ed., chapter "Twilight" walks the same formula.
+
+Accuracy: about a minute. Against NOAA's independent calculator,
+Greenwich 2026-06-21 civil band 02:55-21:08 UT and 2026-02-12
+astronomical band 05:26-19:02 agree within a minute.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/twilight-times.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\twilight-times.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/twilight-times.epher
+In the REPL:             load one of the paths above
+
+Knobs: the place and the two dates below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const lat = 51.4779            // Greenwich
+const lon = 0
+const day1 = {2026, 6, 21}     // June solstice: the short night
+const day2 = {2026, 2, 12}     // a winter date with a full dark night
+
+// ---- one transit and one declination per date (each is real work) --------------
+j1 = jd(day1[1], day1[2], day1[3])
+j2 = jd(day2[1], day2[2], day2[3])
+t1 = transit(10, j1, lat, lon)
+t2 = transit(10, j2, lat, lon)
+d1 = decl(10, t1)
+d2 = decl(10, t2)
+
+// ---- hour-angle formula at a custom horizon h0, events as ISO date-times -------
+def cx(h0, dec) = (sin(rad(h0)) - sin(rad(lat)) * sin(rad(dec))) / (cos(rad(lat)) * cos(rad(dec)))
+def ev(h0, dec, tt) = if abs(cx(h0, dec)) > 1 then "never that dark" else iso(tt - 4 * deg(acos(cx(h0, dec))) / 1440)
+def ev2(h0, dec, tt) = if abs(cx(h0, dec)) > 1 then "never that dark" else iso(tt + 4 * deg(acos(cx(h0, dec))) / 1440)
+
+// ---- results: the night of the June solstice ----------------------------------
+print("twilight at lat", lat, "lon", lon)
+print("night of 2026-06-21:")
+print("  sunrise / sunset:", ev(-0.833, d1, t1), "/", ev2(-0.833, d1, t1))
+print("  civil:", ev(-6, d1, t1), "/", ev2(-6, d1, t1))
+print("  nautical:", ev(-12, d1, t1), "/", ev2(-12, d1, t1))
+print("  astronomical:", ev(-18, d1, t1), "/", ev2(-18, d1, t1))
+
+// ---- results: the February night, which goes properly dark --------------------
+print("night of 2026-02-12:")
+print("  sunrise / sunset:", ev(-0.833, d2, t2), "/", ev2(-0.833, d2, t2))
+print("  civil:", ev(-6, d2, t2), "/", ev2(-6, d2, t2))
+print("  nautical:", ev(-12, d2, t2), "/", ev2(-12, d2, t2))
+print("  astronomical:", ev(-18, d2, t2), "/", ev2(-18, d2, t2))
+
+/* ---- expected output ----
+= 51.4779
+= 0
+= {2026, 6, 21}
+= {2026, 2, 12}
+= 2461212.5
+= 2461083.5
+= 1954203123/794
+= 1223158753/497
+= 23.437848058
+= -13.591859964
+= twilight at lat 51.4779 lon 0
+= night of 2026-06-21:
+=   sunrise / sunset: 2026-06-21T03:42:48 / 2026-06-21T20:20:49
+=   civil: 2026-06-21T02:55:06 / 2026-06-21T21:08:31
+=   nautical: 2026-06-21T01:40:39 / 2026-06-21T22:22:58
+=   astronomical: never that dark / never that dark
+= night of 2026-02-12:
+=   sunrise / sunset: 2026-02-12T07:19:27 / 2026-02-12T17:09:31
+=   civil: 2026-02-12T06:44:36 / 2026-02-12T17:44:22
+=   nautical: 2026-02-12T06:05:23 / 2026-02-12T18:23:36
+=   astronomical: 2026-02-12T05:26:46 / 2026-02-12T19:02:13
+*/

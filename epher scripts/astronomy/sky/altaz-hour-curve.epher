@@ -1,0 +1,143 @@
+/* ============================================================================
+altaz-hour-curve.epher -- a body's arc across one night, hour by hour
+
+The altitude and azimuth of one solar-system body at every full hour
+of one night at one place: rows from 19:00 UT to 06:00 UT the next
+morning, bracketing the body's rise and set, in the layout of the
+altitude-vs-time planning curves that planetarium programs plot. The
+row nearest the top of the arc (the sampled hour with the highest
+altitude, i.e. the one straddling the meridian transit) is marked.
+Every number is a built-in topocentric accessor reading (alt, az,
+rise, set, transit; guide 1.16), so the curve carries the engine's
+arcsecond-class accuracy; altitudes are geometric (no refraction).
+
+The curve tells an observer when to look: for Saturn near its
+opposition night of 2026-09-21 the arc runs from the east-north-east
+horizon at dusk (alt 4 deg, az 91) through the meridian around 00:40
+(alt 40 deg, az 180) down to the west at dawn.
+
+A body that never leaves the horizon has no arc: for the polar-night
+case below (the Sun at Svalbard in December) the script prints a note
+instead of rows - the engine's rise/set calls would have no event to
+return there.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/altaz-hour-curve.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\altaz-hour-curve.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/altaz-hour-curve.epher
+In the REPL:             load one of the paths above
+
+Knobs: the body (guide 1.29 numbering), the night (the date whose dusk
+opens it), the place, and the polar-night case used for the guard.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const body = 6              // Saturn - near its 2026-10-04 opposition
+const day = {2026, 9, 21}   // the night Sep 21-22, 2026
+const lat = 51.4779         // Greenwich
+const lon = 0
+const latp = 78.2           // Svalbard: the polar-night guard case
+const lonp = 15.6
+const dpol = {2026, 12, 21} // December solstice: the Sun never rises there
+
+// ---- the night's brackets ----------------------------------------------------
+j0 = jd(day[1], day[2], day[3])
+r1 = rise(body, j0, lat, lon)
+s2 = set(body, j0 + 1, lat, lon)
+tt = transit(body, j0 + 1, lat, lon)
+def inst(h) = j0 + h / 24   // hour h of the night: 19-23 on day 1, 24-30 = 00-06 next day
+
+// ---- the sampled altitudes (one engine call each) -----------------------------
+const k19 = alt(body, j0 + 19 / 24, lat, lon)
+const k20 = alt(body, j0 + 20 / 24, lat, lon)
+const k21 = alt(body, j0 + 21 / 24, lat, lon)
+const k22 = alt(body, j0 + 22 / 24, lat, lon)
+const k23 = alt(body, j0 + 23 / 24, lat, lon)
+const k24 = alt(body, j0 + 1, lat, lon)
+const k25 = alt(body, j0 + 25 / 24, lat, lon)
+const k26 = alt(body, j0 + 26 / 24, lat, lon)
+const k27 = alt(body, j0 + 27 / 24, lat, lon)
+const k28 = alt(body, j0 + 28 / 24, lat, lon)
+const k29 = alt(body, j0 + 29 / 24, lat, lon)
+const k30 = alt(body, j0 + 30 / 24, lat, lon)
+const mx = max({k19, k20, k21, k22, k23, k24, k25, k26, k27, k28, k29, k30})
+def tag(v) = if v == mx then "(highest)" else ""
+
+/* ---- results ------------------------------------------------------------------
+One row per full hour from 19:00 UT to 06:00 UT, altitude and azimuth
+of Saturn as it climbs from the east, crosses the meridian near the
+00:00-01:00 rows and sinks into the west. The azimuth shows the swing
+the whole way: about 91 deg rising, 180 at the meridian, 250 setting. */
+print("Saturn, night of 2026-09-21 at lat 51.4779 lon 0")
+print("  above the horizon", iso(r1), "to", iso(s2))
+print("  transits about", iso(tt))
+print("19:00 UT: alt", k19, "deg, az", az(body, j0 + 19 / 24, lat, lon), "deg", tag(k19))
+print("20:00 UT: alt", k20, "deg, az", az(body, j0 + 20 / 24, lat, lon), "deg", tag(k20))
+print("21:00 UT: alt", k21, "deg, az", az(body, j0 + 21 / 24, lat, lon), "deg", tag(k21))
+print("22:00 UT: alt", k22, "deg, az", az(body, j0 + 22 / 24, lat, lon), "deg", tag(k22))
+print("23:00 UT: alt", k23, "deg, az", az(body, j0 + 23 / 24, lat, lon), "deg", tag(k23))
+print("00:00 UT: alt", k24, "deg, az", az(body, j0 + 1, lat, lon), "deg", tag(k24))
+print("01:00 UT: alt", k25, "deg, az", az(body, j0 + 25 / 24, lat, lon), "deg", tag(k25))
+print("02:00 UT: alt", k26, "deg, az", az(body, j0 + 26 / 24, lat, lon), "deg", tag(k26))
+print("03:00 UT: alt", k27, "deg, az", az(body, j0 + 27 / 24, lat, lon), "deg", tag(k27))
+print("04:00 UT: alt", k28, "deg, az", az(body, j0 + 28 / 24, lat, lon), "deg", tag(k28))
+print("05:00 UT: alt", k29, "deg, az", az(body, j0 + 29 / 24, lat, lon), "deg", tag(k29))
+print("06:00 UT: alt", k30, "deg, az", az(body, j0 + 30 / 24, lat, lon), "deg", tag(k30))
+print("all-night guard: above the horizon at some sampled hour:", mx > 0)
+
+/* The guard case: the Sun at Svalbard on the December solstice never
+rises at all - the hour-angle test on its noon declination says no
+-0.833-deg crossing exists, so no arc is charted and the engine's
+rise/set calls are never made. */
+t2 = transit(10, jd(dpol[1], dpol[2], dpol[3]), latp, lonp)
+d2 = decl(10, t2)
+cx2 = (sin(rad(-0.833)) - sin(rad(latp)) * sin(rad(d2))) / (cos(rad(latp)) * cos(rad(d2)))
+if abs(cx2) > 1 then print("polar night at Svalbard (lat 78.2), 2026-12-21: the Sun never rises") else print("2026-12-21 at lat 78.2: the Sun does rise")
+print("  solar declination at the day's transit:", d2, "deg")
+/* ---- expected output ----
+= 6
+= {2026, 9, 21}
+= 51.4779
+= 0
+= 78.2
+= 15.6
+= {2026, 12, 21}
+= 2461304.5
+= 2436692219/990
+= 1252804648/509
+= 2461305.53174
+= 3.9150281
+= 13.1956692
+= 22.0146995
+= 29.8631851
+= 36.0929823
+= 39.9481638
+= 40.7899105
+= 38.4555898
+= 33.3742617
+= 26.2827502
+= 17.8995293
+= 8.8026656
+= 40.7899105
+= Saturn, night of 2026-09-21 at lat 51.4779 lon 0
+=   above the horizon 2026-09-21T18:31:16 to 2026-09-22T07:00:07
+=   transits about 2026-09-22T00:45:43
+= 19:00 UT: alt 3.9150281 deg, az 91.1169475 deg 
+= 20:00 UT: alt 13.1956692 deg, az 103.0882568 deg 
+= 21:00 UT: alt 22.0146995 deg, az 115.8772816 deg 
+= 22:00 UT: alt 29.8631851 deg, az 130.158933 deg 
+= 23:00 UT: alt 36.0929823 deg, az 146.5003794 deg 
+= 00:00 UT: alt 39.9481638 deg, az 164.9827602 deg 
+= 01:00 UT: alt 40.7899105 deg, az 184.7223776 deg (highest)
+= 02:00 UT: alt 38.4555898 deg, az 204.0415582 deg 
+= 03:00 UT: alt 33.3742617 deg, az 221.5468212 deg 
+= 04:00 UT: alt 26.2827502 deg, az 236.854737 deg 
+= 05:00 UT: alt 17.8995293 deg, az 250.3419856 deg 
+= 06:00 UT: alt 8.8026656 deg, az 262.656729 deg 
+= all-night guard: above the horizon at some sampled hour: true
+= 1486683157/604
+= -23.436808724
+= 1.99757029984
+= polar night at Svalbard (lat 78.2), 2026-12-21: the Sun never rises
+=   solar declination at the day's transit: -23.436808724 deg
+*/

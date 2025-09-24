@@ -1,0 +1,229 @@
+# Publish a preview of the website + PWA for testing (ADR-0062).
+#
+# Every push to the staging branch rebuilds the site and pushes it to
+# the preview Pages repo (upyesp.github.io/epher-preview), so work is
+# visible at a public URL without touching the live epher.org deploy.
+# The tree is the exact output of the live site build (site-build.yml);
+# only three things differ:
+#   - the apt/ and rpm/ repository trees are not included (the preview
+#     repo is a test site, not a package mirror),
+#   - the landing page's single root-absolute link (href="/pwa/") is
+#     rewritten to a relative one: the preview serves under
+#     /epher-preview/, not at the domain root, and
+#   - the staging-build draft's release assets are mirrored into
+#     artifacts/ and every releases/latest download link is rewritten
+#     to the mirror. Draft asset URLs are collaborator-only on GitHub,
+#     so pointing at them would 404 for anyone not logged in; the
+#     same-origin mirror lets the preview's download links be tested
+#     by anyone, byte-identical to what the eventual release serves.
+#     The live site keeps the releases/latest pattern (ADR-0068).
+#
+# The push uses a write-only deploy key on the preview repo
+# (secret EPHER_PREVIEW_KEY, added there via repo Settings → Deploy
+# keys; see docs/website.md). One squashed commit per build: the
+# preview repo is disposable; its history is not meaningful.
+name: preview
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch or commit to preview (default: staging)"
+        type: string
+        default: staging
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/site-build.yml
+    with:
+      # Push events build the pushed commit (empty ref falls back to
+      # github.sha in site-build.yml); dispatches build the chosen ref.
+      ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
+
+  publish:
+    needs: [build]
+    runs-on: ubuntu-latest
+    # contents: write (not read) because draft releases are only listed
+    # to callers with push access; the mirror step below must see the
+    # staging-build draft. The token is used for nothing else; the
+    # publish push itself rides the deploy key secret.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: preview-site
+
+      - name: Mirror staging-build draft assets into the preview site
+        # Draft release asset URLs on GitHub are collaborator-only, so
+        # they cannot serve a public preview. Download the staging-build
+        # draft's assets here (the workflow token has repo read) and
+        # serve them from the preview itself; the step below rewrites
+        # the pages' download links to the mirror. If the staging build
+        # is mid-refresh (it replaces the draft per run), the download
+        # retries ride out the window and the count check fails loudly.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REL_ID="$(gh api "repos/${{ github.repository }}/releases" \
+            --jq '.[] | select(.draft and .tag_name == "staging-build") | .id' | head -1)"
+          if [ -z "$REL_ID" ]; then
+            echo "::warning::no staging-build draft found; preview links stay on releases/latest"
+            exit 0
+          fi
+          mkdir -p preview-site/artifacts
+          gh api "repos/${{ github.repository }}/releases/$REL_ID/assets?per_page=100" \
+            --paginate --jq '.[] | [.id, .name] | @tsv' > /tmp/assets.tsv
+          TOTAL="$(wc -l < /tmp/assets.tsv)"
+          while IFS=$'\t' read -r id name; do
+            case "$name" in epher-*) ;; *) continue ;; esac
+            for attempt in 1 2 3; do
+              if gh api -H "Accept: application/octet-stream" \
+                  "repos/${{ github.repository }}/releases/assets/$id" \
+                  > "preview-site/artifacts/$name"; then
+                echo "mirrored $name (attempt $attempt)"
+                break
+              fi
+              [ "$attempt" = 3 ] && { echo "::error::could not download $name" >&2; exit 1; }
+              sleep 15
+            done
+          done < /tmp/assets.tsv
+          DONE="$(ls preview-site/artifacts | wc -l)"
+          echo "mirrored $DONE of $TOTAL draft assets"
+          [ "$DONE" = "$TOTAL" ] || {
+            echo "::error::asset count mismatch, staging draft mid-refresh? rerun the preview workflow" >&2
+            exit 1
+          }
+
+      - name: Rewrite releases/latest download links to the artifact mirror
+        # Same-origin relative hrefs (artifacts/<asset>); both pages
+        # carrying such links sit at the site root, so no depth prefix
+        # is needed. The bare releases-page link goes to the mirror's
+        # index, generated below. Runs only on the deployed copy.
+        run: |
+          if [ ! -d preview-site/artifacts ]; then
+            echo "no mirror present (no staging-build draft yet); keeping releases/latest links"
+            exit 0
+          fi
+          python3 - <<'PYEOF'
+          import html, os
+          root = "preview-site"
+          for dirpath, _dirs, files in os.walk(root):
+              for fn in files:
+                  if not fn.endswith(".html"):
+                      continue
+                  p = os.path.join(dirpath, fn)
+                  s = open(p, encoding="utf-8").read()
+                  if "releases/latest" not in s:
+                      continue
+                  # relative prefix from the page's own directory to the
+                  # site root ("" at the root, "../" under /pwa/, ...)
+                  up = os.path.relpath(root, dirpath).replace(os.sep, "/")
+                  prefix = "" if up == "." else up + "/"
+                  t = s.replace(
+                      "https://github.com/upyesp/epher/releases/latest/download/",
+                      prefix + "artifacts/")
+                  # download/ URLs are gone now; the bare releases link remains
+                  t = t.replace(
+                      "https://github.com/upyesp/epher/releases/latest",
+                      prefix + "artifacts/")
+                  if t != s:
+                      open(p, "w", encoding="utf-8").write(t)
+                  elif "releases/latest" in t:
+                      raise SystemExit("::error::unrewritten releases/latest link in " + p)
+          adir = os.path.join(root, "artifacts")
+          rows = "".join(
+              '<li><a href="%s">%s</a></li>' % (html.escape(f), html.escape(f))
+              for f in sorted(os.listdir(adir)) if f != "index.html")
+          open(os.path.join(adir, "index.html"), "w", encoding="utf-8").write(
+              '<!doctype html><html lang="en"><meta charset="utf-8">'
+              '<title>epher staging artifacts</title>'
+              '<h1>epher staging artifacts</h1>'
+              '<p>Byte-identical mirror of the staging-build draft release,'
+              ' for preview testing. The public release lives on GitHub.</p>'
+              '<ul>%s</ul></html>' % rows)
+          PYEOF
+
+      - name: Rewrite root-absolute /pwa/ links for the subpath mount
+        # The landing page and every guide page link to the app with an
+        # absolute href="/pwa/" (correct at the domain root on the live
+        # site). Under the /epher-preview/ mount each page needs a
+        # relative href computed from its own directory depth:
+        #   /epher-preview/index.html            -> pwa/
+        #   /epher-preview/guide/de/index.html   -> ../../pwa/
+        run: |
+          python3 - <<'PYEOF'
+          import os
+          for root, _dirs, files in os.walk("preview-site"):
+              for fn in files:
+                  if not fn.endswith((".html", ".js", ".json", ".css", ".xml", ".webmanifest")):
+                      continue
+                  p = os.path.join(root, fn)
+                  s = open(p, encoding="utf-8").read()
+                  if "/pwa/" not in s:
+                      continue
+                  rel = os.path.relpath("preview-site/pwa", root) + "/"
+                  s = s.replace('href="/pwa/"', 'href="%s"' % rel)
+                  s = s.replace('src="/pwa/"', 'src="%s"' % rel)
+                  open(p, "w", encoding="utf-8").write(s)
+          PYEOF
+
+      - name: No root-absolute links may remain under a subpath
+        # Guard for the future: any new absolute href/src in the site or
+        # guide would 404 on the preview mount, so the build must fail
+        # until the link is made relative or handled here.
+        run: |
+          if grep -rEn '(href|src)="/' preview-site \
+              --include='*.html' --include='*.js' --include='*.json' \
+              --include='*.css' --include='*.xml' --include='*.webmanifest'; then
+            echo "::error::root-absolute link found (would break the /epher-preview/ mount):" >&2
+            exit 1
+          fi
+
+      - name: Publish to the preview Pages repo
+        env:
+          PREVIEW_KEY: ${{ secrets.EPHER_PREVIEW_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$PREVIEW_KEY" ]; then
+            echo "::error::EPHER_PREVIEW_KEY is not set (see docs/website.md, preview repo deploy key)."
+            exit 1
+          fi
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$PREVIEW_KEY" > "$HOME/.ssh/preview_ed25519"
+          chmod 600 "$HOME/.ssh/preview_ed25519"
+          ssh-keyscan -t ed25519 github.com >> "$HOME/.ssh/known_hosts" 2>/dev/null
+          cd preview-site
+          git init -q
+          git config user.name "epher preview"
+          git config user.email "preview@epher.org"
+          git add -A
+          git commit -q -m "preview ${GITHUB_RUN_ID} ($(date -u +%Y-%m-%dT%H:%MZ))"
+          GIT_SSH_COMMAND="ssh -i $HOME/.ssh/preview_ed25519 -o IdentitiesOnly=yes" \
+            git push -f git@github.com:upyesp/epher-preview.git HEAD:refs/heads/gh-pages
+          echo "pushed preview-site (${GITHUB_RUN_ID})"
+
+      - name: Wait for the Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 40); do
+            STATE="$(gh api repos/upyesp/epher-preview/pages/builds/latest -q .status 2>/dev/null || echo none)"
+            [ "$STATE" = "built" ] && break
+            sleep 6
+          done
+          echo "preview Pages build: ${STATE:-unknown}"
+          gh api repos/upyesp/epher-preview/pages -q '"https://" + .html_url' 2>/dev/null \
+            || echo "https://upyesp.github.io/epher-preview/"

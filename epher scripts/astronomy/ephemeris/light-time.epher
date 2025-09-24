@@ -1,0 +1,73 @@
+/* ============================================================================
+light-time.epher -- how long light takes to reach us from each planet
+
+Computes the one-way light-travel time from the Sun, the Moon and the
+planets to Earth at a given instant: distance from the built-in
+ephemeris accessor dist (the solar-ephemeris crate, VSOP2013 planets,
+ELP-MPP02 Moon, JPL-Horizons-validated; guide 1.29) divided by the
+speed of light c. The 499.00478 s the light of 1 AU takes is the
+yardstick astronomers quote distances in: "Mars is 18 light minutes
+away tonight" is this script's answer for a planet.
+
+Method and source: distance / c, the standard of the nautical and
+amateur almanacs (Duffett-Smith & Zwart, "Practical Astronomy with
+your Calculator or Spreadsheet", 4th ed., section "Distance, light-
+travel time and angular size of a planet"; on the calculators, the
+hpcalc.org program "Distance from the Sun & Orbital Speed").
+
+Accuracy: the ephemeris distance is JPL-grade (Horizons agrees with
+the engine to microns of an AU here), so the light time is honest to
+well under a second. Pluto rides approximate elements, so its
+minutes are good to a few seconds only.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/light-time.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\light-time.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/light-time.epher
+In the REPL:             load one of the paths above
+
+Knobs: the instant `t` below (jd of 2026-06-01 12:00 UT).
+============================================================================ */
+
+// ---- the knob -----------------------------------------------------------------
+const t = jd(2026, 6, 1, 12)
+
+// ---- light time in minutes: distance in AU -> metres -> / c -> / 60 -----------
+// au and c are the constants (guide 1.29); dist is AU and c is m/s.
+def lt(b) = dist(b, t) * au / c / 60 in min
+
+// ---- results ------------------------------------------------------------------
+print("light-time one way, Earth at", iso(t))
+print("Sun:", lt(10))
+print("Moon:", dist(11, t) * au / c in s)
+print("Mercury:", lt(1))
+print("Venus:", lt(2))
+print("Mars:", lt(4))
+print("Jupiter:", lt(5))
+print("Saturn:", lt(6))
+print("Uranus:", lt(7))
+print("Neptune:", lt(8))
+print("Pluto:", lt(9))
+
+/* A yardstick and a self-check: 1 AU / c = 499.00478 s (the light
+second of the ephemeris), and the Moon's distance must come out near
+60 Earth radii - about 1.3 light seconds. Both lines below. */
+print("1 AU in light seconds:", au / c in s)
+print("Moon in light seconds:", dist(11, t) * au / c, "s =", dist(11, t) * au / r_earth, "Earth radii")
+
+/* ---- expected output ----
+= 2461193
+= light-time one way, Earth at 2026-06-01T12:00:00
+= Sun: 8.43287925086 min
+= Moon: 1.35537939717 s
+= Mercury: 9.0855301898 min
+= Venus: 10.4202317104 min
+= Mars: 18.1549160825 min
+= Jupiter: 49.567431747 min
+= Saturn: 82.818041105 min
+= Uranus: 170.19495175 min
+= Neptune: 251.692030036 min
+= Pluto: 290.508580775 min
+= 1 AU in light seconds: 499.004783836 s
+= Moon in light seconds: 1.35537939717 s = 63.7784525192 Earth radii
+*/

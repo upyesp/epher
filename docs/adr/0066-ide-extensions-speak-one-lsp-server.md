@@ -1,0 +1,215 @@
+# ADR-0066: IDE extensions speak one LSP server
+
+Date: 2026-09-17
+
+Status: Accepted. Decided in a grilling session with the user
+(seventeen questions over three rounds); this record is the outcome.
+Resolves how the language reaches editors; changes nothing about the
+language itself.
+
+## Context
+
+epher runs in a browser and PWA, a desktop shell, a terminal, and a
+CLI, but not in the editors where people already write code. The plan
+is extensions for seven IDE families (VS Code, the JetBrains suite,
+Zed, Sublime, Open VSX for Cursor and VSCodium, Neovim and Vim, and
+Microsoft Visual Studio), installable at first from a new website
+page, marketplace publication following once the extensions mature.
+Six features were named up front: live inline evaluation, syntax
+highlighting with bracket matching, completion, ranged diagnostics,
+snippets, and hover signatures.
+
+Facts verified in the code before deciding:
+
+- The lexer and parser carry no source positions: parse errors are
+  location-less strings, so squiggly underlines, hover ranges, and
+  inline results have nothing to anchor to.
+- The catalog is name and kind only: hover has no canonical
+  signatures or descriptions to serve.
+- `run(script, env)` already evaluates a statement list against an
+  environment, so a per-statement results pass has a seam to grow on.
+
+The user's key requirement: one language server build per platform
+with epher compiled in, shared by every extension (six builds, not
+six times seven), so an extension is zero-config: activate it, and
+the language works.
+
+## Decision
+
+One Rust language server, `epher-lsp`, embeds `epher-core` and speaks
+LSP over stdio; thin universal extensions deliver it.
+
+1. **Server.** A new `crates/lsp` in this workspace, built on
+   `lsp-server` and crossbeam: synchronous like the core, no async
+   runtime. The binary is standalone rather than an `epher`
+   subcommand, so an extension never requires epher to be installed.
+2. **Delivery.** Every extension is a universal thin package:
+   manifest, shared TextMate grammar, shared snippets, and
+   download-and-spawn glue. On first activation it downloads the
+   platform binary from stable-named assets attached to the promoted
+   v0.5.x GitHub release (a URL template keyed to the extension's
+   own version) and caches it. Always downloads: no PATH search.
+   Builds cover today's four installer platforms (linux-x86_64,
+   linux-aarch64, macos-aarch64, windows-x86_64); Intel macOS and
+   Windows ARM64 legs join later, and the extensions do not change
+   when they do.
+3. **Core prerequisites land first.** Source spans through the
+   lexer, parser, and error variants; a per-statement evaluation
+   trace (span and value), built on `run`; catalog entries gain
+   signatures and descriptions. All three serve every frontend, not
+   only the server.
+4. **All six features in v1.** Inline evaluation re-runs the whole
+   file on a fresh Session with a short debounce: evaluation is
+   deterministic and step-bounded, so no incremental machinery.
+   Highlighting is a TextMate grammar baseline plus semantic tokens
+   from the server, so `i`, unit suffixes, and functions color by
+   meaning. Snippets are shared static assets in the repository.
+5. **Clients and rollout.** Clients live in this repository under
+   `clients/`, version-locked to epher's 0.5.x train. The order is
+   VS Code (pilot), then JetBrains, then Zed, then Neovim, Vim, and
+   Sublime (configuration and documentation, not shipped plugins),
+   then Visual Studio last. The website gains a top-level
+   "IDE Extensions" menu item just after Features, one page
+   localized in all eight languages at launch, linking the release
+   assets until marketplace publication begins.
+
+## Consequences
+
+- Squiggles point at the offending tokens, inline results sit on the
+  statement that produced them, and hover reads canonical
+  signatures; the web and TUI result panes can adopt spans later.
+- Spans, the evaluation trace, and catalog descriptions become core
+  surface. The reference and the drift-guard test extend to
+  descriptions when they land, so hover cannot silently rot.
+- First activation needs the network once. Machines that never go
+  online keep using epher through the installers and frontends that
+  exist today; the PATH-first fallback was offered and declined.
+- Marketplace packaging stays uniform across all seven IDE families
+  (universal extension plus first-run download); per-marketplace
+  platform-picking machinery is never built.
+- The locked version line makes currency checkable at a glance:
+  extension 0.5.x speaks epher 0.5.x.
+- Build order: core prerequisites, then the server, then the VS Code
+  pilot, then the website page, then the remaining IDE families.
+
+## Amendment (2026-09-12): the vsix runs the server in the browser too
+
+vscode.dev and github.dev (the editor behind the `.` key on GitHub)
+run extensions in a browser web worker: no Node, no child processes,
+no executables. ADR-0066's download-and-spawn delivery is
+categorically desktop-only there; a `main`-only extension is not
+even offered for install in the web. The requirements research
+(`docs/research/vscode-web-extension-requirements.md`) established the
+path; this amendment adopts it.
+
+**The vsix carries both entry points.** Desktop keeps `main` and its
+download-and-spawn behavior unchanged; a new `browser` entry serves
+the web extension host. vsce tags the package `__web_extension` from
+the manifest, so the Marketplace offers it in vscode.dev and
+github.dev automatically.
+
+**Web delivery: the server rides inside the extension.** `epher-lsp`
+gains a `wasm32-wasip1-threads` build (it compiles unchanged; the
+crate is stdio-plus-computation, and wasi-threads covers its debounce
+thread), built by CI from the same commit as the extension and shipped
+in the vsix. The web entry runs it through Microsoft's
+`ms-vscode.wasm-wasi-core` extension (declared in
+`extensionDependencies`; published on both the Marketplace and
+Open VSX) and bridges the WASI pipes to LSP transports with
+`@vscode/wasm-wasi-lsp`. No download, no first-use network step, and
+no version skew, the failure mode the desktop downloader's version
+marker exists for cannot happen. If the server fails to start anyway,
+web editing degrades to the TextMate baseline, the same contract as a
+desktop download failure.
+
+**Costs accepted:**
+
+- The engines floor rises to `^1.88.0`, `wasm-wasi-core`'s own floor.
+  Desktop and fork users below 1.88 stop receiving updates; the line
+  is old enough that the exposure is small.
+- The vsix grows by the wasm module (~2.1 MB, well under half that
+  compressed) in exchange for dropping the runtime download on web.
+- Both entries ship bundled (esbuild, single file each; the web worker
+  allows no module loading), and vsce packages with
+  `--no-dependencies`. `@vscode/wasm-wasi-lsp` pins an exact
+  vscode-languageclient prerelease as its peer while using only stable
+  APIs; the extension rides stable and carries a `.npmrc`
+  (`legacy-peer-deps`) so the intentionally unsatisfied peer never
+  blocks an install.
+- The debounce's `thread::spawn` + `sleep` runs under wasi-threads,
+  which Microsoft's own testbeds demonstrate. Hands-on verification
+  (2026-09-13): the packaged vsix served through `@vscode/test-web`
+  (the same web extension host code, over an HTTPS origin,
+  cross-origin isolated) on Android Chrome; the server starts, the
+  threads hold, and inline answers render next to the statements.
+  The literal vscode.dev/github.dev install check cannot happen for
+  an unpublished extension, plain web VS Code offers no vsix-install
+  route; gallery publication (ADR-0068 parks it until asked) is both
+  the remaining gate and the distribution.
+
+## Amendment: 2026-09-16: the desktop joins the wasm; the download retires
+
+The web argument, the server rides inside the vsix, no first-use
+download, turned out to apply to the desktop too, and with numbers.
+VS Code desktop's extension host is Node.js, and `wasm-wasi-core` runs
+the same module there (engine: V8; threads: `worker_threads`). The
+premise "Electron means browser" is the wrong door but the right
+destination.
+
+**Decision:** the desktop entry runs the bundled wasm; `download.ts`
+(platform selection, asset fetch, extraction, version marker) is
+deleted. One server build ships everywhere; an extension update
+carries its matching server by construction, so the version-skew
+guard exists no longer even as a guard.
+
+**Measured (2026-09-16, VS Code 1.138.0's engine under Node 22, the
+wasm-wasi ABI with shared memory and wasi-threads on worker_threads;
+the native linux-x86_64 build as the baseline; identical protocol
+driver, documents of 18 and 759 lines):**
+
+| metric | native | wasm | note |
+| --- | --- | --- | --- |
+| startup → first response | 2.7 ms | 88 ms | once per window |
+| completion after edit, avg | 0.77 ms | 10.3 ms | p95 28.2 ms |
+| hover, avg | 0.14 ms | 0.56 ms | |
+| semanticTokens full (759 lines), avg | 0.11 ms | 1.55 ms | |
+
+The native server is 4–14× faster at compute; the wasm's worst
+observed request (28 ms) sits under half the ~50 ms floor where
+latency starts to feel instant. The compute ceiling is real but
+irrelevant at epher's document sizes.
+
+**Costs accepted:**
+
+- The `ms-vscode.wasm-wasi-core` dependency is now load-bearing on
+  desktop too: installing the vsix makes VS Code resolve it from the
+  Marketplace at install time (builtin on the web hosts). One
+  install-time fetch of a Microsoft-published extension replaces the
+  per-machine runtime download.
+- The wasm must be trusted to hold threads on every desktop platform;
+  it does by construction (`worker_threads` on Windows/macOS/Linux),
+  and was verified here on Linux: a real desktop VS Code 1.138.0
+  under Xvfb activated the extension, launched the bundled wasm
+  through wasm-wasi-core, and answered hover and completion end to
+  end. Windows and macOS run the same platform-independent artifact;
+  a packaged smoke test there remains worthwhile, not blocking.
+
+**Not changed:** the `epher-lsp-*` release assets continue, the
+PATH-family IDEs (nvim, vim, Zed, Sublime, Emacs, Eclipse) consume
+them, and the desktop VS Code client is the only one that stops
+needing a download.
+
+**Scope note, why only the VS Code family rides the wasm (2026-09-16):**
+a WASI host must live in the editor's own process, and the VS Code
+family (VS Code, Cursor, VSCodium, vscode.dev/github.dev) is the
+complete set among our targets: one vsix serves all four through
+`wasm-wasi-core`. The JetBrains platform and Visual Studio spawn
+language servers as external processes and ship no WASI runtime,
+embedding one (Chicory, Wasmtime .NET) would mean carrying a second
+runtime to replace a native binary the release already provides, and
+neither embeds `wasi-threads` (the debounce thread requires it). Zed's
+extension API can only *configure* a server binary, not run a module;
+Neovim, Vim, Emacs, Sublime, and Eclipse have no in-process WASI host
+at all. Those clients keep the release's native `epher-lsp` binaries,
+downloaded on first use (JetBrains, Visual Studio) or pointed at on
+the PATH (the rest).

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<!--
+  epher IDE Extension page: the editor story (ADR-0066). One shared
+  language server (epher-lsp) per platform, thin extensions on top;
+  today the VS Code pilot, with the release assets linked for any LSP
+  client. Chrome and i18n like features.html; the strings are the
+  nav-ide / ide-* catalog keys.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IDE Extension: epher</title>
+  <meta name="description" content="epher in your editor: the shared epher-lsp language server brings live diagnostics, inline answers, hover signatures, completion, snippets, and unit-aware coloring to VS Code and any LSP client." />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141416" />
+  <link rel="icon" href="icon.svg?v=3" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem("epher-theme");
+        if (theme !== "light" && theme !== "dark") {
+          theme = window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        }
+        document.documentElement.dataset.theme = theme;
+      } catch (e) {
+        document.documentElement.dataset.theme = "light";
+      }
+      try {
+        var lang = localStorage.getItem("epher-lang");
+        if (lang) {
+          document.documentElement.lang = lang;
+          if (lang === "ar") document.documentElement.dir = "rtl";
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <noscript>
+    <style>
+      .menu-toggle { display: none; }
+      .docs-toggle { display: none; }
+      .site-nav { display: flex !important; flex-direction: column; position: static;
+                  border: 0; box-shadow: none; padding: 0.5rem 0; }
+      .docs { position: static; }
+      .docs-menu { display: flex !important; position: static; padding-inline-start: 1rem;
+                   border: 0; box-shadow: none; }
+    </style>
+  </noscript>
+</head>
+<body class="page-ide">
+  <a class="skip-link" href="#main" data-i18n="skip-link">Skip to content</a>
+
+  <header class="site-header">
+    <a class="brand" href="./">
+      <img class="brand-icon" id="brand-icon" src="icon.svg?v=3" alt="" width="32" height="32" />
+      <span>epher</span>
+    </a>
+    <nav class="site-nav" id="site-nav" hidden aria-label="Main" data-i18n-aria="nav-label">
+      <a href="pwa/" data-i18n="nav-app">App</a>
+      <div class="docs">
+        <button type="button" class="docs-toggle" id="docs-toggle" aria-expanded="false" aria-controls="docs-menu" aria-haspopup="true">
+          <span data-i18n="nav-docs">Docs</span>
+          <svg class="icon-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg>
+        </button>
+        <div class="docs-menu" id="docs-menu" hidden>
+          <a href="guide/en/" data-i18n="guide" data-i18n-href="guide">User guide</a>
+          <a href="examples.html" data-i18n="nav-examples">Examples</a>
+          <a href="scripts.html" data-i18n="nav-scripts">Scripts</a>
+          <a href="reference/" data-i18n="reference">Language reference</a>
+        </div>
+      </div>
+      <a href="features.html" data-i18n="nav-features">Features</a>
+      <a href="ide.html" aria-current="page" data-i18n="nav-ide">IDE Extension</a>
+      <a href="privacy.html" data-i18n="nav-privacy">Privacy</a>
+      <a class="gh-link" href="https://github.com/upyesp/epher" data-i18n="source-link">
+        Source code
+      </a>
+    </nav>
+    <div class="header-controls">
+      <button type="button" id="theme-toggle" class="icon-btn" aria-pressed="false">
+        <svg class="icon-moon" aria-hidden="true" viewBox="0 0 24 24">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" />
+        </svg>
+        <svg class="icon-sun" aria-hidden="true" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4.5" />
+          <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8" />
+        </svg>
+        <span class="visually-hidden" data-i18n="theme-dark">Use dark theme</span>
+      </button>
+      <label class="visually-hidden" for="lang-select" data-i18n="lang-label">Language</label>
+      <select id="lang-select">
+        <option value="en">English</option>
+        <option value="zh-CN">中文</option>
+        <option value="hi">हिन्दी</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="ar">العربية</option>
+        <option value="de">Deutsch</option>
+        <option value="pt">Português</option>
+      </select>
+    </div>
+    <button type="button" id="menu-toggle" class="menu-toggle" aria-expanded="false" aria-controls="site-nav">
+      <svg class="icon-burger" aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M3 6h18M3 12h18M3 18h18" />
+      </svg>
+      <span class="visually-hidden" data-i18n="menu-open">Menu</span>
+    </button>
+  </header>
+
+  <main id="main">
+    <article class="prose">
+      <h1 data-i18n="ide-title">IDE Extension</h1>
+      <p data-i18n="ide-lede">
+        You can use an IDE, such as VS Code (or others), to write epher
+        scripts. Download and install the official epher extension for
+        your IDE. The extension implements a full epher language server.
+        It is compliant with the Language Server Protocol (LSP), adding
+        a number of assistive features while editing code.
+      </p>
+
+      <h2 data-i18n="ide-features-title">What the editor gets</h2>
+      <ul>
+        <li><strong data-i18n="ide-f1-title">Live diagnostics</strong>:
+          <span data-i18n="ide-f1-desc">Syntax errors point at the exact token, and evaluation errors carry the same message the calculator shows.</span></li>
+        <li><strong data-i18n="ide-f2-title">Answers inline</strong>:
+          <span data-i18n="ide-f2-desc">Each statement's result renders next to its line: `x = 40 + 2` shows `= 42`.</span></li>
+        <li><strong data-i18n="ide-f3-title">Hover signatures</strong>:
+          <span data-i18n="ide-f3-desc">Hover a name for its canonical signature and description; your own constants show their current values.</span></li>
+        <li><strong data-i18n="ide-f4-title">Completion and snippets</strong>:
+          <span data-i18n="ide-f4-desc">Catalog names, your own definitions, keywords, and snippets for the common statement shapes.</span></li>
+        <li><strong data-i18n="ide-f5-title">Unit-aware coloring</strong>:
+          <span data-i18n="ide-f5-desc">Semantic tokens color unit suffixes by meaning: the `m` in `2 m` is a unit, not a variable.</span></li>
+      </ul>
+
+      <h2><img class="ide-logo" src="ide-logos/vscode.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vscode-title">VS Code</span></h2>
+      <p data-i18n="ide-vscode-p1">
+        Install it from the marketplace: the Extensions view, search for
+        Epher, Install. The server ships inside the extension, no download,
+        no prerequisites, and it works offline on desktop and in the browser.
+        Open a `.epher` file and the answers appear. Sideloading works too:
+        the ⋯ menu, Install from VSIX.
+      </p>
+      <p data-i18n="ide-vscode-p2">
+        The epher extension also works with the browser versions of
+        VS Code, vscode.dev and github.dev: press `.` on any GitHub
+        repository or pull request to launch VS Code directly in the
+        browser.
+      </p>
+      <p data-i18n="ide-vscode-p3">
+        Running scripts: the Run script button on line one, Ctrl+Enter,
+        or plain F5 — epher ships a run-only debug adapter, so a debug
+        start runs the file and prints the answers in the Debug
+        Console. The button and Ctrl+Enter open the results pane
+        instead, which adds the run's graphs and links each row to its
+        line.
+      </p>
+      <p>
+        <a href="https://marketplace.visualstudio.com/items?itemName=upyesp.epher" data-i18n="ide-vscode-marketplace">Install from the VS Code Marketplace</a>
+        ·
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vscode.vsix" data-i18n="ide-vscode-link">Download epher-vscode.vsix</a>
+      </p>
+
+      <h2><img class="ide-logo ide-logo-invert" src="ide-logos/cursor.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-cursor-title">Cursor</span></h2>
+      <p data-i18n="ide-cursor-p1">
+        Cursor is a VS Code fork: the same vsix installs the same way, from the
+        Extensions view's ⋯ menu, Install from VSIX. The bundled server and
+        every feature behave identically.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vscode.vsix" data-i18n="ide-cursor-link">Download epher-vscode.vsix</a>
+      </p>
+
+      <h2><img class="ide-logo" src="ide-logos/vscodium.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vscodium-title">VSCodium</span></h2>
+      <p data-i18n="ide-vscodium-p1">
+        VSCodium is VS Code without Microsoft's marketplace, and
+        install-from-VSIX works exactly the same: Extensions view,
+        ⋯ menu, Install from VSIX. Same server, same features, same
+        local-only behavior.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vscode.vsix" data-i18n="ide-vscodium-link">Download epher-vscode.vsix</a>
+      </p>
+
+      <h2><img class="ide-logo" src="ide-logos/jetbrains.png" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-jetbrains-title">JetBrains IDEs</span></h2>
+      <p data-i18n="ide-jetbrains-p1">
+        Install it from disk: Settings, Plugins, the gear menu,
+        Install Plugin from Disk. Works in IntelliJ IDEA, PyCharm,
+        WebStorm, GoLand, and the rest of the family, 2024.2 or
+        newer. On first use it downloads the server for your
+        platform; after that, everything is local.
+      </p>
+      <p data-i18n="ide-jetbrains-p2">
+        Run Epher Script lives in the Tools menu and the
+        editor's context menu. The results open in a pane
+        beside your script: every answer, every error, and
+        every 2D or 3D graph, rendered on the spot.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-jetbrains.zip" data-i18n="ide-jetbrains-link">Download epher-jetbrains.zip</a>
+      </p>
+
+      <h2><img class="ide-logo" src="ide-logos/visualstudio.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vs-title">Visual Studio</span></h2>
+      <p data-i18n="ide-vs-p1">
+        Install it like any Visual Studio extension: double-click
+        the vsix, or Extensions, Manage Extensions, Install from
+        file. Works in Visual Studio 2022. On first use it downloads
+        the server for Windows; after that, everything is local.
+      </p>
+      <p data-i18n="ide-vs-p2">
+        Run Epher Script in the Tools menu evaluates the whole
+        script; the results open as a tab beside your script —
+        text answers, errors, and every 2D or 3D graph.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-visualstudio.vsix" data-i18n="ide-vs-link">Download epher-visualstudio.vsix</a>
+      </p>
+
+      <h2><img class="ide-logo" src="ide-logos/zed.png" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-zed-title">Zed</span></h2>
+      <p data-i18n="ide-zed-p1">
+        Install it as a dev extension: in Zed, run the `zed: install
+        dev extension` command and pick the unzipped `epher-zed`
+        folder. Zed compiles the extension itself, which needs Rust
+        installed. No grammar build is part of the install. Coloring
+        stays off until you flip one setting — Zed ships semantic
+        tokens disabled, and with no grammar there is no other
+        colorer — so add
+        `"languages": { "epher": { "semantic_tokens": "full" } }`
+        to your settings as part of installing.
+      </p>
+      <p data-i18n="ide-zed-p2">
+        The Rust step belongs to dev extensions, not to epher:
+        extensions published to Zed's extension registry are
+        compiled by Zed itself and install in one click, with no
+        Rust. Publication there is planned; until it lands, the
+        dev-extension route above is the way in.
+      </p>
+      <p data-i18n="ide-zed-p3">
+        Zed's extension API has no room for a results pane, so
+        whole-script runs happen in the terminal (`epher run
+        script.epher`); the inline answers beside every
+        statement stay live as you type.
+      </p>
+      <p class="prereq" data-i18n="ide-zed-prereq">
+        The extension downloads the `epher-lsp` server itself on first use — nothing to put on your PATH. For `epher run` in Zed's terminal, install the `epher` CLI from the GitHub releases.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-zed.zip" data-i18n="ide-zed-link">Download epher-zed.zip</a>
+      </p>
+
+      <h2><img class="ide-logo" src="ide-logos/neovim.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-nvim-vim-title">Neovim and Vim</span></h2>
+      <p data-i18n="ide-nvim-vim-p1">
+        Ready-made config files: filetype detection, syntax, and the
+        LSP wiring around the same release binary. Point your
+        runtimepath at the folder and call `require("epher").setup()`
+        on Neovim 0.11 or newer.
+      </p>
+      <p data-i18n="ide-nvim-vim-p2">
+        On Neovim, `:EpherRun` runs the script and opens a
+        results window beside it; every graph is written as
+        an SVG and opened with the system viewer. Vim keeps
+        the syntax and LSP wiring, and its run support
+        follows.
+      </p>
+      <p class="prereq" data-i18n="ide-nvim-vim-prereq">
+        Prerequisite: the `epher-lsp` server binary, installed once and on your PATH: see Any LSP client below.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-nvim.zip" data-i18n="ide-nvim-link">Download epher-nvim.zip</a>
+        ·
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vim.zip" data-i18n="ide-vim-link">Download epher-vim.zip</a>
+      </p>
+
+      <h2><img class="ide-logo" src="ide-logos/sublime.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-sublime-title">Sublime Text</span></h2>
+      <p data-i18n="ide-sublime-p1">
+        A package folder: the shared grammar in Sublime's own form,
+        plus the client definition for the popular LSP package.
+      </p>
+      <p class="prereq" data-i18n="ide-sublime-prereq">
+        Prerequisite: the `epher-lsp` server binary, installed once and on your PATH: see Any LSP client below.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-sublime.zip" data-i18n="ide-sublime-link">Download epher-sublime.zip</a>
+      </p>
+
+      <h2><img class="ide-logo" src="ide-logos/emacs.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-emacs-title">Emacs</span></h2>
+      <p data-i18n="ide-emacs-p1">
+        Ready-made Emacs glue: an `epher-mode` with baseline
+        highlighting, filetype detection, and the LSP wiring around
+        the same release binary, eglot on Emacs 29 or newer (built
+        in), or lsp-mode if you prefer. Diagnostics, inline answers
+        as inlay hints, hover, and completion.
+      </p>
+      <p class="prereq" data-i18n="ide-emacs-prereq">
+        Prerequisite: the `epher-lsp` server binary, installed once and on your PATH: see Any LSP client below.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-emacs.zip" data-i18n="ide-emacs-link">Download epher-emacs.zip</a>
+      </p>
+
+      <h2><img class="ide-logo" src="ide-logos/eclipse.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-eclipse-title">Eclipse IDE</span></h2>
+      <p data-i18n="ide-eclipse-p1">
+        A ready-made Eclipse plugin: it registers the `.epher` file
+        type, hooks the shared language server into LSP4E, and reuses
+        the TextMate grammar for baseline highlighting. Diagnostics,
+        hover, and completion, on recent Eclipse releases the inline
+        answers appear as inlay hints.
+      </p>
+      <p class="prereq" data-i18n="ide-eclipse-prereq">
+        Prerequisite: the `epher-lsp` server binary, installed once and on your PATH, see Any LSP client below.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-eclipse.jar" data-i18n="ide-eclipse-link">Download epher-eclipse.jar</a>
+      </p>
+
+      <p>
+        <a href="https://github.com/upyesp/epher/tree/staging/clients" data-i18n="ide-clients-link">All of this lives in the repository under clients/.</a>
+      </p>
+
+      <h2 data-i18n="ide-manual-title">Any LSP client</h2>
+      <p data-i18n="ide-manual-p">
+        The server speaks the Language Server Protocol over stdio, so
+        any LSP client works. Download the binary for your platform
+        from the releases page, uncompress it, and point your editor's
+        client at it:
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col" data-i18n="ide-th-platform">Platform</th>
+            <th scope="col" data-i18n="ide-th-asset">Release asset</th>
+            <th scope="col" data-i18n="ide-th-binary">After extracting</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Windows (x86_64)</td>
+            <td><code>epher-lsp-windows-x86_64.zip</code></td>
+            <td><code>epher-lsp.exe</code></td>
+          </tr>
+          <tr>
+            <td>macOS (Apple silicon)</td>
+            <td><code>epher-lsp-macos-aarch64.gz</code></td>
+            <td><code>epher-lsp</code></td>
+          </tr>
+          <tr>
+            <td>Linux (x86_64)</td>
+            <td><code>epher-lsp-linux-x86_64.gz</code></td>
+            <td><code>epher-lsp</code></td>
+          </tr>
+          <tr>
+            <td>Linux (ARM64)</td>
+            <td><code>epher-lsp-linux-aarch64.gz</code></td>
+            <td><code>epher-lsp</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <p data-i18n="ide-manual-p3">To put the server on your PATH, run these from the folder you downloaded to:</p>
+      <p data-i18n="ide-manual-posix">macOS and Linux:</p>
+      <pre class="path-cmd">gunzip epher-lsp-*.gz
+sudo mkdir -p /usr/local/bin
+sudo install -m 0755 epher-lsp-* /usr/local/bin/epher-lsp</pre>
+      <p data-i18n="ide-manual-windows">Windows (PowerShell):</p>
+      <pre class="path-cmd">Expand-Archive epher-lsp-windows-x86_64.zip -DestinationPath .
+Move-Item .\epher-lsp.exe "$env:LOCALAPPDATA\Microsoft\WindowsApps\epher-lsp.exe"</pre>
+      <p data-i18n="ide-manual-p2">
+        Check the install with `epher-lsp --version` (in a new terminal).
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest" data-i18n="ide-download">Everything is on the releases page.</a>
+      </p>
+
+      <h2 data-i18n="ide-how-title">One language server, used by every IDE</h2>
+      <p data-i18n="ide-how-p">
+        Every extension shares one program, epher-lsp: a small language server
+        (LSP) with the whole epher engine compiled in. The extension is a thin
+        shell: VS Code carries its server inside the extension; JetBrains and
+        Visual Studio download it on first use and cache it; the rest point at
+        an `epher-lsp` on your PATH. Everything runs on your machine; nothing is
+        sent anywhere.
+      </p>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <p class="brand"><img class="brand-icon" src="icon.svg?v=3" alt="" width="24" height="24" /> <span>epher</span></p>
+        <p class="muted" data-i18n="footer-license">epher is free and open source (MIT).</p>
+      </div>
+      <nav class="footer-col" aria-label="Site" data-i18n-aria="footer-site">
+        <h2 data-i18n="footer-site">Site</h2>
+        <ul>
+          <li><a href="pwa/" data-i18n="nav-app">App</a></li>
+          <li><a href="guide/en/" data-i18n="guide" data-i18n-href="guide">User guide</a></li>
+          <li><a href="examples.html" data-i18n="nav-examples">Examples</a></li>
+          <li><a href="scripts.html" data-i18n="nav-scripts">Scripts</a></li>
+          <li><a href="reference/" data-i18n="reference">Language reference</a></li>
+          <li><a href="features.html" data-i18n="nav-features">Features</a></li>
+          <li><a href="ide.html" aria-current="page" data-i18n="nav-ide">IDE Extension</a></li>
+          <li><a href="privacy.html" data-i18n="nav-privacy">Privacy</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-col" aria-label="Project" data-i18n-aria="footer-project">
+        <h2 data-i18n="footer-project">Project</h2>
+        <ul>
+          <li><a href="https://github.com/upyesp/epher" data-i18n="footer-source">Source code on GitHub</a></li>
+          <li><a href="https://github.com/upyesp/epher/releases" data-i18n="footer-release">Downloads come from the latest GitHub release.</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="i18n/en.js"></script>
+  <script src="i18n/zh-CN.js"></script>
+  <script src="i18n/hi.js"></script>
+  <script src="i18n/es.js"></script>
+  <script src="i18n/fr.js"></script>
+  <script src="i18n/ar.js"></script>
+  <script src="i18n/de.js"></script>
+  <script src="i18n/pt.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

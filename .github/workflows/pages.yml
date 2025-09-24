@@ -1,0 +1,51 @@
+# Deploy the landing page + PWA to GitHub Pages (the live site).
+#
+# Live = main, and main moves only through a promotion (ADR-0062): a
+# staging→main pull request merged after the staged build was tested.
+# Nothing else pushes main, so this workflow is the last leg of the
+# release chain, never the first. Development builds go to the preview
+# repo instead (preview.yml).
+#
+# Layout of the published site at epher.org (see docs/website.md):
+#   /                 landing page (site/)
+#   /pwa/             the offline-first web app (crates/web/dist)
+#
+# The site itself is built by the shared site-build.yml (the preview
+# workflow builds the same tree, so a staging push validates this build
+# before any main push happens). Requires: Settings → Pages → Source →
+# "GitHub Actions".
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/site-build.yml
+    with:
+      include_repos: true
+
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4

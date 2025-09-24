@@ -1,0 +1,62 @@
+/* ============================================================================
+wien-peak.epher -- the wavelength where a radiator peaks
+
+Wien's displacement law: a blackbody of temperature T radiates most
+strongly at lambda_max = w / T, with w = 2.897771955e-3 m*K the Wien
+constant - built into epher as the constant `wien` (physics group,
+guide 1.18), which this script uses instead of retyping the digits.
+The table covers the Sun, Sirius, Betelgeuse and an M dwarf, so the
+same law spans green light to the near infrared; bv-temperature.epher
+is its colour-index partner and feeds it temperatures.
+
+Accuracy: exact arithmetic for a perfect blackbody. A stellar spectrum
+is only approximately black (absorption lines, molecular bands in cool
+stars), so treat the peaks as model peaks: honest to a few per cent
+for the Sun, rougher for the M dwarf, whose "peak" sits in the TiO
+band forest.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/wien-peak.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\wien-peak.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/wien-peak.epher
+In the REPL:             load one of the paths above
+
+Knobs: the temperature `temp` below, in kelvin; edit it for your own
+radiator. The named stars keep their accepted temperatures.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const temp = 5772         // your radiator, K (default: the Sun's effective T)
+const sir_t = 9940        // Sirius A, K
+const bet_t = 3400        // Betelgeuse, K (interferometric estimates ~3300-3660)
+const prox_t = 3042       // Proxima Centauri, K (an M5.5 dwarf)
+
+// ---- Wien's displacement law, peak in nanometres ------------------------------
+def peaknm(t) = wien / t * 10 ^ 9    // wien is m*K; 1e9 nm per m
+
+// ---- results ------------------------------------------------------------------
+print("Wien's constant built in:", wien, "m K")
+print("a", temp, "K radiator peaks at", peaknm(temp), "nm")
+print("Sun, 5772 K:", peaknm(5772), "nm")
+print("Sirius A, 9940 K:", peaknm(sir_t), "nm")
+print("Betelgeuse, 3400 K:", peaknm(bet_t), "nm")
+print("Proxima, 3042 K:", peaknm(prox_t), "nm")
+
+/* Cross-checks: the Sun's peak lands at 502 nm, the green it would
+look if we saw it in isolation (it looks white from space because it
+fills the visible band); Betelgeuse peaks at ~850 nm, the near-
+infrared value usually quoted; Sirius, hotter, peaks in the
+ultraviolet at 291 nm - which is why it sparkles blue-white. */
+
+/* ---- expected output
+= 5772
+= 9940
+= 3400
+= 3042
+= Wien's constant built in: 0.002897771955 m K
+= a 5772 K radiator peaks at 502.039493243 nm
+= Sun, 5772 K: 502.039493243 nm
+= Sirius A, 9940 K: 291.526353622 nm
+= Betelgeuse, 3400 K: 852.285869118 nm
+= Proxima, 3042 K: 952.58775641 nm
+*/

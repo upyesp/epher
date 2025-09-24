@@ -1,0 +1,72 @@
+/* ============================================================================
+jupiter-grs.epher -- Jupiter's System II central meridian and GRS transits
+
+Jupiter's central meridian in System II at a chosen instant, and the
+next times the Great Red Spot crosses it - the moments to look for the
+spot on the disk. System II is the rotation frame used for the Great Red
+Spot and the other long-lived south-temperate features: its longitude
+advances at 870.1869140 degrees per day (Meeus, "Astronomical
+Algorithms" 2nd ed., ch. 43, physical ephemeris of Jupiter), which
+corresponds to the System II rotation period of 9h 55m 40.6s as seen
+from Earth. The zero point follows Meeus ch. 43: CM(II) = 181.62 +
+870.1869140 d, with d the days from J2000.0 (dynamical time; the 69 s
+of delta-T shift the meridian by two thirds of a degree and are worth
+keeping).
+
+The Great Red Spot is not fixed in System II: its own rotation period
+differs from the system by a few seconds per turn, so its longitude
+drifts. The knob below (255 deg, a working value for the mid-2020s) is
+the first thing to refresh when the spot runs ahead of the predictions;
+a fresh longitude from any current Jupiter observer's newsletter will
+keep the transit times right to a few minutes.
+
+Accuracy: the meridian itself is good to a few tenths of a degree (the
+formula's own precision); transit times printed here are good to a few
+minutes for a current spot longitude and degrade as the spot drifts
+(roughly a degree a month at its present rate).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/jupiter-grs.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\jupiter-grs.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/jupiter-grs.epher
+In the REPL:             load one of the paths above
+
+Knobs: the instant `t` (UT) and the spot's System II longitude `grs`.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const t = jd(2026, 10, 15, 22)  // 2026-10-15 22:00 UT
+const grs = 255                 // Great Red Spot longitude, System II (drifts)
+
+// ---- System II (Meeus ch. 43; d in days from J2000.0, dynamical time) --------
+def wrap360(x) = x - 360 * floor(x / 360)
+def cm2(j) = wrap360(181.62 + 870.1869140 * (j + delta_t(j) / 86400 - jd(2000, 1, 1, 12)))
+const cm = cm2(t)
+// The spot crosses the central meridian when cm2 = grs; solve for the
+// first crossing at or after t and step by one full turn.
+const dt1 = wrap360(grs - cm) / 870.1869140
+const tr1 = t + dt1
+const turn = 360 / 870.1869140
+
+// ---- results ------------------------------------------------------------------
+print("Jupiter System II central meridian at", iso(t), "UT:", cm, "deg")
+print("next GRS transits (spot longitude", grs, "deg System II):")
+print("  1:", iso(tr1), "UT")
+print("  2:", iso(tr1 + turn), "UT")
+print("  3:", iso(tr1 + 2 * turn), "UT")
+print("Jupiter magnitude", mag(5, t), "; diameter", diam(5, t) * 3600, "arcsec")
+
+/* ---- expected output ----
+= 29535953/12
+= 255
+= 93.6604048703
+= 0.185407976762
+= 2461329.60207
+= 0.413704221712
+= Jupiter System II central meridian at 2026-10-15T22:00:00 UT: 93.6604048703 deg
+= next GRS transits (spot longitude 255 deg System II):
+=   1: 2026-10-16T02:26:59 UT
+=   2: 2026-10-16T12:22:43 UT
+=   3: 2026-10-16T22:18:27 UT
+= Jupiter magnitude -1.94 ; diameter 33.6349 arcsec
+*/

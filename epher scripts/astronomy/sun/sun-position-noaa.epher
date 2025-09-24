@@ -1,0 +1,121 @@
+/* ============================================================================
+sun-position-noaa.epher -- the NOAA solar-position chain, step by step
+
+The solar-position decomposition published with the NOAA Global
+Monitoring Laboratory's online Solar Calculator (gml.noaa.gov/grad/
+solcalc; its "calculation details" page states each equation): the
+geometric mean longitude and mean anomaly of the Sun, the Earth's
+eccentricity and the equation of center, the Sun's true and
+apparent longitude, the mean and corrected obliquity, the Sun's
+declination, the equation of time, and then the observer's hour
+angle, altitude and azimuth. The equations are the standard
+low-precision solar theory - the same series as Jean Meeus,
+"Astronomical Algorithms" (2nd ed., Willmann-Bell, 1998) chs. 25
+and 28 - evaluated exactly as NOAA prints them, so each printed
+line is the value the NOAA calculator shows on its details page
+for the same input (its declination column and equation-of-time
+column, for example).
+
+Accuracy: this series is good to about 0.01 deg in the solar
+declination and a fraction of a minute in the equation of time
+(NOAA's own grade is +/- 1 minute of rise/set time, which needs
+about 0.25 deg of altitude). Refraction is omitted, as in the
+NOAA equations. The script then prints its altitude and azimuth
+against the engine's own alt and az accessors (the solar-ephemeris
+crate, JPL-validated): the engine integrates a fuller VSOP2013
+model with nutation, and at this sample the two sit within a few
+thousandths of a degree of each other; through the year the
+low-precision series drifts up to about 0.01 deg in declination
+against the full theory, and refraction (omitted here, though
+NOAA's calculator display adds it) is the largest near-horizon
+term - the engine remains the fuller model.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sun/sun-position-noaa.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sun\sun-position-noaa.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sun/sun-position-noaa.epher
+In the REPL:             load one of the paths above
+
+Knobs: the instant (date plus hours UT) and the place.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const day = {2026, 6, 21}    // sample date
+const hr = 12.5              // hours UT (12.5 = 12:30)
+const lat = 51.4779          // Greenwich
+const lon = 0                // degrees east
+
+// ---- NOAA's equations: each def is one printed step ---------------------------
+def t(j) = (j - 2451545.0) / 36525                      // Julian centuries from J2000
+def mod360(x) = x - 360 * floor(x / 360)
+def l0(j) = mod360(280.46646 + t(j) * (36000.76983 + t(j) * 0.0003032))   // geometric mean longitude of the Sun, deg
+def manom(j) = mod360(357.52911 + t(j) * (35999.05029 - 0.0001537 * t(j)))  // geometric mean anomaly, deg
+def eccen(j) = 0.016708634 - t(j) * (0.000042037 + 0.0000001267 * t(j))   // Earth's orbital eccentricity
+def eqcen(j) = sin(rad(manom(j))) * (1.914602 - t(j) * (0.004817 + 0.000014 * t(j))) + sin(rad(2 * manom(j))) * (0.019993 - 0.000101 * t(j)) + 0.000289 * sin(rad(3 * manom(j)))  // equation of center, deg
+def trlon(j) = l0(j) + eqcen(j)                         // true longitude, deg
+def omega(j) = 125.04 - 1934.136 * t(j)                 // argument for the corrections, deg
+def applon(j) = trlon(j) - 0.00569 - 0.00478 * sin(rad(omega(j)))   // apparent longitude, deg
+def mobliq(j) = 23 + 26 / 60 + 21.448 / 3600 - t(j) * (46.815 + t(j) * (0.00059 - 0.001813 * t(j))) / 3600  // mean obliquity, deg
+def cobliq(j) = mobliq(j) + 0.00256 * cos(rad(omega(j)))  // corrected obliquity, deg
+def declin(j) = deg(asin(sin(rad(cobliq(j))) * sin(rad(applon(j)))))  // solar declination, deg
+def vy(j) = tan(rad(cobliq(j)) / 2) ^ 2                 // auxiliary y for the equation of time
+def eot(j) = 4 * deg(vy(j) * sin(rad(2 * l0(j))) - 2 * eccen(j) * sin(rad(manom(j))) + 4 * eccen(j) * vy(j) * sin(rad(manom(j))) * cos(rad(2 * l0(j))) - 0.5 * vy(j) ^ 2 * sin(rad(4 * l0(j))) - 1.25 * eccen(j) ^ 2 * sin(rad(2 * manom(j))))  // equation of time, minutes
+def ha(j) = 15 * (hr + lon / 15 - 12) + eot(j) / 4      // hour angle, deg (west positive)
+def altv(j) = deg(asin(sin(rad(lat)) * sin(rad(declin(j))) + cos(rad(lat)) * cos(rad(declin(j))) * cos(rad(ha(j)))))  // altitude, deg
+def zen(j) = 90 - altv(j)
+def azv(j) = deg(acos((sin(rad(declin(j))) * cos(rad(lat)) - cos(rad(declin(j))) * sin(rad(lat)) * cos(rad(ha(j)))) / sin(rad(zen(j)))))  // azimuth from north, deg
+def aznoaa(j) = if ha(j) > 0 then 360 - azv(j) else azv(j)
+
+// ---- results: the NOAA chain, printed step by step -----------------------------
+j = jd(day[1], day[2], day[3], hr)
+print("NOAA solar position for", iso(j), "UT at lat", lat, "lon", lon)
+print("step 1  Julian centuries n:", t(j))
+print("step 2  geometric mean longitude L0:", l0(j), "deg")
+print("step 3  geometric mean anomaly M:", manom(j), "deg")
+print("step 4  eccentricity e:", eccen(j))
+print("step 5  equation of center C:", eqcen(j), "deg")
+print("step 6  true longitude:", trlon(j), "deg")
+print("step 7  omega:", omega(j), "deg")
+print("step 8  apparent longitude:", applon(j), "deg")
+print("step 9  mean obliquity:", mobliq(j), "deg; corrected:", cobliq(j), "deg")
+print("step 10 declination:", declin(j), "deg")
+print("step 11 equation of time:", eot(j), "min")
+print("step 12 hour angle:", ha(j), "deg")
+print("step 13 altitude:", altv(j), "deg; zenith distance:", zen(j), "deg")
+print("step 14 azimuth:", aznoaa(j), "deg from north")
+
+/* Cross-check against the engine's built-in alt and az (the same
+instant, same place): the engine runs a fuller VSOP2013-based model
+with nutation. On this sample date the NOAA series stays within a
+few thousandths of a degree of it; the gap is not constant (the
+low-precision declination series drifts up to about 0.01 deg over
+the year, and refraction would add more near the horizon), so this
+print is the honest per-run comparison and the engine is the
+reference side. */
+print("cross-check: NOAA altitude", altv(j), "deg vs engine", alt(10, j, lat, lon), "deg")
+print("cross-check: NOAA azimuth", aznoaa(j), "deg vs engine", az(10, j, lat, lon), "deg")
+
+/* ---- expected output ----
+= {2026, 6, 21}
+= 12.5
+= 51.4779
+= 0
+= 118138225/48
+= NOAA solar position for 2026-06-21T12:30:00 UT at lat 51.4779 lon 0
+= step 1  Julian centuries n: 0.264695984486
+= step 2  geometric mean longitude L0: 89.7256936317 deg
+= step 3  geometric mean anomaly M: 166.333156286 deg
+= step 4  eccentricity e: 0.0166974980978
+= step 5  equation of center C: 0.443094441422 deg
+= step 6  true longitude: 90.1687880731 deg
+= step 7  omega: -386.918032649 deg
+= step 8  apparent longitude: 90.1652620526 deg
+= step 9  mean obliquity: 23.4358489583 deg; corrected: 23.4381315953 deg
+= step 10 declination: 23.4380282689 deg
+= step 11 equation of time: -1.82881005973 min
+= step 12 hour angle: 7.04279748507 deg
+= step 13 altitude: 61.4390663151 deg; zenith distance: 28.5609336849 deg
+= step 14 azimuth: 193.609169747 deg from north
+= cross-check: NOAA altitude 61.4390663151 deg vs engine 61.4373877 deg
+= cross-check: NOAA azimuth 193.609169747 deg vs engine 193.6134812 deg
+*/

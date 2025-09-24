@@ -1,0 +1,60 @@
+/* ============================================================================
+equ-galactic.epher -- equatorial to galactic coordinates
+
+Converts a J2000 equatorial position to galactic longitude and
+latitude in the IAU frame. The galactic north pole stands at
+alpha = 192.85948 deg, delta = +27.12825 deg (J2000), and the
+galactic longitude of the north celestial pole is 122.93192 deg;
+with those two anchors (IAU 1958 definition, precessed to J2000)
+the standard spherical conversion is:
+
+  sin(b) = sin(d) sin(dNGP) + cos(d) cos(dNGP) cos(a - aNGP)
+  l = l(NCP) - atan2(cos(d) sin(a - aNGP),
+                     sin(d) cos(dNGP) - cos(d) sin(dNGP) cos(a - aNGP))
+
+Accuracy: exact spherical rotation; the pole values define the
+frame to a few arcsec. Self-checks below use two known anchors: the
+north celestial pole itself and the galactic center (l ~ 359.94,
+b ~ -0.05).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/equ-galactic.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\equ-galactic.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/equ-galactic.epher
+In the REPL:             load one of the paths above
+
+Knob: the J2000 position below (default: the galactic center).
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------------
+const ara = 266.4168          // galactic center, J2000 (17h 45m 40s)
+const ade = -29.0078          // (Dec -29 00 28)
+
+// ---- frame constants and helpers --------------------------------------------------------
+const angp = 192.85948
+const dngp = 27.12825
+const lncp = 122.93192
+def wrap(x) = x - 360 * floor(x / 360)
+def glon(ar, dr) = wrap(lncp - deg(atan2(cos(rad(dr)) * sin(rad(ar - angp)), sin(rad(dr)) * cos(rad(dngp)) - cos(rad(dr)) * sin(rad(dngp)) * cos(rad(ar - angp)))))
+def glat(ar, dr) = deg(asin(sin(rad(dr)) * sin(rad(dngp)) + cos(rad(dr)) * cos(rad(dngp)) * cos(rad(ar - angp))))
+
+// ---- results --------------------------------------------------------------------------
+print("galactic center:  l", glon(ara, ade), " b", glat(ara, ade))
+print("north c. pole:    l", glon(0, 90), " b", glat(0, 90))
+
+/* Self-checks: the galactic center should land near l 359.94, b -0.05,
+and the north celestial pole at l 122.93, b +27.13 by definition. */
+print("NCP b within 0.01 of +27.12825:", abs(glat(0, 90) - 27.12825) < 0.01)
+print("NCP l within 0.01 of 122.93192:", abs(glon(0, 90) - 122.93192) < 0.01)
+
+/* ---- expected output ----
+= 266.4168
+= -29.0078
+= 192.85948
+= 27.12825
+= 122.93192
+= galactic center:  l 359.94424321  b -0.0461317156453
+= north c. pole:    l 122.93192  b 27.12825
+= NCP b within 0.01 of +27.12825: true
+= NCP l within 0.01 of 122.93192: true
+*/

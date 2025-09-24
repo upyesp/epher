@@ -1,0 +1,85 @@
+/* ============================================================================
+hebrew-calendar.epher -- Gregorian date to the Hebrew calendar
+
+Converts a Gregorian date into the Hebrew (Jewish) calendar: the
+year, month name and day. The calendar is lunar-solar: months track
+the Moon, and a 13th month (Adar I) is intercalated in the 7 leap
+years of each 19-year cycle. The algorithm follows Meeus,
+"Astronomical Algorithms" 2nd ed. ch. 9 and the standard molad
+arithmetic: the mean lunation is 29d 12h 793p (parts of 1/1080
+hour), and the postponement rules (Molad Zaken; the "Lo ADU" rule
+that Rosh Hashanah never falls on Sunday, Wednesday or Friday; the
+late-molad rules of leap and post-leap years) place 1 Tishri. The
+weekday count starts from the epoch: 1 Tishri 1 fell on a Monday,
+JD 347997.5.
+
+Accuracy: this is the fixed arithmetic calendar, exact by
+construction; the printed anchors match the reference converter
+Hebcal for 1 Tishri of 5781-5787.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/hebrew-calendar.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\hebrew-calendar.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/hebrew-calendar.epher
+In the REPL:             load one of the paths above
+
+Knobs: the date below.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------------
+const y = 2026
+const m = 9
+const d = 7
+
+// ---- molad arithmetic (integer; weekday 0 = Monday) ----------------------------------
+def leapv(yy) = mod(7 * yy + 1, 19) < 7
+def mcnt(yy) = floor((235 * yy - 234) / 19)
+def prt(yy) = mod(12084 + 13753 * mcnt(yy), 25920)
+def bd(yy) = 29 * mcnt(yy) + floor((12084 + 13753 * mcnt(yy)) / 25920) + (if prt(yy) >= 19440 then 1 else 0)
+def d2(yy) = bd(yy) + (if mod(bd(yy), 7) == 2 or mod(bd(yy), 7) == 4 or mod(bd(yy), 7) == 6 then 1 else 0)
+def d3(yy) = d2(yy) + (if mod(d2(yy), 7) == 0 and prt(yy) >= 16789 and leapv(yy) then 1 else 0)
+def tishri(yy) = d3(yy) + (if mod(d3(yy), 7) == 1 and prt(yy) >= 9924 and not leapv(yy) and leapv(yy - 1) then 2 else 0)
+def L(yy) = tishri(yy + 1) - tishri(yy)
+def hh(yy) = if mod(L(yy), 10) == 5 then 30 else 29
+def kk(yy) = if mod(L(yy), 10) == 3 then 29 else 30
+
+// ---- month lengths and names ------------------------------------------------------------
+def lens(yy) = if leapv(yy) then {30, hh(yy), kk(yy), 29, 30, 30, 29, 30, 29, 30, 29, 30, 29} else {30, hh(yy), kk(yy), 29, 30, 29, 30, 29, 30, 29, 30, 29}
+def mn(k, yy) = if k == 1 then "Tishri" else if k == 2 then "Heshvan" else if k == 3 then "Kislev" else if k == 4 then "Tevet" else if k == 5 then "Shevat" else if k == 6 then (if leapv(yy) then "Adar I" else "Adar") else if k == 7 then (if leapv(yy) then "Adar II" else "Nisan") else if k == 8 then "Iyar" else if k == 9 then "Sivan" else if k == 10 then "Tamuz" else if k == 11 then "Av" else "Elul"
+def acc(k, yy) = if k == 1 then 0 else acc(k - 1, yy) + lens(yy)[k - 1]
+def findm(k, yy, dy) = if dy < acc(k, yy) + lens(yy)[k] then k else findm(k + 1, yy, dy)
+
+// ---- the conversion -----------------------------------------------------------------------
+const jdn = floor(jd(y, m, d) + 0.5)
+def findy(yy, j) = if j >= tishri(yy) + 347998 then yy else findy(yy - 1, j)
+yh = findy(y + 3762, jdn)
+dyv = jdn - tishri(yh) - 347998
+km = findm(1, yh, dyv)
+dm = dyv - acc(km, yh) + 1
+
+print("Gregorian", y, "-", m, "-", d, "is Hebrew", dm, mn(km, yh), yh)
+print("1 Tishri", yh, "falls on JDN", tishri(yh) + 347998, "and the year has", L(yh), "days")
+
+/* Self-checks against the reference converter (Hebcal): 1 Tishri
+5786 fell on 2025-09-23 (JDN 2460942), 1 Tishri 5787 falls on
+2026-09-12 (JDN 2461296), and 2024-03-10 reads 30 Adar I 5784
+(day 176 of that leap year). */
+print("anchor: 1 Tishri 5786 = JDN 2460942:", tishri(5786) + 347998 == 2460942)
+print("anchor: 1 Tishri 5787 = JDN 2461296:", tishri(5787) + 347998 == 2461296)
+print("2024-03-10 is 30 Adar I 5784:", floor(jd(2024, 3, 10) + 0.5) - tishri(5784) - 347998 == 176)
+
+/* ---- expected output ----
+= 2026
+= 9
+= 7
+= 2461291
+= 5786
+= 349
+= 12
+= 25
+= Gregorian 2026 - 9 - 7 is Hebrew 25 Elul 5786
+= 1 Tishri 5786 falls on JDN 2460942 and the year has 354 days
+= anchor: 1 Tishri 5786 = JDN 2460942: true
+= anchor: 1 Tishri 5787 = JDN 2461296: true
+= 2024-03-10 is 30 Adar I 5784: true
+*/

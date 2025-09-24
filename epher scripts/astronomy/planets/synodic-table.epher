@@ -1,0 +1,245 @@
+/* ============================================================================
+synodic-table.epher -- the planets' synodic periods and their current cycle
+
+Roadmap item 24. The synodic period - the mean interval between one
+apparition and the next of the same kind - follows from the sidereal
+periods: the Earth laps an outer planet (or is lapped by an inner
+one) once per 1/|1/P_earth - 1/P_planet| days. The table carries
+NASA's sidereal periods (Planetary Fact Sheet), computes the synodic
+ones, and checks every row against NASA's published synodic values
+(Morsels, "Practical Astronomy with your Calculator", ch. on
+approximate periodicities, agrees to 0.01 d).
+
+For the current apparition each row dates the last and next event of
+its cycle - inferior conjunction for Mercury and Venus, opposition
+for Mars through Neptune - from a mean-element model: the planets'
+heliocentric longitudes come from the Meeus "Astronomical
+Algorithms" 2nd ed. ch. 32/33 Keplerian elements (the ch. 33 fits,
+good 1800-2050), Earth's from the ch. 25 solar mean elements; an
+alignment of the two longitudes is an event. These dates are
+model-grade, good to a day or two (a few days for Saturn, whose
+motion Jupiter perturbs), which is stated where it matters; the
+elongation printed in each row comes straight from the engine and
+is ephemeris-grade.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/synodic-table.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\synodic-table.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/synodic-table.epher
+In the REPL:             load one of the paths above
+
+Knob: the instant `t0` below (jd of 2026-09-10 12:00 UT). The
+engine accessors cost about half a second each, so the script makes
+about twenty calls and runs in some ten seconds.
+============================================================================ */
+
+// ---- the knob -------------------------------------------------------------------------
+const t0 = jd(2026, 9, 10, 12)
+
+// ---- shared machinery -----------------------------------------------------------------
+def mod360(x) = x - 360 * floor(x / 360)
+def wrap180(x) = mod360(x + 180) - 180
+def T(j) = (j - jd(2000, 1, 1, 12)) / 36525
+
+// Earth's heliocentric longitude from the Sun's mean elements (Meeus ch. 25).
+def L0s(j) = mod360(280.46646 + 36000.76983 * T(j) + 0.0003032 * T(j) * T(j))
+def Ms(j) = mod360(357.52911 + 35999.05029 * T(j) - 0.0001537 * T(j) * T(j))
+def Cs(j) = sin(rad(Ms(j))) * (1.914602 - T(j) * (0.004817 + 0.000014 * T(j))) + sin(rad(2 * Ms(j))) * (0.019993 - 0.000101 * T(j)) + 0.000289 * sin(rad(3 * Ms(j)))
+def elam(j) = mod360(L0s(j) + Cs(j) + 180)
+
+// Ecliptic-longitude rotation for the engine rows (Meeus ch. 13; the
+// mean obliquity of t0 is a constant here - it moves 0.0001 deg in a day).
+const ob = 23.4392911 - 0.0130042 * ((t0 - jd(2000, 1, 1, 12)) / 36525)
+def erot(alpha, delta) = deg(atan2(sin(rad(alpha)) * cos(rad(ob)) + tan(rad(delta)) * sin(rad(ob)), cos(rad(alpha))))
+const sra = ra(10, t0)
+const sde = decl(10, t0)
+const slon = erot(sra, sde)
+def elongnow(b) = wrap180(erot(ra(b, t0), decl(b, t0)) - slon)
+
+// Mean synodic period from the sidereal ones, days.
+def synodic(psid) = 365.256 * psid / abs(365.256 - psid)
+
+// ---------------------------------------------------------------------------------------
+// Per-planet model rows.  Each block: the ch. 33 elements (mean longitude
+// L, equation-of-center C from e and perihelion longitude pi, so the true
+// heliocentric longitude l = L + C), the relative angle g = l - Earth's
+// (a zero is the event: inferior conjunction for the inner planets,
+// opposition for the outer ones), then two scans - back and forward - that
+// walk a day at a time and interpolate the crossing.  The scan filters out
+// the +/-180 wrap of g (conjunctions of the outer planets, superior
+// conjunctions of the inner ones): a true crossing is bracketed by values
+// within 90 deg of zero, a wrap by values near 180.
+// ---------------------------------------------------------------------------------------
+def Lmercury(j) = mod360(252.2503235 + 149472.674866 * T(j))
+def Cmercury(j) = deg(2 * 0.20563593 * sin(rad(Lmercury(j) - 77.457796)) + 1.25 * 0.20563593 ^ 2 * sin(rad(2 * (Lmercury(j) - 77.457796))))
+def lmercury(j) = mod360(Lmercury(j) + Cmercury(j))
+def gmercury(j) = wrap180(lmercury(j) - elam(j))
+def Lvenus(j) = mod360(181.9790995 + 58517.8153873 * T(j))
+def Cvenus(j) = deg(2 * 0.00677672 * sin(rad(Lvenus(j) - 131.602467)))
+def lvenus(j) = mod360(Lvenus(j) + Cvenus(j))
+def gvenus(j) = wrap180(lvenus(j) - elam(j))
+def Lmars(j) = mod360(-4.55343205 + 19140.30268499 * T(j))
+def Cmars(j) = deg(2 * 0.0933941 * sin(rad(Lmars(j) - 336.056370)) + 1.25 * 0.0933941 ^ 2 * sin(rad(2 * (Lmars(j) - 336.056370))))
+def lmars(j) = mod360(Lmars(j) + Cmars(j))
+def gmars(j) = wrap180(lmars(j) - elam(j))
+def Ljupiter(j) = mod360(34.39644051 + 3034.74612775 * T(j))
+def Cjupiter(j) = deg(2 * 0.04838624 * sin(rad(Ljupiter(j) - 14.728480)) + 1.25 * 0.04838624 ^ 2 * sin(rad(2 * (Ljupiter(j) - 14.728480))))
+def ljupiter(j) = mod360(Ljupiter(j) + Cjupiter(j))
+def gjupiter(j) = wrap180(ljupiter(j) - elam(j))
+def Lsaturn(j) = mod360(49.95424423 + 1222.49362201 * T(j))
+def Csaturn(j) = deg(2 * 0.05386179 * sin(rad(Lsaturn(j) - 92.598878)) + 1.25 * 0.05386179 ^ 2 * sin(rad(2 * (Lsaturn(j) - 92.598878))))
+def lsaturn(j) = mod360(Lsaturn(j) + Csaturn(j))
+def gsaturn(j) = wrap180(lsaturn(j) - elam(j))
+def Luranus(j) = mod360(313.23810451 + 428.48202785 * T(j))
+def Curanus(j) = deg(2 * 0.04725744 * sin(rad(Luranus(j) - 170.954276)) + 1.25 * 0.04725744 ^ 2 * sin(rad(2 * (Luranus(j) - 170.954276))))
+def luranus(j) = mod360(Luranus(j) + Curanus(j))
+def guranus(j) = wrap180(luranus(j) - elam(j))
+def Lneptune(j) = mod360(-55.12002969 + 218.45945325 * T(j))
+def Cneptune(j) = deg(2 * 0.00859048 * sin(rad(Lneptune(j) - 44.964762)))
+def lneptune(j) = mod360(Lneptune(j) + Cneptune(j))
+def gneptune(j) = wrap180(lneptune(j) - elam(j))
+// Mercury (engine body 1): sidereal 87.9691 d, mean synodic 115.88 d
+def bk_mercury(j, prev) = if j < t0 - 160 then -1 else if gmercury(j) * prev < 0 and abs(gmercury(j)) < 90 and abs(prev) < 90 then j else bk_mercury(j - 1, gmercury(j))
+def fk_mercury(j, prev) = if j > t0 + 160 then -1 else if gmercury(j) * prev < 0 and abs(gmercury(j)) < 90 and abs(prev) < 90 then j else fk_mercury(j + 1, gmercury(j))
+def ib_mercury(h) = h - 1 - gmercury(h - 1) / (gmercury(h) - gmercury(h - 1))
+const last_mercury = bk_mercury(t0 - 1, gmercury(t0))
+const next_mercury = fk_mercury(t0 + 1, gmercury(t0))
+const elong_mercury = elongnow(1)
+
+print("Mercury: sidereal", 87.9691, "d; mean synodic", round(synodic(87.9691) * 100) / 100, "d; NASA says 115.88 d:", abs(synodic(87.9691) - 115.88) < 0.1)
+print("  last inferior conjunction:", iso(ib_mercury(last_mercury)), "UT; next:", iso(ib_mercury(next_mercury)), "UT; cycle", round(10000 * (t0 - ib_mercury(last_mercury)) / synodic(87.9691)) / 100, "% through")
+print("  elongation now:", round(elong_mercury * 100) / 100, "deg;", (if elong_mercury > 170 then "at opposition" else if elong_mercury > 0 then "east, evening sky" else "west, morning sky"))
+
+// Venus (engine body 2): sidereal 224.701 d, mean synodic 583.92 d
+def bk_venus(j, prev) = if j < t0 - 630 then -1 else if gvenus(j) * prev < 0 and abs(gvenus(j)) < 90 and abs(prev) < 90 then j else bk_venus(j - 1, gvenus(j))
+def fk_venus(j, prev) = if j > t0 + 630 then -1 else if gvenus(j) * prev < 0 and abs(gvenus(j)) < 90 and abs(prev) < 90 then j else fk_venus(j + 1, gvenus(j))
+def ib_venus(h) = h - 1 - gvenus(h - 1) / (gvenus(h) - gvenus(h - 1))
+const last_venus = bk_venus(t0 - 1, gvenus(t0))
+const next_venus = fk_venus(t0 + 1, gvenus(t0))
+const elong_venus = elongnow(2)
+
+print("Venus: sidereal", 224.701, "d; mean synodic", round(synodic(224.701) * 100) / 100, "d; NASA says 583.92 d:", abs(synodic(224.701) - 583.92) < 0.1)
+print("  last inferior conjunction:", iso(ib_venus(last_venus)), "UT; next:", iso(ib_venus(next_venus)), "UT; cycle", round(10000 * (t0 - ib_venus(last_venus)) / synodic(224.701)) / 100, "% through")
+print("  elongation now:", round(elong_venus * 100) / 100, "deg;", (if elong_venus > 170 then "at opposition" else if elong_venus > 0 then "east, evening sky" else "west, morning sky"))
+
+// Mars (engine body 4): sidereal 686.98 d, mean synodic 779.94 d
+def bk_mars(j, prev) = if j < t0 - 820 then -1 else if gmars(j) * prev < 0 and abs(gmars(j)) < 90 and abs(prev) < 90 then j else bk_mars(j - 1, gmars(j))
+def fk_mars(j, prev) = if j > t0 + 820 then -1 else if gmars(j) * prev < 0 and abs(gmars(j)) < 90 and abs(prev) < 90 then j else fk_mars(j + 1, gmars(j))
+def ib_mars(h) = h - 1 - gmars(h - 1) / (gmars(h) - gmars(h - 1))
+const last_mars = bk_mars(t0 - 1, gmars(t0))
+const next_mars = fk_mars(t0 + 1, gmars(t0))
+const elong_mars = elongnow(4)
+
+print("Mars: sidereal", 686.98, "d; mean synodic", round(synodic(686.98) * 100) / 100, "d; NASA says 779.94 d:", abs(synodic(686.98) - 779.94) < 0.1)
+print("  last opposition:", iso(ib_mars(last_mars)), "UT; next:", iso(ib_mars(next_mars)), "UT; cycle", round(10000 * (t0 - ib_mars(last_mars)) / synodic(686.98)) / 100, "% through")
+print("  elongation now:", round(elong_mars * 100) / 100, "deg;", (if elong_mars > 170 then "at opposition" else if elong_mars > 0 then "east, evening sky" else "west, morning sky"))
+
+// Jupiter (engine body 5): sidereal 4332.589 d, mean synodic 398.88 d
+def bk_jupiter(j, prev) = if j < t0 - 440 then -1 else if gjupiter(j) * prev < 0 and abs(gjupiter(j)) < 90 and abs(prev) < 90 then j else bk_jupiter(j - 1, gjupiter(j))
+def fk_jupiter(j, prev) = if j > t0 + 440 then -1 else if gjupiter(j) * prev < 0 and abs(gjupiter(j)) < 90 and abs(prev) < 90 then j else fk_jupiter(j + 1, gjupiter(j))
+def ib_jupiter(h) = h - 1 - gjupiter(h - 1) / (gjupiter(h) - gjupiter(h - 1))
+const last_jupiter = bk_jupiter(t0 - 1, gjupiter(t0))
+const next_jupiter = fk_jupiter(t0 + 1, gjupiter(t0))
+const elong_jupiter = elongnow(5)
+
+print("Jupiter: sidereal", 4332.589, "d; mean synodic", round(synodic(4332.589) * 100) / 100, "d; NASA says 398.88 d:", abs(synodic(4332.589) - 398.88) < 0.1)
+print("  last opposition:", iso(ib_jupiter(last_jupiter)), "UT; next:", iso(ib_jupiter(next_jupiter)), "UT; cycle", round(10000 * (t0 - ib_jupiter(last_jupiter)) / synodic(4332.589)) / 100, "% through")
+print("  elongation now:", round(elong_jupiter * 100) / 100, "deg;", (if elong_jupiter > 170 then "at opposition" else if elong_jupiter > 0 then "east, evening sky" else "west, morning sky"))
+
+// Saturn (engine body 6): sidereal 10759.22 d, mean synodic 378.09 d
+def bk_saturn(j, prev) = if j < t0 - 420 then -1 else if gsaturn(j) * prev < 0 and abs(gsaturn(j)) < 90 and abs(prev) < 90 then j else bk_saturn(j - 1, gsaturn(j))
+def fk_saturn(j, prev) = if j > t0 + 420 then -1 else if gsaturn(j) * prev < 0 and abs(gsaturn(j)) < 90 and abs(prev) < 90 then j else fk_saturn(j + 1, gsaturn(j))
+def ib_saturn(h) = h - 1 - gsaturn(h - 1) / (gsaturn(h) - gsaturn(h - 1))
+const last_saturn = bk_saturn(t0 - 1, gsaturn(t0))
+const next_saturn = fk_saturn(t0 + 1, gsaturn(t0))
+const elong_saturn = elongnow(6)
+
+print("Saturn: sidereal", 10759.22, "d; mean synodic", round(synodic(10759.22) * 100) / 100, "d; NASA says 378.09 d:", abs(synodic(10759.22) - 378.09) < 0.1)
+print("  last opposition:", iso(ib_saturn(last_saturn)), "UT; next:", iso(ib_saturn(next_saturn)), "UT; cycle", round(10000 * (t0 - ib_saturn(last_saturn)) / synodic(10759.22)) / 100, "% through")
+print("  elongation now:", round(elong_saturn * 100) / 100, "deg;", (if elong_saturn > 170 then "at opposition" else if elong_saturn > 0 then "east, evening sky" else "west, morning sky"))
+
+// Uranus (engine body 7): sidereal 30688.5 d, mean synodic 369.66 d
+def bk_uranus(j, prev) = if j < t0 - 410 then -1 else if guranus(j) * prev < 0 and abs(guranus(j)) < 90 and abs(prev) < 90 then j else bk_uranus(j - 1, guranus(j))
+def fk_uranus(j, prev) = if j > t0 + 410 then -1 else if guranus(j) * prev < 0 and abs(guranus(j)) < 90 and abs(prev) < 90 then j else fk_uranus(j + 1, guranus(j))
+def ib_uranus(h) = h - 1 - guranus(h - 1) / (guranus(h) - guranus(h - 1))
+const last_uranus = bk_uranus(t0 - 1, guranus(t0))
+const next_uranus = fk_uranus(t0 + 1, guranus(t0))
+const elong_uranus = elongnow(7)
+
+print("Uranus: sidereal", 30688.5, "d; mean synodic", round(synodic(30688.5) * 100) / 100, "d; NASA says 369.66 d:", abs(synodic(30688.5) - 369.66) < 0.1)
+print("  last opposition:", iso(ib_uranus(last_uranus)), "UT; next:", iso(ib_uranus(next_uranus)), "UT; cycle", round(10000 * (t0 - ib_uranus(last_uranus)) / synodic(30688.5)) / 100, "% through")
+print("  elongation now:", round(elong_uranus * 100) / 100, "deg;", (if elong_uranus > 170 then "at opposition" else if elong_uranus > 0 then "east, evening sky" else "west, morning sky"))
+
+// Neptune (engine body 8): sidereal 60182 d, mean synodic 367.49 d
+def bk_neptune(j, prev) = if j < t0 - 410 then -1 else if gneptune(j) * prev < 0 and abs(gneptune(j)) < 90 and abs(prev) < 90 then j else bk_neptune(j - 1, gneptune(j))
+def fk_neptune(j, prev) = if j > t0 + 410 then -1 else if gneptune(j) * prev < 0 and abs(gneptune(j)) < 90 and abs(prev) < 90 then j else fk_neptune(j + 1, gneptune(j))
+def ib_neptune(h) = h - 1 - gneptune(h - 1) / (gneptune(h) - gneptune(h - 1))
+const last_neptune = bk_neptune(t0 - 1, gneptune(t0))
+const next_neptune = fk_neptune(t0 + 1, gneptune(t0))
+const elong_neptune = elongnow(8)
+
+print("Neptune: sidereal", 60182, "d; mean synodic", round(synodic(60182) * 100) / 100, "d; NASA says 367.49 d:", abs(synodic(60182) - 367.49) < 0.1)
+print("  last opposition:", iso(ib_neptune(last_neptune)), "UT; next:", iso(ib_neptune(next_neptune)), "UT; cycle", round(10000 * (t0 - ib_neptune(last_neptune)) / synodic(60182)) / 100, "% through")
+print("  elongation now:", round(elong_neptune * 100) / 100, "deg;", (if elong_neptune > 170 then "at opposition" else if elong_neptune > 0 then "east, evening sky" else "west, morning sky"))
+
+// ---- results ---------------------------------------------------------------------------
+print("Model event dates rest on mean elements (Meeus ch. 25, 32/33) and")
+print("carry +/-1-3 days (Saturn a few more); the elongations are the")
+print("engine's own and are good to arcminutes.")
+print("Mars canon check: the model's last opposition", iso(ib_mars(last_mars)), "UT vs NASA 2025-01-16:", abs(ib_mars(last_mars) - jd(2025, 1, 16)) < 3)
+print("Venus canon check: illum at the model's last inferior conj:", round(illum(2, ib_venus(last_venus)) * 1000) / 1000, "(new Venus is near 0)")
+
+/* ---- expected output ----
+= 2461294
+= 23.435820109
+= 168.785085376
+= 4.81958061
+= 167.805529208
+= 2461234
+= 2461350
+= 11.8878721324
+= Mercury: sidereal 87.9691 d; mean synodic 115.88 d; NASA says 115.88 d: true
+=   last inferior conjunction: 2026-07-13T00:38:44 UT; next: 2026-11-04T13:39:32 UT; cycle 51.32 % through
+=   elongation now: 11.89 deg; east, evening sky
+= 2460758
+= 2461339
+= 42.2997769446
+= Venus: sidereal 224.701 d; mean synodic 583.92 d; NASA says 583.92 d: true
+=   last inferior conjunction: 2025-03-23T16:02:59 UT; next: 2026-10-24T20:39:32 UT; cycle 91.76 % through
+=   elongation now: 42.3 deg; east, evening sky
+= 2460690
+= 2461456
+= -58.4533835271
+= Mars: sidereal 686.98 d; mean synodic 779.93 d; NASA says 779.94 d: true
+=   last opposition: 2025-01-15T10:21:10 UT; next: 2027-02-18T22:00:28 UT; cycle 77.32 % through
+=   elongation now: -58.45 deg; west, morning sky
+= 2461050
+= 2461448
+= -32.1434752899
+= Jupiter: sidereal 4332.589 d; mean synodic 398.88 d; NASA says 398.88 d: true
+=   last opposition: 2026-01-09T23:27:37 UT; next: 2027-02-10T15:30:12 UT; cycle 61.05 % through
+=   elongation now: -32.14 deg; west, morning sky
+= 2460939
+= 2461318
+= -154.711157233
+= Saturn: sidereal 10759.22 d; mean synodic 378.09 d; NASA says 378.09 d: true
+=   last opposition: 2025-09-20T22:12:22 UT; next: 2026-10-04T04:17:25 UT; cycle 93.78 % through
+=   elongation now: -154.71 deg; west, morning sky
+= 2461000
+= 2461371
+= -102.108413898
+= Uranus: sidereal 30688.5 d; mean synodic 369.66 d; NASA says 369.66 d: true
+=   last opposition: 2025-11-21T03:21:39 UT; next: 2026-11-25T13:08:16 UT; cycle 79.36 % through
+=   elongation now: -102.11 deg; west, morning sky
+= 2460941
+= 2461310
+= -164.381499951
+= Neptune: sidereal 60182 d; mean synodic 367.49 d; NASA says 367.49 d: true
+=   last opposition: 2025-09-23T04:05:35 UT; next: 2026-09-25T16:26:35 UT; cycle 95.88 % through
+=   elongation now: -164.38 deg; west, morning sky
+= Model event dates rest on mean elements (Meeus ch. 25, 32/33) and
+= carry +/-1-3 days (Saturn a few more); the elongations are the
+= engine's own and are good to arcminutes.
+= Mars canon check: the model's last opposition 2025-01-15T10:21:10 UT vs NASA 2025-01-16: true
+= Venus canon check: illum at the model's last inferior conj: 0.01 (new Venus is near 0)
+*/

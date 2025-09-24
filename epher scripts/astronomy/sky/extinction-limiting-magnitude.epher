@@ -1,0 +1,98 @@
+/* ============================================================================
+extinction-limiting-magnitude.epher -- how faint you can see, altitude by altitude
+
+Atmospheric extinction dims every object by an amount that grows with
+the airmass it is seen through: a star at altitude h loses k airmasses'
+worth of light, where the airmass is the built-in airmass(h) (the
+secant model, see airmass-table.epher) and k is the extinction in
+magnitudes per airmass at the zenith - about 0.2 mag at a typical
+dark site, more through haze or at sea level (Duffett-Smith,
+"Practical Astronomy", "Atmospheric extinction"). The script tabulates
+extinction and the resulting limiting magnitude at altitudes 90 to 5
+degrees for one telescope aperture and one naked-eye limit.
+
+The limiting magnitude at the zenith follows the crude aperture law
+  m = NELM + 5 log(D / d_eye)
+with D the aperture and d_eye the dark-adapted pupil, about 7 mm
+(B. Schaefer, "Telescopic Limiting Magnitudes", PASP 102, 1990; the
+same rule fills the telescope pages of Sky & Telescope). At altitude h
+the limit drops by the extinction k * airmass(h). Honest grade: about
+0.5 magnitude either way - the law ignores seeing, optics quality,
+magnification and sky brightness, and extinction varies with the night.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/extinction-limiting-magnitude.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\extinction-limiting-magnitude.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/extinction-limiting-magnitude.epher
+In the REPL:             load one of the paths above
+
+Knobs: the extinction k per airmass, the aperture D (mm), the naked-eye
+limit NELM at the zenith and the eye-pupil diameter d_eye (mm).
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const k = 0.2               // extinction, magnitudes per airmass at the zenith
+const D = 200               // telescope aperture, mm
+const NELM = 6              // naked-eye limiting magnitude at the zenith
+const d_eye = 7             // dark-adapted pupil, mm
+
+// ---- model ------------------------------------------------------------------
+const m0 = NELM + 5 * log(D / d_eye)   // telescope limit at the zenith, mag
+def X(h) = airmass(h)                     // built-in airmass at altitude h
+def ext(h) = k * X(h)                     // extinction in magnitudes at h
+def mlim(h) = m0 - ext(h)                 // limiting magnitude at h
+
+/* ---- results ----------------------------------------------------------------
+One row per altitude. The story is in the last two columns: at 30 deg
+the object's light crosses twice the zenith air, costing 0.4 mag, and
+at 5 deg the same telescope sees barely a magnitude fainter than the
+naked eye does overhead - which is why observers wait for objects to
+climb. */
+print("extinction", k, "mag per airmass; telescope", D, "mm; naked-eye limit NELM", NELM)
+print("limiting magnitude at the zenith:", m0, "mag")
+print("at 90 deg (zenith): airmass", X(90))
+print("  extinction", ext(90), "mag; limiting", mlim(90), "mag")
+print("at 60 deg: airmass", X(60))
+print("  extinction", ext(60), "mag; limiting", mlim(60), "mag")
+print("at 45 deg: airmass", X(45))
+print("  extinction", ext(45), "mag; limiting", mlim(45), "mag")
+print("at 30 deg: airmass", X(30))
+print("  extinction", ext(30), "mag; limiting", mlim(30), "mag")
+print("at 20 deg: airmass", X(20))
+print("  extinction", ext(20), "mag; limiting", mlim(20), "mag")
+print("at 10 deg: airmass", X(10))
+print("  extinction", ext(10), "mag; limiting", mlim(10), "mag")
+print("at 5 deg: airmass", X(5))
+print("  extinction", ext(5), "mag; limiting", mlim(5), "mag")
+
+// The aperture gain over the eye alone, from the same law.
+print("aperture gain 5 log(D / d_eye):", m0 - NELM, "mag")
+
+/* Self-check: the built-in airmass is the secant model 1/sin(h); the
+two agree by construction at every altitude (one row, at 60 deg). */
+print("check: airmass(60) vs 1/sin(60 deg):", X(60), 1 / sin(rad(60)))
+/* ---- expected output ----
+= 0.2
+= 200
+= 6
+= 7
+= 13.2796597782
+= extinction 0.2 mag per airmass; telescope 200 mm; naked-eye limit NELM 6
+= limiting magnitude at the zenith: 13.2796597782 mag
+= at 90 deg (zenith): airmass 1
+=   extinction 0.2 mag; limiting 13.0796597782 mag
+= at 60 deg: airmass 1.15470053838
+=   extinction 0.230940107676 mag; limiting 13.0487196706 mag
+= at 45 deg: airmass 1.41421356237
+=   extinction 0.282842712475 mag; limiting 12.9968170658 mag
+= at 30 deg: airmass 2
+=   extinction 0.4 mag; limiting 12.8796597782 mag
+= at 20 deg: airmass 2.92380440016
+=   extinction 0.584760880033 mag; limiting 12.6948988982 mag
+= at 10 deg: airmass 5.75877048314
+=   extinction 1.15175409663 mag; limiting 12.1279056816 mag
+= at 5 deg: airmass 11.4737132457
+=   extinction 2.29474264913 mag; limiting 10.9849171291 mag
+= aperture gain 5 log(D / d_eye): 7.27965977825 mag
+= check: airmass(60) vs 1/sin(60 deg): 1.15470053838 1.15470053838
+*/

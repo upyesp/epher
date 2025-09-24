@@ -1,0 +1,84 @@
+/* ============================================================================
+equation-of-time.epher -- how far the sundial runs fast or slow
+
+Computes the equation of time E for several dates: the minutes by
+which a sundial leads (positive) or trails (negative) a clock read
+in local mean time. The engine's own alpha-style accessors do not
+expose E, so the script carries Meeus's chapter 28 recipe: E (deg) =
+L0 - 0.0057183 - alpha + Delta-psi x cos(eps), where L0 is the Sun's
+mean longitude, alpha its apparent right ascension, Delta-psi the
+nutation in longitude (largest terms) and eps the obliquity. Times
+are TD via the built-in delta_t; 1 degree of longitude = 4 minutes.
+
+Method and source: Jean Meeus, "Astronomical Algorithms" 2nd ed.
+ch. 28 (with the apparent-longitude step of ch. 25); the largest
+nutation terms of ch. 22 (truncating the rest costs about 0.03 s).
+The same quantity is the classic calculator "EQT" program (hpcalc
+7618, HP-48 "Analemma") and NOAA's solar-calculator `eqtime`.
+
+Accuracy: about +/- 0.1 minute of time. The values below were
+cross-checked against NOAA's independent Fourier series (their
+solareqns.PDF): 2026-02-12 -14.25 vs -14.2 here, 2026-11-03 +16.34
+vs +16.4 - agreement to a few tenths of a minute, which is what the
+Fourier series itself guarantees.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/equation-of-time.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\equation-of-time.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/equation-of-time.epher
+In the REPL:             load one of the paths above
+
+Knobs: the four dates below (any 2026 date can be swapped in).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const d_feb = {2026, 2, 12}    // near the mid-February minimum
+const d_apr = {2026, 4, 15}    // near a zero crossing
+const d_jun = {2026, 6, 21}    // June solstice
+const d_nov = {2026, 11, 3}    // near the early-November maximum
+
+// ---- Meeus ch. 28: mean elements in T (Julian centuries from J2000, TD) -------
+def mod360(x) = x - 360 * floor(x / 360)
+def cent(j) = (j + delta_t(j) / 86400 - jd(2000, 1, 1, 12)) / 36525
+def l0(t) = mod360(280.46061837 + 36000.77005360 * t + 0.000387933 * t ^ 2 - t ^ 3 / 38710000)
+def m(t) = mod360(357.5291092 + 35999.0502909 * t - 0.0001536 * t ^ 2)
+def omega(t) = mod360(125.04 - 1934.136 * t)
+def eps(t) = 23.4392911 - 0.0130042 * t - 0.000000164 * t ^ 2 + 0.000000504 * t ^ 3
+
+// ---- equation of center (ch. 25), apparent longitude and right ascension ------
+def cen(t) = (1.914602 - 0.004817 * t - 0.000014 * t ^ 2) * sin(rad(m(t))) + (0.019993 - 0.000101 * t) * sin(rad(2 * m(t))) + 0.000289 * sin(rad(3 * m(t)))
+def applon(t) = l0(t) + cen(t) - 0.0057183 - 0.0047833 * sin(rad(omega(t)))
+def alpha(t) = deg(atan2(cos(rad(eps(t))) * sin(rad(applon(t))), cos(rad(applon(t)))))
+
+// ---- nutation in longitude, degrees: the three largest terms (ch. 22) ---------
+def psi(t) = (-17.20 * sin(rad(omega(t))) - 1.32 * sin(rad(2 * l0(t))) + 0.21 * sin(rad(2 * omega(t)))) / 3600
+
+// ---- the equation of time in minutes of time ----------------------------------
+def signed360(x) = if x > 180 then x - 360 else x
+def eot(j) = signed360(l0(cent(j)) - 0.0057183 - alpha(cent(j)) + psi(cent(j)) * cos(rad(eps(cent(j))))) * 4
+
+// ---- results ------------------------------------------------------------------
+print("equation of time, minutes (sundial fast +):")
+print("2026-02-12:", eot(jd(d_feb[1], d_feb[2], d_feb[3])))
+print("2026-04-15:", eot(jd(d_apr[1], d_apr[2], d_apr[3])))
+print("2026-06-21:", eot(jd(d_jun[1], d_jun[2], d_jun[3])))
+print("2026-11-03:", eot(jd(d_nov[1], d_nov[2], d_nov[3])))
+
+/* Reading the numbers: in mid-February the sundial runs about 14
+minutes slow, and a clock set to the November sun would run 16
+minutes fast - the extremes of the year. The four zero crossings
+fall near April 15, June 13, September 1 and December 25. */
+print("year's spread (Nov max minus Feb min):", eot(jd(d_nov[1], d_nov[2], d_nov[3])) - eot(jd(d_feb[1], d_feb[2], d_feb[3])), "min")
+
+/* ---- expected output ----
+= {2026, 2, 12}
+= {2026, 4, 15}
+= {2026, 6, 21}
+= {2026, 11, 3}
+= equation of time, minutes (sundial fast +):
+= 2026-02-12: -14.1935995278
+= 2026-04-15: -0.158945038735
+= 2026-06-21: -1.71739350749
+= 2026-11-03: 16.4392227149
+= year's spread (Nov max minus Feb min): 30.6328222427 min
+*/

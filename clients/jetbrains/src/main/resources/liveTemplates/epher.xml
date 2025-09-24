@@ -1,0 +1,64 @@
+<templateSet group="epher">
+    <!-- The shared snippets (clients/shared/epher-snippets.json), ported
+         to IntelliJ live templates. The context is OTHER, so they are
+         offered wherever epher files are edited. -->
+    <template name="def" value="def $NAME$($ARGS$) = $EXPR$" description="a function defined by an expression" toReformat="false" toShortenFQNames="true">
+        <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true"/>
+        <variable name="ARGS" expression="" defaultValue="" alwaysStopAt="true"/>
+        <variable name="EXPR" expression="" defaultValue="" alwaysStopAt="true"/>
+        <context>
+            <option name="OTHER" value="true"/>
+        </context>
+    </template>
+    <template name="defblock" value="def $NAME$($ARGS$) do&#10;&#9;$BODY$&#10;end" description="a function with a statement body" toReformat="false" toShortenFQNames="true">
+        <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true"/>
+        <variable name="ARGS" expression="" defaultValue="" alwaysStopAt="true"/>
+        <variable name="BODY" expression="" defaultValue="" alwaysStopAt="true"/>
+        <context>
+            <option name="OTHER" value="true"/>
+        </context>
+    </template>
+    <template name="for" value="for $K$ in $FROM$ to $TO$ do&#10;&#9;$BODY$&#10;end" description="a counted loop" toReformat="false" toShortenFQNames="true">
+        <variable name="K" expression="" defaultValue="" alwaysStopAt="true"/>
+        <variable name="FROM" expression="" defaultValue="" alwaysStopAt="true"/>
+        <variable name="TO" expression="" defaultValue="" alwaysStopAt="true"/>
+        <variable name="BODY" expression="" defaultValue="" alwaysStopAt="true"/>
+        <context>
+            <option name="OTHER" value="true"/>
+        </context>
+    </template>
+    <template name="ifexpr" value="if $COND$ then $THEN$ else $ELSE$" description="the chooser of values" toReformat="false" toShortenFQNames="true">
+        <variable name="COND" expression="" defaultValue="" alwaysStopAt="true"/>
+        <variable name="THEN" expression="" defaultValue="" alwaysStopAt="true"/>
+        <variable name="ELSE" expression="" defaultValue="" alwaysStopAt="true"/>
+        <context>
+            <option name="OTHER" value="true"/>
+        </context>
+    </template>
+    <template name="while" value="while $COND$ do $BODY$ end" description="a conditional loop" toReformat="false" toShortenFQNames="true">
+        <variable name="COND" expression="" defaultValue="" alwaysStopAt="true"/>
+        <variable name="BODY" expression="" defaultValue="" alwaysStopAt="true"/>
+        <context>
+            <option name="OTHER" value="true"/>
+        </context>
+    </template>
+    <template name="solve" value="solve $EQN$" description="numeric equation solving" toReformat="false" toShortenFQNames="true">
+        <variable name="EQN" expression="" defaultValue="" alwaysStopAt="true"/>
+        <context>
+            <option name="OTHER" value="true"/>
+        </context>
+    </template>
+    <template name="list" value="{$ITEMS$}" description="a list literal" toReformat="false" toShortenFQNames="true">
+        <variable name="ITEMS" expression="" defaultValue="" alwaysStopAt="true"/>
+        <context>
+            <option name="OTHER" value="true"/>
+        </context>
+    </template>
+    <template name="matrix" value="[[$ROW1$], [$ROW2$]]" description="a matrix, rows of rows" toReformat="false" toShortenFQNames="true">
+        <variable name="ROW1" expression="" defaultValue="" alwaysStopAt="true"/>
+        <variable name="ROW2" expression="" defaultValue="" alwaysStopAt="true"/>
+        <context>
+            <option name="OTHER" value="true"/>
+        </context>
+    </template>
+</templateSet>

@@ -1,0 +1,90 @@
+/* ============================================================================
+planet-visibility-tonight.epher -- who is up in tonight's dark hours
+
+For one night at one place, which of the five naked-eye planets can be
+seen in the dark: each planet's rise and set (built-in events, upper
+limb on the geometric horizon) are compared with the night itself, the
+window between the end of astronomical twilight at dusk (Sun 18 degrees
+below the horizon) and its start at dawn. A planet is reported visible
+when it is above the horizon inside that window; the window's geometry
+comes from the Sun's hour angle at -18 degrees.
+
+The default night, 2026-10-15/16 from Greenwich, tells a real story:
+Saturn rides the sky the whole dark window (its opposition fell on
+2026-10-05), Mars climbs up after 23:27 and is well placed before dawn,
+Jupiter joins it in the small hours, and Mercury and Venus - though both
+lie east of the Sun - set before it at this latitude, running south of
+the Sun's track (Venus a week and a half before its inferior
+conjunction).
+
+Accuracy: event times and altitudes follow the engine's conventions
+(solar-ephemeris crate, JPL-Horizons-validated), so the windows are good
+to about a minute; twilight uses the mean geometric -18 degree Sun
+altitude, the standard astronomical definition.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-visibility-tonight.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-visibility-tonight.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-visibility-tonight.epher
+In the REPL:             load one of the paths above
+
+Knobs: the night (the date `day` starts the local evening), the
+observer's `lat` and `lon` (east positive). Times print in UT.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const day = {2026, 10, 15}      // the evening of this date
+const lat = 51.4779             // Greenwich
+const lon = 0
+const t15 = jd(day[1], day[2], day[3], 12)     // local day 1, noon
+const t16 = jd(day[1], day[2], day[3] + 1, 12) // local day 2, noon
+
+// ---- the astronomical night: Sun's hour angle at -18 degrees ----------------
+def hms(x) = deg2hms(((x + 0.5) - floor(x + 0.5)) * 360)   // civil clock time of the instant
+def sunh(j) = deg(acos((sin(rad(-18)) - sin(rad(lat)) * sin(rad(decl(10, j)))) / (cos(rad(lat)) * cos(rad(decl(10, j))))))   // hour angle, deg
+const suntime = transit(10, t15, lat, lon)     // Sun's transit on the local day
+const dusk = suntime + sunh(t15) / 360         // evening twilight ends (JD)
+const dawn = transit(10, t16, lat, lon) - sunh(t16) / 360   // next morning's twilight starts (JD)
+
+// ---- each planet's rise/set on the two local days ----------------------------
+def r1(p) = rise(p, t15, lat, lon)
+def s1(p) = set(p, t15, lat, lon)
+def r2(p) = rise(p, t16, lat, lon)
+def s2(p) = set(p, t16, lat, lon)
+// The body is up at dusk when it rose before dusk and has not yet set.
+def upatdusk(p) = if r1(p) < s1(p) then dusk < s1(p) else r1(p) < dusk
+// Start and end of the body's time above the horizon inside the dark window.
+def span(p) = {max(dusk, if upatdusk(p) then dusk else if r1(p) < s1(p) then r2(p) else r1(p)), min(dawn, if r1(p) < s1(p) then (if s1(p) > dusk then s1(p) else s2(p)) else s2(p))}
+
+// ---- results ------------------------------------------------------------------
+print("night of", iso(jd(day[1], day[2], day[3], 12)), "at lat", lat, "lon", lon)
+print("dark window: dusk", hms(dusk), "to dawn", hms(dawn), "UT (", (dawn - dusk) * 24, "hours)")
+print("Mercury:", if span(1)[2] - span(1)[1] > (dawn - dusk) * 0.98 then "up the whole dark window" else if span(1)[2] > span(1)[1] then "visible " + hms(span(1)[1]) + " to " + hms(span(1)[2]) else "not visible in the dark window")
+print("Venus:  ", if span(2)[2] - span(2)[1] > (dawn - dusk) * 0.98 then "up the whole dark window" else if span(2)[2] > span(2)[1] then "visible " + hms(span(2)[1]) + " to " + hms(span(2)[2]) else "not visible in the dark window")
+print("Mars:   ", if span(4)[2] - span(4)[1] > (dawn - dusk) * 0.98 then "up the whole dark window" else if span(4)[2] > span(4)[1] then "visible " + hms(span(4)[1]) + " to " + hms(span(4)[2]) else "not visible in the dark window")
+print("Jupiter:", if span(5)[2] - span(5)[1] > (dawn - dusk) * 0.98 then "up the whole dark window" else if span(5)[2] > span(5)[1] then "visible " + hms(span(5)[1]) + " to " + hms(span(5)[2]) else "not visible in the dark window")
+print("Saturn: ", if span(6)[2] - span(6)[1] > (dawn - dusk) * 0.98 then "up the whole dark window" else if span(6)[2] > span(6)[1] then "visible " + hms(span(6)[1]) + " to " + hms(span(6)[2]) else "not visible in the dark window")
+print("Mercury and Venus set before dusk:", hms(s1(1)), hms(s1(2)))
+print("their next rises:", hms(r2(1)), hms(r2(2)))
+print("Saturn rises", hms(r1(6)), "and sets", hms(s2(6)), "the next morning")
+
+/* ---- expected output ----
+= {2026, 10, 15}
+= 51.4779
+= 0
+= 2461329
+= 2461330
+= 243671570/99
+= 1695855881/689
+= 1503872441/611
+= night of 2026-10-15T12:00:00 at lat 51.4779 lon 0
+= dark window: dusk 18h 58m 0s to dawn 4h 34m 34s UT ( 9.60945014656 hours)
+= Mercury: not visible in the dark window
+= Venus:   not visible in the dark window
+= Mars:    visible 23h 27m 35s to 4h 34m 34s
+= Jupiter: visible 0h 39m 18s to 4h 34m 34s
+= Saturn:  up the whole dark window
+= Mercury and Venus set before dusk: 17h 33m 45s 16h 38m 21s
+= their next rises: 9h 2m 10s 8h 7m 41s
+= Saturn rises 16h 53m 47s and sets 5h 15m 16s the next morning
+*/

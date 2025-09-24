@@ -1,0 +1,70 @@
+/* ============================================================================
+separation.epher -- the angle between two bodies on the sky
+
+Computes the great-circle separation of any two solar-system bodies
+at an instant, from their geocentric right ascensions and
+declinations given by the built-in accessors ra and decl (solar-
+ephemeris crate, JPL-Horizons-validated; guide 1.29) and the cosine
+law of spherical trigonometry: cos(d) = sin(d1) sin(d2) +
+cos(d1) cos(d2) cos(a1 - a2). This is the number that answers "how
+far apart are the Moon and Venus tonight" - the conjunction watcher's
+question, the one hpcalc.org's "Angular Distance Between Stars"
+program and Meeus ch. 17 both compute.
+
+Method and source: Meeus, "Astronomical Algorithms" 2nd ed. ch. 17
+(eq. 17.1); Duffett-Smith & Zwart, "Practical Astronomy with your
+Calculator or Spreadsheet", 4th ed., "The angle between two
+celestial objects". The worked pair below was cross-checked against
+PyEphem: both engines agree to about a hundredth of a degree (the
+bodies' apparent places differ by a few arcseconds between the two
+ephemeris models).
+
+Accuracy: a few hundredths of a degree (ephemeris-grade positions,
+formula exact).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/separation.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\separation.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/separation.epher
+In the REPL:             load one of the paths above
+
+Knobs: the instant `t` and the body pair below (Moon 11 and Venus 2).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const t = jd(2026, 6, 19, 21)
+const b1 = 11
+const b2 = 2
+
+// ---- Meeus eq. 17.1: great-circle separation in degrees ------------------------
+def sep(p, q) = deg(acos(sin(rad(decl(p, t))) * sin(rad(decl(q, t))) + cos(rad(decl(p, t))) * cos(rad(decl(q, t))) * cos(rad(ra(p, t) - ra(q, t)))))
+
+// ---- results ------------------------------------------------------------------
+print("the two bodies:", iso(t))
+print("Moon-Venus separation:", sep(b1, b2), "deg")
+print("               in dms:", deg2dms(sep(b1, b2)))
+print("where they are:")
+print("Moon  ra", deg2hms(ra(b1, t)), " dec", deg2dms(decl(b1, t)))
+print("Venus ra", deg2hms(ra(b2, t)), " dec", deg2dms(decl(b2, t)))
+
+/* Self-checks. The formula is symmetric, and the Moon-Sun distance
+tells the phase story from the geometry side: the Moon was new on
+2026-06-15, so the 19th finds it 65 degrees east of the Sun and the
+phase law k = (1 - cos 65) / 2 gives 0.289 lit - the built-in illum
+reads 0.2901 from the real phase angle. */
+print("symmetry check (must be equal):", sep(b1, b2) == sep(b2, b1))
+print("Moon-Sun separation:", sep(11, 10), "deg, Moon illum:", illum(11, t))
+
+/* ---- expected output ----
+= 2461211.375
+= 11
+= 2
+= the two bodies: 2026-06-19T21:00:00
+= Moon-Venus separation: 26.2716488378 deg
+=                in dms: 26° 16' 18"
+= where they are:
+= Moon  ra 10h 21m 59s  dec 10° 1' 38"
+= Venus ra 8h 41m 37s  dec 20° 20' 29"
+= symmetry check (must be equal): true
+= Moon-Sun separation: 65.0521692041 deg, Moon illum: 0.2901
+*/

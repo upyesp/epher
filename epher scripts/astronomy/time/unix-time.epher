@@ -1,0 +1,55 @@
+/* ============================================================================
+unix-time.epher -- Unix seconds and Julian dates
+
+Converts between the Unix time scale (seconds since 1970-01-01
+00:00:00 UTC, the clock of every computer) and the Julian Date used
+throughout this script collection. The anchor is the epoch
+
+  JD(1970-01-01 00:00:00 UTC) = 2440587.5
+
+so unix = (jd - 2440587.5) * 86400 and back. The engine's jd()
+accepts fractional hours, so the round trip below goes through
+12:34:56.64 without loss.
+
+Accuracy: exact for any instant (pure arithmetic on the engine's
+JD); before 1970 the seconds simply read negative.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/unix-time.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\unix-time.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/unix-time.epher
+In the REPL:             load one of the paths above
+
+Knobs: the instant below.
+============================================================================ */
+
+// ---- the knobs -------------------------------------------------------------------------
+const t = jd(2026, 9, 10, 12.5824)   // 12:34:56.64 UT
+
+// ---- the conversions ----------------------------------------------------------------------
+ux = (t - 2440587.5) * 86400
+t2 = 2440587.5 + ux / 86400
+
+print("instant:", iso(t))
+print("unix seconds:", ux)
+print("back-converted unix seconds:", (t2 - 2440587.5) * 86400)
+print("round-trip JD difference:", t2 - t, "d")
+
+/* Self-checks: the epoch identity and a full round trip must both
+be exact. */
+print("epoch JD is 2440587.5:", jd(1970, 1, 1) == 2440587.5)
+print("round trip exact:", t2 == t)
+print("unix seconds of the epoch:", (jd(1970, 1, 1) - 2440587.5) * 86400)
+
+/* ---- expected output ----
+= 1927193221/783
+= 1789043696.64
+= 1927193221/783
+= instant: 2026-09-10T12:34:57
+= unix seconds: 1789043696.64
+= back-converted unix seconds: 1789043696.64
+= round-trip JD difference: 0 d
+= epoch JD is 2440587.5: true
+= round trip exact: true
+= unix seconds of the epoch: 0
+*/

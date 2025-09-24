@@ -1,0 +1,107 @@
+/* ============================================================================
+moon-free-tonight.epher -- the Moon-free dark window of a night
+
+For one place and one night (dusk of the knob date to the next dawn)
+this finds the dark window: the stretch when the sky is fully dark -
+the Sun below the -18 deg horizon of astronomical twilight - AND the
+Moon is below the horizon. Two window shapes occur: when the Moon is
+already down as the sky darkens the window runs from the end of
+astronomical twilight to moonrise (or to dawn, if the Moon stays down
+all night); when the Moon is up at dusk the window opens at moonset
+and runs to dawn. When the Moon stays up through the whole dark night
+there is no dark window at all.
+
+The twilight ends come from the standard hour-angle method at the -18
+deg horizon (USNO / NOAA notes, as in twilight-times.epher): cos H =
+(sin h0 - sin lat sin dec) / (cos lat cos dec), with 4 minutes per
+degree of hour angle around the solar transit. The solar transit is
+recovered from lst and the Sun's right ascension at local noon (the
+engine's transit() search is exact but slow), and the Sun's
+declination is read at a fixed 0.27 d from it - where the -18 deg
+crossing sits at temperate latitudes - so the twilight instants come
+out accurate to a few seconds. The lunar events come from the built-in
+rise/set accessors (the solar-ephemeris crate, JPL-validated; guide
+1.16), which also tell whether the Moon is above the horizon at any
+instant.
+
+Accuracy: about ten seconds on every instant printed, and the window
+length inherits that.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-free-tonight.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-free-tonight.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-free-tonight.epher
+In the REPL:             load one of the paths above
+
+Knobs: the place and the date whose night is planned (below: Greenwich,
+the night of 2026-02-05 - a waning gibbous Moon rises at 21:40 UT,
+2h50m after full darkness falls). The consts A, B, R, S below echo the
+worked instants as hours after the knob date's midnight.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const lat = 51.4779            // Greenwich
+const lon = 0
+const day = {2026, 2, 5}       // the night of this date (dusk to next dawn)
+const j0 = jd(day[1], day[2], day[3])   // 0h UT of the knob date
+const j1 = j0 + 1                       // 0h UT of the next day
+
+// ---- the astronomical-night bracket, hour-angle method at -18 deg -------------
+// The solar transit comes from lst and the Sun's ra at local noon;
+// the crossing sits about 0.27 d from it, where decl is read.
+def w360(x) = x - 360 * floor(x / 360)
+def ha(j) = w360(lst(j + 0.5, lon) * 15 - ra(10, j + 0.5))    // Sun's hour angle at local noon, deg
+def ttrans(j) = j + 0.5 - (if ha(j) > 180 then ha(j) - 360 else ha(j)) / 360   // solar transit of local day j
+def cx(dc) = (sin(rad(-18)) - sin(rad(lat)) * sin(rad(dc))) / (cos(rad(lat)) * cos(rad(dc)))   // cos of the -18 deg hour angle
+def off(j, s) = if abs(cx(decl(10, ttrans(j) + s * 0.27))) > 1 then -1 else 4 * deg(acos(cx(decl(10, ttrans(j) + s * 0.27)))) / 1440   // -18 deg hour angle in days, s = +1 evening / -1 morning (-1 = never)
+def aeve(j) = if off(j, 1) < 0 then 0 else ttrans(j) + off(j, 1)   // evening: Sun reaches -18 deg (0 = never)
+def bdawn(j) = if off(j, -1) < 0 then 0 else ttrans(j) - off(j, -1)   // morning: Sun leaves -18 deg
+const A = (aeve(j0) - j0) * 24    // dusk: astronomical twilight ends, hr after j0 (0 = never that dark)
+const B = (bdawn(j1) - j0) * 24   // dawn: astronomical twilight resumes, hr after j0
+
+// ---- lunar events of the night: the first rise and first set after dusk -------
+def mrise(j) = rise(11, j, lat, lon)
+def mset(j) = set(11, j, lat, lon)
+def rnight(j) = if (mrise(j) - j0) * 24 > A then mrise(j) else mrise(j + 1)   // first moonrise after dusk
+def snight(j) = if (mset(j) - j0) * 24 > A then mset(j) else mset(j + 1)      // first moonset after dusk
+const R = (rnight(j0) - j0) * 24   // that moonrise, hr after j0
+const S = (snight(j0) - j0) * 24   // that moonset, hr after j0
+def moonup(j) = alt(11, j0 + A / 24, lat, lon) > -0.833   // is the Moon above the horizon at dusk?
+
+// ---- results ------------------------------------------------------------------
+print("night of", iso(j0), "at lat", lat, "lon", lon)
+
+// The sky-darkness bracket (the -18 deg test can fail at high summer
+// latitudes; A = 0 then, and the later lines stand down).
+if A == 0 then "no astronomical night: the Sun never reaches -18 deg" else "astronomical night: " + iso(j0 + A / 24) + " to " + iso(j0 + B / 24) + " UT"
+
+/* Where the Moon stands at dusk decides the window: down at dusk, it
+runs from the end of twilight to moonrise (or to dawn when the Moon
+stays down all night); up at dusk, it opens at moonset and runs to
+dawn. The Moon up for the whole dark night leaves no window. */
+if A == 0 then "no dark window to report" else if moonup(j0) then (if S < B then "dark window: " + iso(j0 + S / 24) + " to " + iso(j0 + B / 24) + " UT (moonset to dawn)" else "no dark window: the Moon is up the whole night") else (if R >= B then "dark window: the whole night (the Moon stays down)" else "dark window: " + iso(j0 + A / 24) + " to " + iso(j0 + R / 24) + " UT (dusk to moonrise)")
+
+// The window length, from the same bracket as the line above.
+if A == 0 then "window length: none" else if moonup(j0) then (if S < B then print("window length:", (B - S) in hr) else "window length: none") else (if R >= B then print("window length:", (B - A) in hr) else print("window length:", (R - A) in hr))
+
+/* Self-check: at the computed end of twilight the engine's own Sun
+altitude should read -18 deg (the hour-angle method rederived the
+engine's geometry from lst, ra and a noon declination alone). */
+if A == 0 then "self-check skipped (no astronomical night)" else "self-check: Sun altitude at that instant: " + str(alt(10, j0 + A / 24, lat, lon)) + " deg (target -18)"
+
+/* ---- expected output ----
+= 51.4779
+= 0
+= {2026, 2, 5}
+= 2461076.5
+= 2461077.5
+= 18.8512455784
+= 29.6034708805
+= 21.6759820841
+= 32.931574557
+= night of 2026-02-05T00:00:00 at lat 51.4779 lon 0
+= astronomical night: 2026-02-05T18:51:04 to 2026-02-06T05:36:12 UT
+= dark window: 2026-02-05T18:51:04 to 2026-02-05T21:40:34 UT (dusk to moonrise)
+= window length: 2.82473650575 hr
+= self-check: Sun altitude at that instant: -17.9977183 deg (target -18)
+*/

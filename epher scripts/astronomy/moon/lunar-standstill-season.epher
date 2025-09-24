@@ -1,0 +1,100 @@
+/* ============================================================================
+lunar-standstill-season.epher -- major and minor standstill years
+
+The Moon's monthly swing of declination breathes on the 18.6-year
+cycle of its node: when the ascending node crosses 0 deg (the vernal
+equinox) the extremes reach about +/-28.6 deg - a major standstill,
+next around 2025 - and when the node crosses 180 deg they shrink to
+about +/-18.3 deg - a minor standstill, last around 2015. This script
+lists the standstill seasons that follow a knob year, from the mean
+node's regression (Meeus ch. 49 elements: node 124.7746 - 1.56375588
+per lunation, i.e. one full turn every 18.60 years), and sizes the
+next major standstill for one place. Meeus discusses the cycle in
+"Mathematical Astronomy Morsels" (the extreme declinations of the
+Moon); the engine's own ephemeris (ELP-MPP02, JPL-validated; guide
+1.16) supplies the sample check of the season's extremes.
+
+The seasons are dated by the node's exact crossing, which the
+literature rounds to a year or two: the extremes stay within a degree
+of their peak for about a year on each side of the crossing. The
+amplitude eps + 5.145 deg assumes the Moon reaches its full orbital
+inclination at the lunistice; the true monthly extremes wobble by a
+few tenths of a degree with the evection and the node's own
+perturbations, so the amplitudes below are good to about +/-0.2 deg.
+This is the mean-element approximation the mission statement asks
+for; moon-max-declination.epher shows the engine's exact monthly
+values instead.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/lunar-standstill-season.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\lunar-standstill-season.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/lunar-standstill-season.epher
+In the REPL:             load one of the paths above
+
+Knobs: `after` (list the seasons that follow this year) and the
+latitude of the place; the list covers four seasons (two major, two
+minor) plus the next major standstill's amplitude and the engine
+sample of its extremes.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const after = 2000        // list the standstill seasons that follow this year
+const lat = 51.4779       // the place whose view of the standstill is sized
+
+// ---- mean elements (angles in degrees) ------------------------------------------
+def w360(x) = x - 360 * floor(x / 360)
+def T(j) = (j - 2451545) / 36525
+def eps(j) = 23.4392911 - 46.8150 * T(j) / 3600 - 0.00059 * T(j) ^ 2 / 3600 + 0.001813 * T(j) ^ 3 / 3600   // mean obliquity of date
+def jm(m) = 2451550.09766 + (124.7746 - 180 * m) * 29.530588861 / 1.56375588   // instant the node passes 180m deg
+def yr(m) = date(jm(m))[1]
+def isev(m) = m - 2 * floor(m / 2) == 0            // even m: node at 0 deg (major); odd: at 180 (minor)
+def mfirst(m) = if yr(m) >= after then m else mfirst(m - 1)   // first crossing at/after the knob year
+
+// ---- results ---------------------------------------------------------------------
+const mf = mfirst(0)                          // first node crossing at/after the knob year
+const mm = if isev(mf) then mf else mf - 1    // the next major standstill's m
+print("standstill seasons after", after, ": node 0 deg major, 180 deg minor")
+
+// The four seasons that follow the knob year (lines k = 0..3 below).
+def sline(k) = (if isev(mf - k) then "major standstill" else "minor standstill") + " " + str(yr(mf - k)) + ": node " + str(w360(180 * (mf - k))) + " deg on " + iso(jm(mf - k)) + " UT"
+sline(0)
+sline(1)
+sline(2)
+sline(3)
+
+/* The next major standstill's size, at the knob latitude: the Moon's
+declination extremes of about +/-(eps + 5.145) deg, so its meridian
+altitudes at this place swing through that band. */
+print("next major standstill", yr(mm), ": declination extremes about +/-", eps(jm(mm)) + 5.145, "deg")
+print("at lat", lat, "the Moon's transit altitude band at the standstill:")
+print("  about", 90 - lat - eps(jm(mm)) - 5.145, "to", 90 - lat + eps(jm(mm)) + 5.145, "deg")
+
+/* Engine sample: the built-in ephemeris scans the standstill months
+(the crossing plus or minus six weeks, every 3 days) and reports the
+largest |declination| it meets - the mean-element amplitude above,
+checked against the engine's own Moon. */
+const w0 = jm(mm) - 42        // scan window: 42 days before the crossing
+def dv(i) = abs(decl(11, w0 + 3 * i))
+def dmax(v, iv, i) = if i >= 29 then {v, iv} else if dv(i) > v then dmax(dv(i), i, i + 1) else dmax(v, iv, i + 1)
+r = dmax(dv(0), 0, 1)
+print("engine sample: max |declination|", r[1], "deg on", iso(w0 + 3 * r[2]), "UT")
+print("grade: mean-element seasons/amplitudes (+/-0.2 deg); engine sample")
+
+/* ---- expected output ----
+= 2000
+= 51.4779
+= 0
+= 0
+= standstill seasons after 2000 : node 0 deg major, 180 deg minor
+= major standstill 2006: node 0 deg on 2006-06-19T21:22:54 UT
+= minor standstill 2015: node 180 deg on 2015-10-10T01:58:56 UT
+= major standstill 2025: node 0 deg on 2025-01-29T06:34:58 UT
+= minor standstill 2034: node 180 deg on 2034-05-21T11:11:00 UT
+= next major standstill 2006 : declination extremes about +/- 28.5834503624 deg
+= at lat 51.4779 the Moon's transit altitude band at the standstill:
+=   about 9.9386496376 to 67.1055503624 deg
+= 2453864.3909
+= {28.452983014, 25}
+= engine sample: max |declination| 28.452983014 deg on 2006-07-22T21:22:54 UT
+= grade: mean-element seasons/amplitudes (+/-0.2 deg); engine sample
+*/

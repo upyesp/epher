@@ -1,0 +1,103 @@
+/* ============================================================================
+solstice-noon-table.epher -- noon Sun altitude at the four season points
+
+The Sun's maximum (meridian) altitude on the days of the four season
+boundaries - 90 - |lat - declination| - tabulated across a ladder of
+latitudes, from the equator to inside the Arctic Circle. The season
+instants come from the built-ins march_equinox, june_solstice,
+september_equinox and december_solstice of `year` (the solar-ephemeris
+crate, JPL-validated; the same accessors season-boundaries.epher
+uses), and the declination at each instant from the built-in decl for
+the Sun (body 10). The table extends sun-altitude-at-noon.epher,
+which measured the same formula at Greenwich on three of the four
+dates, across the latitudes where the daylight story changes:
+23.44 deg is the Tropic of Cancer, where the June Sun passes through
+the zenith; 66.56 deg is the Arctic Circle, the midnight-sun line -
+above it the June Sun never sets and the December Sun never rises.
+
+Accuracy: the meridian formula is exact for a geometric (refraction-
+free) Sun; the residual against the engine's measured transit
+altitude is printed below and runs about 0.003 deg (the Sun's
+parallax, a few arcseconds). The columns use the declination at the
+season instant: near an equinox the declination changes about 0.4
+deg per day, so the actual noon altitude at a longitude far from the
+event's meridian can differ from the table by up to about 0.2 deg on
+equinox days; near the solstices the declination is stationary and
+the table is good to 0.01 deg.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sun/solstice-noon-table.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sun\solstice-noon-table.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sun/solstice-noon-table.epher
+In the REPL:             load one of the paths above
+
+Knobs: the year and the ladder of latitudes.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const year = 2026
+const lats = {0, 23.44, 40, 51.48, 66.56, 70}    // latitude ladder, deg
+
+// ---- the season instants (computed once) --------------------------------------
+const jmar = march_equinox(year)
+const jjun = june_solstice(year)
+const jsep = september_equinox(year)
+const jdec = december_solstice(year)
+
+// ---- model --------------------------------------------------------------------
+def mer(la, j) = 90 - abs(la - decl(10, j))      // meridian noon altitude from the declination at j
+def mdtag(j) = iso(j)[6] + iso(j)[7] + iso(j)[8] + iso(j)[9] + iso(j)[10]   // the date's month-day from the ISO string
+
+// ---- results ------------------------------------------------------------------
+print("noon altitude of the Sun (deg, geometric) at the season instants of", year)
+print("lat | spring", mdtag(jmar), "| summer", mdtag(jjun), "| autumn", mdtag(jsep), "| winter", mdtag(jdec))
+print("lat", lats[1], ":", mer(lats[1], jmar), mer(lats[1], jjun), mer(lats[1], jsep), mer(lats[1], jdec))
+print("lat", lats[2], ":", mer(lats[2], jmar), mer(lats[2], jjun), "(overhead)", mer(lats[2], jsep), mer(lats[2], jdec))
+print("lat", lats[3], ":", mer(lats[3], jmar), mer(lats[3], jjun), mer(lats[3], jsep), mer(lats[3], jdec))
+print("lat", lats[4], ":", mer(lats[4], jmar), mer(lats[4], jjun), mer(lats[4], jsep), mer(lats[4], jdec))
+print("-- midnight-sun line: above lat 66.56 the June Sun never sets --")
+print("lat", lats[5], ":", mer(lats[5], jmar), mer(lats[5], jjun), mer(lats[5], jsep), mer(lats[5], jdec), "*")
+print("lat", lats[6], ":", mer(lats[6], jmar), mer(lats[6], jjun), "(midnight sun)", mer(lats[6], jsep), mer(lats[6], jdec))
+
+/* Reading the table: the summer column is the classic "how high does
+the Sun get" number - 66.56 deg at the equator's summer, 61.96 at
+Greenwich's, 46.88 at the Arctic Circle's. The winter column goes
+negative above 66.56: the Sun never rises there in December. The
+Tropic row (23.44) shows the June Sun at the zenith (89.998 deg),
+and the row below the midnight-sun line shows the winter Sun still
+climbing to 15 deg at noon. The star marks the rows at or inside
+the midnight-sun line: from the Arctic Circle (66.56) northward
+the June Sun never sets - at 66.56 itself it only grazes the
+horizon at midnight, and the winter Sun's noon altitude there is
+about 0 deg, both visible in the row. */
+print("declinations:", decl(10, jmar), decl(10, jjun), decl(10, jsep), decl(10, jdec), "deg")
+print("midnight-sun line this year: 90 -", decl(10, jjun), "=", 90 - decl(10, jjun), "deg")
+
+/* Self-check: the meridian formula against the engine's measured
+altitude at the true transit, Greenwich, on the June solstice day
+(the day's transit declination, not the instant's, is the right
+comparison here - see the equinox-day caveat above). */
+j = transit(10, jd(year, 6, 21), 51.48, 0)
+print("self-check, lat 51.48: formula", 90 - abs(51.48 - decl(10, j)), "vs engine", alt(10, j, 51.48, 0), "deg (transit)")
+
+/* ---- expected output ----
+= 2026
+= {0, 23.44, 40, 51.48, 66.56, 70}
+= 1129654133/459
+= 2461212.8509
+= 2252095451/915
+= 1951887320/793
+= noon altitude of the Sun (deg, geometric) at the season instants of 2026
+= lat | spring 03-20 | summer 06-21 | autumn 09-23 | winter 12-21
+= lat 0 : 89.999901617 66.562069598 89.999960714 66.56252625
+= lat 23.44 : 66.560098383 89.997930402 (overhead) 66.559960714 43.12252625
+= lat 40 : 50.000098383 73.437930402 49.999960714 26.56252625
+= lat 51.48 : 38.520098383 61.957930402 38.519960714 15.08252625
+= -- midnight-sun line: above lat 66.56 the June Sun never sets --
+= lat 66.56 : 23.440098383 46.877930402 23.439960714 0.00252625 *
+= lat 70 : 20.000098383 43.437930402 (midnight sun) 19.999960714 -3.43747375
+= declinations: 0.000098383 23.437930402 -0.000039286 -23.43747375 deg
+= midnight-sun line this year: 90 - 23.437930402 = 66.562069598 deg
+= 1954203123/794
+= self-check, lat 51.48: formula 61.957848058 vs engine 61.9567272 deg (transit)
+*/

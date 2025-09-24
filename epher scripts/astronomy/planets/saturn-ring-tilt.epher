@@ -1,0 +1,73 @@
+/* ============================================================================
+saturn-ring-tilt.epher -- how wide open Saturn's rings look
+
+The ring-plane aspect of Saturn for a chosen date: the angle B between
+the line of sight and the plane of the rings (Meeus, "Astronomical
+Algorithms" 2nd ed., ch. 45, physical ephemeris of Saturn). B is the
+Saturnicentric latitude of the Earth measured from the ring plane:
+positive when the rings' north face is presented, negative for the
+south face, zero when the rings are exactly edge-on. The rings lie in
+Saturn's equatorial plane, so B is the angle between the engine's
+Saturn direction and the planet's rotation pole, whose direction comes
+from the IAU 2000/2009 constants (as used in Meeus ch. 45 and the
+Astronomical Almanac): pole RA 40.589 - 0.036 T deg, pole dec 83.537 -
+0.004 T deg, referred to J2000 and here precessed to the equinox of
+date to meet the engine's of-date position.
+
+Accuracy: arcsecond-grade positions and the IAU pole give B good to a
+few hundredths of a degree. Two independent checks ride in the output:
+the Earth crossed the ring plane on 2025-03-23 and 2009-09-04 (famous
+edge-on events), and the computed B is within 0.05 deg of zero on both
+dates. On the default date, 2026-06-01, the rings present their south
+face, open 8.3 degrees, still narrow after the 2025 edge-on.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/saturn-ring-tilt.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\saturn-ring-tilt.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/saturn-ring-tilt.epher
+In the REPL:             load one of the paths above
+
+The one knob is the instant `t` (UT).
+============================================================================ */
+
+// ---- the knob ---------------------------------------------------------------
+const t = jd(2026, 6, 1)        // 2026-06-01 00:00 UT
+
+// ---- precession (Meeus ch. 24): the IAU pole is J2000, the engine of date ---
+def T(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def zeta(j) = (2306.2181 * T(j) + 0.30188 * T(j) ^ 2 + 0.017998 * T(j) ^ 3) / 3600
+def zang(j) = (2306.2181 * T(j) + 1.09468 * T(j) ^ 2 + 0.018203 * T(j) ^ 3) / 3600
+def theta(j) = (2004.3109 * T(j) - 0.42665 * T(j) ^ 2 - 0.041833 * T(j) ^ 3) / 3600
+def rotz(a, v) = {v[1] * cos(rad(a)) - v[2] * sin(rad(a)), v[1] * sin(rad(a)) + v[2] * cos(rad(a)), v[3]}
+def roty(a, v) = {v[1] * cos(rad(a)) + v[3] * sin(rad(a)), v[2], -v[1] * sin(rad(a)) + v[3] * cos(rad(a))}
+def todate(j, v) = rotz(zeta(j), roty(-theta(j), rotz(zang(j), v)))   // J2000 -> of date
+def dot(a, b) = a[1] * b[1] + a[2] * b[2] + a[3] * b[3]
+
+// ---- the ring pole (IAU 2000/2009 constants, as in Meeus ch. 45) -------------
+def pole_sat(j) = {cos(rad(83.537 - 0.004 * T(j))) * cos(rad(40.589 - 0.036 * T(j))), cos(rad(83.537 - 0.004 * T(j))) * sin(rad(40.589 - 0.036 * T(j))), sin(rad(83.537 - 0.004 * T(j)))}
+// Unit vector toward Saturn (engine, of date) and the ring tilt B.
+def usat(j) = {cos(rad(decl(6, j))) * cos(rad(ra(6, j))), cos(rad(decl(6, j))) * sin(rad(ra(6, j))), sin(rad(decl(6, j)))}
+def bangle(j) = deg(asin(-dot(todate(j, pole_sat(j)), usat(j))))   // + = north face
+def face(b) = if b > 1 then "north face of the rings presented" else if b < -1 then "south face of the rings presented" else "rings effectively edge-on"
+
+// ---- results ------------------------------------------------------------------
+print("Saturn ring-plane tilt B at", iso(t), "UT:", bangle(t), "deg")
+print(face(bangle(t)) + ";", "opening angle |B| =", abs(bangle(t)), "deg")
+print("cross-check at the known ring-plane crossings:")
+print("  2025-03-23 (Earth crossing): B =", bangle(jd(2025, 3, 23)), "deg")
+print("  2009-09-04 (Earth crossing): B =", bangle(jd(2009, 9, 4)), "deg")
+print("context: after the 2025 edge-on the rings open to their southern")
+print("maximum around 2032 and close again toward the next crossings,")
+print("expected in the late 2030s (the cycle repeats every ~15 years).")
+
+/* ---- expected output ----
+= 2461192.5
+= Saturn ring-plane tilt B at 2026-06-01T00:00:00 UT: -8.27226036509 deg
+= south face of the rings presented; opening angle |B| = 8.27226036509 deg
+= cross-check at the known ring-plane crossings:
+=   2025-03-23 (Earth crossing): B = 0.0445223671135 deg
+=   2009-09-04 (Earth crossing): B = -0.0336612984231 deg
+= context: after the 2025 edge-on the rings open to their southern
+= maximum around 2032 and close again toward the next crossings,
+= expected in the late 2030s (the cycle repeats every ~15 years).
+*/

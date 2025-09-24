@@ -1,0 +1,67 @@
+/* ============================================================================
+great-circle.epher -- distance and bearing between two places
+
+Great-circle navigation: the shortest path between two points on a
+sphere, in distance (km and nautical miles) and initial bearing
+(degrees from north). The spherical law of cosines in haversine
+form is stable at all distances:
+
+  a = sin^2(dlat/2) + cos(lat1) cos(lat2) sin^2(dlon/2)
+  c = 2 atan2(sqrt(a), sqrt(1 - a))     d = R c
+  bearing = atan2(sin(dlon) cos(lat2),
+                  cos(lat1) sin(lat2) - sin(lat1) cos(lat2) cos(dlon))
+
+Accuracy: spherical-Earth (R = 6371 km) results are within about
+0.3 percent of the WGS84 geodesic - the classic transatlantic
+example prints near 5570 km against the geodesic 5586.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/navigation/great-circle.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\navigation\great-circle.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/navigation/great-circle.epher
+In the REPL:             load one of the paths above
+
+Knobs: the two places below (default: London to New York).
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------------
+const la1 = 51.5074          // London
+const lo1 = -0.1278
+const la2 = 40.7128          // New York
+const lo2 = -74.0060
+
+// ---- helpers -------------------------------------------------------------------------
+def wrap(x) = x - 360 * floor(x / 360)
+def hav(a) = sin(a / 2) ^ 2
+a1 = hav(rad(la2 - la1)) + cos(rad(la1)) * cos(rad(la2)) * hav(rad(lo2 - lo1))
+c1 = 2 * atan2(sqrt(a1), sqrt(1 - a1))
+dkm = 6371 * c1
+brg = deg(atan2(sin(rad(wrap(lo2 - lo1))) * cos(rad(la2)), cos(rad(la1)) * sin(rad(la2)) - sin(rad(la1)) * cos(rad(la2)) * cos(rad(wrap(lo2 - lo1)))))
+brg2 = wrap(brg)
+
+print("great circle from", la1, ",", lo1, "to", la2, ",", lo2)
+print("distance:", dkm, "km =", dkm / 1.852, "nautical miles")
+print("initial bearing:", brg2, "deg")
+
+/* Self-checks: the route is symmetric and the transatlantic
+distance sits near 5570 km on the sphere (the WGS84 geodesic is
+5586 km - the spherical grade is about 0.3 percent). */
+print("reverse distance equal:", 6371 * 2 * atan2(sqrt(hav(rad(la1 - la2)) + cos(rad(la2)) * cos(rad(la1)) * hav(rad(lo1 - lo2))), sqrt(1 - (hav(rad(la1 - la2)) + cos(rad(la2)) * cos(rad(la1)) * hav(rad(lo1 - lo2))))) == dkm)
+print("London-New York in the classic 5570 km band:", dkm > 5500 and dkm < 5650)
+
+/* ---- expected output ----
+= 51.5074
+= -0.1278
+= 40.7128
+= -74.006
+= 0.179236433527
+= 0.874308927914
+= 5570.22217974
+= -71.6702984064
+= 288.329701594
+= great circle from 51.5074 , -0.1278 to 40.7128 , -74.006
+= distance: 5570.22217974 km = 3007.67936271 nautical miles
+= initial bearing: 288.329701594 deg
+= reverse distance equal: true
+= London-New York in the classic 5570 km band: true
+*/

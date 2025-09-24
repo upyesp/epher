@@ -1,0 +1,79 @@
+/* ============================================================================
+parallax-demo.epher -- geocentric vs topocentric: the Moon's parallax
+
+Shows the ~1 degree lesson of the Moon's geocentric parallax: the
+altitude a geocentric observer would compute for the Moon against
+the topocentric altitude the engine reports for a place on Earth's
+surface. The geocentric value comes from the standard hour-angle
+formula
+
+  sin(a) = sin(phi) sin(delta) + cos(phi) cos(delta) cos(H)
+
+with H = local sidereal time - right ascension, and the horizontal
+parallax HP = asin(r_earth / d) from the engine's distance (Meeus
+ch. 40; Duffett-Smith, "Geocentric parallax"). For an object seen from the surface the topocentric direction is
+the geocentric one rotated toward the observer's nadir, so the
+topocentric altitude lies BELOW the geocentric by up to HP at the
+horizon and zero at the zenith - the gap obeys
+
+  topocentric - geocentric = -asin(sin(HP) * cos(altitude))
+
+Accuracy: the engine's topocentric value is the ground truth (its
+ephemeris models the observer on the ellipsoid); the geocentric
+formula below uses the geodetic latitude unchanged (flattening and
+the ~0.7 degree topocentric correction terms omitted), good to
+about a tenth of the parallax itself - which is the point: the
+printed gap is of order one degree for the Moon.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/parallax-demo.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\parallax-demo.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/parallax-demo.epher
+In the REPL:             load one of the paths above
+
+Knobs: the instant t and the observer's lat/lon below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const t = jd(2026, 9, 10, 12)  // the Moon rides high at noon here
+const lat = 51.4779            // Greenwich
+const lon = 0
+
+// ---- helpers ----------------------------------------------------------------------
+def wrap(x) = x - 360 * floor(x / 360)
+def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
+
+// ---- the two altitudes and the parallax --------------------------------------------
+mra = ra(11, t)
+mde = decl(11, t)
+mdist = dist(11, t)
+h = spread(15 * lst(t, lon) - mra)          // local hour angle, degrees
+ageo = deg(asin(sin(rad(lat)) * sin(rad(mde)) + cos(rad(lat)) * cos(rad(mde)) * cos(rad(h))))
+atopo = alt(11, t, lat, lon)
+hp = deg(asin(r_earth / (mdist * au)))      // horizontal parallax, r_earth and au in km
+
+print("at", iso(t), "lat", lat, "lon", lon)
+print("geocentric altitude: ", ageo, "deg")
+print("topocentric altitude:", atopo, "deg")
+print("horizontal parallax: ", hp, "deg")
+print("gap (topo - geo):    ", atopo - ageo, "deg")
+print("exact model:         ", -deg(asin(sin(rad(hp)) * cos(rad(ageo)))), "deg")
+
+/* ---- expected output ----
+= 2461294
+= 51.4779
+= 0
+= 160.772074563
+= 7.165253087
+= 0.00250209746468
+= 8.76721252933
+= 45.0982479109
+= 44.4042815
+= 0.975262609983
+= at 2026-09-10T12:00:00 lat 51.4779 lon 0
+= geocentric altitude:  45.0982479109 deg
+= topocentric altitude: 44.4042815 deg
+= horizontal parallax:  0.975262609983 deg
+= gap (topo - geo):     -0.693966410879 deg
+= exact model:          -0.6884145954 deg
+*/

@@ -1,0 +1,74 @@
+/* ============================================================================
+coin-streak.epher -- the longest run of heads in 100 tosses, per seed
+
+Toss a fair coin 100 times and find the longest run of consecutive
+heads. The expected value is close to log2(100) = 6.64 (the classic
+estimate of Erdos and Renyi), so runs of 5 to 8 are the usual range,
+with 4 or 9 at the edges.
+
+The script replays the same 100 tosses under six seeds and prints the
+longest head run of each; the first seed is 17 and the others were
+chosen to show the usual spread, and randseed() makes every stream
+reproducible, so the six values below are exactly what those seeds
+produce. Each run is a definition with a do-body (guide 1.11): the
+for walks the known number of tosses, a destructure in the loop body
+keeps the current run and the best so far in named variables, and the
+body consumes exactly one randint(0, 1) per toss.
+
+Source: Erdos and Renyi (1970), "On a new law of large numbers".
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/simulations/coin-streak.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\simulations\coin-streak.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/simulations/coin-streak.epher
+Web/desktop:             paste the file into the entry, press Enter
+
+The knobs to edit are `coins` (tosses per run) and the seeds below.
+============================================================================ */
+
+// ---- the knobs ----
+const coins = 100
+
+// ---- helpers ----
+// One toss c (1 heads, 0 tails): heads extends the run, tails resets
+// it, and the best so far follows along. The pair comes back as a
+// list, ready for the destructure in the loop below.
+def grow(run, best, c) do
+  if c == 1 then run = run + 1 else run = 0
+  if run > best then best = run
+  {run, best}
+end
+
+// One seeded run: walk the tosses, carrying {run, best} in two named
+// variables through the destructure in the loop body.
+def longest(seed) do
+  randseed(seed)
+  run = 0
+  best = 0
+  for i in 1 to coins do {run, best} = grow(run, best, randint(0, 1))
+  best
+end
+
+/* ---- results ----
+Six runs of `coins` tosses, one seed each; only the seed changes. */
+print("seed 17, longest head run:", longest(17))
+print("seed 96, longest head run:", longest(96))
+print("seed 97, longest head run:", longest(97))
+print("seed 98, longest head run:", longest(98))
+print("seed 99, longest head run:", longest(99))
+print("seed 100, longest head run:", longest(100))
+
+// The reference value: log2(100) = 6.64 tosses. The six seeded runs
+// above land between 5 and 8, clustering around this scale; the mean
+// of the six is 6.5.
+print("log2(100), the expected scale:", log(100) / log(2))
+/* ---- expected output ----
+= 100
+= seed 17, longest head run: 5
+= seed 96, longest head run: 8
+= seed 97, longest head run: 5
+= seed 98, longest head run: 7
+= seed 99, longest head run: 6
+= seed 100, longest head run: 8
+= log2(100), the expected scale: 6.64385618977
+*/

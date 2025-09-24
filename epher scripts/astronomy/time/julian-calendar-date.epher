@@ -1,0 +1,62 @@
+/* ============================================================================
+julian-calendar-date.epher -- Gregorian and Julian calendar dates
+
+Reads a date in both Western calendars, split by the 1582 reform:
+the Julian calendar (in force until Thursday 4 October 1582) and
+the Gregorian calendar (Friday 15 October 1582 onward). The
+conversions use the classic integer algorithms - Meeus,
+"Astronomical Algorithms" 2nd ed. ch. 7 with B = 0 for the Julian
+calendar. The engine's own jd() follows the historical calendar
+too: dates before the reform are Julian dates, from the reform day
+on they are Gregorian - so jd(1582, 10, 4) and jd(1582, 10, 15)
+are consecutive days.
+
+Accuracy: exact for all dates. The two calendars differ by 10 days
+at the reform and gain 3 more days per 400 years (13 today).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/julian-calendar-date.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\julian-calendar-date.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/julian-calendar-date.epher
+In the REPL:             load one of the paths above
+
+Knobs: the date below (default: a modern date).
+============================================================================ */
+
+// ---- the knobs --------------------------------------------------------------------
+const y = 2026
+const m = 9
+const d = 7
+
+// ---- helper: day number -> Julian-calendar date (reverse of the B = 0 formulas) -----
+def rday(j) = j + 32082 - floor(1461 * floor((4 * (j + 32082) + 3) / 1461) / 4) - floor((153 * floor((5 * (j + 32082 - floor(1461 * floor((4 * (j + 32082) + 3) / 1461) / 4)) + 2) / 153) + 2) / 5) + 1
+def rmon(j) = floor((5 * (j + 32082 - floor(1461 * floor((4 * (j + 32082) + 3) / 1461) / 4)) + 2) / 153) + 3 - 12 * floor(floor((5 * (j + 32082 - floor(1461 * floor((4 * (j + 32082) + 3) / 1461) / 4)) + 2) / 153) / 10)
+def ryer(j) = floor((4 * (j + 32082) + 3) / 1461) - 4800 + floor(floor((5 * (j + 32082 - floor(1461 * floor((4 * (j + 32082) + 3) / 1461) / 4)) + 2) / 153) / 10)
+
+// ---- the reading ----------------------------------------------------------------------
+jdn = floor(jd(y, m, d) + 0.5)
+print("Gregorian", y, "-", m, "-", d, " is the same day as Julian", ryer(jdn), "-", rmon(jdn), "-", rday(jdn))
+
+// ---- the reform --------------------------------------------------------------------------
+jr = floor(jd(1582, 10, 15) + 0.5)
+print("Gregorian 1582-10-15 was Julian", ryer(jr), "-", rmon(jr), "-", rday(jr), "(the reform skipped 1582-10-05..14)")
+
+/* Self-checks: the engine's jd() reads pre-reform dates as Julian
+(so jd(1582,10,4) is the Julian day number minus a half), and the
+reform made the two JDs consecutive. */
+print("engine reads 1582-10-04 as Julian:", jd(1582, 10, 4) == 2299159.5)
+print("reform days are consecutive:", jd(1582, 10, 15) - jd(1582, 10, 4) == 1)
+print("2026-09-07 reads Julian 2026-08-25:", rday(jdn) == 25 and rmon(jdn) == 8 and ryer(jdn) == 2026)
+
+/* ---- expected output ----
+= 2026
+= 9
+= 7
+= 2461291
+= Gregorian 2026 - 9 - 7  is the same day as Julian 2026 - 8 - 25
+= 2299161
+= Gregorian 1582-10-15 was Julian 1582 - 10 - 5 (the reform skipped 1582-10-05..14)
+= engine reads 1582-10-04 as Julian: true
+= reform days are consecutive: true
+= 2026-09-07 reads Julian 2026-08-25: true
+*/

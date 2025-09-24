@@ -1,0 +1,50 @@
+/* ============================================================================
+local-mean-time.epher -- clock time against the local sun
+
+Shows the standing difference between zone (clock) time and local
+mean time - the time a sundial keeps before the equation-of-time
+correction - caused by longitude alone: the Sun crosses the local
+meridian 4 minutes later for every degree of longitude west of the
+zone's central meridian.  clock - LMT = zone - lon / 15  (hours).
+
+Local mean time matters for the old solar observations and for
+anyone comparing a sundial with a watch; the equation of time
+(e.g. equation-of-time.epher) rides on top of this geometric
+offset.
+
+Accuracy: exact arithmetic; the zone offsets below are the standard
+legal ones (no daylight saving - state that when quoting).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/local-mean-time.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\local-mean-time.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/local-mean-time.epher
+In the REPL:             load one of the paths above
+
+Knobs: the longitude and zone below (default: Greenwich).
+============================================================================ */
+
+// ---- the knobs -------------------------------------------------------------------------
+const lon = -0.1278           // Greenwich, degrees east
+const zone = 0                // UTC in winter
+
+// ---- the offset ------------------------------------------------------------------------
+off = zone - lon / 15         // hours, clock minus LMT
+print("longitude", lon, "deg east, zone UTC", zone)
+print("clock - local mean time:", off, "hours =", off * 60, "minutes")
+
+/* Self-check: a city on the zone's central meridian (lon = 15 *
+zone) has zero offset by construction; the Beijing case below is
+the classic: clock runs ~14 minutes ahead of the local sun. */
+print("central meridian offset zero:", zone - (15 * zone) / 15 == 0)
+print("Beijing (lon 116.4, zone +8) offset:", 8 - 116.4 / 15, "hours =", (8 - 116.4 / 15) * 60, "minutes")
+
+/* ---- expected output ----
+= -0.1278
+= 0
+= 0.00852
+= longitude -0.1278 deg east, zone UTC 0
+= clock - local mean time: 0.00852 hours = 0.5112 minutes
+= central meridian offset zero: true
+= Beijing (lon 116.4, zone +8) offset: 0.24 hours = 14.4 minutes
+*/

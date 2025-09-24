@@ -1,0 +1,28 @@
+[package]
+name = "epher-zed"
+version = "0.5.50"
+edition = "2021"
+license = "MIT"
+description = "The epher language extension for Zed: downloads the shared epher-lsp binary and starts it per the Zed extension API."
+
+# Version note: this version is the release the extension resolves
+# (tag v<version>), and it must stay in lockstep with extension.toml.
+# Both ride epher's 0.5.x train (ADR-0066); CI fails the build when
+# they drift from crates/cli.
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Pinned to 0.6.0, not 0.7.0: Zed hosts only dispatch extensions whose
+# embedded `zed:api-version` they accept, and 0.7.0 was excluded from
+# stable Zed's supported range until 2025-09-19 (zed#38529, first
+# shipped in the 0.205 build train) — installs of 0.7.0-built
+# extensions are filtered out as incompatible on every Zed before
+# that. 0.6.0 is the newest API whose WIT world every Zed since
+# 0.192.x links, so it covers the widest range of both dev installs
+# (Zed 0.192+, June 2025, through current) and — once this extension
+# reaches the marketplace — registry installs. This extension uses
+# nothing from 0.7.0. When bumping, re-check Zed's compatibility
+# table in crates/extension_api/README.md of the zed tag you target.
+zed_extension_api = "0.6.0"

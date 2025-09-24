@@ -1,0 +1,93 @@
+/* ============================================================================
+circumpolar-check.epher -- which stars never set, never rise, or do both
+
+At a given latitude a star of declination dec is circumpolar - it
+never sets - when it clears the horizon even at lower culmination,
+which happens when dec and the latitude share a sign and |dec| exceeds
+90 - |lat|; at the mirror declination of the opposite sign it never
+rises; everything between rises and sets daily (PyEphem's
+circumpolar test is the same geometry). The classification below comes
+from the hour-angle formula at the horizon, cos(H) = -tan(lat)
+tan(dec): when |cos H| exceeds 1 no horizon crossing exists, and the
+sign of cos H tells which kind - cos H < -1 means the object stays up
+(circumpolar), cos H > 1 means it stays down (never rises). On the
+boundary, |cos H| = 1, the object grazes the horizon once a day.
+
+The same geometry gives the sky's shares: the cap of sky around each
+celestial pole that never sets (or never rises) holds the fraction
+(1 - cos(90 - |lat|)) / 2 = (1 - sin|lat|) / 2 of the celestial
+sphere, and the rising-and-setting band between them holds the rest.
+At Greenwich (51.48 N) that is about 10.9 percent of the sky that
+never sets - Capella, declination +46, is inside it - and the equal
+cap opposite that never rises.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/circumpolar-check.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\circumpolar-check.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/circumpolar-check.epher
+In the REPL:             load one of the paths above
+
+Knobs: the latitude (Greenwich below) and the high-latitude place used
+for the engine validation of the same geometry.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const lat = 51.4779         // Greenwich
+const latp = 78.2           // Longyearbyen, Svalbard - the engine check
+const lonp = 15.6
+
+// ---- model ------------------------------------------------------------------
+def cosh(dec, phi) = -tan(rad(phi)) * tan(rad(dec))   // cos of the hour angle at the horizon
+def cls(dec, phi) = if cosh(dec, phi) < -1 then "circumpolar: never sets" else if cosh(dec, phi) > 1 then "never rises" else "rises and sets daily"
+def ccl(dec, phi) = if cosh(dec, phi) < -1 then 1 else if cosh(dec, phi) > 1 then -1 else 0
+const fcirc = (1 - cos(rad(90 - abs(lat)))) / 2   // share of the sky in each polar cap
+
+/* ---- results ------------------------------------------------------------------
+Three declinations at Greenwich: +46 (Capella - circumpolar, the
+textbook case), +20 (a normal rising-and-setting star) and -50 (below
+the south cap, so never seen from 51 N). The fraction prints show the
+size of the two caps and the band between them; they sum to 1. */
+print("circumpolar check at lat 51.4779:")
+print("  declination +46 deg:", cls(46, lat))
+print("  declination +20 deg:", cls(20, lat))
+print("  declination -50 deg:", cls(-50, lat))
+print("share that never sets: (1 - cos(90 - |lat|)) / 2 =", fcirc)
+print("share that never rises: the same by symmetry =", fcirc)
+print("share that rises and sets daily:", 1 - 2 * fcirc)
+print("  the three shares sum to:", fcirc + fcirc + (1 - 2 * fcirc))
+print("Capella (dec +46) never sets at Greenwich - textbook says yes:", ccl(46, lat) == 1)
+
+/* Engine validation of the same rule on a real body: the Sun at
+Svalbard on the 2026-06-21 solstice has declination +23.4 deg, beyond
+90 - 78.2 = 11.8, so it must be circumpolar there that day - polar
+day. The engine's altitude readings at 00:00 and 12:00 UT should both
+be above the horizon. */
+d = decl(10, jd(2026, 6, 21))
+a0 = alt(10, jd(2026, 6, 21, 0), latp, lonp)
+a12 = alt(10, jd(2026, 6, 21, 12), latp, lonp)
+print("Sun at Svalbard on 2026-06-21, declination", d, "deg")
+print("  classified:", cls(d, latp))
+print("engine check: altitudes at 00:00 and 12:00 UT:", a0, "and", a12, "deg")
+print("  both above the horizon:", a0 > 0 and a12 > 0)
+/* ---- expected output ----
+= 51.4779
+= 78.2
+= 15.6
+= 0.108816008157
+= circumpolar check at lat 51.4779:
+=   declination +46 deg: circumpolar: never sets
+=   declination +20 deg: rises and sets daily
+=   declination -50 deg: never rises
+= share that never sets: (1 - cos(90 - |lat|)) / 2 = 0.108816008157
+= share that never rises: the same by symmetry = 0.108816008157
+= share that rises and sets daily: 0.782367983687
+=   the three shares sum to: 1
+= Capella (dec +46) never sets at Greenwich - textbook says yes: true
+= 23.437516214
+= 12.0180793
+= 34.779948
+= Sun at Svalbard on 2026-06-21, declination 23.437516214 deg
+=   classified: circumpolar: never sets
+= engine check: altitudes at 00:00 and 12:00 UT: 12.0180793 and 34.779948 deg
+=   both above the horizon: true
+*/

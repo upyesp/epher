@@ -1,0 +1,71 @@
+/* ============================================================================
+bright-limb-pa.epher -- the position angle of the bright limb
+
+Prints the position angle of a body's bright limb for one instant -
+the angle, measured from the celestial north point through east,
+that says which side of the Moon or a planet is lit. The lit side
+faces the Sun, so the bright-limb PA is the sky position angle of
+the direction from the body toward the Sun - the standard two-body
+position angle (the formula the double-star observers use, and the
+one behind Meeus ch. 48 and Duffett-Smith's "Position angle of the
+bright limb"):
+
+  tan(theta) = sin(as - ab) cos(ds)
+             / (cos(db) sin(ds) - sin(db) cos(ds) cos(as - ab))
+
+with (as, ds) the Sun's and (ab, db) the body's right ascension and
+declination, evaluated with atan2 for the right quadrant (some
+printings of ch. 48 give the antipodal convention, measured from
+the dark side). Positions come from the built-in accessors
+(solar-ephemeris crate, JPL-Horizons-validated; guide 1.29).
+
+Accuracy: arcsecond-grade positions make the angle good to a few
+thousandths of a degree; the printed illumination is the engine's
+model value.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/bright-limb-pa.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\bright-limb-pa.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/bright-limb-pa.epher
+In the REPL:             load one of the paths above
+
+Knobs: the body (11 = Moon) and the instant t below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const body = 11                // Moon
+const t = jd(2026, 9, 13, 19)  // an evening crescent test
+
+// ---- Meeus ch. 48: bright-limb position angle, from precomputed ra/dec ------------
+def pa(sra, sde, bra, bde) = deg(atan2(sin(rad(sra - bra)) * cos(rad(sde)), cos(rad(bde)) * sin(rad(sde)) - sin(rad(bde)) * cos(rad(sde)) * cos(rad(sra - bra))))
+
+sra = ra(10, t)
+sde = decl(10, t)
+bra = ra(body, t)
+bde = decl(body, t)
+
+// ---- results ----------------------------------------------------------------------
+print("at", iso(t))
+print("bright-limb PA (north through east):", pa(sra, sde, bra, bde), "deg")
+print("illuminated fraction:", illum(body, t))
+
+/* Self-check: the phase picture must be consistent - this is a
+young crescent, so the Sun (which the lit side faces) is below the
+horizon for Greenwich at the instant, and its azimuth tells which
+way the crescent points. */
+print("Sun altitude at the instant:", alt(10, t, 51.4779, 0), "deg")
+print("Sun azimuth at the instant: ", az(10, t, 51.4779, 0), "deg")
+
+/* ---- expected output ----
+= 11
+= 59071135/24
+= 171.739748292
+= 3.563921946
+= 200.354919245
+= -13.147987729
+= at 2026-09-13T19:00:00
+= bright-limb PA (north through east): -61.4724326937 deg
+= illuminated fraction: 0.0808
+= Sun altitude at the instant: -7.0771504 deg
+= Sun azimuth at the instant:  284.8611349 deg
+*/

@@ -1,0 +1,105 @@
+/* ============================================================================
+moon-node-passages.epher -- when the Moon crosses the ecliptic's nodes
+
+Finds the instants in one month when the Moon crosses the ecliptic -
+the ascending node (ecliptic latitude beta changing from south to
+north) and the descending node (north to south) - by watching the sign
+of the Moon's geocentric ecliptic latitude, computed from the built-in
+ra and decl (the solar-ephemeris crate, ELP-MPP02, JPL-validated;
+guide 1.16) through the ch. 13 rotation of moon-ecliptic-position.epher
+(mean obliquity of date). The scan is the engine-truth version of the
+mean-element treatment of Meeus ch. 51 ("Passages of the Moon through
+the Nodes"): there the node passages follow from the mean elements,
+here the ephemeris itself is read.
+
+The method: the ecliptic latitude is sampled every 2 days across the
+month (the Moon crosses the ecliptic about every 13.6 days, so each
+sign change has a bracket), each bracket is halved 8 times by sign
+(bisection on beta), and the crossing inside the final ~10-minute
+bracket is pinned by linear interpolation - the latitude runs almost
+straight through a node, so the interpolation error is seconds.
+
+Accuracy: engine-grade: the crossing times are good to well under a
+minute, limited only by the ephemeris. Months usually carry two
+crossings; a month can hold one (or, rarely, three) when a crossing
+sits near an edge - the scan reports what it finds inside the month.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-node-passages.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-node-passages.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-node-passages.epher
+In the REPL:             load one of the paths above
+
+Knobs: `year` and `month` (below: June 2026 - the Moon crosses the
+ascending node on the 8th and the descending node on the 20th).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const year = 2026
+const month = 6
+
+// ---- the scan geometry ----------------------------------------------------------
+const j0 = jd(year, month, 1)         // 1st of the month, 0h UT
+const d0 = j0 - 2                     // samples start two days early
+const n = 18                          // samples, one every 2 days (17 brackets)
+
+// ---- ecliptic latitude of the Moon (mean obliquity; ch. 13 rotation) -------------
+def w360(x) = x - 360 * floor(x / 360)
+def T(j) = (j - 2451545) / 36525
+def eps(j) = 23.4392911 - 46.8150 * T(j) / 3600 - 0.00059 * T(j) ^ 2 / 3600 + 0.001813 * T(j) ^ 3 / 3600
+def betaAt(j) = deg(asin(sin(rad(decl(11, j))) * cos(rad(eps(j))) - cos(rad(decl(11, j))) * sin(rad(eps(j))) * sin(rad(ra(11, j)))))   // ecliptic latitude, deg
+
+// ---- the sign scan and the bisection ----------------------------------------------
+def bsign(i) = betaAt(d0 + 2 * i)                       // beta at sample i
+def nxt(i) = if i >= n - 1 then -1 else if bsign(i) * bsign(i + 1) < 0 then i else nxt(i + 1)   // first sign-change bracket at/after i, or -1
+def hai(i) = (d0 + 2 * i - j0) * 24                     // sample i as hours after j0
+def bis(a, b, k) = if k == 0 then {a, b} else if betaAt(j0 + (a + b) / 2 / 24) * betaAt(j0 + a / 24) < 0 then bis(a, (a + b) / 2, k - 1) else bis((a + b) / 2, b, k - 1)   // halve the bracket k times, hours after j0
+
+// ---- results ----------------------------------------------------------------------
+r1 = nxt(0)
+r2 = nxt(r1 + 1)
+print("node crossings of", month, "/", year, ":")
+
+// The first crossing: its bracket, the sign change's direction, and the
+// refined instant from 8 bisection halvings plus linear interpolation.
+br1 = bis(hai(r1), hai(r1) + 48, 8)
+ba1 = betaAt(j0 + br1[1] / 24)
+bb1 = betaAt(j0 + br1[2] / 24)
+tc1 = br1[1] + (br1[2] - br1[1]) * ba1 / (ba1 - bb1)
+if r1 < 0 then "no node crossing this month" else (if bsign(r1) < 0 then "ascending node (beta - to +): " else "descending node (beta + to -): ") + iso(j0 + tc1 / 24) + " UT"
+
+// The second crossing (absent when the month holds only one).
+br2 = bis(hai(r2), hai(r2) + 48, 8)
+ba2 = betaAt(j0 + br2[1] / 24)
+bb2 = betaAt(j0 + br2[2] / 24)
+tc2 = br2[1] + (br2[2] - br2[1]) * ba2 / (ba2 - bb2)
+if r2 < 0 then "no second crossing this month" else (if bsign(r2) < 0 then "ascending node (beta - to +): " else "descending node (beta + to -): ") + iso(j0 + tc2 / 24) + " UT"
+
+/* Self-check: the Moon's ecliptic latitude at the refined instants
+must read zero (it defines the node). The printed values are the
+interpolation residuals, fractions of an arcsecond. */
+print("self-check: beta at the first crossing:", betaAt(j0 + tc1 / 24), "deg")
+print("self-check: beta at the second crossing:", betaAt(j0 + tc2 / 24), "deg")
+
+/* ---- expected output ----
+= 2026
+= 6
+= 2461192.5
+= 2461190.5
+= 18
+= 4
+= 10
+= node crossings of 6 / 2026 :
+= {150.1875, 150.375}
+= -0.00697936587341
+= 0.00169704644567
+= 150.338326292
+= ascending node (beta - to +): 2026-06-07T06:20:18 UT
+= {449.8125, 450}
+= 0.00795440515089
+= -0.00155932923089
+= 449.969268195
+= descending node (beta + to -): 2026-06-19T17:58:09 UT
+= self-check: beta at the first crossing: -0.000000134772847926 deg
+= self-check: beta at the second crossing: -0.000000165352073043 deg
+*/

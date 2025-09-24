@@ -1,0 +1,60 @@
+/* ============================================================================
+flux-ratio.epher -- magnitude difference into flux ratio, and back
+
+The Pogson magnitude law: a step of m magnitudes multiplies the light
+ratio by 100^(m/5), so the flux ratio is 10^(0.4 m) and the inverse is
+m = 2.5 log10(ratio). This is the arithmetic of Meeus ch. 56, "Double
+stars" / magnitudes, the same 2.512 table every field guide carries.
+Both directions are given: magnitude difference -> flux ratio, and
+flux ratio -> magnitude difference.
+
+Accuracy: exact arithmetic. One honesty note: the classroom factor
+2.512 is the rounded 100^(1/5); the exact value is 2.51188643151, and
+the script uses the exact 10^(0.4 m) throughout, so 5 magnitudes give
+a clean factor of 100 (2.512^5 would give 100.0226).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/flux-ratio.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\flux-ratio.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/flux-ratio.epher
+In the REPL:             load one of the paths above
+
+Knobs: the magnitude difference `dm` and the flux ratio `ratio`.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const dm = 1        // magnitude difference to convert
+const ratio = 100   // flux ratio to convert back
+
+// ---- Meeus ch. 56: the Pogson law, both directions ----------------------------
+def fratio(m) = 10 ^ (0.4 * m)     // flux ratio for a magnitude difference
+def fdmag(r) = 2.5 * log(r)        // magnitude difference for a flux ratio
+
+// ---- results: difference -> ratio ---------------------------------------------
+print(dm, "mag dimmer means", fratio(dm), "times fainter")
+print("5 mag dimmer:", fratio(5), "times (the definition of the scale)")
+print("the classroom 2.512 is really 100^(1/5):", 100 ^ (1 / 5))
+
+// A famous worked pair: the Sun (-26.74) against the full Moon
+// (-12.74) is 14 magnitudes, the ratio that lights a landscape at
+// night yet cannot be looked at safely by day.
+print("Sun over full Moon, 14 mag:", fratio(14), "times")
+print("Venus (-4.6) over Sirius (-1.46), 3.14 mag:", fratio(3.14), "times")
+
+// ---- results: ratio -> difference ---------------------------------------------
+print(ratio, "times brighter is", fdmag(ratio), "mag")
+print("2 times brighter:", fdmag(2), "mag (the equal-pair correction)")
+print("round trip on 1000:", fratio(fdmag(1000)), "(must be 1000)")
+
+/* ---- expected output
+= 1
+= 100
+= 1 mag dimmer means 2.51188643151 times fainter
+= 5 mag dimmer: 100 times (the definition of the scale)
+= the classroom 2.512 is really 100^(1/5): 2.51188643151
+= Sun over full Moon, 14 mag: 398107.170553 times
+= Venus (-4.6) over Sirius (-1.46), 3.14 mag: 18.0301774086 times
+= 100 times brighter is 5 mag
+= 2 times brighter: 0.75257498916 mag (the equal-pair correction)
+= round trip on 1000: 1000 (must be 1000)
+*/

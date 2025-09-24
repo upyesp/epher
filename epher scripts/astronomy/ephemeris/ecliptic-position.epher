@@ -1,0 +1,67 @@
+/* ============================================================================
+ecliptic-position.epher -- ecliptic longitude and latitude of a body
+
+Converts a body's geocentric equatorial position (the engine's ra and
+decl, solar-ephemeris crate, JPL-Horizons-validated) into ecliptic
+longitude and latitude with the spherical rotation about the
+obliquity - Meeus, "Astronomical Algorithms" 2nd ed. ch. 13 (eq. 13.3
+and 13.4):
+
+  tan(lambda) = (sin(alpha) cos(eps) + tan(delta) sin(eps)) / cos(alpha)
+  sin(beta)   = sin(delta) cos(eps) - cos(delta) sin(eps) sin(alpha)
+
+The obliquity is the mean value of Meeus ch. 22 (eq. 22.2). The
+ecliptic frame is the astronomers' answer to "how far off the
+ecliptic does Mars wander this month" - and it is the frame the old
+ephemerides and the calculator classics (Effemeridi, EPHE) work in.
+
+Accuracy: engine positions are arcsecond-grade; using the MEAN
+obliquity (nutation omitted) costs up to about 9 arcsec of
+longitude. Latitude is unaffected at the same grade.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/ecliptic-position.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\ecliptic-position.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/ecliptic-position.epher
+In the REPL:             load one of the paths above
+
+Knobs: the body (guide 1.29 numbering) and the instant t below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const body = 4                 // Mars
+const t = jd(2026, 9, 10, 2)
+
+// ---- mean obliquity of the ecliptic in degrees (Meeus eq. 22.2) ------------------
+def epsdeg(j) = 23.4392911 - 46.8150 * ((j - 2451545) / 36525) / 3600 - 0.00059 * ((j - 2451545) / 36525) ^ 2 / 3600 + 0.001813 * ((j - 2451545) / 36525) ^ 3 / 3600
+
+// ---- the rotation (Meeus ch. 13), on precomputed ra/dec pairs ---------------------
+def eclon(ar, dr) = deg(atan2(sin(rad(ar)) * cos(rad(epsdeg(t))) + tan(rad(dr)) * sin(rad(epsdeg(t))), cos(rad(ar))))
+def eclat(ar, dr) = deg(asin(sin(rad(dr)) * cos(rad(epsdeg(t))) - cos(rad(dr)) * sin(rad(epsdeg(t))) * sin(rad(ar))))
+
+mra = ra(body, t)
+mde = decl(body, t)
+sra = ra(10, t)
+sde = decl(10, t)
+
+// ---- results --------------------------------------------------------------------
+print("at", iso(t))
+print("Mars   ecliptic lon", eclon(mra, mde), "  lat", eclat(mra, mde))
+print("Sun    ecliptic lon", eclon(sra, sde), "  lat", eclat(sra, sde))
+
+/* Self-check: the Sun rides the ecliptic - its latitude must be a
+few thousandths of a degree. */
+print("Sun ecliptic lat (must be tiny):", abs(eclat(sra, sde)))
+
+/* ---- expected output ----
+= 4
+= 29535523/12
+= 110.773499465
+= 22.74523044
+= 168.410710614
+= 4.977535832
+= at 2026-09-10T02:00:00
+= Mars   ecliptic lon 109.093783646   lat 0.67567275331
+= Sun    ecliptic lon 167.40045609   lat 0.000497719747027
+= Sun ecliptic lat (must be tiny): 0.000497719747027
+*/

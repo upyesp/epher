@@ -1,0 +1,85 @@
+/* ============================================================================
+moon-parallax.epher -- the Moon's horizontal parallax at work
+
+Two things: the Moon's horizontal parallax (HP) at one instant - the
+angle the Earth's radius subtends at the Moon - from the built-in
+distance (HP = asin(r_earth / dist), the relation of Duffett-Smith,
+"Practical Astronomy", 4th ed., "The Moon's distance, angular size
+and horizontal parallax", and of Meeus ch. 40, "Correction for
+Parallax"), and then a live demonstration of what parallax does: the
+Moon's geocentric altitude computed by plain trigonometry from ra,
+decl and local sidereal time, versus the engine's topocentric
+altitude for a place. Their difference is the parallax in altitude,
+about HP cos(alt): the surface observer sees the Moon lower than the
+geocentric sky - nothing at the zenith, nearly a full degree at the
+horizon. Navigation almanacs add that same term back when reducing a
+Moon sight: observed altitude plus the parallax correction gives the
+geocentric altitude (Meeus ch. 40).
+
+The distance accessor is geocentric (the solar-ephemeris crate,
+JPL-validated; guide 1.16): HP reads the Moon's distance from the
+Earth's centre. r_earth is the mean radius; the engine's topocentric
+altitude uses the same spherical-Earth model, so the measured shift
+and the HP cos(alt) prediction agree to a few thousandths of a degree
+(the residual is the second order of the parallax, about HP^2 times
+sine terms).
+
+Accuracy: engine-grade throughout; the altitude shift is good to
+about 0.01 deg.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-parallax.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-parallax.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-parallax.epher
+In the REPL:             load one of the paths above
+
+Knobs: the place and the instant (below: Greenwich, 2026-06-22 22:00
+UT - the Moon sits 15.4 deg up in the southwest, where the parallax
+still shifts it nearly a full degree).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const lat = 51.4779        // Greenwich - the Royal Observatory
+const lon = 0
+const year = 2026
+const month = 6
+const day = 22
+const hr = 22          // hours UT
+
+// ---- helpers ----------------------------------------------------------------
+def w360(x) = x - 360 * floor(x / 360)
+def hp(j) = deg(asin(r_earth / (dist(11, j) * au)))      // horizontal parallax, deg (r_earth and au in metres)
+def altg(j, lat, lon) = deg(asin(sin(rad(lat)) * sin(rad(decl(11, j))) + cos(rad(lat)) * cos(rad(decl(11, j))) * cos(rad(w360(lst(j, lon) * 15 - ra(11, j))))))   // geocentric altitude from the hour angle
+
+// ---- results ------------------------------------------------------------------
+t = jd(year, month, day, hr)
+print("at", iso(t), "UT, from lat", lat, "lon", lon)
+print("Moon distance:", dist(11, t), "AU")
+print("horizontal parallax:", hp(t), "deg =", hp(t) * 60, "arcmin")
+
+/* The demo: the geocentric altitude of the same instant (the sky as a
+hypothetical observer at the Earth's centre would see it) versus the
+engine's topocentric altitude for the place. Their difference is the
+parallax in altitude: the Moon reads 0.89 deg lower for the surface
+observer, and -HP cos(alt) predicts the shift. */
+print("geocentric altitude (ra/dec/lst trig):", altg(t, lat, lon), "deg")
+print("topocentric altitude (engine):", alt(11, t, lat, lon), "deg")
+print("shift (topocentric minus geocentric):", alt(11, t, lat, lon) - altg(t, lat, lon), "deg")
+print("shift predicted, -HP cos(alt):", -hp(t) * cos(rad(altg(t, lat, lon))), "deg")
+
+/* ---- expected output ----
+= 51.4779
+= 0
+= 2026
+= 6
+= 22
+= 22
+= 29534573/12
+= at 2026-06-22T22:00:00 UT, from lat 51.4779 lon 0
+= Moon distance: 0.00263138917792 AU
+= horizontal parallax: 0.927339379581 deg = 55.6403627749 arcmin
+= geocentric altitude (ra/dec/lst trig): 16.3114308383 deg
+= topocentric altitude (engine): 15.4187962 deg
+= shift (topocentric minus geocentric): -0.89263463826 deg
+= shift predicted, -HP cos(alt): -0.890013300244 deg
+*/

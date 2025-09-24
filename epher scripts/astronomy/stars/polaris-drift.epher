@@ -1,0 +1,80 @@
+/* ============================================================================
+polaris-drift.epher -- Polaris and the pole across five centuries
+
+Precesses Polaris's J2000 catalogue position to 1900, 1950, 2000,
+2050 and 2100 with the rigorous method of Meeus ch. 21 (the same
+recipe precession-j2000.epher carries, as local defs with
+star-tonight.epher's Polaris coordinates as the anchor), prints the
+declination and the polar distance 90 - dec for each era, then scans
+the model for the epoch of closest approach - the moment Meeus's
+"Mathematical Astronomy Morsels" (the chapter on the declination of
+Polaris) discusses, when the pole swings nearest this star before
+leaving it behind for good.
+
+Accuracy: the IAU-1976 precession only. Polaris's proper motion
+(about 44 mas/yr in RA, -12 mas/yr in dec) is omitted; over the two
+centuries bridged here it moves the computed positions by a few
+arcminutes at the edge, which is the honest error at 1900 and 2150.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/polaris-drift.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\polaris-drift.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/polaris-drift.epher
+In the REPL:             load one of the paths above
+
+Knobs: the J2000 anchor position below; the era list is in the
+results but the scan range is in the model section.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const pol_ra = hms2deg(2, 31, 49.09)    // Polaris, J2000 (SIMBAD)
+const pol_dec = dms2deg(89, 15, 50.8)
+const scan_from = 2050                  // closest-approach scan range
+const scan_to = 2150
+
+// ---- Meeus ch. 21: declination of date from J2000 ------------------------------
+def cent0(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def sig(tt, T) = ((2306.2181 + 1.39656 * T - 0.000139 * T ^ 2) * tt + (0.30188 - 0.000344 * T) * tt ^ 2 + 0.017988 * tt ^ 3) / 3600
+def phi(tt, T) = ((2004.3109 - 0.8533 * T - 0.000217 * T ^ 2) * tt - (0.42665 + 0.000217 * T) * tt ^ 2 - 0.041833 * tt ^ 3) / 3600
+def dec_of(ra, dec, j) = deg(asin(sin(rad(phi((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) * cos(rad(dec)) * cos(rad(ra + sig((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) + cos(rad(phi((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) * sin(rad(dec))))
+def dec_at(y) = dec_of(pol_ra, pol_dec, jd(2000, 1, 1, 12) + 365.25 * (y - 2000))   // Julian epoch y.0
+// (jd needs whole days, so epochs run from J2000.0 in Julian years of 365.25 d;
+// the scan's fractional years need the same footing)
+def pdist(y) = 90 - dec_at(y)                          // polar distance, deg
+
+// ---- closest approach: coarse scan then fine, state packed in a list -----------
+v = {scan_from, scan_from, pdist(scan_from)}
+while v[1] <= scan_to do v = {v[1] + 1, if pdist(v[1]) < v[3] then v[1] else v[2], min(v[3], pdist(v[1]))}
+w = {v[2] - 2, v[2], pdist(v[2])}
+while w[1] <= v[2] + 2 do w = {w[1] + 0.05, if pdist(w[1]) < w[3] then w[1] else w[2], min(w[3], pdist(w[1]))}
+
+// ---- results ------------------------------------------------------------------
+print("1900: dec", deg2dms(dec_at(1900)), "polar dist", 60 * pdist(1900), "arcmin")
+print("1950: dec", deg2dms(dec_at(1950)), "polar dist", 60 * pdist(1950), "arcmin")
+print("2000: dec", deg2dms(dec_at(2000)), "polar dist", 60 * pdist(2000), "arcmin")
+print("2050: dec", deg2dms(dec_at(2050)), "polar dist", 60 * pdist(2050), "arcmin")
+print("2100: dec", deg2dms(dec_at(2100)), "polar dist", 60 * pdist(2100), "arcmin")
+print("closest approach:", w[2], "at polar distance", 60 * w[3], "arcmin")
+
+/* Cross-check: Morsels puts the closest approach in the early 2100s
+at about 27 arcminutes, and the model's self-consistency shows in the
+round trip - precessing the 2100 position back to J2000 must return
+the catalogue value (precession-j2000.epher demonstrates the round
+trip on theta Hydrae). The table also shows the observing benefit:
+the pointing correction for Polaris shrinks from 1950 on and is
+smallest right around 2100. */
+
+/* ---- expected output
+= 37.9545416667
+= 89.2641111111
+= 2050
+= 2150
+= {2050, 2050, 0.545378816109}
+= {2100, 2102, 0.4592454087}
+= 1900: dec 88° 46' 25" polar dist 73.5822402283 arcmin
+= 1950: dec 89° 1' 43" polar dist 58.2844546384 arcmin
+= 2000: dec 89° 15' 51" polar dist 6623/150 arcmin
+= 2050: dec 89° 27' 17" polar dist 32.7227289666 arcmin
+= 2100: dec 89° 32' 26" polar dist 27.5662953448 arcmin
+= closest approach: 2102.4 at polar distance 27.554384622 arcmin
+*/

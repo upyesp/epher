@@ -1,0 +1,68 @@
+/* ============================================================================
+date-from-julian-day.epher -- Julian Date back to a calendar date
+
+The inverse of jd(y, m, d): the built-ins date(), time() and iso()
+turn a Julian Date into the calendar date and clock time. The
+algorithm is the one from chapter 7 of Jean Meeus, "Astronomical
+Algorithms" (2nd ed., Willmann-Bell, 1998), built in (guide 1.18):
+floor arithmetic on the day number, with the Gregorian/Julian
+calendar switch of 1582-10-15 handled. date(jd) gives the
+{year, month, day}; time(jd) gives the {hour, minute, second} clock
+in UT, rounded to the second; iso(jd) spells the same moment as the
+ISO 8601 date-time (YYYY-MM-DDTHH:MM:SS), the notation the JPL
+Horizons tables print. Every bare date below is checked by a round
+trip back through jd(), which prints true when the pair agrees.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/date-from-julian-day.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\date-from-julian-day.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/date-from-julian-day.epher
+In the REPL:             load one of the paths above
+
+Knob: none - the dates below are fixed, famous ones, plus one
+fractional instant that shows the clock half of the conversion.
+============================================================================ */
+
+/* ---- results ----------------------------------------------------------------
+Round trips: the date of a JD that jd() produced, and the check that
+converting back yields the original JD (true on every line). The
+famous bare JD 2451545 is J2000.0, noon on 2000-01-01; iso() reads
+it back as the full date-time, and the time part carries the 12:00
+that the date alone cannot. The Gregorian/Julian switch sits between
+the two 1582 lines: jd(1582, 10, 4, 12) is the last Julian-calendar
+day and jd(1582, 10, 15) the first Gregorian one, ten days later. */
+print("jd(2026, 3, 15) ->", iso(jd(2026, 3, 15)))
+print("round trip:", jd(date(jd(2026, 3, 15))[1], date(jd(2026, 3, 15))[2], date(jd(2026, 3, 15))[3]) == jd(2026, 3, 15))
+print("J2000.0, JD 2451545 ->", iso(2451545))
+print("its clock:", time(2451545))
+print("leap day, jd(2000, 2, 29) ->", iso(jd(2000, 2, 29)))
+print("round trip:", jd(date(jd(2000, 2, 29))[1], date(jd(2000, 2, 29))[2], date(jd(2000, 2, 29))[3]) == jd(2000, 2, 29))
+print("Gregorian start, jd(1582, 10, 15) ->", iso(jd(1582, 10, 15)))
+print("round trip:", jd(date(jd(1582, 10, 15))[1], date(jd(1582, 10, 15))[2], date(jd(1582, 10, 15))[3]) == jd(1582, 10, 15))
+print("last Julian day, jd(1582, 10, 4, 12) ->", iso(jd(1582, 10, 4, 12)))
+print("round trip:", jd(date(jd(1582, 10, 4, 12))[1], date(jd(1582, 10, 4, 12))[2], date(jd(1582, 10, 4, 12))[3], 12) == jd(1582, 10, 4, 12))
+print("century non-leap, jd(2100, 2, 28) ->", iso(jd(2100, 2, 28)))
+print("round trip:", jd(date(jd(2100, 2, 28))[1], date(jd(2100, 2, 28))[2], date(jd(2100, 2, 28))[3]) == jd(2100, 2, 28))
+print("year end, jd(2026, 12, 31) ->", iso(jd(2026, 12, 31)))
+print("round trip:", jd(date(jd(2026, 12, 31))[1], date(jd(2026, 12, 31))[2], date(jd(2026, 12, 31))[3]) == jd(2026, 12, 31))
+print("half past noon, jd(2026, 3, 20, 12.5) ->", iso(jd(2026, 3, 20, 12.5)))
+print("date and clock of that instant:", date(jd(2026, 3, 20, 12.5)), time(jd(2026, 3, 20, 12.5)))
+
+/* ---- expected output ----
+= jd(2026, 3, 15) -> 2026-03-15T00:00:00
+= round trip: true
+= J2000.0, JD 2451545 -> 2000-01-01T12:00:00
+= its clock: {12, 0, 0}
+= leap day, jd(2000, 2, 29) -> 2000-02-29T00:00:00
+= round trip: true
+= Gregorian start, jd(1582, 10, 15) -> 1582-10-15T00:00:00
+= round trip: true
+= last Julian day, jd(1582, 10, 4, 12) -> 1582-10-04T12:00:00
+= round trip: true
+= century non-leap, jd(2100, 2, 28) -> 2100-02-28T00:00:00
+= round trip: true
+= year end, jd(2026, 12, 31) -> 2026-12-31T00:00:00
+= round trip: true
+= half past noon, jd(2026, 3, 20, 12.5) -> 2026-03-20T12:30:00
+= date and clock of that instant: {2026, 3, 20} {12, 30, 0}
+*/

@@ -1,0 +1,65 @@
+/* ============================================================================
+daily-motion.epher -- how far a body moves across the sky in a day
+
+Prints one body's per-day drift: the change of right ascension in
+minutes of time and the change of declination in arcminutes, from two
+accessor reads a day apart (solar-ephemeris crate, JPL-Horizons-
+validated; guide 1.29). The Moon leads the field at about 50 minutes
+of RA per day; the Sun holds a steady four; retrograde planets go
+negative, which is how the drift table in a yearbook shows an upcoming
+station.
+
+Accuracy: engine positions agree with JPL Horizons to about an
+arcsecond, so a one-day difference is good to a couple of arcseconds
+of position - far finer than the printed minutes.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/daily-motion.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\daily-motion.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/daily-motion.epher
+In the REPL:             load one of the paths above
+
+Knobs: the instant t below; the Moon and the Sun are always shown.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const t = jd(2026, 9, 10, 0)
+
+// ---- helpers: wrap an angle to (-180, 180] --------------------------------------
+def wrap(x) = x - 360 * floor(x / 360)
+def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
+
+// ---- the drift, one day apart, Moon and Sun --------------------------------------
+mra1 = ra(11, t)
+mra2 = ra(11, t + 1)
+mde1 = decl(11, t)
+mde2 = decl(11, t + 1)
+sra1 = ra(10, t)
+sra2 = ra(10, t + 1)
+sde1 = decl(10, t)
+sde2 = decl(10, t + 1)
+
+print("per-day drift at", iso(t))
+print("Moon:  dRA", spread(mra2 - mra1) * 4, "min of time   dDec", (mde2 - mde1) * 60, "arcmin")
+print("Sun:   dRA", spread(sra2 - sra1) * 4, "min of time   dDec", (sde2 - sde1) * 60, "arcmin")
+
+/* Self-check: the Sun's mean daily RA drift is 3.94 min of time,
+slowest near the equinoxes and fastest near the solstices, so the
+September value must sit between 3.0 and 4.3. */
+print("Sun drift sane (3.0 to 4.3):", spread(sra2 - sra1) * 4 > 3.0 and spread(sra2 - sra1) * 4 < 4.3)
+
+/* ---- expected output ----
+= 2461293.5
+= 154.451364924
+= 166.950942783
+= 10.319259641
+= 3.955015842
+= 168.335823973
+= 169.234211559
+= 5.009097619
+= 4.629720066
+= per-day drift at 2026-09-10T00:00:00
+= Moon:  dRA 49.998311436 min of time   dDec -381.85462794 arcmin
+= Sun:   dRA 3.593550344 min of time   dDec -22.76265318 arcmin
+= Sun drift sane (3.0 to 4.3): true
+*/

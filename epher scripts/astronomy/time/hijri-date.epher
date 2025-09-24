@@ -1,0 +1,54 @@
+/* ============================================================================
+hijri-date.epher -- Gregorian date to the Islamic (Hijri) calendar
+
+Converts a Gregorian date into the Islamic calendar: Hijri year,
+month and day. The calendar is purely lunar: 12 months of 29 or 30
+days, with 11 leap years (355 days) in each 30-year cycle. The
+script uses the arithmetic "tabular" calendar - the fixed civil
+variant whose epoch is 1 Muharram 1 AH = 19 July 622 (Julian), day
+number 1948440, with the classic leap test (11 y + 14) mod 30 < 11
+(the calendar of Meeus ch. 9 and the "Kuwaiti algorithm" of the
+Calendar FAQ). The tabular calendar agrees with the crescent-based
+calendars and with the Umm al-Qura calendar of Saudi Arabia to
+within a day at month starts - that one-day spread is inherent to
+the several Islamic calendars, not an error.
+
+Accuracy: exact arithmetic for the tabular calendar.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/hijri-date.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\hijri-date.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/hijri-date.epher
+In the REPL:             load one of the paths above
+
+Knobs: the date below.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------------
+const y = 2026
+const m = 9
+const d = 7
+
+// ---- the Kuwaiti tabular algorithm (integer arithmetic on the day number) ------------
+def mname(k) = if k == 1 then "Muharram" else if k == 2 then "Safar" else if k == 3 then "Rabi al-awwal" else if k == 4 then "Rabi al-thani" else if k == 5 then "Jumada al-ula" else if k == 6 then "Jumada al-akhirah" else if k == 7 then "Rajab" else if k == 8 then "Shaban" else if k == 9 then "Ramadan" else if k == 10 then "Shawwal" else if k == 11 then "Dhu al-Qidah" else "Dhu al-Hijjah"
+def al0(j) = j - 1948440 + 10632
+def anv(j) = floor(al0(j) / 10631)
+def al1(j) = al0(j) - 10631 * anv(j) + 354
+def ajv(j) = floor((10985 - al1(j)) / 5316) * floor(50 * al1(j) / 17719) + floor(al1(j) / 5670) * floor(43 * al1(j) / 15238)
+def al2(j) = al1(j) - floor((30 - ajv(j)) / 15) * floor(17719 * ajv(j) / 50) - floor(ajv(j) / 16) * floor(15238 * ajv(j) / 43) + 29
+def amv(j) = floor(24 * al2(j) / 709)
+def adv(j) = al2(j) - floor(709 * amv(j) / 24)
+def ayv(j) = 30 * anv(j) + ajv(j) - 30
+
+print("Hijri year leap test of the epoch: 1 Muharram 1 AH = JDN 1948440:", floor(jd(622, 7, 16) + 0.5) == 1948440)
+
+print("Gregorian", y, "-", m, "-", d, "is Hijri", adv(floor(jd(y, m, d) + 0.5)), mname(amv(floor(jd(y, m, d) + 0.5))), ayv(floor(jd(y, m, d) + 0.5)), "AH")
+print("2026-06-26 is tabular Hijri", adv(floor(jd(2026, 6, 26) + 0.5)), mname(amv(floor(jd(2026, 6, 26) + 0.5))), ayv(floor(jd(2026, 6, 26) + 0.5)), "(Umm al-Qura: 11 Muharram 1448 - the 1-day spread)")
+/* ---- expected output ----
+= 2026
+= 9
+= 7
+= Hijri year leap test of the epoch: 1 Muharram 1 AH = JDN 1948440: true
+= Gregorian 2026 - 9 - 7 is Hijri 24 Rabi al-awwal 1448 AH
+= 2026-06-26 is tabular Hijri 10 Muharram 1448 (Umm al-Qura: 11 Muharram 1448 - the 1-day spread)
+*/

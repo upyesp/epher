@@ -1,0 +1,77 @@
+/* ============================================================================
+polaris-sight.epher -- latitude from a Polaris sight
+
+The navigator's latitude shortcut: the altitude of Polaris equals
+the latitude within about a degree, because the star sits less
+than a degree from the north celestial pole. The correction comes from the spherical triangle pole-zenith-
+star, solved exactly: with pd the polar distance of Polaris at the
+date and H its local hour angle,
+
+  sin(Ho) = sin(lat) cos(pd) + cos(lat) sin(pd) cos(H)
+
+solved for lat (the closed form below). Polaris's position is an
+in-script constant (J2000: RA 2h 31m 49.3s, Dec +89 15' 51"); its
+declination increases by about 15 arcsec a year toward its ~2100
+closest approach, applied here as a rate.
+
+Accuracy: the geometry is exact - the residuals are the
+observation's own (refraction and dip corrections assumed
+already applied) plus the rate-model's share, under an arcminute.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/navigation/polaris-sight.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\navigation\polaris-sight.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/navigation/polaris-sight.epher
+In the REPL:             load one of the paths above
+
+Knobs: the observed altitude (Ho, degrees, corrected for
+refraction and dip), the UT instant and the assumed longitude.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------------
+const ho = 51.28            // observed altitude, degrees
+const t = jd(2026, 9, 10, 22)
+const lon = -5              // assumed longitude, degrees east
+
+// ---- Polaris at the date ------------------------------------------------------------
+const pra = 37.9554         // RA J2000 (2h 31m 49.3s), degrees
+const pde = 89.2642         // Dec J2000 (+89 15' 51"), degrees
+def wrap(x) = x - 360 * floor(x / 360)
+def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
+dy = (jd(2026, 9, 10, 0) - 2451545) / 365.25
+pdec = pde + 15 / 3600 * dy      // the ~15 arcsec/yr increase
+pd = (90 - pdec)                  // polar distance, degrees
+h = spread(15 * lst(t, lon) - pra)
+
+// ---- the sight ------------------------------------------------------------------------
+sv = sin(rad(ho)) / sqrt(cos(rad(pd)) ^ 2 + (sin(rad(pd)) * cos(rad(h))) ^ 2)
+lat = deg(asin(sv)) - deg(atan2(sin(rad(pd)) * cos(rad(h)), cos(rad(pd))))
+print("at", iso(t), "lon", lon)
+print("polar distance of Polaris:", pd * 60, "arcmin")
+print("LHA of Polaris:", h, "deg")
+print("latitude from the sight:", lat, "deg")
+
+/* Self-check: on the meridian (H = 0) the correction must equal
+the polar distance exactly - lat(H=0) = Ho - pd. */
+latz = deg(asin(sin(rad(ho)) / sqrt(cos(rad(pd)) ^ 2 + (sin(rad(pd))) ^ 2))) - deg(atan2(sin(rad(pd)), cos(rad(pd))))
+print("H = 0 gives Ho - pd:", latz, "vs", ho - pd, "(equal:", latz == ho - pd, ")")
+
+/* ---- expected output ----
+= 51.28
+= 29535533/12
+= -5
+= 37.9554
+= 89.2642
+= 12998/487
+= 89.3754080767
+= 0.62459192334
+= -83.0054371502
+= 0.780257782261
+= 51.2081210189
+= at 2026-09-10T22:00:00 lon -5
+= polar distance of Polaris: 37.4755154004 arcmin
+= LHA of Polaris: -83.0054371502 deg
+= latitude from the sight: 51.2081210189 deg
+= 50.6554080767
+= H = 0 gives Ho - pd: 50.6554080767 vs 50.6554080767 (equal: true )
+*/

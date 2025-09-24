@@ -1,0 +1,155 @@
+name: vscode publish
+
+# ADR-0068 amendment (2026-09-18): the marketplace channel publishes with
+# the Entra ID secure automated route (`vsce publish --azure-credential`),
+# never a personal access token. The federated credential on the Azure app
+# trusts THIS repository's `stores` environment, so the job must name it:
+# the GitHub OIDC subject is
+#   repo:upyesp@25488264/epher@1332818283:environment:stores
+# (the immutable ID-bearing form; the repo was created after 2026-07-15).
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "git ref to publish from (defaults to the caller's ref)"
+        type: string
+        default: ""
+      version:
+        description: "extension version without the leading v (auto = read from crates/cli/Cargo.toml)"
+        type: string
+        default: "auto"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "git ref to publish from (defaults to the default branch)"
+        type: string
+        default: ""
+
+jobs:
+  marketplace:
+    name: publish upyesp.epher
+    environment: stores
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Secrets check
+        id: secrets
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        run: |
+          if [ -n "$AZURE_TENANT_ID" ] && [ -n "$AZURE_CLIENT_ID" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::marketplace publish skipped: set the AZURE_TENANT_ID and AZURE_CLIENT_ID secrets (see ADR-0068)."
+          fi
+
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.secrets.outputs.skip == 'false'
+        with:
+          targets: wasm32-wasip1-threads
+
+      - name: Resolve the release version
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
+        run: |
+          set -e
+          VERSION="$VERSION_INPUT"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "auto" ]; then
+            VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          fi
+          echo "VERSION=${VERSION#v}" >> "$GITHUB_ENV"
+
+      - name: Build the wasm server
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          set -e
+          cargo build -p epher-lsp --target wasm32-wasip1-threads --release
+          mkdir -p clients/vscode/server
+          cp target/wasm32-wasip1-threads/release/epher-lsp.wasm \
+            clients/vscode/server/epher-lsp.wasm
+
+      - name: Build and package the vsix
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          set -e
+          cd clients/vscode
+          npm ci --no-audit --no-fund
+          # --allow-same-version: a dispatch test runs against the current
+          # release number, where the bump is a no-op
+          npm version --no-git-tag-version --allow-same-version "$VERSION"
+          npm run compile
+          npx --yes @vscode/vsce@3.9.2 package --allow-missing-repository \
+            --no-dependencies \
+            --out epher-vscode.vsix
+
+      - name: Print the OIDC subject
+        # The subject is not secret and is the one thing a federated
+        # credential can silently miss: if the Azure login below fails,
+        # compare this line with the credential's subject identifier.
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          set -e
+          curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=api://AzureADTokenExchange" > /tmp/oidc.json
+          python3 - <<'PY'
+          import base64, json
+          tok = json.load(open("/tmp/oidc.json"))["value"]
+          payload = tok.split(".")[1]
+          payload += "=" * (-len(payload) % 4)
+          claims = json.loads(base64.urlsafe_b64decode(payload))
+          print("issuer: ", claims.get("iss"))
+          print("subject:", claims.get("sub"))
+          PY
+          rm /tmp/oidc.json
+
+      - name: Azure login (workload identity federation)
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        run: |
+          set -e -o pipefail
+          OIDC=$(curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=api://AzureADTokenExchange" \
+            | python3 -c "import sys,json;print(json.load(sys.stdin)['value'])")
+          az login --service-principal \
+            --tenant "$AZURE_TENANT_ID" \
+            --username "$AZURE_CLIENT_ID" \
+            --federated-token "$OIDC" \
+            --allow-no-subscriptions --output none
+
+      - name: Publish to the marketplace
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          set -e -o pipefail
+          cd clients/vscode
+          if npx --yes @vscode/vsce@3.9.2 publish -i epher-vscode.vsix \
+              --azure-credential 2>&1 | tee /tmp/vsce.log; then
+            if grep -qi "Access Denied" /tmp/vsce.log; then
+              # vsce can exit 0 after a gallery denial; the run must not
+              # pass on one. The 0.5.43 train caught this the hard way.
+              echo "::error::vsce exited 0 but the gallery denied the publish."
+              exit 1
+            fi
+            echo "::notice::published upyesp.epher $VERSION to the marketplace."
+          elif grep -qi "already exists" /tmp/vsce.log; then
+            # Tolerate ONLY the exact version-conflict text; broader
+            # patterns once misclassified a real Access Denied as a
+            # harmless re-run.
+            echo "::notice::upyesp.epher $VERSION is already on the marketplace (expected on a re-run)."
+          else
+            echo "publish failed:"
+            cat /tmp/vsce.log
+            exit 1
+          fi

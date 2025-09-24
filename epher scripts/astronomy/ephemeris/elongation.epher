@@ -1,0 +1,83 @@
+/* ============================================================================
+elongation.epher -- how far each planet sits from the Sun, east or west
+
+Computes the solar elongation of the Moon and the planets at an
+instant: the angle body-Sun-Earth seen from Earth, signed by side.
+Ecliptic longitudes of body and Sun come from the built-in accessors
+ra and decl (solar-ephemeris crate, JPL-Horizons-validated; guide
+1.29) rotated into the ecliptic with the mean obliquity; the
+elongation is their difference wrapped to -180..180. Positive means
+east of the Sun (sets after it, evening sky), negative west (rises
+before it, morning sky); 0 is solar conjunction, 180 opposition.
+
+Method and source: the ecliptic-coordinate rotation is Meeus,
+"Astronomical Algorithms" 2nd ed. ch. 13 (eq. 13.3), the signed
+elongation is Duffett-Smith & Zwart, "Practical Astronomy with your
+Calculator or Spreadsheet", 4th ed., "Solar elongations". Note the
+two senses of the word: this signed difference of ecliptic
+longitudes is what the morning/evening question needs, while the
+great-circle angle (separation.epher) differs from it by the
+body's ecliptic latitude. The same signed quantity is what
+almanac apps list beside each planet.
+
+Accuracy: ephemeris-grade - JPL Horizons matches the engine's
+positions to about an arcsecond here, so the elongations are honest
+to a few hundredths of a degree.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/elongation.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\elongation.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/elongation.epher
+In the REPL:             load one of the paths above
+
+Knobs: the instant `t` below (jd of 2026-06-01 12:00 UT).
+============================================================================ */
+
+// ---- the knob -----------------------------------------------------------------
+const t = jd(2026, 6, 1, 12)
+
+// ---- ecliptic longitude of a body, Meeus eq. 13.3 (degrees, 0..360) -----------
+def centuries(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def obliquity(j) = 23.4392911 - 0.0130042 * centuries(j)   // mean, degrees
+def eclon(b) = deg(atan2(sin(rad(ra(b, t))) * cos(rad(obliquity(t))) + tan(rad(decl(b, t))) * sin(rad(obliquity(t))), cos(rad(ra(b, t)))))
+
+// ---- signed elongation: longitude difference wrapped to -180..180 -------------
+def wrap180(x) = x - 360 * floor((x + 180) / 360)
+def elong(b) = wrap180(eclon(b) - eclon(10))
+
+// ---- results ------------------------------------------------------------------
+print("solar elongation, degrees, at", iso(t))
+print("Moon:", elong(11))
+print("Mercury:", elong(1))
+print("Venus:", elong(2))
+print("Mars:", elong(4))
+print("Jupiter:", elong(5))
+print("Saturn:", elong(6))
+print("Uranus:", elong(7))
+print("Neptune:", elong(8))
+
+/* Self-checks. The Sun's own elongation is 0 by construction. The
+Moon's elongation must agree with its illuminated fraction k through
+k = (1 - cos(elong)) / 2, the phase law of Meeus ch. 48 - which the
+built-in illum reports independently. The two agree only to about
+half a percent, and the slack is real: the phase law assumes both
+bodies ride the ecliptic, while the Moon runs up to 5 degrees off it
+(the same reason a full moon's illum tops out at 0.9986, see
+full-moons.epher). */
+print("Sun elongation (must be 0):", elong(10))
+print("Moon illum from elongation:", (1 - cos(rad(abs(elong(11))))) / 2, "vs built-in illum:", illum(11, t))
+
+/* ---- expected output ----
+= 2461193
+= solar elongation, degrees, at 2026-06-01T12:00:00
+= Moon: -167.603103654
+= Mercury: 18.9875091925
+= Venus: 34.9681795246
+= Mars: -30.8871525524
+= Jupiter: 43.1451622895
+= Saturn: -58.7303376883
+= Uranus: -8.92388319764
+= Neptune: -66.9469715787
+= Sun elongation (must be 0): 0
+= Moon illum from elongation: 0.988341954447 vs built-in illum: 0.9868
+*/

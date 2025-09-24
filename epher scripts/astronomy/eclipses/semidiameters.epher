@@ -1,0 +1,91 @@
+/* ============================================================================
+semidiameters.epher -- angular radii of Sun, Moon and planets
+
+The apparent (angular) radius, or semidiameter, that each body's disk
+subtends at the Earth on a knob date. The Sun and the Moon come
+straight from the engine's built-in diam accessor (the angular
+diameter in degrees, solar-ephemeris crate, JPL-validated; half of
+it is the semidiameter). The planets' disks are far smaller than the
+ephemeris tracks, so their semidiameters come from the classical
+formula s = 206265 x R / d arcseconds: the body's physical radius R
+in kilometers (NASA Planetary Fact Sheet values, nssdc.gsfc.nasa.gov/
+planetary/factsheet) divided by its geocentric distance d in
+kilometers, read from the engine's dist accessor in AU times the au
+constant. As a cross-check the Sun's radius-formula value is printed
+against the engine's diam, which agree to the size of the radius
+constant (a few tenths of a percent).
+
+The last line prints alpha, the Moon/Sun semidiameter ratio: alpha
+under 1 means the Moon's disk is the smaller one and any central
+solar eclipse that day is annular, alpha over 1 allows totality. On
+the knob date, 2026 Feb 17, the canon's eclipse was annular - the
+printed alpha explains why.
+
+Accuracy: the Sun/Moon diameters are the engine's (arcsecond class,
+and the radius-formula cross-check below agrees to 0.003 arcsec);
+the planets' radii are rounded fact-sheet values, so their
+semidiameters carry about 0.1-0.5 percent (Venus's disk, for
+instance, is a few hundredths of an arcsecond larger or smaller
+with the radius's last digit).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/eclipses/semidiameters.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\eclipses\semidiameters.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/eclipses/semidiameters.epher
+In the REPL:             load one of the paths above
+
+Knob: the date (the instant is 12:00 UT of it).
+============================================================================ */
+
+// ---- the knob ----------------------------------------------------------------
+const day = {2026, 2, 17}    // the 2026 Feb 17 annular eclipse day
+
+// ---- the model ---------------------------------------------------------------
+def sdarc(rkm, b, j) = 206265 * rkm * 1000 / (dist(b, j) * au)   // s = 206265 R / d, arcsec; radii km, au constant in m
+// the engine's constants come in meters (au = 1.495978707e11 m, r_sun = 6.957e8 m)
+def sdmoon(j) = diam(11, j) / 2 * 60                      // Moon semidiameter, arcmin (engine diam, deg)
+
+// ---- results ------------------------------------------------------------------
+j = jd(day[1], day[2], day[3], 12)
+print("geocentric semidiameters at", iso(j), "UT")
+print("Sun: ", diam(10, j) / 2 * 3600, "arcsec =", diam(10, j) / 2 * 60, "arcmin")
+print("Moon:", diam(11, j) / 2 * 3600, "arcsec =", sdmoon(j), "arcmin")
+print("Mercury:", sdarc(2439.7, 1, j), "arcsec (radius 2439.7 km)")
+print("Venus:  ", sdarc(6051.8, 2, j), "arcsec (radius 6051.8 km)")
+print("Mars:   ", sdarc(3396.2, 4, j), "arcsec (radius 3396.2 km)")
+print("Jupiter:", sdarc(71492, 5, j), "arcsec (radius 71492 km)")
+print("Saturn: ", sdarc(60268, 6, j), "arcsec (radius 60268 km)")
+print("Uranus: ", sdarc(25559, 7, j), "arcsec (radius 25559 km)")
+print("Neptune:", sdarc(24764, 8, j), "arcsec (radius 24764 km)")
+
+/* Cross-check the Sun: the same radius formula with the built-in
+r_sun constant against the engine's diam accessor - the two agree to
+the roundness of the radius constant. */
+print("Sun cross-check: radius formula", 206265 * r_sun / (dist(10, j) * au), "vs engine", diam(10, j) / 2 * 3600, "arcsec")
+
+/* The eclipse geometry ratio: alpha = Moon semidiameter / Sun
+semidiameter. Under 1 the Moon's disk is smaller than the Sun's and
+a central eclipse is annular; over 1 totality fits. On 2026-02-17
+the canon eclipse was annular, which the printed alpha predicts. */
+a = (diam(11, j) / 2) / (diam(10, j) / 2)
+print("alpha (Moon/Sun semidiameter ratio):", a)
+print("verdict:", if a < 1 then "Moon smaller: annular geometry (canon 2026-02-17 was annular)" else "Moon large enough: totality possible")
+
+/* ---- expected output ----
+= {2026, 2, 17}
+= 2461089
+= geocentric semidiameters at 2026-02-17T12:00:00 UT
+= Sun:  970.6805 arcsec = 16.1780083333 arcmin
+= Moon: 932.04285 arcsec = 15.5340475 arcmin
+= Mercury: 3.36019094535 arcsec (radius 2439.7 km)
+= Venus:   4.97042758463 arcsec (radius 6051.8 km)
+= Mars:    1.98638348459 arcsec (radius 3396.2 km)
+= Jupiter: 22.0883584715 arcsec (radius 71492 km)
+= Saturn:  8.04329944502 arcsec (radius 60268 km)
+= Uranus:  1.80917029667 arcsec (radius 25559 km)
+= Neptune: 1.11152699295 arcsec (radius 24764 km)
+= Sun cross-check: radius formula 970.677850414 vs engine 970.6805 arcsec
+= 0.960195295981
+= alpha (Moon/Sun semidiameter ratio): 0.960195295981
+= verdict: Moon smaller: annular geometry (canon 2026-02-17 was annular)
+*/

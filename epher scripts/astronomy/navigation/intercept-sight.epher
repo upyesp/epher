@@ -1,0 +1,76 @@
+/* ============================================================================
+intercept-sight.epher -- one Sun sight reduced by the intercept method
+
+Takes one timed Sun sight and reduces it the way the navigators do
+(Marcq Saint-Hilaire's intercept method, the technique behind the
+hpcalc "Celestial Navigation" programs): from the assumed position
+the sight's computed altitude Hc and azimuth Zn are worked, and
+the observed altitude Ho is compared:
+
+  intercept = (Ho - Hc) in minutes of arc = nautical miles,
+  plotted from the assumed position toward (or away from) Zn.
+
+Hc comes from the standard spherical relation with the engine's
+geocentric Sun position and the assumed position; Zn is the
+engine's azimuth (the same compass angle the almanac tables give).
+
+Accuracy: Hc and Zn are engine-grade (arcsecond positions; the
+printed check compares Hc with the engine's own topocentric
+altitude - they agree to a few thousandths of a degree). The
+result's worth is the observation's: Ho must be corrected for
+index error, dip and refraction before it goes in.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/navigation/intercept-sight.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\navigation\intercept-sight.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/navigation/intercept-sight.epher
+In the REPL:             load one of the paths above
+
+Knobs: the observed (corrected) altitude Ho, the sight time t and
+the assumed position below.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------------
+const ho = 39.6              // observed (corrected) altitude, degrees
+const t = jd(2026, 9, 10, 14)
+const alat = 50.0            // assumed latitude, degrees
+const alon = -4.0            // assumed longitude, degrees east
+
+// ---- the reduction -------------------------------------------------------------------
+def wrap(x) = x - 360 * floor(x / 360)
+def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
+sra = ra(10, t)
+sde = decl(10, t)
+lha = spread(15 * lst(t, alon) - sra)
+hc = deg(asin(sin(rad(alat)) * sin(rad(sde)) + cos(rad(alat)) * cos(rad(sde)) * cos(rad(lha))))
+zn = az(10, t, alat, alon)
+icpt = (ho - hc) * 60
+
+print("at", iso(t), "from assumed", alat, ",", alon)
+print("Sun GHA-derived LHA:", lha, "deg")
+print("computed altitude Hc:", hc, "deg")
+print("azimuth Zn:", zn, "deg")
+print("intercept:", icpt, "nautical miles", (if icpt > 0 then "toward" else "away from"), "the body")
+
+/* Self-check: Hc is the same geometric altitude the engine's own
+topocentric alt gives, to a few thousandths of a degree. */
+print("Hc vs engine altitude:", hc, "vs", alt(10, t, alat, alon))
+
+/* ---- expected output ----
+= 39.6
+= 29535529/12
+= 50
+= -4
+= 168.859948907
+= 4.787960708
+= 26.7614735961
+= 39.4849560241
+= 215.5479187
+= 6.90263855521
+= at 2026-09-10T14:00:00 from assumed 50 , -4
+= Sun GHA-derived LHA: 26.7614735961 deg
+= computed altitude Hc: 39.4849560241 deg
+= azimuth Zn: 215.5479187 deg
+= intercept: 6.90263855521 nautical miles toward the body
+= Hc vs engine altitude: 39.4849560241 vs 39.4830076
+*/

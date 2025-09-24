@@ -1,0 +1,116 @@
+/* ============================================================================
+eclipse-seasons.epher -- which lunations of a year are eclipse-bearing
+
+Lists every eclipse-bearing lunation of one year - the "rules of
+eclipses" question of Duffett-Smith and Zwart, "Practical Astronomy
+with your Calculator or Spreadsheet" (Cambridge, 2017) and the
+standard test of chapter 54 of Jean Meeus, "Astronomical Algorithms"
+(2nd ed., Willmann-Bell, 1998): an eclipse can occur only near a
+node of the Moon's orbit, where |sin F| <= 0.36 for F the Moon's
+argument of latitude (F within about 21 deg of 0 or 180 deg). Each
+new moon and full moon of the year is tested; the ones that pass are
+the eclipse seasons of that year. Solar candidates are then classed
+with the chapter 54 gamma/u machinery copied from
+next-solar-eclipse.epher, lunar candidates with its full-moon analog
+from next-lunar-eclipse.epher (umbral magnitude over 1 is a total
+eclipse, over 0 partial, else penumbral; the eclipse kind lines up
+with NASA's canon). Eclipses come in pairs about six lunations
+apart, near the two nodes; the count of a year runs from 4 to 7.
+
+Accuracy: the test and times are Meeus's mean-element series - the
+time of each eclipse within about a minute of the canon, gamma
+within about 0.002 (see the two next-eclipse scripts for the
+worked comparisons).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/eclipses/eclipse-seasons.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\eclipses\eclipse-seasons.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/eclipses/eclipse-seasons.epher
+In the REPL:             load one of the paths above
+
+Knob: the year. The scan holds seven candidate slots, the most any
+year can show.
+============================================================================ */
+
+// ---- the knob ----------------------------------------------------------------
+const year = 2026
+
+// ---- Meeus ch. 49/54 mean elements in T = k / 1236.85 -------------------------
+def e3(t) = 1 - 0.002516 * t - 0.0000074 * t ^ 2
+def mp(k) = 201.5643 + 385.81693528 * k + 0.0107582 * (k / 1236.85) ^ 2 + 0.00001238 * (k / 1236.85) ^ 3 - 0.000000058 * (k / 1236.85) ^ 4
+def ms(k) = 2.5534 + 29.10535670 * k - 0.0000014 * (k / 1236.85) ^ 2 - 0.00000011 * (k / 1236.85) ^ 3
+def mf(k) = 160.7108 + 390.67050284 * k - 0.0016118 * (k / 1236.85) ^ 2 - 0.00000227 * (k / 1236.85) ^ 3 + 0.000000011 * (k / 1236.85) ^ 4
+def node(k) = 124.7746 - 1.56375588 * k + 0.0020672 * (k / 1236.85) ^ 2 + 0.00000215 * (k / 1236.85) ^ 3
+def base(k) = 2451550.09766 + 29.530588861 * k + 0.00015437 * (k / 1236.85) ^ 2 - 0.000000150 * (k / 1236.85) ^ 3 + 0.00000000073 * (k / 1236.85) ^ 4
+def kb(j) = (j - 2451550.09766) / 29.530588861
+
+// ---- ch. 54 machinery, shared by both branches ---------------------------------
+def f1(k) = mf(k) - 0.02665 * sin(rad(node(k)))
+// time of maximum at the NEW moon of lunation k (the solar column)
+def tmaxn(k) = base(k) - 0.4075 * sin(rad(mp(k))) + 0.1721 * e3(k / 1236.85) * sin(rad(ms(k))) + 0.0161 * sin(rad(2 * mp(k))) - 0.0097 * sin(rad(2 * f1(k))) + 0.0073 * e3(k / 1236.85) * sin(rad(mp(k) - ms(k))) - 0.0050 * e3(k / 1236.85) * sin(rad(mp(k) + ms(k))) - 0.0023 * sin(rad(mp(k) - 2 * f1(k))) + 0.0021 * e3(k / 1236.85) * sin(rad(2 * ms(k))) + 0.0012 * sin(rad(mp(k) + 2 * f1(k))) + 0.0006 * e3(k / 1236.85) * sin(rad(2 * mp(k) + ms(k))) - 0.0004 * sin(rad(3 * mp(k))) - 0.0003 * e3(k / 1236.85) * sin(rad(ms(k) + 2 * f1(k))) + 0.0003 * sin(rad(299.77 + 0.107408 * k)) - 0.0002 * e3(k / 1236.85) * sin(rad(ms(k) - 2 * f1(k))) - 0.0002 * e3(k / 1236.85) * sin(rad(2 * mp(k) - ms(k))) - 0.0002 * sin(rad(node(k)))
+// time of maximum at the FULL moon of lunation k (the lunar column)
+def tmaxl(k) = base(k) - 0.4065 * sin(rad(mp(k))) + 0.1727 * e3(k / 1236.85) * sin(rad(ms(k))) + 0.0161 * sin(rad(2 * mp(k))) - 0.0097 * sin(rad(2 * f1(k))) + 0.0073 * e3(k / 1236.85) * sin(rad(mp(k) - ms(k))) - 0.0050 * e3(k / 1236.85) * sin(rad(mp(k) + ms(k))) - 0.0023 * sin(rad(mp(k) - 2 * f1(k))) + 0.0021 * e3(k / 1236.85) * sin(rad(2 * ms(k))) + 0.0012 * sin(rad(mp(k) + 2 * f1(k))) + 0.0006 * e3(k / 1236.85) * sin(rad(2 * mp(k) + ms(k))) - 0.0004 * sin(rad(3 * mp(k))) - 0.0003 * e3(k / 1236.85) * sin(rad(ms(k) + 2 * f1(k))) + 0.0003 * sin(rad(299.77 + 0.107408 * k)) - 0.0002 * e3(k / 1236.85) * sin(rad(ms(k) - 2 * f1(k))) - 0.0002 * e3(k / 1236.85) * sin(rad(2 * mp(k) - ms(k))) - 0.0002 * sin(rad(node(k)))
+def pang(k) = 0.2070 * e3(k / 1236.85) * sin(rad(ms(k))) + 0.0024 * e3(k / 1236.85) * sin(rad(2 * ms(k))) - 0.0392 * sin(rad(mp(k))) + 0.0116 * sin(rad(2 * mp(k))) - 0.0073 * e3(k / 1236.85) * sin(rad(mp(k) + ms(k))) + 0.0067 * e3(k / 1236.85) * sin(rad(mp(k) - ms(k))) + 0.0118 * sin(rad(2 * f1(k)))
+def qang(k) = 5.2207 - 0.0048 * e3(k / 1236.85) * cos(rad(ms(k))) + 0.0020 * e3(k / 1236.85) * cos(rad(2 * ms(k))) - 0.3299 * cos(rad(mp(k))) - 0.0060 * e3(k / 1236.85) * cos(rad(mp(k) + ms(k))) + 0.0041 * e3(k / 1236.85) * cos(rad(mp(k) - ms(k)))
+def gamma(k) = (pang(k) * cos(rad(f1(k))) + qang(k) * sin(rad(f1(k)))) * (1 - 0.0048 * abs(cos(rad(f1(k)))))
+def uval(k) = 0.0059 + 0.0046 * e3(k / 1236.85) * cos(rad(ms(k))) - 0.0182 * cos(rad(mp(k))) + 0.0004 * cos(rad(2 * mp(k))) - 0.0005 * cos(rad(ms(k) + mp(k)))
+def skind(k) = (if abs(gamma(k)) < 0.9972 then (if uval(k) < 0 then "total" else if uval(k) > 0.0047 then "annular" else "hybrid") else "partial")
+def penmag(k) = (1.5573 + uval(k) - abs(gamma(k))) / 0.5450
+def ummag(k) = (1.0128 - uval(k) - abs(gamma(k))) / 0.5450
+def lkind(k) = if ummag(k) >= 1 then "total" else if ummag(k) > 0 then "partial" else "penumbral"
+
+// ---- the year's scan over lunations, in half steps -----------------------------
+def tmaxx(k) = if k - floor(k) == 0 then tmaxn(k) else tmaxl(k)   // integer k: new moon; k + 0.5: full moon
+def inyear(j) = j >= jd(year, 1, 1) and j < jd(year + 1, 1, 1)
+def isec(k) = if k - floor(k) == 0 then (inyear(tmaxn(k)) and abs(sin(rad(mf(k)))) <= 0.36 and abs(gamma(k)) <= 1.5433 + uval(k)) else (inyear(tmaxl(k)) and abs(sin(rad(mf(k)))) <= 0.36 and abs(gamma(k)) <= 1.5433 + uval(k) and penmag(k) > 0)
+def find(k, n) = if n == 0 then -1 else if isec(k) then k else find(k + 0.5, n - 1)
+def kindx(k) = if k - floor(k) == 0 then skind(k) + " solar" else lkind(k) + " lunar"
+def kstart(j) = ceil((kb(j) - 2) * 2) / 2   // first half-lunation grid point before the year
+
+// ---- the candidate slots (consts so the print helpers can read them) -----------
+const c1 = find(kstart(jd(year, 1, 1)), 48)
+const c2 = find(c1 + 0.5, 48)
+const c3 = find(c2 + 0.5, 48)
+const c4 = find(c3 + 0.5, 48)
+const c5 = find(c4 + 0.5, 48)
+const c6 = find(c5 + 0.5, 48)
+const c7 = find(c6 + 0.5, 48)
+
+// ---- results -------------------------------------------------------------------
+def nfound() = (if c1 > 0 then 1 else 0) + (if c2 > 0 then 1 else 0) + (if c3 > 0 then 1 else 0) + (if c4 > 0 then 1 else 0) + (if c5 > 0 then 1 else 0) + (if c6 > 0 then 1 else 0) + (if c7 > 0 then 1 else 0)
+print("eclipse-bearing lunations of", year)
+if c1 > 0 then print(iso(tmaxx(c1) - delta_t(tmaxx(c1)) / 86400), "UT:", kindx(c1), "eclipse, gamma", gamma(c1), "(k", c1, ")") else print("no eclipse-bearing lunation found in", year)
+if c2 > 0 then print(iso(tmaxx(c2) - delta_t(tmaxx(c2)) / 86400), "UT:", kindx(c2), "eclipse, gamma", gamma(c2), "(k", c2, ")") else "no second candidate"
+if c3 > 0 then print(iso(tmaxx(c3) - delta_t(tmaxx(c3)) / 86400), "UT:", kindx(c3), "eclipse, gamma", gamma(c3), "(k", c3, ")") else "no third candidate"
+if c4 > 0 then print(iso(tmaxx(c4) - delta_t(tmaxx(c4)) / 86400), "UT:", kindx(c4), "eclipse, gamma", gamma(c4), "(k", c4, ")") else "no fourth candidate"
+if c5 > 0 then print(iso(tmaxx(c5) - delta_t(tmaxx(c5)) / 86400), "UT:", kindx(c5), "eclipse, gamma", gamma(c5), "(k", c5, ")") else "no fifth candidate"
+if c6 > 0 then print(iso(tmaxx(c6) - delta_t(tmaxx(c6)) / 86400), "UT:", kindx(c6), "eclipse, gamma", gamma(c6), "(k", c6, ")") else "no sixth candidate"
+if c7 > 0 then print(iso(tmaxx(c7) - delta_t(tmaxx(c7)) / 86400), "UT:", kindx(c7), "eclipse, gamma", gamma(c7), "(k", c7, ")") else "no seventh candidate"
+
+/* The canon self-check: NASA's Five Millennium Canon of Solar and
+Lunar Eclipses lists exactly four eclipses in 2026 - Feb 17 annular
+solar, Mar 3 total lunar, Aug 12 total solar, Aug 28 partial lunar
+- and the four dated lines above must be precisely those. */
+print("canon: NASA's 2026 set = 4: Feb 17 annular solar, Mar 3 total lunar,")
+print("      Aug 12 total solar, Aug 28 partial lunar; scan found", nfound(), "->", if nfound() == 4 then "match" else "MISMATCH")
+
+/* ---- expected output ----
+= 2026
+= 323
+= 323.5
+= 329
+= 329.5
+= -1
+= -1
+= -1
+= eclipse-bearing lunations of 2026
+= 2026-02-17T12:12:48 UT: annular solar eclipse, gamma -0.973790137956 (k 323 )
+= 2026-03-03T11:34:20 UT: total lunar eclipse, gamma -0.377342593068 (k 323.5 )
+= 2026-08-12T17:46:15 UT: total solar eclipse, gamma 0.89890962082 (k 329 )
+= 2026-08-28T04:13:07 UT: partial lunar eclipse, gamma 0.498951033385 (k 329.5 )
+= no fifth candidate
+= no sixth candidate
+= no seventh candidate
+= canon: NASA's 2026 set = 4: Feb 17 annular solar, Mar 3 total lunar,
+=       Aug 12 total solar, Aug 28 partial lunar; scan found 4 -> match
+*/

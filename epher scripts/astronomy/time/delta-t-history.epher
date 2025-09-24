@@ -1,0 +1,68 @@
+/* ============================================================================
+delta-t-history.epher -- Delta T across the centuries
+
+Prints the engine's Delta T (TT - UT, the accumulated drift of the
+rotating Earth against atomic time; guide 1.29, built on the
+Espenak-Meeus polynomial set of Meeus ch. 10) for a spread of years.
+The table is the story of the Earth's slowing spin: Delta T fell
+from about 120 seconds in 1600 to a few seconds around 1700-1800,
+went negative near 1900, and has climbed steadily since - by 2100
+the extrapolation passes 4 minutes, which is why leap seconds
+disappeared from the UTC definition and why historic eclipse paths
+shift west by about 1500 km per hour of Delta T.
+
+Accuracy: the engine's own (Espenak-Meeus; a few seconds in the
+modern era, growing for the extrapolated 2200/2500 rows, stated in
+the polynomial notes).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/delta-t-history.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\delta-t-history.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/delta-t-history.epher
+In the REPL:             load one of the paths above
+
+Knob: none - the table is fixed.
+============================================================================ */
+
+// ---- the table ---------------------------------------------------------------------------
+print("Delta T (TT - UT) on 1 January of each listed year")
+print("1600:", delta_t(jd(1600, 1, 1)), "s")
+print("1650:", delta_t(jd(1650, 1, 1)), "s")
+print("1700:", delta_t(jd(1700, 1, 1)), "s")
+print("1750:", delta_t(jd(1750, 1, 1)), "s")
+print("1800:", delta_t(jd(1800, 1, 1)), "s")
+print("1850:", delta_t(jd(1850, 1, 1)), "s")
+print("1900:", delta_t(jd(1900, 1, 1)), "s")
+print("1950:", delta_t(jd(1950, 1, 1)), "s")
+print("2000:", delta_t(jd(2000, 1, 1)), "s")
+print("2025:", delta_t(jd(2025, 1, 1)), "s")
+print("2050:", delta_t(jd(2050, 1, 1)), "s")
+print("2100:", delta_t(jd(2100, 1, 1)), "s")
+print("2200:", delta_t(jd(2200, 1, 1)), "s")
+print("2500:", delta_t(jd(2500, 1, 1)), "s")
+
+/* Self-check: the famous landmarks - Delta T was about 120 s in
+1600 and it dips negative near 1900 (the observed minimum, about
+-3 s around 1902); the 2000.0 row above reads about 64 s. */
+print("negative near 1900:", delta_t(jd(1900, 1, 1)) < 0)
+print("about 64 s at 2000.0:", abs(delta_t(jd(2000, 1, 1)) - 64) < 1)
+
+/* ---- expected output ----
+= Delta T (TT - UT) on 1 January of each listed year
+= 1600: 119.993286072 s
+= 1650: 50.1820183562 s
+= 1700: 8.831096916 s
+= 1750: 13.370846523 s
+= 1800: 13.7186348306 s
+= 1850: 7.10724564462 s
+= 1900: -2.78795477478 s
+= 1950: 29.07 s
+= 2000: 63.8595419813 s
+= 2025: 69.1333105179 s
+= 2050: 93 s
+= 2100: 202.73677646 s
+= 2200: 442.070012374 s
+= 2500: 1459.63829735 s
+= negative near 1900: true
+= about 64 s at 2000.0: true
+*/
