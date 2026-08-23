@@ -707,8 +707,10 @@ a sua cor e o seu padrão de traço, e uma legenda dá-lhes nome.
 do painel do gráfico faz o mesmo para curvas e superfícies 3D em
 conjunto. A TUI mantém o comando no seu menu **Graph**.
 
-Em **Settings → Graph** pode ocultar a lista de pontos de interesse e os
-pontos destacados desenhados no próprio gráfico.
+Na parte inferior do painel de gráficos, a linha de opções permite
+ocultar a lista de pontos de interesse, ocultar os pontos destacados
+desenhados no próprio gráfico e ajustar a espessura das linhas com o
+controle **Espessura da linha**.
 
 ```epher
 graph x ^ 2
@@ -785,8 +787,10 @@ const a = 1
 graph a * x ^ 2
 ```
 
-**Copiar SVG** copia o gráfico atual como uma imagem SVG para colar em
-documentos.
+**Copiar SVG** copia o gráfico atual como uma imagem SVG autossuficiente
+para colar em documentos — as cores vão embutidas, então ele fica igual
+em qualquer lugar. O controle **Espessura da linha**, na parte inferior
+do painel, ajusta a espessura de cada linha desenhada.
 
 #### 2.4.4 Superfícies 3D
 
@@ -1048,7 +1052,15 @@ valores:
 epher> table x ^ 2 from -2 to 2 points 5
          x           y
         -2           4
-        -1           1
+        -1        As linhas `graph` também funcionam aqui: as curvas se acumulam entre
+linhas, e `graph save plot.svg` grava a mesma imagem SVG que o botão
+**Copiar SVG** da aplicação web produz. `graph3d save arquivo.svg`
+salva uma superfície 3D da mesma forma. As mesmas linhas valem na
+avaliação única e em scripts canalizados:
+`epher "graph sin(x); graph save plot.svg"` é um gráfico completo em um
+comando.
+
+   1
          0           0
          1           1
          2           4
@@ -1216,6 +1228,10 @@ também funciona aqui.
 `graph3d x ^ 2 - y ^ 2` desenha uma superfície 3D como uma malha de
 arame em ASCII — rode-a com as teclas de seta e prima a barra de espaço
 para animar uma constante de deslizador (secção 2.4.5).
+
+`graph save plot.svg` grava o gráfico atual como a mesma imagem SVG que
+o botão **Copiar SVG** da aplicação web produz; `graph3d
+save arquivo.svg` salva a malha 3D do ângulo em que você a está vendo.
 
 ### 5.4 Guardar e persistência
 

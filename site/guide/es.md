@@ -705,8 +705,10 @@ propio color y patrón de trazos, y una leyenda que las nombra.
 superior del panel de la gráfica hace lo mismo para curvas y superficies 3D
 a la vez. La TUI mantiene el comando en su menú **Graph**.
 
-En **Settings → Graph** puedes ocultar la lista de puntos de interés y los
-puntos destacados que se dibujan en la propia gráfica.
+Al final del panel de gráficas, la fila de opciones permite ocultar la
+lista de puntos de interés, ocultar los puntos destacados dibujados en
+la propia gráfica y ajustar el grosor de las líneas con el deslizador
+**Grosor de línea**.
 
 ```epher
 graph x ^ 2
@@ -783,8 +785,10 @@ const a = 1
 graph a * x ^ 2
 ```
 
-**Copiar SVG** copia la gráfica actual como imagen SVG para pegarla en
-documentos.
+**Copiar SVG** copia la gráfica actual como imagen SVG autónoma para
+pegarla en documentos: los colores van incluidos, así que se ve igual en
+todas partes. El deslizador **Grosor de línea**, al final del panel,
+ajusta el grosor de cada línea dibujada.
 
 #### 2.4.4 Superficies 3D
 
@@ -1047,7 +1051,15 @@ epher> table x ^ 2 from -2 to 2 points 5
         -2           4
         -1           1
          0           0
-         1           1
+    Las líneas `graph` también funcionan aquí: las curvas se acumulan entre
+líneas, y `graph save plot.svg` escribe la misma imagen SVG que produce
+el botón **Copiar SVG** de la aplicación web. `graph3d
+save archivo.svg` guarda una superficie 3D igualmente. Las mismas líneas
+valen en la evaluación única y en scripts entubados:
+`epher "graph sin(x); graph save plot.svg"` es una gráfica completa en
+un solo comando.
+
+     1           1
          2           4
 ```
 
@@ -1214,6 +1226,11 @@ mínimos e intersecciones — bajo la gráfica. El comando `table`
 `graph3d x ^ 2 - y ^ 2` dibuja una superficie 3D como una malla alámbrica
 ASCII — gírala con las teclas de flecha y pulsa la barra espaciadora para
 animar una constante con deslizador (sección 2.4.5).
+
+`graph save plot.svg` escribe la gráfica actual como la misma imagen SVG
+que produce el botón **Copiar SVG** de la aplicación web; `graph3d
+save archivo.svg` guarda la malla 3D desde el ángulo en que la estás
+viendo.
 
 ### 5.4 Guardar y persistencia
 

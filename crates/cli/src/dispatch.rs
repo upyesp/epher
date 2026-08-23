@@ -47,6 +47,9 @@ pub struct Args {
     /// else 0`, a leading minus — and statements join with `;` or
     /// newlines: `epher "x = 10; x + 5"` prints `10` then `15`. Use `-`
     /// to read a script from standard input, line by line, instead.
+    /// `graph`/`graph3d` statements plot too; `graph save file.svg`
+    /// writes the plot as an SVG image (`epher "graph sin(x); graph
+    /// save plot.svg"`).
     #[arg(allow_hyphen_values = true, value_name = "EXPRESSION")]
     pub expression: Option<String>,
 

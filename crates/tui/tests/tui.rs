@@ -678,3 +678,50 @@ fn save_history_writes_the_session_history() {
     assert!(saved.contains("graph x"), "history file: {saved:?}");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+// ===== SVG export from the TUI (ADR-0020) =====
+
+#[test]
+fn graph_save_writes_the_same_document_as_the_web_app() {
+    let mut app = App::default();
+    let (store, _keep) = scratch_store();
+    let en = Localizer::resolve(Some("en"), &[]);
+    app.submit_line("graph x ^ 2 - 1", &store, &en);
+    let svg = _keep.path().join("tui.svg");
+    app.submit_line(&format!("graph save {}", svg.display()), &store, &en);
+    assert!(app.result().contains(svg.display().to_string().as_str()), "{}", app.result());
+    let doc = std::fs::read_to_string(&svg).unwrap();
+    assert!(doc.starts_with("<svg "), "{doc}");
+    assert!(doc.contains("y = x ^ 2 - 1"), "{doc}");
+    // the shared renderer, self-contained like the copy button's output
+    assert!(doc.contains("<style>"), "{doc}");
+    assert!(doc.contains("viewBox=\"0 0 640 400\""), "{doc}");
+}
+
+#[test]
+fn graph_save_without_a_plot_or_path_names_the_problem() {
+    let mut app = App::default();
+    let (store, _keep) = scratch_store();
+    let en = Localizer::resolve(Some("en"), &[]);
+    app.submit_line("graph save", &store, &en);
+    assert_eq!(app.result(), "Name a file to save to");
+    let svg = _keep.path().join("empty.svg");
+    app.submit_line(&format!("graph save {}", svg.display()), &store, &en);
+    assert_eq!(app.result(), "Nothing is plotted");
+    assert!(!svg.exists());
+}
+
+#[test]
+fn graph3d_save_writes_the_orbit_pose() {
+    let mut app = App::default();
+    let (store, _keep) = scratch_store();
+    let en = Localizer::resolve(Some("en"), &[]);
+    app.submit_line("graph3d x ^ 2 - y ^ 2", &store, &en);
+    app.rotate_view(0.5, 0.2);
+    let svg = _keep.path().join("tui3d.svg");
+    app.submit_line(&format!("graph3d save {}", svg.display()), &store, &en);
+    assert!(app.result().contains(svg.display().to_string().as_str()), "{}", app.result());
+    let doc = std::fs::read_to_string(&svg).unwrap();
+    assert!(doc.contains("viewBox=\"0 0 640 400\""), "{doc}");
+    assert!(doc.contains("transform=\"translate("), "{doc}");
+}

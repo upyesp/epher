@@ -713,8 +713,10 @@ eigener Farbe und eigenem Strichmuster, und eine Legende benennt sie.
 Graph-Panel macht dasselbe für Kurven und 3D-Flächen zusammen. Die TUI
 behält den Befehl in ihrem **Graph**-Menü.
 
-Unter **Settings → Graph** kannst du die Liste der besonderen Punkte und
-die hervorgehobenen Punkte im Plot selbst ausblenden.
+Ganz unten im Graph-Bereich blendest du in der Optionsleiste die Liste
+der besonderen Punkte aus, die hervorgehobenen Punkte im Plot selbst —
+und stellst mit dem Regler **Linienstärke** die Dicke der gezeichneten
+Linien ein.
 
 ```epher
 graph x ^ 2
@@ -792,8 +794,10 @@ const a = 1
 graph a * x ^ 2
 ```
 
-**SVG kopieren** kopiert den aktuellen Plot als SVG-Bild zum Einfügen in
-Dokumente.
+**SVG kopieren** kopiert den aktuellen Plot als eigenständiges SVG-Bild
+zum Einfügen in Dokumente — die Farben sind eingebaut, es sieht überall
+gleich aus. Der Regler **Linienstärke** ganz unten im Bereich stellt
+ein, wie dick jede gezeichnete Linie erscheint.
 
 #### 2.4.4 3D-Flächen
 
@@ -1057,7 +1061,15 @@ epher> table x ^ 2 from -2 to 2 points 5
         -2           4
         -1           1
          0           0
-         1           1
+         1  Auch `graph`-Zeilen funktionieren hier: Die Kurven sammeln sich über die
+Zeilen, und `graph save plot.svg` schreibt dasselbe SVG-Bild, das die
+Schaltfläche **SVG kopieren** der Web-App liefert. `graph3d
+save datei.svg` speichert eine 3D-Fläche auf dieselbe Weise. Dieselben
+graph-Zeilen gelten auch in Einzeilern und gepipeten Skripten:
+`epher "graph sin(x); graph save plot.svg"` ist ein fertiger Plot in
+einem Befehl.
+
+         1
          2           4
 ```
 
@@ -1225,6 +1237,11 @@ Befehl `table` (Abschnitt 2.4.2) funktioniert auch hier.
 `graph3d x ^ 2 - y ^ 2` zeichnet eine 3D-Fläche als ASCII-Drahtgitter —
 drehe sie mit den Pfeiltasten und drücke die Leertaste, um die Konstante
 eines Schiebereglers zu animieren (Abschnitt 2.4.5).
+
+`graph save plot.svg` schreibt den aktuellen Plot als dasselbe SVG-Bild,
+das die Schaltfläche **SVG kopieren** der Web-App liefert; `graph3d save
+datei.svg` speichert das 3D-Gitter aus dem Blickwinkel, den du gerade
+siehst.
 
 ### 5.4 Speichern und Persistenz
 

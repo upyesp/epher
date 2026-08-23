@@ -701,8 +701,10 @@ the plot — and a **Clear graph** button at the top of the graph pane does
 the same for curves and 3D surfaces together. The TUI keeps the command in
 its **Graph** menu.
 
-Under **Settings → Graph** you can hide the list of points of interest,
-and the highlighted points drawn on the plot itself.
+At the bottom of the graph pane, the options row can hide the list of
+points of interest, hide the highlighted points drawn on the plot itself,
+and set the thickness of the plotted lines with the **Line width**
+slider.
 
 ```epher
 graph x ^ 2
@@ -778,8 +780,10 @@ const a = 1
 graph a * x ^ 2
 ```
 
-**Copy SVG** copies the current plot as an SVG image for pasting into
-documents.
+**Copy SVG** copies the current plot as a self-contained SVG image for
+pasting into documents — the colours are baked in, so it looks the same
+anywhere. The **Line width** slider at the bottom of the pane sets how
+thick every plotted line draws.
 
 #### 2.4.4 3D surfaces
 
@@ -1030,6 +1034,13 @@ epher> table x ^ 2 from -2 to 2 points 5
         -2           4
         -1           1
          0           0
+`graph` lines plot here too: the curves build up across lines, and
+`graph save plot.svg` writes the same SVG image the web app's
+**Copy SVG** button yields. `graph3d save file.svg` saves a 3D surface
+the same way. The same graph lines work in one-shot and piped scripts:
+`epher "graph sin(x); graph save plot.svg"` is a complete plot in one
+command.
+
          1           1
          2           4
 ```
@@ -1191,6 +1202,10 @@ here too.
 `graph3d x ^ 2 - y ^ 2` plots a 3D surface as an ASCII wireframe — rotate
 it with the arrow keys, and press the space bar to animate a slider
 constant (section 2.4.5).
+
+`graph save plot.svg` writes the current plot as the same SVG image the
+web app's **Copy SVG** button yields; `graph3d save file.svg` saves the
+3D wireframe from the angle you are looking at.
 
 ### 5.4 Saving and persistence
 

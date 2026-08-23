@@ -268,3 +268,82 @@ mod conventions {
         assert!(text.contains("epher repl"), "usage line present: {text}");
     }
 }
+
+// --- graph lines and SVG export (ADR-0020) ---
+
+#[test]
+fn one_shot_mixes_statements_and_graph_saves() {
+    let dir = tempfile::tempdir().unwrap();
+    let svg = dir.path().join("plot.svg");
+    let input = format!("2 + 2\ngraph sin(x)\ngraph save {}", svg.display());
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .arg(input)
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("4"), "stdout was: {stdout}");
+    assert!(stdout.contains("graph: sin(x)"), "stdout was: {stdout}");
+    assert!(stdout.contains("saved"), "stdout was: {stdout}");
+    let doc = std::fs::read_to_string(&svg).unwrap();
+    assert!(doc.starts_with("<svg "), "{doc}");
+    assert!(doc.contains("y = sin(x)"), "{doc}");
+    assert!(doc.contains("<style>"), "self-contained: {doc}");
+}
+
+#[test]
+fn piped_scripts_save_svgs_across_lines() {
+    let dir = tempfile::tempdir().unwrap();
+    let svg = dir.path().join("piped.svg");
+    let script = format!("graph x ^ 2 - 1\ngraph save {}\n", svg.display());
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    out.stdin.as_ref().unwrap().write_all(script.as_bytes()).unwrap();
+    let out = out.wait_with_output().unwrap();
+    assert_eq!(out.status.code(), Some(0));
+    assert!(svg.exists());
+    let doc = std::fs::read_to_string(&svg).unwrap();
+    assert!(doc.contains("y = x ^ 2 - 1"), "{doc}");
+    // the points of interest carry their labels into the file
+    assert!(doc.contains("root"), "{doc}");
+}
+
+#[test]
+fn repl_graph_save_and_the_empty_diagnostic() {
+    let dir = tempfile::tempdir().unwrap();
+    let svg = dir.path().join("repl.svg");
+    let input = format!(
+        "graph save {}\ngraph sin(x)\ngraph save {}\nquit\n",
+        svg.display(),
+        svg.display()
+    );
+    let (out, err) = repl_session(dir.path().to_str().unwrap(), &input);
+    // saving before anything is plotted is a diagnostic on stderr
+    assert!(err.contains("Nothing is plotted"), "stderr was: {err}");
+    assert!(!out.contains("Nothing is plotted"), "stdout was: {out}");
+    assert!(out.contains("saved"), "stdout was: {out}");
+    assert!(svg.exists());
+}
+
+#[test]
+fn graph3d_save_from_a_one_shot() {
+    let dir = tempfile::tempdir().unwrap();
+    let svg = dir.path().join("saddle.svg");
+    let input = format!("graph3d x ^ 2 - y ^ 2; graph3d save {}", svg.display());
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .arg(input)
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(0));
+    let doc = std::fs::read_to_string(&svg).unwrap();
+    assert!(doc.contains("viewBox=\"0 0 640 400\""), "{doc}");
+    assert!(doc.contains("transform=\"translate("), "{doc}");
+}

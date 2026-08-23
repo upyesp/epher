@@ -28,7 +28,7 @@ fn main() {
         .title("EPHER")
         .section("1")
         .manual("User Commands")
-        .source("epher 0.4.8");
+        .source("epher 0.4.9");
     let mut out = std::io::stdout();
     man.render_title(&mut out).expect("title");
     man.render_name_section(&mut out).expect("name");
@@ -104,6 +104,10 @@ fn sections() -> Vec<Roff> {
         para(roff, "Inside the interactive session (repl) and piped scripts, these lines are shell commands, not expressions:");
         tagged(roff, "save name", "save the function or constant `name` for future sessions");
         tagged(roff, "save script name", "save the last evaluated line as a script");
+        tagged(roff, "graph expr [from a to b]", "plot a curve (cartesian, param, polar; regions with y < / y >); the curves accumulate");
+        tagged(roff, "graph3d z = f(x, y) [from a to b]", "plot a 3D surface");
+        tagged(roff, "graph save file.svg | graph3d save file.svg", "write the current plot as a self-contained SVG image");
+        tagged(roff, "graph clear | graph3d clear", "empty the plot");
         tagged(roff, "language code", "set the interface language: en, zh-CN, hi, es, fr, ar, de, pt");
         tagged(roff, "table expr [from a to b] [points n]", "print a table of values (TI-style defaults: -5..5, 11 rows)");
         tagged(roff, "quit, exit", "leave the interactive session (Ctrl-D too)");

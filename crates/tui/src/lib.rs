@@ -559,12 +559,38 @@ impl App {
             // submitted line; the plot is the output.
             self.session.record(piece);
             let _ = save_history(store, self.history());
+            if let Some(path) = source.trim().strip_prefix("save ") {
+                let path = path.trim();
+                if path.is_empty() {
+                    self.result = localizer.lookup("graph-no-path");
+                } else {
+                    self.result = self.save_graph_svg(path, localizer);
+                }
+                return None;
+            }
+            if source.trim() == "save" {
+                self.result = localizer.lookup("graph-no-path");
+                return None;
+            }
             let _ = self.submit_graph(source);
             return None;
         }
         if let Some(source) = piece.strip_prefix("graph3d ") {
             self.session.record(piece);
             let _ = save_history(store, self.history());
+            if let Some(path) = source.trim().strip_prefix("save ") {
+                let path = path.trim();
+                if path.is_empty() {
+                    self.result = localizer.lookup("graph-no-path");
+                } else {
+                    self.result = self.save_graph3d_svg(path, localizer);
+                }
+                return None;
+            }
+            if source.trim() == "save" {
+                self.result = localizer.lookup("graph-no-path");
+                return None;
+            }
             let _ = self.submit_surface(source);
             return None;
         }
@@ -593,6 +619,23 @@ impl App {
     /// the current plot; `graph clear` empties the plot. Returns an error
     /// string on failure; points of interest are recomputed for the whole
     /// set.
+    /// Write the current 2D plot as the same self-contained SVG the web
+    /// app's copy button yields (ADR-0020) — from the same renderer, so
+    /// the bytes match. The result line carries the localized outcome.
+    pub fn save_graph_svg(&self, path: &str, localizer: &Localizer) -> String {
+        let plots = epher_shell::plots::Plots::from_curves(self.graph.clone());
+        let out = plots.save_svg(path, self.poi_list, self.session.env(), localizer);
+        out.message
+    }
+
+    /// Write the current 3D surfaces as a self-contained SVG (ADR-0020),
+    /// from the current orbit pose.
+    pub fn save_graph3d_svg(&self, path: &str, localizer: &Localizer) -> String {
+        let plots = epher_shell::plots::Plots::from_surfaces(self.surface.clone());
+        let out = plots.save_3d_svg_with_view(path, &self.view, localizer);
+        out.message
+    }
+
     pub fn submit_graph(&mut self, source: &str) -> Result<(), String> {
         if source.trim() == "clear" {
             self.graph.clear();

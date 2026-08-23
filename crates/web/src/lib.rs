@@ -355,11 +355,13 @@ fn epher_app() -> Html {
     let graph = use_state(Vec::<SampledCurve>::new);
     let pois = use_state(Vec::<graph::Poi>::new);
     let trace = use_state(|| Option::<graph::TracePoint>::None);
-    // Settings → Graph (ADR-0019): whether the pane lists the points of
-    // interest and marks them on the plot. Display-only toggles — the
-    // analysis always runs, so switching back is instant.
+    // Graph options (ADR-0019, on the pane itself since ADR-0020): whether
+    // the pane lists the points of interest and marks them on the plot,
+    // and the curve line width. Display-only — the analysis always runs,
+    // so switching back is instant.
     let poi_list = use_state(|| true);
     let poi_markers = use_state(|| true);
+    let line_width = use_state(|| graph::DEFAULT_STROKE_WIDTH);
     let live = use_state(|| Rc::new(RefCell::new(GraphLive::default())));
     let surface = use_state(Vec::<epher_core::graph::Surface>::new);
     let view = use_state(epher_core::graph::View3D::default);
@@ -423,6 +425,7 @@ fn epher_app() -> Html {
         let theme = theme.clone();
         let poi_list = poi_list.clone();
         let poi_markers = poi_markers.clone();
+        let line_width = line_width.clone();
         use_effect_with((), move |_| {
             if bridge == Bridge::Tauri {
                 spawn_local(async move {
@@ -443,6 +446,31 @@ fn epher_app() -> Html {
                             }
                             if let Some(name) = theme_pref {
                                 theme.set(name);
+                            }
+                            // Graph pane options live in the webview's
+                            // localStorage on desktop too (ADR-0020) — the
+                            // native store carries only what must exist
+                            // before mount.
+                            if let Some(store) = web_sys::window()
+                                .and_then(|w| w.local_storage().ok().flatten())
+                            {
+                                if let Ok(Some(v)) = store.get_item("epher-poi-list") {
+                                    if v == "0" {
+                                        poi_list.set(false);
+                                    }
+                                }
+                                if let Ok(Some(v)) = store.get_item("epher-poi-markers") {
+                                    if v == "0" {
+                                        poi_markers.set(false);
+                                    }
+                                }
+                                if let Ok(Some(v)) = store.get_item("epher-line-width") {
+                                    if let Ok(w) = v.parse::<f64>() {
+                                        if (0.5..=4.0).contains(&w) {
+                                            line_width.set(w);
+                                        }
+                                    }
+                                }
                             }
                         }
                         Err(e) => {
@@ -473,6 +501,13 @@ fn epher_app() -> Html {
                     if let Ok(Some(v)) = store.get_item("epher-poi-markers") {
                         if v == "0" {
                             poi_markers.set(false);
+                        }
+                    }
+                    if let Ok(Some(v)) = store.get_item("epher-line-width") {
+                        if let Ok(w) = v.parse::<f64>() {
+                            if (0.5..=4.0).contains(&w) {
+                                line_width.set(w);
+                            }
                         }
                     }
                 }
@@ -564,8 +599,9 @@ fn epher_app() -> Html {
         })
     };
 
-    // Settings → Graph toggles (ADR-0019): the points-of-interest list
-    // and the highlighted points on the plot, persisted like the theme.
+    // Graph pane options (ADR-0019 → ADR-0020): the points-of-interest
+    // list, the highlighted points on the plot, and the curve line width,
+    // persisted like the theme.
     let on_set_poi_list = {
         let poi_list = poi_list.clone();
         Callback::from(move |on: bool| {
@@ -586,6 +622,21 @@ fn epher_app() -> Html {
                 let _ = store.set_item("epher-poi-markers", if on { "1" } else { "0" });
             }
             poi_markers.set(on);
+        })
+    };
+    // The line-width slider (ADR-0020): persisted like the POI toggles,
+    // clamped to the slider's range so a stale stored value cannot
+    // produce an invisible or absurd curve.
+    let on_set_line_width = {
+        let line_width = line_width.clone();
+        Callback::from(move |w: f64| {
+            let w = w.clamp(0.5, 4.0);
+            if let Some(store) = web_sys::window()
+                .and_then(|w| w.local_storage().ok().flatten())
+            {
+                let _ = store.set_item("epher-line-width", &format!("{w}"));
+            }
+            line_width.set(w);
         })
     };
 
@@ -1239,10 +1290,11 @@ fn epher_app() -> Html {
         let pois = pois.clone();
         let trace = trace.clone();
         let poi_markers = poi_markers.clone();
+        let line_width = line_width.clone();
         let result = result.clone();
         let localizer = localizer.clone();
         Callback::from(move |_| {
-            let svg = graph::graph_svg(&curves, &pois, *trace, *poi_markers);
+            let svg = graph::graph_svg(&curves, &pois, *trace, *poi_markers, *line_width);
             if svg.is_empty() {
                 return;
             }
@@ -1648,32 +1700,6 @@ fn epher_app() -> Html {
                             if *menu_open == Some("settings") {
                                 html! {
                                     <div class="menu-drop wide" role="menu" aria-label={localizer.lookup("menu-settings")}>
-                                        <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-graph") }</p>
-                                        <button type="button" role="menuitemcheckbox" class="menu-item"
-                                            aria-checked={(*poi_list).to_string()}
-                                            onclick={Callback::from({
-                                                let menu_open = menu_open.clone();
-                                                let on_set_poi_list = on_set_poi_list.clone();
-                                                let next = !*poi_list;
-                                                move |_| { on_set_poi_list.emit(next); menu_open.set(None); }
-                                            })}
-                                        >
-                                            <span class="menu-check" aria-hidden="true">{ if *poi_list { "\u{2713}" } else { "" } }</span>
-                                            { localizer.lookup("graph-points") }
-                                        </button>
-                                        <button type="button" role="menuitemcheckbox" class="menu-item"
-                                            aria-checked={(*poi_markers).to_string()}
-                                            onclick={Callback::from({
-                                                let menu_open = menu_open.clone();
-                                                let on_set_poi_markers = on_set_poi_markers.clone();
-                                                let next = !*poi_markers;
-                                                move |_| { on_set_poi_markers.emit(next); menu_open.set(None); }
-                                            })}
-                                        >
-                                            <span class="menu-check" aria-hidden="true">{ if *poi_markers { "\u{2713}" } else { "" } }</span>
-                                            { localizer.lookup("settings-markers") }
-                                        </button>
-                                        <div class="menu-sep" role="separator"></div>
                                         <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-theme") }</p>
                                         { for ["light", "dark", "night"].map(|name| {
                                             let label = match name {
@@ -1833,32 +1859,6 @@ fn epher_app() -> Html {
                                 </button>
                                 <button type="button" role="menuitem" class="menu-item" onclick={mobile_item(on_paste.clone())}>
                                     { localizer.lookup("menu-paste") }
-                                </button>
-                                <div class="menu-sep" role="separator"></div>
-                                <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-graph") }</p>
-                                <button type="button" role="menuitemcheckbox" class="menu-item"
-                                    aria-checked={(*poi_list).to_string()}
-                                    onclick={Callback::from({
-                                        let on_set_poi_list = on_set_poi_list.clone();
-                                        let close = close_hamburger.clone();
-                                        let next = !*poi_list;
-                                        move |_| { on_set_poi_list.emit(next); close.emit(()); }
-                                    })}
-                                >
-                                    <span class="menu-check" aria-hidden="true">{ if *poi_list { "\u{2713}" } else { "" } }</span>
-                                    { localizer.lookup("graph-points") }
-                                </button>
-                                <button type="button" role="menuitemcheckbox" class="menu-item"
-                                    aria-checked={(*poi_markers).to_string()}
-                                    onclick={Callback::from({
-                                        let on_set_poi_markers = on_set_poi_markers.clone();
-                                        let close = close_hamburger.clone();
-                                        let next = !*poi_markers;
-                                        move |_| { on_set_poi_markers.emit(next); close.emit(()); }
-                                    })}
-                                >
-                                    <span class="menu-check" aria-hidden="true">{ if *poi_markers { "\u{2713}" } else { "" } }</span>
-                                    { localizer.lookup("settings-markers") }
                                 </button>
                                 <div class="menu-sep" role="separator"></div>
                                 <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-theme") }</p>
@@ -2054,6 +2054,7 @@ fn epher_app() -> Html {
                                             pois={(*pois).clone()}
                                             trace={*trace}
                                             markers={*poi_markers}
+                                            line_width={*line_width}
                                             on_trace={on_trace}
                                             on_key={on_trace_key}
                                             on_leave={on_trace_leave}
@@ -2082,6 +2083,63 @@ fn epher_app() -> Html {
                                     <button type="button" class="copy-svg" onclick={on_copy_svg}>
                                         { localizer.lookup("graph-copy") }
                                     </button>
+                                    // The graph options row (ADR-0020): the two
+                                    // points-of-interest toggles that lived in
+                                    // Settings (ADR-0019) plus the line-width
+                                    // slider, kept where they take effect.
+                                    // Real form controls — focusable and
+                                    // labelled — not menu items, because they
+                                    // are adjustments, not commands.
+                                    <div class="graph-options">
+                                        <label class="graph-option">
+                                            <input type="checkbox" checked={*poi_list} onchange={Callback::from({
+                                                let on_set_poi_list = on_set_poi_list.clone();
+                                                move |e: web_sys::Event| {
+                                                    if let Some(el) = e
+                                                        .target()
+                                                        .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                    {
+                                                        on_set_poi_list.emit(el.checked());
+                                                    }
+                                                }
+                                            })} />
+                                            { localizer.lookup("graph-points") }
+                                        </label>
+                                        <label class="graph-option">
+                                            <input type="checkbox" checked={*poi_markers} onchange={Callback::from({
+                                                let on_set_poi_markers = on_set_poi_markers.clone();
+                                                move |e: web_sys::Event| {
+                                                    if let Some(el) = e
+                                                        .target()
+                                                        .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                    {
+                                                        on_set_poi_markers.emit(el.checked());
+                                                    }
+                                                }
+                                            })} />
+                                            { localizer.lookup("settings-markers") }
+                                        </label>
+                                        <label class="graph-option graph-width">
+                                            <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
+                                            <input type="range" class="graph-width-slider"
+                                                min="0.5" max="4" step="0.25" value={line_width.to_string()}
+                                                oninput={Callback::from({
+                                                    let on_set_line_width = on_set_line_width.clone();
+                                                    move |e: web_sys::InputEvent| {
+                                                        if let Some(el) = e
+                                                            .target()
+                                                            .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                        {
+                                                            if let Ok(w) = el.value().parse::<f64>() {
+                                                                on_set_line_width.emit(w);
+                                                            }
+                                                        }
+                                                    }
+                                                })}
+                                            />
+                                            <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *line_width) }</span>
+                                        </label>
+                                    </div>
                                 </section>
                             }
                         } else {

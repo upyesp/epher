@@ -8,6 +8,8 @@
 //! for native shells. The webview reuses classify/prepare and persists
 //! through its IPC bridge instead.
 
+pub mod plots;
+
 use epher_core::Session;
 use epher_i18n::Localizer;
 use epher_store::persist;

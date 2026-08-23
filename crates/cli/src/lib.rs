@@ -96,16 +96,71 @@ fn open_store_with_session() -> (DocStore<FsStore>, Session, Localizer) {
     (store, session, localizer)
 }
 
+/// Handle a `graph …`/`graph3d …` line against a run's plot state
+/// (ADR-0020): returns the outcome to print, or `None` when the line is
+/// not a graph line. Every CLI entry point (REPL, piped, one-shot) shares
+/// this so the grammar behaves identically everywhere. Diagnostics carry
+/// the same `error: ` voice as engine errors.
+fn graph_line(
+    line: &str,
+    plots: &mut epher_shell::plots::Plots,
+    env: &epher_core::Env,
+    localizer: &Localizer,
+) -> Option<Step> {
+    if let Some(source) = line.strip_prefix("graph ") {
+        let out = plots.submit_graph(source, env, localizer);
+        return Some(step_from(out));
+    }
+    if let Some(source) = line.strip_prefix("graph3d ") {
+        let out = plots.submit_surface(source, env, localizer);
+        return Some(step_from(out));
+    }
+    None
+}
+
+fn step_from(out: epher_shell::plots::PlotOutcome) -> Step {
+    Step {
+        output: Some(if out.error {
+            format!("error: {}", out.message)
+        } else {
+            out.message
+        }),
+        error: out.error,
+        language: None,
+    }
+}
+
 /// Evaluate a single expression and print the result (no UI, no store).
+/// A `graph …`/`graph3d …` statement may appear among the statements
+/// (ADR-0020): curves accumulate over the statements and `graph save
+/// <file>` writes the SVG document — `epher "graph sin(x); graph save
+/// plot.svg"` is a complete plot in one command.
 pub fn run_one_shot(expr: &str) -> Result<(), EpherError> {
     // One-shot accepts a whole script (ADR-0001 seam unification):
     // statements separated by newlines or `;`, each result printed on its
     // own line — the piped mode's output without the `=` prefix.
-    // `epher "2 + 3"` prints `5`, exactly as before.
-    let script = epher_core::parse_script(expr)?;
+    // `epher "2 + 3"` prints `5`, exactly as before. Graph statements
+    // split out first; the rest keep the engine's exact script semantics.
+    let mut plots = epher_shell::plots::Plots::new();
     let mut env = epher_core::Env::default();
-    for value in epher_core::run_all(&script, &mut env)? {
-        println!("{value}");
+    let localizer = Localizer::resolve(None, &[]);
+    for piece in expr.split(['\n', ';']) {
+        let piece = piece.trim();
+        if piece.is_empty() {
+            continue;
+        }
+        if let Some(out) = graph_line(piece, &mut plots, &env, &localizer) {
+            if out.error {
+                term::error(out.output.as_deref().unwrap_or("error"));
+                std::process::exit(1);
+            }
+            print_step(&out);
+            continue;
+        }
+        let script = epher_core::parse_script(piece)?;
+        for value in epher_core::run_all(&script, &mut env)? {
+            println!("{value}");
+        }
     }
     Ok(())
 }
@@ -117,6 +172,9 @@ pub fn run_one_shot(expr: &str) -> Result<(), EpherError> {
 /// (red on a terminal) and the conversation continues; quitting exits 0.
 pub fn run_repl() -> Result<(), EpherError> {
     let (store, mut session, mut localizer) = open_store_with_session();
+    // The run's plot state (ADR-0020): `graph` lines accumulate here and
+    // `graph save <file>` writes the SVG the desktop and PWA produce.
+    let mut plots = epher_shell::plots::Plots::new();
     let stdin = io::stdin();
     let mut lines = stdin.lock().lines();
     loop {
@@ -130,7 +188,14 @@ pub fn run_repl() -> Result<(), EpherError> {
         if line == "quit" || line == "exit" {
             break;
         }
-        let out = step(&mut session, &store, &localizer, &line);
+        let out = match graph_line(&line, &mut plots, session.env(), &localizer) {
+            Some(out) => {
+                // the command joins the history like every other line
+                session.record(&line);
+                out
+            }
+            None => step(&mut session, &store, &localizer, &line),
+        };
         print_step(&out);
         if let Some(code) = out.language {
             localizer = Localizer::resolve(Some(&code), &[]);
@@ -193,13 +258,19 @@ pub fn run_stdin() -> Result<bool, EpherError> {
 /// the REPL. Returns whether any line failed.
 pub fn run_stdin_from<R: BufRead>(input: R) -> Result<bool, EpherError> {
     let (store, mut session, localizer) = open_store_with_session();
+    // Piped scripts plot too (ADR-0020): the plot state spans the script's
+    // lines — `printf "graph sin(x)\ngraph save plot.svg\n" | epher -`.
+    let mut plots = epher_shell::plots::Plots::new();
     let mut failed = false;
     for line in input.lines() {
         let line = line.map_err(|e| EpherError::Io(e.to_string()))?.trim().to_string();
         if line.is_empty() {
             continue;
         }
-        let out = step(&mut session, &store, &localizer, &line);
+        let out = match graph_line(&line, &mut plots, session.env(), &localizer) {
+            Some(out) => out,
+            None => step(&mut session, &store, &localizer, &line),
+        };
         failed |= out.error;
         print_step(&out);
     }

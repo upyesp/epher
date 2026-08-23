@@ -249,3 +249,87 @@ fn prepare_reports_table_errors() {
     )
     .is_err());
 }
+
+// --- plot state and SVG export (ADR-0020) ---
+
+use epher_shell::plots::Plots;
+use std::io::Write;
+
+fn temp_svg(name: &str) -> String {
+    let p = std::env::temp_dir().join(format!("epher-shell-test-{name}-{}.svg", std::process::id()));
+    let _ = std::fs::remove_file(&p);
+    p.to_string_lossy().into_owned()
+}
+
+#[test]
+fn graph_lines_accumulate_and_clear() {
+    let mut plots = Plots::new();
+    let env = epher_core::Env::default();
+    assert_eq!(
+        plots.submit_graph("sin(x)", &env, &en()).message,
+        "graph: sin(x)"
+    );
+    assert_eq!(
+        plots.submit_graph("x ^ 2", &env, &en()).message,
+        "graph: x ^ 2"
+    );
+    assert_eq!(plots.curves().len(), 2);
+    let out = plots.submit_graph("clear", &env, &en());
+    assert_eq!(out.message, "Graph cleared");
+    assert!(plots.curves().is_empty());
+}
+
+#[test]
+fn graph_save_writes_the_same_document_the_web_app_copies() {
+    let mut plots = Plots::new();
+    let env = epher_core::Env::default();
+    plots.submit_graph("x ^ 2 - 1", &env, &en());
+    let path = temp_svg("2d");
+    let out = plots.submit_graph(&format!("save {path}"), &env, &en());
+    assert!(!out.error, "{}", out.message);
+    let doc = std::fs::read_to_string(&path).unwrap();
+    assert!(doc.starts_with("<svg "), "{doc}");
+    assert!(doc.contains("viewBox=\"0 0 640 400\""));
+    // self-contained: the embedded style is the app's default palette
+    assert!(doc.contains("<style>"));
+    assert!(doc.contains("y = x ^ 2 - 1"));
+    // the points of interest are labeled in the file
+    assert!(doc.contains("root"), "{doc}");
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn graph3d_save_writes_a_standalone_document() {
+    let mut plots = Plots::new();
+    let env = epher_core::Env::default();
+    plots.submit_surface("x ^ 2 - y ^ 2", &env, &en());
+    let path = temp_svg("3d");
+    let out = plots.submit_surface(&format!("save {path}"), &env, &en());
+    assert!(!out.error, "{}", out.message);
+    let doc = std::fs::read_to_string(&path).unwrap();
+    assert!(doc.contains("viewBox=\"0 0 640 400\""));
+    assert!(doc.contains("transform=\"translate("));
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn saving_an_empty_plot_is_a_diagnostic() {
+    let plots = Plots::new();
+    let out = plots.save_svg("/tmp/never-epher.svg", true, &epher_core::Env::default(), &en());
+    assert!(out.error);
+    assert_eq!(out.message, "Nothing is plotted");
+    // save without a path names the problem too
+    let mut plots = Plots::new();
+    let out = plots.submit_graph("save", &epher_core::Env::default(), &en());
+    assert!(out.error);
+    assert_eq!(out.message, "Name a file to save to");
+}
+
+#[test]
+fn a_bad_expression_is_a_diagnostic_not_a_crash() {
+    let mut plots = Plots::new();
+    let out = plots.submit_graph("sin(", &epher_core::Env::default(), &en());
+    assert!(out.error);
+    assert!(!out.message.is_empty(), "the diagnostic names the parse error");
+    let _ = std::io::stdout().flush();
+}

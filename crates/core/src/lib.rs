@@ -5,6 +5,7 @@
 //! ADR-0005.
 
 pub mod graph;
+pub mod graph_svg;
 
 use std::collections::HashMap;
 
