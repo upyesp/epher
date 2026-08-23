@@ -10,10 +10,10 @@
 //! Accessibility (ADR-0009): the SVG is `role="img"` with a `title` and an
 //! `aria-label` naming every plotted expression; the visible caption and
 //! legend live next to it. Curve colors are CSS classes (`curve-0` …
-//! `curve-3`, contrast-verified in `index.html`), and each index also gets
-//! a distinct dash pattern so curves stay distinguishable without color
-//! (WCAG 1.4.1). Axes/gridlines inherit `currentColor` at recorded
-//! opacities (1.4.11).
+//! `curve-3`, contrast-verified in `index.html`); curves are all solid
+//! (ADR-0023) and stay distinguishable without color through the legend
+//! and captions (WCAG 1.4.1). Axes/gridlines inherit `currentColor` at
+//! recorded opacities (1.4.11).
 
 use epher_core::graph::{SampledCurve, Surface, View3D};
 use wasm_bindgen::JsCast;

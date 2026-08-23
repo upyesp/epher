@@ -89,6 +89,12 @@ impl Bridge {
         self.spawn("save_theme", args);
     }
 
+    /// Quit the desktop app (File → Quit). No response — the process
+    /// ends before one could arrive.
+    pub async fn quit(self) {
+        let _ = self.invoke("quit", &JsValue::UNDEFINED).await;
+    }
+
     /// Can this desktop shell install the `epher` terminal command?
     /// (macOS only, ADR-0011.) The UI asks at startup.
     pub async fn cli_install_supported(self) -> Result<bool, String> {

@@ -528,6 +528,31 @@ big(10 ^ 20)
 100000000000000000000
 ```
 
+**Bases numéricas** escriben los enteros como los escribe la comunidad
+matemática: `0b` para binario, `0o` para octal, `0x` para hexadecimal
+(el prefijo cambia la escritura, nunca el valor):
+
+```epher
+0b1010 + 0xFF
+```
+
+```text
+265
+```
+
+Para volver, **bin(x)**, **oct(x)** y **hex(x)** devuelven la escritura
+con prefijo de un número entero, lista para usarse de nuevo:
+
+```epher
+hex(255)
+bin(10)
+```
+
+```text
+0xff
+0b1010
+```
+
 ### 1.13 Funciones integradas
 
 epher tiene las funciones de una calculadora científica, agrupadas por familia.
@@ -590,6 +615,9 @@ Las capas exactas de la sección 1.12 se mantienen:
 | `frac(n, d)` | fracción exacta | `frac(1, 3)` | `1/3` |
 | `dec(x)` | decimal exacto | `dec(0.1)` | `0.1` |
 | `big(x)` | número entero exacto | `big(10 ^ 20)` | `100000000000000000000` |
+| Binario, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
+| Escritura en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
+| `bin(x)` / `oct(x)` / `hex(x)` | escritura con prefijo en base 2 / 8 / 16 | `hex(255)` | `0xff` |
 
 Se combinan como todo lo demás:
 
@@ -661,6 +689,8 @@ conoce, para que puedas arreglar tu expresión.
 | Fracción exacta | `frac(n, d)` | `frac(1, 3)` |
 | Decimal exacto | `dec(x)` | `dec(0.1) + dec(0.2)` |
 | Número entero exacto | `big(x)` | `big(10 ^ 20)` |
+| Binario, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
+| Escritura en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 
 ## 2. La aplicación web (PWA)
 

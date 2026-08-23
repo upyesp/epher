@@ -8,8 +8,9 @@
 //!
 //! Accessibility (ADR-0009): the document carries `role="img"`, a
 //! `<title>`, and an `aria-label` naming every plotted expression; curve
-//! colors are >= 3:1 on the background and every curve after the first
-//! also gets a distinct dash pattern (WCAG 1.4.1).
+//! colors are >= 3:1 on the background, and every curve carries a
+//! visible caption at its end so solid lines stay distinguishable
+//! without color (WCAG 1.4.1).
 
 use crate::graph::{InterestKind, SampledCurve, Segment3D, Surface, View3D};
 use crate::Sample;
@@ -328,9 +329,14 @@ fn style_svg(stroke_width: f64) -> String {
 .bg {{ fill: #141416; }}\
 .curve {{ stroke-width: {stroke_width:.2}; stroke-linejoin: round; stroke-linecap: round; fill: none; }}\
 .curve-0 {{ stroke: #2dd4bf; }}\
-.curve-1 {{ stroke: #4da3ff; stroke-dasharray: 8 4; }}\
-.curve-2 {{ stroke: #ffb340; stroke-dasharray: 2 4; }}\
-.curve-3 {{ stroke: #c39dff; stroke-dasharray: 10 3 2 3; }}\
+.curve-1 {{ stroke: #4da3ff; }}\
+.curve-2 {{ stroke: #ffb340; }}\
+.curve-3 {{ stroke: #c39dff; }}\
+.label {{ font-size: 11px; font-family: ui-monospace, Menlo, Consolas, monospace; stroke: #141416; stroke-width: 3px; paint-order: stroke; }}\
+.label.curve-0 {{ fill: #2dd4bf; }}\
+.label.curve-1 {{ fill: #4da3ff; }}\
+.label.curve-2 {{ fill: #ffb340; }}\
+.label.curve-3 {{ fill: #c39dff; }}\
 .fill.curve-0 {{ fill: #2dd4bf; fill-opacity: 0.18; stroke: none; }}\
 .fill.curve-1 {{ fill: #4da3ff; fill-opacity: 0.18; stroke: none; }}\
 .fill.curve-2 {{ fill: #ffb340; fill-opacity: 0.18; stroke: none; }}\
@@ -390,6 +396,19 @@ pub fn graph_svg(
             svg.push_str(&format!(
                 "<polyline class=\"curve curve-{i}\" points=\"{}\" />",
                 polyline_points(seg, &geom)
+            ));
+        }
+        // A visible caption at the curve's end: curves are all solid
+        // (ADR-0023), so the caption — plus the aria-label and the
+        // `<title>` — is the non-color channel that keeps them apart
+        // (WCAG 1.4.1).
+        if let Some(last) = c.samples.iter().rev().find(|s| s.y.is_finite()) {
+            let (x, y) = (geom.sx(last.x), geom.sy(last.y));
+            let lx = (x + 6.0).clamp(LEFT, RIGHT - 8.0);
+            let ly = (y - 6.0).clamp(TOP + 8.0, BOTTOM);
+            svg.push_str(&format!(
+                "<text class=\"label curve-{i}\" x=\"{lx:.1}\" y=\"{ly:.1}\">{}</text>",
+                escape(&curve_caption(c))
             ));
         }
     }

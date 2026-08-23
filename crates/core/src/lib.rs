@@ -28,6 +28,10 @@ pub enum Value {
     Big(BigDecimal),
     Complex(Complex<f64>),
     Bool(bool),
+    /// A display string — produced by the base-conversion builtins
+    /// (`bin`, `oct`, `hex`; ADR-0022) and good for nothing else: the
+    /// language has no string literals or string operations.
+    Str(String),
 }
 
 impl Value {
@@ -52,6 +56,7 @@ impl std::fmt::Display for Value {
             Value::Big(b) => write!(f, "{b}"),
             Value::Complex(c) => write!(f, "{c}"),
             Value::Bool(b) => write!(f, "{b}"),
+            Value::Str(s) => write!(f, "{s}"),
         }
     }
 }
@@ -427,6 +432,58 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
             ')' => {
                 tokens.push(Token::RParen);
                 chars.next();
+            }
+            '0'
+                if matches!(
+                    chars.clone().nth(1),
+                    Some('b' | 'B' | 'o' | 'O' | 'x' | 'X')
+                ) =>
+            {
+                // Based literals (ADR-0022): 0b/0o/0x with the digits the
+                // community expects — 0b101, 0o17, 0xFF. The value is the
+                // plain number; a base prefix changes the spelling, never
+                // the result. Like decimal literals, the token is an f64
+                // (exact up to 2^53), so `0xFF` and `255` are the same.
+                chars.next(); // the 0
+                let marker = chars.next().expect("peeked above");
+                let radix: u32 = match marker.to_ascii_lowercase() {
+                    'b' => 2,
+                    'o' => 8,
+                    _ => 16,
+                };
+                let mut digits = String::new();
+                while let Some(&c2) = chars.peek() {
+                    let ok = match radix {
+                        2 => matches!(c2, '0' | '1'),
+                        8 => matches!(c2, '0'..='7'),
+                        _ => c2.is_ascii_hexdigit(),
+                    };
+                    if ok {
+                        digits.push(c2);
+                        chars.next();
+                    } else {
+                        break;
+                    }
+                }
+                if digits.is_empty() {
+                    if let Some(ch) = chars.peek().copied() {
+                        if ch.is_ascii_alphanumeric() {
+                            return Err(EpherError::Parse(format!(
+                                "invalid digit {ch} after 0{marker}"
+                            )));
+                        }
+                    }
+                    return Err(EpherError::Parse(format!(
+                        "expected digits after 0{marker}"
+                    )));
+                }
+                let big = num_bigint::BigInt::parse_bytes(digits.as_bytes(), radix)
+                    .expect("only valid digits were collected");
+                let n: f64 = big
+                    .to_string()
+                    .parse()
+                    .map_err(|_| EpherError::Parse(format!("invalid number: 0{marker}{digits}")))?;
+                tokens.push(Token::Number(n));
             }
             c if c.is_ascii_digit() || c == '.' => {
                 let mut num = String::new();
@@ -1024,6 +1081,53 @@ fn one_float(name: &str, args: &[Value]) -> Result<f64, EpherError> {
     }
 }
 
+/// Take exactly one argument of any kind.
+fn one_arg<'a>(name: &str, args: &'a [Value]) -> Result<&'a Value, EpherError> {
+    match args {
+        [v] => Ok(v),
+        _ => Err(EpherError::Type(format!(
+            "{name} expects 1 argument, got {} argument(s)",
+            args.len()
+        ))),
+    }
+}
+
+/// The whole-number reading of a value, for the base-conversion builtins
+/// (ADR-0022). Exact values convert exactly (rationals and decimals too);
+/// a fractional or non-numeric value is a type error.
+fn value_to_bigint(name: &str, v: &Value) -> Result<num_bigint::BigInt, EpherError> {
+    let bad = || EpherError::Type(format!("{name} expects an integer, got {v}"));
+    match v {
+        Value::Big(b) => {
+            if !b.is_integer() {
+                return Err(bad());
+            }
+            num_bigint::BigInt::parse_bytes(b.to_string().as_bytes(), 10).ok_or_else(bad)
+        }
+        Value::Float(n) => {
+            if !n.is_finite() || n.fract() != 0.0 {
+                return Err(bad());
+            }
+            // An integral f64 formats exactly — the shortest round-trip
+            // representation of an integral float is its exact integer.
+            num_bigint::BigInt::parse_bytes(format!("{n:.0}").as_bytes(), 10).ok_or_else(bad)
+        }
+        Value::Rational(r) => {
+            if r.denom() != &num_bigint::BigInt::from(1) {
+                return Err(bad());
+            }
+            Ok(r.numer().clone())
+        }
+        Value::Decimal(d) => {
+            if !d.fract().is_zero() {
+                return Err(bad());
+            }
+            num_bigint::BigInt::parse_bytes(d.trunc().to_string().as_bytes(), 10).ok_or_else(bad)
+        }
+        _ => Err(bad()),
+    }
+}
+
 /// Take exactly two Float arguments.
 fn two_floats(name: &str, args: &[Value]) -> Result<(f64, f64), EpherError> {
     match args {
@@ -1148,6 +1252,31 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
         }
         "deg" => Ok(Value::Float(one_float(name, &args)?.to_degrees())),
         "rad" => Ok(Value::Float(one_float(name, &args)?.to_radians())),
+        // Base conversion (ADR-0022): one integer in, a prefixed string
+        // out — `bin(10)` is `0b1010`, `oct(10)` is `0o12`, `hex(255)` is
+        // `0xff`. Prefixes match the literal syntax, so the answer can be
+        // fed straight back in. Only whole numbers convert; negatives keep
+        // their sign on the prefix (`-0b101`), like Python's bin().
+        "bin" | "oct" | "hex" => {
+            let radix: u32 = match name {
+                "bin" => 2,
+                "oct" => 8,
+                _ => 16,
+            };
+            let prefix = match name {
+                "bin" => "0b",
+                "oct" => "0o",
+                _ => "0x",
+            };
+            let v = one_arg(name, &args)?;
+            let n = value_to_bigint(name, &v)?;
+            let spelled = n.to_str_radix(radix);
+            let out = match spelled.strip_prefix('-') {
+                Some(digits) => format!("-{prefix}{digits}"),
+                None => format!("{prefix}{spelled}"),
+            };
+            Ok(Value::Str(out))
+        }
         "atan2" => {
             let (y, x) = two_floats(name, &args)?;
             Ok(Value::Float(y.atan2(x)))

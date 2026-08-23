@@ -531,6 +531,31 @@ big(10 ^ 20)
 100000000000000000000
 ```
 
+**Zahlensysteme** schreiben ganze Zahlen so, wie die Fachwelt sie notiert:
+`0b` für binär, `0o` für oktal, `0x` für hexadezimal (das Präfix ändert
+nur die Schreibweise, nie den Wert):
+
+```epher
+0b1010 + 0xFF
+```
+
+```text
+265
+```
+
+Zurück geht es mit **bin(x)**, **oct(x)** und **hex(x)** — die
+präfixbehaftete Schreibweise einer ganzen Zahl, direkt wieder einsetzbar:
+
+```epher
+hex(255)
+bin(10)
+```
+
+```text
+0xff
+0b1010
+```
+
 ### 1.13 Eingebaute Funktionen
 
 epher hat die Funktionen eines wissenschaftlichen Taschenrechners, nach
@@ -596,6 +621,9 @@ Die exakten Ebenen aus Abschnitt 1.12 bleiben:
 | `frac(n, d)` | exakter Bruch | `frac(1, 3)` | `1/3` |
 | `dec(x)` | exakte Dezimalzahl | `dec(0.1)` | `0.1` |
 | `big(x)` | exakte ganze Zahl | `big(10 ^ 20)` | `100000000000000000000` |
+| Binär, oktal, hexadezimal | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
+| Basisschreibweise | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
+| `bin(x)` / `oct(x)` / `hex(x)` | Schreibweise mit Präfix in Basis 2 / 8 / 16 | `hex(255)` | `0xff` |
 
 Sie lassen sich wie alles andere kombinieren:
 
@@ -667,6 +695,8 @@ nicht kennt, damit du deinen Ausdruck korrigieren kannst.
 | Exakter Bruch | `frac(n, d)` | `frac(1, 3)` |
 | Exakte Dezimalzahl | `dec(x)` | `dec(0.1) + dec(0.2)` |
 | Exakte ganze Zahl | `big(x)` | `big(10 ^ 20)` |
+| Binär, oktal, hexadezimal | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
+| Basisschreibweise | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 
 ## 2. Die Web-App (PWA)
 

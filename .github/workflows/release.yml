@@ -61,16 +61,22 @@ jobs:
         include:
           - os: ubuntu-22.04
             target: linux-x86_64
+            rust-target: x86_64-unknown-linux-gnu
           - os: macos-latest
             target: macos-aarch64
+            rust-target: aarch64-apple-darwin
+          - os: macos-latest
+            target: macos-x86_64
+            rust-target: x86_64-apple-darwin
           - os: windows-latest
             target: windows-x86_64
+            rust-target: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: wasm32-unknown-unknown
+          targets: wasm32-unknown-unknown,${{ matrix.rust-target }}
       - uses: jetli/trunk-action@v0.5.0
         with:
           version: "v0.21.14"
@@ -87,7 +93,7 @@ jobs:
         run: cargo install tauri-cli --version 2.11.4 --locked
 
       - name: Build desktop bundles
-        run: cargo tauri build
+        run: cargo tauri build --target ${{ matrix.rust-target }}
         working-directory: crates/tauri-app/src-tauri
 
       - name: Package bundles
@@ -103,7 +109,7 @@ jobs:
               cp "$BUNDLE"/appimage/*.AppImage artifacts/epher-linux-x86_64.AppImage
               ;;
             macOS)
-              cp "$BUNDLE"/dmg/*.dmg artifacts/epher-macos-aarch64.dmg
+              cp "$BUNDLE"/dmg/*.dmg artifacts/epher-${{ matrix.target }}.dmg
               ;;
             Windows)
               cp "$BUNDLE"/nsis/*-setup.exe artifacts/epher-windows-x86_64.exe
@@ -141,7 +147,8 @@ jobs:
             - **Windows**: run `epher-windows-x86_64.exe` — the installer puts
               `epher` on your PATH (open a new terminal, then `epher "2 + 2"`).
               Desktop launches open the window with no console flash.
-            - **macOS**: open `epher-macos-aarch64.dmg` and drag epher to
+            - **macOS**: open `epher-macos-aarch64.dmg` (Apple Silicon) or
+              `epher-macos-x86_64.dmg` (Intel) and drag epher to
               Applications. In the app, "Install the epher command" puts
               `epher` on your terminal PATH.
             - **Linux**: Debian/Ubuntu → `.deb`; Fedora/RHEL → `.rpm`;

@@ -859,3 +859,59 @@ fn ans_can_be_assigned_like_any_variable() {
     let values = run_all(&script, &mut env).unwrap();
     assert_eq!(values, vec![Value::float(9.0), Value::float(9.0)]);
 }
+
+// ===== number bases: literals and conversion (ADR-0022) =====
+
+#[test]
+fn based_literals_parse_to_plain_numbers() {
+    assert_eq!(eval_str("0b1010"), Value::float(10.0));
+    assert_eq!(eval_str("0B10"), Value::float(2.0));
+    assert_eq!(eval_str("0o17"), Value::float(15.0));
+    assert_eq!(eval_str("0O17"), Value::float(15.0));
+    assert_eq!(eval_str("0xFF"), Value::float(255.0));
+    assert_eq!(eval_str("0Xff"), Value::float(255.0));
+    assert_eq!(eval_str("0xFF + 0b1"), Value::float(256.0));
+    assert_eq!(eval_str("0x10 * 2"), Value::float(32.0));
+}
+
+#[test]
+fn bin_oct_hex_convert_integers_to_prefixed_strings() {
+    assert_eq!(eval_str("bin(10)"), Value::Str("0b1010".into()));
+    assert_eq!(eval_str("oct(10)"), Value::Str("0o12".into()));
+    assert_eq!(eval_str("hex(255)"), Value::Str("0xff".into()));
+    assert_eq!(eval_str("hex(-42)"), Value::Str("-0x2a".into()));
+    // exact layers convert exactly, and the answer feeds back in
+    assert_eq!(eval_str("bin(0b11111111)"), Value::Str("0b11111111".into()));
+    assert_eq!(eval_str("hex(frac(255, 1))"), Value::Str("0xff".into()));
+    assert_eq!(eval_str("hex(dec(42))"), Value::Str("0x2a".into()));
+    assert_eq!(eval_str("hex(big(10 ^ 20))"), Value::Str("0x56bc75e2d63100000".into()));
+    assert_eq!(eval_str("hex(0x2a)"), Value::Str("0x2a".into()));
+}
+
+#[test]
+fn base_conversion_rejects_non_integers() {
+    assert!(evaluate("bin(0.5)").is_err());
+    assert!(evaluate("hex(frac(1, 2))").is_err());
+    assert!(evaluate("oct(true)").is_err());
+    assert!(evaluate("hex(1, 2)").is_err());
+    assert!(evaluate("bin()").is_err());
+}
+
+#[test]
+fn bad_based_literals_are_parse_errors() {
+    assert!(parse("0b2").is_err());
+    assert!(parse("0b").is_err());
+    assert!(parse("0x").is_err());
+    assert!(parse("0o8").is_err());
+}
+
+#[test]
+fn ans_holds_a_converted_string_like_any_value() {
+    let mut env = Env::default();
+    let script = parse_script("hex(255); ans").unwrap();
+    let values = run_all(&script, &mut env).unwrap();
+    assert_eq!(
+        values,
+        vec![Value::Str("0xff".into()), Value::Str("0xff".into())]
+    );
+}

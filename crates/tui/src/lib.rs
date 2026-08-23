@@ -64,6 +64,7 @@ pub enum MenuAction {
     OpenFile,
     SaveHistory,
     SaveScript,
+    Quit,
     Cut,
     Copy,
     Paste,
@@ -153,6 +154,7 @@ const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
             &[("ncr", "ncr("), ("npr", "npr("), ("sum", "sum("), ("product", "product(")],
             &[("mean", "mean("), ("median", "median("), ("variance", "variance("), ("stdev", "stdev(")],
             &[("frac", "frac("), ("dec", "dec("), ("big", "big(")],
+            &[("bin", "bin("), ("oct", "oct("), ("hex", "hex(")],
         ],
     ),
     (
@@ -290,7 +292,7 @@ impl App {
     /// How many items a menu has.
     pub fn menu_len(menu: usize) -> usize {
         match menu {
-            0 => 3,  // File: open, save history, save script
+            0 => 4,  // File: open, save history, save script, quit
             1 => 3,  // Edit: cut, copy, paste
             2 => 1,  // Graph: clear graph
             3 => 12, // Settings: POI toggle, 3 themes, 8 languages
@@ -335,7 +337,8 @@ impl App {
             0 => match item {
                 0 => MenuAction::OpenFile,
                 1 => MenuAction::SaveHistory,
-                _ => MenuAction::SaveScript,
+                2 => MenuAction::SaveScript,
+                _ => MenuAction::Quit,
             },
             1 => match item {
                 0 => MenuAction::Cut,
@@ -1219,6 +1222,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                             MenuAction::OpenFile => app.prompt_start(PromptKind::Open),
                             MenuAction::SaveHistory => app.prompt_start(PromptKind::SaveHistory),
                             MenuAction::SaveScript => app.prompt_start(PromptKind::SaveScript),
+                            MenuAction::Quit => return Ok(()),
                             MenuAction::Cut => {
                                 if !app.input().is_empty() {
                                     osc52_copy(app.input());
@@ -1426,6 +1430,7 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
                 localizer.lookup("menu-open"),
                 localizer.lookup("menu-save-history"),
                 localizer.lookup("menu-save-script"),
+                localizer.lookup("menu-quit"),
             ],
             1 => vec![
                 localizer.lookup("menu-cut"),

@@ -139,7 +139,7 @@ checksum = "d301b3b94cb4b2f23d7917810addbbaff90738e0ca2be692bd027e70d7e0330c"
 
 [[package]]
 name = "app"
-version = "0.4.10"
+version = "0.4.11"
 dependencies = [
  "clap",
  "epher-cli",
@@ -1111,7 +1111,7 @@ dependencies = [
 
 [[package]]
 name = "epher-cli"
-version = "0.4.10"
+version = "0.4.11"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1127,7 +1127,7 @@ dependencies = [
 
 [[package]]
 name = "epher-core"
-version = "0.4.10"
+version = "0.4.11"
 dependencies = [
  "bigdecimal",
  "num-bigint",
@@ -1142,11 +1142,11 @@ dependencies = [
 
 [[package]]
 name = "epher-guide"
-version = "0.4.10"
+version = "0.4.11"
 
 [[package]]
 name = "epher-i18n"
-version = "0.4.10"
+version = "0.4.11"
 dependencies = [
  "fluent",
  "fluent-langneg 0.14.2",
@@ -1155,7 +1155,7 @@ dependencies = [
 
 [[package]]
 name = "epher-shell"
-version = "0.4.10"
+version = "0.4.11"
 dependencies = [
  "epher-core",
  "epher-i18n",
@@ -1164,7 +1164,7 @@ dependencies = [
 
 [[package]]
 name = "epher-store"
-version = "0.4.10"
+version = "0.4.11"
 dependencies = [
  "epher-core",
  "serde",
@@ -1175,7 +1175,7 @@ dependencies = [
 
 [[package]]
 name = "epher-tui"
-version = "0.4.10"
+version = "0.4.11"
 dependencies = [
  "crossterm",
  "epher-core",
@@ -1191,7 +1191,7 @@ dependencies = [
 
 [[package]]
 name = "epher-web"
-version = "0.4.10"
+version = "0.4.11"
 dependencies = [
  "epher-core",
  "epher-guide",

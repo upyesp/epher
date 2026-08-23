@@ -524,9 +524,6 @@
       stroke-linejoin: round;
       stroke-linecap: round;
     }
-    svg .curve-1 { stroke-dasharray: 8 4; }
-    svg .curve-2 { stroke-dasharray: 2 4; }
-    svg .curve-3 { stroke-dasharray: 10 3 2 3; }
     svg .fill { stroke: none; }
     svg .grid { stroke: currentColor; opacity: 0.15; }
     svg .axis { stroke: currentColor; opacity: 0.5; }
@@ -639,28 +636,37 @@
       color: var(--muted);
       font-size: 0.85rem;
     }
-    /* Copy-SVG: a quiet secondary button, like install-cli. */
-    .copy-svg {
-      font-size: 0.95rem;
-      font-weight: 500;
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      padding: 0.5rem 1rem;
-      min-height: 48px;
-      align-self: flex-start;
-      margin-top: 0.75rem;
+    /* --- the graph pane toolbar (ADR-0018/0020/0023) -------------------
+       Clear graph and Copy SVG are equal, same-styled buttons; the graph
+       options (POI toggles, line width) sit beside them, all above the
+       plot. Wraps on narrow panes; every control keeps its 44-48px
+       target and focus-visible ring. */
+    .graph-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem 0.75rem;
+      padding: 0.2rem 0 0.4rem;
     }
-    /* Graph options row (ADR-0020): the POI toggles that lived in the
-       Settings menu (ADR-0019) and the line-width slider, at the bottom
-       of the pane where they take effect. Real labelled form controls;
-       48px hit height, focus-visible rings like every control. */
+    .pane-btn {
+      min-height: 44px;
+      padding: 0.3rem 0.9rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+    }
+    .pane-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
     .graph-options {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 0.25rem 1.25rem;
-      margin-top: 0.75rem;
       font-size: 0.9rem;
       color: var(--muted);
     }
@@ -709,26 +715,6 @@
       margin-bottom: 0.75rem;
     }
 
-    /* --- clear the graph pane (ADR-0018) -------------------------------- */
-    .graph-head {
-      display: flex;
-      justify-content: flex-end;
-      padding: 0.2rem 0 0.3rem;
-    }
-    .graph-clear-btn {
-      min-height: 40px;
-      padding: 0.3rem 0.9rem;
-      border: 1px solid var(--border-strong);
-      border-radius: 8px;
-      background: var(--bg);
-      color: var(--text);
-      font: inherit;
-      cursor: pointer;
-    }
-    .graph-clear-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
     /* --- the in-app user guide overlay (ADR-0018) -----------------------
        Same content as the website guide: site/guide/*.md embedded at
        build time and rendered here; ```epher / ```sh examples are
@@ -955,8 +941,27 @@
       function mounted() {
         return !!document.querySelector(".epher");
       }
+      // A failed first mount is usually a stale cached bundle after an
+      // upgrade — Ctrl+F5 fixed it by hand. Reload once automatically
+      // (ADR-0023); with the desktop shell's disk cache disabled
+      // (`additionalBrowserArgs`), the reload fetches the fresh assets.
+      function retryOnce() {
+        try {
+          if (sessionStorage.getItem("epher-boot-retry")) return false;
+          sessionStorage.setItem("epher-boot-retry", "1");
+          location.reload();
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
       setTimeout(function () {
-        if (mounted()) return;
+        if (mounted()) {
+          // Healthy load: the per-tab retry marker can go.
+          try { sessionStorage.removeItem("epher-boot-retry"); } catch (e) {}
+          return;
+        }
+        if (retryOnce()) return; // the reloaded page mounts on its own
         fallback.hidden = false;
         if (errors.length) detail.textContent = errors.join(" · ");
         // a late mount (e.g. a slow first compile) recovers on its own
@@ -965,6 +970,7 @@
             clearInterval(iv);
             fallback.hidden = true;
             detail.textContent = "";
+            try { sessionStorage.removeItem("epher-boot-retry"); } catch (e) {}
           }
         }, 500);
         setTimeout(function () { clearInterval(iv); }, 30000);

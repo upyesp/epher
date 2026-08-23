@@ -305,6 +305,9 @@ static TABS: &[TabDef] = &[
             key("frac", KeyAction::Call("frac"), "fn"),
             key("dec", KeyAction::Call("dec"), "fn"),
             key("big", KeyAction::Call("big"), "fn"),
+            key("bin", KeyAction::Call("bin"), "fn"),
+            key("oct", KeyAction::Call("oct"), "fn"),
+            key("hex", KeyAction::Call("hex"), "fn"),
         ],
     },
     TabDef {
@@ -380,6 +383,10 @@ fn epher_app() -> Html {
     // bar item (File/Edit/Settings) drives the dropdown (ADR-0017).
     let theme = use_state(|| "dark".to_string());
     let menu_open = use_state(|| Option::<&'static str>::None);
+    // A live mirror of `menu_open` for long-lived closures (Yew handles
+    // are render snapshots; the Rc cell updates every render).
+    let menu_open_cell = use_state(|| Rc::new(RefCell::new(Option::<&'static str>::None)));
+    *menu_open_cell.borrow_mut() = *menu_open;
     let hamburger_open = use_state(|| false);
     let guide_open = use_state(|| false);
     let guide_close_ref = use_node_ref();
@@ -1581,6 +1588,81 @@ fn epher_app() -> Html {
         Callback::from(move |_: web_sys::MouseEvent| guide_open.set(false))
     };
 
+    // File → Quit (ADR-0023): the desktop shell exits its process; a
+    // browser tab can only ask the browser, which refuses for tabs it did
+    // not open — after a moment still on screen, say so honestly.
+    let on_quit = {
+        let result = result.clone();
+        let localizer = localizer.clone();
+        Callback::from(move |_: web_sys::MouseEvent| {
+            if bridge == Bridge::Tauri {
+                spawn_local(async move { bridge.quit().await });
+            } else {
+                if let Some(w) = web_sys::window() {
+                    let _ = w.close();
+                }
+                let result = result.clone();
+                let localizer = localizer.clone();
+                spawn_local(async move {
+                    gloo_timers::future::sleep(std::time::Duration::from_millis(300)).await;
+                    result.set(localizer.lookup("quit-tab-hint"));
+                });
+            }
+        })
+    };
+
+    // Native menu behavior (ADR-0023): a click anywhere outside the menu
+    // bar closes the open menu, like every desktop menubar. Inside the
+    // bar, the button handlers own the toggle, so this only watches the
+    // outside.
+    let menubar_ref = use_node_ref();
+    {
+        let menu_open = menu_open.clone();
+        let menubar_ref = menubar_ref.clone();
+        use_effect_with((), move |_| {
+            let menu_open = menu_open.clone();
+            let menu_open_cell = menu_open_cell.clone();
+            let menubar_ref = menubar_ref.clone();
+            let window = web_sys::window().expect("window");
+            let callback: Rc<Closure<dyn FnMut(web_sys::Event)>> =
+                Rc::new(Closure::new(move |e: web_sys::Event| {
+                    if menu_open_cell.borrow().is_none() {
+                        return;
+                    }
+                    let inside = e
+                        .target()
+                        .and_then(|t| t.dyn_into::<web_sys::Element>().ok())
+                        .and_then(|el| {
+                            menubar_ref
+                                .cast::<web_sys::Element>()
+                                .map(|bar| bar.contains(Some(&el)))
+                        })
+                        .unwrap_or(false);
+                    if !inside {
+                        menu_open.set(None);
+                    }
+                }));
+            window
+                .add_event_listener_with_callback(
+                    "mousedown",
+                    callback.as_ref().as_ref().unchecked_ref(),
+                )
+                .expect("mousedown listener");
+            // The destructor keeps the closure alive and removes it on
+            // unmount. Raw web-sys rather than gloo-events: the app's
+            // unified gloo build does not deliver raw DOM events to
+            // EventListener callbacks (ADR-0023).
+            let window = window.clone();
+            let cb = callback.clone();
+            move || {
+                let _ = window.remove_event_listener_with_callback(
+                    "mousedown",
+                    cb.as_ref().as_ref().unchecked_ref(),
+                );
+            }
+        });
+    }
+
     html! {
         <main class="epher">
             <h1 class="visually-hidden">{ localizer.lookup("app-name") }</h1>
@@ -1603,6 +1685,7 @@ fn epher_app() -> Html {
                 <nav
                     class="menubar"
                     role="menubar"
+                    ref={menubar_ref.clone()}
                     onkeydown={{
                         let menu_open = menu_open.clone();
                         Callback::from(move |e: web_sys::KeyboardEvent| {
@@ -1645,6 +1728,16 @@ fn epher_app() -> Html {
                                         <button type="button" role="menuitem" class="menu-item" onclick={on_save_script.clone()}>
                                             { localizer.lookup("menu-save-script") }
                                         </button>
+                                        <div class="menu-sep" role="separator"></div>
+                                        <button type="button" role="menuitem" class="menu-item"
+                                            onclick={Callback::from({
+                                                let menu_open = menu_open.clone();
+                                                let on_quit = on_quit.clone();
+                                                move |e: web_sys::MouseEvent| { menu_open.set(None); on_quit.emit(e); }
+                                            })}
+                                        >
+                                            { localizer.lookup("menu-quit") }
+                                        </button>
                                     </div>
                                 }
                             } else { html! {} }
@@ -1668,13 +1761,25 @@ fn epher_app() -> Html {
                             if *menu_open == Some("edit") {
                                 html! {
                                     <div class="menu-drop" role="menu" aria-label={localizer.lookup("menu-edit")}>
-                                        <button type="button" role="menuitem" class="menu-item" onclick={on_cut.clone()}>
+                                        <button type="button" role="menuitem" class="menu-item" onclick={Callback::from({
+                                            let menu_open = menu_open.clone();
+                                            let on_cut = on_cut.clone();
+                                            move |e: web_sys::MouseEvent| { menu_open.set(None); on_cut.emit(e); }
+                                        })}>
                                             { localizer.lookup("menu-cut") }
                                         </button>
-                                        <button type="button" role="menuitem" class="menu-item" onclick={on_copy.clone()}>
+                                        <button type="button" role="menuitem" class="menu-item" onclick={Callback::from({
+                                            let menu_open = menu_open.clone();
+                                            let on_copy = on_copy.clone();
+                                            move |e: web_sys::MouseEvent| { menu_open.set(None); on_copy.emit(e); }
+                                        })}>
                                             { localizer.lookup("menu-copy") }
                                         </button>
-                                        <button type="button" role="menuitem" class="menu-item" onclick={on_paste.clone()}>
+                                        <button type="button" role="menuitem" class="menu-item" onclick={Callback::from({
+                                            let menu_open = menu_open.clone();
+                                            let on_paste = on_paste.clone();
+                                            move |e: web_sys::MouseEvent| { menu_open.set(None); on_paste.emit(e); }
+                                        })}>
                                             { localizer.lookup("menu-paste") }
                                         </button>
                                     </div>
@@ -1848,6 +1953,9 @@ fn epher_app() -> Html {
                                 </button>
                                 <button type="button" role="menuitem" class="menu-item" onclick={mobile_item(on_save_script.clone())}>
                                     { localizer.lookup("menu-save-script") }
+                                </button>
+                                <button type="button" role="menuitem" class="menu-item" onclick={mobile_item(on_quit.clone())}>
+                                    { localizer.lookup("menu-quit") }
                                 </button>
                                 <div class="menu-sep" role="separator"></div>
                                 <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-edit") }</p>
@@ -2031,10 +2139,84 @@ fn epher_app() -> Html {
                     {
                         if !(*graph).is_empty() || !(*surface).is_empty() {
                             html! {
+                                // The pane toolbar (ADR-0023): commands and
+                                // settings sit above the plot — Clear and
+                                // Copy SVG as equal buttons, the graph
+                                // options beside them — not scattered under
+                                // it. Everything is a real labelled control.
                                 <div class="graph-head">
-                                    <button type="button" class="graph-clear-btn" onclick={on_graph_clear.clone()}>
+                                    <button type="button" class="pane-btn" onclick={on_graph_clear.clone()}>
                                         { localizer.lookup("graph-clear") }
                                     </button>
+                                    {
+                                        if !(*graph).is_empty() {
+                                            html! {
+                                                <>
+                                                    <button type="button" class="pane-btn" onclick={on_copy_svg}>
+                                                        { localizer.lookup("graph-copy") }
+                                                    </button>
+                                                    // The graph options row (ADR-0020): the two
+                                                    // points-of-interest toggles that lived in
+                                                    // Settings (ADR-0019) plus the line-width
+                                                    // slider. Real form controls — focusable and
+                                                    // labelled — not menu items, because they
+                                                    // are adjustments, not commands.
+                                                    <div class="graph-options">
+                                                        <label class="graph-option">
+                                                            <input type="checkbox" checked={*poi_list} onchange={Callback::from({
+                                                                let on_set_poi_list = on_set_poi_list.clone();
+                                                                move |e: web_sys::Event| {
+                                                                    if let Some(el) = e
+                                                                        .target()
+                                                                        .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                                    {
+                                                                        on_set_poi_list.emit(el.checked());
+                                                                    }
+                                                                }
+                                                            })} />
+                                                            { localizer.lookup("graph-points") }
+                                                        </label>
+                                                        <label class="graph-option">
+                                                            <input type="checkbox" checked={*poi_markers} onchange={Callback::from({
+                                                                let on_set_poi_markers = on_set_poi_markers.clone();
+                                                                move |e: web_sys::Event| {
+                                                                    if let Some(el) = e
+                                                                        .target()
+                                                                        .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                                    {
+                                                                        on_set_poi_markers.emit(el.checked());
+                                                                    }
+                                                                }
+                                                            })} />
+                                                            { localizer.lookup("settings-markers") }
+                                                        </label>
+                                                        <label class="graph-option graph-width">
+                                                            <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
+                                                            <input type="range" class="graph-width-slider"
+                                                                min="0.5" max="4" step="0.25" value={line_width.to_string()}
+                                                                oninput={Callback::from({
+                                                                    let on_set_line_width = on_set_line_width.clone();
+                                                                    move |e: web_sys::InputEvent| {
+                                                                        if let Some(el) = e
+                                                                            .target()
+                                                                            .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                                        {
+                                                                            if let Ok(w) = el.value().parse::<f64>() {
+                                                                                on_set_line_width.emit(w);
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                })}
+                                                            />
+                                                            <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *line_width) }</span>
+                                                        </label>
+                                                    </div>
+                                                </>
+                                            }
+                                        } else {
+                                            html! {}
+                                        }
+                                    }
                                 </div>
                             }
                         } else {
@@ -2079,66 +2261,6 @@ fn epher_app() -> Html {
                                     }
                                     <div class="sliders">
                                         { for curve_rows }
-                                    </div>
-                                    <button type="button" class="copy-svg" onclick={on_copy_svg}>
-                                        { localizer.lookup("graph-copy") }
-                                    </button>
-                                    // The graph options row (ADR-0020): the two
-                                    // points-of-interest toggles that lived in
-                                    // Settings (ADR-0019) plus the line-width
-                                    // slider, kept where they take effect.
-                                    // Real form controls — focusable and
-                                    // labelled — not menu items, because they
-                                    // are adjustments, not commands.
-                                    <div class="graph-options">
-                                        <label class="graph-option">
-                                            <input type="checkbox" checked={*poi_list} onchange={Callback::from({
-                                                let on_set_poi_list = on_set_poi_list.clone();
-                                                move |e: web_sys::Event| {
-                                                    if let Some(el) = e
-                                                        .target()
-                                                        .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
-                                                    {
-                                                        on_set_poi_list.emit(el.checked());
-                                                    }
-                                                }
-                                            })} />
-                                            { localizer.lookup("graph-points") }
-                                        </label>
-                                        <label class="graph-option">
-                                            <input type="checkbox" checked={*poi_markers} onchange={Callback::from({
-                                                let on_set_poi_markers = on_set_poi_markers.clone();
-                                                move |e: web_sys::Event| {
-                                                    if let Some(el) = e
-                                                        .target()
-                                                        .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
-                                                    {
-                                                        on_set_poi_markers.emit(el.checked());
-                                                    }
-                                                }
-                                            })} />
-                                            { localizer.lookup("settings-markers") }
-                                        </label>
-                                        <label class="graph-option graph-width">
-                                            <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
-                                            <input type="range" class="graph-width-slider"
-                                                min="0.5" max="4" step="0.25" value={line_width.to_string()}
-                                                oninput={Callback::from({
-                                                    let on_set_line_width = on_set_line_width.clone();
-                                                    move |e: web_sys::InputEvent| {
-                                                        if let Some(el) = e
-                                                            .target()
-                                                            .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
-                                                        {
-                                                            if let Ok(w) = el.value().parse::<f64>() {
-                                                                on_set_line_width.emit(w);
-                                                            }
-                                                        }
-                                                    }
-                                                })}
-                                            />
-                                            <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *line_width) }</span>
-                                        </label>
                                     </div>
                                 </section>
                             }

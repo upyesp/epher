@@ -112,6 +112,13 @@ fn save_theme(state: State<DesktopStore>, name: String) -> Result<(), String> {
     state.save_theme(&name).map_err(|e| e.to_string())
 }
 
+/// File → Quit (ADR-0023): close the app's last window; Tauri exits the
+/// process when none remain.
+#[tauri::command]
+fn quit(app: tauri::AppHandle) {
+    app.exit(0);
+}
+
 /// Can this shell install the `epher` terminal command? (macOS app bundle
 /// only — see cli_install.) The webview asks at startup to decide whether
 /// to show the button.
@@ -149,7 +156,8 @@ pub fn run() {
             save_language,
             save_theme,
             cli_install_supported,
-            install_cli
+            install_cli,
+            quit
         ])
         .setup(|app| {
             // Version in the title bar: every release ships an installer

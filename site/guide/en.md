@@ -523,6 +523,31 @@ big(10 ^ 20)
 100000000000000000000
 ```
 
+**Number bases** write integers the way the math community spells them:
+`0b` for binary, `0o` for octal, `0x` for hex (the prefix changes the
+spelling, never the value):
+
+```epher
+0b1010 + 0xFF
+```
+
+```text
+265
+```
+
+Convert back with **bin(x)**, **oct(x)** and **hex(x)** — the prefixed
+spelling of a whole number, ready to feed straight back in:
+
+```epher
+hex(255)
+bin(10)
+```
+
+```text
+0xff
+0b1010
+```
+
 ### 1.13 Built-in functions
 
 epher has the functions of a scientific calculator, grouped by family.
@@ -585,6 +610,9 @@ The exact layers from section 1.12 stay:
 | `frac(n, d)` | exact fraction | `frac(1, 3)` | `1/3` |
 | `dec(x)` | exact decimal | `dec(0.1)` | `0.1` |
 | `big(x)` | exact whole number | `big(10 ^ 20)` | `100000000000000000000` |
+| Binary, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
+| Base spelling | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
+| `bin(x)` / `oct(x)` / `hex(x)` | prefixed spelling in base 2 / 8 / 16 | `hex(255)` | `0xff` |
 
 They combine like everything else:
 
@@ -656,6 +684,8 @@ not know, so you can fix your expression.
 | Exact fraction | `frac(n, d)` | `frac(1, 3)` |
 | Exact decimal | `dec(x)` | `dec(0.1) + dec(0.2)` |
 | Exact whole number | `big(x)` | `big(10 ^ 20)` |
+| Binary, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
+| Base spelling | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 
 ## 2. The web app (PWA)
 

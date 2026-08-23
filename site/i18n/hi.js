@@ -21,6 +21,7 @@ window.EPHER_I18N["hi"] = {
   "mac-name": "macOS",
   "mac-desc": "एक ऐप। इसे Applications में खींचें; अंदर एक बटन आपके लिए epher टर्मिनल कमांड इंस्टॉल करता है।",
   "mac-download": "macOS के लिए डाउनलोड करें (Apple Silicon)",
+  "mac-download-intel": "macOS (Intel) के लिए डाउनलोड करें",
   "linux-name": "Linux",
   "linux-desc": "हर पैकेज परिवार के लिए एक इंस्टॉल: Debian/Ubuntu, Fedora/RHEL, या बाकी सबके लिए AppImage (Arch समेत)। सभी epher को आपके PATH पर रखते हैं।",
   "linux-deb": "Debian/Ubuntu के लिए डाउनलोड करें (.deb)",

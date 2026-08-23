@@ -39,6 +39,7 @@ window.EPHER_I18N["zh-CN"] = {
   "mac-name": "macOS",
   "mac-desc": "一个应用。拖入「应用程序」文件夹即可；应用内有一个按钮可为你安装 epher 终端命令。",
   "mac-download": "下载 macOS 版（Apple 芯片）",
+  "mac-download-intel": "下载 macOS 版（Intel）",
   "linux-name": "Linux",
   "linux-desc": "每个包系列各一个安装包：Debian/Ubuntu 用 .deb，Fedora/RHEL 用 .rpm，其他发行版（包括 Arch）用 AppImage。安装后 epher 均在 PATH 中。",
   "linux-deb": "下载 Debian/Ubuntu 版（.deb）",

@@ -39,6 +39,7 @@ window.EPHER_I18N["ar"] = {
   "mac-name": "macOS",
   "mac-desc": "تطبيق واحد. اسحبه إلى Applications؛ وزرٌ بداخله يثبِّت أمر epher الطرفي لك.",
   "mac-download": "تنزيل لنظام macOS (Apple Silicon)",
+  "mac-download-intel": "تنزيل لنظام macOS (Intel)",
   "linux-name": "Linux",
   "linux-desc": "تثبيت واحد لكل عائلة حزم: Debian/Ubuntu وFedora/RHEL أو AppImage لكل ما عداها (بما فيها Arch). كلها تضع epher في PATH.",
   "linux-deb": "تنزيل Debian/Ubuntu (.deb)",

@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "epher",
-  "version": "0.4.10",
+  "version": "0.4.11",
   "identifier": "com.epher.desktop",
   "mainBinaryName": "epher",
   "build": {
@@ -20,7 +20,8 @@
         "minHeight": 640,
         "resizable": true,
         "fullscreen": false,
-        "theme": "Dark"
+        "theme": "Dark",
+        "additionalBrowserArgs": "--disk-cache-size=0"
       }
     ],
     "security": {
@@ -48,14 +49,16 @@
       "deb": {
         "files": {
           "/usr/share/man/man1/epher.1": "../../../packaging/man/epher.1",
-          "/usr/share/icons/hicolor/scalable/apps/epher.svg": "../../../site/icon.svg"
+          "/usr/share/icons/hicolor/scalable/apps/epher.svg": "../../../site/icon.svg",
+          "/usr/share/pixmaps/epher.png": "icons/256x256.png"
         },
         "postInstallScript": "../../../packaging/postinst.sh"
       },
       "rpm": {
         "files": {
           "/usr/share/man/man1/epher.1": "../../../packaging/man/epher.1",
-          "/usr/share/icons/hicolor/scalable/apps/epher.svg": "../../../site/icon.svg"
+          "/usr/share/icons/hicolor/scalable/apps/epher.svg": "../../../site/icon.svg",
+          "/usr/share/pixmaps/epher.png": "icons/256x256.png"
         },
         "postInstallScript": "../../../packaging/postinst.sh"
       }

@@ -88,3 +88,17 @@ fn rendered_document_is_valid_expression_free_xml() {
     let closes = svg.matches('>').count();
     assert_eq!(opens, closes);
 }
+
+#[test]
+fn extra_curves_are_solid_and_captioned() {
+    // ADR-0023: every curve is solid; the caption at each curve's end is
+    // the non-color channel that keeps curves apart (WCAG 1.4.1).
+    let svg = graph_svg(&[curve("x ^ 2"), curve("x ^ 3")], &[], None, true, DEFAULT_STROKE_WIDTH);
+    assert!(!svg.contains("dasharray"), "{svg}");
+    assert!(svg.contains("<text class=\"label curve-0\""), "{svg}");
+    assert!(svg.contains("<text class=\"label curve-1\""), "{svg}");
+    assert!(svg.contains("y = x ^ 2"), "{svg}");
+    assert!(svg.contains("y = x ^ 3"), "{svg}");
+    // labels ride on the curve colors, haloed for legibility
+    assert!(svg.contains(".label.curve-0 { fill: #2dd4bf; }"), "{svg}");
+}

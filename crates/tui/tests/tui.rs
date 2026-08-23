@@ -541,6 +541,14 @@ fn menu_navigation_and_actions() {
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::SaveHistory));
     assert_eq!(app.menu_active(), None);
 
+    // File ends with Quit (ADR-0023): four items, activating the last one
+    // returns the quit action.
+    assert_eq!(epher_tui::App::menu_len(0), 4);
+    app.menu_open(0);
+    app.menu_move(0, 3);
+    assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::Quit));
+    assert_eq!(app.menu_active(), None);
+
     // Right arrow from the last menu (Help) wraps to the first.
     app.menu_open(4);
     app.menu_move(1, 0);
