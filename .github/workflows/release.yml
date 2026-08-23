@@ -61,22 +61,30 @@ jobs:
         include:
           - os: ubuntu-22.04
             target: linux-x86_64
-            rust-target: x86_64-unknown-linux-gnu
+            build-args: ""
+            rustup-targets: ""
+            bundle-dir: release
           - os: macos-latest
             target: macos-aarch64
-            rust-target: aarch64-apple-darwin
+            build-args: ""
+            rustup-targets: ""
+            bundle-dir: release
           - os: macos-latest
             target: macos-x86_64
-            rust-target: x86_64-apple-darwin
+            build-args: "--target x86_64-apple-darwin"
+            rustup-targets: "x86_64-apple-darwin"
+            bundle-dir: x86_64-apple-darwin/release
           - os: windows-latest
             target: windows-x86_64
-            rust-target: x86_64-pc-windows-msvc
+            build-args: ""
+            rustup-targets: ""
+            bundle-dir: release
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: wasm32-unknown-unknown,${{ matrix.rust-target }}
+          targets: wasm32-unknown-unknown${{ matrix.rustup-targets && ',' }}${{ matrix.rustup-targets }}
       - uses: jetli/trunk-action@v0.5.0
         with:
           version: "v0.21.14"
@@ -93,7 +101,7 @@ jobs:
         run: cargo install tauri-cli --version 2.11.4 --locked
 
       - name: Build desktop bundles
-        run: cargo tauri build --target ${{ matrix.rust-target }}
+        run: cargo tauri build ${{ matrix.build-args }}
         working-directory: crates/tauri-app/src-tauri
 
       - name: Package bundles
@@ -101,7 +109,7 @@ jobs:
         run: |
           set -e
           mkdir -p artifacts
-          BUNDLE="$GITHUB_WORKSPACE/target/release/bundle"
+          BUNDLE="$GITHUB_WORKSPACE/target/${{ matrix.bundle-dir }}/bundle"
           case "${{ runner.os }}" in
             Linux)
               cp "$BUNDLE"/deb/*.deb artifacts/epher-linux-x86_64.deb
