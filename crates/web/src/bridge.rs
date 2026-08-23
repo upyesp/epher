@@ -95,6 +95,26 @@ impl Bridge {
         let _ = self.invoke("quit", &JsValue::UNDEFINED).await;
     }
 
+    /// File → Save history/script (ADR-0024): the desktop shell's native
+    /// save dialog. `None` = the user cancelled (the UI stays silent);
+    /// `Some(path)` is the file actually written.
+    pub async fn save_file_dialog(
+        self,
+        content: &str,
+        default_name: &str,
+    ) -> Result<Option<String>, String> {
+        let args = serde_wasm_bindgen::to_value(&SaveFileArgs {
+            content,
+            default_name,
+        })
+        .map_err(|e| e.to_string())?;
+        let value = self.invoke("save_file_dialog", &args).await.map_err(js_err)?;
+        if value.is_null() || value.is_undefined() {
+            return Ok(None);
+        }
+        serde_wasm_bindgen::from_value::<Option<String>>(value).map_err(|e| e.to_string())
+    }
+
     /// Can this desktop shell install the `epher` terminal command?
     /// (macOS only, ADR-0011.) The UI asks at startup.
     pub async fn cli_install_supported(self) -> Result<bool, String> {
@@ -144,6 +164,12 @@ fn js_err(e: JsValue) -> String {
 struct SaveArgs<'a> {
     name: &'a str,
     source: &'a str,
+}
+
+#[derive(serde::Serialize)]
+struct SaveFileArgs<'a> {
+    content: &'a str,
+    default_name: &'a str,
 }
 
 #[derive(serde::Serialize)]

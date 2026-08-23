@@ -119,6 +119,38 @@ fn quit(app: tauri::AppHandle) {
     app.exit(0);
 }
 
+/// Write a file at a chosen path (ADR-0024). Split from the dialog
+/// command so tests can cover the write without a native dialog.
+fn write_file(path: &std::path::Path, content: &str) -> Result<(), String> {
+    std::fs::write(path, content).map_err(|e| e.to_string())
+}
+
+/// File → Save history/script (ADR-0024): the operating system's save
+/// dialog — the user picks the directory and the file name, then the
+/// file is written there. `Ok(None)` means the user cancelled: the UI
+/// stays silent, as native apps do. `Ok(Some(path))` is the written
+/// path, shown in the status line.
+#[tauri::command]
+fn save_file_dialog(
+    app: tauri::AppHandle,
+    content: String,
+    default_name: String,
+) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::DialogExt;
+    let mut builder = app.dialog().file().add_filter("epher", &["epher"]);
+    if let Some(window) = app.get_webview_window("main") {
+        builder = builder.set_parent(&window);
+    }
+    let Some(path) = builder.set_file_name(&default_name).blocking_save_file() else {
+        return Ok(None);
+    };
+    let path = path
+        .into_path()
+        .map_err(|_| "the chosen location is not a local file".to_string())?;
+    write_file(&path, &content)?;
+    Ok(Some(path.display().to_string()))
+}
+
 /// Can this shell install the `epher` terminal command? (macOS app bundle
 /// only — see cli_install.) The webview asks at startup to decide whether
 /// to show the button.
@@ -146,6 +178,7 @@ async fn install_cli() -> Result<String, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(DesktopStore::with_dir(persist::default_store_dir()))
         .invoke_handler(tauri::generate_handler![
             init,
@@ -157,6 +190,7 @@ pub fn run() {
             save_theme,
             cli_install_supported,
             install_cli,
+            save_file_dialog,
             quit
         ])
         .setup(|app| {
@@ -276,6 +310,14 @@ fn gui_launch_candidates(current_exe: &std::path::Path) -> Vec<std::path::PathBu
 mod tests {
     use super::*;
     use epher_store::persist::load_session;
+
+    #[test]
+    fn write_file_puts_the_content_at_the_chosen_path() {
+        let dir = tempfile::tempdir().unwrap();
+        let target = dir.path().join("chosen-name.epher");
+        write_file(&target, "2 + 3  = 5\n").unwrap();
+        assert_eq!(std::fs::read_to_string(&target).unwrap(), "2 + 3  = 5\n");
+    }
 
     #[test]
     fn init_reports_what_the_cli_would_load() {

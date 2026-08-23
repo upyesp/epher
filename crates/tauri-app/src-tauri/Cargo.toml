@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.4.11"
+version = "0.4.12"
 description = "epher: a programmable, scriptable calculator — the unified desktop binary"
 authors = ["upyesp"]
 license = "MIT"
@@ -49,6 +49,7 @@ log = "0.4"
 # (cargo tauri build injects it, plain cargo build does not — keep it here).
 tauri = { version = "2.11.3", features = ["custom-protocol"] }
 tauri-plugin-log = "2"
+tauri-plugin-dialog = "2"
 
 [dev-dependencies]
 tempfile = "3"

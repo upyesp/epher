@@ -470,8 +470,8 @@ fn keypad_close_clears_focus_state() {
 fn keypad_has_the_graph_commands() {
     let mut app = App::default();
     app.keypad_open();
-    for _ in 0..3 {
-        app.keypad_cycle(1); // trig → fn → num → var
+    for _ in 0..4 {
+        app.keypad_cycle(1); // trig → fn → num → 0x → var
     }
     app.keypad_move(1, 2); // row 1, col 2 of the var bank
     app.keypad_insert();
@@ -496,9 +496,9 @@ fn keypad_covers_every_function_that_was_missing() {
         "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "deg",
         "rad", "atan2", "exp", "log2", "logb", "cbrt", "root", "hypot", "trunc", "sign",
         "min", "max", "gcd", "lcm", "mod", "fact", "ncr", "npr", "sum", "product", "mean",
-        "median", "variance", "stdev", "frac", "dec", "big", "phi", "x", "t", "ans",
-        "graph", "graph3d", "table", "clear", "history", "sin", "cos", "tan", "ln", "log",
-        "sqrt", "abs", "floor", "ceil", "round", "pi", "e", "tau",
+        "median", "variance", "stdev", "frac", "dec", "big", "bin", "oct", "hex", "phi",
+        "x", "t", "ans", "graph", "graph3d", "table", "clear", "history", "sin", "cos",
+        "tan", "ln", "log", "sqrt", "abs", "floor", "ceil", "round", "pi", "e", "tau",
     ] {
         assert!(tokens.contains(&name), "the keypad is missing {name}");
     }

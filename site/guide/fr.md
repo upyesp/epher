@@ -1241,7 +1241,9 @@ L'écran est divisé en panneaux :
 | **Ctrl+L** | effacer l'historique |
 
 Les groupes du clavier couvrent toutes les fonctions, constantes et
-commandes du langage : **trig**, **fn**, **num** et **var**. Les flèches
+commandes du langage : **trig**, **fn**, **num**, **0x** et **var**
+— le groupe 0x contient les conversions exactes et de base (`frac`,
+`dec`, `big`, `bin`, `oct`, `hex`) et la factorielle `!`. Les flèches
 déplacent la sélection, **Entrée** insère le token et **Tab** change de
 groupe.
 

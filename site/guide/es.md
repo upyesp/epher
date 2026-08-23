@@ -1225,7 +1225,9 @@ La pantalla está dividida en paneles:
 | **Ctrl+L** | borrar el historial |
 
 Los grupos del teclado contienen todas las funciones, constantes y
-comandos que admite el lenguaje: **trig**, **fn**, **num** y **var**.
+comandos que admite el lenguaje: **trig**, **fn**, **num**, **0x**
+y **var** — el grupo 0x contiene las conversiones exactas y de base
+(`frac`, `dec`, `big`, `bin`, `oct`, `hex`) y el factorial `!`.
 Las flechas mueven el resaltado, **Intro** inserta el token y **Tab**
 cambia de grupo.
 

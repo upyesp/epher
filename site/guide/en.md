@@ -1202,7 +1202,9 @@ The screen is divided into panels:
 | **Ctrl+L** | clear the history |
 
 The keypad's banks hold every function, constant, and command the
-language supports: **trig**, **fn**, **num**, and **var**. Arrow keys
+language supports: **trig**, **fn**, **num**, **0x**, and **var**
+— the 0x bank holds the exactness and base conversions (`frac`, `dec`,
+`big`, `bin`, `oct`, `hex`) and the factorial `!`. Arrow keys
 move the highlight, **Enter** inserts the token, and **Tab** cycles
 the banks.
 

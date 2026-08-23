@@ -1227,7 +1227,9 @@ O ecrã está dividido em painéis:
 | **Ctrl+L** | limpar o histórico |
 
 Os grupos do teclado cobrem todas as funções, constantes e comandos que
-a linguagem suporta: **trig**, **fn**, **num** e **var**. As setas movem
+a linguagem suporta: **trig**, **fn**, **num**, **0x** e **var** —
+o grupo 0x contém as conversões exatas e de base (`frac`, `dec`,
+`big`, `bin`, `oct`, `hex`) e o fatorial `!`. As setas movem
 o realce, **Enter** insere o token e a **Tab** troca de grupo.
 
 ### 5.3 Gráficos

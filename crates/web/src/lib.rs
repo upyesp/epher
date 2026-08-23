@@ -23,7 +23,7 @@ use epher_shell::{classify, message, prepare};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::spawn_local;
+use wasm_bindgen_futures::{spawn_local, JsFuture};
 use web_sys::{HtmlInputElement, HtmlTextAreaElement};
 use yew::events::{InputEvent, SubmitEvent};
 use yew::prelude::*;
@@ -302,12 +302,20 @@ static TABS: &[TabDef] = &[
             key("median", KeyAction::Call("median"), "fn"),
             key("variance", KeyAction::Call("variance"), "fn"),
             key("stdev", KeyAction::Call("stdev"), "fn"),
+        ],
+    },
+    TabDef {
+        id: "conv",
+        label: "0x",
+        i18n: "keypad-tab-conv",
+        keys: &[
             key("frac", KeyAction::Call("frac"), "fn"),
             key("dec", KeyAction::Call("dec"), "fn"),
             key("big", KeyAction::Call("big"), "fn"),
             key("bin", KeyAction::Call("bin"), "fn"),
             key("oct", KeyAction::Call("oct"), "fn"),
             key("hex", KeyAction::Call("hex"), "fn"),
+            key("!", KeyAction::Text("!"), "fn"),
         ],
     },
     TabDef {
@@ -346,6 +354,186 @@ fn native_language_name(code: &str) -> &str {
         _ => code,
     }
 }
+
+/// File → Save: start a Blob download of `text` as `filename` (the
+/// browser fallback when the save picker is unavailable).
+fn download_text_file(filename: &str, text: &str) {
+    let Some(win) = web_sys::window() else {
+        return;
+    };
+    let parts = js_sys::Array::new();
+    parts.push(&wasm_bindgen::JsValue::from_str(text));
+    let Ok(blob) = web_sys::Blob::new_with_str_sequence(&parts) else {
+        return;
+    };
+    let Ok(url) = web_sys::Url::create_object_url_with_blob(&blob) else {
+        return;
+    };
+    // The anchor must live in the document for the download to start,
+    // and the blob URL must outlive the click — revoke it later, not
+    // synchronously.
+    if let Some(doc) = win.document() {
+        if let Some(a) = doc
+            .create_element("a")
+            .ok()
+            .and_then(|el| el.dyn_into::<web_sys::HtmlAnchorElement>().ok())
+        {
+            a.set_href(&url);
+            a.set_download(filename);
+            if let Some(body) = doc.body() {
+                let _ = body.append_child(&a);
+                a.click();
+                let _ = body.remove_child(&a);
+            }
+        }
+    }
+    let url_clone = url;
+    spawn_local(async move {
+        gloo_timers::future::TimeoutFuture::new(10_000).await;
+        let _ = web_sys::Url::revoke_object_url(&url_clone);
+    });
+}
+
+/// File → Save (ADR-0024): ask the operating system where the file
+/// should live. The desktop shell shows its native save dialog over IPC;
+/// the PWA uses the browser's own save picker (File System Access API)
+/// where it exists and falls back to a download elsewhere. Cancel stays
+/// silent, like any native app; a written file is reported with its
+/// path (desktop) or its name (browser).
+fn save_with_dialog(
+    bridge: Bridge,
+    default_name: &str,
+    text: String,
+    script: bool,
+    result: &UseStateHandle<String>,
+    localizer: &UseStateHandle<Localizer>,
+    menu_open: &UseStateHandle<Option<&'static str>>,
+) {
+    let default_name = default_name.to_string();
+    let result = result.clone();
+    let localizer = localizer.clone();
+    let menu_open = menu_open.clone();
+    spawn_local(async move {
+        let report = |result: &UseStateHandle<String>,
+                      localizer: &UseStateHandle<Localizer>,
+                      name: &str| {
+            let key = if script { "saved-script" } else { "saved" };
+            result.set(localizer.lookup_args(key, &[("name", name)]));
+        };
+        if bridge == Bridge::Tauri {
+            match bridge.save_file_dialog(&text, &default_name).await {
+                Ok(Some(path)) => report(&result, &localizer, &path),
+                Ok(None) => {}
+                Err(e) => result.set(format!("error: {e}")),
+            }
+        } else {
+            match browser_save_dialog(&default_name, &text).await {
+                Ok(Some(name)) => report(&result, &localizer, &name),
+                Ok(None) => {}
+                Err(_) => {
+                    download_text_file(&default_name, &text);
+                    result.set(localizer.lookup("menu-saved"));
+                }
+            }
+        }
+        menu_open.set(None);
+    });
+}
+
+/// The browser's own save dialog (File System Access API, Chromium).
+/// `Ok(None)` = the user cancelled; `Err` = this browser has no picker
+/// (the caller falls back to a download).
+async fn browser_save_dialog(default_name: &str, text: &str) -> Result<Option<String>, String> {
+    let window = web_sys::window().ok_or_else(|| "no window".to_string())?;
+    let unavailable = || "save picker unavailable".to_string();
+    let picker = js_sys::Reflect::get(&window, &JsValue::from_str("showSaveFilePicker"))
+        .map_err(|_| unavailable())?;
+    if !picker.is_function() {
+        return Err(unavailable());
+    }
+    let picker_fn = picker.dyn_into::<js_sys::Function>().map_err(|_| unavailable())?;
+
+    let accept = js_sys::Object::new();
+    let extensions = js_sys::Array::new();
+    extensions.push(&JsValue::from_str(".epher"));
+    js_sys::Reflect::set(
+        &accept,
+        &JsValue::from_str("text/plain"),
+        &extensions,
+    )
+    .map_err(|_| unavailable())?;
+    let type_entry = js_sys::Object::new();
+    js_sys::Reflect::set(
+        &type_entry,
+        &JsValue::from_str("description"),
+        &JsValue::from_str("epher"),
+    )
+    .map_err(|_| unavailable())?;
+    js_sys::Reflect::set(&type_entry, &JsValue::from_str("accept"), &accept)
+        .map_err(|_| unavailable())?;
+    let types = js_sys::Array::new();
+    types.push(&type_entry);
+    let options = js_sys::Object::new();
+    js_sys::Reflect::set(
+        &options,
+        &JsValue::from_str("suggestedName"),
+        &JsValue::from_str(default_name),
+    )
+    .map_err(|_| unavailable())?;
+    js_sys::Reflect::set(&options, &JsValue::from_str("types"), &types)
+        .map_err(|_| unavailable())?;
+
+    let window_js: JsValue = window.into();
+    let promise = picker_fn
+        .call1(&window_js, &options)
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Promise>()
+        .map_err(|_| unavailable())?;
+    let handle = match JsFuture::from(promise).await {
+        Ok(handle) => handle,
+        Err(e) => {
+            let cancelled = e
+                .dyn_ref::<web_sys::DomException>()
+                .map(|de| de.name() == "AbortError")
+                .unwrap_or(false);
+            return if cancelled { Ok(None) } else { Err(unavailable()) };
+        }
+    };
+    let name = js_sys::Reflect::get(&handle, &JsValue::from_str("name"))
+        .map(|v| v.as_string().unwrap_or_default())
+        .unwrap_or_default();
+    let writable = js_sys::Reflect::get(&handle, &JsValue::from_str("createWritable"))
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Function>()
+        .map_err(|_| unavailable())?
+        .call0(&handle)
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Promise>()
+        .map_err(|_| unavailable())?;
+    let writable = JsFuture::from(writable).await.map_err(|_| unavailable())?;
+    let write = js_sys::Reflect::get(&writable, &JsValue::from_str("write"))
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Function>()
+        .map_err(|_| unavailable())?;
+    let write_promise = write
+        .call1(&writable, &JsValue::from_str(text))
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Promise>()
+        .map_err(|_| unavailable())?;
+    JsFuture::from(write_promise).await.map_err(|_| unavailable())?;
+    let close = js_sys::Reflect::get(&writable, &JsValue::from_str("close"))
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Function>()
+        .map_err(|_| unavailable())?;
+    let close_promise = close
+        .call0(&writable)
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Promise>()
+        .map_err(|_| unavailable())?;
+    JsFuture::from(close_promise).await.map_err(|_| unavailable())?;
+    Ok(Some(name))
+}
+
 
 #[function_component(EpherApp)]
 fn epher_app() -> Html {
@@ -688,41 +876,6 @@ fn epher_app() -> Html {
 
     // File → Save: a Blob download. History lines, or the entry field's
     // script — the two things a user may want on disk.
-    let save_text_file = |filename: &str, text: String| {
-        let Some(win) = web_sys::window() else {
-            return;
-        };
-        let parts = js_sys::Array::new();
-        parts.push(&wasm_bindgen::JsValue::from_str(&text));
-        let Ok(blob) = web_sys::Blob::new_with_str_sequence(&parts) else {
-            return;
-        };
-        let Ok(url) = web_sys::Url::create_object_url_with_blob(&blob) else {
-            return;
-        };
-        // The anchor must live in the document for the download to start,
-        // and the blob URL must outlive the click — revoke it later, not
-        // synchronously.
-        if let Some(doc) = win.document() {
-            if let Some(a) = doc.create_element("a").ok().and_then(|el| {
-                el.dyn_into::<web_sys::HtmlAnchorElement>().ok()
-            }) {
-                a.set_href(&url);
-                a.set_download(filename);
-                if let Some(body) = doc.body() {
-                    let _ = body.append_child(&a);
-                    a.click();
-                    let _ = body.remove_child(&a);
-                }
-            }
-        }
-        let url_clone = url;
-        spawn_local(async move {
-            gloo_timers::future::TimeoutFuture::new(10_000).await;
-            let _ = web_sys::Url::revoke_object_url(&url_clone);
-        });
-    };
-
     let on_save_history = {
         let session = session.clone();
         let result = result.clone();
@@ -730,9 +883,15 @@ fn epher_app() -> Html {
         let menu_open = menu_open.clone();
         Callback::from(move |_| {
             let text = session.history().join("\n");
-            save_text_file("epher-history.epher", text);
-            result.set(localizer.lookup("menu-saved"));
-            menu_open.set(None);
+            save_with_dialog(
+                bridge,
+                "epher-history.epher",
+                text,
+                false,
+                &result,
+                &localizer,
+                &menu_open,
+            );
         })
     };
 
@@ -744,10 +903,19 @@ fn epher_app() -> Html {
         Callback::from(move |_| {
             let text = (*input).clone();
             if !text.trim().is_empty() {
-                save_text_file("epher-script.epher", text);
-                result.set(localizer.lookup("menu-saved"));
+                save_with_dialog(
+                    bridge,
+                    "epher-script.epher",
+                    text,
+                    true,
+                    &result,
+                    &localizer,
+                    &menu_open,
+                );
+            } else {
+                result.set(localizer.lookup("save-empty"));
+                menu_open.set(None);
             }
-            menu_open.set(None);
         })
     };
 

@@ -1235,7 +1235,9 @@ Der Bildschirm ist in Panels unterteilt:
 | **Ctrl+L** | den Verlauf leeren |
 
 Die Gruppen des Tastenfelds enthalten jede Funktion, jede Konstante und
-jeden Befehl der Sprache: **trig**, **fn**, **num** und **var**. Die
+jeden Befehl der Sprache: **trig**, **fn**, **num**, **0x** und
+**var** — die 0x-Gruppe enthält die exakten und Basis-Umwandlungen
+(`frac`, `dec`, `big`, `bin`, `oct`, `hex`) und die Fakultät `!`. Die
 Pfeiltasten bewegen die Markierung, **Enter** fügt das Token ein, und
 **Tab** wechselt die Gruppen.
 

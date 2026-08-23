@@ -153,8 +153,13 @@ const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
             &[("gcd", "gcd("), ("lcm", "lcm("), ("mod", "mod("), ("fact", "fact(")],
             &[("ncr", "ncr("), ("npr", "npr("), ("sum", "sum("), ("product", "product(")],
             &[("mean", "mean("), ("median", "median("), ("variance", "variance("), ("stdev", "stdev(")],
+        ],
+    ),
+    (
+        "0x",
+        &[
             &[("frac", "frac("), ("dec", "dec("), ("big", "big(")],
-            &[("bin", "bin("), ("oct", "oct("), ("hex", "hex(")],
+            &[("bin", "bin("), ("oct", "oct("), ("hex", "hex("), ("!", "!")],
         ],
     ),
     (
@@ -1423,67 +1428,12 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
     }
     frame.render_widget(Paragraph::new(Line::from(bar)), menu_area);
 
-    // The open menu's items drop down below their title.
-    if let Some((menu, item)) = app.menu_active() {
-        let items: Vec<String> = match menu {
-            0 => vec![
-                localizer.lookup("menu-open"),
-                localizer.lookup("menu-save-history"),
-                localizer.lookup("menu-save-script"),
-                localizer.lookup("menu-quit"),
-            ],
-            1 => vec![
-                localizer.lookup("menu-cut"),
-                localizer.lookup("menu-copy"),
-                localizer.lookup("menu-paste"),
-            ],
-            2 => vec![localizer.lookup("graph-clear")],
-            4 => vec![localizer.lookup("menu-guide")],
-            _ => {
-                let mut v = vec![localizer.lookup("graph-points")];
-                v.push(localizer.lookup("theme-light"));
-                v.push(localizer.lookup("theme-dark"));
-                v.push(localizer.lookup("theme-night"));
-                for code in epher_i18n::SUPPORTED_LOCALES {
-                    v.push(native_language_name(code).to_string());
-                }
-                v
-            }
-        };
-        let lines: Vec<Line> = items
-            .iter()
-            .enumerate()
-            .map(|(i, label)| {
-                let checked = menu == 3 && item_checked(app, i, localizer.locale());
-                let mark = match (checked, menu) {
-                    (true, _) => "\u{2713} ",
-                    (false, 3) => "  ",
-                    _ => "",
-                };
-                let text = format!("{mark}{label}");
-                if i == item {
-                    Line::from(Span::styled(text, Style::default().bg(sel_bg).fg(sel_fg)))
-                } else {
-                    Line::from(Span::styled(text, Style::default().fg(fg)))
-                }
-            })
-            .collect();
-        let x = 11 * menu as u16 + 1;
-        let w = 26u16.max(items.iter().map(|s| s.chars().count() as u16 + 3).max().unwrap_or(10));
-        let h = items.len() as u16 + 2;
-        let popup = Rect {
-            x: menu_area.x + x,
-            y: menu_area.y + 1,
-            width: w.min(frame.area().right().saturating_sub(menu_area.x + x)),
-            height: h.min(frame.area().bottom().saturating_sub(menu_area.y + 1)),
-        };
-        frame.render_widget(Clear, popup);
-        frame.render_widget(
-            Paragraph::new(lines).block(Block::default().borders(Borders::ALL).border_style(border_style)),
-            popup,
-        );
-    }
-
+    // The open menu's items drop down below their title. They are drawn
+    // LAST, over every panel, with a Clear underneath: ratatui paints
+    // widgets into one shared buffer in call order, so a menu rendered
+    // before the history/graph would be painted over wherever those
+    // panels overlap it — its items would vanish behind the screen's
+    // existing text.
     // Wide terminals get the desktop layout (ADR-0017): the calculator
     // column on the left, the graph panel in its own section on the
     // right, and the key hints spanning the full width underneath both
@@ -1678,6 +1628,69 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
         .block(block(localizer.lookup("tui-graph")));
     frame.render_widget(graph, graph_area);
 
+    // The open menu popup goes on top of everything else: draw it last,
+    // after all panels, and clear its region first so whatever sat
+    // underneath (history lines, graph text) cannot bleed through.
+    if let Some((menu, item)) = app.menu_active() {
+        let items: Vec<String> = match menu {
+            0 => vec![
+                localizer.lookup("menu-open"),
+                localizer.lookup("menu-save-history"),
+                localizer.lookup("menu-save-script"),
+                localizer.lookup("menu-quit"),
+            ],
+            1 => vec![
+                localizer.lookup("menu-cut"),
+                localizer.lookup("menu-copy"),
+                localizer.lookup("menu-paste"),
+            ],
+            2 => vec![localizer.lookup("graph-clear")],
+            4 => vec![localizer.lookup("menu-guide")],
+            _ => {
+                let mut v = vec![localizer.lookup("graph-points")];
+                v.push(localizer.lookup("theme-light"));
+                v.push(localizer.lookup("theme-dark"));
+                v.push(localizer.lookup("theme-night"));
+                for code in epher_i18n::SUPPORTED_LOCALES {
+                    v.push(native_language_name(code).to_string());
+                }
+                v
+            }
+        };
+        let lines: Vec<Line> = items
+            .iter()
+            .enumerate()
+            .map(|(i, label)| {
+                let checked = menu == 3 && item_checked(app, i, localizer.locale());
+                let mark = match (checked, menu) {
+                    (true, _) => "\u{2713} ",
+                    (false, 3) => "  ",
+                    _ => "",
+                };
+                let text = format!("{mark}{label}");
+                if i == item {
+                    Line::from(Span::styled(text, Style::default().bg(sel_bg).fg(sel_fg)))
+                } else {
+                    Line::from(Span::styled(text, Style::default().fg(fg)))
+                }
+            })
+            .collect();
+        let x = 11 * menu as u16 + 1;
+        let w = 26u16.max(items.iter().map(|s| s.chars().count() as u16 + 3).max().unwrap_or(10));
+        let h = items.len() as u16 + 2;
+        let popup = Rect {
+            x: menu_area.x + x,
+            y: menu_area.y + 1,
+            width: w.min(frame.area().right().saturating_sub(menu_area.x + x)),
+            height: h.min(frame.area().bottom().saturating_sub(menu_area.y + 1)),
+        };
+        frame.render_widget(Clear, popup);
+        frame.render_widget(
+            Paragraph::new(lines).block(Block::default().borders(Borders::ALL).border_style(border_style)),
+            popup,
+        );
+    }
+
     // Focus visible: the terminal cursor must sit at the end of the input
     // text, not wherever the shell left it.
     let text_width = UnicodeWidthStr::width(input_text.as_str());
@@ -1783,4 +1796,53 @@ fn base64(bytes: &[u8]) -> String {
 /// The base64 payload for an OSC 52 copy (ADR-0017) — public for tests.
 pub fn base64_for_osc52(bytes: &[u8]) -> String {
     base64(bytes)
+}
+
+#[cfg(test)]
+mod draw_tests {
+    use super::*;
+    use ratatui::backend::TestBackend;
+    use ratatui::Terminal;
+    use ratatui::layout::Rect;
+
+    /// The menu popup must paint over the screen's existing content, not
+    /// behind it: ratatui renders into one buffer in call order, and the
+    /// popup used to be drawn before the history panel — wherever the two
+    /// overlapped, history lines bled through and hid the menu items.
+    #[test]
+    fn open_menu_covers_existing_history_text() {
+        let history: Vec<String> = (0..30)
+            .map(|i| format!("HISTORY-MARKER-{i:02} padded line"))
+            .collect();
+        let mut app = App::with_session(Session::with_history(history));
+        app.menu_open(0);
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 30);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        // The File menu drops down at column 1, one row under the menu
+        // bar, and is 26 wide × (4 items + borders) tall.
+        let popup = Rect { x: 1, y: 1, width: 26, height: 6 };
+        let mut saw_quit = false;
+        let mut leaked = false;
+        for y in popup.y..popup.y + popup.height {
+            let mut row = String::new();
+            for x in popup.x..popup.x + popup.width {
+                row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            if row.contains("Quit") {
+                saw_quit = true;
+            }
+            if row.contains("HISTORY-MARKER") {
+                leaked = true;
+            }
+        }
+        assert!(saw_quit, "the File menu's Quit item must be visible in the popup");
+        assert!(!leaked, "history text must not bleed into the open menu");
+    }
 }
