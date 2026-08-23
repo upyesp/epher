@@ -751,15 +751,16 @@ graph f(x)
 ```
 
 Jede `graph`-Zeile fügt demselben Plot eine weitere Kurve hinzu, jede mit
-eigener Farbe und eigenem Strichmuster, und eine Legende benennt sie.
+eigener Farbe — die Kurven sind alle durchgezogen, und die Legende
+und die Beschriftungen unterscheiden sie ohne Farbe.
 `graph clear` leert den Plot — und ein Button **Clear graph** oben im
 Graph-Panel macht dasselbe für Kurven und 3D-Flächen zusammen. Die TUI
 behält den Befehl in ihrem **Graph**-Menü.
 
-Ganz unten im Graph-Bereich blendest du in der Optionsleiste die Liste
-der besonderen Punkte aus, die hervorgehobenen Punkte im Plot selbst —
-und stellst mit dem Regler **Linienstärke** die Dicke der gezeichneten
-Linien ein.
+Ganz oben im Graph-Bereich, neben **Clear graph** und **Copy SVG**,
+blendest du in der Optionsleiste die Liste der besonderen Punkte aus, die
+hervorgehobenen Punkte im Plot selbst — und stellst mit dem Regler
+**Linienstärke** die Dicke der gezeichneten Linien ein.
 
 ```epher
 graph x ^ 2

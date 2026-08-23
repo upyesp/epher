@@ -754,15 +754,15 @@ graph f(x)
 ```
 
 Chaque ligne `graph` ajoute une autre courbe au même tracé, chacune avec
-sa propre couleur et son propre motif de tirets, et une légende qui les
-nomme. `graph clear` vide le tracé — et un bouton **Clear graph** en haut
+sa propre couleur — les courbes sont toutes pleines, et ce sont la
+légende et les étiquettes qui les distinguent sans couleur. `graph clear` vide le tracé — et un bouton **Clear graph** en haut
 du panneau graphique fait la même chose pour les courbes et les surfaces 3D
 à la fois. La TUI conserve la commande dans son menu **Graph**.
 
-En bas du panneau de graphique, la rangée d'options permet de masquer la
-liste des points d'intérêt, de masquer les points mis en évidence sur le
-tracé lui-même, et de régler l'épaisseur des lignes avec le curseur
-**Épaisseur de trait**.
+En haut du panneau de graphique, à côté de **Clear graph** et
+**Copy SVG**, la rangée d'options permet de masquer la liste des points
+d'intérêt, de masquer les points mis en évidence sur le tracé lui-même, et
+de régler l'épaisseur des lignes avec le curseur **Épaisseur de trait**.
 
 ```epher
 graph x ^ 2

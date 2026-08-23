@@ -739,15 +739,16 @@ graph f(x)
 ```
 
 Every `graph` line adds another curve to the same plot, each with its own
-colour and dash pattern, and a legend naming them. `graph clear` empties
+colour, and a legend naming them — the curves are all solid, so the
+legend and the captions are what tell them apart without colour. `graph clear` empties
 the plot — and a **Clear graph** button at the top of the graph pane does
 the same for curves and 3D surfaces together. The TUI keeps the command in
 its **Graph** menu.
 
-At the bottom of the graph pane, the options row can hide the list of
-points of interest, hide the highlighted points drawn on the plot itself,
-and set the thickness of the plotted lines with the **Line width**
-slider.
+At the top of the graph pane, beside **Clear graph** and **Copy SVG**,
+the options row can hide the list of points of interest, hide the
+highlighted points drawn on the plot itself, and set the thickness of
+the plotted lines with the **Line width** slider.
 
 ```epher
 graph x ^ 2

@@ -744,15 +744,16 @@ graph f(x)
 ```
 
 Cada línea `graph` añade otra curva al mismo gráfico, cada una con su
-propio color y patrón de trazos, y una leyenda que las nombra.
+propio color — las curvas son todas sólidas, y la leyenda y las
+etiquetas son las que las distinguen sin color.
 `graph clear` vacía el gráfico — y un botón **Clear graph** en la parte
 superior del panel de la gráfica hace lo mismo para curvas y superficies 3D
 a la vez. La TUI mantiene el comando en su menú **Graph**.
 
-Al final del panel de gráficas, la fila de opciones permite ocultar la
-lista de puntos de interés, ocultar los puntos destacados dibujados en
-la propia gráfica y ajustar el grosor de las líneas con el deslizador
-**Grosor de línea**.
+Arriba del panel de gráficas, junto a **Clear graph** y **Copy SVG**,
+la fila de opciones permite ocultar la lista de puntos de interés, ocultar
+los puntos destacados dibujados en la propia gráfica y ajustar el grosor
+de las líneas con el deslizador **Grosor de línea**.
 
 ```epher
 graph x ^ 2
