@@ -237,6 +237,19 @@ x = x + 1
 > Names can contain letters and underscores, like `radius` or `my_total`.
 > They cannot contain spaces or start with a number.
 
+The special variable `ans` always holds the previous answer, like the
+`Ans` key on a pocket calculator — handy for chained calculations:
+
+```epher
+2 + 3
+ans * 2
+```
+
+```text
+5
+10
+```
+
 ### 1.6 Constants: names that never change
 
 A *constant* is a name for a value that never changes — like the built-in

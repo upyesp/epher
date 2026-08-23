@@ -1403,22 +1403,10 @@ pub fn run_all(script: &[Statement], env: &mut Env) -> Result<Vec<Value>, EpherE
     let mut steps = STEP_LIMIT;
     let mut values = Vec::new();
     for stmt in script {
-        consume_step(&mut steps)?;
-        match stmt {
-            Statement::Expr(expr) => values.push(eval(expr, env)?),
-            Statement::Assign(name, expr) => values.push(assign(env, name, expr)?),
-            Statement::Const(name, expr) => values.push(define_constant(env, name, expr)?),
-            Statement::FunctionDef(name, params, body) => {
-                env.set_function(
-                    name.clone(),
-                    Function {
-                        params: params.clone(),
-                        body: body.clone(),
-                    },
-                );
-                // a definition produces no value
-            }
-            Statement::While(cond, body) => run_while(cond, body, env, &mut steps)?,
+        // Every statement sets `ans` as it runs, so the next statement can
+        // read the previous answer (one-shot: `epher "2 + 3; ans * 2"`).
+        if let Some(v) = stmt_value(stmt, env, &mut steps)? {
+            values.push(v);
         }
     }
     Ok(values)
@@ -1435,25 +1423,50 @@ fn consume_step(steps: &mut u64) -> Result<(), EpherError> {
     Ok(())
 }
 
+/// Execute one statement and return its value. Every value-producing
+/// statement records its result as the variable `ans` — the previous
+/// answer, like a pocket calculator's `Ans` (the keypads carry an `ans`
+/// key). Statements that produce no value (definitions, `while`) leave
+/// `ans` untouched, and so do errors. `ans` is an ordinary variable: it
+/// lives in the session's environment and is not persisted.
+fn stmt_value(
+    stmt: &Statement,
+    env: &mut Env,
+    steps: &mut u64,
+) -> Result<Option<Value>, EpherError> {
+    consume_step(steps)?;
+    let value = match stmt {
+        Statement::Expr(expr) => Some(eval(expr, env)?),
+        Statement::Assign(name, expr) => Some(assign(env, name, expr)?),
+        Statement::Const(name, expr) => Some(define_constant(env, name, expr)?),
+        Statement::FunctionDef(name, params, body) => {
+            env.set_function(
+                name.clone(),
+                Function {
+                    params: params.clone(),
+                    body: body.clone(),
+                },
+            );
+            // a definition produces no value
+            None
+        }
+        Statement::While(cond, body) => {
+            run_while(cond, body, env, steps)?;
+            None
+        }
+    };
+    if let Some(v) = &value {
+        env.set("ans", v.clone());
+    }
+    Ok(value)
+}
+
 fn run_inner(script: &[Statement], env: &mut Env, steps: &mut u64) -> Result<Option<Value>, EpherError> {
     let mut result = None;
     for stmt in script {
-        consume_step(steps)?;
-        match stmt {
-            Statement::Expr(expr) => result = Some(eval(expr, env)?),
-            Statement::Assign(name, expr) => result = Some(assign(env, name, expr)?),
-            Statement::Const(name, expr) => result = Some(define_constant(env, name, expr)?),
-            Statement::FunctionDef(name, params, body) => {
-                env.set_function(
-                    name.clone(),
-                    Function {
-                        params: params.clone(),
-                        body: body.clone(),
-                    },
-                );
-                // a definition produces no value
-            }
-            Statement::While(cond, body) => run_while(cond, body, env, steps)?,
+        let value = stmt_value(stmt, env, steps)?;
+        if value.is_some() {
+            result = value;
         }
     }
     Ok(result)
@@ -1487,32 +1500,8 @@ fn define_constant(env: &mut Env, name: &str, expr: &Expression) -> Result<Value
 /// Execute one statement for its effect (used by loop bodies; loops produce no
 /// value).
 fn execute_stmt(stmt: &Statement, env: &mut Env, steps: &mut u64) -> Result<(), EpherError> {
-    consume_step(steps)?;
-    match stmt {
-        Statement::Expr(expr) => {
-            eval(expr, env)?;
-            Ok(())
-        }
-        Statement::Assign(name, expr) => {
-            assign(env, name, expr)?;
-            Ok(())
-        }
-        Statement::Const(name, expr) => {
-            define_constant(env, name, expr)?;
-            Ok(())
-        }
-        Statement::FunctionDef(name, params, body) => {
-            env.set_function(
-                name.clone(),
-                Function {
-                    params: params.clone(),
-                    body: body.clone(),
-                },
-            );
-            Ok(())
-        }
-        Statement::While(cond, body) => run_while(cond, body, env, steps),
-    }
+    // Body statements set `ans` exactly like top-level ones.
+    stmt_value(stmt, env, steps).map(|_| ())
 }
 
 /// Drive a while loop: evaluate the condition, run the body while it's true.

@@ -809,3 +809,53 @@ fn newline_inside_an_expression_is_an_error() {
     // A newline is always a statement boundary: no expression spans lines.
     assert!(parse("1 +\n2").is_err());
 }
+
+// ===== ans: the previous answer (ADR-0021) =====
+
+#[test]
+fn ans_holds_the_previous_statement_value() {
+    let mut env = Env::default();
+    let script = parse_script("2 + 3; ans * 2").unwrap();
+    let values = run_all(&script, &mut env).unwrap();
+    assert_eq!(values, vec![Value::float(5.0), Value::float(10.0)]);
+    // the binding is an ordinary variable in the environment
+    assert_eq!(env.get("ans"), Some(&Value::float(10.0)));
+}
+
+#[test]
+fn ans_before_any_result_is_unknown() {
+    let env = Env::default();
+    assert!(eval(&parse("ans").unwrap(), &env).is_err());
+}
+
+#[test]
+fn definitions_and_errors_leave_ans_untouched() {
+    let mut env = Env::default();
+    let script = parse_script("def f(x) = x; 7; ans").unwrap();
+    let values = run_all(&script, &mut env).unwrap();
+    // the definition produces no value; ans is the 7 from statement two
+    assert_eq!(values, vec![Value::float(7.0), Value::float(7.0)]);
+
+    let mut env = Env::default();
+    let script = parse_script("3; 1 / 0").unwrap();
+    assert!(run_all(&script, &mut env).is_err());
+    // the error statement did not clobber the earlier answer
+    assert_eq!(env.get("ans"), Some(&Value::float(3.0)));
+}
+
+#[test]
+fn ans_updates_inside_while_bodies() {
+    let mut env = Env::default();
+    // x runs 1,2,3; the body's last statement value is 3, so ans = 3
+    let script = parse_script("x = 1; while x < 3 do x = x + 1; ans").unwrap();
+    let values = run_all(&script, &mut env).unwrap();
+    assert_eq!(values, vec![Value::float(1.0), Value::float(3.0)]);
+}
+
+#[test]
+fn ans_can_be_assigned_like_any_variable() {
+    let mut env = Env::default();
+    let script = parse_script("ans = 9; ans").unwrap();
+    let values = run_all(&script, &mut env).unwrap();
+    assert_eq!(values, vec![Value::float(9.0), Value::float(9.0)]);
+}

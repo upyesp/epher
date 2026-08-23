@@ -243,6 +243,20 @@ x = x + 1
 > `my_total`. Ils ne peuvent pas contenir d'espaces ni commencer par un
 > chiffre.
 
+La variable spéciale `ans` contient toujours la réponse précédente,
+comme la touche `Ans` d'une calculatrice de poche — pratique pour
+enchaîner les calculs :
+
+```epher
+2 + 3
+ans * 2
+```
+
+```text
+5
+10
+```
+
 ### 1.6 Les constantes : des noms qui ne changent jamais
 
 Une *constante* est un nom dont la valeur ne change jamais — comme le `pi`

@@ -242,6 +242,19 @@ x = x + 1
 > Namen dürfen Buchstaben und Unterstriche enthalten, wie `radius` oder
 > `my_total`. Sie dürfen keine Leerzeichen enthalten und nicht mit einer Zahl beginnen.
 
+Die besondere Variable `ans` enthält immer die vorherige Antwort, wie
+die `Ans`-Taste eines Taschenrechners — praktisch für Kettenrechnungen:
+
+```epher
+2 + 3
+ans * 2
+```
+
+```text
+5
+10
+```
+
 ### 1.6 Konstanten: Namen, die sich nie ändern
 
 Eine *Konstante* ist ein Name für einen Wert, der sich nie ändert — wie

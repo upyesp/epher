@@ -240,6 +240,19 @@ x = x + 1
 > Os nomes podem conter letras e sublinhados, como `radius` ou `my_total`.
 > Não podem conter espaços nem começar com um número.
 
+A variável especial `ans` sempre guarda a resposta anterior, como a
+tecla `Ans` de uma calculadora de bolso — útil para encadear cálculos:
+
+```epher
+2 + 3
+ans * 2
+```
+
+```text
+5
+10
+```
+
 ### 1.6 Constantes: nomes que nunca mudam
 
 Uma *constante* é um nome para um valor que nunca muda — como o `pi`
