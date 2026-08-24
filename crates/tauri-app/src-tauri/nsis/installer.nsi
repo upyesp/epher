@@ -494,6 +494,16 @@ FunctionEnd
 {{/each}}
 
 Function .onInit
+  ; ADR-0027: the finish-page checkboxes ("Run epher", "Create
+  ; desktop shortcut") are drawn with the CLASSIC button colors after
+  ; MUI2 strips their visual theme — and SetCtlColors cannot recolor
+  ; checkbox text (NSIS bug #443), so they stay black on the dark page.
+  ; COLOR_BTNTEXT is the classic-control text color; pointing it at the
+  ; theme's light gray recolors every classic button text in this
+  ; process (themed controls, like the navigation buttons, ignore it).
+  ; One system call, no window procs touched — nothing can lock.
+  System::Call 'user32::SetSysColors(i 1, *i 18, *i 0x00F5F6F7)'
+
   ${GetOptions} $CMDLINE "/P" $PassiveMode
   ${IfNot} ${Errors}
     StrCpy $PassiveMode 1
@@ -773,6 +783,10 @@ Function .onInstSuccess
 FunctionEnd
 
 Function un.onInit
+  ; ADR-0027: same classic-control text color as the installer (the
+  ; uninstaller's own checkbox is themed, but consistency is free).
+  System::Call 'user32::SetSysColors(i 1, *i 18, *i 0x00F5F6F7)'
+
   !insertmacro SetContext
 
   !if "${INSTALLMODE}" == "both"

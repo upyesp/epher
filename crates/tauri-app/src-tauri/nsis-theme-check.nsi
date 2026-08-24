@@ -30,6 +30,11 @@ Name "epher nsis theme check"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "nsis\sidebar.bmp"
 !define MUI_HEADERIMAGE_UNBITMAP "nsis\header.bmp"
 
+; ADR-0027: the finish-page checkboxes draw with the classic button
+; colors after MUI2 strips their visual theme, and SetCtlColors cannot
+; recolor checkbox text (NSIS bug #443) — so COLOR_BTNTEXT is pointed at
+; the theme's light gray, which every classic button text uses. The
+; finish page below compiles the same constructs the installer uses.
 Var DeleteAppDataCheckbox
 Var DeleteAppDataCheckboxState
 
@@ -47,6 +52,14 @@ FunctionEnd
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW un.ConfirmShow
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
+; The installer's finish page: the Run and Create-desktop-shortcut
+; checkboxes live here (MUI strips their theme; COLOR_BTNTEXT recolors
+; their labels — see ADR-0027).
+!define MUI_FINISHPAGE_RUN
+!define MUI_FINISHPAGE_RUN_TEXT "Run epher"
+!define MUI_FINISHPAGE_SHOWREADME
+!define MUI_FINISHPAGE_SHOWREADME_TEXT "Create desktop shortcut"
+!insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_LANGUAGE "English"
 
@@ -61,6 +74,7 @@ Section Uninstall
 SectionEnd
 
 Function .onInit
+  System::Call 'user32::SetSysColors(i 1, *i 18, *i 0x00F5F6F7)'
   StrCpy $DeleteAppDataCheckboxState 0
   WriteUninstaller "$TEMP\uninst-check.exe"
 FunctionEnd

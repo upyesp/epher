@@ -946,7 +946,7 @@ fn epher_app() -> Html {
             let text = session.history().join("\n");
             save_with_dialog(
                 bridge,
-                "epher-history.epher",
+                "epher-history.ehs",
                 text,
                 false,
                 &result,
@@ -966,7 +966,7 @@ fn epher_app() -> Html {
             if !text.trim().is_empty() {
                 save_with_dialog(
                     bridge,
-                    "epher-script.epher",
+                    "epher-script.esr",
                     text,
                     true,
                     &result,
@@ -1157,7 +1157,10 @@ fn epher_app() -> Html {
                                 samples,
                                 fill: spec.fill,
                             });
-                            result.set(format!("graph: {source}"));
+                            // Graphing prints nothing to the answer area
+                            // (ADR-0027): the command joins the history
+                            // list, and the plot itself is the result.
+                            result.set(String::new());
                         }
                         Err(e) => result.set(format!("error: {e}")),
                     }
@@ -1177,7 +1180,9 @@ fn epher_app() -> Html {
                     match epher_core::graph::sample_surface(source, 30, s.env()) {
                         Ok(fresh) => {
                             surfaces.push(fresh);
-                            result.set(format!("graph3d: {source}"));
+                            // Same as 2D: no answer echo, the surface is
+                            // the result (ADR-0027).
+                            result.set(String::new());
                         }
                         Err(e) => result.set(format!("error: {e}")),
                     }
@@ -2352,7 +2357,27 @@ fn epher_app() -> Html {
                             </button>
                         </div>
                         <ul class="history">
-                            { for session.history().iter().rev().map(|h| html! { <li>{ h.clone() } </li> }) }
+                            { for session.history().iter().rev().map(|h| {
+                                // Clickable history (ADR-0027): picking a
+                                // line loads it into the entry, replacing
+                                // whatever is there, for editing and
+                                // re-running — the same gesture the TUI's
+                                // history focus mode offers.
+                                let on_pick = {
+                                    let input = input.clone();
+                                    let input_ref = input_ref.clone();
+                                    let line = h.clone();
+                                    Callback::from(move |_| {
+                                        input.set(line.clone());
+                                        if let Some(ta) =
+                                            input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                        {
+                                            let _ = ta.focus();
+                                        }
+                                    })
+                                };
+                                html! { <li><button type="button" class="history-item" onclick={on_pick}>{ h.clone() }</button></li> }
+                            }) }
                         </ul>
                     </section>
                     <section class="keypad" aria-label={localizer.lookup("keypad")}>
@@ -2472,7 +2497,7 @@ fn epher_app() -> Html {
                                         <label class="graph-option graph-width">
                                             <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
                                             <input type="range" class="graph-width-slider"
-                                                min="0.5" max="4" step="0.25" value={line_width.to_string()}
+                                                min="0" max="4" step="0.1" value={line_width.to_string()}
                                                 oninput={Callback::from({
                                                     let on_set_line_width = on_set_line_width.clone();
                                                     move |e: web_sys::InputEvent| {

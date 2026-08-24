@@ -175,12 +175,15 @@ the unified CLI on the macOS and Linux jobs before packaging.
   installer template is vendored and themed (`nsis/installer.nsi`,
   dark MUI2 color defines + epher header/sidebar bitmaps, ADR-0025;
   the per-control repaint that locked the destination page was removed
-  in ADR-0026 — the theme uses the official MUI2 mechanism only), and
-  the uninstaller's "delete app data" checkbox starts checked and
-  removes `%USERPROFILE%\.epher`. `makensis nsis-check.nsi` and
-  `makensis nsis-theme-check.nsi` compile-verify the hook and theme
-  additions (locally and as a dedicated job in the release workflow);
-  the full rendered template compiles in the Windows bundling job.
+  in ADR-0026 — the theme uses the official MUI2 mechanism only;
+  ADR-0027 recolors the finish-page checkbox labels via
+  `SetSysColors(COLOR_BTNTEXT)`, a single system call with no window
+  procs touched), and the uninstaller's "delete app data" checkbox
+  starts checked and removes `%USERPROFILE%\.epher`. `makensis
+  nsis-check.nsi` and `makensis nsis-theme-check.nsi` compile-verify
+  the hook and theme additions (locally and as a dedicated job in the
+  release workflow); the full rendered template compiles in the Windows
+  bundling job.
 - macOS: unsigned dmg; the app's "Install the epher command" button
   symlinks `/usr/local/bin/epher` (osascript fallback for admin rights).
 - Linux: deb/rpm install `epher` into `/usr/bin` and the man page into
@@ -193,6 +196,12 @@ the unified CLI on the macOS and Linux jobs before packaging.
   `tauri.linux.conf.json` (and its macOS twin) set the window
   `backgroundColor` so launches never flash white — kept out of the
   base config because it broke WebView2 painting on Windows.
+
+File → Save history / Save script pre-fill `epher-history.ehs` /
+`epher-script.esr` in every frontend (TUI prompt, desktop dialog, PWA
+download) — the names are editable suggestions, no extension filter is
+applied (ADR-0027) — and the desktop dialog runs off the main thread so
+the window stays live while it is open.
 
 macOS and Windows builds are unsigned. If the landing page's download
 links need to change (e.g. a new platform), change the names here and in

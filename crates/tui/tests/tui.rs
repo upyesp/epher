@@ -265,7 +265,8 @@ fn submit_line_keeps_graph_special_case() {
     let mut app = App::default();
     let (store, _keep) = scratch_store();
     app.submit_line("graph x ^ 2", &store, &Localizer::resolve(Some("en"), &[]));
-    assert_eq!(app.result(), "graph: x ^ 2");
+    // ADR-0027: graphing prints nothing to the answer line.
+    assert_eq!(app.result(), "");
     assert_eq!(app.graph().len(), 1);
     // Graph commands join the history list like every submitted line.
     assert_eq!(app.history(), ["graph x ^ 2".to_string()]);
@@ -284,7 +285,7 @@ fn graph3d_samples_and_clears() {
     let store = tui_store();
     let mut app = App::with_session(epher_core::Session::new());
     app.submit_line("graph3d x ^ 2 + y ^ 2", &store, &epher_i18n::Localizer::resolve(Some("en"), &[]));
-    assert_eq!(app.result(), "graph3d: x ^ 2 + y ^ 2");
+    assert_eq!(app.result(), "");
     assert_eq!(app.surfaces().len(), 1);
     assert_eq!(app.history(), ["graph3d x ^ 2 + y ^ 2".to_string()]);
 
@@ -636,6 +637,15 @@ fn file_prompt_saves_and_opens() {
 
     let localizer = epher_i18n::Localizer::resolve(None, &[]);
     app.prompt_start(epher_tui::PromptKind::SaveScript);
+    // ADR-0027: the save prompt pre-fills the default file name; the
+    // buffer stays fully editable.
+    assert_eq!(
+        app.prompt_active(),
+        Some((epher_tui::PromptKind::SaveScript, "epher-script.esr"))
+    );
+    while app.prompt_active().is_some_and(|(_, b)| !b.is_empty()) {
+        app.prompt_pop();
+    }
     for c in path.to_string_lossy().chars() {
         app.prompt_push(c);
     }
@@ -692,6 +702,13 @@ fn save_history_writes_the_session_history() {
     let _ = std::fs::create_dir_all(&dir);
     let path = dir.join("history.epher");
     app.prompt_start(epher_tui::PromptKind::SaveHistory);
+    assert_eq!(
+        app.prompt_active(),
+        Some((epher_tui::PromptKind::SaveHistory, "epher-history.ehs"))
+    );
+    while app.prompt_active().is_some_and(|(_, b)| !b.is_empty()) {
+        app.prompt_pop();
+    }
     for c in path.to_string_lossy().chars() {
         app.prompt_push(c);
     }
@@ -747,4 +764,45 @@ fn graph3d_save_writes_the_orbit_pose() {
     let doc = std::fs::read_to_string(&svg).unwrap();
     assert!(doc.contains("viewBox=\"0 0 640 400\""), "{doc}");
     assert!(doc.contains("transform=\"translate("), "{doc}");
+}
+
+// ===== History focus (ADR-0027) =====
+
+#[test]
+fn history_focus_moves_and_picks_without_running() {
+    let mut app = App::with_session(epher_core::Session::with_history(vec![
+        "1 + 1".to_string(),
+        "2 + 2".to_string(),
+        "graph x ^ 2".to_string(),
+    ]));
+    // Not focused by default; Tab's first stop is the keypad, and the
+    // second opens the history list.
+    assert!(!app.history_focused());
+    app.history_open();
+    assert!(app.history_focused());
+    assert_eq!(app.history_sel(), 0);
+    // Display order is newest-first; Down wraps to the oldest line and
+    // Up wraps back around.
+    app.history_move(-1);
+    assert_eq!(app.history_sel(), 2);
+    app.history_move(1);
+    assert_eq!(app.history_sel(), 0);
+    app.history_move(1);
+    assert_eq!(app.history_sel(), 1);
+    // Picking loads the line into the input (replacing), leaves focus,
+    // and does NOT evaluate it.
+    app.set_input("leftover");
+    let picked = app.history_pick().unwrap();
+    assert_eq!(picked, "2 + 2");
+    // The event loop applies the pick to the input.
+    app.set_input(&picked);
+    assert_eq!(app.input(), "2 + 2");
+    assert!(!app.history_focused());
+    assert!(app.result().is_empty(), "picking must not run the line");
+
+    // Empty history: picking is None and focus ends.
+    app.clear_history();
+    app.history_open();
+    assert!(app.history_pick().is_none());
+    assert!(!app.history_focused());
 }

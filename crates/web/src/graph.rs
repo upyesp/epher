@@ -262,6 +262,102 @@ pub fn graph_html(props: &GraphProps) -> Html {
 
 // ===== 3D surfaces (ADR-0015) =====
 
+/// One parsed mesh element from the surface_parts markup: its tag and the
+/// attribute list, in document order. The markup generator is ours, so the
+/// format is fixed: self-closing tags, double-quoted attributes, values
+/// without quotes.
+struct MeshElem {
+    tag: String,
+    attrs: Vec<(String, String)>,
+}
+
+/// Parse the mesh markup into its element list. A light hand-rolled scan
+/// (~32 KB per orbit frame) — no regex machinery needed for markup we
+/// generate ourselves.
+fn parse_mesh(content: &str) -> Vec<MeshElem> {
+    let bytes = content.as_bytes();
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < bytes.len() {
+        while i < bytes.len() && bytes[i] != b'<' {
+            i += 1;
+        }
+        if i >= bytes.len() {
+            break;
+        }
+        i += 1; // past '<'
+        let tag_start = i;
+        while i < bytes.len() && !bytes[i].is_ascii_whitespace() && bytes[i] != b'>' {
+            i += 1;
+        }
+        let tag = content[tag_start..i].to_string();
+        let mut attrs = Vec::new();
+        loop {
+            while i < bytes.len() && (bytes[i].is_ascii_whitespace() || bytes[i] == b'/') {
+                i += 1;
+            }
+            if i >= bytes.len() || bytes[i] == b'>' {
+                break;
+            }
+            let name_start = i;
+            while i < bytes.len() && bytes[i] != b'=' && !bytes[i].is_ascii_whitespace() {
+                i += 1;
+            }
+            let name = content[name_start..i].to_string();
+            while i < bytes.len() && bytes[i] != b'"' {
+                i += 1;
+            }
+            i += 1; // past the opening quote
+            let value_start = i;
+            while i < bytes.len() && bytes[i] != b'"' {
+                i += 1;
+            }
+            let value = content[value_start..i].to_string();
+            i += 1; // past the closing quote
+            attrs.push((name, value));
+        }
+        out.push(MeshElem { tag, attrs });
+    }
+    out
+}
+
+/// Do two frames' mesh markup describe the same element sequence? The
+/// generator emits only `<polyline>` (mesh) and `<line>` (frame) tags, so
+/// the per-tag counts are a complete structural signature.
+fn same_mesh_shape(old: &str, new: &str) -> bool {
+    old.matches("<polyline").count() == new.matches("<polyline").count()
+        && old.matches("<line").count() == new.matches("<line").count()
+}
+
+/// Apply a new frame's coordinates to the existing DOM elements. Only the
+/// attributes that can change between frames are written (points, depth
+/// opacity, stroke width for polylines; the four coordinates and width for
+/// frame lines) — `fill`/`stroke` are constants. Returns false when the
+/// live DOM does not match the markup shape, so the caller rebuilds.
+fn patch_mesh(el: &web_sys::Element, content: &str) -> bool {
+    let parsed = parse_mesh(content);
+    let kids = el.children();
+    if kids.length() as usize != parsed.len() {
+        return false;
+    }
+    for (index, elem) in parsed.iter().enumerate() {
+        let Some(kid) = kids.item(index as u32) else {
+            return false;
+        };
+        for (name, value) in &elem.attrs {
+            let mutable = match (elem.tag.as_str(), name.as_str()) {
+                ("polyline", "points" | "stroke-opacity" | "stroke-width") => true,
+                ("line", "x1" | "y1" | "x2" | "y2" | "stroke-width") => true,
+                _ => false,
+            };
+            if mutable {
+                let _ = kid.set_attribute(name, value);
+            }
+        }
+    }
+    true
+}
+
 /// Render the plotted surfaces as SVG content: mesh lines per grid row and
 /// column with per-line depth shading (nearer lines more opaque), the
 /// ground square and axes of the first surface on top, all painter-sorted
@@ -288,13 +384,37 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
     // via Yew vnodes: Yew's from_html_unchecked parses fragments in an HTML
     // <div>, so the polyline nodes would carry the HTML namespace and the
     // SVG renderer would never paint them (blank plot in every browser).
+    //
+    // ADR-0027: orbit frames keep the same element structure (one
+    // <polyline> per mesh line, one <line> per frame segment — only the
+    // coordinate/opacity values change), so a frame whose shape matches
+    // the previous one is applied by writing attributes on the existing
+    // elements instead of re-parsing and re-creating thousands of nodes.
+    // Per-frame innerHTML churn garbage-collected ~3k elements per frame,
+    // which stalled and flickered in WebView2 (Windows); patching is a
+    // few thousand attribute writes with zero node churn — 60fps in every
+    // engine. Structure changes (different surfaces) still rebuild.
+    let last_markup =
+        use_state(|| std::rc::Rc::new(std::cell::RefCell::new(None::<String>)));
     {
         let g_ref = g_ref.clone();
+        let last_markup = last_markup.clone();
         let content = props.content.clone();
         use_effect_with(content, move |content| {
-            if let Some(el) = g_ref.cast::<web_sys::Element>() {
+            let Some(el) = g_ref.cast::<web_sys::Element>() else {
+                return;
+            };
+            let same_shape = last_markup
+                .borrow()
+                .as_ref()
+                .map(|old| same_mesh_shape(old, content))
+                .unwrap_or(false);
+            if same_shape && patch_mesh(&el, content) {
+                // patched in place; nothing else to do
+            } else {
                 el.set_inner_html(content);
             }
+            *last_markup.borrow_mut() = Some(content.clone());
         });
     }
 

@@ -118,6 +118,12 @@ pub struct App {
     menu: Option<(usize, usize)>,
     /// An active file prompt: its kind and the path typed so far.
     prompt: Option<(PromptKind, String)>,
+    /// History focus mode (ADR-0027): Tab reaches the history list, the
+    /// arrows move the selection, and Enter loads the selected line into
+    /// the input — the terminal spelling of the web's clickable history.
+    /// `hist_sel` indexes the DISPLAYED list (0 = newest line on top).
+    hist_focus: bool,
+    hist_sel: usize,
     /// The in-app user guide view (ADR-0018): `Some(scroll)` when open,
     /// the offset counting wrapped rows from the top.
     guide: Option<usize>,
@@ -198,6 +204,8 @@ impl App {
             poi_list: true,
             menu: None,
             prompt: None,
+            hist_focus: false,
+            hist_sel: 0,
             guide: None,
         }
     }
@@ -419,8 +427,66 @@ impl App {
         self.prompt.as_ref().map(|(k, buf)| (*k, buf.as_str()))
     }
 
+    /// Start a file prompt. Save prompts pre-fill the default file name
+    /// (`epher-history.ehs` / `epher-script.esr`, ADR-0027) so Enter
+    /// saves to the current directory; the buffer stays fully editable —
+    /// any extension the user types wins. Open prompts start empty.
     pub fn prompt_start(&mut self, kind: PromptKind) {
-        self.prompt = Some((kind, String::new()));
+        let default = match kind {
+            PromptKind::SaveHistory => "epher-history.ehs".to_string(),
+            PromptKind::SaveScript => "epher-script.esr".to_string(),
+            PromptKind::OpenHistory | PromptKind::OpenScript => String::new(),
+        };
+        self.prompt = Some((kind, default));
+        self.keypad = false;
+        self.menu = None;
+        self.hist_focus = false;
+    }
+
+    // --- history focus (ADR-0027) ---
+
+    pub fn history_focused(&self) -> bool {
+        self.hist_focus
+    }
+
+    /// The selected display row (0 = newest line on top).
+    pub fn history_sel(&self) -> usize {
+        self.hist_sel
+    }
+
+    pub fn history_open(&mut self) {
+        self.hist_focus = true;
+        self.hist_sel = 0;
+        self.keypad = false;
+        self.menu = None;
+    }
+
+    pub fn history_close(&mut self) {
+        self.hist_focus = false;
+    }
+
+    /// Move the selection up (+1 = older) or down, wrapping.
+    pub fn history_move(&mut self, dir: isize) {
+        let len = self.session.history().len() as isize;
+        if len == 0 {
+            return;
+        }
+        self.hist_sel = (self.hist_sel as isize + dir).rem_euclid(len) as usize;
+    }
+
+    /// Load the selected line into the input (replacing whatever is
+    /// there — it is not run) and leave history focus. `None` when the
+    /// history is empty.
+    pub fn history_pick(&mut self) -> Option<String> {
+        let len = self.session.history().len();
+        if len == 0 {
+            self.hist_focus = false;
+            return None;
+        }
+        let sel = self.hist_sel.min(len - 1);
+        let line = self.session.history()[len - 1 - sel].clone();
+        self.hist_focus = false;
+        Some(line)
     }
 
     pub fn prompt_cancel(&mut self) {
@@ -691,7 +757,9 @@ impl App {
             fill: spec.fill,
         });
         self.pois = analyze(&self.graph, self.session.env());
-        self.result = format!("graph: {source}");
+        // Graphing prints nothing to the answer line (ADR-0027): the
+        // command joins the history list, and the plot is the result.
+        self.result.clear();
         Ok(())
     }
 
@@ -711,7 +779,7 @@ impl App {
                 return Err(e);
             }
         };
-        self.result = format!("graph3d: {}", surface.source);
+        self.result.clear();
         self.surface.push(surface);
         Ok(())
     }
@@ -1176,8 +1244,14 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                     // and cycles its banks (Shift+Tab cycles back);
                     // inside it, arrows move, Enter inserts, Esc closes.
                     KeyCode::Tab => {
+                        // Focus cycle: input → keypad → history → input
+                        // (ADR-0027: the history list is the last stop so
+                        // a picked line drops you back on the input).
                         if app.keypad_focused() {
-                            app.keypad_cycle(1);
+                            app.keypad_close();
+                            app.history_open();
+                        } else if app.history_focused() {
+                            app.history_close();
                         } else {
                             app.keypad_open();
                         }
@@ -1185,6 +1259,9 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                     KeyCode::BackTab => {
                         if app.keypad_focused() {
                             app.keypad_cycle(-1);
+                        } else if app.history_focused() {
+                            app.history_close();
+                            app.keypad_open();
                         }
                     }
                     KeyCode::Left if app.keypad_focused() => app.keypad_move(0, -1),
@@ -1192,6 +1269,11 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                     KeyCode::Up if app.keypad_focused() => app.keypad_move(-1, 0),
                     KeyCode::Down if app.keypad_focused() => app.keypad_move(1, 0),
                     KeyCode::Esc if app.keypad_focused() => app.keypad_close(),
+                    // History focus (ADR-0027): arrows move the selection
+                    // (up = older), Esc steps back to the input.
+                    KeyCode::Up if app.history_focused() => app.history_move(1),
+                    KeyCode::Down if app.history_focused() => app.history_move(-1),
+                    KeyCode::Esc if app.history_focused() => app.history_close(),
                     // 3D orbit (ADR-0015): arrows rotate when the input line
                     // is empty, so typing never loses an arrow key.
                     KeyCode::Left if app.input().is_empty() => app.rotate_view(-0.15, 0.0),
@@ -1202,14 +1284,19 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                     KeyCode::Char(' ') if app.input().is_empty() => {
                         app.toggle_play();
                     }
-                    // Any typed character leaves keypad mode first — typing
-                    // is the other spelling of the same input.
+                    // Any typed character leaves keypad/history focus
+                    // first — typing is the other spelling of the same
+                    // input.
                     KeyCode::Char(c) if !is_enter => {
                         app.keypad_close();
+                        app.history_close();
                         app.menu_close();
                         app.push_char(c);
                     }
-                    KeyCode::Backspace => app.pop_char(),
+                    KeyCode::Backspace => {
+                        app.history_close();
+                        app.pop_char();
+                    }
                     KeyCode::Esc => app.clear_input(),
                     _ => {}
                 }
@@ -1296,6 +1383,12 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                             }
                             MenuAction::OpenGuide => app.guide_open(),
                         }
+                    }
+                } else if is_enter && app.history_focused() {
+                    // Pick the highlighted history line into the input
+                    // (ADR-0027) — the user edits and re-runs it.
+                    if let Some(line) = app.history_pick() {
+                        app.set_input(&line);
                     }
                 } else if is_enter && !app.keypad_focused() {
                     let line = app.input().trim().to_string();
@@ -1541,10 +1634,30 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
         .history()
         .iter()
         .rev()
-        .map(|h| Line::from(h.as_str()))
+        .enumerate()
+        .map(|(display_row, h)| {
+            let line = Line::from(h.as_str());
+            // History focus (ADR-0027): the selected line is highlighted
+            // with the theme's selection colors.
+            if app.history_focused() && display_row == app.history_sel() {
+                line.style(Style::default().fg(sel_fg).bg(sel_bg))
+            } else {
+                line
+            }
+        })
         .collect();
+    // Keep the selection in view while the history has focus: the
+    // paragraph scrolls so the highlighted row is the last visible one
+    // when it would otherwise fall off the bottom.
+    let history_scroll = if app.history_focused() {
+        let visible = history_area.height.saturating_sub(2) as usize;
+        app.history_sel().saturating_sub(visible.saturating_sub(1)) as u16
+    } else {
+        0
+    };
     let history = Paragraph::new(history_lines)
         .style(Style::default().fg(fg))
+        .scroll((history_scroll, 0))
         .block(block(localizer.lookup("tui-history")));
     frame.render_widget(history, history_area);
 

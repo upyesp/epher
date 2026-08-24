@@ -366,6 +366,31 @@
       gap: 0.25rem;
       padding-bottom: 0.5rem;
     }
+    /* Clickable history lines (ADR-0027): each entry is a full-width
+       button that loads its text into the expression entry. */
+    .history-item {
+      display: block;
+      width: 100%;
+      text-align: start;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: inherit;
+      font-size: inherit;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      padding: 0.15rem 0.3rem;
+      min-height: 28px;
+      cursor: pointer;
+    }
+    .history-item:hover {
+      color: var(--accent);
+    }
+    .history-item:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
     /* --- keypad (ADR-0016) --------------------------------------------- */
     .keypad {
       flex: none;

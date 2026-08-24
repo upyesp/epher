@@ -130,18 +130,35 @@ fn write_file(path: &std::path::Path, content: &str) -> Result<(), String> {
 /// file is written there. `Ok(None)` means the user cancelled: the UI
 /// stays silent, as native apps do. `Ok(Some(path))` is the written
 /// path, shown in the status line.
+///
+/// The command is **async** and the dialog runs inside
+/// `spawn_blocking`: a synchronous Tauri command executes on the main
+/// thread, and a modal OS dialog parked there freezes the whole
+/// webview for as long as it is open — on Linux Mint the dialog could
+/// end up behind the window, looking like a hard lock (ADR-0027). Off
+/// the main thread the app stays live regardless of what the dialog
+/// backend does.
 #[tauri::command]
-fn save_file_dialog(
+async fn save_file_dialog(
     app: tauri::AppHandle,
     content: String,
     default_name: String,
 ) -> Result<Option<String>, String> {
-    use tauri_plugin_dialog::DialogExt;
-    let mut builder = app.dialog().file().add_filter("epher", &["epher"]);
-    if let Some(window) = app.get_webview_window("main") {
-        builder = builder.set_parent(&window);
-    }
-    let Some(path) = builder.set_file_name(&default_name).blocking_save_file() else {
+    let path = tauri::async_runtime::spawn_blocking(move || {
+        // No extension filter: the user may rename to any extension
+        // (.ehs/.esr are the pre-filled defaults, not a restriction),
+        // and rfd's Windows filter would otherwise fight typed names
+        // by appending the filtered extension (ADR-0027).
+        use tauri_plugin_dialog::DialogExt;
+        let mut builder = app.dialog().file();
+        if let Some(window) = app.get_webview_window("main") {
+            builder = builder.set_parent(&window);
+        }
+        builder.set_file_name(&default_name).blocking_save_file()
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+    let Some(path) = path else {
         return Ok(None);
     };
     let path = path
