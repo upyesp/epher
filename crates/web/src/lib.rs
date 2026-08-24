@@ -556,6 +556,11 @@ fn epher_app() -> Html {
     let live = use_state(|| Rc::new(RefCell::new(GraphLive::default())));
     let surface = use_state(Vec::<epher_core::graph::Surface>::new);
     let view = use_state(epher_core::graph::View3D::default);
+    // The live cell behind `view`: orbit emissions mutate it in place, so
+    // a burst of drag/keyboard events accumulates instead of each event
+    // reading the same stale handle snapshot and overwriting the last
+    // (the v0.4.13 "shivering" — the render-snapshot rule, ADR-0026).
+    let view_cell = use_state(|| Rc::new(RefCell::new(epher_core::graph::View3D::default())));
     let play = use_state(|| Option::<PlaySpec>::None);
     // The live cell behind `play`: the animation loop reads and advances
     // it across ticks; Yew handles captured at spawn read stale snapshots.
@@ -1318,16 +1323,21 @@ fn epher_app() -> Html {
         });
     }
 
-    // 3D orbit: drag or arrow keys rotate the view (ADR-0015).
+    // 3D orbit: drag or arrow keys rotate the view (ADR-0015). Each event
+    // mutates the live cell first, so consecutive events accumulate on top
+    // of each other; the state write only mirrors it for rendering.
     let on_orbit = {
         let view = view.clone();
+        let view_cell = view_cell.clone();
         Callback::from(move |(dyaw, dpitch): (f64, f64)| {
-            let v = *view;
-            view.set(epher_core::graph::View3D {
+            let v = *view_cell.borrow();
+            let next = epher_core::graph::View3D {
                 yaw: v.yaw + dyaw,
                 pitch: (v.pitch + dpitch).clamp(-1.4, 1.4),
                 camera: v.camera,
-            });
+            };
+            *view_cell.borrow_mut() = next;
+            view.set(next);
         })
     };
 

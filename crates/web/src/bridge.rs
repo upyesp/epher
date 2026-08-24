@@ -166,7 +166,12 @@ struct SaveArgs<'a> {
     source: &'a str,
 }
 
+/// Invoke arguments are camelCase: the Tauri command macro renames
+/// them back to snake_case Rust parameters (`defaultName` →
+/// `default_name`). v0.4.13 sent `default_name` and every desktop save
+/// dialog failed with "missing required key defaultName" (ADR-0026).
 #[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 struct SaveFileArgs<'a> {
     content: &'a str,
     default_name: &'a str,

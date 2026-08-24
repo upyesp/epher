@@ -165,68 +165,34 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
 
 ; ---------------------------------------------------------------------------
-; epher dark theme (ADR-0025): the installer and uninstaller paint in the
-; app's own palette — #141416 background, #f5f6f7 text. MUI_BGCOLOR /
-; MUI_TEXTCOLOR cover the header area and the welcome/finish pages;
-; MUI_INSTFILESPAGE_COLORS the install log. epherPaint walks every window
-; and control of the other pages (SetCtlColors on dialogs and their
-; children — the standard MUI2 dark-theme technique). The controls stay
-; MUI2's stock widgets, just dark: same keyboard behavior, RTL handling,
-; and accessibility as the default look.
+; epher dark theme (ADR-0025, revised by ADR-0026): the installer and
+; uninstaller use the OFFICIAL MUI2 dark mechanism only — MUI_BGCOLOR /
+; MUI_TEXTCOLOR (header area, welcome/finish pages), dark header/sidebar
+; bitmaps, and MUI_INSTFILESPAGE_COLORS (install log). No SetCtlColors
+; control repainting: v0.4.13's per-control paint walk corrupted the
+; window procs of MUI-managed controls (the directory request edit is
+; subclassed by MUI itself), which made the destination controls vanish
+; and locked the installer on the first click into the corrupted proc.
+; The stock controls stay system-colored on the directory/license pages
+; — pages render, controls work, nothing locks.
 !define MUI_BGCOLOR 141416
 !define MUI_TEXTCOLOR F5F6F7
 !define MUI_INSTFILESPAGE_COLORS "141416 F5F6F7"
 
-; One body, two instantiations: plain for installer pages, `un.` for the
-; uninstaller's (NSIS forbids the uninstaller from calling installer
-; functions). $r2/$r3 are the standard temporary registers these pages do
-; not hold anything in at SHOW time; labels are scoped to the function.
-!macro epher_paint_body prefix
-Function ${prefix}epherPaint
-  ; The outer dialog and its children: the Next/Back/Cancel buttons, the
-  ; branding line, and — on the finish page — the run/shortcut checkboxes.
-  SetCtlColors $HWNDPARENT 0xF5F6F7 0x141416
-  System::Call 'user32::GetWindow(p $HWNDPARENT, i 5) p .r2'
-  epher_outer_loop:
-    IntCmp $r2 0 epher_outer_done 0 0
-    SetCtlColors $r2 0xF5F6F7 0x141416
-    System::Call 'user32::GetWindow(p r2, i 2) p .r2'
-    Goto epher_outer_loop
-  epher_outer_done:
-  ; The inner dialog (the page content area) and its children: labels,
-  ; the directory edit field, browse/checkbox controls, the details list.
-  FindWindow $r2 "#32770" "" $HWNDPARENT
-  IntCmp $r2 0 epher_done 0 0
-  SetCtlColors $r2 0xF5F6F7 0x141416
-  System::Call 'user32::GetWindow(p r2, i 5) p .r3'
-  epher_inner_loop:
-    IntCmp $r3 0 epher_done 0 0
-    SetCtlColors $r3 0xF5F6F7 0x141416
-    System::Call 'user32::GetWindow(p r3, i 2) p .r3'
-    Goto epher_inner_loop
-  epher_done:
-FunctionEnd
-!macroend
-!insertmacro epher_paint_body ""
-!insertmacro epher_paint_body "un."
-
 ; Installer pages, must be ordered as they appear
 ; 1. Welcome Page
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfPassive
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW epherPaint
 !insertmacro MUI_PAGE_WELCOME
 
 ; 2. License Page (if defined)
 !if "${LICENSE}" != ""
   !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfPassive
-  !define MUI_PAGE_CUSTOMFUNCTION_SHOW epherPaint
   !insertmacro MUI_PAGE_LICENSE "${LICENSE}"
 !endif
 
 ; 3. Install mode (if it is set to `both`)
 !if "${INSTALLMODE}" == "both"
   !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfPassive
-  !define MUI_PAGE_CUSTOMFUNCTION_SHOW epherPaint
   !insertmacro MULTIUSER_PAGE_INSTALLMODE
 !endif
 
@@ -345,7 +311,6 @@ Function PageReinstall
     ${EndIf}
 
     ${NSD_SetFocus} $R2
-    Call epherPaint
     nsDialogs::Show
   ${EndIf}
 FunctionEnd
@@ -436,7 +401,6 @@ FunctionEnd
 
 ; 5. Choose install directory page
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfPassive
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW epherPaint
 !insertmacro MUI_PAGE_DIRECTORY
 
 ; 6. Start menu shortcut page
@@ -447,11 +411,9 @@ Var AppStartMenuFolder
 !else
   !define MUI_PAGE_CUSTOMFUNCTION_PRE Skip
 !endif
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW epherPaint
 !insertmacro MUI_PAGE_STARTMENU Application $AppStartMenuFolder
 
 ; 7. Installation page
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW epherPaint
 !insertmacro MUI_PAGE_INSTFILES
 
 ; 8. Finish page
@@ -467,7 +429,6 @@ Var AppStartMenuFolder
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION RunMainBinary
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfPassive
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW epherPaint
 !insertmacro MUI_PAGE_FINISH
 
 Function RunMainBinary
@@ -512,8 +473,6 @@ Function un.ConfirmShow ; Add add a `Delete app data` check box
   ; clean slate (history, functions, constants) so a reinstall starts
   ; fresh. The user can still untick it.
   SendMessage $DeleteAppDataCheckbox ${BM_SETCHECK} ${BST_CHECKED} 0
-  ; And the confirm page paints dark like every other page.
-  Call un.epherPaint
 FunctionEnd
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE un.ConfirmLeave
 Function un.ConfirmLeave
@@ -523,7 +482,6 @@ FunctionEnd
 !insertmacro MUI_UNPAGE_CONFIRM
 
 ; 2. Uninstalling Page
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW un.epherPaint
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ;Languages

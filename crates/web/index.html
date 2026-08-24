@@ -630,6 +630,12 @@
       display: block;
       color: var(--accent);
       cursor: grab;
+      /* Dragging orbits, it never selects: without this, dragging from
+         the left side of the plot text-selects the y-axis tick labels
+         and paints the selection band down the pane's left edge
+         (ADR-0026). */
+      user-select: none;
+      -webkit-user-select: none;
     }
     .graph3d-svg:active { cursor: grabbing; }
     .graph3d-hint {

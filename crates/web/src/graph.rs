@@ -318,10 +318,21 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
                     }
                 }));
             }
+            // Drags accumulate into `pending` and commit at most once per
+            // animation frame (ADR-0026): re-rendering per pointer event
+            // re-injected the whole mesh SVG mid-drag — the plot flickered
+            // and, combined with the stale-handle orbit reads, "shivered"
+            // instead of rotating. One commit per frame = smooth orbit.
+            let pending = std::rc::Rc::new(std::cell::RefCell::new(None::<(f64, f64)>));
+            let frame = std::rc::Rc::new(std::cell::RefCell::new(
+                None::<gloo_render::AnimationFrame>,
+            ));
             {
                 let el = el.clone();
                 let drag = drag.clone();
                 let on_orbit = on_orbit.clone();
+                let pending = pending.clone();
+                let frame = frame.clone();
                 bound.push(gloo_events::EventListener::new(&el, "pointermove", move |e| {
                     if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
                         // Copy the start point out first: Option<(f64, f64)>
@@ -334,23 +345,46 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
                             let dy = pe.client_y() as f64 - ly;
                             *drag.borrow_mut() = Some((pe.client_x() as f64, pe.client_y() as f64));
                             if dx.abs() > 0.5 || dy.abs() > 0.5 {
-                                on_orbit.emit((dx * 0.01, dy * 0.01));
+                                {
+                                    let mut p = pending.borrow_mut();
+                                    let (a, b) = p.unwrap_or((0.0, 0.0));
+                                    *p = Some((a + dx * 0.01, b + dy * 0.01));
+                                }
+                                if frame.borrow().is_none() {
+                                    let pending = pending.clone();
+                                    let frame_inner = frame.clone();
+                                    let on_orbit = on_orbit.clone();
+                                    let handle = gloo_render::request_animation_frame(move |_| {
+                                        *frame_inner.borrow_mut() = None;
+                                        if let Some((a, b)) = pending.borrow_mut().take() {
+                                            on_orbit.emit((a, b));
+                                        }
+                                    });
+                                    *frame.borrow_mut() = Some(handle);
+                                }
                             }
                         }
                     }
                 }));
             }
+            // Pointerup / pointerleave commit whatever is still pending so
+            // the final position is exact even if the last events arrived
+            // between frames.
             {
                 let drag = drag.clone();
-                bound.push(gloo_events::EventListener::new(&el, "pointerup", move |_| {
-                    *drag.borrow_mut() = None;
-                }));
-            }
-            {
-                let drag = drag.clone();
-                bound.push(gloo_events::EventListener::new(&el, "pointerleave", move |_| {
-                    *drag.borrow_mut() = None;
-                }));
+                let on_orbit = on_orbit.clone();
+                let pending = pending.clone();
+                for event_name in ["pointerup", "pointerleave", "pointercancel"] {
+                    let drag = drag.clone();
+                    let on_orbit = on_orbit.clone();
+                    let pending = pending.clone();
+                    bound.push(gloo_events::EventListener::new(&el, event_name, move |_| {
+                        *drag.borrow_mut() = None;
+                        if let Some((a, b)) = pending.borrow_mut().take() {
+                            on_orbit.emit((a, b));
+                        }
+                    }));
+                }
             }
             {
                 let el = el.clone();

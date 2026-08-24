@@ -172,10 +172,12 @@ the unified CLI on the macOS and Linux jobs before packaging.
 
 - Windows: NSIS installer; `installerHooks` (`nsis-hooks.nsh`) adds the
   install dir to the user PATH so `epher` works from any terminal. The
-  installer template is vendored and themed (`nsis/installer.nsi`, dark
-  MUI2 pages + epher header/sidebar bitmaps, ADR-0025), and the
-  uninstaller's "delete app data" checkbox starts checked and removes
-  `%USERPROFILE%\.epher`. `makensis nsis-check.nsi` and
+  installer template is vendored and themed (`nsis/installer.nsi`,
+  dark MUI2 color defines + epher header/sidebar bitmaps, ADR-0025;
+  the per-control repaint that locked the destination page was removed
+  in ADR-0026 — the theme uses the official MUI2 mechanism only), and
+  the uninstaller's "delete app data" checkbox starts checked and
+  removes `%USERPROFILE%\.epher`. `makensis nsis-check.nsi` and
   `makensis nsis-theme-check.nsi` compile-verify the hook and theme
   additions (locally and as a dedicated job in the release workflow);
   the full rendered template compiles in the Windows bundling job.
