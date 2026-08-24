@@ -173,17 +173,22 @@ the unified CLI on the macOS and Linux jobs before packaging.
 - Windows: NSIS installer; `installerHooks` (`nsis-hooks.nsh`) adds the
   install dir to the user PATH so `epher` works from any terminal. The
   installer template is vendored and themed (`nsis/installer.nsi`,
-  dark MUI2 color defines + epher header/sidebar bitmaps, ADR-0025;
-  the per-control repaint that locked the destination page was removed
-  in ADR-0026 — the theme uses the official MUI2 mechanism only;
-  ADR-0027 recolors the finish-page checkbox labels via
-  `SetSysColors(COLOR_BTNTEXT)`, a single system call with no window
-  procs touched), and the uninstaller's "delete app data" checkbox
-  starts checked and removes `%USERPROFILE%\.epher`. `makensis
-  nsis-check.nsi` and `makensis nsis-theme-check.nsi` compile-verify
-  the hook and theme additions (locally and as a dedicated job in the
-  release workflow); the full rendered template compiles in the Windows
-  bundling job.
+  light MUI2 color defines + epher header/sidebar bitmaps, ADR-0028;
+  earlier releases tried a dark theme (ADR-0025) but MUI2 cannot darken
+  custom pages or classic controls, so the wizard mixed dark and light
+  pages — the whole theme now uses the official MUI2 mechanism in
+  classic light colors; the header bitmap puts the epher logo in the
+  top-left corner of every page — MUI2's default header layout — and
+  the welcome/finish sidebar carries a larger mark; the uninstaller
+  shares the header bitmap; the per-control repaint that locked the
+  destination page was removed in ADR-0026, and ADR-0027/0028 pin the
+  finish-page checkbox labels via `SetSysColors(COLOR_BTNTEXT)`, a
+  single system call with no window procs touched), and the
+  uninstaller's "delete app data" checkbox starts checked and removes
+  `%USERPROFILE%\.epher`. `makensis nsis-check.nsi` and `makensis
+  nsis-theme-check.nsi` compile-verify the hook and theme additions
+  (locally and as a dedicated job in the release workflow); the full
+  rendered template compiles in the Windows bundling job.
 - macOS: unsigned dmg; the app's "Install the epher command" button
   symlinks `/usr/local/bin/epher` (osascript fallback for admin rights).
 - Linux: deb/rpm install `epher` into `/usr/bin` and the man page into

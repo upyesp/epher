@@ -667,7 +667,7 @@ fn epher_app() -> Html {
                                 }
                                 if let Ok(Some(v)) = store.get_item("epher-line-width") {
                                     if let Ok(w) = v.parse::<f64>() {
-                                        if (0.5..=4.0).contains(&w) {
+                                        if (0.1..=4.0).contains(&w) {
                                             line_width.set(w);
                                         }
                                     }
@@ -706,7 +706,7 @@ fn epher_app() -> Html {
                     }
                     if let Ok(Some(v)) = store.get_item("epher-line-width") {
                         if let Ok(w) = v.parse::<f64>() {
-                            if (0.5..=4.0).contains(&w) {
+                            if (0.1..=4.0).contains(&w) {
                                 line_width.set(w);
                             }
                         }
@@ -827,11 +827,13 @@ fn epher_app() -> Html {
     };
     // The line-width slider (ADR-0020): persisted like the POI toggles,
     // clamped to the slider's range so a stale stored value cannot
-    // produce an invisible or absurd curve.
+    // ADR-0028: the width floor is 0.1 (a hairline); below that SVG
+    // stroke widths read as broken. The clamp also guards the stored
+    // value coming back from localStorage.
     let on_set_line_width = {
         let line_width = line_width.clone();
         Callback::from(move |w: f64| {
-            let w = w.clamp(0.5, 4.0);
+            let w = w.clamp(0.1, 4.0);
             if let Some(store) = web_sys::window()
                 .and_then(|w| w.local_storage().ok().flatten())
             {
@@ -1925,7 +1927,6 @@ fn epher_app() -> Html {
                         <>
                             <input
                                 type="file"
-                                accept=".epher,.txt,text/plain"
                                 class="visually-hidden-file"
                                 ref={file_ref.clone()}
                                 onchange={on_script_chosen}
@@ -1934,7 +1935,6 @@ fn epher_app() -> Html {
                             />
                             <input
                                 type="file"
-                                accept=".epher,.txt,text/plain"
                                 class="visually-hidden-file"
                                 ref={history_ref.clone()}
                                 onchange={on_history_chosen}
@@ -2497,7 +2497,7 @@ fn epher_app() -> Html {
                                         <label class="graph-option graph-width">
                                             <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
                                             <input type="range" class="graph-width-slider"
-                                                min="0" max="4" step="0.1" value={line_width.to_string()}
+                                                min="0.1" max="4" step="0.1" value={line_width.to_string()}
                                                 oninput={Callback::from({
                                                     let on_set_line_width = on_set_line_width.clone();
                                                     move |e: web_sys::InputEvent| {
