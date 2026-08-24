@@ -39,7 +39,6 @@ window.EPHER_I18N["pt"] = {
   "mac-name": "macOS",
   "mac-desc": "Uma única aplicação. Arraste-a para Aplicações; um botão no interior instala o comando de terminal epher por si.",
   "mac-download": "Descarregar para macOS (Apple Silicon)",
-  "mac-download-intel": "Baixar para macOS (Intel)",
   "linux-name": "Linux",
   "linux-desc": "Uma instalação por família de pacotes: Debian/Ubuntu, Fedora/RHEL ou o AppImage para tudo o resto (Arch incluído). Todas colocam o epher no seu PATH.",
   "linux-deb": "Descarregar para Debian/Ubuntu (.deb)",

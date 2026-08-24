@@ -71,13 +71,13 @@ fn pois_render_their_localized_labels() {
 fn three_dimensional_output_is_a_standalone_document() {
     let env = Env::default();
     let s = epher_core::graph::sample_surface("x ^ 2 - y ^ 2", 20, &env).unwrap();
-    let svg = graph3d_svg(&[s], &Default::default()).unwrap();
+    let svg = graph3d_svg(&[s], &Default::default(), 1.0).unwrap();
     assert!(svg.starts_with("<svg "), "{svg}");
     assert!(svg.contains("viewBox=\"0 0 640 400\""));
     assert!(svg.contains("<style>"));
     assert!(svg.contains("transform=\"translate("));
     assert!(svg.ends_with("</svg>"));
-    assert!(graph3d_svg(&[], &Default::default()).is_none());
+    assert!(graph3d_svg(&[], &Default::default(), 1.0).is_none());
 }
 
 #[test]

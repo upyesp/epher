@@ -442,7 +442,11 @@ pub fn graph_svg(
 /// The mesh and frame of a 3D surface set as raw polyline/line markup in
 /// data coordinates (the live web renderer injects this into its own
 /// letterboxed `<svg>`). Returns the content view box and the markup.
-pub fn surface_parts(surfaces: &[Surface], view: &View3D) -> Option<(String, String)> {
+pub fn surface_parts(
+    surfaces: &[Surface],
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<(String, String)> {
     use crate::graph::{project_mesh, surface_frame, Polyline3D};
     if surfaces.is_empty() {
         return None;
@@ -505,13 +509,15 @@ pub fn surface_parts(surfaces: &[Surface], view: &View3D) -> Option<(String, Str
             .collect::<Vec<_>>()
             .join(" ");
         parts.push_str(&format!(
-            "<polyline points=\"{points}\" fill=\"none\" stroke=\"currentColor\" stroke-opacity=\"{opacity:.3}\" stroke-width=\"1.2\"/>"
+            "<polyline points=\"{points}\" fill=\"none\" stroke=\"currentColor\" stroke-opacity=\"{opacity:.3}\" stroke-width=\"{:.2}\"/>",
+            1.2 * stroke_width
         ));
     }
     for seg in &frame {
         parts.push_str(&format!(
-            "<line x1=\"{:.3}\" y1=\"{:.3}\" x2=\"{:.3}\" y2=\"{:.3}\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-opacity=\"0.9\"/>",
-            seg.x1, seg.y1, seg.x2, seg.y2
+            "<line x1=\"{:.3}\" y1=\"{:.3}\" x2=\"{:.3}\" y2=\"{:.3}\" stroke=\"currentColor\" stroke-width=\"{:.2}\" stroke-opacity=\"0.9\"/>",
+            seg.x1, seg.y1, seg.x2, seg.y2,
+            1.4 * stroke_width
         ));
     }
     Some((view_box, parts))
@@ -519,10 +525,11 @@ pub fn surface_parts(surfaces: &[Surface], view: &View3D) -> Option<(String, Str
 
 /// Render a 3D surface set as a self-contained SVG document: the mesh and
 /// frame of [`surface_parts`], letterboxed into the same 640×400 canvas
-/// the 2D plot uses, on the default dark background. `None` when nothing
-/// can be drawn.
-pub fn graph3d_svg(surfaces: &[Surface], view: &View3D) -> Option<String> {
-    let (view_box, parts) = surface_parts(surfaces, view)?;
+/// the 2D plot uses, on the default dark background. `stroke_width` scales
+/// the mesh and frame lines (1.0 = the default weight). `None` when
+/// nothing can be drawn.
+pub fn graph3d_svg(surfaces: &[Surface], view: &View3D, stroke_width: f64) -> Option<String> {
+    let (view_box, parts) = surface_parts(surfaces, view, stroke_width)?;
     let mut it = view_box.split_whitespace();
     let (mut x, mut y, mut w, mut h) = (0.0f64, 0.0f64, 1.0f64, 1.0f64);
     if let (Some(a), Some(b), Some(c), Some(d)) = (it.next(), it.next(), it.next(), it.next()) {
@@ -540,7 +547,7 @@ pub fn graph3d_svg(surfaces: &[Surface], view: &View3D) -> Option<String> {
         "<svg viewBox=\"0 0 {WIDTH} {HEIGHT}\" width=\"{WIDTH}\" height=\"{HEIGHT}\" role=\"img\" aria-label=\"3D graph\" xmlns=\"http://www.w3.org/2000/svg\">"
     ));
     svg.push_str("<title>3D graph</title>");
-    svg.push_str(&style_svg(DEFAULT_STROKE_WIDTH));
+    svg.push_str(&style_svg(stroke_width));
     svg.push_str(&format!(
         "<rect class=\"bg\" x=\"0\" y=\"0\" width=\"{WIDTH}\" height=\"{HEIGHT}\" />"
     ));

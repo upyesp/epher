@@ -538,14 +538,14 @@ fn menu_navigation_and_actions() {
     assert_eq!(app.menu_active(), Some((0, 0)));
     app.menu_move(0, 1);
     assert_eq!(app.menu_active(), Some((0, 1)));
-    assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::SaveHistory));
+    assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::OpenScript));
     assert_eq!(app.menu_active(), None);
 
-    // File ends with Quit (ADR-0023): four items, activating the last one
-    // returns the quit action.
-    assert_eq!(epher_tui::App::menu_len(0), 4);
+    // File ends with Quit (ADR-0023, ADR-0025): five items now — open
+    // history, open script, save history, save script, quit.
+    assert_eq!(epher_tui::App::menu_len(0), 5);
     app.menu_open(0);
-    app.menu_move(0, 3);
+    app.menu_move(0, 4);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::Quit));
     assert_eq!(app.menu_active(), None);
 
@@ -634,28 +634,43 @@ fn file_prompt_saves_and_opens() {
     let _ = std::fs::create_dir_all(&dir);
     let path = dir.join("script.epher");
 
+    let localizer = epher_i18n::Localizer::resolve(None, &[]);
     app.prompt_start(epher_tui::PromptKind::SaveScript);
     for c in path.to_string_lossy().chars() {
         app.prompt_push(c);
     }
-    assert_eq!(app.prompt_submit(), None, "save must succeed and close the prompt");
+    assert_eq!(app.prompt_submit(&localizer), None, "save must succeed and close the prompt");
     assert_eq!(std::fs::read_to_string(&path).unwrap(), "1+1");
 
-    // Opening loads the file into the input.
+    // Opening a script loads the file into the input.
     app.set_input("");
-    app.prompt_start(epher_tui::PromptKind::Open);
+    app.prompt_start(epher_tui::PromptKind::OpenScript);
     for c in path.to_string_lossy().chars() {
         app.prompt_push(c);
     }
-    assert_eq!(app.prompt_submit(), None);
+    assert_eq!(app.prompt_submit(&localizer), None);
     assert_eq!(app.input(), "1+1");
 
+    // Opening a history file replaces the history section without
+    // executing anything (ADR-0025).
+    let hist_path = dir.join("history.epher");
+    std::fs::write(&hist_path, "2 + 2\n\nhello = 5\n").unwrap();
+    app.set_input("keep me");
+    app.prompt_start(epher_tui::PromptKind::OpenHistory);
+    for c in hist_path.to_string_lossy().chars() {
+        app.prompt_push(c);
+    }
+    assert_eq!(app.prompt_submit(&localizer), None);
+    assert_eq!(app.history(), &["2 + 2", "hello = 5"]);
+    assert_eq!(app.input(), "keep me", "history load must not touch the entry");
+    assert!(app.result().contains('2'), "loaded count in: {}", app.result());
+
     // A missing path fails and keeps the prompt (with its text) open.
-    app.prompt_start(epher_tui::PromptKind::Open);
+    app.prompt_start(epher_tui::PromptKind::OpenScript);
     for c in "/nonexistent/nope.epher".chars() {
         app.prompt_push(c);
     }
-    assert_eq!(app.prompt_submit(), Some(epher_tui::PromptKind::Open));
+    assert_eq!(app.prompt_submit(&localizer), Some(epher_tui::PromptKind::OpenScript));
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -680,7 +695,7 @@ fn save_history_writes_the_session_history() {
     for c in path.to_string_lossy().chars() {
         app.prompt_push(c);
     }
-    assert_eq!(app.prompt_submit(), None);
+    assert_eq!(app.prompt_submit(&localizer), None);
     let saved = std::fs::read_to_string(&path).unwrap();
     assert!(saved.contains("1+1  = 2"), "history file: {saved:?}");
     assert!(saved.contains("graph x"), "history file: {saved:?}");

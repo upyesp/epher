@@ -1,0 +1,18 @@
+{
+  "app": {
+    "windows": [
+      {
+        "title": "epher",
+        "width": 1024,
+        "height": 720,
+        "minWidth": 900,
+        "minHeight": 640,
+        "resizable": true,
+        "fullscreen": false,
+        "theme": "Dark",
+        "backgroundColor": "#141416",
+        "additionalBrowserArgs": "--disk-cache-size=0"
+      }
+    ]
+  }
+}

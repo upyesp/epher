@@ -15,7 +15,8 @@
 #
 # Asset names (stable — the landing page links to these):
 #   epher-windows-x86_64.exe        Windows installer (NSIS)
-#   epher-macos-aarch64.dmg         macOS disk image
+#   epher-macos-aarch64.dmg         macOS disk image (Apple Silicon only —
+#                                   ADR-0025 dropped the Intel build)
 #   epher-linux-x86_64.deb          Debian/Ubuntu and derivatives
 #   epher-linux-x86_64.rpm          Fedora/RHEL and derivatives
 #   epher-linux-x86_64.AppImage     everything else, incl. Arch — runs as-is
@@ -52,6 +53,7 @@ jobs:
           mkdir -p target/release
           touch target/release/epher.exe
           makensis crates/tauri-app/src-tauri/nsis-check.nsi
+          makensis crates/tauri-app/src-tauri/nsis-theme-check.nsi
 
   desktop:
     name: desktop (${{ matrix.target }})
@@ -61,30 +63,16 @@ jobs:
         include:
           - os: ubuntu-22.04
             target: linux-x86_64
-            build-args: ""
-            rustup-targets: ""
-            bundle-dir: release
           - os: macos-latest
             target: macos-aarch64
-            build-args: ""
-            rustup-targets: ""
-            bundle-dir: release
-          - os: macos-latest
-            target: macos-x86_64
-            build-args: "--target x86_64-apple-darwin"
-            rustup-targets: "x86_64-apple-darwin"
-            bundle-dir: x86_64-apple-darwin/release
           - os: windows-latest
             target: windows-x86_64
-            build-args: ""
-            rustup-targets: ""
-            bundle-dir: release
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: wasm32-unknown-unknown${{ matrix.rustup-targets && ',' }}${{ matrix.rustup-targets }}
+          targets: wasm32-unknown-unknown
       - uses: jetli/trunk-action@v0.5.0
         with:
           version: "v0.21.14"
@@ -101,15 +89,31 @@ jobs:
         run: cargo install tauri-cli --version 2.11.4 --locked
 
       - name: Build desktop bundles
-        run: cargo tauri build ${{ matrix.build-args }}
+        run: cargo tauri build
         working-directory: crates/tauri-app/src-tauri
+
+      - name: Smoke-test the unified CLI
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -e
+          BIN="$GITHUB_WORKSPACE/target/release/epher"
+          # The same binary the bundle ships: one-shot CLI, bases, graphing.
+          "$BIN" --version | grep -q "$(echo '${{ github.ref_name }}' | sed 's/^v//')"
+          [ "$("$BIN" 'hex(255)')" = "0xff" ]
+          [ "$("$BIN" '0b1010 + 0o17')" = "25" ]
+          OUT="$(mktemp -d)"
+          "$BIN" $'graph x^2\ngraph save '"$OUT"'/curves.svg' >/dev/null
+          grep -q 'stroke-width: 1.00' "$OUT/curves.svg"
+          "$BIN" $'graph3d x^2 - y^2\ngraph3d save '"$OUT"'/surface.svg' >/dev/null
+          grep -q 'polyline points' "$OUT/surface.svg"
 
       - name: Package bundles
         shell: bash
         run: |
           set -e
           mkdir -p artifacts
-          BUNDLE="$GITHUB_WORKSPACE/target/${{ matrix.bundle-dir }}/bundle"
+          BUNDLE="$GITHUB_WORKSPACE/target/release/bundle"
           case "${{ runner.os }}" in
             Linux)
               cp "$BUNDLE"/deb/*.deb artifacts/epher-linux-x86_64.deb
@@ -155,10 +159,9 @@ jobs:
             - **Windows**: run `epher-windows-x86_64.exe` — the installer puts
               `epher` on your PATH (open a new terminal, then `epher "2 + 2"`).
               Desktop launches open the window with no console flash.
-            - **macOS**: open `epher-macos-aarch64.dmg` (Apple Silicon) or
-              `epher-macos-x86_64.dmg` (Intel) and drag epher to
-              Applications. In the app, "Install the epher command" puts
-              `epher` on your terminal PATH.
+            - **macOS**: open `epher-macos-aarch64.dmg` (Apple Silicon) and
+              drag epher to Applications. In the app, "Install the epher
+              command" puts `epher` on your terminal PATH.
             - **Linux**: Debian/Ubuntu → `.deb`; Fedora/RHEL → `.rpm`;
               Arch and everything else → `.AppImage` (chmod +x and run).
 

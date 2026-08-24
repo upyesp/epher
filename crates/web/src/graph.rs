@@ -29,8 +29,12 @@ pub use epher_core::graph_svg::{
     HEIGHT, LEFT, RIGHT, TOP, WIDTH, DEFAULT_STROKE_WIDTH,
 };
 /// The live 3D renderer's content (view box + mesh markup).
-pub fn surface_svg(surfaces: &[Surface], view: &View3D) -> Option<(String, String)> {
-    epher_core::graph_svg::surface_parts(surfaces, view)
+pub fn surface_svg(
+    surfaces: &[Surface],
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<(String, String)> {
+    epher_core::graph_svg::surface_parts(surfaces, view, stroke_width)
 }
 
 /// Render the same layers as Yew SVG VNodes — the production renderer.

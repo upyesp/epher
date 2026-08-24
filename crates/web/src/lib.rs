@@ -593,6 +593,7 @@ fn epher_app() -> Html {
         });
     }
     let file_ref = use_node_ref();
+    let history_ref = use_node_ref();
     let bridge = Bridge::detect();
 
     // Clear history (the button next to the list): empty the session's
@@ -835,9 +836,10 @@ fn epher_app() -> Html {
         })
     };
 
-    // File → Open: the hidden input's picker; the chosen file's text
-    // lands in the entry field for review before running.
-    let on_open = {
+    // File → Open script (ADR-0025): the hidden input's picker; the
+    // chosen file's text replaces the entry field — clearing whatever sat
+    // there — for review before running.
+    let on_open_script = {
         let file_ref = file_ref.clone();
         Callback::from(move |_| {
             if let Some(el) = file_ref.cast::<web_sys::HtmlInputElement>() {
@@ -845,7 +847,7 @@ fn epher_app() -> Html {
             }
         })
     };
-    let on_file_chosen = {
+    let on_script_chosen = {
         let input = input.clone();
         let result = result.clone();
         let localizer = localizer.clone();
@@ -867,6 +869,60 @@ fn epher_app() -> Html {
                 {
                     input.set(text);
                     result.set(localizer.lookup("menu-loaded"));
+                }
+            });
+            // Allow picking the same file twice in a row.
+            target.set_value("");
+        })
+    };
+
+    // File → Open history (ADR-0025): the hidden input's picker; the
+    // chosen file's lines REPLACE the history section — the current
+    // history clears first, then each non-empty line is recorded — and
+    // the new history persists through the same store save every submit
+    // uses. Nothing executes: the lines display exactly as saved.
+    let on_open_history = {
+        let history_ref = history_ref.clone();
+        Callback::from(move |_| {
+            if let Some(el) = history_ref.cast::<web_sys::HtmlInputElement>() {
+                el.click();
+            }
+        })
+    };
+    let on_history_chosen = {
+        let session = session.clone();
+        let result = result.clone();
+        let localizer = localizer.clone();
+        Callback::from(move |e: Event| {
+            let target = e.target_unchecked_into::<web_sys::HtmlInputElement>();
+            let Some(files) = target.files() else {
+                return;
+            };
+            let Some(file) = files.item(0) else {
+                return;
+            };
+            let session = session.clone();
+            let result = result.clone();
+            let localizer = localizer.clone();
+            spawn_local(async move {
+                if let Ok(text) = wasm_bindgen_futures::JsFuture::from(file.text())
+                    .await
+                    .and_then(|v| v.as_string().ok_or(()).map_err(|()| wasm_bindgen::JsValue::NULL))
+                {
+                    let mut s = (*session).clone();
+                    s.clear_history();
+                    for line in text.lines().map(str::trim).filter(|l| !l.is_empty()) {
+                        s.record(line);
+                    }
+                    let loaded = s.history().len();
+                    let count = loaded.to_string();
+                    // The handle deref stays a render snapshot (the
+                    // play_cell pattern, ADR-0023): read the slice from
+                    // `s` before moving it into the state.
+                    let saved: Vec<String> = s.history().to_vec();
+                    session.set(s);
+                    bridge.save_history(&saved);
+                    result.set(localizer.lookup_args("history-loaded", &[("count", &count)]));
                 }
             });
             // Allow picking the same file twice in a row.
@@ -1459,17 +1515,28 @@ fn epher_app() -> Html {
     };
 
     // Copy the plot as standalone SVG (the same string renderer the tests
-    // exercise), with a localized outcome message.
+    // exercise), with a localized outcome message. When the pane shows 2D
+    // curves they win; a surface-only pane exports the 3D document at the
+    // current orbit pose (ADR-0025: the pane controls serve both kinds of
+    // graph).
     let on_copy_svg = {
         let curves = graph.clone();
         let pois = pois.clone();
         let trace = trace.clone();
         let poi_markers = poi_markers.clone();
         let line_width = line_width.clone();
+        let surface = surface.clone();
+        let view = view.clone();
         let result = result.clone();
         let localizer = localizer.clone();
         Callback::from(move |_| {
-            let svg = graph::graph_svg(&curves, &pois, *trace, *poi_markers, *line_width);
+            let svg = if !(*curves).is_empty() {
+                graph::graph_svg(&curves, &pois, *trace, *poi_markers, *line_width)
+            } else if let Some(doc) = graph::graph3d_svg(&surface, &view, *line_width) {
+                doc
+            } else {
+                String::new()
+            };
             if svg.is_empty() {
                 return;
             }
@@ -1836,18 +1903,30 @@ fn epher_app() -> Html {
             <h1 class="visually-hidden">{ localizer.lookup("app-name") }</h1>
             <header class="topbar">
                 {
-                    // File → Open: a real file picker, hidden from the tab
-                    // order (it is reached through the menu item).
+                    // File → Open history / Open script: two real file
+                    // pickers, hidden from the tab order (reached through
+                    // the menu items).
                     html! {
-                        <input
-                            type="file"
-                            accept=".epher,.txt,text/plain"
-                            class="visually-hidden-file"
-                            ref={file_ref.clone()}
-                            onchange={on_file_chosen}
-                            tabindex="-1"
-                            aria-hidden="true"
-                        />
+                        <>
+                            <input
+                                type="file"
+                                accept=".epher,.txt,text/plain"
+                                class="visually-hidden-file"
+                                ref={file_ref.clone()}
+                                onchange={on_script_chosen}
+                                tabindex="-1"
+                                aria-hidden="true"
+                            />
+                            <input
+                                type="file"
+                                accept=".epher,.txt,text/plain"
+                                class="visually-hidden-file"
+                                ref={history_ref.clone()}
+                                onchange={on_history_chosen}
+                                tabindex="-1"
+                                aria-hidden="true"
+                            />
+                        </>
                     }
                 }
                 <nav
@@ -1884,11 +1963,20 @@ fn epher_app() -> Html {
                                         <button type="button" role="menuitem" class="menu-item"
                                             onclick={Callback::from({
                                                 let menu_open = menu_open.clone();
-                                                let on_open = on_open.clone();
-                                                move |_| { menu_open.set(None); on_open.emit(()); }
+                                                let on_open_history = on_open_history.clone();
+                                                move |_| { menu_open.set(None); on_open_history.emit(()); }
                                             })}
                                         >
-                                            { localizer.lookup("menu-open") }
+                                            { localizer.lookup("menu-open-history") }
+                                        </button>
+                                        <button type="button" role="menuitem" class="menu-item"
+                                            onclick={Callback::from({
+                                                let menu_open = menu_open.clone();
+                                                let on_open_script = on_open_script.clone();
+                                                move |_| { menu_open.set(None); on_open_script.emit(()); }
+                                            })}
+                                        >
+                                            { localizer.lookup("menu-open-script") }
                                         </button>
                                         <button type="button" role="menuitem" class="menu-item" onclick={on_save_history.clone()}>
                                             { localizer.lookup("menu-save-history") }
@@ -2111,10 +2199,16 @@ fn epher_app() -> Html {
                             >
                                 <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-file") }</p>
                                 <button type="button" role="menuitem" class="menu-item" onclick={mobile_item(Callback::from({
-                                    let on_open = on_open.clone();
-                                    move |_: web_sys::MouseEvent| on_open.emit(())
+                                    let on_open_history = on_open_history.clone();
+                                    move |_: web_sys::MouseEvent| on_open_history.emit(())
                                 }))}>
-                                    { localizer.lookup("menu-open") }
+                                    { localizer.lookup("menu-open-history") }
+                                </button>
+                                <button type="button" role="menuitem" class="menu-item" onclick={mobile_item(Callback::from({
+                                    let on_open_script = on_open_script.clone();
+                                    move |_: web_sys::MouseEvent| on_open_script.emit(())
+                                }))}>
+                                    { localizer.lookup("menu-open-script") }
                                 </button>
                                 <button type="button" role="menuitem" class="menu-item" onclick={mobile_item(on_save_history.clone())}>
                                     { localizer.lookup("menu-save-history") }
@@ -2316,20 +2410,21 @@ fn epher_app() -> Html {
                                     <button type="button" class="pane-btn" onclick={on_graph_clear.clone()}>
                                         { localizer.lookup("graph-clear") }
                                     </button>
-                                    {
-                                        if !(*graph).is_empty() {
-                                            html! {
-                                                <>
-                                                    <button type="button" class="pane-btn" onclick={on_copy_svg}>
-                                                        { localizer.lookup("graph-copy") }
-                                                    </button>
-                                                    // The graph options row (ADR-0020): the two
-                                                    // points-of-interest toggles that lived in
-                                                    // Settings (ADR-0019) plus the line-width
-                                                    // slider. Real form controls — focusable and
-                                                    // labelled — not menu items, because they
-                                                    // are adjustments, not commands.
-                                                    <div class="graph-options">
+                                    <button type="button" class="pane-btn" onclick={on_copy_svg}>
+                                        { localizer.lookup("graph-copy") }
+                                    </button>
+                                    // The graph options row (ADR-0020, ADR-0025): the
+                                    // line-width slider serves both 2D curves and 3D
+                                    // surfaces; the two points-of-interest toggles
+                                    // (ADR-0019) belong to the 2D plot only, so they
+                                    // render just when curves exist. Real form
+                                    // controls — focusable and labelled — not menu
+                                    // items, because they are adjustments, not commands.
+                                    <div class="graph-options">
+                                        {
+                                            if !(*graph).is_empty() {
+                                                html! {
+                                                    <>
                                                         <label class="graph-option">
                                                             <input type="checkbox" checked={*poi_list} onchange={Callback::from({
                                                                 let on_set_poi_list = on_set_poi_list.clone();
@@ -2358,33 +2453,33 @@ fn epher_app() -> Html {
                                                             })} />
                                                             { localizer.lookup("settings-markers") }
                                                         </label>
-                                                        <label class="graph-option graph-width">
-                                                            <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
-                                                            <input type="range" class="graph-width-slider"
-                                                                min="0.5" max="4" step="0.25" value={line_width.to_string()}
-                                                                oninput={Callback::from({
-                                                                    let on_set_line_width = on_set_line_width.clone();
-                                                                    move |e: web_sys::InputEvent| {
-                                                                        if let Some(el) = e
-                                                                            .target()
-                                                                            .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
-                                                                        {
-                                                                            if let Ok(w) = el.value().parse::<f64>() {
-                                                                                on_set_line_width.emit(w);
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                })}
-                                                            />
-                                                            <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *line_width) }</span>
-                                                        </label>
-                                                    </div>
-                                                </>
+                                                    </>
+                                                }
+                                            } else {
+                                                html! {}
                                             }
-                                        } else {
-                                            html! {}
                                         }
-                                    }
+                                        <label class="graph-option graph-width">
+                                            <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
+                                            <input type="range" class="graph-width-slider"
+                                                min="0.5" max="4" step="0.25" value={line_width.to_string()}
+                                                oninput={Callback::from({
+                                                    let on_set_line_width = on_set_line_width.clone();
+                                                    move |e: web_sys::InputEvent| {
+                                                        if let Some(el) = e
+                                                            .target()
+                                                            .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                        {
+                                                            if let Ok(w) = el.value().parse::<f64>() {
+                                                                on_set_line_width.emit(w);
+                                                            }
+                                                        }
+                                                    }
+                                                })}
+                                            />
+                                            <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *line_width) }</span>
+                                        </label>
+                                    </div>
                                 </div>
                             }
                         } else {
@@ -2438,7 +2533,7 @@ fn epher_app() -> Html {
                     }
                     {
                         if !(*surface).is_empty() {
-                            let rendered = graph::surface_svg(&surface, &view);
+                            let rendered = graph::surface_svg(&surface, &view, *line_width);
                             let aria = format!(
                                 "{}: {}",
                                 "3D",

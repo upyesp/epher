@@ -52,7 +52,8 @@ impl Theme {
 /// What the file prompt under the menu bar is asking for (ADR-0017).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PromptKind {
-    Open,
+    OpenHistory,
+    OpenScript,
     SaveHistory,
     SaveScript,
 }
@@ -61,7 +62,8 @@ pub enum PromptKind {
 /// to the store and localizer.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MenuAction {
-    OpenFile,
+    OpenHistory,
+    OpenScript,
     SaveHistory,
     SaveScript,
     Quit,
@@ -297,7 +299,7 @@ impl App {
     /// How many items a menu has.
     pub fn menu_len(menu: usize) -> usize {
         match menu {
-            0 => 4,  // File: open, save history, save script, quit
+            0 => 5,  // File: open history, open script, save history, save script, quit
             1 => 3,  // Edit: cut, copy, paste
             2 => 1,  // Graph: clear graph
             3 => 12, // Settings: POI toggle, 3 themes, 8 languages
@@ -340,9 +342,10 @@ impl App {
         let (menu, item) = self.menu?;
         let action = match menu {
             0 => match item {
-                0 => MenuAction::OpenFile,
-                1 => MenuAction::SaveHistory,
-                2 => MenuAction::SaveScript,
+                0 => MenuAction::OpenHistory,
+                1 => MenuAction::OpenScript,
+                2 => MenuAction::SaveHistory,
+                3 => MenuAction::SaveScript,
                 _ => MenuAction::Quit,
             },
             1 => match item {
@@ -438,10 +441,25 @@ impl App {
 
     /// Confirm the prompt: run the file operation and leave the prompt
     /// open on failure (so the path can be fixed) or closed on success.
-    pub fn prompt_submit(&mut self) -> Option<PromptKind> {
+    pub fn prompt_submit(&mut self, localizer: &Localizer) -> Option<PromptKind> {
         let (kind, path) = self.prompt.take()?;
         let outcome = match kind {
-            PromptKind::Open => std::fs::read_to_string(&path)
+            PromptKind::OpenHistory => std::fs::read_to_string(&path)
+                .map(|text| {
+                    // Replace the history section with the file's lines —
+                    // nothing executes, the lines display exactly as saved
+                    // (ADR-0025). The result line names the loaded count.
+                    self.session.clear_history();
+                    let mut loaded = 0;
+                    for line in text.lines().map(str::trim).filter(|l| !l.is_empty()) {
+                        self.session.record(line);
+                        loaded += 1;
+                    }
+                    let count = loaded.to_string();
+                    self.result = localizer.lookup_args("history-loaded", &[("count", &count)]);
+                })
+                .map_err(|_| ()),
+            PromptKind::OpenScript => std::fs::read_to_string(&path)
                 .map(|text| {
                     self.input = text;
                     self.result = String::new();
@@ -1203,10 +1221,13 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         .prompt_active()
                         .map(|(_, buf)| buf.to_string())
                         .unwrap_or_default();
-                    match app.prompt_submit() {
+                    match app.prompt_submit(&localizer) {
                         Some(failed) => {
                             app.prompt_restore(failed, &path);
-                            let msg = if failed == PromptKind::Open {
+                            let msg = if matches!(
+                                failed,
+                                PromptKind::OpenHistory | PromptKind::OpenScript
+                            ) {
                                 localizer.lookup("tui-open-failed")
                             } else {
                                 localizer.lookup("tui-save-failed")
@@ -1214,17 +1235,23 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                             app.set_result(&msg);
                         }
                         None => {
+                            // OpenHistory already reported the loaded line
+                            // count; the other outcomes report here.
                             let msg = match kind {
-                                Some(PromptKind::Open) => localizer.lookup("menu-loaded"),
-                                _ => localizer.lookup_args("saved", &[("name", &path)]),
+                                Some(PromptKind::OpenScript) => Some(localizer.lookup("menu-loaded")),
+                                Some(PromptKind::OpenHistory) => None,
+                                _ => Some(localizer.lookup_args("saved", &[("name", &path)])),
                             };
-                            app.set_result(&msg);
+                            if let Some(msg) = msg {
+                                app.set_result(&msg);
+                            }
                         }
                     }
                 } else if is_enter && app.menu_active().is_some() {
                     if let Some(action) = app.menu_activate() {
                         match action {
-                            MenuAction::OpenFile => app.prompt_start(PromptKind::Open),
+                            MenuAction::OpenHistory => app.prompt_start(PromptKind::OpenHistory),
+                            MenuAction::OpenScript => app.prompt_start(PromptKind::OpenScript),
                             MenuAction::SaveHistory => app.prompt_start(PromptKind::SaveHistory),
                             MenuAction::SaveScript => app.prompt_start(PromptKind::SaveScript),
                             MenuAction::Quit => return Ok(()),
@@ -1438,9 +1465,12 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
     // column on the left, the graph panel in its own section on the
     // right, and the key hints spanning the full width underneath both
     // (ADR-0019) — the panel used to run down over the hints row and
-    // clip the key guide at the column edge. Narrow terminals keep the
-    // vertical stack from ADR-0016 — one split, no overlapping regions.
-    let wide = body.width >= 104;
+    // clip the key guide at the column edge. Below 72 columns only, the
+    // vertical stack from ADR-0016 remains — one split, no overlapping
+    // regions. The threshold moved from 104 to 72 (ADR-0025) so a
+    // standard 80×24 terminal gets the same layout every platform does:
+    // history below the answer, graph on the right.
+    let wide = body.width >= 72;
     let (input_area, result_area, history_area, graph_area, keypad_area, hints_area) = if wide {
         let split =
             Layout::vertical([Constraint::Min(0), Constraint::Length(1)])
@@ -1472,18 +1502,21 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
             Constraint::Length(3),  // input
             Constraint::Length(1),  // result
             Constraint::Min(0),     // history
-            Constraint::Length(14), // graph (shrunk while keypad is open)
+            Constraint::Length(12), // graph (shrunk while keypad is open)
             Constraint::Length(7),  // keypad (bank row + 4 key rows)
             Constraint::Length(1),  // hints
         ])
         .split(body);
         (rows[0], rows[1], rows[2], rows[3], Some(rows[4]), rows[5])
     } else {
+        // History keeps its Min(0) row and the graph panel is fixed at 14
+        // rows (was 20) — in a standard 24-row terminal the old height
+        // squeezed the history section to nothing (ADR-0025).
         let rows = Layout::vertical([
             Constraint::Length(3),  // input
             Constraint::Length(1),  // result
             Constraint::Min(0),     // history
-            Constraint::Length(20), // graph
+            Constraint::Length(14), // graph
             Constraint::Length(1),  // hints
         ])
         .split(body);
@@ -1492,7 +1525,8 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
 
     // The input row doubles as the file prompt (ADR-0017).
     let (input_title, input_text) = match app.prompt_active() {
-        Some((PromptKind::Open, buf)) => (localizer.lookup("tui-open-prompt"), buf.to_string()),
+        Some((PromptKind::OpenHistory, buf)) => (localizer.lookup("tui-open-prompt"), buf.to_string()),
+        Some((PromptKind::OpenScript, buf)) => (localizer.lookup("tui-open-prompt"), buf.to_string()),
         Some((PromptKind::SaveHistory, buf)) => (localizer.lookup("tui-save-prompt"), buf.to_string()),
         Some((PromptKind::SaveScript, buf)) => (localizer.lookup("tui-save-prompt"), buf.to_string()),
         None => (localizer.lookup("tui-expression"), app.input().to_string()),
@@ -1634,7 +1668,8 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
     if let Some((menu, item)) = app.menu_active() {
         let items: Vec<String> = match menu {
             0 => vec![
-                localizer.lookup("menu-open"),
+                localizer.lookup("menu-open-history"),
+                localizer.lookup("menu-open-script"),
                 localizer.lookup("menu-save-history"),
                 localizer.lookup("menu-save-script"),
                 localizer.lookup("menu-quit"),
@@ -1711,7 +1746,7 @@ fn graph_dims(graph_area: ratatui::layout::Rect, wide: bool, keypad: bool) -> (u
         let h = graph_area.height.saturating_sub(4) as usize;
         return (w.max(20), h.max(3));
     }
-    (60, if keypad { 11 } else { 16 })
+    (60, if keypad { 10 } else { 12 })
 }
 
 /// Which Settings radio is checked: the theme item index (0 light,
@@ -1826,8 +1861,8 @@ mod draw_tests {
         let buffer = terminal.backend().buffer().clone();
 
         // The File menu drops down at column 1, one row under the menu
-        // bar, and is 26 wide × (4 items + borders) tall.
-        let popup = Rect { x: 1, y: 1, width: 26, height: 6 };
+        // bar, and is 26 wide × (5 items + borders) tall.
+        let popup = Rect { x: 1, y: 1, width: 26, height: 7 };
         let mut saw_quit = false;
         let mut leaked = false;
         for y in popup.y..popup.y + popup.height {
@@ -1844,5 +1879,51 @@ mod draw_tests {
         }
         assert!(saw_quit, "the File menu's Quit item must be visible in the popup");
         assert!(!leaked, "history text must not bleed into the open menu");
+    }
+
+    /// ADR-0025: a standard 80×24 terminal gets the same two-column layout
+    /// as any wider one — history below the answer, graph pane on the
+    /// right. The old 104-column threshold (and the stacked layout's fixed
+    /// 20-row graph) hid the history section entirely at this size.
+    #[test]
+    fn eighty_column_terminal_shows_history_and_graph_on_the_right() {
+        let mut app = App::with_session(Session::with_history(vec![
+            "2 + 2  = 4".to_string(),
+        ]));
+        app.set_result("= 4");
+        app.submit_graph("x").unwrap();
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        // The graph pane sits to the right of the 46-column calculator
+        // column: its title cell starts at column 47 on row 1 (menu row 0).
+        let mut saw_graph_title = false;
+        for x in 46..80 {
+            let cell = buffer.cell((x, 1)).unwrap().symbol();
+            if !cell.trim().is_empty() {
+                saw_graph_title = true;
+            }
+        }
+        assert!(saw_graph_title, "the graph pane must occupy the right side");
+
+        // History renders below the answer: the seeded line appears in the
+        // calculator column below the result row.
+        let mut saw_history = false;
+        for y in 5..24 {
+            let mut row = String::new();
+            for x in 0..46 {
+                row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            if row.contains("2 + 2  = 4") {
+                saw_history = true;
+            }
+        }
+        assert!(saw_history, "history must be visible below the answer");
     }
 }

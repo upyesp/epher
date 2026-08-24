@@ -194,7 +194,7 @@ impl Plots {
         if self.surfaces.is_empty() {
             return PlotOutcome::err(localizer.lookup("graph-empty"));
         }
-        match graph3d_svg(&self.surfaces, view) {
+        match graph3d_svg(&self.surfaces, view, DEFAULT_STROKE_WIDTH) {
             Some(doc) => write_document(path, doc, localizer),
             None => PlotOutcome::err(localizer.lookup("graph-empty")),
         }

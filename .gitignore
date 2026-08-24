@@ -19,3 +19,7 @@ site/guide/*/index.html
 node_modules/
 # NSIS harness output (compile check)
 crates/tauri-app/src-tauri/nsis-check.exe
+
+# NSIS compile-check outputs (makensis writes them next to the harnesses)
+**/nsis-check.exe
+**/nsis-theme-check.exe
