@@ -357,6 +357,17 @@ fn native_language_name(code: &str) -> &str {
 
 /// File → Save: start a Blob download of `text` as `filename` (the
 /// browser fallback when the save picker is unavailable).
+/// The panes sit side by side from 880px up (ADR-0016); below that they
+/// form a swipeable horizontal strip, so "show the graph" means sliding
+/// the strip across. Mirrors the CSS breakpoint (879.98px).
+fn mobile_layout() -> bool {
+    web_sys::window()
+        .and_then(|w| w.inner_width().ok())
+        .and_then(|v| v.as_f64())
+        .map(|w| w < 880.0)
+        .unwrap_or(false)
+}
+
 fn download_text_file(filename: &str, text: &str) {
     let Some(win) = web_sys::window() else {
         return;
@@ -1106,6 +1117,28 @@ fn epher_app() -> Html {
         })
     };
 
+    // Pane switching (ADR-0016): mobile swipes horizontally between the
+    // calculator and the graph; these buttons are the non-swipe spelling.
+    // The jump is instant — one discrete step, which is also the
+    // reduced-motion behavior (WCAG 2.3.3). Defined before on_submit so
+    // the submit path can slide the view to a freshly drawn graph.
+    let scroll_pane = Callback::from(|id: &'static str| {
+        let Some(doc) = web_sys::window().and_then(|w| w.document()) else {
+            return;
+        };
+        let (Some(panes), Some(pane)) = (
+            doc.get_element_by_id("panes"),
+            doc.get_element_by_id(id),
+        ) else {
+            return;
+        };
+        let offset = pane
+            .dyn_ref::<web_sys::HtmlElement>()
+            .map(|el| el.offset_left())
+            .unwrap_or(0);
+        let target = offset.saturating_sub(panes.client_left());
+        panes.set_scroll_left(target);
+    });
     let on_submit = {
         let session = session.clone();
         let input = input.clone();
@@ -1117,6 +1150,7 @@ fn epher_app() -> Html {
         let trace = trace.clone();
         let live = live.clone();
         let surface = surface.clone();
+        let scroll_pane = scroll_pane.clone();
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             // A submitted entry may be several lines (pasted from the
@@ -1163,6 +1197,13 @@ fn epher_app() -> Html {
                             // (ADR-0027): the command joins the history
                             // list, and the plot itself is the result.
                             result.set(String::new());
+                            // Mobile convenience: the graph pane is one
+                            // horizontal slide away in the stacked-pane
+                            // layout — a drawn plot slides the view
+                            // across so the curve is visible immediately.
+                            if mobile_layout() {
+                                scroll_pane.emit("graph-pane");
+                            }
                         }
                         Err(e) => result.set(format!("error: {e}")),
                     }
@@ -1185,6 +1226,11 @@ fn epher_app() -> Html {
                             // Same as 2D: no answer echo, the surface is
                             // the result (ADR-0027).
                             result.set(String::new());
+                            // Mobile convenience, as for 2D graphs: slide
+                            // the view across to the freshly drawn pane.
+                            if mobile_layout() {
+                                scroll_pane.emit("graph-pane");
+                            }
                         }
                         Err(e) => result.set(format!("error: {e}")),
                     }
@@ -1648,27 +1694,8 @@ fn epher_app() -> Html {
         })
     };
 
-    // Pane switching (ADR-0016): mobile swipes horizontally between the
-    // calculator and the graph; these buttons are the non-swipe spelling.
-    // The jump is instant — one discrete step, which is also the
-    // reduced-motion behavior (WCAG 2.3.3).
-    let scroll_pane = Callback::from(|id: &'static str| {
-        let Some(doc) = web_sys::window().and_then(|w| w.document()) else {
-            return;
-        };
-        let (Some(panes), Some(pane)) = (
-            doc.get_element_by_id("panes"),
-            doc.get_element_by_id(id),
-        ) else {
-            return;
-        };
-        let offset = pane
-            .dyn_ref::<web_sys::HtmlElement>()
-            .map(|el| el.offset_left())
-            .unwrap_or(0);
-        let target = offset.saturating_sub(panes.client_left());
-        panes.set_scroll_left(target);
-    });
+    // (The scroll_pane callback itself is defined above on_submit, so
+    // the submit path can slide the view to a freshly drawn graph.)
     let on_panes_scroll = {
         let active_pane = active_pane.clone();
         Callback::from(move |e: Event| {
