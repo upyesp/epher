@@ -8,21 +8,22 @@ Dieses Handbuch richtet sich an komplette Einsteiger. Es beginnt mit der
 einfachsten möglichen Berechnung und steigert sich bis zur vollen Kraft der
 Sprache. Jedes Beispiel zeigt, was du eintippst und was epher antwortet.
 
-Es gibt vier Arten, epher zu nutzen — wähle, was zu dir passt:
+Es gibt fünf Arten, epher zu nutzen — wähle, was zu dir passt:
 
 | Version | Was es ist | Am besten, wenn |
 |---|---|---|
-| **Web-App** (PWA) | Läuft in deinem Browser, installierbar, funktioniert offline | Du willst den schnellsten Start; keine Installation |
-| **Desktop-App** | Ein normales Desktop-Programm mit eigenem Fenster | Du willst eine normale Anwendung |
-| **Befehlszeile** (CLI) | Textbefehle in einem Terminal; auch eine interaktive Sitzung | Du lebst im Terminal und magst Skripte |
+| **Befehlszeile** (CLI) | Textbefehle in einem Terminal | Du lebst im Terminal und magst Skripte |
+| **REPL** | Eine interaktive `epher`-Sitzung am Prompt `epher>` | Du willst schnelles Hin und Her, ohne das Terminal zu verlassen |
 | **Terminal-Oberfläche** (TUI) | Ein Vollbild-Programm im Terminal | Du willst eine Terminal-App mit Graphen und Verlauf auf dem Bildschirm |
+| **Desktop-App** | Ein normales Desktop-Programm mit eigenem Fenster | Du willst eine normale Anwendung |
+| **Web-App** (PWA) | Läuft in deinem Browser, installierbar, funktioniert offline | Du willst den schnellsten Start; keine Installation |
 
-Die Desktop-App, die Befehlszeile und die Terminal-Oberfläche sind ein
-Programm: Ein einziger Download installiert den Befehl `epher`, der alle
-drei kann. Die Web-App ist die Ausnahme — sie braucht überhaupt keinen
-Download.
+Die Desktop-App, die Befehlszeile, das REPL und die Terminal-Oberfläche
+sind ein Programm: Ein einziger Download installiert den Befehl `epher`,
+der alle vier kann. Die Web-App ist die Ausnahme — sie braucht überhaupt
+keinen Download.
 
-Alle vier Versionen verstehen genau dieselbe Sprache. Lerne sie einmal,
+Alle fünf Versionen verstehen genau dieselbe Sprache. Lerne sie einmal,
 nutze sie überall.
 
 ## 1. Die Sprache epher
@@ -1305,5 +1306,5 @@ dieselben Befehle `save`, `save script` und `language` funktionieren hier.
   nur, solange die Seite offen ist. Die Web-App kann offline arbeiten,
   weil die Seite selbst von deinem Browser gespeichert wird.
 
-Alle vier Versionen führen die Berechnung vollständig auf deinem Gerät
+Alle fünf Versionen führen die Berechnung vollständig auf deinem Gerät
 aus — nichts wird irgendwohin gesendet.

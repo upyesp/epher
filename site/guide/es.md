@@ -8,20 +8,22 @@ Esta guía es para principiantes absolutos. Empieza con el cálculo más simple
 posible y llega hasta todo el poder del lenguaje. Cada ejemplo muestra lo que
 escribes y lo que epher responde.
 
-Hay cuatro formas de usar epher — elige la que más te convenga:
+Hay cinco formas de usar epher — elige la que más te convenga:
 
 | Versión | Qué es | Cuándo conviene |
 |---|---|---|
-| **Aplicación web** (PWA) | Se ejecuta en tu navegador, se puede instalar y funciona sin conexión | Quieres empezar rápido; sin instalación |
-| **Aplicación de escritorio** | Un programa normal con su propia ventana | Quieres una aplicación de escritorio |
-| **Línea de comandos** (CLI) | Comandos de texto en una terminal; también una sesión interactiva | Vives en la terminal y te gustan los scripts |
+| **Línea de comandos** (CLI) | Comandos de texto en una terminal | Vives en la terminal y te gustan los scripts |
+| **REPL** | Una sesión interactiva de `epher` en el indicador `epher>` | Quieres ida y vuelta rápida sin salir de la terminal |
 | **Interfaz de terminal** (TUI) | Un programa a pantalla completa dentro de la terminal | Quieres una app de terminal con gráficos e historial |
+| **Aplicación de escritorio** | Un programa normal con su propia ventana | Quieres una aplicación de escritorio |
+| **Aplicación web** (PWA) | Se ejecuta en tu navegador, se puede instalar y funciona sin conexión | Quieres empezar rápido; sin instalación |
 
-La aplicación de escritorio, la línea de comandos y la interfaz de terminal
-son un solo programa: una única descarga instala el comando `epher`, que hace
-las tres cosas. La aplicación web es la excepción — no necesita descarga.
+La aplicación de escritorio, la línea de comandos, el REPL y la interfaz de
+terminal son un solo programa: una única descarga instala el comando
+`epher`, que hace las cuatro cosas. La aplicación web es la excepción — no
+necesita descarga.
 
-Las cuatro versiones entienden exactamente el mismo lenguaje. Apréndelo una
+Las cinco versiones entienden exactamente el mismo lenguaje. Apréndelo una
 vez, úsalo en cualquier parte.
 
 ## 1. El lenguaje de epher
@@ -1295,5 +1297,5 @@ idioma viven en `~/.epher` (capítulo 4.6), y los mismos comandos `save`,
   mientras la página está abierta. La aplicación web puede funcionar sin
   conexión porque la propia página la guarda tu navegador.
 
-Las cuatro versiones ejecutan el cálculo íntegramente en tu dispositivo —
+Las cinco versiones ejecutan el cálculo íntegramente en tu dispositivo —
 nada se envía a ningún sitio.

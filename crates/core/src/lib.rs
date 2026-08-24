@@ -1751,6 +1751,13 @@ impl Session {
         }
     }
 
+    /// Mark a multi-statement line as the most recent script line, so
+    /// `save script` persists the whole script the user entered (with its
+    /// `;` separators), not just the last statement.
+    pub fn set_last_line(&mut self, line: &str) {
+        self.last_line = Some(line.trim().to_string());
+    }
+
     /// Empty the history list (the clear-history control in every frontend).
     /// The environment keeps its definitions and constants.
     pub fn clear_history(&mut self) {

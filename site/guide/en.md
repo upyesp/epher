@@ -8,20 +8,21 @@ This guide is for complete beginners. It starts with the simplest possible
 calculation and builds up to the full power of the language. Every example
 shows what you type and what epher answers.
 
-There are four ways to use epher — pick whichever suits you:
+There are five ways to use epher — pick whichever suits you:
 
 | Version | What it is | Best when |
 |---|---|---|
-| **Web app** (PWA) | Runs in your browser, installable, works offline | You want the fastest start; no installation |
-| **Desktop app** | A normal desktop program with its own window | You want a regular application |
-| **Command line** (CLI) | Text commands in a terminal; also an interactive session | You live in a terminal and like scripts |
+| **Command line** (CLI) | Text commands in a terminal | You live in a terminal and like scripts |
+| **REPL** | An interactive `epher` session at the `epher>` prompt | You want quick back-and-forth without leaving the terminal |
 | **Terminal UI** (TUI) | A full-screen program inside the terminal | You want a terminal app with graphs and history on screen |
+| **Desktop app** | A normal desktop program with its own window | You want a regular application |
+| **Web app** (PWA) | Runs in your browser, installable, works offline | You want the fastest start; no installation |
 
-The desktop app, the command line, and the terminal UI are one program: a
-single download installs the `epher` command, which does all three. The web
-app is the exception — it needs no download at all.
+The desktop app, the command line, the REPL, and the terminal UI are one
+program: a single download installs the `epher` command, which does all
+four. The web app is the exception — it needs no download at all.
 
-All four versions understand exactly the same language. Learn it once, use it
+All five versions understand exactly the same language. Learn it once, use it
 anywhere.
 
 ## 1. The epher language
@@ -1269,5 +1270,5 @@ preference live in `~/.epher` (chapter 4.6), and the same `save`,
   is open. The web app can work offline because the page itself is stored by
   your browser.
 
-All four versions run the calculation entirely on your device — nothing is
+All five versions run the calculation entirely on your device — nothing is
 sent anywhere.

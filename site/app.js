@@ -155,6 +155,267 @@ function init() {
   });
 
   initMenu();
+  initHero3d();
+}
+
+/* --- hero 3D: the saddle `graph3d x ^ 2 - y ^ 2` rotating slowly -------
+ * A faithful port of the app's 3D renderer (crates/core/src/graph.rs):
+ * yaw around z, pitch around the rotated x axis, a perspective divide at
+ * camera distance 30, mesh lines drawn far-to-near with depth-cued
+ * opacity, and line thickness 0.1 — the width slider at 0.1 (mesh 1.2x,
+ * frame 1.4x). The view box is fixed (the union of the projected bounding
+ * box over every yaw) so the mesh rotates without pumping. Reduced motion
+ * renders one static frame (WCAG 2.3.3). */
+function initHero3d() {
+  const svg = document.getElementById("hero3d");
+  const meshGroup = document.getElementById("hero3d-mesh");
+  const frameGroup = document.getElementById("hero3d-frame");
+  if (!svg || !meshGroup || !frameGroup) return;
+
+  const GRID = 24;              // grid x grid mesh
+  const DOMAIN = [-5, 5];       // graph3d default domain (ADR-0015)
+  const PITCH = 0.6;            // View3D default pose
+  const CAMERA = 30;
+  const NEAR_DIST = 1;
+  const WIDTH = { mesh: 1.2 * 0.1, frame: 1.4 * 0.1 };
+  const NS = "http://www.w3.org/2000/svg";
+
+  // The surface: z = x^2 - y^2 over the default square domain.
+  const xs = [];
+  const zs = [];
+  for (let i = 0; i <= GRID; i++) {
+    const v = DOMAIN[0] + (DOMAIN[1] - DOMAIN[0]) * (i / GRID);
+    xs.push(v);
+  }
+  for (let r = 0; r <= GRID; r++) {
+    const row = [];
+    for (let c = 0; c <= GRID; c++) row.push(xs[c] * xs[c] - xs[r] * xs[r]);
+    zs.push(row);
+  }
+
+  let rig = { sy: 0, cy: 1, sp: Math.sin(PITCH), cp: Math.cos(PITCH) };
+  const rigFor = (yaw) => {
+    rig = {
+      sy: Math.sin(yaw),
+      cy: Math.cos(yaw),
+      sp: Math.sin(PITCH),
+      cp: Math.cos(PITCH),
+    };
+  };
+
+  // to_camera: yaw around z, then pitch around the rotated x axis.
+  const toCamera = (x, y, z) => {
+    const xr = x * rig.cy - y * rig.sy;
+    const yr = x * rig.sy + y * rig.cy;
+    return [xr, yr * rig.cp - z * rig.sp, yr * rig.sp + z * rig.cp];
+  };
+  // to_screen: the perspective divide.
+  const toScreen = (xr, yp, zp) => {
+    const f = CAMERA / (CAMERA - zp);
+    return [xr * f, -yp * f];
+  };
+  // project_clipped: a world segment to screen, clipped at the near
+  // plane (unused by this saddle, kept for parity with the app).
+  const projectSegment = (x1, y1, z1, x2, y2, z2) => {
+    let [xr1, yp1, zp1] = toCamera(x1, y1, z1);
+    let [xr2, yp2, zp2] = toCamera(x2, y2, z2);
+    const near = CAMERA - NEAR_DIST;
+    if (zp1 > near && zp2 > near) return null;
+    if (zp1 > near) {
+      const t = (near - zp1) / (zp2 - zp1);
+      xr1 += t * (xr2 - xr1);
+      yp1 += t * (yp2 - yp1);
+      zp1 = near;
+    } else if (zp2 > near) {
+      const t = (near - zp1) / (zp2 - zp1);
+      xr2 = xr1 + t * (xr2 - xr1);
+      yp2 = yp1 + t * (yp2 - yp1);
+      zp2 = near;
+    }
+    const [sx1, sy1] = toScreen(xr1, yp1, zp1);
+    const [sx2, sy2] = toScreen(xr2, yp2, zp2);
+    if (
+      !isFinite(sx1) || !isFinite(sy1) || !isFinite(sx2) || !isFinite(sy2)
+    ) return null;
+    return [sx1, sy1, zp1, sx2, sy2, zp2];
+  };
+
+  // One frame's geometry: mesh polylines (rows then columns, far-to-near
+  // painter's order) plus the orientation frame of surface_frame.
+  const buildGeometry = (yaw) => {
+    rigFor(yaw);
+    const lines = [];
+    const pushLine = (pts) => {
+      if (pts.length) {
+        lines.push({
+          points: pts.map(([x, y]) => [x, y]),
+          depth: pts.reduce((s, p) => s + p[2], 0) / pts.length,
+        });
+      }
+    };
+    // line_runs: a grid line split into visible runs.
+    const runsOf = (cx, cy, cz) => {
+      const runs = [];
+      let run = [];
+      let started = false;
+      for (let i = 0; i < cx.length; i++) {
+        if (!isFinite(cz[i])) {
+          runs.push(run);
+          run = [];
+          started = false;
+          continue;
+        }
+        if (!started) {
+          const [xr, yp, zp] = toCamera(cx[i], cy[i], cz[i]);
+          if (zp <= CAMERA - NEAR_DIST) {
+            const [sx, sy] = toScreen(xr, yp, zp);
+            if (isFinite(sx) && isFinite(sy)) {
+              run.push([sx, sy, zp]);
+              started = true;
+            }
+          }
+          continue;
+        }
+        const seg = projectSegment(
+          cx[i - 1], cy[i - 1], cz[i - 1], cx[i], cy[i], cz[i]
+        );
+        if (seg) {
+          run[run.length - 1] = [seg[0], seg[1], seg[2]];
+          run.push([seg[3], seg[4], seg[5]]);
+        } else {
+          runs.push(run);
+          run = [];
+          started = false;
+        }
+      }
+      runs.push(run);
+      return runs;
+    };
+    for (let r = 0; r <= GRID; r++) {
+      const row = zs[r];
+      for (const run of runsOf(xs, new Array(GRID + 1).fill(xs[r]), row)) pushLine(run);
+    }
+    for (let c = 0; c <= GRID; c++) {
+      const col = zs.map((row) => row[c]);
+      for (const run of runsOf(new Array(GRID + 1).fill(xs[c]), xs, col)) pushLine(run);
+    }
+    // Painter's order: far-to-near.
+    lines.sort((a, b) => b.depth - a.depth);
+    let zmin = Infinity;
+    let zmax = -Infinity;
+    for (const line of lines) {
+      zmin = Math.min(zmin, line.depth);
+      zmax = Math.max(zmax, line.depth);
+    }
+    // surface_frame: ground square, axes through the origin, vertical
+    // extent — as projected segments.
+    const frame = [];
+    const edge = (x1, y1, z1, x2, y2, z2) => {
+      const seg = projectSegment(x1, y1, z1, x2, y2, z2);
+      if (seg) frame.push(seg);
+    };
+    const [a, b] = DOMAIN;
+    edge(a, a, 0, b, a, 0);
+    edge(b, a, 0, b, b, 0);
+    edge(b, b, 0, a, b, 0);
+    edge(a, b, 0, a, a, 0);
+    edge(a, 0, 0, b, 0, 0);
+    edge(0, a, 0, 0, b, 0);
+    edge(0, 0, a, 0, 0, b);
+    return { mesh: lines, frame, zmin, zmax };
+  };
+
+  // A constant-size, per-frame-centered view box: the size is the
+  // largest projected extent over the whole rotation (plus the app's 6%
+  // pad), and each frame centers that box on its own content. The mesh
+  // therefore stays centered and constant-scale while it rotates — no
+  // pumping, no drift.
+  const touch = (px, py, acc) => {
+    acc.x0 = Math.min(acc.x0, px);
+    acc.x1 = Math.max(acc.x1, px);
+    acc.y0 = Math.min(acc.y0, py);
+    acc.y1 = Math.max(acc.y1, py);
+  };
+  const bboxOf = (g) => {
+    const acc = { x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity };
+    g.mesh.forEach((l) => l.points.forEach(([x, y]) => touch(x, y, acc)));
+    g.frame.forEach((s) => {
+      touch(s[0], s[1], acc);
+      touch(s[3], s[4], acc);
+    });
+    return acc;
+  };
+  let maxSpan = 0;
+  for (let deg = 0; deg < 360; deg++) {
+    const acc = bboxOf(buildGeometry((deg * Math.PI) / 180));
+    maxSpan = Math.max(maxSpan, acc.x1 - acc.x0, acc.y1 - acc.y0);
+  }
+  const W = maxSpan + maxSpan * 0.12;
+  const H = maxSpan + maxSpan * 0.12;
+
+  // Build the elements once; each frame only updates attributes and
+  // re-orders (the same patching strategy as the app's live renderer).
+  const meshEls = [];
+  for (let i = 0; i < 2 * (GRID + 1); i++) {
+    const el = document.createElementNS(NS, "polyline");
+    el.setAttribute("fill", "none");
+    el.setAttribute("stroke", "currentColor");
+    el.setAttribute("stroke-width", WIDTH.mesh.toFixed(2));
+    meshEls.push(el);
+  }
+  const frameEls = [];
+  for (let i = 0; i < 7; i++) {
+    const el = document.createElementNS(NS, "line");
+    el.setAttribute("stroke", "currentColor");
+    el.setAttribute("stroke-width", WIDTH.frame.toFixed(2));
+    el.setAttribute("stroke-opacity", "0.9");
+    frameEls.push(el);
+  }
+
+  const render = (yaw) => {
+    const g = buildGeometry(yaw);
+    // Center the constant-size box on this frame's content.
+    const acc = bboxOf(g);
+    const cx = (acc.x0 + acc.x1) / 2;
+    const cy = (acc.y0 + acc.y1) / 2;
+    svg.setAttribute(
+      "viewBox",
+      `${(cx - W / 2).toFixed(3)} ${(cy - H / 2).toFixed(3)} ${W.toFixed(3)} ${H.toFixed(3)}`
+    );
+    const { mesh, frame, zmin, zmax } = g;
+    const span = zmax - zmin;
+    mesh.forEach((line, i) => {
+      const el = meshEls[i];
+      const t = span < 1e-9 ? 1 : (line.depth - zmin) / span;
+      el.setAttribute(
+        "points",
+        line.points.map(([x, y]) => `${x.toFixed(3)},${y.toFixed(3)}`).join(" ")
+      );
+      // Depth cue without color: opacity 0.35 far -> 0.95 near.
+      el.setAttribute("stroke-opacity", (0.35 + 0.6 * t).toFixed(3));
+      meshGroup.appendChild(el);
+    });
+    frame.forEach((seg, i) => {
+      const el = frameEls[i];
+      el.setAttribute("x1", seg[0].toFixed(3));
+      el.setAttribute("y1", seg[1].toFixed(3));
+      el.setAttribute("x2", seg[3].toFixed(3));
+      el.setAttribute("y2", seg[4].toFixed(3));
+      frameGroup.appendChild(el);
+    });
+  };
+
+  const REDUCE = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (REDUCE) {
+    render(0.8); // the app's default pose, static
+    return;
+  }
+  const REV_MS = 4000; // one slow revolution
+  const tick = (now) => {
+    render(0.8 + (now / REV_MS) * 2 * Math.PI);
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 
 document.addEventListener("DOMContentLoaded", init);

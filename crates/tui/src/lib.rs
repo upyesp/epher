@@ -615,9 +615,12 @@ impl App {
     /// `graph3d ` samples a surface, anything else evaluates — and history
     /// persists. A line may join several statements with `;` (the same
     /// separator as a newline, ADR-0001): each statement dispatches in
-    /// order, exactly as if typed one by one. Returns the new language
-    /// preference when a `language` command changed it, so the caller can
-    /// re-resolve its Localizer.
+    /// order, exactly as if typed one by one, but the history keeps the
+    /// script the way the user entered it — one entry per line, semicolons
+    /// intact, with the last answer appended when the final statement is
+    /// an evaluation. Returns the new language preference when a
+    /// `language` command changed it, so the caller can re-resolve its
+    /// Localizer.
     pub fn submit_line(
         &mut self,
         line: &str,
@@ -625,32 +628,66 @@ impl App {
         localizer: &Localizer,
     ) -> Option<String> {
         let mut language = None;
-        for piece in line.split(';') {
-            let piece = piece.trim();
-            if piece.is_empty() {
-                continue;
-            }
-            let changed = self.submit_statement(piece, store, localizer);
+        let pieces: Vec<&str> = line
+            .split(';')
+            .map(str::trim)
+            .filter(|p| !p.is_empty())
+            .collect();
+        if pieces.is_empty() {
+            return None;
+        }
+        let single = pieces.len() == 1;
+        // The output of the last evaluation, for the combined history
+        // entry of a multi-statement script.
+        let mut last_eval_output: Option<String> = None;
+        for piece in &pieces {
+            let (changed, was_eval) = self.submit_statement(piece, store, localizer, !single);
             if language.is_none() {
                 language = changed;
             }
+            if was_eval {
+                last_eval_output = Some(self.result.clone());
+            } else {
+                last_eval_output = None;
+            }
+        }
+        if !single {
+            // One history entry for the whole script: the line as typed,
+            // with the last answer appended exactly as single statements
+            // record theirs.
+            let entry = match &last_eval_output {
+                Some(out) if !out.is_empty() => format!("{}  {out}", line.trim()),
+                _ => line.trim().to_string(),
+            };
+            self.session.record(&entry);
+            // `save script` persists the whole script the user entered,
+            // not just its last statement.
+            self.session.set_last_line(line.trim());
+            let _ = save_history(store, self.history());
         }
         language
     }
 
     /// Dispatch one statement (no `;`, no newline) the way submit_line used
-    /// to handle a whole line.
+    /// to handle a whole line. `quiet` skips the history recording (a
+    /// multi-statement line records once, for the whole line, in
+    /// submit_line). Returns the new language preference (when a
+    /// `language` command changed it) and whether the statement was a
+    /// plain evaluation.
     fn submit_statement(
         &mut self,
         piece: &str,
         store: &DocStore<FsStore>,
         localizer: &Localizer,
-    ) -> Option<String> {
+        quiet: bool,
+    ) -> (Option<String>, bool) {
         if let Some(source) = piece.strip_prefix("graph ") {
             // The command joins the session history like every other
             // submitted line; the plot is the output.
-            self.session.record(piece);
-            let _ = save_history(store, self.history());
+            if !quiet {
+                self.session.record(piece);
+                let _ = save_history(store, self.history());
+            }
             if let Some(path) = source.trim().strip_prefix("save ") {
                 let path = path.trim();
                 if path.is_empty() {
@@ -658,18 +695,20 @@ impl App {
                 } else {
                     self.result = self.save_graph_svg(path, localizer);
                 }
-                return None;
+                return (None, false);
             }
             if source.trim() == "save" {
                 self.result = localizer.lookup("graph-no-path");
-                return None;
+                return (None, false);
             }
             let _ = self.submit_graph(source);
-            return None;
+            return (None, false);
         }
         if let Some(source) = piece.strip_prefix("graph3d ") {
-            self.session.record(piece);
-            let _ = save_history(store, self.history());
+            if !quiet {
+                self.session.record(piece);
+                let _ = save_history(store, self.history());
+            }
             if let Some(path) = source.trim().strip_prefix("save ") {
                 let path = path.trim();
                 if path.is_empty() {
@@ -677,14 +716,14 @@ impl App {
                 } else {
                     self.result = self.save_graph3d_svg(path, localizer);
                 }
-                return None;
+                return (None, false);
             }
             if source.trim() == "save" {
                 self.result = localizer.lookup("graph-no-path");
-                return None;
+                return (None, false);
             }
             let _ = self.submit_surface(source);
-            return None;
+            return (None, false);
         }
         if let Some(cmd) = classify(piece) {
             let handled = run_command(&cmd, &mut self.session, store, localizer);
@@ -698,12 +737,17 @@ impl App {
                     self.theme = theme;
                 }
             }
-            return handled.language;
+            return (handled.language, false);
         }
-        self.input = piece.to_string();
-        self.submit();
-        let _ = save_history(store, self.history());
-        None
+        if quiet {
+            self.result = self.session.submit_quiet(piece);
+            self.input.clear();
+        } else {
+            self.input = piece.to_string();
+            self.submit();
+            let _ = save_history(store, self.history());
+        }
+        (None, true)
     }
 
     /// Parse `source` as a graph command (ADR-0014 grammar: cartesian,

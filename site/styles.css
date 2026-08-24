@@ -496,16 +496,16 @@ a:hover {
   height: auto;
 }
 
-.graph-card line {
-  stroke: var(--muted);
-  stroke-width: 1;
-  opacity: 0.5;
+/* The rotating saddle (app.js initHero3d): the mesh and frame lines
+   carry stroke="currentColor", so the palette flips with the theme
+   (--muted passes AA on --panel in both). */
+.hero3d-svg {
+  color: var(--muted);
 }
 
-.graph-card polyline {
+.hero3d-svg polyline,
+.hero3d-svg line {
   fill: none;
-  stroke: var(--accent-icon);
-  stroke-width: 2.5;
   stroke-linecap: round;
   stroke-linejoin: round;
 }

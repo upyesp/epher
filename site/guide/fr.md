@@ -8,21 +8,22 @@ Ce guide s'adresse aux débutants complets. Il commence par le calcul le plus
 simple possible et monte jusqu'à toute la puissance du langage. Chaque
 exemple montre ce que vous tapez et ce que epher répond.
 
-Il y a quatre façons d'utiliser epher — choisissez celle qui vous convient :
+Il y a cinq façons d'utiliser epher — choisissez celle qui vous convient :
 
 | Version | Ce que c'est | Quand la choisir |
 |---|---|---|
-| **Application web** (PWA) | Tourne dans votre navigateur, installable, fonctionne hors ligne | Pour démarrer au plus vite ; sans installation |
-| **Application de bureau** | Un programme classique avec sa propre fenêtre | Pour une application classique |
-| **Ligne de commande** (CLI) | Commandes texte dans un terminal ; aussi une session interactive | Vous vivez dans un terminal et aimez les scripts |
+| **Ligne de commande** (CLI) | Commandes texte dans un terminal | Vous vivez dans un terminal et aimez les scripts |
+| **REPL** | Une session interactive `epher` à l'invite `epher>` | Pour des allers-retours rapides sans quitter le terminal |
 | **Interface de terminal** (TUI) | Un programme plein écran dans le terminal | Pour une appli terminal avec graphiques et historique |
+| **Application de bureau** | Un programme classique avec sa propre fenêtre | Pour une application classique |
+| **Application web** (PWA) | Tourne dans votre navigateur, installable, fonctionne hors ligne | Pour démarrer au plus vite ; sans installation |
 
-L'application de bureau, la ligne de commande et l'interface de terminal
-sont un seul programme : un unique téléchargement installe la commande
-`epher`, qui fait les trois. L'application web est l'exception — aucun
-téléchargement n'est nécessaire.
+L'application de bureau, la ligne de commande, le REPL et l'interface de
+terminal sont un seul programme : un unique téléchargement installe la
+commande `epher`, qui fait les quatre. L'application web est l'exception —
+aucun téléchargement n'est nécessaire.
 
-Les quatre versions comprennent exactement le même langage. Apprenez-le une
+Les cinq versions comprennent exactement le même langage. Apprenez-le une
 fois, utilisez-le partout.
 
 ## 1. Le langage de epher
@@ -1311,5 +1312,5 @@ commandes `save`, `save script` et `language` fonctionnent ici.
   que tant que la page est ouverte. L'application web peut fonctionner hors
   ligne parce que c'est votre navigateur qui stocke la page elle-même.
 
-Les quatre versions exécutent le calcul entièrement sur votre appareil —
+Les cinq versions exécutent le calcul entièrement sur votre appareil —
 rien n'est envoyé nulle part.

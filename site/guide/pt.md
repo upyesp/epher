@@ -8,21 +8,22 @@ Este guia destina-se a principiantes absolutos. Começa com o cálculo mais
 simples possível e avança até todo o poder da linguagem. Cada exemplo mostra
 o que escreve e o que o epher responde.
 
-Há quatro formas de usar o epher — escolha a que mais lhe convier:
+Há cinco formas de usar o epher — escolha a que mais lhe convier:
 
 | Versão | O que é | Ideal quando |
 |---|---|---|
-| **Aplicação web** (PWA) | Funciona no seu navegador, pode ser instalada, funciona offline | Quer o arranque mais rápido; sem instalação |
-| **Aplicação de ambiente de trabalho** | Um programa normal com a sua própria janela | Quer uma aplicação normal |
-| **Linha de comandos** (CLI) | Comandos de texto num terminal; também uma sessão interativa | Vive no terminal e gosta de scripts |
+| **Linha de comandos** (CLI) | Comandos de texto num terminal | Vive no terminal e gosta de scripts |
+| **REPL** | Uma sessão interativa do `epher` no prompt `epher>` | Quer ida e volta rápida sem sair do terminal |
 | **Interface de terminal** (TUI) | Um programa de ecrã inteiro dentro do terminal | Quer uma aplicação de terminal com gráficos e histórico no ecrã |
+| **Aplicação de ambiente de trabalho** | Um programa normal com a sua própria janela | Quer uma aplicação normal |
+| **Aplicação web** (PWA) | Funciona no seu navegador, pode ser instalada, funciona offline | Quer o arranque mais rápido; sem instalação |
 
-A aplicação de ambiente de trabalho, a linha de comandos e a interface de
-terminal são um só programa: um único download instala o comando `epher`,
-que faz as três coisas. A aplicação web é a exceção — não precisa de
-qualquer download.
+A aplicação de ambiente de trabalho, a linha de comandos, o REPL e a
+interface de terminal são um só programa: um único download instala o
+comando `epher`, que faz as quatro coisas. A aplicação web é a exceção —
+não precisa de qualquer download.
 
-As quatro versões compreendem exatamente a mesma linguagem. Aprenda-a uma
+As cinco versões compreendem exatamente a mesma linguagem. Aprenda-a uma
 vez, use-a em qualquer lado.
 
 ## 1. A linguagem do epher
@@ -1296,5 +1297,5 @@ idioma vivem em `~/.epher` (capítulo 4.6), e os mesmos comandos `save`,
   enquanto a página estiver aberta. A aplicação web pode funcionar offline
   porque a própria página é guardada pelo seu navegador.
 
-As quatro versões executam o cálculo inteiramente no seu dispositivo — nada
+As cinco versões executam o cálculo inteiramente no seu dispositivo — nada
 é enviado para lado nenhum.

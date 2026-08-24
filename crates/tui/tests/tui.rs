@@ -251,6 +251,49 @@ fn submit_line_evaluates_and_persists_history() {
 }
 
 #[test]
+fn submit_line_keeps_multi_statement_scripts_as_one_history_entry() {
+    let (store, _keep) = scratch_store();
+    let mut app = App::default();
+    app.submit_line(
+        "x = 10; x + 5",
+        &store,
+        &Localizer::resolve(Some("en"), &[]),
+    );
+    // One entry, semicolons intact, with the last answer appended.
+    assert_eq!(app.result(), "= 15");
+    assert_eq!(
+        load_history(&store).unwrap(),
+        vec!["x = 10; x + 5  = 15".to_string()]
+    );
+    // `save script` persists the whole script the user entered.
+    app.submit_line(
+        "save script demo",
+        &store,
+        &Localizer::resolve(Some("en"), &[]),
+    );
+    let saved = store.list_scripts().unwrap();
+    assert_eq!(saved.len(), 1);
+    assert_eq!(saved[0].name, "demo");
+    assert_eq!(saved[0].source, "x = 10; x + 5");
+}
+
+#[test]
+fn submit_line_keeps_mixed_graph_scripts_as_one_history_entry() {
+    let (store, _keep) = scratch_store();
+    let mut app = App::default();
+    app.submit_line(
+        "graph x ^ 2; 2 + 2",
+        &store,
+        &Localizer::resolve(Some("en"), &[]),
+    );
+    assert_eq!(app.result(), "= 4");
+    assert_eq!(
+        load_history(&store).unwrap(),
+        vec!["graph x ^ 2; 2 + 2  = 4".to_string()]
+    );
+}
+
+#[test]
 fn submit_line_reports_the_new_language() {
     let (store, _keep) = scratch_store();
     let mut app = App::default();

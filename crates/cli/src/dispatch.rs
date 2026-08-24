@@ -12,6 +12,16 @@ use clap::{Parser, Subcommand};
 /// The `epher` short help leads with examples (clig.dev: users reach for
 /// examples first), then lists the commands — jq-style. The full text
 /// lives behind `--help`.
+/// The full `--help` description: the five ways to use epher (ADR-0011),
+/// named so every frontend is discoverable from the terminal. The man page
+/// DESCRIPTION section renders the same text.
+const LONG_ABOUT: &str = "\
+A programmable, scriptable calculator. One engine, five ways to use it: \
+a one-shot command (`epher \"2 + 3\"`), an interactive session \
+(`epher repl`), a full-screen terminal UI (`epher tui`), a desktop app \
+(`epher gui`), and an offline web app at https://epher.org/pwa/. All five \
+speak the same language.";
+
 const SHORT_HELP_TEMPLATE: &str = "\
 {about-with-newline}
 {usage-heading} {usage}
@@ -32,7 +42,7 @@ EXAMPLES:
     name = "epher",
     version,
     about = "A programmable, scriptable calculator.",
-    long_about = None,
+    long_about = LONG_ABOUT,
     after_help = "Run `epher --help` for the full manual, or `epher help` to page it.",
     after_long_help = HELP_TAIL,
     help_template = SHORT_HELP_TEMPLATE,

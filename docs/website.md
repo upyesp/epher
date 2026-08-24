@@ -79,6 +79,11 @@ links never need a version number.
   `about-*` / `privacy-*` keys. The guide pages share the header chrome
   via `scripts/build-guide.mjs` (labels in its `CHROME` map) with the
   same disclosure-nav script inlined.
+- **Hero animation**: the landing hero's graph card is the 3D saddle
+  `graph3d x ^ 2 - y ^ 2` rotating slowly — a runtime port in `site/app.js`
+  of the app's projection (ADR-0030): constant-size per-frame-centered view
+  box, the width slider at 0.1 (mesh 1.2x, frame 1.4x), one static frame
+  under reduced motion.
 - **Icon**: the epher mark is the monogram "e" (from the epher.svg artwork)
   on a rounded tile. Three variants live in `site/` and `crates/web/public/`:
   `icon.svg` (dark tile, white glyph — the default, the favicon, and the

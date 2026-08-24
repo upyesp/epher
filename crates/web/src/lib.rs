@@ -1151,6 +1151,7 @@ fn epher_app() -> Html {
         let live = live.clone();
         let surface = surface.clone();
         let scroll_pane = scroll_pane.clone();
+        let input_ref = input_ref.clone();
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             // A submitted entry may be several lines (pasted from the
@@ -1164,20 +1165,37 @@ fn epher_app() -> Html {
             let mut surfaces = (*surface).clone();
             // Statements join with newlines or `;` — the same separator
             // (ADR-0001). Each piece dispatches in order, exactly as if
-            // typed one by one.
+            // typed one by one — but the history keeps the script the way
+            // the user entered it: one entry per line, semicolons intact.
             for raw_line in (*input).split('\n') {
-                for piece in raw_line.split(';') {
-                let line = piece.trim().to_string();
+                let line = raw_line.trim().to_string();
                 if line.is_empty() {
                     continue;
                 }
+                let pieces: Vec<&str> = line
+                    .split(';')
+                    .map(str::trim)
+                    .filter(|p| !p.is_empty())
+                    .collect();
+                if pieces.is_empty() {
+                    continue;
+                }
+                let single = pieces.len() == 1;
+                // The output of the last evaluation, for the combined
+                // history entry of a multi-statement script.
+                let mut last_eval_output: Option<String> = None;
+                for piece in &pieces {
+                let piece = piece.trim();
+                last_eval_output = None;
 
                 // Graphing (ADR-0006/0014: the core samples, the frontend renders).
                 // Each `graph` line overlays one more curve; the command
                 // itself joins the history list like every submitted line.
-                if let Some(source) = line.strip_prefix("graph ") {
+                if let Some(source) = piece.strip_prefix("graph ") {
                     let source = source.trim();
-                    s.record(&line);
+                    if single {
+                        s.record(piece);
+                    }
                     if source == "clear" {
                         curves.clear();
                         continue;
@@ -1203,6 +1221,16 @@ fn epher_app() -> Html {
                             // across so the curve is visible immediately.
                             if mobile_layout() {
                                 scroll_pane.emit("graph-pane");
+                                // Mobile keyboards stay open while the
+                                // entry keeps focus; a drawn plot wants
+                                // the screen. Drop the focus so the
+                                // keyboard closes and the pane is ready
+                                // for touch rotation.
+                                if let Some(ta) =
+                                    input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                {
+                                    let _ = ta.blur();
+                                }
                             }
                         }
                         Err(e) => result.set(format!("error: {e}")),
@@ -1213,9 +1241,11 @@ fn epher_app() -> Html {
                 // 3D surfaces (ADR-0015): z = f(x, y) over a square
                 // domain, overlaid like curves. The command joins the
                 // history list like every submitted line.
-                if let Some(source) = line.strip_prefix("graph3d ") {
+                if let Some(source) = piece.strip_prefix("graph3d ") {
                     let source = source.trim();
-                    s.record(&line);
+                    if single {
+                        s.record(piece);
+                    }
                     if source == "clear" {
                         surfaces.clear();
                         continue;
@@ -1230,6 +1260,11 @@ fn epher_app() -> Html {
                             // the view across to the freshly drawn pane.
                             if mobile_layout() {
                                 scroll_pane.emit("graph-pane");
+                                if let Some(ta) =
+                                    input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                {
+                                    let _ = ta.blur();
+                                }
                             }
                         }
                         Err(e) => result.set(format!("error: {e}")),
@@ -1306,8 +1341,26 @@ fn epher_app() -> Html {
                     continue;
                 }
 
-                let out = s.submit(&line);
-                result.set(out);
+                let out = if single {
+                    s.submit(piece)
+                } else {
+                    s.submit_quiet(piece)
+                };
+                result.set(out.clone());
+                last_eval_output = Some(out);
+                }
+                if !single {
+                    // One history entry for the whole script: the line as
+                    // typed, semicolons intact, with the last answer
+                    // appended exactly as single statements record theirs.
+                    let entry = match &last_eval_output {
+                        Some(out) if !out.is_empty() => format!("{line}  {out}"),
+                        _ => line.clone(),
+                    };
+                    s.record(&entry);
+                    // `save script` persists the whole script the user
+                    // entered, not just its last statement.
+                    s.set_last_line(&line);
                 }
             }
             // Publish the loop's outcomes once: points of interest and the
