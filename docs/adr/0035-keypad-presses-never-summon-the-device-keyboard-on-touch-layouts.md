@@ -36,10 +36,26 @@ plot draws.
   covers the rest (browsers/webviews that keep the entry focused through
   a button tap) and makes the close deterministic rather than incidental.
 - **Composition must survive the blur.** Successive keypad presses build
-  one expression; the textarea's stored selection is read before the blur
-  and written back after the value update, so the cursor still advances
-  press to press. The value/selection writes work on an unfocused
-  element — focus is presentation here, not state.
+  one expression, and the next insertion point must always be immediately
+  after what was just inserted — including mid-string: with the caret
+  between two characters, a press inserts there and leaves the caret right
+  after the inserted token; a press over a selected range replaces the
+  range and leaves the caret after the replacement. But the blur that
+  closes the mobile keyboard is also the moment the DOM selection dies
+  (Chromium zeroes it), and the button's mousedown default action steals
+  focus *before* the click handler runs — so at press time the DOM
+  selection is already gone, unreadable. The selection therefore lives in
+  app state, not the DOM: a cell holding a `(start, end)` range. It is
+  mirrored by a document `selectionchange` listener while the entry owns
+  focus (every user caret move and selection drag fires it), refreshed at
+  each keypad mousedown — the handler runs before the default
+  focus-stealing action, the last moment the entry's true selection is
+  readable — and updated by every keypad action, by history picks, and by
+  guide code loads (both put the cursor at the end of what they load).
+  Keypad presses read the cell alone; keyboard activation of a keypad
+  button (Tab + Enter) skips mousedown and relies on the mirror. On
+  desktop the entry is refocused after each press, so the DOM and the
+  cell stay in step either way.
 - **Scope.** Every keypad action takes the same path — `Text`, `Call`
   (functions), `Backspace`, `Clear`, and `Submit` (`=`) — so one change
   in the shared handler covers all of them. History picks keep their
@@ -53,8 +69,17 @@ plot draws.
 `on_keypad` no longer refocuses unconditionally. After a press it checks
 `mobile_layout()`: on touch layouts it blurs the entry (closing the
 device keyboard, explicitly and always), and on desktop it keeps
-ADR-0016's refocus exactly as before. The entry's stored cursor still
-composes successive presses on both layouts.
+ADR-0016's refocus exactly as before.
+
+Every keypad press inserts at the stored selection — a mid-string caret
+lands the insertion there, a selected range is replaced — and moves the
+insertion point to immediately after what was just inserted. Because the
+mobile blur zeroes the DOM selection, the selection lives in a cell that
+the `selectionchange` mirror and the keypad mousedown refresh keep
+current, and each action rewrites it to its new position; a press on an
+unfocused entry therefore still lands on the right spot, without ever
+summoning the soft keyboard. `C` and `=` reset the cell to 0, history
+picks and guide code loads set it to the end of the loaded text.
 
 ## Consequences
 
@@ -67,8 +92,13 @@ composes successive presses on both layouts.
   soft keyboard itself cannot be emulated, so the test asserts the
   honest proxy): on a mobile viewport, after a keypad press the
   textarea does not own focus; on a desktop viewport it does, and typed
-  keys land in the entry. Composition (two presses, one expression) is
-  asserted on both.
+  keys land in the entry. Insertion-point behavior is asserted
+  behaviorally on both layouts: consecutive presses compose; a
+  mid-string caret (positioned by keyboard, then blurred by the press
+  itself) inserts at the caret and the next press lands immediately
+  after the just-inserted token; a selected range is replaced and the
+  next press continues right after the replacement; `C` and `=` reset
+  the insertion point to 0.
 - `docs/accessibility.md` records the behavior; no guide change — the
   guide never described the web keypad's focus handling, only its
   contents.

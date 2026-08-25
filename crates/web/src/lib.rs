@@ -770,6 +770,12 @@ fn epher_app() -> Html {
     // Keypad tab + which pane faces the user on mobile (ADR-0016).
     let key_tab = use_state(|| "digits".to_string());
     let active_pane = use_state(|| "calc".to_string());
+    // The entry's selection, mirrored while it owns focus and refreshed
+    // at each keypad mousedown (ADR-0035): keypad presses read it, because
+    // the button's mousedown default action blurs the entry — and the blur
+    // that closes the mobile keyboard also zeroes the DOM selection in
+    // Chromium. The tuple carries ranges, so replacing a selection works.
+    let cursor_cell = use_state(|| Rc::new(RefCell::new((0usize, 0usize))));
     // The UI theme (ADR-0017): dark is the default; light and night are
     // set from the Settings menu or the `theme` command. The open menu
     // bar item (File/Edit/Settings) drives the dropdown (ADR-0017).
@@ -2019,30 +2025,29 @@ fn epher_app() -> Html {
 
     // Keypad presses (ADR-0016): insert text at the textarea cursor —
     // selection-replacing, cursor after the inserted text — or act like
-    // the pocket calculator keys they are. Focus returns to the input so
-    // typing continues right after a press. The language itself is
+    // the pocket calculator keys they are. The language itself is
     // untouched: the keypad only spells input the evaluator already reads.
+    // ADR-0035: on touch layouts a press never refocuses the entry, so
+    // the blur that closes the mobile keyboard also zeroes the DOM
+    // selection (Chromium). The selection therefore lives in a cell —
+    // mirrored by selectionchange while the entry is focused and
+    // refreshed at each keypad mousedown — and a press reads the cell,
+    // so the next insertion point is always immediately after what was
+    // just inserted. Desktop keeps ADR-0016's focus return.
     let on_keypad = {
         let input = input.clone();
         let input_ref = input_ref.clone();
         let form_ref = form_ref.clone();
+        let cursor_cell = cursor_cell.clone();
         Callback::from(move |act: KeyAction| {
             let Some(ta) = input_ref.cast::<HtmlTextAreaElement>() else {
                 return;
             };
             let cursor = |v: &str| -> (usize, usize) {
-                let s = ta
-                    .selection_start()
-                    .ok()
-                    .flatten()
-                    .unwrap_or(0) as usize;
-                let e = ta
-                    .selection_end()
-                    .ok()
-                    .flatten()
-                    .unwrap_or(0) as usize;
+                let (s, e) = *cursor_cell.borrow();
                 (s.min(v.len()), e.min(v.len()))
             };
+            let mut new_cursor = (0usize, 0usize);
             match act {
                 KeyAction::Submit => {
                     if let Some(form) = form_ref.cast::<web_sys::HtmlFormElement>() {
@@ -2064,6 +2069,7 @@ fn epher_app() -> Html {
                     ta.set_value(&v);
                     ta.set_selection_start(Some(lo as u32)).ok();
                     ta.set_selection_end(Some(lo as u32)).ok();
+                    new_cursor = (lo, lo);
                 }
                 KeyAction::Text(t) => {
                     let mut v = (*input).clone();
@@ -2074,6 +2080,7 @@ fn epher_app() -> Html {
                     let pos = s + t.len();
                     ta.set_selection_start(Some(pos as u32)).ok();
                     ta.set_selection_end(Some(pos as u32)).ok();
+                    new_cursor = (pos, pos);
                 }
                 KeyAction::Call(name) => {
                     let mut v = (*input).clone();
@@ -2085,18 +2092,77 @@ fn epher_app() -> Html {
                     let pos = s + t.len();
                     ta.set_selection_start(Some(pos as u32)).ok();
                     ta.set_selection_end(Some(pos as u32)).ok();
+                    new_cursor = (pos, pos);
                 }
             }
+            *cursor_cell.borrow_mut() = new_cursor;
             // ADR-0035: on touch layouts a keypad press must never
             // summon the device keyboard — the tap itself closes it,
             // and blurring makes that explicit for browsers that keep
-            // focus on the entry through the tap. The stored cursor
-            // still composes the next press. Desktop keeps ADR-0016's
-            // rule: focus returns to the input so typing continues.
+            // focus on the entry through the tap. Desktop keeps
+            // ADR-0016's rule: focus returns to the input so typing
+            // continues.
             if mobile_layout() {
                 let _ = ta.blur();
             } else {
                 let _ = ta.focus();
+            }
+        })
+    };
+
+    // Mirror the entry's caret while it owns focus (ADR-0035). Keypad
+    // presses read this cell when the entry is unfocused, because the
+    // blur that closes the mobile keyboard also zeroes the DOM
+    // selection in Chromium — without the mirror, the next press would
+    // lose the insertion point the user left.
+    {
+        let input_ref = input_ref.clone();
+        let cursor_cell = cursor_cell.clone();
+        use_effect(move || {
+            let window = web_sys::window().expect("window");
+            let doc = window.document().expect("document");
+            let value = doc.clone();
+            let listener = gloo_events::EventListener::new(&doc, "selectionchange", move |_| {
+                let active_ta = value
+                    .active_element()
+                    .and_then(|a| a.dyn_into::<HtmlTextAreaElement>().ok());
+                if let (Some(ta), Some(active)) = (
+                    input_ref.cast::<HtmlTextAreaElement>(),
+                    active_ta,
+                ) {
+                    if active.as_ref() as &web_sys::Element == ta.as_ref() as &web_sys::Element {
+                        let s = ta.selection_start().ok().flatten().unwrap_or(0) as usize;
+                        let e = ta.selection_end().ok().flatten().unwrap_or(0) as usize;
+                        *cursor_cell.borrow_mut() = (s, e);
+                    }
+                }
+            });
+            move || drop(listener)
+        });
+    }
+
+    // Refresh the selection cell at each keypad mousedown (ADR-0035).
+    // The mousedown handler runs before the button's default action moves
+    // focus, so the entry still owns the true DOM selection — the last
+    // moment it is readable. Keyboard activation (Tab to a keypad button,
+    // Enter) skips mousedown and relies on the selectionchange mirror.
+    let on_key_capture = {
+        let input_ref = input_ref.clone();
+        let cursor_cell = cursor_cell.clone();
+        Callback::from(move |_: web_sys::MouseEvent| {
+            let Some(ta) = input_ref.cast::<HtmlTextAreaElement>() else {
+                return;
+            };
+            let focused = web_sys::window()
+                .and_then(|w| w.document())
+                .and_then(|d| d.active_element())
+                .and_then(|a| a.dyn_into::<HtmlTextAreaElement>().ok())
+                .as_ref()
+                == Some(&ta);
+            if focused {
+                let s = ta.selection_start().ok().flatten().unwrap_or(0) as usize;
+                let e = ta.selection_end().ok().flatten().unwrap_or(0) as usize;
+                *cursor_cell.borrow_mut() = (s, e);
             }
         })
     };
@@ -2820,6 +2886,7 @@ fn epher_app() -> Html {
                                 let on_pick = {
                                     let input = input.clone();
                                     let input_ref = input_ref.clone();
+                                    let cursor_cell = cursor_cell.clone();
                                     let line = h.clone();
                                     Callback::from(move |_| {
                                         // ADR-0031: the pick loads the
@@ -2827,7 +2894,11 @@ fn epher_app() -> Html {
                                         // answer suffix stays out of the
                                         // input so the user can edit and
                                         // re-run it.
-                                        input.set(history_expression(&line).to_string());
+                                        let expr = history_expression(&line).to_string();
+                                        input.set(expr.clone());
+                                        // The load puts the cursor at the
+                                        // end of the expression (ADR-0035).
+                                        *cursor_cell.borrow_mut() = (expr.len(), expr.len());
                                         if let Some(ta) =
                                             input_ref.cast::<web_sys::HtmlTextAreaElement>()
                                         {
@@ -2881,6 +2952,7 @@ fn epher_app() -> Html {
                                             type="button"
                                             class={format!("keypad-btn {}", k.cls)}
                                             aria-label={k.label}
+                                            onmousedown={on_key_capture.clone()}
                                             onclick={on_key}
                                         >
                                             { k.label }
@@ -3173,6 +3245,7 @@ fn epher_app() -> Html {
                                 let input_ref = input_ref.clone();
                                 let guide_open = guide_open.clone();
                                 let scroll_pane = scroll_pane.clone();
+                                let cursor_cell = cursor_cell.clone();
                                 move |e: web_sys::MouseEvent| {
                                     // Clicking an example loads its code into
                                     // the entry field and returns to the
@@ -3184,7 +3257,10 @@ fn epher_app() -> Html {
                                             target.closest(".guide-example-btn").ok().flatten()
                                         {
                                             if let Some(code) = btn.get_attribute("data-code") {
-                                                input.set(code);
+                                                input.set(code.clone());
+                                                // The load puts the cursor at the
+                                                // end of the code (ADR-0035).
+                                                *cursor_cell.borrow_mut() = (code.len(), code.len());
                                                 guide_open.set(false);
                                                 scroll_pane.emit("calc-pane");
                                                 if let Some(ta) =
