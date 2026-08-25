@@ -590,6 +590,20 @@ impl View3D {
     pub fn with_yaw(&self, yaw: f64) -> Self {
         Self { yaw, ..*self }
     }
+
+    /// Apply the fine-control sliders' offsets (ADR-0031), each −1..1
+    /// with 0 = this pose unchanged: horizontal adds `h × π` to the yaw;
+    /// vertical adds `v × 0.8` to the pitch — the full range stays live
+    /// at the default pose (pitch 0.6 + 0.8 = 1.4, exactly the clamp) —
+    /// and zoom multiplies the camera distance by `2^-z` (0 = the default
+    /// distance, +1 halves it, −1 doubles it).
+    pub fn with_offsets(&self, h: f64, v: f64, z: f64) -> Self {
+        Self {
+            yaw: self.yaw + h * std::f64::consts::PI,
+            pitch: (self.pitch + v * 0.8).clamp(-1.4, 1.4),
+            camera: self.camera * 2f64.powf(-z),
+        }
+    }
 }
 
 /// A mesh segment in screen space with its mean view depth — larger depth

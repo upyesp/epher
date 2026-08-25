@@ -58,6 +58,15 @@ pub enum PromptKind {
     SaveScript,
 }
 
+/// One of the three 3D fine-control axes (ADR-0031): the Settings menu's
+/// horizontal-rotation, vertical-rotation, and zoom rows.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ViewAxis {
+    Horizontal,
+    Vertical,
+    Zoom,
+}
+
 /// The outcome of activating a menu item; `run` executes it with access
 /// to the store and localizer.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -101,6 +110,12 @@ pub struct App {
     pois: Vec<InterestPoint>,
     surface: Vec<Surface>,
     view: View3D,
+    /// The 3D fine-control offsets (ADR-0031): horizontal rotation,
+    /// vertical rotation, zoom — each −1..1, step 0.1, 0 = the orbit
+    /// pose unchanged.
+    view_h: f64,
+    view_v: f64,
+    view_z: f64,
     play: Option<Play>,
     /// Keypad focus mode (ADR-0016): Tab opens the button grid and
     /// switches its banks, arrows move the highlight, Enter appends
@@ -195,6 +210,9 @@ impl App {
             pois: Vec::new(),
             surface: Vec::new(),
             view: View3D::default(),
+            view_h: 0.0,
+            view_v: 0.0,
+            view_z: 0.0,
             play: None,
             keypad: false,
             kp_row: 0,
@@ -304,13 +322,20 @@ impl App {
     /// The menu bar: File, Edit, Graph, Settings, Help.
     pub const MENUS: [&'static str; 5] = ["file", "edit", "graph", "settings", "help"];
 
-    /// How many items a menu has.
-    pub fn menu_len(menu: usize) -> usize {
+    /// How many items a menu has. The Settings menu grows three
+    /// fine-control rows while 3D surfaces are displayed (ADR-0031).
+    pub fn menu_len(&self, menu: usize) -> usize {
         match menu {
             0 => 5,  // File: open history, open script, save history, save script, quit
             1 => 3,  // Edit: cut, copy, paste
             2 => 1,  // Graph: clear graph
-            3 => 12, // Settings: POI toggle, 3 themes, 8 languages
+            3 => {
+                if self.surface.is_empty() {
+                    12 // POI toggle, 3 themes, 8 languages
+                } else {
+                    15 // …plus horizontal rotation, vertical rotation, zoom
+                }
+            }
             4 => 1,  // Help: user guide
             _ => 0,
         }
@@ -339,7 +364,7 @@ impl App {
             self.menu = Some((next, 0));
             return;
         }
-        let len = Self::menu_len(menu) as isize;
+        let len = self.menu_len(menu) as isize;
         let next = (item as isize + dv).rem_euclid(len) as usize;
         self.menu = Some((menu, next));
     }
@@ -375,6 +400,11 @@ impl App {
                 8 => MenuAction::SetLanguage("fr"),
                 9 => MenuAction::SetLanguage("ar"),
                 10 => MenuAction::SetLanguage("de"),
+                11 => MenuAction::SetLanguage("pt"),
+                // Fine-control rows (ADR-0031): adjusted with Left/Right
+                // while highlighted; Enter leaves them be and keeps the
+                // menu open.
+                12..=14 => return None,
                 _ => MenuAction::SetLanguage("pt"),
             },
         };
@@ -419,6 +449,7 @@ impl App {
         self.pois.clear();
         self.surface.clear();
         self.play = None;
+        self.reset_view_offsets();
     }
 
     // --- file prompts ---
@@ -484,7 +515,11 @@ impl App {
             return None;
         }
         let sel = self.hist_sel.min(len - 1);
-        let line = self.session.history()[len - 1 - sel].clone();
+        let entry = self.session.history()[len - 1 - sel].clone();
+        // ADR-0031: the pick loads the expression — the recorded answer
+        // suffix (`  = …`, `  error: …`, `  warning: …`) stays out of the
+        // input so the user can edit and re-run it.
+        let line = epher_core::history_expression(&entry).to_string();
         self.hist_focus = false;
         Some(line)
     }
@@ -768,7 +803,7 @@ impl App {
     /// from the current orbit pose.
     pub fn save_graph3d_svg(&self, path: &str, localizer: &Localizer) -> String {
         let plots = epher_shell::plots::Plots::from_surfaces(self.surface.clone());
-        let out = plots.save_3d_svg_with_view(path, &self.view, localizer);
+        let out = plots.save_3d_svg_with_view(path, &self.effective_view(), localizer);
         out.message
     }
 
@@ -816,6 +851,7 @@ impl App {
             self.result.clear();
             return Ok(());
         }
+        let first = self.surface.is_empty();
         let surface = match sample_surface(source, 40, self.session.env()).map_err(|e| e.to_string()) {
             Ok(s) => s,
             Err(e) => {
@@ -823,6 +859,11 @@ impl App {
                 return Err(e);
             }
         };
+        // A 3D graph drawn into an empty pane brings fresh fine controls
+        // at their default 0 (ADR-0031); overlays keep the current pose.
+        if first {
+            self.reset_view_offsets();
+        }
         self.result.clear();
         self.surface.push(surface);
         Ok(())
@@ -836,6 +877,45 @@ impl App {
     /// The 3D camera pose.
     pub fn view(&self) -> &View3D {
         &self.view
+    }
+
+    /// The 3D fine-control offsets: (horizontal, vertical, zoom).
+    pub fn view_offsets(&self) -> (f64, f64, f64) {
+        (self.view_h, self.view_v, self.view_z)
+    }
+
+    /// The effective pose: the orbit base with the fine-control offsets
+    /// applied (ADR-0031).
+    pub fn effective_view(&self) -> View3D {
+        self.view.with_offsets(self.view_h, self.view_v, self.view_z)
+    }
+
+    /// Nudge one fine-control offset by ±0.1, clamped to −1..1 (the
+    /// slider's range and step).
+    pub fn nudge_view_offset(&mut self, axis: ViewAxis, delta: f64) {
+        let slot = match axis {
+            ViewAxis::Horizontal => &mut self.view_h,
+            ViewAxis::Vertical => &mut self.view_v,
+            ViewAxis::Zoom => &mut self.view_z,
+        };
+        *slot = (*slot + delta).clamp(-1.0, 1.0);
+    }
+
+    /// A freshly drawn 3D graph starts with the controls at 0 (their
+    /// default), like the web sliders.
+    pub fn reset_view_offsets(&mut self) {
+        self.view_h = 0.0;
+        self.view_v = 0.0;
+        self.view_z = 0.0;
+    }
+
+    /// The Settings-menu row index when the highlight sits on one of the
+    /// three fine-control rows (they exist only while 3D surfaces do).
+    pub fn menu_view_item(&self) -> Option<usize> {
+        match self.menu {
+            Some((3, item @ 12..=14)) if !self.surface.is_empty() => Some(item),
+            _ => None,
+        }
     }
 
     /// Orbit the 3D view by the given yaw/pitch deltas (radians).
@@ -1270,6 +1350,18 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                             app.menu_close();
                         } else {
                             app.menu_open(0);
+                        }
+                    }
+                    KeyCode::Left if app.menu_view_item().is_some() => {
+                        if let Some(item) = app.menu_view_item() {
+                            let axis = view_axis_of(item);
+                            app.nudge_view_offset(axis, -0.1);
+                        }
+                    }
+                    KeyCode::Right if app.menu_view_item().is_some() => {
+                        if let Some(item) = app.menu_view_item() {
+                            let axis = view_axis_of(item);
+                            app.nudge_view_offset(axis, 0.1);
                         }
                     }
                     KeyCode::Left if app.menu_active().is_some() => app.menu_move(-1, 0),
@@ -1778,7 +1870,7 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
         graph_text.push_str(&legend.join("   "));
         graph_text.push('\n');
         let (w, h) = graph_dims(graph_area, wide, app.keypad_focused());
-        graph_text.push_str(&render_ascii3d(app.surfaces(), app.view(), w, h));
+        graph_text.push_str(&render_ascii3d(app.surfaces(), &app.effective_view(), w, h));
     } else if !curves.is_empty() {
         let legend: Vec<String> = curves
             .iter()
@@ -1846,6 +1938,21 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
                 for code in epher_i18n::SUPPORTED_LOCALES {
                     v.push(native_language_name(code).to_string());
                 }
+                // The 3D fine controls (ADR-0031) join the menu only
+                // while surfaces are displayed, mirroring the web's
+                // sliders; their rows show the live value.
+                if !app.surfaces().is_empty() {
+                    let (h, vv, z) = app.view_offsets();
+                    v.push(format!(
+                        "{}  {h:+.1}",
+                        localizer.lookup("view-horizontal")
+                    ));
+                    v.push(format!(
+                        "{}  {vv:+.1}",
+                        localizer.lookup("view-vertical")
+                    ));
+                    v.push(format!("{}  {z:+.1}", localizer.lookup("view-zoom")));
+                }
                 v
             }
         };
@@ -1868,7 +1975,10 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
             })
             .collect();
         let x = 11 * menu as u16 + 1;
-        let w = 26u16.max(items.iter().map(|s| s.chars().count() as u16 + 3).max().unwrap_or(10));
+        // +5: two for the border, two for the Settings check mark, one
+        // spare — the fine-control rows' labels and values (ADR-0031)
+        // must never clip at the right border.
+        let w = 26u16.max(items.iter().map(|s| s.chars().count() as u16 + 5).max().unwrap_or(10));
         let h = items.len() as u16 + 2;
         let popup = Rect {
             x: menu_area.x + x,
@@ -1927,6 +2037,16 @@ fn item_checked(app: &App, item: usize, locale: &str) -> bool {
                 .map(|code| *code == locale)
                 .unwrap_or(false)
         }
+    }
+}
+
+/// Which fine-control axis a Settings-menu row highlights (ADR-0031):
+/// rows 12–14 are horizontal rotation, vertical rotation, zoom.
+fn view_axis_of(item: usize) -> ViewAxis {
+    match item {
+        13 => ViewAxis::Vertical,
+        14 => ViewAxis::Zoom,
+        _ => ViewAxis::Horizontal,
     }
 }
 

@@ -84,3 +84,8 @@ guide-insert-hint = Touchez un exemple pour l'insérer dans le champ de saisie.
 guide-hint = Haut/Bas défiler · Esc fermer
 settings-markers = Points mis en évidence sur le tracé
 graph-width = Épaisseur de trait
+# ADR-0031: the 3D fine-control sliders (the TUI Settings menu
+# spells the same three rows).
+view-horizontal = Rotation horizontale
+view-vertical = Rotation verticale
+view-zoom = Zoom

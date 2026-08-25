@@ -587,7 +587,7 @@ fn menu_navigation_and_actions() {
 
     // File ends with Quit (ADR-0023, ADR-0025): five items now — open
     // history, open script, save history, save script, quit.
-    assert_eq!(epher_tui::App::menu_len(0), 5);
+    assert_eq!(app.menu_len(0), 5);
     app.menu_open(0);
     app.menu_move(0, 4);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::Quit));
@@ -599,12 +599,12 @@ fn menu_navigation_and_actions() {
     assert_eq!(app.menu_active(), Some((0, 0)));
     // Graph menu: exactly one item, clearing the graph (ADR-0018).
     app.menu_open(2);
-    assert_eq!(epher_tui::App::menu_len(2), 1);
+    assert_eq!(app.menu_len(2), 1);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::ClearGraph));
     // Settings moved to slot 3: the POI-list checkbox (ADR-0019), then
     // theme radios, then languages.
     app.menu_open(3);
-    assert_eq!(epher_tui::App::menu_len(3), 12);
+    assert_eq!(app.menu_len(3), 12);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::TogglePois));
     app.menu_open(3);
     app.menu_move(0, 1);
@@ -616,7 +616,7 @@ fn menu_navigation_and_actions() {
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::SetLanguage("zh-CN")));
     // Help menu: one item, the user guide.
     app.menu_open(4);
-    assert_eq!(epher_tui::App::menu_len(4), 1);
+    assert_eq!(app.menu_len(4), 1);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::OpenGuide));
 
     // Typing a character dismisses the menu (the event loop calls
@@ -848,4 +848,69 @@ fn history_focus_moves_and_picks_without_running() {
     app.history_open();
     assert!(app.history_pick().is_none());
     assert!(!app.history_focused());
+}
+
+/// ADR-0031: the Settings menu grows the three 3D fine-control rows only
+/// while surfaces are displayed, and the rows are adjusted with
+/// Left/Right ±0.1, clamped to −1..1 (the web sliders' range and step).
+#[test]
+fn view_fine_controls_appear_with_3d_and_nudge_within_range() {
+    let store = tui_store();
+    let mut app = App::with_session(epher_core::Session::new());
+    assert_eq!(app.menu_len(3), 12);
+    app.submit_line("graph3d x ^ 2 - y ^ 2", &store, &epher_i18n::Localizer::resolve(Some("en"), &[]));
+    assert_eq!(app.menu_len(3), 15);
+    app.menu_open(3);
+    app.menu_move(0, 12);
+    assert_eq!(app.menu_view_item(), Some(12));
+    assert_eq!(app.view_offsets(), (0.0, 0.0, 0.0));
+    app.nudge_view_offset(epher_tui::ViewAxis::Horizontal, 0.1);
+    assert_eq!(app.view_offsets(), (0.1, 0.0, 0.0));
+    // The effective pose folds the offsets into the orbit base: +1
+    // horizontal = a full π of yaw, +1 zoom halves the camera distance.
+    let eff = app.effective_view();
+    let base = epher_core::graph::View3D::default();
+    assert!((eff.yaw - (base.yaw + 0.1 * std::f64::consts::PI)).abs() < 1e-12);
+    // Clamp at both ends.
+    for _ in 0..30 {
+        app.nudge_view_offset(epher_tui::ViewAxis::Zoom, 0.1);
+    }
+    assert_eq!(app.view_offsets().2, 1.0);
+    for _ in 0..30 {
+        app.nudge_view_offset(epher_tui::ViewAxis::Zoom, -0.1);
+    }
+    assert_eq!(app.view_offsets().2, -1.0);
+    // Activating a fine-control row keeps the menu open (Enter is not an
+    // action for these rows; Left/Right is the gesture).
+    app.menu_open(3);
+    app.menu_move(0, 12);
+    assert_eq!(app.menu_activate(), None);
+    assert_eq!(app.menu_active(), Some((3, 12)));
+    // A fresh 3D graph drawn into an empty pane resets the controls.
+    app.reset_view_offsets();
+    assert_eq!(app.view_offsets(), (0.0, 0.0, 0.0));
+    // Clearing the graph resets them too.
+    app.nudge_view_offset(epher_tui::ViewAxis::Vertical, 0.5);
+    app.clear_graph();
+    assert_eq!(app.view_offsets(), (0.0, 0.0, 0.0));
+}
+
+/// ADR-0031: a history pick loads the expression, without the recorded
+/// answer suffix — the user can edit and re-run it directly.
+#[test]
+fn history_pick_drops_the_answer_suffix() {
+    let mut app = App::with_session(Session::with_history(vec![
+        "2 + 2  = 4".to_string(),
+        "x = 10; x + 5  = 15".to_string(),
+        "graph x ^ 2".to_string(),
+    ]));
+    app.history_open();
+    // Newest first: the graph line, then the script, then 2 + 2.
+    app.history_move(1);
+    assert_eq!(app.history_pick(), Some("x = 10; x + 5".to_string()));
+    app.history_open();
+    app.history_move(2);
+    assert_eq!(app.history_pick(), Some("2 + 2".to_string()));
+    app.history_open();
+    assert_eq!(app.history_pick(), Some("graph x ^ 2".to_string()));
 }

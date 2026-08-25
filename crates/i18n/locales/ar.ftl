@@ -84,3 +84,8 @@ guide-insert-hint = المس مثالاً لإدراجه في حقل الإدخ�
 guide-hint = تمرير لأعلى/لأسفل · Esc إغلاق
 settings-markers = النقاط المميزة على الرسم البياني
 graph-width = سماكة الخط
+# ADR-0031: the 3D fine-control sliders (the TUI Settings menu
+# spells the same three rows).
+view-horizontal = الدوران الأفقي
+view-vertical = الدوران الرأسي
+view-zoom = التكبير

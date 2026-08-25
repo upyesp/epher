@@ -20,14 +20,14 @@ const LANGS = ["en", "zh-CN", "hi", "es", "fr", "ar", "de", "pt"];
 // site/app.js; the guide page itself is single-language so no runtime i18n).
 // copy/copied label the example-block copy button (and its announcement).
 const CHROME = {
-  en: { title: "epher — User guide", back: "Back to home", contents: "Contents", themeDark: "Use dark theme", themeLight: "Use light theme", footer: "epher user guide", copy: "Copy", copied: "Copied", about: "About", privacy: "Privacy", menu: "Menu" },
-  "zh-CN": { title: "epher — 用户指南", back: "返回主页", contents: "目录", themeDark: "使用深色主题", themeLight: "使用浅色主题", footer: "epher 用户指南", copy: "复制", copied: "已复制", about: "关于", privacy: "隐私", menu: "菜单" },
-  hi: { title: "epher — उपयोगकर्ता गाइड", back: "मुख्य पृष्ठ पर वापस जाएँ", contents: "विषय-सूची", themeDark: "गहरी थीम का उपयोग करें", themeLight: "हल्की थीम का उपयोग करें", footer: "epher उपयोगकर्ता गाइड", copy: "कॉपी करें", copied: "कॉपी हो गया", about: "परिचय", privacy: "गोपनीयता", menu: "मेनू" },
-  es: { title: "epher — Guía de usuario", back: "Volver al inicio", contents: "Contenido", themeDark: "Usar tema oscuro", themeLight: "Usar tema claro", footer: "Guía de usuario de epher", copy: "Copiar", copied: "Copiado", about: "Acerca de", privacy: "Privacidad", menu: "Menú" },
-  fr: { title: "epher — Guide de l'utilisateur", back: "Retour à l'accueil", contents: "Sommaire", themeDark: "Utiliser le thème sombre", themeLight: "Utiliser le thème clair", footer: "Guide de l'utilisateur de epher", copy: "Copier", copied: "Copié", about: "À propos", privacy: "Confidentialité", menu: "Menu" },
-  ar: { title: "epher — دليل المستخدم", back: "العودة إلى الصفحة الرئيسية", contents: "المحتويات", themeDark: "استخدام المظهر الداكن", themeLight: "استخدام المظهر الفاتح", footer: "دليل مستخدم epher", copy: "نسخ", copied: "تم النسخ", about: "حول", privacy: "الخصوصية", menu: "القائمة" },
-  de: { title: "epher — Benutzerhandbuch", back: "Zurück zur Startseite", contents: "Inhalt", themeDark: "Dunkles Design verwenden", themeLight: "Helles Design verwenden", footer: "epher-Benutzerhandbuch", copy: "Kopieren", copied: "Kopiert", about: "Über", privacy: "Datenschutz", menu: "Menü" },
-  pt: { title: "epher — Guia de utilizador", back: "Voltar ao início", contents: "Índice", themeDark: "Usar tema escuro", themeLight: "Usar tema claro", footer: "Guia de utilizador do epher", copy: "Copiar", copied: "Copiado", about: "Sobre", privacy: "Privacidade", menu: "Menu" },
+  en: { title: "epher — User guide", app: "App", back: "Back to home", contents: "Contents", themeDark: "Use dark theme", themeLight: "Use light theme", footer: "epher user guide", copy: "Copy", copied: "Copied", about: "About", privacy: "Privacy", menu: "Menu" },
+  "zh-CN": { title: "epher — 用户指南", app: "应用", back: "返回主页", contents: "目录", themeDark: "使用深色主题", themeLight: "使用浅色主题", footer: "epher 用户指南", copy: "复制", copied: "已复制", about: "关于", privacy: "隐私", menu: "菜单" },
+  hi: { title: "epher — उपयोगकर्ता गाइड", app: "ऐप", back: "मुख्य पृष्ठ पर वापस जाएँ", contents: "विषय-सूची", themeDark: "गहरी थीम का उपयोग करें", themeLight: "हल्की थीम का उपयोग करें", footer: "epher उपयोगकर्ता गाइड", copy: "कॉपी करें", copied: "कॉपी हो गया", about: "परिचय", privacy: "गोपनीयता", menu: "मेनू" },
+  es: { title: "epher — Guía de usuario", app: "App", back: "Volver al inicio", contents: "Contenido", themeDark: "Usar tema oscuro", themeLight: "Usar tema claro", footer: "Guía de usuario de epher", copy: "Copiar", copied: "Copiado", about: "Acerca de", privacy: "Privacidad", menu: "Menú" },
+  fr: { title: "epher — Guide de l'utilisateur", app: "App", back: "Retour à l'accueil", contents: "Sommaire", themeDark: "Utiliser le thème sombre", themeLight: "Utiliser le thème clair", footer: "Guide de l'utilisateur de epher", copy: "Copier", copied: "Copié", about: "À propos", privacy: "Confidentialité", menu: "Menu" },
+  ar: { title: "epher — دليل المستخدم", app: "التطبيق", back: "العودة إلى الصفحة الرئيسية", contents: "المحتويات", themeDark: "استخدام المظهر الداكن", themeLight: "استخدام المظهر الفاتح", footer: "دليل مستخدم epher", copy: "نسخ", copied: "تم النسخ", about: "حول", privacy: "الخصوصية", menu: "القائمة" },
+  de: { title: "epher — Benutzerhandbuch", app: "App", back: "Zurück zur Startseite", contents: "Inhalt", themeDark: "Dunkles Design verwenden", themeLight: "Helles Design verwenden", footer: "epher-Benutzerhandbuch", copy: "Kopieren", copied: "Kopiert", about: "Über", privacy: "Datenschutz", menu: "Menü" },
+  pt: { title: "epher — Guia de utilizador", app: "App", back: "Voltar ao início", contents: "Índice", themeDark: "Usar tema escuro", themeLight: "Usar tema claro", footer: "Guia de utilizador do epher", copy: "Copiar", copied: "Copiado", about: "Sobre", privacy: "Privacidade", menu: "Menu" },
 };
 
 // --- example code blocks ------------------------------------------------
@@ -200,6 +200,7 @@ function page(lang, body, toc) {
     <nav class="site-nav" id="site-nav" hidden aria-label="epher">
       <a href="../../about.html">${c.about}</a>
       <a href="../../">${c.back}</a>
+      <a href="/pwa/">${c.app}</a>
       <a href="../../privacy.html">${c.privacy}</a>
     </nav>
     <div class="header-controls">
@@ -229,6 +230,7 @@ function page(lang, body, toc) {
     <nav class="footer-links" aria-label="${c.footer}">
       <a href="../../about.html">${c.about}</a>
       <a href="../../">${c.back}</a>
+      <a href="/pwa/">${c.app}</a>
       <a href="../../privacy.html">${c.privacy}</a>
     </nav>
     <p class="muted">${c.footer}</p>

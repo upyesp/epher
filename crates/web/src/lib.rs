@@ -17,7 +17,7 @@ use epher_core::graph::{
     analyze, free_names, parse_graph_source, sample_spec, CurveKind, CurveSpec, InterestPoint,
     SampledCurve,
 };
-use epher_core::{Session, Value};
+use epher_core::{history_expression, Session, Value};
 use epher_i18n::Localizer;
 use epher_shell::{classify, message, prepare};
 use std::cell::RefCell;
@@ -368,6 +368,18 @@ fn mobile_layout() -> bool {
         .unwrap_or(false)
 }
 
+/// Whether a stored line width fits the current layout's slider range
+/// (ADR-0031): mobile spans 0–0.2 step 0.01, desktop 0.1–4 step 0.1.
+/// A stored value from the other layout is out of range and ignored, so
+/// each layout starts at its own default.
+fn width_in_range(w: f64) -> bool {
+    if mobile_layout() {
+        (0.0..=0.2).contains(&w)
+    } else {
+        (0.1..=4.0).contains(&w)
+    }
+}
+
 fn download_text_file(filename: &str, text: &str) {
     let Some(win) = web_sys::window() else {
         return;
@@ -545,6 +557,109 @@ async fn browser_save_dialog(default_name: &str, text: &str) -> Result<Option<St
     Ok(Some(name))
 }
 
+/// The browser's own open picker (File System Access API, Chromium) —
+/// the device's file explorer — or `None` when this browser has none
+/// (the caller falls back to the hidden file input).
+fn browser_open_picker() -> Option<js_sys::Function> {
+    let window = web_sys::window()?;
+    let picker = js_sys::Reflect::get(&window, &JsValue::from_str("showOpenFilePicker")).ok()?;
+    picker.dyn_into::<js_sys::Function>().ok()
+}
+
+/// What `showOpenFilePicker` resolved to: a file, a user cancellation
+/// (stay silent, like the save dialog — ADR-0024), or a failure the
+/// caller falls back from.
+enum OpenOutcome {
+    File(web_sys::File),
+    Cancelled,
+    Failed,
+}
+
+/// Run the open picker. The file-type filter is deliberately empty
+/// (ADR-0028): the user navigates their files freely.
+async fn browser_open_dialog() -> OpenOutcome {
+    let Some(picker) = browser_open_picker() else {
+        return OpenOutcome::Failed;
+    };
+    let types = js_sys::Array::new();
+    let opts = js_sys::Object::new();
+    if js_sys::Reflect::set(&opts, &JsValue::from_str("types"), &types).is_err() {
+        return OpenOutcome::Failed;
+    }
+    let Ok(promise) = picker.call1(&JsValue::UNDEFINED, &opts) else {
+        return OpenOutcome::Failed;
+    };
+    match JsFuture::from(js_sys::Promise::from(promise)).await {
+        Err(e) => {
+            let cancelled = js_sys::Reflect::get(&e, &JsValue::from_str("name"))
+                .ok()
+                .and_then(|v| v.as_string())
+                .as_deref()
+                == Some("AbortError");
+            if cancelled {
+                OpenOutcome::Cancelled
+            } else {
+                OpenOutcome::Failed
+            }
+        }
+        Ok(handles) => {
+            let handles = js_sys::Array::from(&handles);
+            let handle = handles.get(0);
+            let Ok(get_file) = js_sys::Reflect::get(&handle, &JsValue::from_str("getFile")) else {
+                return OpenOutcome::Failed;
+            };
+            let Ok(file_fn) = get_file.dyn_into::<js_sys::Function>() else {
+                return OpenOutcome::Failed;
+            };
+            let Ok(file) = file_fn.call0(&handle) else {
+                return OpenOutcome::Failed;
+            };
+            match JsFuture::from(js_sys::Promise::from(file)).await {
+                Ok(v) => v
+                    .dyn_into::<web_sys::File>()
+                    .map(OpenOutcome::File)
+                    .unwrap_or(OpenOutcome::Failed),
+                Err(_) => OpenOutcome::Failed,
+            }
+        }
+    }
+}
+
+/// Read an opened file's text.
+async fn open_file_text(file: web_sys::File) -> Option<String> {
+    JsFuture::from(file.text())
+        .await
+        .ok()
+        .and_then(|v| v.as_string())
+}
+
+/// Load opened history text (ADR-0025): the current history clears,
+/// then each non-empty line is recorded — nothing executes — and the
+/// new history persists through the bridge. The answer names the count.
+fn apply_open_history(
+    text: String,
+    session: &UseStateHandle<Session>,
+    bridge: Bridge,
+    result: &UseStateHandle<String>,
+    localizer: &Localizer,
+) {
+    // The double deref matters: UseStateHandle itself is Clone, so a
+    // single deref would clone the handle, not the session.
+    let mut s = (**session).clone();
+    s.clear_history();
+    for line in text.lines().map(str::trim).filter(|l| !l.is_empty()) {
+        s.record(line);
+    }
+    let loaded = s.history().len();
+    let count = loaded.to_string();
+    // The handle deref stays a render snapshot (the play_cell pattern,
+    // ADR-0023): read the slice from `s` before moving it into the state.
+    let saved: Vec<String> = s.history().to_vec();
+    session.set(s);
+    bridge.save_history(&saved);
+    result.set(localizer.lookup_args("history-loaded", &[("count", &count)]));
+}
+
 
 #[function_component(EpherApp)]
 fn epher_app() -> Html {
@@ -560,10 +675,15 @@ fn epher_app() -> Html {
     // Graph options (ADR-0019, on the pane itself since ADR-0020): whether
     // the pane lists the points of interest and marks them on the plot,
     // and the curve line width. Display-only — the analysis always runs,
-    // so switching back is instant.
+    // so switching back is instant. Mobile starts at 0.1: thin lines for
+    // the small screen (ADR-0031), the desktop default stays 1.0.
     let poi_list = use_state(|| true);
     let poi_markers = use_state(|| true);
-    let line_width = use_state(|| graph::DEFAULT_STROKE_WIDTH);
+    let line_width = use_state(|| if mobile_layout() { 0.1 } else { graph::DEFAULT_STROKE_WIDTH });
+    // Which side of the 880px breakpoint the window is on (ADR-0016): the
+    // width slider's range is a mobile/desktop decision (0–0.2 step 0.01
+    // vs 0.1–4 step 0.1), and it tracks window resizes.
+    let is_mobile = use_state(mobile_layout);
     let live = use_state(|| Rc::new(RefCell::new(GraphLive::default())));
     let surface = use_state(Vec::<epher_core::graph::Surface>::new);
     let view = use_state(epher_core::graph::View3D::default);
@@ -572,6 +692,14 @@ fn epher_app() -> Html {
     // reading the same stale handle snapshot and overwriting the last
     // (the v0.4.13 "shivering" — the render-snapshot rule, ADR-0026).
     let view_cell = use_state(|| Rc::new(RefCell::new(epher_core::graph::View3D::default())));
+    // The 3D fine-control sliders (ADR-0031): horizontal rotation,
+    // vertical rotation, and zoom offsets — each −1..1, step 0.1, with 0
+    // the default. They ride on top of the orbit base view, applied via
+    // View3D::with_offsets, and reset whenever a 3D graph is drawn into
+    // an empty pane.
+    let view_h = use_state(|| 0.0_f64);
+    let view_v = use_state(|| 0.0_f64);
+    let view_z = use_state(|| 0.0_f64);
     let play = use_state(|| Option::<PlaySpec>::None);
     // The live cell behind `play`: the animation loop reads and advances
     // it across ticks; Yew handles captured at spawn read stale snapshots.
@@ -678,7 +806,7 @@ fn epher_app() -> Html {
                                 }
                                 if let Ok(Some(v)) = store.get_item("epher-line-width") {
                                     if let Ok(w) = v.parse::<f64>() {
-                                        if (0.1..=4.0).contains(&w) {
+                                        if width_in_range(w) {
                                             line_width.set(w);
                                         }
                                     }
@@ -717,7 +845,7 @@ fn epher_app() -> Html {
                     }
                     if let Ok(Some(v)) = store.get_item("epher-line-width") {
                         if let Ok(w) = v.parse::<f64>() {
-                            if (0.1..=4.0).contains(&w) {
+                            if width_in_range(w) {
                                 line_width.set(w);
                             }
                         }
@@ -837,14 +965,20 @@ fn epher_app() -> Html {
         })
     };
     // The line-width slider (ADR-0020): persisted like the POI toggles,
+    // The line-width slider (ADR-0020): persisted like the POI toggles,
     // clamped to the slider's range so a stale stored value cannot
-    // ADR-0028: the width floor is 0.1 (a hairline); below that SVG
-    // stroke widths read as broken. The clamp also guards the stored
-    // value coming back from localStorage.
+    // re-enter. The range itself is the layout's (ADR-0031): mobile
+    // 0–0.2 step 0.01 (thin lines on the small screen, floor included),
+    // desktop 0.1–4 step 0.1 (the ADR-0028 hairline floor stays).
     let on_set_line_width = {
         let line_width = line_width.clone();
         Callback::from(move |w: f64| {
-            let w = w.clamp(0.1, 4.0);
+            let (lo, hi) = if mobile_layout() {
+                (0.0, 0.2)
+            } else {
+                (0.1, 4.0)
+            };
+            let w = w.clamp(lo, hi);
             if let Some(store) = web_sys::window()
                 .and_then(|w| w.local_storage().ok().flatten())
             {
@@ -854,13 +988,65 @@ fn epher_app() -> Html {
         })
     };
 
-    // File → Open script (ADR-0025): the hidden input's picker; the
-    // chosen file's text replaces the entry field — clearing whatever sat
-    // there — for review before running.
+    // Crossing the 880px breakpoint re-clamps the width to the new
+    // slider range (ADR-0031): the slider element's value is always
+    // current, and the setter clamps to whatever layout the window is
+    // in now. The `is_mobile` state flips the slider's attributes.
+    {
+        let is_mobile = is_mobile.clone();
+        let on_set_line_width = on_set_line_width.clone();
+        use_effect(move || {
+            let window = web_sys::window().expect("window");
+            let listener = gloo_events::EventListener::new(&window, "resize", move |_| {
+                is_mobile.set(mobile_layout());
+                if let Some(el) = web_sys::window()
+                    .and_then(|w| w.document())
+                    .and_then(|d| d.query_selector(".graph-width-slider").ok().flatten())
+                    .and_then(|el| el.dyn_into::<web_sys::HtmlInputElement>().ok())
+                {
+                    if let Ok(w) = el.value().parse::<f64>() {
+                        on_set_line_width.emit(w);
+                    }
+                }
+            });
+            move || drop(listener)
+        });
+    }
+
+    // File → Open script (ADR-0025, ADR-0031): on the PWA the browser's
+    // own open picker (File System Access API) runs when available — the
+    // device's file explorer, straight from the menu tap. Browsers
+    // without it, and the desktop shell, fall back to the hidden input's
+    // picker, and a picker failure falls back the same way.
     let on_open_script = {
         let file_ref = file_ref.clone();
+        let input = input.clone();
+        let result = result.clone();
+        let localizer = localizer.clone();
+        let bridge = bridge;
         Callback::from(move |_| {
-            if let Some(el) = file_ref.cast::<web_sys::HtmlInputElement>() {
+            if !matches!(bridge, Bridge::Tauri) && browser_open_picker().is_some() {
+                let file_ref = file_ref.clone();
+                let input = input.clone();
+                let result = result.clone();
+                let localizer = localizer.clone();
+                spawn_local(async move {
+                    match browser_open_dialog().await {
+                        OpenOutcome::File(file) => {
+                            if let Some(text) = open_file_text(file).await {
+                                input.set(text);
+                                result.set(localizer.lookup("menu-loaded"));
+                            }
+                        }
+                        OpenOutcome::Cancelled => {}
+                        OpenOutcome::Failed => {
+                            if let Some(el) = file_ref.cast::<web_sys::HtmlInputElement>() {
+                                el.click();
+                            }
+                        }
+                    }
+                });
+            } else if let Some(el) = file_ref.cast::<web_sys::HtmlInputElement>() {
                 el.click();
             }
         })
@@ -901,8 +1087,33 @@ fn epher_app() -> Html {
     // uses. Nothing executes: the lines display exactly as saved.
     let on_open_history = {
         let history_ref = history_ref.clone();
+        let session = session.clone();
+        let result = result.clone();
+        let localizer = localizer.clone();
+        let bridge = bridge;
         Callback::from(move |_| {
-            if let Some(el) = history_ref.cast::<web_sys::HtmlInputElement>() {
+            if !matches!(bridge, Bridge::Tauri) && browser_open_picker().is_some() {
+                let history_ref = history_ref.clone();
+                let session = session.clone();
+                let result = result.clone();
+                let localizer = localizer.clone();
+                let bridge = bridge;
+                spawn_local(async move {
+                    match browser_open_dialog().await {
+                        OpenOutcome::File(file) => {
+                            if let Some(text) = open_file_text(file).await {
+                                apply_open_history(text, &session, bridge, &result, &localizer);
+                            }
+                        }
+                        OpenOutcome::Cancelled => {}
+                        OpenOutcome::Failed => {
+                            if let Some(el) = history_ref.cast::<web_sys::HtmlInputElement>() {
+                                el.click();
+                            }
+                        }
+                    }
+                });
+            } else if let Some(el) = history_ref.cast::<web_sys::HtmlInputElement>() {
                 el.click();
             }
         })
@@ -927,20 +1138,7 @@ fn epher_app() -> Html {
                     .await
                     .and_then(|v| v.as_string().ok_or(()).map_err(|()| wasm_bindgen::JsValue::NULL))
                 {
-                    let mut s = (*session).clone();
-                    s.clear_history();
-                    for line in text.lines().map(str::trim).filter(|l| !l.is_empty()) {
-                        s.record(line);
-                    }
-                    let loaded = s.history().len();
-                    let count = loaded.to_string();
-                    // The handle deref stays a render snapshot (the
-                    // play_cell pattern, ADR-0023): read the slice from
-                    // `s` before moving it into the state.
-                    let saved: Vec<String> = s.history().to_vec();
-                    session.set(s);
-                    bridge.save_history(&saved);
-                    result.set(localizer.lookup_args("history-loaded", &[("count", &count)]));
+                    apply_open_history(text, &session, bridge, &result, &localizer);
                 }
             });
             // Allow picking the same file twice in a row.
@@ -1152,6 +1350,9 @@ fn epher_app() -> Html {
         let surface = surface.clone();
         let scroll_pane = scroll_pane.clone();
         let input_ref = input_ref.clone();
+        let view_h = view_h.clone();
+        let view_v = view_v.clone();
+        let view_z = view_z.clone();
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             // A submitted entry may be several lines (pasted from the
@@ -1248,10 +1449,21 @@ fn epher_app() -> Html {
                     }
                     if source == "clear" {
                         surfaces.clear();
+                        view_h.set(0.0);
+                        view_v.set(0.0);
+                        view_z.set(0.0);
                         continue;
                     }
                     match epher_core::graph::sample_surface(source, 30, s.env()) {
                         Ok(fresh) => {
+                            // A 3D graph drawn into an empty pane brings
+                            // fresh fine-control sliders at their default
+                            // 0 (ADR-0031); overlays keep the current pose.
+                            if surfaces.is_empty() {
+                                view_h.set(0.0);
+                                view_v.set(0.0);
+                                view_z.set(0.0);
+                            }
                             surfaces.push(fresh);
                             // Same as 2D: no answer echo, the surface is
                             // the result (ADR-0027).
@@ -1428,6 +1640,20 @@ fn epher_app() -> Html {
             || {}
         });
     }
+
+    let on_set_view = {
+        let view_h = view_h.clone();
+        let view_v = view_v.clone();
+        let view_z = view_z.clone();
+        Callback::from(move |(axis, v): (&'static str, f64)| {
+            let v = v.clamp(-1.0, 1.0);
+            match axis {
+                "h" => view_h.set(v),
+                "v" => view_v.set(v),
+                _ => view_z.set(v),
+            }
+        })
+    };
 
     // 3D orbit: drag or arrow keys rotate the view (ADR-0015). Each event
     // mutates the live cell first, so consecutive events accumulate on top
@@ -1643,12 +1869,19 @@ fn epher_app() -> Html {
         let line_width = line_width.clone();
         let surface = surface.clone();
         let view = view.clone();
+        let view_h = view_h.clone();
+        let view_v = view_v.clone();
+        let view_z = view_z.clone();
         let result = result.clone();
         let localizer = localizer.clone();
         Callback::from(move |_| {
             let svg = if !(*curves).is_empty() {
                 graph::graph_svg(&curves, &pois, *trace, *poi_markers, *line_width)
-            } else if let Some(doc) = graph::graph3d_svg(&surface, &view, *line_width) {
+            } else if let Some(doc) = graph::graph3d_svg(
+                &surface,
+                &(*view).with_offsets(*view_h, *view_v, *view_z),
+                *line_width,
+            ) {
                 doc
             } else {
                 String::new()
@@ -1897,6 +2130,9 @@ fn epher_app() -> Html {
         let live = live.clone();
         let result = result.clone();
         let localizer = localizer.clone();
+        let view_h = view_h.clone();
+        let view_v = view_v.clone();
+        let view_z = view_z.clone();
         Callback::from(move |_| {
             graph.set(Vec::new());
             pois.set(Vec::new());
@@ -1905,6 +2141,9 @@ fn epher_app() -> Html {
             play.set(None);
             *play_cell.borrow_mut() = None;
             *live.borrow_mut() = GraphLive::default();
+            view_h.set(0.0);
+            view_v.set(0.0);
+            view_z.set(0.0);
             result.set(localizer.lookup("graph-cleared"));
         })
     };
@@ -2448,7 +2687,12 @@ fn epher_app() -> Html {
                                     let input_ref = input_ref.clone();
                                     let line = h.clone();
                                     Callback::from(move |_| {
-                                        input.set(line.clone());
+                                        // ADR-0031: the pick loads the
+                                        // expression — the recorded
+                                        // answer suffix stays out of the
+                                        // input so the user can edit and
+                                        // re-run it.
+                                        input.set(history_expression(&line).to_string());
                                         if let Some(ta) =
                                             input_ref.cast::<web_sys::HtmlTextAreaElement>()
                                         {
@@ -2576,25 +2820,92 @@ fn epher_app() -> Html {
                                         }
                                         <label class="graph-option graph-width">
                                             <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
-                                            <input type="range" class="graph-width-slider"
-                                                min="0.1" max="4" step="0.1" value={line_width.to_string()}
-                                                oninput={Callback::from({
-                                                    let on_set_line_width = on_set_line_width.clone();
-                                                    move |e: web_sys::InputEvent| {
+                                            {
+                                                // ADR-0031: the slider's range is the layout's —
+                                                // mobile 0–0.2 step 0.01 (thin lines), desktop
+                                                // 0.1–4 step 0.1.
+                                                if *is_mobile {
+                                                    html! {
+                                                        <input type="range" class="graph-width-slider"
+                                                            min="0" max="0.2" step="0.01" value={line_width.to_string()}
+                                                            oninput={Callback::from({
+                                                                let on_set_line_width = on_set_line_width.clone();
+                                                                move |e: web_sys::InputEvent| {
+                                                                    if let Some(el) = e
+                                                                        .target()
+                                                                        .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                                    {
+                                                                        if let Ok(w) = el.value().parse::<f64>() {
+                                                                            on_set_line_width.emit(w);
+                                                                        }
+                                                                    }
+                                                                }
+                                                            })}
+                                                        />
+                                                    }
+                                                } else {
+                                                    html! {
+                                                        <input type="range" class="graph-width-slider"
+                                                            min="0.1" max="4" step="0.1" value={line_width.to_string()}
+                                                            oninput={Callback::from({
+                                                                let on_set_line_width = on_set_line_width.clone();
+                                                                move |e: web_sys::InputEvent| {
+                                                                    if let Some(el) = e
+                                                                        .target()
+                                                                        .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                                    {
+                                                                        if let Ok(w) = el.value().parse::<f64>() {
+                                                                            on_set_line_width.emit(w);
+                                                                        }
+                                                                    }
+                                                                }
+                                                            })}
+                                                        />
+                                                    }
+                                                }
+                                            }
+                                            <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *line_width) }</span>
+                                        </label>
+                                    </div>
+                                    // The 3D fine controls (ADR-0031): three sliders above
+                                    // the plot, visible only while surfaces are displayed.
+                                    // Each spans −1..1, step 0.1, default 0, and updates the
+                                    // plot in real time — on top of the orbit gesture.
+                                    if !(*surface).is_empty() {
+                                        <div class="view3d-options">
+                                            { for [("h", "view-horizontal"), ("v", "view-vertical"), ("z", "view-zoom")].iter().map(|(axis, key)| {
+                                                let value = match *axis {
+                                                    "h" => *view_h,
+                                                    "v" => *view_v,
+                                                    _ => *view_z,
+                                                };
+                                                let on_input = {
+                                                    let on_set_view = on_set_view.clone();
+                                                    let axis = *axis;
+                                                    Callback::from(move |e: web_sys::InputEvent| {
                                                         if let Some(el) = e
                                                             .target()
                                                             .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
                                                         {
-                                                            if let Ok(w) = el.value().parse::<f64>() {
-                                                                on_set_line_width.emit(w);
+                                                            if let Ok(v) = el.value().parse::<f64>() {
+                                                                on_set_view.emit((axis, v));
                                                             }
                                                         }
-                                                    }
-                                                })}
-                                            />
-                                            <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *line_width) }</span>
-                                        </label>
-                                    </div>
+                                                    })
+                                                };
+                                                html! {
+                                                    <label class="graph-option view3d-option">
+                                                        <span>{ localizer.lookup(key) }</span>
+                                                        <input type="range" class="view3d-slider"
+                                                            min="-1" max="1" step="0.1" value={value.to_string()}
+                                                            oninput={on_input}
+                                                        />
+                                                        <span class="graph-width-value" aria-hidden="true">{ format!("{value:.1}") }</span>
+                                                    </label>
+                                                }
+                                            }) }
+                                        </div>
+                                    }
                                 </div>
                             }
                         } else {
@@ -2648,7 +2959,11 @@ fn epher_app() -> Html {
                     }
                     {
                         if !(*surface).is_empty() {
-                            let rendered = graph::surface_svg(&surface, &view, *line_width);
+                            // The fine-control sliders ride on the orbit
+                            // base (ADR-0031): the pane renders the
+                            // effective pose.
+                            let effective = (*view).with_offsets(*view_h, *view_v, *view_z);
+                            let rendered = graph::surface_svg(&surface, &effective, *line_width);
                             let aria = format!(
                                 "{}: {}",
                                 "3D",

@@ -731,6 +731,28 @@
       min-width: 2.6em;
       text-align: right;
     }
+    /* The 3D fine-control sliders (ADR-0031): the same row idiom as the
+       graph options, sitting above the plot with the rest of the pane
+       toolbar. The 48px label height keeps them comfortable targets. */
+    .view3d-options {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem 1.25rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .view3d-option {
+      gap: 0.6rem;
+    }
+    .view3d-slider {
+      width: 6.5rem;
+      accent-color: var(--accent);
+    }
+    .view3d-slider:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
     /* The macOS "install the epher command" action (ADR-0011): a quiet,
        secondary button — it must not compete with the = button. Contrast
        9.9:1 accent-on-background (WCAG 1.4.3); 48px target (2.5.8). */

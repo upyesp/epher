@@ -84,3 +84,8 @@ guide-insert-hint = किसी उदाहरण को एंट्री �
 guide-hint = ऊपर/नीचे स्क्रॉल · Esc बंद करें
 settings-markers = ग्राफ़ पर उजागर बिंदु
 graph-width = रेखा की मोटाई
+# ADR-0031: the 3D fine-control sliders (the TUI Settings menu
+# spells the same three rows).
+view-horizontal = क्षैतिज घुमाव
+view-vertical = ऊर्ध्वाधर घुमाव
+view-zoom = ज़ूम

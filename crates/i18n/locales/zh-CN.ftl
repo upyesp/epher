@@ -84,3 +84,8 @@ guide-insert-hint = 点击示例可将其插入输入框。
 guide-hint = 上/下滚动 · Esc 关闭
 settings-markers = 图上高亮的点
 graph-width = 线条粗细
+# ADR-0031: the 3D fine-control sliders (the TUI Settings menu
+# spells the same three rows).
+view-horizontal = 水平旋转
+view-vertical = 垂直旋转
+view-zoom = 缩放

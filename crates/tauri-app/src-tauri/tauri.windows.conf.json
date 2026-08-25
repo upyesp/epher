@@ -1,5 +1,20 @@
 {
   "mainBinaryName": "epher-gui",
+  "app": {
+    "windows": [
+      {
+        "title": "epher",
+        "width": 1024,
+        "height": 720,
+        "minWidth": 900,
+        "minHeight": 640,
+        "resizable": true,
+        "fullscreen": false,
+        "theme": "Dark",
+        "additionalBrowserArgs": "--disk-cache-size=0 --default-background-color=141416"
+      }
+    ]
+  },
   "build": {
     "beforeBundleCommand": "dir ..\\..\\target\\release\\epher*.exe & mkdir ..\\..\\target\\release\\nsis 2>nul & copy /Y ..\\..\\target\\release\\epher.exe ..\\..\\target\\release\\nsis\\epher.exe & dir ..\\..\\target\\release\\nsis\\epher.exe"
   }

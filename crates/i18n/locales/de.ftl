@@ -84,3 +84,8 @@ guide-insert-hint = Tippe ein Beispiel an, um es ins Eingabefeld einzufügen.
 guide-hint = Hoch/Runter scrollen · Esc schließt
 settings-markers = Hervorgehobene Punkte im Plot
 graph-width = Linienstärke
+# ADR-0031: the 3D fine-control sliders (the TUI Settings menu
+# spells the same three rows).
+view-horizontal = Horizontale Drehung
+view-vertical = Vertikale Drehung
+view-zoom = Zoom

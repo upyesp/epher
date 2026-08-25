@@ -915,3 +915,42 @@ fn ans_holds_a_converted_string_like_any_value() {
         vec![Value::Str("0xff".into()), Value::Str("0xff".into())]
     );
 }
+
+/// ADR-0031: a history pick loads the expression — everything before the
+/// last recorded answer suffix — so the user can edit and re-run it.
+#[test]
+fn history_expression_strips_the_answer_suffix() {
+    use epher_core::history_expression;
+    assert_eq!(history_expression("2 + 2  = 4"), "2 + 2");
+    assert_eq!(history_expression("x = 10; x + 5  = 15"), "x = 10; x + 5");
+    // The last suffix wins: single-space `=` in the expression itself
+    // (assignments) is never mistaken for the double-space record marker.
+    assert_eq!(history_expression("x  = 10  = 15"), "x  = 10");
+    // Errors and warnings carry their own suffixes.
+    assert_eq!(history_expression("1/0  error: division by zero"), "1/0");
+    assert_eq!(history_expression("1/0  warning: unstable"), "1/0");
+    // Entries without an answer suffix pass through untouched.
+    assert_eq!(history_expression("graph x ^ 2"), "graph x ^ 2");
+    assert_eq!(history_expression("def f(x) = x * x"), "def f(x) = x * x");
+    assert_eq!(history_expression("2 + 2"), "2 + 2");
+}
+
+/// ADR-0031: the fine-control offsets — 0 leaves the pose unchanged; the
+/// horizontal slider spans ±π of yaw, the vertical one keeps the full
+/// −1..1 range live at the default pose, and zoom scales the camera.
+#[test]
+fn view3d_offsets_map_to_the_pose() {
+    use epher_core::graph::View3D;
+    let base = View3D::default();
+    assert_eq!(base.with_offsets(0.0, 0.0, 0.0), base);
+    let turned = base.with_offsets(0.5, -0.5, 1.0);
+    assert!((turned.yaw - (0.8 + 0.5 * std::f64::consts::PI)).abs() < 1e-12);
+    assert!((turned.pitch - (0.6 - 0.4)).abs() < 1e-12);
+    assert!((turned.camera - 15.0).abs() < 1e-12);
+    // The vertical range's top lands exactly on the pitch clamp at the
+    // default pose; beyond it the clamp holds.
+    let up = base.with_offsets(0.0, 1.0, 0.0);
+    assert!((up.pitch - 1.4).abs() < 1e-12);
+    let over = base.with_offsets(0.0, 2.0, 0.0);
+    assert!((over.pitch - 1.4).abs() < 1e-12);
+}

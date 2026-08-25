@@ -1825,6 +1825,23 @@ fn const_name(line: &str) -> Option<String> {
     }
 }
 
+/// The expression part of a recorded history entry (ADR-0031).
+/// Evaluations are recorded as `"{line}  {output}"` — the line the user
+/// entered, then the answer (`= …`) or the failure (`error: …` /
+/// `warning: …`). A history pick loads everything before the last such
+/// suffix, so the user can edit the expression and re-run it (amending
+/// ADR-0027's verbatim picks: the `  ` separator makes the suffix
+/// structurally unambiguous, not a heuristic). Entries without an answer
+/// suffix — graph commands, definitions — return unchanged.
+pub fn history_expression(entry: &str) -> &str {
+    for suffix in ["  = ", "  error:", "  warning:"] {
+        if let Some(pos) = entry.rfind(suffix) {
+            return &entry[..pos];
+        }
+    }
+    entry
+}
+
 /// A binary arithmetic operator, dispatched per number layer (ADR-0005).
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum BinOp {
