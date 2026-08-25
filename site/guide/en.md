@@ -1200,6 +1200,7 @@ The screen is divided into panels:
 | **Space** | start/stop the animation (when the input is empty) |
 | **F10** | open the menus (File, Edit, Graph, Settings, Help) |
 | **Tab** | focus the always-visible keypad (or history, from the keypad); switch its banks (**Esc** returns focus to typing) |
+| **Mouse** | click menus and popup items, keypad cells and bank tabs, and history lines (loads the expression); drag the graph panel to orbit (3D) or pan (2D), the wheel zooms, a double-click resets the view |
 | **Ctrl+L** | clear the history |
 
 The keypad's banks hold every function, constant, and command the

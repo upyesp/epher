@@ -953,6 +953,12 @@ fn view3d_offsets_map_to_the_pose() {
     assert!((up.pitch - 1.4).abs() < 1e-12);
     let over = base.with_offsets(0.0, 2.0, 0.0);
     assert!((over.pitch - 1.4).abs() < 1e-12);
+    // ADR-0034: the mouse-wheel zoom sets the camera distance directly
+    // (clamped away from zero — a zero camera degenerates the projection).
+    let near = base.with_camera(12.0);
+    assert!((near.camera - 12.0).abs() < 1e-12);
+    assert!((base.with_camera(0.0).camera - 0.5).abs() < 1e-12);
+    assert_eq!(base.with_camera(-3.0).yaw, base.yaw);
 }
 
 /// The spin phase (ADR-0032) adds accumulated rotation with no pitch

@@ -47,7 +47,9 @@ from 72 columns, OSC 52 clipboard). ADR-0033 fits the whole TUI to a
 standard 80×24 terminal: the keypad is always on screen (Tab focuses
 it), the bottom hint strip wraps to two rows so the full key guide is
 visible, and the Settings menu marks its Theme, Language, and 3D View
-sections with labeled rules.
+sections with labeled rules. ADR-0034 adds the pointer: menus, history
+picks, keypad clicks, and graph drags (2D pan / 3D orbit), wheel zoom,
+and double-click reset.
 
 The landing page links to release assets via
 `https://github.com/upyesp/epher/releases/latest/download/<asset>` so download

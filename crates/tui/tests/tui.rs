@@ -139,13 +139,13 @@ fn render_ascii_plots_a_diagonal() {
         Sample { x: 2.0, y: 2.0 },
     ];
     let curves = [curve_of(&[0.0, 1.0, 2.0])];
-    assert_eq!(render_ascii(&curves, 3, 3), "··o\n·o·\no··");
+    assert_eq!(render_ascii(&curves, 3, 3, None), "··o\n·o·\no··");
     let _ = samples;
 }
 
 #[test]
 fn render_ascii_handles_empty_and_non_finite() {
-    assert_eq!(render_ascii(&[], 3, 3), "");
+    assert_eq!(render_ascii(&[], 3, 3, None), "");
     let expr = epher_core::parse("0").unwrap();
     let c = epher_core::graph::SampledCurve {
         source: "test".to_string(),
@@ -161,7 +161,7 @@ fn render_ascii_handles_empty_and_non_finite() {
         ],
         fill: None,
     };
-    let out = render_ascii(&[c], 3, 3);
+    let out = render_ascii(&[c], 3, 3, None);
     assert!(out.contains('o'));
     assert!(!out.contains("NaN"));
 }
@@ -184,7 +184,7 @@ fn render_ascii_marks_axes_when_zero_is_inside() {
         ],
         fill: None,
     };
-    let out = render_ascii(&[c], 5, 5);
+    let out = render_ascii(&[c], 5, 5, None);
     assert!(out.contains('|'), "vertical axis: {out}");
     assert!(out.contains('-'), "horizontal axis: {out}");
 }
@@ -206,7 +206,7 @@ fn render_ascii_uses_distinct_glyphs_and_fills() {
         samples: vec![Sample { x: 0.0, y: 1.0 }, Sample { x: 1.0, y: 0.0 }],
         fill: None,
     };
-    let out = render_ascii(&[a, b], 4, 4);
+    let out = render_ascii(&[a, b], 4, 4, None);
     assert!(out.contains('o'), "first curve glyph: {out}");
     assert!(out.contains('x'), "second curve glyph: {out}");
     assert!(out.contains('.'), "fill shading: {out}");
@@ -913,4 +913,116 @@ fn history_pick_drops_the_answer_suffix() {
     assert_eq!(app.history_pick(), Some("2 + 2".to_string()));
     app.history_open();
     assert_eq!(app.history_pick(), Some("graph x ^ 2".to_string()));
+}
+
+// --- mouse support (ADR-0034) ---
+
+#[test]
+fn mouse_2d_pan_zoom_and_reset_follow_the_viewport() {
+    let mut app = App::default();
+    app.submit_graph("x").expect("graph x");
+    let auto = app.graph2d_effective().expect("auto ranges");
+    assert_eq!(app.graph2d_view(), None);
+    // Panning right by one cell moves the window left through the data:
+    // the span is unchanged, both bounds shift by -span / width.
+    let (x_min, x_max, y_min, y_max) = auto;
+    app.graph2d_pan(1.0, 0.0, 30, 10);
+    let panned = app.graph2d_view().expect("panned view");
+    let dx = -(x_max - x_min) / 30.0;
+    assert!((panned.0 - (x_min + dx)).abs() < 1e-9);
+    assert!((panned.1 - (x_max + dx)).abs() < 1e-9);
+    assert_eq!(panned.2, y_min);
+    assert_eq!(panned.3, y_max);
+    // Zooming halves the spans around the center.
+    let (px_min, px_max, py_min, py_max) = panned;
+    app.graph2d_zoom(0.5);
+    let zoomed = app.graph2d_view().expect("zoomed view");
+    let cx = (px_min + px_max) / 2.0;
+    let cy = (py_min + py_max) / 2.0;
+    assert!((zoomed.0 - (cx - (px_max - px_min) / 4.0)).abs() < 1e-9);
+    assert!((zoomed.2 - (cy - (py_max - py_min) / 4.0)).abs() < 1e-9);
+    // Reset drops the override; a new graph re-fits too.
+    app.graph2d_reset();
+    assert_eq!(app.graph2d_view(), None);
+    app.graph2d_pan(1.0, 0.0, 30, 10);
+    assert!(app.graph2d_view().is_some());
+    app.submit_graph("x + 1").expect("graph x + 1");
+    assert_eq!(app.graph2d_view(), None);
+    // Clearing the graph drops the override as well.
+    app.graph2d_pan(1.0, 0.0, 30, 10);
+    app.submit_graph("clear").expect("clear");
+    assert_eq!(app.graph2d_view(), None);
+}
+
+#[test]
+fn mouse_keypad_clicks_select_banks_and_cells() {
+    let mut app = App::default();
+    app.keypad_select_bank(4);
+    assert_eq!(app.keypad_bank(), "var");
+    assert_eq!((app.keypad_row(), app.keypad_col()), (0, 0));
+    // A click on (1, 2) of the var bank inserts exactly that token.
+    let expected = epher_tui::banks()[4].1[1][2].1;
+    app.keypad_set(1, 2);
+    app.keypad_insert();
+    assert_eq!(app.input(), expected);
+    // Clicks clamp to the clicked bank's grid: row 99 lands on the last
+    // row, column 99 on that row's last cell.
+    app.keypad_set(99, 99);
+    let bank = epher_tui::banks()[4].1;
+    assert_eq!(app.keypad_row(), bank.len() - 1);
+    let last_len = bank[bank.len() - 1].len();
+    assert_eq!(app.keypad_col(), last_len - 1);
+}
+
+#[test]
+fn mouse_history_click_picks_the_expression_only() {
+    let (store, _keep) = scratch_store();
+    let mut app = App::default();
+    app.submit_line("1/0", &store, &Localizer::resolve(Some("en"), &[]));
+    app.submit_line("2 + 2", &store, &Localizer::resolve(Some("en"), &[]));
+    // Display row 0 is the newest line; its answer suffix must stay out
+    // of the input (ADR-0031 + ADR-0034).
+    let picked = app.history_pick_row(0).expect("newest line");
+    assert_eq!(picked, "2 + 2");
+    // The older line (display row 1) keeps its suffix stripped too.
+    let older = app.history_pick_row(1).expect("older line");
+    assert!(!older.contains("error"));
+    // Out of range: nothing picked, input unchanged.
+    assert_eq!(app.history_pick_row(99), None);
+}
+
+#[test]
+fn mouse_double_click_resets_the_3d_pose() {
+    let mut app = App::default();
+    use epher_core::graph::View3D;
+    app.submit_surface("x ^ 2 - y ^ 2").expect("surface");
+    app.rotate_view(1.0, -0.5);
+    app.view_set_camera(12.0);
+    assert_ne!(app.view(), &View3D::default());
+    app.view_reset_pose();
+    assert_eq!(app.view(), &View3D::default());
+}
+
+/// ADR-0034: panning/zooming moves samples outside the window — the
+/// renderer must clip them instead of indexing out of bounds.
+#[test]
+fn render_ascii_clips_samples_outside_the_viewport() {
+    let expr = epher_core::parse("x").unwrap();
+    let c = epher_core::graph::SampledCurve {
+        source: "x".to_string(),
+        kind: epher_core::graph::CurveKind::Cartesian(expr),
+        domain: (0.0, 2.0),
+        samples: vec![
+            Sample { x: 0.0, y: 0.0 },
+            Sample { x: 1.0, y: 1.0 },
+            Sample { x: 2.0, y: 2.0 },
+        ],
+        fill: None,
+    };
+    // A viewport far from the data draws an empty grid, no panic.
+    let far = render_ascii(&[c.clone()], 5, 5, Some((100.0, 101.0, 100.0, 101.0)));
+    assert!(!far.is_empty());
+    // A zoomed window around the middle draws the curve inside it.
+    let near = render_ascii(&[c], 5, 5, Some((0.8, 1.2, 0.8, 1.2)));
+    assert!(near.contains('o'), "zoomed window: {near}");
 }

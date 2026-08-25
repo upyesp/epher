@@ -1239,6 +1239,7 @@ L'écran est divisé en panneaux :
 | **Espace** | démarrer/arrêter l'animation (quand la saisie est vide) |
 | **F10** | ouvrir les menus (Fichier, Édition, Graphique, Paramètres, Aide) |
 | **Tab** | activer le clavier toujours visible (ou l'historique, depuis le clavier) ; changer de groupe (**Esc** revient à la saisie) |
+| **Souris** | cliquez les menus et leurs entrées, les cellules et onglets du clavier, les lignes de l'historique (charge l'expression) ; faites glisser le panneau du graphique pour orbiter (3D) ou déplacer (2D), la molette zoome, un double-clic réinitialise la vue |
 | **Ctrl+L** | effacer l'historique |
 
 Les groupes du clavier couvrent toutes les fonctions, constantes et

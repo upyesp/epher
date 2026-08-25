@@ -116,6 +116,9 @@ pub struct App {
     view_h: f64,
     view_v: f64,
     view_z: f64,
+    /// The 2D graph's viewport override (ADR-0034): mouse drags pan,
+    /// the wheel zooms — `None` is the auto-fit around the samples.
+    view2d: Option<(f64, f64, f64, f64)>,
     play: Option<Play>,
     /// Keypad focus mode (ADR-0016): Tab opens the button grid and
     /// switches its banks, arrows move the highlight, Enter appends
@@ -142,6 +145,35 @@ pub struct App {
     /// The in-app user guide view (ADR-0018): `Some(scroll)` when open,
     /// the offset counting wrapped rows from the top.
     guide: Option<usize>,
+    /// The screen regions the last frame drew (ADR-0034): mouse events
+    /// map their coordinates through these. Default until the first draw.
+    areas: Areas,
+}
+
+/// The mouse-relevant screen regions of the last drawn frame (ADR-0034).
+/// The menu bar's five label rects and the keypad's five bank-label rects
+/// are stored rather than recomputed from label widths, so localized
+/// labels stay clickable wherever their characters land.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Areas {
+    pub menu_labels: [ratatui::layout::Rect; 5],
+    pub input: ratatui::layout::Rect,
+    pub result: ratatui::layout::Rect,
+    pub history: ratatui::layout::Rect,
+    pub graph: ratatui::layout::Rect,
+    pub keypad: ratatui::layout::Rect,
+    pub kp_bank_labels: [ratatui::layout::Rect; 5],
+    /// The keypad's cell width and column count for the current bank,
+    /// so clicks can map columns to cells with the same math as the draw.
+    pub kp_cell_w: u16,
+    pub kp_cols: usize,
+    pub hints: ratatui::layout::Rect,
+    /// The open menu popup: its menu index and the rect including border.
+    pub popup: Option<(usize, ratatui::layout::Rect)>,
+    /// The history panel's scroll offset at draw time.
+    pub history_scroll: u16,
+    /// Whether the user guide view covered the frame.
+    pub guide: bool,
 }
 
 /// The TUI keypad (ADR-0016): a condensed 4×5 grid of the most-used
@@ -213,6 +245,7 @@ impl App {
             view_h: 0.0,
             view_v: 0.0,
             view_z: 0.0,
+            view2d: None,
             play: None,
             keypad: false,
             kp_row: 0,
@@ -225,6 +258,7 @@ impl App {
             hist_focus: false,
             hist_sel: 0,
             guide: None,
+            areas: Areas::default(),
         }
     }
 
@@ -294,6 +328,23 @@ impl App {
         let row = &BANKS[self.kp_bank].1[self.kp_row];
         let token = row[self.kp_col.min(row.len() - 1)].1;
         self.input.push_str(token);
+    }
+
+    /// Jump to an absolute bank (mouse click on a bank label, ADR-0034),
+    /// resetting the highlight like [`Self::keypad_cycle`] does.
+    pub fn keypad_select_bank(&mut self, bank: usize) {
+        self.kp_bank = bank.min(BANKS.len() - 1);
+        self.kp_row = 0;
+        self.kp_col = 0;
+    }
+
+    /// Move the highlight to an absolute cell (mouse click, ADR-0034),
+    /// clamping to the clicked bank's grid instead of wrapping.
+    pub fn keypad_set(&mut self, row: usize, col: usize) {
+        let bank = &BANKS[self.kp_bank].1;
+        self.kp_row = row.min(bank.len().saturating_sub(1));
+        let len = bank[self.kp_row].len();
+        self.kp_col = col.min(len.saturating_sub(1));
     }
 
     // --- theme, menu bar, and file prompts (ADR-0017) ---
@@ -449,6 +500,7 @@ impl App {
         self.pois.clear();
         self.surface.clear();
         self.play = None;
+        self.view2d = None;
         self.reset_view_offsets();
     }
 
@@ -522,6 +574,24 @@ impl App {
         let line = epher_core::history_expression(&entry).to_string();
         self.hist_focus = false;
         Some(line)
+    }
+
+    /// Click a displayed history line (ADR-0034): select it and pick its
+    /// expression into the input — the mouse spelling of the web's
+    /// clickable history. `display_row` counts from the top of the panel.
+    pub fn history_pick_row(&mut self, display_row: usize) -> Option<String> {
+        let len = self.session.history().len();
+        if len == 0 || display_row >= len {
+            return None;
+        }
+        self.hist_sel = display_row.min(len - 1);
+        self.history_pick()
+    }
+
+    /// Open a menu with the highlight on a given item (mouse click on a
+    /// popup row, ADR-0034).
+    pub fn menu_select(&mut self, menu: usize, item: usize) {
+        self.menu = Some((menu.min(4), item));
     }
 
     pub fn prompt_cancel(&mut self) {
@@ -614,6 +684,63 @@ impl App {
     /// overlays curves the way the web app does).
     pub fn graph(&self) -> &[SampledCurve] {
         &self.graph
+    }
+
+    // --- the 2D viewport (ADR-0034) ---
+
+    /// The stored 2D viewport override, if any.
+    pub fn graph2d_view(&self) -> Option<(f64, f64, f64, f64)> {
+        self.view2d
+    }
+
+    /// The 2D ranges the plot uses: the stored override, else the
+    /// auto-fit around the current samples.
+    pub fn graph2d_effective(&self) -> Option<(f64, f64, f64, f64)> {
+        self.view2d.or_else(|| curve_ranges(&self.graph))
+    }
+
+    /// Pan the 2D viewport by a mouse-drag delta in cells (ADR-0034):
+    /// the plot follows the pointer — dragging right moves the window
+    /// left through the data, dragging down moves it up.
+    pub fn graph2d_pan(&mut self, dx_cells: f64, dy_cells: f64, width: usize, height: usize) {
+        let Some((x_min, x_max, y_min, y_max)) = self.graph2d_effective() else {
+            return;
+        };
+        let x_span = x_max - x_min;
+        let y_span = y_max - y_min;
+        let dx_data = -dx_cells / (width.max(1) as f64) * x_span;
+        let dy_data = dy_cells / (height.max(1) as f64) * y_span;
+        self.view2d = Some((x_min + dx_data, x_max + dx_data, y_min + dy_data, y_max + dy_data));
+    }
+
+    /// Zoom the 2D viewport by a factor around its center: `factor < 1`
+    /// zooms in (narrower span), `> 1` out.
+    pub fn graph2d_zoom(&mut self, factor: f64) {
+        let Some((x_min, x_max, y_min, y_max)) = self.graph2d_effective() else {
+            return;
+        };
+        let cx = (x_min + x_max) / 2.0;
+        let cy = (y_min + y_max) / 2.0;
+        let hx = (x_max - x_min) / 2.0 * factor;
+        let hy = (y_max - y_min) / 2.0 * factor;
+        self.view2d = Some((cx - hx, cx + hx, cy - hy, cy + hy));
+    }
+
+    /// Drop the 2D viewport override — the plot re-fits its samples.
+    pub fn graph2d_reset(&mut self) {
+        self.view2d = None;
+    }
+
+    /// Reset the 3D camera to the default pose (mouse double-click,
+    /// ADR-0034). The fine-control offsets are untouched — they belong
+    /// to the sliders.
+    pub fn view_reset_pose(&mut self) {
+        self.view = View3D::default();
+    }
+
+    /// Set the 3D camera distance directly (mouse-wheel zoom, ADR-0034).
+    pub fn view_set_camera(&mut self, camera: f64) {
+        self.view = self.view.with_camera(camera);
     }
 
     /// The points of interest of the current graph (roots, intersections,
@@ -811,6 +938,7 @@ impl App {
         if source.trim() == "clear" {
             self.graph.clear();
             self.pois.clear();
+            self.view2d = None;
             self.result.clear();
             return Ok(());
         }
@@ -836,6 +964,9 @@ impl App {
             fill: spec.fill,
         });
         self.pois = analyze(&self.graph, self.session.env());
+        // A new plot re-fits the viewport: the previous pan/zoom was
+        // about the curves that were there (ADR-0034).
+        self.view2d = None;
         // Graphing prints nothing to the answer line (ADR-0027): the
         // command joins the history list, and the plot is the result.
         self.result.clear();
@@ -1129,11 +1260,10 @@ pub fn render_ascii3d(surfaces: &[Surface], view: &View3D, width: usize, height:
 /// plots with its own glyph (`o`, `x`, `+`, `*`); region fills shade with
 /// `.`; axes draw as `|`/`-` when zero lies strictly inside the range
 /// (edge-zero plots stay clean); non-finite points are skipped.
-pub fn render_ascii(curves: &[SampledCurve], width: usize, height: usize) -> String {
-    if curves.is_empty() || curves.iter().all(|c| c.samples.is_empty()) || width == 0 || height == 0
-    {
-        return String::new();
-    }
+/// The auto-fit ranges around a curve set's finite samples: the plot's
+/// default viewport (ADR-0034), shared by the renderer and the mouse's
+/// pan/zoom math.
+pub fn curve_ranges(curves: &[SampledCurve]) -> Option<(f64, f64, f64, f64)> {
     let mut x_min = f64::INFINITY;
     let mut x_max = f64::NEG_INFINITY;
     let mut y_min = f64::INFINITY;
@@ -1149,8 +1279,27 @@ pub fn render_ascii(curves: &[SampledCurve], width: usize, height: usize) -> Str
         }
     }
     if !x_min.is_finite() {
+        return None;
+    }
+    Some((x_min, x_max, y_min, y_max))
+}
+
+/// Render the sampled curves as an ASCII plot. A `view` override (the
+/// mouse's pan/zoom viewport, ADR-0034) replaces the auto-fit ranges
+/// when present.
+pub fn render_ascii(
+    curves: &[SampledCurve],
+    width: usize,
+    height: usize,
+    view: Option<(f64, f64, f64, f64)>,
+) -> String {
+    if curves.is_empty() || curves.iter().all(|c| c.samples.is_empty()) || width == 0 || height == 0
+    {
         return String::new();
     }
+    let Some((x_min, x_max, y_min, y_max)) = view.or_else(|| curve_ranges(curves)) else {
+        return String::new();
+    };
     let x_span = (x_max - x_min).max(1e-12);
     let y_span = (y_max - y_min).max(1e-12);
 
@@ -1164,11 +1313,17 @@ pub fn render_ascii(curves: &[SampledCurve], width: usize, height: usize) -> Str
             if !s.x.is_finite() || !s.y.is_finite() {
                 continue;
             }
-            let col = (((s.x - x_min) / x_span) * (width - 1) as f64).round() as usize;
-            let row = height as f64
-                - 1.0
-                - ((s.y - y_min) / y_span) * (height - 1) as f64;
-            let row = row.round() as usize;
+            // The pan/zoom viewport (ADR-0034) can leave samples outside
+            // the window: they draw nothing, here and for the glyphs.
+            let col_f = ((s.x - x_min) / x_span) * (width - 1) as f64;
+            let row_f = ((y_max - s.y) / y_span) * (height - 1) as f64;
+            if !(0.0..=(width - 1) as f64).contains(&col_f)
+                || !(0.0..=(height - 1) as f64).contains(&row_f)
+            {
+                continue;
+            }
+            let col = col_f.round() as usize;
+            let row = row_f.round() as usize;
             if below {
                 for cell_row in grid[(row + 1)..].iter_mut() {
                     if cell_row[col] == '·' {
@@ -1207,7 +1362,8 @@ pub fn render_ascii(curves: &[SampledCurve], width: usize, height: usize) -> Str
         }
     }
 
-    // Curves, glyph per curve index.
+    // Curves, glyph per curve index. Samples outside the pan/zoom
+    // viewport (ADR-0034) are clipped, like the fills above.
     const GLYPHS: [char; 4] = ['o', 'x', '+', '*'];
     for (i, c) in curves.iter().enumerate() {
         let glyph = GLYPHS[i % GLYPHS.len()];
@@ -1215,10 +1371,15 @@ pub fn render_ascii(curves: &[SampledCurve], width: usize, height: usize) -> Str
             if !s.x.is_finite() || !s.y.is_finite() {
                 continue;
             }
-            let col = (((s.x - x_min) / x_span) * (width - 1) as f64).round() as usize;
-            let row = height
-                - 1
-                - (((s.y - y_min) / y_span) * (height - 1) as f64).round() as usize;
+            let col_f = ((s.x - x_min) / x_span) * (width - 1) as f64;
+            let row_f = ((y_max - s.y) / y_span) * (height - 1) as f64;
+            if !(0.0..=(width - 1) as f64).contains(&col_f)
+                || !(0.0..=(height - 1) as f64).contains(&row_f)
+            {
+                continue;
+            }
+            let col = col_f.round() as usize;
+            let row = row_f.round() as usize;
             grid[row][col] = glyph;
         }
     }
@@ -1245,8 +1406,13 @@ fn poi_label(kind: InterestKind, localizer: &Localizer) -> String {
 /// UI language (ADR-0008), and forwards keys; all state transitions go
 /// through the tested [`App`] seam.
 pub fn run() -> std::io::Result<()> {
+    use crossterm::execute;
     let mut terminal = ratatui::init();
+    // Mouse capture (ADR-0034): the menu bar, history, keypad, and the
+    // graph panels all respond to the pointer; released on restore.
+    let _ = execute!(std::io::stdout(), crossterm::event::EnableMouseCapture);
     let result = run_loop(&mut terminal);
+    let _ = execute!(std::io::stdout(), crossterm::event::DisableMouseCapture);
     ratatui::restore();
     result
 }
@@ -1280,8 +1446,12 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
     // sliders' play button (ADR-0015). The poll below wakes at 50 ms so
     // key presses stay responsive; the step itself is paced here.
     let mut last_tick = std::time::Instant::now();
+    // Mouse state (ADR-0034): the graph drag in flight and the previous
+    // click for double-click detection.
+    let mut drag: Option<(u16, u16, MouseDrag)> = None;
+    let mut last_click: Option<(std::time::Instant, u16, u16)> = None;
     loop {
-        terminal.draw(|frame| draw(frame, &app, &localizer))?;
+        terminal.draw(|frame| draw(frame, &mut app, &localizer))?;
         // While an animation plays, wait at most one tick for input so the
         // plot advances on its own; otherwise block on the next event.
         let event = if app.play().is_some() {
@@ -1299,7 +1469,16 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                 last_tick = std::time::Instant::now();
             }
         }
-        if let Some(Event::Key(key)) = event {
+        match event {
+            Some(Event::Mouse(me)) => {
+                // The pointer works against the regions the last frame
+                // drew (ADR-0034): menus, history, keypad, and the
+                // graph panels.
+                if handle_mouse(&mut app, &mut localizer, &store, me, &mut drag, &mut last_click) {
+                    return Ok(());
+                }
+            }
+            Some(Event::Key(key)) => {
             if key.kind == KeyEventKind::Press {
                 // The user guide view (ADR-0018) is modal: only scrolling
                 // and closing keys act; nothing reaches the calculator.
@@ -1472,52 +1651,8 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                     }
                 } else if is_enter && app.menu_active().is_some() {
                     if let Some(action) = app.menu_activate() {
-                        match action {
-                            MenuAction::OpenHistory => app.prompt_start(PromptKind::OpenHistory),
-                            MenuAction::OpenScript => app.prompt_start(PromptKind::OpenScript),
-                            MenuAction::SaveHistory => app.prompt_start(PromptKind::SaveHistory),
-                            MenuAction::SaveScript => app.prompt_start(PromptKind::SaveScript),
-                            MenuAction::Quit => return Ok(()),
-                            MenuAction::Cut => {
-                                if !app.input().is_empty() {
-                                    osc52_copy(app.input());
-                                    app.clear_input();
-                                }
-                            }
-                            MenuAction::Copy => {
-                                let text = if app.result().is_empty() {
-                                    app.input().to_string()
-                                } else {
-                                    app.result().to_string()
-                                };
-                                if !text.is_empty() {
-                                    osc52_copy(&text);
-                                }
-                            }
-                            // Terminals have no read-side clipboard API:
-                            // paste stays with the terminal itself.
-                            MenuAction::Paste => {
-                                let hint = localizer.lookup("tui-paste-hint");
-                                app.set_result(&hint);
-                            }
-                            MenuAction::SetTheme(name) => {
-                                app.set_theme(Theme::from_str(name).unwrap_or(Theme::Dark));
-                                let _ = save_theme(&store, name);
-                            }
-                            MenuAction::SetLanguage(code) => {
-                                localizer = Localizer::resolve(Some(code), &[]);
-                                let _ = save_language(&store, code);
-                            }
-                            MenuAction::TogglePois => {
-                                app.toggle_pois();
-                                let _ = save_pois(&store, app.poi_list());
-                            }
-                            MenuAction::ClearGraph => {
-                                app.clear_graph();
-                                let msg = localizer.lookup("graph-cleared");
-                                app.set_result(&msg);
-                            }
-                            MenuAction::OpenGuide => app.guide_open(),
+                        if perform_menu_action(&mut app, &store, &mut localizer, action) {
+                            return Ok(());
                         }
                     }
                 } else if is_enter && app.history_focused() {
@@ -1540,15 +1675,333 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                     app.keypad_insert();
                 }
             }
+            }
+            None => {}
+            Some(_) => {}
         }
     }
 }
 
-fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
+/// Apply a menu action — Enter on the highlighted row, or a mouse click
+/// on it (ADR-0034). Returns true when the action quits the TUI.
+fn perform_menu_action(
+    app: &mut App,
+    store: &DocStore<FsStore>,
+    localizer: &mut Localizer,
+    action: MenuAction,
+) -> bool {
+    match action {
+        MenuAction::OpenHistory => app.prompt_start(PromptKind::OpenHistory),
+        MenuAction::OpenScript => app.prompt_start(PromptKind::OpenScript),
+        MenuAction::SaveHistory => app.prompt_start(PromptKind::SaveHistory),
+        MenuAction::SaveScript => app.prompt_start(PromptKind::SaveScript),
+        MenuAction::Quit => return true,
+        MenuAction::Cut => {
+            if !app.input().is_empty() {
+                osc52_copy(app.input());
+                app.clear_input();
+            }
+        }
+        MenuAction::Copy => {
+            let text = if app.result().is_empty() {
+                app.input().to_string()
+            } else {
+                app.result().to_string()
+            };
+            if !text.is_empty() {
+                osc52_copy(&text);
+            }
+        }
+        // Terminals have no read-side clipboard API: paste stays with
+        // the terminal itself.
+        MenuAction::Paste => {
+            let hint = localizer.lookup("tui-paste-hint");
+            app.set_result(&hint);
+        }
+        MenuAction::SetTheme(name) => {
+            app.set_theme(Theme::from_str(name).unwrap_or(Theme::Dark));
+            let _ = save_theme(store, name);
+        }
+        MenuAction::SetLanguage(code) => {
+            *localizer = Localizer::resolve(Some(code), &[]);
+            let _ = save_language(store, code);
+        }
+        MenuAction::TogglePois => {
+            app.toggle_pois();
+            let _ = save_pois(store, app.poi_list());
+        }
+        MenuAction::ClearGraph => {
+            app.clear_graph();
+            let msg = localizer.lookup("graph-cleared");
+            app.set_result(&msg);
+        }
+        MenuAction::OpenGuide => app.guide_open(),
+    }
+    false
+}
+
+/// What a left-button drag over the graph panel manipulates (ADR-0034).
+#[derive(Clone, Copy)]
+enum MouseDrag {
+    Pan2D,
+    Rotate3D,
+}
+
+/// Handle one mouse event against the areas the last frame drew
+/// (ADR-0034): menu bar clicks and popup item clicks, history picks,
+/// keypad bank/cell clicks, and graph drags/wheel/double-clicks for 2D
+/// pan-zoom and 3D orbit. Returns true when the event quits the TUI.
+#[allow(clippy::too_many_lines)]
+fn handle_mouse(
+    app: &mut App,
+    localizer: &mut Localizer,
+    store: &DocStore<FsStore>,
+    event: crossterm::event::MouseEvent,
+    drag: &mut Option<(u16, u16, MouseDrag)>,
+    last_click: &mut Option<(std::time::Instant, u16, u16)>,
+) -> bool {
+    use crossterm::event::MouseEventKind;
+    let areas = app.areas;
+    let inside = |r: ratatui::layout::Rect, col: u16, row: u16| {
+        col >= r.x && col < r.x.saturating_add(r.width) && row >= r.y && row < r.y.saturating_add(r.height)
+    };
+    match event.kind {
+        // The wheel zooms the graph (3D camera / 2D viewport) and
+        // scrolls the guide pager.
+        MouseEventKind::ScrollUp | MouseEventKind::ScrollDown => {
+            if areas.guide {
+                app.guide_scroll(if matches!(event.kind, MouseEventKind::ScrollUp) {
+                    -3
+                } else {
+                    3
+                });
+            } else if inside(areas.graph, event.column, event.row) && !app.surfaces().is_empty() {
+                let factor = if matches!(event.kind, MouseEventKind::ScrollUp) { 0.9 } else { 1.1 };
+                let camera = app.view().camera * factor;
+                app.view_set_camera(camera);
+            } else if inside(areas.graph, event.column, event.row) && !app.graph().is_empty() {
+                let factor = if matches!(event.kind, MouseEventKind::ScrollUp) { 0.8 } else { 1.25 };
+                app.graph2d_zoom(factor);
+            }
+            false
+        }
+        MouseEventKind::Down(crossterm::event::MouseButton::Left) => {
+            let (col, row) = (event.column, event.row);
+            // 1. The open popup wins: a click on an item activates it,
+            //    a click on a rule is ignored, a click anywhere else
+            //    closes the menu without acting (browser convention).
+            if let Some((menu, popup)) = areas.popup {
+                if inside(popup, col, row) {
+                    let row_idx = row.saturating_sub(popup.y.saturating_add(1)) as usize;
+                    if let Some(PopupRow::Item(i, _)) = menu_rows(app, localizer).get(row_idx) {
+                        app.menu_select(menu, *i);
+                        if let Some(action) = app.menu_activate() {
+                            return perform_menu_action(app, store, localizer, action);
+                        }
+                    }
+                    return false;
+                }
+                app.menu_close();
+                return false;
+            }
+            // 2. The menu bar: click a label to open/close its menu.
+            if row == areas.menu_labels[0].y {
+                if let Some(i) = areas
+                    .menu_labels
+                    .iter()
+                    .position(|r| inside(*r, col, row))
+                {
+                    if app.menu_active().map(|(m, _)| m) == Some(i) {
+                        app.menu_close();
+                    } else {
+                        app.menu_open(i);
+                    }
+                    return false;
+                }
+            }
+            // 3. Panels. (Clicking outside the menu bar with a menu
+            //    open is already handled above — menus were closed.)
+            if inside(areas.input, col, row) {
+                app.keypad_close();
+                app.history_close();
+                return false;
+            }
+            if inside(areas.history, col, row) {
+                let content_row = row.saturating_sub(areas.history.y.saturating_add(1)) as usize;
+                let display_row = content_row + areas.history_scroll as usize;
+                if let Some(line) = app.history_pick_row(display_row) {
+                    app.set_input(&line);
+                }
+                return false;
+            }
+            if inside(areas.keypad, col, row) {
+                // The bank label row.
+                if row == areas.keypad.y.saturating_add(1) {
+                    if let Some(b) = areas.kp_bank_labels.iter().position(|r| inside(*r, col, row)) {
+                        app.keypad_select_bank(b);
+                    }
+                    return false;
+                }
+                // The grid rows: move the highlight there and insert
+                // the token — the mouse spelling of the web's buttons.
+                let grid_row = row.saturating_sub(areas.keypad.y.saturating_add(2)) as usize;
+                if grid_row < 4 {
+                    let cell_col = (col.saturating_sub(areas.keypad.x.saturating_add(1))
+                        / areas.kp_cell_w.max(1)) as usize;
+                    if cell_col < areas.kp_cols {
+                        app.keypad_set(grid_row, cell_col);
+                        app.keypad_insert();
+                    }
+                }
+                return false;
+            }
+            if inside(areas.graph, col, row) && (!app.surfaces().is_empty() || !app.graph().is_empty())
+            {
+                // A double-click resets the view: 2D re-fits the samples,
+                // 3D returns to the default pose.
+                let now = std::time::Instant::now();
+                let is_double = last_click
+                    .map(|(t, lc, lr)| {
+                        now.duration_since(t) < std::time::Duration::from_millis(500)
+                            && lc.abs_diff(col) <= 1
+                            && lr.abs_diff(row) <= 1
+                    })
+                    .unwrap_or(false);
+                *last_click = Some((now, col, row));
+                if is_double {
+                    if !app.surfaces().is_empty() {
+                        app.view_reset_pose();
+                    } else {
+                        app.graph2d_reset();
+                    }
+                    *drag = None;
+                    return false;
+                }
+                *drag = Some((col, row, if app.surfaces().is_empty() {
+                    MouseDrag::Pan2D
+                } else {
+                    MouseDrag::Rotate3D
+                }));
+                return false;
+            }
+            false
+        }
+        // Dragging the graph: 3D orbits with the pointer (the web's
+        // sensitivity, 0.01 rad/cell), 2D pans so the plot follows it.
+        MouseEventKind::Drag(crossterm::event::MouseButton::Left) => {
+            let Some((last_col, last_row, kind)) = *drag else {
+                return false;
+            };
+            let dx = event.column as f64 - last_col as f64;
+            let dy = event.row as f64 - last_row as f64;
+            match kind {
+                MouseDrag::Rotate3D => {
+                    let v = *app.view();
+                    app.view = v.with_yaw(v.yaw + dx * 0.01).with_pitch(v.pitch + dy * 0.01);
+                }
+                MouseDrag::Pan2D => {
+                    let (w, h) = graph_dims(areas.graph);
+                    app.graph2d_pan(dx, dy, w, h);
+                }
+            }
+            *drag = Some((event.column, event.row, kind));
+            false
+        }
+        MouseEventKind::Up(crossterm::event::MouseButton::Left) => {
+            *drag = None;
+            false
+        }
+        _ => false,
+    }
+}
+
+/// One row of an open menu popup (ADR-0033): a plain selectable item
+/// with its item-space index, or a labeled section rule.
+enum PopupRow {
+    Item(usize, String),
+    Rule(String),
+}
+
+/// The open menu's rows: plain items plus labeled section rules.
+/// Settings marks its subsections — Theme, Language, and the 3D View
+/// controls — with dim "─ Label ────" dividers; the highlight and the
+/// activation index stay in item space, so the rules never intercept
+/// arrow movement, Enter, or a mouse click (ADR-0034 resolves clicks
+/// through the same list).
+fn menu_rows(app: &App, localizer: &Localizer) -> Vec<PopupRow> {
+    let menu = app.menu_active().map(|(m, _)| m).unwrap_or(0);
+    let mut rows: Vec<PopupRow> = Vec::new();
+    match menu {
+        0 => {
+            for (i, label) in [
+                localizer.lookup("menu-open-history"),
+                localizer.lookup("menu-open-script"),
+                localizer.lookup("menu-save-history"),
+                localizer.lookup("menu-save-script"),
+                localizer.lookup("menu-quit"),
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                rows.push(PopupRow::Item(i, label));
+            }
+        }
+        1 => {
+            for (i, label) in [
+                localizer.lookup("menu-cut"),
+                localizer.lookup("menu-copy"),
+                localizer.lookup("menu-paste"),
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                rows.push(PopupRow::Item(i, label));
+            }
+        }
+        2 => rows.push(PopupRow::Item(0, localizer.lookup("graph-clear"))),
+        4 => rows.push(PopupRow::Item(0, localizer.lookup("menu-guide"))),
+        _ => {
+            rows.push(PopupRow::Item(0, localizer.lookup("graph-points")));
+            rows.push(PopupRow::Rule(localizer.lookup("tui-settings-theme")));
+            rows.push(PopupRow::Item(1, localizer.lookup("theme-light")));
+            rows.push(PopupRow::Item(2, localizer.lookup("theme-dark")));
+            rows.push(PopupRow::Item(3, localizer.lookup("theme-night")));
+            rows.push(PopupRow::Rule(localizer.lookup("tui-settings-language")));
+            for (i, code) in epher_i18n::SUPPORTED_LOCALES.iter().enumerate() {
+                rows.push(PopupRow::Item(4 + i, native_language_name(code).to_string()));
+            }
+            // The 3D fine controls (ADR-0031) join the menu only while
+            // surfaces are displayed, mirroring the web's sliders; their
+            // rows show the live value.
+            if !app.surfaces().is_empty() {
+                rows.push(PopupRow::Rule(localizer.lookup("tui-settings-view")));
+                let (h, vv, z) = app.view_offsets();
+                rows.push(PopupRow::Item(
+                    12,
+                    format!("{}  {h:+.1}", localizer.lookup("view-horizontal")),
+                ));
+                rows.push(PopupRow::Item(
+                    13,
+                    format!("{}  {vv:+.1}", localizer.lookup("view-vertical")),
+                ));
+                rows.push(PopupRow::Item(
+                    14,
+                    format!("{}  {z:+.1}", localizer.lookup("view-zoom")),
+                ));
+            }
+        }
+    }
+    rows
+}
+
+fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     use ratatui::layout::{Constraint, Layout, Position, Rect};
     use ratatui::style::{Color, Modifier, Style};
     use ratatui::text::{Line, Span, Text};
     use ratatui::widgets::{Block, Borders, Clear, Paragraph};
+    // The mouse map (ADR-0034): every widget records where it drew so
+    // clicks land on what the user saw.
+    let mut areas = Areas::default();
 
     // The theme palette (ADR-0017): dark is the terminal's natural look,
     // light forces a light canvas, night stays in long-wavelength reds on
@@ -1655,6 +2108,8 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
             ))),
             rows[2],
         );
+        areas.guide = true;
+        app.areas = areas;
         return;
     }
 
@@ -1662,6 +2117,7 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
     let base = Layout::vertical([Constraint::Length(1), Constraint::Min(0)])
         .split(frame.area());
     let (menu_area, body) = (base[0], base[1]);
+    areas.menu_labels = [menu_area; 5];
 
     let menu_labels = [
         localizer.lookup("menu-file"),
@@ -1671,6 +2127,7 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
         localizer.lookup("menu-help"),
     ];
     let mut bar = Vec::new();
+    let mut x = menu_area.x;
     for (i, label) in menu_labels.iter().enumerate() {
         let open = app.menu_active().map(|(m, _)| m) == Some(i);
         let text = format!(" {} ", label);
@@ -1679,6 +2136,15 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
         } else {
             Style::default().fg(fg)
         };
+        // The clickable label rect (ADR-0034): exactly the characters
+        // this entry paints, in the localized menu order.
+        areas.menu_labels[i] = Rect {
+            x,
+            y: menu_area.y,
+            width: text.chars().count() as u16,
+            height: 1,
+        };
+        x += text.chars().count() as u16 + 1;
         bar.push(Span::styled(text, style));
         bar.push(Span::raw(" "));
     }
@@ -1761,6 +2227,15 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
         Some((PromptKind::SaveScript, buf)) => (localizer.lookup("tui-save-prompt"), buf.to_string()),
         None => (localizer.lookup("tui-expression"), app.input().to_string()),
     };
+    // Record every panel's rect for the mouse (ADR-0034).
+    areas.input = input_area;
+    areas.result = result_area;
+    areas.history = history_area;
+    areas.graph = graph_area;
+    areas.hints = hints_area;
+    if let Some(kp) = keypad_area {
+        areas.keypad = kp;
+    }
     let input = Paragraph::new(input_text.clone()).style(Style::default().fg(fg)).block(block(input_title));
     frame.render_widget(input, input_area);
 
@@ -1792,6 +2267,7 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
     } else {
         0
     };
+    areas.history_scroll = history_scroll;
     let history = Paragraph::new(history_lines)
         .style(Style::default().fg(fg))
         .scroll((history_scroll, 0))
@@ -1808,6 +2284,19 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
         // `variance`); narrower terminals shrink cells down to 6 so the
         // grid always fits its pane.
         let cell = ((kp_area.width.saturating_sub(2)) as usize / cols).clamp(6, 11);
+        areas.kp_cell_w = cell as u16;
+        areas.kp_cols = cols;
+        let mut bx = kp_area.x + 1;
+        for (b, (label, _)) in BANKS.iter().enumerate() {
+            let text = format!(" {label} ");
+            areas.kp_bank_labels[b] = Rect {
+                x: bx,
+                y: kp_area.y + 1,
+                width: text.chars().count() as u16,
+                height: 1,
+            };
+            bx += text.chars().count() as u16;
+        }
         let bank_line = Line::from(
             BANKS
                 .iter()
@@ -1895,7 +2384,7 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
         graph_text.push_str(&legend.join("   "));
         graph_text.push('\n');
         let (w, h) = graph_dims(graph_area);
-        graph_text.push_str(&render_ascii(curves, w, h));
+        graph_text.push_str(&render_ascii(curves, w, h, app.graph2d_effective()));
         let poi_lines: Vec<String> = app
             .pois()
             .iter()
@@ -1923,76 +2412,7 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
     // after all panels, and clear its region first so whatever sat
     // underneath (history lines, graph text) cannot bleed through.
     if let Some((menu, item)) = app.menu_active() {
-        // The open menu's rows: plain items plus labeled section rules.
-        // Settings marks its subsections — Theme, Language, and the 3D
-        // View controls — with dim "─ Label ────" dividers (ADR-0033);
-        // the highlight and the activation index stay in item space, so
-        // the rules never intercept arrow movement or Enter.
-        enum PopupRow {
-            Item(usize, String),
-            Rule(String),
-        }
-        let mut rows: Vec<PopupRow> = Vec::new();
-        match menu {
-            0 => {
-                for (i, label) in [
-                    localizer.lookup("menu-open-history"),
-                    localizer.lookup("menu-open-script"),
-                    localizer.lookup("menu-save-history"),
-                    localizer.lookup("menu-save-script"),
-                    localizer.lookup("menu-quit"),
-                ]
-                .into_iter()
-                .enumerate()
-                {
-                    rows.push(PopupRow::Item(i, label));
-                }
-            }
-            1 => {
-                for (i, label) in [
-                    localizer.lookup("menu-cut"),
-                    localizer.lookup("menu-copy"),
-                    localizer.lookup("menu-paste"),
-                ]
-                .into_iter()
-                .enumerate()
-                {
-                    rows.push(PopupRow::Item(i, label));
-                }
-            }
-            2 => rows.push(PopupRow::Item(0, localizer.lookup("graph-clear"))),
-            4 => rows.push(PopupRow::Item(0, localizer.lookup("menu-guide"))),
-            _ => {
-                rows.push(PopupRow::Item(0, localizer.lookup("graph-points")));
-                rows.push(PopupRow::Rule(localizer.lookup("tui-settings-theme")));
-                rows.push(PopupRow::Item(1, localizer.lookup("theme-light")));
-                rows.push(PopupRow::Item(2, localizer.lookup("theme-dark")));
-                rows.push(PopupRow::Item(3, localizer.lookup("theme-night")));
-                rows.push(PopupRow::Rule(localizer.lookup("tui-settings-language")));
-                for (i, code) in epher_i18n::SUPPORTED_LOCALES.iter().enumerate() {
-                    rows.push(PopupRow::Item(4 + i, native_language_name(code).to_string()));
-                }
-                // The 3D fine controls (ADR-0031) join the menu only
-                // while surfaces are displayed, mirroring the web's
-                // sliders; their rows show the live value.
-                if !app.surfaces().is_empty() {
-                    rows.push(PopupRow::Rule(localizer.lookup("tui-settings-view")));
-                    let (h, vv, z) = app.view_offsets();
-                    rows.push(PopupRow::Item(
-                        12,
-                        format!("{}  {h:+.1}", localizer.lookup("view-horizontal")),
-                    ));
-                    rows.push(PopupRow::Item(
-                        13,
-                        format!("{}  {vv:+.1}", localizer.lookup("view-vertical")),
-                    ));
-                    rows.push(PopupRow::Item(
-                        14,
-                        format!("{}  {z:+.1}", localizer.lookup("view-zoom")),
-                    ));
-                }
-            }
-        }
+        let rows = menu_rows(app, localizer);
         let x = 11 * menu as u16 + 1;
         // +5: two for the border, two for the Settings check mark, one
         // spare — the fine-control rows' labels and values (ADR-0031)
@@ -2006,7 +2426,7 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
                 .unwrap_or(10),
         );
         let mut lines: Vec<Line> = Vec::new();
-        for row in rows {
+        for row in &rows {
             match row {
                 PopupRow::Rule(label) => {
                     // A section divider: "─ Label " plus a dim rule
@@ -2023,14 +2443,14 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
                     ]));
                 }
                 PopupRow::Item(i, label) => {
-                    let checked = menu == 3 && item_checked(app, i, localizer.locale());
+                    let checked = menu == 3 && item_checked(app, *i, localizer.locale());
                     let mark = match (checked, menu) {
                         (true, _) => "\u{2713} ",
                         (false, 3) => "  ",
                         _ => "",
                     };
                     let text = format!("{mark}{label}");
-                    if i == item {
+                    if *i == item {
                         lines.push(Line::from(Span::styled(
                             text,
                             Style::default().bg(sel_bg).fg(sel_fg),
@@ -2053,7 +2473,11 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
             Paragraph::new(lines).block(Block::default().borders(Borders::ALL).border_style(border_style)),
             popup,
         );
+        // The mouse map (ADR-0034): clicks inside the popup resolve
+        // through the same row list the popup drew.
+        areas.popup = Some((menu, popup));
     }
+    app.areas = areas;
 
     // Focus visible: the terminal cursor must sit at the end of the input
     // text, not wherever the shell left it.
@@ -2191,7 +2615,7 @@ mod draw_tests {
         let backend = TestBackend::new(80, 30);
         let mut terminal = Terminal::new(backend).unwrap();
         terminal
-            .draw(|frame| draw(frame, &app, &localizer))
+            .draw(|frame| draw(frame, &mut app, &localizer))
             .unwrap();
         let buffer = terminal.backend().buffer().clone();
 
@@ -2232,7 +2656,7 @@ mod draw_tests {
         let backend = TestBackend::new(80, 24);
         let mut terminal = Terminal::new(backend).unwrap();
         terminal
-            .draw(|frame| draw(frame, &app, &localizer))
+            .draw(|frame| draw(frame, &mut app, &localizer))
             .unwrap();
         let buffer = terminal.backend().buffer().clone();
 

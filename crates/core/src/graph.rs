@@ -591,6 +591,14 @@ impl View3D {
         Self { yaw, ..*self }
     }
 
+    /// Set the camera distance (mouse-wheel zoom, ADR-0034).
+    pub fn with_camera(&self, camera: f64) -> Self {
+        Self {
+            camera: camera.max(0.5),
+            ..*self
+        }
+    }
+
     /// Apply the fine-control sliders' offsets (ADR-0031), each −1..1
     /// with 0 = this pose unchanged: horizontal adds `h × π` to the yaw;
     /// vertical adds `v × 0.8` to the pitch — the full range stays live

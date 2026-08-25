@@ -28,7 +28,7 @@ fn main() {
         .title("EPHER")
         .section("1")
         .manual("User Commands")
-        .source("epher 0.4.21");
+        .source("epher 0.4.22");
     let mut out = std::io::stdout();
     man.render_title(&mut out).expect("title");
     man.render_name_section(&mut out).expect("name");

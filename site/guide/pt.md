@@ -1225,6 +1225,7 @@ O ecrã está dividido em painéis:
 | **Space** | iniciar/parar a animação (quando a entrada está vazia) |
 | **F10** | abrir os menus (Ficheiro, Editar, Gráfico, Definições, Ajuda) |
 | **Tab** | focar o teclado sempre visível (ou o histórico, a partir do teclado); trocar de grupo (**Esc** volta à escrita) |
+| **Rato** | clique menus e itens de menu, células e separadores do teclado, linhas do histórico (carrega a expressão); arraste o painel do gráfico para orbitar (3D) ou mover (2D), a roda faz zoom, um duplo clique repõe a vista |
 | **Ctrl+L** | limpar o histórico |
 
 Os grupos do teclado cobrem todas as funções, constantes e comandos que

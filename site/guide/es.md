@@ -1224,6 +1224,7 @@ La pantalla está dividida en paneles:
 | **Espacio** | iniciar/detener la animación (cuando la entrada está vacía) |
 | **F10** | abrir los menús (File, Edit, Graph, Settings, Help) |
 | **Tab** | enfocar el teclado siempre visible (o el historial, desde el teclado); cambiar de grupo (**Esc** vuelve a escribir) |
+| **Ratón** | pulse menús y elementos de menú, celdas y pestañas del teclado, líneas del historial (carga la expresión); arrastre el panel de gráficas para orbitar (3D) o desplazar (2D), la rueda hace zoom y un doble clic restablece la vista |
 | **Ctrl+L** | borrar el historial |
 
 Los grupos del teclado contienen todas las funciones, constantes y

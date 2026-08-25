@@ -1233,6 +1233,7 @@ Der Bildschirm ist in Panels unterteilt:
 | **Space** | die Animation starten/stoppen (wenn die Eingabe leer ist) |
 | **F10** | die Menüs öffnen (Datei, Bearbeiten, Graph, Einstellungen, Hilfe) |
 | **Tab** | das immer sichtbare Tastenfeld fokussieren (bzw. den Verlauf, vom Tastenfeld aus); Gruppen wechseln (**Esc** zurück zum Tippen) |
+| **Maus** | Menüs und Menüeinträge anklicken, Tastenfeld-Zellen und Bank-Registerkarten, Verlaufszeilen (lädt den Ausdruck); im Grafikfeld ziehen, um zu drehen (3D) bzw. zu verschieben (2D), das Rad zoomt, ein Doppelklick setzt die Ansicht zurück |
 | **Ctrl+L** | den Verlauf leeren |
 
 Die Gruppen des Tastenfelds enthalten jede Funktion, jede Konstante und
