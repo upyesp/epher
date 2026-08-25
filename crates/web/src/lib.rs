@@ -2087,7 +2087,17 @@ fn epher_app() -> Html {
                     ta.set_selection_end(Some(pos as u32)).ok();
                 }
             }
-            let _ = ta.focus();
+            // ADR-0035: on touch layouts a keypad press must never
+            // summon the device keyboard — the tap itself closes it,
+            // and blurring makes that explicit for browsers that keep
+            // focus on the entry through the tap. The stored cursor
+            // still composes the next press. Desktop keeps ADR-0016's
+            // rule: focus returns to the input so typing continues.
+            if mobile_layout() {
+                let _ = ta.blur();
+            } else {
+                let _ = ta.focus();
+            }
         })
     };
 
