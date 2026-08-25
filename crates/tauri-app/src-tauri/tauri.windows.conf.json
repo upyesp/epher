@@ -11,7 +11,8 @@
         "resizable": true,
         "fullscreen": false,
         "theme": "Dark",
-        "additionalBrowserArgs": "--disk-cache-size=0 --default-background-color=141416"
+        "additionalBrowserArgs": "--disk-cache-size=0 --default-background-color=FF141416",
+        "visible": false
       }
     ]
   },

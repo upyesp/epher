@@ -85,32 +85,47 @@
     }
     .menubar {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: stretch;
       gap: 0.25rem;
     }
     .menu {
       position: relative;
     }
+    /* ADR-0032: the top level is an icon rail — square icon buttons with
+       the menu name on the aria-label and the native tooltip. */
     .menu-top {
-      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
       min-width: 44px;
-      padding: 0.35rem 0.8rem;
+      min-height: 44px;
+      padding: 0;
       border: none;
       background: none;
       color: var(--text);
-      font: inherit;
       cursor: pointer;
-      border-radius: 8px;
+      border-radius: 10px;
+    }
+    .menu-top:hover {
+      color: var(--accent);
     }
     .menu-top.open {
       background: var(--panel);
       color: var(--accent);
-      font-weight: 600;
+    }
+    .menu-icon {
+      width: 22px;
+      height: 22px;
+      flex: none;
     }
     .menu-drop {
       position: absolute;
-      top: 100%;
-      left: 0;
+      top: 0;
+      left: 100%;
+      margin-inline-start: 0.25rem;
       z-index: 10;
       min-width: 190px;
       max-height: calc(100dvh - 110px);
@@ -159,7 +174,7 @@
       border-top: 1px solid var(--border);
       margin: 0.25rem 0.5rem;
     }
-    /* The File→Open picker must never render as a visible button — on
+    /* The File→Load picker must never render as a visible button — on
        mobile it would crowd the top bar (ADR-0017). display:none still
        answers a programmatic click() with the picker in every browser. */
     .visually-hidden-file {
@@ -286,6 +301,13 @@
       border: 2px solid var(--border);
       background: var(--panel);
       color: var(--text);
+    }
+    /* Range and checkbox controls take none of the text-input chrome:
+       the thumb must travel edge to edge, the input's ends being the
+       slider's min and max (ADR-0032). */
+    input[type="range"], input[type="checkbox"] {
+      padding: 0;
+      border: none;
     }
     /* The entry is a one-row textarea: single-line input keeps its height,
        Shift+Enter grows the field up to a few lines; pasted scripts stay
@@ -894,7 +916,27 @@
       .hamburger-btn { display: none; }
       .mobile-menu { display: none; }
       .pane-switch { display: none; }
+      /* ADR-0032: the menu bar becomes a vertical icon rail on the left.
+         The topbar column carries it beside the panes; everything else
+         in the topbar (pane switch, hamburger, mobile menu) is already
+         hidden at this width. */
+      .epher {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr);
+      }
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        min-height: 0;
+        padding: 0.5rem 0.25rem;
+        gap: 0.25rem;
+        border-inline-end: 1px solid var(--border);
+      }
       .panes {
+        grid-column: 2;
+        grid-row: 1;
         overflow: visible;
         gap: 0;
       }

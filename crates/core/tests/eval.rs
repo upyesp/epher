@@ -954,3 +954,24 @@ fn view3d_offsets_map_to_the_pose() {
     let over = base.with_offsets(0.0, 2.0, 0.0);
     assert!((over.pitch - 1.4).abs() < 1e-12);
 }
+
+/// The spin phase (ADR-0032) adds accumulated rotation with no pitch
+/// clamp — a vertical spin is a full revolution — and applies the zoom.
+#[test]
+fn view3d_spin_phase_adds_unclamped_rotation() {
+    use epher_core::graph::View3D;
+    let base = View3D::default();
+    assert_eq!(base.with_spin_phase(0.0, 0.0, 0.0), base);
+    let spun = base.with_spin_phase(0.7, 2.9, -1.0);
+    assert!((spun.yaw - (0.8 + 0.7)).abs() < 1e-12);
+    // 0.6 + 2.9 = 3.5 rad: far past the static 1.4 clamp, unclamped.
+    assert!((spun.pitch - 3.5).abs() < 1e-12);
+    assert!((spun.camera - 60.0).abs() < 1e-12);
+    // sin/cos continuity: wrapping the phase by a full turn changes
+    // nothing in the projected pose.
+    let a = View3D { yaw: 0.3, pitch: 4.1, camera: 30.0 };
+    let b = View3D { yaw: 0.3 + std::f64::consts::TAU, pitch: 4.1 + std::f64::consts::TAU, camera: 30.0 };
+    let (ax, ay, _) = epher_core::graph::project_point(1.0, 2.0, 3.0, &a);
+    let (bx, by, _) = epher_core::graph::project_point(1.0, 2.0, 3.0, &b);
+    assert!((ax - bx).abs() < 1e-9 && (ay - by).abs() < 1e-9);
+}

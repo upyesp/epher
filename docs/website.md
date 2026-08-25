@@ -84,9 +84,9 @@ links never need a version number.
   of the app's projection (ADR-0030): constant-size per-frame-centered view
   box, the width slider at 0.1 (mesh 1.2x, frame 1.4x), one static frame
   under reduced motion. The terminal card above it shows that exact
-  command, copy-pasteable into any frontend (ADR-0031); the header nav
-  (landing, about, privacy, guide pages) carries an App link to `/pwa/`
-  in all eight locales.
+  command with no shell prompt, copy-pasteable into any frontend
+  (ADR-0032); the header nav (landing, about, privacy, guide pages)
+  carries an App link to `/pwa/` in all eight locales.
 - **Icon**: the epher mark is the monogram "e" (from the epher.svg artwork)
   on a rounded tile. Three variants live in `site/` and `crates/web/public/`:
   `icon.svg` (dark tile, white glyph — the default, the favicon, and the

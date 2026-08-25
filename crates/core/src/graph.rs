@@ -604,6 +604,21 @@ impl View3D {
             camera: self.camera * 2f64.powf(-z),
         }
     }
+
+    /// Compose an animated spin (ADR-0032): `yaw`/`pitch` are the
+    /// accumulated rotation phase from the fine-control sliders' continuous
+    /// spin, `zoom` the static zoom offset. Unlike [`Self::with_offsets`]
+    /// the pitch is NOT clamped — a vertical spin is a full revolution
+    /// around the horizontal axis and may carry the camera under the plot;
+    /// the sine/cosine projection keeps the pose continuous through the
+    /// poles.
+    pub fn with_spin_phase(&self, yaw: f64, pitch: f64, zoom: f64) -> Self {
+        Self {
+            yaw: self.yaw + yaw,
+            pitch: self.pitch + pitch,
+            camera: self.camera * 2f64.powf(-zoom),
+        }
+    }
 }
 
 /// A mesh segment in screen space with its mean view depth — larger depth

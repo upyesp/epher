@@ -380,6 +380,55 @@ fn width_in_range(w: f64) -> bool {
     }
 }
 
+/// Whether the user asked for reduced motion (WCAG 2.3.3). The rotation
+/// sliders' continuous spin is motion: under reduced motion they keep
+/// their v0.4.19 static-offset meaning instead (ADR-0032).
+fn prefers_reduced() -> bool {
+    web_sys::window()
+        .and_then(|w| w.match_media("(prefers-reduced-motion: reduce)").ok())
+        .flatten()
+        .map(|m| m.matches())
+        .unwrap_or(false)
+}
+
+/// The pose the 3D plot renders in (ADR-0031/0032): the orbit base plus
+/// the spin phase and the static zoom offset. Under reduced motion no
+/// phase accrues, so the rotation sliders keep their static-offset
+/// meaning and the formula falls back to `with_offsets`.
+fn effective_view(
+    base: &epher_core::graph::View3D,
+    h: f64,
+    v: f64,
+    z: f64,
+    phase: (f64, f64),
+) -> epher_core::graph::View3D {
+    if prefers_reduced() {
+        base.with_offsets(h, v, z)
+    } else {
+        base.with_spin_phase(phase.0, phase.1, z)
+    }
+}
+
+/// One top-level menu icon (ADR-0032): the menu bar is a vertical rail of
+/// icon buttons, so the names live in each button's aria-label (and its
+/// native tooltip) while the SVG is aria-hidden.
+fn menu_icon(inner: &'static str) -> yew::Html {
+    yew::Html::from_html_unchecked(
+        format!(
+            "<svg class=\"menu-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">{inner}</svg>"
+        )
+        .into(),
+    )
+}
+
+// The stroke paths for the four rail icons (lucide's file, pencil,
+// settings, and circle-help glyphs, MIT-licensed).
+const ICON_FILE: &str =
+    "<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/>";
+const ICON_EDIT: &str = "<path d=\"M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z\"/>";
+const ICON_SETTINGS: &str = "<path d=\"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>";
+const ICON_HELP: &str = "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"/><path d=\"M12 17h.01\"/>";
+
 fn download_text_file(filename: &str, text: &str) {
     let Some(win) = web_sys::window() else {
         return;
@@ -697,9 +746,20 @@ fn epher_app() -> Html {
     // the default. They ride on top of the orbit base view, applied via
     // View3D::with_offsets, and reset whenever a 3D graph is drawn into
     // an empty pane.
+    // ADR-0032: the two rotation sliders SPIN while non-zero — horizontal
+    // around the vertical axis, vertical around the horizontal axis,
+    // roughly one revolution in six seconds at full deflection. The phase
+    // accumulates in a live cell per frame; `spin_phase` mirrors it for
+    // rendering. At zero the phase freezes where the spin stopped; only a
+    // fresh 3D graph or Clear graph resets it.
     let view_h = use_state(|| 0.0_f64);
     let view_v = use_state(|| 0.0_f64);
     let view_z = use_state(|| 0.0_f64);
+    let spin_phase = use_state(|| (0.0_f64, 0.0_f64));
+    let spin_phase_cell = use_state(|| Rc::new(RefCell::new((0.0_f64, 0.0_f64))));
+    // Live mirrors of the rotation slider values for the spin loop.
+    let view_h_cell = use_state(|| Rc::new(RefCell::new(0.0_f64)));
+    let view_v_cell = use_state(|| Rc::new(RefCell::new(0.0_f64)));
     let play = use_state(|| Option::<PlaySpec>::None);
     // The live cell behind `play`: the animation loop reads and advances
     // it across ticks; Yew handles captured at spawn read stale snapshots.
@@ -1353,6 +1413,8 @@ fn epher_app() -> Html {
         let view_h = view_h.clone();
         let view_v = view_v.clone();
         let view_z = view_z.clone();
+        let spin_phase = spin_phase.clone();
+        let spin_phase_cell = spin_phase_cell.clone();
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             // A submitted entry may be several lines (pasted from the
@@ -1452,6 +1514,8 @@ fn epher_app() -> Html {
                         view_h.set(0.0);
                         view_v.set(0.0);
                         view_z.set(0.0);
+                        spin_phase.set((0.0, 0.0));
+                        *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                         continue;
                     }
                     match epher_core::graph::sample_surface(source, 30, s.env()) {
@@ -1463,6 +1527,8 @@ fn epher_app() -> Html {
                                 view_h.set(0.0);
                                 view_v.set(0.0);
                                 view_z.set(0.0);
+                                spin_phase.set((0.0, 0.0));
+                                *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                             }
                             surfaces.push(fresh);
                             // Same as 2D: no answer echo, the surface is
@@ -1645,11 +1711,19 @@ fn epher_app() -> Html {
         let view_h = view_h.clone();
         let view_v = view_v.clone();
         let view_z = view_z.clone();
+        let view_h_cell = view_h_cell.clone();
+        let view_v_cell = view_v_cell.clone();
         Callback::from(move |(axis, v): (&'static str, f64)| {
             let v = v.clamp(-1.0, 1.0);
             match axis {
-                "h" => view_h.set(v),
-                "v" => view_v.set(v),
+                "h" => {
+                    *view_h_cell.borrow_mut() = v;
+                    view_h.set(v);
+                }
+                "v" => {
+                    *view_v_cell.borrow_mut() = v;
+                    view_v.set(v);
+                }
                 _ => view_z.set(v),
             }
         })
@@ -1703,6 +1777,42 @@ fn epher_app() -> Html {
                     if let Some(apply) = (*live_apply).borrow().as_ref() {
                         apply(next.name.clone(), next.value);
                     }
+                }
+            });
+            || {}
+        });
+    }
+    // The spin loop (ADR-0032): one spawned task advances the phase while
+    // either rotation slider is non-zero. Under reduced motion it skips
+    // entirely — the sliders then keep their static-offset meaning.
+    {
+        let spin_phase = spin_phase.clone();
+        let spin_phase_cell = spin_phase_cell.clone();
+        let view_h_cell = view_h_cell.clone();
+        let view_v_cell = view_v_cell.clone();
+        use_effect_with((), move |_| {
+            let reduce = prefers_reduced();
+            spawn_local(async move {
+                let mut last: Option<f64> = None;
+                loop {
+                    gloo_timers::future::sleep(std::time::Duration::from_millis(33)).await;
+                    let h = *view_h_cell.borrow();
+                    let v = *view_v_cell.borrow();
+                    if reduce || (h == 0.0 && v == 0.0) {
+                        last = None;
+                        continue;
+                    }
+                    let now = js_sys::Date::now();
+                    let dt = match last {
+                        Some(t) => ((now - t) / 1000.0).min(0.1),
+                        None => 0.033,
+                    };
+                    last = Some(now);
+                    let mut phase = *spin_phase_cell.borrow();
+                    phase.0 += h * dt * 1.05;
+                    phase.1 += v * dt * 1.05;
+                    *spin_phase_cell.borrow_mut() = phase;
+                    spin_phase.set(phase);
                 }
             });
             || {}
@@ -1872,6 +1982,7 @@ fn epher_app() -> Html {
         let view_h = view_h.clone();
         let view_v = view_v.clone();
         let view_z = view_z.clone();
+        let spin_phase = spin_phase.clone();
         let result = result.clone();
         let localizer = localizer.clone();
         Callback::from(move |_| {
@@ -1879,7 +1990,7 @@ fn epher_app() -> Html {
                 graph::graph_svg(&curves, &pois, *trace, *poi_markers, *line_width)
             } else if let Some(doc) = graph::graph3d_svg(
                 &surface,
-                &(*view).with_offsets(*view_h, *view_v, *view_z),
+                &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
                 *line_width,
             ) {
                 doc
@@ -2133,6 +2244,8 @@ fn epher_app() -> Html {
         let view_h = view_h.clone();
         let view_v = view_v.clone();
         let view_z = view_z.clone();
+        let spin_phase = spin_phase.clone();
+        let spin_phase_cell = spin_phase_cell.clone();
         Callback::from(move |_| {
             graph.set(Vec::new());
             pois.set(Vec::new());
@@ -2144,6 +2257,8 @@ fn epher_app() -> Html {
             view_h.set(0.0);
             view_v.set(0.0);
             view_z.set(0.0);
+            spin_phase.set((0.0, 0.0));
+            *spin_phase_cell.borrow_mut() = (0.0, 0.0);
             result.set(localizer.lookup("graph-cleared"));
         })
     };
@@ -2266,6 +2381,8 @@ fn epher_app() -> Html {
                 <nav
                     class="menubar"
                     role="menubar"
+                    aria-orientation="vertical"
+                    aria-label={localizer.lookup("menu")}
                     ref={menubar_ref.clone()}
                     onkeydown={{
                         let menu_open = menu_open.clone();
@@ -2282,13 +2399,15 @@ fn epher_app() -> Html {
                             role="menuitem"
                             aria-haspopup="menu"
                             aria-expanded={(*menu_open == Some("file")).to_string()}
+                            aria-label={localizer.lookup("menu-file")}
+                            title={localizer.lookup("menu-file")}
                             class={if *menu_open == Some("file") { "menu-top open" } else { "menu-top" }}
                             onclick={{
                                 let menu_open = menu_open.clone();
                                 Callback::from(move |_| menu_open.set(if *menu_open == Some("file") { None } else { Some("file") }))
                             }}
                         >
-                            { localizer.lookup("menu-file") }
+                            { menu_icon(ICON_FILE) }
                         </button>
                         {
                             if *menu_open == Some("file") {
@@ -2339,13 +2458,15 @@ fn epher_app() -> Html {
                             role="menuitem"
                             aria-haspopup="menu"
                             aria-expanded={(*menu_open == Some("edit")).to_string()}
+                            aria-label={localizer.lookup("menu-edit")}
+                            title={localizer.lookup("menu-edit")}
                             class={if *menu_open == Some("edit") { "menu-top open" } else { "menu-top" }}
                             onclick={{
                                 let menu_open = menu_open.clone();
                                 Callback::from(move |_| menu_open.set(if *menu_open == Some("edit") { None } else { Some("edit") }))
                             }}
                         >
-                            { localizer.lookup("menu-edit") }
+                            { menu_icon(ICON_EDIT) }
                         </button>
                         {
                             if *menu_open == Some("edit") {
@@ -2383,13 +2504,15 @@ fn epher_app() -> Html {
                             role="menuitem"
                             aria-haspopup="menu"
                             aria-expanded={(*menu_open == Some("settings")).to_string()}
+                            aria-label={localizer.lookup("menu-settings")}
+                            title={localizer.lookup("menu-settings")}
                             class={if *menu_open == Some("settings") { "menu-top open" } else { "menu-top" }}
                             onclick={{
                                 let menu_open = menu_open.clone();
                                 Callback::from(move |_| menu_open.set(if *menu_open == Some("settings") { None } else { Some("settings") }))
                             }}
                         >
-                            { localizer.lookup("menu-settings") }
+                            { menu_icon(ICON_SETTINGS) }
                         </button>
                         {
                             if *menu_open == Some("settings") {
@@ -2448,13 +2571,15 @@ fn epher_app() -> Html {
                             role="menuitem"
                             aria-haspopup="menu"
                             aria-expanded={(*menu_open == Some("help")).to_string()}
+                            aria-label={localizer.lookup("menu-help")}
+                            title={localizer.lookup("menu-help")}
                             class={if *menu_open == Some("help") { "menu-top open" } else { "menu-top" }}
                             onclick={{
                                 let menu_open = menu_open.clone();
                                 Callback::from(move |_| menu_open.set(if *menu_open == Some("help") { None } else { Some("help") }))
                             }}
                         >
-                            { localizer.lookup("menu-help") }
+                            { menu_icon(ICON_HELP) }
                         </button>
                         {
                             if *menu_open == Some("help") {
@@ -2960,9 +3085,11 @@ fn epher_app() -> Html {
                     {
                         if !(*surface).is_empty() {
                             // The fine-control sliders ride on the orbit
-                            // base (ADR-0031): the pane renders the
+                            // base (ADR-0031); the rotation sliders spin
+                            // the pose (ADR-0032). The pane renders the
                             // effective pose.
-                            let effective = (*view).with_offsets(*view_h, *view_v, *view_z);
+                            let effective =
+                                effective_view(&view, *view_h, *view_v, *view_z, *spin_phase);
                             let rendered = graph::surface_svg(&surface, &effective, *line_width);
                             let aria = format!(
                                 "{}: {}",

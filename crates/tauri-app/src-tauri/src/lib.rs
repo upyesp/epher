@@ -219,6 +219,23 @@ pub fn run() {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.set_title(&format!("epher {}", env!("CARGO_PKG_VERSION")));
             }
+            // Windows: the window is created hidden and shown when the
+            // page has loaded (ADR-0032). Tao ignores the window
+            // background color on Windows and the WebView2 default is
+            // white, so a shown-at-creation window flashes white for a
+            // frame or two; hidden-until-loaded shows the already-dark
+            // page as the very first frame, and the corrected
+            // --default-background-color=FF141416 browser argument
+            // (AARRGGBB — the bare six digits v0.4.19 passed are not a
+            // valid color and were ignored) darkens the webview itself.
+            #[cfg(target_os = "windows")]
+            if let Some(window) = app.get_webview_window("main") {
+                let shown = window.clone();
+                window.on_page_load(move |_, _| {
+                    let _ = shown.show();
+                    let _ = shown.set_focus();
+                });
+            }
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()
