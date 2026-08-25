@@ -46,11 +46,17 @@ Two layers paint on Windows: the tao window and the WebView2 surface.
   keep the tauri window config off Windows; nothing changed there — the
   color was simply never reaching the surface at all.)
 - **The reliable mechanism is hidden-until-loaded.** `visible: false` on
-  the Windows window plus `on_page_load` → `show()` + `set_focus()` in
-  the Rust setup means the very first presented frame is the already
-  rendered page — the shell's inline CSS is dark from its first paint,
-  and the boot-fallback (v0.4.2) is dark too. Even if WebView2 composited
-  a white first frame, nobody can see it.
+  the Windows window plus a show at the first-paint signal means the very
+  first presented frame is the already rendered page — the shell's inline
+  CSS is dark from its first paint, and the boot-fallback (v0.4.2) is
+  dark too. Even if WebView2 composited a white first frame, nobody can
+  see it. The signal is the frontend's existing `init` IPC call, which
+  fires right after Yew mounts (tauri exposes no page-load hook on the
+  window handle in 2.11.x — the builder has one, the created window does
+  not, and a WebView event-loop route doesn't exist either); the Rust
+  `init` command shows and focuses the window on Windows. The
+  boot-fallback script invokes `init` too when it takes over, so a
+  broken wasm boot shows the dark fallback window instead of nothing.
 
 Decision: keep the window hidden on Windows until the page load event,
 show it then, and correct the browser argument to `FF141416` (opaque
@@ -133,8 +139,9 @@ styling is removed with it.
 
 ## Decision
 
-- Windows launches hidden and shows on the page load event; the
-  WebView2 background argument is the valid AARRGGBB `FF141416`.
+- Windows launches hidden and shows on the frontend's first-mount `init`
+  call; the WebView2 background argument is the valid AARRGGBB
+  `FF141416`.
 - Range and checkbox inputs take no padding or border: the slider ends
   are the min and max.
 - The horizontal and vertical rotation sliders spin the plot while

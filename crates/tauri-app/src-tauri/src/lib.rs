@@ -75,7 +75,20 @@ pub struct InitState {
 }
 
 #[tauri::command]
-fn init(state: State<DesktopStore>) -> Result<InitState, String> {
+fn init(state: State<DesktopStore>, window: tauri::WebviewWindow) -> Result<InitState, String> {
+    // Windows launches hidden (ADR-0032): the frontend calls init after
+    // its first mount — the shell has painted its dark first frame by
+    // then — so this is the first-paint signal. Show the window here and
+    // the user's first visible frame is the dark app, never a white one.
+    // (The boot-fallback script calls init too, so a failed wasm boot
+    // shows its dark fallback window instead of nothing.)
+    #[cfg(target_os = "windows")]
+    {
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+    #[cfg(not(target_os = "windows"))]
+    let _ = &window;
     state.init().map_err(|e| e.to_string())
 }
 
@@ -228,14 +241,9 @@ pub fn run() {
             // --default-background-color=FF141416 browser argument
             // (AARRGGBB — the bare six digits v0.4.19 passed are not a
             // valid color and were ignored) darkens the webview itself.
-            #[cfg(target_os = "windows")]
-            if let Some(window) = app.get_webview_window("main") {
-                let shown = window.clone();
-                window.on_page_load(move |_, _| {
-                    let _ = shown.show();
-                    let _ = shown.set_focus();
-                });
-            }
+            // The show happens in the `init` command (the frontend calls
+            // it right after its first mount — the first-paint signal);
+            // the boot-fallback script invokes it too.
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()

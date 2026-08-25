@@ -1058,6 +1058,12 @@
         }
         if (retryOnce()) return; // the reloaded page mounts on its own
         fallback.hidden = false;
+        // On Windows the desktop window launches hidden until the
+        // frontend's init call (ADR-0032) — a failed wasm boot would
+        // otherwise leave an invisible window. Show the dark fallback.
+        if (window.__TAURI_INTERNALS__) {
+          try { window.__TAURI_INTERNALS__.invoke("init"); } catch (e) {}
+        }
         if (errors.length) detail.textContent = errors.join(" · ");
         // a late mount (e.g. a slow first compile) recovers on its own
         var iv = setInterval(function () {
