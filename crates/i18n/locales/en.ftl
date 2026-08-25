@@ -41,7 +41,12 @@ graph-pane = Graph
 evaluate = Evaluate
 clear-entry = Clear entry
 delete-entry = Delete
-tui-keypad = Keypad — Tab banks, arrows move, Enter inserts, Esc closes
+tui-keypad = Keypad
+tui-keypad-active = Keypad · Enter inserts · Esc closes
+tui-settings-theme = Theme
+tui-settings-language = Language
+tui-settings-view = View
+
 menu = Menu
 menu-file = File
 menu-edit = Edit

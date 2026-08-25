@@ -1223,7 +1223,7 @@ La pantalla está dividida en paneles:
 | **Teclas de flecha** | girar la vista 3D (cuando la entrada está vacía) |
 | **Espacio** | iniciar/detener la animación (cuando la entrada está vacía) |
 | **F10** | abrir los menús (File, Edit, Graph, Settings, Help) |
-| **Tab** | abrir el teclado; cambiar de grupo (**Esc** cierra) |
+| **Tab** | enfocar el teclado siempre visible (o el historial, desde el teclado); cambiar de grupo (**Esc** vuelve a escribir) |
 | **Ctrl+L** | borrar el historial |
 
 Los grupos del teclado contienen todas las funciones, constantes y

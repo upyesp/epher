@@ -41,7 +41,12 @@ graph-pane = 图形
 evaluate = 计算
 clear-entry = 清除输入
 delete-entry = 删除
-tui-keypad = 键盘——Tab 换组，方向键移动，Enter 插入，Esc 关闭
+tui-keypad = 键盘
+tui-keypad-active = 键盘 · Enter 插入 · Esc 关闭
+tui-settings-theme = 主题
+tui-settings-language = 语言
+tui-settings-view = 视图
+
 menu = 菜单
 menu-file = 文件
 menu-edit = 编辑

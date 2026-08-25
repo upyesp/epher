@@ -1224,7 +1224,7 @@ O ecrã está dividido em painéis:
 | **Arrow keys** | rodar a vista 3D (quando a entrada está vazia) |
 | **Space** | iniciar/parar a animação (quando a entrada está vazia) |
 | **F10** | abrir os menus (Ficheiro, Editar, Gráfico, Definições, Ajuda) |
-| **Tab** | abrir o teclado; trocar de grupo (**Esc** fecha) |
+| **Tab** | focar o teclado sempre visível (ou o histórico, a partir do teclado); trocar de grupo (**Esc** volta à escrita) |
 | **Ctrl+L** | limpar o histórico |
 
 Os grupos do teclado cobrem todas as funções, constantes e comandos que

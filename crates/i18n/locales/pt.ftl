@@ -42,7 +42,12 @@ graph-pane = Gráfico
 evaluate = Avaliar
 clear-entry = Limpar entrada
 delete-entry = Apagar
-tui-keypad = Teclado — Tab grupos, setas mover, Enter inserir, Esc fechar
+tui-keypad = Teclado
+tui-keypad-active = Teclado · Enter insere · Esc fecha
+tui-settings-theme = Tema
+tui-settings-language = Idioma
+tui-settings-view = Vista
+
 menu = Menu
 menu-file = Ficheiro
 menu-edit = Editar

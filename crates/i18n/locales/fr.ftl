@@ -42,7 +42,12 @@ graph-pane = Graphique
 evaluate = Évaluer
 clear-entry = Effacer la saisie
 delete-entry = Supprimer
-tui-keypad = Clavier — Tab groupes, flèches se déplacer, Entrée insérer, Échap fermer
+tui-keypad = Clavier
+tui-keypad-active = Clavier · Entrée insère · Échap ferme
+tui-settings-theme = Thème
+tui-settings-language = Langue
+tui-settings-view = Vue
+
 menu = Menu
 menu-file = Fichier
 menu-edit = Édition

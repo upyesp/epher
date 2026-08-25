@@ -42,7 +42,12 @@ graph-pane = ग्राफ़
 evaluate = मूल्यांकन करें
 clear-entry = प्रविष्टि साफ़ करें
 delete-entry = हटाएँ
-tui-keypad = कीपैड — Tab बैंक · तीर घुमाएँ · Enter डालें · Esc बंद करें
+tui-keypad = कीपैड
+tui-keypad-active = कीपैड · Enter डालें · Esc बंद करें
+tui-settings-theme = थीम
+tui-settings-language = भाषा
+tui-settings-view = दृश्य
+
 menu = मेन्यू
 menu-file = फ़ाइल
 menu-edit = संपादन

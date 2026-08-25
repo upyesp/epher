@@ -41,7 +41,12 @@ graph-pane = الرسم البياني
 evaluate = تقييم
 clear-entry = مسح الإدخال
 delete-entry = حذف
-tui-keypad = لوحة المفاتيح — Tab مجموعات، الأسهم للتنقل، Enter للإدراج، Esc للإغلاق
+tui-keypad = لوحة المفاتيح
+tui-keypad-active = لوحة المفاتيح · Enter للإدراج · Esc للإغلاق
+tui-settings-theme = السمة
+tui-settings-language = اللغة
+tui-settings-view = العرض
+
 menu = القائمة
 menu-file = ملف
 menu-edit = تحرير

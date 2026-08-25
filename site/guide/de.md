@@ -1232,7 +1232,7 @@ Der Bildschirm ist in Panels unterteilt:
 | **Arrow keys** | die 3D-Ansicht drehen (wenn die Eingabe leer ist) |
 | **Space** | die Animation starten/stoppen (wenn die Eingabe leer ist) |
 | **F10** | die Menüs öffnen (Datei, Bearbeiten, Graph, Einstellungen, Hilfe) |
-| **Tab** | das Tastenfeld öffnen; zwischen seinen Gruppen wechseln (**Esc** schließt) |
+| **Tab** | das immer sichtbare Tastenfeld fokussieren (bzw. den Verlauf, vom Tastenfeld aus); Gruppen wechseln (**Esc** zurück zum Tippen) |
 | **Ctrl+L** | den Verlauf leeren |
 
 Die Gruppen des Tastenfelds enthalten jede Funktion, jede Konstante und

@@ -1238,7 +1238,7 @@ L'écran est divisé en panneaux :
 | **Touches fléchées** | faire pivoter la vue 3D (quand la saisie est vide) |
 | **Espace** | démarrer/arrêter l'animation (quand la saisie est vide) |
 | **F10** | ouvrir les menus (Fichier, Édition, Graphique, Paramètres, Aide) |
-| **Tab** | ouvrir le clavier ; changer de groupe (**Esc** ferme) |
+| **Tab** | activer le clavier toujours visible (ou l'historique, depuis le clavier) ; changer de groupe (**Esc** revient à la saisie) |
 | **Ctrl+L** | effacer l'historique |
 
 Les groupes du clavier couvrent toutes les fonctions, constantes et

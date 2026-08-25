@@ -1199,7 +1199,7 @@ The screen is divided into panels:
 | **Arrow keys** | rotate the 3D view (when the input is empty) |
 | **Space** | start/stop the animation (when the input is empty) |
 | **F10** | open the menus (File, Edit, Graph, Settings, Help) |
-| **Tab** | open the function keypad; switch its banks (**Esc** closes) |
+| **Tab** | focus the always-visible keypad (or history, from the keypad); switch its banks (**Esc** returns focus to typing) |
 | **Ctrl+L** | clear the history |
 
 The keypad's banks hold every function, constant, and command the

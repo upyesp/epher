@@ -42,7 +42,12 @@ graph-pane = Graph
 evaluate = Auswerten
 clear-entry = Eingabe leeren
 delete-entry = Löschen
-tui-keypad = Tastenfeld — Tab Gruppen, Pfeile bewegen, Enter fügt ein, Esc schließt
+tui-keypad = Tastenfeld
+tui-keypad-active = Tastenfeld · Enter fügt ein · Esc schließt
+tui-settings-theme = Design
+tui-settings-language = Sprache
+tui-settings-view = Ansicht
+
 menu = Menü
 menu-file = Datei
 menu-edit = Bearbeiten

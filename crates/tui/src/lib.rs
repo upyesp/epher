@@ -1699,57 +1699,58 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
     // regions. The threshold moved from 104 to 72 (ADR-0025) so a
     // standard 80×24 terminal gets the same layout every platform does:
     // history below the answer, graph on the right.
+    // The keypad is always part of the screen now (ADR-0033) — it used
+    // to appear only while focused, which read as "lost". Tab just
+    // moves the highlight onto it. The hint strip wraps to as many rows
+    // as its text needs (two on a standard 80-column terminal) so the
+    // whole key guide is visible, and the keypad's cell width comes
+    // from its real pane so narrower terminals shrink the grid instead
+    // of clipping it. Everything fits 80×24.
     let wide = body.width >= 72;
+    let hint_text = localizer.lookup("tui-hints");
+    let hint_rows = (hint_text.chars().count() as u16)
+        .div_ceil(body.width.max(1))
+        .clamp(1, 3);
     let (input_area, result_area, history_area, graph_area, keypad_area, hints_area) = if wide {
         let split =
-            Layout::vertical([Constraint::Min(0), Constraint::Length(1)])
+            Layout::vertical([Constraint::Min(0), Constraint::Length(hint_rows)])
                 .split(body);
         let (content, hints) = (split[0], split[1]);
         let split =
             Layout::horizontal([Constraint::Length(46), Constraint::Min(0)])
                 .split(content);
         let (calc_col, graph_col) = (split[0], split[1]);
-        let calc_rows = if app.keypad_focused() {
-            Layout::vertical([
-                Constraint::Length(3),  // input
-                Constraint::Length(1),  // result
-                Constraint::Min(0),     // history
-                Constraint::Length(7),  // keypad (bank row + 4 key rows)
-            ])
-        } else {
-            Layout::vertical([
-                Constraint::Length(3),  // input
-                Constraint::Length(1),  // result
-                Constraint::Min(0),     // history
-            ])
-        }
+        // Input, answer, keypad, then the history filling the rest —
+        // the calculator column reads top to bottom like the app.
+        let calc_rows = Layout::vertical([
+            Constraint::Length(3), // input
+            Constraint::Length(1), // result
+            Constraint::Length(7), // keypad (bank row + 4 key rows)
+            Constraint::Min(0),    // history
+        ])
         .split(calc_col);
-        let keypad_area = if app.keypad_focused() { Some(calc_rows[3]) } else { None };
-        (calc_rows[0], calc_rows[1], calc_rows[2], graph_col, keypad_area, hints)
-    } else if app.keypad_focused() {
+        (
+            calc_rows[0],
+            calc_rows[1],
+            calc_rows[3],
+            graph_col,
+            Some(calc_rows[2]),
+            hints,
+        )
+    } else {
+        // The narrow stack (ADR-0016): input, answer, then history and
+        // graph sharing what is left, then the always-visible keypad
+        // and the wrapped hints.
         let rows = Layout::vertical([
             Constraint::Length(3),  // input
             Constraint::Length(1),  // result
             Constraint::Min(0),     // history
-            Constraint::Length(12), // graph (shrunk while keypad is open)
+            Constraint::Min(0),     // graph
             Constraint::Length(7),  // keypad (bank row + 4 key rows)
-            Constraint::Length(1),  // hints
+            Constraint::Length(hint_rows), // hints
         ])
         .split(body);
         (rows[0], rows[1], rows[2], rows[3], Some(rows[4]), rows[5])
-    } else {
-        // History keeps its Min(0) row and the graph panel is fixed at 14
-        // rows (was 20) — in a standard 24-row terminal the old height
-        // squeezed the history section to nothing (ADR-0025).
-        let rows = Layout::vertical([
-            Constraint::Length(3),  // input
-            Constraint::Length(1),  // result
-            Constraint::Min(0),     // history
-            Constraint::Length(14), // graph
-            Constraint::Length(1),  // hints
-        ])
-        .split(body);
-        (rows[0], rows[1], rows[2], rows[3], None, rows[4])
     };
 
     // The input row doubles as the file prompt (ADR-0017).
@@ -1802,10 +1803,11 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
     if let Some(kp_area) = keypad_area {
         let bank = &BANKS[app.keypad_bank_index()].1;
         let cols = bank.iter().map(|r| r.len()).max().unwrap_or(1);
-        // Cell width from the widest grid that fits the 46-column calc
-        // pane (44 usable): 5 columns → 8-wide cells, 4 → 11 (enough for
-        // `variance`).
-        let cell = (44 / cols).max(8);
+        // Cell width from the keypad's actual pane width: in the 46-wide
+        // calc pane 5 columns → 8-wide cells, 4 columns → 11 (enough for
+        // `variance`); narrower terminals shrink cells down to 6 so the
+        // grid always fits its pane.
+        let cell = ((kp_area.width.saturating_sub(2)) as usize / cols).clamp(6, 11);
         let bank_line = Line::from(
             BANKS
                 .iter()
@@ -1851,11 +1853,17 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
         grid.extend(rows);
         let keypad = Paragraph::new(Text::from(grid))
             .style(Style::default().fg(fg))
-            .block(block(localizer.lookup("tui-keypad")));
+            .block(block(if app.keypad_focused() {
+                localizer.lookup("tui-keypad-active")
+            } else {
+                localizer.lookup("tui-keypad")
+            }));
         frame.render_widget(keypad, kp_area);
     }
 
-    let hints = Paragraph::new(localizer.lookup("tui-hints")).style(hints_style);
+    let hints = Paragraph::new(hint_text)
+        .style(hints_style)
+        .wrap(ratatui::widgets::Wrap { trim: true });
     frame.render_widget(hints, hints_area);
 
     // Legend + plot + points of interest, capped to the panel height.
@@ -1869,7 +1877,7 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
             .collect();
         graph_text.push_str(&legend.join("   "));
         graph_text.push('\n');
-        let (w, h) = graph_dims(graph_area, wide, app.keypad_focused());
+        let (w, h) = graph_dims(graph_area);
         graph_text.push_str(&render_ascii3d(app.surfaces(), &app.effective_view(), w, h));
     } else if !curves.is_empty() {
         let legend: Vec<String> = curves
@@ -1886,7 +1894,7 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
             .collect();
         graph_text.push_str(&legend.join("   "));
         graph_text.push('\n');
-        let (w, h) = graph_dims(graph_area, wide, app.keypad_focused());
+        let (w, h) = graph_dims(graph_area);
         graph_text.push_str(&render_ascii(curves, w, h));
         let poi_lines: Vec<String> = app
             .pois()
@@ -1915,71 +1923,125 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
     // after all panels, and clear its region first so whatever sat
     // underneath (history lines, graph text) cannot bleed through.
     if let Some((menu, item)) = app.menu_active() {
-        let items: Vec<String> = match menu {
-            0 => vec![
-                localizer.lookup("menu-open-history"),
-                localizer.lookup("menu-open-script"),
-                localizer.lookup("menu-save-history"),
-                localizer.lookup("menu-save-script"),
-                localizer.lookup("menu-quit"),
-            ],
-            1 => vec![
-                localizer.lookup("menu-cut"),
-                localizer.lookup("menu-copy"),
-                localizer.lookup("menu-paste"),
-            ],
-            2 => vec![localizer.lookup("graph-clear")],
-            4 => vec![localizer.lookup("menu-guide")],
+        // The open menu's rows: plain items plus labeled section rules.
+        // Settings marks its subsections — Theme, Language, and the 3D
+        // View controls — with dim "─ Label ────" dividers (ADR-0033);
+        // the highlight and the activation index stay in item space, so
+        // the rules never intercept arrow movement or Enter.
+        enum PopupRow {
+            Item(usize, String),
+            Rule(String),
+        }
+        let mut rows: Vec<PopupRow> = Vec::new();
+        match menu {
+            0 => {
+                for (i, label) in [
+                    localizer.lookup("menu-open-history"),
+                    localizer.lookup("menu-open-script"),
+                    localizer.lookup("menu-save-history"),
+                    localizer.lookup("menu-save-script"),
+                    localizer.lookup("menu-quit"),
+                ]
+                .into_iter()
+                .enumerate()
+                {
+                    rows.push(PopupRow::Item(i, label));
+                }
+            }
+            1 => {
+                for (i, label) in [
+                    localizer.lookup("menu-cut"),
+                    localizer.lookup("menu-copy"),
+                    localizer.lookup("menu-paste"),
+                ]
+                .into_iter()
+                .enumerate()
+                {
+                    rows.push(PopupRow::Item(i, label));
+                }
+            }
+            2 => rows.push(PopupRow::Item(0, localizer.lookup("graph-clear"))),
+            4 => rows.push(PopupRow::Item(0, localizer.lookup("menu-guide"))),
             _ => {
-                let mut v = vec![localizer.lookup("graph-points")];
-                v.push(localizer.lookup("theme-light"));
-                v.push(localizer.lookup("theme-dark"));
-                v.push(localizer.lookup("theme-night"));
-                for code in epher_i18n::SUPPORTED_LOCALES {
-                    v.push(native_language_name(code).to_string());
+                rows.push(PopupRow::Item(0, localizer.lookup("graph-points")));
+                rows.push(PopupRow::Rule(localizer.lookup("tui-settings-theme")));
+                rows.push(PopupRow::Item(1, localizer.lookup("theme-light")));
+                rows.push(PopupRow::Item(2, localizer.lookup("theme-dark")));
+                rows.push(PopupRow::Item(3, localizer.lookup("theme-night")));
+                rows.push(PopupRow::Rule(localizer.lookup("tui-settings-language")));
+                for (i, code) in epher_i18n::SUPPORTED_LOCALES.iter().enumerate() {
+                    rows.push(PopupRow::Item(4 + i, native_language_name(code).to_string()));
                 }
                 // The 3D fine controls (ADR-0031) join the menu only
                 // while surfaces are displayed, mirroring the web's
                 // sliders; their rows show the live value.
                 if !app.surfaces().is_empty() {
+                    rows.push(PopupRow::Rule(localizer.lookup("tui-settings-view")));
                     let (h, vv, z) = app.view_offsets();
-                    v.push(format!(
-                        "{}  {h:+.1}",
-                        localizer.lookup("view-horizontal")
+                    rows.push(PopupRow::Item(
+                        12,
+                        format!("{}  {h:+.1}", localizer.lookup("view-horizontal")),
                     ));
-                    v.push(format!(
-                        "{}  {vv:+.1}",
-                        localizer.lookup("view-vertical")
+                    rows.push(PopupRow::Item(
+                        13,
+                        format!("{}  {vv:+.1}", localizer.lookup("view-vertical")),
                     ));
-                    v.push(format!("{}  {z:+.1}", localizer.lookup("view-zoom")));
+                    rows.push(PopupRow::Item(
+                        14,
+                        format!("{}  {z:+.1}", localizer.lookup("view-zoom")),
+                    ));
                 }
-                v
             }
-        };
-        let lines: Vec<Line> = items
-            .iter()
-            .enumerate()
-            .map(|(i, label)| {
-                let checked = menu == 3 && item_checked(app, i, localizer.locale());
-                let mark = match (checked, menu) {
-                    (true, _) => "\u{2713} ",
-                    (false, 3) => "  ",
-                    _ => "",
-                };
-                let text = format!("{mark}{label}");
-                if i == item {
-                    Line::from(Span::styled(text, Style::default().bg(sel_bg).fg(sel_fg)))
-                } else {
-                    Line::from(Span::styled(text, Style::default().fg(fg)))
-                }
-            })
-            .collect();
+        }
         let x = 11 * menu as u16 + 1;
         // +5: two for the border, two for the Settings check mark, one
         // spare — the fine-control rows' labels and values (ADR-0031)
         // must never clip at the right border.
-        let w = 26u16.max(items.iter().map(|s| s.chars().count() as u16 + 5).max().unwrap_or(10));
-        let h = items.len() as u16 + 2;
+        let w = 26u16.max(
+            rows.iter()
+                .map(|r| match r {
+                    PopupRow::Item(_, s) | PopupRow::Rule(s) => s.chars().count() as u16 + 5,
+                })
+                .max()
+                .unwrap_or(10),
+        );
+        let mut lines: Vec<Line> = Vec::new();
+        for row in rows {
+            match row {
+                PopupRow::Rule(label) => {
+                    // A section divider: "─ Label " plus a dim rule
+                    // filling the popup's width.
+                    let fill = w
+                        .saturating_sub(2)
+                        .saturating_sub(label.chars().count() as u16 + 3);
+                    lines.push(Line::from(vec![
+                        Span::styled(
+                            format!("─ {label} "),
+                            hints_style.add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled("─".repeat(fill as usize), hints_style),
+                    ]));
+                }
+                PopupRow::Item(i, label) => {
+                    let checked = menu == 3 && item_checked(app, i, localizer.locale());
+                    let mark = match (checked, menu) {
+                        (true, _) => "\u{2713} ",
+                        (false, 3) => "  ",
+                        _ => "",
+                    };
+                    let text = format!("{mark}{label}");
+                    if i == item {
+                        lines.push(Line::from(Span::styled(
+                            text,
+                            Style::default().bg(sel_bg).fg(sel_fg),
+                        )));
+                    } else {
+                        lines.push(Line::from(Span::styled(text, Style::default().fg(fg))));
+                    }
+                }
+            }
+        }
+        let h = lines.len() as u16 + 2;
         let popup = Rect {
             x: menu_area.x + x,
             y: menu_area.y + 1,
@@ -2004,16 +2066,12 @@ fn draw(frame: &mut ratatui::Frame, app: &App, localizer: &Localizer) {
     frame.set_cursor_position(Position::new(x, input_area.y + 1));
 }
 
-/// The ASCII plot size for the graph panel: on wide terminals the
-/// right-hand section's own dimensions (the renderer scales to them); on
-/// narrow ones the fixed bottom panel sizes from ADR-0016.
-fn graph_dims(graph_area: ratatui::layout::Rect, wide: bool, keypad: bool) -> (usize, usize) {
-    if wide {
-        let w = graph_area.width.saturating_sub(2) as usize;
-        let h = graph_area.height.saturating_sub(4) as usize;
-        return (w.max(20), h.max(3));
-    }
-    (60, if keypad { 10 } else { 12 })
+/// The ASCII plot size: the graph panel's own dimensions (the renderer
+/// scales to them) — wide, narrow, and keypad variants all share it.
+fn graph_dims(graph_area: ratatui::layout::Rect) -> (usize, usize) {
+    let w = graph_area.width.saturating_sub(2) as usize;
+    let h = graph_area.height.saturating_sub(4) as usize;
+    (w.max(20), h.max(3))
 }
 
 /// Which Settings radio is checked: the theme item index (0 light,

@@ -43,7 +43,11 @@ menu bar (File/Edit/Settings) above the panes, three themes (light,
 dark, night — token sets selected by a `data-theme` attribute, with the
 same recorded-contrast discipline as the base palette), and file
 open/save; the TUI mirrors all of it (F10 menu bar, side-by-side graph
-at ≥104 columns, OSC 52 clipboard).
+from 72 columns, OSC 52 clipboard). ADR-0033 fits the whole TUI to a
+standard 80×24 terminal: the keypad is always on screen (Tab focuses
+it), the bottom hint strip wraps to two rows so the full key guide is
+visible, and the Settings menu marks its Theme, Language, and 3D View
+sections with labeled rules.
 
 The landing page links to release assets via
 `https://github.com/upyesp/epher/releases/latest/download/<asset>` so download
