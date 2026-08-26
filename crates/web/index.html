@@ -538,10 +538,13 @@
       /* The 2D plot traces taps and vertical drags; horizontal swipes stay
          the browser's, so swiping back from the graph reaches the
          calculator pane (ADR-0016). The 3D plot below keeps full capture
-         — orbiting needs both axes. */
+         — orbiting needs both axes, and a horizontal swipe on a 3D graph
+         must rotate it, not slide the strip back (ADR-0035). The 3D rule
+         needs the extra specificity: `.plot-box svg` above (0,1,1)
+         outranks a bare `.graph3d-svg` (0,1,0). */
       touch-action: pan-x;
     }
-    .graph3d-svg {
+    .plot-box svg.graph3d-svg {
       touch-action: none;
     }
     .plot-box svg:focus-visible {

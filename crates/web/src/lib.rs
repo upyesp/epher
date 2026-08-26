@@ -368,13 +368,16 @@ fn mobile_layout() -> bool {
         .unwrap_or(false)
 }
 
-/// Whether a stored line width fits the current layout's slider range
-/// (ADR-0031): mobile spans 0–0.2 step 0.01, desktop 0.1–4 step 0.1.
-/// A stored value from the other layout is out of range and ignored, so
-/// each layout starts at its own default.
+/// Whether a stored line width fits the current layout's slider ranges
+/// (ADR-0031/0035): on mobile the range follows the graph kind — a 3D
+/// surface keeps 0–0.2 step 0.01, a 2D-only graph behaves like desktop
+/// at 0.1–4 step 0.1 — so mobile accepts anything either range holds
+/// (0–4) and the kind-flip effect settles it once a graph appears; the
+/// desktop range stays 0.1–4, so a stored value from the other layout
+/// is out of range and ignored, and desktop keeps its own default.
 fn width_in_range(w: f64) -> bool {
     if mobile_layout() {
-        (0.0..=0.2).contains(&w)
+        (0.0..=4.0).contains(&w)
     } else {
         (0.1..=4.0).contains(&w)
     }
@@ -729,6 +732,11 @@ fn epher_app() -> Html {
     let poi_list = use_state(|| true);
     let poi_markers = use_state(|| true);
     let line_width = use_state(|| if mobile_layout() { 0.1 } else { graph::DEFAULT_STROKE_WIDTH });
+    // Whether the user ever set the width themselves (ADR-0035): the
+    // mobile slider's range follows the graph kind, and the per-kind
+    // default (0.1 for 3D, the desktop default for 2D) applies only
+    // while untouched. A stored value counts as touched.
+    let width_touched = use_state(|| Rc::new(RefCell::new(false)));
     // Which side of the 880px breakpoint the window is on (ADR-0016): the
     // width slider's range is a mobile/desktop decision (0–0.2 step 0.01
     // vs 0.1–4 step 0.1), and it tracks window resizes.
@@ -741,6 +749,11 @@ fn epher_app() -> Html {
     // reading the same stale handle snapshot and overwriting the last
     // (the v0.4.13 "shivering" — the render-snapshot rule, ADR-0026).
     let view_cell = use_state(|| Rc::new(RefCell::new(epher_core::graph::View3D::default())));
+    // Whether a 3D surface is currently plotted — the live spelling of
+    // `!surface.is_empty()` for the width-slider's range decision, which
+    // must read the kind at emit time (ADR-0035), not a stale handle
+    // snapshot.
+    let surface3d_cell = use_state(|| Rc::new(RefCell::new(false)));
     // The 3D fine-control sliders (ADR-0031): horizontal rotation,
     // vertical rotation, and zoom offsets — each −1..1, step 0.1, with 0
     // the default. They ride on top of the orbit base view, applied via
@@ -832,6 +845,7 @@ fn epher_app() -> Html {
         let poi_list = poi_list.clone();
         let poi_markers = poi_markers.clone();
         let line_width = line_width.clone();
+        let width_touched = width_touched.clone();
         use_effect_with((), move |_| {
             if bridge == Bridge::Tauri {
                 spawn_local(async move {
@@ -874,6 +888,7 @@ fn epher_app() -> Html {
                                     if let Ok(w) = v.parse::<f64>() {
                                         if width_in_range(w) {
                                             line_width.set(w);
+                                            *width_touched.borrow_mut() = true;
                                         }
                                     }
                                 }
@@ -913,6 +928,7 @@ fn epher_app() -> Html {
                         if let Ok(w) = v.parse::<f64>() {
                             if width_in_range(w) {
                                 line_width.set(w);
+                                *width_touched.borrow_mut() = true;
                             }
                         }
                     }
@@ -1031,15 +1047,18 @@ fn epher_app() -> Html {
         })
     };
     // The line-width slider (ADR-0020): persisted like the POI toggles,
-    // The line-width slider (ADR-0020): persisted like the POI toggles,
     // clamped to the slider's range so a stale stored value cannot
-    // re-enter. The range itself is the layout's (ADR-0031): mobile
-    // 0–0.2 step 0.01 (thin lines on the small screen, floor included),
-    // desktop 0.1–4 step 0.1 (the ADR-0028 hairline floor stays).
+    // re-enter. The range is the layout's and, on mobile, the graph
+    // kind's (ADR-0035): a 3D surface keeps ADR-0031's thin 0–0.2 step
+    // 0.01 (floor included); a 2D-only graph behaves like desktop —
+    // 0.1–4 step 0.1 (the ADR-0028 hairline floor stays).
     let on_set_line_width = {
         let line_width = line_width.clone();
+        let surface3d_cell = surface3d_cell.clone();
         Callback::from(move |w: f64| {
-            let (lo, hi) = if mobile_layout() {
+            let (lo, hi) = if mobile_layout() && !*surface3d_cell.borrow() {
+                (0.1, 4.0)
+            } else if mobile_layout() {
                 (0.0, 0.2)
             } else {
                 (0.1, 4.0)
@@ -1053,6 +1072,40 @@ fn epher_app() -> Html {
             line_width.set(w);
         })
     };
+
+    // Mobile: the slider's range follows the graph kind (ADR-0035), so a
+    // kind flip re-clamps the width into the new range and snaps it to
+    // the new step — unless the user never set a width, in which case
+    // the flip applies the kind's own default (0.1 for 3D, the desktop
+    // default for 2D), applied without persisting so it is never
+    // mistaken for a user's choice.
+    {
+        let graph = graph.clone();
+        let surface = surface.clone();
+        let line_width = line_width.clone();
+        let width_touched = width_touched.clone();
+        let on_set_line_width = on_set_line_width.clone();
+        use_effect_with((!(*graph).is_empty(), !(*surface).is_empty()), move |(has_2d, has_3d)| {
+            if !mobile_layout() || (!has_2d && !has_3d) {
+                return;
+            }
+            let (lo, hi, step, default) = if *has_3d {
+                (0.0, 0.2, 0.01, 0.1)
+            } else {
+                (0.1, 4.0, 0.1, graph::DEFAULT_STROKE_WIDTH)
+            };
+            if !*width_touched.borrow() {
+                line_width.set(default);
+                return;
+            }
+            let w = *line_width;
+            let snapped = lo + ((w - lo) / step).round() * step;
+            let clamped = snapped.clamp(lo, hi);
+            if (clamped - w).abs() > f64::EPSILON {
+                on_set_line_width.emit(clamped);
+            }
+        });
+    }
 
     // Crossing the 880px breakpoint re-clamps the width to the new
     // slider range (ADR-0031): the slider element's value is always
@@ -1414,6 +1467,7 @@ fn epher_app() -> Html {
         let trace = trace.clone();
         let live = live.clone();
         let surface = surface.clone();
+        let surface3d_cell = surface3d_cell.clone();
         let scroll_pane = scroll_pane.clone();
         let input_ref = input_ref.clone();
         let view_h = view_h.clone();
@@ -1657,7 +1711,8 @@ fn epher_app() -> Html {
                 l.trace = None;
             }
             graph.set(curves);
-            surface.set(surfaces);
+            surface.set(surfaces.clone());
+            *surface3d_cell.borrow_mut() = !surfaces.is_empty();
             pois.set(labels);
             trace.set(None);
             session.set(s.clone());
@@ -1677,6 +1732,7 @@ fn epher_app() -> Html {
         let pois = pois.clone();
         let localizer = localizer.clone();
         let surface = surface.clone();
+        let surface3d_cell = surface3d_cell.clone();
         Callback::from(move |(name, value): (String, f64)| {
             let mut s = (*session).clone();
             s.set_constant(
@@ -1691,7 +1747,8 @@ fn epher_app() -> Html {
             let found = analyze(&curves, s.env());
             session.set(s);
             graph.set(curves);
-            surface.set(surfaces);
+            surface.set(surfaces.clone());
+            *surface3d_cell.borrow_mut() = !surfaces.is_empty();
             pois.set(poi_labels(&found, &localizer));
         })
     };
@@ -2311,6 +2368,7 @@ fn epher_app() -> Html {
         let graph = graph.clone();
         let pois = pois.clone();
         let surface = surface.clone();
+        let surface3d_cell = surface3d_cell.clone();
         let trace = trace.clone();
         let play = play.clone();
         let play_cell = play_cell.clone();
@@ -2326,6 +2384,7 @@ fn epher_app() -> Html {
             graph.set(Vec::new());
             pois.set(Vec::new());
             surface.set(Vec::new());
+            *surface3d_cell.borrow_mut() = false;
             trace.set(None);
             play.set(None);
             *play_cell.borrow_mut() = None;
@@ -3035,21 +3094,25 @@ fn epher_app() -> Html {
                                         <label class="graph-option graph-width">
                                             <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
                                             {
-                                                // ADR-0031: the slider's range is the layout's —
-                                                // mobile 0–0.2 step 0.01 (thin lines), desktop
-                                                // 0.1–4 step 0.1.
-                                                if *is_mobile {
+                                                // ADR-0035: the slider's range follows the
+                                                // graph kind on mobile — a 3D surface keeps
+                                                // ADR-0031's thin 0–0.2 step 0.01, a
+                                                // 2D-only graph behaves like desktop
+                                                // (0.1–4 step 0.1). Desktop stays 0.1–4/0.1.
+                                                if *is_mobile && !(*surface).is_empty() {
                                                     html! {
                                                         <input type="range" class="graph-width-slider"
                                                             min="0" max="0.2" step="0.01" value={line_width.to_string()}
                                                             oninput={Callback::from({
                                                                 let on_set_line_width = on_set_line_width.clone();
+                                                                let width_touched = width_touched.clone();
                                                                 move |e: web_sys::InputEvent| {
                                                                     if let Some(el) = e
                                                                         .target()
                                                                         .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
                                                                     {
                                                                         if let Ok(w) = el.value().parse::<f64>() {
+                                                                            *width_touched.borrow_mut() = true;
                                                                             on_set_line_width.emit(w);
                                                                         }
                                                                     }
@@ -3063,12 +3126,14 @@ fn epher_app() -> Html {
                                                             min="0.1" max="4" step="0.1" value={line_width.to_string()}
                                                             oninput={Callback::from({
                                                                 let on_set_line_width = on_set_line_width.clone();
+                                                                let width_touched = width_touched.clone();
                                                                 move |e: web_sys::InputEvent| {
                                                                     if let Some(el) = e
                                                                         .target()
                                                                         .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
                                                                     {
                                                                         if let Ok(w) = el.value().parse::<f64>() {
+                                                                            *width_touched.borrow_mut() = true;
                                                                             on_set_line_width.emit(w);
                                                                         }
                                                                     }

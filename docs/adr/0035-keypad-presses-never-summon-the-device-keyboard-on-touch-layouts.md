@@ -8,10 +8,12 @@ Status: Accepted
 
 This ADR is the mobile PWA's usability contract: on a touch viewport
 (under 880px, the same breakpoint ADR-0029/0030/0031 use) the onscreen
-keypad is the primary way to enter expressions, and the result of every
-command must land where the user can see it without extra gestures. The
-keypad's focus discipline below came first; this amendment folds in the
-graph pane's auto-slide — first codified in ADR-0029 — so the contract
+keypad is the primary way to enter expressions, the result of every
+command must land where the user can see it without extra gestures, and
+a touch on the graph must act on the graph, not the navigation around
+it. The keypad's focus discipline below came first; later amendments
+folded in the graph pane's auto-slide — first codified in ADR-0029 —
+the 3D swipe rotation, and the kind-aware width slider, so the contract
 reads as one piece.
 
 On the mobile PWA every on-screen keypad press ended by refocusing the
@@ -92,6 +94,31 @@ plot draws.
   slide pairs with ADR-0030's blur: dropping the entry's focus closes
   the device keyboard so the fresh plot is not sitting under it, and
   the plot is ready for touch rotation.
+- **A swipe on a 3D graph rotates it — horizontally included.** With
+  the graph pane in view, a swipe gesture on a 3D surface must orbit
+  the surface, whichever axis the finger moves along: the vertical
+  swipe already rotated (the strip only scrolls horizontally, so the
+  browser never claimed it), but a horizontal swipe was captured by the
+  strip's own pan and slid the pane back to the calculator — the graph
+  the user was manipulating vanished mid-gesture. The 3D SVG therefore
+  declares `touch-action: none`, and the rule's selector needs the
+  extra specificity (`.plot-box svg.graph3d-svg`) because the 2D rule
+  `.plot-box svg` (0,1,1) outranks a bare class (0,1,0) — the original
+  selector silently lost and the swipe kept panning. The 2D plot keeps
+  `pan-x`: a 2D graph does not orbit, so a horizontal swipe there
+  remains the swipe-back-to-the-calculator gesture, and the pane-switch
+  buttons are the always-available spelling of that same move.
+- **The width slider follows the graph kind on mobile.** On the small
+  screen the thickness slider's range was the layout's alone (ADR-0031):
+  0–0.2 step 0.01 for every graph, which is right for a 3D wireframe
+  but starves a 2D curve of the desktop's 0.1–4 step 0.1 range. A 3D
+  surface therefore keeps the thin range with its 0.1 default, while a
+  2D-only graph gets exactly the desktop slider — range, step, and the
+  desktop default (1.0). One shared slider serves both: a kind flip
+  re-clamps the current width into the new range and snaps it to the
+  new step, and the per-kind default applies only while the user has
+  never touched the slider (a stored width counts as touched, so the
+  user's own value is always honored, clamped — never overridden).
 
 ## Decision
 
@@ -123,6 +150,19 @@ keyboard closes over nothing the user needs. The slide is the pane
 switch's own discrete jump; nothing else — errors, clears, plain
 evaluations, or any desktop submit — moves the view.
 
+With the graph pane in view, a swipe on a 3D surface orbits it on both
+axes (`touch-action: none` on the 3D SVG, with the selector specificity
+needed to beat the 2D `pan-x` rule); the 2D plot keeps `pan-x`, so
+swiping back to the calculator works exactly there and the pane-switch
+buttons cover the same move everywhere.
+
+On mobile the width slider's range is the graph kind's: a 3D surface
+keeps ADR-0031's 0–0.2 step 0.01 with the 0.1 default, a 2D-only graph
+gets the desktop range (0.1–4 step 0.1) and the desktop default. The
+one slider serves both: a kind flip re-clamps the width into the new
+range and snaps it to its step; the per-kind default applies only while
+the user has never set a width.
+
 ## Consequences
 
 - On mobile, the keypad is a closed system: presses compose, submit,
@@ -152,6 +192,15 @@ evaluations, or any desktop submit — moves the view.
   clear` and failed graphs do not slide, and desktop submits never
   scroll. Focus stays with the entry's rules above — on mobile the
   slide drops it, so the keyboard closes over the fresh plot.
+- The `mobile-graph` suite pins the new rules with CDP-dispatched
+  touch swipes and slider reads: a horizontal swipe across the 3D plot
+  rotates the mesh without moving the strip, a vertical one rotates
+  too, a horizontal swipe on a 2D plot still slides the strip back to
+  the calculator, and the width slider carries the 3D range (0–0.2/
+  0.01, default 0.1) or the desktop range (0.1–4/0.1, default 1.0)
+  with the graph kind — flips re-clamp, a user-set 2.5 snaps to 0.2 on
+  a 3D flip and to the 0.1 step on the way back; desktop attributes
+  stay byte-identical.
 - `docs/accessibility.md` records the behavior; no guide change — the
   guide never described the web keypad's focus handling, only its
   contents.
