@@ -368,18 +368,31 @@ fn mobile_layout() -> bool {
         .unwrap_or(false)
 }
 
-/// Whether a stored line width fits the current layout's slider ranges
-/// (ADR-0031/0035): on mobile the range follows the graph kind — a 3D
-/// surface keeps 0–0.2 step 0.01, a 2D-only graph behaves like desktop
-/// at 0.1–4 step 0.1 — so mobile accepts anything either range holds
-/// (0–4) and the kind-flip effect settles it once a graph appears; the
-/// desktop range stays 0.1–4, so a stored value from the other layout
-/// is out of range and ignored, and desktop keeps its own default.
-fn width_in_range(w: f64) -> bool {
+/// The stored widths for this layout (ADR-0035): desktop shares one
+/// width between both kinds; mobile remembers 2D and 3D independently —
+/// each kind reads its own key, falls back to the legacy shared key,
+/// and then to the kind's default (the 3D key clamps into 0–0.2, the
+/// 2D and desktop keys into 0.1–4).
+fn stored_widths(store: &web_sys::Storage) -> (Option<f64>, Option<f64>) {
+    let read = |key: &str| {
+        store
+            .get_item(key)
+            .ok()
+            .flatten()
+            .and_then(|v| v.parse::<f64>().ok())
+    };
     if mobile_layout() {
-        (0.0..=4.0).contains(&w)
+        let legacy = read("epher-line-width");
+        let w2d = read("epher-line-width-2d")
+            .or(legacy)
+            .map(|w| w.clamp(0.1, 4.0));
+        let w3d = read("epher-line-width-3d")
+            .or(legacy)
+            .map(|w| w.clamp(0.0, 0.2));
+        (w2d, w3d)
     } else {
-        (0.1..=4.0).contains(&w)
+        let w = read("epher-line-width").map(|w| w.clamp(0.1, 4.0));
+        (w, w)
     }
 }
 
@@ -727,16 +740,14 @@ fn epher_app() -> Html {
     // Graph options (ADR-0019, on the pane itself since ADR-0020): whether
     // the pane lists the points of interest and marks them on the plot,
     // and the curve line width. Display-only — the analysis always runs,
-    // so switching back is instant. Mobile starts at 0.1: thin lines for
-    // the small screen (ADR-0031), the desktop default stays 1.0.
+    // so switching back is instant. Mobile remembers each graph kind's
+    // width independently (ADR-0035): 3D starts at 0.1, thin lines for
+    // the small screen (ADR-0031); 2D starts at the desktop default.
+    // Desktop keeps one shared width for both kinds (ADR-0020).
     let poi_list = use_state(|| true);
     let poi_markers = use_state(|| true);
-    let line_width = use_state(|| if mobile_layout() { 0.1 } else { graph::DEFAULT_STROKE_WIDTH });
-    // Whether the user ever set the width themselves (ADR-0035): the
-    // mobile slider's range follows the graph kind, and the per-kind
-    // default (0.1 for 3D, the desktop default for 2D) applies only
-    // while untouched. A stored value counts as touched.
-    let width_touched = use_state(|| Rc::new(RefCell::new(false)));
+    let width_2d = use_state(|| graph::DEFAULT_STROKE_WIDTH);
+    let width_3d = use_state(|| if mobile_layout() { 0.1 } else { graph::DEFAULT_STROKE_WIDTH });
     // Which side of the 880px breakpoint the window is on (ADR-0016): the
     // width slider's range is a mobile/desktop decision (0–0.2 step 0.01
     // vs 0.1–4 step 0.1), and it tracks window resizes.
@@ -844,8 +855,8 @@ fn epher_app() -> Html {
         let theme = theme.clone();
         let poi_list = poi_list.clone();
         let poi_markers = poi_markers.clone();
-        let line_width = line_width.clone();
-        let width_touched = width_touched.clone();
+        let width_2d = width_2d.clone();
+        let width_3d = width_3d.clone();
         use_effect_with((), move |_| {
             if bridge == Bridge::Tauri {
                 spawn_local(async move {
@@ -884,13 +895,12 @@ fn epher_app() -> Html {
                                         poi_markers.set(false);
                                     }
                                 }
-                                if let Ok(Some(v)) = store.get_item("epher-line-width") {
-                                    if let Ok(w) = v.parse::<f64>() {
-                                        if width_in_range(w) {
-                                            line_width.set(w);
-                                            *width_touched.borrow_mut() = true;
-                                        }
-                                    }
+                                let (w2d, w3d) = stored_widths(&store);
+                                if let Some(w) = w2d {
+                                    width_2d.set(w);
+                                }
+                                if let Some(w) = w3d {
+                                    width_3d.set(w);
                                 }
                             }
                         }
@@ -924,13 +934,12 @@ fn epher_app() -> Html {
                             poi_markers.set(false);
                         }
                     }
-                    if let Ok(Some(v)) = store.get_item("epher-line-width") {
-                        if let Ok(w) = v.parse::<f64>() {
-                            if width_in_range(w) {
-                                line_width.set(w);
-                                *width_touched.borrow_mut() = true;
-                            }
-                        }
+                    let (w2d, w3d) = stored_widths(&store);
+                    if let Some(w) = w2d {
+                        width_2d.set(w);
+                    }
+                    if let Some(w) = w3d {
+                        width_3d.set(w);
                     }
                 }
             }
@@ -1048,64 +1057,41 @@ fn epher_app() -> Html {
     };
     // The line-width slider (ADR-0020): persisted like the POI toggles,
     // clamped to the slider's range so a stale stored value cannot
-    // re-enter. The range is the layout's and, on mobile, the graph
-    // kind's (ADR-0035): a 3D surface keeps ADR-0031's thin 0–0.2 step
-    // 0.01 (floor included); a 2D-only graph behaves like desktop —
-    // 0.1–4 step 0.1 (the ADR-0028 hairline floor stays).
+    // re-enter. Mobile remembers each graph kind's width independently
+    // (ADR-0035) — the slider edits the kind in view, and each kind's
+    // value renders its own graph; desktop keeps one shared width. The
+    // ranges: mobile 3D 0–0.2 step 0.01 (ADR-0031's thin floor), 2D and
+    // desktop 0.1–4 step 0.1 (the ADR-0028 hairline floor stays).
     let on_set_line_width = {
-        let line_width = line_width.clone();
+        let width_2d = width_2d.clone();
+        let width_3d = width_3d.clone();
         let surface3d_cell = surface3d_cell.clone();
         Callback::from(move |w: f64| {
-            let (lo, hi) = if mobile_layout() && !*surface3d_cell.borrow() {
-                (0.1, 4.0)
-            } else if mobile_layout() {
-                (0.0, 0.2)
-            } else {
-                (0.1, 4.0)
+            let persist = |key: &str, v: f64| {
+                if let Some(store) = web_sys::window()
+                    .and_then(|w| w.local_storage().ok().flatten())
+                {
+                    let _ = store.set_item(key, &format!("{v}"));
+                }
             };
-            let w = w.clamp(lo, hi);
-            if let Some(store) = web_sys::window()
-                .and_then(|w| w.local_storage().ok().flatten())
-            {
-                let _ = store.set_item("epher-line-width", &format!("{w}"));
+            if mobile_layout() {
+                if *surface3d_cell.borrow() {
+                    let w = w.clamp(0.0, 0.2);
+                    persist("epher-line-width-3d", w);
+                    width_3d.set(w);
+                } else {
+                    let w = w.clamp(0.1, 4.0);
+                    persist("epher-line-width-2d", w);
+                    width_2d.set(w);
+                }
+            } else {
+                let w = w.clamp(0.1, 4.0);
+                persist("epher-line-width", w);
+                width_2d.set(w);
+                width_3d.set(w);
             }
-            line_width.set(w);
         })
     };
-
-    // Mobile: the slider's range follows the graph kind (ADR-0035), so a
-    // kind flip re-clamps the width into the new range and snaps it to
-    // the new step — unless the user never set a width, in which case
-    // the flip applies the kind's own default (0.1 for 3D, the desktop
-    // default for 2D), applied without persisting so it is never
-    // mistaken for a user's choice.
-    {
-        let graph = graph.clone();
-        let surface = surface.clone();
-        let line_width = line_width.clone();
-        let width_touched = width_touched.clone();
-        let on_set_line_width = on_set_line_width.clone();
-        use_effect_with((!(*graph).is_empty(), !(*surface).is_empty()), move |(has_2d, has_3d)| {
-            if !mobile_layout() || (!has_2d && !has_3d) {
-                return;
-            }
-            let (lo, hi, step, default) = if *has_3d {
-                (0.0, 0.2, 0.01, 0.1)
-            } else {
-                (0.1, 4.0, 0.1, graph::DEFAULT_STROKE_WIDTH)
-            };
-            if !*width_touched.borrow() {
-                line_width.set(default);
-                return;
-            }
-            let w = *line_width;
-            let snapped = lo + ((w - lo) / step).round() * step;
-            let clamped = snapped.clamp(lo, hi);
-            if (clamped - w).abs() > f64::EPSILON {
-                on_set_line_width.emit(clamped);
-            }
-        });
-    }
 
     // Crossing the 880px breakpoint re-clamps the width to the new
     // slider range (ADR-0031): the slider element's value is always
@@ -1486,6 +1472,11 @@ fn epher_app() -> Html {
             let mut s = (*session).clone();
             let mut curves = (*graph).clone();
             let mut surfaces = (*surface).clone();
+            // Mobile: a submit that empties the graph pane slides the
+            // view back to the calculator (ADR-0035) — the mirror of the
+            // draw slide. Tracked before the loop so only a pane that
+            // HAD content moves.
+            let had_graph = !curves.is_empty() || !surfaces.is_empty();
             // Statements join with newlines or `;` — the same separator
             // (ADR-0001). Each piece dispatches in order, exactly as if
             // typed one by one — but the history keeps the script the way
@@ -1710,6 +1701,10 @@ fn epher_app() -> Html {
                 l.curves = curves.clone();
                 l.trace = None;
             }
+            // Mobile (ADR-0035): once the graph pane has been cleared,
+            // slide back to the calculator — there is nothing left to
+            // look at over there. Computed before the moves below.
+            let cleared = mobile_layout() && had_graph && curves.is_empty() && surfaces.is_empty();
             graph.set(curves);
             surface.set(surfaces.clone());
             *surface3d_cell.borrow_mut() = !surfaces.is_empty();
@@ -1717,6 +1712,9 @@ fn epher_app() -> Html {
             trace.set(None);
             session.set(s.clone());
             input.set(String::new());
+            if cleared {
+                scroll_pane.emit("calc-pane");
+            }
             // Desktop apps are killed, not exited: persist per line (ADR-0010).
             if bridge == Bridge::Tauri {
                 bridge.save_history(s.history());
@@ -2039,7 +2037,8 @@ fn epher_app() -> Html {
         let pois = pois.clone();
         let trace = trace.clone();
         let poi_markers = poi_markers.clone();
-        let line_width = line_width.clone();
+        let width_2d = width_2d.clone();
+        let width_3d = width_3d.clone();
         let surface = surface.clone();
         let view = view.clone();
         let view_h = view_h.clone();
@@ -2050,11 +2049,11 @@ fn epher_app() -> Html {
         let localizer = localizer.clone();
         Callback::from(move |_| {
             let svg = if !(*curves).is_empty() {
-                graph::graph_svg(&curves, &pois, *trace, *poi_markers, *line_width)
+                graph::graph_svg(&curves, &pois, *trace, *poi_markers, *width_2d)
             } else if let Some(doc) = graph::graph3d_svg(
                 &surface,
                 &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
-                *line_width,
+                *width_3d,
             ) {
                 doc
             } else {
@@ -2369,6 +2368,7 @@ fn epher_app() -> Html {
         let pois = pois.clone();
         let surface = surface.clone();
         let surface3d_cell = surface3d_cell.clone();
+        let scroll_pane = scroll_pane.clone();
         let trace = trace.clone();
         let play = play.clone();
         let play_cell = play_cell.clone();
@@ -2386,6 +2386,11 @@ fn epher_app() -> Html {
             surface.set(Vec::new());
             *surface3d_cell.borrow_mut() = false;
             trace.set(None);
+            // Mobile (ADR-0035): the pane is empty now — slide the view
+            // back to the calculator.
+            if mobile_layout() {
+                scroll_pane.emit("calc-pane");
+            }
             play.set(None);
             *play_cell.borrow_mut() = None;
             *live.borrow_mut() = GraphLive::default();
@@ -3099,20 +3104,22 @@ fn epher_app() -> Html {
                                                 // ADR-0031's thin 0–0.2 step 0.01, a
                                                 // 2D-only graph behaves like desktop
                                                 // (0.1–4 step 0.1). Desktop stays 0.1–4/0.1.
+                                                // Mobile remembers each kind's width
+                                                // independently: the slider shows and edits
+                                                // the kind in view; both kinds keep their
+                                                // own value across flips.
                                                 if *is_mobile && !(*surface).is_empty() {
                                                     html! {
                                                         <input type="range" class="graph-width-slider"
-                                                            min="0" max="0.2" step="0.01" value={line_width.to_string()}
+                                                            min="0" max="0.2" step="0.01" value={width_3d.to_string()}
                                                             oninput={Callback::from({
                                                                 let on_set_line_width = on_set_line_width.clone();
-                                                                let width_touched = width_touched.clone();
                                                                 move |e: web_sys::InputEvent| {
                                                                     if let Some(el) = e
                                                                         .target()
                                                                         .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
                                                                     {
                                                                         if let Ok(w) = el.value().parse::<f64>() {
-                                                                            *width_touched.borrow_mut() = true;
                                                                             on_set_line_width.emit(w);
                                                                         }
                                                                     }
@@ -3123,17 +3130,15 @@ fn epher_app() -> Html {
                                                 } else {
                                                     html! {
                                                         <input type="range" class="graph-width-slider"
-                                                            min="0.1" max="4" step="0.1" value={line_width.to_string()}
+                                                            min="0.1" max="4" step="0.1" value={width_2d.to_string()}
                                                             oninput={Callback::from({
                                                                 let on_set_line_width = on_set_line_width.clone();
-                                                                let width_touched = width_touched.clone();
                                                                 move |e: web_sys::InputEvent| {
                                                                     if let Some(el) = e
                                                                         .target()
                                                                         .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
                                                                     {
                                                                         if let Ok(w) = el.value().parse::<f64>() {
-                                                                            *width_touched.borrow_mut() = true;
                                                                             on_set_line_width.emit(w);
                                                                         }
                                                                     }
@@ -3143,7 +3148,13 @@ fn epher_app() -> Html {
                                                     }
                                                 }
                                             }
-                                            <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *line_width) }</span>
+                                            {
+                                                if *is_mobile && !(*surface).is_empty() {
+                                                    html! { <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *width_3d) }</span> }
+                                                } else {
+                                                    html! { <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *width_2d) }</span> }
+                                                }
+                                            }
                                         </label>
                                     </div>
                                     // The 3D fine controls (ADR-0031): three sliders above
@@ -3204,7 +3215,7 @@ fn epher_app() -> Html {
                                             pois={(*pois).clone()}
                                             trace={*trace}
                                             markers={*poi_markers}
-                                            line_width={*line_width}
+                                            line_width={*width_2d}
                                             on_trace={on_trace}
                                             on_key={on_trace_key}
                                             on_leave={on_trace_leave}
@@ -3244,7 +3255,7 @@ fn epher_app() -> Html {
                             // effective pose.
                             let effective =
                                 effective_view(&view, *view_h, *view_v, *view_z, *spin_phase);
-                            let rendered = graph::surface_svg(&surface, &effective, *line_width);
+                            let rendered = graph::surface_svg(&surface, &effective, *width_3d);
                             let aria = format!(
                                 "{}: {}",
                                 "3D",

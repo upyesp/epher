@@ -13,8 +13,9 @@ command must land where the user can see it without extra gestures, and
 a touch on the graph must act on the graph, not the navigation around
 it. The keypad's focus discipline below came first; later amendments
 folded in the graph pane's auto-slide — first codified in ADR-0029 —
-the 3D swipe rotation, and the kind-aware width slider, so the contract
-reads as one piece.
+the 3D swipe rotation, the kind-aware width slider, the slide back
+after a clear, and the per-kind width memory, so the contract reads as
+one piece.
 
 On the mobile PWA every on-screen keypad press ended by refocusing the
 expression entry — ADR-0016's rule, "focus returns to the input so typing
@@ -108,17 +109,32 @@ plot draws.
   `pan-x`: a 2D graph does not orbit, so a horizontal swipe there
   remains the swipe-back-to-the-calculator gesture, and the pane-switch
   buttons are the always-available spelling of that same move.
-- **The width slider follows the graph kind on mobile.** On the small
-  screen the thickness slider's range was the layout's alone (ADR-0031):
-  0–0.2 step 0.01 for every graph, which is right for a 3D wireframe
-  but starves a 2D curve of the desktop's 0.1–4 step 0.1 range. A 3D
-  surface therefore keeps the thin range with its 0.1 default, while a
-  2D-only graph gets exactly the desktop slider — range, step, and the
-  desktop default (1.0). One shared slider serves both: a kind flip
-  re-clamps the current width into the new range and snaps it to the
-  new step, and the per-kind default applies only while the user has
-  never touched the slider (a stored width counts as touched, so the
-  user's own value is always honored, clamped — never overridden).
+- **The width slider follows the graph kind on mobile — and remembers
+  each kind's value independently.** On the small screen the thickness
+  slider's range was the layout's alone (ADR-0031): 0–0.2 step 0.01
+  for every graph, which is right for a 3D wireframe but starves a 2D
+  curve of the desktop's 0.1–4 step 0.1 range. A 3D surface therefore
+  keeps the thin range with its 0.1 default, while a 2D-only graph
+  gets exactly the desktop slider — range, step, and the desktop
+  default (1.0). A single shared width was wrong: one remembered value
+  applied to every new graph, so a width picked for a 2D curve re-
+  shaped (or got re-clamped onto) every later 3D surface and vice
+  versa. The widths are therefore stored per kind (`epher-line-width-2d`
+  / `epher-line-width-3d`, falling back to the legacy shared key and
+  then the kind's default), each kind renders with its own value — a
+  2D curve at 2.5 stays 2.5 while a 3D surface sits at 0.15 — and the
+  slider shows and edits the kind in view (3D while any surface is
+  plotted). Desktop keeps its one shared width, unchanged.
+- **A cleared graph pane is nothing to look at — slide back.** The
+  mirror of the draw slide (ADR-0029): on mobile, once the graph pane
+  has been emptied the view slides back to the calculator. The Clear
+  Graph button always empties the pane, so it always slides back; the
+  `graph clear` and `graph3d clear` commands slide back exactly when
+  they leave the pane empty — a `graph3d clear` with a 2D curve still
+  plotted keeps the pane in view, because there is still a graph to
+  look at. The submit path knows both facts at the right moment: it
+  remembers whether the pane had content before the loop and whether
+  anything remains after it.
 
 ## Decision
 
@@ -158,10 +174,16 @@ buttons cover the same move everywhere.
 
 On mobile the width slider's range is the graph kind's: a 3D surface
 keeps ADR-0031's 0–0.2 step 0.01 with the 0.1 default, a 2D-only graph
-gets the desktop range (0.1–4 step 0.1) and the desktop default. The
-one slider serves both: a kind flip re-clamps the width into the new
-range and snaps it to its step; the per-kind default applies only while
-the user has never set a width.
+gets the desktop range (0.1–4 step 0.1) and the desktop default. Each
+kind remembers its own width — stored under its own key and restored
+when its kind is in view — and each kind's plot renders with its own
+value; the slider shows and edits the kind in view. Desktop keeps one
+shared width, unchanged.
+
+On mobile, a clear that empties the graph pane slides the view back to
+the calculator: the Clear Graph button always (it empties the pane by
+definition), and the `graph clear` / `graph3d clear` commands exactly
+when nothing remains plotted.
 
 ## Consequences
 
@@ -196,11 +218,16 @@ the user has never set a width.
   touch swipes and slider reads: a horizontal swipe across the 3D plot
   rotates the mesh without moving the strip, a vertical one rotates
   too, a horizontal swipe on a 2D plot still slides the strip back to
-  the calculator, and the width slider carries the 3D range (0–0.2/
-  0.01, default 0.1) or the desktop range (0.1–4/0.1, default 1.0)
-  with the graph kind — flips re-clamp, a user-set 2.5 snaps to 0.2 on
-  a 3D flip and to the 0.1 step on the way back; desktop attributes
-  stay byte-identical.
+  the calculator; the Clear Graph button and the clear commands slide
+  the view back exactly when the pane ends up empty (a `graph3d clear`
+  with a 2D curve left does not); the width slider carries the 3D
+  range (0–0.2/0.01, default 0.1) or the desktop range (0.1–4/0.1,
+  default 1.0) with the graph kind, each kind renders its own
+  remembered width (2.5 and 0.15 side by side), flips restore each
+  kind's value, both survive a reload, and desktop attributes stay
+  byte-identical. The suite types commands with focus({preventScroll})
+  because the browser's own caret reveal would otherwise scroll the
+  strip during the test.
 - `docs/accessibility.md` records the behavior; no guide change — the
   guide never described the web keypad's focus handling, only its
   contents.
