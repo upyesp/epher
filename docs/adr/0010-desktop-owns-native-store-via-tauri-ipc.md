@@ -1,6 +1,6 @@
 # 0010 — The Desktop App Owns the Native Store; the Webview Bridges to It
 
-Date: 2025-06-27 · Status: accepted · Supersedes: nothing (narrows ADR-0003's
+Date: 2026-08-14 · Status: accepted · Supersedes: nothing (narrows ADR-0003's
 "desktop" column; the FSA bridge remains the plan for the browser PWA)
 
 ## Context

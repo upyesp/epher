@@ -103,5 +103,8 @@ uses the area it is given.
 - A latent Fluent bug surfaced during translation: `{name}` is a
   message reference, not a variable — `theme-set` uses `{ $name }` in
   all eight catalogs.
-- The guide does not yet document `theme` or the menus; a follow-up can
-  add a "menus and themes" section to all eight guide languages.
+- The guide's menus-and-themes section arrived with ADR-0018 (in-app
+  guide), ADR-0024 (keypad banks), and ADR-0033 (TUI table).
+- The inline APG menubar described here was replaced at the desktop
+  breakpoint by a vertical icon rail in ADR-0032; the hamburger panel
+  below 880px is unchanged.

@@ -1,5 +1,8 @@
 # Build a custom DSL instead of embedding a language engine
 
+- Status: accepted
+- Date: 2026-08-13
+
 epher's scripting language is a custom domain-specific language with its own
 lexer, parser, and evaluator — not an embedded engine (Rhai, Lua, or JS).
 

@@ -1,5 +1,8 @@
 # Accessibility: WCAG 2.2 AA for the web/PWA, keyboard-first terminals elsewhere
 
+- Status: accepted
+- Date: 2026-08-13
+
 Accessibility is an architecture constraint, not a styling afterthought. The
 web/PWA — and therefore the Tauri shell, which wraps the same page — targets
 **WCAG 2.2 Level AA**, verified per criterion in `docs/accessibility.md`. The

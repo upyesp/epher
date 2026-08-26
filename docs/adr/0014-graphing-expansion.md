@@ -6,9 +6,11 @@ Accepted (2026-08-17).
 
 ## Context
 
-v1 graphing (ADR-0006) was minimal: one curve (`y = f(x)`), a fixed domain,
-static rendering — SVG in the web/desktop app, ASCII in the TUI, nothing in
-the CLI. The competitive landscape (surveyed from primary sources in
+The pre-0014 implementation of graphing (ADR-0006) was minimal: one
+curve (`y = f(x)`), a fixed domain, static rendering — SVG in the
+web/desktop app, ASCII in the TUI, nothing in the CLI. (ADR-0006's own
+"v1 graphs parametric and polar" was the v1 plan; this ADR ships both
+forms pre-v1.) The competitive landscape (surveyed from primary sources in
 `docs/research/graphing-features.md`: Desmos, GeoGebra, NumWorks, TI, and
 Wolfram) converges on a common feature set — expression lists, trace with
 coordinates, roots/intersections/extrema analysis, tables of values,
@@ -94,7 +96,8 @@ string renderer the unit tests exercise. No raster export, no share URLs.
 
 ## Deferred (deliberately)
 
-- **3D** — already deferred in ADR-0006.
+- **3D** — deferred in ADR-0006, and shipped by ADR-0015 (its
+  projection design made it reachable for both renderers).
 - **Implicit relations** (`x^2 + y^2 = 25`) — needs marching-squares-style
   region sampling; the `y < f(x)` fill covers the common teaching cases.
 - **Parametric/polar analysis** — roots, extrema, and intersections for

@@ -1,8 +1,11 @@
 # ADR-0029: Auto-slide to the graph pane after drawing on mobile (v0.4.17)
 
-- **Status:** accepted
+- **Status:** superseded by ADR-0035 — the mobile PWA usability
+  contract absorbed the auto-slide into one record with the rest of the
+  mobile graph-pane behavior (keypad focus discipline, the slide back
+  after a clear, 3D swipe rotation, per-kind widths).
 - **Deciders:** epher maintainers
-- **Date:** 2026-08
+- **Date:** 2026-08-24
 
 ## Context
 
@@ -43,4 +46,7 @@ closure, so it moves above it (it depends on nothing stateful).
   submits slide (scrollLeft reaches the graph pane and the Graph
   switch reflects it), `graph clear` and failed graphs do not slide,
   and desktop submits never scroll.
-- Focus stays in the entry field; the slide is view-only convenience.
+- This ADR originally ended "focus stays in the entry field; the
+  slide is view-only convenience." ADR-0030 reversed that: the slide
+  blurs the entry on mobile so the keyboard closes over the fresh
+  plot — ADR-0035 carries the current rule.

@@ -80,6 +80,21 @@ when closed the layout is unchanged. Keys are the same set, condensed to
 **Window sizing.** The Tauri window grows to 1024×720 (min 900×640) so the
 side-by-side graph is the default on desktop.
 
+## Amendment notes
+
+Recorded after the fact, per the ADR process (numbers immutable, earlier
+records annotated, never rewritten):
+
+- **The keypad evolved.** The bank list above is the original five
+  (123, trig, ƒ, nΣ, π∇); ADR-0022 added `bin`/`oct`/`hex` keys and
+  ADR-0024 moved them, with `frac`/`dec`/`big`/`!`, into a dedicated
+  `0x` bank. The TUI keypad grew the same banks (ADR-0019, ADR-0024)
+  and became an always-visible panel (ADR-0033).
+- **The focus rule is desktop-only.** "After a press, focus returns to
+  the input" still holds on desktop; on mobile the press must never
+  summon the device keyboard — ADR-0035 (the mobile PWA usability
+  contract) carries the touch rule.
+
 ## Consequences
 
 - The app no longer scrolls vertically on any surface; content that can

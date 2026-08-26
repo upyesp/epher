@@ -78,7 +78,9 @@ Eight asks in one release:
 
 - The Windows overlay passes `--default-background-color=141416` to
   WebView2; `backgroundColor` stays out of the Windows config forever
-  (v0.4.3).
+  (v0.4.3). *(Superseded by ADR-0032: WebView2 parses the argument as
+  AARRGGBB, so `141416` was silently invalid and the flash remained —
+  the current fix is hidden-until-loaded plus the valid `FF141416`.)*
 - The width slider's range is mobile 0–0.2 step 0.01 (default 0.1) and
   desktop 0.1–4 step 0.1; stored values and breakpoint crossings clamp
   through the same setter.

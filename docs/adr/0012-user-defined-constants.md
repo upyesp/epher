@@ -1,5 +1,8 @@
 # User-defined constants: `const name = value`, visible like `pi`
 
+- Status: accepted
+- Date: 2026-08-16
+
 Users can define their own constants with `const name = value`. The value is
 evaluated once, at the definition, and the name is immutable afterwards.
 

@@ -1,5 +1,8 @@
 # UI localization: Fluent catalogs embedded at build time, device-detected, user-overridable
 
+- Status: accepted
+- Date: 2026-08-13
+
 UI translations are build-time resources, not user data. Message catalogs live in
 the repo as Fluent (`.ftl`) files and are compiled into each frontend artifact
 (native binary for the CLI/TUI, WASM bundle for the web/PWA/desktop app) at build

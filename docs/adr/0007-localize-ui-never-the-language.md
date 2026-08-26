@@ -1,5 +1,8 @@
 # Localize the UI; never localize the scripting language
 
+- Status: accepted
+- Date: 2026-08-13
+
 The user interface (labels, menus, errors, number/date display) is localized per
 locale. The scripting language's keywords and grammar are fixed to English and
 never localized.

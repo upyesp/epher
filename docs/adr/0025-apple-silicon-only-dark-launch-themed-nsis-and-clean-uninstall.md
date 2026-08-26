@@ -109,6 +109,17 @@ Seven reports arrived together:
   guessing is fragile, and the split matches the save pair
   symmetrically.
 
+## Amendment note
+
+The dark NSIS theme this ADR decided on did not survive contact with
+the Windows installer (ADR-0026: the `SetCtlColors` walk subclasses
+controls and locked the directory page), and the partial remedies in
+ADR-0026/0027 could not darken MUI2's own pages or native controls. The
+whole wizard went light in ADR-0028 — the current installer theme is a
+uniform classic-light wizard with the epher logo. Everything else in
+this ADR (Apple Silicon only, dark launch, 3D toolbar, uninstall
+cleanup, TUI layout, split Open) stands as written.
+
 ## Consequences
 
 - The vendored NSIS template must be kept in sync with the tauri

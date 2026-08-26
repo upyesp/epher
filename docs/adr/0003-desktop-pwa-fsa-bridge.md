@@ -1,5 +1,8 @@
 # Desktop PWA bridges to the Native Store via the File System Access API
 
+- Status: accepted
+- Date: 2026-08-13
+
 The browser-installed PWA is sandboxed off the host filesystem, so by default it
 uses its own isolated Web Store (ADR-0002). To let a desktop PWA share the Native
 Store, we add an opt-in bridge: on Chromium desktop browsers (Chrome, Edge,

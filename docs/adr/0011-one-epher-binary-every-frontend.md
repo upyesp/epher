@@ -1,6 +1,6 @@
 # 0011 — One `epher` Binary Hosts Every Frontend
 
-Date: 2025-06-28 · Status: accepted · Supersedes: nothing (extends ADR-0001's
+Date: 2026-08-15 · Status: accepted · Supersedes: nothing (extends ADR-0001's
 frontend layout)
 
 ## Context

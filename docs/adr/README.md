@@ -1,0 +1,86 @@
+# Architecture Decision Records
+
+epher's significant technical decisions, in the [Nygard ADR
+style](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions):
+Context, Decision, Consequences, Status. This directory is the record of
+*why* the code is the way it is.
+
+## Process
+
+- **Numbers are immutable.** ADR-0007 is ADR-0007 forever; nothing is
+  renumbered, deleted, or renamed (the file name of an ADR whose title
+  later broadens keeps the original name — see ADR-0035).
+- **Amendments stay in place.** A decision that evolves is amended in
+  its own file (see ADR-0004, ADR-0015, ADR-0035) or superseded by a
+  later ADR; earlier records are *never rewritten*, only annotated with
+  a pointer.
+- **Supersession is explicit.** When a later ADR reverses or absorbs an
+  earlier decision, the earlier record says so ("Superseded by …").
+- **One decision per ADR.** Each ADR records one decision (or one
+  tightly coupled cluster) with its own context and consequences. The
+  release-batch ADRs (0016–0034) predate this rule and remain as they
+  were written — the rule governs new ADRs.
+
+## Index
+
+| # | Title | Date | Status |
+| --- | --- | --- | --- |
+| 0001 | Compile CLI and TUI natively; compile core, web, and desktop to WASM | 2026-08-13 | accepted |
+| 0002 | Two physical Stores, one schema | 2026-08-13 | accepted |
+| 0003 | Desktop PWA bridges to the Native Store via the File System Access API | 2026-08-13 | accepted |
+| 0004 | Build a custom DSL instead of embedding a language engine (amended: `\n` ≡ `;`) | 2026-08-13 | accepted |
+| 0005 | Float-by-default numerics behind one `Value` enum; GMP/rug excluded | 2026-08-13 | accepted |
+| 0006 | Graphing splits into a core Sampler and per-frontend renderers (amended: parametric/polar shipped in 0014; 3D shipped in 0015) | 2026-08-13 | accepted |
+| 0007 | Localize the UI; never localize the scripting language | 2026-08-13 | accepted |
+| 0008 | UI localization: Fluent catalogs embedded at build time (amended: de/pt joined) | 2026-08-13 | accepted |
+| 0009 | Accessibility: WCAG 2.2 AA for the web/PWA, keyboard-first terminals elsewhere | 2026-08-13 | accepted |
+| 0010 | The Desktop App Owns the Native Store; the Webview Bridges to It | 2026-08-14 | accepted |
+| 0011 | One `epher` Binary Hosts Every Frontend | 2026-08-15 | accepted |
+| 0012 | User-defined constants: `const name = value`, visible like `pi` | 2026-08-16 | accepted |
+| 0013 | The command line follows clig.dev | 2026-08-17 | accepted |
+| 0014 | Graphing expansion: multi-curve, trace, analysis, tables, sliders (3D deferral superseded by 0015) | 2026-08-17 | accepted |
+| 0015 | Animation and 3D graphing (amended: near-plane clipping; playback rate, drag orbit, touch) | 2026-08-17 | accepted |
+| 0016 | Calculator-style fixed layout with keypad input (keypad banks amended by 0022/0024; mobile focus rule amended by 0035; TUI keypad amended by 0019/0024/0033) | 2026-08-21 | accepted |
+| 0017 | Menu bar, themes, and file open/save (menubar → icon rail: 0032) | 2026-08-22 | accepted |
+| 0018 | The user guide inside the app, and one button to clear the graph pane | 2026-08-22 | accepted |
+| 0019 | Graph pane settings, a full-function keypad, and the hints row | 2026-08-22 | accepted |
+| 0020 | SVG export from every frontend and the graph pane's options row | 2026-08-23 | accepted |
+| 0021 | `ans` — the previous answer | 2026-08-23 | accepted |
+| 0022 | Number bases — `0b`/`0o`/`0x` literals and `bin`/`oct`/`hex` | 2026-08-23 | accepted |
+| 0023 | Native-feeling menus, pane toolbar, solid curves, and boot self-heal | 2026-08-23 | accepted |
+| 0024 | Save dialogs, the 0x keypad bank, and TUI menu paint order | 2026-08-23 | accepted |
+| 0025 | Apple Silicon only, dark launch, 3D pane controls, themed NSIS, uninstall cleanup, consistent TUI layout, split Open (NSIS theme superseded by 0026–0028) | 2026-08-24 | accepted |
+| 0026 | Three v0.4.13 regressions — NSIS repaint removed, save-dialog arg casing, 3D orbit accumulation | 2026-08-24 | accepted |
+| 0027 | Extensions, readable installer checkboxes, 60fps 3D, and clickable history | 2026-08-24 | accepted |
+| 0028 | Unfiltered open dialogs, 0.1 floor for line width, light installer theme with logo | 2026-08-24 | accepted |
+| 0029 | Auto-slide to the graph pane after drawing on mobile | 2026-08-24 | superseded by 0035 (absorbed; the focus consequence was reversed by 0030) |
+| 0030 | Five frontends everywhere, mobile blur after the auto-slide, scripts as one history entry, and a rotating 3D hero | 2026-08-24 | accepted (the blur decision is carried by 0035) |
+| 0031 | Dark Windows launch, mobile width range, device file pickers, 3D fine controls, and expression-only history picks (Windows launch superseded by 0032) | 2026-08-25 | accepted |
+| 0032 | Dark Windows launch, slider ends, 3D spin controls, vertical icon rail, and the bare hero command | 2026-08-25 | accepted |
+| 0033 | TUI layout fits 80×24 — always-visible keypad, wrapped hints, and sectioned settings | 2026-08-25 | accepted |
+| 0034 | TUI mouse support — menus, history, keypad, and graph manipulation | 2026-08-25 | accepted |
+| 0035 | Mobile PWA usability — the onscreen keypad is the primary input, and a drawn plot slides into view (file name keeps the original keypad-focus title) | 2026-08-25 (amended 2026-08-26) | accepted |
+
+## Decision chains
+
+Some topics evolved across several ADRs; the current state of each lives
+at the end of the chain.
+
+- **Graph-pane options and line width** — 0019 (Settings menu) → 0020
+  (pane row, slider 0.5–4) → 0023 (top toolbar) → 0025 (3D toolbar) →
+  0027 (0–4 step 0.1) → 0028 (0.1–4 floor) → 0031 (mobile range) →
+  0032 (slider ends) → **0035 (per-kind widths on mobile; desktop
+  shared width 0.1–4)**.
+- **Installer theme** — 0025 (dark via `SetCtlColors` walk) → 0026
+  (walk deleted; official MUI2 mechanism only) → 0027 (`SetSysColors`
+  finish checkboxes) → **0028 (light, uniform, logo-bearing wizard)**.
+- **Windows first frame** — 0025 (overlays; Windows excluded) → 0031
+  (`--default-background-color=141416`, ineffective) → **0032
+  (hidden-until-loaded + valid AARRGGBB `FF141416`)**.
+- **Mobile graph-pane behavior** — 0029 (auto-slide) → 0030 (blur after
+  the slide) → 0031 (mobile width range) → **0035 (the mobile PWA
+  usability contract: keypad focus discipline, slide-in and slide-back,
+  3D swipe rotation, per-kind widths)**.
+- **TUI keypad** — 0016 (4×5, Tab-gated) → 0019 (four banks) → 0024
+  (0x bank) → **0033 (always visible; banks and geometry sized to the
+  real panes)**.

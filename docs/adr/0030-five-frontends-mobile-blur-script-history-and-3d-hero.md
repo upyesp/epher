@@ -51,7 +51,8 @@ Four related usability asks:
 ## Decision
 
 - Mobile auto-slide blurs the entry (mobile layout only), leaving the graph
-  pane touch-ready.
+  pane touch-ready. (This decision is carried by ADR-0035, the mobile PWA
+  usability contract; the rest of this ADR stands on its own.)
 - Multi-statement lines are one history entry in the web app and the TUI;
   `save script` saves the whole script line.
 - "Five ways/frontends" is the wording everywhere the modes are counted:

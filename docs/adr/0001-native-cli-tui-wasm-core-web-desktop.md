@@ -1,5 +1,8 @@
 # Compile CLI and TUI natively; compile core, web, and desktop to WASM
 
+- Status: accepted
+- Date: 2026-08-13
+
 We split compilation targets by where WASM's cost is justified. `epher-core`,
 the Yew web frontend, and the Tauri desktop frontend compile to
 `wasm32-unknown-unknown`; the CLI and TUI compile natively and link
