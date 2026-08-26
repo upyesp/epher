@@ -33,7 +33,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0006 | Graphing splits into a core Sampler and per-frontend renderers (amended: parametric/polar shipped in 0014; 3D shipped in 0015) | 2026-08-13 | accepted |
 | 0007 | Localize the UI; never localize the scripting language | 2026-08-13 | accepted |
 | 0008 | UI localization: Fluent catalogs embedded at build time (amended: de/pt joined) | 2026-08-13 | accepted |
-| 0009 | Accessibility: WCAG 2.2 AA for the web/PWA, keyboard-first terminals elsewhere | 2026-08-13 | accepted |
+| 0009 | Accessibility: WCAG 2.2 AA for the web/PWA, keyboard-first terminals elsewhere (amended: automated axe scans in the `a11y` Playwright suite) | 2026-08-13 | accepted |
 | 0010 | The Desktop App Owns the Native Store; the Webview Bridges to It | 2026-08-14 | accepted |
 | 0011 | One `epher` Binary Hosts Every Frontend | 2026-08-15 | accepted |
 | 0012 | User-defined constants: `const name = value`, visible like `pi` | 2026-08-16 | accepted |

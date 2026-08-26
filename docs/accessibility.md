@@ -101,12 +101,8 @@ truth); the design rationale and research live in
 
 ## Known gaps (tracked elsewhere)
 
-- Web UI strings are hardcoded English (i18n wiring into the Yew app is
-  pending the browser test harness); `lang` and labels must move to the
-  Localizer with locale detection (ADR-0008).
-- No automated a11y checks yet — no headless-browser harness in this
-  environment. When one exists, add axe-core to the web build pipeline and
-  re-run this audit.
+None at the moment: the UI is fully localized (ADR-0008) and the
+automated axe scan runs in the `a11y` Playwright suite (ADR-0009).
 
 ## How to re-verify
 
@@ -119,4 +115,10 @@ truth); the design rationale and research live in
    `aria-invalid` flips on errors.
 4. **TUI**: cursor is visible in the input field; hints line shown; `graph`
    shows the caption; all keys work with a screen reader's pass-through.
-5. **Automated** (future): `npx @axe-core/cli` against a served `dist/`.
+5. **Automated**: the `a11y` Playwright suite (axe-core, the wcag2a/2aa/21a/
+   21aa/22aa rule tags) scans every state — desktop dark/light/night, the
+   graph pane with 2D and 3D plots, the guide overlay, and the mobile
+   layout (baseline, hamburger open, post-auto-slide). Zero violations are
+   required; axe's unresolved color-contrast targets are either computed in
+   the suite (glyph buttons, >= 4.5:1) or covered by this audit (plot-SVG
+   text) and the uncovered baseline scans.

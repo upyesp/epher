@@ -2769,7 +2769,6 @@ fn epher_app() -> Html {
                     class="hamburger-btn"
                     aria-label={localizer.lookup("menu")}
                     aria-haspopup="menu"
-                    aria-controls="mobile-menu"
                     aria-expanded={hamburger_open.to_string()}
                     onclick={{
                         let hamburger_open = hamburger_open.clone();
