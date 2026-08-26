@@ -1,10 +1,18 @@
-# ADR-0035: Keypad presses never summon the device keyboard on touch layouts
+# ADR-0035: Mobile PWA usability — the onscreen keypad is the primary input, and a drawn plot slides into view
 
-Date: 2026-08-25
+Date: 2026-08-25 (amended 2026-08-26)
 
 Status: Accepted
 
 ## Context
+
+This ADR is the mobile PWA's usability contract: on a touch viewport
+(under 880px, the same breakpoint ADR-0029/0030/0031 use) the onscreen
+keypad is the primary way to enter expressions, and the result of every
+command must land where the user can see it without extra gestures. The
+keypad's focus discipline below came first; this amendment folds in the
+graph pane's auto-slide — first codified in ADR-0029 — so the contract
+reads as one piece.
 
 On the mobile PWA every on-screen keypad press ended by refocusing the
 expression entry — ADR-0016's rule, "focus returns to the input so typing
@@ -71,6 +79,19 @@ plot draws.
   edit requests the keyboard" reading is reversed: the pick itself is
   the edit gesture, and the keypad is what edits.) Desktop keeps
   ADR-0016's focus return for both.
+- **A drawn plot must be seen, not discovered (ADR-0029).** The mobile
+  layout holds the calculator and graph panes in a horizontal strip —
+  the graph is one slide away. A user who submits `graph x ^ 2` and
+  stays on the calculator would otherwise have to go look for their
+  result. When a submitted `graph` or `graph3d` command draws a plot,
+  the submit path slides the strip across to the graph pane — the same
+  discrete instant jump the pane-switch buttons use (reduced-motion by
+  construction, WCAG 2.3.3). Only successful draws slide: errors,
+  `graph clear`, and plain evaluations leave the view alone, and the
+  desktop layout (panes side by side, no strip) never scrolls. The
+  slide pairs with ADR-0030's blur: dropping the entry's focus closes
+  the device keyboard so the fresh plot is not sitting under it, and
+  the plot is ready for touch rotation.
 
 ## Decision
 
@@ -93,6 +114,14 @@ History picks and guide code loads follow the same touch rule: on
 mobile they set the text and the cursor cell but do not refocus the
 entry, so the device keyboard stays closed; on desktop they focus the
 entry as before.
+
+On mobile, a submitted command that draws a plot slides the graph pane
+into view immediately: the `graph` and `graph3d` success arms emit the
+graph-pane scroll from the submit path, only under `mobile_layout()`,
+and drop the entry's focus at the same moment (ADR-0030) so the
+keyboard closes over nothing the user needs. The slide is the pane
+switch's own discrete jump; nothing else — errors, clears, plain
+evaluations, or any desktop submit — moves the view.
 
 ## Consequences
 
@@ -117,6 +146,12 @@ entry as before.
   the expression without the textarea gaining focus and a following
   keypad press composes at the end of it; on a desktop viewport the
   pick focuses the entry.
+- The `mobile-scroll` suite (v0.4.17, ADR-0029) pins the auto-slide:
+  mobile `graph` and `graph3d` submits slide (the strip's scroll
+  reaches the graph pane and the pane-switch state follows), `graph
+  clear` and failed graphs do not slide, and desktop submits never
+  scroll. Focus stays with the entry's rules above — on mobile the
+  slide drops it, so the keyboard closes over the fresh plot.
 - `docs/accessibility.md` records the behavior; no guide change — the
   guide never described the web keypad's focus handling, only its
   contents.
