@@ -151,7 +151,7 @@ pub struct App {
 }
 
 /// The mouse-relevant screen regions of the last drawn frame (ADR-0034).
-/// The menu bar's five label rects and the keypad's five bank-label rects
+/// The menu bar's five label rects and the keypad's six bank-label rects
 /// are stored rather than recomputed from label widths, so localized
 /// labels stay clickable wherever their characters land.
 #[derive(Debug, Clone, Copy, Default)]
@@ -162,7 +162,7 @@ pub struct Areas {
     pub history: ratatui::layout::Rect,
     pub graph: ratatui::layout::Rect,
     pub keypad: ratatui::layout::Rect,
-    pub kp_bank_labels: [ratatui::layout::Rect; 5],
+    pub kp_bank_labels: [ratatui::layout::Rect; 6],
     /// The keypad's cell width and column count for the current bank,
     /// so clicks can map columns to cells with the same math as the draw.
     pub kp_cell_w: u16,
@@ -176,15 +176,29 @@ pub struct Areas {
     pub guide: bool,
 }
 
-/// The TUI keypad (ADR-0016): a condensed 4×5 grid of the most-used
+/// The TUI keypad (ADR-0016): a condensed grid of the most-used
 /// tokens — the full set lives on the web keypad; the terminal stays
-/// compact. (display, insert-at-end).
+/// compact. (display, insert-at-end). The digits bank is a mirror of the
+/// web keypad's `123` tab — same keys, same 5×5 arrangement — and its
+/// three action keys (C, ⌫, =) are spelled by an empty insert string;
+/// [`App::keypad_insert`] performs them (the "=" submit runs through
+/// the entry's submit path in the caller, which owns the store).
 /// The keypad's banks (ADR-0016): every function, constant, and command
-/// the language supports, mirroring the web keypad's tabs (minus the
-/// digits bank — a terminal already has number keys). Labels are the
-/// language tokens themselves (ADR-0007 — the language is never
-/// localized). Rows may be ragged; the widest row fixes the grid width.
+/// the language supports, mirroring the web keypad's tabs in the same
+/// order (digits first, like the web). Labels are the language tokens
+/// themselves (ADR-0007 — the language is never localized). Rows may be
+/// ragged; the widest row fixes the grid width.
 const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
+    (
+        "123",
+        &[
+            &[("C", ""), ("⌫", ""), ("(", "("), (")", ")"), ("÷", "/")],
+            &[("7", "7"), ("8", "8"), ("9", "9"), ("×", "*"), ("−", "-")],
+            &[("4", "4"), ("5", "5"), ("6", "6"), ("+", "+"), ("^", "^")],
+            &[("1", "1"), ("2", "2"), ("3", "3"), (";", ";"), (",", ",")],
+            &[("0", "0"), (".", "."), ("ans", "ans"), ("=", "")],
+        ],
+    ),
     (
         "trig",
         &[
@@ -322,12 +336,26 @@ impl App {
         self.kp_col = self.kp_col.min(len.saturating_sub(1));
     }
 
-    /// Append the highlighted token to the end of the input (the terminal
-    /// cursor already lives there).
+    /// Apply the highlighted key: tokens append to the end of the input
+    /// (the terminal cursor already lives there); the digits bank's
+    /// action keys clear ("C") and backspace ("⌫") the input. The "="
+    /// key only marks the highlight — [`Self::keypad_is_submit`] tells
+    /// the caller to run the entry's submit path instead.
     pub fn keypad_insert(&mut self) {
         let row = &BANKS[self.kp_bank].1[self.kp_row];
-        let token = row[self.kp_col.min(row.len() - 1)].1;
-        self.input.push_str(token);
+        let (disp, token) = row[self.kp_col.min(row.len() - 1)];
+        match (disp, token) {
+            ("C", "") => self.clear_input(),
+            ("⌫", "") => self.pop_char(),
+            _ => self.input.push_str(token),
+        }
+    }
+
+    /// Whether the highlighted key is the digits bank's "=": the caller
+    /// runs the entry's submit path (it owns the store and localizer).
+    pub fn keypad_is_submit(&self) -> bool {
+        let row = &BANKS[self.kp_bank].1[self.kp_row];
+        row[self.kp_col.min(row.len() - 1)].0 == "="
     }
 
     /// Jump to an absolute bank (mouse click on a bank label, ADR-0034),
@@ -1661,7 +1689,9 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                     if let Some(line) = app.history_pick() {
                         app.set_input(&line);
                     }
-                } else if is_enter && !app.keypad_focused() {
+                } else if is_enter && (!app.keypad_focused() || app.keypad_is_submit()) {
+                    // The entry's Enter and the keypad's "=" key run the
+                    // same submit path (ADR-0016).
                     let line = app.input().trim().to_string();
                     if let Some(code) = app.submit_line(&line, &store, &localizer) {
                         localizer = Localizer::resolve(Some(&code), &[]);
@@ -1842,15 +1872,25 @@ fn handle_mouse(
                     }
                     return false;
                 }
-                // The grid rows: move the highlight there and insert
-                // the token — the mouse spelling of the web's buttons.
+                // The grid rows: move the highlight there and apply
+                // the key — the mouse spelling of the web's buttons.
+                // "=" submits like the entry's Enter; every other cell
+                // inserts its token.
                 let grid_row = row.saturating_sub(areas.keypad.y.saturating_add(2)) as usize;
-                if grid_row < 4 {
+                if grid_row < 5 {
                     let cell_col = (col.saturating_sub(areas.keypad.x.saturating_add(1))
                         / areas.kp_cell_w.max(1)) as usize;
                     if cell_col < areas.kp_cols {
                         app.keypad_set(grid_row, cell_col);
-                        app.keypad_insert();
+                        if app.keypad_is_submit() {
+                            let line = app.input().trim().to_string();
+                            if let Some(code) = app.submit_line(&line, store, localizer) {
+                                *localizer = Localizer::resolve(Some(&code), &[]);
+                            }
+                            app.clear_input();
+                        } else {
+                            app.keypad_insert();
+                        }
                     }
                 }
                 return false;
@@ -2186,21 +2226,23 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             Layout::horizontal([Constraint::Length(46), Constraint::Min(0)])
                 .split(content);
         let (calc_col, graph_col) = (split[0], split[1]);
-        // Input, answer, keypad, then the history filling the rest —
-        // the calculator column reads top to bottom like the app.
+        // Input, answer, history, then the keypad — the calculator
+        // column reads top to bottom exactly like the app and the PWA
+        // (entry, result, history, keypad). The keypad pane is 8 rows:
+        // the bank row plus the digits bank's five key rows.
         let calc_rows = Layout::vertical([
             Constraint::Length(3), // input
             Constraint::Length(1), // result
-            Constraint::Length(7), // keypad (bank row + 4 key rows)
             Constraint::Min(0),    // history
+            Constraint::Length(8), // keypad (bank row + 5 key rows)
         ])
         .split(calc_col);
         (
             calc_rows[0],
             calc_rows[1],
-            calc_rows[3],
+            calc_rows[2],
             graph_col,
-            Some(calc_rows[2]),
+            Some(calc_rows[3]),
             hints,
         )
     } else {
@@ -2212,7 +2254,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             Constraint::Length(1),  // result
             Constraint::Min(0),     // history
             Constraint::Min(0),     // graph
-            Constraint::Length(7),  // keypad (bank row + 4 key rows)
+            Constraint::Length(8),  // keypad (bank row + 5 key rows)
             Constraint::Length(hint_rows), // hints
         ])
         .split(body);

@@ -464,11 +464,43 @@ fn keypad_insert_appends_token() {
     assert!(!app.keypad_focused());
     app.keypad_open();
     assert!(app.keypad_focused());
-    app.keypad_insert(); // (0,0) = sin(
-    assert_eq!(app.input(), "sin(");
-    app.keypad_move(0, 1);
-    app.keypad_insert(); // cos(
-    assert_eq!(app.input(), "sin(cos(");
+    // The digits bank is first, like the web's "123" tab.
+    assert_eq!(app.keypad_bank(), "123");
+    app.keypad_insert(); // (0,0) = C clears the input
+    assert_eq!(app.input(), "");
+    app.keypad_move(1, 0); // (1,0) = 7
+    app.keypad_insert();
+    assert_eq!(app.input(), "7");
+    app.keypad_move(-1, 1); // (0,1) = ⌫
+    app.keypad_insert();
+    assert_eq!(app.input(), "");
+}
+
+#[test]
+fn keypad_digits_bank_mirrors_the_web_tab() {
+    let mut app = App::default();
+    app.keypad_open();
+    // The same keys, in the same 5×5 arrangement, as the web's 123 tab.
+    let digits = epher_tui::banks()[0].1;
+    assert_eq!(digits.len(), 5);
+    let flats: Vec<&str> = digits.iter().flat_map(|r| r.iter()).map(|(d, _)| *d).collect();
+    assert_eq!(
+        flats,
+        ["C", "⌫", "(", ")", "÷", "7", "8", "9", "×", "−", "4", "5", "6", "+", "^", "1", "2", "3", ";", ",", "0", ".", "ans", "="]
+    );
+    // ÷/×/− display the glyphs but insert the language's ASCII tokens.
+    assert_eq!(digits[0][4].1, "/");
+    assert_eq!(digits[1][3].1, "*");
+    assert_eq!(digits[1][4].1, "-");
+    app.keypad_set(0, 4);
+    app.keypad_insert();
+    assert_eq!(app.input(), "/");
+    // "=" marks the submit; C and ⌫ act, not insert.
+    app.keypad_set(4, 4);
+    assert!(app.keypad_is_submit());
+    app.keypad_set(0, 0);
+    app.keypad_insert();
+    assert_eq!(app.input(), "");
 }
 
 #[test]
@@ -477,9 +509,9 @@ fn keypad_move_wraps_around_edges() {
     app.keypad_open();
     app.keypad_move(0, -1); // from col 0 → col 4
     assert_eq!(app.keypad_col(), 4);
-    app.keypad_move(-1, 0); // from row 0 → the trig bank's last row
-    assert_eq!(app.keypad_row(), 2);
-    assert_eq!(app.keypad_col(), 4, "clamped to the ragged row's length");
+    app.keypad_move(-1, 0); // from row 0 → the digits bank's last row
+    assert_eq!(app.keypad_row(), 4);
+    assert_eq!(app.keypad_col(), 3, "clamped to the ragged row's length");
     app.keypad_move(1, 0); // wraps back to row 0
     assert_eq!(app.keypad_row(), 0);
 }
@@ -488,13 +520,13 @@ fn keypad_move_wraps_around_edges() {
 fn keypad_banks_cycle_and_reset_the_highlight() {
     let mut app = App::default();
     app.keypad_open();
-    assert_eq!(app.keypad_bank(), "trig");
+    assert_eq!(app.keypad_bank(), "123");
     app.keypad_move(2, 4); // somewhere inside
     app.keypad_cycle(1);
-    assert_eq!(app.keypad_bank(), "fn");
-    assert_eq!((app.keypad_row(), app.keypad_col()), (0, 0));
-    app.keypad_cycle(-1); // back to trig, wrapping through the front
     assert_eq!(app.keypad_bank(), "trig");
+    assert_eq!((app.keypad_row(), app.keypad_col()), (0, 0));
+    app.keypad_cycle(-1); // back to digits, wrapping through the front
+    assert_eq!(app.keypad_bank(), "123");
     app.keypad_cycle(-1); // …and on to the last bank
     assert_eq!(app.keypad_bank(), "var");
     app.keypad_insert(); // (0,0) of var = pi
@@ -514,8 +546,8 @@ fn keypad_close_clears_focus_state() {
 fn keypad_has_the_graph_commands() {
     let mut app = App::default();
     app.keypad_open();
-    for _ in 0..4 {
-        app.keypad_cycle(1); // trig → fn → num → 0x → var
+    for _ in 0..5 {
+        app.keypad_cycle(1); // 123 → trig → fn → num → 0x → var
     }
     app.keypad_move(1, 2); // row 1, col 2 of the var bank
     app.keypad_insert();
@@ -957,18 +989,18 @@ fn mouse_2d_pan_zoom_and_reset_follow_the_viewport() {
 #[test]
 fn mouse_keypad_clicks_select_banks_and_cells() {
     let mut app = App::default();
-    app.keypad_select_bank(4);
+    app.keypad_select_bank(5);
     assert_eq!(app.keypad_bank(), "var");
     assert_eq!((app.keypad_row(), app.keypad_col()), (0, 0));
     // A click on (1, 2) of the var bank inserts exactly that token.
-    let expected = epher_tui::banks()[4].1[1][2].1;
+    let expected = epher_tui::banks()[5].1[1][2].1;
     app.keypad_set(1, 2);
     app.keypad_insert();
     assert_eq!(app.input(), expected);
     // Clicks clamp to the clicked bank's grid: row 99 lands on the last
     // row, column 99 on that row's last cell.
     app.keypad_set(99, 99);
-    let bank = epher_tui::banks()[4].1;
+    let bank = epher_tui::banks()[5].1;
     assert_eq!(app.keypad_row(), bank.len() - 1);
     let last_len = bank[bank.len() - 1].len();
     assert_eq!(app.keypad_col(), last_len - 1);

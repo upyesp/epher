@@ -58,11 +58,19 @@ plot draws.
   cell stay in step either way.
 - **Scope.** Every keypad action takes the same path — `Text`, `Call`
   (functions), `Backspace`, `Clear`, and `Submit` (`=`) — so one change
-  in the shared handler covers all of them. History picks keep their
-  focus: loading a line to edit it is a request for the keyboard
-  (ADR-0031), and the guide's code buttons keep theirs for the same
-  reason. The `mobile_layout()` gate is the same 880px breakpoint
-  ADR-0029/0030/0031 use, so the behavior tracks the layout flip.
+  in the shared handler covers all of them. The `mobile_layout()` gate
+  is the same 880px breakpoint ADR-0029/0030/0031 use, so the behavior
+  tracks the layout flip.
+- **The keypad is the primary input on touch; the device keyboard opens
+  only for a touch inside the entry.** That rule extends to everything
+  that loads text into the entry from outside it: picking a history
+  line and clicking a guide code button load the text with the cursor
+  at its end, and on mobile they do *not* refocus the entry — the
+  floating keyboard stays closed, and the keypad composes from the
+  loaded text. (The earlier "picks keep focus because loading a line to
+  edit requests the keyboard" reading is reversed: the pick itself is
+  the edit gesture, and the keypad is what edits.) Desktop keeps
+  ADR-0016's focus return for both.
 
 ## Decision
 
@@ -81,12 +89,19 @@ unfocused entry therefore still lands on the right spot, without ever
 summoning the soft keyboard. `C` and `=` reset the cell to 0, history
 picks and guide code loads set it to the end of the loaded text.
 
+History picks and guide code loads follow the same touch rule: on
+mobile they set the text and the cursor cell but do not refocus the
+entry, so the device keyboard stays closed; on desktop they focus the
+entry as before.
+
 ## Consequences
 
 - On mobile, the keypad is a closed system: presses compose, submit,
-  clear, and backspace without the device keyboard ever appearing; the
+  clear, and backspace without the device keyboard ever appearing, and
+  history picks and guide code loads enter text the same way; the
   result panel stays visible because nothing slides up to cover it.
-  Tapping the entry still opens the keyboard for typing.
+  Touching inside the entry is the only gesture that opens the
+  keyboard for typing.
 - Desktop behavior is byte-identical to ADR-0016.
 - The Playwright battery pins the contract in a headless browser (the
   soft keyboard itself cannot be emulated, so the test asserts the
@@ -98,7 +113,10 @@ picks and guide code loads set it to the end of the loaded text.
   itself) inserts at the caret and the next press lands immediately
   after the just-inserted token; a selected range is replaced and the
   next press continues right after the replacement; `C` and `=` reset
-  the insertion point to 0.
+  the insertion point to 0. On a mobile viewport a history pick loads
+  the expression without the textarea gaining focus and a following
+  keypad press composes at the end of it; on a desktop viewport the
+  pick focuses the entry.
 - `docs/accessibility.md` records the behavior; no guide change — the
   guide never described the web keypad's focus handling, only its
   contents.

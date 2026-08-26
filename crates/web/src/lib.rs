@@ -2899,10 +2899,17 @@ fn epher_app() -> Html {
                                         // The load puts the cursor at the
                                         // end of the expression (ADR-0035).
                                         *cursor_cell.borrow_mut() = (expr.len(), expr.len());
-                                        if let Some(ta) =
-                                            input_ref.cast::<web_sys::HtmlTextAreaElement>()
-                                        {
-                                            let _ = ta.focus();
+                                        // ADR-0035: on touch layouts the pick
+                                        // loads the line without summoning
+                                        // the device keyboard — only a touch
+                                        // inside the entry opens it. Desktop
+                                        // keeps ADR-0016's focus return.
+                                        if !mobile_layout() {
+                                            if let Some(ta) =
+                                                input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                            {
+                                                let _ = ta.focus();
+                                            }
                                         }
                                     })
                                 };
@@ -3263,10 +3270,17 @@ fn epher_app() -> Html {
                                                 *cursor_cell.borrow_mut() = (code.len(), code.len());
                                                 guide_open.set(false);
                                                 scroll_pane.emit("calc-pane");
-                                                if let Some(ta) =
-                                                    input_ref.cast::<web_sys::HtmlTextAreaElement>()
-                                                {
-                                                    let _ = ta.focus();
+                                                // ADR-0035: on touch layouts the
+                                                // load does not summon the device
+                                                // keyboard — only a touch inside
+                                                // the entry opens it. Desktop
+                                                // keeps ADR-0016's focus return.
+                                                if !mobile_layout() {
+                                                    if let Some(ta) =
+                                                        input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                                    {
+                                                        let _ = ta.focus();
+                                                    }
                                                 }
                                             }
                                         }
