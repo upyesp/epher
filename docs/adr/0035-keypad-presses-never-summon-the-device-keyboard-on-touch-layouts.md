@@ -231,3 +231,14 @@ when nothing remains plotted.
 - `docs/accessibility.md` records the behavior; no guide change — the
   guide never described the web keypad's focus handling, only its
   contents.
+
+## Amendment (2026-08-27): the arrow-key 3D hint is not displayed on touch layouts
+
+The 3D pane hints "Drag to rotate · arrow keys rotate · non-zero rotation
+sliders spin" under every plot. On a touch layout the arrow keys do not
+exist — rotation is the swipe this ADR already defines — so the hint
+advertises an unavailable affordance. The hint is not displayed under the
+mobile media query (<880 px): `.graph3d-hint { display: none }` hides it
+for touch layouts (and screen readers — `display: none` removes it from
+the accessibility tree, so mobile users never hear about arrow keys
+either). Desktop, the TUI, and the web at ≥880 px keep the hint.

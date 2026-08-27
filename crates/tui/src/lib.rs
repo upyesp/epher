@@ -7,14 +7,14 @@
 
 use epher_core::graph::{
     analyze, free_names, parse_graph_source, project_surface, sample_spec, sample_surface,
-    surface_frame, InterestPoint, InterestKind, SampledCurve, Surface, View3D,
+    surface_frame, InterestKind, InterestPoint, SampledCurve, Surface, View3D,
 };
 use epher_core::Session;
 use epher_i18n::Localizer;
 use epher_shell::{classify, plain, run_command};
 use epher_store::persist::{
     default_store_dir, load_language, load_pois, load_session, load_theme, save_history,
-    save_language, save_pois, save_theme,
+    save_language, save_pois, save_session, save_theme,
 };
 use epher_store::{DocStore, FsStore};
 use unicode_width::UnicodeWidthStr;
@@ -215,47 +215,118 @@ const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
     (
         "trig",
         &[
-            &[("sin", "sin("), ("cos", "cos("), ("tan", "tan("), ("asin", "asin("), ("acos", "acos(")],
-            &[("atan", "atan("), ("sinh", "sinh("), ("cosh", "cosh("), ("tanh", "tanh("), ("asinh", "asinh(")],
-            &[("acosh", "acosh("), ("atanh", "atanh("), ("deg", "deg("), ("rad", "rad("), ("atan2", "atan2(")],
+            &[
+                ("sin", "sin("),
+                ("cos", "cos("),
+                ("tan", "tan("),
+                ("asin", "asin("),
+                ("acos", "acos("),
+            ],
+            &[
+                ("atan", "atan("),
+                ("sinh", "sinh("),
+                ("cosh", "cosh("),
+                ("tanh", "tanh("),
+                ("asinh", "asinh("),
+            ],
+            &[
+                ("acosh", "acosh("),
+                ("atanh", "atanh("),
+                ("deg", "deg("),
+                ("rad", "rad("),
+                ("atan2", "atan2("),
+            ],
         ],
     ),
     (
         "fn",
         &[
-            &[("ln", "ln("), ("log", "log("), ("log2", "log2("), ("logb", "logb("), ("exp", "exp(")],
-            &[("sqrt", "sqrt("), ("cbrt", "cbrt("), ("root", "root("), ("hypot", "hypot("), ("abs", "abs(")],
-            &[("floor", "floor("), ("ceil", "ceil("), ("round", "round("), ("trunc", "trunc("), ("sign", "sign(")],
+            &[
+                ("ln", "ln("),
+                ("log", "log("),
+                ("log2", "log2("),
+                ("logb", "logb("),
+                ("exp", "exp("),
+            ],
+            &[
+                ("sqrt", "sqrt("),
+                ("cbrt", "cbrt("),
+                ("root", "root("),
+                ("hypot", "hypot("),
+                ("abs", "abs("),
+            ],
+            &[
+                ("floor", "floor("),
+                ("ceil", "ceil("),
+                ("round", "round("),
+                ("trunc", "trunc("),
+                ("sign", "sign("),
+            ],
             &[("min", "min("), ("max", "max(")],
         ],
     ),
     (
         "num",
         &[
-            &[("gcd", "gcd("), ("lcm", "lcm("), ("mod", "mod("), ("fact", "fact(")],
-            &[("ncr", "ncr("), ("npr", "npr("), ("sum", "sum("), ("product", "product(")],
-            &[("mean", "mean("), ("median", "median("), ("variance", "variance("), ("stdev", "stdev(")],
+            &[
+                ("gcd", "gcd("),
+                ("lcm", "lcm("),
+                ("mod", "mod("),
+                ("fact", "fact("),
+            ],
+            &[
+                ("ncr", "ncr("),
+                ("npr", "npr("),
+                ("sum", "sum("),
+                ("product", "product("),
+            ],
+            &[
+                ("mean", "mean("),
+                ("median", "median("),
+                ("variance", "variance("),
+                ("stdev", "stdev("),
+            ],
         ],
     ),
     (
         "0x",
         &[
             &[("frac", "frac("), ("dec", "dec("), ("big", "big(")],
-            &[("bin", "bin("), ("oct", "oct("), ("hex", "hex("), ("!", "!")],
+            &[
+                ("bin", "bin("),
+                ("oct", "oct("),
+                ("hex", "hex("),
+                ("!", "!"),
+            ],
         ],
     ),
     (
         "var",
         &[
-            &[("pi", "pi"), ("e", "e"), ("tau", "tau"), ("phi", "phi"), ("x", "x")],
-            &[("t", "t"), ("ans", "ans"), ("graph", "graph "), ("graph3d", "graph3d "), ("table", "table ")],
+            &[
+                ("pi", "pi"),
+                ("e", "e"),
+                ("tau", "tau"),
+                ("phi", "phi"),
+                ("x", "x"),
+            ],
+            &[
+                ("t", "t"),
+                ("ans", "ans"),
+                ("graph", "graph "),
+                ("graph3d", "graph3d "),
+                ("table", "table "),
+            ],
             &[("clear", "clear "), ("history", "history ")],
         ],
     ),
 ];
 
 /// The keypad banks, for tests and callers that need the grid.
-pub fn banks() -> &'static [(&'static str, &'static [&'static [(&'static str, &'static str)]])] {
+pub fn banks() -> &'static [(
+    &'static str,
+    &'static [&'static [(&'static str, &'static str)]],
+)] {
     BANKS
 }
 
@@ -420,9 +491,9 @@ impl App {
     /// fine-control rows while 3D surfaces are displayed (ADR-0031).
     pub fn menu_len(&self, menu: usize) -> usize {
         match menu {
-            0 => 5,  // File: open history, open script, save history, save script, quit
-            1 => 3,  // Edit: cut, copy, paste
-            2 => 1,  // Graph: clear graph
+            0 => 5, // File: open history, open script, save history, save script, quit
+            1 => 3, // Edit: cut, copy, paste
+            2 => 1, // Graph: clear graph
             3 => {
                 if self.surface.is_empty() {
                     12 // POI toggle, 3 themes, 8 languages
@@ -430,7 +501,7 @@ impl App {
                     15 // …plus horizontal rotation, vertical rotation, zoom
                 }
             }
-            4 => 1,  // Help: user guide
+            4 => 1, // Help: user guide
             _ => 0,
         }
     }
@@ -451,7 +522,9 @@ impl App {
     /// Move the highlight: vertical motion wraps within the open menu,
     /// horizontal motion switches menus (wrapping at the ends).
     pub fn menu_move(&mut self, dh: isize, dv: isize) {
-        let Some((menu, item)) = self.menu else { return };
+        let Some((menu, item)) = self.menu else {
+            return;
+        };
         if dh != 0 {
             let menus = Self::MENUS.len() as isize;
             let next = (menu as isize + dh).rem_euclid(menus) as usize;
@@ -697,8 +770,7 @@ impl App {
                     .join("\n"),
             )
             .map_err(|_| ()),
-            PromptKind::SaveScript => std::fs::write(&path, &self.input)
-                .map_err(|_| ()),
+            PromptKind::SaveScript => std::fs::write(&path, &self.input).map_err(|_| ()),
         };
         if outcome.is_ok() {
             None
@@ -731,6 +803,13 @@ impl App {
 
     pub fn history(&self) -> &[String] {
         self.session.history()
+    }
+
+    /// The session's variable bindings (user assignments plus `ans`), for
+    /// the shared-store snapshot saved alongside the history (ADR-0010
+    /// amendment).
+    pub fn bindings(&self) -> &epher_core::ValueBindings {
+        self.session.bindings()
     }
 
     /// The shared session (constants, history) — public so tests can read
@@ -769,7 +848,12 @@ impl App {
         let y_span = y_max - y_min;
         let dx_data = -dx_cells / (width.max(1) as f64) * x_span;
         let dy_data = dy_cells / (height.max(1) as f64) * y_span;
-        self.view2d = Some((x_min + dx_data, x_max + dx_data, y_min + dy_data, y_max + dy_data));
+        self.view2d = Some((
+            x_min + dx_data,
+            x_max + dx_data,
+            y_min + dy_data,
+            y_max + dy_data,
+        ));
     }
 
     /// Zoom the 2D viewport by a factor around its center: `factor < 1`
@@ -885,6 +969,7 @@ impl App {
             // not just its last statement.
             self.session.set_last_line(line.trim());
             let _ = save_history(store, self.history());
+            let _ = save_session(store, self.bindings());
         }
         language
     }
@@ -908,6 +993,7 @@ impl App {
             if !quiet {
                 self.session.record(piece);
                 let _ = save_history(store, self.history());
+                let _ = save_session(store, self.bindings());
             }
             if let Some(path) = source.trim().strip_prefix("save ") {
                 let path = path.trim();
@@ -929,6 +1015,7 @@ impl App {
             if !quiet {
                 self.session.record(piece);
                 let _ = save_history(store, self.history());
+                let _ = save_session(store, self.bindings());
             }
             if let Some(path) = source.trim().strip_prefix("save ") {
                 let path = path.trim();
@@ -967,6 +1054,7 @@ impl App {
             self.input = piece.to_string();
             self.submit();
             let _ = save_history(store, self.history());
+            let _ = save_session(store, self.bindings());
         }
         (None, true)
     }
@@ -1015,6 +1103,10 @@ impl App {
                 return Err(e);
             }
         };
+        // The pane shows one kind at a time (ADR-0015 amendment): drawing
+        // a 2D curve clears any 3D surfaces, so the two never share the
+        // pane and each plot keeps its full size.
+        self.surface.clear();
         self.graph.push(SampledCurve {
             source: source.to_string(),
             kind: spec.kind,
@@ -1042,13 +1134,19 @@ impl App {
             return Ok(());
         }
         let first = self.surface.is_empty();
-        let surface = match sample_surface(source, 40, self.session.env()).map_err(|e| e.to_string()) {
-            Ok(s) => s,
-            Err(e) => {
-                self.result = format!("error: {e}");
-                return Err(e);
-            }
-        };
+        let surface =
+            match sample_surface(source, 40, self.session.env()).map_err(|e| e.to_string()) {
+                Ok(s) => s,
+                Err(e) => {
+                    self.result = format!("error: {e}");
+                    return Err(e);
+                }
+            };
+        // The pane shows one kind at a time (ADR-0015 amendment): drawing
+        // a surface clears any 2D curves and their points of interest.
+        self.graph.clear();
+        self.pois.clear();
+        self.view2d = None;
         // A 3D graph drawn into an empty pane brings fresh fine controls
         // at their default 0 (ADR-0031); overlays keep the current pose.
         if first {
@@ -1077,7 +1175,8 @@ impl App {
     /// The effective pose: the orbit base with the fine-control offsets
     /// applied (ADR-0031).
     pub fn effective_view(&self) -> View3D {
-        self.view.with_offsets(self.view_h, self.view_v, self.view_z)
+        self.view
+            .with_offsets(self.view_h, self.view_v, self.view_z)
     }
 
     /// Nudge one fine-control offset by ±0.1, clamped to −1..1 (the
@@ -1110,7 +1209,10 @@ impl App {
 
     /// Orbit the 3D view by the given yaw/pitch deltas (radians).
     pub fn rotate_view(&mut self, dyaw: f64, dpitch: f64) {
-        self.view = self.view.with_pitch(self.view.pitch + dpitch).with_yaw(self.view.yaw + dyaw);
+        self.view = self
+            .view
+            .with_pitch(self.view.pitch + dpitch)
+            .with_yaw(self.view.yaw + dyaw);
     }
 
     /// The active animation, if any.
@@ -1191,8 +1293,11 @@ impl App {
         if next > play.hi {
             next = play.lo;
         }
-        self.session
-            .set_constant(play.name.clone(), epher_core::Value::float(next), String::new());
+        self.session.set_constant(
+            play.name.clone(),
+            epher_core::Value::float(next),
+            String::new(),
+        );
         self.resample_all();
     }
 
@@ -1250,7 +1355,10 @@ pub fn render_ascii3d(surfaces: &[Surface], view: &View3D, width: usize, height:
         return String::new();
     }
     let depth_min = all.iter().map(|s| s.depth).fold(f64::INFINITY, f64::min);
-    let depth_max = all.iter().map(|s| s.depth).fold(f64::NEG_INFINITY, f64::max);
+    let depth_max = all
+        .iter()
+        .map(|s| s.depth)
+        .fold(f64::NEG_INFINITY, f64::max);
     let span = depth_max - depth_min;
     let gw = width - 2;
     let gh = height;
@@ -1533,214 +1641,224 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                 // The pointer works against the regions the last frame
                 // drew (ADR-0034): menus, history, keypad, and the
                 // graph panels.
-                if handle_mouse(&mut app, &mut localizer, &store, me, &mut drag, &mut last_click) {
+                if handle_mouse(
+                    &mut app,
+                    &mut localizer,
+                    &store,
+                    me,
+                    &mut drag,
+                    &mut last_click,
+                ) {
                     return Ok(());
                 }
             }
             Some(Event::Key(key)) => {
-            if key.kind == KeyEventKind::Press {
-                // The user guide view (ADR-0018) is modal: only scrolling
-                // and closing keys act; nothing reaches the calculator.
-                // Number keys jump the table of contents (ADR-0018
-                // amendment) — the keyboard spelling of the ToC clicks.
-                if app.guide_active() {
+                if key.kind == KeyEventKind::Press {
+                    // The user guide view (ADR-0018) is modal: only scrolling
+                    // and closing keys act; nothing reaches the calculator.
+                    // Number keys jump the table of contents (ADR-0018
+                    // amendment) — the keyboard spelling of the ToC clicks.
+                    if app.guide_active() {
+                        match key.code {
+                            KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                                return Ok(());
+                            }
+                            KeyCode::Esc | KeyCode::Char('q') => app.guide_close(),
+                            KeyCode::Up => app.guide_scroll(-1),
+                            KeyCode::Down => app.guide_scroll(1),
+                            KeyCode::PageUp => app.guide_scroll(-12),
+                            KeyCode::PageDown => app.guide_scroll(12),
+                            KeyCode::Home => app.guide_scroll_to(0),
+                            KeyCode::End => app.guide_scroll_to(usize::MAX),
+                            KeyCode::Char(c) if c.is_ascii_digit() && c != '0' => {
+                                app.guide_jump((c as u8 - b'1') as usize)
+                            }
+                            _ => {}
+                        }
+                        continue;
+                    }
+                    // Pasted newlines arrive as LF, which crossterm parses as
+                    // Ctrl+J (the terminal convention for line feed). Treat it
+                    // as Enter so multi-line pastes submit line by line, like
+                    // the REPL and piped scripts.
+                    let is_enter = key.code == KeyCode::Enter
+                        || (key.code == KeyCode::Char('j')
+                            && key.modifiers.contains(KeyModifiers::CONTROL));
                     match key.code {
+                        // Guarded arms must precede the generic `Char` arm — the
+                        // catch-all would swallow Ctrl+C and type a 'c' instead.
                         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                             return Ok(());
                         }
-                        KeyCode::Esc | KeyCode::Char('q') => app.guide_close(),
-                        KeyCode::Up => app.guide_scroll(-1),
-                        KeyCode::Down => app.guide_scroll(1),
-                        KeyCode::PageUp => app.guide_scroll(-12),
-                        KeyCode::PageDown => app.guide_scroll(12),
-                        KeyCode::Home => app.guide_scroll_to(0),
-                        KeyCode::End => app.guide_scroll_to(usize::MAX),
-                        KeyCode::Char(c) if c.is_ascii_digit() && c != '0' => {
-                            app.guide_jump((c as u8 - b'1') as usize)
+                        // File prompt mode (ADR-0017): almost every key goes to
+                        // the path buffer.
+                        KeyCode::Char(c) if app.prompt_active().is_some() && !is_enter => {
+                            app.prompt_push(c);
                         }
-                        _ => {}
-                    }
-                    continue;
-                }
-                // Pasted newlines arrive as LF, which crossterm parses as
-                // Ctrl+J (the terminal convention for line feed). Treat it
-                // as Enter so multi-line pastes submit line by line, like
-                // the REPL and piped scripts.
-                let is_enter = key.code == KeyCode::Enter
-                    || (key.code == KeyCode::Char('j')
-                        && key.modifiers.contains(KeyModifiers::CONTROL));
-                match key.code {
-                    // Guarded arms must precede the generic `Char` arm — the
-                    // catch-all would swallow Ctrl+C and type a 'c' instead.
-                    KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                        return Ok(());
-                    }
-                    // File prompt mode (ADR-0017): almost every key goes to
-                    // the path buffer.
-                    KeyCode::Char(c) if app.prompt_active().is_some() && !is_enter => {
-                        app.prompt_push(c);
-                    }
-                    KeyCode::Backspace if app.prompt_active().is_some() => {
-                        app.prompt_pop();
-                    }
-                    KeyCode::Esc if app.prompt_active().is_some() => {
-                        app.prompt_cancel();
-                    }
-                    // Menu bar mode (ADR-0017): F10 opens/closes; arrows
-                    // move; Enter activates; Esc closes.
-                    KeyCode::F(10) if app.prompt_active().is_none() => {
-                        if app.menu_active().is_some() {
-                            app.menu_close();
-                        } else {
-                            app.menu_open(0);
+                        KeyCode::Backspace if app.prompt_active().is_some() => {
+                            app.prompt_pop();
                         }
-                    }
-                    KeyCode::Left if app.menu_view_item().is_some() => {
-                        if let Some(item) = app.menu_view_item() {
-                            let axis = view_axis_of(item);
-                            app.nudge_view_offset(axis, -0.1);
+                        KeyCode::Esc if app.prompt_active().is_some() => {
+                            app.prompt_cancel();
                         }
-                    }
-                    KeyCode::Right if app.menu_view_item().is_some() => {
-                        if let Some(item) = app.menu_view_item() {
-                            let axis = view_axis_of(item);
-                            app.nudge_view_offset(axis, 0.1);
-                        }
-                    }
-                    KeyCode::Left if app.menu_active().is_some() => app.menu_move(-1, 0),
-                    KeyCode::Right if app.menu_active().is_some() => app.menu_move(1, 0),
-                    KeyCode::Up if app.menu_active().is_some() => app.menu_move(0, -1),
-                    KeyCode::Down if app.menu_active().is_some() => app.menu_move(0, 1),
-                    KeyCode::Esc if app.menu_active().is_some() => app.menu_close(),
-                    KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                        app.clear_history();
-                        let _ = save_history(&store, app.history());
-                    }
-                    KeyCode::Char('q') if app.input().is_empty() && !app.keypad_focused() => {
-                        return Ok(());
-                    }
-                    // Keypad mode (ADR-0016): Tab opens the button grid
-                    // and cycles its banks (Shift+Tab cycles back);
-                    // inside it, arrows move, Enter inserts, Esc closes.
-                    KeyCode::Tab => {
-                        // Focus cycle: input → keypad → history → input
-                        // (ADR-0027: the history list is the last stop so
-                        // a picked line drops you back on the input).
-                        if app.keypad_focused() {
-                            app.keypad_close();
-                            app.history_open();
-                        } else if app.history_focused() {
-                            app.history_close();
-                        } else {
-                            app.keypad_open();
-                        }
-                    }
-                    KeyCode::BackTab => {
-                        if app.keypad_focused() {
-                            app.keypad_cycle(-1);
-                        } else if app.history_focused() {
-                            app.history_close();
-                            app.keypad_open();
-                        }
-                    }
-                    KeyCode::Left if app.keypad_focused() => app.keypad_move(0, -1),
-                    KeyCode::Right if app.keypad_focused() => app.keypad_move(0, 1),
-                    KeyCode::Up if app.keypad_focused() => app.keypad_move(-1, 0),
-                    KeyCode::Down if app.keypad_focused() => app.keypad_move(1, 0),
-                    KeyCode::Esc if app.keypad_focused() => app.keypad_close(),
-                    // History focus (ADR-0027): arrows move the selection
-                    // (up = older), Esc steps back to the input.
-                    KeyCode::Up if app.history_focused() => app.history_move(1),
-                    KeyCode::Down if app.history_focused() => app.history_move(-1),
-                    KeyCode::Esc if app.history_focused() => app.history_close(),
-                    // 3D orbit (ADR-0015): arrows rotate when the input line
-                    // is empty, so typing never loses an arrow key.
-                    KeyCode::Left if app.input().is_empty() => app.rotate_view(-0.15, 0.0),
-                    KeyCode::Right if app.input().is_empty() => app.rotate_view(0.15, 0.0),
-                    KeyCode::Up if app.input().is_empty() => app.rotate_view(0.0, 0.15),
-                    KeyCode::Down if app.input().is_empty() => app.rotate_view(0.0, -0.15),
-                    // Space starts/stops the parameter animation (ADR-0015).
-                    KeyCode::Char(' ') if app.input().is_empty() => {
-                        app.toggle_play();
-                    }
-                    // Any typed character leaves keypad/history focus
-                    // first — typing is the other spelling of the same
-                    // input.
-                    KeyCode::Char(c) if !is_enter => {
-                        app.keypad_close();
-                        app.history_close();
-                        app.menu_close();
-                        app.push_char(c);
-                    }
-                    KeyCode::Backspace => {
-                        app.history_close();
-                        app.pop_char();
-                    }
-                    KeyCode::Esc => app.clear_input(),
-                    _ => {}
-                }
-                if is_enter && app.prompt_active().is_some() {
-                    // Confirm the file prompt: execute, and either close
-                    // with a success message or reopen with the path kept.
-                    let kind = app.prompt_active().map(|(k, _)| k);
-                    let path = app
-                        .prompt_active()
-                        .map(|(_, buf)| buf.to_string())
-                        .unwrap_or_default();
-                    match app.prompt_submit(&localizer) {
-                        Some(failed) => {
-                            app.prompt_restore(failed, &path);
-                            let msg = if matches!(
-                                failed,
-                                PromptKind::OpenHistory | PromptKind::OpenScript
-                            ) {
-                                localizer.lookup("tui-open-failed")
+                        // Menu bar mode (ADR-0017): F10 opens/closes; arrows
+                        // move; Enter activates; Esc closes.
+                        KeyCode::F(10) if app.prompt_active().is_none() => {
+                            if app.menu_active().is_some() {
+                                app.menu_close();
                             } else {
-                                localizer.lookup("tui-save-failed")
-                            };
-                            app.set_result(&msg);
-                        }
-                        None => {
-                            // OpenHistory already reported the loaded line
-                            // count; the other outcomes report here.
-                            let msg = match kind {
-                                Some(PromptKind::OpenScript) => Some(localizer.lookup("menu-loaded")),
-                                Some(PromptKind::OpenHistory) => None,
-                                _ => Some(localizer.lookup_args("saved", &[("name", &path)])),
-                            };
-                            if let Some(msg) = msg {
-                                app.set_result(&msg);
+                                app.menu_open(0);
                             }
                         }
-                    }
-                } else if is_enter && app.menu_active().is_some() {
-                    if let Some(action) = app.menu_activate() {
-                        if perform_menu_action(&mut app, &store, &mut localizer, action) {
+                        KeyCode::Left if app.menu_view_item().is_some() => {
+                            if let Some(item) = app.menu_view_item() {
+                                let axis = view_axis_of(item);
+                                app.nudge_view_offset(axis, -0.1);
+                            }
+                        }
+                        KeyCode::Right if app.menu_view_item().is_some() => {
+                            if let Some(item) = app.menu_view_item() {
+                                let axis = view_axis_of(item);
+                                app.nudge_view_offset(axis, 0.1);
+                            }
+                        }
+                        KeyCode::Left if app.menu_active().is_some() => app.menu_move(-1, 0),
+                        KeyCode::Right if app.menu_active().is_some() => app.menu_move(1, 0),
+                        KeyCode::Up if app.menu_active().is_some() => app.menu_move(0, -1),
+                        KeyCode::Down if app.menu_active().is_some() => app.menu_move(0, 1),
+                        KeyCode::Esc if app.menu_active().is_some() => app.menu_close(),
+                        KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                            app.clear_history();
+                            let _ = save_history(&store, app.history());
+                            let _ = save_session(&store, app.bindings());
+                        }
+                        KeyCode::Char('q') if app.input().is_empty() && !app.keypad_focused() => {
                             return Ok(());
                         }
+                        // Keypad mode (ADR-0016): Tab opens the button grid
+                        // and cycles its banks (Shift+Tab cycles back);
+                        // inside it, arrows move, Enter inserts, Esc closes.
+                        KeyCode::Tab => {
+                            // Focus cycle: input → keypad → history → input
+                            // (ADR-0027: the history list is the last stop so
+                            // a picked line drops you back on the input).
+                            if app.keypad_focused() {
+                                app.keypad_close();
+                                app.history_open();
+                            } else if app.history_focused() {
+                                app.history_close();
+                            } else {
+                                app.keypad_open();
+                            }
+                        }
+                        KeyCode::BackTab => {
+                            if app.keypad_focused() {
+                                app.keypad_cycle(-1);
+                            } else if app.history_focused() {
+                                app.history_close();
+                                app.keypad_open();
+                            }
+                        }
+                        KeyCode::Left if app.keypad_focused() => app.keypad_move(0, -1),
+                        KeyCode::Right if app.keypad_focused() => app.keypad_move(0, 1),
+                        KeyCode::Up if app.keypad_focused() => app.keypad_move(-1, 0),
+                        KeyCode::Down if app.keypad_focused() => app.keypad_move(1, 0),
+                        KeyCode::Esc if app.keypad_focused() => app.keypad_close(),
+                        // History focus (ADR-0027): arrows move the selection
+                        // (up = older), Esc steps back to the input.
+                        KeyCode::Up if app.history_focused() => app.history_move(1),
+                        KeyCode::Down if app.history_focused() => app.history_move(-1),
+                        KeyCode::Esc if app.history_focused() => app.history_close(),
+                        // 3D orbit (ADR-0015): arrows rotate when the input line
+                        // is empty, so typing never loses an arrow key.
+                        KeyCode::Left if app.input().is_empty() => app.rotate_view(-0.15, 0.0),
+                        KeyCode::Right if app.input().is_empty() => app.rotate_view(0.15, 0.0),
+                        KeyCode::Up if app.input().is_empty() => app.rotate_view(0.0, 0.15),
+                        KeyCode::Down if app.input().is_empty() => app.rotate_view(0.0, -0.15),
+                        // Space starts/stops the parameter animation (ADR-0015).
+                        KeyCode::Char(' ') if app.input().is_empty() => {
+                            app.toggle_play();
+                        }
+                        // Any typed character leaves keypad/history focus
+                        // first — typing is the other spelling of the same
+                        // input.
+                        KeyCode::Char(c) if !is_enter => {
+                            app.keypad_close();
+                            app.history_close();
+                            app.menu_close();
+                            app.push_char(c);
+                        }
+                        KeyCode::Backspace => {
+                            app.history_close();
+                            app.pop_char();
+                        }
+                        KeyCode::Esc => app.clear_input(),
+                        _ => {}
                     }
-                } else if is_enter && app.history_focused() {
-                    // Pick the highlighted history line into the input
-                    // (ADR-0027) — the user edits and re-runs it.
-                    if let Some(line) = app.history_pick() {
-                        app.set_input(&line);
+                    if is_enter && app.prompt_active().is_some() {
+                        // Confirm the file prompt: execute, and either close
+                        // with a success message or reopen with the path kept.
+                        let kind = app.prompt_active().map(|(k, _)| k);
+                        let path = app
+                            .prompt_active()
+                            .map(|(_, buf)| buf.to_string())
+                            .unwrap_or_default();
+                        match app.prompt_submit(&localizer) {
+                            Some(failed) => {
+                                app.prompt_restore(failed, &path);
+                                let msg = if matches!(
+                                    failed,
+                                    PromptKind::OpenHistory | PromptKind::OpenScript
+                                ) {
+                                    localizer.lookup("tui-open-failed")
+                                } else {
+                                    localizer.lookup("tui-save-failed")
+                                };
+                                app.set_result(&msg);
+                            }
+                            None => {
+                                // OpenHistory already reported the loaded line
+                                // count; the other outcomes report here.
+                                let msg = match kind {
+                                    Some(PromptKind::OpenScript) => {
+                                        Some(localizer.lookup("menu-loaded"))
+                                    }
+                                    Some(PromptKind::OpenHistory) => None,
+                                    _ => Some(localizer.lookup_args("saved", &[("name", &path)])),
+                                };
+                                if let Some(msg) = msg {
+                                    app.set_result(&msg);
+                                }
+                            }
+                        }
+                    } else if is_enter && app.menu_active().is_some() {
+                        if let Some(action) = app.menu_activate() {
+                            if perform_menu_action(&mut app, &store, &mut localizer, action) {
+                                return Ok(());
+                            }
+                        }
+                    } else if is_enter && app.history_focused() {
+                        // Pick the highlighted history line into the input
+                        // (ADR-0027) — the user edits and re-runs it.
+                        if let Some(line) = app.history_pick() {
+                            app.set_input(&line);
+                        }
+                    } else if is_enter && (!app.keypad_focused() || app.keypad_is_submit()) {
+                        // The entry's Enter and the keypad's "=" key run the
+                        // same submit path (ADR-0016).
+                        let line = app.input().trim().to_string();
+                        if let Some(code) = app.submit_line(&line, &store, &localizer) {
+                            localizer = Localizer::resolve(Some(&code), &[]);
+                        }
+                        // Every submit empties the line — including graph
+                        // commands, whose path doesn't clear it itself — so a
+                        // multi-line paste leaves a clean slate for the next
+                        // line instead of appending to the leftover.
+                        app.clear_input();
+                    } else if is_enter {
+                        app.keypad_insert();
                     }
-                } else if is_enter && (!app.keypad_focused() || app.keypad_is_submit()) {
-                    // The entry's Enter and the keypad's "=" key run the
-                    // same submit path (ADR-0016).
-                    let line = app.input().trim().to_string();
-                    if let Some(code) = app.submit_line(&line, &store, &localizer) {
-                        localizer = Localizer::resolve(Some(&code), &[]);
-                    }
-                    // Every submit empties the line — including graph
-                    // commands, whose path doesn't clear it itself — so a
-                    // multi-line paste leaves a clean slate for the next
-                    // line instead of appending to the leftover.
-                    app.clear_input();
-                } else if is_enter {
-                    app.keypad_insert();
                 }
-            }
             }
             None => {}
             Some(_) => {}
@@ -1829,7 +1947,10 @@ fn handle_mouse(
     use crossterm::event::MouseEventKind;
     let areas = app.areas;
     let inside = |r: ratatui::layout::Rect, col: u16, row: u16| {
-        col >= r.x && col < r.x.saturating_add(r.width) && row >= r.y && row < r.y.saturating_add(r.height)
+        col >= r.x
+            && col < r.x.saturating_add(r.width)
+            && row >= r.y
+            && row < r.y.saturating_add(r.height)
     };
     match event.kind {
         // The wheel zooms the graph (3D camera / 2D viewport) and
@@ -1842,11 +1963,19 @@ fn handle_mouse(
                     3
                 });
             } else if inside(areas.graph, event.column, event.row) && !app.surfaces().is_empty() {
-                let factor = if matches!(event.kind, MouseEventKind::ScrollUp) { 0.9 } else { 1.1 };
+                let factor = if matches!(event.kind, MouseEventKind::ScrollUp) {
+                    0.9
+                } else {
+                    1.1
+                };
                 let camera = app.view().camera * factor;
                 app.view_set_camera(camera);
             } else if inside(areas.graph, event.column, event.row) && !app.graph().is_empty() {
-                let factor = if matches!(event.kind, MouseEventKind::ScrollUp) { 0.8 } else { 1.25 };
+                let factor = if matches!(event.kind, MouseEventKind::ScrollUp) {
+                    0.8
+                } else {
+                    1.25
+                };
                 app.graph2d_zoom(factor);
             }
             false
@@ -1883,11 +2012,7 @@ fn handle_mouse(
             }
             // 2. The menu bar: click a label to open/close its menu.
             if row == areas.menu_labels[0].y {
-                if let Some(i) = areas
-                    .menu_labels
-                    .iter()
-                    .position(|r| inside(*r, col, row))
-                {
+                if let Some(i) = areas.menu_labels.iter().position(|r| inside(*r, col, row)) {
                     if app.menu_active().map(|(m, _)| m) == Some(i) {
                         app.menu_close();
                     } else {
@@ -1919,7 +2044,11 @@ fn handle_mouse(
             if inside(areas.keypad, col, row) {
                 // The bank label row.
                 if row == areas.keypad.y.saturating_add(1) {
-                    if let Some(b) = areas.kp_bank_labels.iter().position(|r| inside(*r, col, row)) {
+                    if let Some(b) = areas
+                        .kp_bank_labels
+                        .iter()
+                        .position(|r| inside(*r, col, row))
+                    {
                         app.keypad_select_bank(b);
                     }
                     return false;
@@ -1947,7 +2076,8 @@ fn handle_mouse(
                 }
                 return false;
             }
-            if inside(areas.graph, col, row) && (!app.surfaces().is_empty() || !app.graph().is_empty())
+            if inside(areas.graph, col, row)
+                && (!app.surfaces().is_empty() || !app.graph().is_empty())
             {
                 // A double-click resets the view: 2D re-fits the samples,
                 // 3D returns to the default pose.
@@ -1969,11 +2099,15 @@ fn handle_mouse(
                     *drag = None;
                     return false;
                 }
-                *drag = Some((col, row, if app.surfaces().is_empty() {
-                    MouseDrag::Pan2D
-                } else {
-                    MouseDrag::Rotate3D
-                }));
+                *drag = Some((
+                    col,
+                    row,
+                    if app.surfaces().is_empty() {
+                        MouseDrag::Pan2D
+                    } else {
+                        MouseDrag::Rotate3D
+                    },
+                ));
                 return false;
             }
             false
@@ -1989,7 +2123,9 @@ fn handle_mouse(
             match kind {
                 MouseDrag::Rotate3D => {
                     let v = *app.view();
-                    app.view = v.with_yaw(v.yaw + dx * 0.01).with_pitch(v.pitch + dy * 0.01);
+                    app.view = v
+                        .with_yaw(v.yaw + dx * 0.01)
+                        .with_pitch(v.pitch + dy * 0.01);
                 }
                 MouseDrag::Pan2D => {
                     let (w, h) = graph_dims(areas.graph);
@@ -2060,7 +2196,10 @@ fn menu_rows(app: &App, localizer: &Localizer) -> Vec<PopupRow> {
             rows.push(PopupRow::Item(3, localizer.lookup("theme-night")));
             rows.push(PopupRow::Rule(localizer.lookup("tui-settings-language")));
             for (i, code) in epher_i18n::SUPPORTED_LOCALES.iter().enumerate() {
-                rows.push(PopupRow::Item(4 + i, native_language_name(code).to_string()));
+                rows.push(PopupRow::Item(
+                    4 + i,
+                    native_language_name(code).to_string(),
+                ));
             }
             // The 3D fine controls (ADR-0031) join the menu only while
             // surfaces are displayed, mirroring the web's sliders; their
@@ -2104,7 +2243,9 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         Theme::Light => (
             Some(Color::White),
             Color::Black,
-            Style::default().fg(Color::Rgb(0, 110, 60)).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Rgb(0, 110, 60))
+                .add_modifier(Modifier::BOLD),
             Style::default().fg(Color::DarkGray),
             Color::Rgb(0, 110, 110),
             Color::White,
@@ -2113,7 +2254,9 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         Theme::Night => (
             Some(Color::Rgb(13, 0, 0)),
             Color::Rgb(255, 179, 168),
-            Style::default().fg(Color::Rgb(255, 110, 96)).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Rgb(255, 110, 96))
+                .add_modifier(Modifier::BOLD),
             Style::default().fg(Color::Rgb(217, 136, 120)),
             Color::Rgb(255, 107, 90),
             Color::Rgb(26, 0, 0),
@@ -2122,7 +2265,9 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         Theme::Dark => (
             None,
             Color::Reset,
-            Style::default().fg(Color::Green).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
             Style::default().fg(Color::DarkGray),
             Color::Cyan,
             Color::Black,
@@ -2130,7 +2275,10 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         ),
     };
     if let Some(bg) = screen_bg {
-        frame.render_widget(Block::default().style(Style::default().bg(bg)), frame.area());
+        frame.render_widget(
+            Block::default().style(Style::default().bg(bg)),
+            frame.area(),
+        );
     }
     let border_style = Style::default().fg(border_fg);
     let block = |title: String| {
@@ -2151,17 +2299,20 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         let chapters = epher_guide::chapters(epher_guide::guide(localizer.locale()));
         let toc_len = chapters.len().min(12);
         let rows = Layout::vertical([
-            Constraint::Length(1),                       // title
-            Constraint::Length(toc_len as u16),          // table of contents
-            Constraint::Min(0),                          // content
-            Constraint::Length(1),                       // scroll hint
+            Constraint::Length(1),              // title
+            Constraint::Length(toc_len as u16), // table of contents
+            Constraint::Min(0),                 // content
+            Constraint::Length(1),              // scroll hint
         ])
         .split(frame.area());
         let title = localizer.lookup("menu-guide");
         frame.render_widget(
             Paragraph::new(Line::from(Span::styled(
                 format!(" {title} "),
-                Style::default().bg(sel_bg).fg(sel_fg).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .bg(sel_bg)
+                    .fg(sel_fg)
+                    .add_modifier(Modifier::BOLD),
             ))),
             rows[0],
         );
@@ -2187,7 +2338,9 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             match t {
                 epher_guide::TLine::Heading(level, text) => {
                     let style = if level == 1 {
-                        Style::default().fg(fg).add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
+                        Style::default()
+                            .fg(fg)
+                            .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
                     } else {
                         Style::default().fg(fg).add_modifier(Modifier::BOLD)
                     };
@@ -2248,8 +2401,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     }
 
     // The menu bar row (ADR-0017): File | Edit | Graph | Settings | Help.
-    let base = Layout::vertical([Constraint::Length(1), Constraint::Min(0)])
-        .split(frame.area());
+    let base = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]).split(frame.area());
     let (menu_area, body) = (base[0], base[1]);
     areas.menu_labels = [menu_area; 5];
 
@@ -2266,7 +2418,10 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         let open = app.menu_active().map(|(m, _)| m) == Some(i);
         let text = format!(" {} ", label);
         let style = if open {
-            Style::default().bg(sel_bg).fg(sel_fg).add_modifier(Modifier::BOLD)
+            Style::default()
+                .bg(sel_bg)
+                .fg(sel_fg)
+                .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(fg)
         };
@@ -2313,12 +2468,9 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         .clamp(1, 3);
     let (input_area, result_area, history_area, graph_area, keypad_area, hints_area) = if wide {
         let split =
-            Layout::vertical([Constraint::Min(0), Constraint::Length(hint_rows)])
-                .split(body);
+            Layout::vertical([Constraint::Min(0), Constraint::Length(hint_rows)]).split(body);
         let (content, hints) = (split[0], split[1]);
-        let split =
-            Layout::horizontal([Constraint::Length(46), Constraint::Min(0)])
-                .split(content);
+        let split = Layout::horizontal([Constraint::Length(46), Constraint::Min(0)]).split(content);
         let (calc_col, graph_col) = (split[0], split[1]);
         // Input, answer, history, then the keypad — the calculator
         // column reads top to bottom exactly like the app and the PWA
@@ -2344,11 +2496,11 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         // graph sharing what is left, then the always-visible keypad
         // and the wrapped hints.
         let rows = Layout::vertical([
-            Constraint::Length(3),  // input
-            Constraint::Length(1),  // result
-            Constraint::Min(0),     // history
-            Constraint::Min(0),     // graph
-            Constraint::Length(8),  // keypad (bank row + 5 key rows)
+            Constraint::Length(3),         // input
+            Constraint::Length(1),         // result
+            Constraint::Min(0),            // history
+            Constraint::Min(0),            // graph
+            Constraint::Length(8),         // keypad (bank row + 5 key rows)
             Constraint::Length(hint_rows), // hints
         ])
         .split(body);
@@ -2357,10 +2509,18 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
 
     // The input row doubles as the file prompt (ADR-0017).
     let (input_title, input_text) = match app.prompt_active() {
-        Some((PromptKind::OpenHistory, buf)) => (localizer.lookup("tui-open-prompt"), buf.to_string()),
-        Some((PromptKind::OpenScript, buf)) => (localizer.lookup("tui-open-prompt"), buf.to_string()),
-        Some((PromptKind::SaveHistory, buf)) => (localizer.lookup("tui-save-prompt"), buf.to_string()),
-        Some((PromptKind::SaveScript, buf)) => (localizer.lookup("tui-save-prompt"), buf.to_string()),
+        Some((PromptKind::OpenHistory, buf)) => {
+            (localizer.lookup("tui-open-prompt"), buf.to_string())
+        }
+        Some((PromptKind::OpenScript, buf)) => {
+            (localizer.lookup("tui-open-prompt"), buf.to_string())
+        }
+        Some((PromptKind::SaveHistory, buf)) => {
+            (localizer.lookup("tui-save-prompt"), buf.to_string())
+        }
+        Some((PromptKind::SaveScript, buf)) => {
+            (localizer.lookup("tui-save-prompt"), buf.to_string())
+        }
         None => (localizer.lookup("tui-expression"), app.input().to_string()),
     };
     // Record every panel's rect for the mouse (ADR-0034).
@@ -2372,7 +2532,9 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     if let Some(kp) = keypad_area {
         areas.keypad = kp;
     }
-    let input = Paragraph::new(input_text.clone()).style(Style::default().fg(fg)).block(block(input_title));
+    let input = Paragraph::new(input_text.clone())
+        .style(Style::default().fg(fg))
+        .block(block(input_title));
     frame.render_widget(input, input_area);
 
     let result = Paragraph::new(app.result()).style(result_style);
@@ -2420,7 +2582,12 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             .take_while(|&&i| i != usize::MAX)
             .position(|&i| i == app.history_sel())
             .unwrap_or(0);
-        let sel_height = app.hist_rows.iter().filter(|&&i| i == app.history_sel()).count().max(1);
+        let sel_height = app
+            .hist_rows
+            .iter()
+            .filter(|&&i| i == app.history_sel())
+            .count()
+            .max(1);
         let scroll = sel_top.saturating_sub(visible.saturating_sub(sel_height.min(visible)));
         scroll.min(total_rows.saturating_sub(visible)) as u16
     } else {
@@ -2534,7 +2701,9 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             .map(|(i, c)| {
                 let glyph = ['o', 'x', '+', '*'][i % 4];
                 let caption = match &c.kind {
-                    epher_core::graph::CurveKind::Cartesian(_) => format!("y = {}", c.source.trim()),
+                    epher_core::graph::CurveKind::Cartesian(_) => {
+                        format!("y = {}", c.source.trim())
+                    }
                     _ => c.source.trim().to_string(),
                 };
                 format!("{glyph} {caption}")
@@ -2548,14 +2717,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             .pois()
             .iter()
             .take(2)
-            .map(|p| {
-                format!(
-                    "{} ({:.3}, {:.3})",
-                    poi_label(p.kind, localizer),
-                    p.x,
-                    p.y
-                )
-            })
+            .map(|p| format!("{} ({:.3}, {:.3})", poi_label(p.kind, localizer), p.x, p.y))
             .collect();
         if !poi_lines.is_empty() && app.poi_list() {
             graph_text.push('\n');
@@ -2629,7 +2791,11 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         };
         frame.render_widget(Clear, popup);
         frame.render_widget(
-            Paragraph::new(lines).block(Block::default().borders(Borders::ALL).border_style(border_style)),
+            Paragraph::new(lines).block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(border_style),
+            ),
             popup,
         );
         // The mouse map (ADR-0034): clicks inside the popup resolve
@@ -2707,7 +2873,6 @@ fn native_language_name(code: &str) -> &str {
     }
 }
 
-
 /// Copy text to the terminal's clipboard via OSC 52 (ADR-0017): the
 /// escape sequence every mainstream terminal honors, remote sessions
 /// included. Written raw between ratatui frames.
@@ -2755,8 +2920,8 @@ pub fn base64_for_osc52(bytes: &[u8]) -> String {
 mod draw_tests {
     use super::*;
     use ratatui::backend::TestBackend;
-    use ratatui::Terminal;
     use ratatui::layout::Rect;
+    use ratatui::Terminal;
 
     /// The menu popup must paint over the screen's existing content, not
     /// behind it: ratatui renders into one buffer in call order, and the
@@ -2780,7 +2945,12 @@ mod draw_tests {
 
         // The File menu drops down at column 1, one row under the menu
         // bar, and is 26 wide × (5 items + borders) tall.
-        let popup = Rect { x: 1, y: 1, width: 26, height: 7 };
+        let popup = Rect {
+            x: 1,
+            y: 1,
+            width: 26,
+            height: 7,
+        };
         let mut saw_quit = false;
         let mut leaked = false;
         for y in popup.y..popup.y + popup.height {
@@ -2795,7 +2965,10 @@ mod draw_tests {
                 leaked = true;
             }
         }
-        assert!(saw_quit, "the File menu's Quit item must be visible in the popup");
+        assert!(
+            saw_quit,
+            "the File menu's Quit item must be visible in the popup"
+        );
         assert!(!leaked, "history text must not bleed into the open menu");
     }
 
@@ -2805,9 +2978,7 @@ mod draw_tests {
     /// 20-row graph) hid the history section entirely at this size.
     #[test]
     fn eighty_column_terminal_shows_history_and_graph_on_the_right() {
-        let mut app = App::with_session(Session::with_history(vec![
-            "2 + 2  = 4".to_string(),
-        ]));
+        let mut app = App::with_session(Session::with_history(vec!["2 + 2  = 4".to_string()]));
         app.set_result("= 4");
         app.submit_graph("x").unwrap();
         let localizer = Localizer::resolve(None, &[]);

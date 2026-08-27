@@ -28,14 +28,16 @@ fn main() {
         .title("EPHER")
         .section("1")
         .manual("User Commands")
-        .source("epher 0.4.29");
+        .source("epher 0.4.30");
     let mut out = std::io::stdout();
     man.render_title(&mut out).expect("title");
     man.render_name_section(&mut out).expect("name");
     man.render_synopsis_section(&mut out).expect("synopsis");
-    man.render_description_section(&mut out).expect("description");
+    man.render_description_section(&mut out)
+        .expect("description");
     man.render_options_section(&mut out).expect("options");
-    man.render_subcommands_section(&mut out).expect("subcommands");
+    man.render_subcommands_section(&mut out)
+        .expect("subcommands");
 
     // The hand-written half, from the user guide.
     for section in sections() {
@@ -87,17 +89,44 @@ fn sections() -> Vec<Roff> {
     }));
 
     v.push(section("BUILT-IN FUNCTIONS", |roff| {
-        para(roff, "Trigonometry works in radians; deg(x) and rad(x) convert.");
-        tagged(roff, "sin cos tan asin acos atan atan2", "trigonometric and inverse trigonometric");
+        para(
+            roff,
+            "Trigonometry works in radians; deg(x) and rad(x) convert.",
+        );
+        tagged(
+            roff,
+            "sin cos tan asin acos atan atan2",
+            "trigonometric and inverse trigonometric",
+        );
         tagged(roff, "deg(x), rad(x)", "radians to degrees and back");
-        tagged(roff, "sinh cosh tanh asinh acosh atanh", "hyperbolic and inverse hyperbolic");
+        tagged(
+            roff,
+            "sinh cosh tanh asinh acosh atanh",
+            "hyperbolic and inverse hyperbolic",
+        );
         tagged(roff, "sqrt cbrt root(n, x) exp", "powers and roots");
-        tagged(roff, "ln log log2 logb(b, x) hypot(a, b)", "logarithms and hypotenuse");
+        tagged(
+            roff,
+            "ln log log2 logb(b, x) hypot(a, b)",
+            "logarithms and hypotenuse",
+        );
         tagged(roff, "n! or fact(n)", "factorial");
         tagged(roff, "abs floor ceil round trunc sign", "rounding and sign");
-        tagged(roff, "mod(a, b) gcd(a, b) lcm(a, b)", "remainders and common divisors");
-        tagged(roff, "ncr(n, r), npr(n, r)", "combinations and permutations");
-        tagged(roff, "sum product mean median min max variance stdev", "statistics over any number of arguments");
+        tagged(
+            roff,
+            "mod(a, b) gcd(a, b) lcm(a, b)",
+            "remainders and common divisors",
+        );
+        tagged(
+            roff,
+            "ncr(n, r), npr(n, r)",
+            "combinations and permutations",
+        );
+        tagged(
+            roff,
+            "sum product mean median min max variance stdev",
+            "statistics over any number of arguments",
+        );
     }));
 
     v.push(section("SHELL COMMANDS", |roff| {
@@ -116,7 +145,11 @@ fn sections() -> Vec<Roff> {
     v.push(section("EXIT STATUS", |roff| {
         tagged(roff, "0", "success");
         tagged(roff, "1", "a calculation or runtime error");
-        tagged(roff, "2", "usage error (bad arguments; also when `epher -` finds a terminal on stdin)");
+        tagged(
+            roff,
+            "2",
+            "usage error (bad arguments; also when `epher -` finds a terminal on stdin)",
+        );
     }));
 
     v.push(section("FILES", |roff| {
@@ -124,8 +157,16 @@ fn sections() -> Vec<Roff> {
     }));
 
     v.push(section("ENVIRONMENT", |roff| {
-        tagged(roff, "EPHER_STORE_DIR", "relocate the store (EPHER_STORE_DIR=/tmp/scratch epher repl)");
-        tagged(roff, "NO_COLOR", "disable colored error output when set (see no-color.org)");
+        tagged(
+            roff,
+            "EPHER_STORE_DIR",
+            "relocate the store (EPHER_STORE_DIR=/tmp/scratch epher repl)",
+        );
+        tagged(
+            roff,
+            "NO_COLOR",
+            "disable colored error output when set (see no-color.org)",
+        );
     }));
 
     v.push(section("EXAMPLES", |roff| {
@@ -144,7 +185,10 @@ fn sections() -> Vec<Roff> {
 fn see_also() -> Roff {
     let mut roff = Roff::default();
     roff.control("SH", ["SEE ALSO"]);
-    para(&mut roff, "The user guide, in eight languages, and the project itself:");
+    para(
+        &mut roff,
+        "The user guide, in eight languages, and the project itself:",
+    );
     tagged(&mut roff, "https://epher.org/guide/", "the full user guide");
     tagged(
         &mut roff,

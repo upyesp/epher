@@ -997,6 +997,11 @@ TUI sont déjà là à l'ouverture de la fenêtre, y compris les variables
 définies par des scripts enregistrés. Les commandes `save`, `save script`
 et `language` du chapitre 4 fonctionnent exactement pareil ici.
 
+Les commandes que vous tapez dans la CLI, le REPL, la TUI ou
+l'application de bureau rejoignent toutes le même historique, et la
+session voyage aussi : les variables que vous affectez et la valeur
+`ans` vous suivent d'une version à l'autre.
+
 > L'application web dans le navigateur est la seule version qui n'utilise
 > pas ce stockage : chaque session vit isolée (chapitre 2.6).
 

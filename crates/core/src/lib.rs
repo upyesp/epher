@@ -17,6 +17,11 @@ use num_traits::Zero;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
+/// The shared session snapshot persisted in the store (ADR-0010
+/// amendment): the environment's variable bindings — user assignments
+/// and `ans` — saved by whichever interactive frontend ran last.
+pub type ValueBindings = HashMap<String, Value>;
+
 /// The result of evaluating an Expression — the project's single number
 /// representation (ADR-0005). `Float` is the default fast path; the other
 /// variants are opt-in exactness layers.
@@ -78,6 +83,13 @@ impl Env {
     /// Bind a name to a value.
     pub fn set(&mut self, name: impl Into<String>, value: Value) {
         self.bindings.insert(name.into(), value);
+    }
+
+    /// The session's variable bindings (user assignments plus `ans`), for
+    /// the shared-store snapshot every interactive frontend persists
+    /// (ADR-0010 amendment): CLI/REPL, TUI, and desktop GUI.
+    pub fn bindings(&self) -> &HashMap<String, Value> {
+        &self.bindings
     }
 
     /// Look up a user-defined constant (ADR-0012).
@@ -316,7 +328,9 @@ pub fn parse_script(text: &str) -> Result<Vec<Statement>, EpherError> {
             }
             None => break,
             Some(_) => {
-                return Err(EpherError::Parse("expected ';' or a newline between statements".into()));
+                return Err(EpherError::Parse(
+                    "expected ';' or a newline between statements".into(),
+                ));
             }
         }
     }
@@ -433,11 +447,10 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
                 tokens.push(Token::RParen);
                 chars.next();
             }
-            '0'
-                if matches!(
-                    chars.clone().nth(1),
-                    Some('b' | 'B' | 'o' | 'O' | 'x' | 'X')
-                ) =>
+            '0' if matches!(
+                chars.clone().nth(1),
+                Some('b' | 'B' | 'o' | 'O' | 'x' | 'X')
+            ) =>
             {
                 // Based literals (ADR-0022): 0b/0o/0x with the digits the
                 // community expects — 0b101, 0o17, 0xFF. The value is the
@@ -542,7 +555,11 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
                 }
                 tokens.push(Token::Ident(ident));
             }
-            other => return Err(EpherError::Parse(format!("unexpected character: {other:?}"))),
+            other => {
+                return Err(EpherError::Parse(format!(
+                    "unexpected character: {other:?}"
+                )))
+            }
         }
     }
     Ok(tokens)
@@ -625,7 +642,9 @@ impl Parser {
     fn expect_ident(&mut self, what: &str) -> Result<String, EpherError> {
         match self.next() {
             Some(Token::Ident(name)) => Ok(name),
-            Some(other) => Err(EpherError::Parse(format!("expected {what}, found {other:?}"))),
+            Some(other) => Err(EpherError::Parse(format!(
+                "expected {what}, found {other:?}"
+            ))),
             None => Err(EpherError::Parse("unexpected end of input".into())),
         }
     }
@@ -633,7 +652,9 @@ impl Parser {
     fn expect_token(&mut self, token: Token, what: &str) -> Result<(), EpherError> {
         match self.next() {
             Some(found) if found == token => Ok(()),
-            Some(other) => Err(EpherError::Parse(format!("expected {what}, found {other:?}"))),
+            Some(other) => Err(EpherError::Parse(format!(
+                "expected {what}, found {other:?}"
+            ))),
             None => Err(EpherError::Parse("unexpected end of input".into())),
         }
     }
@@ -694,7 +715,9 @@ impl Parser {
     fn expect_keyword(&mut self, kw: &str) -> Result<(), EpherError> {
         match self.next() {
             Some(Token::Ident(found)) if found == kw => Ok(()),
-            Some(other) => Err(EpherError::Parse(format!("expected '{kw}', found {other:?}"))),
+            Some(other) => Err(EpherError::Parse(format!(
+                "expected '{kw}', found {other:?}"
+            ))),
             None => Err(EpherError::Parse("unexpected end of input".into())),
         }
     }
@@ -837,13 +860,13 @@ impl Parser {
                 let expr = self.parse_expression()?;
                 match self.next() {
                     Some(Token::RParen) => Ok(expr),
-                    Some(other) => {
-                        Err(EpherError::Parse(format!("expected ')', found {other:?}")))
-                    }
+                    Some(other) => Err(EpherError::Parse(format!("expected ')', found {other:?}"))),
                     None => Err(EpherError::Parse("unexpected end of input".into())),
                 }
             }
-            Some(other) => Err(EpherError::Parse(format!("expected a number, found {other:?}"))),
+            Some(other) => Err(EpherError::Parse(format!(
+                "expected a number, found {other:?}"
+            ))),
             None => Err(EpherError::Parse("unexpected end of input".into())),
         }
     }
@@ -1019,7 +1042,8 @@ pub fn sample_parametric(
         };
         let t = t_min + t * (t_max - t_min);
         child.set("t", Value::float(t));
-        let (Ok(Value::Float(x)), Ok(Value::Float(y))) = (eval(x_expr, &child), eval(y_expr, &child))
+        let (Ok(Value::Float(x)), Ok(Value::Float(y))) =
+            (eval(x_expr, &child), eval(y_expr, &child))
         else {
             continue;
         };
@@ -1178,9 +1202,7 @@ fn float_to_int(x: f64) -> Option<i64> {
 /// Exactly one integer-valued Float argument, as i64.
 fn integer_arg(name: &str, args: &[Value]) -> Result<i64, EpherError> {
     let x = one_float(name, args)?;
-    float_to_int(x).ok_or_else(|| {
-        EpherError::Type(format!("{name} expects integers, got {x}"))
-    })
+    float_to_int(x).ok_or_else(|| EpherError::Type(format!("{name} expects integers, got {x}")))
 }
 
 /// Exactly two integer-valued Float arguments, as i64.
@@ -1307,12 +1329,12 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
         "logb" => {
             let (base, x) = two_floats(name, &args)?;
             if x <= 0.0 {
-                return Err(domain_error(format!(
-                    "logb of non-positive number {x}"
-                )));
+                return Err(domain_error(format!("logb of non-positive number {x}")));
             }
             if base <= 0.0 || base == 1.0 {
-                return Err(domain_error(format!("logb base {base} must be positive and not 1")));
+                return Err(domain_error(format!(
+                    "logb base {base} must be positive and not 1"
+                )));
             }
             Ok(Value::Float(x.log(base)))
         }
@@ -1321,7 +1343,9 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             // root(n, x): the real nth root; odd roots of negatives are negative
             let (n, x) = two_floats(name, &args)?;
             if n == 0.0 || n.fract() != 0.0 {
-                return Err(domain_error(format!("root order {n} must be a non-zero integer")));
+                return Err(domain_error(format!(
+                    "root order {n} must be a non-zero integer"
+                )));
             }
             if x < 0.0 && n % 2.0 == 0.0 {
                 return Err(domain_error(format!("even root of negative number {x}")));
@@ -1361,11 +1385,15 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
         }
         "min" => {
             let xs = any_floats(name, &args)?;
-            Ok(Value::Float(xs.iter().cloned().fold(f64::INFINITY, f64::min)))
+            Ok(Value::Float(
+                xs.iter().cloned().fold(f64::INFINITY, f64::min),
+            ))
         }
         "max" => {
             let xs = any_floats(name, &args)?;
-            Ok(Value::Float(xs.iter().cloned().fold(f64::NEG_INFINITY, f64::max)))
+            Ok(Value::Float(
+                xs.iter().cloned().fold(f64::NEG_INFINITY, f64::max),
+            ))
         }
         "frac" => {
             let [n, d] = args.as_slice() else {
@@ -1384,7 +1412,10 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                     if d == 0 {
                         return Err(EpherError::ZeroDivision);
                     }
-                    Ok(Value::Rational(BigRational::new(BigInt::from(n), BigInt::from(d))))
+                    Ok(Value::Rational(BigRational::new(
+                        BigInt::from(n),
+                        BigInt::from(d),
+                    )))
                 }
                 _ => Err(EpherError::Type(format!(
                     "frac expects numbers, got {n:?} and {d:?}"
@@ -1463,8 +1494,7 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                 _ => {
                     let mean = xs.iter().sum::<f64>() / xs.len() as f64;
                     Ok(Value::Float(
-                        (xs.iter().map(|x| (x - mean) * (x - mean)).sum::<f64>()
-                            / xs.len() as f64)
+                        (xs.iter().map(|x| (x - mean) * (x - mean)).sum::<f64>() / xs.len() as f64)
                             .sqrt(),
                     ))
                 }
@@ -1590,7 +1620,11 @@ fn stmt_value(
     Ok(value)
 }
 
-fn run_inner(script: &[Statement], env: &mut Env, steps: &mut u64) -> Result<Option<Value>, EpherError> {
+fn run_inner(
+    script: &[Statement],
+    env: &mut Env,
+    steps: &mut u64,
+) -> Result<Option<Value>, EpherError> {
     let mut result = None;
     for stmt in script {
         let value = stmt_value(stmt, env, steps)?;
@@ -1792,12 +1826,36 @@ impl Session {
     pub fn last_line(&self) -> Option<&str> {
         self.last_line.as_deref()
     }
+
+    /// The session's variable bindings (user assignments plus `ans`), for
+    /// the shared-store snapshot every interactive frontend persists.
+    pub fn bindings(&self) -> &ValueBindings {
+        self.env.bindings()
+    }
+
+    /// Restore bindings saved by another frontend of the same installation
+    /// (ADR-0010 amendment): each name is bound into the environment, so
+    /// `ans` and every user assignment survive across CLI/REPL/TUI/GUI.
+    pub fn restore_bindings(&mut self, bindings: &ValueBindings) {
+        for (name, value) in bindings {
+            self.env.set(name.clone(), value.clone());
+        }
+    }
+
+    /// The environment, mutable — for frontends evaluating statements
+    /// directly against a shared session (the CLI one-shot path).
+    pub fn env_mut(&mut self) -> &mut Env {
+        &mut self.env
+    }
 }
 
 /// The name defined by a `def name(...) = ...` line, if any.
 fn def_name(line: &str) -> Option<String> {
     let rest = line.trim().strip_prefix("def")?.trim_start();
-    let name: String = rest.chars().take_while(|c| c.is_alphabetic() || *c == '_').collect();
+    let name: String = rest
+        .chars()
+        .take_while(|c| c.is_alphabetic() || *c == '_')
+        .collect();
     if name.is_empty() {
         None
     } else {
@@ -1901,7 +1959,9 @@ fn binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
                 .ok_or_else(|| EpherError::Type(format!("cannot promote {b} to big")))?;
             Ok(Value::Big(big_binop(op, a.clone(), b)?))
         }
-        _ => Err(EpherError::Type(format!("cannot combine {lhs:?} and {rhs:?}"))),
+        _ => Err(EpherError::Type(format!(
+            "cannot combine {lhs:?} and {rhs:?}"
+        ))),
     }
 }
 

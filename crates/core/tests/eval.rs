@@ -1,8 +1,8 @@
+use bigdecimal::BigDecimal;
 use epher_core::{
     eval, evaluate, parse, parse_latex, parse_script, run, run_all, sample, sample_parametric,
-    sample_polar, Sample, Env, Session, Value,
+    sample_polar, Env, Sample, Session, Value,
 };
-use bigdecimal::BigDecimal;
 use num_rational::BigRational;
 use rust_decimal::Decimal;
 use std::str::FromStr;
@@ -140,9 +140,8 @@ fn if_expression_picks_branch_by_condition() {
 #[test]
 fn user_function_recurses() {
     let mut env = Env::default();
-    let script =
-        parse_script("def fact(n) = if n <= 1 then 1 else n * fact(n - 1); fact(5)")
-            .expect("parse_script");
+    let script = parse_script("def fact(n) = if n <= 1 then 1 else n * fact(n - 1); fact(5)")
+        .expect("parse_script");
     let result = run(&script, &mut env).expect("run").expect("value");
     assert_eq!(result, Value::float(120.0));
 }
@@ -247,7 +246,10 @@ fn sampler_skips_points_where_eval_errors() {
     let env = Env::default();
     let samples = sample(&expr, -1.0, 1.0, 3, &env).expect("sample");
     // x = -1, 0, 1 — the x = 0 point errors (division by zero) and is skipped
-    assert_eq!(samples, vec![Sample { x: -1.0, y: -1.0 }, Sample { x: 1.0, y: 1.0 }]);
+    assert_eq!(
+        samples,
+        vec![Sample { x: -1.0, y: -1.0 }, Sample { x: 1.0, y: 1.0 }]
+    );
 }
 
 #[test]
@@ -281,14 +283,8 @@ fn values_display_cleanly() {
     assert_eq!(Value::float(5.0).to_string(), "5");
     assert_eq!(Value::float(0.5).to_string(), "0.5");
     assert_eq!(Value::Bool(true).to_string(), "true");
-    assert_eq!(
-        eval_str("frac(1, 3)").to_string(),
-        "1/3"
-    );
-    assert_eq!(
-        eval_str("dec(0.1) + dec(0.2)").to_string(),
-        "0.3"
-    );
+    assert_eq!(eval_str("frac(1, 3)").to_string(), "1/3");
+    assert_eq!(eval_str("dec(0.1) + dec(0.2)").to_string(), "0.3");
 }
 
 #[test]
@@ -715,12 +711,18 @@ fn assignment_inside_a_loop_to_a_constant_is_an_error() {
 #[test]
 fn user_constant_can_shadow_a_builtin() {
     // same as variables today: bindings and user constants win over pi/e
-    assert_eq!(run_script("const pi = 3; pi * 2").unwrap(), Value::float(6.0));
+    assert_eq!(
+        run_script("const pi = 3; pi * 2").unwrap(),
+        Value::float(6.0)
+    );
 }
 
 #[test]
 fn const_prefixed_variable_names_are_still_assignments() {
-    assert_eq!(run_script("const_tax = 5; const_tax").unwrap(), Value::float(5.0));
+    assert_eq!(
+        run_script("const_tax = 5; const_tax").unwrap(),
+        Value::float(5.0)
+    );
 }
 
 #[test]
@@ -801,7 +803,10 @@ fn run_all_collects_every_statement_value() {
     let mut env = Env::default();
     let script = parse_script("x = 10; y = x + 5; x + y").expect("parse_script");
     let values = run_all(&script, &mut env).expect("run_all");
-    assert_eq!(values, vec![Value::float(10.0), Value::float(15.0), Value::float(25.0)]);
+    assert_eq!(
+        values,
+        vec![Value::float(10.0), Value::float(15.0), Value::float(25.0)]
+    );
 }
 
 #[test]
@@ -884,7 +889,10 @@ fn bin_oct_hex_convert_integers_to_prefixed_strings() {
     assert_eq!(eval_str("bin(0b11111111)"), Value::Str("0b11111111".into()));
     assert_eq!(eval_str("hex(frac(255, 1))"), Value::Str("0xff".into()));
     assert_eq!(eval_str("hex(dec(42))"), Value::Str("0x2a".into()));
-    assert_eq!(eval_str("hex(big(10 ^ 20))"), Value::Str("0x56bc75e2d63100000".into()));
+    assert_eq!(
+        eval_str("hex(big(10 ^ 20))"),
+        Value::Str("0x56bc75e2d63100000".into())
+    );
     assert_eq!(eval_str("hex(0x2a)"), Value::Str("0x2a".into()));
 }
 
@@ -979,9 +987,60 @@ fn view3d_spin_phase_adds_unclamped_rotation() {
     assert!((spun.camera - 60.0).abs() < 1e-12);
     // sin/cos continuity: wrapping the phase by a full turn changes
     // nothing in the projected pose.
-    let a = View3D { yaw: 0.3, pitch: 4.1, camera: 30.0 };
-    let b = View3D { yaw: 0.3 + std::f64::consts::TAU, pitch: 4.1 + std::f64::consts::TAU, camera: 30.0 };
+    let a = View3D {
+        yaw: 0.3,
+        pitch: 4.1,
+        camera: 30.0,
+    };
+    let b = View3D {
+        yaw: 0.3 + std::f64::consts::TAU,
+        pitch: 4.1 + std::f64::consts::TAU,
+        camera: 30.0,
+    };
     let (ax, ay, _) = epher_core::graph::project_point(1.0, 2.0, 3.0, &a);
     let (bx, by, _) = epher_core::graph::project_point(1.0, 2.0, 3.0, &b);
     assert!((ax - bx).abs() < 1e-9 && (ay - by).abs() < 1e-9);
+}
+
+// ===== The shared session snapshot (ADR-0010 amendment) =====
+
+#[test]
+fn session_bindings_round_trip_through_json_and_restore() {
+    use epher_core::{Session, ValueBindings};
+    let mut s = Session::new();
+    s.submit("x = 5");
+    s.submit("x * 2"); // sets ans = 10
+    let json = serde_json::to_string(s.bindings()).expect("serialize bindings");
+    let back: ValueBindings = serde_json::from_str(&json).expect("deserialize bindings");
+    let mut s2 = Session::new();
+    s2.restore_bindings(&back);
+    // restoring bindings never touches history — that travels in its own
+    // setting
+    assert!(s2.history().is_empty());
+    assert_eq!(s2.submit("x + ans").trim(), "= 15");
+}
+
+#[test]
+fn every_value_variant_round_trips_through_json() {
+    use bigdecimal::BigDecimal;
+    use epher_core::Value;
+    use num_bigint::BigInt;
+    use num_complex::Complex;
+    use num_rational::BigRational;
+    use rust_decimal::Decimal;
+    let values = vec![
+        Value::float(1.5),
+        Value::float(-0.0),
+        Value::Bool(true),
+        Value::Str("0xff".to_string()),
+        Value::Complex(Complex::new(1.0, 2.0)),
+        Value::Rational(BigRational::new(BigInt::from(1), BigInt::from(3))),
+        Value::Decimal(Decimal::new(1234, 2)),
+        Value::Big(BigDecimal::from(42)),
+    ];
+    for v in values {
+        let json = serde_json::to_string(&v).expect("serialize");
+        let back: Value = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(v, back, "json was: {json}");
+    }
 }

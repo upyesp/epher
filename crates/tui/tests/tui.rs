@@ -116,10 +116,7 @@ fn curve_of(ys: &[f64]) -> epher_core::graph::SampledCurve {
     let samples = ys
         .iter()
         .enumerate()
-        .map(|(i, y)| Sample {
-            x: i as f64,
-            y: *y,
-        })
+        .map(|(i, y)| Sample { x: i as f64, y: *y })
         .collect::<Vec<_>>();
     let expr = epher_core::parse("0").unwrap();
     epher_core::graph::SampledCurve {
@@ -152,7 +149,10 @@ fn render_ascii_handles_empty_and_non_finite() {
         kind: epher_core::graph::CurveKind::Cartesian(expr),
         domain: (0.0, 1.0),
         samples: vec![
-            Sample { x: f64::NAN, y: 0.0 },
+            Sample {
+                x: f64::NAN,
+                y: 0.0,
+            },
             Sample {
                 x: 0.0,
                 y: f64::INFINITY,
@@ -232,7 +232,11 @@ fn submit_line_dispatches_save_and_persists() {
     app.set_input("def fib(n) = if n <= 1 then n else fib(n - 1) + fib(n - 2)");
     app.submit();
     app.set_input("save fib");
-    app.submit_line(&app.input().to_string(), &store, &Localizer::resolve(Some("en"), &[]));
+    app.submit_line(
+        &app.input().to_string(),
+        &store,
+        &Localizer::resolve(Some("en"), &[]),
+    );
     assert_eq!(app.result(), "saved fib");
     assert_eq!(store.list_functions().unwrap().len(), 1);
     // commands must not enter history
@@ -247,7 +251,10 @@ fn submit_line_evaluates_and_persists_history() {
     app.set_input("2 + 3");
     app.submit_line("2 + 3", &store, &Localizer::resolve(Some("en"), &[]));
     assert_eq!(app.result(), "= 5");
-    assert_eq!(load_history(&store).unwrap(), vec!["2 + 3  = 5".to_string()]);
+    assert_eq!(
+        load_history(&store).unwrap(),
+        vec!["2 + 3  = 5".to_string()]
+    );
 }
 
 #[test]
@@ -327,16 +334,28 @@ fn tui_store() -> epher_store::DocStore<epher_store::FsStore> {
 fn graph3d_samples_and_clears() {
     let store = tui_store();
     let mut app = App::with_session(epher_core::Session::new());
-    app.submit_line("graph3d x ^ 2 + y ^ 2", &store, &epher_i18n::Localizer::resolve(Some("en"), &[]));
+    app.submit_line(
+        "graph3d x ^ 2 + y ^ 2",
+        &store,
+        &epher_i18n::Localizer::resolve(Some("en"), &[]),
+    );
     assert_eq!(app.result(), "");
     assert_eq!(app.surfaces().len(), 1);
     assert_eq!(app.history(), ["graph3d x ^ 2 + y ^ 2".to_string()]);
 
     // A second surface overlays.
-    app.submit_line("graph3d x - y", &store, &epher_i18n::Localizer::resolve(Some("en"), &[]));
+    app.submit_line(
+        "graph3d x - y",
+        &store,
+        &epher_i18n::Localizer::resolve(Some("en"), &[]),
+    );
     assert_eq!(app.surfaces().len(), 2);
 
-    app.submit_line("graph3d clear", &store, &epher_i18n::Localizer::resolve(Some("en"), &[]));
+    app.submit_line(
+        "graph3d clear",
+        &store,
+        &epher_i18n::Localizer::resolve(Some("en"), &[]),
+    );
     assert!(app.surfaces().is_empty());
 }
 
@@ -344,7 +363,11 @@ fn graph3d_samples_and_clears() {
 fn graph3d_rejects_nonsense() {
     let store = tui_store();
     let mut app = App::with_session(epher_core::Session::new());
-    app.submit_line("graph3d x +", &store, &epher_i18n::Localizer::resolve(Some("en"), &[]));
+    app.submit_line(
+        "graph3d x +",
+        &store,
+        &epher_i18n::Localizer::resolve(Some("en"), &[]),
+    );
     assert!(app.result().starts_with("error"), "got: {:?}", app.result());
     assert!(app.surfaces().is_empty());
 }
@@ -353,7 +376,11 @@ fn graph3d_rejects_nonsense() {
 fn arrows_rotate_the_view_and_pitch_is_clamped() {
     let store = tui_store();
     let mut app = App::with_session(epher_core::Session::new());
-    app.submit_line("graph3d x ^ 2 + y ^ 2", &store, &epher_i18n::Localizer::resolve(Some("en"), &[]));
+    app.submit_line(
+        "graph3d x ^ 2 + y ^ 2",
+        &store,
+        &epher_i18n::Localizer::resolve(Some("en"), &[]),
+    );
     let before = *app.view();
     app.rotate_view(0.15, 0.0);
     assert!((app.view().yaw - before.yaw - 0.15).abs() < 1e-9);
@@ -370,7 +397,11 @@ fn space_toggles_play_and_tick_animates_the_constant() {
     let mut s = epher_core::Session::new();
     s.submit("const a = 1");
     let mut app = App::with_session(s);
-    app.submit_line("graph a * x ^ 2", &store, &epher_i18n::Localizer::resolve(Some("en"), &[]));
+    app.submit_line(
+        "graph a * x ^ 2",
+        &store,
+        &epher_i18n::Localizer::resolve(Some("en"), &[]),
+    );
     assert!(app.toggle_play());
     let play = app.play().unwrap().clone();
     assert_eq!(play.name, "a");
@@ -386,7 +417,10 @@ fn space_toggles_play_and_tick_animates_the_constant() {
     };
     assert!((v - 1.1).abs() < 1e-9);
     // The curve resampled: samples at a=1.1 differ from a=1.
-    assert!(before.iter().zip(&after).any(|(x, y)| (x.y - y.y).abs() > 1e-9));
+    assert!(before
+        .iter()
+        .zip(&after)
+        .any(|(x, y)| (x.y - y.y).abs() > 1e-9));
 
     // Toggling again stops.
     assert!(!app.toggle_play());
@@ -399,7 +433,11 @@ fn tick_wraps_the_constant_within_its_play_bounds() {
     let mut s = epher_core::Session::new();
     s.submit("const a = 1");
     let mut app = App::with_session(s);
-    app.submit_line("graph a * x", &store, &epher_i18n::Localizer::resolve(Some("en"), &[]));
+    app.submit_line(
+        "graph a * x",
+        &store,
+        &epher_i18n::Localizer::resolve(Some("en"), &[]),
+    );
     assert!(app.toggle_play());
     let lo = app.play().unwrap().lo;
     // 40 ticks of 0.1 from 1.0 with hi = 3.0: wrap back to lo = -1.0.
@@ -432,7 +470,10 @@ fn render_ascii3d_draws_the_wireframe() {
 
 #[test]
 fn render_ascii3d_is_empty_without_surfaces() {
-    assert_eq!(render_ascii3d(&[], &epher_core::graph::View3D::default(), 40, 12), "");
+    assert_eq!(
+        render_ascii3d(&[], &epher_core::graph::View3D::default(), 40, 12),
+        ""
+    );
 }
 
 #[test]
@@ -440,7 +481,11 @@ fn submit_line_splits_semicolon_statements() {
     let (store, _keep) = scratch_store();
     let mut app = App::default();
     app.set_input("graph sin(x); graph cos(x)");
-    app.submit_line(&app.input().to_string(), &store, &Localizer::resolve(Some("en"), &[]));
+    app.submit_line(
+        &app.input().to_string(),
+        &store,
+        &Localizer::resolve(Some("en"), &[]),
+    );
     // both curves overlay the plot, each a separate statement (the event
     // loop, not submit_line, clears the input after Enter)
     assert_eq!(app.graph().len(), 2);
@@ -451,7 +496,11 @@ fn submit_line_skips_empty_semicolon_pieces() {
     let (store, _keep) = scratch_store();
     let mut app = App::default();
     app.set_input("2 + 3;;;");
-    app.submit_line(&app.input().to_string(), &store, &Localizer::resolve(Some("en"), &[]));
+    app.submit_line(
+        &app.input().to_string(),
+        &store,
+        &Localizer::resolve(Some("en"), &[]),
+    );
     assert_eq!(app.result(), "= 5");
     assert_eq!(app.history().len(), 1);
 }
@@ -483,10 +532,17 @@ fn keypad_digits_bank_mirrors_the_web_tab() {
     // The same keys, in the same 5×5 arrangement, as the web's 123 tab.
     let digits = epher_tui::banks()[0].1;
     assert_eq!(digits.len(), 5);
-    let flats: Vec<&str> = digits.iter().flat_map(|r| r.iter()).map(|(d, _)| *d).collect();
+    let flats: Vec<&str> = digits
+        .iter()
+        .flat_map(|r| r.iter())
+        .map(|(d, _)| *d)
+        .collect();
     assert_eq!(
         flats,
-        ["C", "⌫", "(", ")", "÷", "7", "8", "9", "×", "−", "4", "5", "6", "+", "^", "1", "2", "3", ";", ",", "0", ".", "ans", "="]
+        [
+            "C", "⌫", "(", ")", "÷", "7", "8", "9", "×", "−", "4", "5", "6", "+", "^", "1", "2",
+            "3", ";", ",", "0", ".", "ans", "="
+        ]
     );
     // ÷/×/− display the glyphs but insert the language's ASCII tokens.
     assert_eq!(digits[0][4].1, "/");
@@ -569,12 +625,12 @@ fn keypad_covers_every_function_that_was_missing() {
         }
     }
     for name in [
-        "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "deg",
-        "rad", "atan2", "exp", "log2", "logb", "cbrt", "root", "hypot", "trunc", "sign",
-        "min", "max", "gcd", "lcm", "mod", "fact", "ncr", "npr", "sum", "product", "mean",
-        "median", "variance", "stdev", "frac", "dec", "big", "bin", "oct", "hex", "phi",
-        "x", "t", "ans", "graph", "graph3d", "table", "clear", "history", "sin", "cos",
-        "tan", "ln", "log", "sqrt", "abs", "floor", "ceil", "round", "pi", "e", "tau",
+        "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "deg", "rad",
+        "atan2", "exp", "log2", "logb", "cbrt", "root", "hypot", "trunc", "sign", "min", "max",
+        "gcd", "lcm", "mod", "fact", "ncr", "npr", "sum", "product", "mean", "median", "variance",
+        "stdev", "frac", "dec", "big", "bin", "oct", "hex", "phi", "x", "t", "ans", "graph",
+        "graph3d", "table", "clear", "history", "sin", "cos", "tan", "ln", "log", "sqrt", "abs",
+        "floor", "ceil", "round", "pi", "e", "tau",
     ] {
         assert!(tokens.contains(&name), "the keypad is missing {name}");
     }
@@ -590,7 +646,10 @@ fn poi_list_setting_toggles_and_persists() {
     app.toggle_pois();
     assert!(!app.poi_list());
     epher_store::persist::save_pois(&store, app.poi_list()).unwrap();
-    assert_eq!(epher_store::persist::load_pois(&store).unwrap(), Some(false));
+    assert_eq!(
+        epher_store::persist::load_pois(&store).unwrap(),
+        Some(false)
+    );
     app.set_pois(true);
     assert!(app.poi_list());
 }
@@ -602,9 +661,16 @@ fn theme_command_sets_and_persists_the_theme() {
     let localizer = epher_i18n::Localizer::resolve(Some("en"), &[]);
     app.submit_line("theme night", &store, &localizer);
     assert_eq!(app.theme(), epher_tui::Theme::Night);
-    assert_eq!(epher_store::persist::load_theme(&store).unwrap().as_deref(), Some("night"));
+    assert_eq!(
+        epher_store::persist::load_theme(&store).unwrap().as_deref(),
+        Some("night")
+    );
     app.submit_line("theme bogus", &store, &localizer);
-    assert_eq!(app.theme(), epher_tui::Theme::Night, "bad theme must not change the palette");
+    assert_eq!(
+        app.theme(),
+        epher_tui::Theme::Night,
+        "bad theme must not change the palette"
+    );
 }
 
 #[test]
@@ -640,12 +706,18 @@ fn menu_navigation_and_actions() {
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::TogglePois));
     app.menu_open(3);
     app.menu_move(0, 1);
-    assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::SetTheme("light")));
+    assert_eq!(
+        app.menu_activate(),
+        Some(epher_tui::MenuAction::SetTheme("light"))
+    );
     app.menu_open(3);
     for _ in 0..5 {
         app.menu_move(0, 1);
     }
-    assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::SetLanguage("zh-CN")));
+    assert_eq!(
+        app.menu_activate(),
+        Some(epher_tui::MenuAction::SetLanguage("zh-CN"))
+    );
     // Help menu: one item, the user guide.
     app.menu_open(4);
     assert_eq!(app.menu_len(4), 1);
@@ -698,7 +770,9 @@ fn guide_view_opens_scrolls_and_closes() {
     for l in epher_i18n::SUPPORTED_LOCALES {
         let lines = epher_guide::render_text(epher_guide::guide(l));
         assert!(!lines.is_empty());
-        assert!(lines.iter().any(|t| matches!(t, epher_guide::TLine::Heading(1, _))));
+        assert!(lines
+            .iter()
+            .any(|t| matches!(t, epher_guide::TLine::Heading(1, _))));
     }
 }
 
@@ -724,7 +798,11 @@ fn file_prompt_saves_and_opens() {
     for c in path.to_string_lossy().chars() {
         app.prompt_push(c);
     }
-    assert_eq!(app.prompt_submit(&localizer), None, "save must succeed and close the prompt");
+    assert_eq!(
+        app.prompt_submit(&localizer),
+        None,
+        "save must succeed and close the prompt"
+    );
     assert_eq!(std::fs::read_to_string(&path).unwrap(), "1+1");
 
     // Opening a script loads the file into the input.
@@ -747,15 +825,26 @@ fn file_prompt_saves_and_opens() {
     }
     assert_eq!(app.prompt_submit(&localizer), None);
     assert_eq!(app.history(), &["2 + 2", "hello = 5"]);
-    assert_eq!(app.input(), "keep me", "history load must not touch the entry");
-    assert!(app.result().contains('2'), "loaded count in: {}", app.result());
+    assert_eq!(
+        app.input(),
+        "keep me",
+        "history load must not touch the entry"
+    );
+    assert!(
+        app.result().contains('2'),
+        "loaded count in: {}",
+        app.result()
+    );
 
     // A missing path fails and keeps the prompt (with its text) open.
     app.prompt_start(epher_tui::PromptKind::OpenScript);
     for c in "/nonexistent/nope.epher".chars() {
         app.prompt_push(c);
     }
-    assert_eq!(app.prompt_submit(&localizer), Some(epher_tui::PromptKind::OpenScript));
+    assert_eq!(
+        app.prompt_submit(&localizer),
+        Some(epher_tui::PromptKind::OpenScript)
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -848,7 +937,11 @@ fn graph_save_writes_the_same_document_as_the_web_app() {
     app.submit_line("graph x ^ 2 - 1", &store, &en);
     let svg = _keep.path().join("tui.svg");
     app.submit_line(&format!("graph save {}", svg.display()), &store, &en);
-    assert!(app.result().contains(svg.display().to_string().as_str()), "{}", app.result());
+    assert!(
+        app.result().contains(svg.display().to_string().as_str()),
+        "{}",
+        app.result()
+    );
     let doc = std::fs::read_to_string(&svg).unwrap();
     assert!(doc.starts_with("<svg "), "{doc}");
     assert!(doc.contains("y = x ^ 2 - 1"), "{doc}");
@@ -879,7 +972,11 @@ fn graph3d_save_writes_the_orbit_pose() {
     app.rotate_view(0.5, 0.2);
     let svg = _keep.path().join("tui3d.svg");
     app.submit_line(&format!("graph3d save {}", svg.display()), &store, &en);
-    assert!(app.result().contains(svg.display().to_string().as_str()), "{}", app.result());
+    assert!(
+        app.result().contains(svg.display().to_string().as_str()),
+        "{}",
+        app.result()
+    );
     let doc = std::fs::read_to_string(&svg).unwrap();
     assert!(doc.contains("viewBox=\"0 0 640 400\""), "{doc}");
     assert!(doc.contains("transform=\"translate("), "{doc}");
@@ -934,7 +1031,11 @@ fn view_fine_controls_appear_with_3d_and_nudge_within_range() {
     let store = tui_store();
     let mut app = App::with_session(epher_core::Session::new());
     assert_eq!(app.menu_len(3), 12);
-    app.submit_line("graph3d x ^ 2 - y ^ 2", &store, &epher_i18n::Localizer::resolve(Some("en"), &[]));
+    app.submit_line(
+        "graph3d x ^ 2 - y ^ 2",
+        &store,
+        &epher_i18n::Localizer::resolve(Some("en"), &[]),
+    );
     assert_eq!(app.menu_len(3), 15);
     app.menu_open(3);
     app.menu_move(0, 12);
@@ -1101,4 +1202,72 @@ fn render_ascii_clips_samples_outside_the_viewport() {
     // A zoomed window around the middle draws the curve inside it.
     let near = render_ascii(&[c], 5, 5, Some((0.8, 1.2, 0.8, 1.2)));
     assert!(near.contains('o'), "zoomed window: {near}");
+}
+
+// ===== The pane shows one kind at a time (ADR-0015 amendment) =====
+
+#[test]
+fn the_pane_shows_one_kind_at_a_time() {
+    let store = tui_store();
+    let localizer = epher_i18n::Localizer::resolve(Some("en"), &[]);
+    let mut app = App::with_session(epher_core::Session::new());
+
+    // 2D first, then 3D: the surface replaces the curves.
+    app.submit_line("graph x ^ 2", &store, &localizer);
+    assert_eq!(app.graph().len(), 1);
+    app.submit_line("graph3d x ^ 2 + y ^ 2", &store, &localizer);
+    assert!(app.graph().is_empty(), "drawing 3D clears the 2D curves");
+    assert!(app.pois().is_empty());
+    assert_eq!(app.surfaces().len(), 1);
+
+    // and back: a 2D curve replaces the surfaces.
+    app.submit_line("graph sin(x)", &store, &localizer);
+    assert!(app.surfaces().is_empty(), "drawing 2D clears the surfaces");
+    assert_eq!(app.graph().len(), 1);
+
+    // same-kind overlays still accumulate.
+    app.submit_line("graph cos(x)", &store, &localizer);
+    assert_eq!(app.graph().len(), 2);
+    app.submit_line("graph3d x - y", &store, &localizer);
+    assert_eq!(app.surfaces().len(), 1);
+    app.submit_line("graph3d x + y", &store, &localizer);
+    assert_eq!(app.surfaces().len(), 2, "3D overlays still accumulate");
+
+    // explicit clears stay kind-specific.
+    app.submit_line("graph3d clear", &store, &localizer);
+    assert!(app.surfaces().is_empty());
+    app.submit_line("graph3d x - y", &store, &localizer);
+    app.submit_line("graph clear", &store, &localizer);
+    assert!(app.graph().is_empty());
+    assert_eq!(app.surfaces().len(), 1, "graph clear leaves the 3D alone");
+}
+
+#[test]
+fn a_failed_switch_keeps_the_previous_kind() {
+    let store = tui_store();
+    let localizer = epher_i18n::Localizer::resolve(Some("en"), &[]);
+    let mut app = App::with_session(epher_core::Session::new());
+    app.submit_line("graph x ^ 2", &store, &localizer);
+    assert_eq!(app.graph().len(), 1);
+    // a broken graph3d must not clear the 2D curves
+    app.submit_line("graph3d x +", &store, &localizer);
+    assert!(app.result().starts_with("error"), "got: {:?}", app.result());
+    assert_eq!(app.graph().len(), 1, "a failed 3D keeps the curves");
+}
+
+// ===== The shared session snapshot (ADR-0010 amendment) =====
+
+#[test]
+fn session_bindings_persist_to_the_shared_store() {
+    use epher_store::persist::session_bindings;
+    let store = tui_store();
+    let localizer = epher_i18n::Localizer::resolve(Some("en"), &[]);
+    let mut app = App::with_session(epher_core::Session::new());
+    app.set_input("x = 5");
+    app.submit_line("x = 5", &store, &localizer);
+    assert_eq!(app.result(), "= 5");
+    let saved = session_bindings(&store).unwrap().unwrap();
+    assert_eq!(saved.len(), 2, "x and ans: {saved:?}");
+    assert_eq!(saved["x"], epher_core::Value::float(5.0));
+    assert_eq!(saved["ans"], epher_core::Value::float(5.0));
 }

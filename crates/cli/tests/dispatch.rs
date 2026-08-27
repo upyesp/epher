@@ -49,7 +49,10 @@ fn subcommands_select_their_modes() {
 #[test]
 fn help_subcommand_routes_to_manual_or_topic() {
     assert_eq!(parse(&["help"]), Action::HelpManual);
-    assert_eq!(parse(&["help", "repl"]), Action::HelpTopic("repl".to_string()));
+    assert_eq!(
+        parse(&["help", "repl"]),
+        Action::HelpTopic("repl".to_string())
+    );
 }
 
 #[test]
@@ -89,7 +92,10 @@ fn short_help_leads_with_examples_and_points_at_long_help() {
     cmd.write_help(&mut out).unwrap();
     let text = String::from_utf8(out).unwrap();
     assert!(text.contains("EXAMPLES:"), "short help leads with examples");
-    assert!(text.contains("epher \"2 + 3 * 4\""), "first example is one-shot");
+    assert!(
+        text.contains("epher \"2 + 3 * 4\""),
+        "first example is one-shot"
+    );
     assert!(
         text.contains("--help"),
         "short help points at the full manual"

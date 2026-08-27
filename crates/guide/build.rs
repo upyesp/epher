@@ -19,8 +19,14 @@ fn main() {
         let to = out.join(format!("{l}.md"));
         fs::copy(&from, &to)
             .unwrap_or_else(|e| panic!("missing guide source {}: {e}", from.display()));
-        src.push_str(&format!("        \"{l}\" => include_str!(\"guide/{l}.md\"),\n"));
+        src.push_str(&format!(
+            "        \"{l}\" => include_str!(\"guide/{l}.md\"),\n"
+        ));
     }
     src.push_str("        _ => include_str!(\"guide/en.md\"),\n    }\n}\n");
-    fs::write(Path::new(&env::var("OUT_DIR").unwrap()).join("content.rs"), src).unwrap();
+    fs::write(
+        Path::new(&env::var("OUT_DIR").unwrap()).join("content.rs"),
+        src,
+    )
+    .unwrap();
 }

@@ -1,6 +1,6 @@
 [package]
 name = "epher-core"
-version = "0.4.29"
+version = "0.4.30"
 edition = "2021"
 license = "MIT"
 description = "The single source of truth for epher's logic — pure, compiles to wasm and native."
@@ -13,6 +13,7 @@ num-complex = { workspace = true }
 rust_decimal = { workspace = true }
 bigdecimal = { workspace = true }
 serde = { workspace = true }
+serde_json = "1"
 thiserror = { workspace = true }
 
 [dev-dependencies]

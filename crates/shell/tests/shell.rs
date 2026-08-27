@@ -18,7 +18,9 @@ fn classifies_the_three_commands() {
     );
     assert_eq!(
         classify("  save script   count  "),
-        Some(Command::SaveScript { name: "count".into() })
+        Some(Command::SaveScript {
+            name: "count".into()
+        })
     );
     // "save script" must win over the shorter "save " prefix
     assert_eq!(
@@ -48,7 +50,10 @@ fn prepare_resolves_function_source_from_the_session() {
     let p = prepare(&Command::Save { name: "f".into() }, &s, &en()).unwrap();
     assert_eq!(
         p,
-        epher_shell::Prepared::SaveFunction { name: "f".into(), source: "def f(x) = x ^ 2".into() }
+        epher_shell::Prepared::SaveFunction {
+            name: "f".into(),
+            source: "def f(x) = x ^ 2".into()
+        }
     );
 }
 
@@ -59,7 +64,10 @@ fn prepare_resolves_constant_source_from_the_session() {
     let p = prepare(&Command::Save { name: "tax".into() }, &s, &en()).unwrap();
     assert_eq!(
         p,
-        epher_shell::Prepared::SaveConstant { name: "tax".into(), source: "const tax = 0.2".into() }
+        epher_shell::Prepared::SaveConstant {
+            name: "tax".into(),
+            source: "const tax = 0.2".into()
+        }
     );
 }
 
@@ -68,13 +76,8 @@ fn run_command_persists_a_constant() {
     let mut s = Session::new();
     s.submit("const g = 9.81");
     let store = DocStore::new(MemoryStore::default());
-    let out = plain(run_command(
-        &Command::Save { name: "g".into() },
-        &mut s,
-        &store,
-        &en(),
-    )
-    .message);
+    let out =
+        plain(run_command(&Command::Save { name: "g".into() }, &mut s, &store, &en()).message);
     assert_eq!(out, "saved g");
     let docs = store.list_constants().unwrap();
     assert_eq!(docs.len(), 1);
@@ -104,7 +107,14 @@ fn prepare_reports_missing_definition() {
 fn prepare_uses_the_last_submitted_line_for_scripts() {
     let mut s = Session::new();
     s.submit("x = 0; while x < 5 do x = x + 1; x");
-    let p = prepare(&Command::SaveScript { name: "count".into() }, &s, &en()).unwrap();
+    let p = prepare(
+        &Command::SaveScript {
+            name: "count".into(),
+        },
+        &s,
+        &en(),
+    )
+    .unwrap();
     assert!(matches!(p, epher_shell::Prepared::SaveScript { .. }));
 }
 
@@ -135,13 +145,8 @@ fn run_command_persists_a_function() {
     let mut s = Session::new();
     s.submit("def fib(n) = if n <= 1 then n else fib(n - 1) + fib(n - 2)");
     let store = DocStore::new(MemoryStore::default());
-    let out = plain(run_command(
-        &Command::Save { name: "fib".into() },
-        &mut s,
-        &store,
-        &en(),
-    )
-    .message);
+    let out =
+        plain(run_command(&Command::Save { name: "fib".into() }, &mut s, &store, &en()).message);
     assert_eq!(out, "saved fib");
     let docs = store.list_functions().unwrap();
     assert_eq!(docs.len(), 1);
@@ -153,7 +158,12 @@ fn run_command_persists_a_function() {
 fn run_command_persists_language_and_answers() {
     let mut s = Session::new();
     let store = DocStore::new(MemoryStore::default());
-    let handled = run_command(&Command::Language { code: "es".into() }, &mut s, &store, &en());
+    let handled = run_command(
+        &Command::Language { code: "es".into() },
+        &mut s,
+        &store,
+        &en(),
+    );
     let out = plain(handled.message);
     assert_eq!(handled.language, Some("es".into()));
     assert_eq!(out, "language set to es");
@@ -168,7 +178,15 @@ fn run_command_surfaces_prepare_errors_without_persisting() {
     let mut s = Session::new();
     let store = DocStore::new(MemoryStore::default());
     let out = plain(
-        run_command(&Command::Save { name: "nope".into() }, &mut s, &store, &en()).message,
+        run_command(
+            &Command::Save {
+                name: "nope".into(),
+            },
+            &mut s,
+            &store,
+            &en(),
+        )
+        .message,
     );
     assert_eq!(out, "no definition for nope in this session");
     assert!(store.list_functions().unwrap().is_empty());
@@ -256,7 +274,10 @@ use epher_shell::plots::Plots;
 use std::io::Write;
 
 fn temp_svg(name: &str) -> String {
-    let p = std::env::temp_dir().join(format!("epher-shell-test-{name}-{}.svg", std::process::id()));
+    let p = std::env::temp_dir().join(format!(
+        "epher-shell-test-{name}-{}.svg",
+        std::process::id()
+    ));
     let _ = std::fs::remove_file(&p);
     p.to_string_lossy().into_owned()
 }
@@ -315,7 +336,12 @@ fn graph3d_save_writes_a_standalone_document() {
 #[test]
 fn saving_an_empty_plot_is_a_diagnostic() {
     let plots = Plots::new();
-    let out = plots.save_svg("/tmp/never-epher.svg", true, &epher_core::Env::default(), &en());
+    let out = plots.save_svg(
+        "/tmp/never-epher.svg",
+        true,
+        &epher_core::Env::default(),
+        &en(),
+    );
     assert!(out.error);
     assert_eq!(out.message, "Nothing is plotted");
     // save without a path names the problem too
@@ -330,6 +356,9 @@ fn a_bad_expression_is_a_diagnostic_not_a_crash() {
     let mut plots = Plots::new();
     let out = plots.submit_graph("sin(", &epher_core::Env::default(), &en());
     assert!(out.error);
-    assert!(!out.message.is_empty(), "the diagnostic names the parse error");
+    assert!(
+        !out.message.is_empty(),
+        "the diagnostic names the parse error"
+    );
     let _ = std::io::stdout().flush();
 }

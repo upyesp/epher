@@ -490,7 +490,11 @@ pub fn surface_parts(
     let y_min = y_min - pad;
     let y_max = y_max + pad;
     let span = z_max - z_min;
-    let view_box = format!("{x_min:.3} {y_min:.3} {:.3} {:.3}", x_max - x_min, y_max - y_min);
+    let view_box = format!(
+        "{x_min:.3} {y_min:.3} {:.3} {:.3}",
+        x_max - x_min,
+        y_max - y_min
+    );
     let mut parts = String::new();
     // Painter's order: project_mesh already sorts far-to-near, so drawing
     // in order lets nearer lines overpaint farther ones.

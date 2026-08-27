@@ -24,9 +24,9 @@ use yew::prelude::*;
 /// so an SVG saved from the TUI is byte-for-byte the app's plot. The
 /// re-exports keep this module's long-standing surface.
 pub use epher_core::graph_svg::{
-    aria_label, curve_caption, escape, geometry, graph3d_svg, graph_svg, label, segments, ticks,
-    trace_nearest, fill_points, layers_svg, polyline_points, Geometry, Poi, TracePoint, BOTTOM,
-    HEIGHT, LEFT, RIGHT, TOP, WIDTH, DEFAULT_STROKE_WIDTH,
+    aria_label, curve_caption, escape, fill_points, geometry, graph3d_svg, graph_svg, label,
+    layers_svg, polyline_points, segments, ticks, trace_nearest, Geometry, Poi, TracePoint, BOTTOM,
+    DEFAULT_STROKE_WIDTH, HEIGHT, LEFT, RIGHT, TOP, WIDTH,
 };
 /// The live 3D renderer's content (view box + mesh markup).
 pub fn surface_svg(
@@ -394,8 +394,7 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
     // which stalled and flickered in WebView2 (Windows); patching is a
     // few thousand attribute writes with zero node churn — 60fps in every
     // engine. Structure changes (different surfaces) still rebuild.
-    let last_markup =
-        use_state(|| std::rc::Rc::new(std::cell::RefCell::new(None::<String>)));
+    let last_markup = use_state(|| std::rc::Rc::new(std::cell::RefCell::new(None::<String>)));
     {
         let g_ref = g_ref.clone();
         let last_markup = last_markup.clone();
@@ -431,12 +430,16 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
             {
                 let el_closure = el.clone();
                 let drag = drag.clone();
-                bound.push(gloo_events::EventListener::new(&el, "pointerdown", move |e| {
-                    if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
-                        el_closure.set_pointer_capture(pe.pointer_id()).ok();
-                        *drag.borrow_mut() = Some((pe.client_x() as f64, pe.client_y() as f64));
-                    }
-                }));
+                bound.push(gloo_events::EventListener::new(
+                    &el,
+                    "pointerdown",
+                    move |e| {
+                        if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
+                            el_closure.set_pointer_capture(pe.pointer_id()).ok();
+                            *drag.borrow_mut() = Some((pe.client_x() as f64, pe.client_y() as f64));
+                        }
+                    },
+                ));
             }
             // Drags accumulate into `pending` and commit at most once per
             // animation frame (ADR-0026): re-rendering per pointer event
@@ -444,48 +447,53 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
             // and, combined with the stale-handle orbit reads, "shivered"
             // instead of rotating. One commit per frame = smooth orbit.
             let pending = std::rc::Rc::new(std::cell::RefCell::new(None::<(f64, f64)>));
-            let frame = std::rc::Rc::new(std::cell::RefCell::new(
-                None::<gloo_render::AnimationFrame>,
-            ));
+            let frame =
+                std::rc::Rc::new(std::cell::RefCell::new(None::<gloo_render::AnimationFrame>));
             {
                 let el = el.clone();
                 let drag = drag.clone();
                 let on_orbit = on_orbit.clone();
                 let pending = pending.clone();
                 let frame = frame.clone();
-                bound.push(gloo_events::EventListener::new(&el, "pointermove", move |e| {
-                    if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
-                        // Copy the start point out first: Option<(f64, f64)>
-                        // is Copy, and holding the Ref across the body would
-                        // make the borrow_mut below panic ("RefCell already
-                        // borrowed") — the drag never orbits.
-                        let start = *drag.borrow();
-                        if let Some((lx, ly)) = start {
-                            let dx = pe.client_x() as f64 - lx;
-                            let dy = pe.client_y() as f64 - ly;
-                            *drag.borrow_mut() = Some((pe.client_x() as f64, pe.client_y() as f64));
-                            if dx.abs() > 0.5 || dy.abs() > 0.5 {
-                                {
-                                    let mut p = pending.borrow_mut();
-                                    let (a, b) = p.unwrap_or((0.0, 0.0));
-                                    *p = Some((a + dx * 0.01, b + dy * 0.01));
-                                }
-                                if frame.borrow().is_none() {
-                                    let pending = pending.clone();
-                                    let frame_inner = frame.clone();
-                                    let on_orbit = on_orbit.clone();
-                                    let handle = gloo_render::request_animation_frame(move |_| {
-                                        *frame_inner.borrow_mut() = None;
-                                        if let Some((a, b)) = pending.borrow_mut().take() {
-                                            on_orbit.emit((a, b));
-                                        }
-                                    });
-                                    *frame.borrow_mut() = Some(handle);
+                bound.push(gloo_events::EventListener::new(
+                    &el,
+                    "pointermove",
+                    move |e| {
+                        if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
+                            // Copy the start point out first: Option<(f64, f64)>
+                            // is Copy, and holding the Ref across the body would
+                            // make the borrow_mut below panic ("RefCell already
+                            // borrowed") — the drag never orbits.
+                            let start = *drag.borrow();
+                            if let Some((lx, ly)) = start {
+                                let dx = pe.client_x() as f64 - lx;
+                                let dy = pe.client_y() as f64 - ly;
+                                *drag.borrow_mut() =
+                                    Some((pe.client_x() as f64, pe.client_y() as f64));
+                                if dx.abs() > 0.5 || dy.abs() > 0.5 {
+                                    {
+                                        let mut p = pending.borrow_mut();
+                                        let (a, b) = p.unwrap_or((0.0, 0.0));
+                                        *p = Some((a + dx * 0.01, b + dy * 0.01));
+                                    }
+                                    if frame.borrow().is_none() {
+                                        let pending = pending.clone();
+                                        let frame_inner = frame.clone();
+                                        let on_orbit = on_orbit.clone();
+                                        let handle =
+                                            gloo_render::request_animation_frame(move |_| {
+                                                *frame_inner.borrow_mut() = None;
+                                                if let Some((a, b)) = pending.borrow_mut().take() {
+                                                    on_orbit.emit((a, b));
+                                                }
+                                            });
+                                        *frame.borrow_mut() = Some(handle);
+                                    }
                                 }
                             }
                         }
-                    }
-                }));
+                    },
+                ));
             }
             // Pointerup / pointerleave commit whatever is still pending so
             // the final position is exact even if the last events arrived
@@ -498,12 +506,16 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
                     let drag = drag.clone();
                     let on_orbit = on_orbit.clone();
                     let pending = pending.clone();
-                    bound.push(gloo_events::EventListener::new(&el, event_name, move |_| {
-                        *drag.borrow_mut() = None;
-                        if let Some((a, b)) = pending.borrow_mut().take() {
-                            on_orbit.emit((a, b));
-                        }
-                    }));
+                    bound.push(gloo_events::EventListener::new(
+                        &el,
+                        event_name,
+                        move |_| {
+                            *drag.borrow_mut() = None;
+                            if let Some((a, b)) = pending.borrow_mut().take() {
+                                on_orbit.emit((a, b));
+                            }
+                        },
+                    ));
                 }
             }
             {

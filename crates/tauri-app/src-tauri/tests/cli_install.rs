@@ -22,12 +22,16 @@ fn non_bundle_executables_have_no_plan() {
     assert!(cli_symlink_plan(Path::new("/usr/bin/epher")).is_none());
     // A bundle whose binary is not named epher, or a broken layout.
     assert!(cli_symlink_plan(Path::new("/Applications/other.app/Contents/MacOS/x")).is_none());
-    assert!(cli_symlink_plan(Path::new("/Applications/epher.dmg/Contents/MacOS/epher")).is_none()); // not .app
+    assert!(cli_symlink_plan(Path::new("/Applications/epher.dmg/Contents/MacOS/epher")).is_none());
+    // not .app
 }
 
 #[test]
 fn shell_quote_surrounds_and_escapes_single_quotes() {
-    assert_eq!(shell_quote("/Applications/epher.app"), "'/Applications/epher.app'");
+    assert_eq!(
+        shell_quote("/Applications/epher.app"),
+        "'/Applications/epher.app'"
+    );
     assert_eq!(shell_quote("it's"), "'it'\\''s'");
 }
 

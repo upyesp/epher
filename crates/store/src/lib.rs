@@ -6,15 +6,15 @@
 //! Writes are atomic and last-write-wins across co-running frontends.
 
 mod docs;
-mod memory;
 #[cfg(feature = "fs")]
 mod fs;
+mod memory;
 pub mod persist;
 
 pub use docs::{ConstantDoc, Doc, DocStore, FunctionDoc, ScriptDoc, SettingDoc};
-pub use memory::MemoryStore;
 #[cfg(feature = "fs")]
 pub use fs::FsStore;
+pub use memory::MemoryStore;
 
 /// A Store operation result.
 pub type StoreResult<T> = Result<T, StoreError>;

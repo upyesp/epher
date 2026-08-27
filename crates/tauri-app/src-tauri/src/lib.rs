@@ -28,13 +28,15 @@ impl DesktopStore {
     }
 
     /// Everything the webview needs at startup: history, the replay lines
-    /// (functions, then constants, then scripts), and the language preference.
+    /// (functions, then constants, then scripts), the language preference,
+    /// and the shared session snapshot (ADR-0010 amendment).
     pub fn init(&self) -> epher_store::StoreResult<InitState> {
         Ok(InitState {
             history: persist::history(&self.store)?,
             replay: persist::replay_lines(&self.store)?,
             language: persist::load_language(&self.store)?,
             theme: persist::load_theme(&self.store)?,
+            session: persist::session_bindings(&self.store)?.unwrap_or_default(),
         })
     }
 
@@ -52,6 +54,13 @@ impl DesktopStore {
 
     pub fn save_history(&self, history: &[String]) -> epher_store::StoreResult<()> {
         persist::save_history(&self.store, history)
+    }
+
+    pub fn save_session(
+        &self,
+        bindings: &std::collections::HashMap<String, epher_core::Value>,
+    ) -> epher_store::StoreResult<()> {
+        persist::save_session(&self.store, bindings)
     }
 
     pub fn save_language(&self, language: &str) -> epher_store::StoreResult<()> {
@@ -72,6 +81,9 @@ pub struct InitState {
     pub language: Option<String>,
     /// The theme preference (light/dark/night), if the user set one.
     pub theme: Option<String>,
+    /// The shared session snapshot (ADR-0010 amendment): bindings saved by
+    /// whichever CLI/REPL/TUI/desktop frontend ran last.
+    pub session: std::collections::HashMap<String, epher_core::Value>,
 }
 
 #[tauri::command]
@@ -94,12 +106,16 @@ fn init(state: State<DesktopStore>, window: tauri::WebviewWindow) -> Result<Init
 
 #[tauri::command]
 fn save_function(state: State<DesktopStore>, name: String, source: String) -> Result<(), String> {
-    state.save_function(&name, &source).map_err(|e| e.to_string())
+    state
+        .save_function(&name, &source)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 fn save_constant(state: State<DesktopStore>, name: String, source: String) -> Result<(), String> {
-    state.save_constant(&name, &source).map_err(|e| e.to_string())
+    state
+        .save_constant(&name, &source)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -110,6 +126,14 @@ fn save_script(state: State<DesktopStore>, name: String, source: String) -> Resu
 #[tauri::command]
 fn save_history(state: State<DesktopStore>, history: Vec<String>) -> Result<(), String> {
     state.save_history(&history).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_session(
+    state: State<DesktopStore>,
+    session: std::collections::HashMap<String, epher_core::Value>,
+) -> Result<(), String> {
+    state.save_session(&session).map_err(|e| e.to_string())
 }
 
 pub mod cli_install;
@@ -216,6 +240,7 @@ pub fn run() {
             save_constant,
             save_script,
             save_history,
+            save_session,
             save_language,
             save_theme,
             cli_install_supported,
@@ -366,7 +391,10 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let desktop = DesktopStore::with_dir(dir.path());
         desktop
-            .save_function("fib", "def fib(n) = if n <= 1 then n else fib(n - 1) + fib(n - 2)")
+            .save_function(
+                "fib",
+                "def fib(n) = if n <= 1 then n else fib(n - 1) + fib(n - 2)",
+            )
             .unwrap();
         desktop.save_constant("k", "const k = 41").unwrap();
         desktop
@@ -445,9 +473,6 @@ mod tests {
         // console to shed. The file-stem check is what this asserts.
         use std::path::Path;
         let exe = Path::new("C:/Program Files/epher/epher-gui.exe");
-        assert_eq!(
-            exe.file_stem().and_then(|s| s.to_str()),
-            Some("epher-gui")
-        );
+        assert_eq!(exe.file_stem().and_then(|s| s.to_str()), Some("epher-gui"));
     }
 }

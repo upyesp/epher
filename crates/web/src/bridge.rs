@@ -17,6 +17,9 @@ pub struct InitState {
     pub replay: Vec<String>,
     pub language: Option<String>,
     pub theme: Option<String>,
+    /// The shared session snapshot (ADR-0010 amendment): the bindings
+    /// saved by whichever CLI/REPL/TUI/desktop frontend ran last.
+    pub session: std::collections::HashMap<String, epher_core::Value>,
 }
 
 /// Which persistence backend this frontend instance can reach.
@@ -78,14 +81,24 @@ impl Bridge {
         self.spawn("save_history", args);
     }
 
+    /// Persist the shared session snapshot (ADR-0010 amendment): the
+    /// environment's bindings — user assignments and `ans` — so the next
+    /// CLI/REPL/TUI/desktop frontend starts where this one left off.
+    pub fn save_session_state(
+        self,
+        bindings: &std::collections::HashMap<String, epher_core::Value>,
+    ) {
+        let args = serde_wasm_bindgen::to_value(bindings).unwrap_or(JsValue::UNDEFINED);
+        self.spawn("save_session", args);
+    }
+
     pub fn save_language(self, code: &str) {
         let args = serde_wasm_bindgen::to_value(&CodeArgs { code }).unwrap_or(JsValue::UNDEFINED);
         self.spawn("save_language", args);
     }
 
     pub fn save_theme(self, name: &str) {
-        let args =
-            serde_wasm_bindgen::to_value(&ThemeArgs { name }).unwrap_or(JsValue::UNDEFINED);
+        let args = serde_wasm_bindgen::to_value(&ThemeArgs { name }).unwrap_or(JsValue::UNDEFINED);
         self.spawn("save_theme", args);
     }
 
@@ -108,7 +121,10 @@ impl Bridge {
             default_name,
         })
         .map_err(|e| e.to_string())?;
-        let value = self.invoke("save_file_dialog", &args).await.map_err(js_err)?;
+        let value = self
+            .invoke("save_file_dialog", &args)
+            .await
+            .map_err(js_err)?;
         if value.is_null() || value.is_undefined() {
             return Ok(None);
         }

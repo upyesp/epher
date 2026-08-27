@@ -10,8 +10,8 @@
 //! save helpers so the bytes match.
 
 use epher_core::graph::{
-    analyze, parse_graph_source, sample_spec, sample_surface, InterestPoint, SampledCurve,
-    Surface, View3D,
+    analyze, parse_graph_source, sample_spec, sample_surface, InterestPoint, SampledCurve, Surface,
+    View3D,
 };
 use epher_core::graph_svg::{graph3d_svg, graph_svg, Poi, DEFAULT_STROKE_WIDTH};
 use epher_core::Env;
@@ -27,10 +27,16 @@ pub struct PlotOutcome {
 
 impl PlotOutcome {
     fn ok(message: String) -> Self {
-        PlotOutcome { message, error: false }
+        PlotOutcome {
+            message,
+            error: false,
+        }
     }
     fn err(message: String) -> Self {
-        PlotOutcome { message, error: true }
+        PlotOutcome {
+            message,
+            error: true,
+        }
     }
 }
 
@@ -137,7 +143,12 @@ impl Plots {
     }
 
     /// Handle the text after `graph3d `: add a surface, clear, or save.
-    pub fn submit_surface(&mut self, source: &str, env: &Env, localizer: &Localizer) -> PlotOutcome {
+    pub fn submit_surface(
+        &mut self,
+        source: &str,
+        env: &Env,
+        localizer: &Localizer,
+    ) -> PlotOutcome {
         let source = source.trim();
         if source == "clear" {
             self.surfaces.clear();
@@ -176,7 +187,11 @@ impl Plots {
             return PlotOutcome::err(localizer.lookup("graph-empty"));
         }
         let pois = labeled_pois(&analyze(&self.curves, env), localizer);
-        write_document(path, graph_svg(&self.curves, &pois, None, markers, DEFAULT_STROKE_WIDTH), localizer)
+        write_document(
+            path,
+            graph_svg(&self.curves, &pois, None, markers, DEFAULT_STROKE_WIDTH),
+            localizer,
+        )
     }
 
     /// Write the current 3D surfaces as a self-contained SVG document.

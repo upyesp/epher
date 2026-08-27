@@ -19,25 +19,50 @@ use epher_store::{DocStore, Storage};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Command {
     /// `save name` — save the named function or constant.
-    Save { name: String },
-    SaveScript { name: String },
-    Language { code: String },
+    Save {
+        name: String,
+    },
+    SaveScript {
+        name: String,
+    },
+    Language {
+        code: String,
+    },
     /// `theme light|dark|night` — the UI theme (ADR-0017).
-    Theme { name: String },
+    Theme {
+        name: String,
+    },
     /// `table <expr> [from a to b] [points n]` — a table of values (ADR-0014).
-    Table { source: String },
+    Table {
+        source: String,
+    },
 }
 
 /// A command resolved against the session, ready to persist.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Prepared {
-    SaveFunction { name: String, source: String },
-    SaveConstant { name: String, source: String },
-    SaveScript { name: String, source: String },
-    Language { code: String },
-    Theme { name: String },
+    SaveFunction {
+        name: String,
+        source: String,
+    },
+    SaveConstant {
+        name: String,
+        source: String,
+    },
+    SaveScript {
+        name: String,
+        source: String,
+    },
+    Language {
+        code: String,
+    },
+    Theme {
+        name: String,
+    },
     /// A preformatted table of values (monospace text, one row per line).
-    Table { text: String },
+    Table {
+        text: String,
+    },
 }
 
 /// Recognize a shell command in an input line. Anything else (including
@@ -49,28 +74,36 @@ pub fn classify(line: &str) -> Option<Command> {
     if let Some(name) = line.strip_prefix("save script ") {
         let name = name.trim();
         if !name.is_empty() {
-            return Some(Command::SaveScript { name: name.to_string() });
+            return Some(Command::SaveScript {
+                name: name.to_string(),
+            });
         }
         return None;
     }
     if let Some(name) = line.strip_prefix("save ") {
         let name = name.trim();
         if !name.is_empty() {
-            return Some(Command::Save { name: name.to_string() });
+            return Some(Command::Save {
+                name: name.to_string(),
+            });
         }
         return None;
     }
     if let Some(code) = line.strip_prefix("language ") {
         let code = code.trim();
         if !code.is_empty() {
-            return Some(Command::Language { code: code.to_string() });
+            return Some(Command::Language {
+                code: code.to_string(),
+            });
         }
         return None;
     }
     if let Some(name) = line.strip_prefix("theme ") {
         let name = name.trim();
         if !name.is_empty() {
-            return Some(Command::Theme { name: name.to_string() });
+            return Some(Command::Theme {
+                name: name.to_string(),
+            });
         }
         return None;
     }
@@ -97,7 +130,11 @@ fn savable(source: &str) -> bool {
 
 /// Resolve a command against the session: validation and source lookups.
 /// `Err` carries the localized message to show the user.
-pub fn prepare(cmd: &Command, session: &Session, localizer: &Localizer) -> Result<Prepared, String> {
+pub fn prepare(
+    cmd: &Command,
+    session: &Session,
+    localizer: &Localizer,
+) -> Result<Prepared, String> {
     match cmd {
         Command::Save { name } => {
             // a function first, then a constant (ADR-0012)
@@ -139,15 +176,13 @@ pub fn prepare(cmd: &Command, session: &Session, localizer: &Localizer) -> Resul
             if matches!(name.as_str(), "light" | "dark" | "night") {
                 Ok(Prepared::Theme { name: name.clone() })
             } else {
-                Err(localizer.lookup_args(
-                    "unsupported-theme",
-                    &[("supported", "light, dark, night")],
-                ))
+                Err(localizer
+                    .lookup_args("unsupported-theme", &[("supported", "light, dark, night")]))
             }
         }
         Command::Table { source } => {
-            let spec = epher_core::graph::parse_table_source(source)
-                .map_err(|e| format!("error: {e}"))?;
+            let spec =
+                epher_core::graph::parse_table_source(source).map_err(|e| format!("error: {e}"))?;
             let rows = epher_core::graph::table_rows(
                 &spec.expr,
                 spec.x_min,
@@ -198,9 +233,7 @@ pub fn message(prepared: &Prepared, localizer: &Localizer) -> String {
         Prepared::SaveScript { name, .. } => {
             localizer.lookup_args("saved-script", &[("name", name)])
         }
-        Prepared::Language { code, .. } => {
-            localizer.lookup_args("language-set", &[("code", code)])
-        }
+        Prepared::Language { code, .. } => localizer.lookup_args("language-set", &[("code", code)]),
         Prepared::Theme { name, .. } => {
             let label = match name.as_str() {
                 "light" => localizer.lookup("theme-light"),
@@ -241,12 +274,22 @@ pub struct Handled {
 impl Handled {
     /// A successful answer: message to stdout, no language switch.
     fn ok(message: String) -> Self {
-        Handled { message, error: false, language: None, theme: None }
+        Handled {
+            message,
+            error: false,
+            language: None,
+            theme: None,
+        }
     }
 
     /// A rejected command: message to stderr, store untouched.
     fn err(message: String) -> Self {
-        Handled { message, error: true, language: None, theme: None }
+        Handled {
+            message,
+            error: true,
+            language: None,
+            theme: None,
+        }
     }
 }
 

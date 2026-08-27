@@ -982,6 +982,11 @@ están ahí cuando se abre la ventana de escritorio, incluidas las variables
 definidas por scripts guardados. Los comandos `save`, `save script` y
 `language` del capítulo 4 funcionan exactamente igual aquí.
 
+Los comandos que escribes en la CLI, el REPL, la TUI o la aplicación
+de escritorio se guardan todos en el mismo historial, y la sesión
+también viaja: las variables que asignas y el valor `ans` te siguen
+de una versión a la siguiente.
+
 > La aplicación web en el navegador es la única versión que no usa este
 > almacenamiento: cada sesión vive aparte (capítulo 2.6).
 

@@ -15,7 +15,9 @@ impl Storage for MemoryStore {
     }
 
     fn put(&self, key: &str, value: &[u8]) -> StoreResult<()> {
-        self.map.borrow_mut().insert(key.to_string(), value.to_vec());
+        self.map
+            .borrow_mut()
+            .insert(key.to_string(), value.to_vec());
         Ok(())
     }
 

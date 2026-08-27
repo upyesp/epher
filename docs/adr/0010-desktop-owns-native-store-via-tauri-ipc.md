@@ -59,3 +59,26 @@ explicit `save` command (would diverge from CLI/TUI semantics).
 - `window.__TAURI__` (withGlobalTauri) is the bridge's detection signal.
 - UI text beyond command messages stays English until the web-i18n wiring
   lands (unchanged, harness-blocked).
+
+## Amendment (2026-08-27): the store also carries the shared session snapshot
+
+The store's five settings grew one more: `setting/session.json` holds the
+environment's variable bindings — user assignments and `ans` — as a JSON
+map. Every interactive frontend saves it with the same cadence as history
+(the CLI/REPL per line, the TUI at each submit, the desktop webview
+through a new `save_session` IPC command next to `save_history`), and
+every frontend restores it at startup: `load_session` applies it after
+replaying functions/constants/scripts, and the webview's `init` returns
+it for the same restore. One installation, one calculator state: define
+`x = 5` in the TUI, close it, and `epher "x * 2"` or the desktop app
+knows `x` — and `ans` — already.
+
+The CLI one-shot (`epher "expr"`) joins the store: it evaluates against
+the saved session and records the command in the shared history, so a
+command entered at the shell prompt is part of the same body of saved
+work as the REPL's. Piped mode (`epher -`) still only *reads* the store —
+batch runs never write history or session state (unchanged behavior).
+
+The earlier ADR-0021 statement that `ans` is "never persisted" is
+superseded for the desktop installation; the browser PWA remains
+session-only (this ADR's PWA column is unchanged).

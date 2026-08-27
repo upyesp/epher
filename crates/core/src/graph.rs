@@ -79,8 +79,7 @@ pub fn parse_graph_source(source: &str) -> Result<CurveSpec, EpherError> {
             },
             _ => {
                 return Err(EpherError::Parse(
-                    "parametric graphs need two expressions: `param <x(t)>, <y(t)>`"
-                        .to_string(),
+                    "parametric graphs need two expressions: `param <x(t)>, <y(t)>`".to_string(),
                 ))
             }
         }
@@ -114,11 +113,7 @@ pub fn parse_graph_source(source: &str) -> Result<CurveSpec, EpherError> {
             domain.0, domain.1
         )));
     }
-    Ok(CurveSpec {
-        kind,
-        domain,
-        fill,
-    })
+    Ok(CurveSpec { kind, domain, fill })
 }
 
 /// A parsed `from a to b` domain suffix (or none), paired with the body
@@ -141,7 +136,9 @@ fn split_domain(source: &str) -> DomainSplit<'_> {
     let fa = evaluate(a.trim())?;
     let fb = evaluate(b.trim())?;
     let (Value::Float(a), Value::Float(b)) = (fa, fb) else {
-        return Err(EpherError::Type("graph domain bounds must be numbers".to_string()));
+        return Err(EpherError::Type(
+            "graph domain bounds must be numbers".to_string(),
+        ));
     };
     Ok((body.trim(), Some((a, b))))
 }
@@ -458,13 +455,7 @@ fn bisect_diff(f: &Expression, g: &Expression, mut a: f64, mut b: f64, env: &Env
 }
 
 /// Golden-section search for a local extremum of `f` on `[a, b]`.
-fn golden_extremum(
-    expr: &Expression,
-    a: f64,
-    b: f64,
-    maximum: bool,
-    env: &Env,
-) -> Option<f64> {
+fn golden_extremum(expr: &Expression, a: f64, b: f64, maximum: bool, env: &Env) -> Option<f64> {
     let phi = 0.618_033_988_749_894_9;
     let (mut lo, mut hi) = (a, b);
     let mut c = hi - phi * (hi - lo);
@@ -515,9 +506,7 @@ pub fn free_names(expr: &Expression, out: &mut BTreeSet<String>) {
                 free_names(a, out);
             }
         }
-        Expression::Neg(e)
-        | Expression::Factorial(e)
-        | Expression::Not(e) => free_names(e, out),
+        Expression::Neg(e) | Expression::Factorial(e) | Expression::Not(e) => free_names(e, out),
         Expression::Add(a, b)
         | Expression::Sub(a, b)
         | Expression::Mul(a, b)
@@ -846,8 +835,7 @@ pub fn surface_frame(surface: &Surface, view: &View3D) -> Vec<Segment3D> {
     let (a, b) = surface.domain;
     let mut frame = Vec::with_capacity(8);
     let mut edge = |x1: f64, y1: f64, z1: f64, x2: f64, y2: f64, z2: f64| {
-        if let Some((sx1, sy1, zp1, sx2, sy2, zp2)) =
-            project_clipped(x1, y1, z1, x2, y2, z2, view)
+        if let Some((sx1, sy1, zp1, sx2, sy2, zp2)) = project_clipped(x1, y1, z1, x2, y2, z2, view)
         {
             frame.push(Segment3D {
                 x1: sx1,

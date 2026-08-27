@@ -1,6 +1,6 @@
 [package]
 name = "epher-web"
-version = "0.4.29"
+version = "0.4.30"
 edition = "2021"
 license = "MIT"
 description = "Yew frontend compiled to wasm32-unknown-unknown — shared by the PWA and the Tauri shell."

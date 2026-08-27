@@ -52,7 +52,10 @@ fn stroke_width_lands_in_the_embedded_style() {
 #[test]
 fn curve_expressions_are_escaped() {
     let svg = graph_svg(&[curve("y < x ^ 2")], &[], None, true, 1.0);
-    assert!(svg.contains("&lt;"), "the expression must not break the XML");
+    assert!(
+        svg.contains("&lt;"),
+        "the expression must not break the XML"
+    );
 }
 
 #[test]
@@ -93,7 +96,13 @@ fn rendered_document_is_valid_expression_free_xml() {
 fn extra_curves_are_solid_and_captioned() {
     // ADR-0023: every curve is solid; the caption at each curve's end is
     // the non-color channel that keeps curves apart (WCAG 1.4.1).
-    let svg = graph_svg(&[curve("x ^ 2"), curve("x ^ 3")], &[], None, true, DEFAULT_STROKE_WIDTH);
+    let svg = graph_svg(
+        &[curve("x ^ 2"), curve("x ^ 3")],
+        &[],
+        None,
+        true,
+        DEFAULT_STROKE_WIDTH,
+    );
     assert!(!svg.contains("dasharray"), "{svg}");
     assert!(svg.contains("<text class=\"label curve-0\""), "{svg}");
     assert!(svg.contains("<text class=\"label curve-1\""), "{svg}");

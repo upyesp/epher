@@ -139,3 +139,28 @@ Three defects surfaced in end-user testing (Windows desktop, Android):
    drag and 2D trace are verified under mobile emulation with CDP touch
    events, and the playback rate is asserted in the browser suite (≈8.3
    steps/s, steady over 10 s, page alive).
+
+## Amendment (2026-08-27): the slider and play button move above the points-of-interest list
+
+The 2D pane ordered itself plot → trace → points-of-interest list → slider
+rows. The animation slider and its play button are controls driving the
+plot, so they belong with it: the slider rows now render directly beneath
+the plot (and the trace readout), above the points-of-interest list. The
+POI list is a passive readout and keeps the bottom of the pane. One DOM
+move in the shared web frontend serves the desktop app and the PWA; the
+TUI has no slider (its animation control is the space bar) and its pane
+layout is unchanged.
+
+## Amendment (2026-08-27): the pane shows one kind at a time
+
+A 2D plot and a 3D plot share the pane's vertical space, which shrank
+both below practical size. The pane now holds **one kind at a time**:
+drawing a surface clears the 2D curves (and their points of interest);
+drawing a curve clears the surfaces (and resets the 3D pose when the next
+surface arrives, exactly as a first surface does). Same-kind overlays are
+unaffected — several curves still share one 2D plot, several surfaces
+still share one 3D plot. Explicit `graph clear` / `graph3d clear` remain
+kind-specific, and a failed plot never clears anything. The web frontend
+(desktop + PWA) and the TUI enforce the switch at their submit seams; the
+CLI's `Plots` state is untouched because `graph save` / `graph3d save`
+write separate SVG documents that never share a canvas.

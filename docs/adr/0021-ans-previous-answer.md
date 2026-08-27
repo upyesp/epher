@@ -38,3 +38,16 @@ loop bodies share:
   between `run_inner` and `execute_stmt` collapsed into it.
 - Guide §1.5 documents the variable in all eight locales (two short
   code blocks per locale, audit-fenced identically).
+
+## Amendment (2026-08-27): `ans` persists as part of the shared session snapshot
+
+The "never persisted to the store" bullet is amended for the desktop
+installation. Under the ADR-0010 amendment, the native store carries a
+`session` setting — the environment's bindings, `ans` among them — saved
+with every submitted line and restored at startup. `ans` therefore
+travels between the CLI one-shot, the REPL, the TUI, and the desktop app
+(last-write-wins, like every other store document). The browser PWA stays
+session-only: its `ans` still lives and dies with the page. Everything
+else in this ADR is unchanged: `ans` remains an ordinary variable (now a
+shared one), statements that produce no value still leave it untouched,
+and failed lines still never clobber the last good answer.

@@ -132,7 +132,9 @@ pub fn action_from(args: &Args) -> Action {
             Command::Tui => Action::Tui,
             Command::Gui => Action::Gui,
             Command::Help { command: None } => Action::HelpManual,
-            Command::Help { command: Some(topic) } => Action::HelpTopic(topic.clone()),
+            Command::Help {
+                command: Some(topic),
+            } => Action::HelpTopic(topic.clone()),
         };
     }
     match args.expression.as_deref() {

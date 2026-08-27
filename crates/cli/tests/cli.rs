@@ -34,37 +34,46 @@ fn repl_output(store_dir: &str, input: &str) -> String {
     repl_session(store_dir, input).0
 }
 
+/// Run one-shot against an isolated store dir, returning stdout.
+fn one_shot_output(expr: &str) -> String {
+    let dir = tempfile::tempdir().unwrap();
+    let out = epher_bin()
+        .arg(expr)
+        .env("EPHER_STORE_DIR", dir.path().to_str().unwrap())
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    String::from_utf8_lossy(&out.stdout).to_string()
+}
+
 #[test]
 fn one_shot_evaluates_and_prints() {
-    let out = epher_bin().arg("2 + 3 * 4").output().unwrap();
-    assert!(out.status.success());
-    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "14");
+    assert_eq!(one_shot_output("2 + 3 * 4").trim(), "14");
 }
 
 #[test]
 fn one_shot_accepts_semicolon_scripts() {
-    let out = epher_bin().arg("x = 10; x + 5").output().unwrap();
-    assert!(out.status.success());
-    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "10\n15");
+    assert_eq!(one_shot_output("x = 10; x + 5").trim(), "10\n15");
 }
 
 #[test]
 fn one_shot_accepts_newline_separated_scripts() {
-    let out = epher_bin().arg("x = 3\nx * 10").output().unwrap();
-    assert!(out.status.success());
-    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "3\n30");
+    assert_eq!(one_shot_output("x = 3\nx * 10").trim(), "3\n30");
 }
 
 #[test]
 fn one_shot_accepts_mixed_separators_and_blank_lines() {
-    let out = epher_bin().arg("x = 3;;\n\ny = x + 1\ny").output().unwrap();
-    assert!(out.status.success());
-    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "3\n4\n4");
+    assert_eq!(one_shot_output("x = 3;;\n\ny = x + 1\ny").trim(), "3\n4\n4");
 }
 
 #[test]
 fn one_shot_errors_on_bad_input() {
-    let out = epher_bin().arg("2 +").output().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let out = epher_bin()
+        .arg("2 +")
+        .env("EPHER_STORE_DIR", dir.path().to_str().unwrap())
+        .output()
+        .unwrap();
     assert!(!out.status.success());
     assert!(String::from_utf8_lossy(&out.stderr).contains("error"));
 }
@@ -72,7 +81,10 @@ fn one_shot_errors_on_bad_input() {
 #[test]
 fn repl_runs_scripts_and_keeps_state() {
     let dir = tempfile::tempdir().unwrap();
-    let out = repl_output(dir.path().to_str().unwrap(), "x = 5; x + 1\ndef f(n) = n * 2\nf(x)\nquit\n");
+    let out = repl_output(
+        dir.path().to_str().unwrap(),
+        "x = 5; x + 1\ndef f(n) = n * 2\nf(x)\nquit\n",
+    );
     assert!(out.contains("6"), "stdout was: {out}");
     assert!(out.contains("10"), "stdout was: {out}");
     // the bare def produces no error line
@@ -125,10 +137,7 @@ fn language_command_persists_the_setting() {
 #[test]
 fn unsupported_language_is_rejected() {
     let dir = tempfile::tempdir().unwrap();
-    let (out, err) = repl_session(
-        dir.path().to_str().unwrap(),
-        "language xx\nquit\n",
-    );
+    let (out, err) = repl_session(dir.path().to_str().unwrap(), "language xx\nquit\n");
     assert!(err.contains("unsupported language xx"), "stderr was: {err}");
     assert!(!out.contains("unsupported language"), "stdout was: {out}");
 }
@@ -151,10 +160,7 @@ fn save_script_persists_and_reloads_the_last_line() {
 #[test]
 fn save_script_without_a_preceding_line_errors() {
     let dir = tempfile::tempdir().unwrap();
-    let (out, err) = repl_session(
-        dir.path().to_str().unwrap(),
-        "save script empty\nquit\n",
-    );
+    let (out, err) = repl_session(dir.path().to_str().unwrap(), "save script empty\nquit\n");
     assert!(err.contains("nothing to save"), "stderr was: {err}");
     assert!(!out.contains("nothing to save"), "stdout was: {out}");
 }
@@ -190,7 +196,10 @@ mod conventions {
             !stdout.contains("error"),
             "errors must not pollute piped data: {stdout}"
         );
-        assert!(stderr.contains("error: division by zero"), "stderr was: {stderr}");
+        assert!(
+            stderr.contains("error: division by zero"),
+            "stderr was: {stderr}"
+        );
         // the script kept going *and* reported failure
         assert_eq!(out.status.code(), Some(1));
     }
@@ -206,12 +215,7 @@ mod conventions {
             .stderr(Stdio::piped())
             .spawn()
             .unwrap();
-        child
-            .stdin
-            .as_mut()
-            .unwrap()
-            .write_all(b"2 + 2\n")
-            .unwrap();
+        child.stdin.as_mut().unwrap().write_all(b"2 + 2\n").unwrap();
         let out = child.wait_with_output().unwrap();
         assert_eq!(out.status.code(), Some(0));
         assert!(String::from_utf8_lossy(&out.stderr).is_empty());
@@ -230,8 +234,14 @@ mod conventions {
         let long = epher_bin().arg("--help").output().unwrap();
         assert_eq!(long.status.code(), Some(0), "--help exits 0");
         let long_text = String::from_utf8_lossy(&long.stdout);
-        assert!(long_text.contains("epher.org/guide"), "--help links the docs");
-        assert!(long_text.contains("github.com/upyesp/epher/issues"), "support path");
+        assert!(
+            long_text.contains("epher.org/guide"),
+            "--help links the docs"
+        );
+        assert!(
+            long_text.contains("github.com/upyesp/epher/issues"),
+            "support path"
+        );
 
         let version = epher_bin().arg("--version").output().unwrap();
         assert_eq!(version.status.code(), Some(0));
@@ -305,7 +315,11 @@ fn piped_scripts_save_svgs_across_lines() {
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
-    out.stdin.as_ref().unwrap().write_all(script.as_bytes()).unwrap();
+    out.stdin
+        .as_ref()
+        .unwrap()
+        .write_all(script.as_bytes())
+        .unwrap();
     let out = out.wait_with_output().unwrap();
     assert_eq!(out.status.code(), Some(0));
     assert!(svg.exists());
@@ -346,4 +360,70 @@ fn graph3d_save_from_a_one_shot() {
     let doc = std::fs::read_to_string(&svg).unwrap();
     assert!(doc.contains("viewBox=\"0 0 640 400\""), "{doc}");
     assert!(doc.contains("transform=\"translate("), "{doc}");
+}
+
+// ===== The shared store across frontends (ADR-0010 amendment) =====
+
+#[test]
+fn one_shot_uses_the_shared_store() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+
+    // session 1 (REPL): assign x, which sets ans too; both persist.
+    repl_output(path, "x = 5\nquit\n");
+
+    // one-shot sees the saved variables; the saved ans is shared too
+    let out = epher_bin()
+        .arg("ans")
+        .env("EPHER_STORE_DIR", path)
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "5");
+
+    let out = epher_bin()
+        .arg("x * 2")
+        .env("EPHER_STORE_DIR", path)
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "10");
+
+    // the one-shot's own evaluation moved ans to 10, and the next
+    // one-shot sees that shared value
+    let out = epher_bin()
+        .arg("ans")
+        .env("EPHER_STORE_DIR", path)
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "10");
+
+    // the REPL picks up the shared ans too
+    let out2 = repl_output(path, "ans + 1\nquit\n");
+    assert!(out2.contains("= 11"), "stdout was: {out2}");
+}
+
+#[test]
+fn one_shot_records_its_command_in_the_shared_history() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+
+    let out = epher_bin()
+        .arg("2 + 2")
+        .env("EPHER_STORE_DIR", path)
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+
+    // the command joined the store's history setting, alongside the
+    // REPL's entries, and the bindings snapshot exists
+    let raw = std::fs::read_to_string(dir.path().join("setting/history.json")).unwrap();
+    assert!(raw.contains("2 + 2"), "history was: {raw}");
+    assert!(dir.path().join("setting/session.json").exists());
+
+    // a later REPL sees the entry in its history (it is display-only,
+    // but the entries count as loaded)
+    let out2 = repl_output(path, "quit\n");
+    assert!(out2.contains("epher>"), "stdout was: {out2}");
 }

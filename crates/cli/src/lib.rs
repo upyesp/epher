@@ -27,7 +27,9 @@ use std::io::{self, BufRead, Write};
 use epher_core::{EpherError, Session};
 use epher_i18n::Localizer;
 use epher_shell::{classify, plain, run_command};
-use epher_store::persist::{default_store_dir, load_language, load_session, save_history};
+use epher_store::persist::{
+    default_store_dir, load_language, load_session, save_history, save_session,
+};
 use epher_store::{DocStore, FsStore};
 
 /// The outcome of processing one line: what to print (if anything),
@@ -50,7 +52,12 @@ fn is_engine_error(output: &str) -> bool {
 /// statement evaluated against the session. Errors come back as
 /// `error: …` output marked `Step::error` — the session stays usable,
 /// exactly like the REPL.
-pub fn step(session: &mut Session, store: &DocStore<FsStore>, localizer: &Localizer, line: &str) -> Step {
+pub fn step(
+    session: &mut Session,
+    store: &DocStore<FsStore>,
+    localizer: &Localizer,
+    line: &str,
+) -> Step {
     if let Some(cmd) = classify(line) {
         let handled = run_command(&cmd, session, store, localizer);
         let message = plain(handled.message);
@@ -141,15 +148,18 @@ pub fn run_one_shot(expr: &str) -> Result<(), EpherError> {
     // own line — the piped mode's output without the `=` prefix.
     // `epher "2 + 3"` prints `5`, exactly as before. Graph statements
     // split out first; the rest keep the engine's exact script semantics.
+    // The command runs against the shared store (ADR-0010 amendment): it
+    // sees the saved session — functions, constants, variables, `ans` —
+    // and records itself in the common history, so the CLI is part of the
+    // same body of saved work as the REPL, TUI, and desktop app.
+    let (store, mut session, localizer) = open_store_with_session();
     let mut plots = epher_shell::plots::Plots::new();
-    let mut env = epher_core::Env::default();
-    let localizer = Localizer::resolve(None, &[]);
     for piece in expr.split(['\n', ';']) {
         let piece = piece.trim();
         if piece.is_empty() {
             continue;
         }
-        if let Some(out) = graph_line(piece, &mut plots, &env, &localizer) {
+        if let Some(out) = graph_line(piece, &mut plots, session.env(), &localizer) {
             if out.error {
                 term::error(out.output.as_deref().unwrap_or("error"));
                 std::process::exit(1);
@@ -158,10 +168,16 @@ pub fn run_one_shot(expr: &str) -> Result<(), EpherError> {
             continue;
         }
         let script = epher_core::parse_script(piece)?;
-        for value in epher_core::run_all(&script, &mut env)? {
+        for value in epher_core::run_all(&script, session.env_mut())? {
             println!("{value}");
         }
     }
+    // The command joins the shared history and its bindings (`ans` and
+    // any assignments) join the shared session snapshot — best effort,
+    // exactly like the REPL's per-line saves.
+    session.record(expr.trim());
+    let _ = save_history(&store, session.history());
+    let _ = save_session(&store, session.bindings());
     Ok(())
 }
 
@@ -179,9 +195,14 @@ pub fn run_repl() -> Result<(), EpherError> {
     let mut lines = stdin.lock().lines();
     loop {
         print!("{} ", localizer.lookup("prompt"));
-        io::stdout().flush().map_err(|e| EpherError::Io(e.to_string()))?;
+        io::stdout()
+            .flush()
+            .map_err(|e| EpherError::Io(e.to_string()))?;
         let Some(line) = lines.next() else { break }; // EOF
-        let line = line.map_err(|e| EpherError::Io(e.to_string()))?.trim().to_string();
+        let line = line
+            .map_err(|e| EpherError::Io(e.to_string()))?
+            .trim()
+            .to_string();
         if line.is_empty() {
             continue;
         }
@@ -200,8 +221,10 @@ pub fn run_repl() -> Result<(), EpherError> {
         if let Some(code) = out.language {
             localizer = Localizer::resolve(Some(&code), &[]);
         }
-        // best-effort persistence of history (atomic, last-write-wins)
+        // best-effort persistence of history and the session snapshot
+        // (atomic, last-write-wins)
         let _ = save_history(&store, session.history());
+        let _ = save_session(&store, session.bindings());
     }
     Ok(())
 }
@@ -263,7 +286,10 @@ pub fn run_stdin_from<R: BufRead>(input: R) -> Result<bool, EpherError> {
     let mut plots = epher_shell::plots::Plots::new();
     let mut failed = false;
     for line in input.lines() {
-        let line = line.map_err(|e| EpherError::Io(e.to_string()))?.trim().to_string();
+        let line = line
+            .map_err(|e| EpherError::Io(e.to_string()))?
+            .trim()
+            .to_string();
         if line.is_empty() {
             continue;
         }

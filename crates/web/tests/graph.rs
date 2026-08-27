@@ -97,14 +97,26 @@ fn ticks_land_on_nice_steps_and_snap_zero() {
 
 #[test]
 fn fills_emit_polygons_closed_against_the_plot_edge() {
-    let svg = graph_svg(&[curve("y < x ^ 2 from -2 to 2")], &[], None, true, DEFAULT_STROKE_WIDTH);
+    let svg = graph_svg(
+        &[curve("y < x ^ 2 from -2 to 2")],
+        &[],
+        None,
+        true,
+        DEFAULT_STROKE_WIDTH,
+    );
     assert!(svg.contains("<polygon class=\"fill curve-0\""), "{svg}");
     assert!(svg.contains("368.0"), "closed against the bottom edge");
 }
 
 #[test]
 fn curves_get_distinct_classes_for_color_and_dash() {
-    let svg = graph_svg(&[curve("x"), curve("x ^ 2")], &[], None, true, DEFAULT_STROKE_WIDTH);
+    let svg = graph_svg(
+        &[curve("x"), curve("x ^ 2")],
+        &[],
+        None,
+        true,
+        DEFAULT_STROKE_WIDTH,
+    );
     assert!(svg.contains("class=\"curve curve-0\""), "{svg}");
     assert!(svg.contains("class=\"curve curve-1\""), "{svg}");
 }
@@ -117,7 +129,13 @@ fn points_of_interest_render_with_labels() {
         x: 1.0,
         y: 0.0,
     }];
-    let svg = graph_svg(&[curve("x ^ 2 - 1")], &pois, None, true, DEFAULT_STROKE_WIDTH);
+    let svg = graph_svg(
+        &[curve("x ^ 2 - 1")],
+        &pois,
+        None,
+        true,
+        DEFAULT_STROKE_WIDTH,
+    );
     assert!(svg.contains("class=\"poi\""), "{svg}");
     assert!(svg.contains("root (1, 0)"), "{svg}");
 }
@@ -130,10 +148,19 @@ fn points_of_interest_hide_when_markers_are_off() {
         x: 1.0,
         y: 0.0,
     }];
-    let svg = graph_svg(&[curve("x ^ 2 - 1")], &pois, None, false, DEFAULT_STROKE_WIDTH);
+    let svg = graph_svg(
+        &[curve("x ^ 2 - 1")],
+        &pois,
+        None,
+        false,
+        DEFAULT_STROKE_WIDTH,
+    );
     assert!(!svg.contains("class=\"poi\""), "{svg}");
     assert!(!svg.contains("class=\"poi-label\""), "{svg}");
-    assert!(svg.contains("class=\"curve curve-0\""), "the plot itself stays");
+    assert!(
+        svg.contains("class=\"curve curve-0\""),
+        "the plot itself stays"
+    );
 }
 
 #[test]
@@ -167,7 +194,13 @@ fn trace_render_includes_the_cursor() {
 
 #[test]
 fn parametric_and_polar_curves_share_the_plot() {
-    let svg = graph_svg(&[curve("param t, t ^ 2"), curve("polar 2")], &[], None, true, DEFAULT_STROKE_WIDTH);
+    let svg = graph_svg(
+        &[curve("param t, t ^ 2"), curve("polar 2")],
+        &[],
+        None,
+        true,
+        DEFAULT_STROKE_WIDTH,
+    );
     assert!(svg.contains("class=\"curve curve-0\""), "{svg}");
     assert!(svg.contains("class=\"curve curve-1\""), "{svg}");
 }

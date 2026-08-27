@@ -32,7 +32,9 @@ fn settings_round_trip() {
 #[test]
 fn overwrite_is_last_write_wins() {
     let store = DocStore::new(MemoryStore::default());
-    store.set_setting("theme", serde_json::json!("dark")).unwrap();
+    store
+        .set_setting("theme", serde_json::json!("dark"))
+        .unwrap();
     store
         .set_setting("theme", serde_json::json!("light"))
         .unwrap();
@@ -104,7 +106,9 @@ mod fs_tests {
             .map(|d| d.name)
             .collect();
         assert_eq!(names, vec!["f", "g"]);
-        store.set_setting("language", serde_json::json!("es")).unwrap();
+        store
+            .set_setting("language", serde_json::json!("es"))
+            .unwrap();
         // settings don't leak into functions
         assert_eq!(store.list_functions().unwrap().len(), 2);
     }
@@ -135,7 +139,10 @@ mod persist_tests {
         let store = DocStore::new(MemoryStore::default());
         save_history(&store, &["a  = 1".to_string(), "b  = 2".to_string()]).unwrap();
         let session: Session = load_session(&store).unwrap();
-        assert_eq!(session.history(), &["a  = 1".to_string(), "b  = 2".to_string()]);
+        assert_eq!(
+            session.history(),
+            &["a  = 1".to_string(), "b  = 2".to_string()]
+        );
     }
 
     #[test]
@@ -153,5 +160,8 @@ fn replay_lines_lists_functions_then_scripts_in_load_order() {
     epher_store::persist::save_script(&store, "later", "x = 2").unwrap();
     epher_store::persist::save_function(&store, "first", "def first() = 1").unwrap();
     let lines = epher_store::persist::replay_lines(&store).unwrap();
-    assert_eq!(lines, vec!["def first() = 1".to_string(), "x = 2".to_string()]);
+    assert_eq!(
+        lines,
+        vec!["def first() = 1".to_string(), "x = 2".to_string()]
+    );
 }

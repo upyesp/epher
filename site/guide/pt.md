@@ -983,6 +983,11 @@ abre, incluindo variáveis definidas por scripts guardados. Os comandos
 `save`, `save script` e `language` do capítulo 4 funcionam exatamente da
 mesma forma aqui.
 
+Os comandos que escreve na CLI, no REPL, na TUI ou na aplicação de
+ambiente de trabalho juntam-se todos ao mesmo histórico, e a sessão
+também viaja: as variáveis que define e o valor `ans` seguem-no de
+uma versão para a seguinte.
+
 > A aplicação web no navegador é a única versão que não usa este
 > armazenamento — mantém cada sessão para si (capítulo 2.6).
 

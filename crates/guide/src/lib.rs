@@ -362,7 +362,10 @@ pub fn render_text(md: &str) -> Vec<TLine> {
             let mut n = 1;
             while i < lines.len() && is_ol_line(lines[i]) {
                 let dot = lines[i].find('.').unwrap();
-                out.push(TLine::Text(format!("{n}. {}", strip_inline(&lines[i][dot + 2..]))));
+                out.push(TLine::Text(format!(
+                    "{n}. {}",
+                    strip_inline(&lines[i][dot + 2..])
+                )));
                 n += 1;
                 i += 1;
             }
@@ -415,12 +418,21 @@ mod tests {
     fn html_epher_fences_become_clickable_examples_and_text_is_escaped() {
         let md = "```epher\n2 + 3 * 4\n```\n\n```text\n14\n```\n";
         let h = render_html(md, "Contents");
-        assert!(h.contains("class=\"guide-example-btn\" data-code=\"2 + 3 * 4\">2 + 3 * 4"), "{h}");
-        assert!(h.contains("<pre class=\"guide-out\"><code>14</code></pre>"), "{h}");
+        assert!(
+            h.contains("class=\"guide-example-btn\" data-code=\"2 + 3 * 4\">2 + 3 * 4"),
+            "{h}"
+        );
+        assert!(
+            h.contains("<pre class=\"guide-out\"><code>14</code></pre>"),
+            "{h}"
+        );
         // angle brackets and quotes inside code are escaped in the attribute
         let md2 = "```epher\nx > 1 and \"a\"\n```\n";
         let h2 = render_html(md2, "Contents");
-        assert!(h2.contains("data-code=\"x &gt; 1 and &quot;a&quot;\""), "{h2}");
+        assert!(
+            h2.contains("data-code=\"x &gt; 1 and &quot;a&quot;\""),
+            "{h2}"
+        );
     }
 
     #[test]
@@ -428,8 +440,16 @@ mod tests {
         let md = "| a | b |\n|---|---|\n| 1 | 2 |\n\n> note **bold** and `code`.\n\nPara with **b** and *i* and `c`.\n";
         let h = render_html(md, "Contents");
         assert!(h.contains("<table><thead><tr><th>a</th><th>b</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table>"), "{h}");
-        assert!(h.contains("<blockquote><p>note <strong>bold</strong> and <code>code</code>.</p></blockquote>"), "{h}");
-        assert!(h.contains("Para with <strong>b</strong> and <em>i</em> and <code>c</code>."), "{h}");
+        assert!(
+            h.contains(
+                "<blockquote><p>note <strong>bold</strong> and <code>code</code>.</p></blockquote>"
+            ),
+            "{h}"
+        );
+        assert!(
+            h.contains("Para with <strong>b</strong> and <em>i</em> and <code>c</code>."),
+            "{h}"
+        );
     }
 
     #[test]

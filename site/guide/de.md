@@ -990,6 +990,11 @@ einschließlich Variablen, die gespeicherte Skripte gesetzt haben. Die
 Befehle `save`, `save script` und `language` aus Kapitel 4 funktionieren
 hier genau gleich.
 
+Befehle, die du in der CLI, der REPL, der TUI oder der Desktop-App
+eingibst, landen alle im selben Verlauf, und die Sitzung wandert mit:
+Variablen, die du zuweist, und der `ans`-Wert folgen dir von einer
+Version zur nächsten.
+
 > Die Web-App im Browser ist die eine Version, die diesen Speicher nicht
 > nutzt — sie behält jede Sitzung für sich (Kapitel 2.6).
 

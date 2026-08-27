@@ -959,6 +959,11 @@
     /* --- mobile: the menu bar folds into the hamburger (ADR-0017) ------ */
     @media (max-width: 879.98px) {
       .menubar { display: none; }
+      /* The 3D hint mentions the arrow keys — a keyboard affordance.
+         On touch layouts rotation happens by swiping the plot
+         (ADR-0035 amendment); the hint is irrelevant there, so it is
+         not displayed. */
+      .graph3d-hint { display: none; }
     }
     /* --- desktop: the graph pane sits beside the calculator (ADR-0016) - */
     @media (min-width: 880px) {

@@ -42,46 +42,68 @@ pub fn replay_lines<S: Storage>(store: &DocStore<S>) -> StoreResult<Vec<String>>
 }
 
 /// Rebuild a session from the store: history plus saved functions,
-/// constants, and scripts (re-run as definitions).
+/// constants, and scripts (re-run as definitions), then the shared
+/// session snapshot (user bindings, `ans` among them — ADR-0010
+/// amendment) so a frontend starts where the last one left off.
 pub fn load_session<S: Storage>(store: &DocStore<S>) -> StoreResult<Session> {
     let history = history(store)?;
     let mut session = Session::with_history(history);
     for line in replay_lines(store)? {
         session.submit_quiet(&line);
     }
+    if let Some(bindings) = session_bindings(store)? {
+        session.restore_bindings(&bindings);
+    }
     Ok(session)
 }
 
 pub fn history<S: Storage>(store: &DocStore<S>) -> StoreResult<Vec<String>> {
     match store.get_setting(HISTORY_SETTING)? {
-        Some(value) => serde_json::from_value(value)
-            .map_err(|e| StoreError::Serialize(e.to_string())),
+        Some(value) => {
+            serde_json::from_value(value).map_err(|e| StoreError::Serialize(e.to_string()))
+        }
         None => Ok(Vec::new()),
     }
 }
 
 pub fn save_history<S: Storage>(store: &DocStore<S>, history: &[String]) -> StoreResult<()> {
-    let value =
-        serde_json::to_value(history).map_err(|e| StoreError::Serialize(e.to_string()))?;
+    let value = serde_json::to_value(history).map_err(|e| StoreError::Serialize(e.to_string()))?;
     store.set_setting(HISTORY_SETTING, value)
 }
 
-pub fn save_function<S: Storage>(
+pub const SESSION_SETTING: &str = "session";
+
+/// The shared session snapshot (ADR-0010 amendment): the environment's
+/// variable bindings — user assignments and `ans` — saved by whichever
+/// interactive frontend ran last, restored by the next one. One
+/// installation, one calculator state, across CLI/REPL/TUI/desktop.
+pub fn session_bindings<S: Storage>(
     store: &DocStore<S>,
-    name: &str,
-    source: &str,
+) -> StoreResult<Option<epher_core::ValueBindings>> {
+    match store.get_setting(SESSION_SETTING)? {
+        Some(value) => serde_json::from_value(value)
+            .map(Some)
+            .map_err(|e| StoreError::Serialize(e.to_string())),
+        None => Ok(None),
+    }
+}
+
+pub fn save_session<S: Storage>(
+    store: &DocStore<S>,
+    bindings: &epher_core::ValueBindings,
 ) -> StoreResult<()> {
+    let value = serde_json::to_value(bindings).map_err(|e| StoreError::Serialize(e.to_string()))?;
+    store.set_setting(SESSION_SETTING, value)
+}
+
+pub fn save_function<S: Storage>(store: &DocStore<S>, name: &str, source: &str) -> StoreResult<()> {
     store.put_function(&FunctionDoc {
         name: name.to_string(),
         source: source.to_string(),
     })
 }
 
-pub fn save_constant<S: Storage>(
-    store: &DocStore<S>,
-    name: &str,
-    source: &str,
-) -> StoreResult<()> {
+pub fn save_constant<S: Storage>(store: &DocStore<S>, name: &str, source: &str) -> StoreResult<()> {
     store.put_constant(&ConstantDoc {
         name: name.to_string(),
         source: source.to_string(),

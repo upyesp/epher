@@ -831,8 +831,10 @@ graph a * x ^ 2
 
 **Copy SVG** copies the current plot as a self-contained SVG image for
 pasting into documents — the colours are baked in, so it looks the same
-anywhere. The **Line width** slider at the bottom of the pane sets how
-thick every plotted line draws.
+anywhere. The **Line width** slider below the plot sets how thick every
+plotted line draws. The slider rows — the line width and any
+animated constants — sit directly beneath the plot, above the
+points-of-interest list.
 
 #### 2.4.4 3D surfaces
 
@@ -845,7 +847,9 @@ graph3d x ^ 2 - y ^ 2
 
 Mesh lines nearer to you are drawn stronger, so the shape reads in depth.
 Several `graph3d` lines overlay, like curves, and `graph3d clear` empties
-the plot. Rotate the view by dragging, or focus the plot and use the arrow
+the plot. The pane shows one kind at a time: drawing a surface clears
+the 2D curves, and drawing a curve clears the surfaces — each plot
+keeps its full size. Rotate the view by dragging, or focus the plot and use the arrow
 keys. The terminal UI draws the same surface as an ASCII wireframe, with
 the arrow keys rotating it.
 
@@ -966,6 +970,11 @@ and scripts you saved in the CLI or TUI are already there when the desktop
 window opens, including variables set by saved scripts. The `save`,
 `save script`, and `language` commands from chapter 4 work exactly the
 same here.
+
+Commands you type in the CLI, the REPL, the TUI, or the desktop app
+all join the same history, and the session travels too: variables
+you assign and the `ans` value follow you from one version to the
+next.
 
 > The web app in the browser is the one version that does not use this
 > storage — it keeps each session to itself (chapter 2.6).

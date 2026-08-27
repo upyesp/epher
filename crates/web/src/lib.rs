@@ -502,12 +502,11 @@ fn save_with_dialog(
     let localizer = localizer.clone();
     let menu_open = menu_open.clone();
     spawn_local(async move {
-        let report = |result: &UseStateHandle<String>,
-                      localizer: &UseStateHandle<Localizer>,
-                      name: &str| {
-            let key = if script { "saved-script" } else { "saved" };
-            result.set(localizer.lookup_args(key, &[("name", name)]));
-        };
+        let report =
+            |result: &UseStateHandle<String>, localizer: &UseStateHandle<Localizer>, name: &str| {
+                let key = if script { "saved-script" } else { "saved" };
+                result.set(localizer.lookup_args(key, &[("name", name)]));
+            };
         if bridge == Bridge::Tauri {
             match bridge.save_file_dialog(&text, &default_name).await {
                 Ok(Some(path)) => report(&result, &localizer, &path),
@@ -539,17 +538,15 @@ async fn browser_save_dialog(default_name: &str, text: &str) -> Result<Option<St
     if !picker.is_function() {
         return Err(unavailable());
     }
-    let picker_fn = picker.dyn_into::<js_sys::Function>().map_err(|_| unavailable())?;
+    let picker_fn = picker
+        .dyn_into::<js_sys::Function>()
+        .map_err(|_| unavailable())?;
 
     let accept = js_sys::Object::new();
     let extensions = js_sys::Array::new();
     extensions.push(&JsValue::from_str(".epher"));
-    js_sys::Reflect::set(
-        &accept,
-        &JsValue::from_str("text/plain"),
-        &extensions,
-    )
-    .map_err(|_| unavailable())?;
+    js_sys::Reflect::set(&accept, &JsValue::from_str("text/plain"), &extensions)
+        .map_err(|_| unavailable())?;
     let type_entry = js_sys::Object::new();
     js_sys::Reflect::set(
         &type_entry,
@@ -584,7 +581,11 @@ async fn browser_save_dialog(default_name: &str, text: &str) -> Result<Option<St
                 .dyn_ref::<web_sys::DomException>()
                 .map(|de| de.name() == "AbortError")
                 .unwrap_or(false);
-            return if cancelled { Ok(None) } else { Err(unavailable()) };
+            return if cancelled {
+                Ok(None)
+            } else {
+                Err(unavailable())
+            };
         }
     };
     let name = js_sys::Reflect::get(&handle, &JsValue::from_str("name"))
@@ -608,7 +609,9 @@ async fn browser_save_dialog(default_name: &str, text: &str) -> Result<Option<St
         .map_err(|_| unavailable())?
         .dyn_into::<js_sys::Promise>()
         .map_err(|_| unavailable())?;
-    JsFuture::from(write_promise).await.map_err(|_| unavailable())?;
+    JsFuture::from(write_promise)
+        .await
+        .map_err(|_| unavailable())?;
     let close = js_sys::Reflect::get(&writable, &JsValue::from_str("close"))
         .map_err(|_| unavailable())?
         .dyn_into::<js_sys::Function>()
@@ -618,7 +621,9 @@ async fn browser_save_dialog(default_name: &str, text: &str) -> Result<Option<St
         .map_err(|_| unavailable())?
         .dyn_into::<js_sys::Promise>()
         .map_err(|_| unavailable())?;
-    JsFuture::from(close_promise).await.map_err(|_| unavailable())?;
+    JsFuture::from(close_promise)
+        .await
+        .map_err(|_| unavailable())?;
     Ok(Some(name))
 }
 
@@ -728,7 +733,6 @@ fn apply_open_history(
     result.set(localizer.lookup_args("history-loaded", &[("count", &count)]));
 }
 
-
 #[function_component(EpherApp)]
 fn epher_app() -> Html {
     let session = use_state(Session::new);
@@ -750,7 +754,13 @@ fn epher_app() -> Html {
     let poi_list = use_state(|| true);
     let poi_markers = use_state(|| true);
     let width_2d = use_state(|| graph::DEFAULT_STROKE_WIDTH);
-    let width_3d = use_state(|| if mobile_layout() { 0.1 } else { graph::DEFAULT_STROKE_WIDTH });
+    let width_3d = use_state(|| {
+        if mobile_layout() {
+            0.1
+        } else {
+            graph::DEFAULT_STROKE_WIDTH
+        }
+    });
     // Which side of the 880px breakpoint the window is on (ADR-0016): the
     // width slider's range is a mobile/desktop decision (0–0.2 step 0.01
     // vs 0.1–4 step 0.1), and it tracks window resizes.
@@ -869,11 +879,17 @@ fn epher_app() -> Html {
                             replay,
                             language,
                             theme: theme_pref,
+                            session: session_bindings,
                         }) => {
                             let mut s = Session::with_history(history);
                             for line in &replay {
                                 s.submit_quiet(line);
                             }
+                            // The shared session snapshot (ADR-0010
+                            // amendment): bindings saved by whichever
+                            // CLI/REPL/TUI/desktop frontend ran last —
+                            // `ans` and every user assignment carry over.
+                            s.restore_bindings(&session_bindings);
                             session.set(s);
                             if let Some(code) = language {
                                 localizer.set(Localizer::resolve(Some(&code), &[]));
@@ -885,8 +901,8 @@ fn epher_app() -> Html {
                             // localStorage on desktop too (ADR-0020) — the
                             // native store carries only what must exist
                             // before mount.
-                            if let Some(store) = web_sys::window()
-                                .and_then(|w| w.local_storage().ok().flatten())
+                            if let Some(store) =
+                                web_sys::window().and_then(|w| w.local_storage().ok().flatten())
                             {
                                 if let Ok(Some(v)) = store.get_item("epher-poi-list") {
                                     if v == "0" {
@@ -1006,8 +1022,8 @@ fn epher_app() -> Html {
         let theme = theme.clone();
         Callback::from(move |name: String| {
             if matches!(name.as_str(), "light" | "dark" | "night") {
-                if let Some(store) = web_sys::window()
-                    .and_then(|w| w.local_storage().ok().flatten())
+                if let Some(store) =
+                    web_sys::window().and_then(|w| w.local_storage().ok().flatten())
                 {
                     let _ = store.set_item("epher-theme", &name);
                 }
@@ -1023,8 +1039,8 @@ fn epher_app() -> Html {
         Callback::from(move |code: String| {
             if epher_i18n::SUPPORTED_LOCALES.contains(&code.as_str()) {
                 localizer.set(Localizer::resolve(Some(&code), &[]));
-                if let Some(store) = web_sys::window()
-                    .and_then(|w| w.local_storage().ok().flatten())
+                if let Some(store) =
+                    web_sys::window().and_then(|w| w.local_storage().ok().flatten())
                 {
                     let _ = store.set_item("epher-language", &code);
                 }
@@ -1039,9 +1055,7 @@ fn epher_app() -> Html {
     let on_set_poi_list = {
         let poi_list = poi_list.clone();
         Callback::from(move |on: bool| {
-            if let Some(store) = web_sys::window()
-                .and_then(|w| w.local_storage().ok().flatten())
-            {
+            if let Some(store) = web_sys::window().and_then(|w| w.local_storage().ok().flatten()) {
                 let _ = store.set_item("epher-poi-list", if on { "1" } else { "0" });
             }
             poi_list.set(on);
@@ -1050,9 +1064,7 @@ fn epher_app() -> Html {
     let on_set_poi_markers = {
         let poi_markers = poi_markers.clone();
         Callback::from(move |on: bool| {
-            if let Some(store) = web_sys::window()
-                .and_then(|w| w.local_storage().ok().flatten())
-            {
+            if let Some(store) = web_sys::window().and_then(|w| w.local_storage().ok().flatten()) {
                 let _ = store.set_item("epher-poi-markers", if on { "1" } else { "0" });
             }
             poi_markers.set(on);
@@ -1071,8 +1083,8 @@ fn epher_app() -> Html {
         let surface3d_cell = surface3d_cell.clone();
         Callback::from(move |w: f64| {
             let persist = |key: &str, v: f64| {
-                if let Some(store) = web_sys::window()
-                    .and_then(|w| w.local_storage().ok().flatten())
+                if let Some(store) =
+                    web_sys::window().and_then(|w| w.local_storage().ok().flatten())
                 {
                     let _ = store.set_item(key, &format!("{v}"));
                 }
@@ -1177,7 +1189,11 @@ fn epher_app() -> Html {
             spawn_local(async move {
                 if let Ok(text) = wasm_bindgen_futures::JsFuture::from(file.text())
                     .await
-                    .and_then(|v| v.as_string().ok_or(()).map_err(|()| wasm_bindgen::JsValue::NULL))
+                    .and_then(|v| {
+                        v.as_string()
+                            .ok_or(())
+                            .map_err(|()| wasm_bindgen::JsValue::NULL)
+                    })
                 {
                     input.set(text);
                     result.set(localizer.lookup("menu-loaded"));
@@ -1244,7 +1260,11 @@ fn epher_app() -> Html {
             spawn_local(async move {
                 if let Ok(text) = wasm_bindgen_futures::JsFuture::from(file.text())
                     .await
-                    .and_then(|v| v.as_string().ok_or(()).map_err(|()| wasm_bindgen::JsValue::NULL))
+                    .and_then(|v| {
+                        v.as_string()
+                            .ok_or(())
+                            .map_err(|()| wasm_bindgen::JsValue::NULL)
+                    })
                 {
                     apply_open_history(text, &session, bridge, &result, &localizer);
                 }
@@ -1321,9 +1341,7 @@ fn epher_app() -> Html {
             } else {
                 (*result).clone()
             };
-            if let Some(clipboard) =
-                web_sys::window().map(|w| w.navigator().clipboard())
-            {
+            if let Some(clipboard) = web_sys::window().map(|w| w.navigator().clipboard()) {
                 spawn_local(async move {
                     let _ = wasm_bindgen_futures::JsFuture::from(clipboard.write_text(&text)).await;
                 });
@@ -1339,13 +1357,13 @@ fn epher_app() -> Html {
         Callback::from(move |_| {
             let text = (*input).clone();
             if !text.is_empty() {
-                if let Some(clipboard) =
-                    web_sys::window().map(|w| w.navigator().clipboard())
-                {
+                if let Some(clipboard) = web_sys::window().map(|w| w.navigator().clipboard()) {
                     let text_for_clip = text.clone();
                     spawn_local(async move {
-                        let _ =
-                            wasm_bindgen_futures::JsFuture::from(clipboard.write_text(&text_for_clip)).await;
+                        let _ = wasm_bindgen_futures::JsFuture::from(
+                            clipboard.write_text(&text_for_clip),
+                        )
+                        .await;
                     });
                 }
                 input.set(String::new());
@@ -1362,9 +1380,7 @@ fn epher_app() -> Html {
         let localizer = localizer.clone();
         let menu_open = menu_open.clone();
         Callback::from(move |_| {
-            let Some(clipboard) =
-                web_sys::window().map(|w| w.navigator().clipboard())
-            else {
+            let Some(clipboard) = web_sys::window().map(|w| w.navigator().clipboard()) else {
                 return;
             };
             let input = input.clone();
@@ -1378,11 +1394,8 @@ fn epher_app() -> Html {
                         if let Some(text) = v.as_string() {
                             // Insert at the cursor, exactly like a keypad
                             // token: replace the selection if there is one.
-                            if let Some(ta) =
-                                input_ref.cast::<web_sys::HtmlTextAreaElement>()
-                            {
-                                let start =
-                                    ta.selection_start().unwrap_or_default().unwrap_or(0);
+                            if let Some(ta) = input_ref.cast::<web_sys::HtmlTextAreaElement>() {
+                                let start = ta.selection_start().unwrap_or_default().unwrap_or(0);
                                 let end = ta.selection_end().unwrap_or_default().unwrap_or(0);
                                 let value = ta.value();
                                 let start = (start as usize).min(value.len());
@@ -1439,10 +1452,8 @@ fn epher_app() -> Html {
         let Some(doc) = web_sys::window().and_then(|w| w.document()) else {
             return;
         };
-        let (Some(panes), Some(pane)) = (
-            doc.get_element_by_id("panes"),
-            doc.get_element_by_id(id),
-        ) else {
+        let (Some(panes), Some(pane)) = (doc.get_element_by_id("panes"), doc.get_element_by_id(id))
+        else {
             return;
         };
         let offset = pane
@@ -1496,7 +1507,12 @@ fn epher_app() -> Html {
             // script verbatim (ADR-0027 amendment) — the pieces below
             // must not record their own lines then.
             let raw = (*input).clone();
-            let multiline = raw.split('\n').map(str::trim).filter(|l| !l.is_empty()).count() > 1;
+            let multiline = raw
+                .split('\n')
+                .map(str::trim)
+                .filter(|l| !l.is_empty())
+                .count()
+                > 1;
             let script_verbatim = raw
                 .split('\n')
                 .map(str::trim)
@@ -1521,184 +1537,195 @@ fn epher_app() -> Html {
                 // history entry of a multi-statement script.
                 let mut last_eval_output: Option<String> = None;
                 for piece in &pieces {
-                let piece = piece.trim();
-                last_eval_output = None;
+                    let piece = piece.trim();
+                    last_eval_output = None;
 
-                // Graphing (ADR-0006/0014: the core samples, the frontend renders).
-                // Each `graph` line overlays one more curve; the command
-                // itself joins the history list like every submitted line.
-                if let Some(source) = piece.strip_prefix("graph ") {
-                    let source = source.trim();
-                    if single && !multiline {
-                        s.record(piece);
-                    }
-                    if source == "clear" {
-                        curves.clear();
+                    // Graphing (ADR-0006/0014: the core samples, the frontend renders).
+                    // Each `graph` line overlays one more curve; the command
+                    // itself joins the history list like every submitted line.
+                    if let Some(source) = piece.strip_prefix("graph ") {
+                        let source = source.trim();
+                        if single && !multiline {
+                            s.record(piece);
+                        }
+                        if source == "clear" {
+                            curves.clear();
+                            continue;
+                        }
+                        match parse_graph_source(source).and_then(|spec| {
+                            sample_spec(&spec, 120, s.env()).map(|samples| (spec, samples))
+                        }) {
+                            Ok((spec, samples)) => {
+                                // The pane shows one kind at a time (ADR-0015
+                                // amendment): drawing a curve clears any 3D
+                                // surfaces, so the two never share the pane
+                                // and each plot keeps its full size.
+                                surfaces.clear();
+                                curves.push(SampledCurve {
+                                    source: source.to_string(),
+                                    kind: spec.kind,
+                                    domain: spec.domain,
+                                    samples,
+                                    fill: spec.fill,
+                                });
+                                // Graphing prints nothing to the answer area
+                                // (ADR-0027): the command joins the history
+                                // list, and the plot itself is the result.
+                                result.set(String::new());
+                                // Mobile convenience: the graph pane is one
+                                // horizontal slide away in the stacked-pane
+                                // layout — a drawn plot slides the view
+                                // across so the curve is visible immediately.
+                                if mobile_layout() {
+                                    scroll_pane.emit("graph-pane");
+                                    // Mobile keyboards stay open while the
+                                    // entry keeps focus; a drawn plot wants
+                                    // the screen. Drop the focus so the
+                                    // keyboard closes and the pane is ready
+                                    // for touch rotation.
+                                    if let Some(ta) =
+                                        input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                    {
+                                        let _ = ta.blur();
+                                    }
+                                }
+                            }
+                            Err(e) => result.set(format!("error: {e}")),
+                        }
                         continue;
                     }
-                    match parse_graph_source(source)
-                        .and_then(|spec| sample_spec(&spec, 120, s.env()).map(|samples| (spec, samples)))
-                    {
-                        Ok((spec, samples)) => {
-                            curves.push(SampledCurve {
-                                source: source.to_string(),
-                                kind: spec.kind,
-                                domain: spec.domain,
-                                samples,
-                                fill: spec.fill,
-                            });
-                            // Graphing prints nothing to the answer area
-                            // (ADR-0027): the command joins the history
-                            // list, and the plot itself is the result.
-                            result.set(String::new());
-                            // Mobile convenience: the graph pane is one
-                            // horizontal slide away in the stacked-pane
-                            // layout — a drawn plot slides the view
-                            // across so the curve is visible immediately.
-                            if mobile_layout() {
-                                scroll_pane.emit("graph-pane");
-                                // Mobile keyboards stay open while the
-                                // entry keeps focus; a drawn plot wants
-                                // the screen. Drop the focus so the
-                                // keyboard closes and the pane is ready
-                                // for touch rotation.
-                                if let Some(ta) =
-                                    input_ref.cast::<web_sys::HtmlTextAreaElement>()
-                                {
-                                    let _ = ta.blur();
+
+                    // 3D surfaces (ADR-0015): z = f(x, y) over a square
+                    // domain, overlaid like curves. The command joins the
+                    // history list like every submitted line.
+                    if let Some(source) = piece.strip_prefix("graph3d ") {
+                        let source = source.trim();
+                        if single && !multiline {
+                            s.record(piece);
+                        }
+                        if source == "clear" {
+                            surfaces.clear();
+                            view_h.set(0.0);
+                            view_v.set(0.0);
+                            view_z.set(0.0);
+                            spin_phase.set((0.0, 0.0));
+                            *spin_phase_cell.borrow_mut() = (0.0, 0.0);
+                            continue;
+                        }
+                        match epher_core::graph::sample_surface(source, 30, s.env()) {
+                            Ok(fresh) => {
+                                // The pane shows one kind at a time (ADR-0015
+                                // amendment): drawing a surface clears any 2D
+                                // curves and their points of interest.
+                                curves.clear();
+                                // A 3D graph drawn into an empty pane brings
+                                // fresh fine-control sliders at their default
+                                // 0 (ADR-0031); overlays keep the current pose.
+                                if surfaces.is_empty() {
+                                    view_h.set(0.0);
+                                    view_v.set(0.0);
+                                    view_z.set(0.0);
+                                    spin_phase.set((0.0, 0.0));
+                                    *spin_phase_cell.borrow_mut() = (0.0, 0.0);
+                                }
+                                surfaces.push(fresh);
+                                // Same as 2D: no answer echo, the surface is
+                                // the result (ADR-0027).
+                                result.set(String::new());
+                                // Mobile convenience, as for 2D graphs: slide
+                                // the view across to the freshly drawn pane.
+                                if mobile_layout() {
+                                    scroll_pane.emit("graph-pane");
+                                    if let Some(ta) =
+                                        input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                    {
+                                        let _ = ta.blur();
+                                    }
                                 }
                             }
+                            Err(e) => result.set(format!("error: {e}")),
                         }
-                        Err(e) => result.set(format!("error: {e}")),
-                    }
-                    continue;
-                }
-
-                // 3D surfaces (ADR-0015): z = f(x, y) over a square
-                // domain, overlaid like curves. The command joins the
-                // history list like every submitted line.
-                if let Some(source) = piece.strip_prefix("graph3d ") {
-                    let source = source.trim();
-                    if single && !multiline {
-                        s.record(piece);
-                    }
-                    if source == "clear" {
-                        surfaces.clear();
-                        view_h.set(0.0);
-                        view_v.set(0.0);
-                        view_z.set(0.0);
-                        spin_phase.set((0.0, 0.0));
-                        *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                         continue;
                     }
-                    match epher_core::graph::sample_surface(source, 30, s.env()) {
-                        Ok(fresh) => {
-                            // A 3D graph drawn into an empty pane brings
-                            // fresh fine-control sliders at their default
-                            // 0 (ADR-0031); overlays keep the current pose.
-                            if surfaces.is_empty() {
-                                view_h.set(0.0);
-                                view_v.set(0.0);
-                                view_z.set(0.0);
-                                spin_phase.set((0.0, 0.0));
-                                *spin_phase_cell.borrow_mut() = (0.0, 0.0);
-                            }
-                            surfaces.push(fresh);
-                            // Same as 2D: no answer echo, the surface is
-                            // the result (ADR-0027).
-                            result.set(String::new());
-                            // Mobile convenience, as for 2D graphs: slide
-                            // the view across to the freshly drawn pane.
-                            if mobile_layout() {
-                                scroll_pane.emit("graph-pane");
-                                if let Some(ta) =
-                                    input_ref.cast::<web_sys::HtmlTextAreaElement>()
-                                {
-                                    let _ = ta.blur();
-                                }
-                            }
-                        }
-                        Err(e) => result.set(format!("error: {e}")),
-                    }
-                    continue;
-                }
 
-                // Shell commands (epher-shell policy): persist through the
-                // bridge in the desktop shell; explain the web app's limits
-                // otherwise.
-                if let Some(cmd) = classify(&line) {
-                    match bridge {
-                        Bridge::Tauri => match prepare(&cmd, &s, &localizer) {
-                            Ok(prepared) => {
-                                match &prepared {
-                                    epher_shell::Prepared::SaveFunction { name, source } => {
-                                        bridge.save_function(name, source);
-                                    }
-                                    epher_shell::Prepared::SaveConstant { name, source } => {
-                                        bridge.save_constant(name, source);
-                                    }
-                                    epher_shell::Prepared::SaveScript { name, source } => {
-                                        bridge.save_script(name, source);
-                                    }
-                                    epher_shell::Prepared::Language { code } => {
-                                        bridge.save_language(code);
-                                        localizer.set(Localizer::resolve(Some(code), &[]));
-                                        if let Some(store) = web_sys::window()
-                                            .and_then(|w| w.local_storage().ok().flatten())
-                                        {
-                                            let _ = store.set_item("epher-language", code);
+                    // Shell commands (epher-shell policy): persist through the
+                    // bridge in the desktop shell; explain the web app's limits
+                    // otherwise.
+                    if let Some(cmd) = classify(&line) {
+                        match bridge {
+                            Bridge::Tauri => match prepare(&cmd, &s, &localizer) {
+                                Ok(prepared) => {
+                                    match &prepared {
+                                        epher_shell::Prepared::SaveFunction { name, source } => {
+                                            bridge.save_function(name, source);
                                         }
-                                    }
-                                    epher_shell::Prepared::Theme { name } => {
-                                        bridge.save_theme(name);
-                                        theme.set(name.clone());
-                                        if let Some(store) = web_sys::window()
-                                            .and_then(|w| w.local_storage().ok().flatten())
-                                        {
-                                            let _ = store.set_item("epher-theme", name);
+                                        epher_shell::Prepared::SaveConstant { name, source } => {
+                                            bridge.save_constant(name, source);
                                         }
-                                    }
-                                    epher_shell::Prepared::Table { .. } => {}
-                                }
-                                result.set(message(&prepared, &localizer));
-                            }
-                            Err(msg) => result.set(msg),
-                        },
-                        Bridge::None => {
-                            // Tables are pure computation — they work in the
-                            // browser session just like an evaluation.
-                            match &cmd {
-                                epher_shell::Command::Table { .. } => {
-                                    match prepare(&cmd, &s, &localizer) {
-                                        Ok(prepared) => result.set(message(&prepared, &localizer)),
-                                        Err(msg) => result.set(msg),
-                                    }
-                                }
-                                // Themes apply for the session in the
-                                // browser; the menu persists them properly.
-                                epher_shell::Command::Theme { name } => {
-                                    match prepare(&cmd, &s, &localizer) {
-                                        Ok(prepared) => {
-                                            result.set(message(&prepared, &localizer));
+                                        epher_shell::Prepared::SaveScript { name, source } => {
+                                            bridge.save_script(name, source);
+                                        }
+                                        epher_shell::Prepared::Language { code } => {
+                                            bridge.save_language(code);
+                                            localizer.set(Localizer::resolve(Some(code), &[]));
+                                            if let Some(store) = web_sys::window()
+                                                .and_then(|w| w.local_storage().ok().flatten())
+                                            {
+                                                let _ = store.set_item("epher-language", code);
+                                            }
+                                        }
+                                        epher_shell::Prepared::Theme { name } => {
+                                            bridge.save_theme(name);
                                             theme.set(name.clone());
+                                            if let Some(store) = web_sys::window()
+                                                .and_then(|w| w.local_storage().ok().flatten())
+                                            {
+                                                let _ = store.set_item("epher-theme", name);
+                                            }
                                         }
-                                        Err(msg) => result.set(msg),
+                                        epher_shell::Prepared::Table { .. } => {}
                                     }
+                                    result.set(message(&prepared, &localizer));
                                 }
-                                _ => result.set(localizer.lookup("web-session-only")),
+                                Err(msg) => result.set(msg),
+                            },
+                            Bridge::None => {
+                                // Tables are pure computation — they work in the
+                                // browser session just like an evaluation.
+                                match &cmd {
+                                    epher_shell::Command::Table { .. } => {
+                                        match prepare(&cmd, &s, &localizer) {
+                                            Ok(prepared) => {
+                                                result.set(message(&prepared, &localizer))
+                                            }
+                                            Err(msg) => result.set(msg),
+                                        }
+                                    }
+                                    // Themes apply for the session in the
+                                    // browser; the menu persists them properly.
+                                    epher_shell::Command::Theme { name } => {
+                                        match prepare(&cmd, &s, &localizer) {
+                                            Ok(prepared) => {
+                                                result.set(message(&prepared, &localizer));
+                                                theme.set(name.clone());
+                                            }
+                                            Err(msg) => result.set(msg),
+                                        }
+                                    }
+                                    _ => result.set(localizer.lookup("web-session-only")),
+                                }
                             }
                         }
+                        continue;
                     }
-                    continue;
-                }
 
-                let out = if single && !multiline {
-                    s.submit(piece)
-                } else {
-                    s.submit_quiet(piece)
-                };
-                result.set(out.clone());
-                last_eval_output = Some(out);
+                    let out = if single && !multiline {
+                        s.submit(piece)
+                    } else {
+                        s.submit_quiet(piece)
+                    };
+                    result.set(out.clone());
+                    last_eval_output = Some(out);
                 }
                 if !multiline && !single {
                     // One history entry for the whole script: the line as
@@ -1748,6 +1775,9 @@ fn epher_app() -> Html {
             // Desktop apps are killed, not exited: persist per line (ADR-0010).
             if bridge == Bridge::Tauri {
                 bridge.save_history(s.history());
+                // The shared session snapshot travels with it: `ans` and
+                // user assignments survive into the next frontend.
+                bridge.save_session_state(s.bindings());
             }
         })
     };
@@ -1784,8 +1814,7 @@ fn epher_app() -> Html {
     // The same resample logic, shared with the animation loop through a
     // live cell (Yew handles captured by the loop would go stale). The
     // cell is refreshed after every render.
-    let live_apply =
-        use_state(|| Rc::new(RefCell::new(None::<Rc<dyn Fn(String, f64)>>)));
+    let live_apply = use_state(|| Rc::new(RefCell::new(None::<Rc<dyn Fn(String, f64)>>)));
     {
         let live_apply = live_apply.clone();
         let on_slider = on_slider.clone();
@@ -2149,7 +2178,11 @@ fn epher_app() -> Html {
                 KeyAction::Backspace => {
                     let mut v = (*input).clone();
                     let (s, e) = cursor(&v);
-                    let (lo, hi) = if s == e { (s.saturating_sub(1), s) } else { (s, e) };
+                    let (lo, hi) = if s == e {
+                        (s.saturating_sub(1), s)
+                    } else {
+                        (s, e)
+                    };
                     v.replace_range(lo..hi, "");
                     input.set(v.clone());
                     ta.set_value(&v);
@@ -2212,10 +2245,9 @@ fn epher_app() -> Html {
                 let active_ta = value
                     .active_element()
                     .and_then(|a| a.dyn_into::<HtmlTextAreaElement>().ok());
-                if let (Some(ta), Some(active)) = (
-                    input_ref.cast::<HtmlTextAreaElement>(),
-                    active_ta,
-                ) {
+                if let (Some(ta), Some(active)) =
+                    (input_ref.cast::<HtmlTextAreaElement>(), active_ta)
+                {
                     if active.as_ref() as &web_sys::Element == ta.as_ref() as &web_sys::Element {
                         let s = ta.selection_start().ok().flatten().unwrap_or(0) as usize;
                         let e = ta.selection_end().ok().flatten().unwrap_or(0) as usize;
@@ -3253,6 +3285,9 @@ fn epher_app() -> Html {
                                     <p class="trace" role="status" aria-live="polite">
                                         { trace_text }
                                     </p>
+                                    <div class="sliders">
+                                        { for curve_rows }
+                                    </div>
                                     {
                                         if !(*pois).is_empty() && *poi_list {
                                             html! {
@@ -3267,9 +3302,6 @@ fn epher_app() -> Html {
                                             html! {}
                                         }
                                     }
-                                    <div class="sliders">
-                                        { for curve_rows }
-                                    </div>
                                 </section>
                             }
                         } else {

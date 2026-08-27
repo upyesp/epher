@@ -13,9 +13,7 @@ use unic_langid::LanguageIdentifier as BundleLangId;
 
 /// Locales shipped in v1 (ADR-0008): English, Mandarin Chinese, Hindi,
 /// Spanish, French, Arabic (right-to-left), German, and Portuguese.
-pub const SUPPORTED_LOCALES: &[&str] = &[
-    "en", "zh-CN", "hi", "es", "fr", "ar", "de", "pt",
-];
+pub const SUPPORTED_LOCALES: &[&str] = &["en", "zh-CN", "hi", "es", "fr", "ar", "de", "pt"];
 
 /// The default and always-complete fallback locale.
 pub const DEFAULT_LOCALE: &str = "en";
@@ -89,10 +87,17 @@ fn negotiate(detected: &[String]) -> String {
     if requested.is_empty() {
         return DEFAULT_LOCALE.to_string();
     }
-    let available: Vec<NegLangId> = SUPPORTED_LOCALES.iter().filter_map(|l| l.parse().ok()).collect();
+    let available: Vec<NegLangId> = SUPPORTED_LOCALES
+        .iter()
+        .filter_map(|l| l.parse().ok())
+        .collect();
     let default: NegLangId = DEFAULT_LOCALE.parse().expect("default locale parses");
-    let negotiated =
-        negotiate_languages(&requested, &available, Some(&default), NegotiationStrategy::Filtering);
+    let negotiated = negotiate_languages(
+        &requested,
+        &available,
+        Some(&default),
+        NegotiationStrategy::Filtering,
+    );
     negotiated
         .first()
         .map(|l| l.to_string())
@@ -127,5 +132,9 @@ fn lookup_in(
     let message = bundle.get_message(key)?;
     let pattern = message.value()?;
     let mut errors = Vec::new();
-    Some(bundle.format_pattern(pattern, args, &mut errors).into_owned())
+    Some(
+        bundle
+            .format_pattern(pattern, args, &mut errors)
+            .into_owned(),
+    )
 }
