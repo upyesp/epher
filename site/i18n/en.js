@@ -95,7 +95,7 @@ window.EPHER_I18N["en"] = {
   "ex-r3": "`ans` follows every new answer down the session.",
   "ex-r4": "Use `ans` inside a larger expression.",
   "ex-h-app": "TUI, desktop app, and web app",
-  "ex-app-intro": "The same language runs in the terminal UI, the desktop app, and the web app. Type each example into the entry field and press Enter.",
+  "ex-app-intro": "The same language runs in the terminal UI, the desktop app, and the web app. Copy/paste an example into the entry field and press Enter.",
   "ex-a1": "A multi-line script. Shift+Enter starts a new line, Enter runs the whole script as one history item.",
   "ex-a2": "A basic 2D curve.",
   "ex-a3": "The region below the curve, shaded. `y >` shades above instead.",
