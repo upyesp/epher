@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  epher — Examples page. Built by scripts/build-examples.mjs from the
+  epher Examples page. Built by scripts/build-examples.mjs from the
   about.html chrome: header, disclosure nav, theme, i18n catalogs + app.js.
   The prose is data-i18n keys (ex-*, nav-examples); the epher code blocks
   are never localized (ADR-0007) and carry the guide's copy buttons.
@@ -9,7 +9,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Examples — epher</title>
+  <title>Examples: epher</title>
   <meta name="description" content="Copyable examples for every version of epher: CLI commands, piped scripts, REPL sessions with ans, and 2D and 3D graphs." />
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141416" />
@@ -100,12 +100,12 @@
   <main id="main">
     <article class="prose">
 <h1 data-i18n="examples-title">Examples</h1>
-<p class="lede" data-i18n="examples-intro">Copyable examples for every version of epher — paste them into a terminal, a REPL session, or the app's entry field. The user guide explains the language in detail; this page is for quick copying and pasting.</p>
+<p class="lede" data-i18n="examples-intro">Copyable examples for every version of epher. Paste them into a terminal, a REPL session, or the app's entry field. The user guide explains the language in detail; this page is for quick copying and pasting.</p>
 <section class="ex-section">
 <h2 data-i18n="ex-h-cli">The command line</h2>
-<p data-i18n="ex-cli-intro">One-shot calculations, piped scripts, and SVG exports — the epher command does them all. Copy a command into any shell; the epher executable must be on your PATH.</p>
+<p data-i18n="ex-cli-intro">One-shot calculations, piped scripts, and SVG exports. Copy an example from those below into any shell.</p>
 <figure class="example-item">
-<figcaption data-i18n="ex-1c">A straightforward calculation — multiplication happens before addition.</figcaption>
+<figcaption data-i18n="ex-1c">A straightforward calculation. Multiplication happens before addition.</figcaption>
 <div class="example">
 <pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;2 + 3 * 4&quot;</span></code></pre>
 <div class="example-bar">
@@ -144,7 +144,7 @@
 </div>
 </figure>
 <figure class="example-item">
-<figcaption data-i18n="ex-4c">Piping a script into the epher command — stdin becomes the script, one line at a time.</figcaption>
+<figcaption data-i18n="ex-4c">Piping a script into the epher command. stdin becomes the script, one line at a time.</figcaption>
 <div class="example">
 <pre tabindex="0"><code class="language-sh">printf <span class="tok-str">'x = 10\nx ^ 2\n'</span> | epher -</code></pre>
 <div class="example-bar">
@@ -237,7 +237,7 @@
 </section>
 <section class="ex-section">
 <h2 data-i18n="ex-h-repl">The REPL</h2>
-<p data-i18n="ex-repl-intro">Start an interactive session with `epher repl` and type after the `epher&gt;` prompt. These blocks run one after another in the same session — each answer feeds the next line's `ans`.</p>
+<p data-i18n="ex-repl-intro">Start an interactive session with `epher repl` and type after the `epher&gt;` prompt. These blocks run one after another in the same session. Each answer feeds the next line's `ans`.</p>
 <figure class="example-item">
 <figcaption data-i18n="ex-r1">The first calculation of the session.</figcaption>
 <div class="example">
@@ -253,7 +253,7 @@
 </div>
 </figure>
 <figure class="example-item">
-<figcaption data-i18n="ex-r2">`ans` holds the previous answer — build on it.</figcaption>
+<figcaption data-i18n="ex-r2">`ans` holds the previous answer. Build on it.</figcaption>
 <div class="example">
 <pre tabindex="0"><code class="language-epher">epher&gt; ans * <span class="tok-num">10</span>
 = <span class="tok-num">50</span></code></pre>
@@ -297,9 +297,9 @@
 </section>
 <section class="ex-section">
 <h2 data-i18n="ex-h-app">TUI, desktop app, and web app</h2>
-<p data-i18n="ex-app-intro">The same language runs in the terminal UI, the desktop app, and the web app. Type each example into the entry field and press Enter.</p>
+<p data-i18n="ex-app-intro">The same language runs in the terminal UI, the desktop app, and the web app. Copy/paste an example into the entry field and press Enter.</p>
 <figure class="example-item">
-<figcaption data-i18n="ex-a1">A multi-line script — Shift+Enter starts a new line, Enter runs the whole script as one history item.</figcaption>
+<figcaption data-i18n="ex-a1">A multi-line script. Shift+Enter starts a new line, Enter runs the whole script as one history item.</figcaption>
 <div class="example">
 <pre tabindex="0"><code class="language-epher">x = <span class="tok-num">10</span>
 y = x + <span class="tok-num">5</span>
@@ -327,7 +327,7 @@ y ^ <span class="tok-num">2</span></code></pre>
 </div>
 </figure>
 <figure class="example-item">
-<figcaption data-i18n="ex-a3">The region below the curve, shaded — `y &gt;` shades above instead.</figcaption>
+<figcaption data-i18n="ex-a3">The region below the curve, shaded. `y &gt;` shades above instead.</figcaption>
 <div class="example">
 <pre tabindex="0"><code class="language-epher"><span class="tok-kw">graph</span> y &lt; x ^ <span class="tok-num">2</span></code></pre>
 <div class="example-bar">
@@ -354,7 +354,7 @@ y ^ <span class="tok-num">2</span></code></pre>
 </div>
 </figure>
 <figure class="example-item">
-<figcaption data-i18n="ex-a5">Two curves on one plot — every `graph` line adds another.</figcaption>
+<figcaption data-i18n="ex-a5">Two curves on one plot. Every `graph` line adds another.</figcaption>
 <div class="example">
 <pre tabindex="0"><code class="language-epher"><span class="tok-kw">graph</span> x ^ <span class="tok-num">2</span>
 <span class="tok-kw">graph</span> <span class="tok-fn">sin</span>(x)</code></pre>
@@ -368,7 +368,7 @@ y ^ <span class="tok-num">2</span></code></pre>
 </div>
 </figure>
 <figure class="example-item">
-<figcaption data-i18n="ex-a6">A 3D surface — drag, swipe, or use the sliders to orbit.</figcaption>
+<figcaption data-i18n="ex-a6">A 3D surface. Drag, swipe, or use the sliders to orbit.</figcaption>
 <div class="example">
 <pre tabindex="0"><code class="language-epher">graph3d <span class="tok-fn">sin</span>(x) * <span class="tok-fn">cos</span>(y)</code></pre>
 <div class="example-bar">

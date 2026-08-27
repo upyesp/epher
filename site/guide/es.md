@@ -8,7 +8,7 @@ Esta guía es para principiantes absolutos. Empieza con el cálculo más simple
 posible y llega hasta todo el poder del lenguaje. Cada ejemplo muestra lo que
 escribes y lo que epher responde.
 
-Hay cinco formas de usar epher — elige la que más te convenga:
+Hay cinco formas de usar epher. Elige la que más te convenga:
 
 | Versión | Qué es | Cuándo conviene |
 |---|---|---|
@@ -20,7 +20,7 @@ Hay cinco formas de usar epher — elige la que más te convenga:
 
 La aplicación de escritorio, la línea de comandos, el REPL y la interfaz de
 terminal son un solo programa: una única descarga instala el comando
-`epher`, que hace las cuatro cosas. La aplicación web es la excepción — no
+`epher`, que hace las cuatro cosas. La aplicación web es la excepción: no
 necesita descarga.
 
 Las cinco versiones entienden exactamente el mismo lenguaje. Apréndelo una
@@ -91,7 +91,7 @@ El operador `^` calcula potencias y funciona de derecha a izquierda:
 
 (`2 ^ 3 ^ 2` significa `2 ^ (3 ^ 2)`, es decir `2 ^ 9` = 512.)
 
-Las potencias pueden ser fraccionarias — `2 ^ 0.5` es la raíz cuadrada de 2:
+Las potencias pueden ser fraccionarias. `2 ^ 0.5` es la raíz cuadrada de 2:
 
 ```epher
 2 ^ 0.5
@@ -227,7 +227,7 @@ x ^ 2
 25
 ```
 
-Puedes cambiar una variable cuando quieras — conserva su valor hasta que la
+Puedes cambiar una variable cuando quieras. Conserva su valor hasta que la
 cambies:
 
 ```epher
@@ -242,7 +242,7 @@ x = x + 1
 > `my_total`. No pueden contener espacios ni empezar por un número.
 
 La variable especial `ans` contiene siempre la respuesta anterior,
-como la tecla `Ans` de una calculadora de bolsillo — útil para encadenar
+como la tecla `Ans` de una calculadora de bolsillo, útil para encadenar
 cálculos:
 
 ```epher
@@ -257,7 +257,7 @@ ans * 2
 
 ### 1.6 Constantes: nombres que nunca cambian
 
-Una *constante* es un nombre cuyo valor nunca cambia — como el `pi`
+Una *constante* es un nombre cuyo valor nunca cambia, como el `pi`
 integrado, pero elegido por ti. Define una con `const`:
 
 ```epher
@@ -354,7 +354,7 @@ if price > 50 then 2 else 1
 2
 ```
 
-> epher no tiene valores de texto — ambas ramas de un `if` deben ser números
+> epher no tiene valores de texto: ambas ramas de un `if` deben ser números
 > (o resultados de comparaciones).
 
 ### 1.8 Bucles con while
@@ -419,7 +419,7 @@ answer()
 
 ### 1.10 Recursión: una función que se llama a sí misma
 
-El ejemplo más famoso — los números de Fibonacci:
+El ejemplo más famoso son los números de Fibonacci:
 
 ```epher
 def fib(n) = if n <= 1 then n else fib(n - 1) + fib(n - 2)
@@ -437,13 +437,13 @@ fib(10)
 con argumentos más pequeños hasta llegar a `n <= 1`. Esto funciona porque la
 forma `if ... then ... else ...` solo calcula la rama que necesita.
 
-> El cuerpo de una función es una sola expresión — una línea. Combina
+> El cuerpo de una función es una sola expresión, una línea. Combina
 > varios cálculos con `;` en un script en su lugar (sección siguiente).
 
 ### 1.11 Scripts: varias instrucciones a la vez
 
-Un *script* es varias instrucciones unidas con `;` — o con saltos de
-línea, que significan exactamente lo mismo — ejecutadas una tras otra:
+Un *script* es varias instrucciones unidas con `;` o con saltos de
+línea, que significan exactamente lo mismo, ejecutadas una tras otra:
 
 ```epher
 x = 10; y = x + 5; x + y
@@ -462,7 +462,7 @@ líneas copia el script completo, y puedes pegarlo directamente en epher: el
 campo de entrada de la aplicación web y de la aplicación de escritorio, la
 interfaz de terminal y `epher repl` ejecutan todas las líneas en orden,
 exactamente como si las hubieras escrito una a una. Unir varias
-instrucciones con `;` en una línea funciona en todas partes también —
+instrucciones con `;` en una línea funciona en todas partes también,
 incluida la línea de comandos de un solo uso (sección 4.1).
 
 ### 1.12 Resultados exactos: frac, dec y big
@@ -559,7 +559,7 @@ bin(10)
 
 epher tiene las funciones de una calculadora científica, agrupadas por familia.
 
-La trigonometría trabaja en radianes — usa `deg` y `rad` para convertir:
+La trigonometría trabaja en radianes. Usa `deg` y `rad` para convertir:
 
 | Función | Significado | Ejemplo | Resultado |
 |---|---|---|---|
@@ -704,7 +704,7 @@ La aplicación web está en:
 https://epher.org/pwa/
 ```
 
-No necesita instalación — funciona en cualquier navegador moderno, en
+No necesita instalación. Funciona en cualquier navegador moderno, en
 ordenador, móvil o tableta.
 
 Esta guía también está integrada en la aplicación: abre **Help → User
@@ -748,9 +748,9 @@ graph f(x)
 ```
 
 Cada línea `graph` añade otra curva al mismo gráfico, cada una con su
-propio color — las curvas son todas sólidas, y la leyenda y las
+propio color. Las curvas son todas sólidas, y la leyenda y las
 etiquetas son las que las distinguen sin color.
-`graph clear` vacía el gráfico — y un botón **Clear graph** en la parte
+`graph clear` vacía el gráfico, y un botón **Clear graph** en la parte
 superior del panel de la gráfica hace lo mismo para curvas y superficies 3D
 a la vez. La TUI mantiene el comando en su menú **Graph**.
 
@@ -765,7 +765,7 @@ graph x ^ 3
 ```
 
 Los puntos donde la expresión no tiene valor (una división por cero, por
-ejemplo) se omiten, dejando un hueco en la curva — y un salto que en
+ejemplo) se omiten, dejando un hueco en la curva. Un salto que en
 realidad es una asíntota vertical nunca se dibuja como línea conectora.
 
 #### 2.4.1 Qué puedes representar
@@ -795,8 +795,8 @@ graph y < x ^ 2
 ```
 #### 2.4.2 Leer la gráfica
 
-**Seguimiento:** mueve el puntero sobre la gráfica — o enfócala y pulsa
-las teclas de flecha — y se marca el punto más cercano de una curva, con
+**Seguimiento:** mueve el puntero sobre la gráfica, o enfócala y pulsa
+las teclas de flecha. Se marca el punto más cercano de una curva, con
 sus coordenadas mostradas debajo de la gráfica.
 
 **Puntos de interés:** tras cada comando graph, epher encuentra las
@@ -826,7 +826,7 @@ table x ^ 2 from -2 to 2 points 5
 #### 2.4.3 Deslizadores y exportación
 
 Define una constante, úsala en una gráfica y aparece un deslizador debajo
-de la gráfica — arrástralo (o muévelo con las teclas de flecha) y cada
+de la gráfica. Arrástralo (o muévelo con las teclas de flecha) y cada
 curva se redibuja:
 
 ```epher
@@ -858,7 +858,7 @@ girándola con las teclas de flecha.
 #### 2.4.5 Animación
 
 Cada deslizador tiene un botón de reproducción. Avanza su constante a lo
-largo del rango del deslizador y al llegar al final vuelve a empezar — la
+largo del rango del deslizador y al llegar al final vuelve a empezar. Es la
 forma estándar en que animan las calculadoras: animas un parámetro y todo
 lo que lo usa se mueve. Pulsa el
 botón de nuevo para pausar.
@@ -871,7 +871,7 @@ graph sin(x - t)
 ```
 
 Al reproducir el deslizador de t, la onda se desplaza. Las superficies 3D
-se animan igual — define una constante primero y luego reproduce su
+se animan igual. Define una constante primero y luego reproduce su
 deslizador:
 
 ```epher
@@ -895,7 +895,7 @@ funciona completamente sin conexión y puedes instalarla como una app normal.
 - **Otros navegadores:** busca *Instalar* o *Añadir a pantalla de inicio*
   en el menú.
 
-Una vez instalada, ábrela desde tu pantalla de inicio o lista de apps — se
+Una vez instalada, ábrela desde tu pantalla de inicio o lista de apps. Se
 abre al instante, incluso sin conexión a internet.
 
 ### 2.6 Lo que la aplicación web no hace
@@ -904,7 +904,7 @@ La aplicación web conserva tu trabajo en la sesión actual: evalúa
 expresiones, las grafica (sección 2.4) y mantiene un historial. Los
 comandos **save**, **save script** y **language** funcionan en las
 versiones de escritorio, línea de comandos y terminal (capítulos 3, 4 y
-5) — en la aplicación web responden con una nota de que guardar funciona
+5). En la aplicación web responden con una nota de que guardar funciona
 allí. El historial no se guarda entre visitas.
 
 ## 3. La aplicación de escritorio
@@ -918,7 +918,7 @@ cómo la instalas y la abres.
 Descarga un instalador para tu sistema desde el sitio web de epher:
 
 - **Windows:** ejecuta `epher-windows-x86_64.exe`. El instalador pone `epher`
-  en tu PATH — abre una ventana nueva de CMD o PowerShell y `epher "2 + 2"`
+  en tu PATH. Abre una ventana nueva de CMD o PowerShell y `epher "2 + 2"`
   funciona. Como la compilación no está firmada, elige *Más información* →
   *Ejecutar de todas formas* en el primer arranque.
 - **macOS:** abre `epher-macos-aarch64.dmg` y arrastra epher a Aplicaciones.
@@ -936,7 +936,7 @@ sudo apt install ./epher-linux-x86_64.deb
 sudo dnf install ./epher-linux-x86_64.rpm
 ```
 
-- **Linux (cualquier distro, incluida Arch):** el AppImage — hazlo ejecutable
+- **Linux (cualquier distro, incluida Arch):** el AppImage. Hazlo ejecutable
   y ejecútalo:
 
 ```sh
@@ -944,18 +944,18 @@ chmod +x epher-linux-x86_64.AppImage
 ./epher-linux-x86_64.AppImage
 ```
 
-Cada instalador contiene *todo* epher — la aplicación de escritorio, la línea
-de comandos (capítulo 4) y la interfaz de terminal (capítulo 5) — como el
+Cada instalador contiene *todo* epher: la aplicación de escritorio, la línea
+de comandos (capítulo 4) y la interfaz de terminal (capítulo 5), como el
 único comando `epher`. En Linux, el paquete instala `epher` en `/usr/bin`.
 
 ### 3.2 Uso
 
 Inicia epher como cualquier otra aplicación. Obtienes una ventana con la misma
 interfaz que la aplicación web: escribe una expresión, pulsa **Intro** o
-haz clic en **=**, y lee el resultado. Las gráficas también funcionan aquí
-— `graph x ^ 2` dibuja en la ventana (capítulo 2.4). La ventana se puede
-redimensionar libremente. La barra de menús incluye **Help → User guide** —
-la misma guía que esta página, con ejemplos que se cargan al tocarlos.
+haz clic en **=**, y lee el resultado. Las gráficas también funcionan aquí.
+`graph x ^ 2` dibuja en la ventana (capítulo 2.4). La ventana se puede
+redimensionar libremente. La barra de menús incluye **Help → User guide**, la
+misma guía que esta página, con ejemplos que se cargan al tocarlos.
 
 También puedes abrirla desde una terminal: un `epher` sin argumentos (o
 `epher gui`) inicia la aplicación de escritorio. En macOS, usa el botón
@@ -966,8 +966,8 @@ de tu terminal.
 
 La aplicación de escritorio comparte su almacenamiento con las versiones
 de línea de comandos y terminal. Funciones, constantes, scripts, historial y la
-preferencia de idioma viven en un solo lugar — `~/.epher` en tu equipo (o
-`EPHER_STORE_DIR`, capítulo 4.6) — y todo lo guardado en una versión está
+preferencia de idioma viven en un solo lugar, `~/.epher` en tu equipo (o
+`EPHER_STORE_DIR`, capítulo 4.6), y todo lo guardado en una versión está
 disponible en las demás:
 
 ```text
@@ -976,7 +976,7 @@ save area
 ```
 
 Define `area` en la aplicación de escritorio, `save` la, cierra la
-ventana — luego abre la CLI y `area(3, 4)` simplemente funciona. También
+ventana. Luego abre la CLI y `area(3, 4)` simplemente funciona. También
 funciona al revés: las funciones y scripts guardados en la CLI o la TUI ya
 están ahí cuando se abre la ventana de escritorio, incluidas las variables
 definidas por scripts guardados. Los comandos `save`, `save script` y
@@ -1046,13 +1046,13 @@ epher "x = 10; x + 5"
 ```
 
 Las instrucciones unidas con saltos de línea funcionan igual dentro del
-argumento. Todo lo del capítulo 1 está disponible — variables, funciones,
-bucles, todo — y las líneas comparten una sesión, como un script por
+argumento. Todo lo del capítulo 1 está disponible: variables, funciones,
+bucles, todo. Las líneas comparten una sesión, como un script por
 tubería (sección 4.2).
 
 ### 4.2 Scripts por tubería
 
-`epher -` lee expresiones de la entrada estándar, línea a línea — como se
+`epher -` lee expresiones de la entrada estándar, línea a línea, como se
 usan los lenguajes de script en las tuberías:
 
 ```sh
@@ -1067,7 +1067,7 @@ printf "x = 3\nx * 10\n" | epher -
 Todo lo del capítulo 1 funciona, y las líneas comparten una sesión: una
 función definida en una línea temprana está disponible después, y `save`
 escribe en el mismo almacén de siempre. Los errores se imprimen y el script
-sigue. Una línea puede unir varias instrucciones con `;` — los saltos de
+sigue. Una línea puede unir varias instrucciones con `;`. Los saltos de
 línea y `;` significan lo mismo en todas partes de epher.
 
 ### 4.3 La sesión interactiva (REPL)
@@ -1179,7 +1179,7 @@ language set to fr
 ```
 
 La elección se recuerda para la próxima vez. Nota: el idioma que *escribes*
-— el lenguaje de las expresiones — es siempre el mismo, en cualquier idioma
+, el lenguaje de las expresiones, es siempre el mismo, en cualquier idioma
 de la interfaz.
 
 ### 4.6 Dónde viven tus datos
@@ -1202,7 +1202,7 @@ EPHER_STORE_DIR=/tmp/my-epher epher repl
 ## 5. La interfaz de terminal (TUI)
 
 La TUI es una versión a pantalla completa de la sesión interactiva, dentro
-de tu terminal. Forma parte del mismo programa `epher` — iníciala con:
+de tu terminal. Forma parte del mismo programa `epher`. Iníciala con:
 
 ```sh
 epher tui
@@ -1212,10 +1212,10 @@ epher tui
 
 La pantalla está dividida en paneles:
 
-- **Expresión** — la línea de entrada (arriba).
+- **Expresión**: la línea de entrada (arriba).
 - El **resultado** actual justo debajo.
-- **Historial** — cada línea que escribiste, con su respuesta.
-- **Gráfica** — la gráfica del comando `graph` (abajo).
+- **Historial**: cada línea que escribiste, con su respuesta.
+- **Gráfica**: la gráfica del comando `graph` (abajo).
 - Una línea de pistas muestra los atajos de teclado.
 
 ### 5.2 Teclas
@@ -1236,7 +1236,7 @@ La pantalla está dividida en paneles:
 
 Los grupos del teclado contienen todas las funciones, constantes y
 comandos que admite el lenguaje: **trig**, **fn**, **num**, **0x**
-y **var** — el grupo 0x contiene las conversiones exactas y de base
+y **var**. El grupo 0x contiene las conversiones exactas y de base
 (`frac`, `dec`, `big`, `bin`, `oct`, `hex`) y el factorial `!`.
 Las flechas mueven el resaltado, **Intro** inserta el token y **Tab**
 cambia de grupo.
@@ -1258,8 +1258,8 @@ representa.
 **Esc** cierra). El menú **Settings** puede ocultar los puntos de interés
 que se listan bajo la gráfica.
 
-Puedes graficar cualquier expresión, incluidas tus propias funciones —
-primero define una y luego grafícala:
+Puedes graficar cualquier expresión, incluidas tus propias funciones.
+Primero define una y luego grafícala:
 
 ```epher
 def f(x) = x ^ 3
@@ -1276,12 +1276,12 @@ la misma gramática que en la aplicación web: un dominio
 
 Los puntos donde la expresión no tiene valor (por ejemplo división entre
 cero) simplemente se omiten, dejando un hueco en la gráfica. Tras cada
-comando graph, la TUI lista los puntos de interés — raíces, máximos y
-mínimos e intersecciones — bajo la gráfica. El comando `table`
+comando graph, la TUI lista los puntos de interés (raíces, máximos y
+mínimos e intersecciones) bajo la gráfica. El comando `table`
 (sección 2.4.2) también funciona aquí.
 
 `graph3d x ^ 2 - y ^ 2` dibuja una superficie 3D como una malla alámbrica
-ASCII — gírala con las teclas de flecha y pulsa la barra espaciadora para
+ASCII. Gírala con las teclas de flecha y pulsa la barra espaciadora para
 animar una constante con deslizador (sección 2.4.5).
 
 `graph save plot.svg` escribe la gráfica actual como la misma imagen SVG
@@ -1298,12 +1298,12 @@ idioma viven en `~/.epher` (capítulo 4.6), y los mismos comandos `save`,
 
 ## 6. Tus datos y privacidad
 
-- El **programa epher instalado** — aplicación de escritorio, CLI y TUI —
+- El **programa epher instalado** (aplicación de escritorio, CLI y TUI)
   guarda funciones, scripts, historial y la elección de idioma localmente en
   `~/.epher` (o `EPHER_STORE_DIR`). Nada sale de tu equipo.
 - La **aplicación web** no guarda nada en disco: el historial dura solo
   mientras la página está abierta. La aplicación web puede funcionar sin
   conexión porque la propia página la guarda tu navegador.
 
-Las cinco versiones ejecutan el cálculo íntegramente en tu dispositivo —
-nada se envía a ningún sitio.
+Las cinco versiones ejecutan el cálculo íntegramente en tu dispositivo.
+Nada se envía a ningún sitio.

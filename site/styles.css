@@ -1,4 +1,4 @@
-/* epher website — light/dark themes via [data-theme] on <html>.
+/* epher website: light/dark themes via [data-theme] on <html>.
 
    Design tokens (2026 redesign, see docs/research/modern-ui-accessibility.md
    and docs/accessibility.md):
@@ -24,7 +24,7 @@
      accent #2dd4bf       9.9:1
      ring #2dd4bf         9.9:1
      border-strong #6a6b70 3.5:1 (vs bg; 3.1:1 vs --panel: interactive
-       control borders and card edges — 1.4.11's 3:1). Decorative
+       control borders and card edges (1.4.11's 3:1). Decorative
        separators (header rule, section hairlines) use --border, which
        carries no information: content headings identify the blocks.
 
@@ -190,7 +190,7 @@ a:hover {
   z-index: 10;
   display: flex;
   align-items: center;
-  /* One row, always: the header must never wrap — a wrapped row can land
+  /* One row, always: the header must never wrap. A wrapped row can land
      the menu toggle at the left edge (it happened at 320px with long
      language names). When space is short the language select shrinks
      instead; the 44px buttons keep their target size (WCAG 2.5.8). */
@@ -456,7 +456,7 @@ a:hover {
   gap: 1rem;
 }
 
-/* the terminal is dark in both themes — code reads on a dark surface */
+/* the terminal is dark in both themes, so code reads on a dark surface */
 .terminal-card {
   direction: ltr;
   background: var(--terminal-bg);

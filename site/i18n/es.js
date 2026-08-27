@@ -1,4 +1,4 @@
-/* epher site strings — es. Loaded before app.js, which applies
+/* epher site strings (es). Loaded before app.js, which applies
  * them by data-i18n attributes. English is the fallback for missing
  * keys, so a language file may lag behind en.js harmlessly. */
 window.EPHER_I18N = window.EPHER_I18N || {};
@@ -30,9 +30,9 @@ window.EPHER_I18N["es"] = {
   "f5-title": "Privado por diseño",
   "f5-desc": "Sin cuentas, sin telemetría, sin nube. Todo se calcula y se guarda en tu dispositivo: la aplicación web incluso funciona totalmente sin conexión.",
   "f6-title": "Habla tu idioma",
-  "f6-desc": "La interfaz se distribuye en ocho idiomas — inglés, chino, hindi, español, francés, alemán, portugués y árabe — con soporte completo de derecha a izquierda.",
+  "f6-desc": "La interfaz se distribuye en ocho idiomas: inglés, chino, hindi, español, francés, alemán, portugués y árabe, con soporte completo de derecha a izquierda.",
   "builds": "Obtén epher",
-  "one-install": "Una descarga, todas las formas de usar epher: línea de comandos, REPL, interfaz de terminal y aplicación de escritorio — todo en el único ejecutable epher.",
+  "one-install": "Una descarga, todas las formas de usar epher: línea de comandos, REPL, interfaz de terminal y aplicación de escritorio, todo en el único ejecutable epher.",
   "win-name": "Windows",
   "win-desc": "Un instalador. Pone epher en tu PATH: úsalo desde CMD, PowerShell, el menú Inicio o con un doble clic.",
   "win-download": "Descargar el instalador de Windows",
@@ -51,7 +51,7 @@ window.EPHER_I18N["es"] = {
   "pwa-launch": "Abrir la aplicación web",
   "offline-note": "Funciona totalmente sin conexión una vez cargada: instálala desde el menú de tu navegador.",
   "about-title": "Acerca de epher",
-  "about-p1": "epher es una calculadora programable y con scripts: un motor de cálculo con cinco formas de usarlo — un comando de un solo uso, una sesión interactiva, una interfaz de terminal a pantalla completa y una aplicación de escritorio, junto con una aplicación web sin conexión. Las mismas funciones, scripts e historial te siguen entre todas ellas.",
+  "about-p1": "epher es una calculadora programable y con scripts: un motor de cálculo con cinco formas de usarlo. Un comando de un solo uso, una sesión interactiva, una interfaz de terminal a pantalla completa y una aplicación de escritorio, junto con una aplicación web sin conexión. Las mismas funciones, scripts e historial te siguen entre todas ellas.",
   "about-h-engine": "Un motor, informado con honestidad",
   "about-p2": "La calculadora se niega a adivinar. Los errores indican la causa real, los números son flotantes binarios por defecto con capas exactas de fracciones, decimales y enteros grandes a una llamada de distancia, y las gráficas las calcula el mismo motor que evalúa tus expresiones. Cada decisión de diseño queda registrada en el repositorio como un registro de decisión de arquitectura.",
   "about-h-access": "La accesibilidad es una característica, no un ajuste",
@@ -61,7 +61,7 @@ window.EPHER_I18N["es"] = {
   "privacy-title": "Privacidad",
   "privacy-p1": "La versión corta: epher no recopila nada. No hay cuentas, ni analíticas, ni telemetría, ni publicidad.",
   "privacy-h-site": "Este sitio web",
-  "privacy-p2": "Estas páginas son archivos estáticos servidos por GitHub Pages. Lo único que se guarda en tu dispositivo son dos preferencias del navegador — el tema y el idioma elegidos — guardadas en localStorage y que nunca se envían a ningún sitio. GitHub, como anfitrión, procesa registros de solicitud estándar; consulta la propia declaración de privacidad de GitHub para saber qué implica.",
+  "privacy-p2": "Estas páginas son archivos estáticos servidos por GitHub Pages. Lo único que se guarda en tu dispositivo son dos preferencias del navegador, el tema y el idioma elegidos, guardadas en localStorage y que nunca se envían a ningún sitio. GitHub, como anfitrión, procesa registros de solicitud estándar; consulta la propia declaración de privacidad de GitHub para saber qué implica.",
   "privacy-h-app": "La aplicación web",
   "privacy-p3": "La aplicación web se ejecuta por completo en tu navegador: las expresiones se evalúan localmente y tu trabajo permanece en la sesión de la página. Instalarla para usarla sin conexión no cambia nada: sigue sin haber llamadas de red a tus espaldas.",
   "privacy-h-desktop": "Escritorio, línea de comandos y terminal",
@@ -76,7 +76,7 @@ window.EPHER_I18N["es"] = {
   "examples-title": "Ejemplos",
   "examples-intro": "Ejemplos listos para copiar de cada versión de epher: pégalos en una terminal, en una sesión REPL o en el campo de entrada de la aplicación. La guía de usuario explica el lenguaje en detalle; esta página es para copiar y pegar rápido.",
   "ex-h-cli": "La línea de comandos",
-  "ex-cli-intro": "Cálculos de una sola orden, scripts por tuberías y exportación a SVG: el comando epher lo hace todo. Copia un comando en cualquier shell; el ejecutable epher debe estar en tu PATH.",
+  "ex-cli-intro": "Cálculos de una sola orden, scripts por tuberías y exportación a SVG. Copia un ejemplo de los de abajo en cualquier shell.",
   "ex-1c": "Un cálculo directo: la multiplicación va antes que la suma.",
   "ex-2c": "Potencias y raíces funcionan como el resto del lenguaje.",
   "ex-3c": "Fracciones exactas donde los flotantes binarios redondearían.",
@@ -94,7 +94,7 @@ window.EPHER_I18N["es"] = {
   "ex-r3": "`ans` acompaña a cada nueva respuesta durante la sesión.",
   "ex-r4": "Usa `ans` dentro de una expresión mayor.",
   "ex-h-app": "TUI, aplicación de escritorio y aplicación web",
-  "ex-app-intro": "El mismo lenguaje corre en la interfaz de terminal, en la aplicación de escritorio y en la aplicación web. Escribe cada ejemplo en el campo de entrada y pulsa Enter.",
+  "ex-app-intro": "El mismo lenguaje corre en la interfaz de terminal, en la aplicación de escritorio y en la aplicación web. Copia o pega un ejemplo en el campo de entrada y pulsa Enter.",
   "ex-a1": "Un script de varias líneas: Shift+Enter abre una línea nueva y Enter ejecuta el script completo como un solo elemento del historial.",
   "ex-a2": "Una curva 2D básica.",
   "ex-a3": "La región bajo la curva, sombreada: `y >` sombrea por encima en su lugar.",

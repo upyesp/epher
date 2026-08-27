@@ -4,7 +4,7 @@
 // Run: npm run build:guide  (CI: pages.yml runs this before assembling _site)
 //
 // The pages share the landing page's styles.css + guide.css and follow the
-// same accessibility requirements (WCAG 2.2 AA — skip link, labels, contrast,
+// same accessibility requirements (WCAG 2.2 AA: skip link, labels, contrast,
 // lang/dir per locale, focus-visible via the shared stylesheet).
 import { marked } from "marked";
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
@@ -20,14 +20,14 @@ const LANGS = ["en", "zh-CN", "hi", "es", "fr", "ar", "de", "pt"];
 // site/app.js; the guide page itself is single-language so no runtime i18n).
 // copy/copied label the example-block copy button (and its announcement).
 const CHROME = {
-  en: { title: "epher — User guide", app: "App", back: "Back to home", contents: "Contents", themeDark: "Use dark theme", themeLight: "Use light theme", footer: "epher user guide", copy: "Copy", copied: "Copied", about: "About", privacy: "Privacy", menu: "Menu" , examples: "Examples" },
-  "zh-CN": { title: "epher — 用户指南", app: "应用", back: "返回主页", contents: "目录", themeDark: "使用深色主题", themeLight: "使用浅色主题", footer: "epher 用户指南", copy: "复制", copied: "已复制", about: "关于", privacy: "隐私", menu: "菜单" , examples: "示例" },
-  hi: { title: "epher — उपयोगकर्ता गाइड", app: "ऐप", back: "मुख्य पृष्ठ पर वापस जाएँ", contents: "विषय-सूची", themeDark: "गहरी थीम का उपयोग करें", themeLight: "हल्की थीम का उपयोग करें", footer: "epher उपयोगकर्ता गाइड", copy: "कॉपी करें", copied: "कॉपी हो गया", about: "परिचय", privacy: "गोपनीयता", menu: "मेनू" , examples: "उदाहरण" },
-  es: { title: "epher — Guía de usuario", app: "App", back: "Volver al inicio", contents: "Contenido", themeDark: "Usar tema oscuro", themeLight: "Usar tema claro", footer: "Guía de usuario de epher", copy: "Copiar", copied: "Copiado", about: "Acerca de", privacy: "Privacidad", menu: "Menú" , examples: "Ejemplos" },
-  fr: { title: "epher — Guide de l'utilisateur", app: "App", back: "Retour à l'accueil", contents: "Sommaire", themeDark: "Utiliser le thème sombre", themeLight: "Utiliser le thème clair", footer: "Guide de l'utilisateur de epher", copy: "Copier", copied: "Copié", about: "À propos", privacy: "Confidentialité", menu: "Menu" , examples: "Exemples" },
-  ar: { title: "epher — دليل المستخدم", app: "التطبيق", back: "العودة إلى الصفحة الرئيسية", contents: "المحتويات", themeDark: "استخدام المظهر الداكن", themeLight: "استخدام المظهر الفاتح", footer: "دليل مستخدم epher", copy: "نسخ", copied: "تم النسخ", about: "حول", privacy: "الخصوصية", menu: "القائمة" , examples: "أمثلة" },
-  de: { title: "epher — Benutzerhandbuch", app: "App", back: "Zurück zur Startseite", contents: "Inhalt", themeDark: "Dunkles Design verwenden", themeLight: "Helles Design verwenden", footer: "epher-Benutzerhandbuch", copy: "Kopieren", copied: "Kopiert", about: "Über", privacy: "Datenschutz", menu: "Menü" , examples: "Beispiele" },
-  pt: { title: "epher — Guia de utilizador", app: "App", back: "Voltar ao início", contents: "Índice", themeDark: "Usar tema escuro", themeLight: "Usar tema claro", footer: "Guia de utilizador do epher", copy: "Copiar", copied: "Copiado", about: "Sobre", privacy: "Privacidade", menu: "Menu" , examples: "Exemplos" },
+  en: { title: "epher: User guide", app: "App", back: "Back to home", contents: "Contents", themeDark: "Use dark theme", themeLight: "Use light theme", footer: "epher user guide", copy: "Copy", copied: "Copied", about: "About", privacy: "Privacy", menu: "Menu" , examples: "Examples" },
+  "zh-CN": { title: "epher: 用户指南", app: "应用", back: "返回主页", contents: "目录", themeDark: "使用深色主题", themeLight: "使用浅色主题", footer: "epher 用户指南", copy: "复制", copied: "已复制", about: "关于", privacy: "隐私", menu: "菜单" , examples: "示例" },
+  hi: { title: "epher: उपयोगकर्ता गाइड", app: "ऐप", back: "मुख्य पृष्ठ पर वापस जाएँ", contents: "विषय-सूची", themeDark: "गहरी थीम का उपयोग करें", themeLight: "हल्की थीम का उपयोग करें", footer: "epher उपयोगकर्ता गाइड", copy: "कॉपी करें", copied: "कॉपी हो गया", about: "परिचय", privacy: "गोपनीयता", menu: "मेनू" , examples: "उदाहरण" },
+  es: { title: "epher: Guía de usuario", app: "App", back: "Volver al inicio", contents: "Contenido", themeDark: "Usar tema oscuro", themeLight: "Usar tema claro", footer: "Guía de usuario de epher", copy: "Copiar", copied: "Copiado", about: "Acerca de", privacy: "Privacidad", menu: "Menú" , examples: "Ejemplos" },
+  fr: { title: "epher: Guide de l'utilisateur", app: "App", back: "Retour à l'accueil", contents: "Sommaire", themeDark: "Utiliser le thème sombre", themeLight: "Utiliser le thème clair", footer: "Guide de l'utilisateur de epher", copy: "Copier", copied: "Copié", about: "À propos", privacy: "Confidentialité", menu: "Menu" , examples: "Exemples" },
+  ar: { title: "epher: دليل المستخدم", app: "التطبيق", back: "العودة إلى الصفحة الرئيسية", contents: "المحتويات", themeDark: "استخدام المظهر الداكن", themeLight: "استخدام المظهر الفاتح", footer: "دليل مستخدم epher", copy: "نسخ", copied: "تم النسخ", about: "حول", privacy: "الخصوصية", menu: "القائمة" , examples: "أمثلة" },
+  de: { title: "epher: Benutzerhandbuch", app: "App", back: "Zurück zur Startseite", contents: "Inhalt", themeDark: "Dunkles Design verwenden", themeLight: "Helles Design verwenden", footer: "epher-Benutzerhandbuch", copy: "Kopieren", copied: "Kopiert", about: "Über", privacy: "Datenschutz", menu: "Menü" , examples: "Beispiele" },
+  pt: { title: "epher: Guia de utilizador", app: "App", back: "Voltar ao início", contents: "Índice", themeDark: "Usar tema escuro", themeLight: "Usar tema claro", footer: "Guia de utilizador do epher", copy: "Copiar", copied: "Copiado", about: "Sobre", privacy: "Privacidade", menu: "Menu" , examples: "Exemplos" },
 };
 
 // --- example code blocks ------------------------------------------------
@@ -101,7 +101,7 @@ marked.use({
   renderer: {
     code(code, infostring) {
       const info = (infostring || "").trim().split(/\s+/)[0];
-      // tabindex: long lines scroll horizontally — keyboard users must be
+      // tabindex: long lines scroll horizontally; keyboard users must be
       // able to focus and scroll the region (axe scrollable-region-focusable)
       if (info === "epher" || info === "sh") return exampleBlock(code, info);
       return `<pre tabindex="0"><code class="language-text">${escapeHtml(code)}\n</code></pre>`;

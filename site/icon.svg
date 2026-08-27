@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <!-- epher mark: rounded tile + monogram "e" (the epher.svg artwork kept
-       exactly as uploaded — glyph and its semi-circular counter, painted in
+       exactly as uploaded (the glyph and its semi-circular counter, painted in
        the tile color the way the original does; corners rounded; glyph
        recentred on the tile (2026-08: its bounding box centre is the tile
        centre) so the corners never clip it). Variants: icon-light.svg (light

@@ -28,7 +28,7 @@ _Avoid_: macro, routine, procedure
 
 **Script**:
 A sequence of statements (assignments, Function definitions, control flow)
-executed in order. Statements are separated by `;` or newlines — the same
+executed in order. Statements are separated by `;` or newlines, the same
 separator everywhere (ADR-0001).
 _Avoid_: program, macro, routine
 
@@ -44,7 +44,7 @@ or arrow keys).
 _Avoid_: hover, cursor readout, inspect
 
 **Point of interest**:
-A notable point computed from the plotted curves — a root, a turning point
+A notable point computed from the plotted curves (a root, a turning point
 (maximum/minimum), or an intersection (ADR-0014).
 _Avoid_: special point, annotation, marker
 
@@ -61,7 +61,7 @@ _Avoid_: plot3d, height field, mesh (as the product term)
 
 **Animation (parameter playback)**:
 Stepping a user-defined Constant through a bounded range while everything
-referencing it re-samples — the play button on a slider (web/desktop) or
+referencing it re-samples, the play button on a slider (web/desktop) or
 the space bar (TUI). Always user-started, one control to pause; reduced
 motion degrades it to stepping (ADR-0015).
 _Avoid_: movie, animated plot, time series
@@ -69,13 +69,13 @@ _Avoid_: movie, animated plot, time series
 ### Persistence
 
 **Store**:
-The persisted collection of a user's data — Functions, Constants, Scripts,
+The persisted collection of a user's data (Functions, Constants, Scripts,
 history, and settings.
 _Avoid_: database, save file, cache
 
 **Native Store**:
 The Store instance reachable by frontends that have host filesystem access
-(the desktop app, CLI, and TUI — three modes of the single `epher` binary,
+(the desktop app, CLI, and TUI, three modes of the single `epher` binary,
 ADR-0011). Shared across those frontends on a single device.
 _Avoid_: local store, disk store
 
@@ -89,3 +89,10 @@ _Avoid_: sync, backend, connector
 The Store instance inside the browser/PWA sandbox, physically separate from
 the Native Store but sharing the same logical schema.
 _Avoid_: browser storage, cache, local storage
+
+
+## Style
+
+- No em-dashes (—) anywhere, in any language: use colons, commas,
+  parentheses, or separate sentences instead (user rule, 2026-08-27).
+  The website, the guides, and the in-app copy must stay free of them.

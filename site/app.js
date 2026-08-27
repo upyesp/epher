@@ -1,8 +1,8 @@
-/* epher website — i18n + theme + disclosure nav.
+/* epher website: i18n + theme + disclosure nav.
  *
  * i18n mirrors the Localizer in crates/i18n: device locale auto-detection,
  * a stored user preference, English fallback. The catalogs live in
- * i18n/<lang>.js (loaded before this file as plain scripts — no fetch, so
+ * i18n/<lang>.js (loaded before this file as plain scripts; no fetch, so
  * the page also works offline from any mount point); this file applies
  * them by data-i18n / data-i18n-aria / data-i18n-href attributes.
  *
@@ -24,7 +24,7 @@ function normalize(code) {
   return code.replace("_", "-").toLowerCase();
 }
 
-/** Negotiate a supported locale from the device's languages — the static
+/** Negotiate a supported locale from the device's languages. The static
  *  twin of `Localizer::resolve` in crates/i18n: exact match first, then
  *  language-prefix match, English fallback. */
 function detect() {
@@ -162,7 +162,7 @@ function init() {
  * A faithful port of the app's 3D renderer (crates/core/src/graph.rs):
  * yaw around z, pitch around the rotated x axis, a perspective divide at
  * camera distance 30, mesh lines drawn far-to-near with depth-cued
- * opacity, and line thickness 0.1 — the width slider at 0.1 (mesh 1.2x,
+ * opacity, and line thickness 0.1. The width slider at 0.1 (mesh 1.2x,
  * frame 1.4x). The view box is fixed (the union of the projected bounding
  * box over every yaw) so the mesh rotates without pumping. Reduced motion
  * renders one static frame (WCAG 2.3.3). */
@@ -308,7 +308,7 @@ function initHero3d() {
       zmax = Math.max(zmax, line.depth);
     }
     // surface_frame: ground square, axes through the origin, vertical
-    // extent — as projected segments.
+    // extent, as projected segments.
     const frame = [];
     const edge = (x1, y1, z1, x2, y2, z2) => {
       const seg = projectSegment(x1, y1, z1, x2, y2, z2);
@@ -328,7 +328,7 @@ function initHero3d() {
   // A constant-size, per-frame-centered view box: the size is the
   // largest projected extent over the whole rotation (plus the app's 6%
   // pad), and each frame centers that box on its own content. The mesh
-  // therefore stays centered and constant-scale while it rotates — no
+  // therefore stays centered and constant-scale while it rotates; no
   // pumping, no drift.
   const touch = (px, py, acc) => {
     acc.x0 = Math.min(acc.x0, px);

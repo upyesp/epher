@@ -1,6 +1,6 @@
 //! The epher user guide, shared by the web app and the TUI (ADR-0018).
 //!
-//! The single source of truth is `site/guide/<locale>.md` — the same
+//! The single source of truth is `site/guide/<locale>.md`, the same
 //! files the website build (`scripts/build-guide.mjs`) turns into the
 //! guide pages. `guide(locale)` returns the embedded markdown; each
 //! frontend renders it with the renderer that fits its medium:
@@ -9,7 +9,7 @@
 //! for the TUI pager. The markdown feature set is bounded by the guide
 //! itself: ATX headings (1–4), fenced code blocks (`epher`, `sh`, `text`),
 //! flat lists, pipe tables, blockquotes, paragraphs, and the inline marks
-//! `` `code` ``, `**bold**`, `*italic*`. No links, images, or raw HTML —
+//! `` `code` ``, `**bold**`, `*italic*`. No links, images, or raw HTML;
 //! so both renderers stay small and every byte of text is escaped.
 
 include!(concat!(env!("OUT_DIR"), "/content.rs"));
@@ -110,7 +110,7 @@ pub fn chapters(md: &str) -> Vec<String> {
 /// carries the exact text to insert into the entry field. `` ```text ``
 /// fences are plain output boxes. `## ` headings carry `id="guide-ch-N"`
 /// anchors, and the document opens with a `<nav class="guide-toc">`
-/// whose buttons (`data-jump="N"`) scroll to them — the in-app table of
+/// whose buttons (`data-jump="N"`) scroll to them. The in-app table of
 /// contents (ADR-0018 amendment). Everything else maps to the obvious
 /// element; all text is escaped.
 pub fn render_html(md: &str, toc_label: &str) -> String {

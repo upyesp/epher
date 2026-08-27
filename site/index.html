@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <!--
   epher landing page (served at epher.org, see docs/website.md).
-  - Languages: en, zh-CN, hi, es, fr, ar, de, pt — auto-detected, stored preference,
+  - Languages: en, zh-CN, hi, es, fr, ar, de, pt; auto-detected, stored preference,
     English fallback (mirrors the Localizer in crates/i18n; see app.js).
     The catalogs live in i18n/<lang>.js (loaded before app.js).
   - Themes: light/dark, defaults to the device preference, toggle persisted.
-  - Accessibility: WCAG 2.2 AA — see docs/accessibility.md. The visible
+  - Accessibility: WCAG 2.2 AA (see docs/accessibility.md). The visible
     (English) text is the noscript fallback; app.js swaps in the other
     locales. lang/dir must match the active locale (3.1.1, RTL for ar).
   - Navigation: the header collapses into a disclosure (hamburger) menu
@@ -16,10 +16,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>epher — a programmable, scriptable calculator</title>
+  <title>epher: a programmable, scriptable calculator</title>
   <meta
     name="description"
-    content="A programmable, scriptable calculator — command line, terminal UI, desktop app, and offline web app. Graphs in 2D and 3D, exact numerics, eight languages, no accounts."
+    content="A programmable, scriptable calculator: command line, terminal UI, desktop app, and offline web app. Graphs in 2D and 3D, exact numerics, eight languages, no accounts."
   />
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141416" />
@@ -181,15 +181,15 @@
           <h3 data-i18n="f5-title">Private by design</h3>
           <p data-i18n="f5-desc">
             No accounts, no telemetry, no cloud. Everything is computed and
-            stored on your device — the web app even works fully offline.
+            stored on your device. The web app even works fully offline.
           </p>
         </li>
         <li class="feature-card">
           <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18-3-4-3-14.5 0-18z"/></svg>
           <h3 data-i18n="f6-title">Speaks your language</h3>
           <p data-i18n="f6-desc">
-            The interface ships in eight languages — English, Chinese,
-            Hindi, Spanish, French, German, Portuguese and Arabic with
+            The interface ships in eight languages: English, Chinese,
+            Hindi, Spanish, French, German, Portuguese and Arabic, with
             full right-to-left support.
           </p>
         </li>
@@ -201,14 +201,14 @@
       <div class="cards">
         <p class="one-install" data-i18n="one-install">
           One download, every way to use epher: the command line, the REPL,
-          the terminal UI, and the desktop app — all in the single `epher`
+          the terminal UI, and the desktop app, all in the single `epher`
           executable.
         </p>
 
         <article class="card">
           <h3 data-i18n="win-name">Windows</h3>
           <p data-i18n="win-desc">
-            One installer. It puts `epher` on your PATH — use it from CMD,
+            One installer. It puts `epher` on your PATH. Use it from CMD,
             PowerShell, the Start menu, or a double-click.
           </p>
           <p class="dl-title" data-i18n="downloads">Downloads</p>
@@ -272,7 +272,7 @@
             </li>
           </ul>
           <p class="note" data-i18n="offline-note">
-            Works fully offline once loaded — install it from your browser's
+            Works fully offline once loaded. Install it from your browser's
             menu.
           </p>
         </article>
