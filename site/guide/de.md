@@ -734,6 +734,8 @@ damit du zurückscrollen und sehen kannst, was du gemacht hast. Die neuesten
 Einträge erscheinen oben, und der Button **Clear history** über der Liste
 leert sie. Der Verlauf bleibt erhalten, solange die Seite offen ist.
 
+Jeder Eintrag liegt zwischen dünnen Trennlinien: ein einzeiliger Ausdruck ist eine Zeile, und ein mehrzeiliges Skript ist ein Eintrag, der alle seine Zeilen zeigt. Klicke einen Eintrag an, um ihn zurück ins Eingabefeld zu laden und erneut auszuführen.
+
 ### 2.4 Graphen zeichnen
 
 Tippe `graph`, gefolgt von einem Ausdruck, und drücke **Enter**:

@@ -79,3 +79,37 @@ returns to the calculator pane.
   the example fences kept byte-identical across locales.
 - The desktop app inherits the web overlay unchanged (it wraps the web
   artifact).
+
+## Amendment (2026-08-27): a table of contents in the in-app guide
+
+**Context.** The in-app guide renders the full handbook with no way to
+find a chapter: scrolling was the only navigation, in the web overlay
+and the TUI pager alike. The website guide pages have had a clickable
+table of contents since v0.1; the apps lagged.
+
+**Decision.** The in-app guide opens with a table of contents listing
+the guide's top-level chapters (`## ` headings), generated from the
+rendered markdown so it is automatically localized with the guide —
+no per-language ToC data exists.
+
+- **Web/desktop overlay:** a `nav.guide-toc` sits between the hint line
+  and the scrollable body. Each chapter is a button (`data-jump="N"`);
+  the rendered `h2` headings carry matching `id="guide-ch-N"` anchors,
+  and clicking a button scrolls the body to its chapter. Buttons are
+  ordinary focusable controls, so keyboard activation comes free.
+- **TUI pager:** the chapter list pins above the content (one row per
+  chapter, numbered, up to twelve). A mouse click on a row jumps the
+  pager to the wrapped row that chapter's heading starts at; the number
+  keys 1–9 jump the same way for keyboard-only terminals. The pager's
+  scroll offset already counts wrapped rows, so the jump targets are
+  computed from the same wrap math the render uses. While the guide is
+  open, clicks anywhere else do nothing (previously a click could land
+  on the stale calculator-layout rects stored from the last normal
+  frame); wheel scrolling is unchanged.
+
+**Consequences.** `epher-guide` gains `chapters(md)` and
+`render_html(md, toc_label)` (the label comes from a new
+`guide-contents` string in the eight FTL catalogs). The TUI hint line
+names the jump keys. The guide tests pin chapter extraction, ToC
+buttons/anchors in the HTML, and the browser/TUI suites pin that a ToC
+pick scrolls to the chapter in both frontends.

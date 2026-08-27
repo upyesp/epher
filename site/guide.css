@@ -310,3 +310,26 @@
   border-radius: 6px;
   padding: 0.1em 0.45em;
 }
+
+/* --- Examples page (ADR-0036) -------------------------------------------
+   The captions above each copyable block, and the section rhythm. */
+
+.page-examples .ex-section {
+  margin-top: 2.2rem;
+}
+
+.page-examples .ex-section h2 {
+  font-size: 1.45rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.35rem;
+}
+
+.example-item {
+  margin: 1.4rem 0 0;
+}
+
+.example-item figcaption {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-bottom: 0.45rem;
+}

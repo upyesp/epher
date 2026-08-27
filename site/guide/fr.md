@@ -737,6 +737,8 @@ vous puissiez remonter et voir ce que vous avez fait. Les entrées les plus
 récentes apparaissent en haut, et le bouton **Clear history** au-dessus de
 la liste la vide. L'historique est conservé tant que la page est ouverte.
 
+Chaque entrée est délimitée par de fines règles : une expression sur une ligne occupe une ligne, et un script multi-lignes est une entrée qui affiche toutes ses lignes. Cliquez sur une entrée pour la recharger dans le champ de saisie et la réexécuter.
+
 ### 2.4 Les graphiques
 
 Tapez `graph` suivi d'une expression et appuyez sur **Entrée** :

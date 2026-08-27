@@ -85,8 +85,9 @@ graph-empty = 尚未绘制图形
 graph-no-path = 请指定要保存的文件
 menu-guide = 用户指南
 guide-close = 关闭
+guide-contents = 目录
 guide-insert-hint = 点击示例可将其插入输入框。
-guide-hint = 上/下滚动 · Esc 关闭
+guide-hint = 上/下滚动 · 1-9 章节 · Esc 关闭
 settings-markers = 图上高亮的点
 graph-width = 线条粗细
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu

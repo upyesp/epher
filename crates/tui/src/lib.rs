@@ -140,11 +140,19 @@ pub struct App {
     /// arrows move the selection, and Enter loads the selected line into
     /// the input — the terminal spelling of the web's clickable history.
     /// `hist_sel` indexes the DISPLAYED list (0 = newest line on top).
+    /// `hist_rows` maps each displayed ROW of the last frame to the
+    /// displayed entry that owns it (ADR-0027 amendment: multi-line
+    /// script entries occupy several rows, separated by rule lines).
     hist_focus: bool,
     hist_sel: usize,
+    hist_rows: Vec<usize>,
     /// The in-app user guide view (ADR-0018): `Some(scroll)` when open,
-    /// the offset counting wrapped rows from the top.
+    /// the offset counting wrapped rows from the top. `guide_chapters`
+    /// holds the top-level chapter titles with their wrapped-row offsets
+    /// in the CURRENT frame (ADR-0018 amendment): the table of contents
+    /// at the top of the pager jumps to those rows on click or 1–9.
     guide: Option<usize>,
+    guide_chapters: Vec<(String, usize)>,
     /// The screen regions the last frame drew (ADR-0034): mouse events
     /// map their coordinates through these. Default until the first draw.
     areas: Areas,
@@ -170,6 +178,11 @@ pub struct Areas {
     pub hints: ratatui::layout::Rect,
     /// The open menu popup: its menu index and the rect including border.
     pub popup: Option<(usize, ratatui::layout::Rect)>,
+    /// The user guide's table-of-contents rows (ADR-0018 amendment): the
+    /// rects the last guide frame drew, in chapter order. Clicks land on
+    /// these to jump.
+    pub guide_toc: [ratatui::layout::Rect; 12],
+    pub guide_toc_len: usize,
     /// The history panel's scroll offset at draw time.
     pub history_scroll: u16,
     /// Whether the user guide view covered the frame.
@@ -271,7 +284,9 @@ impl App {
             prompt: None,
             hist_focus: false,
             hist_sel: 0,
+            hist_rows: Vec::new(),
             guide: None,
+            guide_chapters: Vec::new(),
             areas: Areas::default(),
         }
     }
@@ -516,6 +531,15 @@ impl App {
         self.guide = Some(offset);
     }
 
+    /// Jump the pager to a table-of-contents chapter (ADR-0018
+    /// amendment): the wrapped row its heading starts at in the current
+    /// frame.
+    pub fn guide_jump(&mut self, chapter: usize) {
+        if let Some((_, row)) = self.guide_chapters.get(chapter) {
+            self.guide = Some(*row);
+        }
+    }
+
     /// The current scroll offset (clamped to the content at draw time).
     pub fn guide_offset(&self) -> Option<usize> {
         self.guide
@@ -589,31 +613,29 @@ impl App {
     /// there — it is not run) and leave history focus. `None` when the
     /// history is empty.
     pub fn history_pick(&mut self) -> Option<String> {
+        self.history_pick_display(self.hist_sel)
+    }
+
+    /// Load the entry shown at `display_idx` (0 = newest on top) into the
+    /// input — the mouse spelling of the web's clickable history
+    /// (ADR-0034).
+    pub fn history_pick_display(&mut self, display_idx: usize) -> Option<String> {
         let len = self.session.history().len();
-        if len == 0 {
+        if len == 0 || display_idx >= len {
             self.hist_focus = false;
             return None;
         }
-        let sel = self.hist_sel.min(len - 1);
+        let sel = display_idx;
         let entry = self.session.history()[len - 1 - sel].clone();
         // ADR-0031: the pick loads the expression — the recorded answer
         // suffix (`  = …`, `  error: …`, `  warning: …`) stays out of the
-        // input so the user can edit and re-run it.
+        // input so the user can edit and re-run it. Multi-line script
+        // entries (ADR-0027 amendment) come back as one `; `-joined
+        // line: the one-row input cannot hold newlines, and `;` is the
+        // same separator, so the script re-runs exactly as recorded.
         let line = epher_core::history_expression(&entry).to_string();
         self.hist_focus = false;
-        Some(line)
-    }
-
-    /// Click a displayed history line (ADR-0034): select it and pick its
-    /// expression into the input — the mouse spelling of the web's
-    /// clickable history. `display_row` counts from the top of the panel.
-    pub fn history_pick_row(&mut self, display_row: usize) -> Option<String> {
-        let len = self.session.history().len();
-        if len == 0 || display_row >= len {
-            return None;
-        }
-        self.hist_sel = display_row.min(len - 1);
-        self.history_pick()
+        Some(line.replace('\n', "; "))
     }
 
     /// Open a menu with the highlight on a given item (mouse click on a
@@ -647,11 +669,13 @@ impl App {
                 .map(|text| {
                     // Replace the history section with the file's lines —
                     // nothing executes, the lines display exactly as saved
-                    // (ADR-0025). The result line names the loaded count.
+                    // (ADR-0025). A `\n` escape becomes the entry's
+                    // newline, so multi-line script entries (ADR-0027
+                    // amendment) survive the one-line-per-entry format.
                     self.session.clear_history();
                     let mut loaded = 0;
                     for line in text.lines().map(str::trim).filter(|l| !l.is_empty()) {
-                        self.session.record(line);
+                        self.session.record(&line.replace("\\n", "\n"));
                         loaded += 1;
                     }
                     let count = loaded.to_string();
@@ -664,8 +688,15 @@ impl App {
                     self.result = String::new();
                 })
                 .map_err(|_| ()),
-            PromptKind::SaveHistory => std::fs::write(&path, self.history().join("\n"))
-                .map_err(|_| ()),
+            PromptKind::SaveHistory => std::fs::write(
+                &path,
+                self.history()
+                    .iter()
+                    .map(|h| h.replace('\n', "\\n"))
+                    .collect::<Vec<_>>()
+                    .join("\n"),
+            )
+            .map_err(|_| ()),
             PromptKind::SaveScript => std::fs::write(&path, &self.input)
                 .map_err(|_| ()),
         };
@@ -1510,6 +1541,8 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
             if key.kind == KeyEventKind::Press {
                 // The user guide view (ADR-0018) is modal: only scrolling
                 // and closing keys act; nothing reaches the calculator.
+                // Number keys jump the table of contents (ADR-0018
+                // amendment) — the keyboard spelling of the ToC clicks.
                 if app.guide_active() {
                     match key.code {
                         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
@@ -1522,6 +1555,9 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         KeyCode::PageDown => app.guide_scroll(12),
                         KeyCode::Home => app.guide_scroll_to(0),
                         KeyCode::End => app.guide_scroll_to(usize::MAX),
+                        KeyCode::Char(c) if c.is_ascii_digit() && c != '0' => {
+                            app.guide_jump((c as u8 - b'1') as usize)
+                        }
                         _ => {}
                     }
                     continue;
@@ -1817,6 +1853,17 @@ fn handle_mouse(
         }
         MouseEventKind::Down(crossterm::event::MouseButton::Left) => {
             let (col, row) = (event.column, event.row);
+            // 0. The user guide pager (ADR-0018) covers the screen: only
+            // the table-of-contents rows act (ADR-0018 amendment) —
+            // everything else scrolls by wheel and is inert to clicks.
+            if areas.guide {
+                for i in 0..areas.guide_toc_len {
+                    if inside(areas.guide_toc[i], col, row) {
+                        app.guide_jump(i);
+                    }
+                }
+                return false;
+            }
             // 1. The open popup wins: a click on an item activates it,
             //    a click on a rule is ignored, a click anywhere else
             //    closes the menu without acting (browser convention).
@@ -1859,8 +1906,13 @@ fn handle_mouse(
             if inside(areas.history, col, row) {
                 let content_row = row.saturating_sub(areas.history.y.saturating_add(1)) as usize;
                 let display_row = content_row + areas.history_scroll as usize;
-                if let Some(line) = app.history_pick_row(display_row) {
-                    app.set_input(&line);
+                if let Some(&display_idx) = app.hist_rows.get(display_row) {
+                    if display_idx != usize::MAX {
+                        app.hist_sel = display_idx;
+                        if let Some(line) = app.history_pick_display(display_idx) {
+                            app.set_input(&line);
+                        }
+                    }
                 }
                 return false;
             }
@@ -2091,12 +2143,18 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
 
     // The user guide view (ADR-0018): a full-screen pager over the same
     // markdown the website guide pages and the web overlay are built
-    // from, rendered in the current interface language.
+    // from, rendered in the current interface language. The table of
+    // contents (ADR-0018 amendment) pins the top-level chapters above
+    // the content: one row per chapter, clickable, and the number keys
+    // 1–9 jump to the same rows.
     if let Some(offset) = app.guide_offset() {
+        let chapters = epher_guide::chapters(epher_guide::guide(localizer.locale()));
+        let toc_len = chapters.len().min(12);
         let rows = Layout::vertical([
-            Constraint::Length(1), // title
-            Constraint::Min(0),    // content
-            Constraint::Length(1), // scroll hint
+            Constraint::Length(1),                       // title
+            Constraint::Length(toc_len as u16),          // table of contents
+            Constraint::Min(0),                          // content
+            Constraint::Length(1),                       // scroll hint
         ])
         .split(frame.area());
         let title = localizer.lookup("menu-guide");
@@ -2107,7 +2165,24 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             ))),
             rows[0],
         );
+        // The ToC rows: numbered chapter titles; their rects feed the
+        // mouse (areas.guide_toc) and their jump targets come from the
+        // wrapped-row offsets computed below.
+        for (i, chapter) in chapters.iter().enumerate().take(toc_len) {
+            areas.guide_toc[i] = rows[1];
+            areas.guide_toc[i].y = rows[1].y + i as u16;
+            areas.guide_toc[i].height = 1;
+            frame.render_widget(
+                Paragraph::new(Line::from(Span::styled(
+                    format!(" {} {}", i + 1, chapter),
+                    Style::default().fg(fg),
+                ))),
+                areas.guide_toc[i],
+            );
+        }
+        areas.guide_toc_len = toc_len;
         let mut lines = Vec::new();
+        let mut chapters_found: Vec<(String, usize)> = Vec::new();
         for t in epher_guide::render_text(epher_guide::guide(localizer.locale())) {
             match t {
                 epher_guide::TLine::Heading(level, text) => {
@@ -2116,37 +2191,56 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                     } else {
                         Style::default().fg(fg).add_modifier(Modifier::BOLD)
                     };
-                    lines.push(Line::from(Span::styled(text, style)));
+                    lines.push((Line::from(Span::styled(text.clone(), style)), level));
+                    if level == 2 {
+                        chapters_found.push((text, 0));
+                    }
                 }
                 epher_guide::TLine::Text(text) => {
-                    lines.push(Line::from(Span::styled(text, Style::default().fg(fg))));
+                    lines.push((Line::from(Span::styled(text, Style::default().fg(fg))), 0));
                 }
                 epher_guide::TLine::Code(text) => {
-                    lines.push(Line::from(Span::styled(text, hints_style)));
+                    lines.push((Line::from(Span::styled(text, hints_style)), 0));
                 }
                 epher_guide::TLine::Quote(text) => {
-                    lines.push(Line::from(Span::styled(text, hints_style)));
+                    lines.push((Line::from(Span::styled(text, hints_style)), 0));
                 }
-                epher_guide::TLine::Blank => lines.push(Line::from("")),
+                epher_guide::TLine::Blank => lines.push((Line::from(""), 0)),
             }
         }
-        // The offset counts wrapped rows; clamp to the last page.
-        let content_rows = rows[1].height as usize;
-        let max = lines.len().saturating_sub(content_rows);
+        // The offset counts wrapped rows; chapter targets are the
+        // wrapped rows their headings start at, for the ToC jumps.
+        let content_width = rows[2].width as usize;
+        let mut wrapped = 0usize;
+        let mut found = 0usize;
+        for (line, level) in &lines {
+            if *level == 2 {
+                if let Some(target) = chapters_found.get_mut(found) {
+                    target.1 = wrapped;
+                }
+                found += 1;
+            }
+            wrapped += line.width().div_ceil(content_width.max(1)).max(1);
+        }
+        app.guide_chapters = chapters_found;
+        let rendered: Vec<Line> = lines.into_iter().map(|(l, _)| l).collect();
+        // Clamp to the last page.
+        let content_rows = rows[2].height as usize;
+        let max = wrapped.saturating_sub(content_rows);
         let offset = offset.min(max);
         frame.render_widget(
-            Paragraph::new(Text::from(lines))
+            Paragraph::new(Text::from(rendered))
                 .style(Style::default().fg(fg))
                 .wrap(ratatui::widgets::Wrap { trim: false })
                 .scroll((offset as u16, 0)),
-            rows[1],
+            rows[2],
         );
         frame.render_widget(
             Paragraph::new(Line::from(Span::styled(
                 localizer.lookup("guide-hint"),
                 hints_style,
             ))),
-            rows[2],
+            rows[3],
         );
         areas.guide = true;
         app.areas = areas;
@@ -2284,28 +2378,51 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     let result = Paragraph::new(app.result()).style(result_style);
     frame.render_widget(result, result_area);
 
-    let history_lines: Vec<Line> = app
-        .history()
-        .iter()
-        .rev()
-        .enumerate()
-        .map(|(display_row, h)| {
-            let line = Line::from(h.as_str());
-            // History focus (ADR-0027): the selected line is highlighted
-            // with the theme's selection colors.
-            if app.history_focused() && display_row == app.history_sel() {
+    // History (ADR-0027): entries render newest first, one row per line
+    // of the entry, with a full-width rule between entries — the visible
+    // boundary that marks where one item ends and the next begins
+    // (ADR-0027 amendment: a multi-line script is one item occupying
+    // several rows between two rules). `hist_rows` maps each displayed
+    // row to the displayed entry that owns it, for the mouse.
+    let mut history_lines: Vec<Line> = Vec::new();
+    let mut hist_rows: Vec<usize> = Vec::new();
+    let rule = "─".repeat(history_area.width.saturating_sub(2) as usize);
+    let rule_style = Style::default().fg(border_fg);
+    for (display_idx, h) in app.history().iter().rev().enumerate() {
+        if display_idx > 0 {
+            history_lines.push(Line::from(Span::styled(rule.clone(), rule_style)));
+            hist_rows.push(usize::MAX);
+        }
+        let selected = app.history_focused() && display_idx == app.history_sel();
+        for row in h.split('\n') {
+            let line = Line::from(row.to_string());
+            // History focus (ADR-0027): every row of the selected entry
+            // is highlighted with the theme's selection colors.
+            history_lines.push(if selected {
                 line.style(Style::default().fg(sel_fg).bg(sel_bg))
             } else {
                 line
-            }
-        })
-        .collect();
+            });
+            hist_rows.push(display_idx);
+        }
+    }
+    app.hist_rows = hist_rows;
     // Keep the selection in view while the history has focus: the
-    // paragraph scrolls so the highlighted row is the last visible one
-    // when it would otherwise fall off the bottom.
+    // paragraph scrolls (in rows) so the selected entry is visible — its
+    // last row sits at the bottom edge when it fits, its first row at
+    // the top when it is taller than the viewport.
     let history_scroll = if app.history_focused() {
         let visible = history_area.height.saturating_sub(2) as usize;
-        app.history_sel().saturating_sub(visible.saturating_sub(1)) as u16
+        let total_rows = app.hist_rows.len();
+        let sel_top = app
+            .hist_rows
+            .iter()
+            .take_while(|&&i| i != usize::MAX)
+            .position(|&i| i == app.history_sel())
+            .unwrap_or(0);
+        let sel_height = app.hist_rows.iter().filter(|&&i| i == app.history_sel()).count().max(1);
+        let scroll = sel_top.saturating_sub(visible.saturating_sub(sel_height.min(visible)));
+        scroll.min(total_rows.saturating_sub(visible)) as u16
     } else {
         0
     };

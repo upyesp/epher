@@ -42,7 +42,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0015 | Animation and 3D graphing (amended: near-plane clipping; playback rate, drag orbit, touch) | 2026-08-17 | accepted |
 | 0016 | Calculator-style fixed layout with keypad input (keypad banks amended by 0022/0024; mobile focus rule amended by 0035; TUI keypad amended by 0019/0024/0033) | 2026-08-21 | accepted |
 | 0017 | Menu bar, themes, and file open/save (menubar → icon rail: 0032) | 2026-08-22 | accepted |
-| 0018 | The user guide inside the app, and one button to clear the graph pane | 2026-08-22 | accepted |
+| 0018 | The user guide inside the app, and one button to clear the graph pane (amended 2026-08-27: in-app table of contents with click-to-jump) | 2026-08-22 | accepted |
 | 0019 | Graph pane settings, a full-function keypad, and the hints row | 2026-08-22 | accepted |
 | 0020 | SVG export from every frontend and the graph pane's options row | 2026-08-23 | accepted |
 | 0021 | `ans` — the previous answer | 2026-08-23 | accepted |
@@ -51,7 +51,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0024 | Save dialogs, the 0x keypad bank, and TUI menu paint order | 2026-08-23 | accepted |
 | 0025 | Apple Silicon only, dark launch, 3D pane controls, themed NSIS, uninstall cleanup, consistent TUI layout, split Open (NSIS theme superseded by 0026–0028) | 2026-08-24 | accepted |
 | 0026 | Three v0.4.13 regressions — NSIS repaint removed, save-dialog arg casing, 3D orbit accumulation | 2026-08-24 | accepted |
-| 0027 | Extensions, readable installer checkboxes, 60fps 3D, and clickable history | 2026-08-24 | accepted |
+| 0027 | Extensions, readable installer checkboxes, 60fps 3D, and clickable history (amended 2026-08-27: multi-line scripts are one history item, picked whole, with visible item boundaries) | 2026-08-24 | accepted |
 | 0028 | Unfiltered open dialogs, 0.1 floor for line width, light installer theme with logo | 2026-08-24 | accepted |
 | 0029 | Auto-slide to the graph pane after drawing on mobile | 2026-08-24 | superseded by 0035 (absorbed; the focus consequence was reversed by 0030) |
 | 0030 | Five frontends everywhere, mobile blur after the auto-slide, scripts as one history entry, and a rotating 3D hero | 2026-08-24 | accepted (the blur decision is carried by 0035) |
@@ -60,6 +60,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0033 | TUI layout fits 80×24 — always-visible keypad, wrapped hints, and sectioned settings | 2026-08-25 | accepted |
 | 0034 | TUI mouse support — menus, history, keypad, and graph manipulation | 2026-08-25 | accepted |
 | 0035 | Mobile PWA usability — the onscreen keypad is the primary input, and a drawn plot slides into view (file name keeps the original keypad-focus title) | 2026-08-25 (amended 2026-08-26) | accepted |
+| 0036 | The website Examples page — copyable code for every frontend | 2026-08-27 | accepted |
 
 ## Decision chains
 
@@ -84,3 +85,10 @@ at the end of the chain.
 - **TUI keypad** — 0016 (4×5, Tab-gated) → 0019 (four banks) → 0024
   (0x bank) → **0033 (always visible; banks and geometry sized to the
   real panes)**.
+- **History** — 0021 (`ans`) → 0025 (open-history replaces) → 0027
+  (clickable history) → 0030 (`;` scripts as one entry) → **0027
+  amendment (multi-line scripts as one item, picked whole, visible
+  boundaries)**.
+- **Website guide and examples** — 0018 (one guide, three renderers) →
+  **0018 amendment (in-app table of contents)**; → **0036 (Examples
+  page with the guide's copy buttons)**.

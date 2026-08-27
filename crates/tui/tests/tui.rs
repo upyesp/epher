@@ -794,6 +794,50 @@ fn save_history_writes_the_session_history() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+#[test]
+fn multiline_history_entries_survive_save_open_and_pick() {
+    // A multi-line script is ONE history entry (ADR-0027 amendment);
+    // record it exactly as the web submit path does.
+    let script = "x = 10\ny  =  x + 5\ny ^ 2";
+    let mut session = epher_core::Session::new();
+    session.record(script);
+    let mut app = App::with_session(session);
+    let (store, _keep) = scratch_store();
+    let localizer = epher_i18n::Localizer::resolve(Some("en"), &[]);
+    app.submit_line("1+1", &store, &localizer);
+    assert_eq!(app.history(), &[script, "1+1  = 2"]);
+
+    // The pick loads the whole script as one `; `-joined line (the TUI
+    // input is one row; `;` is the same separator).
+    let picked = app.history_pick_display(1).expect("multi-line entry");
+    assert_eq!(picked, "x = 10; y  =  x + 5; y ^ 2");
+
+    // Save → open round trip: the newline is escaped so the file keeps
+    // its one-line-per-entry shape, and loading restores it.
+    let dir = std::env::temp_dir().join(format!("epher-tui-ml-{}", std::process::id()));
+    let _ = std::fs::create_dir_all(&dir);
+    let path = dir.join("history.epher");
+    app.prompt_start(epher_tui::PromptKind::SaveHistory);
+    while app.prompt_active().is_some_and(|(_, b)| !b.is_empty()) {
+        app.prompt_pop();
+    }
+    for c in path.to_string_lossy().chars() {
+        app.prompt_push(c);
+    }
+    assert_eq!(app.prompt_submit(&localizer), None);
+    let saved = std::fs::read_to_string(&path).unwrap();
+    assert_eq!(saved, "x = 10\\ny  =  x + 5\\ny ^ 2\n1+1  = 2");
+
+    app.clear_history();
+    app.prompt_start(epher_tui::PromptKind::OpenHistory);
+    for c in path.to_string_lossy().chars() {
+        app.prompt_push(c);
+    }
+    assert_eq!(app.prompt_submit(&localizer), None);
+    assert_eq!(app.history(), &[script, "1+1  = 2"]);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 // ===== SVG export from the TUI (ADR-0020) =====
 
 #[test]
@@ -1014,13 +1058,13 @@ fn mouse_history_click_picks_the_expression_only() {
     app.submit_line("2 + 2", &store, &Localizer::resolve(Some("en"), &[]));
     // Display row 0 is the newest line; its answer suffix must stay out
     // of the input (ADR-0031 + ADR-0034).
-    let picked = app.history_pick_row(0).expect("newest line");
+    let picked = app.history_pick_display(0).expect("newest line");
     assert_eq!(picked, "2 + 2");
     // The older line (display row 1) keeps its suffix stripped too.
-    let older = app.history_pick_row(1).expect("older line");
+    let older = app.history_pick_display(1).expect("older line");
     assert!(!older.contains("error"));
     // Out of range: nothing picked, input unchanged.
-    assert_eq!(app.history_pick_row(99), None);
+    assert_eq!(app.history_pick_display(99), None);
 }
 
 #[test]

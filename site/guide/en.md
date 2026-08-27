@@ -722,6 +722,10 @@ can scroll back and see what you did. Newest entries appear at the top, and
 the **Clear history** button above the list empties it. The history is kept
 while the page is open.
 
+Each entry sits between thin rules: a single-line expression is one row,
+and a multi-line script is one entry showing all of its lines. Click an
+entry to load it back into the entry field and run it again.
+
 ### 2.4 Graphing
 
 Type `graph` followed by an expression and press **Enter**:

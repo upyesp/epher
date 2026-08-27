@@ -85,8 +85,9 @@ graph-empty = Nothing is plotted
 graph-no-path = Name a file to save to
 menu-guide = User guide
 guide-close = Close
+guide-contents = Contents
 guide-insert-hint = Tap an example to insert it into the entry field.
-guide-hint = Up/Down scroll · Esc close
+guide-hint = Up/Down scroll · 1-9 chapter · Esc close
 settings-markers = Highlighted plot points
 graph-width = Line width
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu

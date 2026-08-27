@@ -701,6 +701,9 @@ async fn open_file_text(file: web_sys::File) -> Option<String> {
 /// Load opened history text (ADR-0025): the current history clears,
 /// then each non-empty line is recorded — nothing executes — and the
 /// new history persists through the bridge. The answer names the count.
+/// Multi-line entries travel as one line with `\n` escapes (ADR-0027
+/// amendment): the two-character sequence becomes the entry's newline
+/// on load.
 fn apply_open_history(
     text: String,
     session: &UseStateHandle<Session>,
@@ -713,7 +716,7 @@ fn apply_open_history(
     let mut s = (**session).clone();
     s.clear_history();
     for line in text.lines().map(str::trim).filter(|l| !l.is_empty()) {
-        s.record(line);
+        s.record(&line.replace("\\n", "\n"));
     }
     let loaded = s.history().len();
     let count = loaded.to_string();
@@ -1259,7 +1262,14 @@ fn epher_app() -> Html {
         let localizer = localizer.clone();
         let menu_open = menu_open.clone();
         Callback::from(move |_| {
-            let text = session.history().join("\n");
+            // Multi-line entries become one escaped line each, so the
+            // file's one-line-per-entry shape survives (ADR-0027).
+            let text = session
+                .history()
+                .iter()
+                .map(|h| h.replace('\n', "\\n"))
+                .collect::<Vec<_>>()
+                .join("\n");
             save_with_dialog(
                 bridge,
                 "epher-history.ehs",
@@ -1480,8 +1490,20 @@ fn epher_app() -> Html {
             // Statements join with newlines or `;` — the same separator
             // (ADR-0001). Each piece dispatches in order, exactly as if
             // typed one by one — but the history keeps the script the way
-            // the user entered it: one entry per line, semicolons intact.
-            for raw_line in (*input).split('\n') {
+            // the user entered it: a single-line submission is one entry
+            // per line (semicolons intact, last answer appended), and a
+            // multi-line submission is ONE entry carrying the whole
+            // script verbatim (ADR-0027 amendment) — the pieces below
+            // must not record their own lines then.
+            let raw = (*input).clone();
+            let multiline = raw.split('\n').map(str::trim).filter(|l| !l.is_empty()).count() > 1;
+            let script_verbatim = raw
+                .split('\n')
+                .map(str::trim)
+                .filter(|l| !l.is_empty())
+                .collect::<Vec<_>>()
+                .join("\n");
+            for raw_line in raw.split('\n') {
                 let line = raw_line.trim().to_string();
                 if line.is_empty() {
                     continue;
@@ -1507,7 +1529,7 @@ fn epher_app() -> Html {
                 // itself joins the history list like every submitted line.
                 if let Some(source) = piece.strip_prefix("graph ") {
                     let source = source.trim();
-                    if single {
+                    if single && !multiline {
                         s.record(piece);
                     }
                     if source == "clear" {
@@ -1557,7 +1579,7 @@ fn epher_app() -> Html {
                 // history list like every submitted line.
                 if let Some(source) = piece.strip_prefix("graph3d ") {
                     let source = source.trim();
-                    if single {
+                    if single && !multiline {
                         s.record(piece);
                     }
                     if source == "clear" {
@@ -1670,7 +1692,7 @@ fn epher_app() -> Html {
                     continue;
                 }
 
-                let out = if single {
+                let out = if single && !multiline {
                     s.submit(piece)
                 } else {
                     s.submit_quiet(piece)
@@ -1678,7 +1700,7 @@ fn epher_app() -> Html {
                 result.set(out.clone());
                 last_eval_output = Some(out);
                 }
-                if !single {
+                if !multiline && !single {
                     // One history entry for the whole script: the line as
                     // typed, semicolons intact, with the last answer
                     // appended exactly as single statements record theirs.
@@ -1691,6 +1713,14 @@ fn epher_app() -> Html {
                     // entered, not just its last statement.
                     s.set_last_line(&line);
                 }
+            }
+            if multiline {
+                // One history entry for the whole multi-line script:
+                // the script verbatim, no answer suffix (the lines above
+                // recorded nothing) — and `save script` persists the
+                // script, not its last statement.
+                s.record(&script_verbatim);
+                s.set_last_line(&script_verbatim);
             }
             // Publish the loop's outcomes once: points of interest and the
             // slider set follow from the final curves and session.
@@ -3331,10 +3361,32 @@ fn epher_app() -> Html {
                                 move |e: web_sys::MouseEvent| {
                                     // Clicking an example loads its code into
                                     // the entry field and returns to the
-                                    // calculator (ADR-0018).
+                                    // calculator (ADR-0018). Clicking a
+                                    // table-of-contents item scrolls the
+                                    // guide body to its chapter (ADR-0018
+                                    // amendment).
                                     if let Some(target) =
                                         e.target().and_then(|t| t.dyn_into::<web_sys::Element>().ok())
                                     {
+                                        if let Some(btn) =
+                                            target.closest(".guide-toc-btn").ok().flatten()
+                                        {
+                                            if let Some(n) = btn.get_attribute("data-jump") {
+                                                if let Some(el) = web_sys::window()
+                                                    .and_then(|w| w.document())
+                                                    .and_then(|d| {
+                                                        d.query_selector(&format!(
+                                                            ".guide-body #guide-ch-{}",
+                                                            n
+                                                        ))
+                                                        .ok()
+                                                        .flatten()
+                                                    })
+                                                {
+                                                    let _ = el.scroll_into_view();
+                                                }
+                                            }
+                                        }
                                         if let Some(btn) =
                                             target.closest(".guide-example-btn").ok().flatten()
                                         {
@@ -3364,7 +3416,11 @@ fn epher_app() -> Html {
                             })}>
                                 {
                                     Html::from_html_unchecked(
-                                        epher_guide::render_html(epher_guide::guide(localizer.locale())).into(),
+                                        epher_guide::render_html(
+                                            epher_guide::guide(localizer.locale()),
+                                            &localizer.lookup("guide-contents"),
+                                        )
+                                        .into(),
                                     )
                                 }
                             </div>

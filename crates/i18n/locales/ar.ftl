@@ -85,8 +85,9 @@ graph-empty = لا يوجد رسم بياني
 graph-no-path = حدد ملفًا للحفظ فيه
 menu-guide = دليل المستخدم
 guide-close = إغلاق
+guide-contents = المحتويات
 guide-insert-hint = المس مثالاً لإدراجه في حقل الإدخال.
-guide-hint = تمرير لأعلى/لأسفل · Esc إغلاق
+guide-hint = تمرير لأعلى/لأسفل · 1-9 فصل · Esc إغلاق
 settings-markers = النقاط المميزة على الرسم البياني
 graph-width = سماكة الخط
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu

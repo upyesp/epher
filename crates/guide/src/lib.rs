@@ -92,16 +92,32 @@ fn is_ol_line(l: &str) -> bool {
     digits > 0 && l[digits..].starts_with(". ")
 }
 
+/// The guide's top-level chapters: the `## ` heading titles, in order,
+/// with inline marks stripped. The in-app table of contents (ADR-0018
+/// amendment) is built from this list in every frontend, so the ToC is
+/// automatically localized with the guide.
+pub fn chapters(md: &str) -> Vec<String> {
+    md.lines()
+        .filter_map(|l| l.strip_prefix("## "))
+        .map(strip_inline)
+        .collect()
+}
+
 /// Render the guide markdown as HTML for the web/desktop overlay.
 ///
 /// `` ```epher `` and `` ```sh `` fences become clickable example blocks:
 /// a `<button class="guide-example-btn">` whose `data-code` attribute
 /// carries the exact text to insert into the entry field. `` ```text ``
-/// fences are plain output boxes. Everything else maps to the obvious
+/// fences are plain output boxes. `## ` headings carry `id="guide-ch-N"`
+/// anchors, and the document opens with a `<nav class="guide-toc">`
+/// whose buttons (`data-jump="N"`) scroll to them — the in-app table of
+/// contents (ADR-0018 amendment). Everything else maps to the obvious
 /// element; all text is escaped.
-pub fn render_html(md: &str) -> String {
+pub fn render_html(md: &str, toc_label: &str) -> String {
     let lines: Vec<&str> = md.lines().collect();
     let mut out = String::with_capacity(md.len() * 2);
+    let mut chapter = 0usize;
+    let mut toc = String::new();
     let mut i = 0;
     while i < lines.len() {
         let line = lines[i];
@@ -144,7 +160,17 @@ pub fn render_html(md: &str) -> String {
                 4 => "h4",
                 _ => "h1",
             };
-            out.push_str(&format!("<{tag}>{}</{tag}>", inline(rest)));
+            if lvl == 2 {
+                let n = chapter;
+                out.push_str(&format!("<h2 id=\"guide-ch-{n}\">{}</h2>", inline(rest)));
+                toc.push_str(&format!(
+                    "<li><button type=\"button\" class=\"guide-toc-btn\" data-jump=\"{n}\">{}</button></li>",
+                    inline(rest)
+                ));
+                chapter += 1;
+            } else {
+                out.push_str(&format!("<{tag}>{}</{tag}>", inline(rest)));
+            }
             i += 1;
             continue;
         }
@@ -235,7 +261,13 @@ pub fn render_html(md: &str) -> String {
         out.push_str(&inline(&parts.join(" ")));
         out.push_str("</p>");
     }
-    out
+    format!(
+        "<nav class=\"guide-toc\" aria-label=\"{}\"><h3 class=\"guide-toc-heading\">{}</h3><ol>{}</ol></nav>{}",
+        escape_html(toc_label),
+        escape_html(toc_label),
+        toc,
+        out
+    )
 }
 
 /// One line of the plain-text rendering for the TUI pager.
@@ -372,7 +404,7 @@ mod tests {
     #[test]
     fn html_headings_lists_and_paragraphs() {
         let md = "# Title\n\nIntro line.\nwrapped line.\n\n- one\n- two\n\n1. first\n2. second\n";
-        let h = render_html(md);
+        let h = render_html(md, "Contents");
         assert!(h.contains("<h1>Title</h1>"), "{h}");
         assert!(h.contains("<p>Intro line. wrapped line.</p>"), "{h}");
         assert!(h.contains("<ul><li>one</li><li>two</li></ul>"), "{h}");
@@ -382,19 +414,19 @@ mod tests {
     #[test]
     fn html_epher_fences_become_clickable_examples_and_text_is_escaped() {
         let md = "```epher\n2 + 3 * 4\n```\n\n```text\n14\n```\n";
-        let h = render_html(md);
+        let h = render_html(md, "Contents");
         assert!(h.contains("class=\"guide-example-btn\" data-code=\"2 + 3 * 4\">2 + 3 * 4"), "{h}");
         assert!(h.contains("<pre class=\"guide-out\"><code>14</code></pre>"), "{h}");
         // angle brackets and quotes inside code are escaped in the attribute
         let md2 = "```epher\nx > 1 and \"a\"\n```\n";
-        let h2 = render_html(md2);
+        let h2 = render_html(md2, "Contents");
         assert!(h2.contains("data-code=\"x &gt; 1 and &quot;a&quot;\""), "{h2}");
     }
 
     #[test]
     fn html_tables_blockquotes_and_inline() {
         let md = "| a | b |\n|---|---|\n| 1 | 2 |\n\n> note **bold** and `code`.\n\nPara with **b** and *i* and `c`.\n";
-        let h = render_html(md);
+        let h = render_html(md, "Contents");
         assert!(h.contains("<table><thead><tr><th>a</th><th>b</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table>"), "{h}");
         assert!(h.contains("<blockquote><p>note <strong>bold</strong> and <code>code</code>.</p></blockquote>"), "{h}");
         assert!(h.contains("Para with <strong>b</strong> and <em>i</em> and <code>c</code>."), "{h}");
@@ -402,7 +434,7 @@ mod tests {
 
     #[test]
     fn html_h4_headings_survive() {
-        let h = render_html("#### Small\n");
+        let h = render_html("#### Small\n", "Contents");
         assert!(h.contains("<h4>Small</h4>"), "{h}");
     }
 
@@ -411,7 +443,7 @@ mod tests {
         for l in ["ar", "de", "en", "es", "fr", "hi", "pt", "zh-CN"] {
             let md = guide(l);
             assert!(md.len() > 5000, "guide {l} suspiciously short");
-            let html = render_html(md);
+            let html = render_html(md, "Contents");
             assert!(html.contains("<h1>"), "guide {l}: no h1 in HTML");
             assert!(html.contains("guide-example-btn"), "guide {l}: no examples");
             let text = render_text(md);

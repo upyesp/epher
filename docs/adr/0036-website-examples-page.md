@@ -1,0 +1,61 @@
+# ADR-0036: The website Examples page — copyable code for every frontend
+
+- **Status:** accepted
+- **Deciders:** epher maintainers
+- **Date:** 2026-08
+
+## Context
+
+The website teaches epher through the eight-language user guide, but a
+reader who just wants something to paste has to dig through prose. The
+user asked for a new top-level site section, **Examples**: one page of
+copyable epher code — commands, scripts, and graphs — grouped by
+frontend, with a one-sentence explanation per example and the guide's
+copy-button treatment on every code block.
+
+## Decision
+
+- **One page, one place.** A new top-level navigation item **Examples**
+  opens `site/examples.html`; the link joins the header and footer navs
+  of the landing, about, privacy, and guide pages in all eight locales.
+- **Content.** Three sections, each with a one-to-two-sentence
+  introduction:
+  - **The command line** — ten examples: plain calculations, piping a
+    script into the `epher` command (stdin as script, `epher -`), piping
+    epher's output into another command, `;`-joined statements,
+    `def`-and-call, a recursive function inside a piped script, and 2D
+    and 3D graphs saved as SVG image files (`graph save …` /
+    `graph3d save …`).
+  - **The REPL** — a session built on the `ans` keyword, one block per
+    step; the introduction notes the blocks run in sequence in one
+    session.
+  - **TUI, desktop app, and web app** — one section for the three
+    frontends that share the entry field: a multi-line script, a 2D
+    curve, a shaded 2D curve (`y <` fill), an animated 2D curve (`const`
+    + the play button), a two-curve multi-line plot, and two 3D
+    surfaces.
+  Every example has exactly one explanatory sentence; the page defers to
+  the user guide for detail. Every code block carries a copy button in
+  the guide's style (`.example` / `.copy-btn` from `guide.css`).
+- **Localization split, like everywhere else.** The epher code blocks
+  are never localized (ADR-0007) and ship byte-identical in every
+  language. The captions, section prose, and the nav label are
+  `ex-*` / `nav-examples` keys in the eight site catalogs, so the page
+  follows the visitor's language like about and privacy do. The copy
+  button's labels come from the active catalog.
+- **Generated, not hand-assembled.** `scripts/build-examples.mjs` builds
+  the page from an example list (caption key + code + fence kind),
+  reusing the guide builder's highlighter and escape helpers, and
+  borrows about.html's chrome (header, disclosure nav, theme, catalogs,
+  app.js) by template replacement. CI runs it after `build:guide`
+  (`npm run build:examples`).
+
+## Consequences
+
+- `build-guide.mjs` exports its highlighter/escape helpers and guards
+  its build behind direct execution so the examples builder can import
+  it; its `CHROME` map gains the `examples` label for the guide pages'
+  navs.
+- The browser suites pin the page: three sections, ten/ four/ seven
+  examples, copy buttons that copy the plain code text, and the nav
+  item present on every page in every locale.

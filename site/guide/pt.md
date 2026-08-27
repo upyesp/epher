@@ -728,6 +728,8 @@ poder recuar e ver o que fez. As entradas mais recentes aparecem no topo,
 e o botão **Clear history** por cima da lista esvazia-a. O histórico é
 mantido enquanto a página estiver aberta.
 
+Cada entrada fica entre linhas finas: uma expressão de uma linha é uma fila, e um script de várias linhas é uma entrada que mostra todas as suas linhas. Clique numa entrada para a voltar a carregar no campo de entrada e executá-la de novo.
+
 ### 2.4 Gráficos
 
 Escreva `graph` seguido de uma expressão e prima **Enter**:

@@ -933,6 +933,10 @@ fn history_expression_strips_the_answer_suffix() {
     assert_eq!(history_expression("graph x ^ 2"), "graph x ^ 2");
     assert_eq!(history_expression("def f(x) = x * x"), "def f(x) = x * x");
     assert_eq!(history_expression("2 + 2"), "2 + 2");
+    // Multi-line script entries are verbatim: never suffix-stripped, even
+    // when a line inside carries the double-space marker (ADR-0027).
+    let script = "x = 10\ny  =  x + 5";
+    assert_eq!(history_expression(script), script);
 }
 
 /// ADR-0031: the fine-control offsets — 0 leaves the pose unchanged; the

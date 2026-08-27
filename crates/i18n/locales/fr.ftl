@@ -85,8 +85,9 @@ graph-empty = Rien n’est tracé
 graph-no-path = Indiquez un fichier où enregistrer
 menu-guide = Guide d'utilisation
 guide-close = Fermer
+guide-contents = Sommaire
 guide-insert-hint = Touchez un exemple pour l'insérer dans le champ de saisie.
-guide-hint = Haut/Bas défiler · Esc fermer
+guide-hint = Haut/Bas défiler · 1-9 chapitre · Esc fermer
 settings-markers = Points mis en évidence sur le tracé
 graph-width = Épaisseur de trait
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu

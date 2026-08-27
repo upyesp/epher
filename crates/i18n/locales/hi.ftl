@@ -85,8 +85,9 @@ graph-empty = कुछ भी आलेखित नहीं है
 graph-no-path = सहेजने के लिए एक फ़ाइल बताएँ
 menu-guide = उपयोगकर्ता गाइड
 guide-close = बंद करें
+guide-contents = विषय-सूची
 guide-insert-hint = किसी उदाहरण को एंट्री फ़ील्ड में डालने के लिए उस पर टैप करें।
-guide-hint = ऊपर/नीचे स्क्रॉल · Esc बंद करें
+guide-hint = ऊपर/नीचे स्क्रॉल · 1-9 अध्याय · Esc बंद करें
 settings-markers = ग्राफ़ पर उजागर बिंदु
 graph-width = रेखा की मोटाई
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu

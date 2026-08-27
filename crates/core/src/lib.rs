@@ -1834,6 +1834,13 @@ fn const_name(line: &str) -> Option<String> {
 /// structurally unambiguous, not a heuristic). Entries without an answer
 /// suffix — graph commands, definitions — return unchanged.
 pub fn history_expression(entry: &str) -> &str {
+    // Multi-line script entries (ADR-0027 amendment) are recorded
+    // verbatim — no answer suffix — and the suffix scan must not fire
+    // inside one: an assignment line like `x = 2 + 2` contains the
+    // marker and would be cut short.
+    if entry.contains('\n') {
+        return entry;
+    }
     for suffix in ["  = ", "  error:", "  warning:"] {
         if let Some(pos) = entry.rfind(suffix) {
             return &entry[..pos];
