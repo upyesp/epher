@@ -123,7 +123,11 @@ jobs:
           # The embedded webview must be THIS run's web build: the asset
           # filename (trunk's content hash) appears verbatim in the binary.
           HASH="$(grep -o 'epher-web-[a-f0-9]*\.js' "$GITHUB_WORKSPACE/crates/web/dist/index.html" | head -1)"
-          strings "$BIN" | grep -qF "$HASH"
+          # strings first, then grep: piping straight into grep -q lets the
+          # early exit SIGPIPE the strings process, which macOS reports as
+          # a pipeline failure under set -o pipefail.
+          strings "$BIN" > "$OUT/strings.txt"
+          grep -qF "$HASH" "$OUT/strings.txt"
           echo "embedded web build: $HASH"
 
       - name: Package bundles
