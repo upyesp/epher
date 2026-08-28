@@ -51,3 +51,12 @@ session-only: its `ans` still lives and dies with the page. Everything
 else in this ADR is unchanged: `ans` remains an ordinary variable (now a
 shared one), statements that produce no value still leave it untouched,
 and failed lines still never clobber the last good answer.
+
+## Amendment (2026-08-27): `ans` travels live between open frontends
+
+The session snapshot already persisted per line (2026-08-27 amendment
+above). With the publish/subscribe store sync (ADR-0010 amendment), an
+open frontend also **receives** the snapshot: `x = 5` typed in the TUI
+updates `ans` and the variables in an already-open desktop app on the
+next store write, and vice versa. Desktop-only, like the persistence
+itself; the PWA remains session-only.

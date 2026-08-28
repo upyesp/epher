@@ -490,7 +490,7 @@
     .keypad-btn.eq {
       grid-column: span 2;
       background: var(--accent);
-      color: #0b1512; /* 10.0:1 on the accent (WCAG 1.4.3) */
+      color: var(--on-accent); /* dark 10.0:1, light 4.8:1, night 7.2:1 on the accent (WCAG 1.4.3) */
       font-weight: 700;
       font-size: 1.15rem;
     }
@@ -605,6 +605,31 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 0.9rem;
       color: var(--muted);
+    }
+    /* The legend checkboxes (ADR-0015 amendment): each entry is a real
+       labelled control — the curve's caption names the checkbox, so the
+       plot can be hidden or restored without touching the expression. */
+    .legend-item {
+      display: flex;
+      align-items: center;
+      min-height: 44px;
+    }
+    .legend-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      cursor: pointer;
+      color: var(--text);
+      min-height: 44px;
+    }
+    .legend-check input[type="checkbox"] {
+      width: 1.15rem;
+      height: 1.15rem;
+      accent-color: var(--accent);
+    }
+    .legend-check input[type="checkbox"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
     .swatch {
       display: inline-block;
@@ -964,6 +989,13 @@
          (ADR-0035 amendment); the hint is irrelevant there, so it is
          not displayed. */
       .graph3d-hint { display: none; }
+      /* The line-width slider takes its own row under the toolbar on
+         small screens (ADR-0035 amendment): Clear, Copy SVG, and the
+         POI options stay on the first line, the slider on the line
+         below — a finger-wide target on a row of its own. The `order`
+         puts it after the options row even though the toolbar DOM
+         places it right of Copy SVG for desktop. */
+      .graph-width { flex-basis: 100%; order: 3; }
     }
     /* --- desktop: the graph pane sits beside the calculator (ADR-0016) - */
     @media (min-width: 880px) {

@@ -286,6 +286,10 @@ pub struct InterestPoint {
     pub kind: InterestKind,
     pub x: f64,
     pub y: f64,
+    /// The curve that carries this point (the higher index of the two
+    /// for an intersection): the web's per-curve legend visibility
+    /// filters a curve's points with it.
+    pub curve: usize,
 }
 
 impl InterestPoint {
@@ -303,10 +307,10 @@ pub fn analyze(curves: &[SampledCurve], env: &Env) -> Vec<InterestPoint> {
         let Some(expr) = cartesian_expr(&curve.kind) else {
             continue;
         };
-        roots_and_extrema(expr, &curve.samples, env, &mut out);
+        roots_and_extrema(expr, &curve.samples, env, i, &mut out);
         for other in curves.iter().take(i) {
             if let Some(other_expr) = cartesian_expr(&other.kind) {
-                intersections(expr, other_expr, curve, other, env, &mut out);
+                intersections(expr, other_expr, curve, other, env, i, &mut out);
             }
         }
     }
@@ -321,6 +325,7 @@ fn roots_and_extrema(
     expr: &Expression,
     samples: &[Sample],
     env: &Env,
+    curve: usize,
     out: &mut Vec<InterestPoint>,
 ) {
     let finite: Vec<&Sample> = samples.iter().filter(|s| s.y.is_finite()).collect();
@@ -332,6 +337,7 @@ fn roots_and_extrema(
                 kind: InterestKind::Root,
                 x: a.x,
                 y: 0.0,
+                curve,
             });
         } else if a.y * b.y < 0.0 {
             if let Some(x) = bisect(expr, a.x, b.x, 0.0, env) {
@@ -339,6 +345,7 @@ fn roots_and_extrema(
                     kind: InterestKind::Root,
                     x,
                     y: 0.0,
+                    curve,
                 });
             }
         }
@@ -349,6 +356,7 @@ fn roots_and_extrema(
                 kind: InterestKind::Root,
                 x: last.x,
                 y: 0.0,
+                curve,
             });
         }
     }
@@ -363,6 +371,7 @@ fn roots_and_extrema(
                     kind: InterestKind::Maximum,
                     x,
                     y: eval_at(expr, x, env).unwrap_or(m.y),
+                    curve,
                 });
             }
         } else if (m.y < l.y && m.y <= r.y) || (m.y <= l.y && m.y < r.y) {
@@ -371,6 +380,7 @@ fn roots_and_extrema(
                     kind: InterestKind::Minimum,
                     x,
                     y: eval_at(expr, x, env).unwrap_or(m.y),
+                    curve,
                 });
             }
         }
@@ -385,6 +395,7 @@ fn intersections(
     a: &SampledCurve,
     b: &SampledCurve,
     env: &Env,
+    curve: usize,
     out: &mut Vec<InterestPoint>,
 ) {
     let lo = a.domain.0.max(b.domain.0);
@@ -407,6 +418,7 @@ fn intersections(
                     kind: InterestKind::Intersection,
                     x,
                     y: fx,
+                    curve,
                 });
             } else if pd * d < 0.0 {
                 if let Some(x) = bisect_diff(f, g, px, x, env) {
@@ -414,6 +426,7 @@ fn intersections(
                         kind: InterestKind::Intersection,
                         x,
                         y: eval_at(f, x, env).unwrap_or(fx),
+                        curve,
                     });
                 }
             }

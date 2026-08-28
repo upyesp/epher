@@ -6,6 +6,7 @@
 //! the browser store lands (ADR-0002/0003, deferred).
 
 use serde::Deserialize;
+use wasm_bindgen::closure::Closure;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::{spawn_local, JsFuture};
 
@@ -53,6 +54,46 @@ impl Bridge {
             .await
             .map_err(js_err)?;
         serde_wasm_bindgen::from_value(value).map_err(|e| e.to_string())
+    }
+
+    /// Subscribe to the desktop shell's `store-changed` broadcasts
+    /// (ADR-0010 amendment): every write to the native store — this
+    /// window's own or another frontend's (TUI, REPL, one-shot CLI) —
+    /// arrives as the fresh [`InitState`], and the caller applies it.
+    /// The payload is the same shape as `init`'s answer.
+    pub fn listen_store_changed(cb: impl Fn(InitState) + 'static) {
+        let Some(window) = web_sys::window() else {
+            return;
+        };
+        let tauri_marker = JsValue::from_str("__TAURI__");
+        let Ok(tauri) = js_sys::Reflect::get(&window, &tauri_marker) else {
+            return;
+        };
+        if tauri.is_undefined() || tauri.is_null() {
+            return;
+        }
+        let Ok(event_api) = js_sys::Reflect::get(&tauri, &JsValue::from_str("event")) else {
+            return;
+        };
+        let Ok(listen_fn) = js_sys::Reflect::get(&event_api, &JsValue::from_str("listen")) else {
+            return;
+        };
+        let Ok(listen_fn) = listen_fn.dyn_into::<js_sys::Function>() else {
+            return;
+        };
+        let handler = Closure::wrap(Box::new(move |ev: JsValue| {
+            if let Ok(payload) = js_sys::Reflect::get(&ev, &JsValue::from_str("payload")) {
+                if let Ok(state) = serde_wasm_bindgen::from_value::<InitState>(payload) {
+                    cb(state);
+                }
+            }
+        }) as Box<dyn FnMut(JsValue)>);
+        let _ = listen_fn.call2(
+            &event_api,
+            &JsValue::from_str("store-changed"),
+            handler.as_ref(),
+        );
+        handler.forget();
     }
 
     /// Fire-and-forget saves: the UI already showed the prepared message;

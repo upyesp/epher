@@ -12,14 +12,23 @@ pub const HISTORY_SETTING: &str = "history";
 pub const LANGUAGE_SETTING: &str = "language";
 
 /// The store directory for native frontends: `EPHER_STORE_DIR` override, else
-/// `~/.epher` (falls back to `.epher`).
+/// the user's home directory's `.epher` — `HOME` on POSIX, `USERPROFILE` on
+/// Windows (where `HOME` is usually unset; the old fallback of `.epher` in
+/// the current directory meant every frontend launched from a different
+/// folder looked at a different store — the desktop app and the TUI could
+/// not see each other's history on Windows, ADR-0010 amendment).
 pub fn default_store_dir() -> std::path::PathBuf {
     std::env::var_os("EPHER_STORE_DIR")
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| {
-            std::env::var_os("HOME")
-                .map(|h| std::path::PathBuf::from(h).join(".epher"))
-                .unwrap_or_else(|| std::path::PathBuf::from(".epher"))
+            if let Some(home) = std::env::var_os("HOME") {
+                return std::path::PathBuf::from(home).join(".epher");
+            }
+            #[cfg(windows)]
+            if let Some(profile) = std::env::var_os("USERPROFILE") {
+                return std::path::PathBuf::from(profile).join(".epher");
+            }
+            std::path::PathBuf::from(".epher")
         })
 }
 

@@ -11,7 +11,6 @@ tui-history = Historial
 history = Historial
 clear-history = Borrar historial
 tui-graph = Gráfica
-tui-hints = Intro evaluar · Tab teclado/historial · F10 menú · Esc limpiar · flechas girar · espacio animar · Ctrl+L borrar historial · Ctrl+C salir · q salir
 web-session-only = la aplicación web conserva el trabajo solo en esta sesión; guardar funciona en las versiones de escritorio, línea de comandos y terminal
 install-cli = Instalar el comando epher
 install-cli-ok = Instalado: escribe epher en cualquier terminal.
@@ -95,3 +94,8 @@ graph-width = Grosor de línea
 view-horizontal = Rotación horizontal
 view-vertical = Rotación vertical
 view-zoom = Zoom
+
+tui-hint-base-a = Intro evaluar · Tab teclado/historial · F10 menú · Esc limpiar
+tui-hint-rotate =  · flechas girar
+tui-hint-play =  · espacio animar
+tui-hint-base-b =  · Ctrl+L borrar historial · Ctrl+C salir · q salir

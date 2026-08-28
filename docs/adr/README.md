@@ -34,18 +34,18 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0007 | Localize the UI; never localize the scripting language | 2026-08-13 | accepted |
 | 0008 | UI localization: Fluent catalogs embedded at build time (amended: de/pt joined) | 2026-08-13 | accepted |
 | 0009 | Accessibility: WCAG 2.2 AA for the web/PWA, keyboard-first terminals elsewhere (amended: automated axe scans in the `a11y` Playwright suite) | 2026-08-13 | accepted |
-| 0010 | The Desktop App Owns the Native Store; the Webview Bridges to It (amended: the store carries the shared session snapshot — variables and `ans` — and the CLI one-shot joins the store) | 2026-08-14 | accepted |
+| 0010 | The Desktop App Owns the Native Store; the Webview Bridges to It (amended: the store carries the shared session snapshot — variables and `ans` — and the CLI one-shot joins the store; publish/subscribe — live sync between open frontends, and the Windows store path fixed) | 2026-08-14 (amended 2026-08-27) | accepted |
 | 0011 | One `epher` Binary Hosts Every Frontend | 2026-08-15 | accepted |
 | 0012 | User-defined constants: `const name = value`, visible like `pi` | 2026-08-16 | accepted |
 | 0013 | The command line follows clig.dev | 2026-08-17 | accepted |
 | 0014 | Graphing expansion: multi-curve, trace, analysis, tables, sliders (3D deferral superseded by 0015) | 2026-08-17 | accepted |
-| 0015 | Animation and 3D graphing (amended: near-plane clipping; playback rate, drag orbit, touch; the slider rows sit above the points-of-interest list; the pane shows one kind at a time) | 2026-08-17 | accepted |
+| 0015 | Animation and 3D graphing (amended: near-plane clipping; playback rate, drag orbit, touch; the slider rows sit above the points-of-interest list; the pane shows one kind at a time; per-kind line-width sliders and legend visibility checkboxes) | 2026-08-17 (amended 2026-08-27) | accepted |
 | 0016 | Calculator-style fixed layout with keypad input (keypad banks amended by 0022/0024; mobile focus rule amended by 0035; TUI keypad amended by 0019/0024/0033) | 2026-08-21 | accepted |
 | 0017 | Menu bar, themes, and file open/save (menubar → icon rail: 0032) | 2026-08-22 | accepted |
 | 0018 | The user guide inside the app, and one button to clear the graph pane (amended 2026-08-27: in-app table of contents with click-to-jump) | 2026-08-22 | accepted |
 | 0019 | Graph pane settings, a full-function keypad, and the hints row | 2026-08-22 | accepted |
 | 0020 | SVG export from every frontend and the graph pane's options row | 2026-08-23 | accepted |
-| 0021 | `ans` — the previous answer (amended: `ans` persists as part of the shared session snapshot — desktop only) | 2026-08-23 | accepted |
+| 0021 | `ans` — the previous answer (amended: `ans` persists as part of the shared session snapshot — desktop only — and travels live between open frontends) | 2026-08-23 (amended 2026-08-27) | accepted |
 | 0022 | Number bases — `0b`/`0o`/`0x` literals and `bin`/`oct`/`hex` | 2026-08-23 | accepted |
 | 0023 | Native-feeling menus, pane toolbar, solid curves, and boot self-heal | 2026-08-23 | accepted |
 | 0024 | Save dialogs, the 0x keypad bank, and TUI menu paint order | 2026-08-23 | accepted |
@@ -59,8 +59,8 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0032 | Dark Windows launch, slider ends, 3D spin controls, vertical icon rail, and the bare hero command | 2026-08-25 | accepted |
 | 0033 | TUI layout fits 80×24 — always-visible keypad, wrapped hints, and sectioned settings | 2026-08-25 | accepted |
 | 0034 | TUI mouse support — menus, history, keypad, and graph manipulation | 2026-08-25 | accepted |
-| 0035 | Mobile PWA usability — the onscreen keypad is the primary input, and a drawn plot slides into view (file name keeps the original keypad-focus title) | 2026-08-25 (amended 2026-08-26, 2026-08-27) | accepted |
-| 0036 | The website Examples page — copyable code for every frontend | 2026-08-27 | accepted |
+| 0035 | Mobile PWA usability — the onscreen keypad is the primary input, and a drawn plot slides into view (file name keeps the original keypad-focus title) (amended 2026-08-26, 2026-08-27: touch no-arrow hints, per-kind sliders, examples tap-to-stage) | 2026-08-25 (amended 2026-08-26, 2026-08-27) | accepted |
+| 0036 | The website Examples page — copyable code for every frontend (amended: the app section leads, four CLI examples moved into it, and touch taps stage examples in the app) | 2026-08-27 (amended 2026-08-27) | accepted |
 
 ## Decision chains
 

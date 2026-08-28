@@ -177,6 +177,9 @@ pub struct Poi {
     pub label: String,
     pub x: f64,
     pub y: f64,
+    /// The curve that carries this point (see [`InterestPoint::curve`]):
+    /// the renderer and the web legend filter with it.
+    pub curve: usize,
 }
 
 /// The trace cursor: which curve and sample, with its data coordinates.

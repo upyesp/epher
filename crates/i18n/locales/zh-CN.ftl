@@ -11,7 +11,6 @@ tui-history = 历史记录
 history = 历史记录
 clear-history = 清空历史
 tui-graph = 图形
-tui-hints = Enter 计算 · Tab 键盘/历史 · F10 菜单 · Esc 清除 · 方向键旋转 · 空格动画 · Ctrl+L 清空历史 · Ctrl+C 退出 · q 退出
 web-session-only = 网页应用只把工作保留在本会话中；保存功能适用于桌面、命令行和终端版本
 install-cli = 安装 epher 命令
 install-cli-ok = 已安装——在任何终端输入 epher 即可。
@@ -95,3 +94,8 @@ graph-width = 线条粗细
 view-horizontal = 水平旋转
 view-vertical = 垂直旋转
 view-zoom = 缩放
+
+tui-hint-base-a = Enter 计算 · Tab 键盘/历史 · F10 菜单 · Esc 清除
+tui-hint-rotate =  · 方向键旋转
+tui-hint-play =  · 空格动画
+tui-hint-base-b =  · Ctrl+L 清空历史 · Ctrl+C 退出 · q 退出

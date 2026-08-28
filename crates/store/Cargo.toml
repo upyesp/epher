@@ -1,6 +1,6 @@
 [package]
 name = "epher-store"
-version = "0.4.31"
+version = "0.4.32"
 edition = "2021"
 license = "MIT"
 description = "The Storage capability and persisted schema — one schema, per-target backends."
@@ -9,10 +9,13 @@ description = "The Storage capability and persisted schema — one schema, per-t
 default = []
 # Native filesystem backend (CLI/TUI/desktop). Not default: it must not build
 # on wasm32-unknown-unknown.
-fs = []
+fs = ["dep:notify"]
 
 [dependencies]
 epher-core = { path = "../core" }
+# The store watcher (ADR-0010 amendment): file-watch signals for the
+# publish/subscribe sync between open frontends. Native-only (fs feature).
+notify = { version = "6", optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

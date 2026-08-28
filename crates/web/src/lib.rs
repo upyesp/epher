@@ -153,6 +153,7 @@ fn poi_labels(points: &[InterestPoint], localizer: &Localizer) -> Vec<graph::Poi
                 label: localizer.lookup(key),
                 x: p.x,
                 y: p.y,
+                curve: p.curve,
             }
         })
         .collect()
@@ -368,11 +369,12 @@ fn mobile_layout() -> bool {
         .unwrap_or(false)
 }
 
-/// The stored widths for this layout (ADR-0035): desktop shares one
-/// width between both kinds; mobile remembers 2D and 3D independently —
-/// each kind reads its own key, falls back to the legacy shared key,
-/// and then to the kind's default (the 3D key clamps into 0–0.2, the
-/// 2D and desktop keys into 0.1–4).
+/// The stored line widths (ADR-0035 amendment): 2D and 3D remember
+/// their values independently on every display — the 2D key falls back
+/// to the legacy shared key and clamps into the 2D range (0–4), the 3D
+/// key falls back to the same legacy key and clamps into the 3D range
+/// (0–0.2). Each kind's plot renders with its own value; the toolbar
+/// shows and edits the kind in view.
 fn stored_widths(store: &web_sys::Storage) -> (Option<f64>, Option<f64>) {
     let read = |key: &str| {
         store
@@ -381,19 +383,14 @@ fn stored_widths(store: &web_sys::Storage) -> (Option<f64>, Option<f64>) {
             .flatten()
             .and_then(|v| v.parse::<f64>().ok())
     };
-    if mobile_layout() {
-        let legacy = read("epher-line-width");
-        let w2d = read("epher-line-width-2d")
-            .or(legacy)
-            .map(|w| w.clamp(0.1, 4.0));
-        let w3d = read("epher-line-width-3d")
-            .or(legacy)
-            .map(|w| w.clamp(0.0, 0.2));
-        (w2d, w3d)
-    } else {
-        let w = read("epher-line-width").map(|w| w.clamp(0.1, 4.0));
-        (w, w)
-    }
+    let legacy = read("epher-line-width");
+    let w2d = read("epher-line-width-2d")
+        .or(legacy)
+        .map(|w| w.clamp(0.0, 4.0));
+    let w3d = read("epher-line-width-3d")
+        .or(legacy)
+        .map(|w| w.clamp(0.0, 0.2));
+    (w2d, w3d)
 }
 
 /// Whether the user asked for reduced motion (WCAG 2.3.3). The rotation
@@ -754,13 +751,16 @@ fn epher_app() -> Html {
     let poi_list = use_state(|| true);
     let poi_markers = use_state(|| true);
     let width_2d = use_state(|| graph::DEFAULT_STROKE_WIDTH);
-    let width_3d = use_state(|| {
-        if mobile_layout() {
-            0.1
-        } else {
-            graph::DEFAULT_STROKE_WIDTH
-        }
-    });
+    // The 3D wireframe's thin range (ADR-0031): 0–0.2 step 0.01, default
+    // 0.1, on every display now (ADR-0035 amendment) — the two kinds own
+    // separate sliders everywhere, and a 3D surface keeps its own thin
+    // default rather than inheriting the 2D curve's.
+    let width_3d = use_state(|| 0.1);
+    // Per-curve visibility (ADR-0015 amendment): each legend entry has a
+    // checkbox, checked by default; unchecking hides that curve from the
+    // plot, its points of interest, and the SVG export. Reset whenever a
+    // new plot replaces the curve list.
+    let hidden = use_state(|| Vec::<bool>::new());
     // Which side of the 880px breakpoint the window is on (ADR-0016): the
     // width slider's range is a mobile/desktop decision (0–0.2 step 0.01
     // vs 0.1–4 step 0.1), and it tracks window resizes.
@@ -861,8 +861,43 @@ fn epher_app() -> Html {
     // Inside the desktop shell: rebuild the session from the native store —
     // history plus saved functions and scripts replayed quietly, the exact
     // load_session recipe — and honor the stored language preference.
-    {
+    // The same apply path serves the live store-changed broadcasts
+    // (ADR-0010 amendment): another frontend's write arrives as a fresh
+    // InitState and this applies it in place, so the open app always
+    // mirrors the shared store.
+    let apply_store_state = {
         let session = session.clone();
+        let localizer = localizer.clone();
+        let theme = theme.clone();
+        move |state: InitState| {
+            let mut s = Session::with_history(state.history);
+            for line in &state.replay {
+                s.submit_quiet(line);
+            }
+            // Keep the definitions the user created in THIS session but
+            // has not `save`d yet: a store write from another frontend
+            // (or our own echo) must not erase live work. The store's
+            // bindings win over anything the replay re-applied.
+            for source in session.def_sources().values() {
+                s.submit_quiet(source);
+            }
+            for source in session.const_sources().values() {
+                s.submit_quiet(source);
+            }
+            // The shared session snapshot (ADR-0010 amendment): bindings
+            // saved by whichever CLI/REPL/TUI/desktop frontend ran last —
+            // `ans` and every user assignment carry over.
+            s.restore_bindings(&state.session);
+            session.set(s);
+            if let Some(code) = state.language {
+                localizer.set(Localizer::resolve(Some(&code), &[]));
+            }
+            if let Some(name) = state.theme {
+                theme.set(name);
+            }
+        }
+    };
+    {
         let result = result.clone();
         let localizer = localizer.clone();
         let theme = theme.clone();
@@ -870,33 +905,16 @@ fn epher_app() -> Html {
         let poi_markers = poi_markers.clone();
         let width_2d = width_2d.clone();
         let width_3d = width_3d.clone();
+        let input = input.clone();
+        let input_ref = input_ref.clone();
+        let cursor_cell = cursor_cell.clone();
         use_effect_with((), move |_| {
             if bridge == Bridge::Tauri {
+                let apply = apply_store_state.clone();
                 spawn_local(async move {
                     match bridge.init().await {
-                        Ok(InitState {
-                            history,
-                            replay,
-                            language,
-                            theme: theme_pref,
-                            session: session_bindings,
-                        }) => {
-                            let mut s = Session::with_history(history);
-                            for line in &replay {
-                                s.submit_quiet(line);
-                            }
-                            // The shared session snapshot (ADR-0010
-                            // amendment): bindings saved by whichever
-                            // CLI/REPL/TUI/desktop frontend ran last —
-                            // `ans` and every user assignment carry over.
-                            s.restore_bindings(&session_bindings);
-                            session.set(s);
-                            if let Some(code) = language {
-                                localizer.set(Localizer::resolve(Some(&code), &[]));
-                            }
-                            if let Some(name) = theme_pref {
-                                theme.set(name);
-                            }
+                        Ok(state) => {
+                            apply(state);
                             // Graph pane options live in the webview's
                             // localStorage on desktop too (ADR-0020) — the
                             // native store carries only what must exist
@@ -930,6 +948,10 @@ fn epher_app() -> Html {
                         }
                     }
                 });
+                // Live sync: every store write — this window's own or the
+                // TUI's, the REPL's, a one-shot CLI run's — reapplies the
+                // shared state immediately (ADR-0010 amendment).
+                Bridge::listen_store_changed(apply_store_state.clone());
             } else {
                 // The web app persists its theme and language overrides in
                 // localStorage (no native store here, ADR-0010).
@@ -959,6 +981,27 @@ fn epher_app() -> Html {
                     }
                     if let Some(w) = w3d {
                         width_3d.set(w);
+                    }
+                }
+                // The site's Examples page hands an example over via
+                // localStorage on touch devices (ADR-0035 amendment):
+                // tapping an example there copies it and opens the app
+                // with it staged under `epher-example`. Consume it into
+                // the entry with the cursor at its end; on mobile the
+                // keypad composes from it without summoning the device
+                // keyboard (the same rule as guide code loads).
+                if let Some(store) =
+                    web_sys::window().and_then(|w| w.local_storage().ok().flatten())
+                {
+                    if let Ok(Some(text)) = store.get_item("epher-example") {
+                        let _ = store.remove_item("epher-example");
+                        input.set(text.clone());
+                        *cursor_cell.borrow_mut() = (text.len(), text.len());
+                        if !mobile_layout() {
+                            if let Some(ta) = input_ref.cast::<web_sys::HtmlTextAreaElement>() {
+                                let _ = ta.focus();
+                            }
+                        }
                     }
                 }
             }
@@ -1070,13 +1113,14 @@ fn epher_app() -> Html {
             poi_markers.set(on);
         })
     };
-    // The line-width slider (ADR-0020): persisted like the POI toggles,
-    // clamped to the slider's range so a stale stored value cannot
-    // re-enter. Mobile remembers each graph kind's width independently
-    // (ADR-0035) — the slider edits the kind in view, and each kind's
-    // value renders its own graph; desktop keeps one shared width. The
-    // ranges: mobile 3D 0–0.2 step 0.01 (ADR-0031's thin floor), 2D and
-    // desktop 0.1–4 step 0.1 (the ADR-0028 hairline floor stays).
+    // The line-width sliders (ADR-0020, ADR-0035 amendment): one slider
+    // per graph kind — 2D 0–4 step 0.1, 3D 0–0.2 step 0.01 — and only
+    // the kind in view is shown, so the range always matches the plot
+    // the user is adjusting. Each kind remembers its own width under
+    // its own key (the legacy shared key still seeds both), and each
+    // kind's plot renders with its own value. Persisted like the POI
+    // toggles, clamped to the slider's range so a stale stored value
+    // cannot re-enter.
     let on_set_line_width = {
         let width_2d = width_2d.clone();
         let width_3d = width_3d.clone();
@@ -1089,21 +1133,14 @@ fn epher_app() -> Html {
                     let _ = store.set_item(key, &format!("{v}"));
                 }
             };
-            if mobile_layout() {
-                if *surface3d_cell.borrow() {
-                    let w = w.clamp(0.0, 0.2);
-                    persist("epher-line-width-3d", w);
-                    width_3d.set(w);
-                } else {
-                    let w = w.clamp(0.1, 4.0);
-                    persist("epher-line-width-2d", w);
-                    width_2d.set(w);
-                }
-            } else {
-                let w = w.clamp(0.1, 4.0);
-                persist("epher-line-width", w);
-                width_2d.set(w);
+            if *surface3d_cell.borrow() {
+                let w = w.clamp(0.0, 0.2);
+                persist("epher-line-width-3d", w);
                 width_3d.set(w);
+            } else {
+                let w = w.clamp(0.0, 4.0);
+                persist("epher-line-width-2d", w);
+                width_2d.set(w);
             }
         })
     };
@@ -1111,7 +1148,7 @@ fn epher_app() -> Html {
     // Crossing the 880px breakpoint re-clamps the width to the new
     // slider range (ADR-0031): the slider element's value is always
     // current, and the setter clamps to whatever layout the window is
-    // in now. The `is_mobile` state flips the slider's attributes.
+    // in now. The `is_mobile` state flips the slider's placement.
     {
         let is_mobile = is_mobile.clone();
         let on_set_line_width = on_set_line_width.clone();
@@ -1472,6 +1509,7 @@ fn epher_app() -> Html {
         let graph = graph.clone();
         let pois = pois.clone();
         let trace = trace.clone();
+        let hidden = hidden.clone();
         let live = live.clone();
         let surface = surface.clone();
         let surface3d_cell = surface3d_cell.clone();
@@ -1762,6 +1800,8 @@ fn epher_app() -> Html {
             // slide back to the calculator — there is nothing left to
             // look at over there. Computed before the moves below.
             let cleared = mobile_layout() && had_graph && curves.is_empty() && surfaces.is_empty();
+            // A fresh plot: every legend checkbox returns to checked.
+            hidden.set(vec![false; curves.len()]);
             graph.set(curves);
             surface.set(surfaces.clone());
             *surface3d_cell.borrow_mut() = !surfaces.is_empty();
@@ -1791,6 +1831,7 @@ fn epher_app() -> Html {
         let localizer = localizer.clone();
         let surface = surface.clone();
         let surface3d_cell = surface3d_cell.clone();
+        let hidden = hidden.clone();
         Callback::from(move |(name, value): (String, f64)| {
             let mut s = (*session).clone();
             s.set_constant(
@@ -1804,6 +1845,7 @@ fn epher_app() -> Html {
             resample_surfaces(&mut surfaces, &s);
             let found = analyze(&curves, s.env());
             session.set(s);
+            hidden.set(vec![false; curves.len()]);
             graph.set(curves);
             surface.set(surfaces.clone());
             *surface3d_cell.borrow_mut() = !surfaces.is_empty();
@@ -2094,6 +2136,7 @@ fn epher_app() -> Html {
     let on_copy_svg = {
         let curves = graph.clone();
         let pois = pois.clone();
+        let hidden = hidden.clone();
         let trace = trace.clone();
         let poi_markers = poi_markers.clone();
         let width_2d = width_2d.clone();
@@ -2107,8 +2150,22 @@ fn epher_app() -> Html {
         let result = result.clone();
         let localizer = localizer.clone();
         Callback::from(move |_| {
-            let svg = if !(*curves).is_empty() {
-                graph::graph_svg(&curves, &pois, *trace, *poi_markers, *width_2d)
+            // The export shows what the pane shows (ADR-0015 amendment):
+            // curves hidden by their legend checkboxes stay out of the
+            // SVG, and so do their points of interest.
+            let visible: Vec<epher_core::graph::SampledCurve> = (*curves)
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| !(*hidden).get(*i).copied().unwrap_or(false))
+                .map(|(_, c)| c.clone())
+                .collect();
+            let pois_visible: Vec<graph::Poi> = (*pois)
+                .iter()
+                .filter(|p| !(*hidden).get(p.curve).copied().unwrap_or(false))
+                .cloned()
+                .collect();
+            let svg = if !visible.is_empty() {
+                graph::graph_svg(&visible, &pois_visible, *trace, *poi_markers, *width_2d)
             } else if let Some(doc) = graph::graph3d_svg(
                 &surface,
                 &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
@@ -2381,18 +2438,61 @@ fn epher_app() -> Html {
     let curve_rows = build_rows(&curve_sliders);
     let surface_rows = build_rows(&surface_sliders);
 
+    // Per-curve visibility toggle (ADR-0015 amendment): the legend's
+    // checkbox. Unchecking hides the curve from the plot, its points of
+    // interest, and the SVG export; the checkbox itself stays so the
+    // curve can be brought back.
+    let on_toggle_curve = {
+        let hidden = hidden.clone();
+        Callback::from(move |(i, on): (usize, bool)| {
+            let mut h = (*hidden).clone();
+            if i < h.len() {
+                h[i] = !on;
+            }
+            hidden.set(h);
+        })
+    };
+
     let legend_items: Vec<Html> = (*graph)
         .iter()
         .enumerate()
         .map(|(i, c)| {
             let caption = graph::curve_caption(c);
+            let checked = !(*hidden).get(i).copied().unwrap_or(false);
+            let on_toggle_curve = on_toggle_curve.clone();
             html! {
-                <li>
-                    <span class={format!("swatch curve-{i}")} aria-hidden="true"></span>
-                    { caption }
+                <li class="legend-item">
+                    <label class="legend-check">
+                        <input type="checkbox" checked={checked} aria-label={caption.clone()}
+                            onchange={Callback::from(move |e: web_sys::Event| {
+                                if let Some(el) = e
+                                    .target()
+                                    .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                {
+                                    on_toggle_curve.emit((i, el.checked()));
+                                }
+                            })}
+                        />
+                        <span class="swatch curve-{i}" aria-hidden="true"></span>
+                        { caption }
+                    </label>
                 </li>
             }
         })
+        .collect();
+
+    // The curves actually drawn: hidden ones stay out of the plot, the
+    // points of interest, and the SVG export (ADR-0015 amendment).
+    let visible_curves: Vec<epher_core::graph::SampledCurve> = (*graph)
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| !(*hidden).get(*i).copied().unwrap_or(false))
+        .map(|(_, c)| c.clone())
+        .collect();
+    let visible_pois: Vec<graph::Poi> = (*pois)
+        .iter()
+        .filter(|p| !(*hidden).get(p.curve).copied().unwrap_or(false))
+        .cloned()
         .collect();
 
     let poi_items: Vec<Html> = (*pois)
@@ -2442,7 +2542,9 @@ fn epher_app() -> Html {
         let view_z = view_z.clone();
         let spin_phase = spin_phase.clone();
         let spin_phase_cell = spin_phase_cell.clone();
+        let hidden = hidden.clone();
         Callback::from(move |_| {
+            hidden.set(Vec::new());
             graph.set(Vec::new());
             pois.set(Vec::new());
             surface.set(Vec::new());
@@ -3111,13 +3213,73 @@ fn epher_app() -> Html {
                                     <button type="button" class="pane-btn" onclick={on_copy_svg}>
                                         { localizer.lookup("graph-copy") }
                                     </button>
-                                    // The graph options row (ADR-0020, ADR-0025): the
-                                    // line-width slider serves both 2D curves and 3D
-                                    // surfaces; the two points-of-interest toggles
-                                    // (ADR-0019) belong to the 2D plot only, so they
-                                    // render just when curves exist. Real form
+                                    // The line-width slider (ADR-0020, ADR-0035
+                                    // amendment): one slider per graph kind — 2D
+                                    // 0–4 step 0.1, 3D 0–0.2 step 0.01 — and only
+                                    // the kind in view is shown, so the range
+                                    // always matches the plot being adjusted. On
+                                    // desktop it sits in the toolbar right of Copy
+                                    // SVG; on mobile it wraps to its own row below
+                                    // (the `.graph-width` flex-basis under the
+                                    // mobile media query).
+                                    {
+                                        if !(*graph).is_empty() {
+                                            html! {
+                                                <label class="graph-option graph-width">
+                                                    <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
+                                                    <input type="range" class="graph-width-slider"
+                                                        min="0" max="4" step="0.1" value={width_2d.to_string()}
+                                                        oninput={Callback::from({
+                                                            let on_set_line_width = on_set_line_width.clone();
+                                                            move |e: web_sys::InputEvent| {
+                                                                if let Some(el) = e
+                                                                    .target()
+                                                                    .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                                {
+                                                                    if let Ok(w) = el.value().parse::<f64>() {
+                                                                        on_set_line_width.emit(w);
+                                                                    }
+                                                                }
+                                                            }
+                                                        })}
+                                                    />
+                                                    <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *width_2d) }</span>
+                                                </label>
+                                            }
+                                        } else if !(*surface).is_empty() {
+                                            html! {
+                                                <label class="graph-option graph-width">
+                                                    <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
+                                                    <input type="range" class="graph-width-slider"
+                                                        min="0" max="0.2" step="0.01" value={width_3d.to_string()}
+                                                        oninput={Callback::from({
+                                                            let on_set_line_width = on_set_line_width.clone();
+                                                            move |e: web_sys::InputEvent| {
+                                                                if let Some(el) = e
+                                                                    .target()
+                                                                    .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                                {
+                                                                    if let Ok(w) = el.value().parse::<f64>() {
+                                                                        on_set_line_width.emit(w);
+                                                                    }
+                                                                }
+                                                            }
+                                                        })}
+                                                    />
+                                                    <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *width_3d) }</span>
+                                                </label>
+                                            }
+                                        } else {
+                                            html! {}
+                                        }
+                                    }
+                                    // The graph options row (ADR-0020, ADR-0025):
+                                    // the two points-of-interest toggles
+                                    // (ADR-0019) belong to the 2D plot only, so
+                                    // they render just when curves exist. Real form
                                     // controls — focusable and labelled — not menu
-                                    // items, because they are adjustments, not commands.
+                                    // items, because they are adjustments, not
+                                    // commands.
                                     <div class="graph-options">
                                         {
                                             if !(*graph).is_empty() {
@@ -3157,66 +3319,6 @@ fn epher_app() -> Html {
                                                 html! {}
                                             }
                                         }
-                                        <label class="graph-option graph-width">
-                                            <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
-                                            {
-                                                // ADR-0035: the slider's range follows the
-                                                // graph kind on mobile — a 3D surface keeps
-                                                // ADR-0031's thin 0–0.2 step 0.01, a
-                                                // 2D-only graph behaves like desktop
-                                                // (0.1–4 step 0.1). Desktop stays 0.1–4/0.1.
-                                                // Mobile remembers each kind's width
-                                                // independently: the slider shows and edits
-                                                // the kind in view; both kinds keep their
-                                                // own value across flips.
-                                                if *is_mobile && !(*surface).is_empty() {
-                                                    html! {
-                                                        <input type="range" class="graph-width-slider"
-                                                            min="0" max="0.2" step="0.01" value={width_3d.to_string()}
-                                                            oninput={Callback::from({
-                                                                let on_set_line_width = on_set_line_width.clone();
-                                                                move |e: web_sys::InputEvent| {
-                                                                    if let Some(el) = e
-                                                                        .target()
-                                                                        .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
-                                                                    {
-                                                                        if let Ok(w) = el.value().parse::<f64>() {
-                                                                            on_set_line_width.emit(w);
-                                                                        }
-                                                                    }
-                                                                }
-                                                            })}
-                                                        />
-                                                    }
-                                                } else {
-                                                    html! {
-                                                        <input type="range" class="graph-width-slider"
-                                                            min="0.1" max="4" step="0.1" value={width_2d.to_string()}
-                                                            oninput={Callback::from({
-                                                                let on_set_line_width = on_set_line_width.clone();
-                                                                move |e: web_sys::InputEvent| {
-                                                                    if let Some(el) = e
-                                                                        .target()
-                                                                        .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
-                                                                    {
-                                                                        if let Ok(w) = el.value().parse::<f64>() {
-                                                                            on_set_line_width.emit(w);
-                                                                        }
-                                                                    }
-                                                                }
-                                                            })}
-                                                        />
-                                                    }
-                                                }
-                                            }
-                                            {
-                                                if *is_mobile && !(*surface).is_empty() {
-                                                    html! { <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *width_3d) }</span> }
-                                                } else {
-                                                    html! { <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *width_2d) }</span> }
-                                                }
-                                            }
-                                        </label>
                                     </div>
                                     // The 3D fine controls (ADR-0031): three sliders above
                                     // the plot, visible only while surfaces are displayed.
@@ -3272,8 +3374,8 @@ fn epher_app() -> Html {
                                     </ul>
                                     <div class="plot-box">
                                         <Graph
-                                            curves={(*graph).clone()}
-                                            pois={(*pois).clone()}
+                                            curves={visible_curves.clone()}
+                                            pois={visible_pois.clone()}
                                             trace={*trace}
                                             markers={*poi_markers}
                                             line_width={*width_2d}

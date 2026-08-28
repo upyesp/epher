@@ -12,7 +12,6 @@ tui-history = इतिहास
 history = इतिहास
 clear-history = इतिहास साफ़ करें
 tui-graph = ग्राफ़
-tui-hints = Enter मूल्यांकन · Tab कीपैड/इतिहास · F10 मेनू · Esc साफ़ करें · तीर घुमाएँ · स्पेस एनिमेट · Ctrl+L इतिहास साफ़ करें · Ctrl+C बाहर निकलें · q बाहर निकलें
 web-session-only = वेब ऐप काम को केवल इस सत्र में रखता है; सहेजना डेस्कटॉप, कमांड लाइन और टर्मिनल संस्करणों में काम करता है
 install-cli = epher कमांड इंस्टॉल करें
 install-cli-ok = इंस्टॉल हो गया — किसी भी टर्मिनल में epher टाइप करें।
@@ -95,3 +94,8 @@ graph-width = रेखा की मोटाई
 view-horizontal = क्षैतिज घुमाव
 view-vertical = ऊर्ध्वाधर घुमाव
 view-zoom = ज़ूम
+
+tui-hint-base-a = Enter मूल्यांकन · Tab कीपैड/इतिहास · F10 मेनू · Esc साफ़ करें
+tui-hint-rotate =  · तीर घुमाएँ
+tui-hint-play =  · स्पेस एनिमेट
+tui-hint-base-b =  · Ctrl+L इतिहास साफ़ करें · Ctrl+C बाहर निकलें · q बाहर निकलें

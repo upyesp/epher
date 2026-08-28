@@ -1,22 +1,41 @@
 <!DOCTYPE html>
 <!--
   epher Examples page. Built by scripts/build-examples.mjs from the
-  about.html chrome: header, disclosure nav, theme, i18n catalogs + app.js.
+  index.html chrome: header, disclosure nav, theme, i18n catalogs + app.js.
   The prose is data-i18n keys (ex-*, nav-examples); the epher code blocks
-  are never localized (ADR-0007) and carry the guide's copy buttons.
+  are never localized (ADR-0007) and carry the guide's copy buttons; on
+  touch devices a tap on an example opens the app with it staged
+  (ADR-0035 amendment).
+  -->
+<!--
+  - Languages: en, zh-CN, hi, es, fr, ar, de, pt; auto-detected, stored preference,
+    English fallback (mirrors the Localizer in crates/i18n; see app.js).
+    The catalogs live in i18n/<lang>.js (loaded before app.js).
+  - Themes: light/dark, defaults to the device preference, toggle persisted.
+  - Accessibility: WCAG 2.2 AA (see docs/accessibility.md). The visible
+    (English) text is the noscript fallback; app.js swaps in the other
+    locales. lang/dir must match the active locale (3.1.1, RTL for ar).
+  - Navigation: the header collapses into a disclosure (hamburger) menu
+    below 880px (WAI-ARIA APG disclosure pattern: aria-expanded, Escape
+    closes, links hidden from the tab order when closed).
 -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Examples: epher</title>
-  <meta name="description" content="Copyable examples for every version of epher: CLI commands, piped scripts, REPL sessions with ans, and 2D and 3D graphs." />
+  <meta
+    name="description"
+    content="A programmable, scriptable calculator: command line, terminal UI, desktop app, and offline web app. Graphs in 2D and 3D, exact numerics, eight languages, no accounts."
+  />
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141416" />
   <link rel="icon" href="icon.svg?v=3" type="image/svg+xml" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="guide.css" />
   <script>
+    // Apply the stored (or device-default) theme and the stored language
+    // before first paint, so there is no flash of the wrong theme/locale.
     (function () {
       try {
         var theme = localStorage.getItem("epher-theme");
@@ -48,7 +67,7 @@
     </style>
   </noscript>
 </head>
-<body class="page-examples">
+<body>
   <a class="skip-link" href="#main" data-i18n="skip-link">Skip to content</a>
 
   <header class="site-header">
@@ -57,10 +76,9 @@
       <span>epher</span>
     </a>
     <nav class="site-nav" id="site-nav" hidden aria-label="Main" data-i18n-aria="nav-label">
-      <a href="about.html" data-i18n="nav-about">About</a>
+      <a href="pwa/" data-i18n="nav-app">App</a>
       <a href="guide/en/" data-i18n="guide" data-i18n-href="guide">User guide</a>
       <a href="examples.html" aria-current="page" data-i18n="nav-examples">Examples</a>
-      <a href="pwa/" data-i18n="nav-app">App</a>
       <a href="privacy.html" data-i18n="nav-privacy">Privacy</a>
       <a class="gh-link" href="https://github.com/upyesp/epher" data-i18n="source-link">
         Source code
@@ -68,6 +86,7 @@
     </nav>
     <div class="header-controls">
       <button type="button" id="theme-toggle" class="icon-btn" aria-pressed="false">
+        <!-- the visible label names the theme the button switches TO -->
         <svg class="icon-moon" aria-hidden="true" viewBox="0 0 24 24">
           <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" />
         </svg>
@@ -99,205 +118,64 @@
 
   <main id="main">
     <article class="prose">
-<h1 data-i18n="examples-title">Examples</h1>
-<p class="lede" data-i18n="examples-intro">Copyable examples for every version of epher. Paste them into a terminal, a REPL session, or the app's entry field. The user guide explains the language in detail; this page is for quick copying and pasting.</p>
-<section class="ex-section">
-<h2 data-i18n="ex-h-cli">The command line</h2>
-<p data-i18n="ex-cli-intro">One-shot calculations, piped scripts, and SVG exports. Copy an example from those below into any shell.</p>
-<figure class="example-item">
-<figcaption data-i18n="ex-1c">A straightforward calculation. Multiplication happens before addition.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;2 + 3 * 4&quot;</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-2c">Powers and roots work like the rest of the language.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;sqrt(2 ^ 10)&quot;</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-3c">Exact fractions where binary floats would round.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;frac(1, 3) + frac(1, 6)&quot;</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-4c">Piping a script into the epher command. stdin becomes the script, one line at a time.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-sh">printf <span class="tok-str">'x = 10\nx ^ 2\n'</span> | epher -</code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-5c">Piping epher's output into another command.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;1 / 3&quot;</span> | tee third.txt</code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-6c">Several statements on one line, separated by semicolons.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;x = 7; x ^ 3&quot;</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-7c">Defining a function and calling it in the same line.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;def sq(x) = x * x; sq(9)&quot;</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-8c">A recursive factorial, defined inside a piped script.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-sh">printf <span class="tok-str">'def fact(n) = if n &lt;= 1 then 1 else n * fact(n - 1); fact(10)'</span> | epher -</code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-9c">A 2D graph saved as an SVG image file.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;graph x ^ 2; graph save plot.svg&quot;</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-10c">A 3D surface saved as an SVG image file.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;graph3d x ^ 2 - y ^ 2; graph3d save saddle.svg&quot;</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-</section>
-<section class="ex-section">
-<h2 data-i18n="ex-h-repl">The REPL</h2>
-<p data-i18n="ex-repl-intro">Start an interactive session with `epher repl` and type after the `epher&gt;` prompt. These blocks run one after another in the same session. Each answer feeds the next line's `ans`.</p>
-<figure class="example-item">
-<figcaption data-i18n="ex-r1">The first calculation of the session.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-epher">epher&gt; <span class="tok-num">2</span> + <span class="tok-num">3</span>
-= <span class="tok-num">5</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-r2">`ans` holds the previous answer. Build on it.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-epher">epher&gt; ans * <span class="tok-num">10</span>
-= <span class="tok-num">50</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-r3">`ans` follows every new answer down the session.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-epher">epher&gt; ans + <span class="tok-num">2</span>
-= <span class="tok-num">52</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-r4">Use `ans` inside a larger expression.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-epher">epher&gt; (ans - <span class="tok-num">12</span>) ^ <span class="tok-num">2</span>
-= <span class="tok-num">1600</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-</section>
+      <h1 data-i18n="examples-title">Examples</h1>
+      <p class="lede" data-i18n="examples-intro">Copyable examples for every version of epher. Paste them into a terminal, a REPL session, or the app's entry field. The user guide explains the language in detail; this page is for quick copying and pasting.</p>
+      <p class="note" data-i18n="ex-tap">On a phone, tap an example to open the app with it ready to run.</p>
 <section class="ex-section">
 <h2 data-i18n="ex-h-app">TUI, desktop app, and web app</h2>
 <p data-i18n="ex-app-intro">The same language runs in the terminal UI, the desktop app, and the web app. Copy/paste an example into the entry field and press Enter.</p>
+<figure class="example-item">
+<figcaption data-i18n="ex-a8">A straightforward calculation. Multiplication happens before addition.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher"><span class="tok-num">2</span> + <span class="tok-num">3</span> * <span class="tok-num">4</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-a9">Powers and roots work like the rest of the language.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher"><span class="tok-fn">sqrt</span>(<span class="tok-num">2</span> ^ <span class="tok-num">10</span>)</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-a10">Exact fractions where binary floats would round.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher"><span class="tok-fn">frac</span>(<span class="tok-num">1</span>, <span class="tok-num">3</span>) + <span class="tok-fn">frac</span>(<span class="tok-num">1</span>, <span class="tok-num">6</span>)</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-a11">Defining a function and calling it in the same line.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher"><span class="tok-kw">def</span> <span class="tok-fn">sq</span>(x) = x * x; <span class="tok-fn">sq</span>(<span class="tok-num">9</span>)</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
 <figure class="example-item">
 <figcaption data-i18n="ex-a1">A multi-line script. Shift+Enter starts a new line, Enter runs the whole script as one history item.</figcaption>
 <div class="example">
@@ -394,7 +272,149 @@ y ^ <span class="tok-num">2</span></code></pre>
 </div>
 </figure>
 </section>
-</article>
+<section class="ex-section">
+<h2 data-i18n="ex-h-repl">The REPL</h2>
+<p data-i18n="ex-repl-intro">Start an interactive session with `epher repl` and type after the `epher&gt;` prompt. These blocks run one after another in the same session. Each answer feeds the next line's `ans`.</p>
+<figure class="example-item">
+<figcaption data-i18n="ex-r1">The first calculation of the session.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher">epher&gt; <span class="tok-num">2</span> + <span class="tok-num">3</span>
+= <span class="tok-num">5</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-r2">`ans` holds the previous answer. Build on it.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher">epher&gt; ans * <span class="tok-num">10</span>
+= <span class="tok-num">50</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-r3">`ans` follows every new answer down the session.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher">epher&gt; ans + <span class="tok-num">2</span>
+= <span class="tok-num">52</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-r4">Use `ans` inside a larger expression.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher">epher&gt; (ans - <span class="tok-num">12</span>) ^ <span class="tok-num">2</span>
+= <span class="tok-num">1600</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+</section>
+<section class="ex-section">
+<h2 data-i18n="ex-h-cli">The command line</h2>
+<p data-i18n="ex-cli-intro">One-shot calculations, piped scripts, and SVG exports. Copy an example from those below into any shell.</p>
+<figure class="example-item">
+<figcaption data-i18n="ex-4c">Piping a script into the epher command. stdin becomes the script, one line at a time.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-sh">printf <span class="tok-str">'x = 10\nx ^ 2\n'</span> | epher -</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-5c">Piping epher's output into another command.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;1 / 3&quot;</span> | tee third.txt</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-6c">Several statements on one line, separated by semicolons.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;x = 7; x ^ 3&quot;</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-8c">A recursive factorial, defined inside a piped script.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-sh">printf <span class="tok-str">'def fact(n) = if n &lt;= 1 then 1 else n * fact(n - 1); fact(10)'</span> | epher -</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-9c">A 2D graph saved as an SVG image file.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;graph x ^ 2; graph save plot.svg&quot;</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-10c">A 3D surface saved as an SVG image file.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;graph3d x ^ 2 - y ^ 2; graph3d save saddle.svg&quot;</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+</section>
+    </article>
   </main>
 
   <footer class="site-footer">
@@ -406,7 +426,7 @@ y ^ <span class="tok-num">2</span></code></pre>
       <nav class="footer-col" aria-label="Site" data-i18n-aria="footer-site">
         <h2 data-i18n="footer-site">Site</h2>
         <ul>
-          <li><a href="about.html" data-i18n="nav-about">About</a></li>
+          <li><a href="pwa/" data-i18n="nav-app">App</a></li>
           <li><a href="guide/en/" data-i18n="guide" data-i18n-href="guide">User guide</a></li>
           <li><a href="examples.html" data-i18n="nav-examples">Examples</a></li>
           <li><a href="privacy.html" data-i18n="nav-privacy">Privacy</a></li>
@@ -466,7 +486,8 @@ y ^ <span class="tok-num">2</span></code></pre>
     }
     document.querySelectorAll(".copy-btn").forEach(function (btn) {
       var timer = null;
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
         var example = btn.closest(".example");
         var code = example && example.querySelector("code");
         if (!code) return;
@@ -486,6 +507,27 @@ y ^ <span class="tok-num">2</span></code></pre>
         });
       });
     });
+    // On touch devices (ADR-0035 amendment): tapping an example copies it
+    // and opens the app with the code staged in the entry field, ready to
+    // run. The copy button itself stops propagation above, so tapping it
+    // still only copies.
+    var touch = "ontouchstart" in window &&
+      window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    if (touch) {
+      var KEY = "epher-example";
+      document.querySelectorAll(".example").forEach(function (ex) {
+        ex.addEventListener("click", function () {
+          var code = ex.querySelector("code");
+          if (!code) return;
+          var text = code.textContent;
+          try { localStorage.setItem(KEY, text); } catch (e) {}
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).catch(function () {});
+          }
+          window.location.href = "pwa/";
+        });
+      });
+    }
   })();
 </script>
 </body>

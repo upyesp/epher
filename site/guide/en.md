@@ -751,9 +751,14 @@ the same for curves and 3D surfaces together. The TUI keeps the command in
 its **Graph** menu.
 
 At the top of the graph pane, beside **Clear graph** and **Copy SVG**,
-the options row can hide the list of points of interest, hide the
-highlighted points drawn on the plot itself, and set the thickness of
-the plotted lines with the **Line width** slider.
+the toolbar can hide the list of points of interest and the highlighted
+points drawn on the plot itself. The **Line width** slider sits right of
+**Copy SVG** (on its own row below on phones): 2D curves get one slider
+from 0 to 4 in steps of 0.1, 3D surfaces another from 0 to 0.2 in steps
+of 0.01, only the kind in view is shown, and each kind remembers its own
+value. Every legend entry has a checkbox, checked by default: unchecking
+a curve hides it from the plot, its points of interest, and the SVG
+export.
 
 ```epher
 graph x ^ 2
@@ -831,10 +836,8 @@ graph a * x ^ 2
 
 **Copy SVG** copies the current plot as a self-contained SVG image for
 pasting into documents. The colours are baked in, so it looks the same
-anywhere. The **Line width** slider below the plot sets how thick every
-plotted line draws. The slider rows, the line width and any
-animated constants, sit directly beneath the plot, above the
-points-of-interest list.
+anywhere. The slider rows and any animated constants sit directly
+beneath the plot, above the points-of-interest list.
 
 #### 2.4.4 3D surfaces
 
@@ -974,7 +977,9 @@ same here.
 Commands you type in the CLI, the REPL, the TUI, or the desktop app
 all join the same history, and the session travels too: variables
 you assign and the `ans` value follow you from one version to the
-next.
+next. The shared store is live: while two versions are open at once,
+a change in one is reflected in the other immediately (the desktop
+app and the TUI watch the store and refresh in place).
 
 > The web app in the browser is the one version that does not use this
 > storage. It keeps each session to itself (chapter 2.6).
@@ -1194,7 +1199,8 @@ epher tui
 
 The screen is divided into panels:
 
-- **Expression**: the input line (top).
+- **Expression**: the input box (top). Shift+Enter starts a new line,
+  and the arrow keys or a mouse click move the cursor inside the text.
 - The current **result** right below it.
 - **History**: every line you entered, with its answer.
 - **Graph**: the plot from the `graph` command (bottom).
@@ -1204,8 +1210,10 @@ The screen is divided into panels:
 
 | Key | Action |
 |---|---|
-| Type | add to the expression |
-| **Enter** | evaluate |
+| Type | add to the expression at the cursor |
+| **Enter** | evaluate the whole script (a multi-line entry runs as one history item) |
+| **Shift+Enter** | start a new line |
+| **← → ↑ ↓** | move the cursor (with empty input: rotate the 3D graph) |
 | **Esc** | clear the input line |
 | **Ctrl+C** | quit |
 | **q** | quit (when the input is empty) |
@@ -1260,9 +1268,11 @@ the TUI lists the points of interest (roots, turning points, and
 intersections) under the plot. The `table` command (section 2.4.2) works
 here too.
 
-`graph3d x ^ 2 - y ^ 2` plots a 3D surface as an ASCII wireframe. Rotate
-it with the arrow keys, and press the space bar to animate a slider
-constant (section 2.4.5).
+`graph3d x ^ 2 - y ^ 2` plots a 3D surface as an ASCII wireframe.
+Rotate it with the arrow keys while the input is empty, and press the
+space bar to animate a slider constant (section 2.4.5). The bottom hint
+line shows the arrow-key and space hints only while a 3D surface or an
+animatable curve is displayed.
 
 `graph save plot.svg` writes the current plot as the same SVG image the
 web app's **Copy SVG** button yields; `graph3d save file.svg` saves the

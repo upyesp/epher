@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.4.31"
+version = "0.4.32"
 description = "epher: a programmable, scriptable calculator — the unified desktop binary"
 authors = ["upyesp"]
 license = "MIT"
@@ -40,6 +40,9 @@ epher-core = { path = "../../../crates/core" }
 epher-cli = { path = "../../../crates/cli" }
 epher-tui = { path = "../../../crates/tui" }
 epher-store = { path = "../../../crates/store", features = ["fs"] }
+# Store watcher (ADR-0010 amendment): file-watch signals for the
+# publish/subscribe sync between open frontends.
+notify = "6"
 clap = { version = "4", features = ["derive"] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }

@@ -128,6 +128,7 @@ fn points_of_interest_render_with_labels() {
         label: "root".to_string(),
         x: 1.0,
         y: 0.0,
+        curve: 0,
     }];
     let svg = graph_svg(
         &[curve("x ^ 2 - 1")],
@@ -147,6 +148,7 @@ fn points_of_interest_hide_when_markers_are_off() {
         label: "root".to_string(),
         x: 1.0,
         y: 0.0,
+        curve: 0,
     }];
     let svg = graph_svg(
         &[curve("x ^ 2 - 1")],

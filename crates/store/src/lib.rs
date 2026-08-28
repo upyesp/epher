@@ -10,6 +10,8 @@ mod docs;
 mod fs;
 mod memory;
 pub mod persist;
+#[cfg(feature = "fs")]
+pub mod watch;
 
 pub use docs::{ConstantDoc, Doc, DocStore, FunctionDoc, ScriptDoc, SettingDoc};
 #[cfg(feature = "fs")]

@@ -761,9 +761,15 @@ Graph-Panel macht dasselbe für Kurven und 3D-Flächen zusammen. Die TUI
 behält den Befehl in ihrem **Graph**-Menü.
 
 Ganz oben im Graph-Bereich, neben **Clear graph** und **Copy SVG**,
-blendest du in der Optionsleiste die Liste der besonderen Punkte aus, die
-hervorgehobenen Punkte im Plot selbst und stellst mit dem Regler
-**Linienstärke** die Dicke der gezeichneten Linien ein.
+blendest du in der Symbolleiste die Liste der besonderen Punkte und die
+hervorgehobenen Punkte im Plot selbst aus. Der Regler **Linienstärke**
+sitzt rechts von **Copy SVG** (auf dem Handy in der Zeile darunter):
+2D-Kurven haben einen Regler von 0 bis 4 in Schritten von 0.1, 3D-Flächen
+einen von 0 bis 0.2 in Schritten von 0.01, angezeigt wird nur der Regler
+der gerade sichtbaren Art, und jede Art merkt sich ihren eigenen Wert.
+Jeder Eintrag in der Legende hat ein Kästchen, standardmäßig aktiviert:
+Abhaken blendet die Kurve aus dem Plot, ihren besonderen Punkten und dem
+SVG-Export aus.
 
 ```epher
 graph x ^ 2
@@ -843,8 +849,8 @@ graph a * x ^ 2
 
 **SVG kopieren** kopiert den aktuellen Plot als eigenständiges SVG-Bild
 zum Einfügen in Dokumente. Die Farben sind eingebaut, es sieht überall
-gleich aus. Der Regler **Linienstärke** ganz unten im Bereich stellt
-ein, wie dick jede gezeichnete Linie erscheint.
+gleich aus. Die Reglerzeilen und animierten Konstanten sitzen direkt
+unter dem Plot, über der Liste der besonderen Punkte.
 
 #### 2.4.4 3D-Flächen
 
@@ -993,7 +999,10 @@ hier genau gleich.
 Befehle, die du in der CLI, der REPL, der TUI oder der Desktop-App
 eingibst, landen alle im selben Verlauf, und die Sitzung wandert mit:
 Variablen, die du zuweist, und der `ans`-Wert folgen dir von einer
-Version zur nächsten.
+Version zur nächsten. Der gemeinsame Speicher ist live: Wenn zwei
+Versionen gleichzeitig geöffnet sind, erscheint eine Änderung in der
+einen sofort in der anderen (die Desktop-App und die TUI beobachten den
+Speicher und aktualisieren sich von selbst).
 
 > Die Web-App im Browser ist die eine Version, die diesen Speicher nicht
 > nutzt. Sie behält jede Sitzung für sich (Kapitel 2.6).
@@ -1221,7 +1230,8 @@ epher tui
 
 Der Bildschirm ist in Panels unterteilt:
 
-- **Ausdruck**: die Eingabezeile (oben).
+- **Ausdruck**: das Eingabefeld (oben). Shift+Enter beginnt eine neue
+  Zeile; die Pfeiltasten oder ein Mausklick bewegen den Cursor im Text.
 - Das aktuelle **Ergebnis** direkt darunter.
 - **Verlauf**: jede Zeile, die du eingegeben hast, mit ihrer Antwort.
 - **Graph**: die Zeichnung aus dem Befehl `graph` (unten).
@@ -1231,8 +1241,10 @@ Der Bildschirm ist in Panels unterteilt:
 
 | Taste | Aktion |
 |---|---|
-| Tippen | zum Ausdruck hinzufügen |
-| **Enter** | auswerten |
+| Tippen | am Cursor zum Ausdruck hinzufügen |
+| **Enter** | das ganze Skript auswerten (eine mehrzeilige Eingabe läuft als ein Verlaufseintrag) |
+| **Shift+Enter** | eine neue Zeile beginnen |
+| **← → ↑ ↓** | den Cursor bewegen (bei leerer Eingabe: die 3D-Ansicht drehen) |
 | **Esc** | die Eingabezeile leeren |
 | **Ctrl+C** | beenden |
 | **q** | beenden (wenn die Eingabe leer ist) |
@@ -1290,8 +1302,11 @@ Plot. Nach jedem graph-Befehl listet die TUI die besonderen Punkte
 Befehl `table` (Abschnitt 2.4.2) funktioniert auch hier.
 
 `graph3d x ^ 2 - y ^ 2` zeichnet eine 3D-Fläche als ASCII-Drahtgitter.
-Drehe sie mit den Pfeiltasten und drücke die Leertaste, um die Konstante
-eines Schiebereglers zu animieren (Abschnitt 2.4.5).
+Drehe sie mit den Pfeiltasten, solange die Eingabe leer ist, und drücke
+die Leertaste, um die Konstante eines Schiebereglers zu animieren
+(Abschnitt 2.4.5). Die Hinweiszeile unten zeigt die Pfeil- und
+Leertasten-Hinweise nur, solange eine 3D-Fläche oder eine animierbare
+Kurve angezeigt wird.
 
 `graph save plot.svg` schreibt den aktuellen Plot als dasselbe SVG-Bild,
 das die Schaltfläche **SVG kopieren** der Web-App liefert; `graph3d save

@@ -65,6 +65,7 @@ fn pois_render_their_localized_labels() {
         label: "Wurzel".to_string(),
         x: 1.0,
         y: 0.0,
+        curve: 0,
     }];
     let svg = graph_svg(&[curve("x - 1")], &pois, None, true, 1.0);
     assert!(svg.contains("Wurzel (1, 0)"), "{svg}");

@@ -12,7 +12,6 @@ tui-history = Verlauf
 history = Verlauf
 clear-history = Verlauf leeren
 tui-graph = Graph
-tui-hints = Enter auswerten · Tab Tastenfeld/Verlauf · F10 Menü · Esc leeren · Pfeile drehen · Leertaste animieren · Ctrl+L Verlauf leeren · Ctrl+C beenden · q beenden
 web-session-only = die Web-App behält die Arbeit nur in dieser Sitzung; Speichern funktioniert in der Desktop-, Befehlszeilen- und Terminal-Version
 install-cli = epher-Befehl installieren
 install-cli-ok = Installiert — gib epher in einem beliebigen Terminal ein.
@@ -95,3 +94,8 @@ graph-width = Linienstärke
 view-horizontal = Horizontale Drehung
 view-vertical = Vertikale Drehung
 view-zoom = Zoom
+
+tui-hint-base-a = Enter auswerten · Tab Tastenfeld/Verlauf · F10 Menü · Esc leeren
+tui-hint-rotate =  · Pfeile drehen
+tui-hint-play =  · Leertaste animieren
+tui-hint-base-b =  · Ctrl+L Verlauf leeren · Ctrl+C beenden · q beenden

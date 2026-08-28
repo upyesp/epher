@@ -59,3 +59,25 @@ copy-button treatment on every code block.
 - The browser suites pin the page: three sections, ten/ four/ seven
   examples, copy buttons that copy the plain code text, and the nav
   item present on every page in every locale.
+
+## Amendment (2026-08-27): the app section comes first, four CLI examples moved into it, and a tap on a phone stages an example in the app
+
+The command-line section led the page, but the entry-field frontends are
+the ones most readers use. The **TUI, desktop app, and web app** section
+now comes first, the REPL second, and the command line last. Four plain
+calculations that were CLI examples (`epher "2 + 3 * 4"` and friends)
+moved into the app section as their first examples, reformatted for the
+entry field (`2 + 3 * 4`): a straightforward calculation, powers and
+roots, exact fractions, and defining a function and calling it on the
+same line (keys `ex-a8`–`ex-a11`, captions carried over; the old
+`ex-1c`/`ex-2c`/`ex-3c`/`ex-7c` keys are gone from the catalogs).
+
+On touch devices a tap anywhere on an example (outside its copy button)
+copies the code and opens the app with it **staged in the entry field,
+ready to run** (ADR-0035 amendment): the page stores the code under the
+`epher-example` localStorage key and navigates to `/pwa/`, and the app
+consumes the key at startup into its entry with the cursor at the end —
+on mobile without summoning the device keyboard, the same rule as guide
+code loads. The copy button still only copies (it stops propagation).
+The page's note (catalog key `ex-tap`) explains the gesture; desktop
+users keep the plain copy buttons.

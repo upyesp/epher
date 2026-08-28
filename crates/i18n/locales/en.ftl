@@ -11,7 +11,6 @@ tui-history = History
 history = History
 clear-history = Clear history
 tui-graph = Graph
-tui-hints = Enter evaluate · Tab keypad/history · F10 menu · Esc clear · arrows rotate · space animate · Ctrl+L clear history · Ctrl+C quit · q quit
 web-session-only = the web app keeps work in this session only; saving works in the desktop, command-line, and terminal versions
 install-cli = Install the epher command
 install-cli-ok = Installed — type epher in any terminal.
@@ -95,3 +94,8 @@ graph-width = Line width
 view-horizontal = Horizontal rotation
 view-vertical = Vertical rotation
 view-zoom = Zoom
+
+tui-hint-base-a = Enter evaluate · Tab keypad/history · F10 menu · Esc clear
+tui-hint-rotate =  · arrows rotate
+tui-hint-play =  · space animate
+tui-hint-base-b =  · Ctrl+L clear history · Ctrl+C quit · q quit

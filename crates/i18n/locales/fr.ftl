@@ -12,7 +12,6 @@ tui-history = Historique
 history = Historique
 clear-history = Effacer l'historique
 tui-graph = Graphique
-tui-hints = Entrée évaluer · Tab clavier/historique · F10 menu · Échap effacer · flèches pivoter · espace animer · Ctrl+L effacer l'historique · Ctrl+C quitter · q quitter
 web-session-only = l'application web conserve le travail uniquement dans cette session ; l'enregistrement fonctionne dans les versions bureau, ligne de commande et terminal
 install-cli = Installer la commande epher
 install-cli-ok = Installée — tapez epher dans n'importe quel terminal.
@@ -95,3 +94,8 @@ graph-width = Épaisseur de trait
 view-horizontal = Rotation horizontale
 view-vertical = Rotation verticale
 view-zoom = Zoom
+
+tui-hint-base-a = Entrée évaluer · Tab clavier/historique · F10 menu · Échap effacer
+tui-hint-rotate =  · flèches pivoter
+tui-hint-play =  · espace animer
+tui-hint-base-b =  · Ctrl+L effacer l'historique · Ctrl+C quitter · q quitter

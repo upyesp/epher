@@ -69,6 +69,7 @@ pub fn labeled_pois(points: &[InterestPoint], localizer: &Localizer) -> Vec<Poi>
             label: poi_label(p.kind, localizer),
             x: p.x,
             y: p.y,
+            curve: p.curve,
         })
         .collect()
 }

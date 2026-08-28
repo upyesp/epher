@@ -1271,3 +1271,132 @@ fn session_bindings_persist_to_the_shared_store() {
     assert_eq!(saved["x"], epher_core::Value::float(5.0));
     assert_eq!(saved["ans"], epher_core::Value::float(5.0));
 }
+
+// --- the entry's caret (ADR-0035 amendment, TUI) ----------------------
+
+#[test]
+fn set_input_puts_the_caret_at_the_end() {
+    let mut app = App::default();
+    app.set_input("2 + 3");
+    assert_eq!(app.cursor(), 5);
+}
+
+#[test]
+fn arrows_move_the_caret_without_touching_the_text() {
+    let mut app = App::default();
+    app.set_input("abc");
+    app.cursor_move(-1);
+    assert_eq!(app.cursor(), 2);
+    app.cursor_move(-1);
+    assert_eq!(app.cursor(), 1);
+    app.cursor_move(1);
+    assert_eq!(app.cursor(), 2);
+    app.cursor_move(1);
+    app.cursor_move(1);
+    assert_eq!(app.cursor(), 3);
+    app.cursor_move(-1);
+    app.cursor_move(-1);
+    app.cursor_move(-1);
+    assert_eq!(app.cursor(), 0);
+}
+
+#[test]
+fn typed_characters_insert_at_the_caret() {
+    let mut app = App::default();
+    app.set_input("ab");
+    app.cursor_move(-1);
+    app.push_char('X');
+    assert_eq!(app.input(), "aXb");
+    assert_eq!(app.cursor(), 2);
+    // a selected-range press is not a TUI concept; the caret just moves on
+    app.cursor_move(1);
+    app.push_char('!');
+    assert_eq!(app.input(), "aXb!");
+}
+
+#[test]
+fn backspace_deletes_before_the_caret() {
+    let mut app = App::default();
+    app.set_input("abc");
+    app.cursor_move(-1);
+    app.pop_char();
+    assert_eq!(app.input(), "ac");
+    assert_eq!(app.cursor(), 1);
+    // at the very start there is nothing to delete
+    app.cursor_move(-1);
+    app.pop_char();
+    assert_eq!(app.input(), "ac");
+}
+
+#[test]
+fn shift_enter_composes_a_multiline_script_in_the_entry() {
+    let mut app = App::default();
+    app.set_input("x = 1");
+    app.push_char('\n');
+    app.push_char('y');
+    app.push_char(' ');
+    app.push_char('=');
+    app.push_char(' ');
+    app.push_char('2');
+    assert_eq!(app.input(), "x = 1\ny = 2");
+    assert_eq!(app.cursor(), 11);
+    // the caret rides the line structure
+    assert_eq!(app.cursor_line_index(), 1);
+}
+
+#[test]
+fn cursor_lines_move_between_lines_keeping_the_column() {
+    let mut app = App::default();
+    app.set_input("ab\ncde\nf");
+    app.cursor_move(-1); // end of the last line ("f")
+    assert_eq!(app.cursor_line_index(), 2);
+    app.cursor_line(-1);
+    assert_eq!(app.cursor_line_index(), 1);
+    assert_eq!(app.cursor(), 3); // "cde" column 0
+    app.cursor_line(-1);
+    assert_eq!(app.cursor_line_index(), 0);
+    assert_eq!(app.cursor(), 0); // "ab" column 0
+    app.cursor_line(1);
+    assert_eq!(app.cursor_line_index(), 1);
+    app.cursor_line(1);
+    assert_eq!(app.cursor_line_index(), 2);
+}
+
+#[test]
+fn home_and_end_jump_to_the_lines_edges() {
+    let mut app = App::default();
+    app.set_input("12\n345");
+    app.cursor_move(-1);
+    app.cursor_move(-1);
+    app.cursor_line_edge(-1);
+    assert_eq!(app.cursor(), 3); // start of "345"
+    app.cursor_line_edge(1);
+    assert_eq!(app.cursor(), 6); // end of the input
+    app.cursor_line_edge(-1);
+    app.cursor_move(-1);
+    app.cursor_line_edge(-1);
+    assert_eq!(app.cursor(), 0); // start of "12"
+}
+
+#[test]
+fn a_mouse_click_places_the_caret_by_line_and_column() {
+    let mut app = App::default();
+    app.set_input("alpha\nbeta");
+    app.cursor_to(0, 2);
+    assert_eq!(app.cursor(), 2);
+    app.cursor_to(1, 3);
+    assert_eq!(app.cursor(), 9);
+    app.cursor_to(1, 99); // beyond the line: clamps to its end
+    assert_eq!(app.cursor(), 10);
+    app.cursor_to(99, 0); // beyond the text: end of the input
+    assert_eq!(app.cursor(), 10);
+}
+
+#[test]
+fn submitting_clears_the_caret_with_the_input() {
+    let mut app = App::default();
+    app.set_input("1 + 1");
+    app.cursor_move(-1);
+    app.submit();
+    assert_eq!(app.cursor(), 0);
+}

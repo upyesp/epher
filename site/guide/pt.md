@@ -755,9 +755,15 @@ do painel do gráfico faz o mesmo para curvas e superfícies 3D em
 conjunto. A TUI mantém o comando no seu menu **Graph**.
 
 No topo do painel de gráficos, ao lado de **Clear graph** e
-**Copy SVG**, a linha de opções permite ocultar a lista de pontos de
-interesse, ocultar os pontos destacados desenhados no próprio gráfico e
-ajustar a espessura das linhas com o controle **Espessura da linha**.
+**Copy SVG**, a barra de ferramentas permite ocultar a lista de pontos de
+interesse e os pontos destacados desenhados no próprio gráfico. O controle
+**Espessura da linha** fica à direita de **Copy SVG** (na sua própria
+linha, por baixo, no telemóvel): as curvas 2D têm um controlo de 0 a 4 em
+passos de 0.1, as superfícies 3D outro de 0 a 0.2 em passos de 0.01, só é
+mostrado o do tipo em vista, e cada tipo lembra o seu próprio valor. Cada
+entrada da legenda tem uma caixa de verificação, marcada por omissão:
+desmarcá-la esconde a curva do gráfico, dos seus pontos de interesse e da
+exportação SVG.
 
 ```epher
 graph x ^ 2
@@ -836,8 +842,8 @@ graph a * x ^ 2
 
 **Copiar SVG** copia o gráfico atual como uma imagem SVG autossuficiente
 para colar em documentos. As cores vão embutidas, então ele fica igual
-em qualquer lugar. O controle **Espessura da linha**, na parte inferior
-do painel, ajusta a espessura de cada linha desenhada.
+em qualquer lugar. As linhas de controlos e as constantes animadas ficam
+diretamente por baixo do gráfico, acima da lista de pontos de interesse.
 
 #### 2.4.4 Superfícies 3D
 
@@ -986,7 +992,10 @@ mesma forma aqui.
 Os comandos que escreve na CLI, no REPL, na TUI ou na aplicação de
 ambiente de trabalho juntam-se todos ao mesmo histórico, e a sessão
 também viaja: as variáveis que define e o valor `ans` seguem-no de
-uma versão para a seguinte.
+uma versão para a seguinte. O armazenamento partilhado é vivo: com duas
+versões abertas ao mesmo tempo, uma alteração numa reflete-se de imediato
+na outra (a aplicação de ambiente de trabalho e a TUI observam o
+armazenamento e atualizam-se sozinhas).
 
 > A aplicação web no navegador é a única versão que não usa este
 > armazenamento. Mantém cada sessão para si (capítulo 2.6).
@@ -1213,7 +1222,9 @@ epher tui
 
 O ecrã está dividido em painéis:
 
-- **Expressão**: a linha de entrada (em cima).
+- **Expressão**: a caixa de entrada (em cima). Shift+Enter começa uma
+  nova linha; as teclas de seta ou um clique do rato movem o cursor
+  dentro do texto.
 - O **resultado** atual logo por baixo.
 - **Histórico**: todas as linhas que introduziu, com a respetiva resposta.
 - **Gráfico**: o gráfico do comando `graph` (em baixo).
@@ -1223,8 +1234,10 @@ O ecrã está dividido em painéis:
 
 | Tecla | Ação |
 |---|---|
-| Escrever | adicionar à expressão |
-| **Enter** | avaliar |
+| Escrever | adicionar à expressão no cursor |
+| **Enter** | avaliar todo o script (uma entrada multilinha corre como um item do histórico) |
+| **Shift+Enter** | começar uma nova linha |
+| **← → ↑ ↓** | mover o cursor (com a entrada vazia: rodar a vista 3D) |
 | **Esc** | limpar a linha de entrada |
 | **Ctrl+C** | sair |
 | **q** | sair (quando a entrada está vazia) |
@@ -1281,8 +1294,11 @@ interseções) por baixo do gráfico. O comando `table` (secção 2.4.2)
 também funciona aqui.
 
 `graph3d x ^ 2 - y ^ 2` desenha uma superfície 3D como uma malha de
-arame em ASCII. Rode-a com as teclas de seta e prima a barra de espaço
-para animar uma constante de deslizador (secção 2.4.5).
+arame em ASCII. Rode-a com as teclas de seta enquanto a entrada estiver
+vazia, e prima a barra de espaço para animar uma constante de deslizador
+(secção 2.4.5). A linha de ajudas no fundo mostra as indicações de setas
+e espaço apenas enquanto estiver visível uma superfície 3D ou uma curva
+animável.
 
 `graph save plot.svg` grava o gráfico atual como a mesma imagem SVG que
 o botão **Copiar SVG** da aplicação web produz; `graph3d

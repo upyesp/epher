@@ -763,9 +763,15 @@ du panneau graphique fait la même chose pour les courbes et les surfaces 3D
 à la fois. La TUI conserve la commande dans son menu **Graph**.
 
 En haut du panneau de graphique, à côté de **Clear graph** et
-**Copy SVG**, la rangée d'options permet de masquer la liste des points
-d'intérêt, de masquer les points mis en évidence sur le tracé lui-même, et
-de régler l'épaisseur des lignes avec le curseur **Épaisseur de trait**.
+**Copy SVG**, la barre d'outils permet de masquer la liste des points
+d'intérêt et les points mis en évidence sur le tracé lui-même. Le curseur
+**Épaisseur de trait** se trouve à droite de **Copy SVG** (sur sa propre
+ligne, en dessous, sur téléphone) : les courbes 2D ont un curseur de 0 à 4
+par pas de 0.1, les surfaces 3D un autre de 0 à 0.2 par pas de 0.01, seul
+le curseur du type affiché est visible, et chaque type mémorise sa propre
+valeur. Chaque entrée de légende a une case à cocher, cochée par défaut :
+la décocher masque la courbe du tracé, de ses points d'intérêt et de
+l'export SVG.
 
 ```epher
 graph x ^ 2
@@ -845,8 +851,9 @@ graph a * x ^ 2
 
 **Copier le SVG** copie le tracé actuel comme une image SVG autonome à
 coller dans des documents. Les couleurs sont intégrées, le rendu est
-identique partout. Le curseur **Épaisseur de trait**, en bas du panneau,
-règle l'épaisseur de chaque ligne tracée.
+identique partout. Les rangées de curseurs et les constantes animées se
+trouvent directement sous le tracé, au-dessus de la liste des points
+d'intérêt.
 
 #### 2.4.4 Surfaces 3D
 
@@ -1000,7 +1007,10 @@ et `language` du chapitre 4 fonctionnent exactement pareil ici.
 Les commandes que vous tapez dans la CLI, le REPL, la TUI ou
 l'application de bureau rejoignent toutes le même historique, et la
 session voyage aussi : les variables que vous affectez et la valeur
-`ans` vous suivent d'une version à l'autre.
+`ans` vous suivent d'une version à l'autre. Le stockage partagé est
+vivant : lorsque deux versions sont ouvertes en même temps, un changement
+dans l'une se reflète immédiatement dans l'autre (l'application de bureau
+et la TUI observent le stockage et se rafraîchissent toutes seules).
 
 > L'application web dans le navigateur est la seule version qui n'utilise
 > pas ce stockage : chaque session vit isolée (chapitre 2.6).
@@ -1227,7 +1237,9 @@ epher tui
 
 L'écran est divisé en panneaux :
 
-- **Expression** : la ligne de saisie (en haut).
+- **Expression** : le champ de saisie (en haut). Shift+Entrée commence
+  une nouvelle ligne ; les touches fléchées ou un clic de souris
+  déplacent le curseur dans le texte.
 - Le **résultat** courant juste en dessous.
 - **Historique** : chaque ligne saisie, avec sa réponse.
 - **Graphique** : le tracé de la commande `graph` (en bas).
@@ -1237,8 +1249,10 @@ L'écran est divisé en panneaux :
 
 | Touche | Action |
 |---|---|
-| Taper | ajouter à l'expression |
-| **Entrée** | évaluer |
+| Taper | ajouter à l'expression au curseur |
+| **Entrée** | évaluer tout le script (une saisie multiligne s'exécute comme un seul élément d'historique) |
+| **Shift+Entrée** | commencer une nouvelle ligne |
+| **← → ↑ ↓** | déplacer le curseur (saisie vide : faire pivoter la vue 3D) |
 | **Échap** | effacer la ligne de saisie |
 | **Ctrl+C** | quitter |
 | **q** | quitter (quand la saisie est vide) |
@@ -1296,8 +1310,10 @@ extremums et intersections) sous le tracé. La commande `table`
 (section 2.4.2) fonctionne ici aussi.
 
 `graph3d x ^ 2 - y ^ 2` trace une surface 3D sous forme de filaire ASCII.
-Faites-la pivoter avec les touches fléchées et appuyez sur la barre
-d'espace pour animer une constante à curseur (section 2.4.5).
+Faites-la pivoter avec les touches fléchées tant que la saisie est vide,
+et appuyez sur la barre d'espace pour animer une constante à curseur
+(section 2.4.5). La ligne d'aide du bas n'affiche les indications flèches
+et espace que lorsqu'une surface 3D ou une courbe animable est affichée.
 
 `graph save plot.svg` écrit le tracé actuel comme la même image SVG que
 le bouton **Copier le SVG** de l'application web ; `graph3d

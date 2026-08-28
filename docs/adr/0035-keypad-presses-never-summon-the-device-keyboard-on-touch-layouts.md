@@ -242,3 +242,24 @@ mobile media query (<880 px): `.graph3d-hint { display: none }` hides it
 for touch layouts (and screen readers — `display: none` removes it from
 the accessibility tree, so mobile users never hear about arrow keys
 either). Desktop, the TUI, and the web at ≥880 px keep the hint.
+
+## Amendment (2026-08-27): two line-width sliders on every display, and the examples page stages code into the app on touch
+
+The kind-aware width slider (amended above) tied the range to the mobile
+layout; desktop kept one shared width. The slider is now **two controls
+on every display, one per graph kind, only the kind in view shown**: 2D
+0–4 step 0.1 (default 1.0), 3D 0–0.2 step 0.01 (default 0.1). Desktop
+remembers each kind independently too (`epher-line-width-2d` /
+`epher-line-width-3d`, legacy shared key seeds both), and each kind
+renders its own value. Placement: desktop — the pane toolbar right of
+**Copy SVG**; mobile — its own row below the toolbar (the `.graph-width`
+flex-basis under the 880px media query), where it stays a
+finger-friendly target. This supersedes ADR-0031's mobile-range
+paragraphs and the earlier per-kind-on-mobile clause of this ADR.
+
+The Examples page hands examples to the app on touch (ADR-0036
+amendment): a tap on an example copies it, stages it under the
+`epher-example` localStorage key, and opens `/pwa/`, where the app
+consumes it into the entry with the cursor at its end — on mobile
+without summoning the device keyboard, the same rule as guide code
+loads. The copy button still only copies.

@@ -164,3 +164,26 @@ kind-specific, and a failed plot never clears anything. The web frontend
 (desktop + PWA) and the TUI enforce the switch at their submit seams; the
 CLI's `Plots` state is untouched because `graph save` / `graph3d save`
 write separate SVG documents that never share a canvas.
+
+## Amendment (2026-08-27): per-kind line widths with separate sliders, and the legend's visibility checkboxes
+
+The line-width slider was one control serving both kinds (desktop) or
+switching ranges with the kind (mobile, ADR-0031/0035). It is now **two
+sliders, one per graph kind, only the kind in view shown**: 2D curves get
+0–4 in steps of 0.1 (default 1.0), 3D surfaces get 0–0.2 in steps of 0.01
+(default 0.1). Each kind remembers its own width under its own
+localStorage key on every display (desktop included — the legacy shared
+key still seeds both), and each kind's plot renders with its own value.
+The slider sits in the pane toolbar right of **Copy SVG** on desktop and
+wraps to its own row below the toolbar on mobile (`.graph-width`
+`flex-basis: 100%` under the 880px media query); the parameter sliders
+and play buttons stay below the plot per the earlier amendment.
+
+The 2D legend gets a checkbox in front of every entry, checked by
+default: unchecking hides that curve from the plot, its points of
+interest, and the SVG export (the export shows what the pane shows). The
+checkboxes are real labelled form controls (the curve's caption names
+them), so the plot can be restored without touching the expression.
+Points of interest now carry their owning curve's index
+(`InterestPoint::curve` / `Poi::curve`) so a hidden curve's points
+disappear with it. The TUI has no legend and is unaffected.

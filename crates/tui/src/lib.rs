@@ -104,6 +104,11 @@ pub struct Play {
 #[derive(Default)]
 pub struct App {
     input: String,
+    /// The insertion point inside `input` (byte offset): Left/Right and
+    /// a mouse click move it, typed characters insert there, Backspace
+    /// deletes before it (ADR-0035 amendment, TUI). Kept at the end
+    /// while the input is empty or after a submit.
+    cursor: usize,
     result: String,
     session: Session,
     graph: Vec<SampledCurve>,
@@ -185,6 +190,9 @@ pub struct Areas {
     pub guide_toc_len: usize,
     /// The history panel's scroll offset at draw time.
     pub history_scroll: u16,
+    /// The input panel's scroll offset at draw time (the caret line is
+    /// kept visible while a multi-line script overflows the pane).
+    pub input_scroll: u16,
     /// Whether the user guide view covered the frame.
     pub guide: bool,
 }
@@ -331,9 +339,19 @@ pub fn banks() -> &'static [(
 }
 
 impl App {
+    /// Replace the whole calculator state from a store reload
+    /// (ADR-0010 amendment): history, functions, constants, scripts, and
+    /// the bindings snapshot. The in-flight entry text and the cursor
+    /// survive; a reload never writes, so it cannot loop with the store
+    /// watcher.
+    pub fn set_session(&mut self, session: Session) {
+        self.session = session;
+    }
+
     pub fn with_session(session: Session) -> Self {
         Self {
             input: String::new(),
+            cursor: 0,
             result: String::new(),
             session,
             graph: Vec::new(),
@@ -422,10 +440,10 @@ impl App {
         self.kp_col = self.kp_col.min(len.saturating_sub(1));
     }
 
-    /// Apply the highlighted key: tokens append to the end of the input
-    /// (the terminal cursor already lives there); the digits bank's
-    /// action keys clear ("C") and backspace ("⌫") the input. The "="
-    /// key only marks the highlight — [`Self::keypad_is_submit`] tells
+    /// Apply the highlighted key: tokens insert at the cursor (the
+    /// terminal cursor sits wherever the caret is); the digits bank's
+    /// action keys clear ("C") and backspace ("⌫") at the caret. The
+    /// "=" key only marks the highlight — [`Self::keypad_is_submit`] tells
     /// the caller to run the entry's submit path instead.
     pub fn keypad_insert(&mut self) {
         let row = &BANKS[self.kp_bank].1[self.kp_row];
@@ -433,7 +451,11 @@ impl App {
         match (disp, token) {
             ("C", "") => self.clear_input(),
             ("⌫", "") => self.pop_char(),
-            _ => self.input.push_str(token),
+            _ => {
+                for c in token.chars() {
+                    self.push_char(c);
+                }
+            }
         }
     }
 
@@ -791,6 +813,7 @@ impl App {
 
     pub fn set_input(&mut self, input: &str) {
         self.input = input.to_string();
+        self.cursor = self.input.len();
     }
 
     pub fn input(&self) -> &str {
@@ -894,6 +917,7 @@ impl App {
 
     pub fn clear_input(&mut self) {
         self.input.clear();
+        self.cursor = 0;
     }
 
     /// Empty the history list (Ctrl+L); definitions and constants stay.
@@ -901,31 +925,165 @@ impl App {
         self.session.clear_history();
     }
 
-    pub fn push_char(&mut self, c: char) {
-        self.input.push(c);
+    /// The insertion point (byte offset) inside the input text.
+    pub fn cursor(&self) -> usize {
+        self.cursor.min(self.input.len())
     }
 
+    /// Insert a character at the cursor (ADR-0035 amendment): typing,
+    /// the keypad's token insert, and Shift+Enter's newline all land at
+    /// the insertion point, which moves past what was inserted.
+    pub fn push_char(&mut self, c: char) {
+        let at = self.cursor();
+        self.input.insert(at, c);
+        self.cursor = at + c.len_utf8();
+    }
+
+    /// Delete the character before the cursor; a selected range is not
+    /// a TUI concept, so this is just Backspace at the caret.
     pub fn pop_char(&mut self) {
-        self.input.pop();
+        let at = self.cursor();
+        if at == 0 {
+            return;
+        }
+        let start = self.input[..at]
+            .char_indices()
+            .next_back()
+            .map(|(i, _)| i)
+            .unwrap_or(0);
+        self.input.replace_range(start..at, "");
+        self.cursor = start;
+    }
+
+    /// Move the cursor one character left/right (byte-aware).
+    pub fn cursor_move(&mut self, dir: isize) {
+        let at = self.cursor();
+        let next = if dir < 0 {
+            self.input[..at]
+                .char_indices()
+                .next_back()
+                .map(|(i, _)| i)
+                .unwrap_or(0)
+        } else {
+            let next = self.input[at..]
+                .char_indices()
+                .nth(1)
+                .map(|(i, _)| at + i)
+                .unwrap_or(self.input.len());
+            next
+        };
+        self.cursor = next;
+    }
+
+    /// Move the cursor to the start/end of the line it is on
+    /// (`dir` < 0 home, > 0 end).
+    pub fn cursor_line_edge(&mut self, dir: isize) {
+        let at = self.cursor();
+        if dir < 0 {
+            let start = self.input[..at].rfind('\n').map(|i| i + 1).unwrap_or(0);
+            self.cursor = start;
+        } else {
+            let end = self.input[at..]
+                .find('\n')
+                .map(|i| at + i)
+                .unwrap_or(self.input.len());
+            self.cursor = end;
+        }
+    }
+
+    /// Move the cursor one line up/down, keeping its column (clamped to
+    /// the target line's length).
+    pub fn cursor_line(&mut self, dir: isize) {
+        let at = self.cursor();
+        let line_start = self.input[..at].rfind('\n').map(|i| i + 1).unwrap_or(0);
+        let line_end = self.input[at..]
+            .find('\n')
+            .map(|i| at + i)
+            .unwrap_or(self.input.len());
+        let col = self.input[line_start..at].chars().count();
+        let target = if dir < 0 {
+            // line above: from line_start back one more newline
+            if line_start == 0 {
+                return;
+            }
+            let prev_start = self.input[..line_start - 1]
+                .rfind('\n')
+                .map(|i| i + 1)
+                .unwrap_or(0);
+            (prev_start, line_start - 1)
+        } else {
+            if line_end == self.input.len() {
+                return;
+            }
+            let next_end = self.input[line_end + 1..]
+                .find('\n')
+                .map(|i| line_end + 1 + i)
+                .unwrap_or(self.input.len());
+            (line_end + 1, next_end)
+        };
+        let (start, end) = target;
+        let pos = self.input[start..end]
+            .char_indices()
+            .nth(col)
+            .map(|(i, _)| start + i)
+            .unwrap_or(end);
+        self.cursor = pos;
+    }
+
+    /// The number of the line the cursor sits on (0-based), for the
+    /// renderer's scroll and the mouse's row mapping.
+    pub fn cursor_line_index(&self) -> usize {
+        self.input[..self.cursor()]
+            .chars()
+            .filter(|&c| c == '\n')
+            .count()
+    }
+
+    /// Place the cursor at the byte offset for the given (line, column)
+    /// in character columns — the mouse's spelling of a caret move
+    /// (ADR-0035 amendment, TUI).
+    pub fn cursor_to(&mut self, line: usize, col: usize) {
+        let mut start = 0;
+        for _ in 0..line {
+            match self.input[start..].find('\n') {
+                Some(i) => start += i + 1,
+                None => {
+                    self.cursor = self.input.len();
+                    return;
+                }
+            }
+        }
+        let end = self.input[start..]
+            .find('\n')
+            .map(|i| start + i)
+            .unwrap_or(self.input.len());
+        let pos = self.input[start..end]
+            .char_indices()
+            .nth(col)
+            .map(|(i, _)| start + i)
+            .unwrap_or(end);
+        self.cursor = pos;
     }
 
     /// Evaluate the current input via the shared [`Session`].
     pub fn submit(&mut self) {
         self.result = self.session.submit(&self.input);
         self.input.clear();
+        self.cursor = 0;
     }
 
     /// Handle one submitted line the way the event loop does: shell commands
     /// dispatch through the shared kernel (epher-shell), `graph ` samples,
     /// `graph3d ` samples a surface, anything else evaluates — and history
-    /// persists. A line may join several statements with `;` (the same
-    /// separator as a newline, ADR-0001): each statement dispatches in
-    /// order, exactly as if typed one by one, but the history keeps the
-    /// script the way the user entered it — one entry per line, semicolons
-    /// intact, with the last answer appended when the final statement is
-    /// an evaluation. Returns the new language preference when a
-    /// `language` command changed it, so the caller can re-resolve its
-    /// Localizer.
+    /// persists. A line may join several statements with `;` or newlines
+    /// (the same separator, ADR-0001 — Shift+Enter composes them in the
+    /// entry, ADR-0035 amendment): each statement dispatches in order,
+    /// exactly as if typed one by one, but the history keeps the script
+    /// the way the user entered it — one entry per line, newlines and
+    /// semicolons intact, with the last answer appended when the final
+    /// statement is an evaluation. Returns the new language preference
+    /// when a `language` command changed it, so the caller can re-resolve
+    /// its Localizer.
     pub fn submit_line(
         &mut self,
         line: &str,
@@ -934,7 +1092,7 @@ impl App {
     ) -> Option<String> {
         let mut language = None;
         let pieces: Vec<&str> = line
-            .split(';')
+            .split([';', '\n'])
             .map(str::trim)
             .filter(|p| !p.is_empty())
             .collect();
@@ -1255,6 +1413,21 @@ impl App {
                 free_names(&expr, &mut names);
             }
         }
+        if let Some(n) = names
+            .into_iter()
+            .find(|n| self.session.env().constant(n.as_str()).is_some())
+        {
+            return Some(n);
+        }
+        self.curve_animated_constant()
+    }
+
+    /// The first constant referenced by a plotted CURVE — the "space
+    /// animates" hint shows only while one exists (ADR-0035 amendment),
+    /// because the play button's web counterpart only appears next to a
+    /// constant a curve uses.
+    fn curve_animated_constant(&self) -> Option<String> {
+        let mut names = std::collections::BTreeSet::new();
         for c in &self.graph {
             if let Ok(spec) = parse_graph_source(&c.source) {
                 match &spec.kind {
@@ -1587,7 +1760,13 @@ pub fn run() -> std::io::Result<()> {
 fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
     use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 
-    let store = DocStore::new(FsStore::new(default_store_dir()));
+    let store_dir = default_store_dir();
+    let store = DocStore::new(FsStore::new(&store_dir));
+    // Publish/subscribe (ADR-0010 amendment): the TUI writes its state
+    // immediately at every submit, and this watcher delivers a signal
+    // whenever another frontend (desktop app, CLI, another TUI) changes
+    // the shared store, so the open TUI refreshes live.
+    let store_rx = epher_store::watch::spawn_store_watcher(store_dir);
     let session = match load_session(&store) {
         Ok(s) => s,
         Err(e) => {
@@ -1619,22 +1798,49 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
     let mut last_click: Option<(std::time::Instant, u16, u16)> = None;
     loop {
         terminal.draw(|frame| draw(frame, &mut app, &localizer))?;
-        // While an animation plays, wait at most one tick for input so the
-        // plot advances on its own; otherwise block on the next event.
-        let event = if app.play().is_some() {
-            match event::poll(std::time::Duration::from_millis(50)) {
-                Ok(true) => Some(event::read()?),
-                Ok(false) => None,
-                Err(e) => return Err(e),
-            }
-        } else {
-            Some(event::read()?)
+        // The store watcher and the animation both need a bounded wait:
+        // the poll wakes every 50 ms, so key presses stay responsive and
+        // external store changes are noticed within one poll.
+        let event = match event::poll(std::time::Duration::from_millis(50)) {
+            Ok(true) => Some(event::read()?),
+            Ok(false) => None,
+            Err(e) => return Err(e),
         };
-        if app.play().is_some() {
-            if last_tick.elapsed() >= std::time::Duration::from_millis(120) {
-                app.tick();
-                last_tick = std::time::Instant::now();
+        // Another frontend wrote to the shared store (ADR-0010
+        // amendment): reload the session — history, functions,
+        // constants, scripts, and the bindings snapshot — keeping the
+        // in-flight entry text and the plot state untouched. Definitions
+        // the user created in THIS session but has not `save`d yet are
+        // replayed over the store's state, so a foreign write (or our
+        // own echo) cannot erase live work; the store's bindings win.
+        // Reloading never writes, so no loop is possible.
+        if epher_store::watch::drain_signal(&store_rx) {
+            if let Ok(mut fresh) = load_session(&store) {
+                for source in app.session().def_sources().values() {
+                    fresh.submit_quiet(source);
+                }
+                for source in app.session().const_sources().values() {
+                    fresh.submit_quiet(source);
+                }
+                app.set_session(fresh);
             }
+            if let Some(pref) = load_language(&store).unwrap_or(None) {
+                if localizer.locale() != pref {
+                    localizer = Localizer::resolve(Some(&pref), &[]);
+                }
+            }
+            if let Some(name) = load_theme(&store).unwrap_or(None) {
+                if let Some(theme) = Theme::from_str(&name) {
+                    app.set_theme(theme);
+                }
+            }
+            if let Some(pois) = load_pois(&store).unwrap_or(None) {
+                app.set_pois(pois);
+            }
+        }
+        if app.play().is_some() && last_tick.elapsed() >= std::time::Duration::from_millis(120) {
+            app.tick();
+            last_tick = std::time::Instant::now();
         }
         match event {
             Some(Event::Mouse(me)) => {
@@ -1769,6 +1975,76 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         KeyCode::Up if app.history_focused() => app.history_move(1),
                         KeyCode::Down if app.history_focused() => app.history_move(-1),
                         KeyCode::Esc if app.history_focused() => app.history_close(),
+                        // The entry owns the arrow keys while it holds text
+                        // (ADR-0035 amendment): Left/Right move the caret,
+                        // Up/Down move between lines of a multi-line script,
+                        // Home/End jump to the line's edges. The graph's
+                        // rotation arms below only take the arrows the entry
+                        // does not need (its input is empty), so typing never
+                        // loses an arrow key to the plot.
+                        KeyCode::Left
+                            if app.prompt_active().is_none()
+                                && app.menu_active().is_none()
+                                && !app.keypad_focused()
+                                && !app.history_focused()
+                                && !app.input().is_empty() =>
+                        {
+                            app.cursor_move(-1)
+                        }
+                        KeyCode::Right
+                            if app.prompt_active().is_none()
+                                && app.menu_active().is_none()
+                                && !app.keypad_focused()
+                                && !app.history_focused()
+                                && !app.input().is_empty() =>
+                        {
+                            app.cursor_move(1)
+                        }
+                        KeyCode::Up
+                            if app.prompt_active().is_none()
+                                && app.menu_active().is_none()
+                                && !app.keypad_focused()
+                                && !app.history_focused()
+                                && !app.input().is_empty() =>
+                        {
+                            app.cursor_line(-1)
+                        }
+                        KeyCode::Down
+                            if app.prompt_active().is_none()
+                                && app.menu_active().is_none()
+                                && !app.keypad_focused()
+                                && !app.history_focused()
+                                && !app.input().is_empty() =>
+                        {
+                            app.cursor_line(1)
+                        }
+                        KeyCode::Home
+                            if app.prompt_active().is_none()
+                                && !app.keypad_focused()
+                                && !app.history_focused()
+                                && app.menu_active().is_none() =>
+                        {
+                            app.cursor_line_edge(-1)
+                        }
+                        KeyCode::End
+                            if app.prompt_active().is_none()
+                                && !app.keypad_focused()
+                                && !app.history_focused()
+                                && app.menu_active().is_none() =>
+                        {
+                            app.cursor_line_edge(1)
+                        }
+                        // Shift+Enter starts a new line in the entry
+                        // (ADR-0035 amendment): the same gesture as the
+                        // desktop app and the web app. Plain Enter still
+                        // runs the whole multi-line script as one history
+                        // item.
+                        KeyCode::Enter
+                            if key.modifiers.contains(KeyModifiers::SHIFT)
+                                && app.prompt_active().is_none() =>
+                        {
+                            app.push_char('\n')
+                        }
                         // 3D orbit (ADR-0015): arrows rotate when the input line
                         // is empty, so typing never loses an arrow key.
                         KeyCode::Left if app.input().is_empty() => app.rotate_view(-0.15, 0.0),
@@ -1795,7 +2071,12 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         KeyCode::Esc => app.clear_input(),
                         _ => {}
                     }
-                    if is_enter && app.prompt_active().is_some() {
+                    // Shift+Enter is handled above (it inserts a newline);
+                    // every other Enter press — including pasted Ctrl+J —
+                    // runs the submit chain below.
+                    let shift_enter =
+                        key.code == KeyCode::Enter && key.modifiers.contains(KeyModifiers::SHIFT);
+                    if is_enter && !shift_enter && app.prompt_active().is_some() {
                         // Confirm the file prompt: execute, and either close
                         // with a success message or reopen with the path kept.
                         let kind = app.prompt_active().map(|(k, _)| k);
@@ -1831,19 +2112,22 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                                 }
                             }
                         }
-                    } else if is_enter && app.menu_active().is_some() {
+                    } else if is_enter && !shift_enter && app.menu_active().is_some() {
                         if let Some(action) = app.menu_activate() {
                             if perform_menu_action(&mut app, &store, &mut localizer, action) {
                                 return Ok(());
                             }
                         }
-                    } else if is_enter && app.history_focused() {
+                    } else if is_enter && !shift_enter && app.history_focused() {
                         // Pick the highlighted history line into the input
                         // (ADR-0027) — the user edits and re-runs it.
                         if let Some(line) = app.history_pick() {
                             app.set_input(&line);
                         }
-                    } else if is_enter && (!app.keypad_focused() || app.keypad_is_submit()) {
+                    } else if is_enter
+                        && !shift_enter
+                        && (!app.keypad_focused() || app.keypad_is_submit())
+                    {
                         // The entry's Enter and the keypad's "=" key run the
                         // same submit path (ADR-0016).
                         let line = app.input().trim().to_string();
@@ -1855,7 +2139,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         // multi-line paste leaves a clean slate for the next
                         // line instead of appending to the leftover.
                         app.clear_input();
-                    } else if is_enter {
+                    } else if is_enter && !shift_enter {
                         app.keypad_insert();
                     }
                 }
@@ -2026,6 +2310,15 @@ fn handle_mouse(
             if inside(areas.input, col, row) {
                 app.keypad_close();
                 app.history_close();
+                // A click inside the entry moves the caret to the
+                // clicked (line, column) — the mouse spelling of the
+                // Left/Right keys (ADR-0035 amendment). The click row is
+                // mapped through the pane's scroll to the text line, and
+                // the column through the pane's left border.
+                let line = (row.saturating_sub(areas.input.y.saturating_add(1)) as usize)
+                    + areas.input_scroll as usize;
+                let col = col.saturating_sub(areas.input.x.saturating_add(1)) as usize;
+                app.cursor_to(line, col);
                 return false;
             }
             if inside(areas.history, col, row) {
@@ -2462,10 +2755,42 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // from its real pane so narrower terminals shrink the grid instead
     // of clipping it. Everything fits 80×24.
     let wide = body.width >= 72;
-    let hint_text = localizer.lookup("tui-hints");
+    // The hint strip is composed from parts (ADR-0035 amendment): the
+    // arrow-key hint only names rotation while a 3D surface is displayed
+    // and the space hint only names animation while an animatable 2D
+    // graph is displayed — a hint must not advertise an affordance the
+    // current plot does not offer.
+    let has_surface = !app.surfaces().is_empty();
+    let animatable_2d = !app.graph().is_empty() && app.curve_animated_constant().is_some();
+    let hint_text = format!(
+        "{}{}{}{}",
+        localizer.lookup("tui-hint-base-a"),
+        if has_surface {
+            localizer.lookup("tui-hint-rotate")
+        } else {
+            String::new()
+        },
+        if animatable_2d {
+            localizer.lookup("tui-hint-play")
+        } else {
+            String::new()
+        },
+        localizer.lookup("tui-hint-base-b")
+    );
     let hint_rows = (hint_text.chars().count() as u16)
         .div_ceil(body.width.max(1))
         .clamp(1, 3);
+    // The entry grows with the script being composed (ADR-0035
+    // amendment): Shift+Enter starts new lines, and the pane shows up to
+    // four content rows, scrolling to keep the caret line visible. The
+    // file prompt stays one line (paths cannot contain newlines).
+    let input_lines = if app.prompt_active().is_some() {
+        1
+    } else {
+        app.input().chars().filter(|&c| c == '\n').count() + 1
+    };
+    let input_rows = input_lines.min(4);
+    let input_h = 2 + input_rows as u16;
     let (input_area, result_area, history_area, graph_area, keypad_area, hints_area) = if wide {
         let split =
             Layout::vertical([Constraint::Min(0), Constraint::Length(hint_rows)]).split(body);
@@ -2477,10 +2802,10 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         // (entry, result, history, keypad). The keypad pane is 8 rows:
         // the bank row plus the digits bank's five key rows.
         let calc_rows = Layout::vertical([
-            Constraint::Length(3), // input
-            Constraint::Length(1), // result
-            Constraint::Min(0),    // history
-            Constraint::Length(8), // keypad (bank row + 5 key rows)
+            Constraint::Length(input_h), // input (grows with the script)
+            Constraint::Length(1),       // result
+            Constraint::Min(0),          // history
+            Constraint::Length(8),       // keypad (bank row + 5 key rows)
         ])
         .split(calc_col);
         (
@@ -2496,7 +2821,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         // graph sharing what is left, then the always-visible keypad
         // and the wrapped hints.
         let rows = Layout::vertical([
-            Constraint::Length(3),         // input
+            Constraint::Length(input_h),   // input (grows with the script)
             Constraint::Length(1),         // result
             Constraint::Min(0),            // history
             Constraint::Min(0),            // graph
@@ -2523,8 +2848,13 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         }
         None => (localizer.lookup("tui-expression"), app.input().to_string()),
     };
-    // Record every panel's rect for the mouse (ADR-0034).
+    // Record every panel's rect for the mouse (ADR-0034). The input's
+    // scroll (caret-line keep-in-view) is recorded too, so a click can
+    // map its row back to the text's line.
+    let cursor_line = app.cursor_line_index();
+    let input_scroll = cursor_line.saturating_sub(input_rows.saturating_sub(1)) as u16;
     areas.input = input_area;
+    areas.input_scroll = input_scroll;
     areas.result = result_area;
     areas.history = history_area;
     areas.graph = graph_area;
@@ -2534,6 +2864,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     }
     let input = Paragraph::new(input_text.clone())
         .style(Style::default().fg(fg))
+        .scroll((input_scroll, 0))
         .block(block(input_title));
     frame.render_widget(input, input_area);
 
@@ -2804,15 +3135,23 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     }
     app.areas = areas;
 
-    // Focus visible: the terminal cursor must sit at the end of the input
-    // text, not wherever the shell left it.
-    let text_width = UnicodeWidthStr::width(input_text.as_str());
+    // Focus visible: the terminal cursor sits at the caret — the
+    // insertion point (ADR-0035 amendment), which arrow keys and mouse
+    // clicks move — inside the visible (scrolled) part of the entry.
+    let caret_line = cursor_line.saturating_sub(input_scroll as usize);
+    let at = app.cursor();
+    let line_start = input_text[..at].rfind('\n').map(|i| i + 1).unwrap_or(0);
+    let caret_col = UnicodeWidthStr::width(&input_text[line_start..at]) as u16;
     let x = input_area
         .x
         .saturating_add(1)
-        .saturating_add(text_width as u16)
+        .saturating_add(caret_col)
         .min(input_area.right().saturating_sub(2));
-    frame.set_cursor_position(Position::new(x, input_area.y + 1));
+    let y = input_area
+        .y
+        .saturating_add(1)
+        .saturating_add(caret_line as u16);
+    frame.set_cursor_position(Position::new(x, y));
 }
 
 /// The ASCII plot size: the graph panel's own dimensions (the renderer

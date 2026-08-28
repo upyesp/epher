@@ -12,7 +12,7 @@ use clap::Parser;
 use epher_store::persist;
 use epher_store::{DocStore, FsStore};
 use serde::Serialize;
-use tauri::{Manager, State};
+use tauri::{Emitter, Manager, State};
 
 /// The desktop's native store: one instance, managed by Tauri and shared by
 /// every command.
@@ -249,6 +249,35 @@ pub fn run() {
             quit
         ])
         .setup(|app| {
+            // Publish/subscribe for the shared store (ADR-0010
+            // amendment): the desktop writes every state change to the
+            // store immediately (the webview's save_* commands), and a
+            // watcher thread delivers a `store-changed` event whenever
+            // another frontend — the TUI, the REPL, a one-shot CLI run
+            // — writes the store, so the open app refreshes live.
+            // The watcher re-reads the store itself (the managed
+            // DesktopStore is not Send, and this thread is long-lived);
+            // FsStore is just a directory, so a second reader is
+            // trivially consistent. The webview applies the same
+            // InitState it consumed at startup.
+            let store_dir = persist::default_store_dir();
+            let store_rx = epher_store::watch::spawn_store_watcher(store_dir.clone());
+            let app_handle = app.handle().clone();
+            std::thread::Builder::new()
+                .name("epher-store-broadcast".into())
+                .spawn(move || {
+                    let store = DesktopStore::with_dir(store_dir);
+                    for _ in &store_rx {
+                        // Collapse the burst of atomic-write events into
+                        // one reload, then broadcast the fresh state.
+                        while store_rx.try_recv().is_ok() {}
+                        let Ok(state) = store.init() else {
+                            continue;
+                        };
+                        let _ = app_handle.emit("store-changed", &state);
+                    }
+                })
+                .ok();
             // Version in the title bar: every release ships an installer
             // with the same filename, and stale downloads are a recurring
             // support issue — a glance at the title settles which build is

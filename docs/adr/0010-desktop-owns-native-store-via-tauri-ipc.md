@@ -82,3 +82,31 @@ batch runs never write history or session state (unchanged behavior).
 The earlier ADR-0021 statement that `ans` is "never persisted" is
 superseded for the desktop installation; the browser PWA remains
 session-only (this ADR's PWA column is unchanged).
+
+## Amendment (2026-08-27): publish/subscribe — the shared store syncs live between open frontends, and the Windows store path is fixed
+
+The store is the single source of truth, but an open frontend only saw
+what it loaded at startup: history created in the TUI never appeared in
+an already-running desktop app until a restart. The shared-storage
+requirement is now a **publish/subscribe** contract (ADR-0010 amendment):
+
+- **Publish.** Every frontend writes each state change to the store
+  immediately as it happens: CLI/REPL per submitted line, TUI per
+  submit, desktop per webview submit (history and the session snapshot
+  together, plus language/theme on change). No batching, no save-on-quit.
+- **Subscribe.** The long-lived frontends watch the store directory
+  (epher-store's `watch` module, `notify` behind the `fs` feature) and
+  refresh in place when anything changes: the TUI reloads its session
+  and settings on a watcher signal (keeping the in-flight entry text),
+  and the desktop shell re-reads the store in a broadcast thread and
+  emits `store-changed` with the fresh `InitState`, which the webview
+  applies through the same path as startup. Reloads never write, so the
+  loop cannot feed itself. CLI one-shots and the REPL stay
+  subscribe-at-start (they are prompt/transient interfaces; their
+  per-line publish already covers the other direction).
+- **Windows store path.** `default_store_dir` fell back to `.epher` in
+  the current directory when `HOME` was unset — the normal case in
+  cmd/PowerShell — so the desktop app and the TUI looked at different
+  stores depending on where each was launched, and neither saw the
+  other's history. It now resolves `USERPROFILE` on Windows
+  (`%USERPROFILE%\.epher`), the same `~/.epher` every frontend uses.
