@@ -3,7 +3,7 @@
 //! tests pin the properties that make the output a standalone document.
 
 use epher_core::graph::{parse_graph_source, sample_spec, InterestKind};
-use epher_core::graph_svg::{graph3d_svg, graph_svg, Poi, DEFAULT_STROKE_WIDTH};
+use epher_core::graph_svg::{graph3d_svg, graph_svg, graph_svg_indexed, Poi, DEFAULT_STROKE_WIDTH};
 use epher_core::Env;
 
 fn curve(source: &str) -> epher_core::graph::SampledCurve {
@@ -111,4 +111,21 @@ fn extra_curves_are_solid_and_captioned() {
     assert!(svg.contains("y = x ^ 3"), "{svg}");
     // labels ride on the curve colors, haloed for legibility
     assert!(svg.contains(".label.curve-0 { fill: #2dd4bf; }"), "{svg}");
+}
+
+#[test]
+fn hidden_neighbour_keeps_original_palette_index() {
+    // ADR-0015 amendment: the web pane filters hidden curves out of the
+    // slice but must keep each curve's own colour — hiding the middle
+    // curve must not shift the remaining lines' palette entries.
+    let indexed = vec![
+        (0usize, curve("x ^ 2")),
+        (2usize, curve("x ^ 3")),
+    ];
+    let svg = graph_svg_indexed(&indexed, &[], None, true, DEFAULT_STROKE_WIDTH);
+    assert!(svg.contains("<polyline class=\"curve curve-0\""), "{svg}");
+    assert!(svg.contains("<polyline class=\"curve curve-2\""), "{svg}");
+    assert!(!svg.contains("curve-1\""), "{svg}");
+    assert!(svg.contains("y = x ^ 2"), "{svg}");
+    assert!(svg.contains("y = x ^ 3"), "{svg}");
 }

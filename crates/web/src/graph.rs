@@ -24,9 +24,9 @@ use yew::prelude::*;
 /// so an SVG saved from the TUI is byte-for-byte the app's plot. The
 /// re-exports keep this module's long-standing surface.
 pub use epher_core::graph_svg::{
-    aria_label, curve_caption, escape, fill_points, geometry, graph3d_svg, graph_svg, label,
-    layers_svg, polyline_points, segments, ticks, trace_nearest, Geometry, Poi, TracePoint, BOTTOM,
-    DEFAULT_STROKE_WIDTH, HEIGHT, LEFT, RIGHT, TOP, WIDTH,
+    aria_label, curve_caption, escape, fill_points, geometry, graph3d_svg, graph_svg,
+    graph_svg_indexed, label, layers_svg, polyline_points, segments, ticks, trace_nearest,
+    Geometry, Poi, TracePoint, BOTTOM, DEFAULT_STROKE_WIDTH, HEIGHT, LEFT, RIGHT, TOP, WIDTH,
 };
 /// The live 3D renderer's content (view box + mesh markup).
 pub fn surface_svg(
@@ -61,7 +61,10 @@ fn to_viewbox(el: &web_sys::Element, offset_x: f64, offset_y: f64) -> (f64, f64)
 
 #[derive(Properties, PartialEq)]
 pub struct GraphProps {
-    pub curves: Vec<SampledCurve>,
+    /// The plotted curves with their original palette indices: the pane
+    /// filters hidden curves out but each keeps its own colour class
+    /// (ADR-0015 amendment), so the drawn lines always match the legend.
+    pub curves: Vec<(usize, SampledCurve)>,
     pub pois: Vec<Poi>,
     pub trace: Option<TracePoint>,
     /// Settings → Graph (ADR-0019): draw the highlighted points on the
@@ -154,13 +157,15 @@ pub fn graph_html(props: &GraphProps) -> Html {
             listeners.set(bound);
         });
     }
-    let Some(geom) = geometry(&props.curves) else {
+    let all: Vec<epher_core::graph::SampledCurve> =
+        props.curves.iter().map(|(_, c)| c.clone()).collect();
+    let Some(geom) = geometry(&all) else {
         return html! {};
     };
     let y_span = geom.y_max - geom.y_min;
 
     let mut curve_layers = Vec::new();
-    for (i, c) in props.curves.iter().enumerate() {
+    for (i, c) in &props.curves {
         let segs = segments(&c.samples, y_span);
         if let Some(fill) = c.fill {
             let below = matches!(fill, epher_core::graph::Fill::Below);
@@ -246,8 +251,8 @@ pub fn graph_html(props: &GraphProps) -> Html {
     });
 
     html! {
-        <svg ref={svg_ref} viewBox={format!("0 0 {WIDTH} {HEIGHT}")} preserveAspectRatio="xMidYMid meet" role="img" aria-label={aria_label(&props.curves)} tabindex="0" xmlns="http://www.w3.org/2000/svg" style={format!("--curve-width: {}", props.line_width)}>
-            <title>{ aria_label(&props.curves) }</title>
+        <svg ref={svg_ref} viewBox={format!("0 0 {WIDTH} {HEIGHT}")} preserveAspectRatio="xMidYMid meet" role="img" aria-label={aria_label(&all)} tabindex="0" xmlns="http://www.w3.org/2000/svg" style={format!("--curve-width: {}", props.line_width)}>
+            <title>{ aria_label(&all) }</title>
             { for grid_lines }
             { x_axis }
             { y_axis }

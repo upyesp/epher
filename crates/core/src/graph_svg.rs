@@ -367,7 +367,27 @@ pub fn graph_svg(
     markers: bool,
     stroke_width: f64,
 ) -> String {
-    let Some(geom) = geometry(curves) else {
+    // The plain entry point draws every curve with its position in the
+    // slice as the palette index — the callers without hidden curves
+    // (TUI, shell, core tests) always pass full slices, so position and
+    // original index coincide.
+    let indexed: Vec<(usize, SampledCurve)> =
+        curves.iter().enumerate().map(|(i, c)| (i, c.clone())).collect();
+    graph_svg_indexed(&indexed, pois, trace, markers, stroke_width)
+}
+
+/// [`graph_svg`] with explicit palette indices: the web pane filters
+/// hidden curves out of the slice but must keep each curve's own colour
+/// (ADR-0015 amendment) — a hidden neighbour must not shift the palette.
+pub fn graph_svg_indexed(
+    curves: &[(usize, SampledCurve)],
+    pois: &[Poi],
+    trace: Option<TracePoint>,
+    markers: bool,
+    stroke_width: f64,
+) -> String {
+    let all: Vec<SampledCurve> = curves.iter().map(|(_, c)| c.clone()).collect();
+    let Some(geom) = geometry(&all) else {
         return String::new();
     };
     let y_span = geom.y_max - geom.y_min;
@@ -375,16 +395,16 @@ pub fn graph_svg(
     let mut svg = String::new();
     svg.push_str(&format!(
         "<svg viewBox=\"0 0 {WIDTH} {HEIGHT}\" width=\"{WIDTH}\" height=\"{HEIGHT}\" role=\"img\" aria-label=\"{}\" xmlns=\"http://www.w3.org/2000/svg\">",
-        escape(&aria_label(curves))
+        escape(&aria_label(&all))
     ));
-    svg.push_str(&format!("<title>{}</title>", escape(&aria_label(curves))));
+    svg.push_str(&format!("<title>{}</title>", escape(&aria_label(&all))));
     svg.push_str(&style_svg(stroke_width));
     svg.push_str(&format!(
         "<rect class=\"bg\" x=\"0\" y=\"0\" width=\"{WIDTH}\" height=\"{HEIGHT}\" />"
     ));
     svg.push_str(&layers_svg(&geom, geom.zero_axis));
 
-    for (i, c) in curves.iter().enumerate() {
+    for (i, c) in curves {
         let segs = segments(&c.samples, y_span);
         if let Some(fill) = c.fill {
             let below = matches!(fill, crate::graph::Fill::Below);

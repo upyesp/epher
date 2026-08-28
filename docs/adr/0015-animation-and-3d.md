@@ -187,3 +187,40 @@ them), so the plot can be restored without touching the expression.
 Points of interest now carry their owning curve's index
 (`InterestPoint::curve` / `Poi::curve`) so a hidden curve's points
 disappear with it. The TUI has no legend and is unaffected.
+
+## Amendment (2026-08-28): the animation tick is deadline-paced and minimal, and hidden curves never shift the palette
+
+Two playback defects reported against the web app and the desktop shell:
+
+- **A jerky, slowing frame rate under load.** The loop slept 120 ms and
+  then did its work, so the work time was added to the period on every
+  tick: on a loaded machine a 60 ms tick stretched the frame to 180 ms,
+  and the lag compounded. The loop now paces by deadlines: it does the
+  tick's work first, then rests until the next 120 ms mark (the
+  wasm-safe `js_sys::Date::now()` clock), so the period stays 120 ms
+  whenever the work fits and an overrunning tick never compounds — it
+  simply catches up at the next deadline.
+- **The tick did more than the frame needs.** It re-sampled every curve
+  and surface even when only one constant moved, re-ran the full
+  points-of-interest analysis (bisection and golden-section searches)
+  on every tick, and rewrote the visibility state each time. The tick
+  now re-samples only the curves/surfaces whose expression references
+  the animated constant, runs the analysis at 2 Hz (every fourth tick —
+  the markers track the moving curve without gating every frame), and
+  leaves the legend checkboxes untouched mid-playback.
+
+Storage is deliberately untouched by playback in every frontend: the
+web and the TUI persist only on user actions (submit, clear, menu
+actions; play/pause and the sliders commit through the session state,
+never through the store), verified on the desktop app by watching the
+store files' mtimes across five seconds of playback — they do not move.
+
+The legend checkboxes also exposed a palette bug: hiding a curve
+re-indexed the remaining visible curves (position 0, 1, …), so a line
+could change colour when a neighbour was hidden, disagreeing with its
+legend swatch. The pane and the SVG export now carry each curve's
+ORIGINAL palette index through the filter, so a hidden neighbour never
+shifts the remaining colours (the exported SVG gained the indexed
+variant `graph_svg_indexed`; the plain `graph_svg` keeps the
+position-index behaviour for the terminal frontends, which never
+filter).

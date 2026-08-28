@@ -137,6 +137,34 @@ fn resample_surfaces(surfaces: &mut [epher_core::graph::Surface], session: &Sess
     }
 }
 
+/// Does the curve's expression reference `name`? The animation tick only
+/// re-samples what moves (ADR-0015): curves that do not mention the
+/// animated constant keep their samples.
+fn curve_references(c: &SampledCurve, name: &str) -> bool {
+    let mut names = std::collections::BTreeSet::new();
+    match &c.kind {
+        epher_core::graph::CurveKind::Cartesian(e) => {
+            epher_core::graph::free_names(e, &mut names)
+        }
+        epher_core::graph::CurveKind::Parametric { x, y } => {
+            epher_core::graph::free_names(x, &mut names);
+            epher_core::graph::free_names(y, &mut names);
+        }
+        epher_core::graph::CurveKind::Polar(e) => epher_core::graph::free_names(e, &mut names),
+    }
+    names.contains(name)
+}
+
+/// The surface counterpart of [`curve_references`].
+fn surface_references(surface: &epher_core::graph::Surface, name: &str) -> bool {
+    let Ok((expr, _)) = epher_core::graph::parse_surface_source(&surface.source) else {
+        return true; // unknown: re-sample to be safe
+    };
+    let mut names = std::collections::BTreeSet::new();
+    epher_core::graph::free_names(&expr, &mut names);
+    names.contains(name)
+}
+
 /// Localized renderer labels for the analyzed points of interest.
 fn poi_labels(points: &[InterestPoint], localizer: &Localizer) -> Vec<graph::Poi> {
     points
@@ -803,6 +831,10 @@ fn epher_app() -> Html {
     let view_h_cell = use_state(|| Rc::new(RefCell::new(0.0_f64)));
     let view_v_cell = use_state(|| Rc::new(RefCell::new(0.0_f64)));
     let play = use_state(|| Option::<PlaySpec>::None);
+    // The playback analysis throttle: a persistent counter shared by the
+    // per-render on_tick closures (each render rebuilds the closure for
+    // the live_apply cell, so a captured Cell would reset every tick).
+    let tick_no = use_state(|| Rc::new(std::cell::RefCell::new(0u32)));
     // The live cell behind `play`: the animation loop reads and advances
     // it across ticks; Yew handles captured at spawn read stale snapshots.
     let play_cell = use_state(|| Rc::new(RefCell::new(Option::<PlaySpec>::None)));
@@ -1874,16 +1906,83 @@ fn epher_app() -> Html {
         })
     };
 
-    // The same resample logic, shared with the animation loop through a
+    // The playback tick: what the animation loop applies every step. It
+    // is deliberately lighter than a slider drag — the loop runs at a
+    // fixed cadence and must not fall behind on weak devices:
+    //   - only curves/surfaces that reference the animated constant are
+    //     re-sampled (the rest keep their samples),
+    //   - the points-of-interest analysis runs at 2 Hz (every 4th tick),
+    //     not per tick — the markers track the moving curve, but the
+    //     bisection/golden-section work does not gate every frame,
+    //   - the visibility checkboxes are never rewritten mid-playback.
+    // No storage is touched: the shared store only sees user actions
+    // (submit, play/pause, slider drags commit on release via submit;
+    // the animation itself never persists).
+    let on_tick = {
+        let session = session.clone();
+        let session_live = session_live.clone();
+        let graph = graph.clone();
+        let pois = pois.clone();
+        let localizer = localizer.clone();
+        let surface = surface.clone();
+        let surface3d_cell = surface3d_cell.clone();
+        let hidden = hidden.clone();
+        let tick_no = tick_no.clone();
+        let result = result.clone();
+        Callback::from(move |(name, value): (String, f64)| {
+            // Two steps: a borrow_mut must never be alive while the
+            // increment reads (that panics and kills the loop task).
+            let n = tick_no.borrow().wrapping_add(1);
+            *tick_no.borrow_mut() = n;
+            let mut s = session_live.borrow().clone();
+            s.set_constant(
+                name.clone(),
+                Value::float(value),
+                format!("const {name} = {value}"),
+            );
+            let mut curves = (*graph).clone();
+            for c in curves.iter_mut() {
+                if curve_references(c, &name) {
+                    if let Ok(samples) = sample_spec(&curve_spec(c), 120, s.env()) {
+                        c.samples = samples;
+                    }
+                }
+            }
+            let mut surfaces = (*surface).clone();
+            for sf in surfaces.iter_mut() {
+                if surface_references(sf, &name) {
+                    if let Ok(fresh) =
+                        epher_core::graph::sample_surface(&sf.source, 30, s.env())
+                    {
+                        *sf = fresh;
+                    }
+                }
+            }
+            if n % 4 == 0 {
+                let found = analyze(&curves, s.env());
+                pois.set(poi_labels(&found, &localizer));
+            }
+            session.set(s.clone());
+            *session_live.borrow_mut() = s;
+            if (*hidden).len() != curves.len() {
+                hidden.set(vec![false; curves.len()]);
+            }
+            graph.set(curves);
+            surface.set(surfaces.clone());
+            *surface3d_cell.borrow_mut() = !surfaces.is_empty();
+        })
+    };
+
+    // The same playback logic, shared with the animation loop through a
     // live cell (Yew handles captured by the loop would go stale). The
     // cell is refreshed after every render.
     let live_apply = use_state(|| Rc::new(RefCell::new(None::<Rc<dyn Fn(String, f64)>>)));
     {
         let live_apply = live_apply.clone();
-        let on_slider = on_slider.clone();
+        let on_tick = on_tick.clone();
         use_effect(move || {
             let apply: Rc<dyn Fn(String, f64)> = Rc::new(move |name: String, value: f64| {
-                on_slider.emit((name, value));
+                on_tick.emit((name, value));
             });
             *live_apply.borrow_mut() = Some(apply);
             || {}
@@ -1943,23 +2042,36 @@ fn epher_app() -> Html {
         // spawning another — playback would accelerate to a crash.
         use_effect_with((), move |_| {
             spawn_local(async move {
+                // One step per 120 ms: a fresh constant's slider spans
+                // ±10 (200 steps), so one full cycle takes 24 s — the
+                // vendor norm for playback speed.
+                // wasm32 has no std clock: the deadlines ride on
+                // js_sys::Date::now() (like the spin loop below).
+                let step = 120.0; // ms
+                let mut next = js_sys::Date::now() + step;
                 loop {
                     if (*play_cell).borrow().is_none() {
                         gloo_timers::future::sleep(std::time::Duration::from_millis(100)).await;
+                        next = js_sys::Date::now() + step;
                         continue;
                     }
-                    // One step per 120 ms: a fresh constant's slider spans
-                    // ±10 (200 steps), so one full cycle takes 24 s — the
-                    // vendor norm for playback speed.
-                    gloo_timers::future::sleep(std::time::Duration::from_millis(120)).await;
                     let Some(spec) = (*play_cell).borrow().clone() else {
                         continue;
                     };
-                    let next = spec.ticked();
-                    *play_cell.borrow_mut() = Some(next.clone());
+                    let stepped = spec.ticked();
+                    *play_cell.borrow_mut() = Some(stepped.clone());
                     if let Some(apply) = (*live_apply).borrow().as_ref() {
-                        apply(next.name.clone(), next.value);
+                        apply(stepped.name.clone(), stepped.value);
                     }
+                    // Work first, then rest until the deadline: the
+                    // period stays 120 ms whenever the tick fits inside
+                    // it, and an overrunning tick never compounds (the
+                    // next deadline is still one step away).
+                    let now = js_sys::Date::now();
+                    if now < next {
+                        gloo_timers::future::sleep(std::time::Duration::from_millis((next - now) as u64)).await;
+                    }
+                    next += step;
                 }
             });
             || {}
@@ -2174,11 +2286,11 @@ fn epher_app() -> Html {
             // The export shows what the pane shows (ADR-0015 amendment):
             // curves hidden by their legend checkboxes stay out of the
             // SVG, and so do their points of interest.
-            let visible: Vec<epher_core::graph::SampledCurve> = (*curves)
+            let visible: Vec<(usize, epher_core::graph::SampledCurve)> = (*curves)
                 .iter()
                 .enumerate()
                 .filter(|(i, _)| !(*hidden).get(*i).copied().unwrap_or(false))
-                .map(|(_, c)| c.clone())
+                .map(|(i, c)| (i, c.clone()))
                 .collect();
             let pois_visible: Vec<graph::Poi> = (*pois)
                 .iter()
@@ -2186,7 +2298,7 @@ fn epher_app() -> Html {
                 .cloned()
                 .collect();
             let svg = if !visible.is_empty() {
-                graph::graph_svg(&visible, &pois_visible, *trace, *poi_markers, *width_2d)
+                graph::graph_svg_indexed(&visible, &pois_visible, *trace, *poi_markers, *width_2d)
             } else if let Some(doc) = graph::graph3d_svg(
                 &surface,
                 &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
@@ -2506,12 +2618,15 @@ fn epher_app() -> Html {
         .collect();
 
     // The curves actually drawn: hidden ones stay out of the plot, the
-    // points of interest, and the SVG export (ADR-0015 amendment).
-    let visible_curves: Vec<epher_core::graph::SampledCurve> = (*graph)
+    // points of interest, and the SVG export (ADR-0015 amendment). Each
+    // curve keeps its ORIGINAL palette index — a hidden neighbour must
+    // not shift the remaining lines' colours (they must always match
+    // their legend entries).
+    let visible_curves: Vec<(usize, epher_core::graph::SampledCurve)> = (*graph)
         .iter()
         .enumerate()
         .filter(|(i, _)| !(*hidden).get(*i).copied().unwrap_or(false))
-        .map(|(_, c)| c.clone())
+        .map(|(i, c)| (i, c.clone()))
         .collect();
     let visible_pois: Vec<graph::Poi> = (*pois)
         .iter()
