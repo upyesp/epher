@@ -263,3 +263,34 @@ amendment): a tap on an example copies it, stages it under the
 consumes it into the entry with the cursor at its end — on mobile
 without summoning the device keyboard, the same rule as guide code
 loads. The copy button still only copies.
+
+## Amendment (2026-08-28): the app fits the space the browser actually shows
+
+Mobile browsers reserve screen area for their chrome — the address bar
+on top, and on browsers like Microsoft Edge a navigation bar at the
+bottom — and an installed PWA hands that space back. The Calculator
+page must never be obscured by either, in the browser or installed.
+
+The web app now detects the available space and sizes its layout to it
+(ADR-0016's fixed viewport stays fixed to the *visible* area):
+
+- The viewport meta uses `viewport-fit=cover`, so the layout may reach
+  the screen edges and `env(safe-area-inset-*)` report real insets.
+- A tiny head script tracks the **visual viewport** (`height` and
+  `offsetTop`, updating on its resize/scroll events and on window
+  resize) and publishes them as CSS custom properties `--avail-h` and
+  `--avail-top`. Browsers without `visualViewport` fall back to
+  `window.innerHeight`; the CSS falls back to `100dvh` when the script
+  has not run.
+- The app root is sized to `--avail-h` (the area that is actually
+  visible right now) and pushed below an overlapping top bar by
+  `--avail-top`; the top bar and the keypad are additionally padded by
+  `env(safe-area-inset-top)` / `env(safe-area-inset-bottom)` for
+  notches and gesture bars. Menus and overlays size against the same
+  property instead of the raw viewport.
+
+Because the visual viewport already accounts for every kind of chrome —
+expanded or collapsed address bars, Edge's bottom navigation, and the
+full screen of an installed standalone PWA (the manifest already uses
+`display: standalone`) — the same code covers all of them, and the
+layout updates live when the chrome appears or hides.

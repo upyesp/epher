@@ -1,6 +1,6 @@
 [package]
 name = "epher-tui"
-version = "0.4.32"
+version = "0.4.33"
 edition = "2021"
 license = "MIT"
 description = "Native full-screen terminal frontend."

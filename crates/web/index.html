@@ -4,7 +4,36 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <script>
+    // Fit the app to the space the browser actually shows (ADR-0035
+    // amendment): mobile browsers take screen area for the address bar
+    // and for bottom navigation (Edge, Chrome, Safari), while an
+    // installed PWA hands that space back. The visual viewport reports
+    // the area that is visible right now, so we track it and expose it
+    // as CSS custom properties: --avail-h is the current visible height
+    // and --avail-top the strip the browser chrome overlaps at the top.
+    // The app's layout is sized against them, and the properties update
+    // live as the chrome appears, shrinks, and disappears. Browsers
+    // without visualViewport fall back to the window height, and the
+    // CSS falls back to 100dvh when the script has not run.
+    (function () {
+      var root = document.documentElement;
+      function fit() {
+        var vv = window.visualViewport;
+        var h = vv ? vv.height : window.innerHeight;
+        var top = vv ? vv.offsetTop : 0;
+        root.style.setProperty("--avail-h", h + "px");
+        root.style.setProperty("--avail-top", top + "px");
+      }
+      fit();
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", fit);
+        window.visualViewport.addEventListener("scroll", fit);
+      }
+      window.addEventListener("resize", fit);
+    })();
+  </script>
   <title>epher</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
@@ -59,18 +88,30 @@
         "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", sans-serif;
       display: flex;
       justify-content: center;
-      min-height: 100dvh;
-      height: 100dvh;
+      /* The app is sized to the space that is actually visible: --avail-h
+         tracks the visual viewport (ADR-0035 amendment) and falls back to
+         the dynamic viewport unit in browsers without visualViewport.
+         --avail-top pushes the page below an overlapping top bar. */
+      margin-top: var(--avail-top, 0px);
+      min-height: var(--avail-h, 100dvh);
+      height: var(--avail-h, 100dvh);
       overflow: hidden;
     }
     .epher {
       position: relative;
       width: 100%;
       max-width: 100%;
-      height: 100dvh;
+      height: var(--avail-h, 100dvh);
       height: 100vh;
       display: flex;
       flex-direction: column;
+      /* viewport-fit=cover lets the layout reach the screen edges; these
+         insets push the app's chrome clear of notches and gesture bars,
+         in the browser and in the installed PWA alike (ADR-0035
+         amendment). They are 0 on desktop and in browsers without
+         safe-area insets. */
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
     h1 { font-size: 1.5rem; font-weight: 600; }
     /* --- the top bar: menu bar (ADR-0017) + mobile pane switch -------- */
@@ -128,7 +169,7 @@
       margin-inline-start: 0.25rem;
       z-index: 10;
       min-width: 190px;
-      max-height: calc(100dvh - 110px);
+      max-height: calc(var(--avail-h, 100dvh) - 110px);
       overflow-y: auto;
       background: var(--panel);
       border: 1px solid var(--border);
@@ -206,7 +247,7 @@
       left: 0.5rem;
       right: 0.5rem;
       z-index: 20;
-      max-height: min(70vh, calc(100dvh - 60px));
+      max-height: min(70vh, calc(var(--avail-h, 100dvh) - 60px));
       overflow-y: auto;
       background: var(--panel);
       border: 1px solid var(--border);

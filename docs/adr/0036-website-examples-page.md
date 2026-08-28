@@ -81,3 +81,19 @@ on mobile without summoning the device keyboard, the same rule as guide
 code loads. The copy button still only copies (it stops propagation).
 The page's note (catalog key `ex-tap`) explains the gesture; desktop
 users keep the plain copy buttons.
+
+## Amendment (2026-08-28): the REPL section closes the page, and the app section shows arithmetic across number bases
+
+The previous amendment put the command line last, but the REPL's
+session-style blocks (`epher>` prompt, answers feeding `ans`) read best
+at the very end of the page. The section order is now **TUI, desktop
+app, and web app**, then **the command line**, then **the REPL** last.
+The catalog keys are unchanged — order lives in
+`scripts/build-examples.mjs` only.
+
+The app section gained one more example near the top, after the four
+moved calculations (key `ex-a12`): **arithmetic across number bases** —
+`0xff + 0b1` mixes hex and binary in one expression, and `hex(ans)`
+spells the answer as hex (`0x100`). It shows the `0x`/`0b` prefixes and
+the `hex` conversion function (ADR-0022) in one two-line script, and
+fits the section's plain entry-field format.

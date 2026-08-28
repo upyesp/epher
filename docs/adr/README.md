@@ -59,8 +59,8 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0032 | Dark Windows launch, slider ends, 3D spin controls, vertical icon rail, and the bare hero command | 2026-08-25 | accepted |
 | 0033 | TUI layout fits 80×24 — always-visible keypad, wrapped hints, and sectioned settings | 2026-08-25 | accepted |
 | 0034 | TUI mouse support — menus, history, keypad, and graph manipulation | 2026-08-25 | accepted |
-| 0035 | Mobile PWA usability — the onscreen keypad is the primary input, and a drawn plot slides into view (file name keeps the original keypad-focus title) (amended 2026-08-26, 2026-08-27: touch no-arrow hints, per-kind sliders, examples tap-to-stage) | 2026-08-25 (amended 2026-08-26, 2026-08-27) | accepted |
-| 0036 | The website Examples page — copyable code for every frontend (amended: the app section leads, four CLI examples moved into it, and touch taps stage examples in the app) | 2026-08-27 (amended 2026-08-27) | accepted |
+| 0035 | Mobile PWA usability — the onscreen keypad is the primary input, and a drawn plot slides into view (file name keeps the original keypad-focus title) (amended 2026-08-26, 2026-08-27, 2026-08-28: touch no-arrow hints, per-kind sliders, examples tap-to-stage, visible-space fitting) | 2026-08-25 (amended 2026-08-26, 2026-08-27) | accepted |
+| 0036 | The website Examples page — copyable code for every frontend (amended 2026-08-27: the app section leads, four CLI examples moved into it, touch taps stage examples in the app; amended 2026-08-28: base-conversion example in the app section, the REPL section last) | 2026-08-27 (amended 2026-08-27, 2026-08-28) | accepted |
 
 ## Decision chains
 

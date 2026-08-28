@@ -177,6 +177,20 @@
 </div>
 </figure>
 <figure class="example-item">
+<figcaption data-i18n="ex-a12">Arithmetic across number bases: `0xff` is hex, `0b1` is binary, and `hex(...)` spells the answer as hex.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher"><span class="tok-num">0</span>xff + <span class="tok-num">0</span>b1
+<span class="tok-fn">hex</span>(ans)</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
 <figcaption data-i18n="ex-a1">A multi-line script. Shift+Enter starts a new line, Enter runs the whole script as one history item.</figcaption>
 <div class="example">
 <pre tabindex="0"><code class="language-epher">x = <span class="tok-num">10</span>
@@ -273,66 +287,6 @@ y ^ <span class="tok-num">2</span></code></pre>
 </figure>
 </section>
 <section class="ex-section">
-<h2 data-i18n="ex-h-repl">The REPL</h2>
-<p data-i18n="ex-repl-intro">Start an interactive session with `epher repl` and type after the `epher&gt;` prompt. These blocks run one after another in the same session. Each answer feeds the next line's `ans`.</p>
-<figure class="example-item">
-<figcaption data-i18n="ex-r1">The first calculation of the session.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-epher">epher&gt; <span class="tok-num">2</span> + <span class="tok-num">3</span>
-= <span class="tok-num">5</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-r2">`ans` holds the previous answer. Build on it.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-epher">epher&gt; ans * <span class="tok-num">10</span>
-= <span class="tok-num">50</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-r3">`ans` follows every new answer down the session.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-epher">epher&gt; ans + <span class="tok-num">2</span>
-= <span class="tok-num">52</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-<figure class="example-item">
-<figcaption data-i18n="ex-r4">Use `ans` inside a larger expression.</figcaption>
-<div class="example">
-<pre tabindex="0"><code class="language-epher">epher&gt; (ans - <span class="tok-num">12</span>) ^ <span class="tok-num">2</span>
-= <span class="tok-num">1600</span></code></pre>
-<div class="example-bar">
-<button type="button" class="copy-btn">
-<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
-<span class="copy-label" data-i18n="copy">Copy</span>
-</button>
-</div>
-</div>
-</figure>
-</section>
-<section class="ex-section">
 <h2 data-i18n="ex-h-cli">The command line</h2>
 <p data-i18n="ex-cli-intro">One-shot calculations, piped scripts, and SVG exports. Copy an example from those below into any shell.</p>
 <figure class="example-item">
@@ -404,6 +358,66 @@ y ^ <span class="tok-num">2</span></code></pre>
 <figcaption data-i18n="ex-10c">A 3D surface saved as an SVG image file.</figcaption>
 <div class="example">
 <pre tabindex="0"><code class="language-sh">epher <span class="tok-str">&quot;graph3d x ^ 2 - y ^ 2; graph3d save saddle.svg&quot;</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+</section>
+<section class="ex-section">
+<h2 data-i18n="ex-h-repl">The REPL</h2>
+<p data-i18n="ex-repl-intro">Start an interactive session with `epher repl` and type after the `epher&gt;` prompt. These blocks run one after another in the same session. Each answer feeds the next line's `ans`.</p>
+<figure class="example-item">
+<figcaption data-i18n="ex-r1">The first calculation of the session.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher">epher&gt; <span class="tok-num">2</span> + <span class="tok-num">3</span>
+= <span class="tok-num">5</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-r2">`ans` holds the previous answer. Build on it.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher">epher&gt; ans * <span class="tok-num">10</span>
+= <span class="tok-num">50</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-r3">`ans` follows every new answer down the session.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher">epher&gt; ans + <span class="tok-num">2</span>
+= <span class="tok-num">52</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-r4">Use `ans` inside a larger expression.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher">epher&gt; (ans - <span class="tok-num">12</span>) ^ <span class="tok-num">2</span>
+= <span class="tok-num">1600</span></code></pre>
 <div class="example-bar">
 <button type="button" class="copy-btn">
 <svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
