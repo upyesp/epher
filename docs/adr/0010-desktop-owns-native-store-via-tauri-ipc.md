@@ -110,3 +110,30 @@ requirement is now a **publish/subscribe** contract (ADR-0010 amendment):
   stores depending on where each was launched, and neither saw the
   other's history. It now resolves `USERPROFILE` on Windows
   (`%USERPROFILE%\.epher`), the same `~/.epher` every frontend uses.
+
+## Amendment (2026-08-28): the desktop's own session saves and reloads never lose live constants
+
+Two defects in the desktop publish path made the guide's animated
+examples fail in the installed app (the 3D one: `const a = 1` then
+`graph3d sin(a * (x ^ 2 + y ^ 2)) from -3 to 3` errored with "unknown
+name: a", so no plot, slider, or play button appeared):
+
+- **The session save never crossed the Linux IPC.** The webview sent
+  the bindings as a JS `Map` (serde_wasm_bindgen renders `HashMap`
+  that way), which the webkitgtk IPC cannot transport, and a bare
+  array of pairs did not match the command's field name; the
+  `save_session` command silently never ran and
+  `setting/session.json` was never written. The bindings now travel
+  in a struct (`SessionArgs`, field `bindings`), the same shape as
+  every other save command, and the command parameter carries the
+  matching name.
+- **A reload could observe the pre-submit session.** The
+  store-changed apply rebuilt the session from the store and replayed
+  the live session's `def`/`const` sources, but it read them through
+  the Yew state handle, whose deref can still hold the value from
+  before a `set` made in another callback; the replay then saw no
+  constants and the fresh submit's constant vanished. The live
+  sources now come from an `Rc<RefCell<Session>>` live cell that the
+  submit, the slider, and the apply all read and write in lockstep
+  with the render state (the project's stale-deref rule), so the
+  merge always sees the current session.

@@ -733,6 +733,11 @@ fn apply_open_history(
 #[function_component(EpherApp)]
 fn epher_app() -> Html {
     let session = use_state(Session::new);
+    // The live session cell (stale-deref rule): the store-changed apply
+    // and the submit both read and write this Rc<RefCell<Session>> in
+    // lockstep with the render state, so a callback never observes the
+    // pre-set value of the Yew handle.
+    let session_live = use_state(|| Rc::new(RefCell::new(Session::new())));
     let input = use_state(String::new);
     let form_ref = use_node_ref();
     let input_ref = use_node_ref();
@@ -867,6 +872,8 @@ fn epher_app() -> Html {
     // mirrors the shared store.
     let apply_store_state = {
         let session = session.clone();
+        let session_live = session_live.clone();
+        let result = result.clone();
         let localizer = localizer.clone();
         let theme = theme.clone();
         move |state: InitState| {
@@ -877,18 +884,28 @@ fn epher_app() -> Html {
             // Keep the definitions the user created in THIS session but
             // has not `save`d yet: a store write from another frontend
             // (or our own echo) must not erase live work. The store's
-            // bindings win over anything the replay re-applied.
-            for source in session.def_sources().values() {
-                s.submit_quiet(source);
-            }
-            for source in session.const_sources().values() {
-                s.submit_quiet(source);
+            // bindings win over anything the replay re-applied. The
+            // sources come from the live cell, never from the Yew state
+            // handle: a deref of the handle can still hold the pre-set
+            // value when this callback runs right after a submit, which
+            // silently dropped freshly typed constants on reload
+            // (v0.4.34: `const a = 1` then `graph3d …a…` errored with
+            // "unknown name: a" on the desktop app).
+            {
+                let live = session_live.borrow();
+                for source in live.def_sources().values() {
+                    s.submit_quiet(source);
+                }
+                for source in live.const_sources().values() {
+                    s.submit_quiet(source);
+                }
             }
             // The shared session snapshot (ADR-0010 amendment): bindings
             // saved by whichever CLI/REPL/TUI/desktop frontend ran last —
             // `ans` and every user assignment carry over.
             s.restore_bindings(&state.session);
-            session.set(s);
+            session.set(s.clone());
+            *session_live.borrow_mut() = s;
             if let Some(code) = state.language {
                 localizer.set(Localizer::resolve(Some(&code), &[]));
             }
@@ -1502,6 +1519,7 @@ fn epher_app() -> Html {
     });
     let on_submit = {
         let session = session.clone();
+        let session_live = session_live.clone();
         let input = input.clone();
         let result = result.clone();
         let localizer = localizer.clone();
@@ -1528,7 +1546,7 @@ fn epher_app() -> Html {
             // the REPL and piped mode. Yew state handles do not expose
             // writes made earlier in the same callback, so the loop works
             // on locals and the states are published once, after the loop.
-            let mut s = (*session).clone();
+            let mut s = session_live.borrow().clone();
             let mut curves = (*graph).clone();
             let mut surfaces = (*surface).clone();
             // Mobile: a submit that empties the graph pane slides the
@@ -1808,6 +1826,7 @@ fn epher_app() -> Html {
             pois.set(labels);
             trace.set(None);
             session.set(s.clone());
+            *session_live.borrow_mut() = s.clone();
             input.set(String::new());
             if cleared {
                 scroll_pane.emit("calc-pane");
@@ -1826,6 +1845,7 @@ fn epher_app() -> Html {
     // environment and re-runs the analysis (ADR-0014).
     let on_slider = {
         let session = session.clone();
+        let session_live = session_live.clone();
         let graph = graph.clone();
         let pois = pois.clone();
         let localizer = localizer.clone();
@@ -1833,7 +1853,7 @@ fn epher_app() -> Html {
         let surface3d_cell = surface3d_cell.clone();
         let hidden = hidden.clone();
         Callback::from(move |(name, value): (String, f64)| {
-            let mut s = (*session).clone();
+            let mut s = session_live.borrow().clone();
             s.set_constant(
                 name.clone(),
                 Value::float(value),
@@ -1844,7 +1864,8 @@ fn epher_app() -> Html {
             let mut surfaces = (*surface).clone();
             resample_surfaces(&mut surfaces, &s);
             let found = analyze(&curves, s.env());
-            session.set(s);
+            session.set(s.clone());
+            *session_live.borrow_mut() = s;
             hidden.set(vec![false; curves.len()]);
             graph.set(curves);
             surface.set(surfaces.clone());
@@ -2460,9 +2481,12 @@ fn epher_app() -> Html {
             let caption = graph::curve_caption(c);
             let checked = !(*hidden).get(i).copied().unwrap_or(false);
             let on_toggle_curve = on_toggle_curve.clone();
+            // The curve class lives on the label so `--curve` (ADR-0014)
+            // inherits into both the swatch line and the checkbox, which
+            // then renders in the line's own colour.
             html! {
                 <li class="legend-item">
-                    <label class="legend-check">
+                    <label class={format!("legend-check curve-{i}")}>
                         <input type="checkbox" checked={checked} aria-label={caption.clone()}
                             onchange={Callback::from(move |e: web_sys::Event| {
                                 if let Some(el) = e
@@ -2473,7 +2497,7 @@ fn epher_app() -> Html {
                                 }
                             })}
                         />
-                        <span class="swatch curve-{i}" aria-hidden="true"></span>
+                        <span class="swatch" aria-hidden="true"></span>
                         { caption }
                     </label>
                 </li>

@@ -131,8 +131,20 @@ fn save_history(state: State<DesktopStore>, history: Vec<String>) -> Result<(), 
 #[tauri::command]
 fn save_session(
     state: State<DesktopStore>,
-    session: std::collections::HashMap<String, epher_core::Value>,
+    bindings: Vec<(String, epher_core::Value)>,
 ) -> Result<(), String> {
+    // The webview ships the bindings inside a struct (SessionArgs), the
+    // same shape as every other save command: serde_wasm_bindgen renders
+    // HashMap as a JS Map, which the Linux webkitgtk IPC cannot
+    // transport — the save silently never arrived, so the desktop app
+    // never wrote setting/session.json.
+    // The webview ships the bindings inside a struct (SessionArgs, field
+    // `bindings`), the same shape as every other save command: the raw
+    // HashMap rendered as a JS Map that the Linux webkitgtk IPC drops,
+    // and a bare array never matched the command's field name, so the
+    // desktop app never wrote setting/session.json before.
+    let session: std::collections::HashMap<String, epher_core::Value> =
+        bindings.into_iter().collect();
     state.save_session(&session).map_err(|e| e.to_string())
 }
 

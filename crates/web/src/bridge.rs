@@ -125,11 +125,26 @@ impl Bridge {
     /// Persist the shared session snapshot (ADR-0010 amendment): the
     /// environment's bindings — user assignments and `ans` — so the next
     /// CLI/REPL/TUI/desktop frontend starts where this one left off.
+    /// The bindings travel as an array of pairs, not the HashMap itself:
+    /// serde_wasm_bindgen serializes HashMap as a JS Map, which the
+    /// Linux webkitgtk IPC cannot transport (the save silently never
+    /// arrived and setting/session.json was never written); an array of
+    /// [name, value] pairs is plain JSON on every platform.
     pub fn save_session_state(
         self,
         bindings: &std::collections::HashMap<String, epher_core::Value>,
     ) {
-        let args = serde_wasm_bindgen::to_value(bindings).unwrap_or(JsValue::UNDEFINED);
+        let pairs: Vec<(String, epher_core::Value)> = bindings
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect();
+        // The same struct shape as every other save command: a plain
+        // object survives every IPC transport (the raw HashMap rendered
+        // as a JS Map, which the Linux webkitgtk IPC drops; even a bare
+        // array of pairs never arrived, so the struct is the safest
+        // wire format).
+        let args = serde_wasm_bindgen::to_value(&SessionArgs { bindings: pairs })
+            .unwrap_or(JsValue::UNDEFINED);
         self.spawn("save_session", args);
     }
 
@@ -232,6 +247,11 @@ struct SaveArgs<'a> {
 struct SaveFileArgs<'a> {
     content: &'a str,
     default_name: &'a str,
+}
+
+#[derive(serde::Serialize)]
+struct SessionArgs {
+    bindings: Vec<(String, epher_core::Value)>,
 }
 
 #[derive(serde::Serialize)]

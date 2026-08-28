@@ -77,6 +77,19 @@ jobs:
         with:
           version: "v0.21.14"
 
+      - name: Build the web app
+        # The desktop shell embeds crates/web/dist (frontendDist), so the
+        # embedded PWA must be built here with the exact command the pages
+        # workflow uses. beforeBuildCommand was removed from tauri.conf.json
+        # so `cargo tauri build` embeds THIS build unchanged — a second,
+        # divergent trunk run once shipped a stale webview into the
+        # installers (v0.4.34: the reload-merge fix was missing, constants
+        # vanished on store reloads, and the guide's 3D animation example
+        # errored with "unknown name"). The smoke test below verifies the
+        # hash made it into the binary.
+        run: trunk build --release
+        working-directory: crates/web
+
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
         run: |
@@ -107,6 +120,11 @@ jobs:
           grep -q 'stroke-width: 1.00' "$OUT/curves.svg"
           "$BIN" $'graph3d x^2 - y^2\ngraph3d save '"$OUT"'/surface.svg' >/dev/null
           grep -q 'polyline points' "$OUT/surface.svg"
+          # The embedded webview must be THIS run's web build: the asset
+          # filename (trunk's content hash) appears verbatim in the binary.
+          HASH="$(grep -o 'epher-web-[a-f0-9]*\.js' "$GITHUB_WORKSPACE/crates/web/dist/index.html" | head -1)"
+          strings "$BIN" | grep -qF "$HASH"
+          echo "embedded web build: $HASH"
 
       - name: Package bundles
         shell: bash
