@@ -294,3 +294,12 @@ expanded or collapsed address bars, Edge's bottom navigation, and the
 full screen of an installed standalone PWA (the manifest already uses
 `display: standalone`) — the same code covers all of them, and the
 layout updates live when the chrome appears or hides.
+
+The reported height is clamped to the layout viewport, and the
+measurement is refreshed on window resize, orientation change, and
+`pageshow` (back/forward cache restores), so a browser whose chrome
+state changed keeps the app fitted. The `.epher` height declaration
+list is ordered fallback-first (`100vh`, then the variable): the last
+declaration wins the cascade, and a trailing `100vh` would pin the app
+to the full viewport and hide the keypad's bottom row under bottom
+chrome on Edge and Firefox on Android.

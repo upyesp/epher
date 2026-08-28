@@ -21,7 +21,10 @@
       var root = document.documentElement;
       function fit() {
         var vv = window.visualViewport;
-        var h = vv ? vv.height : window.innerHeight;
+        // The visual viewport is the area not covered by browser chrome;
+        // clamp it to the layout viewport in case a browser reports
+        // more than the page can ever show.
+        var h = vv ? Math.min(vv.height, window.innerHeight) : window.innerHeight;
         var top = vv ? vv.offsetTop : 0;
         root.style.setProperty("--avail-h", h + "px");
         root.style.setProperty("--avail-top", top + "px");
@@ -31,7 +34,12 @@
         window.visualViewport.addEventListener("resize", fit);
         window.visualViewport.addEventListener("scroll", fit);
       }
+      // Resizes, rotation, and back/forward cache restores can all
+      // change how much browser chrome covers the page, so re-measure
+      // on every one of them.
       window.addEventListener("resize", fit);
+      window.addEventListener("orientationchange", fit);
+      window.addEventListener("pageshow", fit);
     })();
   </script>
   <title>epher</title>
@@ -101,8 +109,14 @@
       position: relative;
       width: 100%;
       max-width: 100%;
-      height: var(--avail-h, 100dvh);
+      /* Declaration order is load-bearing: 100vh is the fallback for
+         browsers without the dynamic viewport, and the --avail-h line
+         must come LAST so it wins the cascade everywhere else. A
+         trailing 100vh here once pinned the app to the full viewport,
+         hiding the keypad's bottom row under the bottom chrome of Edge
+         and Firefox on Android (ADR-0035 amendment). */
       height: 100vh;
+      height: var(--avail-h, 100dvh);
       display: flex;
       flex-direction: column;
       /* viewport-fit=cover lets the layout reach the screen edges; these
