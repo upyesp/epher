@@ -456,6 +456,8 @@ static TABS: &[TabDef] = &[
             key("r_earth", KeyAction::Text("r_earth"), "fn"),
             // unit suffixes (the leading space is part of the literal)
             key("AU", KeyAction::Text(" AU"), "fn"),
+            key("pc", KeyAction::Text(" pc"), "fn"),
+            key("ly", KeyAction::Text(" ly"), "fn"),
             key("deg", KeyAction::Text(" deg"), "fn"),
             key("arcmin", KeyAction::Text(" arcmin"), "fn"),
             key("arcsec", KeyAction::Text(" arcsec"), "fn"),
