@@ -609,7 +609,6 @@ pub fn solar_parts(
         points: Vec<(f64, f64)>,
         depth: f64,
         color: &'static str,
-        opacity: f64,
     }
     let mut lines: Vec<Line> = Vec::new();
     let mut x_min = f64::INFINITY;
@@ -631,8 +630,6 @@ pub fn solar_parts(
                 points: run.points,
                 depth: run.depth,
                 color: solar_color(path.body),
-                // orbits sit behind trails: a touch dimmer
-                opacity: 0.0,
             });
         }
     }

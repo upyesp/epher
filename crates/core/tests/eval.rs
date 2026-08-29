@@ -1355,9 +1355,10 @@ fn distances_land_where_the_almanacs_say() {
     // the Moon rides 0.0024..0.00275 AU out
     let d = float_at("dist(11, jd(2000, 1, 1))");
     assert!((0.00238..0.00275).contains(&d), "moon distance = {d} AU");
-    // Pluto (the facade's own JPL elements) was about 34.3 AU in 2020
+    // Pluto (the facade's own JPL elements) was about 33.3 AU in
+    // mid-2020, still climbing from its 1989 perihelion
     let d = float_at("dist(9, jd(2020, 6, 1))");
-    assert!((33.5..35.2).contains(&d), "pluto distance = {d} AU");
+    assert!((33.0..33.7).contains(&d), "pluto distance = {d} AU");
 }
 
 #[test]

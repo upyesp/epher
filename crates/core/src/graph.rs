@@ -963,7 +963,7 @@ fn line_runs(cx: &[f64], cy: &[f64], cz: &[f64], view: &View3D) -> Vec<Polyline3
 pub fn project_space_curve(points: &[[f64; 3]], view: &View3D) -> Vec<Polyline3D> {
     let mut out = Vec::new();
     let mut run: Vec<(f64, f64, f64)> = Vec::new(); // (sx, sy, zp)
-    let mut flush = |out: &mut Vec<Polyline3D>, run: &mut Vec<(f64, f64, f64)>| {
+    let flush = |out: &mut Vec<Polyline3D>, run: &mut Vec<(f64, f64, f64)>| {
         if !run.is_empty() {
             let depth = run.iter().map(|p| p.2).sum::<f64>() / run.len() as f64;
             out.push(Polyline3D {
