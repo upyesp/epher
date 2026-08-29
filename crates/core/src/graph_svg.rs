@@ -504,7 +504,10 @@ pub fn surface_parts(
         y_min = y_min.min(seg.y1).min(seg.y2);
         y_max = y_max.max(seg.y1).max(seg.y2);
     }
-    if !x_min.is_finite() || x_max - x_min < 1e-9 || y_max - y_min < 1e-9 {
+    if !(x_min.is_finite() && x_max.is_finite() && y_min.is_finite() && y_max.is_finite())
+        || x_max - x_min < 1e-9
+        || y_max - y_min < 1e-9
+    {
         return None;
     }
     let pad = (x_max - x_min).max(y_max - y_min) * 0.06;
@@ -614,7 +617,7 @@ pub fn solar_parts(
     let mut x_min = f64::INFINITY;
     let mut x_max = f64::NEG_INFINITY;
     let mut y_min = f64::INFINITY;
-    let mut y_max = f64::INFINITY;
+    let mut y_max = f64::NEG_INFINITY;
     let mut consider = |x: f64, y: f64| {
         x_min = x_min.min(x);
         x_max = x_max.max(x);
@@ -677,7 +680,10 @@ pub fn solar_parts(
             ));
         }
     }
-    if !x_min.is_finite() || x_max - x_min < 1e-9 || y_max - y_min < 1e-9 {
+    if !(x_min.is_finite() && x_max.is_finite() && y_min.is_finite() && y_max.is_finite())
+        || x_max - x_min < 1e-9
+        || y_max - y_min < 1e-9
+    {
         return None;
     }
     let pad = (x_max - x_min).max(y_max - y_min) * 0.06;

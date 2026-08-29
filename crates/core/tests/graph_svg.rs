@@ -155,3 +155,30 @@ mod graph_svg_crate {
             .expect("a scene renders")
     }
 }
+
+// ===== review-fix regression: the solar viewBox must stay finite =====
+
+#[test]
+fn solar_parts_viewbox_is_always_finite() {
+    // A copy-paste slip initialized y_max to +inf, so the accumulated
+    // bounds grew to [x, -inf..inf, y] and the viewBox came out
+    // "-inf -inf inf inf" - a console error in every engine and a blank
+    // plot in WebKit. The default pose (no interaction) hit it on the
+    // very first frame.
+    let jd = 2459032.5; // 2020-07-01
+    let scene = epher_core::astro::solar_scene(jd).unwrap();
+    let view = epher_core::graph::View3D::default();
+    let (view_box, parts) = epher_core::graph_svg::solar_parts(&scene, &view, 1.0)
+        .expect("the default solar scene must render");
+    let nums: Vec<f64> = view_box
+        .split_whitespace()
+        .map(|n| n.parse().unwrap())
+        .collect();
+    assert_eq!(nums.len(), 4);
+    assert!(
+        nums.iter().all(|n| n.is_finite()),
+        "viewBox must be finite, got {view_box}"
+    );
+    assert!(parts.contains("<polyline"), "orbits and trails render");
+    assert!(parts.contains("<circle"), "positioned dots render");
+}
