@@ -423,3 +423,91 @@ fn surface_reporting_division_by_zero_when_everywhere() {
     let err = sample_surface("1 / 0", 8, &env).unwrap_err();
     assert_eq!(err.to_string(), "division by zero");
 }
+
+// ===== The solar system scene (ADR-0037 + the ADR-0015 amendment) =====
+
+use epher_core::astro::{solar_scene, SolarScene};
+use epher_core::graph::{project_space_curve, project_world_dot};
+
+fn scene() -> SolarScene {
+    solar_scene(2459030.5).expect("the scene builds at 2020-07-01")
+}
+
+#[test]
+fn the_scene_carries_ten_dots_and_nine_orbits() {
+    let s = scene();
+    // Sun, Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus,
+    // Neptune, Pluto, Moon — eleven dots total
+    assert_eq!(s.dots.len(), 11, "dots: {:?}", s.dots);
+    // orbits for Mercury..Neptune plus Pluto (the Moon's orbit is a
+    // point at solar-system scale and is not drawn)
+    assert_eq!(s.orbits.len(), 9, "orbits: {}", s.orbits.len());
+    assert_eq!(s.trails.len(), 9);
+    // the Sun sits at the origin
+    let sun = s.dots.iter().find(|d| d.body == 10).expect("the Sun");
+    assert!(sun.xyz.iter().all(|c| c.abs() < 1e-9));
+    // every orbit is a closed-ish run of finite points
+    for orbit in &s.orbits {
+        assert!(orbit.points.len() >= 128, "orbit {} sampled thinly", orbit.body);
+        assert!(orbit.points.iter().all(|p| p.iter().all(|c| c.is_finite())));
+    }
+}
+
+#[test]
+fn planet_dots_sit_at_their_almanac_distances() {
+    let s = scene();
+    let norm = |d: &epher_core::astro::SolarDot| {
+        (d.xyz[0] * d.xyz[0] + d.xyz[1] * d.xyz[1] + d.xyz[2] * d.xyz[2]).sqrt()
+    };
+    // 2020-07-01: Jupiter about 4.85 AU, Neptune about 29.7 AU out
+    let jupiter = s.dots.iter().find(|d| d.body == 5).expect("Jupiter");
+    assert!((4.5..5.2).contains(&norm(jupiter)), "jupiter r = {}", norm(jupiter));
+    let neptune = s.dots.iter().find(|d| d.body == 8).expect("Neptune");
+    assert!((29.0..30.5).contains(&norm(neptune)), "neptune r = {}", norm(neptune));
+    // the Moon is 0.0026ish from Earth
+    let earth = s.dots.iter().find(|d| d.body == 3).expect("Earth");
+    let moon = s.dots.iter().find(|d| d.body == 11).expect("Moon");
+    let sep = ((moon.xyz[0] - earth.xyz[0]).powi(2)
+        + (moon.xyz[1] - earth.xyz[1]).powi(2)
+        + (moon.xyz[2] - earth.xyz[2]).powi(2))
+    .sqrt();
+    assert!((0.0024..0.00275).contains(&sep), "earth-moon = {sep} AU");
+}
+
+#[test]
+fn trails_end_where_the_dots_are() {
+    let s = scene();
+    for trail in &s.trails {
+        let dot = s.dots.iter().find(|d| d.body == trail.body).expect("its dot");
+        let last = trail.points.last().expect("a non-empty trail");
+        let gap: f64 = last
+            .iter()
+            .zip(dot.xyz.iter())
+            .map(|(a, b)| (a - b) * (a - b))
+            .sum::<f64>()
+            .sqrt();
+        // the trail's final sample is on the orbit near the dot: within
+        // a couple of percent of the orbital radius
+        let radius: f64 = (dot.xyz[0] * dot.xyz[0] + dot.xyz[1] * dot.xyz[1]).sqrt();
+        assert!(gap < radius * 0.05 + 1e-6, "body {}: trail ends {gap} from the dot", trail.body);
+    }
+}
+
+#[test]
+fn projection_maps_the_scene_to_screen_space() {
+    let s = scene();
+    let view = s.default_view();
+    // orbit runs project to bounded polylines with depths
+    let orbit = &s.orbits.iter().find(|o| o.body == 5).expect("Jupiter orbit");
+    let runs = project_space_curve(&orbit.points, &view);
+    assert!(!runs.is_empty());
+    for run in &runs {
+        assert!(run.points.iter().all(|(x, y)| x.is_finite() && y.is_finite()));
+    }
+    // dots project inside a sane screen window
+    for dot in &s.dots {
+        if let Some((x, y, _depth)) = project_world_dot(dot.xyz[0], dot.xyz[1], dot.xyz[2], &view) {
+            assert!(x.abs() < 1000.0 && y.abs() < 1000.0);
+        }
+    }
+}

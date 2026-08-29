@@ -953,3 +953,66 @@ fn line_runs(cx: &[f64], cy: &[f64], cz: &[f64], view: &View3D) -> Vec<Polyline3
     flush(&mut out, &mut run);
     out
 }
+
+// ===== Space curves and positioned points (ADR-0015 amendment) =====
+
+/// Project an arbitrary world-space polyline (a `solar3d` orbit or
+/// trail) into visible screen runs: segments crossing the near plane are
+/// clipped, and each run carries its mean view depth for painter's-order
+/// drawing. Same treatment as a mesh grid line, from explicit points.
+pub fn project_space_curve(points: &[[f64; 3]], view: &View3D) -> Vec<Polyline3D> {
+    let mut out = Vec::new();
+    let mut run: Vec<(f64, f64, f64)> = Vec::new(); // (sx, sy, zp)
+    let mut flush = |out: &mut Vec<Polyline3D>, run: &mut Vec<(f64, f64, f64)>| {
+        if !run.is_empty() {
+            let depth = run.iter().map(|p| p.2).sum::<f64>() / run.len() as f64;
+            out.push(Polyline3D {
+                depth,
+                points: std::mem::take(run)
+                    .into_iter()
+                    .map(|(x, y, _)| (x, y))
+                    .collect(),
+            });
+        }
+    };
+    if let Some(first) = points.first() {
+        let (xr, yp, zp) = to_camera(first[0], first[1], first[2], view);
+        if zp <= view.camera - NEAR_DIST {
+            let (sx, sy) = to_screen(xr, yp, zp, view);
+            if sx.is_finite() && sy.is_finite() {
+                run.push((sx, sy, zp));
+            }
+        }
+    }
+    for pair in points.windows(2) {
+        let [x1, y1, z1] = pair[0];
+        let [x2, y2, z2] = pair[1];
+        match project_clipped(x1, y1, z1, x2, y2, z2, view) {
+            Some((sx1, sy1, zp1, sx2, sy2, zp2)) => {
+                if run.is_empty() {
+                    run.push((sx1, sy1, zp1));
+                } else {
+                    *run.last_mut().unwrap() = (sx1, sy1, zp1);
+                }
+                run.push((sx2, sy2, zp2));
+            }
+            None => flush(&mut out, &mut run),
+        }
+    }
+    flush(&mut out, &mut run);
+    out
+}
+
+/// Project one world point for a positioned dot: screen coordinates plus
+/// view depth, or None when the point is behind the camera plane.
+pub fn project_world_dot(x: f64, y: f64, z: f64, view: &View3D) -> Option<(f64, f64, f64)> {
+    let (xr, yp, zp) = to_camera(x, y, z, view);
+    if zp > view.camera - NEAR_DIST {
+        return None;
+    }
+    let (sx, sy) = to_screen(xr, yp, zp, view);
+    if !sx.is_finite() || !sy.is_finite() {
+        return None;
+    }
+    Some((sx, sy, zp))
+}

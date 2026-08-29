@@ -595,6 +595,7 @@ fn diam_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
 // Arcminute-grade, far below the crate's arcsecond class, and
 // documented as such wherever the guide mentions Pluto.
 
+#[derive(Clone)]
 struct OrbitElements {
     a: f64,
     e: f64,
@@ -622,33 +623,10 @@ fn pluto_elements(jy2k: f64) -> OrbitElements {
     }
 }
 
-/// Heliocentric ecliptic-J2000 position (AU) from elements.
+/// Heliocentric ecliptic-J2000 position (AU) at the elements' own mean
+/// anomaly.
 fn elements_xyz(el: &OrbitElements) -> [f64; 3] {
-    let (ma, e) = (el.mean_anomaly.to_radians(), el.e);
-    let mut ea = ma + e * ma.sin();
-    for _ in 0..60 {
-        let residual = ea - e * ea.sin() - ma;
-        if residual.abs() < 1e-14 {
-            break;
-        }
-        ea -= residual / (1.0 - e * ea.cos());
-    }
-    let (a, i, node, argp) = (
-        el.a,
-        el.inc.to_radians(),
-        el.node.to_radians(),
-        el.argp.to_radians(),
-    );
-    let xp = a * (ea.cos() - e);
-    let yp = a * (1.0 - e * e).sqrt() * ea.sin();
-    let (co, so) = node.sin_cos();
-    let (cw, sw) = argp.sin_cos();
-    let (ci, si) = i.sin_cos();
-    [
-        (cw * co - sw * so * ci) * xp + (-sw * co - cw * so * ci) * yp,
-        (cw * so + sw * co * ci) * xp + (-sw * so + cw * co * ci) * yp,
-        sw * si * xp + cw * si * yp,
-    ]
+    elements_xyz_at(el, el.mean_anomaly)
 }
 
 /// Pluto's (phase angle deg, geocentric distance AU), from its elements
@@ -814,4 +792,207 @@ fn year_arg(name: &str, args: &[Value]) -> Result<i32, EpherError> {
         .ok_or_else(|| EpherError::Type(format!("{name} expects a whole-number year, got {y}")))?;
     i32::try_from(year)
         .map_err(|_| domain_error(format!("{name} needs a year within i32, got {year}")))
+}
+
+// ===== The solar3d scene (ADR-0037 + the ADR-0015 amendment) =====
+//
+// One builder, one snapshot: the scene is the data the 3D pane renders —
+// orbit curves sampled from the snapshot's osculating elements, trails
+// that end where each body is now, and labelled dots. Frontends project
+// through the shared View3D and draw with their existing renderers.
+
+/// Colour per body, used by the SVG renderer and by the live legends
+/// (the pane's legend checkboxes carry the same hex). Visible against
+/// the dark default theme at better than 3:1, like the curve palette.
+pub fn body_color(body: i64) -> &'static str {
+    match body {
+        1 => "#9a9ba2",   // Mercury — grey
+        2 => "#ffb340",   // Venus — amber
+        3 => "#4da3ff",   // Earth — blue
+        4 => "#ff6b5e",   // Mars — red-orange
+        5 => "#d8a25e",   // Jupiter — tan
+        6 => "#e8d59b",   // Saturn — pale gold
+        7 => "#7fd8d0",   // Uranus — pale cyan
+        8 => "#5e7bff",   // Neptune — deep blue
+        9 => "#c39dff",   // Pluto — violet
+        10 => "#ffd75e",  // Sun — yellow
+        _ => "#d9dade",   // Moon — silver
+    }
+}
+
+/// The display name of a body number (legends, labels, alt text).
+pub fn body_name(body: i64) -> &'static str {
+    match body {
+        1 => "Mercury",
+        2 => "Venus",
+        3 => "Earth",
+        4 => "Mars",
+        5 => "Jupiter",
+        6 => "Saturn",
+        7 => "Uranus",
+        8 => "Neptune",
+        9 => "Pluto",
+        10 => "Sun",
+        11 => "Moon",
+        _ => "body",
+    }
+}
+
+/// One body's orbit (or trail) in heliocentric ecliptic-J2000 AU.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SolarPath {
+    pub body: i64,
+    pub points: Vec<[f64; 3]>,
+}
+
+/// One body's position now, in heliocentric ecliptic-J2000 AU.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SolarDot {
+    pub body: i64,
+    pub xyz: [f64; 3],
+}
+
+/// The solar system at an instant: what `solar3d` renders.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SolarScene {
+    pub jd: f64,
+    pub orbits: Vec<SolarPath>,
+    pub trails: Vec<SolarPath>,
+    pub dots: Vec<SolarDot>,
+}
+
+impl SolarScene {
+    /// A camera above the ecliptic, far enough out that Neptune's orbit
+    /// fits with room to spare. Orbit and zoom controls take it from
+    /// here (the ADR-0015 amendment inherits the pane's controls).
+    pub fn default_view(&self) -> crate::graph::View3D {
+        crate::graph::View3D {
+            yaw: 0.8,
+            pitch: 0.9,
+            camera: 120.0,
+        }
+    }
+}
+
+/// Build the scene at a Julian Date. One system snapshot feeds dots
+/// (exact positions) and orbits (osculating elements sampled as
+/// ellipses); Pluto rides the facade's own elements throughout.
+pub fn solar_scene(jd: f64) -> Result<SolarScene, EpherError> {
+    const ORBIT_SAMPLES: usize = 512;
+    const TRAIL_POINTS: usize = 48;
+    let system = system_snapshot(jd)?;
+    let astro = solar_ephemeris::timescales::AstroTime::from_jd_utc(jd);
+    let jy2k = (astro.jd_tt - solar_ephemeris::time::J2000) / 365.25;
+
+    let snapshot_xyz = |name: &str| -> Result<[f64; 3], EpherError> {
+        let entry = snapshot_body(&system, name)?;
+        Ok([
+            json_f64(entry, "x_au")?,
+            json_f64(entry, "y_au")?,
+            json_f64(entry, "z_au")?,
+        ])
+    };
+    let snapshot_elements = |name: &str| -> Result<OrbitElements, EpherError> {
+        let entry = snapshot_body(&system, name)?;
+        Ok(OrbitElements {
+            a: json_f64(entry, "a_au")?,
+            e: json_f64(entry, "ecc")?,
+            inc: json_f64(entry, "inc_deg")?,
+            node: json_f64(entry, "node_deg")?,
+            argp: json_f64(entry, "argp_deg")?,
+            mean_anomaly: 0.0,
+        })
+    };
+
+    // Dots first: the Sun at the origin, the snapshot's bodies at their
+    // exact positions, Pluto from its elements.
+    let mut dots = vec![SolarDot { body: 10, xyz: [0.0; 3] }];
+    for (number, name) in [
+        (1, "Mercury"),
+        (2, "Venus"),
+        (3, "Earth"),
+        (4, "Mars"),
+        (5, "Jupiter"),
+        (6, "Saturn"),
+        (7, "Uranus"),
+        (8, "Neptune"),
+    ] {
+        dots.push(SolarDot { body: number, xyz: snapshot_xyz(name)? });
+    }
+    dots.push(SolarDot { body: 9, xyz: elements_xyz(&pluto_elements(jy2k)) });
+    dots.push(SolarDot { body: 11, xyz: snapshot_xyz("Moon")? });
+
+    // Orbits: the osculating ellipse, sampled densely over the mean
+    // anomaly. The Moon's orbit is sub-pixel at this scale and is not
+    // drawn.
+    let mut orbits = Vec::new();
+    let mut trails = Vec::new();
+    for body in [1, 2, 3, 4, 5, 6, 7, 8, 9] {
+        let el = if body == 9 {
+            pluto_elements(jy2k)
+        } else {
+            snapshot_elements(body_name(body))?
+        };
+        let points: Vec<[f64; 3]> = (0..ORBIT_SAMPLES)
+            .map(|k| {
+                elements_xyz_at(
+                    &el,
+                    360.0 * k as f64 / ORBIT_SAMPLES as f64,
+                )
+            })
+            .collect();
+        // The trail is the arc of the same ellipse ending at the body's
+        // current position: find the sample nearest the dot and walk
+        // backwards. Sampling is dense enough that the seam is invisible
+        // (0.7 degrees of mean anomaly).
+        let dot = dots
+            .iter()
+            .find(|d| d.body == body)
+            .map(|d| d.xyz)
+            .unwrap_or([0.0; 3]);
+        let nearest = points
+            .iter()
+            .enumerate()
+            .min_by(|(_, a), (_, b)| {
+                let da = a.iter().zip(dot.iter()).map(|(x, y)| (x - y) * (x - y)).sum::<f64>();
+                let db = b.iter().zip(dot.iter()).map(|(x, y)| (x - y) * (x - y)).sum::<f64>();
+                da.total_cmp(&db)
+            })
+            .map(|(i, _)| i)
+            .unwrap_or(0);
+        let n = points.len();
+        // oldest first, so the trail's drawing order ends at the dot
+        let trail: Vec<[f64; 3]> = (0..TRAIL_POINTS)
+            .map(|k| points[(nearest + n - (TRAIL_POINTS - 1 - k)) % n].clone())
+            .collect();
+        orbits.push(SolarPath { body, points });
+        trails.push(SolarPath { body, points: trail });
+    }
+
+    Ok(SolarScene { jd, orbits, trails, dots })
+}
+
+/// Position on an orbit at a given mean anomaly (degrees) — the same
+/// elements-to-ecliptic rotation [`elements_xyz`] applies, parameterized.
+fn elements_xyz_at(el: &OrbitElements, mean_anomaly_deg: f64) -> [f64; 3] {
+    let (ma, e) = (mean_anomaly_deg.to_radians(), el.e);
+    let mut ea = ma + e * ma.sin();
+    for _ in 0..60 {
+        let residual = ea - e * ea.sin() - ma;
+        if residual.abs() < 1e-14 {
+            break;
+        }
+        ea -= residual / (1.0 - e * ea.cos());
+    }
+    let (a, i, node, argp) = (el.a, el.inc.to_radians(), el.node.to_radians(), el.argp.to_radians());
+    let xp = a * (ea.cos() - e);
+    let yp = a * (1.0 - e * e).sqrt() * ea.sin();
+    let (so, co) = node.sin_cos();
+    let (sw, cw) = argp.sin_cos();
+    let (si, ci) = i.sin_cos();
+    [
+        (cw * co - sw * so * ci) * xp + (-sw * co - cw * so * ci) * yp,
+        (cw * so + sw * co * ci) * xp + (-sw * so + cw * co * ci) * yp,
+        sw * si * xp + cw * si * yp,
+    ]
 }

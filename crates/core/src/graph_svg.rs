@@ -584,3 +584,153 @@ pub fn graph3d_svg(surfaces: &[Surface], view: &View3D, stroke_width: f64) -> Op
     svg.push_str("</svg>");
     Some(svg)
 }
+
+// ===== solar3d (ADR-0037 + the ADR-0015 amendment) =====
+
+/// Body colours for the solar system view, shared by this renderer and
+/// the live legends: visible against the dark default theme at better
+/// than 3:1 (ADR-0009), one hue per body, the Sun and Moon distinct.
+pub fn solar_color(body: i64) -> &'static str {
+    crate::astro::body_color(body)
+}
+
+/// The scene as SVG parts: every orbit and trail as a depth-sorted
+/// polyline (painter's order, far-to-near), then the positioned dots on
+/// top with depth-scaled radii and `<title>` accessible names (the
+/// ADR-0015 amendment's labelled points). Returns the view box and the
+/// part markup, the same contract as [`surface_parts`].
+pub fn solar_parts(
+    scene: &crate::astro::SolarScene,
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<(String, String)> {
+    use crate::graph::{project_space_curve, project_world_dot};
+    struct Line {
+        points: Vec<(f64, f64)>,
+        depth: f64,
+        color: &'static str,
+        opacity: f64,
+    }
+    let mut lines: Vec<Line> = Vec::new();
+    let mut x_min = f64::INFINITY;
+    let mut x_max = f64::NEG_INFINITY;
+    let mut y_min = f64::INFINITY;
+    let mut y_max = f64::INFINITY;
+    let mut consider = |x: f64, y: f64| {
+        x_min = x_min.min(x);
+        x_max = x_max.max(x);
+        y_min = y_min.min(y);
+        y_max = y_max.max(y);
+    };
+    for path in scene.orbits.iter().chain(scene.trails.iter()) {
+        for run in project_space_curve(&path.points, view) {
+            for &(x, y) in &run.points {
+                consider(x, y);
+            }
+            lines.push(Line {
+                points: run.points,
+                depth: run.depth,
+                color: solar_color(path.body),
+                // orbits sit behind trails: a touch dimmer
+                opacity: 0.0,
+            });
+        }
+    }
+    if lines.is_empty() {
+        return None;
+    }
+    // Painter's order across every body: far lines first.
+    lines.sort_by(|a, b| b.depth.total_cmp(&a.depth));
+    let depths: Vec<f64> = lines.iter().map(|l| l.depth).collect();
+    let z_min = depths.iter().cloned().fold(f64::INFINITY, f64::min);
+    let z_max = depths.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+    let span = z_max - z_min;
+    let mut parts = String::new();
+    for line in &lines {
+        let t = if span < 1e-9 {
+            1.0
+        } else {
+            ((line.depth - z_min) / span).clamp(0.0, 1.0)
+        };
+        let opacity = 0.4 + 0.55 * t;
+        let points = line
+            .points
+            .iter()
+            .map(|(x, y)| format!("{x:.3},{y:.3}"))
+            .collect::<Vec<_>>()
+            .join(" ");
+        parts.push_str(&format!(
+            "<polyline points=\"{points}\" fill=\"none\" stroke=\"{}\" stroke-opacity=\"{opacity:.3}\" stroke-width=\"{:.2}\"/>",
+            line.color,
+            1.2 * stroke_width
+        ));
+    }
+    // Positioned dots on top, radius shrinking with depth, each with an
+    // accessible name.
+    let mut dots_out = String::new();
+    for dot in &scene.dots {
+        if let Some((x, y, zp)) = project_world_dot(dot.xyz[0], dot.xyz[1], dot.xyz[2], view) {
+            consider(x, y);
+            let near = (view.camera - zp).max(1e-6);
+            let radius = (3.0 * (view.camera / near).sqrt()).clamp(2.0, 9.0);
+            dots_out.push_str(&format!(
+                "<circle cx=\"{x:.3}\" cy=\"{y:.3}\" r=\"{radius:.2}\" fill=\"{}\"><title>{}</title></circle>",
+                solar_color(dot.body),
+                crate::astro::body_name(dot.body),
+            ));
+        }
+    }
+    if !x_min.is_finite() || x_max - x_min < 1e-9 || y_max - y_min < 1e-9 {
+        return None;
+    }
+    let pad = (x_max - x_min).max(y_max - y_min) * 0.06;
+    let view_box = format!(
+        "{:.3} {:.3} {:.3} {:.3}",
+        x_min - pad,
+        y_min - pad,
+        x_max - x_min + 2.0 * pad,
+        y_max - y_min + 2.0 * pad
+    );
+    parts.push_str(&dots_out);
+    Some((view_box, parts))
+}
+
+/// The `solar3d` scene as a self-contained SVG document — the same
+/// letterboxed 640×400 skeleton as [`graph3d_svg`].
+pub fn solar3d_svg(
+    scene: &crate::astro::SolarScene,
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<String> {
+    let (view_box, parts) = solar_parts(scene, view, stroke_width)?;
+    let mut it = view_box.split_whitespace();
+    let (mut x, mut y, mut w, mut h) = (0.0f64, 0.0f64, 1.0f64, 1.0f64);
+    if let (Some(a), Some(b), Some(c), Some(d)) = (it.next(), it.next(), it.next(), it.next()) {
+        if let (Ok(a), Ok(b), Ok(c), Ok(d)) = (a.parse(), b.parse(), c.parse(), d.parse()) {
+            (x, y, w, h) = (a, b, c, d);
+        }
+    }
+    let scale = (WIDTH / w).min(HEIGHT / h);
+    let tx = (WIDTH - w * scale) / 2.0 - x * scale;
+    let ty = (HEIGHT - h * scale) / 2.0 - y * scale;
+    let names: Vec<&str> = scene
+        .dots
+        .iter()
+        .map(|d| crate::astro::body_name(d.body))
+        .collect();
+    let mut svg = String::new();
+    svg.push_str(&format!(
+        "<svg viewBox=\"0 0 {WIDTH} {HEIGHT}\" width=\"{WIDTH}\" height=\"{HEIGHT}\" role=\"img\" aria-label=\"Solar system: {}\" xmlns=\"http://www.w3.org/2000/svg\">",
+        names.join(", ")
+    ));
+    svg.push_str("<title>Solar system</title>");
+    svg.push_str(&style_svg(stroke_width));
+    svg.push_str(&format!(
+        "<rect class=\"bg\" x=\"0\" y=\"0\" width=\"{WIDTH}\" height=\"{HEIGHT}\" />"
+    ));
+    svg.push_str(&format!(
+        "<g transform=\"translate({tx:.3} {ty:.3}) scale({scale:.5})\">{parts}</g>"
+    ));
+    svg.push_str("</svg>");
+    Some(svg)
+}

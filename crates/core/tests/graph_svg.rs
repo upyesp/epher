@@ -129,3 +129,29 @@ fn hidden_neighbour_keeps_original_palette_index() {
     assert!(svg.contains("y = x ^ 2"), "{svg}");
     assert!(svg.contains("y = x ^ 3"), "{svg}");
 }
+
+// ===== solar3d SVG (ADR-0037 + the ADR-0015 amendment) =====
+
+#[test]
+fn solar3d_svg_renders_orbits_trails_and_labelled_dots() {
+    use epher_core::astro::solar_scene;
+    use epher_core::graph::View3D;
+    let scene = solar_scene(2459030.5).expect("scene");
+    let svg = graph_svg_crate::render_solar(&scene);
+    // nine orbit curves and their trails draw as polylines
+    assert!(svg.matches("<polyline").count() >= 18, "orbit and trail polylines");
+    // every dot is a labelled circle (the ADR amendment's accessible name)
+    assert_eq!(svg.matches("<circle").count(), 11, "one dot per body");
+    assert!(svg.contains("<title>Jupiter</title>"));
+    assert!(svg.contains("<title>Pluto</title>"));
+    // the document keeps the shared SVG skeleton
+    assert!(svg.contains("role=\"img\""));
+}
+
+// a thin wrapper so the test above stays on the public seam
+mod graph_svg_crate {
+    pub fn render_solar(scene: &epher_core::astro::SolarScene) -> String {
+        epher_core::graph_svg::solar3d_svg(scene, &scene.default_view(), 1.0)
+            .expect("a scene renders")
+    }
+}
