@@ -15,7 +15,10 @@ bigdecimal = { workspace = true }
 serde = { workspace = true }
 serde_json = "1"
 thiserror = { workspace = true }
-solar-ephemeris = "0.2.0"
+# Exact-pinned per ADR-0037 (vendoring is the escape hatch). The
+# astronomy facade rests on this crate's validated ephemeris; thank you
+# to its author: github.com/Protonmatter/sol (MIT OR Apache-2.0).
+solar-ephemeris = "=0.2.0"
 
 [dev-dependencies]
 proptest = "1"

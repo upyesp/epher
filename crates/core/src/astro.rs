@@ -100,8 +100,17 @@ fn calendar_jd(name: &str, args: &[Value], offset: Option<f64>) -> Result<Value,
     if !(1..=12).contains(&m) {
         return Err(domain_error(format!("month {m} is outside 1..12")));
     }
-    if !(1..=31).contains(&d) {
-        return Err(domain_error(format!("day {d} is outside 1..31")));
+    let leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
+    let month_len = match m {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        _ if leap => 29,
+        _ => 28,
+    };
+    if !(1..=month_len).contains(&d) {
+        return Err(domain_error(format!(
+            "day {d} is outside 1..{month_len} for month {m} of {y}"
+        )));
     }
     let mut yy = y;
     let mut mm = m;
@@ -175,16 +184,23 @@ fn degrees_to_hms(deg: f64) -> String {
     let total_hours = deg.rem_euclid(360.0) / 15.0;
     let h = total_hours.floor();
     let m_total = (total_hours - h) * 60.0;
-    let mut m = m_total.floor();
-    let mut s = ((m_total - m) * 60.0).round();
-    if s >= 60.0 {
-        s -= 60.0;
-        m += 1.0;
+    let mut h = h as i64;
+    let mut m = m_total.floor() as i64;
+    let mut s = ((m_total - m_total.floor()) * 60.0).round() as i64;
+    // rounding can overflow: 59.97 s rounds to 60 s, which carries into
+    // the minutes and then into the hours (24 h wraps to 0)
+    if s >= 60 {
+        s -= 60;
+        m += 1;
     }
-    if m >= 60.0 {
-        m -= 60.0;
+    if m >= 60 {
+        m -= 60;
+        h += 1;
     }
-    format!("{}h {}m {}s", h as i64, m as i64, s as i64)
+    if h >= 24 {
+        h -= 24;
+    }
+    format!("{h}h {m}m {s}s")
 }
 
 /// Degrees to signed `D° M' S"` sexagesimal text; the sign rides the
@@ -194,16 +210,20 @@ fn degrees_to_dms(deg: f64) -> String {
     let a = deg.abs();
     let d = a.floor();
     let m_total = (a - d) * 60.0;
-    let mut m = m_total.floor();
-    let mut s = ((m_total - m) * 60.0).round();
-    if s >= 60.0 {
-        s -= 60.0;
-        m += 1.0;
+    let mut d = d as i64;
+    let mut m = m_total.floor() as i64;
+    let mut s = ((m_total - m_total.floor()) * 60.0).round() as i64;
+    // same carry as the hms pair: seconds overflow into minutes, then
+    // into the degrees (60' is 1 degree)
+    if s >= 60 {
+        s -= 60;
+        m += 1;
     }
-    if m >= 60.0 {
-        m -= 60.0;
+    if m >= 60 {
+        m -= 60;
+        d += 1;
     }
-    format!("{sign}{}\u{b0} {}' {}\"", d as i64, m as i64, s as i64)
+    format!("{sign}{d}\u{b0} {m}' {s}\"")
 }
 
 /// Airmass sec(z) against a positive altitude in degrees.
@@ -533,7 +553,9 @@ fn mag_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
             let snapshot = system_snapshot(jd)?;
             let earth = snapshot_body(&snapshot, "Earth")?;
             let r = json_f64(earth, "dist_au")?;
-            Ok(Value::Float(-26.74 + 10.0 * r.log10()))
+                        // m = M_V + 5 log10(d/10 pc) with d = r AU; at r = 1 the
+            // answer is -26.74, dimming by +5 log10(r) from there
+            Ok(Value::Float(-26.74 + 5.0 * r.log10()))
         }
         "Moon" => {
             let snapshot = system_snapshot(jd)?;

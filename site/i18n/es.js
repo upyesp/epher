@@ -90,6 +90,7 @@ window.EPHER_I18N["es"] = {
   "ex-a13": "La ecuación de Kepler: la anomalía excéntrica E para una anomalía media de 5 grados y una excentricidad de 0,1.",
   "ex-a14": "La curva de cuerpo negro de Planck para el Sol (5778 K), longitud de onda en nanómetros. Las constantes `h`, `c` y `k_b` están integradas.",
   "ex-a15": "El sistema solar en un instante: órbitas, estelas y puntos etiquetados. Da el tiempo como constante y pulsa reproducir para ver moverse los planetas.",
+  "ex-a16": "Una curva de luz de tránsito: un descenso suave del 1,2 por ciento cuando un exoplaneta cruza su estrella, modelado con una entrada logística.",
   "ex-tap": "En un teléfono, toca un ejemplo para abrir la app con él listo para ejecutarse.",
   "ex-a1": "Un script de varias líneas: Shift+Enter abre una línea nueva y Enter ejecuta el script completo como un solo elemento del historial.",
   "ex-a2": "Una curva 2D básica.",

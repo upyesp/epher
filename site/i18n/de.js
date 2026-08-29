@@ -90,6 +90,7 @@ window.EPHER_I18N["de"] = {
   "ex-a13": "Die Kepler-Gleichung: die exzentrische Anomalie E für eine mittlere Anomalie von 5 Grad und eine Exzentrizität von 0,1.",
   "ex-a14": "Plancks Schwarzkörperkurve der Sonne (5778 K), Wellenlänge in Nanometern. Die Konstanten `h`, `c` und `k_b` sind eingebaut.",
   "ex-a15": "Das Sonnensystem zu einem Zeitpunkt: Bahnen, Spuren und beschriftete Punkte. Geben Sie die Zeit als Konstante an und drücken Sie Play, um den Planeten zuzusehen.",
+  "ex-a16": "Eine Transit-Lichtkurve: ein glatter Einbruch um 1,2 Prozent, wenn ein Exoplanet vor seinem Stern vorbeizieht, modelliert mit einem logistischen Übergang.",
   "ex-tap": "Tippe auf dem Handy ein Beispiel an, um die App damit zu öffnen, bereit zur Ausführung.",
   "ex-a1": "Ein mehrzeiliges Skript. Umschalt+Enter beginnt eine neue Zeile, Enter führt das ganze Skript als einen Verlaufseintrag aus.",
   "ex-a2": "Eine einfache 2D-Kurve.",

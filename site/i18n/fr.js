@@ -90,6 +90,7 @@ window.EPHER_I18N["fr"] = {
   "ex-a13": "L'équation de Kepler : l'anomalie excentrique E pour une anomalie moyenne de 5 degrés et une excentricité de 0,1.",
   "ex-a14": "La courbe du corps noir de Planck pour le Soleil (5778 K), longueur d'onde en nanomètres. Les constantes `h`, `c` et `k_b` sont intégrées.",
   "ex-a15": "Le système solaire à un instant : orbites, traînées et points étiquetés. Donnez le temps sous forme de constante et appuyez sur lecture pour voir les planètes bouger.",
+  "ex-a16": "Une courbe de transit : une chute douce de 1,2 pour cent quand une exoplanète passe devant son étoile, modélisée par une entrée logistique.",
   "ex-tap": "Sur un téléphone, touchez un exemple pour ouvrir l'app avec celui-ci prêt à être exécuté.",
   "ex-a1": "Un script multi-lignes : Maj+Entrée ouvre une nouvelle ligne, Entrée exécute tout le script comme un seul élément d'historique.",
   "ex-a2": "Une courbe 2D de base.",

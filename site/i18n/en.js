@@ -91,6 +91,7 @@ window.EPHER_I18N["en"] = {
   "ex-a13": "Kepler's equation: the eccentric anomaly E for a mean anomaly of 5 degrees and an eccentricity of 0.1.",
   "ex-a14": "Planck's blackbody curve for the Sun (5778 K), wavelength in nanometres. The constants `h`, `c` and `k_b` are built in.",
   "ex-a15": "The solar system at an instant: orbits, trails, and labelled dots. Give the time as a constant and press play to watch the planets move.",
+  "ex-a16": "A transit light curve: a smooth 1.2 percent dip as an exoplanet crosses its star, modelled with a logistic ingress.",
   "ex-tap": "On a phone, tap an example to open the app with it ready to run.",
   "ex-a1": "A multi-line script. Shift+Enter starts a new line, Enter runs the whole script as one history item.",
   "ex-a2": "A basic 2D curve.",

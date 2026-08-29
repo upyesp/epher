@@ -45,6 +45,7 @@ const SECTIONS = [
       { cap: "ex-a13", capText: "Kepler's equation: the eccentric anomaly E for a mean anomaly of 5 degrees and an eccentricity of 0.1.", kind: "epher", code: `kepler(5, 0.1)` },
       { cap: "ex-a14", capText: "Planck's blackbody curve for the Sun (5778 K), wavelength in nanometres. The constants `h`, `c` and `k_b` are built in.", kind: "epher", code: `def planck(x) = (2 * h * c ^ 2) / ((x * 1e-9) ^ 5 * (exp((h * c) / ((x * 1e-9) * k_b * 5778)) - 1))\ngraph planck(x) from 100 to 2000` },
       { cap: "ex-a15", capText: "The solar system at an instant: orbits, trails, and labelled dots. Give the time as a constant and press play to watch the planets move.", kind: "epher", code: `const t = jd(now())\nsolar3d t` },
+      { cap: "ex-a16", capText: "A transit light curve: a smooth 1.2 percent dip as an exoplanet crosses its star, modelled with a logistic ingress.", kind: "epher", code: `def flux(x) = 1 - 0.012 / (1 + exp((abs(x) - 0.04) * 200))\ngraph flux(x) from -0.2 to 0.2` },
     ],
   },
   {

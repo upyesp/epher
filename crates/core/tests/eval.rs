@@ -1442,3 +1442,37 @@ fn the_four_season_entries_land_on_their_instants() {
     approx("september equinox 2000", "september_equinox(2000)", 2451810.228);
     approx("december solstice 2000", "december_solstice(2000)", 2451900.068);
 }
+
+// ===== review fixes: honest edges (ADR-0037) =====
+
+#[test]
+fn sun_apparent_magnitude_follows_the_inverse_square() {
+    // at r about 1.0167 AU (2020-07) the Sun is about -26.70; the
+    // published value at 1 AU is -26.74
+    let m = float_at("mag(10, jd(2020, 7, 1))");
+    assert!((-26.9..-26.4).contains(&m), "sun mag = {m}");
+}
+
+#[test]
+fn sexagesimal_rounding_carries_all_the_way() {
+    // 359.9999 deg is a hair under 24 h; the carry must wrap to 0h
+    match epher_core::evaluate("deg2hms(359.9999)") {
+        Ok(epher_core::Value::Str(s)) => assert_eq!(s, "0h 0m 0s", "{s}"),
+        other => panic!("deg2hms produced {other:?}"),
+    }
+    // 59.99999 deg carries into a whole degree: 59d 59m 59.99964s
+    // rounds the seconds up and the carry climbs to the degrees
+    match epher_core::evaluate("deg2dms(59.99999)") {
+        Ok(epher_core::Value::Str(s)) => assert_eq!(s, "60\u{b0} 0' 0\"", "{s}"),
+        other => panic!("deg2dms produced {other:?}"),
+    }
+}
+
+#[test]
+fn calendar_validation_knows_month_lengths() {
+    assert!(epher_core::evaluate("jd(2020, 2, 29)").is_ok(), "2020 is a leap year");
+    assert!(epher_core::evaluate("jd(2023, 2, 29)").is_err(), "2023 is not");
+    assert!(epher_core::evaluate("jd(2023, 2, 30)").is_err());
+    assert!(epher_core::evaluate("jd(2000, 4, 31)").is_err(), "April has 30");
+    assert!(epher_core::evaluate("jd(2000, 2, 29)").is_ok(), "divisible by 400");
+}

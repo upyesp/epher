@@ -326,6 +326,20 @@ solar3d t</code></pre>
 </div>
 </div>
 </figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-a16">A transit light curve: a smooth 1.2 percent dip as an exoplanet crosses its star, modelled with a logistic ingress.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher"><span class="tok-kw">def</span> <span class="tok-fn">flux</span>(x) = <span class="tok-num">1</span> - <span class="tok-num">0.012</span> / (<span class="tok-num">1</span> + <span class="tok-fn">exp</span>((<span class="tok-fn">abs</span>(x) - <span class="tok-num">0.04</span>) * <span class="tok-num">200</span>))
+<span class="tok-kw">graph</span> <span class="tok-fn">flux</span>(x) from -<span class="tok-num">0.2</span> to <span class="tok-num">0.2</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
 </section>
 <section class="ex-section">
 <h2 data-i18n="ex-h-cli">The command line</h2>
