@@ -1044,3 +1044,104 @@ fn every_value_variant_round_trips_through_json() {
         assert_eq!(v, back, "json was: {json}");
     }
 }
+
+// ===== Unit-suffix literals (ADR-0037) =====
+//
+// A number immediately followed by a unit token multiplies by the unit's
+// SI factor and evaluates to a plain Float in SI units — metres, radians,
+// seconds, watts per square metre hertz. The factors are grammar-level,
+// so user shadowing cannot change what a literal means.
+
+fn approx(name: &str, text: &str, expected: f64) {
+    match epher_core::evaluate(text) {
+        Ok(v) => match v {
+            epher_core::Value::Float(x) => assert!(
+                (x - expected).abs() <= 1e-9 * expected.abs().max(1.0),
+                "{name}: {text} = {x}, expected {expected}"
+            ),
+            other => panic!("{name}: {text} produced {other:?}, expected a float"),
+        },
+        Err(e) => panic!("{name}: {text} failed: {e}"),
+    }
+}
+
+#[test]
+fn unit_literals_multiply_by_the_si_factor() {
+    let au = 1.495_978_707e11;
+    approx("astronomical unit spaced", "3.2 AU", 3.2 * au);
+    approx("astronomical unit tight", "3.2AU", 3.2 * au);
+    approx("parsec", "1 pc", 3.085_677_581_491_367_3e16);
+    approx("light year", "1 ly", 9.460_730_472_580_8e15);
+    approx("day", "1 d", 86400.0);
+    approx("hour", "5 hr", 18000.0);
+    approx("minute", "5 min", 300.0);
+    approx("julian year", "2 yr", 2.0 * 31_557_600.0);
+    approx("jansky", "1 Jy", 1e-26);
+}
+
+#[test]
+fn angle_literals_come_out_in_radians() {
+    approx("degree", "30 deg", std::f64::consts::PI / 6.0);
+    approx("degree tight", "30deg", std::f64::consts::PI / 6.0);
+    approx("arcminute", "1 arcmin", std::f64::consts::PI / 10800.0);
+    approx("arcsecond", "1 arcsec", std::f64::consts::PI / 648000.0);
+}
+
+#[test]
+fn suffixes_compose_with_functions() {
+    // the spec's worked example: sin of 30 degrees is one half
+    approx("sin of 30 deg", "sin(30 deg)", 0.5);
+    approx("cos of an arcminute", "cos(1 arcmin)", 1.0 - 4.222e-8);
+}
+
+#[test]
+fn user_shadowing_cannot_change_a_unit_literal() {
+    // suffix factors are grammar-level constants: neither a user
+    // constant nor a variable changes what `2 AU` means (ADR-0037)
+    let script = "const au = 3; const deg = 9; 2 AU";
+    match epher_core::run_all(&epher_core::parse_script(script).expect("parses"), &mut epher_core::Env::default()) {
+        Ok(values) => {
+            let last = values.last().expect("a value");
+            assert_eq!(*last, epher_core::Value::float(2.0 * 1.495_978_707e11));
+        }
+        Err(e) => panic!("script failed: {e}"),
+    }
+    let mut env = epher_core::Env::default();
+    epher_core::run(
+        &epher_core::parse_script("const deg = 9").expect("parses"),
+        &mut env,
+    )
+    .expect("runs");
+    let expr = epher_core::parse("sin(30 deg)").expect("parses");
+    match epher_core::eval(&expr, &env).expect("evals") {
+        epher_core::Value::Float(x) => assert!((x - 0.5).abs() < 1e-12),
+        other => panic!("expected a float, got {other:?}"),
+    }
+}
+
+#[test]
+fn unit_tokens_are_reserved_in_suffix_position_but_calls_stay_calls() {
+    // `min` the suffix and `min` the function coexist by position
+    approx("suffix", "5 min", 300.0);
+    match epher_core::evaluate("min(3, 7)") {
+        Ok(epher_core::Value::Float(x)) => assert_eq!(x, 3.0),
+        other => panic!("min(3, 7) produced {other:?}"),
+    }
+    // an Ident followed by `(` is always a call, so the number before it
+    // is trailing input — no implicit multiplication is born here
+    assert!(epher_core::evaluate("30 deg(x)").is_err());
+    // `h` is Planck's constant, not the hour: `5 h` is a parse error
+    assert!(epher_core::evaluate("5 h").is_err());
+    // unknown names after a number stay errors (no implicit multiplication)
+    assert!(epher_core::evaluate("2 pi").is_err());
+    // case-sensitive: `D` is not the day token
+    assert!(epher_core::evaluate("1 D").is_err());
+}
+
+#[test]
+fn unit_literals_work_in_scripts_and_domains() {
+    let mut env = epher_core::Env::default();
+    let script = epher_core::parse_script("x = 5 hr; x + 1 d").expect("parses");
+    let values = epher_core::run_all(&script, &mut env).expect("runs");
+    assert_eq!(values.last(), Some(&epher_core::Value::float(86400.0 + 18000.0)));
+}

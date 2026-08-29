@@ -824,7 +824,24 @@ impl Parser {
 
     fn parse_primary(&mut self) -> Result<Expression, EpherError> {
         match self.next() {
-            Some(Token::Number(n)) => Ok(Expression::Literal(n)),
+            Some(Token::Number(n)) => {
+                // Unit-suffix literal (ADR-0037): a number immediately
+                // followed by a unit token is that number times the
+                // unit's SI factor, baked in at grammar level — user
+                // shadowing cannot change what `2 AU` means. An Ident
+                // followed by `(` is always a call, never a suffix, so
+                // `30 deg(x)` stays a (trailing-input) parse error and
+                // `min(3, 7)` keeps working next to `5 min`.
+                if let Some(Token::Ident(name)) = self.peek().cloned() {
+                    if let Some(factor) = unit_factor(&name) {
+                        if !matches!(self.tokens.get(self.pos + 1), Some(Token::LParen)) {
+                            self.next();
+                            return Ok(Expression::Literal(n * factor));
+                        }
+                    }
+                }
+                Ok(Expression::Literal(n))
+            }
             Some(Token::Ident(name)) => {
                 if matches!(self.peek(), Some(Token::LParen)) {
                     self.next(); // consume '(' — call syntax
@@ -1080,6 +1097,27 @@ pub fn sample_polar(
         });
     }
     Ok(out)
+}
+
+/// The unit-suffix table (ADR-0037): exact token → SI factor. Length in
+/// metres, angle in radians, time in seconds, flux in watts per square
+/// metre hertz. `h` is deliberately absent — Planck's constant owns the
+/// single letter, and hours are spelled `hr`.
+fn unit_factor(token: &str) -> Option<f64> {
+    match token {
+        "AU" | "au" => Some(1.495_978_707e11),
+        "pc" => Some(3.085_677_581_491_367_3e16),
+        "ly" => Some(9.460_730_472_580_8e15),
+        "deg" => Some(std::f64::consts::PI / 180.0),
+        "arcmin" => Some(std::f64::consts::PI / 10_800.0),
+        "arcsec" => Some(std::f64::consts::PI / 648_000.0),
+        "min" => Some(60.0),
+        "hr" => Some(3_600.0),
+        "d" => Some(86_400.0),
+        "yr" => Some(31_557_600.0),
+        "Jy" => Some(1e-26),
+        _ => None,
+    }
 }
 
 /// Built-in constants (π, e, τ, φ), resolved when a name isn't in the
