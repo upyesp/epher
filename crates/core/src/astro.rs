@@ -41,6 +41,22 @@ pub(crate) fn call(name: &str, args: Vec<Value>) -> Option<Result<Value, EpherEr
             .map(|m| 3631.0 * 10f64.powf(-0.4 * m))
             .map(Value::Float),
         "jy2mag" => jy2mag(name, &args),
+        "ra" => ra_fn(name, &args),
+        "decl" => decl_fn(name, &args),
+        "dist" => dist_fn(name, &args),
+        "alt" => alt_fn(name, &args),
+        "az" => az_fn(name, &args),
+        "rise" => event_fn(name, &args, "rise_jd"),
+        "set" => event_fn(name, &args, "set_jd"),
+        "transit" => event_fn(name, &args, "transit_jd"),
+        "mag" => mag_fn(name, &args),
+        "phase" => phase_fn(name, &args),
+        "illum" => illum_fn(name, &args),
+        "diam" => diam_fn(name, &args),
+        "march_equinox" => march_equinox(name, &args),
+        "june_solstice" => june_solstice(name, &args),
+        "september_equinox" => september_equinox(name, &args),
+        "december_solstice" => december_solstice(name, &args),
         _ => return None,
     };
     Some(result)
@@ -252,4 +268,550 @@ fn jy2mag(name: &str, args: &[Value]) -> Result<Value, EpherError> {
         )));
     }
     Ok(Value::Float(-2.5 * (jy / 3631.0).log10()))
+}
+
+// ===== Ephemeris accessors (ADR-0037) =====
+//
+// The ephemeris backend is `solar-ephemeris` 0.2.0, exact-pinned, and
+// reached only through this module (ADR-0037's facade rule). The crate's
+// supported external contract is its two versioned JSON snapshots
+// (`ephemeris-snapshot.v2` for the sky, `system-snapshot.v1` for the
+// heliocentric system view); its deeper modules that the facade also
+// reads (`time`, `coords`, `physics`, `top2013`, `timescales`) are
+// public and stable. Pluto is the facade's own: the crate stops at
+// Neptune, so Pluto rides JPL's approximate Keplerian elements
+// (1800-2050, arcminute grade, honestly documented).
+
+use solar_ephemeris::coords::AU_KM;
+
+/// One solar-system body: its DSL number, the crate's name for it (the
+/// JSON contract's key and the magnitude table's key), and its radius
+/// for angular sizes the facade computes itself.
+struct BodyDef {
+    number: i64,
+    name: &'static str,
+    radius_km: f64,
+}
+
+const BODIES: [BodyDef; 11] = [
+    BodyDef { number: 1, name: "Mercury", radius_km: 2439.7 },
+    BodyDef { number: 2, name: "Venus", radius_km: 6051.8 },
+    BodyDef { number: 3, name: "Earth", radius_km: 6378.137 },
+    BodyDef { number: 4, name: "Mars", radius_km: 3389.5 },
+    BodyDef { number: 5, name: "Jupiter", radius_km: 69911.0 },
+    BodyDef { number: 6, name: "Saturn", radius_km: 58232.0 },
+    BodyDef { number: 7, name: "Uranus", radius_km: 25362.0 },
+    BodyDef { number: 8, name: "Neptune", radius_km: 24622.0 },
+    BodyDef { number: 9, name: "Pluto", radius_km: 1188.3 },
+    BodyDef { number: 10, name: "Sun", radius_km: 695700.0 },
+    BodyDef { number: 11, name: "Moon", radius_km: 1737.4 },
+];
+
+fn body_from_number(number: i64) -> Option<&'static BodyDef> {
+    BODIES.iter().find(|b| b.number == number)
+}
+
+/// Resolve the first argument as a body number. Earth is the observer:
+/// it has no geocentric place to report, so the observable bodies are
+/// 1, 2, 4..11.
+fn body_arg(name: &str, args: &[Value]) -> Result<(&'static BodyDef, f64), EpherError> {
+    let (number, jd) = match args {
+        [Value::Float(a), Value::Float(b), ..] => (crate::float_to_int(*a), *b),
+        _ => {
+            return Err(EpherError::Type(format!(
+                "{name} expects (body, jd, ...): a body number and a Julian Date"
+            )))
+        }
+    };
+    let number = number.ok_or_else(|| {
+        EpherError::Type(format!("{name} expects a whole-number body, got non-integer"))
+    })?;
+    let body = body_from_number(number)
+    .ok_or_else(|| {
+        domain_error(format!(
+            "unknown body {number}: Mercury 1..Neptune 8, Pluto 9, Sun 10, Moon 11"
+        ))
+    })?;
+    if body.number == 3 {
+        return Err(domain_error(
+            "Earth is the observer, not a target: pick a body 1, 2, 4..11",
+        ));
+    }
+    Ok((body, jd))
+}
+
+/// The crate's sky snapshot (its `ephemeris-snapshot.v2` contract) as
+/// parsed JSON: apparent places, distances, angular sizes, and the
+/// rise/transit/set events for the observer's local mean-solar day.
+/// The full snapshot carries every body's event scan, so one build
+/// costs tens of milliseconds; a one-entry memo makes the common shape
+/// (several accessors at the same instant, the solar3d scene per
+/// playback tick) pay it once.
+fn sky_snapshot(jd: f64, lat: f64, lon: f64) -> Result<serde_json::Value, EpherError> {
+    thread_local! {
+        static SKY: std::cell::RefCell<Option<serde_json::Value>> =
+            const { std::cell::RefCell::new(None) };
+    }
+    if let Some(cached) = SKY.with(|cell| cell.borrow().clone()) {
+        if cached
+            .get("_memo_jd")
+            .and_then(serde_json::Value::as_f64)
+            == Some(jd)
+            && cached.get("_memo_lat").and_then(serde_json::Value::as_f64) == Some(lat)
+            && cached.get("_memo_lon").and_then(serde_json::Value::as_f64) == Some(lon)
+        {
+            return Ok(cached);
+        }
+    }
+    let json = solar_ephemeris::sky_snapshot_json(jd, lat, lon, 0.0);
+    let mut parsed: serde_json::Value =
+        serde_json::from_str(&json).map_err(|e| EpherError::Domain(format!(
+            "ephemeris snapshot unreadable: {e}"
+        )))?;
+    if let Some(obj) = parsed.as_object_mut() {
+        obj.insert("_memo_jd".into(), serde_json::json!(jd));
+        obj.insert("_memo_lat".into(), serde_json::json!(lat));
+        obj.insert("_memo_lon".into(), serde_json::json!(lon));
+    }
+    SKY.with(|cell| *cell.borrow_mut() = Some(parsed.clone()));
+    Ok(parsed)
+}
+
+/// The crate's system snapshot (`system-snapshot.v1`): heliocentric
+/// ecliptic-J2000 positions (AU), magnitudes, phases, and osculating
+/// elements for the eight planets plus the Moon. One-entry memo, same
+/// rationale as [`sky_snapshot`].
+fn system_snapshot(jd: f64) -> Result<serde_json::Value, EpherError> {
+    thread_local! {
+        static SYSTEM: std::cell::RefCell<Option<(f64, serde_json::Value)>> =
+            const { std::cell::RefCell::new(None) };
+    }
+    if let Some((cached_jd, cached)) = SYSTEM.with(|cell| cell.borrow().clone()) {
+        if cached_jd == jd {
+            return Ok(cached);
+        }
+    }
+    let json = solar_ephemeris::system_snapshot_json(jd);
+    let parsed: serde_json::Value = serde_json::from_str(&json).map_err(|e| {
+        EpherError::Domain(format!("system snapshot unreadable: {e}"))
+    })?;
+    SYSTEM.with(|cell| *cell.borrow_mut() = Some((jd, parsed.clone())));
+    Ok(parsed)
+}
+
+fn json_f64(obj: &serde_json::Value, key: &str) -> Result<f64, EpherError> {
+    obj.get(key)
+        .and_then(|v| v.as_f64())
+        .ok_or_else(|| EpherError::Domain(format!("ephemeris snapshot missing {key}")))
+}
+
+/// Find one body's entry in a snapshot's bodies array.
+fn snapshot_body<'a>(
+    snapshot: &'a serde_json::Value,
+    body_name: &str,
+) -> Result<&'a serde_json::Value, EpherError> {
+    snapshot
+        .get("bodies")
+        .and_then(|bodies| bodies.as_array())
+        .and_then(|bodies| {
+            bodies
+                .iter()
+                .find(|b| b.get("name").and_then(|n| n.as_str()) == Some(body_name))
+        })
+        .ok_or_else(|| {
+            EpherError::Domain(format!("ephemeris snapshot has no entry for {body_name}"))
+        })
+}
+
+/// (ra, dec) in degrees, geocentric apparent of date, from the sky
+/// snapshot's explicit geocentric fields.
+fn geocentric_radec(body: &BodyDef, jd: f64) -> Result<(f64, f64), EpherError> {
+    let snapshot = sky_snapshot(jd, 0.0, 0.0)?;
+    let entry = snapshot_body(&snapshot, body.name)?;
+    Ok((
+        json_f64(entry, "geocentric_apparent_ra_deg")?,
+        json_f64(entry, "geocentric_apparent_dec_deg")?,
+    ))
+}
+
+fn ra_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let (body, jd) = body_arg(name, args)?;
+    Ok(Value::Float(geocentric_radec(body, jd)?.0))
+}
+
+fn decl_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let (body, jd) = body_arg(name, args)?;
+    Ok(Value::Float(geocentric_radec(body, jd)?.1))
+}
+
+fn dist_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let (body, jd) = body_arg(name, args)?;
+    if body.name == "Pluto" {
+        let (_, delta_au) = pluto_geometry(jd)?;
+        return Ok(Value::Float(delta_au));
+    }
+    let snapshot = sky_snapshot(jd, 0.0, 0.0)?;
+    let entry = snapshot_body(&snapshot, body.name)?;
+    let km = json_f64(entry, "distance_km")?;
+    Ok(Value::Float(km / AU_KM))
+}
+
+/// Topocentric altitude (true, unrefracted) at the observer.
+fn alt_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let ((lat, lon), body, jd) = observer_args(name, args)?;
+    if body.name == "Pluto" {
+        let (alt, _) = pluto_altaz(jd, lat, lon)?;
+        return Ok(Value::Float(alt));
+    }
+    let snapshot = sky_snapshot(jd, lat, lon)?;
+    let entry = snapshot_body(&snapshot, body.name)?;
+    Ok(Value::Float(json_f64(entry, "alt_deg")?))
+}
+
+fn az_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let ((lat, lon), body, jd) = observer_args(name, args)?;
+    if body.name == "Pluto" {
+        let (_, az) = pluto_altaz(jd, lat, lon)?;
+        return Ok(Value::Float(az));
+    }
+    let snapshot = sky_snapshot(jd, lat, lon)?;
+    let entry = snapshot_body(&snapshot, body.name)?;
+    Ok(Value::Float(json_f64(entry, "az_deg")?))
+}
+
+/// `(lat, lon), body, jd` for the horizontal-accessor signatures
+/// `f(body, jd, lat, lon)`.
+fn observer_args(
+    name: &str,
+    args: &[Value],
+) -> Result<((f64, f64), &'static BodyDef, f64), EpherError> {
+    let (body, jd) = body_arg(name, args)?;
+    match args {
+        [_, _, Value::Float(lat), Value::Float(lon)] => {
+            if !(-90.0..=90.0).contains(lat) {
+                return Err(domain_error(format!(
+                    "{name} needs a latitude in -90..90 degrees, got {lat}"
+                )));
+            }
+            Ok(((*lat, *lon), body, jd))
+        }
+        _ => Err(EpherError::Type(format!(
+            "{name} expects (body, jd, lat, lon), got {} argument(s)",
+            args.len()
+        ))),
+    }
+}
+
+/// Rise / transit / set from the sky snapshot's event block (JDs within
+/// the observer's local mean-solar day of `jd`; a body that never rises
+/// or sets that day is a domain error, not a NaN).
+fn event_fn(name: &str, args: &[Value], key: &str) -> Result<Value, EpherError> {
+    let ((lat, lon), body, jd) = observer_args(name, args)?;
+    let snapshot = sky_snapshot(jd, lat, lon)?;
+    let entry = snapshot_body(&snapshot, body.name)?;
+    let value = entry
+        .get(key)
+        .ok_or_else(|| EpherError::Domain(format!("ephemeris snapshot missing {key}")))?;
+    match value.as_f64() {
+        Some(x) if x.is_finite() => Ok(Value::Float(x)),
+        _ => Err(domain_error(format!(
+            "{} never {}s on that local day at that latitude",
+            body.name,
+            key.strip_suffix("_jd").unwrap_or(key)
+        ))),
+    }
+}
+
+/// Apparent magnitude. The planets come from the system snapshot (the
+/// crate's Meeus ch. 41 tables, Saturn's rings included); the Moon from
+/// Meeus ch. 48 through the facade; the Sun from its distance; Pluto
+/// from its elements.
+fn mag_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let (body, jd) = body_arg(name, args)?;
+    match body.name {
+        "Sun" => {
+            let snapshot = system_snapshot(jd)?;
+            let earth = snapshot_body(&snapshot, "Earth")?;
+            let r = json_f64(earth, "dist_au")?;
+            Ok(Value::Float(-26.74 + 10.0 * r.log10()))
+        }
+        "Moon" => {
+            let snapshot = system_snapshot(jd)?;
+            let moon = snapshot_body(&snapshot, "Moon")?;
+            let alpha = json_f64(moon, "phase_angle_deg")?;
+            // Meeus ch. 48.4
+            Ok(Value::Float(-12.7 + 0.026 * alpha + 4e-9 * alpha * alpha * alpha * alpha))
+        }
+        "Pluto" => pluto_mag(jd).map(Value::Float),
+        _ => {
+            let snapshot = system_snapshot(jd)?;
+            let entry = snapshot_body(&snapshot, body.name)?;
+            match entry.get("magnitude").and_then(|m| m.as_f64()) {
+                Some(m) => Ok(Value::Float(m)),
+                None => Err(domain_error(format!("no magnitude for {}", body.name))),
+            }
+        }
+    }
+}
+
+fn phase_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let (body, jd) = body_arg(name, args)?;
+    if body.name == "Pluto" {
+        return Ok(Value::Float(pluto_geometry(jd)?.0));
+    }
+    let snapshot = system_snapshot(jd)?;
+    let entry = snapshot_body(&snapshot, body.name)?;
+    Ok(Value::Float(json_f64(entry, "phase_angle_deg")?))
+}
+
+fn illum_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let (body, jd) = body_arg(name, args)?;
+    if body.name == "Pluto" {
+        let (phase, _) = pluto_geometry(jd)?;
+        return Ok(Value::Float(
+            solar_ephemeris::physics::illuminated_fraction(phase),
+        ));
+    }
+    let snapshot = system_snapshot(jd)?;
+    let entry = snapshot_body(&snapshot, body.name)?;
+    Ok(Value::Float(json_f64(entry, "illuminated_fraction")?))
+}
+
+fn diam_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let (body, jd) = body_arg(name, args)?;
+    if body.name == "Pluto" {
+        let (_, delta_au) = pluto_geometry(jd)?;
+        let semi = (body.radius_km / (delta_au * AU_KM)).asin().to_degrees();
+        return Ok(Value::Float(2.0 * semi));
+    }
+    let snapshot = sky_snapshot(jd, 0.0, 0.0)?;
+    let entry = snapshot_body(&snapshot, body.name)?;
+    Ok(Value::Float(json_f64(entry, "angular_size_arcsec")? / 3600.0))
+}
+
+// --- Pluto: the facade's own approximate ephemeris ---
+//
+// JPL's approximate Keplerian elements with rates (valid 1800-2050).
+// Arcminute-grade, far below the crate's arcsecond class, and
+// documented as such wherever the guide mentions Pluto.
+
+struct OrbitElements {
+    a: f64,
+    e: f64,
+    inc: f64,
+    node: f64,
+    argp: f64,
+    mean_anomaly: f64,
+}
+
+fn pluto_elements(jy2k: f64) -> OrbitElements {
+    let t = jy2k / 100.0; // centuries past J2000
+    let a = 39.482_116_75 - 0.000_315_96 * t;
+    let e = 0.248_827_30 + 0.000_051_70 * t;
+    let inc = 17.140_012_06 + 0.000_048_18 * t;
+    let lon_peri = 224.068_916_29 - 0.040_629_42 * t;
+    let node = 110.303_936_84 - 0.011_834_82 * t;
+    let mean_longitude = 238.929_038_33 + 145.207_805_15 * t;
+    OrbitElements {
+        a,
+        e,
+        inc,
+        node,
+        argp: lon_peri - node,
+        mean_anomaly: (mean_longitude - lon_peri).rem_euclid(360.0),
+    }
+}
+
+/// Heliocentric ecliptic-J2000 position (AU) from elements.
+fn elements_xyz(el: &OrbitElements) -> [f64; 3] {
+    let (ma, e) = (el.mean_anomaly.to_radians(), el.e);
+    let mut ea = ma + e * ma.sin();
+    for _ in 0..60 {
+        let residual = ea - e * ea.sin() - ma;
+        if residual.abs() < 1e-14 {
+            break;
+        }
+        ea -= residual / (1.0 - e * ea.cos());
+    }
+    let (a, i, node, argp) = (
+        el.a,
+        el.inc.to_radians(),
+        el.node.to_radians(),
+        el.argp.to_radians(),
+    );
+    let xp = a * (ea.cos() - e);
+    let yp = a * (1.0 - e * e).sqrt() * ea.sin();
+    let (co, so) = node.sin_cos();
+    let (cw, sw) = argp.sin_cos();
+    let (ci, si) = i.sin_cos();
+    [
+        (cw * co - sw * so * ci) * xp + (-sw * co - cw * so * ci) * yp,
+        (cw * so + sw * co * ci) * xp + (-sw * so + cw * co * ci) * yp,
+        sw * si * xp + cw * si * yp,
+    ]
+}
+
+/// Pluto's (phase angle deg, geocentric distance AU), from its elements
+/// and the snapshot's Earth position.
+fn pluto_geometry(jd: f64) -> Result<(f64, f64), EpherError> {
+    let system = system_snapshot(jd)?;
+    let earth = snapshot_body(&system, "Earth")?;
+    let earth_xyz = [
+        json_f64(earth, "x_au")?,
+        json_f64(earth, "y_au")?,
+        json_f64(earth, "z_au")?,
+    ];
+    let jy2k = (jd_tt_of(jd) - solar_ephemeris::time::J2000) / 365.25;
+    let xyz = elements_xyz(&pluto_elements(jy2k));
+    let r = (xyz[0] * xyz[0] + xyz[1] * xyz[1] + xyz[2] * xyz[2]).sqrt();
+    let d = [
+        xyz[0] - earth_xyz[0],
+        xyz[1] - earth_xyz[1],
+        xyz[2] - earth_xyz[2],
+    ];
+    let delta = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
+    let sun_earth = (earth_xyz[0] * earth_xyz[0]
+        + earth_xyz[1] * earth_xyz[1]
+        + earth_xyz[2] * earth_xyz[2])
+        .sqrt();
+    let phase = solar_ephemeris::physics::phase_angle_deg(r, delta, sun_earth);
+    Ok((phase, delta))
+}
+
+/// TT Julian Date of a UTC Julian Date, through the crate's own
+/// Delta-T policy.
+fn jd_tt_of(jd_utc: f64) -> f64 {
+    solar_ephemeris::timescales::AstroTime::from_jd_utc(jd_utc).jd_tt
+}
+
+fn pluto_mag(jd: f64) -> Result<f64, EpherError> {
+    // H = -1.0 with a negligible phase term (documented approximation)
+    let (_, delta) = pluto_geometry(jd)?;
+    let jy2k = (jd_tt_of(jd) - solar_ephemeris::time::J2000) / 365.25;
+    let xyz = elements_xyz(&pluto_elements(jy2k));
+    let r = (xyz[0] * xyz[0] + xyz[1] * xyz[1] + xyz[2] * xyz[2]).sqrt();
+    Ok(-1.0 + 5.0 * (r * delta).log10())
+}
+
+/// Pluto's apparent (ra, dec) of date, through the crate's public
+/// reduction functions: elements to heliocentric J2000, minus the
+/// snapshot's Earth, precessed to date with nutation in longitude.
+/// Light-time and aberration are skipped (arcminute body, documented).
+fn pluto_radec(jd: f64) -> Result<(f64, f64), EpherError> {
+    let system = system_snapshot(jd)?;
+    let earth = snapshot_body(&system, "Earth")?;
+    let earth_xyz = [
+        json_f64(earth, "x_au")?,
+        json_f64(earth, "y_au")?,
+        json_f64(earth, "z_au")?,
+    ];
+    let astro = solar_ephemeris::timescales::AstroTime::from_jd_utc(jd);
+    let t = solar_ephemeris::time::centuries(astro.jd_tt);
+    let (dpsi, deps) = solar_ephemeris::time::nutation_deg(t);
+    let jy2k = (astro.jd_tt - solar_ephemeris::time::J2000) / 365.25;
+    let xyz = elements_xyz(&pluto_elements(jy2k));
+    let g = [xyz[0] - earth_xyz[0], xyz[1] - earth_xyz[1], xyz[2] - earth_xyz[2]];
+    let lon_j2000 = g[1].atan2(g[0]).to_degrees();
+    let lat_j2000 = g[2].atan2((g[0] * g[0] + g[1] * g[1]).sqrt()).to_degrees();
+    let (lon_date, lat_date) = solar_ephemeris::coords::precess_ecliptic_from_j2000(
+        lon_j2000,
+        lat_j2000,
+        t,
+    );
+    let eps_true = solar_ephemeris::time::mean_obliquity_deg(t) + deps;
+    Ok(solar_ephemeris::coords::ecl_to_equ(
+        (lon_date + dpsi).rem_euclid(360.0),
+        lat_date,
+        eps_true,
+    ))
+}
+
+/// Pluto's topocentric (alt, az), true and unrefracted, through the
+/// crate's alt_az with the observer's local apparent sidereal time.
+fn pluto_altaz(jd: f64, lat: f64, lon: f64) -> Result<(f64, f64), EpherError> {
+    let astro = solar_ephemeris::timescales::AstroTime::from_jd_utc(jd);
+    let t = solar_ephemeris::time::centuries(astro.jd_tt);
+    let (dpsi, deps) = solar_ephemeris::time::nutation_deg(t);
+    let eps_true = solar_ephemeris::time::mean_obliquity_deg(t) + deps;
+    let gast = solar_ephemeris::time::gast_deg(astro.jd_ut1, dpsi, eps_true);
+    let lst = (gast + lon).rem_euclid(360.0);
+    let (ra, dec) = pluto_radec(jd)?;
+    Ok(solar_ephemeris::coords::alt_az(ra, dec, lst, lat))
+}
+
+// --- Seasons (ADR-0037) ---
+//
+// The apparent solar longitude (the crate's sun_apparent_ecliptic,
+// aberration and nutation included) crosses 0/90/180/270 degrees. A
+// bisection over a generous window finds the crossing to sub-minute
+// precision.
+
+fn apparent_solar_longitude(jd: f64) -> f64 {
+    let astro = solar_ephemeris::timescales::AstroTime::from_jd_utc(jd);
+    let t = solar_ephemeris::time::centuries(astro.jd_tt);
+    let (dpsi, _deps) = solar_ephemeris::time::nutation_deg(t);
+    solar_ephemeris::planets::sun_apparent_ecliptic(astro.jd_tt, dpsi).0
+}
+
+fn season_jd(year: i32, target_deg: f64, start: (i32, u8), end: (i32, u8)) -> Result<Value, EpherError> {
+    let signed = |jd: f64| {
+        let diff = (apparent_solar_longitude(jd) - target_deg).rem_euclid(360.0);
+        if diff > 180.0 {
+            diff - 360.0
+        } else {
+            diff
+        }
+    };
+    let jd = |y: i32, m: u8| match calendar_jd("jd", &[Value::float(y as f64), Value::float(m as f64), Value::float(1.0)], None) {
+        Ok(Value::Float(x)) => x,
+        _ => unreachable!("season windows use valid months"),
+    };
+    let (mut a, mut b) = (jd(year, start.1), jd(end.0, end.1));
+    let (mut fa, mut fb) = (signed(a), signed(b));
+    if !(fa < 0.0 && fb > 0.0) {
+        return Err(domain_error(format!(
+            "the season crossing for {year} fell outside its search window"
+        )));
+    }
+    for _ in 0..60 {
+        let m = 0.5 * (a + b);
+        let fm = signed(m);
+        if (fm < 0.0) == (fa < 0.0) {
+            a = m;
+            fa = fm;
+        } else {
+            b = m;
+            fb = fm;
+        }
+    }
+    let _ = fb;
+    Ok(Value::Float(0.5 * (a + b)))
+}
+
+fn march_equinox(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let year = year_arg(name, args)?;
+    season_jd(year, 0.0, (year, 1), (year, 4))
+}
+
+fn june_solstice(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let year = year_arg(name, args)?;
+    season_jd(year, 90.0, (year, 4), (year, 7))
+}
+
+fn september_equinox(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let year = year_arg(name, args)?;
+    season_jd(year, 180.0, (year, 7), (year, 10))
+}
+
+fn december_solstice(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let year = year_arg(name, args)?;
+    season_jd(year, 270.0, (year, 10), (year + 1, 1))
+}
+
+fn year_arg(name: &str, args: &[Value]) -> Result<i32, EpherError> {
+    let y = one_float(name, args)?;
+    let year = crate::float_to_int(y)
+        .ok_or_else(|| EpherError::Type(format!("{name} expects a whole-number year, got {y}")))?;
+    i32::try_from(year)
+        .map_err(|_| domain_error(format!("{name} needs a year within i32, got {year}")))
 }

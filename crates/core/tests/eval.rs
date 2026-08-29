@@ -1318,3 +1318,126 @@ fn magnitude_and_jansky_convert_both_ways() {
     // the suffix converts the count to SI, per the ADR's worked example
     approx("mag2jy(20) Jy", "mag2jy(20) Jy", 3631.0 * 1e-8 * 1e-26);
 }
+
+// ===== Ephemeris accessors (ADR-0037) =====
+//
+// Body numbers: Mercury 1 through Neptune 8, Pluto 9, Sun 10, Moon 11.
+// Positions are geocentric unless an observer is given. Bounds are wide
+// enough for independent truth to fit comfortably; the ephemeris crate's
+// own CI pins arcsecond accuracy against JPL Horizons.
+
+fn float_at(text: &str) -> f64 {
+    match epher_core::evaluate(text) {
+        Ok(epher_core::Value::Float(x)) => x,
+        other => panic!("{text} produced {other:?}"),
+    }
+}
+
+#[test]
+fn sun_places_match_the_equinoxes_and_solstices() {
+    // apparent solar declination at the March equinox instant
+    // (2000-03-20 07:35 UTC) is zero within a tenth of a degree
+    let dec = float_at("decl(10, jd(2000, 3, 20, 7.583))");
+    assert!(dec.abs() < 0.2, "solar dec at equinox = {dec}");
+    // at the June solstice it is the obliquity
+    let dec = float_at("decl(10, jd(2000, 6, 21, 1.8))");
+    assert!((dec - 23.44).abs() < 0.1, "solar dec at solstice = {dec}");
+    // right ascension stays a finite 0..360 across the year
+    let ra = float_at("ra(10, jd(2000, 9, 22, 17.5))");
+    assert!((0.0..360.0).contains(&ra), "ra = {ra}");
+}
+
+#[test]
+fn distances_land_where_the_almanacs_say() {
+    // Earth at perihelion (2000-01-03) was 0.9833 AU
+    let d = float_at("dist(10, jd(2000, 1, 1))");
+    assert!((0.9825..0.9842).contains(&d), "sun distance = {d} AU");
+    // the Moon rides 0.0024..0.00275 AU out
+    let d = float_at("dist(11, jd(2000, 1, 1))");
+    assert!((0.00238..0.00275).contains(&d), "moon distance = {d} AU");
+    // Pluto (the facade's own JPL elements) was about 34.3 AU in 2020
+    let d = float_at("dist(9, jd(2020, 6, 1))");
+    assert!((33.5..35.2).contains(&d), "pluto distance = {d} AU");
+}
+
+#[test]
+fn moon_illumination_hits_zero_at_a_known_new_moon() {
+    // new moon: 2000-01-06 18:14 UTC
+    let illum = float_at("illum(11, jd(2000, 1, 6, 18.23))");
+    assert!(illum < 0.02, "illum at new moon = {illum}");
+    let illum = float_at("illum(11, jd(2000, 1, 21, 4.0))");
+    assert!(illum > 0.9, "illum near full moon (2000-01-21) = {illum}");
+}
+
+#[test]
+fn observer_accessors_see_the_noon_sun() {
+    // the Sun stands about 66.5 deg high, near due south, at the
+    // equator's local noon on New Year's Day 2000
+    let alt = float_at("alt(10, jd(2000, 1, 1, 12), 0, 0)");
+    assert!((65.0..68.0).contains(&alt), "solar altitude = {alt}");
+    let az = float_at("az(10, jd(2000, 1, 1, 12), 0, 0)");
+    assert!((170.0..190.0).contains(&az), "solar azimuth = {az}");
+    // Pluto's topocentric altitude is a finite angle too
+    let alt = float_at("alt(9, jd(2020, 6, 1, 0), 0, 0)");
+    assert!((-90.0..=90.0).contains(&alt), "pluto altitude = {alt}");
+}
+
+#[test]
+fn rise_set_and_transit_land_on_a_greenwich_day() {
+    // Greenwich, 2000-03-20: sunrise 06:11, transit about 12:09,
+    // sunset 18:14 UT. Fractions of the local mean-solar day.
+    let day = float_at("jd(2000, 3, 20)");
+    let rise = float_at("rise(10, jd(2000, 3, 20), 51.5, 0)") - day;
+    assert!((0.20..0.32).contains(&rise), "sunrise fraction = {rise}");
+    let transit = float_at("transit(10, jd(2000, 3, 20), 51.5, 0)") - day;
+    assert!((0.47..0.56).contains(&transit), "transit fraction = {transit}");
+    let set = float_at("set(10, jd(2000, 3, 20), 51.5, 0)") - day;
+    assert!((0.72..0.82).contains(&set), "sunset fraction = {set}");
+    // a body that never rises at a latitude is a domain error, not
+    // NaN (the polar-night Sun, 78 north on the December solstice)
+    assert!(epher_core::evaluate("rise(10, jd(2000, 12, 21), 78, 0)").is_err());
+}
+
+#[test]
+fn brightness_and_size_accessors() {
+    // Venus in January 2020 shone near -3.9
+    let m = float_at("mag(2, jd(2020, 1, 1))");
+    assert!((-4.9..-3.5).contains(&m), "venus mag = {m}");
+    // Saturn near 0.5 around its 2020 opposition (rings included);
+    // body 6 under the ADR numbering
+    let m = float_at("mag(6, jd(2020, 7, 20))");
+    assert!((-1.5..1.5).contains(&m), "saturn mag = {m}");
+    // the Moon (Meeus's ch. 48 formula in the facade) is very bright
+    let m = float_at("mag(11, jd(2000, 1, 21))");
+    assert!((-13.0..-9.0).contains(&m), "moon mag = {m}");
+    // angular diameters of the great lights, in degrees
+    let d = float_at("diam(10, jd(2000, 1, 1))");
+    assert!((0.5237..0.5424).contains(&d), "sun diameter = {d}");
+    let d = float_at("diam(11, jd(2000, 1, 1))");
+    assert!((0.49..0.57).contains(&d), "moon diameter = {d}");
+    // phase geometry stays in its quadrants
+    let phase = float_at("phase(4, jd(2020, 10, 6))");
+    assert!((0.0..90.0).contains(&phase), "mars phase at opposition = {phase}");
+    let illum = float_at("illum(4, jd(2020, 10, 6))");
+    assert!((0.7..1.01).contains(&illum), "mars illum at opposition = {illum}");
+}
+
+#[test]
+fn body_numbers_are_validated() {
+    // Earth is the observer: it has no geocentric place to report
+    assert!(epher_core::evaluate("ra(3, jd(2020, 1, 1))").is_err());
+    assert!(epher_core::evaluate("dist(0, jd(2020, 1, 1))").is_err());
+    assert!(epher_core::evaluate("dist(12, jd(2020, 1, 1))").is_err());
+    // horizontal accessors need an observer
+    assert!(epher_core::evaluate("alt(4, jd(2020, 1, 1))").is_err());
+    assert!(epher_core::evaluate("rise(4, jd(2020, 1, 1), 51.5)").is_err());
+}
+
+#[test]
+fn the_four_season_entries_land_on_their_instants() {
+    // NASA/GSFC almanac values for the year 2000, UTC
+    approx("march equinox 2000", "march_equinox(2000)", 2451623.816);
+    approx("june solstice 2000", "june_solstice(2000)", 2451716.575);
+    approx("september equinox 2000", "september_equinox(2000)", 2451810.228);
+    approx("december solstice 2000", "december_solstice(2000)", 2451900.068);
+}
