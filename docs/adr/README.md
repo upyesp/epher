@@ -39,7 +39,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0012 | User-defined constants: `const name = value`, visible like `pi` | 2026-08-16 | accepted |
 | 0013 | The command line follows clig.dev | 2026-08-17 | accepted |
 | 0014 | Graphing expansion: multi-curve, trace, analysis, tables, sliders (3D deferral superseded by 0015) | 2026-08-17 | accepted |
-| 0015 | Animation and 3D graphing (amended: near-plane clipping; playback rate, drag orbit, touch; the slider rows sit above the points-of-interest list; the pane shows one kind at a time; per-kind line-width sliders and legend visibility checkboxes) | 2026-08-17 (amended 2026-08-27) | accepted |
+| 0015 | Animation and 3D graphing (amended: near-plane clipping; playback rate, drag orbit, touch; the slider rows sit above the points-of-interest list; the pane shows one kind at a time; per-kind line-width sliders and legend visibility checkboxes; deadline-paced minimal tick; 3D space curves and positioned points per 0037) | 2026-08-17 (amended 2026-08-27, 2026-08-29) | accepted |
 | 0016 | Calculator-style fixed layout with keypad input (keypad banks amended by 0022/0024; mobile focus rule amended by 0035; TUI keypad amended by 0019/0024/0033) | 2026-08-21 | accepted |
 | 0017 | Menu bar, themes, and file open/save (menubar → icon rail: 0032) | 2026-08-22 | accepted |
 | 0018 | The user guide inside the app, and one button to clear the graph pane (amended 2026-08-27: in-app table of contents with click-to-jump) | 2026-08-22 | accepted |
@@ -61,6 +61,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0034 | TUI mouse support — menus, history, keypad, and graph manipulation | 2026-08-25 | accepted |
 | 0035 | Mobile PWA usability — the onscreen keypad is the primary input, and a drawn plot slides into view (file name keeps the original keypad-focus title) (amended 2026-08-26, 2026-08-27, 2026-08-28: touch no-arrow hints, per-kind sliders, examples tap-to-stage, visible-space fitting) | 2026-08-25 (amended 2026-08-26, 2026-08-27) | accepted |
 | 0036 | The website Examples page — copyable code for every frontend (amended 2026-08-27: the app section leads, four CLI examples moved into it, touch taps stage examples in the app; amended 2026-08-28: base-conversion example in the app section, the REPL section last) | 2026-08-27 (amended 2026-08-27, 2026-08-28) | accepted |
+| 0037 | Astronomy units, constants, time functions, and ephemeris: unit-suffix literals, the solar-ephemeris facade, accessor functions, and solar3d | 2026-08-29 | accepted |
 
 ## Decision chains
 
@@ -92,3 +93,7 @@ at the end of the chain.
 - **Website guide and examples** — 0018 (one guide, three renderers) →
   **0018 amendment (in-app table of contents)**; → **0036 (Examples
   page with the guide's copy buttons)**.
+- **Astronomy** — **0037 (unit-suffix literals as SI sugar, astro constants
+  and time functions, solar-ephemeris behind a core facade, accessor
+  functions, solar3d)** → **0015 amendment (3D space curves and positioned
+  points render the solar system)**.

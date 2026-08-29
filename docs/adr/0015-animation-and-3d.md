@@ -224,3 +224,32 @@ shifts the remaining colours (the exported SVG gained the indexed
 variant `graph_svg_indexed`; the plain `graph_svg` keeps the
 position-index behaviour for the terminal frontends, which never
 filter).
+
+## Amendment (2026-08-29): 3D parametric space curves and positioned points (the solar system view)
+
+The original deferral list included "parametric surfaces and space curves".
+This amendment lifts **space curves** (parametric surfaces stay deferred) and
+adds positioned points, because the astronomy feature set (ADR-0037) needs to
+show the solar system: orbits as curves and planet positions as dots.
+
+- **Grammar:** `graph3d param <x(t)>, <y(t)>, <z(t)> [from a to b]`,
+  mirroring the 2D `param` keyword from ADR-0014. Sampling walks t across the
+  domain with the same run-splitting rule as 2D curves (NaN breaks the run,
+  so discontinuities and out-of-domain stretches leave gaps).
+- **Projection:** each sampled point goes through the same `View3D` transform
+  as surface points; the projected run becomes painter-sorted polylines with
+  mean-depth opacity, identical to mesh lines. The renderers still never see
+  3D.
+- **Positioned points:** a new 3D element kind, a labelled dot at (x, y, z),
+  projected like any point and drawn after the lines (filled circle, radius
+  shrinking with depth, label text in the legend/accessible description).
+  This is the 3D analogue of the 2D points-of-interest markers, but placed by
+  data instead of computed from a curve.
+- **The solar system preset (ADR-0037):** `solar3d [t]` builds the scene from
+  the ephemeris facade: each body's orbit as a space curve (sampled over one
+  heliocentric period), each body's position as a positioned dot, trails
+  behind the dots for motion context. The optional time argument may be a
+  user constant, so the existing animation transport (constant playback, the
+  ADR-0015 play button) animates the solar system with no new playback
+  machinery. Orbit (drag, arrow keys, touch), the frozen viewBox behaviour,
+  and the SVG/ASCII renderers all apply unchanged.

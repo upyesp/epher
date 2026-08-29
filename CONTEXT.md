@@ -66,6 +66,20 @@ the space bar (TUI). Always user-started, one control to pause; reduced
 motion degrades it to stepping (ADR-0015).
 _Avoid_: movie, animated plot, time series
 
+### Astronomy
+
+**Unit literal**:
+A number followed by a unit suffix (`3.2 AU`, `30 deg`, `5 hr`) that multiplies
+by the unit's SI factor; the result is a plain Value in SI units (metres,
+radians, seconds, watts per square metre hertz). Functions return counts in
+natural units; suffixes convert counts to SI.
+_Avoid_: unit type, quantity
+
+**Ephemeris**:
+A computed position of a Solar System body (Sun, Moon, planet) at a given
+time, in a stated coordinate frame.
+_Avoid_: almanac, star chart, planetarium
+
 ### Persistence
 
 **Store**:
