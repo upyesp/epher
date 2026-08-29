@@ -694,6 +694,142 @@ conoce, para que puedas arreglar tu expresión.
 | Binario, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Escritura en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 
+### 1.16 Astronomía y el sistema solar
+
+epher habla astronomía: sufijos de unidad, constantes físicas, funciones de
+calendario y tiempo, y una efeméride en vivo para el Sol, la Luna, los
+planetas y Plutón. Todo funciona sin conexión.
+
+**Unidades que hablan astronomía.** Escribe un número seguido de un sufijo
+de unidad y epher lo convierte a unidades SI al instante:
+
+| Sufijo | Unidad | Convierte a |
+|---|---|---|
+| `AU` o `au` | unidad astronómica | metros |
+| `pc` | pársec | metros |
+| `ly` | año luz | metros |
+| `deg` | grado | radianes |
+| `arcmin`, `arcsec` | minuto y segundo de arco | radianes |
+| `min`, `hr`, `d`, `yr` | minuto, hora, día, año juliano | segundos |
+| `Jy` | jansky | W m-2 Hz-1 |
+
+```epher
+3.2 AU
+```
+
+```text
+478713186240
+```
+
+```epher
+sin(30 deg)
+```
+
+```text
+0.5
+```
+
+Los sufijos son parte de la gramática: ninguna constante propia puede
+cambiar lo que significa `3.2 AU`, y `h` sigue siendo la constante de
+Planck; las horas se escriben `hr`. Las funciones devuelven conteos en
+unidades naturales; un sufijo convierte un conteo a SI, así que
+`mag2jy(20)` es un conteo en janskys y `mag2jy(20) Jy` es el mismo flujo
+en vatios por metro cuadrado y hercio.
+
+**Constantes astronómicas.** `au`, `pc`, `ly`, `c`, `g`, `h`, `h_bar`,
+`k_b`, `sigma_sb`, `m_sun`, `r_sun`, `l_sun`, `m_earth`, `r_earth` funcionan
+como `pi`, y puedes ensombrecerlas con tus propias constantes.
+
+**Fechas y tiempo.** `jd(y, m, d [, hr])` y `mjd(...)` convierten una fecha
+de calendario en fecha juliana; `now()` lee el instante actual:
+
+```epher
+jd(2000, 1, 1, 12)
+```
+
+```text
+2451545
+```
+
+`delta_t(jd)` es la corrección TT - UT1, y `lst(jd, lon)` es el tiempo
+sideral local en horas para una longitud este en grados.
+
+**Horas, minutos y segundos.** `hms2deg(h, m, s)` convierte ascensión recta
+a grados, `dms2deg(d, m, s)` un ángulo sexagesimal, y `deg2hms(x)` /
+`deg2dms(x)` escriben un ángulo como texto:
+
+```epher
+deg2hms(90)
+```
+
+```text
+6h 0m 0s
+```
+
+**El cielo, cuantificado.** Da a cada función un número de cuerpo:
+Mercurio 1, Venus 2, Marte 4, Júpiter 5, Saturno 6, Urano 7, Neptuno 8,
+Plutón 9, Sol 10, Luna 11 (la Tierra es 3, la observadora, nunca un
+objetivo).
+
+| Función | Significado |
+|---|---|
+| `ra(b, jd)`, `decl(b, jd)` | ascensión recta y declinación geocéntricas (grados) |
+| `dist(b, jd)` | distancia en UA |
+| `alt(b, jd, lat, lon)`, `az(b, jd, lat, lon)` | altura y acimut topocéntricos (grados, verdaderos) |
+| `rise(b, jd, lat, lon)`, `set(...)`, `transit(...)` | eventos del día solar local, como fechas julianas |
+| `mag(b, jd)` | magnitud aparente |
+| `phase(b, jd)`, `illum(b, jd)` | ángulo de fase (grados) y fracción iluminada |
+| `diam(b, jd)` | diámetro angular (grados) |
+
+```epher
+decl(10, jd(2000, 6, 21, 1.8))
+```
+
+```text
+23.437882351
+```
+
+Latitudes y longitudes son grados, este positivo. Las posiciones son
+geocéntricas salvo que se dé un observador. Plutón usa una órbita
+aproximada honesta a un minuto de arco, muy por debajo de la precisión de
+los demás cuerpos; los eclipses y las búsquedas de conjunciones no están
+incluidos.
+
+**Óptica y luz.** `kepler(M, e)` resuelve la ecuación de Kepler,
+`airmass(alt)` es la masa de aire sec(z), `dawes(d)` es el poder de
+resolución de una apertura de d milímetros en segundos de arco, y
+`dist_mod(mu)` convierte un módulo de distancia en pársecs.
+
+**Estaciones.** `march_equinox(year)`, `june_solstice(year)`,
+`september_equinox(year)` y `december_solstice(year)` devuelven la fecha
+juliana de cada cambio de estación:
+
+```epher
+march_equinox(2000)
+```
+
+```text
+2451623.8159797275
+```
+
+**El sistema solar en 3D.** El comando `solar3d` dibuja todo el sistema:
+cada órbita como una curva, cada cuerpo como un punto etiquetado, con una
+estela que muestra dónde estaba:
+
+```epher
+solar3d jd(2020, 7, 1)
+```
+
+Da el tiempo como una constante y pulsa el botón de reproducir para ver
+moverse los planetas: `const t = jd(now()); solar3d t`. Arrastra o usa las
+flechas para orbitar, `clear` para vaciar y `solar3d save file.svg` para
+exportar.
+
+La efeméride la calcula el crate solar-ephemeris
+(github.com/Protonmatter/sol), validado contra JPL Horizons; gracias a su
+autor. La precisión es de clase arcsecond para el Sol, la Luna y los
+planetas a lo largo de unos 5000 años alrededor del presente.
+
 ## 2. La aplicación web (PWA)
 
 ### 2.1 Cómo abrirla

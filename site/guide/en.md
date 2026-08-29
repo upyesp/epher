@@ -688,6 +688,138 @@ not know, so you can fix your expression.
 | Binary, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Base spelling | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 
+### 1.16 Astronomy and the solar system
+
+epher speaks astronomy: unit suffixes, physical constants, calendar and time
+functions, and a live ephemeris for the Sun, the Moon, the planets and Pluto.
+Everything works offline.
+
+**Units that speak astronomy.** Write a number followed by a unit suffix and
+epher converts it to SI units on the spot:
+
+| Suffix | Unit | Converts to |
+|---|---|---|
+| `AU` or `au` | astronomical unit | metres |
+| `pc` | parsec | metres |
+| `ly` | light year | metres |
+| `deg` | degree | radians |
+| `arcmin`, `arcsec` | arcminute, arcsecond | radians |
+| `min`, `hr`, `d`, `yr` | minute, hour, day, Julian year | seconds |
+| `Jy` | jansky | W m-2 Hz-1 |
+
+```epher
+3.2 AU
+```
+
+```text
+478713186240
+```
+
+```epher
+sin(30 deg)
+```
+
+```text
+0.5
+```
+
+The suffixes are part of the grammar, so no user constant can change what
+`3.2 AU` means, and `h` stays Planck's constant: hours are written `hr`.
+Functions return counts in natural units; a suffix converts a count to SI,
+so `mag2jy(20)` is a jansky count and `mag2jy(20) Jy` is the same flux in
+watts per square metre hertz.
+
+**Astronomy constants.** `au`, `pc`, `ly`, `c`, `g`, `h`, `h_bar`, `k_b`,
+`sigma_sb`, `m_sun`, `r_sun`, `l_sun`, `m_earth`, `r_earth` work like `pi`,
+and you can shadow them with your own constants.
+
+**Dates and time.** `jd(y, m, d [, hr])` and `mjd(...)` turn a calendar date
+into a Julian Date, `now()` reads the current instant:
+
+```epher
+jd(2000, 1, 1, 12)
+```
+
+```text
+2451545
+```
+
+`delta_t(jd)` is the TT - UT1 correction, and `lst(jd, lon)` is the local
+sidereal time in hours for a longitude in degrees east.
+
+**Hours, minutes and seconds.** `hms2deg(h, m, s)` converts right ascension
+to degrees, `dms2deg(d, m, s)` converts a sexagesimal angle, and
+`deg2hms(x)` / `deg2dms(x)` spell an angle back as text:
+
+```epher
+deg2hms(90)
+```
+
+```text
+6h 0m 0s
+```
+
+**The sky, quantified.** Give each accessor a body number: Mercury 1,
+Venus 2, Mars 4, Jupiter 5, Saturn 6, Uranus 7, Neptune 8, Pluto 9,
+Sun 10, Moon 11 (Earth is 3, the observer, never a target).
+
+| Function | Meaning |
+|---|---|
+| `ra(b, jd)`, `decl(b, jd)` | geocentric right ascension and declination (degrees) |
+| `dist(b, jd)` | distance in AU |
+| `alt(b, jd, lat, lon)`, `az(b, jd, lat, lon)` | topocentric altitude and azimuth (degrees, true) |
+| `rise(b, jd, lat, lon)`, `set(...)`, `transit(...)` | events of that local solar day, as Julian Dates |
+| `mag(b, jd)` | apparent magnitude |
+| `phase(b, jd)`, `illum(b, jd)` | phase angle (degrees) and illuminated fraction |
+| `diam(b, jd)` | angular diameter (degrees) |
+
+```epher
+decl(10, jd(2000, 6, 21, 1.8))
+```
+
+```text
+23.437882351
+```
+
+Latitudes and longitudes are degrees, east positive. Positions are
+geocentric unless an observer is given. Pluto rides an approximate
+orbit that is honest to about an arcminute, far below the accuracy of
+the other bodies; eclipses and conjunction searches are not included.
+
+**Optics and light.** `kepler(M, e)` solves Kepler's equation,
+`airmass(alt)` is the sec(z) airmass, `dawes(d)` is the resolving power of
+a d-millimetre aperture in arcseconds, and `dist_mod(mu)` turns a distance
+modulus into parsecs.
+
+**Seasons.** `march_equinox(year)`, `june_solstice(year)`,
+`september_equinox(year)` and `december_solstice(year)` return the Julian
+Date of each season boundary:
+
+```epher
+march_equinox(2000)
+```
+
+```text
+2451623.8159797275
+```
+
+**The solar system in 3D.** The `solar3d` command draws the whole system:
+every orbit as a curve, every body as a labelled dot, with a trail showing
+where it just was:
+
+```epher
+solar3d jd(2020, 7, 1)
+```
+
+Give the time as a constant and press the play button to watch the planets
+move: `const t = jd(now()); solar3d t`. Drag or use the arrow keys to orbit,
+`clear` to empty, and `solar3d save file.svg` to export.
+
+The ephemeris is computed by the solar-ephemeris crate
+(github.com/Protonmatter/sol), validated against JPL Horizons; thank you to
+its author. Accuracy is arcsecond-class for the Sun, Moon and planets over
+roughly 5000 years around the present.
+
 ## 2. The web app (PWA)
 
 ### 2.1 Opening it

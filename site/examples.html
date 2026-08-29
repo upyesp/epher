@@ -285,6 +285,47 @@ y ^ <span class="tok-num">2</span></code></pre>
 </div>
 </div>
 </figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-a13">Kepler's equation: the eccentric anomaly E for a mean anomaly of 5 degrees and an eccentricity of 0.1.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher"><span class="tok-fn">kepler</span>(<span class="tok-num">5</span>, <span class="tok-num">0.1</span>)</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-a14">Planck's blackbody curve for the Sun (5778 K), wavelength in nanometres. The constants `h`, `c` and `k_b` are built in.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher"><span class="tok-kw">def</span> <span class="tok-fn">planck</span>(x) = (<span class="tok-num">2</span> * h * c ^ <span class="tok-num">2</span>) / ((x * <span class="tok-num">1e-9</span>) ^ <span class="tok-num">5</span> * (<span class="tok-fn">exp</span>((h * c) / ((x * <span class="tok-num">1e-9</span>) * k_b * <span class="tok-num">5778</span>)) - <span class="tok-num">1</span>))
+<span class="tok-kw">graph</span> <span class="tok-fn">planck</span>(x) from <span class="tok-num">100</span> to <span class="tok-num">2000</span></code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
+<figure class="example-item">
+<figcaption data-i18n="ex-a15">The solar system at an instant: orbits, trails, and labelled dots. Give the time as a constant and press play to watch the planets move.</figcaption>
+<div class="example">
+<pre tabindex="0"><code class="language-epher"><span class="tok-kw">const</span> t = <span class="tok-fn">jd</span>(<span class="tok-fn">now</span>())
+solar3d t</code></pre>
+<div class="example-bar">
+<button type="button" class="copy-btn">
+<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+<span class="copy-label" data-i18n="copy">Copy</span>
+</button>
+</div>
+</div>
+</figure>
 </section>
 <section class="ex-section">
 <h2 data-i18n="ex-h-cli">The command line</h2>

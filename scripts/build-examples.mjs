@@ -42,6 +42,9 @@ const SECTIONS = [
       { cap: "ex-a5", capText: "Two curves on one plot. Every `graph` line adds another.", kind: "epher", code: `graph x ^ 2\ngraph sin(x)` },
       { cap: "ex-a6", capText: "A 3D surface. Drag, swipe, or use the sliders to orbit.", kind: "epher", code: `graph3d sin(x) * cos(y)` },
       { cap: "ex-a7", capText: "A paraboloid bowl.", kind: "epher", code: `graph3d x ^ 2 + y ^ 2` },
+      { cap: "ex-a13", capText: "Kepler's equation: the eccentric anomaly E for a mean anomaly of 5 degrees and an eccentricity of 0.1.", kind: "epher", code: `kepler(5, 0.1)` },
+      { cap: "ex-a14", capText: "Planck's blackbody curve for the Sun (5778 K), wavelength in nanometres. The constants `h`, `c` and `k_b` are built in.", kind: "epher", code: `def planck(x) = (2 * h * c ^ 2) / ((x * 1e-9) ^ 5 * (exp((h * c) / ((x * 1e-9) * k_b * 5778)) - 1))\ngraph planck(x) from 100 to 2000` },
+      { cap: "ex-a15", capText: "The solar system at an instant: orbits, trails, and labelled dots. Give the time as a constant and press play to watch the planets move.", kind: "epher", code: `const t = jd(now())\nsolar3d t` },
     ],
   },
   {
