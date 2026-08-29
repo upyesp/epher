@@ -492,10 +492,12 @@ a:hover {
 }
 
 /* The rotating saddle (app.js initHero3d): the mesh and frame lines
-   carry stroke="currentColor", so the palette flips with the theme
-   (--muted passes AA on --panel in both). */
+   carry stroke="currentColor", so the palette flips with the theme.
+   The lines use the accent green for consistency with the site's
+   accent-coloured elements (light #0f766e on --panel 5.1:1, dark
+   #2dd4bf on --panel 8.9:1; the 3:1 non-text bar is cleared in both). */
 .hero3d-svg {
-  color: var(--muted);
+  color: var(--accent);
 }
 
 .hero3d-svg polyline,
