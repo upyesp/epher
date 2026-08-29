@@ -1,6 +1,6 @@
 [package]
 name = "epher-core"
-version = "0.4.36"
+version = "0.5.0"
 edition = "2021"
 license = "MIT"
 description = "The single source of truth for epher's logic — pure, compiles to wasm and native."
