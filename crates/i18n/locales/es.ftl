@@ -27,6 +27,7 @@ graph-copy-failed = No se pudo copiar el SVG
 animate = Animar
 animate-stop = Detener animación
 graph3d-hint = Arrastra para girar · flechas para girar · los deslizadores de rotación no nulos giran
+solar3d-title = Sistema solar
 answer = Respuesta
 keypad = Teclado
 keypad-tab-digits = Dígitos y operadores

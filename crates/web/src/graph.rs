@@ -37,6 +37,26 @@ pub fn surface_svg(
     epher_core::graph_svg::surface_parts(surfaces, view, stroke_width)
 }
 
+/// The solar system scene as (view box, part markup) — the same live
+/// contract as [`surface_svg`], fed to the same `Graph3D` component.
+pub fn solar_svg(
+    scene: &epher_core::astro::SolarScene,
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<(String, String)> {
+    epher_core::graph_svg::solar_parts(scene, view, stroke_width)
+}
+
+/// The solar system scene as a standalone SVG document — the clipboard
+/// and export path.
+pub fn solar3d_doc(
+    scene: &epher_core::astro::SolarScene,
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<String> {
+    epher_core::graph_svg::solar3d_svg(scene, view, stroke_width)
+}
+
 /// Render the same layers as Yew SVG VNodes — the production renderer.
 /// Yew creates SVG elements in the SVG namespace, so the plot actually
 /// paints in every engine (innerHTML-parsed SVG does not, in WebKit).

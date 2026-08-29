@@ -103,7 +103,7 @@ fn open_store_with_session() -> (DocStore<FsStore>, Session, Localizer) {
     (store, session, localizer)
 }
 
-/// Handle a `graph …`/`graph3d …` line against a run's plot state
+/// Handle a `graph …`/`graph3d …`/`solar3d …` line against a run's plot state
 /// (ADR-0020): returns the outcome to print, or `None` when the line is
 /// not a graph line. Every CLI entry point (REPL, piped, one-shot) shares
 /// this so the grammar behaves identically everywhere. Diagnostics carry
@@ -120,6 +120,10 @@ fn graph_line(
     }
     if let Some(source) = line.strip_prefix("graph3d ") {
         let out = plots.submit_surface(source, env, localizer);
+        return Some(step_from(out));
+    }
+    if let Some(source) = line.strip_prefix("solar3d ") {
+        let out = plots.submit_solar3d(source, env, localizer);
         return Some(step_from(out));
     }
     None

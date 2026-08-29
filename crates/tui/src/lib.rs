@@ -5,9 +5,10 @@
 //! [`run`] is the ratatui event loop — a thin shell over both — exposed as a
 //! library function so the unified `epher` binary can host it (`epher tui`).
 
+use epher_core::astro::SolarScene;
 use epher_core::graph::{
     analyze, free_names, parse_graph_source, project_surface, sample_spec, sample_surface,
-    surface_frame, InterestKind, InterestPoint, SampledCurve, Surface, View3D,
+    surface_frame, InterestKind, InterestPoint, SampledCurve, Segment3D, Surface, View3D,
 };
 use epher_core::Session;
 use epher_i18n::Localizer;
@@ -114,6 +115,10 @@ pub struct App {
     graph: Vec<SampledCurve>,
     pois: Vec<InterestPoint>,
     surface: Vec<Surface>,
+    /// The solar system scene (`solar3d`, ADR-0037) and the source of
+    /// its time expression, for playback resampling.
+    solar: Option<SolarScene>,
+    solar_source: Option<String>,
     view: View3D,
     /// The 3D fine-control offsets (ADR-0031): horizontal rotation,
     /// vertical rotation, zoom — each −1..1, step 0.1, 0 = the orbit
@@ -357,6 +362,8 @@ impl App {
             graph: Vec::new(),
             pois: Vec::new(),
             surface: Vec::new(),
+            solar: None,
+            solar_source: None,
             view: View3D::default(),
             view_h: 0.0,
             view_v: 0.0,
@@ -517,7 +524,7 @@ impl App {
             1 => 3, // Edit: cut, copy, paste
             2 => 1, // Graph: clear graph
             3 => {
-                if self.surface.is_empty() {
+                if self.surface.is_empty() && self.solar.is_none() {
                     12 // POI toggle, 3 themes, 8 languages
                 } else {
                     15 // …plus horizontal rotation, vertical rotation, zoom
@@ -646,6 +653,8 @@ impl App {
         self.graph.clear();
         self.pois.clear();
         self.surface.clear();
+        self.solar = None;
+        self.solar_source = None;
         self.play = None;
         self.view2d = None;
         self.reset_view_offsets();
@@ -1191,6 +1200,28 @@ impl App {
             let _ = self.submit_surface(source);
             return (None, false);
         }
+        if let Some(source) = piece.strip_prefix("solar3d ") {
+            if !quiet {
+                self.session.record(piece);
+                let _ = save_history(store, self.history());
+                let _ = save_session(store, self.bindings());
+            }
+            if let Some(path) = source.trim().strip_prefix("save ") {
+                let path = path.trim();
+                if path.is_empty() {
+                    self.result = localizer.lookup("graph-no-path");
+                } else {
+                    self.result = self.save_solar_svg(path, localizer);
+                }
+                return (None, false);
+            }
+            if source.trim() == "save" {
+                self.result = localizer.lookup("graph-no-path");
+                return (None, false);
+            }
+            let _ = self.submit_solar3d(source);
+            return (None, false);
+        }
         if let Some(cmd) = classify(piece) {
             let handled = run_command(&cmd, &mut self.session, store, localizer);
             self.result = plain(handled.message);
@@ -1237,6 +1268,63 @@ impl App {
         let plots = epher_shell::plots::Plots::from_surfaces(self.surface.clone());
         let out = plots.save_3d_svg_with_view(path, &self.effective_view(), localizer);
         out.message
+    }
+
+    /// Write the current solar system scene as a self-contained SVG
+    /// (ADR-0020), from the current orbit pose.
+    pub fn save_solar_svg(&self, path: &str, localizer: &Localizer) -> String {
+        match self.solar.as_ref() {
+            Some(scene) => {
+                let plots = epher_shell::plots::Plots::from_scene(scene.clone());
+                let out =
+                    plots.save_solar_svg(path, &self.effective_view(), localizer);
+                out.message
+            }
+            None => localizer.lookup("graph-empty"),
+        }
+    }
+
+    /// Parse `source` as a `solar3d` time expression (any expression that
+    /// evaluates to a Julian Date), build the scene, and show it — the
+    /// pane shows one kind at a time, so curves and surfaces yield
+    /// (ADR-0037).
+    pub fn submit_solar3d(&mut self, source: &str) -> Result<(), String> {
+        if source.trim() == "clear" {
+            self.solar = None;
+            self.solar_source = None;
+            self.result.clear();
+            return Ok(());
+        }
+        let jd = match epher_core::parse(source.trim())
+            .and_then(|expr| epher_core::eval(&expr, self.session.env()))
+        {
+            Ok(epher_core::Value::Float(jd)) => jd,
+            Ok(other) => {
+                let msg = format!("solar3d needs a number (a Julian Date), got {other}");
+                self.result = format!("error: {msg}");
+                return Err(msg);
+            }
+            Err(e) => {
+                self.result = format!("error: {e}");
+                return Err(e.to_string());
+            }
+        };
+        let scene = match epher_core::astro::solar_scene(jd).map_err(|e| e.to_string()) {
+            Ok(scene) => scene,
+            Err(e) => {
+                self.result = format!("error: {e}");
+                return Err(e);
+            }
+        };
+        self.graph.clear();
+        self.pois.clear();
+        self.surface.clear();
+        self.solar = Some(scene);
+        self.solar_source = Some(source.trim().to_string());
+        self.view = self.solar.as_ref().expect("just set").default_view();
+        self.reset_view_offsets();
+        self.result.clear();
+        Ok(())
     }
 
     pub fn submit_graph(&mut self, source: &str) -> Result<(), String> {
@@ -1316,6 +1404,11 @@ impl App {
     }
 
     /// The plotted surfaces, if any.
+    /// The plotted solar system scene, if any (ADR-0037).
+    pub fn solar(&self) -> Option<&SolarScene> {
+        self.solar.as_ref()
+    }
+
     pub fn surfaces(&self) -> &[Surface] {
         &self.surface
     }
@@ -1360,7 +1453,11 @@ impl App {
     /// three fine-control rows (they exist only while 3D surfaces do).
     pub fn menu_view_item(&self) -> Option<usize> {
         match self.menu {
-            Some((3, item @ 12..=14)) if !self.surface.is_empty() => Some(item),
+            Some((3, item @ 12..=14))
+                if !self.surface.is_empty() || self.solar.is_some() =>
+            {
+                Some(item)
+            }
             _ => None,
         }
     }
@@ -1410,6 +1507,11 @@ impl App {
         let mut names = std::collections::BTreeSet::new();
         for s in &self.surface {
             if let Ok((expr, _)) = epher_core::graph::parse_surface_source(&s.source) {
+                free_names(&expr, &mut names);
+            }
+        }
+        if let Some(source) = &self.solar_source {
+            if let Ok(expr) = epher_core::parse(source) {
                 free_names(&expr, &mut names);
             }
         }
@@ -1491,7 +1593,33 @@ impl App {
                 *s = fresh;
             }
         }
+        if let (Some(_scene), Some(source)) = (self.solar.as_ref(), self.solar_source.as_deref())
+        {
+            if source_references_any_constant(source, &env) {
+                if let Ok(epher_core::Value::Float(jd)) =
+                    epher_core::parse(source).and_then(|e| epher_core::eval(&e, &env))
+                {
+                    if let Ok(fresh) = epher_core::astro::solar_scene(jd) {
+                        self.solar = Some(fresh);
+                    }
+                }
+            }
+        }
     }
+}
+
+/// Whether the solar scene's time expression depends on any session
+/// constant — the resample gate (its expression is ordinary code, so
+/// `const t = jd(now()); solar3d t` replays through the existing
+/// transport, ADR-0037).
+fn source_references_any_constant(source: &str, env: &epher_core::Env) -> bool {
+    let mut names = std::collections::BTreeSet::new();
+    if let Ok(expr) = epher_core::parse(source) {
+        free_names(&expr, &mut names);
+    }
+    names
+        .iter()
+        .any(|n| env.constant(n).is_some())
 }
 
 /// Render the projected 3D mesh as an ASCII wireframe (ADR-0015): depth-
@@ -1587,6 +1715,135 @@ pub fn render_ascii3d(surfaces: &[Surface], view: &View3D, width: usize, height:
     for s in surfaces.iter().take(1) {
         for seg in surface_frame(s, view) {
             stamp(seg.x1, seg.y1, seg.x2, seg.y2, seg.depth, true);
+        }
+    }
+    grid.into_iter()
+        .map(|row| row.into_iter().collect::<String>())
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// Render the solar system scene as ASCII (ADR-0037 + the ADR-0015
+/// amendment): orbit and trail polylines as depth-shaded Bresenham runs
+/// (the same glyphs as the mesh), each positioned dot stamped `O` on top
+/// with its body's first letter beside it — the legend row above the
+/// pane names the bodies in the same order.
+pub fn render_solar_ascii(
+    scene: &SolarScene,
+    view: &View3D,
+    width: usize,
+    height: usize,
+) -> String {
+    use epher_core::graph::{project_space_curve, project_world_dot};
+    if width == 0 || height == 0 {
+        return String::new();
+    }
+    let mut segments = Vec::new();
+    for path in scene.orbits.iter().chain(scene.trails.iter()) {
+        for run in project_space_curve(&path.points, view) {
+            for pair in run.points.windows(2) {
+                segments.push(Segment3D {
+                    x1: pair[0].0,
+                    y1: pair[0].1,
+                    x2: pair[1].0,
+                    y2: pair[1].1,
+                    depth: run.depth,
+                });
+            }
+        }
+    }
+    if segments.is_empty() {
+        return String::new();
+    }
+    let mut x_min = f64::INFINITY;
+    let mut x_max = f64::NEG_INFINITY;
+    let mut y_min = f64::INFINITY;
+    let mut y_max = f64::NEG_INFINITY;
+    for seg in &segments {
+        x_min = x_min.min(seg.x1).min(seg.x2);
+        x_max = x_max.max(seg.x1).max(seg.x2);
+        y_min = y_min.min(seg.y1).min(seg.y2);
+        y_max = y_max.max(seg.y1).max(seg.y2);
+    }
+    let dots: Vec<(f64, f64, i64)> = scene
+        .dots
+        .iter()
+        .filter_map(|d| {
+            project_world_dot(d.xyz[0], d.xyz[1], d.xyz[2], view)
+                .map(|(x, y, _)| (x, y, d.body))
+        })
+        .collect();
+    for (x, y, _) in &dots {
+        x_min = x_min.min(*x);
+        x_max = x_max.max(*x);
+        y_min = y_min.min(*y);
+        y_max = y_max.max(*y);
+    }
+    if !x_min.is_finite() || x_max - x_min < 1e-9 || y_max - y_min < 1e-9 {
+        return String::new();
+    }
+    let depth_min = segments.iter().map(|s| s.depth).fold(f64::INFINITY, f64::min);
+    let depth_max = segments.iter().map(|s| s.depth).fold(f64::NEG_INFINITY, f64::max);
+    let span = depth_max - depth_min;
+    let gw = width - 2;
+    let gh = height;
+    let scale = ((gw as f64) / (x_max - x_min)).min((gh as f64) / (y_max - y_min));
+    let ox = (gw as f64 - (x_max - x_min) * scale) / 2.0;
+    let oy = (gh as f64 - (y_max - y_min) * scale) / 2.0;
+    let to_grid = |x: f64, y: f64| {
+        let c = (x - x_min) * scale + ox;
+        let r = (y_max - y) * scale + oy;
+        (r as isize, c as isize)
+    };
+    let mut grid = vec![vec![' '; width]; height];
+    let mut order = segments.iter().collect::<Vec<_>>();
+    order.sort_by(|a, b| a.depth.total_cmp(&b.depth));
+    for seg in order {
+        let (r1, c1) = to_grid(seg.x1, seg.y1);
+        let (r2, c2) = to_grid(seg.x2, seg.y2);
+        let glyph = if span < 1e-9 {
+            '*'
+        } else {
+            let t = ((seg.depth - depth_min) / span * 2.0).clamp(0.0, 2.0);
+            ['*', '+', '.'][t.floor() as usize]
+        };
+        let (dr, dc) = (r2 - r1, c2 - c1);
+        let steps = dr.abs().max(dc.abs());
+        if steps == 0 {
+            if r1 >= 0 && r1 < height as isize && c1 >= 0 && c1 < width as isize {
+                grid[r1 as usize][c1 as usize] = glyph;
+            }
+            continue;
+        }
+        for k in 0..=steps {
+            let r = r1 + (dr * k) / steps;
+            let c = c1 + (dc * k) / steps;
+            if r >= 0 && r < height as isize && c >= 0 && c < width as isize {
+                grid[r as usize][c as usize] = glyph;
+            }
+        }
+    }
+    // Dots on top, painted far-to-near so nearer bodies overpaint.
+    let mut dots = dots;
+    dots.sort_by(|a, b| {
+        let da = project_world_dot(0.0, 0.0, 0.0, view).map(|_| 0.0);
+        let _ = da;
+        a.0.total_cmp(&b.0)
+    });
+    for (x, y, body) in dots {
+        let (r, c) = to_grid(x, y);
+        if r >= 0 && r < height as isize && c >= 0 && c < width as isize {
+            grid[r as usize][c as usize] = 'O';
+            let label = epher_core::astro::body_name(body);
+            if let Some(first) = label.chars().next() {
+                let c2 = c + 1;
+                if c2 >= 0 && c2 < width as isize {
+                    let cell = &mut grid[r as usize][c2 as usize];
+                    if *cell == ' ' {
+                        *cell = first;
+                    }
+                }
+            }
         }
     }
     grid.into_iter()
@@ -3015,7 +3272,23 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // Legend + plot + points of interest, capped to the panel height.
     let mut graph_text = String::new();
     let curves = app.graph();
-    if !app.surfaces().is_empty() {
+    if let Some(scene) = app.solar() {
+        let _ = curves;
+        let legend: Vec<String> = scene
+            .dots
+            .iter()
+            .map(|d| epher_core::astro::body_name(d.body).to_string())
+            .collect();
+        graph_text.push_str(&legend.join("   "));
+        graph_text.push('\n');
+        let (w, h) = graph_dims(graph_area);
+        graph_text.push_str(&render_solar_ascii(
+            scene,
+            &app.effective_view(),
+            w,
+            h,
+        ));
+    } else if !app.surfaces().is_empty() {
         let legend: Vec<String> = app
             .surfaces()
             .iter()

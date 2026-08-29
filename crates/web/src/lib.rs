@@ -137,6 +137,37 @@ fn resample_surfaces(surfaces: &mut [epher_core::graph::Surface], session: &Sess
     }
 }
 
+/// Rebuild the solar system scene when its time expression references a
+/// session constant — `const t = jd(now()); solar3d t` replays through
+/// the existing playback transport (ADR-0037). A scene whose expression
+/// mentions no constant never rebuilds.
+fn resample_solar(
+    solar: &mut Option<epher_core::astro::SolarScene>,
+    source: &Option<String>,
+    session: &Session,
+) {
+    let Some(_scene) = solar.as_ref() else {
+        return;
+    };
+    let Some(src) = source.as_deref() else {
+        return;
+    };
+    let mut names = std::collections::BTreeSet::new();
+    if let Ok(expr) = epher_core::parse(src) {
+        epher_core::graph::free_names(&expr, &mut names);
+    }
+    if !names.iter().any(|n| session.env().constant(n).is_some()) {
+        return;
+    }
+    if let Ok(epher_core::Value::Float(jd)) =
+        epher_core::parse(src).and_then(|e| epher_core::eval(&e, session.env()))
+    {
+        if let Ok(fresh) = epher_core::astro::solar_scene(jd) {
+            *solar = Some(fresh);
+        }
+    }
+}
+
 /// Does the curve's expression reference `name`? The animation tick only
 /// re-samples what moves (ADR-0015): curves that do not mention the
 /// animated constant keep their samples.
@@ -361,6 +392,7 @@ static TABS: &[TabDef] = &[
             key("ans", KeyAction::Text("ans"), "fn"),
             key("graph", KeyAction::Text("graph "), "fn"),
             key("graph3d", KeyAction::Text("graph3d "), "fn"),
+            key("solar3d", KeyAction::Text("solar3d "), "fn"),
             key("table", KeyAction::Text("table "), "fn"),
             key("clear", KeyAction::Text("clear "), "fn"),
             key("history", KeyAction::Text("history "), "fn"),
@@ -800,6 +832,10 @@ fn epher_app() -> Html {
     let is_mobile = use_state(mobile_layout);
     let live = use_state(|| Rc::new(RefCell::new(GraphLive::default())));
     let surface = use_state(Vec::<epher_core::graph::Surface>::new);
+    // The solar system scene (`solar3d`, ADR-0037) plus the source of
+    // its time expression, so playback can rebuild the scene per tick.
+    let solar = use_state(|| Option::<epher_core::astro::SolarScene>::None);
+    let solar_source = use_state(|| Option::<String>::None);
     let view = use_state(epher_core::graph::View3D::default);
     // The live cell behind `view`: orbit emissions mutate it in place, so
     // a burst of drag/keyboard events accumulates instead of each event
@@ -1562,6 +1598,9 @@ fn epher_app() -> Html {
         let hidden = hidden.clone();
         let live = live.clone();
         let surface = surface.clone();
+        let solar_handle = solar.clone();
+        let solar_source_handle = solar_source.clone();
+        let view = view.clone();
         let surface3d_cell = surface3d_cell.clone();
         let scroll_pane = scroll_pane.clone();
         let input_ref = input_ref.clone();
@@ -1581,11 +1620,14 @@ fn epher_app() -> Html {
             let mut s = session_live.borrow().clone();
             let mut curves = (*graph).clone();
             let mut surfaces = (*surface).clone();
+            let mut solar = (*solar_handle).clone();
+            let mut solar_source = (*solar_source_handle).clone();
             // Mobile: a submit that empties the graph pane slides the
             // view back to the calculator (ADR-0035) — the mirror of the
             // draw slide. Tracked before the loop so only a pane that
             // HAD content moves.
-            let had_graph = !curves.is_empty() || !surfaces.is_empty();
+            let had_graph =
+                !curves.is_empty() || !surfaces.is_empty() || solar.is_some();
             // Statements join with newlines or `;` — the same separator
             // (ADR-0001). Each piece dispatches in order, exactly as if
             // typed one by one — but the history keeps the script the way
@@ -1736,6 +1778,72 @@ fn epher_app() -> Html {
                         continue;
                     }
 
+                    // The solar system (ADR-0037): one scene at the
+                    // evaluated time expression, rendered as orbit
+                    // curves, trails, and positioned dots (the ADR-0015
+                    // amendment). The command joins the history list.
+                    if let Some(source) = piece.strip_prefix("solar3d ") {
+                        let source = source.trim();
+                        if single && !multiline {
+                            s.record(piece);
+                        }
+                        if source == "clear" {
+                            solar = None;
+                            solar_source = None;
+                            view_h.set(0.0);
+                            view_v.set(0.0);
+                            view_z.set(0.0);
+                            spin_phase.set((0.0, 0.0));
+                            *spin_phase_cell.borrow_mut() = (0.0, 0.0);
+                            continue;
+                        }
+                        let jd = match epher_core::parse(source)
+                            .and_then(|expr| epher_core::eval(&expr, s.env()))
+                        {
+                            Ok(epher_core::Value::Float(jd)) => jd,
+                            Ok(other) => {
+                                result.set(format!(
+                                    "error: solar3d needs a number (a Julian Date), got {other}"
+                                ));
+                                continue;
+                            }
+                            Err(e) => {
+                                result.set(format!("error: {e}"));
+                                continue;
+                            }
+                        };
+                        match epher_core::astro::solar_scene(jd) {
+                            Ok(scene) => {
+                                // A fresh scene brings the fine controls
+                                // to their defaults, like a fresh 3D graph:
+                                // the camera starts above the ecliptic.
+                                let home = scene.default_view();
+                                // The pane shows one kind at a time.
+                                curves.clear();
+                                surfaces.clear();
+                                solar = Some(scene);
+                                solar_source = Some(source.to_string());
+                                view.set(home);
+                                view_h.set(0.0);
+                                view_v.set(0.0);
+                                view_z.set(0.0);
+                                spin_phase.set((0.0, 0.0));
+                                *spin_phase_cell.borrow_mut() = (0.0, 0.0);
+                                result.set(String::new());
+                                if mobile_layout() {
+                                    scroll_pane.emit("graph-pane");
+                                    if let Some(ta) =
+                                        input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                    {
+                                        let _ = ta.blur();
+                                    }
+                                }
+                            }
+                            Err(e) => result.set(format!("error: {e}")),
+                        }
+                        continue;
+                    }
+
                     // Shell commands (epher-shell policy): persist through the
                     // bridge in the desktop shell; explain the web app's limits
                     // otherwise.
@@ -1849,12 +1957,18 @@ fn epher_app() -> Html {
             // Mobile (ADR-0035): once the graph pane has been cleared,
             // slide back to the calculator — there is nothing left to
             // look at over there. Computed before the moves below.
-            let cleared = mobile_layout() && had_graph && curves.is_empty() && surfaces.is_empty();
+            let cleared = mobile_layout()
+                && had_graph
+                && curves.is_empty()
+                && surfaces.is_empty()
+                && solar.is_none();
             // A fresh plot: every legend checkbox returns to checked.
             hidden.set(vec![false; curves.len()]);
             graph.set(curves);
             surface.set(surfaces.clone());
-            *surface3d_cell.borrow_mut() = !surfaces.is_empty();
+            solar_handle.set(solar);
+            solar_source_handle.set(solar_source);
+            *surface3d_cell.borrow_mut() = !surfaces.is_empty() || solar_handle.is_some();
             pois.set(labels);
             trace.set(None);
             session.set(s.clone());
@@ -1882,6 +1996,8 @@ fn epher_app() -> Html {
         let pois = pois.clone();
         let localizer = localizer.clone();
         let surface = surface.clone();
+        let solar_handle = solar.clone();
+        let solar_source_handle = solar_source.clone();
         let surface3d_cell = surface3d_cell.clone();
         let hidden = hidden.clone();
         Callback::from(move |(name, value): (String, f64)| {
@@ -1895,13 +2011,16 @@ fn epher_app() -> Html {
             resample(&mut curves, &s);
             let mut surfaces = (*surface).clone();
             resample_surfaces(&mut surfaces, &s);
+            let mut solar = (*solar_handle).clone();
+            resample_solar(&mut solar, &*solar_source_handle, &s);
             let found = analyze(&curves, s.env());
             session.set(s.clone());
             *session_live.borrow_mut() = s;
             hidden.set(vec![false; curves.len()]);
             graph.set(curves);
             surface.set(surfaces.clone());
-            *surface3d_cell.borrow_mut() = !surfaces.is_empty();
+            solar_handle.set(solar);
+            *surface3d_cell.borrow_mut() = !surfaces.is_empty() || solar_handle.is_some();
             pois.set(poi_labels(&found, &localizer));
         })
     };
@@ -1925,6 +2044,8 @@ fn epher_app() -> Html {
         let pois = pois.clone();
         let localizer = localizer.clone();
         let surface = surface.clone();
+        let solar_handle = solar.clone();
+        let solar_source_handle = solar_source.clone();
         let surface3d_cell = surface3d_cell.clone();
         let hidden = hidden.clone();
         let tick_no = tick_no.clone();
@@ -1958,6 +2079,11 @@ fn epher_app() -> Html {
                     }
                 }
             }
+            // The solar system replays through the same transport: the
+            // scene rebuilds only when its time expression references the
+            // animated constant (ADR-0037).
+            let mut solar = (*solar_handle).clone();
+            resample_solar(&mut solar, &*solar_source_handle, &s);
             if n % 4 == 0 {
                 let found = analyze(&curves, s.env());
                 pois.set(poi_labels(&found, &localizer));
@@ -1969,7 +2095,8 @@ fn epher_app() -> Html {
             }
             graph.set(curves);
             surface.set(surfaces.clone());
-            *surface3d_cell.borrow_mut() = !surfaces.is_empty();
+            solar_handle.set(solar);
+            *surface3d_cell.borrow_mut() = !surfaces.is_empty() || solar_handle.is_some();
         })
     };
 
@@ -2275,6 +2402,7 @@ fn epher_app() -> Html {
         let width_2d = width_2d.clone();
         let width_3d = width_3d.clone();
         let surface = surface.clone();
+        let solar = solar.clone();
         let view = view.clone();
         let view_h = view_h.clone();
         let view_v = view_v.clone();
@@ -2299,6 +2427,13 @@ fn epher_app() -> Html {
                 .collect();
             let svg = if !visible.is_empty() {
                 graph::graph_svg_indexed(&visible, &pois_visible, *trace, *poi_markers, *width_2d)
+            } else if let Some(scene) = (*solar).as_ref() {
+                graph::solar3d_doc(
+                    scene,
+                    &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
+                    *width_3d,
+                )
+                .unwrap_or_default()
             } else if let Some(doc) = graph::graph3d_svg(
                 &surface,
                 &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
@@ -2668,6 +2803,8 @@ fn epher_app() -> Html {
         let graph = graph.clone();
         let pois = pois.clone();
         let surface = surface.clone();
+        let solar = solar.clone();
+        let solar_source = solar_source.clone();
         let surface3d_cell = surface3d_cell.clone();
         let scroll_pane = scroll_pane.clone();
         let trace = trace.clone();
@@ -2687,6 +2824,8 @@ fn epher_app() -> Html {
             graph.set(Vec::new());
             pois.set(Vec::new());
             surface.set(Vec::new());
+            solar.set(None);
+            solar_source.set(None);
             *surface3d_cell.borrow_mut() = false;
             trace.set(None);
             // Mobile (ADR-0035): the pane is empty now — slide the view
@@ -3550,7 +3689,48 @@ fn epher_app() -> Html {
                         }
                     }
                     {
-                        if !(*surface).is_empty() {
+                        if let Some(scene) = (*solar).as_ref() {
+                            // The solar system pane (ADR-0037): orbit
+                            // curves, trails, and positioned dots through
+                            // the same 3D pane, orbit and fine controls
+                            // inherited (the ADR-0015 amendment).
+                            let effective =
+                                effective_view(&view, *view_h, *view_v, *view_z, *spin_phase);
+                            let rendered = graph::solar_svg(scene, &effective, *width_3d);
+                            let aria = format!(
+                                "{}: {}",
+                                localizer.lookup("solar3d-title"),
+                                scene
+                                    .dots
+                                    .iter()
+                                    .map(|d| epher_core::astro::body_name(d.body))
+                                    .collect::<Vec<_>>()
+                                    .join(", ")
+                            );
+                            if let Some((view_box, content)) = rendered {
+                                *rendered_box.borrow_mut() = Some(view_box.clone());
+                                let shown_box = (*play)
+                                    .as_ref()
+                                    .and_then(|p| p.freeze.clone())
+                                    .unwrap_or(view_box);
+                                html! {
+                                    <section class="graph graph3d">
+                                        <h2 class="graph3d-title">{ localizer.lookup("solar3d-title") }</h2>
+                                        <div class="plot-box">
+                                            <Graph3D
+                                                view_box={shown_box}
+                                                content={content}
+                                                aria_label={aria}
+                                                on_orbit={on_orbit}
+                                            />
+                                        </div>
+                                        <p class="graph3d-hint">{ localizer.lookup("graph3d-hint") }</p>
+                                    </section>
+                                }
+                            } else {
+                                html! {}
+                            }
+                        } else if !(*surface).is_empty() {
                             // The fine-control sliders ride on the orbit
                             // base (ADR-0031); the rotation sliders spin
                             // the pose (ADR-0032). The pane renders the

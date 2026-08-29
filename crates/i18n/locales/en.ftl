@@ -27,6 +27,7 @@ graph-copy-failed = Couldn't copy the SVG
 animate = Animate
 animate-stop = Stop animating
 graph3d-hint = Drag to rotate · arrow keys rotate · non-zero rotation sliders spin
+solar3d-title = Solar system
 answer = Answer
 keypad = Keypad
 keypad-tab-digits = Digits and operators

@@ -427,3 +427,19 @@ fn one_shot_records_its_command_in_the_shared_history() {
     let out2 = repl_output(path, "quit\n");
     assert!(out2.contains("epher>"), "stdout was: {out2}");
 }
+
+#[test]
+fn solar3d_save_from_a_one_shot() {
+    let dir = tempfile::tempdir().unwrap();
+    let svg = dir.path().join("solar.svg");
+    let input = format!("solar3d jd(2020, 7, 1); solar3d save {}", svg.display());
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .arg(input)
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(0), "{}", String::from_utf8_lossy(&out.stderr));
+    let doc = std::fs::read_to_string(&svg).unwrap();
+    assert!(doc.contains("<circle"), "{doc}");
+    assert!(doc.contains("<title>Saturn</title>"), "{doc}");
+}

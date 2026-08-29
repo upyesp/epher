@@ -28,6 +28,7 @@ graph-copy-failed = SVG कॉपी नहीं हो सका
 animate = एनिमेट करें
 animate-stop = एनिमेशन रोकें
 graph3d-hint = घुमाने के लिए खींचें · तीर कुंजियाँ घुमाती हैं · गैर-शून्य रोटेशन स्लाइडर घुमाता है
+solar3d-title = सौर मंडल
 answer = उत्तर
 keypad = कीपैड
 keypad-tab-digits = अंक और संक्रियाएँ

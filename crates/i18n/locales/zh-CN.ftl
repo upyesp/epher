@@ -27,6 +27,7 @@ graph-copy-failed = 无法复制 SVG
 animate = 动画
 animate-stop = 停止动画
 graph3d-hint = 拖动旋转 · 方向键旋转 · 非零旋转滑块持续旋转
+solar3d-title = 太阳系
 answer = 答案
 keypad = 键盘
 keypad-tab-digits = 数字和运算符

@@ -1400,3 +1400,49 @@ fn submitting_clears_the_caret_with_the_input() {
     app.submit();
     assert_eq!(app.cursor(), 0);
 }
+
+// ===== solar3d (ADR-0037 + the ADR-0015 amendment) =====
+
+#[test]
+fn solar3d_draws_the_scene_and_clears_other_kinds() {
+    let (store, _keep) = scratch_store();
+    let localizer = Localizer::resolve(Some("en"), &[]);
+    let mut app = App::default();
+    // a 2D curve first: drawing the solar system yields the pane
+    app.set_input("graph sin(x)");
+    app.submit_line(&app.input().to_string(), &store, &localizer);
+    assert!(!app.graph().is_empty());
+    app.set_input("solar3d jd(2020, 7, 1)");
+    app.submit_line(&app.input().to_string(), &store, &localizer);
+    assert!(app.graph().is_empty(), "one kind at a time");
+    assert!(app.solar().is_some());
+    // the scene's positioned dots appear in the ASCII render
+    let text = epher_tui::render_solar_ascii(
+        app.solar().expect("scene"),
+        &app.effective_view(),
+        60,
+        20,
+    );
+    assert!(text.contains('O'), "a positioned dot is stamped: {text}");
+    // clear through the same grammar
+    app.set_input("solar3d clear");
+    app.submit_line(&app.input().to_string(), &store, &localizer);
+    assert!(app.solar().is_none());
+}
+
+#[test]
+fn solar3d_errors_and_save_follow_the_graph_voice() {
+    let (store, _keep) = scratch_store();
+    let localizer = Localizer::resolve(Some("en"), &[]);
+    let mut app = App::default();
+    app.set_input("solar3d bogus_name");
+    app.submit_line(&app.input().to_string(), &store, &localizer);
+    assert!(app.result().starts_with("error:"), "{}", app.result());
+    app.set_input("solar3d jd(2020, 13, 1)");
+    app.submit_line(&app.input().to_string(), &store, &localizer);
+    assert!(app.result().starts_with("error:"));
+    // the save path reports the empty pane before any scene is drawn
+    app.set_input("solar3d save /tmp/never-epher-tui-solar.svg");
+    app.submit_line(&app.input().to_string(), &store, &localizer);
+    assert_eq!(app.result(), "Nothing is plotted");
+}

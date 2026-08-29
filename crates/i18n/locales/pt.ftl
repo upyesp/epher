@@ -28,6 +28,7 @@ graph-copy-failed = Não foi possível copiar o SVG
 animate = Animar
 animate-stop = Parar animação
 graph3d-hint = Arraste para rodar · setas para rodar · cursores de rotação não nulos rodam
+solar3d-title = Sistema solar
 answer = Resposta
 keypad = Teclado
 keypad-tab-digits = Dígitos e operadores

@@ -9,11 +9,12 @@
 //! across their lines; the TUI keeps its own pane state and reuses the
 //! save helpers so the bytes match.
 
+use epher_core::astro::SolarScene;
 use epher_core::graph::{
     analyze, parse_graph_source, sample_spec, sample_surface, InterestPoint, SampledCurve, Surface,
     View3D,
 };
-use epher_core::graph_svg::{graph3d_svg, graph_svg, Poi, DEFAULT_STROKE_WIDTH};
+use epher_core::graph_svg::{graph3d_svg, graph_svg, solar3d_svg, Poi, DEFAULT_STROKE_WIDTH};
 use epher_core::Env;
 use epher_i18n::Localizer;
 
@@ -40,11 +41,12 @@ impl PlotOutcome {
     }
 }
 
-/// The curves and surfaces plotted so far in this run.
+/// The curves, surfaces, and solar system plotted so far in this run.
 #[derive(Default)]
 pub struct Plots {
     curves: Vec<SampledCurve>,
     surfaces: Vec<Surface>,
+    solar: Option<SolarScene>,
 }
 
 /// The localized kind label for a point of interest — the same fluent
@@ -85,6 +87,7 @@ impl Plots {
         Plots {
             curves,
             surfaces: Vec::new(),
+            solar: None,
         }
     }
 
@@ -93,7 +96,23 @@ impl Plots {
         Plots {
             curves: Vec::new(),
             surfaces,
+            solar: None,
         }
+    }
+
+    /// A plot state carrying a solar system scene a frontend already
+    /// holds (the TUI's pane) — for saving without rebuilding.
+    pub fn from_scene(scene: SolarScene) -> Self {
+        Plots {
+            curves: Vec::new(),
+            surfaces: Vec::new(),
+            solar: Some(scene),
+        }
+    }
+
+    /// The plotted solar system scene, if any.
+    pub fn solar(&self) -> Option<&SolarScene> {
+        self.solar.as_ref()
     }
 
     /// The plotted curves.
@@ -171,6 +190,67 @@ impl Plots {
                 PlotOutcome::ok(format!("graph3d: {source}"))
             }
             Err(e) => PlotOutcome::err(e.to_string()),
+        }
+    }
+
+    /// Handle the text after `solar3d `: build the scene at the evaluated
+    /// time expression (a Julian Date in any form the language can
+    /// produce — `now()`, `t`, `jd(2020, 1, 1)`), clear it, or save the
+    /// SVG document (ADR-0037).
+    pub fn submit_solar3d(
+        &mut self,
+        source: &str,
+        env: &Env,
+        localizer: &Localizer,
+    ) -> PlotOutcome {
+        let source = source.trim();
+        if source == "clear" {
+            self.solar = None;
+            return PlotOutcome::ok(localizer.lookup("graph-cleared"));
+        }
+        if source == "save" {
+            return PlotOutcome::err(localizer.lookup("graph-no-path"));
+        }
+        if let Some(path) = source.strip_prefix("save ") {
+            let path = path.trim();
+            if path.is_empty() {
+                return PlotOutcome::err(localizer.lookup("graph-no-path"));
+            }
+            return self.save_solar_svg(path, &View3D::default(), localizer);
+        }
+        let jd = match epher_core::eval(
+            &match epher_core::parse(source) {
+                Ok(expr) => expr,
+                Err(e) => return PlotOutcome::err(e.to_string()),
+            },
+            env,
+        ) {
+            Ok(epher_core::Value::Float(jd)) => jd,
+            Ok(other) => {
+                return PlotOutcome::err(format!(
+                    "solar3d needs a number (a Julian Date), got {other}"
+                ))
+            }
+            Err(e) => return PlotOutcome::err(e.to_string()),
+        };
+        match epher_core::astro::solar_scene(jd) {
+            Ok(scene) => {
+                self.solar = Some(scene);
+                PlotOutcome::ok(format!("solar3d: {source}"))
+            }
+            Err(e) => PlotOutcome::err(e.to_string()),
+        }
+    }
+
+    /// Write the current solar system scene as a self-contained SVG
+    /// document from an explicit camera pose.
+    pub fn save_solar_svg(&self, path: &str, view: &View3D, localizer: &Localizer) -> PlotOutcome {
+        match self.solar.as_ref() {
+            Some(scene) => match solar3d_svg(scene, view, DEFAULT_STROKE_WIDTH) {
+                Some(doc) => write_document(path, doc, localizer),
+                None => PlotOutcome::err(localizer.lookup("graph-empty")),
+            },
+            None => PlotOutcome::err(localizer.lookup("graph-empty")),
         }
     }
 

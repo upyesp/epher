@@ -28,6 +28,7 @@ graph-copy-failed = SVG konnte nicht kopiert werden
 animate = Animieren
 animate-stop = Animation stoppen
 graph3d-hint = Ziehen zum Drehen · Pfeiltasten drehen · Rotationsregler ungleich null drehen
+solar3d-title = Sonnensystem
 answer = Antwort
 keypad = Tastenfeld
 keypad-tab-digits = Ziffern und Operatoren

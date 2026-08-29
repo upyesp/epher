@@ -362,3 +362,41 @@ fn a_bad_expression_is_a_diagnostic_not_a_crash() {
     );
     let _ = std::io::stdout().flush();
 }
+
+// ===== solar3d (ADR-0037 + the ADR-0015 amendment) =====
+
+#[test]
+fn solar3d_builds_a_scene_and_save_writes_it() {
+    let mut plots = Plots::new();
+    let env = epher_core::Env::default();
+    let out = plots.submit_solar3d("jd(2020, 7, 1)", &env, &en());
+    assert!(!out.error, "{}", out.message);
+    let path = temp_svg("solar");
+    let out = plots.submit_solar3d(&format!("save {path}"), &env, &en());
+    assert!(!out.error, "{}", out.message);
+    let doc = std::fs::read_to_string(&path).unwrap();
+    assert!(doc.contains("viewBox=\"0 0 640 400\""), "{doc}");
+    // eleven labelled dots, orbit polylines
+    assert_eq!(doc.matches("<circle").count(), 11, "{doc}");
+    assert!(doc.contains("<title>Jupiter</title>"));
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn solar3d_clear_and_errors_follow_the_graph_grammar() {
+    let mut plots = Plots::new();
+    let env = epher_core::Env::default();
+    let out = plots.submit_solar3d("now()", &env, &en());
+    assert!(!out.error);
+    let out = plots.submit_solar3d("clear", &env, &en());
+    assert!(!out.error);
+    // saving after a clear is the empty-plot diagnostic
+    let out = plots.submit_solar3d("save /tmp/never-epher-solar.svg", &env, &en());
+    assert!(out.error);
+    // a time expression that does not evaluate is the engine's error voice
+    let out = plots.submit_solar3d("nope", &env, &en());
+    assert!(out.error);
+    // a jd with a bad month is a domain error
+    let out = plots.submit_solar3d("jd(2020, 13, 1)", &env, &en());
+    assert!(out.error);
+}

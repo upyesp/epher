@@ -27,6 +27,7 @@ graph-copy-failed = تعذّر نسخ SVG
 animate = تحريك
 animate-stop = إيقاف التحريك
 graph3d-hint = اسحب للتدوير · مفاتيح الأسهم للتدوير · منزلق دوران غير صفري يُدير
+solar3d-title = المجموعة الشمسية
 answer = الإجابة
 keypad = لوحة المفاتيح
 keypad-tab-digits = الأرقام والمعاملات
