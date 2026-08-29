@@ -37,6 +37,7 @@ keypad-tab-func = Funktionen
 keypad-tab-num = Zahlentheorie und Statistik
 keypad-tab-conv = Umwandlungen und Basen
 keypad-tab-const = Konstanten und Graph
+keypad-tab-astro = Astronomie
 calc-pane = Rechner
 graph-pane = Graph
 evaluate = Auswerten

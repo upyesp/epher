@@ -37,6 +37,7 @@ keypad-tab-func = फलन
 keypad-tab-num = संख्या सिद्धांत और सांख्यिकी
 keypad-tab-conv = रूपांतरण और आधार
 keypad-tab-const = स्थिरांक और ग्राफ़
+keypad-tab-astro = खगोल विज्ञान
 calc-pane = कैलकुलेटर
 graph-pane = ग्राफ़
 evaluate = मूल्यांकन करें

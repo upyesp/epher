@@ -36,6 +36,7 @@ keypad-tab-func = 函数
 keypad-tab-num = 数论与统计
 keypad-tab-conv = 转换与进制
 keypad-tab-const = 常数与图形
+keypad-tab-astro = 天文
 calc-pane = 计算器
 graph-pane = 图形
 evaluate = 计算

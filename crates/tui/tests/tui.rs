@@ -602,8 +602,8 @@ fn keypad_close_clears_focus_state() {
 fn keypad_has_the_graph_commands() {
     let mut app = App::default();
     app.keypad_open();
-    for _ in 0..5 {
-        app.keypad_cycle(1); // 123 → trig → fn → num → 0x → var
+    for _ in 0..6 {
+        app.keypad_cycle(1); // 123 → trig → fn → num → 0x → astro → var
     }
     app.keypad_move(1, 2); // row 1, col 2 of the var bank
     app.keypad_insert();
@@ -631,6 +631,11 @@ fn keypad_covers_every_function_that_was_missing() {
         "stdev", "frac", "dec", "big", "bin", "oct", "hex", "phi", "x", "t", "ans", "graph",
         "graph3d", "table", "clear", "history", "sin", "cos", "tan", "ln", "log", "sqrt", "abs",
         "floor", "ceil", "round", "pi", "e", "tau",
+        // the condensed astro bank (ADR-0037; the full set lives on the
+        // web keypad's Astro tab)
+        "jd", "now", "lst", "kepler", "ra", "decl", "dist", "alt", "mag", "rise", "set",
+        "illum", "diam", "delta_t", "airmass", "dawes", "dist_mod", "mag2jy", "hms2deg",
+        "solar3d",
     ] {
         assert!(tokens.contains(&name), "the keypad is missing {name}");
     }
@@ -1134,18 +1139,18 @@ fn mouse_2d_pan_zoom_and_reset_follow_the_viewport() {
 #[test]
 fn mouse_keypad_clicks_select_banks_and_cells() {
     let mut app = App::default();
-    app.keypad_select_bank(5);
+    app.keypad_select_bank(6);
     assert_eq!(app.keypad_bank(), "var");
     assert_eq!((app.keypad_row(), app.keypad_col()), (0, 0));
     // A click on (1, 2) of the var bank inserts exactly that token.
-    let expected = epher_tui::banks()[5].1[1][2].1;
+    let expected = epher_tui::banks()[6].1[1][2].1;
     app.keypad_set(1, 2);
     app.keypad_insert();
     assert_eq!(app.input(), expected);
     // Clicks clamp to the clicked bank's grid: row 99 lands on the last
     // row, column 99 on that row's last cell.
     app.keypad_set(99, 99);
-    let bank = epher_tui::banks()[5].1;
+    let bank = epher_tui::banks()[6].1;
     assert_eq!(app.keypad_row(), bank.len() - 1);
     let last_len = bank[bank.len() - 1].len();
     assert_eq!(app.keypad_col(), last_len - 1);

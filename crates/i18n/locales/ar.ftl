@@ -36,6 +36,7 @@ keypad-tab-func = الدوال
 keypad-tab-num = نظرية الأعداد والإحصاء
 keypad-tab-conv = التحويلات والأساسات
 keypad-tab-const = الثوابت والرسم البياني
+keypad-tab-astro = علم الفلك
 calc-pane = الآلة الحاسبة
 graph-pane = الرسم البياني
 evaluate = تقييم

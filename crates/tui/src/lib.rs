@@ -180,7 +180,7 @@ pub struct Areas {
     pub history: ratatui::layout::Rect,
     pub graph: ratatui::layout::Rect,
     pub keypad: ratatui::layout::Rect,
-    pub kp_bank_labels: [ratatui::layout::Rect; 6],
+    pub kp_bank_labels: [ratatui::layout::Rect; 7],
     /// The keypad's cell width and column count for the current bank,
     /// so clicks can map columns to cells with the same math as the draw.
     pub kp_cell_w: u16,
@@ -310,6 +310,39 @@ const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
                 ("oct", "oct("),
                 ("hex", "hex("),
                 ("!", "!"),
+            ],
+        ],
+    ),
+    (
+        "astro",
+        &[
+            &[
+                ("jd", "jd("),
+                ("now", "now"),
+                ("lst", "lst("),
+                ("kepler", "kepler("),
+                ("ra", "ra("),
+            ],
+            &[
+                ("decl", "decl("),
+                ("dist", "dist("),
+                ("alt", "alt("),
+                ("mag", "mag("),
+                ("rise", "rise("),
+            ],
+            &[
+                ("set", "set("),
+                ("illum", "illum("),
+                ("diam", "diam("),
+                ("delta_t", "delta_t("),
+                ("airmass", "airmass("),
+            ],
+            &[
+                ("dawes", "dawes("),
+                ("dist_mod", "dist_mod("),
+                ("mag2jy", "mag2jy("),
+                ("hms2deg", "hms2deg("),
+                ("solar3d", "solar3d "),
             ],
         ],
     ),
