@@ -1132,6 +1132,7 @@ name = "epher-core"
 version = "0.4.36"
 dependencies = [
  "bigdecimal",
+ "js-sys",
  "num-bigint",
  "num-complex",
  "num-rational",

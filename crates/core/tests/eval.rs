@@ -1145,3 +1145,176 @@ fn unit_literals_work_in_scripts_and_domains() {
     let values = epher_core::run_all(&script, &mut env).expect("runs");
     assert_eq!(values.last(), Some(&epher_core::Value::float(86400.0 + 18000.0)));
 }
+
+// ===== Astronomy constants (ADR-0037) =====
+
+#[test]
+fn astronomy_constants_resolve_like_pi_and_are_shadowable() {
+    approx("c", "c", 2.997_924_58e8);
+    approx("g", "g", 9.80665);
+    approx("h", "h", 6.626_070_15e-34);
+    approx("h_bar", "h_bar", 6.626_070_15e-34 / (2.0 * std::f64::consts::PI));
+    approx("k_b", "k_b", 1.380_649e-23);
+    approx("sigma_sb", "sigma_sb", 5.670_374_419e-8);
+    approx("au", "au", 1.495_978_707e11);
+    approx("pc", "pc", 3.085_677_581_491_367_3e16);
+    approx("ly", "ly", 9.460_730_472_580_8e15);
+    approx("m_sun", "m_sun", 1.988_47e30);
+    approx("r_sun", "r_sun", 6.957e8);
+    approx("l_sun", "l_sun", 3.828e26);
+    approx("m_earth", "m_earth", 5.9722e24);
+    approx("r_earth", "r_earth", 6.371e6);
+    // shadowable like pi (ADR-0037 keeps the existing resolution order)
+    let mut env = epher_core::Env::default();
+    epher_core::run(
+        &epher_core::parse_script("const c = 42").expect("parses"),
+        &mut env,
+    )
+    .expect("runs");
+    let expr = epher_core::parse("c").expect("parses");
+    assert_eq!(
+        epher_core::eval(&expr, &env).expect("evals"),
+        epher_core::Value::float(42.0)
+    );
+}
+
+// ===== Time, angle, and optics functions (ADR-0037) =====
+
+#[test]
+fn jd_and_mjd_convert_calendar_dates() {
+    // independent source: J2000.0 is 2000-01-01 12:00 TT = JD 2451545.0
+    approx("J2000 epoch", "jd(2000, 1, 1, 12)", 2451545.0);
+    approx("jd with fractional hour", "jd(2000, 1, 1, 12.5)", 2451545.020_833_333);
+    approx("jd defaults to midnight", "jd(2000, 1, 1)", 2451544.5);
+    // MJD epoch: 1858-11-17 00:00 is MJD 0
+    approx("MJD epoch", "mjd(1858, 11, 17)", 0.0);
+    assert!(epher_core::evaluate("jd(2000, 13, 1)").is_err());
+    assert!(epher_core::evaluate("jd(2000, 0, 1)").is_err());
+    assert!(epher_core::evaluate("jd(2000, 1, 32)").is_err());
+}
+
+#[test]
+fn now_reads_the_host_clock_as_a_julian_date() {
+    match epher_core::evaluate("now()") {
+        Ok(epher_core::Value::Float(x)) => {
+            // mid-2026 is JD 2461xxx; the bound has decades of slack
+            assert!(x > 2461000.0, "now() = {x} looks pre-2026");
+            assert!(x < 2500000.0, "now() = {x} looks past year 2200");
+        }
+        other => panic!("now() produced {other:?}"),
+    }
+}
+
+#[test]
+fn hms_and_dms_pairs_convert_both_ways() {
+    // six hours of right ascension is 90 degrees
+    approx("hms2deg(6,0,0)", "hms2deg(6, 0, 0)", 90.0);
+    approx(
+        "hms2deg(6,42,14.32)",
+        "hms2deg(6, 42, 14.32)",
+        (6.0 + 42.0 / 60.0 + 14.32 / 3600.0) * 15.0,
+    );
+    approx("dms2deg", "dms2deg(23, 26, 30)", 23.441_666_667);
+    // southern declinations carry the sign of the degrees argument
+    approx("dms2deg negative", "dms2deg(-23, 26, 30)", -23.441_666_667);
+    match epher_core::evaluate("deg2hms(90)") {
+        Ok(epher_core::Value::Str(s)) => assert_eq!(s, "6h 0m 0s"),
+        other => panic!("deg2hms(90) produced {other:?}"),
+    }
+    // Meeus's worked angle 100.55966 degrees spells 6h 42m 14s
+    match epher_core::evaluate("deg2hms(100.55966)") {
+        Ok(epher_core::Value::Str(s)) => assert_eq!(s, "6h 42m 14s"),
+        other => panic!("deg2hms produced {other:?}"),
+    }
+    match epher_core::evaluate("deg2dms(23.441666)") {
+        Ok(epher_core::Value::Str(s)) => assert_eq!(s, "23\u{b0} 26' 30\""),
+        other => panic!("deg2dms produced {other:?}"),
+    }
+    // negative angles sign the degrees component
+    match epher_core::evaluate("deg2dms(-23.441666)") {
+        Ok(epher_core::Value::Str(s)) => assert_eq!(s, "-23\u{b0} 26' 30\""),
+        other => panic!("deg2dms produced {other:?}"),
+    }
+    // seconds rounding carries into minutes: 90.0001 deg
+    match epher_core::evaluate("deg2hms(90.006)") {
+        Ok(epher_core::Value::Str(s)) => assert_eq!(s, "6h 0m 1s"),
+        other => panic!("deg2hms produced {other:?}"),
+    }
+}
+
+#[test]
+fn sidereal_time_tracks_the_stars() {
+    // GMST at J2000 (2000-01-01 12h UT) is 18.6973746 h (Meeus 12.4).
+    // The facade computes GAST, which differs by the equation of the
+    // equinoxes (at most about 1.2 s of time), so the envelope is
+    // generous; the longitude relation is asserted exactly.
+    let at_greenwich = match epher_core::evaluate("lst(jd(2000, 1, 1, 12), 0)") {
+        Ok(epher_core::Value::Float(x)) => x,
+        other => panic!("lst produced {other:?}"),
+    };
+    assert!(
+        (at_greenwich - 18.697_374_6).abs() < 0.002,
+        "lst at Greenwich = {at_greenwich}, GMST is 18.6973746"
+    );
+    let east = match epher_core::evaluate("lst(jd(2000, 1, 1, 12), 90)") {
+        Ok(epher_core::Value::Float(x)) => x,
+        other => panic!("lst produced {other:?}"),
+    };
+    // 90 deg east is 6 hours ahead, wrapping past 24
+    assert!((east - (at_greenwich + 6.0 - 24.0)).abs() < 1e-12);
+    let west = match epher_core::evaluate("lst(jd(2000, 1, 1, 12), -90)") {
+        Ok(epher_core::Value::Float(x)) => x,
+        other => panic!("lst produced {other:?}"),
+    };
+    assert!((west - (at_greenwich - 6.0)).abs() < 1e-12);
+}
+
+#[test]
+fn delta_t_is_the_earth_clock_correction() {
+    // the Espenak-Meeus polynomial that solar-ephemeris carries puts
+    // TT - UT1 near 69 s in 2015 (the IERS measured value was 67.64 s;
+    // the polynomial band is honest to a few seconds, which is the
+    // accuracy the guide documents)
+    match epher_core::evaluate("delta_t(jd(2015, 1, 1))") {
+        Ok(epher_core::Value::Float(x)) => assert!(
+            (60.0..75.0).contains(&x),
+            "delta_t(2015) = {x} is outside the Espenak-Meeus band"
+        ),
+        other => panic!("delta_t produced {other:?}"),
+    }
+    assert!(epher_core::evaluate("delta_t(jd(1900, 1, 1))").is_ok());
+}
+
+#[test]
+fn optics_helpers() {
+    // airmass at the zenith is 1; at 30 deg altitude it is sec(60) = 2
+    approx("airmass zenith", "airmass(90)", 1.0);
+    approx("airmass 30 deg", "airmass(30)", 2.0);
+    assert!(epher_core::evaluate("airmass(0)").is_err());
+    // Dawes' resolving power: 116/D arcseconds
+    approx("dawes 100mm", "dawes(100)", 1.16);
+    assert!(epher_core::evaluate("dawes(0)").is_err());
+    // distance modulus: mu = 25 is a megaparsec
+    approx("dist mod 25", "dist_mod(25)", 1e6);
+    // Kepler's equation, Meeus's worked example 30.a: M = 5 deg, e = 0.1
+    // gives E = 0.096953 rad = 5.55457 deg (the example's own rounding)
+    match epher_core::evaluate("kepler(5, 0.1)") {
+        Ok(epher_core::Value::Float(x)) => {
+            assert!((x - 5.554_57).abs() < 1e-4, "kepler(5, 0.1) = {x}")
+        }
+        other => panic!("kepler produced {other:?}"),
+    }
+    // at half an orbit the eccentric anomaly equals the mean anomaly
+    approx("kepler half orbit", "kepler(180, 0.8)", 180.0);
+    approx("kepler zero", "kepler(0, 0.9)", 0.0);
+}
+
+#[test]
+fn magnitude_and_jansky_convert_both_ways() {
+    // the AB system's zero point: magnitude 0 is 3631 Jy
+    approx("mag2jy(0)", "mag2jy(0)", 3631.0);
+    approx("mag2jy(20)", "mag2jy(20)", 3631.0 * 1e-8);
+    approx("jy2mag zero point", "jy2mag(3631)", 0.0);
+    // the suffix converts the count to SI, per the ADR's worked example
+    approx("mag2jy(20) Jy", "mag2jy(20) Jy", 3631.0 * 1e-8 * 1e-26);
+}

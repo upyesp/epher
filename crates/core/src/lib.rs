@@ -1,9 +1,10 @@
 //! epher-core — the single source of truth for epher's logic.
 //!
 //! Compiles to both `wasm32-unknown-unknown` (web/PWA/desktop) and native targets
-//! (CLI/TUI). Stays pure: no I/O, no threads, no platform calls. Numerics per
-//! ADR-0005.
+//! (CLI/TUI). Stays pure: no I/O, no threads; the one platform read is the
+//! clock behind `now()` (ADR-0037). Numerics per ADR-0005.
 
+pub mod astro;
 pub mod graph;
 pub mod graph_svg;
 
@@ -869,6 +870,29 @@ impl Parser {
                         }
                     }
                     Ok(Expression::Call(name, args))
+                        // A unit token directly after a call result
+                        // converts the count to SI — the ADR-0037 worked
+                        // example is `mag2jy(20) Jy`: functions return
+                        // counts, suffixes convert. Same call-versus-
+                        // suffix disambiguation: the next token may not
+                        // be a `(`.
+                        .and_then(|expr| {
+                            if let Some(Token::Ident(unit)) = self.peek().cloned() {
+                                if let Some(factor) = unit_factor(&unit) {
+                                    if !matches!(
+                                        self.tokens.get(self.pos + 1),
+                                        Some(Token::LParen)
+                                    ) {
+                                        self.next();
+                                        return Ok(Expression::Mul(
+                                            Box::new(expr),
+                                            Box::new(Expression::Literal(factor)),
+                                        ));
+                                    }
+                                }
+                            }
+                            Ok(expr)
+                        })
                 } else {
                     Ok(Expression::Var(name))
                 }
@@ -1128,6 +1152,23 @@ fn builtin_const(name: &str) -> Option<Value> {
         "e" => Some(Value::float(std::f64::consts::E)),
         "tau" => Some(Value::float(std::f64::consts::TAU)),
         "phi" => Some(Value::float(1.618_033_988_749_895)),
+        // Astronomy constants (ADR-0037): SI values throughout — metres,
+        // seconds, kilograms, watts. Shadowable like `pi` (resolution
+        // order: user variable, user constant, builtin).
+        "au" => Some(Value::float(1.495_978_707e11)),
+        "pc" => Some(Value::float(3.085_677_581_491_367_3e16)),
+        "ly" => Some(Value::float(9.460_730_472_580_8e15)),
+        "c" => Some(Value::float(2.997_924_58e8)),
+        "g" => Some(Value::float(9.806_65)),
+        "h" => Some(Value::float(6.626_070_15e-34)),
+        "h_bar" => Some(Value::float(6.626_070_15e-34 / (2.0 * std::f64::consts::PI))),
+        "k_b" => Some(Value::float(1.380_649e-23)),
+        "sigma_sb" => Some(Value::float(5.670_374_419e-8)),
+        "m_sun" => Some(Value::float(1.988_47e30)),
+        "r_sun" => Some(Value::float(6.957e8)),
+        "l_sun" => Some(Value::float(3.828e26)),
+        "m_earth" => Some(Value::float(5.972_2e24)),
+        "r_earth" => Some(Value::float(6.371e6)),
         _ => None,
     }
 }
@@ -1187,6 +1228,17 @@ fn value_to_bigint(name: &str, v: &Value) -> Result<num_bigint::BigInt, EpherErr
             num_bigint::BigInt::parse_bytes(d.trunc().to_string().as_bytes(), 10).ok_or_else(bad)
         }
         _ => Err(bad()),
+    }
+}
+
+/// Take exactly three Float arguments.
+fn three_floats(name: &str, args: &[Value]) -> Result<(f64, f64, f64), EpherError> {
+    match args {
+        [Value::Float(a), Value::Float(b), Value::Float(c)] => Ok((*a, *b, *c)),
+        _ => Err(EpherError::Type(format!(
+            "{name} expects 3 numbers, got {} argument(s)",
+            args.len()
+        ))),
     }
 }
 
@@ -1581,7 +1633,10 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                 ))),
             }
         }
-        _ => Err(EpherError::UnknownName(name.to_string())),
+        _ => match astro::call(name, args) {
+            Some(result) => result,
+            None => Err(EpherError::UnknownName(name.to_string())),
+        },
     }
 }
 
