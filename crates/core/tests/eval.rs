@@ -1048,7 +1048,7 @@ fn every_value_variant_round_trips_through_json() {
 // ===== Unit-suffix literals (ADR-0037) =====
 //
 // A number immediately followed by a unit token multiplies by the unit's
-// SI factor and evaluates to a plain Float in SI units — metres, radians,
+// SI factor and evaluates to a plain Float in SI units - metres, radians,
 // seconds, watts per square metre hertz. The factors are grammar-level,
 // so user shadowing cannot change what a literal means.
 
@@ -1128,7 +1128,7 @@ fn unit_tokens_are_reserved_in_suffix_position_but_calls_stay_calls() {
         other => panic!("min(3, 7) produced {other:?}"),
     }
     // an Ident followed by `(` is always a call, so the number before it
-    // is trailing input — no implicit multiplication is born here
+    // is trailing input - no implicit multiplication is born here
     assert!(epher_core::evaluate("30 deg(x)").is_err());
     // `h` is Planck's constant, not the hour: `5 h` is a parse error
     assert!(epher_core::evaluate("5 h").is_err());

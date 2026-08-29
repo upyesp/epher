@@ -1,12 +1,12 @@
 //! The astronomy module (ADR-0037): the calculator's time, angle, and
-//! optics functions, and — from the ephemeris slice — the accessor
+//! optics functions, and - from the ephemeris slice - the accessor
 //! functions over the `solar-ephemeris` facade.
 //!
 //! Conventions, per the ADR:
 //! - Functions return **counts in natural units** (degrees, hours, days,
 //!   astronomical units, magnitudes, janskys); unit suffixes convert
 //!   counts to SI. `sin` speaks radians, so `sin(30 deg)` composes.
-//! - Dates are plain numbers: `jd(2000, 1, 1, 12)` — the language has no
+//! - Dates are plain numbers: `jd(2000, 1, 1, 12)` - the language has no
 //!   strings to spare.
 //! - Everything here is shadowable like `pi`: resolution order is user
 //!   variable, user constant, builtin.
@@ -129,7 +129,7 @@ fn calendar_jd(name: &str, args: &[Value], offset: Option<f64>) -> Result<Value,
     Ok(Value::Float(jd + offset.unwrap_or(0.0)))
 }
 
-/// The current Julian Date from the host clock — epher's first
+/// The current Julian Date from the host clock - epher's first
 /// non-deterministic builtin (ADR-0037). Wasm reads the JavaScript Date
 /// clock (the same `js_sys::Date::now()` the animation transport uses);
 /// native reads the system clock.
@@ -178,7 +178,7 @@ fn delta_t(name: &str, args: &[Value]) -> Result<Value, EpherError> {
     Ok(Value::Float(solar_ephemeris::time::delta_t_seconds(year)))
 }
 
-/// Degrees to `h m s` right-ascension text — hours are 15 degrees. The
+/// Degrees to `h m s` right-ascension text - hours are 15 degrees. The
 /// display-only `Str`, the same mechanism as `hex` (ADR-0022).
 fn degrees_to_hms(deg: f64) -> String {
     let total_hours = deg.rem_euclid(360.0) / 15.0;
@@ -369,31 +369,19 @@ fn body_arg(name: &str, args: &[Value]) -> Result<(&'static BodyDef, f64), Epher
 /// playback tick) pay it once.
 fn sky_snapshot(jd: f64, lat: f64, lon: f64) -> Result<serde_json::Value, EpherError> {
     thread_local! {
-        static SKY: std::cell::RefCell<Option<serde_json::Value>> =
+        static SKY: std::cell::RefCell<Option<((f64, f64, f64), serde_json::Value)>> =
             const { std::cell::RefCell::new(None) };
     }
-    if let Some(cached) = SKY.with(|cell| cell.borrow().clone()) {
-        if cached
-            .get("_memo_jd")
-            .and_then(serde_json::Value::as_f64)
-            == Some(jd)
-            && cached.get("_memo_lat").and_then(serde_json::Value::as_f64) == Some(lat)
-            && cached.get("_memo_lon").and_then(serde_json::Value::as_f64) == Some(lon)
-        {
+    if let Some(((j, la, lo), cached)) = SKY.with(|cell| cell.borrow().clone()) {
+        if j == jd && la == lat && lo == lon {
             return Ok(cached);
         }
     }
     let json = solar_ephemeris::sky_snapshot_json(jd, lat, lon, 0.0);
-    let mut parsed: serde_json::Value =
-        serde_json::from_str(&json).map_err(|e| EpherError::Domain(format!(
-            "ephemeris snapshot unreadable: {e}"
-        )))?;
-    if let Some(obj) = parsed.as_object_mut() {
-        obj.insert("_memo_jd".into(), serde_json::json!(jd));
-        obj.insert("_memo_lat".into(), serde_json::json!(lat));
-        obj.insert("_memo_lon".into(), serde_json::json!(lon));
-    }
-    SKY.with(|cell| *cell.borrow_mut() = Some(parsed.clone()));
+    let parsed: serde_json::Value = serde_json::from_str(&json).map_err(|e| EpherError::Domain(format!(
+        "ephemeris snapshot unreadable: {e}"
+    )))?;
+    SKY.with(|cell| *cell.borrow_mut() = Some(((jd, lat, lon), parsed.clone())));
     Ok(parsed)
 }
 
@@ -817,8 +805,20 @@ fn year_arg(name: &str, args: &[Value]) -> Result<i32, EpherError> {
 }
 
 // ===== The solar3d scene (ADR-0037 + the ADR-0015 amendment) =====
+
+/// Evaluate a `solar3d` time expression (any expression producing a
+/// Julian Date: `now()`, `t`, `jd(2020, 1, 1)`). One helper for all the
+/// frontends, so the grammar and the error voice agree everywhere.
+pub fn eval_jd(source: &str, env: &crate::Env) -> Result<f64, EpherError> {
+    match crate::eval(&crate::parse(source)?, env)? {
+        Value::Float(jd) => Ok(jd),
+        other => Err(EpherError::Type(format!(
+            "solar3d needs a number (a Julian Date), got {other}"
+        ))),
+    }
+}
 //
-// One builder, one snapshot: the scene is the data the 3D pane renders —
+// One builder, one snapshot: the scene is the data the 3D pane renders -
 // orbit curves sampled from the snapshot's osculating elements, trails
 // that end where each body is now, and labelled dots. Frontends project
 // through the shared View3D and draw with their existing renderers.
@@ -828,17 +828,17 @@ fn year_arg(name: &str, args: &[Value]) -> Result<i32, EpherError> {
 /// the dark default theme at better than 3:1, like the curve palette.
 pub fn body_color(body: i64) -> &'static str {
     match body {
-        1 => "#9a9ba2",   // Mercury — grey
-        2 => "#ffb340",   // Venus — amber
-        3 => "#4da3ff",   // Earth — blue
-        4 => "#ff6b5e",   // Mars — red-orange
-        5 => "#d8a25e",   // Jupiter — tan
-        6 => "#e8d59b",   // Saturn — pale gold
-        7 => "#7fd8d0",   // Uranus — pale cyan
-        8 => "#5e7bff",   // Neptune — deep blue
-        9 => "#c39dff",   // Pluto — violet
-        10 => "#ffd75e",  // Sun — yellow
-        _ => "#d9dade",   // Moon — silver
+        1 => "#9a9ba2",   // Mercury - grey
+        2 => "#ffb340",   // Venus - amber
+        3 => "#4da3ff",   // Earth - blue
+        4 => "#ff6b5e",   // Mars - red-orange
+        5 => "#d8a25e",   // Jupiter - tan
+        6 => "#e8d59b",   // Saturn - pale gold
+        7 => "#7fd8d0",   // Uranus - pale cyan
+        8 => "#5e7bff",   // Neptune - deep blue
+        9 => "#c39dff",   // Pluto - violet
+        10 => "#ffd75e",  // Sun - yellow
+        _ => "#d9dade",   // Moon - silver
     }
 }
 
@@ -994,7 +994,7 @@ pub fn solar_scene(jd: f64) -> Result<SolarScene, EpherError> {
     Ok(SolarScene { jd, orbits, trails, dots })
 }
 
-/// Position on an orbit at a given mean anomaly (degrees) — the same
+/// Position on an orbit at a given mean anomaly (degrees) - the same
 /// elements-to-ecliptic rotation [`elements_xyz`] applies, parameterized.
 fn elements_xyz_at(el: &OrbitElements, mean_anomaly_deg: f64) -> [f64; 3] {
     let (ma, e) = (mean_anomaly_deg.to_radians(), el.e);

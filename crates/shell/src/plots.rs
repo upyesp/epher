@@ -101,7 +101,7 @@ impl Plots {
     }
 
     /// A plot state carrying a solar system scene a frontend already
-    /// holds (the TUI's pane) — for saving without rebuilding.
+    /// holds (the TUI's pane) - for saving without rebuilding.
     pub fn from_scene(scene: SolarScene) -> Self {
         Plots {
             curves: Vec::new(),
@@ -195,7 +195,7 @@ impl Plots {
 
     /// Handle the text after `solar3d `: build the scene at the evaluated
     /// time expression (a Julian Date in any form the language can
-    /// produce — `now()`, `t`, `jd(2020, 1, 1)`), clear it, or save the
+    /// produce - `now()`, `t`, `jd(2020, 1, 1)`), clear it, or save the
     /// SVG document (ADR-0037).
     pub fn submit_solar3d(
         &mut self,
@@ -218,19 +218,8 @@ impl Plots {
             }
             return self.save_solar_svg(path, &View3D::default(), localizer);
         }
-        let jd = match epher_core::eval(
-            &match epher_core::parse(source) {
-                Ok(expr) => expr,
-                Err(e) => return PlotOutcome::err(e.to_string()),
-            },
-            env,
-        ) {
-            Ok(epher_core::Value::Float(jd)) => jd,
-            Ok(other) => {
-                return PlotOutcome::err(format!(
-                    "solar3d needs a number (a Julian Date), got {other}"
-                ))
-            }
+        let jd = match epher_core::astro::eval_jd(source, env) {
+            Ok(jd) => jd,
             Err(e) => return PlotOutcome::err(e.to_string()),
         };
         match epher_core::astro::solar_scene(jd) {

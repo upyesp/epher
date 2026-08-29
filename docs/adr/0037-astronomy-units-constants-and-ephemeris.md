@@ -155,3 +155,20 @@ compound physical constants. Shadowable by users, exactly like `pi`.
 - Credits: solar-ephemeris's author is credited in the guide and Cargo
   metadata; the survey's license verdicts govern future astronomy
   dependencies.
+
+## Amendment (2026-08-29): the TUI keypad carries a condensed astro bank
+
+The Astro keypad tab in its full form (all 31 astronomy functions, the
+14 constants, and the unit-suffix insert keys) exists on the web and
+desktop keypads, which have no row budget. The TUI keypad pane is a
+fixed eight rows under ADR-0033 (the bank row plus five key rows), the
+same budget every other bank lives in, so the TUI ships a condensed
+five-row astro bank: the 25 highest-value astronomy keys (the time,
+accessor, and optics families plus `solar3d`), mirroring how the TUI
+has always condensed the rest of the language while the web keypad
+carries the complete set (ADR-0016/0019). The language itself is
+identical everywhere per ADR-0011 and ADR-0007: suffixes and every
+function type identically on all five frontends; only the key
+coverage of the terminal's fixed grid is narrower. The unit-suffix
+keys live on the web/desktop Astro tab only; on the TUI suffixes are
+typed like any other token.

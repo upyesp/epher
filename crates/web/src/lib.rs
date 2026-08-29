@@ -138,7 +138,7 @@ fn resample_surfaces(surfaces: &mut [epher_core::graph::Surface], session: &Sess
 }
 
 /// Rebuild the solar system scene when its time expression references a
-/// session constant — `const t = jd(now()); solar3d t` replays through
+/// session constant - `const t = jd(now()); solar3d t` replays through
 /// the existing playback transport (ADR-0037). A scene whose expression
 /// mentions no constant never rebuilds.
 fn resample_solar(
@@ -159,9 +159,7 @@ fn resample_solar(
     if !names.iter().any(|n| session.env().constant(n).is_some()) {
         return;
     }
-    if let Ok(epher_core::Value::Float(jd)) =
-        epher_core::parse(src).and_then(|e| epher_core::eval(&e, session.env()))
-    {
+    if let Ok(jd) = epher_core::astro::eval_jd(src, session.env()) {
         if let Ok(fresh) = epher_core::astro::solar_scene(jd) {
             *solar = Some(fresh);
         }
@@ -1867,16 +1865,8 @@ fn epher_app() -> Html {
                             *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                             continue;
                         }
-                        let jd = match epher_core::parse(source)
-                            .and_then(|expr| epher_core::eval(&expr, s.env()))
-                        {
-                            Ok(epher_core::Value::Float(jd)) => jd,
-                            Ok(other) => {
-                                result.set(format!(
-                                    "error: solar3d needs a number (a Julian Date), got {other}"
-                                ));
-                                continue;
-                            }
+                        let jd = match epher_core::astro::eval_jd(source, s.env()) {
+                            Ok(jd) => jd,
                             Err(e) => {
                                 result.set(format!("error: {e}"));
                                 continue;

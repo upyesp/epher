@@ -828,7 +828,7 @@ impl Parser {
             Some(Token::Number(n)) => {
                 // Unit-suffix literal (ADR-0037): a number immediately
                 // followed by a unit token is that number times the
-                // unit's SI factor, baked in at grammar level — user
+                // unit's SI factor, baked in at grammar level - user
                 // shadowing cannot change what `2 AU` means. An Ident
                 // followed by `(` is always a call, never a suffix, so
                 // `30 deg(x)` stays a (trailing-input) parse error and
@@ -871,7 +871,7 @@ impl Parser {
                     }
                     Ok(Expression::Call(name, args))
                         // A unit token directly after a call result
-                        // converts the count to SI — the ADR-0037 worked
+                        // converts the count to SI - the ADR-0037 worked
                         // example is `mag2jy(20) Jy`: functions return
                         // counts, suffixes convert. Same call-versus-
                         // suffix disambiguation: the next token may not
@@ -1125,7 +1125,7 @@ pub fn sample_polar(
 
 /// The unit-suffix table (ADR-0037): exact token → SI factor. Length in
 /// metres, angle in radians, time in seconds, flux in watts per square
-/// metre hertz. `h` is deliberately absent — Planck's constant owns the
+/// metre hertz. `h` is deliberately absent - Planck's constant owns the
 /// single letter, and hours are spelled `hr`.
 fn unit_factor(token: &str) -> Option<f64> {
     match token {
@@ -1152,7 +1152,7 @@ fn builtin_const(name: &str) -> Option<Value> {
         "e" => Some(Value::float(std::f64::consts::E)),
         "tau" => Some(Value::float(std::f64::consts::TAU)),
         "phi" => Some(Value::float(1.618_033_988_749_895)),
-        // Astronomy constants (ADR-0037): SI values throughout — metres,
+        // Astronomy constants (ADR-0037): SI values throughout - metres,
         // seconds, kilograms, watts. Shadowable like `pi` (resolution
         // order: user variable, user constant, builtin).
         "au" => Some(Value::float(1.495_978_707e11)),

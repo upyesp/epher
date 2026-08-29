@@ -692,7 +692,7 @@ pub fn solar_parts(
     Some((view_box, parts))
 }
 
-/// The `solar3d` scene as a self-contained SVG document — the same
+/// The `solar3d` scene as a self-contained SVG document - the same
 /// letterboxed 640×400 skeleton as [`graph3d_svg`].
 pub fn solar3d_svg(
     scene: &crate::astro::SolarScene,

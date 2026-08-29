@@ -344,6 +344,13 @@ const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
                 ("hms2deg", "hms2deg("),
                 ("solar3d", "solar3d "),
             ],
+            &[
+                ("az", "az("),
+                ("transit", "transit("),
+                ("phase", "phase("),
+                ("mjd", "mjd("),
+                ("deg2hms", "deg2hms("),
+            ],
         ],
     ),
     (
@@ -1318,7 +1325,7 @@ impl App {
     }
 
     /// Parse `source` as a `solar3d` time expression (any expression that
-    /// evaluates to a Julian Date), build the scene, and show it — the
+    /// evaluates to a Julian Date), build the scene, and show it - the
     /// pane shows one kind at a time, so curves and surfaces yield
     /// (ADR-0037).
     pub fn submit_solar3d(&mut self, source: &str) -> Result<(), String> {
@@ -1328,15 +1335,8 @@ impl App {
             self.result.clear();
             return Ok(());
         }
-        let jd = match epher_core::parse(source.trim())
-            .and_then(|expr| epher_core::eval(&expr, self.session.env()))
-        {
-            Ok(epher_core::Value::Float(jd)) => jd,
-            Ok(other) => {
-                let msg = format!("solar3d needs a number (a Julian Date), got {other}");
-                self.result = format!("error: {msg}");
-                return Err(msg);
-            }
+        let jd = match epher_core::astro::eval_jd(source.trim(), self.session.env()) {
+            Ok(jd) => jd,
             Err(e) => {
                 self.result = format!("error: {e}");
                 return Err(e.to_string());
@@ -1629,9 +1629,7 @@ impl App {
         if let (Some(_scene), Some(source)) = (self.solar.as_ref(), self.solar_source.as_deref())
         {
             if source_references_any_constant(source, &env) {
-                if let Ok(epher_core::Value::Float(jd)) =
-                    epher_core::parse(source).and_then(|e| epher_core::eval(&e, &env))
-                {
+                if let Ok(jd) = epher_core::astro::eval_jd(source, &env) {
                     if let Ok(fresh) = epher_core::astro::solar_scene(jd) {
                         self.solar = Some(fresh);
                     }
@@ -1642,7 +1640,7 @@ impl App {
 }
 
 /// Whether the solar scene's time expression depends on any session
-/// constant — the resample gate (its expression is ordinary code, so
+/// constant - the resample gate (its expression is ordinary code, so
 /// `const t = jd(now()); solar3d t` replays through the existing
 /// transport, ADR-0037).
 fn source_references_any_constant(source: &str, env: &epher_core::Env) -> bool {
@@ -1759,7 +1757,7 @@ pub fn render_ascii3d(surfaces: &[Surface], view: &View3D, width: usize, height:
 /// Render the solar system scene as ASCII (ADR-0037 + the ADR-0015
 /// amendment): orbit and trail polylines as depth-shaded Bresenham runs
 /// (the same glyphs as the mesh), each positioned dot stamped `O` on top
-/// with its body's first letter beside it — the legend row above the
+/// with its body's first letter beside it - the legend row above the
 /// pane names the bodies in the same order.
 pub fn render_solar_ascii(
     scene: &SolarScene,
@@ -1798,15 +1796,15 @@ pub fn render_solar_ascii(
         y_min = y_min.min(seg.y1).min(seg.y2);
         y_max = y_max.max(seg.y1).max(seg.y2);
     }
-    let dots: Vec<(f64, f64, i64)> = scene
+    let mut dots: Vec<(f64, f64, f64, i64)> = scene
         .dots
         .iter()
         .filter_map(|d| {
             project_world_dot(d.xyz[0], d.xyz[1], d.xyz[2], view)
-                .map(|(x, y, _)| (x, y, d.body))
+                .map(|(x, y, zp)| (x, y, zp, d.body))
         })
         .collect();
-    for (x, y, _) in &dots {
+    for (x, y, _, _) in &dots {
         x_min = x_min.min(*x);
         x_max = x_max.max(*x);
         y_min = y_min.min(*y);
@@ -1856,14 +1854,10 @@ pub fn render_solar_ascii(
             }
         }
     }
-    // Dots on top, painted far-to-near so nearer bodies overpaint.
-    let mut dots = dots;
-    dots.sort_by(|a, b| {
-        let da = project_world_dot(0.0, 0.0, 0.0, view).map(|_| 0.0);
-        let _ = da;
-        a.0.total_cmp(&b.0)
-    });
-    for (x, y, body) in dots {
+    // Dots on top, painted far-to-near so a nearer body overpaints a
+    // farther one (depth grows toward the camera).
+    dots.sort_by(|a, b| a.2.total_cmp(&b.2));
+    for (x, y, _, body) in dots {
         let (r, c) = to_grid(x, y);
         if r >= 0 && r < height as isize && c >= 0 && c < width as isize {
             grid[r as usize][c as usize] = 'O';

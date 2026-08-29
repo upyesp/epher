@@ -635,7 +635,7 @@ fn keypad_covers_every_function_that_was_missing() {
         // web keypad's Astro tab)
         "jd", "now", "lst", "kepler", "ra", "decl", "dist", "alt", "mag", "rise", "set",
         "illum", "diam", "delta_t", "airmass", "dawes", "dist_mod", "mag2jy", "hms2deg",
-        "solar3d",
+        "solar3d", "az", "transit", "phase", "mjd", "deg2hms",
     ] {
         assert!(tokens.contains(&name), "the keypad is missing {name}");
     }

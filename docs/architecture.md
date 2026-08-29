@@ -95,7 +95,8 @@ flowchart LR
 **The engine.** `epher-core` holds the tokenizer, parser, evaluator, and
 both graphers (2D curve sampling with points-of-interest analysis, 3D
 surface sampling), plus the deterministic SVG renderer. It has no UI
-code and no platform code — every frontend calls the same functions, so
+code and, since ADR-0037, exactly one platform read (`now()`'s clock) —
+every frontend calls the same functions, so
 `2 + 2` and `graph x ^ 2` mean the same thing in every interface.
 
 **Shared services.** `epher-shell` is the command kernel used by every
