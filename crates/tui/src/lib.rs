@@ -3152,21 +3152,23 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         return;
     }
 
-    // The menu bar row (ADR-0017): File | Edit | Graph | Settings | Help.
+    // The menu bar row (ADR-0017): the labels render in [`App::MENUS`]
+    // order - Help above Settings (the ADR-0038 amendment) - so the
+    // clickable rects, the popup indices, and the visible bar can never
+    // drift apart.
     let base = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]).split(frame.area());
     let (menu_area, body) = (base[0], base[1]);
     areas.menu_labels = [menu_area; 5];
 
-    let menu_labels = [
-        localizer.lookup("menu-file"),
-        localizer.lookup("menu-edit"),
-        localizer.lookup("menu-graph"),
-        localizer.lookup("menu-settings"),
-        localizer.lookup("menu-help"),
-    ];
+    let menu_labels: Vec<String> = App::MENUS
+        .iter()
+        .map(|m| localizer.lookup(&format!("menu-{m}")))
+        .collect();
+    let menu_labels = &menu_labels;
     let mut bar = Vec::new();
     let mut x = menu_area.x;
     for (i, label) in menu_labels.iter().enumerate() {
+        let label = label.as_str();
         let open = app.menu_active().map(|(m, _)| m) == Some(i);
         let text = format!(" {} ", label);
         let style = if open {
