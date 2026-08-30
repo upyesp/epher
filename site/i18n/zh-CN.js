@@ -14,7 +14,7 @@ window.EPHER_I18N["zh-CN"] = {
   "theme-light": "使用浅色主题",
   "theme-dark": "使用深色主题",
   "lang-label": "语言",
-  "tagline": "可编程、可脚本化的计算器",
+  "tagline": "一个可编写脚本的图形计算器",
   "lede": "一个计算引擎，五种使用方式：命令行、交互式 REPL、完整的 TUI 界面、桌面 GUI 应用和离线网页应用。输入表达式，保存函数和脚本，以 2D 或 3D 绘制结果，并在会话和界面之间保留历史记录。无需账户，无需云端：你的工作只留在你的设备上。提供 Windows、macOS、Linux 的原生应用，也可在浏览器中使用。",
   "cta-download": "获取 epher",
   "features-title": "为什么选择 epher",

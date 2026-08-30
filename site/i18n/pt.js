@@ -14,7 +14,7 @@ window.EPHER_I18N["pt"] = {
   "theme-light": "Usar tema claro",
   "theme-dark": "Usar tema escuro",
   "lang-label": "Idioma",
-  "tagline": "Uma calculadora programável e com scripts",
+  "tagline": "Uma calculadora gráfica com scripts",
   "lede": "Um motor de cálculo, cinco formas de o usar: linha de comandos, REPL interativo, interface TUI completa, aplicação de ambiente de trabalho e aplicação web offline. Escreva expressões, guarde funções e scripts, represente resultados em 2D ou 3D e mantenha o histórico entre sessões e interfaces. Sem conta, sem nuvem: o seu trabalho fica no seu dispositivo. Disponível como aplicação nativa para Windows, macOS, Linux e no navegador.",
   "cta-download": "Obter o epher",
   "features-title": "Porquê o epher",

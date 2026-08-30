@@ -160,12 +160,14 @@ function init() {
 
 /* --- hero 3D: the saddle `graph3d x ^ 2 - y ^ 2` rotating slowly -------
  * A faithful port of the app's 3D renderer (crates/core/src/graph.rs):
- * yaw around z, pitch around the rotated x axis, a perspective divide at
- * camera distance 30, mesh lines drawn far-to-near with depth-cued
- * opacity, and line thickness 0.1. The width slider at 0.1 (mesh 1.2x,
- * frame 1.4x). The view box is fixed (the union of the projected bounding
- * box over every yaw) so the mesh rotates without pumping. Reduced motion
- * renders one static frame (WCAG 2.3.3). */
+ * yaw around z, pitch around the rotated x axis, and the ORTHOGRAPHIC
+ * projection (the ADR-0015 amendment): the screen point is the rotated
+ * coordinate pair - the view depth is dropped, there is no perspective
+ * divide and no near plane. Mesh lines draw far-to-near with depth-cued
+ * opacity; line thickness 0.1 (mesh 1.2x, frame 1.4x). The view box is
+ * fixed (the union of the projected bounding box over every yaw) so the
+ * mesh rotates without pumping. Reduced motion renders one static frame
+ * (WCAG 2.3.3). */
 function initHero3d() {
   const svg = document.getElementById("hero3d");
   const meshGroup = document.getElementById("hero3d-mesh");
@@ -175,8 +177,6 @@ function initHero3d() {
   const GRID = 24;              // grid x grid mesh
   const DOMAIN = [-5, 5];       // graph3d default domain (ADR-0015)
   const PITCH = 0.6;            // View3D default pose
-  const CAMERA = 30;
-  const NEAR_DIST = 1;
   const WIDTH = { mesh: 1.2 * 0.1, frame: 1.4 * 0.1 };
   const NS = "http://www.w3.org/2000/svg";
 
@@ -209,31 +209,19 @@ function initHero3d() {
     const yr = x * rig.sy + y * rig.cy;
     return [xr, yr * rig.cp - z * rig.sp, yr * rig.sp + z * rig.cp];
   };
-  // to_screen: the perspective divide.
-  const toScreen = (xr, yp, zp) => {
-    const f = CAMERA / (CAMERA - zp);
-    return [xr * f, -yp * f];
-  };
-  // project_clipped: a world segment to screen, clipped at the near
-  // plane (unused by this saddle, kept for parity with the app).
+  // to_screen: the orthographic mapping (ADR-0015 amendment) - drop the
+  // view depth, keep the rotated coordinates. Affine: no point explodes
+  // and relative positions stay exact at every zoom.
+  const toScreen = (xr, yp) => [xr, -yp];
+  // project_clipped: a world segment to screen. The projection is
+  // orthographic, so every finite segment projects - there is no camera
+  // plane to clip against (the core drops the clip entirely).
   const projectSegment = (x1, y1, z1, x2, y2, z2) => {
-    let [xr1, yp1, zp1] = toCamera(x1, y1, z1);
-    let [xr2, yp2, zp2] = toCamera(x2, y2, z2);
-    const near = CAMERA - NEAR_DIST;
-    if (zp1 > near && zp2 > near) return null;
-    if (zp1 > near) {
-      const t = (near - zp1) / (zp2 - zp1);
-      xr1 += t * (xr2 - xr1);
-      yp1 += t * (yp2 - yp1);
-      zp1 = near;
-    } else if (zp2 > near) {
-      const t = (near - zp1) / (zp2 - zp1);
-      xr2 = xr1 + t * (xr2 - xr1);
-      yp2 = yp1 + t * (yp2 - yp1);
-      zp2 = near;
-    }
-    const [sx1, sy1] = toScreen(xr1, yp1, zp1);
-    const [sx2, sy2] = toScreen(xr2, yp2, zp2);
+    if (!isFinite(z1) || !isFinite(z2)) return null;
+    const [xr1, yp1, zp1] = toCamera(x1, y1, z1);
+    const [xr2, yp2, zp2] = toCamera(x2, y2, z2);
+    const [sx1, sy1] = toScreen(xr1, yp1);
+    const [sx2, sy2] = toScreen(xr2, yp2);
     if (
       !isFinite(sx1) || !isFinite(sy1) || !isFinite(sx2) || !isFinite(sy2)
     ) return null;
@@ -267,12 +255,10 @@ function initHero3d() {
         }
         if (!started) {
           const [xr, yp, zp] = toCamera(cx[i], cy[i], cz[i]);
-          if (zp <= CAMERA - NEAR_DIST) {
-            const [sx, sy] = toScreen(xr, yp, zp);
-            if (isFinite(sx) && isFinite(sy)) {
-              run.push([sx, sy, zp]);
-              started = true;
-            }
+          const [sx, sy] = toScreen(xr, yp);
+          if (isFinite(sx) && isFinite(sy)) {
+            run.push([sx, sy, zp]);
+            started = true;
           }
           continue;
         }

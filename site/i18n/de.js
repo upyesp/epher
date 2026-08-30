@@ -14,7 +14,7 @@ window.EPHER_I18N["de"] = {
   "theme-light": "Helles Design verwenden",
   "theme-dark": "Dunkles Design verwenden",
   "lang-label": "Sprache",
-  "tagline": "Ein programmierbarer, skriptfähiger Taschenrechner",
+  "tagline": "Ein skriptfähiger Grafikrechner",
   "lede": "Eine Rechen-Engine, fünf Arten, sie zu nutzen: Befehlszeile, interaktives REPL, vollständige TUI-Oberfläche, Desktop-GUI-App und eine Offline-Web-App. Tippen Sie Ausdrücke, speichern Sie Funktionen und Skripte, stellen Sie Ergebnisse in 2D oder 3D dar und behalten Sie den Verlauf über Sitzungen und Oberflächen hinweg. Kein Konto, keine Cloud: Ihre Arbeit bleibt auf Ihrem Gerät. Verfügbar als native Apps für Windows, macOS, Linux und im Browser.",
   "cta-download": "epher holen",
   "features-title": "Warum epher",

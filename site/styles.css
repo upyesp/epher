@@ -434,8 +434,25 @@ a:hover {
   line-height: 1.12;
   letter-spacing: -0.02em;
   font-weight: 750;
-  max-width: 15ch;
   margin-block-end: 1rem;
+}
+/* The two-line heading (the brand wordplay leads, the descriptor
+   follows): both lines step down from the h1 size so the pair fits the
+   copy column and reads as one heading. */
+.hero-title-brand,
+.hero-title-sub {
+  display: block;
+}
+.hero-title-brand {
+  font-size: 0.8em;
+}
+.hero-title-sub {
+  font-size: 0.6em;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0;
+  max-width: 18ch;
+  margin-block-start: 0.3rem;
 }
 
 .lede {
@@ -514,6 +531,10 @@ a:hover {
   }
 
   .hero-copy h1 {
+    max-width: none;
+  }
+
+  .hero-title-sub {
     max-width: none;
   }
 
