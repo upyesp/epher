@@ -1738,11 +1738,17 @@ fn assign(env: &mut Env, name: &str, expr: &Expression) -> Result<Value, EpherEr
     Ok(value)
 }
 
-/// Define a constant, refusing to redefine an existing constant or to take
-/// a variable's name — a name is either a variable or a constant, never
-/// both (ADR-0012).
+/// Define a constant, refusing to take a variable's name — a name is
+/// either a variable or a constant, never both (ADR-0012). Re-declaring
+/// an existing constant is an error only when the value changes:
+/// examples with `const` lines get pasted and re-pasted, and the
+/// slider and animation paths rewrite constants the same way.
 fn define_constant(env: &mut Env, name: &str, expr: &Expression) -> Result<Value, EpherError> {
     if env.constant(name).is_some() {
+        let value = eval(expr, env)?;
+        if env.constant(name) == Some(&value) {
+            return Ok(value);
+        }
         return Err(EpherError::ConstantAlreadyDefined(name.to_string()));
     }
     if env.get(name).is_some() {

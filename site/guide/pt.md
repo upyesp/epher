@@ -287,7 +287,7 @@ tax = 0.25
 error: cannot assign to constant tax
 ```
 
-e definir a mesma constante duas vezes também:
+e redefini-la com um valor diferente também:
 
 ```epher
 const tax = 0.25

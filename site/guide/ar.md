@@ -270,7 +270,7 @@ tax = 0.25
 error: cannot assign to constant tax
 ```
 
-وتعريف الثابت نفسه مرتين كذلك:
+وتعريف الثابت نفسه بقيمة مختلفة كذلك:
 
 ```epher
 const tax = 0.25

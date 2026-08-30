@@ -1558,3 +1558,23 @@ fn exact_layers_raise_to_integer_powers() {
     let x = float_at("2 ^ 0.5");
     assert!((x - std::f64::consts::SQRT_2).abs() < 1e-15);
 }
+
+#[test]
+fn redeclaring_a_constant_with_the_same_value_is_a_noop() {
+    // examples with `const` lines get pasted and re-pasted (ADR-0012
+    // amendment): the same definition twice succeeds as a no-op
+    assert_eq!(
+        run_script("const a = 1\nconst a = 1\na + 1").unwrap().to_string(),
+        "2"
+    );
+    // a changed value keeps the documented error
+    let err = run_script("const b = 1\nconst b = 2")
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("already defined"), "{err}");
+    // a constant still never takes a variable's name
+    let err = run_script("c = 1\nconst c = 2")
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("already a variable"), "{err}");
+}

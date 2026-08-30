@@ -270,7 +270,7 @@ tax = 0.25
 error: cannot assign to constant tax
 ```
 
-两次定义同一个常量同样会报错：
+用不同的值重新定义同一个常量同样会报错：
 
 ```epher
 const tax = 0.25
