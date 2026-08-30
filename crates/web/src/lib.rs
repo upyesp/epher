@@ -1756,9 +1756,12 @@ fn epher_app() -> Html {
                             Ok((spec, samples)) => {
                                 // The pane shows one kind at a time (ADR-0015
                                 // amendment): drawing a curve clears any 3D
-                                // surfaces, so the two never share the pane
-                                // and each plot keeps its full size.
+                                // surfaces and any solar scene, so the two
+                                // never share the pane and each plot keeps its
+                                // full size.
                                 surfaces.clear();
+                                solar = None;
+                                solar_source = None;
                                 curves.push(SampledCurve {
                                     source: source.to_string(),
                                     kind: spec.kind,
@@ -1814,8 +1817,11 @@ fn epher_app() -> Html {
                             Ok(fresh) => {
                                 // The pane shows one kind at a time (ADR-0015
                                 // amendment): drawing a surface clears any 2D
-                                // curves and their points of interest.
+                                // curves, their points of interest, and any
+                                // solar scene — the newest command owns the pane.
                                 curves.clear();
+                                solar = None;
+                                solar_source = None;
                                 // A 3D graph drawn into an empty pane brings
                                 // fresh fine-control sliders at their default
                                 // 0 (ADR-0031); overlays keep the current pose.
@@ -3537,7 +3543,10 @@ fn epher_app() -> Html {
                 </section>
                 <section class="pane" id="graph-pane" aria-label={localizer.lookup("graph-pane")}>
                     {
-                        if !(*graph).is_empty() || !(*surface).is_empty() {
+                        // The toolbar shows for every plotting pane: 2D,
+                        // 3D surfaces, and the solar system (whose sliders
+                        // drive the same shared view state).
+                        if !(*graph).is_empty() || !(*surface).is_empty() || (*solar).is_some() {
                             html! {
                                 // The pane toolbar (ADR-0023): commands and
                                 // settings sit above the plot — Clear and
@@ -3659,10 +3668,13 @@ fn epher_app() -> Html {
                                         }
                                     </div>
                                     // The 3D fine controls (ADR-0031): three sliders above
-                                    // the plot, visible only while surfaces are displayed.
+                                    // the plot, visible while any 3D pane is displayed -
+                                    // surfaces and the solar system alike (the solar pane
+                                    // renders from the same shared view state, so it
+                                    // inherits the same controls).
                                     // Each spans −1..1, step 0.1, default 0, and updates the
                                     // plot in real time — on top of the orbit gesture.
-                                    if !(*surface).is_empty() {
+                                    if !(*surface).is_empty() || (*solar).is_some() {
                                         <div class="view3d-options">
                                             { for [("h", "view-horizontal"), ("v", "view-vertical"), ("z", "view-zoom")].iter().map(|(axis, key)| {
                                                 let value = match *axis {

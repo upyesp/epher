@@ -556,8 +556,10 @@ pub struct Surface {
 }
 
 /// The camera pose for a 3D plot: yaw around the vertical (z) axis, then
-/// pitch around the rotated x axis, with a perspective camera `camera`
-/// units out along the view axis. All angles in radians.
+/// pitch around the rotated x axis. The projection is orthographic (the
+/// ADR-0015 amendment), so `camera` carries no distance: it is the zoom
+/// state, and a render window shrinks in proportion to it (see
+/// [`zoom_window`]). All angles in radians.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct View3D {
     pub yaw: f64,
@@ -570,11 +572,8 @@ impl Default for View3D {
         Self {
             yaw: 0.8,
             pitch: 0.6,
-            // Far enough out that the camera plane sits beyond typical
-            // surface z values (|z| <= 25 over a ±5 domain), so the
-            // default view shows the whole surface instead of a near-
-            // plane cut; near-plane clipping still engages when the user
-            // orbits in close.
+            // The zoom reference: renders scale their window by
+            // `camera / 30.0`, so this value shows the whole scene.
             camera: 30.0,
         }
     }
@@ -593,7 +592,9 @@ impl View3D {
         Self { yaw, ..*self }
     }
 
-    /// Set the camera distance (mouse-wheel zoom, ADR-0034).
+    /// Set the zoom state (mouse-wheel zoom, ADR-0034): smaller values
+    /// shrink the render window, so the scene grows. Relative positions
+    /// never change - the projection is affine.
     pub fn with_camera(&self, camera: f64) -> Self {
         Self {
             camera: camera.max(0.5),
@@ -605,8 +606,8 @@ impl View3D {
     /// with 0 = this pose unchanged: horizontal adds `h × π` to the yaw;
     /// vertical adds `v × 0.8` to the pitch — the full range stays live
     /// at the default pose (pitch 0.6 + 0.8 = 1.4, exactly the clamp) —
-    /// and zoom multiplies the camera distance by `2^-z` (0 = the default
-    /// distance, +1 halves it, −1 doubles it).
+    /// and zoom shrinks the render window by `2^-z` (0 = the default
+    /// window, +1 zooms in 2×, −1 zooms out 2×).
     pub fn with_offsets(&self, h: f64, v: f64, z: f64) -> Self {
         Self {
             yaw: self.yaw + h * std::f64::consts::PI,
@@ -619,9 +620,8 @@ impl View3D {
     /// accumulated rotation phase from the fine-control sliders' continuous
     /// spin, `zoom` the static zoom offset. Unlike [`Self::with_offsets`]
     /// the pitch is NOT clamped — a vertical spin is a full revolution
-    /// around the horizontal axis and may carry the camera under the plot;
-    /// the sine/cosine projection keeps the pose continuous through the
-    /// poles.
+    /// around the horizontal axis; the sine/cosine projection keeps the
+    /// pose continuous through the poles.
     pub fn with_spin_phase(&self, yaw: f64, pitch: f64, zoom: f64) -> Self {
         Self {
             yaw: self.yaw + yaw,
@@ -722,15 +722,10 @@ pub fn sample_surface(source: &str, grid: usize, env: &Env) -> Result<Surface, E
 }
 
 /// Project one world point: yaw around z, pitch around the rotated x axis,
-/// then a perspective divide. Returns (screen x, screen y, view depth);
-/// screen y grows upward and depth grows toward the camera.
-/// Distance of the near clipping plane from the camera, in view units.
-/// Segments closer to the camera than this (or behind it) are not
-/// projected: without clipping, a surface crossing the camera plane makes
-/// the perspective divide blow up to huge screen coordinates and the plot
-/// becomes a sliver in a giant (mostly empty) view box.
-pub const NEAR_DIST: f64 = 1.0;
-
+/// then an orthographic drop of the view depth. Returns (screen x,
+/// screen y, view depth); screen y grows upward and depth grows toward
+/// the viewer. The projection is affine: zoom (via [`zoom_window`]) and
+/// orbit change scale and pose, never relative positions.
 /// Rotate a world point into camera space (x right, y up, z toward the
 /// viewer): yaw around the z axis, then pitch around the rotated x axis.
 fn to_camera(x: f64, y: f64, z: f64, view: &View3D) -> (f64, f64, f64) {
@@ -743,25 +738,26 @@ fn to_camera(x: f64, y: f64, z: f64, view: &View3D) -> (f64, f64, f64) {
     (xr, yp, zp)
 }
 
-/// Perspective divide: map a camera-space point to screen coordinates.
-fn to_screen(xr: f64, yp: f64, zp: f64, view: &View3D) -> (f64, f64) {
-    let f = view.camera / (view.camera - zp);
-    (xr * f, -yp * f)
+/// Orthographic screen mapping: drop the view depth, keep the rotated
+/// coordinates. Affine, so no point ever explodes and relative positions
+/// are exact at every zoom.
+fn to_screen(xr: f64, yp: f64, _zp: f64, _view: &View3D) -> (f64, f64) {
+    (xr, -yp)
 }
 
-/// Project one world point; raw, with no near-plane clipping. Callers that
-/// draw whole segments or meshes should use [`project_clipped`] instead so
-/// geometry crossing the camera plane does not explode.
+/// Project one world point; raw. Callers that draw whole segments or
+/// meshes use [`project_clipped`] so undefined (NaN) cells split runs.
 pub fn project_point(x: f64, y: f64, z: f64, view: &View3D) -> (f64, f64, f64) {
     let (xr, yp, zp) = to_camera(x, y, z, view);
     let (sx, sy) = to_screen(xr, yp, zp, view);
     (sx, sy, zp)
 }
 
-/// Project a world-space segment to screen coordinates, clipping it against
-/// the near plane. Returns the clipped endpoints and their camera-space z
-/// values (`(sx1, sy1, zp1, sx2, sy2, zp2)`), or None when the segment is
-/// fully behind the near plane or touches an undefined (NaN) cell.
+/// Project a world-space segment to screen coordinates. Returns the
+/// endpoints and their camera-space z values
+/// (`(sx1, sy1, zp1, sx2, sy2, zp2)`), or None when either end touches an
+/// undefined (NaN) cell. The projection is orthographic, so every finite
+/// segment projects - there is no camera plane to clip against.
 pub fn project_clipped(
     x1: f64,
     y1: f64,
@@ -774,26 +770,8 @@ pub fn project_clipped(
     if !z1.is_finite() || !z2.is_finite() {
         return None;
     }
-    let (mut xr1, mut yp1, mut zp1) = to_camera(x1, y1, z1, view);
-    let (mut xr2, mut yp2, mut zp2) = to_camera(x2, y2, z2, view);
-    // zp measures distance along the view axis toward the camera (which
-    // sits at zp = view.camera): points with zp > near are too close to
-    // (or behind) the camera to project stably.
-    let near = view.camera - NEAR_DIST;
-    if zp1 > near && zp2 > near {
-        return None;
-    }
-    if zp1 > near {
-        let t = (near - zp1) / (zp2 - zp1);
-        xr1 += t * (xr2 - xr1);
-        yp1 += t * (yp2 - yp1);
-        zp1 = near;
-    } else if zp2 > near {
-        let t = (near - zp1) / (zp2 - zp1);
-        xr2 = xr1 + t * (xr2 - xr1);
-        yp2 = yp1 + t * (yp2 - yp1);
-        zp2 = near;
-    }
+    let (xr1, yp1, zp1) = to_camera(x1, y1, z1, view);
+    let (xr2, yp2, zp2) = to_camera(x2, y2, z2, view);
     let (sx1, sy1) = to_screen(xr1, yp1, zp1, view);
     let (sx2, sy2) = to_screen(xr2, yp2, zp2, view);
     if !sx1.is_finite() || !sy1.is_finite() || !sx2.is_finite() || !sy2.is_finite() {
@@ -928,12 +906,10 @@ fn line_runs(cx: &[f64], cy: &[f64], cz: &[f64], view: &View3D) -> Vec<Polyline3
         }
         if !started {
             let (xr, yp, zp) = to_camera(cx[i], cy[i], cz[i], view);
-            if zp <= view.camera - NEAR_DIST {
-                let (sx, sy) = to_screen(xr, yp, zp, view);
-                if sx.is_finite() && sy.is_finite() {
-                    run.push((sx, sy, zp));
-                    started = true;
-                }
+            let (sx, sy) = to_screen(xr, yp, zp, view);
+            if sx.is_finite() && sy.is_finite() {
+                run.push((sx, sy, zp));
+                started = true;
             }
             continue;
         }
@@ -957,9 +933,9 @@ fn line_runs(cx: &[f64], cy: &[f64], cz: &[f64], view: &View3D) -> Vec<Polyline3
 // ===== Space curves and positioned points (ADR-0015 amendment) =====
 
 /// Project an arbitrary world-space polyline (a `solar3d` orbit or
-/// trail) into visible screen runs: segments crossing the near plane are
-/// clipped, and each run carries its mean view depth for painter's-order
-/// drawing. Same treatment as a mesh grid line, from explicit points.
+/// trail) into visible screen runs: undefined points split runs, and
+/// each run carries its mean view depth for painter's-order drawing.
+/// Same treatment as a mesh grid line, from explicit points.
 pub fn project_space_curve(points: &[[f64; 3]], view: &View3D) -> Vec<Polyline3D> {
     let mut out = Vec::new();
     let mut run: Vec<(f64, f64, f64)> = Vec::new(); // (sx, sy, zp)
@@ -977,11 +953,9 @@ pub fn project_space_curve(points: &[[f64; 3]], view: &View3D) -> Vec<Polyline3D
     };
     if let Some(first) = points.first() {
         let (xr, yp, zp) = to_camera(first[0], first[1], first[2], view);
-        if zp <= view.camera - NEAR_DIST {
-            let (sx, sy) = to_screen(xr, yp, zp, view);
-            if sx.is_finite() && sy.is_finite() {
-                run.push((sx, sy, zp));
-            }
+        let (sx, sy) = to_screen(xr, yp, zp, view);
+        if sx.is_finite() && sy.is_finite() {
+            run.push((sx, sy, zp));
         }
     }
     for pair in points.windows(2) {
@@ -1003,13 +977,32 @@ pub fn project_space_curve(points: &[[f64; 3]], view: &View3D) -> Vec<Polyline3D
     out
 }
 
-/// Project one world point for a positioned dot: screen coordinates plus
-/// view depth, or None when the point is behind the camera plane.
+/// The render window for a zoomed 3D view. `x_min..x_max` and `y_min..
+/// y_max` are the projected bounds at the current pose; the window is
+/// those bounds scaled around their center by `view.camera / 30.0` (1.0
+/// at the default zoom, halved per +1 zoom step). Because the projection
+/// is affine and the window scales around a fixed center, zooming maps
+/// every projected point to exactly `k ×` its default-zoom screen
+/// position - relative positions are invariant under zoom by
+/// construction (the ADR-0015 amendment).
+///
+/// Returns `(x_min, y_min, w, h)` in projected units.
+pub fn zoom_window(
+    x_min: f64,
+    x_max: f64,
+    y_min: f64,
+    y_max: f64,
+    view: &View3D,
+) -> (f64, f64, f64, f64) {
+    let zoom = view.camera / 30.0;
+    let cx = (x_min + x_max) / 2.0;
+    let cy = (y_min + y_max) / 2.0;
+    let w = (x_max - x_min) * zoom;
+    let h = (y_max - y_min) * zoom;
+    (cx - w / 2.0, cy - h / 2.0, w, h)
+}
 pub fn project_world_dot(x: f64, y: f64, z: f64, view: &View3D) -> Option<(f64, f64, f64)> {
     let (xr, yp, zp) = to_camera(x, y, z, view);
-    if zp > view.camera - NEAR_DIST {
-        return None;
-    }
     let (sx, sy) = to_screen(xr, yp, zp, view);
     if !sx.is_finite() || !sy.is_finite() {
         return None;

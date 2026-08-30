@@ -182,3 +182,51 @@ fn solar_parts_viewbox_is_always_finite() {
     assert!(parts.contains("<polyline"), "orbits and trails render");
     assert!(parts.contains("<circle"), "positioned dots render");
 }
+
+// ===== the ADR-0015 orthographic amendment: zoom is a pure scale =====
+
+#[test]
+fn solar_zoom_scales_the_viewbox_without_moving_anything() {
+    let jd = 2459032.5; // 2020-07-01
+    let scene = epher_core::astro::solar_scene(jd).unwrap();
+    let default = scene.default_view(); // camera 30
+    let zoomed = default.with_camera(15.0); // one +1 step: 2x in
+
+    let (box_d, parts_d) = epher_core::graph_svg::solar_parts(&scene, &default, 1.0).unwrap();
+    let (box_z, parts_z) = epher_core::graph_svg::solar_parts(&scene, &zoomed, 1.0).unwrap();
+
+    // The projected geometry is zoom-independent: the markup (up to the
+    // viewBox it sits in) is identical, so every planet sits at exactly
+    // the same relative position no matter the zoom.
+    assert_eq!(parts_d, parts_z, "zoom must not move projected geometry");
+
+    // The window halves around the same center: the on-screen image is
+    // exactly 2x. (Tolerances match the viewBox's 3-decimal format.)
+    let pd: Vec<f64> = box_d.split_whitespace().map(|v| v.parse().unwrap()).collect();
+    let pz: Vec<f64> = box_z.split_whitespace().map(|v| v.parse().unwrap()).collect();
+    assert!((pz[2] - pd[2] / 2.0).abs() < 1e-2, "width {} vs {}/2", pz[2], pd[2]);
+    assert!((pz[3] - pd[3] / 2.0).abs() < 1e-2);
+    assert!((pz[0] + pz[2] / 2.0 - (pd[0] + pd[2] / 2.0)).abs() < 1e-2, "same center x");
+    assert!((pz[1] + pz[3] / 2.0 - (pd[1] + pd[3] / 2.0)).abs() < 1e-2, "same center y");
+}
+
+#[test]
+fn solar_dots_keep_a_fixed_radius_at_every_zoom() {
+    let jd = 2459032.5;
+    let scene = epher_core::astro::solar_scene(jd).unwrap();
+    let default = scene.default_view();
+    let zoomed = default.with_camera(60.0); // 2x out
+    let radii = |view: epher_core::graph::View3D| {
+        let (_, parts) = epher_core::graph_svg::solar_parts(&scene, &view, 1.0).unwrap();
+        let mut out = Vec::new();
+        let mut i = 0;
+        while let Some(p) = parts[i..].find("r=\"").map(|p| p + i) {
+            let end = parts[p + 3..].find('"').unwrap() + p + 3;
+            out.push(parts[p + 3..end].to_string());
+            i = end;
+        }
+        out
+    };
+    assert_eq!(radii(default), radii(zoomed), "radius must not depend on zoom");
+    assert!(!radii(default).is_empty());
+}

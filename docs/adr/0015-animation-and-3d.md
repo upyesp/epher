@@ -253,3 +253,39 @@ show the solar system: orbits as curves and planet positions as dots.
   ADR-0015 play button) animates the solar system with no new playback
   machinery. Orbit (drag, arrow keys, touch), the frozen viewBox behaviour,
   and the SVG/ASCII renderers all apply unchanged.
+
+## Amendment (2026-08-29): the 3D camera is orthographic; zoom is a pure scale
+
+Zooming any 3D view deformed relative positions: the projection carried a
+perspective divide (`camera / (camera - z)`), and zoom dollied the camera.
+Because every renderer fits the projected bounds per frame, the dolly read
+almost entirely as distortion - the solar system squashed and stretched, and
+misrepresented where the planets are relative to each other. A calculator
+whose goal is accuracy must not let a viewing control lie about the data.
+
+- **Projection:** `to_screen` drops the perspective divide and returns the
+  rotated coordinates directly. The mapping from world to screen is affine,
+  so equal world distances stay equal on screen at every depth, and no
+  coordinate can explode - there is no camera plane to clip against. The
+  near-plane machinery (the 2026-08-17 amendment's `NEAR_DIST` clip and the
+  behind-camera dot filter) is removed; NaN cells still split runs.
+- **Zoom:** `View3D.camera` no longer carries distance. It is the zoom
+  state, and each renderer scales its fit window by `camera / 30.0` around
+  the projected bounds' center (`zoom_window`). One +1 zoom step halves the
+  window: the on-screen image is exactly the default image at 2x, and every
+  point keeps its relative position by construction. The solar scene's
+  default camera joins the shared 30.0 reference.
+- **Depth cues:** painter's order and mean-depth opacity stay (they depend
+  only on the pose). Dot radius no longer shrinks with depth - a fixed
+  radius in projected units scales with the window like everything else, so
+  a dot marks a position and zoom never resizes it relative to the geometry.
+- **Consequences:** straight lines stay straight and circles stay circles at
+  every zoom; nothing is clipped at a camera plane; the frozen-viewBox
+  behaviour (2026-08-29 solar amendment) and all orbit controls keep their
+  semantics, with zoom now meaning scale.
+- **Control parity (same amendment):** the fine-control sliders (ADR-0031)
+  render for the solar pane too - it already renders from the same shared
+  view state, so it inherits the same horizontal, vertical, and zoom
+  controls instead of being the one 3D pane without zoom. And the pane
+  always shows the newest command: drawing a 2D curve or a surface clears
+  any solar scene, exactly as drawing one kind already cleared the other.

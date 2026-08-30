@@ -884,14 +884,15 @@ pub struct SolarScene {
 }
 
 impl SolarScene {
-    /// A camera above the ecliptic, far enough out that Neptune's orbit
-    /// fits with room to spare. Orbit and zoom controls take it from
-    /// here (the ADR-0015 amendment inherits the pane's controls).
+    /// A camera above the ecliptic. The zoom state starts at the same
+    /// 30.0 reference as every other 3D view, so the pane opens fitted
+    /// to the scene (the ADR-0015 amendment inherits the pane's
+    /// controls).
     pub fn default_view(&self) -> crate::graph::View3D {
         crate::graph::View3D {
             yaw: 0.8,
             pitch: 0.9,
-            camera: 120.0,
+            camera: 30.0,
         }
     }
 }

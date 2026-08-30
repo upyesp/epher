@@ -12,7 +12,7 @@
 //! visible caption at its end so solid lines stay distinguishable
 //! without color (WCAG 1.4.1).
 
-use crate::graph::{InterestKind, SampledCurve, Segment3D, Surface, View3D};
+use crate::graph::{InterestKind, SampledCurve, Segment3D, Surface, View3D, zoom_window};
 use crate::Sample;
 
 pub const WIDTH: f64 = 640.0;
@@ -511,16 +511,15 @@ pub fn surface_parts(
         return None;
     }
     let pad = (x_max - x_min).max(y_max - y_min) * 0.06;
-    let x_min = x_min - pad;
-    let x_max = x_max + pad;
-    let y_min = y_min - pad;
-    let y_max = y_max + pad;
-    let span = z_max - z_min;
-    let view_box = format!(
-        "{x_min:.3} {y_min:.3} {:.3} {:.3}",
-        x_max - x_min,
-        y_max - y_min
+    let (wx, wy, ww, wh) = zoom_window(
+        x_min - pad,
+        x_max + pad,
+        y_min - pad,
+        y_max + pad,
+        view,
     );
+    let span = z_max - z_min;
+    let view_box = format!("{wx:.3} {wy:.3} {ww:.3} {wh:.3}");
     let mut parts = String::new();
     // Painter's order: project_mesh already sorts far-to-near, so drawing
     // in order lets nearer lines overpaint farther ones.
@@ -665,14 +664,15 @@ pub fn solar_parts(
             1.2 * stroke_width
         ));
     }
-    // Positioned dots on top, radius shrinking with depth, each with an
-    // accessible name.
+    // Positioned dots on top, each with an accessible name. The radius
+    // is fixed in projected units, so it scales exactly with the view
+    // window: zoom never changes a dot relative to the geometry around
+    // it (the ADR-0015 orthographic amendment).
     let mut dots_out = String::new();
     for dot in &scene.dots {
-        if let Some((x, y, zp)) = project_world_dot(dot.xyz[0], dot.xyz[1], dot.xyz[2], view) {
+        if let Some((x, y, _zp)) = project_world_dot(dot.xyz[0], dot.xyz[1], dot.xyz[2], view) {
             consider(x, y);
-            let near = (view.camera - zp).max(1e-6);
-            let radius = (3.0 * (view.camera / near).sqrt()).clamp(2.0, 9.0);
+            let radius = 3.0_f64;
             dots_out.push_str(&format!(
                 "<circle cx=\"{x:.3}\" cy=\"{y:.3}\" r=\"{radius:.2}\" fill=\"{}\"><title>{}</title></circle>",
                 solar_color(dot.body),
@@ -687,13 +687,14 @@ pub fn solar_parts(
         return None;
     }
     let pad = (x_max - x_min).max(y_max - y_min) * 0.06;
-    let view_box = format!(
-        "{:.3} {:.3} {:.3} {:.3}",
+    let (wx, wy, ww, wh) = zoom_window(
         x_min - pad,
+        x_max + pad,
         y_min - pad,
-        x_max - x_min + 2.0 * pad,
-        y_max - y_min + 2.0 * pad
+        y_max + pad,
+        view,
     );
+    let view_box = format!("{wx:.3} {wy:.3} {ww:.3} {wh:.3}");
     parts.push_str(&dots_out);
     Some((view_box, parts))
 }

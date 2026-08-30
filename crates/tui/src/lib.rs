@@ -9,6 +9,7 @@ use epher_core::astro::SolarScene;
 use epher_core::graph::{
     analyze, free_names, parse_graph_source, project_surface, sample_spec, sample_surface,
     surface_frame, InterestKind, InterestPoint, SampledCurve, Segment3D, Surface, View3D,
+    zoom_window,
 };
 use epher_core::Session;
 use epher_i18n::Localizer;
@@ -1686,6 +1687,10 @@ pub fn render_ascii3d(surfaces: &[Surface], view: &View3D, width: usize, height:
     if !x_min.is_finite() || x_max - x_min < 1e-9 || y_max - y_min < 1e-9 {
         return String::new();
     }
+    // The zoom window (ADR-0015 amendment): the projection is affine, so
+    // shrinking the window scales the scene without moving anything
+    // relative to anything else.
+    let (wx, wy, ww, wh) = zoom_window(x_min, x_max, y_min, y_max, view);
     let depth_min = all.iter().map(|s| s.depth).fold(f64::INFINITY, f64::min);
     let depth_max = all
         .iter()
@@ -1694,12 +1699,12 @@ pub fn render_ascii3d(surfaces: &[Surface], view: &View3D, width: usize, height:
     let span = depth_max - depth_min;
     let gw = width - 2;
     let gh = height;
-    let scale = ((gw as f64) / (x_max - x_min)).min((gh as f64) / (y_max - y_min));
-    let ox = (gw as f64 - (x_max - x_min) * scale) / 2.0;
-    let oy = (gh as f64 - (y_max - y_min) * scale) / 2.0;
+    let scale = ((gw as f64) / ww).min((gh as f64) / wh);
+    let ox = (gw as f64 - ww * scale) / 2.0;
+    let oy = (gh as f64 - wh * scale) / 2.0;
     let to_grid = |x: f64, y: f64| {
-        let c = (x - x_min) * scale + ox;
-        let r = (y_max - y) * scale + oy;
+        let c = (x - wx) * scale + ox;
+        let r = (wy + wh - y) * scale + oy;
         (r as isize, c as isize)
     };
     let mut grid = vec![vec![' '; width]; height];
@@ -1813,17 +1818,21 @@ pub fn render_solar_ascii(
     if !x_min.is_finite() || x_max - x_min < 1e-9 || y_max - y_min < 1e-9 {
         return String::new();
     }
+    // The zoom window (ADR-0015 amendment): the projection is affine, so
+    // shrinking the window scales the scene without moving anything
+    // relative to anything else.
+    let (wx, wy, ww, wh) = zoom_window(x_min, x_max, y_min, y_max, view);
     let depth_min = segments.iter().map(|s| s.depth).fold(f64::INFINITY, f64::min);
     let depth_max = segments.iter().map(|s| s.depth).fold(f64::NEG_INFINITY, f64::max);
     let span = depth_max - depth_min;
     let gw = width - 2;
     let gh = height;
-    let scale = ((gw as f64) / (x_max - x_min)).min((gh as f64) / (y_max - y_min));
-    let ox = (gw as f64 - (x_max - x_min) * scale) / 2.0;
-    let oy = (gh as f64 - (y_max - y_min) * scale) / 2.0;
+    let scale = ((gw as f64) / ww).min((gh as f64) / wh);
+    let ox = (gw as f64 - ww * scale) / 2.0;
+    let oy = (gh as f64 - wh * scale) / 2.0;
     let to_grid = |x: f64, y: f64| {
-        let c = (x - x_min) * scale + ox;
-        let r = (y_max - y) * scale + oy;
+        let c = (x - wx) * scale + ox;
+        let r = (wy + wh - y) * scale + oy;
         (r as isize, c as isize)
     };
     let mut grid = vec![vec![' '; width]; height];

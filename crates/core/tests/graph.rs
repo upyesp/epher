@@ -4,7 +4,7 @@
 use epher_core::graph::{
     analyze, free_names, nice_step, parse_graph_source, project_clipped, project_mesh,
     project_point, project_surface, sample_spec, sample_surface, surface_frame, table_rows,
-    CurveKind, Fill, InterestKind, SampledCurve, View3D, NEAR_DIST,
+    zoom_window, CurveKind, Fill, InterestKind, SampledCurve, View3D,
 };
 use epher_core::{parse, Env, Session, Value};
 
@@ -283,19 +283,20 @@ fn projection_matches_hand_computed_views() {
 }
 
 #[test]
-fn perspective_makes_near_points_larger_than_far_ones() {
+fn orthographic_projection_is_depth_fair() {
     let view = View3D {
         yaw: 0.0,
         pitch: 0.0,
         camera: 12.0,
     };
-    // Looking along -z: the same world offset in y projects larger when it
-    // sits nearer the camera.
+    // The projection is affine (the ADR-0015 amendment): the same world
+    // offset covers the same screen distance at every depth - zoom and
+    // pose never distort relative positions.
     let (_, a1, _) = project_point(0.0, 1.0, 3.0, &view);
     let (_, a2, _) = project_point(0.0, 2.0, 3.0, &view);
     let (_, b1, _) = project_point(0.0, 1.0, -3.0, &view);
     let (_, b2, _) = project_point(0.0, 2.0, -3.0, &view);
-    assert!((a2 - a1).abs() > (b2 - b1).abs());
+    assert!(((a2 - a1) - (b2 - b1)).abs() < 1e-12);
 }
 
 #[test]
@@ -352,11 +353,12 @@ fn mesh_projection_splits_runs_at_undefined_cells() {
 }
 
 #[test]
-fn saddle_projection_stays_bounded_at_the_camera_plane() {
+fn orthographic_projection_stays_bounded_at_every_depth() {
     let env = Env::default();
-    // z = x^2 - y^2 over [-5, 5] reaches z = -25; the camera plane cuts
-    // right through it, which used to blow the view box up to thousands of
-    // units and squash the plot to a sliver.
+    // z = x^2 - y^2 over [-5, 5] reaches z = -25; the old perspective
+    // divide blew up near the camera plane (viewBox in the thousands,
+    // plot a sliver). The orthographic projection is affine, so every
+    // projected coordinate stays at the rotated world magnitude.
     let s = sample_surface("x ^ 2 - y ^ 2", 20, &env).unwrap();
     let view = View3D::default();
     let lines = project_mesh(&s, &view);
@@ -377,24 +379,66 @@ fn saddle_projection_stays_bounded_at_the_camera_plane() {
 }
 
 #[test]
-fn clipped_segments_drop_what_is_behind_the_camera() {
+fn segments_project_at_any_depth() {
     let view = View3D {
         yaw: 0.0,
         pitch: 0.0,
         camera: 12.0,
     };
-    // Both ends behind the camera (z > 12): dropped entirely.
-    assert!(project_clipped(0.0, 0.0, 13.0, 1.0, 0.0, 14.0, &view).is_none());
-    // One end behind: the visible part ends at the near plane, so the
-    // perspective divide stays bounded.
-    let seg = project_clipped(0.0, 0.0, 0.0, 1.0, 0.0, 20.0, &view).unwrap();
-    let (_, _, zp1, _, _, zp2) = seg;
-    assert!((zp2 - (view.camera - NEAR_DIST)).abs() < 1e-9);
-    assert!(zp1 < zp2);
-    let f = view.camera / (view.camera - zp2);
-    assert!(f.abs() < 20.0);
+    // Orthographic: depth changes nothing about the mapping, so a
+    // segment "behind" the old camera plane projects like any other.
+    let (x1, y1, zp1, x2, y2, zp2) = project_clipped(0.0, 0.0, 13.0, 1.0, 0.0, 14.0, &view)
+        .expect("finite segments always project");
+    assert!(zp2 > zp1);
+    assert!((x2 - x1 - 1.0).abs() < 1e-12);
     // Undefined cells are dropped.
     assert!(project_clipped(0.0, 0.0, f64::NAN, 1.0, 0.0, 0.0, &view).is_none());
+}
+
+#[test]
+fn zoom_scales_the_window_without_distortion() {
+    // The zoom contract (the ADR-0015 amendment): projected geometry is
+    // zoom-independent, and the render window scales around its center,
+    // so every point lands exactly k x its default-zoom screen position.
+    let default = View3D::default();
+    let zoomed = default.with_camera(15.0); // one +1 zoom step: 2x in
+    let pts = [
+        [2.0, -1.0, 0.5],
+        [-3.0, 4.0, -2.0],
+        [0.0, 0.0, 7.0],
+    ];
+    let mut base = Vec::new();
+    let mut close = Vec::new();
+    for &[x, y, z] in &pts {
+        base.push(project_point(x, y, z, &default));
+        close.push(project_point(x, y, z, &zoomed));
+    }
+    for (b, c) in base.iter().zip(&close) {
+        assert_eq!(b.0, c.0);
+        assert_eq!(b.1, c.1);
+        assert!((b.2 - c.2).abs() < 1e-12);
+    }
+    // The window around those projections halves, centered identically.
+    let (x_min, x_max, y_min, y_max) = (-3.0, 5.0, -2.0, 6.0);
+    let (bx, by, bw, bh) = zoom_window(x_min, x_max, y_min, y_max, &default);
+    let (zx, zy, zw, zh) = zoom_window(x_min, x_max, y_min, y_max, &zoomed);
+    assert!((zw - bw / 2.0).abs() < 1e-12);
+    assert!((zh - bh / 2.0).abs() < 1e-12);
+    assert!((zx + zw / 2.0 - (bx + bw / 2.0)).abs() < 1e-12, "same center x");
+    assert!((zy + zh / 2.0 - (by + bh / 2.0)).abs() < 1e-12, "same center y");
+    // End to end: map each point into its window's canvas (0..1), then
+    // the zoomed canvas position must be exactly the default position
+    // pulled k = bw/zw times toward the center - a pure scale, nothing
+    // else.
+    let k = bw / zw;
+    for (b, c) in base.iter().zip(&close) {
+        let base_x = (b.0 - bx) / bw;
+        let zoom_x = (c.0 - zx) / zw;
+        assert!((zoom_x - (0.5 + k * (base_x - 0.5))).abs() < 1e-12);
+        let base_y = (b.1 - by) / bh;
+        let zoom_y = (c.1 - zy) / zh;
+        assert!((zoom_y - (0.5 + k * (base_y - 0.5))).abs() < 1e-12);
+    }
 }
 
 #[test]
