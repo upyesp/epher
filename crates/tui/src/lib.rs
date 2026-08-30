@@ -94,6 +94,9 @@ pub enum MenuAction {
     CopyPois,
     /// Open the in-app user guide (ADR-0018).
     OpenGuide,
+    /// Open the keypad key-help overlay (ADR-0039): the current bank's
+    /// keys with their meanings.
+    OpenKeyHelp,
 }
 
 /// An active parameter animation: `name` steps by `step` within `lo..=hi`,
@@ -139,6 +142,8 @@ pub struct App {
     /// switches its banks, arrows move the highlight, Enter appends
     /// the token, Esc closes.
     keypad: bool,
+    /// The key-help overlay's scroll offset while open (ADR-0039).
+    key_help: Option<usize>,
     kp_bank: usize,
     kp_row: usize,
     kp_col: usize,
@@ -212,6 +217,9 @@ pub struct Areas {
     pub input_scroll: u16,
     /// Whether the user guide view covered the frame.
     pub guide: bool,
+    /// The key-help overlay covers the screen (ADR-0039): wheel scrolls
+    /// it and clicks are inert.
+    pub key_help: bool,
 }
 
 /// The TUI keypad (ADR-0016): a condensed grid of the most-used
@@ -397,6 +405,145 @@ pub fn banks() -> &'static [(
     BANKS
 }
 
+/// The FTL key of a keypad token's meaning (ADR-0039): the same
+/// `key-hint-*` messages the web keypad's aria-labels and hint bar
+/// speak. `None` for the self-evident digit keys, whose labels speak
+/// for themselves. Shared by the key-help overlay and its tests, which
+/// assert every non-digit token in every bank maps to something.
+pub fn keypad_hint_key(disp: &str) -> Option<&'static str> {
+    let named = |key: &'static str| Some(key);
+    match disp {
+        // digits bank: glyphs and actions
+        "C" => named("key-hint-clear"),
+        "\u{232b}" => named("key-hint-backspace"),
+        "(" => named("key-hint-lpar"),
+        ")" => named("key-hint-rpar"),
+        "\u{f7}" => named("key-hint-div"),
+        "\u{d7}" => named("key-hint-mul"),
+        "\u{2212}" => named("key-hint-sub"),
+        "+" => named("key-hint-add"),
+        "^" => named("key-hint-pow"),
+        ";" => named("key-hint-semi"),
+        "," => named("key-hint-comma"),
+        "\u{23ce}" => named("key-hint-newline"),
+        "=" => named("key-hint-equals"),
+        // trig
+        "sin" => named("key-hint-sin"),
+        "cos" => named("key-hint-cos"),
+        "tan" => named("key-hint-tan"),
+        "asin" => named("key-hint-asin"),
+        "acos" => named("key-hint-acos"),
+        "atan" => named("key-hint-atan"),
+        "sinh" => named("key-hint-sinh"),
+        "cosh" => named("key-hint-cosh"),
+        "tanh" => named("key-hint-tanh"),
+        "asinh" => named("key-hint-asinh"),
+        "acosh" => named("key-hint-acosh"),
+        "atanh" => named("key-hint-atanh"),
+        "deg" => named("key-hint-deg"),
+        "rad" => named("key-hint-rad"),
+        "atan2" => named("key-hint-atan2"),
+        // functions
+        "ln" => named("key-hint-ln"),
+        "log" => named("key-hint-log"),
+        "log2" => named("key-hint-log2"),
+        "logb" => named("key-hint-logb"),
+        "exp" => named("key-hint-exp"),
+        "sqrt" => named("key-hint-sqrt"),
+        "cbrt" => named("key-hint-cbrt"),
+        "root" => named("key-hint-root"),
+        "hypot" => named("key-hint-hypot"),
+        "abs" => named("key-hint-abs"),
+        "floor" => named("key-hint-floor"),
+        "ceil" => named("key-hint-ceil"),
+        "round" => named("key-hint-round"),
+        "trunc" => named("key-hint-trunc"),
+        "sign" => named("key-hint-sign"),
+        "min" => named("key-hint-min"),
+        "max" => named("key-hint-max"),
+        // number theory and statistics
+        "gcd" => named("key-hint-gcd"),
+        "lcm" => named("key-hint-lcm"),
+        "mod" => named("key-hint-mod"),
+        "fact" => named("key-hint-fact"),
+        "ncr" => named("key-hint-ncr"),
+        "npr" => named("key-hint-npr"),
+        "sum" => named("key-hint-sum"),
+        "product" => named("key-hint-product"),
+        "mean" => named("key-hint-mean"),
+        "median" => named("key-hint-median"),
+        "variance" => named("key-hint-variance"),
+        "stdev" => named("key-hint-stdev"),
+        // conversions and bases ("!" shares fact's meaning)
+        "frac" => named("key-hint-frac"),
+        "dec" => named("key-hint-dec"),
+        "big" => named("key-hint-big"),
+        "bin" => named("key-hint-bin"),
+        "oct" => named("key-hint-oct"),
+        "hex" => named("key-hint-hex"),
+        "!" => named("key-hint-fact"),
+        // var bank: constants and commands
+        "pi" => named("key-hint-pi"),
+        "e" => named("key-hint-e"),
+        "tau" => named("key-hint-tau"),
+        "phi" => named("key-hint-phi"),
+        "x" => named("key-hint-x"),
+        "t" => named("key-hint-t"),
+        "ans" => named("key-hint-ans"),
+        "graph" => named("key-hint-graph"),
+        "graph3d" => named("key-hint-graph3d"),
+        "solar3d" => named("key-hint-solar3d"),
+        "table" => named("key-hint-table"),
+        // astro
+        "jd" => named("key-hint-jd"),
+        "mjd" => named("key-hint-mjd"),
+        "now" => named("key-hint-now"),
+        "delta_t" => named("key-hint-delta_t"),
+        "lst" => named("key-hint-lst"),
+        "hms2deg" => named("key-hint-hms2deg"),
+        "dms2deg" => named("key-hint-dms2deg"),
+        "deg2hms" => named("key-hint-deg2hms"),
+        "deg2dms" => named("key-hint-deg2dms"),
+        "kepler" => named("key-hint-kepler"),
+        "ra" => named("key-hint-ra"),
+        "decl" => named("key-hint-decl"),
+        "dist" => named("key-hint-dist"),
+        "alt" => named("key-hint-alt"),
+        "az" => named("key-hint-az"),
+        "rise" => named("key-hint-rise"),
+        "set" => named("key-hint-set"),
+        "transit" => named("key-hint-transit"),
+        "mag" => named("key-hint-mag"),
+        "phase" => named("key-hint-phase"),
+        "illum" => named("key-hint-illum"),
+        "diam" => named("key-hint-diam"),
+        "airmass" => named("key-hint-airmass"),
+        "dawes" => named("key-hint-dawes"),
+        "dist_mod" => named("key-hint-dist_mod"),
+        "mag2jy" => named("key-hint-mag2jy"),
+        "jy2mag" => named("key-hint-jy2mag"),
+        "march_equinox" => named("key-hint-march_equinox"),
+        "june_solstice" => named("key-hint-june_solstice"),
+        "september_equinox" => named("key-hint-september_equinox"),
+        "december_solstice" => named("key-hint-december_solstice"),
+        "au" => named("key-hint-au"),
+        "pc" => named("key-hint-pc"),
+        "ly" => named("key-hint-ly"),
+        "c" => named("key-hint-c"),
+        "g" => named("key-hint-g"),
+        "h" => named("key-hint-h"),
+        "h_bar" => named("key-hint-h_bar"),
+        "k_b" => named("key-hint-k_b"),
+        "sigma_sb" => named("key-hint-sigma_sb"),
+        "m_sun" => named("key-hint-m_sun"),
+        "r_sun" => named("key-hint-r_sun"),
+        "l_sun" => named("key-hint-l_sun"),
+        "m_earth" => named("key-hint-m_earth"),
+        "r_earth" => named("key-hint-r_earth"),
+        _ => None,
+    }
+}
+
 impl App {
     /// Replace the whole calculator state from a store reload
     /// (ADR-0010 amendment): history, functions, constants, scripts, and
@@ -425,6 +572,7 @@ impl App {
             view2d: None,
             play: None,
             keypad: false,
+            key_help: None,
             kp_row: 0,
             kp_col: 0,
             kp_bank: 0,
@@ -464,6 +612,32 @@ impl App {
         self.kp_row = 0;
         self.kp_col = 0;
         self.menu = None;
+    }
+
+    /// The key-help overlay (ADR-0039): the current bank's keys with
+    /// their meanings, scrollable, closed with q or Esc. The value is
+    /// the scroll offset, mirroring the guide's pager.
+    pub fn key_help_open(&mut self) {
+        self.key_help = Some(0);
+        self.menu = None;
+    }
+
+    pub fn key_help_close(&mut self) {
+        self.key_help = None;
+    }
+
+    pub fn key_help_active(&self) -> bool {
+        self.key_help.is_some()
+    }
+
+    pub fn key_help_scroll(&mut self, delta: isize) {
+        if let Some(offset) = &mut self.key_help {
+            *offset = offset.saturating_add_signed(delta);
+        }
+    }
+
+    pub fn key_help_offset(&self) -> Option<usize> {
+        self.key_help
     }
 
     pub fn keypad_close(&mut self) {
@@ -582,7 +756,7 @@ impl App {
             0 => 5, // File: open history, open script, save history, save script, quit
             1 => 3, // Edit: cut, copy, paste
             2 => 2, // Graph: clear graph, copy points of interest
-            3 => 1, // Help: the in-app guide
+            3 => 2, // Help: the in-app guide, the keypad key help
             4 => {
                 if self.surface.is_empty() && self.solar.is_none() {
                     12 // POI toggle, 3 themes, 8 languages
@@ -647,7 +821,10 @@ impl App {
                 // heading's copy button does (ADR-0038 amendment).
                 _ => MenuAction::CopyPois,
             },
-            3 => MenuAction::OpenGuide,
+            3 => match item {
+                0 => MenuAction::OpenGuide,
+                _ => MenuAction::OpenKeyHelp,
+            },
             4 => match item {
                 0 => MenuAction::TogglePois,
                 1 => MenuAction::SetTheme("light"),
@@ -2286,6 +2463,33 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         }
                         continue;
                     }
+                    // The key-help overlay (ADR-0039) is modal like the
+                    // guide: scrolling and closing keys act; nothing
+                    // reaches the calculator.
+                    if app.key_help_active() {
+                        match key.code {
+                            KeyCode::Char('c')
+                                if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                            {
+                                return Ok(());
+                            }
+                            KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('?') => {
+                                app.key_help_close()
+                            }
+                            KeyCode::Up => app.key_help_scroll(-1),
+                            KeyCode::Down => app.key_help_scroll(1),
+                            KeyCode::PageUp => app.key_help_scroll(-12),
+                            KeyCode::PageDown => app.key_help_scroll(12),
+                            KeyCode::Home => {
+                                app.key_help = Some(0);
+                            }
+                            KeyCode::End => {
+                                app.key_help = Some(usize::MAX);
+                            }
+                            _ => {}
+                        }
+                        continue;
+                    }
                     // Pasted newlines arrive as LF, which crossterm parses as
                     // Ctrl+J (the terminal convention for line feed). Treat it
                     // as Enter so multi-line pastes submit line by line, like
@@ -2343,6 +2547,18 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         }
                         KeyCode::Char('q') if app.input().is_empty() && !app.keypad_focused() => {
                             return Ok(());
+                        }
+                        // The key-help overlay (ADR-0039): ? opens it when
+                        // nothing else owns the key — the entry is empty
+                        // (the same spelling rule as `q`) or the keypad has
+                        // focus, where ? types nothing. The Help menu opens
+                        // it too, for discovery.
+                        KeyCode::Char('?')
+                            if app.input().is_empty()
+                                && app.prompt_active().is_none()
+                                && app.menu_active().is_none() =>
+                        {
+                            app.key_help_open();
                         }
                         // Keypad mode (ADR-0016): Tab opens the button grid
                         // and cycles its banks (Shift+Tab cycles back);
@@ -2630,6 +2846,7 @@ fn perform_menu_action(
             }
         }
         MenuAction::OpenGuide => app.guide_open(),
+        MenuAction::OpenKeyHelp => app.key_help_open(),
     }
     false
 }
@@ -2672,6 +2889,12 @@ fn handle_mouse(
                 } else {
                     3
                 });
+            } else if areas.key_help {
+                app.key_help_scroll(if matches!(event.kind, MouseEventKind::ScrollUp) {
+                    -3
+                } else {
+                    3
+                });
             } else if inside(areas.graph, event.column, event.row) && !app.surfaces().is_empty() {
                 let factor = if matches!(event.kind, MouseEventKind::ScrollUp) {
                     0.9
@@ -2701,6 +2924,11 @@ fn handle_mouse(
                         app.guide_jump(i);
                     }
                 }
+                return false;
+            }
+            // The key-help overlay (ADR-0039) covers the screen too; its
+            // rows are informational, so a click is simply swallowed.
+            if areas.key_help {
                 return false;
             }
             // 1. The open popup wins: a click on an item activates it,
@@ -2909,7 +3137,10 @@ fn menu_rows(app: &App, localizer: &Localizer) -> Vec<PopupRow> {
             rows.push(PopupRow::Item(0, localizer.lookup("graph-clear")));
             rows.push(PopupRow::Item(1, localizer.lookup("poi-copy")));
         }
-        3 => rows.push(PopupRow::Item(0, localizer.lookup("menu-guide"))),
+        3 => {
+            rows.push(PopupRow::Item(0, localizer.lookup("menu-guide")));
+            rows.push(PopupRow::Item(1, localizer.lookup("menu-key-help")));
+        }
         _ => {
             rows.push(PopupRow::Item(0, localizer.lookup("graph-points")));
             rows.push(PopupRow::Rule(localizer.lookup("tui-settings-theme")));
@@ -3017,6 +3248,70 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // contents (ADR-0018 amendment) pins the top-level chapters above
     // the content: one row per chapter, clickable, and the number keys
     // 1–9 jump to the same rows.
+    // The key-help overlay (ADR-0039): the current bank's keys with
+    // their meanings, modal like the guide - it paints over the whole
+    // screen and the draw returns, so nothing else leaks into the mouse
+    // map this frame.
+    if let Some(offset) = app.key_help_offset() {
+        let rows = Layout::vertical([
+            Constraint::Length(1), // title
+            Constraint::Min(0),    // the key rows
+            Constraint::Length(1), // scroll hint
+        ])
+        .split(frame.area());
+        let title = format!(
+            " {} — {} ",
+            localizer.lookup("menu-key-help"),
+            app.keypad_bank()
+        );
+        frame.render_widget(
+            Paragraph::new(Line::from(Span::styled(
+                title,
+                Style::default()
+                    .bg(sel_bg)
+                    .fg(sel_fg)
+                    .add_modifier(Modifier::BOLD),
+            ))),
+            rows[0],
+        );
+        let bank = &BANKS[app.keypad_bank_index()].1;
+        let lines: Vec<Line> = bank
+            .iter()
+            .flat_map(|row| row.iter())
+            .map(|(disp, _)| {
+                let text = match keypad_hint_key(disp) {
+                    Some(key) => format!("{}  {}", disp, localizer.lookup(key)),
+                    None => disp.to_string(),
+                };
+                Line::from(Span::styled(
+                    format!(" {}", text),
+                    Style::default().fg(fg),
+                ))
+            })
+            .collect::<Vec<_>>();
+        // Clamp to the last page.
+        let content_rows = rows[1].height as usize;
+        let max = lines.len().saturating_sub(content_rows);
+        let offset = offset.min(max);
+        frame.render_widget(
+            Paragraph::new(Text::from(lines))
+                .style(Style::default().fg(fg))
+                .scroll((offset as u16, 0)),
+            rows[1],
+        );
+        frame.render_widget(
+            Paragraph::new(Line::from(Span::styled(
+                localizer.lookup("tui-key-help-hint"),
+                hints_style,
+            ))),
+            rows[2],
+        );
+        areas.key_help = true;
+        app.key_help = Some(offset);
+        app.areas = areas;
+        return;
+    }
+
     if let Some(offset) = app.guide_offset() {
         let chapters = epher_guide::chapters(epher_guide::guide(localizer.locale()));
         let toc_len = chapters.len().min(12);

@@ -717,9 +717,9 @@ fn menu_navigation_and_actions() {
     app.menu_move(0, 1);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::CopyPois));
     // Help sits ABOVE Settings (ADR-0038 amendment): slot 3 is the
-    // guide, slot 4 the settings.
+    // guide plus the keypad key help (ADR-0039), slot 4 the settings.
     app.menu_open(3);
-    assert_eq!(app.menu_len(3), 1);
+    assert_eq!(app.menu_len(3), 2);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::OpenGuide));
     // Settings moved to slot 4: the POI-list checkbox (ADR-0019), then
     // theme radios, then languages.
@@ -1463,4 +1463,60 @@ fn solar3d_errors_and_save_follow_the_graph_voice() {
     app.set_input("solar3d save /tmp/never-epher-tui-solar.svg");
     app.submit_line(&app.input().to_string(), &store, &localizer);
     assert_eq!(app.result(), "Nothing is plotted");
+}
+
+// ===== keypad key help (ADR-0039) =====
+
+#[test]
+fn every_bank_token_has_a_hint_or_speaks_for_itself() {
+    // Every non-digit key in every bank maps to a key-hint FTL message;
+    // the digit keys 0-9 and "." are the self-evident exceptions.
+    for (_label, rows) in epher_tui::banks() {
+        for row in rows.iter() {
+            for (disp, _insert) in row.iter() {
+                let hint = epher_tui::keypad_hint_key(disp);
+                if disp.chars().all(|c| c.is_ascii_digit()) || *disp == "." {
+                    assert!(hint.is_none(), "{disp} needs no hint");
+                } else {
+                    assert!(hint.is_some(), "{disp} is missing a hint");
+                    assert!(hint.unwrap().starts_with("key-hint-"));
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn key_help_opens_scrolls_and_closes() {
+    let mut app = App::default();
+    app.keypad_open();
+    app.keypad_cycle(1); // move off the digits bank
+    assert_eq!(app.keypad_bank(), "trig");
+    assert!(!app.key_help_active());
+    app.key_help_open();
+    assert!(app.key_help_active());
+    assert_eq!(app.key_help_offset(), Some(0));
+    app.key_help_scroll(3);
+    assert_eq!(app.key_help_offset(), Some(3));
+    app.key_help_scroll(-10);
+    assert_eq!(app.key_help_offset(), Some(0));
+    app.key_help_close();
+    assert!(!app.key_help_active());
+    assert_eq!(app.key_help_offset(), None);
+}
+
+#[test]
+fn help_menu_lists_guide_and_key_help() {
+    let mut app = App::default();
+    assert_eq!(app.menu_len(3), 2);
+    app.menu_open(3);
+    app.menu_move(0, 1);
+    // The activation runs through the loop's perform step; here the
+    // action itself is the contract.
+    assert_eq!(
+        app.menu_activate(),
+        Some(epher_tui::MenuAction::OpenKeyHelp)
+    );
+    app.key_help_open();
+    assert!(app.key_help_active());
 }

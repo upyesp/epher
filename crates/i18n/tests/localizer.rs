@@ -25,6 +25,30 @@ fn strip_isolates(s: &str) -> String {
         .collect()
 }
 
+/// Every `key-hint-*` message the English catalog defines must exist in
+/// every locale (ADR-0039): a keypad hint is an accessibility surface,
+/// so a missing translation must fail a test, not fall back silently.
+#[test]
+fn keypad_hints_exist_in_every_locale() {
+    let en = include_str!("../locales/en.ftl");
+    let keys: Vec<&str> = en
+        .lines()
+        .filter_map(|l| l.split(' ').next())
+        .filter(|k| k.starts_with("key-hint-"))
+        .collect();
+    assert!(keys.len() >= 100, "the hint catalog went missing");
+    for locale in epher_i18n::SUPPORTED_LOCALES {
+        let l = Localizer::resolve(Some(locale), &[]);
+        for key in &keys {
+            assert_ne!(
+                l.lookup(key),
+                *key,
+                "{locale} is missing the hint {key}"
+            );
+        }
+    }
+}
+
 #[test]
 fn placeholders_are_filled() {
     let l = Localizer::resolve(Some("en"), &[]);

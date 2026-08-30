@@ -274,10 +274,13 @@ enum KeyAction {
     Backspace,
 }
 
+/// The FTL key of a key's meaning (ADR-0039): `key-hint-*`. Empty for
+/// the self-evident digit keys, whose labels speak for themselves.
 struct KeyDef {
     label: &'static str,
     act: KeyAction,
     cls: &'static str,
+    hint: &'static str,
 }
 
 struct TabDef {
@@ -287,8 +290,13 @@ struct TabDef {
     keys: &'static [KeyDef],
 }
 
-const fn key(label: &'static str, act: KeyAction, cls: &'static str) -> KeyDef {
-    KeyDef { label, act, cls }
+const fn key(
+    label: &'static str,
+    act: KeyAction,
+    cls: &'static str,
+    hint: &'static str,
+) -> KeyDef {
+    KeyDef { label, act, cls, hint }
 }
 
 /// Every function, constant, and command the language supports, grouped
@@ -302,33 +310,33 @@ static TABS: &[TabDef] = &[
         label: "123",
         i18n: "keypad-tab-digits",
         keys: &[
-            key("C", KeyAction::Clear, "act"),
-            key("⌫", KeyAction::Backspace, "act"),
-            key("(", KeyAction::Text("("), "op"),
-            key(")", KeyAction::Text(")"), "op"),
-            key("÷", KeyAction::Text("/"), "op"),
-            key("7", KeyAction::Text("7"), ""),
-            key("8", KeyAction::Text("8"), ""),
-            key("9", KeyAction::Text("9"), ""),
-            key("×", KeyAction::Text("*"), "op"),
-            key("−", KeyAction::Text("-"), "op"),
-            key("4", KeyAction::Text("4"), ""),
-            key("5", KeyAction::Text("5"), ""),
-            key("6", KeyAction::Text("6"), ""),
-            key("+", KeyAction::Text("+"), "op"),
-            key("^", KeyAction::Text("^"), "op"),
-            key("1", KeyAction::Text("1"), ""),
-            key("2", KeyAction::Text("2"), ""),
-            key("3", KeyAction::Text("3"), ""),
-            key(";", KeyAction::Text(";"), "op"),
-            key(",", KeyAction::Text(","), "op"),
-            key("0", KeyAction::Text("0"), ""),
-            key(".", KeyAction::Text("."), ""),
+            key("C", KeyAction::Clear, "act", "key-hint-clear"),
+            key("⌫", KeyAction::Backspace, "act", "key-hint-backspace"),
+            key("(", KeyAction::Text("("), "op", "key-hint-lpar"),
+            key(")", KeyAction::Text(")"), "op", "key-hint-rpar"),
+            key("÷", KeyAction::Text("/"), "op", "key-hint-div"),
+            key("7", KeyAction::Text("7"), "", ""),
+            key("8", KeyAction::Text("8"), "", ""),
+            key("9", KeyAction::Text("9"), "", ""),
+            key("×", KeyAction::Text("*"), "op", "key-hint-mul"),
+            key("−", KeyAction::Text("-"), "op", "key-hint-sub"),
+            key("4", KeyAction::Text("4"), "", ""),
+            key("5", KeyAction::Text("5"), "", ""),
+            key("6", KeyAction::Text("6"), "", ""),
+            key("+", KeyAction::Text("+"), "op", "key-hint-add"),
+            key("^", KeyAction::Text("^"), "op", "key-hint-pow"),
+            key("1", KeyAction::Text("1"), "", ""),
+            key("2", KeyAction::Text("2"), "", ""),
+            key("3", KeyAction::Text("3"), "", ""),
+            key(";", KeyAction::Text(";"), "op", "key-hint-semi"),
+            key(",", KeyAction::Text(","), "op", "key-hint-comma"),
+            key("0", KeyAction::Text("0"), "", ""),
+            key(".", KeyAction::Text("."), "", ""),
             // The newline key (ADR-0016 amendment): ans lives on the
             // pigreco tab, and a real newline in the entry is how
             // multi-line scripts are composed on touch.
-            key("\u{23CE}", KeyAction::Text("\n"), "op"),
-            key("=", KeyAction::Submit, "eq"),
+            key("\u{23CE}", KeyAction::Text("\n"), "op", "key-hint-newline"),
+            key("=", KeyAction::Submit, "eq", "key-hint-equals"),
         ],
     },
     TabDef {
@@ -336,21 +344,21 @@ static TABS: &[TabDef] = &[
         label: "trig",
         i18n: "keypad-tab-trig",
         keys: &[
-            key("sin", KeyAction::Call("sin"), "fn"),
-            key("cos", KeyAction::Call("cos"), "fn"),
-            key("tan", KeyAction::Call("tan"), "fn"),
-            key("asin", KeyAction::Call("asin"), "fn"),
-            key("acos", KeyAction::Call("acos"), "fn"),
-            key("atan", KeyAction::Call("atan"), "fn"),
-            key("sinh", KeyAction::Call("sinh"), "fn"),
-            key("cosh", KeyAction::Call("cosh"), "fn"),
-            key("tanh", KeyAction::Call("tanh"), "fn"),
-            key("asinh", KeyAction::Call("asinh"), "fn"),
-            key("acosh", KeyAction::Call("acosh"), "fn"),
-            key("atanh", KeyAction::Call("atanh"), "fn"),
-            key("deg", KeyAction::Call("deg"), "fn"),
-            key("rad", KeyAction::Call("rad"), "fn"),
-            key("atan2", KeyAction::Call("atan2"), "fn"),
+            key("sin", KeyAction::Call("sin"), "fn", "key-hint-sin"),
+            key("cos", KeyAction::Call("cos"), "fn", "key-hint-cos"),
+            key("tan", KeyAction::Call("tan"), "fn", "key-hint-tan"),
+            key("asin", KeyAction::Call("asin"), "fn", "key-hint-asin"),
+            key("acos", KeyAction::Call("acos"), "fn", "key-hint-acos"),
+            key("atan", KeyAction::Call("atan"), "fn", "key-hint-atan"),
+            key("sinh", KeyAction::Call("sinh"), "fn", "key-hint-sinh"),
+            key("cosh", KeyAction::Call("cosh"), "fn", "key-hint-cosh"),
+            key("tanh", KeyAction::Call("tanh"), "fn", "key-hint-tanh"),
+            key("asinh", KeyAction::Call("asinh"), "fn", "key-hint-asinh"),
+            key("acosh", KeyAction::Call("acosh"), "fn", "key-hint-acosh"),
+            key("atanh", KeyAction::Call("atanh"), "fn", "key-hint-atanh"),
+            key("deg", KeyAction::Call("deg"), "fn", "key-hint-deg"),
+            key("rad", KeyAction::Call("rad"), "fn", "key-hint-rad"),
+            key("atan2", KeyAction::Call("atan2"), "fn", "key-hint-atan2"),
         ],
     },
     TabDef {
@@ -358,23 +366,23 @@ static TABS: &[TabDef] = &[
         label: "ƒ",
         i18n: "keypad-tab-func",
         keys: &[
-            key("ln", KeyAction::Call("ln"), "fn"),
-            key("log", KeyAction::Call("log"), "fn"),
-            key("log2", KeyAction::Call("log2"), "fn"),
-            key("logb", KeyAction::Call("logb"), "fn"),
-            key("exp", KeyAction::Call("exp"), "fn"),
-            key("sqrt", KeyAction::Call("sqrt"), "fn"),
-            key("cbrt", KeyAction::Call("cbrt"), "fn"),
-            key("root", KeyAction::Call("root"), "fn"),
-            key("hypot", KeyAction::Call("hypot"), "fn"),
-            key("abs", KeyAction::Call("abs"), "fn"),
-            key("floor", KeyAction::Call("floor"), "fn"),
-            key("ceil", KeyAction::Call("ceil"), "fn"),
-            key("round", KeyAction::Call("round"), "fn"),
-            key("trunc", KeyAction::Call("trunc"), "fn"),
-            key("sign", KeyAction::Call("sign"), "fn"),
-            key("min", KeyAction::Call("min"), "fn"),
-            key("max", KeyAction::Call("max"), "fn"),
+            key("ln", KeyAction::Call("ln"), "fn", "key-hint-ln"),
+            key("log", KeyAction::Call("log"), "fn", "key-hint-log"),
+            key("log2", KeyAction::Call("log2"), "fn", "key-hint-log2"),
+            key("logb", KeyAction::Call("logb"), "fn", "key-hint-logb"),
+            key("exp", KeyAction::Call("exp"), "fn", "key-hint-exp"),
+            key("sqrt", KeyAction::Call("sqrt"), "fn", "key-hint-sqrt"),
+            key("cbrt", KeyAction::Call("cbrt"), "fn", "key-hint-cbrt"),
+            key("root", KeyAction::Call("root"), "fn", "key-hint-root"),
+            key("hypot", KeyAction::Call("hypot"), "fn", "key-hint-hypot"),
+            key("abs", KeyAction::Call("abs"), "fn", "key-hint-abs"),
+            key("floor", KeyAction::Call("floor"), "fn", "key-hint-floor"),
+            key("ceil", KeyAction::Call("ceil"), "fn", "key-hint-ceil"),
+            key("round", KeyAction::Call("round"), "fn", "key-hint-round"),
+            key("trunc", KeyAction::Call("trunc"), "fn", "key-hint-trunc"),
+            key("sign", KeyAction::Call("sign"), "fn", "key-hint-sign"),
+            key("min", KeyAction::Call("min"), "fn", "key-hint-min"),
+            key("max", KeyAction::Call("max"), "fn", "key-hint-max"),
         ],
     },
     TabDef {
@@ -382,18 +390,18 @@ static TABS: &[TabDef] = &[
         label: "nΣ",
         i18n: "keypad-tab-num",
         keys: &[
-            key("gcd", KeyAction::Call("gcd"), "fn"),
-            key("lcm", KeyAction::Call("lcm"), "fn"),
-            key("mod", KeyAction::Call("mod"), "fn"),
-            key("fact", KeyAction::Call("fact"), "fn"),
-            key("ncr", KeyAction::Call("ncr"), "fn"),
-            key("npr", KeyAction::Call("npr"), "fn"),
-            key("sum", KeyAction::Call("sum"), "fn"),
-            key("product", KeyAction::Call("product"), "fn"),
-            key("mean", KeyAction::Call("mean"), "fn"),
-            key("median", KeyAction::Call("median"), "fn"),
-            key("variance", KeyAction::Call("variance"), "fn"),
-            key("stdev", KeyAction::Call("stdev"), "fn"),
+            key("gcd", KeyAction::Call("gcd"), "fn", "key-hint-gcd"),
+            key("lcm", KeyAction::Call("lcm"), "fn", "key-hint-lcm"),
+            key("mod", KeyAction::Call("mod"), "fn", "key-hint-mod"),
+            key("fact", KeyAction::Call("fact"), "fn", "key-hint-fact"),
+            key("ncr", KeyAction::Call("ncr"), "fn", "key-hint-ncr"),
+            key("npr", KeyAction::Call("npr"), "fn", "key-hint-npr"),
+            key("sum", KeyAction::Call("sum"), "fn", "key-hint-sum"),
+            key("product", KeyAction::Call("product"), "fn", "key-hint-product"),
+            key("mean", KeyAction::Call("mean"), "fn", "key-hint-mean"),
+            key("median", KeyAction::Call("median"), "fn", "key-hint-median"),
+            key("variance", KeyAction::Call("variance"), "fn", "key-hint-variance"),
+            key("stdev", KeyAction::Call("stdev"), "fn", "key-hint-stdev"),
         ],
     },
     TabDef {
@@ -401,13 +409,13 @@ static TABS: &[TabDef] = &[
         label: "0x",
         i18n: "keypad-tab-conv",
         keys: &[
-            key("frac", KeyAction::Call("frac"), "fn"),
-            key("dec", KeyAction::Call("dec"), "fn"),
-            key("big", KeyAction::Call("big"), "fn"),
-            key("bin", KeyAction::Call("bin"), "fn"),
-            key("oct", KeyAction::Call("oct"), "fn"),
-            key("hex", KeyAction::Call("hex"), "fn"),
-            key("!", KeyAction::Text("!"), "fn"),
+            key("frac", KeyAction::Call("frac"), "fn", "key-hint-frac"),
+            key("dec", KeyAction::Call("dec"), "fn", "key-hint-dec"),
+            key("big", KeyAction::Call("big"), "fn", "key-hint-big"),
+            key("bin", KeyAction::Call("bin"), "fn", "key-hint-bin"),
+            key("oct", KeyAction::Call("oct"), "fn", "key-hint-oct"),
+            key("hex", KeyAction::Call("hex"), "fn", "key-hint-hex"),
+            key("!", KeyAction::Text("!"), "fn", "key-hint-fact"),
         ],
     },
     TabDef {
@@ -415,17 +423,17 @@ static TABS: &[TabDef] = &[
         label: "π∇",
         i18n: "keypad-tab-const",
         keys: &[
-            key("pi", KeyAction::Text("pi"), "fn"),
-            key("e", KeyAction::Text("e"), "fn"),
-            key("tau", KeyAction::Text("tau"), "fn"),
-            key("phi", KeyAction::Text("phi"), "fn"),
-            key("x", KeyAction::Text("x"), "fn"),
-            key("t", KeyAction::Text("t"), "fn"),
-            key("ans", KeyAction::Text("ans"), "fn"),
-            key("graph", KeyAction::Text("graph "), "fn"),
-            key("graph3d", KeyAction::Text("graph3d "), "fn"),
-            key("solar3d", KeyAction::Text("solar3d "), "fn"),
-            key("table", KeyAction::Text("table "), "fn"),
+            key("pi", KeyAction::Text("pi"), "fn", "key-hint-pi"),
+            key("e", KeyAction::Text("e"), "fn", "key-hint-e"),
+            key("tau", KeyAction::Text("tau"), "fn", "key-hint-tau"),
+            key("phi", KeyAction::Text("phi"), "fn", "key-hint-phi"),
+            key("x", KeyAction::Text("x"), "fn", "key-hint-x"),
+            key("t", KeyAction::Text("t"), "fn", "key-hint-t"),
+            key("ans", KeyAction::Text("ans"), "fn", "key-hint-ans"),
+            key("graph", KeyAction::Text("graph "), "fn", "key-hint-graph"),
+            key("graph3d", KeyAction::Text("graph3d "), "fn", "key-hint-graph3d"),
+            key("solar3d", KeyAction::Text("solar3d "), "fn", "key-hint-solar3d"),
+            key("table", KeyAction::Text("table "), "fn", "key-hint-table"),
         ],
     },
     TabDef {
@@ -434,68 +442,68 @@ static TABS: &[TabDef] = &[
         i18n: "keypad-tab-astro",
         keys: &[
             // time (ADR-0037)
-            key("jd", KeyAction::Call("jd"), "fn"),
-            key("mjd", KeyAction::Call("mjd"), "fn"),
-            key("now", KeyAction::Text("now"), "fn"),
-            key("delta_t", KeyAction::Call("delta_t"), "fn"),
-            key("lst", KeyAction::Call("lst"), "fn"),
+            key("jd", KeyAction::Call("jd"), "fn", "key-hint-jd"),
+            key("mjd", KeyAction::Call("mjd"), "fn", "key-hint-mjd"),
+            key("now", KeyAction::Text("now"), "fn", "key-hint-now"),
+            key("delta_t", KeyAction::Call("delta_t"), "fn", "key-hint-delta_t"),
+            key("lst", KeyAction::Call("lst"), "fn", "key-hint-lst"),
             // angles
-            key("hms2deg", KeyAction::Call("hms2deg"), "fn"),
-            key("dms2deg", KeyAction::Call("dms2deg"), "fn"),
-            key("deg2hms", KeyAction::Call("deg2hms"), "fn"),
-            key("deg2dms", KeyAction::Call("deg2dms"), "fn"),
-            key("kepler", KeyAction::Call("kepler"), "fn"),
+            key("hms2deg", KeyAction::Call("hms2deg"), "fn", "key-hint-hms2deg"),
+            key("dms2deg", KeyAction::Call("dms2deg"), "fn", "key-hint-dms2deg"),
+            key("deg2hms", KeyAction::Call("deg2hms"), "fn", "key-hint-deg2hms"),
+            key("deg2dms", KeyAction::Call("deg2dms"), "fn", "key-hint-deg2dms"),
+            key("kepler", KeyAction::Call("kepler"), "fn", "key-hint-kepler"),
             // positions
-            key("ra", KeyAction::Call("ra"), "fn"),
-            key("decl", KeyAction::Call("decl"), "fn"),
-            key("dist", KeyAction::Call("dist"), "fn"),
-            key("alt", KeyAction::Call("alt"), "fn"),
-            key("az", KeyAction::Call("az"), "fn"),
+            key("ra", KeyAction::Call("ra"), "fn", "key-hint-ra"),
+            key("decl", KeyAction::Call("decl"), "fn", "key-hint-decl"),
+            key("dist", KeyAction::Call("dist"), "fn", "key-hint-dist"),
+            key("alt", KeyAction::Call("alt"), "fn", "key-hint-alt"),
+            key("az", KeyAction::Call("az"), "fn", "key-hint-az"),
             // events and brightness
-            key("rise", KeyAction::Call("rise"), "fn"),
-            key("set", KeyAction::Call("set"), "fn"),
-            key("transit", KeyAction::Call("transit"), "fn"),
-            key("mag", KeyAction::Call("mag"), "fn"),
-            key("phase", KeyAction::Call("phase"), "fn"),
-            key("illum", KeyAction::Call("illum"), "fn"),
-            key("diam", KeyAction::Call("diam"), "fn"),
-            key("airmass", KeyAction::Call("airmass"), "fn"),
-            key("dawes", KeyAction::Call("dawes"), "fn"),
-            key("dist_mod", KeyAction::Call("dist_mod"), "fn"),
+            key("rise", KeyAction::Call("rise"), "fn", "key-hint-rise"),
+            key("set", KeyAction::Call("set"), "fn", "key-hint-set"),
+            key("transit", KeyAction::Call("transit"), "fn", "key-hint-transit"),
+            key("mag", KeyAction::Call("mag"), "fn", "key-hint-mag"),
+            key("phase", KeyAction::Call("phase"), "fn", "key-hint-phase"),
+            key("illum", KeyAction::Call("illum"), "fn", "key-hint-illum"),
+            key("diam", KeyAction::Call("diam"), "fn", "key-hint-diam"),
+            key("airmass", KeyAction::Call("airmass"), "fn", "key-hint-airmass"),
+            key("dawes", KeyAction::Call("dawes"), "fn", "key-hint-dawes"),
+            key("dist_mod", KeyAction::Call("dist_mod"), "fn", "key-hint-dist_mod"),
             // flux and seasons
-            key("mag2jy", KeyAction::Call("mag2jy"), "fn"),
-            key("jy2mag", KeyAction::Call("jy2mag"), "fn"),
-            key("march_equinox", KeyAction::Call("march_equinox"), "fn"),
-            key("june_solstice", KeyAction::Call("june_solstice"), "fn"),
-            key("september_equinox", KeyAction::Call("september_equinox"), "fn"),
-            key("december_solstice", KeyAction::Call("december_solstice"), "fn"),
+            key("mag2jy", KeyAction::Call("mag2jy"), "fn", "key-hint-mag2jy"),
+            key("jy2mag", KeyAction::Call("jy2mag"), "fn", "key-hint-jy2mag"),
+            key("march_equinox", KeyAction::Call("march_equinox"), "fn", "key-hint-march_equinox"),
+            key("june_solstice", KeyAction::Call("june_solstice"), "fn", "key-hint-june_solstice"),
+            key("september_equinox", KeyAction::Call("september_equinox"), "fn", "key-hint-september_equinox"),
+            key("december_solstice", KeyAction::Call("december_solstice"), "fn", "key-hint-december_solstice"),
             // constants
-            key("au", KeyAction::Text("au"), "fn"),
-            key("pc", KeyAction::Text("pc"), "fn"),
-            key("ly", KeyAction::Text("ly"), "fn"),
-            key("c", KeyAction::Text("c"), "fn"),
-            key("g", KeyAction::Text("g"), "fn"),
-            key("h", KeyAction::Text("h"), "fn"),
-            key("h_bar", KeyAction::Text("h_bar"), "fn"),
-            key("k_b", KeyAction::Text("k_b"), "fn"),
-            key("sigma_sb", KeyAction::Text("sigma_sb"), "fn"),
-            key("m_sun", KeyAction::Text("m_sun"), "fn"),
-            key("r_sun", KeyAction::Text("r_sun"), "fn"),
-            key("l_sun", KeyAction::Text("l_sun"), "fn"),
-            key("m_earth", KeyAction::Text("m_earth"), "fn"),
-            key("r_earth", KeyAction::Text("r_earth"), "fn"),
+            key("au", KeyAction::Text("au"), "fn", "key-hint-au"),
+            key("pc", KeyAction::Text("pc"), "fn", "key-hint-pc"),
+            key("ly", KeyAction::Text("ly"), "fn", "key-hint-ly"),
+            key("c", KeyAction::Text("c"), "fn", "key-hint-c"),
+            key("g", KeyAction::Text("g"), "fn", "key-hint-g"),
+            key("h", KeyAction::Text("h"), "fn", "key-hint-h"),
+            key("h_bar", KeyAction::Text("h_bar"), "fn", "key-hint-h_bar"),
+            key("k_b", KeyAction::Text("k_b"), "fn", "key-hint-k_b"),
+            key("sigma_sb", KeyAction::Text("sigma_sb"), "fn", "key-hint-sigma_sb"),
+            key("m_sun", KeyAction::Text("m_sun"), "fn", "key-hint-m_sun"),
+            key("r_sun", KeyAction::Text("r_sun"), "fn", "key-hint-r_sun"),
+            key("l_sun", KeyAction::Text("l_sun"), "fn", "key-hint-l_sun"),
+            key("m_earth", KeyAction::Text("m_earth"), "fn", "key-hint-m_earth"),
+            key("r_earth", KeyAction::Text("r_earth"), "fn", "key-hint-r_earth"),
             // unit suffixes (the leading space is part of the literal)
-            key("AU", KeyAction::Text(" AU"), "fn"),
-            key("pc", KeyAction::Text(" pc"), "fn"),
-            key("ly", KeyAction::Text(" ly"), "fn"),
-            key("deg", KeyAction::Text(" deg"), "fn"),
-            key("arcmin", KeyAction::Text(" arcmin"), "fn"),
-            key("arcsec", KeyAction::Text(" arcsec"), "fn"),
-            key("min", KeyAction::Text(" min"), "fn"),
-            key("hr", KeyAction::Text(" hr"), "fn"),
-            key("d", KeyAction::Text(" d"), "fn"),
-            key("yr", KeyAction::Text(" yr"), "fn"),
-            key("Jy", KeyAction::Text(" Jy"), "fn"),
+            key("AU", KeyAction::Text(" AU"), "fn", "key-hint-u-au"),
+            key("pc", KeyAction::Text(" pc"), "fn", "key-hint-u-pc"),
+            key("ly", KeyAction::Text(" ly"), "fn", "key-hint-u-ly"),
+            key("deg", KeyAction::Text(" deg"), "fn", "key-hint-u-deg"),
+            key("arcmin", KeyAction::Text(" arcmin"), "fn", "key-hint-u-arcmin"),
+            key("arcsec", KeyAction::Text(" arcsec"), "fn", "key-hint-u-arcsec"),
+            key("min", KeyAction::Text(" min"), "fn", "key-hint-u-min"),
+            key("hr", KeyAction::Text(" hr"), "fn", "key-hint-u-hr"),
+            key("d", KeyAction::Text(" d"), "fn", "key-hint-u-d"),
+            key("yr", KeyAction::Text(" yr"), "fn", "key-hint-u-yr"),
+            key("Jy", KeyAction::Text(" Jy"), "fn", "key-hint-u-jy"),
         ],
     },
 ];
@@ -1201,6 +1209,12 @@ fn epher_app() -> Html {
     let show_install_cli = use_state(|| false);
     // Keypad tab + which pane faces the user on mobile (ADR-0016).
     let key_tab = use_state(|| "digits".to_string());
+    // Keypad key hints (ADR-0039): the bar text while a key rests under
+    // the pointer or holds focus (empty shows the idle prompt), and the
+    // toggle that captions every key for touch screens, where hover and
+    // focus do not exist.
+    let key_hint_bar = use_state(String::new);
+    let show_key_hints = use_state(|| false);
     let active_pane = use_state(|| "calc".to_string());
     // The entry's selection, mirrored while it owns focus and refreshed
     // at each keypad mousedown (ADR-0035): keypad presses read it, because
@@ -4097,32 +4111,65 @@ fn epher_app() -> Html {
                         </ul>
                     </section>
                     <section class="keypad" aria-label={localizer.lookup("keypad")}>
-                        <div class="keypad-tabs" role="tablist" aria-label={localizer.lookup("keypad")}>
-                            { for TABS.iter().map(|t| {
-                                let on_tab = {
-                                    let key_tab = key_tab.clone();
-                                    let id = t.id;
-                                    Callback::from(move |_| key_tab.set(id.to_string()))
-                                };
-                                html! {
-                                    <button
-                                        type="button"
-                                        role="tab"
-                                        id={format!("keypad-tab-{}", t.id)}
-                                        aria-selected={(*key_tab == t.id).to_string()}
-                                        aria-controls="keypad-panel"
-                                        aria-label={localizer.lookup(t.i18n)}
-                                        onclick={on_tab}
-                                    >
-                                        { t.label }
-                                    </button>
+                        // The hints row (ADR-0039): the tab list plus the
+                        // hints toggle, a sibling OUTSIDE the tablist (a
+                        // non-tab button inside role="tablist" breaks the
+                        // ARIA tabs pattern).
+                        <div class="keypad-top">
+                            <div class="keypad-tabs" role="tablist" aria-label={localizer.lookup("keypad")}>
+                                { for TABS.iter().map(|t| {
+                                    let on_tab = {
+                                        let key_tab = key_tab.clone();
+                                        let id = t.id;
+                                        Callback::from(move |_| key_tab.set(id.to_string()))
+                                    };
+                                    html! {
+                                        <button
+                                            type="button"
+                                            role="tab"
+                                            id={format!("keypad-tab-{}", t.id)}
+                                            aria-selected={(*key_tab == t.id).to_string()}
+                                            aria-controls="keypad-panel"
+                                            aria-label={localizer.lookup(t.i18n)}
+                                            onclick={on_tab}
+                                        >
+                                            { t.label }
+                                        </button>
+                                    }
+                                }) }
+                            </div>
+                            <button
+                                type="button"
+                                class="keypad-hints-btn"
+                                aria-pressed={(*show_key_hints).to_string()}
+                                aria-label={localizer.lookup("keypad-hints")}
+                                title={localizer.lookup("keypad-hints")}
+                                onclick={
+                                    let show_key_hints = show_key_hints.clone();
+                                    Callback::from(move |_| show_key_hints.set(!*show_key_hints))
                                 }
-                            }) }
+                            >{ "?" }</button>
+                        </div>
+                        // The hint bar (ADR-0039): pointer hover and
+                        // keyboard focus both speak here, one line, no
+                        // floating tooltip to clip inside the scrolling
+                        // grid. aria-hidden: screen readers announce the
+                        // key's aria-label directly instead.
+                        <div class="keypad-hint-bar" aria-hidden="true">
+                            { if key_hint_bar.is_empty() {
+                                localizer.lookup("keypad-hint-idle")
+                            } else {
+                                (*key_hint_bar).clone()
+                            } }
                         </div>
                         <div
                             class="keypad-grid"
                             role="tabpanel"
                             id="keypad-panel"
+                            // The key recreates the panel per tab, so a
+                            // bank change starts scrolled to the top
+                            // instead of inheriting the old scroll.
+                            key={(*key_tab).clone()}
                             aria-labelledby={format!("keypad-tab-{}", (*key_tab).as_str())}
                         >
                             { for TABS.iter()
@@ -4133,15 +4180,81 @@ fn epher_app() -> Html {
                                         let act = k.act;
                                         Callback::from(move |_| on_keypad.emit(act))
                                     };
+                                    // The hint text joins the aria-label, so
+                                    // screen readers hear "jd: Julian Day of
+                                    // a moment" when the key takes focus;
+                                    // the caption span is aria-hidden (the
+                                    // label already says it).
+                                    let hint = if k.hint.is_empty() {
+                                        String::new()
+                                    } else {
+                                        localizer.lookup(k.hint)
+                                    };
+                                    let aria = if hint.is_empty() {
+                                        k.label.to_string()
+                                    } else {
+                                        format!("{}: {}", k.label, hint)
+                                    };
+                                    // The bar callbacks are explicit per event:
+                                    // hover is a MouseEvent, focus a
+                                    // FocusEvent.
+                                    let bar_hover = {
+                                        let key_hint_bar = key_hint_bar.clone();
+                                        let hint = hint.clone();
+                                        let label = k.label.to_string();
+                                        Callback::from(move |_: web_sys::MouseEvent| {
+                                            if !hint.is_empty() {
+                                                key_hint_bar.set(format!("{}: {}", label, hint));
+                                            }
+                                        })
+                                    };
+                                    let bar_focus = {
+                                        let key_hint_bar = key_hint_bar.clone();
+                                        let hint = hint.clone();
+                                        let label = k.label.to_string();
+                                        Callback::from(move |_: web_sys::FocusEvent| {
+                                            if !hint.is_empty() {
+                                                key_hint_bar.set(format!("{}: {}", label, hint));
+                                            }
+                                        })
+                                    };
+                                    let bar_leave = {
+                                        let key_hint_bar = key_hint_bar.clone();
+                                        Callback::from(
+                                            move |_: web_sys::MouseEvent| key_hint_bar.set(String::new()),
+                                        )
+                                    };
+                                    let bar_blur = {
+                                        let key_hint_bar = key_hint_bar.clone();
+                                        Callback::from(
+                                            move |_: web_sys::FocusEvent| key_hint_bar.set(String::new()),
+                                        )
+                                    };
+                                    let class = format!(
+                                        "keypad-btn{}{}",
+                                        if *show_key_hints { " show-hint" } else { "" },
+                                        if k.cls.is_empty() {
+                                            String::new()
+                                        } else {
+                                            format!(" {}", k.cls)
+                                        }
+                                    );
                                     html! {
                                         <button
                                             type="button"
-                                            class={format!("keypad-btn {}", k.cls)}
-                                            aria-label={k.label}
+                                            class={class}
+                                            aria-label={aria}
                                             onmousedown={on_key_capture.clone()}
                                             onclick={on_key}
+                                            onmouseover={bar_hover}
+                                            onfocus={bar_focus}
+                                            onmouseleave={bar_leave}
+                                            onblur={bar_blur}
                                         >
                                             { k.label }
+                                            if *show_key_hints && !hint.is_empty() {
+                                                <span class="keypad-hint" aria-hidden="true">{ hint }</span>
+                                            }
                                         </button>
                                     }
                                 }).collect::<Vec<Html>>())
@@ -4768,7 +4881,7 @@ pub fn start() {
 
 #[cfg(test)]
 mod tests {
-    use super::slider_span;
+    use super::{slider_span, TABS};
 
     #[test]
     fn small_values_keep_the_base_window() {
@@ -4797,6 +4910,30 @@ mod tests {
         for v in [-100.0, -9.0, 8.5, 42.0, 5e5] {
             let (lo, hi) = slider_span(v);
             assert!(lo <= v && v <= hi, "span {lo}..{hi} misses {v}");
+        }
+    }
+
+    /// Every keypad hint key (ADR-0039) must resolve in every locale -
+    /// the hint is an accessibility surface, a missing translation must
+    /// fail here rather than fall back to the key name on screen.
+    #[test]
+    fn keypad_hints_resolve_in_every_locale() {
+        for locale in epher_i18n::SUPPORTED_LOCALES {
+            let l = epher_i18n::Localizer::resolve(Some(locale), &[]);
+            for tab in TABS {
+                for k in tab.keys {
+                    if k.hint.is_empty() {
+                        // only the self-evident digits are bare
+                        assert!(
+                            k.label.chars().all(|c| c.is_ascii_digit()) || k.label == ".",
+                            "key {} needs a hint",
+                            k.label
+                        );
+                    } else {
+                        assert_ne!(l.lookup(k.hint), k.hint, "hint {} missing", k.hint);
+                    }
+                }
+            }
         }
     }
 }

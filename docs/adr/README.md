@@ -62,6 +62,8 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0035 | Mobile PWA usability — the onscreen keypad is the primary input, and a drawn plot slides into view (file name keeps the original keypad-focus title) (amended 2026-08-26, 2026-08-27, 2026-08-28: touch no-arrow hints, per-kind sliders, examples tap-to-stage, visible-space fitting) | 2026-08-25 (amended 2026-08-26, 2026-08-27) | accepted |
 | 0036 | The website Examples page — copyable code for every frontend (amended 2026-08-27: the app section leads, four CLI examples moved into it, touch taps stage examples in the app; amended 2026-08-28: base-conversion example in the app section, the REPL section last) | 2026-08-27 (amended 2026-08-27, 2026-08-28) | accepted |
 | 0037 | Astronomy units, constants, time functions, and ephemeris: unit-suffix literals, the solar-ephemeris facade, accessor functions, and solar3d | 2026-08-29 | accepted |
+| 0038 | Zoom on every tile, the solar legend, guide search, shareable history, and the keypad's dead keys | 2026-08-30 | accepted |
+| 0039 | A fixed-height keypad with scrolling, and a meaning for every key | 2026-08-30 | accepted |
 
 ## Decision chains
 
@@ -86,6 +88,11 @@ at the end of the chain.
 - **TUI keypad** — 0016 (4×5, Tab-gated) → 0019 (four banks) → 0024
   (0x bank) → **0033 (always visible; banks and geometry sized to the
   real panes)**.
+- **Keypad hints and height** — 0016 (the five-row digits tab) →
+  **0039 (every tab is the digits tab's height and longer banks scroll;
+  every key speaks a localized hint through aria-labels, the docked
+  hint bar, the touch captions toggle, and the TUI's `?` key-help
+  overlay)**.
 - **History** — 0021 (`ans`) → 0025 (open-history replaces) → 0027
   (clickable history) → 0030 (`;` scripts as one entry) → **0027
   amendment (multi-line scripts as one item, picked whole, visible
