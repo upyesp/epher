@@ -88,6 +88,10 @@ pub enum MenuAction {
     TogglePois,
     /// Empty the graph pane (curves, points of interest, 3D surfaces).
     ClearGraph,
+    /// Copy every listed point of interest to the terminal's clipboard
+    /// via OSC 52 (the ADR-0038 amendment): the TUI spelling of the
+    /// web heading's copy button.
+    CopyPois,
     /// Open the in-app user guide (ADR-0018).
     OpenGuide,
 }
@@ -164,6 +168,13 @@ pub struct App {
     /// at the top of the pager jumps to those rows on click or 1–9.
     guide: Option<usize>,
     guide_chapters: Vec<(String, usize)>,
+    /// The guide's search (ADR-0038 amendment): `/` starts a query, the
+    /// typed text filters as you go, Enter jumps to the next hit. The
+    /// hit rows are the wrapped rows of the matching lines in the
+    /// CURRENT frame (written by the renderer, like `guide_chapters`).
+    guide_searching: bool,
+    guide_query: String,
+    guide_hit_rows: Vec<usize>,
     /// The screen regions the last frame drew (ADR-0034): mouse events
     /// map their coordinates through these. Default until the first draw.
     areas: Areas,
@@ -223,7 +234,10 @@ const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
             &[("7", "7"), ("8", "8"), ("9", "9"), ("×", "*"), ("−", "-")],
             &[("4", "4"), ("5", "5"), ("6", "6"), ("+", "+"), ("^", "^")],
             &[("1", "1"), ("2", "2"), ("3", "3"), (";", ";"), (",", ",")],
-            &[("0", "0"), (".", "."), ("ans", "ans"), ("=", "")],
+            // The newline key (ADR-0016 amendment): ans lives on the
+            // var bank, and a real newline in the entry is how
+            // multi-line scripts are composed at the keypad.
+            &[("0", "0"), (".", "."), ("\u{23CE}", "\n"), ("=", "")],
         ],
     ),
     (
@@ -371,7 +385,6 @@ const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
                 ("graph3d", "graph3d "),
                 ("table", "table "),
             ],
-            &[("clear", "clear "), ("history", "history ")],
         ],
     ),
 ];
@@ -424,6 +437,9 @@ impl App {
             hist_rows: Vec::new(),
             guide: None,
             guide_chapters: Vec::new(),
+            guide_searching: false,
+            guide_query: String::new(),
+            guide_hit_rows: Vec::new(),
             areas: Areas::default(),
         }
     }
@@ -555,7 +571,9 @@ impl App {
     }
 
     /// The menu bar: File, Edit, Graph, Settings, Help.
-    pub const MENUS: [&'static str; 5] = ["file", "edit", "graph", "settings", "help"];
+    // Help sits above Settings (the ADR-0038 amendment), matching the
+    // app's menu rail.
+    pub const MENUS: [&'static str; 5] = ["file", "edit", "graph", "help", "settings"];
 
     /// How many items a menu has. The Settings menu grows three
     /// fine-control rows while 3D surfaces are displayed (ADR-0031).
@@ -563,15 +581,15 @@ impl App {
         match menu {
             0 => 5, // File: open history, open script, save history, save script, quit
             1 => 3, // Edit: cut, copy, paste
-            2 => 1, // Graph: clear graph
-            3 => {
+            2 => 2, // Graph: clear graph, copy points of interest
+            3 => 1, // Help: the in-app guide
+            4 => {
                 if self.surface.is_empty() && self.solar.is_none() {
                     12 // POI toggle, 3 themes, 8 languages
                 } else {
                     15 // …plus horizontal rotation, vertical rotation, zoom
                 }
             }
-            4 => 1, // Help: user guide
             _ => 0,
         }
     }
@@ -623,9 +641,14 @@ impl App {
                 1 => MenuAction::Copy,
                 _ => MenuAction::Paste,
             },
-            2 => MenuAction::ClearGraph,
-            4 => MenuAction::OpenGuide,
-            _ => match item {
+            2 => match item {
+                0 => MenuAction::ClearGraph,
+                // The POI list leaves the pane the same way the web
+                // heading's copy button does (ADR-0038 amendment).
+                _ => MenuAction::CopyPois,
+            },
+            3 => MenuAction::OpenGuide,
+            4 => match item {
                 0 => MenuAction::TogglePois,
                 1 => MenuAction::SetTheme("light"),
                 2 => MenuAction::SetTheme("dark"),
@@ -644,6 +667,7 @@ impl App {
                 12..=14 => return None,
                 _ => MenuAction::SetLanguage("pt"),
             },
+            _ => MenuAction::OpenGuide,
         };
         self.menu = None;
         Some(action)
@@ -681,6 +705,60 @@ impl App {
         if let Some((_, row)) = self.guide_chapters.get(chapter) {
             self.guide = Some(*row);
         }
+    }
+
+    /// Start a guide search (the ADR-0038 amendment's `/`): the pager's
+    /// spelling of the web overlay's search box.
+    pub fn guide_search_start(&mut self) {
+        self.guide_searching = true;
+    }
+
+    pub fn guide_search_push(&mut self, c: char) {
+        if !self.guide_searching {
+            return;
+        }
+        self.guide_query.push(c);
+    }
+
+    pub fn guide_search_pop(&mut self) {
+        self.guide_query.pop();
+    }
+
+    /// End the search: the query and its hits go, and the next Esc
+    /// closes the guide again.
+    pub fn guide_search_clear(&mut self) {
+        self.guide_searching = false;
+        self.guide_query.clear();
+        self.guide_hit_rows.clear();
+    }
+
+    pub fn guide_searching(&self) -> bool {
+        self.guide_searching
+    }
+
+    pub fn guide_query(&self) -> &str {
+        &self.guide_query
+    }
+
+    pub fn guide_hit_rows(&self) -> &[usize] {
+        &self.guide_hit_rows
+    }
+
+    /// Jump to the next hit after the current offset, wrapping to the
+    /// first when the end is passed (the Enter spelling of the web's
+    /// result click).
+    pub fn guide_jump_next_hit(&mut self) {
+        if self.guide_hit_rows.is_empty() {
+            return;
+        }
+        let offset = self.guide.unwrap_or(0);
+        let next = self
+            .guide_hit_rows
+            .iter()
+            .copied()
+            .find(|&r| r > offset)
+            .unwrap_or(self.guide_hit_rows[0]);
+        self.guide = Some(next);
     }
 
     /// The current scroll offset (clamped to the content at draw time).
@@ -1500,7 +1578,7 @@ impl App {
     /// three fine-control rows (they exist only while 3D surfaces do).
     pub fn menu_view_item(&self) -> Option<usize> {
         match self.menu {
-            Some((3, item @ 12..=14))
+            Some((4, item @ 12..=14))
                 if !self.surface.is_empty() || self.solar.is_some() =>
             {
                 Some(item)
@@ -2171,11 +2249,30 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                     // Number keys jump the table of contents (ADR-0018
                     // amendment) — the keyboard spelling of the ToC clicks.
                     if app.guide_active() {
+                        // While a search is being typed (the ADR-0038
+                        // amendment), the keys feed the query and Enter
+                        // jumps; Esc clears the query before it closes.
+                        if app.guide_searching() {
+                            match key.code {
+                                KeyCode::Char('c')
+                                    if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                                {
+                                    return Ok(());
+                                }
+                                KeyCode::Esc => app.guide_search_clear(),
+                                KeyCode::Enter => app.guide_jump_next_hit(),
+                                KeyCode::Backspace => app.guide_search_pop(),
+                                KeyCode::Char(c) => app.guide_search_push(c),
+                                _ => {}
+                            }
+                            continue;
+                        }
                         match key.code {
                             KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                                 return Ok(());
                             }
                             KeyCode::Esc | KeyCode::Char('q') => app.guide_close(),
+                            KeyCode::Char('/') => app.guide_search_start(),
                             KeyCode::Up => app.guide_scroll(-1),
                             KeyCode::Down => app.guide_scroll(1),
                             KeyCode::PageUp => app.guide_scroll(-12),
@@ -2509,6 +2606,29 @@ fn perform_menu_action(
             let msg = localizer.lookup("graph-cleared");
             app.set_result(&msg);
         }
+        MenuAction::CopyPois => {
+            let text = app
+                .pois()
+                .iter()
+                .map(|p| {
+                    format!(
+                        "{} ({:.3}, {:.3})",
+                        poi_label(p.kind, localizer),
+                        p.x,
+                        p.y
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join("\n");
+            if text.is_empty() {
+                let msg = localizer.lookup("guide-no-results");
+                app.set_result(&msg);
+            } else {
+                osc52_copy(&text);
+                let msg = localizer.lookup("poi-copied");
+                app.set_result(&msg);
+            }
+        }
         MenuAction::OpenGuide => app.guide_open(),
     }
     false
@@ -2785,8 +2905,11 @@ fn menu_rows(app: &App, localizer: &Localizer) -> Vec<PopupRow> {
                 rows.push(PopupRow::Item(i, label));
             }
         }
-        2 => rows.push(PopupRow::Item(0, localizer.lookup("graph-clear"))),
-        4 => rows.push(PopupRow::Item(0, localizer.lookup("menu-guide"))),
+        2 => {
+            rows.push(PopupRow::Item(0, localizer.lookup("graph-clear")));
+            rows.push(PopupRow::Item(1, localizer.lookup("poi-copy")));
+        }
+        3 => rows.push(PopupRow::Item(0, localizer.lookup("menu-guide"))),
         _ => {
             rows.push(PopupRow::Item(0, localizer.lookup("graph-points")));
             rows.push(PopupRow::Rule(localizer.lookup("tui-settings-theme")));
@@ -2905,9 +3028,21 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         ])
         .split(frame.area());
         let title = localizer.lookup("menu-guide");
+        // While a search is typed, the title row becomes the query
+        // strip: what is typed, how many hits, how to leave (the
+        // ADR-0038 amendment's TUI spelling of the web search box).
+        let title_text = if app.guide_searching() {
+            let hits = app.guide_hit_rows().len();
+            format!(
+                " {title}  /{}  {hits}  Enter=next  Esc=back ",
+                app.guide_query()
+            )
+        } else {
+            format!(" {title}  (/ searches) ")
+        };
         frame.render_widget(
             Paragraph::new(Line::from(Span::styled(
-                format!(" {title} "),
+                title_text,
                 Style::default()
                     .bg(sel_bg)
                     .fg(sel_fg)
@@ -2975,6 +3110,24 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             wrapped += line.width().div_ceil(content_width.max(1)).max(1);
         }
         app.guide_chapters = chapters_found;
+        // The search hits (ADR-0038 amendment): the wrapped row each
+        // matching line starts at, for Enter-to-jump.
+        app.guide_hit_rows = if app.guide_searching() && !app.guide_query().is_empty() {
+            let query = app.guide_query().to_lowercase();
+            let mut hit_rows = Vec::new();
+            let mut at = 0usize;
+            for (line, _) in &lines {
+                let text: String =
+                    line.spans.iter().map(|s| s.content.to_string()).collect();
+                if text.to_lowercase().contains(&query) {
+                    hit_rows.push(at);
+                }
+                at += line.width().div_ceil(content_width.max(1)).max(1);
+            }
+            hit_rows
+        } else {
+            Vec::new()
+        };
         let rendered: Vec<Line> = lines.into_iter().map(|(l, _)| l).collect();
         // Clamp to the last page.
         let content_rows = rows[2].height as usize;

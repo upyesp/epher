@@ -652,13 +652,19 @@ pub fn solar_parts(
     view: &View3D,
     stroke_width: f64,
 ) -> Option<(String, String)> {
+    let view_box = solar_view_box(scene, view)?;
+    solar_parts_in(scene, view, stroke_width, &view_box)
+}
+
+/// The scene's viewBox - the projection's extent with the 6% margin -
+/// computed from **every** body. The pane's legend (ADR-0038) renders a
+/// filtered scene inside this frame: hiding a body must never let the
+/// remaining geometry jump, rescale, or collapse the view.
+pub fn solar_view_box(
+    scene: &crate::astro::SolarScene,
+    view: &View3D,
+) -> Option<String> {
     use crate::graph::{project_space_curve, project_world_dot};
-    struct Line {
-        points: Vec<(f64, f64)>,
-        depth: f64,
-        color: &'static str,
-    }
-    let mut lines: Vec<Line> = Vec::new();
     let mut x_min = f64::INFINITY;
     let mut x_max = f64::NEG_INFINITY;
     let mut y_min = f64::INFINITY;
@@ -674,6 +680,48 @@ pub fn solar_parts(
             for &(x, y) in &run.points {
                 consider(x, y);
             }
+        }
+    }
+    for dot in &scene.dots {
+        if let Some((x, y, _zp)) = project_world_dot(dot.xyz[0], dot.xyz[1], dot.xyz[2], view) {
+            consider(x, y);
+        }
+    }
+    if !(x_min.is_finite() && x_max.is_finite() && y_min.is_finite() && y_max.is_finite())
+        || x_max - x_min < 1e-9
+        || y_max - y_min < 1e-9
+    {
+        return None;
+    }
+    let pad = (x_max - x_min).max(y_max - y_min) * 0.06;
+    let (wx, wy, ww, wh) = zoom_window(
+        x_min - pad,
+        x_max + pad,
+        y_min - pad,
+        y_max + pad,
+        view,
+    );
+    Some(format!("{wx:.3} {wy:.3} {ww:.3} {wh:.3}"))
+}
+
+/// Draw the scene inside an explicit viewBox (ADR-0038): the pane's
+/// legend filters the bodies but keeps the full scene's frame, so the
+/// view never jumps when a body is hidden.
+pub fn solar_parts_in(
+    scene: &crate::astro::SolarScene,
+    view: &View3D,
+    stroke_width: f64,
+    view_box: &str,
+) -> Option<(String, String)> {
+    use crate::graph::{project_space_curve, project_world_dot};
+    struct Line {
+        points: Vec<(f64, f64)>,
+        depth: f64,
+        color: &'static str,
+    }
+    let mut lines: Vec<Line> = Vec::new();
+    for path in scene.orbits.iter().chain(scene.trails.iter()) {
+        for run in project_space_curve(&path.points, view) {
             lines.push(Line {
                 points: run.points,
                 depth: run.depth,
@@ -717,7 +765,6 @@ pub fn solar_parts(
     let mut dots_out = String::new();
     for dot in &scene.dots {
         if let Some((x, y, _zp)) = project_world_dot(dot.xyz[0], dot.xyz[1], dot.xyz[2], view) {
-            consider(x, y);
             let radius = 3.0_f64;
             dots_out.push_str(&format!(
                 "<circle cx=\"{x:.3}\" cy=\"{y:.3}\" r=\"{radius:.2}\" fill=\"{}\"><title>{}</title></circle>",
@@ -726,23 +773,8 @@ pub fn solar_parts(
             ));
         }
     }
-    if !(x_min.is_finite() && x_max.is_finite() && y_min.is_finite() && y_max.is_finite())
-        || x_max - x_min < 1e-9
-        || y_max - y_min < 1e-9
-    {
-        return None;
-    }
-    let pad = (x_max - x_min).max(y_max - y_min) * 0.06;
-    let (wx, wy, ww, wh) = zoom_window(
-        x_min - pad,
-        x_max + pad,
-        y_min - pad,
-        y_max + pad,
-        view,
-    );
-    let view_box = format!("{wx:.3} {wy:.3} {ww:.3} {wh:.3}");
     parts.push_str(&dots_out);
-    Some((view_box, parts))
+    Some((view_box.to_string(), parts))
 }
 
 /// The `solar3d` scene as a self-contained SVG document - the same

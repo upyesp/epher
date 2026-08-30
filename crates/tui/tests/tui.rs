@@ -541,9 +541,15 @@ fn keypad_digits_bank_mirrors_the_web_tab() {
         flats,
         [
             "C", "⌫", "(", ")", "÷", "7", "8", "9", "×", "−", "4", "5", "6", "+", "^", "1", "2",
-            "3", ";", ",", "0", ".", "ans", "="
+            "3", ";", ",", "0", ".", "\u{23CE}", "="
         ]
     );
+    // The newline key inserts a real newline (ADR-0016 amendment): the
+    // entry composes multi-line scripts, and submit splits on them.
+    app.keypad_set(4, 2);
+    app.keypad_insert();
+    assert_eq!(app.input(), "\n");
+    app.clear_input();
     // ÷/×/− display the glyphs but insert the language's ASCII tokens.
     assert_eq!(digits[0][4].1, "/");
     assert_eq!(digits[1][3].1, "*");
@@ -629,8 +635,10 @@ fn keypad_covers_every_function_that_was_missing() {
         "atan2", "exp", "log2", "logb", "cbrt", "root", "hypot", "trunc", "sign", "min", "max",
         "gcd", "lcm", "mod", "fact", "ncr", "npr", "sum", "product", "mean", "median", "variance",
         "stdev", "frac", "dec", "big", "bin", "oct", "hex", "phi", "x", "t", "ans", "graph",
-        "graph3d", "table", "clear", "history", "sin", "cos", "tan", "ln", "log", "sqrt", "abs",
+        "graph3d", "table", "sin", "cos", "tan", "ln", "log", "sqrt", "abs",
         "floor", "ceil", "round", "pi", "e", "tau",
+        // the keypad's clear/history KEYS are gone (ADR-0016 amendment);
+        // the commands stay in the language, tested in submit tests
         // the condensed astro bank (ADR-0037; the full set lives on the
         // web keypad's Astro tab)
         "jd", "now", "lst", "kepler", "ra", "decl", "dist", "alt", "mag", "rise", "set",
@@ -696,26 +704,35 @@ fn menu_navigation_and_actions() {
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::Quit));
     assert_eq!(app.menu_active(), None);
 
-    // Right arrow from the last menu (Help) wraps to the first.
+    // Right arrow from the last menu (Settings) wraps to the first.
     app.menu_open(4);
     app.menu_move(1, 0);
     assert_eq!(app.menu_active(), Some((0, 0)));
-    // Graph menu: exactly one item, clearing the graph (ADR-0018).
+    // Graph menu: clear graph, then copy points of interest (ADR-0038
+    // amendment - the menu spelling of the web heading's copy button).
     app.menu_open(2);
-    assert_eq!(app.menu_len(2), 1);
+    assert_eq!(app.menu_len(2), 2);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::ClearGraph));
-    // Settings moved to slot 3: the POI-list checkbox (ADR-0019), then
+    app.menu_open(2);
+    app.menu_move(0, 1);
+    assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::CopyPois));
+    // Help sits ABOVE Settings (ADR-0038 amendment): slot 3 is the
+    // guide, slot 4 the settings.
+    app.menu_open(3);
+    assert_eq!(app.menu_len(3), 1);
+    assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::OpenGuide));
+    // Settings moved to slot 4: the POI-list checkbox (ADR-0019), then
     // theme radios, then languages.
-    app.menu_open(3);
-    assert_eq!(app.menu_len(3), 12);
+    app.menu_open(4);
+    assert_eq!(app.menu_len(4), 12);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::TogglePois));
-    app.menu_open(3);
+    app.menu_open(4);
     app.menu_move(0, 1);
     assert_eq!(
         app.menu_activate(),
         Some(epher_tui::MenuAction::SetTheme("light"))
     );
-    app.menu_open(3);
+    app.menu_open(4);
     for _ in 0..5 {
         app.menu_move(0, 1);
     }
@@ -723,10 +740,6 @@ fn menu_navigation_and_actions() {
         app.menu_activate(),
         Some(epher_tui::MenuAction::SetLanguage("zh-CN"))
     );
-    // Help menu: one item, the user guide.
-    app.menu_open(4);
-    assert_eq!(app.menu_len(4), 1);
-    assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::OpenGuide));
 
     // Typing a character dismisses the menu (the event loop calls
     // menu_close before push_char; here we check the state transitions
@@ -1035,14 +1048,14 @@ fn history_focus_moves_and_picks_without_running() {
 fn view_fine_controls_appear_with_3d_and_nudge_within_range() {
     let store = tui_store();
     let mut app = App::with_session(epher_core::Session::new());
-    assert_eq!(app.menu_len(3), 12);
+    assert_eq!(app.menu_len(4), 12);
     app.submit_line(
         "graph3d x ^ 2 - y ^ 2",
         &store,
         &epher_i18n::Localizer::resolve(Some("en"), &[]),
     );
-    assert_eq!(app.menu_len(3), 15);
-    app.menu_open(3);
+    assert_eq!(app.menu_len(4), 15);
+    app.menu_open(4);
     app.menu_move(0, 12);
     assert_eq!(app.menu_view_item(), Some(12));
     assert_eq!(app.view_offsets(), (0.0, 0.0, 0.0));
@@ -1064,10 +1077,10 @@ fn view_fine_controls_appear_with_3d_and_nudge_within_range() {
     assert_eq!(app.view_offsets().2, -1.0);
     // Activating a fine-control row keeps the menu open (Enter is not an
     // action for these rows; Left/Right is the gesture).
-    app.menu_open(3);
+    app.menu_open(4);
     app.menu_move(0, 12);
     assert_eq!(app.menu_activate(), None);
-    assert_eq!(app.menu_active(), Some((3, 12)));
+    assert_eq!(app.menu_active(), Some((4, 12)));
     // A fresh 3D graph drawn into an empty pane resets the controls.
     app.reset_view_offsets();
     assert_eq!(app.view_offsets(), (0.0, 0.0, 0.0));

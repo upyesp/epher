@@ -520,12 +520,17 @@
     .history-row .share-btn {
       align-self: center;
     }
-    /* The points-of-interest heading with its copy button (ADR-0038). */
+    /* The points-of-interest heading with its copy button (ADR-0038,
+       amended: the icon leads, left of the heading). */
     .poi-head {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
+      justify-content: flex-start;
+      gap: 0.15rem;
+    }
+    .poi-head .icon-btn {
+      min-width: 40px;
+      min-height: 40px;
     }
     .poi-head .poi-heading {
       margin: 0;
@@ -761,6 +766,37 @@
       font-size: 0.9rem;
       color: var(--muted);
       min-height: 1.2em;
+    }
+    /* The solar legend (ADR-0038, amended): a compact multi-column
+       strip ABOVE the plot - eleven one-line entries must not shrink
+       the scene they name. Narrower panes drop to two columns. */
+    .legend-solar {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.1rem 0.75rem;
+      font-size: 0.8rem;
+      margin-block: 0.2rem 0.35rem;
+    }
+    .legend-solar .legend-item {
+      min-height: 0;
+    }
+    .legend-solar .legend-check {
+      min-height: 32px;
+      gap: 0.3rem;
+    }
+    .legend-solar .legend-check input[type="checkbox"] {
+      width: 0.95rem;
+      height: 0.95rem;
+    }
+    .legend-solar .swatch {
+      width: 1.2em;
+      margin-inline-end: 0.2em;
+      border-top-width: 2px;
+    }
+    @media (max-width: 700px) {
+      .legend-solar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
     .poi-heading {
       font-size: 0.95rem;

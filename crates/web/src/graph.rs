@@ -25,8 +25,9 @@ use yew::prelude::*;
 /// re-exports keep this module's long-standing surface.
 pub use epher_core::graph_svg::{
     aria_label, curve_caption, escape, fill_points, geometry, geometry_in, graph3d_svg, graph_svg,
-    graph_svg_indexed, label, layers_svg, polyline_points, segments, ticks, trace_nearest,
-    Geometry, Poi, TracePoint, BOTTOM, DEFAULT_STROKE_WIDTH, HEIGHT, LEFT, RIGHT, TOP, WIDTH,
+    graph_svg_indexed, label, layers_svg, polyline_points, segments, solar_parts_in,
+    solar_view_box, ticks, trace_nearest, Geometry, Poi, TracePoint, BOTTOM,
+    DEFAULT_STROKE_WIDTH, HEIGHT, LEFT, RIGHT, TOP, WIDTH,
 };
 /// The live 3D renderer's content (view box + mesh markup).
 pub fn surface_svg(

@@ -107,3 +107,20 @@ records annotated, never rewritten):
 - The TUI gains ~40 lines of keypad state/rendering; its input remains a
   plain string (insertion appends at the end, where the terminal cursor
   already lives).
+
+## Amendment (2026-08-30): the newline key, and the command keys go
+
+Two rounds of use reshaped the banks (ADR-0038 amendment):
+
+- **The digits tab's `ans` key moves out.** `ans` already lives on the
+  π∇ tab; its slot becomes a **newline key (⏎)** that inserts a real
+  newline into the entry - the touch spelling of Shift+Enter, so
+  multi-line scripts compose without a hardware keyboard. The TUI's
+  condensed digits bank mirrors this; its entry grows with the script
+  (the ADR-0035 amendment) and submit splits on the newlines.
+- **The π∇ tab's `clear` and `history` keys are removed.** They were
+  implemented this round (they had been dead since ADR-0016), then the
+  review round retired the keys: the same gestures already exist as
+  Clear graph and the history list's focus. The two words remain
+  language commands (the TUI submit path and `epher-cli -` still honor
+  them); they are just not on the keypad.

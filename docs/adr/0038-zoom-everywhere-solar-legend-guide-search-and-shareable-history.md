@@ -127,3 +127,33 @@ The 2D plot's `touch-action` moved from `pan-x` to `none` so a pinch
 inside the plot scales the view instead of the page. The pane strip
 stays swipeable everywhere around the plot - toolbar, margins, pane
 edges - and the 3D plot already kept full capture (ADR-0035).
+
+## Amendment (2026-08-30): the review round - parity, polish, and one real bug
+
+The follow-up review round kept every frontend in step and fixed what
+it caught:
+
+- **The spin loop's stale cells (the "ghost animation").** The spin
+  loop (ADR-0032) reads the rotation sliders' live cells, but a fresh
+  3D graph or solar scene reset only the slider states - a non-zero
+  slider kept spinning every later scene with the sliders showing 0.
+  The resets now clear the cells too.
+- **The solar legend keeps the frame.** The legend now renders as a
+  compact two/three-column strip **above** the plot, and the scene's
+  viewBox comes from the **full** scene (`solar_view_box` +
+  `solar_parts_in` in the core): hiding a body through the legend no
+  longer rescales, jumps, or collapses the view.
+- **Share text.** The shared message is "Checkout this in the epher
+  app:" (localized), and the clipboard fallback carries the message
+  and the link together.
+- **The POI copy icon leads.** It sits **left** of the heading, and
+  the TUI gained the same gesture: a Graph → "Copy points of interest"
+  item writing the list through OSC 52.
+- **Help above Settings.** The desktop menu rail and the TUI menu bar
+  both place Help before Settings (the mobile hamburger already did).
+- **The keypad reshuffle** recorded in the ADR-0016 amendment (newline
+  key in, command keys out).
+- **The TUI catches up**: guide search (`/` opens the query strip,
+  Enter jumps to hits) mirrors the web overlay's search box, and the
+  TUI's wheel zoom, orbit, and orthographic camera were confirmed
+  current - they ride on the same core the app uses.

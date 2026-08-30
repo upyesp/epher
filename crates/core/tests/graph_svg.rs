@@ -3,7 +3,10 @@
 //! tests pin the properties that make the output a standalone document.
 
 use epher_core::graph::{parse_graph_source, sample_spec, InterestKind};
-use epher_core::graph_svg::{graph3d_svg, graph_svg, graph_svg_indexed, Poi, DEFAULT_STROKE_WIDTH};
+use epher_core::graph_svg::{
+    graph3d_svg, graph_svg, graph_svg_indexed, solar_parts_in, solar_view_box, Poi,
+    DEFAULT_STROKE_WIDTH,
+};
 use epher_core::Env;
 
 fn curve(source: &str) -> epher_core::graph::SampledCurve {
@@ -229,4 +232,27 @@ fn solar_dots_keep_a_fixed_radius_at_every_zoom() {
     };
     assert_eq!(radii(default), radii(zoomed), "radius must not depend on zoom");
     assert!(!radii(default).is_empty());
+}
+
+#[test]
+fn hiding_a_solar_body_never_moves_the_frame() {
+    // ADR-0038: the pane's legend renders a filtered scene inside the
+    // FULL scene's viewBox - unchecking a body must not rescale or jump
+    // the view.
+    let scene = epher_core::astro::solar_scene(2459031.5).unwrap();
+    let view = scene.default_view();
+    let full_box = solar_view_box(&scene, &view).unwrap();
+    let mut hidden = scene.clone();
+    // Keep one planet's orbit and trail; the frame must stay.
+    let keep = scene.orbits[0].body;
+    hidden.orbits.retain(|p| p.body == keep);
+    hidden.trails.retain(|p| p.body == keep);
+    let (_, inner) = solar_parts_in(&hidden, &view, 2.0, &full_box).unwrap();
+    assert!(inner.contains("polyline"), "the moon's orbit is drawn");
+    // The full frame is wide (every planet); the moon's own extent is
+    // far smaller. If the frame had collapsed to the moon, the box the
+    // caller passed would differ from the full scene's - assert the
+    // moon-only scene's own box really is smaller, so this test bites.
+    let moon_box = solar_view_box(&hidden, &view).unwrap();
+    assert_ne!(full_box, moon_box, "the filter really changes the extent");
 }

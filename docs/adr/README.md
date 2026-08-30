@@ -100,7 +100,8 @@ at the end of the chain.
 - **Graph interaction** - 0015 (orbit) → 0031 (fine controls, ±2× zoom)
   → 0034 (TUI wheel/drag) → **0038 (wheel + pinch on every tile, the
   slider spans two decades each way, zoomable windows re-sample the
-  plot)**.
+  plot; the amendment: stable solar frames, the spin-loop cell fix,
+  Help above Settings, TUI guide search and POI copy)**.
 - **Solar system** - **0037** → **0038 (per-body legend checkboxes on
   the solar pane)**.
 - **History** - 0021 (`ans`) → 0025 → 0027 → 0030 → **0038 (share icon

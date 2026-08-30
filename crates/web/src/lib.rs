@@ -324,7 +324,10 @@ static TABS: &[TabDef] = &[
             key(",", KeyAction::Text(","), "op"),
             key("0", KeyAction::Text("0"), ""),
             key(".", KeyAction::Text("."), ""),
-            key("ans", KeyAction::Text("ans"), "fn"),
+            // The newline key (ADR-0016 amendment): ans lives on the
+            // pigreco tab, and a real newline in the entry is how
+            // multi-line scripts are composed on touch.
+            key("\u{23CE}", KeyAction::Text("\n"), "op"),
             key("=", KeyAction::Submit, "eq"),
         ],
     },
@@ -423,8 +426,6 @@ static TABS: &[TabDef] = &[
             key("graph3d", KeyAction::Text("graph3d "), "fn"),
             key("solar3d", KeyAction::Text("solar3d "), "fn"),
             key("table", KeyAction::Text("table "), "fn"),
-            key("clear", KeyAction::Text("clear "), "fn"),
-            key("history", KeyAction::Text("history "), "fn"),
         ],
     },
     TabDef {
@@ -1971,6 +1972,8 @@ fn epher_app() -> Html {
         let input_ref = input_ref.clone();
         let view_h = view_h.clone();
         let view_v = view_v.clone();
+        let view_h_cell = view_h_cell.clone();
+        let view_v_cell = view_v_cell.clone();
         let view_z = view_z.clone();
         let spin_phase = spin_phase.clone();
         let spin_phase_cell = spin_phase_cell.clone();
@@ -2150,6 +2153,12 @@ fn epher_app() -> Html {
                             view_h.set(0.0);
                             view_v.set(0.0);
                             view_z.set(0.0);
+                            // The spin loop reads the live cells (not the
+                            // states): stale non-zero cells here kept a
+                            // fresh graph spinning with the sliders at 0
+                            // (the ADR-0038 amendment's animation fix).
+                            *view_h_cell.borrow_mut() = 0.0;
+                            *view_v_cell.borrow_mut() = 0.0;
                             spin_phase.set((0.0, 0.0));
                             *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                             continue;
@@ -2212,6 +2221,12 @@ fn epher_app() -> Html {
                             view_h.set(0.0);
                             view_v.set(0.0);
                             view_z.set(0.0);
+                            // The spin loop reads the live cells (not the
+                            // states): stale non-zero cells here kept a
+                            // fresh graph spinning with the sliders at 0
+                            // (the ADR-0038 amendment's animation fix).
+                            *view_h_cell.borrow_mut() = 0.0;
+                            *view_v_cell.borrow_mut() = 0.0;
                             spin_phase.set((0.0, 0.0));
                             *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                             continue;
@@ -2239,6 +2254,11 @@ fn epher_app() -> Html {
                                 view_h.set(0.0);
                                 view_v.set(0.0);
                                 view_z.set(0.0);
+                                // The spin loop reads the live cells: stale
+                                // non-zero cells kept a fresh graph spinning
+                                // with the sliders at 0 (ADR-0038 amendment).
+                                *view_h_cell.borrow_mut() = 0.0;
+                                *view_v_cell.borrow_mut() = 0.0;
                                 spin_phase.set((0.0, 0.0));
                                 *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                                 result.set(String::new());
@@ -2536,9 +2556,9 @@ fn epher_app() -> Html {
     let on_set_view = {
         let view_h = view_h.clone();
         let view_v = view_v.clone();
-        let view_z = view_z.clone();
         let view_h_cell = view_h_cell.clone();
         let view_v_cell = view_v_cell.clone();
+        let view_z = view_z.clone();
         Callback::from(move |(axis, v): (&'static str, f64)| {
             let v = v.clamp(-1.0, 1.0);
             match axis {
@@ -3017,6 +3037,10 @@ fn epher_app() -> Html {
             let expr = history_expression(&line).to_string();
             let link = share_link(&expr);
             let text = localizer.lookup("share-text");
+            // The clipboard fallback (no web share API) carries the
+            // message and the link together; the sheet keeps them as
+            // separate fields.
+            let text_link = format!("{text} {link}");
             let result = result.clone();
             let localizer = localizer.clone();
             let shared = web_sys::window().and_then(|w| {
@@ -3049,7 +3073,7 @@ fn epher_app() -> Html {
             }
             spawn_local(async move {
                 match web_sys::window().map(|w| w.navigator().clipboard()) {
-                    Some(clipboard) => match clipboard.write_text(&link).await {
+                    Some(clipboard) => match clipboard.write_text(&text_link).await {
                         Ok(_) => result.set(localizer.lookup("share-copied")),
                         Err(_) => result.set(localizer.lookup("share-failed")),
                     },
@@ -3438,6 +3462,8 @@ fn epher_app() -> Html {
         let localizer = localizer.clone();
         let view_h = view_h.clone();
         let view_v = view_v.clone();
+        let view_h_cell = view_h_cell.clone();
+        let view_v_cell = view_v_cell.clone();
         let view_z = view_z.clone();
         let spin_phase = spin_phase.clone();
         let spin_phase_cell = spin_phase_cell.clone();
@@ -3714,6 +3740,40 @@ fn epher_app() -> Html {
                             type="button"
                             role="menuitem"
                             aria-haspopup="menu"
+                            aria-expanded={(*menu_open == Some("help")).to_string()}
+                            aria-label={localizer.lookup("menu-help")}
+                            title={localizer.lookup("menu-help")}
+                            class={if *menu_open == Some("help") { "menu-top open" } else { "menu-top" }}
+                            onclick={{
+                                let menu_open = menu_open.clone();
+                                Callback::from(move |_| menu_open.set(if *menu_open == Some("help") { None } else { Some("help") }))
+                            }}
+                        >
+                            { menu_icon(ICON_HELP) }
+                        </button>
+                        {
+                            if *menu_open == Some("help") {
+                                html! {
+                                    <div class="menu-drop" role="menu" aria-label={localizer.lookup("menu-help")}>
+                                        <button type="button" role="menuitem" class="menu-item"
+                                            onclick={Callback::from({
+                                                let menu_open = menu_open.clone();
+                                                let on_open_guide = on_open_guide.clone();
+                                                move |e: web_sys::MouseEvent| { menu_open.set(None); on_open_guide.emit(e); }
+                                            })}
+                                        >
+                                            { localizer.lookup("menu-guide") }
+                                        </button>
+                                    </div>
+                                }
+                            } else { html! {} }
+                        }
+                    </div>
+                    <div class="menu">
+                        <button
+                            type="button"
+                            role="menuitem"
+                            aria-haspopup="menu"
                             aria-expanded={(*menu_open == Some("settings")).to_string()}
                             aria-label={localizer.lookup("menu-settings")}
                             title={localizer.lookup("menu-settings")}
@@ -3771,40 +3831,6 @@ fn epher_app() -> Html {
                                                 </button>
                                             }
                                         }) }
-                                    </div>
-                                }
-                            } else { html! {} }
-                        }
-                    </div>
-                    <div class="menu">
-                        <button
-                            type="button"
-                            role="menuitem"
-                            aria-haspopup="menu"
-                            aria-expanded={(*menu_open == Some("help")).to_string()}
-                            aria-label={localizer.lookup("menu-help")}
-                            title={localizer.lookup("menu-help")}
-                            class={if *menu_open == Some("help") { "menu-top open" } else { "menu-top" }}
-                            onclick={{
-                                let menu_open = menu_open.clone();
-                                Callback::from(move |_| menu_open.set(if *menu_open == Some("help") { None } else { Some("help") }))
-                            }}
-                        >
-                            { menu_icon(ICON_HELP) }
-                        </button>
-                        {
-                            if *menu_open == Some("help") {
-                                html! {
-                                    <div class="menu-drop" role="menu" aria-label={localizer.lookup("menu-help")}>
-                                        <button type="button" role="menuitem" class="menu-item"
-                                            onclick={Callback::from({
-                                                let menu_open = menu_open.clone();
-                                                let on_open_guide = on_open_guide.clone();
-                                                move |e: web_sys::MouseEvent| { menu_open.set(None); on_open_guide.emit(e); }
-                                            })}
-                                        >
-                                            { localizer.lookup("menu-guide") }
-                                        </button>
                                     </div>
                                 }
                             } else { html! {} }
@@ -4349,7 +4375,6 @@ fn epher_app() -> Html {
                                             html! {
                                                 <>
                                                     <div class="poi-head">
-                                                        <p class="poi-heading">{ localizer.lookup("graph-points") }</p>
                                                         <button
                                                             type="button"
                                                             class="icon-btn"
@@ -4359,6 +4384,7 @@ fn epher_app() -> Html {
                                                         >
                                                             { copy_icon() }
                                                         </button>
+                                                        <p class="poi-heading">{ localizer.lookup("graph-points") }</p>
                                                     </div>
                                                     <ul class="poi-list">
                                                         { for poi_items }
@@ -4406,7 +4432,14 @@ fn epher_app() -> Html {
                             };
                             let effective =
                                 effective_view(&view, *view_h, *view_v, *view_z, *spin_phase);
-                            let rendered = graph::solar_svg(&shown, &effective, *width_3d);
+                            // The frame comes from the FULL scene (ADR-0038
+                            // amendment): hiding a body through the legend
+                            // must never rescale or jump the view.
+                            let rendered = graph::solar_view_box(&scene, &effective).and_then(
+                                |view_box| {
+                                    graph::solar_parts_in(&shown, &effective, *width_3d, &view_box)
+                                },
+                            );
                             let aria = format!(
                                 "{}: {}",
                                 localizer.lookup("solar3d-title"),
@@ -4473,6 +4506,9 @@ fn epher_app() -> Html {
                                 html! {
                                     <section class="graph graph3d">
                                         <h2 class="graph3d-title">{ localizer.lookup("solar3d-title") }</h2>
+                                        <ul class="legend legend-solar">
+                                            { for solar_legend }
+                                        </ul>
                                         <div class="plot-box">
                                             <Graph3D
                                                 view_box={shown_box}
@@ -4483,9 +4519,6 @@ fn epher_app() -> Html {
                                             />
                                         </div>
                                         <p class="graph3d-hint">{ localizer.lookup("graph3d-hint") }</p>
-                                        <ul class="legend">
-                                            { for solar_legend }
-                                        </ul>
                                         <div class="sliders">
                                             { for solar_rows }
                                         </div>
