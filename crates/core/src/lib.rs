@@ -14,7 +14,7 @@ use bigdecimal::BigDecimal;
 use num_bigint::BigInt;
 use num_complex::Complex;
 use num_rational::BigRational;
-use num_traits::Zero;
+use num_traits::{ToPrimitive, Zero};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
@@ -2070,7 +2070,17 @@ fn float_binop(op: BinOp, a: f64, b: f64) -> Result<f64, EpherError> {
                 Ok(a / b)
             }
         }
-        BinOp::Pow => Ok(a.powf(b)),
+        BinOp::Pow => {
+            let r = a.powf(b);
+            if r.is_nan() {
+                // powf's only NaN case: negative base, non-integer
+                // exponent. The real odd root exists - point at it.
+                return Err(EpherError::Domain(
+                    "power of a negative base with a non-integer exponent; use root(n, x) for real roots".into(),
+                ));
+            }
+            Ok(r)
+        }
     }
 }
 
@@ -2086,9 +2096,20 @@ fn rational_binop(op: BinOp, a: BigRational, b: BigRational) -> Result<BigRation
                 Ok(a / b)
             }
         }
-        BinOp::Pow => Err(EpherError::Type(
-            "rational exponentiation is not supported yet".into(),
-        )),
+        BinOp::Pow => {
+            // exact for an integer exponent (negative exponents give the
+            // reciprocal); a fractional exponent has no exact rational
+            // answer in general, so the layer refuses rather than guess
+            if !b.is_integer() {
+                return Err(EpherError::Type(
+                    "rational exponentiation needs an integer exponent; work in floats for fractional powers".into(),
+                ));
+            }
+            let exp = b.numer().to_i32().ok_or_else(|| {
+                EpherError::Type("rational exponent too large".into())
+            })?;
+            Ok(a.pow(exp))
+        }
     }
 }
 
@@ -2111,9 +2132,41 @@ fn decimal_binop(op: BinOp, a: Decimal, b: Decimal) -> Result<Decimal, EpherErro
                     .ok_or_else(|| EpherError::Type("decimal division error".into()))
             }
         }
-        BinOp::Pow => Err(EpherError::Type(
-            "decimal exponentiation is not supported yet".into(),
-        )),
+        BinOp::Pow => {
+            // exact for an integer exponent; fractional exponents refuse,
+            // mirroring the other exact layers (ADR-0005)
+            let Some(exp) = b.to_i64() else {
+                return Err(EpherError::Type(
+                    "decimal exponentiation needs an integer exponent; work in floats for fractional powers".into(),
+                ));
+            };
+            // to_i64 truncates, so integrality is checked separately
+            if b != b.trunc() {
+                return Err(EpherError::Type(
+                    "decimal exponentiation needs an integer exponent; work in floats for fractional powers".into(),
+                ));
+            }
+            if exp.unsigned_abs() > 100_000 {
+                return Err(EpherError::Type("decimal exponent too large".into()));
+            }
+            let (base, times) = if exp < 0 {
+                (Decimal::ONE, exp.unsigned_abs())
+            } else {
+                (a, exp as u64)
+            };
+            let mut acc = Decimal::ONE;
+            for _ in 0..times {
+                acc = acc
+                    .checked_mul(base)
+                    .ok_or_else(|| EpherError::Type("decimal overflow".into()))?;
+            }
+            if exp < 0 {
+                Decimal::ONE.checked_div(acc)
+                    .ok_or_else(|| EpherError::Type("decimal division error".into()))
+            } else {
+                Ok(acc)
+            }
+        }
     }
 }
 
@@ -2141,8 +2194,24 @@ fn big_binop(op: BinOp, a: BigDecimal, b: BigDecimal) -> Result<BigDecimal, Ephe
                 Ok(a / b)
             }
         }
-        BinOp::Pow => Err(EpherError::Type(
-            "big exponentiation is not supported yet".into(),
-        )),
+        BinOp::Pow => {
+            // exact for an integer exponent (the crate's powi handles
+            // negative exponents through the division context); a
+            // fractional exponent refuses, mirroring the other layers
+            let Some(exp) = b.to_i64() else {
+                return Err(EpherError::Type(
+                    "big exponentiation needs an integer exponent; work in floats for fractional powers".into(),
+                ));
+            };
+            // to_i64 truncates, so integrality is checked separately
+            if b.fractional_digit_count() > 0 {
+                return Err(EpherError::Type(
+                    "big exponentiation needs an integer exponent; work in floats for fractional powers".into(),
+                ));
+            }
+            // normalized() strips the context's trailing zeros on negative
+            // exponents (2^-10 is exactly 0.0009765625, not 100 digits of it)
+            Ok(a.powi(exp).normalized())
+        }
     }
 }

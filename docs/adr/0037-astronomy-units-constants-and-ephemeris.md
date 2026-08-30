@@ -172,3 +172,27 @@ function type identically on all five frontends; only the key
 coverage of the terminal's fixed grid is narrower. The unit-suffix
 keys live on the web/desktop Astro tab only; on the TUI suffixes are
 typed like any other token.
+
+## Amendment (2026-08-30): every accessor answers for every body
+
+A validation sweep against JPL Horizons (DE441) found the accessors of
+this ADR not actually universal: Pluto (body 9) answered `dist`,
+`mag`, `phase`, `illum`, `diam`, `alt`, and `az` through the facade's
+own elements, but `ra`/`decl` and the rise/set/transit trio errored
+out ("no entry for Pluto") because the sky snapshot stops at Neptune
+and only some accessors had a fallback. All twelve accessors now
+answer for Pluto: `ra`/`decl` run the facade's `pluto_radec` (the
+same reduction `alt`/`az` always used), and `rise`/`set`/`transit`
+mirror the crate's event search exactly - 10-minute sampling of
+topocentric altitude across the observer's local mean-solar day,
+bisection on the horizon crossing, and a parabolic culmination fit -
+with the crate's horizon convention (geometric altitude −34′;
+parallax is already in the topocentric place and Pluto's
+semidiameter is negligible). A body without the event that day
+still errors, never NaN. The same sweep found `phase(10, jd)` and
+`illum(10, jd)` erroring for the Sun; the Sun's phase angle as seen
+from Earth is zero by definition (Horizons reports phi 0.0000 and
+100% illuminated), so those two now answer directly. Measured
+against Horizons at three epochs, Pluto's new positions land within
+about 42 arcsec - well inside this amendment's stated arcminute
+grade, and the events keep the crate's conventions.

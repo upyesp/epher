@@ -1476,3 +1476,85 @@ fn calendar_validation_knows_month_lengths() {
     assert!(epher_core::evaluate("jd(2000, 4, 31)").is_err(), "April has 30");
     assert!(epher_core::evaluate("jd(2000, 2, 29)").is_ok(), "divisible by 400");
 }
+
+// ===== Pluto positions/events and Sun phase/illum (ADR-0037 amendment);
+// ===== integer powers in the exact layers (ADR-0005 amendment) =====
+
+#[test]
+fn pluto_positions_match_horizons() {
+    // JPL Horizons (DE441), apparent geocentric place, 2020-07-01 00:00 UT:
+    // RA 19h 44m 40s = 296.16642 deg, dec -22.25269 deg. Pluto rides the
+    // facade's Keplerian elements (documented arcminute grade), so the
+    // tolerance is 2 arcmin; the measured residuals are ~6x tighter.
+    let ra = float_at("ra(9, jd(2020, 7, 1))");
+    assert!((ra - 296.16642).abs() < 0.0333, "pluto ra = {ra}");
+    let dec = float_at("decl(9, jd(2020, 7, 1))");
+    assert!((dec + 22.25269).abs() < 0.0333, "pluto dec = {dec}");
+}
+
+#[test]
+fn pluto_events_mirror_the_snapshot_convention() {
+    let day = float_at("jd(2020, 7, 1)");
+    // Pluto (dec -22.3) at the equator transits about 66 minutes after
+    // local midnight (its RA is 19h45m, the Sun's is 6h40m)
+    let transit = float_at("transit(9, jd(2020, 7, 1), 0, 0)") - day;
+    assert!((0.03..0.06).contains(&transit), "pluto transit fraction = {transit}");
+    // meridian passage is due south at the equator
+    let az = float_at("az(9, transit(9, jd(2020, 7, 1), 0, 0), 0, 0)");
+    assert!((179.5..=180.5).contains(&az), "pluto transit az = {az}");
+    // Pluto is already up at that day's start, so set comes before the
+    // next rise; both stay inside the local day window
+    let set = float_at("set(9, jd(2020, 7, 1), 0, 0)") - day;
+    assert!((0.0..1.0).contains(&set), "pluto set fraction = {set}");
+    let rise = float_at("rise(9, jd(2020, 7, 1), 0, 0)") - day;
+    assert!((0.0..1.0).contains(&rise), "pluto rise fraction = {rise}");
+    // circumpolar south of -68: a domain error, never a NaN
+    assert!(epher_core::evaluate("rise(9, jd(2020, 7, 1), -80, 0)").is_err());
+}
+
+#[test]
+fn sun_phase_and_illum_are_their_definitions() {
+    // the Sun's phase angle as seen from Earth is zero by definition
+    // (Horizons reports phi 0.0000 and an illuminated fraction of 100%)
+    let phase = float_at("phase(10, jd(2020, 7, 1))");
+    assert_eq!(phase, 0.0);
+    let illum = float_at("illum(10, jd(2020, 7, 1))");
+    assert_eq!(illum, 1.0);
+    // and the two satisfy the usual identity
+    let id = float_at(
+        "illum(10, jd(2024, 3, 15)) - (1 + cos(phase(10, jd(2024, 3, 15)) * pi / 180)) / 2",
+    );
+    assert!(id.abs() < 1e-12, "sun illum/phase identity = {id}");
+}
+
+#[test]
+fn exact_layers_raise_to_integer_powers() {
+    // big: exact, arbitrarily large
+    assert_eq!(
+        eval_str("big(2) ^ 100").to_string(),
+        "1267650600228229401496703205376"
+    );
+    // a power of ten keeps a negative scale, which BigDecimal displays
+    // in scientific notation - the value is exact either way
+    assert_eq!(eval_str("big(10) ^ 40"), Value::Big("1e+40".parse().unwrap()));
+    // negative integer exponents give exact reciprocals, normalized
+    assert_eq!(eval_str("big(2) ^ -10").to_string(), "0.0009765625");
+    // rationals: exact in both directions
+    assert_eq!(eval_str("frac(2, 3) ^ 2").to_string(), "4/9");
+    assert_eq!(eval_str("frac(2, 3) ^ -2").to_string(), "9/4");
+    // decimals: exact
+    assert_eq!(eval_str("dec(3) ^ 3").to_string(), "27");
+    assert_eq!(eval_str("dec(2) ^ 10").to_string(), "1024");
+    // fractional exponents refuse rather than guess (ADR-0005: the layer
+    // keeps its exactness; work in floats for fractional powers)
+    assert!(epher_core::evaluate("big(2) ^ 0.5").is_err());
+    assert!(epher_core::evaluate("dec(2) ^ 0.5").is_err());
+    assert!(epher_core::evaluate("frac(2, 3) ^ frac(1, 2)").is_err());
+    // float pow of a negative base with a fractional exponent points at
+    // root() instead of returning a bare NaN
+    let err = epher_core::evaluate("(-8) ^ (1 / 3)").unwrap_err().to_string();
+    assert!(err.contains("root"), "{err}");
+    // ordinary float powers are untouched
+    let x = float_at("2 ^ 0.5");
+    assert!((x - std::f64::consts::SQRT_2).abs() < 1e-15);
+}

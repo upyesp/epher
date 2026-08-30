@@ -444,11 +444,20 @@ fn geocentric_radec(body: &BodyDef, jd: f64) -> Result<(f64, f64), EpherError> {
 
 fn ra_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
     let (body, jd) = body_arg(name, args)?;
+    // Pluto is the facade's own reduction (the crate's sky snapshot stops
+    // at Neptune); the same arcminute-grade elements every other Pluto
+    // accessor rides (ADR-0037).
+    if body.name == "Pluto" {
+        return Ok(Value::Float(pluto_radec(jd)?.0));
+    }
     Ok(Value::Float(geocentric_radec(body, jd)?.0))
 }
 
 fn decl_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
     let (body, jd) = body_arg(name, args)?;
+    if body.name == "Pluto" {
+        return Ok(Value::Float(pluto_radec(jd)?.1));
+    }
     Ok(Value::Float(geocentric_radec(body, jd)?.1))
 }
 
@@ -515,6 +524,19 @@ fn observer_args(
 /// or sets that day is a domain error, not a NaN).
 fn event_fn(name: &str, args: &[Value], key: &str) -> Result<Value, EpherError> {
     let ((lat, lon), body, jd) = observer_args(name, args)?;
+    // Pluto is not in the sky snapshot; its events come from the same
+    // elements and the same horizon convention as everything else.
+    if body.name == "Pluto" {
+        let t = pluto_event(jd, lat, lon, key)?;
+        return match t.is_finite() {
+            true => Ok(Value::Float(t)),
+            false => Err(domain_error(format!(
+                "{} never {}s on that local day at that latitude",
+                body.name,
+                key.strip_suffix("_jd").unwrap_or(key)
+            ))),
+        };
+    }
     let snapshot = sky_snapshot(jd, lat, lon)?;
     let entry = snapshot_body(&snapshot, body.name)?;
     let value = entry
@@ -569,6 +591,13 @@ fn phase_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
     if body.name == "Pluto" {
         return Ok(Value::Float(pluto_geometry(jd)?.0));
     }
+    if body.name == "Sun" {
+        // The Sun's phase angle as seen from Earth is zero by definition
+        // (Horizons reports phi = 0.0000 and an illuminated fraction of
+        // 100%); the system snapshot has no entry for the observer's own
+        // star, so answer directly instead of erroring.
+        return Ok(Value::Float(0.0));
+    }
     let snapshot = system_snapshot(jd)?;
     let entry = snapshot_body(&snapshot, body.name)?;
     Ok(Value::Float(json_f64(entry, "phase_angle_deg")?))
@@ -581,6 +610,9 @@ fn illum_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
         return Ok(Value::Float(
             solar_ephemeris::physics::illuminated_fraction(phase),
         ));
+    }
+    if body.name == "Sun" {
+        return Ok(Value::Float(1.0));
     }
     let snapshot = system_snapshot(jd)?;
     let entry = snapshot_body(&snapshot, body.name)?;
@@ -686,13 +718,25 @@ fn pluto_mag(jd: f64) -> Result<f64, EpherError> {
 /// snapshot's Earth, precessed to date with nutation in longitude.
 /// Light-time and aberration are skipped (arcminute body, documented).
 fn pluto_radec(jd: f64) -> Result<(f64, f64), EpherError> {
+    let earth_xyz = earth_xyz_au(jd)?;
+    Ok(pluto_radec_from(&earth_xyz, jd))
+}
+
+/// Earth's heliocentric position in AU, from the system snapshot.
+fn earth_xyz_au(jd: f64) -> Result<[f64; 3], EpherError> {
     let system = system_snapshot(jd)?;
     let earth = snapshot_body(&system, "Earth")?;
-    let earth_xyz = [
+    Ok([
         json_f64(earth, "x_au")?,
         json_f64(earth, "y_au")?,
         json_f64(earth, "z_au")?,
-    ];
+    ])
+}
+
+/// The Pluto reduction against a precomputed Earth position - the event
+/// search samples it about 200 times per call, and the system snapshot
+/// rebuilds the whole system each time.
+fn pluto_radec_from(earth_xyz: &[f64; 3], jd: f64) -> (f64, f64) {
     let astro = solar_ephemeris::timescales::AstroTime::from_jd_utc(jd);
     let t = solar_ephemeris::time::centuries(astro.jd_tt);
     let (dpsi, deps) = solar_ephemeris::time::nutation_deg(t);
@@ -707,24 +751,97 @@ fn pluto_radec(jd: f64) -> Result<(f64, f64), EpherError> {
         t,
     );
     let eps_true = solar_ephemeris::time::mean_obliquity_deg(t) + deps;
-    Ok(solar_ephemeris::coords::ecl_to_equ(
+    solar_ephemeris::coords::ecl_to_equ(
         (lon_date + dpsi).rem_euclid(360.0),
         lat_date,
         eps_true,
-    ))
+    )
 }
 
 /// Pluto's topocentric (alt, az), true and unrefracted, through the
 /// crate's alt_az with the observer's local apparent sidereal time.
 fn pluto_altaz(jd: f64, lat: f64, lon: f64) -> Result<(f64, f64), EpherError> {
+    let earth_xyz = earth_xyz_au(jd)?;
+    Ok(pluto_altaz_from(&earth_xyz, jd, lat, lon))
+}
+
+fn pluto_altaz_from(earth_xyz: &[f64; 3], jd: f64, lat: f64, lon: f64) -> (f64, f64) {
     let astro = solar_ephemeris::timescales::AstroTime::from_jd_utc(jd);
     let t = solar_ephemeris::time::centuries(astro.jd_tt);
     let (dpsi, deps) = solar_ephemeris::time::nutation_deg(t);
     let eps_true = solar_ephemeris::time::mean_obliquity_deg(t) + deps;
     let gast = solar_ephemeris::time::gast_deg(astro.jd_ut1, dpsi, eps_true);
     let lst = (gast + lon).rem_euclid(360.0);
-    let (ra, dec) = pluto_radec(jd)?;
-    Ok(solar_ephemeris::coords::alt_az(ra, dec, lst, lat))
+    let (ra, dec) = pluto_radec_from(earth_xyz, jd);
+    solar_ephemeris::coords::alt_az(ra, dec, lst, lat)
+}
+
+/// Pluto's rise / transit / set within the observer's local mean-solar
+/// day, mirroring the crate's own event search: 10-minute sampling,
+/// bisection on the crossing, and a parabolic culmination fit. The
+/// horizon is geometric topocentric altitude -34' (standard refraction;
+/// topocentric parallax is already in the alt/az reduction and Pluto's
+/// semidiameter is negligible) - the crate's `standard_altitude_deg`
+/// for everything past the Sun and Moon. NaN means the event does not
+/// happen that day (the caller words it as a domain error).
+fn pluto_event(jd: f64, lat: f64, lon: f64, key: &str) -> Result<f64, EpherError> {
+    let earth_xyz = earth_xyz_au(jd)?;
+    let offset = lon / 360.0;
+    let day_start = ((jd - 0.5 + offset).floor() + 0.5) - offset;
+    let alt_at = |t: f64| pluto_altaz_from(&earth_xyz, t, lat, lon).0;
+    let steps = 144;
+    let step = 1.0 / steps as f64;
+    let mut prev_t = day_start;
+    let mut prev_m = alt_at(prev_t) + 34.0 / 60.0;
+    let mut transit_alt = alt_at(prev_t);
+    let mut transit = prev_t;
+    let mut rise = f64::NAN;
+    let mut set = f64::NAN;
+    for i in 1..=steps {
+        let t = day_start + i as f64 * step;
+        let alt = alt_at(t);
+        let m = alt + 34.0 / 60.0;
+        if alt > transit_alt {
+            transit_alt = alt;
+            transit = t;
+        }
+        if prev_m < 0.0 && m >= 0.0 && rise.is_nan() {
+            rise = pluto_bisect(&earth_xyz, lat, lon, prev_t, t);
+        }
+        if prev_m >= 0.0 && m < 0.0 && set.is_nan() {
+            set = pluto_bisect(&earth_xyz, lat, lon, prev_t, t);
+        }
+        prev_t = t;
+        prev_m = m;
+    }
+    // three-point parabolic fit around the best sample (the crate's
+    // culmination refinement)
+    let a_m = alt_at(transit - step);
+    let a_p = alt_at(transit + step);
+    let denom = a_m - 2.0 * transit_alt + a_p;
+    if denom < 0.0 {
+        transit += 0.5 * (a_m - a_p) / denom * step;
+    }
+    Ok(match key {
+        "rise_jd" => rise,
+        "set_jd" => set,
+        _ => transit,
+    })
+}
+
+fn pluto_bisect(earth_xyz: &[f64; 3], lat: f64, lon: f64, mut a: f64, mut b: f64) -> f64 {
+    let mut fa = pluto_altaz_from(earth_xyz, a, lat, lon).0 + 34.0 / 60.0;
+    for _ in 0..24 {
+        let m = 0.5 * (a + b);
+        let fm = pluto_altaz_from(earth_xyz, m, lat, lon).0 + 34.0 / 60.0;
+        if (fa < 0.0) == (fm < 0.0) {
+            a = m;
+            fa = fm;
+        } else {
+            b = m;
+        }
+    }
+    0.5 * (a + b)
 }
 
 // --- Seasons (ADR-0037) ---

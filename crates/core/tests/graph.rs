@@ -454,11 +454,16 @@ fn surface_with_undefined_name_reports_the_name() {
 #[test]
 fn surface_with_all_holes_keeps_the_generic_message() {
     let env = Env::default();
-    // (-1) ^ 0.5 is NaN silently (powf, no error raised): holes, not
-    // errors — the generic message. sqrt(-1) and ln(-1), by contrast,
-    // raise domain errors that are reported as the cause.
-    let err = sample_surface("(-1) ^ 0.5 + x", 8, &env).unwrap_err();
+    // inf - inf is NaN silently (IEEE arithmetic, no error raised):
+    // holes, not errors — the generic message. sqrt(-1), ln(-1) and
+    // fractional powers of negative bases raise domain errors that are
+    // reported as the cause when they take out the whole grid (the ^
+    // one points at root(); partial failures stay holes per the
+    // sampler's first-err machinery).
+    let err = sample_surface("1e308 * 1e308 - 1e308 * 1e308 + x", 8, &env).unwrap_err();
     assert!(err.to_string().contains("no finite values for the surface"));
+    let err = sample_surface("(-1) ^ 0.5 + x", 8, &env).unwrap_err();
+    assert!(err.to_string().contains("use root(n, x)"), "{err}");
 }
 
 #[test]
