@@ -24,7 +24,7 @@ use yew::prelude::*;
 /// so an SVG saved from the TUI is byte-for-byte the app's plot. The
 /// re-exports keep this module's long-standing surface.
 pub use epher_core::graph_svg::{
-    aria_label, curve_caption, escape, fill_points, geometry, graph3d_svg, graph_svg,
+    aria_label, curve_caption, escape, fill_points, geometry, geometry_in, graph3d_svg, graph_svg,
     graph_svg_indexed, label, layers_svg, polyline_points, segments, ticks, trace_nearest,
     Geometry, Poi, TracePoint, BOTTOM, DEFAULT_STROKE_WIDTH, HEIGHT, LEFT, RIGHT, TOP, WIDTH,
 };
@@ -98,6 +98,15 @@ pub struct GraphProps {
     pub on_trace: Callback<(f64, f64)>,
     /// Keyboard input while the plot has focus (arrow-key tracing).
     pub on_key: Callback<web_sys::KeyboardEvent>,
+    /// Wheel notch or pinch over the plot (ADR-0038): the anchor in
+    /// viewBox coordinates and the window-scale factor - `> 1` widens the
+    /// window (zoom out), `< 1` narrows it (zoom in). Wheel anchors at
+    /// the pointer, a pinch at the midpoint between the fingers.
+    pub on_zoom: Callback<(f64, f64, f64)>,
+    /// The pane's zoom window in data coordinates (ADR-0038): `None` is
+    /// the auto-fit around the samples, `Some((x_min, x_max))` the window
+    /// wheel, pinch, or the zoom slider set. The y range stays data-fit.
+    pub window: Option<(f64, f64)>,
     /// End of pointer interaction: hide the trace cursor.
     pub on_leave: Callback<()>,
 }
@@ -105,6 +114,11 @@ pub struct GraphProps {
 #[function_component(Graph)]
 pub fn graph_html(props: &GraphProps) -> Html {
     let svg_ref = use_node_ref();
+    // The active pointers, for pinch-zoom (ADR-0038): two fingers on the
+    // plot zoom around their midpoint; one finger keeps tracing.
+    let pointers = use_state(|| std::rc::Rc::new(std::cell::RefCell::new(
+        Vec::<(i32, f64, f64)>::new(),
+    )));
 
     // Attach the interaction listeners once, directly on the SVG element.
     {
@@ -112,6 +126,8 @@ pub fn graph_html(props: &GraphProps) -> Html {
         let on_trace = props.on_trace.clone();
         let on_key = props.on_key.clone();
         let on_leave = props.on_leave.clone();
+        let on_zoom = props.on_zoom.clone();
+        let pointers = pointers.clone();
         let listeners = use_state(Vec::<gloo_events::EventListener>::new);
         use_effect_with((), move |_| {
             let Some(el) = svg_ref.cast::<web_sys::Element>() else {
@@ -168,6 +184,98 @@ pub fn graph_html(props: &GraphProps) -> Html {
                 }));
             }
             {
+                let el_closure = el.clone();
+                let on_zoom = on_zoom.clone();
+                bound.push(gloo_events::EventListener::new(&el, "wheel", move |e| {
+                    let Some(we) = e.dyn_ref::<web_sys::WheelEvent>() else {
+                        return;
+                    };
+                    // The page must not scroll while the plot zooms.
+                    we.prevent_default();
+                    let r = el_closure.get_bounding_client_rect();
+                    let (px, py) = to_viewbox(
+                        &el_closure,
+                        we.client_x() as f64 - r.left(),
+                        we.client_y() as f64 - r.top(),
+                    );
+                    // One notch = 1.15× the window; scrolling up zooms in.
+                    let factor = (we.delta_y() / 300.0).exp().clamp(0.5, 2.0);
+                    on_zoom.emit((px, py, factor));
+                }));
+            }
+            {
+                let el_closure = el.clone();
+                let pointers = pointers.clone();
+                bound.push(gloo_events::EventListener::new(&el, "pointerdown", move |e| {
+                    let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() else {
+                        return;
+                    };
+                    let mut pts = pointers.borrow_mut();
+                    pts.retain(|(id, _, _)| *id != pe.pointer_id());
+                    pts.push((pe.pointer_id(), pe.client_x() as f64, pe.client_y() as f64));
+                    drop(pts);
+                    let _ = el_closure.set_pointer_capture(pe.pointer_id());
+                }));
+            }
+            {
+                let el_closure = el.clone();
+                let on_zoom = on_zoom.clone();
+                let pointers = pointers.clone();
+                bound.push(gloo_events::EventListener::new(&el, "pointermove", move |e| {
+                    let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() else {
+                        return;
+                    };
+                    let mut pts = pointers.borrow_mut();
+                    if let Some(slot) = pts.iter_mut().find(|(id, _, _)| *id == pe.pointer_id()) {
+                        slot.1 = pe.client_x() as f64;
+                        slot.2 = pe.client_y() as f64;
+                    }
+                    if pts.len() < 2 {
+                        return;
+                    }
+                    // Two fingers: the span scales by the distance ratio
+                    // between moves, anchored at the fingers' midpoint.
+                    let dx = pts[1].1 - pts[0].1;
+                    let dy = pts[1].2 - pts[0].2;
+                    let dist = (dx * dx + dy * dy).sqrt();
+                    let mid_x = (pts[0].1 + pts[1].1) / 2.0;
+                    let mid_y = (pts[0].2 + pts[1].2) / 2.0;
+                    drop(pts);
+                    let last = el_closure
+                        .get_attribute("data-pinch-dist")
+                        .and_then(|v| v.parse::<f64>().ok());
+                    let _ = el_closure
+                        .set_attribute("data-pinch-dist", &format!("{dist}"));
+                    let Some(last) = last else { return };
+                    if last < 1.0 || dist < 1.0 {
+                        return;
+                    }
+                    let r = el_closure.get_bounding_client_rect();
+                    let (px, py) = to_viewbox(
+                        &el_closure,
+                        mid_x - r.left(),
+                        mid_y - r.top(),
+                    );
+                    on_zoom.emit((px, py, last / dist));
+                }));
+            }
+            {
+                let el = el.clone();
+                let pointers = pointers.clone();
+                for event_name in ["pointerup", "pointercancel", "pointerleave"] {
+                    let el_inner = el.clone();
+                    let pointers = pointers.clone();
+                    bound.push(gloo_events::EventListener::new(&el, event_name, move |e| {
+                        if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
+                            pointers.borrow_mut().retain(|(id, _, _)| *id != pe.pointer_id());
+                        }
+                        if pointers.borrow().len() < 2 {
+                            let _ = el_inner.remove_attribute("data-pinch-dist");
+                        }
+                    }));
+                }
+            }
+            {
                 let el = el.clone();
                 let on_leave = on_leave.clone();
                 bound.push(gloo_events::EventListener::new(&el, "blur", move |_| {
@@ -179,7 +287,13 @@ pub fn graph_html(props: &GraphProps) -> Html {
     }
     let all: Vec<epher_core::graph::SampledCurve> =
         props.curves.iter().map(|(_, c)| c.clone()).collect();
-    let Some(geom) = geometry(&all) else {
+    // The zoom window (ADR-0038) picks the x range; the y range still
+    // fits the samples inside it. No window: the classic auto-fit.
+    let geom = match props.window {
+        Some((lo, hi)) => geometry_in(&all, lo, hi),
+        None => geometry(&all),
+    };
+    let Some(geom) = geom else {
         return html! {};
     };
     let y_span = geom.y_max - geom.y_min;
@@ -273,14 +387,24 @@ pub fn graph_html(props: &GraphProps) -> Html {
     html! {
         <svg ref={svg_ref} viewBox={format!("0 0 {WIDTH} {HEIGHT}")} preserveAspectRatio="xMidYMid meet" role="img" aria-label={aria_label(&all)} tabindex="0" xmlns="http://www.w3.org/2000/svg" style={format!("--curve-width: {}", props.line_width)}>
             <title>{ aria_label(&all) }</title>
+            <defs>
+                // ADR-0038: zoomed windows leave samples outside the plot
+                // area (the y fit and the x window both clip) - curves,
+                // markers, and the trace stay inside the frame.
+                <clipPath id="plot-clip">
+                    <rect x={LEFT.to_string()} y={TOP.to_string()} width={(RIGHT - LEFT).to_string()} height={(BOTTOM - TOP).to_string()} />
+                </clipPath>
+            </defs>
             { for grid_lines }
             { x_axis }
             { y_axis }
             { for x_labels }
             { for y_labels }
-            { for curve_layers }
-            { for poi_nodes }
-            { trace_node }
+            <g clip-path="url(#plot-clip)">
+                { for curve_layers }
+                { for poi_nodes }
+                { trace_node }
+            </g>
         </svg>
     }
 }
@@ -397,6 +521,9 @@ pub struct Graph3DProps {
     pub aria_label: String,
     /// (dyaw, dpitch) from a drag or arrow key.
     pub on_orbit: Callback<(f64, f64)>,
+    /// Wheel notch or pinch (ADR-0038): a camera-distance factor -
+    /// `> 1` moves the camera out (zoom out), `< 1` in (zoom in).
+    pub on_zoom: Callback<f64>,
 }
 
 #[function_component(Graph3D)]
@@ -404,6 +531,11 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
     let svg_ref = use_node_ref();
     let g_ref = use_node_ref();
     let drag = use_state(|| std::rc::Rc::new(std::cell::RefCell::new(Option::<(f64, f64)>::None)));
+    // The active pointers (ADR-0038): one drags the orbit, two pinch the
+    // camera distance - orbiting suspends while the second finger is down.
+    let pointers = use_state(|| std::rc::Rc::new(std::cell::RefCell::new(
+        Vec::<(i32, f64, f64)>::new(),
+    )));
 
     // The mesh is injected with Element::set_inner_html on an SVG <g>, not
     // via Yew vnodes: Yew's from_html_unchecked parses fragments in an HTML
@@ -445,7 +577,9 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
     {
         let svg_ref = svg_ref.clone();
         let on_orbit = props.on_orbit.clone();
+        let on_zoom = props.on_zoom.clone();
         let drag = drag.clone();
+        let pointers = pointers.clone();
         let listeners = use_state(Vec::<gloo_events::EventListener>::new);
         use_effect_with((), move |_| {
             let Some(el) = svg_ref.cast::<web_sys::Element>() else {
@@ -455,13 +589,24 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
             {
                 let el_closure = el.clone();
                 let drag = drag.clone();
+                let pointers = pointers.clone();
                 bound.push(gloo_events::EventListener::new(
                     &el,
                     "pointerdown",
                     move |e| {
                         if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
                             el_closure.set_pointer_capture(pe.pointer_id()).ok();
-                            *drag.borrow_mut() = Some((pe.client_x() as f64, pe.client_y() as f64));
+                            let mut pts = pointers.borrow_mut();
+                            pts.retain(|(id, _, _)| *id != pe.pointer_id());
+                            pts.push((pe.pointer_id(), pe.client_x() as f64, pe.client_y() as f64));
+                            // A second finger suspends the orbit (the pinch
+                            // takes over, ADR-0038).
+                            if pts.len() > 1 {
+                                *drag.borrow_mut() = None;
+                            } else {
+                                *drag.borrow_mut() =
+                                    Some((pe.client_x() as f64, pe.client_y() as f64));
+                            }
                         }
                     },
                 ));
@@ -478,13 +623,46 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
                 let el = el.clone();
                 let drag = drag.clone();
                 let on_orbit = on_orbit.clone();
+                let on_zoom = on_zoom.clone();
                 let pending = pending.clone();
                 let frame = frame.clone();
+                let pointers = pointers.clone();
+                let el_move = el.clone();
                 bound.push(gloo_events::EventListener::new(
                     &el,
                     "pointermove",
                     move |e| {
+                        let el = el_move.clone();
                         if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
+                            // Pinch first (ADR-0038): with two pointers on
+                            // the plot, the distance ratio zooms the camera
+                            // and the orbit stays still.
+                            {
+                                let mut pts = pointers.borrow_mut();
+                                if let Some(slot) =
+                                    pts.iter_mut().find(|(id, _, _)| *id == pe.pointer_id())
+                                {
+                                    slot.1 = pe.client_x() as f64;
+                                    slot.2 = pe.client_y() as f64;
+                                }
+                                if pts.len() >= 2 {
+                                    let dx = pts[1].1 - pts[0].1;
+                                    let dy = pts[1].2 - pts[0].2;
+                                    let dist = (dx * dx + dy * dy).sqrt();
+                                    drop(pts);
+                                    let last = el
+                                        .get_attribute("data-pinch-dist")
+                                        .and_then(|v| v.parse::<f64>().ok());
+                                    let _ = el
+                                        .set_attribute("data-pinch-dist", &format!("{dist}"));
+                                    if let Some(last) = last {
+                                        if last > 1.0 && dist > 1.0 {
+                                            on_zoom.emit(last / dist);
+                                        }
+                                    }
+                                    return;
+                                }
+                            }
                             // Copy the start point out first: Option<(f64, f64)>
                             // is Copy, and holding the Ref across the body would
                             // make the borrow_mut below panic ("RefCell already
@@ -527,14 +705,26 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
                 let drag = drag.clone();
                 let on_orbit = on_orbit.clone();
                 let pending = pending.clone();
+                let pointers = pointers.clone();
+                let el = el.clone();
                 for event_name in ["pointerup", "pointerleave", "pointercancel"] {
                     let drag = drag.clone();
                     let on_orbit = on_orbit.clone();
                     let pending = pending.clone();
+                    let pointers = pointers.clone();
+                    let el_inner = el.clone();
                     bound.push(gloo_events::EventListener::new(
                         &el,
                         event_name,
-                        move |_| {
+                        move |e| {
+                            if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
+                                pointers
+                                    .borrow_mut()
+                                    .retain(|(id, _, _)| *id != pe.pointer_id());
+                            }
+                            if pointers.borrow().len() < 2 {
+                                let _ = el_inner.remove_attribute("data-pinch-dist");
+                            }
                             *drag.borrow_mut() = None;
                             if let Some((a, b)) = pending.borrow_mut().take() {
                                 on_orbit.emit((a, b));
@@ -542,6 +732,20 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
                         },
                     ));
                 }
+            }
+            {
+                let el = el.clone();
+                let on_zoom = on_zoom.clone();
+                bound.push(gloo_events::EventListener::new(&el, "wheel", move |e| {
+                    let Some(we) = e.dyn_ref::<web_sys::WheelEvent>() else {
+                        return;
+                    };
+                    // The page must not scroll while the scene zooms.
+                    we.prevent_default();
+                    // One notch = the camera moves 1.15×; scrolling up
+                    // moves it closer.
+                    on_zoom.emit((we.delta_y() / 300.0).exp().clamp(0.5, 2.0));
+                }));
             }
             {
                 let el = el.clone();

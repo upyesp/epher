@@ -97,3 +97,14 @@ at the end of the chain.
   and time functions, solar-ephemeris behind a core facade, accessor
   functions, solar3d)** → **0015 amendment (3D space curves and positioned
   points render the solar system)**.
+- **Graph interaction** - 0015 (orbit) → 0031 (fine controls, ±2× zoom)
+  → 0034 (TUI wheel/drag) → **0038 (wheel + pinch on every tile, the
+  slider spans two decades each way, zoomable windows re-sample the
+  plot)**.
+- **Solar system** - **0037** → **0038 (per-body legend checkboxes on
+  the solar pane)**.
+- **History** - 0021 (`ans`) → 0025 → 0027 → 0030 → **0038 (share icon
+  on every item, `?expr=` links stage the entry; `clear`/`history`
+  keypad keys finally run)**.
+- **In-app guide** - 0018 → 0018 amendment (ToC) → **0038 (search box
+  with chapter + snippet hits)**.

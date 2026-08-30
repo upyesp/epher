@@ -289,6 +289,9 @@
       color: var(--text);
       font: inherit;
       cursor: pointer;
+      /* Text-styled buttons carry an underline (ADR-0035 amendment). */
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
     .pane-switch button[aria-pressed="true"] {
       border-color: var(--accent);
@@ -432,6 +435,9 @@
       border: 1px solid var(--accent);
       padding: 0.4rem 0.8rem;
       min-height: 44px;
+      /* Text-styled buttons carry an underline (ADR-0035 amendment). */
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
     .history {
       list-style: none;
@@ -471,6 +477,58 @@
     .history-item:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 1px;
+    }
+    /* --- share and copy icon buttons (ADR-0038) ------------------------- */
+    /* The share icon sits left of every history item; the copy icon sits
+       right of the points-of-interest heading. Both carry the OS-native
+       glyph artwork for the device (Apple SF-style or the squared
+       Material mark) and a 44px target (WCAG 2.5.8). */
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0.35rem;
+      background: transparent;
+      color: var(--accent);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .icon-btn:hover {
+      color: var(--accent);
+      background: var(--panel);
+    }
+    .icon-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .icon-svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+    .history-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0.15rem;
+    }
+    .history-row .history-item {
+      flex: 1;
+      min-width: 0;
+    }
+    .history-row .share-btn {
+      align-self: center;
+    }
+    /* The points-of-interest heading with its copy button (ADR-0038). */
+    .poi-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .poi-head .poi-heading {
+      margin: 0;
     }
     /* --- keypad (ADR-0016) --------------------------------------------- */
     .keypad {
@@ -594,14 +652,15 @@
       display: block;
       border-radius: 10px;
       background: var(--panel);
-      /* The 2D plot traces taps and vertical drags; horizontal swipes stay
-         the browser's, so swiping back from the graph reaches the
-         calculator pane (ADR-0016). The 3D plot below keeps full capture
-         — orbiting needs both axes, and a horizontal swipe on a 3D graph
-         must rotate it, not slide the strip back (ADR-0035). The 3D rule
-         needs the extra specificity: `.plot-box svg` above (0,1,1)
-         outranks a bare `.graph3d-svg` (0,1,0). */
-      touch-action: pan-x;
+      /* Wheel and pinch zoom the plot (ADR-0038), so the SVG keeps the
+         gesture for itself on touch: a two-finger pinch scales the view
+         instead of the page. The pane strip stays swipeable everywhere
+         around the plot (toolbar, margins, and the pane edge). The 3D
+         rule below keeps full capture too - orbiting needs both axes,
+         and a swipe on a 3D graph rotates it, not the strip (ADR-0035).
+         The 3D rule needs the extra specificity: `.plot-box svg` above
+         (0,1,1) outranks a bare `.graph3d-svg` (0,1,0). */
+      touch-action: none;
     }
     .plot-box svg.graph3d-svg {
       touch-action: none;
@@ -801,6 +860,11 @@
       color: var(--text);
       font: inherit;
       cursor: pointer;
+      /* These read as text, not as buttons, so the underline carries
+         "you can act on this" without relying on color (ADR-0035
+         amendment, WCAG 1.4.1). */
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
     .pane-btn:hover {
       border-color: var(--accent);
@@ -915,11 +979,96 @@
       color: var(--text);
       font: inherit;
       cursor: pointer;
+      /* Text-styled buttons carry an underline (ADR-0035 amendment). */
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
     .guide-insert-hint {
       color: var(--muted);
       margin: 0;
       font-size: 0.9rem;
+    }
+    /* --- guide search (ADR-0038) ---------------------------------------- */
+    .guide-search {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .guide-search input[type="search"] {
+      min-height: 48px;
+      padding: 0.4rem 0.8rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+    }
+    .guide-search input[type="search"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .guide-no-results {
+      color: var(--muted);
+      margin: 0;
+      font-size: 0.9rem;
+    }
+    .guide-results {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      max-height: 40vh;
+      overflow-y: auto;
+      margin: 0;
+      padding: 0;
+    }
+    .guide-result {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.15rem;
+      width: 100%;
+      text-align: start;
+      padding: 0.4rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+      min-height: 44px;
+    }
+    .guide-result:hover {
+      border-color: var(--accent);
+    }
+    .guide-result:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .guide-result-chapter {
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .guide-result-snippet {
+      color: var(--muted);
+      font-size: 0.9rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    /* The flash on a jumped-to hit: finds the match again after the
+       scroll, and moves (not just color) marks it (WCAG 2.3.3-safe:
+       opacity only). */
+    @keyframes guide-hit-flash {
+      0%, 60% { opacity: 1; }
+      30% { opacity: 0.35; }
+      100% { opacity: 1; }
+    }
+    .guide-hit {
+      animation: guide-hit-flash 1.6s ease-in-out 1;
     }
     /* The in-app table of contents (ADR-0018 amendment): top-level
        chapters as buttons; picking one scrolls the body to its

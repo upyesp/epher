@@ -4,6 +4,9 @@
 
 use epher_core::graph::{parse_graph_source, sample_spec, CurveKind, InterestKind, SampledCurve};
 use epher_core::{Env, Sample};
+use epher_web::{
+    anchored_window, slider_window, zoom_slider_value,
+};
 use epher_web::graph::{
     geometry, graph_svg, segments, ticks, trace_nearest, Poi, TracePoint, DEFAULT_STROKE_WIDTH,
 };
@@ -226,4 +229,54 @@ fn trace_at_center_of_sin_finds_the_zero_crossing() {
     let t = found.unwrap();
     assert!(t.x.abs() < 0.1, "x = {}", t.x);
     assert!(t.y.abs() < 0.1, "y = {}", t.y);
+}
+
+// ===== zoom (ADR-0038): the slider's two-decade range and the
+// anchor-stable gesture windows =====
+
+#[test]
+fn the_zoom_slider_spans_two_decades_each_way() {
+    let base = (-10.0, 10.0);
+    // 0 keeps the fit window; -1 widens 100x (every object fits),
+    // +1 narrows 100x (a single object fills the pane).
+    let mid = slider_window(0.0, base, 0.0);
+    assert!((mid.1 - mid.0 - 20.0).abs() < 1e-9);
+    let out = slider_window(-1.0, base, 0.0);
+    assert!((out.1 - out.0 - 2000.0).abs() < 1e-9);
+    let in_ = slider_window(1.0, base, 0.0);
+    assert!((in_.1 - in_.0 - 0.2).abs() < 1e-9);
+    // The slider reads back the same value from its own window.
+    assert!((zoom_slider_value(Some(out), base) - (-1.0)).abs() < 1e-9);
+    assert!((zoom_slider_value(Some(in_), base) - 1.0).abs() < 1e-9);
+    assert!((zoom_slider_value(Some(mid), base)).abs() < 1e-9);
+    // No window: the slider sits at the fit position, 0.
+    assert_eq!(zoom_slider_value(None, base), 0.0);
+    // Values past the ends pin at the slider's ends.
+    assert_eq!(zoom_slider_value(Some((-1.0e5, 1.0e5)), base), -1.0);
+}
+
+#[test]
+fn gesture_windows_keep_the_anchor_still() {
+    let base = (-10.0, 10.0);
+    let cur = (-10.0, 10.0);
+    // Zoom in 4x around x = 5: the anchor's share of the window holds.
+    let win = anchored_window(cur, 5.0, 0.25, base.1 - base.0);
+    assert!((win.1 - win.0 - 5.0).abs() < 1e-9);
+    assert!((5.0 - win.0) / 5.0 - (5.0 - cur.0) / 20.0 < 1e-9);
+    // Zooming out around the center recenters on the anchor.
+    let wide = anchored_window(cur, 0.0, 4.0, base.1 - base.0);
+    assert!((wide.1 - wide.0 - 80.0).abs() < 1e-9);
+    // One event zooms at most 5x in or out (a wheel notch or a pinch
+    // step); repeated steps keep the journey going until the clamp
+    // takes over at nine decades from the base window.
+    let mut deep = cur;
+    for _ in 0..200 {
+        deep = anchored_window(deep, 0.0, 0.25, base.1 - base.0);
+    }
+    assert!(((deep.1 - deep.0) / (20.0 * 1e-9) - 1.0).abs() < 1e-6);
+    let mut far = cur;
+    for _ in 0..200 {
+        far = anchored_window(far, 0.0, 4.0, base.1 - base.0);
+    }
+    assert!(((far.1 - far.0) / (20.0 * 1e9) - 1.0).abs() < 1e-6);
 }

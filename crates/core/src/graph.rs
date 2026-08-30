@@ -594,10 +594,12 @@ impl View3D {
 
     /// Set the zoom state (mouse-wheel zoom, ADR-0034): smaller values
     /// shrink the render window, so the scene grows. Relative positions
-    /// never change - the projection is affine.
+    /// never change - the projection is affine. The floor only guards the
+    /// projection against degenerating (a zero camera), not the user:
+    /// wheel and pinch zoom in as far as they want (ADR-0038).
     pub fn with_camera(&self, camera: f64) -> Self {
         Self {
-            camera: camera.max(0.5),
+            camera: camera.max(0.01),
             ..*self
         }
     }
@@ -606,13 +608,14 @@ impl View3D {
     /// with 0 = this pose unchanged: horizontal adds `h × π` to the yaw;
     /// vertical adds `v × 0.8` to the pitch — the full range stays live
     /// at the default pose (pitch 0.6 + 0.8 = 1.4, exactly the clamp) —
-    /// and zoom shrinks the render window by `2^-z` (0 = the default
-    /// window, +1 zooms in 2×, −1 zooms out 2×).
+    /// and zoom scales the render window by `10^(-2z)` (ADR-0038): 0 is
+    /// the default window, +1 shrinks it 100× (a single object fills the
+    /// pane), −1 grows it 100× (every object fits).
     pub fn with_offsets(&self, h: f64, v: f64, z: f64) -> Self {
         Self {
             yaw: self.yaw + h * std::f64::consts::PI,
             pitch: (self.pitch + v * 0.8).clamp(-1.4, 1.4),
-            camera: self.camera * 2f64.powf(-z),
+            camera: self.camera * 10f64.powf(-2.0 * z),
         }
     }
 
@@ -626,7 +629,7 @@ impl View3D {
         Self {
             yaw: self.yaw + yaw,
             pitch: self.pitch + pitch,
-            camera: self.camera * 2f64.powf(-zoom),
+            camera: self.camera * 10f64.powf(-2.0 * zoom),
         }
     }
 }

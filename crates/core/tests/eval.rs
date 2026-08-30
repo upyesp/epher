@@ -958,7 +958,10 @@ fn view3d_offsets_map_to_the_pose() {
     let turned = base.with_offsets(0.5, -0.5, 1.0);
     assert!((turned.yaw - (0.8 + 0.5 * std::f64::consts::PI)).abs() < 1e-12);
     assert!((turned.pitch - (0.6 - 0.4)).abs() < 1e-12);
-    assert!((turned.camera - 15.0).abs() < 1e-12);
+    // ADR-0038: the zoom slider spans two decades each way - +1 zooms in
+    // 100× (a single object), -1 zooms out 100× (every object fits).
+    assert!((turned.camera - 0.3).abs() < 1e-12);
+    assert!((base.with_offsets(0.0, 0.0, -1.0).camera - 3000.0).abs() < 1e-9);
     // The vertical range's top lands exactly on the pitch clamp at the
     // default pose; beyond it the clamp holds.
     let up = base.with_offsets(0.0, 1.0, 0.0);
@@ -969,7 +972,9 @@ fn view3d_offsets_map_to_the_pose() {
     // (clamped away from zero — a zero camera degenerates the projection).
     let near = base.with_camera(12.0);
     assert!((near.camera - 12.0).abs() < 1e-12);
-    assert!((base.with_camera(0.0).camera - 0.5).abs() < 1e-12);
+    // The floor guards the projection, not the user (ADR-0038): wheel and
+    // pinch zoom in as far as they want.
+    assert!((base.with_camera(0.0).camera - 0.01).abs() < 1e-12);
     assert_eq!(base.with_camera(-3.0).yaw, base.yaw);
 }
 
@@ -984,7 +989,8 @@ fn view3d_spin_phase_adds_unclamped_rotation() {
     assert!((spun.yaw - (0.8 + 0.7)).abs() < 1e-12);
     // 0.6 + 2.9 = 3.5 rad: far past the static 1.4 clamp, unclamped.
     assert!((spun.pitch - 3.5).abs() < 1e-12);
-    assert!((spun.camera - 60.0).abs() < 1e-12);
+    // zoom −1 under the ADR-0038 scale: the window grows 100×.
+    assert!((spun.camera - 3000.0).abs() < 1e-9);
     // sin/cos continuity: wrapping the phase by a full turn changes
     // nothing in the projected pose.
     let a = View3D {

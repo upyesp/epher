@@ -303,3 +303,14 @@ list is ordered fallback-first (`100vh`, then the variable): the last
 declaration wins the cascade, and a trailing `100vh` would pin the app
 to the full viewport and hide the keypad's bottom row under bottom
 chrome on Edge and Firefox on Android.
+
+## Amendment (2026-08-30): text-styled buttons carry an underline
+
+Buttons that read as plain text - Clear graph, Copy SVG, Clear
+history, the guide's Close, and the mobile Calculator/Graph pane tabs -
+were indistinguishable from static labels until hovered. They now
+carry an underline (with a 3px offset), so "you can act on this" is
+carried by more than color (WCAG 1.4.1) and survives the hover-less
+touch layouts this ADR governs. True form controls (checkboxes,
+sliders, the keypad's keys) keep their existing affordances. See
+ADR-0038 for the same-day changes these buttons sit beside.

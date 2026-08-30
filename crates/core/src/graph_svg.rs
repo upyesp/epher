@@ -98,6 +98,52 @@ pub fn geometry(curves: &[SampledCurve]) -> Option<Geometry> {
     })
 }
 
+/// The plot geometry over an explicit x-window (ADR-0038): wheel, pinch,
+/// and the zoom slider set the pane's window; the y range still comes
+/// from the samples that fall inside it, padded like [`geometry`]. When
+/// nothing is visible in the window the y range degrades to the samples'
+/// full range so the axes stay drawable.
+pub fn geometry_in(curves: &[SampledCurve], x_min: f64, x_max: f64) -> Option<Geometry> {
+    if !(x_min.is_finite() && x_max.is_finite()) || x_max <= x_min {
+        return geometry(curves);
+    }
+    let mut y_min = f64::INFINITY;
+    let mut y_max = f64::NEG_INFINITY;
+    let mut any = false;
+    for c in curves {
+        for s in &c.samples {
+            if s.y.is_finite() && s.x >= x_min && s.x <= x_max {
+                y_min = y_min.min(s.y);
+                y_max = y_max.max(s.y);
+                any = true;
+            }
+        }
+    }
+    if !any {
+        // Nothing inside the window (zoomed out past the data, or zoomed
+        // into a gap): keep the axes honest with the samples' full range.
+        return geometry(curves).map(|mut g| {
+            g.x_min = x_min;
+            g.x_max = x_max;
+            g.step_x = crate::graph::nice_step(x_max - x_min, 10);
+            g
+        });
+    }
+    let y_span = (y_max - y_min).max(1e-9);
+    let pad = y_span * 0.06;
+    let (y_min, y_max) = (y_min - pad, y_max + pad);
+    let y_span = y_max - y_min;
+    Some(Geometry {
+        x_min,
+        x_max,
+        y_min,
+        y_max,
+        step_x: crate::graph::nice_step(x_max - x_min, 10),
+        step_y: crate::graph::nice_step(y_span, 8),
+        zero_axis: y_min <= 0.0 && y_max >= 0.0,
+    })
+}
+
 /// Split a curve's samples into polyline segments at non-finite points
 /// (gaps, not jumps) *and* at vertical jumps larger than a third of the
 /// sampled value range — a false asymptote line must never connect the two

@@ -581,6 +581,218 @@ fn effective_view(
     }
 }
 
+// ===== zoom (ADR-0038) =====
+
+/// The window a wheel notch or pinch produces: `factor` scales the span
+/// around the anchor (a data x), keeping the anchor's pixel spot fixed.
+/// The span stays within `[base × 1e-9, base × 1e9]` - deep enough that
+/// float sampling, not the clamp, ends the journey.
+pub fn anchored_window(
+    cur: (f64, f64),
+    anchor: f64,
+    factor: f64,
+    base_span: f64,
+) -> (f64, f64) {
+    let factor = factor.clamp(0.2, 5.0);
+    let span = ((cur.1 - cur.0) * factor).clamp(base_span * 1e-9, base_span * 1e9);
+    let lo = anchor - (anchor - cur.0) * (span / (cur.1 - cur.0));
+    (lo, lo + span)
+}
+
+/// The zoom slider position (−1..1) representing the current window: the
+/// span relative to the base window, log-scaled. −1 is 100× wider (every
+/// object fits), +1 is 100× narrower (a single object fills the pane).
+pub fn zoom_slider_value(window: Option<(f64, f64)>, base: (f64, f64)) -> f64 {
+    let Some((lo, hi)) = window else {
+        return 0.0;
+    };
+    let ratio = (hi - lo) / (base.1 - base.0).max(1e-12);
+    (-ratio.log10() / 2.0).clamp(-1.0, 1.0)
+}
+
+/// The window a slider value picks: the base span scaled by 10^(−2z)
+/// around the current center.
+pub fn slider_window(z: f64, base: (f64, f64), center: f64) -> (f64, f64) {
+    let span = (base.1 - base.0) * 10f64.powf(-2.0 * z.clamp(-1.0, 1.0));
+    (center - span / 2.0, center + span / 2.0)
+}
+
+/// Apple platforms (iOS, iPadOS, macOS) get the SF Symbols glyphs for
+/// copy and share; everything else gets the squared Android/Windows
+/// marks (ADR-0038). The share SHEET is always the OS's own -
+/// `navigator.share` invokes it - the artwork just matches it.
+fn is_apple_platform() -> bool {
+    web_sys::window()
+        .and_then(|w| w.navigator().user_agent().ok())
+        .map(|ua| {
+            let ua = ua.to_ascii_lowercase();
+            ua.contains("mac") || ua.contains("iphone") || ua.contains("ipad")
+        })
+        .unwrap_or(false)
+}
+
+/// A 24×24 stroke icon in the menu-icon style.
+fn platform_icon(class: &'static str, inner: &'static str) -> yew::Html {
+    yew::Html::from_html_unchecked(
+        format!(
+            "<svg class=\"{class}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">{inner}</svg>"
+        )
+        .into(),
+    )
+}
+
+/// The standard copy icon for this device (ADR-0038): the points-of-
+/// interest heading's copy button.
+fn copy_icon() -> yew::Html {
+    if is_apple_platform() {
+        platform_icon(
+            "icon-svg",
+            "<rect x=\"9\" y=\"9\" width=\"11\" height=\"11\" rx=\"2.5\"/><path d=\"M5.5 14.5H5a2.5 2.5 0 0 1-2.5-2.5V5A2.5 2.5 0 0 1 5 2.5h7A2.5 2.5 0 0 1 14.5 5v.5\"/>",
+        )
+    } else {
+        platform_icon(
+            "icon-svg",
+            "<rect x=\"8\" y=\"8\" width=\"13\" height=\"13\" rx=\"1\"/><path d=\"M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3\"/>",
+        )
+    }
+}
+
+/// The standard share icon for this device (ADR-0038): the arrow-out-of-
+/// tray on Apple devices, the connected dots elsewhere.
+fn share_icon() -> yew::Html {
+    if is_apple_platform() {
+        platform_icon(
+            "icon-svg",
+            "<path d=\"M12 15V3\"/><path d=\"m8 6.5 4-4 4 4\"/><path d=\"M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8\"/>",
+        )
+    } else {
+        platform_icon(
+            "icon-svg",
+            "<circle cx=\"18\" cy=\"5\" r=\"3\"/><circle cx=\"6\" cy=\"12\" r=\"3\"/><circle cx=\"18\" cy=\"19\" r=\"3\"/><path d=\"m8.6 13.5 6.8 4M15.4 6.5l-6.8 4\"/>",
+        )
+    }
+}
+
+/// The share link for an expression (ADR-0038): this app's URL with the
+/// expression in the `expr` parameter - the same contents a history
+/// pick loads into the entry. Outside the web (the desktop shell's
+/// `tauri://` origin) the link points at the PWA's home instead, so the
+/// recipient's browser opens the app.
+fn share_link(expr: &str) -> String {
+    const PWA_URL: &str = "https://epher.org/pwa/";
+    let base = web_sys::window().and_then(|w| {
+        let origin = w.location().origin().ok()?;
+        if origin.starts_with("http") {
+            let path = w.location().pathname().ok()?;
+            Some(format!("{origin}{path}"))
+        } else {
+            None
+        }
+    });
+    let base = base.unwrap_or_else(|| PWA_URL.to_string());
+    format!("{base}?expr={}", js_sys::encode_uri_component(expr))
+}
+
+// ===== guide search (ADR-0038) =====
+
+/// One guide-search match: where to jump (the DOM order index among the
+/// searched nodes) and the text around the match.
+struct GuideHit {
+    chapter: String,
+    snippet: String,
+    index: usize,
+}
+
+const GUIDE_SEARCH_NODES: &str = ".guide-body h2, .guide-body h3, .guide-body p, .guide-body li";
+
+/// Search the rendered guide text (ADR-0038): a case-insensitive
+/// substring scan over every heading, paragraph, and list entry, each hit
+/// carrying its chapter's title and a snippet around the match.
+fn guide_search(query: &str) -> Vec<GuideHit> {
+    let q = query.trim().to_lowercase();
+    if q.is_empty() {
+        return Vec::new();
+    }
+    let Some(doc) = web_sys::window().and_then(|w| w.document()) else {
+        return Vec::new();
+    };
+    let Ok(nodes) = doc.query_selector_all(GUIDE_SEARCH_NODES) else {
+        return Vec::new();
+    };
+    let mut hits = Vec::new();
+    for i in 0..nodes.length() {
+        let Some(el) = nodes
+            .item(i)
+            .and_then(|n| n.dyn_into::<web_sys::Element>().ok())
+        else {
+            continue;
+        };
+        let text = el.text_content().unwrap_or_default();
+        let lower = text.to_lowercase();
+        if let Some(pos) = lower.find(&q) {
+            // The chapter is the nearest preceding h2 in document order.
+            let mut chapter = String::new();
+            let mut j = i;
+            while j > 0 {
+                j -= 1;
+                if let Some(prev) = nodes
+                    .item(j)
+                    .and_then(|n| n.dyn_into::<web_sys::Element>().ok())
+                {
+                    if prev.tag_name() == "H2" {
+                        chapter = prev.text_content().unwrap_or_default();
+                        break;
+                    }
+                }
+            }
+            let start = pos.saturating_sub(24);
+            let end = (start + 96).min(text.len());
+            let mut snippet = text[start..end].trim().to_string();
+            if start > 0 {
+                snippet = format!("\u{2026}{snippet}");
+            }
+            if end < text.len() {
+                snippet.push('\u{2026}');
+            }
+            hits.push(GuideHit {
+                chapter,
+                snippet,
+                index: i as usize,
+            });
+            if hits.len() >= 20 {
+                break;
+            }
+        }
+    }
+    hits
+}
+
+/// Jump to a search hit: scroll it into view inside the guide body and
+/// flash it, so the match is findable again after the jump.
+fn guide_jump_to(index: usize) {
+    let Some(doc) = web_sys::window().and_then(|w| w.document()) else {
+        return;
+    };
+    let Ok(nodes) = doc.query_selector_all(GUIDE_SEARCH_NODES) else {
+        return;
+    };
+    if let Some(el) = nodes
+        .item(index as u32)
+        .and_then(|n| n.dyn_into::<web_sys::Element>().ok())
+    {
+        el.scroll_into_view();
+        let Ok(el) = el.dyn_into::<web_sys::HtmlElement>() else {
+            return;
+        };
+        let _ = el.class_list().add_1("guide-hit");
+        let el = el.clone();
+        gloo_timers::callback::Timeout::new(1_600, move || {
+            let _ = el.class_list().remove_1("guide-hit");
+        })
+        .forget();
+    }
+}
+
 /// One top-level menu icon (ADR-0032): the menu bar is a vertical rail of
 /// icon buttons, so the names live in each button's aria-label (and its
 /// native tooltip) while the SVG is aria-hidden.
@@ -962,6 +1174,16 @@ fn epher_app() -> Html {
     let view_z = use_state(|| 0.0_f64);
     let spin_phase = use_state(|| (0.0_f64, 0.0_f64));
     let spin_phase_cell = use_state(|| Rc::new(RefCell::new((0.0_f64, 0.0_f64))));
+    // The 2D plot's zoom window (ADR-0038): wheel, pinch, and the zoom
+    // slider set an explicit x window; `None` is the auto-fit around the
+    // samples. The live cell feeds the mount-time plot listeners, the
+    // state mirrors it for rendering - the render-snapshot rule
+    // (ADR-0026).
+    let view2d = use_state(|| Option::<(f64, f64)>::None);
+    let view2d_cell = use_state(|| Rc::new(RefCell::new(Option::<(f64, f64)>::None)));
+    // The solar legend (ADR-0038): the bodies whose orbit, trail, and dot
+    // are unchecked. A fresh scene starts with everything visible.
+    let solar_hidden = use_state(|| Vec::<i64>::new());
     // Live mirrors of the rotation slider values for the spin loop.
     let view_h_cell = use_state(|| Rc::new(RefCell::new(0.0_f64)));
     let view_v_cell = use_state(|| Rc::new(RefCell::new(0.0_f64)));
@@ -996,6 +1218,10 @@ fn epher_app() -> Html {
     *menu_open_cell.borrow_mut() = *menu_open;
     let hamburger_open = use_state(|| false);
     let guide_open = use_state(|| false);
+    // The in-app guide's search box (ADR-0038): the query drives a scan
+    // over the rendered guide text; hits jump to their match.
+    let guide_query = use_state(String::new);
+    let guide_hits = use_state(Vec::<GuideHit>::new);
     let guide_close_ref = use_node_ref();
     {
         // Focus the close button whenever the guide opens so Escape works
@@ -1013,6 +1239,9 @@ fn epher_app() -> Html {
     }
     let file_ref = use_node_ref();
     let history_ref = use_node_ref();
+    // The history list's section - the `history` command (ADR-0038) and
+    // keyboard cycling focus it.
+    let history_box_ref = use_node_ref();
     let bridge = Bridge::detect();
 
     // Clear history (the button next to the list): empty the session's
@@ -1185,6 +1414,43 @@ fn epher_app() -> Html {
                             if let Some(ta) = input_ref.cast::<web_sys::HtmlTextAreaElement>() {
                                 let _ = ta.focus();
                             }
+                        }
+                    }
+                }
+            }
+            // A shared link (ADR-0038): `?expr=...` stages the expression
+            // in the entry - the same contents a history pick loads. The
+            // parameter is consumed so a reload starts clean.
+            if let Some(window) = web_sys::window() {
+                if let Ok(search) = window.location().search() {
+                    if !search.is_empty() {
+                        if let Ok(Some(expr)) = web_sys::UrlSearchParams::new_with_str(&search)
+                            .map(|params| params.get("expr"))
+                        {
+                            if !expr.is_empty() {
+                                input.set(expr.clone());
+                                *cursor_cell.borrow_mut() = (expr.len(), expr.len());
+                                if !mobile_layout() {
+                                    if let Some(ta) =
+                                        input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                    {
+                                        let _ = ta.focus();
+                                    }
+                                }
+                            }
+                        }
+                        if let Ok(history) = window.history() {
+                            let path = window.location().pathname().unwrap_or_default();
+                            let url = format!(
+                                "{}{}",
+                                window.location().origin().unwrap_or_default(),
+                                path
+                            );
+                            let _ = history.replace_state_with_url(
+                                &wasm_bindgen::JsValue::NULL,
+                                "",
+                                Some(&url),
+                            );
                         }
                     }
                 }
@@ -1708,6 +1974,11 @@ fn epher_app() -> Html {
         let view_z = view_z.clone();
         let spin_phase = spin_phase.clone();
         let spin_phase_cell = spin_phase_cell.clone();
+        let view2d = view2d.clone();
+        let view2d_cell = view2d_cell.clone();
+        let solar_hidden = solar_hidden.clone();
+        let history_box_ref = history_box_ref.clone();
+        let scroll_pane_for_submit = scroll_pane.clone();
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             // A submitted entry may be several lines (pasted from the
@@ -1769,6 +2040,38 @@ fn epher_app() -> Html {
                     let piece = piece.trim();
                     last_eval_output = None;
 
+                    // The keypad's command keys (ADR-0038): `clear` empties
+                    // the plot like the Clear graph button; `history`
+                    // focuses the history list. Both previously fell
+                    // through to the evaluator and errored as unknown
+                    // names.
+                    if piece == "clear" {
+                        curves.clear();
+                        pois.set(Vec::new());
+                        surfaces.clear();
+                        solar = None;
+                        solar_source = None;
+                        solar_hidden.set(Vec::new());
+                        view_h.set(0.0);
+                        view_v.set(0.0);
+                        view_z.set(0.0);
+                        spin_phase.set((0.0, 0.0));
+                        *spin_phase_cell.borrow_mut() = (0.0, 0.0);
+                        *view2d_cell.borrow_mut() = None;
+                        view2d.set(None);
+                        result.set(String::new());
+                        continue;
+                    }
+                    if piece == "history" {
+                        if let Some(el) = history_box_ref.cast::<web_sys::HtmlElement>() {
+                            let _ = el.focus();
+                        }
+                        if mobile_layout() {
+                            scroll_pane_for_submit.emit("calc-pane");
+                        }
+                        continue;
+                    }
+
                     // Graphing (ADR-0006/0014: the core samples, the frontend renders).
                     // Each `graph` line overlays one more curve; the command
                     // itself joins the history list like every submitted line.
@@ -1779,6 +2082,9 @@ fn epher_app() -> Html {
                         }
                         if source == "clear" {
                             curves.clear();
+                            pois.set(Vec::new());
+                            *view2d_cell.borrow_mut() = None;
+                            view2d.set(None);
                             continue;
                         }
                         match parse_graph_source(source).and_then(|spec| {
@@ -1793,6 +2099,10 @@ fn epher_app() -> Html {
                                 surfaces.clear();
                                 solar = None;
                                 solar_source = None;
+                                solar_hidden.set(Vec::new());
+                                // A fresh plot re-fits the zoom window (ADR-0038).
+                                *view2d_cell.borrow_mut() = None;
+                                view2d.set(None);
                                 curves.push(SampledCurve {
                                     source: source.to_string(),
                                     kind: spec.kind,
@@ -1853,6 +2163,9 @@ fn epher_app() -> Html {
                                 curves.clear();
                                 solar = None;
                                 solar_source = None;
+                                solar_hidden.set(Vec::new());
+                                *view2d_cell.borrow_mut() = None;
+                                view2d.set(None);
                                 // A 3D graph drawn into an empty pane brings
                                 // fresh fine-control sliders at their default
                                 // 0 (ADR-0031); overlays keep the current pose.
@@ -1895,6 +2208,7 @@ fn epher_app() -> Html {
                         if source == "clear" {
                             solar = None;
                             solar_source = None;
+                            solar_hidden.set(Vec::new());
                             view_h.set(0.0);
                             view_v.set(0.0);
                             view_z.set(0.0);
@@ -1920,6 +2234,7 @@ fn epher_app() -> Html {
                                 surfaces.clear();
                                 solar = Some(scene);
                                 solar_source = Some(source.to_string());
+                                solar_hidden.set(Vec::new());
                                 view.set(home);
                                 view_h.set(0.0);
                                 view_v.set(0.0);
@@ -2147,6 +2462,7 @@ fn epher_app() -> Html {
         let hidden = hidden.clone();
         let tick_no = tick_no.clone();
         let result = result.clone();
+        let live = live.clone();
         Callback::from(move |(name, value): (String, f64)| {
             // Two steps: a borrow_mut must never be alive while the
             // increment reads (that panics and kills the loop task).
@@ -2189,6 +2505,10 @@ fn epher_app() -> Html {
             *session_live.borrow_mut() = s;
             if (*hidden).len() != curves.len() {
                 hidden.set(vec![false; curves.len()]);
+            }
+            {
+                let mut l = (*live).borrow_mut();
+                l.curves = curves.clone();
             }
             graph.set(curves);
             surface.set(surfaces.clone());
@@ -2389,11 +2709,15 @@ fn epher_app() -> Html {
     let on_trace = {
         let live = live.clone();
         let trace = trace.clone();
+        let view2d_cell = view2d_cell.clone();
         Callback::from(move |(px, py): (f64, f64)| {
             let found = {
                 let l = (*live).borrow();
-                graph::geometry(&l.curves)
-                    .and_then(|geom| graph::trace_nearest(&l.curves, &geom, px, py))
+                let geom = match (*view2d_cell).borrow().clone() {
+                    Some((lo, hi)) => graph::geometry_in(&l.curves, lo, hi),
+                    None => graph::geometry(&l.curves),
+                };
+                geom.and_then(|geom| graph::trace_nearest(&l.curves, &geom, px, py))
             };
             (*live).borrow_mut().trace = found;
             trace.set(found);
@@ -2551,6 +2875,185 @@ fn epher_app() -> Html {
                     }
                 } else {
                     result.set(localizer.lookup("graph-copy-failed"));
+                }
+            });
+        })
+    };
+
+    // Zoom the 2D plot (ADR-0038): a wheel notch, a pinch, or the zoom
+    // slider lands here. Cartesian curves re-sample over the new window
+    // (param and polar keep their parameter samples - the view clips
+    // them), the trace clears, and the window cell leads so the
+    // mount-time listeners read fresh values.
+    let apply_zoom_window = {
+        let live = live.clone();
+        let session_live = session_live.clone();
+        let graph = graph.clone();
+        let trace = trace.clone();
+        let view2d = view2d.clone();
+        let view2d_cell = view2d_cell.clone();
+        Rc::new(move |window: (f64, f64)| {
+            let s = session_live.borrow().clone();
+            let mut curves = (*live).borrow().curves.clone();
+            if curves.is_empty() {
+                return;
+            }
+            for c in curves.iter_mut() {
+                if matches!(c.kind, epher_core::graph::CurveKind::Cartesian(_)) {
+                    let spec = epher_core::graph::CurveSpec {
+                        kind: c.kind.clone(),
+                        domain: window,
+                        fill: c.fill,
+                    };
+                    if let Ok(samples) = epher_core::graph::sample_spec(&spec, 120, s.env()) {
+                        c.samples = samples;
+                    }
+                }
+            }
+            (*live).borrow_mut().trace = None;
+            trace.set(None);
+            *view2d_cell.borrow_mut() = Some(window);
+            view2d.set(Some(window));
+            graph.set(curves);
+        })
+    };
+    let on_zoom2d = {
+        let live = live.clone();
+        let view2d_cell = view2d_cell.clone();
+        let apply = apply_zoom_window.clone();
+        Callback::from(move |(px, py, factor): (f64, f64, f64)| {
+            let _ = py;
+            let l = (*live).borrow();
+            let Some(geom) = graph::geometry(&l.curves) else {
+                return;
+            };
+            let base = (geom.x_min, geom.x_max);
+            let cur = (*view2d_cell).borrow().unwrap_or(base);
+            // The anchor's data x under the current window.
+            let anchor =
+                cur.0 + (px - graph::LEFT) / (graph::RIGHT - graph::LEFT) * (cur.1 - cur.0);
+            drop(l);
+            apply(anchored_window(cur, anchor, factor, base.1 - base.0));
+        })
+    };
+    let on_set_zoom2d = {
+        let live = live.clone();
+        let view2d_cell = view2d_cell.clone();
+        let apply = apply_zoom_window.clone();
+        Callback::from(move |z: f64| {
+            let l = (*live).borrow();
+            let Some(geom) = graph::geometry(&l.curves) else {
+                return;
+            };
+            let base = (geom.x_min, geom.x_max);
+            let cur = (*view2d_cell).borrow().unwrap_or(base);
+            drop(l);
+            let center = (cur.0 + cur.1) / 2.0;
+            apply(slider_window(z, base, center));
+        })
+    };
+    // Wheel and pinch zoom the 3D scene (ADR-0038): the camera distance
+    // scales directly, past the slider's two-decade display range.
+    let on_zoom3d = {
+        let view = view.clone();
+        let view_cell = view_cell.clone();
+        Callback::from(move |factor: f64| {
+            let v = *view_cell.borrow();
+            let next = epher_core::graph::View3D {
+                yaw: v.yaw,
+                pitch: v.pitch,
+                camera: (v.camera * factor).clamp(0.01, 1e7),
+            };
+            *view_cell.borrow_mut() = next;
+            view.set(next);
+        })
+    };
+    // The solar legend's per-body checkboxes (ADR-0038): like the curve
+    // legend, unchecking hides the body from the plot and the export.
+    let on_toggle_solar_body = {
+        let solar_hidden = solar_hidden.clone();
+        Callback::from(move |(body, on): (i64, bool)| {
+            let mut hidden = (*solar_hidden).clone();
+            if on {
+                hidden.retain(|b| *b != body);
+            } else if !hidden.contains(&body) {
+                hidden.push(body);
+            }
+            solar_hidden.set(hidden);
+        })
+    };
+    // Copy the points of interest (ADR-0038): the same lines the list
+    // shows, one per line, onto the clipboard.
+    let on_copy_pois = {
+        let pois = pois.clone();
+        let result = result.clone();
+        let localizer = localizer.clone();
+        Callback::from(move |_| {
+            let text = (*pois)
+                .iter()
+                .map(|p| format!("{} ({}, {})", p.label, graph::label(p.x), graph::label(p.y)))
+                .collect::<Vec<_>>()
+                .join("\n");
+            let result = result.clone();
+            let localizer = localizer.clone();
+            spawn_local(async move {
+                match web_sys::window().map(|w| w.navigator().clipboard()) {
+                    Some(clipboard) => match clipboard.write_text(&text).await {
+                        Ok(_) => result.set(localizer.lookup("poi-copied")),
+                        Err(_) => result.set(localizer.lookup("graph-copy-failed")),
+                    },
+                    None => result.set(localizer.lookup("graph-copy-failed")),
+                }
+            });
+        })
+    };
+    // Share a history line (ADR-0038): the OS share sheet (the web share
+    // API) carries the app link with the line's expression embedded;
+    // without the API the link lands on the clipboard instead.
+    let on_share = {
+        let result = result.clone();
+        let localizer = localizer.clone();
+        Callback::from(move |line: String| {
+            let expr = history_expression(&line).to_string();
+            let link = share_link(&expr);
+            let text = localizer.lookup("share-text");
+            let result = result.clone();
+            let localizer = localizer.clone();
+            let shared = web_sys::window().and_then(|w| {
+                let navigator = w.navigator();
+                let nav: &wasm_bindgen::JsValue = navigator.as_ref();
+                js_sys::Reflect::has(nav, &JsValue::from_str("share"))
+                    .ok()
+                    .filter(|has| *has)
+                    .map(|_| navigator)
+            });
+            if let Some(navigator) = shared {
+                let obj = js_sys::Object::new();
+                let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("title"), &"epher".into());
+                let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("text"), &text.into());
+                let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("url"), &link.clone().into());
+                let nav: &wasm_bindgen::JsValue = navigator.as_ref();
+                let promise = js_sys::Reflect::get(nav, &JsValue::from_str("share"))
+                    .ok()
+                    .and_then(|f| f.dyn_into::<js_sys::Function>().ok())
+                    .and_then(|f| f.call1(nav, &obj.into()).ok())
+                    .and_then(|v| v.dyn_into::<js_sys::Promise>().ok());
+                if let Some(promise) = promise {
+                    spawn_local(async move {
+                        // A cancel (AbortError) is the user's own choice,
+                        // not an error; the sheet already showed it.
+                        let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
+                    });
+                    return;
+                }
+            }
+            spawn_local(async move {
+                match web_sys::window().map(|w| w.navigator().clipboard()) {
+                    Some(clipboard) => match clipboard.write_text(&link).await {
+                        Ok(_) => result.set(localizer.lookup("share-copied")),
+                        Err(_) => result.set(localizer.lookup("share-failed")),
+                    },
+                    None => result.set(localizer.lookup("share-failed")),
                 }
             });
         })
@@ -2876,6 +3379,27 @@ fn epher_app() -> Html {
         })
         .collect();
 
+    // The 2D zoom slider's position and input handler (ADR-0038): -1 fits
+    // every object, +1 shows a single one; wheel and pinch move past the
+    // ends and the slider pins there.
+    let zoom2d_slider = graph::geometry(&graph)
+        .map(|g| (g.x_min, g.x_max))
+        .map(|base| zoom_slider_value(*view2d, base))
+        .unwrap_or(0.0);
+    let on_zoom2d_input = {
+        let on_set_zoom2d = on_set_zoom2d.clone();
+        Callback::from(move |e: web_sys::InputEvent| {
+            if let Some(el) = e
+                .target()
+                .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+            {
+                if let Ok(v) = el.value().parse::<f64>() {
+                    on_set_zoom2d.emit(v);
+                }
+            }
+        })
+    };
+
     // ADR-0017: on mobile the menu bar folds into a hamburger whose panel
     // lists the same three menus as labeled groups. Items share the
     // desktop handlers and close the panel when activated.
@@ -2918,6 +3442,9 @@ fn epher_app() -> Html {
         let spin_phase = spin_phase.clone();
         let spin_phase_cell = spin_phase_cell.clone();
         let hidden = hidden.clone();
+        let view2d = view2d.clone();
+        let view2d_cell = view2d_cell.clone();
+        let solar_hidden = solar_hidden.clone();
         Callback::from(move |_| {
             hidden.set(Vec::new());
             graph.set(Vec::new());
@@ -2925,6 +3452,9 @@ fn epher_app() -> Html {
             surface.set(Vec::new());
             solar.set(None);
             solar_source.set(None);
+            solar_hidden.set(Vec::new());
+            *view2d_cell.borrow_mut() = None;
+            view2d.set(None);
             *surface3d_cell.borrow_mut() = false;
             trace.set(None);
             // Mobile (ADR-0035): the pane is empty now — slide the view
@@ -3370,6 +3900,14 @@ fn epher_app() -> Html {
                                     { localizer.lookup("menu-paste") }
                                 </button>
                                 <div class="menu-sep" role="separator"></div>
+                                <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-help") }</p>
+                                <button type="button" role="menuitem" class="menu-item" onclick={mobile_item(Callback::from({
+                                    let on_open_guide = on_open_guide.clone();
+                                    move |e: web_sys::MouseEvent| on_open_guide.emit(e)
+                                }))}>
+                                    { localizer.lookup("menu-guide") }
+                                </button>
+                                <div class="menu-sep" role="separator"></div>
                                 <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-theme") }</p>
                                 { for ["light", "dark", "night"].map(|name| {
                                     let label = match name {
@@ -3412,14 +3950,6 @@ fn epher_app() -> Html {
                                         </button>
                                     }
                                 }) }
-                                <div class="menu-sep" role="separator"></div>
-                                <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-help") }</p>
-                                <button type="button" role="menuitem" class="menu-item" onclick={mobile_item(Callback::from({
-                                    let on_open_guide = on_open_guide.clone();
-                                    move |e: web_sys::MouseEvent| on_open_guide.emit(e)
-                                }))}>
-                                    { localizer.lookup("menu-guide") }
-                                </button>
                             </div>
                         }
                     } else {
@@ -3473,7 +4003,7 @@ fn epher_app() -> Html {
                             { (*result).clone() }
                         </div>
                     </div>
-                    <section class="history-box" tabindex="0" aria-label={localizer.lookup("history")}>
+                    <section class="history-box" tabindex="0" aria-label={localizer.lookup("history")} ref={history_box_ref.clone()}>
                         <div class="history-head">
                             <h2>{ localizer.lookup("history") }</h2>
                             <button type="button" class="clear-history" onclick={on_clear_history}>
@@ -3517,7 +4047,26 @@ fn epher_app() -> Html {
                                         }
                                     })
                                 };
-                                html! { <li><button type="button" class="history-item" onclick={on_pick}>{ h.clone() }</button></li> }
+                                // Share (ADR-0038): the OS share sheet with
+                                // an app link carrying this line's
+                                // expression - the same contents a pick
+                                // loads. The icon sits left of the item.
+                                let on_share = on_share.clone();
+                                let line = h.clone();
+                                html! {
+                                    <li class="history-row">
+                                        <button
+                                            type="button"
+                                            class="icon-btn share-btn"
+                                            aria-label={localizer.lookup("share-item")}
+                                            title={localizer.lookup("share-item")}
+                                            onclick={Callback::from(move |_| on_share.emit(line.clone()))}
+                                        >
+                                            { share_icon() }
+                                        </button>
+                                        <button type="button" class="history-item" onclick={on_pick}>{ h.clone() }</button>
+                                    </li>
+                                }
                             }) }
                         </ul>
                     </section>
@@ -3693,6 +4242,25 @@ fn epher_app() -> Html {
                                                             })} />
                                                             { localizer.lookup("settings-markers") }
                                                         </label>
+                                                        {
+                                                            // The 2D zoom slider (ADR-0038): -1 fits
+                                                            // every object, +1 shows a single one;
+                                                            // wheel and pinch move past the ends.
+                                                            // `zoom2d_slider` and `on_zoom2d_input`
+                                                            // are built above with the rest of the
+                                                            // pane's derived state.
+                                                            html! {
+                                                                <label class="graph-option">
+                                                                    <span>{ localizer.lookup("view-zoom") }</span>
+                                                                    <input type="range" class="view3d-slider"
+                                                                        min="-1" max="1" step="0.1"
+                                                                        value={zoom2d_slider.to_string()}
+                                                                        oninput={on_zoom2d_input.clone()}
+                                                                    />
+                                                                    <span class="graph-width-value" aria-hidden="true">{ format!("{zoom2d_slider:.1}") }</span>
+                                                                </label>
+                                                            }
+                                                        }
                                                     </>
                                                 }
                                             } else {
@@ -3762,7 +4330,9 @@ fn epher_app() -> Html {
                                             trace={*trace}
                                             markers={*poi_markers}
                                             line_width={*width_2d}
+                                            window={*view2d}
                                             on_trace={on_trace}
+                                            on_zoom={on_zoom2d}
                                             on_key={on_trace_key}
                                             on_leave={on_trace_leave}
                                         />
@@ -3775,9 +4345,21 @@ fn epher_app() -> Html {
                                     </div>
                                     {
                                         if !(*pois).is_empty() && *poi_list {
+                                            let on_copy_pois = on_copy_pois.clone();
                                             html! {
                                                 <>
-                                                    <p class="poi-heading">{ localizer.lookup("graph-points") }</p>
+                                                    <div class="poi-head">
+                                                        <p class="poi-heading">{ localizer.lookup("graph-points") }</p>
+                                                        <button
+                                                            type="button"
+                                                            class="icon-btn"
+                                                            aria-label={localizer.lookup("poi-copy")}
+                                                            title={localizer.lookup("poi-copy")}
+                                                            onclick={on_copy_pois}
+                                                        >
+                                                            { copy_icon() }
+                                                        </button>
+                                                    </div>
                                                     <ul class="poi-list">
                                                         { for poi_items }
                                                     </ul>
@@ -3798,20 +4380,90 @@ fn epher_app() -> Html {
                             // The solar system pane (ADR-0037): orbit
                             // curves, trails, and positioned dots through
                             // the same 3D pane, orbit and fine controls
-                            // inherited (the ADR-0015 amendment).
+                            // inherited (the ADR-0015 amendment). The
+                            // legend's unchecked bodies (ADR-0038) stay out
+                            // of the render and the aria name.
+                            let shown = epher_core::astro::SolarScene {
+                                jd: scene.jd,
+                                orbits: scene
+                                    .orbits
+                                    .iter()
+                                    .filter(|p| !solar_hidden.contains(&p.body))
+                                    .cloned()
+                                    .collect(),
+                                trails: scene
+                                    .trails
+                                    .iter()
+                                    .filter(|p| !solar_hidden.contains(&p.body))
+                                    .cloned()
+                                    .collect(),
+                                dots: scene
+                                    .dots
+                                    .iter()
+                                    .filter(|d| !solar_hidden.contains(&d.body))
+                                    .cloned()
+                                    .collect(),
+                            };
                             let effective =
                                 effective_view(&view, *view_h, *view_v, *view_z, *spin_phase);
-                            let rendered = graph::solar_svg(scene, &effective, *width_3d);
+                            let rendered = graph::solar_svg(&shown, &effective, *width_3d);
                             let aria = format!(
                                 "{}: {}",
                                 localizer.lookup("solar3d-title"),
                                 scene
                                     .dots
                                     .iter()
+                                    .filter(|d| !solar_hidden.contains(&d.body))
                                     .map(|d| epher_core::astro::body_name(d.body))
                                     .collect::<Vec<_>>()
                                     .join(", ")
                             );
+                            // The legend (ADR-0038): one entry per body, the
+                            // checkbox hiding its orbit, trail, and dot - the
+                            // curve legend's gesture on the solar pane.
+                            let solar_legend: Vec<Html> = scene
+                                .dots
+                                .iter()
+                                .map(|d| {
+                                    let body = d.body;
+                                    let name = epher_core::astro::body_name(body);
+                                    let color = epher_core::graph_svg::solar_color(body);
+                                    let checked = !solar_hidden.contains(&body);
+                                    let on_toggle_solar_body = on_toggle_solar_body.clone();
+                                    html! {
+                                        <li class="legend-item">
+                                            <label
+                                                class="legend-check"
+                                                style={format!("--curve: {color}")}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={checked}
+                                                    aria-label={name.to_string()}
+                                                    onchange={Callback::from(
+                                                        move |e: web_sys::Event| {
+                                                            if let Some(el) = e
+                                                                .target()
+                                                                .and_then(|t| {
+                                                                    t.dyn_into::<
+                                                                        web_sys::HtmlInputElement,
+                                                                    >()
+                                                                    .ok()
+                                                                })
+                                                            {
+                                                                on_toggle_solar_body
+                                                                    .emit((body, el.checked()));
+                                                            }
+                                                        },
+                                                    )}
+                                                />
+                                                <span class="swatch" aria-hidden="true"></span>
+                                                { name }
+                                            </label>
+                                        </li>
+                                    }
+                                })
+                                .collect();
                             if let Some((view_box, content)) = rendered {
                                 *rendered_box.borrow_mut() = Some(view_box.clone());
                                 let shown_box = (*play)
@@ -3827,9 +4479,13 @@ fn epher_app() -> Html {
                                                 content={content}
                                                 aria_label={aria}
                                                 on_orbit={on_orbit}
+                                                on_zoom={on_zoom3d.clone()}
                                             />
                                         </div>
                                         <p class="graph3d-hint">{ localizer.lookup("graph3d-hint") }</p>
+                                        <ul class="legend">
+                                            { for solar_legend }
+                                        </ul>
                                         <div class="sliders">
                                             { for solar_rows }
                                         </div>
@@ -3872,6 +4528,7 @@ fn epher_app() -> Html {
                                                 content={content}
                                                 aria_label={aria}
                                                 on_orbit={on_orbit}
+                                                on_zoom={on_zoom3d.clone()}
                                             />
                                         </div>
                                         <p class="graph3d-hint">{ localizer.lookup("graph3d-hint") }</p>
@@ -3911,6 +4568,81 @@ fn epher_app() -> Html {
                                 <button type="button" class="guide-close-btn" ref={guide_close_ref.clone()} onclick={on_close_guide.clone()}>
                                     { localizer.lookup("guide-close") }
                                 </button>
+                            </div>
+                            <div class="guide-search">
+                                <input
+                                    type="search"
+                                    aria-label={localizer.lookup("guide-search")}
+                                    placeholder={localizer.lookup("guide-search-placeholder")}
+                                    value={(*guide_query).clone()}
+                                    oninput={Callback::from({
+                                        let guide_query = guide_query.clone();
+                                        let guide_hits = guide_hits.clone();
+                                        move |e: web_sys::InputEvent| {
+                                            let q = e
+                                                .target()
+                                                .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                .map(|el| el.value())
+                                                .unwrap_or_default();
+                                            guide_hits.set(guide_search(&q));
+                                            guide_query.set(q);
+                                        }
+                                    })}
+                                    onkeydown={Callback::from({
+                                        let guide_query = guide_query.clone();
+                                        let guide_hits = guide_hits.clone();
+                                        move |e: web_sys::KeyboardEvent| {
+                                            match e.key().as_str() {
+                                                // Enter jumps to the first hit.
+                                                "Enter" => {
+                                                    if let Some(hit) = guide_hits.first() {
+                                                        guide_jump_to(hit.index);
+                                                    }
+                                                    e.prevent_default();
+                                                }
+                                                "Escape" => {
+                                                    guide_query.set(String::new());
+                                                    guide_hits.set(Vec::new());
+                                                }
+                                                _ => {}
+                                            }
+                                        }
+                                    })}
+                                />
+                                {
+                                    if !(*guide_query).trim().is_empty() {
+                                        if guide_hits.is_empty() {
+                                            html! { <p class="guide-no-results" role="status">{ localizer.lookup("guide-no-results") }</p> }
+                                        } else {
+                                            html! {
+                                                <ul class="guide-results" role="listbox" aria-label={localizer.lookup("guide-search")}>
+                                                    { for guide_hits.iter().map(|hit| {
+                                                        let index = hit.index;
+                                                        let chapter = if hit.chapter.is_empty() { hit.snippet.clone() } else { hit.chapter.clone() };
+                                                        html! {
+                                                            <li>
+                                                                <button
+                                                                    type="button"
+                                                                    role="option"
+                                                                    aria-selected="false"
+                                                                    class="guide-result"
+                                                                    onclick={Callback::from(move |_| {
+                                                                        guide_jump_to(index);
+                                                                    })}
+                                                                >
+                                                                    <span class="guide-result-chapter">{ chapter }</span>
+                                                                    <span class="guide-result-snippet">{ hit.snippet.clone() }</span>
+                                                                </button>
+                                                            </li>
+                                                        }
+                                                    }) }
+                                                </ul>
+                                            }
+                                        }
+                                    } else {
+                                        html! {}
+                                    }
+                                }
                             </div>
                             <p class="guide-insert-hint">{ localizer.lookup("guide-insert-hint") }</p>
                             <div class="guide-body" tabindex="0" onclick={Callback::from({

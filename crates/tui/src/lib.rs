@@ -1195,6 +1195,19 @@ impl App {
         localizer: &Localizer,
         quiet: bool,
     ) -> (Option<String>, bool) {
+        // The keypad's command keys (ADR-0038): `clear` empties the plot
+        // like the menu's Clear graph; `history` opens the history list.
+        // Both previously fell through to the evaluator and errored as
+        // unknown names.
+        if piece == "clear" {
+            self.clear_graph();
+            self.result.clear();
+            return (None, false);
+        }
+        if piece == "history" {
+            self.history_open();
+            return (None, false);
+        }
         if let Some(source) = piece.strip_prefix("graph ") {
             // The command joins the session history like every other
             // submitted line; the plot is the output.
