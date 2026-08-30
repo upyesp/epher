@@ -831,7 +831,7 @@ solar3d jd(2020, 7, 1)
 ```
 
 Donnez le temps sous forme de constante et appuyez sur le bouton lecture
-pour voir les planètes bouger : `const t = jd(now()); solar3d t`. Glissez
+pour voir les planètes bouger : `const t = now(); solar3d t`. Glissez
 ou utilisez les flèches pour pivoter, `clear` pour vider, et
 `solar3d save file.svg` pour exporter.
 

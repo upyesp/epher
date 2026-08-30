@@ -286,6 +286,11 @@ whose goal is accuracy must not let a viewing control lie about the data.
 - **Control parity (same amendment):** the fine-control sliders (ADR-0031)
   render for the solar pane too - it already renders from the same shared
   view state, so it inherits the same horizontal, vertical, and zoom
-  controls instead of being the one 3D pane without zoom. And the pane
-  always shows the newest command: drawing a 2D curve or a surface clears
-  any solar scene, exactly as drawing one kind already cleared the other.
+  controls instead of being the one 3D pane without zoom. The constants its
+  time expression references also get their ADR-0014 slider rows, with the
+  play button animating the scene (`const t = now()` + `solar3d t`). And the
+  pane always shows the newest command: drawing a 2D curve or a surface
+  clears any solar scene, exactly as drawing one kind already cleared the
+  other. Slider spans tighten for large-magnitude constants (a Julian Date
+  gets a v±2 window, not a −10..v+2 union), keeping the ADR-0015 play
+  cycle (step 0.1, ≈ 5 s per loop) true at every magnitude.

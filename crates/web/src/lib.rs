@@ -70,6 +70,20 @@ impl PlaySpec {
 /// The names of session constants any plotted expression references — each
 /// becomes a live slider (ADR-0014). Surfaces count too (ADR-0015): their
 /// constants animate the mesh the same way.
+/// The slider span for a constant whose value is `v`: the base −10..10
+/// window while the value lives near it, otherwise a tight v±2 window.
+/// A raw `min(-10, v-2) .. max(10, v+2)` union turns a Julian Date
+/// (≈ 2.46e6) into a 2.46-million-wide slider no one can drag, and play
+/// would wrap from v to −10 the first cycle. The tight window keeps the
+/// ADR-0015 play cycle honest: step 0.1 over v±2 loops in ≈ 5 s.
+fn slider_span(v: f64) -> (f64, f64) {
+    if (-8.0..=8.0).contains(&v) {
+        (-10.0, 10.0)
+    } else {
+        (v - 2.0, v + 2.0)
+    }
+}
+
 fn slider_names(
     curves: &[SampledCurve],
     surfaces: &[epher_core::graph::Surface],
@@ -109,6 +123,23 @@ fn slider_names(
     names.into_iter().collect()
 }
 
+/// The constants the solar pane's time expression references — the source
+/// is stored as written (e.g. `t` or `now() + 10`), so its free names come
+/// straight from the expression tree (ADR-0037).
+fn solar_slider_names(source: &str, session: &Session) -> Vec<String> {
+    let mut names = std::collections::BTreeSet::new();
+    if let Ok(expr) = epher_core::parse(source) {
+        let mut found = std::collections::BTreeSet::new();
+        free_names(&expr, &mut found);
+        for n in found {
+            if session.const_sources().contains_key(&n) {
+                names.insert(n);
+            }
+        }
+    }
+    names.into_iter().collect()
+}
+
 /// The spec that would reproduce a sampled curve (slider re-sampling).
 fn curve_spec(c: &SampledCurve) -> CurveSpec {
     CurveSpec {
@@ -138,7 +169,7 @@ fn resample_surfaces(surfaces: &mut [epher_core::graph::Surface], session: &Sess
 }
 
 /// Rebuild the solar system scene when its time expression references a
-/// session constant - `const t = jd(now()); solar3d t` replays through
+/// session constant - `const t = now(); solar3d t` replays through
 /// the existing playback transport (ADR-0037). A scene whose expression
 /// mentions no constant never rebuilds.
 fn resample_solar(
@@ -2320,8 +2351,7 @@ fn epher_app() -> Html {
             if reduce {
                 // No looping playback under reduced motion: each press
                 // steps the parameter once (WCAG 2.3.3).
-                let lo = f64::min(-10.0, value - 2.0);
-                let hi = f64::max(10.0, value + 2.0);
+                let (lo, hi) = slider_span(value);
                 let mut next = value + 0.1;
                 if next > hi {
                     next = lo;
@@ -2331,8 +2361,7 @@ fn epher_app() -> Html {
                 }
                 return;
             }
-            let lo = f64::min(-10.0, value - 2.0);
-            let hi = f64::max(10.0, value + 2.0);
+            let (lo, hi) = slider_span(value);
             let spec = PlaySpec {
                 name,
                 lo,
@@ -2706,8 +2735,7 @@ fn epher_app() -> Html {
             .iter()
             .filter_map(|name| {
                 let v = const_value(&session, name)?;
-                let lo = f64::min(-10.0, v - 2.0);
-                let hi = f64::max(10.0, v + 2.0);
+                let (lo, hi) = slider_span(v);
                 let on_slider = on_slider.clone();
                 let playing_this = (*play).as_ref().is_some_and(|p| p.name == *name);
                 let stop_on_drag = {
@@ -2769,8 +2797,13 @@ fn epher_app() -> Html {
     };
     let curve_sliders = slider_names(&graph, &[], &session);
     let surface_sliders = slider_names(&[], &surface, &session);
+    let solar_sliders = match (*solar_source).as_deref() {
+        Some(src) => solar_slider_names(src, &session),
+        None => Vec::new(),
+    };
     let curve_rows = build_rows(&curve_sliders);
     let surface_rows = build_rows(&surface_sliders);
+    let solar_rows = build_rows(&solar_sliders);
 
     // Per-curve visibility toggle (ADR-0015 amendment): the legend's
     // checkbox. Unchecking hides the curve from the plot, its points of
@@ -3797,6 +3830,9 @@ fn epher_app() -> Html {
                                             />
                                         </div>
                                         <p class="graph3d-hint">{ localizer.lookup("graph3d-hint") }</p>
+                                        <div class="sliders">
+                                            { for solar_rows }
+                                        </div>
                                     </section>
                                 }
                             } else {
@@ -3963,4 +3999,39 @@ fn epher_app() -> Html {
 #[wasm_bindgen(start)]
 pub fn start() {
     yew::Renderer::<EpherApp>::new().render();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::slider_span;
+
+    #[test]
+    fn small_values_keep_the_base_window() {
+        // The ADR-0014 default: a constant near zero plays across −10..10.
+        assert_eq!(slider_span(0.0), (-10.0, 10.0));
+        assert_eq!(slider_span(2.5), (-10.0, 10.0));
+        assert_eq!(slider_span(-7.0), (-10.0, 10.0));
+        assert_eq!(slider_span(8.0), (-10.0, 10.0));
+    }
+
+    #[test]
+    fn large_values_get_a_tight_window() {
+        // A Julian Date (or any large-magnitude constant) gets a v±2
+        // window: draggable, and play's 0.1 step loops in ≈ 5 s —
+        // not a multi-million-wide slider that wraps v to −10.
+        let (lo, hi) = slider_span(2_461_282.762);
+        assert!((lo - 2_461_280.762).abs() < 1e-9);
+        assert!((hi - 2_461_284.762).abs() < 1e-9);
+        let (lo, hi) = slider_span(-1e6);
+        assert_eq!(lo, -1e6 - 2.0);
+        assert_eq!(hi, -1e6 + 2.0);
+    }
+
+    #[test]
+    fn the_window_always_contains_the_value() {
+        for v in [-100.0, -9.0, 8.5, 42.0, 5e5] {
+            let (lo, hi) = slider_span(v);
+            assert!(lo <= v && v <= hi, "span {lo}..{hi} misses {v}");
+        }
+    }
 }

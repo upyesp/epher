@@ -819,7 +819,7 @@ solar3d jd(2020, 7, 1)
 ```
 
 Dê o tempo como uma constante e prima o botão de reprodução para ver os
-planetas mover-se: `const t = jd(now()); solar3d t`. Arraste ou use as
+planetas mover-se: `const t = now(); solar3d t`. Arraste ou use as
 setas para rodar, `clear` para esvaziar e `solar3d save file.svg` para
 exportar.
 

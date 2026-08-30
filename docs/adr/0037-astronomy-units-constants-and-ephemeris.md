@@ -127,7 +127,7 @@ compound physical constants. Shadowable by users, exactly like `pi`.
   pane object: orbit trails, positioned dots at each body's current position
   (ADR-0015 amendment), rotate/zoom inherited from the 3D pane. The optional
   time argument may reference a user constant, so the existing play button
-  animates the solar system (`const t = jd(now()); solar3d t`, press play).
+  animates the solar system (`const t = now(); solar3d t`, press play).
 - **Surface:** a seventh keypad tab, Astro (the ADR-0016 tab pattern), a
   guide section in all eight locales, and Examples presets (Kepler's
   equation solver, a blackbody curve, a transit light curve). The

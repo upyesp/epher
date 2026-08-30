@@ -766,7 +766,7 @@ solar3d jd(2020, 7, 1)
 ```
 
 把时间写成一个常量，然后按下播放键，就能看到行星运动：
-`const t = jd(now()); solar3d t`。拖动或用方向键旋转视角，`clear` 清空，
+`const t = now(); solar3d t`。拖动或用方向键旋转视角，`clear` 清空，
 `solar3d save file.svg` 导出。
 
 星历由 solar-ephemeris crate（github.com/Protonmatter/sol）计算，并经

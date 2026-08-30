@@ -812,7 +812,7 @@ solar3d jd(2020, 7, 1)
 ```
 
 Give the time as a constant and press the play button to watch the planets
-move: `const t = jd(now()); solar3d t`. Drag or use the arrow keys to orbit,
+move: `const t = now(); solar3d t`. Drag or use the arrow keys to orbit,
 `clear` to empty, and `solar3d save file.svg` to export.
 
 The ephemeris is computed by the solar-ephemeris crate

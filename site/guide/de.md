@@ -827,7 +827,7 @@ solar3d jd(2020, 7, 1)
 ```
 
 Geben Sie die Zeit als Konstante an und drücken Sie die Wiedergabetaste,
-um den Planeten zuzusehen: `const t = jd(now()); solar3d t`. Ziehen Sie
+um den Planeten zuzusehen: `const t = now(); solar3d t`. Ziehen Sie
 mit der Maus oder nutzen Sie die Pfeiltasten zum Drehen, `clear` zum
 Leeren und `solar3d save file.svg` zum Exportieren.
 

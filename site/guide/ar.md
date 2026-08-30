@@ -771,7 +771,7 @@ solar3d jd(2020, 7, 1)
 ```
 
 اجعل الوقت ثابتًا واضغط زر التشغيل لترى الكواكب تتحرك:
-`const t = jd(now()); solar3d t`. اسحب أو استخدم مفاتيح الأسهم للدوران،
+`const t = now(); solar3d t`. اسحب أو استخدم مفاتيح الأسهم للدوران،
 و`clear` للإفراغ، و`solar3d save file.svg` للتصدير.
 
 يُحسب الفلك بواسطة حزمة solar-ephemeris (github.com/Protonmatter/sol)،

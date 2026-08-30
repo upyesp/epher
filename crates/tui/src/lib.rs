@@ -1642,7 +1642,7 @@ impl App {
 
 /// Whether the solar scene's time expression depends on any session
 /// constant - the resample gate (its expression is ordinary code, so
-/// `const t = jd(now()); solar3d t` replays through the existing
+/// `const t = now(); solar3d t` replays through the existing
 /// transport, ADR-0037).
 fn source_references_any_constant(source: &str, env: &epher_core::Env) -> bool {
     let mut names = std::collections::BTreeSet::new();

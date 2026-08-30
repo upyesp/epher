@@ -821,7 +821,7 @@ solar3d jd(2020, 7, 1)
 ```
 
 Da el tiempo como una constante y pulsa el botón de reproducir para ver
-moverse los planetas: `const t = jd(now()); solar3d t`. Arrastra o usa las
+moverse los planetas: `const t = now(); solar3d t`. Arrastra o usa las
 flechas para orbitar, `clear` para vaciar y `solar3d save file.svg` para
 exportar.
 
