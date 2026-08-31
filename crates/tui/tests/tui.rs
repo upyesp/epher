@@ -529,7 +529,8 @@ fn keypad_insert_appends_token() {
 fn keypad_digits_bank_mirrors_the_web_tab() {
     let mut app = App::default();
     app.keypad_open();
-    // The same keys, in the same 5×5 arrangement, as the web's 123 tab.
+    // The digits bank is frozen at its five rows (ADR-0042 amendment):
+    // changes need the project owner's explicit approval.
     let digits = epher_tui::banks()[0].1;
     assert_eq!(digits.len(), 5);
     let flats: Vec<&str> = digits
@@ -541,22 +542,26 @@ fn keypad_digits_bank_mirrors_the_web_tab() {
         flats,
         [
             "C", "⌫", "(", ")", "÷", "7", "8", "9", "×", "−", "4", "5", "6", "+", "^", "1", "2",
-            "3", ";", ",", "0", ".", "%", "\u{23CE}", "="
+            "3", ";", ",", "0", ".", "\u{23CE}", "="
         ]
     );
     // The newline key inserts a real newline (ADR-0016 amendment): the
     // entry composes multi-line scripts, and submit splits on them.
-    app.keypad_set(4, 3);
+    app.keypad_set(4, 2);
     app.keypad_insert();
     assert_eq!(app.input(), "\n");
     app.clear_input();
-    // % is the transparent /100 suffix (ADR-0042), and on an empty entry
-    // the auto-ans kicks in: an operator continues from the answer.
-    app.keypad_set(4, 2);
+    // % lives on the num bank (ADR-0042 amendment - the digits bank is
+    // exactly full), and on an empty entry the auto-ans kicks in: an
+    // operator continues from the answer.
+    app.keypad_cycle(3); // 123 -> trig -> fn -> num
+    assert_eq!(app.keypad_bank(), "num");
+    app.keypad_set(3, 0);
     app.keypad_insert();
     assert_eq!(app.input(), "ans%");
     app.clear_input();
-    // ÷/×/− display the glyphs but insert the language's ASCII tokens.
+    app.keypad_cycle(-3); // back to digits for the keys below
+                          // ÷/×/− display the glyphs but insert the language's ASCII tokens.
     assert_eq!(digits[0][4].1, "/");
     assert_eq!(digits[1][3].1, "*");
     assert_eq!(digits[1][4].1, "-");
@@ -570,7 +575,7 @@ fn keypad_digits_bank_mirrors_the_web_tab() {
     app.keypad_insert();
     assert_eq!(app.input(), "x/");
     // "=" marks the submit; C and ⌫ act, not insert.
-    app.keypad_set(4, 4);
+    app.keypad_set(4, 3);
     assert!(app.keypad_is_submit());
     app.keypad_set(0, 0);
     app.keypad_insert();
@@ -585,7 +590,7 @@ fn keypad_move_wraps_around_edges() {
     assert_eq!(app.keypad_col(), 4);
     app.keypad_move(-1, 0); // from row 0 → the digits bank's last row
     assert_eq!(app.keypad_row(), 4);
-    assert_eq!(app.keypad_col(), 4, "kept: the last row is a full 5 now");
+    assert_eq!(app.keypad_col(), 3, "the frozen last row has four keys");
     app.keypad_move(1, 0); // wraps back to row 0
     assert_eq!(app.keypad_row(), 0);
 }

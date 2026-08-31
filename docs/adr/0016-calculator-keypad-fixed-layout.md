@@ -132,3 +132,16 @@ TUI's digits bank takes the same seat, making that bank a true 5x5
 instead of a ragged last row. The key inserts the language's `%` token -
 the transparent /100 suffix - and inherits the auto-ans rule: on an
 empty entry it inserts `ans%`. No other key moves.
+
+## Amendment (2026-08-31): the digits grid was already full; freeze (ADR-0042)
+
+The same-day ADR-0042 amendment above was wrong that the digits bank
+had room: the web tab's = key spans two grid cells, so 24 keys fill
+all 25 cells of the five-row grid, and the TUI's five rows already fit
+the 80x24 frame exactly. Adding % as a 25th key scrolled the 123 tab.
+The % key moves to the number tab; this ADR's layout is restored
+byte-for-byte.
+
+Policy, by direction of the project owner: the digits tab/bank is
+frozen across all frontends. Any future change to it requires the
+project owner's explicit approval before work begins.

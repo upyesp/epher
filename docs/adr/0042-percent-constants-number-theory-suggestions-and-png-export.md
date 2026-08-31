@@ -92,3 +92,23 @@ builtins, the web/desktop suggestion combobox with F1 and auto-ans, and
 the Save PNG button with its desktop IPC command. The TUI ships F1 +
 auto-ans + the % keypad key; its Tab-completion stays open for a later
 round.
+
+## Amendment (2026-08-31): the % key moves to the n-Tab; the digits tab is frozen
+
+Review of v0.5.5 caught the keypad overflow this ADR introduced: the
+web digits tab's five-row grid holds 25 cells and the = key spans two
+of them, so the bank was already exactly full at 24 keys - the % key
+pushed = onto a sixth row and the 123 tab scrolled. The same count
+applies to the TUI, whose 80x24 frame (ADR-0033) has no spare row
+either.
+
+The % key therefore moves to the number tab (nSigma on the web, num in
+the TUI), beside the other exact-integer arithmetic: it stays one tap
+from the operators it extends, and every tab still fits the fixed
+keypad with no scrolling.
+
+Policy, by direction of the project owner: the digits tab/bank is
+frozen. No key may be added, removed, or moved there without explicit
+approval, in any frontend. Guard tests hold the line (the web test
+asserts the tab's exact 24 keys and that every tab fits the grid; the
+TUI test asserts the bank's exact contents).

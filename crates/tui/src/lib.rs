@@ -247,15 +247,8 @@ const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
             &[("1", "1"), ("2", "2"), ("3", "3"), (";", ";"), (",", ",")],
             // The newline key (ADR-0016 amendment): ans lives on the
             // var bank, and a real newline in the entry is how
-            // multi-line scripts are composed at the keypad. The %
-            // key (ADR-0042) joins the last row as on the web.
-            &[
-                ("0", "0"),
-                (".", "."),
-                ("%", "%"),
-                ("\u{23CE}", "\n"),
-                ("=", ""),
-            ],
+            // multi-line scripts are composed at the keypad.
+            &[("0", "0"), (".", "."), ("\u{23CE}", "\n"), ("=", "")],
         ],
     ),
     (
@@ -332,6 +325,11 @@ const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
                 ("variance", "variance("),
                 ("stdev", "stdev("),
             ],
+            // The percent key (ADR-0042): the transparent /100 suffix.
+            // It lives here, not on the digits bank: that bank is
+            // exactly full at five rows, so any addition would push it
+            // past the 80x24 frame (ADR-0042 amendment).
+            &[("%", "%")],
         ],
     ),
     (

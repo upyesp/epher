@@ -330,8 +330,6 @@ static TABS: &[TabDef] = &[
             key(",", KeyAction::Text(","), "op", "key-hint-comma"),
             key("0", KeyAction::Text("0"), "", ""),
             key(".", KeyAction::Text("."), "", ""),
-            // The percent key (ADR-0042): the transparent /100 suffix.
-            key("%", KeyAction::Text("%"), "op", "key-hint-percent"),
             // The newline key (ADR-0016 amendment): ans lives on the
             // pigreco tab, and a real newline in the entry is how
             // multi-line scripts are composed on touch.
@@ -412,6 +410,11 @@ static TABS: &[TabDef] = &[
                 "key-hint-variance",
             ),
             key("stdev", KeyAction::Call("stdev"), "fn", "key-hint-stdev"),
+            // The percent key (ADR-0042): the transparent /100 suffix.
+            // It lives here, not on the digits tab: that bank is exactly
+            // full (the = key spans two cells of the five-row grid), so
+            // any addition scrolls the 123 tab (ADR-0042 amendment).
+            key("%", KeyAction::Text("%"), "op", "key-hint-percent"),
         ],
     },
     TabDef {
@@ -5774,6 +5777,41 @@ mod tests {
         assert_eq!(slider_span(2.5), (-10.0, 10.0));
         assert_eq!(slider_span(-7.0), (-10.0, 10.0));
         assert_eq!(slider_span(8.0), (-10.0, 10.0));
+    }
+
+    /// The digits tab is frozen (ADR-0042 amendment): it is exactly full
+    /// - 24 keys where = spans two cells of the five-row, five-column
+    /// grid - so any addition scrolls the bank. Changes need the project
+    /// owner's explicit approval; this test holds the line.
+    #[test]
+    fn the_digits_tab_is_frozen_and_full() {
+        let digits = &TABS[0];
+        assert_eq!(digits.id, "digits");
+        assert_eq!(digits.keys.len(), 24);
+        assert_eq!(digits.keys[23].label, "=");
+    }
+
+    /// Every tab except astronomy must fit the fixed five-row keypad
+    /// (ADR-0039): five columns, and a spanning = (class eq) counts as
+    /// two cells. An overflowing tab scrolls; the long astronomy bank is
+    /// the one tab allowed to, everything else must fit like 123 does.
+    #[test]
+    fn every_tab_fits_the_five_row_grid() {
+        for tab in TABS {
+            let spans: usize = tab
+                .keys
+                .iter()
+                .map(|k| if k.cls == "eq" { 2 } else { 1 })
+                .sum();
+            if tab.id == "astro" {
+                continue; // ADR-0039: the astronomy bank scrolls by design
+            }
+            assert!(
+                spans <= 25,
+                "tab {} needs {spans} cells, the grid holds 25",
+                tab.id
+            );
+        }
     }
 
     #[test]
