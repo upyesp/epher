@@ -74,11 +74,13 @@ puts it to work.
   not an evaluated value — the first lazy arguments in the language:
   - `derivative(expr, p)` differentiates `expr` numerically at `p`
     (5-point central stencil, step 1e-4 * (1+|p|)). The variable is
-    the expression's free variable, bound to `p` in a child
-    environment, so `derivative(x^2, 3)` is 6 and `derivative(sin(t),
-    0)` is 1. A constant expression differentiates to 0; an expression
-    in several variables is an error. Because the argument stays an
-    expression, `graph derivative(x^3 - x, x)` plots the derivative.
+    `x` when it appears (symbolic, like solve - a stored `x` does not
+    zero the derivative), otherwise the expression's single free
+    variable, bound to `p` in a child environment: `derivative(x^2,
+    3)` is 6 and `derivative(sin(t), 0)` is 1. A constant expression
+    differentiates to 0; an expression in several unbound variables is
+    an error. Because the argument stays an expression, `graph
+    derivative(x^3 - x, x)` plots the derivative.
   - `integral(expr, a, b)` integrates numerically (adaptive Simpson,
     tolerance 1e-9 relative, depth-capped). `a == b` is 0; `a > b`
     gives the signed integral. `graph integral(x^2, 0, x)` works the

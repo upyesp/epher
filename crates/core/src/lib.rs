@@ -1162,25 +1162,39 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
 }
 
 /// The differentiation variable of a calculus expression (ADR-0043):
-/// the expression's free variable, where constants (builtin and user)
-/// and bound variables are parameters, not unknowns. No unbound names
-/// means the expression is constant; several is an error.
+/// `x` when it appears (symbolic, even when the session holds a value
+/// for it, like solve), otherwise the single other free variable.
+/// Constants (builtin and user) are parameters, never unknowns; bound
+/// variables are parameters too when x is not the one differentiated.
+/// No candidates means the expression is constant; several is an error.
 fn calculus_var(expr: &Expression, env: &Env) -> Result<Option<String>, EpherError> {
     let mut names = std::collections::BTreeSet::new();
     crate::graph::free_names(expr, &mut names);
-    names.retain(|n| {
-        builtin_const(n).is_none() && env.constant(n).is_none() && env.get(n).is_none()
-    });
+    names.retain(|n| builtin_const(n).is_none() && env.constant(n).is_none());
     if names.is_empty() {
         return Ok(None);
     }
-    if names.len() > 1 {
+    let variable = if names.contains("x") {
+        "x"
+    } else if names.len() == 1 {
+        names.iter().next().expect("len checked").as_str()
+    } else {
         return Err(EpherError::Type(format!(
             "the expression uses several variables: {}",
             names.iter().cloned().collect::<Vec<_>>().join(", ")
         )));
+    };
+    // every name besides the differentiated one must be a bound
+    // parameter (a value, not an unknown)
+    for other in names.iter().filter(|n| n.as_str() != variable) {
+        if env.get(other).is_none() {
+            return Err(EpherError::Type(format!(
+                "the expression uses several variables: {}",
+                names.iter().cloned().collect::<Vec<_>>().join(", ")
+            )));
+        }
     }
-    Ok(names.iter().next().cloned())
+    Ok(Some(variable.to_string()))
 }
 
 /// The calculus child environment: the caller's bindings (bound names

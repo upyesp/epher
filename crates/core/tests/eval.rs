@@ -2023,6 +2023,18 @@ fn derivative_is_numeric_and_graphable() {
     assert_close(eval_number("derivative(x^3 - x, 2)"), 11.0);
     assert_close(eval_number("derivative(sin(t), 0)"), 1.0);
     assert_eq!(eval_display("derivative(5, 2)"), "0");
+    // x stays symbolic even when the session holds a value for it
+    // (the same rule as solve): a stored x must not zero the derivative
+    assert_close(
+        run_script_text("x = 10\nderivative(x^2, 3)")
+            .last()
+            .map(|v| match v {
+                Value::Float(f) => *f,
+                _ => 0.0,
+            })
+            .unwrap(),
+        6.0,
+    );
     // bound parameters stay parameters
     assert_close(
         run_script_text("a = 2\nderivative(a * x^2, 3)")
