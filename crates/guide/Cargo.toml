@@ -1,6 +1,6 @@
 [package]
 name = "epher-guide"
-version = "0.5.4"
+version = "0.5.5"
 edition = "2021"
 description = "The epher user guide: site/guide/*.md embedded at build time, with per-frontend renderers (HTML for the web app, plain text for the TUI)."
 license = "MIT"
