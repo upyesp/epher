@@ -8,8 +8,8 @@
 use epher_core::astro::SolarScene;
 use epher_core::graph::{
     analyze, free_names, parse_graph_source, project_surface, sample_spec, sample_surface,
-    surface_frame, InterestKind, InterestPoint, SampledCurve, Segment3D, Surface, View3D,
-    zoom_window,
+    surface_frame, zoom_window, InterestKind, InterestPoint, SampledCurve, Segment3D, Surface,
+    View3D,
 };
 use epher_core::Session;
 use epher_i18n::Localizer;
@@ -1585,8 +1585,7 @@ impl App {
         match self.solar.as_ref() {
             Some(scene) => {
                 let plots = epher_shell::plots::Plots::from_scene(scene.clone());
-                let out =
-                    plots.save_solar_svg(path, &self.effective_view(), localizer);
+                let out = plots.save_solar_svg(path, &self.effective_view(), localizer);
                 out.message
             }
             None => localizer.lookup("graph-empty"),
@@ -1755,9 +1754,7 @@ impl App {
     /// three fine-control rows (they exist only while 3D surfaces do).
     pub fn menu_view_item(&self) -> Option<usize> {
         match self.menu {
-            Some((4, item @ 12..=14))
-                if !self.surface.is_empty() || self.solar.is_some() =>
-            {
+            Some((4, item @ 12..=14)) if !self.surface.is_empty() || self.solar.is_some() => {
                 Some(item)
             }
             _ => None,
@@ -1895,8 +1892,7 @@ impl App {
                 *s = fresh;
             }
         }
-        if let (Some(_scene), Some(source)) = (self.solar.as_ref(), self.solar_source.as_deref())
-        {
+        if let (Some(_scene), Some(source)) = (self.solar.as_ref(), self.solar_source.as_deref()) {
             if source_references_any_constant(source, &env) {
                 if let Ok(jd) = epher_core::astro::eval_jd(source, &env) {
                     if let Ok(fresh) = epher_core::astro::solar_scene(jd) {
@@ -1917,9 +1913,7 @@ fn source_references_any_constant(source: &str, env: &epher_core::Env) -> bool {
     if let Ok(expr) = epher_core::parse(source) {
         free_names(&expr, &mut names);
     }
-    names
-        .iter()
-        .any(|n| env.constant(n).is_some())
+    names.iter().any(|n| env.constant(n).is_some())
 }
 
 /// Render the projected 3D mesh as an ASCII wireframe (ADR-0015): depth-
@@ -2090,8 +2084,14 @@ pub fn render_solar_ascii(
     // shrinking the window scales the scene without moving anything
     // relative to anything else.
     let (wx, wy, ww, wh) = zoom_window(x_min, x_max, y_min, y_max, view);
-    let depth_min = segments.iter().map(|s| s.depth).fold(f64::INFINITY, f64::min);
-    let depth_max = segments.iter().map(|s| s.depth).fold(f64::NEG_INFINITY, f64::max);
+    let depth_min = segments
+        .iter()
+        .map(|s| s.depth)
+        .fold(f64::INFINITY, f64::min);
+    let depth_max = segments
+        .iter()
+        .map(|s| s.depth)
+        .fold(f64::NEG_INFINITY, f64::max);
     let span = depth_max - depth_min;
     let gw = width - 2;
     let gh = height;
@@ -2468,9 +2468,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                     // reaches the calculator.
                     if app.key_help_active() {
                         match key.code {
-                            KeyCode::Char('c')
-                                if key.modifiers.contains(KeyModifiers::CONTROL) =>
-                            {
+                            KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                                 return Ok(());
                             }
                             KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('?') => {
@@ -2826,14 +2824,7 @@ fn perform_menu_action(
             let text = app
                 .pois()
                 .iter()
-                .map(|p| {
-                    format!(
-                        "{} ({:.3}, {:.3})",
-                        poi_label(p.kind, localizer),
-                        p.x,
-                        p.y
-                    )
-                })
+                .map(|p| format!("{} ({:.3}, {:.3})", poi_label(p.kind, localizer), p.x, p.y))
                 .collect::<Vec<_>>()
                 .join("\n");
             if text.is_empty() {
@@ -3283,10 +3274,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                     Some(key) => format!("{}  {}", disp, localizer.lookup(key)),
                     None => disp.to_string(),
                 };
-                Line::from(Span::styled(
-                    format!(" {}", text),
-                    Style::default().fg(fg),
-                ))
+                Line::from(Span::styled(format!(" {}", text), Style::default().fg(fg)))
             })
             .collect::<Vec<_>>();
         // Clamp to the last page.
@@ -3412,8 +3400,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             let mut hit_rows = Vec::new();
             let mut at = 0usize;
             for (line, _) in &lines {
-                let text: String =
-                    line.spans.iter().map(|s| s.content.to_string()).collect();
+                let text: String = line.spans.iter().map(|s| s.content.to_string()).collect();
                 if text.to_lowercase().contains(&query) {
                     hit_rows.push(at);
                 }
@@ -3781,12 +3768,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         graph_text.push_str(&legend.join("   "));
         graph_text.push('\n');
         let (w, h) = graph_dims(graph_area);
-        graph_text.push_str(&render_solar_ascii(
-            scene,
-            &app.effective_view(),
-            w,
-            h,
-        ));
+        graph_text.push_str(&render_solar_ascii(scene, &app.effective_view(), w, h));
     } else if !app.surfaces().is_empty() {
         let legend: Vec<String> = app
             .surfaces()

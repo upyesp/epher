@@ -635,15 +635,15 @@ fn keypad_covers_every_function_that_was_missing() {
         "atan2", "exp", "log2", "logb", "cbrt", "root", "hypot", "trunc", "sign", "min", "max",
         "gcd", "lcm", "mod", "fact", "ncr", "npr", "sum", "product", "mean", "median", "variance",
         "stdev", "frac", "dec", "big", "bin", "oct", "hex", "phi", "x", "t", "ans", "graph",
-        "graph3d", "table", "sin", "cos", "tan", "ln", "log", "sqrt", "abs",
-        "floor", "ceil", "round", "pi", "e", "tau",
+        "graph3d", "table", "sin", "cos", "tan", "ln", "log", "sqrt", "abs", "floor", "ceil",
+        "round", "pi", "e", "tau",
         // the keypad's clear/history KEYS are gone (ADR-0016 amendment);
         // the commands stay in the language, tested in submit tests
         // the condensed astro bank (ADR-0037; the full set lives on the
         // web keypad's Astro tab)
-        "jd", "now", "lst", "kepler", "ra", "decl", "dist", "alt", "mag", "rise", "set",
-        "illum", "diam", "delta_t", "airmass", "dawes", "dist_mod", "mag2jy", "hms2deg",
-        "solar3d", "az", "transit", "phase", "mjd", "deg2hms",
+        "jd", "now", "lst", "kepler", "ra", "decl", "dist", "alt", "mag", "rise", "set", "illum",
+        "diam", "delta_t", "airmass", "dawes", "dist_mod", "mag2jy", "hms2deg", "solar3d", "az",
+        "transit", "phase", "mjd", "deg2hms",
     ] {
         assert!(tokens.contains(&name), "the keypad is missing {name}");
     }
@@ -1435,12 +1435,8 @@ fn solar3d_draws_the_scene_and_clears_other_kinds() {
     assert!(app.graph().is_empty(), "one kind at a time");
     assert!(app.solar().is_some());
     // the scene's positioned dots appear in the ASCII render
-    let text = epher_tui::render_solar_ascii(
-        app.solar().expect("scene"),
-        &app.effective_view(),
-        60,
-        20,
-    );
+    let text =
+        epher_tui::render_solar_ascii(app.solar().expect("scene"), &app.effective_view(), 60, 20);
     assert!(text.contains('O'), "a positioned dot is stamped: {text}");
     // clear through the same grammar
     app.set_input("solar3d clear");

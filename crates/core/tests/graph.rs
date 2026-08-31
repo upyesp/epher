@@ -402,11 +402,7 @@ fn zoom_scales_the_window_without_distortion() {
     // so every point lands exactly k x its default-zoom screen position.
     let default = View3D::default();
     let zoomed = default.with_camera(15.0); // one +1 zoom step: 2x in
-    let pts = [
-        [2.0, -1.0, 0.5],
-        [-3.0, 4.0, -2.0],
-        [0.0, 0.0, 7.0],
-    ];
+    let pts = [[2.0, -1.0, 0.5], [-3.0, 4.0, -2.0], [0.0, 0.0, 7.0]];
     let mut base = Vec::new();
     let mut close = Vec::new();
     for &[x, y, z] in &pts {
@@ -424,8 +420,14 @@ fn zoom_scales_the_window_without_distortion() {
     let (zx, zy, zw, zh) = zoom_window(x_min, x_max, y_min, y_max, &zoomed);
     assert!((zw - bw / 2.0).abs() < 1e-12);
     assert!((zh - bh / 2.0).abs() < 1e-12);
-    assert!((zx + zw / 2.0 - (bx + bw / 2.0)).abs() < 1e-12, "same center x");
-    assert!((zy + zh / 2.0 - (by + bh / 2.0)).abs() < 1e-12, "same center y");
+    assert!(
+        (zx + zw / 2.0 - (bx + bw / 2.0)).abs() < 1e-12,
+        "same center x"
+    );
+    assert!(
+        (zy + zh / 2.0 - (by + bh / 2.0)).abs() < 1e-12,
+        "same center y"
+    );
     // End to end: map each point into its window's canvas (0..1), then
     // the zoomed canvas position must be exactly the default position
     // pulled k = bw/zw times toward the center - a pure scale, nothing
@@ -497,7 +499,11 @@ fn the_scene_carries_ten_dots_and_nine_orbits() {
     assert!(sun.xyz.iter().all(|c| c.abs() < 1e-9));
     // every orbit is a closed-ish run of finite points
     for orbit in &s.orbits {
-        assert!(orbit.points.len() >= 128, "orbit {} sampled thinly", orbit.body);
+        assert!(
+            orbit.points.len() >= 128,
+            "orbit {} sampled thinly",
+            orbit.body
+        );
         assert!(orbit.points.iter().all(|p| p.iter().all(|c| c.is_finite())));
     }
 }
@@ -510,9 +516,17 @@ fn planet_dots_sit_at_their_almanac_distances() {
     };
     // 2020-07-01: Jupiter about 4.85 AU, Neptune about 29.7 AU out
     let jupiter = s.dots.iter().find(|d| d.body == 5).expect("Jupiter");
-    assert!((4.5..5.2).contains(&norm(jupiter)), "jupiter r = {}", norm(jupiter));
+    assert!(
+        (4.5..5.2).contains(&norm(jupiter)),
+        "jupiter r = {}",
+        norm(jupiter)
+    );
     let neptune = s.dots.iter().find(|d| d.body == 8).expect("Neptune");
-    assert!((29.0..30.5).contains(&norm(neptune)), "neptune r = {}", norm(neptune));
+    assert!(
+        (29.0..30.5).contains(&norm(neptune)),
+        "neptune r = {}",
+        norm(neptune)
+    );
     // the Moon is 0.0026ish from Earth
     let earth = s.dots.iter().find(|d| d.body == 3).expect("Earth");
     let moon = s.dots.iter().find(|d| d.body == 11).expect("Moon");
@@ -527,7 +541,11 @@ fn planet_dots_sit_at_their_almanac_distances() {
 fn trails_end_where_the_dots_are() {
     let s = scene();
     for trail in &s.trails {
-        let dot = s.dots.iter().find(|d| d.body == trail.body).expect("its dot");
+        let dot = s
+            .dots
+            .iter()
+            .find(|d| d.body == trail.body)
+            .expect("its dot");
         let last = trail.points.last().expect("a non-empty trail");
         let gap: f64 = last
             .iter()
@@ -538,7 +556,11 @@ fn trails_end_where_the_dots_are() {
         // the trail's final sample is on the orbit near the dot: within
         // a couple of percent of the orbital radius
         let radius: f64 = (dot.xyz[0] * dot.xyz[0] + dot.xyz[1] * dot.xyz[1]).sqrt();
-        assert!(gap < radius * 0.05 + 1e-6, "body {}: trail ends {gap} from the dot", trail.body);
+        assert!(
+            gap < radius * 0.05 + 1e-6,
+            "body {}: trail ends {gap} from the dot",
+            trail.body
+        );
     }
 }
 
@@ -547,11 +569,18 @@ fn projection_maps_the_scene_to_screen_space() {
     let s = scene();
     let view = s.default_view();
     // orbit runs project to bounded polylines with depths
-    let orbit = &s.orbits.iter().find(|o| o.body == 5).expect("Jupiter orbit");
+    let orbit = &s
+        .orbits
+        .iter()
+        .find(|o| o.body == 5)
+        .expect("Jupiter orbit");
     let runs = project_space_curve(&orbit.points, &view);
     assert!(!runs.is_empty());
     for run in &runs {
-        assert!(run.points.iter().all(|(x, y)| x.is_finite() && y.is_finite()));
+        assert!(run
+            .points
+            .iter()
+            .all(|(x, y)| x.is_finite() && y.is_finite()));
     }
     // dots project inside a sane screen window
     for dot in &s.dots {

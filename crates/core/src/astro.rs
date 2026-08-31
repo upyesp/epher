@@ -314,17 +314,61 @@ struct BodyDef {
 }
 
 const BODIES: [BodyDef; 11] = [
-    BodyDef { number: 1, name: "Mercury", radius_km: 2439.7 },
-    BodyDef { number: 2, name: "Venus", radius_km: 6051.8 },
-    BodyDef { number: 3, name: "Earth", radius_km: 6378.137 },
-    BodyDef { number: 4, name: "Mars", radius_km: 3389.5 },
-    BodyDef { number: 5, name: "Jupiter", radius_km: 69911.0 },
-    BodyDef { number: 6, name: "Saturn", radius_km: 58232.0 },
-    BodyDef { number: 7, name: "Uranus", radius_km: 25362.0 },
-    BodyDef { number: 8, name: "Neptune", radius_km: 24622.0 },
-    BodyDef { number: 9, name: "Pluto", radius_km: 1188.3 },
-    BodyDef { number: 10, name: "Sun", radius_km: 695700.0 },
-    BodyDef { number: 11, name: "Moon", radius_km: 1737.4 },
+    BodyDef {
+        number: 1,
+        name: "Mercury",
+        radius_km: 2439.7,
+    },
+    BodyDef {
+        number: 2,
+        name: "Venus",
+        radius_km: 6051.8,
+    },
+    BodyDef {
+        number: 3,
+        name: "Earth",
+        radius_km: 6378.137,
+    },
+    BodyDef {
+        number: 4,
+        name: "Mars",
+        radius_km: 3389.5,
+    },
+    BodyDef {
+        number: 5,
+        name: "Jupiter",
+        radius_km: 69911.0,
+    },
+    BodyDef {
+        number: 6,
+        name: "Saturn",
+        radius_km: 58232.0,
+    },
+    BodyDef {
+        number: 7,
+        name: "Uranus",
+        radius_km: 25362.0,
+    },
+    BodyDef {
+        number: 8,
+        name: "Neptune",
+        radius_km: 24622.0,
+    },
+    BodyDef {
+        number: 9,
+        name: "Pluto",
+        radius_km: 1188.3,
+    },
+    BodyDef {
+        number: 10,
+        name: "Sun",
+        radius_km: 695700.0,
+    },
+    BodyDef {
+        number: 11,
+        name: "Moon",
+        radius_km: 1737.4,
+    },
 ];
 
 fn body_from_number(number: i64) -> Option<&'static BodyDef> {
@@ -344,10 +388,11 @@ fn body_arg(name: &str, args: &[Value]) -> Result<(&'static BodyDef, f64), Epher
         }
     };
     let number = number.ok_or_else(|| {
-        EpherError::Type(format!("{name} expects a whole-number body, got non-integer"))
+        EpherError::Type(format!(
+            "{name} expects a whole-number body, got non-integer"
+        ))
     })?;
-    let body = body_from_number(number)
-    .ok_or_else(|| {
+    let body = body_from_number(number).ok_or_else(|| {
         domain_error(format!(
             "unknown body {number}: Mercury 1..Neptune 8, Pluto 9, Sun 10, Moon 11"
         ))
@@ -378,9 +423,8 @@ fn sky_snapshot(jd: f64, lat: f64, lon: f64) -> Result<serde_json::Value, EpherE
         }
     }
     let json = solar_ephemeris::sky_snapshot_json(jd, lat, lon, 0.0);
-    let parsed: serde_json::Value = serde_json::from_str(&json).map_err(|e| EpherError::Domain(format!(
-        "ephemeris snapshot unreadable: {e}"
-    )))?;
+    let parsed: serde_json::Value = serde_json::from_str(&json)
+        .map_err(|e| EpherError::Domain(format!("ephemeris snapshot unreadable: {e}")))?;
     SKY.with(|cell| *cell.borrow_mut() = Some(((jd, lat, lon), parsed.clone())));
     Ok(parsed)
 }
@@ -400,9 +444,8 @@ fn system_snapshot(jd: f64) -> Result<serde_json::Value, EpherError> {
         }
     }
     let json = solar_ephemeris::system_snapshot_json(jd);
-    let parsed: serde_json::Value = serde_json::from_str(&json).map_err(|e| {
-        EpherError::Domain(format!("system snapshot unreadable: {e}"))
-    })?;
+    let parsed: serde_json::Value = serde_json::from_str(&json)
+        .map_err(|e| EpherError::Domain(format!("system snapshot unreadable: {e}")))?;
     SYSTEM.with(|cell| *cell.borrow_mut() = Some((jd, parsed.clone())));
     Ok(parsed)
 }
@@ -563,7 +606,7 @@ fn mag_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
             let snapshot = system_snapshot(jd)?;
             let earth = snapshot_body(&snapshot, "Earth")?;
             let r = json_f64(earth, "dist_au")?;
-                        // m = M_V + 5 log10(d/10 pc) with d = r AU; at r = 1 the
+            // m = M_V + 5 log10(d/10 pc) with d = r AU; at r = 1 the
             // answer is -26.74, dimming by +5 log10(r) from there
             Ok(Value::Float(-26.74 + 5.0 * r.log10()))
         }
@@ -572,7 +615,9 @@ fn mag_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
             let moon = snapshot_body(&snapshot, "Moon")?;
             let alpha = json_f64(moon, "phase_angle_deg")?;
             // Meeus ch. 48.4
-            Ok(Value::Float(-12.7 + 0.026 * alpha + 4e-9 * alpha * alpha * alpha * alpha))
+            Ok(Value::Float(
+                -12.7 + 0.026 * alpha + 4e-9 * alpha * alpha * alpha * alpha,
+            ))
         }
         "Pluto" => pluto_mag(jd).map(Value::Float),
         _ => {
@@ -628,7 +673,9 @@ fn diam_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
     }
     let snapshot = sky_snapshot(jd, 0.0, 0.0)?;
     let entry = snapshot_body(&snapshot, body.name)?;
-    Ok(Value::Float(json_f64(entry, "angular_size_arcsec")? / 3600.0))
+    Ok(Value::Float(
+        json_f64(entry, "angular_size_arcsec")? / 3600.0,
+    ))
 }
 
 // --- Pluto: the facade's own approximate ephemeris ---
@@ -690,10 +737,9 @@ fn pluto_geometry(jd: f64) -> Result<(f64, f64), EpherError> {
         xyz[2] - earth_xyz[2],
     ];
     let delta = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
-    let sun_earth = (earth_xyz[0] * earth_xyz[0]
-        + earth_xyz[1] * earth_xyz[1]
-        + earth_xyz[2] * earth_xyz[2])
-        .sqrt();
+    let sun_earth =
+        (earth_xyz[0] * earth_xyz[0] + earth_xyz[1] * earth_xyz[1] + earth_xyz[2] * earth_xyz[2])
+            .sqrt();
     let phase = solar_ephemeris::physics::phase_angle_deg(r, delta, sun_earth);
     Ok((phase, delta))
 }
@@ -742,20 +788,17 @@ fn pluto_radec_from(earth_xyz: &[f64; 3], jd: f64) -> (f64, f64) {
     let (dpsi, deps) = solar_ephemeris::time::nutation_deg(t);
     let jy2k = (astro.jd_tt - solar_ephemeris::time::J2000) / 365.25;
     let xyz = elements_xyz(&pluto_elements(jy2k));
-    let g = [xyz[0] - earth_xyz[0], xyz[1] - earth_xyz[1], xyz[2] - earth_xyz[2]];
+    let g = [
+        xyz[0] - earth_xyz[0],
+        xyz[1] - earth_xyz[1],
+        xyz[2] - earth_xyz[2],
+    ];
     let lon_j2000 = g[1].atan2(g[0]).to_degrees();
     let lat_j2000 = g[2].atan2((g[0] * g[0] + g[1] * g[1]).sqrt()).to_degrees();
-    let (lon_date, lat_date) = solar_ephemeris::coords::precess_ecliptic_from_j2000(
-        lon_j2000,
-        lat_j2000,
-        t,
-    );
+    let (lon_date, lat_date) =
+        solar_ephemeris::coords::precess_ecliptic_from_j2000(lon_j2000, lat_j2000, t);
     let eps_true = solar_ephemeris::time::mean_obliquity_deg(t) + deps;
-    solar_ephemeris::coords::ecl_to_equ(
-        (lon_date + dpsi).rem_euclid(360.0),
-        lat_date,
-        eps_true,
-    )
+    solar_ephemeris::coords::ecl_to_equ((lon_date + dpsi).rem_euclid(360.0), lat_date, eps_true)
 }
 
 /// Pluto's topocentric (alt, az), true and unrefracted, through the
@@ -858,7 +901,12 @@ fn apparent_solar_longitude(jd: f64) -> f64 {
     solar_ephemeris::planets::sun_apparent_ecliptic(astro.jd_tt, dpsi).0
 }
 
-fn season_jd(year: i32, target_deg: f64, start: (i32, u8), end: (i32, u8)) -> Result<Value, EpherError> {
+fn season_jd(
+    year: i32,
+    target_deg: f64,
+    start: (i32, u8),
+    end: (i32, u8),
+) -> Result<Value, EpherError> {
     let signed = |jd: f64| {
         let diff = (apparent_solar_longitude(jd) - target_deg).rem_euclid(360.0);
         if diff > 180.0 {
@@ -867,7 +915,15 @@ fn season_jd(year: i32, target_deg: f64, start: (i32, u8), end: (i32, u8)) -> Re
             diff
         }
     };
-    let jd = |y: i32, m: u8| match calendar_jd("jd", &[Value::float(y as f64), Value::float(m as f64), Value::float(1.0)], None) {
+    let jd = |y: i32, m: u8| match calendar_jd(
+        "jd",
+        &[
+            Value::float(y as f64),
+            Value::float(m as f64),
+            Value::float(1.0),
+        ],
+        None,
+    ) {
         Ok(Value::Float(x)) => x,
         _ => unreachable!("season windows use valid months"),
     };
@@ -945,17 +1001,17 @@ pub fn eval_jd(source: &str, env: &crate::Env) -> Result<f64, EpherError> {
 /// the dark default theme at better than 3:1, like the curve palette.
 pub fn body_color(body: i64) -> &'static str {
     match body {
-        1 => "#9a9ba2",   // Mercury - grey
-        2 => "#ffb340",   // Venus - amber
-        3 => "#4da3ff",   // Earth - blue
-        4 => "#ff6b5e",   // Mars - red-orange
-        5 => "#d8a25e",   // Jupiter - tan
-        6 => "#e8d59b",   // Saturn - pale gold
-        7 => "#7fd8d0",   // Uranus - pale cyan
-        8 => "#5e7bff",   // Neptune - deep blue
-        9 => "#c39dff",   // Pluto - violet
-        10 => "#ffd75e",  // Sun - yellow
-        _ => "#d9dade",   // Moon - silver
+        1 => "#9a9ba2",  // Mercury - grey
+        2 => "#ffb340",  // Venus - amber
+        3 => "#4da3ff",  // Earth - blue
+        4 => "#ff6b5e",  // Mars - red-orange
+        5 => "#d8a25e",  // Jupiter - tan
+        6 => "#e8d59b",  // Saturn - pale gold
+        7 => "#7fd8d0",  // Uranus - pale cyan
+        8 => "#5e7bff",  // Neptune - deep blue
+        9 => "#c39dff",  // Pluto - violet
+        10 => "#ffd75e", // Sun - yellow
+        _ => "#d9dade",  // Moon - silver
     }
 }
 
@@ -1046,7 +1102,10 @@ pub fn solar_scene(jd: f64) -> Result<SolarScene, EpherError> {
 
     // Dots first: the Sun at the origin, the snapshot's bodies at their
     // exact positions, Pluto from its elements.
-    let mut dots = vec![SolarDot { body: 10, xyz: [0.0; 3] }];
+    let mut dots = vec![SolarDot {
+        body: 10,
+        xyz: [0.0; 3],
+    }];
     for (number, name) in [
         (1, "Mercury"),
         (2, "Venus"),
@@ -1057,10 +1116,19 @@ pub fn solar_scene(jd: f64) -> Result<SolarScene, EpherError> {
         (7, "Uranus"),
         (8, "Neptune"),
     ] {
-        dots.push(SolarDot { body: number, xyz: snapshot_xyz(name)? });
+        dots.push(SolarDot {
+            body: number,
+            xyz: snapshot_xyz(name)?,
+        });
     }
-    dots.push(SolarDot { body: 9, xyz: elements_xyz(&pluto_elements(jy2k)) });
-    dots.push(SolarDot { body: 11, xyz: snapshot_xyz("Moon")? });
+    dots.push(SolarDot {
+        body: 9,
+        xyz: elements_xyz(&pluto_elements(jy2k)),
+    });
+    dots.push(SolarDot {
+        body: 11,
+        xyz: snapshot_xyz("Moon")?,
+    });
 
     // Orbits: the osculating ellipse, sampled densely over the mean
     // anomaly. The Moon's orbit is sub-pixel at this scale and is not
@@ -1074,12 +1142,7 @@ pub fn solar_scene(jd: f64) -> Result<SolarScene, EpherError> {
             snapshot_elements(body_name(body))?
         };
         let points: Vec<[f64; 3]> = (0..ORBIT_SAMPLES)
-            .map(|k| {
-                elements_xyz_at(
-                    &el,
-                    360.0 * k as f64 / ORBIT_SAMPLES as f64,
-                )
-            })
+            .map(|k| elements_xyz_at(&el, 360.0 * k as f64 / ORBIT_SAMPLES as f64))
             .collect();
         // The trail is the arc of the same ellipse ending at the body's
         // current position: find the sample nearest the dot and walk
@@ -1094,8 +1157,16 @@ pub fn solar_scene(jd: f64) -> Result<SolarScene, EpherError> {
             .iter()
             .enumerate()
             .min_by(|(_, a), (_, b)| {
-                let da = a.iter().zip(dot.iter()).map(|(x, y)| (x - y) * (x - y)).sum::<f64>();
-                let db = b.iter().zip(dot.iter()).map(|(x, y)| (x - y) * (x - y)).sum::<f64>();
+                let da = a
+                    .iter()
+                    .zip(dot.iter())
+                    .map(|(x, y)| (x - y) * (x - y))
+                    .sum::<f64>();
+                let db = b
+                    .iter()
+                    .zip(dot.iter())
+                    .map(|(x, y)| (x - y) * (x - y))
+                    .sum::<f64>();
                 da.total_cmp(&db)
             })
             .map(|(i, _)| i)
@@ -1106,10 +1177,18 @@ pub fn solar_scene(jd: f64) -> Result<SolarScene, EpherError> {
             .map(|k| points[(nearest + n - (TRAIL_POINTS - 1 - k)) % n].clone())
             .collect();
         orbits.push(SolarPath { body, points });
-        trails.push(SolarPath { body, points: trail });
+        trails.push(SolarPath {
+            body,
+            points: trail,
+        });
     }
 
-    Ok(SolarScene { jd, orbits, trails, dots })
+    Ok(SolarScene {
+        jd,
+        orbits,
+        trails,
+        dots,
+    })
 }
 
 /// Position on an orbit at a given mean anomaly (degrees) - the same
@@ -1124,7 +1203,12 @@ fn elements_xyz_at(el: &OrbitElements, mean_anomaly_deg: f64) -> [f64; 3] {
         }
         ea -= residual / (1.0 - e * ea.cos());
     }
-    let (a, i, node, argp) = (el.a, el.inc.to_radians(), el.node.to_radians(), el.argp.to_radians());
+    let (a, i, node, argp) = (
+        el.a,
+        el.inc.to_radians(),
+        el.node.to_radians(),
+        el.argp.to_radians(),
+    );
     let xp = a * (ea.cos() - e);
     let yp = a * (1.0 - e * e).sqrt() * ea.sin();
     let (so, co) = node.sin_cos();

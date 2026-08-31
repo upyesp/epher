@@ -121,10 +121,7 @@ fn hidden_neighbour_keeps_original_palette_index() {
     // ADR-0015 amendment: the web pane filters hidden curves out of the
     // slice but must keep each curve's own colour — hiding the middle
     // curve must not shift the remaining lines' palette entries.
-    let indexed = vec![
-        (0usize, curve("x ^ 2")),
-        (2usize, curve("x ^ 3")),
-    ];
+    let indexed = vec![(0usize, curve("x ^ 2")), (2usize, curve("x ^ 3"))];
     let svg = graph_svg_indexed(&indexed, &[], None, true, DEFAULT_STROKE_WIDTH);
     assert!(svg.contains("<polyline class=\"curve curve-0\""), "{svg}");
     assert!(svg.contains("<polyline class=\"curve curve-2\""), "{svg}");
@@ -142,7 +139,10 @@ fn solar3d_svg_renders_orbits_trails_and_labelled_dots() {
     let scene = solar_scene(2459030.5).expect("scene");
     let svg = graph_svg_crate::render_solar(&scene);
     // nine orbit curves and their trails draw as polylines
-    assert!(svg.matches("<polyline").count() >= 18, "orbit and trail polylines");
+    assert!(
+        svg.matches("<polyline").count() >= 18,
+        "orbit and trail polylines"
+    );
     // every dot is a labelled circle (the ADR amendment's accessible name)
     assert_eq!(svg.matches("<circle").count(), 11, "one dot per body");
     assert!(svg.contains("<title>Jupiter</title>"));
@@ -205,12 +205,29 @@ fn solar_zoom_scales_the_viewbox_without_moving_anything() {
 
     // The window halves around the same center: the on-screen image is
     // exactly 2x. (Tolerances match the viewBox's 3-decimal format.)
-    let pd: Vec<f64> = box_d.split_whitespace().map(|v| v.parse().unwrap()).collect();
-    let pz: Vec<f64> = box_z.split_whitespace().map(|v| v.parse().unwrap()).collect();
-    assert!((pz[2] - pd[2] / 2.0).abs() < 1e-2, "width {} vs {}/2", pz[2], pd[2]);
+    let pd: Vec<f64> = box_d
+        .split_whitespace()
+        .map(|v| v.parse().unwrap())
+        .collect();
+    let pz: Vec<f64> = box_z
+        .split_whitespace()
+        .map(|v| v.parse().unwrap())
+        .collect();
+    assert!(
+        (pz[2] - pd[2] / 2.0).abs() < 1e-2,
+        "width {} vs {}/2",
+        pz[2],
+        pd[2]
+    );
     assert!((pz[3] - pd[3] / 2.0).abs() < 1e-2);
-    assert!((pz[0] + pz[2] / 2.0 - (pd[0] + pd[2] / 2.0)).abs() < 1e-2, "same center x");
-    assert!((pz[1] + pz[3] / 2.0 - (pd[1] + pd[3] / 2.0)).abs() < 1e-2, "same center y");
+    assert!(
+        (pz[0] + pz[2] / 2.0 - (pd[0] + pd[2] / 2.0)).abs() < 1e-2,
+        "same center x"
+    );
+    assert!(
+        (pz[1] + pz[3] / 2.0 - (pd[1] + pd[3] / 2.0)).abs() < 1e-2,
+        "same center y"
+    );
 }
 
 #[test]
@@ -230,7 +247,11 @@ fn solar_dots_keep_a_fixed_radius_at_every_zoom() {
         }
         out
     };
-    assert_eq!(radii(default), radii(zoomed), "radius must not depend on zoom");
+    assert_eq!(
+        radii(default),
+        radii(zoomed),
+        "radius must not depend on zoom"
+    );
     assert!(!radii(default).is_empty());
 }
 

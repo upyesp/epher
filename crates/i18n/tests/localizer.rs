@@ -40,11 +40,7 @@ fn keypad_hints_exist_in_every_locale() {
     for locale in epher_i18n::SUPPORTED_LOCALES {
         let l = Localizer::resolve(Some(locale), &[]);
         for key in &keys {
-            assert_ne!(
-                l.lookup(key),
-                *key,
-                "{locale} is missing the hint {key}"
-            );
+            assert_ne!(l.lookup(key), *key, "{locale} is missing the hint {key}");
         }
     }
 }

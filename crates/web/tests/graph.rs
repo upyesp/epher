@@ -4,12 +4,10 @@
 
 use epher_core::graph::{parse_graph_source, sample_spec, CurveKind, InterestKind, SampledCurve};
 use epher_core::{Env, Sample};
-use epher_web::{
-    anchored_window, slider_window, zoom_slider_value,
-};
 use epher_web::graph::{
     geometry, graph_svg, segments, ticks, trace_nearest, Poi, TracePoint, DEFAULT_STROKE_WIDTH,
 };
+use epher_web::{anchored_window, slider_window, zoom_slider_value};
 
 fn env() -> Env {
     Env::default()

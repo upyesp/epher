@@ -26,8 +26,8 @@ use yew::prelude::*;
 pub use epher_core::graph_svg::{
     aria_label, curve_caption, escape, fill_points, geometry, geometry_in, graph3d_svg, graph_svg,
     graph_svg_indexed, label, layers_svg, polyline_points, segments, solar_parts_in,
-    solar_view_box, ticks, trace_nearest, Geometry, Poi, TracePoint, BOTTOM,
-    DEFAULT_STROKE_WIDTH, HEIGHT, LEFT, RIGHT, TOP, WIDTH,
+    solar_view_box, ticks, trace_nearest, Geometry, Poi, TracePoint, BOTTOM, DEFAULT_STROKE_WIDTH,
+    HEIGHT, LEFT, RIGHT, TOP, WIDTH,
 };
 /// The live 3D renderer's content (view box + mesh markup).
 pub fn surface_svg(
@@ -117,9 +117,8 @@ pub fn graph_html(props: &GraphProps) -> Html {
     let svg_ref = use_node_ref();
     // The active pointers, for pinch-zoom (ADR-0038): two fingers on the
     // plot zoom around their midpoint; one finger keeps tracing.
-    let pointers = use_state(|| std::rc::Rc::new(std::cell::RefCell::new(
-        Vec::<(i32, f64, f64)>::new(),
-    )));
+    let pointers =
+        use_state(|| std::rc::Rc::new(std::cell::RefCell::new(Vec::<(i32, f64, f64)>::new())));
 
     // Attach the interaction listeners once, directly on the SVG element.
     {
@@ -207,58 +206,62 @@ pub fn graph_html(props: &GraphProps) -> Html {
             {
                 let el_closure = el.clone();
                 let pointers = pointers.clone();
-                bound.push(gloo_events::EventListener::new(&el, "pointerdown", move |e| {
-                    let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() else {
-                        return;
-                    };
-                    let mut pts = pointers.borrow_mut();
-                    pts.retain(|(id, _, _)| *id != pe.pointer_id());
-                    pts.push((pe.pointer_id(), pe.client_x() as f64, pe.client_y() as f64));
-                    drop(pts);
-                    let _ = el_closure.set_pointer_capture(pe.pointer_id());
-                }));
+                bound.push(gloo_events::EventListener::new(
+                    &el,
+                    "pointerdown",
+                    move |e| {
+                        let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() else {
+                            return;
+                        };
+                        let mut pts = pointers.borrow_mut();
+                        pts.retain(|(id, _, _)| *id != pe.pointer_id());
+                        pts.push((pe.pointer_id(), pe.client_x() as f64, pe.client_y() as f64));
+                        drop(pts);
+                        let _ = el_closure.set_pointer_capture(pe.pointer_id());
+                    },
+                ));
             }
             {
                 let el_closure = el.clone();
                 let on_zoom = on_zoom.clone();
                 let pointers = pointers.clone();
-                bound.push(gloo_events::EventListener::new(&el, "pointermove", move |e| {
-                    let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() else {
-                        return;
-                    };
-                    let mut pts = pointers.borrow_mut();
-                    if let Some(slot) = pts.iter_mut().find(|(id, _, _)| *id == pe.pointer_id()) {
-                        slot.1 = pe.client_x() as f64;
-                        slot.2 = pe.client_y() as f64;
-                    }
-                    if pts.len() < 2 {
-                        return;
-                    }
-                    // Two fingers: the span scales by the distance ratio
-                    // between moves, anchored at the fingers' midpoint.
-                    let dx = pts[1].1 - pts[0].1;
-                    let dy = pts[1].2 - pts[0].2;
-                    let dist = (dx * dx + dy * dy).sqrt();
-                    let mid_x = (pts[0].1 + pts[1].1) / 2.0;
-                    let mid_y = (pts[0].2 + pts[1].2) / 2.0;
-                    drop(pts);
-                    let last = el_closure
-                        .get_attribute("data-pinch-dist")
-                        .and_then(|v| v.parse::<f64>().ok());
-                    let _ = el_closure
-                        .set_attribute("data-pinch-dist", &format!("{dist}"));
-                    let Some(last) = last else { return };
-                    if last < 1.0 || dist < 1.0 {
-                        return;
-                    }
-                    let r = el_closure.get_bounding_client_rect();
-                    let (px, py) = to_viewbox(
-                        &el_closure,
-                        mid_x - r.left(),
-                        mid_y - r.top(),
-                    );
-                    on_zoom.emit((px, py, last / dist));
-                }));
+                bound.push(gloo_events::EventListener::new(
+                    &el,
+                    "pointermove",
+                    move |e| {
+                        let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() else {
+                            return;
+                        };
+                        let mut pts = pointers.borrow_mut();
+                        if let Some(slot) = pts.iter_mut().find(|(id, _, _)| *id == pe.pointer_id())
+                        {
+                            slot.1 = pe.client_x() as f64;
+                            slot.2 = pe.client_y() as f64;
+                        }
+                        if pts.len() < 2 {
+                            return;
+                        }
+                        // Two fingers: the span scales by the distance ratio
+                        // between moves, anchored at the fingers' midpoint.
+                        let dx = pts[1].1 - pts[0].1;
+                        let dy = pts[1].2 - pts[0].2;
+                        let dist = (dx * dx + dy * dy).sqrt();
+                        let mid_x = (pts[0].1 + pts[1].1) / 2.0;
+                        let mid_y = (pts[0].2 + pts[1].2) / 2.0;
+                        drop(pts);
+                        let last = el_closure
+                            .get_attribute("data-pinch-dist")
+                            .and_then(|v| v.parse::<f64>().ok());
+                        let _ = el_closure.set_attribute("data-pinch-dist", &format!("{dist}"));
+                        let Some(last) = last else { return };
+                        if last < 1.0 || dist < 1.0 {
+                            return;
+                        }
+                        let r = el_closure.get_bounding_client_rect();
+                        let (px, py) = to_viewbox(&el_closure, mid_x - r.left(), mid_y - r.top());
+                        on_zoom.emit((px, py, last / dist));
+                    },
+                ));
             }
             {
                 let el = el.clone();
@@ -268,7 +271,9 @@ pub fn graph_html(props: &GraphProps) -> Html {
                     let pointers = pointers.clone();
                     bound.push(gloo_events::EventListener::new(&el, event_name, move |e| {
                         if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
-                            pointers.borrow_mut().retain(|(id, _, _)| *id != pe.pointer_id());
+                            pointers
+                                .borrow_mut()
+                                .retain(|(id, _, _)| *id != pe.pointer_id());
                         }
                         if pointers.borrow().len() < 2 {
                             let _ = el_inner.remove_attribute("data-pinch-dist");
@@ -534,9 +539,8 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
     let drag = use_state(|| std::rc::Rc::new(std::cell::RefCell::new(Option::<(f64, f64)>::None)));
     // The active pointers (ADR-0038): one drags the orbit, two pinch the
     // camera distance - orbiting suspends while the second finger is down.
-    let pointers = use_state(|| std::rc::Rc::new(std::cell::RefCell::new(
-        Vec::<(i32, f64, f64)>::new(),
-    )));
+    let pointers =
+        use_state(|| std::rc::Rc::new(std::cell::RefCell::new(Vec::<(i32, f64, f64)>::new())));
 
     // The mesh is injected with Element::set_inner_html on an SVG <g>, not
     // via Yew vnodes: Yew's from_html_unchecked parses fragments in an HTML
@@ -654,8 +658,7 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
                                     let last = el
                                         .get_attribute("data-pinch-dist")
                                         .and_then(|v| v.parse::<f64>().ok());
-                                    let _ = el
-                                        .set_attribute("data-pinch-dist", &format!("{dist}"));
+                                    let _ = el.set_attribute("data-pinch-dist", &format!("{dist}"));
                                     if let Some(last) = last {
                                         if last > 1.0 && dist > 1.0 {
                                             on_zoom.emit(last / dist);
@@ -714,24 +717,20 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
                     let pending = pending.clone();
                     let pointers = pointers.clone();
                     let el_inner = el.clone();
-                    bound.push(gloo_events::EventListener::new(
-                        &el,
-                        event_name,
-                        move |e| {
-                            if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
-                                pointers
-                                    .borrow_mut()
-                                    .retain(|(id, _, _)| *id != pe.pointer_id());
-                            }
-                            if pointers.borrow().len() < 2 {
-                                let _ = el_inner.remove_attribute("data-pinch-dist");
-                            }
-                            *drag.borrow_mut() = None;
-                            if let Some((a, b)) = pending.borrow_mut().take() {
-                                on_orbit.emit((a, b));
-                            }
-                        },
-                    ));
+                    bound.push(gloo_events::EventListener::new(&el, event_name, move |e| {
+                        if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
+                            pointers
+                                .borrow_mut()
+                                .retain(|(id, _, _)| *id != pe.pointer_id());
+                        }
+                        if pointers.borrow().len() < 2 {
+                            let _ = el_inner.remove_attribute("data-pinch-dist");
+                        }
+                        *drag.borrow_mut() = None;
+                        if let Some((a, b)) = pending.borrow_mut().take() {
+                            on_orbit.emit((a, b));
+                        }
+                    }));
                 }
             }
             {
