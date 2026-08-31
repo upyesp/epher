@@ -436,16 +436,15 @@ a:hover {
   font-weight: 750;
   margin-block-end: 1rem;
 }
-/* The two-line heading (the brand wordplay leads, the descriptor
-   follows): both lines step down from the h1 size so the pair fits the
-   copy column and reads as one heading. */
+/* The two-line heading: the brand leads at full size, the descriptor
+   follows a step down, and the pair reads as one heading. */
 .hero-title-brand,
 .hero-title-sub {
   display: block;
 }
-.hero-title-brand {
-  font-size: 0.8em;
-}
+/* With the brand reduced to just "epher" the line takes the h1's full
+   size again — the old 0.8em existed to keep "epher... ephemeris" from
+   wrapping mid-word. */
 .hero-title-sub {
   font-size: 0.6em;
   font-weight: 600;

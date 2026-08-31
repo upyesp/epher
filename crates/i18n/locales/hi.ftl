@@ -105,7 +105,7 @@ tui-hint-base-b =  · Ctrl+L इतिहास साफ़ करें · Ctr
 poi-copy = रुचि के बिंदु कॉपी करें
 poi-copied = रुचि के बिंदु क्लिपबोर्ड पर कॉपी हो गए
 share-item = साझा करें
-share-text = इसे epher ऐप में देखें:
+share-text = epher ऐप से साझा किया गया:
 share-copied = लिंक क्लिपबोर्ड पर कॉपी हो गया
 share-failed = लिंक साझा नहीं किया जा सका
 guide-search = खोजें
@@ -253,3 +253,6 @@ keypad-hints = कुंजी संकेत
 keypad-hint-idle = कुंजी का काम देखने के लिए उस पर संकेतक रखें या उसे फोकस दें।
 menu-key-help = कुंजी सहायता
 tui-key-help-hint = तीर स्क्रॉल करते हैं · q या Esc बंद करता है
+
+# Script loading (ADR-0040)
+load-failed = स्क्रिप्ट की एक या अधिक पंक्तियाँ विफल हुईं।

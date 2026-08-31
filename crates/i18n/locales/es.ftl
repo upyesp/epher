@@ -105,7 +105,7 @@ tui-hint-base-b =  · Ctrl+L borrar historial · Ctrl+C salir · q salir
 poi-copy = Copiar los puntos de interés
 poi-copied = Puntos de interés copiados al portapapeles
 share-item = Compartir
-share-text = Echa un vistazo a esto en la app de epher:
+share-text = Compartido desde la app de epher:
 share-copied = Enlace copiado al portapapeles
 share-failed = No se pudo compartir el enlace
 guide-search = Buscar
@@ -254,3 +254,6 @@ keypad-hints = Sugerencias de teclas
 keypad-hint-idle = Apoya el puntero o enfoca una tecla para ver qué hace.
 menu-key-help = Ayuda de teclas
 tui-key-help-hint = Flechas desplazan · q o Esc cierra
+
+# Script loading (ADR-0040)
+load-failed = Una o más líneas del script fallaron.

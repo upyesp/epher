@@ -467,6 +467,15 @@ nach aus, genau so, als hättest du sie eine nach der anderen getippt.
 Mehrere Anweisungen mit `;` in einer Zeile zu verbinden, funktioniert
 ebenfalls überall, auch in der Einmal-Befehlszeile (Abschnitt 4.1).
 
+
+Skripte können **Kommentare** tragen - Notizen für dich, die epher überspringt, geschrieben wie in PHP. `//` oder `#` kommentiert bis zum Zeilenende; `/* ... */` kommentiert einen Block aus, über Zeilen hinweg oder inline zwischen Token:
+
+```epher
+// a small script with notes
+r = 3 # radius in metres
+area = /* pi r squared */ pi * r ^ 2
+area
+```
 ### 1.12 Exakte Ergebnisse: frac, dec und big
 
 Normalerweise rechnet epher mit Dezimalzahlen wie ein Taschenrechner.
@@ -1225,6 +1234,8 @@ werden ausgegeben und das Skript läuft weiter. Eine Zeile kann mehrere
 Anweisungen mit `;` verbinden. Zeilenumbrüche und `;` bedeuten überall
 in epher dasselbe.
 
+
+Eine Datei funktioniert genauso: `epher plots/sine.es` führt jede Zeile der Datei der Reihe nach aus und druckt jedes Ergebnis. Das Argument gilt als Datei, wenn es eine vorhandene Datei benennt und einen `.`, `/` oder `\` enthält - `epher x` wertet also weiterhin den Namen `x` aus.
 ### 4.3 Die interaktive Sitzung (REPL)
 
 Starte sie mit `epher repl`:
@@ -1281,6 +1292,13 @@ epher> quit
 Dein Verlauf wird gemerkt: Wenn du das nächste Mal `epher repl` ausführst,
 sind die Zeilen der vorherigen Sitzung noch da.
 
+
+Der Befehl `load` führt ein Skript aus - einen Dateipfad oder den Namen eines mit `save script` gespeicherten Skripts - Zeile für Zeile, genau als hättest du es eingetippt:
+
+```text
+epher> load plots/sine.es
+epher> load my_setup
+```
 ### 4.4 Funktionen, Konstanten und Skripte speichern
 
 Definiere eine Funktion und speichere sie dann:
@@ -1321,6 +1339,8 @@ saved script count_to_five
 Gespeicherte Skripte laufen beim Start von epher automatisch, sodass
 alles, was sie definieren, für dich bereitsteht.
 
+
+Du kannst ein gespeichertes Skript auch bei Bedarf mit `load count_to_five` laden, es als einfache Datei behalten und `load count_to_five.es` ausführen; `epher count_to_five.es` startet es direkt von der Kommandozeile (Abschnitt 4.2).
 ### 4.5 Die Sprache der Oberfläche ändern
 
 Die Sprache der Oberfläche wird aus den Sprachen gewählt, die du auf

@@ -12,7 +12,7 @@
 //! visible caption at its end so solid lines stay distinguishable
 //! without color (WCAG 1.4.1).
 
-use crate::graph::{InterestKind, SampledCurve, Segment3D, Surface, View3D, zoom_window};
+use crate::graph::{zoom_window, InterestKind, SampledCurve, Segment3D, Surface, View3D};
 use crate::Sample;
 
 pub const WIDTH: f64 = 640.0;
@@ -417,8 +417,11 @@ pub fn graph_svg(
     // slice as the palette index — the callers without hidden curves
     // (TUI, shell, core tests) always pass full slices, so position and
     // original index coincide.
-    let indexed: Vec<(usize, SampledCurve)> =
-        curves.iter().enumerate().map(|(i, c)| (i, c.clone())).collect();
+    let indexed: Vec<(usize, SampledCurve)> = curves
+        .iter()
+        .enumerate()
+        .map(|(i, c)| (i, c.clone()))
+        .collect();
     graph_svg_indexed(&indexed, pois, trace, markers, stroke_width)
 }
 
@@ -557,13 +560,7 @@ pub fn surface_parts(
         return None;
     }
     let pad = (x_max - x_min).max(y_max - y_min) * 0.06;
-    let (wx, wy, ww, wh) = zoom_window(
-        x_min - pad,
-        x_max + pad,
-        y_min - pad,
-        y_max + pad,
-        view,
-    );
+    let (wx, wy, ww, wh) = zoom_window(x_min - pad, x_max + pad, y_min - pad, y_max + pad, view);
     let span = z_max - z_min;
     let view_box = format!("{wx:.3} {wy:.3} {ww:.3} {wh:.3}");
     let mut parts = String::new();
@@ -660,10 +657,7 @@ pub fn solar_parts(
 /// computed from **every** body. The pane's legend (ADR-0038) renders a
 /// filtered scene inside this frame: hiding a body must never let the
 /// remaining geometry jump, rescale, or collapse the view.
-pub fn solar_view_box(
-    scene: &crate::astro::SolarScene,
-    view: &View3D,
-) -> Option<String> {
+pub fn solar_view_box(scene: &crate::astro::SolarScene, view: &View3D) -> Option<String> {
     use crate::graph::{project_space_curve, project_world_dot};
     let mut x_min = f64::INFINITY;
     let mut x_max = f64::NEG_INFINITY;
@@ -694,13 +688,7 @@ pub fn solar_view_box(
         return None;
     }
     let pad = (x_max - x_min).max(y_max - y_min) * 0.06;
-    let (wx, wy, ww, wh) = zoom_window(
-        x_min - pad,
-        x_max + pad,
-        y_min - pad,
-        y_max + pad,
-        view,
-    );
+    let (wx, wy, ww, wh) = zoom_window(x_min - pad, x_max + pad, y_min - pad, y_max + pad, view);
     Some(format!("{wx:.3} {wy:.3} {ww:.3} {wh:.3}"))
 }
 

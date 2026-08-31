@@ -15,6 +15,12 @@ fn main() {
     let result = match action_from(&args) {
         Action::OneShot(expr) => epher_cli::run_one_shot(&expr),
         Action::Stdin => epher_cli::run_stdin_and_exit(),
+        Action::ScriptFile(path) => epher_cli::run_script_file(&path).and_then(|failed| {
+            if failed {
+                std::process::exit(1);
+            }
+            Ok(())
+        }),
         Action::Repl => epher_cli::run_repl(),
         Action::HelpManual => std::process::exit(epher_cli::help::manual()),
         Action::HelpTopic(topic) => epher_cli::help::topic(&topic),

@@ -465,6 +465,15 @@ exatamente como se as tivesse escrito uma a uma. Unir várias instruções
 com `;` numa só linha também funciona em todo o lado, incluindo a linha
 de comandos de avaliação única (secção 4.1).
 
+
+Scripts podem carregar **comentários** - anotações para você que o epher ignora, no estilo PHP. `//` ou `#` comenta até o fim da linha; `/* ... */` comenta um bloco, através de linhas ou no meio dos tokens:
+
+```epher
+// a small script with notes
+r = 3 # radius in metres
+area = /* pi r squared */ pi * r ^ 2
+area
+```
 ### 1.12 Resultados exatos: frac, dec e big
 
 Normalmente o epher calcula com números decimais, como uma calculadora de
@@ -1213,6 +1222,8 @@ e o `save` escreve no mesmo armazenamento de sempre. Os erros são impressos
 e o script continua. Uma linha pode unir várias instruções com `;`. As
 quebras de linha e o `;` significam a mesma coisa em todo o lado no epher.
 
+
+Um arquivo funciona do mesmo jeito: `epher plots/sine.es` executa cada linha do arquivo em ordem e mostra cada resultado. O argumento é tratado como arquivo quando nomeia um arquivo existente e contém um `.`, `/` ou `\` - `epher x` continua avaliando o nome `x`.
 ### 4.3 A sessão interativa (REPL)
 
 Inicie-a com `epher repl`:
@@ -1271,6 +1282,13 @@ epher> quit
 O seu histórico é lembrado: da próxima vez que executar `epher repl`, as
 linhas da sessão anterior ainda lá estão.
 
+
+O comando `load` executa um script - um caminho de arquivo ou o nome de um script salvo com `save script` - linha por linha, exatamente como se você o tivesse digitado:
+
+```text
+epher> load plots/sine.es
+epher> load my_setup
+```
 ### 4.4 Guardar funções, constantes e scripts
 
 Defina uma função e depois guarde-a:
@@ -1311,6 +1329,8 @@ saved script count_to_five
 Os scripts guardados são executados automaticamente quando o epher inicia,
 para que tudo o que definem esteja pronto para si.
 
+
+Você também pode carregar um script salvo quando quiser com `load count_to_five`, ou mantê-lo como arquivo simples e rodar `load count_to_five.es`; `epher count_to_five.es` o executa direto da linha de comando (secção 4.2).
 ### 4.5 Mudar o idioma da interface
 
 O idioma da interface é escolhido a partir dos idiomas definidos no seu

@@ -1105,7 +1105,10 @@ fn user_shadowing_cannot_change_a_unit_literal() {
     // suffix factors are grammar-level constants: neither a user
     // constant nor a variable changes what `2 AU` means (ADR-0037)
     let script = "const au = 3; const deg = 9; 2 AU";
-    match epher_core::run_all(&epher_core::parse_script(script).expect("parses"), &mut epher_core::Env::default()) {
+    match epher_core::run_all(
+        &epher_core::parse_script(script).expect("parses"),
+        &mut epher_core::Env::default(),
+    ) {
         Ok(values) => {
             let last = values.last().expect("a value");
             assert_eq!(*last, epher_core::Value::float(2.0 * 1.495_978_707e11));
@@ -1149,7 +1152,10 @@ fn unit_literals_work_in_scripts_and_domains() {
     let mut env = epher_core::Env::default();
     let script = epher_core::parse_script("x = 5 hr; x + 1 d").expect("parses");
     let values = epher_core::run_all(&script, &mut env).expect("runs");
-    assert_eq!(values.last(), Some(&epher_core::Value::float(86400.0 + 18000.0)));
+    assert_eq!(
+        values.last(),
+        Some(&epher_core::Value::float(86400.0 + 18000.0))
+    );
 }
 
 // ===== Astronomy constants (ADR-0037) =====
@@ -1159,7 +1165,11 @@ fn astronomy_constants_resolve_like_pi_and_are_shadowable() {
     approx("c", "c", 2.997_924_58e8);
     approx("g", "g", 9.80665);
     approx("h", "h", 6.626_070_15e-34);
-    approx("h_bar", "h_bar", 6.626_070_15e-34 / (2.0 * std::f64::consts::PI));
+    approx(
+        "h_bar",
+        "h_bar",
+        6.626_070_15e-34 / (2.0 * std::f64::consts::PI),
+    );
     approx("k_b", "k_b", 1.380_649e-23);
     approx("sigma_sb", "sigma_sb", 5.670_374_419e-8);
     approx("au", "au", 1.495_978_707e11);
@@ -1190,7 +1200,11 @@ fn astronomy_constants_resolve_like_pi_and_are_shadowable() {
 fn jd_and_mjd_convert_calendar_dates() {
     // independent source: J2000.0 is 2000-01-01 12:00 TT = JD 2451545.0
     approx("J2000 epoch", "jd(2000, 1, 1, 12)", 2451545.0);
-    approx("jd with fractional hour", "jd(2000, 1, 1, 12.5)", 2451545.020_833_333);
+    approx(
+        "jd with fractional hour",
+        "jd(2000, 1, 1, 12.5)",
+        2451545.020_833_333,
+    );
     approx("jd defaults to midnight", "jd(2000, 1, 1)", 2451544.5);
     // MJD epoch: 1858-11-17 00:00 is MJD 0
     approx("MJD epoch", "mjd(1858, 11, 17)", 0.0);
@@ -1397,7 +1411,10 @@ fn rise_set_and_transit_land_on_a_greenwich_day() {
     let rise = float_at("rise(10, jd(2000, 3, 20), 51.5, 0)") - day;
     assert!((0.20..0.32).contains(&rise), "sunrise fraction = {rise}");
     let transit = float_at("transit(10, jd(2000, 3, 20), 51.5, 0)") - day;
-    assert!((0.47..0.56).contains(&transit), "transit fraction = {transit}");
+    assert!(
+        (0.47..0.56).contains(&transit),
+        "transit fraction = {transit}"
+    );
     let set = float_at("set(10, jd(2000, 3, 20), 51.5, 0)") - day;
     assert!((0.72..0.82).contains(&set), "sunset fraction = {set}");
     // a body that never rises at a latitude is a domain error, not
@@ -1424,9 +1441,15 @@ fn brightness_and_size_accessors() {
     assert!((0.49..0.57).contains(&d), "moon diameter = {d}");
     // phase geometry stays in its quadrants
     let phase = float_at("phase(4, jd(2020, 10, 6))");
-    assert!((0.0..90.0).contains(&phase), "mars phase at opposition = {phase}");
+    assert!(
+        (0.0..90.0).contains(&phase),
+        "mars phase at opposition = {phase}"
+    );
     let illum = float_at("illum(4, jd(2020, 10, 6))");
-    assert!((0.7..1.01).contains(&illum), "mars illum at opposition = {illum}");
+    assert!(
+        (0.7..1.01).contains(&illum),
+        "mars illum at opposition = {illum}"
+    );
 }
 
 #[test]
@@ -1445,8 +1468,16 @@ fn the_four_season_entries_land_on_their_instants() {
     // NASA/GSFC almanac values for the year 2000, UTC
     approx("march equinox 2000", "march_equinox(2000)", 2451623.816);
     approx("june solstice 2000", "june_solstice(2000)", 2451716.575);
-    approx("september equinox 2000", "september_equinox(2000)", 2451810.228);
-    approx("december solstice 2000", "december_solstice(2000)", 2451900.068);
+    approx(
+        "september equinox 2000",
+        "september_equinox(2000)",
+        2451810.228,
+    );
+    approx(
+        "december solstice 2000",
+        "december_solstice(2000)",
+        2451900.068,
+    );
 }
 
 // ===== review fixes: honest edges (ADR-0037) =====
@@ -1476,11 +1507,23 @@ fn sexagesimal_rounding_carries_all_the_way() {
 
 #[test]
 fn calendar_validation_knows_month_lengths() {
-    assert!(epher_core::evaluate("jd(2020, 2, 29)").is_ok(), "2020 is a leap year");
-    assert!(epher_core::evaluate("jd(2023, 2, 29)").is_err(), "2023 is not");
+    assert!(
+        epher_core::evaluate("jd(2020, 2, 29)").is_ok(),
+        "2020 is a leap year"
+    );
+    assert!(
+        epher_core::evaluate("jd(2023, 2, 29)").is_err(),
+        "2023 is not"
+    );
     assert!(epher_core::evaluate("jd(2023, 2, 30)").is_err());
-    assert!(epher_core::evaluate("jd(2000, 4, 31)").is_err(), "April has 30");
-    assert!(epher_core::evaluate("jd(2000, 2, 29)").is_ok(), "divisible by 400");
+    assert!(
+        epher_core::evaluate("jd(2000, 4, 31)").is_err(),
+        "April has 30"
+    );
+    assert!(
+        epher_core::evaluate("jd(2000, 2, 29)").is_ok(),
+        "divisible by 400"
+    );
 }
 
 // ===== Pluto positions/events and Sun phase/illum (ADR-0037 amendment);
@@ -1504,7 +1547,10 @@ fn pluto_events_mirror_the_snapshot_convention() {
     // Pluto (dec -22.3) at the equator transits about 66 minutes after
     // local midnight (its RA is 19h45m, the Sun's is 6h40m)
     let transit = float_at("transit(9, jd(2020, 7, 1), 0, 0)") - day;
-    assert!((0.03..0.06).contains(&transit), "pluto transit fraction = {transit}");
+    assert!(
+        (0.03..0.06).contains(&transit),
+        "pluto transit fraction = {transit}"
+    );
     // meridian passage is due south at the equator
     let az = float_at("az(9, transit(9, jd(2020, 7, 1), 0, 0), 0, 0)");
     assert!((179.5..=180.5).contains(&az), "pluto transit az = {az}");
@@ -1542,7 +1588,10 @@ fn exact_layers_raise_to_integer_powers() {
     );
     // a power of ten keeps a negative scale, which BigDecimal displays
     // in scientific notation - the value is exact either way
-    assert_eq!(eval_str("big(10) ^ 40"), Value::Big("1e+40".parse().unwrap()));
+    assert_eq!(
+        eval_str("big(10) ^ 40"),
+        Value::Big("1e+40".parse().unwrap())
+    );
     // negative integer exponents give exact reciprocals, normalized
     assert_eq!(eval_str("big(2) ^ -10").to_string(), "0.0009765625");
     // rationals: exact in both directions
@@ -1558,7 +1607,9 @@ fn exact_layers_raise_to_integer_powers() {
     assert!(epher_core::evaluate("frac(2, 3) ^ frac(1, 2)").is_err());
     // float pow of a negative base with a fractional exponent points at
     // root() instead of returning a bare NaN
-    let err = epher_core::evaluate("(-8) ^ (1 / 3)").unwrap_err().to_string();
+    let err = epher_core::evaluate("(-8) ^ (1 / 3)")
+        .unwrap_err()
+        .to_string();
     assert!(err.contains("root"), "{err}");
     // ordinary float powers are untouched
     let x = float_at("2 ^ 0.5");
@@ -1570,7 +1621,9 @@ fn redeclaring_a_constant_with_the_same_value_is_a_noop() {
     // examples with `const` lines get pasted and re-pasted (ADR-0012
     // amendment): the same definition twice succeeds as a no-op
     assert_eq!(
-        run_script("const a = 1\nconst a = 1\na + 1").unwrap().to_string(),
+        run_script("const a = 1\nconst a = 1\na + 1")
+            .unwrap()
+            .to_string(),
         "2"
     );
     // a changed value keeps the documented error
@@ -1579,8 +1632,57 @@ fn redeclaring_a_constant_with_the_same_value_is_a_noop() {
         .to_string();
     assert!(err.contains("already defined"), "{err}");
     // a constant still never takes a variable's name
-    let err = run_script("c = 1\nconst c = 2")
+    let err = run_script("c = 1\nconst c = 2").unwrap_err().to_string();
+    assert!(err.contains("already a variable"), "{err}");
+}
+
+#[test]
+fn php_style_comments_are_ignored() {
+    // ADR-0040: the language gains PHP-style comments — `//` and `#`
+    // run to the end of the line, `/* ... */` may span lines and sit
+    // inline between tokens.
+
+    // line comments: both spellings, trailing or standalone
+    assert_eq!(eval_str("2 + 2 // four").to_string(), "4");
+    assert_eq!(eval_str("2 + 2 # four").to_string(), "4");
+    // a comment line before the expression: the statement-separator view
+    // (a leading newline was always a script-level thing, not an
+    // expression-level one)
+    assert_eq!(
+        run_script("// just a note\n2 + 2").unwrap().to_string(),
+        "4"
+    );
+    assert_eq!(run_script("# just a note\n2 + 2").unwrap().to_string(), "4");
+    // a comment on its own line is a silent no-op: the script has no
+    // statements, so a session submit prints nothing at all
+    assert!(parse_script("// only").unwrap().is_empty());
+    let mut session = Session::new();
+    assert_eq!(session.submit("// only"), "");
+
+    // block comments: inline between tokens, across lines, and alone
+    assert_eq!(eval_str("2 /* twice */ * 2").to_string(), "4");
+    assert_eq!(
+        eval_str("1 + /* a note\nthat spans lines */ 2").to_string(),
+        "3"
+    );
+    assert_eq!(eval_str("/* only */ 5").to_string(), "5");
+    // a block comment's newlines never become statement separators
+    assert_eq!(eval_str("1 /* \n */ + /* \n */ 2").to_string(), "3");
+
+    // comments between script statements: the separators still count
+    assert_eq!(
+        run_script("a = 1 // first\nb = 2 # second\n/* third */\na + b")
+            .unwrap()
+            .to_string(),
+        "3"
+    );
+
+    // a slash that is not a comment opener divides as always
+    assert_eq!(eval_str("8 / 2 / 2").to_string(), "2");
+
+    // an unterminated block comment is a parse error, like PHP's
+    let err = eval_str_checked("2 /* never closed")
         .unwrap_err()
         .to_string();
-    assert!(err.contains("already a variable"), "{err}");
+    assert!(err.contains("unterminated block comment"), "{err}");
 }

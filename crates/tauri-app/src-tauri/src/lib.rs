@@ -338,6 +338,14 @@ where
     let result = match dispatch::action_from(&parsed) {
         dispatch::Action::OneShot(expr) => epher_cli::run_one_shot(&expr),
         dispatch::Action::Stdin => epher_cli::run_stdin_and_exit(),
+        dispatch::Action::ScriptFile(path) => {
+            epher_cli::run_script_file(&path).and_then(|failed| {
+                if failed {
+                    std::process::exit(1);
+                }
+                Ok(())
+            })
+        }
         dispatch::Action::Repl => epher_cli::run_repl(),
         dispatch::Action::Tui => {
             epher_tui::run().map_err(|e| epher_core::EpherError::Io(e.to_string()))

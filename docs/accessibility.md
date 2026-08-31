@@ -39,7 +39,7 @@ checks use 4.5:1, non-text (UI component boundaries, focus indicators) 3:1.
 | 2.4.6 Headings & labels | **FIXED** | Input has `aria-label`; button's bare `=` name replaced with `aria-label="Evaluate"`. |
 | 2.4.7 Focus visible | **FIXED** | Was: no styles (browser-default ring on a dark theme, inconsistent). Now: `:focus-visible` accent outline (9.9:1 vs `--bg`, 8.9:1 vs `--panel`); the accent button gets an inset dark-teal ring (10.0:1 on the accent surface — an outer ring would not contrast). |
 | 2.4.11 Focus not obscured | PASS | No sticky/overlay content (AA; 2.4.12 AAA not targeted). |
-| 2.5.8 Target size (AA) | PASS | Keypad buttons ≥44×44px in a 5-column grid; tab buttons ≥44px wide; menu bar buttons ≥44px and menu items ≥40px tall; guide example buttons are ≥44px tall and the Clear graph button ≥40px; the install-cli button is ≥48px tall (padding `0.5rem 1rem` on `0.95rem` text — ~48px). |
+| 2.5.8 Target size (AA) | PASS | Keypad buttons ≥44×44px in a 5-column grid; tab buttons ≥44px wide and ≥34px tall, the hints toggle ≥40×34px; the unboxed Clear history command ≥36px tall (AA floor is 24px; ADR-0040); menu bar buttons ≥44px and menu items ≥40px tall; guide example buttons are ≥44px tall and the graph toolbar's icon buttons (Clear, Copy SVG) ≥44px; legend checkboxes ≥32px tall, the graph options ≥40px tall; the install-cli button is ≥48px tall (padding `0.5rem 1rem` on `0.95rem` text — ~48px). |
 
 ### Understandable
 

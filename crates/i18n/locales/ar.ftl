@@ -105,7 +105,7 @@ tui-hint-base-b =  · Ctrl+L مسح السجلّ · Ctrl+C خروج · q خرو�
 poi-copy = نسخ نقاط الاهتمام
 poi-copied = تم نسخ نقاط الاهتمام إلى الحافظة
 share-item = مشاركة
-share-text = ألقِ نظرة على هذا في تطبيق epher:
+share-text = مشارَك من تطبيق epher:
 share-copied = تم نسخ الرابط إلى الحافظة
 share-failed = تعذّرت مشاركة الرابط
 guide-search = بحث
@@ -253,3 +253,6 @@ keypad-hints = تلميحات المفاتيح
 keypad-hint-idle = ضع المؤشر على مفتاح أو ركز عليه لترى وظيفته.
 menu-key-help = مساعدة المفاتيح
 tui-key-help-hint = الأسهم تمرر · q أو Esc يغلق
+
+# Script loading (ADR-0040)
+load-failed = فشل سطر واحد أو أكثر من السكربت.

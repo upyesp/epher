@@ -274,8 +274,12 @@ mod conventions {
         let out = epher_bin().args(["help", "repl"]).output().unwrap();
         assert_eq!(out.status.code(), Some(0));
         let text = String::from_utf8_lossy(&out.stdout);
-        assert!(text.contains("interactive session"), "help was: {text}");
+        assert!(
+            text.contains("Lines evaluate one at a time"),
+            "help was: {text}"
+        );
         assert!(text.contains("epher repl"), "usage line present: {text}");
+        assert!(text.contains("load <file-or-name>"), "load documented");
     }
 }
 
@@ -438,8 +442,118 @@ fn solar3d_save_from_a_one_shot() {
         .arg(input)
         .output()
         .unwrap();
-    assert_eq!(out.status.code(), Some(0), "{}", String::from_utf8_lossy(&out.stderr));
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     let doc = std::fs::read_to_string(&svg).unwrap();
     assert!(doc.contains("<circle"), "{doc}");
     assert!(doc.contains("<title>Saturn</title>"), "{doc}");
+}
+
+// --- script files and `load` (ADR-0040) ---
+
+#[test]
+fn a_script_file_argument_runs_line_by_line() {
+    let dir = tempfile::tempdir().unwrap();
+    let script = dir.path().join("sine.es");
+    // Line-at-a-time frontends evaluate one line per script line, so a
+    // block comment closes on its own line here; multi-line block
+    // comments parse wherever a whole script parses at once (one-shot
+    // expression, the web entry, the core tests).
+    std::fs::write(
+        &script,
+        "// a comment line\nx = 21\nx * 2 # answer\n/* one line */ 1 + 1\n",
+    )
+    .unwrap();
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .arg(script.display().to_string())
+        .output()
+        .unwrap();
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "stderr was: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert!(text.contains("= 42"), "out was: {text}");
+    assert!(text.contains("= 2"), "out was: {text}");
+}
+
+#[test]
+fn a_failing_script_line_exits_nonzero_but_continues() {
+    let dir = tempfile::tempdir().unwrap();
+    let script = dir.path().join("mixed.es");
+    std::fs::write(&script, "1 + 1\nnosuchfn(1)\n2 + 2\n").unwrap();
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .arg(script.display().to_string())
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(1));
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        text.contains("= 2") && text.contains("= 4"),
+        "out was: {text}"
+    );
+}
+
+#[test]
+fn a_bare_identifier_argument_stays_an_expression() {
+    // a file named `x` sits in the directory, but `epher x` must still
+    // evaluate the name `x` (the file rule needs a path-ish character)
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(dir.path().join("x"), "not a script").unwrap();
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .current_dir(dir.path())
+        .arg("x")
+        .output()
+        .unwrap();
+    assert!(
+        !String::from_utf8_lossy(&out.stderr).contains("not a script"),
+        "the file was executed"
+    );
+}
+
+#[test]
+fn repl_load_runs_a_script_file_and_save_script_round_trips() {
+    let dir = tempfile::tempdir().unwrap();
+    let script = dir.path().join("triple.es");
+    std::fs::write(&script, "n = 3\nn * 11\n").unwrap();
+    let repl_input = format!(
+        "load {}\nsave script triple\nload triple\n5\nquit\n",
+        script.display()
+    );
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .args(["repl"])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .and_then(|mut child| {
+            use std::io::Write as _;
+            child
+                .stdin
+                .as_mut()
+                .unwrap()
+                .write_all(repl_input.as_bytes())?;
+            Ok(child.wait_with_output()?)
+        })
+        .unwrap();
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let text = String::from_utf8_lossy(&out.stdout);
+    // the file's results print as they run...
+    assert!(text.contains("= 33"), "out was: {text}");
+    // ...and the store-saved script loads by name in the same session
+    assert_eq!(text.matches("= 33").count(), 2, "loaded twice: {text}");
 }

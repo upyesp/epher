@@ -64,6 +64,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0037 | Astronomy units, constants, time functions, and ephemeris: unit-suffix literals, the solar-ephemeris facade, accessor functions, and solar3d | 2026-08-29 | accepted |
 | 0038 | Zoom on every tile, the solar legend, guide search, shareable history, and the keypad's dead keys | 2026-08-30 | accepted |
 | 0039 | A fixed-height keypad with scrolling, and a meaning for every key | 2026-08-30 | accepted |
+| 0040 | PHP-style comments, a roomier graph, script files for the CLI and REPL, a fuller share, and a legend that never leaves | 2026-08-31 | accepted |
 
 ## Decision chains
 
@@ -110,9 +111,21 @@ at the end of the chain.
   plot; the amendment: stable solar frames, the spin-loop cell fix,
   Help above Settings, TUI guide search and POI copy)**.
 - **Solar system** - **0037** → **0038 (per-body legend checkboxes on
-  the solar pane)**.
+  the solar pane)**. → **0040 (hiding every body leaves an
+  empty framed plot with the legend intact)**.
 - **History** - 0021 (`ans`) → 0025 → 0027 → 0030 → **0038 (share icon
   on every item, `?expr=` links stage the entry; `clear`/`history`
   keypad keys finally run)**.
 - **In-app guide** - 0018 → 0018 amendment (ToC) → **0038 (search box
   with chapter + snippet hits)**.
+- **Script language** - 0001 (one grammar) → 0037 (unit suffixes) →
+  **0040 (PHP-style comments: `//`, `#`, and `/* ... */`)**.
+- **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
+  runs a script file; the REPL's `load` runs a file or a saved script;
+  `save script name` still stores one)**.
+- **Share** - **0038 (share icon, `?expr=` links)** → **0040 (the share
+  reads as message, expression, link)**.
+- **Graph pane layout** - 0016 (fixed-size plot) → 0031 (fine controls)
+  → **0040 (a 38vh plot floor, a wrapping legend, icon toolbar commands,
+  sliders below the plot, no "3D" heading, an unboxed Clear history,
+  and 34px keypad tabs)**.

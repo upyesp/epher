@@ -105,7 +105,7 @@ tui-hint-base-b =  · Ctrl+L 清空历史 · Ctrl+C 退出 · q 退出
 poi-copy = 复制关注点
 poi-copied = 关注点已复制到剪贴板
 share-item = 分享
-share-text = 在 epher 应用里看看这个：
+share-text = 来自 epher 应用的分享：
 share-copied = 链接已复制到剪贴板
 share-failed = 无法分享链接
 guide-search = 搜索
@@ -252,3 +252,6 @@ keypad-hints = 按键提示
 keypad-hint-idle = 将指针悬停或聚焦在按键上，查看它的作用。
 menu-key-help = 按键帮助
 tui-key-help-hint = 方向键滚动 · q 或 Esc 关闭
+
+# Script loading (ADR-0040)
+load-failed = 脚本中的一行或多行执行失败。

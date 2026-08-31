@@ -105,7 +105,7 @@ tui-hint-base-b =  · Ctrl+L clear history · Ctrl+C quit · q quit
 poi-copy = Copy points of interest
 poi-copied = Points of interest copied to the clipboard
 share-item = Share
-share-text = Checkout this in the epher app:
+share-text = Sharing this in the epher app:
 share-copied = Link copied to the clipboard
 share-failed = Could not share the link
 guide-search = Search
@@ -253,3 +253,6 @@ keypad-hints = Key hints
 keypad-hint-idle = Rest on or focus a key to see what it does.
 menu-key-help = Key help
 tui-key-help-hint = Arrows scroll · q or Esc closes
+
+# Script loading (ADR-0040)
+load-failed = One or more lines of the script failed.

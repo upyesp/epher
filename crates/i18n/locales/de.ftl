@@ -105,7 +105,7 @@ tui-hint-base-b =  · Ctrl+L Verlauf leeren · Ctrl+C beenden · q beenden
 poi-copy = Besondere Punkte kopieren
 poi-copied = Besondere Punkte in die Zwischenablage kopiert
 share-item = Teilen
-share-text = Schau dir das in der epher App an:
+share-text = Geteilt aus der epher App:
 share-copied = Link in die Zwischenablage kopiert
 share-failed = Link konnte nicht geteilt werden
 guide-search = Suchen
@@ -254,3 +254,6 @@ keypad-hints = Tastenhinweise
 keypad-hint-idle = Auf einer Taste ruhen oder sie fokussieren, um zu sehen, was sie tut.
 menu-key-help = Tastenhilfe
 tui-key-help-hint = Pfeile blättern · q oder Esc schließt
+
+# Script loading (ADR-0040)
+load-failed = Eine oder mehrere Zeilen des Skripts sind fehlgeschlagen.

@@ -59,8 +59,10 @@ pub struct Args {
     /// to read a script from standard input, line by line, instead.
     /// `graph`/`graph3d` statements plot too; `graph save file.svg`
     /// writes the plot as an SVG image (`epher "graph sin(x); graph
-    /// save plot.svg"`).
-    #[arg(allow_hyphen_values = true, value_name = "EXPRESSION")]
+    /// save plot.svg"`). A path to an existing file (containing `/`,
+    /// `\\`, or `.`) runs the file as a script instead:
+    /// `epher plots/sine.es` evaluates every line like a piped script.
+    #[arg(allow_hyphen_values = true, value_name = "EXPRESSION|SCRIPT")]
     pub expression: Option<String>,
 
     #[command(subcommand)]
@@ -69,12 +71,14 @@ pub struct Args {
 
 #[derive(Subcommand, Debug, PartialEq)]
 pub enum Command {
-    /// Start an interactive session in the terminal.
+    /// Interactive REPL in the terminal.
     ///
     /// Lines evaluate one at a time and each answer prints as `= result`.
     /// Variables, functions, constants, and history persist between
-    /// sessions in the epher store (~/.epher). Leave with `quit`, `exit`,
-    /// or Ctrl-D.
+    /// sessions in the epher store (~/.epher). `load <file-or-name>` runs
+    /// a script file (or a script saved with `save script name`) line by
+    /// line; `save script name` stores the last line as a script. Leave
+    /// with `quit`, `exit`, or Ctrl-D.
     Repl,
 
     /// Start the full-screen terminal interface.
@@ -108,6 +112,8 @@ pub enum Action {
     OneShot(String),
     /// Read a script from stdin, line by line.
     Stdin,
+    /// Evaluate a script file, line by line (`epher plots/sine.es`).
+    ScriptFile(std::path::PathBuf),
     /// Interactive REPL in the terminal.
     Repl,
     /// Full-screen terminal UI.
@@ -139,6 +145,11 @@ pub fn action_from(args: &Args) -> Action {
     }
     match args.expression.as_deref() {
         Some("-") => Action::Stdin,
+        // A path to an existing file runs as a script (ADR-0040). The
+        // separator-or-dot rule keeps bare identifiers out: an expression
+        // name can never contain `.`, `/`, or `\\`, so `epher x` still
+        // evaluates the name `x` even when a file called x sits nearby.
+        Some(expr) if is_script_file(expr) => Action::ScriptFile(expr.into()),
         Some(expr) => Action::OneShot(expr.to_string()),
         None => Action::Gui,
     }
@@ -155,3 +166,13 @@ DOCUMENTATION:
   User guide:    https://epher.org/guide/
   Manual page:   man epher  (or `epher help`)
   Report issues: https://github.com/upyesp/epher/issues";
+
+/// Does this argument name an existing script file? Requires a path-ish
+/// character (`.`, `/`, or `\`) so a bare identifier (`epher x`) always
+/// stays an expression, and requires the file to exist so a typo'd
+/// expression with a dot (`1.5.5`) still reports a parse error instead
+/// of "no such file".
+fn is_script_file(arg: &str) -> bool {
+    (arg.contains('/') || arg.contains('\\') || arg.contains('.'))
+        && std::path::Path::new(arg).is_file()
+}

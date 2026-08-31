@@ -203,9 +203,7 @@ fn resample_solar(
 fn curve_references(c: &SampledCurve, name: &str) -> bool {
     let mut names = std::collections::BTreeSet::new();
     match &c.kind {
-        epher_core::graph::CurveKind::Cartesian(e) => {
-            epher_core::graph::free_names(e, &mut names)
-        }
+        epher_core::graph::CurveKind::Cartesian(e) => epher_core::graph::free_names(e, &mut names),
         epher_core::graph::CurveKind::Parametric { x, y } => {
             epher_core::graph::free_names(x, &mut names);
             epher_core::graph::free_names(y, &mut names);
@@ -290,13 +288,13 @@ struct TabDef {
     keys: &'static [KeyDef],
 }
 
-const fn key(
-    label: &'static str,
-    act: KeyAction,
-    cls: &'static str,
-    hint: &'static str,
-) -> KeyDef {
-    KeyDef { label, act, cls, hint }
+const fn key(label: &'static str, act: KeyAction, cls: &'static str, hint: &'static str) -> KeyDef {
+    KeyDef {
+        label,
+        act,
+        cls,
+        hint,
+    }
 }
 
 /// Every function, constant, and command the language supports, grouped
@@ -397,10 +395,20 @@ static TABS: &[TabDef] = &[
             key("ncr", KeyAction::Call("ncr"), "fn", "key-hint-ncr"),
             key("npr", KeyAction::Call("npr"), "fn", "key-hint-npr"),
             key("sum", KeyAction::Call("sum"), "fn", "key-hint-sum"),
-            key("product", KeyAction::Call("product"), "fn", "key-hint-product"),
+            key(
+                "product",
+                KeyAction::Call("product"),
+                "fn",
+                "key-hint-product",
+            ),
             key("mean", KeyAction::Call("mean"), "fn", "key-hint-mean"),
             key("median", KeyAction::Call("median"), "fn", "key-hint-median"),
-            key("variance", KeyAction::Call("variance"), "fn", "key-hint-variance"),
+            key(
+                "variance",
+                KeyAction::Call("variance"),
+                "fn",
+                "key-hint-variance",
+            ),
             key("stdev", KeyAction::Call("stdev"), "fn", "key-hint-stdev"),
         ],
     },
@@ -431,8 +439,18 @@ static TABS: &[TabDef] = &[
             key("t", KeyAction::Text("t"), "fn", "key-hint-t"),
             key("ans", KeyAction::Text("ans"), "fn", "key-hint-ans"),
             key("graph", KeyAction::Text("graph "), "fn", "key-hint-graph"),
-            key("graph3d", KeyAction::Text("graph3d "), "fn", "key-hint-graph3d"),
-            key("solar3d", KeyAction::Text("solar3d "), "fn", "key-hint-solar3d"),
+            key(
+                "graph3d",
+                KeyAction::Text("graph3d "),
+                "fn",
+                "key-hint-graph3d",
+            ),
+            key(
+                "solar3d",
+                KeyAction::Text("solar3d "),
+                "fn",
+                "key-hint-solar3d",
+            ),
             key("table", KeyAction::Text("table "), "fn", "key-hint-table"),
         ],
     },
@@ -445,13 +463,38 @@ static TABS: &[TabDef] = &[
             key("jd", KeyAction::Call("jd"), "fn", "key-hint-jd"),
             key("mjd", KeyAction::Call("mjd"), "fn", "key-hint-mjd"),
             key("now", KeyAction::Text("now"), "fn", "key-hint-now"),
-            key("delta_t", KeyAction::Call("delta_t"), "fn", "key-hint-delta_t"),
+            key(
+                "delta_t",
+                KeyAction::Call("delta_t"),
+                "fn",
+                "key-hint-delta_t",
+            ),
             key("lst", KeyAction::Call("lst"), "fn", "key-hint-lst"),
             // angles
-            key("hms2deg", KeyAction::Call("hms2deg"), "fn", "key-hint-hms2deg"),
-            key("dms2deg", KeyAction::Call("dms2deg"), "fn", "key-hint-dms2deg"),
-            key("deg2hms", KeyAction::Call("deg2hms"), "fn", "key-hint-deg2hms"),
-            key("deg2dms", KeyAction::Call("deg2dms"), "fn", "key-hint-deg2dms"),
+            key(
+                "hms2deg",
+                KeyAction::Call("hms2deg"),
+                "fn",
+                "key-hint-hms2deg",
+            ),
+            key(
+                "dms2deg",
+                KeyAction::Call("dms2deg"),
+                "fn",
+                "key-hint-dms2deg",
+            ),
+            key(
+                "deg2hms",
+                KeyAction::Call("deg2hms"),
+                "fn",
+                "key-hint-deg2hms",
+            ),
+            key(
+                "deg2dms",
+                KeyAction::Call("deg2dms"),
+                "fn",
+                "key-hint-deg2dms",
+            ),
             key("kepler", KeyAction::Call("kepler"), "fn", "key-hint-kepler"),
             // positions
             key("ra", KeyAction::Call("ra"), "fn", "key-hint-ra"),
@@ -462,21 +505,56 @@ static TABS: &[TabDef] = &[
             // events and brightness
             key("rise", KeyAction::Call("rise"), "fn", "key-hint-rise"),
             key("set", KeyAction::Call("set"), "fn", "key-hint-set"),
-            key("transit", KeyAction::Call("transit"), "fn", "key-hint-transit"),
+            key(
+                "transit",
+                KeyAction::Call("transit"),
+                "fn",
+                "key-hint-transit",
+            ),
             key("mag", KeyAction::Call("mag"), "fn", "key-hint-mag"),
             key("phase", KeyAction::Call("phase"), "fn", "key-hint-phase"),
             key("illum", KeyAction::Call("illum"), "fn", "key-hint-illum"),
             key("diam", KeyAction::Call("diam"), "fn", "key-hint-diam"),
-            key("airmass", KeyAction::Call("airmass"), "fn", "key-hint-airmass"),
+            key(
+                "airmass",
+                KeyAction::Call("airmass"),
+                "fn",
+                "key-hint-airmass",
+            ),
             key("dawes", KeyAction::Call("dawes"), "fn", "key-hint-dawes"),
-            key("dist_mod", KeyAction::Call("dist_mod"), "fn", "key-hint-dist_mod"),
+            key(
+                "dist_mod",
+                KeyAction::Call("dist_mod"),
+                "fn",
+                "key-hint-dist_mod",
+            ),
             // flux and seasons
             key("mag2jy", KeyAction::Call("mag2jy"), "fn", "key-hint-mag2jy"),
             key("jy2mag", KeyAction::Call("jy2mag"), "fn", "key-hint-jy2mag"),
-            key("march_equinox", KeyAction::Call("march_equinox"), "fn", "key-hint-march_equinox"),
-            key("june_solstice", KeyAction::Call("june_solstice"), "fn", "key-hint-june_solstice"),
-            key("september_equinox", KeyAction::Call("september_equinox"), "fn", "key-hint-september_equinox"),
-            key("december_solstice", KeyAction::Call("december_solstice"), "fn", "key-hint-december_solstice"),
+            key(
+                "march_equinox",
+                KeyAction::Call("march_equinox"),
+                "fn",
+                "key-hint-march_equinox",
+            ),
+            key(
+                "june_solstice",
+                KeyAction::Call("june_solstice"),
+                "fn",
+                "key-hint-june_solstice",
+            ),
+            key(
+                "september_equinox",
+                KeyAction::Call("september_equinox"),
+                "fn",
+                "key-hint-september_equinox",
+            ),
+            key(
+                "december_solstice",
+                KeyAction::Call("december_solstice"),
+                "fn",
+                "key-hint-december_solstice",
+            ),
             // constants
             key("au", KeyAction::Text("au"), "fn", "key-hint-au"),
             key("pc", KeyAction::Text("pc"), "fn", "key-hint-pc"),
@@ -486,19 +564,44 @@ static TABS: &[TabDef] = &[
             key("h", KeyAction::Text("h"), "fn", "key-hint-h"),
             key("h_bar", KeyAction::Text("h_bar"), "fn", "key-hint-h_bar"),
             key("k_b", KeyAction::Text("k_b"), "fn", "key-hint-k_b"),
-            key("sigma_sb", KeyAction::Text("sigma_sb"), "fn", "key-hint-sigma_sb"),
+            key(
+                "sigma_sb",
+                KeyAction::Text("sigma_sb"),
+                "fn",
+                "key-hint-sigma_sb",
+            ),
             key("m_sun", KeyAction::Text("m_sun"), "fn", "key-hint-m_sun"),
             key("r_sun", KeyAction::Text("r_sun"), "fn", "key-hint-r_sun"),
             key("l_sun", KeyAction::Text("l_sun"), "fn", "key-hint-l_sun"),
-            key("m_earth", KeyAction::Text("m_earth"), "fn", "key-hint-m_earth"),
-            key("r_earth", KeyAction::Text("r_earth"), "fn", "key-hint-r_earth"),
+            key(
+                "m_earth",
+                KeyAction::Text("m_earth"),
+                "fn",
+                "key-hint-m_earth",
+            ),
+            key(
+                "r_earth",
+                KeyAction::Text("r_earth"),
+                "fn",
+                "key-hint-r_earth",
+            ),
             // unit suffixes (the leading space is part of the literal)
             key("AU", KeyAction::Text(" AU"), "fn", "key-hint-u-au"),
             key("pc", KeyAction::Text(" pc"), "fn", "key-hint-u-pc"),
             key("ly", KeyAction::Text(" ly"), "fn", "key-hint-u-ly"),
             key("deg", KeyAction::Text(" deg"), "fn", "key-hint-u-deg"),
-            key("arcmin", KeyAction::Text(" arcmin"), "fn", "key-hint-u-arcmin"),
-            key("arcsec", KeyAction::Text(" arcsec"), "fn", "key-hint-u-arcsec"),
+            key(
+                "arcmin",
+                KeyAction::Text(" arcmin"),
+                "fn",
+                "key-hint-u-arcmin",
+            ),
+            key(
+                "arcsec",
+                KeyAction::Text(" arcsec"),
+                "fn",
+                "key-hint-u-arcsec",
+            ),
             key("min", KeyAction::Text(" min"), "fn", "key-hint-u-min"),
             key("hr", KeyAction::Text(" hr"), "fn", "key-hint-u-hr"),
             key("d", KeyAction::Text(" d"), "fn", "key-hint-u-d"),
@@ -596,12 +699,7 @@ fn effective_view(
 /// around the anchor (a data x), keeping the anchor's pixel spot fixed.
 /// The span stays within `[base × 1e-9, base × 1e9]` - deep enough that
 /// float sampling, not the clamp, ends the journey.
-pub fn anchored_window(
-    cur: (f64, f64),
-    anchor: f64,
-    factor: f64,
-    base_span: f64,
-) -> (f64, f64) {
+pub fn anchored_window(cur: (f64, f64), anchor: f64, factor: f64, base_span: f64) -> (f64, f64) {
     let factor = factor.clamp(0.2, 5.0);
     let span = ((cur.1 - cur.0) * factor).clamp(base_span * 1e-9, base_span * 1e9);
     let lo = anchor - (anchor - cur.0) * (span / (cur.1 - cur.0));
@@ -651,7 +749,9 @@ fn platform_icon(class: &'static str, inner: &'static str) -> yew::Html {
 }
 
 /// The standard copy icon for this device (ADR-0038): the points-of-
-/// interest heading's copy button.
+/// interests heading's copy button, and the graph pane's Copy SVG
+/// button (ADR-0040, which turned the toolbar's text labels into
+/// icons).
 fn copy_icon() -> yew::Html {
     if is_apple_platform() {
         platform_icon(
@@ -664,6 +764,16 @@ fn copy_icon() -> yew::Html {
             "<rect x=\"8\" y=\"8\" width=\"13\" height=\"13\" rx=\"1\"/><path d=\"M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3\"/>",
         )
     }
+}
+
+/// The clear icon (ADR-0040): the graph pane's Clear button reads as a
+/// trash can, not a labelled button - the name stays available to
+/// assistive tech through the button's aria-label and as a tooltip.
+fn trash_icon() -> yew::Html {
+    platform_icon(
+        "icon-svg",
+        "<path d=\"M3.5 6h17\"/><path d=\"M18.5 6v13a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2V6\"/><path d=\"M8.5 6V4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v2\"/><path d=\"M10 10.5v6.5\"/><path d=\"M14 10.5v6.5\"/>",
+    )
 }
 
 /// The standard share icon for this device (ADR-0038): the arrow-out-of-
@@ -2013,8 +2123,7 @@ fn epher_app() -> Html {
             // view back to the calculator (ADR-0035) — the mirror of the
             // draw slide. Tracked before the loop so only a pane that
             // HAD content moves.
-            let had_graph =
-                !curves.is_empty() || !surfaces.is_empty() || solar.is_some();
+            let had_graph = !curves.is_empty() || !surfaces.is_empty() || solar.is_some();
             // Statements join with newlines or `;` — the same separator
             // (ADR-0001). Each piece dispatches in order, exactly as if
             // typed one by one — but the history keeps the script the way
@@ -2519,9 +2628,7 @@ fn epher_app() -> Html {
             let mut surfaces = (*surface).clone();
             for sf in surfaces.iter_mut() {
                 if surface_references(sf, &name) {
-                    if let Ok(fresh) =
-                        epher_core::graph::sample_surface(&sf.source, 30, s.env())
-                    {
+                    if let Ok(fresh) = epher_core::graph::sample_surface(&sf.source, 30, s.env()) {
                         *sf = fresh;
                     }
                 }
@@ -2647,7 +2754,10 @@ fn epher_app() -> Html {
                     // next deadline is still one step away).
                     let now = js_sys::Date::now();
                     if now < next {
-                        gloo_timers::future::sleep(std::time::Duration::from_millis((next - now) as u64)).await;
+                        gloo_timers::future::sleep(std::time::Duration::from_millis(
+                            (next - now) as u64,
+                        ))
+                        .await;
                     }
                     next += step;
                 }
@@ -3041,20 +3151,22 @@ fn epher_app() -> Html {
             });
         })
     };
-    // Share a history line (ADR-0038): the OS share sheet (the web share
-    // API) carries the app link with the line's expression embedded;
-    // without the API the link lands on the clipboard instead.
+    // Share a history line (ADR-0038, amended by ADR-0040): the OS
+    // share sheet (the web share API) carries the app link with the
+    // line's expression in the text; without the API the message, the
+    // expression, and the link land on the clipboard together.
     let on_share = {
         let result = result.clone();
         let localizer = localizer.clone();
         Callback::from(move |line: String| {
             let expr = history_expression(&line).to_string();
             let link = share_link(&expr);
-            let text = localizer.lookup("share-text");
-            // The clipboard fallback (no web share API) carries the
-            // message and the link together; the sheet keeps them as
-            // separate fields.
-            let text_link = format!("{text} {link}");
+            // The share reads as three lines: the message, the
+            // expression, the link (ADR-0040). The sheet keeps the link
+            // as its own field; the clipboard fallback writes the three
+            // lines together.
+            let text = format!("{}\n{}", localizer.lookup("share-text"), expr);
+            let text_link = format!("{text}\n{link}");
             let result = result.clone();
             let localizer = localizer.clone();
             let shared = web_sys::window().and_then(|w| {
@@ -4275,11 +4387,30 @@ fn epher_app() -> Html {
                                 // options beside them — not scattered under
                                 // it. Everything is a real labelled control.
                                 <div class="graph-head">
-                                    <button type="button" class="pane-btn" onclick={on_graph_clear.clone()}>
-                                        { localizer.lookup("graph-clear") }
+                                    // The toolbar commands read as icons
+                                    // (ADR-0040): a trash can and the copy
+                                    // mark instead of two long text labels.
+                                    // The names stay available to assistive
+                                    // tech (aria-label) and as tooltips
+                                    // (title); 44px targets keep the icon
+                                    // buttons finger-friendly.
+                                    <button
+                                        type="button"
+                                        class="icon-btn"
+                                        title={localizer.lookup("graph-clear")}
+                                        aria-label={localizer.lookup("graph-clear")}
+                                        onclick={on_graph_clear.clone()}
+                                    >
+                                        { trash_icon() }
                                     </button>
-                                    <button type="button" class="pane-btn" onclick={on_copy_svg}>
-                                        { localizer.lookup("graph-copy") }
+                                    <button
+                                        type="button"
+                                        class="icon-btn"
+                                        title={localizer.lookup("graph-copy")}
+                                        aria-label={localizer.lookup("graph-copy")}
+                                        onclick={on_copy_svg}
+                                    >
+                                        { copy_icon() }
                                     </button>
                                     // The line-width slider (ADR-0020, ADR-0035
                                     // amendment): one slider per graph kind — 2D
@@ -4414,41 +4545,6 @@ fn epher_app() -> Html {
                                     // inherits the same controls).
                                     // Each spans −1..1, step 0.1, default 0, and updates the
                                     // plot in real time — on top of the orbit gesture.
-                                    if !(*surface).is_empty() || (*solar).is_some() {
-                                        <div class="view3d-options">
-                                            { for [("h", "view-horizontal"), ("v", "view-vertical"), ("z", "view-zoom")].iter().map(|(axis, key)| {
-                                                let value = match *axis {
-                                                    "h" => *view_h,
-                                                    "v" => *view_v,
-                                                    _ => *view_z,
-                                                };
-                                                let on_input = {
-                                                    let on_set_view = on_set_view.clone();
-                                                    let axis = *axis;
-                                                    Callback::from(move |e: web_sys::InputEvent| {
-                                                        if let Some(el) = e
-                                                            .target()
-                                                            .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
-                                                        {
-                                                            if let Ok(v) = el.value().parse::<f64>() {
-                                                                on_set_view.emit((axis, v));
-                                                            }
-                                                        }
-                                                    })
-                                                };
-                                                html! {
-                                                    <label class="graph-option view3d-option">
-                                                        <span>{ localizer.lookup(key) }</span>
-                                                        <input type="range" class="view3d-slider"
-                                                            min="-1" max="1" step="0.1" value={value.to_string()}
-                                                            oninput={on_input}
-                                                        />
-                                                        <span class="graph-width-value" aria-hidden="true">{ format!("{value:.1}") }</span>
-                                                    </label>
-                                                }
-                                            }) }
-                                        </div>
-                                    }
                                 </div>
                             }
                         } else {
@@ -4547,10 +4643,22 @@ fn epher_app() -> Html {
                                 effective_view(&view, *view_h, *view_v, *view_z, *spin_phase);
                             // The frame comes from the FULL scene (ADR-0038
                             // amendment): hiding a body through the legend
-                            // must never rescale or jump the view.
-                            let rendered = graph::solar_view_box(&scene, &effective).and_then(
+                            // must never rescale or jump the view. The parts
+                            // come from the filtered scene - and when every
+                            // body is hidden the pane still renders (the
+                            // ADR-0039 amendment): the legend stays so the
+                            // bodies can be brought back.
+                            let rendered = graph::solar_view_box(&scene, &effective).map(
                                 |view_box| {
-                                    graph::solar_parts_in(&shown, &effective, *width_3d, &view_box)
+                                    let content = graph::solar_parts_in(
+                                        &shown,
+                                        &effective,
+                                        *width_3d,
+                                        &view_box,
+                                    )
+                                    .map(|(_, content)| content)
+                                    .unwrap_or_default();
+                                    (view_box, content)
                                 },
                             );
                             let aria = format!(
@@ -4667,7 +4775,6 @@ fn epher_app() -> Html {
                                     .unwrap_or(view_box);
                                 html! {
                                     <section class="graph graph3d">
-                                        <h2 class="graph3d-title">{ "3D" }</h2>
                                         <div class="plot-box">
                                             <Graph3D
                                                 view_box={shown_box}
@@ -4685,6 +4792,53 @@ fn epher_app() -> Html {
                                 }
                             } else {
                                 html! {}
+                            }
+                        } else {
+                            html! {}
+                        }
+                    }
+                    // The 3D fine controls (ADR-0031), moved below the plot
+                    // (ADR-0040): the orbit/zoom sliders ride under the scene
+                    // they steer - surfaces and the solar system alike (the
+                    // solar pane renders from the same shared view state, so
+                    // it inherits the same controls). Each spans −1..1, step
+                    // 0.1, default 0, and updates the plot in real time.
+                    {
+                        if !(*surface).is_empty() || (*solar).is_some() {
+                            html! {
+                                <div class="view3d-options">
+                                    { for [("h", "view-horizontal"), ("v", "view-vertical"), ("z", "view-zoom")].iter().map(|(axis, key)| {
+                                        let value = match *axis {
+                                            "h" => *view_h,
+                                            "v" => *view_v,
+                                            _ => *view_z,
+                                        };
+                                        let on_input = {
+                                            let on_set_view = on_set_view.clone();
+                                            let axis = *axis;
+                                            Callback::from(move |e: web_sys::InputEvent| {
+                                                if let Some(el) = e
+                                                    .target()
+                                                    .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                {
+                                                    if let Ok(v) = el.value().parse::<f64>() {
+                                                        on_set_view.emit((axis, v));
+                                                    }
+                                                }
+                                            })
+                                        };
+                                        html! {
+                                            <label class="graph-option view3d-option">
+                                                <span>{ localizer.lookup(key) }</span>
+                                                <input type="range" class="view3d-slider"
+                                                    min="-1" max="1" step="0.1" value={value.to_string()}
+                                                    oninput={on_input}
+                                                />
+                                                <span class="graph-width-value" aria-hidden="true">{ format!("{value:.1}") }</span>
+                                            </label>
+                                        }
+                                    }) }
+                                </div>
                             }
                         } else {
                             html! {}

@@ -471,6 +471,15 @@ dans l'ordre, exactement comme si vous les aviez tapées une à une. Relier
 plusieurs instructions avec `;` sur une seule ligne fonctionne aussi partout,
 y compris sur la ligne de commande à usage unique (section 4.1).
 
+
+Les scripts peuvent porter des **commentaires** - des notes pour vous qu'epher ignore, à la manière de PHP. `//` ou `#` commente jusqu'à la fin de la ligne ; `/* ... */` met un bloc en commentaire, sur plusieurs lignes ou entre deux jetons :
+
+```epher
+// a small script with notes
+r = 3 # radius in metres
+area = /* pi r squared */ pi * r ^ 2
+area
+```
 ### 1.12 Résultats exacts : frac, dec et big
 
 Normalement epher calcule avec des nombres décimaux comme une calculatrice de
@@ -1232,6 +1241,8 @@ magasin que d'habitude. Les erreurs s'affichent et le script continue.
 Une ligne peut relier plusieurs instructions avec `;`. Retours à la ligne
 et `;` signifient la même chose partout dans epher.
 
+
+Un fichier fonctionne pareil : `epher plots/sine.es` exécute chaque ligne du fichier dans l'ordre et affiche chaque résultat. L'argument est traité comme un fichier quand il désigne un fichier existant et contient un `.`, un `/` ou un `\` - `epher x` évalue donc toujours le nom `x`.
 ### 4.3 La session interactive (REPL)
 
 Lancez-la avec `epher repl` :
@@ -1289,6 +1300,13 @@ epher> quit
 Votre historique est mémorisé : la prochaine fois que vous lancez
 `epher repl`, les lignes de la session précédente sont toujours là.
 
+
+La commande `load` exécute un script - un chemin de fichier ou le nom d'un script enregistré avec `save script` - ligne par ligne, exactement comme si vous veniez de le taper :
+
+```text
+epher> load plots/sine.es
+epher> load my_setup
+```
 ### 4.4 Enregistrer fonctions, constantes et scripts
 
 Définissez une fonction, puis enregistrez-la :
@@ -1329,6 +1347,8 @@ saved script count_to_five
 Les scripts enregistrés s'exécutent automatiquement au démarrage de epher,
 donc tout ce qu'ils définissent est prêt pour vous.
 
+
+Vous pouvez aussi charger un script enregistré à la demande avec `load count_to_five`, ou le garder en fichier simple et lancer `load count_to_five.es` ; `epher count_to_five.es` l'exécute directement en ligne de commande (section 4.2).
 ### 4.5 Changer la langue de l'interface
 
 La langue de l'interface est choisie parmi les langues configurées sur votre

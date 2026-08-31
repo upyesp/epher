@@ -213,6 +213,34 @@ pub fn run_repl() -> Result<(), EpherError> {
         if line == "quit" || line == "exit" {
             break;
         }
+        // `load <file-or-name>` (ADR-0040): run a script file, or a
+        // script saved with `save script name`, line by line — exactly
+        // as if its lines were typed. The `load` line itself joins the
+        // history; the loaded lines print as they run.
+        if let Some(arg) = line.strip_prefix("load ") {
+            let arg = arg.trim();
+            if arg.is_empty() {
+                term::error("usage: load <file-or-name>");
+                continue;
+            }
+            match load_script_text(&store, arg) {
+                Ok(text) => {
+                    session.record(&line);
+                    let failed = eval_lines(
+                        io::Cursor::new(text.into_bytes()).lines(),
+                        &mut session,
+                        &store,
+                        &localizer,
+                        &mut plots,
+                    )?;
+                    if failed {
+                        term::error(&localizer.lookup("load-failed"));
+                    }
+                }
+                Err(message) => term::error(&message),
+            }
+            continue;
+        }
         let out = match graph_line(&line, &mut plots, session.env(), &localizer) {
             Some(out) => {
                 // the command joins the history like every other line
@@ -288,8 +316,41 @@ pub fn run_stdin_from<R: BufRead>(input: R) -> Result<bool, EpherError> {
     // Piped scripts plot too (ADR-0020): the plot state spans the script's
     // lines — `printf "graph sin(x)\ngraph save plot.svg\n" | epher -`.
     let mut plots = epher_shell::plots::Plots::new();
+    eval_lines(input.lines(), &mut session, &store, &localizer, &mut plots)
+}
+
+/// Evaluate a script file as a one-shot run (ADR-0040): the same
+/// line-by-line semantics as a piped script (`epher -`) — each result
+/// prints, definitions and `save` commands go to the shared store,
+/// interactive history is not written — reading the lines from
+/// `path` instead of stdin. `Ok(true)` when any line failed.
+pub fn run_script_file(path: &std::path::Path) -> Result<bool, EpherError> {
+    let (store, mut session, localizer) = open_store_with_session();
+    let mut plots = epher_shell::plots::Plots::new();
+    let file = std::fs::File::open(path).map_err(|e| EpherError::Io(e.to_string()))?;
+    eval_lines(
+        io::BufReader::new(file).lines(),
+        &mut session,
+        &store,
+        &localizer,
+        &mut plots,
+    )
+}
+
+/// The shared line loop of piped mode, script files, and the REPL's
+/// `load` (ADR-0040): every line evaluates against one live session —
+/// a function defined on an early line is available later — `graph …`
+/// lines plot into the run's plot state, and errors print while
+/// evaluation continues. Returns whether any line failed.
+fn eval_lines(
+    lines: impl Iterator<Item = io::Result<String>>,
+    session: &mut Session,
+    store: &DocStore<FsStore>,
+    localizer: &Localizer,
+    plots: &mut epher_shell::plots::Plots,
+) -> Result<bool, EpherError> {
     let mut failed = false;
-    for line in input.lines() {
+    for line in lines {
         let line = line
             .map_err(|e| EpherError::Io(e.to_string()))?
             .trim()
@@ -297,12 +358,25 @@ pub fn run_stdin_from<R: BufRead>(input: R) -> Result<bool, EpherError> {
         if line.is_empty() {
             continue;
         }
-        let out = match graph_line(&line, &mut plots, session.env(), &localizer) {
+        let out = match graph_line(&line, plots, session.env(), localizer) {
             Some(out) => out,
-            None => step(&mut session, &store, &localizer, &line),
+            None => step(session, store, localizer, &line),
         };
         failed |= out.error;
         print_step(&out);
     }
     Ok(failed)
+}
+
+/// Resolve a `load` argument (ADR-0040): a path to an existing script
+/// file wins; otherwise the name names a script saved with `save script
+/// name` in the shared store. `Err` carries the user-facing message.
+fn load_script_text(store: &DocStore<FsStore>, arg: &str) -> Result<String, String> {
+    if let Ok(text) = std::fs::read_to_string(arg) {
+        return Ok(text);
+    }
+    match store.get_script(arg) {
+        Ok(Some(doc)) => Ok(doc.source),
+        _ => Err(format!("error: no such file or saved script: {arg}")),
+    }
 }

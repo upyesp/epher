@@ -459,6 +459,15 @@ exactly as if you had typed them one by one. Joining several statements with
 `;` on one line works everywhere too, including the one-shot command line
 (section 4.1).
 
+
+Scripts can carry **comments** - notes for you that epher skips, written the PHP way. `//` or `#` comments to the end of the line; `/* ... */` comments out a block, across lines or inline between tokens:
+
+```epher
+// a small script with notes
+r = 3 # radius in metres
+area = /* pi r squared */ pi * r ^ 2
+area
+```
 ### 1.12 Exact results: frac, dec and big
 
 Normally epher calculates with decimal numbers like a pocket calculator.
@@ -1195,6 +1204,8 @@ store as always. Errors print and the script keeps going. A line may join
 several statements with `;`. Newlines and `;` mean the same thing
 everywhere in epher.
 
+
+A file works the same way: `epher plots/sine.es` runs every line of the file in order and prints each result. The argument is treated as a file when it names an existing file and contains a `.`, `/` or `\` - so `epher x` still evaluates the name `x`.
 ### 4.3 The interactive session (REPL)
 
 Start it with `epher repl`:
@@ -1249,6 +1260,13 @@ epher> quit
 Your history is remembered: the next time you run `epher repl`, the previous
 session's lines are still there.
 
+
+The `load` command runs a script - a file path, or the name of a script you saved with `save script` - line by line, exactly as if you had typed it:
+
+```text
+epher> load plots/sine.es
+epher> load my_setup
+```
 ### 4.4 Saving functions, constants and scripts
 
 Define a function, then save it:
@@ -1288,6 +1306,8 @@ saved script count_to_five
 Saved scripts run automatically when epher starts, so anything they define is
 ready for you.
 
+
+You can also load a saved script on demand with `load count_to_five`, or keep it as a plain file and run `load count_to_five.es`; `epher count_to_five.es` runs it straight from the command line (section 4.2).
 ### 4.5 Changing the interface language
 
 The interface language is chosen from the languages you set on your device.

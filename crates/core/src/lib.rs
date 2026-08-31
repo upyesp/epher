@@ -369,12 +369,62 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
             c if c.is_whitespace() => {
                 // Newlines are statement separators, exactly like `;`
                 // (ADR-0001 seam unification): the language has no
-                // strings, comments, or multi-line constructs, so a
-                // newline can only ever appear between statements.
+                // strings or multi-line constructs, so a newline can
+                // only ever appear between statements (a comment's
+                // newlines are consumed by the comment itself).
                 if c == '\n' || c == '\r' {
                     tokens.push(Token::Semicolon);
                 }
                 chars.next();
+            }
+            '#' => {
+                // Line comment, PHP style (ADR-0040): `#` runs to the
+                // end of the line. The newline itself is left for the
+                // whitespace arm, so it still separates statements.
+                while let Some(&c2) = chars.peek() {
+                    if c2 == '\n' || c2 == '\r' {
+                        break;
+                    }
+                    chars.next();
+                }
+            }
+            '/' => {
+                chars.next();
+                match chars.peek() {
+                    // Block comment, PHP style: `/* ... */` may span
+                    // lines and may sit inline between tokens. Its
+                    // newlines belong to the comment, not to the
+                    // statement separator.
+                    Some('*') => {
+                        chars.next();
+                        loop {
+                            match chars.next() {
+                                Some('*') if matches!(chars.peek(), Some('/')) => {
+                                    chars.next();
+                                    break;
+                                }
+                                Some(_) => {}
+                                None => {
+                                    return Err(EpherError::Parse(
+                                        "unterminated block comment: expected */".into(),
+                                    ))
+                                }
+                            }
+                        }
+                    }
+                    // Line comment, PHP style: `//` runs to the end of
+                    // the line; the newline still separates statements.
+                    Some('/') => {
+                        chars.next();
+                        while let Some(&c2) = chars.peek() {
+                            if c2 == '\n' || c2 == '\r' {
+                                break;
+                            }
+                            chars.next();
+                        }
+                    }
+                    _ => tokens.push(Token::Slash),
+                }
             }
             '+' => {
                 tokens.push(Token::Plus);
@@ -386,10 +436,6 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
             }
             '*' => {
                 tokens.push(Token::Star);
-                chars.next();
-            }
-            '/' => {
-                tokens.push(Token::Slash);
                 chars.next();
             }
             '^' => {
@@ -879,10 +925,8 @@ impl Parser {
                         .and_then(|expr| {
                             if let Some(Token::Ident(unit)) = self.peek().cloned() {
                                 if let Some(factor) = unit_factor(&unit) {
-                                    if !matches!(
-                                        self.tokens.get(self.pos + 1),
-                                        Some(Token::LParen)
-                                    ) {
+                                    if !matches!(self.tokens.get(self.pos + 1), Some(Token::LParen))
+                                    {
                                         self.next();
                                         return Ok(Expression::Mul(
                                             Box::new(expr),
@@ -1161,7 +1205,9 @@ fn builtin_const(name: &str) -> Option<Value> {
         "c" => Some(Value::float(2.997_924_58e8)),
         "g" => Some(Value::float(9.806_65)),
         "h" => Some(Value::float(6.626_070_15e-34)),
-        "h_bar" => Some(Value::float(6.626_070_15e-34 / (2.0 * std::f64::consts::PI))),
+        "h_bar" => Some(Value::float(
+            6.626_070_15e-34 / (2.0 * std::f64::consts::PI),
+        )),
         "k_b" => Some(Value::float(1.380_649e-23)),
         "sigma_sb" => Some(Value::float(5.670_374_419e-8)),
         "m_sun" => Some(Value::float(1.988_47e30)),
@@ -2111,9 +2157,10 @@ fn rational_binop(op: BinOp, a: BigRational, b: BigRational) -> Result<BigRation
                     "rational exponentiation needs an integer exponent; work in floats for fractional powers".into(),
                 ));
             }
-            let exp = b.numer().to_i32().ok_or_else(|| {
-                EpherError::Type("rational exponent too large".into())
-            })?;
+            let exp = b
+                .numer()
+                .to_i32()
+                .ok_or_else(|| EpherError::Type("rational exponent too large".into()))?;
             Ok(a.pow(exp))
         }
     }
@@ -2167,7 +2214,8 @@ fn decimal_binop(op: BinOp, a: Decimal, b: Decimal) -> Result<Decimal, EpherErro
                     .ok_or_else(|| EpherError::Type("decimal overflow".into()))?;
             }
             if exp < 0 {
-                Decimal::ONE.checked_div(acc)
+                Decimal::ONE
+                    .checked_div(acc)
                     .ok_or_else(|| EpherError::Type("decimal division error".into()))
             } else {
                 Ok(acc)

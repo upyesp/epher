@@ -322,14 +322,16 @@
        The top padding keeps the input from sitting flush against the
        top bar. */
     #calc-pane {
-      padding: 0.6rem 0.75rem 0.5rem;
-      gap: 0.5rem;
+      padding: 0.35rem 0.75rem 0.4rem;
+      gap: 0.35rem;
     }
     /* the answer panel: fixed height, always visible (ADR-0016); it sits
-       directly under the input — typed entry first, outcome second */
+       directly under the input — typed entry first, outcome second.
+       ADR-0040 trimmed it one step (3.4rem → 3rem) to hand the space to
+       the history list. */
     .answer {
       flex: none;
-      min-height: 3.4rem;
+      min-height: 3rem;
       display: flex;
       align-items: center;
       padding: 0 0.25rem;
@@ -338,7 +340,7 @@
       font-size: 1.28rem;
       font-weight: 300;
       overflow-wrap: anywhere;
-      max-height: 3.2rem;
+      max-height: 2.8rem;
       overflow-y: auto;
       flex: 1;
       /* tables and multi-line outputs need monospace alignment and
@@ -428,13 +430,17 @@
       color: var(--text);
     }
     .clear-history {
+      /* ADR-0040: the box is gone — this is a text-styled command, so
+         the underline alone carries "you can act on this" (the ADR-0035
+         amendment's rule for text buttons). Unboxing reclaims the
+         border and padding for the history list. */
       font-size: 0.9rem;
       font-weight: 500;
       background: transparent;
       color: var(--accent);
-      border: 1px solid var(--accent);
-      padding: 0.4rem 0.8rem;
-      min-height: 44px;
+      border: none;
+      padding: 0.15rem 0.3rem;
+      min-height: 36px;
       /* Text-styled buttons carry an underline (ADR-0035 amendment). */
       text-decoration: underline;
       text-underline-offset: 3px;
@@ -558,12 +564,15 @@
       flex-wrap: wrap;
       gap: 0.25rem;
       justify-content: center;
-      padding-bottom: 0.4rem;
+      padding-bottom: 0.3rem;
     }
+    /* ADR-0040: the tabs are 34px tall (the 24px AA floor with room to
+       spare) — two rows of them wrapped on narrow panes, and every pixel
+       went to the history list. The 44px width floor stays. */
     .keypad-tabs [role="tab"] {
-      min-height: 40px;
+      min-height: 34px;
       min-width: 44px;
-      padding: 0.25rem 0.9rem;
+      padding: 0.15rem 0.75rem;
       border-radius: 8px;
       border: 1px solid var(--border-strong);
       background: var(--bg);
@@ -589,7 +598,7 @@
       flex: 1;
     }
     .keypad-hints-btn {
-      min-height: 40px;
+      min-height: 34px;
       min-width: 40px;
       border-radius: 8px;
       border: 1px solid var(--border-strong);
@@ -610,7 +619,7 @@
        floating tooltip would inside the scrolling grid. --muted keeps
        the 4.5:1 text contrast on --bg. */
     .keypad-hint-bar {
-      min-height: 1.35em;
+      min-height: 1.2em;
       font-size: 0.85rem;
       color: var(--muted);
       text-align: start;
@@ -618,19 +627,19 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-block-end: 0.25rem;
+      margin-block-end: 0.15rem;
     }
     .keypad-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       grid-auto-rows: minmax(44px, auto);
       align-content: start;
-      gap: 0.4rem;
+      gap: 0.3rem;
       /* exactly five rows, always (ADR-0039): every tab is the same
          height — the digits tab's height — so the long astronomy bank
          scrolls instead of growing over the screen */
-      min-height: calc(5 * 44px + 4 * 0.4rem);
-      max-height: calc(5 * 44px + 4 * 0.4rem);
+      min-height: calc(5 * 44px + 4 * 0.3rem);
+      max-height: calc(5 * 44px + 4 * 0.3rem);
       overflow-y: auto;
       padding: 0 0.25rem 0.25rem 0;
     }
@@ -687,8 +696,8 @@
     /* --- graph pane ----------------------------------------------------- */
     #graph-pane {
       overflow-y: auto; /* chrome may exceed short viewports; scrolls inside */
-      padding: 0.5rem 0.75rem 0.75rem;
-      gap: 0.25rem;
+      padding: 0.3rem 0.75rem 0.6rem;
+      gap: 0.2rem;
     }
     .graph {
       display: flex;
@@ -713,7 +722,12 @@
        preserveAspectRatio), so every plot fits the pane. */
     .plot-box {
       flex: 1;
-      min-height: 96px;
+      /* ADR-0040: a real floor, not a token one. The pane scrolls (the
+         POI list can run long), and a scrolling flex column squeezed
+         the plot down to the old 96px floor — "some of the graphs end
+         up being very small". The plot now claims at least 38% of the
+         viewport (220px at any size) and the list scrolls beneath it. */
+      min-height: max(220px, 38vh);
       display: flex;
       align-items: stretch;
       justify-content: center;
@@ -788,11 +802,17 @@
     }
     .legend {
       list-style: none;
+      /* ADR-0040: the legend is a horizontal strip that wraps, not a
+         vertical stack — a 44px row per curve ate the graph pane from
+         above, and three curves pushed the plot half out of view. The
+         entries keep the curve checkboxes (ADR-0015 amendment) but sit
+         shoulder to shoulder, like the solar legend below. */
       display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0.1rem 1.1rem;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--muted);
     }
     /* The legend checkboxes (ADR-0015 amendment): each entry is a real
@@ -801,15 +821,15 @@
     .legend-item {
       display: flex;
       align-items: center;
-      min-height: 44px;
+      min-height: 0;
     }
     .legend-check {
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
+      gap: 0.4rem;
       cursor: pointer;
       color: var(--text);
-      min-height: 44px;
+      min-height: 32px;
     }
     .legend-check input[type="checkbox"] {
       width: 1.15rem;
@@ -954,27 +974,8 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 0.4rem 0.75rem;
-      padding: 0.2rem 0 0.4rem;
-    }
-    .pane-btn {
-      min-height: 44px;
-      padding: 0.3rem 0.9rem;
-      border: 1px solid var(--border-strong);
-      border-radius: 8px;
-      background: var(--bg);
-      color: var(--text);
-      font: inherit;
-      cursor: pointer;
-      /* These read as text, not as buttons, so the underline carries
-         "you can act on this" without relying on color (ADR-0035
-         amendment, WCAG 1.4.1). */
-      text-decoration: underline;
-      text-underline-offset: 3px;
-    }
-    .pane-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
+      gap: 0.3rem 0.6rem;
+      padding: 0.1rem 0 0.25rem;
     }
     .graph-options {
       display: flex;
@@ -988,7 +989,7 @@
       display: inline-flex;
       align-items: center;
       gap: 0.45rem;
-      min-height: 48px;
+      min-height: 40px;
       cursor: pointer;
     }
     .graph-option input[type="checkbox"] {
@@ -1014,9 +1015,10 @@
       min-width: 2.6em;
       text-align: right;
     }
-    /* The 3D fine-control sliders (ADR-0031): the same row idiom as the
-       graph options, sitting above the plot with the rest of the pane
-       toolbar. The 48px label height keeps them comfortable targets. */
+    /* The 3D fine-control sliders (ADR-0031), moved below the plot
+       (ADR-0040): the row steers the scene, so it sits under the scene
+       instead of pushing it down. The 40px label height keeps them
+       comfortable targets. */
     .view3d-options {
       display: flex;
       flex-wrap: wrap;
@@ -1024,6 +1026,7 @@
       gap: 0.25rem 1.25rem;
       font-size: 0.9rem;
       color: var(--muted);
+      padding-block: 0.1rem 0.2rem;
     }
     .view3d-option {
       gap: 0.6rem;
