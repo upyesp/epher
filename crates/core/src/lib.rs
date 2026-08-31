@@ -60,10 +60,36 @@ impl std::fmt::Display for Value {
             }
             Value::Decimal(d) => write!(f, "{d}"),
             Value::Big(b) => write!(f, "{b}"),
-            Value::Complex(c) => write!(f, "{c}"),
+            Value::Complex(c) => write!(f, "{}", complex_display(*c)),
             Value::Bool(b) => write!(f, "{b}"),
             Value::Str(s) => write!(f, "{s}"),
         }
+    }
+}
+
+/// The shortest clean `a+bi` spelling (ADR-0043): zero parts are
+/// dropped (`3`, `i`, `-2i`), the unit imaginary keeps no coefficient
+/// (`1+i` not `1+1i`), and the real sign separates the terms.
+fn complex_display(c: Complex<f64>) -> String {
+    let (re, im) = (c.re, c.im);
+    if im == 0.0 {
+        return format!("{re}");
+    }
+    let im_abs = im.abs();
+    let im_part = if im_abs == 1.0 {
+        "i".to_string()
+    } else {
+        format!("{im_abs}i")
+    };
+    if re == 0.0 {
+        if im < 0.0 {
+            format!("-{im_part}")
+        } else {
+            im_part
+        }
+    } else {
+        let sign = if im < 0.0 { "-" } else { "+" };
+        format!("{re}{sign}{im_part}")
     }
 }
 
@@ -169,6 +195,8 @@ pub enum Statement {
     Const(String, Expression),
     FunctionDef(String, Vec<String>, Expression),
     While(Expression, Box<Statement>),
+    /// `solve lhs == rhs` (ADR-0043): numeric equation solving, no CAS.
+    Solve(Expression),
     Expr(Expression),
 }
 
@@ -360,6 +388,10 @@ enum Token {
     Percent,
     LParen,
     RParen,
+    /// A number with an imaginary suffix (ADR-0043): `4i`, `2.5i`,
+    /// `0xFFi`. The tokenizer folds the suffix in so `3 + 4i` parses as
+    /// one literal; the parser spells it `4 * i`.
+    Imaginary(f64),
 }
 
 fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
@@ -548,7 +580,7 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
                     .to_string()
                     .parse()
                     .map_err(|_| EpherError::Parse(format!("invalid number: 0{marker}{digits}")))?;
-                tokens.push(Token::Number(n));
+                tokens.push(imaginary_or_number(n, &mut chars));
             }
             c if c.is_ascii_digit() || c == '.' => {
                 let mut num = String::new();
@@ -590,7 +622,7 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
                 let n: f64 = num
                     .parse()
                     .map_err(|_| EpherError::Parse(format!("invalid number: {num:?}")))?;
-                tokens.push(Token::Number(n));
+                tokens.push(imaginary_or_number(n, &mut chars));
             }
             c if c.is_alphabetic() => {
                 let mut ident = String::new();
@@ -615,6 +647,22 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
         }
     }
     Ok(tokens)
+}
+
+/// A number directly followed by an `i` that is not part of a longer
+/// identifier becomes an imaginary literal (ADR-0043): `4i` is a token,
+/// `4it` stays a number and a name. Based literals share the suffix, so
+/// `0xFFi` works too.
+fn imaginary_or_number(n: f64, chars: &mut std::iter::Peekable<std::str::Chars>) -> Token {
+    if matches!(chars.peek(), Some('i')) {
+        let mut rest = chars.clone();
+        rest.next();
+        if !matches!(rest.peek(), Some(c) if c.is_alphanumeric() || *c == '_') {
+            chars.next();
+            return Token::Imaginary(n);
+        }
+    }
+    Token::Number(n)
 }
 
 struct Parser {
@@ -645,6 +693,14 @@ impl Parser {
             self.expect_keyword("do")?;
             let body = Box::new(self.parse_statement()?);
             return Ok(Statement::While(cond, body));
+        }
+        if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "solve") {
+            // `solve lhs == rhs` (ADR-0043): the comparison level of the
+            // grammar parses the equation; anything else is rejected by
+            // the solver, not the parser.
+            self.next(); // consume 'solve'
+            let equation = self.parse_expression()?;
+            return Ok(Statement::Solve(equation));
         }
         if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "const") {
             self.next(); // consume 'const'
@@ -908,6 +964,14 @@ impl Parser {
                 }
                 Ok(Expression::Literal(n))
             }
+            Some(Token::Imaginary(n)) => {
+                // `4i` is the literal spelling of `4 * i` (ADR-0043); i
+                // resolves as the builtin imaginary unit constant.
+                Ok(Expression::Mul(
+                    Box::new(Expression::Literal(n)),
+                    Box::new(Expression::Var("i".into())),
+                ))
+            }
             Some(Token::Ident(name)) => {
                 if matches!(self.peek(), Some(Token::LParen)) {
                     self.next(); // consume '(' — call syntax
@@ -989,6 +1053,7 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
             .ok_or_else(|| EpherError::UnknownName(name.clone())),
         Expression::Neg(inner) => match eval(inner, env)? {
             Value::Float(n) => Ok(Value::Float(-n)),
+            Value::Complex(c) => Ok(Value::Complex(-c)),
             other => Err(EpherError::Type(format!("cannot negate {other:?}"))),
         },
         Expression::Add(lhs, rhs) => binop(eval(lhs, env)?, eval(rhs, env)?, BinOp::Add),
@@ -1059,11 +1124,11 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
             ))),
         },
         Expression::Call(name, args) => {
-            let mut values = Vec::with_capacity(args.len());
-            for arg in args {
-                values.push(eval(arg, env)?);
-            }
             if let Some(f) = env.function(name) {
+                let mut values = Vec::with_capacity(args.len());
+                for arg in args {
+                    values.push(eval(arg, env)?);
+                }
                 if f.params.len() != values.len() {
                     return Err(EpherError::Type(format!(
                         "{name} expects {} arguments, got {}",
@@ -1077,9 +1142,192 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                 }
                 return eval(&f.body, &child);
             }
-            call_builtin(name, values)
+            // Numeric calculus (ADR-0043): the first argument stays an
+            // expression - derivative(x^2, 3) differentiates, and
+            // derivative(x^3, x) plots the derivative because the graph
+            // sampler supplies x.
+            match name.as_str() {
+                "derivative" => eval_derivative(args, env),
+                "integral" => eval_integral(args, env),
+                _ => {
+                    let mut values = Vec::with_capacity(args.len());
+                    for arg in args {
+                        values.push(eval(arg, env)?);
+                    }
+                    call_builtin(name, values)
+                }
+            }
         }
     }
+}
+
+/// The differentiation variable of a calculus expression (ADR-0043):
+/// the expression's free variable, where constants (builtin and user)
+/// and bound variables are parameters, not unknowns. No unbound names
+/// means the expression is constant; several is an error.
+fn calculus_var(expr: &Expression, env: &Env) -> Result<Option<String>, EpherError> {
+    let mut names = std::collections::BTreeSet::new();
+    crate::graph::free_names(expr, &mut names);
+    names.retain(|n| {
+        builtin_const(n).is_none() && env.constant(n).is_none() && env.get(n).is_none()
+    });
+    if names.is_empty() {
+        return Ok(None);
+    }
+    if names.len() > 1 {
+        return Err(EpherError::Type(format!(
+            "the expression uses several variables: {}",
+            names.iter().cloned().collect::<Vec<_>>().join(", ")
+        )));
+    }
+    Ok(names.iter().next().cloned())
+}
+
+/// The calculus child environment: the caller's bindings (bound names
+/// are parameters), the constants, the functions, and the calculus
+/// variable bound to a fresh value - shadowing any session value.
+fn calculus_child(env: &Env, var: &str, value: f64) -> Env {
+    let mut child = Env {
+        bindings: env.bindings.clone(),
+        constants: env.constants.clone(),
+        functions: env.functions.clone(),
+    };
+    child.set(var.to_string(), Value::float(value));
+    child
+}
+
+/// `derivative(expr, p)` (ADR-0043): the numeric derivative of the
+/// expression at p, 5-point central difference with step
+/// 1e-4 * (1 + |p|). A constant expression differentiates to 0.
+fn eval_derivative(args: &[Expression], env: &Env) -> Result<Value, EpherError> {
+    if args.len() != 2 {
+        return Err(EpherError::Type(format!(
+            "derivative expects 2 arguments, got {}",
+            args.len()
+        )));
+    }
+    let p = match eval(&args[1], env)? {
+        Value::Float(x) => x,
+        other => {
+            return Err(EpherError::Type(format!(
+                "derivative expects a number at the point, got {other}"
+            )))
+        }
+    };
+    let Some(var) = calculus_var(&args[0], env)? else {
+        return Ok(Value::float(0.0));
+    };
+    let h = 1e-4 * (1.0 + p.abs());
+    let at = |x: f64| -> Result<f64, EpherError> {
+        let child = calculus_child(env, &var, x);
+        match eval(&args[0], &child)? {
+            Value::Float(y) => Ok(y),
+            other => Err(EpherError::Type(format!(
+                "derivative expects a real-valued expression, got {other}"
+            ))),
+        }
+    };
+    // 5-point stencil: error ~ h^4 in the function, rounding ~ eps/h
+    let _ym2 = at(p - 2.0 * h)?;
+    let _ym1 = at(p - h)?;
+    let _y1 = at(p + h)?;
+    let _y2 = at(p + 2.0 * h)?;
+    let slope = (_ym2 - 8.0 * _ym1 + 8.0 * _y1 - _y2) / (12.0 * h);
+    Ok(Value::float(slope))
+}
+
+/// `integral(expr, a, b)` (ADR-0043): adaptive Simpson with a relative
+/// tolerance of 1e-9, depth-capped; a == b integrates to 0, a > b gives
+/// the signed integral. The expression's free variable is the
+/// integration variable.
+fn eval_integral(args: &[Expression], env: &Env) -> Result<Value, EpherError> {
+    if args.len() != 3 {
+        return Err(EpherError::Type(format!(
+            "integral expects 3 arguments, got {}",
+            args.len()
+        )));
+    }
+    let (a, b) = match (eval(&args[1], env)?, eval(&args[2], env)?) {
+        (Value::Float(a), Value::Float(b)) => (a, b),
+        (other_a, other_b) => {
+            return Err(EpherError::Type(format!(
+                "integral expects numbers for the bounds, got {other_a} and {other_b}"
+            )))
+        }
+    };
+    let Some(var) = calculus_var(&args[0], env)? else {
+        // integrating a constant over [a, b] is (b - a) * c
+        let child = calculus_child(env, "__epher_const", a);
+        match eval(&args[0], &child)? {
+            Value::Float(c) => return Ok(Value::float((b - a) * c)),
+            other => {
+                return Err(EpherError::Type(format!(
+                    "integral expects a real-valued expression, got {other}"
+                )))
+            }
+        }
+    };
+    if a == b {
+        return Ok(Value::float(0.0));
+    }
+    let f = |t: f64| -> Result<f64, EpherError> {
+        let child = calculus_child(env, &var, t);
+        match eval(&args[0], &child)? {
+            Value::Float(y) => Ok(y),
+            other => Err(EpherError::Type(format!(
+                "integral expects a real-valued expression, got {other}"
+            ))),
+        }
+    };
+    Ok(Value::float(adaptive_simpson(&f, a, b, 1e-9)?))
+}
+
+/// Adaptive Simpson quadrature (ADR-0043): halves the interval while
+/// the composite rule disagrees with the whole-interval rule, then
+/// Richardson-extrapolates the correction; depth-capped so a
+/// pathological integrand still returns a value.
+fn adaptive_simpson(
+    f: &impl Fn(f64) -> Result<f64, EpherError>,
+    a: f64,
+    b: f64,
+    tol: f64,
+) -> Result<f64, EpherError> {
+    let fa = f(a)?;
+    let fm = f((a + b) / 2.0)?;
+    let fb = f(b)?;
+    let whole = (b - a) / 6.0 * (fa + 4.0 * fm + fb);
+    adaptive_step(f, a, b, fa, fm, fb, whole, tol, 0, 20)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn adaptive_step(
+    f: &impl Fn(f64) -> Result<f64, EpherError>,
+    a: f64,
+    b: f64,
+    fa: f64,
+    fm: f64,
+    fb: f64,
+    whole: f64,
+    tol: f64,
+    depth: u32,
+    max_depth: u32,
+) -> Result<f64, EpherError> {
+    let m = (a + b) / 2.0;
+    let lm = (a + m) / 2.0;
+    let rm = (m + b) / 2.0;
+    let fl = f(lm)?;
+    let fr = f(rm)?;
+    let left = (m - a) / 6.0 * (fa + 4.0 * fl + fm);
+    let right = (b - m) / 6.0 * (fm + 4.0 * fr + fb);
+    let delta = left + right - whole;
+    if depth >= max_depth || delta.abs() <= 15.0 * tol {
+        return Ok(left + right + delta / 15.0);
+    }
+    let half = tol / 2.0;
+    Ok(
+        adaptive_step(f, a, m, fa, fl, fm, left, half, depth + 1, max_depth)?
+            + adaptive_step(f, m, b, fm, fr, fb, right, half, depth + 1, max_depth)?,
+    )
 }
 
 /// Evaluate source text as an expression with an empty environment — the CLI
@@ -1345,6 +1593,9 @@ fn builtin_const(name: &str) -> Option<Value> {
         "e" => Some(Value::float(std::f64::consts::E)),
         "tau" => Some(Value::float(std::f64::consts::TAU)),
         "phi" => Some(Value::float(1.618_033_988_749_895)),
+        // The imaginary unit (ADR-0043): `i` is a constant like `pi`, and
+        // `4i` is its literal spelling. Shadowable like every builtin.
+        "i" => Some(Value::Complex(Complex::new(0.0, 1.0))),
         // Astronomy constants (ADR-0037): SI values throughout - metres,
         // seconds, kilograms, watts. Shadowable like `pi` (resolution
         // order: user variable, user constant, builtin).
@@ -1441,6 +1692,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "arg",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "asin",
         kind: CatalogKind::Function,
     },
@@ -1493,6 +1748,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "conj",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "cos",
         kind: CatalogKind::Function,
     },
@@ -1521,6 +1780,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "derivative",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "dist",
         kind: CatalogKind::Function,
     },
@@ -1529,12 +1792,20 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Constant,
     },
     CatalogEntry {
+        name: "engineering",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "eps_0",
         kind: CatalogKind::Constant,
     },
     CatalogEntry {
         name: "ev",
         kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "exact",
+        kind: CatalogKind::Function,
     },
     CatalogEntry {
         name: "exp",
@@ -1573,6 +1844,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "grouped",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "h_bar",
         kind: CatalogKind::Constant,
     },
@@ -1586,6 +1861,18 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "hypot",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "i",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "im",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "integral",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -1769,6 +2056,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "re",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "rise",
         kind: CatalogKind::Function,
     },
@@ -1778,6 +2069,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "round",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "scientific",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -1870,6 +2165,32 @@ fn one_arg<'a>(name: &str, args: &'a [Value]) -> Result<&'a Value, EpherError> {
     }
 }
 
+/// The one-argument transcendental bridge (ADR-0043): a complex
+/// argument computes in the complex plane; a real argument computes
+/// with `real`, and a domain error there falls back to the principal
+/// complex result - `sqrt(-1)` is `i`, `ln(-1)` is `i*pi`, `asin(2)`
+/// is complex. Non-domain errors (step limits, division by zero) pass
+/// through unchanged.
+fn real_or_complex(
+    name: &str,
+    args: &[Value],
+    real: impl Fn(f64) -> Result<f64, EpherError>,
+    complex: impl Fn(Complex<f64>) -> Complex<f64>,
+) -> Result<Value, EpherError> {
+    let v = one_arg(name, args)?;
+    match v {
+        Value::Float(x) => match real(*x) {
+            Ok(y) => Ok(Value::Float(y)),
+            Err(EpherError::Domain(_)) => Ok(Value::Complex(complex(Complex::new(*x, 0.0)))),
+            Err(e) => Err(e),
+        },
+        Value::Complex(c) => Ok(Value::Complex(complex(*c))),
+        other => Err(EpherError::Type(format!(
+            "{name} expects a number, got {other}"
+        ))),
+    }
+}
+
 /// The whole-number reading of a value, for the base-conversion builtins
 /// (ADR-0022). Exact values convert exactly (rationals and decimals too);
 /// a fractional or non-numeric value is a type error.
@@ -1954,6 +2275,167 @@ fn domain_error(message: impl std::fmt::Display) -> EpherError {
     EpherError::Domain(message.to_string())
 }
 
+// --- exact fractions and display formats (ADR-0043) -------------------
+
+/// The float reading of a numeric value for the display verbs.
+fn numeric_as_float(name: &str, v: &Value) -> Result<f64, EpherError> {
+    let bad = || EpherError::Type(format!("{name} expects a number, got {v}"));
+    match v {
+        Value::Float(x) => Ok(*x),
+        Value::Rational(r) => r.to_f64().ok_or_else(bad),
+        Value::Decimal(d) => d.to_f64().ok_or_else(bad),
+        Value::Big(b) => b.to_f64().ok_or_else(bad),
+        _ => Err(bad()),
+    }
+}
+
+/// Continued-fraction rational reconstruction (ADR-0043): the first
+/// convergent whose denominator stays within the bound and whose error
+/// is below the relative tolerance. `reconstruct_fraction(1.0 / 3.0,
+/// 1000, 1e-9)` is 1/3; pi and sqrt(2) return None because their good
+/// convergents either exceed the bound or miss the tolerance.
+pub fn reconstruct_fraction(x: f64, denom_bound: i64, tol: f64) -> Option<BigRational> {
+    if !x.is_finite() || x == 0.0 {
+        return None;
+    }
+    let sign = if x < 0.0 { -1.0 } else { 1.0 };
+    let a = x.abs();
+    let bound = BigInt::from(denom_bound);
+    let mut h0 = BigInt::from(0);
+    let mut h1 = BigInt::from(1);
+    let mut k0 = BigInt::from(1);
+    let mut k1 = BigInt::from(0);
+    let mut r = a;
+    for _ in 0..64 {
+        let n = r.floor();
+        let n_int = BigInt::from(n as i64);
+        let h2 = &n_int * &h1 + &h0;
+        let k2 = &n_int * &k1 + &k0;
+        let within_bound = k2 <= bound;
+        let (h, k) = if within_bound { (&h2, &k2) } else { (&h1, &k1) };
+        if !k.is_zero() {
+            let guess = h.to_f64()? / k.to_f64()?;
+            if (guess - a).abs() <= tol * (1.0 + a.abs()) {
+                let numer = (sign * h.to_f64()?).round() as i64;
+                return Some(BigRational::new(BigInt::from(numer), k.clone()));
+            }
+        }
+        if !within_bound || n == r {
+            break;
+        }
+        let f = r - n;
+        if f < 1e-15 {
+            break;
+        }
+        h0 = h1;
+        h1 = h2;
+        k0 = k1;
+        k1 = k2;
+        r = 1.0 / f;
+    }
+    None
+}
+
+/// Engineering notation (ADR-0043): the mantissa in [1, 1000) and the
+/// exponent a multiple of 3 - `12.345e3`, `500e-3`, `999e0` stays `999`.
+fn engineering_str(x: f64) -> String {
+    if x == 0.0 {
+        return "0".into();
+    }
+    let sign = if x < 0.0 { "-" } else { "" };
+    let a = x.abs();
+    let e = a.log10().floor() as i64;
+    let e3 = e - e.rem_euclid(3);
+    let m = a / 10f64.powi(e3 as i32);
+    if e3 == 0 {
+        format!("{sign}{m}")
+    } else {
+        format!("{sign}{m}e{e3}")
+    }
+}
+
+/// Thin-space thousands grouping (ADR-0043), locale-neutral ISO style:
+/// `1 234 567.89`. Only the integer part groups; the exponent and any
+/// trailing fraction digits stay put.
+fn grouped_str(s: &str) -> String {
+    let (head, tail) = match s.split_once('.') {
+        Some((i, rest)) => (i, format!(".{rest}")),
+        None => (s, String::new()),
+    };
+    let (neg, digits) = match head.strip_prefix('-') {
+        Some(d) => ("-", d),
+        None => ("", head),
+    };
+    let mut out = String::new();
+    let len = digits.len();
+    for (i, c) in digits.chars().enumerate() {
+        if i > 0 && (len - i) % 3 == 0 {
+            out.push('\u{2009}');
+        }
+        out.push(c);
+    }
+    format!("{neg}{out}{tail}")
+}
+
+/// How the interactive frontends render results (ADR-0043): the exact
+/// fraction toggle (default on - 1/3 shows as 1/3), the notation, and
+/// the thousands separator. The value itself is untouched (ADR-0005).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DisplayPrefs {
+    pub exact_fractions: bool,
+    pub notation: Notation,
+    pub separators: bool,
+}
+
+/// Result notation (ADR-0043): Auto is the shortest float; the other
+/// two force their exponent shape.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Notation {
+    Auto,
+    Scientific,
+    Engineering,
+}
+
+impl Default for DisplayPrefs {
+    fn default() -> Self {
+        DisplayPrefs {
+            exact_fractions: true,
+            notation: Notation::Auto,
+            separators: false,
+        }
+    }
+}
+
+/// The result string for a value under the display preferences
+/// (ADR-0043). Exact fractions apply in Auto mode; the notation modes
+/// always win, and separators group Auto and notation digits alike.
+pub fn format_value(v: &Value, prefs: &DisplayPrefs) -> String {
+    match v {
+        Value::Float(x) => {
+            let s = match prefs.notation {
+                Notation::Auto => {
+                    if prefs.exact_fractions {
+                        match reconstruct_fraction(*x, 1000, 1e-9) {
+                            Some(r) => return format!("{r}"),
+                            None => format!("{x}"),
+                        }
+                    } else {
+                        format!("{x}")
+                    }
+                }
+                Notation::Scientific => format!("{x:e}"),
+                Notation::Engineering => engineering_str(*x),
+            };
+            if prefs.separators {
+                grouped_str(&s)
+            } else {
+                s
+            }
+        }
+        other => format!("{other}"),
+    }
+}
+
 /// A finite float with an integer value, as i64 (shared by the integer
 /// function family: frac, fact, ncr, npr, gcd, lcm, mod).
 fn float_to_int(x: f64) -> Option<i64> {
@@ -1996,47 +2478,582 @@ fn factorial_value(n: i64) -> Result<f64, EpherError> {
     Ok(acc)
 }
 
+// --- equation solving (ADR-0043) --------------------------------------
+// `solve lhs == rhs` finds roots of f = lhs - rhs. Polynomial equations
+// get every root, real and complex, through Durand-Kerner iteration on a
+// coefficient vector; anything else is scanned numerically over -100..100
+// with sign-change brackets, bisection safeguard, and Newton polish. No
+// CAS: both paths are pure f64 arithmetic.
+
+/// The display for a solved root: `x = 2` (roots within 1e-5 of an
+/// integer print without a decimal point - repeated-root clusters land
+/// at 1e-6 to 1e-5 even after refinement), `x = i` for the pure unit,
+/// `x = 1+2i` otherwise.
+fn root_display(root: Complex<f64>) -> String {
+    if root.im.abs() < 1e-5 * (1.0 + root.re.abs()) {
+        let re = root.re;
+        let re = if (re - re.round()).abs() <= 1e-5 * (1.0 + re.abs()) {
+            re.round()
+        } else {
+            re
+        };
+        format!("{re}")
+    } else {
+        complex_display(root)
+    }
+}
+
+/// Solve a `solve` statement (ADR-0043). The equation must be a `==`
+/// comparison; the variable solved for is `x` when it appears, otherwise
+/// the single free variable.
+pub fn solve_statement(equation: &Expression, env: &Env) -> Result<Value, EpherError> {
+    let (lhs, rhs) = match equation {
+        Expression::Compare(CmpOp::Eq, l, r) => (l.as_ref(), r.as_ref()),
+        _ => {
+            return Err(EpherError::Type(
+                "solve needs an equation with ==, like solve x^2 == 9".into(),
+            ))
+        }
+    };
+    let mut names = std::collections::BTreeSet::new();
+    epher_core_graph_free_names_helper(lhs, &mut names);
+    epher_core_graph_free_names_helper(rhs, &mut names);
+    // constants (builtin or user) are parameters, never unknowns; user
+    // variables stay in the running, the solved-for one is symbolic
+    // even when the session holds a value for it (like every calculator)
+    names.retain(|n| builtin_const(n).is_none() && env.constant(n).is_none());
+    let variable = if names.contains("x") {
+        "x"
+    } else if names.len() == 1 {
+        names.iter().next().expect("len checked").as_str()
+    } else if names.is_empty() {
+        return Err(EpherError::Type(
+            "solve found no variable in the equation".into(),
+        ));
+    } else {
+        return Err(EpherError::Type(format!(
+            "solve found several variables: {}",
+            names.into_iter().collect::<Vec<_>>().join(", ")
+        )));
+    };
+    // every name besides the solved-for one must be a bound parameter
+    // (a value, not an unknown): `solve a*x == 6` works once `a = 2`
+    for other in names.iter().filter(|n| n.as_str() != variable) {
+        if env.get(other).is_none() {
+            return Err(EpherError::Type(format!(
+                "solve needs an equation in one variable; {other} is not bound, so {variable} is not the only unknown ({})",
+                names.iter().cloned().collect::<Vec<_>>().join(", ")
+            )));
+        }
+    }
+
+    // Polynomial path: all roots, real and complex.
+    if let Some(coeffs) = poly_coeffs(lhs, variable, env) {
+        if let Some(rhs_coeffs) = poly_coeffs(rhs, variable, env) {
+            let mut f = subtract_polys(coeffs, rhs_coeffs);
+            trim_poly(&mut f);
+            if f.len() <= 1 {
+                // constant f: 0 == 0 solves trivially, anything else has
+                // no roots
+                if f.first().map(|c| *c == 0.0).unwrap_or(true) {
+                    return Ok(Value::Str("x is any number".into()));
+                }
+                return Ok(Value::Str("no solution".into()));
+            }
+            let mut roots = durand_kerner(&f);
+            roots.sort_by(|a, b| {
+                (a.re, a.im)
+                    .partial_cmp(&(b.re, b.im))
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
+            let out = roots
+                .iter()
+                .map(|r| format!("x = {}", root_display(*r)))
+                .collect::<Vec<_>>()
+                .join(", ");
+            return Ok(Value::Str(out));
+        }
+    }
+
+    // Numeric path: scan -100..100 for sign changes, bisection then
+    // Newton; poles are rejected by the residual check.
+    let eval_f = |v: f64| -> Result<f64, EpherError> {
+        let mut child = env.new_child();
+        child.set(variable.to_string(), Value::float(v));
+        let a = eval(lhs, &child)?;
+        let b = eval(rhs, &child)?;
+        let (Value::Float(a), Value::Float(b)) = (a, b) else {
+            return Err(EpherError::Type(
+                "solve needs a real-valued equation over the domain".into(),
+            ));
+        };
+        Ok(a - b)
+    };
+    let lo = -100.0;
+    let hi = 100.0;
+    let n = 2000usize;
+    let mut brackets: Vec<(f64, f64)> = Vec::new();
+    let mut prev_x = lo;
+    let mut prev_y = eval_f(lo)?;
+    for i in 1..=n {
+        let x = lo + (hi - lo) * (i as f64) / (n as f64);
+        let y = eval_f(x)?;
+        if prev_y.is_finite() && y.is_finite() && prev_y * y <= 0.0 {
+            // a root sitting exactly on a sample point (sin at 0) still
+            // brackets: the product is zero, and the bisection below
+            // finds it; poles are rejected later by the residual check
+            brackets.push((prev_x, x));
+        }
+        prev_x = x;
+        prev_y = y;
+    }
+    let mut roots: Vec<f64> = Vec::new();
+    for (a, b) in brackets {
+        // bisection to a tight bracket
+        let mut lo_b = a;
+        let mut hi_b = b;
+        let mut f_lo = eval_f(lo_b)?;
+        for _ in 0..60 {
+            let mid = (lo_b + hi_b) / 2.0;
+            let f_mid = eval_f(mid)?;
+            if f_lo * f_mid <= 0.0 {
+                hi_b = mid;
+            } else {
+                lo_b = mid;
+                f_lo = f_mid;
+            }
+        }
+        // Newton polish from the bracket's mid
+        let mut x = (lo_b + hi_b) / 2.0;
+        for _ in 0..30 {
+            let h = 1e-7 * (1.0 + x.abs());
+            let fx = eval_f(x)?;
+            let fp = (eval_f(x + h)? - eval_f(x - h)?) / (2.0 * h);
+            if fp == 0.0 {
+                break;
+            }
+            let next = x - fx / fp;
+            if (next - x).abs() < 1e-12 * (1.0 + x.abs()) {
+                x = next;
+                break;
+            }
+            x = next;
+        }
+        // residual check rejects poles and escaped iterates
+        if eval_f(x)?.abs() < 1e-6 * (1.0 + x.abs())
+            && x > lo - 1e-6
+            && x < hi + 1e-6
+            && roots.iter().all(|r| (r - x).abs() > 1e-6)
+        {
+            roots.push(x);
+        }
+    }
+    roots.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    if roots.is_empty() {
+        return Ok(Value::Str("no real roots found in -100..100".into()));
+    }
+    let out = roots
+        .iter()
+        .map(|r| format!("x = {}", root_display(Complex::new(*r, 0.0))))
+        .collect::<Vec<_>>()
+        .join(", ");
+    Ok(Value::Str(out))
+}
+
+/// The free names of one side of a solve equation (graph.rs owns the
+/// shared walk; reuse it through this shim so solve sees the same names).
+pub fn epher_core_graph_free_names_helper(
+    expr: &Expression,
+    out: &mut std::collections::BTreeSet<String>,
+) {
+    crate::graph::free_names(expr, out);
+}
+
+/// Structural polynomial extraction (ADR-0043): coefficients of the
+/// expression as a polynomial in `variable`, lowest degree first, or
+/// None when the expression is not polynomial (calls on the variable,
+/// division by a non-constant, fractional exponents). Constants resolve
+/// against the environment, so `solve a*x == 12` works with `a` bound.
+fn poly_coeffs(expr: &Expression, variable: &str, env: &Env) -> Option<Vec<f64>> {
+    const MAX_DEGREE: usize = 12;
+    let poly = |coeffs: Vec<f64>| -> Option<Vec<f64>> {
+        if coeffs.len() > MAX_DEGREE + 1 {
+            None
+        } else {
+            Some(coeffs)
+        }
+    };
+    match expr {
+        Expression::Literal(n) => Some(vec![*n]),
+        Expression::Var(name) => {
+            if name == variable {
+                Some(vec![0.0, 1.0])
+            } else if let Some(v) = env
+                .get(name)
+                .cloned()
+                .or_else(|| env.constant(name).cloned())
+                .or_else(|| builtin_const(name))
+            {
+                match v {
+                    Value::Float(x) => Some(vec![x]),
+                    Value::Rational(r) => r.to_f64().map(|x| vec![x]),
+                    Value::Decimal(d) => d.to_f64().map(|x| vec![x]),
+                    Value::Big(b) => b.to_f64().map(|x| vec![x]),
+                    _ => None,
+                }
+            } else {
+                None
+            }
+        }
+        Expression::Neg(e) => {
+            poly_coeffs(e, variable, env).map(|c| c.into_iter().map(|x| -x).collect())
+        }
+        Expression::Add(a, b) => Some(add_polys(
+            poly_coeffs(a, variable, env)?,
+            poly_coeffs(b, variable, env)?,
+        )),
+        Expression::Sub(a, b) => Some(subtract_polys(
+            poly_coeffs(a, variable, env)?,
+            poly_coeffs(b, variable, env)?,
+        )),
+        Expression::Mul(a, b) => Some(mul_polys(
+            poly_coeffs(a, variable, env)?,
+            poly_coeffs(b, variable, env)?,
+        )),
+        Expression::Div(a, b) => {
+            let denom = poly_coeffs(b, variable, env)?;
+            if denom.len() != 1 || denom[0] == 0.0 {
+                return None; // division by a non-constant is not polynomial
+            }
+            poly_coeffs(a, variable, env).map(|c| c.into_iter().map(|x| x / denom[0]).collect())
+        }
+        Expression::Pow(base, exp) => {
+            // An integer-literal (or constant-valued) exponent; a
+            // polynomial base raised to it stays polynomial.
+            let n = match exp.as_ref() {
+                Expression::Literal(k)
+                    if *k >= 0.0 && k.fract() == 0.0 && *k <= MAX_DEGREE as f64 =>
+                {
+                    *k as usize
+                }
+                _ => {
+                    let coeffs = poly_coeffs(exp, variable, env)?;
+                    if coeffs.len() != 1 {
+                        return None;
+                    }
+                    let k = coeffs[0];
+                    if k < 0.0 || k.fract() != 0.0 || k > MAX_DEGREE as f64 {
+                        return None;
+                    }
+                    k as usize
+                }
+            };
+            let base_coeffs = poly_coeffs(base, variable, env)?;
+            let mut acc = vec![1.0];
+            for _ in 0..n {
+                acc = mul_polys(acc, base_coeffs.clone());
+                if acc.len() > MAX_DEGREE + 1 {
+                    return None;
+                }
+            }
+            Some(acc)
+        }
+        Expression::Call(name, args) => {
+            // A call that mentions the variable is not polynomial; a
+            // call that does not is a constant factor (sin(1), log(10)).
+            let mut names = std::collections::BTreeSet::new();
+            for a in args {
+                crate::graph::free_names(a, &mut names);
+            }
+            if names.iter().any(|n| n == variable) {
+                return None;
+            }
+            let child = env.new_child();
+            let mut values = Vec::with_capacity(args.len());
+            for a in args {
+                values.push(eval(a, &child).ok()?);
+            }
+            match call_builtin(name, values).ok()? {
+                Value::Float(x) => Some(vec![x]),
+                Value::Rational(r) => r.to_f64().map(|x| vec![x]),
+                Value::Decimal(d) => d.to_f64().map(|x| vec![x]),
+                Value::Big(b) => b.to_f64().map(|x| vec![x]),
+                _ => None,
+            }
+        }
+        Expression::Factorial(_)
+        | Expression::Compare(_, _, _)
+        | Expression::If(_, _, _)
+        | Expression::And(_, _)
+        | Expression::Or(_, _)
+        | Expression::Not(_) => None,
+    }
+    .and_then(poly)
+}
+
+fn add_polys(a: Vec<f64>, b: Vec<f64>) -> Vec<f64> {
+    let n = a.len().max(b.len());
+    let mut out = vec![0.0; n];
+    for (i, x) in a.iter().enumerate() {
+        out[i] += x;
+    }
+    for (i, x) in b.iter().enumerate() {
+        out[i] += x;
+    }
+    out
+}
+
+fn subtract_polys(a: Vec<f64>, b: Vec<f64>) -> Vec<f64> {
+    let n = a.len().max(b.len());
+    let mut out = vec![0.0; n];
+    for (i, x) in a.iter().enumerate() {
+        out[i] += x;
+    }
+    for (i, x) in b.iter().enumerate() {
+        out[i] -= x;
+    }
+    out
+}
+
+fn mul_polys(a: Vec<f64>, b: Vec<f64>) -> Vec<f64> {
+    let mut out = vec![0.0; a.len() + b.len() - 1];
+    for (i, x) in a.iter().enumerate() {
+        for (j, y) in b.iter().enumerate() {
+            out[i + j] += x * y;
+        }
+    }
+    out
+}
+
+fn trim_poly(p: &mut Vec<f64>) {
+    while p.len() > 1 && p.last().map(|c| *c == 0.0).unwrap_or(false) {
+        p.pop();
+    }
+}
+
+/// All roots of a polynomial by Durand-Kerner (Weierstrass) iteration
+/// (ADR-0043): numeric, wasm-safe, no CAS. Simple roots land at machine
+/// precision; repeated roots converge linearly, so the roots are
+/// clustered and each cluster is refined through deflation: a double
+/// root's mirror average is exact, higher multiplicities polish by
+/// Newton on the deflated polynomial.
+fn durand_kerner(coeffs: &[f64]) -> Vec<Complex<f64>> {
+    let n = coeffs.len() - 1; // degree
+    let mut roots: Vec<Complex<f64>> = (0..n)
+        .map(|j| {
+            let angle = 2.0 * std::f64::consts::PI * (j as f64 + 0.5) / (n as f64);
+            Complex::new(angle.cos(), angle.sin()) * 0.4
+        })
+        .collect();
+    let lead = coeffs[n];
+    let eval_p = |z: Complex<f64>| -> Complex<f64> {
+        let mut acc = Complex::new(0.0, 0.0);
+        for c in coeffs.iter().rev() {
+            acc = acc * z + Complex::new(*c, 0.0);
+        }
+        acc / lead
+    };
+    for _ in 0..200 {
+        let mut converged = true;
+        for j in 0..n {
+            let mut denom = Complex::new(1.0, 0.0);
+            for (k, rk) in roots.iter().enumerate() {
+                if k != j {
+                    denom *= roots[j] - rk;
+                }
+            }
+            let delta = if denom.norm() > 1e-300 {
+                eval_p(roots[j]) / denom
+            } else {
+                Complex::new(0.0, 0.0)
+            };
+            if delta.norm() > 1e-13 {
+                converged = false;
+            }
+            roots[j] -= delta;
+        }
+        if converged {
+            break;
+        }
+    }
+    let scale = coeffs.iter().cloned().fold(0.0_f64, f64::max).max(1e-300);
+    // cluster the roots; each cluster is one (possibly repeated) root
+    let mut clusters: Vec<Vec<Complex<f64>>> = Vec::new();
+    for r in roots {
+        let tol = 1e-4 * (1.0 + r.norm());
+        if let Some(c) = clusters
+            .iter_mut()
+            .find(|c| c.iter().any(|x| (x - r).norm() < tol))
+        {
+            c.push(r);
+        } else {
+            clusters.push(vec![r]);
+        }
+    }
+    let mut out: Vec<Complex<f64>> = Vec::new();
+    for cluster in clusters {
+        let centroid =
+            cluster.iter().fold(Complex::new(0.0, 0.0), |a, b| a + *b) / cluster.len() as f64;
+        // deflate the original polynomial by the centroid: the quotient
+        // keeps the other roots, the remainder is p(centroid)
+        let (q, rem1) = deflate_poly(coeffs, centroid);
+        if rem1.norm() > 1e-6 * scale {
+            out.push(centroid); // defensively; DK roots satisfy this
+            continue;
+        }
+        // the remainder of the second deflation is q(centroid), which
+        // is p'(centroid): small only when the root is repeated
+        let rem2 = eval_complex_poly(&q, centroid);
+        if rem2.norm() >= 1e-6 * scale {
+            // a simple root: Durand-Kerner already reached machine
+            // precision, keep the centroid
+            out.push(centroid);
+            continue;
+        }
+        // a repeated root. The cluster size IS the multiplicity: a
+        // double root's deflated quotient has the mirror root (simple,
+        // quadratic convergence), and the average of the pair is the
+        // exact root; higher multiplicities converge linearly on the
+        // deflated polynomial to the root itself.
+        let polished = newton_root(&q, centroid);
+        if cluster.len() == 2 {
+            out.push((centroid + polished) / 2.0);
+        } else {
+            out.push(polished);
+        }
+    }
+    out
+}
+
+/// Synthetic division of a polynomial (lowest degree first) by `(x - r)`:
+/// the quotient and the remainder p(r).
+fn deflate_poly(coeffs: &[f64], r: Complex<f64>) -> (Vec<Complex<f64>>, Complex<f64>) {
+    let mut q = deflate_complex(
+        &coeffs
+            .iter()
+            .map(|c| Complex::new(*c, 0.0))
+            .collect::<Vec<_>>(),
+        r,
+    );
+    let rem = q.pop().expect("deflation keeps one remainder");
+    (q, rem)
+}
+
+/// Synthetic division with complex coefficients (the quotient of a
+/// first deflation stays complex): returns the quotient plus the
+/// remainder as the popped last element.
+fn deflate_complex(coeffs: &[Complex<f64>], r: Complex<f64>) -> Vec<Complex<f64>> {
+    let n = coeffs.len() - 1;
+    let mut q = vec![Complex::new(0.0, 0.0); n];
+    q[n - 1] = coeffs[n];
+    for k in (1..n).rev() {
+        q[k - 1] = coeffs[k] + r * q[k];
+    }
+    let rem = coeffs[0] + r * q[0];
+    q.push(rem);
+    q
+}
+
+/// Horner evaluation of a complex-coefficient polynomial.
+fn eval_complex_poly(coeffs: &[Complex<f64>], z: Complex<f64>) -> Complex<f64> {
+    let mut acc = Complex::new(0.0, 0.0);
+    for c in coeffs.iter().rev() {
+        acc = acc * z + *c;
+    }
+    acc
+}
+
+/// Newton iteration on a polynomial (lowest degree first) from a start
+/// point; the step p/p' is evaluated by a one-pass Horner.
+fn newton_root(coeffs: &[Complex<f64>], start: Complex<f64>) -> Complex<f64> {
+    let mut z = start;
+    for _ in 0..40 {
+        let mut p = Complex::new(0.0, 0.0);
+        let mut dp = Complex::new(0.0, 0.0);
+        for c in coeffs.iter().rev() {
+            dp = dp * z + p;
+            p = p * z + *c;
+        }
+        let step = if dp.norm() > 1e-300 {
+            p / dp
+        } else {
+            Complex::new(0.0, 0.0)
+        };
+        if step.norm() < 1e-14 * (1.0 + z.norm()) {
+            z -= step;
+            break;
+        }
+        z -= step;
+    }
+    z
+}
+
 /// Dispatch a builtin function call. User-defined functions are resolved by
 /// the caller; everything here is the scientific function library (the
 /// calculator's function keys).
 fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
     match name {
-        "sin" => Ok(Value::Float(one_float(name, &args)?.sin())),
-        "cos" => Ok(Value::Float(one_float(name, &args)?.cos())),
-        "tan" => Ok(Value::Float(one_float(name, &args)?.tan())),
-        "asin" => {
-            let x = one_float(name, &args)?;
-            if x < -1.0 || x > 1.0 {
-                return Err(domain_error(format!("asin of {x} outside -1..1")));
-            }
-            Ok(Value::Float(x.asin()))
-        }
-        "acos" => {
-            let x = one_float(name, &args)?;
-            if x < -1.0 || x > 1.0 {
-                return Err(domain_error(format!("acos of {x} outside -1..1")));
-            }
-            Ok(Value::Float(x.acos()))
-        }
-        "atan" => Ok(Value::Float(one_float(name, &args)?.atan())),
-        "sinh" => Ok(Value::Float(one_float(name, &args)?.sinh())),
-        "cosh" => Ok(Value::Float(one_float(name, &args)?.cosh())),
-        "tanh" => Ok(Value::Float(one_float(name, &args)?.tanh())),
-        "asinh" => Ok(Value::Float(one_float(name, &args)?.asinh())),
-        "acosh" => {
-            let x = one_float(name, &args)?;
-            if x < 1.0 {
-                return Err(domain_error(format!("acosh of {x} below 1")));
-            }
-            Ok(Value::Float(x.acosh()))
-        }
-        "atanh" => {
-            let x = one_float(name, &args)?;
-            if x <= -1.0 || x >= 1.0 {
-                return Err(domain_error(format!("atanh of {x} outside -1..1")));
-            }
-            Ok(Value::Float(x.atanh()))
-        }
+        // The transcendental family extends to the complex plane
+        // (ADR-0043): a complex argument computes in complex, and a real
+        // argument outside the real domain falls back to the principal
+        // complex result - sqrt(-1) is i, ln(-1) is i*pi, asin(2) is
+        // complex. real_or_complex applies both rules from one helper.
+        "sin" => real_or_complex(name, &args, |x| Ok(x.sin()), |z| z.sin()),
+        "cos" => real_or_complex(name, &args, |x| Ok(x.cos()), |z| z.cos()),
+        "tan" => real_or_complex(name, &args, |x| Ok(x.tan()), |z| z.tan()),
+        "asin" => real_or_complex(
+            name,
+            &args,
+            |x| {
+                if x < -1.0 || x > 1.0 {
+                    Err(domain_error(format!("asin of {x} outside -1..1")))
+                } else {
+                    Ok(x.asin())
+                }
+            },
+            |z| z.asin(),
+        ),
+        "acos" => real_or_complex(
+            name,
+            &args,
+            |x| {
+                if x < -1.0 || x > 1.0 {
+                    Err(domain_error(format!("acos of {x} outside -1..1")))
+                } else {
+                    Ok(x.acos())
+                }
+            },
+            |z| z.acos(),
+        ),
+        "atan" => real_or_complex(name, &args, |x| Ok(x.atan()), |z| z.atan()),
+        "sinh" => real_or_complex(name, &args, |x| Ok(x.sinh()), |z| z.sinh()),
+        "cosh" => real_or_complex(name, &args, |x| Ok(x.cosh()), |z| z.cosh()),
+        "tanh" => real_or_complex(name, &args, |x| Ok(x.tanh()), |z| z.tanh()),
+        "asinh" => real_or_complex(name, &args, |x| Ok(x.asinh()), |z| z.asinh()),
+        "acosh" => real_or_complex(
+            name,
+            &args,
+            |x| {
+                if x < 1.0 {
+                    Err(domain_error(format!("acosh of {x} below 1")))
+                } else {
+                    Ok(x.acosh())
+                }
+            },
+            |z| z.acosh(),
+        ),
+        "atanh" => real_or_complex(
+            name,
+            &args,
+            |x| {
+                if x <= -1.0 || x >= 1.0 {
+                    Err(domain_error(format!("atanh of {x} outside -1..1")))
+                } else {
+                    Ok(x.atanh())
+                }
+            },
+            |z| z.atanh(),
+        ),
         "deg" => Ok(Value::Float(one_float(name, &args)?.to_degrees())),
         "rad" => Ok(Value::Float(one_float(name, &args)?.to_radians())),
         // Base conversion (ADR-0022): one integer in, a prefixed string
@@ -2068,29 +3085,44 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             let (y, x) = two_floats(name, &args)?;
             Ok(Value::Float(y.atan2(x)))
         }
-        "exp" => Ok(Value::Float(one_float(name, &args)?.exp())),
-        "ln" => {
-            let x = one_float(name, &args)?;
-            if x <= 0.0 {
-                return Err(domain_error(format!("ln of non-positive number {x}")));
-            }
-            Ok(Value::Float(x.ln()))
-        }
+        "exp" => real_or_complex(name, &args, |x| Ok(x.exp()), |z| z.exp()),
+        "ln" => real_or_complex(
+            name,
+            &args,
+            |x| {
+                if x <= 0.0 {
+                    Err(domain_error(format!("ln of non-positive number {x}")))
+                } else {
+                    Ok(x.ln())
+                }
+            },
+            |z| z.ln(),
+        ),
         // calculator convention: log is base 10 (the LOG key), ln is natural
-        "log" => {
-            let x = one_float(name, &args)?;
-            if x <= 0.0 {
-                return Err(domain_error(format!("log of non-positive number {x}")));
-            }
-            Ok(Value::Float(x.log10()))
-        }
-        "log2" => {
-            let x = one_float(name, &args)?;
-            if x <= 0.0 {
-                return Err(domain_error(format!("log2 of non-positive number {x}")));
-            }
-            Ok(Value::Float(x.log2()))
-        }
+        "log" => real_or_complex(
+            name,
+            &args,
+            |x| {
+                if x <= 0.0 {
+                    Err(domain_error(format!("log of non-positive number {x}")))
+                } else {
+                    Ok(x.log10())
+                }
+            },
+            |z| z.ln() / std::f64::consts::LN_10,
+        ),
+        "log2" => real_or_complex(
+            name,
+            &args,
+            |x| {
+                if x <= 0.0 {
+                    Err(domain_error(format!("log2 of non-positive number {x}")))
+                } else {
+                    Ok(x.log2())
+                }
+            },
+            |z| z.ln() / std::f64::consts::LN_2,
+        ),
         "logb" => {
             let (base, x) = two_floats(name, &args)?;
             if x <= 0.0 {
@@ -2103,7 +3135,13 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             }
             Ok(Value::Float(x.log(base)))
         }
-        "cbrt" => Ok(Value::Float(one_float(name, &args)?.cbrt())),
+        "cbrt" => real_or_complex(
+            name,
+            &args,
+            |x| Ok(x.cbrt()),
+            // num_complex has no cbrt; the principal branch is powc(1/3)
+            |z| z.powc(Complex::new(1.0 / 3.0, 0.0)),
+        ),
         "root" => {
             // root(n, x): the real nth root; odd roots of negatives are negative
             let (n, x) = two_floats(name, &args)?;
@@ -2125,7 +3163,81 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             let (a, b) = two_floats(name, &args)?;
             Ok(Value::Float(a.hypot(b)))
         }
-        "abs" => Ok(Value::Float(one_float(name, &args)?.abs())),
+        // abs is the magnitude: a complex's distance from the origin
+        // (ADR-0043), so it always returns a plain number.
+        "abs" => {
+            let v = one_arg(name, &args)?;
+            match v {
+                Value::Float(x) => Ok(Value::Float(x.abs())),
+                Value::Complex(c) => Ok(Value::Float(c.norm())),
+                _ => Err(EpherError::Type(format!(
+                    "{name} expects a number, got {v}"
+                ))),
+            }
+        }
+        // Complex parts (ADR-0043): re/im/arg read the rectangular and
+        // polar coordinates, conj mirrors across the real axis. On a
+        // plain number re/arg/conj pass it through and im is 0.
+        "re" | "im" | "arg" => {
+            let v = one_arg(name, &args)?;
+            let c = match v {
+                Value::Float(x) => Complex::new(*x, 0.0),
+                Value::Complex(c) => *c,
+                _ => {
+                    return Err(EpherError::Type(format!(
+                        "{name} expects a number, got {v}"
+                    )))
+                }
+            };
+            Ok(Value::Float(match name {
+                "re" => c.re,
+                "im" => c.im,
+                _ => c.arg(),
+            }))
+        }
+        "conj" => {
+            let v = one_arg(name, &args)?;
+            match v {
+                Value::Float(x) => Ok(Value::Float(*x)),
+                Value::Complex(c) => Ok(Value::Complex(c.conj())),
+                _ => Err(EpherError::Type(format!(
+                    "{name} expects a number, got {v}"
+                ))),
+            }
+        }
+        // Exact fractions (ADR-0043): exact(x) reconstructs the rational
+        // behind a float (continued fractions, denominator up to 1000,
+        // relative tolerance 1e-9) - exact(0.3333333333333333) is 1/3.
+        // Irrationals pass through unchanged: no convergent is good
+        // enough, so pi stays decimal.
+        "exact" => {
+            let v = one_arg(name, &args)?;
+            match v {
+                Value::Float(x) => Ok(match reconstruct_fraction(*x, 1000, 1e-9) {
+                    Some(r) => Value::Rational(r),
+                    None => Value::Float(*x),
+                }),
+                other => Ok(other.clone()),
+            }
+        }
+        // Display verbs (ADR-0043): scientific and engineering notation,
+        // and thin-space thousands grouping - 1 234 567.89. All three
+        // return display strings, like bin/oct/hex.
+        "scientific" => {
+            let v = one_arg(name, &args)?;
+            let x = numeric_as_float(name, v)?;
+            Ok(Value::Str(format!("{x:e}")))
+        }
+        "engineering" => {
+            let v = one_arg(name, &args)?;
+            let x = numeric_as_float(name, v)?;
+            Ok(Value::Str(engineering_str(x)))
+        }
+        "grouped" => {
+            let v = one_arg(name, &args)?;
+            let x = numeric_as_float(name, v)?;
+            Ok(Value::Str(grouped_str(&format!("{x}"))))
+        }
         "floor" => Ok(Value::Float(one_float(name, &args)?.floor())),
         "ceil" => Ok(Value::Float(one_float(name, &args)?.ceil())),
         "trunc" => Ok(Value::Float(one_float(name, &args)?.trunc())),
@@ -2141,13 +3253,18 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                 0.0
             }))
         }
-        "sqrt" => {
-            let x = one_float(name, &args)?;
-            if x < 0.0 {
-                return Err(domain_error(format!("sqrt of negative number {x}")));
-            }
-            Ok(Value::Float(x.sqrt()))
-        }
+        "sqrt" => real_or_complex(
+            name,
+            &args,
+            |x| {
+                if x < 0.0 {
+                    Err(domain_error(format!("sqrt of negative number {x}")))
+                } else {
+                    Ok(x.sqrt())
+                }
+            },
+            |z| z.sqrt(),
+        ),
         "min" => {
             let xs = any_floats(name, &args)?;
             Ok(Value::Float(
@@ -2491,6 +3608,7 @@ fn stmt_value(
             run_while(cond, body, env, steps)?;
             None
         }
+        Statement::Solve(equation) => Some(solve_statement(equation, env)?),
     };
     if let Some(v) = &value {
         env.set("ans", v.clone());
@@ -2583,6 +3701,10 @@ pub struct Session {
     defs: HashMap<String, String>,
     consts: HashMap<String, String>,
     last_line: Option<String>,
+    /// Result rendering (ADR-0043): exact fractions, notation, and
+    /// separators. Interactive frontends set this from their settings;
+    /// the CLI keeps the default.
+    display: DisplayPrefs,
 }
 
 impl Session {
@@ -2598,6 +3720,11 @@ impl Session {
         }
     }
 
+    /// The session's result display preferences (ADR-0043).
+    pub fn set_display(&mut self, prefs: DisplayPrefs) {
+        self.display = prefs;
+    }
+
     /// Submit a script line: run it against the environment, record it in
     /// history, and return the display string (`= value`, `error: ...`, or
     /// empty for a line that produced no value, like a bare `def`). An empty
@@ -2609,7 +3736,7 @@ impl Session {
         }
         let output = match parse_script(&line) {
             Ok(script) => match run(&script, &mut self.env) {
-                Ok(Some(value)) => format!("= {value}"),
+                Ok(Some(value)) => format!("= {}", format_value(&value, &self.display)),
                 Ok(None) => String::new(),
                 Err(e) => format!("error: {e}"),
             },
@@ -2639,7 +3766,7 @@ impl Session {
         }
         let output = match parse_script(&line) {
             Ok(script) => match run(&script, &mut self.env) {
-                Ok(Some(value)) => format!("= {value}"),
+                Ok(Some(value)) => format!("= {}", format_value(&value, &self.display)),
                 Ok(None) => String::new(),
                 Err(e) => format!("error: {e}"),
             },
@@ -2843,9 +3970,64 @@ fn binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
                 .ok_or_else(|| EpherError::Type(format!("cannot promote {b} to big")))?;
             Ok(Value::Big(big_binop(op, a.clone(), b)?))
         }
+        // Complex arithmetic (ADR-0043): floats promote to complex, the
+        // exact variants do not (combining them is a type error).
+        (Value::Complex(a), Value::Complex(b)) => Ok(Value::Complex(complex_binop(op, *a, *b)?)),
+        (Value::Complex(a), Value::Float(b)) => Ok(Value::Complex(complex_binop(
+            op,
+            *a,
+            Complex::new(*b, 0.0),
+        )?)),
+        (Value::Float(a), Value::Complex(b)) => Ok(Value::Complex(complex_binop(
+            op,
+            Complex::new(*a, 0.0),
+            *b,
+        )?)),
         _ => Err(EpherError::Type(format!(
             "cannot combine {lhs:?} and {rhs:?}"
         ))),
+    }
+}
+
+fn complex_binop(op: BinOp, a: Complex<f64>, b: Complex<f64>) -> Result<Complex<f64>, EpherError> {
+    match op {
+        BinOp::Add => Ok(a + b),
+        BinOp::Sub => Ok(a - b),
+        BinOp::Mul => Ok(a * b),
+        BinOp::Div => {
+            if b.norm_sqr() == 0.0 {
+                Err(EpherError::ZeroDivision)
+            } else {
+                Ok(a / b)
+            }
+        }
+        BinOp::Pow => {
+            // An integer power multiplies out exactly instead of going
+            // through exp/ln (ADR-0043): i^2 is exactly -1, and
+            // repeated squaring keeps the tiny powc noise away.
+            if b.im == 0.0 && b.re.is_finite() && b.re.fract() == 0.0 && b.re.abs() < 1e9 {
+                let mut base = a;
+                let mut n = b.re as i64;
+                if n < 0 {
+                    if base.norm_sqr() == 0.0 {
+                        return Err(EpherError::ZeroDivision);
+                    }
+                    base = base.inv();
+                    n = -n;
+                }
+                let mut acc = Complex::new(1.0, 0.0);
+                while n > 0 {
+                    if n & 1 == 1 {
+                        acc *= base;
+                    }
+                    base *= base;
+                    n >>= 1;
+                }
+                Ok(acc)
+            } else {
+                Ok(a.powc(b))
+            }
+        }
     }
 }
 

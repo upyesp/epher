@@ -295,3 +295,27 @@ graph-png-saved = تم حفظ PNG
 graph-png-failed = تعذر حفظ PNG
 autocomplete-label = اقتراحات
 help-no-description = لا يوجد وصف، راجع دليل المستخدم
+key-hint-i = الوحدة التخيلية، sqrt(-1) = i
+key-hint-re = الجزء الحقيقي لعدد مركب
+key-hint-im = الجزء التخيلي لعدد مركب
+key-hint-arg = سعة (زاوية) عدد مركب
+key-hint-conj = المرافق المركب
+key-hint-derivative = مشتقة عددية: derivative(x^2, 3) = 6
+key-hint-integral = تكامل محدد: integral(x^2, 0, 3) = 9
+key-hint-exact = كسر مضبوط: exact(0.3333...) = 1/3
+key-hint-scientific = ترميز علمي: 1.2345e4
+key-hint-engineering = ترميز هندسي: 12.345e3
+key-hint-grouped = فواصل الآلاف: 1 234 567.89
+menu-results = النتائج
+results-fractions = كسور مضبوطة
+results-notation = الترميز
+results-separators = الفواصل
+results-auto = تلقائي
+results-scientific = علمي
+results-engineering = هندسي
+results-on = مفعّل
+results-off = معطّل
+tui-settings-results = النتائج
+tui-settings-exact = كسور مضبوطة
+tui-settings-notation = الترميز
+tui-settings-separators = الفواصل

@@ -173,7 +173,10 @@ pub fn run_one_shot(expr: &str) -> Result<(), EpherError> {
         }
         let script = epher_core::parse_script(piece)?;
         for value in epher_core::run_all(&script, session.env_mut())? {
-            println!("{value}");
+            println!(
+                "{}",
+                epher_core::format_value(&value, &epher_core::DisplayPrefs::default())
+            );
         }
     }
     // The command joins the shared history and its bindings (`ans` and

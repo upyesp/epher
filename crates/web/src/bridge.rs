@@ -158,6 +158,24 @@ impl Bridge {
         self.spawn("save_theme", args);
     }
 
+    pub fn save_exact(self, exact: bool) {
+        let args =
+            serde_wasm_bindgen::to_value(&FlagArgs { flag: exact }).unwrap_or(JsValue::UNDEFINED);
+        self.spawn("save_exact", args);
+    }
+
+    pub fn save_format(self, format: &str) {
+        let args =
+            serde_wasm_bindgen::to_value(&CodeArgs { code: format }).unwrap_or(JsValue::UNDEFINED);
+        self.spawn("save_format", args);
+    }
+
+    pub fn save_separators(self, separators: bool) {
+        let args = serde_wasm_bindgen::to_value(&FlagArgs { flag: separators })
+            .unwrap_or(JsValue::UNDEFINED);
+        self.spawn("save_separators", args);
+    }
+
     /// Quit the desktop app (File → Quit). No response — the process
     /// ends before one could arrive.
     pub async fn quit(self) {
@@ -297,4 +315,9 @@ struct CodeArgs<'a> {
 #[derive(serde::Serialize)]
 struct ThemeArgs<'a> {
     name: &'a str,
+}
+
+#[derive(serde::Serialize)]
+struct FlagArgs {
+    flag: bool,
 }

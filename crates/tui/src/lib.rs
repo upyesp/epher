@@ -15,8 +15,9 @@ use epher_core::Session;
 use epher_i18n::Localizer;
 use epher_shell::{classify, plain, run_command};
 use epher_store::persist::{
-    default_store_dir, load_language, load_pois, load_session, load_theme, save_history,
-    save_language, save_pois, save_session, save_theme,
+    default_store_dir, load_exact, load_format, load_language, load_pois, load_separators,
+    load_session, load_theme, save_exact, save_format, save_history, save_language, save_pois,
+    save_separators, save_session, save_theme,
 };
 use epher_store::{DocStore, FsStore};
 use unicode_width::UnicodeWidthStr;
@@ -86,6 +87,12 @@ pub enum MenuAction {
     /// Show or hide the points-of-interest list in the graph panel
     /// (ADR-0019); the loop persists the choice.
     TogglePois,
+    /// Toggle exact fraction display (ADR-0043); the loop persists.
+    ToggleExact,
+    /// Cycle Auto -> Scientific -> Engineering notation (ADR-0043).
+    CycleNotation,
+    /// Toggle thousands separators on results (ADR-0043).
+    ToggleSeparators,
     /// Empty the graph pane (curves, points of interest, 3D surfaces).
     ClearGraph,
     /// Copy every listed point of interest to the terminal's clipboard
@@ -151,6 +158,9 @@ pub struct App {
     theme: Theme,
     /// Whether the graph panel lists the points of interest (ADR-0019).
     poi_list: bool,
+    /// Result rendering (ADR-0043): exact fractions, notation, and
+    /// thousands separators, applied to every submitted result.
+    display: epher_core::DisplayPrefs,
     /// The open menu bar item and the highlighted row inside it
     /// (ADR-0017); `None` when the menus are closed.
     menu: Option<(usize, usize)>,
@@ -560,7 +570,47 @@ impl App {
     /// survive; a reload never writes, so it cannot loop with the store
     /// watcher.
     pub fn set_session(&mut self, session: Session) {
+        let mut session = session;
+        session.set_display(self.display);
         self.session = session;
+    }
+
+    /// The result display preferences (ADR-0043); a change applies to
+    /// every later submit.
+    pub fn set_display_prefs(&mut self, prefs: epher_core::DisplayPrefs) {
+        self.display = prefs;
+        self.session.set_display(prefs);
+    }
+
+    pub fn display_prefs(&self) -> epher_core::DisplayPrefs {
+        self.display
+    }
+
+    /// Toggle exact fraction display (ADR-0043).
+    pub fn toggle_exact(&mut self) {
+        let mut prefs = self.display;
+        prefs.exact_fractions = !prefs.exact_fractions;
+        self.set_display_prefs(prefs);
+    }
+
+    /// Cycle the result notation Auto -> Scientific -> Engineering
+    /// (ADR-0043).
+    pub fn cycle_notation(&mut self) {
+        use epher_core::Notation;
+        let mut prefs = self.display;
+        prefs.notation = match prefs.notation {
+            Notation::Auto => Notation::Scientific,
+            Notation::Scientific => Notation::Engineering,
+            Notation::Engineering => Notation::Auto,
+        };
+        self.set_display_prefs(prefs);
+    }
+
+    /// Toggle thousands separators on results (ADR-0043).
+    pub fn toggle_separators(&mut self) {
+        let mut prefs = self.display;
+        prefs.separators = !prefs.separators;
+        self.set_display_prefs(prefs);
     }
 
     pub fn with_session(session: Session) -> Self {
@@ -587,6 +637,7 @@ impl App {
             kp_bank: 0,
             theme: Theme::default(),
             poi_list: true,
+            display: epher_core::DisplayPrefs::default(),
             menu: None,
             prompt: None,
             hist_focus: false,
@@ -768,9 +819,9 @@ impl App {
             3 => 2, // Help: the in-app guide, the keypad key help
             4 => {
                 if self.surface.is_empty() && self.solar.is_none() {
-                    12 // POI toggle, 3 themes, 8 languages
+                    15 // POI, 3 themes, 8 languages, exact, notation, separators
                 } else {
-                    15 // …plus horizontal rotation, vertical rotation, zoom
+                    18 // …plus horizontal rotation, vertical rotation, zoom
                 }
             }
             _ => 0,
@@ -850,7 +901,10 @@ impl App {
                 // Fine-control rows (ADR-0031): adjusted with Left/Right
                 // while highlighted; Enter leaves them be and keeps the
                 // menu open.
-                12..=14 => return None,
+                12 => MenuAction::ToggleExact,
+                13 => MenuAction::CycleNotation,
+                14 => MenuAction::ToggleSeparators,
+                15..=17 => return None,
                 _ => MenuAction::SetLanguage("pt"),
             },
             _ => MenuAction::OpenGuide,
@@ -1790,7 +1844,7 @@ impl App {
     /// three fine-control rows (they exist only while 3D surfaces do).
     pub fn menu_view_item(&self) -> Option<usize> {
         match self.menu {
-            Some((4, item @ 12..=14)) if !self.surface.is_empty() || self.solar.is_some() => {
+            Some((4, item @ 15..=17)) if !self.surface.is_empty() || self.solar.is_some() => {
                 Some(item)
             }
             _ => None,
@@ -2385,6 +2439,27 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
     if let Some(pois) = load_pois(&store).unwrap_or(None) {
         app.set_pois(pois);
     }
+    // Result rendering (ADR-0043): the stored display preferences shape
+    // every result line; the defaults are exact fractions on, Auto
+    // notation, no separators.
+    {
+        use epher_core::{DisplayPrefs, Notation};
+        let mut prefs = DisplayPrefs::default();
+        if let Some(exact) = load_exact(&store).unwrap_or(None) {
+            prefs.exact_fractions = exact;
+        }
+        if let Some(format) = load_format(&store).unwrap_or(None) {
+            prefs.notation = match format.as_str() {
+                "scientific" => Notation::Scientific,
+                "engineering" => Notation::Engineering,
+                _ => Notation::Auto,
+            };
+        }
+        if let Some(separators) = load_separators(&store).unwrap_or(None) {
+            prefs.separators = separators;
+        }
+        app.set_display_prefs(prefs);
+    }
     // One step per 120 ms while playing — the same rate as the web
     // sliders' play button (ADR-0015). The poll below wakes at 50 ms so
     // key presses stay responsive; the step itself is paced here.
@@ -2869,6 +2944,23 @@ fn perform_menu_action(
             app.toggle_pois();
             let _ = save_pois(store, app.poi_list());
         }
+        MenuAction::ToggleExact => {
+            app.toggle_exact();
+            let _ = save_exact(store, app.display_prefs().exact_fractions);
+        }
+        MenuAction::CycleNotation => {
+            app.cycle_notation();
+            let notation = match app.display_prefs().notation {
+                epher_core::Notation::Auto => "auto",
+                epher_core::Notation::Scientific => "scientific",
+                epher_core::Notation::Engineering => "engineering",
+            };
+            let _ = save_format(store, notation);
+        }
+        MenuAction::ToggleSeparators => {
+            app.toggle_separators();
+            let _ = save_separators(store, app.display_prefs().separators);
+        }
         MenuAction::ClearGraph => {
             app.clear_graph();
             let msg = localizer.lookup("graph-cleared");
@@ -3209,6 +3301,41 @@ fn menu_rows(app: &App, localizer: &Localizer) -> Vec<PopupRow> {
                     native_language_name(code).to_string(),
                 ));
             }
+            // Result rendering (ADR-0043): exact fractions, the notation,
+            // and thousands separators. The rows show the live choice.
+            rows.push(PopupRow::Rule(localizer.lookup("tui-settings-results")));
+            let on_off = |on: bool| {
+                if on {
+                    localizer.lookup("results-on")
+                } else {
+                    localizer.lookup("results-off")
+                }
+            };
+            rows.push(PopupRow::Item(
+                12,
+                format!(
+                    "{}: {}",
+                    localizer.lookup("tui-settings-exact"),
+                    on_off(app.display.exact_fractions)
+                ),
+            ));
+            let notation = match app.display.notation {
+                epher_core::Notation::Auto => localizer.lookup("results-auto"),
+                epher_core::Notation::Scientific => localizer.lookup("results-scientific"),
+                epher_core::Notation::Engineering => localizer.lookup("results-engineering"),
+            };
+            rows.push(PopupRow::Item(
+                13,
+                format!("{}: {notation}", localizer.lookup("tui-settings-notation")),
+            ));
+            rows.push(PopupRow::Item(
+                14,
+                format!(
+                    "{}: {}",
+                    localizer.lookup("tui-settings-separators"),
+                    on_off(app.display.separators)
+                ),
+            ));
             // The 3D fine controls (ADR-0031) join the menu only while
             // surfaces are displayed, mirroring the web's sliders; their
             // rows show the live value.

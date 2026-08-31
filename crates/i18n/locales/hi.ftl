@@ -295,3 +295,27 @@ graph-png-saved = PNG सहेजा गया
 graph-png-failed = PNG सहेजा नहीं जा सका
 autocomplete-label = सुझाव
 help-no-description = कोई विवरण नहीं, उपयोगकर्ता गाइड देखें
+key-hint-i = काल्पनिक इकाई, sqrt(-1) = i
+key-hint-re = सम्मिश्र संख्या का वास्तविक भाग
+key-hint-im = सम्मिश्र संख्या का काल्पनिक भाग
+key-hint-arg = सम्मिश्र संख्या का कोण (arg)
+key-hint-conj = सम्मिश्र संयुग्मी
+key-hint-derivative = संख्यात्मक अवकलज: derivative(x^2, 3) = 6
+key-hint-integral = निश्चित समाकल: integral(x^2, 0, 3) = 9
+key-hint-exact = यथार्थ भिन्न: exact(0.3333...) = 1/3
+key-hint-scientific = वैज्ञानिक संकेतन: 1.2345e4
+key-hint-engineering = इंजीनियरिंग संकेतन: 12.345e3
+key-hint-grouped = हज़ार विभाजक: 1 234 567.89
+menu-results = परिणाम
+results-fractions = यथार्थ भिन्न
+results-notation = संकेतन
+results-separators = विभाजक
+results-auto = स्वचालित
+results-scientific = वैज्ञानिक
+results-engineering = इंजीनियरिंग
+results-on = चालू
+results-off = बंद
+tui-settings-results = परिणाम
+tui-settings-exact = यथार्थ भिन्न
+tui-settings-notation = संकेतन
+tui-settings-separators = विभाजक

@@ -739,9 +739,10 @@ fn menu_navigation_and_actions() {
     assert_eq!(app.menu_len(3), 2);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::OpenGuide));
     // Settings moved to slot 4: the POI-list checkbox (ADR-0019), then
-    // theme radios, then languages.
+    // theme radios, then languages, then the result-display rows
+    // (ADR-0043).
     app.menu_open(4);
-    assert_eq!(app.menu_len(4), 12);
+    assert_eq!(app.menu_len(4), 15);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::TogglePois));
     app.menu_open(4);
     app.menu_move(0, 1);
@@ -1065,16 +1066,17 @@ fn history_focus_moves_and_picks_without_running() {
 fn view_fine_controls_appear_with_3d_and_nudge_within_range() {
     let store = tui_store();
     let mut app = App::with_session(epher_core::Session::new());
-    assert_eq!(app.menu_len(4), 12);
+    assert_eq!(app.menu_len(4), 15);
     app.submit_line(
         "graph3d x ^ 2 - y ^ 2",
         &store,
         &epher_i18n::Localizer::resolve(Some("en"), &[]),
     );
-    assert_eq!(app.menu_len(4), 15);
+    // a 3D surface, the fine controls add three rows
+    assert_eq!(app.menu_len(4), 18);
     app.menu_open(4);
-    app.menu_move(0, 12);
-    assert_eq!(app.menu_view_item(), Some(12));
+    app.menu_move(0, 15);
+    assert_eq!(app.menu_view_item(), Some(15));
     assert_eq!(app.view_offsets(), (0.0, 0.0, 0.0));
     app.nudge_view_offset(epher_tui::ViewAxis::Horizontal, 0.1);
     assert_eq!(app.view_offsets(), (0.1, 0.0, 0.0));
@@ -1095,9 +1097,9 @@ fn view_fine_controls_appear_with_3d_and_nudge_within_range() {
     // Activating a fine-control row keeps the menu open (Enter is not an
     // action for these rows; Left/Right is the gesture).
     app.menu_open(4);
-    app.menu_move(0, 12);
+    app.menu_move(0, 15);
     assert_eq!(app.menu_activate(), None);
-    assert_eq!(app.menu_active(), Some((4, 12)));
+    assert_eq!(app.menu_active(), Some((4, 15)));
     // A fresh 3D graph drawn into an empty pane resets the controls.
     app.reset_view_offsets();
     assert_eq!(app.view_offsets(), (0.0, 0.0, 0.0));

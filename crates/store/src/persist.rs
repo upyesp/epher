@@ -167,3 +167,48 @@ pub fn load_pois<S: Storage>(store: &DocStore<S>) -> StoreResult<Option<bool>> {
 pub fn save_pois<S: Storage>(store: &DocStore<S>, pois: bool) -> StoreResult<()> {
     store.set_setting(POIS_SETTING, serde_json::json!(pois))
 }
+
+/// Result display (ADR-0043): exact fractions on/off (default on),
+/// the notation, and thousands separators. Owned by the Settings menu;
+/// the values themselves are untouched (ADR-0005).
+pub const EXACT_SETTING: &str = "exact";
+
+pub fn load_exact<S: Storage>(store: &DocStore<S>) -> StoreResult<Option<bool>> {
+    match store.get_setting(EXACT_SETTING)? {
+        Some(value) => Ok(value.as_bool()),
+        None => Ok(None),
+    }
+}
+
+pub fn save_exact<S: Storage>(store: &DocStore<S>, exact: bool) -> StoreResult<()> {
+    store.set_setting(EXACT_SETTING, serde_json::json!(exact))
+}
+
+/// The result notation (ADR-0043): "auto", "scientific", or
+/// "engineering". Auto is the default.
+pub const FORMAT_SETTING: &str = "format";
+
+pub fn load_format<S: Storage>(store: &DocStore<S>) -> StoreResult<Option<String>> {
+    match store.get_setting(FORMAT_SETTING)? {
+        Some(value) => Ok(value.as_str().map(String::from)),
+        None => Ok(None),
+    }
+}
+
+pub fn save_format<S: Storage>(store: &DocStore<S>, format: &str) -> StoreResult<()> {
+    store.set_setting(FORMAT_SETTING, serde_json::json!(format))
+}
+
+/// Thousands separators on results (ADR-0043), default off.
+pub const SEPARATORS_SETTING: &str = "separators";
+
+pub fn load_separators<S: Storage>(store: &DocStore<S>) -> StoreResult<Option<bool>> {
+    match store.get_setting(SEPARATORS_SETTING)? {
+        Some(value) => Ok(value.as_bool()),
+        None => Ok(None),
+    }
+}
+
+pub fn save_separators<S: Storage>(store: &DocStore<S>, separators: bool) -> StoreResult<()> {
+    store.set_setting(SEPARATORS_SETTING, serde_json::json!(separators))
+}

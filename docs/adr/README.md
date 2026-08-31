@@ -67,6 +67,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0040 | PHP-style comments, a roomier graph, script files for the CLI and REPL, a fuller share, and a legend that never leaves | 2026-08-31 | accepted |
 | 0041 | The history trash, tuning strips above the plot, and a frame that holds still | 2026-08-31 | accepted |
 | 0042 | Percent, the constants catalog, number theory, suggestions with F1, and PNG export | 2026-08-31 | accepted |
+| 0043 | Complex numbers, equation solving, numeric calculus, exact fraction display, and result formats | 2026-08-31 | accepted |
 
 ## Decision chains
 
@@ -121,10 +122,14 @@ at the end of the chain.
 - **History** - 0021 (`ans`) → 0025 → 0027 → 0030 → **0038 (share icon
   on every item, `?expr=` links stage the entry; `clear`/`history`
   keypad keys finally run)**. → **0042 (auto-ans on an empty entry)**
+- **Calculations** - 0005 (float default) → 0022 (number bases) → 0042 (percent,
+  primes) → **0043 (complex values, numeric solve, calculus, exact fractions,
+  engineering/scientific/grouped formats)**
 - **In-app guide** - 0018 → 0018 amendment (ToC) → **0038 (search box
   with chapter + snippet hits)**.
 - **Script language** - 0001 (one grammar) → 0037 (unit suffixes) →
   **0040 (PHP-style comments: `//`, `#`, and `/* ... */`)** → **0042 (percent, physics constants, number theory)**
+  → **0043 (`solve` statement, `4i` literals, lazy `derivative`/`integral` arguments)**
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.

@@ -572,10 +572,43 @@ bin(10)
 
 ```text
 0xff
+```
 0b1010
 ```
 
-### 1.13 Funciones integradas
+**exact(x)** reconstruye la fracción exacta detrás de un resultado decimal: cualquier valor con una buena fracción de denominador pequeño se muestra así. Es la misma reconstrucción que las aplicaciones usan por defecto, por eso `1 / 3` normalmente se muestra como `1/3`:
+
+```epher
+exact(0.3333333333333333)
+exact(0.30000000000000004)
+```
+
+```text
+1/3
+3/10
+```
+
+Un valor irracional como `pi` no tiene una buena fracción, así que `exact()` lo deja igual.
+
+Los verbos de formato escriben un número en otra notación. **scientific(x)** usa una cifra antes del exponente, **engineering(x)** exponentes en pasos de tres (la mantisa queda entre 1 y 1000), y **grouped(x)** inserta espacios finos como separadores de miles:
+
+```epher
+scientific(12345)
+engineering(12345)
+engineering(0.5)
+grouped(1234567.89)
+```
+
+```text
+1.2345e4
+12.345e3
+500e-3
+1 234 567.89
+```
+
+La aplicación web y la TUI también ofrecen estas opciones de visualización (capítulos 2.2 y 5.2): fracciones exactas activadas o desactivadas, notación Auto/científica/de ingeniería y separadores de miles. Los ajustes solo cambian cómo se muestran los resultados; los valores siguen siendo números decimales normales.
+
+### ### 1.13 Funciones integradas
 
 epher tiene las funciones de una calculadora científica, agrupadas por familia.
 
@@ -752,6 +785,13 @@ conoce, para que puedas arreglar tu expresión.
 | Fracción exacta | `frac(n, d)` | `frac(1, 3)` |
 | Decimal exacto | `dec(x)` | `dec(0.1) + dec(0.2)` |
 | Número entero exacto | `big(x)` | `big(10 ^ 20)` |
+| Reconstruir una fracción | `exact(x)` | `exact(0.3333333333333333)` |
+| Científica, ingeniería, agrupada | `scientific(x)` `engineering(x)` `grouped(x)` | `engineering(12345)` |
+| Unidad imaginaria | `i`, o un literal `4i` | `sqrt(-1)` |
+| Partes de un complejo | `re(z)` `im(z)` `arg(z)` `conj(z)` `abs(z)` | `re(3 + 4i)` |
+| Resolver una ecuación | `solve lhs == rhs` | `solve x^2 == 9` |
+| Derivada numérica | `derivative(expr, x)` | `derivative(x^2, 3)` |
+| Integral definida | `integral(expr, a, b)` | `integral(x^2, 0, 3)` |
 | Binario, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Escritura en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 
@@ -891,6 +931,129 @@ La efeméride la calcula el crate solar-ephemeris
 autor. La precisión es de clase arcsecond para el Sol, la Luna y los
 planetas a lo largo de unos 5000 años alrededor del presente.
 
+### 1.17 Números complejos
+
+epher calcula con números complejos automáticamente. La unidad imaginaria es **i**, igual que `pi`:
+
+```epher
+i ^ 2
+sqrt(-1)
+```
+
+```text
+-1
+i
+```
+
+Escribe un número complejo con el sufijo `i`, sin signo de multiplicación: `3 + 4i` es un literal, `2.5i` funciona, y también los literales con base (`0xFFi`). La aritmética habitual se extiende: sumar, restar, multiplicar, dividir y potencias funcionan, e `i` sigue la precedencia normal (`i ^ 2` se agrupa como cualquier potencia).
+
+Las funciones reales también se extienden. Con un argumento complejo calculan en el plano complejo; con un argumento real fuera de su dominio real devuelven el resultado complejo principal en lugar de un error:
+
+```epher
+ln(-1)
+asin(2)
+exp(i * pi)
+```
+
+```text
+3.141592653589793i
+1.5707963267948966-1.3169578969248166i
+-1+0.00000000000000012246467991473532i
+```
+
+(`exp(i * pi)` es exactamente `-1`; los últimos dígitos son el ruido de `sin(pi)` en la aritmética de la máquina.)
+
+Cuatro funciones leen las partes de un número complejo, y `abs()` es su módulo:
+
+```epher
+re(3 + 4i)
+im(3 + 4i)
+arg(-1)
+conj(3 - 4i)
+abs(3 + 4i)
+```
+
+```text
+3
+4
+3.141592653589793
+3+4i
+5
+```
+
+Las funciones de enteros (`fact`, `gcd`, `floor`, `isprime`, ...) rechazan argumentos complejos con un error de tipo.
+
+### 1.18 Resolver ecuaciones
+
+**solve** encuentra las raíces de una ecuación con una variable. La ecuación usa `==`:
+
+```epher
+solve x^2 == 5*x + 6
+```
+
+```text
+x = -1, x = 6
+```
+
+Las ecuaciones polinómicas (construidas con `+ - * ^` y constantes) dan todas las raíces, reales y complejas:
+
+```epher
+solve x^2 == -1
+solve x^2 + 2*x + 5 == 0
+solve (x - 1)^2 == 0
+```
+
+```text
+x = -i, x = i
+x = -1-2i, x = -1+2i
+x = 1
+```
+
+La variable a resolver es `x` si aparece, si no la única otra variable. Las constantes y variables ligadas actúan como parámetros:
+
+```epher
+const k = 3
+solve k*x == 12
+```
+
+```text
+x = 4
+```
+
+Cualquier otra ecuación se explora numéricamente en -100..100: las raíces se encierran por cambios de signo, así que `solve sin(x) == 0.5` lista cada raíz del intervalo. Dos límites honestos: una raíz donde la función solo toca cero (como `x^2 == 0` por el camino numérico) puede perderse, y las ecuaciones con varias variables sin ligar son un error.
+
+### 1.19 Cálculo: derivada e integral
+
+**derivative(expr, p)** es la derivada numérica de `expr` en `p`. El primer argumento sigue siendo una expresión, y su variable libre es la que se deriva:
+
+```epher
+derivative(x^2, 3)
+derivative(sin(t), 0)
+```
+
+```text
+6
+1
+```
+
+Como el argumento sigue siendo una expresión, la derivada se puede graficar: `graph derivative(x^3 - x, x)` dibuja la curva de pendientes.
+
+**integral(expr, a, b)** es la integral definida de `a` a `b`, calculada con cuadratura adaptativa de Simpson:
+
+```epher
+integral(x^2, 0, 3)
+integral(sin(x), 0, pi)
+```
+
+```text
+9
+2
+```
+
+`integral(x^2, 3, 0)` es `-9` (la integral con signo), y un límite superior graficable funciona: `graph integral(x^2, 0, x)`.
+
+Ambos son numéricos; las expresiones deben tomar valores reales en el intervalo, y una expresión con varias variables es un error.
+
 ## 2. La aplicación web (PWA)
 
 ### 2.1 Cómo abrirla
@@ -919,6 +1082,8 @@ El resultado aparece en texto grande debajo del campo. Todo lo del capítulo
 1 funciona aquí, incluidas variables, funciones y scripts.
 
 Mientras escribes un nombre, aparece una lista de sugerencias debajo del campo: las flechas mueven el resaltado, **Intro** o **Tab** acepta, **Esc** cierra, y un clic acepta sin salir del teclado. Cada sugerencia lleva una descripción breve de la función o constante. **F1** muestra la misma descripción de la palabra bajo el cursor en la barra de pistas sobre el teclado. Si lo primero que escribes en un campo vacío es un operador (`+ - * / ^ % !`), epher inserta `ans` por ti, y la línea continúa desde la respuesta anterior.
+
+El menú **Ajustes** (el icono de engranaje, o **☰ → Ajustes** en el teléfono) tiene tres grupos. **Tema** y **Idioma** hacen lo que dicen sus nombres. **Resultados** define cómo se muestran las respuestas: fracciones exactas (activadas por defecto, así `1 / 3` se muestra como `1/3`), la notación (Auto, científica o de ingeniería) y los separadores de miles. Son solo ajustes de visualización; los valores siguen siendo números normales.
 
 ### 2.3 Historial
 
@@ -1467,6 +1632,8 @@ y **var**. El grupo 0x contiene las conversiones exactas y de base
 (`frac`, `dec`, `big`, `bin`, `oct`, `hex`) y el factorial `!`.
 Las flechas mueven el resaltado, **Intro** inserta el token y **Tab**
 cambia de grupo. Un operador al principio de una línea vacía (o insertado desde el teclado) añade `ans` antes, así la línea continúa desde la respuesta anterior.
+
+El menú **Ajustes** ofrece las mismas opciones de visualización de resultados que la aplicación web (fracciones exactas, notación, separadores de miles), junto a las filas de tema e idioma.
 
 ### 5.3 Gráficas
 

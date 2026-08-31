@@ -17,7 +17,7 @@ use epher_core::graph::{
     analyze, free_names, parse_graph_source, sample_spec, CurveKind, CurveSpec, InterestPoint,
     SampledCurve,
 };
-use epher_core::{history_expression, CatalogKind, Session, Value};
+use epher_core::{history_expression, CatalogKind, DisplayPrefs, Notation, Session, Value};
 use epher_i18n::Localizer;
 use epher_shell::{classify, message, prepare};
 use std::cell::RefCell;
@@ -892,6 +892,16 @@ fn accept_suggestion(
 /// "continue from the previous answer", so `ans` is inserted first
 /// (the SpeedCrunch/NumWorks behavior). Digits, names, and `(` start
 /// fresh expressions and never trigger it.
+/// The store spelling of a notation (ADR-0043): the same three values
+/// the Settings menu and the TUI cycle through.
+fn notation_of(notation: Notation) -> &'static str {
+    match notation {
+        Notation::Auto => "auto",
+        Notation::Scientific => "scientific",
+        Notation::Engineering => "engineering",
+    }
+}
+
 fn wants_auto_ans(token: &str) -> bool {
     matches!(
         token.chars().next(),
@@ -1788,6 +1798,9 @@ fn epher_app() -> Html {
     // set from the Settings menu or the `theme` command. The open menu
     // bar item (File/Edit/Settings) drives the dropdown (ADR-0017).
     let theme = use_state(|| "dark".to_string());
+    // Result rendering (ADR-0043): exact fractions (default on), the
+    // notation, and thousands separators, from the Settings menu.
+    let display_prefs = use_state(DisplayPrefs::default);
     let menu_open = use_state(|| Option::<&'static str>::None);
     // A live mirror of `menu_open` for long-lived closures (Yew handles
     // are render snapshots; the Rc cell updates every render).
@@ -1849,6 +1862,7 @@ fn epher_app() -> Html {
         let result = result.clone();
         let localizer = localizer.clone();
         let theme = theme.clone();
+        let display_prefs = display_prefs.clone();
         move |state: InitState| {
             let mut s = Session::with_history(state.history);
             for line in &state.replay {
@@ -1877,6 +1891,8 @@ fn epher_app() -> Html {
             // saved by whichever CLI/REPL/TUI/desktop frontend ran last —
             // `ans` and every user assignment carry over.
             s.restore_bindings(&state.session);
+            let display = *display_prefs;
+            s.set_display(display);
             session.set(s.clone());
             *session_live.borrow_mut() = s;
             if let Some(code) = state.language {
@@ -1898,6 +1914,8 @@ fn epher_app() -> Html {
         let input = input.clone();
         let input_ref = input_ref.clone();
         let cursor_cell = cursor_cell.clone();
+        let display_prefs = display_prefs.clone();
+        let session_live = session_live.clone();
         use_effect_with((), move |_| {
             if bridge == Bridge::Tauri {
                 let apply = apply_store_state.clone();
@@ -1965,6 +1983,36 @@ fn epher_app() -> Html {
                             poi_markers.set(false);
                         }
                     }
+                    // Result rendering (ADR-0043): the stored display
+                    // preferences; defaults are exact fractions on, Auto
+                    // notation, no separators.
+                    if let Ok(Some(v)) = store.get_item("epher-exact") {
+                        if v == "0" {
+                            display_prefs.set(DisplayPrefs {
+                                exact_fractions: false,
+                                ..*display_prefs
+                            });
+                        }
+                    }
+                    if let Ok(Some(v)) = store.get_item("epher-format") {
+                        let notation = match v.as_str() {
+                            "scientific" => Notation::Scientific,
+                            "engineering" => Notation::Engineering,
+                            _ => Notation::Auto,
+                        };
+                        display_prefs.set(DisplayPrefs {
+                            notation,
+                            ..*display_prefs
+                        });
+                    }
+                    if let Ok(Some(v)) = store.get_item("epher-separators") {
+                        if v == "1" {
+                            display_prefs.set(DisplayPrefs {
+                                separators: true,
+                                ..*display_prefs
+                            });
+                        }
+                    }
                     let (w2d, w3d) = stored_widths(&store);
                     if let Some(w) = w2d {
                         width_2d.set(w);
@@ -1973,6 +2021,9 @@ fn epher_app() -> Html {
                         width_3d.set(w);
                     }
                 }
+                // The loaded display preferences (ADR-0043) shape the
+                // live session from the first submit on.
+                session_live.borrow_mut().set_display(*display_prefs);
                 // The site's Examples page hands an example over via
                 // localStorage on touch devices (ADR-0035 amendment):
                 // tapping an example there copies it and opens the app
@@ -2100,6 +2151,29 @@ fn epher_app() -> Html {
                 bridge.save_theme(&name);
                 theme.set(name);
             }
+        })
+    };
+
+    // Result rendering (ADR-0043): exact fractions, the notation, and
+    // thousands separators. Applied to the live session so every later
+    // submit formats accordingly, and persisted like the theme.
+    let on_set_display = {
+        let display_prefs = display_prefs.clone();
+        let session_live = session_live.clone();
+        let bridge = bridge;
+        Callback::from(move |prefs: DisplayPrefs| {
+            display_prefs.set(prefs);
+            session_live.borrow_mut().set_display(prefs);
+            if let Some(store) = web_sys::window().and_then(|w| w.local_storage().ok().flatten()) {
+                let _ =
+                    store.set_item("epher-exact", if prefs.exact_fractions { "1" } else { "0" });
+                let _ = store.set_item("epher-format", notation_of(prefs.notation));
+                let _ =
+                    store.set_item("epher-separators", if prefs.separators { "1" } else { "0" });
+            }
+            bridge.save_exact(prefs.exact_fractions);
+            bridge.save_format(notation_of(prefs.notation));
+            bridge.save_separators(prefs.separators);
         })
     };
 
@@ -4718,6 +4792,81 @@ fn epher_app() -> Html {
                                                 </button>
                                             }
                                         }) }
+                                        <div class="menu-sep" role="separator"></div>
+                                        <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-results") }</p>
+                                        { for [true, false].map(|on| {
+                                            let checked = display_prefs.exact_fractions == on;
+                                            let label = if on { localizer.lookup("results-on") } else { localizer.lookup("results-off") };
+                                            html! {
+                                                <button type="button" role="menuitemradio" class="menu-item"
+                                                    aria-checked={checked.to_string()}
+                                                    onclick={Callback::from({
+                                                        let menu_open = menu_open.clone();
+                                                        let on_set_display = on_set_display.clone();
+                                                        let display_prefs = display_prefs.clone();
+                                                        move |_| {
+                                                            let mut p = *display_prefs;
+                                                            p.exact_fractions = on;
+                                                            on_set_display.emit(p);
+                                                            menu_open.set(None);
+                                                        }
+                                                    })}
+                                                >
+                                                    <span class="menu-check" aria-hidden="true">{ if checked { "\u{2713}" } else { "" } }</span>
+                                                    { format!("{}: {}", localizer.lookup("results-fractions"), label) }
+                                                </button>
+                                            }
+                                        }) }
+                                        { for [Notation::Auto, Notation::Scientific, Notation::Engineering].map(|notation| {
+                                            let checked = display_prefs.notation == notation;
+                                            let label = match notation {
+                                                Notation::Auto => localizer.lookup("results-auto"),
+                                                Notation::Scientific => localizer.lookup("results-scientific"),
+                                                Notation::Engineering => localizer.lookup("results-engineering"),
+                                            };
+                                            html! {
+                                                <button type="button" role="menuitemradio" class="menu-item"
+                                                    aria-checked={checked.to_string()}
+                                                    onclick={Callback::from({
+                                                        let menu_open = menu_open.clone();
+                                                        let on_set_display = on_set_display.clone();
+                                                        let display_prefs = display_prefs.clone();
+                                                        move |_| {
+                                                            let mut p = *display_prefs;
+                                                            p.notation = notation;
+                                                            on_set_display.emit(p);
+                                                            menu_open.set(None);
+                                                        }
+                                                    })}
+                                                >
+                                                    <span class="menu-check" aria-hidden="true">{ if checked { "\u{2713}" } else { "" } }</span>
+                                                    { label }
+                                                </button>
+                                            }
+                                        }) }
+                                        { for [true, false].map(|on| {
+                                            let checked = display_prefs.separators == on;
+                                            let label = if on { localizer.lookup("results-on") } else { localizer.lookup("results-off") };
+                                            html! {
+                                                <button type="button" role="menuitemradio" class="menu-item"
+                                                    aria-checked={checked.to_string()}
+                                                    onclick={Callback::from({
+                                                        let menu_open = menu_open.clone();
+                                                        let on_set_display = on_set_display.clone();
+                                                        let display_prefs = display_prefs.clone();
+                                                        move |_| {
+                                                            let mut p = *display_prefs;
+                                                            p.separators = on;
+                                                            on_set_display.emit(p);
+                                                            menu_open.set(None);
+                                                        }
+                                                    })}
+                                                >
+                                                    <span class="menu-check" aria-hidden="true">{ if checked { "\u{2713}" } else { "" } }</span>
+                                                    { format!("{}: {}", localizer.lookup("results-separators"), label) }
+                                                </button>
+                                            }
+                                        }) }
                                     </div>
                                 }
                             } else { html! {} }
@@ -5780,8 +5929,8 @@ mod tests {
     }
 
     /// The digits tab is frozen (ADR-0042 amendment): it is exactly full
-    /// - 24 keys where = spans two cells of the five-row, five-column
-    /// grid - so any addition scrolls the bank. Changes need the project
+    /// (24 keys, where = spans two cells of the five-row, five-column
+    /// grid), so any addition scrolls the bank. Changes need the project
     /// owner's explicit approval; this test holds the line.
     #[test]
     fn the_digits_tab_is_frozen_and_full() {

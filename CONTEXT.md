@@ -78,6 +78,32 @@ session's own functions, Constants, and variables first, then the builtin
 catalog, each carrying its key hint (ADR-0042).
 _Avoid_: autocomplete item, prediction, snippet
 
+**Complex value**:
+A Value with a real and an imaginary part, spelled `a + bi`; `i` is the
+imaginary unit constant, `4i` is a literal, and the real transcendental
+family extends to the complex plane (ADR-0043). The principal complex
+result replaces the old domain error: `sqrt(-1)` is `i`.
+_Avoid_: imaginary number only, complex mode
+
+**Solving**:
+The `solve lhs == rhs` statement: every root of a polynomial equation
+(Durand-Kerner plus deflation), or numeric sign-change bracketing over
+-100..100 for anything else (ADR-0043). The result is a display string
+of roots.
+_Avoid_: CAS, symbolic manipulation, root finding alone
+
+**Calculus**:
+The `derivative(expr, p)` and `integral(expr, a, b)` special forms,
+whose first argument stays an unevaluated expression bound to its free
+variable (numeric 5-point stencil, adaptive Simpson; ADR-0043).
+_Avoid_: symbolic differentiation, antiderivative
+
+**Exact display**:
+The rendering of a result as a fraction when a small-denominator
+continued-fraction convergent matches it: `1/3` for a third, plain
+decimal for `pi` (ADR-0043). A display choice; the value stays float.
+_Avoid_: rational arithmetic by default, "show as fraction" conversion
+
 ### Astronomy
 
 **Unit literal**:

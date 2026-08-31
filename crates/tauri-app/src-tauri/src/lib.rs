@@ -70,6 +70,18 @@ impl DesktopStore {
     pub fn save_theme(&self, theme: &str) -> epher_store::StoreResult<()> {
         persist::save_theme(&self.store, theme)
     }
+
+    pub fn save_exact(&self, exact: bool) -> epher_store::StoreResult<()> {
+        persist::save_exact(&self.store, exact)
+    }
+
+    pub fn save_format(&self, format: &str) -> epher_store::StoreResult<()> {
+        persist::save_format(&self.store, format)
+    }
+
+    pub fn save_separators(&self, separators: bool) -> epher_store::StoreResult<()> {
+        persist::save_separators(&self.store, separators)
+    }
 }
 
 /// The answer to `init`: the store's contents as plain data, so the webview
@@ -159,6 +171,21 @@ fn save_language(state: State<DesktopStore>, code: String) -> Result<(), String>
 #[tauri::command]
 fn save_theme(state: State<DesktopStore>, name: String) -> Result<(), String> {
     state.save_theme(&name).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_exact(state: State<DesktopStore>, exact: bool) -> Result<(), String> {
+    state.save_exact(exact).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_format(state: State<DesktopStore>, format: String) -> Result<(), String> {
+    state.save_format(&format).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_separators(state: State<DesktopStore>, separators: bool) -> Result<(), String> {
+    state.save_separators(separators).map_err(|e| e.to_string())
 }
 
 /// File → Quit (ADR-0023): close the app's last window; Tauri exits the
@@ -284,6 +311,9 @@ pub fn run() {
             save_session,
             save_language,
             save_theme,
+            save_exact,
+            save_format,
+            save_separators,
             cli_install_supported,
             install_cli,
             save_file_dialog,

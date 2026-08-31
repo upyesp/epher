@@ -570,6 +570,48 @@ bin(10)
 0b1010
 ```
 
+**exact(x)** reconstructs the exact fraction behind a decimal result:
+any value with a good small-denominator fraction shows it. This is the
+same reconstruction the apps use for their default display, so `1 / 3`
+usually shows as `1/3` without asking:
+
+```epher
+exact(0.3333333333333333)
+exact(0.30000000000000004)
+```
+
+```text
+1/3
+3/10
+```
+
+An irrational value like `pi` has no good fraction, so `exact()` leaves
+it alone.
+
+The display verbs spell a number in other notations. **scientific(x)**
+uses one digit before the exponent, **engineering(x)** uses exponents in
+steps of three (the mantissa stays between 1 and 1000), and
+**grouped(x)** inserts thin-space thousands separators:
+
+```epher
+scientific(12345)
+engineering(12345)
+engineering(0.5)
+grouped(1234567.89)
+```
+
+```text
+1.2345e4
+12.345e3
+500e-3
+1 234 567.89
+```
+
+The web app and TUI also offer these as display settings (see
+chapter 2.2 and 5.2): exact fractions on or off, Auto/Scientific/
+Engineering notation, and thousands separators. The settings only change
+how results are shown; the values stay decimal numbers underneath.
+
 ### 1.13 Built-in functions
 
 epher has the functions of a scientific calculator, grouped by family.
@@ -745,6 +787,13 @@ not know, so you can fix your expression.
 | Exact fraction | `frac(n, d)` | `frac(1, 3)` |
 | Exact decimal | `dec(x)` | `dec(0.1) + dec(0.2)` |
 | Exact whole number | `big(x)` | `big(10 ^ 20)` |
+| Reconstruct a fraction | `exact(x)` | `exact(0.3333333333333333)` |
+| Scientific, engineering, grouped | `scientific(x)` `engineering(x)` `grouped(x)` | `engineering(12345)` |
+| Imaginary unit | `i`, or a literal `4i` | `sqrt(-1)` |
+| Complex parts | `re(z)` `im(z)` `arg(z)` `conj(z)` `abs(z)` | `re(3 + 4i)` |
+| Solve an equation | `solve lhs == rhs` | `solve x^2 == 9` |
+| Numeric derivative | `derivative(expr, x)` | `derivative(x^2, 3)` |
+| Definite integral | `integral(expr, a, b)` | `integral(x^2, 0, 3)` |
 | Binary, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Base spelling | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 | Primes | `isprime(n)`, `factors(n)`, … | `factors(360)` |
@@ -881,6 +930,152 @@ The ephemeris is computed by the solar-ephemeris crate
 its author. Accuracy is arcsecond-class for the Sun, Moon and planets over
 roughly 5000 years around the present.
 
+### 1.17 Complex numbers
+
+epher calculates with complex numbers automatically. The imaginary
+unit is **i**, exactly like `pi`:
+
+```epher
+i ^ 2
+sqrt(-1)
+```
+
+```text
+-1
+i
+```
+
+Write a complex number with the `i` suffix, no multiplication sign
+needed: `3 + 4i` is one literal, `2.5i` works, and so do the based
+literals (`0xFFi`). The usual arithmetic extends: add, subtract,
+multiply, divide, and powers all work, and `i` follows the normal
+precedence (`i ^ 2` binds like any power).
+
+The real functions extend too. Given a complex argument they compute in
+the complex plane; given a real argument outside their real domain they
+return the principal complex result instead of an error:
+
+```epher
+ln(-1)
+asin(2)
+exp(i * pi)
+```
+
+```text
+3.141592653589793i
+1.5707963267948966-1.3169578969248166i
+-1+0.00000000000000012246467991473532i
+```
+
+(`exp(i * pi)` is exactly `-1`; the last digits are the noise of
+`sin(pi)` in the computer's arithmetic.)
+
+Four functions read a complex number's parts, and `abs()` is its
+magnitude:
+
+```epher
+re(3 + 4i)
+im(3 + 4i)
+arg(-1)
+conj(3 - 4i)
+abs(3 + 4i)
+```
+
+```text
+3
+4
+3.141592653589793
+3+4i
+5
+```
+
+Integer-only functions (`fact`, `gcd`, `floor`, `isprime`, ...) reject
+complex arguments with a type error.
+
+### 1.18 Solving equations
+
+**solve** finds the roots of an equation in one variable. The equation
+uses `==`:
+
+```epher
+solve x^2 == 5*x + 6
+```
+
+```text
+x = -1, x = 6
+```
+
+Polynomial equations (built from `+ - * ^` and constants) give every
+root, real and complex:
+
+```epher
+solve x^2 == -1
+solve x^2 + 2*x + 5 == 0
+solve (x - 1)^2 == 0
+```
+
+```text
+x = -i, x = i
+x = -1-2i, x = -1+2i
+x = 1
+```
+
+The variable solved for is `x` when it appears, otherwise the single
+other variable. Constants and bound variables act as parameters:
+
+```epher
+const k = 3
+solve k*x == 12
+```
+
+```text
+x = 4
+```
+
+Any other equation is scanned numerically over -100..100: roots are
+found by bracketing sign changes, so `solve sin(x) == 0.5` lists every
+root in that range. Two honest limitations: a root where the function
+only touches zero (like `x^2 == 0` through the numeric path) can be
+missed, and equations in several unbound variables are an error.
+
+### 1.19 Calculus: derivative and integral
+
+**derivative(expr, p)** is the numeric derivative of `expr` at `p`. The
+first argument stays an expression, and its free variable is the one
+differentiated:
+
+```epher
+derivative(x^2, 3)
+derivative(sin(t), 0)
+```
+
+```text
+6
+1
+```
+
+Because the argument stays an expression, the derivative is graphable:
+`graph derivative(x^3 - x, x)` plots the slope curve.
+
+**integral(expr, a, b)** is the definite integral from `a` to `b`,
+computed by adaptive Simpson quadrature:
+
+```epher
+integral(x^2, 0, 3)
+integral(sin(x), 0, pi)
+```
+
+```text
+9
+2
+```
+
+`integral(x^2, 3, 0)` is `-9` (the signed integral), and a graphable
+upper bound works: `graph integral(x^2, 0, x)`.
+
+Both are numeric; the expressions must be real-valued over the range,
+and an expression in several variables is an error.
+
 ## 2. The web app (PWA)
 
 ### 2.1 Opening it
@@ -916,6 +1111,13 @@ description for the word under the cursor in the hint bar above the
 keypad. If the first thing you type into an empty field is an operator
 (`+ - * / ^ % !`), epher inserts `ans` for you, so the line continues
 from the previous answer.
+
+The **Settings** menu (the gear icon, or **☰ → Settings** on a phone)
+holds three groups. **Theme** and **Language** do what their names
+say. **Results** shapes how answers are shown: exact fractions (on by
+default, so `1 / 3` displays as `1/3`), the notation (Auto,
+Scientific, or Engineering), and thousands separators. These are
+display settings only; the values underneath stay ordinary numbers.
 
 ### 2.3 History
 
@@ -1451,6 +1653,10 @@ move the highlight, **Enter** inserts the token, and **Tab** cycles
 the banks. An operator typed into an empty line (or inserted from the
 keypad) adds `ans` first, so the line continues from the previous
 answer.
+
+The **Settings** menu offers the same result display choices as the
+web app (exact fractions, notation, thousands separators), next to the
+theme and language rows.
 
 ### 5.3 Graphing
 

@@ -574,10 +574,43 @@ bin(10)
 
 ```text
 0xff
+```
 0b1010
 ```
 
-### 1.13 Eingebaute Funktionen
+**exact(x)** rekonstruiert den exakten Bruch hinter einem Dezimalergebnis: jeder Wert mit einem guten Bruch mit kleinem Nenner wird als solcher angezeigt. Dieselbe Rekonstruktion steckt hinter der Standardanzeige der Apps, daher erscheint `1 / 3` meist direkt als `1/3`:
+
+```epher
+exact(0.3333333333333333)
+exact(0.30000000000000004)
+```
+
+```text
+1/3
+3/10
+```
+
+Ein irrationaler Wert wie `pi` hat keinen guten Bruch, `exact()` lässt ihn daher unverändert.
+
+Die Anzeigebefehle schreiben eine Zahl in anderer Notation. **scientific(x)** nutzt eine Ziffer vor dem Exponenten, **engineering(x)** Exponenten in Dreierschritten (die Mantisse bleibt zwischen 1 und 1000), und **grouped(x)** setzt dünne Leerzeichen als Tausendertrenner:
+
+```epher
+scientific(12345)
+engineering(12345)
+engineering(0.5)
+grouped(1234567.89)
+```
+
+```text
+1.2345e4
+12.345e3
+500e-3
+1 234 567.89
+```
+
+Auch die Web-App und das TUI bieten diese als Anzeigeoptionen an (siehe Kapitel 2.2 und 5.2): exakte Brüche an/aus, Auto-/wissenschaftliche/technische Notation und Tausendertrenner. Die Optionen ändern nur die Darstellung; die Werte bleiben darunter gewöhnliche Dezimalzahlen.
+
+### ### 1.13 Eingebaute Funktionen
 
 epher hat die Funktionen eines wissenschaftlichen Taschenrechners, nach
 Familien gruppiert.
@@ -757,6 +790,13 @@ nicht kennt, damit du deinen Ausdruck korrigieren kannst.
 | Exakter Bruch | `frac(n, d)` | `frac(1, 3)` |
 | Exakte Dezimalzahl | `dec(x)` | `dec(0.1) + dec(0.2)` |
 | Exakte ganze Zahl | `big(x)` | `big(10 ^ 20)` |
+| Bruch rekonstruieren | `exact(x)` | `exact(0.3333333333333333)` |
+| Wissenschaftlich, technisch, gruppiert | `scientific(x)` `engineering(x)` `grouped(x)` | `engineering(12345)` |
+| Imaginäre Einheit | `i`, oder ein Literal `4i` | `sqrt(-1)` |
+| Komplexe Teile | `re(z)` `im(z)` `arg(z)` `conj(z)` `abs(z)` | `re(3 + 4i)` |
+| Gleichung lösen | `solve lhs == rhs` | `solve x^2 == 9` |
+| Numerische Ableitung | `derivative(expr, x)` | `derivative(x^2, 3)` |
+| Bestimmtes Integral | `integral(expr, a, b)` | `integral(x^2, 0, 3)` |
 | Binär, oktal, hexadezimal | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Basisschreibweise | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 
@@ -897,6 +937,129 @@ Die Ephemeride rechnet das Crate solar-ephemeris
 Autor. Die Genauigkeit ist bogensekundenklassig für Sonne, Mond und
 Planeten über etwa 5000 Jahre um die Gegenwart.
 
+### 1.17 Komplexe Zahlen
+
+epher rechnet automatisch mit komplexen Zahlen. Die imaginäre Einheit ist **i**, genau wie `pi`:
+
+```epher
+i ^ 2
+sqrt(-1)
+```
+
+```text
+-1
+i
+```
+
+Schreiben Sie eine komplexe Zahl mit dem `i`-Suffix, ohne Multiplikationszeichen: `3 + 4i` ist ein Literal, `2.5i` funktioniert, ebenso die Basisliterale (`0xFFi`). Die übliche Arithmetik erweitert sich: Addieren, Subtrahieren, Multiplizieren, Dividieren und Potenzen funktionieren, und `i` folgt der normalen Rangfolge (`i ^ 2` bindet wie jede Potenz).
+
+Auch die reellen Funktionen erweitern sich. Mit einem komplexen Argument rechnen sie in der komplexen Ebene; mit einem reellen Argument außerhalb ihres reellen Definitionsbereichs liefern sie das Hauptwert-Ergebnis statt eines Fehlers:
+
+```epher
+ln(-1)
+asin(2)
+exp(i * pi)
+```
+
+```text
+3.141592653589793i
+1.5707963267948966-1.3169578969248166i
+-1+0.00000000000000012246467991473532i
+```
+
+(`exp(i * pi)` ist exakt `-1`; die letzten Ziffern sind das Rauschen von `sin(pi)` in der Arithmetik des Rechners.)
+
+Vier Funktionen lesen die Teile einer komplexen Zahl, und `abs()` ist ihr Betrag:
+
+```epher
+re(3 + 4i)
+im(3 + 4i)
+arg(-1)
+conj(3 - 4i)
+abs(3 + 4i)
+```
+
+```text
+3
+4
+3.141592653589793
+3+4i
+5
+```
+
+Nur-ganzzahlige Funktionen (`fact`, `gcd`, `floor`, `isprime`, ...) weisen komplexe Argumente mit einem Typfehler zurück.
+
+### 1.18 Gleichungen lösen
+
+**solve** findet die Nullstellen einer Gleichung in einer Variablen. Die Gleichung verwendet `==`:
+
+```epher
+solve x^2 == 5*x + 6
+```
+
+```text
+x = -1, x = 6
+```
+
+Polynomiale Gleichungen (aus `+ - * ^` und Konstanten) liefern jede Nullstelle, reell und komplex:
+
+```epher
+solve x^2 == -1
+solve x^2 + 2*x + 5 == 0
+solve (x - 1)^2 == 0
+```
+
+```text
+x = -i, x = i
+x = -1-2i, x = -1+2i
+x = 1
+```
+
+Die gesuchte Variable ist `x`, wenn sie vorkommt, sonst die einzige andere Variable. Konstanten und gebundene Variablen wirken als Parameter:
+
+```epher
+const k = 3
+solve k*x == 12
+```
+
+```text
+x = 4
+```
+
+Jede andere Gleichung wird numerisch über -100..100 abgetastet: Nullstellen werden über Vorzeichenwechsel eingeklammert, daher listet `solve sin(x) == 0.5` jede Nullstelle in diesem Bereich. Zwei ehrliche Einschränkungen: Eine Nullstelle, bei der die Funktion nur berührt (wie `x^2 == 0` über den numerischen Pfad), kann übersehen werden, und Gleichungen in mehreren ungebundenen Variablen sind ein Fehler.
+
+### 1.19 Analysis: Ableitung und Integral
+
+**derivative(expr, p)** ist die numerische Ableitung von `expr` an der Stelle `p`. Das erste Argument bleibt ein Ausdruck, und seine freie Variable ist die differenzierte:
+
+```epher
+derivative(x^2, 3)
+derivative(sin(t), 0)
+```
+
+```text
+6
+1
+```
+
+Weil das Argument ein Ausdruck bleibt, ist die Ableitung grafisch darstellbar: `graph derivative(x^3 - x, x)` zeichnet die Steigungskurve.
+
+**integral(expr, a, b)** ist das bestimmte Integral von `a` bis `b`, berechnet mit adaptiver Simpson-Quadratur:
+
+```epher
+integral(x^2, 0, 3)
+integral(sin(x), 0, pi)
+```
+
+```text
+9
+2
+```
+
+`integral(x^2, 3, 0)` ist `-9` (das vorzeichenbehaftete Integral), und eine grafisch darstellbare obere Grenze funktioniert: `graph integral(x^2, 0, x)`.
+
+Beide sind numerisch; die Ausdrücke müssen im Bereich reellwertig sein, und ein Ausdruck in mehreren Variablen ist ein Fehler.
+
 ## 2. Die Web-App (PWA)
 
 ### 2.1 Sie öffnen
@@ -926,6 +1089,8 @@ Kapitel 1 funktioniert hier, einschließlich Variablen, Funktionen und
 Skripten.
 
 Während du einen Namen tippst, erscheint unter dem Feld eine Vorschlagsliste: die Pfeile bewegen die Markierung, **Enter** oder **Tab** übernimmt, **Esc** schließt, und ein Klick übernimmt, ohne die Tastatur zu verlassen. Jeder Vorschlag trägt eine kurze Beschreibung der Funktion oder Konstante. **F1** zeigt dieselbe Beschreibung für das Wort unter dem Cursor in der Hinweisleiste über dem Tastenfeld. Beginnt eine leere Eingabe mit einem Operator (`+ - * / ^ % !`), fügt epher `ans` ein, und die Zeile macht mit dem letzten Ergebnis weiter.
+
+Das Menü **Einstellungen** (das Zahnrad-Symbol oder **☰ → Einstellungen** am Telefon) enthält drei Gruppen. **Design** und **Sprache** tun, was ihre Namen sagen. **Ergebnisse** bestimmt die Darstellung der Antworten: exakte Brüche (standardmäßig an, so wird `1 / 3` als `1/3` angezeigt), die Notation (Auto, wissenschaftlich oder technisch) und Tausendertrenner. Das sind reine Anzeigeoptionen; die Werte darunter bleiben gewöhnliche Zahlen.
 
 ### 2.3 Verlauf
 
@@ -1477,6 +1642,8 @@ jeden Befehl der Sprache: **trig**, **fn**, **num**, **0x** und
 (`frac`, `dec`, `big`, `bin`, `oct`, `hex`) und die Fakultät `!`. Die
 Pfeiltasten bewegen die Markierung, **Enter** fügt das Token ein, und
 **Tab** wechselt die Gruppen. Ein Operator am Anfang einer leeren Zeile (oder vom Tastenfeld eingefügt) setzt `ans` davor, die Zeile macht also mit dem letzten Ergebnis weiter.
+
+Das Menü **Einstellungen** bietet dieselben Ergebnisdarstellungs-Optionen wie die Web-App (exakte Brüche, Notation, Tausendertrenner), neben den Zeilen für Design und Sprache.
 
 ### 5.3 Graphen zeichnen
 

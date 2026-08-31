@@ -356,9 +356,22 @@ fn eval_number(src: &str) -> f64 {
 
 fn eval_err(src: &str) -> String {
     let env = Env::default();
-    match eval(&parse(src).expect("parse"), &env) {
+    match parse(src) {
         Err(e) => e.to_string(),
-        Ok(v) => panic!("expected an error from {src:?}, got {v}"),
+        Ok(expr) => match eval(&expr, &env) {
+            Err(e) => e.to_string(),
+            Ok(v) => panic!("expected an error from {src:?}, got {v}"),
+        },
+    }
+}
+
+/// The display string of an evaluation (ADR-0043 tests use it to
+/// assert complex results, which have no float reading).
+fn eval_display(src: &str) -> String {
+    let env = Env::default();
+    match eval(&parse(src).expect("parse"), &env) {
+        Ok(v) => format!("{v}"),
+        Err(e) => panic!("expected a value from {src:?}, got {e}"),
     }
 }
 
@@ -383,9 +396,13 @@ fn inverse_trigonometric_functions_work() {
 
 #[test]
 fn inverse_trigonometric_functions_reject_out_of_domain() {
-    assert!(eval_err("asin(2)").contains("domain"));
-    assert!(eval_err("asin(-1.5)").contains("domain"));
-    assert!(eval_err("acos(-2)").contains("domain"));
+    // ADR-0043: out-of-domain reals now fall back to the principal
+    // complex result - asin(2) is 1.5708 - 1.3170i, acos(-2) is
+    // 3.1416 - 1.3170i - instead of a domain error.
+    assert!(eval_display("asin(2)").contains('i'));
+    assert!(eval_display("asin(-1.5)").contains('i'));
+    assert!(eval_display("acos(-2)").contains('i'));
+    assert_close(eval_number("re(asin(2))"), std::f64::consts::FRAC_PI_2);
 }
 
 #[test]
@@ -404,9 +421,10 @@ fn inverse_hyperbolic_functions_work_and_reject_out_of_domain() {
     assert_close(eval_number("asinh(1)"), 0.881373587019543);
     assert_close(eval_number("acosh(1)"), 0.0);
     assert_close(eval_number("atanh(0)"), 0.0);
-    assert!(eval_err("acosh(0.5)").contains("domain"));
-    assert!(eval_err("atanh(1)").contains("domain"));
-    assert!(eval_err("atanh(-1.1)").contains("domain"));
+    // ADR-0043: out-of-domain reals fall back to complex values.
+    assert!(eval_display("acosh(0.5)").contains('i'));
+    assert!(eval_display("atanh(1)").contains('i'));
+    assert!(eval_display("atanh(-1.1)").contains('i'));
 }
 
 #[test]
@@ -453,8 +471,10 @@ fn exponential_and_natural_logarithm() {
     assert_close(eval_number("exp(1)"), std::f64::consts::E);
     assert_close(eval_number("ln(1)"), 0.0);
     assert_close(eval_number("ln(e)"), 1.0);
-    assert!(eval_err("ln(0)").contains("domain"));
-    assert!(eval_err("ln(-1)").contains("domain"));
+    // ADR-0043: ln of a non-positive real is the principal complex
+    // logarithm: ln(0) is -inf (the real limit), ln(-1) is i*pi.
+    assert_eq!(eval_display("ln(0)"), "-inf");
+    assert_close(eval_number("im(ln(-1))"), std::f64::consts::PI);
 }
 
 #[test]
@@ -466,9 +486,12 @@ fn logarithms_in_common_bases() {
     assert_close(eval_number("log2(1)"), 0.0);
     assert_close(eval_number("logb(2, 8)"), 3.0);
     assert_close(eval_number("logb(10, 1000)"), 3.0);
-    assert!(eval_err("log(0)").contains("domain"));
-    assert!(eval_err("log(-5)").contains("domain"));
-    assert!(eval_err("log2(0)").contains("domain"));
+    // ADR-0043: log of a non-positive real falls back to the principal
+    // complex logarithm (log(0) keeps the real -inf limit).
+    assert_eq!(eval_display("log(0)"), "-inf");
+    assert!(eval_display("log(-5)").contains('i'));
+    assert!(eval_display("log2(0)").contains('i'));
+    // logb stays real-only: a bad base is still a domain error.
     assert!(eval_err("logb(1, 5)").contains("domain"));
     assert!(eval_err("logb(-2, 8)").contains("domain"));
 }
@@ -1851,4 +1874,276 @@ fn every_catalog_name_is_live() {
             ),
         }
     }
+}
+
+// --- Round 2: complex numbers, solve, calculus, exact, formats (ADR-0043)
+
+fn run_script_text(src: &str) -> Vec<Value> {
+    let mut env = Env::default();
+    let script = parse_script(src).expect("parse");
+    run_all(&script, &mut env).expect("run")
+}
+
+#[test]
+fn imaginary_literals_and_the_i_constant() {
+    assert_eq!(eval_display("i"), "i");
+    assert_eq!(eval_display("3 + 4i"), "3+4i");
+    assert_eq!(eval_display("2.5i"), "2.5i");
+    assert_eq!(eval_display("0xFFi"), "255i");
+    assert_eq!(eval_display("i^2"), "-1");
+    assert_eq!(eval_display("i^3"), "-i");
+    assert_eq!(eval_display("(1 + i)^2"), "2i");
+    assert_eq!(eval_display("(2i)^2"), "-4");
+    assert_eq!(eval_display("i^(-1)"), "-i");
+    assert_eq!(eval_display("-4i"), "-4i");
+    assert_eq!(eval_display("2e3i"), "2000i");
+    // an i glued to a longer name is not an imaginary suffix: `4it` is
+    // a number followed by a name, which the grammar rejects
+    assert!(eval_err("4it").contains("trailing"));
+    // i is shadowable like pi
+    assert_eq!(
+        run_script_text("i = 5\ni + 1").last().unwrap().to_string(),
+        "6"
+    );
+}
+
+#[test]
+fn complex_arithmetic_and_parts() {
+    assert_eq!(eval_display("(3 + 4i) * (1 - i)"), "7+i");
+    assert_eq!(eval_display("(3 + 4i) / i"), "4-3i");
+    assert_eq!(eval_display("re(3 + 4i)"), "3");
+    assert_eq!(eval_display("im(3 + 4i)"), "4");
+    assert_eq!(eval_display("arg(-1)"), "3.141592653589793");
+    assert_eq!(eval_display("conj(3 - 4i)"), "3+4i");
+    assert_eq!(eval_display("abs(3 + 4i)"), "5");
+    assert_eq!(eval_display("re(5)"), "5");
+    assert_eq!(eval_display("im(5)"), "0");
+    assert_eq!(eval_display("conj(5)"), "5");
+    assert_eq!(eval_display("1 / i"), "-i");
+    // complex / 0 errors like real / 0
+    assert!(eval_err("(1 + i) / 0").contains("division by zero"));
+}
+
+#[test]
+fn real_domain_errors_now_fall_back_to_complex() {
+    assert_eq!(eval_display("sqrt(-1)"), "i");
+    assert_eq!(eval_display("sqrt(-4)"), "2i");
+    assert_eq!(eval_display("ln(-1)"), "3.141592653589793i");
+    // exp(i*pi) is -1 up to sin(pi)'s f64 noise
+    assert_close(eval_number("re(exp(i * pi))"), -1.0);
+    assert_close(eval_number("im(exp(i * pi))"), 0.0);
+    assert!(eval_display("sin(2 + i)").contains('i'));
+    assert!(eval_display("sqrt(2i)").contains('i'));
+    // cbrt keeps the real branch for real inputs
+    assert_eq!(eval_display("cbrt(-8)"), "-2");
+}
+
+#[test]
+fn integer_functions_reject_complex() {
+    assert!(eval_err("fact(2i)").contains("expects"));
+    assert!(eval_err("gcd(2i, 4)").contains("expects"));
+    assert!(eval_err("floor(1 + i)").contains("expects"));
+    assert!(eval_err("isprime(3 + 0i)").contains("expects"));
+    assert!(eval_err("2i < 3").contains("compare"));
+    assert!(eval_err("min(1, 2i)").contains("expects"));
+}
+
+#[test]
+fn solve_polynomials_get_every_root() {
+    assert_eq!(eval_display_script("solve x^2 == 5*x + 6"), "x = -1, x = 6");
+    assert_eq!(eval_display_script("solve x^2 == -1"), "x = -i, x = i");
+    assert_eq!(
+        eval_display_script("solve x^2 + 2*x + 5 == 0"),
+        "x = -1-2i, x = -1+2i"
+    );
+    assert_eq!(eval_display_script("solve x^2 - 2*x + 1 == 0"), "x = 1");
+    assert_eq!(eval_display_script("solve 2*x + 3 == 7"), "x = 2");
+    assert_eq!(
+        eval_display_script("solve x^4 - 1 == 0"),
+        "x = -1, x = -i, x = i, x = 1"
+    );
+    assert_eq!(
+        eval_display_script("solve (x - 1)^2 * (x + 2) == 0"),
+        "x = -2, x = 1"
+    );
+    assert_eq!(eval_display_script("solve x == x"), "x is any number");
+    assert_eq!(eval_display_script("solve x == x + 1"), "no solution");
+}
+
+#[test]
+fn solve_uses_constants_and_bound_parameters() {
+    // a user constant resolves as a parameter
+    assert_eq!(
+        run_script_text("const k = 3\nsolve k*x == 12")
+            .last()
+            .unwrap()
+            .to_string(),
+        "x = 4"
+    );
+    // a bound variable resolves as a parameter; x stays symbolic even
+    // when the session holds a value for it
+    assert_eq!(
+        run_script_text("x = 10\nsolve sin(x) == 0\nx")
+            .last()
+            .unwrap()
+            .to_string(),
+        "10"
+    );
+}
+
+#[test]
+fn solve_errors_are_instructive() {
+    // no equation
+    assert!(script_err("solve x + 1").contains("needs an equation"));
+    // no variable
+    assert!(script_err("solve 5 == 5").contains("no variable"));
+    // an unbound second name
+    assert!(script_err("solve x^2 + y^2 == 1").contains("not the only unknown"));
+}
+
+#[test]
+fn solve_transcendental_numeric_scan() {
+    // roots of sin(x) == 0 include x = 0 (a sample point) and pi
+    let out = eval_display_script("solve sin(x) == 0");
+    assert!(out.contains("x = 0,"));
+    assert!(out.contains("x = 3.141592653589793,"));
+    // tan has no roots at its poles; the residual check keeps them out
+    let out = eval_display_script("solve tan(x) == 0");
+    assert!(!out.contains("x = 1.5707963267948966"));
+    // no real roots
+    assert_eq!(
+        eval_display_script("solve sin(x) == 2"),
+        "no real roots found in -100..100"
+    );
+}
+
+#[test]
+fn derivative_is_numeric_and_graphable() {
+    assert_close(eval_number("derivative(x^2, 3)"), 6.0);
+    assert_close(eval_number("derivative(x^3 - x, 2)"), 11.0);
+    assert_close(eval_number("derivative(sin(t), 0)"), 1.0);
+    assert_eq!(eval_display("derivative(5, 2)"), "0");
+    // bound parameters stay parameters
+    assert_close(
+        run_script_text("a = 2\nderivative(a * x^2, 3)")
+            .last()
+            .map(|v| match v {
+                Value::Float(f) => *f,
+                _ => 0.0,
+            })
+            .unwrap(),
+        12.0,
+    );
+    assert!(eval_err("derivative(x*y, 1)")
+        .to_string()
+        .contains("variables"));
+    assert!(eval_err("derivative(x^2)").contains("expects 2"));
+}
+
+#[test]
+fn integral_is_adaptive_and_signed() {
+    assert_close(eval_number("integral(x^2, 0, 3)"), 9.0);
+    assert_close(eval_number("integral(sin(x), 0, pi)"), 2.0);
+    assert_close(eval_number("integral(x^2, 3, 0)"), -9.0);
+    assert_eq!(eval_display("integral(x^2, 5, 5)"), "0");
+    // a constant integrand integrates to (b - a) * c
+    assert_close(eval_number("integral(4, 0, 2)"), 8.0);
+    // a parameter inside the integrand
+    assert_close(
+        run_script_text("b = 3\nintegral(b * x, 0, 1)")
+            .last()
+            .map(|v| match v {
+                Value::Float(f) => *f,
+                _ => 0.0,
+            })
+            .unwrap(),
+        1.5,
+    );
+    assert!(eval_err("integral(x*y, 0, 1)")
+        .to_string()
+        .contains("variables"));
+    assert!(eval_err("integral(x^2, 0)").contains("expects 3"));
+}
+
+#[test]
+fn exact_reconstructs_small_fractions() {
+    assert_eq!(eval_display("exact(0.3333333333333333)"), "1/3");
+    assert_eq!(eval_display("exact(0.30000000000000004)"), "3/10");
+    assert_eq!(eval_display("exact(0.5)"), "1/2");
+    assert_eq!(eval_display("exact(2.5)"), "5/2");
+    // irrationals pass through
+    assert_eq!(eval_display("exact(pi)"), "3.141592653589793");
+    assert_eq!(eval_display("exact(sqrt(2))"), "1.4142135623730951");
+    // negatives reconstruct with their sign
+    assert_eq!(eval_display("exact(-0.25)"), "-1/4");
+    // non-floats pass through
+    assert_eq!(eval_display("exact(frac(1, 7))"), "1/7");
+}
+
+#[test]
+fn format_verbs_spell_numbers() {
+    assert_eq!(eval_display("scientific(12345)"), "1.2345e4");
+    assert_eq!(eval_display("engineering(12345)"), "12.345e3");
+    assert_eq!(eval_display("engineering(0.5)"), "500e-3");
+    assert_eq!(eval_display("engineering(999)"), "999");
+    assert_eq!(
+        eval_display("grouped(1234567.89)"),
+        "1\u{2009}234\u{2009}567.89"
+    );
+    assert_eq!(
+        eval_display("grouped(-987654321)"),
+        "-987\u{2009}654\u{2009}321"
+    );
+    assert_eq!(eval_display("scientific(0)"), "0e0");
+}
+
+#[test]
+fn display_prefs_shape_the_result_line() {
+    use epher_core::{format_value, DisplayPrefs, Notation};
+    let v = |s: &str| evaluate(s).expect("eval");
+    let auto = DisplayPrefs::default();
+    assert_eq!(format_value(&v("1/3"), &auto), "1/3");
+    assert_eq!(format_value(&v("0.1 + 0.2"), &auto), "3/10");
+    assert_eq!(format_value(&v("pi"), &auto), "3.141592653589793");
+    let plain = DisplayPrefs {
+        exact_fractions: false,
+        ..DisplayPrefs::default()
+    };
+    assert_eq!(format_value(&v("1/3"), &plain), "0.3333333333333333");
+    let sci = DisplayPrefs {
+        exact_fractions: false,
+        notation: Notation::Scientific,
+        separators: false,
+    };
+    assert_eq!(format_value(&v("12345"), &sci), "1.2345e4");
+    let eng = DisplayPrefs {
+        exact_fractions: false,
+        notation: Notation::Engineering,
+        separators: false,
+    };
+    assert_eq!(format_value(&v("12345"), &eng), "12.345e3");
+    let sep = DisplayPrefs {
+        exact_fractions: false,
+        notation: Notation::Auto,
+        separators: true,
+    };
+    assert_eq!(
+        format_value(&v("1234567.89"), &sep),
+        "1\u{2009}234\u{2009}567.89"
+    );
+}
+
+fn script_err(src: &str) -> String {
+    let mut env = Env::default();
+    match run_all(&parse_script(src).expect("parse"), &mut env) {
+        Err(e) => e.to_string(),
+        Ok(_) => panic!("expected an error from {src:?}"),
+    }
+}
+
+fn eval_display_script(src: &str) -> String {
+    run_script_text(src)
+        .last()
+        .map(|v| v.to_string())
+        .unwrap_or_else(|| panic!("no value from {src:?}"))
 }
