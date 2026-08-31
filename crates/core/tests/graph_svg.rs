@@ -277,3 +277,39 @@ fn hiding_a_solar_body_never_moves_the_frame() {
     let moon_box = solar_view_box(&hidden, &view).unwrap();
     assert_ne!(full_box, moon_box, "the filter really changes the extent");
 }
+
+#[test]
+fn rotating_never_resizes_the_3d_frame() {
+    // ADR-0041: the frame comes from the scene's bounding sphere around
+    // the origin. The projection is orthographic, so that sphere maps to
+    // a same-radius disc at every pose - orbiting, spinning, and
+    // animating all play inside a window that never changes size, which
+    // is exactly the confusing resize this round removes.
+    let env = Env::default();
+    let surface = epher_core::graph::sample_surface("x ^ 2 - y ^ 2", 16, &env).unwrap();
+    let v0 = epher_core::graph::View3D::default();
+    let v1 = epher_core::graph::View3D {
+        yaw: 1.1,
+        pitch: 0.5,
+        ..v0.clone()
+    };
+    let (box0, _) = epher_core::graph_svg::surface_parts(&[surface.clone()], &v0, 2.0).unwrap();
+    let (box1, _) = epher_core::graph_svg::surface_parts(&[surface], &v1, 2.0).unwrap();
+    assert_eq!(
+        box0, box1,
+        "the surface frame must not resize under rotation"
+    );
+
+    let scene = epher_core::astro::solar_scene(2459031.5).unwrap();
+    let s0 = solar_view_box(&scene, &v0).unwrap();
+    let s1 = solar_view_box(
+        &scene,
+        &epher_core::graph::View3D {
+            yaw: 2.0,
+            pitch: -0.4,
+            ..v0
+        },
+    )
+    .unwrap();
+    assert_eq!(s0, s1, "the solar frame must not resize under rotation");
+}

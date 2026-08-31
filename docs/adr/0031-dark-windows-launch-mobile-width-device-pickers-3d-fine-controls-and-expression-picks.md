@@ -99,3 +99,16 @@ Eight asks in one release:
   `with_offsets` and `history_expression`.
 - The Windows flash is covered by installer-marker verification (the
   flag is a build-time argument; the shipped exe embeds it).
+
+
+## Amendment (2026-08-31): fine controls become the tuning strip (ADR-0041)
+
+The three fine-control sliders (horizontal rotation, vertical
+rotation, zoom) leave their text labels and the space below the plot
+for the tuning strip directly above it, beside the line-thickness
+slider. Each carries an icon - an arc arrow, turned a quarter-turn
+for the vertical axis, a magnifier for zoom - with the words in its
+tooltip ("horizontal rotation speed", "vertical rotation speed",
+"zoom speed"). Spans, steps, and the reduced-motion behavior are
+unchanged; the strip is shared by surfaces and the solar system and
+wraps on phones.

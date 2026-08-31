@@ -430,20 +430,9 @@
       color: var(--text);
     }
     .clear-history {
-      /* ADR-0040: the box is gone — this is a text-styled command, so
-         the underline alone carries "you can act on this" (the ADR-0035
-         amendment's rule for text buttons). Unboxing reclaims the
-         border and padding for the history list. */
-      font-size: 0.9rem;
-      font-weight: 500;
-      background: transparent;
-      color: var(--accent);
-      border: none;
-      padding: 0.15rem 0.3rem;
-      min-height: 36px;
-      /* Text-styled buttons carry an underline (ADR-0035 amendment). */
-      text-decoration: underline;
-      text-underline-offset: 3px;
+      /* ADR-0041: the trash icon (it shares .icon-btn's 44px target and
+         tooltip), tucked against the History heading. */
+      margin-inline-start: auto;
     }
     .history {
       list-style: none;
@@ -637,11 +626,21 @@
       gap: 0.3rem;
       /* exactly five rows, always (ADR-0039): every tab is the same
          height — the digits tab's height — so the long astronomy bank
-         scrolls instead of growing over the screen */
+         scrolls instead of growing over the screen. No bottom padding:
+         the 123 keys must fit the window exactly (ADR-0041). */
       min-height: calc(5 * 44px + 4 * 0.3rem);
       max-height: calc(5 * 44px + 4 * 0.3rem);
       overflow-y: auto;
-      padding: 0 0.25rem 0.25rem 0;
+      padding: 0 0.25rem 0 0;
+    }
+    /* With the captions toggle on (ADR-0039's ? button) each key grows a
+       fixed 64px so five rows + captions still fit with no scrollbar —
+       all banks share the window (ADR-0041). Captions clamp to two
+       lines inside the fixed key. */
+    .keypad-grid.show-hints {
+      min-height: calc(5 * 64px + 4 * 0.3rem);
+      max-height: calc(5 * 64px + 4 * 0.3rem);
+      grid-auto-rows: 64px;
     }
     .keypad-btn {
       min-height: 44px;
@@ -671,6 +670,7 @@
       white-space: normal;
       padding: 0.2rem;
       line-height: 1.1;
+      height: 64px;
     }
     .keypad-hint {
       font-size: 0.62rem;
@@ -680,7 +680,7 @@
       overflow: hidden;
       display: -webkit-box;
       -webkit-box-orient: vertical;
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 2;
     }
     .keypad-btn.op { color: var(--accent); font-weight: 600; }
     .keypad-btn.fn { font-size: 0.92rem; }
@@ -1015,27 +1015,34 @@
       min-width: 2.6em;
       text-align: right;
     }
-    /* The 3D fine-control sliders (ADR-0031), moved below the plot
-       (ADR-0040): the row steers the scene, so it sits under the scene
-       instead of pushing it down. The 40px label height keeps them
-       comfortable targets. */
-    .view3d-options {
+    /* The tuning strip (ADR-0041): every graph's adjustment sliders -
+       line thickness, the rotation speeds, zoom - in one compact row
+       above the plot, each named by an icon with the words in its
+       tooltip. Rows align because every slider gets the same width. */
+    .graph-tuning {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 0.25rem 1.25rem;
-      font-size: 0.9rem;
+      gap: 0.1rem 0.9rem;
+      padding: 0.05rem 0.25rem;
+    }
+    .tune {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      min-height: 32px;
       color: var(--muted);
-      padding-block: 0.1rem 0.2rem;
     }
-    .view3d-option {
-      gap: 0.6rem;
+    .tune .icon-svg {
+      width: 1.05rem;
+      height: 1.05rem;
+      flex: none;
     }
-    .view3d-slider {
-      width: 6.5rem;
+    .tune input[type="range"] {
+      width: 7.5rem;
       accent-color: var(--accent);
     }
-    .view3d-slider:focus-visible {
+    .tune input[type="range"]:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
@@ -1312,7 +1319,6 @@
          below — a finger-wide target on a row of its own. The `order`
          puts it after the options row even though the toolbar DOM
          places it right of Copy SVG for desktop. */
-      .graph-width { flex-basis: 100%; order: 3; }
     }
     /* --- desktop: the graph pane sits beside the calculator (ADR-0016) - */
     @media (min-width: 880px) {

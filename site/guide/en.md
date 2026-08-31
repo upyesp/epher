@@ -860,8 +860,9 @@ works here, including variables, functions, and scripts.
 
 Every calculation is added to the history list beneath the result, so you
 can scroll back and see what you did. Newest entries appear at the top, and
-the **Clear history** button above the list empties it. The history is kept
-while the page is open.
+the trash icon beside the **History** heading empties it (in the terminal,
+Ctrl+L, or a click on the same icon). The history is kept while the page is
+open.
 
 Each entry sits between thin rules: a single-line expression is one row,
 and a multi-line script is one entry showing all of its lines. Click an
@@ -893,13 +894,14 @@ its **Graph** menu.
 
 At the top of the graph pane, beside **Clear graph** and **Copy SVG**,
 the toolbar can hide the list of points of interest and the highlighted
-points drawn on the plot itself. The **Line width** slider sits right of
-**Copy SVG** (on its own row below on phones): 2D curves get one slider
-from 0 to 4 in steps of 0.1, 3D surfaces another from 0 to 0.2 in steps
-of 0.01, only the kind in view is shown, and each kind remembers its own
-value. Every legend entry has a checkbox, checked by default: unchecking
-a curve hides it from the plot, its points of interest, and the SVG
-export.
+points drawn on the plot itself. Directly above every plot sits a strip
+of icon-labelled sliders, the words in each one's tooltip: line
+thickness (0 to 4 in steps of 0.1 for 2D curves, 0 to 0.2 in steps of
+0.01 for 3D surfaces - only the kind in view is shown, and each kind
+remembers its own value), and on 3D and solar plots the horizontal and
+vertical rotation speeds and the zoom speed. Every legend entry has a
+checkbox, checked by default: unchecking a curve hides it from the plot,
+its points of interest, and the SVG export.
 
 ```epher
 graph x ^ 2

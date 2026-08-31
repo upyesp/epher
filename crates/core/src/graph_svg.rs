@@ -531,38 +531,67 @@ pub fn surface_parts(
     if mesh.is_empty() && frame.is_empty() {
         return None;
     }
-    let mut x_min = f64::INFINITY;
-    let mut x_max = f64::NEG_INFINITY;
-    let mut y_min = f64::INFINITY;
-    let mut y_max = f64::NEG_INFINITY;
+    // The frame comes from the scene's bounding sphere around the origin
+    // (ADR-0041): rotation, spin, and animation then play inside a fixed
+    // window instead of refitting it every frame - the moving graph no
+    // longer changes size. Degenerate scenes fall back to the per-frame
+    // fit below.
+    let mut world: Vec<[f64; 3]> = Vec::new();
+    for s in surfaces {
+        for (i, &x) in s.xs.iter().enumerate() {
+            for (j, &y) in s.ys.iter().enumerate() {
+                if let Some(&z) = s.zs.get(i).and_then(|row| row.get(j)) {
+                    if z.is_finite() {
+                        world.push([x, y, z]);
+                    }
+                }
+            }
+        }
+        let (a, b) = s.domain;
+        for &(x, y) in &[(a, a), (b, a), (b, b), (a, b)] {
+            world.push([x, y, 0.0]);
+        }
+    }
     let mut z_min = f64::INFINITY;
     let mut z_max = f64::NEG_INFINITY;
     for line in &mesh {
-        for &(x, y) in &line.points {
-            x_min = x_min.min(x);
-            x_max = x_max.max(x);
-            y_min = y_min.min(y);
-            y_max = y_max.max(y);
-        }
         z_min = z_min.min(line.depth);
         z_max = z_max.max(line.depth);
     }
-    for seg in &frame {
-        x_min = x_min.min(seg.x1).min(seg.x2);
-        x_max = x_max.max(seg.x1).max(seg.x2);
-        y_min = y_min.min(seg.y1).min(seg.y2);
-        y_max = y_max.max(seg.y1).max(seg.y2);
-    }
-    if !(x_min.is_finite() && x_max.is_finite() && y_min.is_finite() && y_max.is_finite())
-        || x_max - x_min < 1e-9
-        || y_max - y_min < 1e-9
-    {
-        return None;
-    }
-    let pad = (x_max - x_min).max(y_max - y_min) * 0.06;
-    let (wx, wy, ww, wh) = zoom_window(x_min - pad, x_max + pad, y_min - pad, y_max + pad, view);
     let span = z_max - z_min;
-    let view_box = format!("{wx:.3} {wy:.3} {ww:.3} {wh:.3}");
+    let view_box = match crate::graph::stable_window(world.iter().copied(), view) {
+        Some((wx, wy, ww, wh)) => format!("{wx:.3} {wy:.3} {ww:.3} {wh:.3}"),
+        None => {
+            let mut x_min = f64::INFINITY;
+            let mut x_max = f64::NEG_INFINITY;
+            let mut y_min = f64::INFINITY;
+            let mut y_max = f64::NEG_INFINITY;
+            for line in &mesh {
+                for &(x, y) in &line.points {
+                    x_min = x_min.min(x);
+                    x_max = x_max.max(x);
+                    y_min = y_min.min(y);
+                    y_max = y_max.max(y);
+                }
+            }
+            for seg in &frame {
+                x_min = x_min.min(seg.x1).min(seg.x2);
+                x_max = x_max.max(seg.x1).max(seg.x2);
+                y_min = y_min.min(seg.y1).min(seg.y2);
+                y_max = y_max.max(seg.y1).max(seg.y2);
+            }
+            if !(x_min.is_finite() && x_max.is_finite() && y_min.is_finite() && y_max.is_finite())
+                || x_max - x_min < 1e-9
+                || y_max - y_min < 1e-9
+            {
+                return None;
+            }
+            let pad = (x_max - x_min).max(y_max - y_min) * 0.06;
+            let (wx, wy, ww, wh) =
+                zoom_window(x_min - pad, x_max + pad, y_min - pad, y_max + pad, view);
+            format!("{wx:.3} {wy:.3} {ww:.3} {wh:.3}")
+        }
+    };
     let mut parts = String::new();
     // Painter's order: project_mesh already sorts far-to-near, so drawing
     // in order lets nearer lines overpaint farther ones.
@@ -658,6 +687,18 @@ pub fn solar_parts(
 /// filtered scene inside this frame: hiding a body must never let the
 /// remaining geometry jump, rescale, or collapse the view.
 pub fn solar_view_box(scene: &crate::astro::SolarScene, view: &View3D) -> Option<String> {
+    // The bounding sphere around the origin (ADR-0041): orbits and trails
+    // are fixed world curves and the dots ride on them, so the frame holds
+    // still while the system rotates or animates.
+    let world = scene
+        .orbits
+        .iter()
+        .chain(scene.trails.iter())
+        .flat_map(|p| p.points.iter().copied())
+        .chain(scene.dots.iter().map(|d| d.xyz));
+    if let Some((wx, wy, ww, wh)) = crate::graph::stable_window(world, view) {
+        return Some(format!("{wx:.3} {wy:.3} {ww:.3} {wh:.3}"));
+    }
     use crate::graph::{project_space_curve, project_world_dot};
     let mut x_min = f64::INFINITY;
     let mut x_max = f64::NEG_INFINITY;

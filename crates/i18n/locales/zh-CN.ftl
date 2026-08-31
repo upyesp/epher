@@ -90,12 +90,15 @@ guide-contents = 目录
 guide-insert-hint = 点击示例可将其插入输入框。
 guide-hint = 上/下滚动 · 1-9 章节 · Esc 关闭
 settings-markers = 图上高亮的点
-graph-width = 线条粗细
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu
 # spells the same three rows).
 view-horizontal = 水平旋转
 view-vertical = 垂直旋转
 view-zoom = 缩放
+tune-line-width = 线条粗细
+tune-rot-h = 水平旋转速度
+tune-rot-v = 垂直旋转速度
+tune-zoom = 缩放速度
 
 tui-hint-base-a = Enter 求值 · Tab 键盘/历史 · F10 菜单 · ? 按键帮助 · Esc 清除
 tui-hint-rotate =  · 方向键旋转

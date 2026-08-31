@@ -120,7 +120,11 @@ pub fn graph_html(props: &GraphProps) -> Html {
     let pointers =
         use_state(|| std::rc::Rc::new(std::cell::RefCell::new(Vec::<(i32, f64, f64)>::new())));
 
-    // Attach the interaction listeners once, directly on the SVG element.
+    // Attach the interaction listeners directly on the SVG element, and
+    // REBIND whenever the element changes: a legend toggle can replace the
+    // node (Yew's diff swaps it out wholesale), and listeners bound once
+    // would die with the removed node - wheel zoom, trace, and pinch all
+    // went silent (the ADR-0038 regression this fixes).
     {
         let svg_ref = svg_ref.clone();
         let on_trace = props.on_trace.clone();
@@ -129,10 +133,22 @@ pub fn graph_html(props: &GraphProps) -> Html {
         let on_zoom = props.on_zoom.clone();
         let pointers = pointers.clone();
         let listeners = use_state(Vec::<gloo_events::EventListener>::new);
-        use_effect_with((), move |_| {
+        let bound_to = use_mut_ref(|| None::<web_sys::Element>);
+        use_effect(move || {
             let Some(el) = svg_ref.cast::<web_sys::Element>() else {
                 return;
             };
+            // One render may produce the same element the listeners are
+            // already on - then there is nothing to do.
+            if let Some(old) = bound_to.borrow().as_ref() {
+                // Reference identity: same element, listeners still on it.
+                let a: &wasm_bindgen::JsValue = old.as_ref();
+                let b: &wasm_bindgen::JsValue = el.as_ref();
+                if a == b {
+                    return;
+                }
+            }
+            *bound_to.borrow_mut() = Some(el.clone());
             let mut bound = Vec::new();
             {
                 let el_closure = el.clone();
@@ -586,10 +602,22 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
         let drag = drag.clone();
         let pointers = pointers.clone();
         let listeners = use_state(Vec::<gloo_events::EventListener>::new);
-        use_effect_with((), move |_| {
+        let bound_to = use_mut_ref(|| None::<web_sys::Element>);
+        // Rebind when the element changes (see the 2D note above): the
+        // solar legend's toggles can replace the SVG node too.
+        use_effect(move || {
             let Some(el) = svg_ref.cast::<web_sys::Element>() else {
                 return;
             };
+            if let Some(old) = bound_to.borrow().as_ref() {
+                // Reference identity: same element, listeners still on it.
+                let a: &wasm_bindgen::JsValue = old.as_ref();
+                let b: &wasm_bindgen::JsValue = el.as_ref();
+                if a == b {
+                    return;
+                }
+            }
+            *bound_to.borrow_mut() = Some(el.clone());
             let mut bound = Vec::new();
             {
                 let el_closure = el.clone();

@@ -880,8 +880,9 @@ ici, y compris variables, fonctions et scripts.
 
 Chaque calcul est ajouté à la liste d'historique sous le résultat, pour que
 vous puissiez remonter et voir ce que vous avez fait. Les entrées les plus
-récentes apparaissent en haut, et le bouton **Clear history** au-dessus de
-la liste la vide. L'historique est conservé tant que la page est ouverte.
+récentes apparaissent en haut, et l'icône de corbeille à côté du
+titre **Historique** la vide (dans le terminal, Ctrl+L ou un clic sur la
+même icône). L'historique est conservé tant que la page est ouverte.
 
 Chaque entrée est délimitée par de fines règles : une expression sur une ligne occupe une ligne, et un script multi-lignes est une entrée qui affiche toutes ses lignes. Cliquez sur une entrée pour la recharger dans le champ de saisie et la réexécuter.
 
@@ -911,11 +912,13 @@ du panneau graphique fait la même chose pour les courbes et les surfaces 3D
 En haut du panneau de graphique, à côté de **Clear graph** et
 **Copy SVG**, la barre d'outils permet de masquer la liste des points
 d'intérêt et les points mis en évidence sur le tracé lui-même. Le curseur
-**Épaisseur de trait** se trouve à droite de **Copy SVG** (sur sa propre
-ligne, en dessous, sur téléphone) : les courbes 2D ont un curseur de 0 à 4
-par pas de 0.1, les surfaces 3D un autre de 0 à 0.2 par pas de 0.01, seul
-le curseur du type affiché est visible, et chaque type mémorise sa propre
-valeur. Chaque entrée de légende a une case à cocher, cochée par défaut :
+Juste au-dessus de chaque tracé se trouve une bande de curseurs
+nommés par une icône, les mots étant dans leur info-bulle :
+l'épaisseur du trait (0 à 4 par pas de 0.1 pour les courbes 2D, 0 à
+0.2 par pas de 0.01 pour les surfaces 3D - seul le curseur du type
+affiché est visible, et chaque type mémorise sa propre valeur), et sur
+les vues 3D et solaires, la vitesse de rotation horizontale et verticale
+ainsi que la vitesse de zoom. Chaque entrée de légende a une case à cocher, cochée par défaut :
 la décocher masque la courbe du tracé, de ses points d'intérêt et de
 l'export SVG.
 

@@ -776,6 +776,42 @@ fn trash_icon() -> yew::Html {
     )
 }
 
+/// The tuning-strip icons (ADR-0041): each labels its slider in the
+/// strip above the plot, with the tooltip carrying the words.
+/// Line thickness: three strokes of increasing weight.
+fn line_width_icon() -> yew::Html {
+    platform_icon(
+        "icon-svg",
+        "<path stroke-width=\"1.2\" d=\"M3 6.5h18\"/><path stroke-width=\"2\" d=\"M3 12h18\"/><path stroke-width=\"3.2\" d=\"M3 17.5h18\"/>",
+    )
+}
+
+/// Horizontal rotation: an arc with an arrowhead sweeping around the
+/// vertical axis.
+fn rot_h_icon() -> yew::Html {
+    platform_icon(
+        "icon-svg",
+        "<polyline points=\"23 4 23 10 17 10\"/><path d=\"M20.49 15a9 9 0 1 1-2.12-9.36L23 10\"/>",
+    )
+}
+
+/// Vertical rotation: the same arc turned a quarter-turn, sweeping
+/// around the horizontal axis.
+fn rot_v_icon() -> yew::Html {
+    platform_icon(
+        "icon-svg",
+        "<g transform=\"rotate(90 12 12)\"><polyline points=\"23 4 23 10 17 10\"/><path d=\"M20.49 15a9 9 0 1 1-2.12-9.36L23 10\"/></g>",
+    )
+}
+
+/// Zoom: a magnifier with a plus.
+fn zoom_icon() -> yew::Html {
+    platform_icon(
+        "icon-svg",
+        "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m21 21-4.3-4.3\"/><path d=\"M8 11h6\"/><path d=\"M11 8v6\"/>",
+    )
+}
+
 /// The standard share icon for this device (ADR-0038): the arrow-out-of-
 /// tray on Apple devices, the connected dots elsewhere.
 fn share_icon() -> yew::Html {
@@ -3550,6 +3586,119 @@ fn epher_app() -> Html {
         })
     };
 
+    // The tuning strip (ADR-0041): the graph's adjustment sliders - line
+    // thickness plus the view controls - as one compact row above the
+    // plot in every kind, each slider named by an icon with the words in
+    // its tooltip. The numeric readouts are gone; the slider IS the
+    // control. 2D carries thickness + zoom; 3D and solar carry thickness
+    // + the two rotation speeds + zoom.
+    let tuning_2d = {
+        let on_set_line_width = on_set_line_width.clone();
+        let on_zoom2d_input = on_zoom2d_input.clone();
+        html! {
+            <>
+                <label class="tune">
+                    { line_width_icon() }
+                    <input
+                        type="range"
+                        class="graph-width-slider"
+                        min="0" max="4" step="0.1"
+                        value={width_2d.to_string()}
+                        title={localizer.lookup("tune-line-width")}
+                        aria-label={localizer.lookup("tune-line-width")}
+                        oninput={Callback::from(move |e: web_sys::InputEvent| {
+                            if let Some(w) = e
+                                .target()
+                                .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                .and_then(|el| el.value().parse::<f64>().ok())
+                            {
+                                on_set_line_width.emit(w);
+                            }
+                        })}
+                    />
+                </label>
+                <label class="tune">
+                    { zoom_icon() }
+                    <input
+                        type="range"
+                        class="view3d-slider"
+                        min="-1" max="1" step="0.1"
+                        value={zoom2d_slider.to_string()}
+                        title={localizer.lookup("tune-zoom")}
+                        aria-label={localizer.lookup("tune-zoom")}
+                        oninput={on_zoom2d_input}
+                    />
+                </label>
+            </>
+        }
+    };
+    let tuning_3d = {
+        let on_set_line_width = on_set_line_width.clone();
+        let on_set_view = on_set_view.clone();
+        html! {
+            <>
+                <label class="tune">
+                    { line_width_icon() }
+                    <input
+                        type="range"
+                        class="graph-width-slider"
+                        min="0" max="0.2" step="0.01"
+                        value={width_3d.to_string()}
+                        title={localizer.lookup("tune-line-width")}
+                        aria-label={localizer.lookup("tune-line-width")}
+                        oninput={Callback::from(move |e: web_sys::InputEvent| {
+                            if let Some(w) = e
+                                .target()
+                                .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                .and_then(|el| el.value().parse::<f64>().ok())
+                            {
+                                on_set_line_width.emit(w);
+                            }
+                        })}
+                    />
+                </label>
+                { for [("h", "tune-rot-h"), ("v", "tune-rot-v"), ("z", "tune-zoom")].iter().map(|(axis, tip)| {
+                    let value = match *axis {
+                        "h" => *view_h,
+                        "v" => *view_v,
+                        _ => *view_z,
+                    };
+                    let on_input = {
+                        let on_set_view = on_set_view.clone();
+                        Callback::from(move |e: web_sys::InputEvent| {
+                            if let Some(el) = e
+                                .target()
+                                .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                            {
+                                if let Ok(v) = el.value().parse::<f64>() {
+                                    on_set_view.emit((*axis, v));
+                                }
+                            }
+                        })
+                    };
+                    html! {
+                        <label class="tune">
+                            { match *axis {
+                                "h" => rot_h_icon(),
+                                "v" => rot_v_icon(),
+                                _ => zoom_icon(),
+                            }}
+                            <input
+                                type="range"
+                                class="view3d-slider"
+                                min="-1" max="1" step="0.1"
+                                value={value.to_string()}
+                                title={localizer.lookup(tip)}
+                                aria-label={localizer.lookup(tip)}
+                                oninput={on_input}
+                            />
+                        </label>
+                    }
+                })}
+            </>
+        }
+    };
+
     // ADR-0017: on mobile the menu bar folds into a hamburger whose panel
     // lists the same three menus as labeled groups. Items share the
     // desktop handlers and close the panel when activated.
@@ -4158,8 +4307,17 @@ fn epher_app() -> Html {
                     <section class="history-box" tabindex="0" aria-label={localizer.lookup("history")} ref={history_box_ref.clone()}>
                         <div class="history-head">
                             <h2>{ localizer.lookup("history") }</h2>
-                            <button type="button" class="clear-history" onclick={on_clear_history}>
-                                { localizer.lookup("clear-history") }
+                            // The trash (ADR-0041): the icon sits right of
+                            // the heading, the same command the icon's
+                            // tooltip names (Ctrl+L in the terminal).
+                            <button
+                                type="button"
+                                class="icon-btn clear-history"
+                                title={localizer.lookup("clear-history")}
+                                aria-label={localizer.lookup("clear-history")}
+                                onclick={on_clear_history}
+                            >
+                                { trash_icon() }
                             </button>
                         </div>
                         <ul class="history">
@@ -4275,7 +4433,7 @@ fn epher_app() -> Html {
                             } }
                         </div>
                         <div
-                            class="keypad-grid"
+                            class={if *show_key_hints { "keypad-grid show-hints" } else { "keypad-grid" }}
                             role="tabpanel"
                             id="keypad-panel"
                             // The key recreates the panel per tab, so a
@@ -4412,66 +4570,6 @@ fn epher_app() -> Html {
                                     >
                                         { copy_icon() }
                                     </button>
-                                    // The line-width slider (ADR-0020, ADR-0035
-                                    // amendment): one slider per graph kind — 2D
-                                    // 0–4 step 0.1, 3D 0–0.2 step 0.01 — and only
-                                    // the kind in view is shown, so the range
-                                    // always matches the plot being adjusted. On
-                                    // desktop it sits in the toolbar right of Copy
-                                    // SVG; on mobile it wraps to its own row below
-                                    // (the `.graph-width` flex-basis under the
-                                    // mobile media query).
-                                    {
-                                        if !(*graph).is_empty() {
-                                            html! {
-                                                <label class="graph-option graph-width">
-                                                    <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
-                                                    <input type="range" class="graph-width-slider"
-                                                        min="0" max="4" step="0.1" value={width_2d.to_string()}
-                                                        oninput={Callback::from({
-                                                            let on_set_line_width = on_set_line_width.clone();
-                                                            move |e: web_sys::InputEvent| {
-                                                                if let Some(el) = e
-                                                                    .target()
-                                                                    .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
-                                                                {
-                                                                    if let Ok(w) = el.value().parse::<f64>() {
-                                                                        on_set_line_width.emit(w);
-                                                                    }
-                                                                }
-                                                            }
-                                                        })}
-                                                    />
-                                                    <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *width_2d) }</span>
-                                                </label>
-                                            }
-                                        } else if !(*surface).is_empty() {
-                                            html! {
-                                                <label class="graph-option graph-width">
-                                                    <span class="graph-width-label">{ localizer.lookup("graph-width") }</span>
-                                                    <input type="range" class="graph-width-slider"
-                                                        min="0" max="0.2" step="0.01" value={width_3d.to_string()}
-                                                        oninput={Callback::from({
-                                                            let on_set_line_width = on_set_line_width.clone();
-                                                            move |e: web_sys::InputEvent| {
-                                                                if let Some(el) = e
-                                                                    .target()
-                                                                    .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
-                                                                {
-                                                                    if let Ok(w) = el.value().parse::<f64>() {
-                                                                        on_set_line_width.emit(w);
-                                                                    }
-                                                                }
-                                                            }
-                                                        })}
-                                                    />
-                                                    <span class="graph-width-value" aria-hidden="true">{ format!("{:.2}", *width_3d) }</span>
-                                                </label>
-                                            }
-                                        } else {
-                                            html! {}
-                                        }
-                                    }
                                     // The graph options row (ADR-0020, ADR-0025):
                                     // the two points-of-interest toggles
                                     // (ADR-0019) belong to the 2D plot only, so
@@ -4512,25 +4610,6 @@ fn epher_app() -> Html {
                                                             })} />
                                                             { localizer.lookup("settings-markers") }
                                                         </label>
-                                                        {
-                                                            // The 2D zoom slider (ADR-0038): -1 fits
-                                                            // every object, +1 shows a single one;
-                                                            // wheel and pinch move past the ends.
-                                                            // `zoom2d_slider` and `on_zoom2d_input`
-                                                            // are built above with the rest of the
-                                                            // pane's derived state.
-                                                            html! {
-                                                                <label class="graph-option">
-                                                                    <span>{ localizer.lookup("view-zoom") }</span>
-                                                                    <input type="range" class="view3d-slider"
-                                                                        min="-1" max="1" step="0.1"
-                                                                        value={zoom2d_slider.to_string()}
-                                                                        oninput={on_zoom2d_input.clone()}
-                                                                    />
-                                                                    <span class="graph-width-value" aria-hidden="true">{ format!("{zoom2d_slider:.1}") }</span>
-                                                                </label>
-                                                            }
-                                                        }
                                                     </>
                                                 }
                                             } else {
@@ -4558,6 +4637,9 @@ fn epher_app() -> Html {
                                     <ul class="legend">
                                         { for legend_items }
                                     </ul>
+                                    <div class="graph-tuning">
+                                        { tuning_2d }
+                                    </div>
                                     <div class="plot-box">
                                         <Graph
                                             curves={visible_curves.clone()}
@@ -4730,6 +4812,9 @@ fn epher_app() -> Html {
                                         <ul class="legend legend-solar">
                                             { for solar_legend }
                                         </ul>
+                                        <div class="graph-tuning">
+                                            { tuning_3d.clone() }
+                                        </div>
                                         <div class="plot-box">
                                             <Graph3D
                                                 view_box={shown_box}
@@ -4775,6 +4860,9 @@ fn epher_app() -> Html {
                                     .unwrap_or(view_box);
                                 html! {
                                     <section class="graph graph3d">
+                                        <div class="graph-tuning">
+                                            { tuning_3d }
+                                        </div>
                                         <div class="plot-box">
                                             <Graph3D
                                                 view_box={shown_box}
@@ -4792,53 +4880,6 @@ fn epher_app() -> Html {
                                 }
                             } else {
                                 html! {}
-                            }
-                        } else {
-                            html! {}
-                        }
-                    }
-                    // The 3D fine controls (ADR-0031), moved below the plot
-                    // (ADR-0040): the orbit/zoom sliders ride under the scene
-                    // they steer - surfaces and the solar system alike (the
-                    // solar pane renders from the same shared view state, so
-                    // it inherits the same controls). Each spans −1..1, step
-                    // 0.1, default 0, and updates the plot in real time.
-                    {
-                        if !(*surface).is_empty() || (*solar).is_some() {
-                            html! {
-                                <div class="view3d-options">
-                                    { for [("h", "view-horizontal"), ("v", "view-vertical"), ("z", "view-zoom")].iter().map(|(axis, key)| {
-                                        let value = match *axis {
-                                            "h" => *view_h,
-                                            "v" => *view_v,
-                                            _ => *view_z,
-                                        };
-                                        let on_input = {
-                                            let on_set_view = on_set_view.clone();
-                                            let axis = *axis;
-                                            Callback::from(move |e: web_sys::InputEvent| {
-                                                if let Some(el) = e
-                                                    .target()
-                                                    .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
-                                                {
-                                                    if let Ok(v) = el.value().parse::<f64>() {
-                                                        on_set_view.emit((axis, v));
-                                                    }
-                                                }
-                                            })
-                                        };
-                                        html! {
-                                            <label class="graph-option view3d-option">
-                                                <span>{ localizer.lookup(key) }</span>
-                                                <input type="range" class="view3d-slider"
-                                                    min="-1" max="1" step="0.1" value={value.to_string()}
-                                                    oninput={on_input}
-                                                />
-                                                <span class="graph-width-value" aria-hidden="true">{ format!("{value:.1}") }</span>
-                                            </label>
-                                        }
-                                    }) }
-                                </div>
                             }
                         } else {
                             html! {}

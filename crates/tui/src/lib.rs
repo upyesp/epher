@@ -212,6 +212,9 @@ pub struct Areas {
     pub guide_toc_len: usize,
     /// The history panel's scroll offset at draw time.
     pub history_scroll: u16,
+    /// The column of the history title's trash glyph (ADR-0041): a mouse
+    /// click there clears the history, like Ctrl+L.
+    pub history_trash_col: u16,
     /// The input panel's scroll offset at draw time (the caret line is
     /// kept visible while a multi-line script overflows the pane).
     pub input_scroll: u16,
@@ -2967,6 +2970,16 @@ fn handle_mouse(
                 return false;
             }
             if inside(areas.history, col, row) {
+                // The trash glyph in the title row (ADR-0041): clicking it
+                // clears the history, the mouse spelling of Ctrl+L. The
+                // glyph is two columns wide.
+                if row == areas.history.y
+                    && col >= areas.history_trash_col
+                    && col < areas.history_trash_col + 2
+                {
+                    app.clear_history();
+                    return false;
+                }
                 let content_row = row.saturating_sub(areas.history.y.saturating_add(1)) as usize;
                 let display_row = content_row + areas.history_scroll as usize;
                 if let Some(&display_idx) = app.hist_rows.get(display_row) {
@@ -3668,10 +3681,22 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         0
     };
     areas.history_scroll = history_scroll;
+    // The trash glyph rides in the title, right after the name
+    // (ADR-0041): the web pane's heading-side icon, spelled for a
+    // terminal. Its columns are recorded so a mouse click on it clears
+    // the history, like Ctrl+L.
+    let history_title = format!("{} \u{1f5d1}", localizer.lookup("tui-history"));
+    // The glyph sits after the localized name and one space; unicode
+    // width decides the columns (the emoji is double-width).
+    let trash_col = areas.history.x
+        + 1
+        + <str as UnicodeWidthStr>::width(localizer.lookup("tui-history").as_ref()) as u16
+        + 1;
+    areas.history_trash_col = trash_col;
     let history = Paragraph::new(history_lines)
         .style(Style::default().fg(fg))
         .scroll((history_scroll, 0))
-        .block(block(localizer.lookup("tui-history")));
+        .block(block(history_title));
     frame.render_widget(history, history_area);
 
     // The keypad grid (ADR-0016): bank tabs on the first row — Tab

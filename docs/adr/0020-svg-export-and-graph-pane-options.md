@@ -65,3 +65,13 @@ builder) lived in the web crate even though none of it touches the DOM.
   setting is on; CLI/REPL saves include them (there is no setting
   there). The list itself is recomputed at save time — analysis is
   cheap and always-on (ADR-0019).
+
+
+## Amendment (2026-08-31): the width slider joins the tuning strip (ADR-0041)
+
+The line-width slider leaves the toolbar (it sat right of Copy SVG,
+wrapping below on phones) for the tuning strip directly above the
+plot. It is named by an icon and a tooltip ("line thickness") instead
+of a text label, the numeric readout is gone, and the ranges are
+unchanged - 0–4 step 0.1 for 2D, 0–0.2 step 0.01 for 3D, only the
+kind in view shown, each kind remembering its own value.

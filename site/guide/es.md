@@ -870,8 +870,10 @@ El resultado aparece en texto grande debajo del campo. Todo lo del capítulo
 
 Cada cálculo se añade a la lista de historial debajo del resultado, para que
 puedas desplazarte hacia atrás y ver lo que hiciste. Las entradas más
-recientes aparecen arriba, y el botón **Clear history** encima de la lista
-la vacía. El historial se conserva mientras la página está abierta.
+recientes aparecen arriba, y el icono de la papelera junto al título
+**Historial** la vacía (en el terminal, Ctrl+L o una pulsación en el
+mismo icono). El historial se conserva mientras la página está
+abierta.
 
 Cada entrada queda entre reglas finas: una expresión de una línea es una fila, y un script de varias líneas es una entrada que muestra todas sus líneas. Haz clic en una entrada para volver a cargarla en el campo de entrada y ejecutarla de nuevo.
 
@@ -901,11 +903,12 @@ a la vez. La TUI mantiene el comando en su menú **Graph**.
 
 Arriba del panel de gráficas, junto a **Clear graph** y **Copy SVG**,
 la barra de herramientas permite ocultar la lista de puntos de interés y
-los puntos destacados dibujados en la propia gráfica. El deslizador
-**Grosor de línea** está a la derecha de **Copy SVG** (en su propia fila,
-debajo, en el móvil): las curvas 2D tienen un deslizador de 0 a 4 en
-pasos de 0.1, las superficies 3D otro de 0 a 0.2 en pasos de 0.01, solo
-se muestra el del tipo en pantalla, y cada tipo recuerda su propio valor.
+los puntos destacados dibujados en la propia gráfica. Justo encima de
+cada gráfica hay una franja de deslizadores con icono, las palabras en
+su tooltip: grosor de línea (0 a 4 en pasos de 0.1 para curvas 2D, 0 a
+0.2 en pasos de 0.01 para superficies 3D - solo se muestra el del tipo en
+pantalla, y cada tipo recuerda su propio valor), y en 3D y el sistema
+solar, la velocidad de giro horizontal y vertical y la velocidad de zoom.
 Cada entrada de la leyenda tiene una casilla, marcada por defecto:
 desmarcarla oculta la curva de la gráfica, de sus puntos de interés y de
 la exportación SVG.

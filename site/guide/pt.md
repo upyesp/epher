@@ -868,7 +868,8 @@ capítulo 1 funciona aqui, incluindo variáveis, funções e scripts.
 
 Cada cálculo é adicionado à lista de histórico por baixo do resultado, para
 poder recuar e ver o que fez. As entradas mais recentes aparecem no topo,
-e o botão **Clear history** por cima da lista esvazia-a. O histórico é
+e o ícone do cesto de papel junto ao título **Histórico** esvazia-a
+(no terminal, Ctrl+L ou um clique no mesmo ícone). O histórico é
 mantido enquanto a página estiver aberta.
 
 Cada entrada fica entre linhas finas: uma expressão de uma linha é uma fila, e um script de várias linhas é uma entrada que mostra todas as suas linhas. Clique numa entrada para a voltar a carregar no campo de entrada e executá-la de novo.
@@ -900,10 +901,12 @@ conjunto. A TUI mantém o comando no seu menu **Graph**.
 No topo do painel de gráficos, ao lado de **Clear graph** e
 **Copy SVG**, a barra de ferramentas permite ocultar a lista de pontos de
 interesse e os pontos destacados desenhados no próprio gráfico. O controle
-**Espessura da linha** fica à direita de **Copy SVG** (na sua própria
-linha, por baixo, no telemóvel): as curvas 2D têm um controlo de 0 a 4 em
-passos de 0.1, as superfícies 3D outro de 0 a 0.2 em passos de 0.01, só é
-mostrado o do tipo em vista, e cada tipo lembra o seu próprio valor. Cada
+Mesmo por cima de cada gráfico há uma faixa de controles nomeados por
+um ícone, com as palavras na respetiva dica: espessura da linha (0 a 4
+em passos de 0.1 para curvas 2D, 0 a 0.2 em passos de 0.01 para
+superfícies 3D - só é mostrado o do tipo em vista, e cada tipo lembra
+o seu próprio valor), e nas vistas 3D e solar, a velocidade de rotação
+horizontal e vertical e a velocidade de zoom. Cada
 entrada da legenda tem uma caixa de verificação, marcada por omissão:
 desmarcá-la esconde a curva do gráfico, dos seus pontos de interesse e da
 exportação SVG.

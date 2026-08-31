@@ -65,6 +65,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0038 | Zoom on every tile, the solar legend, guide search, shareable history, and the keypad's dead keys | 2026-08-30 | accepted |
 | 0039 | A fixed-height keypad with scrolling, and a meaning for every key | 2026-08-30 | accepted |
 | 0040 | PHP-style comments, a roomier graph, script files for the CLI and REPL, a fuller share, and a legend that never leaves | 2026-08-31 | accepted |
+| 0041 | The history trash, tuning strips above the plot, and a frame that holds still | 2026-08-31 | accepted |
 
 ## Decision chains
 
@@ -97,7 +98,8 @@ at the end of the chain.
 - **History** — 0021 (`ans`) → 0025 (open-history replaces) → 0027
   (clickable history) → 0030 (`;` scripts as one entry) → **0027
   amendment (multi-line scripts as one item, picked whole, visible
-  boundaries)**.
+  boundaries)**. → **0041 (the trash beside the
+  heading, clickable in the terminal too)**.
 - **Website guide and examples** — 0018 (one guide, three renderers) →
   **0018 amendment (in-app table of contents)**; → **0036 (Examples
   page with the guide's copy buttons)**.
@@ -109,7 +111,9 @@ at the end of the chain.
   → 0034 (TUI wheel/drag) → **0038 (wheel + pinch on every tile, the
   slider spans two decades each way, zoomable windows re-sample the
   plot; the amendment: stable solar frames, the spin-loop cell fix,
-  Help above Settings, TUI guide search and POI copy)**.
+  Help above Settings, TUI guide search and POI copy)**. → **0041 (listeners follow the replaced
+  SVG node; the 3D and solar frames fit the bounding sphere and never
+  resize while moving)**.
 - **Solar system** - **0037** → **0038 (per-body legend checkboxes on
   the solar pane)**. → **0040 (hiding every body leaves an
   empty framed plot with the legend intact)**.
@@ -128,4 +132,5 @@ at the end of the chain.
 - **Graph pane layout** - 0016 (fixed-size plot) → 0031 (fine controls)
   → **0040 (a 38vh plot floor, a wrapping legend, icon toolbar commands,
   sliders below the plot, no "3D" heading, an unboxed Clear history,
-  and 34px keypad tabs)**.
+  and 34px keypad tabs)**. → **0041 (tuning strips above
+  the plot, the captioned keypad's own exact window)**.

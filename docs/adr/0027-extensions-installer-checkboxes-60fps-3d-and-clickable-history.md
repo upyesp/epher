@@ -146,3 +146,12 @@ multi-line script. The browser suites pin: a 3-line submit yields one
 history item, the item shows its lines between boundaries, and a pick
 restores the full script; the TUI tests pin the `; `-joined pick and
 the `.ehs` save/open round trip.
+
+
+## Amendment (2026-08-31): the history head's trash (ADR-0041)
+
+The Clear history command is now the trash icon, sitting in the
+history head right of the **History** heading - the same destructive
+gesture as Clear graph, with the tooltip and aria-label carrying the
+words. The TUI spells the same shape in the panel's border title
+(`History 🗑`), where the glyph is clickable like Ctrl+L, which stays.

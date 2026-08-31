@@ -90,12 +90,15 @@ guide-contents = विषय-सूची
 guide-insert-hint = किसी उदाहरण को एंट्री फ़ील्ड में डालने के लिए उस पर टैप करें।
 guide-hint = ऊपर/नीचे स्क्रॉल · 1-9 अध्याय · Esc बंद करें
 settings-markers = ग्राफ़ पर उजागर बिंदु
-graph-width = रेखा की मोटाई
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu
 # spells the same three rows).
 view-horizontal = क्षैतिज घुमाव
 view-vertical = ऊर्ध्वाधर घुमाव
 view-zoom = ज़ूम
+tune-line-width = रेखा की मोटाई
+tune-rot-h = क्षैतिज घूर्णन गति
+tune-rot-v = ऊर्ध्वाधर घूर्णन गति
+tune-zoom = ज़ूम गति
 
 tui-hint-base-a = Enter मूल्यांकन · Tab कीपैड/इतिहास · F10 मेनू · ? कुंजी सहायता · Esc साफ़
 tui-hint-rotate =  · तीर घुमाएँ

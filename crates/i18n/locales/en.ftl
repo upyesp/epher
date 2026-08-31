@@ -90,12 +90,15 @@ guide-contents = Contents
 guide-insert-hint = Tap an example to insert it into the entry field.
 guide-hint = Up/Down scroll · 1-9 chapter · Esc close
 settings-markers = Highlighted plot points
-graph-width = Line width
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu
 # spells the same three rows).
 view-horizontal = Horizontal rotation
 view-vertical = Vertical rotation
 view-zoom = Zoom
+tune-line-width = Line thickness
+tune-rot-h = Horizontal rotation speed
+tune-rot-v = Vertical rotation speed
+tune-zoom = Zoom speed
 
 tui-hint-base-a = Enter evaluate · Tab keypad/history · F10 menu · ? key help · Esc clear
 tui-hint-rotate =  · arrows rotate

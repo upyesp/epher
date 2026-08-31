@@ -877,8 +877,10 @@ Skripten.
 
 Jede Berechnung wird zur Verlaufsliste unter dem Ergebnis hinzugefügt,
 damit du zurückscrollen und sehen kannst, was du gemacht hast. Die neuesten
-Einträge erscheinen oben, und der Button **Clear history** über der Liste
-leert sie. Der Verlauf bleibt erhalten, solange die Seite offen ist.
+Einträge erscheinen oben, und das Mülleimer-Symbol neben der
+Überschrift **Verlauf** leert sie (im Terminal: Strg+L oder ein Klick
+auf dasselbe Symbol). Der Verlauf bleibt erhalten, solange die Seite offen
+ist.
 
 Jeder Eintrag liegt zwischen dünnen Trennlinien: ein einzeiliger Ausdruck ist eine Zeile, und ein mehrzeiliges Skript ist ein Eintrag, der alle seine Zeilen zeigt. Klicke einen Eintrag an, um ihn zurück ins Eingabefeld zu laden und erneut auszuführen.
 
@@ -908,11 +910,13 @@ behält den Befehl in ihrem **Graph**-Menü.
 
 Ganz oben im Graph-Bereich, neben **Clear graph** und **Copy SVG**,
 blendest du in der Symbolleiste die Liste der besonderen Punkte und die
-hervorgehobenen Punkte im Plot selbst aus. Der Regler **Linienstärke**
-sitzt rechts von **Copy SVG** (auf dem Handy in der Zeile darunter):
-2D-Kurven haben einen Regler von 0 bis 4 in Schritten von 0.1, 3D-Flächen
-einen von 0 bis 0.2 in Schritten von 0.01, angezeigt wird nur der Regler
-der gerade sichtbaren Art, und jede Art merkt sich ihren eigenen Wert.
+hervorgehobenen Punkte im Plot selbst aus. Direkt über jedem Plot liegt
+eine Leiste mit Symbol-Reglern, die Worte stehen im jeweiligen
+Hinweisfeld: Linienstärke (0 bis 4 in Schritten von 0.1 für
+2D-Kurven, 0 bis 0.2 in Schritten von 0.01 für 3D-Flächen - nur
+der Regler der gerade sichtbaren Art wird angezeigt, und jede Art merkt
+sich ihren eigenen Wert), und bei 3D und dem Sonnensystem die horizontale
+und vertikale Drehgeschwindigkeit sowie die Zoomgeschwindigkeit.
 Jeder Eintrag in der Legende hat ein Kästchen, standardmäßig aktiviert:
 Abhaken blendet die Kurve aus dem Plot, ihren besonderen Punkten und dem
 SVG-Export aus.

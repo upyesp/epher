@@ -90,12 +90,15 @@ guide-contents = Contenido
 guide-insert-hint = Toca un ejemplo para insertarlo en el campo de entrada.
 guide-hint = Arriba/Abajo desplazar · 1-9 capítulo · Esc cerrar
 settings-markers = Puntos destacados en la gráfica
-graph-width = Grosor de línea
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu
 # spells the same three rows).
 view-horizontal = Rotación horizontal
 view-vertical = Rotación vertical
 view-zoom = Zoom
+tune-line-width = Grosor de línea
+tune-rot-h = Velocidad de giro horizontal
+tune-rot-v = Velocidad de giro vertical
+tune-zoom = Velocidad de zoom
 
 tui-hint-base-a = Enter evalúa · Tab teclado/historial · F10 menú · ? ayuda de teclas · Esc borra
 tui-hint-rotate =  · flechas girar

@@ -90,12 +90,15 @@ guide-contents = Inhalt
 guide-insert-hint = Tippe ein Beispiel an, um es ins Eingabefeld einzufügen.
 guide-hint = Hoch/Runter scrollen · 1-9 Kapitel · Esc schließt
 settings-markers = Hervorgehobene Punkte im Plot
-graph-width = Linienstärke
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu
 # spells the same three rows).
 view-horizontal = Horizontale Drehung
 view-vertical = Vertikale Drehung
 view-zoom = Zoom
+tune-line-width = Strichstärke
+tune-rot-h = Horizontale Drehgeschwindigkeit
+tune-rot-v = Vertikale Drehgeschwindigkeit
+tune-zoom = Zoomgeschwindigkeit
 
 tui-hint-base-a = Enter auswerten · Tab Keypad/Verlauf · F10 Menü · ? Tastenhilfe · Esc leeren
 tui-hint-rotate =  · Pfeile drehen

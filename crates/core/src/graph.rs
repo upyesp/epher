@@ -990,6 +990,37 @@ pub fn project_space_curve(points: &[[f64; 3]], view: &View3D) -> Vec<Polyline3D
 /// construction (the ADR-0015 amendment).
 ///
 /// Returns `(x_min, y_min, w, h)` in projected units.
+/// The rotation-stable 3D window (ADR-0041): a square around the world
+/// origin covering every point's distance from it. The 3D projection is
+/// orthographic, so a sphere around the origin projects to a disc of the
+/// same radius at every pose - a scene framed this way keeps its size and
+/// position while it rotates, spins, or animates, instead of refitting
+/// the window each frame. Returns `None` when no point is finite or the
+/// scene collapses to a point at the origin; callers fall back to the
+/// per-frame fit.
+pub fn stable_window(
+    points: impl Iterator<Item = [f64; 3]>,
+    view: &View3D,
+) -> Option<(f64, f64, f64, f64)> {
+    let mut r2 = 0.0f64;
+    let mut any = false;
+    for [x, y, z] in points {
+        if !(x.is_finite() && y.is_finite() && z.is_finite()) {
+            continue;
+        }
+        any = true;
+        r2 = r2.max(x * x + y * y + z * z);
+    }
+    if !any {
+        return None;
+    }
+    let r = r2.sqrt() * 1.06; // the same 6% breathing room the per-frame fit pads
+    if r < 1e-9 {
+        return None;
+    }
+    Some(zoom_window(-r, r, -r, r, view))
+}
+
 pub fn zoom_window(
     x_min: f64,
     x_max: f64,
