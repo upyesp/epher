@@ -259,3 +259,39 @@ tui-key-help-hint = तीर स्क्रॉल करते हैं · q 
 
 # Script loading (ADR-0040)
 load-failed = स्क्रिप्ट की एक या अधिक पंक्तियाँ विफल हुईं।
+
+# प्रतिशत, संख्या सिद्धांत और भौतिक नियतांक (ADR-0042)
+key-hint-percent = प्रतिशत: 5% का अर्थ 0.05
+key-hint-isprime = सही जब n अभाज्य हो
+key-hint-nextprime = n से बड़ी सबसे छोटी अभाज्य संख्या
+key-hint-prevprime = n से छोटी सबसे बड़ी अभाज्य संख्या
+key-hint-modpow = b की घात e, mod m, यथार्थ
+key-hint-totient = n का यूलर टोशेंट
+key-hint-ndivisors = n के भाजकों की संख्या
+key-hint-factors = n का अभाज्य गुणनखंडन
+key-hint-G = न्यूटन का गुरुत्वाकर्षण नियतांक
+key-hint-gamma = यूलर-माशेरोनी नियतांक, लगभग 0.5772
+key-hint-q_e = मूल आवेश, कूलॉम में
+key-hint-ev = इलेक्ट्रॉनवोल्ट, जूल में
+key-hint-eps_0 = निर्वात की विद्युतशीलता
+key-hint-mu_0 = निर्वात की चुंबकशीलता
+key-hint-z_0 = निर्वात की प्रतिबाधा
+key-hint-m_e = इलेक्ट्रॉन का द्रव्यमान
+key-hint-m_p = प्रोटॉन का द्रव्यमान
+key-hint-m_n = न्यूट्रॉन का द्रव्यमान
+key-hint-m_u = परमाणु द्रव्यमान इकाई
+key-hint-a_0 = बोर त्रिज्या
+key-hint-alpha = सूक्ष्म संरचना नियतांक
+key-hint-r_inf = रिडबर्ग नियतांक
+key-hint-mu_b = बोर मैग्नेटॉन
+key-hint-n_a = एवोगाद्रो नियतांक
+key-hint-faraday = फैराडे नियतांक, C/mol
+key-hint-r_gas = मोलर गैस नियतांक
+key-hint-atm = मानक वायुमंडल, पास्कल में
+key-hint-wien = वीन तरंगदैर्घ्य नियतांक
+key-hint-phi_0 = चुंबकीय फ्लक्स क्वांटम
+graph-save-png = PNG सहेजें
+graph-png-saved = PNG सहेजा गया
+graph-png-failed = PNG सहेजा नहीं जा सका
+autocomplete-label = सुझाव
+help-no-description = कोई विवरण नहीं, उपयोगकर्ता गाइड देखें

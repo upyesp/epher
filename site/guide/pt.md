@@ -56,7 +56,7 @@ Essa regra chama-se *precedência de operadores*.
 
 A ordem de precedência completa, da mais forte para a mais fraca:
 
-1. `!` fatorial
+1. `!` fatorial e `%` porcentagem (ambos pós-fixos)
 2. `^` potência
 3. `*` e `/` multiplicação e divisão
 4. `+` e `-` adição e subtração
@@ -110,6 +110,17 @@ A subtração e a divisão funcionam da esquerda para a direita:
 ```text
 5
 ```
+
+O sinal `%` é um operador pós-fixo que significa «dividido por 100»: `5%` é 0.05. Ele nunca olha os operadores à volta, por isso `200 + 10%` é 200.1. Para aumentar 200 em 10%, escreva a multiplicação:
+
+```epher
+200 * (1 + 10%)
+```
+
+```text
+220
+```
+
 
 ### 1.3 Os números especiais pi, e, tau e phi
 
@@ -609,6 +620,18 @@ Arredondamento, sinais e números inteiros:
 | `gcd(a, b)` / `lcm(a, b)` | divisores e múltiplos comuns | `gcd(12, 18)` | `6` |
 | `mod(a, b)` | resto | `mod(7, 3)` | `1` |
 
+Primos e divisores trabalham com números inteiros:
+
+| Função | Significado | Exemplo | Resultado |
+|---|---|---|---|
+| `isprime(n)` | verdadeiro quando n é primo | `isprime(97)` | `true` |
+| `nextprime(n)` / `prevprime(n)` | os primos mais próximos | `nextprime(10)` | `11` |
+| `factors(n)` | fatoração em primos | `factors(360)` | `2^3 * 3^2 * 5` |
+| `totient(n)` | totiente de Euler | `totient(12)` | `4` |
+| `ndivisors(n)` | quantos divisores n tem | `ndivisors(360)` | `24` |
+| `modpow(b, e, m)` | b elevado a e, módulo m, exato | `modpow(2, 10, 1000)` | `24` |
+
+
 As estatísticas aceitam qualquer número de argumentos:
 
 | Função | Significado | Exemplo | Resultado |
@@ -628,6 +651,7 @@ As camadas exatas da secção 1.12 mantêm-se:
 | `big(x)` | número inteiro exato | `big(10 ^ 20)` | `100000000000000000000` |
 | Binário, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Grafia em base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
+| Primos | `isprime(n)`, `factors(n)`, … | `factors(360)` |
 | `bin(x)` / `oct(x)` / `hex(x)` | grafia com prefixo na base 2 / 8 / 16 | `hex(255)` | `0xff` |
 
 Combinam-se como tudo o resto:
@@ -639,6 +663,33 @@ min(sqrt(16), 5)
 ```text
 4
 ```
+
+As constantes físicas usam unidades SI, como as astronómicas da secção 1.16:
+
+| Nome | Significado | Valor |
+|---|---|---|
+| `G` | constante gravitacional de Newton | 6.6743e-11 |
+| `gamma` | constante de Euler-Mascheroni | 0.5772156649015329 |
+| `q_e` | carga elementar | 1.602176634e-19 |
+| `ev` | elétron-volt, em joules | 1.602176634e-19 |
+| `eps_0` | permissividade do vácuo | 8.8541878128e-12 |
+| `mu_0` | permeabilidade do vácuo | 1.25663706212e-6 |
+| `z_0` | impedância do vácuo | 376.730313668 |
+| `m_e` | massa do elétron | 9.1093837139e-31 |
+| `m_p` | massa do protão | 1.67262192595e-27 |
+| `m_n` | massa do neutrão | 1.67492750056e-27 |
+| `m_u` | unidade de massa atómica | 1.66053906892e-27 |
+| `a_0` | raio de Bohr | 5.29177210544e-11 |
+| `alpha` | constante de estrutura fina | 0.0072973525643 |
+| `r_inf` | constante de Rydberg | 10973731.568160 |
+| `mu_b` | magnéton de Bohr | 9.2740100783e-24 |
+| `n_a` | constante de Avogadro | 6.02214076e23 |
+| `faraday` | constante de Faraday, C/mol | 96485.33212 |
+| `r_gas` | constante molar dos gases | 8.31446261815324 |
+| `atm` | atmosfera padrão, em pascais | 101325 |
+| `wien` | constante de comprimento de onda de Wien | 0.002897771955 |
+| `phi_0` | quanto de fluxo magnético | 2.067833848e-15 |
+
 
 ### 1.14 Ler erros
 
@@ -686,6 +737,7 @@ conhece, para poder corrigir a sua expressão.
 | Somar, subtrair, multiplicar, dividir | `+ - * /` | `7 / 2` |
 | Potência | `^` (da direita para a esquerda) | `2 ^ 10` |
 | Fatorial | `!` (pós-fixo) | `5!` |
+| Porcentagem | `%` (pós-fixo) | `200 * (1 + 10%)` |
 | Parênteses | `( )` | `(2 + 3) * 4` |
 | Constantes | `pi`, `e`, `tau`, `phi` | `2 * pi` |
 | Notação científica | `2.5e-3` | `6.02e23` |
@@ -864,6 +916,8 @@ para o carregar no campo de entrada.
 O resultado aparece em texto grande por baixo do campo. Tudo o que está no
 capítulo 1 funciona aqui, incluindo variáveis, funções e scripts.
 
+Enquanto escreve um nome, aparece uma lista de sugestões por baixo do campo: as setas movem o realce, **Enter** ou **Tab** aceita, **Esc** fecha, e um clique aceita sem sair do teclado. Cada sugestão traz uma breve descrição da função ou constante. **F1** mostra a mesma descrição da palavra sob o cursor, na barra de dicas acima do teclado. Se o primeiro que escreve num campo vazio for um operador (`+ - * / ^ % !`), o epher insere `ans` por si, e a linha continua a partir da resposta anterior.
+
 ### 2.3 Histórico
 
 Cada cálculo é adicionado à lista de histórico por baixo do resultado, para
@@ -988,7 +1042,7 @@ graph a * x ^ 2
 
 **Copiar SVG** copia o gráfico atual como uma imagem SVG autossuficiente
 para colar em documentos. As cores vão embutidas, então ele fica igual
-em qualquer lugar. As linhas de controlos e as constantes animadas ficam
+em qualquer lugar. **Guardar PNG** guarda a mesma imagem como bitmap com o dobro do tamanho, para as curvas ficarem nítidas; a aplicação de Secretária pergunta onde guardá-la, e a do navegador guarda-a nas transferências (ou pergunta, onde o navegador o permite). As linhas de controlos e as constantes animadas ficam
 diretamente por baixo do gráfico, acima da lista de pontos de interesse.
 
 #### 2.4.4 Superfícies 3D
@@ -1396,6 +1450,7 @@ O ecrã está dividido em painéis:
 | **Shift+Enter** | começar uma nova linha |
 | **← → ↑ ↓** | mover o cursor (com a entrada vazia: rodar a vista 3D) |
 | **Esc** | limpar a linha de entrada |
+| **F1** | descrever a função sob o cursor (na linha de resultado) |
 | **Ctrl+C** | sair |
 | **q** | sair (quando a entrada está vazia) |
 | **Arrow keys** | rodar a vista 3D (quando a entrada está vazia) |
@@ -1409,7 +1464,7 @@ Os grupos do teclado cobrem todas as funções, constantes e comandos que
 a linguagem suporta: **trig**, **fn**, **num**, **0x** e **var**. O
 grupo 0x contém as conversões exatas e de base (`frac`, `dec`,
 `big`, `bin`, `oct`, `hex`) e o fatorial `!`. As setas movem
-o realce, **Enter** insere o token e a **Tab** troca de grupo.
+o realce, **Enter** insere o token e a **Tab** troca de grupo. Um operador no início de uma linha vazia (ou inserido pelo teclado) acrescenta `ans` antes, e a linha continua a partir da resposta anterior.
 
 ### 5.3 Gráficos
 

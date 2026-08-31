@@ -54,7 +54,7 @@ rule is called *operator precedence*.
 
 The full precedence order, from strongest to weakest:
 
-1. `!` factorial
+1. `!` factorial and `%` percent (both postfix)
 2. `^` power
 3. `*` and `/` multiplication and division
 4. `+` and `-` addition and subtraction
@@ -107,6 +107,18 @@ Subtraction and division work left-to-right:
 
 ```text
 5
+```
+
+The `%` sign is a postfix operator that means "divided by 100": `5%` is
+0.05. It never looks at the operators around it, so `200 + 10%` is
+200.1. To increase 200 by 10%, spell the multiplication:
+
+```epher
+200 * (1 + 10%)
+```
+
+```text
+220
 ```
 
 ### 1.3 The special numbers pi, e, tau and phi
@@ -603,6 +615,17 @@ Rounding, signs and whole numbers:
 | `gcd(a, b)` / `lcm(a, b)` | common divisors and multiples | `gcd(12, 18)` | `6` |
 | `mod(a, b)` | remainder | `mod(7, 3)` | `1` |
 
+Primes and divisors work on whole numbers:
+
+| Function | Meaning | Example | Result |
+|---|---|---|---|
+| `isprime(n)` | true when n is prime | `isprime(97)` | `true` |
+| `nextprime(n)` / `prevprime(n)` | nearest primes | `nextprime(10)` | `11` |
+| `factors(n)` | prime factorization | `factors(360)` | `2^3 * 3^2 * 5` |
+| `totient(n)` | Euler's totient | `totient(12)` | `4` |
+| `ndivisors(n)` | how many divisors | `ndivisors(360)` | `24` |
+| `modpow(b, e, m)` | b to the e, mod m, exactly | `modpow(2, 10, 1000)` | `24` |
+
 Statistics take any number of arguments:
 
 | Function | Meaning | Example | Result |
@@ -633,6 +656,33 @@ min(sqrt(16), 5)
 ```text
 4
 ```
+
+The physical constants use SI units, like the astronomy ones in section
+1.16:
+
+| Name | Meaning | Value |
+|---|---|---|
+| `G` | Newton's gravitational constant | 6.6743e-11 |
+| `gamma` | Euler-Mascheroni constant | 0.5772156649015329 |
+| `q_e` | elementary charge | 1.602176634e-19 |
+| `ev` | electronvolt, in joules | 1.602176634e-19 |
+| `eps_0` | vacuum permittivity | 8.8541878128e-12 |
+| `mu_0` | vacuum permeability | 1.25663706212e-6 |
+| `z_0` | impedance of free space | 376.730313668 |
+| `m_e` | mass of the electron | 9.1093837139e-31 |
+| `m_p` | mass of the proton | 1.67262192595e-27 |
+| `m_n` | mass of the neutron | 1.67492750056e-27 |
+| `m_u` | atomic mass unit | 1.66053906892e-27 |
+| `a_0` | Bohr radius | 5.29177210544e-11 |
+| `alpha` | fine-structure constant | 0.0072973525643 |
+| `r_inf` | Rydberg constant | 10973731.568160 |
+| `mu_b` | Bohr magneton | 9.2740100783e-24 |
+| `n_a` | Avogadro constant | 6.02214076e23 |
+| `faraday` | Faraday constant, C/mol | 96485.33212 |
+| `r_gas` | molar gas constant | 8.31446261815324 |
+| `atm` | standard atmosphere, in pascals | 101325 |
+| `wien` | Wien wavelength constant | 0.002897771955 |
+| `phi_0` | magnetic flux quantum | 2.067833848e-15 |
 
 ### 1.14 Reading errors
 
@@ -680,6 +730,7 @@ not know, so you can fix your expression.
 | Add, subtract, multiply, divide | `+ - * /` | `7 / 2` |
 | Power | `^` (right-to-left) | `2 ^ 10` |
 | Factorial | `!` (postfix) | `5!` |
+| Percent | `%` (postfix) | `200 * (1 + 10%)` |
 | Parentheses | `( )` | `(2 + 3) * 4` |
 | Constants | `pi`, `e`, `tau`, `phi` | `2 * pi` |
 | Scientific notation | `2.5e-3` | `6.02e23` |
@@ -696,6 +747,7 @@ not know, so you can fix your expression.
 | Exact whole number | `big(x)` | `big(10 ^ 20)` |
 | Binary, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Base spelling | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
+| Primes | `isprime(n)`, `factors(n)`, … | `factors(360)` |
 
 ### 1.16 Astronomy and the solar system
 
@@ -856,6 +908,15 @@ field.
 The result appears in large text below the field. Everything from chapter 1
 works here, including variables, functions, and scripts.
 
+While you type a name, a suggestion list appears beneath the field: the
+arrows move the highlight, **Enter** or **Tab** accepts, **Esc** closes,
+and a click accepts without leaving the keyboard. Each suggestion carries
+a short description of the function or constant. **F1** shows the same
+description for the word under the cursor in the hint bar above the
+keypad. If the first thing you type into an empty field is an operator
+(`+ - * / ^ % !`), epher inserts `ans` for you, so the line continues
+from the previous answer.
+
 ### 2.3 History
 
 Every calculation is added to the history list beneath the result, so you
@@ -979,7 +1040,10 @@ graph a * x ^ 2
 
 **Copy SVG** copies the current plot as a self-contained SVG image for
 pasting into documents. The colours are baked in, so it looks the same
-anywhere. The slider rows and any animated constants sit directly
+anywhere. **Save PNG** saves the same picture as a bitmap at twice its
+size, so curves stay crisp; the desktop app asks where to put it, the
+browser app saves it to your downloads (or asks, where the browser
+offers to). The slider rows and any animated constants sit directly
 beneath the plot, above the points-of-interest list.
 
 #### 2.4.4 3D surfaces
@@ -1369,6 +1433,7 @@ The screen is divided into panels:
 | **Shift+Enter** | start a new line |
 | **← → ↑ ↓** | move the cursor (with empty input: rotate the 3D graph) |
 | **Esc** | clear the input line |
+| **F1** | describe the function under the cursor (in the answer line) |
 | **Ctrl+C** | quit |
 | **q** | quit (when the input is empty) |
 | **Arrow keys** | rotate the 3D view (when the input is empty) |
@@ -1383,7 +1448,9 @@ language supports: **trig**, **fn**, **num**, **0x**, and **var**. The
 0x bank holds the exactness and base conversions (`frac`, `dec`,
 `big`, `bin`, `oct`, `hex`) and the factorial `!`. Arrow keys
 move the highlight, **Enter** inserts the token, and **Tab** cycles
-the banks.
+the banks. An operator typed into an empty line (or inserted from the
+keypad) adds `ans` first, so the line continues from the previous
+answer.
 
 ### 5.3 Graphing
 

@@ -17,7 +17,7 @@ use epher_core::graph::{
     analyze, free_names, parse_graph_source, sample_spec, CurveKind, CurveSpec, InterestPoint,
     SampledCurve,
 };
-use epher_core::{history_expression, Session, Value};
+use epher_core::{history_expression, CatalogKind, Session, Value};
 use epher_i18n::Localizer;
 use epher_shell::{classify, message, prepare};
 use std::cell::RefCell;
@@ -330,6 +330,8 @@ static TABS: &[TabDef] = &[
             key(",", KeyAction::Text(","), "op", "key-hint-comma"),
             key("0", KeyAction::Text("0"), "", ""),
             key(".", KeyAction::Text("."), "", ""),
+            // The percent key (ADR-0042): the transparent /100 suffix.
+            key("%", KeyAction::Text("%"), "op", "key-hint-percent"),
             // The newline key (ADR-0016 amendment): ans lives on the
             // pigreco tab, and a real newline in the entry is how
             // multi-line scripts are composed on touch.
@@ -752,6 +754,148 @@ fn platform_icon(class: &'static str, inner: &'static str) -> yew::Html {
 /// interests heading's copy button, and the graph pane's Copy SVG
 /// button (ADR-0040, which turned the toolbar's text labels into
 /// icons).
+/// One autocomplete suggestion (ADR-0042): a builtin, a user-defined
+/// function or constant, or a plain variable, with its localized hint
+/// when one exists.
+#[derive(Clone, PartialEq)]
+struct Suggestion {
+    name: String,
+    kind: CatalogKind,
+    hint: String,
+}
+
+/// The open state of the suggestion list: where the typed word starts in
+/// the entry, the caret it grew to, the matches, and the highlighted one.
+#[derive(Clone, PartialEq)]
+struct AutocompleteState {
+    word_start: usize,
+    caret: usize,
+    items: Vec<Suggestion>,
+    selected: usize,
+}
+
+/// The word being completed at `caret` in `value`: `Some((start, word))`
+/// when the caret sits at the end of a name-shaped run.
+fn word_at(value: &str, caret: usize) -> Option<(usize, String)> {
+    let caret = caret.min(value.len());
+    let head = &value[..caret];
+    if !head
+        .chars()
+        .next_back()
+        .is_some_and(|c| c.is_alphanumeric() || c == '_')
+    {
+        return None;
+    }
+    let start = head
+        .char_indices()
+        .rev()
+        .take_while(|(_, c)| c.is_alphanumeric() || *c == '_')
+        .last()
+        .map(|(i, _)| i)
+        .unwrap_or(caret);
+    Some((start, head[start..].to_string()))
+}
+
+/// Suggestions for the word ending at `caret`: prefix matches over the
+/// session's own names (which shadow) plus the builtin catalog, capped at
+/// eight and sorted. `None` when there is nothing to suggest.
+fn suggestions_for(
+    value: &str,
+    caret: usize,
+    session: &Session,
+    localizer: &Localizer,
+) -> Option<(usize, Vec<Suggestion>)> {
+    let (start, word) = word_at(value, caret)?;
+    let mut items: Vec<Suggestion> = Vec::new();
+    let mut push = |name: &str, kind: CatalogKind| {
+        if !name.starts_with(&word) || items.iter().any(|s| s.name == name) {
+            return;
+        }
+        let hint_key = format!("key-hint-{name}");
+        let hint = localizer.lookup(&hint_key);
+        let hint = if hint == hint_key {
+            String::new()
+        } else {
+            hint
+        };
+        items.push(Suggestion {
+            name: name.to_string(),
+            kind,
+            hint,
+        });
+    };
+    for name in session.def_sources().keys() {
+        push(name, CatalogKind::Function);
+    }
+    for name in session.const_sources().keys() {
+        push(name, CatalogKind::Constant);
+    }
+    for name in session.bindings().keys() {
+        if name != "ans" {
+            push(name, CatalogKind::Constant);
+        }
+    }
+    for entry in epher_core::catalog() {
+        push(entry.name, entry.kind);
+    }
+    items.sort_by(|a, b| a.name.cmp(&b.name));
+    items.truncate(8);
+    if items.is_empty() {
+        None
+    } else {
+        Some((start, items))
+    }
+}
+
+/// Apply a suggestion: replace the typed prefix with the full name
+/// (functions gain an open paren), and report the new value and caret.
+fn apply_suggestion(value: &str, state: &AutocompleteState, item: &Suggestion) -> (String, usize) {
+    let mut out = String::with_capacity(value.len() + item.name.len() + 1);
+    out.push_str(&value[..state.word_start]);
+    out.push_str(&item.name);
+    let mut caret = state.word_start + item.name.len();
+    if item.kind == CatalogKind::Function {
+        out.push('(');
+        caret += 1;
+    }
+    out.push_str(&value[state.caret.min(value.len())..]);
+    (out, caret)
+}
+
+/// Accept the suggestion at `selected`: splice it into the entry, put the
+/// caret after it, and close the list.
+fn accept_suggestion(
+    state: &AutocompleteState,
+    selected: usize,
+    input: &UseStateHandle<String>,
+    input_ref: &yew::NodeRef,
+    autocomplete: &UseStateHandle<Option<AutocompleteState>>,
+) {
+    let Some(item) = state.items.get(selected) else {
+        autocomplete.set(None);
+        return;
+    };
+    let (new_value, caret) = apply_suggestion(input, state, item);
+    input.set(new_value.clone());
+    autocomplete.set(None);
+    if let Some(ta) = input_ref.cast::<HtmlTextAreaElement>() {
+        ta.set_value(&new_value);
+        ta.set_selection_start(Some(caret as u32)).ok();
+        ta.set_selection_end(Some(caret as u32)).ok();
+    }
+}
+
+/// ADR-0042 auto-ans: an operator typed into an empty entry means
+/// "continue from the previous answer", so `ans` is inserted first
+/// (the SpeedCrunch/NumWorks behavior). Digits, names, and `(` start
+/// fresh expressions and never trigger it.
+fn wants_auto_ans(token: &str) -> bool {
+    matches!(
+        token.chars().next(),
+        Some('+' | '-' | '*' | '/' | '^' | '%' | '!')
+    )
+}
+
 fn copy_icon() -> yew::Html {
     if is_apple_platform() {
         platform_icon(
@@ -764,6 +908,16 @@ fn copy_icon() -> yew::Html {
             "<rect x=\"8\" y=\"8\" width=\"13\" height=\"13\" rx=\"1\"/><path d=\"M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3\"/>",
         )
     }
+}
+
+/// The Save PNG icon (ADR-0042): an arrow into a tray, the standard
+/// download mark; the name stays available through the aria-label and
+/// tooltip like the other icon buttons.
+fn download_icon() -> yew::Html {
+    platform_icon(
+        "icon-svg",
+        "<path d=\"M12 3v11\"/><path d=\"m7.5 9.5 4.5 4.5 4.5-4.5\"/><path d=\"M4.5 17.5V19a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5v-1.5\"/>",
+    )
 }
 
 /// The clear icon (ADR-0040): the graph pane's Clear button reads as a
@@ -826,6 +980,265 @@ fn share_icon() -> yew::Html {
             "<circle cx=\"18\" cy=\"5\" r=\"3\"/><circle cx=\"6\" cy=\"12\" r=\"3\"/><circle cx=\"18\" cy=\"19\" r=\"3\"/><path d=\"m8.6 13.5 6.8 4M15.4 6.5l-6.8 4\"/>",
         )
     }
+}
+
+/// Graph → Save PNG (ADR-0042): rasterize the exported SVG and save it
+/// through the same channels a script save uses - the desktop dialog
+/// over IPC, the browser's picker, else a plain download. Cancel stays
+/// silent, like any native app.
+fn save_png_with_dialog(
+    bridge: Bridge,
+    svg: String,
+    default_name: &str,
+    result: &UseStateHandle<String>,
+    localizer: &UseStateHandle<Localizer>,
+) {
+    let default_name = default_name.to_string();
+    let result = result.clone();
+    let localizer = localizer.clone();
+    spawn_local(async move {
+        let bytes = match rasterize_svg(&svg).await {
+            Ok(bytes) => bytes,
+            Err(_) => {
+                result.set(localizer.lookup("graph-png-failed"));
+                return;
+            }
+        };
+        if bridge == Bridge::Tauri {
+            match bridge.save_png_dialog(&bytes, &default_name).await {
+                Ok(Some(_)) => result.set(localizer.lookup("graph-png-saved")),
+                Ok(None) => {}
+                Err(_) => result.set(localizer.lookup("graph-png-failed")),
+            }
+        } else {
+            match browser_save_png_dialog(&default_name, &bytes).await {
+                Ok(Some(_)) => result.set(localizer.lookup("graph-png-saved")),
+                Ok(None) => {}
+                Err(_) => {
+                    download_png_file(&default_name, &bytes);
+                    result.set(localizer.lookup("graph-png-saved"));
+                }
+            }
+        }
+    });
+}
+
+/// Rasterize an SVG document to PNG bytes at twice its intrinsic size, so
+/// curves stay crisp next to text. A transparent background exports as
+/// transparency; a document that paints its own keeps it.
+async fn rasterize_svg(svg: &str) -> Result<Vec<u8>, String> {
+    let failed = || "png rasterization failed".to_string();
+    let window = web_sys::window().ok_or_else(failed)?;
+    let doc = window.document().ok_or_else(failed)?;
+    let svg_bag = web_sys::BlobPropertyBag::new();
+    svg_bag.set_type("image/svg+xml");
+    let svg_blob = web_sys::Blob::new_with_str_sequence_and_options(
+        &js_sys::Array::of1(&JsValue::from_str(svg)),
+        &svg_bag,
+    )
+    .map_err(|_| failed())?;
+    let url = web_sys::Url::create_object_url_with_blob(&svg_blob).map_err(|_| failed())?;
+    let img = web_sys::HtmlImageElement::new().map_err(|_| failed())?;
+    // the image's load event resolves the promise; an error rejects it
+    let promise = js_sys::Promise::new(&mut |resolve, reject| {
+        let onload = Closure::once(move |_: JsValue| {
+            let _ = resolve.call0(&JsValue::NULL);
+        });
+        let onerror = Closure::once(move |_: JsValue| {
+            let _ = reject.call0(&JsValue::NULL);
+        });
+        img.set_onload(Some(onload.as_ref().unchecked_ref()));
+        img.set_onerror(Some(onerror.as_ref().unchecked_ref()));
+        onload.forget();
+        onerror.forget();
+    });
+    img.set_src(&url);
+    if JsFuture::from(promise).await.is_err() {
+        let _ = web_sys::Url::revoke_object_url(&url);
+        return Err(failed());
+    }
+    let w = img.natural_width().max(1);
+    let h = img.natural_height().max(1);
+    let canvas = doc
+        .create_element("canvas")
+        .map_err(|_| failed())?
+        .dyn_into::<web_sys::HtmlCanvasElement>()
+        .map_err(|_| failed())?;
+    canvas.set_width(w * 2);
+    canvas.set_height(h * 2);
+    let ctx = canvas
+        .get_context("2d")
+        .map_err(|_| failed())?
+        .ok_or_else(failed)?
+        .dyn_into::<web_sys::CanvasRenderingContext2d>()
+        .map_err(|_| failed())?;
+    ctx.draw_image_with_html_image_element_and_dw_and_dh(
+        &img,
+        0.0,
+        0.0,
+        (w * 2) as f64,
+        (h * 2) as f64,
+    )
+    .map_err(|_| failed())?;
+    let _ = web_sys::Url::revoke_object_url(&url);
+    // to_blob is callback-based; wrap it in a promise
+    let promise = js_sys::Promise::new(&mut |resolve, reject| {
+        let cb = Closure::once(move |blob: Option<web_sys::Blob>| match blob {
+            Some(b) => {
+                let _ = resolve.call1(&JsValue::NULL, &b);
+            }
+            None => {
+                let _ = reject.call0(&JsValue::NULL);
+            }
+        });
+        let _ = canvas.to_blob(cb.as_ref().unchecked_ref());
+        cb.forget();
+    });
+    let blob: web_sys::Blob = JsFuture::from(promise)
+        .await
+        .map_err(|_| failed())?
+        .dyn_into()
+        .map_err(|_| failed())?;
+    let buffer = JsFuture::from(blob.array_buffer())
+        .await
+        .map_err(|_| failed())?;
+    Ok(js_sys::Uint8Array::new(&buffer).to_vec())
+}
+
+/// The browser's own save picker for a PNG (File System Access API,
+/// Chromium); mirrors [`browser_save_dialog`] for binary content.
+/// `Ok(None)` = cancelled; `Err` = no picker (fall back to a download).
+async fn browser_save_png_dialog(
+    default_name: &str,
+    bytes: &[u8],
+) -> Result<Option<String>, String> {
+    let window = web_sys::window().ok_or_else(|| "no window".to_string())?;
+    let unavailable = || "save picker unavailable".to_string();
+    let picker = js_sys::Reflect::get(&window, &JsValue::from_str("showSaveFilePicker"))
+        .map_err(|_| unavailable())?;
+    if !picker.is_function() {
+        return Err(unavailable());
+    }
+    let picker_fn = picker
+        .dyn_into::<js_sys::Function>()
+        .map_err(|_| unavailable())?;
+
+    let accept = js_sys::Object::new();
+    let extensions = js_sys::Array::new();
+    extensions.push(&JsValue::from_str(".png"));
+    js_sys::Reflect::set(&accept, &JsValue::from_str("image/png"), &extensions)
+        .map_err(|_| unavailable())?;
+    let type_entry = js_sys::Object::new();
+    js_sys::Reflect::set(
+        &type_entry,
+        &JsValue::from_str("description"),
+        &JsValue::from_str("PNG"),
+    )
+    .map_err(|_| unavailable())?;
+    js_sys::Reflect::set(&type_entry, &JsValue::from_str("accept"), &accept)
+        .map_err(|_| unavailable())?;
+    let types = js_sys::Array::new();
+    types.push(&type_entry);
+    let options = js_sys::Object::new();
+    js_sys::Reflect::set(
+        &options,
+        &JsValue::from_str("suggestedName"),
+        &JsValue::from_str(default_name),
+    )
+    .map_err(|_| unavailable())?;
+    js_sys::Reflect::set(&options, &JsValue::from_str("types"), &types)
+        .map_err(|_| unavailable())?;
+
+    let window_js: JsValue = window.into();
+    let promise = picker_fn
+        .call1(&window_js, &options)
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Promise>()
+        .map_err(|_| unavailable())?;
+    let handle = match JsFuture::from(promise).await {
+        Ok(handle) => handle,
+        Err(e) => {
+            let cancelled = e
+                .dyn_ref::<web_sys::DomException>()
+                .map(|de| de.name() == "AbortError")
+                .unwrap_or(false);
+            return if cancelled {
+                Ok(None)
+            } else {
+                Err(unavailable())
+            };
+        }
+    };
+    let name = js_sys::Reflect::get(&handle, &JsValue::from_str("name"))
+        .map(|v| v.as_string().unwrap_or_default())
+        .unwrap_or_default();
+    let writable = js_sys::Reflect::get(&handle, &JsValue::from_str("createWritable"))
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Function>()
+        .map_err(|_| unavailable())?
+        .call0(&handle)
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Promise>()
+        .map_err(|_| unavailable())?;
+    let writable = JsFuture::from(writable).await.map_err(|_| unavailable())?;
+    let write = js_sys::Reflect::get(&writable, &JsValue::from_str("write"))
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Function>()
+        .map_err(|_| unavailable())?;
+    let payload = js_sys::Uint8Array::from(bytes);
+    let write_promise = write
+        .call1(&writable, &payload)
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Promise>()
+        .map_err(|_| unavailable())?;
+    JsFuture::from(write_promise)
+        .await
+        .map_err(|_| unavailable())?;
+    let close = js_sys::Reflect::get(&writable, &JsValue::from_str("close"))
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Function>()
+        .map_err(|_| unavailable())?;
+    let close_promise = close
+        .call0(&writable)
+        .map_err(|_| unavailable())?
+        .dyn_into::<js_sys::Promise>()
+        .map_err(|_| unavailable())?;
+    JsFuture::from(close_promise)
+        .await
+        .map_err(|_| unavailable())?;
+    Ok(Some(name))
+}
+
+/// The plain-download fallback: a PNG blob handed to the browser's
+/// downloader through an anchor click.
+fn download_png_file(name: &str, bytes: &[u8]) {
+    let Some(doc) = web_sys::window().and_then(|w| w.document()) else {
+        return;
+    };
+    let Ok(blob) = web_sys::Blob::new_with_buffer_source_sequence(&js_sys::Array::of1(
+        &js_sys::Uint8Array::from(bytes).into(),
+    )) else {
+        return;
+    };
+    let Ok(url) = web_sys::Url::create_object_url_with_blob(&blob) else {
+        return;
+    };
+    if let Ok(anchor) = doc.create_element("a") {
+        let _ = anchor.set_attribute("href", &url);
+        let _ = anchor.set_attribute("download", name);
+        if let Some(body) = doc.body() {
+            let _ = body.append_child(&anchor);
+            if let Ok(a) = anchor.clone().dyn_into::<web_sys::HtmlAnchorElement>() {
+                a.click();
+            }
+            let _ = body.remove_child(&anchor);
+        }
+    }
+    // the browser has until the revoke timer below to start the download
+    spawn_local(async move {
+        gloo_timers::future::TimeoutFuture::new(10_000).await;
+        let _ = web_sys::Url::revoke_object_url(&url);
+    });
 }
 
 /// The share link for an expression (ADR-0038): this app's URL with the
@@ -2067,22 +2480,150 @@ fn epher_app() -> Html {
         })
     };
 
+    // The open suggestion list (ADR-0042), kept in step with the entry by
+    // on_input and driven from on_keydown.
+    let autocomplete = use_state(|| None::<AutocompleteState>);
+
     let on_input = {
         let input = input.clone();
+        let autocomplete = autocomplete.clone();
+        let session_live = session_live.clone();
+        let localizer = localizer.clone();
         Callback::from(move |e: InputEvent| {
             let target = e.target_unchecked_into::<HtmlTextAreaElement>();
-            input.set(target.value());
+            let value = target.value();
+            input.set(value.clone());
+            let caret = target.selection_start().ok().flatten().unwrap_or(0) as usize;
+            let next = {
+                let session = session_live.borrow();
+                suggestions_for(&value, caret, &session, &localizer)
+            }
+            .map(|(word_start, items)| AutocompleteState {
+                word_start,
+                caret,
+                items,
+                selected: 0,
+            });
+            autocomplete.set(next);
         })
     };
 
     // Enter submits (the textarea's own Enter would insert a newline);
     // Shift+Enter inserts a newline so multi-line scripts can be composed
     // by hand. Submitting goes through the form so the `=` button and the
-    // keyboard share one path.
+    // keyboard share one path. When the suggestion list is open (ADR-0042)
+    // the arrows and Tab navigate/accept it first, and Enter accepts the
+    // highlighted suggestion instead of submitting. F1 shows the function
+    // help for the word under the cursor in the hint bar, and an operator
+    // typed into an empty entry auto-inserts `ans` (ADR-0042).
     let on_keydown = {
         let form_ref = form_ref.clone();
+        let input = input.clone();
+        let input_ref = input_ref.clone();
+        let autocomplete = autocomplete.clone();
+        let key_hint_bar = key_hint_bar.clone();
+        let localizer = localizer.clone();
         Callback::from(move |e: web_sys::KeyboardEvent| {
-            if e.key() == "Enter" && !e.shift_key() && !e.is_composing() {
+            let key = e.key();
+            if key == "F1" && !e.ctrl_key() && !e.alt_key() && !e.meta_key() {
+                e.prevent_default();
+                let Some(ta) = input_ref.cast::<HtmlTextAreaElement>() else {
+                    return;
+                };
+                let value = ta.value();
+                let caret =
+                    (ta.selection_start().ok().flatten().unwrap_or(0) as usize).min(value.len());
+                match word_at(&value, caret) {
+                    Some((_, word)) => {
+                        let hint_key = format!("key-hint-{word}");
+                        let hint = localizer.lookup(&hint_key);
+                        if hint == hint_key {
+                            key_hint_bar.set(localizer.lookup("help-no-description"));
+                        } else {
+                            key_hint_bar.set(format!("{word}: {hint}"));
+                        }
+                    }
+                    None => key_hint_bar.set(localizer.lookup("help-no-description")),
+                }
+                return;
+            }
+            let value = (*input).clone();
+            // auto-ans (ADR-0042): an operator typed into an empty entry
+            // continues from the previous answer.
+            if value.is_empty()
+                && key.chars().count() == 1
+                && wants_auto_ans(&key)
+                && !e.ctrl_key()
+                && !e.alt_key()
+                && !e.meta_key()
+            {
+                e.prevent_default();
+                let spliced = format!("ans{key}");
+                input.set(spliced.clone());
+                if let Some(ta) = input_ref.cast::<HtmlTextAreaElement>() {
+                    ta.set_value(&spliced);
+                    ta.set_selection_start(Some(4)).ok();
+                    ta.set_selection_end(Some(4)).ok();
+                }
+                return;
+            }
+            // the suggestion list steers the keys while it is open
+            let mut fall_through_to_submit = false;
+            if let Some(ac) = (*autocomplete).clone() {
+                match key.as_str() {
+                    "ArrowDown" if !e.shift_key() => {
+                        e.prevent_default();
+                        let n = ac.items.len().max(1);
+                        autocomplete.set(Some(AutocompleteState {
+                            selected: (ac.selected + 1) % n,
+                            ..ac.clone()
+                        }));
+                    }
+                    "ArrowUp" if !e.shift_key() => {
+                        e.prevent_default();
+                        let n = ac.items.len().max(1);
+                        autocomplete.set(Some(AutocompleteState {
+                            selected: (ac.selected + n - 1) % n,
+                            ..ac.clone()
+                        }));
+                    }
+                    "Tab" if !e.shift_key() => {
+                        e.prevent_default();
+                        accept_suggestion(&ac, ac.selected, &input, &input_ref, &autocomplete);
+                    }
+                    "Enter" if !e.shift_key() && !e.is_composing() => {
+                        // Enter accepts the highlighted suggestion when that
+                        // changes the entry (functions gain their paren); a
+                        // fully typed constant accepts as a no-op, so Enter
+                        // falls through and evaluates - typing `pi` and
+                        // pressing Enter must not feel like a dead key.
+                        let changes = ac
+                            .items
+                            .get(ac.selected)
+                            .map(|item| apply_suggestion(&value, &ac, item).0 != value)
+                            .unwrap_or(false);
+                        e.prevent_default();
+                        if changes {
+                            accept_suggestion(&ac, ac.selected, &input, &input_ref, &autocomplete);
+                        } else {
+                            autocomplete.set(None);
+                            fall_through_to_submit = true;
+                        }
+                    }
+                    "Escape" => {
+                        autocomplete.set(None);
+                    }
+                    _ => {}
+                }
+                if matches!(
+                    key.as_str(),
+                    "Tab" | "Enter" | "ArrowDown" | "ArrowUp" | "Escape"
+                ) && !fall_through_to_submit
+                {
+                    return;
+                }
+            }
+            if key == "Enter" && !e.shift_key() && !e.is_composing() {
                 e.prevent_default();
                 if let Some(form) = form_ref.cast::<web_sys::HtmlFormElement>() {
                     let _ = form.request_submit();
@@ -3060,6 +3601,65 @@ fn epher_app() -> Html {
         })
     };
 
+    // Save PNG (ADR-0042): the same document Copy SVG produces, rasterized
+    // at twice its size so curves stay crisp, and saved through the same
+    // flow a script save uses - the desktop dialog over IPC, the browser's
+    // picker, else a plain download.
+    let on_save_png = {
+        let curves = graph.clone();
+        let pois = pois.clone();
+        let hidden = hidden.clone();
+        let trace = trace.clone();
+        let poi_markers = poi_markers.clone();
+        let width_2d = width_2d.clone();
+        let width_3d = width_3d.clone();
+        let surface = surface.clone();
+        let solar = solar.clone();
+        let view = view.clone();
+        let view_h = view_h.clone();
+        let view_v = view_v.clone();
+        let view_z = view_z.clone();
+        let spin_phase = spin_phase.clone();
+        let result = result.clone();
+        let localizer = localizer.clone();
+        Callback::from(move |_| {
+            // Exactly the Copy SVG export (ADR-0015 amendment): what the
+            // pane shows is what saves.
+            let visible: Vec<(usize, epher_core::graph::SampledCurve)> = (*curves)
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| !(*hidden).get(*i).copied().unwrap_or(false))
+                .map(|(i, c)| (i, c.clone()))
+                .collect();
+            let pois_visible: Vec<graph::Poi> = (*pois)
+                .iter()
+                .filter(|p| !(*hidden).get(p.curve).copied().unwrap_or(false))
+                .cloned()
+                .collect();
+            let svg = if !visible.is_empty() {
+                graph::graph_svg_indexed(&visible, &pois_visible, *trace, *poi_markers, *width_2d)
+            } else if let Some(scene) = (*solar).as_ref() {
+                graph::solar3d_doc(
+                    scene,
+                    &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
+                    *width_3d,
+                )
+                .unwrap_or_default()
+            } else {
+                graph::graph3d_svg(
+                    &surface,
+                    &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
+                    *width_3d,
+                )
+                .unwrap_or_default()
+            };
+            if svg.is_empty() {
+                return;
+            }
+            save_png_with_dialog(bridge, svg, "epher-plot.png", &result, &localizer);
+        })
+    };
+
     // Zoom the 2D plot (ADR-0038): a wheel notch, a pinch, or the zoom
     // slider lands here. Cartesian curves re-sample over the new window
     // (param and polar keep their parameter samples - the view clips
@@ -3302,10 +3902,19 @@ fn epher_app() -> Html {
                 KeyAction::Text(t) => {
                     let mut v = (*input).clone();
                     let (s, e) = cursor(&v);
-                    v.replace_range(s..e, t);
+                    // ADR-0042 auto-ans: an operator on an empty entry
+                    // continues from the previous answer.
+                    let owned;
+                    let token: &str = if v.is_empty() && wants_auto_ans(t) {
+                        owned = format!("ans{t}");
+                        &owned
+                    } else {
+                        t
+                    };
+                    v.replace_range(s..e, token);
                     input.set(v.clone());
                     ta.set_value(&v);
-                    let pos = s + t.len();
+                    let pos = s + token.len();
                     ta.set_selection_start(Some(pos as u32)).ok();
                     ta.set_selection_end(Some(pos as u32)).ok();
                     new_cursor = (pos, pos);
@@ -4287,7 +4896,75 @@ fn epher_app() -> Html {
                             aria-label="expression"
                             aria-invalid={if is_error { "true" } else { "false" }}
                             aria-describedby={if is_error { "epher-result" } else { "" }}
+                            aria-controls={if autocomplete.is_some() { "epher-autocomplete" } else { "" }}
+                            aria-activedescendant={(*autocomplete)
+                                .as_ref()
+                                .map(|ac| format!("epher-ac-{}", ac.selected))
+                                .unwrap_or_default()}
                         />
+                        {
+                            // The suggestion list (ADR-0042): a combobox under
+                            // the entry. Focus never leaves the textarea - the
+                            // arrows move the highlight, Enter/Tab accept,
+                            // Escape closes, and a click accepts without
+                            // stealing focus (the mousedown is suppressed for
+                            // that reason). It lives inside the form so the
+                            // CSS can anchor it just below the entry.
+                            if let Some(ac) = (*autocomplete).clone() {
+                                html! {
+                                    <ul
+                                        class="autocomplete"
+                                        id="epher-autocomplete"
+                                        role="listbox"
+                                        aria-label={localizer.lookup("autocomplete-label")}
+                                    >
+                                        { for ac.items.iter().enumerate().map(|(i, item)| {
+                                            let selected = i == ac.selected;
+                                            let item_name = item.name.clone();
+                                            let autocomplete_for_click = autocomplete.clone();
+                                            let input_for_click = input.clone();
+                                            let input_ref_for_click = input_ref.clone();
+                                            let on_pick = Callback::from(move |e: MouseEvent| {
+                                                e.prevent_default();
+                                                if let Some(state) = (*autocomplete_for_click).clone() {
+                                                    accept_suggestion(
+                                                        &state,
+                                                        state
+                                                            .items
+                                                            .iter()
+                                                            .position(|s| s.name == item_name)
+                                                            .unwrap_or(state.selected),
+                                                        &input_for_click,
+                                                        &input_ref_for_click,
+                                                        &autocomplete_for_click,
+                                                    );
+                                                }
+                                            });
+                                            html! {
+                                                <li
+                                                    key={item.name.clone()}
+                                                    id={format!("epher-ac-{i}")}
+                                                    role="option"
+                                                    class={if selected { "selected" } else { "" }}
+                                                    aria-selected={selected.to_string()}
+                                                    onmousedown={Callback::from(
+                                                        |e: MouseEvent| e.prevent_default(),
+                                                    )}
+                                                    onclick={on_pick}
+                                                >
+                                                    <span class="ac-name">{ item.name.clone() }</span>
+                                                    if !item.hint.is_empty() {
+                                                        <span class="ac-hint">{ item.hint.clone() }</span>
+                                                    }
+                                                </li>
+                                            }
+                                        }) }
+                                    </ul>
+                                }
+                            } else {
+                                html! {}
+                            }
+                        }
                     </form>
                     <div class="answer">
                         <span class="visually-hidden" id="answer-label">
@@ -4569,6 +5246,18 @@ fn epher_app() -> Html {
                                         onclick={on_copy_svg}
                                     >
                                         { copy_icon() }
+                                    </button>
+                                    // Save PNG (ADR-0042): the same document Copy
+                                    // SVG produces, rasterized and saved through
+                                    // the platform's save flow.
+                                    <button
+                                        type="button"
+                                        class="icon-btn"
+                                        title={localizer.lookup("graph-save-png")}
+                                        aria-label={localizer.lookup("graph-save-png")}
+                                        onclick={on_save_png.clone()}
+                                    >
+                                        { download_icon() }
                                     </button>
                                     // The graph options row (ADR-0020, ADR-0025):
                                     // the two points-of-interest toggles

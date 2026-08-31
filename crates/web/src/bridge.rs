@@ -187,6 +187,29 @@ impl Bridge {
         serde_wasm_bindgen::from_value::<Option<String>>(value).map_err(|e| e.to_string())
     }
 
+    /// File → Save PNG (ADR-0042): the desktop save dialog for the
+    /// rasterized plot bytes, exactly like [`Self::save_file_dialog`] for
+    /// text. `None` = the user cancelled (the UI stays silent).
+    pub async fn save_png_dialog(
+        self,
+        data: &[u8],
+        default_name: &str,
+    ) -> Result<Option<String>, String> {
+        let args = serde_wasm_bindgen::to_value(&SavePngArgs {
+            data: data.to_vec(),
+            default_name,
+        })
+        .map_err(|e| e.to_string())?;
+        let value = self
+            .invoke("save_png_dialog", &args)
+            .await
+            .map_err(js_err)?;
+        if value.is_null() || value.is_undefined() {
+            return Ok(None);
+        }
+        serde_wasm_bindgen::from_value::<Option<String>>(value).map_err(|e| e.to_string())
+    }
+
     /// Can this desktop shell install the `epher` terminal command?
     /// (macOS only, ADR-0011.) The UI asks at startup.
     pub async fn cli_install_supported(self) -> Result<bool, String> {
@@ -246,6 +269,13 @@ struct SaveArgs<'a> {
 #[serde(rename_all = "camelCase")]
 struct SaveFileArgs<'a> {
     content: &'a str,
+    default_name: &'a str,
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SavePngArgs<'a> {
+    data: Vec<u8>,
     default_name: &'a str,
 }
 

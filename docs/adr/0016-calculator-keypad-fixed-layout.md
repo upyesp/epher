@@ -124,3 +124,11 @@ Two rounds of use reshaped the banks (ADR-0038 amendment):
   Clear graph and the history list's focus. The two words remain
   language commands (the TUI submit path and `epher-cli -` still honor
   them); they are just not on the keypad.
+
+## Amendment (2026-08-31): a percent key completes the digits grid (ADR-0042)
+
+The digits tab gains a `%` key between `.` and the newline key, and the
+TUI's digits bank takes the same seat, making that bank a true 5x5
+instead of a ragged last row. The key inserts the language's `%` token -
+the transparent /100 suffix - and inherits the auto-ans rule: on an
+empty entry it inserts `ans%`. No other key moves.

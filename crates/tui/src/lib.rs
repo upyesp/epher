@@ -247,8 +247,15 @@ const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
             &[("1", "1"), ("2", "2"), ("3", "3"), (";", ";"), (",", ",")],
             // The newline key (ADR-0016 amendment): ans lives on the
             // var bank, and a real newline in the entry is how
-            // multi-line scripts are composed at the keypad.
-            &[("0", "0"), (".", "."), ("\u{23CE}", "\n"), ("=", "")],
+            // multi-line scripts are composed at the keypad. The %
+            // key (ADR-0042) joins the last row as on the web.
+            &[
+                ("0", "0"),
+                (".", "."),
+                ("%", "%"),
+                ("\u{23CE}", "\n"),
+                ("=", ""),
+            ],
         ],
     ),
     (
@@ -418,6 +425,7 @@ pub fn keypad_hint_key(disp: &str) -> Option<&'static str> {
     match disp {
         // digits bank: glyphs and actions
         "C" => named("key-hint-clear"),
+        "%" => named("key-hint-percent"),
         "\u{232b}" => named("key-hint-backspace"),
         "(" => named("key-hint-lpar"),
         ")" => named("key-hint-rpar"),
@@ -1242,9 +1250,36 @@ impl App {
     /// the keypad's token insert, and Shift+Enter's newline all land at
     /// the insertion point, which moves past what was inserted.
     pub fn push_char(&mut self, c: char) {
+        // ADR-0042 auto-ans: an operator typed into an empty entry means
+        // "continue from the previous answer" - `ans` goes in first.
+        if self.input.is_empty() && matches!(c, '+' | '-' | '*' | '/' | '^' | '%' | '!') {
+            self.input.push_str("ans");
+            self.cursor = self.input.len();
+        }
         let at = self.cursor();
         self.input.insert(at, c);
         self.cursor = at + c.len_utf8();
+    }
+
+    /// The word ending at the caret, for F1 help (ADR-0042).
+    pub fn word_before_cursor(&self) -> &str {
+        let at = self.cursor().min(self.input.len());
+        let head = &self.input[..at];
+        if !head
+            .chars()
+            .next_back()
+            .is_some_and(|c| c.is_alphanumeric() || c == '_')
+        {
+            return "";
+        }
+        let start = head
+            .char_indices()
+            .rev()
+            .take_while(|(_, c)| c.is_alphanumeric() || *c == '_')
+            .last()
+            .map(|(i, _)| i)
+            .unwrap_or(at);
+        &head[start..]
     }
 
     /// Delete the character before the cursor; a selected range is not
@@ -2687,6 +2722,24 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         KeyCode::Backspace => {
                             app.history_close();
                             app.pop_char();
+                        }
+                        // F1 (ADR-0042): function help for the word before
+                        // the caret, into the answer line - the next
+                        // submission replaces it.
+                        KeyCode::F(1)
+                            if app.prompt_active().is_none()
+                                && app.menu_active().is_none()
+                                && !app.keypad_focused()
+                                && !app.history_focused() =>
+                        {
+                            let word = app.word_before_cursor().to_string();
+                            let hint_key = format!("key-hint-{word}");
+                            let hint = localizer.lookup(&hint_key);
+                            if word.is_empty() || hint == hint_key {
+                                app.set_result(&localizer.lookup("help-no-description"));
+                            } else {
+                                app.set_result(&format!("{word}: {hint}"));
+                            }
                         }
                         KeyCode::Esc => app.clear_input(),
                         _ => {}

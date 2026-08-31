@@ -66,6 +66,18 @@ the space bar (TUI). Always user-started, one control to pause; reduced
 motion degrades it to stepping (ADR-0015).
 _Avoid_: movie, animated plot, time series
 
+**Percent**:
+The postfix `%` operator: a transparent "divided by 100", baked into the
+grammar and blind to surrounding operators - `200 + 10%` is 200.1
+(ADR-0042).
+_Avoid_: add-on percent, percentage-of
+
+**Suggestion**:
+A prefix match offered while typing a name in the web/desktop entry: the
+session's own functions, Constants, and variables first, then the builtin
+catalog, each carrying its key hint (ADR-0042).
+_Avoid_: autocomplete item, prediction, snippet
+
 ### Astronomy
 
 **Unit literal**:

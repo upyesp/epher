@@ -541,22 +541,34 @@ fn keypad_digits_bank_mirrors_the_web_tab() {
         flats,
         [
             "C", "⌫", "(", ")", "÷", "7", "8", "9", "×", "−", "4", "5", "6", "+", "^", "1", "2",
-            "3", ";", ",", "0", ".", "\u{23CE}", "="
+            "3", ";", ",", "0", ".", "%", "\u{23CE}", "="
         ]
     );
     // The newline key inserts a real newline (ADR-0016 amendment): the
     // entry composes multi-line scripts, and submit splits on them.
-    app.keypad_set(4, 2);
+    app.keypad_set(4, 3);
     app.keypad_insert();
     assert_eq!(app.input(), "\n");
+    app.clear_input();
+    // % is the transparent /100 suffix (ADR-0042), and on an empty entry
+    // the auto-ans kicks in: an operator continues from the answer.
+    app.keypad_set(4, 2);
+    app.keypad_insert();
+    assert_eq!(app.input(), "ans%");
     app.clear_input();
     // ÷/×/− display the glyphs but insert the language's ASCII tokens.
     assert_eq!(digits[0][4].1, "/");
     assert_eq!(digits[1][3].1, "*");
     assert_eq!(digits[1][4].1, "-");
+    // ÷ on an empty entry continues from the answer (ADR-0042 auto-ans).
     app.keypad_set(0, 4);
     app.keypad_insert();
-    assert_eq!(app.input(), "/");
+    assert_eq!(app.input(), "ans/");
+    app.clear_input();
+    app.push_char('x');
+    app.keypad_set(0, 4);
+    app.keypad_insert();
+    assert_eq!(app.input(), "x/");
     // "=" marks the submit; C and ⌫ act, not insert.
     app.keypad_set(4, 4);
     assert!(app.keypad_is_submit());
@@ -573,7 +585,7 @@ fn keypad_move_wraps_around_edges() {
     assert_eq!(app.keypad_col(), 4);
     app.keypad_move(-1, 0); // from row 0 → the digits bank's last row
     assert_eq!(app.keypad_row(), 4);
-    assert_eq!(app.keypad_col(), 3, "clamped to the ragged row's length");
+    assert_eq!(app.keypad_col(), 4, "kept: the last row is a full 5 now");
     app.keypad_move(1, 0); // wraps back to row 0
     assert_eq!(app.keypad_row(), 0);
 }

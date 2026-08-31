@@ -259,3 +259,39 @@ tui-key-help-hint = Arrows scroll · q or Esc closes
 
 # Script loading (ADR-0040)
 load-failed = One or more lines of the script failed.
+
+# Percentage, number theory, and physical constants (ADR-0042)
+key-hint-percent = Percentage: 5% is 0.05
+key-hint-isprime = True when n is prime
+key-hint-nextprime = Smallest prime greater than n
+key-hint-prevprime = Largest prime below n
+key-hint-modpow = b to the e power, mod m, exactly
+key-hint-totient = Euler's totient of n
+key-hint-ndivisors = How many divisors n has
+key-hint-factors = Prime factorization of n
+key-hint-G = Newton's gravitational constant
+key-hint-gamma = Euler-Mascheroni constant, about 0.5772
+key-hint-q_e = Elementary charge, in coulombs
+key-hint-ev = Electronvolt, in joules
+key-hint-eps_0 = Vacuum permittivity
+key-hint-mu_0 = Vacuum permeability
+key-hint-z_0 = Impedance of free space
+key-hint-m_e = Mass of the electron
+key-hint-m_p = Mass of the proton
+key-hint-m_n = Mass of the neutron
+key-hint-m_u = Atomic mass unit
+key-hint-a_0 = Bohr radius
+key-hint-alpha = Fine-structure constant
+key-hint-r_inf = Rydberg constant
+key-hint-mu_b = Bohr magneton
+key-hint-n_a = Avogadro constant
+key-hint-faraday = Faraday constant, C/mol
+key-hint-r_gas = Molar gas constant
+key-hint-atm = Standard atmosphere, in pascals
+key-hint-wien = Wien wavelength constant
+key-hint-phi_0 = Magnetic flux quantum
+graph-save-png = Save PNG
+graph-png-saved = PNG saved
+graph-png-failed = Couldn't save the PNG
+autocomplete-label = Suggestions
+help-no-description = No description, see the user guide

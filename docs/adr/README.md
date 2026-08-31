@@ -66,6 +66,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0039 | A fixed-height keypad with scrolling, and a meaning for every key | 2026-08-30 | accepted |
 | 0040 | PHP-style comments, a roomier graph, script files for the CLI and REPL, a fuller share, and a legend that never leaves | 2026-08-31 | accepted |
 | 0041 | The history trash, tuning strips above the plot, and a frame that holds still | 2026-08-31 | accepted |
+| 0042 | Percent, the constants catalog, number theory, suggestions with F1, and PNG export | 2026-08-31 | accepted |
 
 ## Decision chains
 
@@ -94,7 +95,7 @@ at the end of the chain.
   **0039 (every tab is the digits tab's height and longer banks scroll;
   every key speaks a localized hint through aria-labels, the docked
   hint bar, the touch captions toggle, and the TUI's `?` key-help
-  overlay)**.
+  overlay)**. → **0042 (the hints suggest and answer F1)**
 - **History** — 0021 (`ans`) → 0025 (open-history replaces) → 0027
   (clickable history) → 0030 (`;` scripts as one entry) → **0027
   amendment (multi-line scripts as one item, picked whole, visible
@@ -119,11 +120,11 @@ at the end of the chain.
   empty framed plot with the legend intact)**.
 - **History** - 0021 (`ans`) → 0025 → 0027 → 0030 → **0038 (share icon
   on every item, `?expr=` links stage the entry; `clear`/`history`
-  keypad keys finally run)**.
+  keypad keys finally run)**. → **0042 (auto-ans on an empty entry)**
 - **In-app guide** - 0018 → 0018 amendment (ToC) → **0038 (search box
   with chapter + snippet hits)**.
 - **Script language** - 0001 (one grammar) → 0037 (unit suffixes) →
-  **0040 (PHP-style comments: `//`, `#`, and `/* ... */`)**.
+  **0040 (PHP-style comments: `//`, `#`, and `/* ... */`)** → **0042 (percent, physics constants, number theory)**
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.

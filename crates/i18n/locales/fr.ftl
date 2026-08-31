@@ -260,3 +260,39 @@ tui-key-help-hint = Flèches font défiler · q ou Esc ferme
 
 # Script loading (ADR-0040)
 load-failed = Une ou plusieurs lignes du script ont échoué.
+
+# Pourcentage, théorie des nombres et constantes physiques (ADR-0042)
+key-hint-percent = Pourcentage : 5% vaut 0,05
+key-hint-isprime = Vrai quand n est premier
+key-hint-nextprime = Plus petit premier supérieur à n
+key-hint-prevprime = Plus grand premier inférieur à n
+key-hint-modpow = b puissance e, modulo m, exact
+key-hint-totient = Indicatrice d'Euler de n
+key-hint-ndivisors = Nombre de diviseurs de n
+key-hint-factors = Décomposition en facteurs premiers de n
+key-hint-G = Constante gravitationnelle de Newton
+key-hint-gamma = Constante d'Euler-Mascheroni, environ 0,5772
+key-hint-q_e = Charge élémentaire, en coulombs
+key-hint-ev = Électronvolt, en joules
+key-hint-eps_0 = Permitivité du vide
+key-hint-mu_0 = Perméabilité du vide
+key-hint-z_0 = Impédance du vide
+key-hint-m_e = Masse de l'électron
+key-hint-m_p = Masse du proton
+key-hint-m_n = Masse du neutron
+key-hint-m_u = Unité de masse atomique
+key-hint-a_0 = Rayon de Bohr
+key-hint-alpha = Constante de structure fine
+key-hint-r_inf = Constante de Rydberg
+key-hint-mu_b = Magnéton de Bohr
+key-hint-n_a = Constante d'Avogadro
+key-hint-faraday = Constante de Faraday, C/mol
+key-hint-r_gas = Constante molaire des gaz
+key-hint-atm = Atmosphère standard, en pascals
+key-hint-wien = Constante de longueur d'onde de Wien
+key-hint-phi_0 = Quantum de flux magnétique
+graph-save-png = Enregistrer le PNG
+graph-png-saved = PNG enregistré
+graph-png-failed = Impossible d'enregistrer le PNG
+autocomplete-label = Suggestions
+help-no-description = Pas de description, voir le guide de l'utilisateur

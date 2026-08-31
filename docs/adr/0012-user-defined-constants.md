@@ -49,3 +49,13 @@ re-stated. Re-declaring a constant with the value it already has now
 succeeds as a no-op; a different value keeps the documented error,
 and the guide's tax demo (0.2 then 0.25) still shows it. Constants
 still never take a variable's name.
+
+## Amendment (2026-08-31): the built-in constants grow a physics shelf (ADR-0042)
+
+The constants catalog now carries twenty-one CODATA 2022 physical
+constants alongside the astronomy shelf (ADR-0037). Nothing about the
+resolution order changes: a user variable wins, then a user constant,
+then the built-in - so `const g = 9.81` still shadows the standard
+gravity, and every new name (`G`, `q_e`, `n_a`, ...) is shadowable the
+same way. `const` redefinition of a built-in name keeps erroring with
+the existing "already defined" voice.

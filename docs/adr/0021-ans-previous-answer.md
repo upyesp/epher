@@ -60,3 +60,12 @@ open frontend also **receives** the snapshot: `x = 5` typed in the TUI
 updates `ans` and the variables in an already-open desktop app on the
 next store write, and vice versa. Desktop-only, like the persistence
 itself; the PWA remains session-only.
+
+## Amendment (2026-08-31): auto-ans on an empty entry (ADR-0042)
+
+An operator typed into an empty entry - physically or from the keypad,
+in the web app, the desktop app, and the TUI - inserts `ans` first, so
+`* 2` on an empty line becomes `ans * 2`. The rule is character-level
+and blind to context: `+ - * / ^ % !` continue from the previous
+answer, digits, names, and `(` start fresh. The CLI's piped and
+one-shot modes never touch it (a script's `-1` must stay `-1`).

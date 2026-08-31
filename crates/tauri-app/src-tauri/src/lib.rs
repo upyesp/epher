@@ -217,6 +217,35 @@ async fn save_file_dialog(
     Ok(Some(path.display().to_string()))
 }
 
+/// Save PNG (ADR-0042): the same save dialog as [`save_file_dialog`], for
+/// the rasterized plot bytes. Async + spawn_blocking keeps the dialog off
+/// the main thread (ADR-0027) for the same reasons.
+#[tauri::command]
+async fn save_png_dialog(
+    app: tauri::AppHandle,
+    data: Vec<u8>,
+    default_name: String,
+) -> Result<Option<String>, String> {
+    let path = tauri::async_runtime::spawn_blocking(move || {
+        use tauri_plugin_dialog::DialogExt;
+        let mut builder = app.dialog().file();
+        if let Some(window) = app.get_webview_window("main") {
+            builder = builder.set_parent(&window);
+        }
+        builder.set_file_name(&default_name).blocking_save_file()
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+    let Some(path) = path else {
+        return Ok(None);
+    };
+    let path = path
+        .into_path()
+        .map_err(|_| "the chosen location is not a local file".to_string())?;
+    std::fs::write(&path, data).map_err(|e| e.to_string())?;
+    Ok(Some(path.display().to_string()))
+}
+
 /// Can this shell install the `epher` terminal command? (macOS app bundle
 /// only — see cli_install.) The webview asks at startup to decide whether
 /// to show the button.
@@ -258,6 +287,7 @@ pub fn run() {
             cli_install_supported,
             install_cli,
             save_file_dialog,
+            save_png_dialog,
             quit
         ])
         .setup(|app| {

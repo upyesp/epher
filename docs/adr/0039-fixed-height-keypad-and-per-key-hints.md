@@ -84,3 +84,12 @@ offset.
 - Unit suffixes that repeat a constant's token (`pc`, `ly`, `AU`) get
   distinct hint messages (`key-hint-pc` vs `key-hint-u-pc`), so the two
   buttons no longer sound identical to a screen reader.
+
+## Amendment (2026-08-31): the hints learn to suggest and to answer F1 (ADR-0042)
+
+The same `key-hint-*` messages now surface in two new places. The web
+entry's suggestion list carries each matching function's or constant's
+hint beside its name, and F1 (word under the cursor) prints the hint in
+the bar above the keypad on the web and in the TUI's answer line. Names
+without a hint suggest bare and F1 says so in plain words; the
+every-locale parity test still guards every hint that exists.

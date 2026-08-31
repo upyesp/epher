@@ -259,3 +259,39 @@ tui-key-help-hint = الأسهم تمرر · q أو Esc يغلق
 
 # Script loading (ADR-0040)
 load-failed = فشل سطر واحد أو أكثر من السكربت.
+
+# النسبة المئوية ونظرية الأعداد والثوابت الفيزيائية (ADR-0042)
+key-hint-percent = النسبة المئوية: 5% تعني 0.05
+key-hint-isprime = صحيح إذا كان n أوليًا
+key-hint-nextprime = أصغر عدد أولي أكبر من n
+key-hint-prevprime = أكبر عدد أولي أصغر من n
+key-hint-modpow = b مرفوعًا للأس e، والباقي قسمة m، بدقة
+key-hint-totient = دالة أويلر لـ n
+key-hint-ndivisors = عدد قواسم n
+key-hint-factors = تحليل n إلى عوامل أولية
+key-hint-G = ثابت الجذب النيوتوني
+key-hint-gamma = ثابت أويلر-ماسكيروني، نحو 0.5772
+key-hint-q_e = الشحنة الأولية بالكولوم
+key-hint-ev = إلكترون فولت بالجول
+key-hint-eps_0 = سماحية الفراغ
+key-hint-mu_0 = نفاذية الفراغ المغناطيسية
+key-hint-z_0 = معاوقة الفراغ
+key-hint-m_e = كتلة الإلكترون
+key-hint-m_p = كتلة البروتون
+key-hint-m_n = كتلة النيوترون
+key-hint-m_u = وحدة الكتلة الذرية
+key-hint-a_0 = نصف قطر بور
+key-hint-alpha = ثابت البناء الدقيق
+key-hint-r_inf = ثابت ريدبرغ
+key-hint-mu_b = مغنطون بور
+key-hint-n_a = ثابت أفوجادرو
+key-hint-faraday = ثابت فاراداي، C/mol
+key-hint-r_gas = ثابت الغازات العام
+key-hint-atm = جو قياسي بالباسكال
+key-hint-wien = ثابت طول موجة فين
+key-hint-phi_0 = كمية الفيض المغناطيسي
+graph-save-png = حفظ PNG
+graph-png-saved = تم حفظ PNG
+graph-png-failed = تعذر حفظ PNG
+autocomplete-label = اقتراحات
+help-no-description = لا يوجد وصف، راجع دليل المستخدم

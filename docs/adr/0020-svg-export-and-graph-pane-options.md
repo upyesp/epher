@@ -75,3 +75,13 @@ plot. It is named by an icon and a tooltip ("line thickness") instead
 of a text label, the numeric readout is gone, and the ranges are
 unchanged - 0–4 step 0.1 for 2D, 0–0.2 step 0.01 for 3D, only the
 kind in view shown, each kind remembering its own value.
+
+## Amendment (2026-08-31): Save PNG beside Copy SVG (ADR-0042)
+
+The pane toolbar gains a Save PNG icon button next to Copy SVG. It
+serializes the same self-contained SVG document (hidden curves still
+excluded), rasterizes it on a canvas at twice its size, and saves
+through the platform's flow: the native save dialog over a new
+`save_png_dialog` IPC command on the desktop, the browser's File System
+Access picker in the PWA, a plain download as fallback. The CLI keeps
+SVG as its only export - `graph save plot.svg` is unchanged.

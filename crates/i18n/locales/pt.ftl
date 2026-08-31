@@ -259,3 +259,39 @@ tui-key-help-hint = Setas deslocam · q ou Esc fecha
 
 # Script loading (ADR-0040)
 load-failed = Uma ou mais linhas do script falharam.
+
+# Porcentagem, teoria dos números e constantes físicas (ADR-0042)
+key-hint-percent = Porcentagem: 5% é 0,05
+key-hint-isprime = Verdadeiro quando n é primo
+key-hint-nextprime = Menor primo maior que n
+key-hint-prevprime = Maior primo menor que n
+key-hint-modpow = b elevado a e, módulo m, exato
+key-hint-totient = Totiente de Euler de n
+key-hint-ndivisors = Quantos divisores n tem
+key-hint-factors = Fatoração em primos de n
+key-hint-G = Constante gravitacional de Newton
+key-hint-gamma = Constante de Euler-Mascheroni, cerca de 0,5772
+key-hint-q_e = Carga elementar, em coulombs
+key-hint-ev = Elétron-volt, em joules
+key-hint-eps_0 = Permissividade do vácuo
+key-hint-mu_0 = Permeabilidade do vácuo
+key-hint-z_0 = Impedância do vácuo
+key-hint-m_e = Massa do elétron
+key-hint-m_p = Massa do próton
+key-hint-m_n = Massa do nêutron
+key-hint-m_u = Unidade de massa atômica
+key-hint-a_0 = Raio de Bohr
+key-hint-alpha = Constante de estrutura fina
+key-hint-r_inf = Constante de Rydberg
+key-hint-mu_b = Magnéton de Bohr
+key-hint-n_a = Constante de Avogadro
+key-hint-faraday = Constante de Faraday, C/mol
+key-hint-r_gas = Constante molar dos gases
+key-hint-atm = Atmosfera padrão, em pascais
+key-hint-wien = Constante de comprimento de onda de Wien
+key-hint-phi_0 = Quanto de fluxo magnético
+graph-save-png = Salvar PNG
+graph-png-saved = PNG salvo
+graph-png-failed = Não foi possível salvar o PNG
+autocomplete-label = Sugestões
+help-no-description = Sem descrição, consulte o guia do usuário

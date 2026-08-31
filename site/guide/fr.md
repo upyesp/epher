@@ -57,7 +57,7 @@ mathématiques. Cette règle s'appelle la *précédence des opérateurs*.
 
 L'ordre complet de précédence, du plus fort au plus faible :
 
-1. `!` factorielle
+1. `!` factorielle et `%` pourcentage (tous deux postfixes)
 2. `^` puissance
 3. `*` et `/` multiplication et division
 4. `+` et `-` addition et soustraction
@@ -112,6 +112,17 @@ La soustraction et la division fonctionnent de gauche à droite :
 ```text
 5
 ```
+
+Le signe `%` est un opérateur postfixé qui signifie « divisé par 100 » : `5%` vaut 0.05. Il ne regarde jamais les opérateurs autour de lui, donc `200 + 10%` vaut 200.1. Pour augmenter 200 de 10%, écrivez la multiplication :
+
+```epher
+200 * (1 + 10%)
+```
+
+```text
+220
+```
+
 
 ### 1.3 Les nombres spéciaux pi, e, tau et phi
 
@@ -618,6 +629,18 @@ Arrondis, signes et nombres entiers :
 | `gcd(a, b)` / `lcm(a, b)` | diviseurs et multiples communs | `gcd(12, 18)` | `6` |
 | `mod(a, b)` | reste | `mod(7, 3)` | `1` |
 
+Les nombres premiers et les diviseurs travaillent sur des entiers :
+
+| Fonction | Signification | Exemple | Résultat |
+|---|---|---|---|
+| `isprime(n)` | vrai quand n est premier | `isprime(97)` | `true` |
+| `nextprime(n)` / `prevprime(n)` | les premiers les plus proches | `nextprime(10)` | `11` |
+| `factors(n)` | décomposition en facteurs premiers | `factors(360)` | `2^3 * 3^2 * 5` |
+| `totient(n)` | indicatrice d'Euler | `totient(12)` | `4` |
+| `ndivisors(n)` | nombre de diviseurs | `ndivisors(360)` | `24` |
+| `modpow(b, e, m)` | b puissance e, modulo m, exact | `modpow(2, 10, 1000)` | `24` |
+
+
 Les statistiques acceptent un nombre quelconque d'arguments :
 
 | Fonction | Signification | Exemple | Résultat |
@@ -637,6 +660,7 @@ Les couches exactes de la section 1.12 restent :
 | `big(x)` | nombre entier exact | `big(10 ^ 20)` | `100000000000000000000` |
 | Binaire, octal, hexa | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Orthographe en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
+| Premiers | `isprime(n)`, `factors(n)`, … | `factors(360)` |
 | `bin(x)` / `oct(x)` / `hex(x)` | orthographe préfixée en base 2 / 8 / 16 | `hex(255)` | `0xff` |
 
 Elles se combinent comme tout le reste :
@@ -648,6 +672,33 @@ min(sqrt(16), 5)
 ```text
 4
 ```
+
+Les constantes physiques utilisent les unités SI, comme celles d'astronomie de la section 1.16 :
+
+| Nom | Signification | Valeur |
+|---|---|---|
+| `G` | constante gravitationnelle de Newton | 6.6743e-11 |
+| `gamma` | constante d'Euler-Mascheroni | 0.5772156649015329 |
+| `q_e` | charge élémentaire | 1.602176634e-19 |
+| `ev` | électronvolt, en joules | 1.602176634e-19 |
+| `eps_0` | permitivité du vide | 8.8541878128e-12 |
+| `mu_0` | perméabilité du vide | 1.25663706212e-6 |
+| `z_0` | impédance du vide | 376.730313668 |
+| `m_e` | masse de l'électron | 9.1093837139e-31 |
+| `m_p` | masse du proton | 1.67262192595e-27 |
+| `m_n` | masse du neutron | 1.67492750056e-27 |
+| `m_u` | unité de masse atomique | 1.66053906892e-27 |
+| `a_0` | rayon de Bohr | 5.29177210544e-11 |
+| `alpha` | constante de structure fine | 0.0072973525643 |
+| `r_inf` | constante de Rydberg | 10973731.568160 |
+| `mu_b` | magnéton de Bohr | 9.2740100783e-24 |
+| `n_a` | constante d'Avogadro | 6.02214076e23 |
+| `faraday` | constante de Faraday, C/mol | 96485.33212 |
+| `r_gas` | constante molaire des gaz | 8.31446261815324 |
+| `atm` | atmosphère standard, en pascals | 101325 |
+| `wien` | constante de longueur d'onde de Wien | 0.002897771955 |
+| `phi_0` | quantum de flux magnétique | 2.067833848e-15 |
+
 
 ### 1.14 Lire les erreurs
 
@@ -695,6 +746,7 @@ connaît pas, pour que vous puissiez corriger votre expression.
 | Addition, soustraction, multiplication, division | `+ - * /` | `7 / 2` |
 | Puissance | `^` (de droite à gauche) | `2 ^ 10` |
 | Factorielle | `!` (postfixe) | `5!` |
+| Pourcentage | `%` (postfixe) | `200 * (1 + 10%)` |
 | Parenthèses | `( )` | `(2 + 3) * 4` |
 | Constantes | `pi`, `e`, `tau`, `phi` | `2 * pi` |
 | Notation scientifique | `2.5e-3` | `6.02e23` |
@@ -876,6 +928,8 @@ quel exemple de ce guide pour le charger dans le champ de saisie.
 Le résultat apparaît en grand sous le champ. Tout le chapitre 1 fonctionne
 ici, y compris variables, fonctions et scripts.
 
+Pendant que vous tapez un nom, une liste de suggestions apparaît sous le champ : les flèches déplacent la sélection, **Entrée** ou **Tab** accepte, **Échap** referme, et un clic accepte sans quitter le clavier. Chaque suggestion porte une courte description de la fonction ou de la constante. **F1** affiche la même description pour le mot sous le curseur dans la barre d'aide au-dessus du clavier. Si le premier caractère saisi dans un champ vide est un opérateur (`+ - * / ^ % !`), epher insère `ans` pour vous : la ligne continue depuis le résultat précédent.
+
 ### 2.3 Historique
 
 Chaque calcul est ajouté à la liste d'historique sous le résultat, pour que
@@ -1000,7 +1054,7 @@ graph a * x ^ 2
 
 **Copier le SVG** copie le tracé actuel comme une image SVG autonome à
 coller dans des documents. Les couleurs sont intégrées, le rendu est
-identique partout. Les rangées de curseurs et les constantes animées se
+identique partout. **Enregistrer le PNG** enregistre la même image en bitmap au double de sa taille, pour des courbes bien nettes ; l'application de bureau demande où la placer, l'application web l'enregistre dans vos téléchargements (ou le demande, quand le navigateur le permet). Les rangées de curseurs et les constantes animées se
 trouvent directement sous le tracé, au-dessus de la liste des points
 d'intérêt.
 
@@ -1414,6 +1468,7 @@ L'écran est divisé en panneaux :
 | **Shift+Entrée** | commencer une nouvelle ligne |
 | **← → ↑ ↓** | déplacer le curseur (saisie vide : faire pivoter la vue 3D) |
 | **Échap** | effacer la ligne de saisie |
+| **F1** | décrire la fonction sous le curseur (dans la ligne de résultat) |
 | **Ctrl+C** | quitter |
 | **q** | quitter (quand la saisie est vide) |
 | **Touches fléchées** | faire pivoter la vue 3D (quand la saisie est vide) |
@@ -1428,7 +1483,7 @@ commandes du langage : **trig**, **fn**, **num**, **0x** et **var**
 . Le groupe 0x contient les conversions exactes et de base (`frac`,
 `dec`, `big`, `bin`, `oct`, `hex`) et la factorielle `!`. Les flèches
 déplacent la sélection, **Entrée** insère le token et **Tab** change de
-groupe.
+groupe. Un opérateur au début d'une ligne vide (ou inséré depuis le clavier) ajoute `ans` devant : la ligne continue depuis le résultat précédent.
 
 ### 5.3 Les graphiques
 

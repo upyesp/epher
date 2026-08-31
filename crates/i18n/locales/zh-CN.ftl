@@ -258,3 +258,39 @@ tui-key-help-hint = 方向键滚动 · q 或 Esc 关闭
 
 # Script loading (ADR-0040)
 load-failed = 脚本中的一行或多行执行失败。
+
+# 百分比、数论与物理常数（ADR-0042）
+key-hint-percent = 百分比：5% 即 0.05
+key-hint-isprime = n 为素数时为真
+key-hint-nextprime = 大于 n 的最小素数
+key-hint-prevprime = 小于 n 的最大素数
+key-hint-modpow = b 的 e 次幂对 m 取模，结果精确
+key-hint-totient = n 的欧拉函数值
+key-hint-ndivisors = n 的约数个数
+key-hint-factors = n 的素因数分解
+key-hint-G = 牛顿引力常数
+key-hint-gamma = 欧拉-马歇罗尼常数，约 0.5772
+key-hint-q_e = 元电荷，单位库仑
+key-hint-ev = 电子伏特，单位焦耳
+key-hint-eps_0 = 真空介电常数
+key-hint-mu_0 = 真空磁导率
+key-hint-z_0 = 真空阻抗
+key-hint-m_e = 电子质量
+key-hint-m_p = 质子质量
+key-hint-m_n = 中子质量
+key-hint-m_u = 原子质量单位
+key-hint-a_0 = 玻尔半径
+key-hint-alpha = 精细结构常数
+key-hint-r_inf = 里德伯常数
+key-hint-mu_b = 玻尔磁子
+key-hint-n_a = 阿伏伽德罗常数
+key-hint-faraday = 法拉第常数，C/mol
+key-hint-r_gas = 摩尔气体常数
+key-hint-atm = 标准大气压，单位帕斯卡
+key-hint-wien = 维恩波长常数
+key-hint-phi_0 = 磁通量子
+graph-save-png = 保存 PNG
+graph-png-saved = PNG 已保存
+graph-png-failed = 无法保存 PNG
+autocomplete-label = 建议
+help-no-description = 暂无描述，见用户指南

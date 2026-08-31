@@ -260,3 +260,39 @@ tui-key-help-hint = Pfeile blättern · q oder Esc schließt
 
 # Script loading (ADR-0040)
 load-failed = Eine oder mehrere Zeilen des Skripts sind fehlgeschlagen.
+
+# Prozent, Zahlentheorie und physikalische Konstanten (ADR-0042)
+key-hint-percent = Prozent: 5% ist 0,05
+key-hint-isprime = Wahr, wenn n eine Primzahl ist
+key-hint-nextprime = Kleinste Primzahl größer als n
+key-hint-prevprime = Größte Primzahl kleiner als n
+key-hint-modpow = b hoch e, modulo m, exakt
+key-hint-totient = Eulersche Phi-Funktion von n
+key-hint-ndivisors = Anzahl der Teiler von n
+key-hint-factors = Primfaktorzerlegung von n
+key-hint-G = Newtons Gravitationskonstante
+key-hint-gamma = Euler-Mascheroni-Konstante, etwa 0,5772
+key-hint-q_e = Elementarladung in Coulomb
+key-hint-ev = Elektronenvolt in Joule
+key-hint-eps_0 = Permittivität des Vakuums
+key-hint-mu_0 = Permeabilität des Vakuums
+key-hint-z_0 = Wellenwiderstand des Vakuums
+key-hint-m_e = Masse des Elektrons
+key-hint-m_p = Masse des Protons
+key-hint-m_n = Masse des Neutrons
+key-hint-m_u = Atomare Masseneinheit
+key-hint-a_0 = Bohrscher Radius
+key-hint-alpha = Feinstrukturkonstante
+key-hint-r_inf = Rydberg-Konstante
+key-hint-mu_b = Bohrsches Magneton
+key-hint-n_a = Avogadro-Konstante
+key-hint-faraday = Faraday-Konstante, C/mol
+key-hint-r_gas = Universelle Gaskonstante
+key-hint-atm = Standardatmosphäre in Pascal
+key-hint-wien = Wiensche Wellenlängenkonstante
+key-hint-phi_0 = Magnetisches Flussquantum
+graph-save-png = PNG speichern
+graph-png-saved = PNG gespeichert
+graph-png-failed = PNG konnte nicht gespeichert werden
+autocomplete-label = Vorschläge
+help-no-description = Keine Beschreibung, siehe Benutzerhandbuch

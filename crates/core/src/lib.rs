@@ -357,6 +357,7 @@ enum Token {
     Equals,
     Semicolon,
     Bang,
+    Percent,
     LParen,
     RParen,
 }
@@ -481,6 +482,10 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
                 } else {
                     tokens.push(Token::Bang);
                 }
+            }
+            '%' => {
+                tokens.push(Token::Percent);
+                chars.next();
             }
             ';' => {
                 tokens.push(Token::Semicolon);
@@ -859,12 +864,26 @@ impl Parser {
 
     fn parse_factor(&mut self) -> Result<Expression, EpherError> {
         let primary = self.parse_primary()?;
-        // postfix factorial binds tightest: 3! ^ 2 is (3!) ^ 2, and 4!!
-        // is (4!)!; `!=` lexes as one token so `5! != 3` still works
+        // postfix factorial and percent bind tightest: 3! ^ 2 is (3!) ^ 2,
+        // and 4!! is (4!)!; `!=` lexes as one token so `5! != 3` still
+        // works. Percent is a transparent /100 suffix (ADR-0042): 5% is
+        // 0.05, 200 + 10% is 200.1. The Casio add-on reading (200 + 10%
+        // = 220) is deliberately not a grammar rule - "increase 200 by
+        // 10%" is spelled 200 * (1 + 10%), which teaches what the
+        // calculation actually is.
         let mut expr = primary;
-        while matches!(self.peek(), Some(Token::Bang)) {
-            self.next();
-            expr = Expression::Factorial(Box::new(expr));
+        loop {
+            match self.peek() {
+                Some(Token::Bang) => {
+                    self.next();
+                    expr = Expression::Factorial(Box::new(expr));
+                }
+                Some(Token::Percent) => {
+                    self.next();
+                    expr = Expression::Div(Box::new(expr), Box::new(Expression::Literal(100.0)));
+                }
+                _ => break,
+            }
         }
         Ok(expr)
     }
@@ -1188,7 +1207,137 @@ fn unit_factor(token: &str) -> Option<f64> {
     }
 }
 
-/// Built-in constants (π, e, τ, φ), resolved when a name isn't in the
+/// Deterministic Miller-Rabin on u64: this witness set decides every
+/// n < 2^64 exactly (no probabilistic error), so primality is exact on
+/// the whole range f64 can address (ADR-0042).
+fn is_prime_u64(n: u64) -> bool {
+    const WITNESSES: [u64; 12] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
+    if n < 2 {
+        return false;
+    }
+    for p in WITNESSES {
+        if n.is_multiple_of(p) {
+            return n == p;
+        }
+    }
+    let mut d = n - 1;
+    let mut s = 0u32;
+    while d.is_multiple_of(2) {
+        d /= 2;
+        s += 1;
+    }
+    'witness: for a in WITNESSES {
+        let mut x = mod_pow_u64(a, d, n);
+        if x == 1 || x == n - 1 {
+            continue;
+        }
+        for _ in 1..s {
+            x = mul_mod_u64(x, x, n);
+            if x == n - 1 {
+                continue 'witness;
+            }
+        }
+        return false;
+    }
+    true
+}
+
+/// (base ^ exp) mod m with u128 intermediates - no overflow for any u64
+/// input.
+fn mod_pow_u64(mut base: u64, mut exp: u64, m: u64) -> u64 {
+    if m == 1 {
+        return 0;
+    }
+    let mut acc = 1u64;
+    base %= m;
+    while exp > 0 {
+        if !exp.is_multiple_of(2) {
+            acc = mul_mod_u64(acc, base, m);
+        }
+        base = mul_mod_u64(base, base, m);
+        exp /= 2;
+    }
+    acc
+}
+
+fn mul_mod_u64(a: u64, b: u64, m: u64) -> u64 {
+    ((a as u128 * b as u128) % m as u128) as u64
+}
+
+/// Pollard rho (Floyd-style stepping): a nontrivial factor of composite n.
+/// Degenerate runs (the cycle swallowed n itself) retry with the next
+/// polynomial x^2 + c.
+fn pollard_rho(n: u64) -> u64 {
+    let mut c = 1u64;
+    loop {
+        let step = |x: u64| (mul_mod_u64(x, x, n) + c) % n;
+        let mut x = 2u64;
+        let mut y = 2u64;
+        let mut d = 1u64;
+        while d == 1 {
+            x = step(x);
+            y = step(step(y));
+            d = gcd_u64(x.abs_diff(y), n);
+        }
+        if d != n {
+            return d;
+        }
+        c += 1;
+    }
+}
+
+fn gcd_u64(mut a: u64, mut b: u64) -> u64 {
+    while b != 0 {
+        let t = b;
+        b = a % b;
+        a = t;
+    }
+    a
+}
+
+/// The prime factorization of n >= 1 as (prime, exponent) pairs ascending:
+/// small primes by trial division, then splits proved prime with the exact
+/// Miller-Rabin. Powers stay grouped, so 360 is 2^3 * 3^2 * 5.
+fn prime_factorization(mut n: u64) -> Vec<(u64, u32)> {
+    let mut out: Vec<(u64, u32)> = Vec::new();
+    for p in [
+        2u64, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83,
+        89, 97,
+    ] {
+        if n.is_multiple_of(p) {
+            let mut k = 0u32;
+            while n.is_multiple_of(p) {
+                n /= p;
+                k += 1;
+            }
+            out.push((p, k));
+        }
+    }
+    if n == 1 {
+        return out;
+    }
+    let mut stack = vec![n];
+    let mut found: Vec<u64> = Vec::new();
+    while let Some(m) = stack.pop() {
+        if is_prime_u64(m) {
+            found.push(m);
+            continue;
+        }
+        let d = pollard_rho(m);
+        stack.push(d);
+        stack.push(m / d);
+    }
+    found.sort_unstable();
+    for p in found {
+        match out.last_mut() {
+            Some(last) if last.0 == p => last.1 += 1,
+            _ => out.push((p, 1)),
+        }
+    }
+    out
+}
+
+/// Built-in constants (pi, e, tau, phi), resolved when a name isn't in the
 /// environment.
 fn builtin_const(name: &str) -> Option<Value> {
     match name {
@@ -1215,8 +1364,488 @@ fn builtin_const(name: &str) -> Option<Value> {
         "l_sun" => Some(Value::float(3.828e26)),
         "m_earth" => Some(Value::float(5.972_2e24)),
         "r_earth" => Some(Value::float(6.371e6)),
+        // Physical constants (ADR-0042): CODATA 2022 values, SI units
+        // throughout (eV in joules, atm in pascals). Shadowable like `pi`
+        // - a user `const` wins by the resolution order.
+        "G" => Some(Value::float(6.6743e-11)),
+        "gamma" => Some(Value::float(0.577_215_664_901_532_9)),
+        "q_e" => Some(Value::float(1.602_176_634e-19)),
+        "ev" => Some(Value::float(1.602_176_634e-19)),
+        "eps_0" => Some(Value::float(8.854_187_812_8e-12)),
+        "mu_0" => Some(Value::float(1.256_637_062_12e-6)),
+        "z_0" => Some(Value::float(376.730_313_668)),
+        "m_e" => Some(Value::float(9.109_383_713_9e-31)),
+        "m_p" => Some(Value::float(1.672_621_925_95e-27)),
+        "m_n" => Some(Value::float(1.674_927_500_56e-27)),
+        "m_u" => Some(Value::float(1.660_539_068_92e-27)),
+        "a_0" => Some(Value::float(5.291_772_105_44e-11)),
+        "alpha" => Some(Value::float(7.297_352_564_3e-3)),
+        "r_inf" => Some(Value::float(10_973_731.568_16)),
+        "mu_b" => Some(Value::float(9.274_010_078_3e-24)),
+        "n_a" => Some(Value::float(6.022_140_76e23)),
+        "faraday" => Some(Value::float(96_485.332_12)),
+        "r_gas" => Some(Value::float(8.314_462_618_153_24)),
+        "atm" => Some(Value::float(101_325.0)),
+        "wien" => Some(Value::float(2.897_771_955e-3)),
+        "phi_0" => Some(Value::float(2.067_833_848e-15)),
         _ => None,
     }
+}
+
+/// What kind of thing a builtin catalog entry names.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CatalogKind {
+    Function,
+    Constant,
+}
+
+/// One builtin name - the autocomplete/F1 index (ADR-0042). Descriptive
+/// only: a name missing from the catalog still evaluates; it just does not
+/// suggest. Frontends merge the session's user functions and constants on
+/// top of this table.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CatalogEntry {
+    pub name: &'static str,
+    pub kind: CatalogKind,
+}
+
+/// The builtin catalog, sorted by name so suggestions appear in a stable
+/// order everywhere.
+static BUILTIN_CATALOG: &[CatalogEntry] = &[
+    CatalogEntry {
+        name: "G",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "a_0",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "abs",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "acos",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "acosh",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "alpha",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "alt",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "asin",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "asinh",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "atan",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "atan2",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "atanh",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "atm",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "au",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "az",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "big",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "bin",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "c",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "cbrt",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "ceil",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "cos",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "cosh",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "dec",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "decl",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "deg",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "deg2hms",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "delta_t",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "dist",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "e",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "eps_0",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "ev",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "exp",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "fact",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "factors",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "faraday",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "floor",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "frac",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "g",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "gamma",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "gcd",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "h_bar",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "hex",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "hms2deg",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "hypot",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "isprime",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "jd",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "k_b",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "kepler",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "l_sun",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "lcm",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "ln",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "log",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "log2",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "logb",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "lst",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "ly",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "m_e",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "m_n",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "m_p",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "m_sun",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "m_u",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "mag2jy",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "max",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "mean",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "median",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "min",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "mjd",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "mu_0",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "mu_b",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "n_a",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "ncr",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "ndivisors",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "nextprime",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "now",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "npr",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "oct",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "pc",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "phi",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "phi_0",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "pi",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "prevprime",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "product",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "q_e",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "r_earth",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "r_gas",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "r_inf",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "r_sun",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "ra",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "rad",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "rise",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "root",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "round",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "set",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "sigma_sb",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "sign",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "sin",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "sinh",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "sqrt",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "stdev",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "sum",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "tan",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "tanh",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "tau",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "totient",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "trunc",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "wien",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "z_0",
+        kind: CatalogKind::Constant,
+    },
+];
+
+/// The sorted builtin catalog: every function and constant the language
+/// ships, for autocomplete and F1 help (ADR-0042).
+pub fn catalog() -> &'static [CatalogEntry] {
+    BUILTIN_CATALOG
 }
 
 /// Take exactly one Float argument.
@@ -1612,6 +2241,116 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             }
             // truncated remainder, the sign of the dividend (calculator MOD)
             Ok(Value::Float((a % b) as f64))
+        }
+        // Number theory (ADR-0042): primes and exact-integer helpers on the
+        // integers f64 reaches exactly (|n| < 2^53; i64 throughout, u64
+        // Miller-Rabin). `factors` follows the bin/oct/hex precedent: a
+        // display Str, good for reading, not for further arithmetic.
+        "isprime" => {
+            let n = integer_arg(name, &args)?;
+            Ok(Value::Bool(n >= 2 && is_prime_u64(n as u64)))
+        }
+        "nextprime" => {
+            let n = integer_arg(name, &args)?;
+            let mut candidate = n.max(1) + 1;
+            while !is_prime_u64(candidate as u64) {
+                candidate += 1;
+            }
+            Ok(Value::Float(candidate as f64))
+        }
+        "prevprime" => {
+            let n = integer_arg(name, &args)?;
+            if n <= 2 {
+                return Err(domain_error(format!("no prime below {n}")));
+            }
+            let mut candidate = n - 1;
+            while !is_prime_u64(candidate as u64) {
+                candidate -= 1;
+            }
+            Ok(Value::Float(candidate as f64))
+        }
+        "modpow" => {
+            let [b, e, m] = args.as_slice() else {
+                return Err(EpherError::Type(format!(
+                    "modpow expects 3 arguments, got {}",
+                    args.len()
+                )));
+            };
+            let (b, e, m) = match (b, e, m) {
+                (Value::Float(b), Value::Float(e), Value::Float(m)) => {
+                    let (Some(b), Some(e), Some(m)) =
+                        (float_to_int(*b), float_to_int(*e), float_to_int(*m))
+                    else {
+                        return Err(EpherError::Type(format!(
+                            "modpow expects integers, got {b:?}, {e:?}, {m:?}"
+                        )));
+                    };
+                    (b, e, m)
+                }
+                _ => {
+                    return Err(EpherError::Type(format!(
+                        "modpow expects numbers, got {b:?}, {e:?}, {m:?}"
+                    )))
+                }
+            };
+            if m == 0 {
+                return Err(EpherError::ZeroDivision);
+            }
+            if e < 0 {
+                return Err(domain_error(format!("modpow exponent {e} must be >= 0")));
+            }
+            // exact via big integers: modpow(2, 100, 1000000007) is exact,
+            // not a rounded float - the whole point of modular powers
+            let result = BigInt::from(b).modpow(&BigInt::from(e), &BigInt::from(m.abs()));
+            Ok(Value::Big(BigDecimal::from(result)))
+        }
+        "totient" => {
+            let n = integer_arg(name, &args)?;
+            if n <= 0 {
+                return Err(domain_error(format!(
+                    "totient of {n} must be a positive integer"
+                )));
+            }
+            let phi = prime_factorization(n as u64)
+                .iter()
+                .fold(1u64, |acc, (p, k)| acc * (p - 1) * p.pow(k - 1));
+            Ok(Value::Float(phi as f64))
+        }
+        "ndivisors" => {
+            let n = integer_arg(name, &args)?;
+            if n <= 0 {
+                return Err(domain_error(format!(
+                    "ndivisors of {n} must be a positive integer"
+                )));
+            }
+            let count = prime_factorization(n as u64)
+                .iter()
+                .fold(1u64, |acc, (_, k)| acc * u64::from(k + 1));
+            Ok(Value::Float(count as f64))
+        }
+        "factors" => {
+            let n = integer_arg(name, &args)?;
+            if n <= 0 {
+                return Err(domain_error(format!(
+                    "factors of {n} must be a positive integer"
+                )));
+            }
+            let spelled = prime_factorization(n as u64)
+                .iter()
+                .map(|(p, k)| {
+                    if *k == 1 {
+                        p.to_string()
+                    } else {
+                        format!("{p}^{k}")
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join(" * ");
+            Ok(Value::Str(if spelled.is_empty() {
+                "1".to_string()
+            } else {
+                spelled
+            }))
         }
         // statistics family: population variance (divide by n), like a
         // calculator's 1-Var Stats

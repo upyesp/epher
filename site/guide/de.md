@@ -56,7 +56,7 @@ Mathematik. Diese Regel heißt *Operatorrangfolge*.
 
 Die vollständige Rangfolge, von der stärksten zur schwächsten:
 
-1. `!` Fakultät
+1. `!` Fakultät und `%` Prozent (beide nachgestellt)
 2. `^` Potenz
 3. `*` und `/` Multiplikation und Division
 4. `+` und `-` Addition und Subtraktion
@@ -110,6 +110,17 @@ Subtraktion und Division arbeiten von links nach rechts:
 ```text
 5
 ```
+
+Das Zeichen `%` ist ein nachgestellter Operator und bedeutet „durch 100 geteilt“: `5%` ist 0.05. Es schaut sich die Operatoren darum herum nie an, darum ist `200 + 10%` gleich 200.1. Um 200 um 10% zu erhöhen, schreib die Multiplikation aus:
+
+```epher
+200 * (1 + 10%)
+```
+
+```text
+220
+```
+
 
 ### 1.3 Die besonderen Zahlen pi, e, tau und phi
 
@@ -614,6 +625,18 @@ Runden, Vorzeichen und ganze Zahlen:
 | `gcd(a, b)` / `lcm(a, b)` | gemeinsame Teiler und Vielfache | `gcd(12, 18)` | `6` |
 | `mod(a, b)` | Rest | `mod(7, 3)` | `1` |
 
+Primzahlen und Teiler arbeiten mit ganzen Zahlen:
+
+| Funktion | Bedeutung | Beispiel | Ergebnis |
+|---|---|---|---|
+| `isprime(n)` | wahr, wenn n eine Primzahl ist | `isprime(97)` | `true` |
+| `nextprime(n)` / `prevprime(n)` | die nächsten Primzahlen | `nextprime(10)` | `11` |
+| `factors(n)` | Primfaktorzerlegung | `factors(360)` | `2^3 * 3^2 * 5` |
+| `totient(n)` | Eulersche Phi-Funktion | `totient(12)` | `4` |
+| `ndivisors(n)` | Anzahl der Teiler | `ndivisors(360)` | `24` |
+| `modpow(b, e, m)` | b hoch e, modulo m, exakt | `modpow(2, 10, 1000)` | `24` |
+
+
 Statistik nimmt beliebig viele Argumente:
 
 | Funktion | Bedeutung | Beispiel | Ergebnis |
@@ -633,6 +656,7 @@ Die exakten Ebenen aus Abschnitt 1.12 bleiben:
 | `big(x)` | exakte ganze Zahl | `big(10 ^ 20)` | `100000000000000000000` |
 | Binär, oktal, hexadezimal | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Basisschreibweise | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
+| Primzahlen | `isprime(n)`, `factors(n)`, … | `factors(360)` |
 | `bin(x)` / `oct(x)` / `hex(x)` | Schreibweise mit Präfix in Basis 2 / 8 / 16 | `hex(255)` | `0xff` |
 
 Sie lassen sich wie alles andere kombinieren:
@@ -644,6 +668,33 @@ min(sqrt(16), 5)
 ```text
 4
 ```
+
+Die physikalischen Konstanten verwenden SI-Einheiten, wie die astronomischen in Abschnitt 1.16:
+
+| Name | Bedeutung | Wert |
+|---|---|---|
+| `G` | Newtons Gravitationskonstante | 6.6743e-11 |
+| `gamma` | Euler-Mascheroni-Konstante | 0.5772156649015329 |
+| `q_e` | Elementarladung | 1.602176634e-19 |
+| `ev` | Elektronenvolt in Joule | 1.602176634e-19 |
+| `eps_0` | Permittivität des Vakuums | 8.8541878128e-12 |
+| `mu_0` | Permeabilität des Vakuums | 1.25663706212e-6 |
+| `z_0` | Wellenwiderstand des Vakuums | 376.730313668 |
+| `m_e` | Masse des Elektrons | 9.1093837139e-31 |
+| `m_p` | Masse des Protons | 1.67262192595e-27 |
+| `m_n` | Masse des Neutrons | 1.67492750056e-27 |
+| `m_u` | Atomare Masseneinheit | 1.66053906892e-27 |
+| `a_0` | Bohrscher Radius | 5.29177210544e-11 |
+| `alpha` | Feinstrukturkonstante | 0.0072973525643 |
+| `r_inf` | Rydberg-Konstante | 10973731.568160 |
+| `mu_b` | Bohrsches Magneton | 9.2740100783e-24 |
+| `n_a` | Avogadro-Konstante | 6.02214076e23 |
+| `faraday` | Faraday-Konstante, C/mol | 96485.33212 |
+| `r_gas` | Universelle Gaskonstante | 8.31446261815324 |
+| `atm` | Standardatmosphäre in Pascal | 101325 |
+| `wien` | Wiensche Wellenlängenkonstante | 0.002897771955 |
+| `phi_0` | Magnetisches Flussquantum | 2.067833848e-15 |
+
 
 ### 1.14 Fehler lesen
 
@@ -691,6 +742,7 @@ nicht kennt, damit du deinen Ausdruck korrigieren kannst.
 | Addieren, Subtrahieren, Multiplizieren, Dividieren | `+ - * /` | `7 / 2` |
 | Potenz | `^` (von rechts nach links) | `2 ^ 10` |
 | Fakultät | `!` (nachgestellt) | `5!` |
+| Prozent | `%` (nachgestellt) | `200 * (1 + 10%)` |
 | Klammern | `( )` | `(2 + 3) * 4` |
 | Konstanten | `pi`, `e`, `tau`, `phi` | `2 * pi` |
 | Wissenschaftliche Notation | `2.5e-3` | `6.02e23` |
@@ -873,6 +925,8 @@ Das Ergebnis erscheint in großer Schrift unter dem Feld. Alles aus
 Kapitel 1 funktioniert hier, einschließlich Variablen, Funktionen und
 Skripten.
 
+Während du einen Namen tippst, erscheint unter dem Feld eine Vorschlagsliste: die Pfeile bewegen die Markierung, **Enter** oder **Tab** übernimmt, **Esc** schließt, und ein Klick übernimmt, ohne die Tastatur zu verlassen. Jeder Vorschlag trägt eine kurze Beschreibung der Funktion oder Konstante. **F1** zeigt dieselbe Beschreibung für das Wort unter dem Cursor in der Hinweisleiste über dem Tastenfeld. Beginnt eine leere Eingabe mit einem Operator (`+ - * / ^ % !`), fügt epher `ans` ein, und die Zeile macht mit dem letzten Ergebnis weiter.
+
 ### 2.3 Verlauf
 
 Jede Berechnung wird zur Verlaufsliste unter dem Ergebnis hinzugefügt,
@@ -999,7 +1053,7 @@ graph a * x ^ 2
 
 **SVG kopieren** kopiert den aktuellen Plot als eigenständiges SVG-Bild
 zum Einfügen in Dokumente. Die Farben sind eingebaut, es sieht überall
-gleich aus. Die Reglerzeilen und animierten Konstanten sitzen direkt
+gleich aus. **PNG speichern** speichert dasselbe Bild als Bitmap in doppelter Größe, damit die Kurven scharf bleiben; die Desktop-App fragt, wohin, die Web-App legt es in den Download-Ordner (oder fragt, wo der Browser es anbietet). Die Reglerzeilen und animierten Konstanten sitzen direkt
 unter dem Plot, über der Liste der besonderen Punkte.
 
 #### 2.4.4 3D-Flächen
@@ -1407,6 +1461,7 @@ Der Bildschirm ist in Panels unterteilt:
 | **Shift+Enter** | eine neue Zeile beginnen |
 | **← → ↑ ↓** | den Cursor bewegen (bei leerer Eingabe: die 3D-Ansicht drehen) |
 | **Esc** | die Eingabezeile leeren |
+| **F1** | die Funktion unter dem Cursor beschreiben (in der Ergebniszeile) |
 | **Ctrl+C** | beenden |
 | **q** | beenden (wenn die Eingabe leer ist) |
 | **Arrow keys** | die 3D-Ansicht drehen (wenn die Eingabe leer ist) |
@@ -1421,7 +1476,7 @@ jeden Befehl der Sprache: **trig**, **fn**, **num**, **0x** und
 **var**. Die 0x-Gruppe enthält die exakten und Basis-Umwandlungen
 (`frac`, `dec`, `big`, `bin`, `oct`, `hex`) und die Fakultät `!`. Die
 Pfeiltasten bewegen die Markierung, **Enter** fügt das Token ein, und
-**Tab** wechselt die Gruppen.
+**Tab** wechselt die Gruppen. Ein Operator am Anfang einer leeren Zeile (oder vom Tastenfeld eingefügt) setzt `ans` davor, die Zeile macht also mit dem letzten Ergebnis weiter.
 
 ### 5.3 Graphen zeichnen
 

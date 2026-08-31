@@ -14,6 +14,15 @@ fn eval_str(src: &str) -> Value {
     eval(&parse(src).expect("parse"), &env).expect("eval")
 }
 
+/// Evaluate source text with an empty environment as a plain f64 - for
+/// constants and other float-valued checks.
+fn eval_f64(src: &str) -> f64 {
+    match eval_str(src) {
+        Value::Float(n) => n,
+        other => panic!("expected a float from {src}, got {other:?}"),
+    }
+}
+
 #[test]
 fn literal_number_evaluates_to_float_value() {
     assert_eq!(eval_str("2"), Value::float(2.0));
@@ -1685,4 +1694,161 @@ fn php_style_comments_are_ignored() {
         .unwrap_err()
         .to_string();
     assert!(err.contains("unterminated block comment"), "{err}");
+}
+
+// ===== percent suffix (ADR-0042): a transparent /100, never add-on =====
+
+#[test]
+fn percent_is_a_div100_suffix() {
+    assert_eq!(eval_str("5%").to_string(), "0.05");
+    assert_eq!(eval_str("50%").to_string(), "0.5");
+    assert_eq!(eval_str("10%%").to_string(), "0.001");
+    assert_eq!(eval_str("-5%").to_string(), "-0.05");
+    // binds tightest, like factorial
+    assert!((eval_f64("10% ^ 2") - 0.01).abs() < 1e-15);
+}
+
+#[test]
+fn percent_composes_with_arithmetic_without_addon_magic() {
+    // the deliberate non-Casio reading: % never looks at the surrounding
+    // operator, so 200 + 10% is 200 + 0.1, and "increase 200 by 10%" is
+    // spelled 200 * (1 + 10%)
+    assert_eq!(eval_str("200 + 10%").to_string(), "200.1");
+    assert!((eval_f64("200 * (1 + 10%)") - 220.0).abs() < 1e-9);
+    assert_eq!(eval_str("50 * 10%").to_string(), "5");
+    assert!((eval_f64("(1 + 10%) ^ 2") - 1.21).abs() < 1e-12);
+}
+
+#[test]
+fn percent_works_in_functions_and_graphs_parse() {
+    assert_eq!(
+        run_script("def half(x) = x / 2\nhalf(200%)")
+            .unwrap()
+            .to_string(),
+        "1"
+    );
+    // a graph expression with percent parses (sampling is eval's job)
+    assert!(parse("200 + 10% * x").is_ok());
+}
+
+// ===== number theory (ADR-0042) =====
+
+#[test]
+fn primality_is_exact() {
+    assert_eq!(eval_str("isprime(97)"), Value::Bool(true));
+    assert_eq!(eval_str("isprime(2)"), Value::Bool(true));
+    assert_eq!(eval_str("isprime(1)"), Value::Bool(false));
+    assert_eq!(eval_str("isprime(0)"), Value::Bool(false));
+    assert_eq!(eval_str("isprime(-7)"), Value::Bool(false));
+    // the largest prime below 2^53: exact as an f64 literal, and the
+    // Miller-Rabin must not flinch
+    assert_eq!(eval_str("isprime(9007199254740881)"), Value::Bool(true));
+    assert_eq!(eval_str("isprime(9007199254740882)"), Value::Bool(false));
+    assert_eq!(eval_str("isprime(1000000007)"), Value::Bool(true));
+    assert_eq!(
+        eval_str("isprime(1000000007 * 998244353)"),
+        Value::Bool(false)
+    );
+}
+
+#[test]
+fn prime_neighbours() {
+    assert_eq!(eval_str("nextprime(1)").to_string(), "2");
+    assert_eq!(eval_str("nextprime(10)").to_string(), "11");
+    assert_eq!(
+        eval_str("nextprime(1000000000000)").to_string(),
+        "1000000000039"
+    );
+    assert_eq!(eval_str("prevprime(10)").to_string(), "7");
+    assert_eq!(eval_str("prevprime(3)").to_string(), "2");
+    let err = eval_str_checked("prevprime(2)").unwrap_err().to_string();
+    assert!(err.contains("no prime below"), "{err}");
+}
+
+#[test]
+fn modular_power_is_exact() {
+    assert_eq!(eval_str("modpow(2, 10, 1000)").to_string(), "24");
+    assert_eq!(
+        eval_str("modpow(2, 100, 1000000007)").to_string(),
+        "976371285"
+    );
+    let err = eval_str_checked("modpow(2, -1, 7)")
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("must be >= 0"), "{err}");
+    let err = eval_str_checked("modpow(2, 3, 0)").unwrap_err().to_string();
+    assert!(err.contains("division by zero"), "{err}");
+}
+
+#[test]
+fn factorization_tools() {
+    assert_eq!(eval_str("factors(360)").to_string(), "2^3 * 3^2 * 5");
+    assert_eq!(eval_str("factors(97)").to_string(), "97");
+    assert_eq!(eval_str("factors(1)").to_string(), "1");
+    // a semiprime within f64's exact range forces the rho splitter, not
+    // just trial division
+    assert_eq!(
+        eval_str("factors(1000003 * 1000033)").to_string(),
+        "1000003 * 1000033"
+    );
+    assert_eq!(eval_str("totient(1)").to_string(), "1");
+    assert_eq!(eval_str("totient(12)").to_string(), "4");
+    assert_eq!(eval_str("ndivisors(360)").to_string(), "24");
+    let err = eval_str_checked("factors(0)").unwrap_err().to_string();
+    assert!(err.contains("positive integer"), "{err}");
+}
+
+// ===== physical constants (ADR-0042) =====
+
+#[test]
+fn physical_constants_are_available_and_shadowable() {
+    assert_eq!(eval_str("n_a").to_string(), "602214076000000000000000");
+    assert_eq!(eval_f64("q_e"), 1.602_176_634e-19);
+    assert_eq!(eval_str("atm").to_string(), "101325");
+    assert_eq!(eval_f64("G"), 6.67430e-11);
+    assert_eq!(eval_f64("gamma"), 0.577_215_664_901_532_9);
+    assert_eq!(eval_f64("ev"), 1.602_176_634e-19);
+    // the exact ones compose: an electronvolt of Na particles is a faraday
+    assert!((eval_f64("ev * n_a") - eval_f64("faraday")).abs() < 1e-2);
+}
+
+// ===== builtin catalog (ADR-0042) =====
+
+#[test]
+fn catalog_is_sorted_and_unique() {
+    let cat = epher_core::catalog();
+    assert!(cat.len() > 100, "catalog looks too short: {}", cat.len());
+    for pair in cat.windows(2) {
+        assert!(
+            pair[0].name < pair[1].name,
+            "catalog not sorted at {} < {}",
+            pair[0].name,
+            pair[1].name
+        );
+    }
+}
+
+#[test]
+fn every_catalog_name_is_live() {
+    use epher_core::{eval, parse, CatalogKind, Env};
+    for entry in epher_core::catalog() {
+        let source = match entry.kind {
+            CatalogKind::Constant => entry.name.to_string(),
+            CatalogKind::Function => format!("{}(1)", entry.name),
+        };
+        let outcome = eval(
+            &parse(&source).expect("catalog name parses"),
+            &Env::default(),
+        );
+        match outcome {
+            Ok(_) => {}
+            // argument-shaped errors are fine — only "unknown" means the
+            // catalog drifted from the real builtins
+            Err(e) => assert!(
+                !matches!(e, epher_core::EpherError::UnknownName(_)),
+                "catalog entry {} does not evaluate: {e}",
+                entry.name
+            ),
+        }
+    }
 }
