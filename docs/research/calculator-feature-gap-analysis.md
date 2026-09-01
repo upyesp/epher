@@ -2,6 +2,12 @@
 
 Date: 2026-08-31 · Status: recommendations only, nothing implemented
 
+> Superseded as of 2026-09-02 by
+> docs/research/calculator-gap-analysis-rerun.md: the recommendations
+> shipped through v0.5.16 (ADRs 0042-0052), and the rerun re-measures
+> the same matrix against the current build. This file remains the
+> baseline record.
+
 ## Why this exists
 
 epher's feature set grew from its own design decisions (ADR-0001 onward).
