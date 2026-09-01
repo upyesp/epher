@@ -98,7 +98,7 @@ Potenzen können gebrochen sein. `2 ^ 0.5` ist die Quadratwurzel aus 2:
 ```
 
 ```text
-1.4142135623730951
+1.41421356237
 ```
 
 Subtraktion und Division arbeiten von links nach rechts:
@@ -131,7 +131,7 @@ pi
 ```
 
 ```text
-3.141592653589793
+3.14159265359
 ```
 
 ```epher
@@ -139,7 +139,7 @@ pi
 ```
 
 ```text
-6.283185307179586
+6.28318530718
 ```
 
 ```epher
@@ -147,7 +147,7 @@ e
 ```
 
 ```text
-2.718281828459045
+2.71828182846
 ```
 
 Zwei weitere: `tau` ist eine volle Umdrehung (2 pi), und `phi` ist der
@@ -158,7 +158,7 @@ tau
 ```
 
 ```text
-6.283185307179586
+6.28318530718
 ```
 
 ```epher
@@ -166,7 +166,7 @@ phi
 ```
 
 ```text
-1.618033988749895
+1.61803398875
 ```
 
 ### 1.4 Vergleichen und Logik
@@ -330,7 +330,7 @@ weight(80)
 ```
 
 ```text
-784.8000000000001
+784.8
 ```
 
 Speichere eine Konstante für künftige Sitzungen mit `save tax`, genau wie
@@ -489,10 +489,13 @@ area
 ```
 ### 1.12 Exakte Ergebnisse: frac, dec und big
 
-Normalerweise rechnet epher mit Dezimalzahlen wie ein Taschenrechner,
-aber exakte Brüche sind standardmäßig eingeschaltet: jedes Ergebnis mit
-einem guten Bruch mit kleinem Nenner wird als solcher angezeigt.
-`1 / 3` zeigt sich ohne Nachfrage als `1/3`:
+Normalerweise rechnet epher mit Dezimalzahlen wie ein
+Taschenrechner, und Ergebnisse werden wie auf einem Taschenrechner
+auf zwölf signifikante Stellen gerundet: `0.1 + 0.2` ist `0.3`, nie
+`0.30000000000000004`. Exakte Brüche sind standardmäßig
+eingeschaltet — ein Ergebnis mit einem guten Bruch mit kleinem
+Nenner, dessen Dezimaldarstellung sich wiederholt, wird als solcher
+angezeigt. `1 / 3` zeigt sich ohne Nachfrage als `1/3`:
 
 ```epher
 1 / 3
@@ -503,7 +506,7 @@ einem guten Bruch mit kleinem Nenner wird als solcher angezeigt.
 ```
 
 Bei **exakten Brüchen aus** in den Ergebnis-Einstellungen (Kapitel 2.2)
-zeigt dieselbe Division `0.3333333333333333`. **frac(n, d)** erzeugt
+zeigt dieselbe Division `0.333333333333`. **frac(n, d)** erzeugt
 einen exakten Bruch, der bei Berechnungen exakt bleibt:
 
 ```epher
@@ -524,28 +527,21 @@ frac(1, 3) * 3
 1
 ```
 
-**dec(x)** erzeugt eine exakte Dezimalzahl. Vergleiche diese beiden:
+**dec(x)** erzeugt eine exakte Dezimalzahl. `0.1 + 0.2` zeigt in
+beiden Fällen `0.3` — der Unterschied liegt in der Arithmetik:
 
 ```epher
-0.1 + 0.2
+0.1 * 3 - 0.3
+dec(0.1) * 3 - dec(0.3)
 ```
 
 ```text
-3/10
+0.0000000000000000555111512313
+0.0
 ```
 
-```epher
-dec(0.1) + dec(0.2)
-```
-
-```text
-0.3
-```
-
-Das erste Ergebnis ist der exakte Bruch hinter der Antwort und das
-zweite die Dezimalzahl selbst; bei ausgeschalteten exakten Brüchen
-zeigt das erste stattdessen den winzigen Rundungsfehler, den jeder
-Computer bei Dezimalzahlen macht (`0.30000000000000004`).
+Das Gleitkomma-Ergebnis trägt den winzigen Rundungsfehler, den jeder
+Computer bei Dezimalzahlen macht; `dec()` hält die Rechnung exakt.
 
 **big(x)** erzeugt eine exakte ganze Zahl, für Werte, die zu groß für
 einen Taschenrechner sind:
@@ -630,7 +626,7 @@ Umrechnen:
 | `asin(x)`, `acos(x)`, `atan(x)` | inverse trigonometrische Funktionen | `atan(1)` | `0.7853981633974483` |
 | `atan2(y, x)` | Winkel des Punkts (x, y) | `atan2(1, 1)` | `0.7853981633974483` |
 | `deg(x)` | Bogenmaß → Grad | `deg(pi)` | `180` |
-| `rad(x)` | Grad → Bogenmaß | `rad(180)` | `3.141592653589793` |
+| `rad(x)` | Grad → Bogenmaß | `rad(180)` | `3.14159265359` |
 | `sinh(x)`, `cosh(x)`, `tanh(x)` | hyperbolische Funktionen | `sinh(1)` | `1.1752011936438014` |
 | `asinh(x)`, `acosh(x)`, `atanh(x)` | inverse hyperbolische Funktionen | `acosh(1)` | `0` |
 
@@ -642,7 +638,7 @@ Basis 10):
 | `sqrt(x)` | Quadratwurzel | `sqrt(16)` | `4` |
 | `cbrt(x)` | Kubikwurzel | `cbrt(-27)` | `-3` |
 | `root(n, x)` | n-te Wurzel | `root(3, 8)` | `2` |
-| `exp(x)` | e hoch x | `exp(1)` | `2.718281828459045` |
+| `exp(x)` | e hoch x | `exp(1)` | `2.71828182846` |
 | `ln(x)` | natürlicher Logarithmus | `ln(e)` | `1` |
 | `log(x)` | Logarithmus zur Basis 10 | `log(100)` | `2` |
 | `log2(x)` | Logarithmus zur Basis 2 | `log2(8)` | `3` |
@@ -741,7 +737,7 @@ Die physikalischen Konstanten verwenden SI-Einheiten, wie die astronomischen in 
 | Name | Bedeutung | Wert |
 |---|---|---|
 | `G` | Newtons Gravitationskonstante | 6.6743e-11 |
-| `gamma` | Euler-Mascheroni-Konstante | 0.5772156649015329 |
+| `gamma` | Euler-Mascheroni-Konstante | 0.577215664902 |
 | `q_e` | Elementarladung | 1.602176634e-19 |
 | `ev` | Elektronenvolt in Joule | 1.602176634e-19 |
 | `eps_0` | Permittivität des Vakuums | 8.8541878128e-12 |
@@ -757,7 +753,7 @@ Die physikalischen Konstanten verwenden SI-Einheiten, wie die astronomischen in 
 | `mu_b` | Bohrsches Magneton | 9.2740100783e-24 |
 | `n_a` | Avogadro-Konstante | 6.02214076e23 |
 | `faraday` | Faraday-Konstante, C/mol | 96485.33212 |
-| `r_gas` | Universelle Gaskonstante | 8.31446261815324 |
+| `r_gas` | Universelle Gaskonstante | 8.31446261815 |
 | `atm` | Standardatmosphäre in Pascal | 101325 |
 | `wien` | Wiensche Wellenlängenkonstante | 0.002897771955 |
 | `phi_0` | Magnetisches Flussquantum | 2.067833848e-15 |
@@ -1002,9 +998,9 @@ exp(i * pi)
 ```
 
 ```text
-3.141592653589793i
-1.5707963267948966-1.3169578969248166i
--1+0.00000000000000012246467991473532i
+3.14159265359i
+1.57079632679-1.31695789692i
+-1+0.000000000000000122464679915i
 ```
 
 (`exp(i * pi)` ist exakt `-1`; die letzten Ziffern sind das Rauschen von `sin(pi)` in der Arithmetik des Rechners.)
@@ -1022,7 +1018,7 @@ abs(3 + 4i)
 ```text
 3
 4
-3.141592653589793
+3.14159265359
 3+4i
 5
 ```
@@ -1437,7 +1433,7 @@ tvm_i(360, -100000, 733.76, 0)
 ```
 
 ```text
-0.006666611990680783
+0.00666661199068
 ```
 
 Der Zinssatz liegt hier knapp unter 8 %/12, weil 733.76 gerundet ist.

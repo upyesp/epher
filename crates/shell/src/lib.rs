@@ -228,7 +228,11 @@ fn format_table(rows: &[(f64, Option<f64>, Option<f64>)], exact: bool) -> String
             Some(v) => {
                 if exact {
                     if let Some(r) = epher_core::reconstruct_fraction(v, 1000, 1e-9) {
-                        return format!("{r}");
+                        // Same rule as the result line (ADR-0051): a
+                        // terminating decimal stays a decimal.
+                        if !epher_core::terminating_decimal(&r) {
+                            return format!("{r}");
+                        }
                     }
                 }
                 fmt(v)

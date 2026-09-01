@@ -96,7 +96,7 @@ Powers can be fractional. `2 ^ 0.5` is the square root of 2:
 ```
 
 ```text
-1.4142135623730951
+1.41421356237
 ```
 
 Subtraction and division work left-to-right:
@@ -130,7 +130,7 @@ pi
 ```
 
 ```text
-3.141592653589793
+3.14159265359
 ```
 
 ```epher
@@ -138,7 +138,7 @@ pi
 ```
 
 ```text
-6.283185307179586
+6.28318530718
 ```
 
 ```epher
@@ -146,7 +146,7 @@ e
 ```
 
 ```text
-2.718281828459045
+2.71828182846
 ```
 
 Two more: `tau` is a full turn (2 pi), and `phi` is the golden ratio:
@@ -156,7 +156,7 @@ tau
 ```
 
 ```text
-6.283185307179586
+6.28318530718
 ```
 
 ```epher
@@ -164,7 +164,7 @@ phi
 ```
 
 ```text
-1.618033988749895
+1.61803398875
 ```
 
 ### 1.4 Comparing and logic
@@ -326,7 +326,7 @@ weight(80)
 ```
 
 ```text
-784.8000000000001
+784.8
 ```
 
 Save a constant for future sessions with `save tax`, exactly like a
@@ -482,10 +482,12 @@ area
 ```
 ### 1.12 Exact results: frac, dec and big
 
-Normally epher calculates with decimal numbers like a pocket calculator,
-but exact fractions are on by default: any result with a good
-small-denominator fraction shows as one. `1 / 3` displays as `1/3`
-without asking:
+Normally epher calculates with decimal numbers like a pocket
+calculator, and results round to twelve significant digits the way a
+pocket calculator shows them: `0.1 + 0.2` is `0.3`, never
+`0.30000000000000004`. Exact fractions are on by default — a result
+with a good small-denominator fraction whose decimal keeps repeating
+shows as one. `1 / 3` displays as `1/3` without asking:
 
 ```epher
 1 / 3
@@ -496,7 +498,7 @@ without asking:
 ```
 
 With **exact fractions off** in the Results settings (chapter 2.2) the
-same division shows `0.3333333333333333`. **frac(n, d)** makes an exact
+same division shows `0.333333333333`. **frac(n, d)** makes an exact
 fraction that stays exact through calculations:
 
 ```epher
@@ -517,28 +519,21 @@ frac(1, 3) * 3
 1
 ```
 
-**dec(x)** makes an exact decimal. Compare these two:
+**dec(x)** makes an exact decimal. `0.1 + 0.2` shows `0.3` either way
+— the difference is arithmetic:
 
 ```epher
-0.1 + 0.2
+0.1 * 3 - 0.3
+dec(0.1) * 3 - dec(0.3)
 ```
 
 ```text
-3/10
+0.0000000000000000555111512313
+0.0
 ```
 
-```epher
-dec(0.1) + dec(0.2)
-```
-
-```text
-0.3
-```
-
-The first result is the exact fraction behind the answer and the
-second the decimal itself; with exact fractions off, the first instead
-shows the tiny rounding error every computer makes with decimal
-numbers (`0.30000000000000004`).
+The float result carries the tiny rounding error every computer makes
+with decimal numbers; `dec()` keeps the arithmetic exact.
 
 **big(x)** makes an exact whole number, for values too large for a pocket
 calculator:
@@ -630,7 +625,7 @@ Trigonometry works in radians. Use `deg` and `rad` to convert:
 | `asin(x)`, `acos(x)`, `atan(x)` | inverse trigonometric | `atan(1)` | `0.7853981633974483` |
 | `atan2(y, x)` | angle of the point (x, y) | `atan2(1, 1)` | `0.7853981633974483` |
 | `deg(x)` | radians → degrees | `deg(pi)` | `180` |
-| `rad(x)` | degrees → radians | `rad(180)` | `3.141592653589793` |
+| `rad(x)` | degrees → radians | `rad(180)` | `3.14159265359` |
 | `sinh(x)`, `cosh(x)`, `tanh(x)` | hyperbolic functions | `sinh(1)` | `1.1752011936438014` |
 | `asinh(x)`, `acosh(x)`, `atanh(x)` | inverse hyperbolic | `acosh(1)` | `0` |
 
@@ -641,7 +636,7 @@ Powers, roots and logarithms (on a calculator `log` is base 10):
 | `sqrt(x)` | square root | `sqrt(16)` | `4` |
 | `cbrt(x)` | cube root | `cbrt(-27)` | `-3` |
 | `root(n, x)` | nth root | `root(3, 8)` | `2` |
-| `exp(x)` | e to the power x | `exp(1)` | `2.718281828459045` |
+| `exp(x)` | e to the power x | `exp(1)` | `2.71828182846` |
 | `ln(x)` | natural logarithm | `ln(e)` | `1` |
 | `log(x)` | base-10 logarithm | `log(100)` | `2` |
 | `log2(x)` | base-2 logarithm | `log2(8)` | `3` |
@@ -711,7 +706,7 @@ The physical constants use SI units, like the astronomy ones in section
 | Name | Meaning | Value |
 |---|---|---|
 | `G` | Newton's gravitational constant | 6.6743e-11 |
-| `gamma` | Euler-Mascheroni constant | 0.5772156649015329 |
+| `gamma` | Euler-Mascheroni constant | 0.577215664902 |
 | `q_e` | elementary charge | 1.602176634e-19 |
 | `ev` | electronvolt, in joules | 1.602176634e-19 |
 | `eps_0` | vacuum permittivity | 8.8541878128e-12 |
@@ -727,7 +722,7 @@ The physical constants use SI units, like the astronomy ones in section
 | `mu_b` | Bohr magneton | 9.2740100783e-24 |
 | `n_a` | Avogadro constant | 6.02214076e23 |
 | `faraday` | Faraday constant, C/mol | 96485.33212 |
-| `r_gas` | molar gas constant | 8.31446261815324 |
+| `r_gas` | molar gas constant | 8.31446261815 |
 | `atm` | standard atmosphere, in pascals | 101325 |
 | `wien` | Wien wavelength constant | 0.002897771955 |
 | `phi_0` | magnetic flux quantum | 2.067833848e-15 |
@@ -1002,9 +997,9 @@ exp(i * pi)
 ```
 
 ```text
-3.141592653589793i
-1.5707963267948966-1.3169578969248166i
--1+0.00000000000000012246467991473532i
+3.14159265359i
+1.57079632679-1.31695789692i
+-1+0.000000000000000122464679915i
 ```
 
 (`exp(i * pi)` is exactly `-1`; the last digits are the noise of
@@ -1024,7 +1019,7 @@ abs(3 + 4i)
 ```text
 3
 4
-3.141592653589793
+3.14159265359
 3+4i
 5
 ```
@@ -1483,7 +1478,7 @@ tvm_i(360, -100000, 733.76, 0)
 ```
 
 ```text
-0.006666611990680783
+0.00666661199068
 ```
 
 The rate here is just under 8%/12 because 733.76 is rounded. `npv(r,

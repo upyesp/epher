@@ -130,13 +130,13 @@ impl std::fmt::Display for Value {
 fn complex_display(c: Complex<f64>) -> String {
     let (re, im) = (c.re, c.im);
     if im == 0.0 {
-        return format!("{re}");
+        return auto_float(re);
     }
     let im_abs = im.abs();
     let im_part = if im_abs == 1.0 {
         "i".to_string()
     } else {
-        format!("{im_abs}i")
+        format!("{}i", auto_float(im_abs))
     };
     if re == 0.0 {
         if im < 0.0 {
@@ -146,7 +146,7 @@ fn complex_display(c: Complex<f64>) -> String {
         }
     } else {
         let sign = if im < 0.0 { "-" } else { "+" };
-        format!("{re}{sign}{im_part}")
+        format!("{}{sign}{im_part}", auto_float(re))
     }
 }
 
@@ -4289,8 +4289,9 @@ pub struct DisplayPrefs {
     pub separators: bool,
 }
 
-/// Result notation (ADR-0043): Auto is the shortest float; the other
-/// two force their exponent shape.
+/// Result notation (ADR-0043/0051): Auto is the float rounded to
+/// twelve significant digits (exact integers keep every digit); the
+/// other two force their exponent shape.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Notation {
     Auto,
@@ -4308,6 +4309,139 @@ impl Default for DisplayPrefs {
     }
 }
 
+/// The Auto-mode float spelling (ADR-0051): the shortest round-trip
+/// decimal, rounded to twelve significant digits when that shortens
+/// it — the reference-calculator convention that turns the float
+/// 0.30000000000000004 into "0.3". Exact integers never round: their
+/// rounded spelling is no shorter, so the guard keeps the original.
+/// The rounding works on the decimal spelling, not the float: scaling
+/// a double and back can land on a value whose shortest spelling
+/// still needs more digits (5.551115123125783e-17 comes back as
+/// 5.551115123130001e-17, not a clean twelve).
+pub fn auto_float(x: f64) -> String {
+    let s = format!("{x}");
+    if significant_digits(&s) <= 12 {
+        return s;
+    }
+    let (sign, body) = match s.strip_prefix('-') {
+        Some(b) => ("-", b),
+        None => ("", s.as_str()),
+    };
+    let (int_part, frac_part) = match body.split_once('.') {
+        Some((i, f)) => (i, f),
+        None => (body, ""),
+    };
+    let int_len = int_part.len();
+    let mut digits: Vec<char> = int_part.chars().chain(frac_part.chars()).collect();
+    // The exponent of the first significant digit; leading zeros then
+    // drop off so the vector holds exactly the significant digits.
+    let dpos = digits
+        .iter()
+        .position(|c| *c != '0')
+        .unwrap_or(digits.len());
+    let mut k = int_len as i64 - 1 - dpos as i64;
+    digits.drain(..dpos);
+    if digits.len() > 12 {
+        let rest = digits.split_off(12);
+        if rest[0] >= '5' {
+            // Round the twelfth digit up, propagating the carry; a
+            // carry past the front shifts the first digit's exponent.
+            let mut i = digits.len();
+            loop {
+                if i == 0 {
+                    digits.insert(0, '1');
+                    break;
+                }
+                i -= 1;
+                if digits[i] == '9' {
+                    digits[i] = '0';
+                } else {
+                    digits[i] = (digits[i] as u8 + 1) as char;
+                    break;
+                }
+            }
+            if digits.len() > 12 {
+                // 999… carried to 1000…: one more leading digit, so
+                // the first significant digit moved one place up.
+                digits.pop();
+                k += 1;
+            }
+        }
+    }
+    // Trailing zeros after the decimal point are spelling noise.
+    while digits.len() > 1 && k - digits.len() as i64 + 1 < 0 && *digits.last().unwrap() == '0' {
+        digits.pop();
+    }
+    render_rounded(sign, &digits, k, &s)
+}
+
+/// Re-emit the rounded significant digits as a plain decimal and keep
+/// whichever spelling is shorter (the guard that protects exact
+/// integers: rounding 1234567890123456 gives the same length).
+fn render_rounded(sign: &str, digits: &[char], k: i64, s: &str) -> String {
+    let digits: String = digits.iter().collect();
+    let out = if k >= 0 {
+        if (digits.len() as i64) > k + 1 {
+            let at = (k + 1) as usize;
+            format!("{}.{}", &digits[..at], &digits[at..])
+        } else {
+            format!(
+                "{digits}{}",
+                "0".repeat((k + 1 - digits.len() as i64) as usize)
+            )
+        }
+    } else {
+        format!("0.{}{}", "0".repeat((-k - 1) as usize), digits)
+    };
+    let out = format!("{sign}{out}");
+    if out.len() < s.len() {
+        out
+    } else {
+        s.to_string()
+    }
+}
+
+/// Count the significant digits of a plain-decimal float spelling
+/// ("-0.30000000000000004" has 17, "1234567890123" has 13, "0.0001"
+/// has 1). Rust's Display always spells floats without an exponent.
+fn significant_digits(s: &str) -> usize {
+    let mut seen = false;
+    let mut count = 0;
+    for ch in s.chars() {
+        if ch.is_ascii_digit() && (seen || ch != '0') {
+            seen = true;
+            count += 1;
+        }
+    }
+    count
+}
+
+/// Whether the reduced fraction has a finite decimal expansion — the
+/// denominator holds only the factors 2 and 5. Reconstructed
+/// denominators are at most 1000, so the divisibility loop is short.
+/// A terminating fraction displays as a decimal (0.3, 0.125); only a
+/// repeating value keeps the fraction spelling (ADR-0051).
+pub fn terminating_decimal(r: &BigRational) -> bool {
+    let mut d = r.denom().clone();
+    if d.sign() == num_bigint::Sign::Minus {
+        d = -d;
+    }
+    let two = BigInt::from(2);
+    let five = BigInt::from(5);
+    loop {
+        if d == BigInt::from(1) {
+            return true;
+        }
+        if (&d % &two).is_zero() {
+            d /= &two;
+        } else if (&d % &five).is_zero() {
+            d /= &five;
+        } else {
+            return false;
+        }
+    }
+}
+
 /// The result string for a value under the display preferences
 /// (ADR-0043). Exact fractions apply in Auto mode; the notation modes
 /// always win, and separators group Auto and notation digits alike.
@@ -4317,13 +4451,16 @@ pub fn format_value(v: &Value, prefs: &DisplayPrefs) -> String {
             let s = match prefs.notation {
                 Notation::Auto => {
                     if prefs.exact_fractions {
-                        match reconstruct_fraction(*x, 1000, 1e-9) {
-                            Some(r) => return format!("{r}"),
-                            None => format!("{x}"),
+                        if let Some(r) = reconstruct_fraction(*x, 1000, 1e-9) {
+                            // A terminating decimal shows as a decimal
+                            // (0.1 + 0.2 is 0.3, not 3/10); only a
+                            // repeating value keeps the fraction.
+                            if !terminating_decimal(&r) {
+                                return format!("{r}");
+                            }
                         }
-                    } else {
-                        format!("{x}")
                     }
+                    auto_float(*x)
                 }
                 Notation::Scientific => format!("{x:e}"),
                 Notation::Engineering => engineering_str(*x),

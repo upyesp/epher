@@ -100,7 +100,7 @@ de 2 :
 ```
 
 ```text
-1.4142135623730951
+1.41421356237
 ```
 
 La soustraction et la division fonctionnent de gauche à droite :
@@ -133,7 +133,7 @@ pi
 ```
 
 ```text
-3.141592653589793
+3.14159265359
 ```
 
 ```epher
@@ -141,7 +141,7 @@ pi
 ```
 
 ```text
-6.283185307179586
+6.28318530718
 ```
 
 ```epher
@@ -149,7 +149,7 @@ e
 ```
 
 ```text
-2.718281828459045
+2.71828182846
 ```
 
 Deux autres : `tau` est un tour complet (2 pi) et `phi` est le nombre d'or :
@@ -159,7 +159,7 @@ tau
 ```
 
 ```text
-6.283185307179586
+6.28318530718
 ```
 
 ```epher
@@ -167,7 +167,7 @@ phi
 ```
 
 ```text
-1.618033988749895
+1.61803398875
 ```
 
 ### 1.4 Comparer et logique
@@ -332,7 +332,7 @@ weight(80)
 ```
 
 ```text
-784.8000000000001
+784.8
 ```
 
 Enregistrez une constante pour les sessions futures avec `save tax`,
@@ -494,9 +494,12 @@ area
 ### 1.12 Résultats exacts : frac, dec et big
 
 Normalement epher calcule avec des nombres décimaux comme une
-calculatrice de poche, mais les fractions exactes sont activées par
-défaut : tout résultat ayant une bonne fraction à petit dénominateur
-s'affiche comme tel. `1 / 3` s'affiche `1/3` sans le demander :
+calculatrice de poche, et les résultats arrondissent à douze chiffres
+significatifs comme le fait une calculatrice : `0.1 + 0.2` donne
+`0.3`, jamais `0.30000000000000004`. Les fractions exactes sont
+activées par défaut — un résultat ayant une bonne fraction à petit
+dénominateur dont le développement décimal se répète s'affiche comme
+tel. `1 / 3` s'affiche `1/3` sans le demander :
 
 ```epher
 1 / 3
@@ -508,7 +511,7 @@ s'affiche comme tel. `1 / 3` s'affiche `1/3` sans le demander :
 
 Avec **fractions exactes désactivées** dans les paramètres des
 résultats (chapitre 2.2), la même division affiche
-`0.3333333333333333`. **frac(n, d)** crée une fraction exacte qui reste
+`0.333333333333`. **frac(n, d)** crée une fraction exacte qui reste
 exacte à travers les calculs :
 
 ```epher
@@ -529,29 +532,22 @@ frac(1, 3) * 3
 1
 ```
 
-**dec(x)** crée un nombre décimal exact. Comparez ces deux-là :
+**dec(x)** crée un nombre décimal exact. `0.1 + 0.2` affiche `0.3`
+dans les deux cas — la différence est arithmétique :
 
 ```epher
-0.1 + 0.2
+0.1 * 3 - 0.3
+dec(0.1) * 3 - dec(0.3)
 ```
 
 ```text
-3/10
+0.0000000000000000555111512313
+0.0
 ```
 
-```epher
-dec(0.1) + dec(0.2)
-```
-
-```text
-0.3
-```
-
-Le premier résultat est la fraction exacte derrière la réponse et le
-second le nombre décimal lui-même ; avec les fractions exactes
-désactivées, le premier montre à la place la petite erreur d'arrondi
-que tout ordinateur fait avec les nombres décimaux
-(`0.30000000000000004`).
+Le résultat flottant porte la petite erreur d'arrondi que tout
+ordinateur fait avec les nombres décimaux ; `dec()` garde le calcul
+exact.
 
 **big(x)** crée un nombre entier exact, pour les valeurs trop grandes pour
 une calculatrice de poche :
@@ -636,7 +632,7 @@ convertir :
 | `asin(x)`, `acos(x)`, `atan(x)` | trigonométrie inverse | `atan(1)` | `0.7853981633974483` |
 | `atan2(y, x)` | angle du point (x, y) | `atan2(1, 1)` | `0.7853981633974483` |
 | `deg(x)` | radians → degrés | `deg(pi)` | `180` |
-| `rad(x)` | degrés → radians | `rad(180)` | `3.141592653589793` |
+| `rad(x)` | degrés → radians | `rad(180)` | `3.14159265359` |
 | `sinh(x)`, `cosh(x)`, `tanh(x)` | fonctions hyperboliques | `sinh(1)` | `1.1752011936438014` |
 | `asinh(x)`, `acosh(x)`, `atanh(x)` | hyperboliques inverses | `acosh(1)` | `0` |
 
@@ -648,7 +644,7 @@ base 10) :
 | `sqrt(x)` | racine carrée | `sqrt(16)` | `4` |
 | `cbrt(x)` | racine cubique | `cbrt(-27)` | `-3` |
 | `root(n, x)` | racine n-ième | `root(3, 8)` | `2` |
-| `exp(x)` | e puissance x | `exp(1)` | `2.718281828459045` |
+| `exp(x)` | e puissance x | `exp(1)` | `2.71828182846` |
 | `ln(x)` | logarithme népérien | `ln(e)` | `1` |
 | `log(x)` | logarithme base 10 | `log(100)` | `2` |
 | `log2(x)` | logarithme base 2 | `log2(8)` | `3` |
@@ -747,7 +743,7 @@ Les constantes physiques utilisent les unités SI, comme celles d'astronomie de 
 | Nom | Signification | Valeur |
 |---|---|---|
 | `G` | constante gravitationnelle de Newton | 6.6743e-11 |
-| `gamma` | constante d'Euler-Mascheroni | 0.5772156649015329 |
+| `gamma` | constante d'Euler-Mascheroni | 0.577215664902 |
 | `q_e` | charge élémentaire | 1.602176634e-19 |
 | `ev` | électronvolt, en joules | 1.602176634e-19 |
 | `eps_0` | permitivité du vide | 8.8541878128e-12 |
@@ -763,7 +759,7 @@ Les constantes physiques utilisent les unités SI, comme celles d'astronomie de 
 | `mu_b` | magnéton de Bohr | 9.2740100783e-24 |
 | `n_a` | constante d'Avogadro | 6.02214076e23 |
 | `faraday` | constante de Faraday, C/mol | 96485.33212 |
-| `r_gas` | constante molaire des gaz | 8.31446261815324 |
+| `r_gas` | constante molaire des gaz | 8.31446261815 |
 | `atm` | atmosphère standard, en pascals | 101325 |
 | `wien` | constante de longueur d'onde de Wien | 0.002897771955 |
 | `phi_0` | quantum de flux magnétique | 2.067833848e-15 |
@@ -1008,9 +1004,9 @@ exp(i * pi)
 ```
 
 ```text
-3.141592653589793i
-1.5707963267948966-1.3169578969248166i
--1+0.00000000000000012246467991473532i
+3.14159265359i
+1.57079632679-1.31695789692i
+-1+0.000000000000000122464679915i
 ```
 
 (`exp(i * pi)` vaut exactement `-1` ; les derniers chiffres sont le bruit de `sin(pi)` dans l'arithmétique de la machine.)
@@ -1028,7 +1024,7 @@ abs(3 + 4i)
 ```text
 3
 4
-3.141592653589793
+3.14159265359
 3+4i
 5
 ```
@@ -1446,7 +1442,7 @@ tvm_i(360, -100000, 733.76, 0)
 ```
 
 ```text
-0.006666611990680783
+0.00666661199068
 ```
 
 Le taux est ici un peu sous 8 %/12 parce que 733,76 est arrondi.

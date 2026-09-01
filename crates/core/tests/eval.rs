@@ -1979,7 +1979,7 @@ fn complex_arithmetic_and_parts() {
 fn real_domain_errors_now_fall_back_to_complex() {
     assert_eq!(eval_display("sqrt(-1)"), "i");
     assert_eq!(eval_display("sqrt(-4)"), "2i");
-    assert_eq!(eval_display("ln(-1)"), "3.141592653589793i");
+    assert_eq!(eval_display("ln(-1)"), "3.14159265359i");
     // exp(i*pi) is -1 up to sin(pi)'s f64 noise
     assert_close(eval_number("re(exp(i * pi))"), -1.0);
     assert_close(eval_number("im(exp(i * pi))"), 0.0);
@@ -2166,13 +2166,13 @@ fn display_prefs_shape_the_result_line() {
     let v = |s: &str| evaluate(s).expect("eval");
     let auto = DisplayPrefs::default();
     assert_eq!(format_value(&v("1/3"), &auto), "1/3");
-    assert_eq!(format_value(&v("0.1 + 0.2"), &auto), "3/10");
-    assert_eq!(format_value(&v("pi"), &auto), "3.141592653589793");
+    assert_eq!(format_value(&v("0.1 + 0.2"), &auto), "0.3");
+    assert_eq!(format_value(&v("pi"), &auto), "3.14159265359");
     let plain = DisplayPrefs {
         exact_fractions: false,
         ..DisplayPrefs::default()
     };
-    assert_eq!(format_value(&v("1/3"), &plain), "0.3333333333333333");
+    assert_eq!(format_value(&v("1/3"), &plain), "0.333333333333");
     let sci = DisplayPrefs {
         exact_fractions: false,
         notation: Notation::Scientific,
@@ -2985,7 +2985,8 @@ fn matrix_functions_cover_the_numworks_floor() {
     // inv with exact-fraction display
     assert_eq!(
         format_value_of("inv([[1, 2], [3, 4]])"),
-        "[[-2, 1], [3/2, -1/2]]"
+        // 3/2 is a terminating decimal, so it displays as 1.5
+        "[[-2, 1], [1.5, -0.5]]"
     );
     assert_eq!(
         format_value_of("inv([[1, 2], [3, 4]]) * [[1, 2], [3, 4]]"),
@@ -3039,7 +3040,10 @@ fn tvm_solves_any_field_of_the_mortgage() {
     assert!((eval_f64("tvm_n(0.08/12, -100000, 733.76, 0)") - 360.009_321_3).abs() < 1e-4);
     assert!((eval_f64("tvm_i(360, -100000, 733.76, 0)") - i).abs() < 1e-12);
     // 360 payments of 733.76 at 8%/12 are worth 99999.38 today
-    assert_eq!(format_value_of("tvm_pv(360, 0.08/12, 733.76, 0)"), "-7699952/77");
+    assert_eq!(
+        format_value_of("tvm_pv(360, 0.08/12, 733.76, 0)"),
+        "-7699952/77"
+    );
     // a 12-month 1% loan of 1000 with payments of 88.85 ends at ~0
     assert!(eval_f64("tvm_fv(12, 0.01, -1000, 88.85)").abs() < 0.05);
     // annuity-due timing lowers the payment
@@ -3094,4 +3098,45 @@ fn npv_irr_and_amortization_match_the_references() {
         eval_str_checked("amort(1000, 0.01, 12.5, 3)").is_err(),
         "whole periods"
     );
+}
+
+// ===== display rounding and terminating decimals (ADR-0051) =====
+
+#[test]
+fn display_rounds_to_twelve_significant_digits() {
+    use epher_core::{format_value, DisplayPrefs};
+    let auto = DisplayPrefs::default();
+    let f = |s: &str| format_value(&evaluate(s).expect("eval"), &auto);
+    // terminating decimals stay decimals, clean or reconstructed
+    assert_eq!(f("0.1"), "0.1");
+    assert_eq!(f("0.5"), "0.5");
+    assert_eq!(f("0.125"), "0.125");
+    assert_eq!(f("0.1 + 0.2"), "0.3");
+    assert_eq!(f("0.30000000000000004"), "0.3");
+    assert_eq!(f("100.1 - 100"), "0.1");
+    assert_eq!(f("200 + 10%"), "200.1");
+    assert_eq!(f("4.2"), "4.2");
+    assert_eq!(f("784.8000000000001"), "784.8");
+    // repeating values keep the fraction
+    assert_eq!(f("1/3"), "1/3");
+    assert_eq!(f("2/3"), "2/3");
+    assert_eq!(f("1/7"), "1/7");
+    assert_eq!(f("355/113"), "355/113");
+    // irrationals round to twelve digits
+    assert_eq!(f("sqrt(2)"), "1.41421356237");
+    assert_eq!(f("pi"), "3.14159265359");
+    assert_eq!(f("sin(pi)"), "0.000000000000000122464679915");
+    // exact integers never round
+    assert_eq!(f("1234567890123"), "1234567890123");
+    assert_eq!(f("1234567890123456"), "1234567890123456");
+    // fractions off still rounds the float the same way
+    let plain = DisplayPrefs {
+        exact_fractions: false,
+        ..DisplayPrefs::default()
+    };
+    let p = |s: &str| format_value(&evaluate(s).expect("eval"), &plain);
+    assert_eq!(p("0.1 + 0.2"), "0.3");
+    assert_eq!(p("1/3"), "0.333333333333");
+    // exact() keeps reconstructing on request
+    assert_eq!(eval_display("exact(0.30000000000000004)"), "3/10");
 }
