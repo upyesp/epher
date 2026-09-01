@@ -825,6 +825,8 @@ not know, so you can fix your expression.
 | Shifts | `a << n`, `a >> n` | `1 << 8` |
 | Word size | `bits(n)` for 8, 16, 32, 64 | `bits(8)` |
 | Implicit relation | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
+| Matrix literal | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
+| Matrix functions | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
 
 ### 1.16 Astronomy and the solar system
 
@@ -1410,6 +1412,41 @@ captions the equation, sliders animate its constants, and the picture
 zooms, pans, and exports like any other plot. The inequality fills
 (`y < …`, `y > …`) stay curves with shading; a relation has no points
 of interest.
+
+### 1.27 Matrices
+
+A matrix is a grid of numbers, spelled as rows of lists: `[[1, 2],
+[3, 4]]` is the 2×2 matrix. `+` and `-` are elementwise (matching
+shapes), `*` is the matrix product, a number scales elementwise, and
+`^` is the whole-number matrix power (`A ^ 0` is the identity, so
+powers need square matrices). `M[2][1]` is the element at row 2,
+column 1 — rows index like lists, 1-based.
+
+```epher
+[[1, 2], [3, 4]] * [[5, 6], [7, 8]]
+```
+
+```text
+[[19, 22], [43, 50]]
+```
+
+The matrix functions cover the classroom floor: `det(M)` (square
+only), `inv(M)` (singular matrices are an error), `transpose(M)`,
+`trace(M)` (square), `dim(M)` (the `{rows, cols}` list), and `ref(M)`
+with `rref(M)` for row reduction. Linear systems solve through rref
+on the augmented matrix:
+
+```epher
+rref([[2, 1, 5], [1, -1, 1]])
+```
+
+```text
+[[1, 0, 2], [0, 1, 1]]
+```
+
+The rows read `x = 2`, `y = 1` — the last column of the reduced
+augmented matrix. Exact fractions display inside matrices like lists,
+so `inv([[1, 2], [3, 4]])` shows `[[-2, 1], [3/2, -1/2]]`.
 
 ## 2. The web app (PWA)
 

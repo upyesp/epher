@@ -40,6 +40,13 @@ pub enum Value {
     /// Elements are floats; complex values are rejected with a type
     /// error at list construction.
     List(Vec<Value>),
+    /// A matrix (ADR-0049): a rows × cols grid of floats, row-major,
+    /// from the `[[1, 2], [3, 4]]` literal. Floats only, like lists.
+    Matrix {
+        rows: usize,
+        cols: usize,
+        data: Vec<f64>,
+    },
     /// A quantity (ADR-0046): an SI value plus the seven base
     /// dimensions, and an optional display unit (the typed spelling
     /// with its SI factor) so the value can be shown back in the unit
@@ -93,6 +100,24 @@ impl std::fmt::Display for Value {
             // (ADR-0046) — `3.2 AU`, `96.56064 km/hr`, `15 N`.
             Value::Quantity { value, dims, unit } => {
                 write!(f, "{}", quantity_display(*value, *dims, unit.clone()))
+            }
+            Value::Matrix { rows, cols, data } => {
+                let mut out = String::from("[");
+                for r in 0..*rows {
+                    if r > 0 {
+                        out.push_str(", ");
+                    }
+                    out.push('[');
+                    for c in 0..*cols {
+                        if c > 0 {
+                            out.push_str(", ");
+                        }
+                        out.push_str(&data[r * cols + c].to_string());
+                    }
+                    out.push(']');
+                }
+                out.push(']');
+                write!(f, "{out}")
             }
             Value::Str(s) => write!(f, "{s}"),
         }
@@ -227,6 +252,9 @@ pub enum Expression {
     /// A list literal (ADR-0044): `{1, 2, 3}` — the elements are
     /// expressions, evaluated when the list is.
     List(Vec<Expression>),
+    /// A matrix literal (ADR-0049): `[[1, 2], [3, 4]]` — rows of
+    /// expressions, evaluated when the matrix is.
+    Matrix(Vec<Vec<Expression>>),
     /// A postfix element access (ADR-0044): `d[2]` is the second
     /// element, 1-based; the index is any expression.
     Index(Box<Expression>, Box<Expression>),
@@ -1380,6 +1408,55 @@ impl Parser {
                     None => Err(EpherError::Parse("unexpected end of input".into())),
                 }
             }
+            // A matrix literal (ADR-0049): an expression-start `[`
+            // begins the row-of-rows spelling `[[1, 2], [3, 4]]`.
+            // Postfix `[` stays the index operator — the two positions
+            // never collide.
+            Some(Token::LBracket) => {
+                // (the match already consumed the opening '[')
+                let mut rows = Vec::new();
+                if matches!(self.peek(), Some(Token::RBracket)) {
+                    return Err(EpherError::Parse(
+                        "a matrix needs rows: [[1, 2], [3, 4]]".to_string(),
+                    ));
+                }
+                loop {
+                    self.expect_token(Token::LBracket, "'[' to start a row")?;
+                    let mut row = Vec::new();
+                    if matches!(self.peek(), Some(Token::RBracket)) {
+                        return Err(EpherError::Parse(
+                            "a matrix row needs at least one element".to_string(),
+                        ));
+                    }
+                    loop {
+                        row.push(self.parse_expression()?);
+                        match self.next() {
+                            Some(Token::Comma) => continue,
+                            Some(Token::RBracket) => break,
+                            Some(other) => {
+                                return Err(EpherError::Parse(format!(
+                                    "expected ',' or ']' in the row, found {other:?}"
+                                )))
+                            }
+                            None => {
+                                return Err(EpherError::Parse("unexpected end of input".into()))
+                            }
+                        }
+                    }
+                    rows.push(row);
+                    match self.next() {
+                        Some(Token::Comma) => continue,
+                        Some(Token::RBracket) => break,
+                        Some(other) => {
+                            return Err(EpherError::Parse(format!(
+                                "expected ',' or ']' between rows, found {other:?}"
+                            )))
+                        }
+                        None => return Err(EpherError::Parse("unexpected end of input".into())),
+                    }
+                }
+                Ok(Expression::Matrix(rows))
+            }
             Some(Token::LBrace) => {
                 // A list literal (ADR-0044): `{1, 2, 3}`, `{}`, elements
                 // are expressions. A trailing comma is allowed (`{1, 2,}`
@@ -1440,6 +1517,11 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                 value: -value,
                 dims,
                 unit,
+            }),
+            Value::Matrix { rows, cols, data } => Ok(Value::Matrix {
+                rows,
+                cols,
+                data: data.iter().map(|x| -x).collect(),
             }),
             Value::List(items) => {
                 let mut out = Vec::with_capacity(items.len());
@@ -1539,14 +1621,40 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
             }
             Ok(Value::List(out))
         }
+        // A matrix literal (ADR-0049): rows of floats, uniform length.
+        Expression::Matrix(rows) => {
+            let mut data = Vec::new();
+            let cols = rows.first().map(|r| r.len()).unwrap_or(0);
+            for row in rows {
+                if row.len() != cols {
+                    return Err(EpherError::Type(format!(
+                        "matrix rows must have the same length: {} and {}",
+                        cols,
+                        row.len()
+                    )));
+                }
+                for item in row {
+                    match eval(item, env)? {
+                        Value::Float(x) => data.push(x),
+                        other => {
+                            return Err(EpherError::Type(format!(
+                                "matrices hold numbers, got {other:?}"
+                            )))
+                        }
+                    }
+                }
+            }
+            let rows = rows.len();
+            if rows == 0 || cols == 0 {
+                return Err(EpherError::Type(
+                    "a matrix needs at least one row".to_string(),
+                ));
+            }
+            Ok(Value::Matrix { rows, cols, data })
+        }
         Expression::Index(list, index) => {
             let list = eval(list, env)?;
             let index = eval(index, env)?;
-            let Value::List(items) = &list else {
-                return Err(EpherError::Type(format!(
-                    "indexing needs a list, got {list:?}"
-                )));
-            };
             let Value::Float(i) = index else {
                 return Err(EpherError::Type(format!(
                     "the index must be a whole number, got {index:?}"
@@ -1555,13 +1663,35 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
             let i = float_to_int(i).ok_or_else(|| {
                 EpherError::Type(format!("the index must be a whole number, got {i}"))
             })?;
-            if !(1..=items.len() as i64).contains(&i) {
-                return Err(EpherError::Type(format!(
-                    "index {i} is out of range for a list of {} element(s)",
-                    items.len()
-                )));
+            match &list {
+                Value::List(items) => {
+                    if !(1..=items.len() as i64).contains(&i) {
+                        return Err(EpherError::Type(format!(
+                            "index {i} is out of range for a list of {} element(s)",
+                            items.len()
+                        )));
+                    }
+                    Ok(items[(i - 1) as usize].clone())
+                }
+                // A matrix row is a list (ADR-0049): `M[2][1]` chains.
+                Value::Matrix { rows, cols, data } => {
+                    if !(1..=*rows as i64).contains(&i) {
+                        return Err(EpherError::Type(format!(
+                            "index {i} is out of range for a matrix with {rows} rows"
+                        )));
+                    }
+                    let start = (i - 1) as usize * *cols;
+                    Ok(Value::List(
+                        data[start..start + *cols]
+                            .iter()
+                            .map(|x| Value::Float(*x))
+                            .collect(),
+                    ))
+                }
+                other => Err(EpherError::Type(format!(
+                    "indexing needs a list or matrix, got {other:?}"
+                ))),
             }
-            Ok(items[(i - 1) as usize].clone())
         }
         Expression::Factorial(inner) => {
             let v = eval(inner, env)?;
@@ -1616,6 +1746,17 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                         CmpOp::Ne => a != b,
                     };
                     Ok(Value::Bool(result))
+                }
+                // Whole-matrix equality (ADR-0049): `A == B` compares
+                // elementwise; ordering comparisons stay a type error.
+                (Value::Matrix { .. }, Value::Matrix { .. })
+                    if matches!(op, CmpOp::Eq | CmpOp::Ne) =>
+                {
+                    Ok(Value::Bool(if matches!(op, CmpOp::Eq) {
+                        l == r
+                    } else {
+                        l != r
+                    }))
                 }
                 // Numeric comparisons across all the numeric types
                 // (ADR-0047): same-type exact pairs compare exactly;
@@ -3307,6 +3448,14 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "det",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "dim",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "dist",
         kind: CatalogKind::Function,
     },
@@ -3396,6 +3545,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "integral",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "inv",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -3667,6 +3820,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "ref",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "rise",
         kind: CatalogKind::Function,
     },
@@ -3676,6 +3833,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "round",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "rref",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -3748,6 +3909,14 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "tpdf",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "trace",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "transpose",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -4117,6 +4286,27 @@ pub fn format_value(v: &Value, prefs: &DisplayPrefs) -> String {
                     .collect::<Vec<_>>()
                     .join(", ");
                 format!("{{{inner}}}")
+            }
+            Value::Matrix { rows, cols, data } => {
+                let mut out = String::from("[");
+                for r in 0..*rows {
+                    if r > 0 {
+                        out.push_str(", ");
+                    }
+                    out.push('[');
+                    for c in 0..*cols {
+                        if c > 0 {
+                            out.push_str(", ");
+                        }
+                        out.push_str(&format_value(
+                            &Value::Float(data[r * cols + c] + 0.0),
+                            prefs,
+                        ));
+                    }
+                    out.push(']');
+                }
+                out.push(']');
+                out
             }
             // A quantity (ADR-0046): the SI value converted to its
             // display unit, formatted with the session's prefs. The
@@ -4504,6 +4694,14 @@ fn poly_coeffs(expr: &Expression, variable: &str, env: &Env) -> Option<Vec<f64>>
                 _ => None,
             }
         }
+        Expression::Matrix(rows) => {
+            for row in rows {
+                for item in row {
+                    poly_coeffs(item, variable, env)?;
+                }
+            }
+            None
+        }
         Expression::Factorial(_)
         | Expression::Compare(_, _, _)
         | Expression::BitAnd(_, _)
@@ -4717,6 +4915,127 @@ fn newton_root(coeffs: &[Complex<f64>], start: Complex<f64>) -> Complex<f64> {
         z -= step;
     }
     z
+}
+
+/// The matrix argument of the matrix functions (ADR-0049).
+fn matrix_arg(name: &str, args: &[Value]) -> Result<(usize, usize, Vec<f64>), EpherError> {
+    let Value::Matrix { rows, cols, data } = one_arg(name, args)? else {
+        return Err(EpherError::Type(format!("{name} expects a matrix")));
+    };
+    Ok((*rows, *cols, data.clone()))
+}
+
+/// The square-matrix check shared by det, inv, and trace.
+fn square_matrix(name: &str, m: &Value) -> Result<(usize, Vec<f64>), EpherError> {
+    let Value::Matrix { rows, cols, data } = m else {
+        return Err(EpherError::Type(format!("{name} expects a matrix")));
+    };
+    if rows != cols {
+        return Err(domain_error(format!(
+            "{name} needs a square matrix, got {rows}x{cols}"
+        )));
+    }
+    Ok((*rows, data.clone()))
+}
+
+/// The determinant with partial pivoting (ADR-0049): Gaussian
+/// elimination tracking the pivot product and the row-swap sign.
+fn det_value(n: usize, mut a: Vec<f64>) -> Result<f64, EpherError> {
+    let mut det = 1.0;
+    for col in 0..n {
+        let pivot = (col..n).max_by(|&i, &j| {
+            a[i * n + col]
+                .abs()
+                .partial_cmp(&a[j * n + col].abs())
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        let Some(pivot) = pivot else { break };
+        if a[pivot * n + col].abs() < 1e-300 {
+            return Ok(0.0);
+        }
+        if pivot != col {
+            for k in 0..n {
+                a.swap(pivot * n + k, col * n + k);
+            }
+            det = -det;
+        }
+        det *= a[col * n + col];
+        for row in (col + 1)..n {
+            let factor = a[row * n + col] / a[col * n + col];
+            for k in col..n {
+                a[row * n + k] -= factor * a[col * n + k];
+            }
+        }
+    }
+    Ok(det)
+}
+
+/// Gauss-Jordan on the augmented matrix: `rref` is the reduced row
+/// echelon form, `ref` stops after the forward pass, and `inv` works
+/// on [M | I] (a singular pivot is a domain error).
+fn gauss_jordan(
+    n: usize,
+    m: usize,
+    mut a: Vec<f64>,
+    reduce_above: bool,
+    singular_errors: bool,
+) -> Result<Vec<f64>, EpherError> {
+    let mut row = 0usize;
+    for col in 0..m {
+        // For an inverse, only the first n columns can host matrix
+        // pivots: a pivot in the augmented part would mask a singular
+        // matrix (ADR-0049).
+        if singular_errors && col >= n {
+            break;
+        }
+        // the pivot: the largest |value| at or below `row` in this column
+        let pivot = (row..n)
+            .max_by(|&i, &j| {
+                a[i * m + col]
+                    .abs()
+                    .partial_cmp(&a[j * m + col].abs())
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .filter(|&i| a[i * m + col].abs() > 1e-12);
+        let Some(pivot) = pivot else {
+            continue; // this column is all zeros below; not a pivot
+        };
+        if pivot != row {
+            for k in 0..m {
+                a.swap(pivot * m + k, row * m + k);
+            }
+        }
+        let p = a[row * m + col];
+        for k in 0..m {
+            a[row * m + k] /= p;
+        }
+        // eliminate every other row (rref) or only the rows below (ref)
+        for r in 0..n {
+            if r == row {
+                continue;
+            }
+            if !reduce_above && r < row {
+                continue;
+            }
+            let factor = a[r * m + col];
+            if factor == 0.0 {
+                continue;
+            }
+            for k in 0..m {
+                a[r * m + k] -= factor * a[row * m + k];
+            }
+        }
+        row += 1;
+        if row == n {
+            break;
+        }
+    }
+    if singular_errors && row < n.min(m) {
+        // a free column with no pivot means the augmented system or the
+        // matrix is singular
+        return Err(domain_error("the matrix is singular"));
+    }
+    Ok(a)
 }
 
 /// Dispatch a builtin function call. User-defined functions are resolved by
@@ -5481,6 +5800,69 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
         }
         // Hypothesis tests and confidence intervals (ADR-0044): data
         // lists in, display strings out.
+        // Matrices (ADR-0049): the NumWorks floor — det, inv, transpose,
+        // trace, dim, ref, rref.
+        "det" => {
+            let (n, data) = square_matrix(name, one_arg(name, &args)?)?;
+            Ok(Value::Float(det_value(n, data)?))
+        }
+        "trace" => {
+            let (n, data) = square_matrix(name, one_arg(name, &args)?)?;
+            Ok(Value::Float((0..n).map(|i| data[i * n + i]).sum()))
+        }
+        "transpose" => {
+            let (rows, cols, data) = matrix_arg(name, &args)?;
+            let mut out = vec![0.0; rows * cols];
+            for r in 0..rows {
+                for c in 0..cols {
+                    out[c * rows + r] = data[r * cols + c];
+                }
+            }
+            Ok(Value::Matrix {
+                rows: cols,
+                cols: rows,
+                data: out,
+            })
+        }
+        "dim" => {
+            let (rows, cols, _) = matrix_arg(name, &args)?;
+            Ok(Value::List(vec![
+                Value::Float(rows as f64),
+                Value::Float(cols as f64),
+            ]))
+        }
+        "ref" | "rref" => {
+            let (rows, cols, data) = matrix_arg(name, &args)?;
+            // rref eliminates above and below every pivot; ref stops
+            // after the forward pass (upper echelon).
+            Ok(Value::Matrix {
+                rows,
+                cols,
+                data: gauss_jordan(rows, cols, data, matches!(name, "rref"), false)?,
+            })
+        }
+        "inv" => {
+            let (n, data) = square_matrix(name, one_arg(name, &args)?)?;
+            let mut aug = vec![0.0; n * 2 * n];
+            for r in 0..n {
+                for c in 0..n {
+                    aug[r * (2 * n) + c] = data[r * n + c];
+                }
+                aug[r * (2 * n) + n + r] = 1.0;
+            }
+            let out = gauss_jordan(n, 2 * n, aug, true, true)?;
+            let mut inv = vec![0.0; n * n];
+            for r in 0..n {
+                for c in 0..n {
+                    inv[r * n + c] = out[r * (2 * n) + n + c];
+                }
+            }
+            Ok(Value::Matrix {
+                rows: n,
+                cols: n,
+                data: inv,
+            })
+        }
         "ztest" => {
             let (data, mu0, sigma) = match args.as_slice() {
                 [_d, Value::Float(mu0), Value::Float(sigma)] => {
@@ -6066,6 +6448,11 @@ fn binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
     if matches!(&lhs, Value::Quantity { .. }) || matches!(&rhs, Value::Quantity { .. }) {
         return quantity_binop(lhs, rhs, op);
     }
+    // Matrix arithmetic (ADR-0049): elementwise + and -, the matrix
+    // product for *, and scaling by plain numbers.
+    if matches!(&lhs, Value::Matrix { .. }) || matches!(&rhs, Value::Matrix { .. }) {
+        return matrix_binop(lhs, rhs, op);
+    }
     // Elementwise list arithmetic (ADR-0044): `{1,2,3} * 2`, `2 /
     // {1,2,3}`, `{1,2} + {3,4}`. Lists of different lengths are a
     // type error; a scalar is any plain number.
@@ -6148,6 +6535,176 @@ fn numeric_f64(v: &Value) -> Result<f64, EpherError> {
             .ok_or_else(|| EpherError::Type(format!("cannot compare {v}"))),
         other => Err(EpherError::Type(format!("cannot compare {other:?}"))),
     }
+}
+
+/// Matrix arithmetic (ADR-0049): `+`/`-` are elementwise with matching
+/// shapes, `*` is the matrix product, a plain number scales (or, for
+/// division, divides) elementwise, and `^` is the whole-number matrix
+/// power (n = 0 gives the identity, so powers need square matrices).
+fn matrix_binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
+    let as_matrix = |v: Value| -> Result<(usize, usize, Vec<f64>), EpherError> {
+        match v {
+            Value::Matrix { rows, cols, data } => Ok((rows, cols, data)),
+            other => Err(EpherError::Type(format!(
+                "cannot combine a matrix with {other:?}"
+            ))),
+        }
+    };
+    let as_scalar = |v: &Value| -> Result<f64, EpherError> {
+        match v {
+            Value::Float(x) => Ok(*x),
+            other => Err(EpherError::Type(format!(
+                "a matrix only scales by a number, got {other:?}"
+            ))),
+        }
+    };
+    match (&lhs, &rhs) {
+        (Value::Matrix { .. }, Value::Matrix { .. }) => {
+            let (ra, ca, a) = as_matrix(lhs)?;
+            let (rb, cb, b) = as_matrix(rhs)?;
+            match op {
+                BinOp::Add | BinOp::Sub => {
+                    if ra != rb || ca != cb {
+                        return Err(EpherError::Type(format!(
+                            "matrix shapes must match: {ra}x{ca} and {rb}x{cb}"
+                        )));
+                    }
+                    let data = a
+                        .iter()
+                        .zip(&b)
+                        .map(|(x, y)| {
+                            if matches!(op, BinOp::Add) {
+                                x + y
+                            } else {
+                                x - y
+                            }
+                        })
+                        .collect();
+                    Ok(Value::Matrix {
+                        rows: ra,
+                        cols: ca,
+                        data,
+                    })
+                }
+                BinOp::Mul => {
+                    if ca != rb {
+                        return Err(EpherError::Type(format!(
+                            "matrix product needs {ca} columns in A and {rb} rows in B"
+                        )));
+                    }
+                    let mut data = vec![0.0; ra * cb];
+                    for i in 0..ra {
+                        for k in 0..ca {
+                            let aik = a[i * ca + k];
+                            for j in 0..cb {
+                                data[i * cb + j] += aik * b[k * cb + j];
+                            }
+                        }
+                    }
+                    Ok(Value::Matrix {
+                        rows: ra,
+                        cols: cb,
+                        data,
+                    })
+                }
+                BinOp::Div => Err(EpherError::Type(
+                    "cannot divide by a matrix; multiply by inv(M) instead".to_string(),
+                )),
+                BinOp::Pow => Err(EpherError::Type(
+                    "a matrix power needs one matrix and a whole number".to_string(),
+                )),
+            }
+        }
+        (Value::Matrix { rows, cols, data }, Value::Float(_)) => {
+            let s = as_scalar(&rhs)?;
+            match op {
+                BinOp::Mul => Ok(Value::Matrix {
+                    rows: *rows,
+                    cols: *cols,
+                    data: data.iter().map(|x| x * s).collect(),
+                }),
+                BinOp::Div => Ok(Value::Matrix {
+                    rows: *rows,
+                    cols: *cols,
+                    data: data.iter().map(|x| x / s).collect(),
+                }),
+                BinOp::Pow => {
+                    // The whole-number matrix power (ADR-0049): n = 0 is
+                    // the identity, so powers need square matrices.
+                    if rows != cols {
+                        return Err(EpherError::Type(format!(
+                            "the matrix power needs a square matrix, got {rows}x{cols}"
+                        )));
+                    }
+                    if s.fract() != 0.0 || !s.is_finite() || s < 0.0 || s > 1024.0 {
+                        return Err(EpherError::Type(format!(
+                            "the matrix power needs a whole number 0..=1024, got {s}"
+                        )));
+                    }
+                    let n = s as usize;
+                    let mut result = identity_matrix(*rows);
+                    let mut base = data.clone();
+                    let mut e = n;
+                    while e > 0 {
+                        if e % 2 == 1 {
+                            result = matrix_product(&result, &base, *rows);
+                        }
+                        e /= 2;
+                        if e > 0 {
+                            base = matrix_product(&base, &base, *rows);
+                        }
+                    }
+                    Ok(Value::Matrix {
+                        rows: *rows,
+                        cols: *cols,
+                        data: result,
+                    })
+                }
+                BinOp::Add | BinOp::Sub => Err(EpherError::Type(format!(
+                    "a matrix and a number only multiply, divide, or power, not {op:?}"
+                ))),
+            }
+        }
+        (Value::Float(_), Value::Matrix { rows, cols, data }) => {
+            let s = as_scalar(&lhs)?;
+            match op {
+                BinOp::Mul => Ok(Value::Matrix {
+                    rows: *rows,
+                    cols: *cols,
+                    data: data.iter().map(|x| s * x).collect(),
+                }),
+                BinOp::Add | BinOp::Sub | BinOp::Div | BinOp::Pow => Err(EpherError::Type(
+                    "a matrix only scales by a number on its left for *".to_string(),
+                )),
+            }
+        }
+        _ => Err(EpherError::Type(
+            "cannot combine a matrix with that".to_string(),
+        )),
+    }
+}
+
+/// The n×n identity matrix (ADR-0049), for the matrix power's n = 0.
+fn identity_matrix(n: usize) -> Vec<f64> {
+    let mut out = vec![0.0; n * n];
+    for i in 0..n {
+        out[i * n + i] = 1.0;
+    }
+    out
+}
+
+/// The product of two square matrices of size n (ADR-0049).
+fn matrix_product(a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
+    let mut out = vec![0.0; n * n];
+    for i in 0..n {
+        for k in 0..n {
+            let aik = a[i * n + k];
+            for j in 0..n {
+                out[i * n + j] += aik * b[k * n + j];
+            }
+        }
+    }
+    out
 }
 
 /// A float or a quantity unified for the ADR-0046 arithmetic rules:

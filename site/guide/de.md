@@ -686,7 +686,9 @@ Primzahlen und Teiler arbeiten mit ganzen Zahlen:
 | Bitweises Nicht | `~a` | `~0` |
 | Verschiebungen | `a << n`, `a >> n` | `1 << 8` |
 | Wortbreite | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
-| Implizite Beziehung | `graph lhs == rhs` | `graph x^2 + y^2 == 1` | `2^3 * 3^2 * 5` |
+| Implizite Beziehung | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
+| Matrix-Literal | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
+| Matrixfunktionen | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` | `2^3 * 3^2 * 5` |
 | `totient(n)` | Eulersche Phi-Funktion | `totient(12)` | `4` |
 | `ndivisors(n)` | Anzahl der Teiler | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b hoch e, modulo m, exakt | `modpow(2, 10, 1000)` | `24` |
@@ -1359,6 +1361,44 @@ graph x == 2
 ```
 
 Die Beziehung wird über dem Quadrat aus `from a to b` (oder dem Standardfenster) abgetastet, also passt `graph x^2 + y^2 == 1 from -2 to 2` das Fenster an den Kreis. Alles, was eine Kurve kann, gilt auch hier: die Legende beschriftet die Gleichung, die Schieber animieren ihre Konstanten, und das Bild zoomt, verschiebt und exportiert wie jedes andere. Die Ungleichungsfüllungen (`y < …`, `y > …`) bleiben schattierte Kurven; eine Beziehung hat keine Punkte von Interesse.
+
+
+### 1.27 Matrizen
+
+Eine Matrix ist ein Zahlenraster, geschrieben als Zeilen aus Listen:
+`[[1, 2], [3, 4]]` ist die 2×2-Matrix. `+` und `-` wirken elementweise
+(gleiche Formen), `*` ist das Matrixprodukt, eine Zahl skaliert
+elementweise, und `^` ist die ganzzahlige Matrixpotenz (`A ^ 0` ist
+die Einheitsmatrix, Potenzen brauchen also quadratische Matrizen).
+`M[2][1]` ist das Element in Zeile 2, Spalte 1 — Zeilen indizieren wie
+Listen, ab 1.
+
+```epher
+[[1, 2], [3, 4]] * [[5, 6], [7, 8]]
+```
+
+```text
+[[19, 22], [43, 50]]
+```
+
+Die Matrixfunktionen decken den Klassenraum-Bedarf: `det(M)` (nur
+quadratisch), `inv(M)` (singuläre Matrizen sind ein Fehler),
+`transpose(M)`, `trace(M)` (quadratisch), `dim(M)` (die Liste
+`{Zeilen, Spalten}`) und `ref(M)` mit `rref(M)` für die
+Zeilenreduktion. Lineare Gleichungssysteme lösen sich über rref auf
+der erweiterten Matrix:
+
+```epher
+rref([[2, 1, 5], [1, -1, 1]])
+```
+
+```text
+[[1, 0, 2], [0, 1, 1]]
+```
+
+Die Zeilen lesen `x = 2`, `y = 1` — die letzte Spalte der reduzierten
+erweiterten Matrix. Exakte Brüche erscheinen in Matrizen wie in
+Listen, also zeigt `inv([[1, 2], [3, 4]])` `[[-2, 1], [3/2, -1/2]]`.
 
 
 ## 2. Die Web-App (PWA)

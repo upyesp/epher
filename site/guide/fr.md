@@ -690,7 +690,9 @@ Les nombres premiers et les diviseurs travaillent sur des entiers :
 | Non binaire | `~a` | `~0` |
 | Décalages | `a << n`, `a >> n` | `1 << 8` |
 | Taille de mot | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
-| Relation implicite | `graph lhs == rhs` | `graph x^2 + y^2 == 1` | `2^3 * 3^2 * 5` |
+| Relation implicite | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
+| Littéral de matrice | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
+| Fonctions matricielles | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` | `2^3 * 3^2 * 5` |
 | `totient(n)` | indicatrice d'Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | nombre de diviseurs | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b puissance e, modulo m, exact | `modpow(2, 10, 1000)` | `24` |
@@ -1366,6 +1368,44 @@ graph x == 2
 ```
 
 La relation est échantillonnée sur le carré de `from a to b` (ou la fenêtre par défaut), donc `graph x^2 + y^2 == 1 from -2 to 2` cadre la fenêtre du cercle. Tout ce qu'une courbe peut faire s'applique : la légende affiche l'équation, les curseurs animent ses constantes, et l'image se zoome, se déplace et s'exporte comme n'importe quelle autre. Les remplissages d'inégalité (`y < …`, `y > …`) restent des courbes ombrées ; une relation n'a pas de points d'intérêt.
+
+
+### 1.27 Matrices
+
+Une matrice est une grille de nombres, écrite comme des rangées de
+listes : `[[1, 2], [3, 4]]` est la matrice 2×2. `+` et `-` sont terme à
+terme (formes égales), `*` est le produit matriciel, un nombre met à
+l'échelle terme à terme, et `^` est la puissance matricielle entière
+(`A ^ 0` est l'identité, donc les puissances demandent des matrices
+carrées). `M[2][1]` est l'élément de la ligne 2, colonne 1 — les
+lignes s'indexent comme des listes, à partir de 1.
+
+```epher
+[[1, 2], [3, 4]] * [[5, 6], [7, 8]]
+```
+
+```text
+[[19, 22], [43, 50]]
+```
+
+Les fonctions matricielles couvrent le minimum de la classe : `det(M)`
+(carrées seulement), `inv(M)` (les singulières sont une erreur),
+`transpose(M)`, `trace(M)` (carrées), `dim(M)` (la liste `{lignes,
+colonnes}`), et `ref(M)` avec `rref(M)` pour la réduction. Les
+systèmes linéaires se résolvent par rref sur la matrice augmentée :
+
+```epher
+rref([[2, 1, 5], [1, -1, 1]])
+```
+
+```text
+[[1, 0, 2], [0, 1, 1]]
+```
+
+Les lignes se lisent `x = 2`, `y = 1` — la dernière colonne de la
+matrice augmentée réduite. Les fractions exactes s'affichent dans les
+matrices comme dans les listes, donc `inv([[1, 2], [3, 4]])` montre
+`[[-2, 1], [3/2, -1/2]]`.
 
 
 ## 2. L'application web (PWA)

@@ -748,6 +748,13 @@ pub fn free_names(expr: &Expression, out: &mut BTreeSet<String>) {
             }
         }
         Expression::Neg(e) | Expression::Factorial(e) | Expression::Not(e) => free_names(e, out),
+        Expression::Matrix(rows) => {
+            for row in rows {
+                for item in row {
+                    free_names(item, out);
+                }
+            }
+        }
         Expression::BitNot(e) => free_names(e, out),
         Expression::Unit(inner, _, _, _) | Expression::In(inner, _, _, _) => free_names(inner, out),
         Expression::BitAnd(a, b)

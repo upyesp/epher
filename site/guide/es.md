@@ -681,7 +681,9 @@ Los primos y los divisores trabajan con números enteros:
 | No bit a bit | `~a` | `~0` |
 | Desplazamientos | `a << n`, `a >> n` | `1 << 8` |
 | Tamaño de palabra | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
-| Relación implícita | `graph lhs == rhs` | `graph x^2 + y^2 == 1` | `2^3 * 3^2 * 5` |
+| Relación implícita | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
+| Literal de matriz | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
+| Funciones matriciales | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` | `2^3 * 3^2 * 5` |
 | `totient(n)` | phi de Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | cuántos divisores tiene | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b elevado a e, módulo m, exacto | `modpow(2, 10, 1000)` | `24` |
@@ -1354,6 +1356,44 @@ graph x == 2
 ```
 
 La relación se muestrea sobre el cuadrado de `from a to b` (o la ventana por defecto), así que `graph x^2 + y^2 == 1 from -2 to 2` encaja la ventana del círculo. Todo lo que hace una curva aplica: la leyenda rotula la ecuación, los deslizadores animan sus constantes, y la imagen se amplía, desplaza y exporta como cualquier otra. Los rellenos de desigualdad (`y < …`, `y > …`) siguen siendo curvas sombreadas; una relación no tiene puntos de interés.
+
+
+### 1.27 Matrices
+
+Una matriz es una rejilla de números, escrita como filas de listas:
+`[[1, 2], [3, 4]]` es la matriz 2×2. `+` y `-` son elemento a elemento
+(con formas que coinciden), `*` es el producto matricial, un número
+escala elemento a elemento, y `^` es la potencia matricial entera
+(`A ^ 0` es la identidad, así que las potencias necesitan matrices
+cuadradas). `M[2][1]` es el elemento de la fila 2, columna 1 — las
+filas se indexan como listas, desde 1.
+
+```epher
+[[1, 2], [3, 4]] * [[5, 6], [7, 8]]
+```
+
+```text
+[[19, 22], [43, 50]]
+```
+
+Las funciones matriciales cubren el mínimo del aula: `det(M)` (solo
+cuadradas), `inv(M)` (las singulares dan error), `transpose(M)`,
+`trace(M)` (cuadradas), `dim(M)` (la lista `{filas, columnas}`), y
+`ref(M)` con `rref(M)` para la reducción por filas. Los sistemas
+lineales se resuelven con rref sobre la matriz aumentada:
+
+```epher
+rref([[2, 1, 5], [1, -1, 1]])
+```
+
+```text
+[[1, 0, 2], [0, 1, 1]]
+```
+
+Las filas leen `x = 2`, `y = 1` — la última columna de la matriz
+aumentada reducida. Las fracciones exactas se muestran dentro de las
+matrices como en las listas, así que `inv([[1, 2], [3, 4]])` muestra
+`[[-2, 1], [3/2, -1/2]]`.
 
 
 ## 2. La aplicación web (PWA)

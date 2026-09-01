@@ -181,6 +181,14 @@ lhs - rhs with marching squares over the square domain and returns
 the zero contour as ordinary samples separated by pen-up markers.
 _Avoid_: implicit function, relation plot
 
+**Matrix**:
+A rows x cols grid of floats from the `[[1, 2], [3, 4]]` literal
+(ADR-0049): `+`/`-` elementwise with matching shapes, `*` the matrix
+product, `^` the whole-number power, rows indexed as lists
+(`M[2][1]`), and the function floor det/inv/transpose/trace/dim/
+ref/rref. Linear systems solve through rref on the augmented matrix.
+_Avoid_: array, grid, 2D list
+
 ### Persistence
 
 **Store**:

@@ -2893,3 +2893,130 @@ fn big_comparisons_work_across_types() {
         Value::Bool(true)
     );
 }
+
+#[test]
+fn matrix_literal_debug() {
+    let e = epher_core::parse("[[1, 2], [3, 4]]");
+    eprintln!("parse: {e:?}");
+    assert!(e.is_ok());
+}
+
+// ===== matrices (ADR-0049) =====
+
+#[test]
+fn matrix_literals_arithmetic_and_indexing() {
+    // the literal, echoed back
+    assert_eq!(
+        format!("{}", eval_str("[[1, 2], [3, 4]]")),
+        "[[1, 2], [3, 4]]"
+    );
+    // elementwise + and -, the matrix product, and scaling
+    assert_eq!(
+        format!("{}", eval_str("[[1, 2], [3, 4]] + [[1, 1], [1, 1]]")),
+        "[[2, 3], [4, 5]]"
+    );
+    assert_eq!(
+        format!("{}", eval_str("[[1, 2], [3, 4]] * [[5, 6], [7, 8]]")),
+        "[[19, 22], [43, 50]]"
+    );
+    assert_eq!(
+        format!("{}", eval_str("[[1, 2], [3, 4]] * 2")),
+        "[[2, 4], [6, 8]]"
+    );
+    assert_eq!(
+        format!("{}", eval_str("2 * [[1, 2], [3, 4]]")),
+        "[[2, 4], [6, 8]]"
+    );
+    assert_eq!(
+        format!("{}", eval_str("-[[1, 2], [3, 4]]")),
+        "[[-1, -2], [-3, -4]]"
+    );
+    // the matrix power: n = 0 is the identity
+    assert_eq!(
+        format!("{}", eval_str("[[1, 2], [3, 4]] ^ 2")),
+        "[[7, 10], [15, 22]]"
+    );
+    assert_eq!(
+        format!("{}", eval_str("[[1, 2], [3, 4]] ^ 0")),
+        "[[1, 0], [0, 1]]"
+    );
+    // indexing: rows are lists, so M[2][1] is the element
+    assert_eq!(format!("{}", eval_str("[[1, 2], [3, 4]][2]")), "{3, 4}");
+    assert_eq!(format!("{}", eval_str("[[1, 2], [3, 4]][2][1]")), "3");
+    // whole-matrix equality
+    assert_eq!(
+        eval_str("[[1, 2], [3, 4]] == [[1, 2], [3, 4]]"),
+        Value::Bool(true)
+    );
+    assert_eq!(
+        eval_str("[[1, 2], [3, 4]] != [[1, 1], [3, 4]]"),
+        Value::Bool(true)
+    );
+    // shape and type errors
+    assert!(eval_str_checked("[[1, 2], [3]]").is_err(), "ragged rows");
+    assert!(
+        eval_str_checked("[[1, 2]] + [[1, 2], [3, 4]]").is_err(),
+        "shape mismatch"
+    );
+    assert!(
+        eval_str_checked("[[1, 2]] * [[1, 2]]").is_err(),
+        "product dims"
+    );
+    assert!(
+        eval_str_checked("2 / [[1, 2]]").is_err(),
+        "divide by a matrix"
+    );
+    assert!(eval_str_checked("[[1, 2]] < [[1, 2]]").is_err(), "ordering");
+    assert!(
+        eval_str_checked("[[1, 2], [3, 4]] ^ 0.5").is_err(),
+        "fractional power"
+    );
+}
+
+#[test]
+fn matrix_functions_cover_the_numworks_floor() {
+    // det and trace
+    assert_eq!(format!("{}", eval_str("det([[1, 2], [3, 4]])")), "-2");
+    assert_eq!(
+        format!("{}", eval_str("det([[2, 0, 0], [0, 3, 0], [0, 0, 5]])")),
+        "30"
+    );
+    assert_eq!(format!("{}", eval_str("trace([[1, 2], [3, 4]])")), "5");
+    // inv with exact-fraction display
+    assert_eq!(
+        format_value_of("inv([[1, 2], [3, 4]])"),
+        "[[-2, 1], [3/2, -1/2]]"
+    );
+    assert_eq!(
+        format_value_of("inv([[1, 2], [3, 4]]) * [[1, 2], [3, 4]]"),
+        "[[1, 0], [0, 1]]"
+    );
+    // singular matrices are a domain error
+    match eval_str_checked("inv([[1, 2], [2, 4]])") {
+        Err(epher_core::EpherError::Domain(msg)) => assert!(msg.contains("singular"), "{msg}"),
+        other => panic!("expected a domain error, got {other:?}"),
+    }
+    // transpose and dim
+    assert_eq!(
+        format!("{}", eval_str("transpose([[1, 2], [3, 4]])")),
+        "[[1, 3], [2, 4]]"
+    );
+    assert_eq!(
+        format!("{}", eval_str("dim([[1, 2], [3, 4], [5, 6]])")),
+        "{3, 2}"
+    );
+    assert_eq!(format!("{}", eval_str("dim([[1, 2], [3, 4]])[1]")), "2");
+    // rref solves the classic system; ref stops at the echelon form
+    assert_eq!(
+        format_value_of("rref([[2, 1, 5], [1, -1, 1]])"),
+        "[[1, 0, 2], [0, 1, 1]]"
+    );
+    let refd = format!("{}", eval_str("ref([[2, 1, 5], [1, -1, 1]])"));
+    assert!(
+        refd.starts_with("[[1, 0.5"),
+        "ref is the echelon form: {refd}"
+    );
+    // non-square det/trace are domain errors; a matrix arg is required
+    assert!(eval_str_checked("det([[1, 2, 3], [4, 5, 6]])").is_err());
+    assert!(eval_str_checked("trace(5)").is_err());
+}

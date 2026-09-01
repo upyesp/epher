@@ -365,3 +365,10 @@ key-hint-r_moon = चंद्रमा की त्रिज्या
 tui-constants-hint = ↑/↓ चुनें · Enter डालें · Esc बंद करें
 key-hint-bits = बिटवाइज़ शब्द आकार: bits(8), bits(16), bits(32) या bits(64)
 key-hint-xor = बिटवाइज़ अनन्य या: a xor b
+key-hint-det = वर्ग मैट्रिक्स का सारणिक
+key-hint-dim = मैट्रिक्स आयाम सूची के रूप में: dim(M) = पंक्तियाँ, स्तंभ
+key-hint-inv = वर्ग मैट्रिक्स का व्युत्क्रम
+key-hint-ref = मैट्रिक्स की पंक्ति-एक्लॉन रूप
+key-hint-rref = मैट्रिक्स की घटी हुई पंक्ति-एक्लॉन रूप
+key-hint-trace = वर्ग मैट्रिक्स के विकर्ण का योग
+key-hint-transpose = मैट्रिक्स को विकर्ण पर पलटें
