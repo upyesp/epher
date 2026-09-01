@@ -53,7 +53,7 @@ Measured:
 |---|---|---|
 | `invt(0.995, 3)` | 5.84090930972 | 5.8409093097334 (1.9e-12 rel, visible at digit 12) |
 | `invt(0.99999, 3)` | 47.927728373 | 47.9277283759 (visible at digit 11) |
-| `invt(0.999999, 3)` | 100 | 106.4 (bracket clamp) |
+| `invt(0.999999, 3)` | 100 | 103.3 (bracket clamp) |
 | `invt(0.9999, 1)` | 100 | 3183.1 (bracket clamp; t1 is a Cauchy tail) |
 | `invchi2(0.999999, 5)` | 35.8881868731 | 35.8881868797 (visible at digit 10) |
 | `invchi2(0.95, 5)` | 11.0704976935 | 11.0704976935164 (2.7e-13) |
