@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.5.11"
+version = "0.5.12"
 description = "epher: a programmable, scriptable calculator — the unified desktop binary"
 authors = ["upyesp"]
 license = "MIT"
