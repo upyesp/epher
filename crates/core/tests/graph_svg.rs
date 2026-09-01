@@ -341,3 +341,25 @@ fn data_svg_renders_all_three_kinds() {
     assert!(doc.contains("<line"), "whiskers and median");
     assert!(doc.contains("</svg>"), "a complete document");
 }
+
+#[test]
+fn implicit_relation_exports_as_polylines() {
+    use epher_core::graph::{parse_graph_source, sample_spec};
+    let spec = parse_graph_source("x^2 + y^2 == 1").unwrap();
+    let env = Env::default();
+    let samples = sample_spec(&spec, 60, &env).unwrap();
+    let curve = epher_core::graph::SampledCurve {
+        source: "x^2 + y^2 == 1".to_string(),
+        kind: spec.kind,
+        domain: spec.domain,
+        samples,
+        fill: None,
+    };
+    let doc = graph_svg(&[curve], &[], None, true, DEFAULT_STROKE_WIDTH);
+    assert!(doc.contains("<polyline"), "the circle renders as polylines");
+    assert!(
+        doc.contains("x^2 + y^2 == 1"),
+        "the legend captions the equation"
+    );
+    assert!(doc.contains("</svg>"), "a complete document");
+}

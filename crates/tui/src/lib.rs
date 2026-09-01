@@ -2088,6 +2088,7 @@ impl App {
                         free_names(y, &mut names);
                     }
                     epher_core::graph::CurveKind::Polar(e) => free_names(e, &mut names),
+                    epher_core::graph::CurveKind::Implicit(e) => free_names(e, &mut names),
                 }
             }
         }

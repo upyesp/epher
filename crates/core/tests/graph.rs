@@ -589,3 +589,89 @@ fn projection_maps_the_scene_to_screen_space() {
         }
     }
 }
+
+// ===== implicit relations (ADR-0048) =====
+
+#[test]
+fn implicit_relations_parse_and_sample_the_zero_contour() {
+    use epher_core::graph::{parse_graph_source, sample_spec};
+    let env = Env::default();
+    let spec = parse_graph_source("x^2 + y^2 == 1").expect("parses");
+    assert!(matches!(
+        spec.kind,
+        epher_core::graph::CurveKind::Implicit(_)
+    ));
+    assert_eq!(spec.domain, (-10.0, 10.0));
+    let samples = sample_spec(&spec, 120, &env).expect("samples");
+    assert!(samples.len() > 50, "a circle has a long contour");
+    // every finite sample lies on the circle
+    let mut finite = 0;
+    for s in &samples {
+        if !s.y.is_finite() {
+            continue;
+        }
+        finite += 1;
+        let r2 = s.x * s.x + s.y * s.y;
+        assert!(
+            (r2 - 1.0).abs() < 0.05,
+            "point ({}, {}) off the unit circle: {r2}",
+            s.x,
+            s.y
+        );
+    }
+    assert!(finite > 40, "the contour is mostly finite");
+    // branches separate with pen-up markers (the renderers' gap)
+    let mut pens = 0;
+    for w in samples.windows(2) {
+        if !w[1].y.is_finite() {
+            pens += 1;
+        }
+    }
+    assert!(pens >= 1, "the circle comes out as branches, got {pens}");
+
+    // `y == x^2` and `x == 2` are relations too
+    let spec = parse_graph_source("y == x^2").expect("parses");
+    assert!(matches!(
+        spec.kind,
+        epher_core::graph::CurveKind::Implicit(_)
+    ));
+    let samples = sample_spec(&spec, 60, &env).expect("samples");
+    let mut hit = 0;
+    for s in &samples {
+        if s.y.is_finite() && (s.y - s.x * s.x).abs() < 0.1 {
+            hit += 1;
+        }
+    }
+    assert!(hit > 20, "the parabola's points sit on y = x^2, got {hit}");
+
+    // an equation with a fill prefix is rejected
+    assert!(parse_graph_source("y < x^2 + y^2 == 1").is_err());
+    // plain inequalities stay Cartesian (the existing shading)
+    assert!(matches!(
+        parse_graph_source("y < x^2").expect("parses").kind,
+        epher_core::graph::CurveKind::Cartesian(_)
+    ));
+}
+
+#[test]
+fn implicit_relations_respect_the_domain() {
+    use epher_core::graph::{parse_graph_source, sample_spec};
+    let env = Env::default();
+    let spec = parse_graph_source("x^2 + y^2 == 1 from -2 to 2").expect("parses");
+    let samples = sample_spec(&spec, 60, &env).expect("samples");
+    for s in &samples {
+        if s.y.is_finite() {
+            assert!((-2.0..=2.0).contains(&s.x), "x {} outside the domain", s.x);
+            assert!((-2.0..=2.0).contains(&s.y), "y {} outside the square", s.y);
+        }
+    }
+    // the equation's variables drive sliders like any curve's
+    let mut names = std::collections::BTreeSet::new();
+    epher_core::graph::free_names(
+        &epher_core::parse("x^2 + y^2 == r^2").expect("parses"),
+        &mut names,
+    );
+    assert!(names.contains("x"));
+    assert!(names.contains("y"));
+    assert!(names.contains("r"));
+}

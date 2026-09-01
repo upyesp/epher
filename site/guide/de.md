@@ -685,7 +685,8 @@ Primzahlen und Teiler arbeiten mit ganzen Zahlen:
 | Bitweises exklusives Oder | `a xor b` | `5 xor 3` |
 | Bitweises Nicht | `~a` | `~0` |
 | Verschiebungen | `a << n`, `a >> n` | `1 << 8` |
-| Wortbreite | `bits(n)` — 8, 16, 32, 64 | `bits(8)` | `2^3 * 3^2 * 5` |
+| Wortbreite | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
+| Implizite Beziehung | `graph lhs == rhs` | `graph x^2 + y^2 == 1` | `2^3 * 3^2 * 5` |
 | `totient(n)` | Eulersche Phi-Funktion | `totient(12)` | `4` |
 | `ndivisors(n)` | Anzahl der Teiler | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b hoch e, modulo m, exakt | `modpow(2, 10, 1000)` | `24` |
@@ -1339,6 +1340,25 @@ bits(8)
 Eine negative Verschiebung kehrt die Richtung um (`8 << -1` ist `4`).
 Das boolesche `and` und `or` behalten ihre Bedeutung; `&` und `|` sind
 die Bit-Schreibweisen.
+
+
+### 1.26 Implizite Beziehungen
+
+Eine Gleichung mit zwei Unbekannten wird als Kurve gezeichnet: die Graph-Familie tastet die Beziehung mit Marching Squares ab und zeichnet ihre Null-Kontur. Kreis, Parabel und senkrechte Gerade — je ein Befehl:
+
+```epher
+graph x^2 + y^2 == 1
+```
+
+```epher
+graph y == x^2
+```
+
+```epher
+graph x == 2
+```
+
+Die Beziehung wird über dem Quadrat aus `from a to b` (oder dem Standardfenster) abgetastet, also passt `graph x^2 + y^2 == 1 from -2 to 2` das Fenster an den Kreis. Alles, was eine Kurve kann, gilt auch hier: die Legende beschriftet die Gleichung, die Schieber animieren ihre Konstanten, und das Bild zoomt, verschiebt und exportiert wie jedes andere. Die Ungleichungsfüllungen (`y < …`, `y > …`) bleiben schattierte Kurven; eine Beziehung hat keine Punkte von Interesse.
 
 
 ## 2. Die Web-App (PWA)

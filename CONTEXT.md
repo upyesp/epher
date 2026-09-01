@@ -174,6 +174,13 @@ A computed position of a Solar System body (Sun, Moon, planet) at a given
 time, in a stated coordinate frame.
 _Avoid_: almanac, star chart, planetarium
 
+**Implicit relation**:
+A graph-family command whose source is an equation in two unknowns
+(`graph x^2 + y^2 == 1`; ADR-0048): the core samples the difference
+lhs - rhs with marching squares over the square domain and returns
+the zero contour as ordinary samples separated by pen-up markers.
+_Avoid_: implicit function, relation plot
+
 ### Persistence
 
 **Store**:

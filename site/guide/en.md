@@ -824,6 +824,7 @@ not know, so you can fix your expression.
 | Bitwise not | `~a` | `~0` |
 | Shifts | `a << n`, `a >> n` | `1 << 8` |
 | Word size | `bits(n)` for 8, 16, 32, 64 | `bits(8)` |
+| Implicit relation | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
 
 ### 1.16 Astronomy and the solar system
 
@@ -1383,6 +1384,32 @@ bits(8)
 Shifts by a negative amount reverse the direction (`8 << -1` is `4`).
 The boolean `and` and `or` keep their meanings; `&` and `|` are the
 bitwise spellings.
+
+### 1.26 Implicit relations
+
+An equation in two unknowns plots as a curve: the graph family samples
+the relation with marching squares and draws its zero contour. The
+circle, the parabola, and the vertical line are all one command each:
+
+```epher
+graph x^2 + y^2 == 1
+```
+
+```epher
+graph y == x^2
+```
+
+```epher
+graph x == 2
+```
+
+The relation is sampled over the square from `from a to b` (or the
+default window), so `graph x^2 + y^2 == 1 from -2 to 2` fits the
+circle's window. Everything a curve can do applies: the legend
+captions the equation, sliders animate its constants, and the picture
+zooms, pans, and exports like any other plot. The inequality fills
+(`y < …`, `y > …`) stay curves with shading; a relation has no points
+of interest.
 
 ## 2. The web app (PWA)
 

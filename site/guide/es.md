@@ -680,7 +680,8 @@ Los primos y los divisores trabajan con números enteros:
 | O exclusivo bit a bit | `a xor b` | `5 xor 3` |
 | No bit a bit | `~a` | `~0` |
 | Desplazamientos | `a << n`, `a >> n` | `1 << 8` |
-| Tamaño de palabra | `bits(n)` — 8, 16, 32, 64 | `bits(8)` | `2^3 * 3^2 * 5` |
+| Tamaño de palabra | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
+| Relación implícita | `graph lhs == rhs` | `graph x^2 + y^2 == 1` | `2^3 * 3^2 * 5` |
 | `totient(n)` | phi de Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | cuántos divisores tiene | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b elevado a e, módulo m, exacto | `modpow(2, 10, 1000)` | `24` |
@@ -1334,6 +1335,25 @@ bits(8)
 Un desplazamiento negativo invierte la dirección (`8 << -1` es `4`).
 El `and` y `or` booleanos conservan sus significados; `&` y `|` son
 las grafías bit a bit.
+
+
+### 1.26 Relaciones implícitas
+
+Una ecuación con dos incógnitas se dibuja como una curva: la familia de gráficos muestrea la relación con marching squares y traza su contorno cero. El círculo, la parábola y la recta vertical, cada uno con un solo comando:
+
+```epher
+graph x^2 + y^2 == 1
+```
+
+```epher
+graph y == x^2
+```
+
+```epher
+graph x == 2
+```
+
+La relación se muestrea sobre el cuadrado de `from a to b` (o la ventana por defecto), así que `graph x^2 + y^2 == 1 from -2 to 2` encaja la ventana del círculo. Todo lo que hace una curva aplica: la leyenda rotula la ecuación, los deslizadores animan sus constantes, y la imagen se amplía, desplaza y exporta como cualquier otra. Los rellenos de desigualdad (`y < …`, `y > …`) siguen siendo curvas sombreadas; una relación no tiene puntos de interés.
 
 
 ## 2. La aplicación web (PWA)

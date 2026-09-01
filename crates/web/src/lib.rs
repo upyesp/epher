@@ -107,6 +107,7 @@ fn slider_names(
                 visit(y);
             }
             CurveKind::Polar(e) => visit(e),
+            CurveKind::Implicit(e) => visit(e),
         }
     }
     for surface in surfaces {
@@ -209,6 +210,7 @@ fn curve_references(c: &SampledCurve, name: &str) -> bool {
             epher_core::graph::free_names(y, &mut names);
         }
         epher_core::graph::CurveKind::Polar(e) => epher_core::graph::free_names(e, &mut names),
+        epher_core::graph::CurveKind::Implicit(e) => epher_core::graph::free_names(e, &mut names),
     }
     names.contains(name)
 }

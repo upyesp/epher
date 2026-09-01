@@ -689,7 +689,8 @@ Les nombres premiers et les diviseurs travaillent sur des entiers :
 | Ou exclusif binaire | `a xor b` | `5 xor 3` |
 | Non binaire | `~a` | `~0` |
 | Décalages | `a << n`, `a >> n` | `1 << 8` |
-| Taille de mot | `bits(n)` — 8, 16, 32, 64 | `bits(8)` | `2^3 * 3^2 * 5` |
+| Taille de mot | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
+| Relation implicite | `graph lhs == rhs` | `graph x^2 + y^2 == 1` | `2^3 * 3^2 * 5` |
 | `totient(n)` | indicatrice d'Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | nombre de diviseurs | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b puissance e, modulo m, exact | `modpow(2, 10, 1000)` | `24` |
@@ -1346,6 +1347,25 @@ bits(8)
 Un décalage négatif inverse la direction (`8 << -1` vaut `4`). Le
 `and` et le `or` booléens gardent leurs sens ; `&` et `|` sont les
 graphies binaires.
+
+
+### 1.26 Relations implicites
+
+Une équation à deux inconnues se trace comme une courbe : la famille graphique échantillonne la relation par marching squares et dessine son contour zéro. Le cercle, la parabole et la droite verticale, chacun une seule commande :
+
+```epher
+graph x^2 + y^2 == 1
+```
+
+```epher
+graph y == x^2
+```
+
+```epher
+graph x == 2
+```
+
+La relation est échantillonnée sur le carré de `from a to b` (ou la fenêtre par défaut), donc `graph x^2 + y^2 == 1 from -2 to 2` cadre la fenêtre du cercle. Tout ce qu'une courbe peut faire s'applique : la légende affiche l'équation, les curseurs animent ses constantes, et l'image se zoome, se déplace et s'exporte comme n'importe quelle autre. Les remplissages d'inégalité (`y < …`, `y > …`) restent des courbes ombrées ; une relation n'a pas de points d'intérêt.
 
 
 ## 2. L'application web (PWA)

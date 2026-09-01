@@ -6,13 +6,13 @@
 
 use std::collections::BTreeSet;
 
-use crate::{eval, evaluate, parse, Env, EpherError, Expression, Sample, Value};
+use crate::{eval, evaluate, parse, CmpOp, Env, EpherError, Expression, Sample, Value};
 
 /// The default x (or t/θ) domain for a curve kind, when the command names no
 /// bounds.
 pub fn default_domain(kind: &CurveKind) -> (f64, f64) {
     match kind {
-        CurveKind::Cartesian(_) => (-10.0, 10.0),
+        CurveKind::Cartesian(_) | CurveKind::Implicit(_) => (-10.0, 10.0),
         CurveKind::Parametric { .. } | CurveKind::Polar(_) => (0.0, std::f64::consts::TAU),
     }
 }
@@ -28,8 +28,14 @@ pub enum Fill {
 #[derive(Debug, Clone, PartialEq)]
 pub enum CurveKind {
     Cartesian(Expression),
-    Parametric { x: Expression, y: Expression },
+    Parametric {
+        x: Expression,
+        y: Expression,
+    },
     Polar(Expression),
+    /// An implicit relation (ADR-0048): the whole equation
+    /// (`x^2 + y^2 == 1`), sampled with marching squares.
+    Implicit(Expression),
 }
 
 /// A parsed graph command: what to plot and over which domain.
@@ -101,7 +107,20 @@ pub fn parse_graph_source(source: &str) -> Result<CurveSpec, EpherError> {
             },
         };
         fill = f;
-        CurveKind::Cartesian(parse(expr.trim())?)
+        let parsed = parse(expr.trim())?;
+        // An implicit relation (ADR-0048): the top level is `==`.
+        // `x^2 + y^2 == 1`, `y == x^2`, and `x == 2` all plot; the
+        // inequality fills above stay Cartesian.
+        if matches!(parsed, Expression::Compare(CmpOp::Eq, ..)) {
+            if f.is_some() {
+                return Err(EpherError::Parse(
+                    "implicit relations cannot be filled; drop the y < or y > prefix".to_string(),
+                ));
+            }
+            CurveKind::Implicit(parsed)
+        } else {
+            CurveKind::Cartesian(parsed)
+        }
     };
     let domain = match domain {
         Some(d) => d,
@@ -174,7 +193,182 @@ pub fn sample_spec(spec: &CurveSpec, points: usize, env: &Env) -> Result<Vec<Sam
         CurveKind::Cartesian(expr) => crate::sample(expr, a, b, points, env),
         CurveKind::Parametric { x, y } => crate::sample_parametric(x, y, a, b, points, env),
         CurveKind::Polar(expr) => crate::sample_polar(expr, a, b, points, env),
+        CurveKind::Implicit(expr) => sample_implicit(expr, a, b, points, env),
     }
+}
+
+/// The difference `lhs - rhs` of an implicit equation (ADR-0048); the
+/// sampler evaluates it on the grid and extracts the zero contour.
+fn implicit_difference(expr: &Expression) -> Expression {
+    match expr {
+        Expression::Compare(CmpOp::Eq, l, r) => Expression::Sub(l.clone(), r.clone()),
+        other => other.clone(),
+    }
+}
+
+/// Sample an implicit relation over the square `[a, b] × [a, b]` with
+/// marching squares (ADR-0048): the N×N grid evaluates the difference
+/// at every vertex, each cell's corner signs pick the crossing case,
+/// edge crossings interpolate linearly, and the ambiguous saddle cells
+/// resolve with the cell-center average. The chained branches come out
+/// as samples separated by non-finite pen-up markers, which the
+/// renderers already split like vertical asymptotes.
+pub fn sample_implicit(
+    expr: &Expression,
+    a: f64,
+    b: f64,
+    points: usize,
+    env: &Env,
+) -> Result<Vec<Sample>, EpherError> {
+    let f = implicit_difference(expr);
+    let n = points.max(2);
+    let mut grid = vec![f64::NAN; (n + 1) * (n + 1)];
+    let at = |i: usize, j: usize| -> f64 {
+        let mut child = Env::new_child(env);
+        let x = a + (b - a) * i as f64 / n as f64;
+        let y = a + (b - a) * j as f64 / n as f64;
+        child.set("x", Value::float(x));
+        child.set("y", Value::float(y));
+        match eval(&f, &child) {
+            Ok(Value::Float(v)) if v.is_finite() => v,
+            // Quantities evaluate to their SI value on the grid too.
+            Ok(Value::Quantity { value, .. }) if value.is_finite() => value,
+            _ => f64::NAN,
+        }
+    };
+    for j in 0..=n {
+        for i in 0..=n {
+            grid[j * (n + 1) + i] = at(i, j);
+        }
+    }
+    // Marching squares: walk the cells, collect interpolated segments.
+    let mut segments: Vec<((f64, f64), (f64, f64))> = Vec::new();
+    for j in 0..n {
+        for i in 0..n {
+            let v00 = grid[j * (n + 1) + i];
+            let v10 = grid[j * (n + 1) + i + 1];
+            let v01 = grid[(j + 1) * (n + 1) + i];
+            let v11 = grid[(j + 1) * (n + 1) + i + 1];
+            if [v00, v10, v01, v11].iter().any(|v| v.is_nan()) {
+                continue;
+            }
+            let (x0, x1) = (
+                a + (b - a) * i as f64 / n as f64,
+                a + (b - a) * (i + 1) as f64 / n as f64,
+            );
+            let (y0, y1) = (
+                a + (b - a) * j as f64 / n as f64,
+                a + (b - a) * (j + 1) as f64 / n as f64,
+            );
+            let s00 = v00 > 0.0;
+            let s10 = v10 > 0.0;
+            let s01 = v01 > 0.0;
+            let s11 = v11 > 0.0;
+            let case = (s00 as u8) | ((s10 as u8) << 1) | ((s01 as u8) << 2) | ((s11 as u8) << 3);
+            if case == 0 || case == 15 {
+                continue;
+            }
+            // Edge crossing points (interpolated).
+            let bottom = (x0 + (x1 - x0) * v00 / (v00 - v10), y0);
+            let top = (x0 + (x1 - x0) * v01 / (v01 - v11), y1);
+            let left = (x0, y0 + (y1 - y0) * v00 / (v00 - v01));
+            let right = (x1, y0 + (y1 - y0) * v10 / (v10 - v11));
+            // The 14 crossing cases, with the alternating diagonals
+            // (6 and 9) resolved by the cell-center average: the center
+            // decides which pair of positives connect through the
+            // saddle, exactly the asymptotic decider.
+            match case {
+                1 | 14 => segments.push((bottom, left)),
+                2 | 13 => segments.push((bottom, right)),
+                3 | 12 => segments.push((left, right)),
+                4 | 11 => segments.push((top, left)),
+                7 | 8 => segments.push((top, right)),
+                // Adjacent positives (the left or right column): the
+                // contour crosses the cell from bottom to top once.
+                5 | 10 => segments.push((bottom, top)),
+                6 => {
+                    let center = (v00 + v10 + v01 + v11) / 4.0;
+                    if center > 0.0 {
+                        segments.push((bottom, left));
+                        segments.push((top, right));
+                    } else {
+                        segments.push((bottom, right));
+                        segments.push((top, left));
+                    }
+                }
+                9 => {
+                    let center = (v00 + v10 + v01 + v11) / 4.0;
+                    if center > 0.0 {
+                        segments.push((bottom, right));
+                        segments.push((top, left));
+                    } else {
+                        segments.push((bottom, left));
+                        segments.push((top, right));
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    Ok(chain_segments(&segments))
+}
+
+/// Chain interpolated segments into contour branches: greedy endpoint
+/// matching within a cell's epsilon, each branch a run of samples, and
+/// a non-finite pen-up sample between branches.
+fn chain_segments(segments: &[((f64, f64), (f64, f64))]) -> Vec<Sample> {
+    let mut out: Vec<Sample> = Vec::new();
+    let mut used = vec![false; segments.len()];
+    for start in 0..segments.len() {
+        if used[start] {
+            continue;
+        }
+        used[start] = true;
+        let mut branch: Vec<Sample> = Vec::new();
+        branch.push(Sample {
+            x: segments[start].0 .0,
+            y: segments[start].0 .1,
+        });
+        branch.push(Sample {
+            x: segments[start].1 .0,
+            y: segments[start].1 .1,
+        });
+        // extend forwards
+        loop {
+            let tail = branch.last().map(|s| (s.x, s.y)).expect("non-empty");
+            let next = (0..segments.len()).find(|&i| {
+                !used[i]
+                    && (segments[i].0 == tail
+                        || segments[i].1 == tail
+                        || dist(segments[i].0, tail) < 1e-9
+                        || dist(segments[i].1, tail) < 1e-9)
+            });
+            match next {
+                Some(i) => {
+                    used[i] = true;
+                    let (p, q) = segments[i];
+                    let next_point = if dist(p, tail) < dist(q, tail) { q } else { p };
+                    branch.push(Sample {
+                        x: next_point.0,
+                        y: next_point.1,
+                    });
+                }
+                None => break,
+            }
+        }
+        if !out.is_empty() {
+            out.push(Sample {
+                x: f64::NAN,
+                y: f64::NAN,
+            });
+        }
+        out.extend(branch);
+    }
+    out
+}
+
+fn dist(a: (f64, f64), b: (f64, f64)) -> f64 {
+    (a.0 - b.0).powi(2) + (a.1 - b.1).powi(2)
 }
 
 /// The Cartesian expression, for curves that are `y = f(x)` (points-of-
@@ -182,6 +376,7 @@ pub fn sample_spec(spec: &CurveSpec, points: usize, env: &Env) -> Result<Vec<Sam
 pub fn cartesian_expr(kind: &CurveKind) -> Option<&Expression> {
     match kind {
         CurveKind::Cartesian(e) => Some(e),
+        // Relations have no y = f(x) shape, so no points of interest.
         _ => None,
     }
 }
