@@ -675,7 +675,9 @@ Primzahlen und Teiler arbeiten mit ganzen Zahlen:
 | Chi-Quadrat | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
 | Diskrete Verteilungen | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
 | Tests und Intervalle | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
-| Datenplots | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` | `2^3 * 3^2 * 5` |
+| Datenplots | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
+| Zufallszahlen | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| Konstanten-Browser | Hilfe → Konstanten: alle eingebauten Konstanten, nach Gruppe | Hilfe → Konstanten | `2^3 * 3^2 * 5` |
 | `totient(n)` | Eulersche Phi-Funktion | `totient(12)` | `4` |
 | `ndivisors(n)` | Anzahl der Teiler | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b hoch e, modulo m, exakt | `modpow(2, 10, 1000)` | `24` |
@@ -738,6 +740,12 @@ Die physikalischen Konstanten verwenden SI-Einheiten, wie die astronomischen in 
 | `atm` | Standardatmosphäre in Pascal | 101325 |
 | `wien` | Wiensche Wellenlängenkonstante | 0.002897771955 |
 | `phi_0` | Magnetisches Flussquantum | 2.067833848e-15 |
+| `m_P` | Planck-Masse | 2.176434e-8 |
+| `l_P` | Planck-Länge | 1.616255e-35 |
+| `t_P` | Planck-Zeit | 5.391247e-44 |
+| `r_e` | klassischer Elektronenradius | 2.8179403205e-15 |
+| `lambda_c` | Compton-Wellenlänge | 2.42631023867e-12 |
+| `mu_n` | Kernmagneton | 5.050783699e-27 |
 
 
 ### 1.14 Fehler lesen
@@ -854,7 +862,7 @@ Jansky-Wert und `mag2jy(20) Jy` derselbe Fluss in Watt pro Quadratmeter
 Hertz.
 
 **Astronomische Konstanten.** `au`, `pc`, `ly`, `c`, `g`, `h`, `h_bar`,
-`k_b`, `sigma_sb`, `m_sun`, `r_sun`, `l_sun`, `m_earth`, `r_earth` wirken
+`k_b`, `sigma_sb`, `m_sun`, `r_sun`, `l_sun`, `m_earth`, `r_earth`, `m_moon`, `r_moon` wirken
 wie `pi` und lassen sich wie jede Konstante überschatten.
 
 **Datum und Zeit.** `jd(y, m, d [, hr])` und `mjd(...)` rechnen ein
@@ -1193,6 +1201,26 @@ Q3, Maximum, mit Antennen bis zu den Extremen. Das Fenster passt sich
 immer den Daten an — die `from a to b`-Schlüsselwörter gelten nicht —
 und das Bild exportiert und speichert wie jeder andere Plot.
 
+### 1.23 Zufallszahlen
+
+`random()` zieht eine gleichverteilte Zahl aus `[0, 1)`, `random(a, b)`
+eine aus `[a, b)`, und `randint(a, b)` eine ganze Zahl aus dem
+geschlossenen Bereich `[a, b]` — ein Würfelwurf:
+
+```epher
+randseed(7)
+randint(1, 6)
+```
+
+```text
+7
+3
+```
+
+Die Folge ist reproduzierbar: `randseed(n)` setzt den Generator mit `n`
+neu und meldet es, sodass derselbe Seed in jeder Sitzung und jeder
+Oberfläche dieselben Ziehungen wiederholt.
+
 ## 2. Die Web-App (PWA)
 
 ### 2.1 Sie öffnen
@@ -1209,7 +1237,7 @@ Computer, Telefon oder Tablet.
 Dieses Handbuch ist auch in die App eingebaut: öffne **Help → User guide**
 in der Menüleiste (tippe auf einem Telefon auf **☰**), um es in der App in
 der aktuell eingestellten Sprache zu lesen. Tippe ein beliebiges Beispiel
-in diesem Handbuch an, um es ins Eingabefeld zu laden.
+in diesem Handbuch an, um es ins Eingabefeld zu laden. **Hilfe → Konstanten** öffnet den Konstanten-Browser: alle eingebauten Konstanten in Gruppen (Mathematik, Astronomie, Physik, Chemie), jede mit ihrem Wert und einer kurzen Beschreibung; tippe eine an, um ihren Namen ins Eingabefeld einzufügen, und das Suchfeld filtert die Liste.
 
 ### 2.2 Deine erste Berechnung
 
@@ -1789,6 +1817,8 @@ Der Bildschirm ist in Panels unterteilt:
 | **Tab** | das immer sichtbare Tastenfeld fokussieren (bzw. den Verlauf, vom Tastenfeld aus); Gruppen wechseln (**Esc** zurück zum Tippen) |
 | **Maus** | Menüs und Menüeinträge anklicken, Tastenfeld-Zellen und Bank-Registerkarten, Verlaufszeilen (lädt den Ausdruck); im Grafikfeld ziehen, um zu drehen (3D) bzw. zu verschieben (2D), das Rad zoomt, ein Doppelklick setzt die Ansicht zurück |
 | **Ctrl+L** | den Verlauf leeren |
+
+Das Menü **Hilfe** öffnet das eingebaute Handbuch, die Tastenfeld-Hilfe und einen Konstanten-Browser: die Konstanten in Gruppen, die Pfeile wählen eine Zeile, **Enter** fügt ihren Namen in den Ausdruck am Cursor ein, **Esc** schließt.
 
 Die Gruppen des Tastenfelds enthalten jede Funktion, jede Konstante und
 jeden Befehl der Sprache: **trig**, **fn**, **num**, **0x** und

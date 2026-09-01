@@ -679,7 +679,9 @@ Les nombres premiers et les diviseurs travaillent sur des entiers :
 | Famille khi-deux | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
 | Familles discrètes | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
 | Tests et intervalles | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
-| Graphiques de données | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` | `2^3 * 3^2 * 5` |
+| Graphiques de données | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
+| Nombres aléatoires | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| Explorateur de constantes | Aide → Constantes : toutes les constantes, groupées | Aide → Constantes | `2^3 * 3^2 * 5` |
 | `totient(n)` | indicatrice d'Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | nombre de diviseurs | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b puissance e, modulo m, exact | `modpow(2, 10, 1000)` | `24` |
@@ -742,6 +744,12 @@ Les constantes physiques utilisent les unités SI, comme celles d'astronomie de 
 | `atm` | atmosphère standard, en pascals | 101325 |
 | `wien` | constante de longueur d'onde de Wien | 0.002897771955 |
 | `phi_0` | quantum de flux magnétique | 2.067833848e-15 |
+| `m_P` | Planck-Masse | 2.176434e-8 |
+| `l_P` | Planck-Länge | 1.616255e-35 |
+| `t_P` | Planck-Zeit | 5.391247e-44 |
+| `r_e` | klassischer Elektronenradius | 2.8179403205e-15 |
+| `lambda_c` | Compton-Wellenlänge | 2.42631023867e-12 |
+| `mu_n` | Kernmagneton | 5.050783699e-27 |
 
 
 ### 1.14 Lire les erreurs
@@ -858,7 +866,7 @@ unités naturelles ; un suffixe convertit un comptage en SI, ainsi
 watts par mètre carré hertz.
 
 **Constantes astronomiques.** `au`, `pc`, `ly`, `c`, `g`, `h`, `h_bar`,
-`k_b`, `sigma_sb`, `m_sun`, `r_sun`, `l_sun`, `m_earth`, `r_earth`
+`k_b`, `sigma_sb`, `m_sun`, `r_sun`, `l_sun`, `m_earth`, `r_earth`, `m_moon`, `r_moon`
 fonctionnent comme `pi`, et vous pouvez les masquer par vos propres
 constantes.
 
@@ -1199,6 +1207,26 @@ extrêmes. La fenêtre s'ajuste toujours aux données — les mots-clés
 `from a to b` ne s'appliquent pas — et l'image s'exporte et se
 sauvegarde comme n'importe quel graphique.
 
+### 1.23 Nombres aléatoires
+
+`random()` tire un nombre uniforme dans `[0, 1)`, `random(a, b)` un dans
+`[a, b)`, et `randint(a, b)` un entier de l'intervalle fermé `[a, b]` —
+un lancer de dé :
+
+```epher
+randseed(7)
+randint(1, 6)
+```
+
+```text
+7
+3
+```
+
+La séquence est reproductible : `randseed(n)` réinitialise le générateur
+avec `n` et l'affiche, de sorte que la même graine rejoue les mêmes tirages
+dans chaque session et chaque interface.
+
 ## 2. L'application web (PWA)
 
 ### 2.1 L'ouvrir
@@ -1215,7 +1243,7 @@ moderne, sur ordinateur, téléphone ou tablette.
 Ce guide est également intégré à l'application : ouvrez **Help → User guide**
 dans la barre de menus (touchez **☰** sur un téléphone) pour le lire dans
 l'application, dans la langue actuelle de l'application. Touchez n'importe
-quel exemple de ce guide pour le charger dans le champ de saisie.
+quel exemple de ce guide pour le charger dans le champ de saisie. **Aide → Constantes** ouvre l'explorateur de constantes : toutes les constantes groupées (Mathématiques, Astronomie, Physique, Chimie), chacune avec sa valeur et une brève description ; touchez-en une pour insérer son nom dans le champ de saisie, et la zone de recherche filtre la liste.
 
 ### 2.2 Votre premier calcul
 
@@ -1798,6 +1826,8 @@ L'écran est divisé en panneaux :
 | **Tab** | activer le clavier toujours visible (ou l'historique, depuis le clavier) ; changer de groupe (**Esc** revient à la saisie) |
 | **Souris** | cliquez les menus et leurs entrées, les cellules et onglets du clavier, les lignes de l'historique (charge l'expression) ; faites glisser le panneau du graphique pour orbiter (3D) ou déplacer (2D), la molette zoome, un double-clic réinitialise la vue |
 | **Ctrl+L** | effacer l'historique |
+
+Le menu **Aide** ouvre le guide intégré, l'aide des touches du clavier et un explorateur de constantes : les constantes groupées, les flèches choisissent une ligne, **Entrée** insère son nom dans l'expression au curseur et **Échap** ferme.
 
 Les groupes du clavier couvrent toutes les fonctions, constantes et
 commandes du langage : **trig**, **fn**, **num**, **0x** et **var**

@@ -670,7 +670,9 @@ Primos e divisores trabalham com números inteiros:
 | Família qui-quadrado | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
 | Famílias discretas | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
 | Testes e intervalos | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
-| Gráficos de dados | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` | `2^3 * 3^2 * 5` |
+| Gráficos de dados | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
+| Números aleatórios | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| Explorador de constantes | Ajuda → Constantes: todas as constantes, agrupadas | Ajuda → Constantes | `2^3 * 3^2 * 5` |
 | `totient(n)` | totiente de Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | quantos divisores n tem | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b elevado a e, módulo m, exato | `modpow(2, 10, 1000)` | `24` |
@@ -733,6 +735,12 @@ As constantes físicas usam unidades SI, como as astronómicas da secção 1.16:
 | `atm` | atmosfera padrão, em pascais | 101325 |
 | `wien` | constante de comprimento de onda de Wien | 0.002897771955 |
 | `phi_0` | quanto de fluxo magnético | 2.067833848e-15 |
+| `m_P` | Planck-Masse | 2.176434e-8 |
+| `l_P` | Planck-Länge | 1.616255e-35 |
+| `t_P` | Planck-Zeit | 5.391247e-44 |
+| `r_e` | klassischer Elektronenradius | 2.8179403205e-15 |
+| `lambda_c` | Compton-Wellenlänge | 2.42631023867e-12 |
+| `mu_n` | Kernmagneton | 5.050783699e-27 |
 
 
 ### 1.14 Ler erros
@@ -849,7 +857,7 @@ naturais; um sufixo converte uma contagem para SI, por isso `mag2jy(20)`
 metro quadrado hertz.
 
 **Constantes astronómicas.** `au`, `pc`, `ly`, `c`, `g`, `h`, `h_bar`,
-`k_b`, `sigma_sb`, `m_sun`, `r_sun`, `l_sun`, `m_earth`, `r_earth`
+`k_b`, `sigma_sb`, `m_sun`, `r_sun`, `l_sun`, `m_earth`, `r_earth`, `m_moon`, `r_moon`
 funcionam como `pi`, e pode sombreá-las com as suas próprias constantes.
 
 **Datas e tempo.** `jd(y, m, d [, hr])` e `mjd(...)` convertem uma data do
@@ -1185,6 +1193,26 @@ aos extremos. A janela ajusta-se sempre aos dados — as palavras-chave
 `from a to b` não se aplicam — e a imagem exporta-se e guarda-se como
 qualquer gráfico.
 
+### 1.23 Números aleatórios
+
+`random()` sorteia um número uniforme em `[0, 1)`, `random(a, b)` um em
+`[a, b)`, e `randint(a, b)` um inteiro do intervalo fechado `[a, b]` —
+um lançamento de dados:
+
+```epher
+randseed(7)
+randint(1, 6)
+```
+
+```text
+7
+3
+```
+
+A sequência é reproduzível: `randseed(n)` reinicia o gerador com `n` e
+mostra-o, por isso a mesma semente repete os mesmos sorteios em cada
+sessão e em cada interface.
+
 ## 2. A aplicação web (PWA)
 
 ### 2.1 Abri-la
@@ -1201,7 +1229,7 @@ moderno, num computador, telemóvel ou tablet.
 Este guia também está integrado na aplicação: abra **Help → User guide**
 na barra de menu (toque em **☰** num telemóvel) para o ler dentro da
 aplicação, no idioma atual da aplicação. Toque num exemplo desse guia
-para o carregar no campo de entrada.
+para o carregar no campo de entrada. **Ajuda → Constantes** abre o explorador de constantes: todas as constantes agrupadas (Matemática, Astronomia, Física, Química), cada uma com o seu valor e uma breve descrição; toque numa para inserir o nome no campo de entrada, e a caixa de pesquisa filtra a lista.
 
 ### 2.2 O seu primeiro cálculo
 
@@ -1777,6 +1805,8 @@ O ecrã está dividido em painéis:
 | **Tab** | focar o teclado sempre visível (ou o histórico, a partir do teclado); trocar de grupo (**Esc** volta à escrita) |
 | **Rato** | clique menus e itens de menu, células e separadores do teclado, linhas do histórico (carrega a expressão); arraste o painel do gráfico para orbitar (3D) ou mover (2D), a roda faz zoom, um duplo clique repõe a vista |
 | **Ctrl+L** | limpar o histórico |
+
+O menu **Ajuda** abre o guia integrado, a ajuda de teclas do teclado e um explorador de constantes: as constantes agrupadas, as setas escolhem uma linha, **Enter** insere o seu nome na expressão no cursor e **Esc** fecha.
 
 Os grupos do teclado cobrem todas as funções, constantes e comandos que
 a linguagem suporta: **trig**, **fn**, **num**, **0x** e **var**. O

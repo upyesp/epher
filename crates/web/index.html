@@ -1153,6 +1153,57 @@
       margin: 0;
       font-size: 0.9rem;
     }
+    /* --- constants browser (ADR-0045) ----------------------------------- */
+    .constants-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      max-height: 55vh;
+      overflow-y: auto;
+      margin: 0;
+      padding: 0.25rem 0.25rem 0.5rem;
+    }
+    .constants-group {
+      margin: 0.6rem 0 0.2rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .constants-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: 0.6rem;
+      row-gap: 0.1rem;
+      width: 100%;
+      text-align: start;
+      padding: 0.45rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+    }
+    .constants-row:hover,
+    .constants-row:focus-visible {
+      border-color: var(--accent);
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .constants-name {
+      font-family: ui-monospace, Consolas, monospace;
+      font-weight: 600;
+    }
+    .constants-value {
+      color: var(--text);
+      font-family: ui-monospace, Consolas, monospace;
+    }
+    .constants-hint {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
     /* --- guide search (ADR-0038) ---------------------------------------- */
     .guide-search {
       display: flex;

@@ -144,12 +144,12 @@ fn now(args: &[Value]) -> Result<Value, EpherError> {
 }
 
 #[cfg(target_arch = "wasm32")]
-fn now_unix_seconds() -> f64 {
+pub(crate) fn now_unix_seconds() -> f64 {
     js_sys::Date::now() / 1000.0
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn now_unix_seconds() -> f64 {
+pub(crate) fn now_unix_seconds() -> f64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs_f64())

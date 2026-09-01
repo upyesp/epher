@@ -1809,6 +1809,52 @@ fn epher_app() -> Html {
     *menu_open_cell.borrow_mut() = *menu_open;
     let hamburger_open = use_state(|| false);
     let guide_open = use_state(|| false);
+    // The constants browser (ADR-0045): Help menu -> Constants, the
+    // grouped builtin list that inserts a name into the entry field.
+    let constants_open = use_state(|| false);
+    let constants_query = use_state(String::new);
+    let constants_close_ref = use_node_ref();
+    {
+        // Focus the close button whenever the browser opens, like the
+        // guide dialog, so Escape works from the first keypress.
+        let constants_open = constants_open.clone();
+        let constants_close_ref = constants_close_ref.clone();
+        use_effect_with(constants_open, move |open| {
+            if **open {
+                if let Some(el) = constants_close_ref.cast::<web_sys::HtmlElement>() {
+                    let _ = el.focus();
+                }
+            }
+            || {}
+        });
+    }
+    let on_close_constants = {
+        let constants_open = constants_open.clone();
+        Callback::from(move |_: web_sys::MouseEvent| constants_open.set(false))
+    };
+    // Insert a constant name at the entry's cursor — the same splice a
+    // keypad press does (ADR-0045): selection-replacing, cursor after
+    // the name, and the browser stays open for the next pick.
+    let insert_constant = {
+        let input = input.clone();
+        let input_ref = input_ref.clone();
+        let cursor_cell = cursor_cell.clone();
+        Callback::from(move |name: String| {
+            let Some(ta) = input_ref.cast::<HtmlTextAreaElement>() else {
+                return;
+            };
+            let mut v = (*input).clone();
+            let (s, e) = *cursor_cell.borrow();
+            let (s, e) = (s.min(v.len()), e.min(v.len()));
+            v.replace_range(s..e, &name);
+            input.set(v.clone());
+            ta.set_value(&v);
+            let pos = s + name.len();
+            ta.set_selection_start(Some(pos as u32)).ok();
+            ta.set_selection_end(Some(pos as u32)).ok();
+            *cursor_cell.borrow_mut() = (pos, pos);
+        })
+    };
     // The in-app guide's search box (ADR-0038): the query drives a scan
     // over the rendered guide text; hits jump to their match.
     let guide_query = use_state(String::new);
@@ -4763,6 +4809,18 @@ fn epher_app() -> Html {
                                         >
                                             { localizer.lookup("menu-guide") }
                                         </button>
+                                        <button type="button" role="menuitem" class="menu-item"
+                                            onclick={Callback::from({
+                                                let menu_open = menu_open.clone();
+                                                let constants_open = constants_open.clone();
+                                                move |_| {
+                                                    menu_open.set(None);
+                                                    constants_open.set(true);
+                                                }
+                                            })}
+                                        >
+                                            { localizer.lookup("menu-constants") }
+                                        </button>
                                     </div>
                                 }
                             } else { html! {} }
@@ -5987,6 +6045,144 @@ fn epher_app() -> Html {
                                         )
                                         .into(),
                                     )
+                                }
+                            </div>
+                        </div>
+                    }
+                } else {
+                    html! {}
+                }
+            }
+            {
+                if *constants_open {
+                    let q = (*constants_query).trim().to_lowercase();
+                    let group_key = |g: epher_core::ConstGroup| match g {
+                        epher_core::ConstGroup::Math => "constants-group-math",
+                        epher_core::ConstGroup::Astronomy => "constants-group-astronomy",
+                        epher_core::ConstGroup::Physics => "constants-group-physics",
+                        epher_core::ConstGroup::Chemistry => "constants-group-chemistry",
+                    };
+                    // The catalog is name-sorted, so cluster by group
+                    // explicitly: four headed sections in a fixed order.
+                    let mut groups: Vec<(String, Vec<(&'static str, Option<f64>)>)> = Vec::new();
+                    for g in [
+                        epher_core::ConstGroup::Math,
+                        epher_core::ConstGroup::Astronomy,
+                        epher_core::ConstGroup::Physics,
+                        epher_core::ConstGroup::Chemistry,
+                    ] {
+                        let key = group_key(g).to_string();
+                        let rows: Vec<_> = epher_core::builtin_constant_groups()
+                            .iter()
+                            .filter(|(_, group)| *group == g)
+                            .filter(|(name, _)| q.is_empty() || name.to_lowercase().contains(&q))
+                            .map(|(name, _)| (*name, epher_core::builtin_constant_value(name)))
+                            .collect();
+                        if !rows.is_empty() {
+                            groups.push((key, rows));
+                        }
+                    }
+                    html! {
+                        <div
+                            class="guide-overlay"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-label={localizer.lookup("menu-constants")}
+                            onkeydown={{
+                                let constants_open = constants_open.clone();
+                                Callback::from(move |e: web_sys::KeyboardEvent| {
+                                    if e.key() == "Escape" {
+                                        constants_open.set(false);
+                                    }
+                                })
+                            }}
+                        >
+                            <div class="guide-head">
+                                <h2>{ localizer.lookup("menu-constants") }</h2>
+                                <button type="button" class="guide-close-btn" ref={constants_close_ref.clone()} onclick={on_close_constants.clone()}>
+                                    { localizer.lookup("guide-close") }
+                                </button>
+                            </div>
+                            <p class="guide-insert-hint">{ localizer.lookup("constants-insert-hint") }</p>
+                            <div class="guide-search">
+                                <input
+                                    type="search"
+                                    aria-label={localizer.lookup("constants-search")}
+                                    placeholder={localizer.lookup("constants-search")}
+                                    value={(*constants_query).clone()}
+                                    oninput={Callback::from({
+                                        let constants_query = constants_query.clone();
+                                        move |e: web_sys::InputEvent| {
+                                            let v = e
+                                                .target()
+                                                .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                .map(|el| el.value())
+                                                .unwrap_or_default();
+                                            constants_query.set(v);
+                                        }
+                                    })}
+                                />
+                            </div>
+                            <div class="constants-list" role="list">
+                                {
+                                    if groups.is_empty() {
+                                        html! { <p class="guide-no-results" role="status">{ localizer.lookup("constants-no-results") }</p> }
+                                    } else {
+                                        html! {
+                                            <>
+                                                { for groups.into_iter().map(|(key, rows)| {
+                                                    let heading = localizer.lookup(&key);
+                                                    html! {
+                                                        <>
+                                                            <h3 class="constants-group">{ heading }</h3>
+                                                            { for rows.into_iter().map(|(name, value)| {
+                                                                let hint_key = format!("key-hint-{name}");
+                                                                let hint = {
+                                                                    let h = localizer.lookup(&hint_key);
+                                                                    if h == hint_key { String::new() } else { h }
+                                                                };
+                                                                let shown = match value {
+                                                                    Some(v) => epher_core::format_value(&Value::float(v), &session.display()),
+                                                                    None => String::new(),
+                                                                };
+                                                                let name_owned = name.to_string();
+                                                                let label = if shown.is_empty() { name_owned.clone() } else { format!("{name}, {shown}") };
+                                                                html! {
+                                                                    <button
+                                                                        type="button"
+                                                                        class="constants-row"
+                                                                        role="listitem"
+                                                                        aria-label={label}
+                                                                        onclick={{
+                                                                            let insert_constant = insert_constant.clone();
+                                                                            let name = name_owned.clone();
+                                                                            move |_: web_sys::MouseEvent| insert_constant.emit(name.clone())
+                                                                        }}
+                                                                    >
+                                                                        <span class="constants-name">{ name_owned }</span>
+                                                                        {
+                                                                            if shown.is_empty() {
+                                                                                html! {}
+                                                                            } else {
+                                                                                html! { <span class="constants-value">{ shown }</span> }
+                                                                            }
+                                                                        }
+                                                                        {
+                                                                            if hint.is_empty() {
+                                                                                html! {}
+                                                                            } else {
+                                                                                html! { <span class="constants-hint">{ hint }</span> }
+                                                                            }
+                                                                        }
+                                                                    </button>
+                                                                }
+                                                            }) }
+                                                        </>
+                                                    }
+                                                }) }
+                                            </>
+                                        }
+                                    }
                                 }
                             </div>
                         </div>

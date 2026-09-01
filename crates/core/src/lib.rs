@@ -8,7 +8,9 @@ pub mod astro;
 pub mod graph;
 pub mod graph_svg;
 
+use std::cell::Cell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use bigdecimal::BigDecimal;
 use num_bigint::BigInt;
@@ -109,11 +111,28 @@ fn complex_display(c: Complex<f64>) -> String {
 }
 
 /// Variable bindings available while evaluating an [`Expression`].
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Env {
     bindings: HashMap<String, Value>,
     constants: HashMap<String, Value>,
     functions: HashMap<String, Function>,
+    /// The seeded generator state (ADR-0045): an `Rc` so child
+    /// environments (user-function bodies) share the counter — draws
+    /// inside a function advance the session's sequence. `Env::default()`
+    /// pins one seed so `evaluate()` and the tests are deterministic;
+    /// interactive sessions re-seed from the clock in `Session::new`.
+    rng: Rc<Cell<u64>>,
+}
+
+impl Default for Env {
+    fn default() -> Self {
+        Self {
+            bindings: HashMap::new(),
+            constants: HashMap::new(),
+            functions: HashMap::new(),
+            rng: Rc::new(Cell::new(0x9E37_79B9_7F4A_7C15)),
+        }
+    }
 }
 
 impl Env {
@@ -163,6 +182,7 @@ impl Env {
             bindings: HashMap::new(),
             constants: self.constants.clone(),
             functions: self.functions.clone(),
+            rng: self.rng.clone(),
         }
     }
 }
@@ -1293,6 +1313,16 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
             match name.as_str() {
                 "derivative" => eval_derivative(args, env),
                 "integral" => eval_integral(args, env),
+                // Seeded random numbers (ADR-0045): the generator state
+                // lives in the environment, so these need `env` like the
+                // calculus forms do.
+                "random" | "randint" | "randseed" => {
+                    let mut values = Vec::with_capacity(args.len());
+                    for arg in args {
+                        values.push(eval(arg, env)?);
+                    }
+                    eval_random(name, values, env)
+                }
                 _ => {
                     let mut values = Vec::with_capacity(args.len());
                     for arg in args {
@@ -1349,6 +1379,7 @@ fn calculus_child(env: &Env, var: &str, value: f64) -> Env {
         bindings: env.bindings.clone(),
         constants: env.constants.clone(),
         functions: env.functions.clone(),
+        rng: env.rng.clone(),
     };
     child.set(var.to_string(), Value::float(value));
     child
@@ -1357,6 +1388,79 @@ fn calculus_child(env: &Env, var: &str, value: f64) -> Env {
 /// `derivative(expr, p)` (ADR-0043): the numeric derivative of the
 /// expression at p, 5-point central difference with step
 /// 1e-4 * (1 + |p|). A constant expression differentiates to 0.
+/// SplitMix64: one 64-bit counter, three mixes per draw. Deterministic
+/// per seed, wasm-safe, and small enough to inline in the evaluator
+/// (ADR-0045). The returned value is the draw; `state` advances.
+fn splitmix_next(state: &mut u64) -> u64 {
+    *state = state.wrapping_add(0x9E37_79B9_7F4A_7C15);
+    let mut z = *state;
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^ (z >> 31)
+}
+
+/// Seeded random numbers (ADR-0045): `random()` is uniform in [0, 1),
+/// `random(a, b)` uniform in [a, b), `randint(a, b)` a whole number in
+/// the closed range [a, b] (Lemire's rejection method, no modulo bias),
+/// and `randseed(n)` re-seeds and reports n. The state lives in the
+/// environment, shared with user-function bodies through the child envs.
+fn eval_random(name: &str, args: Vec<Value>, env: &Env) -> Result<Value, EpherError> {
+    let next = |env: &Env| -> u64 {
+        let mut state = env.rng.get();
+        let z = splitmix_next(&mut state);
+        env.rng.set(state);
+        z
+    };
+    match name {
+        "randseed" => {
+            let n = integer_arg(name, &args)?;
+            env.rng.set(n as u64);
+            Ok(Value::Float(n as f64))
+        }
+        "random" => {
+            let u = ((next(env) >> 11) as f64) * (1.0 / 9_007_199_254_740_992.0);
+            match args.len() {
+                0 => Ok(Value::Float(u)),
+                2 => {
+                    let (a, b) = two_floats(name, &args)?;
+                    if a.partial_cmp(&b) != Some(std::cmp::Ordering::Less) {
+                        return Err(domain_error(format!(
+                            "random(a, b) needs a < b, got {a} and {b}"
+                        )));
+                    }
+                    Ok(Value::Float(a + (b - a) * u))
+                }
+                _ => Err(EpherError::Type(format!(
+                    "{name} takes no arguments or two, got {}",
+                    args.len()
+                ))),
+            }
+        }
+        _ => {
+            let (a, b) = integer_pair(name, &args)?;
+            if a > b {
+                return Err(domain_error(format!(
+                    "randint(a, b) needs a <= b, got {a} and {b}"
+                )));
+            }
+            let m = (b - a) as u64 + 1;
+            let high = loop {
+                let x = next(env);
+                let prod = (x as u128) * (m as u128);
+                let low = prod as u64;
+                if low >= m {
+                    break (prod >> 64) as u64;
+                }
+                let threshold = (0u64).wrapping_sub(m) % m;
+                if low >= threshold {
+                    break (prod >> 64) as u64;
+                }
+            };
+            Ok(Value::Float(a as f64 + high as f64))
+        }
+    }
+}
+
 fn eval_derivative(args: &[Expression], env: &Env) -> Result<Value, EpherError> {
     if args.len() != 2 {
         return Err(EpherError::Type(format!(
@@ -1780,6 +1884,9 @@ fn builtin_const(name: &str) -> Option<Value> {
         "l_sun" => Some(Value::float(3.828e26)),
         "m_earth" => Some(Value::float(5.972_2e24)),
         "r_earth" => Some(Value::float(6.371e6)),
+        // Lunar mass/radius (IAU, ADR-0045): SI like the solar ones.
+        "m_moon" => Some(Value::float(7.342e22)),
+        "r_moon" => Some(Value::float(1.737_4e6)),
         // Physical constants (ADR-0042): CODATA 2022 values, SI units
         // throughout (eV in joules, atm in pascals). Shadowable like `pi`
         // - a user `const` wins by the resolution order.
@@ -1804,8 +1911,96 @@ fn builtin_const(name: &str) -> Option<Value> {
         "atm" => Some(Value::float(101_325.0)),
         "wien" => Some(Value::float(2.897_771_955e-3)),
         "phi_0" => Some(Value::float(2.067_833_848e-15)),
+        // The rest of the standard CODATA 2022 set (ADR-0045), SI units
+        // like their peers: Planck mass/length/time, the classical
+        // electron radius, the Compton wavelength, the nuclear magneton.
+        "m_P" => Some(Value::float(2.176_434e-8)),
+        "l_P" => Some(Value::float(1.616_255e-35)),
+        "t_P" => Some(Value::float(5.391_247e-44)),
+        "r_e" => Some(Value::float(2.817_940_320_5e-15)),
+        "lambda_c" => Some(Value::float(2.426_310_238_67e-12)),
+        "mu_n" => Some(Value::float(5.050_783_699e-27)),
         _ => None,
     }
+}
+
+/// The group a builtin constant belongs to, mirroring the guide's
+/// tables — what the constants browsers (ADR-0045) use to organize
+/// their lists.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ConstGroup {
+    Math,
+    Astronomy,
+    Physics,
+    Chemistry,
+}
+
+/// The SI value of a builtin constant, for the constants browsers
+/// (ADR-0045): the same resolution the evaluator uses, so a browser can
+/// never show a value the language would not evaluate. Constants with
+/// non-float values (the imaginary unit `i`) return `None`.
+pub fn builtin_constant_value(name: &str) -> Option<f64> {
+    match builtin_const(name) {
+        Some(Value::Float(x)) => Some(x),
+        _ => None,
+    }
+}
+
+/// Every builtin constant with its group, the single source of truth
+/// for the frontends' browsers: name and group, sorted by name. The
+/// values come from [`builtin_const`] via the evaluator's name
+/// resolution, so the browser can never drift from what evaluates.
+pub fn builtin_constant_groups() -> &'static [(&'static str, ConstGroup)] {
+    &[
+        ("G", ConstGroup::Physics),
+        ("a_0", ConstGroup::Physics),
+        ("alpha", ConstGroup::Physics),
+        ("atm", ConstGroup::Chemistry),
+        ("au", ConstGroup::Astronomy),
+        ("c", ConstGroup::Astronomy),
+        ("e", ConstGroup::Math),
+        ("eps_0", ConstGroup::Physics),
+        ("ev", ConstGroup::Physics),
+        ("faraday", ConstGroup::Chemistry),
+        ("g", ConstGroup::Astronomy),
+        ("gamma", ConstGroup::Math),
+        ("h", ConstGroup::Astronomy),
+        ("h_bar", ConstGroup::Astronomy),
+        ("i", ConstGroup::Math),
+        ("k_b", ConstGroup::Astronomy),
+        ("l_P", ConstGroup::Physics),
+        ("l_sun", ConstGroup::Astronomy),
+        ("lambda_c", ConstGroup::Physics),
+        ("ly", ConstGroup::Astronomy),
+        ("m_P", ConstGroup::Physics),
+        ("m_e", ConstGroup::Physics),
+        ("m_earth", ConstGroup::Astronomy),
+        ("m_moon", ConstGroup::Astronomy),
+        ("m_n", ConstGroup::Physics),
+        ("m_p", ConstGroup::Physics),
+        ("m_sun", ConstGroup::Astronomy),
+        ("m_u", ConstGroup::Physics),
+        ("mu_0", ConstGroup::Physics),
+        ("mu_b", ConstGroup::Physics),
+        ("mu_n", ConstGroup::Physics),
+        ("n_a", ConstGroup::Chemistry),
+        ("pc", ConstGroup::Astronomy),
+        ("phi", ConstGroup::Math),
+        ("phi_0", ConstGroup::Physics),
+        ("pi", ConstGroup::Math),
+        ("q_e", ConstGroup::Physics),
+        ("r_e", ConstGroup::Physics),
+        ("r_earth", ConstGroup::Astronomy),
+        ("r_gas", ConstGroup::Chemistry),
+        ("r_inf", ConstGroup::Physics),
+        ("r_moon", ConstGroup::Astronomy),
+        ("r_sun", ConstGroup::Astronomy),
+        ("sigma_sb", ConstGroup::Astronomy),
+        ("t_P", ConstGroup::Physics),
+        ("tau", ConstGroup::Math),
+        ("wien", ConstGroup::Physics),
+        ("z_0", ConstGroup::Physics),
+    ]
 }
 
 /// What kind of thing a builtin catalog entry names.
@@ -2549,7 +2744,15 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "l_P",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
         name: "l_sun",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "lambda_c",
         kind: CatalogKind::Constant,
     },
     CatalogEntry {
@@ -2589,7 +2792,15 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Constant,
     },
     CatalogEntry {
+        name: "m_P",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
         name: "m_e",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "m_moon",
         kind: CatalogKind::Constant,
     },
     CatalogEntry {
@@ -2642,6 +2853,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "mu_b",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "mu_n",
         kind: CatalogKind::Constant,
     },
     CatalogEntry {
@@ -2733,6 +2948,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Constant,
     },
     CatalogEntry {
+        name: "r_moon",
+        kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
         name: "r_sun",
         kind: CatalogKind::Constant,
     },
@@ -2742,6 +2961,18 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "rad",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "randint",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "random",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "randseed",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -2803,6 +3034,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     CatalogEntry {
         name: "sum",
         kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "t_P",
+        kind: CatalogKind::Constant,
     },
     CatalogEntry {
         name: "tan",
@@ -3058,7 +3293,9 @@ pub fn reconstruct_fraction(x: f64, denom_bound: i64, tol: f64) -> Option<BigRat
         let (h, k) = if within_bound { (&h2, &k2) } else { (&h1, &k1) };
         if !k.is_zero() {
             let guess = h.to_f64()? / k.to_f64()?;
-            if (guess - a).abs() <= tol * (1.0 + a.abs()) {
+            // Relative tolerance: an absolute test would call every
+            // tiny value (m_e, h, epsilon_0) a perfect "0" within tol.
+            if (guess - a).abs() <= tol * a.abs() {
                 let numer = (sign * h.to_f64()?).round() as i64;
                 return Some(BigRational::new(BigInt::from(numer), k.clone()));
             }
@@ -4833,7 +5070,14 @@ pub struct Session {
 
 impl Session {
     pub fn new() -> Self {
-        Self::default()
+        let session = Self::default();
+        // Interactive sessions seed the generator from the clock
+        // (ADR-0045); `Session::default()` and `evaluate()` keep the
+        // fixed seed so tests and scripted runs are deterministic. The
+        // clock read is the same wasm-safe one `now()` uses (ADR-0037).
+        let nanos = (astro::now_unix_seconds() * 1e9) as u64;
+        session.env.rng.set(nanos ^ 0x9E37_79B9_7F4A_7C15);
+        session
     }
 
     /// A session pre-seeded with history (e.g. loaded from the store).

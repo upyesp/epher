@@ -2412,3 +2412,166 @@ fn table_commands_parse_and_evaluate_with_derivative() {
     let plain = parse_table_source("x from 0 to 1 points 2").unwrap();
     assert!(plain.derivative.is_none());
 }
+
+// ===== seeded random numbers (ADR-0045) =====
+
+/// Run script lines against a fresh Env, returning the last value — the
+/// env-persistent counterpart of `eval_str` (the RNG state lives in the
+/// Env, ADR-0045).
+fn eval_in_env(src: &str, env: &mut Env) -> Result<Value, epher_core::EpherError> {
+    run(&parse_script(src).expect("parse"), env)?
+        .ok_or(epher_core::EpherError::Parse("no value".into()))
+}
+
+#[test]
+fn seeded_random_is_reproducible_and_re_seedable() {
+    // randseed pins the sequence: same seed, same draws, in any session.
+    assert_eq!(eval_str("randseed(7)"), Value::float(7.0));
+    let mut env = Env::default();
+    let u0 = eval_in_env("random()", &mut env).unwrap();
+    let u1 = eval_in_env("random()", &mut env).unwrap();
+    let mut twin = Env::default();
+    let v0 = eval_in_env("random()", &mut twin).unwrap();
+    let v1 = eval_in_env("random()", &mut twin).unwrap();
+    assert_eq!(u0, v0, "first draw reproducible across sessions");
+    assert_eq!(u1, v1, "second draw reproducible across sessions");
+    assert_ne!(u0, u1, "draws advance");
+    // a different seed diverges (astronomically unlikely to collide)
+    let mut other = epher_core::Env::default();
+    let o0 = eval_in_env("randseed(8)", &mut other).unwrap();
+    assert_eq!(o0, Value::float(8.0));
+    let o1 = eval_in_env("random()", &mut other).unwrap();
+    assert!(o1 != u0, "different seed gives a different first draw");
+}
+
+#[test]
+fn random_ranges_and_errors() {
+    // random(a, b) is uniform in [a, b): every draw lands in range.
+    let mut env = Env::default();
+    let _ = eval_in_env("randseed(3)", &mut env).unwrap();
+    for _ in 0..64 {
+        let v = eval_in_env("random(-2, 2)", &mut env).unwrap();
+        let x = match v {
+            epher_core::Value::Float(x) => x,
+            other => panic!("random returned {other:?}"),
+        };
+        assert!((-2.0..2.0).contains(&x), "draw {x} outside [-2, 2)");
+    }
+    assert!(
+        eval_str_checked("random(2, 2)").is_err(),
+        "a == b is an error"
+    );
+    assert!(
+        eval_str_checked("random(3, 1)").is_err(),
+        "a > b is an error"
+    );
+    assert!(
+        eval_str_checked("random(5)").is_err(),
+        "one arg is an error"
+    );
+}
+
+#[test]
+fn randint_is_inclusive_and_integral() {
+    let mut env = epher_core::Env::default();
+    let _ = eval_in_env("randseed(11)", &mut env).unwrap();
+    // Reference draws for seed 11, m = 6 (SplitMix64 + Lemire).
+    let mut expected = [2.0, 2.0, 4.0];
+    for want in &mut expected {
+        let v = eval_in_env("randint(1, 6)", &mut env).unwrap();
+        assert_eq!(v, Value::float(*want), "reference draw");
+    }
+    // closed range: both endpoints are reachable
+    let _ = eval_in_env("randseed(2)", &mut env).unwrap();
+    let mut saw = std::collections::HashSet::new();
+    for _ in 0..300 {
+        let v = eval_in_env("randint(0, 1)", &mut env).unwrap();
+        match v {
+            Value::Float(x) => {
+                assert!(x == 0.0 || x == 1.0);
+                saw.insert(x as u32);
+            }
+            other => panic!("randint returned {other:?}"),
+        }
+    }
+    assert!(saw.len() == 2, "both endpoints occur over 300 draws");
+    assert!(
+        eval_str_checked("randint(1.5, 3)").is_err(),
+        "whole numbers only"
+    );
+    assert!(
+        eval_str_checked("randint(3, 1)").is_err(),
+        "a <= b required"
+    );
+}
+
+#[test]
+fn random_inside_functions_advances_the_shared_sequence() {
+    let mut session = epher_core::Session::default();
+    assert_eq!(session.submit("def d6() = randint(1, 6)"), "");
+    assert_eq!(session.submit("randseed(11)"), "= 11");
+    assert_eq!(session.submit("d6()"), "= 2");
+    assert_eq!(session.submit("d6()"), "= 2");
+    assert_eq!(session.submit("d6()"), "= 4");
+    // and the session sequence continues where the function left off
+    assert_eq!(session.submit("randint(1, 6)"), "= 4");
+}
+
+// ===== the constants library (ADR-0045) =====
+
+#[test]
+fn new_codata_constants_have_expected_values() {
+    let cases = [
+        ("m_P", 2.176_434e-8),
+        ("l_P", 1.616_255e-35),
+        ("t_P", 5.391_247e-44),
+        ("r_e", 2.817_940_320_5e-15),
+        ("lambda_c", 2.426_310_238_67e-12),
+        ("mu_n", 5.050_783_699e-27),
+        ("m_moon", 7.342e22),
+        ("r_moon", 1.737_4e6),
+    ];
+    for (name, want) in cases {
+        match eval_str(name) {
+            epher_core::Value::Float(x) => {
+                let rel = (x - want).abs() / want;
+                assert!(rel < 1e-9, "{name}: {x} vs {want}");
+            }
+            other => panic!("{name} is not a float: {other:?}"),
+        }
+    }
+}
+
+#[test]
+fn constant_groups_cover_every_builtin_and_resolve() {
+    let groups = epher_core::builtin_constant_groups();
+    let mut seen = std::collections::HashSet::new();
+    let mut sorted = groups.iter().map(|(n, _)| *n).collect::<Vec<_>>();
+    for &(name, _) in groups {
+        assert!(seen.insert(name), "duplicate {name} in groups");
+        match eval_str(name) {
+            epher_core::Value::Float(_) | epher_core::Value::Complex(_) => {}
+            other => panic!("group constant {name} does not evaluate: {other:?}"),
+        }
+    }
+    sorted.sort_unstable();
+    assert!(
+        groups.iter().zip(sorted.iter()).all(|((n, _), s)| *n == *s),
+        "groups are sorted by name"
+    );
+    // and every catalog constant appears in the groups
+    for entry in epher_core::catalog() {
+        if entry.kind == epher_core::CatalogKind::Constant {
+            assert!(
+                seen.contains(entry.name),
+                "{} missing from groups",
+                entry.name
+            );
+        }
+    }
+    assert!(
+        groups.len() >= 40,
+        "the library is substantial: {}",
+        groups.len()
+    );
+}

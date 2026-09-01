@@ -772,7 +772,7 @@ fn menu_navigation_and_actions() {
     // Help sits ABOVE Settings (ADR-0038 amendment): slot 3 is the
     // guide plus the keypad key help (ADR-0039), slot 4 the settings.
     app.menu_open(3);
-    assert_eq!(app.menu_len(3), 2);
+    assert_eq!(app.menu_len(3), 3);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::OpenGuide));
     // Settings moved to slot 4: the POI-list checkbox (ADR-0019), then
     // theme radios, then languages, then the result-display rows
@@ -1559,7 +1559,7 @@ fn key_help_opens_scrolls_and_closes() {
 #[test]
 fn help_menu_lists_guide_and_key_help() {
     let mut app = App::default();
-    assert_eq!(app.menu_len(3), 2);
+    assert_eq!(app.menu_len(3), 3);
     app.menu_open(3);
     app.menu_move(0, 1);
     // The activation runs through the loop's perform step; here the
@@ -1570,4 +1570,44 @@ fn help_menu_lists_guide_and_key_help() {
     );
     app.key_help_open();
     assert!(app.key_help_active());
+}
+
+// --- the constants browser (ADR-0045) ---
+
+#[test]
+fn constants_browser_opens_selects_and_inserts() {
+    let mut app = App::default();
+    let localizer = epher_i18n::Localizer::resolve(Some("en"), &[]);
+    assert!(!app.constants_active());
+    app.constants_open(&localizer);
+    assert!(app.constants_active());
+    // The first group is Math, so the first row is the alphabetically
+    // first builtin: e (Euler's number, groups are ordered, not the
+    // byte-sorted catalog order).
+    assert_eq!(app.constants_row_name(0), Some("e"));
+    // Selection moves over the constant rows and clamps.
+    app.constants_select(-5);
+    assert_eq!(app.constants_selection(), Some(0));
+    app.constants_select(1);
+    assert_eq!(app.constants_selection(), Some(1));
+    // Enter inserts the selected name into the input line.
+    app.set_input("2 * ");
+    for _ in 0..app.constants_selection().unwrap() {
+        app.constants_select(-1);
+    }
+    app.constants_insert();
+    assert_eq!(app.input(), "2 * e");
+    assert!(!app.constants_active(), "inserting closes the browser");
+}
+
+#[test]
+fn help_menu_lists_constants_browser() {
+    let mut app = App::default();
+    assert_eq!(app.menu_len(3), 3, "Help: guide, key help, constants");
+    app.menu_open(3);
+    app.menu_move(0, 2);
+    assert_eq!(
+        app.menu_activate(),
+        Some(epher_tui::MenuAction::BrowseConstants)
+    );
 }

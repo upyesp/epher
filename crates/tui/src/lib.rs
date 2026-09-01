@@ -104,6 +104,9 @@ pub enum MenuAction {
     /// Open the keypad key-help overlay (ADR-0039): the current bank's
     /// keys with their meanings.
     OpenKeyHelp,
+    /// Open the constants browser (ADR-0045): the grouped builtin
+    /// constants; Enter inserts the selected name into the input line.
+    BrowseConstants,
 }
 
 /// An active parameter animation: `name` steps by `step` within `lo..=hi`,
@@ -154,6 +157,13 @@ pub struct App {
     keypad: bool,
     /// The key-help overlay's scroll offset while open (ADR-0039).
     key_help: Option<usize>,
+    /// The constants browser's selected row while open (ADR-0045): the
+    /// index counts constant rows only; group headings are not
+    /// selectable. Enter inserts the name into the input line.
+    constants: Option<usize>,
+    /// The browser's rows, snapshot at open: (name, value, hint) in
+    /// the guide's group order — Math, Astronomy, Physics, Chemistry.
+    constants_rows: Vec<(String, Option<f64>, String)>,
     kp_bank: usize,
     kp_row: usize,
     kp_col: usize,
@@ -236,6 +246,9 @@ pub struct Areas {
     /// The key-help overlay covers the screen (ADR-0039): wheel scrolls
     /// it and clicks are inert.
     pub key_help: bool,
+    /// The constants browser covers the screen (ADR-0045): wheel scrolls
+    /// the selection.
+    pub constants: bool,
 }
 
 /// The TUI keypad (ADR-0016): a condensed grid of the most-used
@@ -636,6 +649,8 @@ impl App {
             play: None,
             keypad: false,
             key_help: None,
+            constants: None,
+            constants_rows: Vec::new(),
             kp_row: 0,
             kp_col: 0,
             kp_bank: 0,
@@ -702,6 +717,97 @@ impl App {
 
     pub fn key_help_offset(&self) -> Option<usize> {
         self.key_help
+    }
+
+    // --- the constants browser (ADR-0045) ---
+
+    /// Open the constants browser: Help -> Constants, a grouped list of
+    /// the builtin constants; Enter inserts the selected name into the
+    /// input line, Escape closes. The rows (name, value, hint) are
+    /// snapshot here in the guide's group order.
+    pub fn constants_open(&mut self, localizer: &Localizer) {
+        self.constants_rows = Vec::new();
+        for group in [
+            epher_core::ConstGroup::Math,
+            epher_core::ConstGroup::Astronomy,
+            epher_core::ConstGroup::Physics,
+            epher_core::ConstGroup::Chemistry,
+        ] {
+            for &(name, g) in epher_core::builtin_constant_groups() {
+                if g != group {
+                    continue;
+                }
+                let hint_key = format!("key-hint-{name}");
+                let hint = localizer.lookup(&hint_key);
+                let hint = if hint == hint_key {
+                    String::new()
+                } else {
+                    hint
+                };
+                self.constants_rows.push((
+                    name.to_string(),
+                    epher_core::builtin_constant_value(name),
+                    hint,
+                ));
+            }
+        }
+        self.constants = Some(0);
+        self.menu = None;
+        self.keypad = false;
+    }
+
+    pub fn constants_close(&mut self) {
+        self.constants = None;
+    }
+
+    pub fn constants_active(&self) -> bool {
+        self.constants.is_some()
+    }
+
+    /// The browser's selected row index (tests and the renderer).
+    pub fn constants_selection(&self) -> Option<usize> {
+        self.constants
+    }
+
+    /// The name of the constant row at `index` (tests).
+    pub fn constants_row_name(&self, index: usize) -> Option<&str> {
+        self.constants_rows.get(index).map(|(n, _, _)| n.as_str())
+    }
+
+    /// How many constant rows the browser lists (tests).
+    pub fn constants_rows_len(&self) -> usize {
+        self.constants_rows.len()
+    }
+
+    /// Move the selection over the constant rows (headings are not
+    /// selectable); clamps at both ends.
+    pub fn constants_select(&mut self, delta: isize) {
+        let Some(sel) = &mut self.constants else {
+            return;
+        };
+        let count = self.constants_rows.len();
+        if count == 0 {
+            *sel = 0;
+            return;
+        }
+        *sel = if delta < 0 {
+            sel.saturating_sub(delta.unsigned_abs())
+        } else {
+            (*sel + delta as usize).min(count - 1)
+        };
+    }
+
+    /// Insert the selected constant's name at the input cursor and
+    /// close the browser (SpeedCrunch's Ctrl+Space flow, ADR-0045).
+    pub fn constants_insert(&mut self) {
+        let Some(sel) = self.constants else {
+            return;
+        };
+        let name = self.constants_rows.get(sel).map(|(n, _, _)| n.clone());
+        if let Some(name) = name {
+            self.insert_text(&name);
+        }
+        self.constants = None;
     }
 
     pub fn keypad_close(&mut self) {
@@ -820,7 +926,7 @@ impl App {
             0 => 5, // File: open history, open script, save history, save script, quit
             1 => 3, // Edit: cut, copy, paste
             2 => 2, // Graph: clear graph, copy points of interest
-            3 => 2, // Help: the in-app guide, the keypad key help
+            3 => 3, // Help: the in-app guide, the keypad key help, constants
             4 => {
                 if self.surface.is_empty() && self.solar.is_none() {
                     15 // POI, 3 themes, 8 languages, exact, notation, separators
@@ -887,7 +993,8 @@ impl App {
             },
             3 => match item {
                 0 => MenuAction::OpenGuide,
-                _ => MenuAction::OpenKeyHelp,
+                1 => MenuAction::OpenKeyHelp,
+                _ => MenuAction::BrowseConstants,
             },
             4 => match item {
                 0 => MenuAction::TogglePois,
@@ -1301,6 +1408,15 @@ impl App {
     /// The insertion point (byte offset) inside the input text.
     pub fn cursor(&self) -> usize {
         self.cursor.min(self.input.len())
+    }
+
+    /// Insert a whole token (a constant name from the browser,
+    /// ADR-0045) at the cursor, moving past it — the multi-character
+    /// counterpart of [`push_char`].
+    pub fn insert_text(&mut self, text: &str) {
+        let at = self.cursor();
+        self.input.insert_str(at, text);
+        self.cursor = at + text.len();
     }
 
     /// Insert a character at the cursor (ADR-0035 amendment): typing,
@@ -2727,6 +2843,32 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         }
                         continue;
                     }
+                    // The constants browser (ADR-0045) is modal like the
+                    // key help: arrows move the selection, Enter inserts
+                    // the name into the input line, Escape closes.
+                    if app.constants_active() {
+                        match key.code {
+                            KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                                return Ok(());
+                            }
+                            KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('?') => {
+                                app.constants_close()
+                            }
+                            KeyCode::Up => app.constants_select(-1),
+                            KeyCode::Down => app.constants_select(1),
+                            KeyCode::PageUp => app.constants_select(-12),
+                            KeyCode::PageDown => app.constants_select(12),
+                            KeyCode::Home => {
+                                app.constants = Some(0);
+                            }
+                            KeyCode::End => {
+                                app.constants = Some(usize::MAX);
+                            }
+                            KeyCode::Enter => app.constants_insert(),
+                            _ => {}
+                        }
+                        continue;
+                    }
                     // Pasted newlines arrive as LF, which crossterm parses as
                     // Ctrl+J (the terminal convention for line feed). Treat it
                     // as Enter so multi-line pastes submit line by line, like
@@ -3112,6 +3254,7 @@ fn perform_menu_action(
         }
         MenuAction::OpenGuide => app.guide_open(),
         MenuAction::OpenKeyHelp => app.key_help_open(),
+        MenuAction::BrowseConstants => app.constants_open(localizer),
     }
     false
 }
@@ -3156,6 +3299,12 @@ fn handle_mouse(
                 });
             } else if areas.key_help {
                 app.key_help_scroll(if matches!(event.kind, MouseEventKind::ScrollUp) {
+                    -3
+                } else {
+                    3
+                });
+            } else if areas.constants {
+                app.constants_select(if matches!(event.kind, MouseEventKind::ScrollUp) {
                     -3
                 } else {
                     3
@@ -3415,6 +3564,7 @@ fn menu_rows(app: &App, localizer: &Localizer) -> Vec<PopupRow> {
         3 => {
             rows.push(PopupRow::Item(0, localizer.lookup("menu-guide")));
             rows.push(PopupRow::Item(1, localizer.lookup("menu-key-help")));
+            rows.push(PopupRow::Item(2, localizer.lookup("menu-constants")));
         }
         _ => {
             rows.push(PopupRow::Item(0, localizer.lookup("graph-points")));
@@ -3615,6 +3765,119 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         );
         areas.key_help = true;
         app.key_help = Some(offset);
+        app.areas = areas;
+        return;
+    }
+
+    // The constants browser (ADR-0045): Help -> Constants. Grouped
+    // rows (name, value, hint); the selection highlights and Enter
+    // inserts the name into the input line. Renders like the key-help
+    // overlay: full screen, title row, scrollable list, hint row.
+    if app.constants_active() {
+        let rows = Layout::vertical([
+            Constraint::Length(1), // title
+            Constraint::Min(0),    // the constant rows
+            Constraint::Length(1), // scroll hint
+        ])
+        .split(frame.area());
+        frame.render_widget(
+            Paragraph::new(Line::from(Span::styled(
+                format!(" {} ", localizer.lookup("menu-constants")),
+                Style::default()
+                    .bg(sel_bg)
+                    .fg(sel_fg)
+                    .add_modifier(Modifier::BOLD),
+            ))),
+            rows[0],
+        );
+        let content_rows = rows[1].height as usize;
+        // The visible lines: group headings (bold, not selectable) and
+        // constant rows (name, value, hint). Selection indexes into the
+        // constant rows only, so the highlight needs the row offset of
+        // the selected constant inside the drawn lines.
+        let group_key = |g: epher_core::ConstGroup| match g {
+            epher_core::ConstGroup::Math => "constants-group-math",
+            epher_core::ConstGroup::Astronomy => "constants-group-astronomy",
+            epher_core::ConstGroup::Physics => "constants-group-physics",
+            epher_core::ConstGroup::Chemistry => "constants-group-chemistry",
+        };
+        let mut lines: Vec<(Line<'static>, bool)> = Vec::new();
+        let mut const_index = 0usize;
+        let mut sel_line = 0usize;
+        for group in [
+            epher_core::ConstGroup::Math,
+            epher_core::ConstGroup::Astronomy,
+            epher_core::ConstGroup::Physics,
+            epher_core::ConstGroup::Chemistry,
+        ] {
+            let mut heading_drawn = false;
+            for (name, value, _) in &app.constants_rows {
+                let g = epher_core::builtin_constant_groups()
+                    .iter()
+                    .find(|(n, _)| n == name)
+                    .map(|(_, g)| *g)
+                    .unwrap_or(epher_core::ConstGroup::Math);
+                if g != group {
+                    continue;
+                }
+                if !heading_drawn {
+                    lines.push((
+                        Line::from(Span::styled(
+                            format!(" {}", localizer.lookup(group_key(group))),
+                            Style::default().fg(fg).add_modifier(Modifier::BOLD),
+                        )),
+                        false,
+                    ));
+                    heading_drawn = true;
+                }
+                let shown = match value {
+                    Some(v) => {
+                        epher_core::format_value(&epher_core::Value::float(*v), &app.display)
+                    }
+                    None => String::new(),
+                };
+                let text = if shown.is_empty() {
+                    format!(" {name}")
+                } else {
+                    format!(" {name}   {shown}")
+                };
+                let is_sel = app.constants == Some(const_index);
+                if is_sel {
+                    sel_line = lines.len();
+                }
+                const_index += 1;
+                let style = if is_sel {
+                    Style::default().bg(sel_bg).fg(sel_fg)
+                } else {
+                    Style::default().fg(fg)
+                };
+                lines.push((Line::from(Span::styled(text, style)), true));
+            }
+        }
+        // Clamp the scroll so the selection stays visible.
+        let offset = {
+            let max = lines.len().saturating_sub(content_rows);
+            let want = sel_line.saturating_sub(content_rows / 2);
+            want.min(max)
+        };
+        let mut text = Text::default();
+        for (line, _) in lines.iter().skip(offset) {
+            text.push_line(line.clone());
+        }
+        frame.render_widget(
+            Paragraph::new(text)
+                .style(Style::default().fg(fg))
+                .scroll((0, 0)),
+            rows[1],
+        );
+        frame.render_widget(
+            Paragraph::new(Line::from(Span::styled(
+                localizer.lookup("tui-constants-hint"),
+                hints_style,
+            ))),
+            rows[2],
+        );
+        areas.constants = true;
         app.areas = areas;
         return;
     }
@@ -4444,5 +4707,62 @@ mod draw_tests {
             }
         }
         assert!(saw_history, "history must be visible below the answer");
+    }
+
+    /// ADR-0045: the constants browser paints a full-screen grouped
+    /// list with the selection highlighted and the hint row at the
+    /// bottom, like the key-help overlay.
+    #[test]
+    fn constants_browser_renders_groups_and_selection() {
+        let mut app = App::default();
+        let localizer = Localizer::resolve(Some("en"), &[]);
+        app.constants_open(&localizer);
+        app.constants_select(1); // move off the first row
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        // The title row names the browser.
+        let title: String = (0..30)
+            .map(|x| buffer.cell((x, 0)).unwrap().symbol().to_string())
+            .collect();
+        assert!(title.contains("Constants"), "title row: {title}");
+        // The four group headings appear and the first constant row is
+        // e (Euler's number) with its value column.
+        let mut text = String::new();
+        for y in 1..24 {
+            for x in 0..80 {
+                text.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            text.push('\n');
+        }
+        // The first two groups fit the screen; the selection's group
+        // scrolls the later ones into view.
+        assert!(text.contains("Math"), "first group: {text}");
+        assert!(text.contains("Astronomy"), "second group: {text}");
+        assert!(text.contains(" e "), "first constant row: {text}");
+        assert!(text.contains("2.71828"), "the value column shows e");
+        assert!(text.contains("choose"), "the hint row mentions choosing");
+
+        // Jump near the end: the tail groups appear and the selection
+        // moves with the scroll.
+        app.constants_select(100);
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+        let mut text = String::new();
+        for y in 1..24 {
+            for x in 0..80 {
+                text.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            text.push('\n');
+        }
+        assert!(text.contains("Chemistry"), "tail groups: {text}");
+        assert!(text.contains("n_a"), "Avogadro row near the end");
     }
 }

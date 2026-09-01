@@ -130,13 +130,15 @@ at the end of the chain.
   primes) → **0043 (complex values, numeric solve, calculus, exact fractions,
   engineering/scientific/grouped formats)** → **0044 (lists, elementwise
   arithmetic, statistics, distributions, tests, regression)**
+  → **0045 (seeded random, the constants browser)**
 - **In-app guide** - 0018 → 0018 amendment (ToC) → **0038 (search box
   with chapter + snippet hits)**.
 - **Script language** - 0001 (one grammar) → 0037 (unit suffixes) →
   **0040 (PHP-style comments: `//`, `#`, and `/* ... */`)** → **0042 (percent, physics constants, number theory)**
   → **0043 (`solve` statement, `4i` literals, lazy `derivative`/`integral` arguments)**
   → **0044 (`{1, 2, 3}` list literals, `list[i]` indexing, the `graph scatter/histogram/boxplot` family, `table … derivative …`)**
-  → **0045 (planned: units with conversion, bitwise operations)**
+  → **0045 (seeded random, the constants browser)**
+  → **0046 (planned: units with conversion)**
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.

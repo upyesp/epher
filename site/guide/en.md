@@ -725,6 +725,12 @@ The physical constants use SI units, like the astronomy ones in section
 | `atm` | standard atmosphere, in pascals | 101325 |
 | `wien` | Wien wavelength constant | 0.002897771955 |
 | `phi_0` | magnetic flux quantum | 2.067833848e-15 |
+| `m_P` | Planck mass | 2.176434e-8 |
+| `l_P` | Planck length | 1.616255e-35 |
+| `t_P` | Planck time | 5.391247e-44 |
+| `r_e` | classical electron radius | 2.8179403205e-15 |
+| `lambda_c` | Compton wavelength | 2.42631023867e-12 |
+| `mu_n` | nuclear magneton | 5.050783699e-27 |
 
 ### 1.14 Reading errors
 
@@ -808,6 +814,8 @@ not know, so you can fix your expression.
 | Discrete families | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
 | Tests and intervals | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
 | Data plots | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
+| Random numbers | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| Constants browser | Help → Constants: every builtin constant, grouped | Help → Constants |
 
 ### 1.16 Astronomy and the solar system
 
@@ -851,7 +859,7 @@ so `mag2jy(20)` is a jansky count and `mag2jy(20) Jy` is the same flux in
 watts per square metre hertz.
 
 **Astronomy constants.** `au`, `pc`, `ly`, `c`, `g`, `h`, `h_bar`, `k_b`,
-`sigma_sb`, `m_sun`, `r_sun`, `l_sun`, `m_earth`, `r_earth` work like `pi`,
+`sigma_sb`, `m_sun`, `r_sun`, `l_sun`, `m_earth`, `r_earth`, `m_moon`, `r_moon` work like `pi`,
 and you can shadow them with your own constants.
 
 **Dates and time.** `jd(y, m, d [, hr])` and `mjd(...)` turn a calendar date
@@ -1241,6 +1249,26 @@ extremes. The plot window always fits the data — the `from a to b`
 domain keywords do not apply — and the picture exports and saves like
 any other plot.
 
+### 1.23 Random numbers
+
+`random()` draws a uniform random number in `[0, 1)`, `random(a, b)`
+one in `[a, b)`, and `randint(a, b)` a whole number from the closed
+range `[a, b]` — a dice roll:
+
+```epher
+randseed(7)
+randint(1, 6)
+```
+
+```text
+7
+3
+```
+
+The sequence is reproducible: `randseed(n)` re-seeds the generator
+with `n` and reports it, so the same seed replays the same draws in
+every session and every frontend.
+
 ## 2. The web app (PWA)
 
 ### 2.1 Opening it
@@ -1256,8 +1284,11 @@ phone, or tablet.
 
 This guide is also built into the app: open **Help → User guide** in the
 menu bar (tap **☰** on a phone) to read it inside the app, in the app's
-current language. Tap any example in that guide to load it into the entry
-field.
+current language. **Help → Constants** opens the constants browser: every
+builtin constant in groups (Math, Astronomy, Physics, Chemistry), each
+with its value and a short description; tap one to insert its name into
+the entry field, and the search box narrows the list. Tap any example in
+the guide to load it into the entry field.
 
 ### 2.2 Your first calculation
 
@@ -1828,6 +1859,11 @@ The screen is divided into panels:
 | **Tab** | focus the always-visible keypad (or history, from the keypad); switch its banks (**Esc** returns focus to typing) |
 | **Mouse** | click menus and popup items, keypad cells and bank tabs, and history lines (loads the expression); drag the graph panel to orbit (3D) or pan (2D), the wheel zooms, a double-click resets the view |
 | **Ctrl+L** | clear the history |
+
+The **Help** menu opens the in-app guide, the keypad key help, and a
+constants browser: the builtin constants in groups, arrows choose a
+row, **Enter** inserts its name into the expression at the cursor, and
+**Esc** closes.
 
 The keypad's banks hold every function, constant, and command the
 language supports: **trig**, **fn**, **num**, **0x**, and **var**. The

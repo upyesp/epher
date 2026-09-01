@@ -130,6 +130,20 @@ list — `ztest ttest chisq_gof zinterval tinterval` — reporting a
 display string (`z = …, p = …`, `(lo, hi)`; ADR-0044).
 _Avoid_: wizard, test editor
 
+**Seeded random**:
+The generator state in the environment (ADR-0045): `randseed(n)` pins
+it, `random()`/`random(a, b)` draw uniform reals, `randint(a, b)` an
+inclusive whole number. Same seed, same draws, in every frontend;
+interactive sessions seed from the clock.
+_Avoid_: PRNG, entropy source
+
+**Constants browser**:
+The Help → Constants surface (web dialog, TUI pager; ADR-0045) listing
+every builtin constant in the four guide groups (Math, Astronomy,
+Physics, Chemistry) with value and hint, inserting the chosen name into
+the entry.
+_Avoid_: constants dialog, lookup table UI
+
 ### Astronomy
 
 **Unit literal**:
