@@ -688,7 +688,11 @@ Primzahlen und Teiler arbeiten mit ganzen Zahlen:
 | Wortbreite | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
 | Implizite Beziehung | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
 | Matrix-Literal | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
-| Matrixfunktionen | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` | `2^3 * 3^2 * 5` |
+| Matrixfunktionen | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
+| TVM-Löser | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
+| Kapitalwert und interner Zinsfuß | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
+| Tilgung | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
+| Zinsen | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | Eulersche Phi-Funktion | `totient(12)` | `4` |
 | `ndivisors(n)` | Anzahl der Teiler | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b hoch e, modulo m, exakt | `modpow(2, 10, 1000)` | `24` |
@@ -1399,6 +1403,52 @@ rref([[2, 1, 5], [1, -1, 1]])
 Die Zeilen lesen `x = 2`, `y = 1` — die letzte Spalte der reduzierten
 erweiterten Matrix. Exakte Brüche erscheinen in Matrizen wie in
 Listen, also zeigt `inv([[1, 2], [3, 4]])` `[[-2, 1], [3/2, -1/2]]`.
+
+
+### 1.28 Finanzen
+
+Der Zeitwert-Löser (TI-Vorzeichenkonvention: abgehendes Geld negativ,
+ankommendes positiv) löst jedes der fünf Felder, wenn die anderen vier
+gegeben sind. `i` ist der Zinssatz pro Periode als Bruchteil — 0.01
+ist 1 % — und das optionale letzte Argument ist der Zahlungszeitpunkt:
+0 für Periodenende (Standard), 1 für Periodenanfang (vorschüssig).
+
+```epher
+tvm_pmt(360, 0.08/12, -100000, 0)
+```
+
+```text
+327259/446
+```
+
+Die klassische 8-%-Hypothek: 360 monatliche Zahlungen von 733.76 auf
+ein Darlehen von 100,000 — `tvm_pmt` ist die Zahlung, `tvm_pv` das
+Darlehen, `tvm_fv` der Saldo, `tvm_n` die Laufzeit und `tvm_i` der
+Zinssatz:
+
+```epher
+tvm_i(360, -100000, 733.76, 0)
+```
+
+```text
+0.006666611990680783
+```
+
+Der Zinssatz liegt hier knapp unter 8 %/12, weil 733.76 gerundet ist.
+`npv(r, flows)` diskontiert eine Zahlungsstrom-Liste und `irr(flows)`
+findet den Zinssatz, bei dem der Kapitalwert null ist:
+
+```epher
+npv(0.1, {-100, 60, 60})
+```
+
+```text
+500/121
+```
+
+`amort(p, r, n, k)` ist der Restsaldo nach k Zahlungen eines
+n-Perioden-Darlehens, `simple_interest(p, r, t)` ist `p*r*t`, und
+`compound_interest(p, r, n)` ist `p*(1+r)^n - p`.
 
 
 ## 2. Die Web-App (PWA)

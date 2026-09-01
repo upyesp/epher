@@ -189,6 +189,14 @@ product, `^` the whole-number power, rows indexed as lists
 ref/rref. Linear systems solve through rref on the augmented matrix.
 _Avoid_: array, grid, 2D list
 
+**TVM solver**:
+The time-value-of-money functions (ADR-0050): `tvm_n/i/pv/pmt/fv`
+solve one field of the equation given the other four, with the TI
+sign convention (money out negative) and an optional annuity-due
+timing argument. Linear fields have closed forms; n and i bisect the
+factorized balance.
+_Avoid_: financial calculator, loan app
+
 ### Persistence
 
 **Store**:

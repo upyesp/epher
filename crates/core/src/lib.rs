@@ -3332,6 +3332,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "amort",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "arg",
         kind: CatalogKind::Function,
     },
@@ -3409,6 +3413,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "chisq_gof",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "compound_interest",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -3561,6 +3569,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "invt",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "irr",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -3728,6 +3740,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "npv",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "oct",
         kind: CatalogKind::Function,
     },
@@ -3856,6 +3872,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "simple_interest",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "sin",
         kind: CatalogKind::Function,
     },
@@ -3925,6 +3945,26 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "ttest",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "tvm_fv",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "tvm_i",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "tvm_n",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "tvm_pmt",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "tvm_pv",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -4041,6 +4081,22 @@ fn value_to_bigint(name: &str, v: &Value) -> Result<num_bigint::BigInt, EpherErr
             num_bigint::BigInt::parse_bytes(d.trunc().to_string().as_bytes(), 10).ok_or_else(bad)
         }
         _ => Err(bad()),
+    }
+}
+
+/// Take exactly four Float arguments (quantities unwrap).
+fn four_floats(name: &str, args: &[Value]) -> Result<(f64, f64, f64, f64), EpherError> {
+    match args {
+        [a, b, c, d] => Ok((
+            one_float(name, &[a.clone()])?,
+            one_float(name, &[b.clone()])?,
+            one_float(name, &[c.clone()])?,
+            one_float(name, &[d.clone()])?,
+        )),
+        _ => Err(EpherError::Type(format!(
+            "{name} expects 4 numbers, got {} argument(s)",
+            args.len()
+        ))),
     }
 }
 
@@ -4915,6 +4971,179 @@ fn newton_root(coeffs: &[Complex<f64>], start: Complex<f64>) -> Complex<f64> {
         z -= step;
     }
     z
+}
+
+/// The TVM solver (ADR-0050): the five functions solve one field of
+/// the time-value equation
+/// `pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0`
+/// (TI sign convention: money out negative, in positive; `i` is the
+/// per-period fraction, 0.01 = 1%; `begin` = 1 for annuity-due
+/// payments). The linear fields have closed forms; n and i bisect the
+/// factorized balance, which stays finite where the expanded form
+/// overflows.
+fn eval_tvm(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let timed = |n: f64, i: f64, pv: f64, pmt: f64, fv: f64, begin: f64| -> f64 {
+        if i == 0.0 {
+            pv + pmt * n + fv
+        } else {
+            let g = (1.0 + i).powf(n);
+            let b = pmt * (1.0 + i * begin) / i;
+            (pv + b) * g - b + fv
+        }
+    };
+    // parse the fields and the optional timing
+    let (begin, rest): (f64, &[Value]) = match args {
+        [_, _, _, _] => (0.0, args),
+        [_, _, _, _, e] => {
+            let begin = one_float(name, &[e.clone()])?;
+            if begin != 0.0 && begin != 1.0 {
+                return Err(domain_error(format!(
+                    "the payment timing is 0 (end) or 1 (beginning), got {begin}"
+                )));
+            }
+            (begin, &args[..4])
+        }
+        _ => {
+            return Err(EpherError::Type(format!(
+                "{name} expects 4 arguments (plus an optional 0/1 timing), got {}",
+                args.len()
+            )))
+        }
+    };
+    let nums = |i: usize| -> f64 { one_float(name, &[rest[i].clone()]).expect("float") };
+    let (n, i, pv, pmt, fv) = match name {
+        "tvm_n" => {
+            // the unknown n: bisect over [0, 1e7]
+            let (i, pv, pmt, fv) = (nums(0), nums(1), nums(2), nums(3));
+            let f = |n: f64| timed(n, i, pv, pmt, fv, begin);
+            (bisect_n(name, f)?, i, pv, pmt, fv)
+        }
+        "tvm_i" => {
+            let (n, pv, pmt, fv) = (nums(0), nums(1), nums(2), nums(3));
+            let f = |i: f64| timed(n, i, pv, pmt, fv, begin);
+            (n, bisect_rate(name, f, -0.999_999, 1.0)?, pv, pmt, fv)
+        }
+        "tvm_pv" => {
+            let (n, i, pmt, fv) = (nums(0), nums(1), nums(2), nums(3));
+            let pv = if i == 0.0 {
+                -(pmt * n + fv)
+            } else {
+                let g = (1.0 + i).powf(n);
+                -(pmt * (1.0 + i * begin) * (g - 1.0) / i + fv) / g
+            };
+            (n, i, pv, pmt, fv)
+        }
+        "tvm_fv" => {
+            let (n, i, pv, pmt) = (nums(0), nums(1), nums(2), nums(3));
+            let fv = if i == 0.0 {
+                -(pv + pmt * n)
+            } else {
+                let g = (1.0 + i).powf(n);
+                -(pv * g + pmt * (1.0 + i * begin) * (g - 1.0) / i)
+            };
+            (n, i, pv, pmt, fv)
+        }
+        _ => {
+            let (n, i, pv, fv) = (nums(0), nums(1), nums(2), nums(3));
+            let pmt = if i == 0.0 {
+                -(pv + fv) / n
+            } else {
+                let g = (1.0 + i).powf(n);
+                -(pv * g + fv) * i / ((1.0 + i * begin) * (g - 1.0))
+            };
+            (n, i, pv, pmt, fv)
+        }
+    };
+    let value = match name {
+        "tvm_n" => n,
+        "tvm_i" => i,
+        "tvm_pv" => pv,
+        "tvm_pmt" => pmt,
+        _ => fv,
+    };
+    Ok(Value::Float(value))
+}
+
+/// Bisect `f` over `lo..=hi` for a sign change; none is a domain error
+/// naming the searched range.
+fn bisect_rate(name: &str, f: impl Fn(f64) -> f64, lo: f64, hi: f64) -> Result<f64, EpherError> {
+    let mut lo = lo;
+    let mut hi = hi;
+    let mut flo = f(lo);
+    let fhi0 = f(hi);
+    if flo.is_nan() || fhi0.is_nan() || flo * fhi0 > 0.0 {
+        return Err(domain_error(format!(
+            "{name}: no solution found between {lo:.4} and {hi:.4}"
+        )));
+    }
+    for _ in 0..200 {
+        let mid = (lo + hi) / 2.0;
+        let fm = f(mid);
+        if flo * fm <= 0.0 {
+            hi = mid;
+        } else {
+            lo = mid;
+            flo = fm;
+        }
+    }
+    Ok((lo + hi) / 2.0)
+}
+
+/// Bisect the TVM term over `[0, 1e7]` (the factorized balance stays
+/// finite; the rate is fixed).
+fn bisect_n(name: &str, f: impl Fn(f64) -> f64) -> Result<f64, EpherError> {
+    bisect_rate(name, f, 0.0, 1e7)
+}
+
+/// The (rate, flows) pair of npv.
+fn finance_rate_and_flows(name: &str, args: &[Value]) -> Result<(f64, Vec<f64>), EpherError> {
+    match args {
+        [rate, Value::List(items)] => {
+            let rate = one_float(name, &[rate.clone()])?;
+            let mut flows = Vec::with_capacity(items.len());
+            for item in items {
+                match item {
+                    Value::Float(x) => flows.push(*x),
+                    other => {
+                        return Err(EpherError::Type(format!(
+                            "{name} expects cash flows as numbers, got {other:?}"
+                        )))
+                    }
+                }
+            }
+            if flows.is_empty() {
+                return Err(domain_error(format!("{name} needs at least one cash flow")));
+            }
+            Ok((rate, flows))
+        }
+        _ => Err(EpherError::Type(format!(
+            "{name} expects a rate and a cash-flow list, like npv(0.1, {{-100, 60, 60}})"
+        ))),
+    }
+}
+
+/// The cash-flow list of irr (a single list argument).
+fn finance_flows(name: &str, args: &[Value]) -> Result<Vec<f64>, EpherError> {
+    let Value::List(items) = one_arg(name, args)? else {
+        return Err(EpherError::Type(format!(
+            "{name} expects a cash-flow list, like irr({{-100, 60, 60}})"
+        )));
+    };
+    let mut flows = Vec::with_capacity(items.len());
+    for item in items {
+        match item {
+            Value::Float(x) => flows.push(*x),
+            other => {
+                return Err(EpherError::Type(format!(
+                    "{name} expects cash flows as numbers, got {other:?}"
+                )))
+            }
+        }
+    }
+    if flows.is_empty() {
+        return Err(domain_error(format!("{name} needs at least one cash flow")));
+    }
+    Ok(flows)
 }
 
 /// The matrix argument of the matrix functions (ADR-0049).
@@ -5862,6 +6091,60 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                 cols: n,
                 data: inv,
             })
+        }
+        // Finance (ADR-0050): the TVM solver, NPV/IRR, amortization.
+        "tvm_n" | "tvm_i" | "tvm_pv" | "tvm_pmt" | "tvm_fv" => eval_tvm(name, &args),
+        "npv" => {
+            let (rate, flows) = finance_rate_and_flows(name, &args)?;
+            let mut total = 0.0;
+            for (k, c) in flows.iter().enumerate() {
+                total += c / (1.0 + rate).powi(k as i32);
+            }
+            Ok(Value::Float(total))
+        }
+        "irr" => {
+            let flows = finance_flows(name, &args)?;
+            // The rate where npv is zero, by bisection over the same
+            // range the TVM rate solver uses.
+            let f = |r: f64| -> f64 {
+                let mut total = 0.0;
+                for (k, c) in flows.iter().enumerate() {
+                    total += c / (1.0 + r).powi(k as i32);
+                }
+                total
+            };
+            let (lo, hi) = (-0.999_999, 1.0);
+            Ok(Value::Float(bisect_rate(name, f, lo, hi)?))
+        }
+        "amort" => {
+            let (p, r, n, k) = four_floats(name, &args)?;
+            if n <= 0.0 || n.fract() != 0.0 {
+                return Err(domain_error(format!(
+                    "amort needs a whole number of periods, got {n}"
+                )));
+            }
+            if k < 0.0 || k > n {
+                return Err(domain_error(format!(
+                    "amort's period k must be between 0 and {n}, got {k}"
+                )));
+            }
+            let balance = if r == 0.0 {
+                p * (1.0 - k / n)
+            } else {
+                let g = (1.0 + r).powf(n);
+                let pmt = -p * r * g / (g - 1.0);
+                let gk = (1.0 + r).powf(k);
+                p * gk + pmt * (gk - 1.0) / r
+            };
+            Ok(Value::Float(balance))
+        }
+        "simple_interest" => {
+            let (p, r, t) = three_floats(name, &args)?;
+            Ok(Value::Float(p * r * t))
+        }
+        "compound_interest" => {
+            let (p, r, n) = three_floats(name, &args)?;
+            Ok(Value::Float(p * (1.0 + r).powf(n) - p))
         }
         "ztest" => {
             let (data, mu0, sigma) = match args.as_slice() {

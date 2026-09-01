@@ -683,7 +683,11 @@ Los primos y los divisores trabajan con números enteros:
 | Tamaño de palabra | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
 | Relación implícita | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
 | Literal de matriz | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
-| Funciones matriciales | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` | `2^3 * 3^2 * 5` |
+| Funciones matriciales | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
+| Solucionador TVM | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
+| VAN y TIR | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
+| Amortización | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
+| Interés | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | phi de Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | cuántos divisores tiene | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b elevado a e, módulo m, exacto | `modpow(2, 10, 1000)` | `24` |
@@ -1394,6 +1398,52 @@ Las filas leen `x = 2`, `y = 1` — la última columna de la matriz
 aumentada reducida. Las fracciones exactas se muestran dentro de las
 matrices como en las listas, así que `inv([[1, 2], [3, 4]])` muestra
 `[[-2, 1], [3/2, -1/2]]`.
+
+
+### 1.28 Finanzas
+
+El solucionador de valor del dinero en el tiempo (convención de signos
+TI: el dinero que sale es negativo, el que entra positivo) resuelve
+cualquiera de los cinco campos dados los otros cuatro. `i` es la tasa
+por periodo como fracción — 0.01 es el 1% — y el último argumento
+opcional es el momento del pago: 0 para fin de periodo (el
+predeterminado), 1 para inicio (anualidad anticipada).
+
+```epher
+tvm_pmt(360, 0.08/12, -100000, 0)
+```
+
+```text
+327259/446
+```
+
+La hipoteca clásica del 8%: 360 pagos mensuales de 733.76 contra un
+préstamo de 100,000 — `tvm_pmt` es el pago, `tvm_pv` el préstamo,
+`tvm_fv` el saldo, `tvm_n` el plazo y `tvm_i` la tasa:
+
+```epher
+tvm_i(360, -100000, 733.76, 0)
+```
+
+```text
+0.006666611990680783
+```
+
+La tasa aquí es algo inferior al 8%/12 porque 733.76 está redondeado.
+`npv(r, flows)` descuenta una lista de flujos y `irr(flows)` halla la
+tasa donde el valor actual neto es cero:
+
+```epher
+npv(0.1, {-100, 60, 60})
+```
+
+```text
+500/121
+```
+
+`amort(p, r, n, k)` es el saldo restante tras k pagos de un préstamo a
+n periodos, `simple_interest(p, r, t)` es `p*r*t`, y
+`compound_interest(p, r, n)` es `p*(1+r)^n - p`.
 
 
 ## 2. La aplicación web (PWA)

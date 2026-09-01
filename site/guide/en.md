@@ -827,6 +827,10 @@ not know, so you can fix your expression.
 | Implicit relation | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
 | Matrix literal | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
 | Matrix functions | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
+| TVM solver | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
+| NPV and IRR | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
+| Amortization | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
+| Interest | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` |
 
 ### 1.16 Astronomy and the solar system
 
@@ -1447,6 +1451,50 @@ rref([[2, 1, 5], [1, -1, 1]])
 The rows read `x = 2`, `y = 1` — the last column of the reduced
 augmented matrix. Exact fractions display inside matrices like lists,
 so `inv([[1, 2], [3, 4]])` shows `[[-2, 1], [3/2, -1/2]]`.
+
+### 1.28 Finance
+
+The time-value-of-money solver (TI sign convention: money out is
+negative, money in positive) solves any one of the five fields given
+the other four. `i` is the per-period rate as a fraction — 0.01 is 1%
+— and the optional last argument is the payment timing: 0 for end of
+period (the default), 1 for beginning (annuity due).
+
+```epher
+tvm_pmt(360, 0.08/12, -100000, 0)
+```
+
+```text
+327259/446
+```
+
+The classic 8% mortgage: 360 monthly payments of 733.76 against a
+100,000 loan — `tvm_pmt` is the payment, `tvm_pv` the loan, `tvm_fv`
+the balance, `tvm_n` the term, and `tvm_i` the rate:
+
+```epher
+tvm_i(360, -100000, 733.76, 0)
+```
+
+```text
+0.006666611990680783
+```
+
+The rate here is just under 8%/12 because 733.76 is rounded. `npv(r,
+flows)` discounts a cash-flow list and `irr(flows)` finds the rate
+where the net present value is zero:
+
+```epher
+npv(0.1, {-100, 60, 60})
+```
+
+```text
+500/121
+```
+
+`amort(p, r, n, k)` is the remaining balance after k payments of an
+n-period loan, `simple_interest(p, r, t)` is `p*r*t`, and
+`compound_interest(p, r, n)` is `p*(1+r)^n - p`.
 
 ## 2. The web app (PWA)
 

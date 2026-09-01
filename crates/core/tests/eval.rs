@@ -3020,3 +3020,78 @@ fn matrix_functions_cover_the_numworks_floor() {
     assert!(eval_str_checked("det([[1, 2, 3], [4, 5, 6]])").is_err());
     assert!(eval_str_checked("trace(5)").is_err());
 }
+
+// ===== finance (ADR-0050) =====
+
+#[test]
+fn tvm_solves_any_field_of_the_mortgage() {
+    // The classic 8% mortgage: 360 monthly payments of 733.76 against
+    // a 100,000 loan (TI sign convention: money out is negative).
+    // The rate for a 733.76 payment is just under the nominal 8%/12:
+    // bisection lands on the true root for the rounded payment.
+    let i = 0.006_666_611_990_680_783;
+    // the payment reconstructs as an exact fraction under the display
+    assert_eq!(
+        format_value_of("tvm_pmt(360, 0.08/12, -100000, 0)"),
+        "327259/446"
+    );
+    assert!((eval_f64("tvm_pmt(360, 0.08/12, -100000, 0)") - 733.764_573_99).abs() < 1e-6);
+    assert!((eval_f64("tvm_n(0.08/12, -100000, 733.76, 0)") - 360.009_321_3).abs() < 1e-4);
+    assert!((eval_f64("tvm_i(360, -100000, 733.76, 0)") - i).abs() < 1e-12);
+    // 360 payments of 733.76 at 8%/12 are worth 99999.38 today
+    assert_eq!(format_value_of("tvm_pv(360, 0.08/12, 733.76, 0)"), "-7699952/77");
+    // a 12-month 1% loan of 1000 with payments of 88.85 ends at ~0
+    assert!(eval_f64("tvm_fv(12, 0.01, -1000, 88.85)").abs() < 0.05);
+    // annuity-due timing lowers the payment
+    let end = eval_f64("tvm_pmt(12, 0.01, -1000, 0)");
+    let begin = eval_f64("tvm_pmt(12, 0.01, -1000, 0, 1)");
+    assert!(begin < end, "begin payments are smaller: {begin} vs {end}");
+    assert!((end - 88.848_788_678).abs() < 1e-6);
+    // zero-rate closed forms
+    assert_eq!(eval_f64("tvm_fv(5, 0, -100, 20)"), 0.0);
+    assert_eq!(eval_f64("tvm_pmt(5, 0, -100, 0)"), 20.0);
+    // out-of-range problems report the searched range
+    match eval_str_checked("tvm_i(12, -1000, 0, 0)") {
+        Err(epher_core::EpherError::Domain(msg)) => assert!(msg.contains("no solution"), "{msg}"),
+        other => panic!("expected a domain error, got {other:?}"),
+    }
+    assert!(
+        eval_str_checked("tvm_pmt(12, 0.01, -1000, 0, 2)").is_err(),
+        "timing must be 0/1"
+    );
+    assert!(
+        eval_str_checked("tvm_pmt(12, 0.01, -1000)").is_err(),
+        "four fields needed"
+    );
+}
+
+#[test]
+fn npv_irr_and_amortization_match_the_references() {
+    assert!((eval_f64("npv(0.1, {-100, 60, 60})") - 4.132_231_4).abs() < 1e-6);
+    assert!((eval_f64("irr({-100, 60, 60})") - 0.130_662_386_3).abs() < 1e-9);
+    assert!((eval_f64("irr({-1000, 500, 500, 500})") - 0.233_751_928_5).abs() < 1e-9);
+    // the amortization schedule: balance after k payments
+    assert_eq!(eval_f64("amort(1000, 0.01, 12, 0)"), 1000.0);
+    assert!((eval_f64("amort(1000, 0.01, 12, 6)") - 514.921_064_58).abs() < 1e-6);
+    assert!(eval_f64("amort(1000, 0.01, 12, 12)").abs() < 1e-9);
+    assert!(
+        eval_f64("amort(1000, 0, 10, 5)") == 500.0,
+        "zero-rate prorates"
+    );
+    // simple and compound interest
+    assert_eq!(eval_f64("simple_interest(1000, 0.05, 2)"), 100.0);
+    assert!((eval_f64("compound_interest(1000, 0.05, 2)") - 102.5).abs() < 1e-12);
+    // errors: bad lists and ranges
+    assert!(
+        eval_str_checked("npv(0.1, 5)").is_err(),
+        "a list is required"
+    );
+    assert!(
+        eval_str_checked("amort(1000, 0.01, 12, 13)").is_err(),
+        "k beyond n"
+    );
+    assert!(
+        eval_str_checked("amort(1000, 0.01, 12.5, 3)").is_err(),
+        "whole periods"
+    );
+}
