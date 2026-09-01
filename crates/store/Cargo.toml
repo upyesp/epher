@@ -1,6 +1,6 @@
 [package]
 name = "epher-store"
-version = "0.5.10"
+version = "0.5.11"
 edition = "2021"
 license = "MIT"
 description = "The Storage capability and persisted schema — one schema, per-target backends."
