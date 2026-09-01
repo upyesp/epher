@@ -677,7 +677,10 @@ Primzahlen und Teiler arbeiten mit ganzen Zahlen:
 | Tests und Intervalle | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
 | Datenplots | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
 | Zufallszahlen | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
-| Konstanten-Browser | Hilfe → Konstanten: alle eingebauten Konstanten, nach Gruppe | Hilfe → Konstanten | `2^3 * 3^2 * 5` |
+| Konstanten-Browser | Hilfe → Konstanten: alle eingebauten Konstanten, nach Gruppe | Hilfe → Konstanten |
+| Größe | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
+| Umrechnen | `expr in Einheit` oder `expr -> Einheit` | `72 km/hr in m/s` |
+| Vorsätze | `k M G T m µ n p` skalieren jede Einheit | `5 km`, `3 MPa`, `1 GHz` | `2^3 * 3^2 * 5` |
 | `totient(n)` | Eulersche Phi-Funktion | `totient(12)` | `4` |
 | `ndivisors(n)` | Anzahl der Teiler | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b hoch e, modulo m, exakt | `modpow(2, 10, 1000)` | `24` |
@@ -839,11 +842,11 @@ einem Einheitssuffix, und epher rechnet sofort in SI-Einheiten um:
 | `Jy` | Jansky | W m-2 Hz-1 |
 
 ```epher
-3.2 AU
+3.2 AU in m
 ```
 
 ```text
-478713186240
+478713186240 m
 ```
 
 ```epher
@@ -1220,6 +1223,74 @@ randint(1, 6)
 Die Folge ist reproduzierbar: `randseed(n)` setzt den Generator mit `n`
 neu und meldet es, sodass derselbe Seed in jeder Sitzung und jeder
 Oberfläche dieselben Ziehungen wiederholt.
+
+### 1.24 Einheiten und Umrechnung
+
+Eine Zahl mit einer Einheit dahinter wird zu einer *Größe*: dem Wert in
+SI-Einheiten plus seinen Dimensionen. Die Einheitentabelle umfasst die
+SI-Basis- und -abgeleiteten Einheiten (`m`, `s`, `kg`, `A`, `K`, `mol`,
+`cd`, `Hz`, `N`, `Pa`, `J`, `W`, `C`, `V`, `F`, `ohm`, `S`, `Wb`, `T`,
+`H`, `lm`, `lx`, `Bq`, `Gy`, `Sv`), die Alltagseinheiten (`min`, `hr`,
+`d`, `yr`, `L`, `t`, `bar`, `atm`, `torr`, `psi`, `eV`, `mile`, `yd`,
+`ft`, `inch`, `nmi`, `lb`, `oz`, `gal`, `qt`, `pt`, `mph`, `knot`) und
+die Astronomie-Suffixe aus Abschnitt 1.16. Zusammengesetzte Einheiten
+verkettet: `60 mile/hr` und `5 m/s^2` sind einzelne Einheiten.
+
+```epher
+60 mile/hr
+```
+
+```text
+60 mile/hr
+```
+
+Die SI-Vorsätze skalieren jede davon: `k M G T m µ n p` sind Kilo,
+Mega, Giga, Tera, Milli, Mikro, Nano, Piko — `5 km`, `3 MPa`, `1 GHz`
+funktionieren alle, und `2 kg` ist das Kilogramm selbst.
+
+Die Dimensionen werden geprüft: Addition oder Vergleich von Größen mit
+verschiedenen Einheiten meldet einen Fehler, statt Meter und Sekunden
+zu mischen:
+
+```epher
+5 m + 3 s
+```
+
+```text
+error: dimension error: cannot add 5 m and 3 s
+```
+
+Die Arithmetik setzt die Dimensionen zusammen: `5 m * 3 m` ist
+`15 m^2`, `(3 m)^2` ist `9 m^2`, `sqrt(4 m^2)` ist `2 m`, und ein
+ganzer Ausdruck, dessen Dimensionen sich wegheben, ist wieder eine
+gewöhnliche Zahl (`5 m / 5 m` ist `1`). Ergebnisse bevorzugen den
+exakten abgeleiteten Namen, wenn die Dimensionen passen —
+`5 kg * 3 m / 1 s^2` antwortet `15 N`.
+
+**Umrechnung.** `expr in Einheit` (oder `expr -> Einheit`) zeigt eine
+Größe in der genannten Einheit; die Dimensionen müssen übereinstimmen.
+`in` bindet am lockersten der Operatoren, also rechnet
+`5 m + 3 m in km` die ganze Summe um:
+
+```epher
+72 km/hr in m/s
+```
+
+```text
+20 m/s
+```
+
+```epher
+2 m^2 in cm^2
+```
+
+```text
+20000 cm^2
+```
+
+Temperaturskalen (Celsius, Fahrenheit) sind hier keine Einheiten —
+Kelvin schon, und `K` funktioniert wie jede andere.
+
 
 ## 2. Die Web-App (PWA)
 

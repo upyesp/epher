@@ -138,7 +138,7 @@ at the end of the chain.
   → **0043 (`solve` statement, `4i` literals, lazy `derivative`/`integral` arguments)**
   → **0044 (`{1, 2, 3}` list literals, `list[i]` indexing, the `graph scatter/histogram/boxplot` family, `table … derivative …`)**
   → **0045 (seeded random, the constants browser)**
-  → **0046 (planned: units with conversion)**
+  → **0046 (quantities, unit prefixes, the `in` conversion operator)**
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.

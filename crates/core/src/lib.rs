@@ -40,6 +40,16 @@ pub enum Value {
     /// Elements are floats; complex values are rejected with a type
     /// error at list construction.
     List(Vec<Value>),
+    /// A quantity (ADR-0046): an SI value plus the seven base
+    /// dimensions, and an optional display unit (the typed spelling
+    /// with its SI factor) so the value can be shown back in the unit
+    /// it was typed or converted to. `3.2 AU` stores 4.7871…e11 m with
+    /// unit `("AU", 1.4959…e11)` and displays `3.2 AU`.
+    Quantity {
+        value: f64,
+        dims: Dims,
+        unit: Option<(String, f64)>,
+    },
     /// A display string — produced by the base-conversion builtins
     /// (`bin`, `oct`, `hex`; ADR-0022), the solve statement, `linreg`,
     /// and the test/interval functions (ADR-0044), and good for
@@ -79,6 +89,11 @@ impl std::fmt::Display for Value {
                     .collect::<Vec<_>>()
                     .join(", ")
             ),
+            // A quantity displays its SI value in its display unit
+            // (ADR-0046) — `3.2 AU`, `96.56064 km/hr`, `15 N`.
+            Value::Quantity { value, dims, unit } => {
+                write!(f, "{}", quantity_display(*value, *dims, unit.clone()))
+            }
             Value::Str(s) => write!(f, "{s}"),
         }
     }
@@ -209,6 +224,14 @@ pub enum Expression {
     /// A postfix element access (ADR-0044): `d[2]` is the second
     /// element, 1-based; the index is any expression.
     Index(Box<Expression>, Box<Expression>),
+    /// A unit suffix (ADR-0046): `5 m`, `60 mile/hr`, `2 m^2` — the
+    /// inner expression times the SI factor, carrying the dimensions
+    /// and the typed display unit.
+    Unit(Box<Expression>, f64, Dims, String),
+    /// A unit conversion (ADR-0046): `expr in km/hr` or `expr -> km/hr`
+    /// rescales a quantity to the named unit and remembers it as the
+    /// display unit.
+    In(Box<Expression>, f64, Dims, String),
     Compare(CmpOp, Box<Expression>, Box<Expression>),
     If(Box<Expression>, Box<Expression>, Box<Expression>),
     And(Box<Expression>, Box<Expression>),
@@ -259,6 +282,8 @@ pub enum EpherError {
     UnknownName(String),
     #[error("domain error: {0}")]
     Domain(String),
+    #[error("dimension error: {0}")]
+    Dimension(String),
     #[error("division by zero")]
     ZeroDivision,
     #[error("step limit exceeded")]
@@ -915,10 +940,114 @@ impl Parser {
         }
     }
 
-    /// Additive level: `+` and `-`, folded left-associatively.
+    /// The unit power bound to a unit token (ADR-0046): `m^2` scales
+    /// the factor and dims and extends the display spelling. Returns
+    /// the suffix node over `expr` with the folded unit.
+    fn apply_unit_suffix(
+        &mut self,
+        expr: Expression,
+        mut factor: f64,
+        mut dims: Dims,
+        mut unit: String,
+    ) -> Result<Expression, EpherError> {
+        if matches!(self.peek(), Some(Token::Caret)) {
+            self.next();
+            match self.next() {
+                Some(Token::Number(e)) if e.fract() == 0.0 && e.abs() <= 127.0 => {
+                    let e = e as i8;
+                    factor = factor.powf(e as f64);
+                    dims = scale_dims(dims, e)?;
+                    if e != 1 {
+                        unit = format!("{unit}^{e}");
+                    }
+                }
+                other => {
+                    return Err(EpherError::Parse(format!(
+                        "expected a whole-number power after the unit, found {other:?}"
+                    )))
+                }
+            }
+        }
+        Ok(Expression::Unit(Box::new(expr), factor, dims, unit))
+    }
+
+    /// The unit path of a conversion (ADR-0046): `km/hr`, `m^2`,
+    /// `km/hr^2` — unit idents with optional whole-number powers joined
+    /// by `/`. Returns the folded (SI factor, dims, display spelling).
+    fn parse_unit_path(&mut self) -> Result<(f64, Dims, String), EpherError> {
+        let mut factor = 1.0;
+        let mut dims = [0i8; 7];
+        let mut display = String::new();
+        let mut first = true;
+        loop {
+            let name = match self.next() {
+                Some(Token::Ident(n)) => n,
+                other => {
+                    return Err(EpherError::Parse(format!(
+                        "expected a unit after the conversion, found {other:?}"
+                    )))
+                }
+            };
+            let Some(UnitDef { factor: f, dims: d }) = unit_def_with_prefix(&name) else {
+                return Err(EpherError::Parse(format!("unknown unit '{name}'")));
+            };
+            let (mut f, mut d, mut u) = (f, d, name);
+            if matches!(self.peek(), Some(Token::Caret)) {
+                self.next();
+                match self.next() {
+                    Some(Token::Number(e)) if e.fract() == 0.0 && e.abs() <= 127.0 => {
+                        let e = e as i8;
+                        f = f.powf(e as f64);
+                        d = scale_dims(d, e)?;
+                        if e != 1 {
+                            u = format!("{u}^{e}");
+                        }
+                    }
+                    other => {
+                        return Err(EpherError::Parse(format!(
+                            "expected a whole-number power in the unit, found {other:?}"
+                        )))
+                    }
+                }
+            }
+            if first {
+                factor = f;
+                dims = d;
+                first = false;
+            } else {
+                factor /= f;
+                dims = sub_dims(dims, d)?;
+            }
+            if !display.is_empty() {
+                display.push('/');
+            }
+            display.push_str(&u);
+            if !matches!(self.peek(), Some(Token::Slash)) {
+                break;
+            }
+            self.next();
+        }
+        Ok((factor, dims, display))
+    }
+
+    /// Additive level: `+` and `-`, folded left-associatively, plus
+    /// the conversion operator (ADR-0046) which binds loosest of all:
+    /// `5 m + 3 m in km` converts the whole sum.
     fn parse_additive(&mut self) -> Result<Expression, EpherError> {
         let mut left = self.parse_term()?;
         loop {
+            let is_in = matches!(self.peek(), Some(Token::Ident(kw)) if kw == "in");
+            let is_arrow = matches!(self.peek(), Some(Token::Minus))
+                && matches!(self.tokens.get(self.pos + 1), Some(Token::GreaterThan));
+            if is_in || is_arrow {
+                self.next();
+                if is_arrow {
+                    self.next();
+                }
+                let (factor, dims, unit) = self.parse_unit_path()?;
+                left = Expression::In(Box::new(left), factor, dims, unit);
+                continue;
+            }
             match self.peek() {
                 Some(Token::Plus) => {
                     self.next();
@@ -937,6 +1066,9 @@ impl Parser {
     }
 
     /// Multiplicative level: `*` and `/`, folded left-associatively.
+    /// A `/` directly after a suffixed number continues the unit chain
+    /// (ADR-0046): `60 mile/hr` and `5 m/s^2` are single units, while
+    /// `x / hr` still divides by the variable `hr`.
     fn parse_term(&mut self) -> Result<Expression, EpherError> {
         let mut left = self.parse_unary()?;
         loop {
@@ -948,6 +1080,45 @@ impl Parser {
                 }
                 Some(Token::Slash) => {
                     self.next();
+                    if let Expression::Unit(inner, f, d, u) = &left {
+                        if let Some(Token::Ident(unit)) = self.peek().cloned() {
+                            if let Some(UnitDef { factor, dims }) = unit_def_with_prefix(&unit) {
+                                if !matches!(self.tokens.get(self.pos + 1), Some(Token::LParen)) {
+                                    self.next();
+                                    let mut u2 = unit;
+                                    let mut f2 = factor;
+                                    let mut d2 = dims;
+                                    if matches!(self.peek(), Some(Token::Caret)) {
+                                        self.next();
+                                        match self.next() {
+                                            Some(Token::Number(e))
+                                                if e.fract() == 0.0 && e.abs() <= 127.0 =>
+                                            {
+                                                let e = e as i8;
+                                                f2 = f2.powf(e as f64);
+                                                d2 = scale_dims(d2, e)?;
+                                                if e != 1 {
+                                                    u2 = format!("{u2}^{e}");
+                                                }
+                                            }
+                                            other => {
+                                                return Err(EpherError::Parse(format!(
+                                                    "expected a whole-number power after the unit, found {other:?}"
+                                                )))
+                                            }
+                                        }
+                                    }
+                                    left = Expression::Unit(
+                                        inner.clone(),
+                                        *f / f2,
+                                        sub_dims(*d, d2)?,
+                                        format!("{u}/{u2}"),
+                                    );
+                                    continue;
+                                }
+                            }
+                        }
+                    }
                     let right = self.parse_unary()?;
                     left = Expression::Div(Box::new(left), Box::new(right));
                 }
@@ -1019,18 +1190,27 @@ impl Parser {
     fn parse_primary(&mut self) -> Result<Expression, EpherError> {
         match self.next() {
             Some(Token::Number(n)) => {
-                // Unit-suffix literal (ADR-0037): a number immediately
-                // followed by a unit token is that number times the
-                // unit's SI factor, baked in at grammar level - user
-                // shadowing cannot change what `2 AU` means. An Ident
-                // followed by `(` is always a call, never a suffix, so
-                // `30 deg(x)` stays a (trailing-input) parse error and
-                // `min(3, 7)` keeps working next to `5 min`.
+                // Unit-suffix literal (ADR-0037, extended by ADR-0046):
+                // a number immediately followed by a unit token is that
+                // number times the unit's SI factor, carrying the
+                // dimensions and the typed display unit - baked in at
+                // grammar level, so user shadowing cannot change what
+                // `2 AU` means. An Ident followed by `(` is always a
+                // call, never a suffix, so `30 deg(x)` stays a
+                // (trailing-input) parse error and `min(3, 7)` keeps
+                // working next to `5 min`. A whole-number power binds
+                // to the unit, not the number: `2 m^2` is two square
+                // metres, `(2 m)^2` the square of two metres.
                 if let Some(Token::Ident(name)) = self.peek().cloned() {
-                    if let Some(factor) = unit_factor(&name) {
+                    if let Some(UnitDef { factor, dims }) = unit_def_with_prefix(&name) {
                         if !matches!(self.tokens.get(self.pos + 1), Some(Token::LParen)) {
                             self.next();
-                            return Ok(Expression::Literal(n * factor));
+                            return self.apply_unit_suffix(
+                                Expression::Literal(n),
+                                factor,
+                                dims,
+                                name,
+                            );
                         }
                     }
                 }
@@ -1079,14 +1259,12 @@ impl Parser {
                         // be a `(`.
                         .and_then(|expr| {
                             if let Some(Token::Ident(unit)) = self.peek().cloned() {
-                                if let Some(factor) = unit_factor(&unit) {
+                                if let Some(UnitDef { factor, dims }) = unit_def_with_prefix(&unit)
+                                {
                                     if !matches!(self.tokens.get(self.pos + 1), Some(Token::LParen))
                                     {
                                         self.next();
-                                        return Ok(Expression::Mul(
-                                            Box::new(expr),
-                                            Box::new(Expression::Literal(factor)),
-                                        ));
+                                        return self.apply_unit_suffix(expr, factor, dims, unit);
                                     }
                                 }
                             }
@@ -1160,6 +1338,11 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
         Expression::Neg(inner) => match eval(inner, env)? {
             Value::Float(n) => Ok(Value::Float(-n)),
             Value::Complex(c) => Ok(Value::Complex(-c)),
+            Value::Quantity { value, dims, unit } => Ok(Value::Quantity {
+                value: -value,
+                dims,
+                unit,
+            }),
             Value::List(items) => {
                 let mut out = Vec::with_capacity(items.len());
                 for v in items {
@@ -1177,6 +1360,50 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
         Expression::Mul(lhs, rhs) => binop(eval(lhs, env)?, eval(rhs, env)?, BinOp::Mul),
         Expression::Div(lhs, rhs) => binop(eval(lhs, env)?, eval(rhs, env)?, BinOp::Div),
         Expression::Pow(lhs, rhs) => binop(eval(lhs, env)?, eval(rhs, env)?, BinOp::Pow),
+        // A unit suffix (ADR-0046): the value times the SI factor,
+        // carrying the dimensions and the typed display unit.
+        Expression::Unit(inner, factor, dims, unit) => match eval(inner, env)? {
+            Value::Float(n) => Ok(Value::Quantity {
+                value: n * factor,
+                dims: *dims,
+                unit: Some((unit.clone(), *factor)),
+            }),
+            other => Err(EpherError::Type(format!(
+                "a unit suffix applies to a number, got {other:?}"
+            ))),
+        },
+        // A unit conversion (ADR-0046): `expr in unit` rescales the
+        // SI value to the named unit and remembers it as the display
+        // unit; the dimensions must match.
+        Expression::In(inner, factor, dims, unit) => match eval(inner, env)? {
+            Value::Float(n) => Ok(Value::Quantity {
+                value: n * factor,
+                dims: *dims,
+                unit: Some((unit.clone(), *factor)),
+            }),
+            Value::Quantity {
+                value,
+                dims: d,
+                unit: _,
+            } => {
+                if d != *dims {
+                    return Err(dimension_error(&format!(
+                        "cannot convert {} to {unit}: the dimensions do not match",
+                        quantity_display(value, d, None)
+                    )));
+                }
+                // The SI value is unchanged; the display unit only
+                // rescales what is shown.
+                Ok(Value::Quantity {
+                    value,
+                    dims: d,
+                    unit: Some((unit.clone(), *factor)),
+                })
+            }
+            other => Err(EpherError::Type(format!(
+                "cannot convert {other:?} to {unit}"
+            ))),
+        },
         Expression::List(items) => {
             let mut out = Vec::with_capacity(items.len());
             for item in items {
@@ -1246,6 +1473,29 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                     } else {
                         a != b
                     }))
+                }
+                // Quantity comparisons (ADR-0046): values compare when
+                // the dimensions match (a plain number is dimensionless);
+                // a mismatch is a dimension error, not a false answer.
+                (Value::Quantity { .. }, _) | (_, Value::Quantity { .. }) => {
+                    let (a, da, ua) = as_quantity(l)?;
+                    let (b, db, ub) = as_quantity(r)?;
+                    if da != db {
+                        return Err(dimension_error(&format!(
+                            "cannot compare {} and {}",
+                            quantity_display(a, da, ua),
+                            quantity_display(b, db, ub)
+                        )));
+                    }
+                    let result = match op {
+                        CmpOp::Gt => a > b,
+                        CmpOp::Lt => a < b,
+                        CmpOp::Ge => a >= b,
+                        CmpOp::Le => a <= b,
+                        CmpOp::Eq => a == b,
+                        CmpOp::Ne => a != b,
+                    };
+                    Ok(Value::Bool(result))
                 }
                 _ => Err(EpherError::Type(format!("cannot compare {l:?} and {r:?}"))),
             }
@@ -1707,21 +1957,223 @@ pub fn sample_polar(
 /// metres, angle in radians, time in seconds, flux in watts per square
 /// metre hertz. `h` is deliberately absent - Planck's constant owns the
 /// single letter, and hours are spelled `hr`.
-fn unit_factor(token: &str) -> Option<f64> {
+/// The seven SI base dimensions (ADR-0046): length, mass, time,
+/// electric current, thermodynamic temperature, amount of substance,
+/// and luminous intensity — the exponent of each in a quantity.
+pub type Dims = [i8; 7];
+
+pub const DIMS_L: Dims = [1, 0, 0, 0, 0, 0, 0];
+pub const DIMS_M: Dims = [0, 1, 0, 0, 0, 0, 0];
+pub const DIMS_T: Dims = [0, 0, 1, 0, 0, 0, 0];
+
+/// A unit table entry: the SI factor and the base dimensions.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct UnitDef {
+    pub factor: f64,
+    pub dims: Dims,
+}
+
+/// The unit table (ADR-0037, extended by ADR-0046): exact token →
+/// (SI factor, dimensions). Angle units are dimensionless; `h` is
+/// absent (Planck's constant keeps its name — hours are `hr`), and so
+/// is `in` (the conversion operator; inches are `inch`).
+fn unit_def(token: &str) -> Option<UnitDef> {
+    let d = |f: f64, dims: Dims| Some(UnitDef { factor: f, dims });
     match token {
-        "AU" | "au" => Some(1.495_978_707e11),
-        "pc" => Some(3.085_677_581_491_367_3e16),
-        "ly" => Some(9.460_730_472_580_8e15),
-        "deg" => Some(std::f64::consts::PI / 180.0),
-        "arcmin" => Some(std::f64::consts::PI / 10_800.0),
-        "arcsec" => Some(std::f64::consts::PI / 648_000.0),
-        "min" => Some(60.0),
-        "hr" => Some(3_600.0),
-        "d" => Some(86_400.0),
-        "yr" => Some(31_557_600.0),
-        "Jy" => Some(1e-26),
+        // SI base units
+        "m" => d(1.0, DIMS_L),
+        "s" => d(1.0, DIMS_T),
+        "g" => d(1e-3, DIMS_M),
+        "kg" => d(1.0, DIMS_M),
+        "A" => d(1.0, [0, 0, 0, 1, 0, 0, 0]),
+        "K" => d(1.0, [0, 0, 0, 0, 1, 0, 0]),
+        "mol" => d(1.0, [0, 0, 0, 0, 0, 1, 0]),
+        "cd" => d(1.0, [0, 0, 0, 0, 0, 0, 1]),
+        // SI derived units (exact display names for the same dims)
+        "Hz" => d(1.0, [0, 0, -1, 0, 0, 0, 0]),
+        "N" => d(1.0, [1, 1, -2, 0, 0, 0, 0]),
+        "Pa" => d(1.0, [-1, 1, -2, 0, 0, 0, 0]),
+        "J" => d(1.0, [2, 1, -2, 0, 0, 0, 0]),
+        "W" => d(1.0, [2, 1, -3, 0, 0, 0, 0]),
+        "C" => d(1.0, [0, 0, 1, 1, 0, 0, 0]),
+        "V" => d(1.0, [2, 1, -3, -1, 0, 0, 0]),
+        "F" => d(1.0, [-2, 1, 4, 2, 0, 0, 0]),
+        "ohm" | "Ohm" => d(1.0, [2, 1, -3, -2, 0, 0, 0]),
+        "S" => d(1.0, [-2, 1, 3, 2, 0, 0, 0]),
+        "Wb" => d(1.0, [2, 1, -2, -1, 0, 0, 0]),
+        "T" => d(1.0, [0, 1, -2, -1, 0, 0, 0]),
+        "H" => d(1.0, [2, 1, -2, -2, 0, 0, 0]),
+        "lm" => d(1.0, [0, 0, 0, 0, 0, 1, 1]),
+        "lx" => d(1.0, [-2, 0, 0, 0, 0, 1, 1]),
+        "Bq" => d(1.0, [0, 0, -1, 0, 0, 0, 0]),
+        "Gy" | "Sv" => d(1.0, [2, 0, -2, 0, 0, 0, 0]),
+        // Common non-SI units
+        "L" | "l" => d(1e-3, [3, 0, 0, 0, 0, 0, 0]),
+        "t" => d(1e3, DIMS_M),
+        "bar" => d(1e5, [-1, 1, -2, 0, 0, 0, 0]),
+        "atm" => d(101_325.0, [-1, 1, -2, 0, 0, 0, 0]),
+        "torr" => d(133.322_368_421_052_63, [-1, 1, -2, 0, 0, 0, 0]),
+        "psi" => d(6_894.757_293_168_361, [-1, 1, -2, 0, 0, 0, 0]),
+        "eV" => d(1.602_176_634e-19, [2, 1, -2, 0, 0, 0, 0]),
+        // Time (ADR-0037) and angles (dimensionless)
+        "min" => d(60.0, DIMS_T),
+        "hr" => d(3_600.0, DIMS_T),
+        "d" => d(86_400.0, DIMS_T),
+        "yr" => d(31_557_600.0, DIMS_T),
+        "rad" => d(1.0, [0; 7]),
+        "deg" => d(std::f64::consts::PI / 180.0, [0; 7]),
+        "arcmin" => d(std::f64::consts::PI / 10_800.0, [0; 7]),
+        "arcsec" => d(std::f64::consts::PI / 648_000.0, [0; 7]),
+        // Imperial and everyday units
+        "mile" => d(1_609.344, DIMS_L),
+        "yd" => d(0.9144, DIMS_L),
+        "ft" => d(0.3048, DIMS_L),
+        "inch" => d(0.0254, DIMS_L),
+        "nmi" => d(1_852.0, DIMS_L),
+        "lb" => d(0.453_592_37, DIMS_M),
+        "oz" => d(0.028_349_523_125, DIMS_M),
+        "gal" => d(3.785_411_784e-3, [3, 0, 0, 0, 0, 0, 0]),
+        "qt" => d(9.463_529_46e-4, [3, 0, 0, 0, 0, 0, 0]),
+        "pt" => d(4.731_764_73e-4, [3, 0, 0, 0, 0, 0, 0]),
+        "mph" => d(0.447_04, [1, 0, -1, 0, 0, 0, 0]),
+        "knot" => d(0.514_444_444_444_444_5, [1, 0, -1, 0, 0, 0, 0]),
+        // Astronomy (ADR-0037): lengths, jansky = W m-2 Hz-1
+        "AU" | "au" => d(1.495_978_707e11, DIMS_L),
+        "pc" => d(3.085_677_581_491_367_3e16, DIMS_L),
+        "ly" => d(9.460_730_472_580_8e15, DIMS_L),
+        "Jy" => d(1e-26, [0, 1, -2, 0, 0, 0, 0]),
         _ => None,
     }
+}
+
+/// The SI prefixes (longest first, so `da` wins over `d` and `µ` over
+/// `u`): token → factor.
+const UNIT_PREFIXES: &[(&str, f64)] = &[
+    ("da", 1e1),
+    ("Y", 1e24),
+    ("Z", 1e21),
+    ("E", 1e18),
+    ("P", 1e15),
+    ("T", 1e12),
+    ("G", 1e9),
+    ("M", 1e6),
+    ("k", 1e3),
+    ("h", 1e2),
+    ("d", 1e-1),
+    ("c", 1e-2),
+    ("m", 1e-3),
+    ("µ", 1e-6),
+    ("u", 1e-6),
+    ("n", 1e-9),
+    ("p", 1e-12),
+    ("f", 1e-15),
+    ("a", 1e-18),
+    ("z", 1e-21),
+    ("y", 1e-24),
+];
+
+/// A unit token with its prefix resolved: exact table match first
+/// (`kg` is the kilogram, `Pa` the pascal, `cd` the candela), then a
+/// prefix plus a table unit (`km`, `ms`, `µm`, `MPa`, `dam`).
+fn unit_def_with_prefix(token: &str) -> Option<UnitDef> {
+    if let Some(def) = unit_def(token) {
+        return Some(def);
+    }
+    for (prefix, p) in UNIT_PREFIXES {
+        if let Some(rest) = token.strip_prefix(prefix) {
+            if let Some(UnitDef { factor, dims }) = unit_def(rest) {
+                return Some(UnitDef {
+                    factor: p * factor,
+                    dims,
+                });
+            }
+        }
+    }
+    None
+}
+
+/// The SI spelling of a dims vector (ADR-0046): the exact derived
+/// name when the dims match one (`N`, `W`, `Pa`, …), else the composed
+/// base form (`m/s^2`, `kg m/s^2`, `1/s`).
+pub fn si_unit_str(dims: Dims) -> String {
+    const DERIVED: &[(Dims, &str)] = &[
+        ([0, 0, -1, 0, 0, 0, 0], "Hz"),
+        ([1, 1, -2, 0, 0, 0, 0], "N"),
+        ([-1, 1, -2, 0, 0, 0, 0], "Pa"),
+        ([2, 1, -2, 0, 0, 0, 0], "J"),
+        ([2, 1, -3, 0, 0, 0, 0], "W"),
+        ([0, 0, 1, 1, 0, 0, 0], "C"),
+        ([2, 1, -3, -1, 0, 0, 0], "V"),
+        ([-2, 1, 4, 2, 0, 0, 0], "F"),
+        ([2, 1, -3, -2, 0, 0, 0], "ohm"),
+        ([-2, 1, 3, 2, 0, 0, 0], "S"),
+        ([2, 1, -2, -1, 0, 0, 0], "Wb"),
+        ([0, 1, -2, -1, 0, 0, 0], "T"),
+        ([2, 1, -2, -2, 0, 0, 0], "H"),
+        ([0, 0, 0, 0, 0, 1, 1], "lm"),
+        ([-2, 0, 0, 0, 0, 1, 1], "lx"),
+        ([2, 0, -2, 0, 0, 0, 0], "Gy"),
+    ];
+    if dims == [0; 7] {
+        return String::new();
+    }
+    for (d, name) in DERIVED {
+        if *d == dims {
+            return (*name).to_string();
+        }
+    }
+    let base = [
+        ("m", 0),
+        ("kg", 1),
+        ("s", 2),
+        ("A", 3),
+        ("K", 4),
+        ("mol", 5),
+        ("cd", 6),
+    ];
+    let mut pos = Vec::new();
+    let mut neg = Vec::new();
+    for (name, i) in base {
+        let e = dims[i];
+        if e > 0 {
+            pos.push(if e == 1 {
+                name.to_string()
+            } else {
+                format!("{name}^{e}")
+            });
+        } else if e < 0 {
+            neg.push(if e == -1 {
+                name.to_string()
+            } else {
+                format!("{name}^{}", -e)
+            });
+        }
+    }
+    let head = if pos.is_empty() {
+        "1".to_string()
+    } else {
+        pos.join(" ")
+    };
+    if neg.is_empty() {
+        head
+    } else {
+        format!("{head}/{}", neg.join(" "))
+    }
+}
+
+/// Is the token a unit (with its prefix resolved)? The frontends use
+/// this so the autocomplete never hijacks a unit-ending entry
+/// (ADR-0046): `5 m` plus Enter evaluates instead of completing `m`
+/// to `m_P(`.
+pub fn is_unit_token(token: &str) -> bool {
+    unit_def_with_prefix(token).is_some()
+}
+
+/// The old unit_suffix spelling: keep `unit_factor` for the handful of
+/// callers that only need the SI factor (none today — see ADR-0046).
+#[allow(dead_code)]
+fn unit_factor(token: &str) -> Option<f64> {
+    unit_def_with_prefix(token).map(|u| u.factor)
 }
 
 /// Deterministic Miller-Rabin on u64: this witness set decides every
@@ -3103,6 +3555,9 @@ pub fn catalog() -> &'static [CatalogEntry] {
 fn one_float(name: &str, args: &[Value]) -> Result<f64, EpherError> {
     match args {
         [Value::Float(x)] => Ok(*x),
+        // A quantity's SI value (ADR-0046): the numeric builtins
+        // consume the base-unit value, SpeedCrunch-style.
+        [Value::Quantity { value, .. }] => Ok(*value),
         _ => Err(EpherError::Type(format!(
             "{name} expects 1 number, got {} argument(s)",
             args.len()
@@ -3138,6 +3593,12 @@ fn real_or_complex(
         Value::Float(x) => match real(*x) {
             Ok(y) => Ok(Value::Float(y)),
             Err(EpherError::Domain(_)) => Ok(Value::Complex(complex(Complex::new(*x, 0.0)))),
+            Err(e) => Err(e),
+        },
+        // A quantity computes with its SI value (ADR-0046).
+        Value::Quantity { value, .. } => match real(*value) {
+            Ok(y) => Ok(Value::Float(y)),
+            Err(EpherError::Domain(_)) => Ok(Value::Complex(complex(Complex::new(*value, 0.0)))),
             Err(e) => Err(e),
         },
         Value::Complex(c) => Ok(Value::Complex(complex(*c))),
@@ -3198,6 +3659,11 @@ fn three_floats(name: &str, args: &[Value]) -> Result<(f64, f64, f64), EpherErro
 fn two_floats(name: &str, args: &[Value]) -> Result<(f64, f64), EpherError> {
     match args {
         [Value::Float(a), Value::Float(b)] => Ok((*a, *b)),
+        // Quantities unwrap to their SI values (ADR-0046).
+        [a, b] => Ok((
+            one_float(name, &[a.clone()])?,
+            one_float(name, &[b.clone()])?,
+        )),
         _ => Err(EpherError::Type(format!(
             "{name} expects 2 numbers, got {} argument(s)",
             args.len()
@@ -3420,6 +3886,36 @@ pub fn format_value(v: &Value, prefs: &DisplayPrefs) -> String {
                     .collect::<Vec<_>>()
                     .join(", ");
                 format!("{{{inner}}}")
+            }
+            // A quantity (ADR-0046): the SI value converted to its
+            // display unit, formatted with the session's prefs. The
+            // unit text itself is not reformatted.
+            Value::Quantity { value, dims, unit } => {
+                let shown = if *dims == [0; 7] {
+                    // Dimensionless (angles, plain conversions): the SI
+                    // value, no unit text.
+                    format!("{value}")
+                } else {
+                    match unit {
+                        Some((name, factor)) => format!("{} {name}", value / factor),
+                        None => format!("{value} {}", si_unit_str(*dims)),
+                    }
+                };
+                let shown = if prefs.separators {
+                    let (head, tail) = match shown.split_once(' ') {
+                        Some((h, t)) => (h, Some(t)),
+                        None => (shown.as_str(), None),
+                    };
+                    let mut out = grouped_str(head);
+                    if let Some(t) = tail {
+                        out.push(' ');
+                        out.push_str(t);
+                    }
+                    out
+                } else {
+                    shown
+                };
+                shown
             }
             _ => format!("{other}"),
         },
@@ -3694,6 +4190,12 @@ fn poly_coeffs(expr: &Expression, variable: &str, env: &Env) -> Option<Vec<f64>>
             } else {
                 None
             }
+        }
+        Expression::Unit(inner, factor, _, _) => {
+            poly_coeffs(inner, variable, env).map(|c| c.into_iter().map(|x| x * factor).collect())
+        }
+        Expression::In(inner, factor, _, _) => {
+            poly_coeffs(inner, variable, env).map(|c| c.into_iter().map(|x| x / factor).collect())
         }
         Expression::Neg(e) => {
             poly_coeffs(e, variable, env).map(|c| c.into_iter().map(|x| -x).collect())
@@ -4245,18 +4747,33 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                 0.0
             }))
         }
-        "sqrt" => real_or_complex(
-            name,
-            &args,
-            |x| {
-                if x < 0.0 {
-                    Err(domain_error(format!("sqrt of negative number {x}")))
-                } else {
-                    Ok(x.sqrt())
+        "sqrt" => match one_arg(name, &args)? {
+            Value::Quantity { value, dims, .. } => {
+                if *value < 0.0 {
+                    return Err(domain_error(format!("sqrt of negative number {value}")));
                 }
-            },
-            |z| z.sqrt(),
-        ),
+                if dims.iter().any(|e| e % 2 != 0) {
+                    return Err(dimension_error(&format!(
+                        "cannot take the square root of {}: the dimensions do not divide evenly",
+                        quantity_display(*value, *dims, None)
+                    )));
+                }
+                let half = dims.map(|e| e / 2);
+                Ok(finish_quantity(value.sqrt(), half, None))
+            }
+            _ => real_or_complex(
+                name,
+                &args,
+                |x| {
+                    if x < 0.0 {
+                        Err(domain_error(format!("sqrt of negative number {x}")))
+                    } else {
+                        Ok(x.sqrt())
+                    }
+                },
+                |z| z.sqrt(),
+            ),
+        },
         "min" => {
             let xs = any_floats(name, &args)?;
             Ok(Value::Float(
@@ -5306,6 +5823,12 @@ enum BinOp {
 /// Apply a binary op to two [`Value`]s, promoting to a common number layer
 /// (Float → Rational → Decimal → Big) when operands differ (ADR-0005).
 fn binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
+    // Quantity arithmetic (ADR-0046): dimensions compose for `*` and
+    // `/`, must match for `+` and `-`, and a plain number pairs with a
+    // quantity as a dimensionless value.
+    if matches!(&lhs, Value::Quantity { .. }) || matches!(&rhs, Value::Quantity { .. }) {
+        return quantity_binop(lhs, rhs, op);
+    }
     // Elementwise list arithmetic (ADR-0044): `{1,2,3} * 2`, `2 /
     // {1,2,3}`, `{1,2} + {3,4}`. Lists of different lengths are a
     // type error; a scalar is any plain number.
@@ -5367,6 +5890,155 @@ fn binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
         _ => Err(EpherError::Type(format!(
             "cannot combine {lhs:?} and {rhs:?}"
         ))),
+    }
+}
+
+/// A float or a quantity unified for the ADR-0046 arithmetic rules:
+/// a plain number is a dimensionless quantity.
+fn as_quantity(v: Value) -> Result<(f64, Dims, Option<(String, f64)>), EpherError> {
+    match v {
+        Value::Float(x) => Ok((x, [0; 7], None)),
+        Value::Quantity { value, dims, unit } => Ok((value, dims, unit)),
+        other => Err(EpherError::Type(format!(
+            "cannot combine quantities with {other:?}"
+        ))),
+    }
+}
+
+/// Dimension-aware arithmetic (ADR-0046): `+`/`-` need matching dims
+/// (a dimensionless side folds into the other), `*`/`/` compose them,
+/// and a power raises the value and scales the dims — a non-whole
+/// exponent on a dimensioned quantity is an error. Dimensionless
+/// results collapse back to plain floats.
+fn quantity_binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
+    let (a, da, ua) = as_quantity(lhs)?;
+    let (b, db, ub) = as_quantity(rhs)?;
+    let zero = [0i8; 7];
+    match op {
+        BinOp::Add | BinOp::Sub => {
+            // The dims must match exactly: a plain number is
+            // dimensionless, so adding one to a dimensioned quantity
+            // is a dimension error too (ADR-0046).
+            if da != db {
+                return Err(dimension_error(&format!(
+                    "cannot {} {} and {}",
+                    if matches!(op, BinOp::Add) {
+                        "add"
+                    } else {
+                        "subtract"
+                    },
+                    quantity_display(a, da, ua),
+                    quantity_display(b, db, ub)
+                )));
+            }
+            let v = if matches!(op, BinOp::Add) {
+                a + b
+            } else {
+                a - b
+            };
+            Ok(finish_quantity(v, da, merge_unit(ua, ub)))
+        }
+        BinOp::Mul => Ok(finish_quantity(a * b, add_dims(da, db)?, None)),
+        BinOp::Div => {
+            if b == 0.0 {
+                return Err(EpherError::ZeroDivision);
+            }
+            Ok(finish_quantity(a / b, sub_dims(da, db)?, None))
+        }
+        BinOp::Pow => {
+            if db != zero {
+                return Err(EpherError::Type(format!(
+                    "cannot raise to a quantity ({})",
+                    quantity_display(b, db, ub)
+                )));
+            }
+            if da != zero && (b.fract() != 0.0 || b.abs() > 127.0 || !b.is_finite()) {
+                return Err(EpherError::Type(format!(
+                    "a quantity can only be raised to a whole-number power, got {b}"
+                )));
+            }
+            let dims = if da == zero {
+                zero
+            } else {
+                scale_dims(da, b as i8)?
+            };
+            Ok(finish_quantity(a.powf(b), dims, None))
+        }
+    }
+}
+
+fn add_dims(a: Dims, b: Dims) -> Result<Dims, EpherError> {
+    let mut out = [0i8; 7];
+    for i in 0..7 {
+        let v = a[i] as i16 + b[i] as i16;
+        if v < -127 || v > 127 {
+            return Err(dimension_error("the dimensions overflow"));
+        }
+        out[i] = v as i8;
+    }
+    Ok(out)
+}
+
+fn sub_dims(a: Dims, b: Dims) -> Result<Dims, EpherError> {
+    let mut out = [0i8; 7];
+    for i in 0..7 {
+        let v = a[i] as i16 - b[i] as i16;
+        if v < -127 || v > 127 {
+            return Err(dimension_error("the dimensions overflow"));
+        }
+        out[i] = v as i8;
+    }
+    Ok(out)
+}
+
+fn scale_dims(a: Dims, e: i8) -> Result<Dims, EpherError> {
+    let mut out = [0i8; 7];
+    for i in 0..7 {
+        let v = a[i] as i16 * e as i16;
+        if v < -127 || v > 127 {
+            return Err(dimension_error("the dimensions overflow"));
+        }
+        out[i] = v as i8;
+    }
+    Ok(out)
+}
+
+/// Two display units survive `+`/`-` only when they are identical.
+fn merge_unit(a: Option<(String, f64)>, b: Option<(String, f64)>) -> Option<(String, f64)> {
+    match (a, b) {
+        (Some((sa, fa)), Some((sb, fb))) if sa == sb && fa == fb => Some((sa, fa)),
+        _ => None,
+    }
+}
+
+/// A dimensionless result is a plain float again; otherwise keep the
+/// quantity (and its display unit).
+fn finish_quantity(v: f64, dims: Dims, unit: Option<(String, f64)>) -> Value {
+    if dims == [0; 7] {
+        Value::Float(v)
+    } else {
+        Value::Quantity {
+            value: v,
+            dims,
+            unit,
+        }
+    }
+}
+
+fn dimension_error(msg: &str) -> EpherError {
+    EpherError::Dimension(msg.to_string())
+}
+
+/// The plain display of a quantity: the value in its display unit (or
+/// the SI composition), without the result-formatting preferences —
+/// used in dimension errors.
+fn quantity_display(value: f64, dims: Dims, unit: Option<(String, f64)>) -> String {
+    if dims == [0; 7] {
+        return format!("{value}");
+    }
+    match unit {
+        Some((name, factor)) => format!("{} {name}", value / factor),
+        None => format!("{value} {}", si_unit_str(dims)),
     }
 }
 

@@ -629,7 +629,10 @@ epher 拥有科学计算器的全部函数，按家族分组。
 | 检验与区间 | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
 | 数据图 | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
 | 随机数 | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
-| 常量浏览器 | 帮助 → 常量：全部内置常量，按组分类 | 帮助 → 常量 | `2^3 * 3^2 * 5` |
+| 常量浏览器 | 帮助 → 常量：全部内置常量，按组分类 | 帮助 → 常量 |
+| 量 | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
+| 换算 | `expr in 单位` 或 `expr -> 单位` | `72 km/hr in m/s` |
+| 词头 | `k M G T m µ n p` 缩放任意单位 | `5 km`, `3 MPa`, `1 GHz` | `2^3 * 3^2 * 5` |
 | `totient(n)` | 欧拉函数 | `totient(12)` | `4` |
 | `ndivisors(n)` | 约数个数 | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b 的 e 次幂对 m 取模，结果精确 | `modpow(2, 10, 1000)` | `24` |
@@ -788,11 +791,11 @@ epher 会说天文语言：单位后缀、物理常数、历法和时间函数�
 | `Jy` | 央斯基 | W m-2 Hz-1 |
 
 ```epher
-3.2 AU
+3.2 AU in m
 ```
 
 ```text
-478713186240
+478713186240 m
 ```
 
 ```epher
@@ -1140,6 +1143,64 @@ randint(1, 6)
 
 序列是可复现的：`randseed(n)` 用 `n` 重新设定随机种子并显示它，因此相同的种子
 在每个会话、每个前端都会重放相同的抽取结果。
+
+### 1.24 单位与换算
+
+数字后跟单位就成为一个*量*：SI 单位的值加上它的量纲。单位表涵盖 SI
+基本单位和导出单位（`m`、`s`、`kg`、`A`、`K`、`mol`、`cd`、`Hz`、`N`、
+`Pa`、`J`、`W`、`C`、`V`、`F`、`ohm`、`S`、`Wb`、`T`、`H`、`lm`、`lx`、
+`Bq`、`Gy`、`Sv`）、日常单位（`min`、`hr`、`d`、`yr`、`L`、`t`、`bar`、
+`atm`、`torr`、`psi`、`eV`、`mile`、`yd`、`ft`、`inch`、`nmi`、`lb`、
+`oz`、`gal`、`qt`、`pt`、`mph`、`knot`）以及第 1.16 节的天文后缀。
+复合单位可以串联：`60 mile/hr` 和 `5 m/s^2` 都是单个单位。
+
+```epher
+60 mile/hr
+```
+
+```text
+60 mile/hr
+```
+
+SI 词头可以缩放任意单位：`k M G T m µ n p` 是千、兆、吉、太、毫、微、
+纳、皮——`5 km`、`3 MPa`、`1 GHz` 都可以，`2 kg` 就是千克本身。
+
+量纲会被检查：不同单位的量相加或比较会报错，而不是混在一起算：
+
+```epher
+5 m + 3 s
+```
+
+```text
+error: dimension error: cannot add 5 m and 3 s
+```
+
+算术会组合量纲：`5 m * 3 m` 是 `15 m^2`，`(3 m)^2` 是 `9 m^2`，
+`sqrt(4 m^2)` 是 `2 m`，量纲完全相消的整个表达式又回到普通数字
+（`5 m / 5 m` 是 `1`）。量纲恰好匹配时，结果优先使用导出名称——
+`5 kg * 3 m / 1 s^2` 得出 `15 N`。
+
+**换算。** `expr in 单位`（或 `expr -> 单位`）以指定单位显示一个量；
+量纲必须匹配。`in` 的绑定最松，所以 `5 m + 3 m in km` 换算的是整个和：
+
+```epher
+72 km/hr in m/s
+```
+
+```text
+20 m/s
+```
+
+```epher
+2 m^2 in cm^2
+```
+
+```text
+20000 cm^2
+```
+
+温度标度（摄氏、华氏）在这里不是单位——开尔文是，`K` 和其他单位一样用。
+
 
 ## 2. 网页应用（PWA）
 

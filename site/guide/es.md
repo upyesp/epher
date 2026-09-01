@@ -672,7 +672,10 @@ Los primos y los divisores trabajan con números enteros:
 | Pruebas e intervalos | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
 | Gráficos de datos | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
 | Números aleatorios | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
-| Explorador de constantes | Ayuda → Constantes: todas las constantes, agrupadas | Ayuda → Constantes | `2^3 * 3^2 * 5` |
+| Explorador de constantes | Ayuda → Constantes: todas las constantes, agrupadas | Ayuda → Constantes |
+| Cantidad | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
+| Convertir | `expr in unidad` o `expr -> unidad` | `72 km/hr in m/s` |
+| Prefijos | `k M G T m µ n p` escalan cualquier unidad | `5 km`, `3 MPa`, `1 GHz` | `2^3 * 3^2 * 5` |
 | `totient(n)` | phi de Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | cuántos divisores tiene | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b elevado a e, módulo m, exacto | `modpow(2, 10, 1000)` | `24` |
@@ -834,11 +837,11 @@ de unidad y epher lo convierte a unidades SI al instante:
 | `Jy` | jansky | W m-2 Hz-1 |
 
 ```epher
-3.2 AU
+3.2 AU in m
 ```
 
 ```text
-478713186240
+478713186240 m
 ```
 
 ```epher
@@ -1215,6 +1218,74 @@ randint(1, 6)
 La secuencia es reproducible: `randseed(n)` reinicia el generador con `n`
 y lo muestra, así que la misma semilla repite los mismos sorteos en cada
 sesión y en cada interfaz.
+
+### 1.24 Unidades y conversión
+
+Un número seguido de una unidad se convierte en una *cantidad*: el
+valor en unidades del SI más sus dimensiones. La tabla de unidades
+cubre las unidades base y derivadas del SI (`m`, `s`, `kg`, `A`, `K`,
+`mol`, `cd`, `Hz`, `N`, `Pa`, `J`, `W`, `C`, `V`, `F`, `ohm`, `S`,
+`Wb`, `T`, `H`, `lm`, `lx`, `Bq`, `Gy`, `Sv`), las unidades cotidianas
+(`min`, `hr`, `d`, `yr`, `L`, `t`, `bar`, `atm`, `torr`, `psi`, `eV`,
+`mile`, `yd`, `ft`, `inch`, `nmi`, `lb`, `oz`, `gal`, `qt`, `pt`,
+`mph`, `knot`) y los sufijos de astronomía de la sección 1.16. Las
+unidades compuestas encadenan: `60 mile/hr` y `5 m/s^2` son unidades
+individuales.
+
+```epher
+60 mile/hr
+```
+
+```text
+60 mile/hr
+```
+
+Los prefijos del SI escalan cualquiera de ellas: `k M G T m µ n p` son
+kilo, mega, giga, tera, mili, micro, nano, pico — `5 km`, `3 MPa`,
+`1 GHz` funcionan, y `2 kg` es el propio kilogramo.
+
+Las dimensiones se comprueban: sumar o comparar cantidades con
+unidades distintas da error en lugar de mezclar metros y segundos:
+
+```epher
+5 m + 3 s
+```
+
+```text
+error: dimension error: cannot add 5 m and 3 s
+```
+
+La aritmética compone las dimensiones: `5 m * 3 m` es `15 m^2`,
+`(3 m)^2` es `9 m^2`, `sqrt(4 m^2)` es `2 m`, y una expresión completa
+cuyas dimensiones se cancelan vuelve a ser un número ordinario
+(`5 m / 5 m` es `1`). Los resultados prefieren el nombre derivado
+exacto cuando las dimensiones coinciden con uno — `5 kg * 3 m / 1 s^2`
+responde `15 N`.
+
+**Conversión.** `expr in unidad` (o `expr -> unidad`) muestra una
+cantidad en la unidad nombrada; las dimensiones deben coincidir. `in`
+liga con la menor prioridad de los operadores, así que `5 m + 3 m in
+km` convierte la suma entera:
+
+```epher
+72 km/hr in m/s
+```
+
+```text
+20 m/s
+```
+
+```epher
+2 m^2 in cm^2
+```
+
+```text
+20000 cm^2
+```
+
+Las escalas de temperatura (Celsius, Fahrenheit) no son unidades aquí
+— los kelvins sí, y `K` funciona como cualquier otra.
+
 
 ## 2. La aplicación web (PWA)
 

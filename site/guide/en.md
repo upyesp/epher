@@ -816,6 +816,9 @@ not know, so you can fix your expression.
 | Data plots | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
 | Random numbers | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
 | Constants browser | Help → Constants: every builtin constant, grouped | Help → Constants |
+| Quantity | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
+| Convert | `expr in unit` or `expr -> unit` | `72 km/hr in m/s` |
+| Prefixes | `k M G T m µ n p` scale any unit | `5 km`, `3 MPa`, `1 GHz` |
 
 ### 1.16 Astronomy and the solar system
 
@@ -837,11 +840,11 @@ epher converts it to SI units on the spot:
 | `Jy` | jansky | W m-2 Hz-1 |
 
 ```epher
-3.2 AU
+3.2 AU in m
 ```
 
 ```text
-478713186240
+478713186240 m
 ```
 
 ```epher
@@ -1268,6 +1271,70 @@ randint(1, 6)
 The sequence is reproducible: `randseed(n)` re-seeds the generator
 with `n` and reports it, so the same seed replays the same draws in
 every session and every frontend.
+
+### 1.24 Units and conversion
+
+A number followed by a unit becomes a *quantity*: the value in SI
+units plus its dimensions. The unit table covers the SI base and
+derived units (`m`, `s`, `kg`, `A`, `K`, `mol`, `cd`, `Hz`, `N`, `Pa`,
+`J`, `W`, `C`, `V`, `F`, `ohm`, `S`, `Wb`, `T`, `H`, `lm`, `lx`, `Bq`,
+`Gy`, `Sv`), the everyday units (`min`, `hr`, `d`, `yr`, `L`, `t`,
+`bar`, `atm`, `torr`, `psi`, `eV`, `mile`, `yd`, `ft`, `inch`, `nmi`,
+`lb`, `oz`, `gal`, `qt`, `pt`, `mph`, `knot`), and the astronomy
+suffixes from section 1.16. Compound units chain: `60 mile/hr` and
+`5 m/s^2` are single units.
+
+```epher
+60 mile/hr
+```
+
+```text
+60 mile/hr
+```
+
+The SI prefixes scale any of them: `k M G T m µ n p` are kilo, mega,
+giga, tera, milli, micro, nano, pico — `5 km`, `3 MPa`, `1 GHz` all
+work, and `2 kg` is the kilogram itself.
+
+The dimensions are checked: adding or comparing quantities with
+different units errors instead of mixing metres and seconds:
+
+```epher
+5 m + 3 s
+```
+
+```text
+error: dimension error: cannot add 5 m and 3 s
+```
+
+Arithmetic composes the dimensions: `5 m * 3 m` is `15 m^2`,
+`(3 m)^2` is `9 m^2`, `sqrt(4 m^2)` is `2 m`, and a whole expression
+whose dimensions cancel is an ordinary number again (`5 m / 5 m` is
+`1`). Results prefer the exact derived name when the dimensions match
+one — `5 kg * 3 m / 1 s^2` answers `15 N`.
+
+**Conversion.** `expr in unit` (or `expr -> unit`) shows a quantity in
+the named unit; the dimensions must match. `in` binds loosest of the
+operators, so `5 m + 3 m in km` converts the whole sum:
+
+```epher
+72 km/hr in m/s
+```
+
+```text
+20 m/s
+```
+
+```epher
+2 m^2 in cm^2
+```
+
+```text
+20000 cm^2
+```
+
+Temperature scales (Celsius, Fahrenheit) are not units here — kelvins
+are, and `K` works like any other.
 
 ## 2. The web app (PWA)
 

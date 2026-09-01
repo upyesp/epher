@@ -147,11 +147,27 @@ _Avoid_: constants dialog, lookup table UI
 ### Astronomy
 
 **Unit literal**:
-A number followed by a unit suffix (`3.2 AU`, `30 deg`, `5 hr`) that multiplies
-by the unit's SI factor; the result is a plain Value in SI units (metres,
-radians, seconds, watts per square metre hertz). Functions return counts in
-natural units; suffixes convert counts to SI.
+A number followed by a unit suffix (`3.2 AU`, `30 deg`, `5 hr`, `60
+mile/hr`) becomes a Quantity (ADR-0046): the SI value, the seven
+base dimensions, and the typed spelling as display unit. Functions
+return counts in natural units; suffixes convert counts to SI
+quantities.
 _Avoid_: unit type, quantity
+
+**Quantity**:
+The value-plus-dimensions result of a unit literal or arithmetic on
+one (ADR-0046): `Value::Quantity { value, dims, unit }` with the SI
+value stored and the optional display unit only rescaling the
+display. `+`/`-`/comparisons require matching dims; `*`/`/`/`^`
+compose them; dimensionless quantities (angles) behave like plain
+numbers.
+_Avoid_: unit value, dimensioned number
+
+**Conversion**:
+The `expr in unit` / `expr -> unit` operator (ADR-0046): rescales a
+quantity to the named unit (dims must match) and remembers it as the
+display unit. Binds loosest of the arithmetic operators.
+_Avoid_: unit switch, converter
 
 **Ephemeris**:
 A computed position of a Solar System body (Sun, Moon, planet) at a given

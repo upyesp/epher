@@ -2713,7 +2713,14 @@ fn epher_app() -> Html {
                     }
                     "Tab" if !e.shift_key() => {
                         e.prevent_default();
-                        accept_suggestion(&ac, ac.selected, &input, &input_ref, &autocomplete);
+                        // A unit word (ADR-0046) never completes: `5 m`
+                        // is five metres, not a prefix of `m_P(`.
+                        let word = &value[ac.word_start.min(value.len())..];
+                        if epher_core::is_unit_token(word) {
+                            autocomplete.set(None);
+                        } else {
+                            accept_suggestion(&ac, ac.selected, &input, &input_ref, &autocomplete);
+                        }
                     }
                     "Enter" if !e.shift_key() && !e.is_composing() => {
                         // Enter accepts the highlighted suggestion when that
@@ -2721,17 +2728,32 @@ fn epher_app() -> Html {
                         // fully typed constant accepts as a no-op, so Enter
                         // falls through and evaluates - typing `pi` and
                         // pressing Enter must not feel like a dead key.
-                        let changes = ac
-                            .items
-                            .get(ac.selected)
-                            .map(|item| apply_suggestion(&value, &ac, item).0 != value)
-                            .unwrap_or(false);
-                        e.prevent_default();
-                        if changes {
-                            accept_suggestion(&ac, ac.selected, &input, &input_ref, &autocomplete);
-                        } else {
+                        // A unit word evaluates instead of completing
+                        // (ADR-0046): `5 m + 3 m` stays `5 m + 3 m`.
+                        let word = &value[ac.word_start.min(value.len())..];
+                        if epher_core::is_unit_token(word) {
                             autocomplete.set(None);
                             fall_through_to_submit = true;
+                            e.prevent_default();
+                        } else {
+                            let changes = ac
+                                .items
+                                .get(ac.selected)
+                                .map(|item| apply_suggestion(&value, &ac, item).0 != value)
+                                .unwrap_or(false);
+                            e.prevent_default();
+                            if changes {
+                                accept_suggestion(
+                                    &ac,
+                                    ac.selected,
+                                    &input,
+                                    &input_ref,
+                                    &autocomplete,
+                                );
+                            } else {
+                                autocomplete.set(None);
+                                fall_through_to_submit = true;
+                            }
                         }
                     }
                     "Escape" => {

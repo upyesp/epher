@@ -1075,6 +1075,11 @@ fn every_value_variant_round_trips_through_json() {
         Value::Rational(BigRational::new(BigInt::from(1), BigInt::from(3))),
         Value::Decimal(Decimal::new(1234, 2)),
         Value::Big(BigDecimal::from(42)),
+        Value::Quantity {
+            value: 4.787_131_862_4e11,
+            dims: [1, 0, 0, 0, 0, 0, 0],
+            unit: Some(("AU".to_string(), 1.495_978_707e11)),
+        },
     ];
     for v in values {
         let json = serde_json::to_string(&v).expect("serialize");
@@ -1096,6 +1101,12 @@ fn approx(name: &str, text: &str, expected: f64) {
             epher_core::Value::Float(x) => assert!(
                 (x - expected).abs() <= 1e-9 * expected.abs().max(1.0),
                 "{name}: {text} = {x}, expected {expected}"
+            ),
+            // A suffix literal is a quantity now (ADR-0046); the SI
+            // value is what the old factor tests asserted.
+            epher_core::Value::Quantity { value, .. } => assert!(
+                (value - expected).abs() <= 1e-9 * expected.abs().max(1.0),
+                "{name}: {text} = {value}, expected {expected}"
             ),
             other => panic!("{name}: {text} produced {other:?}, expected a float"),
         },
@@ -1119,10 +1130,21 @@ fn unit_literals_multiply_by_the_si_factor() {
 
 #[test]
 fn angle_literals_come_out_in_radians() {
+    // Angles are dimensionless quantities: the value is in radians and
+    // the display is a plain number (ADR-0046).
     approx("degree", "30 deg", std::f64::consts::PI / 6.0);
     approx("degree tight", "30deg", std::f64::consts::PI / 6.0);
     approx("arcminute", "1 arcmin", std::f64::consts::PI / 10800.0);
     approx("arcsecond", "1 arcsec", std::f64::consts::PI / 648000.0);
+    assert_eq!(
+        epher_core::format_value(
+            &epher_core::evaluate("30 deg").unwrap(),
+            &epher_core::DisplayPrefs::default()
+        ),
+        "0.5235987755982988"
+    );
+    // and they convert like any quantity
+    approx("deg to rad", "30 deg in rad", std::f64::consts::PI / 6.0);
 }
 
 #[test]
@@ -1143,7 +1165,14 @@ fn user_shadowing_cannot_change_a_unit_literal() {
     ) {
         Ok(values) => {
             let last = values.last().expect("a value");
-            assert_eq!(*last, epher_core::Value::float(2.0 * 1.495_978_707e11));
+            match last {
+                epher_core::Value::Quantity { value, dims, unit } => {
+                    assert!((value - 2.0 * 1.495_978_707e11).abs() < 1e-3, "SI value");
+                    assert_eq!(*dims, [1, 0, 0, 0, 0, 0, 0], "length dims");
+                    assert_eq!(unit.as_ref().map(|(u, _)| u.as_str()), Some("AU"));
+                }
+                other => panic!("2 AU produced {other:?}"),
+            }
         }
         Err(e) => panic!("script failed: {e}"),
     }
@@ -1164,6 +1193,14 @@ fn user_shadowing_cannot_change_a_unit_literal() {
 fn unit_tokens_are_reserved_in_suffix_position_but_calls_stay_calls() {
     // `min` the suffix and `min` the function coexist by position
     approx("suffix", "5 min", 300.0);
+    // ... and `5 min + 5 min` keeps the unit, `min(3, 7)` stays a call
+    match epher_core::evaluate("5 min + 5 min") {
+        Ok(epher_core::Value::Quantity { value, unit, .. }) => {
+            assert_eq!(value, 600.0);
+            assert_eq!(unit.as_ref().map(|(u, _)| u.as_str()), Some("min"));
+        }
+        other => panic!("5 min + 5 min produced {other:?}"),
+    }
     match epher_core::evaluate("min(3, 7)") {
         Ok(epher_core::Value::Float(x)) => assert_eq!(x, 3.0),
         other => panic!("min(3, 7) produced {other:?}"),
@@ -1184,10 +1221,24 @@ fn unit_literals_work_in_scripts_and_domains() {
     let mut env = epher_core::Env::default();
     let script = epher_core::parse_script("x = 5 hr; x + 1 d").expect("parses");
     let values = epher_core::run_all(&script, &mut env).expect("runs");
-    assert_eq!(
-        values.last(),
-        Some(&epher_core::Value::float(86400.0 + 18000.0))
-    );
+    match values.last() {
+        Some(epher_core::Value::Quantity { value, dims, .. }) => {
+            assert!((value - (86400.0 + 18000.0)).abs() < 1e-9, "SI value");
+            assert_eq!(*dims, [0, 0, 1, 0, 0, 0, 0], "time dims");
+        }
+        other => panic!("5 hr + 1 d produced {other:?}"),
+    }
+    // identical display units survive addition
+    let mut env2 = epher_core::Env::default();
+    let script2 = epher_core::parse_script("y = 5 hr + 3 hr").expect("parses");
+    let values2 = epher_core::run_all(&script2, &mut env2).expect("runs");
+    match values2.last() {
+        Some(epher_core::Value::Quantity { value, unit, .. }) => {
+            assert_eq!(*value, 28800.0);
+            assert_eq!(unit.as_ref().map(|(u, _)| u.as_str()), Some("hr"));
+        }
+        other => panic!("5 hr + 3 hr produced {other:?}"),
+    }
 }
 
 // ===== Astronomy constants (ADR-0037) =====
@@ -2574,4 +2625,200 @@ fn constant_groups_cover_every_builtin_and_resolve() {
         "the library is substantial: {}",
         groups.len()
     );
+}
+
+// ===== units with conversion (ADR-0046) =====
+
+/// The SI value of a quantity (the value field), else the float.
+fn eval_si(src: &str) -> f64 {
+    match eval_str(src) {
+        Value::Float(x) => x,
+        Value::Quantity { value, .. } => value,
+        other => panic!("{src} produced {other:?}"),
+    }
+}
+
+#[test]
+fn quantities_arithmetic_tracks_dimensions() {
+    // same dims add and keep the unit; mismatched dims are an error
+    assert_eq!(format_value_of("5 m + 3 m"), "8 m");
+    assert_eq!(format_value_of("5 hr + 3 hr"), "8 hr");
+    assert!(eval_str_checked("5 m + 3 s").is_err(), "m + s errors");
+    assert!(
+        eval_str_checked("5 m + 3").is_err(),
+        "number + quantity errors"
+    );
+    // multiplication and division compose dims
+    assert_eq!(format_value_of("5 m * 3 m"), "15 m^2");
+    assert_eq!(format_value_of("2 m / 3 s"), "0.6666666666666666 m/s");
+    // a number scales a quantity
+    assert_eq!(format_value_of("2 * 3 m"), "6 m");
+    assert_eq!(format_value_of("(3 m) / 2"), "1.5 m");
+    // powers scale the dims; unit powers bind to the unit
+    assert_eq!(format_value_of("2 m^2"), "2 m^2");
+    assert_eq!(format_value_of("(2 m)^2"), "4 m^2");
+    assert_eq!(format_value_of("(3 m)^3"), "27 m^3");
+    assert!(
+        eval_str_checked("(3 m)^0.5").is_err(),
+        "fractional power errors"
+    );
+    // dims that cancel collapse back to plain numbers
+    assert_eq!(eval_str("5 m / 5 m"), Value::float(1.0));
+    assert_eq!(eval_str("2 m * 3 s / 6 m / 1 s"), Value::float(1.0));
+    // dimensionless quantities behave like numbers
+    assert_eq!(eval_si("30 deg + 0.5"), std::f64::consts::PI / 6.0 + 0.5);
+    assert_eq!(eval_si("2 * 30 deg"), std::f64::consts::PI / 3.0);
+    assert_eq!(eval_str("(30 deg) / (60 deg)"), Value::float(0.5));
+}
+
+#[test]
+fn dimension_errors_name_the_operands() {
+    match eval_str_checked("5 m + 3 s") {
+        Err(epher_core::EpherError::Dimension(msg)) => {
+            assert_eq!(msg, "cannot add 5 m and 3 s");
+        }
+        other => panic!("expected a dimension error, got {other:?}"),
+    }
+    match eval_str_checked("5 m < 3 s") {
+        Err(epher_core::EpherError::Dimension(msg)) => {
+            assert_eq!(msg, "cannot compare 5 m and 3 s");
+        }
+        other => panic!("expected a dimension error, got {other:?}"),
+    }
+}
+
+#[test]
+fn the_conversion_operator_rescales_and_remembers() {
+    // `in` and `->` are the same operator
+    assert_eq!(
+        format_value_of("60 mile/hr in km/hr"),
+        "96.56063999999999 km/hr"
+    );
+    assert_eq!(
+        format_value_of("60 mile/hr -> km/hr"),
+        "96.56063999999999 km/hr"
+    );
+    assert_eq!(format_value_of("1 km in m"), "1000 m");
+    assert_eq!(format_value_of("3.2 AU in km"), "478713186.24 km");
+    // a plain number converts into a quantity
+    assert_eq!(format_value_of("5 in km"), "5 km");
+    assert_eq!(format_value_of("5 -> kg"), "5 kg");
+    // the dims must match
+    match eval_str_checked("5 m in s") {
+        Err(epher_core::EpherError::Dimension(msg)) => {
+            assert!(msg.contains("cannot convert 5 m to s"), "{msg}");
+        }
+        other => panic!("expected a dimension error, got {other:?}"),
+    }
+    match eval_str_checked("2 m^2 in m") {
+        Err(epher_core::EpherError::Dimension(_)) => {}
+        other => panic!("expected a dimension error, got {other:?}"),
+    }
+    // conversions compose with arithmetic: `in` binds loosest
+    assert_eq!(format_value_of("5 m + 3 m in km"), "0.008 km");
+    // area conversion
+    assert_eq!(format_value_of("2 m^2 in cm^2"), "20000 cm^2");
+}
+
+#[test]
+fn si_prefixes_resolve_on_any_unit() {
+    assert_eq!(format_value_of("1 km in m"), "1000 m");
+    assert_eq!(format_value_of("5 ms in s"), "0.005 s");
+    assert_eq!(format_value_of("3 MPa in Pa"), "3000000 Pa");
+    assert_eq!(format_value_of("2 dam in m"), "20 m");
+    assert_eq!(format_value_of("1 um in m"), "0.000001 m");
+    assert_eq!(format_value_of("1 µs in s"), "0.000001 s");
+    assert_eq!(format_value_of("2 kg in g"), "2000 g");
+    // prefixed names are their own units in the display too
+    assert_eq!(format_value_of("5 km"), "5 km");
+    assert_eq!(format_value_of("1 GHz in Hz"), "1000000000 Hz");
+}
+
+#[test]
+fn unit_chains_powers_and_roots() {
+    assert_eq!(format_value_of("60 mile/hr"), "60 mile/hr");
+    assert!((eval_si("60 mile/hr") - 26.8224).abs() < 1e-9, "SI value");
+    assert_eq!(format_value_of("5 m/s^2"), "5 m/s^2");
+    assert_eq!(format_value_of("1 km/hr in m/s"), "0.2777777777777778 m/s");
+    // sqrt halves even dims; odd dims are a dimension error
+    assert_eq!(format_value_of("sqrt(4 m^2)"), "2 m");
+    assert_eq!(format_value_of("sqrt(9 m^2) in km"), "0.003 km");
+    match eval_str_checked("sqrt(4 m)") {
+        Err(epher_core::EpherError::Dimension(msg)) => {
+            assert!(msg.contains("square root"), "{msg}");
+        }
+        other => panic!("expected a dimension error, got {other:?}"),
+    }
+    // x / hr divides by the variable hr; the chain needs the suffix
+    let mut env = Env::default();
+    let script = parse_script("hr = 2; 60 mile/hr").expect("parses");
+    let values = run_all(&script, &mut env).expect("runs");
+    match values.last() {
+        Some(Value::Quantity { value, .. }) => {
+            assert!(
+                (value - 26.8224).abs() < 1e-9,
+                "chain still wins over the variable"
+            )
+        }
+        other => panic!("60 mile/hr with hr=2 gave {other:?}"),
+    }
+    let mut env = Env::default();
+    let script = parse_script("hr = 2; 12 / hr").expect("parses");
+    let values = run_all(&script, &mut env).expect("runs");
+    assert_eq!(
+        values.last(),
+        Some(&Value::float(6.0)),
+        "x / hr stays a division"
+    );
+}
+
+#[test]
+fn derived_display_names_and_grouping() {
+    assert_eq!(format_value_of("5 kg * 3 m / 1 s^2"), "15 N");
+    assert_eq!(format_value_of("2 J"), "2 J");
+    assert_eq!(format_value_of("1 W in mW"), "1000 mW");
+    assert_eq!(format_value_of("2 m * 3 m / 1 s"), "6 m^2/s");
+    // separators apply to the numeric part only
+    let prefs = epher_core::DisplayPrefs {
+        separators: true,
+        ..epher_core::DisplayPrefs::default()
+    };
+    assert_eq!(
+        epher_core::format_value(&eval_str("3.2 AU"), &prefs),
+        "3.2 AU"
+    );
+    assert_eq!(
+        epher_core::format_value(&eval_str("478713186240 m"), &prefs),
+        "478\u{2009}713\u{2009}186\u{2009}240 m"
+    );
+}
+
+#[test]
+fn quantity_comparisons_and_shadowing() {
+    assert_eq!(eval_str("5 m < 6 m"), Value::Bool(true));
+    assert_eq!(eval_str("5 m == 5 m"), Value::Bool(true));
+    assert_eq!(eval_str("5 m != 5 m"), Value::Bool(false));
+    assert_eq!(
+        eval_str("5 m == 5 km"),
+        Value::Bool(false),
+        "SI values compare"
+    );
+    // the unit grammar still beats user shadowing (ADR-0037)
+    let mut env = Env::default();
+    let script = parse_script("const m = 2; 5 m").expect("parses");
+    let values = run_all(&script, &mut env).expect("runs");
+    match values.last() {
+        Some(Value::Quantity { value, .. }) => assert_eq!(*value, 5.0),
+        other => panic!("5 m with const m = 2 gave {other:?}"),
+    }
+    // `in` stays usable as a variable name outside a conversion
+    let mut env = Env::default();
+    let script = parse_script("in = 5; in + 1").expect("parses");
+    let values = run_all(&script, &mut env).expect("runs");
+    assert_eq!(values.last(), Some(&Value::float(6.0)));
+}
+
+/// Format with the default display preferences.
+fn format_value_of(src: &str) -> String {
+    epher_core::format_value(&eval_str(src), &epher_core::DisplayPrefs::default())
 }
