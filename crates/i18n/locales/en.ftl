@@ -363,3 +363,5 @@ key-hint-mu_n = Nuclear magneton
 key-hint-m_moon = Mass of the Moon
 key-hint-r_moon = Radius of the Moon
 tui-constants-hint = ↑/↓ choose · Enter insert · Esc close
+key-hint-bits = The bitwise word size: bits(8), bits(16), bits(32), or bits(64)
+key-hint-xor = Bitwise exclusive or: a xor b

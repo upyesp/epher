@@ -362,3 +362,5 @@ key-hint-mu_n = 核磁子
 key-hint-m_moon = 月球质量
 key-hint-r_moon = 月球半径
 tui-constants-hint = ↑/↓ 选择 · 回车插入 · Esc 关闭
+key-hint-bits = 位运算字长：bits(8)、bits(16)、bits(32) 或 bits(64)
+key-hint-xor = 按位异或：a xor b

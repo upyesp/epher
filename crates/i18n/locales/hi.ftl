@@ -363,3 +363,5 @@ key-hint-mu_n = नाभिकीय मैग्नेटन
 key-hint-m_moon = चंद्रमा का द्रव्यमान
 key-hint-r_moon = चंद्रमा की त्रिज्या
 tui-constants-hint = ↑/↓ चुनें · Enter डालें · Esc बंद करें
+key-hint-bits = बिटवाइज़ शब्द आकार: bits(8), bits(16), bits(32) या bits(64)
+key-hint-xor = बिटवाइज़ अनन्य या: a xor b

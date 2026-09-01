@@ -675,7 +675,12 @@ Primos e divisores trabalham com números inteiros:
 | Explorador de constantes | Ajuda → Constantes: todas as constantes, agrupadas | Ajuda → Constantes |
 | Grandeza | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
 | Converter | `expr in unidade` ou `expr -> unidade` | `72 km/hr in m/s` |
-| Prefixos | `k M G T m µ n p` escalam qualquer unidade | `5 km`, `3 MPa`, `1 GHz` | `2^3 * 3^2 * 5` |
+| Prefixos | `k M G T m µ n p` escalam qualquer unidade | `5 km`, `3 MPa`, `1 GHz` |
+| E, OU bit a bit | `a & b`, `a \| b` | `0xFF & 0x0F` |
+| OU exclusivo bit a bit | `a xor b` | `5 xor 3` |
+| NÃO bit a bit | `~a` | `~0` |
+| Deslocamentos | `a << n`, `a >> n` | `1 << 8` |
+| Tamanho de palavra | `bits(n)` — 8, 16, 32, 64 | `bits(8)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | totiente de Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | quantos divisores n tem | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b elevado a e, módulo m, exato | `modpow(2, 10, 1000)` | `24` |
@@ -1280,6 +1285,50 @@ converte a soma inteira:
 
 As escalas de temperatura (Celsius, Fahrenheit) não são unidades aqui
 — os kelvins são, e `K` funciona como qualquer outra.
+
+
+### 1.25 Operações bit a bit
+
+Os literais de base da secção 1.13 são feitos para isto: `0b101`,
+`0o17`, `0xFF`. Os operadores bit a bit trabalham com números inteiros
+e respondem com inteiros exatos:
+
+```epher
+0xFF & 0x0F
+```
+
+```text
+15
+```
+
+| Operador | Significado |
+|---|---|
+| `a & b` | e bit a bit |
+| `a \| b` | ou bit a bit |
+| `a xor b` | ou exclusivo bit a bit |
+| `~a` | não bit a bit (complemento para dois) |
+| `a << n` | deslocar à esquerda (multiplicar por 2^n) |
+| `a >> n` | deslocar à direita, aritmético (dividir por 2^n, arredondando para baixo) |
+
+Os resultados são inteiros `big` exatos, por isso `1 << 60` conserva
+cada dígito. O tamanho de palavra é de 64 bits por predefinição: os
+resultados são lidos como complemento para dois com sinal, por isso
+`~0` é -1 e `1 << 100` envolve em 0. `bits(n)` muda o tamanho de
+palavra para 8, 16, 32 ou 64, e `bits()` informa-o:
+
+```epher
+bits(8)
+~0
+```
+
+```text
+8
+-1
+```
+
+Um deslocamento negativo inverte a direção (`8 << -1` é `4`). O `and`
+e o `or` booleanos mantêm os seus significados; `&` e `|` são as
+grafias bit a bit.
 
 
 ## 2. A aplicação web (PWA)

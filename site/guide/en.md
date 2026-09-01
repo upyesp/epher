@@ -819,6 +819,11 @@ not know, so you can fix your expression.
 | Quantity | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
 | Convert | `expr in unit` or `expr -> unit` | `72 km/hr in m/s` |
 | Prefixes | `k M G T m µ n p` scale any unit | `5 km`, `3 MPa`, `1 GHz` |
+| Bitwise and, or | `a & b`, `a \| b` | `0xFF & 0x0F` |
+| Bitwise xor | `a xor b` | `5 xor 3` |
+| Bitwise not | `~a` | `~0` |
+| Shifts | `a << n`, `a >> n` | `1 << 8` |
+| Word size | `bits(n)` for 8, 16, 32, 64 | `bits(8)` |
 
 ### 1.16 Astronomy and the solar system
 
@@ -1335,6 +1340,49 @@ operators, so `5 m + 3 m in km` converts the whole sum:
 
 Temperature scales (Celsius, Fahrenheit) are not units here — kelvins
 are, and `K` works like any other.
+
+### 1.25 Bitwise operations
+
+The base literals from section 1.13 are made for it: `0b101`, `0o17`,
+`0xFF`. The bitwise operators work on whole numbers and answer with
+exact integers:
+
+```epher
+0xFF & 0x0F
+```
+
+```text
+15
+```
+
+| Operator | Meaning |
+|---|---|
+| `a & b` | bitwise and |
+| `a \| b` | bitwise or |
+| `a xor b` | bitwise exclusive or |
+| `~a` | bitwise not (two's complement) |
+| `a << n` | shift left (multiply by 2^n) |
+| `a >> n` | shift right, arithmetic (divide by 2^n, rounding down) |
+
+The results are exact `big` integers, so `1 << 60` keeps every digit.
+The working word size is 64 bits by default: results are read as
+signed two's complement, so `~0` is -1 and `1 << 100` wraps to 0.
+`bits(n)` changes the word size to 8, 16, 32, or 64, and `bits()`
+reports it:
+
+```epher
+bits(8)
+~0
+```
+
+```text
+8
+-1
+```
+
+Shifts by a negative amount reverse the direction (`8 << -1` is `4`).
+The boolean `and` and `or` keep their meanings; `&` and `|` are the
+bitwise spellings.
 
 ## 2. The web app (PWA)
 

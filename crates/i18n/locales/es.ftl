@@ -364,3 +364,5 @@ key-hint-mu_n = Magnetón nuclear
 key-hint-m_moon = Masa de la Luna
 key-hint-r_moon = Radio de la Luna
 tui-constants-hint = ↑/↓ elegir · Intro inserta · Esc cierra
+key-hint-bits = Tamaño de palabra binaria: bits(8), bits(16), bits(32) o bits(64)
+key-hint-xor = O exclusivo binario: a xor b

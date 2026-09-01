@@ -364,3 +364,5 @@ key-hint-mu_n = Kernmagneton
 key-hint-m_moon = Masse des Mondes
 key-hint-r_moon = Radius des Mondes
 tui-constants-hint = ↑/↓ wählen · Enter einfügen · Esc schließt
+key-hint-bits = Bitbreite für Bit-Operationen: bits(8), bits(16), bits(32) oder bits(64)
+key-hint-xor = Bitweises exklusives Oder: a xor b

@@ -137,6 +137,10 @@ pub struct Env {
     /// pins one seed so `evaluate()` and the tests are deterministic;
     /// interactive sessions re-seed from the clock in `Session::new`.
     rng: Rc<Cell<u64>>,
+    /// The bitwise word size in bits (ADR-0047): 8, 16, 32, or 64,
+    /// shared through child envs like the generator — `bits(8)` in a
+    /// script stays in force for its function calls.
+    word_bits: Rc<Cell<u32>>,
 }
 
 impl Default for Env {
@@ -146,6 +150,7 @@ impl Default for Env {
             constants: HashMap::new(),
             functions: HashMap::new(),
             rng: Rc::new(Cell::new(0x9E37_79B9_7F4A_7C15)),
+            word_bits: Rc::new(Cell::new(64)),
         }
     }
 }
@@ -198,6 +203,7 @@ impl Env {
             constants: self.constants.clone(),
             functions: self.functions.clone(),
             rng: self.rng.clone(),
+            word_bits: self.word_bits.clone(),
         }
     }
 }
@@ -233,6 +239,15 @@ pub enum Expression {
     /// display unit.
     In(Box<Expression>, f64, Dims, String),
     Compare(CmpOp, Box<Expression>, Box<Expression>),
+    /// Bitwise operations (ADR-0047): `&`, `|`, `xor`, `<<`, `>>` —
+    /// integer-only, results are exact `Big` whole numbers masked to
+    /// the session's word size.
+    BitAnd(Box<Expression>, Box<Expression>),
+    BitOr(Box<Expression>, Box<Expression>),
+    BitXor(Box<Expression>, Box<Expression>),
+    ShiftLeft(Box<Expression>, Box<Expression>),
+    ShiftRight(Box<Expression>, Box<Expression>),
+    BitNot(Box<Expression>),
     If(Box<Expression>, Box<Expression>, Box<Expression>),
     And(Box<Expression>, Box<Expression>),
     Or(Box<Expression>, Box<Expression>),
@@ -452,6 +467,11 @@ enum Token {
     Semicolon,
     Bang,
     Percent,
+    Amp,
+    Pipe,
+    Tilde,
+    ShiftLeft,
+    ShiftRight,
     LParen,
     RParen,
     /// List literal delimiters (ADR-0044): `{1, 2, 3}`.
@@ -553,7 +573,10 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
             }
             '>' => {
                 chars.next();
-                if matches!(chars.peek(), Some('=')) {
+                if matches!(chars.peek(), Some('>')) {
+                    chars.next();
+                    tokens.push(Token::ShiftRight);
+                } else if matches!(chars.peek(), Some('=')) {
                     chars.next();
                     tokens.push(Token::GreaterEqual);
                 } else {
@@ -562,12 +585,27 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
             }
             '<' => {
                 chars.next();
-                if matches!(chars.peek(), Some('=')) {
+                if matches!(chars.peek(), Some('<')) {
+                    chars.next();
+                    tokens.push(Token::ShiftLeft);
+                } else if matches!(chars.peek(), Some('=')) {
                     chars.next();
                     tokens.push(Token::LessEqual);
                 } else {
                     tokens.push(Token::LessThan);
                 }
+            }
+            '&' => {
+                tokens.push(Token::Amp);
+                chars.next();
+            }
+            '|' => {
+                tokens.push(Token::Pipe);
+                chars.next();
+            }
+            '~' => {
+                tokens.push(Token::Tilde);
+                chars.next();
             }
             '=' => {
                 chars.next();
@@ -921,7 +959,7 @@ impl Parser {
     /// Comparison level: `>` `<` `>=` `<=` `==` `!=`, non-chaining, with
     /// arithmetic binding tighter.
     fn parse_comparison(&mut self) -> Result<Expression, EpherError> {
-        let left = self.parse_additive()?;
+        let left = self.parse_bitwise()?;
         let op = match self.peek() {
             Some(Token::GreaterThan) => Some(CmpOp::Gt),
             Some(Token::LessThan) => Some(CmpOp::Lt),
@@ -933,11 +971,65 @@ impl Parser {
         };
         if let Some(op) = op {
             self.next();
-            let right = self.parse_additive()?;
+            let right = self.parse_bitwise()?;
             Ok(Expression::Compare(op, Box::new(left), Box::new(right)))
         } else {
             Ok(left)
         }
+    }
+
+    /// Bitwise levels (ADR-0047), C-style between the comparisons and
+    /// the arithmetic: `|`/`xor` bind loosest, then `&`, then the
+    /// shifts. `5 & 3 == 1` is `(5 & 3) == 1`, `1 | 2 << 3` is 17.
+    fn parse_bitwise(&mut self) -> Result<Expression, EpherError> {
+        let mut left = self.parse_bit_and()?;
+        loop {
+            let is_xor = matches!(self.peek(), Some(Token::Ident(kw)) if kw == "xor");
+            let is_pipe = matches!(self.peek(), Some(Token::Pipe));
+            if !(is_xor || is_pipe) {
+                break;
+            }
+            self.next();
+            let right = self.parse_bit_and()?;
+            left = if is_xor {
+                Expression::BitXor(Box::new(left), Box::new(right))
+            } else {
+                Expression::BitOr(Box::new(left), Box::new(right))
+            };
+        }
+        Ok(left)
+    }
+
+    /// The `&` level of the bitwise family.
+    fn parse_bit_and(&mut self) -> Result<Expression, EpherError> {
+        let mut left = self.parse_shift()?;
+        while matches!(self.peek(), Some(Token::Amp)) {
+            self.next();
+            let right = self.parse_shift()?;
+            left = Expression::BitAnd(Box::new(left), Box::new(right));
+        }
+        Ok(left)
+    }
+
+    /// The shift level: `<<` and `>>`, left-associative.
+    fn parse_shift(&mut self) -> Result<Expression, EpherError> {
+        let mut left = self.parse_additive()?;
+        loop {
+            match self.peek() {
+                Some(Token::ShiftLeft) => {
+                    self.next();
+                    let right = self.parse_additive()?;
+                    left = Expression::ShiftLeft(Box::new(left), Box::new(right));
+                }
+                Some(Token::ShiftRight) => {
+                    self.next();
+                    let right = self.parse_additive()?;
+                    left = Expression::ShiftRight(Box::new(left), Box::new(right));
+                }
+                _ => break,
+            }
+        }
+        Ok(left)
     }
 
     /// The unit power bound to a unit token (ADR-0046): `m^2` scales
@@ -1130,12 +1222,18 @@ impl Parser {
 
     /// Unary level: `-` binds looser than `^` (math convention: `-2 ^ 2 = -4`).
     fn parse_unary(&mut self) -> Result<Expression, EpherError> {
-        if matches!(self.peek(), Some(Token::Minus)) {
-            self.next();
-            let inner = self.parse_unary()?;
-            Ok(Expression::Neg(Box::new(inner)))
-        } else {
-            self.parse_pow()
+        match self.peek() {
+            Some(Token::Minus) => {
+                self.next();
+                let inner = self.parse_unary()?;
+                Ok(Expression::Neg(Box::new(inner)))
+            }
+            Some(Token::Tilde) => {
+                self.next();
+                let inner = self.parse_unary()?;
+                Ok(Expression::BitNot(Box::new(inner)))
+            }
+            _ => self.parse_pow(),
         }
     }
 
@@ -1360,6 +1458,28 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
         Expression::Mul(lhs, rhs) => binop(eval(lhs, env)?, eval(rhs, env)?, BinOp::Mul),
         Expression::Div(lhs, rhs) => binop(eval(lhs, env)?, eval(rhs, env)?, BinOp::Div),
         Expression::Pow(lhs, rhs) => binop(eval(lhs, env)?, eval(rhs, env)?, BinOp::Pow),
+        // Bitwise operations (ADR-0047): exact Big integers masked to
+        // the session's word size.
+        Expression::BitAnd(lhs, rhs) => {
+            bitwise_binop(BitOp::And, eval(lhs, env)?, eval(rhs, env)?, env)
+        }
+        Expression::BitOr(lhs, rhs) => {
+            bitwise_binop(BitOp::Or, eval(lhs, env)?, eval(rhs, env)?, env)
+        }
+        Expression::BitXor(lhs, rhs) => {
+            bitwise_binop(BitOp::Xor, eval(lhs, env)?, eval(rhs, env)?, env)
+        }
+        Expression::ShiftLeft(lhs, rhs) => {
+            bitwise_binop(BitOp::Shl, eval(lhs, env)?, eval(rhs, env)?, env)
+        }
+        Expression::ShiftRight(lhs, rhs) => {
+            bitwise_binop(BitOp::Shr, eval(lhs, env)?, eval(rhs, env)?, env)
+        }
+        Expression::BitNot(inner) => {
+            let v = eval(inner, env)?;
+            let x = value_to_bigint("~", &v)?;
+            Ok(mask_word(-x - 1, env.word_bits.get()))
+        }
         // A unit suffix (ADR-0046): the value times the SI factor,
         // carrying the dimensions and the typed display unit.
         Expression::Unit(inner, factor, dims, unit) => match eval(inner, env)? {
@@ -1497,7 +1617,34 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                     };
                     Ok(Value::Bool(result))
                 }
-                _ => Err(EpherError::Type(format!("cannot compare {l:?} and {r:?}"))),
+                // Numeric comparisons across all the numeric types
+                // (ADR-0047): same-type exact pairs compare exactly;
+                // anything with a float or mixed exact types compares
+                // through f64. Bitwise results are Big, so `1 & 3 == 1`
+                // must work.
+                _ => {
+                    let ord = match (&l, &r) {
+                        (Value::Float(x), Value::Float(y)) => x.partial_cmp(y),
+                        (Value::Big(x), Value::Big(y)) => x.partial_cmp(y),
+                        (Value::Rational(x), Value::Rational(y)) => x.partial_cmp(y),
+                        (Value::Decimal(x), Value::Decimal(y)) => x.partial_cmp(y),
+                        (Value::Float(x), other) => x.partial_cmp(&numeric_f64(other)?),
+                        (other, Value::Float(y)) => numeric_f64(other)?.partial_cmp(y),
+                        (a, b) => numeric_f64(a)?.partial_cmp(&numeric_f64(b)?),
+                    };
+                    let Some(ord) = ord else {
+                        return Err(EpherError::Type(format!("cannot compare {l:?} and {r:?}")));
+                    };
+                    let result = match op {
+                        CmpOp::Gt => ord == std::cmp::Ordering::Greater,
+                        CmpOp::Lt => ord == std::cmp::Ordering::Less,
+                        CmpOp::Ge => ord != std::cmp::Ordering::Less,
+                        CmpOp::Le => ord != std::cmp::Ordering::Greater,
+                        CmpOp::Eq => ord == std::cmp::Ordering::Equal,
+                        CmpOp::Ne => ord != std::cmp::Ordering::Equal,
+                    };
+                    Ok(Value::Bool(result))
+                }
             }
         }
         Expression::If(cond, then_expr, else_expr) => match eval(cond, env)? {
@@ -1573,6 +1720,31 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                     }
                     eval_random(name, values, env)
                 }
+                // The bitwise word size (ADR-0047): `bits()` reports,
+                // `bits(8|16|32|64)` sets it and reports it.
+                "bits" => {
+                    let mut values = Vec::with_capacity(args.len());
+                    for arg in args {
+                        values.push(eval(arg, env)?);
+                    }
+                    match values.len() {
+                        0 => Ok(Value::Float(env.word_bits.get() as f64)),
+                        1 => {
+                            let n = integer_arg(name, &values)?;
+                            if !matches!(n, 8 | 16 | 32 | 64) {
+                                return Err(domain_error(format!(
+                                    "bits expects 8, 16, 32, or 64, got {n}"
+                                )));
+                            }
+                            env.word_bits.set(n as u32);
+                            Ok(Value::Float(n as f64))
+                        }
+                        _ => Err(EpherError::Type(format!(
+                            "bits takes 0 or 1 arguments, got {}",
+                            values.len()
+                        ))),
+                    }
+                }
                 _ => {
                     let mut values = Vec::with_capacity(args.len());
                     for arg in args {
@@ -1630,6 +1802,7 @@ fn calculus_child(env: &Env, var: &str, value: f64) -> Env {
         constants: env.constants.clone(),
         functions: env.functions.clone(),
         rng: env.rng.clone(),
+        word_bits: env.word_bits.clone(),
     };
     child.set(var.to_string(), Value::float(value));
     child
@@ -1647,6 +1820,60 @@ fn splitmix_next(state: &mut u64) -> u64 {
     z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
     z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
     z ^ (z >> 31)
+}
+
+/// The bitwise operations (ADR-0047): operands are integers (whole
+/// floats, integral rationals/decimals, or Big), the result is the
+/// exact Big integer masked to the session's word size as a signed
+/// two's complement word. Shifts by a negative amount reverse, and
+/// right shift is arithmetic.
+fn bitwise_binop(op: BitOp, lhs: Value, rhs: Value, env: &Env) -> Result<Value, EpherError> {
+    let a = value_to_bigint("&", &lhs)?;
+    let b = value_to_bigint("&", &rhs)?;
+    let n = match op {
+        BitOp::And => a & b,
+        BitOp::Or => a | b,
+        BitOp::Xor => a ^ b,
+        BitOp::Shl | BitOp::Shr => {
+            let shift = b
+                .to_i64()
+                .ok_or_else(|| EpherError::Type(format!("shift amount {b} is too large")))?;
+            let shift_abs = shift.unsigned_abs();
+            // A negative shift reverses the direction; right shift is
+            // arithmetic (floor for negatives, like Python).
+            if matches!(op, BitOp::Shl) {
+                if shift >= 0 {
+                    a << shift_abs
+                } else {
+                    a >> shift_abs
+                }
+            } else if shift >= 0 {
+                a >> shift_abs
+            } else {
+                a << shift_abs
+            }
+        }
+    };
+    Ok(mask_word(n, env.word_bits.get()))
+}
+
+/// Mask a mathematical integer to a signed n-bit two's complement word
+/// (ADR-0047): the low n bits, with the top bit deciding the sign.
+fn mask_word(v: num_bigint::BigInt, bits: u32) -> Value {
+    let mask: num_bigint::BigInt = (num_bigint::BigInt::from(1) << bits as usize) - 1;
+    let m: num_bigint::BigInt = v & mask;
+    let sign: num_bigint::BigInt = num_bigint::BigInt::from(1) << (bits as usize - 1);
+    let word = if m >= sign { m - (sign << 1) } else { m };
+    Value::Big(word.to_string().parse().expect("whole big"))
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum BitOp {
+    And,
+    Or,
+    Xor,
+    Shl,
+    Shr,
 }
 
 /// Seeded random numbers (ADR-0045): `random()` is uniform in [0, 1),
@@ -3016,6 +3243,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "bits",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "c",
         kind: CatalogKind::Constant,
     },
@@ -4275,6 +4506,12 @@ fn poly_coeffs(expr: &Expression, variable: &str, env: &Env) -> Option<Vec<f64>>
         }
         Expression::Factorial(_)
         | Expression::Compare(_, _, _)
+        | Expression::BitAnd(_, _)
+        | Expression::BitOr(_, _)
+        | Expression::BitXor(_, _)
+        | Expression::ShiftLeft(_, _)
+        | Expression::ShiftRight(_, _)
+        | Expression::BitNot(_)
         | Expression::If(_, _, _)
         | Expression::And(_, _)
         | Expression::Or(_, _)
@@ -5890,6 +6127,26 @@ fn binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
         _ => Err(EpherError::Type(format!(
             "cannot combine {lhs:?} and {rhs:?}"
         ))),
+    }
+}
+
+/// A numeric value as f64 for cross-type comparisons (ADR-0047):
+/// rationals, decimals, and big integers convert lossily, which is the
+/// honest float-vs-exact comparison.
+fn numeric_f64(v: &Value) -> Result<f64, EpherError> {
+    use num_traits::ToPrimitive;
+    match v {
+        Value::Float(x) => Ok(*x),
+        Value::Rational(r) => r
+            .to_f64()
+            .ok_or_else(|| EpherError::Type(format!("cannot compare {v}"))),
+        Value::Decimal(d) => d
+            .to_f64()
+            .ok_or_else(|| EpherError::Type(format!("cannot compare {v}"))),
+        Value::Big(b) => b
+            .to_f64()
+            .ok_or_else(|| EpherError::Type(format!("cannot compare {v}"))),
+        other => Err(EpherError::Type(format!("cannot compare {other:?}"))),
     }
 }
 

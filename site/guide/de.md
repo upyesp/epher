@@ -680,7 +680,12 @@ Primzahlen und Teiler arbeiten mit ganzen Zahlen:
 | Konstanten-Browser | Hilfe → Konstanten: alle eingebauten Konstanten, nach Gruppe | Hilfe → Konstanten |
 | Größe | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
 | Umrechnen | `expr in Einheit` oder `expr -> Einheit` | `72 km/hr in m/s` |
-| Vorsätze | `k M G T m µ n p` skalieren jede Einheit | `5 km`, `3 MPa`, `1 GHz` | `2^3 * 3^2 * 5` |
+| Vorsätze | `k M G T m µ n p` skalieren jede Einheit | `5 km`, `3 MPa`, `1 GHz` |
+| Bitweises Und, Oder | `a & b`, `a \| b` | `0xFF & 0x0F` |
+| Bitweises exklusives Oder | `a xor b` | `5 xor 3` |
+| Bitweises Nicht | `~a` | `~0` |
+| Verschiebungen | `a << n`, `a >> n` | `1 << 8` |
+| Wortbreite | `bits(n)` — 8, 16, 32, 64 | `bits(8)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | Eulersche Phi-Funktion | `totient(12)` | `4` |
 | `ndivisors(n)` | Anzahl der Teiler | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b hoch e, modulo m, exakt | `modpow(2, 10, 1000)` | `24` |
@@ -1290,6 +1295,50 @@ Größe in der genannten Einheit; die Dimensionen müssen übereinstimmen.
 
 Temperaturskalen (Celsius, Fahrenheit) sind hier keine Einheiten —
 Kelvin schon, und `K` funktioniert wie jede andere.
+
+
+### 1.25 Bitoperationen
+
+Die Basisschreibweisen aus Abschnitt 1.13 sind dafür gemacht:
+`0b101`, `0o17`, `0xFF`. Die Bitoperatoren arbeiten mit ganzen Zahlen
+und antworten mit exakten ganzen Zahlen:
+
+```epher
+0xFF & 0x0F
+```
+
+```text
+15
+```
+
+| Operator | Bedeutung |
+|---|---|
+| `a & b` | bitweises Und |
+| `a \| b` | bitweises Oder |
+| `a xor b` | bitweises exklusives Oder |
+| `~a` | bitweises Nicht (Zweierkomplement) |
+| `a << n` | links schieben (mal 2^n) |
+| `a >> n` | rechts schieben, arithmetisch (durch 2^n, abrunden) |
+
+Die Ergebnisse sind exakte `big`-Ganzzahlen, also behält `1 << 60`
+jede Ziffer. Die Wortbreite ist standardmäßig 64 Bit: Ergebnisse
+werden als vorzeichenbehaftetes Zweierkomplement gelesen, also ist
+`~0` = -1 und `1 << 100` wickelt auf 0. `bits(n)` ändert die Wortbreite
+auf 8, 16, 32 oder 64, und `bits()` meldet sie:
+
+```epher
+bits(8)
+~0
+```
+
+```text
+8
+-1
+```
+
+Eine negative Verschiebung kehrt die Richtung um (`8 << -1` ist `4`).
+Das boolesche `and` und `or` behalten ihre Bedeutung; `&` und `|` sind
+die Bit-Schreibweisen.
 
 
 ## 2. Die Web-App (PWA)

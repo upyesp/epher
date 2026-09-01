@@ -363,3 +363,5 @@ key-hint-mu_n = المغناطيسون النووي
 key-hint-m_moon = كتلة القمر
 key-hint-r_moon = نصف قطر القمر
 tui-constants-hint = ↑/↓ اختر · Enter يُدرج · Esc يغلق
+key-hint-bits = حجم كلمة البت: bits(8) أو bits(16) أو bits(32) أو bits(64)
+key-hint-xor = أو الحصري على مستوى البت: a xor b

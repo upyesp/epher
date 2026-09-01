@@ -684,7 +684,12 @@ Les nombres premiers et les diviseurs travaillent sur des entiers :
 | Explorateur de constantes | Aide → Constantes : toutes les constantes, groupées | Aide → Constantes |
 | Grandeur | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
 | Convertir | `expr in unité` ou `expr -> unité` | `72 km/hr in m/s` |
-| Préfixes | `k M G T m µ n p` modifient toute unité | `5 km`, `3 MPa`, `1 GHz` | `2^3 * 3^2 * 5` |
+| Préfixes | `k M G T m µ n p` modifient toute unité | `5 km`, `3 MPa`, `1 GHz` |
+| Et, ou binaires | `a & b`, `a \| b` | `0xFF & 0x0F` |
+| Ou exclusif binaire | `a xor b` | `5 xor 3` |
+| Non binaire | `~a` | `~0` |
+| Décalages | `a << n`, `a >> n` | `1 << 8` |
+| Taille de mot | `bits(n)` — 8, 16, 32, 64 | `bits(8)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | indicatrice d'Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | nombre de diviseurs | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b puissance e, modulo m, exact | `modpow(2, 10, 1000)` | `24` |
@@ -1297,6 +1302,50 @@ convertit toute la somme :
 Les échelles de température (Celsius, Fahrenheit) ne sont pas des
 unités ici — les kelvins le sont, et `K` fonctionne comme n'importe
 quelle autre.
+
+
+### 1.25 Opérations binaires
+
+Les littéraux de base de la section 1.13 sont faits pour ça : `0b101`,
+`0o17`, `0xFF`. Les opérateurs binaires travaillent sur des entiers et
+répondent avec des entiers exacts :
+
+```epher
+0xFF & 0x0F
+```
+
+```text
+15
+```
+
+| Opérateur | Signification |
+|---|---|
+| `a & b` | et binaire |
+| `a \| b` | ou binaire |
+| `a xor b` | ou exclusif binaire |
+| `~a` | non binaire (complément à deux) |
+| `a << n` | décalage à gauche (multiplier par 2^n) |
+| `a >> n` | décalage à droite, arithmétique (diviser par 2^n, arrondi vers le bas) |
+
+Les résultats sont des entiers `big` exacts, donc `1 << 60` garde
+chaque chiffre. La taille de mot est de 64 bits par défaut : les
+résultats se lisent en complément à deux signé, donc `~0` vaut -1 et
+`1 << 100` enveloppe à 0. `bits(n)` change la taille de mot à 8, 16,
+32 ou 64, et `bits()` la rapporte :
+
+```epher
+bits(8)
+~0
+```
+
+```text
+8
+-1
+```
+
+Un décalage négatif inverse la direction (`8 << -1` vaut `4`). Le
+`and` et le `or` booléens gardent leurs sens ; `&` et `|` sont les
+graphies binaires.
 
 
 ## 2. L'application web (PWA)

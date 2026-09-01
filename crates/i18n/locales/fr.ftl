@@ -364,3 +364,5 @@ key-hint-mu_n = Magnéton nucléaire
 key-hint-m_moon = Masse de la Lune
 key-hint-r_moon = Rayon de la Lune
 tui-constants-hint = ↑/↓ choisir · Entrée insère · Esc ferme
+key-hint-bits = Taille de mot binaire : bits(8), bits(16), bits(32) ou bits(64)
+key-hint-xor = Ou exclusif binaire : a xor b

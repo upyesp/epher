@@ -2822,3 +2822,74 @@ fn quantity_comparisons_and_shadowing() {
 fn format_value_of(src: &str) -> String {
     epher_core::format_value(&eval_str(src), &epher_core::DisplayPrefs::default())
 }
+
+// ===== bitwise operations (ADR-0047) =====
+
+#[test]
+fn bitwise_operators_compute_and_mask() {
+    // the four operators on whole numbers
+    assert_eq!(format!("{}", eval_str("0xFF & 0x0F")), "15");
+    assert_eq!(format!("{}", eval_str("5 | 3")), "7");
+    assert_eq!(format!("{}", eval_str("5 xor 3")), "6");
+    assert_eq!(format!("{}", eval_str("~0")), "-1");
+    assert_eq!(format!("{}", eval_str("1 << 8")), "256");
+    assert_eq!(format!("{}", eval_str("-8 >> 1")), "-4");
+    // results are exact Big values: 1 << 60 keeps every digit
+    match eval_str("1 << 60") {
+        Value::Big(b) => assert_eq!(b.to_string(), "1152921504606846976"),
+        other => panic!("1 << 60 produced {other:?}"),
+    }
+    // the default word is 64 bits: 1 << 100 wraps to 0, ~0 stays -1
+    assert_eq!(format!("{}", eval_str("1 << 100")), "0");
+    assert_eq!(format!("{}", eval_str("~0 & 0xFF")), "255");
+    // precedence: shift binds tighter than |, comparisons loosest
+    assert_eq!(format!("{}", eval_str("1 | 2 << 3")), "17");
+    assert_eq!(eval_str("5 & 3 == 1"), Value::Bool(true));
+    // negative shifts reverse the direction
+    assert_eq!(format!("{}", eval_str("8 << -1")), "4");
+    assert_eq!(format!("{}", eval_str("8 >> -1")), "16");
+    // non-whole operands are type errors
+    assert!(eval_str_checked("5.5 & 3").is_err(), "fractional operand");
+    assert!(eval_str_checked("1 << 0.5").is_err(), "fractional shift");
+    assert!(eval_str_checked("5 & x").is_err(), "unknown operand");
+}
+
+#[test]
+fn bits_word_size_is_session_state() {
+    let mut session = Session::default();
+    assert_eq!(session.submit("bits()"), "= 64");
+    assert_eq!(session.submit("bits(8)"), "= 8");
+    // ~0 in 8-bit two's complement is -1; 255 fits; 1 << 8 wraps to 0
+    assert_eq!(session.submit("~0"), "= -1");
+    assert_eq!(session.submit("255 & 1"), "= 1");
+    assert_eq!(session.submit("1 << 8"), "= 0");
+    assert_eq!(session.submit("255"), "= 255");
+    // 16-bit words: 0xFFFF is -1 as a signed word
+    assert_eq!(session.submit("bits(16)"), "= 16");
+    assert_eq!(session.submit("0xFFFF & 0xFFFF"), "= -1");
+    assert_eq!(session.submit("0x7FFF & 0x7FFF"), "= 32767");
+    // 1 << 15 is the sign bit, so the max positive word is 32767
+    assert_eq!(session.submit("(1 << 15) - 1"), "= -32769");
+    assert_eq!(session.submit("0x7FFF"), "= 32767");
+    // back to the default
+    assert_eq!(session.submit("bits(64)"), "= 64");
+    assert_eq!(session.submit("1 << 40"), "= 1099511627776");
+    // invalid sizes are domain errors; non-whole sizes are type errors
+    assert!(eval_str_checked("bits(7)").is_err(), "7 bits");
+    assert!(eval_str_checked("bits(2.5)").is_err(), "fractional size");
+}
+
+#[test]
+fn big_comparisons_work_across_types() {
+    // the bitwise round exposed a pre-existing gap: exact types could
+    // not compare; they can now (ADR-0047).
+    assert_eq!(eval_str("big(5) == 5"), Value::Bool(true));
+    assert_eq!(eval_str("big(5) < 6"), Value::Bool(true));
+    assert_eq!(eval_str("big(5) > 5"), Value::Bool(false));
+    assert_eq!(eval_str("(1 << 60) == big(2)^60"), Value::Bool(true));
+    assert_eq!(eval_str("frac(1, 3) < 0.5"), Value::Bool(true));
+    assert_eq!(
+        eval_str("dec(0.1) + dec(0.2) == dec(0.3)"),
+        Value::Bool(true)
+    );
+}
