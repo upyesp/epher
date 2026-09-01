@@ -3097,9 +3097,13 @@ fn inv_norm(p: f64) -> f64 {
     if p >= 1.0 {
         return f64::INFINITY;
     }
-    // Acklam's rational approximation (1.15e-9 class), polished by one
-    // Newton step against the same gamma-based CDF above — the tails
-    // negate, the central region uses q = p - 0.5.
+    // Acklam's rational approximation (1.15e-9 class), polished by
+    // Newton against the gamma-based tail below. The polish runs in
+    // tail space (ADR-0052): g(x) = 0.5*q(0.5, x^2/2) is the survivor
+    // for both signs, so the target is min(p, 1-p). Polishing against
+    // norm_cdf(x) = 1 - 0.5*q would lose the tail's digits once the
+    // CDF saturates toward 1, which stalled extreme quantiles (p ~
+    // 1 - 1e-10 and beyond) at 1e-8 relative error.
     let x = if p < 0.02425 {
         let q = (-2.0 * p.ln()).sqrt();
         (((((C[0] * q + C[1]) * q + C[2]) * q + C[3]) * q + C[4]) * q + C[5])
@@ -3114,7 +3118,27 @@ fn inv_norm(p: f64) -> f64 {
         q * (((((A[0] * r + A[1]) * r + A[2]) * r + A[3]) * r + A[4]) * r + A[5])
             / (((((B[0] * r + B[1]) * r + B[2]) * r + B[3]) * r + B[4]) * r + 1.0)
     };
-    x - (norm_cdf(x) - p) / norm_pdf(x)
+    if p == 0.5 {
+        return 0.0;
+    }
+    let target = if p > 0.5 { 1.0 - p } else { p };
+    let mut x = x;
+    for _ in 0..6 {
+        // g(x) = 0.5*q(0.5, x^2/2) is even, so the derivative is
+        // -sign(x)*pdf(x) and the Newton step is
+        // x += (g - target) / (sign(x) * pdf(x)).
+        let g = 0.5 * regularized_gamma_q(0.5, 0.5 * x * x);
+        let denom = norm_pdf(x) * x.signum();
+        if denom == 0.0 {
+            break;
+        }
+        let step = (g - target) / denom;
+        if step.abs() <= 5e-15 * x.abs().max(1.0) {
+            break;
+        }
+        x += step;
+    }
+    x
 }
 
 fn norm_pdf(x: f64) -> f64 {
@@ -3145,6 +3169,19 @@ fn t_pdf(t: f64, df: f64) -> f64 {
     .exp()
 }
 
+/// 1 - t_cdf(t) computed without cancellation: the upper tail is
+/// 0.5*I for positive t, and 1 - 0.5*I for negative t (where the CDF
+/// itself is the tiny 0.5*I). The survivor is what extreme upper
+/// quantiles invert against (ADR-0052).
+fn t_survivor(t: f64, df: f64) -> f64 {
+    let ib = regularized_beta(df / 2.0, 0.5, df / (df + t * t));
+    if t >= 0.0 {
+        0.5 * ib
+    } else {
+        1.0 - 0.5 * ib
+    }
+}
+
 /// The chi-squared CDF, the lower probability P(X <= x) — the
 /// regularized incomplete gamma P(df/2, x/2); `invchi2` inverts by
 /// Newton with the PDF as the derivative.
@@ -3160,14 +3197,73 @@ fn chi2_pdf(x: f64, df: f64) -> f64 {
 }
 
 /// Newton inversion of a monotone CDF with a PDF derivative, bracketed
-/// by doubling (so p values near 0 or 1 still converge).
-fn invert_cdf(cdf: impl Fn(f64) -> f64, pdf: impl Fn(f64) -> f64, p: f64, lo: f64, hi: f64) -> f64 {
+/// by doubling (so p values near 0 or 1 still converge). The `survivor`
+/// is 1 - cdf computed without cancellation (the tail), used for p >
+/// 0.5: inverting the CDF directly loses the last digits once it
+/// saturates toward 1, which stalled extreme quantiles at 1e-8..1e-12
+/// relative error and clamped invt at the caller's bracket (ADR-0052).
+/// Convergence is measured on the Newton step relative to |x|, not on
+/// the CDF residual, whose size varies by orders of magnitude across
+/// the tails. Degenerate probabilities (0 or 1) return the bracket
+/// edge, exactly as the old bisection floor did.
+fn invert_cdf(
+    cdf: impl Fn(f64) -> f64,
+    survivor: impl Fn(f64) -> f64,
+    pdf: impl Fn(f64) -> f64,
+    p: f64,
+    lo: f64,
+    hi: f64,
+) -> f64 {
+    if p <= 0.0 {
+        return lo;
+    }
+    if p >= 1.0 {
+        return hi;
+    }
     let mut lo = lo;
     let mut hi = hi;
+    // Straddle the root before iterating: the caller's bracket (e.g.
+    // [-100, 100] for t) may lie entirely below an extreme quantile.
+    if p <= 0.5 {
+        for _ in 0..64 {
+            if cdf(lo) >= p {
+                lo = 2.0 * lo - hi;
+            } else {
+                break;
+            }
+        }
+        for _ in 0..64 {
+            if cdf(hi) <= p {
+                hi = 2.0 * hi - lo;
+            } else {
+                break;
+            }
+        }
+    } else {
+        let q = 1.0 - p;
+        for _ in 0..64 {
+            if survivor(lo) <= q {
+                lo = 2.0 * lo - hi;
+            } else {
+                break;
+            }
+        }
+        for _ in 0..64 {
+            if survivor(hi) >= q {
+                hi = 2.0 * hi - lo;
+            } else {
+                break;
+            }
+        }
+    }
     let mut x = 0.5 * (lo + hi);
     for _ in 0..200 {
-        let f = cdf(x) - p;
-        if f.abs() < 1e-12 {
+        let target = if p <= 0.5 { p } else { 1.0 - p };
+        let g = if p <= 0.5 { cdf(x) } else { survivor(x) };
+        // f is the residual of the increasing-equivalent form: zero at
+        // the root, positive below it (the survivor path flips sign).
+        let f = if p <= 0.5 { g - target } else { target - g };
+        if f == 0.0 {
             break;
         }
         if f < 0.0 {
@@ -3177,6 +3273,9 @@ fn invert_cdf(cdf: impl Fn(f64) -> f64, pdf: impl Fn(f64) -> f64, p: f64, lo: f6
         }
         let d = pdf(x);
         let step = if d > 1e-300 { f / d } else { 0.0 };
+        if step.abs() <= 5e-14 * x.abs().max(1.0) {
+            break;
+        }
         let nx = x - step;
         x = if nx > lo && nx < hi {
             nx
@@ -4451,7 +4550,13 @@ pub fn format_value(v: &Value, prefs: &DisplayPrefs) -> String {
             let s = match prefs.notation {
                 Notation::Auto => {
                     if prefs.exact_fractions {
-                        if let Some(r) = reconstruct_fraction(*x, 1000, 1e-9) {
+                        // Half a display unit (5e-13 relative): a
+                        // fraction shows only when it agrees with the
+                        // value through all twelve displayed digits.
+                        // The old 1e-9 tolerance let large decimals
+                        // with a coincidental convergent show as
+                        // fractions (123456.789 became 13456790/109).
+                        if let Some(r) = reconstruct_fraction(*x, 1000, 5e-13) {
                             // A terminating decimal shows as a decimal
                             // (0.1 + 0.2 is 0.3, not 3/10); only a
                             // repeating value keeps the fraction.
@@ -4503,16 +4608,19 @@ pub fn format_value(v: &Value, prefs: &DisplayPrefs) -> String {
             }
             // A quantity (ADR-0046): the SI value converted to its
             // display unit, formatted with the session's prefs. The
-            // unit text itself is not reformatted.
+            // unit text itself is not reformatted. The value goes
+            // through the same twelve-digit rounding as every other
+            // result line (ADR-0052): `30 deg in rad` shows
+            // 0.523598775598, not the raw 16-digit spelling.
             Value::Quantity { value, dims, unit } => {
                 let shown = if *dims == [0; 7] {
                     // Dimensionless (angles, plain conversions): the SI
                     // value, no unit text.
-                    format!("{value}")
+                    auto_float(*value)
                 } else {
                     match unit {
-                        Some((name, factor)) => format!("{} {name}", value / factor),
-                        None => format!("{value} {}", si_unit_str(*dims)),
+                        Some((name, factor)) => format!("{} {name}", auto_float(value / factor)),
+                        None => format!("{} {}", auto_float(*value), si_unit_str(*dims)),
                     }
                 };
                 let shown = if prefs.separators {
@@ -5623,13 +5731,13 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
         }
         // Exact fractions (ADR-0043): exact(x) reconstructs the rational
         // behind a float (continued fractions, denominator up to 1000,
-        // relative tolerance 1e-9) - exact(0.3333333333333333) is 1/3.
-        // Irrationals pass through unchanged: no convergent is good
-        // enough, so pi stays decimal.
+        // half a display unit of relative tolerance) - exact(0.3333333333333333)
+        // is 1/3. Irrationals pass through unchanged: no convergent is
+        // good enough, so pi stays decimal.
         "exact" => {
             let v = one_arg(name, &args)?;
             match v {
-                Value::Float(x) => Ok(match reconstruct_fraction(*x, 1000, 1e-9) {
+                Value::Float(x) => Ok(match reconstruct_fraction(*x, 1000, 5e-13) {
                     Some(r) => Value::Rational(r),
                     None => Value::Float(*x),
                 }),
@@ -6090,6 +6198,7 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                     let p = prob_arg(name, x)?;
                     Ok(Value::Float(invert_cdf(
                         |t| t_cdf(t, df),
+                        |t| t_survivor(t, df),
                         |t| t_pdf(t, df),
                         p,
                         -100.0,
@@ -6120,6 +6229,7 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                     let p = prob_arg(name, x)?;
                     Ok(Value::Float(invert_cdf(
                         |v| chi2_cdf(v, df),
+                        |v| regularized_gamma_q(df / 2.0, v / 2.0),
                         |v| chi2_pdf(v, df),
                         p,
                         0.0,
@@ -6384,6 +6494,7 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             let (mean, sd) = sample_mean_std(&data);
             let t = invert_cdf(
                 |v| t_cdf(v, n - 1.0),
+                |v| t_survivor(v, n - 1.0),
                 |v| t_pdf(v, n - 1.0),
                 0.5 + level / 2.0,
                 -100.0,
@@ -6710,6 +6821,47 @@ impl Session {
             self.consts.insert(name, line);
         }
         output
+    }
+
+    /// Submit a script line and return every answer it produced, in
+    /// order, one per line (`= 10\n= 15\n= 25`) — a script's whole
+    /// transcript, not only its final value (ADR-0052). The line is
+    /// recorded in history exactly like [`Session::submit`] (the line
+    /// with its last answer appended). Statements that produce no value
+    /// (`def`, `while`, `graph`) contribute nothing, and an error stops
+    /// the run, exactly as one-shot scripts do.
+    pub fn submit_all(&mut self, line: &str) -> String {
+        let line = line.trim().to_string();
+        if line.is_empty() {
+            return String::new();
+        }
+        let outputs = match parse_script(&line) {
+            Ok(script) => match run_all(&script, &mut self.env) {
+                Ok(values) => values
+                    .iter()
+                    .map(|v| format!("= {}", format_value(v, &self.display)))
+                    .collect::<Vec<_>>(),
+                Err(e) => vec![format!("error: {e}")],
+            },
+            Err(e) => vec![format!("error: {e}")],
+        };
+        let joined = outputs.join("\n");
+        if joined.is_empty() {
+            self.history.push(line.clone());
+        } else {
+            self.history.push(format!(
+                "{line}  {}",
+                outputs.last().map(String::as_str).unwrap_or_default()
+            ));
+        }
+        self.last_line = Some(line.clone());
+        if let Some(name) = def_name(&line) {
+            self.defs.insert(name, line.clone());
+        }
+        if let Some(name) = const_name(&line) {
+            self.consts.insert(name, line);
+        }
+        joined
     }
 
     pub fn history(&self) -> &[String] {

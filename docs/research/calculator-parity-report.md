@@ -2,6 +2,15 @@
 
 Date: 2026-09-01 · Status: findings only, no code changed
 
+> Update (2026-09-02, v0.5.16): findings 1-4 below are fixed
+> (ADR-0052) — see the resolution table at the end. The invnorm
+> extreme-tail numbers in finding 2 deserve one nuance: `1 - 1e-12`
+> is not representable in f64, so the true quantile of the *stored*
+> input p is 7.0344869100, which is exactly what the fixed app (and
+> every f64 reference calculator) returns; the 60-digit "true" value
+> 7.0344838253 belongs to the exact real number 0.999999999999, which
+> no double-based calculator can reach from that expression.
+
 ## Scope and method
 
 Every builtin function and constant of epher (v0.5.15, 125 functions
@@ -252,3 +261,22 @@ several points including edge cases.
 6. Constants r_inf/faraday at full CODATA precision.
 7. Convention review for percent, mod, stdev, irr/tvm_i percent
    display (each documented; decide whether to match TI or keep).
+
+## Resolution status (v0.5.16, ADR-0052)
+
+| Finding | Status | Now |
+|---|---|---|
+| 1. invt/invchi2 tails | Fixed: survivor-space inversion, doubling bracket, step-based convergence | invt(0.999999, 3) = 103.299467779429, invt(0.9999, 1) = 3183.098757118, invt(0.995, 3) = 5.840909309733, invchi2(0.999999, 5) = 35.888186879610 (all within 1.8e-12 relative of the stored-p root, at the beta's accuracy limit) |
+| 2. invnorm far tails | Fixed: tail-space Newton | 1e-15 relative everywhere; the stored-p quantiles match 60-digit references to the last f64 bit (verified: rel err ~1e-15 at p = 1-1e-12, 1-1e-10, 0.99999999, 1e-12) |
+| 3. Over-eager fraction display | Fixed: half-display-unit tolerance (5e-13 relative) on display, exact(), and exact table cells | 123456.789 stays decimal; exact(123456.789) = 123456789/1000; the TVM coincidental fractions are gone (tvm_pmt = 733.764573879, tvm_pv = -99999.3766557 — the true roots, which the old 327259/446 and -7699952/77 misrepresented at the 6th-9th digit) |
+| 4. Quantity display rounding | Fixed | 30 deg in rad = 0.523598775598; the length guard keeps exact integers (1 pc in m = 30856775814913670 m) |
+| 5. binomcdf exact recurrence | Not done (last-digit cleanliness only) | binomcdf(7, 10, 0.3) still displays ...601 vs exact ...600 |
+| 6. r_inf/faraday constants | Not done (value table, separate decision) | - |
+| 7. Convention review | Not done (documented differences; a user-facing setting would need a product decision) | - |
+
+Also shipped with this round: scripts display every answer in order
+(`x = 10; y = x + 5; x + y` shows `= 10`, `= 15`, `= 25` in the CLI,
+REPL, TUI, and web), and the guide's multi-line example blocks now show
+the same transcripts the app shows, byte-identical across all 8
+locales (including the stats output block the translated guides had
+dropped, and the stale `sqrt(-4)` / `march_equinox` blocks).

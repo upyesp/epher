@@ -1141,7 +1141,7 @@ fn angle_literals_come_out_in_radians() {
             &epher_core::evaluate("30 deg").unwrap(),
             &epher_core::DisplayPrefs::default()
         ),
-        "0.5235987755982988"
+        "0.523598775598"
     );
     // and they convert like any quantity
     approx("deg to rad", "30 deg in rad", std::f64::consts::PI / 6.0);
@@ -2362,6 +2362,26 @@ fn chi2_family_matches_reference_values() {
 }
 
 #[test]
+fn quantile_tails_invert_to_full_precision() {
+    // The parity sweep found the old inversions stalling in the tails:
+    // a 1e-12 residual tolerance and a fixed [-100, 100] bracket made
+    // invt clamp at 100 for p beyond 0.99999 and lose the last digits
+    // of ordinary tail quantiles (ADR-0052). The survivor-space
+    // inversion converges to the exact quantile of the stored p.
+    assert_close(eval_f64("invt(0.995, 3)"), 5.840909309733);
+    assert_close(eval_f64("invt(0.99999, 3)"), 47.927728375934);
+    assert_close(eval_f64("invt(0.999999, 3)"), 103.299467779429);
+    assert_close(eval_f64("invt(0.9999, 1)"), 3183.098757118151);
+    assert_close(eval_f64("invt(0.000001, 3)"), -103.299467779429);
+    assert_close(eval_f64("invchi2(0.999999, 5)"), 35.888186879610);
+    // invnorm polishes in tail space: 1e-15 relative everywhere.
+    assert_close(eval_f64("invnorm(0.99999999)"), 5.612001243305);
+    assert_close(eval_f64("invnorm(1 - 1e-10)"), 6.361340889697);
+    assert_close(eval_f64("invnorm(1e-12)"), -7.034483825301);
+    assert_close(eval_f64("invnorm(0.5)"), 0.0);
+}
+
+#[test]
 fn discrete_families_match_reference_values() {
     assert_close(eval_f64("binompdf(2, 10, 0.5)"), 0.0439453125);
     assert_close(eval_f64("binomcdf(2, 10, 0.5)"), 0.0546875);
@@ -2650,7 +2670,7 @@ fn quantities_arithmetic_tracks_dimensions() {
     );
     // multiplication and division compose dims
     assert_eq!(format_value_of("5 m * 3 m"), "15 m^2");
-    assert_eq!(format_value_of("2 m / 3 s"), "0.6666666666666666 m/s");
+    assert_eq!(format_value_of("2 m / 3 s"), "0.666666666667 m/s");
     // a number scales a quantity
     assert_eq!(format_value_of("2 * 3 m"), "6 m");
     assert_eq!(format_value_of("(3 m) / 2"), "1.5 m");
@@ -2692,11 +2712,11 @@ fn the_conversion_operator_rescales_and_remembers() {
     // `in` and `->` are the same operator
     assert_eq!(
         format_value_of("60 mile/hr in km/hr"),
-        "96.56063999999999 km/hr"
+        "96.56064 km/hr"
     );
     assert_eq!(
         format_value_of("60 mile/hr -> km/hr"),
-        "96.56063999999999 km/hr"
+        "96.56064 km/hr"
     );
     assert_eq!(format_value_of("1 km in m"), "1000 m");
     assert_eq!(format_value_of("3.2 AU in km"), "478713186.24 km");
@@ -2739,7 +2759,7 @@ fn unit_chains_powers_and_roots() {
     assert_eq!(format_value_of("60 mile/hr"), "60 mile/hr");
     assert!((eval_si("60 mile/hr") - 26.8224).abs() < 1e-9, "SI value");
     assert_eq!(format_value_of("5 m/s^2"), "5 m/s^2");
-    assert_eq!(format_value_of("1 km/hr in m/s"), "0.2777777777777778 m/s");
+    assert_eq!(format_value_of("1 km/hr in m/s"), "0.277777777778 m/s");
     // sqrt halves even dims; odd dims are a dimension error
     assert_eq!(format_value_of("sqrt(4 m^2)"), "2 m");
     assert_eq!(format_value_of("sqrt(9 m^2) in km"), "0.003 km");
@@ -3031,18 +3051,21 @@ fn tvm_solves_any_field_of_the_mortgage() {
     // The rate for a 733.76 payment is just under the nominal 8%/12:
     // bisection lands on the true root for the rounded payment.
     let i = 0.006_666_611_990_680_783;
-    // the payment reconstructs as an exact fraction under the display
+    // The payment's true value (the exact rational TVM root) is
+    // 733.764573879376...; 327259/446 differs at the 9th digit, so
+    // the half-display-unit tolerance keeps the decimal (ADR-0052).
     assert_eq!(
         format_value_of("tvm_pmt(360, 0.08/12, -100000, 0)"),
-        "327259/446"
+        "733.764573879"
     );
     assert!((eval_f64("tvm_pmt(360, 0.08/12, -100000, 0)") - 733.764_573_99).abs() < 1e-6);
     assert!((eval_f64("tvm_n(0.08/12, -100000, 733.76, 0)") - 360.009_321_3).abs() < 1e-4);
     assert!((eval_f64("tvm_i(360, -100000, 733.76, 0)") - i).abs() < 1e-12);
-    // 360 payments of 733.76 at 8%/12 are worth 99999.38 today
+    // 360 payments of 733.76 at 8%/12 are worth 99999.3766557 today
+    // (the exact rational value; 7699952/77 differs at the 6th digit)
     assert_eq!(
         format_value_of("tvm_pv(360, 0.08/12, 733.76, 0)"),
-        "-7699952/77"
+        "-99999.3766557"
     );
     // a 12-month 1% loan of 1000 with payments of 88.85 ends at ~0
     assert!(eval_f64("tvm_fv(12, 0.01, -1000, 88.85)").abs() < 0.05);
@@ -3139,4 +3162,60 @@ fn display_rounds_to_twelve_significant_digits() {
     assert_eq!(p("1/3"), "0.333333333333");
     // exact() keeps reconstructing on request
     assert_eq!(eval_display("exact(0.30000000000000004)"), "3/10");
+
+    // The half-display-unit reconstruction tolerance (ADR-0052): a
+    // fraction shows only when it agrees with the value through all
+    // twelve displayed digits. Large decimals with a coincidental
+    // convergent (123456.789 used to display as 13456790/109, whose
+    // decimal differs at the 9th digit) stay decimals now; genuine
+    // repeating values and exact rationals keep their fractions.
+    assert_eq!(f("123456.789"), "123456.789");
+    assert_eq!(f("1234567.891"), "1234567.891");
+    assert_eq!(f("1/3"), "1/3");
+    assert_eq!(f("355/113"), "355/113");
+    assert_eq!(f("500/121"), "500/121");
+    assert_eq!(f("1/7"), "1/7");
+    // the TVM payment and present value no longer display misleading
+    // coincidental fractions: the true roots are 733.764573879376...
+    // and -99999.376655736...
+    assert_eq!(f("tvm_pmt(360, 0.08/12, -100000, 0)"), "733.764573879");
+    assert_eq!(f("tvm_pv(360, 0.08/12, 733.76, 0)"), "-99999.3766557");
+    // exact() still reconstructs what the display hides
+    assert_eq!(f("exact(0.3333333333333333)"), "1/3");
+    assert_eq!(f("exact(0.30000000000000004)"), "3/10");
+    assert_eq!(f("exact(123456.789)"), "123456789/1000");
+}
+
+#[test]
+fn quantity_values_round_to_twelve_digits_too() {
+    use epher_core::{format_value, DisplayPrefs};
+    let auto = DisplayPrefs::default();
+    let f = |s: &str| format_value(&evaluate(s).expect("eval"), &auto);
+    // The value inside a quantity goes through the same rounding as
+    // every other result line (ADR-0052): the raw 16-digit spelling of
+    // `30 deg in rad` is gone.
+    assert_eq!(f("30 deg in rad"), "0.523598775598");
+    assert_eq!(f("rad(30)"), "0.523598775598");
+    assert_eq!(f("2 m / 3 s"), "0.666666666667 m/s");
+    assert_eq!(f("60 mile/hr in km/hr"), "96.56064 km/hr");
+    // integers keep their exact spelling via the length guard
+    assert_eq!(f("1 AU in m"), "149597870700 m");
+    assert_eq!(f("1 pc in m"), "30856775814913670 m");
+}
+
+#[test]
+fn submit_all_returns_every_answer_in_order() {
+    let mut session = Session::new();
+    // A script's whole transcript, one answer per line, in order
+    // (ADR-0052); the history entry keeps the last answer suffix.
+    assert_eq!(session.submit_all("x = 10; y = x + 5; x + y"), "= 10\n= 15\n= 25");
+    assert_eq!(session.history().last().unwrap(), "x = 10; y = x + 5; x + y  = 25");
+    assert_eq!(session.submit_all("x * 2"), "= 20");
+    // def produces no answer; a later expression does
+    assert_eq!(session.submit_all("def f(t) = t ^ 2\nf(3)"), "= 9");
+    // while loops produce no value; the surrounding statements do
+    assert_eq!(session.submit_all("x = 0; while x < 5 do x = x + 1; x"), "= 0\n= 5");
+    // single-value lines behave exactly like submit
+    assert_eq!(session.submit_all("2 + 3"), "= 5");
+    assert_eq!(session.submit_all(""), "");
 }

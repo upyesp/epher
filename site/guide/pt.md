@@ -361,6 +361,7 @@ if price > 50 then 2 else 1
 ```
 
 ```text
+100
 2
 ```
 
@@ -376,6 +377,7 @@ x = 0; while x < 5 do x = x + 1; x
 ```
 
 ```text
+0
 5
 ```
 
@@ -461,6 +463,8 @@ x = 10; y = x + 5; x + y
 ```
 
 ```text
+10
+15
 25
 ```
 
@@ -606,7 +610,7 @@ grouped(1234567.89)
 1.2345e4
 12.345e3
 500e-3
-1 234 567.89
+1 234 567.89
 ```
 
 O aplicativo web e o TUI também oferecem essas opções de exibição (capítulos 2.2 e 5.2): frações exatas ligadas ou desligadas, notação Auto/científica/engenharia e separadores de milhares. Os ajustes só mudam a exibição; os valores continuam números decimais comuns.
@@ -778,7 +782,7 @@ sqrt(-4)
 ```
 
 ```text
-error: domain error: sqrt of negative number -4
+2i
 ```
 
 ```epher
@@ -945,7 +949,7 @@ march_equinox(2000)
 ```
 
 ```text
-2451623.8159797275
+1012520636/413
 ```
 
 **O sistema solar em 3D.** O comando `solar3d` desenha todo o sistema:
@@ -1052,6 +1056,7 @@ solve k*x == 12
 ```
 
 ```text
+3
 x = 4
 ```
 
@@ -1171,6 +1176,14 @@ ttest(d, 14)
 tinterval(d, 0.95)
 ztest(d, 14, 1.5)
 chisq_gof({20, 30, 25, 25}, {25, 25, 25, 25})
+```
+
+```text
+{12, 15, 14, 16, 13, 15, 14, 17}
+t = 0.8819, p = 0.4071
+(13.1594, 15.8406)
+z = 0.9428, p = 0.3458
+chi2 = 2, p = 0.5724
 ```
 
 `ttest(dados, mu0)` e `tinterval(dados, nível)` usam o desvio padrão
@@ -1412,7 +1425,7 @@ tvm_pmt(360, 0.08/12, -100000, 0)
 ```
 
 ```text
-327259/446
+733.764573879
 ```
 
 A hipoteca clássica de 8%: 360 pagamentos mensais de 733.76 contra um

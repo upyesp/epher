@@ -1581,9 +1581,11 @@ impl App {
         self.cursor = pos;
     }
 
-    /// Evaluate the current input via the shared [`Session`].
+    /// Evaluate the current input via the shared [`Session`]. A script
+    /// line's every answer shows, in order (ADR-0052): the session
+    /// returns the whole transcript, newline-joined.
     pub fn submit(&mut self) {
-        self.result = self.session.submit(&self.input);
+        self.result = self.session.submit_all(&self.input);
         self.input.clear();
         self.cursor = 0;
     }
@@ -1617,20 +1619,34 @@ impl App {
         }
         let single = pieces.len() == 1;
         // The output of the last evaluation, for the combined history
-        // entry of a multi-statement script.
+        // entry of a multi-statement script, and every evaluation's
+        // output, for the result area (ADR-0052: a script shows its
+        // whole transcript in order, not only its final value).
         let mut last_eval_output: Option<String> = None;
+        let mut eval_outputs: Vec<String> = Vec::new();
+        let mut last_was_eval = false;
         for piece in &pieces {
             let (changed, was_eval) = self.submit_statement(piece, store, localizer, !single);
             if language.is_none() {
                 language = changed;
             }
+            last_was_eval = was_eval;
             if was_eval {
                 last_eval_output = Some(self.result.clone());
+                if !self.result.is_empty() {
+                    eval_outputs.push(self.result.clone());
+                }
             } else {
                 last_eval_output = None;
             }
         }
         if !single {
+            // The result area shows every answer the script produced, in
+            // order; a command or plot finishing the script keeps its own
+            // message, exactly as before.
+            if last_was_eval && !eval_outputs.is_empty() {
+                self.result = eval_outputs.join("\n");
+            }
             // One history entry for the whole script: the line as typed,
             // with the last answer appended exactly as single statements
             // record theirs.
@@ -4117,6 +4133,10 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     };
     let input_rows = input_lines.min(4);
     let input_h = 2 + input_rows as u16;
+    // The answer area grows with the result (ADR-0052): a script's
+    // transcript is several lines, and every answer must stay visible.
+    let result_rows = (app.result().chars().filter(|&c| c == '\n').count() + 1).min(6);
+    let result_h = result_rows as u16;
     let (input_area, result_area, history_area, graph_area, keypad_area, hints_area) = if wide {
         let split =
             Layout::vertical([Constraint::Min(0), Constraint::Length(hint_rows)]).split(body);
@@ -4129,7 +4149,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         // the bank row plus the digits bank's five key rows.
         let calc_rows = Layout::vertical([
             Constraint::Length(input_h), // input (grows with the script)
-            Constraint::Length(1),       // result
+            Constraint::Length(result_h), // result (grows with the transcript)
             Constraint::Min(0),          // history
             Constraint::Length(8),       // keypad (bank row + 5 key rows)
         ])
@@ -4148,7 +4168,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         // and the wrapped hints.
         let rows = Layout::vertical([
             Constraint::Length(input_h),   // input (grows with the script)
-            Constraint::Length(1),         // result
+            Constraint::Length(result_h),  // result (grows with the transcript)
             Constraint::Min(0),            // history
             Constraint::Min(0),            // graph
             Constraint::Length(8),         // keypad (bank row + 5 key rows)

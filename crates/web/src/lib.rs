@@ -2873,6 +2873,12 @@ fn epher_app() -> Html {
                 .filter(|l| !l.is_empty())
                 .collect::<Vec<_>>()
                 .join("\n");
+            // Every answer the submitted script produced, in order, one
+            // per line (ADR-0052): the result area shows the whole
+            // transcript, not only the final value. Plots and commands
+            // set their own message and are not evaluations.
+            let mut script_outputs: Vec<String> = Vec::new();
+            let mut last_was_eval = false;
             for raw_line in raw.split('\n') {
                 let line = raw_line.trim().to_string();
                 if line.is_empty() {
@@ -2893,6 +2899,7 @@ fn epher_app() -> Html {
                 for piece in &pieces {
                     let piece = piece.trim();
                     last_eval_output = None;
+                    last_was_eval = false;
 
                     // The keypad's command keys (ADR-0038): `clear` empties
                     // the plot like the Clear graph button; `history`
@@ -3230,7 +3237,10 @@ fn epher_app() -> Html {
                     } else {
                         s.submit_quiet(piece)
                     };
-                    result.set(out.clone());
+                    last_was_eval = true;
+                    if !out.is_empty() {
+                        script_outputs.push(out.clone());
+                    }
                     last_eval_output = Some(out);
                 }
                 if !multiline && !single {
@@ -3254,6 +3264,12 @@ fn epher_app() -> Html {
                 // script, not its last statement.
                 s.record(&script_verbatim);
                 s.set_last_line(&script_verbatim);
+            }
+            // The result area: every answer the script produced, in
+            // order. A plot or command finishing the script keeps its
+            // own message (graphs print nothing, ADR-0027).
+            if last_was_eval {
+                result.set(script_outputs.join("\n"));
             }
             // Publish the loop's outcomes once: points of interest and the
             // slider set follow from the final curves and session.

@@ -77,7 +77,7 @@ pub fn step(
             }
         };
     }
-    let out = session.submit(line);
+    let out = session.submit_all(line);
     Step {
         error: is_engine_error(&out),
         output: if out.is_empty() { None } else { Some(out) },

@@ -144,6 +144,7 @@ at the end of the chain.
   → **0049 (matrices: literals, arithmetic, det/inv/transpose/trace/dim/ref/rref)**
   → **0050 (finance: the TVM solver, npv/irr, amortization)**
   → **0051 (display rounding: twelve significant digits, decimals stay decimal)**
+  → **0052 (quantile tails, fraction honesty, script transcripts)**
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.

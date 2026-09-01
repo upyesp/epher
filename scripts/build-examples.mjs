@@ -35,7 +35,7 @@ const SECTIONS = [
       { cap: "ex-a10", capText: "Exact fractions where binary floats would round.", kind: "epher", code: `frac(1, 3) + frac(1, 6)` },
       { cap: "ex-a11", capText: "Defining a function and calling it in the same line.", kind: "epher", code: `def sq(x) = x * x; sq(9)` },
       { cap: "ex-a12", capText: "Arithmetic across number bases: `0xff` is hex, `0b1` is binary, and `hex(...)` spells the answer as hex.", kind: "epher", code: `0xff + 0b1\nhex(ans)` },
-      { cap: "ex-a1", capText: "A multi-line script. Shift+Enter starts a new line, Enter runs the whole script as one history item.", kind: "epher", code: `x = 10\ny = x + 5\ny ^ 2` },
+      { cap: "ex-a1", capText: "A multi-line script. Shift+Enter starts a new line, Enter runs the whole script as one history item, and every answer shows in order.", kind: "epher", code: `x = 10\ny = x + 5\ny ^ 2` },
       { cap: "ex-a2", capText: "A basic 2D curve.", kind: "epher", code: `graph x ^ 2` },
       { cap: "ex-a3", capText: "The region below the curve, shaded. `y >` shades above instead.", kind: "epher", code: `graph y < x ^ 2` },
       { cap: "ex-a4", capText: "The play button beside `a` animates the wave.", kind: "epher", code: `const a = 1\ngraph sin(x * a)` },

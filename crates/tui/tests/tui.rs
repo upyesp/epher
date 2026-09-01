@@ -15,7 +15,8 @@ fn submit_evaluates_against_persistent_env() {
     let mut app = App::default();
     app.set_input("x = 5; x + 1");
     app.submit();
-    assert_eq!(app.result(), "= 6");
+    // A script shows every answer it produced, in order (ADR-0052).
+    assert_eq!(app.result(), "= 5\n= 6");
     app.set_input("x * 2");
     app.submit();
     assert_eq!(app.result(), "= 10");
@@ -302,8 +303,9 @@ fn submit_line_keeps_multi_statement_scripts_as_one_history_entry() {
         &store,
         &Localizer::resolve(Some("en"), &[]),
     );
-    // One entry, semicolons intact, with the last answer appended.
-    assert_eq!(app.result(), "= 15");
+    // One entry, semicolons intact, with the last answer appended;
+    // the result area shows every answer in order (ADR-0052).
+    assert_eq!(app.result(), "= 10\n= 15");
     assert_eq!(
         load_history(&store).unwrap(),
         vec!["x = 10; x + 5  = 15".to_string()]
