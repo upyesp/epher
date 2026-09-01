@@ -482,18 +482,22 @@ area
 ```
 ### 1.12 Exact results: frac, dec and big
 
-Normally epher calculates with decimal numbers like a pocket calculator.
-Some numbers look better exact.
-
-**frac(n, d)** makes an exact fraction:
+Normally epher calculates with decimal numbers like a pocket calculator,
+but exact fractions are on by default: any result with a good
+small-denominator fraction shows as one. `1 / 3` displays as `1/3`
+without asking:
 
 ```epher
 1 / 3
 ```
 
 ```text
-0.3333333333333333
+1/3
 ```
+
+With **exact fractions off** in the Results settings (chapter 2.2) the
+same division shows `0.3333333333333333`. **frac(n, d)** makes an exact
+fraction that stays exact through calculations:
 
 ```epher
 frac(1, 3)
@@ -520,7 +524,7 @@ frac(1, 3) * 3
 ```
 
 ```text
-0.30000000000000004
+3/10
 ```
 
 ```epher
@@ -531,8 +535,10 @@ dec(0.1) + dec(0.2)
 0.3
 ```
 
-The first result is the tiny rounding error every computer makes with
-decimal numbers. `dec()` removes it.
+The first result is the exact fraction behind the answer and the
+second the decimal itself; with exact fractions off, the first instead
+shows the tiny rounding error every computer makes with decimal
+numbers (`0.30000000000000004`).
 
 **big(x)** makes an exact whole number, for values too large for a pocket
 calculator:

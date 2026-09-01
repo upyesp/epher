@@ -489,18 +489,22 @@ area
 ```
 ### 1.12 Exakte Ergebnisse: frac, dec und big
 
-Normalerweise rechnet epher mit Dezimalzahlen wie ein Taschenrechner.
-Manche Zahlen sehen exakt besser aus.
-
-**frac(n, d)** erzeugt einen exakten Bruch:
+Normalerweise rechnet epher mit Dezimalzahlen wie ein Taschenrechner,
+aber exakte Brüche sind standardmäßig eingeschaltet: jedes Ergebnis mit
+einem guten Bruch mit kleinem Nenner wird als solcher angezeigt.
+`1 / 3` zeigt sich ohne Nachfrage als `1/3`:
 
 ```epher
 1 / 3
 ```
 
 ```text
-0.3333333333333333
+1/3
 ```
+
+Bei **exakten Brüchen aus** in den Ergebnis-Einstellungen (Kapitel 2.2)
+zeigt dieselbe Division `0.3333333333333333`. **frac(n, d)** erzeugt
+einen exakten Bruch, der bei Berechnungen exakt bleibt:
 
 ```epher
 frac(1, 3)
@@ -527,7 +531,7 @@ frac(1, 3) * 3
 ```
 
 ```text
-0.30000000000000004
+3/10
 ```
 
 ```epher
@@ -538,8 +542,10 @@ dec(0.1) + dec(0.2)
 0.3
 ```
 
-Das erste Ergebnis ist der winzige Rundungsfehler, den jeder Computer bei
-Dezimalzahlen macht. `dec()` beseitigt ihn.
+Das erste Ergebnis ist der exakte Bruch hinter der Antwort und das
+zweite die Dezimalzahl selbst; bei ausgeschalteten exakten Brüchen
+zeigt das erste stattdessen den winzigen Rundungsfehler, den jeder
+Computer bei Dezimalzahlen macht (`0.30000000000000004`).
 
 **big(x)** erzeugt eine exakte ganze Zahl, für Werte, die zu groß für
 einen Taschenrechner sind:

@@ -487,18 +487,22 @@ area
 ```
 ### 1.12 Resultados exatos: frac, dec e big
 
-Normalmente o epher calcula com números decimais, como uma calculadora de
-bolso. Há números que ficam melhor em forma exata.
-
-**frac(n, d)** cria uma fração exata:
+Normalmente o epher calcula com números decimais, como uma calculadora
+de bolso, mas as frações exatas estão ativadas por predefinição:
+qualquer resultado com uma boa fração de denominador pequeno mostra-se
+como tal. `1 / 3` mostra-se como `1/3` sem pedir:
 
 ```epher
 1 / 3
 ```
 
 ```text
-0.3333333333333333
+1/3
 ```
+
+Com **frações exatas desativadas** nas definições de resultados
+(capítulo 2.2), a mesma divisão mostra `0.3333333333333333`. **frac(n,
+d)** cria uma fração exata que se mantém exata ao longo dos cálculos:
 
 ```epher
 frac(1, 3)
@@ -525,7 +529,7 @@ frac(1, 3) * 3
 ```
 
 ```text
-0.30000000000000004
+3/10
 ```
 
 ```epher
@@ -536,8 +540,10 @@ dec(0.1) + dec(0.2)
 0.3
 ```
 
-O primeiro resultado é o pequeno erro de arredondamento que todos os
-computadores cometem com números decimais. O `dec()` elimina-o.
+O primeiro resultado é a fração exata por trás da resposta e o segundo
+o decimal em si; com as frações exatas desativadas, o primeiro mostra
+em vez disso o pequeno erro de arredondamento que todos os
+computadores cometem com números decimais (`0.30000000000000004`).
 
 **big(x)** cria um número inteiro exato, para valores demasiado grandes para
 uma calculadora de bolso:
