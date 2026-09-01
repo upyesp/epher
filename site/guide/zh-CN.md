@@ -616,7 +616,18 @@ epher 拥有科学计算器的全部函数，按家族分组。
 |---|---|---|---|
 | `isprime(n)` | n 为素数时为真 | `isprime(97)` | `true` |
 | `nextprime(n)` / `prevprime(n)` | 相邻的素数 | `nextprime(10)` | `11` |
-| `factors(n)` | 素因数分解 | `factors(360)` | `2^3 * 3^2 * 5` |
+| `factors(n)` | 素因数分解 | `factors(360)` |
+| 列表字面量 | `{…}` | `{1, 2, 3}` |
+| 列表元素 | `list[i]`（从 1 起） | `{5, 6}[2]` |
+| 列表统计 | `mean(列表)`, `median(列表)`, … | `stdev(d)` |
+| 列表形态 | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
+| 线性回归 | `linreg(xs, ys)` | `linreg(x, y)` |
+| 正态族 | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
+| t 族 | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
+| 卡方族 | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
+| 离散族 | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
+| 检验与区间 | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| 数据图 | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | 欧拉函数 | `totient(12)` | `4` |
 | `ndivisors(n)` | 约数个数 | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b 的 e 次幂对 m 取模，结果精确 | `modpow(2, 10, 1000)` | `24` |
@@ -997,6 +1008,113 @@ integral(sin(x), 0, pi)
 
 两者都是数值计算；表达式在区间内必须取实数值，含多个变量的表达式会报错。
 
+### 1.20 数据：列表、统计与回归
+
+列表是大括号中的一列数字：`{1, 2, 3}`。元素是表达式，允许空列表
+`{}`，列表可以像任何值一样绑定到名称：
+
+```epher
+d = {12, 15, 14, 16, 13, 15, 14, 17}
+d[2]
+len(d)
+```
+
+`list[i]` 是第 i 个元素，从 1 开始计数，与计算器一致；索引越界是
+错误。方括号比 `^` 绑定更紧，所以 `d[2]^2` 是 `(d[2])^2`。
+
+对列表的运算是逐元素进行的，单个数字会广播到每个元素：
+
+```epher
+{1, 2, 3} * 2
+{1, 2, 3} + 10
+```
+
+两个列表做 `+ - * / ^` 运算时长度必须相同。`==` 和 `!=` 比较整个
+列表；排序比较不接受列表。
+
+统计函数接受一个列表作为唯一参数（多参数形式保留——`mean(1, 2,
+3)` 仍然可用）：`sum product mean median mode variance stdev min max
+range`。新的形态函数有 `len(列表)`、`sort(列表)`（升序副本）、
+`mode(列表)`（出现最多的值，并列时取最小）、`range(列表)`（最大
+减最小）和 `quartile(列表, k)`（k 为 1..3，TI 式四分位，取两半的
+中位数）：
+
+```epher
+mean(d)
+median(d)
+quartile(d, 1)
+```
+
+**linreg(xs, ys)** 对两个等长列表拟合最小二乘直线，并连同相关系数
+r 一起报告：
+
+```epher
+linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})
+```
+
+拟合直线是一种显示结果，就像 solve 的根；拟合的图形在散点图上
+（第 1.22 节）。
+
+### 1.21 分布与假设检验
+
+概率函数覆盖标准正态、t、卡方、二项和泊松分布族。正态族接受一个
+或三个参数——一个参数即标准正态：
+
+```epher
+normcdf(1.96)
+invnorm(0.975)
+normcdf(12, 10, 2)
+```
+
+`normpdf(x[, mu, sigma])`、`normcdf(x[, mu, sigma])`、`invnorm(p[,
+mu, sigma])`；`tpdf(x, df)`、`tcdf(x, df)`、`invt(p, df)`；
+`chi2pdf(x, df)`、`chi2cdf(x, df)`、`invchi2(p, df)`；
+`binompdf(k, n, p)`、`binomcdf(k, n, p)`；`poissonpdf(k, lambda)`、
+`poissoncdf(k, lambda)`。`inv*` 函数回答相反的问题：`invt(0.975,
+10)` 是下方有 97.5% 质量的 t 值。
+
+检验函数接受一个数据列表，以显示文本报告统计量和双侧 p 值；区间
+函数在您指定的水平上报告 `(下, 上)`：
+
+```epher
+d = {12, 15, 14, 16, 13, 15, 14, 17}
+ttest(d, 14)
+tinterval(d, 0.95)
+ztest(d, 14, 1.5)
+chisq_gof({20, 30, 25, 25}, {25, 25, 25, 25})
+```
+
+`ttest(数据, mu0)` 和 `tinterval(数据, 水平)` 使用样本标准差
+(n−1)；`ztest(数据, mu0, sigma)` 和 `zinterval(数据, sigma, 水平)`
+需要已知的 sigma。`chisq_gof(观测值, 期望值)` 是自由度为 k−1 的拟
+合优度检验。结果是显示文本：可读、可复制，但算术不能使用它们。
+
+### 1.22 数据图
+
+绘图家族也接受列表：散点图、直方图和箱线图。数据图独占面板，就像
+太阳系一样——最新命令胜出，`graph clear` 清空它。
+
+```epher
+x = {1, 2, 3, 4, 5}
+y = {2.1, 4.2, 5.8, 8.1, 9.9}
+graph scatter(x, y)
+```
+
+```epher
+graph histogram({1, 2, 2, 3, 3, 3, 4, 5})
+```
+
+```epher
+graph boxplot({1, 2, 2, 3, 3, 3, 9})
+```
+
+**scatter(xs, ys)** 绘制点，当点数不少于两个时绘制最小二乘拟合
+直线，图例标注为 `y = a*x + b (r = …)`。**histogram(数据[,
+组数])** 绘制频率直方图；组数可选（默认使用斯特吉斯规则），必须是
+1 到 50 之间的整数。**boxplot(数据)** 绘制箱线图：最小值、Q1、
+中位数、Q3、最大值，须线延伸到两端。窗口始终适应数据——`from a
+to b` 域关键字不适用——图像像任何其他图一样导出和保存。
+
 ## 2. 网页应用（PWA）
 
 ### 2.1 打开它
@@ -1092,6 +1210,25 @@ root (-1, 0)   minimum (0, 0)   root (1, 0)
 
 **表格：** `table` 命令会打印数值表（表达式没有值的行留空）：
 
+可选的 `derivative <表达式>` 子句添加第三列，即该表达式在每个
+x 处的数值导数：
+
+```epher
+table x ^ 2 from -2 to 2 points 5 derivative x ^ 2
+```
+
+```text
+         x           y          y'
+        -2           4          -4
+        -1           1          -2
+         0           0           0
+         1           1           2
+         2           4           4
+```
+
+表格单元格遵循结果设置：启用精确分数（默认）时，是简单分数的值
+会以分数显示——`table x / 3 from 0 to 1 points 4` 列出 `1/3` 而不是
+`0.333`。
 ```epher
 table x ^ 2 from -2 to 2 points 5
 ```

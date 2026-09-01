@@ -11,10 +11,12 @@
 
 use epher_core::astro::SolarScene;
 use epher_core::graph::{
-    analyze, parse_graph_source, sample_spec, sample_surface, InterestPoint, SampledCurve, Surface,
-    View3D,
+    analyze, parse_graph_source, sample_data_plot, sample_spec, sample_surface, DataPlot,
+    InterestPoint, SampledCurve, Surface, View3D,
 };
-use epher_core::graph_svg::{graph3d_svg, graph_svg, solar3d_svg, Poi, DEFAULT_STROKE_WIDTH};
+use epher_core::graph_svg::{
+    data_svg, graph3d_svg, graph_svg, solar3d_svg, Poi, DEFAULT_STROKE_WIDTH,
+};
 use epher_core::Env;
 use epher_i18n::Localizer;
 
@@ -41,11 +43,14 @@ impl PlotOutcome {
     }
 }
 
-/// The curves, surfaces, and solar system plotted so far in this run.
+/// The curves, surfaces, data plots, and solar system plotted so far in
+/// this run. A data plot (ADR-0044) is the pane's top priority, above
+/// curves, like the solar system.
 #[derive(Default)]
 pub struct Plots {
     curves: Vec<SampledCurve>,
     surfaces: Vec<Surface>,
+    data: Option<DataPlot>,
     solar: Option<SolarScene>,
 }
 
@@ -81,12 +86,24 @@ impl Plots {
         Plots::default()
     }
 
+    /// A plot state carrying a data plot a frontend already holds — for
+    /// saving without rebuilding.
+    pub fn from_data(data: DataPlot) -> Self {
+        Plots {
+            curves: Vec::new(),
+            surfaces: Vec::new(),
+            data: Some(data),
+            solar: None,
+        }
+    }
+
     /// A plot state carrying curves a frontend already holds (the TUI's
     /// pane) — for saving without re-plotting.
     pub fn from_curves(curves: Vec<SampledCurve>) -> Self {
         Plots {
             curves,
             surfaces: Vec::new(),
+            data: None,
             solar: None,
         }
     }
@@ -96,6 +113,7 @@ impl Plots {
         Plots {
             curves: Vec::new(),
             surfaces,
+            data: None,
             solar: None,
         }
     }
@@ -106,6 +124,7 @@ impl Plots {
         Plots {
             curves: Vec::new(),
             surfaces: Vec::new(),
+            data: None,
             solar: Some(scene),
         }
     }
@@ -120,6 +139,11 @@ impl Plots {
         &self.curves
     }
 
+    /// The plotted data plot, if any (ADR-0044).
+    pub fn data(&self) -> Option<&DataPlot> {
+        self.data.as_ref()
+    }
+
     /// The plotted surfaces.
     pub fn surfaces(&self) -> &[Surface] {
         &self.surfaces
@@ -132,6 +156,7 @@ impl Plots {
         let source = source.trim();
         if source == "clear" {
             self.curves.clear();
+            self.data = None;
             return PlotOutcome::ok(localizer.lookup("graph-cleared"));
         }
         if source == "save" {
@@ -144,21 +169,38 @@ impl Plots {
             }
             return self.save_svg(path, true, env, localizer);
         }
-        match parse_graph_source(source) {
-            Ok(spec) => match sample_spec(&spec, 120, env) {
-                Ok(samples) => {
-                    self.curves.push(SampledCurve {
-                        source: source.to_string(),
-                        kind: spec.kind,
-                        domain: spec.domain,
-                        samples,
-                        fill: spec.fill,
-                    });
+        // Data plots (ADR-0044): a scatter, histogram, or boxplot owns
+        // the pane like a solar scene does — the newest command wins.
+        if epher_core::graph::is_data_plot_source(source) {
+            match sample_data_plot(source, env) {
+                Ok(plot) => {
+                    self.data = Some(plot);
+                    self.curves.clear();
+                    self.surfaces.clear();
+                    self.solar = None;
                     PlotOutcome::ok(format!("graph: {source}"))
                 }
                 Err(e) => PlotOutcome::err(e.to_string()),
-            },
-            Err(e) => PlotOutcome::err(e.to_string()),
+            }
+        } else {
+            // a plain curve command displaces any data plot
+            self.data = None;
+            match parse_graph_source(source) {
+                Ok(spec) => match sample_spec(&spec, 120, env) {
+                    Ok(samples) => {
+                        self.curves.push(SampledCurve {
+                            source: source.to_string(),
+                            kind: spec.kind,
+                            domain: spec.domain,
+                            samples,
+                            fill: spec.fill,
+                        });
+                        PlotOutcome::ok(format!("graph: {source}"))
+                    }
+                    Err(e) => PlotOutcome::err(e.to_string()),
+                },
+                Err(e) => PlotOutcome::err(e.to_string()),
+            }
         }
     }
 
@@ -172,6 +214,7 @@ impl Plots {
         let source = source.trim();
         if source == "clear" {
             self.surfaces.clear();
+            self.data = None;
             return PlotOutcome::ok(localizer.lookup("graph-cleared"));
         }
         if source == "save" {
@@ -186,6 +229,9 @@ impl Plots {
         }
         match sample_surface(source, 40, env) {
             Ok(surface) => {
+                // the newest command owns the pane (ADR-0044: data plots
+                // are displaced like curves are)
+                self.data = None;
                 self.surfaces.push(surface);
                 PlotOutcome::ok(format!("graph3d: {source}"))
             }
@@ -224,6 +270,7 @@ impl Plots {
         };
         match epher_core::astro::solar_scene(jd) {
             Ok(scene) => {
+                self.data = None;
                 self.solar = Some(scene);
                 PlotOutcome::ok(format!("solar3d: {source}"))
             }
@@ -253,8 +300,11 @@ impl Plots {
         env: &Env,
         localizer: &Localizer,
     ) -> PlotOutcome {
-        if self.curves.is_empty() {
+        if self.curves.is_empty() && self.data.is_none() {
             return PlotOutcome::err(localizer.lookup("graph-empty"));
+        }
+        if let Some(data) = &self.data {
+            return write_document(path, data_svg(data, DEFAULT_STROKE_WIDTH), localizer);
         }
         let pois = labeled_pois(&analyze(&self.curves, env), localizer);
         write_document(

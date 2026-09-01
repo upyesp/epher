@@ -240,6 +240,71 @@ fn prepare_formats_a_table_with_blank_rows() {
 }
 
 #[test]
+fn prepare_formats_a_derivative_column_with_exact_cells() {
+    let mut s = Session::new();
+    let out = prepare(
+        &Command::Table {
+            source: "x ^ 2 from -1 to 1 points 3 derivative x ^ 2".into(),
+        },
+        &s,
+        &en(),
+    )
+    .unwrap();
+    let Prepared::Table { text } = out else {
+        panic!("expected a table");
+    };
+    let lines: Vec<&str> = text.lines().collect();
+    assert!(
+        lines[0].contains("y'"),
+        "the derivative column has a header: {}",
+        lines[0]
+    );
+    // x = -1: y = 1, y' = -2
+    assert!(
+        lines[1].contains('1') && lines[1].contains("-2"),
+        "{}",
+        lines[1]
+    );
+    // exact-fraction cells follow the session's display preference
+    let out = prepare(
+        &Command::Table {
+            source: "x / 3 from 0 to 1 points 4".into(),
+        },
+        &s,
+        &en(),
+    )
+    .unwrap();
+    let Prepared::Table { text } = out else {
+        panic!("expected a table");
+    };
+    let lines: Vec<&str> = text.lines().collect();
+    assert!(
+        lines.iter().any(|l| l.contains("1/9")),
+        "exact cells: {text}"
+    );
+    assert!(
+        lines.iter().any(|l| l.contains("1/3")),
+        "exact cells: {text}"
+    );
+    // and the toggle off returns decimals
+    let mut prefs = s.display();
+    prefs.exact_fractions = false;
+    s.set_display(prefs);
+    let out = prepare(
+        &Command::Table {
+            source: "x / 3 from 0 to 1 points 4".into(),
+        },
+        &s,
+        &en(),
+    )
+    .unwrap();
+    let Prepared::Table { text } = out else {
+        panic!("expected a table");
+    };
+    assert!(!text.contains('/'), "decimal cells: {text}");
+}
+
+#[test]
 fn prepare_reports_table_errors() {
     let s = Session::new();
     assert!(prepare(

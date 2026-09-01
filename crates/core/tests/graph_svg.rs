@@ -313,3 +313,31 @@ fn rotating_never_resizes_the_3d_frame() {
     .unwrap();
     assert_eq!(s0, s1, "the solar frame must not resize under rotation");
 }
+
+#[test]
+fn data_svg_renders_all_three_kinds() {
+    use epher_core::graph::sample_data_plot;
+    let env = Env::default();
+
+    let scatter = sample_data_plot("scatter({1, 2, 3}, {2, 4, 6})", &env).unwrap();
+    let doc = epher_core::graph_svg::data_svg(&scatter, DEFAULT_STROKE_WIDTH);
+    assert!(doc.starts_with("<svg"), "{doc}");
+    assert!(doc.contains("<circle"), "scatter points");
+    assert!(doc.contains("<polyline"), "the fitted line");
+    assert!(doc.contains("r = 1"), "the fit caption");
+
+    let hist = sample_data_plot("histogram({1, 2, 2, 3, 3, 3, 4}, 4)", &env).unwrap();
+    let doc = epher_core::graph_svg::data_svg(&hist, DEFAULT_STROKE_WIDTH);
+    assert!(doc.contains("<rect"), "histogram bars");
+    assert_eq!(
+        doc.matches("<rect class=\"fill curve-0\"").count(),
+        4,
+        "one rect per bin"
+    );
+
+    let boxed = sample_data_plot("boxplot({1, 2, 2, 3, 3, 3, 9})", &env).unwrap();
+    let doc = epher_core::graph_svg::data_svg(&boxed, DEFAULT_STROKE_WIDTH);
+    assert!(doc.contains("<rect"), "the box");
+    assert!(doc.contains("<line"), "whiskers and median");
+    assert!(doc.contains("</svg>"), "a complete document");
+}

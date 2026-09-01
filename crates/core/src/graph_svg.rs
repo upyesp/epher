@@ -12,7 +12,7 @@
 //! visible caption at its end so solid lines stay distinguishable
 //! without color (WCAG 1.4.1).
 
-use crate::graph::{zoom_window, InterestKind, SampledCurve, Segment3D, Surface, View3D};
+use crate::graph::{zoom_window, DataPlot, InterestKind, SampledCurve, Segment3D, Surface, View3D};
 use crate::Sample;
 
 pub const WIDTH: f64 = 640.0;
@@ -398,6 +398,153 @@ fn style_svg(stroke_width: f64) -> String {
 .trace {{ fill: #2dd4bf; stroke: #141416; stroke-width: 2; }}\
 </style>"
     )
+}
+
+/// Render a data plot (ADR-0044) as a self-contained SVG document with
+/// the same frame as [`graph_svg`]: scatter points with the fitted line,
+/// histogram bars, or a box-and-whisker. Nothing to draw renders the
+/// empty string.
+pub fn data_svg(data: &DataPlot, stroke_width: f64) -> String {
+    use crate::graph::DataPlotKind;
+    let (x_min, x_max, mut y_min, mut y_max) = crate::graph::data_ranges(data);
+    let y_span = (y_max - y_min).max(1e-9);
+    let pad = y_span * 0.08;
+    y_min -= pad;
+    y_max += pad;
+    let geom = Geometry {
+        x_min,
+        x_max,
+        y_min,
+        y_max,
+        step_x: crate::graph::nice_step(x_max - x_min, 10),
+        step_y: crate::graph::nice_step(y_max - y_min, 8),
+        zero_axis: y_min <= 0.0 && y_max >= 0.0,
+    };
+    let mut svg = String::new();
+    svg.push_str(&format!(
+        "<svg viewBox=\"0 0 {WIDTH} {HEIGHT}\" width=\"{WIDTH}\" height=\"{HEIGHT}\" role=\"img\" aria-label=\"{}\" xmlns=\"http://www.w3.org/2000/svg\">",
+        escape(&data.source)
+    ));
+    svg.push_str(&format!("<title>{}</title>", escape(&data.source)));
+    svg.push_str(&style_svg(stroke_width));
+    svg.push_str(&format!(
+        "<rect class=\"bg\" x=\"0\" y=\"0\" width=\"{WIDTH}\" height=\"{HEIGHT}\" />"
+    ));
+    svg.push_str(&layers_svg(&geom, geom.zero_axis));
+    for v in ticks(geom.x_min, geom.x_max, geom.step_x) {
+        let x = geom.sx(v);
+        svg.push_str(&format!(
+            "<text class=\"tick\" x=\"{x}\" y=\"{}\" text-anchor=\"middle\">{}</text>",
+            HEIGHT - 6.0,
+            label(v)
+        ));
+    }
+    for v in ticks(geom.y_min, geom.y_max, geom.step_y) {
+        let y = geom.sy(v);
+        svg.push_str(&format!(
+            "<text class=\"tick\" x=\"{}\" y=\"{}\" text-anchor=\"end\">{}</text>",
+            LEFT - 4.0,
+            y + 4.0,
+            label(v)
+        ));
+    }
+    match data.kind {
+        DataPlotKind::Scatter => {
+            for (x, y) in &data.points {
+                svg.push_str(&format!(
+                    "<circle class=\"poi\" cx=\"{}\" cy=\"{}\" r=\"4\" />",
+                    geom.sx(*x),
+                    geom.sy(*y)
+                ));
+            }
+            if let Some(f) = data.fit {
+                let (x0, x1) = (geom.x_min, geom.x_max);
+                let (y0, y1) = (f.a * x0 + f.b, f.a * x1 + f.b);
+                svg.push_str(&format!(
+                    "<polyline class=\"curve curve-0\" points=\"{},{:.2} {},{:.2}\" />",
+                    geom.sx(x0),
+                    geom.sy(y0),
+                    geom.sx(x1),
+                    geom.sy(y1)
+                ));
+                svg.push_str(&format!(
+                    "<text class=\"label curve-0\" x=\"{}\" y=\"{}\">y = {}*x + {} (r = {})</text>",
+                    LEFT + 6.0,
+                    TOP + 16.0,
+                    short(f.a),
+                    short(f.b),
+                    short(f.r)
+                ));
+            }
+        }
+        DataPlotKind::Histogram => {
+            for (lo, hi, count) in &data.bins {
+                let x0 = geom.sx(*lo);
+                let x1 = geom.sx(*hi);
+                let y0 = geom.sy(0.0);
+                let y1 = geom.sy(*count);
+                let w = (x1 - x0).max(0.5);
+                svg.push_str(&format!(
+                    "<rect class=\"fill curve-0\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" />",
+                    x0,
+                    y1,
+                    w,
+                    (y0 - y1).max(0.0)
+                ));
+            }
+        }
+        DataPlotKind::BoxPlot => {
+            if let Some(b) = data.boxplot {
+                let y = geom.sy(0.5);
+                let x = |v: f64| geom.sx(v);
+                svg.push_str(&format!(
+                    "<line class=\"axis\" x1=\"{}\" y1=\"{y}\" x2=\"{}\" y2=\"{y}\" />",
+                    x(b[0]),
+                    x(b[4])
+                ));
+                svg.push_str(&format!(
+                    "<line class=\"axis\" x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" />",
+                    x(b[0]),
+                    y - 10.0,
+                    x(b[0]),
+                    y + 10.0
+                ));
+                svg.push_str(&format!(
+                    "<line class=\"axis\" x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" />",
+                    x(b[4]),
+                    y - 10.0,
+                    x(b[4]),
+                    y + 10.0
+                ));
+                svg.push_str(&format!(
+                    "<rect class=\"fill curve-0\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"20\" />",
+                    x(b[1]),
+                    y - 10.0,
+                    (x(b[3]) - x(b[1])).max(0.5)
+                ));
+                svg.push_str(&format!(
+                    "<line class=\"axis\" x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" />",
+                    x(b[2]),
+                    y - 10.0,
+                    x(b[2]),
+                    y + 10.0
+                ));
+            }
+        }
+    }
+    svg.push_str("</svg>");
+    svg
+}
+
+/// One short number for a scatter legend entry.
+fn short(x: f64) -> String {
+    let s = format!("{x:.4}");
+    let s = s.trim_end_matches('0').trim_end_matches('.');
+    if s == "-0" {
+        "0".to_string()
+    } else {
+        s.to_string()
+    }
 }
 
 /// Render curves, points of interest, and the trace cursor as a

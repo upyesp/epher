@@ -2159,3 +2159,256 @@ fn eval_display_script(src: &str) -> String {
         .map(|v| v.to_string())
         .unwrap_or_else(|| panic!("no value from {src:?}"))
 }
+
+// ===== data platform (ADR-0044) =====
+
+#[test]
+fn list_literals_evaluate_to_list_values() {
+    match eval_str("{1, 2, 3}") {
+        Value::List(items) => {
+            assert_eq!(
+                items,
+                vec![Value::float(1.0), Value::float(2.0), Value::float(3.0)]
+            )
+        }
+        other => panic!("expected a list, got {other:?}"),
+    }
+    assert_eq!(eval_str("{}"), Value::List(vec![]));
+    // elements are expressions
+    assert_eq!(eval_str("{1, 2 + 3, pi}"), eval_str("{1, 5, pi}"));
+    // trailing comma is allowed
+    assert_eq!(eval_str("{1, 2,}"), eval_str("{1, 2}"));
+}
+
+#[test]
+fn list_indexing_is_one_based_and_binds_tight() {
+    assert_eq!(eval_str("{10, 20, 30}[2]"), Value::float(20.0));
+    assert_eq!(eval_str("{10, 20, 30}[1 + 1]"), Value::float(20.0));
+    let mut env = Env::default();
+    env.set("d", eval_str("{5, 6}"));
+    assert_eq!(
+        eval(&parse("d[2]").unwrap(), &env).unwrap(),
+        Value::float(6.0)
+    );
+    // index binds tighter than ^
+    assert_eq!(eval_str("{2, 3}[1]^2"), Value::float(4.0));
+    // out of range and non-list index are errors
+    let err = eval(&parse("{1}[5]").unwrap(), &Env::default()).unwrap_err();
+    assert!(err.to_string().contains("out of range"), "{err}");
+    let err = eval(&parse("2[1]").unwrap(), &Env::default()).unwrap_err();
+    assert!(err.to_string().contains("needs a list"), "{err}");
+    let err = eval(&parse("{1}[1.5]").unwrap(), &Env::default()).unwrap_err();
+    assert!(err.to_string().contains("whole number"), "{err}");
+}
+
+#[test]
+fn list_arithmetic_is_elementwise_with_scalar_broadcast() {
+    assert_eq!(eval_str("{1, 2, 3} * 2"), eval_str("{2, 4, 6}"));
+    assert_eq!(eval_str("2 / {1, 2, 4}"), eval_str("{2, 1, 0.5}"));
+    assert_eq!(eval_str("{1, 2} + {3, 4}"), eval_str("{4, 6}"));
+    assert_eq!(eval_str("-{1, 2}"), eval_str("{-1, -2}"));
+    assert_eq!(eval_str("{2, 3} ^ 2"), eval_str("{4, 9}"));
+    let err = eval(&parse("{1, 2} + {3}").unwrap(), &Env::default()).unwrap_err();
+    assert!(err.to_string().contains("different lengths"), "{err}");
+    let err = eval(&parse("{1, 2} + 1i").unwrap(), &Env::default()).unwrap_err();
+    assert!(err.to_string().contains("cannot combine"), "{err}");
+}
+
+#[test]
+fn list_equality_compares_whole_lists() {
+    assert_eq!(eval_str("{1, 2} == {1, 2}"), Value::Bool(true));
+    assert_eq!(eval_str("{1, 2} != {1, 3}"), Value::Bool(true));
+    let err = eval(&parse("{1, 2} < {3, 4}").unwrap(), &Env::default()).unwrap_err();
+    assert!(err.to_string().contains("cannot compare"), "{err}");
+}
+
+#[test]
+fn stats_accept_a_list_or_variadic_numbers() {
+    assert_eq!(eval_str("sum({1, 2, 3})"), eval_str("6"));
+    assert_eq!(eval_str("sum(1, 2, 3)"), eval_str("6"));
+    assert_eq!(eval_str("mean({1, 2, 3})"), eval_str("2"));
+    assert_eq!(eval_str("median({3, 1, 2})"), eval_str("2"));
+    assert_eq!(
+        eval_str("stdev({1, 2, 3, 4})"),
+        eval_str("stdev(1, 2, 3, 4)")
+    );
+    assert_eq!(eval_str("min({3, 1, 2})"), eval_str("1"));
+    assert_eq!(eval_str("max({3, 1, 2})"), eval_str("3"));
+}
+
+#[test]
+fn list_shape_builtins() {
+    assert_eq!(eval_str("len({1, 2, 3})"), Value::float(3.0));
+    assert_eq!(eval_str("sort({3, 1, 2})"), eval_str("{1, 2, 3}"));
+    assert_eq!(eval_str("mode({1, 2, 2, 3})"), Value::float(2.0));
+    assert_eq!(eval_str("mode({2, 1, 2, 1})"), Value::float(1.0)); // smallest on ties
+    assert_eq!(eval_str("range({3, 1, 7})"), Value::float(6.0));
+    assert_eq!(
+        eval_str("quartile({1, 2, 3, 4, 5, 6, 7, 8}, 1)"),
+        Value::float(2.5)
+    );
+    assert_eq!(
+        eval_str("quartile({1, 2, 3, 4, 5, 6, 7, 8}, 3)"),
+        Value::float(6.5)
+    );
+    assert_eq!(eval_str("quartile({1, 2, 3, 4, 5}, 2)"), Value::float(3.0));
+    // empty lists are domain errors for the statistics
+    let err = eval(&parse("mean({})").unwrap(), &Env::default()).unwrap_err();
+    assert!(err.to_string().contains("mean"), "{err}");
+    let err = eval(&parse("len(5)").unwrap(), &Env::default()).unwrap_err();
+    assert!(err.to_string().contains("expects a list"), "{err}");
+}
+
+#[test]
+fn linreg_fits_and_reports_r() {
+    assert_eq!(
+        eval_str("linreg({1, 2, 3}, {2, 4, 6})"),
+        Value::Str("y = 2*x + 0 (r = 1)".into())
+    );
+    match eval_str("linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})") {
+        Value::Str(s) => {
+            assert!(s.starts_with("y = 1.96*x + 0.15"), "{s}");
+            assert!(s.contains("r = 0.9979"), "{s}");
+        }
+        other => panic!("expected a display string, got {other:?}"),
+    }
+    let err = eval(&parse("linreg({1}, {2})").unwrap(), &Env::default()).unwrap_err();
+    assert!(err.to_string().contains("at least 2"), "{err}");
+    let err = eval(&parse("linreg({1, 2}, {3})").unwrap(), &Env::default()).unwrap_err();
+    assert!(err.to_string().contains("same-length"), "{err}");
+}
+
+#[test]
+fn normal_family_matches_reference_values() {
+    assert_close(eval_f64("normcdf(0)"), 0.5);
+    assert_close(eval_f64("normcdf(1.96)"), 0.975002104852);
+    assert_close(eval_f64("normcdf(2, 2, 0.5)"), 0.5);
+    assert_close(eval_f64("invnorm(0.975)"), 1.959963984540);
+    assert_close(eval_f64("normpdf(0)"), 0.398942280401);
+    assert_close(eval_f64("normpdf(0, 0, 2)"), 0.199471140201);
+    // p outside (0, 1) is a domain error
+    let err = eval(&parse("invnorm(1.5)").unwrap(), &Env::default()).unwrap_err();
+    assert!(err.to_string().contains("probability"), "{err}");
+}
+
+#[test]
+fn t_family_matches_reference_values() {
+    assert_close(eval_f64("tcdf(0, 5)"), 0.5);
+    assert_close(eval_f64("tcdf(2, 10)"), 0.963305982615);
+    assert_close(eval_f64("tpdf(0, 10)"), 0.389108383966);
+    assert_close(eval_f64("invt(0.975, 10)"), 2.228138851986);
+    assert_close(eval_f64("invt(0.95, 20)"), 1.724718242921);
+    let err = eval(&parse("tcdf(1, -1)").unwrap(), &Env::default()).unwrap_err();
+    assert!(err.to_string().contains("df"), "{err}");
+}
+
+#[test]
+fn chi2_family_matches_reference_values() {
+    assert_close(eval_f64("chi2cdf(3.84, 1)"), 0.949956478752);
+    assert_close(eval_f64("chi2cdf(5.99, 2)"), 0.949963372913);
+    assert_close(eval_f64("invchi2(0.95, 2)"), 5.991464547108);
+    assert_close(eval_f64("chi2pdf(1, 2)"), 0.303265329856);
+}
+
+#[test]
+fn discrete_families_match_reference_values() {
+    assert_close(eval_f64("binompdf(2, 10, 0.5)"), 0.0439453125);
+    assert_close(eval_f64("binomcdf(2, 10, 0.5)"), 0.0546875);
+    assert_close(eval_f64("binomcdf(5, 10, 0.9)"), 0.0016349374);
+    assert_close(eval_f64("poissonpdf(2, 2)"), 0.270670566473);
+    assert_close(eval_f64("poissoncdf(3, 2)"), 0.857123460499);
+    assert_close(eval_f64("poissoncdf(0, 2)"), 0.135335283237);
+}
+
+#[test]
+fn tests_and_intervals_report_statistics() {
+    let script = "d = {12, 15, 14, 16, 13, 15, 14, 17}";
+    assert_eq!(
+        eval_display_script(&format!("{script}\nztest(d, 14, 1.5)")),
+        "z = 0.9428, p = 0.3458"
+    );
+    assert_eq!(
+        eval_display_script(&format!("{script}\nttest(d, 14)")),
+        "t = 0.8819, p = 0.4071"
+    );
+    assert_eq!(
+        eval_display_script(&format!("{script}\nzinterval(d, 1.5, 0.95)")),
+        "(13.4606, 15.5394)"
+    );
+    assert_eq!(
+        eval_display_script(&format!("{script}\ntinterval(d, 0.95)")),
+        "(13.1594, 15.8406)"
+    );
+    assert_eq!(
+        eval_display_script("chisq_gof({20, 30, 25, 25}, {25, 25, 25, 25})"),
+        "chi2 = 2, p = 0.5724"
+    );
+    let err = script_err("ttest({1}, 0)");
+    assert!(err.contains("at least 2"), "{err}");
+}
+
+#[test]
+fn data_plots_compute_primitives() {
+    use epher_core::graph::{sample_data_plot, DataPlotKind};
+    let env = Env::default();
+    let scatter = sample_data_plot("scatter({1, 2, 3}, {2, 4, 6})", &env).unwrap();
+    assert_eq!(scatter.kind, DataPlotKind::Scatter);
+    assert_eq!(scatter.points, vec![(1.0, 2.0), (2.0, 4.0), (3.0, 6.0)]);
+    let fit = scatter.fit.expect("fit for 3 points");
+    assert!((fit.a - 2.0).abs() < 1e-9);
+    assert!((fit.b).abs() < 1e-9);
+    assert!((fit.r - 1.0).abs() < 1e-9);
+
+    let hist = sample_data_plot("histogram({1, 2, 2, 3, 3, 3, 4}, 4)", &env).unwrap();
+    assert_eq!(hist.kind, DataPlotKind::Histogram);
+    assert_eq!(hist.bins.len(), 4);
+    let counts: Vec<f64> = hist.bins.iter().map(|(_, _, c)| *c).collect();
+    assert_eq!(counts, vec![1.0, 2.0, 3.0, 1.0]);
+    let total: f64 = counts.iter().sum();
+    assert_eq!(total, 7.0);
+
+    let boxed = sample_data_plot("boxplot({1, 2, 2, 3, 3, 3, 9})", &env).unwrap();
+    assert_eq!(boxed.kind, DataPlotKind::BoxPlot);
+    let five = boxed.boxplot.expect("five numbers");
+    assert_eq!(five, [1.0, 2.0, 3.0, 3.0, 9.0]);
+
+    // a single point has no fit; domain keywords are rejected
+    let single = sample_data_plot("scatter({1}, {2})", &env).unwrap();
+    assert!(single.fit.is_none());
+    let err = sample_data_plot("scatter({1, 2}, {3, 4}) from -5 to 5", &env).unwrap_err();
+    assert!(err.to_string().contains("from a to b"), "{err}");
+    let err = sample_data_plot("histogram({1, 2, 3}, 4, 5)", &env).unwrap_err();
+    assert!(err.to_string().contains("bin count"), "{err}");
+}
+
+#[test]
+fn table_commands_parse_and_evaluate_with_derivative() {
+    use epher_core::graph::{parse_table_source, table_rows};
+    let env = Env::default();
+    let spec = parse_table_source("x ^ 2 from -1 to 1 points 3 derivative x ^ 2").unwrap();
+    assert!(spec.derivative.is_some());
+    let rows = table_rows(
+        &spec.expr,
+        spec.derivative.as_ref(),
+        spec.x_min,
+        spec.x_max,
+        spec.points,
+        &env,
+    );
+    assert_eq!(rows.len(), 3);
+    let (x0, y0, d0) = rows[0];
+    assert!((x0 - -1.0).abs() < 1e-12);
+    assert!((y0.unwrap() - 1.0).abs() < 1e-9);
+    assert!(
+        (d0.unwrap() - -2.0).abs() < 1e-6,
+        "y' at -1 is -2, got {}",
+        d0.unwrap()
+    );
+    let (_, y1, d1) = rows[1];
+    assert!((y1.unwrap() - 0.0).abs() < 1e-9);
+    assert!((d1.unwrap() - 0.0).abs() < 1e-6);
+
+    // without a derivative clause the third column is absent
+    let plain = parse_table_source("x from 0 to 1 points 2").unwrap();
+    assert!(plain.derivative.is_none());
+}

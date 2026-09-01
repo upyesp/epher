@@ -659,7 +659,18 @@ Primos e divisores trabalham com números inteiros:
 |---|---|---|---|
 | `isprime(n)` | verdadeiro quando n é primo | `isprime(97)` | `true` |
 | `nextprime(n)` / `prevprime(n)` | os primos mais próximos | `nextprime(10)` | `11` |
-| `factors(n)` | fatoração em primos | `factors(360)` | `2^3 * 3^2 * 5` |
+| `factors(n)` | fatoração em primos | `factors(360)` |
+| Literal de lista | `{…}` | `{1, 2, 3}` |
+| Elemento de lista | `list[i]` (base 1) | `{5, 6}[2]` |
+| Estatística de lista | `mean(lista)`, `median(lista)`, … | `stdev(d)` |
+| Forma de lista | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
+| Regressão linear | `linreg(xs, ys)` | `linreg(x, y)` |
+| Família normal | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
+| Família t | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
+| Família qui-quadrado | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
+| Famílias discretas | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
+| Testes e intervalos | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| Gráficos de dados | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | totiente de Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | quantos divisores n tem | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b elevado a e, módulo m, exato | `modpow(2, 10, 1000)` | `24` |
@@ -1052,6 +1063,128 @@ integral(sin(x), 0, pi)
 
 Ambos são numéricos; as expressões precisam ter valores reais no intervalo, e uma expressão com várias variáveis é um erro.
 
+### 1.20 Dados: listas, estatística e regressão
+
+Uma lista é uma coluna de números entre chavetas: `{1, 2, 3}`. Os
+elementos são expressões, a lista vazia `{}` é permitida, e uma lista
+liga-se a um nome como qualquer valor:
+
+```epher
+d = {12, 15, 14, 16, 13, 15, 14, 17}
+d[2]
+len(d)
+```
+
+`list[i]` é o i-ésimo elemento, com base 1 como numa calculadora; um
+índice fora da lista é um erro. O parêntese reto liga mais forte que
+`^`, por isso `d[2]^2` é `(d[2])^2`.
+
+A aritmética sobre uma lista é elemento a elemento, com um número
+simples aplicado a cada elemento:
+
+```epher
+{1, 2, 3} * 2
+{1, 2, 3} + 10
+```
+
+Duas listas têm de ter o mesmo comprimento para `+ - * / ^`. `==` e
+`!=` comparam listas inteiras; as comparações de ordem rejeitam-nas.
+
+As funções estatísticas aceitam uma lista como único argumento (a
+forma com vários argumentos mantém-se — `mean(1, 2, 3)` continua a
+funcionar): `sum product mean median mode variance stdev min max
+range`. As novas funções de forma são `len(lista)`, `sort(lista)`
+(cópia crescente), `mode(lista)` (valor mais frequente, o menor em
+caso de empate), `range(lista)` (maior menos menor valor) e
+`quartile(lista, k)` para k em 1..3 (quartis à moda TI, mediana das
+metades):
+
+```epher
+mean(d)
+median(d)
+quartile(d, 1)
+```
+
+**linreg(xs, ys)** ajusta a reta dos mínimos quadrados a duas listas
+do mesmo comprimento e informa-a com o coeficiente de correlação r:
+
+```epher
+linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})
+```
+
+A reta ajustada é uma apresentação, como as raízes de solve; a imagem
+do ajuste vive no gráfico de dispersão (secção 1.22).
+
+### 1.21 Distribuições e testes de hipótese
+
+As funções de probabilidade cobrem a normal padrão, a t de Student,
+o qui-quadrado, a binomial e a de Poisson. A família normal aceita um
+ou três argumentos — um só argumento é a normal padrão:
+
+```epher
+normcdf(1.96)
+invnorm(0.975)
+normcdf(12, 10, 2)
+```
+
+`normpdf(x[, mu, sigma])`, `normcdf(x[, mu, sigma])`, `invnorm(p[,
+mu, sigma])`; `tpdf(x, df)`, `tcdf(x, df)`, `invt(p, df)`;
+`chi2pdf(x, df)`, `chi2cdf(x, df)`, `invchi2(p, df)`;
+`binompdf(k, n, p)`, `binomcdf(k, n, p)`; `poissonpdf(k, lambda)`,
+`poissoncdf(k, lambda)`. As funções `inv*` respondem à pergunta
+inversa: `invt(0.975, 10)` é o valor de t abaixo do qual está 97.5 %
+da massa.
+
+Os testes tomam uma lista de dados e informam o estatístico e o valor
+p bilateral como texto de apresentação; os intervalos informam
+`(baixo, alto)` no nível que nomear:
+
+```epher
+d = {12, 15, 14, 16, 13, 15, 14, 17}
+ttest(d, 14)
+tinterval(d, 0.95)
+ztest(d, 14, 1.5)
+chisq_gof({20, 30, 25, 25}, {25, 25, 25, 25})
+```
+
+`ttest(dados, mu0)` e `tinterval(dados, nível)` usam o desvio padrão
+amostral (n−1); `ztest(dados, mu0, sigma)` e `zinterval(dados, sigma,
+nível)` precisam do sigma conhecido. `chisq_gof(observados,
+esperados)` é o teste de ajuste com k−1 graus de liberdade. Os
+resultados são textos de apresentação: legíveis e copiáveis, mas a
+aritmética não pode tocá-los.
+
+### 1.22 Gráficos de dados
+
+A família de gráficos também aceita listas: um gráfico de dispersão,
+um histograma e um gráfico de caixa. Um gráfico de dados ocupa o
+painel sozinho, como um sistema solar — o comando mais recente ganha,
+e `graph clear` esvazia-o.
+
+```epher
+x = {1, 2, 3, 4, 5}
+y = {2.1, 4.2, 5.8, 8.1, 9.9}
+graph scatter(x, y)
+```
+
+```epher
+graph histogram({1, 2, 2, 3, 3, 3, 4, 5})
+```
+
+```epher
+graph boxplot({1, 2, 2, 3, 3, 3, 9})
+```
+
+**scatter(xs, ys)** desenha os pontos e, com dois ou mais, a reta dos
+mínimos quadrados, com a legenda `y = a*x + b (r = …)`.
+**histogram(dados[, classes])** desenha um histograma de frequências;
+o número de classes é opcional (regra de Sturges por predefinição) e
+tem de ser um inteiro entre 1 e 50. **boxplot(dados)** desenha o
+gráfico de caixa: mínimo, Q1, mediana, Q3, máximo, com bigodes até
+aos extremos. A janela ajusta-se sempre aos dados — as palavras-chave
+`from a to b` não se aplicam — e a imagem exporta-se e guarda-se como
+qualquer gráfico.
+
 ## 2. A aplicação web (PWA)
 
 ### 2.1 Abri-la
@@ -1181,6 +1314,26 @@ root (-1, 0)   minimum (0, 0)   root (1, 0)
 **Tabelas:** o comando `table` imprime uma tabela de valores (as linhas
 onde a expressão não tem valor ficam em branco):
 
+Uma cláusula opcional `derivative <expressão>` acrescenta uma
+terceira coluna, a derivada numérica dessa expressão em cada x:
+
+```epher
+table x ^ 2 from -2 to 2 points 5 derivative x ^ 2
+```
+
+```text
+         x           y          y'
+        -2           4          -4
+        -1           1          -2
+         0           0           0
+         1           1           2
+         2           4           4
+```
+
+As células da tabela seguem os ajustes de resultados: com as
+frações exatas ativadas (predefinição), um valor que é uma fração
+simples mostra-se como tal — `table x / 3 from 0 to 1 points 4`
+lista `1/3` em vez de `0.333`.
 ```epher
 table x ^ 2 from -2 to 2 points 5
 ```

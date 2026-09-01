@@ -797,6 +797,17 @@ not know, so you can fix your expression.
 | Binary, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Base spelling | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 | Primes | `isprime(n)`, `factors(n)`, … | `factors(360)` |
+| List literal | `{…}` | `{1, 2, 3}` |
+| List element | `list[i]` (1-based) | `{5, 6}[2]` |
+| List statistics | `mean(list)`, `median(list)`, … | `stdev(d)` |
+| List shape | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
+| Linear regression | `linreg(xs, ys)` | `linreg(x, y)` |
+| Normal family | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
+| t family | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
+| Chi-squared family | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
+| Discrete families | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
+| Tests and intervals | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| Data plots | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
 
 ### 1.16 Astronomy and the solar system
 
@@ -1076,6 +1087,160 @@ upper bound works: `graph integral(x^2, 0, x)`.
 Both are numeric; the expressions must be real-valued over the range,
 and an expression in several variables is an error.
 
+### 1.20 Data: lists, statistics, and regression
+
+A list is a column of numbers in braces: `{1, 2, 3}`. Elements are
+expressions, the empty list `{}` is allowed, and a list binds to a name
+like any value:
+
+```epher
+d = {12, 15, 14, 16, 13, 15, 14, 17}
+d[2]
+len(d)
+```
+
+```text
+{12, 15, 14, 16, 13, 15, 14, 17}
+15
+8
+```
+
+`list[i]` is the i-th element, 1-based like a calculator expects; an
+out-of-range index is an error. The bracket binds tighter than `^`, so
+`d[2]^2` is `(d[2])^2`.
+
+Arithmetic over a list is elementwise, with a plain number broadcast to
+every element:
+
+```epher
+{1, 2, 3} * 2
+{1, 2, 3} + 10
+```
+
+```text
+{2, 4, 6}
+{11, 12, 13}
+```
+
+Two lists must have the same length for `+ - * / ^`. `==` and `!=`
+compare whole lists; ordering comparisons reject them.
+
+The statistics functions take a list as their one argument (they keep
+their variadic form too — `mean(1, 2, 3)` still works): `sum product
+mean median mode variance stdev min max range`. The new shape
+functions are `len(list)`, `sort(list)` (ascending copy), `mode(list)`
+(most frequent value, smallest on ties), `range(list)` (max minus
+min), and `quartile(list, k)` for k in 1..3 (TI-style median of
+halves):
+
+```epher
+mean(d)
+median(d)
+quartile(d, 1)
+```
+
+```text
+14.5
+14.5
+13.5
+```
+
+**linreg(xs, ys)** fits the least-squares line through two same-length
+lists and reports it with the correlation r:
+
+```epher
+linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})
+```
+
+```text
+y = 1.96*x + 0.15 (r = 0.9979)
+```
+
+The fitted line is a display, like solve's roots; the picture of the
+fit lives on the scatter plot (section 1.22).
+
+### 1.21 Distributions and hypothesis tests
+
+The probability functions cover the standard normal, Student's t,
+chi-squared, binomial, and Poisson families. The normal family takes
+one or three arguments — one argument is the standard normal:
+
+```epher
+normcdf(1.96)
+invnorm(0.975)
+normcdf(12, 10, 2)
+```
+
+```text
+0.975002104852
+1.95996398454
+0.841344746069
+```
+
+`normpdf(x[, mu, sigma])`, `normcdf(x[, mu, sigma])`, `invnorm(p[,
+mu, sigma])`; `tpdf(x, df)`, `tcdf(x, df)`, `invt(p, df)`;
+`chi2pdf(x, df)`, `chi2cdf(x, df)`, `invchi2(p, df)`;
+`binompdf(k, n, p)`, `binomcdf(k, n, p)`; `poissonpdf(k, lambda)`,
+`poissoncdf(k, lambda)`. The `inv*` functions answer the reverse
+question: `invt(0.975, 10)` is the t value with 97.5% of the mass
+below it.
+
+The tests take a data list and report the statistic and the two-sided
+p-value as a display string; the intervals report `(lo, hi)` at the
+level you name:
+
+```epher
+d = {12, 15, 14, 16, 13, 15, 14, 17}
+ttest(d, 14)
+tinterval(d, 0.95)
+ztest(d, 14, 1.5)
+chisq_gof({20, 30, 25, 25}, {25, 25, 25, 25})
+```
+
+```text
+t = 0.8819, p = 0.4071
+(13.1594, 15.8406)
+z = 0.9428, p = 0.3458
+chi2 = 2, p = 0.5724
+```
+
+`ttest(data, mu0)` and `tinterval(data, level)` use the sample
+standard deviation (n−1); `ztest(data, mu0, sigma)` and
+`zinterval(data, sigma, level)` need the known sigma.
+`chisq_gof(observed, expected)` is the goodness-of-fit test with k−1
+degrees of freedom. The results are display strings, so they are
+readable and copy-pasteable, but arithmetic cannot touch them.
+
+### 1.22 Data plots
+
+The graph family takes lists too: a scatter, a histogram, and a
+box-and-whisker plot. A data plot owns the pane like a solar system
+does — the newest command wins, and `graph clear` empties it.
+
+```epher
+x = {1, 2, 3, 4, 5}
+y = {2.1, 4.2, 5.8, 8.1, 9.9}
+graph scatter(x, y)
+```
+
+```epher
+graph histogram({1, 2, 2, 3, 3, 3, 4, 5})
+```
+
+```epher
+graph boxplot({1, 2, 2, 3, 3, 3, 9})
+```
+
+**scatter(xs, ys)** plots the points and, with two or more points,
+draws the least-squares fit line, captioned `y = a*x + b (r = …)` in
+the legend. **histogram(data[, bins])** draws a frequency histogram;
+the bin count is optional (Sturges' rule by default) and must be a
+whole number between 1 and 50. **boxplot(data)** draws the
+box-and-whisker: min, Q1, median, Q3, max, with whiskers to the
+extremes. The plot window always fits the data — the `from a to b`
+domain keywords do not apply — and the picture exports and saves like
+any other plot.
+
 ## 2. The web app (PWA)
 
 ### 2.1 Opening it
@@ -1215,7 +1380,26 @@ root (-1, 0)   minimum (0, 0)   root (1, 0)
 ```
 
 **Tables:** the `table` command prints a table of values (rows where the
-expression has no value are blank):
+expression has no value are blank). An optional `derivative <expr>`
+clause adds a third column, the numeric derivative of that expression
+at each x:
+
+```epher
+table x ^ 2 from -2 to 2 points 5 derivative x ^ 2
+```
+
+```text
+         x           y          y'
+        -2           4          -4
+        -1           1          -2
+         0           0           0
+         1           1           2
+         2           4           4
+```
+
+Table cells follow the Results settings: with exact fractions on (the
+default), a value that is a simple fraction shows as one — `table x / 3
+from 0 to 1 points 4` lists `1/3` instead of `0.333`.
 
 ```epher
 table x ^ 2 from -2 to 2 points 5

@@ -104,6 +104,32 @@ continued-fraction convergent matches it: `1/3` for a third, plain
 decimal for `pi` (ADR-0043). A display choice; the value stays float.
 _Avoid_: rational arithmetic by default, "show as fraction" conversion
 
+**List**:
+A column of floats spelled `{1, 2, 3}` (ADR-0044): arithmetic is
+elementwise with scalar broadcast, `list[i]` is the 1-based element,
+and the statistics take a list as their one argument. A value, not a
+container with methods.
+_Avoid_: array, vector, collection
+
+**Data plot**:
+A graph-family command that plots lists instead of expressions:
+`graph scatter(xs, ys)` (with the least-squares fit line),
+`graph histogram(data[, bins])`, `graph boxplot(data)` (ADR-0044).
+The core computes the primitives; frontends render, like curves.
+_Avoid_: chart, plot type, data visualization
+
+**Statistics**:
+The list-taking functions `mean median mode stdev variance range
+quartile` plus `linreg(xs, ys)`, whose display string reports the
+least-squares line and r (ADR-0044).
+_Avoid_: stats module, analysis tools
+
+**Test**:
+A hypothesis test or confidence interval as a function over a data
+list — `ztest ttest chisq_gof zinterval tinterval` — reporting a
+display string (`z = …, p = …`, `(lo, hi)`; ADR-0044).
+_Avoid_: wizard, test editor
+
 ### Astronomy
 
 **Unit literal**:

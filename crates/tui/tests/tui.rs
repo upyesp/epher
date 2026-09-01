@@ -1,6 +1,6 @@
 use epher_core::Sample;
 use epher_core::Session;
-use epher_tui::{render_ascii, render_ascii3d, App};
+use epher_tui::{render_ascii, render_ascii3d, render_ascii_data, App};
 
 fn app_session_constant(app: &App, name: &str) -> epher_core::Value {
     app.session()
@@ -83,6 +83,42 @@ fn graph_clear_empties_the_plot() {
     app.submit_graph("clear").expect("clear should work");
     assert!(app.graph().is_empty());
     assert!(app.pois().is_empty());
+}
+
+#[test]
+fn data_plots_own_the_pane_and_render_ascii() {
+    let mut app = App::default();
+    app.submit_graph("scatter({1, 2, 3}, {2, 4, 6})")
+        .expect("scatter should plot");
+    let data = app.data().expect("a data plot");
+    assert_eq!(data.points, vec![(1.0, 2.0), (2.0, 4.0), (3.0, 6.0)]);
+    let fit = data.fit.expect("fit");
+    assert!((fit.a - 2.0).abs() < 1e-9 && (fit.b).abs() < 1e-9);
+    // the scatter draws glyphs
+    let ascii = render_ascii_data(data, 40, 12);
+    assert!(ascii.contains('o'), "{ascii}");
+    // a plain curve command displaces the data plot
+    app.submit_graph("x").expect("curve should sample");
+    assert!(app.data().is_none());
+    assert_eq!(app.graph().len(), 1);
+    // and a data plot displaces the curves back
+    app.submit_graph("histogram({1, 2, 2, 3, 3, 3, 4}, 4)")
+        .expect("histogram should plot");
+    assert!(app.graph().is_empty());
+    let hist = app.data().expect("a histogram");
+    let counts: Vec<f64> = hist.bins.iter().map(|(_, _, c)| *c).collect();
+    assert_eq!(counts, vec![1.0, 2.0, 3.0, 1.0]);
+    let ascii = render_ascii_data(hist, 40, 12);
+    assert!(ascii.contains('█'), "{ascii}");
+    app.submit_graph("boxplot({1, 2, 2, 3, 3, 3, 9})")
+        .expect("boxplot should plot");
+    let boxed = app.data().expect("a boxplot");
+    assert_eq!(boxed.boxplot, Some([1.0, 2.0, 3.0, 3.0, 9.0]));
+    let ascii = render_ascii_data(boxed, 40, 12);
+    assert!(ascii.contains('┼'), "{ascii}");
+    // clear empties the data plot too
+    app.submit_graph("clear").expect("clear should work");
+    assert!(app.data().is_none());
 }
 
 #[test]

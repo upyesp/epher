@@ -14,8 +14,8 @@ pub mod graph;
 use crate::graph::{Graph, Graph3D};
 use bridge::{Bridge, InitState};
 use epher_core::graph::{
-    analyze, free_names, parse_graph_source, sample_spec, CurveKind, CurveSpec, InterestPoint,
-    SampledCurve,
+    analyze, free_names, parse_graph_source, sample_data_plot, sample_spec, CurveKind, CurveSpec,
+    DataPlot, InterestPoint, SampledCurve,
 };
 use epher_core::{history_expression, CatalogKind, DisplayPrefs, Notation, Session, Value};
 use epher_i18n::Localizer;
@@ -1696,6 +1696,7 @@ fn epher_app() -> Html {
     let result = use_state(String::new);
     let localizer = use_state(|| Localizer::resolve(None, &[]));
     let graph = use_state(Vec::<SampledCurve>::new);
+    let data = use_state(|| Option::<DataPlot>::None);
     let pois = use_state(Vec::<graph::Poi>::new);
     let trace = use_state(|| Option::<graph::TracePoint>::None);
     // Graph options (ADR-0019, on the pane itself since ADR-0020): whether
@@ -2758,6 +2759,7 @@ fn epher_app() -> Html {
         let view2d = view2d.clone();
         let view2d_cell = view2d_cell.clone();
         let solar_hidden = solar_hidden.clone();
+        let data = data.clone();
         let history_box_ref = history_box_ref.clone();
         let scroll_pane_for_submit = scroll_pane.clone();
         Callback::from(move |e: SubmitEvent| {
@@ -2773,11 +2775,13 @@ fn epher_app() -> Html {
             let mut surfaces = (*surface).clone();
             let mut solar = (*solar_handle).clone();
             let mut solar_source = (*solar_source_handle).clone();
+            let mut data_local = (*data).clone();
             // Mobile: a submit that empties the graph pane slides the
             // view back to the calculator (ADR-0035) — the mirror of the
             // draw slide. Tracked before the loop so only a pane that
             // HAD content moves.
-            let had_graph = !curves.is_empty() || !surfaces.is_empty() || solar.is_some();
+            let had_graph =
+                !curves.is_empty() || !surfaces.is_empty() || solar.is_some() || data.is_some();
             // Statements join with newlines or `;` — the same separator
             // (ADR-0001). Each piece dispatches in order, exactly as if
             // typed one by one — but the history keeps the script the way
@@ -2862,9 +2866,33 @@ fn epher_app() -> Html {
                         }
                         if source == "clear" {
                             curves.clear();
+                            data_local = None;
                             pois.set(Vec::new());
                             *view2d_cell.borrow_mut() = None;
                             view2d.set(None);
+                            continue;
+                        }
+                        // Data plots (ADR-0044): a scatter, histogram, or
+                        // boxplot owns the pane like a solar scene does.
+                        if epher_core::graph::is_data_plot_source(source) {
+                            match sample_data_plot(source, s.env()) {
+                                Ok(plot) => {
+                                    curves.clear();
+                                    pois.set(Vec::new());
+                                    surfaces.clear();
+                                    solar = None;
+                                    solar_source = None;
+                                    solar_hidden.set(Vec::new());
+                                    *view2d_cell.borrow_mut() = None;
+                                    view2d.set(None);
+                                    data_local = Some(plot);
+                                    result.set(String::new());
+                                    if mobile_layout() {
+                                        scroll_pane.emit("graph-pane");
+                                    }
+                                }
+                                Err(e) => result.set(format!("error: {e}")),
+                            }
                             continue;
                         }
                         match parse_graph_source(source).and_then(|spec| {
@@ -2877,6 +2905,7 @@ fn epher_app() -> Html {
                                 // never share the pane and each plot keeps its
                                 // full size.
                                 surfaces.clear();
+                                data_local = None;
                                 solar = None;
                                 solar_source = None;
                                 solar_hidden.set(Vec::new());
@@ -2947,6 +2976,7 @@ fn epher_app() -> Html {
                                 // curves, their points of interest, and any
                                 // solar scene — the newest command owns the pane.
                                 curves.clear();
+                                data_local = None;
                                 solar = None;
                                 solar_source = None;
                                 solar_hidden.set(Vec::new());
@@ -3023,6 +3053,7 @@ fn epher_app() -> Html {
                                 let home = scene.default_view();
                                 // The pane shows one kind at a time.
                                 curves.clear();
+                                data_local = None;
                                 surfaces.clear();
                                 solar = Some(scene);
                                 solar_source = Some(source.to_string());
@@ -3174,6 +3205,7 @@ fn epher_app() -> Html {
             // A fresh plot: every legend checkbox returns to checked.
             hidden.set(vec![false; curves.len()]);
             graph.set(curves);
+            data.set(data_local);
             surface.set(surfaces.clone());
             solar_handle.set(solar);
             solar_source_handle.set(solar_source);
@@ -3612,6 +3644,7 @@ fn epher_app() -> Html {
     // graph).
     let on_copy_svg = {
         let curves = graph.clone();
+        let data = data.clone();
         let pois = pois.clone();
         let hidden = hidden.clone();
         let trace = trace.clone();
@@ -3642,7 +3675,9 @@ fn epher_app() -> Html {
                 .filter(|p| !(*hidden).get(p.curve).copied().unwrap_or(false))
                 .cloned()
                 .collect();
-            let svg = if !visible.is_empty() {
+            let svg = if let Some(data) = (*data).as_ref() {
+                graph::data_svg(data, *width_2d)
+            } else if !visible.is_empty() {
                 graph::graph_svg_indexed(&visible, &pois_visible, *trace, *poi_markers, *width_2d)
             } else if let Some(scene) = (*solar).as_ref() {
                 graph::solar3d_doc(
@@ -3684,6 +3719,7 @@ fn epher_app() -> Html {
     // picker, else a plain download.
     let on_save_png = {
         let curves = graph.clone();
+        let data = data.clone();
         let pois = pois.clone();
         let hidden = hidden.clone();
         let trace = trace.clone();
@@ -3713,7 +3749,9 @@ fn epher_app() -> Html {
                 .filter(|p| !(*hidden).get(p.curve).copied().unwrap_or(false))
                 .cloned()
                 .collect();
-            let svg = if !visible.is_empty() {
+            let svg = if let Some(data) = (*data).as_ref() {
+                graph::data_svg(data, *width_2d)
+            } else if !visible.is_empty() {
                 graph::graph_svg_indexed(&visible, &pois_visible, *trace, *poi_markers, *width_2d)
             } else if let Some(scene) = (*solar).as_ref() {
                 graph::solar3d_doc(
@@ -5472,6 +5510,57 @@ fn epher_app() -> Html {
                         }
                     }
                     {
+                        if let Some(data) = (*data).as_ref() {
+                            let fit_caption = data.fit.map(|f| {
+                                format!(
+                                    "y = {}*x + {} (r = {})",
+                                    graph::label(f.a),
+                                    graph::label(f.b),
+                                    graph::label(f.r)
+                                )
+                            });
+                            let caption = data.source.trim();
+                            let extra = fit_caption.as_deref();
+                            html! {
+                                <section class="graph">
+                                    <ul class="legend">
+                                        <li>
+                                            <span class="swatch" aria-hidden="true"></span>
+                                            { caption }
+                                            {
+                                                if let Some(extra) = extra {
+                                                    html! { <span class="fit-caption">{ " " }{ extra }</span> }
+                                                } else {
+                                                    html! {}
+                                                }
+                                            }
+                                        </li>
+                                    </ul>
+                                    <div class="graph-tuning">
+                                        { tuning_2d.clone() }
+                                    </div>
+                                    <div class="plot-box">
+                                        <Graph
+                                            curves={Vec::new()}
+                                            data={(*data).clone()}
+                                            pois={Vec::new()}
+                                            trace={None}
+                                            markers={false}
+                                            line_width={*width_2d}
+                                            window={None}
+                                            on_trace={on_trace.clone()}
+                                            on_zoom={on_zoom2d.clone()}
+                                            on_key={on_trace_key.clone()}
+                                            on_leave={on_trace_leave.clone()}
+                                        />
+                                    </div>
+                                </section>
+                            }
+                        } else {
+                            html! {}
+                        }
+                    }
+                    {
                         if !(*graph).is_empty() {
                             html! {
                                 <section class="graph">
@@ -5484,6 +5573,7 @@ fn epher_app() -> Html {
                                     <div class="plot-box">
                                         <Graph
                                             curves={visible_curves.clone()}
+                                            data={(*data).clone()}
                                             pois={visible_pois.clone()}
                                             trace={*trace}
                                             markers={*poi_markers}

@@ -128,13 +128,13 @@ fn nice_steps_follow_one_two_five() {
 #[test]
 fn tables_keep_x_and_blank_undefined_rows() {
     let expr = parse("x ^ 2").unwrap();
-    let rows = table_rows(&expr, -2.0, 2.0, 5, &env());
+    let rows = table_rows(&expr, None, -2.0, 2.0, 5, &env());
     assert_eq!(rows.len(), 5);
-    assert_eq!(rows[0], (-2.0, Some(4.0)));
-    assert_eq!(rows[2], (0.0, Some(0.0)));
+    assert_eq!(rows[0], (-2.0, Some(4.0), None));
+    assert_eq!(rows[2], (0.0, Some(0.0), None));
 
     let expr = parse("1 / x").unwrap();
-    let rows = table_rows(&expr, -1.0, 1.0, 5, &env());
+    let rows = table_rows(&expr, None, -1.0, 1.0, 5, &env());
     assert_eq!(rows.len(), 5);
     assert_eq!(rows[2].1, None, "1/x is undefined at x=0");
     assert_eq!(rows[1].1, Some(-2.0));

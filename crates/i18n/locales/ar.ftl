@@ -299,6 +299,11 @@ key-hint-i = الوحدة التخيلية، sqrt(-1) = i
 key-hint-re = الجزء الحقيقي لعدد مركب
 key-hint-im = الجزء التخيلي لعدد مركب
 key-hint-arg = سعة (زاوية) عدد مركب
+key-hint-binomcdf = الاحتمال التراكمي ذو الحدين: binomcdf(k, n, p)
+key-hint-binompdf = احتمال حدوث k نجاحًا بالضبط في توزيع ذي الحدين
+key-hint-chi2cdf = الاحتمال التراكمي لكاي تربيع
+key-hint-chi2pdf = كثافة كاي تربيع
+key-hint-chisq_gof = اختبار جودة المطابقة: chisq_gof(ملاحظ, متوقع)
 key-hint-conj = المرافق المركب
 key-hint-derivative = مشتقة عددية: derivative(x^2, 3) = 6
 key-hint-integral = تكامل محدد: integral(x^2, 0, 3) = 9
@@ -306,6 +311,25 @@ key-hint-exact = كسر مضبوط: exact(0.3333...) = 1/3
 key-hint-scientific = ترميز علمي: 1.2345e4
 key-hint-engineering = ترميز هندسي: 12.345e3
 key-hint-grouped = فواصل الآلاف: 1 234 567.89
+key-hint-invchi2 = معكوس كاي تربيع: القيمة ذات الاحتمال p
+key-hint-invnorm = معكوس التوزيع الطبيعي: القيمة ذات الاحتمال p
+key-hint-invt = معكوس t: القيمة ذات الاحتمال p
+key-hint-len = عدد عناصر القائمة
+key-hint-linreg = خط المربعات الصغرى: linreg(xs, ys)
+key-hint-mode = القيمة الأكثر تكرارًا
+key-hint-normcdf = الاحتمال التراكمي الطبيعي
+key-hint-normpdf = الكثافة الطبيعية
+key-hint-poissoncdf = الاحتمال التراكمي لبوزون
+key-hint-poissonpdf = احتمال بوزون لوقوع k حدثًا بالضبط
+key-hint-quartile = الربيعي: quartile(قائمة, k) حيث k من 1 إلى 3
+key-hint-range = أكبر قيمة ناقص أصغر قيمة
+key-hint-sort = ترتيب قائمة تصاعديًا
+key-hint-tcdf = الاحتمال التراكمي لتوزيع t
+key-hint-tinterval = فاصل الثقة t: tinterval(بيانات, مستوى)
+key-hint-tpdf = كثافة توزيع t
+key-hint-ttest = اختبار t لعينة واحدة: ttest(بيانات, mu0)
+key-hint-zinterval = فاصل الثقة z: zinterval(بيانات, sigma, مستوى)
+key-hint-ztest = اختبار z لعينة واحدة: ztest(بيانات, mu0, sigma)
 menu-results = النتائج
 results-fractions = كسور مضبوطة
 results-notation = الترميز

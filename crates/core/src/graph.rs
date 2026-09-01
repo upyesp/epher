@@ -151,8 +151,11 @@ fn split_top_level(s: &str, sep: char) -> Vec<&str> {
     let mut start = 0usize;
     for (i, c) in s.char_indices() {
         match c {
-            '(' => depth += 1,
-            ')' => depth = depth.saturating_sub(1),
+            // Parentheses AND the list delimiters nest (ADR-0044):
+            // `scatter({1, 2}, {3, 4})` splits on the outer commas
+            // only, and parametric graphs keep working as before.
+            '(' | '{' | '[' => depth += 1,
+            ')' | '}' | ']' => depth = depth.saturating_sub(1),
             c if c == sep && depth == 0 => {
                 parts.push(&s[start..i]);
                 start = i + c.len_utf8();
@@ -194,7 +197,8 @@ fn eval_at(expr: &Expression, x: f64, env: &Env) -> Option<f64> {
     }
 }
 
-/// A parsed `table` command: what to evaluate and over which x values.
+/// A parsed `table` command: what to evaluate and over which x values,
+/// plus an optional derivative column (ADR-0044).
 /// Defaults match TI's table (start −5, end 5, 11 rows); `points` is
 /// capped so a bad command can't demand unbounded work.
 #[derive(Debug, Clone)]
@@ -203,11 +207,15 @@ pub struct TableSpec {
     pub x_min: f64,
     pub x_max: f64,
     pub points: usize,
+    /// The `derivative <expr>` column: evaluated numerically at each x
+    /// with the 5-point stencil.
+    pub derivative: Option<Expression>,
 }
 
-/// Parse the text after `table `: `expr [from a to b] [points n]`.
-/// The language has no `from`/`to`/`points` identifiers, so the keywords
-/// can never collide with the expression.
+/// Parse the text after `table `: `expr [from a to b] [points n]
+/// [derivative expr]`. The language has no `from`/`to`/`points`/
+/// `derivative` identifiers, so the keywords can never collide with the
+/// expression.
 pub fn parse_table_source(source: &str) -> Result<TableSpec, EpherError> {
     const DEFAULT_POINTS: usize = 11;
     const MAX_POINTS: usize = 1000;
@@ -216,10 +224,24 @@ pub fn parse_table_source(source: &str) -> Result<TableSpec, EpherError> {
     if source.is_empty() {
         return Err(EpherError::Parse("empty table command".to_string()));
     }
-    // The `points n` suffix sits after the domain, so strip it first.
-    let (rest, points) = match source.rfind(" points ") {
+    // The `derivative <expr>` suffix sits after the domain, so strip it
+    // first, then the `points n` suffix, then the domain itself.
+    let (rest, derivative) = match source.rfind(" derivative ") {
         Some(idx) => {
-            let (expr, n) = source.split_at(idx);
+            let (expr, d) = source.split_at(idx);
+            let d = d.trim_start_matches(" derivative ").trim();
+            if d.is_empty() {
+                return Err(EpherError::Parse(
+                    "`derivative` needs an expression after it".to_string(),
+                ));
+            }
+            (expr.trim(), Some(parse(d)?))
+        }
+        None => (source, None),
+    };
+    let (rest, points) = match rest.rfind(" points ") {
+        Some(idx) => {
+            let (expr, n) = rest.split_at(idx);
             let n = n.trim_start_matches(" points ").trim();
             let n: usize = n
                 .parse()
@@ -231,7 +253,7 @@ pub fn parse_table_source(source: &str) -> Result<TableSpec, EpherError> {
             }
             (expr.trim(), n)
         }
-        None => (source, DEFAULT_POINTS),
+        None => (rest, DEFAULT_POINTS),
     };
     let (body, domain) = split_domain(rest)?;
     let (x_min, x_max) = domain.unwrap_or((-5.0, 5.0));
@@ -245,18 +267,21 @@ pub fn parse_table_source(source: &str) -> Result<TableSpec, EpherError> {
         x_min,
         x_max,
         points,
+        derivative,
     })
 }
 
 /// A row of a table of values: x always present; y absent where the
-/// expression has no value (TI-style blank rows).
+/// expression has no value (TI-style blank rows). The derivative column
+/// (ADR-0044) is present when the command named one.
 pub fn table_rows(
     expr: &Expression,
+    derivative: Option<&Expression>,
     x_min: f64,
     x_max: f64,
     points: usize,
     env: &Env,
-) -> Vec<(f64, Option<f64>)> {
+) -> Vec<(f64, Option<f64>, Option<f64>)> {
     let mut out = Vec::new();
     for i in 0..points {
         let t = if points == 1 {
@@ -265,7 +290,15 @@ pub fn table_rows(
             i as f64 / (points - 1) as f64
         };
         let x = x_min + t * (x_max - x_min);
-        out.push((x, eval_at(expr, x, env)));
+        let y = eval_at(expr, x, env);
+        // The derivative column differentiates its expression at x with
+        // the same 5-point stencil `derivative(expr, p)` uses (ADR-0044);
+        // a constant expression differentiates to 0.
+        let d = match derivative {
+            Some(d) => crate::derivative_at(d, x, env).ok(),
+            None => None,
+        };
+        out.push((x, y, d));
     }
     out
 }
@@ -538,6 +571,306 @@ pub fn free_names(expr: &Expression, out: &mut BTreeSet<String>) {
             free_names(a, out);
             free_names(b, out);
             free_names(c, out);
+        }
+        Expression::List(items) => {
+            for item in items {
+                free_names(item, out);
+            }
+        }
+        Expression::Index(list, index) => {
+            free_names(list, out);
+            free_names(index, out);
+        }
+    }
+}
+
+// ===== data plots (ADR-0044) =====
+
+/// The kind of data plot a `graph` command requested.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DataPlotKind {
+    Scatter,
+    Histogram,
+    BoxPlot,
+}
+
+/// The least-squares line of a scatter plot: `y = a*x + b`, r the
+/// Pearson correlation (ADR-0044).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FitLine {
+    pub a: f64,
+    pub b: f64,
+    pub r: f64,
+}
+
+/// The computed picture of a data plot: what the frontends render
+/// (ADR-0006 seam — the core computes the primitives, the web draws
+/// SVG and the TUI draws ASCII from this one struct).
+#[derive(Debug, Clone, PartialEq)]
+pub struct DataPlot {
+    pub kind: DataPlotKind,
+    /// What the user typed after `graph` (the accessible caption/legend text).
+    pub source: String,
+    /// Scatter: the points.
+    pub points: Vec<(f64, f64)>,
+    /// Scatter: the fitted line when there are two or more points.
+    pub fit: Option<FitLine>,
+    /// Histogram: one (lo, hi, count) per bin.
+    pub bins: Vec<(f64, f64, f64)>,
+    /// Boxplot: min, q1, median, q3, max.
+    pub boxplot: Option<[f64; 5]>,
+}
+
+/// Evaluate one data-plot argument: an expression that must produce a
+/// list of floats.
+fn eval_list(expr: &Expression, env: &Env) -> Result<Vec<f64>, EpherError> {
+    let v = crate::eval(expr, env)?;
+    let Value::List(items) = &v else {
+        return Err(EpherError::Type(format!("data plots need a list, got {v}")));
+    };
+    let mut out = Vec::with_capacity(items.len());
+    for item in items {
+        match item {
+            Value::Float(x) => out.push(*x),
+            other => {
+                return Err(EpherError::Type(format!(
+                    "data plots need numbers, got {other:?}"
+                )))
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// Does a `graph` source name a data plot (ADR-0044)? The command may
+/// spell the keyword with or without a space before the paren:
+/// `scatter(x, y)` and `scatter (x, y)` are the same command. Frontends
+/// dispatch on this before the curve grammar.
+pub fn is_data_plot_source(source: &str) -> bool {
+    let body = source.trim();
+    ["scatter", "histogram", "boxplot"].iter().any(|kw| {
+        body.strip_prefix(kw)
+            .map(|rest| rest.is_empty() || rest.starts_with(' ') || rest.starts_with('('))
+            .unwrap_or(false)
+    })
+}
+
+/// Parse and compute a data plot from the text after `graph `
+/// (ADR-0044): `scatter <xs>, <ys>`, `histogram <data>[, <bins>]`,
+/// `boxplot <data>`. The data arguments are expressions evaluated
+/// against the session, so variables and literals both work:
+/// `graph scatter({1, 2, 3}, {4, 5, 6})`, `graph histogram(d)`.
+/// The `from a to b` domain keywords do not apply (the window fits
+/// the data); a domain clause is an error.
+pub fn sample_data_plot(source: &str, env: &Env) -> Result<DataPlot, EpherError> {
+    let source = source.trim();
+    let (body, domain) = split_domain(source)?;
+    if domain.is_some() {
+        return Err(EpherError::Parse(
+            "data plots fit their window to the data: `from a to b` does not apply".to_string(),
+        ));
+    }
+    let keyword_rest = |kw: &str| -> Option<&str> {
+        let rest = body.strip_prefix(kw)?;
+        if rest.is_empty() || rest.starts_with(' ') || rest.starts_with('(') {
+            // The keyword may be spelled `scatter(...)` or `scatter (...)`:
+            // peel the call parens (the closing one too).
+            let inner = rest.trim_start_matches(' ').trim_start_matches('(');
+            Some(inner.strip_suffix(')').unwrap_or(inner).trim())
+        } else {
+            None
+        }
+    };
+    if let Some(rest) = keyword_rest("scatter") {
+        let parts: Vec<&str> = split_top_level(rest, ',')
+            .into_iter()
+            .map(|s| s.trim())
+            .collect();
+        let [xs, ys] = parts.as_slice() else {
+            return Err(EpherError::Parse(
+                "scatter needs two lists: `scatter <xs>, <ys>`".to_string(),
+            ));
+        };
+        let xs = eval_list(&parse(xs)?, env)?;
+        let ys = eval_list(&parse(ys)?, env)?;
+        if xs.len() != ys.len() {
+            return Err(EpherError::Type(format!(
+                "scatter lists have different lengths: {} and {}",
+                xs.len(),
+                ys.len()
+            )));
+        }
+        if xs.is_empty() {
+            return Err(EpherError::Type(
+                "scatter needs at least one point".to_string(),
+            ));
+        }
+        let points: Vec<(f64, f64)> = xs.into_iter().zip(ys).collect();
+        let fit = if points.len() >= 2 {
+            let (a, b, r) = match crate::linear_fit(
+                &points.iter().map(|(x, _)| *x).collect::<Vec<_>>(),
+                &points.iter().map(|(_, y)| *y).collect::<Vec<_>>(),
+            ) {
+                Ok(fit) => fit,
+                Err(_) => {
+                    return Err(EpherError::Type(
+                        "scatter fit failed: check the points".to_string(),
+                    ))
+                }
+            };
+            Some(FitLine { a, b, r })
+        } else {
+            None
+        };
+        return Ok(DataPlot {
+            kind: DataPlotKind::Scatter,
+            source: source.to_string(),
+            points,
+            fit,
+            bins: Vec::new(),
+            boxplot: None,
+        });
+    }
+    if let Some(rest) = keyword_rest("histogram") {
+        let parts: Vec<&str> = split_top_level(rest, ',')
+            .into_iter()
+            .map(|s| s.trim())
+            .collect();
+        let data = eval_list(&parse(parts[0])?, env)?;
+        if data.is_empty() {
+            return Err(EpherError::Type("histogram needs data".to_string()));
+        }
+        let bins = match parts.len() {
+            1 => (data.len() as f64).log2().ceil() as usize + 1,
+            2 => {
+                let n = crate::eval(&parse(parts[1])?, env)?;
+                let Value::Float(n) = n else {
+                    return Err(EpherError::Type(
+                        "the bin count must be a whole number".to_string(),
+                    ));
+                };
+                if !(1.0..=50.0).contains(&n) || n.fract() != 0.0 {
+                    return Err(EpherError::Type(
+                        "the bin count must be a whole number between 1 and 50".to_string(),
+                    ));
+                }
+                n as usize
+            }
+            _ => return Err(EpherError::Parse(
+                "histogram takes the data and an optional bin count: `histogram <data>[, <bins>]`"
+                    .to_string(),
+            )),
+        };
+        let (mut lo, mut hi) = data
+            .iter()
+            .fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), x| {
+                (lo.min(*x), hi.max(*x))
+            });
+        if hi == lo {
+            lo -= 0.5;
+            hi += 0.5;
+        }
+        let span = hi - lo;
+        let mut counts = vec![0.0; bins];
+        for x in &data {
+            let mut i = ((x - lo) / span * bins as f64).floor() as usize;
+            if i >= bins {
+                i = bins - 1;
+            }
+            counts[i] += 1.0;
+        }
+        let bin_edges: Vec<(f64, f64, f64)> = counts
+            .into_iter()
+            .enumerate()
+            .map(|(i, c)| {
+                (
+                    lo + i as f64 * span / bins as f64,
+                    lo + (i + 1) as f64 * span / bins as f64,
+                    c,
+                )
+            })
+            .collect();
+        return Ok(DataPlot {
+            kind: DataPlotKind::Histogram,
+            source: source.to_string(),
+            points: Vec::new(),
+            fit: None,
+            bins: bin_edges,
+            boxplot: None,
+        });
+    }
+    if let Some(rest) = keyword_rest("boxplot") {
+        if split_top_level(rest, ',').len() != 1 {
+            return Err(EpherError::Parse(
+                "boxplot takes one list: `boxplot <data>`".to_string(),
+            ));
+        }
+        let data = eval_list(&parse(rest)?, env)?;
+        if data.is_empty() {
+            return Err(EpherError::Type("boxplot needs data".to_string()));
+        }
+        let mut sorted = data.clone();
+        sorted.sort_by(|a, b| a.partial_cmp(b).expect("floats are comparable"));
+        let five = [
+            sorted[0],
+            crate::quartile_sorted(&sorted, 1),
+            crate::quartile_sorted(&sorted, 2),
+            crate::quartile_sorted(&sorted, 3),
+            *sorted.last().expect("non-empty"),
+        ];
+        return Ok(DataPlot {
+            kind: DataPlotKind::BoxPlot,
+            source: source.to_string(),
+            points: Vec::new(),
+            fit: None,
+            bins: Vec::new(),
+            boxplot: Some(five),
+        });
+    }
+    Err(EpherError::Parse(
+        "data plots: `scatter <xs>, <ys>`, `histogram <data>[, <bins>]`, `boxplot <data>`"
+            .to_string(),
+    ))
+}
+
+/// The plot window a data plot fits: (x_min, x_max, y_min, y_max).
+/// Histogram y is the count; boxplot y is the fixed band 0..1.
+pub fn data_ranges(data: &DataPlot) -> (f64, f64, f64, f64) {
+    match data.kind {
+        DataPlotKind::Scatter => {
+            let (mut x0, mut x1, mut y0, mut y1) = (
+                f64::INFINITY,
+                f64::NEG_INFINITY,
+                f64::INFINITY,
+                f64::NEG_INFINITY,
+            );
+            for (x, y) in &data.points {
+                x0 = x0.min(*x);
+                x1 = x1.max(*x);
+                y0 = y0.min(*y);
+                y1 = y1.max(*y);
+            }
+            if let Some(f) = data.fit {
+                let (fa, fb) = (f.a, f.b);
+                y0 = y0.min(fa * x0 + fb).min(fa * x1 + fb);
+                y1 = y1.max(fa * x0 + fb).max(fa * x1 + fb);
+            }
+            (x0, x1, y0, y1)
+        }
+        DataPlotKind::Histogram => {
+            let (mut lo, mut hi, mut max) = (f64::INFINITY, f64::NEG_INFINITY, 0.0f64);
+            for (a, b, c) in &data.bins {
+                lo = lo.min(*a);
+                hi = hi.max(*b);
+                max = max.max(*c);
+            }
+            (lo, hi, 0.0, max)
+        }
+        DataPlotKind::BoxPlot => {
+            let b = data
+                .boxplot
+                .expect("boxplot always carries its five numbers");
+            (b[0], b[4], -0.5, 1.5)
         }
     }
 }

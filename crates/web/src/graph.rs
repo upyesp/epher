@@ -15,7 +15,7 @@
 //! and captions (WCAG 1.4.1). Axes/gridlines inherit `currentColor` at
 //! recorded opacities (1.4.11).
 
-use epher_core::graph::{SampledCurve, Surface, View3D};
+use epher_core::graph::{DataPlot, SampledCurve, Surface, View3D};
 use wasm_bindgen::JsCast;
 use yew::prelude::*;
 
@@ -24,8 +24,8 @@ use yew::prelude::*;
 /// so an SVG saved from the TUI is byte-for-byte the app's plot. The
 /// re-exports keep this module's long-standing surface.
 pub use epher_core::graph_svg::{
-    aria_label, curve_caption, escape, fill_points, geometry, geometry_in, graph3d_svg, graph_svg,
-    graph_svg_indexed, label, layers_svg, polyline_points, segments, solar_parts_in,
+    aria_label, curve_caption, data_svg, escape, fill_points, geometry, geometry_in, graph3d_svg,
+    graph_svg, graph_svg_indexed, label, layers_svg, polyline_points, segments, solar_parts_in,
     solar_view_box, ticks, trace_nearest, Geometry, Poi, TracePoint, BOTTOM, DEFAULT_STROKE_WIDTH,
     HEIGHT, LEFT, RIGHT, TOP, WIDTH,
 };
@@ -86,6 +86,9 @@ pub struct GraphProps {
     /// filters hidden curves out but each keeps its own colour class
     /// (ADR-0015 amendment), so the drawn lines always match the legend.
     pub curves: Vec<(usize, SampledCurve)>,
+    /// The data plot (ADR-0044) when the pane shows one: a scatter,
+    /// histogram, or boxplot owns the pane, so it displaces the curves.
+    pub data: Option<DataPlot>,
     pub pois: Vec<Poi>,
     pub trace: Option<TracePoint>,
     /// Settings → Graph (ADR-0019): draw the highlighted points on the
@@ -309,16 +312,87 @@ pub fn graph_html(props: &GraphProps) -> Html {
     }
     let all: Vec<epher_core::graph::SampledCurve> =
         props.curves.iter().map(|(_, c)| c.clone()).collect();
+    // A data plot owns the pane (ADR-0044): its window fits the data,
+    // and the zoom window does not apply.
+    let data_geom = props.data.as_ref().map(|d| {
+        let (x_min, x_max, mut y_min, mut y_max) = epher_core::graph::data_ranges(d);
+        let y_span = (y_max - y_min).max(1e-9);
+        let pad = y_span * 0.08;
+        y_min -= pad;
+        y_max += pad;
+        Geometry {
+            x_min,
+            x_max,
+            y_min,
+            y_max,
+            step_x: epher_core::graph::nice_step(x_max - x_min, 10),
+            step_y: epher_core::graph::nice_step(y_max - y_min, 8),
+            zero_axis: y_min <= 0.0 && y_max >= 0.0,
+        }
+    });
     // The zoom window (ADR-0038) picks the x range; the y range still
     // fits the samples inside it. No window: the classic auto-fit.
-    let geom = match props.window {
-        Some((lo, hi)) => geometry_in(&all, lo, hi),
-        None => geometry(&all),
+    let geom = match data_geom {
+        Some(g) => Some(g),
+        None => match props.window {
+            Some((lo, hi)) => geometry_in(&all, lo, hi),
+            None => geometry(&all),
+        },
     };
     let Some(geom) = geom else {
         return html! {};
     };
     let y_span = geom.y_max - geom.y_min;
+
+    let mut data_layers = Vec::new();
+    if let Some(data) = &props.data {
+        match data.kind {
+            epher_core::graph::DataPlotKind::Scatter => {
+                for (x, y) in &data.points {
+                    data_layers.push(html! {
+                        <circle class="poi" cx={geom.sx(*x).to_string()} cy={geom.sy(*y).to_string()} r="4" />
+                    });
+                }
+                if let Some(f) = data.fit {
+                    let (x0, x1) = (geom.x_min, geom.x_max);
+                    let (y0, y1) = (f.a * x0 + f.b, f.a * x1 + f.b);
+                    data_layers.push(html! {
+                        <polyline class="curve curve-0" points={format!("{},{} {},{}", geom.sx(x0), geom.sy(y0), geom.sx(x1), geom.sy(y1))} fill="none" />
+                    });
+                }
+            }
+            epher_core::graph::DataPlotKind::Histogram => {
+                for (lo, hi, count) in &data.bins {
+                    let (x0, x1) = (geom.sx(*lo), geom.sx(*hi));
+                    let (y0, y1) = (geom.sy(0.0), geom.sy(*count));
+                    let w = (x1 - x0).max(0.5);
+                    data_layers.push(html! {
+                        <rect class="fill curve-0" x={x0.to_string()} y={y1.to_string()} width={w.to_string()} height={(y0 - y1).max(0.0).to_string()} />
+                    });
+                }
+            }
+            epher_core::graph::DataPlotKind::BoxPlot => {
+                if let Some(b) = data.boxplot {
+                    let y = geom.sy(0.5);
+                    let x = |v: f64| geom.sx(v);
+                    data_layers.push(html! {
+                        <line class="axis" x1={x(b[0]).to_string()} y1={y.to_string()} x2={x(b[4]).to_string()} y2={y.to_string()} />
+                    });
+                    for edge in [b[0], b[4]] {
+                        data_layers.push(html! {
+                            <line class="axis" x1={x(edge).to_string()} y1={(y - 10.0).to_string()} x2={x(edge).to_string()} y2={(y + 10.0).to_string()} />
+                        });
+                    }
+                    data_layers.push(html! {
+                        <rect class="fill curve-0" x={x(b[1]).to_string()} y={(y - 10.0).to_string()} width={(x(b[3]) - x(b[1])).max(0.5).to_string()} height="20" />
+                    });
+                    data_layers.push(html! {
+                        <line class="axis" x1={x(b[2]).to_string()} y1={(y - 10.0).to_string()} x2={x(b[2]).to_string()} y2={(y + 10.0).to_string()} />
+                    });
+                }
+            }
+        }
+    }
 
     let mut curve_layers = Vec::new();
     for (i, c) in &props.curves {
@@ -423,6 +497,7 @@ pub fn graph_html(props: &GraphProps) -> Html {
             { for x_labels }
             { for y_labels }
             <g clip-path="url(#plot-clip)">
+                { for data_layers }
                 { for curve_layers }
                 { for poi_nodes }
                 { trace_node }

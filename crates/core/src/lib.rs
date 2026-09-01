@@ -34,9 +34,15 @@ pub enum Value {
     Big(BigDecimal),
     Complex(Complex<f64>),
     Bool(bool),
+    /// A list of numbers — a data column (ADR-0044): `{1, 2, 3}`.
+    /// Elements are floats; complex values are rejected with a type
+    /// error at list construction.
+    List(Vec<Value>),
     /// A display string — produced by the base-conversion builtins
-    /// (`bin`, `oct`, `hex`; ADR-0022) and good for nothing else: the
-    /// language has no string literals or string operations.
+    /// (`bin`, `oct`, `hex`; ADR-0022), the solve statement, `linreg`,
+    /// and the test/interval functions (ADR-0044), and good for
+    /// nothing else: the language has no string literals or string
+    /// operations.
     Str(String),
 }
 
@@ -62,6 +68,15 @@ impl std::fmt::Display for Value {
             Value::Big(b) => write!(f, "{b}"),
             Value::Complex(c) => write!(f, "{}", complex_display(*c)),
             Value::Bool(b) => write!(f, "{b}"),
+            Value::List(items) => write!(
+                f,
+                "{{{}}}",
+                items
+                    .iter()
+                    .map(|v| format!("{v}"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
             Value::Str(s) => write!(f, "{s}"),
         }
     }
@@ -168,6 +183,12 @@ pub enum Expression {
     Div(Box<Expression>, Box<Expression>),
     Pow(Box<Expression>, Box<Expression>),
     Factorial(Box<Expression>),
+    /// A list literal (ADR-0044): `{1, 2, 3}` — the elements are
+    /// expressions, evaluated when the list is.
+    List(Vec<Expression>),
+    /// A postfix element access (ADR-0044): `d[2]` is the second
+    /// element, 1-based; the index is any expression.
+    Index(Box<Expression>, Box<Expression>),
     Compare(CmpOp, Box<Expression>, Box<Expression>),
     If(Box<Expression>, Box<Expression>, Box<Expression>),
     And(Box<Expression>, Box<Expression>),
@@ -388,6 +409,12 @@ enum Token {
     Percent,
     LParen,
     RParen,
+    /// List literal delimiters (ADR-0044): `{1, 2, 3}`.
+    LBrace,
+    RBrace,
+    /// Postfix index brackets (ADR-0044): `d[2]`.
+    LBracket,
+    RBracket,
     /// A number with an imaginary suffix (ADR-0043): `4i`, `2.5i`,
     /// `0xFFi`. The tokenizer folds the suffix in so `3 + 4i` parses as
     /// one literal; the parser spells it `4 * i`.
@@ -529,6 +556,22 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
             }
             ')' => {
                 tokens.push(Token::RParen);
+                chars.next();
+            }
+            '{' => {
+                tokens.push(Token::LBrace);
+                chars.next();
+            }
+            '}' => {
+                tokens.push(Token::RBrace);
+                chars.next();
+            }
+            '[' => {
+                tokens.push(Token::LBracket);
+                chars.next();
+            }
+            ']' => {
+                tokens.push(Token::RBracket);
                 chars.next();
             }
             '0' if matches!(
@@ -938,6 +981,15 @@ impl Parser {
                     self.next();
                     expr = Expression::Div(Box::new(expr), Box::new(Expression::Literal(100.0)));
                 }
+                Some(Token::LBracket) => {
+                    // Postfix index (ADR-0044): `d[2]` is the second
+                    // element, 1-based. Binds tighter than `^`, so
+                    // `d[2]^2` is `(d[2])^2`.
+                    self.next();
+                    let index = self.parse_expression()?;
+                    self.expect_token(Token::RBracket, "']' after the index")?;
+                    expr = Expression::Index(Box::new(expr), Box::new(index));
+                }
                 _ => break,
             }
         }
@@ -1032,6 +1084,40 @@ impl Parser {
                     None => Err(EpherError::Parse("unexpected end of input".into())),
                 }
             }
+            Some(Token::LBrace) => {
+                // A list literal (ADR-0044): `{1, 2, 3}`, `{}`, elements
+                // are expressions. A trailing comma is allowed (`{1, 2,}`
+                // — the comma is a separator, not a terminator).
+                let mut items = Vec::new();
+                if matches!(self.peek(), Some(Token::RBrace)) {
+                    self.next();
+                    return Ok(Expression::List(items));
+                }
+                loop {
+                    let item = self.parse_expression()?;
+                    items.push(item);
+                    match self.next() {
+                        Some(Token::Comma) => {
+                            if matches!(self.peek(), Some(Token::RBrace)) {
+                                self.next();
+                                break;
+                            }
+                        }
+                        Some(Token::RBrace) => break,
+                        Some(other) => {
+                            return Err(EpherError::Parse(format!(
+                                "expected ',' or '}}' in the list, found {other:?}"
+                            )))
+                        }
+                        None => {
+                            return Err(EpherError::Parse(
+                                "unexpected end of input in the list".into(),
+                            ))
+                        }
+                    }
+                }
+                Ok(Expression::List(items))
+            }
             Some(other) => Err(EpherError::Parse(format!(
                 "expected a number, found {other:?}"
             ))),
@@ -1054,6 +1140,16 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
         Expression::Neg(inner) => match eval(inner, env)? {
             Value::Float(n) => Ok(Value::Float(-n)),
             Value::Complex(c) => Ok(Value::Complex(-c)),
+            Value::List(items) => {
+                let mut out = Vec::with_capacity(items.len());
+                for v in items {
+                    match v {
+                        Value::Float(n) => out.push(Value::Float(-n)),
+                        other => return Err(EpherError::Type(format!("cannot negate {other:?}"))),
+                    }
+                }
+                Ok(Value::List(out))
+            }
             other => Err(EpherError::Type(format!("cannot negate {other:?}"))),
         },
         Expression::Add(lhs, rhs) => binop(eval(lhs, env)?, eval(rhs, env)?, BinOp::Add),
@@ -1061,6 +1157,45 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
         Expression::Mul(lhs, rhs) => binop(eval(lhs, env)?, eval(rhs, env)?, BinOp::Mul),
         Expression::Div(lhs, rhs) => binop(eval(lhs, env)?, eval(rhs, env)?, BinOp::Div),
         Expression::Pow(lhs, rhs) => binop(eval(lhs, env)?, eval(rhs, env)?, BinOp::Pow),
+        Expression::List(items) => {
+            let mut out = Vec::with_capacity(items.len());
+            for item in items {
+                let v = eval(item, env)?;
+                match v {
+                    Value::Float(_) => out.push(v),
+                    other => {
+                        return Err(EpherError::Type(format!(
+                            "lists hold numbers, got {other:?}"
+                        )))
+                    }
+                }
+            }
+            Ok(Value::List(out))
+        }
+        Expression::Index(list, index) => {
+            let list = eval(list, env)?;
+            let index = eval(index, env)?;
+            let Value::List(items) = &list else {
+                return Err(EpherError::Type(format!(
+                    "indexing needs a list, got {list:?}"
+                )));
+            };
+            let Value::Float(i) = index else {
+                return Err(EpherError::Type(format!(
+                    "the index must be a whole number, got {index:?}"
+                )));
+            };
+            let i = float_to_int(i).ok_or_else(|| {
+                EpherError::Type(format!("the index must be a whole number, got {i}"))
+            })?;
+            if !(1..=items.len() as i64).contains(&i) {
+                return Err(EpherError::Type(format!(
+                    "index {i} is out of range for a list of {} element(s)",
+                    items.len()
+                )));
+            }
+            Ok(items[(i - 1) as usize].clone())
+        }
         Expression::Factorial(inner) => {
             let v = eval(inner, env)?;
             let x = one_float("!", &[v])?;
@@ -1082,6 +1217,15 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                         CmpOp::Ne => x != y,
                     };
                     Ok(Value::Bool(result))
+                }
+                // Whole-list equality (ADR-0044): `{1, 2} == {1, 2}` is
+                // true; ordering comparisons stay a type error.
+                (Value::List(a), Value::List(b)) if matches!(op, CmpOp::Eq | CmpOp::Ne) => {
+                    Ok(Value::Bool(if matches!(op, CmpOp::Eq) {
+                        a == b
+                    } else {
+                        a != b
+                    }))
                 }
                 _ => Err(EpherError::Type(format!("cannot compare {l:?} and {r:?}"))),
             }
@@ -1228,13 +1372,21 @@ fn eval_derivative(args: &[Expression], env: &Env) -> Result<Value, EpherError> 
             )))
         }
     };
-    let Some(var) = calculus_var(&args[0], env)? else {
-        return Ok(Value::float(0.0));
+    derivative_at(&args[0], p, env).map(Value::float)
+}
+
+/// Numeric derivative of `expr` at `p` (the 5-point stencil,
+/// ADR-0043): the shared engine behind `derivative(expr, p)` and the
+/// table's derivative column (ADR-0044). A constant expression (no
+/// free variable) differentiates to 0.
+pub(crate) fn derivative_at(expr: &Expression, p: f64, env: &Env) -> Result<f64, EpherError> {
+    let Some(var) = calculus_var(expr, env)? else {
+        return Ok(0.0);
     };
     let h = 1e-4 * (1.0 + p.abs());
     let at = |x: f64| -> Result<f64, EpherError> {
         let child = calculus_child(env, &var, x);
-        match eval(&args[0], &child)? {
+        match eval(expr, &child)? {
             Value::Float(y) => Ok(y),
             other => Err(EpherError::Type(format!(
                 "derivative expects a real-valued expression, got {other}"
@@ -1242,12 +1394,11 @@ fn eval_derivative(args: &[Expression], env: &Env) -> Result<Value, EpherError> 
         }
     };
     // 5-point stencil: error ~ h^4 in the function, rounding ~ eps/h
-    let _ym2 = at(p - 2.0 * h)?;
-    let _ym1 = at(p - h)?;
-    let _y1 = at(p + h)?;
-    let _y2 = at(p + 2.0 * h)?;
-    let slope = (_ym2 - 8.0 * _ym1 + 8.0 * _y1 - _y2) / (12.0 * h);
-    Ok(Value::float(slope))
+    let ym2 = at(p - 2.0 * h)?;
+    let ym1 = at(p - h)?;
+    let y1 = at(p + h)?;
+    let y2 = at(p + 2.0 * h)?;
+    Ok((ym2 - 8.0 * ym1 + 8.0 * y1 - y2) / (12.0 * h))
 }
 
 /// `integral(expr, a, b)` (ADR-0043): adaptive Simpson with a relative
@@ -1664,6 +1815,466 @@ pub enum CatalogKind {
     Constant,
 }
 
+// --- data platform: statistics, distributions, and tests (ADR-0044) --
+
+/// The median of a sorted slice (the `mean`-style middle for the
+/// five-number summary and quartiles).
+pub(crate) fn median_sorted(xs: &[f64]) -> f64 {
+    let n = xs.len();
+    if n % 2 == 1 {
+        xs[n / 2]
+    } else {
+        (xs[n / 2 - 1] + xs[n / 2]) / 2.0
+    }
+}
+
+/// The k-th quartile, TI-style median-of-halves (ADR-0044): Q1 is the
+/// median of the lower half, Q3 of the upper; the halves include the
+/// middle element when the count is odd.
+pub(crate) fn quartile_sorted(xs: &[f64], k: u32) -> f64 {
+    let n = xs.len();
+    let (lo, hi) = if n % 2 == 1 {
+        (n / 2 + 1, n / 2)
+    } else {
+        (n / 2, n / 2)
+    };
+    match k {
+        1 => median_sorted(&xs[..lo]),
+        3 => median_sorted(&xs[hi..]),
+        _ => median_sorted(xs),
+    }
+}
+
+/// The least-squares fit of `ys ~ a*x + b` plus Pearson's r (ADR-0044).
+/// Two or more points, at least two distinct x values. Returns (a, b, r).
+pub(crate) fn linear_fit(xs: &[f64], ys: &[f64]) -> Result<(f64, f64, f64), EpherError> {
+    let n = xs.len();
+    if n < 2 {
+        return Err(domain_error("linear fit needs at least 2 points"));
+    }
+    let mx = xs.iter().sum::<f64>() / n as f64;
+    let my = ys.iter().sum::<f64>() / n as f64;
+    let mut sxx = 0.0;
+    let mut sxy = 0.0;
+    let mut syy = 0.0;
+    for (x, y) in xs.iter().zip(ys.iter()) {
+        let dx = x - mx;
+        let dy = y - my;
+        sxx += dx * dx;
+        sxy += dx * dy;
+        syy += dy * dy;
+    }
+    if sxx == 0.0 {
+        return Err(domain_error(
+            "linear fit needs at least 2 distinct x values",
+        ));
+    }
+    let a = sxy / sxx;
+    let b = my - a * mx;
+    let r = if syy == 0.0 {
+        // every y equal: a horizontal line fits perfectly
+        1.0
+    } else {
+        (sxy / (sxx * syy).sqrt()).clamp(-1.0, 1.0)
+    };
+    Ok((a, b, r))
+}
+
+/// The regularized incomplete gamma Q(a, x) = 1 - P(a, x), by series
+/// and continued fraction (Numerical Recipes gser/gcf, public domain).
+/// Pure f64, deterministic, wasm-safe.
+fn regularized_gamma_q(a: f64, x: f64) -> f64 {
+    if x < a + 1.0 {
+        1.0 - gamma_series(a, x)
+    } else {
+        gamma_cf(a, x)
+    }
+}
+
+fn gamma_series(a: f64, x: f64) -> f64 {
+    let mut ap = a;
+    let mut sum = 1.0 / a;
+    let mut del = sum;
+    let mut n = 1.0;
+    loop {
+        ap += 1.0;
+        del *= x / ap;
+        sum += del;
+        if del.abs() < sum.abs() * 1e-14 {
+            break;
+        }
+        n += 1.0;
+        if n > 2000.0 {
+            break;
+        }
+    }
+    sum * (-x + a * x.ln() - ln_gamma(a)).exp()
+}
+
+fn gamma_cf(a: f64, x: f64) -> f64 {
+    const FPMIN: f64 = 1e-300;
+    let mut b = x + 1.0 - a;
+    let mut c = 1.0 / FPMIN;
+    let mut d = 1.0 / b;
+    let mut h = d;
+    let mut i = 1.0;
+    loop {
+        let an = -i * (i - a);
+        b += 2.0;
+        d = an * d + b;
+        if d.abs() < FPMIN {
+            d = FPMIN;
+        }
+        c = b + an / c;
+        if c.abs() < FPMIN {
+            c = FPMIN;
+        }
+        d = 1.0 / d;
+        let del = d * c;
+        h *= del;
+        if (del - 1.0).abs() < 1e-14 {
+            break;
+        }
+        i += 1.0;
+        if i > 2000.0 {
+            break;
+        }
+    }
+    (-x + a * x.ln() - ln_gamma(a)).exp() * h
+}
+
+/// Lanczos ln(gamma), accurate to ~1e-12 for x > 0.
+fn ln_gamma(x: f64) -> f64 {
+    const COF: [f64; 6] = [
+        76.18009172947146,
+        -86.50532032941677,
+        24.01409824083091,
+        -1.231739572450155,
+        0.1208650973866179e-2,
+        -0.5395239384953e-5,
+    ];
+    let mut y = x;
+    let mut tmp = x + 5.5;
+    tmp -= (x + 0.5) * tmp.ln();
+    let mut ser = 1.000000000190015;
+    for c in COF {
+        y += 1.0;
+        ser += c / y;
+    }
+    -tmp + (2.5066282746310005 * ser / x).ln()
+}
+
+/// The regularized incomplete beta I_x(a, b) (Numerical Recipes betai,
+/// public domain), for a, b > 0 and x in [0, 1].
+fn regularized_beta(a: f64, b: f64, x: f64) -> f64 {
+    if x <= 0.0 {
+        return 0.0;
+    }
+    if x >= 1.0 {
+        return 1.0;
+    }
+    let bt = (ln_gamma(a + b) - ln_gamma(a) - ln_gamma(b) + a * x.ln() + b * (1.0 - x).ln()).exp();
+    if x < (a + 1.0) / (a + b + 2.0) {
+        bt * beta_cf(a, b, x) / a
+    } else {
+        1.0 - bt * beta_cf(b, a, 1.0 - x) / b
+    }
+}
+
+fn beta_cf(a: f64, b: f64, x: f64) -> f64 {
+    const FPMIN: f64 = 1e-300;
+    const MAXIT: u32 = 400;
+    let qab = a + b;
+    let qap = a + 1.0;
+    let qam = a - 1.0;
+    let mut c = 1.0;
+    let mut d = 1.0 - qab * x / qap;
+    if d.abs() < FPMIN {
+        d = FPMIN;
+    }
+    d = 1.0 / d;
+    let mut h = d;
+    for m in 1..=MAXIT {
+        let m2 = 2 * m;
+        let mut aa = m as f64 * (b - m as f64) * x / ((qam + m2 as f64) * (a + m2 as f64));
+        d = 1.0 + aa * d;
+        if d.abs() < FPMIN {
+            d = FPMIN;
+        }
+        c = 1.0 + aa / c;
+        if c.abs() < FPMIN {
+            c = FPMIN;
+        }
+        d = 1.0 / d;
+        h *= d * c;
+        aa = -(a + m as f64) * (qab + m as f64) * x / ((a + m2 as f64) * (qap + m2 as f64));
+        d = 1.0 + aa * d;
+        if d.abs() < FPMIN {
+            d = FPMIN;
+        }
+        c = 1.0 + aa / c;
+        if c.abs() < FPMIN {
+            c = FPMIN;
+        }
+        d = 1.0 / d;
+        let del = d * c;
+        h *= del;
+        if (del - 1.0).abs() < 3e-14 {
+            break;
+        }
+    }
+    h
+}
+
+/// The standard normal CDF through the incomplete gamma identity
+/// erf(z) = 1 - Q(1/2, z^2): exact at 0, ~1e-12 elsewhere — precise
+/// enough for p-values that round to four decimals. The inverse CDF is
+/// Acklam's rational approximation (1.15e-9) polished by one Newton
+/// step against this same CDF.
+fn norm_cdf(x: f64) -> f64 {
+    if x.is_nan() {
+        return f64::NAN;
+    }
+    if x == 0.0 {
+        return 0.5;
+    }
+    let q = regularized_gamma_q(0.5, x * x / 2.0);
+    if x > 0.0 {
+        1.0 - 0.5 * q
+    } else {
+        0.5 * q
+    }
+}
+
+fn inv_norm(p: f64) -> f64 {
+    const A: [f64; 6] = [
+        -3.969683028665376e1,
+        2.209460984245205e2,
+        -2.759285104469687e2,
+        1.383577518672690e2,
+        -3.066479806614716e1,
+        2.506628277459239,
+    ];
+    const B: [f64; 5] = [
+        -5.447609879822406e1,
+        1.615858368580409e2,
+        -1.556989798598866e2,
+        6.680131188771972e1,
+        -1.328068155288572e1,
+    ];
+    const C: [f64; 6] = [
+        -7.784894002430293e-3,
+        -3.223964580411365e-1,
+        -2.400758277161838,
+        -2.549732539343734,
+        4.374664141464968,
+        2.938163982698783,
+    ];
+    const D: [f64; 4] = [
+        7.784695709041462e-3,
+        3.224671290700398e-1,
+        2.445134137142996,
+        3.754408661907416,
+    ];
+    if p <= 0.0 {
+        return f64::NEG_INFINITY;
+    }
+    if p >= 1.0 {
+        return f64::INFINITY;
+    }
+    // Acklam's rational approximation (1.15e-9 class), polished by one
+    // Newton step against the same gamma-based CDF above — the tails
+    // negate, the central region uses q = p - 0.5.
+    let x = if p < 0.02425 {
+        let q = (-2.0 * p.ln()).sqrt();
+        (((((C[0] * q + C[1]) * q + C[2]) * q + C[3]) * q + C[4]) * q + C[5])
+            / ((((D[0] * q + D[1]) * q + D[2]) * q + D[3]) * q + 1.0)
+    } else if p > 0.97575 {
+        let q = (-2.0 * (1.0 - p).ln()).sqrt();
+        -(((((C[0] * q + C[1]) * q + C[2]) * q + C[3]) * q + C[4]) * q + C[5])
+            / ((((D[0] * q + D[1]) * q + D[2]) * q + D[3]) * q + 1.0)
+    } else {
+        let q = p - 0.5;
+        let r = q * q;
+        q * (((((A[0] * r + A[1]) * r + A[2]) * r + A[3]) * r + A[4]) * r + A[5])
+            / (((((B[0] * r + B[1]) * r + B[2]) * r + B[3]) * r + B[4]) * r + 1.0)
+    };
+    x - (norm_cdf(x) - p) / norm_pdf(x)
+}
+
+fn norm_pdf(x: f64) -> f64 {
+    (-0.5 * x * x).exp() / std::f64::consts::TAU.sqrt()
+}
+
+/// The Student t CDF (regularized incomplete beta: t_cdf = 1 - 0.5 *
+/// I_{df/(df+t^2)}(df/2, 1/2)) and PDF; `invt` inverts by Newton on
+/// the CDF with the PDF as the derivative.
+fn t_cdf(t: f64, df: f64) -> f64 {
+    if t.is_nan() {
+        return f64::NAN;
+    }
+    let x = df / (df + t * t);
+    let ib = regularized_beta(df / 2.0, 0.5, x);
+    if t >= 0.0 {
+        1.0 - 0.5 * ib
+    } else {
+        0.5 * ib
+    }
+}
+
+fn t_pdf(t: f64, df: f64) -> f64 {
+    (ln_gamma((df + 1.0) / 2.0)
+        - ln_gamma(df / 2.0)
+        - 0.5 * (df * std::f64::consts::PI).ln()
+        - ((df + 1.0) / 2.0) * (1.0 + t * t / df).ln())
+    .exp()
+}
+
+/// The chi-squared CDF, the lower probability P(X <= x) — the
+/// regularized incomplete gamma P(df/2, x/2); `invchi2` inverts by
+/// Newton with the PDF as the derivative.
+fn chi2_cdf(x: f64, df: f64) -> f64 {
+    1.0 - regularized_gamma_q(df / 2.0, x / 2.0)
+}
+
+fn chi2_pdf(x: f64, df: f64) -> f64 {
+    if x <= 0.0 {
+        return 0.0;
+    }
+    ((df / 2.0 - 1.0) * x.ln() - x / 2.0 - ln_gamma(df / 2.0) - (df / 2.0) * 2.0f64.ln()).exp()
+}
+
+/// Newton inversion of a monotone CDF with a PDF derivative, bracketed
+/// by doubling (so p values near 0 or 1 still converge).
+fn invert_cdf(cdf: impl Fn(f64) -> f64, pdf: impl Fn(f64) -> f64, p: f64, lo: f64, hi: f64) -> f64 {
+    let mut lo = lo;
+    let mut hi = hi;
+    let mut x = 0.5 * (lo + hi);
+    for _ in 0..200 {
+        let f = cdf(x) - p;
+        if f.abs() < 1e-12 {
+            break;
+        }
+        if f < 0.0 {
+            lo = x;
+        } else {
+            hi = x;
+        }
+        let d = pdf(x);
+        let step = if d > 1e-300 { f / d } else { 0.0 };
+        let nx = x - step;
+        x = if nx > lo && nx < hi {
+            nx
+        } else {
+            0.5 * (lo + hi)
+        };
+    }
+    x
+}
+
+/// The binomial PDF by the numerically stable recurrence (p^i q^(n-i)
+/// built up from the peak) and the Poisson PDF by the log-gamma form.
+fn binom_pdf(k: i64, n: i64, p: f64) -> f64 {
+    if k < 0 || k > n {
+        return 0.0;
+    }
+    if p == 0.0 {
+        return if k == 0 { 1.0 } else { 0.0 };
+    }
+    if p == 1.0 {
+        return if k == n { 1.0 } else { 0.0 };
+    }
+    let log = ln_gamma(n as f64 + 1.0) - ln_gamma(k as f64 + 1.0) - ln_gamma((n - k) as f64 + 1.0)
+        + k as f64 * p.ln()
+        + (n - k) as f64 * (1.0 - p).ln();
+    log.exp()
+}
+
+fn poisson_pdf(k: i64, lambda: f64) -> f64 {
+    if k < 0 {
+        return 0.0;
+    }
+    if lambda == 0.0 {
+        return if k == 0 { 1.0 } else { 0.0 };
+    }
+    (k as f64 * lambda.ln() - lambda - ln_gamma(k as f64 + 1.0)).exp()
+}
+
+/// The count-typed argument of the discrete distributions.
+fn count_arg(name: &str, v: f64) -> Result<i64, EpherError> {
+    float_to_int(v)
+        .ok_or_else(|| EpherError::Type(format!("{name} expects a whole number, got {v}")))
+}
+
+/// The probability argument of a CDF inverse or a test level.
+fn prob_arg(name: &str, v: f64) -> Result<f64, EpherError> {
+    if !(0.0..=1.0).contains(&v) {
+        return Err(domain_error(format!(
+            "{name} expects a probability in 0..1, got {v}"
+        )));
+    }
+    Ok(v)
+}
+
+/// A data list as floats, with its length — the tests and intervals
+/// take a named column.
+fn data_list(name: &str, args: &[Value], arg: usize) -> Result<Vec<f64>, EpherError> {
+    let v = args.get(arg).ok_or_else(|| {
+        EpherError::Type(format!(
+            "{name} expects a data list, got {} argument(s)",
+            args.len()
+        ))
+    })?;
+    let Value::List(items) = v else {
+        return Err(EpherError::Type(format!(
+            "{name} expects a data list, got {v}"
+        )));
+    };
+    let mut out = Vec::with_capacity(items.len());
+    for item in items {
+        match item {
+            Value::Float(x) => out.push(*x),
+            other => {
+                return Err(EpherError::Type(format!(
+                    "{name} expects numbers in the list, got {other:?}"
+                )))
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// The sample mean and the sample (n-1) standard deviation — the
+/// building blocks of the tests and intervals.
+fn sample_mean_std(data: &[f64]) -> (f64, f64) {
+    let n = data.len();
+    let mean = data.iter().sum::<f64>() / n as f64;
+    let var = data.iter().map(|x| (x - mean) * (x - mean)).sum::<f64>() / (n - 1) as f64;
+    (mean, var.sqrt())
+}
+
+/// Two-sided p of a z statistic and a t statistic.
+fn z_two_sided(z: f64) -> f64 {
+    2.0 * (1.0 - norm_cdf(z.abs()))
+}
+
+fn t_two_sided(t: f64, df: f64) -> f64 {
+    2.0 * (1.0 - t_cdf(t.abs(), df))
+}
+
+/// One rounded stat, for the test result strings (ADR-0044).
+fn stat_str(x: f64) -> String {
+    format!("{x:.4}")
+        .trim_end_matches('0')
+        .trim_end_matches('.')
+        .to_string()
+}
+
+/// The `(lo, hi)` spelling of a confidence interval.
+fn interval_str(lo: f64, hi: f64) -> String {
+    format!("({}, {})", stat_str(lo), stat_str(hi))
+}
+
 /// One builtin name - the autocomplete/F1 index (ADR-0042). Descriptive
 /// only: a name missing from the catalog still evaluates; it just does not
 /// suggest. Frontends merge the session's user functions and constants on
@@ -1750,6 +2361,14 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "binomcdf",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "binompdf",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "c",
         kind: CatalogKind::Constant,
     },
@@ -1759,6 +2378,18 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "ceil",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "chi2cdf",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "chi2pdf",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "chisq_gof",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -1890,6 +2521,18 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "invchi2",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "invnorm",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "invt",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "isprime",
         kind: CatalogKind::Function,
     },
@@ -1911,6 +2554,14 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "lcm",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "len",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "linreg",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -1982,6 +2633,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "mode",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "mu_0",
         kind: CatalogKind::Constant,
     },
@@ -2003,6 +2658,14 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "nextprime",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "normcdf",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "normpdf",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -2034,6 +2697,14 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Constant,
     },
     CatalogEntry {
+        name: "poissoncdf",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "poissonpdf",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "prevprime",
         kind: CatalogKind::Function,
     },
@@ -2044,6 +2715,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     CatalogEntry {
         name: "q_e",
         kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "quartile",
+        kind: CatalogKind::Function,
     },
     CatalogEntry {
         name: "r_earth",
@@ -2067,6 +2742,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "rad",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "range",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -2110,6 +2789,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "sort",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "sqrt",
         kind: CatalogKind::Function,
     },
@@ -2134,11 +2817,27 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Constant,
     },
     CatalogEntry {
+        name: "tcdf",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "tinterval",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "totient",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "tpdf",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "trunc",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "ttest",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -2148,6 +2847,14 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     CatalogEntry {
         name: "z_0",
         kind: CatalogKind::Constant,
+    },
+    CatalogEntry {
+        name: "zinterval",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "ztest",
+        kind: CatalogKind::Function,
     },
 ];
 
@@ -2263,12 +2970,34 @@ fn two_floats(name: &str, args: &[Value]) -> Result<(f64, f64), EpherError> {
     }
 }
 
-/// Take one or more Float arguments (variadic statistics and min/max).
+/// One or more Float arguments, or a single list of them (ADR-0044):
+/// `mean({1, 2, 3})` and `mean(1, 2, 3)` are the same call, and
+/// `linreg({..}, {..})` feeds the stats machinery. An empty list is a
+/// domain error for statistics that divide by the count.
 fn any_floats(name: &str, args: &[Value]) -> Result<Vec<f64>, EpherError> {
     if args.is_empty() {
         return Err(EpherError::Type(format!(
             "{name} expects at least 1 number, got 0"
         )));
+    }
+    if args.len() == 1 {
+        if let Value::List(items) = &args[0] {
+            if items.is_empty() {
+                return Err(domain_error(format!("{name} of an empty list")));
+            }
+            let mut out = Vec::with_capacity(items.len());
+            for item in items {
+                match item {
+                    Value::Float(x) => out.push(*x),
+                    other => {
+                        return Err(EpherError::Type(format!(
+                            "{name} expects numbers, got {other:?}"
+                        )))
+                    }
+                }
+            }
+            return Ok(out);
+        }
     }
     let mut out = Vec::with_capacity(args.len());
     for arg in args {
@@ -2446,7 +3175,17 @@ pub fn format_value(v: &Value, prefs: &DisplayPrefs) -> String {
                 s
             }
         }
-        other => format!("{other}"),
+        other => match other {
+            Value::List(items) => {
+                let inner = items
+                    .iter()
+                    .map(|v| format_value(v, prefs))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!("{{{inner}}}")
+            }
+            _ => format!("{other}"),
+        },
     }
 }
 
@@ -2800,7 +3539,9 @@ fn poly_coeffs(expr: &Expression, variable: &str, env: &Env) -> Option<Vec<f64>>
         | Expression::If(_, _, _)
         | Expression::And(_, _)
         | Expression::Or(_, _)
-        | Expression::Not(_) => None,
+        | Expression::Not(_)
+        | Expression::List(_)
+        | Expression::Index(_, _) => None,
     }
     .and_then(poly)
 }
@@ -3517,6 +4258,375 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                 (xs[mid - 1] + xs[mid]) / 2.0
             }))
         }
+        // List shape and ordering (ADR-0044).
+        "len" => {
+            let Value::List(items) = one_arg(name, &args)? else {
+                return Err(EpherError::Type(format!(
+                    "{name} expects a list, got {}",
+                    args.len()
+                )));
+            };
+            Ok(Value::Float(items.len() as f64))
+        }
+        "sort" => {
+            let mut xs = any_floats(name, &args)?;
+            xs.sort_by(|a, b| a.partial_cmp(b).expect("floats are comparable"));
+            Ok(Value::List(xs.into_iter().map(Value::Float).collect()))
+        }
+        "mode" => {
+            let xs = any_floats(name, &args)?;
+            if xs.is_empty() {
+                return Err(domain_error("mode of an empty list"));
+            }
+            let mut counts = std::collections::HashMap::<u64, (f64, usize)>::new();
+            for x in &xs {
+                let bits = x.to_bits();
+                let entry = counts.entry(bits).or_insert((*x, 0));
+                entry.1 += 1;
+            }
+            // Most frequent; the smallest value wins ties.
+            let best = counts
+                .values()
+                .max_by(|a, b| {
+                    a.1.cmp(&b.1)
+                        .then_with(|| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal))
+                })
+                .map(|(v, _)| *v)
+                .expect("counts is non-empty");
+            Ok(Value::Float(best))
+        }
+        "range" => {
+            let xs = any_floats(name, &args)?;
+            if xs.is_empty() {
+                return Err(domain_error("range of an empty list"));
+            }
+            let (lo, hi) = xs
+                .iter()
+                .fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), x| {
+                    (lo.min(*x), hi.max(*x))
+                });
+            Ok(Value::Float(hi - lo))
+        }
+        "quartile" => {
+            let (list, k) = match args.as_slice() {
+                [Value::List(items), Value::Float(k)] => (items.clone(), *k),
+                _ => {
+                    return Err(EpherError::Type(format!(
+                        "{name} expects a list and a whole number 1..3, got {} argument(s)",
+                        args.len()
+                    )))
+                }
+            };
+            let k = float_to_int(k).ok_or_else(|| {
+                EpherError::Type(format!("{name} expects a whole number 1..3, got {k}"))
+            })?;
+            if !(1..=3).contains(&k) || list.is_empty() {
+                return Err(domain_error(format!(
+                    "{name} needs a non-empty list and k in 1..3"
+                )));
+            }
+            let mut xs: Vec<f64> = Vec::with_capacity(list.len());
+            for item in &list {
+                match item {
+                    Value::Float(x) => xs.push(*x),
+                    other => {
+                        return Err(EpherError::Type(format!(
+                            "{name} expects numbers, got {other:?}"
+                        )))
+                    }
+                }
+            }
+            xs.sort_by(|a, b| a.partial_cmp(b).expect("floats are comparable"));
+            Ok(Value::Float(quartile_sorted(&xs, k as u32)))
+        }
+        "linreg" => {
+            let (xs, ys) = match args.as_slice() {
+                [Value::List(a), Value::List(b)] if a.len() == b.len() => {
+                    let to = |items: &[Value]| -> Result<Vec<f64>, EpherError> {
+                        let mut out = Vec::with_capacity(items.len());
+                        for item in items {
+                            match item {
+                                Value::Float(x) => out.push(*x),
+                                other => {
+                                    return Err(EpherError::Type(format!(
+                                        "{name} expects numbers, got {other:?}"
+                                    )))
+                                }
+                            }
+                        }
+                        Ok(out)
+                    };
+                    (to(a)?, to(b)?)
+                }
+                _ => {
+                    return Err(EpherError::Type(format!(
+                        "{name} expects two same-length lists, got {} argument(s)",
+                        args.len()
+                    )))
+                }
+            };
+            if xs.is_empty() {
+                return Err(domain_error("linear fit needs at least 2 points"));
+            }
+            let (a, b, r) = linear_fit(&xs, &ys)?;
+            Ok(Value::Str(format!(
+                "y = {}*x + {} (r = {})",
+                stat_str(a),
+                stat_str(b),
+                stat_str(r)
+            )))
+        }
+        // Probability distributions (ADR-0044): the normal family takes
+        // one or three arguments (1-argument forms are the standard
+        // normal); the others take their textbook parameters.
+        "normpdf" | "normcdf" | "invnorm" => {
+            let (x, mu, sigma) = match args.as_slice() {
+                [Value::Float(x)] => (*x, 0.0, 1.0),
+                [Value::Float(x), Value::Float(mu), Value::Float(sigma)] => (*x, *mu, *sigma),
+                _ => {
+                    return Err(EpherError::Type(format!(
+                        "{name} expects 1 or 3 numbers, got {} argument(s)",
+                        args.len()
+                    )))
+                }
+            };
+            if sigma <= 0.0 {
+                return Err(domain_error(format!("{name} needs sigma > 0, got {sigma}")));
+            }
+            match name {
+                "normpdf" => Ok(Value::Float(norm_pdf((x - mu) / sigma) / sigma)),
+                "normcdf" => Ok(Value::Float(norm_cdf((x - mu) / sigma))),
+                _ => {
+                    let p = prob_arg(name, x)?;
+                    Ok(Value::Float(mu + sigma * inv_norm(p)))
+                }
+            }
+        }
+        "tpdf" | "tcdf" | "invt" => {
+            let (x, df) = two_floats(name, &args)?;
+            if df <= 0.0 {
+                return Err(domain_error(format!("{name} needs df > 0, got {df}")));
+            }
+            match name {
+                "tpdf" => Ok(Value::Float(t_pdf(x, df))),
+                "tcdf" => Ok(Value::Float(t_cdf(x, df))),
+                _ => {
+                    let p = prob_arg(name, x)?;
+                    Ok(Value::Float(invert_cdf(
+                        |t| t_cdf(t, df),
+                        |t| t_pdf(t, df),
+                        p,
+                        -100.0,
+                        100.0,
+                    )))
+                }
+            }
+        }
+        "chi2pdf" | "chi2cdf" | "invchi2" => {
+            let (x, df) = two_floats(name, &args)?;
+            if df <= 0.0 {
+                return Err(domain_error(format!("{name} needs df > 0, got {df}")));
+            }
+            match name {
+                "chi2pdf" => {
+                    if x < 0.0 {
+                        return Err(domain_error(format!("{name} of a negative x")));
+                    }
+                    Ok(Value::Float(chi2_pdf(x, df)))
+                }
+                "chi2cdf" => {
+                    if x < 0.0 {
+                        return Err(domain_error(format!("{name} of a negative x")));
+                    }
+                    Ok(Value::Float(chi2_cdf(x, df)))
+                }
+                _ => {
+                    let p = prob_arg(name, x)?;
+                    Ok(Value::Float(invert_cdf(
+                        |v| chi2_cdf(v, df),
+                        |v| chi2_pdf(v, df),
+                        p,
+                        0.0,
+                        (df + 40.0 * (2.0 * df).sqrt()).max(16.0),
+                    )))
+                }
+            }
+        }
+        "binompdf" | "binomcdf" => {
+            let (k, n, p) = three_floats(name, &args)?;
+            let k = count_arg(name, k)?;
+            let n = count_arg(name, n)?;
+            let p = prob_arg(name, p)?;
+            if n < 0 {
+                return Err(domain_error(format!("{name} needs n >= 0, got {n}")));
+            }
+            if name == "binompdf" {
+                Ok(Value::Float(binom_pdf(k, n, p)))
+            } else {
+                let mut acc = 0.0;
+                for i in 0..=k {
+                    acc += binom_pdf(i, n, p);
+                }
+                Ok(Value::Float(acc.min(1.0)))
+            }
+        }
+        "poissonpdf" | "poissoncdf" => {
+            let (k, lambda) = two_floats(name, &args)?;
+            let k = count_arg(name, k)?;
+            if lambda < 0.0 {
+                return Err(domain_error(format!(
+                    "{name} needs lambda >= 0, got {lambda}"
+                )));
+            }
+            if name == "poissonpdf" {
+                Ok(Value::Float(poisson_pdf(k, lambda)))
+            } else {
+                let mut acc = 0.0;
+                for i in 0..=k {
+                    acc += poisson_pdf(i, lambda);
+                }
+                Ok(Value::Float(acc.min(1.0)))
+            }
+        }
+        // Hypothesis tests and confidence intervals (ADR-0044): data
+        // lists in, display strings out.
+        "ztest" => {
+            let (data, mu0, sigma) = match args.as_slice() {
+                [_d, Value::Float(mu0), Value::Float(sigma)] => {
+                    (data_list(name, &args, 0)?, *mu0, *sigma)
+                }
+                _ => {
+                    return Err(EpherError::Type(format!(
+                        "{name} expects a data list, a mean, and sigma, got {} argument(s)",
+                        args.len()
+                    )))
+                }
+            };
+            if data.len() < 2 {
+                return Err(domain_error("ztest needs at least 2 data points"));
+            }
+            if sigma <= 0.0 {
+                return Err(domain_error(format!("ztest needs sigma > 0, got {sigma}")));
+            }
+            let (mean, _) = sample_mean_std(&data);
+            let z = (mean - mu0) / (sigma / (data.len() as f64).sqrt());
+            Ok(Value::Str(format!(
+                "z = {}, p = {}",
+                stat_str(z),
+                stat_str(z_two_sided(z))
+            )))
+        }
+        "ttest" => {
+            let (data, mu0) = match args.as_slice() {
+                [_d, Value::Float(mu0)] => (data_list(name, &args, 0)?, *mu0),
+                _ => {
+                    return Err(EpherError::Type(format!(
+                        "{name} expects a data list and a mean, got {} argument(s)",
+                        args.len()
+                    )))
+                }
+            };
+            if data.len() < 2 {
+                return Err(domain_error("ttest needs at least 2 data points"));
+            }
+            let n = data.len() as f64;
+            let (mean, sd) = sample_mean_std(&data);
+            let t = (mean - mu0) / (sd / n.sqrt());
+            let p = if sd == 0.0 {
+                // a degenerate sample: every value equal — the statistic
+                // is 0 (when mu0 matches) or infinite
+                if mean == mu0 {
+                    1.0
+                } else {
+                    0.0
+                }
+            } else {
+                t_two_sided(t, n - 1.0)
+            };
+            Ok(Value::Str(format!(
+                "t = {}, p = {}",
+                stat_str(t),
+                stat_str(p)
+            )))
+        }
+        "zinterval" => {
+            let (data, sigma, level) = match args.as_slice() {
+                [_d, Value::Float(sigma), Value::Float(level)] => {
+                    (data_list(name, &args, 0)?, *sigma, *level)
+                }
+                _ => {
+                    return Err(EpherError::Type(format!(
+                        "{name} expects a data list, sigma, and a level, got {} argument(s)",
+                        args.len()
+                    )))
+                }
+            };
+            if data.is_empty() {
+                return Err(domain_error("zinterval needs data"));
+            }
+            if sigma <= 0.0 {
+                return Err(domain_error(format!("{name} needs sigma > 0, got {sigma}")));
+            }
+            let level = prob_arg(name, level)?;
+            let mean = data.iter().sum::<f64>() / data.len() as f64;
+            let z = inv_norm(0.5 + level / 2.0);
+            let hw = z * sigma / (data.len() as f64).sqrt();
+            Ok(Value::Str(interval_str(mean - hw, mean + hw)))
+        }
+        "tinterval" => {
+            let (data, level) = match args.as_slice() {
+                [_d, Value::Float(level)] => (data_list(name, &args, 0)?, *level),
+                _ => {
+                    return Err(EpherError::Type(format!(
+                        "{name} expects a data list and a level, got {} argument(s)",
+                        args.len()
+                    )))
+                }
+            };
+            if data.len() < 2 {
+                return Err(domain_error("tinterval needs at least 2 data points"));
+            }
+            let level = prob_arg(name, level)?;
+            let n = data.len() as f64;
+            let (mean, sd) = sample_mean_std(&data);
+            let t = invert_cdf(
+                |v| t_cdf(v, n - 1.0),
+                |v| t_pdf(v, n - 1.0),
+                0.5 + level / 2.0,
+                -100.0,
+                100.0,
+            );
+            let hw = t * sd / n.sqrt();
+            Ok(Value::Str(interval_str(mean - hw, mean + hw)))
+        }
+        "chisq_gof" => {
+            let (observed, expected) = match args.as_slice() {
+                [Value::List(a), Value::List(b)] if a.len() == b.len() && !a.is_empty() => {
+                    (data_list(name, &args, 0)?, data_list(name, &args, 1)?)
+                }
+                _ => {
+                    return Err(EpherError::Type(format!(
+                        "{name} expects two same-length non-empty lists, got {} argument(s)",
+                        args.len()
+                    )))
+                }
+            };
+            let mut chi2 = 0.0;
+            for (o, e) in observed.iter().zip(expected.iter()) {
+                if *e <= 0.0 {
+                    return Err(domain_error(format!(
+                        "expected counts must be positive, got {e}"
+                    )));
+                }
+                chi2 += (o - e) * (o - e) / e;
+            }
+            let df = observed.len() as f64 - 1.0;
+            Ok(Value::Str(format!(
+                "chi2 = {}, p = {}",
+                stat_str(chi2),
+                stat_str((1.0 - chi2_cdf(chi2, df)).max(0.0))
+            )))
+        }
         "dec" => {
             let [x] = args.as_slice() else {
                 return Err(EpherError::Type(format!(
@@ -3739,6 +4849,13 @@ impl Session {
         self.display = prefs;
     }
 
+    /// Read the session's result display preferences — the exact-fraction
+    /// toggle, notation, and separators (the table's exact cells follow
+    /// the same preference, ADR-0044).
+    pub fn display(&self) -> DisplayPrefs {
+        self.display
+    }
+
     /// Submit a script line: run it against the environment, record it in
     /// history, and return the display string (`= value`, `error: ...`, or
     /// empty for a line that produced no value, like a bare `def`). An empty
@@ -3945,6 +5062,12 @@ enum BinOp {
 /// Apply a binary op to two [`Value`]s, promoting to a common number layer
 /// (Float → Rational → Decimal → Big) when operands differ (ADR-0005).
 fn binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
+    // Elementwise list arithmetic (ADR-0044): `{1,2,3} * 2`, `2 /
+    // {1,2,3}`, `{1,2} + {3,4}`. Lists of different lengths are a
+    // type error; a scalar is any plain number.
+    if matches!(&lhs, Value::List(_)) || matches!(&rhs, Value::List(_)) {
+        return list_binop(lhs, rhs, op);
+    }
     match (&lhs, &rhs) {
         (Value::Float(a), Value::Float(b)) => Ok(Value::Float(float_binop(op, *a, *b)?)),
         (Value::Rational(a), Value::Rational(b)) => {
@@ -3997,6 +5120,80 @@ fn binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
             Complex::new(*a, 0.0),
             *b,
         )?)),
+        _ => Err(EpherError::Type(format!(
+            "cannot combine {lhs:?} and {rhs:?}"
+        ))),
+    }
+}
+
+/// Elementwise list arithmetic (ADR-0044): a list paired with a scalar
+/// applies the scalar to every element; two lists must have the same
+/// length. The elementwise results stay floats.
+fn list_binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
+    let scalar = |v: &Value| -> Result<f64, EpherError> {
+        match v {
+            Value::Float(x) => Ok(*x),
+            Value::Rational(r) => r
+                .to_f64()
+                .ok_or_else(|| EpherError::Type(format!("cannot use {v} as a list scalar"))),
+            Value::Decimal(d) => d
+                .to_f64()
+                .ok_or_else(|| EpherError::Type(format!("cannot use {v} as a list scalar"))),
+            Value::Big(b) => b
+                .to_f64()
+                .ok_or_else(|| EpherError::Type(format!("cannot use {v} as a list scalar"))),
+            other => Err(EpherError::Type(format!(
+                "cannot combine a list with {other:?}"
+            ))),
+        }
+    };
+    let apply = |a: f64, b: f64| float_binop(op, a, b);
+    match (&lhs, &rhs) {
+        (Value::List(a), Value::List(b)) => {
+            if a.len() != b.len() {
+                return Err(EpherError::Type(format!(
+                    "lists have different lengths: {} and {}",
+                    a.len(),
+                    b.len()
+                )));
+            }
+            let mut out = Vec::with_capacity(a.len());
+            for (x, y) in a.iter().zip(b.iter()) {
+                let (Value::Float(x), Value::Float(y)) = (x, y) else {
+                    return Err(EpherError::Type(format!(
+                        "cannot combine {x:?} and {y:?} elementwise"
+                    )));
+                };
+                out.push(Value::Float(apply(*x, *y)?));
+            }
+            Ok(Value::List(out))
+        }
+        (Value::List(a), other) => {
+            let s = scalar(other)?;
+            let mut out = Vec::with_capacity(a.len());
+            for v in a {
+                let Value::Float(x) = v else {
+                    return Err(EpherError::Type(format!(
+                        "cannot combine {v:?} elementwise"
+                    )));
+                };
+                out.push(Value::Float(apply(*x, s)?));
+            }
+            Ok(Value::List(out))
+        }
+        (other, Value::List(b)) => {
+            let s = scalar(other)?;
+            let mut out = Vec::with_capacity(b.len());
+            for v in b {
+                let Value::Float(x) = v else {
+                    return Err(EpherError::Type(format!(
+                        "cannot combine {v:?} elementwise"
+                    )));
+                };
+                out.push(Value::Float(apply(s, *x)?));
+            }
+            Ok(Value::List(out))
+        }
         _ => Err(EpherError::Type(format!(
             "cannot combine {lhs:?} and {rhs:?}"
         ))),

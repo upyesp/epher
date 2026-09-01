@@ -668,7 +668,18 @@ Les nombres premiers et les diviseurs travaillent sur des entiers :
 |---|---|---|---|
 | `isprime(n)` | vrai quand n est premier | `isprime(97)` | `true` |
 | `nextprime(n)` / `prevprime(n)` | les premiers les plus proches | `nextprime(10)` | `11` |
-| `factors(n)` | décomposition en facteurs premiers | `factors(360)` | `2^3 * 3^2 * 5` |
+| `factors(n)` | décomposition en facteurs premiers | `factors(360)` |
+| Littéral de liste | `{…}` | `{1, 2, 3}` |
+| Élément de liste | `list[i]` (à partir de 1) | `{5, 6}[2]` |
+| Statistiques de liste | `mean(liste)`, `median(liste)`, … | `stdev(d)` |
+| Forme de liste | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
+| Régression linéaire | `linreg(xs, ys)` | `linreg(x, y)` |
+| Famille normale | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
+| Famille t | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
+| Famille khi-deux | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
+| Familles discrètes | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
+| Tests et intervalles | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| Graphiques de données | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | indicatrice d'Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | nombre de diviseurs | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b puissance e, modulo m, exact | `modpow(2, 10, 1000)` | `24` |
@@ -1064,6 +1075,130 @@ integral(sin(x), 0, pi)
 
 Les deux sont numériques ; les expressions doivent être à valeurs réelles sur l'intervalle, et une expression à plusieurs variables est une erreur.
 
+### 1.20 Données : listes, statistiques et régression
+
+Une liste est une colonne de nombres entre accolades : `{1, 2, 3}`.
+Les éléments sont des expressions, la liste vide `{}` est admise, et
+une liste se lie à un nom comme n'importe quelle valeur :
+
+```epher
+d = {12, 15, 14, 16, 13, 15, 14, 17}
+d[2]
+len(d)
+```
+
+`list[i]` est le i-ème élément, indexé à partir de 1 comme sur une
+calculatrice ; un index hors de la liste est une erreur. Le crochet
+lie plus fort que `^`, donc `d[2]^2` vaut `(d[2])^2`.
+
+L'arithmétique sur une liste est élément par élément, un simple
+nombre s'appliquant à chaque élément :
+
+```epher
+{1, 2, 3} * 2
+{1, 2, 3} + 10
+```
+
+Deux listes doivent avoir la même longueur pour `+ - * / ^`. `==` et
+`!=` comparent des listes entières ; les comparaisons d'ordre les
+refusent.
+
+Les fonctions statistiques prennent une liste pour seul argument (la
+forme à plusieurs arguments reste — `mean(1, 2, 3)` fonctionne
+toujours) : `sum product mean median mode variance stdev min max
+range`. Les nouvelles fonctions de forme sont `len(liste)`, `sort(liste)`
+(copie croissante), `mode(liste)` (valeur la plus fréquente, la plus
+petite en cas d'égalité), `range(liste)` (plus grande moins plus petite
+valeur) et `quartile(liste, k)` pour k de 1 à 3 (quartiles à la TI,
+médiane des moitiés) :
+
+```epher
+mean(d)
+median(d)
+quartile(d, 1)
+```
+
+**linreg(xs, ys)** ajuste la droite des moindres carrés à deux listes
+de même longueur et la rapporte avec le coefficient de corrélation r :
+
+```epher
+linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})
+```
+
+La droite ajustée est un affichage, comme les racines de solve ; le
+dessin de l'ajustement vit sur le nuage de points (section 1.22).
+
+### 1.21 Distributions et tests d'hypothèse
+
+Les fonctions de probabilité couvrent la normale centrée réduite, la
+loi de Student, le khi-deux, la loi binomiale et la loi de Poisson.
+La famille normale prend un ou trois arguments — un seul argument est
+la normale centrée réduite :
+
+```epher
+normcdf(1.96)
+invnorm(0.975)
+normcdf(12, 10, 2)
+```
+
+`normpdf(x[, mu, sigma])`, `normcdf(x[, mu, sigma])`, `invnorm(p[,
+mu, sigma])` ; `tpdf(x, df)`, `tcdf(x, df)`, `invt(p, df)` ;
+`chi2pdf(x, df)`, `chi2cdf(x, df)`, `invchi2(p, df)` ;
+`binompdf(k, n, p)`, `binomcdf(k, n, p)` ; `poissonpdf(k, lambda)`,
+`poissoncdf(k, lambda)`. Les fonctions `inv*` répondent à la question
+inverse : `invt(0.975, 10)` est la valeur de t sous laquelle se trouve
+97.5 % de la masse.
+
+Les tests prennent une liste de données et rapportent la statistique
+et la p-value bilatérale sous forme de texte ; les intervalles
+rapportent `(bas, haut)` au niveau que vous nommez :
+
+```epher
+d = {12, 15, 14, 16, 13, 15, 14, 17}
+ttest(d, 14)
+tinterval(d, 0.95)
+ztest(d, 14, 1.5)
+chisq_gof({20, 30, 25, 25}, {25, 25, 25, 25})
+```
+
+`ttest(données, mu0)` et `tinterval(données, niveau)` utilisent
+l'écart type d'échantillon (n−1) ; `ztest(données, mu0, sigma)` et
+`zinterval(données, sigma, niveau)` ont besoin du sigma connu.
+`chisq_gof(observés, attendus)` est le test d'adéquation à k−1 degrés
+de liberté. Les résultats sont des textes d'affichage : lisibles et
+copiables, mais l'arithmétique ne peut pas les toucher.
+
+### 1.22 Graphiques de données
+
+La famille graphique accepte aussi des listes : un nuage de points,
+un histogramme et une boîte à moustaches. Un graphique de données
+occupe le panneau seul, comme un système solaire — la dernière
+commande gagne, et `graph clear` le vide.
+
+```epher
+x = {1, 2, 3, 4, 5}
+y = {2.1, 4.2, 5.8, 8.1, 9.9}
+graph scatter(x, y)
+```
+
+```epher
+graph histogram({1, 2, 2, 3, 3, 3, 4, 5})
+```
+
+```epher
+graph boxplot({1, 2, 2, 3, 3, 3, 9})
+```
+
+**scatter(xs, ys)** trace les points et, à partir de deux points, la
+droite des moindres carrés, légendée `y = a*x + b (r = …)`.
+**histogram(données[, classes])** trace un histogramme de fréquences ;
+le nombre de classes est facultatif (règle de Sturges par défaut) et
+doit être un entier entre 1 et 50. **boxplot(données)** trace la boîte
+à moustaches : minimum, Q1, médiane, Q3, maximum, moustaches jusqu'aux
+extrêmes. La fenêtre s'ajuste toujours aux données — les mots-clés
+`from a to b` ne s'appliquent pas — et l'image s'exporte et se
+sauvegarde comme n'importe quel graphique.
+
 ## 2. L'application web (PWA)
 
 ### 2.1 L'ouvrir
@@ -1193,6 +1328,27 @@ root (-1, 0)   minimum (0, 0)   root (1, 0)
 **Tableaux :** la commande `table` affiche un tableau de valeurs (les
 lignes où l'expression n'a pas de valeur restent vides) :
 
+Une clause facultative `derivative <expression>` ajoute une
+troisième colonne, la dérivée numérique de cette expression en chaque
+x :
+
+```epher
+table x ^ 2 from -2 to 2 points 5 derivative x ^ 2
+```
+
+```text
+         x           y          y'
+        -2           4          -4
+        -1           1          -2
+         0           0           0
+         1           1           2
+         2           4           4
+```
+
+Les cellules du tableau suivent les réglages des résultats :
+avec les fractions exactes activées (par défaut), une valeur qui est
+une fraction simple s'affiche comme telle — `table x / 3 from 0 to 1
+points 4` liste `1/3` au lieu de `0.333`.
 ```epher
 table x ^ 2 from -2 to 2 points 5
 ```

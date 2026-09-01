@@ -7,9 +7,9 @@
 
 use epher_core::astro::SolarScene;
 use epher_core::graph::{
-    analyze, free_names, parse_graph_source, project_surface, sample_spec, sample_surface,
-    surface_frame, zoom_window, InterestKind, InterestPoint, SampledCurve, Segment3D, Surface,
-    View3D,
+    analyze, free_names, parse_graph_source, project_surface, sample_data_plot, sample_spec,
+    sample_surface, surface_frame, zoom_window, DataPlot, InterestKind, InterestPoint,
+    SampledCurve, Segment3D, Surface, View3D,
 };
 use epher_core::Session;
 use epher_i18n::Localizer;
@@ -130,6 +130,9 @@ pub struct App {
     graph: Vec<SampledCurve>,
     pois: Vec<InterestPoint>,
     surface: Vec<Surface>,
+    /// The data plot (ADR-0044): a scatter, histogram, or boxplot owns
+    /// the pane like the solar scene does — the newest command wins.
+    data: Option<DataPlot>,
     /// The solar system scene (`solar3d`, ADR-0037) and the source of
     /// its time expression, for playback resampling.
     solar: Option<SolarScene>,
@@ -622,6 +625,7 @@ impl App {
             graph: Vec::new(),
             pois: Vec::new(),
             surface: Vec::new(),
+            data: None,
             solar: None,
             solar_source: None,
             view: View3D::default(),
@@ -1012,6 +1016,7 @@ impl App {
         self.graph.clear();
         self.pois.clear();
         self.surface.clear();
+        self.data = None;
         self.solar = None;
         self.solar_source = None;
         self.play = None;
@@ -1656,7 +1661,10 @@ impl App {
     /// app's copy button yields (ADR-0020) — from the same renderer, so
     /// the bytes match. The result line carries the localized outcome.
     pub fn save_graph_svg(&self, path: &str, localizer: &Localizer) -> String {
-        let plots = epher_shell::plots::Plots::from_curves(self.graph.clone());
+        let plots = match self.data.as_ref() {
+            Some(data) => epher_shell::plots::Plots::from_data(data.clone()),
+            None => epher_shell::plots::Plots::from_curves(self.graph.clone()),
+        };
         let out = plots.save_svg(path, self.poi_list, self.session.env(), localizer);
         out.message
     }
@@ -1710,6 +1718,7 @@ impl App {
         self.graph.clear();
         self.pois.clear();
         self.surface.clear();
+        self.data = None;
         self.solar = Some(scene);
         self.solar_source = Some(source.trim().to_string());
         self.view = self.solar.as_ref().expect("just set").default_view();
@@ -1722,10 +1731,38 @@ impl App {
         if source.trim() == "clear" {
             self.graph.clear();
             self.pois.clear();
+            self.data = None;
             self.view2d = None;
             self.result.clear();
             return Ok(());
         }
+        // Data plots (ADR-0044): a scatter, histogram, or boxplot owns
+        // the pane like a solar scene does.
+        if epher_core::graph::is_data_plot_source(source) {
+            match sample_data_plot(source, self.session.env()).map_err(|e| e.to_string()) {
+                Ok(plot) => {
+                    self.graph.clear();
+                    self.pois.clear();
+                    self.surface.clear();
+                    self.data = Some(plot);
+                    self.view2d = None;
+                    self.result.clear();
+                    Ok(())
+                }
+                Err(e) => {
+                    self.result = format!("error: {e}");
+                    Err(e)
+                }
+            }
+        } else {
+            self.submit_curve(source)
+        }
+    }
+
+    /// Parse `source` as a plain graph command (ADR-0014 grammar:
+    /// cartesian, `param`, `polar`, domain bounds, `y <`/`y >` fills) and
+    /// overlay it on the current plot.
+    fn submit_curve(&mut self, source: &str) -> Result<(), String> {
         let spec = match parse_graph_source(source).map_err(|e| e.to_string()) {
             Ok(s) => s,
             Err(e) => {
@@ -1744,6 +1781,7 @@ impl App {
         // a 2D curve clears any 3D surfaces, so the two never share the
         // pane and each plot keeps its full size.
         self.surface.clear();
+        self.data = None;
         self.graph.push(SampledCurve {
             source: source.to_string(),
             kind: spec.kind,
@@ -1783,6 +1821,7 @@ impl App {
         // a surface clears any 2D curves and their points of interest.
         self.graph.clear();
         self.pois.clear();
+        self.data = None;
         self.view2d = None;
         // A 3D graph drawn into an empty pane brings fresh fine controls
         // at their default 0 (ADR-0031); overlays keep the current pose.
@@ -1795,6 +1834,11 @@ impl App {
     }
 
     /// The plotted surfaces, if any.
+    /// The plotted data plot, if any (ADR-0044).
+    pub fn data(&self) -> Option<&DataPlot> {
+        self.data.as_ref()
+    }
+
     /// The plotted solar system scene, if any (ADR-0037).
     pub fn solar(&self) -> Option<&SolarScene> {
         self.solar.as_ref()
@@ -2372,6 +2416,90 @@ pub fn render_ascii(
             let col = col_f.round() as usize;
             let row = row_f.round() as usize;
             grid[row][col] = glyph;
+        }
+    }
+    grid.into_iter()
+        .map(|row| row.into_iter().collect::<String>())
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// Render a data plot (ADR-0044) as ASCII on the same canvas the curve
+/// renderer uses: scatter points with the fitted line, histogram bars,
+/// or a box-and-whisker row.
+pub fn render_ascii_data(data: &DataPlot, width: usize, height: usize) -> String {
+    if width == 0 || height == 0 {
+        return String::new();
+    }
+    let (x_min, x_max, y_min, y_max) = epher_core::graph::data_ranges(data);
+    let x_span = (x_max - x_min).max(1e-12);
+    let y_span = (y_max - y_min).max(1e-12);
+    let mut grid = vec![vec!['·'; width]; height];
+    let col_of =
+        |x: f64| -> usize { (((x - x_min) / x_span) * (width - 1) as f64).round() as usize };
+    let row_of =
+        |y: f64| -> usize { (((y_max - y) / y_span) * (height - 1) as f64).round() as usize };
+    match data.kind {
+        epher_core::graph::DataPlotKind::Scatter => {
+            // The fitted line first, so points drawn over it stay legible.
+            if let Some(f) = data.fit {
+                for (col, cell_row) in grid.iter_mut().enumerate() {
+                    let x = x_min + col as f64 / (width - 1) as f64 * x_span;
+                    let y = f.a * x + f.b;
+                    if y.is_finite() && y >= y_min && y <= y_max {
+                        let row = row_of(y);
+                        if cell_row[row] == '·' {
+                            cell_row[row] = '-';
+                        }
+                    }
+                }
+            }
+            for (x, y) in &data.points {
+                if x.is_finite() && y.is_finite() {
+                    let (col, row) = (col_of(*x), row_of(*y));
+                    grid[row][col] = 'o';
+                }
+            }
+        }
+        epher_core::graph::DataPlotKind::Histogram => {
+            // Bars from the count-zero baseline to each bin's count.
+            for (lo, hi, count) in &data.bins {
+                let (c0, c1) = (col_of(*lo), col_of(*hi).max(col_of(*lo) + 1));
+                let top = if *count > 0.0 {
+                    row_of(*count)
+                } else {
+                    height - 1
+                };
+                let base = row_of(0.0);
+                for col in c0..c1.min(width) {
+                    if *count > 0.0 {
+                        for cell in grid[top..=base.min(height - 1)].iter_mut() {
+                            cell[col] = '█';
+                        }
+                    } else if base < height {
+                        // a zero-count bin still marks its baseline
+                        grid[base][col] = '█';
+                    }
+                }
+            }
+        }
+        epher_core::graph::DataPlotKind::BoxPlot => {
+            if let Some(b) = data.boxplot {
+                let row = (height / 2).min(height - 1);
+                let (c0, c1, cm, c2, c3) = (
+                    col_of(b[0]),
+                    col_of(b[1]),
+                    col_of(b[2]),
+                    col_of(b[3]),
+                    col_of(b[4]),
+                );
+                grid[row][c0..=c1].fill('─');
+                grid[row][c2..=c3].fill('─');
+                grid[row][c1..=c2].fill('█');
+                grid[row][cm] = '┼';
+                grid[row][c0] = '╫';
+                grid[row][c3] = '╫';
+            }
         }
     }
     grid.into_iter()
@@ -3972,6 +4100,12 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         graph_text.push('\n');
         let (w, h) = graph_dims(graph_area);
         graph_text.push_str(&render_solar_ascii(scene, &app.effective_view(), w, h));
+    } else if let Some(data) = app.data() {
+        let _ = curves;
+        graph_text.push_str(data.source.trim());
+        graph_text.push('\n');
+        let (w, h) = graph_dims(graph_area);
+        graph_text.push_str(&render_ascii_data(data, w, h));
     } else if !app.surfaces().is_empty() {
         let legend: Vec<String> = app
             .surfaces()

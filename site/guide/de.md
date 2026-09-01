@@ -664,7 +664,18 @@ Primzahlen und Teiler arbeiten mit ganzen Zahlen:
 |---|---|---|---|
 | `isprime(n)` | wahr, wenn n eine Primzahl ist | `isprime(97)` | `true` |
 | `nextprime(n)` / `prevprime(n)` | die nächsten Primzahlen | `nextprime(10)` | `11` |
-| `factors(n)` | Primfaktorzerlegung | `factors(360)` | `2^3 * 3^2 * 5` |
+| `factors(n)` | Primfaktorzerlegung | `factors(360)` |
+| Listenliteral | `{…}` | `{1, 2, 3}` |
+| Listenelement | `list[i]` (ab 1) | `{5, 6}[2]` |
+| Listenstatistik | `mean(liste)`, `median(liste)`, … | `stdev(d)` |
+| Listenform | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
+| Lineare Regression | `linreg(xs, ys)` | `linreg(x, y)` |
+| Normalverteilung | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
+| t-Verteilung | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
+| Chi-Quadrat | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
+| Diskrete Verteilungen | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
+| Tests und Intervalle | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| Datenplots | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | Eulersche Phi-Funktion | `totient(12)` | `4` |
 | `ndivisors(n)` | Anzahl der Teiler | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b hoch e, modulo m, exakt | `modpow(2, 10, 1000)` | `24` |
@@ -1060,6 +1071,128 @@ integral(sin(x), 0, pi)
 
 Beide sind numerisch; die Ausdrücke müssen im Bereich reellwertig sein, und ein Ausdruck in mehreren Variablen ist ein Fehler.
 
+### 1.20 Daten: Listen, Statistik und Regression
+
+Eine Liste ist eine Zahlenreihe in geschweiften Klammern: `{1, 2, 3}`.
+Die Elemente sind Ausdrücke, die leere Liste `{}` ist erlaubt, und eine
+Liste wird wie jeder Wert an einen Namen gebunden:
+
+```epher
+d = {12, 15, 14, 16, 13, 15, 14, 17}
+d[2]
+len(d)
+```
+
+`list[i]` ist das i-te Element, 1-basiert wie ein Taschenrechner es
+erwartet; ein Index außerhalb der Liste ist ein Fehler. Die Klammer
+bindet enger als `^`, also ist `d[2]^2` gleich `(d[2])^2`.
+
+Die Arithmetik über einer Liste ist elementweise; eine einzelne Zahl
+wird auf jedes Element angewendet:
+
+```epher
+{1, 2, 3} * 2
+{1, 2, 3} + 10
+```
+
+Zwei Listen müssen für `+ - * / ^` gleich lang sein. `==` und `!=`
+vergleichen ganze Listen; Ordnungsvergleiche lehnen Listen ab.
+
+Die Statistikfunktionen nehmen eine Liste als einziges Argument (die
+Mehrfachargument-Form bleibt — `mean(1, 2, 3)` funktioniert weiter):
+`sum product mean median mode variance stdev min max range`. Die
+neuen Formfunktionen sind `len(liste)`, `sort(liste)` (aufsteigende
+Kopie), `mode(liste)` (häufigster Wert, bei Gleichstand der kleinste),
+`range(liste)` (größter minus kleinster Wert) und `quartile(liste, k)`
+für k in 1..3 (Quartile nach TI-Art, Median der Hälften):
+
+```epher
+mean(d)
+median(d)
+quartile(d, 1)
+```
+
+**linreg(xs, ys)** passt die Ausgleichsgerade durch zwei gleich lange
+Listen an und berichtet sie mit dem Korrelationskoeffizienten r:
+
+```epher
+linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})
+```
+
+Die angepasste Gerade ist eine Anzeige wie die Lösungen von solve; das
+Bild der Anpassung zeigt das Streudiagramm (Abschnitt 1.22).
+
+### 1.21 Verteilungen und Hypothesentests
+
+Die Wahrscheinlichkeitsfunktionen decken die Standardnormal-, die
+t-, die Chi-Quadrat-, die Binomial- und die Poisson-Verteilung ab. Die
+Normal-Familie nimmt ein oder drei Argumente — ein Argument ist die
+Standardnormalverteilung:
+
+```epher
+normcdf(1.96)
+invnorm(0.975)
+normcdf(12, 10, 2)
+```
+
+`normpdf(x[, mu, sigma])`, `normcdf(x[, mu, sigma])`, `invnorm(p[,
+mu, sigma])`; `tpdf(x, df)`, `tcdf(x, df)`, `invt(p, df)`;
+`chi2pdf(x, df)`, `chi2cdf(x, df)`, `invchi2(p, df)`;
+`binompdf(k, n, p)`, `binomcdf(k, n, p)`; `poissonpdf(k, lambda)`,
+`poissoncdf(k, lambda)`. Die `inv*`-Funktionen beantworten die
+umgekehrte Frage: `invt(0.975, 10)` ist der t-Wert, unter dem 97.5 %
+der Masse liegt.
+
+Die Tests nehmen eine Datenliste und melden die Prüfgröße und den
+zweiseitigen p-Wert als Anzeigetext; die Intervalle melden
+`(untere, obere)` auf dem von Ihnen genannten Niveau:
+
+```epher
+d = {12, 15, 14, 16, 13, 15, 14, 17}
+ttest(d, 14)
+tinterval(d, 0.95)
+ztest(d, 14, 1.5)
+chisq_gof({20, 30, 25, 25}, {25, 25, 25, 25})
+```
+
+`ttest(daten, mu0)` und `tinterval(daten, niveau)` verwenden die
+Stichproben-Standardabweichung (n−1); `ztest(daten, mu0, sigma)` und
+`zinterval(daten, sigma, niveau)` benötigen das bekannte sigma.
+`chisq_gof(beobachtet, erwartet)` ist der Anpassungstest mit k−1
+Freiheitsgraden. Die Ergebnisse sind Anzeigetexte: lesbar und
+kopierbar, aber nicht rechnerisch weiterverwendbar.
+
+### 1.22 Datenplots
+
+Die Graph-Familie nimmt auch Listen: ein Streudiagramm, ein
+Histogramm und ein Kastendiagramm. Ein Datenplot gehört wie ein
+Sonnensystem allein zum Feld — der neueste Befehl gewinnt, und
+`graph clear` leert es.
+
+```epher
+x = {1, 2, 3, 4, 5}
+y = {2.1, 4.2, 5.8, 8.1, 9.9}
+graph scatter(x, y)
+```
+
+```epher
+graph histogram({1, 2, 2, 3, 3, 3, 4, 5})
+```
+
+```epher
+graph boxplot({1, 2, 2, 3, 3, 3, 9})
+```
+
+**scatter(xs, ys)** zeichnet die Punkte und, ab zwei Punkten, die
+Ausgleichsgerade mit der Beschriftung `y = a*x + b (r = …)` in der
+Legende. **histogram(daten[, bins])** zeichnet ein
+Häufigkeitshistogramm; die Klassenzahl ist optional (standardmäßig
+nach Sturgess Regel) und muss eine ganze Zahl zwischen 1 und 50 sein.
+**boxplot(daten)** zeichnet das Kastendiagramm: Minimum, Q1, Median,
+Q3, Maximum, mit Antennen bis zu den Extremen. Das Fenster passt sich
+immer den Daten an — die `from a to b`-Schlüsselwörter gelten nicht —
+und das Bild exportiert und speichert wie jeder andere Plot.
+
 ## 2. Die Web-App (PWA)
 
 ### 2.1 Sie öffnen
@@ -1192,6 +1325,27 @@ root (-1, 0)   minimum (0, 0)   root (1, 0)
 **Tabellen:** Der Befehl `table` druckt eine Wertetabelle (Zeilen, an
 denen der Ausdruck keinen Wert hat, bleiben leer):
 
+Ein optionaler `derivative <ausdruck>`-Zusatz fügt eine dritte
+Spalte hinzu, die numerische Ableitung dieses Ausdrucks an jeder
+Stelle x:
+
+```epher
+table x ^ 2 from -2 to 2 points 5 derivative x ^ 2
+```
+
+```text
+         x           y          y'
+        -2           4          -4
+        -1           1          -2
+         0           0           0
+         1           1           2
+         2           4           4
+```
+
+Die Tabellenzellen folgen den Ergebniseinstellungen: bei
+eingeschalteten exakten Brüchen (Standard) zeigt sich ein Wert, der
+ein einfacher Bruch ist, als solcher — `table x / 3 from 0 to 1
+points 4` listet `1/3` statt `0.333`.
 ```epher
 table x ^ 2 from -2 to 2 points 5
 ```

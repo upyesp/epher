@@ -185,13 +185,14 @@ pub fn prepare(
                 epher_core::graph::parse_table_source(source).map_err(|e| format!("error: {e}"))?;
             let rows = epher_core::graph::table_rows(
                 &spec.expr,
+                spec.derivative.as_ref(),
                 spec.x_min,
                 spec.x_max,
                 spec.points,
                 session.env(),
             );
             Ok(Prepared::Table {
-                text: format_table(&rows),
+                text: format_table(&rows, session.display().exact_fractions),
             })
         }
     }
@@ -210,16 +211,42 @@ fn fmt(v: f64) -> String {
 }
 
 /// Render table rows as aligned monospace text; undefined y cells show an
-/// em dash (TI-style blank rows).
-fn format_table(rows: &[(f64, Option<f64>)]) -> String {
+/// em dash (TI-style blank rows). `exact` switches the cells to the
+/// session's exact-fraction display (ADR-0044): a cell whose value
+/// reconstructs as a small-denominator fraction shows `1/3` instead of
+/// `0.333`.
+fn format_table(rows: &[(f64, Option<f64>, Option<f64>)], exact: bool) -> String {
     const W: usize = 10;
-    let mut out = String::from(format!("{:>W$}  {:>W$}\n", "x", "y"));
-    for (x, y) in rows {
-        let y = match y {
-            Some(v) => fmt(*v),
+    let has_derivative = rows.iter().any(|(_, _, d)| d.is_some());
+    let mut out = if has_derivative {
+        String::from(format!("{:>W$}  {:>W$}  {:>W$}\n", "x", "y", "y'"))
+    } else {
+        String::from(format!("{:>W$}  {:>W$}\n", "x", "y"))
+    };
+    let cell = |v: Option<f64>| -> String {
+        match v {
+            Some(v) => {
+                if exact {
+                    if let Some(r) = epher_core::reconstruct_fraction(v, 1000, 1e-9) {
+                        return format!("{r}");
+                    }
+                }
+                fmt(v)
+            }
             None => "—".to_string(),
-        };
-        out.push_str(&format!("{:>W$}  {:>W$}\n", fmt(*x), y));
+        }
+    };
+    for (x, y, d) in rows {
+        if has_derivative {
+            out.push_str(&format!(
+                "{:>W$}  {:>W$}  {:>W$}\n",
+                fmt(*x),
+                cell(*y),
+                cell(*d)
+            ));
+        } else {
+            out.push_str(&format!("{:>W$}  {:>W$}\n", fmt(*x), cell(*y)));
+        }
     }
     out.pop();
     out

@@ -68,6 +68,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0041 | The history trash, tuning strips above the plot, and a frame that holds still | 2026-08-31 | accepted |
 | 0042 | Percent, the constants catalog, number theory, suggestions with F1, and PNG export | 2026-08-31 | accepted |
 | 0043 | Complex numbers, equation solving, numeric calculus, exact fraction display, and result formats | 2026-08-31 | accepted |
+| 0044 | Lists, statistics, linear regression, distributions, tests, data plots, and table upgrades | 2026-09-01 | accepted |
 
 ## Decision chains
 
@@ -119,17 +120,23 @@ at the end of the chain.
 - **Solar system** - **0037** → **0038 (per-body legend checkboxes on
   the solar pane)**. → **0040 (hiding every body leaves an
   empty framed plot with the legend intact)**.
+- **Graph commands** - 0014 (cartesian/parametric/polar grammar) → 0019
+  (hints) → 0020 (SVG export) → 0038 (per-curve legend) → **0044 (data
+  plots: `graph scatter`, `graph histogram`, `graph boxplot`)**.
 - **History** - 0021 (`ans`) → 0025 → 0027 → 0030 → **0038 (share icon
   on every item, `?expr=` links stage the entry; `clear`/`history`
   keypad keys finally run)**. → **0042 (auto-ans on an empty entry)**
 - **Calculations** - 0005 (float default) → 0022 (number bases) → 0042 (percent,
   primes) → **0043 (complex values, numeric solve, calculus, exact fractions,
-  engineering/scientific/grouped formats)**
+  engineering/scientific/grouped formats)** → **0044 (lists, elementwise
+  arithmetic, statistics, distributions, tests, regression)**
 - **In-app guide** - 0018 → 0018 amendment (ToC) → **0038 (search box
   with chapter + snippet hits)**.
 - **Script language** - 0001 (one grammar) → 0037 (unit suffixes) →
   **0040 (PHP-style comments: `//`, `#`, and `/* ... */`)** → **0042 (percent, physics constants, number theory)**
   → **0043 (`solve` statement, `4i` literals, lazy `derivative`/`integral` arguments)**
+  → **0044 (`{1, 2, 3}` list literals, `list[i]` indexing, the `graph scatter/histogram/boxplot` family, `table … derivative …`)**
+  → **0045 (planned: units with conversion, bitwise operations)**
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.

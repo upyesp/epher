@@ -299,6 +299,11 @@ key-hint-i = काल्पनिक इकाई, sqrt(-1) = i
 key-hint-re = सम्मिश्र संख्या का वास्तविक भाग
 key-hint-im = सम्मिश्र संख्या का काल्पनिक भाग
 key-hint-arg = सम्मिश्र संख्या का कोण (arg)
+key-hint-binomcdf = द्विपद संचयी प्रायिकता: binomcdf(k, n, p)
+key-hint-binompdf = ठीक k सफलताओं की द्विपद प्रायिकता
+key-hint-chi2cdf = काई-वर्ग संचयी प्रायिकता
+key-hint-chi2pdf = काई-वर्ग घनत्व
+key-hint-chisq_gof = अनुकूलता परीक्षण: chisq_gof(प्रेक्षित, अपेक्षित)
 key-hint-conj = सम्मिश्र संयुग्मी
 key-hint-derivative = संख्यात्मक अवकलज: derivative(x^2, 3) = 6
 key-hint-integral = निश्चित समाकल: integral(x^2, 0, 3) = 9
@@ -306,6 +311,25 @@ key-hint-exact = यथार्थ भिन्न: exact(0.3333...) = 1/3
 key-hint-scientific = वैज्ञानिक संकेतन: 1.2345e4
 key-hint-engineering = इंजीनियरिंग संकेतन: 12.345e3
 key-hint-grouped = हज़ार विभाजक: 1 234 567.89
+key-hint-invchi2 = व्युत्क्रम काई-वर्ग: प्रायिकता p वाला मान
+key-hint-invnorm = व्युत्क्रम सामान्य: प्रायिकता p वाला मान
+key-hint-invt = व्युत्क्रम t: प्रायिकता p वाला मान
+key-hint-len = सूची में तत्वों की संख्या
+key-hint-linreg = न्यूनतम वर्ग रेखा: linreg(xs, ys)
+key-hint-mode = सबसे अधिक बार आने वाला मान
+key-hint-normcdf = सामान्य संचयी प्रायिकता
+key-hint-normpdf = सामान्य घनत्व
+key-hint-poissoncdf = पॉइसन संचयी प्रायिकता
+key-hint-poissonpdf = ठीक k घटनाओं की पॉइसन प्रायिकता
+key-hint-quartile = चतुर्थक: quartile(सूची, k) जहाँ k = 1..3
+key-hint-range = सबसे बड़ा मान घटा सबसे छोटा मान
+key-hint-sort = सूची को बढ़ते क्रम में क्रमबद्ध करें
+key-hint-tcdf = स्टूडेंट t संचयी प्रायिकता
+key-hint-tinterval = t विश्वास अंतराल: tinterval(डेटा, स्तर)
+key-hint-tpdf = स्टूडेंट t घनत्व
+key-hint-ttest = एक-नमूना t परीक्षण: ttest(डेटा, mu0)
+key-hint-zinterval = z विश्वास अंतराल: zinterval(डेटा, sigma, स्तर)
+key-hint-ztest = एक-नमूना z परीक्षण: ztest(डेटा, mu0, sigma)
 menu-results = परिणाम
 results-fractions = यथार्थ भिन्न
 results-notation = संकेतन
