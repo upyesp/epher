@@ -94,3 +94,25 @@ descriptor line beneath it still carries the localized tagline.
   the graph plot grows by 3-4x wherever a long POI list previously
   squeezed it; every shrunken control stays above the 24px AA floor
   and the 44px keypad keys are untouched.
+
+## Amendment (2026-09-03): statement splitting is tokenizer-faithful, and the line model is the user model
+
+The decision above says multi-line block comments parse "wherever a
+whole script parses at once (the one-shot expression, the web entry)".
+The statement splitters never lived up to that: the CLI one-shot and
+the web entry chopped their input at every `;` and newline before the
+parser saw it, so a semicolon inside a string literal or a comment
+fragmented the text into phantom statements (the full-moons reference
+script exposed it when pasted), and multi-line block comments only
+reached the parser through its own tests.
+
+The shared statement splitter (epher-shell `split_statements`, used by
+the CLI one-shot and the web entry) now mirrors the tokenizer:
+`;` splits only outside strings and comments, and a newline ends a
+statement everywhere except inside a `/* ... */` block comment. The
+one-shot therefore whole-parses as the decision intended. Everything
+that is genuinely line-based stays line-based (a string cannot span
+lines, and script files, piped mode, `load`, the REPL, the TUI, and
+the web's per-line submission all follow the one-line rule), which is
+the model the user guide and the scripts folder document: a block
+comment closes on its own line in a script.

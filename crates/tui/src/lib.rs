@@ -1640,11 +1640,12 @@ impl App {
         localizer: &Localizer,
     ) -> Option<String> {
         let mut language = None;
-        let pieces: Vec<&str> = line
-            .split([';', '\n'])
-            .map(str::trim)
-            .filter(|p| !p.is_empty())
-            .collect();
+        // `;` separates statements only where the tokenizer sees it:
+        // inside a string literal or a comment it is text (the shared
+        // epher-shell splitter mirrors the tokenizer, ADR-0040
+        // amendment). Newlines in the text split the same way a file
+        // does, line by line.
+        let pieces = epher_shell::split_statements(line);
         if pieces.is_empty() {
             return None;
         }

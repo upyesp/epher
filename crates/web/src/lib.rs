@@ -3238,11 +3238,13 @@ fn epher_app() -> Html {
                 if line.is_empty() {
                     continue;
                 }
-                let pieces: Vec<&str> = line
-                    .split(';')
-                    .map(str::trim)
-                    .filter(|p| !p.is_empty())
-                    .collect();
+                // `;` separates statements only where the tokenizer
+                // sees it: inside a string literal or a comment it is
+                // text. The naive split let pasted scripts with a
+                // semicolon in a comment or a string evaluate the
+                // fragments as code and report phantom parse errors
+                // (epher-shell split_statements mirrors the tokenizer).
+                let pieces = epher_shell::split_statements(&line);
                 if pieces.is_empty() {
                     continue;
                 }

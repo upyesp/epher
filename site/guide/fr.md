@@ -488,7 +488,7 @@ plusieurs instructions avec `;` sur une seule ligne fonctionne aussi partout,
 y compris sur la ligne de commande à usage unique (section 4.1).
 
 
-Les scripts peuvent porter des **commentaires** - des notes pour vous qu'epher ignore, à la manière de PHP. `//` ou `#` commente jusqu'à la fin de la ligne ; `/* ... */` met un bloc en commentaire, sur plusieurs lignes ou entre deux jetons :
+Les scripts peuvent porter des **commentaires** - des notes pour vous qu'epher ignore, à la manière de PHP. `//` ou `#` commente jusqu'à la fin de la ligne ; `/* ... */` met un bloc en commentaire entre deux jetons, qui se referme sur la même ligne :
 
 ```epher
 // a small script with notes

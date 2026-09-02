@@ -65,6 +65,82 @@ pub enum Prepared {
     },
 }
 
+/// Split a run of input into its statement texts the way the tokenizer
+/// sees separators, for frontends that evaluate statement by statement
+/// (the CLI one-shot and the web entry): `;` splits only outside string
+/// literals and comments, and a newline ends a statement everywhere
+/// except inside a `/* ... */` block comment, whose newlines are comment
+/// text (ADR-0040: a whole script parses at once in the one-shot
+/// expression). A string (no escape sequences) cannot legally span
+/// lines, so a newline there ends its statement and the parser reports
+/// the unterminated literal. Comments and quotes stay in the returned
+/// texts; the parser strips comments when it parses each statement.
+/// Returns trimmed, non-empty pieces, so a line that is only a comment
+/// or only `;` separators yields nothing.
+pub fn split_statements(text: &str) -> Vec<&str> {
+    let b = text.as_bytes();
+    let mut pieces = Vec::new();
+    let mut start = 0usize;
+    let mut in_str = false;
+    let mut in_block = false;
+    let mut i = 0usize;
+    while i < b.len() {
+        let c = b[i];
+        if c == b'\n' {
+            if !in_block {
+                push_piece(&mut pieces, text, start, i);
+                start = i + 1;
+                in_str = false;
+            }
+            i += 1;
+        } else if in_str {
+            // No escape sequences: the next quote closes the string.
+            if c == b'"' {
+                in_str = false;
+            }
+            i += 1;
+        } else if in_block {
+            if c == b'*' && b.get(i + 1) == Some(&b'/') {
+                in_block = false;
+                i += 2;
+            } else {
+                i += 1;
+            }
+        } else if c == b'"' {
+            in_str = true;
+            i += 1;
+        } else if c == b';' {
+            push_piece(&mut pieces, text, start, i);
+            start = i + 1;
+            i += 1;
+        } else if c == b'/' && b.get(i + 1) == Some(&b'/') {
+            // `//` comments to the end of the line.
+            while i < b.len() && b[i] != b'\n' {
+                i += 1;
+            }
+        } else if c == b'#' {
+            // `#` comments to the end of the line.
+            while i < b.len() && b[i] != b'\n' {
+                i += 1;
+            }
+        } else if c == b'/' && b.get(i + 1) == Some(&b'*') {
+            in_block = true;
+            i += 2;
+        } else {
+            i += 1;
+        }
+    }
+    push_piece(&mut pieces, text, start, text.len());
+    pieces
+}
+
+fn push_piece<'a>(pieces: &mut Vec<&'a str>, text: &'a str, from: usize, to: usize) {
+    let piece = text[from..to].trim();
+    if !piece.is_empty() {
+        pieces.push(piece);
+    }
+}
+
 /// Recognize a shell command in an input line. Anything else (including
 /// `save` or `language` without an argument) is `None` — the caller
 /// evaluates it, exactly as the CLI always has.

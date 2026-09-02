@@ -484,7 +484,7 @@ Mehrere Anweisungen mit `;` in einer Zeile zu verbinden, funktioniert
 ebenfalls überall, auch in der Einmal-Befehlszeile (Abschnitt 4.1).
 
 
-Skripte können **Kommentare** tragen - Notizen für dich, die epher überspringt, geschrieben wie in PHP. `//` oder `#` kommentiert bis zum Zeilenende; `/* ... */` kommentiert einen Block aus, über Zeilen hinweg oder inline zwischen Token:
+Skripte können **Kommentare** tragen - Notizen für dich, die epher überspringt, geschrieben wie in PHP. `//` oder `#` kommentiert bis zum Zeilenende; `/* ... */` kommentiert einen Block zwischen Token aus, der auf derselben Zeile endet:
 
 ```epher
 // a small script with notes

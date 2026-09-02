@@ -481,7 +481,7 @@ com `;` numa só linha também funciona em todo o lado, incluindo a linha
 de comandos de avaliação única (secção 4.1).
 
 
-Scripts podem carregar **comentários** - anotações para você que o epher ignora, no estilo PHP. `//` ou `#` comenta até o fim da linha; `/* ... */` comenta um bloco, através de linhas ou no meio dos tokens:
+Scripts podem carregar **comentários** - anotações para você que o epher ignora, no estilo PHP. `//` ou `#` comenta até o fim da linha; `/* ... */` comenta um bloco no meio dos tokens, que se fecha na mesma linha:
 
 ```epher
 // a small script with notes

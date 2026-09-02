@@ -482,7 +482,7 @@ instrucciones con `;` en una línea funciona en todas partes también,
 incluida la línea de comandos de un solo uso (sección 4.1).
 
 
-Los scripts pueden llevar **comentarios**: notas para ti que epher se salta, escritos al estilo PHP. `//` o `#` comentan hasta el final de la línea; `/* ... */` comenta un bloque, entre líneas o en medio de los tokens:
+Los scripts pueden llevar **comentarios**: notas para ti que epher se salta, escritos al estilo PHP. `//` o `#` comentan hasta el final de la línea; `/* ... */` comenta un bloque en medio de los tokens, y debe cerrarse en la misma línea:
 
 ```epher
 // a small script with notes

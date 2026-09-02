@@ -476,7 +476,7 @@ exactly as if you had typed them one by one. Joining several statements with
 (section 4.1).
 
 
-Scripts can carry **comments** - notes for you that epher skips, written the PHP way. `//` or `#` comments to the end of the line; `/* ... */` comments out a block, across lines or inline between tokens:
+Scripts can carry **comments** - notes for you that epher skips, written the PHP way. `//` or `#` comments to the end of the line; `/* ... */` comments out a block between tokens, and it closes on the same line:
 
 ```epher
 // a small script with notes

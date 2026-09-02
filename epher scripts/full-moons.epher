@@ -10,12 +10,19 @@
 //
 // Modeled on "Phases of the Moon" by Sergio Filippini (ticalc.org archive,
 // the most-downloaded TI-83/84 BASIC astronomy program), whose README sets
-// "find the blue moon" as an exercise -- the results list answers it for
-// any year you plug in.
+// "find the blue moon" as an exercise; the results answer it for any year
+// you plug in (thirteen full moons over twelve months means one month had
+// two).
+//
+// This file is the reference example for the epher scripts folder: it
+// shows the language's modern surface, one idea per line, with the guide
+// chapter for each: `for` loops (1.30), strings and `print` (1.29), `if`
+// decisions (1.7), and the astronomy accessors and constants (1.16).
 //
 // Run it from a terminal:  epher "epher scripts/full-moons.epher"
 // In the REPL:             load epher scripts/full-moons.epher
 // Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
 //
 // The one knob to edit is `year` below. Everything above the results
 // section is machinery you can leave alone.
@@ -24,14 +31,14 @@
 // ---- the knob -----------------------------------------------------------------
 const year = 2026
 
-// ---- Meeus ch. 49: mean elements in degrees (eq. 49.3-49.7) -------------------
-def e3(t) = 1 - 0.002516 * t - 0.0000074 * t ^ 2      // Earth's orbital eccentricity
-def mp(k) = 201.5643 + 385.81693528 * k               // Moon's mean anomaly
-def ms(k) = 2.5534 + 29.10535670 * k                  // Sun's mean anomaly
-def mf(k) = 160.7108 + 390.67050284 * k               // Moon's argument of latitude
-def node(k) = 124.7746 - 1.56375588 * k               // Moon's ascending node, longitude
+// ---- Meeus ch. 49: mean elements, angles in degrees (eq. 49.3-49.7) -----------
+def e3(t) = 1 - 0.002516 * t - 0.0000074 * t ^ 2      // Earth's orbital eccentricity (no unit)
+def mp(k) = 201.5643 + 385.81693528 * k               // Moon's mean anomaly, degrees
+def ms(k) = 2.5534 + 29.10535670 * k                  // Sun's mean anomaly, degrees
+def mf(k) = 160.7108 + 390.67050284 * k               // Moon's argument of latitude, degrees
+def node(k) = 124.7746 - 1.56375588 * k               // Moon's ascending node, degrees
 
-// ---- mean full-moon instant, JD: k counts lunations, full moons end in .5 -----
+// ---- mean full-moon instant in JD: k counts lunations, full moons end in .5 --
 def base(k) = 2451550.09766 + 29.530588861 * k + 0.00015437 * (k / 1236.85) ^ 2 - 0.000000150 * (k / 1236.85) ^ 3 + 0.00000000073 * (k / 1236.85) ^ 4
 
 // ---- periodic corrections in days, table 49.A full-moon column, by size -------
@@ -39,7 +46,8 @@ def corr_a(k) = -0.40614 * sin(rad(mp(k))) + 0.17302 * e3(k / 1236.85) * sin(rad
 def corr_b(k) = -0.00057 * sin(rad(mp(k) + 2 * mf(k))) + 0.00056 * e3(k / 1236.85) * sin(rad(2 * mp(k) + ms(k))) - 0.00042 * sin(rad(3 * mp(k))) + 0.00042 * e3(k / 1236.85) * sin(rad(ms(k) + 2 * mf(k))) + 0.00038 * e3(k / 1236.85) * sin(rad(ms(k) - 2 * mf(k))) - 0.00024 * e3(k / 1236.85) * sin(rad(2 * mp(k) - ms(k)))
 def corr_c(k) = -0.00017 * sin(rad(node(k))) - 0.00007 * sin(rad(mp(k) + 2 * ms(k))) + 0.00004 * sin(rad(2 * mp(k) - 2 * mf(k))) + 0.00004 * sin(rad(3 * ms(k))) + 0.00003 * sin(rad(mp(k) + ms(k) - 2 * mf(k))) + 0.00003 * sin(rad(2 * mp(k) + 2 * mf(k))) - 0.00003 * sin(rad(mp(k) + ms(k) + 2 * mf(k))) + 0.00003 * sin(rad(mp(k) - ms(k) + 2 * mf(k))) - 0.00002 * sin(rad(mp(k) - ms(k) - 2 * mf(k))) - 0.00002 * sin(rad(3 * mp(k) + ms(k))) + 0.00002 * sin(rad(4 * mp(k)))
 
-// ---- planetary corrections, days, table 49.C (A1's T^2 term omitted: < 1 s) --
+// ---- planetary corrections in days, table 49.C --------------------------------
+// A1's T^2 term is under a second and is omitted (Meeus, note to 49.C).
 def a1(k) = 299.77 + 0.107408 * k
 def a2(k) = 251.88 + 0.016321 * k
 def a3(k) = 251.83 + 26.651886 * k
@@ -59,37 +67,65 @@ def corr_d(k) = 0.000325 * sin(rad(a1(k))) + 0.000165 * sin(rad(a2(k))) + 0.0001
 // ---- the instant of full moon for lunation k ----------------------------------
 def fullmoon(k) = base(k) + corr_a(k) + corr_b(k) + corr_c(k) + corr_d(k)
 
-// ---- first lunation of the year: the first full moon at or after New Year -----
+// ---- first lunation of the year: the first full moon at or after Jan 1 --------
 def kfirst(jd0) = ceil((jd0 - 2451550.09766) / 29.530588861 - 0.5) + 0.5
 k = kfirst(jd(year, 1, 1))
 
 // ---- results ------------------------------------------------------------------
-// Thirteen lunation times: a year normally has twelve full moons, and the
-// thirteenth entry then lands a few days into the next January. Some years
-// carry thirteen real full moons -- a month with two is a "blue moon".
-// A few may be spelled as fractions: that is epher's default exact display
-// (Results settings) showing a value whose decimal repeats; they are the
-// same numbers, and plotting or converting them loses nothing.
-{fullmoon(k), fullmoon(k + 1), fullmoon(k + 2), fullmoon(k + 3), fullmoon(k + 4), fullmoon(k + 5), fullmoon(k + 6), fullmoon(k + 7), fullmoon(k + 8), fullmoon(k + 9), fullmoon(k + 10), fullmoon(k + 11), fullmoon(k + 12)}
+// The full moons of the year, Julian Dates in UT. A for loop (guide 1.30)
+// stands in for typing thirteen calls: it collects one value per step into
+// a list, and n runs 0 to 12 inclusive. Thirteen entries: a year usually
+// has twelve full moons and the thirteenth lands a few days into January;
+// when it lands inside the year, some month had two. A few values may be
+// spelled as fractions: that is epher's exact-fraction display (Results
+// settings) showing a value whose decimal repeats; they are the same
+// numbers.
+for n in 0 to 12 do fullmoon(k + n)
 
-// Days from New Year to the first full moon, then its clock time in hours
-fullmoon(k) - jd(year, 1, 1)
-((fullmoon(k) + 0.5) - floor(fullmoon(k) + 0.5)) * 24 in hr
+// The first full moon in everyday terms: how far into the year it falls,
+// then its clock time in UT. print (guide 1.29) joins its arguments with
+// spaces into one readable line, and a unit conversion (`in hr`) keeps its
+// unit label when a print argument carries it.
+print("first full moon:", fullmoon(k) - jd(year, 1, 1), "days into", year)
+print("clock time in UT:", ((fullmoon(k) + 0.5) - floor(fullmoon(k) + 0.5)) * 24 in hr)
 
-// Cross-check against the built-in ephemeris (JPL-validated): the Moon is
-// fully lit at the first instant, and visibly less so half a day either side
+// How many full moons the year carries, which answers the blue-moon
+// exercise: thirteen moons over twelve months means one month held two
+// (a month can hold two only when the year has thirteen; the count is
+// the safe half of that fact). if (guide 1.7) picks between two strings,
+// which print then writes out.
+if fullmoon(k + 12) < jd(year + 1, 1, 1) then "13 full moons this year: one month holds two (a blue moon)" else "12 full moons this year"
+
+// The Moon's distance at that first instant: the built-in ephemeris
+// accessor dist (guide 1.16) gives AU, and the au and r_earth constants
+// convert the count to Earth radii, the number the eye can hold.
+print("Moon distance:", dist(11, fullmoon(k)) * au / r_earth, "Earth radii =", dist(11, fullmoon(k)), "AU")
+
+// Cross-check against the built-in ephemeris (the solar-ephemeris crate,
+// JPL-validated; guide 1.16), which knows nothing of Meeus: the Moon's
+// lit face at the first instant and half a day either side. Full moon
+// tops out at 0.9986, not 1: the Moon runs 5 degrees off the ecliptic,
+// so the instant of full illumination in longitude is not quite the
+// instant of maximum light, and the phase angle (the Sun-Moon-Earth
+// angle at the Moon) is 4.27 degrees, not 0. illum reports the fraction
+// to four decimals.
 illum(11, fullmoon(k))
 illum(11, fullmoon(k) - 0.5)
 illum(11, fullmoon(k) + 0.5)
+phase(11, fullmoon(k))
 
 // ---- expected output for the shipped knob (year = 2026) -----------------------
+// = 2026
 // = 321.5
 // = {2461043.91951, 2461073.42393, 2374964381/965, 1769554334/719,
 //    2315953654/941, 1208445206/491, 2461221.49853, 2461251.10895,
 //    2461280.68033, 1599851631/650, 2461339.67568, 1420209983/577,
 //    2220181503/902}
-// = 2.41950742295          (Jan 3, so the first moon rose 2.42 days in)
-// = 10.0681781508 hr       (first full moon: Jan 3, 10:04 UT; almanac: 10:03)
-// = 0.9986                 (lit face at the computed instant)
-// = 0.9948                 (half a day before: less lit)
-// = 0.9953                 (half a day after: less lit)
+// = first full moon: 2.41950742295 days into 2026
+// = clock time in UT: 10.0681781508 hr
+// = 13 full moons this year: one month holds two (a blue moon)
+// = Moon distance: 56.8693048187 Earth radii = 0.00242192177806 AU
+// = 0.9986
+// = 0.9948
+// = 0.9953
+// = 4.27

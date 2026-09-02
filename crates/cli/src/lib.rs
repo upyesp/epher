@@ -158,11 +158,10 @@ pub fn run_one_shot(expr: &str) -> Result<(), EpherError> {
     // same body of saved work as the REPL, TUI, and desktop app.
     let (store, mut session, localizer) = open_store_with_session();
     let mut plots = epher_shell::plots::Plots::new();
-    for piece in expr.split(['\n', ';']) {
-        let piece = piece.trim();
-        if piece.is_empty() {
-            continue;
-        }
+    // Statements split where the tokenizer sees separators: `;` inside a
+    // string literal or a comment is text, not a separator (a pasted
+    // print("a; b") used to fragment and error).
+    for piece in epher_shell::split_statements(expr) {
         if let Some(out) = graph_line(piece, &mut plots, session.env(), &localizer) {
             if out.error {
                 term::error(out.output.as_deref().unwrap_or("error"));

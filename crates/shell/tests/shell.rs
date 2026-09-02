@@ -478,3 +478,63 @@ fn prepare_formats_a_table_with_forced_exact_cells() {
         other => panic!("expected a table, got {other:?}"),
     }
 }
+
+#[test]
+fn split_statements_respects_strings_and_comments() {
+    use epher_shell::split_statements;
+    // Plain separators behave as before.
+    assert_eq!(split_statements("1; 2; 3"), vec!["1", "2", "3"]);
+    assert_eq!(split_statements("1\n2; 3"), vec!["1", "2", "3"]);
+    assert_eq!(split_statements("1 ;; 2"), vec!["1", "2"]);
+    // A semicolon inside a string literal is text (the parser errors on
+    // a fragment of the literal, so splitting there was a phantom error).
+    assert_eq!(split_statements("print(\"a; b\")"), vec!["print(\"a; b\")"]);
+    assert_eq!(split_statements("\"x;y\" + \"z\""), vec!["\"x;y\" + \"z\""]);
+    // Semicolons inside line comments are comment text, not separators.
+    assert_eq!(
+        split_statements("1 + 1 // note; still a note"),
+        vec!["1 + 1 // note; still a note"]
+    );
+    assert_eq!(split_statements("// a; b"), vec!["// a; b"]);
+    assert_eq!(split_statements("# c; d"), vec!["# c; d"]);
+    assert_eq!(
+        split_statements("1; 2 // tail; x"),
+        vec!["1", "2 // tail; x"]
+    );
+    // A semicolon inside a same-line block comment is comment text.
+    assert_eq!(
+        split_statements("1 /* x; y */ + 2; 3"),
+        vec!["1 /* x; y */ + 2", "3"]
+    );
+    // In whole-script input (the CLI one-shot) a block comment's
+    // newlines are comment text, not statement ends (ADR-0040).
+    assert_eq!(
+        split_statements("1 + /* a\nthat spans */ 2\n3"),
+        vec!["1 + /* a\nthat spans */ 2", "3"]
+    );
+    // An unterminated string or block comment stays one piece: the
+    // parser reports the unterminated construct itself.
+    assert_eq!(split_statements("\"open; still open"), vec!["\"open; still open"]);
+    assert_eq!(
+        split_statements("1 /* open; still open"),
+        vec!["1 /* open; still open"]
+    );
+    // Comments and blanks between statements split like the tokenizer.
+    assert_eq!(
+        split_statements("1\n// mid; comment\n2"),
+        vec!["1", "// mid; comment", "2"]
+    );
+    // Graph commands with semicolons of their own keep working.
+    assert_eq!(
+        split_statements("graph x^2; graph save /tmp/p.svg"),
+        vec!["graph x^2", "graph save /tmp/p.svg"]
+    );
+    // A quote inside a comment does not open a string.
+    assert_eq!(
+        split_statements("x = 1 // he said \"hi\"; x"),
+        vec!["x = 1 // he said \"hi\"; x"]
+    );
+    // Empty and whitespace-only input yields nothing.
+    assert!(split_statements("").is_empty());
+    assert!(split_statements("   \n  ").is_empty());
+}
