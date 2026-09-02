@@ -1138,6 +1138,7 @@ dependencies = [
  "num-rational",
  "num-traits",
  "proptest",
+ "puruspe",
  "rust_decimal",
  "serde",
  "serde_json",
@@ -2788,6 +2789,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "lambert_w"
+version = "1.2.34"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5f0846ee4f0299ca4c5b9ca06ff55cf88b3430a763bf591474cc734479c9b24"
+dependencies = [
+ "num-complex",
+ "num-traits",
+]
+
+[[package]]
 name = "libappindicator"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3713,6 +3724,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "puruspe"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c9d62b4ad8b456f2ac8a171567bd475cae8cecd53ff5a46fce4f261eef17648"
+dependencies = [
+ "lambert_w",
+ "num-complex",
 ]
 
 [[package]]

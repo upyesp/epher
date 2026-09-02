@@ -1337,6 +1337,13 @@
       border-radius: 10px;
       padding: 0.9rem 1.1rem;
     }
+    /* The guide loads on demand (ADR-0053): the fetch state and the
+       not-installed notice share the body's padding and palette. */
+    .guide-loading, .guide-load-failed {
+      color: var(--muted);
+      margin: 0.5rem 0;
+    }
+    .guide-load-failed a { color: var(--accent); }
     .guide-body h1 { font-size: 1.6rem; margin: 0.5rem 0 0.4rem; }
     .guide-body h2 {
       font-size: 1.3rem;
@@ -1473,6 +1480,10 @@
   <link data-trunk rel="copy-file" href="public/manifest.webmanifest" />
   <link data-trunk rel="copy-file" href="public/sw.js" />
   <link data-trunk rel="copy-file" href="public/icon.svg" />
+  <!-- The guide markdown (ADR-0053): the guide crate's build script copies
+       site/guide/*.md here so the app fetches it on demand instead of
+       carrying it in the wasm. -->
+  <link data-trunk rel="copy-dir" href="public/guide" data-target-path="guide" />
   <!-- Boot diagnostic: if the wasm app has not mounted after six seconds,
        say so instead of leaving a blank window. The app's own markup has
        class="epher", so its presence is the success signal. While the

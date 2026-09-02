@@ -69,6 +69,15 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0042 | Percent, the constants catalog, number theory, suggestions with F1, and PNG export | 2026-08-31 | accepted |
 | 0043 | Complex numbers, equation solving, numeric calculus, exact fraction display, and result formats | 2026-08-31 | accepted |
 | 0044 | Lists, statistics, linear regression, distributions, tests, data plots, and table upgrades | 2026-09-01 | accepted |
+| 0045 | Seeded random numbers and the constants browser | 2026-09-02 | accepted |
+| 0046 | Units with conversion: quantities, prefixes, and dimension checking | 2026-09-02 | accepted |
+| 0047 | Bitwise operations | 2026-09-02 | accepted |
+| 0048 | Implicit relations | 2026-09-02 | accepted |
+| 0049 | Matrices | 2026-09-02 | accepted |
+| 0050 | Finance: the TVM solver, NPV/IRR, and amortization | 2026-09-02 | accepted |
+| 0051 | Display rounding: twelve significant digits, decimals stay decimal | 2026-09-02 | accepted |
+| 0052 | Quantile tails, fraction honesty, and script transcripts | 2026-09-02 | accepted |
+| 0053 | Crate-reuse ladder and the guide on demand | 2026-09-02 | accepted |
 
 ## Decision chains
 
@@ -132,7 +141,9 @@ at the end of the chain.
   arithmetic, statistics, distributions, tests, regression)**
   → **0045 (seeded random, the constants browser)**
 - **In-app guide** - 0018 → 0018 amendment (ToC) → **0038 (search box
-  with chapter + snippet hits)**.
+  with chapter + snippet hits)** → **0053 (the guide loads on demand:
+  fetched from static files or read from the installed files, never
+  compiled in)**.
 - **Script language** - 0001 (one grammar) → 0037 (unit suffixes) →
   **0040 (PHP-style comments: `//`, `#`, and `/* ... */`)** → **0042 (percent, physics constants, number theory)**
   → **0043 (`solve` statement, `4i` literals, lazy `derivative`/`integral` arguments)**

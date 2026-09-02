@@ -825,6 +825,35 @@ fn clear_graph_empties_the_pane() {
 }
 
 #[test]
+fn guide_loads_from_disk_when_opened_and_miss_reports_paths() {
+    // The guide text comes from the installed files at open (ADR-0053);
+    // the binary carries none of it. EPHER_GUIDE_DIR points the loader
+    // at the repo's site/guide for the test.
+    let src = guide_source_dir();
+    std::env::set_var("EPHER_GUIDE_DIR", &src);
+    let mut app = App::with_session(epher_core::Session::new());
+    app.guide_open();
+    app.guide_load("en");
+    let (_, md) = app.guide_text().expect("guide text loaded");
+    assert!(md.as_deref().unwrap().contains("epher user guide"));
+    // A language change reloads from that locale's file.
+    app.guide_load("de");
+    let (locale, md) = app.guide_text().expect("german guide loaded");
+    assert_eq!(locale, "de");
+    assert!(!md.as_deref().unwrap().is_empty());
+    // No installed files: the pager can say where it looked.
+    let empty = std::env::temp_dir().join(format!("epher-tui-guide-miss-{}", std::process::id()));
+    let _ = std::fs::create_dir_all(&empty);
+    std::env::set_var("EPHER_GUIDE_DIR", &empty);
+    let mut app = App::with_session(epher_core::Session::new());
+    app.guide_open();
+    app.guide_load("en");
+    let (_, md) = app.guide_text().expect("the miss is recorded, not a panic");
+    assert!(md.is_err());
+    std::env::remove_var("EPHER_GUIDE_DIR");
+}
+
+#[test]
 fn guide_view_opens_scrolls_and_closes() {
     let mut app = App::with_session(epher_core::Session::new());
     assert!(!app.guide_active());
@@ -839,15 +868,27 @@ fn guide_view_opens_scrolls_and_closes() {
     assert_eq!(app.guide_offset(), Some(usize::MAX));
     app.guide_close();
     assert!(!app.guide_active());
-    // The embedded guide renders in every interface language (the TUI's
-    // own crate embeds the same site/guide/*.md as the website).
+    // The installed guide renders in every interface language: the
+    // loader reads the repo's site/guide/*.md when EPHER_GUIDE_DIR
+    // points at it (the content is not compiled in, ADR-0053).
+    let src = guide_source_dir();
     for l in epher_i18n::SUPPORTED_LOCALES {
-        let lines = epher_guide::render_text(epher_guide::guide(l));
+        let md = std::fs::read_to_string(src.join(epher_guide::file_name(l)))
+            .expect("guide source next to the repo");
+        let lines = epher_guide::render_text(&md);
         assert!(!lines.is_empty());
         assert!(lines
             .iter()
             .any(|t| matches!(t, epher_guide::TLine::Heading(1, _))));
     }
+}
+
+/// The repo's site/guide directory from the test's working directory
+/// (crates/tui during cargo test).
+fn guide_source_dir() -> std::path::PathBuf {
+    let mut p = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    p.push("../../site/guide");
+    p
 }
 
 #[test]

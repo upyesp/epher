@@ -89,6 +89,9 @@ guide-close = إغلاق
 guide-contents = المحتويات
 guide-insert-hint = المس مثالاً لإدراجه في حقل الإدخال.
 guide-hint = تمرير لأعلى/لأسفل · 1-9 فصل · Esc إغلاق
+guide-loading = جارٍ تحميل الدليل…
+guide-unavailable = تعذّر تحميل الدليل. اقرأه على الإنترنت:
+
 settings-markers = النقاط المميزة على الرسم البياني
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu
 # spells the same three rows).

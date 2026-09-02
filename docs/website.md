@@ -31,8 +31,10 @@ contrast comments in `crates/web/index.html`.
 
 The user guide (ADR-0018) has one source: `site/guide/<lang>.md`. The
 website pages, the web/desktop overlay, and the TUI pager all render
-those files; the apps embed them at build time, so a guide edit reaches
-every frontend on the next build.
+those files; nothing compiles them in — the apps fetch or read the
+markdown when the user opens the guide (ADR-0053), so a guide edit
+reaches the website on the next pages build and the apps on the next
+one too, without a code change.
 
 The app layout is ADR-0016: a fixed-viewport scientific calculator —
 input, answer panel, scrollable history, and a five-tab keypad covering

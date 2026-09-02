@@ -89,6 +89,9 @@ guide-close = Close
 guide-contents = Contents
 guide-insert-hint = Tap an example to insert it into the entry field.
 guide-hint = Up/Down scroll · 1-9 chapter · Esc close
+guide-loading = Loading the guide…
+guide-unavailable = The guide could not be loaded. Read it online:
+
 settings-markers = Highlighted plot points
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu
 # spells the same three rows).

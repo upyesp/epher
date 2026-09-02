@@ -196,6 +196,11 @@ pub struct App {
     /// at the top of the pager jumps to those rows on click or 1–9.
     guide: Option<usize>,
     guide_chapters: Vec<(String, usize)>,
+    /// The guide text for the current locale, loaded from the installed
+    /// files the first time the guide opens (ADR-0053): the markdown is
+    /// never carried in the binary. The locale rides along so a language
+    /// change reloads; `Err` says where it looked.
+    guide_md: Option<(String, Result<String, epher_guide::GuideUnavailable>)>,
     /// The guide's search (ADR-0038 amendment): `/` starts a query, the
     /// typed text filters as you go, Enter jumps to the next hit. The
     /// hit rows are the wrapped rows of the matching lines in the
@@ -664,6 +669,7 @@ impl App {
             hist_rows: Vec::new(),
             guide: None,
             guide_chapters: Vec::new(),
+            guide_md: None,
             guide_searching: false,
             guide_query: String::new(),
             guide_hit_rows: Vec::new(),
@@ -1033,6 +1039,26 @@ impl App {
         self.guide = Some(0);
         self.menu = None;
         self.keypad = false;
+    }
+
+    /// Load the guide text from the installed files (ADR-0053), once
+    /// per locale: a language change while the session lives reloads.
+    pub fn guide_load(&mut self, locale: &str) {
+        if self
+            .guide_md
+            .as_ref()
+            .map(|(loaded, _)| loaded != locale)
+            .unwrap_or(true)
+        {
+            self.guide_md = Some((locale.to_string(), epher_guide::load(locale)));
+        }
+    }
+
+    /// The loaded guide text (ADR-0053): (locale, markdown or the miss).
+    pub fn guide_text(
+        &self,
+    ) -> Option<&(String, Result<String, epher_guide::GuideUnavailable>)> {
+        self.guide_md.as_ref()
     }
 
     pub fn guide_close(&mut self) {
@@ -3269,7 +3295,12 @@ fn perform_menu_action(
                 app.set_result(&msg);
             }
         }
-        MenuAction::OpenGuide => app.guide_open(),
+        MenuAction::OpenGuide => {
+            app.guide_open();
+            // The guide text loads from disk on demand (ADR-0053); the
+            // binary carries none of it.
+            app.guide_load(localizer.locale());
+        }
         MenuAction::OpenKeyHelp => app.key_help_open(),
         MenuAction::BrowseConstants => app.constants_open(localizer),
     }
@@ -3900,7 +3931,33 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     }
 
     if let Some(offset) = app.guide_offset() {
-        let chapters = epher_guide::chapters(epher_guide::guide(localizer.locale()));
+        // The guide text (ADR-0053): loaded from the installed files at
+        // open; when the install has none, the pager says where it
+        // looked instead of a blank page.
+        let (chapters, guide_lines) = match app.guide_md.as_ref().map(|(_, md)| md) {
+            Some(Ok(md)) => (
+                epher_guide::chapters(md),
+                epher_guide::render_text(md),
+            ),
+            _ => {
+                let tried = app
+                    .guide_md
+                    .as_ref()
+                    .and_then(|(_, r)| r.as_ref().err())
+                    .map(|e| e.tried.clone())
+                    .unwrap_or_default();
+                let mut lines = vec![
+                    epher_guide::TLine::Text(localizer.lookup("guide-unavailable")),
+                    epher_guide::TLine::Blank,
+                ];
+                for dir in tried {
+                    lines.push(epher_guide::TLine::Code(dir));
+                }
+                lines.push(epher_guide::TLine::Blank);
+                lines.push(epher_guide::TLine::Text("https://epher.org/guide/".into()));
+                (Vec::new(), lines)
+            }
+        };
         let toc_len = chapters.len().min(12);
         let rows = Layout::vertical([
             Constraint::Length(1),              // title
@@ -3950,7 +4007,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         areas.guide_toc_len = toc_len;
         let mut lines = Vec::new();
         let mut chapters_found: Vec<(String, usize)> = Vec::new();
-        for t in epher_guide::render_text(epher_guide::guide(localizer.locale())) {
+        for t in guide_lines {
             match t {
                 epher_guide::TLine::Heading(level, text) => {
                     let style = if level == 1 {

@@ -19,6 +19,7 @@ thiserror = { workspace = true }
 # astronomy facade rests on this crate's validated ephemeris; thank you
 # to its author: github.com/Protonmatter/sol (MIT OR Apache-2.0).
 solar-ephemeris = "=0.2.0"
+puruspe = { workspace = true }
 
 [dev-dependencies]
 proptest = "1"

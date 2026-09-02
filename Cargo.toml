@@ -32,6 +32,10 @@ num-traits = "0.2"
 num-bigint = { version = "0.4", features = ["serde"] }
 num-rational = { version = "0.4", features = ["serde"] }
 num-complex = { version = "0.4", features = ["serde"] }
+# Special functions (ln_gamma, incomplete gamma/beta, erfc): puruspe is
+# pure Rust, dependency-light, and wasm-safe — it replaced the in-house
+# Numerical-Recipes ports (ADR-0053).
+puruspe = "0.4"
 rust_decimal = { version = "1", default-features = false, features = ["std", "serde"] }
 bigdecimal = { version = "0.4", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }

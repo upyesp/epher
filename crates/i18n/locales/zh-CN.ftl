@@ -89,6 +89,9 @@ guide-close = 关闭
 guide-contents = 目录
 guide-insert-hint = 点击示例可将其插入输入框。
 guide-hint = 上/下滚动 · 1-9 章节 · Esc 关闭
+guide-loading = 正在加载指南…
+guide-unavailable = 无法加载指南。请在线阅读：
+
 settings-markers = 图上高亮的点
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu
 # spells the same three rows).

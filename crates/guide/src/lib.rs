@@ -2,17 +2,122 @@
 //!
 //! The single source of truth is `site/guide/<locale>.md`, the same
 //! files the website build (`scripts/build-guide.mjs`) turns into the
-//! guide pages. `guide(locale)` returns the embedded markdown; each
-//! frontend renders it with the renderer that fits its medium:
-//! [`render_html`] for the web/desktop overlay (every `` ```epher `` /
-//! `` ```sh `` fence becomes a clickable example button), [`render_text`]
-//! for the TUI pager. The markdown feature set is bounded by the guide
-//! itself: ATX headings (1–4), fenced code blocks (`epher`, `sh`, `text`),
-//! flat lists, pipe tables, blockquotes, paragraphs, and the inline marks
-//! `` `code` ``, `**bold**`, `*italic*`. No links, images, or raw HTML;
-//! so both renderers stay small and every byte of text is escaped.
+//! guide pages. No binary carries the guide: the build script copies
+//! the markdown into the web app's static files (fetched on demand),
+//! and the installers put it on disk (the TUI reads it when the user
+//! opens the guide) — ADR-0053. Each frontend renders the markdown
+//! with the renderer that fits its medium: [`render_html`] for the
+//! web/desktop overlay (every `` ```epher `` / `` ```sh `` fence becomes
+//! a clickable example button), [`render_text`] for the TUI pager. The
+//! markdown feature set is bounded by the guide itself: ATX headings
+//! (1–4), fenced code blocks (`epher`, `sh`, `text`), flat lists, pipe
+//! tables, blockquotes, paragraphs, and the inline marks `` `code` ``,
+//! `**bold**`, `*italic*`. No links, images, or raw HTML; so both
+//! renderers stay small and every byte of text is escaped.
 
-include!(concat!(env!("OUT_DIR"), "/content.rs"));
+/// The locales the guide ships in, matching site/guide/*.md.
+pub const LOCALES: [&str; 8] = ["ar", "de", "en", "es", "fr", "hi", "pt", "zh-CN"];
+
+/// The guide file name for a locale: `<locale>.md` for the shipped
+/// locales, `en.md` otherwise (the website falls back the same way).
+pub fn file_name(locale: &str) -> String {
+    if LOCALES.contains(&locale) {
+        format!("{locale}.md")
+    } else {
+        "en.md".to_string()
+    }
+}
+
+/// Why the guide could not be read: the installed files were not found.
+/// The message lists every directory that was tried so the user can fix
+/// the install (or set `EPHER_GUIDE_DIR`).
+#[derive(Debug)]
+pub struct GuideUnavailable {
+    /// The directories that were tried, in order.
+    pub tried: Vec<String>,
+}
+
+impl std::fmt::Display for GuideUnavailable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "the guide files were not found; looked in:")?;
+        for dir in &self.tried {
+            write!(f, "\n  {dir}")?;
+        }
+        Ok(())
+    }
+}
+
+impl std::error::Error for GuideUnavailable {}
+
+/// Read the guide for a locale from the installed files. Native
+/// frontends only; the web app fetches the same files over HTTP.
+/// Search order:
+///
+/// 1. `$EPHER_GUIDE_DIR` (explicit override, one file per locale)
+/// 2. next to the executable: `guide/` and `resources/guide/`
+///    (the NSIS install layout)
+/// 3. bundle-relative: `../Resources/guide/` (the macOS app bundle's
+///    Contents/Resources) and `../lib/<name>/resources/guide/`
+///    (the Linux resource dir next to /usr/bin)
+/// 4. the system data dirs `/usr/local/share/epher/guide/` and
+///    `/usr/share/epher/guide/` (the deb/rpm file maps)
+/// 5. the user's data dir (`$XDG_DATA_HOME` or `~/.local/share`) —
+///    `epher/guide/` there, for installs without a package
+#[cfg(not(target_arch = "wasm32"))]
+pub fn load(locale: &str) -> Result<String, GuideUnavailable> {
+    let file = file_name(locale);
+    let mut tried = Vec::new();
+
+    let push = |dir: std::path::PathBuf, tried: &mut Vec<String>| {
+        let joined = dir.join(&file);
+        let shown = dir.display().to_string();
+        if !tried.contains(&shown) {
+            tried.push(shown);
+        }
+        std::fs::read_to_string(&joined).ok()
+    };
+
+    if let Some(dir) = std::env::var_os("EPHER_GUIDE_DIR") {
+        if let Some(md) = push(std::path::PathBuf::from(dir), &mut tried) {
+            return Ok(md);
+        }
+    }
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            for rel in ["guide", "resources/guide", "../Resources/guide"] {
+                if let Some(md) = push(parent.join(rel), &mut tried) {
+                    return Ok(md);
+                }
+            }
+            // The Linux bundle layout: /usr/bin/epher with resources in
+            // /usr/lib/<productName>/resources (Tauri's resource dir),
+            // reached relative so AppImage works the same way.
+            if let Some(bin) = parent.parent() {
+                if let Some(md) = push(bin.join("lib/epher/resources/guide"), &mut tried) {
+                    return Ok(md);
+                }
+            }
+        }
+    }
+    for dir in ["/usr/local/share/epher/guide", "/usr/share/epher/guide"] {
+        if let Some(md) = push(std::path::PathBuf::from(dir), &mut tried) {
+            return Ok(md);
+        }
+    }
+    if let Some(data) = std::env::var_os("XDG_DATA_HOME") {
+        if let Some(md) = push(std::path::PathBuf::from(data).join("epher/guide"), &mut tried) {
+            return Ok(md);
+        }
+    } else if let Some(home) = std::env::var_os("HOME") {
+        if let Some(md) = push(
+            std::path::PathBuf::from(home).join(".local/share/epher/guide"),
+            &mut tried,
+        ) {
+            return Ok(md);
+        }
+    }
+    Err(GuideUnavailable { tried })
+}
 
 /// Escape text for inclusion in generated HTML.
 fn escape_html(s: &str) -> String {
@@ -396,12 +501,37 @@ pub fn render_text(md: &str) -> Vec<TLine> {
 mod tests {
     use super::*;
 
+    /// The repo's site/guide: the single source of truth the build
+    /// script copies for the web app (ADR-0053).
+    fn site_guide() -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../site/guide")
+    }
+
     #[test]
-    fn guide_has_all_locales_and_english_fallback() {
-        assert!(guide("en").contains("epher user guide"));
-        assert!(guide("de").contains("epher"));
-        assert!(!guide("de").contains("epher user guide")); // translated, not the English text
-        assert_eq!(guide("xx"), guide("en"));
+    fn file_name_maps_locales_and_falls_back_to_english() {
+        assert_eq!(file_name("en"), "en.md");
+        assert_eq!(file_name("de"), "de.md");
+        assert_eq!(file_name("zh-CN"), "zh-CN.md");
+        assert_eq!(file_name("xx"), "en.md");
+    }
+
+    #[test]
+    fn load_reads_the_installed_guide_and_reports_misses() {
+        // The happy path through the env override (how a source checkout
+        // or a custom install points at the files).
+        std::env::set_var("EPHER_GUIDE_DIR", site_guide());
+        let en = load("en").expect("guide en loads from site/guide");
+        assert!(en.contains("epher user guide"));
+        // Unknown locale falls back to the English file.
+        let xx = load("xx").expect("guide xx falls back to en");
+        assert_eq!(xx, en);
+        std::env::remove_var("EPHER_GUIDE_DIR");
+        // No installed files: the error lists where it looked.
+        let dir = std::env::temp_dir().join(format!("epher-guide-miss-{}", std::process::id()));
+        std::env::set_var("EPHER_GUIDE_DIR", &dir);
+        let err = load("en").expect_err("empty dir has no guide");
+        assert!(err.tried.iter().any(|d| d.contains(&dir.display().to_string())));
+        std::env::remove_var("EPHER_GUIDE_DIR");
     }
 
     #[test]
@@ -461,12 +591,13 @@ mod tests {
     #[test]
     fn full_guides_in_every_locale_render_without_panic() {
         for l in ["ar", "de", "en", "es", "fr", "hi", "pt", "zh-CN"] {
-            let md = guide(l);
+            let md = std::fs::read_to_string(site_guide().join(format!("{l}.md")))
+                .unwrap_or_else(|e| panic!("guide {l}: {e}"));
             assert!(md.len() > 5000, "guide {l} suspiciously short");
-            let html = render_html(md, "Contents");
+            let html = render_html(&md, "Contents");
             assert!(html.contains("<h1>"), "guide {l}: no h1 in HTML");
             assert!(html.contains("guide-example-btn"), "guide {l}: no examples");
-            let text = render_text(md);
+            let text = render_text(&md);
             assert!(!text.is_empty());
             assert!(text.iter().any(|t| matches!(t, TLine::Heading(1, _))));
         }

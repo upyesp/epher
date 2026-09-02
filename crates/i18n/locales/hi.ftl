@@ -89,6 +89,9 @@ guide-close = बंद करें
 guide-contents = विषय-सूची
 guide-insert-hint = किसी उदाहरण को एंट्री फ़ील्ड में डालने के लिए उस पर टैप करें।
 guide-hint = ऊपर/नीचे स्क्रॉल · 1-9 अध्याय · Esc बंद करें
+guide-loading = गाइड लोड हो रही है…
+guide-unavailable = गाइड लोड नहीं हो सकी। ऑनलाइन पढ़ें:
+
 settings-markers = ग्राफ़ पर उजागर बिंदु
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu
 # spells the same three rows).

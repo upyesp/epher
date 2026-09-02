@@ -89,6 +89,9 @@ guide-close = Fermer
 guide-contents = Sommaire
 guide-insert-hint = Touchez un exemple pour l'insérer dans le champ de saisie.
 guide-hint = Haut/Bas défiler · 1-9 chapitre · Esc fermer
+guide-loading = Chargement du guide…
+guide-unavailable = Impossible de charger le guide. À lire en ligne :
+
 settings-markers = Points mis en évidence sur le tracé
 # ADR-0031: the 3D fine-control sliders (the TUI Settings menu
 # spells the same three rows).

@@ -5,6 +5,10 @@
 # Trunk / web build output
 /dist
 /web-dist
+# The guide markdown the guide crate's build script copies here for
+# trunk to serve; site/guide is the source of truth (ADR-0053)
+/crates/web/public/guide
+/crates/web/public/guide
 
 # Tauri generated
 **/gen/schemas

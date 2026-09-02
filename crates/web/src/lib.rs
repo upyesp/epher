@@ -21,6 +21,7 @@ use epher_core::{history_expression, CatalogKind, DisplayPrefs, Notation, Sessio
 use epher_i18n::Localizer;
 use epher_shell::{classify, message, prepare};
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::{spawn_local, JsFuture};
@@ -1286,6 +1287,57 @@ struct GuideHit {
     index: usize,
 }
 
+/// One locale's guide markdown (ADR-0053): fetched from the app's
+/// static files the first time the guide opens, cached for the session;
+/// the binary carries none of it.
+enum GuideEntry {
+    Loading,
+    Ready(Rc<str>),
+    Failed,
+}
+
+/// GET a same-origin text asset (the guide markdown, ADR-0053): the
+/// response body on 200, None otherwise. The service worker
+/// runtime-caches these files, so offline-after-first-view works.
+async fn fetch_text(url: &str) -> Option<String> {
+    let window = web_sys::window()?;
+    let response = JsFuture::from(window.fetch_with_str(url))
+        .await
+        .ok()?
+        .dyn_into::<web_sys::Response>()
+        .ok()?;
+    if !response.ok() {
+        return None;
+    }
+    JsFuture::from(response.text().ok()?)
+        .await
+        .ok()?
+        .as_string()
+}
+
+/// The guide overlay's body (ADR-0053): the fetched markdown rendered
+/// as HTML, or the load state while it arrives / when it cannot be.
+fn guide_body(localizer: &Localizer, cache: &HashMap<String, GuideEntry>) -> Html {
+    match cache.get(localizer.locale()) {
+        Some(GuideEntry::Ready(md)) => Html::from_html_unchecked(
+            epher_guide::render_html(md, &localizer.lookup("guide-contents")).into(),
+        ),
+        Some(GuideEntry::Failed) => html! {
+            <p class="guide-load-failed">
+                { localizer.lookup("guide-unavailable") } { " " }
+                <a href="https://epher.org/guide/" target="_blank" rel="noreferrer">
+                    { "epher.org/guide" }
+                </a>
+            </p>
+        },
+        _ => html! {
+            <p class="guide-loading" role="status">
+                { localizer.lookup("guide-loading") }
+            </p>
+        },
+    }
+}
+
 const GUIDE_SEARCH_NODES: &str = ".guide-body h2, .guide-body h3, .guide-body p, .guide-body li";
 
 /// Search the rendered guide text (ADR-0038): a case-insensitive
@@ -1811,6 +1863,42 @@ fn epher_app() -> Html {
     *menu_open_cell.borrow_mut() = *menu_open;
     let hamburger_open = use_state(|| false);
     let guide_open = use_state(|| false);
+    // The guide's per-locale markdown cache (ADR-0053): the overlay
+    // reads it each render; the effect below starts the fetch. The tick
+    // bumps when a fetch lands so the open overlay re-renders.
+    let guide_cache: Rc<RefCell<HashMap<String, GuideEntry>>> = use_mut_ref(HashMap::new);
+    let guide_tick = use_state(|| 0u32);
+    {
+        let guide_open = guide_open.clone();
+        let guide_cache = guide_cache.clone();
+        let guide_tick = guide_tick.clone();
+        let locale = (*localizer).locale().to_string();
+        use_effect_with((guide_open, locale), move |(open, locale)| {
+            if **open {
+                let known = guide_cache.borrow().contains_key(locale.as_str());
+                if !known {
+                    guide_cache
+                        .borrow_mut()
+                        .insert(locale.clone(), GuideEntry::Loading);
+                    let guide_cache = guide_cache.clone();
+                    let locale = locale.clone();
+                    let file = epher_guide::file_name(&locale);
+                    spawn_local(async move {
+                        let md = fetch_text(&format!("guide/{file}")).await;
+                        guide_cache.borrow_mut().insert(
+                            locale,
+                            match md {
+                                Some(text) => GuideEntry::Ready(Rc::from(text.as_str())),
+                                None => GuideEntry::Failed,
+                            },
+                        );
+                        guide_tick.set((*guide_tick).wrapping_add(1));
+                    });
+                }
+            }
+            move || {}
+        });
+    }
     // The constants browser (ADR-0045): Help menu -> Constants, the
     // grouped builtin list that inserts a name into the entry field.
     let constants_open = use_state(|| false);
@@ -6078,13 +6166,7 @@ fn epher_app() -> Html {
                                 }
                             })}>
                                 {
-                                    Html::from_html_unchecked(
-                                        epher_guide::render_html(
-                                            epher_guide::guide(localizer.locale()),
-                                            &localizer.lookup("guide-contents"),
-                                        )
-                                        .into(),
-                                    )
+                                    guide_body(&localizer, &guide_cache.borrow())
                                 }
                             </div>
                         </div>

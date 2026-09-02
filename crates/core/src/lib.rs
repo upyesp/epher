@@ -2895,92 +2895,24 @@ pub(crate) fn linear_fit(xs: &[f64], ys: &[f64]) -> Result<(f64, f64, f64), Ephe
     Ok((a, b, r))
 }
 
-/// The regularized incomplete gamma Q(a, x) = 1 - P(a, x), by series
-/// and continued fraction (Numerical Recipes gser/gcf, public domain).
-/// Pure f64, deterministic, wasm-safe.
+/// The regularized upper incomplete gamma Q(a, x) = 1 - P(a, x), by
+/// puruspe's NR-style
+/// `gammq` (continued fraction below the switch, Gauss-Legendre
+/// quadrature for large a), direct in the tail so extreme survivors
+/// keep their digits (ADR-0052). Pure f64, deterministic, wasm-safe.
 fn regularized_gamma_q(a: f64, x: f64) -> f64 {
-    if x < a + 1.0 {
-        1.0 - gamma_series(a, x)
-    } else {
-        gamma_cf(a, x)
-    }
+    puruspe::gammq(a, x)
 }
 
-fn gamma_series(a: f64, x: f64) -> f64 {
-    let mut ap = a;
-    let mut sum = 1.0 / a;
-    let mut del = sum;
-    let mut n = 1.0;
-    loop {
-        ap += 1.0;
-        del *= x / ap;
-        sum += del;
-        if del.abs() < sum.abs() * 1e-14 {
-            break;
-        }
-        n += 1.0;
-        if n > 2000.0 {
-            break;
-        }
-    }
-    sum * (-x + a * x.ln() - ln_gamma(a)).exp()
-}
-
-fn gamma_cf(a: f64, x: f64) -> f64 {
-    const FPMIN: f64 = 1e-300;
-    let mut b = x + 1.0 - a;
-    let mut c = 1.0 / FPMIN;
-    let mut d = 1.0 / b;
-    let mut h = d;
-    let mut i = 1.0;
-    loop {
-        let an = -i * (i - a);
-        b += 2.0;
-        d = an * d + b;
-        if d.abs() < FPMIN {
-            d = FPMIN;
-        }
-        c = b + an / c;
-        if c.abs() < FPMIN {
-            c = FPMIN;
-        }
-        d = 1.0 / d;
-        let del = d * c;
-        h *= del;
-        if (del - 1.0).abs() < 1e-14 {
-            break;
-        }
-        i += 1.0;
-        if i > 2000.0 {
-            break;
-        }
-    }
-    (-x + a * x.ln() - ln_gamma(a)).exp() * h
-}
-
-/// Lanczos ln(gamma), accurate to ~1e-12 for x > 0.
+/// Lanczos ln(gamma) — puruspe's double-precision implementation
+/// (Fukushima-class, ~eps relative).
 fn ln_gamma(x: f64) -> f64 {
-    const COF: [f64; 6] = [
-        76.18009172947146,
-        -86.50532032941677,
-        24.01409824083091,
-        -1.231739572450155,
-        0.1208650973866179e-2,
-        -0.5395239384953e-5,
-    ];
-    let mut y = x;
-    let mut tmp = x + 5.5;
-    tmp -= (x + 0.5) * tmp.ln();
-    let mut ser = 1.000000000190015;
-    for c in COF {
-        y += 1.0;
-        ser += c / y;
-    }
-    -tmp + (2.5066282746310005 * ser / x).ln()
+    puruspe::ln_gamma(x)
 }
 
-/// The regularized incomplete beta I_x(a, b) (Numerical Recipes betai,
-/// public domain), for a, b > 0 and x in [0, 1].
+/// The regularized incomplete beta I_x(a, b) — puruspe's NR-style
+/// `betai` — for a, b > 0 and x clamped into [0, 1] (the crate's
+/// betai asserts on its domain, so the clamp lives here).
 fn regularized_beta(a: f64, b: f64, x: f64) -> f64 {
     if x <= 0.0 {
         return 0.0;
@@ -2988,64 +2920,15 @@ fn regularized_beta(a: f64, b: f64, x: f64) -> f64 {
     if x >= 1.0 {
         return 1.0;
     }
-    let bt = (ln_gamma(a + b) - ln_gamma(a) - ln_gamma(b) + a * x.ln() + b * (1.0 - x).ln()).exp();
-    if x < (a + 1.0) / (a + b + 2.0) {
-        bt * beta_cf(a, b, x) / a
-    } else {
-        1.0 - bt * beta_cf(b, a, 1.0 - x) / b
-    }
+    puruspe::betai(a, b, x)
 }
 
-fn beta_cf(a: f64, b: f64, x: f64) -> f64 {
-    const FPMIN: f64 = 1e-300;
-    const MAXIT: u32 = 400;
-    let qab = a + b;
-    let qap = a + 1.0;
-    let qam = a - 1.0;
-    let mut c = 1.0;
-    let mut d = 1.0 - qab * x / qap;
-    if d.abs() < FPMIN {
-        d = FPMIN;
-    }
-    d = 1.0 / d;
-    let mut h = d;
-    for m in 1..=MAXIT {
-        let m2 = 2 * m;
-        let mut aa = m as f64 * (b - m as f64) * x / ((qam + m2 as f64) * (a + m2 as f64));
-        d = 1.0 + aa * d;
-        if d.abs() < FPMIN {
-            d = FPMIN;
-        }
-        c = 1.0 + aa / c;
-        if c.abs() < FPMIN {
-            c = FPMIN;
-        }
-        d = 1.0 / d;
-        h *= d * c;
-        aa = -(a + m as f64) * (qab + m as f64) * x / ((a + m2 as f64) * (qap + m2 as f64));
-        d = 1.0 + aa * d;
-        if d.abs() < FPMIN {
-            d = FPMIN;
-        }
-        c = 1.0 + aa / c;
-        if c.abs() < FPMIN {
-            c = FPMIN;
-        }
-        d = 1.0 / d;
-        let del = d * c;
-        h *= del;
-        if (del - 1.0).abs() < 3e-14 {
-            break;
-        }
-    }
-    h
-}
-
-/// The standard normal CDF through the incomplete gamma identity
-/// erf(z) = 1 - Q(1/2, z^2): exact at 0, ~1e-12 elsewhere — precise
-/// enough for p-values that round to four decimals. The inverse CDF is
-/// Acklam's rational approximation (1.15e-9) polished by one Newton
-/// step against this same CDF.
+/// The standard normal CDF through the complementary error function:
+/// norm_cdf(x) = 0.5*erfc(-x/sqrt(2)), puruspe's erfcx-based erfc,
+/// which keeps relative accuracy deep into the tails (down to the
+/// underflow floor) instead of cancelling 1 - tiny. Exact at 0. The
+/// inverse CDF is Acklam's rational approximation (1.15e-9) polished
+/// by Newton steps against the tail-space survivor.
 fn norm_cdf(x: f64) -> f64 {
     if x.is_nan() {
         return f64::NAN;
@@ -3053,12 +2936,9 @@ fn norm_cdf(x: f64) -> f64 {
     if x == 0.0 {
         return 0.5;
     }
-    let q = regularized_gamma_q(0.5, x * x / 2.0);
-    if x > 0.0 {
-        1.0 - 0.5 * q
-    } else {
-        0.5 * q
-    }
+    // 0.5*erfc(-x/sqrt(2)): erfc is accurate on both sides, no
+    // cancellation against 1 - tiny.
+    0.5 * puruspe::erfc(-x / std::f64::consts::SQRT_2)
 }
 
 fn inv_norm(p: f64) -> f64 {
@@ -3127,7 +3007,7 @@ fn inv_norm(p: f64) -> f64 {
         // g(x) = 0.5*q(0.5, x^2/2) is even, so the derivative is
         // -sign(x)*pdf(x) and the Newton step is
         // x += (g - target) / (sign(x) * pdf(x)).
-        let g = 0.5 * regularized_gamma_q(0.5, 0.5 * x * x);
+        let g = 0.5 * puruspe::erfc(x.abs() / std::f64::consts::SQRT_2);
         let denom = norm_pdf(x) * x.signum();
         if denom == 0.0 {
             break;

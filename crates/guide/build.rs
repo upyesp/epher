@@ -1,32 +1,28 @@
-//! Embed the user guide (ADR-0018): the single source of truth is
-//! `site/guide/<locale>.md`, which the website build (`build-guide.mjs`)
-//! turns into the guide pages. This build script copies the same files
-//! into OUT_DIR and generates a locale lookup, so the web app and the TUI
-//! carry byte-identical content without a network fetch.
+//! Build script: publish the guide markdown where the web app serves it.
+//!
+//! `site/guide/<locale>.md` is the single source of truth (ADR-0018). The
+//! content is NOT compiled into any binary; the web app fetches
+//! `guide/<locale>.md` and the TUI reads the installed files on request
+//! (ADR-0053). This script copies the markdown into `crates/web/public/
+//! guide/` so trunk ships it as static files — the same dist the desktop
+//! shell embeds — without a second copy living in git.
 
 use std::{env, fs, path::Path};
 
 fn main() {
     println!("cargo:rerun-if-changed=../../site/guide");
-    let guide = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../site/guide");
-    let out = Path::new(&env::var("OUT_DIR").unwrap()).join("guide");
-    fs::create_dir_all(&out).unwrap();
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let guide = root.join("site/guide");
+    let public = root.join("crates/web/public/guide");
+    fs::create_dir_all(&public).unwrap();
 
-    let locales = ["ar", "de", "en", "es", "fr", "hi", "pt", "zh-CN"];
-    let mut src = String::from("/// The guide in the requested locale; English when a locale has no\n/// translation (the website falls back the same way).\npub fn guide(locale: &str) -> &'static str {\n    match locale {\n");
-    for l in locales {
-        let from = guide.join(format!("{l}.md"));
-        let to = out.join(format!("{l}.md"));
+    for locale in LOCALES {
+        let from = guide.join(format!("{locale}.md"));
+        let to = public.join(format!("{locale}.md"));
         fs::copy(&from, &to)
             .unwrap_or_else(|e| panic!("missing guide source {}: {e}", from.display()));
-        src.push_str(&format!(
-            "        \"{l}\" => include_str!(\"guide/{l}.md\"),\n"
-        ));
     }
-    src.push_str("        _ => include_str!(\"guide/en.md\"),\n    }\n}\n");
-    fs::write(
-        Path::new(&env::var("OUT_DIR").unwrap()).join("content.rs"),
-        src,
-    )
-    .unwrap();
 }
+
+/// The locales the guide ships in, matching site/guide/*.md.
+const LOCALES: [&str; 8] = ["ar", "de", "en", "es", "fr", "hi", "pt", "zh-CN"];

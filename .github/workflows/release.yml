@@ -90,6 +90,17 @@ jobs:
         run: trunk build --release
         working-directory: crates/web
 
+      - name: Check the on-demand guide files
+        # ADR-0053: the guide is not compiled into any binary; the web
+        # app fetches guide/<locale>.md from dist, and the installers
+        # carry the files as Tauri bundle resources for the TUI.
+        shell: bash
+        run: |
+          set -e
+          test -f crates/web/dist/guide/en.md
+          test -f crates/web/dist/guide/zh-CN.md
+          test "$(ls crates/web/dist/guide/*.md | wc -l)" -eq 8
+
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
         run: |
@@ -129,6 +140,9 @@ jobs:
           strings "$BIN" > "$OUT/strings.txt"
           grep -qF "$HASH" "$OUT/strings.txt"
           echo "embedded web build: $HASH"
+          # The guide is not compiled into the binary (ADR-0053): the
+          # markdown lives in the dist files and the bundle resources.
+          ! grep -q "epher user guide" "$OUT/strings.txt"
 
       - name: Package bundles
         shell: bash
@@ -141,6 +155,11 @@ jobs:
               cp "$BUNDLE"/deb/*.deb artifacts/epher-linux-x86_64.deb
               cp "$BUNDLE"/rpm/*.rpm artifacts/epher-linux-x86_64.rpm
               cp "$BUNDLE"/appimage/*.AppImage artifacts/epher-linux-x86_64.AppImage
+              # The TUI reads the guide from the bundle resources
+              # (ADR-0053): the deb/rpm must carry the 8 locale files.
+              dpkg-deb -c artifacts/epher-linux-x86_64.deb | grep -q "guide/en.md"
+              dpkg-deb -c artifacts/epher-linux-x86_64.deb | grep -q "guide/zh-CN.md"
+              rpm -qlp artifacts/epher-linux-x86_64.rpm | grep -q "guide/en.md"
               ;;
             macOS)
               cp "$BUNDLE"/dmg/*.dmg artifacts/epher-${{ matrix.target }}.dmg

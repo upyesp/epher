@@ -25,7 +25,7 @@ flowchart TB
         SHELL["epher-shell<br/>command kernel: history, open/save,<br/>language, theme, plots"]
         STORE["epher-store<br/>DocStore persistence"]
         I18N["epher-i18n<br/>Fluent Localizer"]
-        GUIDE["epher-guide<br/>user guide markdown"]
+        GUIDE["epher-guide<br/>guide renderers<br/>(markdown fetched on demand)"]
     end
 
     subgraph ui["User interfaces (the UI layer is externalized)"]
@@ -104,8 +104,11 @@ frontend that has commands (history, open/save, `language`, `theme`,
 plot assembly). `epher-store` persists documents (`DocStore<FsStore>`
 → `~/.epher/` on desktop and TUI, a browser `localStorage` adapter in
 the PWA). `epher-i18n` is a Fluent `Localizer` over externalized `.ftl`
-files. `epher-guide` holds the user guide markdown and its three
-renderers (website, TUI help, in-app guide).
+files. `epher-guide` is the user guide's renderers (markdown → HTML for
+the web/desktop overlay, markdown → plain text for the TUI pager); the
+markdown itself is not compiled into any binary — the web app fetches
+`guide/<locale>.md` from its static files, and the TUI reads the
+installed files when the guide opens (ADR-0053).
 
 **Terminal frontends (native).** `epher-cli` is the one-shot/piped
 expression evaluator and the REPL. `epher-tui` is the full-screen
