@@ -157,9 +157,13 @@ jobs:
               cp "$BUNDLE"/appimage/*.AppImage artifacts/epher-linux-x86_64.AppImage
               # The TUI reads the guide from the bundle resources
               # (ADR-0053): the deb/rpm must carry the 8 locale files.
-              dpkg-deb -c artifacts/epher-linux-x86_64.deb | grep -q "guide/en.md"
-              dpkg-deb -c artifacts/epher-linux-x86_64.deb | grep -q "guide/zh-CN.md"
-              rpm -qlp artifacts/epher-linux-x86_64.rpm | grep -q "guide/en.md"
+              # grep -q closes the pipe on its first match, which SIGPIPEs
+              # the listing producer; under pipefail that fails the check
+              # even when the file is present, so read via a process
+              # substitution whose status is grep's alone.
+              grep -q "guide/en.md" <(dpkg-deb -c artifacts/epher-linux-x86_64.deb)
+              grep -q "guide/zh-CN.md" <(dpkg-deb -c artifacts/epher-linux-x86_64.deb)
+              grep -q "guide/en.md" <(rpm -qlp artifacts/epher-linux-x86_64.rpm)
               ;;
             macOS)
               cp "$BUNDLE"/dmg/*.dmg artifacts/epher-${{ matrix.target }}.dmg
