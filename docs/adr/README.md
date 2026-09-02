@@ -79,6 +79,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0052 | Quantile tails, fraction honesty, and script transcripts | 2026-09-02 | accepted |
 | 0053 | Crate-reuse ladder and the guide on demand | 2026-09-02 | accepted |
 | 0054 | The stats class, table columns, space curves, and the language surface | 2026-09-02 | accepted |
+| 0055 | Keypad banks for the new language, transparent exports, and the graph-controls review | 2026-09-02 | accepted |
 
 ## Decision chains
 
@@ -89,7 +90,8 @@ at the end of the chain.
   (pane row, slider 0.5–4) → 0023 (top toolbar) → 0025 (3D toolbar) →
   0027 (0–4 step 0.1) → 0028 (0.1–4 floor) → 0031 (mobile range) →
   0032 (slider ends) → **0035 (per-kind widths on mobile; desktop
-  shared width 0.1–4)**.
+  shared width 0.1–4)** → **0055 (3D: 0–0.4 step 0.05, default 0.2,
+  screen-px widths; 2D unchanged)**.
 - **Installer theme** — 0025 (dark via `SetCtlColors` walk) → 0026
   (walk deleted; official MUI2 mechanism only) → 0027 (`SetSysColors`
   finish checkboxes) → **0028 (light, uniform, logo-bearing wizard)**.
@@ -107,12 +109,15 @@ at the end of the chain.
   **0039 (every tab is the digits tab's height and longer banks scroll;
   every key speaks a localized hint through aria-labels, the docked
   hint bar, the touch captions toggle, and the TUI's `?` key-help
-  overlay)**. → **0042 (the hints suggest and answer F1)**
+  overlay)**. → **0042 (the hints suggest and answer F1)** →
+  **0055 (the data, dist, and $ banks cover matrices, lists, strings,
+  statistics, and finance)**
 - **History** — 0021 (`ans`) → 0025 (open-history replaces) → 0027
   (clickable history) → 0030 (`;` scripts as one entry) → **0027
   amendment (multi-line scripts as one item, picked whole, visible
   boundaries)**. → **0041 (the trash beside the
-  heading, clickable in the terminal too)**.
+  heading, clickable in the terminal too)** → **0055 (trash left of
+  the heading)**.
 - **Website guide and examples** — 0018 (one guide, three renderers) →
   **0018 amendment (in-app table of contents)**; → **0036 (Examples
   page with the guide's copy buttons)**.
@@ -126,13 +131,16 @@ at the end of the chain.
   plot; the amendment: stable solar frames, the spin-loop cell fix,
   Help above Settings, TUI guide search and POI copy)**. → **0041 (listeners follow the replaced
   SVG node; the 3D and solar frames fit the bounding sphere and never
-  resize while moving)**.
+  resize while moving)** → **0055 (wheel zoom moves the zoom slider on
+  every kind; data plots zoom; 3D zoom lives in the slider)**.
 - **Solar system** - **0037** → **0038 (per-body legend checkboxes on
   the solar pane)**. → **0040 (hiding every body leaves an
   empty framed plot with the legend intact)**.
 - **Graph commands** - 0014 (cartesian/parametric/polar grammar) → 0019
   (hints) → 0020 (SVG export) → 0038 (per-curve legend) → **0044 (data
-  plots: `graph scatter`, `graph histogram`, `graph boxplot`)**.
+  plots: `graph scatter`, `graph histogram`, `graph boxplot`)** →
+  **0054 (space curves: `graph3d param`)** → **0055 (surfaces and space
+  curves wear per-element legends and colors; transparent exports)**.
 - **History** - 0021 (`ans`) → 0025 → 0027 → 0030 → **0038 (share icon
   on every item, `?expr=` links stage the entry; `clear`/`history`
   keypad keys finally run)**. → **0042 (auto-ans on an empty entry)**
@@ -140,11 +148,13 @@ at the end of the chain.
   primes) → **0043 (complex values, numeric solve, calculus, exact fractions,
   engineering/scientific/grouped formats)** → **0044 (lists, elementwise
   arithmetic, statistics, distributions, tests, regression)**
-  → **0045 (seeded random, the constants browser)**
+  → **0045 (seeded random, the constants browser)** → **0055 (answers
+  flow on one line, separated by semicolons, in the apps)**
 - **In-app guide** - 0018 → 0018 amendment (ToC) → **0038 (search box
   with chapter + snippet hits)** → **0053 (the guide loads on demand:
   fetched from static files or read from the installed files, never
-  compiled in)**.
+  compiled in)** → **0055 (the menu entry reads "In-app user guide";
+  the mobile menu carries Constants and the Results settings)**.
 - **Script language** - 0001 (one grammar) → 0037 (unit suffixes) →
   **0040 (PHP-style comments: `//`, `#`, and `/* ... */`)** → **0042 (percent, physics constants, number theory)**
   → **0043 (`solve` statement, `4i` literals, lazy `derivative`/`integral` arguments)**
@@ -169,4 +179,5 @@ at the end of the chain.
   → **0040 (a 38vh plot floor, a wrapping legend, icon toolbar commands,
   sliders below the plot, no "3D" heading, an unboxed Clear history,
   and 34px keypad tabs)**. → **0041 (tuning strips above
-  the plot, the captioned keypad's own exact window)**.
+  the plot, the captioned keypad's own exact window)** → **0055 (strip
+  icons reset their sliders)**.

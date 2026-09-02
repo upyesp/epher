@@ -157,3 +157,14 @@ it caught:
   Enter jumps to hits) mirrors the web overlay's search box, and the
   TUI's wheel zoom, orbit, and orthographic camera were confirmed
   current - they ride on the same core the app uses.
+
+## Amendment (2026-09-02): the zoom slider moves with the wheel on every kind (ADR-0055)
+
+The 2D behavior (wheel and pinch zoom move the zoom slider) extends to
+every plot kind. The 3D zoom state IS the zoom slider's value: the
+camera base never changes and the effective camera is
+base × 10^(−2z), where z may pass the slider's ±1 ends (the slider
+pins there, exactly like the 2D slider). Data plots (scatter,
+histogram, boxplot) zoom by an x-window clip with the same wheel,
+pinch, slider, and reset behavior as curves, and their exports save
+what the pane shows.

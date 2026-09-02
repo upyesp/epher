@@ -37,9 +37,11 @@ fn document_is_self_contained() {
     // embedded style: the file needs no external CSS
     assert!(svg.contains("<style>"));
     assert!(svg.contains(".curve {"));
-    assert!(svg.contains(".bg { fill: #141416; }"));
-    // the background rect paints the dark canvas the app shows
-    assert!(svg.contains("<rect class=\"bg\""));
+    // the canvas is transparent: no background rect and no rule that
+    // paints one (exports sit on any document, slide, or page)
+    assert!(!svg.contains("<rect class=\"bg\""));
+    assert!(!svg.contains(".bg { fill:"));
+    assert!(!svg.contains("rect class=\"bg\""));
 }
 
 #[test]

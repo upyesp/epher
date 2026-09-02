@@ -1200,6 +1200,7 @@ dependencies = [
 name = "epher-web"
 version = "0.5.18"
 dependencies = [
+ "console_error_panic_hook",
  "epher-core",
  "epher-guide",
  "epher-i18n",

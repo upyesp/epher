@@ -15,7 +15,7 @@ use epher_core::graph::{
     InterestPoint, SampledCurve, Surface, View3D,
 };
 use epher_core::graph_svg::{
-    data_svg, graph3d_svg, graph_svg, solar3d_svg, Poi, DEFAULT_STROKE_WIDTH,
+    data_svg, graph3d_svg, graph_svg, solar3d_svg, Poi, DEFAULT_STROKE_WIDTH, THREE_D_DEFAULT_WIDTH,
 };
 use epher_core::Env;
 use epher_i18n::Localizer;
@@ -282,7 +282,7 @@ impl Plots {
     /// document from an explicit camera pose.
     pub fn save_solar_svg(&self, path: &str, view: &View3D, localizer: &Localizer) -> PlotOutcome {
         match self.solar.as_ref() {
-            Some(scene) => match solar3d_svg(scene, view, DEFAULT_STROKE_WIDTH) {
+            Some(scene) => match solar3d_svg(scene, view, THREE_D_DEFAULT_WIDTH) {
                 Some(doc) => write_document(path, doc, localizer),
                 None => PlotOutcome::err(localizer.lookup("graph-empty")),
             },
@@ -329,7 +329,7 @@ impl Plots {
         if self.surfaces.is_empty() {
             return PlotOutcome::err(localizer.lookup("graph-empty"));
         }
-        match graph3d_svg(&self.surfaces, view, DEFAULT_STROKE_WIDTH) {
+        match graph3d_svg(&self.surfaces, view, THREE_D_DEFAULT_WIDTH) {
             Some(doc) => write_document(path, doc, localizer),
             None => PlotOutcome::err(localizer.lookup("graph-empty")),
         }

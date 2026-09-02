@@ -24,11 +24,12 @@ use yew::prelude::*;
 /// so an SVG saved from the TUI is byte-for-byte the app's plot. The
 /// re-exports keep this module's long-standing surface.
 pub use epher_core::graph_svg::{
-    aria_label, curve_caption, curve_parts, data_svg, escape, fit_legend, fill_points, geometry,
-    geometry_in, graph3d_curve_svg, graph3d_svg, graph_svg, graph_svg_indexed, label, layers_svg,
-    polyline_points, segments, solar_parts_in,
-    solar_view_box, ticks, trace_nearest, Geometry, Poi, TracePoint, BOTTOM, DEFAULT_STROKE_WIDTH,
-    HEIGHT, LEFT, RIGHT, TOP, WIDTH,
+    aria_label, curve_caption, curve_parts, data_geometry, data_svg, data_svg_in, escape,
+    fit_legend, fill_points, geometry, geometry_in, graph3d_curve_svg, graph3d_svg, graph_svg,
+    graph3d_curve_svg_indexed, graph3d_svg_indexed, graph_svg_indexed, label, layers_svg,
+    polyline_points, scene_parts_indexed, segments, solar_parts_in, solar_view_box, ticks,
+    trace_nearest, Geometry, Poi, TracePoint, BOTTOM, DEFAULT_STROKE_WIDTH, HEIGHT, LEFT, RIGHT,
+    THREE_D_DEFAULT_WIDTH, TOP, WIDTH,
 };
 /// The live 3D renderer's content for a space-curve set (ADR-0054):
 /// the same (view box, markup) contract as [`surface_svg`].
@@ -323,43 +324,33 @@ pub fn graph_html(props: &GraphProps) -> Html {
     }
     let all: Vec<epher_core::graph::SampledCurve> =
         props.curves.iter().map(|(_, c)| c.clone()).collect();
-    // A data plot owns the pane (ADR-0044): its window fits the data,
-    // and the zoom window does not apply.
-    let data_geom = props.data.as_ref().map(|d| {
-        let (x_min, x_max, mut y_min, mut y_max) = epher_core::graph::data_ranges(d);
-        let y_span = (y_max - y_min).max(1e-9);
-        let pad = y_span * 0.08;
-        y_min -= pad;
-        y_max += pad;
-        Geometry {
-            x_min,
-            x_max,
-            y_min,
-            y_max,
-            step_x: epher_core::graph::nice_step(x_max - x_min, 10),
-            step_y: epher_core::graph::nice_step(y_max - y_min, 8),
-            zero_axis: y_min <= 0.0 && y_max >= 0.0,
-        }
-    });
-    // The zoom window (ADR-0038) picks the x range; the y range still
-    // fits the samples inside it. No window: the classic auto-fit.
-    let geom = match data_geom {
-        Some(g) => Some(g),
-        None => match props.window {
+    // The zoom window (ADR-0038/0055) picks the x range for curves AND
+    // data plots alike: wheel, pinch, and the zoom slider work on every
+    // kind. A data plot fits its y range to the elements inside the
+    // window (scatter points, histogram bins) exactly like 2D curves
+    // refit theirs; None means the classic auto-fit around the data.
+    let geom = if props.data.is_some() {
+        props.data.as_ref().and_then(|d| data_geometry(d, props.window))
+    } else {
+        match props.window {
             Some((lo, hi)) => geometry_in(&all, lo, hi),
             None => geometry(&all),
-        },
+        }
     };
     let Some(geom) = geom else {
         return html! {};
     };
     let y_span = geom.y_max - geom.y_min;
+    let windowed = props.data.is_some() && props.window.is_some();
 
     let mut data_layers = Vec::new();
     if let Some(data) = &props.data {
         match data.kind {
             epher_core::graph::DataPlotKind::Scatter => {
                 for (x, y) in &data.points {
+                    if windowed && (*x < geom.x_min || *x > geom.x_max) {
+                        continue;
+                    }
                     data_layers.push(html! {
                         <circle class="poi" cx={geom.sx(*x).to_string()} cy={geom.sy(*y).to_string()} r="4" />
                     });
@@ -384,7 +375,13 @@ pub fn graph_html(props: &GraphProps) -> Html {
             }
             epher_core::graph::DataPlotKind::Histogram => {
                 for (lo, hi, count) in &data.bins {
-                    let (x0, x1) = (geom.sx(*lo), geom.sx(*hi));
+                    if windowed && (*hi < geom.x_min || *lo > geom.x_max) {
+                        continue;
+                    }
+                    let (x0, x1) = (
+                        geom.sx((*lo).max(geom.x_min)),
+                        geom.sx((*hi).min(geom.x_max)),
+                    );
                     let (y0, y1) = (geom.sy(0.0), geom.sy(*count));
                     let w = (x1 - x0).max(0.5);
                     data_layers.push(html! {
@@ -395,21 +392,32 @@ pub fn graph_html(props: &GraphProps) -> Html {
             epher_core::graph::DataPlotKind::BoxPlot => {
                 if let Some(b) = data.boxplot {
                     let y = geom.sy(0.5);
-                    let x = |v: f64| geom.sx(v);
-                    data_layers.push(html! {
-                        <line class="axis" x1={x(b[0]).to_string()} y1={y.to_string()} x2={x(b[4]).to_string()} y2={y.to_string()} />
-                    });
-                    for edge in [b[0], b[4]] {
+                    let x = |v: f64| geom.sx(v.clamp(geom.x_min, geom.x_max));
+                    if windowed && (b[4] < geom.x_min || b[0] > geom.x_max) {
+                        // The window sits outside the whiskers: nothing
+                        // to draw, the axes stay.
+                    } else {
                         data_layers.push(html! {
-                            <line class="axis" x1={x(edge).to_string()} y1={(y - 10.0).to_string()} x2={x(edge).to_string()} y2={(y + 10.0).to_string()} />
+                            <line class="axis" x1={x(b[0]).to_string()} y1={y.to_string()} x2={x(b[4]).to_string()} y2={y.to_string()} />
                         });
                     }
-                    data_layers.push(html! {
-                        <rect class="fill curve-0" x={x(b[1]).to_string()} y={(y - 10.0).to_string()} width={(x(b[3]) - x(b[1])).max(0.5).to_string()} height="20" />
-                    });
-                    data_layers.push(html! {
-                        <line class="axis" x1={x(b[2]).to_string()} y1={(y - 10.0).to_string()} x2={x(b[2]).to_string()} y2={(y + 10.0).to_string()} />
-                    });
+                    for edge in [b[0], b[4]] {
+                        if !windowed || (edge >= geom.x_min && edge <= geom.x_max) {
+                            data_layers.push(html! {
+                                <line class="axis" x1={x(edge).to_string()} y1={(y - 10.0).to_string()} x2={x(edge).to_string()} y2={(y + 10.0).to_string()} />
+                            });
+                        }
+                    }
+                    if !windowed || (b[3] >= geom.x_min && b[1] <= geom.x_max) {
+                        data_layers.push(html! {
+                            <rect class="fill curve-0" x={x(b[1]).to_string()} y={(y - 10.0).to_string()} width={(x(b[3]) - x(b[1])).max(0.5).to_string()} height="20" />
+                        });
+                    }
+                    if !windowed || (b[2] >= geom.x_min && b[2] <= geom.x_max) {
+                        data_layers.push(html! {
+                            <line class="axis" x1={x(b[2]).to_string()} y1={(y - 10.0).to_string()} x2={x(b[2]).to_string()} y2={(y + 10.0).to_string()} />
+                        });
+                    }
                 }
             }
         }

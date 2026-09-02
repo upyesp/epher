@@ -1307,9 +1307,10 @@ the legend. **histogram(data[, bins])** draws a frequency histogram;
 the bin count is optional (Sturges' rule by default) and must be a
 whole number between 1 and 50. **boxplot(data)** draws the
 box-and-whisker: min, Q1, median, Q3, max, with whiskers to the
-extremes. The plot window always fits the data — the `from a to b`
-domain keywords do not apply — and the picture exports and saves like
-any other plot.
+extremes. The plot window opens fitting the data (the `from a to b`
+domain keywords still do not apply), and once it is drawn the picture
+zooms exactly like a curve plot: the mouse wheel, a pinch, and the
+zoom slider all work, and the export saves what the pane shows.
 
 An optional third word chooses the model: `graph scatter(xs, ys, quadreg)` (or expreg, powreg, logreg) draws that fit instead of the line.
 ### 1.23 Random numbers
@@ -1628,9 +1629,9 @@ https://epher.org/pwa/
 No installation is needed. It works in any modern browser on a computer,
 phone, or tablet.
 
-This guide is also built into the app: open **Help → User guide** in the
-menu bar (tap **☰** on a phone) to read it inside the app, in the app's
-current language. **Help → Constants** opens the constants browser: every
+This guide is also built into the app: open **Help → In-app user guide**
+in the menu bar (tap **☰** on a phone) to read it inside the app, in
+the app's current language. **Help → Constants** opens the constants browser: every
 builtin constant in groups (Math, Astronomy, Physics, Chemistry), each
 with its value and a short description; tap one to insert its name into
 the entry field, and the search box narrows the list. Tap any example in
@@ -1643,7 +1644,10 @@ the guide to load it into the entry field.
 3. Press **Enter** or click the **=** button.
 
 The result appears in large text below the field. Everything from chapter 1
-works here, including variables, functions, and scripts.
+works here, including variables, functions, and scripts. When a script
+produces several answers they are shown together, on one line and
+separated by semicolons when they fit; an answer that is too long for
+the line is never split - it moves whole to the next line.
 
 While you type a name, a suggestion list appears beneath the field: the
 arrows move the highlight, **Enter** or **Tab** accepts, **Esc** closes,
@@ -1653,6 +1657,16 @@ description for the word under the cursor in the hint bar above the
 keypad. If the first thing you type into an empty field is an operator
 (`+ - * / ^ % !`), epher inserts `ans` for you, so the line continues
 from the previous answer.
+
+The on-screen keypad types for you, exactly as if you had pressed the
+keys. Its banks cover the whole language: `123` digits and operators,
+`trig`, `ƒ` functions, `nΣ` numbers and statistics, `data` matrices,
+lists, and strings (the bank that types `[[1, 2], [3, 4]]`, `{1, 2,
+3}`, and `"text"`), `0x` conversions and bases, `dist` regression and
+distribution families, `$` finance, `π∇` constants and graph commands,
+and `☉` astronomy (the one bank that scrolls). Every function in this
+guide is on a key somewhere. Turn on **key hints** (the **?** button)
+to caption every key, or rest on a key to read what it does.
 
 The **Settings** menu (the gear icon, or **☰ → Settings** on a phone)
 holds three groups. **Theme** and **Language** do what their names
@@ -1665,9 +1679,9 @@ display settings only; the values underneath stay ordinary numbers.
 
 Every calculation is added to the history list beneath the result, so you
 can scroll back and see what you did. Newest entries appear at the top, and
-the trash icon beside the **History** heading empties it (in the terminal,
-Ctrl+L, or a click on the same icon). The history is kept while the page is
-open.
+the trash icon to the left of the **History** heading empties it (in the
+terminal, Ctrl+L, or a click on the same icon). The history is kept while
+the page is open.
 
 Each entry sits between thin rules: a single-line expression is one row,
 and a multi-line script is one entry showing all of its lines. Click an
@@ -1697,16 +1711,18 @@ the plot, and a **Clear graph** button at the top of the graph pane does
 the same for curves and 3D surfaces together. The TUI keeps the command in
 its **Graph** menu.
 
-At the top of the graph pane, beside **Clear graph** and **Copy SVG**,
-the toolbar can hide the list of points of interest and the highlighted
-points drawn on the plot itself. Directly above every plot sits a strip
-of icon-labelled sliders, the words in each one's tooltip: line
-thickness (0 to 4 in steps of 0.1 for 2D curves, 0 to 0.2 in steps of
-0.01 for 3D surfaces - only the kind in view is shown, and each kind
-remembers its own value), and on 3D and solar plots the horizontal and
-vertical rotation speeds and the zoom speed. Every legend entry has a
-checkbox, checked by default: unchecking a curve hides it from the plot,
-its points of interest, and the SVG export.
+At the top of the graph pane, beside **Clear graph**, **Copy SVG**, and
+**Save PNG**, the toolbar can hide the list of points of interest and
+the highlighted points drawn on the plot itself. Directly above every
+plot sits a strip of icon-labelled sliders, the words in each one's
+tooltip: line thickness (0 to 4 in steps of 0.1 for 2D curves, 0 to
+0.4 in steps of 0.05 for 3D plots, with 0.2 the default - only the kind
+in view is shown, and each kind remembers its own value), plus zoom on
+every plot and, on 3D and solar plots, the horizontal and vertical
+rotation speeds. Pressing a slider's icon resets that slider to its
+default. Every legend entry has a checkbox, checked by default:
+unchecking a curve, a 3D surface, a space curve, or a solar body hides
+it from the plot, its points of interest, and the SVG export.
 
 ```epher
 graph x ^ 2
@@ -1819,13 +1835,22 @@ const a = 1
 graph a * x ^ 2
 ```
 
+Every plot zooms the same way: scroll the mouse wheel over it (or
+pinch on a touch screen) to zoom in and out, and the zoom slider above
+the plot moves with you. Data plots - scatter, histogram, and
+box-and-whisker - zoom exactly like curves.
+
 **Copy SVG** copies the current plot as a self-contained SVG image for
-pasting into documents. The colours are baked in, so it looks the same
-anywhere. **Save PNG** saves the same picture as a bitmap at twice its
-size, so curves stay crisp; the desktop app asks where to put it, the
-browser app saves it to your downloads (or asks, where the browser
-offers to). The slider rows and any animated constants sit directly
-beneath the plot, above the points-of-interest list.
+pasting into documents. The colours are baked in and the background is
+transparent, so it sits on any page, slide, or document. **Save PNG**
+saves the same picture as a bitmap at twice its size, so curves stay
+crisp, with the same transparent background; the desktop app asks where
+to put it, the browser app saves it to your downloads (or asks, where
+the browser offers to). The slider rows and any animated constants sit
+directly beneath the plot, above the points-of-interest list. An
+animated slider is a real control: grab its indicator and drag it to a
+new value (grabbing stops the animation first), or nudge it with the
+arrow keys while it is focused.
 
 #### 2.4.4 3D surfaces
 
@@ -1848,9 +1873,10 @@ Space curves plot with `param`: `graph3d param cos(t), sin(t), t` draws a helix 
 #### 2.4.5 Animation
 
 Every slider has a play button. It steps its constant through the
-slider's range and loops around. This is the standard way calculators animate:
-you animate a parameter, and everything that uses it moves. Press the
-button again to pause.
+slider's range and loops around: the indicator travels the full track
+and returns to the start when it reaches the end. This is the standard
+way calculators animate: you animate a parameter, and everything that
+uses it moves. Press the button again to pause.
 
 A "time" variable is just a constant you animate:
 
@@ -1936,8 +1962,8 @@ command. On Linux, the package puts `epher` in `/usr/bin`.
 Launch epher like any other application. You get a window with the same
 interface as the web app: type an expression, press **Enter** or click
 **=**, and read the result. Graphing works here too. `graph x ^ 2` draws
-in the window (chapter 2.4). The window can be resized freely. The menu bar
-includes **Help → User guide**, the same guide as this page, with
+in the window (chapter 2.4). The window can be window. The menu bar
+includes **Help → In-app user guide**, the same guide as this page, with
 tap-to-load examples.
 
 You can also open it from a terminal: a bare `epher` (or `epher gui`) starts

@@ -391,14 +391,26 @@ pub fn layers_svg(geom: &Geometry, x_axis: bool) -> String {
 /// plotted lines read thinner, and the slider ranges around it).
 pub const DEFAULT_STROKE_WIDTH: f64 = 1.0;
 
-/// The embedded stylesheet: the app's default (dark) palette, so the
-/// document is self-contained and renders identically anywhere it lands.
-/// Every color keeps the recorded contrast ratios of the app's dark theme
-/// (WCAG 1.4.11: curves >= 3:1 on --bg).
+/// The default 3D line width (the width slider's value, ADR-0055): the
+/// desktop range is 0.0-0.4 in 0.05 steps with 0.2 as the default, so
+/// the mid-range value is what a fresh plot draws.
+pub const THREE_D_DEFAULT_WIDTH: f64 = 0.2;
+
+/// 3D widths are screen px: `vector-effect="non-scaling-stroke"` keeps
+/// a mesh line at the slider's value times this factor no matter how the
+/// scene letterboxes or zooms (the old world-unit strokes scaled with
+/// the pane, so the default rendered several times thicker than the 2D
+/// curves it sat beside). The factor turns the 0.2 default into 2 px.
+pub const THREE_D_PX_PER_WIDTH: f64 = 10.0;
+
+/// The embedded stylesheet: the app's default (dark) palette, drawn on a
+/// transparent canvas so exported plots sit on any document, slide, or
+/// page without a painted box. Every color keeps the recorded contrast
+/// ratios of the app's dark theme (WCAG 1.4.11: curves >= 3:1 on the
+/// dark background the palette was chosen for).
 fn style_svg(stroke_width: f64) -> String {
     format!(
         "<style>\
-.bg {{ fill: #141416; }}\
 .curve {{ stroke-width: {stroke_width:.2}; stroke-linejoin: round; stroke-linecap: round; fill: none; }}\
 .curve-0 {{ stroke: #2dd4bf; }}\
 .curve-1 {{ stroke: #4da3ff; }}\
@@ -423,18 +435,60 @@ fn style_svg(stroke_width: f64) -> String {
     )
 }
 
-/// Render a data plot (ADR-0044) as a self-contained SVG document with
-/// the same frame as [`graph_svg`]: scatter points with the fitted line,
-/// histogram bars, or a box-and-whisker. Nothing to draw renders the
-/// empty string.
-pub fn data_svg(data: &DataPlot, stroke_width: f64) -> String {
+/// The plot geometry of a data plot (ADR-0044), optionally inside an
+/// explicit x-window (ADR-0055: the wheel, pinch, and the zoom slider
+/// work on data plots exactly as they do on 2D curves). Inside a
+/// window the y range fits the elements that fall in it; a window that
+/// holds nothing degrades to the data's full y range so the axes stay
+/// drawable. `None` when the plot carries no data at all.
+pub fn data_geometry(data: &DataPlot, window: Option<(f64, f64)>) -> Option<Geometry> {
+    let (fx0, fx1, fy0, fy1) = crate::graph::data_ranges(data);
+    if !(fx0.is_finite() && fx1.is_finite() && fx1 > fx0) {
+        return None;
+    }
+    let (x_min, x_max) = match window {
+        Some((lo, hi)) if lo.is_finite() && hi.is_finite() && hi > lo => (lo, hi),
+        _ => (fx0, fx1),
+    };
     use crate::graph::DataPlotKind;
-    let (x_min, x_max, mut y_min, mut y_max) = crate::graph::data_ranges(data);
+    let mut y_min = fy0;
+    let mut y_max = fy1;
+    if window.is_some() {
+        let (wy0, wy1) = match data.kind {
+            DataPlotKind::Scatter => {
+                let mut lo = f64::INFINITY;
+                let mut hi = f64::NEG_INFINITY;
+                for (x, y) in &data.points {
+                    if *x >= x_min && *x <= x_max {
+                        lo = lo.min(*y);
+                        hi = hi.max(*y);
+                    }
+                }
+                (lo, hi)
+            }
+            DataPlotKind::Histogram => {
+                let mut hi = 0.0f64;
+                for (a, b, c) in &data.bins {
+                    if *b >= x_min && *a <= x_max {
+                        hi = hi.max(*c);
+                    }
+                }
+                (0.0, hi)
+            }
+            DataPlotKind::BoxPlot => (-0.5, 1.5),
+        };
+        // A window that holds nothing degrades to the data's full y
+        // range so the axes stay drawable.
+        if wy0.is_finite() && wy1.is_finite() {
+            y_min = wy0;
+            y_max = wy1;
+        }
+    }
     let y_span = (y_max - y_min).max(1e-9);
     let pad = y_span * 0.08;
     y_min -= pad;
     y_max += pad;
-    let geom = Geometry {
+    Some(Geometry {
         x_min,
         x_max,
         y_min,
@@ -442,6 +496,24 @@ pub fn data_svg(data: &DataPlot, stroke_width: f64) -> String {
         step_x: crate::graph::nice_step(x_max - x_min, 10),
         step_y: crate::graph::nice_step(y_max - y_min, 8),
         zero_axis: y_min <= 0.0 && y_max >= 0.0,
+    })
+}
+
+/// Render a data plot (ADR-0044) as a self-contained SVG document with
+/// the same frame as [`graph_svg`]: scatter points with the fitted line,
+/// histogram bars, or a box-and-whisker. Nothing to draw renders the
+/// empty string.
+pub fn data_svg(data: &DataPlot, stroke_width: f64) -> String {
+    data_svg_in(data, None, stroke_width)
+}
+
+/// [`data_svg`] inside an explicit x-window (ADR-0055): the pane's
+/// zoom window clips the picture the same way the live renderer does,
+/// so the export shows what the pane shows.
+pub fn data_svg_in(data: &DataPlot, window: Option<(f64, f64)>, stroke_width: f64) -> String {
+    use crate::graph::DataPlotKind;
+    let Some(geom) = data_geometry(data, window) else {
+        return String::new();
     };
     let mut svg = String::new();
     svg.push_str(&format!(
@@ -450,9 +522,6 @@ pub fn data_svg(data: &DataPlot, stroke_width: f64) -> String {
     ));
     svg.push_str(&format!("<title>{}</title>", escape(&data.source)));
     svg.push_str(&style_svg(stroke_width));
-    svg.push_str(&format!(
-        "<rect class=\"bg\" x=\"0\" y=\"0\" width=\"{WIDTH}\" height=\"{HEIGHT}\" />"
-    ));
     svg.push_str(&layers_svg(&geom, geom.zero_axis));
     for v in ticks(geom.x_min, geom.x_max, geom.step_x) {
         let x = geom.sx(v);
@@ -474,6 +543,9 @@ pub fn data_svg(data: &DataPlot, stroke_width: f64) -> String {
     match data.kind {
         DataPlotKind::Scatter => {
             for (x, y) in &data.points {
+                if window.is_some() && (*x < geom.x_min || *x > geom.x_max) {
+                    continue;
+                }
                 svg.push_str(&format!(
                     "<circle class=\"poi\" cx=\"{}\" cy=\"{}\" r=\"4\" />",
                     geom.sx(*x),
@@ -506,8 +578,11 @@ pub fn data_svg(data: &DataPlot, stroke_width: f64) -> String {
         }
         DataPlotKind::Histogram => {
             for (lo, hi, count) in &data.bins {
-                let x0 = geom.sx(*lo);
-                let x1 = geom.sx(*hi);
+                if window.is_some() && (*hi < geom.x_min || *lo > geom.x_max) {
+                    continue;
+                }
+                let x0 = geom.sx((*lo).max(geom.x_min));
+                let x1 = geom.sx((*hi).min(geom.x_max));
                 let y0 = geom.sy(0.0);
                 let y1 = geom.sy(*count);
                 let w = (x1 - x0).max(0.5);
@@ -523,39 +598,42 @@ pub fn data_svg(data: &DataPlot, stroke_width: f64) -> String {
         DataPlotKind::BoxPlot => {
             if let Some(b) = data.boxplot {
                 let y = geom.sy(0.5);
-                let x = |v: f64| geom.sx(v);
-                svg.push_str(&format!(
-                    "<line class=\"axis\" x1=\"{}\" y1=\"{y}\" x2=\"{}\" y2=\"{y}\" />",
-                    x(b[0]),
-                    x(b[4])
-                ));
-                svg.push_str(&format!(
-                    "<line class=\"axis\" x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" />",
-                    x(b[0]),
-                    y - 10.0,
-                    x(b[0]),
-                    y + 10.0
-                ));
-                svg.push_str(&format!(
-                    "<line class=\"axis\" x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" />",
-                    x(b[4]),
-                    y - 10.0,
-                    x(b[4]),
-                    y + 10.0
-                ));
-                svg.push_str(&format!(
-                    "<rect class=\"fill curve-0\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"20\" />",
-                    x(b[1]),
-                    y - 10.0,
-                    (x(b[3]) - x(b[1])).max(0.5)
-                ));
-                svg.push_str(&format!(
-                    "<line class=\"axis\" x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" />",
-                    x(b[2]),
-                    y - 10.0,
-                    x(b[2]),
-                    y + 10.0
-                ));
+                let x = |v: f64| geom.sx(v.clamp(geom.x_min, geom.x_max));
+                if b[4] >= geom.x_min && b[0] <= geom.x_max {
+                    svg.push_str(&format!(
+                        "<line class=\"axis\" x1=\"{}\" y1=\"{y}\" x2=\"{}\" y2=\"{y}\" />",
+                        x(b[0]),
+                        x(b[4])
+                    ));
+                }
+                for edge in [b[0], b[4]] {
+                    if edge >= geom.x_min && edge <= geom.x_max {
+                        svg.push_str(&format!(
+                            "<line class=\"axis\" x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" />",
+                            x(edge),
+                            y - 10.0,
+                            x(edge),
+                            y + 10.0
+                        ));
+                    }
+                }
+                if b[3] >= geom.x_min && b[1] <= geom.x_max {
+                    svg.push_str(&format!(
+                        "<rect class=\"fill curve-0\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"20\" />",
+                        x(b[1]),
+                        y - 10.0,
+                        (x(b[3]) - x(b[1])).max(0.5)
+                    ));
+                }
+                if b[2] >= geom.x_min && b[2] <= geom.x_max {
+                    svg.push_str(&format!(
+                        "<line class=\"axis\" x1=\"{}\" y1=\"{}\" x2=\"{}\" y2=\"{}\" />",
+                        x(b[2]),
+                        y - 10.0,
+                        x(b[2]),
+                        y + 10.0
+                    ));
+                }
             }
         }
     }
@@ -653,9 +731,6 @@ pub fn graph_svg_indexed(
     ));
     svg.push_str(&format!("<title>{}</title>", escape(&aria_label(&all))));
     svg.push_str(&style_svg(stroke_width));
-    svg.push_str(&format!(
-        "<rect class=\"bg\" x=\"0\" y=\"0\" width=\"{WIDTH}\" height=\"{HEIGHT}\" />"
-    ));
     svg.push_str(&layers_svg(&geom, geom.zero_axis));
 
     for (i, c) in curves {
@@ -719,12 +794,15 @@ pub fn graph_svg_indexed(
 /// The mesh and frame of a 3D surface set as raw polyline/line markup in
 /// data coordinates (the live web renderer injects this into its own
 /// letterboxed `<svg>`). Returns the content view box and the markup.
+/// Surfaces keep their position in the slice as the palette index, so
+/// every scene element carries its own legend colour.
 pub fn surface_parts(
     surfaces: &[Surface],
     view: &View3D,
     stroke_width: f64,
 ) -> Option<(String, String)> {
-    scene_parts(surfaces, &[], view, stroke_width)
+    let indexed: Vec<(usize, Surface)> = surfaces.iter().cloned().enumerate().collect();
+    scene_parts_indexed(&indexed, &[], view, stroke_width)
 }
 
 /// The mesh and frame of a set of 3D parametric curves as raw
@@ -737,7 +815,9 @@ pub fn curve_parts(
     view: &View3D,
     stroke_width: f64,
 ) -> Option<(String, String)> {
-    scene_parts(&[], curves, view, stroke_width)
+    let indexed: Vec<(usize, crate::graph::SpaceCurve)> =
+        curves.iter().cloned().enumerate().collect();
+    scene_parts_indexed(&[], &indexed, view, stroke_width)
 }
 
 /// The 3D scene markup shared by surface sets and space curves: mesh
@@ -749,25 +829,46 @@ pub fn scene_parts(
     view: &View3D,
     stroke_width: f64,
 ) -> Option<(String, String)> {
+    let si: Vec<(usize, Surface)> = surfaces.iter().cloned().enumerate().collect();
+    let ci: Vec<(usize, crate::graph::SpaceCurve)> = curves.iter().cloned().enumerate().collect();
+    scene_parts_indexed(&si, &ci, view, stroke_width)
+}
+
+/// [`scene_parts`] with explicit palette indices (ADR-0015 amendment):
+/// the web pane filters hidden scene elements out of the slice but each
+/// keeps its own colour, exactly like the 2D curves - a hidden neighbour
+/// must not shift the remaining surfaces' or curves' colours.
+pub fn scene_parts_indexed(
+    surfaces: &[(usize, Surface)],
+    curves: &[(usize, crate::graph::SpaceCurve)],
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<(String, String)> {
     use crate::graph::{curve_frame, project_curve, project_mesh, Polyline3D};
     if surfaces.is_empty() && curves.is_empty() {
         return None;
     }
-    let mut mesh: Vec<Polyline3D> = Vec::new();
-    for s in surfaces {
-        mesh.extend(project_mesh(s, view));
+    // Each mesh line remembers the palette index of the scene element it
+    // came from, so one surface never borrows its neighbour's colour.
+    let mut mesh: Vec<(usize, Polyline3D)> = Vec::new();
+    for (i, s) in surfaces {
+        for line in project_mesh(s, view) {
+            mesh.push((*i, line));
+        }
     }
-    for c in curves {
-        mesh.extend(project_curve(c, view));
+    for (i, c) in curves {
+        for line in project_curve(c, view) {
+            mesh.push((*i, line));
+        }
     }
-// The frame comes from the first scene element (the surface's
-// square domain, or the curve's bounding box).
     // The frame comes from the first scene element (the surface's
     // square domain, or the curve's bounding box).
-    let frame: Vec<Segment3D> = if let Some(s) = surfaces.first() {
+    let frame: Vec<Segment3D> = if let Some((_, s)) = surfaces.first() {
         crate::graph::surface_frame(s, view)
+    } else if let Some((_, c)) = curves.first() {
+        curve_frame(c, view)
     } else {
-        curve_frame(&curves[0], view)
+        Vec::new()
     };
     if mesh.is_empty() && frame.is_empty() {
         return None;
@@ -775,7 +876,7 @@ pub fn scene_parts(
     // The scene's bounding sphere around the origin (ADR-0041): the
     // same rotation-stable window the surface renderer uses.
     let mut world: Vec<[f64; 3]> = Vec::new();
-    for s in surfaces {
+    for (_, s) in surfaces {
         for (i, &x) in s.xs.iter().enumerate() {
             for (j, &y) in s.ys.iter().enumerate() {
                 if let Some(&z) = s.zs.get(i).and_then(|row| row.get(j)) {
@@ -790,7 +891,7 @@ pub fn scene_parts(
             world.push([x, y, 0.0]);
         }
     }
-    for c in curves {
+    for (_, c) in curves {
         for p in &c.points {
             if p.iter().all(|v| v.is_finite()) {
                 world.push(*p);
@@ -799,7 +900,7 @@ pub fn scene_parts(
     }
     let mut z_min = f64::INFINITY;
     let mut z_max = f64::NEG_INFINITY;
-    for line in &mesh {
+    for (_, line) in &mesh {
         z_min = z_min.min(line.depth);
         z_max = z_max.max(line.depth);
     }
@@ -811,7 +912,7 @@ pub fn scene_parts(
             let mut x_max = f64::NEG_INFINITY;
             let mut y_min = f64::INFINITY;
             let mut y_max = f64::NEG_INFINITY;
-            for line in &mesh {
+            for (_, line) in &mesh {
                 for &(x, y) in &line.points {
                     x_min = x_min.min(x);
                     x_max = x_max.max(x);
@@ -840,7 +941,7 @@ pub fn scene_parts(
     let mut parts = String::new();
     // Painter's order: the mesh runs are sorted far-to-near, so drawing
     // in order lets nearer lines overpaint farther ones.
-    for line in &mesh {
+    for (i, line) in &mesh {
         let t = if span < 1e-9 {
             1.0
         } else {
@@ -854,16 +955,21 @@ pub fn scene_parts(
             .map(|(x, y)| format!("{x:.3},{y:.3}"))
             .collect::<Vec<_>>()
             .join(" ");
+        // Every scene element wears its own palette colour (the curve-*
+        // classes both the live pane and the export stylesheet colour),
+        // and the width is a fixed px count (vector-effect): the slider
+        // holds screen width, so zoom and letterboxing never fatten a
+        // line. The multiplier turns the default 0.2 into 2 px.
         parts.push_str(&format!(
-            "<polyline points=\"{points}\" fill=\"none\" stroke=\"currentColor\" stroke-opacity=\"{opacity:.3}\" stroke-width=\"{:.2}\"/>",
-            1.2 * stroke_width
+            "<polyline class=\"curve curve-{i}\" points=\"{points}\" fill=\"none\" stroke-opacity=\"{opacity:.3}\" stroke-width=\"{:.2}\" vector-effect=\"non-scaling-stroke\"/>",
+            THREE_D_PX_PER_WIDTH * stroke_width
         ));
     }
     for seg in &frame {
         parts.push_str(&format!(
-            "<line x1=\"{:.3}\" y1=\"{:.3}\" x2=\"{:.3}\" y2=\"{:.3}\" stroke=\"currentColor\" stroke-width=\"{:.2}\" stroke-opacity=\"0.9\"/>",
+            "<line x1=\"{:.3}\" y1=\"{:.3}\" x2=\"{:.3}\" y2=\"{:.3}\" stroke=\"currentColor\" stroke-width=\"{:.2}\" stroke-opacity=\"0.9\" vector-effect=\"non-scaling-stroke\"/>",
             seg.x1, seg.y1, seg.x2, seg.y2,
-            1.4 * stroke_width
+            THREE_D_PX_PER_WIDTH * stroke_width * 1.2
         ));
     }
     Some((view_box, parts))
@@ -871,22 +977,49 @@ pub fn scene_parts(
 
 /// Render a 3D surface set as a self-contained SVG document: the mesh and
 /// frame of [`surface_parts`], letterboxed into the same 640×400 canvas
-/// the 2D plot uses, on the default dark background. `stroke_width` scales
-/// the mesh and frame lines (1.0 = the default weight). `None` when
-/// nothing can be drawn.
+/// the 2D plot uses, on a transparent background. `stroke_width` is the
+/// width slider's value: every line renders at
+/// `THREE_D_PX_PER_WIDTH × stroke_width` screen px
+/// (`vector-effect="non-scaling-stroke"`), so an export matches the
+/// pane no matter the scene's letterbox scale. `None` when nothing can
+/// be drawn.
 pub fn graph3d_svg(surfaces: &[Surface], view: &View3D, stroke_width: f64) -> Option<String> {
     let (view_box, parts) = surface_parts(surfaces, view, stroke_width)?;
     letterboxed_3d_svg(&view_box, &parts, stroke_width)
 }
 
 /// Render a 3D curve set as a self-contained SVG document: the same
-/// letterboxed canvas [`graph3d_svg`] uses (ADR-0054).
+/// letterboxed canvas [`graph3d_svg`] uses (ADR-0054), with the same
+/// transparent background and px line widths.
 pub fn graph3d_curve_svg(
     curves: &[crate::graph::SpaceCurve],
     view: &View3D,
     stroke_width: f64,
 ) -> Option<String> {
     let (view_box, parts) = curve_parts(curves, view, stroke_width)?;
+    letterboxed_3d_svg(&view_box, &parts, stroke_width)
+}
+
+/// [`graph3d_svg`] with explicit palette indices (ADR-0015 amendment):
+/// the web pane filters hidden surfaces out of the slice but each keeps
+/// its own colour, so a hidden neighbour never shifts the rest.
+pub fn graph3d_svg_indexed(
+    surfaces: &[(usize, Surface)],
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<String> {
+    let (view_box, parts) = scene_parts_indexed(surfaces, &[], view, stroke_width)?;
+    letterboxed_3d_svg(&view_box, &parts, stroke_width)
+}
+
+/// [`graph3d_curve_svg`] with explicit palette indices: the space-curve
+/// sibling of [`graph3d_svg_indexed`].
+pub fn graph3d_curve_svg_indexed(
+    curves: &[(usize, crate::graph::SpaceCurve)],
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<String> {
+    let (view_box, parts) = scene_parts_indexed(&[], curves, view, stroke_width)?;
     letterboxed_3d_svg(&view_box, &parts, stroke_width)
 }
 
@@ -911,9 +1044,6 @@ fn letterboxed_3d_svg(view_box: &str, parts: &str, stroke_width: f64) -> Option<
     ));
     svg.push_str("<title>3D graph</title>");
     svg.push_str(&style_svg(stroke_width));
-    svg.push_str(&format!(
-        "<rect class=\"bg\" x=\"0\" y=\"0\" width=\"{WIDTH}\" height=\"{HEIGHT}\" />"
-    ));
     svg.push_str(&format!(
         "<g stroke=\"#f5f6f7\" transform=\"translate({tx:.3} {ty:.3}) scale({scale:.5})\">{parts}</g>"
     ));
@@ -1044,9 +1174,9 @@ pub fn solar_parts_in(
             .collect::<Vec<_>>()
             .join(" ");
         parts.push_str(&format!(
-            "<polyline points=\"{points}\" fill=\"none\" stroke=\"{}\" stroke-opacity=\"{opacity:.3}\" stroke-width=\"{:.2}\"/>",
+            "<polyline points=\"{points}\" fill=\"none\" stroke=\"{}\" stroke-opacity=\"{opacity:.3}\" stroke-width=\"{:.2}\" vector-effect=\"non-scaling-stroke\"/>",
             line.color,
-            1.2 * stroke_width
+            THREE_D_PX_PER_WIDTH * stroke_width
         ));
     }
     // Positioned dots on top, each with an accessible name. The radius
@@ -1069,7 +1199,8 @@ pub fn solar_parts_in(
 }
 
 /// The `solar3d` scene as a self-contained SVG document - the same
-/// letterboxed 640×400 skeleton as [`graph3d_svg`].
+/// letterboxed 640×400 skeleton as [`graph3d_svg`], transparent
+/// background and px orbit widths included.
 pub fn solar3d_svg(
     scene: &crate::astro::SolarScene,
     view: &View3D,
@@ -1098,9 +1229,6 @@ pub fn solar3d_svg(
     ));
     svg.push_str("<title>Solar system</title>");
     svg.push_str(&style_svg(stroke_width));
-    svg.push_str(&format!(
-        "<rect class=\"bg\" x=\"0\" y=\"0\" width=\"{WIDTH}\" height=\"{HEIGHT}\" />"
-    ));
     svg.push_str(&format!(
         "<g transform=\"translate({tx:.3} {ty:.3}) scale({scale:.5})\">{parts}</g>"
     ));

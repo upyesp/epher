@@ -72,13 +72,17 @@ impl PlaySpec {
 /// becomes a live slider (ADR-0014). Surfaces count too (ADR-0015): their
 /// constants animate the mesh the same way.
 /// The slider span for a constant whose value is `v`: the base −10..10
-/// window while the value lives near it, otherwise a tight v±2 window.
+/// window while the value lives inside it, otherwise a tight v±2 window.
 /// A raw `min(-10, v-2) .. max(10, v+2)` union turns a Julian Date
 /// (≈ 2.46e6) into a 2.46-million-wide slider no one can drag, and play
-/// would wrap from v to −10 the first cycle. The tight window keeps the
-/// ADR-0015 play cycle honest: step 0.1 over v±2 loops in ≈ 5 s.
+/// would wrap from v to −10 the first cycle. The window changes ONLY
+/// outside the base span (ADR-0055): an earlier ±8 cutoff let the window
+/// chase the value between 8 and 10, so the thumb jumped back mid-track
+/// while dragging or playing instead of travelling to the end and
+/// wrapping cleanly. The tight window keeps the ADR-0015 play cycle
+/// honest for large constants: step 0.1 over v±2 loops in ≈ 5 s.
 fn slider_span(v: f64) -> (f64, f64) {
-    if (-8.0..=8.0).contains(&v) {
+    if (-10.0..=10.0).contains(&v) {
         (-10.0, 10.0)
     } else {
         (v - 2.0, v + 2.0)
@@ -435,6 +439,18 @@ static TABS: &[TabDef] = &[
             key("sign", KeyAction::Call("sign"), "fn", "key-hint-sign"),
             key("min", KeyAction::Call("min"), "fn", "key-hint-min"),
             key("max", KeyAction::Call("max"), "fn", "key-hint-max"),
+            // Complex parts and calculus (ADR-0043, ADR-0055 keypad).
+            key("re", KeyAction::Call("re"), "fn", "key-hint-re"),
+            key("im", KeyAction::Call("im"), "fn", "key-hint-im"),
+            key("arg", KeyAction::Call("arg"), "fn", "key-hint-arg"),
+            key("conj", KeyAction::Call("conj"), "fn", "key-hint-conj"),
+            key(
+                "derivative",
+                KeyAction::Call("derivative"),
+                "fn",
+                "key-hint-derivative",
+            ),
+            key("integral", KeyAction::Call("integral"), "fn", "key-hint-integral"),
         ],
     },
     TabDef {
@@ -469,6 +485,135 @@ static TABS: &[TabDef] = &[
             // full (the = key spans two cells of the five-row grid), so
             // any addition scrolls the 123 tab (ADR-0042 amendment).
             key("%", KeyAction::Text("%"), "op", "key-hint-percent"),
+            // The seeded-random keys (ADR-0045, ADR-0055 keypad): the
+            // generator family joins the statistics bank.
+            key("randint", KeyAction::Call("randint"), "fn", "key-hint-randint"),
+            key("random", KeyAction::Call("random"), "fn", "key-hint-random"),
+            key("randseed", KeyAction::Call("randseed"), "fn", "key-hint-randseed"),
+            key("randn", KeyAction::Call("randn"), "fn", "key-hint-randn"),
+        ],
+    },
+    TabDef {
+        id: "data",
+        label: "data",
+        i18n: "keypad-tab-data",
+        keys: &[
+            // The data-type keys (ADR-0055 keypad): matrices `[[1,2],[3,4]]`,
+            // lists `{1,2,3}`, and strings `"text"` are typed from one bank
+            // (the 123 tab is untouched and holds no brackets).
+            key("[", KeyAction::Text("["), "op", "key-hint-lsqb"),
+            key("]", KeyAction::Text("]"), "op", "key-hint-rsqb"),
+            key("{", KeyAction::Text("{"), "op", "key-hint-lbrace"),
+            key("}", KeyAction::Text("}"), "op", "key-hint-rbrace"),
+            key("\"", KeyAction::Text("\""), "op", "key-hint-quote"),
+            key("det", KeyAction::Call("det"), "fn", "key-hint-det"),
+            key("inv", KeyAction::Call("inv"), "fn", "key-hint-inv"),
+            key(
+                "transpose",
+                KeyAction::Call("transpose"),
+                "fn",
+                "key-hint-transpose",
+            ),
+            key("rref", KeyAction::Call("rref"), "fn", "key-hint-rref"),
+            key("dim", KeyAction::Call("dim"), "fn", "key-hint-dim"),
+            key("str", KeyAction::Call("str"), "fn", "key-hint-str"),
+            key("len", KeyAction::Call("len"), "fn", "key-hint-len"),
+        ],
+    },
+    TabDef {
+        id: "dist",
+        label: "dist",
+        i18n: "keypad-tab-dist",
+        keys: &[
+            // The stats-class keys (ADR-0054, ADR-0055 keypad): fits,
+            // tests, and the distribution family in one bank.
+            key("linreg", KeyAction::Call("linreg"), "fn", "key-hint-linreg"),
+            key("quadreg", KeyAction::Call("quadreg"), "fn", "key-hint-quadreg"),
+            key("expreg", KeyAction::Call("expreg"), "fn", "key-hint-expreg"),
+            key("powreg", KeyAction::Call("powreg"), "fn", "key-hint-powreg"),
+            key("logreg", KeyAction::Call("logreg"), "fn", "key-hint-logreg"),
+            key("anova", KeyAction::Call("anova"), "fn", "key-hint-anova"),
+            key(
+                "ttestpaired",
+                KeyAction::Call("ttestpaired"),
+                "fn",
+                "key-hint-ttestpaired",
+            ),
+            key("normcdf", KeyAction::Call("normcdf"), "fn", "key-hint-normcdf"),
+            key("normpdf", KeyAction::Call("normpdf"), "fn", "key-hint-normpdf"),
+            key("invnorm", KeyAction::Call("invnorm"), "fn", "key-hint-invnorm"),
+            key("tcdf", KeyAction::Call("tcdf"), "fn", "key-hint-tcdf"),
+            key("tpdf", KeyAction::Call("tpdf"), "fn", "key-hint-tpdf"),
+            key("invt", KeyAction::Call("invt"), "fn", "key-hint-invt"),
+            key("ttest", KeyAction::Call("ttest"), "fn", "key-hint-ttest"),
+            key(
+                "tinterval",
+                KeyAction::Call("tinterval"),
+                "fn",
+                "key-hint-tinterval",
+            ),
+            key("ztest", KeyAction::Call("ztest"), "fn", "key-hint-ztest"),
+            key(
+                "zinterval",
+                KeyAction::Call("zinterval"),
+                "fn",
+                "key-hint-zinterval",
+            ),
+            key(
+                "binomcdf",
+                KeyAction::Call("binomcdf"),
+                "fn",
+                "key-hint-binomcdf",
+            ),
+            key(
+                "binompdf",
+                KeyAction::Call("binompdf"),
+                "fn",
+                "key-hint-binompdf",
+            ),
+            key(
+                "poissoncdf",
+                KeyAction::Call("poissoncdf"),
+                "fn",
+                "key-hint-poissoncdf",
+            ),
+            key(
+                "poissonpdf",
+                KeyAction::Call("poissonpdf"),
+                "fn",
+                "key-hint-poissonpdf",
+            ),
+            key("chi2cdf", KeyAction::Call("chi2cdf"), "fn", "key-hint-chi2cdf"),
+            key("chi2pdf", KeyAction::Call("chi2pdf"), "fn", "key-hint-chi2pdf"),
+            key("invchi2", KeyAction::Call("invchi2"), "fn", "key-hint-invchi2"),
+        ],
+    },
+    TabDef {
+        id: "fin",
+        label: "$",
+        i18n: "keypad-tab-fin",
+        keys: &[
+            // The finance keys (ADR-0050, ADR-0055 keypad).
+            key("tvm_n", KeyAction::Call("tvm_n"), "fn", "key-hint-tvm_n"),
+            key("tvm_i", KeyAction::Call("tvm_i"), "fn", "key-hint-tvm_i"),
+            key("tvm_pv", KeyAction::Call("tvm_pv"), "fn", "key-hint-tvm_pv"),
+            key("tvm_pmt", KeyAction::Call("tvm_pmt"), "fn", "key-hint-tvm_pmt"),
+            key("tvm_fv", KeyAction::Call("tvm_fv"), "fn", "key-hint-tvm_fv"),
+            key("npv", KeyAction::Call("npv"), "fn", "key-hint-npv"),
+            key("irr", KeyAction::Call("irr"), "fn", "key-hint-irr"),
+            key("amort", KeyAction::Call("amort"), "fn", "key-hint-amort"),
+            key(
+                "compound_interest",
+                KeyAction::Call("compound_interest"),
+                "fn",
+                "key-hint-compound_interest",
+            ),
+            key(
+                "simple_interest",
+                KeyAction::Call("simple_interest"),
+                "fn",
+                "key-hint-simple_interest",
+            ),
         ],
     },
     TabDef {
@@ -699,12 +844,12 @@ fn mobile_layout() -> bool {
         .unwrap_or(false)
 }
 
-/// The stored line widths (ADR-0035 amendment): 2D and 3D remember
-/// their values independently on every display — the 2D key falls back
-/// to the legacy shared key and clamps into the 2D range (0–4), the 3D
-/// key falls back to the same legacy key and clamps into the 3D range
-/// (0–0.2). Each kind's plot renders with its own value; the toolbar
-/// shows and edits the kind in view.
+/// The stored line widths (ADR-0035 amendment, ADR-0055 range): 2D and
+/// 3D remember their values independently on every display — the 2D key
+/// falls back to the legacy shared key and clamps into the 2D range
+/// (0–4), the 3D key falls back to the same legacy key and clamps into
+/// the 3D range (0–0.4). Each kind's plot renders with its own value;
+/// the toolbar shows and edits the kind in view.
 fn stored_widths(store: &web_sys::Storage) -> (Option<f64>, Option<f64>) {
     let read = |key: &str| {
         store
@@ -719,7 +864,7 @@ fn stored_widths(store: &web_sys::Storage) -> (Option<f64>, Option<f64>) {
         .map(|w| w.clamp(0.0, 4.0));
     let w3d = read("epher-line-width-3d")
         .or(legacy)
-        .map(|w| w.clamp(0.0, 0.2));
+        .map(|w| w.clamp(0.0, 0.4));
     (w2d, w3d)
 }
 
@@ -831,10 +976,22 @@ struct AutocompleteState {
     selected: usize,
 }
 
+/// Convert a character index into a byte index for splicing Rust
+/// strings (cursors and DOM selections count characters; slices index
+/// bytes). The naive `&v[..i]` panicked whenever text before the caret
+/// held a multi-byte letter like é (the ADR-0055 strings round).
+fn char_byte(v: &str, chars: usize) -> usize {
+    v.char_indices()
+        .nth(chars.min(v.chars().count()))
+        .map(|(b, _)| b)
+        .unwrap_or(v.len())
+}
+
 /// The word being completed at `caret` in `value`: `Some((start, word))`
-/// when the caret sits at the end of a name-shaped run.
+/// when the caret sits at the end of a name-shaped run. `caret` is a
+/// character index; all slicing goes through [`char_byte`].
 fn word_at(value: &str, caret: usize) -> Option<(usize, String)> {
-    let caret = caret.min(value.len());
+    let caret = char_byte(value, caret);
     let head = &value[..caret];
     if !head
         .chars()
@@ -908,14 +1065,14 @@ fn suggestions_for(
 /// (functions gain an open paren), and report the new value and caret.
 fn apply_suggestion(value: &str, state: &AutocompleteState, item: &Suggestion) -> (String, usize) {
     let mut out = String::with_capacity(value.len() + item.name.len() + 1);
-    out.push_str(&value[..state.word_start]);
+    out.push_str(&value[..char_byte(value, state.word_start)]);
     out.push_str(&item.name);
     let mut caret = state.word_start + item.name.len();
     if item.kind == CatalogKind::Function {
         out.push('(');
         caret += 1;
     }
-    out.push_str(&value[state.caret.min(value.len())..]);
+    out.push_str(&value[char_byte(value, state.caret)..]);
     (out, caret)
 }
 
@@ -985,6 +1142,44 @@ fn download_icon() -> yew::Html {
         "icon-svg",
         "<path d=\"M12 3v11\"/><path d=\"m7.5 9.5 4.5 4.5 4.5-4.5\"/><path d=\"M4.5 17.5V19a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5v-1.5\"/>",
     )
+}
+
+/// The private separator between answers in the result state (ADR-0052,
+    /// ADR-0055 layout): the state joins a script's outputs with a unit
+    /// separator so the renderer can lay them out as separate items -
+    /// same line with `;` between them, never splitting one answer - while
+    /// messages and single outputs (which never contain the character)
+    /// render exactly as one item.
+const ANSWER_SEP: char = '\u{1f}';
+
+/// Render the result text as answer items (ADR-0055): short answers flow
+/// on one line separated by semicolons; an answer that carries its own
+/// line breaks (a table, a matrix) or cannot fit on the line is never
+/// split - it moves to its own line whole.
+fn answer_items(text: &str) -> Vec<Html> {
+    let parts: Vec<&str> = text.split(ANSWER_SEP).collect();
+    let mut out: Vec<Html> = Vec::new();
+    // A separator joins two answers that share a line: it appears before
+    // an inline answer whose predecessor was also inline. A multiline
+    // answer (a table, a matrix) is its own block on its own line - the
+    // layout wraps there, so nothing joins across the break.
+    let mut prev_inline = false;
+    for part in parts {
+        if part.is_empty() {
+            continue;
+        }
+        let multiline = part.contains('\n');
+        if prev_inline && !multiline {
+            out.push(html! { <span class="ans-sep" aria-hidden="true">{ ";" }</span> });
+        }
+        if multiline {
+            out.push(html! { <span class="ans-block">{ (*part).to_string() }</span> });
+        } else {
+            out.push(html! { <span class="ans-inline">{ (*part).to_string() }</span> });
+        }
+        prev_inline = !multiline;
+    }
+    out
 }
 
 /// The clear icon (ADR-0040): the graph pane's Clear button reads as a
@@ -1814,16 +2009,23 @@ fn epher_app() -> Html {
     let poi_list = use_state(|| true);
     let poi_markers = use_state(|| true);
     let width_2d = use_state(|| graph::DEFAULT_STROKE_WIDTH);
-    // The 3D wireframe's thin range (ADR-0031): 0–0.2 step 0.01, default
-    // 0.1, on every display now (ADR-0035 amendment) — the two kinds own
-    // separate sliders everywhere, and a 3D surface keeps its own thin
+    // The 3D wireframe width (ADR-0055): range 0–0.4 step 0.05 with 0.2
+    // the default. The width is a screen-px measure (vector-effect), so
+    // the default draws a 2 px line on any display and in the exports —
+    // the two kinds own separate sliders, and a 3D surface keeps its own
     // default rather than inheriting the 2D curve's.
-    let width_3d = use_state(|| 0.1);
+    let width_3d = use_state(|| graph::THREE_D_DEFAULT_WIDTH);
     // Per-curve visibility (ADR-0015 amendment): each legend entry has a
     // checkbox, checked by default; unchecking hides that curve from the
     // plot, its points of interest, and the SVG export. Reset whenever a
     // new plot replaces the curve list.
     let hidden = use_state(|| Vec::<bool>::new());
+    // 3D per-element visibility (ADR-0055): the surface and space-curve
+    // legends carry the same checkboxes as the 2D curve legend. Hidden
+    // indices keep their palette slots, so a hidden neighbour never
+    // shifts the remaining elements' colours.
+    let hidden_surfaces = use_state(Vec::<usize>::new);
+    let hidden_curves3d = use_state(Vec::<usize>::new);
     // Which side of the 880px breakpoint the window is on (ADR-0016): the
     // width slider's range is a mobile/desktop decision (0–0.2 step 0.01
     // vs 0.1–4 step 0.1), and it tracks window resizes.
@@ -1990,11 +2192,11 @@ fn epher_app() -> Html {
             };
             let mut v = (*input).clone();
             let (s, e) = *cursor_cell.borrow();
-            let (s, e) = (s.min(v.len()), e.min(v.len()));
-            v.replace_range(s..e, &name);
+            let (s, e) = (s.min(v.chars().count()), e.min(v.chars().count()));
+            v.replace_range(char_byte(&v, s)..char_byte(&v, e), &name);
             input.set(v.clone());
             ta.set_value(&v);
-            let pos = s + name.len();
+            let pos = s + name.chars().count();
             ta.set_selection_start(Some(pos as u32)).ok();
             ta.set_selection_end(Some(pos as u32)).ok();
             *cursor_cell.borrow_mut() = (pos, pos);
@@ -2229,7 +2431,7 @@ fn epher_app() -> Html {
                     if let Ok(Some(text)) = store.get_item("epher-example") {
                         let _ = store.remove_item("epher-example");
                         input.set(text.clone());
-                        *cursor_cell.borrow_mut() = (text.len(), text.len());
+                        *cursor_cell.borrow_mut() = (text.chars().count(), text.chars().count());
                         if !mobile_layout() {
                             if let Some(ta) = input_ref.cast::<web_sys::HtmlTextAreaElement>() {
                                 let _ = ta.focus();
@@ -2249,7 +2451,8 @@ fn epher_app() -> Html {
                         {
                             if !expr.is_empty() {
                                 input.set(expr.clone());
-                                *cursor_cell.borrow_mut() = (expr.len(), expr.len());
+                                *cursor_cell.borrow_mut() =
+                                    (expr.chars().count(), expr.chars().count());
                                 if !mobile_layout() {
                                     if let Some(ta) =
                                         input_ref.cast::<web_sys::HtmlTextAreaElement>()
@@ -2406,14 +2609,14 @@ fn epher_app() -> Html {
             poi_markers.set(on);
         })
     };
-    // The line-width sliders (ADR-0020, ADR-0035 amendment): one slider
-    // per graph kind — 2D 0–4 step 0.1, 3D 0–0.2 step 0.01 — and only
-    // the kind in view is shown, so the range always matches the plot
-    // the user is adjusting. Each kind remembers its own width under
-    // its own key (the legacy shared key still seeds both), and each
-    // kind's plot renders with its own value. Persisted like the POI
-    // toggles, clamped to the slider's range so a stale stored value
-    // cannot re-enter.
+    // The line-width sliders (ADR-0020, ADR-0035 amendment, ADR-0055):
+    // one slider per graph kind — 2D 0–4 step 0.1, 3D 0–0.4 step 0.05
+    // (default 0.2) — and only the kind in view is shown, so the range
+    // always matches the plot the user is adjusting. Each kind remembers
+    // its own width under its own key (the legacy shared key still seeds
+    // both), and each kind's plot renders with its own value. Persisted
+    // like the POI toggles, clamped to the slider's range so a stale
+    // stored value cannot re-enter.
     let on_set_line_width = {
         let width_2d = width_2d.clone();
         let width_3d = width_3d.clone();
@@ -2427,7 +2630,7 @@ fn epher_app() -> Html {
                 }
             };
             if *surface3d_cell.borrow() {
-                let w = w.clamp(0.0, 0.2);
+                let w = w.clamp(0.0, 0.4);
                 persist("epher-line-width-3d", w);
                 width_3d.set(w);
             } else {
@@ -2954,6 +3157,8 @@ fn epher_app() -> Html {
         let pois = pois.clone();
         let trace = trace.clone();
         let hidden = hidden.clone();
+        let hidden_surfaces = hidden_surfaces.clone();
+        let hidden_curves3d = hidden_curves3d.clone();
         let live = live.clone();
         let surface = surface.clone();
         let curve3ds = curve3ds.clone();
@@ -2974,6 +3179,7 @@ fn epher_app() -> Html {
         let view2d_cell = view2d_cell.clone();
         let solar_hidden = solar_hidden.clone();
         let data = data.clone();
+        let view_cell = view_cell.clone();
         let history_box_ref = history_box_ref.clone();
         let scroll_pane_for_submit = scroll_pane.clone();
         Callback::from(move |e: SubmitEvent| {
@@ -3062,6 +3268,8 @@ fn epher_app() -> Html {
                         solar = None;
                         solar_source = None;
                         solar_hidden.set(Vec::new());
+                        hidden_surfaces.set(Vec::new());
+                        hidden_curves3d.set(Vec::new());
                         view_h.set(0.0);
                         view_v.set(0.0);
                         view_z.set(0.0);
@@ -3185,6 +3393,8 @@ fn epher_app() -> Html {
                         if source == "clear" {
                             surfaces.clear();
                             curve3ds_local.clear();
+                            hidden_surfaces.set(Vec::new());
+                            hidden_curves3d.set(Vec::new());
                             view_h.set(0.0);
                             view_v.set(0.0);
                             view_z.set(0.0);
@@ -3325,6 +3535,10 @@ fn epher_app() -> Html {
                                 solar_source = Some(source.to_string());
                                 solar_hidden.set(Vec::new());
                                 view.set(home);
+                                // The orbit cell follows the fresh pose,
+                                // or the first drag would start from the
+                                // stale default instead of this view.
+                                *view_cell.borrow_mut() = home;
                                 view_h.set(0.0);
                                 view_v.set(0.0);
                                 view_z.set(0.0);
@@ -3455,10 +3669,12 @@ fn epher_app() -> Html {
                 s.set_last_line(&script_verbatim);
             }
             // The result area: every answer the script produced, in
-            // order. A plot or command finishing the script keeps its
-            // own message (graphs print nothing, ADR-0027).
+            // order, joined with the private separator the renderer
+            // turns into the same-line semicolon layout. A plot or
+            // command finishing the script keeps its own message
+            // (graphs print nothing, ADR-0027).
             if last_was_eval {
-                result.set(script_outputs.join("\n"));
+                result.set(script_outputs.join(&ANSWER_SEP.to_string()));
             }
             // Publish the loop's outcomes once: points of interest and the
             // slider set follow from the final curves and session.
@@ -3480,6 +3696,8 @@ fn epher_app() -> Html {
                 && solar.is_none();
             // A fresh plot: every legend checkbox returns to checked.
             hidden.set(vec![false; curves.len()]);
+            hidden_surfaces.set(Vec::new());
+            hidden_curves3d.set(Vec::new());
             graph.set(curves);
             data.set(data_local);
             surface.set(surfaces.clone());
@@ -3944,6 +4162,8 @@ fn epher_app() -> Html {
         let data = data.clone();
         let pois = pois.clone();
         let hidden = hidden.clone();
+        let hidden_surfaces = hidden_surfaces.clone();
+        let hidden_curves3d = hidden_curves3d.clone();
         let trace = trace.clone();
         let poi_markers = poi_markers.clone();
         let width_2d = width_2d.clone();
@@ -3956,6 +4176,7 @@ fn epher_app() -> Html {
         let view_v = view_v.clone();
         let view_z = view_z.clone();
         let spin_phase = spin_phase.clone();
+        let view2d = view2d.clone();
         let result = result.clone();
         let localizer = localizer.clone();
         Callback::from(move |_| {
@@ -3973,8 +4194,24 @@ fn epher_app() -> Html {
                 .filter(|p| !(*hidden).get(p.curve).copied().unwrap_or(false))
                 .cloned()
                 .collect();
+            // 3D scene elements hidden through their legends stay out of
+            // the export too, each keeping its palette index (ADR-0055).
+            let visible_curves3d: Vec<(usize, epher_core::graph::SpaceCurve)> = (*curve3ds)
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| !(*hidden_curves3d).contains(i))
+                .map(|(i, c)| (i, c.clone()))
+                .collect();
+            let visible_surfaces3d: Vec<(usize, epher_core::graph::Surface)> = (*surface)
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| !(*hidden_surfaces).contains(i))
+                .map(|(i, s)| (i, s.clone()))
+                .collect();
             let svg = if let Some(data) = (*data).as_ref() {
-                graph::data_svg(data, *width_2d)
+                // The data plot's zoom window clips the export, exactly
+                // as the pane shows it (ADR-0055).
+                graph::data_svg_in(data, *view2d, *width_2d)
             } else if !visible.is_empty() {
                 graph::graph_svg_indexed(&visible, &pois_visible, *trace, *poi_markers, *width_2d)
             } else if let Some(scene) = (*solar).as_ref() {
@@ -3984,14 +4221,14 @@ fn epher_app() -> Html {
                     *width_3d,
                 )
                 .unwrap_or_default()
-            } else if let Some(doc) = graph::graph3d_curve_svg(
-                &curve3ds,
+            } else if let Some(doc) = graph::graph3d_curve_svg_indexed(
+                &visible_curves3d,
                 &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
                 *width_3d,
             ) {
                 doc
-            } else if let Some(doc) = graph::graph3d_svg(
-                &surface,
+            } else if let Some(doc) = graph::graph3d_svg_indexed(
+                &visible_surfaces3d,
                 &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
                 *width_3d,
             ) {
@@ -4026,6 +4263,8 @@ fn epher_app() -> Html {
         let data = data.clone();
         let pois = pois.clone();
         let hidden = hidden.clone();
+        let hidden_surfaces = hidden_surfaces.clone();
+        let hidden_curves3d = hidden_curves3d.clone();
         let trace = trace.clone();
         let poi_markers = poi_markers.clone();
         let width_2d = width_2d.clone();
@@ -4038,6 +4277,7 @@ fn epher_app() -> Html {
         let view_v = view_v.clone();
         let view_z = view_z.clone();
         let spin_phase = spin_phase.clone();
+        let view2d = view2d.clone();
         let result = result.clone();
         let localizer = localizer.clone();
         Callback::from(move |_| {
@@ -4054,8 +4294,24 @@ fn epher_app() -> Html {
                 .filter(|p| !(*hidden).get(p.curve).copied().unwrap_or(false))
                 .cloned()
                 .collect();
+            // 3D scene elements hidden through their legends stay out of
+            // the export too, each keeping its palette index (ADR-0055).
+            let visible_curves3d: Vec<(usize, epher_core::graph::SpaceCurve)> = (*curve3ds)
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| !(*hidden_curves3d).contains(i))
+                .map(|(i, c)| (i, c.clone()))
+                .collect();
+            let visible_surfaces3d: Vec<(usize, epher_core::graph::Surface)> = (*surface)
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| !(*hidden_surfaces).contains(i))
+                .map(|(i, s)| (i, s.clone()))
+                .collect();
             let svg = if let Some(data) = (*data).as_ref() {
-                graph::data_svg(data, *width_2d)
+                // The data plot's zoom window clips the export, exactly
+                // as the pane shows it (ADR-0055).
+                graph::data_svg_in(data, *view2d, *width_2d)
             } else if !visible.is_empty() {
                 graph::graph_svg_indexed(&visible, &pois_visible, *trace, *poi_markers, *width_2d)
             } else if let Some(scene) = (*solar).as_ref() {
@@ -4065,15 +4321,15 @@ fn epher_app() -> Html {
                     *width_3d,
                 )
                 .unwrap_or_default()
-            } else if let Some(doc) = graph::graph3d_curve_svg(
-                &curve3ds,
+            } else if let Some(doc) = graph::graph3d_curve_svg_indexed(
+                &visible_curves3d,
                 &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
                 *width_3d,
             ) {
                 doc
             } else {
-                graph::graph3d_svg(
-                    &surface,
+                graph::graph3d_svg_indexed(
+                    &visible_surfaces3d,
                     &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
                     *width_3d,
                 )
@@ -4096,9 +4352,19 @@ fn epher_app() -> Html {
         let session_live = session_live.clone();
         let graph = graph.clone();
         let trace = trace.clone();
+        let data_state = data.clone();
         let view2d = view2d.clone();
         let view2d_cell = view2d_cell.clone();
-        Rc::new(move |window: (f64, f64)| {
+        // `None` is the auto-fit (the reset action): curves re-sample
+        // over their own stored domains, data plots drop the clip.
+        Rc::new(move |window: Option<(f64, f64)>| {
+            if data_state.is_some() {
+                // A data plot clips at render time (ADR-0055): the window
+                // state alone drives the picture.
+                *view2d_cell.borrow_mut() = window;
+                view2d.set(window);
+                return;
+            }
             let s = session_live.borrow().clone();
             let mut curves = (*live).borrow().curves.clone();
             if curves.is_empty() {
@@ -4106,9 +4372,15 @@ fn epher_app() -> Html {
             }
             for c in curves.iter_mut() {
                 if matches!(c.kind, epher_core::graph::CurveKind::Cartesian(_)) {
+                    // Zoomed: sample inside the window; reset: back to
+                    // the curve's own stored domain.
+                    let domain = match window {
+                        Some((lo, hi)) => (lo, hi),
+                        None => c.domain,
+                    };
                     let spec = epher_core::graph::CurveSpec {
                         kind: c.kind.clone(),
-                        domain: window,
+                        domain,
                         fill: c.fill,
                     };
                     if let Ok(samples) = epher_core::graph::sample_spec(&spec, 120, s.env()) {
@@ -4118,60 +4390,108 @@ fn epher_app() -> Html {
             }
             (*live).borrow_mut().trace = None;
             trace.set(None);
-            *view2d_cell.borrow_mut() = Some(window);
-            view2d.set(Some(window));
+            *view2d_cell.borrow_mut() = window;
+            view2d.set(window);
             graph.set(curves);
         })
     };
-    let on_zoom2d = {
+    // The base window of whichever kind owns the pane: the 2D curves'
+    // shared geometry, or the data plot's own ranges.
+    let current_zoom_base = {
         let live = live.clone();
+        let data_state = data.clone();
+        move || -> Option<(f64, f64)> {
+            if let Some(d) = data_state.as_ref() {
+                graph::data_geometry(d, None).map(|g| (g.x_min, g.x_max))
+            } else {
+                let l = live.borrow();
+                graph::geometry(&l.curves).map(|g| (g.x_min, g.x_max))
+            }
+        }
+    };
+    let on_reset_zoom2d = {
+        let apply = apply_zoom_window.clone();
+        Callback::from(move |_: web_sys::MouseEvent| apply(None))
+    };
+    let on_zoom2d = {
+        let base_of = current_zoom_base.clone();
         let view2d_cell = view2d_cell.clone();
         let apply = apply_zoom_window.clone();
         Callback::from(move |(px, py, factor): (f64, f64, f64)| {
             let _ = py;
-            let l = (*live).borrow();
-            let Some(geom) = graph::geometry(&l.curves) else {
+            let Some(base) = base_of() else {
                 return;
             };
-            let base = (geom.x_min, geom.x_max);
             let cur = (*view2d_cell).borrow().unwrap_or(base);
             // The anchor's data x under the current window.
             let anchor =
                 cur.0 + (px - graph::LEFT) / (graph::RIGHT - graph::LEFT) * (cur.1 - cur.0);
-            drop(l);
-            apply(anchored_window(cur, anchor, factor, base.1 - base.0));
+            apply(Some(anchored_window(cur, anchor, factor, base.1 - base.0)));
         })
     };
     let on_set_zoom2d = {
-        let live = live.clone();
+        let base_of = current_zoom_base.clone();
         let view2d_cell = view2d_cell.clone();
         let apply = apply_zoom_window.clone();
         Callback::from(move |z: f64| {
-            let l = (*live).borrow();
-            let Some(geom) = graph::geometry(&l.curves) else {
+            let Some(base) = base_of() else {
                 return;
             };
-            let base = (geom.x_min, geom.x_max);
             let cur = (*view2d_cell).borrow().unwrap_or(base);
-            drop(l);
             let center = (cur.0 + cur.1) / 2.0;
-            apply(slider_window(z, base, center));
+            apply(Some(slider_window(z, base, center)));
         })
     };
-    // Wheel and pinch zoom the 3D scene (ADR-0038): the camera distance
-    // scales directly, past the slider's two-decade display range.
+    // Wheel and pinch zoom the 3D scene (ADR-0038, ADR-0055): the zoom
+    // state lives in the zoom slider's value, so a wheel notch moves the
+    // zoom slider exactly as it does on the 2D pane - the consistency the
+    // user asked for. The state may leave the slider's ±1 range (the
+    // slider pins at its end while the zoom goes deeper), mirroring the
+    // 2D pane's wheel-past-the-ends rule. The camera base itself never
+    // moves: the effective camera is base × 10^(−2z).
     let on_zoom3d = {
-        let view = view.clone();
-        let view_cell = view_cell.clone();
+        let view_z = view_z.clone();
         Callback::from(move |factor: f64| {
-            let v = *view_cell.borrow();
-            let next = epher_core::graph::View3D {
-                yaw: v.yaw,
-                pitch: v.pitch,
-                camera: (v.camera * factor).clamp(0.01, 1e7),
-            };
-            *view_cell.borrow_mut() = next;
-            view.set(next);
+            let z = *view_z;
+            // camera ∝ 10^(−2z): a camera factor f is a shift of
+            // −log10(f)/2 in z. The clamp keeps the effective camera in
+            // the band the old direct-camera zoom used (0.01..1e7).
+            let zmin = -0.5 * (1e7_f64 / 30.0).log10();
+            let zmax = -0.5 * (0.01_f64 / 30.0).log10();
+            view_z.set((z - 0.5 * factor.log10()).clamp(zmin, zmax));
+        })
+    };
+    // Reset a 3D fine-control slider to its default (ADR-0055): pressing
+    // the icon beside the slider. The h/v live cells reset too, or a
+    // stale non-zero cell would keep a "zeroed" plot spinning.
+    let on_reset_view = {
+        let view_h = view_h.clone();
+        let view_v = view_v.clone();
+        let view_z = view_z.clone();
+        let view_h_cell = view_h_cell.clone();
+        let view_v_cell = view_v_cell.clone();
+        Callback::from(move |axis: &'static str| match axis {
+            "h" => {
+                *view_h_cell.borrow_mut() = 0.0;
+                view_h.set(0.0);
+            }
+            "v" => {
+                *view_v_cell.borrow_mut() = 0.0;
+                view_v.set(0.0);
+            }
+            _ => view_z.set(0.0),
+        })
+    };
+    let on_reset_width_2d = {
+        let on_set_line_width = on_set_line_width.clone();
+        Callback::from(move |_: web_sys::MouseEvent| {
+            on_set_line_width.emit(graph::DEFAULT_STROKE_WIDTH)
+        })
+    };
+    let on_reset_width_3d = {
+        let on_set_line_width = on_set_line_width.clone();
+        Callback::from(move |_: web_sys::MouseEvent| {
+            on_set_line_width.emit(graph::THREE_D_DEFAULT_WIDTH)
         })
     };
     // The solar legend's per-body checkboxes (ADR-0038): like the curve
@@ -4295,7 +4615,7 @@ fn epher_app() -> Html {
             };
             let cursor = |v: &str| -> (usize, usize) {
                 let (s, e) = *cursor_cell.borrow();
-                (s.min(v.len()), e.min(v.len()))
+                (s.min(v.chars().count()), e.min(v.chars().count()))
             };
             let mut new_cursor = (0usize, 0usize);
             match act {
@@ -4318,7 +4638,7 @@ fn epher_app() -> Html {
                     } else {
                         (s, e)
                     };
-                    v.replace_range(lo..hi, "");
+                    v.replace_range(char_byte(&v, lo)..char_byte(&v, hi), "");
                     input.set(v.clone());
                     ta.set_value(&v);
                     ta.set_selection_start(Some(lo as u32)).ok();
@@ -4337,10 +4657,10 @@ fn epher_app() -> Html {
                     } else {
                         t
                     };
-                    v.replace_range(s..e, token);
+                    v.replace_range(char_byte(&v, s)..char_byte(&v, e), token);
                     input.set(v.clone());
                     ta.set_value(&v);
-                    let pos = s + token.len();
+                    let pos = s + token.chars().count();
                     ta.set_selection_start(Some(pos as u32)).ok();
                     ta.set_selection_end(Some(pos as u32)).ok();
                     new_cursor = (pos, pos);
@@ -4349,10 +4669,10 @@ fn epher_app() -> Html {
                     let mut v = (*input).clone();
                     let (s, e) = cursor(&v);
                     let t = format!("{name}(");
-                    v.replace_range(s..e, &t);
+                    v.replace_range(char_byte(&v, s)..char_byte(&v, e), &t);
                     input.set(v.clone());
                     ta.set_value(&v);
-                    let pos = s + t.len();
+                    let pos = s + t.chars().count();
                     ta.set_selection_start(Some(pos as u32)).ok();
                     ta.set_selection_end(Some(pos as u32)).ok();
                     new_cursor = (pos, pos);
@@ -4459,9 +4779,18 @@ fn epher_app() -> Html {
             .iter()
             .filter_map(|name| {
                 let v = const_value(&session, name)?;
-                let (lo, hi) = slider_span(v);
-                let on_slider = on_slider.clone();
+                // While this constant plays, the slider window is the play
+                // span fixed at press time: the thumb travels the whole
+                // track and wraps cleanly from the right end back to the
+                // left. A window that followed the value would stall the
+                // thumb mid-track once the value left the −8..8 core and
+                // the span began sliding (the ADR-0055 animation fix).
                 let playing_this = (*play).as_ref().is_some_and(|p| p.name == *name);
+                let (lo, hi) = match (*play).as_ref().filter(|p| p.name == *name) {
+                    Some(p) => (p.lo, p.hi),
+                    None => slider_span(v),
+                };
+                let on_slider = on_slider.clone();
                 let stop_on_drag = {
                     let play = play.clone();
                     let play_cell = play_cell.clone();
@@ -4477,6 +4806,21 @@ fn epher_app() -> Html {
                             *play_cell.borrow_mut() = None;
                         }
                         on_slider.emit((name.clone(), value));
+                    })
+                };
+                // Grabbing the slider indicator while playback runs stops
+                // the animation on the pointer-down, before the thumb can
+                // run away under the finger; the drag then moves the
+                // value normally (ADR-0055).
+                let stop_on_grab = {
+                    let play = play.clone();
+                    let play_cell = play_cell.clone();
+                    let name = name.clone();
+                    Callback::from(move |_: web_sys::PointerEvent| {
+                        if play.as_ref().is_some_and(|p| p.name == name) {
+                            play.set(None);
+                            *play_cell.borrow_mut() = None;
+                        }
                     })
                 };
                 let name_for_play = name.clone();
@@ -4497,6 +4841,7 @@ fn epher_app() -> Html {
                             step="0.1"
                             value={v.to_string()}
                             oninput={stop_on_drag}
+                            onpointerdown={stop_on_grab}
                         />
                         <span class="slider-value">{ format!("{v:.3}") }</span>
                         <button
@@ -4548,6 +4893,24 @@ fn epher_app() -> Html {
             hidden.set(h);
         })
     };
+
+    // The same gesture for 3D scene elements (ADR-0055): the surface and
+    // space-curve legends' checkboxes hide one element (its mesh lines)
+    // from the plot and the export.
+    let toggle_hidden_index = |hidden: UseStateHandle<Vec<usize>>| {
+        let hidden = hidden.clone();
+        Callback::from(move |(i, on): (usize, bool)| {
+            let mut h = (*hidden).clone();
+            if on {
+                h.retain(|x| *x != i);
+            } else if !h.contains(&i) {
+                h.push(i);
+            }
+            hidden.set(h);
+        })
+    };
+    let on_toggle_surface = toggle_hidden_index(hidden_surfaces.clone());
+    let on_toggle_curve3d = toggle_hidden_index(hidden_curves3d.clone());
 
     let legend_items: Vec<Html> = (*graph)
         .iter()
@@ -4605,13 +4968,24 @@ fn epher_app() -> Html {
         })
         .collect();
 
-    // The 2D zoom slider's position and input handler (ADR-0038): -1 fits
-    // every object, +1 shows a single one; wheel and pinch move past the
-    // ends and the slider pins there.
-    let zoom2d_slider = graph::geometry(&graph)
-        .map(|g| (g.x_min, g.x_max))
-        .map(|base| zoom_slider_value(*view2d, base))
-        .unwrap_or(0.0);
+    // The 2D zoom slider's position and input handler (ADR-0038/0055):
+    // -1 fits every object, +1 shows a single one; wheel and pinch move
+    // past the ends and the slider pins there. The base window comes
+    // from whichever kind owns the pane: the curves' geometry, or the
+    // data plot's ranges (their zoom works the same way).
+    let zoom2d_slider = if (*data).is_some() {
+        (*data)
+            .as_ref()
+            .and_then(|d| graph::data_geometry(d, None))
+            .map(|g| (g.x_min, g.x_max))
+            .map(|base| zoom_slider_value(*view2d, base))
+            .unwrap_or(0.0)
+    } else {
+        graph::geometry(&graph)
+            .map(|g| (g.x_min, g.x_max))
+            .map(|base| zoom_slider_value(*view2d, base))
+            .unwrap_or(0.0)
+    };
     let on_zoom2d_input = {
         let on_set_zoom2d = on_set_zoom2d.clone();
         Callback::from(move |e: web_sys::InputEvent| {
@@ -4626,19 +5000,42 @@ fn epher_app() -> Html {
         })
     };
 
-    // The tuning strip (ADR-0041): the graph's adjustment sliders - line
-    // thickness plus the view controls - as one compact row above the
-    // plot in every kind, each slider named by an icon with the words in
-    // its tooltip. The numeric readouts are gone; the slider IS the
-    // control. 2D carries thickness + zoom; 3D and solar carry thickness
-    // + the two rotation speeds + zoom.
+    // The tuning strip (ADR-0041, ADR-0055 amendment): the graph's
+    // adjustment sliders - line thickness plus the view controls - as
+    // one compact row above the plot in every kind, each slider named by
+    // an icon. Pressing the icon resets that slider to its default (the
+    // icon is a real button, so the reset is keyboard-accessible); the
+    // words live in the tooltip/aria-label. The numeric readouts are
+    // gone; the slider IS the control. 2D carries thickness + zoom; 3D
+    // and solar carry thickness + the two rotation speeds + zoom.
+    let tune_reset = {
+        let localizer = localizer.clone();
+        move |name_key: &str, icon: yew::Html, reset: Callback<web_sys::MouseEvent>| {
+            let tip = localizer.lookup(name_key);
+            let label = localizer.lookup_args("tune-reset", &[("name", &tip)]);
+            html! {
+                <button
+                    type="button"
+                    class="icon-btn tune-reset"
+                    title={label.clone()}
+                    aria-label={label}
+                    onclick={reset}
+                >
+                    { icon }
+                </button>
+            }
+        }
+    };
     let tuning_2d = {
         let on_set_line_width = on_set_line_width.clone();
         let on_zoom2d_input = on_zoom2d_input.clone();
+        let on_reset_width_2d = on_reset_width_2d.clone();
+        let on_reset_zoom2d = on_reset_zoom2d.clone();
+        let localizer = localizer.clone();
         html! {
             <>
-                <label class="tune">
-                    { line_width_icon() }
+                <span class="tune">
+                    { tune_reset("tune-line-width", line_width_icon(), on_reset_width_2d) }
                     <input
                         type="range"
                         class="graph-width-slider"
@@ -4656,9 +5053,9 @@ fn epher_app() -> Html {
                             }
                         })}
                     />
-                </label>
-                <label class="tune">
-                    { zoom_icon() }
+                </span>
+                <span class="tune">
+                    { tune_reset("tune-zoom", zoom_icon(), on_reset_zoom2d) }
                     <input
                         type="range"
                         class="view3d-slider"
@@ -4668,21 +5065,24 @@ fn epher_app() -> Html {
                         aria-label={localizer.lookup("tune-zoom")}
                         oninput={on_zoom2d_input}
                     />
-                </label>
+                </span>
             </>
         }
     };
     let tuning_3d = {
         let on_set_line_width = on_set_line_width.clone();
         let on_set_view = on_set_view.clone();
+        let on_reset_width_3d = on_reset_width_3d.clone();
+        let on_reset_view = on_reset_view.clone();
+        let localizer = localizer.clone();
         html! {
             <>
-                <label class="tune">
-                    { line_width_icon() }
+                <span class="tune">
+                    { tune_reset("tune-line-width", line_width_icon(), on_reset_width_3d) }
                     <input
                         type="range"
                         class="graph-width-slider"
-                        min="0" max="0.2" step="0.01"
+                        min="0" max="0.4" step="0.05"
                         value={width_3d.to_string()}
                         title={localizer.lookup("tune-line-width")}
                         aria-label={localizer.lookup("tune-line-width")}
@@ -4696,12 +5096,14 @@ fn epher_app() -> Html {
                             }
                         })}
                     />
-                </label>
+                </span>
                 { for [("h", "tune-rot-h"), ("v", "tune-rot-v"), ("z", "tune-zoom")].iter().map(|(axis, tip)| {
                     let value = match *axis {
                         "h" => *view_h,
                         "v" => *view_v,
-                        _ => *view_z,
+                        // The zoom state may sit past the slider ends (a
+                        // wheel zoomed deeper); the slider pins there.
+                        _ => (*view_z).clamp(-1.0, 1.0),
                     };
                     let on_input = {
                         let on_set_view = on_set_view.clone();
@@ -4716,13 +5118,18 @@ fn epher_app() -> Html {
                             }
                         })
                     };
+                    let reset = {
+                        let on_reset_view = on_reset_view.clone();
+                        let axis = *axis;
+                        Callback::from(move |_: web_sys::MouseEvent| on_reset_view.emit(axis))
+                    };
                     html! {
-                        <label class="tune">
-                            { match *axis {
+                        <span class="tune">
+                            { tune_reset(tip, match *axis {
                                 "h" => rot_h_icon(),
                                 "v" => rot_v_icon(),
                                 _ => zoom_icon(),
-                            }}
+                            }, reset) }
                             <input
                                 type="range"
                                 class="view3d-slider"
@@ -4732,7 +5139,7 @@ fn epher_app() -> Html {
                                 aria-label={localizer.lookup(tip)}
                                 oninput={on_input}
                             />
-                        </label>
+                        </span>
                     }
                 })}
             </>
@@ -4764,6 +5171,8 @@ fn epher_app() -> Html {
     let on_graph_clear = {
         let graph = graph.clone();
         let pois = pois.clone();
+        let hidden_surfaces = hidden_surfaces.clone();
+        let hidden_curves3d = hidden_curves3d.clone();
         let surface = surface.clone();
         let curve3ds = curve3ds.clone();
         let solar = solar.clone();
@@ -4789,6 +5198,8 @@ fn epher_app() -> Html {
         let solar_hidden = solar_hidden.clone();
         Callback::from(move |_| {
             hidden.set(Vec::new());
+            hidden_surfaces.set(Vec::new());
+            hidden_curves3d.set(Vec::new());
             graph.set(Vec::new());
             pois.set(Vec::new());
             surface.set(Vec::new());
@@ -5337,6 +5748,12 @@ fn epher_app() -> Html {
                                 }))}>
                                     { localizer.lookup("menu-guide") }
                                 </button>
+                                <button type="button" role="menuitem" class="menu-item" onclick={mobile_item(Callback::from({
+                                    let constants_open = constants_open.clone();
+                                    move |_: web_sys::MouseEvent| constants_open.set(true)
+                                }))}>
+                                    { localizer.lookup("menu-constants") }
+                                </button>
                                 <div class="menu-sep" role="separator"></div>
                                 <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-theme") }</p>
                                 { for ["light", "dark", "night"].map(|name| {
@@ -5377,6 +5794,81 @@ fn epher_app() -> Html {
                                         >
                                             <span class="menu-check" aria-hidden="true">{ if checked { "\u{2713}" } else { "" } }</span>
                                             { native_language_name(code) }
+                                        </button>
+                                    }
+                                }) }
+                                <div class="menu-sep" role="separator"></div>
+                                <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-results") }</p>
+                                { for [true, false].map(|on| {
+                                    let checked = display_prefs.exact_fractions == on;
+                                    let label = if on { localizer.lookup("results-on") } else { localizer.lookup("results-off") };
+                                    html! {
+                                        <button type="button" role="menuitemradio" class="menu-item"
+                                            aria-checked={checked.to_string()}
+                                            onclick={Callback::from({
+                                                let display_prefs = display_prefs.clone();
+                                                let on_set_display = on_set_display.clone();
+                                                let close = close_hamburger.clone();
+                                                move |_| {
+                                                    let mut p = *display_prefs;
+                                                    p.exact_fractions = on;
+                                                    on_set_display.emit(p);
+                                                    close.emit(());
+                                                }
+                                            })}
+                                        >
+                                            <span class="menu-check" aria-hidden="true">{ if checked { "\u{2713}" } else { "" } }</span>
+                                            { format!("{}: {}", localizer.lookup("results-fractions"), label) }
+                                        </button>
+                                    }
+                                }) }
+                                { for [Notation::Auto, Notation::Scientific, Notation::Engineering].map(|notation| {
+                                    let checked = display_prefs.notation == notation;
+                                    let label = match notation {
+                                        Notation::Auto => localizer.lookup("results-auto"),
+                                        Notation::Scientific => localizer.lookup("results-scientific"),
+                                        Notation::Engineering => localizer.lookup("results-engineering"),
+                                    };
+                                    html! {
+                                        <button type="button" role="menuitemradio" class="menu-item"
+                                            aria-checked={checked.to_string()}
+                                            onclick={Callback::from({
+                                                let display_prefs = display_prefs.clone();
+                                                let on_set_display = on_set_display.clone();
+                                                let close = close_hamburger.clone();
+                                                move |_| {
+                                                    let mut p = *display_prefs;
+                                                    p.notation = notation;
+                                                    on_set_display.emit(p);
+                                                    close.emit(());
+                                                }
+                                            })}
+                                        >
+                                            <span class="menu-check" aria-hidden="true">{ if checked { "\u{2713}" } else { "" } }</span>
+                                            { label }
+                                        </button>
+                                    }
+                                }) }
+                                { for [true, false].map(|on| {
+                                    let checked = display_prefs.separators == on;
+                                    let label = if on { localizer.lookup("results-on") } else { localizer.lookup("results-off") };
+                                    html! {
+                                        <button type="button" role="menuitemradio" class="menu-item"
+                                            aria-checked={checked.to_string()}
+                                            onclick={Callback::from({
+                                                let display_prefs = display_prefs.clone();
+                                                let on_set_display = on_set_display.clone();
+                                                let close = close_hamburger.clone();
+                                                move |_| {
+                                                    let mut p = *display_prefs;
+                                                    p.separators = on;
+                                                    on_set_display.emit(p);
+                                                    close.emit(());
+                                                }
+                                            })}
+                                        >
+                                            <span class="menu-check" aria-hidden="true">{ if checked { "\u{2713}" } else { "" } }</span>
+                                            { format!("{}: {}", localizer.lookup("results-separators"), label) }
                                         </button>
                                     }
                                 }) }
@@ -5498,15 +5990,15 @@ fn epher_app() -> Html {
                             aria-labelledby="answer-label"
                             tabindex="0"
                         >
-                            { (*result).clone() }
+                            { for answer_items(&result) }
                         </div>
                     </div>
                     <section class="history-box" tabindex="0" aria-label={localizer.lookup("history")} ref={history_box_ref.clone()}>
                         <div class="history-head">
-                            <h2>{ localizer.lookup("history") }</h2>
-                            // The trash (ADR-0041): the icon sits right of
-                            // the heading, the same command the icon's
-                            // tooltip names (Ctrl+L in the terminal).
+                            // The trash (ADR-0041, ADR-0055 layout): the
+                            // icon sits LEFT of the heading, the same
+                            // command the icon's tooltip names (Ctrl+L in
+                            // the terminal).
                             <button
                                 type="button"
                                 class="icon-btn clear-history"
@@ -5516,6 +6008,7 @@ fn epher_app() -> Html {
                             >
                                 { trash_icon() }
                             </button>
+                            <h2>{ localizer.lookup("history") }</h2>
                         </div>
                         <ul class="history">
                             { for session.history().iter().rev().map(|h| {
@@ -5539,7 +6032,8 @@ fn epher_app() -> Html {
                                         input.set(expr.clone());
                                         // The load puts the cursor at the
                                         // end of the expression (ADR-0035).
-                                        *cursor_cell.borrow_mut() = (expr.len(), expr.len());
+                                        *cursor_cell.borrow_mut() =
+                                    (expr.chars().count(), expr.chars().count());
                                         // ADR-0035: on touch layouts the pick
                                         // loads the line without summoning
                                         // the device keyboard — only a touch
@@ -5732,9 +6226,15 @@ fn epher_app() -> Html {
                 <section class="pane" id="graph-pane" aria-label={localizer.lookup("graph-pane")}>
                     {
                         // The toolbar shows for every plotting pane: 2D,
-                        // 3D surfaces, and the solar system (whose sliders
-                        // drive the same shared view state).
-                        if !(*graph).is_empty() || !(*surface).is_empty() || (*solar).is_some() {
+                        // 3D surfaces, 3D parametric curves (ADR-0055:
+                        // the space-curve pane was missing it), and the
+                        // solar system (whose sliders drive the same
+                        // shared view state).
+                        if !(*graph).is_empty()
+                            || !(*surface).is_empty()
+                            || !(*curve3ds).is_empty()
+                            || (*solar).is_some()
+                        {
                             html! {
                                 // The pane toolbar (ADR-0023): commands and
                                 // settings sit above the plot — Clear and
@@ -5870,7 +6370,7 @@ fn epher_app() -> Html {
                                             trace={None}
                                             markers={false}
                                             line_width={*width_2d}
-                                            window={None}
+                                            window={*view2d}
                                             on_trace={on_trace.clone()}
                                             on_zoom={on_zoom2d.clone()}
                                             on_key={on_trace_key.clone()}
@@ -6089,10 +6589,49 @@ fn epher_app() -> Html {
                             }
                         } else if !(*curve3ds).is_empty() {
                             // 3D parametric curves (ADR-0054): the same
-                            // pose, sliders, and controls as surfaces.
+                            // pose, sliders, controls, and legend as the
+                            // surface pane (ADR-0055): every curve gets a
+                            // checkbox, and hidden curves stay out of the
+                            // plot and the export while keeping their
+                            // palette index.
                             let effective =
                                 effective_view(&view, *view_h, *view_v, *view_z, *spin_phase);
-                            let rendered = graph::curve_svg(&curve3ds, &effective, *width_3d);
+                            let visible3d: Vec<(usize, epher_core::graph::SpaceCurve)> =
+                                (*curve3ds)
+                                    .iter()
+                                    .enumerate()
+                                    .filter(|(i, _)| !(*hidden_curves3d).contains(i))
+                                    .map(|(i, c)| (i, c.clone()))
+                                    .collect();
+                            let rendered =
+                                graph::scene_parts_indexed(&[], &visible3d, &effective, *width_3d);
+                            let curve3d_legend: Vec<Html> = (*curve3ds)
+                                .iter()
+                                .enumerate()
+                                .map(|(i, c)| {
+                                    let caption = format!("param {}", c.source.trim());
+                                    let checked = !(*hidden_curves3d).contains(&i);
+                                    let on_toggle_curve3d = on_toggle_curve3d.clone();
+                                    html! {
+                                        <li class="legend-item">
+                                            <label class={format!("legend-check curve-{i}")}>
+                                                <input type="checkbox" checked={checked} aria-label={caption.clone()}
+                                                    onchange={Callback::from(move |e: web_sys::Event| {
+                                                        if let Some(el) = e
+                                                            .target()
+                                                            .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                        {
+                                                            on_toggle_curve3d.emit((i, el.checked()));
+                                                        }
+                                                    })}
+                                                />
+                                                <span class="swatch" aria-hidden="true"></span>
+                                                { caption }
+                                            </label>
+                                        </li>
+                                    }
+                                })
+                                .collect();
                             let aria = format!(
                                 "{}: {}",
                                 "3D",
@@ -6102,45 +6641,93 @@ fn epher_app() -> Html {
                                     .collect::<Vec<_>>()
                                     .join(", ")
                             );
-                            if let Some((view_box, content)) = rendered {
-                                // Record for play-freeze; while playing, keep the
-                                // frozen box so the layout stays put.
-                                *rendered_box.borrow_mut() = Some(view_box.clone());
-                                let shown_box = (*play)
-                                    .as_ref()
-                                    .and_then(|p| p.freeze.clone())
-                                    .unwrap_or(view_box);
-                                html! {
-                                    <section class="graph graph3d">
-                                        <div class="graph-tuning">
-                                            { tuning_3d }
-                                        </div>
-                                        <div class="plot-box">
-                                            <Graph3D
-                                                view_box={shown_box}
-                                                content={content}
-                                                aria_label={aria}
-                                                on_orbit={on_orbit}
-                                                on_zoom={on_zoom3d.clone()}
-                                            />
-                                        </div>
-                                        <p class="graph3d-hint">{ localizer.lookup("graph3d-hint") }</p>
-                                        <div class="sliders">
-                                            { for surface_rows }
-                                        </div>
-                                    </section>
-                                }
-                            } else {
-                                html! {}
+                            html! {
+                                <section class="graph graph3d">
+                                    <ul class="legend">
+                                        { for curve3d_legend }
+                                    </ul>
+                                    <div class="graph-tuning">
+                                        { tuning_3d.clone() }
+                                    </div>
+                                    {
+                                        if let Some((view_box, content)) = rendered {
+                                            // Record for play-freeze; while playing,
+                                            // keep the frozen box so the layout stays
+                                            // put.
+                                            *rendered_box.borrow_mut() = Some(view_box.clone());
+                                            let shown_box = (*play)
+                                                .as_ref()
+                                                .and_then(|p| p.freeze.clone())
+                                                .unwrap_or(view_box);
+                                            html! {
+                                                <>
+                                                    <div class="plot-box">
+                                                        <Graph3D
+                                                            view_box={shown_box}
+                                                            content={content}
+                                                            aria_label={aria}
+                                                            on_orbit={on_orbit}
+                                                            on_zoom={on_zoom3d.clone()}
+                                                        />
+                                                    </div>
+                                                    <p class="graph3d-hint">{ localizer.lookup("graph3d-hint") }</p>
+                                                    <div class="sliders">
+                                                        { for surface_rows }
+                                                    </div>
+                                                </>
+                                            }
+                                        } else {
+                                            html! { <div class="plot-box"></div> }
+                                        }
+                                    }
+                                </section>
                             }
                         } else if !(*surface).is_empty() {
                             // The fine-control sliders ride on the orbit
                             // base (ADR-0031); the rotation sliders spin
                             // the pose (ADR-0032). The pane renders the
-                            // effective pose.
+                            // effective pose. The legend (ADR-0055) is the
+                            // 2D curve legend's gesture: one checkbox per
+                            // surface, hiding its mesh from the plot and
+                            // the export.
                             let effective =
                                 effective_view(&view, *view_h, *view_v, *view_z, *spin_phase);
-                            let rendered = graph::surface_svg(&surface, &effective, *width_3d);
+                            let visible3d: Vec<(usize, epher_core::graph::Surface)> =
+                                (*surface)
+                                    .iter()
+                                    .enumerate()
+                                    .filter(|(i, _)| !(*hidden_surfaces).contains(i))
+                                    .map(|(i, s)| (i, s.clone()))
+                                    .collect();
+                            let rendered =
+                                graph::scene_parts_indexed(&visible3d, &[], &effective, *width_3d);
+                            let surface_legend: Vec<Html> = (*surface)
+                                .iter()
+                                .enumerate()
+                                .map(|(i, s)| {
+                                    let caption = format!("z = {}", s.source.trim());
+                                    let checked = !(*hidden_surfaces).contains(&i);
+                                    let on_toggle_surface = on_toggle_surface.clone();
+                                    html! {
+                                        <li class="legend-item">
+                                            <label class={format!("legend-check curve-{i}")}>
+                                                <input type="checkbox" checked={checked} aria-label={caption.clone()}
+                                                    onchange={Callback::from(move |e: web_sys::Event| {
+                                                        if let Some(el) = e
+                                                            .target()
+                                                            .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                        {
+                                                            on_toggle_surface.emit((i, el.checked()));
+                                                        }
+                                                    })}
+                                                />
+                                                <span class="swatch" aria-hidden="true"></span>
+                                                { caption }
+                                            </label>
+                                        </li>
+                                    }
+                                })
+                                .collect();
                             let aria = format!(
                                 "{}: {}",
                                 "3D",
@@ -6150,36 +6737,46 @@ fn epher_app() -> Html {
                                     .collect::<Vec<_>>()
                                     .join(", ")
                             );
-                            if let Some((view_box, content)) = rendered {
-                                // Record for play-freeze; while playing, keep the
-                                // frozen box so the layout stays put.
-                                *rendered_box.borrow_mut() = Some(view_box.clone());
-                                let shown_box = (*play)
-                                    .as_ref()
-                                    .and_then(|p| p.freeze.clone())
-                                    .unwrap_or(view_box);
-                                html! {
-                                    <section class="graph graph3d">
-                                        <div class="graph-tuning">
-                                            { tuning_3d }
-                                        </div>
-                                        <div class="plot-box">
-                                            <Graph3D
-                                                view_box={shown_box}
-                                                content={content}
-                                                aria_label={aria}
-                                                on_orbit={on_orbit}
-                                                on_zoom={on_zoom3d.clone()}
-                                            />
-                                        </div>
-                                        <p class="graph3d-hint">{ localizer.lookup("graph3d-hint") }</p>
-                                        <div class="sliders">
-                                            { for surface_rows }
-                                        </div>
-                                    </section>
-                                }
-                            } else {
-                                html! {}
+                            html! {
+                                <section class="graph graph3d">
+                                    <ul class="legend">
+                                        { for surface_legend }
+                                    </ul>
+                                    <div class="graph-tuning">
+                                        { tuning_3d.clone() }
+                                    </div>
+                                    {
+                                        if let Some((view_box, content)) = rendered {
+                                            // Record for play-freeze; while playing,
+                                            // keep the frozen box so the layout stays
+                                            // put.
+                                            *rendered_box.borrow_mut() = Some(view_box.clone());
+                                            let shown_box = (*play)
+                                                .as_ref()
+                                                .and_then(|p| p.freeze.clone())
+                                                .unwrap_or(view_box);
+                                            html! {
+                                                <>
+                                                    <div class="plot-box">
+                                                        <Graph3D
+                                                            view_box={shown_box}
+                                                            content={content}
+                                                            aria_label={aria}
+                                                            on_orbit={on_orbit}
+                                                            on_zoom={on_zoom3d.clone()}
+                                                        />
+                                                    </div>
+                                                    <p class="graph3d-hint">{ localizer.lookup("graph3d-hint") }</p>
+                                                    <div class="sliders">
+                                                        { for surface_rows }
+                                                    </div>
+                                                </>
+                                            }
+                                        } else {
+                                            html! { <div class="plot-box"></div> }
+                                        }
+                                    }
+                                </section>
                             }
                         } else {
                             html! {}
@@ -6328,7 +6925,8 @@ fn epher_app() -> Html {
                                                 input.set(code.clone());
                                                 // The load puts the cursor at the
                                                 // end of the code (ADR-0035).
-                                                *cursor_cell.borrow_mut() = (code.len(), code.len());
+                                                *cursor_cell.borrow_mut() =
+                                                    (code.chars().count(), code.chars().count());
                                                 guide_open.set(false);
                                                 scroll_pane.emit("calc-pane");
                                                 // ADR-0035: on touch layouts the
@@ -6503,6 +7101,7 @@ fn epher_app() -> Html {
 
 #[wasm_bindgen(start)]
 pub fn start() {
+    console_error_panic_hook::set_once();
     yew::Renderer::<EpherApp>::new().render();
 }
 

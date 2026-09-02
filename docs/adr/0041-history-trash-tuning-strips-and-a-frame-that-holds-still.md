@@ -89,3 +89,10 @@ to the old per-frame fit.
 - A core test pins the frame equality across two poses for both a
   surface and the solar scene; the browser suite pins the legend
   cycle, the strips, the trash, and the static frames.
+
+## Amendment (2026-09-02): trash on the left, icons that reset (ADR-0055)
+
+The history trash moves to the LEFT of the **History** heading (the
+layout above said right). And each tuning-strip icon is now a real
+button: pressing it resets that slider to its default (line width to
+1.0 for 2D and 0.2 for 3D, zoom to the auto fit, rotation to 0).

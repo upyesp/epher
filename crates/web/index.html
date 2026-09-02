@@ -339,14 +339,31 @@
     .result {
       font-size: 1.28rem;
       font-weight: 300;
-      overflow-wrap: anywhere;
       max-height: 2.8rem;
       overflow-y: auto;
+      overflow-x: auto;
       flex: 1;
       /* tables and multi-line outputs need monospace alignment and
          preserved line breaks */
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: normal;
+    }
+    /* Answers (ADR-0055): short answers share one line, each joined by a
+       semicolon; an answer never splits across lines - one too long for
+       the line, or one with its own line breaks (a table, a matrix),
+       moves to its own line whole. */
+    .ans-inline {
+      display: inline;
+      white-space: nowrap;
+    }
+    .ans-block {
+      display: block;
       white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .ans-sep {
+      color: var(--muted);
+      padding-inline: 0.25rem 0.5rem;
     }
     form {
       flex: none;
@@ -468,8 +485,8 @@
       z-index: 1;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
+      justify-content: flex-start;
+      gap: 0.25rem;
       background: var(--bg);
       padding-block: 0.25rem;
     }
@@ -479,9 +496,9 @@
       color: var(--text);
     }
     .clear-history {
-      /* ADR-0041: the trash icon (it shares .icon-btn's 44px target and
-         tooltip), tucked against the History heading. */
-      margin-inline-start: auto;
+      /* ADR-0041, ADR-0055 layout: the trash icon (it shares .icon-btn's
+         44px target and tooltip) sits left of the History heading. */
+      margin-inline-start: -0.35rem;
     }
     .history {
       list-style: none;
@@ -1086,6 +1103,35 @@
       width: 1.05rem;
       height: 1.05rem;
       flex: none;
+    }
+    /* The icon beside each tuning slider is the reset button (ADR-0055):
+       pressing it returns that slider to its default. Compact (32px, the
+       strip's own height) but still a real focusable button. */
+    .tune-reset {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      min-height: 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+    .tune-reset:hover {
+      color: var(--accent);
+      border-color: var(--border-strong);
+    }
+    .tune-reset:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .tune-reset .icon-svg {
+      width: 1rem;
+      height: 1rem;
     }
     .tune input[type="range"] {
       width: 7.5rem;

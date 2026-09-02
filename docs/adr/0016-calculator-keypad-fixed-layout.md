@@ -145,3 +145,16 @@ byte-for-byte.
 Policy, by direction of the project owner: the digits tab/bank is
 frozen across all frontends. Any future change to it requires the
 project owner's explicit approval before work begins.
+
+## Amendment (2026-09-02): the banks cover the whole language (ADR-0055)
+
+The web keypad grows from seven to ten banks, and the `123` tab stays
+untouched. `nΣ` gains the seeded-random keys (`randint`, `random`,
+`randseed`, `randn`); `ƒ` gains complex parts and calculus (`re`,
+`im`, `arg`, `conj`, `derivative`, `integral`); a new **`data`** bank
+carries the data-type keys (`[` `]` `{` `}` `"`) with the matrix and
+value functions (`det`, `inv`, `transpose`, `rref`, `dim`, `str`,
+`len`); a new **`dist`** bank carries the regression family, `anova`,
+`ttestpaired`, and the distribution family; a new **`$`** bank carries
+finance. Every bank except astronomy fits the fixed five-row grid, and
+every new key has a hint in all eight locales.

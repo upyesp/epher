@@ -1276,9 +1276,11 @@ droite des moindres carrés, légendée `y = a*x + b (r = …)`.
 le nombre de classes est facultatif (règle de Sturges par défaut) et
 doit être un entier entre 1 et 50. **boxplot(données)** trace la boîte
 à moustaches : minimum, Q1, médiane, Q3, maximum, moustaches jusqu'aux
-extrêmes. La fenêtre s'ajuste toujours aux données — les mots-clés
-`from a to b` ne s'appliquent pas — et l'image s'exporte et se
-sauvegarde comme n'importe quel graphique.
+extrêmes. La fenêtre s'ouvre ajustée aux données — les mots-clés
+`from a to b` ne s'appliquent toujours pas — et une fois tracé, le
+graphique se zoome exactement comme un tracé de courbes : la molette,
+un pincement et le curseur de zoom fonctionnent, et l'export enregistre
+ce que montre le panneau.
 
 Un troisième mot facultatif choisit le modèle : `graph scatter(xs, ys, quadreg)` (ou expreg, powreg, logreg) trace cet ajuster au lieu de la droite.
 ### 1.23 Nombres aléatoires
@@ -1601,7 +1603,7 @@ https://epher.org/pwa/
 Aucune installation n'est nécessaire. Elle fonctionne dans tout navigateur
 moderne, sur ordinateur, téléphone ou tablette.
 
-Ce guide est également intégré à l'application : ouvrez **Help → User guide**
+Ce guide est également intégré à l'application : ouvrez **Help → In-app user guide**
 dans la barre de menus (touchez **☰** sur un téléphone) pour le lire dans
 l'application, dans la langue actuelle de l'application. Touchez n'importe
 quel exemple de ce guide pour le charger dans le champ de saisie. **Aide → Constantes** ouvre l'explorateur de constantes : toutes les constantes groupées (Mathématiques, Astronomie, Physique, Chimie), chacune avec sa valeur et une brève description ; touchez-en une pour insérer son nom dans le champ de saisie, et la zone de recherche filtre la liste.
@@ -1613,9 +1615,15 @@ quel exemple de ce guide pour le charger dans le champ de saisie. **Aide → Con
 3. Appuyez sur **Entrée** ou cliquez sur le bouton **=**.
 
 Le résultat apparaît en grand sous le champ. Tout le chapitre 1 fonctionne
-ici, y compris variables, fonctions et scripts.
+ici, y compris variables, fonctions et scripts. Quand un script produit
+plusieurs réponses, elles s'affichent ensemble, sur une même ligne et
+séparées par des points-virgules quand elles tiennent ; une réponse
+trop longue pour la ligne n'est jamais coupée - elle passe entière à
+la ligne suivante.
 
 Pendant que vous tapez un nom, une liste de suggestions apparaît sous le champ : les flèches déplacent la sélection, **Entrée** ou **Tab** accepte, **Échap** referme, et un clic accepte sans quitter le clavier. Chaque suggestion porte une courte description de la fonction ou de la constante. **F1** affiche la même description pour le mot sous le curseur dans la barre d'aide au-dessus du clavier. Si le premier caractère saisi dans un champ vide est un opérateur (`+ - * / ^ % !`), epher insère `ans` pour vous : la ligne continue depuis le résultat précédent.
+
+Le clavier à l'écran tape pour vous, exactement comme si vous appuyiez sur les touches. Ses banques couvrent tout le langage : `123` chiffres et opérateurs, `trig`, `ƒ` fonctions, `nΣ` nombres et statistiques, `data` matrices, listes et chaînes (la banque qui tape `[[1, 2], [3, 4]]`, `{1, 2, 3}` et `"text"`), `0x` conversions et bases, `dist` familles de régression et de distribution, `$` finance, `π∇` constantes et commandes de graphique, et `☉` astronomie (la seule banque qui défile). Chaque fonction de ce guide est sur une touche quelque part. Activez **key hints** (le bouton **?**) pour légender chaque touche, ou posez le doigt sur une touche pour lire ce qu'elle fait.
 
 Le menu **Paramètres** (l'icône d'engrenage, ou **☰ → Paramètres** sur un téléphone) contient trois groupes. **Thème** et **Langue** font ce que leurs noms indiquent. **Résultats** façonne l'affichage des réponses : fractions exactes (activées par défaut, donc `1 / 3` s'affiche `1/3`), notation (Auto, scientifique ou ingénieur) et séparateurs de milliers. Ce ne sont que des réglages d'affichage ; les valeurs restent des nombres ordinaires.
 
@@ -1623,7 +1631,7 @@ Le menu **Paramètres** (l'icône d'engrenage, ou **☰ → Paramètres** sur un
 
 Chaque calcul est ajouté à la liste d'historique sous le résultat, pour que
 vous puissiez remonter et voir ce que vous avez fait. Les entrées les plus
-récentes apparaissent en haut, et l'icône de corbeille à côté du
+récentes apparaissent en haut, et l'icône de corbeille à gauche du
 titre **Historique** la vide (dans le terminal, Ctrl+L ou un clic sur la
 même icône). L'historique est conservé tant que la page est ouverte.
 
@@ -1652,18 +1660,20 @@ légende et les étiquettes qui les distinguent sans couleur. `graph clear` vide
 du panneau graphique fait la même chose pour les courbes et les surfaces 3D
 à la fois. La TUI conserve la commande dans son menu **Graph**.
 
-En haut du panneau de graphique, à côté de **Clear graph** et
-**Copy SVG**, la barre d'outils permet de masquer la liste des points
-d'intérêt et les points mis en évidence sur le tracé lui-même. Le curseur
-Juste au-dessus de chaque tracé se trouve une bande de curseurs
-nommés par une icône, les mots étant dans leur info-bulle :
+En haut du panneau de graphique, à côté de **Clear graph**,
+**Copy SVG** et **Save PNG**, la barre d'outils permet de masquer la
+liste des points d'intérêt et les points mis en évidence sur le tracé
+lui-même. Juste au-dessus de chaque tracé se trouve une bande de
+curseurs nommés par une icône, les mots étant dans leur info-bulle :
 l'épaisseur du trait (0 à 4 par pas de 0.1 pour les courbes 2D, 0 à
-0.2 par pas de 0.01 pour les surfaces 3D - seul le curseur du type
-affiché est visible, et chaque type mémorise sa propre valeur), et sur
-les vues 3D et solaires, la vitesse de rotation horizontale et verticale
-ainsi que la vitesse de zoom. Chaque entrée de légende a une case à cocher, cochée par défaut :
-la décocher masque la courbe du tracé, de ses points d'intérêt et de
-l'export SVG.
+0.4 par pas de 0.05 pour les tracés 3D, avec 0.2 par défaut - seul le
+curseur du type affiché est visible, et chaque type mémorise sa propre
+valeur), plus le zoom sur chaque tracé et, sur les vues 3D et solaires,
+la vitesse de rotation horizontale et verticale. Appuyer sur l'icône
+d'un curseur le ramène à sa valeur par défaut. Chaque entrée de légende
+a une case à cocher, cochée par défaut : la décocher masque une courbe,
+une surface 3D, une courbe de l'espace ou un corps solaire du tracé, de
+ses points d'intérêt et de l'export SVG.
 
 ```epher
 graph x ^ 2
@@ -1780,11 +1790,17 @@ const a = 1
 graph a * x ^ 2
 ```
 
+Tout tracé se zoome de la même façon : faites défiler la molette de la souris dessus (ou pincez sur un écran tactile) pour zoomer et dézoomer, et le curseur de zoom au-dessus du tracé suit le mouvement. Les tracés de données - nuage de points, histogramme et boîte à moustaches - se zooment exactement comme les courbes.
+
 **Copier le SVG** copie le tracé actuel comme une image SVG autonome à
-coller dans des documents. Les couleurs sont intégrées, le rendu est
-identique partout. **Enregistrer le PNG** enregistre la même image en bitmap au double de sa taille, pour des courbes bien nettes ; l'application de bureau demande où la placer, l'application web l'enregistre dans vos téléchargements (ou le demande, quand le navigateur le permet). Les rangées de curseurs et les constantes animées se
+coller dans des documents. Les couleurs sont intégrées et le fond est
+transparent, si bien qu'il se pose sur n'importe quelle page, diapositive
+ou document. **Enregistrer le PNG** enregistre la même image en bitmap au double de sa taille, pour des courbes bien nettes, avec le même fond transparent ; l'application de bureau demande où la placer, l'application web l'enregistre dans vos téléchargements (ou le demande, quand le navigateur le permet). Les rangées de curseurs et les constantes animées se
 trouvent directement sous le tracé, au-dessus de la liste des points
-d'intérêt.
+d'intérêt. Un curseur animé est un vrai contrôle : saisissez son
+indicateur et faites-le glisser vers une nouvelle valeur (la saisie
+arrête d'abord l'animation), ou déplacez-le avec les touches fléchées
+pendant qu'il est focalisé.
 
 #### 2.4.4 Surfaces 3D
 
@@ -1807,7 +1823,8 @@ Les courbes de l'espace se tracent avec `param` : `graph3d param cos(t), sin(t),
 #### 2.4.5 Animation
 
 Chaque curseur a un bouton de lecture. Il fait avancer sa constante sur
-toute la plage du curseur, puis revient au début. C'est la façon standard dont
+toute la plage du curseur, puis boucle : l'indicateur parcourt toute la
+piste et revient au début quand il atteint le bout. C'est la façon standard dont
 les calculatrices animent : vous animez un paramètre, et tout ce qui
 l'utilise bouge.
 Appuyez de nouveau sur le bouton pour mettre en pause.
@@ -1908,7 +1925,7 @@ avec la même interface que l'application web : tapez une expression,
 appuyez sur **Entrée** ou cliquez sur **=**, et lisez le résultat. Les
 graphiques fonctionnent aussi ici. `graph x ^ 2` dessine dans la fenêtre
 (chapitre 2.4). La fenêtre se redimensionne librement. La barre de menus
-comprend **Help → User guide**, le même guide que cette page, avec des
+comprend **Help → In-app user guide**, le même guide que cette page, avec des
 exemples à charger d'un toucher.
 
 Vous pouvez aussi l'ouvrir depuis un terminal : un `epher` sans argument (ou

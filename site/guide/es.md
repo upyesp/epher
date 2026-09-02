@@ -1265,9 +1265,11 @@ mínimos cuadrados, con la leyenda `y = a*x + b (r = …)`.
 número de clases es opcional (regla de Sturges por defecto) y debe ser
 un entero entre 1 y 50. **boxplot(datos)** dibuja el diagrama de caja:
 mínimo, Q1, mediana, Q3, máximo, con bigotes hasta los extremos. La
-ventana siempre se ajusta a los datos — las palabras clave `from a to
-b` no se aplican — y la imagen se exporta y guarda como cualquier
-gráfico.
+ventana se abre ajustada a los datos — las palabras clave `from a to
+b` siguen sin aplicarse — y una vez dibujada, la imagen se acerca igual
+que un gráfico de curvas: la rueda del ratón, el pellizco y el
+deslizador de zoom funcionan, y la exportación guarda lo que muestra el
+panel.
 
 Una tercera palabra opcional elige el modelo: `graph scatter(xs, ys, quadreg)` (o expreg, powreg, logreg) dibuja ese ajuste en lugar de la recta.
 ### 1.23 Números aleatorios
@@ -1589,7 +1591,7 @@ https://epher.org/pwa/
 No necesita instalación. Funciona en cualquier navegador moderno, en
 ordenador, móvil o tableta.
 
-Esta guía también está integrada en la aplicación: abre **Help → User
+Esta guía también está integrada en la aplicación: abre **Help → In-app user
 guide** en la barra de menús (toca **☰** en el móvil) para leerla dentro de
 la app, en el idioma que tengas activo. Toca cualquier ejemplo de esa guía
 para cargarlo en el campo de entrada. **Ayuda → Constantes** abre el explorador de constantes: todas las constantes agrupadas (Matemáticas, Astronomía, Física, Química), cada una con su valor y una breve descripción; toca una para insertar su nombre en el campo de entrada, y la caja de búsqueda filtra la lista.
@@ -1601,9 +1603,14 @@ para cargarlo en el campo de entrada. **Ayuda → Constantes** abre el explorado
 3. Pulsa **Intro** o haz clic en el botón **=**.
 
 El resultado aparece en texto grande debajo del campo. Todo lo del capítulo
-1 funciona aquí, incluidas variables, funciones y scripts.
+1 funciona aquí, incluidas variables, funciones y scripts. Cuando un
+script produce varias respuestas, se muestran juntas, en una línea y
+separadas por punto y coma si caben; una respuesta demasiado larga para
+la línea nunca se divide: pasa entera a la línea siguiente.
 
 Mientras escribes un nombre, aparece una lista de sugerencias debajo del campo: las flechas mueven el resaltado, **Intro** o **Tab** acepta, **Esc** cierra, y un clic acepta sin salir del teclado. Cada sugerencia lleva una descripción breve de la función o constante. **F1** muestra la misma descripción de la palabra bajo el cursor en la barra de pistas sobre el teclado. Si lo primero que escribes en un campo vacío es un operador (`+ - * / ^ % !`), epher inserta `ans` por ti, y la línea continúa desde la respuesta anterior.
+
+El teclado en pantalla escribe por ti, exactamente como si pulsaras las teclas. Sus grupos cubren todo el lenguaje: `123` dígitos y operadores, `trig`, `ƒ` funciones, `nΣ` números y estadística, `data` matrices, listas y cadenas (el grupo que escribe `[[1, 2], [3, 4]]`, `{1, 2, 3}` y `"text"`), `0x` conversiones y bases, `dist` familias de regresión y distribución, `$` finanzas, `π∇` constantes y comandos de gráfica, y `☉` astronomía (el único grupo que se desplaza). Cada función de esta guía está en alguna tecla. Activa **key hints** (el botón **?**) para rotular cada tecla, o descansa sobre una para leer qué hace.
 
 El menú **Ajustes** (el icono de engranaje, o **☰ → Ajustes** en el teléfono) tiene tres grupos. **Tema** y **Idioma** hacen lo que dicen sus nombres. **Resultados** define cómo se muestran las respuestas: fracciones exactas (activadas por defecto, así `1 / 3` se muestra como `1/3`), la notación (Auto, científica o de ingeniería) y los separadores de miles. Son solo ajustes de visualización; los valores siguen siendo números normales.
 
@@ -1611,7 +1618,7 @@ El menú **Ajustes** (el icono de engranaje, o **☰ → Ajustes** en el teléfo
 
 Cada cálculo se añade a la lista de historial debajo del resultado, para que
 puedas desplazarte hacia atrás y ver lo que hiciste. Las entradas más
-recientes aparecen arriba, y el icono de la papelera junto al título
+recientes aparecen arriba, y el icono de la papelera a la izquierda del título
 **Historial** la vacía (en el terminal, Ctrl+L o una pulsación en el
 mismo icono). El historial se conserva mientras la página está
 abierta.
@@ -1642,17 +1649,19 @@ etiquetas son las que las distinguen sin color.
 superior del panel de la gráfica hace lo mismo para curvas y superficies 3D
 a la vez. La TUI mantiene el comando en su menú **Graph**.
 
-Arriba del panel de gráficas, junto a **Clear graph** y **Copy SVG**,
-la barra de herramientas permite ocultar la lista de puntos de interés y
+Arriba del panel de gráficas, junto a **Clear graph**, **Copy SVG** y
+**Save PNG**, la barra de herramientas permite ocultar la lista de puntos de interés y
 los puntos destacados dibujados en la propia gráfica. Justo encima de
 cada gráfica hay una franja de deslizadores con icono, las palabras en
 su tooltip: grosor de línea (0 a 4 en pasos de 0.1 para curvas 2D, 0 a
-0.2 en pasos de 0.01 para superficies 3D - solo se muestra el del tipo en
-pantalla, y cada tipo recuerda su propio valor), y en 3D y el sistema
-solar, la velocidad de giro horizontal y vertical y la velocidad de zoom.
-Cada entrada de la leyenda tiene una casilla, marcada por defecto:
-desmarcarla oculta la curva de la gráfica, de sus puntos de interés y de
-la exportación SVG.
+0.4 en pasos de 0.05 para gráficas 3D, con 0.2 por defecto - solo se
+muestra el del tipo en pantalla, y cada tipo recuerda su propio valor),
+además del zoom en cada gráfica y, en 3D y el sistema solar, la
+velocidad de giro horizontal y vertical. Pulsar el icono de un
+deslizador lo restablece a su valor por defecto. Cada entrada de la
+leyenda tiene una casilla, marcada por defecto: desmarcarla oculta una
+curva, una superficie 3D, una curva espacial o un cuerpo solar de la
+gráfica, de sus puntos de interés y de la exportación SVG.
 
 ```epher
 graph x ^ 2
@@ -1767,10 +1776,13 @@ const a = 1
 graph a * x ^ 2
 ```
 
+Toda gráfica se acerca de la misma manera: gira la rueda del ratón sobre ella (o haz un pellizco en una pantalla táctil) para acercar y alejar, y el deslizador de zoom sobre la gráfica te acompaña. Las gráficas de datos (punto de dispersión, histograma y diagrama de caja) se acercan exactamente como las curvas.
+
 **Copiar SVG** copia la gráfica actual como imagen SVG autónoma para
-pegarla en documentos: los colores van incluidos, así que se ve igual en
-todas partes. **Guardar PNG** guarda la misma imagen como mapa de bits al doble de su tamaño, así las curvas quedan nítidas; la aplicación de escritorio pregunta dónde guardarla y la del navegador la guarda en tus descargas (o pregunta, donde el navegador lo ofrece). Las filas de deslizadores y las constantes animadas están
-directamente debajo de la gráfica, sobre la lista de puntos de interés.
+pegarla en documentos: los colores van incluidos y el fondo es
+transparente, así que queda bien en cualquier página, diapositiva o
+documento. **Guardar PNG** guarda la misma imagen como mapa de bits al doble de su tamaño, así las curvas quedan nítidas, con el mismo fondo transparente; la aplicación de escritorio pregunta dónde guardarla y la del navegador la guarda en tus descargas (o pregunta, donde el navegador lo ofrece). Las filas de deslizadores y las constantes animadas están
+directamente debajo de la gráfica, sobre la lista de puntos de interés. Un deslizador animado es un control real: agarra su indicador y arrástralo a un nuevo valor (agarrarlo detiene primero la animación), o muévelo con las teclas de flecha mientras está enfocado.
 
 #### 2.4.4 Superficies 3D
 
@@ -1792,7 +1804,8 @@ Las curvas espaciales se trazan con `param`: `graph3d param cos(t), sin(t), t` d
 #### 2.4.5 Animación
 
 Cada deslizador tiene un botón de reproducción. Avanza su constante a lo
-largo del rango del deslizador y al llegar al final vuelve a empezar. Es la
+largo del rango del deslizador y da la vuelta: el indicador recorre toda
+la pista y vuelve al principio al llegar al final. Es la
 forma estándar en que animan las calculadoras: animas un parámetro y todo
 lo que lo usa se mueve. Pulsa el
 botón de nuevo para pausar.
@@ -1888,7 +1901,7 @@ Inicia epher como cualquier otra aplicación. Obtienes una ventana con la misma
 interfaz que la aplicación web: escribe una expresión, pulsa **Intro** o
 haz clic en **=**, y lee el resultado. Las gráficas también funcionan aquí.
 `graph x ^ 2` dibuja en la ventana (capítulo 2.4). La ventana se puede
-redimensionar libremente. La barra de menús incluye **Help → User guide**, la
+redimensionar libremente. La barra de menús incluye **Help → In-app user guide**, la
 misma guía que esta página, con ejemplos que se cargan al tocarlos.
 
 También puedes abrirla desde una terminal: un `epher` sin argumentos (o

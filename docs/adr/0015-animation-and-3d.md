@@ -294,3 +294,25 @@ whose goal is accuracy must not let a viewing control lie about the data.
   other. Slider spans tighten for large-magnitude constants (a Julian Date
   gets a v±2 window, not a −10..v+2 union), keeping the ADR-0015 play
   cycle (step 0.1, ≈ 5 s per loop) true at every magnitude.
+
+## Amendment (2026-09-02): 3D widths, animation windows, legends, and space-curve controls (ADR-0055)
+
+- The 3D line-width slider is now 0.0-0.4 in steps of 0.05 with 0.2 the
+  default (the 2026-08-27 amendment's 0-0.2/0.01/0.1 range). 3D line
+  widths are screen px: the mesh and frame carry
+  `vector-effect="non-scaling-stroke"` at 10x the slider value, so the
+  default draws a 2 px line on any display and in the letterboxed
+  exports. The old world-unit strokes scaled with the pane and rendered
+  several times thicker than the 2D lines beside them (the complaint
+  that started this change).
+- The animation slider window is fixed at the play span for the
+  duration of playback, and a slider changes window only outside the
+  base ±10 range: the thumb travels the full track and wraps cleanly
+  at the right end instead of stalling mid-track while the window
+  chased the value. Grabbing the slider indicator stops playback on
+  pointer-down so the drag can move the value.
+- 3D surfaces and space curves wear the 2D legend pattern: one
+  checkbox per scene element, every element in its own palette colour
+  (scene parts carry the curve-N classes), hidden elements out of the
+  plot and the export while keeping their palette index. The space
+  curve pane also gets the graph toolbar it was missing.

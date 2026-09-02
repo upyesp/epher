@@ -27,9 +27,9 @@ builder) lived in the web crate even though none of it touches the DOM.
    `epher_core::graph_svg`; the web crate re-exports it and keeps only
    the Yew (live) renderers. `graph_svg` gains a `stroke_width`
    parameter and emits a **self-contained document**: embedded
-   `<style>` with the default dark palette, 640×400 viewBox and size, a
-   background rect. The copy button and every terminal save produce the
-   same bytes. 3D export (`graph3d_svg`) letterboxes the mesh into the
+   `<style>` with the default dark palette, 640×400 viewBox and size,
+   and no background (transparent since ADR-0055). The copy button and
+   every terminal save produce the same bytes. 3D export (`graph3d_svg`) letterboxes the mesh into the
    same canvas with a transform — the identical math
    `preserveAspectRatio` performs in the live renderer.
 2. **`graph save <file>` and `graph3d save <file>`.** The `graph`
@@ -49,7 +49,8 @@ builder) lived in the web crate even though none of it touches the DOM.
    (`epher-line-width`), now restored on desktop too (the pre-0020
    desktop build silently dropped the POI settings on restart).
 4. The exported document always uses the default dark palette — the
-   file is deterministic regardless of the app theme at save time.
+   file is deterministic regardless of the app theme at save time. Its
+   background is transparent (ADR-0055).
 
 ## Consequences
 
@@ -85,3 +86,13 @@ through the platform's flow: the native save dialog over a new
 `save_png_dialog` IPC command on the desktop, the browser's File System
 Access picker in the PWA, a plain download as fallback. The CLI keeps
 SVG as its only export - `graph save plot.svg` is unchanged.
+
+## Amendment (2026-09-02): transparent exports (ADR-0055)
+
+Exported SVG documents no longer paint a background: the background rect
+and its `.bg` style are removed from every document builder (2D curves,
+data plots, 3D surfaces, space curves, solar scenes). The embedded
+palette is unchanged; the picture simply sits on the reader's
+background. Save PNG rasterizes the same document on a clear canvas, so
+it exports transparent too. The earlier claims above of an opaque dark
+document describe the pre-0055 behavior.

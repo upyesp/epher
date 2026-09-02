@@ -94,3 +94,11 @@ Four findings needed fixing:
   behave alike; the web keeps per-statement error recovery (later
   statements still run after an error) while the CLI/TUI stop at the
   first error, exactly as before this round.
+
+## Amendment (2026-09-02): answers flow on one line (ADR-0055)
+
+In the web and desktop answer area the transcript now flows on one
+line with semicolons between answers when they fit; an answer is never
+split across lines (a long one moves whole to the next line), and
+multi-line outputs (tables, matrices) keep their own blocks. The
+terminal frontends keep the one-per-line transcript described above.

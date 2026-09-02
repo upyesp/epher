@@ -108,3 +108,10 @@ uses the area it is given.
 - The inline APG menubar described here was replaced at the desktop
   breakpoint by a vertical icon rail in ADR-0032; the hamburger panel
   below 880px is unchanged.
+
+## Amendment (2026-09-02): the hamburger carries every menu action (ADR-0055)
+
+The mobile hamburger panel gains the two groups the desktop menus had
+and mobile lacked: **Help → Constants** and the whole **Results** group
+(exact fractions, notation, thousands separators). Mobile now matches
+the desktop icon rail action for action.

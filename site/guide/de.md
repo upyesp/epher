@@ -1268,9 +1268,7 @@ Legende. **histogram(daten[, bins])** zeichnet ein
 Häufigkeitshistogramm; die Klassenzahl ist optional (standardmäßig
 nach Sturgess Regel) und muss eine ganze Zahl zwischen 1 und 50 sein.
 **boxplot(daten)** zeichnet das Kastendiagramm: Minimum, Q1, Median,
-Q3, Maximum, mit Antennen bis zu den Extremen. Das Fenster passt sich
-immer den Daten an — die `from a to b`-Schlüsselwörter gelten nicht —
-und das Bild exportiert und speichert wie jeder andere Plot.
+Q3, Maximum, mit Antennen bis zu den Extremen. Das Fenster öffnet sich passend zu den Daten — die `from a to b`-Schlüsselwörter gelten weiterhin nicht — und sobald der Plot gezeichnet ist, zoomt er genau wie ein Kurven-Plot: das Mausrad, eine Pinch-Geste und der Zoom-Regler funktionieren, und der Export speichert, was das Panel zeigt.
 
 Ein drittes, optionales Wort wählt das Modell: `graph scatter(xs, ys, quadreg)` (oder expreg, powreg, logreg) zeichnet diesen Fit statt der Geraden.
 ### 1.23 Zufallszahlen
@@ -1592,7 +1590,7 @@ https://epher.org/pwa/
 Keine Installation nötig. Sie funktioniert in jedem modernen Browser auf
 Computer, Telefon oder Tablet.
 
-Dieses Handbuch ist auch in die App eingebaut: öffne **Help → User guide**
+Dieses Handbuch ist auch in die App eingebaut: öffne **Help → In-app user guide**
 in der Menüleiste (tippe auf einem Telefon auf **☰**), um es in der App in
 der aktuell eingestellten Sprache zu lesen. Tippe ein beliebiges Beispiel
 in diesem Handbuch an, um es ins Eingabefeld zu laden. **Hilfe → Konstanten** öffnet den Konstanten-Browser: alle eingebauten Konstanten in Gruppen (Mathematik, Astronomie, Physik, Chemie), jede mit ihrem Wert und einer kurzen Beschreibung; tippe eine an, um ihren Namen ins Eingabefeld einzufügen, und das Suchfeld filtert die Liste.
@@ -1605,9 +1603,14 @@ in diesem Handbuch an, um es ins Eingabefeld zu laden. **Hilfe → Konstanten** 
 
 Das Ergebnis erscheint in großer Schrift unter dem Feld. Alles aus
 Kapitel 1 funktioniert hier, einschließlich Variablen, Funktionen und
-Skripten.
+Skripten. Wenn ein Skript mehrere Antworten erzeugt, werden sie zusammen
+angezeigt, in einer Zeile und mit Semikolon getrennt, wenn sie
+hineinpassen; eine Antwort, die zu lang für die Zeile ist, wird nie
+geteilt - sie wandert im Ganzen in die nächste Zeile.
 
 Während du einen Namen tippst, erscheint unter dem Feld eine Vorschlagsliste: die Pfeile bewegen die Markierung, **Enter** oder **Tab** übernimmt, **Esc** schließt, und ein Klick übernimmt, ohne die Tastatur zu verlassen. Jeder Vorschlag trägt eine kurze Beschreibung der Funktion oder Konstante. **F1** zeigt dieselbe Beschreibung für das Wort unter dem Cursor in der Hinweisleiste über dem Tastenfeld. Beginnt eine leere Eingabe mit einem Operator (`+ - * / ^ % !`), fügt epher `ans` ein, und die Zeile macht mit dem letzten Ergebnis weiter.
+
+Das Tastenfeld auf dem Bildschirm tippt für dich, genau als hättest du die Tasten gedrückt. Seine Bänke decken die ganze Sprache ab: `123` Ziffern und Operatoren, `trig`, `ƒ` Funktionen, `nΣ` Zahlen und Statistik, `data` Matrizen, Listen und Zeichenketten (die Bank, die `[[1, 2], [3, 4]]`, `{1, 2, 3}` und `"text"` tippt), `0x` Umwandlungen und Basen, `dist` Regressions- und Verteilungsfamilien, `$` Finanzen, `π∇` Konstanten und Graph-Befehle sowie `☉` Astronomie (die einzige Bank, die scrollt). Jede Funktion in diesem Handbuch liegt irgendwo auf einer Taste. Aktiviere **key hints** (der **?**-Button), um jede Taste zu beschriften, oder verweile auf einer Taste, um zu lesen, was sie tut.
 
 Das Menü **Einstellungen** (das Zahnrad-Symbol oder **☰ → Einstellungen** am Telefon) enthält drei Gruppen. **Design** und **Sprache** tun, was ihre Namen sagen. **Ergebnisse** bestimmt die Darstellung der Antworten: exakte Brüche (standardmäßig an, so wird `1 / 3` als `1/3` angezeigt), die Notation (Auto, wissenschaftlich oder technisch) und Tausendertrenner. Das sind reine Anzeigeoptionen; die Werte darunter bleiben gewöhnliche Zahlen.
 
@@ -1615,7 +1618,7 @@ Das Menü **Einstellungen** (das Zahnrad-Symbol oder **☰ → Einstellungen** a
 
 Jede Berechnung wird zur Verlaufsliste unter dem Ergebnis hinzugefügt,
 damit du zurückscrollen und sehen kannst, was du gemacht hast. Die neuesten
-Einträge erscheinen oben, und das Mülleimer-Symbol neben der
+Einträge erscheinen oben, und das Mülleimer-Symbol links von der
 Überschrift **Verlauf** leert sie (im Terminal: Strg+L oder ein Klick
 auf dasselbe Symbol). Der Verlauf bleibt erhalten, solange die Seite offen
 ist.
@@ -1646,18 +1649,20 @@ und die Beschriftungen unterscheiden sie ohne Farbe.
 Graph-Panel macht dasselbe für Kurven und 3D-Flächen zusammen. Die TUI
 behält den Befehl in ihrem **Graph**-Menü.
 
-Ganz oben im Graph-Bereich, neben **Clear graph** und **Copy SVG**,
-blendest du in der Symbolleiste die Liste der besonderen Punkte und die
+Ganz oben im Graph-Bereich, neben **Clear graph**, **Copy SVG** und
+**Save PNG**, blendest du in der Symbolleiste die Liste der besonderen Punkte und die
 hervorgehobenen Punkte im Plot selbst aus. Direkt über jedem Plot liegt
 eine Leiste mit Symbol-Reglern, die Worte stehen im jeweiligen
 Hinweisfeld: Linienstärke (0 bis 4 in Schritten von 0.1 für
-2D-Kurven, 0 bis 0.2 in Schritten von 0.01 für 3D-Flächen - nur
-der Regler der gerade sichtbaren Art wird angezeigt, und jede Art merkt
-sich ihren eigenen Wert), und bei 3D und dem Sonnensystem die horizontale
-und vertikale Drehgeschwindigkeit sowie die Zoomgeschwindigkeit.
-Jeder Eintrag in der Legende hat ein Kästchen, standardmäßig aktiviert:
-Abhaken blendet die Kurve aus dem Plot, ihren besonderen Punkten und dem
-SVG-Export aus.
+2D-Kurven, 0 bis 0.4 in Schritten von 0.05 für 3D-Plots, mit 0.2 als
+Vorgabe - nur der Regler der gerade sichtbaren Art wird angezeigt, und
+jede Art merkt sich ihren eigenen Wert), dazu Zoom auf jedem Plot und
+bei 3D und dem Sonnensystem die horizontale und vertikale
+Drehgeschwindigkeit. Ein Druck auf das Symbol eines Reglers setzt diesen
+Regler auf seinen Vorgabewert zurück. Jeder Eintrag in der Legende hat
+ein Kästchen, standardmäßig aktiviert: Abhaken blendet eine Kurve, eine
+3D-Fläche, eine Raumkurve oder einen Himmelskörper aus dem Plot, seinen
+besonderen Punkten und dem SVG-Export aus.
 
 ```epher
 graph x ^ 2
@@ -1774,10 +1779,11 @@ const a = 1
 graph a * x ^ 2
 ```
 
+Jeder Plot zoomt auf dieselbe Weise: Rolle mit dem Mausrad darüber (oder zoome per Pinch-Geste auf einem Touchscreen) hinein und hinaus, und der Zoom-Regler über dem Plot wandert mit. Daten-Plots - Punktwolke, Histogramm und Kastendiagramm - zoomen genau wie Kurven.
+
 **SVG kopieren** kopiert den aktuellen Plot als eigenständiges SVG-Bild
-zum Einfügen in Dokumente. Die Farben sind eingebaut, es sieht überall
-gleich aus. **PNG speichern** speichert dasselbe Bild als Bitmap in doppelter Größe, damit die Kurven scharf bleiben; die Desktop-App fragt, wohin, die Web-App legt es in den Download-Ordner (oder fragt, wo der Browser es anbietet). Die Reglerzeilen und animierten Konstanten sitzen direkt
-unter dem Plot, über der Liste der besonderen Punkte.
+zum Einfügen in Dokumente. Die Farben sind eingebaut und der Hintergrund ist transparent, so sitzt es auf jeder Seite, Folie oder in jedem Dokument. **PNG speichern** speichert dasselbe Bild als Bitmap in doppelter Größe, damit die Kurven scharf bleiben, mit demselben transparenten Hintergrund; die Desktop-App fragt, wohin, die Web-App legt es in den Download-Ordner (oder fragt, wo der Browser es anbietet). Die Reglerzeilen und animierten Konstanten sitzen direkt
+unter dem Plot, über der Liste der besonderen Punkte. Ein animierter Regler ist ein echtes Bedienelement: fasse seinen Zeiger und ziehe ihn auf einen neuen Wert (das Ziehen stoppt zuerst die Animation), oder bewege ihn mit den Pfeiltasten, während er fokussiert ist.
 
 #### 2.4.4 3D-Flächen
 
@@ -1800,7 +1806,8 @@ Raumkurven zeichnet `param`: `graph3d param cos(t), sin(t), t` zeichnet eine Hel
 
 Jeder Schieberegler hat eine Wiedergabetaste. Sie lässt seine Konstante
 den Bereich des Schiebereglers durchlaufen und beginnt danach wieder von
-vorn. So animieren Taschenrechner üblicherweise: Du animierst einen
+vorn: Der Zeiger wandert über die ganze Spur und kehrt am Ende an den
+Anfang zurück. So animieren Taschenrechner üblicherweise: Du animierst einen
 Parameter, und alles, was ihn verwendet, bewegt sich mit. Drücke die Taste erneut, um zu
 pausieren.
 
@@ -1895,7 +1902,7 @@ derselben Oberfläche wie die Web-App: tippe einen Ausdruck, drücke
 **Enter** oder klicke auf **=**, und lies das Ergebnis. Graphen zeichnen
 funktioniert auch hier. `graph x ^ 2` zeichnet im Fenster (Kapitel 2.4).
 Das Fenster lässt sich frei skalieren. Die Menüleiste enthält
-**Help → User guide**, dasselbe Handbuch wie diese Seite, mit antippbaren
+**Help → In-app user guide**, dasselbe Handbuch wie diese Seite, mit antippbaren
 Beispielen.
 
 Du kannst es auch aus einem Terminal öffnen: ein bloßes `epher` (oder

@@ -112,3 +112,10 @@ frozen. No key may be added, removed, or moved there without explicit
 approval, in any frontend. Guard tests hold the line (the web test
 asserts the tab's exact 24 keys and that every tab fits the grid; the
 TUI test asserts the bank's exact contents).
+
+## Amendment (2026-09-02): transparent PNG (ADR-0055)
+
+The PNG export rasterizes the transparent SVG document on a clear
+canvas, so saved PNGs carry no painted background (the earlier text's
+implicit dark backing came from the document's background rect, which
+ADR-0055 removed).
