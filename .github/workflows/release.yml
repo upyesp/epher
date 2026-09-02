@@ -130,7 +130,15 @@ jobs:
           "$BIN" $'graph x^2\ngraph save '"$OUT"'/curves.svg' >/dev/null
           grep -q 'stroke-width: 1.00' "$OUT/curves.svg"
           "$BIN" $'graph3d x^2 - y^2\ngraph3d save '"$OUT"'/surface.svg' >/dev/null
-          grep -q 'polyline points' "$OUT/surface.svg"
+          # The 3D parts markup carries class, points, and the ADR-0055
+          # px-width stroke (vector-effect non-scaling-stroke); the exact
+          # attribute order is not part of the contract.
+          grep -q '<polyline' "$OUT/surface.svg"
+          grep -q 'points="' "$OUT/surface.svg"
+          grep -q 'vector-effect="non-scaling-stroke"' "$OUT/surface.svg"
+          # Transparent exports (ADR-0055): no painted background rect.
+          ! grep -q 'class="bg"' "$OUT/curves.svg"
+          ! grep -q 'class="bg"' "$OUT/surface.svg"
           # The embedded webview must be THIS run's web build: the asset
           # filename (trunk's content hash) appears verbatim in the binary.
           HASH="$(grep -o 'epher-web-[a-f0-9]*\.js' "$GITHUB_WORKSPACE/crates/web/dist/index.html" | head -1)"
