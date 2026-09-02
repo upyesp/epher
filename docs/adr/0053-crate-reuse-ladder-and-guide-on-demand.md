@@ -52,11 +52,10 @@ Every need is met at the lowest possible rung, in order:
   `invnorm(0.975)` = 1.95996398454, `ttest`/`tinterval` against the
   R-validated values).
 - **The guide out of every binary.** `epher-guide` keeps the renderers
-  and loses the `include_str!`. The build script copies
-  `site/guide/*.md` into `crates/web/public/guide/` (gitignored build
-  output; `site/guide` stays the single source of truth), trunk ships
-  them via a `copy-dir` asset, and the Tauri shell embeds the same dist,
-  so web/PWA and desktop fetch `guide/<locale>.md` on first open and the
+  and loses the `include_str!`. Trunk's `copy-dir` asset reads the
+  committed `site/guide/*.md` (the single source of truth) straight
+  into `dist/guide/`, the Tauri shell embeds the same dist, so
+  web/PWA and desktop fetch `guide/<locale>.md` on first open and the
   service worker runtime-caches it for offline. The installers carry the
   eight files as Tauri bundle resources; the TUI reads them at open
   (`epher_guide::load`) through a search that covers `$EPHER_GUIDE_DIR`,

@@ -2,10 +2,11 @@
 //!
 //! The single source of truth is `site/guide/<locale>.md`, the same
 //! files the website build (`scripts/build-guide.mjs`) turns into the
-//! guide pages. No binary carries the guide: the build script copies
-//! the markdown into the web app's static files (fetched on demand),
-//! and the installers put it on disk (the TUI reads it when the user
-//! opens the guide) — ADR-0053. Each frontend renders the markdown
+//! guide pages. No binary carries the guide: trunk copies the
+//! markdown straight into the web app's static files (fetched on
+//! demand), and the installers put it on disk (the TUI reads it when
+//! the user opens the guide) - ADR-0053. Each frontend renders the
+//! markdown
 //! with the renderer that fits its medium: [`render_html`] for the
 //! web/desktop overlay (every `` ```epher `` / `` ```sh `` fence becomes
 //! a clickable example button), [`render_text`] for the TUI pager. The

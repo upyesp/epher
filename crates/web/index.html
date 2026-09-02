@@ -1480,10 +1480,10 @@
   <link data-trunk rel="copy-file" href="public/manifest.webmanifest" />
   <link data-trunk rel="copy-file" href="public/sw.js" />
   <link data-trunk rel="copy-file" href="public/icon.svg" />
-  <!-- The guide markdown (ADR-0053): the guide crate's build script copies
-       site/guide/*.md here so the app fetches it on demand instead of
-       carrying it in the wasm. -->
-  <link data-trunk rel="copy-dir" href="public/guide" data-target-path="guide" />
+  <!-- The guide markdown (ADR-0053): the app fetches guide/<locale>.md
+       on demand; the committed site/guide/*.md files are the single
+       source, copied straight into dist (no generated intermediate). -->
+  <link data-trunk rel="copy-dir" href="../../site/guide" data-target-path="guide" />
   <!-- Boot diagnostic: if the wasm app has not mounted after six seconds,
        say so instead of leaving a blank window. The app's own markup has
        class="epher", so its presence is the success signal. While the
