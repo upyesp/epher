@@ -7,9 +7,10 @@
 
 use epher_core::astro::SolarScene;
 use epher_core::graph::{
-    analyze, free_names, parse_graph_source, project_surface, sample_data_plot, sample_spec,
-    sample_surface, surface_frame, zoom_window, DataPlot, InterestKind, InterestPoint,
-    SampledCurve, Segment3D, Surface, View3D,
+    analyze, curve_frame, free_names, parse_graph_source, project_space_curve, project_surface,
+    sample_data_plot, sample_space_curve, sample_spec, sample_surface, surface_frame, zoom_window,
+    DataPlot,
+    InterestKind, InterestPoint, SampledCurve, Segment3D, SpaceCurve, Surface, View3D,
 };
 use epher_core::Session;
 use epher_i18n::Localizer;
@@ -133,6 +134,9 @@ pub struct App {
     graph: Vec<SampledCurve>,
     pois: Vec<InterestPoint>,
     surface: Vec<Surface>,
+    /// The 3D parametric curves (`graph3d param ...`, ADR-0054): the
+    /// curve sibling of the surface set.
+    curve3d: Vec<SpaceCurve>,
     /// The data plot (ADR-0044): a scatter, histogram, or boxplot owns
     /// the pane like the solar scene does — the newest command wins.
     data: Option<DataPlot>,
@@ -643,6 +647,7 @@ impl App {
             graph: Vec::new(),
             pois: Vec::new(),
             surface: Vec::new(),
+            curve3d: Vec::new(),
             data: None,
             solar: None,
             solar_source: None,
@@ -1963,7 +1968,33 @@ impl App {
     pub fn submit_surface(&mut self, source: &str) -> Result<(), String> {
         if source.trim() == "clear" {
             self.surface.clear();
+            self.curve3d.clear();
             self.result.clear();
+            return Ok(());
+        }
+        // A `param` body is a space curve (ADR-0054); anything else is
+        // a surface. Both own the pane alone.
+        if source.trim_start().starts_with("param ") {
+            let first = self.curve3d.is_empty();
+            let curve = match sample_space_curve(source, 240, self.session.env())
+                .map_err(|e| e.to_string())
+            {
+                Ok(c) => c,
+                Err(e) => {
+                    self.result = format!("error: {e}");
+                    return Err(e);
+                }
+            };
+            self.graph.clear();
+            self.pois.clear();
+            self.data = None;
+            self.view2d = None;
+            self.surface.clear();
+            if first {
+                self.reset_view_offsets();
+            }
+            self.result.clear();
+            self.curve3d.push(curve);
             return Ok(());
         }
         let first = self.surface.is_empty();
@@ -1981,6 +2012,7 @@ impl App {
         self.pois.clear();
         self.data = None;
         self.view2d = None;
+        self.curve3d.clear();
         // A 3D graph drawn into an empty pane brings fresh fine controls
         // at their default 0 (ADR-0031); overlays keep the current pose.
         if first {
@@ -1989,6 +2021,11 @@ impl App {
         self.result.clear();
         self.surface.push(surface);
         Ok(())
+    }
+
+    /// The plotted 3D parametric curves, if any (ADR-0054).
+    pub fn curve3ds(&self) -> &[SpaceCurve] {
+        &self.curve3d
     }
 
     /// The plotted surfaces, if any.
@@ -2101,6 +2138,13 @@ impl App {
                 free_names(&expr, &mut names);
             }
         }
+        for c in &self.curve3d {
+            if let Ok((x, y, z, _)) = epher_core::graph::parse_space_curve_source(&c.source) {
+                free_names(&x, &mut names);
+                free_names(&y, &mut names);
+                free_names(&z, &mut names);
+            }
+        }
         if let Some(source) = &self.solar_source {
             if let Ok(expr) = epher_core::parse(source) {
                 free_names(&expr, &mut names);
@@ -2185,6 +2229,11 @@ impl App {
                 *s = fresh;
             }
         }
+        for c in &mut self.curve3d {
+            if let Ok(fresh) = sample_space_curve(&c.source, 240, &env) {
+                *c = fresh;
+            }
+        }
         if let (Some(_scene), Some(source)) = (self.solar.as_ref(), self.solar_source.as_deref()) {
             if source_references_any_constant(source, &env) {
                 if let Ok(jd) = epher_core::astro::eval_jd(source, &env) {
@@ -2225,6 +2274,55 @@ pub fn render_ascii3d(surfaces: &[Surface], view: &View3D, width: usize, height:
             all.extend(surface_frame(s, view));
         }
     }
+    let frame: Vec<Segment3D> = surfaces
+        .first()
+        .map(|s| surface_frame(s, view))
+        .unwrap_or_default();
+    render_ascii3d_scene(all, &frame, view, width, height)
+}
+
+/// Render a set of 3D parametric curves as an ASCII wireframe
+/// (ADR-0054): the same depth-shaded treatment as the mesh, with the
+/// curve's bounding-box frame on top.
+pub fn render_ascii3d_curves(
+    curves: &[SpaceCurve],
+    view: &View3D,
+    width: usize,
+    height: usize,
+) -> String {
+    if curves.is_empty() || width == 0 || height == 0 {
+        return String::new();
+    }
+    let mut all = Vec::new();
+    for c in curves {
+        for path in project_space_curve(&c.points, view) {
+            for pair in path.points.windows(2) {
+                all.push(Segment3D {
+                    x1: pair[0].0,
+                    y1: pair[0].1,
+                    x2: pair[1].0,
+                    y2: pair[1].1,
+                    depth: path.depth,
+                });
+            }
+        }
+    }
+    let frame: Vec<Segment3D> = curves
+        .first()
+        .map(|c| curve_frame(c, view))
+        .unwrap_or_default();
+    render_ascii3d_scene(all, &frame, view, width, height)
+}
+
+/// Stamp one segment list far-to-near (painter's algorithm), the frame
+/// on top: the shared core of the surface and curve wireframes.
+fn render_ascii3d_scene(
+    all: Vec<Segment3D>,
+    frame: &[Segment3D],
+    view: &View3D,
+    width: usize,
+    height: usize,
+) -> String {
     if all.is_empty() {
         return String::new();
     }
@@ -2303,10 +2401,8 @@ pub fn render_ascii3d(surfaces: &[Surface], view: &View3D, width: usize, height:
         stamp(seg.x1, seg.y1, seg.x2, seg.y2, seg.depth, false);
     }
     // Frame last, on top.
-    for s in surfaces.iter().take(1) {
-        for seg in surface_frame(s, view) {
-            stamp(seg.x1, seg.y1, seg.x2, seg.y2, seg.depth, true);
-        }
+    for seg in frame {
+        stamp(seg.x1, seg.y1, seg.x2, seg.y2, seg.depth, true);
     }
     grid.into_iter()
         .map(|row| row.into_iter().collect::<String>())
@@ -2600,11 +2696,11 @@ pub fn render_ascii_data(data: &DataPlot, width: usize, height: usize) -> String
         |y: f64| -> usize { (((y_max - y) / y_span) * (height - 1) as f64).round() as usize };
     match data.kind {
         epher_core::graph::DataPlotKind::Scatter => {
-            // The fitted line first, so points drawn over it stay legible.
+            // The fitted model first, so points drawn over it stay legible.
             if let Some(f) = data.fit {
                 for (col, cell_row) in grid.iter_mut().enumerate() {
                     let x = x_min + col as f64 / (width - 1) as f64 * x_span;
-                    let y = f.a * x + f.b;
+                    let y = f.fit.eval(x);
                     if y.is_finite() && y >= y_min && y <= y_max {
                         let row = row_of(y);
                         if cell_row[row] == '·' {
@@ -4447,6 +4543,23 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         graph_text.push('\n');
         let (w, h) = graph_dims(graph_area);
         graph_text.push_str(&render_ascii_data(data, w, h));
+    } else if !app.curve3ds().is_empty() {
+        // 3D parametric curves (ADR-0054): the surface pane's pose,
+        // legend row, and depth-shaded wireframe treatment.
+        let legend: Vec<String> = app
+            .curve3ds()
+            .iter()
+            .map(|c| format!("param {}", c.source.trim()))
+            .collect();
+        graph_text.push_str(&legend.join("   "));
+        graph_text.push('\n');
+        let (w, h) = graph_dims(graph_area);
+        graph_text.push_str(&render_ascii3d_curves(
+            app.curve3ds(),
+            &app.effective_view(),
+            w,
+            h,
+        ));
     } else if !app.surfaces().is_empty() {
         let legend: Vec<String> = app
             .surfaces()

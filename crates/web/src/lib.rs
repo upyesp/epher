@@ -125,6 +125,29 @@ fn slider_names(
     names.into_iter().collect()
 }
 
+/// The constants a 3D curve set references; the 3D pane's sliders
+/// (ADR-0054).
+fn curve3d_slider_names(
+    curves: &[epher_core::graph::SpaceCurve],
+    session: &Session,
+) -> Vec<String> {
+    let mut names = std::collections::BTreeSet::new();
+    for c in curves {
+        if let Ok((x, y, z, _)) = epher_core::graph::parse_space_curve_source(&c.source) {
+            let mut found = std::collections::BTreeSet::new();
+            free_names(&x, &mut found);
+            free_names(&y, &mut found);
+            free_names(&z, &mut found);
+            for n in found {
+                if session.const_sources().contains_key(&n) {
+                    names.insert(n);
+                }
+            }
+        }
+    }
+    names.into_iter().collect()
+}
+
 /// The constants the solar pane's time expression references — the source
 /// is stored as written (e.g. `t` or `now() + 10`), so its free names come
 /// straight from the expression tree (ADR-0037).
@@ -167,6 +190,34 @@ fn resample_surfaces(surfaces: &mut [epher_core::graph::Surface], session: &Sess
         if let Ok(fresh) = epher_core::graph::sample_surface(&surface.source, 30, session.env()) {
             *surface = fresh;
         }
+    }
+}
+
+/// Re-sample every 3D parametric curve against the current environment
+/// (ADR-0054): a moved constant reshapes the curve.
+fn resample_space_curves(
+    curves: &mut [epher_core::graph::SpaceCurve],
+    session: &Session,
+) {
+    for c in curves.iter_mut() {
+        if let Ok(fresh) = epher_core::graph::sample_space_curve(&c.source, 240, session.env()) {
+            *c = fresh;
+        }
+    }
+}
+
+/// Does a space curve's source reference this name? (The animation
+/// tick re-samples only the curves that do.)
+fn space_curve_references(curve: &epher_core::graph::SpaceCurve, name: &str) -> bool {
+    match epher_core::graph::parse_space_curve_source(&curve.source) {
+        Ok((x, y, z, _)) => {
+            let mut found = std::collections::BTreeSet::new();
+            free_names(&x, &mut found);
+            free_names(&y, &mut found);
+            free_names(&z, &mut found);
+            found.contains(name)
+        }
+        Err(_) => false,
     }
 }
 
@@ -1779,6 +1830,10 @@ fn epher_app() -> Html {
     let is_mobile = use_state(mobile_layout);
     let live = use_state(|| Rc::new(RefCell::new(GraphLive::default())));
     let surface = use_state(Vec::<epher_core::graph::Surface>::new);
+    // The 3D parametric curves (`graph3d param ...`, ADR-0054): the
+    // curve sibling of the surface set; the pane shows one kind at a
+    // time.
+    let curve3ds = use_state(Vec::<epher_core::graph::SpaceCurve>::new);
     // The solar system scene (`solar3d`, ADR-0037) plus the source of
     // its time expression, so playback can rebuild the scene per tick.
     let solar = use_state(|| Option::<epher_core::astro::SolarScene>::None);
@@ -2901,6 +2956,7 @@ fn epher_app() -> Html {
         let hidden = hidden.clone();
         let live = live.clone();
         let surface = surface.clone();
+        let curve3ds = curve3ds.clone();
         let solar_handle = solar.clone();
         let solar_source_handle = solar_source.clone();
         let view = view.clone();
@@ -2931,6 +2987,7 @@ fn epher_app() -> Html {
             let mut s = session_live.borrow().clone();
             let mut curves = (*graph).clone();
             let mut surfaces = (*surface).clone();
+            let mut curve3ds_local = (*curve3ds).clone();
             let mut solar = (*solar_handle).clone();
             let mut solar_source = (*solar_source_handle).clone();
             let mut data_local = (*data).clone();
@@ -2938,8 +2995,11 @@ fn epher_app() -> Html {
             // view back to the calculator (ADR-0035) — the mirror of the
             // draw slide. Tracked before the loop so only a pane that
             // HAD content moves.
-            let had_graph =
-                !curves.is_empty() || !surfaces.is_empty() || solar.is_some() || data.is_some();
+            let had_graph = !curves.is_empty()
+                || !surfaces.is_empty()
+                || !curve3ds_local.is_empty()
+                || solar.is_some()
+                || data.is_some();
             // Statements join with newlines or `;` — the same separator
             // (ADR-0001). Each piece dispatches in order, exactly as if
             // typed one by one — but the history keeps the script the way
@@ -2998,6 +3058,7 @@ fn epher_app() -> Html {
                         curves.clear();
                         pois.set(Vec::new());
                         surfaces.clear();
+                        curve3ds_local.clear();
                         solar = None;
                         solar_source = None;
                         solar_hidden.set(Vec::new());
@@ -3045,6 +3106,7 @@ fn epher_app() -> Html {
                                     curves.clear();
                                     pois.set(Vec::new());
                                     surfaces.clear();
+                                    curve3ds_local.clear();
                                     solar = None;
                                     solar_source = None;
                                     solar_hidden.set(Vec::new());
@@ -3070,6 +3132,7 @@ fn epher_app() -> Html {
                                 // never share the pane and each plot keeps its
                                 // full size.
                                 surfaces.clear();
+                                curve3ds_local.clear();
                                 data_local = None;
                                 solar = None;
                                 solar_source = None;
@@ -3121,6 +3184,7 @@ fn epher_app() -> Html {
                         }
                         if source == "clear" {
                             surfaces.clear();
+                            curve3ds_local.clear();
                             view_h.set(0.0);
                             view_v.set(0.0);
                             view_z.set(0.0);
@@ -3134,6 +3198,42 @@ fn epher_app() -> Html {
                             *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                             continue;
                         }
+                        // A `param` body is a space curve (ADR-0054);
+                        // anything else is a surface.
+                        if source.starts_with("param ") {
+                            match epher_core::graph::sample_space_curve(source, 240, s.env()) {
+                                Ok(fresh) => {
+                                    // The newest command owns the pane.
+                                    curves.clear();
+                                    surfaces.clear();
+                                    data_local = None;
+                                    solar = None;
+                                    solar_source = None;
+                                    solar_hidden.set(Vec::new());
+                                    *view2d_cell.borrow_mut() = None;
+                                    view2d.set(None);
+                                    if curve3ds_local.is_empty() {
+                                        view_h.set(0.0);
+                                        view_v.set(0.0);
+                                        view_z.set(0.0);
+                                        spin_phase.set((0.0, 0.0));
+                                        *spin_phase_cell.borrow_mut() = (0.0, 0.0);
+                                    }
+                                    curve3ds_local.push(fresh);
+                                    result.set(String::new());
+                                    if mobile_layout() {
+                                        scroll_pane.emit("graph-pane");
+                                        if let Some(ta) =
+                                            input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                        {
+                                            let _ = ta.blur();
+                                        }
+                                    }
+                                }
+                                Err(e) => result.set(format!("error: {e}")),
+                            }
+                            continue;
+                        }
                         match epher_core::graph::sample_surface(source, 30, s.env()) {
                             Ok(fresh) => {
                                 // The pane shows one kind at a time (ADR-0015
@@ -3141,6 +3241,7 @@ fn epher_app() -> Html {
                                 // curves, their points of interest, and any
                                 // solar scene — the newest command owns the pane.
                                 curves.clear();
+                                curve3ds_local.clear();
                                 data_local = None;
                                 solar = None;
                                 solar_source = None;
@@ -3375,15 +3476,18 @@ fn epher_app() -> Html {
                 && had_graph
                 && curves.is_empty()
                 && surfaces.is_empty()
+                && curve3ds_local.is_empty()
                 && solar.is_none();
             // A fresh plot: every legend checkbox returns to checked.
             hidden.set(vec![false; curves.len()]);
             graph.set(curves);
             data.set(data_local);
             surface.set(surfaces.clone());
+            curve3ds.set(curve3ds_local.clone());
             solar_handle.set(solar);
             solar_source_handle.set(solar_source);
-            *surface3d_cell.borrow_mut() = !surfaces.is_empty() || solar_handle.is_some();
+            *surface3d_cell.borrow_mut() =
+                !surfaces.is_empty() || !curve3ds_local.is_empty() || solar_handle.is_some();
             pois.set(labels);
             trace.set(None);
             session.set(s.clone());
@@ -3411,6 +3515,7 @@ fn epher_app() -> Html {
         let pois = pois.clone();
         let localizer = localizer.clone();
         let surface = surface.clone();
+        let curve3ds = curve3ds.clone();
         let solar_handle = solar.clone();
         let solar_source_handle = solar_source.clone();
         let surface3d_cell = surface3d_cell.clone();
@@ -3426,6 +3531,8 @@ fn epher_app() -> Html {
             resample(&mut curves, &s);
             let mut surfaces = (*surface).clone();
             resample_surfaces(&mut surfaces, &s);
+            let mut curve3ds_local = (*curve3ds).clone();
+            resample_space_curves(&mut curve3ds_local, &s);
             let mut solar = (*solar_handle).clone();
             resample_solar(&mut solar, &*solar_source_handle, &s);
             let found = analyze(&curves, s.env());
@@ -3434,8 +3541,10 @@ fn epher_app() -> Html {
             hidden.set(vec![false; curves.len()]);
             graph.set(curves);
             surface.set(surfaces.clone());
+            curve3ds.set(curve3ds_local.clone());
             solar_handle.set(solar);
-            *surface3d_cell.borrow_mut() = !surfaces.is_empty() || solar_handle.is_some();
+            *surface3d_cell.borrow_mut() =
+                !surfaces.is_empty() || !curve3ds_local.is_empty() || solar_handle.is_some();
             pois.set(poi_labels(&found, &localizer));
         })
     };
@@ -3459,6 +3568,7 @@ fn epher_app() -> Html {
         let pois = pois.clone();
         let localizer = localizer.clone();
         let surface = surface.clone();
+        let curve3ds = curve3ds.clone();
         let solar_handle = solar.clone();
         let solar_source_handle = solar_source.clone();
         let surface3d_cell = surface3d_cell.clone();
@@ -3493,6 +3603,17 @@ fn epher_app() -> Html {
                     }
                 }
             }
+            // A space curve replays through the same constant animation.
+            let mut curve3ds_local = (*curve3ds).clone();
+            for c in curve3ds_local.iter_mut() {
+                if space_curve_references(c, &name) {
+                    if let Ok(fresh) =
+                        epher_core::graph::sample_space_curve(&c.source, 240, s.env())
+                    {
+                        *c = fresh;
+                    }
+                }
+            }
             // The solar system replays through the same transport: the
             // scene rebuilds only when its time expression references the
             // animated constant (ADR-0037).
@@ -3513,8 +3634,10 @@ fn epher_app() -> Html {
             }
             graph.set(curves);
             surface.set(surfaces.clone());
+            curve3ds.set(curve3ds_local.clone());
             solar_handle.set(solar);
-            *surface3d_cell.borrow_mut() = !surfaces.is_empty() || solar_handle.is_some();
+            *surface3d_cell.borrow_mut() =
+                !surfaces.is_empty() || !curve3ds_local.is_empty() || solar_handle.is_some();
         })
     };
 
@@ -3826,6 +3949,7 @@ fn epher_app() -> Html {
         let width_2d = width_2d.clone();
         let width_3d = width_3d.clone();
         let surface = surface.clone();
+        let curve3ds = curve3ds.clone();
         let solar = solar.clone();
         let view = view.clone();
         let view_h = view_h.clone();
@@ -3860,6 +3984,12 @@ fn epher_app() -> Html {
                     *width_3d,
                 )
                 .unwrap_or_default()
+            } else if let Some(doc) = graph::graph3d_curve_svg(
+                &curve3ds,
+                &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
+                *width_3d,
+            ) {
+                doc
             } else if let Some(doc) = graph::graph3d_svg(
                 &surface,
                 &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
@@ -3901,6 +4031,7 @@ fn epher_app() -> Html {
         let width_2d = width_2d.clone();
         let width_3d = width_3d.clone();
         let surface = surface.clone();
+        let curve3ds = curve3ds.clone();
         let solar = solar.clone();
         let view = view.clone();
         let view_h = view_h.clone();
@@ -3934,6 +4065,12 @@ fn epher_app() -> Html {
                     *width_3d,
                 )
                 .unwrap_or_default()
+            } else if let Some(doc) = graph::graph3d_curve_svg(
+                &curve3ds,
+                &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
+                *width_3d,
+            ) {
+                doc
             } else {
                 graph::graph3d_svg(
                     &surface,
@@ -4383,7 +4520,12 @@ fn epher_app() -> Html {
             .collect()
     };
     let curve_sliders = slider_names(&graph, &[], &session);
-    let surface_sliders = slider_names(&[], &surface, &session);
+    let mut surface_sliders = slider_names(&[], &surface, &session);
+    for n in curve3d_slider_names(&curve3ds, &session) {
+        if !surface_sliders.contains(&n) {
+            surface_sliders.push(n);
+        }
+    }
     let solar_sliders = match (*solar_source).as_deref() {
         Some(src) => solar_slider_names(src, &session),
         None => Vec::new(),
@@ -4623,6 +4765,7 @@ fn epher_app() -> Html {
         let graph = graph.clone();
         let pois = pois.clone();
         let surface = surface.clone();
+        let curve3ds = curve3ds.clone();
         let solar = solar.clone();
         let solar_source = solar_source.clone();
         let surface3d_cell = surface3d_cell.clone();
@@ -4649,6 +4792,7 @@ fn epher_app() -> Html {
             graph.set(Vec::new());
             pois.set(Vec::new());
             surface.set(Vec::new());
+            curve3ds.set(Vec::new());
             solar.set(None);
             solar_source.set(None);
             solar_hidden.set(Vec::new());
@@ -5697,14 +5841,7 @@ fn epher_app() -> Html {
                     }
                     {
                         if let Some(data) = (*data).as_ref() {
-                            let fit_caption = data.fit.map(|f| {
-                                format!(
-                                    "y = {}*x + {} (r = {})",
-                                    graph::label(f.a),
-                                    graph::label(f.b),
-                                    graph::label(f.r)
-                                )
-                            });
+                            let fit_caption = data.fit.map(|f| graph::fit_legend(&f));
                             let caption = data.source.trim();
                             let extra = fit_caption.as_deref();
                             html! {
@@ -5944,6 +6081,52 @@ fn epher_app() -> Html {
                                         <p class="graph3d-hint">{ localizer.lookup("graph3d-hint") }</p>
                                         <div class="sliders">
                                             { for solar_rows }
+                                        </div>
+                                    </section>
+                                }
+                            } else {
+                                html! {}
+                            }
+                        } else if !(*curve3ds).is_empty() {
+                            // 3D parametric curves (ADR-0054): the same
+                            // pose, sliders, and controls as surfaces.
+                            let effective =
+                                effective_view(&view, *view_h, *view_v, *view_z, *spin_phase);
+                            let rendered = graph::curve_svg(&curve3ds, &effective, *width_3d);
+                            let aria = format!(
+                                "{}: {}",
+                                "3D",
+                                (*curve3ds)
+                                    .iter()
+                                    .map(|c| format!("param {}", c.source.trim()))
+                                    .collect::<Vec<_>>()
+                                    .join(", ")
+                            );
+                            if let Some((view_box, content)) = rendered {
+                                // Record for play-freeze; while playing, keep the
+                                // frozen box so the layout stays put.
+                                *rendered_box.borrow_mut() = Some(view_box.clone());
+                                let shown_box = (*play)
+                                    .as_ref()
+                                    .and_then(|p| p.freeze.clone())
+                                    .unwrap_or(view_box);
+                                html! {
+                                    <section class="graph graph3d">
+                                        <div class="graph-tuning">
+                                            { tuning_3d }
+                                        </div>
+                                        <div class="plot-box">
+                                            <Graph3D
+                                                view_box={shown_box}
+                                                content={content}
+                                                aria_label={aria}
+                                                on_orbit={on_orbit}
+                                                on_zoom={on_zoom3d.clone()}
+                                            />
+                                        </div>
+                                        <p class="graph3d-hint">{ localizer.lookup("graph3d-hint") }</p>
+                                        <div class="sliders">
+                                            { for surface_rows }
                                         </div>
                                     </section>
                                 }

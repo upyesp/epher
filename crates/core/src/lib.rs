@@ -58,10 +58,10 @@ pub enum Value {
         unit: Option<(String, f64)>,
     },
     /// A display string — produced by the base-conversion builtins
-    /// (`bin`, `oct`, `hex`; ADR-0022), the solve statement, `linreg`,
-    /// and the test/interval functions (ADR-0044), and good for
-    /// nothing else: the language has no string literals or string
-    /// operations.
+    /// (`bin`, `oct`, `hex`; ADR-0022), the solve statement, the
+    /// regression and test/interval functions (ADR-0044), the stats
+    /// builtins, and now written directly: string literals, `+`
+    /// concatenation, `str`, and `print` (ADR-0054).
     Str(String),
 }
 
@@ -280,6 +280,10 @@ pub enum Expression {
     And(Box<Expression>, Box<Expression>),
     Or(Box<Expression>, Box<Expression>),
     Not(Box<Expression>),
+    /// A string literal (ADR-0054): `"hello"`. Strings concatenate
+    /// with `+`, compare with `==`/`!=`, index 1-based like lists, and
+    /// feed `print`.
+    StrLit(String),
 }
 
 /// A comparison operator.
@@ -302,9 +306,26 @@ pub enum Statement {
     Const(String, Expression),
     FunctionDef(String, Vec<String>, Expression),
     While(Expression, Box<Statement>),
+    /// `for name in iter do body` (ADR-0054): the iterable is either a
+    /// range `start to end [step s]` or a list expression. Each body
+    /// value is collected; the loop's value is the list of them (an
+    /// empty loop produces an empty list).
+    For(String, ForIterable, Box<Statement>),
     /// `solve lhs == rhs` (ADR-0043): numeric equation solving, no CAS.
     Solve(Expression),
     Expr(Expression),
+}
+
+/// What a `for` loop iterates (ADR-0054): an inclusive numeric range
+/// with an optional step, or the elements of a list.
+#[derive(Debug, Clone)]
+pub enum ForIterable {
+    Range {
+        start: Expression,
+        end: Expression,
+        step: Option<Expression>,
+    },
+    Items(Expression),
 }
 
 /// A user-defined function: parameter names and a body expression.
@@ -512,6 +533,10 @@ enum Token {
     /// `0xFFi`. The tokenizer folds the suffix in so `3 + 4i` parses as
     /// one literal; the parser spells it `4 * i`.
     Imaginary(f64),
+    /// A string literal (ADR-0054): `"hello"`. The tokenizer reads to
+    /// the closing quote; there are no escape sequences, so a string
+    /// cannot contain a double quote.
+    Str(String),
 }
 
 fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
@@ -685,6 +710,25 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
                 tokens.push(Token::RBracket);
                 chars.next();
             }
+            '"' => {
+                // A string literal (ADR-0054): read to the closing
+                // quote. No escape sequences; a string cannot contain a
+                // double quote, which keeps the tokenizer one pass.
+                chars.next(); // the opening quote
+                let mut s = String::new();
+                loop {
+                    match chars.next() {
+                        Some('"') => break,
+                        Some(c2) => s.push(c2),
+                        None => {
+                            return Err(EpherError::Parse(
+                                "unterminated string: a literal needs its closing quote".to_string(),
+                            ))
+                        }
+                    }
+                }
+                tokens.push(Token::Str(s));
+            }
             '0' if matches!(
                 chars.clone().nth(1),
                 Some('b' | 'B' | 'o' | 'O' | 'x' | 'X')
@@ -847,6 +891,33 @@ impl Parser {
             self.expect_keyword("do")?;
             let body = Box::new(self.parse_statement()?);
             return Ok(Statement::While(cond, body));
+        }
+        if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "for") {
+            // `for i in 1 to 5 [step s] do body` or `for x in d do body`
+            // (ADR-0054). The iterable is parsed as an ordinary
+            // expression: `to`, `step`, and `do` are ordinary names the
+            // expression grammar cannot continue with, so the range
+            // forms end cleanly after their expressions.
+            self.next(); // consume 'for'
+            let var = self.expect_ident("loop variable")?;
+            self.expect_keyword("in")?;
+            let first = self.parse_expression()?;
+            let iterable = if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "to") {
+                self.next(); // consume 'to'
+                let end = self.parse_expression()?;
+                let step = if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "step") {
+                    self.next(); // consume 'step'
+                    Some(self.parse_expression()?)
+                } else {
+                    None
+                };
+                ForIterable::Range { start: first, end, step }
+            } else {
+                ForIterable::Items(first)
+            };
+            self.expect_keyword("do")?;
+            let body = Box::new(self.parse_statement()?);
+            return Ok(Statement::For(var, iterable, body));
         }
         if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "solve") {
             // `solve lhs == rhs` (ADR-0043): the comparison level of the
@@ -1350,6 +1421,7 @@ impl Parser {
                     Box::new(Expression::Var("i".into())),
                 ))
             }
+            Some(Token::Str(s)) => Ok(Expression::StrLit(s)),
             Some(Token::Ident(name)) => {
                 if matches!(self.peek(), Some(Token::LParen)) {
                     self.next(); // consume '(' — call syntax
@@ -1688,11 +1760,22 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                             .collect(),
                     ))
                 }
+                // A 1-based character (ADR-0054): `"hello"[1]` is "h".
+                Value::Str(s) => {
+                    let n = s.chars().count();
+                    if !(1..=n as i64).contains(&i) {
+                        return Err(EpherError::Type(format!(
+                            "index {i} is out of range for a string of {n} character(s)"
+                        )));
+                    }
+                    Ok(Value::Str(s.chars().nth((i - 1) as usize).expect("in range").to_string()))
+                }
                 other => Err(EpherError::Type(format!(
-                    "indexing needs a list or matrix, got {other:?}"
+                    "indexing needs a list, matrix, or string, got {other:?}"
                 ))),
             }
         }
+        Expression::StrLit(s) => Ok(Value::Str(s.clone())),
         Expression::Factorial(inner) => {
             let v = eval(inner, env)?;
             let x = one_float("!", &[v])?;
@@ -1757,6 +1840,11 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                     } else {
                         l != r
                     }))
+                }
+                // String equality (ADR-0054): `"a" == "b"` compares
+                // whole strings; ordering stays a type error.
+                (Value::Str(a), Value::Str(b)) if matches!(op, CmpOp::Eq | CmpOp::Ne) => {
+                    Ok(Value::Bool(if matches!(op, CmpOp::Eq) { a == b } else { a != b }))
                 }
                 // Numeric comparisons across all the numeric types
                 // (ADR-0047): same-type exact pairs compare exactly;
@@ -1854,7 +1942,7 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                 // Seeded random numbers (ADR-0045): the generator state
                 // lives in the environment, so these need `env` like the
                 // calculus forms do.
-                "random" | "randint" | "randseed" => {
+                "random" | "randint" | "randseed" | "randn" => {
                     let mut values = Vec::with_capacity(args.len());
                     for arg in args {
                         values.push(eval(arg, env)?);
@@ -2053,6 +2141,24 @@ fn eval_random(name: &str, args: Vec<Value>, env: &Env) -> Result<Value, EpherEr
                     args.len()
                 ))),
             }
+        }
+        "randn" => {
+            // Normal draws (ADR-0054): Box-Muller on the seeded
+            // generator, so `randseed` makes every draw reproducible
+            // exactly like `random` (Desmos randomNormal, TI randNorm).
+            let (mu, sigma) = two_floats(name, &args)?;
+            if sigma <= 0.0 {
+                return Err(domain_error(format!("{name} needs sigma > 0, got {sigma}")));
+            }
+            let uniform = || {
+                let u = ((next(env) >> 11) as f64) * (1.0 / 9_007_199_254_740_992.0);
+                // 0.0 is measure-zero but a ln(0) would poison the draw
+                if u == 0.0 { f64::MIN_POSITIVE } else { u }
+            };
+            let u1 = uniform();
+            let u2 = uniform();
+            let z = (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos();
+            Ok(Value::Float(mu + sigma * z))
         }
         _ => {
             let (a, b) = integer_pair(name, &args)?;
@@ -2893,6 +2999,294 @@ pub(crate) fn linear_fit(xs: &[f64], ys: &[f64]) -> Result<(f64, f64, f64), Ephe
         (sxy / (sxx * syy).sqrt()).clamp(-1.0, 1.0)
     };
     Ok((a, b, r))
+}
+
+/// The regression family (ADR-0054): the models real calculators fit
+/// on a list pair. `Exponential` fits `y = a·e^(bx)` (y > 0), `Power`
+/// fits `y = a·x^b` (x, y > 0), `Logarithmic` fits `y = a + b·ln(x)`
+/// (x > 0), each through a linear fit on the transformed pair, and r
+/// is the correlation of that linearized fit, which is what TI and
+/// NumWorks report.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FitKind {
+    Linear,
+    Quadratic,
+    Exponential,
+    Power,
+    Logarithmic,
+}
+
+/// A fitted model: the coefficients (`c` only for the quadratic) and
+/// the reported r. `Fit::eval` draws the overlay; `Fit::caption` is
+/// the display string the `*reg` builtins return.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Fit {
+    pub kind: FitKind,
+    pub a: f64,
+    pub b: f64,
+    pub c: f64,
+    pub r: f64,
+}
+
+impl Fit {
+    /// The model's value at x. Outside the domain of a transformed
+    /// model (`Power`/`Logarithmic` at x <= 0) the value is NaN, which
+    /// renderers skip like any other hole.
+    pub fn eval(&self, x: f64) -> f64 {
+        match self.kind {
+            FitKind::Linear => self.a * x + self.b,
+            FitKind::Quadratic => (self.a * x + self.b) * x + self.c,
+            FitKind::Exponential => self.a * (self.b * x).exp(),
+            FitKind::Power => {
+                if x > 0.0 {
+                    self.a * x.powf(self.b)
+                } else {
+                    f64::NAN
+                }
+            }
+            FitKind::Logarithmic => {
+                if x > 0.0 {
+                    self.a + self.b * x.ln()
+                } else {
+                    f64::NAN
+                }
+            }
+        }
+    }
+
+    /// The display string: the same `y = a*x + b (r = r)` spelling
+    /// `linreg` has always returned, extended per model.
+    pub fn caption(&self) -> String {
+        match self.kind {
+            FitKind::Linear => {
+                format!("y = {}*x + {} (r = {})", stat_str(self.a), stat_str(self.b), stat_str(self.r))
+            }
+            FitKind::Quadratic => format!(
+                "y = {}*x^2 + {}*x + {} (r = {})",
+                stat_str(self.a),
+                stat_str(self.b),
+                stat_str(self.c),
+                stat_str(self.r)
+            ),
+            FitKind::Exponential => format!(
+                "y = {}*e^({}*x) (r = {})",
+                stat_str(self.a),
+                stat_str(self.b),
+                stat_str(self.r)
+            ),
+            FitKind::Power => {
+                format!("y = {}*x^{} (r = {})", stat_str(self.a), stat_str(self.b), stat_str(self.r))
+            }
+            FitKind::Logarithmic => format!(
+                "y = {} + {}*ln(x) (r = {})",
+                stat_str(self.a),
+                stat_str(self.b),
+                stat_str(self.r)
+            ),
+        }
+    }
+}
+
+/// Fit one of the regression models to a list pair (ADR-0054).
+pub fn fit_regression(kind: FitKind, xs: &[f64], ys: &[f64]) -> Result<Fit, EpherError> {
+    if xs.len() != ys.len() {
+        return Err(EpherError::Type(format!(
+            "the fit needs two same-length lists, got {} and {}",
+            xs.len(),
+            ys.len()
+        )));
+    }
+    match kind {
+        FitKind::Linear => {
+            let (a, b, r) = linear_fit(xs, ys)?;
+            Ok(Fit { kind, a, b, c: 0.0, r })
+        }
+        FitKind::Quadratic => {
+            if xs.len() < 3 {
+                return Err(domain_error("quadratic fit needs at least 3 points"));
+            }
+            // The normal equations of the Vandermonde design [x² x 1]:
+            // solve the 3×3 Gram system for [a, b, c].
+            let (mut s0, mut s1, mut s2, mut s3, mut s4) = (0.0f64, 0.0f64, 0.0f64, 0.0f64, 0.0f64);
+            let (mut t0, mut t1, mut t2) = (0.0f64, 0.0f64, 0.0f64);
+            for (x, y) in xs.iter().zip(ys.iter()) {
+                let x2 = x * x;
+                s0 += 1.0;
+                s1 += x;
+                s2 += x2;
+                s3 += x2 * x;
+                s4 += x2 * x2;
+                t0 += y;
+                t1 += x * y;
+                t2 += x2 * y;
+            }
+            let Some([a, b, c]) = solve3(
+                [[s4, s3, s2], [s3, s2, s1], [s2, s1, s0]],
+                [t2, t1, t0],
+            ) else {
+                return Err(domain_error(
+                    "quadratic fit needs at least 3 distinct x values",
+                ));
+            };
+            let fitted: Vec<f64> = xs.iter().map(|&x| (a * x + b) * x + c).collect();
+            let r = pearson(ys, &fitted);
+            Ok(Fit { kind, a, b, c, r })
+        }
+        FitKind::Exponential => {
+            if xs.len() < 2 {
+                return Err(domain_error("exponential fit needs at least 2 points"));
+            }
+            if ys.iter().any(|&y| y <= 0.0) {
+                return Err(domain_error(
+                    "exponential fit needs y > 0 (the model is y = a*e^(b*x))",
+                ));
+            }
+            let ly: Vec<f64> = ys.iter().map(|y| y.ln()).collect();
+            let (b, ln_a, r) = linear_fit(xs, &ly)?;
+            if ln_a > 700.0 {
+                return Err(domain_error("the exponential fit overflows"));
+            }
+            Ok(Fit { kind, a: ln_a.exp(), b, c: 0.0, r })
+        }
+        FitKind::Power => {
+            if xs.len() < 2 {
+                return Err(domain_error("power fit needs at least 2 points"));
+            }
+            if xs.iter().any(|&x| x <= 0.0) || ys.iter().any(|&y| y <= 0.0) {
+                return Err(domain_error(
+                    "power fit needs x > 0 and y > 0 (the model is y = a*x^b)",
+                ));
+            }
+            let lx: Vec<f64> = xs.iter().map(|x| x.ln()).collect();
+            let ly: Vec<f64> = ys.iter().map(|y| y.ln()).collect();
+            let (b, ln_a, r) = linear_fit(&lx, &ly)?;
+            if ln_a > 700.0 {
+                return Err(domain_error("the power fit overflows"));
+            }
+            Ok(Fit { kind, a: ln_a.exp(), b, c: 0.0, r })
+        }
+        FitKind::Logarithmic => {
+            if xs.len() < 2 {
+                return Err(domain_error("logarithmic fit needs at least 2 points"));
+            }
+            if xs.iter().any(|&x| x <= 0.0) {
+                return Err(domain_error(
+                    "logarithmic fit needs x > 0 (the model is y = a + b*ln(x))",
+                ));
+            }
+            let lx: Vec<f64> = xs.iter().map(|x| x.ln()).collect();
+            let (b, a, r) = linear_fit(&lx, ys)?;
+            Ok(Fit { kind, a, b, c: 0.0, r })
+        }
+    }
+}
+
+/// The Pearson correlation of an already-transformed pair, with the
+/// degenerate conventions `linear_fit` uses: a constant side fits
+/// perfectly.
+fn pearson(xs: &[f64], ys: &[f64]) -> f64 {
+    let n = xs.len() as f64;
+    let mx = xs.iter().sum::<f64>() / n;
+    let my = ys.iter().sum::<f64>() / n;
+    let (mut sxx, mut sxy, mut syy) = (0.0f64, 0.0f64, 0.0f64);
+    for (x, y) in xs.iter().zip(ys.iter()) {
+        let dx = x - mx;
+        let dy = y - my;
+        sxx += dx * dx;
+        sxy += dx * dy;
+        syy += dy * dy;
+    }
+    if sxx == 0.0 || syy == 0.0 {
+        return 1.0;
+    }
+    (sxy / (sxx * syy).sqrt()).clamp(-1.0, 1.0)
+}
+
+/// Solve a 3×3 system by Gaussian elimination with partial pivoting.
+/// Own code by the reuse ladder's last resort (ADR-0054): a plain-float
+/// 3×3 solve is ~20 lines, and pulling in a linear-algebra crate for it
+/// (nalgebra, statrs) would out-weigh the feature.
+fn solve3(m: [[f64; 3]; 3], v: [f64; 3]) -> Option<[f64; 3]> {
+    let mut a = m;
+    let mut b = v;
+    for col in 0..3 {
+        let pivot = (col..3).max_by(|&i, &j| a[i][col].total_cmp(&a[j][col]))?;
+        if a[pivot][col] == 0.0 {
+            return None; // singular: duplicate x values
+        }
+        a.swap(col, pivot);
+        b.swap(col, pivot);
+        for row in (col + 1)..3 {
+            let f = a[row][col] / a[col][col];
+            // The pivot row is copied first: rows below the pivot never
+            // overlap it, and a plain double index would fight the borrow
+            // checker on the way to the iterator form.
+            let pivot = a[col];
+            for (target, &p) in a[row].iter_mut().zip(pivot.iter()).skip(col) {
+                *target -= f * p;
+            }
+            b[row] -= f * b[col];
+        }
+    }
+    let mut x = [0.0f64; 3];
+    for row in (0..3).rev() {
+        let sum: f64 = (row + 1..3).map(|k| a[row][k] * x[k]).sum();
+        x[row] = (b[row] - sum) / a[row][row];
+    }
+    Some(x)
+}
+
+/// The F distribution CDF through the incomplete beta (ADR-0054):
+/// P(F <= f; d1, d2) = I_x(d1/2, d2/2) at x = d1·f / (d1·f + d2).
+fn f_cdf(f: f64, d1: f64, d2: f64) -> f64 {
+    if f <= 0.0 {
+        return 0.0;
+    }
+    let x = d1 * f / (d1 * f + d2);
+    regularized_beta(d1 / 2.0, d2 / 2.0, x)
+}
+
+/// Extract the `(xs, ys)` pair the regression builtins fit: two
+/// same-length lists of numbers.
+fn reg_pair(name: &str, args: &[Value]) -> Result<(Vec<f64>, Vec<f64>), EpherError> {
+    let to = |items: &Value| -> Result<Vec<f64>, EpherError> {
+        let Value::List(items) = items else {
+            return Err(EpherError::Type(format!(
+                "{name} expects two same-length lists, got {} argument(s)",
+                args.len()
+            )));
+        };
+        let mut out = Vec::with_capacity(items.len());
+        for item in items {
+            match item {
+                Value::Float(x) => out.push(*x),
+                other => {
+                    return Err(EpherError::Type(format!(
+                        "{name} expects numbers, got {other:?}"
+                    )))
+                }
+            }
+        }
+        Ok(out)
+    };
+    match args {
+        [a, b] if matches!(a, Value::List(_)) && matches!(b, Value::List(_)) => {
+            let xs = to(a)?;
+            let ys = to(b)?;
+            if xs.len() != ys.len() {
+                return Err(EpherError::Type(format!(
+                    "{name} lists have different lengths: {} and {}",
+                    xs.len(),
+                    ys.len()
+                )));
+            }
+            Ok((xs, ys))
+        }
+        _ => Err(EpherError::Type(format!(
+            "{name} expects two same-length lists, got {} argument(s)",
+            args.len()
+        ))),
+    }
 }
 
 /// The regularized upper incomplete gamma Q(a, x) = 1 - P(a, x), by
@@ -3875,6 +4269,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "str",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "sum",
         kind: CatalogKind::Function,
     },
@@ -4773,6 +5171,8 @@ fn poly_coeffs(expr: &Expression, variable: &str, env: &Env) -> Option<Vec<f64>>
     };
     match expr {
         Expression::Literal(n) => Some(vec![*n]),
+        // A string literal is not a polynomial (ADR-0054).
+        Expression::StrLit(_) => None,
         Expression::Var(name) => {
             if name == variable {
                 Some(vec![0.0, 1.0])
@@ -5924,14 +6324,33 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
         }
         // List shape and ordering (ADR-0044).
         "len" => {
-            let Value::List(items) = one_arg(name, &args)? else {
+            match one_arg(name, &args)? {
+                Value::List(items) => Ok(Value::Float(items.len() as f64)),
+                // String length (ADR-0054): characters, not bytes.
+                Value::Str(s) => Ok(Value::Float(s.chars().count() as f64)),
+                other => Err(EpherError::Type(format!(
+                    "len expects a list or string, got {other:?}"
+                ))),
+            }
+        }
+        // Strings in, strings out (ADR-0054): `str` spells one value
+        // the way the answer panel would; `print` joins its arguments
+        // with spaces; the line a loop collects.
+        "str" => {
+            let [v] = args.as_slice() else {
                 return Err(EpherError::Type(format!(
-                    "{name} expects a list, got {}",
+                    "str expects 1 argument, got {}",
                     args.len()
                 )));
             };
-            Ok(Value::Float(items.len() as f64))
+            Ok(Value::Str(format_value(v, &DisplayPrefs::default())))
         }
+        "print" => Ok(Value::Str(
+            args.iter()
+                .map(|v| format_value(v, &DisplayPrefs::default()))
+                .collect::<Vec<_>>()
+                .join(" "),
+        )),
         "sort" => {
             let mut xs = any_floats(name, &args)?;
             xs.sort_by(|a, b| a.partial_cmp(b).expect("floats are comparable"));
@@ -6039,6 +6458,19 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                 stat_str(b),
                 stat_str(r)
             )))
+        }
+        // The regression family (ADR-0054): the models TI and NumWorks
+        // fit on a list pair, each reporting its r and drawing an
+        // overlay through `scatter xs, ys, <model>`.
+        "quadreg" | "expreg" | "powreg" | "logreg" => {
+            let (xs, ys) = reg_pair(name, &args)?;
+            let kind = match name {
+                "quadreg" => FitKind::Quadratic,
+                "expreg" => FitKind::Exponential,
+                "powreg" => FitKind::Power,
+                _ => FitKind::Logarithmic,
+            };
+            Ok(Value::Str(fit_regression(kind, &xs, &ys)?.caption()))
         }
         // Probability distributions (ADR-0044): the normal family takes
         // one or three arguments (1-argument forms are the standard
@@ -6332,6 +6764,88 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                 stat_str(p)
             )))
         }
+        "ttestpaired" => {
+            // Paired t (ADR-0054): the one-sample t of the differences,
+            // tested against 0, the classroom "before and after" test:
+            let (a, b) = reg_pair(name, &args)?;
+            if a.len() < 2 {
+                return Err(domain_error("ttestpaired needs at least 2 pairs"));
+            }
+            let diffs: Vec<f64> = a.iter().zip(b.iter()).map(|(x, y)| x - y).collect();
+            let n = diffs.len() as f64;
+            let (mean, sd) = sample_mean_std(&diffs);
+            let t = (mean) / (sd / n.sqrt());
+            let p = if sd == 0.0 {
+                if mean == 0.0 { 1.0 } else { 0.0 }
+            } else {
+                t_two_sided(t, n - 1.0)
+            };
+            Ok(Value::Str(format!(
+                "t = {}, p = {}",
+                stat_str(t),
+                stat_str(p)
+            )))
+        }
+        "anova" => {
+            // One-way ANOVA (ADR-0054): F and its p over 2+ groups,
+            // unequal group lengths welcome. The F CDF runs on the
+            // incomplete beta the t family's tail work already relies
+            // on (puruspe's betai behind the clamping wrapper).
+            if args.len() < 2 {
+                return Err(EpherError::Type(format!(
+                    "anova needs at least two lists, got {}",
+                    args.len()
+                )));
+            }
+            let mut groups = Vec::with_capacity(args.len());
+            for i in 0..args.len() {
+                groups.push(data_list(name, &args, i)?);
+            }
+            if groups.iter().any(|g| g.is_empty()) {
+                return Err(domain_error("anova needs non-empty groups"));
+            }
+            let k = groups.len() as f64;
+            let n_total: f64 = groups.iter().map(|g| g.len()).sum::<usize>() as f64;
+            if n_total <= k {
+                return Err(domain_error(
+                    "anova needs more data points than groups",
+                ));
+            }
+            let grand = groups
+                .iter()
+                .flat_map(|g| g.iter().copied())
+                .sum::<f64>()
+                / n_total;
+            let ssb: f64 = groups
+                .iter()
+                .map(|g| {
+                    let m = g.iter().sum::<f64>() / g.len() as f64;
+                    g.len() as f64 * (m - grand) * (m - grand)
+                })
+                .sum();
+            let ssw: f64 = groups
+                .iter()
+                .map(|g| {
+                    let m = g.iter().sum::<f64>() / g.len() as f64;
+                    g.iter().map(|x| (x - m) * (x - m)).sum::<f64>()
+                })
+                .sum();
+            let df1 = k - 1.0;
+            let df2 = n_total - k;
+            let (f_stat, p) = if ssw == 0.0 {
+                // every value in every group identical: no within-group
+                // variance, so the F statistic is degenerate
+                if ssb == 0.0 { (0.0, 1.0) } else { (f64::INFINITY, 0.0) }
+            } else {
+                let f = (ssb / df1) / (ssw / df2);
+                (f, (1.0 - f_cdf(f, df1, df2)).max(0.0))
+            };
+            Ok(Value::Str(format!(
+                "F = {}, p = {}",
+                stat_str(f_stat),
+                stat_str(p)
+            )))
+        }
         "zinterval" => {
             let (data, sigma, level) = match args.as_slice() {
                 [_d, Value::Float(sigma), Value::Float(level)] => {
@@ -6516,6 +7030,7 @@ fn stmt_value(
             run_while(cond, body, env, steps)?;
             None
         }
+        Statement::For(var, iterable, body) => Some(run_for(var, iterable, body, env, steps)?),
         Statement::Solve(equation) => Some(solve_statement(equation, env)?),
     };
     if let Some(v) = &value {
@@ -6596,6 +7111,83 @@ fn run_while(
         }
     }
     Ok(())
+}
+
+/// The most iterations a `for` loop may run (ADR-0054): the same
+/// runaway guard spirit as the table's 1000 points, sized larger
+/// because each iteration does real work the step budget also counts.
+const MAX_FOR_ITERATIONS: i64 = 100_000;
+
+/// Run a `for` loop (ADR-0054): bind the loop variable for each
+/// element, collect the body's values (statements with no value, such
+/// as a definition or a nested `while`, contribute nothing), and return the
+/// collected list. The loop variable keeps its last value afterwards,
+/// like TI's `For`.
+fn run_for(
+    var: &str,
+    iterable: &ForIterable,
+    body: &Statement,
+    env: &mut Env,
+    steps: &mut u64,
+) -> Result<Value, EpherError> {
+    let items: Vec<Value> = match iterable {
+        ForIterable::Items(expr) => match eval(expr, env)? {
+            Value::List(items) => items,
+            other => {
+                return Err(EpherError::Type(format!(
+                    "for needs a list or a range, got {other:?}; \
+                     try `for i in 1 to 5 do ...` or `for x in d do ...`"
+                )))
+            }
+        },
+        ForIterable::Range { start, end, step } => {
+            let Value::Float(start) = eval(start, env)? else {
+                return Err(EpherError::Type(
+                    "the range start must be a number".to_string(),
+                ));
+            };
+            let Value::Float(end) = eval(end, env)? else {
+                return Err(EpherError::Type("the range end must be a number".to_string()));
+            };
+            let step = match step {
+                Some(expr) => match eval(expr, env)? {
+                    Value::Float(s) => s,
+                    other => {
+                        return Err(EpherError::Type(format!(
+                            "the step must be a number, got {other:?}"
+                        )))
+                    }
+                },
+                None => 1.0,
+            };
+            if step == 0.0 || !step.is_finite() {
+                return Err(domain_error(format!(
+                    "the step must be a nonzero number, got {step}"
+                )));
+            }
+            // Index-based so values never accumulate float drift: the
+            // k-th value is computed directly from k. A range that runs
+            // backwards against its step is simply empty.
+            let count = (((end - start) / step) + 1e-9).floor() + 1.0;
+            let count = count.max(0.0);
+            if count > MAX_FOR_ITERATIONS as f64 {
+                return Err(domain_error(format!(
+                    "for runs at most {MAX_FOR_ITERATIONS} iterations, got {count:.0}"
+                )));
+            }
+            (0..count as i64)
+                .map(|k| Value::Float(start + k as f64 * step))
+                .collect()
+        }
+    };
+    let mut collected = Vec::with_capacity(items.len());
+    for item in items {
+        env.set(var.to_string(), item);
+        if let Some(value) = stmt_value(body, env, steps)? {
+            collected.push(value);
+        }
+    }
+    Ok(Value::List(collected))
 }
 
 /// An interactive session: a persistent [`Env`] plus history — the shared
@@ -6910,6 +7502,17 @@ fn binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
     // type error; a scalar is any plain number.
     if matches!(&lhs, Value::List(_)) || matches!(&rhs, Value::List(_)) {
         return list_binop(lhs, rhs, op);
+    }
+    // String arithmetic (ADR-0054): `+` concatenates, and that is the
+    // whole of it; there is no string subtraction, and mixing a string
+    // with a number is a type error (use `str` or `print`).
+    if matches!(&lhs, Value::Str(_)) || matches!(&rhs, Value::Str(_)) {
+        if let (Value::Str(a), Value::Str(b), BinOp::Add) = (&lhs, &rhs, op) {
+            return Ok(Value::Str(format!("{a}{b}")));
+        }
+        return Err(EpherError::Type(
+            "strings only support + (concatenation)".to_string(),
+        ));
     }
     match (&lhs, &rhs) {
         (Value::Float(a), Value::Float(b)) => Ok(Value::Float(float_binop(op, *a, *b)?)),

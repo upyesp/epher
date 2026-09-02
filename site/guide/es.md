@@ -366,8 +366,9 @@ if price > 50 then 2 else 1
 2
 ```
 
-> epher no tiene valores de texto: ambas ramas de un `if` deben ser números
-> (o resultados de comparaciones).
+> Un `if` también puede comparar cadenas (sección 1.29): ambas ramas solo
+> necesitan ser valores del mismo tipo: números con números, cadenas con
+> cadenas.
 
 ### 1.8 Bucles con while
 
@@ -673,13 +674,16 @@ Los primos y los divisores trabajan con números enteros:
 | Estadística de lista | `mean(lista)`, `median(lista)`, … | `stdev(d)` |
 | Forma de lista | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
 | Regresión lineal | `linreg(xs, ys)` | `linreg(x, y)` |
+| Familia de regresiones | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
 | Familia normal | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
 | Familia t | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
 | Familia chi-cuadrado | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
 | Familias discretas | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
 | Pruebas e intervalos | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| ANOVA y t emparejada | `anova(listas...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
 | Gráficos de datos | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
 | Números aleatorios | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| Extracciones normales | `randn(mu, sigma)` | `randn(0, 1)` |
 | Explorador de constantes | Ayuda → Constantes: todas las constantes, agrupadas | Ayuda → Constantes |
 | Cantidad | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
 | Convertir | `expr in unidad` o `expr -> unidad` | `72 km/hr in m/s` |
@@ -822,7 +826,10 @@ conoce, para que puedas arreglar tu expresión.
 | Constante | `const name = value` | `const tax = 0.2` |
 | Decisión | `if c then a else b` | `if x > 0 then 1 else -1` |
 | Bucle | `while c do statement` | `while x < 5 do x = x + 1` |
+| Bucle for | `for i in a to b step s do sentencia` | `for i in 1 to 5 do i^2` |
 | Función | `def name(params) = expr` | `def f(x) = x ^ 2` |
+| Cadenas | `"..."`, `+` une, `s[i]`, `==` | `"a" + "b"` |
+| Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Script | instrucciones unidas con `;` o saltos de línea | `x = 1; x + 1` |
 | Fracción exacta | `frac(n, d)` | `frac(1, 3)` |
 | Decimal exacto | `dec(x)` | `dec(0.1) + dec(0.2)` |
@@ -1149,6 +1156,20 @@ linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})
 La recta ajustada es una presentación, como las raíces de solve; la
 imagen del ajuste vive en el gráfico de dispersión (sección 1.22).
 
+El resto de la familia de regresiones ajusta los modelos a los que crecen las calculadoras: **quadreg** ajusta `y = a*x^2 + b*x + c` (al menos 3 puntos), **expreg** ajusta `y = a*e^(b*x)` (y > 0), **powreg** ajusta `y = a*x^b` (x e y > 0), y **logreg** ajusta `y = a + b*ln(x)` (x > 0). Cada uno informa el modelo con su r:
+
+```epher
+quadreg({1, 2, 3, 4}, {1, 4.1, 8.9, 16.2})
+expreg({1, 2, 3}, {2.7, 7.4, 20.1})
+```
+
+```text
+y = 1.05*x^2 + -0.21*x + 0.2 (r = 0.9999)
+y = 0.9911*e^(1.0037*x) (r = 1)
+```
+
+El r de un ajuste transformado es la correlación del par linealizado: el mismo número que informan TI y NumWorks. Cada modelo también puede dibujarse sobre un diagrama de dispersión: `graph scatter(xs, ys, quadreg)` (o expreg, powreg, logreg) traza los puntos con la curva de ese modelo.
+
 ### 1.21 Distribuciones y pruebas de hipótesis
 
 Las funciones de probabilidad cubren la normal estándar, la t de
@@ -1197,6 +1218,26 @@ estándar muestral (n−1); `ztest(datos, mu0, sigma)` y
 con k−1 grados de libertad. Los resultados son textos de presentación:
 legibles y copiables, pero la aritmética no puede tocarlos.
 
+Dos pruebas más comparten la misma forma. **anova(lista1, lista2, …)** es el análisis de varianza de una vía sobre dos o más grupos (las longitudes desiguales están bien) e informa F con su valor p:
+
+```epher
+anova({1, 2, 3}, {4, 5, 6}, {7, 8, 9})
+```
+
+```text
+F = 27, p = 0.001
+```
+
+**ttestpaired(a, b)** es la prueba t emparejada: toma las diferencias de dos listas de la misma longitud y las contrasta contra 0, la prueba de "antes y después" del aula:
+
+```epher
+ttestpaired({80, 85, 90}, {82, 84, 91})
+```
+
+```text
+t = -0.7559, p = 0.5286
+```
+
 ### 1.22 Gráficos de datos
 
 La familia de gráficos también acepta listas: un diagrama de
@@ -1228,6 +1269,7 @@ ventana siempre se ajusta a los datos — las palabras clave `from a to
 b` no se aplican — y la imagen se exporta y guarda como cualquier
 gráfico.
 
+Una tercera palabra opcional elige el modelo: `graph scatter(xs, ys, quadreg)` (o expreg, powreg, logreg) dibuja ese ajuste en lugar de la recta.
 ### 1.23 Números aleatorios
 
 `random()` sortea un número uniforme en `[0, 1)`, `random(a, b)` uno en
@@ -1247,6 +1289,20 @@ randint(1, 6)
 La secuencia es reproducible: `randseed(n)` reinicia el generador con `n`
 y lo muestra, así que la misma semilla repite los mismos sorteos en cada
 sesión y en cada interfaz.
+
+**randn(mu, sigma)** extrae de la distribución normal con media mu y desviación estándar sigma (Desmos la llama randomNormal, TI la llama randNorm):
+
+```epher
+randseed(7)
+randn(0, 1)
+```
+
+```text
+7
+1.36499229746
+```
+
+La misma semilla repite las mismas extracciones, exactamente como las uniformes.
 
 ### 1.24 Unidades y conversión
 
@@ -1463,6 +1519,63 @@ n periodos, `simple_interest(p, r, t)` es `p*r*t`, y
 `compound_interest(p, r, n)` es `p*(1+r)^n - p`.
 
 
+### 1.29 Cadenas y print
+
+Una cadena es texto entre comillas dobles: `"hello"`. Las cadenas se concatenan con `+`, se comparan con `==` y `!=`, se cuentan con `len` y se indexan desde 1 como las listas:
+
+```epher
+"hello" + " " + "world"
+len("hello")
+"hello"[1]
+"abc" == "abd"
+```
+
+```text
+hello world
+5
+h
+false
+```
+
+No hay secuencias de escape: una cadena no puede contener comillas dobles. **str(x)** escribe un valor como lo haría el panel de respuestas, y **print(a, b, …)** une sus argumentos con espacios en una línea:
+
+```epher
+print("x =", 42)
+```
+
+```text
+x = 42
+```
+
+### 1.30 Bucles con for
+
+`for` repite una sentencia una vez por valor y reúne los valores del cuerpo en una lista: sobre un rango `start to end` (inclusive) con un `step` opcional, o sobre los elementos de una lista:
+
+```epher
+for i in 1 to 5 do i^2
+for x in {2, 3, 4} do 10*x
+for i in 0 to 1 step 0.5 do i
+```
+
+```text
+{1, 4, 9, 16, 25}
+{20, 30, 40}
+{0, 0.5, 1}
+```
+
+La variable del bucle conserva su último valor, como el For de TI. Con print, un bucle escribe líneas legibles:
+
+```epher
+for i in 1 to 3 do print("line", i)
+```
+
+```text
+{line 1, line 2, line 3}
+```
+
+La misma red de seguridad de 100.000 pasos limita un bucle for que un while.
+
+
 ## 2. La aplicación web (PWA)
 
 ### 2.1 Cómo abrirla
@@ -1625,6 +1738,24 @@ table x ^ 2 from -2 to 2 points 5
          2           4
 ```
 
+Dos cláusulas más cubren el resto del trabajo. `values <lista>` toma la columna x de una lista de datos en lugar de una malla uniforme: dale tus datos y velo transformado:
+
+```epher
+d = {1, 2, 3, 4, 5}
+table x ^ 2 values d
+```
+
+```text
+         x           y
+         1           1
+         2           4
+         3           9
+         4          16
+         5          25
+```
+
+Y `exact` / `approx` fuerzan la visualización de las celdas para una tabla: `exact` muestra fracciones simples donde quepan, `approx` muestra decimales; cada uno anula los ajustes de resultados para ese único comando.
+
 #### 2.4.3 Deslizadores y exportación
 
 Define una constante, úsala en una gráfica y aparece un deslizador debajo
@@ -1657,6 +1788,7 @@ arrastrando, o enfoca la gráfica y usa las teclas de flecha. La interfaz
 de terminal dibuja la misma superficie como una malla alámbrica ASCII,
 girándola con las teclas de flecha.
 
+Las curvas espaciales se trazan con `param`: `graph3d param cos(t), sin(t), t` dibuja una hélice sobre el rango de t que des (`from 0 to 6.28318`), o de 0 a 2pi por defecto. Mismo panel, misma rotación, zoom y animación.
 #### 2.4.5 Animación
 
 Cada deslizador tiene un botón de reproducción. Avanza su constante a lo

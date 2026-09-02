@@ -199,6 +199,29 @@ pub fn label(v: f64) -> String {
     s.to_string()
 }
 
+/// The scatter fit's legend text (the live web renderer's fit
+/// caption): the model's own equation with the legend's short number
+/// spelling. The linear form is what the line fit has always shown.
+pub fn fit_legend(f: &crate::graph::Fit) -> String {
+    use crate::graph::ScatterFit;
+    let g = f.fit;
+    match f.model {
+        ScatterFit::Linreg => {
+            format!("y = {}*x + {} (r = {})", label(g.a), label(g.b), label(g.r))
+        }
+        ScatterFit::Quadreg => format!(
+            "y = {}*x^2 + {}*x + {} (r = {})",
+            label(g.a),
+            label(g.b),
+            label(g.c),
+            label(g.r)
+        ),
+        ScatterFit::Expreg => format!("y = {}*e^({}*x) (r = {})", label(g.a), label(g.b), label(g.r)),
+        ScatterFit::Powreg => format!("y = {}*x^{} (r = {})", label(g.a), label(g.b), label(g.r)),
+        ScatterFit::Logreg => format!("y = {} + {}*ln(x) (r = {})", label(g.a), label(g.b), label(g.r)),
+    }
+}
+
 /// XML-escape text that lands in SVG attributes and elements.
 pub fn escape(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
@@ -458,22 +481,26 @@ pub fn data_svg(data: &DataPlot, stroke_width: f64) -> String {
                 ));
             }
             if let Some(f) = data.fit {
-                let (x0, x1) = (geom.x_min, geom.x_max);
-                let (y0, y1) = (f.a * x0 + f.b, f.a * x1 + f.b);
+                // Sample the model across the window (the quadratic can
+                // turn inside it; endpoints alone would miss that).
+                const FIT_SAMPLES: usize = 24;
+                let mut pts = String::new();
+                for k in 0..=FIT_SAMPLES {
+                    let x = geom.x_min + (geom.x_max - geom.x_min) * k as f64 / FIT_SAMPLES as f64;
+                    let y = f.fit.eval(x);
+                    if y.is_finite() {
+                        pts.push_str(&format!("{},{:.2} ", geom.sx(x), geom.sy(y)));
+                    }
+                }
                 svg.push_str(&format!(
-                    "<polyline class=\"curve curve-0\" points=\"{},{:.2} {},{:.2}\" />",
-                    geom.sx(x0),
-                    geom.sy(y0),
-                    geom.sx(x1),
-                    geom.sy(y1)
+                    "<polyline class=\"curve curve-0\" points=\"{}\" />",
+                    pts.trim_end()
                 ));
                 svg.push_str(&format!(
-                    "<text class=\"label curve-0\" x=\"{}\" y=\"{}\">y = {}*x + {} (r = {})</text>",
+                    "<text class=\"label curve-0\" x=\"{}\" y=\"{}\">{}</text>",
                     LEFT + 6.0,
                     TOP + 16.0,
-                    short(f.a),
-                    short(f.b),
-                    short(f.r)
+                    fit_label(data)
                 ));
             }
         }
@@ -534,6 +561,37 @@ pub fn data_svg(data: &DataPlot, stroke_width: f64) -> String {
     }
     svg.push_str("</svg>");
     svg
+}
+
+/// The fit's on-graph label: the model's own equation in the graph's
+/// short number spelling. The linear form is the label the line fit
+/// has always carried.
+fn fit_label(plot: &DataPlot) -> String {
+    let Some(f) = plot.fit else {
+        return String::new();
+    };
+    let g = f.fit;
+    match f.model {
+        crate::graph::ScatterFit::Linreg => {
+            format!("y = {}*x + {} (r = {})", short(g.a), short(g.b), short(g.r))
+        }
+        crate::graph::ScatterFit::Quadreg => format!(
+            "y = {}*x^2 + {}*x + {} (r = {})",
+            short(g.a),
+            short(g.b),
+            short(g.c),
+            short(g.r)
+        ),
+        crate::graph::ScatterFit::Expreg => {
+            format!("y = {}*e^({}*x) (r = {})", short(g.a), short(g.b), short(g.r))
+        }
+        crate::graph::ScatterFit::Powreg => {
+            format!("y = {}*x^{} (r = {})", short(g.a), short(g.b), short(g.r))
+        }
+        crate::graph::ScatterFit::Logreg => {
+            format!("y = {} + {}*ln(x) (r = {})", short(g.a), short(g.b), short(g.r))
+        }
+    }
 }
 
 /// One short number for a scatter legend entry.
@@ -666,23 +724,56 @@ pub fn surface_parts(
     view: &View3D,
     stroke_width: f64,
 ) -> Option<(String, String)> {
-    use crate::graph::{project_mesh, surface_frame, Polyline3D};
-    if surfaces.is_empty() {
+    scene_parts(surfaces, &[], view, stroke_width)
+}
+
+/// The mesh and frame of a set of 3D parametric curves as raw
+/// polyline/line markup in data coordinates (ADR-0054); the curve
+/// sibling of [`surface_parts`]: one polyline per curve run (split at
+/// non-finite samples), the ground square and axes on top, all
+/// painter-sorted far to near.
+pub fn curve_parts(
+    curves: &[crate::graph::SpaceCurve],
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<(String, String)> {
+    scene_parts(&[], curves, view, stroke_width)
+}
+
+/// The 3D scene markup shared by surface sets and space curves: mesh
+/// lines (surface grid lines or curve runs) with per-line depth
+/// shading, the frame of the first scene element on top.
+pub fn scene_parts(
+    surfaces: &[Surface],
+    curves: &[crate::graph::SpaceCurve],
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<(String, String)> {
+    use crate::graph::{curve_frame, project_curve, project_mesh, Polyline3D};
+    if surfaces.is_empty() && curves.is_empty() {
         return None;
     }
     let mut mesh: Vec<Polyline3D> = Vec::new();
     for s in surfaces {
         mesh.extend(project_mesh(s, view));
     }
-    let frame: Vec<Segment3D> = surface_frame(&surfaces[0], view);
+    for c in curves {
+        mesh.extend(project_curve(c, view));
+    }
+// The frame comes from the first scene element (the surface's
+// square domain, or the curve's bounding box).
+    // The frame comes from the first scene element (the surface's
+    // square domain, or the curve's bounding box).
+    let frame: Vec<Segment3D> = if let Some(s) = surfaces.first() {
+        crate::graph::surface_frame(s, view)
+    } else {
+        curve_frame(&curves[0], view)
+    };
     if mesh.is_empty() && frame.is_empty() {
         return None;
     }
-    // The frame comes from the scene's bounding sphere around the origin
-    // (ADR-0041): rotation, spin, and animation then play inside a fixed
-    // window instead of refitting it every frame - the moving graph no
-    // longer changes size. Degenerate scenes fall back to the per-frame
-    // fit below.
+    // The scene's bounding sphere around the origin (ADR-0041): the
+    // same rotation-stable window the surface renderer uses.
     let mut world: Vec<[f64; 3]> = Vec::new();
     for s in surfaces {
         for (i, &x) in s.xs.iter().enumerate() {
@@ -697,6 +788,13 @@ pub fn surface_parts(
         let (a, b) = s.domain;
         for &(x, y) in &[(a, a), (b, a), (b, b), (a, b)] {
             world.push([x, y, 0.0]);
+        }
+    }
+    for c in curves {
+        for p in &c.points {
+            if p.iter().all(|v| v.is_finite()) {
+                world.push(*p);
+            }
         }
     }
     let mut z_min = f64::INFINITY;
@@ -740,7 +838,7 @@ pub fn surface_parts(
         }
     };
     let mut parts = String::new();
-    // Painter's order: project_mesh already sorts far-to-near, so drawing
+    // Painter's order: the mesh runs are sorted far-to-near, so drawing
     // in order lets nearer lines overpaint farther ones.
     for line in &mesh {
         let t = if span < 1e-9 {
@@ -778,6 +876,23 @@ pub fn surface_parts(
 /// nothing can be drawn.
 pub fn graph3d_svg(surfaces: &[Surface], view: &View3D, stroke_width: f64) -> Option<String> {
     let (view_box, parts) = surface_parts(surfaces, view, stroke_width)?;
+    letterboxed_3d_svg(&view_box, &parts, stroke_width)
+}
+
+/// Render a 3D curve set as a self-contained SVG document: the same
+/// letterboxed canvas [`graph3d_svg`] uses (ADR-0054).
+pub fn graph3d_curve_svg(
+    curves: &[crate::graph::SpaceCurve],
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<String> {
+    let (view_box, parts) = curve_parts(curves, view, stroke_width)?;
+    letterboxed_3d_svg(&view_box, &parts, stroke_width)
+}
+
+/// Letterbox a scene's content box into the WIDTH×HEIGHT canvas, the
+/// way preserveAspectRatio="xMidYMid meet" would.
+fn letterboxed_3d_svg(view_box: &str, parts: &str, stroke_width: f64) -> Option<String> {
     let mut it = view_box.split_whitespace();
     let (mut x, mut y, mut w, mut h) = (0.0f64, 0.0f64, 1.0f64, 1.0f64);
     if let (Some(a), Some(b), Some(c), Some(d)) = (it.next(), it.next(), it.next(), it.next()) {

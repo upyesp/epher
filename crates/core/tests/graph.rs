@@ -675,3 +675,115 @@ fn implicit_relations_respect_the_domain() {
     assert!(names.contains("y"));
     assert!(names.contains("r"));
 }
+
+// ===== scatter models, table keywords, and 3D parametric curves (ADR-0054) =====
+
+#[test]
+fn scatter_models_fit_the_family() {
+    let env = epher_core::Env::default();
+    let exact = epher_core::graph::sample_data_plot(
+        "scatter({1, 2, 3, 4}, {1, 4, 9, 16}, quadreg)",
+        &env,
+    )
+    .unwrap();
+    let fit = exact.fit.expect("quad fit for 4 points");
+    assert_eq!(fit.model, epher_core::graph::ScatterFit::Quadreg);
+    assert!((fit.fit.a - 1.0).abs() < 1e-9);
+    assert!((fit.fit.b.abs()) < 1e-9);
+    assert!((fit.fit.c.abs()) < 1e-9);
+    assert!((fit.fit.r - 1.0).abs() < 1e-9);
+
+    // The default stays linreg.
+    let line = epher_core::graph::sample_data_plot("scatter({1, 2}, {2, 4})", &env).unwrap();
+    assert_eq!(line.fit.unwrap().model, epher_core::graph::ScatterFit::Linreg);
+
+    // An unknown model word is a parse error naming the family.
+    let err = epher_core::graph::sample_data_plot("scatter({1}, {1}, cubreg)", &env)
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("linreg"), "{err}");
+
+    // The quadratic needs three points, like quadreg does.
+    let err = epher_core::graph::sample_data_plot("scatter({1, 2}, {1, 4}, quadreg)", &env)
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("at least 3"), "{err}");
+}
+
+#[test]
+fn table_parses_values_and_exact_keywords() {
+    let spec = epher_core::graph::parse_table_source("x^2 values {1, 2, 3}").unwrap();
+    assert!(spec.values.is_some());
+    assert!(spec.exact.is_none());
+
+    let spec = epher_core::graph::parse_table_source("x/3 from 1 to 3 exact").unwrap();
+    assert_eq!(spec.exact, Some(true));
+    assert!(spec.values.is_none());
+
+    let spec = epher_core::graph::parse_table_source("x/3 from 1 to 3 approx").unwrap();
+    assert_eq!(spec.exact, Some(false));
+
+    // `values` and a domain are mutually exclusive.
+    let err = epher_core::graph::parse_table_source("x^2 from 0 to 2 values {1, 2}")
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("choose one"), "{err}");
+
+    // `values` with a derivative column parses.
+    let spec = epher_core::graph::parse_table_source("x^2 values d derivative 2*x").unwrap();
+    assert!(spec.derivative.is_some());
+    assert!(spec.values.is_some());
+}
+
+#[test]
+fn table_rows_at_evaluates_the_list() {
+    let env = epher_core::Env::default();
+    let expr = epher_core::parse("x^2").unwrap();
+    let rows =
+        epher_core::graph::table_rows_at(&expr, None, &[1.0, 2.0, 3.5], &env).unwrap();
+    assert_eq!(rows.len(), 3);
+    assert_eq!(rows[0], (1.0, Some(1.0), None));
+    assert_eq!(rows[2].0, 3.5);
+    assert_eq!(rows[2].1, Some(12.25));
+    // The empty list is rejected with the capped message shape.
+    let err = epher_core::graph::table_rows_at(&expr, None, &[], &env)
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("at least one x"), "{err}");
+}
+
+#[test]
+fn space_curves_parse_sample_and_project() {
+    let env = epher_core::Env::default();
+    let curve = epher_core::graph::sample_space_curve(
+        "param cos(t), sin(t), t from 0 to 6.28318",
+        50,
+        &env,
+    )
+    .unwrap();
+    assert_eq!(curve.points.len(), 50);
+    // The helix starts at (1, 0, 0) and climbs.
+    let first = curve.points[0];
+    assert!((first[0] - 1.0).abs() < 1e-4, "{first:?}");
+    assert!(first[1].abs() < 1e-4);
+    assert!(curve.points.last().unwrap()[2] > 6.0);
+
+    // `param` requires three expressions.
+    let err = epher_core::graph::parse_space_curve_source("param cos(t), sin(t)")
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("three expressions"), "{err}");
+    // Non-param bodies are rejected with the spelling.
+    let err = epher_core::graph::parse_space_curve_source("x^2 + y^2")
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("graph3d param"), "{err}");
+
+    // The curve projects to painter-ordered runs, and its frame has the
+    // ground square plus three axes.
+    let view = epher_core::graph::View3D::default();
+    let runs = epher_core::graph::project_curve(&curve, &view);
+    assert!(!runs.is_empty());
+    let frame = epher_core::graph::curve_frame(&curve, &view);
+    assert_eq!(frame.len(), 7);
+}

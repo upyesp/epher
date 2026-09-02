@@ -183,16 +183,56 @@ pub fn prepare(
         Command::Table { source } => {
             let spec =
                 epher_core::graph::parse_table_source(source).map_err(|e| format!("error: {e}"))?;
-            let rows = epher_core::graph::table_rows(
-                &spec.expr,
-                spec.derivative.as_ref(),
-                spec.x_min,
-                spec.x_max,
-                spec.points,
-                session.env(),
-            );
+            let rows = match &spec.values {
+                // The `values <list>` column mode (ADR-0054): rows at
+                // the list's x values instead of an even grid.
+                Some(vexpr) => {
+                    let evaluated = epher_core::eval(vexpr, session.env())
+                        .map_err(|e| format!("error: {e}"))?;
+                    let epher_core::Value::List(items) = &evaluated else {
+                        return Err(format!(
+                            "error: {}",
+                            epher_core::EpherError::Type(
+                                "the values argument must be a list".to_string()
+                            )
+                        ));
+                    };
+                    let mut xs = Vec::with_capacity(items.len());
+                    for item in items {
+                        match item {
+                            epher_core::Value::Float(x) => xs.push(*x),
+                            other => {
+                                return Err(format!(
+                                    "error: {}",
+                                    epher_core::EpherError::Type(format!(
+                                        "the values list holds numbers, got {other:?}"
+                                    ))
+                                ));
+                            }
+                        }
+                    }
+                    epher_core::graph::table_rows_at(
+                        &spec.expr,
+                        spec.derivative.as_ref(),
+                        &xs,
+                        session.env(),
+                    )
+                    .map_err(|e| format!("error: {e}"))?
+                }
+                None => epher_core::graph::table_rows(
+                    &spec.expr,
+                    spec.derivative.as_ref(),
+                    spec.x_min,
+                    spec.x_max,
+                    spec.points,
+                    session.env(),
+                ),
+            };
+            // The `exact`/`approx` suffix overrides the session's
+            // exact-fraction display for this one table (ADR-0054).
+            let exact = spec.exact.unwrap_or(session.display().exact_fractions);
             Ok(Prepared::Table {
-                text: format_table(&rows, session.display().exact_fractions),
+                text: format_table(&rows, exact),
             })
         }
     }

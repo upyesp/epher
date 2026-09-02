@@ -367,8 +367,9 @@ if price > 50 then 2 else 1
 2
 ```
 
-> epher hat keine Textwerte: beide Zweige eines `if` müssen Zahlen sein
-> (oder Ergebnisse von Vergleichen).
+> Ein `if` kann jetzt auch Zeichenketten vergleichen (Abschnitt 1.29): beide
+> Zweige müssen nur Werte derselben Art sein: Zahlen mit Zahlen,
+> Zeichenketten mit Zeichenketten.
 
 ### 1.8 Schleifen mit while
 
@@ -676,13 +677,16 @@ Primzahlen und Teiler arbeiten mit ganzen Zahlen:
 | Listenstatistik | `mean(liste)`, `median(liste)`, … | `stdev(d)` |
 | Listenform | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
 | Lineare Regression | `linreg(xs, ys)` | `linreg(x, y)` |
+| Regressionsfamilie | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
 | Normalverteilung | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
 | t-Verteilung | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
 | Chi-Quadrat | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
 | Diskrete Verteilungen | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
 | Tests und Intervalle | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| ANOVA und gepaarter t | `anova(listen...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
 | Datenplots | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
 | Zufallszahlen | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| Normalverteilte Züge | `randn(mu, sigma)` | `randn(0, 1)` |
 | Konstanten-Browser | Hilfe → Konstanten: alle eingebauten Konstanten, nach Gruppe | Hilfe → Konstanten |
 | Größe | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
 | Umrechnen | `expr in Einheit` oder `expr -> Einheit` | `72 km/hr in m/s` |
@@ -825,7 +829,10 @@ nicht kennt, damit du deinen Ausdruck korrigieren kannst.
 | Konstante | `const name = value` | `const tax = 0.2` |
 | Entscheidung | `if c then a else b` | `if x > 0 then 1 else -1` |
 | Schleife | `while c do statement` | `while x < 5 do x = x + 1` |
+| for-Schleife | `for i in a to b step s do Anweisung` | `for i in 1 to 5 do i^2` |
 | Funktion | `def name(params) = expr` | `def f(x) = x ^ 2` |
+| Zeichenketten | `"..."`, `+` fügt zusammen, `s[i]`, `==` | `"a" + "b"` |
+| Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Skript | Anweisungen, verbunden mit `;` oder Zeilenumbrüchen | `x = 1; x + 1` |
 | Exakter Bruch | `frac(n, d)` | `frac(1, 3)` |
 | Exakte Dezimalzahl | `dec(x)` | `dec(0.1) + dec(0.2)` |
@@ -1152,6 +1159,20 @@ linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})
 Die angepasste Gerade ist eine Anzeige wie die Lösungen von solve; das
 Bild der Anpassung zeigt das Streudiagramm (Abschnitt 1.22).
 
+Der Rest der Regressionsfamilie passt die Modelle an, in die Taschenrechner hineinwachsen: **quadreg** passt `y = a*x^2 + b*x + c` an (mindestens 3 Punkte), **expreg** passt `y = a*e^(b*x)` an (y > 0), **powreg** passt `y = a*x^b` an (x und y > 0), und **logreg** passt `y = a + b*ln(x)` an (x > 0). Jedes meldet das Modell mit seinem r:
+
+```epher
+quadreg({1, 2, 3, 4}, {1, 4.1, 8.9, 16.2})
+expreg({1, 2, 3}, {2.7, 7.4, 20.1})
+```
+
+```text
+y = 1.05*x^2 + -0.21*x + 0.2 (r = 0.9999)
+y = 0.9911*e^(1.0037*x) (r = 1)
+```
+
+Das r eines transformierten Fits ist die Korrelation des linearisierten Paares: dieselbe Zahl, die TI und NumWorks melden. Jedes Modell kann sich auch über ein Streudiagramm legen: `graph scatter(xs, ys, quadreg)` (oder expreg, powreg, logreg) zeichnet die Punkte mit der Kurve dieses Modells.
+
 ### 1.21 Verteilungen und Hypothesentests
 
 Die Wahrscheinlichkeitsfunktionen decken die Standardnormal-, die
@@ -1200,6 +1221,26 @@ Stichproben-Standardabweichung (n−1); `ztest(daten, mu0, sigma)` und
 Freiheitsgraden. Die Ergebnisse sind Anzeigetexte: lesbar und
 kopierbar, aber nicht rechnerisch weiterverwendbar.
 
+Zwei weitere Tests teilen dieselbe Form. **anova(liste1, liste2, …)** ist die einfache Varianzanalyse über zwei oder mehr Gruppen (ungleiche Längen sind erlaubt) und meldet F mit seinem p-Wert:
+
+```epher
+anova({1, 2, 3}, {4, 5, 6}, {7, 8, 9})
+```
+
+```text
+F = 27, p = 0.001
+```
+
+**ttestpaired(a, b)** ist der gepaarte t-Test: Er bildet die Differenzen zweier gleich langer Listen und prüft sie gegen 0, der Klassenzimmer-Test „vorher und nachher“:
+
+```epher
+ttestpaired({80, 85, 90}, {82, 84, 91})
+```
+
+```text
+t = -0.7559, p = 0.5286
+```
+
 ### 1.22 Datenplots
 
 Die Graph-Familie nimmt auch Listen: ein Streudiagramm, ein
@@ -1231,6 +1272,7 @@ Q3, Maximum, mit Antennen bis zu den Extremen. Das Fenster passt sich
 immer den Daten an — die `from a to b`-Schlüsselwörter gelten nicht —
 und das Bild exportiert und speichert wie jeder andere Plot.
 
+Ein drittes, optionales Wort wählt das Modell: `graph scatter(xs, ys, quadreg)` (oder expreg, powreg, logreg) zeichnet diesen Fit statt der Geraden.
 ### 1.23 Zufallszahlen
 
 `random()` zieht eine gleichverteilte Zahl aus `[0, 1)`, `random(a, b)`
@@ -1250,6 +1292,20 @@ randint(1, 6)
 Die Folge ist reproduzierbar: `randseed(n)` setzt den Generator mit `n`
 neu und meldet es, sodass derselbe Seed in jeder Sitzung und jeder
 Oberfläche dieselben Ziehungen wiederholt.
+
+**randn(mu, sigma)** zieht aus der Normalverteilung mit Mittelwert mu und Standardabweichung sigma (Desmos nennt sie randomNormal, TI nennt sie randNorm):
+
+```epher
+randseed(7)
+randn(0, 1)
+```
+
+```text
+7
+1.36499229746
+```
+
+Derselbe Seed wiederholt dieselben Züge, genau wie bei den gleichverteilten.
 
 ### 1.24 Einheiten und Umrechnung
 
@@ -1466,6 +1522,63 @@ n-Perioden-Darlehens, `simple_interest(p, r, t)` ist `p*r*t`, und
 `compound_interest(p, r, n)` ist `p*(1+r)^n - p`.
 
 
+### 1.29 Zeichenketten und print
+
+Eine Zeichenkette ist Text in doppelten Anführungszeichen: `"hello"`. Zeichenketten hängen mit `+` aneinander, vergleichen mit `==` und `!=`, zählen mit `len` und indizieren 1-basiert wie Listen:
+
+```epher
+"hello" + " " + "world"
+len("hello")
+"hello"[1]
+"abc" == "abd"
+```
+
+```text
+hello world
+5
+h
+false
+```
+
+Es gibt keine Escape-Folgen: Eine Zeichenkette kann kein doppeltes Anführungszeichen enthalten. **str(x)** schreibt einen Wert so, wie es das Antwortfeld täte, und **print(a, b, …)** verbindet seine Argumente mit Leerzeichen zu einer Zeile:
+
+```epher
+print("x =", 42)
+```
+
+```text
+x = 42
+```
+
+### 1.30 Schleifen mit for
+
+`for` wiederholt eine Anweisung einmal pro Wert und sammelt die Werte des Körpers in einer Liste: über einen Bereich `start to end` (einschließlich) mit optionalem `step` oder über die Elemente einer Liste:
+
+```epher
+for i in 1 to 5 do i^2
+for x in {2, 3, 4} do 10*x
+for i in 0 to 1 step 0.5 do i
+```
+
+```text
+{1, 4, 9, 16, 25}
+{20, 30, 40}
+{0, 0.5, 1}
+```
+
+Die Schleifenvariable behält danach ihren letzten Wert, wie TIs For. Mit print schreibt eine Schleife lesbare Zeilen:
+
+```epher
+for i in 1 to 3 do print("line", i)
+```
+
+```text
+{line 1, line 2, line 3}
+```
+
+Derselbe Sicherheitsschalter von 100.000 Schritten begrenzt eine for-Schleife wie eine while-Schleife.
+
+
 ## 2. Die Web-App (PWA)
 
 ### 2.1 Sie öffnen
@@ -1632,6 +1745,24 @@ table x ^ 2 from -2 to 2 points 5
          2           4
 ```
 
+Zwei weitere Klauseln decken den Rest der Arbeit ab. `values <liste>` nimmt die x-Spalte aus einer Datenliste statt aus einem gleichmäßigen Raster: gib deine Daten hinein und sieh sie verwandelt:
+
+```epher
+d = {1, 2, 3, 4, 5}
+table x ^ 2 values d
+```
+
+```text
+         x           y
+         1           1
+         2           4
+         3           9
+         4          16
+         5          25
+```
+
+Und `exact` / `approx` erzwingen die Zellanzeige für genau diese Tabelle: `exact` zeigt einfache Brüche, wo sie passen, `approx` zeigt Dezimalzahlen; jedes überschreibt die Ergebniseinstellungen für diesen einen Befehl.
+
 #### 2.4.3 Schieberegler und Export
 
 Definiere eine Konstante, verwende sie in einem Graphen, und unter dem
@@ -1664,6 +1795,7 @@ durch Ziehen oder fokussiere den Plot und verwende die Pfeiltasten. Die
 TUI zeichnet dieselbe Fläche als ASCII-Drahtgitter; mit den Pfeiltasten
 drehst du es.
 
+Raumkurven zeichnet `param`: `graph3d param cos(t), sin(t), t` zeichnet eine Helix über den t-Bereich deiner Wahl (`from 0 to 6.28318`), standardmäßig 0 bis 2pi. Gleiches Pane, gleiches Drehen, Zoomen und Animieren.
 #### 2.4.5 Animation
 
 Jeder Schieberegler hat eine Wiedergabetaste. Sie lässt seine Konstante

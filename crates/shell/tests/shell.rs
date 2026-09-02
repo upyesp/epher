@@ -465,3 +465,16 @@ fn solar3d_clear_and_errors_follow_the_graph_grammar() {
     let out = plots.submit_solar3d("jd(2020, 13, 1)", &env, &en());
     assert!(out.error);
 }
+
+#[test]
+fn prepare_formats_a_table_with_forced_exact_cells() {
+    let mut s = Session::new();
+    let cmd = classify("table x / 3 from 1 to 2 points 2 exact").expect("a table command");
+    let out = prepare(&cmd, &s, &en()).expect("prepares");
+    match &out {
+        Prepared::Table { text } => {
+            assert!(text.contains("1/3"), "exact cells: {text}");
+        }
+        other => panic!("expected a table, got {other:?}"),
+    }
+}

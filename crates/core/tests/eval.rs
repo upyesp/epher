@@ -2426,9 +2426,10 @@ fn data_plots_compute_primitives() {
     assert_eq!(scatter.kind, DataPlotKind::Scatter);
     assert_eq!(scatter.points, vec![(1.0, 2.0), (2.0, 4.0), (3.0, 6.0)]);
     let fit = scatter.fit.expect("fit for 3 points");
-    assert!((fit.a - 2.0).abs() < 1e-9);
-    assert!((fit.b).abs() < 1e-9);
-    assert!((fit.r - 1.0).abs() < 1e-9);
+    assert_eq!(fit.model, epher_core::graph::ScatterFit::Linreg);
+    assert!((fit.fit.a - 2.0).abs() < 1e-9);
+    assert!((fit.fit.b).abs() < 1e-9);
+    assert!((fit.fit.r - 1.0).abs() < 1e-9);
 
     let hist = sample_data_plot("histogram({1, 2, 2, 3, 3, 3, 4}, 4)", &env).unwrap();
     assert_eq!(hist.kind, DataPlotKind::Histogram);
@@ -3218,4 +3219,155 @@ fn submit_all_returns_every_answer_in_order() {
     // single-value lines behave exactly like submit
     assert_eq!(session.submit_all("2 + 3"), "= 5");
     assert_eq!(session.submit_all(""), "");
+}
+
+// ===== stats class and the language surface (ADR-0054) =====
+
+#[test]
+fn randn_is_seeded_and_distributed() {
+    // Reproducible: the same seed, the same draws; the property the
+    // seeded-random ADR (0045) established for `random`.
+    let a = run_script_text("randseed(7)\nrandn(0, 1)\nrandn(10, 2)");
+    let b = run_script_text("randseed(7)\nrandn(0, 1)\nrandn(10, 2)");
+    assert_eq!(a, b);
+    assert_eq!(a.len(), 3); // randseed also returns a value
+    let v = match a[1].clone() {
+        epher_core::Value::Float(x) => x,
+        other => panic!("expected a float, got {other:?}"),
+    };
+    assert!(v.is_finite(), "the draw is a real number, got {v}");
+    // Same seed, same stream position: mu and sigma shift the same
+    // standard draw (the z underneath c[1] is the z underneath a[1]).
+    let c = run_script_text("randseed(7)\nrandn(10, 2)");
+    let c1 = match c[1].clone() {
+        epher_core::Value::Float(x) => x,
+        other => panic!("expected a float, got {other:?}"),
+    };
+    assert!((c1 - (10.0 + 2.0 * v)).abs() < 1e-9, "{c1} vs mu+2*{v}");
+    // zero sigma is rejected (sigma must be positive)
+    assert!(script_err("randn(0, 0)").contains("sigma > 0"));
+}
+
+#[test]
+fn anova_reports_f_and_p() {
+    // Perfectly separated groups: F(2,6) = 27, p ~= 0.001.
+    assert_eq!(
+        eval_display_script("anova({1, 2, 3}, {4, 5, 6}, {7, 8, 9})"),
+        "F = 27, p = 0.001"
+    );
+    // Identical groups: no effect at all.
+    assert_eq!(
+        eval_display_script("anova({1, 2, 3}, {1, 2, 3})"),
+        "F = 0, p = 1"
+    );
+    // Degenerate inputs are domain errors, not panics.
+    assert!(script_err("anova({1})").contains("at least two lists"));
+    assert!(script_err("anova({1}, {2})").contains("more data points than groups"));
+}
+
+#[test]
+fn ttestpaired_tests_the_differences() {
+    // Pairs (80,82) (85,84) (90,91): differences -2, 1, -1.
+    assert_eq!(
+        eval_display_script("ttestpaired({80, 85, 90}, {82, 84, 91})"),
+        "t = -0.7559, p = 0.5286"
+    );
+    // Length mismatch is a type error.
+    assert!(script_err("ttestpaired({1, 2}, {1})").contains("different lengths"));
+}
+
+#[test]
+fn regression_family_fits_and_reports_r() {
+    // Exact y = x^2 recovers exactly.
+    assert_eq!(
+        eval_display_script("quadreg({1, 2, 3, 4}, {1, 4, 9, 16})"),
+        "y = 1*x^2 + 0*x + 0 (r = 1)"
+    );
+    // expreg on y = 2*e^(x) recovers a = 2, b = 1.
+    let out = eval_display_script("expreg({1, 2, 3}, {5.43656, 14.7781, 40.17107})");
+    assert!(out.starts_with("y = 2*e^(1*x)"), "{out}");
+    // powreg on y = 3*x^2 recovers a = 3, b = 2.
+    let out = eval_display_script("powreg({1, 2, 3}, {3, 12, 27})");
+    assert!(out.starts_with("y = 3*x^2"), "{out}");
+    // logreg on y = 5 + 2*ln(x) recovers a = 5, b = 2.
+    let out = eval_display_script("logreg({1, 2, 3}, {5, 6.386294, 7.197225})");
+    assert!(out.starts_with("y = 5 + 2*ln(x)"), "{out}");
+    // Domain honesty: transformed models reject out-of-domain data.
+    assert!(script_err("expreg({1, 2}, {-1, 2})").contains("y > 0"));
+    assert!(script_err("powreg({-1, 2}, {1, 2})").contains("x > 0"));
+    assert!(script_err("logreg({0, 2}, {1, 2})").contains("x > 0"));
+    assert!(script_err("quadreg({1, 2}, {1, 4})").contains("at least 3"));
+}
+
+#[test]
+fn strings_concatenate_compare_and_index() {
+    assert_eq!(eval_display_script("\"hello\" + \" \" + \"world\""), "hello world");
+    assert_eq!(eval_display_script("len(\"hello\")"), "5");
+    assert_eq!(eval_display_script("len(\"\")"), "0");
+    assert_eq!(eval_display_script("\"hello\"[1]"), "h");
+    assert_eq!(eval_display_script("\"hello\"[5]"), "o");
+    assert_eq!(eval_display_script("\"a\" == \"a\""), "true");
+    assert_eq!(eval_display_script("\"a\" != \"b\""), "true");
+    // Mixed arithmetic with a string is a type error, not a surprise.
+    assert!(script_err("\"a\" + 1").contains("only support +"));
+    // Ordering is deliberately unsupported.
+    assert!(script_err("\"a\" < \"b\"").contains("cannot compare"));
+    // len reaches strings as well as lists.
+    assert_eq!(eval_display_script("len({1, 2, 3})"), "3");
+    // A string survives a variable round trip.
+    assert_eq!(eval_display_script("s = \"hi there\"\nlen(s)"), "8");
+    // Unterminated strings are a parse error, not a panic.
+    assert!(parse_script("s = \"oops")
+        .unwrap_err()
+        .to_string()
+        .contains("unterminated"));
+}
+
+#[test]
+fn for_loops_iterate_ranges_and_lists() {
+    // The classic range: inclusive, collecting the body values.
+    assert_eq!(
+        eval_display_script("for i in 1 to 5 do i^2"),
+        "{1, 4, 9, 16, 25}"
+    );
+    // List iteration: the data-column loop.
+    assert_eq!(
+        eval_display_script("d = {2, 3, 4}\nfor x in d do 10*x"),
+        "{20, 30, 40}"
+    );
+    // Step: half steps land exactly (no drift).
+    assert_eq!(eval_display_script("for i in 0 to 1 step 0.5 do i"), "{0, 0.5, 1}");
+    // Negative steps count down.
+    assert_eq!(eval_display_script("for i in 3 to 1 step -1 do i"), "{3, 2, 1}");
+    // A reversed range with positive step is simply empty.
+    assert_eq!(eval_display_script("for i in 5 to 1 do i"), "{}");
+    // The loop variable keeps its last value (TI's For behavior).
+    assert_eq!(eval_display_script("for i in 1 to 3 do i\ni"), "3");
+    // print turns the loop into readable lines.
+    assert_eq!(
+        eval_display_script("for i in 1 to 3 do print(\"line\", i)"),
+        "{line 1, line 2, line 3}"
+    );
+    // Assignments inside the body work like any script statement.
+    assert_eq!(
+        eval_display_script("total = 0\nfor i in 1 to 4 do total = total + i"),
+        "{1, 3, 6, 10}"
+    );
+    // Runaway guards: zero step and absurd ranges are domain errors.
+    assert!(script_err("for i in 1 to 3 step 0 do i").contains("nonzero"));
+    assert!(script_err("for i in 1 to 200000 do i").contains("at most 100000"));
+    // Iterating a non-list is a type error with guidance.
+    assert!(script_err("for i in 5 do i").contains("list or a range"));
+}
+
+#[test]
+fn str_and_print_format_like_the_display() {
+    // str spells one value the way the answer panel does.
+    assert_eq!(eval_display_script("str(42)"), "42");
+    assert_eq!(eval_display_script("str(0.1 + 0.2)"), "0.3");
+    // print joins with spaces.
+    assert_eq!(eval_display_script("print(\"x =\", 42)"), "x = 42");
+    assert_eq!(eval_display_script("print()"), "");
+    // strings concatenate onto printed results.
+    assert_eq!(eval_display_script("print(\"a\") + \"!\""), "a!");
 }

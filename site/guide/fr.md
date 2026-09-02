@@ -369,8 +369,9 @@ if price > 50 then 2 else 1
 2
 ```
 
-> epher n'a pas de valeurs texte : les deux branches d'un `if` doivent être
-> des nombres (ou des résultats de comparaisons).
+> Un `if` sait aussi comparer des chaînes (section 1.29) : les deux branches
+> doivent simplement être des valeurs de même nature : des nombres avec des
+> nombres, des chaînes avec des chaînes.
 
 ### 1.8 Les boucles avec while
 
@@ -682,13 +683,16 @@ Les nombres premiers et les diviseurs travaillent sur des entiers :
 | Statistiques de liste | `mean(liste)`, `median(liste)`, … | `stdev(d)` |
 | Forme de liste | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
 | Régression linéaire | `linreg(xs, ys)` | `linreg(x, y)` |
+| Famille de régression | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
 | Famille normale | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
 | Famille t | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
 | Famille khi-deux | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
 | Familles discrètes | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
 | Tests et intervalles | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| ANOVA et t apparié | `anova(listes...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
 | Graphiques de données | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
 | Nombres aléatoires | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| Tirages normaux | `randn(mu, sigma)` | `randn(0, 1)` |
 | Explorateur de constantes | Aide → Constantes : toutes les constantes, groupées | Aide → Constantes |
 | Grandeur | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
 | Convertir | `expr in unité` ou `expr -> unité` | `72 km/hr in m/s` |
@@ -831,7 +835,10 @@ connaît pas, pour que vous puissiez corriger votre expression.
 | Constante | `const name = value` | `const tax = 0.2` |
 | Décision | `if c then a else b` | `if x > 0 then 1 else -1` |
 | Boucle | `while c do statement` | `while x < 5 do x = x + 1` |
+| Boucle for | `for i in a to b step s do instruction` | `for i in 1 to 5 do i^2` |
 | Fonction | `def name(params) = expr` | `def f(x) = x ^ 2` |
+| Chaînes | `"..."`, `+` joint, `s[i]`, `==` | `"a" + "b"` |
+| Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Script | instructions reliées par `;` ou des retours à la ligne | `x = 1; x + 1` |
 | Fraction exacte | `frac(n, d)` | `frac(1, 3)` |
 | Décimal exact | `dec(x)` | `dec(0.1) + dec(0.2)` |
@@ -1160,6 +1167,20 @@ linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})
 La droite ajustée est un affichage, comme les racines de solve ; le
 dessin de l'ajustement vit sur le nuage de points (section 1.22).
 
+Le reste de la famille de régression ajuste les modèles vers lesquels les calculatrices grandissent : **quadreg** ajuste `y = a*x^2 + b*x + c` (au moins 3 points), **expreg** ajuste `y = a*e^(b*x)` (y > 0), **powreg** ajuste `y = a*x^b` (x et y > 0), et **logreg** ajuste `y = a + b*ln(x)` (x > 0). Chacun rapporte le modèle avec son r :
+
+```epher
+quadreg({1, 2, 3, 4}, {1, 4.1, 8.9, 16.2})
+expreg({1, 2, 3}, {2.7, 7.4, 20.1})
+```
+
+```text
+y = 1.05*x^2 + -0.21*x + 0.2 (r = 0.9999)
+y = 0.9911*e^(1.0037*x) (r = 1)
+```
+
+Le r d'un ajuster transformé est la corrélation de la paire linéarisée : le même nombre que TI et NumWorks rapportent. Chaque modèle peut aussi se tracer sur un nuage de points : `graph scatter(xs, ys, quadreg)` (ou expreg, powreg, logreg) trace les points avec la courbe de ce modèle.
+
 ### 1.21 Distributions et tests d'hypothèse
 
 Les fonctions de probabilité couvrent la normale centrée réduite, la
@@ -1208,6 +1229,26 @@ l'écart type d'échantillon (n−1) ; `ztest(données, mu0, sigma)` et
 de liberté. Les résultats sont des textes d'affichage : lisibles et
 copiables, mais l'arithmétique ne peut pas les toucher.
 
+Deux tests de plus partagent la même forme. **anova(liste1, liste2, …)** est l'analyse de variance à un facteur sur deux groupes ou plus (des longueurs inégales conviennent) et rapporte F avec sa valeur p :
+
+```epher
+anova({1, 2, 3}, {4, 5, 6}, {7, 8, 9})
+```
+
+```text
+F = 27, p = 0.001
+```
+
+**ttestpaired(a, b)** est le test t apparié : il prend les différences de deux listes de même longueur et les teste contre 0 , le test de classe « avant et après » :
+
+```epher
+ttestpaired({80, 85, 90}, {82, 84, 91})
+```
+
+```text
+t = -0.7559, p = 0.5286
+```
+
 ### 1.22 Graphiques de données
 
 La famille graphique accepte aussi des listes : un nuage de points,
@@ -1239,6 +1280,7 @@ extrêmes. La fenêtre s'ajuste toujours aux données — les mots-clés
 `from a to b` ne s'appliquent pas — et l'image s'exporte et se
 sauvegarde comme n'importe quel graphique.
 
+Un troisième mot facultatif choisit le modèle : `graph scatter(xs, ys, quadreg)` (ou expreg, powreg, logreg) trace cet ajuster au lieu de la droite.
 ### 1.23 Nombres aléatoires
 
 `random()` tire un nombre uniforme dans `[0, 1)`, `random(a, b)` un dans
@@ -1258,6 +1300,20 @@ randint(1, 6)
 La séquence est reproductible : `randseed(n)` réinitialise le générateur
 avec `n` et l'affiche, de sorte que la même graine rejoue les mêmes tirages
 dans chaque session et chaque interface.
+
+**randn(mu, sigma)** tire de la loi normale de moyenne mu et d'écart-type sigma (Desmos l'appelle randomNormal, TI l'appelle randNorm) :
+
+```epher
+randseed(7)
+randn(0, 1)
+```
+
+```text
+7
+1.36499229746
+```
+
+La même graine rejoue les mêmes tirages, exactement comme les tirages uniformes.
 
 ### 1.24 Unités et conversion
 
@@ -1475,6 +1531,63 @@ n périodes, `simple_interest(p, r, t)` vaut `p*r*t`, et
 `compound_interest(p, r, n)` vaut `p*(1+r)^n - p`.
 
 
+### 1.29 Chaînes et print
+
+Une chaîne est du texte entre guillemets doubles : `"hello"`. Les chaînes se concatènent avec `+`, se comparent avec `==` et `!=`, se comptent avec `len` et s'indexent à partir de 1 comme les listes :
+
+```epher
+"hello" + " " + "world"
+len("hello")
+"hello"[1]
+"abc" == "abd"
+```
+
+```text
+hello world
+5
+h
+false
+```
+
+Il n'y a pas de séquences d'échappement : une chaîne ne peut pas contenir de guillemet double. **str(x)** écrit une valeur comme le ferait le panneau de réponse, et **print(a, b, …)** joint ses arguments par des espaces en une ligne :
+
+```epher
+print("x =", 42)
+```
+
+```text
+x = 42
+```
+
+### 1.30 Les boucles avec for
+
+`for` répète une instruction une fois par valeur et rassemble les valeurs du corps dans une liste : sur un intervalle `start to end` (inclus) avec un `step` facultatif, ou sur les éléments d'une liste :
+
+```epher
+for i in 1 to 5 do i^2
+for x in {2, 3, 4} do 10*x
+for i in 0 to 1 step 0.5 do i
+```
+
+```text
+{1, 4, 9, 16, 25}
+{20, 30, 40}
+{0, 0.5, 1}
+```
+
+La variable de boucle garde sa dernière valeur ensuite, comme le For de TI. Avec print, une boucle écrit des lignes lisibles :
+
+```epher
+for i in 1 to 3 do print("line", i)
+```
+
+```text
+{line 1, line 2, line 3}
+```
+
+Le même filet de sécurité de 100 000 étapes borne une boucle for comme un while.
+
+
 ## 2. L'application web (PWA)
 
 ### 2.1 L'ouvrir
@@ -1638,6 +1751,24 @@ table x ^ 2 from -2 to 2 points 5
          2           4
 ```
 
+Deux clauses de plus couvrent le reste du travail. `values <liste>` prend la colonne x d'une liste de données au lieu d'une grille régulière : donnez-lui vos données et voyez-les transformées :
+
+```epher
+d = {1, 2, 3, 4, 5}
+table x ^ 2 values d
+```
+
+```text
+         x           y
+         1           1
+         2           4
+         3           9
+         4          16
+         5          25
+```
+
+Et `exact` / `approx` imposent l'affichage des cellules pour une table : `exact` montre les fractions simples quand elles tombent juste, `approx` montre les décimales ; chacun remplace les réglages de résultats pour cette seule commande.
+
 #### 2.4.3 Curseurs et exportation
 
 Définissez une constante, utilisez-la dans un tracé, et un curseur
@@ -1672,6 +1803,7 @@ utilisez les touches fléchées. L'interface de terminal dessine la même
 surface sous forme de filaire ASCII, que les touches fléchées font
 pivoter.
 
+Les courbes de l'espace se tracent avec `param` : `graph3d param cos(t), sin(t), t` dessine une hélice sur l'intervalle de t que vous donnez (`from 0 to 6.28318`), ou de 0 à 2pi par défaut. Même panneau, même rotation, zoom et animation.
 #### 2.4.5 Animation
 
 Chaque curseur a un bouton de lecture. Il fait avancer sa constante sur

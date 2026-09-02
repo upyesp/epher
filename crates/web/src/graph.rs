@@ -15,7 +15,7 @@
 //! and captions (WCAG 1.4.1). Axes/gridlines inherit `currentColor` at
 //! recorded opacities (1.4.11).
 
-use epher_core::graph::{DataPlot, SampledCurve, Surface, View3D};
+use epher_core::graph::{DataPlot, SampledCurve, SpaceCurve, Surface, View3D};
 use wasm_bindgen::JsCast;
 use yew::prelude::*;
 
@@ -24,11 +24,22 @@ use yew::prelude::*;
 /// so an SVG saved from the TUI is byte-for-byte the app's plot. The
 /// re-exports keep this module's long-standing surface.
 pub use epher_core::graph_svg::{
-    aria_label, curve_caption, data_svg, escape, fill_points, geometry, geometry_in, graph3d_svg,
-    graph_svg, graph_svg_indexed, label, layers_svg, polyline_points, segments, solar_parts_in,
+    aria_label, curve_caption, curve_parts, data_svg, escape, fit_legend, fill_points, geometry,
+    geometry_in, graph3d_curve_svg, graph3d_svg, graph_svg, graph_svg_indexed, label, layers_svg,
+    polyline_points, segments, solar_parts_in,
     solar_view_box, ticks, trace_nearest, Geometry, Poi, TracePoint, BOTTOM, DEFAULT_STROKE_WIDTH,
     HEIGHT, LEFT, RIGHT, TOP, WIDTH,
 };
+/// The live 3D renderer's content for a space-curve set (ADR-0054):
+/// the same (view box, markup) contract as [`surface_svg`].
+pub fn curve_svg(
+    curves: &[SpaceCurve],
+    view: &View3D,
+    stroke_width: f64,
+) -> Option<(String, String)> {
+    curve_parts(curves, view, stroke_width)
+}
+
 /// The live 3D renderer's content (view box + mesh markup).
 pub fn surface_svg(
     surfaces: &[Surface],
@@ -354,10 +365,20 @@ pub fn graph_html(props: &GraphProps) -> Html {
                     });
                 }
                 if let Some(f) = data.fit {
-                    let (x0, x1) = (geom.x_min, geom.x_max);
-                    let (y0, y1) = (f.a * x0 + f.b, f.a * x1 + f.b);
+                    // Sample the model across the window: the quadratic
+                    // can turn inside it (ADR-0054).
+                    const FIT_SAMPLES: usize = 48;
+                    let mut pts = String::new();
+                    for k in 0..=FIT_SAMPLES {
+                        let x =
+                            geom.x_min + (geom.x_max - geom.x_min) * k as f64 / FIT_SAMPLES as f64;
+                        let y = f.fit.eval(x);
+                        if y.is_finite() {
+                            pts.push_str(&format!("{},{} ", geom.sx(x), geom.sy(y)));
+                        }
+                    }
                     data_layers.push(html! {
-                        <polyline class="curve curve-0" points={format!("{},{} {},{}", geom.sx(x0), geom.sy(y0), geom.sx(x1), geom.sy(y1))} fill="none" />
+                        <polyline class="curve curve-0" points={pts.trim_end().to_string()} fill="none" />
                     });
                 }
             }

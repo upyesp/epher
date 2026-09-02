@@ -94,7 +94,7 @@ fn data_plots_own_the_pane_and_render_ascii() {
     let data = app.data().expect("a data plot");
     assert_eq!(data.points, vec![(1.0, 2.0), (2.0, 4.0), (3.0, 6.0)]);
     let fit = data.fit.expect("fit");
-    assert!((fit.a - 2.0).abs() < 1e-9 && (fit.b).abs() < 1e-9);
+    assert!((fit.fit.a - 2.0).abs() < 1e-9 && (fit.fit.b).abs() < 1e-9);
     // the scatter draws glyphs
     let ascii = render_ascii_data(data, 40, 12);
     assert!(ascii.contains('o'), "{ascii}");

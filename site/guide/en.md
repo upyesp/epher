@@ -363,8 +363,8 @@ if price > 50 then 2 else 1
 2
 ```
 
-> epher does not have text values: both branches of an `if` must be numbers
-> (or the results of comparisons).
+> An `if` can compare strings too (section 1.29): both branches just have
+> to be values of the same kind: numbers with numbers, strings with strings.
 
 ### 1.8 Loops with while
 
@@ -793,7 +793,10 @@ not know, so you can fix your expression.
 | Constant | `const name = value` | `const tax = 0.2` |
 | Decision | `if c then a else b` | `if x > 0 then 1 else -1` |
 | Loop | `while c do statement` | `while x < 5 do x = x + 1` |
+| For loop | `for i in a to b step s do stmt` | `for i in 1 to 5 do i^2` |
 | Function | `def name(params) = expr` | `def f(x) = x ^ 2` |
+| Strings | `"..."`, `+` joins, `s[i]`, `==` | `"a" + "b"` |
+| Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Script | statements joined with `;` or newlines | `x = 1; x + 1` |
 | Exact fraction | `frac(n, d)` | `frac(1, 3)` |
 | Exact decimal | `dec(x)` | `dec(0.1) + dec(0.2)` |
@@ -813,13 +816,16 @@ not know, so you can fix your expression.
 | List statistics | `mean(list)`, `median(list)`, … | `stdev(d)` |
 | List shape | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
 | Linear regression | `linreg(xs, ys)` | `linreg(x, y)` |
+| Regression family | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
 | Normal family | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
 | t family | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
 | Chi-squared family | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
 | Discrete families | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
 | Tests and intervals | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| ANOVA and paired t | `anova(lists...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
 | Data plots | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
 | Random numbers | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| Normal draws | `randn(mu, sigma)` | `randn(0, 1)` |
 | Constants browser | Help → Constants: every builtin constant, grouped | Help → Constants |
 | Quantity | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
 | Convert | `expr in unit` or `expr -> unit` | `72 km/hr in m/s` |
@@ -1188,6 +1194,20 @@ y = 1.96*x + 0.15 (r = 0.9979)
 The fitted line is a display, like solve's roots; the picture of the
 fit lives on the scatter plot (section 1.22).
 
+The rest of the regression family fits the models calculators grow into: **quadreg** fits `y = a*x^2 + b*x + c` (at least 3 points), **expreg** fits `y = a*e^(b*x)` (y > 0), **powreg** fits `y = a*x^b` (x and y > 0), and **logreg** fits `y = a + b*ln(x)` (x > 0). Each reports the model with its r:
+
+```epher
+quadreg({1, 2, 3, 4}, {1, 4.1, 8.9, 16.2})
+expreg({1, 2, 3}, {2.7, 7.4, 20.1})
+```
+
+```text
+y = 1.05*x^2 + -0.21*x + 0.2 (r = 0.9999)
+y = 0.9911*e^(1.0037*x) (r = 1)
+```
+
+The r of a transformed fit is the correlation of the linearized pair: the same number TI and NumWorks report. Every model can also draw itself over a scatter: `graph scatter(xs, ys, quadreg)` (or expreg, powreg, logreg) plots the points with that model's curve.
+
 ### 1.21 Distributions and hypothesis tests
 
 The probability functions cover the standard normal, Student's t,
@@ -1241,6 +1261,26 @@ standard deviation (n−1); `ztest(data, mu0, sigma)` and
 degrees of freedom. The results are display strings, so they are
 readable and copy-pasteable, but arithmetic cannot touch them.
 
+Two more tests share the same shape. **anova(list1, list2, …)** is one-way analysis of variance over two or more groups (unequal lengths are fine) and reports F with its p-value:
+
+```epher
+anova({1, 2, 3}, {4, 5, 6}, {7, 8, 9})
+```
+
+```text
+F = 27, p = 0.001
+```
+
+**ttestpaired(a, b)** is the paired t-test: it takes the differences of two same-length lists and tests them against 0, the classroom "before and after" test:
+
+```epher
+ttestpaired({80, 85, 90}, {82, 84, 91})
+```
+
+```text
+t = -0.7559, p = 0.5286
+```
+
 ### 1.22 Data plots
 
 The graph family takes lists too: a scatter, a histogram, and a
@@ -1271,6 +1311,7 @@ extremes. The plot window always fits the data — the `from a to b`
 domain keywords do not apply — and the picture exports and saves like
 any other plot.
 
+An optional third word chooses the model: `graph scatter(xs, ys, quadreg)` (or expreg, powreg, logreg) draws that fit instead of the line.
 ### 1.23 Random numbers
 
 `random()` draws a uniform random number in `[0, 1)`, `random(a, b)`
@@ -1290,6 +1331,20 @@ randint(1, 6)
 The sequence is reproducible: `randseed(n)` re-seeds the generator
 with `n` and reports it, so the same seed replays the same draws in
 every session and every frontend.
+
+**randn(mu, sigma)** draws from the normal distribution with mean mu and standard deviation sigma (Desmos calls it randomNormal, TI calls it randNorm):
+
+```epher
+randseed(7)
+randn(0, 1)
+```
+
+```text
+7
+1.36499229746
+```
+
+The same seed replays the same draws, exactly like the uniform ones.
 
 ### 1.24 Units and conversion
 
@@ -1503,6 +1558,63 @@ npv(0.1, {-100, 60, 60})
 n-period loan, `simple_interest(p, r, t)` is `p*r*t`, and
 `compound_interest(p, r, n)` is `p*(1+r)^n - p`.
 
+### 1.29 Strings and print
+
+A string is text in double quotes: `"hello"`. Strings concatenate with `+`, compare with `==` and `!=`, count with `len`, and index 1-based like lists:
+
+```epher
+"hello" + " " + "world"
+len("hello")
+"hello"[1]
+"abc" == "abd"
+```
+
+```text
+hello world
+5
+h
+false
+```
+
+There are no escape sequences: a string cannot contain a double quote. **str(x)** spells one value the way the answer panel would, and **print(a, b, …)** joins its arguments with spaces into one line:
+
+```epher
+print("x =", 42)
+```
+
+```text
+x = 42
+```
+
+### 1.30 Loops with for
+
+`for` repeats a statement once per value, collecting the body's values into a list: over a range `start to end` (inclusive) with an optional `step`, or over the elements of a list:
+
+```epher
+for i in 1 to 5 do i^2
+for x in {2, 3, 4} do 10*x
+for i in 0 to 1 step 0.5 do i
+```
+
+```text
+{1, 4, 9, 16, 25}
+{20, 30, 40}
+{0, 0.5, 1}
+```
+
+The loop variable keeps its last value afterwards, like TI's For. With print, a loop writes readable lines:
+
+```epher
+for i in 1 to 3 do print("line", i)
+```
+
+```text
+{line 1, line 2, line 3}
+```
+
+The same 100,000-step safety net bounds a for loop as a while.
+
+
 ## 2. The web app (PWA)
 
 ### 2.1 Opening it
@@ -1679,6 +1791,24 @@ table x ^ 2 from -2 to 2 points 5
          2           4
 ```
 
+Two more clauses cover the rest of the work. `values <list>` takes the x column from a data list instead of an even grid: hand it your data and see it transformed:
+
+```epher
+d = {1, 2, 3, 4, 5}
+table x ^ 2 values d
+```
+
+```text
+         x           y
+         1           1
+         2           4
+         3           9
+         4          16
+         5          25
+```
+
+And `exact` / `approx` force the cell display for one table: `exact` shows simple fractions wherever they fit, `approx` shows decimals; each overrides the Results settings for that one command.
+
 #### 2.4.3 Sliders and export
 
 Define a constant, use it in a graph, and a slider appears beneath the
@@ -1714,6 +1844,7 @@ keeps its full size. Rotate the view by dragging, or focus the plot and use the 
 keys. The terminal UI draws the same surface as an ASCII wireframe, with
 the arrow keys rotating it.
 
+Space curves plot with `param`: `graph3d param cos(t), sin(t), t` draws a helix over the t range you give (`from 0 to 6.28318`), or 0 to 2pi by default. Same pane, same rotation, zoom, and animation.
 #### 2.4.5 Animation
 
 Every slider has a play button. It steps its constant through the

@@ -393,7 +393,9 @@ fn eval_at(expr: &Expression, x: f64, env: &Env) -> Option<f64> {
 }
 
 /// A parsed `table` command: what to evaluate and over which x values,
-/// plus an optional derivative column (ADR-0044).
+/// plus an optional derivative column (ADR-0044). ADR-0054 adds the
+/// `values <list>` column mode (rows at the list's x values; the
+/// paste-a-data-column case) and the `exact`/`approx` display toggle.
 /// Defaults match TI's table (start −5, end 5, 11 rows); `points` is
 /// capped so a bad command can't demand unbounded work.
 #[derive(Debug, Clone)]
@@ -405,6 +407,13 @@ pub struct TableSpec {
     /// The `derivative <expr>` column: evaluated numerically at each x
     /// with the 5-point stencil.
     pub derivative: Option<Expression>,
+    /// The `values <list-expr>` column mode (ADR-0054): rows at these x
+    /// values instead of the even grid. Mutually exclusive with
+    /// `from a to b` and `points n`.
+    pub values: Option<Expression>,
+    /// The `exact`/`approx` suffix (ADR-0054): forces the cell display
+    /// exact or decimal, overriding the session setting for this table.
+    pub exact: Option<bool>,
 }
 
 /// Parse the text after `table `: `expr [from a to b] [points n]
@@ -419,11 +428,19 @@ pub fn parse_table_source(source: &str) -> Result<TableSpec, EpherError> {
     if source.is_empty() {
         return Err(EpherError::Parse("empty table command".to_string()));
     }
-    // The `derivative <expr>` suffix sits after the domain, so strip it
-    // first, then the `points n` suffix, then the domain itself.
-    let (rest, derivative) = match source.rfind(" derivative ") {
+    // The `exact`/`approx` display suffix (ADR-0054) sits at the very
+    // end, so strip it first; then `derivative <expr>`, then `points n`,
+    // then `values <list>`, then the domain itself.
+    let (rest, exact) = match source.strip_suffix(" exact") {
+        Some(r) => (r.trim_end(), Some(true)),
+        None => match source.strip_suffix(" approx") {
+            Some(r) => (r.trim_end(), Some(false)),
+            None => (source, None),
+        },
+    };
+    let (rest, derivative) = match rest.rfind(" derivative ") {
         Some(idx) => {
-            let (expr, d) = source.split_at(idx);
+            let (expr, d) = rest.split_at(idx);
             let d = d.trim_start_matches(" derivative ").trim();
             if d.is_empty() {
                 return Err(EpherError::Parse(
@@ -432,7 +449,7 @@ pub fn parse_table_source(source: &str) -> Result<TableSpec, EpherError> {
             }
             (expr.trim(), Some(parse(d)?))
         }
-        None => (source, None),
+        None => (rest, None),
     };
     let (rest, points) = match rest.rfind(" points ") {
         Some(idx) => {
@@ -446,12 +463,39 @@ pub fn parse_table_source(source: &str) -> Result<TableSpec, EpherError> {
                     "`points` must be between 1 and {MAX_POINTS}"
                 )));
             }
-            (expr.trim(), n)
+            (expr.trim(), Some(n))
         }
-        None => (rest, DEFAULT_POINTS),
+        None => (rest, None),
+    };
+    let (rest, values) = match rest.rfind(" values ") {
+        Some(idx) => {
+            let (expr, v) = rest.split_at(idx);
+            let v = v.trim_start_matches(" values ").trim();
+            if v.is_empty() {
+                return Err(EpherError::Parse(
+                    "`values` needs a list after it: `table x^2 values d`".to_string(),
+                ));
+            }
+            (expr.trim(), Some(parse(v)?))
+        }
+        None => (rest, None),
     };
     let (body, domain) = split_domain(rest)?;
     let (x_min, x_max) = domain.unwrap_or((-5.0, 5.0));
+    if let Some(v) = &values {
+        if domain.is_some() {
+            return Err(EpherError::Parse(
+                "choose one x source: `from a to b` or `values <list>`, not both".to_string(),
+            ));
+        }
+        if points.is_some() {
+            return Err(EpherError::Parse(
+                "choose one x source: `points n` or `values <list>`, not both".to_string(),
+            ));
+        }
+        let _ = v;
+    }
+    let _ = &values;
     if x_min >= x_max {
         return Err(EpherError::Parse(format!(
             "table domain must run low to high, got {x_min:.3} .. {x_max:.3}"
@@ -461,14 +505,20 @@ pub fn parse_table_source(source: &str) -> Result<TableSpec, EpherError> {
         expr: parse(body)?,
         x_min,
         x_max,
-        points,
+        points: points.unwrap_or(DEFAULT_POINTS),
         derivative,
+        values,
+        exact,
     })
 }
 
 /// A row of a table of values: x always present; y absent where the
 /// expression has no value (TI-style blank rows). The derivative column
 /// (ADR-0044) is present when the command named one.
+/// One table row: the x, the expression's value (None where the
+/// expression has no value), and the derivative column's value.
+pub type TableRow = (f64, Option<f64>, Option<f64>);
+
 pub fn table_rows(
     expr: &Expression,
     derivative: Option<&Expression>,
@@ -476,7 +526,7 @@ pub fn table_rows(
     x_max: f64,
     points: usize,
     env: &Env,
-) -> Vec<(f64, Option<f64>, Option<f64>)> {
+) -> Vec<TableRow> {
     let mut out = Vec::new();
     for i in 0..points {
         let t = if points == 1 {
@@ -496,6 +546,38 @@ pub fn table_rows(
         out.push((x, y, d));
     }
     out
+}
+
+/// Table rows at the caller's x values (ADR-0054): the
+/// `values <list>` column mode, where the x column comes from a data
+/// list instead of an even grid. Capped at the same 1000 rows the
+/// grid mode allows.
+pub fn table_rows_at(
+    expr: &Expression,
+    derivative: Option<&Expression>,
+    xs: &[f64],
+    env: &Env,
+) -> Result<Vec<TableRow>, EpherError> {
+    if xs.is_empty() {
+        return Err(EpherError::Type("the values list needs at least one x".to_string()));
+    }
+    if xs.len() > 1000 {
+        return Err(EpherError::Type(format!(
+            "the values list is capped at 1000 x values, got {}",
+            xs.len()
+        )));
+    }
+    Ok(xs
+        .iter()
+        .map(|&x| {
+            let y = eval_at(expr, x, env);
+            let d = match derivative {
+                Some(d) => crate::derivative_at(d, x, env).ok(),
+                None => None,
+            };
+            (x, y, d)
+        })
+        .collect())
 }
 
 /// What kind of notable point an [`InterestPoint`] marks.
@@ -739,6 +821,7 @@ pub fn nice_step(span: f64, target: usize) -> f64 {
 pub fn free_names(expr: &Expression, out: &mut BTreeSet<String>) {
     match expr {
         Expression::Literal(_) => {}
+        Expression::StrLit(_) => {}
         Expression::Var(name) => {
             out.insert(name.clone());
         }
@@ -806,13 +889,47 @@ pub enum DataPlotKind {
     BoxPlot,
 }
 
-/// The least-squares line of a scatter plot: `y = a*x + b`, r the
-/// Pearson correlation (ADR-0044).
+/// The regression models a scatter can draw over its points
+/// (ADR-0054): the same family the `*reg` builtins fit.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ScatterFit {
+    Linreg,
+    Quadreg,
+    Expreg,
+    Powreg,
+    Logreg,
+}
+
+impl ScatterFit {
+    /// The model named by the optional third `scatter` argument.
+    pub fn named(name: &str) -> Option<Self> {
+        match name {
+            "linreg" => Some(Self::Linreg),
+            "quadreg" => Some(Self::Quadreg),
+            "expreg" => Some(Self::Expreg),
+            "powreg" => Some(Self::Powreg),
+            "logreg" => Some(Self::Logreg),
+            _ => None,
+        }
+    }
+
+    fn kind(self) -> crate::FitKind {
+        match self {
+            Self::Linreg => crate::FitKind::Linear,
+            Self::Quadreg => crate::FitKind::Quadratic,
+            Self::Expreg => crate::FitKind::Exponential,
+            Self::Powreg => crate::FitKind::Power,
+            Self::Logreg => crate::FitKind::Logarithmic,
+        }
+    }
+}
+
+/// The least-squares model of a scatter plot with its reported r
+/// (ADR-0044 for the line, ADR-0054 for the family).
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct FitLine {
-    pub a: f64,
-    pub b: f64,
-    pub r: f64,
+pub struct Fit {
+    pub model: ScatterFit,
+    pub fit: crate::Fit,
 }
 
 /// The computed picture of a data plot: what the frontends render
@@ -825,8 +942,8 @@ pub struct DataPlot {
     pub source: String,
     /// Scatter: the points.
     pub points: Vec<(f64, f64)>,
-    /// Scatter: the fitted line when there are two or more points.
-    pub fit: Option<FitLine>,
+    /// Scatter: the fitted model when there are enough points.
+    pub fit: Option<Fit>,
     /// Histogram: one (lo, hi, count) per bin.
     pub bins: Vec<(f64, f64, f64)>,
     /// Boxplot: min, q1, median, q3, max.
@@ -898,11 +1015,28 @@ pub fn sample_data_plot(source: &str, env: &Env) -> Result<DataPlot, EpherError>
             .into_iter()
             .map(|s| s.trim())
             .collect();
-        let [xs, ys] = parts.as_slice() else {
-            return Err(EpherError::Parse(
-                "scatter needs two lists: `scatter <xs>, <ys>`".to_string(),
-            ));
+        // The optional third argument names the fit model (ADR-0054):
+        // `scatter xs, ys` fits the line; `scatter xs, ys, quadreg`
+        // (or expreg/powreg/logreg) fits the family. The model word is
+        // never an expression, so it is matched before parsing.
+        let (data_parts, model) = match parts.as_slice() {
+            [xs, ys] => ([*xs, *ys], ScatterFit::Linreg),
+            [xs, ys, model] => {
+                let Some(m) = ScatterFit::named(model) else {
+                    return Err(EpherError::Parse(
+                        "the scatter model is one of linreg, quadreg, expreg, powreg, logreg"
+                            .to_string(),
+                    ));
+                };
+                ([*xs, *ys], m)
+            }
+            _ => {
+                return Err(EpherError::Parse(
+                    "scatter needs two lists: `scatter <xs>, <ys>`".to_string(),
+                ))
+            }
         };
+        let [xs, ys] = data_parts;
         let xs = eval_list(&parse(xs)?, env)?;
         let ys = eval_list(&parse(ys)?, env)?;
         if xs.len() != ys.len() {
@@ -918,19 +1052,32 @@ pub fn sample_data_plot(source: &str, env: &Env) -> Result<DataPlot, EpherError>
             ));
         }
         let points: Vec<(f64, f64)> = xs.into_iter().zip(ys).collect();
-        let fit = if points.len() >= 2 {
-            let (a, b, r) = match crate::linear_fit(
-                &points.iter().map(|(x, _)| *x).collect::<Vec<_>>(),
-                &points.iter().map(|(_, y)| *y).collect::<Vec<_>>(),
-            ) {
-                Ok(fit) => fit,
-                Err(_) => {
-                    return Err(EpherError::Type(
-                        "scatter fit failed: check the points".to_string(),
-                    ))
-                }
-            };
-            Some(FitLine { a, b, r })
+        // The minimum points per model mirror the `*reg` builtins: two
+        // for the two-parameter models, three for the quadratic. A
+        // requested model the data cannot support is an error; the
+        // default line simply draws unfitted when a single point is
+        // plotted (the ADR-0044 behavior).
+        let min_points = match model {
+            ScatterFit::Quadreg => 3,
+            _ => 2,
+        };
+        let fit = if points.len() >= min_points {
+            let (px, py): (Vec<f64>, Vec<f64>) = points.iter().copied().unzip();
+            crate::fit_regression(model.kind(), &px, &py)
+                .map(|f| Some(Fit { model, fit: f }))?
+        } else if model != ScatterFit::Linreg {
+            return Err(EpherError::Type(format!(
+                "{} needs at least {} points, got {}",
+                match model {
+                    ScatterFit::Linreg => "linreg",
+                    ScatterFit::Quadreg => "quadreg",
+                    ScatterFit::Expreg => "expreg",
+                    ScatterFit::Powreg => "powreg",
+                    ScatterFit::Logreg => "logreg",
+                },
+                min_points,
+                points.len()
+            )));
         } else {
             None
         };
@@ -1063,9 +1210,15 @@ pub fn data_ranges(data: &DataPlot) -> (f64, f64, f64, f64) {
                 y1 = y1.max(*y);
             }
             if let Some(f) = data.fit {
-                let (fa, fb) = (f.a, f.b);
-                y0 = y0.min(fa * x0 + fb).min(fa * x1 + fb);
-                y1 = y1.max(fa * x0 + fb).max(fa * x1 + fb);
+                const FIT_SAMPLES: usize = 24;
+                for k in 0..=FIT_SAMPLES {
+                    let x = x0 + (x1 - x0) * k as f64 / FIT_SAMPLES as f64;
+                    let y = f.fit.eval(x);
+                    if y.is_finite() {
+                        y0 = y0.min(y);
+                        y1 = y1.max(y);
+                    }
+                }
             }
             (x0, x1, y0, y1)
         }
@@ -1587,4 +1740,149 @@ pub fn project_world_dot(x: f64, y: f64, z: f64, view: &View3D) -> Option<(f64, 
         return None;
     }
     Some((sx, sy, zp))
+}
+
+// ===== 3D parametric curves (ADR-0054) =====
+
+/// A sampled space curve: `graph3d param x(t), y(t), z(t)` over a t
+/// domain (Desmos 3D and Nspire plot these; ADR-0054 brings epher to
+/// them). Points are consecutive samples; non-finite coordinates split
+/// the drawn line, exactly like undefined surface cells.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SpaceCurve {
+    pub source: String,
+    pub t_domain: (f64, f64),
+    pub points: Vec<[f64; 3]>,
+}
+
+/// Parse the text after `graph3d ` as a space curve:
+/// `param <x(t)>, <y(t)>, <z(t)> [from a to b]`. The default t domain
+/// matches the 2D parametric default (0..2pi).
+pub fn parse_space_curve_source(
+    source: &str,
+) -> Result<(Expression, Expression, Expression, (f64, f64)), EpherError> {
+    let source = source.trim();
+    let Some(rest) = source.strip_prefix("param ") else {
+        return Err(EpherError::Parse(
+            "3D parametric curves are spelled `graph3d param <x(t)>, <y(t)>, <z(t)>`".to_string(),
+        ));
+    };
+    let (body, domain) = split_domain(rest)?;
+    let parts: Vec<&str> = split_top_level(body, ',')
+        .into_iter()
+        .map(|s| s.trim())
+        .collect();
+    let [x, y, z] = parts.as_slice() else {
+        return Err(EpherError::Parse(
+            "space curves need three expressions: `param <x(t)>, <y(t)>, <z(t)>`".to_string(),
+        ));
+    };
+    let domain = domain.unwrap_or((0.0, std::f64::consts::TAU));
+    if domain.0 >= domain.1 {
+        return Err(EpherError::Parse(format!(
+            "graph domain must run low to high, got {:.3} .. {:.3}",
+            domain.0,
+            domain.1
+        )));
+    }
+    Ok((parse(x)?, parse(y)?, parse(z)?, domain))
+}
+
+/// Sample a space curve over its t domain; `t` is bound for each point
+/// like the 2D parametric sampler binds it. Points that do not
+/// evaluate to numbers are skipped; a curve needs at least two of them.
+pub fn sample_space_curve(source: &str, points: usize, env: &Env) -> Result<SpaceCurve, EpherError> {
+    let (x, y, z, domain) = parse_space_curve_source(source)?;
+    let mut child = Env::new_child(env);
+    let mut out: Vec<[f64; 3]> = Vec::with_capacity(points);
+    for i in 0..points {
+        let t = if points == 1 {
+            0.0
+        } else {
+            i as f64 / (points - 1) as f64
+        };
+        let t = domain.0 + t * (domain.1 - domain.0);
+        child.set("t", Value::float(t));
+        let (Ok(Value::Float(px)), Ok(Value::Float(py)), Ok(Value::Float(pz))) = (
+            eval(&x, &child),
+            eval(&y, &child),
+            eval(&z, &child),
+        ) else {
+            continue;
+        };
+        out.push([px, py, pz]);
+    }
+    if out.len() < 2 {
+        return Err(EpherError::Type(
+            "the space curve needs at least two defined points".to_string(),
+        ));
+    }
+    Ok(SpaceCurve {
+        source: source.to_string(),
+        t_domain: domain,
+        points: out,
+    })
+}
+
+/// Project a sampled space curve for the SVG renderer: one polyline
+/// per visible run, far-to-near.
+pub fn project_curve(curve: &SpaceCurve, view: &View3D) -> Vec<Polyline3D> {
+    let mut runs = project_space_curve(&curve.points, view);
+    runs.sort_by(|a, b| b.depth.total_cmp(&a.depth));
+    runs
+}
+
+/// The scene frame for a space curve: the ground square and the axes,
+/// sized to the curve's bounding box (the surface frame sizes itself
+/// to its square domain the same way).
+pub fn curve_frame(curve: &SpaceCurve, view: &View3D) -> Vec<Segment3D> {
+    let mut x_min = f64::INFINITY;
+    let mut x_max = f64::NEG_INFINITY;
+    let mut y_min = f64::INFINITY;
+    let mut y_max = f64::NEG_INFINITY;
+    let mut z_min = f64::INFINITY;
+    let mut z_max = f64::NEG_INFINITY;
+    for [x, y, z] in &curve.points {
+        if !([x, y, z].iter().all(|v| v.is_finite())) {
+            continue;
+        }
+        x_min = x_min.min(*x);
+        x_max = x_max.max(*x);
+        y_min = y_min.min(*y);
+        y_max = y_max.max(*y);
+        z_min = z_min.min(*z);
+        z_max = z_max.max(*z);
+    }
+    // A degenerate extent (a circle in a plane, a straight line) still
+    // deserves a frame; grow the flat directions to a unit span.
+    let grow = |lo: &mut f64, hi: &mut f64| {
+        if *hi - *lo < 1e-9 {
+            *lo -= 0.5;
+            *hi += 0.5;
+        }
+    };
+    grow(&mut x_min, &mut x_max);
+    grow(&mut y_min, &mut y_max);
+    grow(&mut z_min, &mut z_max);
+    let mut frame = Vec::with_capacity(8);
+    let mut edge = |x1: f64, y1: f64, z1: f64, x2: f64, y2: f64, z2: f64| {
+        if let Some((sx1, sy1, zp1, sx2, sy2, zp2)) = project_clipped(x1, y1, z1, x2, y2, z2, view)
+        {
+            frame.push(Segment3D {
+                x1: sx1,
+                y1: sy1,
+                x2: sx2,
+                y2: sy2,
+                depth: (zp1 + zp2) / 2.0,
+            });
+        }
+    };
+    edge(x_min, y_min, 0.0, x_max, y_min, 0.0);
+    edge(x_max, y_min, 0.0, x_max, y_max, 0.0);
+    edge(x_max, y_max, 0.0, x_min, y_max, 0.0);
+    edge(x_min, y_max, 0.0, x_min, y_min, 0.0);
+    edge(x_min, 0.0, 0.0, x_max, 0.0, 0.0);
+    edge(0.0, y_min, 0.0, 0.0, y_max, 0.0);
+    edge(0.0, 0.0, z_min, 0.0, 0.0, z_max);
+    frame
 }

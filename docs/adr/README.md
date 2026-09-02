@@ -78,6 +78,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0051 | Display rounding: twelve significant digits, decimals stay decimal | 2026-09-02 | accepted |
 | 0052 | Quantile tails, fraction honesty, and script transcripts | 2026-09-02 | accepted |
 | 0053 | Crate-reuse ladder and the guide on demand | 2026-09-02 | accepted |
+| 0054 | The stats class, table columns, space curves, and the language surface | 2026-09-02 | accepted |
 
 ## Decision chains
 
@@ -156,6 +157,9 @@ at the end of the chain.
   → **0050 (finance: the TVM solver, npv/irr, amortization)**
   → **0051 (display rounding: twelve significant digits, decimals stay decimal)**
   → **0052 (quantile tails, fraction honesty, script transcripts)**
+  → **0054 (strings, `for` loops, `print`, and `str`)**
+- **Statistics** - **0044 (lists, elementwise arithmetic, statistics, distributions, tests, regression)**
+  → **0054 (ANOVA, the paired t, `randn`, and the quad/exp/power/log regression family with scatter overlays)**
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.

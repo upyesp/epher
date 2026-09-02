@@ -344,7 +344,8 @@ if price > 50 then 2 else 1
 2
 ```
 
-> epher 没有文本值：`if` 的两个分支必须是数字（或比较的结果）。
+> `if` 现在也能比较字符串（见 1.29 节）：两支只要求同类的值：
+> 数字对数字，字符串对字符串。
 
 ### 1.8 用 while 循环
 
@@ -628,13 +629,16 @@ epher 拥有科学计算器的全部函数，按家族分组。
 | 列表统计 | `mean(列表)`, `median(列表)`, … | `stdev(d)` |
 | 列表形态 | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
 | 线性回归 | `linreg(xs, ys)` | `linreg(x, y)` |
+| 回归家族 | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
 | 正态族 | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
 | t 族 | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
 | 卡方族 | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
 | 离散族 | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
 | 检验与区间 | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| ANOVA 与配对 t | `anova(列表...)`、`ttestpaired(a, b)` | `anova(g1, g2, g3)` |
 | 数据图 | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
 | 随机数 | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| 正态抽值 | `randn(mu, sigma)` | `randn(0, 1)` |
 | 常量浏览器 | 帮助 → 常量：全部内置常量，按组分类 | 帮助 → 常量 |
 | 量 | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
 | 换算 | `expr in 单位` 或 `expr -> 单位` | `72 km/hr in m/s` |
@@ -776,7 +780,10 @@ error: unknown name: foo
 | 常量 | `const name = value` | `const tax = 0.2` |
 | 判断 | `if c then a else b` | `if x > 0 then 1 else -1` |
 | 循环 | `while c do statement` | `while x < 5 do x = x + 1` |
+| for 循环 | `for i in a to b step s do 语句` | `for i in 1 to 5 do i^2` |
 | 函数 | `def name(params) = expr` | `def f(x) = x ^ 2` |
+| 字符串 | `"..."`，`+` 拼接，`s[i]`，`==` | `"a" + "b"` |
+| Print | `print(a, b, ...)` | `print("x =", 42)` |
 | 脚本 | 用 `;` 或换行符连接语句 | `x = 1; x + 1` |
 | 精确分数 | `frac(n, d)` | `frac(1, 3)` |
 | 精确小数 | `dec(x)` | `dec(0.1) + dec(0.2)` |
@@ -1085,6 +1092,20 @@ linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})
 拟合直线是一种显示结果，就像 solve 的根；拟合的图形在散点图上
 （第 1.22 节）。
 
+回归家族的其余部分拟合计算器长大后用到的模型：**quadreg** 拟合 `y = a*x^2 + b*x + c`（至少 3 个点），**expreg** 拟合 `y = a*e^(b*x)`（y > 0），**powreg** 拟合 `y = a*x^b`（x、y > 0），**logreg** 拟合 `y = a + b*ln(x)`（x > 0）。每个都连同 r 报出模型：
+
+```epher
+quadreg({1, 2, 3, 4}, {1, 4.1, 8.9, 16.2})
+expreg({1, 2, 3}, {2.7, 7.4, 20.1})
+```
+
+```text
+y = 1.05*x^2 + -0.21*x + 0.2 (r = 0.9999)
+y = 0.9911*e^(1.0037*x) (r = 1)
+```
+
+变换拟合的 r 是线性化后数据对的相关系数，与 TI 和 NumWorks 报出的数字相同。每个模型也能在散点图上自绘：`graph scatter(xs, ys, quadreg)`（或 expreg、powreg、logreg）会连同该模型的曲线一起画出各点。
+
 ### 1.21 分布与假设检验
 
 概率函数覆盖标准正态、t、卡方、二项和泊松分布族。正态族接受一个
@@ -1127,6 +1148,26 @@ chi2 = 2, p = 0.5724
 需要已知的 sigma。`chisq_gof(观测值, 期望值)` 是自由度为 k−1 的拟
 合优度检验。结果是显示文本：可读、可复制，但算术不能使用它们。
 
+还有两个同形的检验。**anova(列表1, 列表2, …)** 是对两组或更多组的单因素方差分析（长度不等也可以），连同 p 值报出 F：
+
+```epher
+anova({1, 2, 3}, {4, 5, 6}, {7, 8, 9})
+```
+
+```text
+F = 27, p = 0.001
+```
+
+**ttestpaired(a, b)** 是配对 t 检验：取两条等长列表的差，对 0 做检验，课堂上的"前后"对比：
+
+```epher
+ttestpaired({80, 85, 90}, {82, 84, 91})
+```
+
+```text
+t = -0.7559, p = 0.5286
+```
+
 ### 1.22 数据图
 
 绘图家族也接受列表：散点图、直方图和箱线图。数据图独占面板，就像
@@ -1153,6 +1194,7 @@ graph boxplot({1, 2, 2, 3, 3, 3, 9})
 中位数、Q3、最大值，须线延伸到两端。窗口始终适应数据——`from a
 to b` 域关键字不适用——图像像任何其他图一样导出和保存。
 
+可选的第三个词选择模型：`graph scatter(xs, ys, quadreg)`（或 expreg、powreg、logreg）画出的就是那条拟合曲线而不是直线。
 ### 1.23 随机数
 
 `random()` 抽取 `[0, 1)` 中的均匀随机数，`random(a, b)` 抽取 `[a, b)` 中的一个，
@@ -1170,6 +1212,20 @@ randint(1, 6)
 
 序列是可复现的：`randseed(n)` 用 `n` 重新设定随机种子并显示它，因此相同的种子
 在每个会话、每个前端都会重放相同的抽取结果。
+
+**randn(mu, sigma)** 从均值为 mu、标准差为 sigma 的正态分布中抽值（Desmos 叫 randomNormal，TI 叫 randNorm）：
+
+```epher
+randseed(7)
+randn(0, 1)
+```
+
+```text
+7
+1.36499229746
+```
+
+同一种子重放同样的抽取，与均匀分布完全一致。
 
 ### 1.24 单位与换算
 
@@ -1362,6 +1418,63 @@ npv(0.1, {-100, 60, 60})
 是 `p*(1+r)^n - p`。
 
 
+### 1.29 字符串与 print
+
+字符串是双引号中的文本：`"hello"`。字符串用 `+` 拼接，用 `==` 和 `!=` 比较，用 `len` 计数，并像列表一样从 1 开始索引：
+
+```epher
+"hello" + " " + "world"
+len("hello")
+"hello"[1]
+"abc" == "abd"
+```
+
+```text
+hello world
+5
+h
+false
+```
+
+没有转义序列：字符串里不能出现双引号。**str(x)** 按答案面板的方式写出一个值，**print(a, b, …)** 把参数用空格连成一行：
+
+```epher
+print("x =", 42)
+```
+
+```text
+x = 42
+```
+
+### 1.30 用 for 循环
+
+`for` 对每个值重复一次语句，并把语句的值收集成一个列表：可以遍历 `start to end` 区间（含端点，可带 `step`），也可以遍历列表的元素：
+
+```epher
+for i in 1 to 5 do i^2
+for x in {2, 3, 4} do 10*x
+for i in 0 to 1 step 0.5 do i
+```
+
+```text
+{1, 4, 9, 16, 25}
+{20, 30, 40}
+{0, 0.5, 1}
+```
+
+循环变量在结束后保留最后的值，和 TI 的 For 一样。配合 print，循环能写出可读的行：
+
+```epher
+for i in 1 to 3 do print("line", i)
+```
+
+```text
+{line 1, line 2, line 3}
+```
+
+与 while 一样，10 万步的安全网同样限制 for 循环。
+
+
 ## 2. 网页应用（PWA）
 
 ### 2.1 打开它
@@ -1489,6 +1602,24 @@ table x ^ 2 from -2 to 2 points 5
          2           4
 ```
 
+还有两个子句覆盖剩下的工作。`values <列表>` 用数据列表充当 x 列，而不是等距网格：把数据交给它，看它变换：
+
+```epher
+d = {1, 2, 3, 4, 5}
+table x ^ 2 values d
+```
+
+```text
+         x           y
+         1           1
+         2           4
+         3           9
+         4          16
+         5          25
+```
+
+`exact` / `approx` 则为这一张表强制单元格的显示：`exact` 在凑得准时显示简单分数，`approx` 显示小数；各自只对这一条命令覆盖结果设置。
+
 #### 2.4.3 滑块与导出
 
 定义一个常量并在图形中使用它，图形下方就会出现一个滑块。拖动它（或用箭头键移动它），每条曲线都会重绘：
@@ -1512,6 +1643,7 @@ graph3d x ^ 2 - y ^ 2
 
 离你更近的网格线画得更深，形状因此更有纵深感。多条 `graph3d` 行会像曲线一样叠加在同一张图中，`graph3d clear` 会清空图形。拖动可以旋转视图，或将焦点放在图形上并用箭头键旋转。终端界面把同一个曲面绘制成 ASCII 线框图，用箭头键旋转它。
 
+空间曲线用 `param` 画：`graph3d param cos(t), sin(t), t` 在你给的 t 范围上（`from 0 to 6.28318`）画一条螺旋线，默认 0 到 2pi。同一个面板，同样的旋转、缩放和动画。
 #### 2.4.5 动画
 
 每个滑块都有一个播放按钮。它让滑块对应的常量在滑块范围内逐步变化并循环。这是计算器做动画的标准方式：你让一个参数动起来，所有用到它的东西都会跟着动。再次按下按钮就会暂停。

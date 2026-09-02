@@ -365,8 +365,8 @@ if price > 50 then 2 else 1
 2
 ```
 
-> O epher não tem valores de texto: os dois ramos de um `if` têm de ser
-> números (ou resultados de comparações).
+> Um `if` também compara strings (seção 1.29): as duas ramas só precisam
+> ser valores do mesmo tipo: números com números, strings com strings.
 
 ### 1.8 Ciclos com while
 
@@ -672,13 +672,16 @@ Primos e divisores trabalham com números inteiros:
 | Estatística de lista | `mean(lista)`, `median(lista)`, … | `stdev(d)` |
 | Forma de lista | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
 | Regressão linear | `linreg(xs, ys)` | `linreg(x, y)` |
+| Família de regressão | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
 | Família normal | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
 | Família t | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
 | Família qui-quadrado | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
 | Famílias discretas | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
 | Testes e intervalos | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| ANOVA e t emparelhado | `anova(listas...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
 | Gráficos de dados | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
 | Números aleatórios | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| Sorteios normais | `randn(mu, sigma)` | `randn(0, 1)` |
 | Explorador de constantes | Ajuda → Constantes: todas as constantes, agrupadas | Ajuda → Constantes |
 | Grandeza | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
 | Converter | `expr in unidade` ou `expr -> unidade` | `72 km/hr in m/s` |
@@ -821,7 +824,10 @@ conhece, para poder corrigir a sua expressão.
 | Constante | `const name = value` | `const tax = 0.2` |
 | Decisão | `if c then a else b` | `if x > 0 then 1 else -1` |
 | Ciclo | `while c do statement` | `while x < 5 do x = x + 1` |
+| Ciclo for | `for i in a to b step s do instrução` | `for i in 1 to 5 do i^2` |
 | Função | `def name(params) = expr` | `def f(x) = x ^ 2` |
+| Strings | `"..."`, `+` une, `s[i]`, `==` | `"a" + "b"` |
+| Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Script | instruções unidas por `;` ou quebras de linha | `x = 1; x + 1` |
 | Fração exata | `frac(n, d)` | `frac(1, 3)` |
 | Decimal exato | `dec(x)` | `dec(0.1) + dec(0.2)` |
@@ -1146,6 +1152,20 @@ linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})
 A reta ajustada é uma apresentação, como as raízes de solve; a imagem
 do ajuste vive no gráfico de dispersão (secção 1.22).
 
+O resto da família de regressão ajusta os modelos para os quais as calculadoras crescem: **quadreg** ajusta `y = a*x^2 + b*x + c` (pelo menos 3 pontos), **expreg** ajusta `y = a*e^(b*x)` (y > 0), **powreg** ajusta `y = a*x^b` (x e y > 0), e **logreg** ajusta `y = a + b*ln(x)` (x > 0). Cada um informa o modelo com o seu r:
+
+```epher
+quadreg({1, 2, 3, 4}, {1, 4.1, 8.9, 16.2})
+expreg({1, 2, 3}, {2.7, 7.4, 20.1})
+```
+
+```text
+y = 1.05*x^2 + -0.21*x + 0.2 (r = 0.9999)
+y = 0.9911*e^(1.0037*x) (r = 1)
+```
+
+O r de um ajuste transformado é a correlação do par linearizado: o mesmo número que TI e NumWorks informam. Cada modelo também se desenha sobre um gráfico de dispersão: `graph scatter(xs, ys, quadreg)` (ou expreg, powreg, logreg) traça os pontos com a curva desse modelo.
+
 ### 1.21 Distribuições e testes de hipótese
 
 As funções de probabilidade cobrem a normal padrão, a t de Student,
@@ -1193,6 +1213,26 @@ esperados)` é o teste de ajuste com k−1 graus de liberdade. Os
 resultados são textos de apresentação: legíveis e copiáveis, mas a
 aritmética não pode tocá-los.
 
+Mais dois testes compartilham a mesma forma. **anova(lista1, lista2, …)** é a análise de variância de um fator sobre dois ou mais grupos (comprimentos desiguais são permitidos) e informa F com o seu valor p:
+
+```epher
+anova({1, 2, 3}, {4, 5, 6}, {7, 8, 9})
+```
+
+```text
+F = 27, p = 0.001
+```
+
+**ttestpaired(a, b)** é o teste t emparelhado: toma as diferenças de duas listas de mesmo comprimento e testa-as contra 0, o teste de sala de aula "antes e depois":
+
+```epher
+ttestpaired({80, 85, 90}, {82, 84, 91})
+```
+
+```text
+t = -0.7559, p = 0.5286
+```
+
 ### 1.22 Gráficos de dados
 
 A família de gráficos também aceita listas: um gráfico de dispersão,
@@ -1224,6 +1264,7 @@ aos extremos. A janela ajusta-se sempre aos dados — as palavras-chave
 `from a to b` não se aplicam — e a imagem exporta-se e guarda-se como
 qualquer gráfico.
 
+Uma terceira palavra opcional escolhe o modelo: `graph scatter(xs, ys, quadreg)` (ou expreg, powreg, logreg) desenha esse ajuste em vez da reta.
 ### 1.23 Números aleatórios
 
 `random()` sorteia um número uniforme em `[0, 1)`, `random(a, b)` um em
@@ -1243,6 +1284,20 @@ randint(1, 6)
 A sequência é reproduzível: `randseed(n)` reinicia o gerador com `n` e
 mostra-o, por isso a mesma semente repete os mesmos sorteios em cada
 sessão e em cada interface.
+
+**randn(mu, sigma)** sorteia da distribuição normal com média mu e desvio padrão sigma (a Desmos chama de randomNormal, a TI de randNorm):
+
+```epher
+randseed(7)
+randn(0, 1)
+```
+
+```text
+7
+1.36499229746
+```
+
+A mesma semente repete os mesmos sorteios, exatamente como os uniformes.
 
 ### 1.24 Unidades e conversão
 
@@ -1457,6 +1512,63 @@ empréstimo a n períodos, `simple_interest(p, r, t)` é `p*r*t`, e
 `compound_interest(p, r, n)` é `p*(1+r)^n - p`.
 
 
+### 1.29 Strings e print
+
+Uma string é texto entre aspas duplas: `"hello"`. Strings se concatenam com `+`, comparam-se com `==` e `!=`, contam-se com `len` e indexam-se a partir de 1 como as listas:
+
+```epher
+"hello" + " " + "world"
+len("hello")
+"hello"[1]
+"abc" == "abd"
+```
+
+```text
+hello world
+5
+h
+false
+```
+
+Não há sequências de escape: uma string não pode conter aspas duplas. **str(x)** escreve um valor como o painel de resposta faria, e **print(a, b, …)** une os argumentos com espaços numa linha:
+
+```epher
+print("x =", 42)
+```
+
+```text
+x = 42
+```
+
+### 1.30 Ciclos com for
+
+`for` repete uma instrução uma vez por valor e reúne os valores do corpo numa lista: sobre um intervalo `start to end` (inclusive) com um `step` opcional, ou sobre os elementos de uma lista:
+
+```epher
+for i in 1 to 5 do i^2
+for x in {2, 3, 4} do 10*x
+for i in 0 to 1 step 0.5 do i
+```
+
+```text
+{1, 4, 9, 16, 25}
+{20, 30, 40}
+{0, 0.5, 1}
+```
+
+A variável do ciclo guarda o seu último valor depois, como o For da TI. Com print, um ciclo escreve linhas legíveis:
+
+```epher
+for i in 1 to 3 do print("line", i)
+```
+
+```text
+{line 1, line 2, line 3}
+```
+
+A mesma rede de segurança de 100.000 passos limita um ciclo for como um while.
+
+
 ## 2. A aplicação web (PWA)
 
 ### 2.1 Abri-la
@@ -1619,6 +1731,24 @@ table x ^ 2 from -2 to 2 points 5
          2           4
 ```
 
+Mais duas cláusulas cobrem o resto do trabalho. `values <lista>` toma a coluna x de uma lista de dados em vez de uma malha uniforme: entregue os seus dados e veja-os transformados:
+
+```epher
+d = {1, 2, 3, 4, 5}
+table x ^ 2 values d
+```
+
+```text
+         x           y
+         1           1
+         2           4
+         3           9
+         4          16
+         5          25
+```
+
+E `exact` / `approx` forçam a exibição das células para uma tabela: `exact` mostra frações simples onde couberem, `approx` mostra decimais; cada um sobrepõe as definições de resultados para esse único comando.
+
 #### 2.4.3 Deslizadores e exportação
 
 Defina uma constante, use-a num gráfico, e aparece um deslizador por
@@ -1651,6 +1781,7 @@ Rode a vista arrastando, ou foque o gráfico e use as teclas de seta. A
 TUI desenha a mesma superfície como uma malha de arame em ASCII, que
 roda com as teclas de seta.
 
+Curvas espaciais traçam-se com `param`: `graph3d param cos(t), sin(t), t` desenha uma hélice sobre o intervalo de t que der (`from 0 to 6.28318`), ou de 0 a 2pi por omissão. Mesmo painel, mesma rotação, zoom e animação.
 #### 2.4.5 Animação
 
 Cada deslizador tem um botão de reprodução. Ele faz a sua constante
