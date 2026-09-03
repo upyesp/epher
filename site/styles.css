@@ -967,11 +967,61 @@ a:hover {
   border-bottom: 1px solid var(--border);
 }
 
+/* Copy buttons: icon-only, the ubiquitous two-overlapping-sheets copy
+   icon sized to the surrounding font; the button box itself stays above
+   the 24px target-size floor (WCAG 2.5.8). Success swaps the icon for a
+   check mark and a text label (never color alone, WCAG 1.4.1). */
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0.2rem 0.45rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.copy-btn:hover {
+  background: var(--panel);
+}
+
+.copy-btn svg {
+  width: 1em;
+  height: 1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.copy-btn .icon-check {
+  display: none;
+}
+
+.copy-btn.copied .icon-copy {
+  display: none;
+}
+
+.copy-btn.copied .icon-check {
+  display: block;
+  stroke: var(--link);
+}
+
+.copy-label {
+  font-size: 0.85rem;
+}
+
 .script-row .copy-btn {
   flex-shrink: 0;
-  width: 32px;
   padding: 0.2rem;
-  justify-content: center;
 }
 
 .script-link {

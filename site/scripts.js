@@ -2,9 +2,8 @@
  * (written by scripts/build-scripts.mjs from the repository's
  * "epher scripts" folder), browse field -> area -> script, search across
  * names and content, view any script, and copy any script with a button
- * whose icon follows the platform convention (macOS/iOS: two overlapping
- * documents, the SF Symbols "doc.on.doc" shape; elsewhere: the standard
- * two-rectangle copy glyph).
+ * carrying the ubiquitous copy icon: two overlapping sheets, sized to
+ * the surrounding font.
  *
  * Localized strings come from the same catalogs as the rest of the site
  * (window.EPHER_I18N, applied by app.js); the current language is read
@@ -17,25 +16,9 @@
   const dict = () => I18N[document.documentElement.lang] || I18N.en || {};
   const t = (key, fallback) => dict()[key] || fallback;
 
-  // The copy glyph follows the platform convention: Apple platforms show
-  // two overlapping documents, everything else the two-rectangle glyph.
-  // Read the user agent AND the platform: headless tests can spoof the
-  // UA string alone, and platform is authoritative when the UA lies.
-  const UA = (navigator.userAgent || "").toLowerCase();
-  const PLATFORM = (navigator.platform || (navigator.userAgentData && navigator.userAgentData.platform) || "").toLowerCase();
-  const APPLE = /mac|iphone|ipad|ipod/.test(UA) || /mac|iphone|ipad|ipod/.test(PLATFORM);
-
-  // The two copy glyphs; the active one is chosen when a button renders.
-  const COPY_GLYPHS = {
-    apple:
-      '<path d="M7 3h9a3 3 0 0 1 3 3v9h-1.5V6a1.5 1.5 0 0 0-1.5-1.5H7V3Z"/><path d="M5 6.5h9A1.5 1.5 0 0 1 15.5 8v10A1.5 1.5 0 0 1 14 19.5H5A1.5 1.5 0 0 1 3.5 18V8A1.5 1.5 0 0 1 5 6.5Z"/>',
-    standard:
-      '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
-  };
+  // The ubiquitous copy icon: two overlapping sheets (rounded rects).
   const copySvg = () =>
-    `<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24">${
-      APPLE ? COPY_GLYPHS.apple : COPY_GLYPHS.standard
-    }</svg>`;
+    '<svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
   const checkSvg =
     '<svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>';
 
@@ -83,8 +66,8 @@
 
   /** A copy button: icon-only with a localized accessible name; swaps to
    *  the check mark for a moment after a successful copy. */
-  function copyButton(script, big) {
-    const btn = el("button", "copy-btn" + (big ? " copy-btn-big" : ""));
+  function copyButton(script) {
+    const btn = el("button", "copy-btn");
     btn.type = "button";
     btn.title = t("copy", "Copy");
     btn.setAttribute("aria-label", t("copy", "Copy"));
@@ -237,8 +220,8 @@
     if (!script) return renderScripts(state);
     const panel = el("div", "script-view");
     const head = el("div", "script-view-head");
+    head.appendChild(copyButton(script));
     head.appendChild(el("h2", "", script.name));
-    head.appendChild(copyButton(script, true));
     panel.appendChild(head);
     const run = el("p", "script-run");
     run.appendChild(el("code", "", `epher "${script.path}"`));

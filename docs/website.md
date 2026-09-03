@@ -110,9 +110,10 @@ links never need a version number.
   the index.html chrome. `site/scripts.js` (committed) fetches the JSON
   and renders the folder browser: breadcrumb drill-down, a search box
   over names, titles and content, and a view for every script. Every
-  script row carries a copy button whose glyph follows the platform
-  convention (overlapping documents on macOS/iOS, the two-rectangle
-  glyph elsewhere). Run `npm run build:scripts` to regenerate.
+  script row carries a copy button with the ubiquitous copy icon (two
+  overlapping sheets, sized to the surrounding font); on the view page
+  the copy button sits left of the file name. Run `npm run
+  build:scripts` to regenerate.
 - **Hero animation**: the landing hero's graph card is the 3D saddle
   `graph3d x ^ 2 - y ^ 2` rotating slowly — a runtime port in `site/app.js`
   of the app's projection (ADR-0030): constant-size per-frame-centered view
