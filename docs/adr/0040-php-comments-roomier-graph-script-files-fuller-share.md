@@ -135,3 +135,14 @@ note at the end of a statement uses `//`, and no comment ever sits
 inside a statement. The expected-output footer is a block comment
 holding the raw transcript, one line per output line, closed by `*/`
 on its own line; `scripts/check-scripts.mjs` reads it as the oracle.
+
+A paste into the calculator's entry joined the whole-program side a
+moment later: the web entry (and the desktop app, which bundles the
+same frontend) split a multi-line submission line by line, so a
+pasted script died on its spanning banner with a screenful of phantom
+parse errors even though this decision and the user guide promised
+"a pasted program arrives as one whole program". A multi-line
+submission now splits as one text, exactly like a script file.
+Typing stays the line model in effect: Enter submits one line at a
+time, and there a block comment still opens and closes on its own
+line.

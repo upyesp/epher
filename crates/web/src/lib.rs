@@ -3233,249 +3233,202 @@ fn epher_app() -> Html {
             // set their own message and are not evaluations.
             let mut script_outputs: Vec<String> = Vec::new();
             let mut last_was_eval = false;
-            for raw_line in raw.split('\n') {
-                let line = raw_line.trim().to_string();
-                if line.is_empty() {
-                    continue;
-                }
-                // `;` separates statements only where the tokenizer
-                // sees it: inside a string literal or a comment it is
-                // text. The naive split let pasted scripts with a
-                // semicolon in a comment or a string evaluate the
-                // fragments as code and report phantom parse errors
-                // (epher-shell split_statements mirrors the tokenizer).
-                let pieces = epher_shell::split_statements(&line);
-                if pieces.is_empty() {
-                    continue;
-                }
-                let single = pieces.len() == 1;
-                // The output of the last evaluation, for the combined
-                // history entry of a multi-statement script.
-                let mut last_eval_output: Option<String> = None;
-                for piece in &pieces {
-                    let piece = piece.trim();
-                    last_eval_output = None;
-                    last_was_eval = false;
+            // `;` and newlines separate statements only where the
+            // tokenizer sees them: inside a string literal or a comment
+            // they are text, and inside a block comment a newline is
+            // comment text. The whole submission splits at once, so a
+            // pasted script parses exactly like a script file: the
+            // spanning block-comment banner is one comment, not a
+            // screenful of phantom parse errors (the per-line split this
+            // replaces also bit on semicolons in strings; epher-shell
+            // split_statements mirrors the tokenizer).
+            let pieces = epher_shell::split_statements(&raw);
+            let single = pieces.len() == 1;
+            let line = raw.trim().to_string();
+            // The output of the last evaluation, for the combined
+            // history entry of a multi-statement script.
+            let mut last_eval_output: Option<String> = None;
+            for piece in &pieces {
+                let piece = piece.trim();
+                last_eval_output = None;
+                last_was_eval = false;
 
-                    // The keypad's command keys (ADR-0038): `clear` empties
-                    // the plot like the Clear graph button; `history`
-                    // focuses the history list. Both previously fell
-                    // through to the evaluator and errored as unknown
-                    // names.
-                    if piece == "clear" {
+                // The keypad's command keys (ADR-0038): `clear` empties
+                // the plot like the Clear graph button; `history`
+                // focuses the history list. Both previously fell
+                // through to the evaluator and errored as unknown
+                // names.
+                if piece == "clear" {
+                    curves.clear();
+                    pois.set(Vec::new());
+                    surfaces.clear();
+                    curve3ds_local.clear();
+                    solar = None;
+                    solar_source = None;
+                    solar_hidden.set(Vec::new());
+                    hidden_surfaces.set(Vec::new());
+                    hidden_curves3d.set(Vec::new());
+                    view_h.set(0.0);
+                    view_v.set(0.0);
+                    view_z.set(0.0);
+                    spin_phase.set((0.0, 0.0));
+                    *spin_phase_cell.borrow_mut() = (0.0, 0.0);
+                    *view2d_cell.borrow_mut() = None;
+                    view2d.set(None);
+                    result.set(String::new());
+                    continue;
+                }
+                if piece == "history" {
+                    if let Some(el) = history_box_ref.cast::<web_sys::HtmlElement>() {
+                        let _ = el.focus();
+                    }
+                    if mobile_layout() {
+                        scroll_pane_for_submit.emit("calc-pane");
+                    }
+                    continue;
+                }
+
+                // Graphing (ADR-0006/0014: the core samples, the frontend renders).
+                // Each `graph` line overlays one more curve; the command
+                // itself joins the history list like every submitted line.
+                if let Some(source) = piece.strip_prefix("graph ") {
+                    let source = source.trim();
+                    if single && !multiline {
+                        s.record(piece);
+                    }
+                    if source == "clear" {
                         curves.clear();
+                        data_local = None;
                         pois.set(Vec::new());
-                        surfaces.clear();
-                        curve3ds_local.clear();
-                        solar = None;
-                        solar_source = None;
-                        solar_hidden.set(Vec::new());
-                        hidden_surfaces.set(Vec::new());
-                        hidden_curves3d.set(Vec::new());
-                        view_h.set(0.0);
-                        view_v.set(0.0);
-                        view_z.set(0.0);
-                        spin_phase.set((0.0, 0.0));
-                        *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                         *view2d_cell.borrow_mut() = None;
                         view2d.set(None);
-                        result.set(String::new());
                         continue;
                     }
-                    if piece == "history" {
-                        if let Some(el) = history_box_ref.cast::<web_sys::HtmlElement>() {
-                            let _ = el.focus();
-                        }
-                        if mobile_layout() {
-                            scroll_pane_for_submit.emit("calc-pane");
-                        }
-                        continue;
-                    }
-
-                    // Graphing (ADR-0006/0014: the core samples, the frontend renders).
-                    // Each `graph` line overlays one more curve; the command
-                    // itself joins the history list like every submitted line.
-                    if let Some(source) = piece.strip_prefix("graph ") {
-                        let source = source.trim();
-                        if single && !multiline {
-                            s.record(piece);
-                        }
-                        if source == "clear" {
-                            curves.clear();
-                            data_local = None;
-                            pois.set(Vec::new());
-                            *view2d_cell.borrow_mut() = None;
-                            view2d.set(None);
-                            continue;
-                        }
-                        // Data plots (ADR-0044): a scatter, histogram, or
-                        // boxplot owns the pane like a solar scene does.
-                        if epher_core::graph::is_data_plot_source(source) {
-                            match sample_data_plot(source, s.env()) {
-                                Ok(plot) => {
-                                    curves.clear();
-                                    pois.set(Vec::new());
-                                    surfaces.clear();
-                                    curve3ds_local.clear();
-                                    solar = None;
-                                    solar_source = None;
-                                    solar_hidden.set(Vec::new());
-                                    *view2d_cell.borrow_mut() = None;
-                                    view2d.set(None);
-                                    data_local = Some(plot);
-                                    result.set(String::new());
-                                    if mobile_layout() {
-                                        scroll_pane.emit("graph-pane");
-                                    }
-                                }
-                                Err(e) => result.set(format!("error: {e}")),
-                            }
-                            continue;
-                        }
-                        match parse_graph_source(source).and_then(|spec| {
-                            sample_spec(&spec, 120, s.env()).map(|samples| (spec, samples))
-                        }) {
-                            Ok((spec, samples)) => {
-                                // The pane shows one kind at a time (ADR-0015
-                                // amendment): drawing a curve clears any 3D
-                                // surfaces and any solar scene, so the two
-                                // never share the pane and each plot keeps its
-                                // full size.
+                    // Data plots (ADR-0044): a scatter, histogram, or
+                    // boxplot owns the pane like a solar scene does.
+                    if epher_core::graph::is_data_plot_source(source) {
+                        match sample_data_plot(source, s.env()) {
+                            Ok(plot) => {
+                                curves.clear();
+                                pois.set(Vec::new());
                                 surfaces.clear();
                                 curve3ds_local.clear();
-                                data_local = None;
                                 solar = None;
                                 solar_source = None;
                                 solar_hidden.set(Vec::new());
-                                // A fresh plot re-fits the zoom window (ADR-0038).
                                 *view2d_cell.borrow_mut() = None;
                                 view2d.set(None);
-                                curves.push(SampledCurve {
-                                    source: source.to_string(),
-                                    kind: spec.kind,
-                                    domain: spec.domain,
-                                    samples,
-                                    fill: spec.fill,
-                                });
-                                // Graphing prints nothing to the answer area
-                                // (ADR-0027): the command joins the history
-                                // list, and the plot itself is the result.
+                                data_local = Some(plot);
                                 result.set(String::new());
-                                // Mobile convenience: the graph pane is one
-                                // horizontal slide away in the stacked-pane
-                                // layout — a drawn plot slides the view
-                                // across so the curve is visible immediately.
                                 if mobile_layout() {
                                     scroll_pane.emit("graph-pane");
-                                    // Mobile keyboards stay open while the
-                                    // entry keeps focus; a drawn plot wants
-                                    // the screen. Drop the focus so the
-                                    // keyboard closes and the pane is ready
-                                    // for touch rotation.
-                                    if let Some(ta) =
-                                        input_ref.cast::<web_sys::HtmlTextAreaElement>()
-                                    {
-                                        let _ = ta.blur();
-                                    }
                                 }
                             }
                             Err(e) => result.set(format!("error: {e}")),
                         }
                         continue;
                     }
-
-                    // 3D surfaces (ADR-0015): z = f(x, y) over a square
-                    // domain, overlaid like curves. The command joins the
-                    // history list like every submitted line.
-                    if let Some(source) = piece.strip_prefix("graph3d ") {
-                        let source = source.trim();
-                        if single && !multiline {
-                            s.record(piece);
-                        }
-                        if source == "clear" {
+                    match parse_graph_source(source).and_then(|spec| {
+                        sample_spec(&spec, 120, s.env()).map(|samples| (spec, samples))
+                    }) {
+                        Ok((spec, samples)) => {
+                            // The pane shows one kind at a time (ADR-0015
+                            // amendment): drawing a curve clears any 3D
+                            // surfaces and any solar scene, so the two
+                            // never share the pane and each plot keeps its
+                            // full size.
                             surfaces.clear();
                             curve3ds_local.clear();
-                            hidden_surfaces.set(Vec::new());
-                            hidden_curves3d.set(Vec::new());
-                            view_h.set(0.0);
-                            view_v.set(0.0);
-                            view_z.set(0.0);
-                            // The spin loop reads the live cells (not the
-                            // states): stale non-zero cells here kept a
-                            // fresh graph spinning with the sliders at 0
-                            // (the ADR-0038 amendment's animation fix).
-                            *view_h_cell.borrow_mut() = 0.0;
-                            *view_v_cell.borrow_mut() = 0.0;
-                            spin_phase.set((0.0, 0.0));
-                            *spin_phase_cell.borrow_mut() = (0.0, 0.0);
-                            continue;
-                        }
-                        // A `param` body is a space curve (ADR-0054);
-                        // anything else is a surface.
-                        if source.starts_with("param ") {
-                            match epher_core::graph::sample_space_curve(source, 240, s.env()) {
-                                Ok(fresh) => {
-                                    // The newest command owns the pane.
-                                    curves.clear();
-                                    surfaces.clear();
-                                    data_local = None;
-                                    solar = None;
-                                    solar_source = None;
-                                    solar_hidden.set(Vec::new());
-                                    *view2d_cell.borrow_mut() = None;
-                                    view2d.set(None);
-                                    if curve3ds_local.is_empty() {
-                                        view_h.set(0.0);
-                                        view_v.set(0.0);
-                                        view_z.set(0.0);
-                                        spin_phase.set((0.0, 0.0));
-                                        *spin_phase_cell.borrow_mut() = (0.0, 0.0);
-                                    }
-                                    curve3ds_local.push(fresh);
-                                    result.set(String::new());
-                                    if mobile_layout() {
-                                        scroll_pane.emit("graph-pane");
-                                        if let Some(ta) =
-                                            input_ref.cast::<web_sys::HtmlTextAreaElement>()
-                                        {
-                                            let _ = ta.blur();
-                                        }
-                                    }
+                            data_local = None;
+                            solar = None;
+                            solar_source = None;
+                            solar_hidden.set(Vec::new());
+                            // A fresh plot re-fits the zoom window (ADR-0038).
+                            *view2d_cell.borrow_mut() = None;
+                            view2d.set(None);
+                            curves.push(SampledCurve {
+                                source: source.to_string(),
+                                kind: spec.kind,
+                                domain: spec.domain,
+                                samples,
+                                fill: spec.fill,
+                            });
+                            // Graphing prints nothing to the answer area
+                            // (ADR-0027): the command joins the history
+                            // list, and the plot itself is the result.
+                            result.set(String::new());
+                            // Mobile convenience: the graph pane is one
+                            // horizontal slide away in the stacked-pane
+                            // layout — a drawn plot slides the view
+                            // across so the curve is visible immediately.
+                            if mobile_layout() {
+                                scroll_pane.emit("graph-pane");
+                                // Mobile keyboards stay open while the
+                                // entry keeps focus; a drawn plot wants
+                                // the screen. Drop the focus so the
+                                // keyboard closes and the pane is ready
+                                // for touch rotation.
+                                if let Some(ta) =
+                                    input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                {
+                                    let _ = ta.blur();
                                 }
-                                Err(e) => result.set(format!("error: {e}")),
                             }
-                            continue;
                         }
-                        match epher_core::graph::sample_surface(source, 30, s.env()) {
+                        Err(e) => result.set(format!("error: {e}")),
+                    }
+                    continue;
+                }
+
+                // 3D surfaces (ADR-0015): z = f(x, y) over a square
+                // domain, overlaid like curves. The command joins the
+                // history list like every submitted line.
+                if let Some(source) = piece.strip_prefix("graph3d ") {
+                    let source = source.trim();
+                    if single && !multiline {
+                        s.record(piece);
+                    }
+                    if source == "clear" {
+                        surfaces.clear();
+                        curve3ds_local.clear();
+                        hidden_surfaces.set(Vec::new());
+                        hidden_curves3d.set(Vec::new());
+                        view_h.set(0.0);
+                        view_v.set(0.0);
+                        view_z.set(0.0);
+                        // The spin loop reads the live cells (not the
+                        // states): stale non-zero cells here kept a
+                        // fresh graph spinning with the sliders at 0
+                        // (the ADR-0038 amendment's animation fix).
+                        *view_h_cell.borrow_mut() = 0.0;
+                        *view_v_cell.borrow_mut() = 0.0;
+                        spin_phase.set((0.0, 0.0));
+                        *spin_phase_cell.borrow_mut() = (0.0, 0.0);
+                        continue;
+                    }
+                    // A `param` body is a space curve (ADR-0054);
+                    // anything else is a surface.
+                    if source.starts_with("param ") {
+                        match epher_core::graph::sample_space_curve(source, 240, s.env()) {
                             Ok(fresh) => {
-                                // The pane shows one kind at a time (ADR-0015
-                                // amendment): drawing a surface clears any 2D
-                                // curves, their points of interest, and any
-                                // solar scene — the newest command owns the pane.
+                                // The newest command owns the pane.
                                 curves.clear();
-                                curve3ds_local.clear();
+                                surfaces.clear();
                                 data_local = None;
                                 solar = None;
                                 solar_source = None;
                                 solar_hidden.set(Vec::new());
                                 *view2d_cell.borrow_mut() = None;
                                 view2d.set(None);
-                                // A 3D graph drawn into an empty pane brings
-                                // fresh fine-control sliders at their default
-                                // 0 (ADR-0031); overlays keep the current pose.
-                                if surfaces.is_empty() {
+                                if curve3ds_local.is_empty() {
                                     view_h.set(0.0);
                                     view_v.set(0.0);
                                     view_z.set(0.0);
                                     spin_phase.set((0.0, 0.0));
                                     *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                                 }
-                                surfaces.push(fresh);
-                                // Same as 2D: no answer echo, the surface is
-                                // the result (ADR-0027).
+                                curve3ds_local.push(fresh);
                                 result.set(String::new());
-                                // Mobile convenience, as for 2D graphs: slide
-                                // the view across to the freshly drawn pane.
                                 if mobile_layout() {
                                     scroll_pane.emit("graph-pane");
                                     if let Some(ta) =
@@ -3489,178 +3442,220 @@ fn epher_app() -> Html {
                         }
                         continue;
                     }
-
-                    // The solar system (ADR-0037): one scene at the
-                    // evaluated time expression, rendered as orbit
-                    // curves, trails, and positioned dots (the ADR-0015
-                    // amendment). The command joins the history list.
-                    if let Some(source) = piece.strip_prefix("solar3d ") {
-                        let source = source.trim();
-                        if single && !multiline {
-                            s.record(piece);
-                        }
-                        if source == "clear" {
+                    match epher_core::graph::sample_surface(source, 30, s.env()) {
+                        Ok(fresh) => {
+                            // The pane shows one kind at a time (ADR-0015
+                            // amendment): drawing a surface clears any 2D
+                            // curves, their points of interest, and any
+                            // solar scene — the newest command owns the pane.
+                            curves.clear();
+                            curve3ds_local.clear();
+                            data_local = None;
                             solar = None;
                             solar_source = None;
                             solar_hidden.set(Vec::new());
+                            *view2d_cell.borrow_mut() = None;
+                            view2d.set(None);
+                            // A 3D graph drawn into an empty pane brings
+                            // fresh fine-control sliders at their default
+                            // 0 (ADR-0031); overlays keep the current pose.
+                            if surfaces.is_empty() {
+                                view_h.set(0.0);
+                                view_v.set(0.0);
+                                view_z.set(0.0);
+                                spin_phase.set((0.0, 0.0));
+                                *spin_phase_cell.borrow_mut() = (0.0, 0.0);
+                            }
+                            surfaces.push(fresh);
+                            // Same as 2D: no answer echo, the surface is
+                            // the result (ADR-0027).
+                            result.set(String::new());
+                            // Mobile convenience, as for 2D graphs: slide
+                            // the view across to the freshly drawn pane.
+                            if mobile_layout() {
+                                scroll_pane.emit("graph-pane");
+                                if let Some(ta) =
+                                    input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                {
+                                    let _ = ta.blur();
+                                }
+                            }
+                        }
+                        Err(e) => result.set(format!("error: {e}")),
+                    }
+                    continue;
+                }
+
+                // The solar system (ADR-0037): one scene at the
+                // evaluated time expression, rendered as orbit
+                // curves, trails, and positioned dots (the ADR-0015
+                // amendment). The command joins the history list.
+                if let Some(source) = piece.strip_prefix("solar3d ") {
+                    let source = source.trim();
+                    if single && !multiline {
+                        s.record(piece);
+                    }
+                    if source == "clear" {
+                        solar = None;
+                        solar_source = None;
+                        solar_hidden.set(Vec::new());
+                        view_h.set(0.0);
+                        view_v.set(0.0);
+                        view_z.set(0.0);
+                        // The spin loop reads the live cells (not the
+                        // states): stale non-zero cells here kept a
+                        // fresh graph spinning with the sliders at 0
+                        // (the ADR-0038 amendment's animation fix).
+                        *view_h_cell.borrow_mut() = 0.0;
+                        *view_v_cell.borrow_mut() = 0.0;
+                        spin_phase.set((0.0, 0.0));
+                        *spin_phase_cell.borrow_mut() = (0.0, 0.0);
+                        continue;
+                    }
+                    let jd = match epher_core::astro::eval_jd(source, s.env()) {
+                        Ok(jd) => jd,
+                        Err(e) => {
+                            result.set(format!("error: {e}"));
+                            continue;
+                        }
+                    };
+                    match epher_core::astro::solar_scene(jd) {
+                        Ok(scene) => {
+                            // A fresh scene brings the fine controls
+                            // to their defaults, like a fresh 3D graph:
+                            // the camera starts above the ecliptic.
+                            let home = scene.default_view();
+                            // The pane shows one kind at a time.
+                            curves.clear();
+                            data_local = None;
+                            surfaces.clear();
+                            solar = Some(scene);
+                            solar_source = Some(source.to_string());
+                            solar_hidden.set(Vec::new());
+                            view.set(home);
+                            // The orbit cell follows the fresh pose,
+                            // or the first drag would start from the
+                            // stale default instead of this view.
+                            *view_cell.borrow_mut() = home;
                             view_h.set(0.0);
                             view_v.set(0.0);
                             view_z.set(0.0);
-                            // The spin loop reads the live cells (not the
-                            // states): stale non-zero cells here kept a
-                            // fresh graph spinning with the sliders at 0
-                            // (the ADR-0038 amendment's animation fix).
+                            // The spin loop reads the live cells: stale
+                            // non-zero cells kept a fresh graph spinning
+                            // with the sliders at 0 (ADR-0038 amendment).
                             *view_h_cell.borrow_mut() = 0.0;
                             *view_v_cell.borrow_mut() = 0.0;
                             spin_phase.set((0.0, 0.0));
                             *spin_phase_cell.borrow_mut() = (0.0, 0.0);
-                            continue;
-                        }
-                        let jd = match epher_core::astro::eval_jd(source, s.env()) {
-                            Ok(jd) => jd,
-                            Err(e) => {
-                                result.set(format!("error: {e}"));
-                                continue;
-                            }
-                        };
-                        match epher_core::astro::solar_scene(jd) {
-                            Ok(scene) => {
-                                // A fresh scene brings the fine controls
-                                // to their defaults, like a fresh 3D graph:
-                                // the camera starts above the ecliptic.
-                                let home = scene.default_view();
-                                // The pane shows one kind at a time.
-                                curves.clear();
-                                data_local = None;
-                                surfaces.clear();
-                                solar = Some(scene);
-                                solar_source = Some(source.to_string());
-                                solar_hidden.set(Vec::new());
-                                view.set(home);
-                                // The orbit cell follows the fresh pose,
-                                // or the first drag would start from the
-                                // stale default instead of this view.
-                                *view_cell.borrow_mut() = home;
-                                view_h.set(0.0);
-                                view_v.set(0.0);
-                                view_z.set(0.0);
-                                // The spin loop reads the live cells: stale
-                                // non-zero cells kept a fresh graph spinning
-                                // with the sliders at 0 (ADR-0038 amendment).
-                                *view_h_cell.borrow_mut() = 0.0;
-                                *view_v_cell.borrow_mut() = 0.0;
-                                spin_phase.set((0.0, 0.0));
-                                *spin_phase_cell.borrow_mut() = (0.0, 0.0);
-                                result.set(String::new());
-                                if mobile_layout() {
-                                    scroll_pane.emit("graph-pane");
-                                    if let Some(ta) =
-                                        input_ref.cast::<web_sys::HtmlTextAreaElement>()
-                                    {
-                                        let _ = ta.blur();
-                                    }
+                            result.set(String::new());
+                            if mobile_layout() {
+                                scroll_pane.emit("graph-pane");
+                                if let Some(ta) =
+                                    input_ref.cast::<web_sys::HtmlTextAreaElement>()
+                                {
+                                    let _ = ta.blur();
                                 }
                             }
-                            Err(e) => result.set(format!("error: {e}")),
                         }
-                        continue;
+                        Err(e) => result.set(format!("error: {e}")),
                     }
+                    continue;
+                }
 
-                    // Shell commands (epher-shell policy): persist through the
-                    // bridge in the desktop shell; explain the web app's limits
-                    // otherwise.
-                    if let Some(cmd) = classify(&line) {
-                        match bridge {
-                            Bridge::Tauri => match prepare(&cmd, &s, &localizer) {
-                                Ok(prepared) => {
-                                    match &prepared {
-                                        epher_shell::Prepared::SaveFunction { name, source } => {
-                                            bridge.save_function(name, source);
+                // Shell commands (epher-shell policy): persist through the
+                // bridge in the desktop shell; explain the web app's limits
+                // otherwise.
+                if let Some(cmd) = classify(&line) {
+                    match bridge {
+                        Bridge::Tauri => match prepare(&cmd, &s, &localizer) {
+                            Ok(prepared) => {
+                                match &prepared {
+                                    epher_shell::Prepared::SaveFunction { name, source } => {
+                                        bridge.save_function(name, source);
+                                    }
+                                    epher_shell::Prepared::SaveConstant { name, source } => {
+                                        bridge.save_constant(name, source);
+                                    }
+                                    epher_shell::Prepared::SaveScript { name, source } => {
+                                        bridge.save_script(name, source);
+                                    }
+                                    epher_shell::Prepared::Language { code } => {
+                                        bridge.save_language(code);
+                                        localizer.set(Localizer::resolve(Some(code), &[]));
+                                        if let Some(store) = web_sys::window()
+                                            .and_then(|w| w.local_storage().ok().flatten())
+                                        {
+                                            let _ = store.set_item("epher-language", code);
                                         }
-                                        epher_shell::Prepared::SaveConstant { name, source } => {
-                                            bridge.save_constant(name, source);
+                                    }
+                                    epher_shell::Prepared::Theme { name } => {
+                                        bridge.save_theme(name);
+                                        theme.set(name.clone());
+                                        if let Some(store) = web_sys::window()
+                                            .and_then(|w| w.local_storage().ok().flatten())
+                                        {
+                                            let _ = store.set_item("epher-theme", name);
                                         }
-                                        epher_shell::Prepared::SaveScript { name, source } => {
-                                            bridge.save_script(name, source);
+                                    }
+                                    epher_shell::Prepared::Table { .. } => {}
+                                }
+                                result.set(message(&prepared, &localizer));
+                            }
+                            Err(msg) => result.set(msg),
+                        },
+                        Bridge::None => {
+                            // Tables are pure computation — they work in the
+                            // browser session just like an evaluation.
+                            match &cmd {
+                                epher_shell::Command::Table { .. } => {
+                                    match prepare(&cmd, &s, &localizer) {
+                                        Ok(prepared) => {
+                                            result.set(message(&prepared, &localizer))
                                         }
-                                        epher_shell::Prepared::Language { code } => {
-                                            bridge.save_language(code);
-                                            localizer.set(Localizer::resolve(Some(code), &[]));
-                                            if let Some(store) = web_sys::window()
-                                                .and_then(|w| w.local_storage().ok().flatten())
-                                            {
-                                                let _ = store.set_item("epher-language", code);
-                                            }
-                                        }
-                                        epher_shell::Prepared::Theme { name } => {
-                                            bridge.save_theme(name);
+                                        Err(msg) => result.set(msg),
+                                    }
+                                }
+                                // Themes apply for the session in the
+                                // browser; the menu persists them properly.
+                                epher_shell::Command::Theme { name } => {
+                                    match prepare(&cmd, &s, &localizer) {
+                                        Ok(prepared) => {
+                                            result.set(message(&prepared, &localizer));
                                             theme.set(name.clone());
-                                            if let Some(store) = web_sys::window()
-                                                .and_then(|w| w.local_storage().ok().flatten())
-                                            {
-                                                let _ = store.set_item("epher-theme", name);
-                                            }
                                         }
-                                        epher_shell::Prepared::Table { .. } => {}
+                                        Err(msg) => result.set(msg),
                                     }
-                                    result.set(message(&prepared, &localizer));
                                 }
-                                Err(msg) => result.set(msg),
-                            },
-                            Bridge::None => {
-                                // Tables are pure computation — they work in the
-                                // browser session just like an evaluation.
-                                match &cmd {
-                                    epher_shell::Command::Table { .. } => {
-                                        match prepare(&cmd, &s, &localizer) {
-                                            Ok(prepared) => {
-                                                result.set(message(&prepared, &localizer))
-                                            }
-                                            Err(msg) => result.set(msg),
-                                        }
-                                    }
-                                    // Themes apply for the session in the
-                                    // browser; the menu persists them properly.
-                                    epher_shell::Command::Theme { name } => {
-                                        match prepare(&cmd, &s, &localizer) {
-                                            Ok(prepared) => {
-                                                result.set(message(&prepared, &localizer));
-                                                theme.set(name.clone());
-                                            }
-                                            Err(msg) => result.set(msg),
-                                        }
-                                    }
-                                    _ => result.set(localizer.lookup("web-session-only")),
-                                }
+                                _ => result.set(localizer.lookup("web-session-only")),
                             }
                         }
-                        continue;
                     }
+                    continue;
+                }
 
-                    let out = if single && !multiline {
-                        s.submit(piece)
-                    } else {
-                        s.submit_quiet(piece)
-                    };
-                    last_was_eval = true;
-                    if !out.is_empty() {
-                        script_outputs.push(out.clone());
-                    }
-                    last_eval_output = Some(out);
+                let out = if single && !multiline {
+                    s.submit(piece)
+                } else {
+                    s.submit_quiet(piece)
+                };
+                last_was_eval = true;
+                if !out.is_empty() {
+                    script_outputs.push(out.clone());
                 }
-                if !multiline && !single {
-                    // One history entry for the whole script: the line as
-                    // typed, semicolons intact, with the last answer
-                    // appended exactly as single statements record theirs.
-                    let entry = match &last_eval_output {
-                        Some(out) if !out.is_empty() => format!("{line}  {out}"),
-                        _ => line.clone(),
-                    };
-                    s.record(&entry);
-                    // `save script` persists the whole script the user
-                    // entered, not just its last statement.
-                    s.set_last_line(&line);
-                }
+                last_eval_output = Some(out);
+            }
+            if !multiline && !single {
+                // One history entry for the whole script: the line as
+                // typed, semicolons intact, with the last answer
+                // appended exactly as single statements record theirs.
+                let entry = match &last_eval_output {
+                    Some(out) if !out.is_empty() => format!("{line}  {out}"),
+                    _ => line.clone(),
+                };
+                s.record(&entry);
+                // `save script` persists the whole script the user
+                // entered, not just its last statement.
+                s.set_last_line(&line);
             }
             if multiline {
                 // One history entry for the whole multi-line script:
