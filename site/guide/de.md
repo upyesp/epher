@@ -484,14 +484,28 @@ Mehrere Anweisungen mit `;` in einer Zeile zu verbinden, funktioniert
 ebenfalls überall, auch in der Einmal-Befehlszeile (Abschnitt 4.1).
 
 
-Skripte können **Kommentare** tragen - Notizen für dich, die epher überspringt, geschrieben wie in PHP. `//` oder `#` kommentiert bis zum Zeilenende; `/* ... */` kommentiert einen Block zwischen Token aus, der auf derselben Zeile endet:
+Skripte können **Kommentare** tragen - Notizen für dich, die epher überspringt, geschrieben wie in PHP. `//` oder `#` kommentiert bis zum Zeilenende, und `/* ... */` kommentiert einen Block aus. Eine Notiz zu einer Anweisung steht an deren Ende, hinter `//`, niemals innerhalb der Anweisung:
 
 ```epher
 // a small script with notes
 r = 3 # radius in metres
-area = /* pi r squared */ pi * r ^ 2
+area = pi * r ^ 2 // pi r squared
 area
 ```
+
+A block comment may also span several lines. A script file or a pasted
+program arrives as one whole program, so its block comments may span
+lines:
+
+```epher
+/* the area of a circle
+   of radius 3 */
+pi * 3 ^ 2
+```
+
+Input that arrives line by line - typing into the REPL or the terminal
+UI, or a piped script - takes one line at a time, so there a block
+comment opens and closes on the same line.
 ### 1.12 Exakte Ergebnisse: frac, dec und big
 
 Normalerweise rechnet epher mit Dezimalzahlen wie ein

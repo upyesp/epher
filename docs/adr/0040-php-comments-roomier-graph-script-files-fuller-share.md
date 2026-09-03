@@ -116,3 +116,22 @@ lines, and script files, piped mode, `load`, the REPL, the TUI, and
 the web's per-line submission all follow the one-line rule), which is
 the model the user guide and the scripts folder document: a block
 comment closes on its own line in a script.
+
+## Amendment (2026-09-03, later): script files are whole programs, and the comment style follows the entry model
+
+Script files joined the whole-program side: `epher <file>` and the
+REPL's `load` now run a file's text through the same
+tokenizer-faithful splitter as the one-shot and the web entry, so a
+block comment may span lines in a script file, exactly as the original
+decision intended ("wherever a whole script parses at once"). Piped
+mode, the REPL prompt, and the TUI keep the line model on purpose (a
+pipe is a stream of lines; typed input is typed one line at a time),
+so there a block comment still opens and closes on its own line.
+
+The scripts folder adopts a house style that follows the entry model:
+a run of more than three comment lines becomes one block comment
+(the header banner included), three or fewer keep `//` per line, a
+note at the end of a statement uses `//`, and no comment ever sits
+inside a statement. The expected-output footer is a block comment
+holding the raw transcript, one line per output line, closed by `*/`
+on its own line; `scripts/check-scripts.mjs` reads it as the oracle.

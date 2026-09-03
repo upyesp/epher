@@ -443,14 +443,28 @@ x = 10; y = x + 5; x + y
 换行符和 `;` 是同一个分隔符，可以自由混用。多行示例上方的 **复制** 按钮会复制整个脚本，你可以直接把它粘贴到 epher 中：网页应用和桌面应用的输入框、终端界面，以及 `epher repl` 都会按顺序逐行执行，就像你逐行输入一样。用 `;` 在一行中连接多条语句在任何地方同样有效，包括单次计算命令行（第 4.1 节）。
 
 
-脚本可以带**注释**：写给你自己、由 epher 跳过的笔记，写法与 PHP 相同。`//` 或 `#` 注释到行尾；`/* ... */` 注释一个块，可以嵌在记号之间，在同一行内闭合：
+脚本可以带**注释**：写给你自己、由 epher 跳过的笔记，写法与 PHP 相同。`//` 或 `#` 注释到行尾，`/* ... */` 注释一个块。关于某条语句的注释放在这条语句的末尾、`//` 之后，绝不放在语句中间：
 
 ```epher
 // a small script with notes
 r = 3 # radius in metres
-area = /* pi r squared */ pi * r ^ 2
+area = pi * r ^ 2 // pi r squared
 area
 ```
+
+A block comment may also span several lines. A script file or a pasted
+program arrives as one whole program, so its block comments may span
+lines:
+
+```epher
+/* the area of a circle
+   of radius 3 */
+pi * 3 ^ 2
+```
+
+Input that arrives line by line - typing into the REPL or the terminal
+UI, or a piped script - takes one line at a time, so there a block
+comment opens and closes on the same line.
 ### 1.12 精确结果：frac、dec 和 big
 
 通常 epher 像袖珍计算器一样用小数计算，结果像袖珍计算器那样

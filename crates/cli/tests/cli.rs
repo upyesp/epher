@@ -557,3 +557,88 @@ fn repl_load_runs_a_script_file_and_save_script_round_trips() {
     // ...and the store-saved script loads by name in the same session
     assert_eq!(text.matches("= 33").count(), 2, "loaded twice: {text}");
 }
+
+#[test]
+fn script_files_whole_parse_spanning_block_comments() {
+    // A script file is a whole program (ADR-0040): a block comment may
+    // span lines, exactly as in the one-shot and web-paste paths, and
+    // the transcript keeps the piped mode's `=` voice.
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("spanning.epher");
+    std::fs::write(
+        &file,
+        "/* a banner that spans\n   several lines; even with ; and\n   // looking text\n   ========== */\nconst n = 6 // trailing\n// ---- results ----\n/* a short note\n   two lines */\nprint(\"n squared:\", n ^ 2)\n",
+    )
+    .unwrap();
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .arg(&file)
+        .output()
+        .unwrap();
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(out.stderr.is_empty());
+    assert_eq!(String::from_utf8_lossy(&out.stdout), "= 6\n= n squared: 36\n");
+}
+
+#[test]
+fn script_files_report_unterminated_block_comments() {
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("open.epher");
+    std::fs::write(&file, "/* never closed\nconst n = 1\n").unwrap();
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .arg(&file)
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(1));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("unterminated block comment"), "stderr: {err}");
+}
+
+#[test]
+fn piped_mode_still_takes_the_line_model() {
+    // Piped input is a stream of lines (ADR-0040): a block comment that
+    // spans lines never closes there, the error prints, and evaluation
+    // continues with the next line (the line model keeps going).
+    let dir = tempfile::tempdir().unwrap();
+    let script = "/* spans\nlines */\n1 + 1\n";
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    out.stdin
+        .as_ref()
+        .unwrap()
+        .write_all(script.as_bytes())
+        .unwrap();
+    let out = out.wait_with_output().unwrap();
+    assert_eq!(out.status.code(), Some(1));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("unterminated block comment"), "stderr: {err}");
+    assert_eq!(String::from_utf8_lossy(&out.stdout), "= 2\n");
+}
+
+#[test]
+fn repl_load_runs_whole_files_with_spanning_comments() {
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("loaded.epher");
+    std::fs::write(
+        &file,
+        "/* a header\n   that spans */\nconst n = 21\nprint(\"double:\", 2 * n)\n",
+    )
+    .unwrap();
+    let input = format!("load {}\nquit\n", file.display());
+    let (stdout, stderr) = repl_session(dir.path().to_str().unwrap(), &input);
+    assert!(stderr.is_empty(), "stderr: {stderr}");
+    assert!(stdout.contains("= 21"), "out was: {stdout}");
+    assert!(stdout.contains("= double: 42"), "out was: {stdout}");
+}

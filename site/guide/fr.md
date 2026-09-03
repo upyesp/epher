@@ -488,14 +488,28 @@ plusieurs instructions avec `;` sur une seule ligne fonctionne aussi partout,
 y compris sur la ligne de commande à usage unique (section 4.1).
 
 
-Les scripts peuvent porter des **commentaires** - des notes pour vous qu'epher ignore, à la manière de PHP. `//` ou `#` commente jusqu'à la fin de la ligne ; `/* ... */` met un bloc en commentaire entre deux jetons, qui se referme sur la même ligne :
+Les scripts peuvent porter des **commentaires** - des notes pour vous qu'epher ignore, à la manière de PHP. `//` ou `#` commente jusqu'à la fin de la ligne, et `/* ... */` met un bloc en commentaire. Une note sur une instruction se place à sa fin, après `//`, jamais à l'intérieur de l'instruction :
 
 ```epher
 // a small script with notes
 r = 3 # radius in metres
-area = /* pi r squared */ pi * r ^ 2
+area = pi * r ^ 2 // pi r squared
 area
 ```
+
+A block comment may also span several lines. A script file or a pasted
+program arrives as one whole program, so its block comments may span
+lines:
+
+```epher
+/* the area of a circle
+   of radius 3 */
+pi * 3 ^ 2
+```
+
+Input that arrives line by line - typing into the REPL or the terminal
+UI, or a piped script - takes one line at a time, so there a block
+comment opens and closes on the same line.
 ### 1.12 Résultats exacts : frac, dec et big
 
 Normalement epher calcule avec des nombres décimaux comme une

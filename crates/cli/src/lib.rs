@@ -216,9 +216,11 @@ pub fn run_repl() -> Result<(), EpherError> {
             break;
         }
         // `load <file-or-name>` (ADR-0040): run a script file, or a
-        // script saved with `save script name`, line by line — exactly
-        // as if its lines were typed. The `load` line itself joins the
-        // history; the loaded lines print as they run.
+        // script saved with `save script name`, as a whole program —
+        // statements split where the tokenizer sees separators, so a
+        // block comment may span lines, exactly like running the file
+        // from a terminal. The `load` line itself joins the history;
+        // the loaded statements print as they run.
         if let Some(arg) = line.strip_prefix("load ") {
             let arg = arg.trim();
             if arg.is_empty() {
@@ -228,8 +230,8 @@ pub fn run_repl() -> Result<(), EpherError> {
             match load_script_text(&store, arg) {
                 Ok(text) => {
                     session.record(&line);
-                    let failed = eval_lines(
-                        io::Cursor::new(text.into_bytes()).lines(),
+                    let failed = eval_whole_text(
+                        &text,
                         &mut session,
                         &store,
                         &localizer,
@@ -322,28 +324,59 @@ pub fn run_stdin_from<R: BufRead>(input: R) -> Result<bool, EpherError> {
 }
 
 /// Evaluate a script file as a one-shot run (ADR-0040): the same
-/// line-by-line semantics as a piped script (`epher -`) — each result
+/// statement semantics as a piped script (`epher -`) — each result
 /// prints, definitions and `save` commands go to the shared store,
-/// interactive history is not written — reading the lines from
-/// `path` instead of stdin. `Ok(true)` when any line failed.
+/// interactive history is not written — reading the statements from
+/// `path` instead of stdin. The file is a whole program: statements
+/// split where the tokenizer sees separators, so a block comment may
+/// span lines the way it does in the one-shot and web-paste paths.
+/// `Ok(true)` when any statement failed.
 pub fn run_script_file(path: &std::path::Path) -> Result<bool, EpherError> {
     let (store, mut session, localizer) = open_store_with_session();
     let mut plots = epher_shell::plots::Plots::new();
-    let file = std::fs::File::open(path).map_err(|e| EpherError::Io(e.to_string()))?;
-    eval_lines(
-        io::BufReader::new(file).lines(),
-        &mut session,
-        &store,
-        &localizer,
-        &mut plots,
-    )
+    let text = std::fs::read_to_string(path).map_err(|e| EpherError::Io(e.to_string()))?;
+    eval_whole_text(&text, &mut session, &store, &localizer, &mut plots)
 }
 
-/// The shared line loop of piped mode, script files, and the REPL's
-/// `load` (ADR-0040): every line evaluates against one live session —
-/// a function defined on an early line is available later — `graph …`
-/// lines plot into the run's plot state, and errors print while
-/// evaluation continues. Returns whether any line failed.
+/// Evaluate a whole program (a script file, a `load`ed script) as one
+/// piece of text (ADR-0040): statements split where the tokenizer sees
+/// separators — `;` inside a string literal or comment is text, and the
+/// newlines inside a block comment are comment text — so block comments
+/// can span lines in files exactly as in the one-shot and web-paste
+/// paths. Line-oriented input (REPL typing, piped mode) keeps the line
+/// model: there a block comment closes on its own line. Every statement
+/// evaluates against one live session — a function defined early is
+/// available later — `graph …` statements plot into the run's plot
+/// state, and errors print while evaluation continues. Returns whether
+/// any statement failed.
+fn eval_whole_text(
+    text: &str,
+    session: &mut Session,
+    store: &DocStore<FsStore>,
+    localizer: &Localizer,
+    plots: &mut epher_shell::plots::Plots,
+) -> Result<bool, EpherError> {
+    let mut failed = false;
+    for piece in epher_shell::split_statements(text) {
+        let piece = piece.trim();
+        if piece.is_empty() {
+            continue;
+        }
+        let out = match graph_line(piece, plots, session.env(), localizer) {
+            Some(out) => out,
+            None => step(session, store, localizer, piece),
+        };
+        failed |= out.error;
+        print_step(&out);
+    }
+    Ok(failed)
+}
+
+/// The shared line loop of piped mode (ADR-0040): every line evaluates
+/// against one live session — a function defined on an early line is
+/// available later — `graph …` lines plot into the run's plot state, and
+/// errors print while evaluation continues. Returns whether any line
+/// failed.
 fn eval_lines(
     lines: impl Iterator<Item = io::Result<String>>,
     session: &mut Session,

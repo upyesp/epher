@@ -476,14 +476,28 @@ exactly as if you had typed them one by one. Joining several statements with
 (section 4.1).
 
 
-Scripts can carry **comments** - notes for you that epher skips, written the PHP way. `//` or `#` comments to the end of the line; `/* ... */` comments out a block between tokens, and it closes on the same line:
+Scripts can carry **comments** - notes for you that epher skips, written the PHP way. `//` or `#` comments to the end of the line, and `/* ... */` comments out a block. A note about one statement sits at its end, after `//`, never inside the statement:
 
 ```epher
 // a small script with notes
 r = 3 # radius in metres
-area = /* pi r squared */ pi * r ^ 2
+area = pi * r ^ 2 // pi r squared
 area
 ```
+
+A block comment may also span several lines. A script file or a pasted
+program arrives as one whole program, so its block comments may span
+lines:
+
+```epher
+/* the area of a circle
+   of radius 3 */
+pi * 3 ^ 2
+```
+
+Input that arrives line by line - typing into the REPL or the terminal
+UI, or a piped script - takes one line at a time, so there a block
+comment opens and closes on the same line.
 ### 1.12 Exact results: frac, dec and big
 
 Normally epher calculates with decimal numbers like a pocket
