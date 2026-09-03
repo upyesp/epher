@@ -1,0 +1,44 @@
+// ============================================================================
+// frustum-volume.epher -- volume of a conical frustum
+//
+// A conical frustum is a cone with its top cut off: with base radius R,
+// top radius r and height h, its volume is V = pi h (R^2 + R r + r^2) / 3
+// (standard formula; the average of the two disk areas and their
+// geometric mean times the height). For R = 4, r = 2, h = 6 the volume
+// is 56 pi. The checks: R = r reduces the frustum to a cylinder, and the
+// frustum equals the full cone of height 12 minus its tip (similar
+// cones, h R / (R - r) = 12).
+//
+// Run it from a terminal:  epher "epher scripts/geometry/solids/frustum-volume.epher"
+// In the REPL:             load epher scripts/geometry/solids/frustum-volume.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are `R` (base radius), `r` (top radius) and `h`
+// (height). Everything above the results section is machinery you can
+// leave alone.
+// ============================================================================
+
+// ---- the knobs ----------------------------------------------------------------
+const R = 4
+const r = 2
+const h = 6
+
+// ---- the model ----------------------------------------------------------------
+def vol(R, r, h) = pi * h * (R ^ 2 + R * r + r ^ 2) / 3
+// The frustum is the full cone of height h R / (R - r) = 12 minus the
+// tip cone of height 6, which the last result checks.
+def fullcone(R) = pi * R ^ 2 * 12 / 3
+
+def tipcone(r) = pi * r ^ 2 * 6 / 3
+
+// ---- results ------------------------------------------------------------------
+print("frustum volume:", vol(R, r, h))
+print("R = r is a cylinder:", abs(vol(2, 2, 6) - pi * 2 ^ 2 * 6) < 1e-9)
+print("cone minus tip:", abs(vol(R, r, h) - (fullcone(R) - tipcone(r))) < 1e-9)
+// ---- expected output ----
+// = 4
+// = 2
+// = 6
+// = frustum volume: 175.929188601
+// = R = r is a cylinder: true
+// = cone minus tip: true

@@ -1,0 +1,57 @@
+// ============================================================================
+// poker-hand-counts.epher -- five-card hands: totals, flushes, big hands
+//
+// Counts hands with the ncr builtin (guide 1.13): the 52-card deck holds
+// ncr(52, 5) = 2598960 five-card hands, of which 4 * ncr(13, 5) = 5148
+// are flushes (five cards of one suit; the straight flushes are included,
+// so 40 of those 5148 are straight flushes and 4 of the 40 are royal).
+//
+// The probability of a flush is 4 * ncr(13, 5) / ncr(52, 5) = 33/16660
+// exactly, about 0.00198, or one hand in 505. The fraction and the
+// computed quotient are cross-checked below with exact arithmetic.
+//
+// Source: Feller, "An Introduction to Probability Theory and Its
+// Applications", volume 1, chapter 2. The counts are exact integers.
+//
+// Run it from a terminal:  epher "epher scripts/probability/counting/poker-hand-counts.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+// ============================================================================
+
+// ---- results ----
+// The total number of five-card hands: 52 choose 5.
+ncr(52, 5)
+
+// Flushes: pick the suit (4 ways), then 5 of its 13 ranks.
+4 * ncr(13, 5)
+print("hands:", ncr(52, 5), "of which", 4 * ncr(13, 5), "are flushes")
+
+// The flush probability, with the exact fraction 33/16660.
+print("P(flush):", 4 * ncr(13, 5) / ncr(52, 5))
+4 * ncr(13, 5) / ncr(52, 5) == 33 / 16660
+print("hands per flush, about:", round(ncr(52, 5) / (4 * ncr(13, 5))))
+
+// Two rarer families inside the flush count: 40 straight flushes (10
+// rank runs per suit) and, among them, the 4 royal flushes.
+print("straight flushes:", 10 * 4)
+print("royal flushes:", 4)
+
+// Two more classic counts: four of a kind (13 ranks, all 4 suits, plus
+// any fifth card) and full houses (rank for the triple, rank for the
+// pair: 13 * 4 * 12 * ncr(4, 2) = 3744).
+print("four of a kind:", 13 * ncr(48, 1))
+print("full houses:", 13 * ncr(4, 3) * 12 * ncr(4, 2))
+
+// The categories above are disjoint, so they can be checked against the
+// total only together with the hands left over; the flush probability
+// itself is the anchor: 5148 / 2598960 = 33/16660 exactly.
+// ---- expected output ----
+// = 2598960
+// = 5148
+// = hands: 2598960 of which 5148 are flushes
+// = P(flush): 0.00198079231693
+// = true
+// = hands per flush, about: 505
+// = straight flushes: 40
+// = royal flushes: 4
+// = four of a kind: 624
+// = full houses: 3744

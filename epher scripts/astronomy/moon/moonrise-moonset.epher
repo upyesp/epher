@@ -1,0 +1,66 @@
+// ============================================================================
+// moonrise-moonset.epher -- when the Moon rises and sets at a city
+//
+// Moonrise and moonset at one place on three dates of June 2026, from the
+// built-in accessors rise and set (the solar-ephemeris crate, JPL-validated;
+// guide 1.16). Each returns the event of the day that starts at j0 (0h UT)
+// as a Julian Date; subtracting j0 and multiplying by 24 gives the clock
+// hour of the day, which prints cleanly where the raw JD often prints as
+// an exact fraction. Hours below are UT; Berlin civil time is UT + 2 in
+// summer. The lunar day (moonrise to moonrise) averages 24 h 50 min, so
+// each event lands about 50 min later than the previous day, and on many
+// dates the moonset precedes the moonrise.
+//
+// Run it from a terminal:  epher "epher scripts/astronomy/moon/moonrise-moonset.epher"
+// In the REPL:             load epher scripts/astronomy/moon/moonrise-moonset.epher
+//
+// Knobs: latitude and longitude (Berlin below), and the three dates.
+// ============================================================================
+
+// ---- the knobs --------------------------------------------------------------
+const lat = 52.52          // Berlin
+const lon = 13.405
+const j22 = jd(2026, 6, 22)   // the three dates, 0h UT
+const j23 = jd(2026, 6, 23)
+const j29 = jd(2026, 6, 29)
+
+// ---- helpers ----------------------------------------------------------------
+// Clock hour of an event: hours past the 0h-UT start of the event's day.
+def mrh(j0, lat, lon) = (rise(11, j0, lat, lon) - j0) * 24 in hr
+def msh(j0, lat, lon) = (set(11, j0, lat, lon) - j0) * 24 in hr
+
+// ---- results ----------------------------------------------------------------
+// June 22: the Moon (near first quarter) is above the horizon from noon
+// to late evening; rise before set, as the ordering check confirms.
+print("moonrise 2026-06-22:", mrh(j22, lat, lon))
+print("moonset  2026-06-22:", msh(j22, lat, lon))
+print("rise before set:", mrh(j22, lat, lon) < msh(j22, lat, lon))
+
+// One lunar day later the moonrise has slid 1.26 hr later (the mean is
+// about 50 min; the exact delay varies with the Moon's declination).
+print("moonrise 2026-06-23:", mrh(j23, lat, lon))
+print("rise-to-rise delay:", mrh(j23, lat, lon) - mrh(j22, lat, lon))
+
+// June 29 is the full moon: moonset came in the small hours (1.47) and
+// the moonrise at dusk (19.90), so set precedes rise that day and the
+// Moon is up all night. The raw rise JD (same moment as the 19.90 hr
+// above) is also printed: event JDs sometimes display as exact
+// fractions, and converting to hours keeps the reading clean.
+print("moonset  2026-06-29:", msh(j29, lat, lon))
+print("moonrise 2026-06-29:", mrh(j29, lat, lon))
+print("raw rise JD:", rise(11, j29, lat, lon))
+
+// ---- expected output ----
+// = 52.52
+// = 13.405
+// = 2461213.5
+// = 2461214.5
+// = 2461220.5
+// = moonrise 2026-06-22: 12.0007862449 hr
+// = moonset  2026-06-22: 23.018535845 hr
+// = rise before set: true
+// = moonrise 2026-06-23: 13.2579439245 hr
+// = rise-to-rise delay: 1.25715767965 hr
+// = moonset  2026-06-29: 1.47375048324 hr
+// = moonrise 2026-06-29: 19.9041463248 hr
+// = raw rise JD: 2461221.32934

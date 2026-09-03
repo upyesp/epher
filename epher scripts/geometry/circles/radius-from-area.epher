@@ -1,0 +1,32 @@
+// ============================================================================
+// radius-from-area.epher -- radius of the circle with a given area
+//
+// The area formula A = pi r^2 solved for the radius: r = sqrt(A / pi)
+// (standard formula). The knob is a symbolic area, pi * 25, so the first
+// result is exactly 5 and is hand-checkable; the second example takes a
+// plain area of 100. The round-trip check squares the radius again and
+// compares with the starting area.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/circles/radius-from-area.epher"
+// In the REPL:             load epher scripts/geometry/circles/radius-from-area.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knob to edit is `area`. Everything above the results section is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- the knob -----------------------------------------------------------------
+const area = pi * 25
+
+// ---- the model ----------------------------------------------------------------
+def radius(a) = sqrt(a / pi)   // r = sqrt(A / pi)
+
+// ---- results ------------------------------------------------------------------
+print("radius of the 25 pi circle:", radius(area))
+print("radius of an area-100 circle:", radius(100))
+print("round trip:", abs(pi * radius(100) ^ 2 - 100) < 1e-9)
+// ---- expected output ----
+// = 78.5398163397
+// = radius of the 25 pi circle: 5
+// = radius of an area-100 circle: 5.64189583548
+// = round trip: true

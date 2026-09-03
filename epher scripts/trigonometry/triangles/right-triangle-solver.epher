@@ -1,0 +1,60 @@
+// ============================================================================
+// right-triangle-solver.epher -- one side and one acute angle, find the rest
+//
+// In a right triangle with acute angle A and the leg a opposite it, the
+// definitions of sine and tangent give the other two sides directly:
+// sin A = a / c so the hypotenuse is c = a / sin A, and tan A = a / b so
+// the other leg is b = a / tan A; the remaining acute angle is
+// B = 90 deg - A. The sides keep meters through the arithmetic. Standard
+// classroom material (e.g. Stewart, Redlin and Watson, "Precalculus",
+// ch. 6); the builtin trig is used, in radians, so the degree knob is
+// converted with rad().
+//
+// Run it from a terminal:  epher "epher scripts/trigonometry/triangles/right-triangle-solver.epher"
+// In the REPL:             load epher scripts/trigonometry/triangles/right-triangle-solver.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are the two problems below. The first is the famous
+// 3-4-5 triangle, written so that its angle comes out of the builtin
+// asin; the second is a 30-60-90 triangle. Printed values carry about 12
+// significant digits.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const side_a = 3 m                    // leg opposite angle A
+const angle_A = deg(asin(0.6))        // its angle: deg(asin(3/5)), the 3-4-5 triangle
+const side_a2 = 2 m                   // second problem: leg opposite angle A2
+const angle_A2 = 30                   // second problem: acute angle, degrees
+
+// ---- helpers ----------------------------------------------------------------
+def hyp(a, A) = a / sin(rad(A))      // hypotenuse from opposite leg and angle
+def leg(a, A) = a / tan(rad(A))      // adjacent leg from opposite leg and angle
+def pyth(a, A) = abs((hyp(a, A) ^ 2) / ((a ^ 2) + (leg(a, A) ^ 2)) - 1) < 1e-12   // c^2 = a^2 + b^2
+
+// ---- results -----------------------------------------------------------------
+// Problem 1: the 3-4-5 triangle. c comes out as 5 m and b as 4 m to full
+// double precision, and the Pythagorean check confirms c^2 = a^2 + b^2.
+print("hypotenuse c:", hyp(side_a, angle_A))
+print("other leg b:", leg(side_a, angle_A))
+print("angle B:", 90 - angle_A, "deg")
+print("c^2 = a^2 + b^2:", pyth(side_a, angle_A))
+
+// Problem 2: a 30-60-90 triangle with the short leg 2 m. The hypotenuse is
+// exactly 4 m and the long leg is 2 sqrt(3) m ~ 3.4641016.
+print("hypotenuse c:", hyp(side_a2, angle_A2))
+print("other leg b:", leg(side_a2, angle_A2))
+print("angle B:", 90 - angle_A2, "deg")
+print("c^2 = a^2 + b^2:", pyth(side_a2, angle_A2))
+// ---- expected output
+// = 3 m
+// = 36.8698976458
+// = 2 m
+// = 30
+// = hypotenuse c: 5 m
+// = other leg b: 4 m
+// = angle B: 53.1301023542 deg
+// = c^2 = a^2 + b^2: true
+// = hypotenuse c: 4 m
+// = other leg b: 3.46410161514 m
+// = angle B: 60 deg
+// = c^2 = a^2 + b^2: true

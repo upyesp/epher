@@ -1,0 +1,39 @@
+// ============================================================================
+// synthetic-division.epher -- divide a cubic by (x - r): quotient and remainder
+//
+// Synthetic division (Ruffini, 1804; Horner, 1819) divides
+// p(x) = x^3 - 6x^2 + 11x - 6 by x - 5 in n multiply-adds: the carry starts
+// as the leading coefficient cs[1] = 1, and each step does carry = cs[j] + r
+// * carry. The for loop below collects those carries: the first two are the
+// remaining quotient coefficients (-1 and 6, so q(x) = x^2 - x + 6) and the
+// last is the remainder 24. The remainder theorem says 24 = p(5), checked
+// at the end along with the identity p = (x - 5) q + 24. All exact.
+//
+// Run it from a terminal:  epher "epher scripts/algebra/polynomials/synthetic-division.epher"
+//
+// The knobs to edit are cs and r below.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const cs = {1, -6, 11, -6}       // p(x) = x^3 - 6x^2 + 11x - 6 = (x-1)(x-2)(x-3)
+const r = 5                      // divide by (x - r) = (x - 5)
+
+// ---- helpers -----------------------------------------------------------------
+def p(cs, x) = cs[1] * x ^ 3 + cs[2] * x ^ 2 + cs[3] * x + cs[4]
+
+// ---- results -----------------------------------------------------------------
+car = cs[1]                      // the carry starts as the leading coefficient
+for j in 2 to len(cs) do car = cs[j] + r * car   // echoes {-1, 6, 24}
+print("remainder:", car)
+print("p(5):", p(cs, 5))
+print("remainder equals p(r):", car == p(cs, 5))
+print("identity holds at x = 2:", p(cs, 2) == (2 - r) * (2 ^ 2 - 2 + 6) + car)
+// ---- expected output ----
+// = {1, -6, 11, -6}
+// = 5
+// = 1
+// = {-1, 6, 24}
+// = remainder: 24
+// = p(5): 24
+// = remainder equals p(r): true
+// = identity holds at x = 2: true

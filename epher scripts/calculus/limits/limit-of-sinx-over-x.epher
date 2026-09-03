@@ -1,0 +1,42 @@
+// ============================================================================
+// limit-of-sinx-over-x.epher -- sin(x)/x at tiny x rounds to 1
+//
+// The classic squeeze-theorem limit sin(x)/x -> 1 as x -> 0 (Stewart,
+// "Calculus", 8th ed., sec. 2.6) probed numerically at x = 1e-8, both
+// signs. The ratio misses 1 by about x^2/6 = 1.7e-17 there, far below
+// the calculator's precision, so it prints exactly 1; at x = 1e-4 the
+// deficit x^2/6 = 1.7e-9 shows up in the last printed digits instead.
+//
+// The same limit defines the derivative of sin x at 0, and the builtin
+// derivative (a numeric central difference, not symbolic) agrees.
+//
+// Accuracy: in exact arithmetic sin(x)/x at x = 1e-8 is 1 - 1.7e-25;
+// every value below rounds at about the 12th printed digit.
+//
+// Run:  epher "epher scripts/calculus/limits/limit-of-sinx-over-x.epher"
+// The knob to edit is `x` below.
+// ============================================================================
+
+// ---- the knob ---------------------------------------------------------------
+const x = 1e-8
+
+// ---- sin(x)/x at x = 1e-8 and -1e-8: both print the limit, 1 ----------------
+sin(x)/x
+sin(-x)/(-x)
+abs(sin(x)/x - 1) < 1e-12
+
+// ---- at x = 1e-4 and 1e-6 the x^2/6 deficit is (partly) visible -------------
+for t in {1e-4, 1e-6} do sin(t)/t
+
+// ---- cross-check: derivative of sin at 0, on a fresh variable t -----------
+// (x is bound by the knob above, so a bound x would make the expression
+// constant; t is free).
+derivative(sin(t), 0)
+
+// ---- expected output ---------------------------------------------------------
+// = 0.00000001
+// = 1
+// = 1
+// = true
+// = {0.999999998333, 1}
+// = 1

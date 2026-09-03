@@ -1,0 +1,32 @@
+// ============================================================================
+// harmonic-number.epher -- the partial sum H_n, compared with ln(n) + gamma
+//
+// H_n = 1 + 1/2 + ... + 1/n grows like ln n: the difference H_n - ln n
+// approaches the Euler-Mascheroni constant gamma = 0.5772156649... (Leonhard
+// Euler, 1734; Lorenzo Mascheroni, 1790; see any analysis text), and the
+// error after n terms is about 1/(2n). A packed while loop adds the 1000
+// terms quietly (a for loop would echo 1000 partial sums). The floats are
+// accurate to about 12 digits.
+//
+// Run it from a terminal:  epher "epher scripts/algebra/sequences-series/harmonic-number.epher"
+//
+// The knob to edit is n below.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const n = 1000                            // terms of the harmonic series
+const g = 0.5772156649015329              // Euler-Mascheroni constant
+
+// ---- results -----------------------------------------------------------------
+h = {1, 0}                                // {k, partial sum}
+while h[1] <= n do h = {h[1] + 1, h[2] + 1 / h[1]}
+print("H1000:", h[2])
+print("H1000 - ln(1000) - gamma:", h[2] - ln(n) - g)
+print("within 1e-6 of 1/(2n):", abs(h[2] - ln(n) - g - 1 / (2 * n)) < 1e-6)
+// ---- expected output ----
+// = 1000
+// = 0.577215664902
+// = {1, 0}
+// = H1000: 7.48547086055
+// = H1000 - ln(1000) - gamma: 0.000499916666674
+// = within 1e-6 of 1/(2n): true

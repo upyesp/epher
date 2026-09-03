@@ -1,0 +1,33 @@
+// ============================================================================
+// exterior-angle-regular.epher -- one exterior angle of a regular n-gon
+//
+// Turning one full corner of a regular n-gon sweeps 360 / n degrees, and
+// the exterior angles of any convex polygon sum to 360 degrees (standard
+// formula; walk once around the polygon and you turn a full circle). The
+// last result checks that six hexagon corners indeed sum to 360.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/polygons/exterior-angle-regular.epher"
+// In the REPL:             load epher scripts/geometry/polygons/exterior-angle-regular.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The values of n to try are in the results section below; edit them
+// there.
+// ============================================================================
+
+// ---- the model ----------------------------------------------------------------
+def angext(n) = 360 / n   // degrees, one exterior angle of a regular n-gon
+
+// ---- results ------------------------------------------------------------------
+print("equilateral triangle:", angext(3))
+print("square:", angext(4))
+print("pentagon:", angext(5))
+print("hexagon:", angext(6))
+print("octagon:", angext(8))
+print("six hexagon corners sum to 360:", 6 * angext(6) == 360)
+// ---- expected output ----
+// = equilateral triangle: 120
+// = square: 90
+// = pentagon: 72
+// = hexagon: 60
+// = octagon: 45
+// = six hexagon corners sum to 360: true

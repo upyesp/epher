@@ -1,0 +1,38 @@
+// ============================================================================
+// lcm-of-a-list.epher -- the least common multiple of several numbers
+//
+// Reduces a list of numbers to one lcm by nesting the two-argument
+// builtin: lcm(lcm(a, b), c) is the least common multiple of all three,
+// because lcm is associative. The script demonstrates the builtin; it
+// does not reimplement it. The checks read off the prime exponents:
+// 4 = 2^2, 6 = 2 * 3 and 10 = 2 * 5, so their lcm is 2^2 * 3 * 5 = 60.
+//
+// Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+// ch. 1. lcm is exact.
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/divisors/lcm-of-a-list.epher"
+// In the REPL:             load epher scripts/number-theory/divisors/lcm-of-a-list.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// There is no knob: the sample lists are the point of the script.
+// ============================================================================
+
+// ---- reductions of three numbers at a time --------------------------------------
+print("lcm of 4, 6 and 10:", lcm(lcm(4, 6), 10))          // lcm(12, 10) = 60
+print("lcm of 4, 6 and 15:", lcm(lcm(4, 6), 15))          // lcm(12, 15) = 60
+print("lcm of 2, 3 and 5:", lcm(lcm(2, 3), 5))            // 30: pairwise coprime
+print("lcm of 6, 8 and 12:", lcm(lcm(6, 8), 12))          // lcm(24, 12) = 24
+print("lcm of 3, 4 and 6:", lcm(lcm(3, 4), 6))            // lcm(12, 6) = 12
+
+// ---- nested one step deeper -------------------------------------------------------
+// Four numbers reduce the same way, folding from the left.
+print("lcm of 2, 3, 4 and 5:", lcm(lcm(lcm(2, 3), 4), 5))  // lcm(12, 5) = 60
+print("lcm of 6, 10, 15 and 7:", lcm(lcm(lcm(6, 10), 15), 7))  // lcm(30, 7) = 210
+// ---- expected output ----
+// = lcm of 4, 6 and 10: 60
+// = lcm of 4, 6 and 15: 60
+// = lcm of 2, 3 and 5: 30
+// = lcm of 6, 8 and 12: 24
+// = lcm of 3, 4 and 6: 12
+// = lcm of 2, 3, 4 and 5: 60
+// = lcm of 6, 10, 15 and 7: 210

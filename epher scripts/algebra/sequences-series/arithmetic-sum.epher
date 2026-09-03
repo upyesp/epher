@@ -1,0 +1,41 @@
+// ============================================================================
+// arithmetic-sum.epher -- sum of the first n terms of an arithmetic sequence
+//
+// The sum of the first n terms of an arithmetic sequence is
+// S_n = n (t1 + tn) / 2, the Gauss pairing trick (legend has it Gauss added
+// 1..100 this way at age seven; any algebra text, e.g. Stewart, Redlin and
+// Watson, "College Algebra", 7th ed., sec. 9.1). With a = 3, d = 4 the first
+// 25 terms sum to 25 (3 + 99) / 2 = 1275, cross-checked by adding the terms
+// one by one in a quiet while loop. All values are exact.
+//
+// Run it from a terminal:  epher "epher scripts/algebra/sequences-series/arithmetic-sum.epher"
+//
+// The knobs to edit are a, d and n below.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const a = 3                      // first term
+const d = 4                      // common difference
+const n = 25                     // number of terms to add
+
+// ---- helpers -----------------------------------------------------------------
+def tn(a, d, n) = a + (n - 1) * d                    // the n-th term
+def sn(a, d, n) = n * (2 * a + (n - 1) * d) / 2      // n (t1 + tn) / 2
+
+// ---- results -----------------------------------------------------------------
+print("S25 by formula:", sn(a, d, n))
+// add the terms one by one (a for loop would echo all 25 partial sums)
+acc = {0, 0}
+while acc[1] < n do acc = {acc[1] + 1, acc[2] + tn(a, d, acc[1] + 1)}
+print("S25 by adding:", acc[2])
+print("formula equals the sum:", sn(a, d, n) == acc[2])
+print("Gauss pairing n (t1 + t25) / 2:", n * (tn(a, d, 1) + tn(a, d, n)) / 2)
+// ---- expected output ----
+// = 3
+// = 4
+// = 25
+// = S25 by formula: 1275
+// = {0, 0}
+// = S25 by adding: 1275
+// = formula equals the sum: true
+// = Gauss pairing n (t1 + t25) / 2: 1275

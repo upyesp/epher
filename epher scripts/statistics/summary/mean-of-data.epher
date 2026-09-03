@@ -1,0 +1,33 @@
+// ============================================================================
+// mean-of-data.epher -- arithmetic mean of a dataset, cross-checked as sum/n
+//
+// The arithmetic mean (average) of the ten exam scores in `d`, from the
+// builtin mean (guide 1.20) and independently as sum(d) / len(d). The two
+// must agree, which checks the builtin against the textbook definition.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/summary/mean-of-data.epher"
+// In the REPL:             load epher scripts/statistics/summary/mean-of-data.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// The one knob to edit is `d` below. Everything above the results section
+// is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knob -----------------------------------------------------------------
+const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students, out of 100
+
+// ---- mean by the builtin and by its definition (sum over count) ---------------
+mean(d)                     // builtin arithmetic mean
+sum(d) / len(d)             // the textbook formula, sum(d) / len(d), agrees
+
+// ---- the pieces of the formula ------------------------------------------------
+sum(d)                      // total of all scores
+len(d)                      // number of scores
+
+// ---- expected output ----
+// = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
+// = 81.3
+// = 81.3
+// = 813
+// = 10

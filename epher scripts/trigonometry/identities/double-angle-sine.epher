@@ -1,0 +1,37 @@
+// ============================================================================
+// double-angle-sine.epher -- sin(2x) = 2 sin x cos x
+//
+// The double-angle formula for sine, sin(2x) = 2 sin(x) cos(x), follows
+// from the sum formula sin(a + b) = sin a cos b + cos a sin b with
+// a = b = x. The script checks it at several angles as boolean residual
+// checks (true when the two sides differ by less than 1e-12;
+// double-precision noise here is around 1e-16).
+//
+// Run it from a terminal:  epher "epher scripts/trigonometry/identities/double-angle-sine.epher"
+// In the REPL:             load epher scripts/trigonometry/identities/double-angle-sine.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The one knob to edit is the `degs` list below (degrees, converted with
+// rad() because the builtin trig works in radians). Twice each angle stays
+// under 180 deg, where sine is still one-valued and well behaved.
+// ============================================================================
+
+// ---- the knob ---------------------------------------------------------------
+const degs = {10, 30, 45, 60, 80}   // sample angles, in degrees
+
+// ---- the identity as a residual check -----------------------------------------
+def ok(x) = abs(sin(2 * x) - 2 * sin(x) * cos(x)) < 1e-12   // sin(2x) = 2 sin x cos x
+
+// ---- results -----------------------------------------------------------------
+// The check at every knob angle.
+for x in degs do ok(rad(x))
+
+// The numbers behind the booleans at 30 deg: both sides are sin(60 deg),
+// which is sqrt(3)/2 ~ 0.8660254 to twelve digits.
+print("sin(2 x 30 deg) =", sin(60 deg))
+print("2 sin(30 deg) cos(30 deg) =", 2 * sin(30 deg) * cos(30 deg))
+// ---- expected output
+// = {10, 30, 45, 60, 80}
+// = {true, true, true, true, true}
+// = sin(2 x 30 deg) = 0.866025403784
+// = 2 sin(30 deg) cos(30 deg) = 0.866025403784

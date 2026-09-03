@@ -1,0 +1,51 @@
+// ============================================================================
+// clock-angle.epher -- the angle between the hands of a clock
+//
+// At h hours and m minutes past twelve, the minute hand has swept 6 m
+// degrees (6 deg per minute) and the hour hand 30 h + 0.5 m degrees
+// (30 deg per hour, plus half a degree per minute of drift). The smaller
+// angle between them is the acute one: min(diff, 360 - diff), where diff
+// is the absolute difference of the two sweeps. The classic puzzle answer
+// for 3:00 is 90 deg and for 6:00 it is 180 deg; both fall out below.
+//
+// Run it from a terminal:  epher "epher scripts/trigonometry/angles/clock-angle.epher"
+// In the REPL:             load epher scripts/trigonometry/angles/clock-angle.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are the `hs` and `ms` lists below, one clock time per
+// column (hour 1-12, minute 0-59). Printed values carry about 12
+// significant digits.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const hs = {3, 6, 12, 9, 2, 1}      // hours of the sample times
+const ms = {0, 0, 30, 15, 47, 5}    // minutes of the sample times
+
+// ---- helpers ----------------------------------------------------------------
+def sweep_h(h, m) = 30 * mod(h, 12) + 0.5 * m   // hour hand, degrees past 12
+def sweep_m(m) = 6 * m                            // minute hand, degrees past 12
+def diff(h, m) = abs(sweep_h(h, m) - sweep_m(m))  // raw separation, <= 360
+def hand_angle(h, m) = min(diff(h, m), 360 - diff(h, m))   // the smaller angle
+
+// ---- results -----------------------------------------------------------------
+// Hand angles for 3:00, 6:00, 12:30, 9:15, 2:47 and 1:05 (hs[i] with ms[i]).
+// 12:30 is 165 deg, not 195: the smaller angle is the answer.
+for i in 1 to 6 do hand_angle(hs[i], ms[i])
+
+// The classic checks, labelled: 3:00 and 6:00 are quarter and half turns.
+print("hands at 3:00:", hand_angle(3, 0), "deg")
+print("hands at 6:00:", hand_angle(6, 0), "deg")
+print("hands at 12:30:", hand_angle(12, 30), "deg")
+print("hands at 9:15:", hand_angle(9, 15), "deg")
+print("hands at 2:47:", hand_angle(2, 47), "deg")
+print("hands at 1:05:", hand_angle(1, 5), "deg")
+// ---- expected output
+// = {3, 6, 12, 9, 2, 1}
+// = {0, 0, 30, 15, 47, 5}
+// = {90, 180, 165, 172.5, 161.5, 2.5}
+// = hands at 3:00: 90 deg
+// = hands at 6:00: 180 deg
+// = hands at 12:30: 165 deg
+// = hands at 9:15: 172.5 deg
+// = hands at 2:47: 161.5 deg
+// = hands at 1:05: 2.5 deg

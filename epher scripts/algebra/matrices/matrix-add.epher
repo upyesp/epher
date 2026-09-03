@@ -1,0 +1,26 @@
+// ============================================================================
+// matrix-add.epher -- add two 3x3 matrices
+//
+// Matrices add entry by entry, (A + B)[r][c] = A[r][c] + B[r][c] (any linear
+// algebra text, e.g. Strang, "Introduction to Linear Algebra", 5th ed.,
+// sec. 1.3). The built-in + does exactly that. The two matrices below are
+// reverses of each other, so every entry of the sum is 10; subtracting B
+// again returns A, which the last boolean checks. All values are exact.
+//
+// Run it from a terminal:  epher "epher scripts/algebra/matrices/matrix-add.epher"
+//
+// The knobs to edit are the matrices A and B below.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const A = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+const B = [[9, 8, 7], [6, 5, 4], [3, 2, 1]]
+
+// ---- results -----------------------------------------------------------------
+A + B                             // A + B, entry by entry (echoes the sum)
+print("(A + B) - B brings back A:", (A + B) - B == A)
+// ---- expected output ----
+// = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+// = [[9, 8, 7], [6, 5, 4], [3, 2, 1]]
+// = [[10, 10, 10], [10, 10, 10], [10, 10, 10]]
+// = (A + B) - B brings back A: true

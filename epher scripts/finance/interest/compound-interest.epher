@@ -1,0 +1,38 @@
+// ============================================================================
+// compound-interest.epher -- balance of a sum growing at a compound annual
+// rate, with the year-by-year trajectory as a cross-check
+//
+// Computes the interest earned by a principal P over n years at annual rate
+// r when interest is compounded yearly: the builtin compound_interest(P, r, n)
+// returns P*((1+r)^n - 1), the growth beyond the principal. The balance after
+// n years is principal plus interest. Source: standard finance formulas; see
+// Kellison, The Theory of Interest, chapters 1-2.
+//
+// Accuracy: the builtin arithmetic on the exact knob values is exact; the
+// trajectory rows are exact too (each is P*(1+r)^y for a whole y).
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/interest/compound-interest.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const principal = 2000      // starting sum, USD
+const rate = 6%             // annual rate, compounded yearly
+const years = 5             // number of years
+
+// ---- results -----------------------------------------------------------------
+print("interest earned:", compound_interest(principal, rate, years))
+print("balance after 5 years:", principal + compound_interest(principal, rate, years))
+// The same growth year by year: row y of the list below is the balance after
+// y years, P*(1+r)^y. Its last row must equal the balance printed above.
+for y in 1 to years do principal * (1 + rate) ^ y
+// ---- expected output ----
+// = 2000
+// = 0.06
+// = 5
+// = interest earned: 676.4511552
+// = balance after 5 years: 2676.4511552
+// = {2120, 2247.2, 2382.032, 2524.95392, 2676.4511552}

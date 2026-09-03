@@ -1,0 +1,54 @@
+// ============================================================================
+// planet-illuminations.epher -- lit fraction of four planets
+//
+// Illuminated fraction of the disk of Venus, Mars, Jupiter and Saturn on
+// 2026-06-01, from the built-in accessor illum (the solar-ephemeris
+// crate, JPL-validated; guide 1.16; rounded to four decimals). The lit
+// fraction is (1 + cos(phase angle)) / 2 with the phase angle the
+// Sun-planet-Earth angle at the planet (see moon-phase-angle.epher).
+// Inner planets (Venus, Mercury) run through every phase, from a thin
+// crescent near inferior conjunction to a full disk near superior
+// conjunction, because Earth sees them at every elongation. Outer
+// planets never swing far from the Sun-Earth line as seen from the
+// planet: Jupiter's phase angle stays under about 11 deg and Saturn's
+// under 7 deg, so they always look nearly full (illum above 0.99).
+//
+// Run it from a terminal:  epher "epher scripts/astronomy/planets/planet-illuminations.epher"
+// In the REPL:             load epher scripts/astronomy/planets/planet-illuminations.epher
+//
+// Knob: the date t.
+// ============================================================================
+
+// ---- the knob ---------------------------------------------------------------
+const t = jd(2026, 6, 1)     // 0h UT
+
+// ---- model ------------------------------------------------------------------
+// The lit fraction from the phase angle, radians trig (guide 1.13).
+def lit(ph) = (1 + cos(rad(ph))) / 2
+
+// ---- results ----------------------------------------------------------------
+// Illumination and phase angle (degrees) for Venus, Mars, Jupiter,
+// Saturn. Venus is at 0.7953 with a 53.8 deg phase angle - a gibbous
+// disk heading toward the thin crescent of its October 2026 inferior
+// conjunction (see venus-illumination-cycle.epher). Mars, 2.18 AU out
+// near the far side of its orbit, shows 0.965. Jupiter and Saturn, seen
+// nearly Sun-on, are effectively full.
+for b in {2, 4, 5, 6} do illum(b, t)
+for b in {2, 4, 5, 6} do phase(b, t)
+
+// Rebuild illum from phase and compare. Jupiter and Saturn agree to the
+// printed 4 decimals; the 1e-4 wobble everywhere is rounding (illum to
+// 4 decimals, phase to 2). Venus is the one planet whose phase swings
+// widely over a year - the crescent-to-gibbous cycle of an inferior
+// planet, the same geometry that gives the Moon its phases.
+print("Jupiter rebuilt:", lit(phase(5, t)), "vs", illum(5, t))
+print("Saturn rebuilt:", lit(phase(6, t)), "vs", illum(6, t))
+print("Venus rebuilt:", lit(phase(2, t)), "vs", illum(2, t))
+
+// ---- expected output ----
+// = 2461192.5
+// = {0.7953, 0.965, 0.9956, 0.9979}
+// = {53.8, 21.56, 7.62, 5.23}
+// = Jupiter rebuilt: 0.995584656837 vs 0.9956
+// = Saturn rebuilt: 0.997918403498 vs 0.9979
+// = Venus rebuilt: 0.79530283381 vs 0.7953

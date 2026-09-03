@@ -1,0 +1,63 @@
+// ============================================================================
+// chain-rule-check.epher -- derivative of exp(x^2), first and second
+//
+// For g(x) = exp(x^2) the chain rule gives g'(x) = 2x exp(x^2) and,
+// differentiating once more, g''(x) = (2 + 4x^2) exp(x^2) (Stewart,
+// "Calculus", 8th ed., sec. 3.4). The builtin derivative is numeric, so
+// the checks compare with the rules applied by hand at three points.
+//
+// The builtin also nests: derivative(derivative(h(x), x), p) numerically
+// differentiates twice. It works, but each numeric pass costs about
+// 1e-9 of relative accuracy, so the second-derivative residuals below
+// are checked at 1e-7 and 1e-6 rather than 1e-9.
+//
+// Accuracy: first-derivative residuals are under 1e-9; the nested
+// second derivative of x^3 at 2 lands within 1.2e-8 of 12, and of
+// exp(x^2) at 0.5 within 6.2e-8 of (2 + 4x^2) exp(x^2) = 3 exp(0.25).
+//
+// Run:  epher "epher scripts/calculus/derivatives/chain-rule-check.epher"
+// No knobs: the points are the demonstration.
+// ============================================================================
+
+// ---- helpers ----------------------------------------------------------------
+def g(x) = exp(x^2)
+def gp(x) = 2*x*exp(x^2)              // chain rule: g' = 2x exp(x^2)
+def gpp(x) = (2 + 4*x^2)*exp(x^2)     // g'' by the product rule on g'
+
+// ---- first derivative at p = 0.5, 1 and 1.5 ---------------------------------
+derivative(g(x), 0.5)
+gp(0.5)
+abs(derivative(g(x), 0.5) - gp(0.5)) < 1e-9
+derivative(g(x), 1)
+gp(1)
+abs(derivative(g(x), 1) - gp(1)) < 1e-9
+derivative(g(x), 1.5)
+gp(1.5)
+abs(derivative(g(x), 1.5) - gp(1.5)) < 1e-9
+
+// ---- nested second derivative: d^2/dx^2 x^3 = 6x, checked at x = 2 ----------
+derivative(derivative(x^3, x), 2)
+12
+abs(derivative(derivative(x^3, x), 2) - 12) < 1e-7
+
+// ---- nested second derivative of exp(x^2) at x = 0.5 ------------------------
+derivative(derivative(g(x), x), 0.5)
+gpp(0.5)
+abs(derivative(derivative(g(x), x), 0.5) - gpp(0.5)) < 1e-6
+
+// ---- expected output ---------------------------------------------------------
+// = 1.28402541669
+// = 1.28402541669
+// = true
+// = 5.43656365692
+// = 5.43656365692
+// = true
+// = 28.4632075091
+// = 28.4632075091
+// = true
+// = 12.0000000114
+// = 12
+// = true
+// = 3.85207625
+// = 3.85207625006
+// = true

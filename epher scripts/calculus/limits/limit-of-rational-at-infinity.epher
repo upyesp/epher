@@ -1,0 +1,35 @@
+// ============================================================================
+// limit-of-rational-at-infinity.epher -- a ratio of quadratics tends to 3
+//
+// (3n^2 + 2n - 1)/(n^2 + 5) -> 3 as n -> infinity: dividing top and
+// bottom by n^2 gives (3 + 2/n - 1/n^2)/(1 + 5/n^2), whose terms all
+// die except the 3 (Stewart, "Calculus", 8th ed., sec. 2.6, limits of
+// rational functions at infinity). The leading correction is 2/n, which
+// is why n = 1e4 gives 3.0002 and n = 1e9 gives 3.000000002.
+//
+// At n = 10 and n = 100 the arithmetic is exact integer division, and
+// epher shows the repeating decimals as fractions: 319/105 and 1313/435
+// (3.038095... and 3.01999...). The display, not the math, differs.
+//
+// Accuracy: exact rational values at small n; values at large n round
+// at about the 12th digit (2e-9 from the limit at n = 1e9).
+//
+// Run:  epher "epher scripts/calculus/limits/limit-of-rational-at-infinity.epher"
+// The knobs to edit are `ns` and `big` below.
+// ============================================================================
+
+// ---- the knobs --------------------------------------------------------------
+const ns = {10, 100, 10000, 1000000000}
+
+// ---- the ratio at growing n, as a collected list ----------------------------
+for n in ns do (3*n^2 + 2*n - 1)/(n^2 + 5)
+
+// ---- the limit: the ratio of the leading coefficients, 3/1 ------------------
+abs((3*ns[4]^2 + 2*ns[4] - 1)/(ns[4]^2 + 5) - 3) < 1e-6
+3
+
+// ---- expected output ---------------------------------------------------------
+// = {10, 100, 10000, 1000000000}
+// = {319/105, 1313/435, 3.00019983999, 3.000000002}
+// = true
+// = 3

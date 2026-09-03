@@ -1,0 +1,58 @@
+// ============================================================================
+// price-earnings-valuation.epher -- fair price of a share from earnings
+// per share and a target P/E, with an over/under-valued verdict
+//
+// The P/E approach prices a share as eps * target_pe: what the market
+// typically pays per dollar of earnings for comparable firms. Comparing the
+// fair price with the market price gives the verdict (an if/else prints it)
+// and the gap in percent. Source: standard equity-valuation practice; see
+// Brealey and Myers, Principles of Corporate Finance, chapter 4.
+//
+// Assumptions: the target P/E comes from comparable companies or the
+// industry and is a rule of thumb, not a law; the verdict is about price,
+// not quality. Earnings are the trailing twelve months.
+//
+// Accuracy: exact arithmetic, so the fair prices and gaps are exact.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/investing/price-earnings-valuation.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const eps_a = 2.40          // earnings per share, scenario A, USD
+const pe_a = 18             // target P/E, scenario A
+const market_a = 40         // market price, scenario A, USD
+const eps_b = 3.10          // earnings per share, scenario B, USD
+const pe_b = 15             // target P/E, scenario B
+const market_b = 50         // market price, scenario B, USD
+
+// ---- helpers ----------------------------------------------------------------
+def fair(eps, pe) = eps * pe   // fair price = earnings per share times target P/E
+
+// ---- results -----------------------------------------------------------------
+print("fair value A:", fair(eps_a, pe_a))
+print("verdict A:", if fair(eps_a, pe_a) > market_a then "undervalued: fair value sits above the market price" else "overvalued: fair value sits below the market price")
+print("gap A in percent:", (fair(eps_a, pe_a) - market_a) / market_a * 100)
+print("fair value B:", fair(eps_b, pe_b))
+print("verdict B:", if fair(eps_b, pe_b) > market_b then "undervalued: fair value sits above the market price" else "overvalued: fair value sits below the market price")
+print("gap B in percent:", (fair(eps_b, pe_b) - market_b) / market_b * 100)
+// Scenario A: 2.40 of earnings at a P/E of 18 prices the share at 43.20
+// against a 40 market price, an 8% upside if the target P/E is right.
+// Scenario B: 3.10 at a P/E of 15 prices it at 46.50 against a 50 market
+// price, 7% downside. Same method, opposite verdicts.
+// ---- expected output ----
+// = 2.4
+// = 18
+// = 40
+// = 3.1
+// = 15
+// = 50
+// = fair value A: 43.2
+// = verdict A: undervalued: fair value sits above the market price
+// = gap A in percent: 8
+// = fair value B: 46.5
+// = verdict B: overvalued: fair value sits below the market price
+// = gap B in percent: -7

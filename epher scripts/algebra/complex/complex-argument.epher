@@ -1,0 +1,37 @@
+// ============================================================================
+// complex-argument.epher -- arg(z) in radians and degrees
+//
+// arg(z) is the angle of z from the positive real axis, in (-pi, pi]
+// (Churchill and Brown, "Complex Variables and Applications", sec. 1, 7).
+// The built-in arg gives radians; deg converts to degrees. The four
+// diagonal directions come out at the exact multiples 45, 135, -135 and
+// -90 degrees, and 3 + 4i at arctan(4/3) = 53.1301023542 degrees. The
+// radian values are floats accurate to about 12 digits.
+//
+// Run it from a terminal:  epher "epher scripts/algebra/complex/complex-argument.epher"
+//
+// No knobs to edit; the values below are fixed examples.
+// ============================================================================
+
+// ---- results -----------------------------------------------------------------
+print("arg(1 + i):", arg(1 + i))
+print("in degrees:", deg(arg(1 + i)))
+print("arg(-1 + i):", arg(-1 + i))
+print("in degrees:", deg(arg(-1 + i)))
+print("arg(-1 - i):", arg(-1 - i))
+print("in degrees:", deg(arg(-1 - i)))
+print("arg(-i):", arg(-i))
+print("in degrees:", deg(arg(-i)))
+print("arg(3 + 4i):", arg(3 + 4i))
+print("in degrees:", deg(arg(3 + 4i)))
+// ---- expected output ----
+// = arg(1 + i): 0.785398163397
+// = in degrees: 45
+// = arg(-1 + i): 2.35619449019
+// = in degrees: 135
+// = arg(-1 - i): -2.35619449019
+// = in degrees: -135
+// = arg(-i): -1.57079632679
+// = in degrees: -90
+// = arg(3 + 4i): 0.927295218002
+// = in degrees: 53.1301023542

@@ -1,0 +1,38 @@
+// ============================================================================
+// decimal-to-binary.epher -- decimal values spelled in base 2
+//
+// Spells decimal integers in binary with the bin builtin. The spelling
+// is the language's binary literal form: the prefix 0b, then the bits,
+// so bin(42) prints 0b101010 and reads back as the literal 0b101010,
+// which is the same value 42. The script only calls the builtin; it does
+// not reimplement the conversion.
+//
+// Source: standard numeral systems; positional notation in base 2, with
+// place values 1, 2, 4, 8, ... (the next script spells back the other
+// way). bin is exact for every integer the calculator can hold.
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/bases/decimal-to-binary.epher"
+// In the REPL:             load epher scripts/number-theory/bases/decimal-to-binary.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// There is no knob: the sample values are the point of the script.
+// ============================================================================
+
+// ---- named spellings ---------------------------------------------------------------
+bin(42)                       // 42 = 32 + 8 + 2 = 0b101010
+bin(255)                      // eight bits set: 0b11111111
+bin(1024)                     // 2^10: a one and ten zeros
+// ---- a list at a glance ---------------------------------------------------------------
+for x in {0, 1, 2, 7, 8, 42, 255} do bin(x)
+// ---- the spelling reads back -------------------------------------------------------------
+0b101010                      // the literal form of bin(42): same value
+0b11111111                    // 255, the largest eight-bit value
+print("0b101010 == 42:", 0b101010 == 42)
+// ---- expected output ----
+// = 0b101010
+// = 0b11111111
+// = 0b10000000000
+// = {0b0, 0b1, 0b10, 0b111, 0b1000, 0b101010, 0b11111111}
+// = 42
+// = 255
+// = 0b101010 == 42: true

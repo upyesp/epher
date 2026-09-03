@@ -14,13 +14,17 @@
 // you plug in (thirteen full moons over twelve months means one month had
 // two).
 //
-// This file is the reference example for the epher scripts folder: it
+// This file is the reference example for the epher scripts folder (the
+// README at its root explains the format standard). It sits with the other
+// Moon scripts under astronomy/moon/. Every statement fits one line, and
+// block comments /* like this one */ annotate a formula inline: a block
+// comment must close on its own line in a script file (guide 1.11). It
 // shows the language's modern surface, one idea per line, with the guide
 // chapter for each: `for` loops (1.30), strings and `print` (1.29), `if`
 // decisions (1.7), and the astronomy accessors and constants (1.16).
 //
-// Run it from a terminal:  epher "epher scripts/full-moons.epher"
-// In the REPL:             load epher scripts/full-moons.epher
+// Run it from a terminal:  epher "epher scripts/astronomy/moon/full-moons.epher"
+// In the REPL:             load epher scripts/astronomy/moon/full-moons.epher
 // Web/desktop:             paste the whole file into the entry, press Enter
 // Everything also works line by line in the TUI.
 //
@@ -32,14 +36,14 @@
 const year = 2026
 
 // ---- Meeus ch. 49: mean elements, angles in degrees (eq. 49.3-49.7) -----------
-def e3(t) = 1 - 0.002516 * t - 0.0000074 * t ^ 2      // Earth's orbital eccentricity (no unit)
+def e3(t) = 1 - 0.002516 * t - 0.0000074 * t ^ 2      /* Earth's orbital eccentricity (no unit) */
 def mp(k) = 201.5643 + 385.81693528 * k               // Moon's mean anomaly, degrees
 def ms(k) = 2.5534 + 29.10535670 * k                  // Sun's mean anomaly, degrees
 def mf(k) = 160.7108 + 390.67050284 * k               // Moon's argument of latitude, degrees
 def node(k) = 124.7746 - 1.56375588 * k               // Moon's ascending node, degrees
 
 // ---- mean full-moon instant in JD: k counts lunations, full moons end in .5 --
-def base(k) = 2451550.09766 + 29.530588861 * k + 0.00015437 * (k / 1236.85) ^ 2 - 0.000000150 * (k / 1236.85) ^ 3 + 0.00000000073 * (k / 1236.85) ^ 4
+def base(k) = 2451550.09766 + 29.530588861 * k /* the synodic month */ + 0.00015437 * (k / 1236.85) ^ 2 - 0.000000150 * (k / 1236.85) ^ 3 + 0.00000000073 * (k / 1236.85) ^ 4
 
 // ---- periodic corrections in days, table 49.A full-moon column, by size -------
 def corr_a(k) = -0.40614 * sin(rad(mp(k))) + 0.17302 * e3(k / 1236.85) * sin(rad(ms(k))) + 0.01614 * sin(rad(2 * mp(k))) + 0.01043 * sin(rad(2 * mf(k))) + 0.00734 * e3(k / 1236.85) * sin(rad(mp(k) - ms(k))) - 0.00515 * e3(k / 1236.85) * sin(rad(mp(k) + ms(k))) + 0.00209 * e3(k / 1236.85) ^ 2 * sin(rad(2 * ms(k))) - 0.00111 * sin(rad(mp(k) - 2 * mf(k)))
@@ -65,13 +69,16 @@ def a14(k) = 331.55 + 3.592518 * k
 def corr_d(k) = 0.000325 * sin(rad(a1(k))) + 0.000165 * sin(rad(a2(k))) + 0.000164 * sin(rad(a3(k))) + 0.000126 * sin(rad(a4(k))) + 0.000110 * sin(rad(a5(k))) + 0.000062 * sin(rad(a6(k))) + 0.000060 * sin(rad(a7(k))) + 0.000056 * sin(rad(a8(k))) + 0.000047 * sin(rad(a9(k))) + 0.000042 * sin(rad(a10(k))) + 0.000040 * sin(rad(a11(k))) + 0.000037 * sin(rad(a12(k))) + 0.000035 * sin(rad(a13(k))) + 0.000023 * sin(rad(a14(k)))
 
 // ---- the instant of full moon for lunation k ----------------------------------
-def fullmoon(k) = base(k) + corr_a(k) + corr_b(k) + corr_c(k) + corr_d(k)
+def fullmoon(k) = base(k) + corr_a(k) + corr_b(k) + corr_c(k) + corr_d(k)  /* instant of full moon for lunation k */
 
 // ---- first lunation of the year: the first full moon at or after Jan 1 --------
 def kfirst(jd0) = ceil((jd0 - 2451550.09766) / 29.530588861 - 0.5) + 0.5
 k = kfirst(jd(year, 1, 1))
 
 // ---- results ------------------------------------------------------------------
+// The results print below; note the inline /* ... */ annotations, one
+// style of comment in the language (the other styles: `//` to the end of
+// the line, and `#`). All three must close on their line in a script.
 // The full moons of the year, Julian Dates in UT. A for loop (guide 1.30)
 // stands in for typing thirteen calls: it collects one value per step into
 // a list, and n runs 0 to 12 inclusive. Thirteen entries: a year usually
@@ -87,7 +94,7 @@ for n in 0 to 12 do fullmoon(k + n)
 // spaces into one readable line, and a unit conversion (`in hr`) keeps its
 // unit label when a print argument carries it.
 print("first full moon:", fullmoon(k) - jd(year, 1, 1), "days into", year)
-print("clock time in UT:", ((fullmoon(k) + 0.5) - floor(fullmoon(k) + 0.5)) * 24 in hr)
+print("clock time in UT:", ((fullmoon(k) + 0.5) - floor(fullmoon(k) + 0.5)) * 24 in hr)  /* the day's fraction past midnight */
 
 // How many full moons the year carries, which answers the blue-moon
 // exercise: thirteen moons over twelve months means one month held two
@@ -113,14 +120,10 @@ illum(11, fullmoon(k))
 illum(11, fullmoon(k) - 0.5)
 illum(11, fullmoon(k) + 0.5)
 phase(11, fullmoon(k))
-
-// ---- expected output for the shipped knob (year = 2026) -----------------------
+// ---- expected output for the shipped knob (year = 2026) ----
 // = 2026
 // = 321.5
-// = {2461043.91951, 2461073.42393, 2374964381/965, 1769554334/719,
-//    2315953654/941, 1208445206/491, 2461221.49853, 2461251.10895,
-//    2461280.68033, 1599851631/650, 2461339.67568, 1420209983/577,
-//    2220181503/902}
+// = {2461043.91951, 2461073.42393, 2374964381/965, 1769554334/719, 2315953654/941, 1208445206/491, 2461221.49853, 2461251.10895, 2461280.68033, 1599851631/650, 2461339.67568, 1420209983/577, 2220181503/902}
 // = first full moon: 2.41950742295 days into 2026
 // = clock time in UT: 10.0681781508 hr
 // = 13 full moons this year: one month holds two (a blue moon)

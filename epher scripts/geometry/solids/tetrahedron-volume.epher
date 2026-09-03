@@ -1,0 +1,32 @@
+// ============================================================================
+// tetrahedron-volume.epher -- volume of a regular tetrahedron
+//
+// A regular tetrahedron of edge a has volume V = a^3 / (6 sqrt(2)), a
+// classic exercise (standard formula; place two vertices on an axis and
+// integrate, or slice the cube). The results give the textbook form
+// V = a^3 sqrt(2) / 12 as a cross-check and the a = 2 case, whose
+// volume is 8 / (6 sqrt(2)).
+//
+// Run it from a terminal:  epher "epher scripts/geometry/solids/tetrahedron-volume.epher"
+// In the REPL:             load epher scripts/geometry/solids/tetrahedron-volume.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knob to edit is `a`, the edge length. Everything above the results
+// section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knob -----------------------------------------------------------------
+const a = 6
+
+// ---- the model ----------------------------------------------------------------
+def vol(a) = a ^ 3 / (6 * sqrt(2))   // V = a^3 / (6 sqrt(2))
+
+// ---- results ------------------------------------------------------------------
+print("volume:", vol(a))
+print("other textbook form agrees:", abs(vol(a) - a ^ 3 * sqrt(2) / 12) < 1e-9)
+print("edge 2:", vol(2))
+// ---- expected output ----
+// = 6
+// = volume: 25.4558441227
+// = other textbook form agrees: true
+// = edge 2: 0.942809041582

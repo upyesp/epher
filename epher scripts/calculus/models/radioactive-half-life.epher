@@ -1,0 +1,52 @@
+// ============================================================================
+// radioactive-half-life.epher -- carbon-14 decay and its half-life
+//
+// Radioactive decay is exponential: the fraction left after time t is
+// e^(-lambda t), where lambda is the decay constant, and the half-life
+// is T = ln(2)/lambda, the time after which half remains (Stewart,
+// "Calculus", 8th ed., sec. 3.8; any nuclear physics text). Carbon-14
+// has the well-known half-life of 5730 years, so its decay constant is
+// lambda = ln(2)/5730 per year.
+//
+// The script builds lambda from the half-life knob, checks that the
+// fraction left after one and two half-lives is 1/2 and 1/4, computes
+// the fraction left after 10000 years (about 0.2983, or 29.83%), and
+// recovers the half-life from the decay constant by the formula above.
+//
+// Accuracy: the recovered half-life prints as 5730 exactly; fractions
+// at 1, 2 and 10000 half-lives agree to better than 1e-12.
+//
+// Run:  epher "epher scripts/calculus/models/radioactive-half-life.epher"
+// The knob to edit is `thalf` (use any isotope's half-life, same units).
+// ============================================================================
+
+// ---- the knob ---------------------------------------------------------------
+const thalf = 5730                  // half-life of carbon-14, years
+
+// ---- decay constant from the half-life -------------------------------------
+const lam = ln(2)/thalf             // lambda = ln(2)/T, per year
+
+// ---- helpers ----------------------------------------------------------------
+def frac(t) = e^(-lam*t)            // fraction of nuclei left after t years
+
+// ---- one and two half-lives: 1/2 and 1/4 remain -----------------------------
+print("fraction after one half-life:", frac(thalf))
+print("fraction after two half-lives:", frac(2*thalf))
+abs(frac(thalf) - 1/2) < 1e-9
+
+// ---- after 10000 years ------------------------------------------------------
+print("fraction after 10000 years:", frac(10000))
+
+// ---- the half-life recovered from the decay constant ------------------------
+print("half-life from lambda, years:", ln(2)/lam)
+abs(ln(2)/lam - thalf) < 1e-6
+
+// ---- expected output ---------------------------------------------------------
+// = 5730
+// = 0.000120968094339
+// = fraction after one half-life: 0.5
+// = fraction after two half-lives: 0.25
+// = true
+// = fraction after 10000 years: 0.298292436424
+// = half-life from lambda, years: 5730
+// = true

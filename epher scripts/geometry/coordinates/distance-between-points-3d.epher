@@ -1,0 +1,31 @@
+// ============================================================================
+// distance-between-points-3d.epher -- distance between two points in space
+//
+// The distance between (x1, y1, z1) and (x2, y2, z2) extends Pythagoras
+// by one dimension: d = sqrt((x2 - x1)^2 + (y2 - y1)^2 + (z2 - z1)^2)
+// (standard formula; apply the 2-D distance to the face diagonal, then
+// one more right triangle with the height). Points are three-number
+// lists {x, y, z}. The examples land on exact integers, and the last
+// one, sqrt(61), is checked against the builtin directly.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/coordinates/distance-between-points-3d.epher"
+// In the REPL:             load epher scripts/geometry/coordinates/distance-between-points-3d.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The point pairs to try are in the results section below; edit them
+// there.
+// ============================================================================
+
+// ---- the model ----------------------------------------------------------------
+def dist(p, q) = sqrt((p[1] - q[1]) ^ 2 + (p[2] - q[2]) ^ 2 + (p[3] - q[3]) ^ 2)
+
+// ---- results ------------------------------------------------------------------
+print("(0, 0, 0) to (1, 2, 2):", dist({0, 0, 0}, {1, 2, 2}))
+print("(0, 0, 0) to (2, 3, 6):", dist({0, 0, 0}, {2, 3, 6}))
+print("(1, 2, 3) to (4, 6, 9):", dist({1, 2, 3}, {4, 6, 9}))
+print("sqrt(61) check:", abs(dist({1, 2, 3}, {4, 6, 9}) - sqrt(61)) < 1e-9)
+// ---- expected output ----
+// = (0, 0, 0) to (1, 2, 2): 3
+// = (0, 0, 0) to (2, 3, 6): 7
+// = (1, 2, 3) to (4, 6, 9): 7.81024967591
+// = sqrt(61) check: true

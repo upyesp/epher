@@ -89,15 +89,15 @@ truth); the design rationale and research live in
 | 1.4.3 Contrast (AA) | PASS | light: text 17.0:1, muted 6.4:1, links 5.5:1, primary button 5.5:1. dark: text 16.9:1, muted 6.6:1, links 12.5:1, primary button 11.4:1. |
 | 1.4.11 Non-text contrast | PASS | Icons/rings ≥ 3.7:1 (light) / 11.0:1 (dark); interactive control borders and card edges 6.8:1 (light) / 3.5:1 (dark, 3.1:1 vs panel). |
 | 1.4.1 Use of color | PASS | No color-only indicators; links are underlined. |
-| 2.1.1 Keyboard | PASS | The disclosure (hamburger) nav is a native `button`; links are real anchors; no pointer-only interaction. |
+| 2.1.1 Keyboard | PASS | The disclosure (hamburger) nav is a native `button`; the Docs item is a second disclosure button with its own panel of links; links are real anchors; no pointer-only interaction. |
 | 2.4.1 Bypass blocks | PASS | Skip link on every page; single `main` landmark. |
 | 2.4.7 Focus visible | PASS | 3px `--ring` outline, offset 2px; accent-filled controls use an inset ring in their text color. |
 | 2.4.11 Focus not obscured | PASS | Sticky header is translucent; focus rings on header controls remain visible. |
-| 2.5.8 Target size (AA) | PASS | All interactive targets ≥ 44×44 CSS px (nav links, buttons, icon buttons, select — 2.5.5 best practice, not just the 24px AA floor). |
-| 2.3.3 Animation from interactions | PASS | Only 150 ms color transitions; all motion disabled under `prefers-reduced-motion`. Smooth scrolling is also disabled under the preference. |
+| 2.5.8 Target size (AA) | PASS | All interactive targets ≥ 44×44 CSS px (nav links, buttons, icon buttons, select, docs toggle — 2.5.5 best practice, not just the 24px AA floor). |
+| 2.3.3 Animation from interactions | PASS | Only 150 ms color transitions; all motion disabled under `prefers-reduced-motion` (the docs chevron rotates under the same rule). Smooth scrolling is also disabled under the preference. |
 | 4.1.2 Name, role, value | PASS | Menu button: native `button` + visually-hidden label + `aria-expanded` + `aria-controls`; nav is a labelled `nav` landmark. |
 | 3.1.1/3.1.2 Language | PASS | `lang`/`dir` track the active locale (RTL for Arabic) on all pages; guide pages bake both in at build time. |
-| 2.4.5/ARIA APG nav | PASS | Disclosure pattern per the WAI-ARIA Authoring Practices: `hidden` removes collapsed links from the tab order, Escape closes and restores focus, click-outside closes, link activation closes. A `<noscript>` style shows the links stacked when JavaScript is off. Desktop never hides the nav behind the button. |
+| 2.4.5/ARIA APG nav | PASS | Disclosure pattern per the WAI-ARIA Authoring Practices, twice over: the hamburger nav and the Docs menu both use `hidden` to remove collapsed links from the tab order, Escape closes and restores focus, click-outside closes, link activation closes. A `<noscript>` style shows the links stacked when JavaScript is off. Desktop never hides the nav behind the button. |
 
 ## Known gaps (tracked elsewhere)
 

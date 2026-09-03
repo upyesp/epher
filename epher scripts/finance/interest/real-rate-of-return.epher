@@ -1,0 +1,36 @@
+// ============================================================================
+// real-rate-of-return.epher -- the Fisher equation: real return after
+// inflation
+//
+// If an investment earns nominal rate n while prices rise at inflation rate
+// i, the real (inflation-adjusted) rate of return is the rate r that solves
+// 1 + r = (1 + n)/(1 + i), so r = (1+n)/(1+i) - 1. The popular approximation
+// r ~ n - i is printed underneath for comparison. Source: Irving Fisher,
+// "The Theory of Interest" (1930); the multiplicative form is standard.
+//
+// Accuracy: exact. The exact rate 9/205 prints as a fraction because its
+// decimal 0.0439024390... repeats forever; it is the same number as
+// 4.3902%. The approximation overshoots by about 0.11 percentage points.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/interest/real-rate-of-return.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const nominal = 7%          // return the investment pays, per year
+const inflation = 2.5%      // yearly price inflation over the same period
+
+// ---- results -----------------------------------------------------------------
+// Exact: 1 + real = (1 + nominal)/(1 + inflation).
+print("exact real rate (Fisher):", (1 + nominal) / (1 + inflation) - 1)
+// Approximation: subtract the rates directly. At 7% and 2.5% it says 4.5%
+// where the exact answer is 4.3902%; the gap grows with the rates.
+print("approximation, nominal - inflation:", nominal - inflation)
+// ---- expected output ----
+// = 0.07
+// = 0.025
+// = exact real rate (Fisher): 9/205
+// = approximation, nominal - inflation: 0.045

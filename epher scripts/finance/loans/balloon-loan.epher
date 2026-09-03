@@ -1,0 +1,50 @@
+// ============================================================================
+// balloon-loan.epher -- payments on a note that still owes a balloon sum at
+// maturity
+//
+// A balloon loan amortizes only part of the principal: the finance builtin
+// tvm_pmt takes the future value argument fv, the balance still owed at the
+// end, so tvm_pmt(n, i, -P, balloon) is the payment that leaves exactly the
+// balloon unpaid after n months. Source: standard TVM formulas; see
+// Kellison, The Theory of Interest, chapter 3.
+//
+// Sign convention: principal negative, payment positive, balloon positive,
+// as in the builtin example tvm_pmt(360, 0.08/12, -100000, 0).
+//
+// Accuracy: 12 displayed digits. The balloon is typically refinanced or
+// paid from savings at maturity; if it cannot be, the borrower may face a
+// forced sale, which is the risk this structure carries.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/loans/balloon-loan.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const principal = 50000     // amount borrowed, USD
+const rate = 5.4%           // quoted annual rate
+const years = 5             // term in years
+const balloon = 20000       // balance still owed at maturity, USD
+
+// ---- results -----------------------------------------------------------------
+payment = tvm_pmt(years * 12, rate / 12, -principal, balloon)   // monthly payment, USD
+print("monthly payment with the 20000 balloon:", payment)
+print("payment to amortize the whole principal:", tvm_pmt(years * 12, rate / 12, -principal, 0))
+print("monthly saving vs full amortization:", tvm_pmt(years * 12, rate / 12, -principal, 0) - payment)
+print("total paid with the balloon (payments plus balloon):", payment * (years * 12) + balloon)
+print("interest paid with the balloon:", payment * (years * 12) + balloon - principal)
+// The lower payment buys a cheaper month but a dearer loan: interest runs
+// about 9699.07 with the balloon versus 7165.12 on a fully amortized note.
+// ---- expected output ----
+// = 50000
+// = 0.054
+// = 5
+// = 20000
+// = 661.651184744
+// = monthly payment with the 20000 balloon: 661.651184744
+// = payment to amortize the whole principal: 952.751974573
+// = monthly saving vs full amortization: 291.100789829
+// = total paid with the balloon (payments plus balloon): 59699.0710846
+// = interest paid with the balloon: 9699.07108462

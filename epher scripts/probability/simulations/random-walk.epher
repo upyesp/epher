@@ -1,0 +1,61 @@
+// ============================================================================
+// random-walk.epher -- 1000 fair coin steps on the line, seeded
+//
+// A walker starts at 0 and takes 1000 steps of +1 or -1, decided by a
+// fair coin at each step (random() < 1/2 after randseed(29)). The final
+// position is a sum of 1000 independent signs, so its standard
+// deviation is sqrt(1000) = 31.6: a single walk usually ends within a
+// few standard deviations of the start, and its record distance from 0
+// runs somewhat farther. A 2D walk would scale the same way (sqrt n)
+// but needs two coordinates, so this script stays on the line.
+//
+// The loop state packs {position, record |position|} into one integer
+// (position plus an offset of 1000 in units of 8192, record below), and
+// one random() feeds each step through a helper, so the whole walk is
+// one statement per step. The stream is reproducible: the same seed
+// replays the same walk.
+//
+// Source: Feller, "An Introduction to Probability Theory and Its
+// Applications", volume 1, chapter 3 (random walks).
+//
+// Run it from a terminal:  epher "epher scripts/probability/simulations/random-walk.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+//
+// The knob to edit is `steps`; everything below it is machinery.
+// ============================================================================
+
+// ---- the knobs ----
+const steps = 1000
+
+// ---- helpers ----
+def pos(s) = floor(s / 8192) - 1000        // current position, decoded
+def peak(s) = mod(s, 8192)                 // record |position| so far
+def walk(s, r) = (pos(s) + (if r < 0.5 then 1 else -1) + 1000) * 8192 + (if abs(pos(s) + (if r < 0.5 then 1 else -1)) > peak(s) then abs(pos(s) + (if r < 0.5 then 1 else -1)) else peak(s))
+// walk takes one step from packed state s using the random draw r (one
+// call of random() per step, consumed at the loop) and packs the new
+// position and the new record distance.
+
+// ---- results ----
+// The seeded walk: state starts at position 0, record 0, and the loop
+// runs `steps` steps.
+randseed(29)
+v = {0, 8192000}
+while v[1] < steps do v = {v[1] + 1, walk(v[2], random())}
+
+// Where the walk ended and how far it ever strayed.
+print("steps:", steps)
+print("final position:", pos(v[2]))
+print("record distance from 0:", peak(v[2]))
+
+// The scale of the fluctuations: sqrt(1000) = 31.6.
+print("sqrt(steps):", sqrt(steps))
+print("final position within 3 * sqrt(steps):", abs(pos(v[2])) < 3 * sqrt(steps))
+// ---- expected output ----
+// = 1000
+// = 29
+// = {0, 8192000}
+// = steps: 1000
+// = final position: -22
+// = record distance from 0: 42
+// = sqrt(steps): 31.6227766017
+// = final position within 3 * sqrt(steps): true

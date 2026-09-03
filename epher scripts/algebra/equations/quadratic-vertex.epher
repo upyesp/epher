@@ -1,0 +1,37 @@
+// ============================================================================
+// quadratic-vertex.epher -- vertex (h, k) of the parabola y = ax^2 + bx + c
+//
+// Completing the square puts the parabola in vertex form y = a(x - h)^2 + k
+// with h = -b/(2a) and k = c - b^2/(4a), the standard formulas of a college
+// algebra text (Stewart, Redlin and Watson, "College Algebra", 7th ed.,
+// sec. 4.1). Exact: the rational arithmetic stays exact, so h and k print as
+// exact fractions (-3/4 and -49/8 for the knobs below).
+//
+// Run it from a terminal:  epher "epher scripts/algebra/equations/quadratic-vertex.epher"
+//
+// The knobs to edit are a, b and c below.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const a = 2
+const b = 3
+const c = -5
+
+// ---- helpers -----------------------------------------------------------------
+def vx(a, b, c) = -b / (2 * a)               // vertex x: h = -b / (2a)
+def vy(a, b, c) = c - b ^ 2 / (4 * a)        // vertex y: k = c - b^2 / (4a)
+def p(a, b, c, x) = a * x ^ 2 + b * x + c    // the polynomial at x
+
+// ---- results -----------------------------------------------------------------
+print("h:", vx(a, b, c))
+print("k:", vy(a, b, c))
+print("p(h) equals k:", p(a, b, c, vx(a, b, c)) == vy(a, b, c))
+print("vertex form matches at x = 1:", p(a, b, c, 1) == a * (1 - vx(a, b, c)) ^ 2 + vy(a, b, c))
+// ---- expected output ----
+// = 2
+// = 3
+// = -5
+// = h: -0.75
+// = k: -6.125
+// = p(h) equals k: true
+// = vertex form matches at x = 1: true

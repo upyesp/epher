@@ -1,0 +1,50 @@
+// ============================================================================
+// next-and-prev-prime.epher -- the primes adjacent to a value
+//
+// Walks nextprime and prevprime around several values. The functions mean
+// strictly greater and strictly smaller: nextprime(97) is 101 (the gap of
+// four after 97), and prevprime(97) is 89. Applied to a prime itself they
+// skip it, so nextprime(prevprime(n)) lands back on the prime below n.
+// The script only calls the builtins, which are exact; it does not
+// reimplement them.
+//
+// Source: standard number theory; the functions are epher's builtins
+// (guide 1.22, number theory functions).
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/primes/next-and-prev-prime.epher"
+// In the REPL:             load epher scripts/number-theory/primes/next-and-prev-prime.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// There is no knob: the sample values are the point of the script.
+// ============================================================================
+
+// ---- next prime after n --------------------------------------------------------
+print("nextprime(97):", nextprime(97))            // the first prime above 97
+print("nextprime(2):", nextprime(2))              // 3: strictly above, 2 is prime
+print("nextprime(1):", nextprime(1))              // 1 is not prime, so 2 follows
+print("nextprime(100):", nextprime(100))          // a composite can sit between
+
+// ---- previous prime below n ----------------------------------------------------
+print("prevprime(97):", prevprime(97))            // 89: strictly below, 97 is prime
+print("prevprime(101):", prevprime(101))          // back across the same gap
+print("prevprime(3):", prevprime(3))              // 2, the smallest prime
+print("prevprime(100):", prevprime(100))          // 97, below the composite 100
+// prevprime(2) would be an error: there is no prime below 2, so it is not
+// tried here.
+
+// ---- round trips and gaps ------------------------------------------------------
+// nextprime(prevprime(n)) is the largest prime below n again, for n prime
+// or not; the difference is the gap of consecutive primes at that spot.
+print("around 100:", prevprime(100), nextprime(100), nextprime(100) - prevprime(100))
+print("around 97:", prevprime(97), nextprime(97), nextprime(97) - prevprime(97))
+// ---- expected output ----
+// = nextprime(97): 101
+// = nextprime(2): 3
+// = nextprime(1): 2
+// = nextprime(100): 101
+// = prevprime(97): 89
+// = prevprime(101): 97
+// = prevprime(3): 2
+// = prevprime(100): 97
+// = around 100: 97 101 4
+// = around 97: 89 101 12

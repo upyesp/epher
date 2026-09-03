@@ -1,0 +1,31 @@
+// ============================================================================
+// circle-circumference.epher -- circumference from the radius
+//
+// The circumference of a circle of radius r is C = 2 pi r (standard
+// formula; the ratio of circumference to diameter is the constant pi).
+// For radius 5 the circumference is 10 pi, and for radius 1 it is tau,
+// the builtin constant for one full turn, 2 pi.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/circles/circle-circumference.epher"
+// In the REPL:             load epher scripts/geometry/circles/circle-circumference.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knob to edit is `r`, the radius. Everything above the results
+// section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knob -----------------------------------------------------------------
+const r = 5
+
+// ---- the model ----------------------------------------------------------------
+def circ(r) = 2 * pi * r   // C = 2 pi r
+
+// ---- results ------------------------------------------------------------------
+print("circumference:", circ(r))
+print("radius 1 is one tau:", circ(1))
+print("tau agrees:", abs(circ(1) - tau) < 1e-9)
+// ---- expected output ----
+// = 5
+// = circumference: 31.4159265359
+// = radius 1 is one tau: 6.28318530718
+// = tau agrees: true

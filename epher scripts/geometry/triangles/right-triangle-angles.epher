@@ -1,0 +1,38 @@
+// ============================================================================
+// right-triangle-angles.epher -- the acute angles of a right triangle
+//
+// From the side lengths, the angle opposite a side is
+// atan(opposite / adjacent), the SOH-CAH-TOA tangent rule (standard
+// formula). epher's trig functions take radians, and deg() converts each
+// angle to degrees for the results. The two acute angles of a right
+// triangle must sum to 90 degrees, and the results verify that.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/triangles/right-triangle-angles.epher"
+// In the REPL:             load epher scripts/geometry/triangles/right-triangle-angles.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are `a` and `b`, the two legs. Everything above the
+// results section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs ----------------------------------------------------------------
+const a = 3
+const b = 4
+
+// ---- the model ----------------------------------------------------------------
+def cside(a, b) = sqrt(a ^ 2 + b ^ 2)   // the hypotenuse (Pythagoras)
+def angle_a(a, b) = deg(atan(a / b))    // degrees; opposite the leg a
+def angle_b(a, b) = deg(atan(b / a))    // degrees; opposite the leg b
+
+// ---- results ------------------------------------------------------------------
+print("angle opposite the side of length", a, ":", angle_a(a, b), "degrees")
+print("angle opposite the side of length", b, ":", angle_b(a, b), "degrees")
+print("sum is 90:", abs(angle_a(a, b) + angle_b(a, b) - 90) < 1e-9)
+print("asin cross-check:", abs(deg(asin(a / cside(a, b))) - angle_a(a, b)) < 1e-9)
+// ---- expected output ----
+// = 3
+// = 4
+// = angle opposite the side of length 3 : 36.8698976458 degrees
+// = angle opposite the side of length 4 : 53.1301023542 degrees
+// = sum is 90: true
+// = asin cross-check: true

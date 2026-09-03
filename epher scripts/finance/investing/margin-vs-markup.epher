@@ -1,0 +1,48 @@
+// ============================================================================
+// margin-vs-markup.epher -- profit margin (profit over price) versus markup
+// (profit over cost), and the conversion between them
+//
+// A product bought for `cost` and sold for `price` earns the same profit
+// either way it is quoted, but the two quotings differ: margin = profit/
+// price, markup = profit/cost. The classic confusion is forgetting which is
+// which: a 25% markup is only a 20% margin. The conversions are
+// markup = margin/(1 - margin) and margin = markup/(1 + markup). Source:
+// standard retail accounting practice.
+//
+// Accuracy: exact arithmetic, so every number below is exact.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/investing/margin-vs-markup.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const cost = 80             // what the seller pays, USD
+const price = 100           // what the buyer pays, USD
+
+// ---- helpers ----------------------------------------------------------------
+def margin(c, p) = (p - c) / p        // profit as a share of the selling price
+def markup(c, p) = (p - c) / c        // profit as a share of the cost
+
+// ---- results -----------------------------------------------------------------
+print("profit:", price - cost)
+print("margin (profit / price):", margin(cost, price))
+print("markup (profit / cost):", markup(cost, price))
+print("markup in percent:", markup(cost, price) * 100)
+// The conversions: a 20% margin is a 25% markup, and back again.
+print("markup implied by a 20% margin:", margin(cost, price) / (1 - margin(cost, price)))
+print("margin implied by a 25% markup:", markup(cost, price) / (1 + markup(cost, price)))
+// The same 20 of profit reads as 20% margin but 25% markup. Margins can
+// never reach 100% (that would need a free product); markups can exceed
+// it freely. Pricing from cost at a 25% markup: 80*(1 + 25%) = 100.
+// ---- expected output ----
+// = 80
+// = 100
+// = profit: 20
+// = margin (profit / price): 0.2
+// = markup (profit / cost): 0.25
+// = markup in percent: 25
+// = markup implied by a 20% margin: 0.25
+// = margin implied by a 25% markup: 0.2

@@ -1,0 +1,46 @@
+// ============================================================================
+// nth-prime.epher -- the n-th prime number
+//
+// Counts primes until the counter reaches n, with a packed while loop
+// (guide 1.30). The state holds {candidate, primes counted}; each pass
+// checks the next candidate and moves on, and the loop stops the moment
+// the n-th prime has been counted. Checks: the 10th prime is 29, the
+// 25th is 97, and the 100th is 541 (Hardy and Wright, ch. 1, tables).
+//
+// Source: standard number theory; the count is exact because isprime is
+// exact. The loop runs about n log n steps, so keep n below a few
+// thousand for an instant run.
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/primes/nth-prime.epher"
+// In the REPL:             load epher scripts/number-theory/primes/nth-prime.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The one knob to edit is `n` below.
+// ============================================================================
+
+// ---- the knob -----------------------------------------------------------------
+const n = 25
+
+// ---- count up to the n-th prime -------------------------------------------------
+// v = {candidate, primes counted}; the pass checks candidate + 1, so when
+// the count reaches n the loop leaves v[1] on the prime that did it.
+v = {1, 0}
+while v[2] < n do v = {v[1] + 1, v[2] + (if isprime(v[1] + 1) then 1 else 0)}
+print("the " + str(n) + "th prime:", v[1])
+
+// ---- the classic checks ----------------------------------------------------------
+// The same loop shape against the table values for n = 10 and n = 100.
+v = {1, 0}
+while v[2] < 10 do v = {v[1] + 1, v[2] + (if isprime(v[1] + 1) then 1 else 0)}
+print("the 10th prime:", v[1])
+v = {1, 0}
+while v[2] < 100 do v = {v[1] + 1, v[2] + (if isprime(v[1] + 1) then 1 else 0)}
+print("the 100th prime:", v[1])
+// ---- expected output ----
+// = 25
+// = {1, 0}
+// = the 25th prime: 97
+// = {1, 0}
+// = the 10th prime: 29
+// = {1, 0}
+// = the 100th prime: 541

@@ -1,0 +1,60 @@
+// ============================================================================
+// grid-paths.epher -- monotone paths across a grid: ncr(m + n, m)
+//
+// A path from one corner of an m by n grid to the opposite corner, made
+// only of right and down steps, is a word of m right steps and n down
+// steps. Choosing which m of the m + n positions carry the right steps
+// fixes the whole word, so the path count is ncr(m + n, m), the same
+// formula as choosing a committee.
+//
+// The 2 by 2 case is verified by hand below (six words: RRDD, RDRD,
+// RDDR, DRRD, DRDR, DDRR), and the symmetry ncr(m + n, m) = ncr(m + n, n)
+// says the count does not change when the grid is turned around.
+//
+// Source: Ross, "A First Course in Probability", chapter 1. The counts
+// are exact integers; ncr(40, 20) shows the growth for a 20 by 20 grid.
+//
+// Run it from a terminal:  epher "epher scripts/probability/counting/grid-paths.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+//
+// The knobs to edit are `rows` and `cols`; everything below them is
+// machinery.
+// ============================================================================
+
+// ---- the knobs ----
+const rows = 4
+const cols = 4
+
+// ---- helpers ----
+def paths(m, n) = ncr(m + n, m)   // right/down paths across an m by n grid
+
+// ---- results ----
+// The small cases, checked by hand in the header comment.
+print("2 by 2 grid:", paths(2, 2))
+print("2 by 3 grid:", paths(2, 3))
+print("3 by 3 grid:", paths(3, 3))
+
+// The shipped grid size.
+print(rows, "by", cols, "grid:", paths(rows, cols))
+
+// Turning the grid around gives the same count: the choice of m right
+// steps among m + n is the same choice as the n down steps.
+paths(rows, cols) == paths(cols, rows)
+
+// The growth: a 20 by 20 grid already has more than 137 billion paths.
+print("20 by 20 grid:", paths(20, 20))
+
+// The link to Pascal's triangle: paths(m, n) is the binomial coefficient
+// at row m + n, and the count also equals the sum of paths(m - 1, n) and
+// paths(m, n - 1) (first step right or down).
+paths(4, 4) == paths(3, 4) + paths(4, 3)
+// ---- expected output ----
+// = 4
+// = 4
+// = 2 by 2 grid: 6
+// = 2 by 3 grid: 10
+// = 3 by 3 grid: 20
+// = 4 by 4 grid: 70
+// = true
+// = 20 by 20 grid: 137846528820
+// = true

@@ -1,0 +1,42 @@
+// ============================================================================
+// average-value-of-function.epher -- mean value of a function on [a, b]
+//
+// The average value of f on [a, b] is integral(f, a, b)/(b - a)
+// (Stewart, "Calculus", 8th ed., sec. 6.5). The mean value theorem then
+// guarantees some c in (a, b) with f(c) equal to that average; for
+// f(x) = x^2 on [0, 3] the average is 9/3 = 3 and the point is
+// c = sqrt(3), where x^2 = 3 again.
+//
+// A second check uses sin on [0, pi]: the average is 2/pi, about
+// 0.63662, since one arch of sine encloses area 2.
+//
+// Accuracy: exact at the displayed precision (the average of x^2 on
+// [0, 3] prints exactly 3).
+//
+// Run:  epher "epher scripts/calculus/integrals/average-value-of-function.epher"
+// No knobs: the two examples are the demonstration.
+// ============================================================================
+
+// ---- helpers: average values, by the textbook formula -----------------------
+def avg_sq(a, b) = integral(x^2, a, b)/(b - a)
+def avg_sin(a, b) = integral(sin(x), a, b)/(b - a)
+
+// ---- f(x) = x^2 on [0, 3]: average 3, attained at c = sqrt(3) ---------------
+print("average of x^2 on [0, 3]:", avg_sq(0, 3))
+print("point c with f(c) = average:", sqrt(3))
+print("f(sqrt(3)):", (sqrt(3))^2)
+abs((sqrt(3))^2 - avg_sq(0, 3)) < 1e-9
+
+// ---- sin on [0, pi]: average 2/pi -------------------------------------------
+print("average of sin on [0, pi]:", avg_sin(0, pi))
+print("2/pi for comparison:", 2/pi)
+abs(avg_sin(0, pi) - 2/pi) < 1e-9
+
+// ---- expected output ---------------------------------------------------------
+// = average of x^2 on [0, 3]: 3
+// = point c with f(c) = average: 1.73205080757
+// = f(sqrt(3)): 3
+// = true
+// = average of sin on [0, pi]: 0.636619772368
+// = 2/pi for comparison: 0.636619772368
+// = true

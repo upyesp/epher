@@ -1,0 +1,34 @@
+// ============================================================================
+// doubling-time.epher -- exact doubling time of an investment at a given
+// annual rate, verified by compounding forward
+//
+// Money invested at annual rate r doubles when (1+r)^t = 2, so the exact
+// doubling time is t = ln(2)/ln(1+r) years. This script prints t for three
+// rates and then compounds one rate forward by its own t: the result must
+// come back to 2. Source: Kellison, The Theory of Interest, chapter 2.
+//
+// Accuracy: t is irrational and prints to 12 digits; the compounding check
+// lands on 2 to floating-point precision (the printed 2 is exact to all
+// twelve displayed digits).
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/interest/doubling-time.epher"
+//
+// There are no knobs: the three rates below are the demonstration.
+// ============================================================================
+
+// ---- helpers ----------------------------------------------------------------
+def doubletime(r) = ln(2) / ln(1 + r)   // years for (1+r)^t to reach 2
+
+// ---- results -----------------------------------------------------------------
+print("doubling time at 5%:", doubletime(5%))
+print("doubling time at 7%:", doubletime(7%))
+print("doubling time at 10%:", doubletime(10%))
+// By construction (1 + 7%)^t = 2; compounding the 7% rate forward by its own
+// doubling time must land back on 2.
+print("check: (1 + 7%) ^ t =", (1 + 7%) ^ doubletime(7%))
+// ---- expected output ----
+// = doubling time at 5%: 14.2066990829
+// = doubling time at 7%: 10.2447683511
+// = doubling time at 10%: 7.27254089734
+// = check: (1 + 7%) ^ t = 2

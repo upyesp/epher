@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<!--
+  epher Scripts page. Built by scripts/build-scripts.mjs from the
+  index.html chrome: header, docs nav, theme, i18n catalogs + app.js.
+  The browser (scripts.js) fetches scripts-data.json, which the same
+  builder writes from the `epher scripts` folder of the repository.
+  -->
+<!--
+  - Languages: en, zh-CN, hi, es, fr, ar, de, pt; auto-detected, stored preference,
+    English fallback (mirrors the Localizer in crates/i18n; see app.js).
+    The catalogs live in i18n/<lang>.js (loaded before app.js).
+  - Themes: light/dark, defaults to the device preference, toggle persisted.
+  - Accessibility: WCAG 2.2 AA (see docs/accessibility.md). The visible
+    (English) text is the noscript fallback; app.js swaps in the other
+    locales. lang/dir must match the active locale (3.1.1, RTL for ar).
+  - Navigation: the header collapses into a disclosure (hamburger) menu
+    below 880px (WAI-ARIA APG disclosure pattern: aria-expanded, Escape
+    closes, links hidden from the tab order when closed). The Docs item
+    is a disclosure button with its own menu (User guide, Examples,
+    Scripts); it works the same way at every width.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>epher... ephemeris: a scriptable, graphing calculator</title>
+  <meta
+    name="description"
+    content="epher... ephemeris: a scriptable, graphing calculator. Command line, terminal UI, desktop app, and offline web app. Graphs in 2D and 3D, exact numerics, eight languages, no accounts."
+  />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141416" />
+  <link rel="icon" href="icon.svg?v=3" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    // Apply the stored (or device-default) theme and the stored language
+    // before first paint, so there is no flash of the wrong theme/locale.
+    (function () {
+      try {
+        var theme = localStorage.getItem("epher-theme");
+        if (theme !== "light" && theme !== "dark") {
+          theme = window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        }
+        document.documentElement.dataset.theme = theme;
+      } catch (e) {
+        document.documentElement.dataset.theme = "light";
+      }
+      try {
+        var lang = localStorage.getItem("epher-lang");
+        if (lang) {
+          document.documentElement.lang = lang;
+          if (lang === "ar") document.documentElement.dir = "rtl";
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <noscript>
+    <style>
+      /* without JavaScript the disclosure button cannot work: show the
+         links as a plain stacked row instead (progressive enhancement) */
+      .menu-toggle { display: none; }
+      .docs-toggle { display: none; }
+      .site-nav { display: flex !important; flex-direction: column; position: static;
+                  border: 0; box-shadow: none; padding: 0.5rem 0; }
+      .docs { position: static; }
+      .docs-menu { display: flex !important; position: static; padding-inline-start: 1rem;
+                   border: 0; box-shadow: none; }
+    </style>
+  </noscript>
+</head>
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip-link">Skip to content</a>
+
+  <header class="site-header">
+    <a class="brand" href="./">
+      <img class="brand-icon" id="brand-icon" src="icon.svg?v=3" alt="" width="32" height="32" />
+      <span>epher</span>
+    </a>
+    <nav class="site-nav" id="site-nav" hidden aria-label="Main" data-i18n-aria="nav-label">
+      <a href="pwa/" data-i18n="nav-app">App</a>
+      <div class="docs">
+        <button type="button" class="docs-toggle" id="docs-toggle" aria-expanded="false" aria-controls="docs-menu" aria-haspopup="true">
+          <span data-i18n="nav-docs">Docs</span>
+          <svg class="icon-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg>
+        </button>
+        <div class="docs-menu" id="docs-menu" hidden>
+          <a href="guide/en/" data-i18n="guide" data-i18n-href="guide">User guide</a>
+          <a href="examples.html" data-i18n="nav-examples">Examples</a>
+          <a href="scripts.html" aria-current="page" data-i18n="nav-scripts">Scripts</a>
+        </div>
+      </div>
+      <a href="privacy.html" data-i18n="nav-privacy">Privacy</a>
+      <a class="gh-link" href="https://github.com/upyesp/epher" data-i18n="source-link">
+        Source code
+      </a>
+    </nav>
+    <div class="header-controls">
+      <button type="button" id="theme-toggle" class="icon-btn" aria-pressed="false">
+        <!-- the visible label names the theme the button switches TO -->
+        <svg class="icon-moon" aria-hidden="true" viewBox="0 0 24 24">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" />
+        </svg>
+        <svg class="icon-sun" aria-hidden="true" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4.5" />
+          <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8" />
+        </svg>
+        <span class="visually-hidden" data-i18n="theme-dark">Use dark theme</span>
+      </button>
+      <label class="visually-hidden" for="lang-select" data-i18n="lang-label">Language</label>
+      <select id="lang-select">
+        <option value="en">English</option>
+        <option value="zh-CN">中文</option>
+        <option value="hi">हिन्दी</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="ar">العربية</option>
+        <option value="de">Deutsch</option>
+        <option value="pt">Português</option>
+      </select>
+    </div>
+    <button type="button" id="menu-toggle" class="menu-toggle" aria-expanded="false" aria-controls="site-nav">
+      <svg class="icon-burger" aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M3 6h18M3 12h18M3 18h18" />
+      </svg>
+      <span class="visually-hidden" data-i18n="menu-open">Menu</span>
+    </button>
+  </header>
+
+  <main id="main">
+    <article class="prose scripts-page">
+      <h1 data-i18n="scripts-title">Scripts</h1>
+      <p class="lede" data-i18n="scripts-lede">Ready-to-run scripts for the epher calculator, organized by field and topic. Open a folder to browse, click a script to read it, and copy any script to the clipboard.</p>
+      <div class="scripts-toolbar">
+        <label for="scripts-search" data-i18n="scripts-search">Search scripts (names and content)</label>
+        <input id="scripts-search" type="search" autocomplete="off" spellcheck="false" />
+      </div>
+      <nav id="scripts-crumbs" class="scripts-crumbs" aria-label="Path"></nav>
+      <div id="scripts-browser" class="scripts-browser"></div>
+      <noscript>
+        <p class="note">The scripts browser needs JavaScript. The same
+        scripts live in the repository folder
+        <code>epher scripts/</code> on GitHub.</p>
+      </noscript>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <p class="brand"><img class="brand-icon" src="icon.svg?v=3" alt="" width="24" height="24" /> <span>epher</span></p>
+        <p class="muted" data-i18n="footer-license">epher is free and open source (MIT).</p>
+      </div>
+      <nav class="footer-col" aria-label="Site" data-i18n-aria="footer-site">
+        <h2 data-i18n="footer-site">Site</h2>
+        <ul>
+          <li><a href="pwa/" data-i18n="nav-app">App</a></li>
+          <li><a href="guide/en/" data-i18n="guide" data-i18n-href="guide">User guide</a></li>
+          <li><a href="examples.html" data-i18n="nav-examples">Examples</a></li>
+          <li><a href="scripts.html" data-i18n="nav-scripts">Scripts</a></li>
+          <li><a href="privacy.html" data-i18n="nav-privacy">Privacy</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-col" aria-label="Project" data-i18n-aria="footer-project">
+        <h2 data-i18n="footer-project">Project</h2>
+        <ul>
+          <li><a href="https://github.com/upyesp/epher" data-i18n="footer-source">Source code on GitHub</a></li>
+          <li><a href="https://github.com/upyesp/epher/releases" data-i18n="footer-release">Downloads come from the latest GitHub release.</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="i18n/en.js"></script>
+  <script src="i18n/zh-CN.js"></script>
+  <script src="i18n/hi.js"></script>
+  <script src="i18n/es.js"></script>
+  <script src="i18n/fr.js"></script>
+  <script src="i18n/ar.js"></script>
+  <script src="i18n/de.js"></script>
+  <script src="i18n/pt.js"></script>
+  <script src="app.js"></script>
+<p class="visually-hidden" id="copy-status" role="status"></p>
+  <script src="scripts.js"></script>
+</body>
+</html>

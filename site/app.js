@@ -97,6 +97,7 @@ function initMenu() {
     // the desktop stylesheet overrides it back to visible (author rules
     // beat the UA's [hidden] { display: none }).
     nav.hidden = !open;
+    if (!open) setDocs(false);
   };
 
   button.addEventListener("click", () => {
@@ -123,6 +124,41 @@ function initMenu() {
   // following a link closes the menu (same-page anchors included)
   nav.addEventListener("click", (e) => {
     if (e.target.closest("a")) setMenu(false);
+  });
+}
+
+/** Docs disclosure (desktop dropdown, and inside the mobile menu): the
+ *  button toggles its panel; Escape and outside clicks close it. */
+function initDocs() {
+  const button = document.getElementById("docs-toggle");
+  const panel = document.getElementById("docs-menu");
+  if (!button || !panel) return;
+
+  const setDocs = (open) => {
+    button.setAttribute("aria-expanded", String(open));
+    panel.hidden = !open;
+  };
+
+  button.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setDocs(button.getAttribute("aria-expanded") !== "true");
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && button.getAttribute("aria-expanded") === "true") {
+      setDocs(false);
+      button.focus();
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (
+      button.getAttribute("aria-expanded") === "true" &&
+      !button.contains(e.target) &&
+      !panel.contains(e.target)
+    ) {
+      setDocs(false);
+    }
   });
 }
 
@@ -155,6 +191,7 @@ function init() {
   });
 
   initMenu();
+  initDocs();
   initHero3d();
 }
 

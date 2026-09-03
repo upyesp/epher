@@ -1,0 +1,63 @@
+// ============================================================================
+// perfect-numbers-below.epher -- the perfect numbers below 10000
+//
+// Searches for perfect numbers below 10000 with the Euclid-Euler
+// theorem: every even perfect number has the form 2^(p - 1) * (2^p - 1)
+// with 2^p - 1 prime (Euclid, Elements IX.36, and Euler), and no odd
+// perfect number is known at all (the smallest possible one exceeds
+// 10^1500, Ochem and Rao, 2012). So below 10000 the search is over the
+// Mersenne primes 2^p - 1 for p up to 13, and it finds exactly four
+// numbers. A definitional check then confirms each find: its proper
+// divisor sum equals the number itself.
+//
+// Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+// ch. 16, section 16.8; the odd-perfect bound is P. Ochem and M. Rao,
+// "Odd perfect numbers are greater than 10^1500", Math. Comp. 81 (2012).
+// All results are exact.
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/perfect-numbers-below.epher"
+// In the REPL:             load epher scripts/number-theory/integer-sequences/perfect-numbers-below.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// There is no knob: the bound 10000 is the point of the script.
+// ============================================================================
+
+// ---- the Euclid-Euler search -------------------------------------------------------------
+// v = {p, perfect numbers found}; p = 13 gives 2^12 * 8191 = 33550336,
+// already beyond the bound, so p up to 13 with a bound test covers all
+// even perfects below 10000.
+v = {2, 0}
+while v[1] <= 13 do v = {v[1] + 1, v[2] + (if isprime(2 ^ v[1] - 1) and 2 ^ (v[1] - 1) * (2 ^ v[1] - 1) < 10000 then 1 else 0)}
+print("perfect numbers below 10000:", v[2])         // 4: 6, 28, 496, 8128
+
+// ---- the Mersenne primes behind the finds ---------------------------------------------------
+for p in {2, 3, 5, 7} do isprime(2 ^ p - 1)         // 3, 7, 31, 127 all prime
+print("6 = 2^1 * 3:", 2 ^ 1 * 3)
+print("28 = 2^2 * 7:", 2 ^ 2 * 7)
+print("496 = 2^4 * 31:", 2 ^ 4 * 31)
+print("8128 = 2^6 * 127:", 2 ^ 6 * 127)
+
+// ---- definitional check: proper divisor sums ------------------------------------------------
+// pairdiv(n, i) adds each divisor of n with its partner n / i (a square
+// adds its root once), so pairdiv(n, 1) is sigma(n); ps subtracts n.
+def pairdiv(n, i) = if i * i > n then 0 else if mod(n, i) == 0 then (if i * i == n then i + pairdiv(n, i + 1) else i + n / i + pairdiv(n, i + 1)) else pairdiv(n, i + 1)
+def sigma(n) = pairdiv(n, 1)
+def ps(n) = sigma(n) - n
+for x in {6, 28, 496} do ps(x) == x                 // proper sum equals n
+// 8128: sigma(8128) = 16256 by the same pair walk, one divisor at a time.
+v = {1, 0}
+while v[1] * v[1] <= 8128 do v = {v[1] + 1, v[2] + (if mod(8128, v[1]) == 0 then (if v[1] * v[1] == 8128 then v[1] else v[1] + 8128 / v[1]) else 0)}
+print("proper divisor sum of 8128:", v[2] - 8128)   // 8128: it is perfect
+print("8128 is perfect:", v[2] - 8128 == 8128)
+// ---- expected output ----
+// = {2, 0}
+// = perfect numbers below 10000: 4
+// = {true, true, true, true}
+// = 6 = 2^1 * 3: 6
+// = 28 = 2^2 * 7: 28
+// = 496 = 2^4 * 31: 496
+// = 8128 = 2^6 * 127: 8128
+// = {true, true, true}
+// = {1, 0}
+// = proper divisor sum of 8128: 8128
+// = 8128 is perfect: true

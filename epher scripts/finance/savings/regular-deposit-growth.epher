@@ -1,0 +1,45 @@
+// ============================================================================
+// regular-deposit-growth.epher -- year-by-year table of a monthly savings
+// plan, cross-checked against the annuity builtin
+//
+// Depositing `deposit` at the end of every month at annual rate `rate`, the
+// balance after y years is the annuity future value of 12*y monthly
+// deposits (finance builtin tvm_fv). The table below lists that balance for
+// every year of the plan; the final line recomputes year 10 directly.
+// Source: standard annuity formulas; see Kellison, The Theory of Interest,
+// chapter 3.
+//
+// Sign convention: deposit negative, balance positive.
+//
+// Accuracy: 12 displayed digits on every row; the last row and the final
+// check line are the same number.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/savings/regular-deposit-growth.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const deposit = 250         // monthly deposit, USD
+const rate = 6%             // annual rate of return
+const years = 10            // years of the plan
+
+// ---- results -----------------------------------------------------------------
+// Rows are {year, balance at its end}; each row is tvm_fv(12*y, 6%/12, 0,
+// -250), the balance after y years of deposits.
+for y in 1 to years do {y, tvm_fv(y * 12, rate / 12, 0, -deposit)}
+print("10-year balance, direct tvm_fv call:", tvm_fv(years * 12, rate / 12, 0, -deposit))
+print("deposited out of pocket:", deposit * (years * 12))
+print("interest earned:", tvm_fv(years * 12, rate / 12, 0, -deposit) - deposit * (years * 12))
+// Row 10 of the table equals the direct call above: 40969.84, of which
+// 30000 was deposited and 10969.84 was interest.
+// ---- expected output ----
+// = 250
+// = 0.06
+// = 10
+// = {{1, 3083.89059322}, {2, 6357.98881027}, {3, 9834.02624117}, {4, 13524.4580548}, {5, 17442.5076275}, {6, 21602.2139246}, {7, 26018.4818041}, {8, 30707.135423}, {9, 35684.9749378}, {10, 40969.8367016}}
+// = 10-year balance, direct tvm_fv call: 40969.8367016
+// = deposited out of pocket: 30000
+// = interest earned: 10969.8367016

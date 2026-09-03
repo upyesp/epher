@@ -1,0 +1,37 @@
+// ============================================================================
+// evaluate-polynomial.epher -- value of a polynomial at x, coefficients as a list
+//
+// The coefficients live in a list, highest power first, and a packed while
+// loop folds them: start with the leading coefficient, then for each next
+// coefficient c do value = value * x + c (Horner's scheme; see the sibling
+// horner-method.epher). The polynomial p(t) = t^3 - 6t^2 + 11t - 6 factors as
+// (t - 1)(t - 2)(t - 3), so p(3) = 0 double-checks the machinery. Exact for
+// the whole-number coefficients and the rational x below.
+//
+// Run it from a terminal:  epher "epher scripts/algebra/polynomials/evaluate-polynomial.epher"
+//
+// The knobs to edit are cs and the sample points x1, x2 below.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const cs = {1, -6, 11, -6}       // p(t) = t^3 - 6t^2 + 11t - 6 = (t-1)(t-2)(t-3)
+const x1 = 2.5
+const x2 = 3
+
+// ---- results -----------------------------------------------------------------
+// fold the coefficient list at x1; acc carries {index, value}
+acc = {1, cs[1]}
+while acc[1] < len(cs) do acc = {acc[1] + 1, acc[2] * x1 + cs[acc[1] + 1]}
+print("p(2.5):", acc[2])
+// same fold at x2, a known root
+acc = {1, cs[1]}
+while acc[1] < len(cs) do acc = {acc[1] + 1, acc[2] * x2 + cs[acc[1] + 1]}
+print("p(3):", acc[2])
+// ---- expected output ----
+// = {1, -6, 11, -6}
+// = 2.5
+// = 3
+// = {1, 1}
+// = p(2.5): -0.375
+// = {1, 1}
+// = p(3): 0

@@ -1,0 +1,34 @@
+// ============================================================================
+// empirical-rule.epher -- 68, 95, 99.7 percent of a normal distribution
+//
+// The empirical rule for a normal distribution, from the builtin
+// normcdf (guide 1.20): about 68 percent of the probability lies within
+// one standard deviation of the mean, 95 percent within two, and 99.7
+// percent within three. In standard units the three areas are
+// P(-1 < Z < 1), P(-2 < Z < 2) and P(-3 < Z < 3), each computed as
+// normcdf(k) - normcdf(-k) and shown as a percent below.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/distributions/empirical-rule.epher"
+// In the REPL:             load epher scripts/statistics/distributions/empirical-rule.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// No knobs: the rule is the demonstration.
+// ============================================================================
+
+// ---- the three bands, as probabilities and as percents ---------------------------------
+normcdf(1) - normcdf(-1)    // P(mu - sigma < X < mu + sigma), about 0.6827
+normcdf(2) - normcdf(-2)    // two standard deviations, about 0.9545
+normcdf(3) - normcdf(-3)    // three standard deviations, about 0.9973
+
+print("within 1 sd:", (normcdf(1) - normcdf(-1)) * 100, "percent")
+print("within 2 sd:", (normcdf(2) - normcdf(-2)) * 100, "percent")
+print("within 3 sd:", (normcdf(3) - normcdf(-3)) * 100, "percent")
+
+// ---- expected output ----
+// = 0.682689492137
+// = 0.954499736104
+// = 0.997300203937
+// = within 1 sd: 68.2689492137 percent
+// = within 2 sd: 95.4499736104 percent
+// = within 3 sd: 99.7300203937 percent

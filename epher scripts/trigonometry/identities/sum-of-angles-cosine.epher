@@ -1,0 +1,49 @@
+// ============================================================================
+// sum-of-angles-cosine.epher -- cos(a + b) = cos a cos b - sin a sin b
+//
+// The cosine addition formula, cos(a + b) = cos(a) cos(b) - sin(a) sin(b),
+// is the partner of the sine one: with b negative it gives
+// cos(a - b) = cos a cos b + sin a sin b, and both are what the dot
+// product of two unit vectors really is. The script checks the formula at
+// several angle pairs as boolean residual checks (true when the two sides
+// differ by less than 1e-12; double-precision noise here is around 1e-16).
+//
+// Run it from a terminal:  epher "epher scripts/trigonometry/identities/sum-of-angles-cosine.epher"
+// In the REPL:             load epher scripts/trigonometry/identities/sum-of-angles-cosine.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are the `as` and `bs` lists below: one angle pair per
+// column, in degrees, converted with rad() because the builtin trig works
+// in radians. The last pair (80, 10) sums to 90 deg, where cosine is 0:
+// the two products must cancel exactly.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const as = {30, 15, 37, 80}    // first angles of the pairs, in degrees
+const bs = {45, 60, 22, 10}    // second angles of the pairs, in degrees
+
+// ---- the identity as a residual check -----------------------------------------
+def ok(a, b) = abs(cos(a + b) - (cos(a) * cos(b) - sin(a) * sin(b))) < 1e-12
+
+// ---- results -----------------------------------------------------------------
+// The check at every knob pair.
+for i in 1 to 4 do ok(rad(as[i]), rad(bs[i]))
+
+// The numbers behind the booleans for the pair (30, 45): both sides are
+// cos(75 deg) ~ 0.2588190.
+print("cos(30 deg + 45 deg) =", cos(rad(30) + rad(45)))
+print("cos(30) cos(45) - sin(30) sin(45) =", cos(rad(30)) * cos(rad(45)) - sin(rad(30)) * sin(rad(45)))
+
+// The pair (80, 10) sums to exactly 90 deg, where cosine is 0: the two
+// products of about 0.17 and 0.98 cancel, and the check confirms the
+// cancellation is real to twelve digits.
+print("cos(80 deg + 10 deg) = 0:", abs(cos(rad(80) + rad(10))) < 1e-12)
+print("cos(80) cos(10) - sin(80) sin(10) = 0:", abs(cos(rad(80)) * cos(rad(10)) - sin(rad(80)) * sin(rad(10))) < 1e-12)
+// ---- expected output
+// = {30, 15, 37, 80}
+// = {45, 60, 22, 10}
+// = {true, true, true, true}
+// = cos(30 deg + 45 deg) = 0.258819045103
+// = cos(30) cos(45) - sin(30) sin(45) = 0.258819045103
+// = cos(80 deg + 10 deg) = 0: true
+// = cos(80) cos(10) - sin(80) sin(10) = 0: true

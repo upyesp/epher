@@ -1,0 +1,79 @@
+// ============================================================================
+// lottery-simulation.epher -- 100000 six-of-49 draws against a ticket
+//
+// Hold one fixed ticket of 6 numbers and simulate 100000 draws of 6 of
+// 49 without replacement, counting how many of the drawn numbers match
+// the ticket. The exact model is the hypergeometric one of the counting
+// script (probability/counting/lottery-odds.epher): a draw matches
+// exactly 3 of the ticket's numbers with probability
+//
+//   ncr(6, 3) * ncr(43, 3) / ncr(49, 6) = 0.0176504038669,
+//
+// so 100000 draws should contain about 1765 exactly-3 matches, with a
+// standard error of about 42, and the empirical rate should sit within
+// 0.0013 of the theory. The script also reports the best match count
+// seen (6 of 6 in about 71 percent of such runs, since each draw
+// matches all six with probability 1 in 13983816).
+//
+// One draw is simulated exactly: six balls are taken one at a time and
+// the k-th ball matches with probability (6 - matches so far) / (49 -
+// k + 1), exact by symmetry, played by a recursion of depth six. The
+// draws run after randseed(23) in two seeded passes of 50000, and the
+// whole stream is reproducible.
+//
+// Source: Ross, "Simulation", chapter 5 (hypergeometric sampling).
+//
+// Run it from a terminal:  epher "epher scripts/probability/simulations/lottery-simulation.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+//
+// The knob to edit is `pass`; everything below it is machinery.
+// ============================================================================
+
+// ---- the knobs ----
+const pass = 50000
+
+// ---- helpers ----
+def draw(d, h) = if d == 0 then h else draw(d - 1, h + (if randint(1, 43 + d) <= 6 - h then 1 else 0))
+// draw(d, h): d balls of the draw remain and h have matched so far; the
+// next ball is uniform among the 43 + d left and matches with the
+// probability (6 - h) / (43 + d), exact by relabelling. Returns the
+// final match count.
+def tophalf(s) = floor(s / 1000000)         // the best match count, packed high
+def lowhalf(s) = mod(s, 1000000)            // the exactly-3 count, packed low
+def tally(s, m) = (if m > tophalf(s) then m else tophalf(s)) * 1000000 + lowhalf(s) + (if m == 3 then 1 else 0)
+// tally folds one draw's match count m into the packed state s so one
+// while body can keep two statistics; base 1000000 keeps the halves
+// apart.
+def takebest(b, m) = if m > b then m else b
+
+// ---- results ----
+// Two seeded passes of `pass` draws each, so 100000 draws in total:
+// both passes start from randseed(23) and replay the same stream.
+randseed(23)
+v = {0, 0}
+while v[1] < pass do v = {v[1] + 1, tally(v[2], draw(6, 0))}
+w = {0, 0}
+while w[1] < pass do w = {w[1] + 1, tally(w[2], draw(6, 0))}
+
+// The two statistics over both passes.
+print("draws:", 2 * pass)
+print("best match count seen:", takebest(tophalf(v[2]), tophalf(w[2])))
+print("draws matching exactly 3:", lowhalf(v[2]) + lowhalf(w[2]))
+print("empirical P(exactly 3):", (lowhalf(v[2]) + lowhalf(w[2])) / (2 * pass))
+
+// The theoretical rate from exact counting, and the expected count.
+print("exact P(exactly 3):", ncr(6, 3) * ncr(43, 3) / ncr(49, 6))
+print("expected exactly-3 draws:", ncr(6, 3) * ncr(43, 3) / ncr(49, 6) * (2 * pass))
+print("P(a draw matches all 6):", 1 / ncr(49, 6))
+// ---- expected output ----
+// = 50000
+// = 23
+// = {0, 0}
+// = {0, 0}
+// = draws: 100000
+// = best match count seen: 5
+// = draws matching exactly 3: 1691
+// = empirical P(exactly 3): 0.01691
+// = exact P(exactly 3): 0.0176504038669
+// = expected exactly-3 draws: 1765.04038669
+// = P(a draw matches all 6): 0.0000000715112384202

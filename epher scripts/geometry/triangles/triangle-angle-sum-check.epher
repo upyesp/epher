@@ -1,0 +1,39 @@
+// ============================================================================
+// triangle-angle-sum-check.epher -- two angles give the third
+//
+// The three angles of a triangle sum to 180 degrees (Euclid's Elements,
+// book I, proposition 32), so two known angles determine the third:
+// C = 180 - A - B. Angles add linearly, so the whole script works in
+// degrees as plain numbers, no radian conversion needed. The known
+// 30-60-90 and isosceles cases confirm the rule.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/triangles/triangle-angle-sum-check.epher"
+// In the REPL:             load epher scripts/geometry/triangles/triangle-angle-sum-check.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are `a` and `b`, two angles in degrees.
+// Everything above the results section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs ----------------------------------------------------------------
+const a = 35
+const b = 65
+
+// ---- the model ----------------------------------------------------------------
+// C = 180 - A - B, degrees, from the angle sum of a triangle.
+def third(x, y) = 180 - x - y
+
+// ---- results ------------------------------------------------------------------
+print("third angle:", third(a, b), "degrees")
+print("the three sum to 180:", a + b + third(a, b) == 180)
+print("30-60-90 triangle:", third(30, 60), "degrees")
+print("70-70 isosceles:", third(70, 70), "degrees")
+print("a right triangle needs", third(90, 47), "degrees more")
+// ---- expected output ----
+// = 35
+// = 65
+// = third angle: 80 degrees
+// = the three sum to 180: true
+// = 30-60-90 triangle: 90 degrees
+// = 70-70 isosceles: 40 degrees
+// = a right triangle needs 43 degrees more

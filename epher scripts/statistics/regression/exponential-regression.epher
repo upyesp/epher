@@ -1,0 +1,31 @@
+// ============================================================================
+// exponential-regression.epher -- fit y = a * e^(b x) to growth data
+//
+// Fits the least-squares exponential curve y = a * e^(b * x) to the
+// culture sizes in `ys` sampled hourly in `xs` with the builtin expreg
+// (guide 1.20), which prints the fitted model and the correlation r of
+// the log-transformed fit as a display string. Unrestrained growth
+// doubles in size at a steady rate, so an exponential fits well; the
+// fitted b = 0.6766 per hour is a doubling about every hour. The data
+// are illustrative example values, not measurements.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/regression/exponential-regression.epher"
+// In the REPL:             load epher scripts/statistics/regression/exponential-regression.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// The knobs to edit are `xs` and `ys` below. Everything above the results
+// section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs -----------------------------------------------------------------
+const xs = {0, 1, 2, 3, 4, 5}   // hours since the culture was started
+const ys = {1.0, 2.2, 3.9, 8.1, 15.6, 30.4}   // yeast culture size, grams
+
+// ---- the fitted exponential -----------------------------------------------------------
+expreg(xs, ys)      // least-squares exponential, printed with its r
+
+// ---- expected output ----
+// = {0, 1, 2, 3, 4, 5}
+// = {1, 2.2, 3.9, 8.1, 15.6, 30.4}
+// = y = 1.0434*e^(0.6766*x) (r = 0.9995)

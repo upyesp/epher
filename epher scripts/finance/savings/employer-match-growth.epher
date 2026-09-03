@@ -1,0 +1,50 @@
+// ============================================================================
+// employer-match-growth.epher -- a 401k with a full 5% employer match:
+// final balance and how much of it the match built
+//
+// The saver contributes 5% of salary and the employer matches it 100%, so
+// every month two equal deposits land in the account. The final balance is
+// the annuity future value of their sum (finance builtin tvm_fv), and the
+// employer's share is the future value of the employer's deposits alone.
+// Source: standard annuity formulas, Kellison, The Theory of Interest,
+// chapter 3; the 5% match is the common plan design.
+//
+// Sign convention: deposits negative, balance positive.
+//
+// Accuracy: 12 displayed digits; matches usually cap at a share of salary,
+// which here is the full 5%.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/savings/employer-match-growth.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const salary = 60000        // yearly salary, USD
+const own_share = 5%        // share of salary the saver deposits
+const match_share = 5%      // share of salary the employer matches (100% match)
+const rate = 7%             // annual rate of return
+const years = 30            // years of saving
+
+// ---- results -----------------------------------------------------------------
+print("your monthly deposit (5% of salary):", salary / 12 * own_share)
+print("employer monthly deposit:", salary / 12 * match_share)
+print("balance after 30 years:", tvm_fv(years * 12, rate / 12, 0, -(salary / 12 * (own_share + match_share))))
+print("the employer's half of the pot:", tvm_fv(years * 12, rate / 12, 0, -(salary / 12 * match_share)))
+print("your own deposits over 30 years:", salary / 12 * own_share * (years * 12))
+// Your deposits match the employer's one for one, so half the 609985.50 pot
+// is the match's doing. Your own 90000 out of pocket would have grown to
+// 304992.75 alone; the match adds another 304992.75 on top.
+// ---- expected output ----
+// = 60000
+// = 0.05
+// = 0.05
+// = 0.07
+// = 30
+// = your monthly deposit (5% of salary): 250
+// = employer monthly deposit: 250
+// = balance after 30 years: 609985.497888
+// = the employer's half of the pot: 304992.748944
+// = your own deposits over 30 years: 90000

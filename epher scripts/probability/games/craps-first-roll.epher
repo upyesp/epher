@@ -1,0 +1,48 @@
+// ============================================================================
+// craps-first-roll.epher -- the come-out roll of craps, exact fractions
+//
+// Craps opens with a come-out roll of two dice. The shooter wins at once
+// with a 7 or an 11 and loses at once with a 2, a 3 or a 12; any other
+// sum sets a "point" and the game continues with further rolls. Using
+// the two-dice sums of the companion script (games/two-dice-sums.epher):
+//
+//   P(win now)  = P(7 or 11) = (6 + 2) / 36 = 8/36 = 2/9
+//   P(lose now) = P(2, 3 or 12) = (1 + 2 + 1) / 36 = 4/36 = 1/9
+//
+// The remaining 24/36 = 2/3 of come-out rolls go to a point round. The
+// full game, point rounds included, is won with probability 244/495 =
+// 0.492929292929, so the pass line carries a house edge of about 1.41%,
+// which is why the casino stays in business.
+//
+// Source: Feller, "An Introduction to Probability Theory and Its
+// Applications", volume 1, chapter 3 (the 244/495 value is derived
+// there). All the fractions below are exact.
+//
+// Run it from a terminal:  epher "epher scripts/probability/games/craps-first-roll.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+// ============================================================================
+
+// ---- results ----
+// The immediate outcomes of the come-out roll.
+print("P(7 or 11, win at once):", (6 + 2) / 36)
+print("P(2, 3 or 12, lose at once):", (1 + 2 + 1) / 36)
+
+// Every other sum (4, 5, 6, 8, 9, 10) sets the point; the three
+// probabilities of the first roll exhaust the 36 outcomes.
+print("P(a point is set):", 24 / 36)
+print("1/9 + 2/9 + 2/3 =", 1/9 + 2/9 + 2/3)
+
+// The full pass-line probability, point rounds included, from Feller.
+print("P(pass line wins the whole game):", 244 / 495)
+print("house edge, fraction of the stake:", 1 - 2 * 244/495)
+// The house edge is 7/495 = 0.0141414..., about 1.41 percent of the
+// stake, which in percent units is exactly 140/99.
+print("house edge, percent of the stake:", 100 * (1 - 2 * 244/495))
+// ---- expected output ----
+// = P(7 or 11, win at once): 2/9
+// = P(2, 3 or 12, lose at once): 1/9
+// = P(a point is set): 2/3
+// = 1/9 + 2/9 + 2/3 = 1
+// = P(pass line wins the whole game): 244/495
+// = house edge, fraction of the stake: 7/495
+// = house edge, percent of the stake: 140/99

@@ -1,0 +1,37 @@
+// ============================================================================
+// volume-of-revolution.epher -- y = x^2 spun around the x-axis, [0, 2]
+//
+// The disc method (Stewart, "Calculus", 8th ed., sec. 6.2): rotating
+// y = f(x) about the x-axis on [a, b] sweeps discs of radius f(x), so
+//
+//   volume = pi * integral(f(x)^2, a, b).
+//
+// For f(x) = x^2 on [0, 2] the integrand is (x^2)^2 = x^4 and the
+// volume is pi * integral(x^4, 0, 2) = pi * 2^5/5 = 32 pi / 5, about
+// 20.106193. The exact value 32*pi/5 is printed beneath it for
+// comparison.
+//
+// Accuracy: Simpson is exact on the polynomial x^4; the two printed
+// values agree to about 1e-15.
+//
+// Run:  epher "epher scripts/calculus/integrals/volume-of-revolution.epher"
+// The knobs to edit are `a` and `b`, the ends of the interval.
+// ============================================================================
+
+// ---- the knobs --------------------------------------------------------------
+const a = 0
+const b = 2
+
+// ---- volume by the disc method: pi times the integral of the radius^2 ------
+pi * integral(x^4, a, b)
+
+// ---- the exact value 32 pi / 5, for comparison ------------------------------
+32*pi/5
+abs(pi*integral(x^4, a, b) - 32*pi/5) < 1e-9
+
+// ---- expected output ---------------------------------------------------------
+// = 0
+// = 2
+// = 20.106192983
+// = 20.106192983
+// = true

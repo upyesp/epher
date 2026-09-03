@@ -1,0 +1,46 @@
+// ============================================================================
+// digital-root.epher -- the digit sum taken down to one digit
+//
+// The digital root of n is what remains after summing digits, then
+// summing the digits of the result, and so on until one digit is left.
+// A packed while loop (guide 1.30) repeats the digit sum with a helper
+// def; the classic relation is dr(n) = 1 + (n - 1) mod 9 for n > 0
+// (casting out nines, Hardy and Wright, ch. 9), which cross-checks the
+// loop. The classic example: 9876 sums to 30, which sums to 3.
+//
+// Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+// ch. 9, the residue of a number mod 9. All results are exact.
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/digital-root.epher"
+// In the REPL:             load epher scripts/number-theory/integer-sequences/digital-root.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// There is no knob: the sample numbers are the point of the script.
+// ============================================================================
+
+// ---- the digit-sum helper ---------------------------------------------------------------------
+// dsum(n) adds the digits: the last digit by mod(n, 10), then recurse on
+// the rest after floor(n / 10). The recursion is one level per digit.
+def dsum(n) = if n == 0 then 0 else mod(n, 10) + dsum(floor(n / 10))
+
+// ---- the repeated reduction ---------------------------------------------------------------------
+// v = {current value, rounds}; each pass replaces the value by its digit
+// sum until a single digit remains.
+v = {9876, 0}
+while v[1] >= 10 do v = {dsum(v[1]), v[2] + 1}
+print("digital root of 9876:", v[1], "after", v[2], "rounds")   // 30 then 3
+print("9876 digit sum:", dsum(9876))                            // 30
+
+// ---- the mod-9 relation --------------------------------------------------------------------------
+// dr(n) = 1 + (n - 1) mod 9 for n > 0: subtracting 1 maps the multiples
+// of 9 (which would give root 0) onto the residue 0.
+print("1 + (9876 - 1) mod 9:", 1 + mod(9876 - 1, 9))           // 1 + 2 = 3
+print("digital root of 123456789:", dsum(dsum(dsum(123456789))))  // 45, 9, 9
+print("1 + (123456789 - 1) mod 9:", 1 + mod(123456789 - 1, 9))   // 9 agrees
+// ---- expected output ----
+// = {9876, 0}
+// = digital root of 9876: 3 after 2 rounds
+// = 9876 digit sum: 30
+// = 1 + (9876 - 1) mod 9: 3
+// = digital root of 123456789: 9
+// = 1 + (123456789 - 1) mod 9: 9

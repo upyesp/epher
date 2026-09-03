@@ -20,14 +20,14 @@ const LANGS = ["en", "zh-CN", "hi", "es", "fr", "ar", "de", "pt"];
 // site/app.js; the guide page itself is single-language so no runtime i18n).
 // copy/copied label the example-block copy button (and its announcement).
 const CHROME = {
-  en: { title: "epher: User guide", app: "App", back: "Back to home", contents: "Contents", themeDark: "Use dark theme", themeLight: "Use light theme", footer: "epher user guide", copy: "Copy", copied: "Copied", privacy: "Privacy", menu: "Menu" , examples: "Examples" },
-  "zh-CN": { title: "epher: 用户指南", app: "应用", back: "返回主页", contents: "目录", themeDark: "使用深色主题", themeLight: "使用浅色主题", footer: "epher 用户指南", copy: "复制", copied: "已复制", privacy: "隐私", menu: "菜单" , examples: "示例" },
-  hi: { title: "epher: उपयोगकर्ता गाइड", app: "ऐप", back: "मुख्य पृष्ठ पर वापस जाएँ", contents: "विषय-सूची", themeDark: "गहरी थीम का उपयोग करें", themeLight: "हल्की थीम का उपयोग करें", footer: "epher उपयोगकर्ता गाइड", copy: "कॉपी करें", copied: "कॉपी हो गया", privacy: "गोपनीयता", menu: "मेनू" , examples: "उदाहरण" },
-  es: { title: "epher: Guía de usuario", app: "App", back: "Volver al inicio", contents: "Contenido", themeDark: "Usar tema oscuro", themeLight: "Usar tema claro", footer: "Guía de usuario de epher", copy: "Copiar", copied: "Copiado", privacy: "Privacidad", menu: "Menú" , examples: "Ejemplos" },
-  fr: { title: "epher: Guide de l'utilisateur", app: "App", back: "Retour à l'accueil", contents: "Sommaire", themeDark: "Utiliser le thème sombre", themeLight: "Utiliser le thème clair", footer: "Guide de l'utilisateur de epher", copy: "Copier", copied: "Copié", privacy: "Confidentialité", menu: "Menu" , examples: "Exemples" },
-  ar: { title: "epher: دليل المستخدم", app: "التطبيق", back: "العودة إلى الصفحة الرئيسية", contents: "المحتويات", themeDark: "استخدام المظهر الداكن", themeLight: "استخدام المظهر الفاتح", footer: "دليل مستخدم epher", copy: "نسخ", copied: "تم النسخ", privacy: "الخصوصية", menu: "القائمة" , examples: "أمثلة" },
-  de: { title: "epher: Benutzerhandbuch", app: "App", back: "Zurück zur Startseite", contents: "Inhalt", themeDark: "Dunkles Design verwenden", themeLight: "Helles Design verwenden", footer: "epher-Benutzerhandbuch", copy: "Kopieren", copied: "Kopiert", privacy: "Datenschutz", menu: "Menü" , examples: "Beispiele" },
-  pt: { title: "epher: Guia de utilizador", app: "App", back: "Voltar ao início", contents: "Índice", themeDark: "Usar tema escuro", themeLight: "Usar tema claro", footer: "Guia de utilizador do epher", copy: "Copiar", copied: "Copiado", privacy: "Privacidade", menu: "Menu" , examples: "Exemplos" },
+  en: { title: "epher: User guide", app: "App", back: "Back to home", contents: "Contents", themeDark: "Use dark theme", themeLight: "Use light theme", footer: "epher user guide", copy: "Copy", copied: "Copied", privacy: "Privacy", menu: "Menu", examples: "Examples", docs: "Docs", guide: "User guide", scripts: "Scripts" },
+  "zh-CN": { title: "epher: 用户指南", app: "应用", back: "返回主页", contents: "目录", themeDark: "使用深色主题", themeLight: "使用浅色主题", footer: "epher 用户指南", copy: "复制", copied: "已复制", privacy: "隐私", menu: "菜单", examples: "示例", docs: "文档", guide: "用户指南", scripts: "脚本" },
+  hi: { title: "epher: उपयोगकर्ता गाइड", app: "ऐप", back: "मुख्य पृष्ठ पर वापस जाएँ", contents: "विषय-सूची", themeDark: "गहरी थीम का उपयोग करें", themeLight: "हल्की थीम का उपयोग करें", footer: "epher उपयोगकर्ता गाइड", copy: "कॉपी करें", copied: "कॉपी हो गया", privacy: "गोपनीयता", menu: "मेनू", examples: "उदाहरण", docs: "दस्तावेज़", guide: "उपयोगकर्ता गाइड", scripts: "स्क्रिप्ट" },
+  es: { title: "epher: Guía de usuario", app: "App", back: "Volver al inicio", contents: "Contenido", themeDark: "Usar tema oscuro", themeLight: "Usar tema claro", footer: "Guía de usuario de epher", copy: "Copiar", copied: "Copiado", privacy: "Privacidad", menu: "Menú", examples: "Ejemplos", docs: "Documentación", guide: "Guía de usuario", scripts: "Scripts" },
+  fr: { title: "epher: Guide de l'utilisateur", app: "App", back: "Retour à l'accueil", contents: "Sommaire", themeDark: "Utiliser le thème sombre", themeLight: "Utiliser le thème clair", footer: "Guide de l'utilisateur de epher", copy: "Copier", copied: "Copié", privacy: "Confidentialité", menu: "Menu", examples: "Exemples", docs: "Documentation", guide: "Guide de l'utilisateur", scripts: "Scripts" },
+  ar: { title: "epher: دليل المستخدم", app: "التطبيق", back: "العودة إلى الصفحة الرئيسية", contents: "المحتويات", themeDark: "استخدام المظهر الداكن", themeLight: "استخدام المظهر الفاتح", footer: "دليل مستخدم epher", copy: "نسخ", copied: "تم النسخ", privacy: "الخصوصية", menu: "القائمة", examples: "أمثلة", docs: "التوثيق", guide: "دليل المستخدم", scripts: "النصوص البرمجية" },
+  de: { title: "epher: Benutzerhandbuch", app: "App", back: "Zurück zur Startseite", contents: "Inhalt", themeDark: "Dunkles Design verwenden", themeLight: "Helles Design verwenden", footer: "epher-Benutzerhandbuch", copy: "Kopieren", copied: "Kopiert", privacy: "Datenschutz", menu: "Menü", examples: "Beispiele", docs: "Dokumentation", guide: "Benutzerhandbuch", scripts: "Skripte" },
+  pt: { title: "epher: Guia de utilizador", app: "App", back: "Voltar ao início", contents: "Índice", themeDark: "Usar tema escuro", themeLight: "Usar tema claro", footer: "Guia de utilizador do epher", copy: "Copiar", copied: "Copiado", privacy: "Privacidade", menu: "Menu", examples: "Exemplos", docs: "Documentação", guide: "Guia de utilizador", scripts: "Scripts" },
 };
 
 // --- example code blocks ------------------------------------------------
@@ -185,8 +185,12 @@ function page(lang, body, toc) {
         /* without JavaScript the disclosure button cannot work: show the
            links as a plain stacked row instead (progressive enhancement) */
         .menu-toggle { display: none; }
+        .docs-toggle { display: none; }
         .site-nav { display: flex !important; flex-direction: column; position: static;
                     border: 0; box-shadow: none; padding: 0.5rem 0; }
+        .docs { position: static; }
+        .docs-menu { display: flex !important; position: static; padding-inline-start: 1rem;
+                     border: 0; box-shadow: none; }
       </style>
     </noscript>
 </head>
@@ -199,8 +203,17 @@ function page(lang, body, toc) {
     </a>
     <nav class="site-nav" id="site-nav" hidden aria-label="epher">
       <a href="/pwa/">${c.app}</a>
-      <a href="../../">${c.back}</a>
-      <a href="../../examples.html">${c.examples}</a>
+      <div class="docs">
+        <button type="button" class="docs-toggle" id="docs-toggle" aria-expanded="false" aria-controls="docs-menu" aria-haspopup="true">
+          <span>${c.docs}</span>
+          <svg class="icon-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg>
+        </button>
+        <div class="docs-menu" id="docs-menu" hidden>
+          <a href="../../guide/${lang}/" aria-current="page">${c.guide}</a>
+          <a href="../../examples.html">${c.examples}</a>
+          <a href="../../scripts.html">${c.scripts}</a>
+        </div>
+      </div>
       <a href="../../privacy.html">${c.privacy}</a>
     </nav>
     <div class="header-controls">
@@ -231,6 +244,7 @@ function page(lang, body, toc) {
       <a href="/pwa/">${c.app}</a>
       <a href="../../">${c.back}</a>
       <a href="../../examples.html">${c.examples}</a>
+      <a href="../../scripts.html">${c.scripts}</a>
       <a href="../../privacy.html">${c.privacy}</a>
     </nav>
     <p class="muted">${c.footer}</p>
@@ -259,10 +273,18 @@ function page(lang, body, toc) {
       // disclosure nav (mobile): same pattern as app.js on the site pages
       var menuBtn = document.getElementById("menu-toggle");
       var nav = document.getElementById("site-nav");
+      var docsBtn = document.getElementById("docs-toggle");
+      var docsMenu = document.getElementById("docs-menu");
+      var setDocs = function (open) {
+        if (!docsBtn) return;
+        docsBtn.setAttribute("aria-expanded", String(open));
+        docsMenu.hidden = !open;
+      };
       if (menuBtn && nav) {
         var setMenu = function (open) {
           menuBtn.setAttribute("aria-expanded", String(open));
           nav.hidden = !open;
+          if (!open) setDocs(false);
         };
         menuBtn.addEventListener("click", function () {
           setMenu(menuBtn.getAttribute("aria-expanded") !== "true");
@@ -281,6 +303,24 @@ function page(lang, body, toc) {
         });
         nav.addEventListener("click", function (e) {
           if (e.target.closest("a")) setMenu(false);
+        });
+      }
+      if (docsBtn) {
+        docsBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          setDocs(docsBtn.getAttribute("aria-expanded") !== "true");
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && docsBtn.getAttribute("aria-expanded") === "true") {
+            setDocs(false);
+            docsBtn.focus();
+          }
+        });
+        document.addEventListener("click", function (e) {
+          if (docsBtn.getAttribute("aria-expanded") === "true" &&
+              !docsBtn.contains(e.target) && !docsMenu.contains(e.target)) {
+            setDocs(false);
+          }
         });
       }
     })();

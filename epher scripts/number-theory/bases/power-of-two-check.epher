@@ -1,0 +1,40 @@
+// ============================================================================
+// power-of-two-check.epher -- the bit trick n & (n - 1) == 0
+//
+// A positive integer is a power of two exactly when n & (n - 1) is 0:
+// subtracting 1 borrows through the trailing zeros, flipping the lowest
+// 1 bit to 0 and everything below it to 1, so the and clears that one
+// bit and leaves the rest untouched. A pure power has only that one bit,
+// so the result is 0; any other n keeps a higher 1 bit. The guard n > 0
+// matters because 0 itself would pass the bit test. The script checks a
+// list of values with the bitwise builtin; it does not reimplement the
+// test.
+//
+// Source: standard bit-twiddling lore; see Henry Warren, "Hacker's
+// Delight", 2nd ed., section 2.1. All values are small and exact.
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/bases/power-of-two-check.epher"
+// In the REPL:             load epher scripts/number-theory/bases/power-of-two-check.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// There is no knob: the sample values are the point of the script.
+// ============================================================================
+
+// ---- the named checks ---------------------------------------------------------------
+print("1024 is a power of two:", 1024 > 0 and (1024 & 1023) == 0)
+print("1000 is a power of two:", 1000 > 0 and (1000 & 999) == 0)
+print("256 is a power of two:", 256 > 0 and (256 & 255) == 0)
+print("100 is a power of two:", 100 > 0 and (100 & 99) == 0)
+// 0 would pass the bit test alone (0 & -1 is 0), which is why the
+// positivity guard sits in every check above.
+print("0 and the guard:", 0 > 0 and (0 & -1) == 0)
+
+// ---- a list at a glance ---------------------------------------------------------------
+for x in {1, 2, 3, 4, 16, 100, 255, 256, 1000, 1024} do x > 0 and (x & (x - 1)) == 0
+// ---- expected output ----
+// = 1024 is a power of two: true
+// = 1000 is a power of two: false
+// = 256 is a power of two: true
+// = 100 is a power of two: false
+// = 0 and the guard: false
+// = {true, true, false, true, true, false, false, true, false, true}

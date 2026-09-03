@@ -1,0 +1,30 @@
+// ============================================================================
+// logarithmic-regression.epher -- fit y = a + b * ln(x) to a saturating curve
+//
+// Fits the least-squares logarithmic curve y = a + b * ln(x) to the
+// response scores in `ys` measured at the doses in `xs` with the builtin
+// logreg (guide 1.20), which prints the fitted model and the correlation
+// r of the fit as a display string. A response that rises quickly and
+// then flattens is the classic logarithmic shape, so doubling the dose
+// adds a roughly constant amount of response. Data are illustrative.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/regression/logarithmic-regression.epher"
+// In the REPL:             load epher scripts/statistics/regression/logarithmic-regression.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// The knobs to edit are `xs` and `ys` below. Everything above the results
+// section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs -----------------------------------------------------------------
+const xs = {1, 2, 4, 8, 16, 32}   // dose, milligrams, doubling each step
+const ys = {1.2, 1.7, 2.6, 3.1, 4.0, 4.5}   // response score, 0 to 5
+
+// ---- the fitted logarithmic curve ---------------------------------------------------------
+logreg(xs, ys)      // least-squares log fit, printed with its r
+
+// ---- expected output ----
+// = {1, 2, 4, 8, 16, 32}
+// = {1.2, 1.7, 2.6, 3.1, 4, 4.5}
+// = y = 1.1429 + 0.9852*ln(x) (r = 0.9967)

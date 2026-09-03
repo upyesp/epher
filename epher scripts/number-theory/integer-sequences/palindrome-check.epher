@@ -1,0 +1,49 @@
+// ============================================================================
+// palindrome-check.epher -- numbers that read the same both ways
+//
+// A number is a palindrome when it equals its own reversal. The script
+// reverses with a recursive def (one level per digit) and compares, then
+// counts the palindromes below 1000 with a packed while loop (guide
+// 1.30). The count is the classic one: 9 one-digit palindromes (1 to 9),
+// 9 two-digit ones (11, 22, ..., 99) and 90 three-digit ones (aba with a
+// from 1 to 9 and b from 0 to 9) total 108.
+//
+// Source: standard recreational number theory; see David Wells, "The
+// Penguin Dictionary of Curious and Interesting Numbers". All results
+// are exact.
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/palindrome-check.epher"
+// In the REPL:             load epher scripts/number-theory/integer-sequences/palindrome-check.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// There is no knob: the sample numbers and bound 1000 are the checks.
+// ============================================================================
+
+// ---- the reversal helper ----------------------------------------------------------------------
+// dlen(n) counts digits; rev(n) puts the last digit in front: the digit
+// moves to the 10^(digits - 1) place, then the rest reverses after it.
+def dlen(n) = if n < 10 then 1 else 1 + dlen(floor(n / 10))
+def rev(n) = if n < 10 then n else mod(n, 10) * 10 ^ (dlen(n) - 1) + rev(floor(n / 10))
+
+// ---- named checks --------------------------------------------------------------------------------
+print("rev(12321):", rev(12321))                    // the same number
+print("12321 is a palindrome:", rev(12321) == 12321)
+print("rev(12345):", rev(12345))                    // 54321, not the same
+print("12345 is a palindrome:", rev(12345) == 12345)
+print("1001 is a palindrome:", rev(1001) == 1001)   // the smallest four-digit one
+
+// ---- count the palindromes below 1000 ---------------------------------------------------------------
+// v = {candidate, count}; every value equal to its reversal scores.
+v = {1, 0}
+while v[1] < 1000 do v = {v[1] + 1, v[2] + (if rev(v[1]) == v[1] then 1 else 0)}
+print("palindromes below 1000:", v[2])              // 9 + 9 + 90 = 108
+print("count by shape:", 9 + 9 + 90)
+// ---- expected output ----
+// = rev(12321): 12321
+// = 12321 is a palindrome: true
+// = rev(12345): 54321
+// = 12345 is a palindrome: false
+// = 1001 is a palindrome: true
+// = {1, 0}
+// = palindromes below 1000: 108
+// = count by shape: 108

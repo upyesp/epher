@@ -1,0 +1,30 @@
+// ============================================================================
+// fibonacci-number.epher -- the n-th Fibonacci number from a packed {a, b} loop
+//
+// F_1 = F_2 = 1 and F_n = F_(n-1) + F_(n-2) (Fibonacci, "Liber Abaci", 1202;
+// the sequence appeared even earlier in Indian mathematics). The two pieces
+// of state ride in one packed list {F_k, F_(k+1)}: each step replaces the
+// pair by {second, first + second}, which is one statement. A for loop
+// echoes every new pair, so ten steps of it demonstrate the pattern; the
+// same statement as a while loop then runs on quietly to F_20 = 6765.
+// Everything is exact, and F_21 / F_20 is close to the golden ratio phi.
+//
+// Run it from a terminal:  epher "epher scripts/algebra/sequences-series/fibonacci-number.epher"
+//
+// No knobs to edit; the run goes to F_20 = 6765 below.
+// ============================================================================
+
+// ---- results -----------------------------------------------------------------
+f = {0, 1}                           // {F_k, F_(k+1)}, starts at {F_0, F_1}
+for k in 1 to 10 do f = {f[2], f[1] + f[2]}   // echoes the pairs up to {F_10, F_11}
+print("F10:", f[1])
+// the same packed step as a while loop, on to F_20 = 6765
+while f[1] < 6765 do f = {f[2], f[1] + f[2]}
+print("F20:", f[1])
+print("F21 / F20 near phi:", abs(f[2] / f[1] - phi) < 1e-7)
+// ---- expected output ----
+// = {0, 1}
+// = {{1, 1}, {1, 2}, {2, 3}, {3, 5}, {5, 8}, {8, 13}, {13, 21}, {21, 34}, {34, 55}, {55, 89}}
+// = F10: 55
+// = F20: 6765
+// = F21 / F20 near phi: true

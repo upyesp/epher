@@ -1,0 +1,41 @@
+// ============================================================================
+// number-classification.epher -- deficient, perfect or abundant
+//
+// Classifies a number by its proper divisor sum ps(n): ps(n) < n makes n
+// deficient, ps(n) = n makes it perfect, and ps(n) > n makes it abundant
+// (the Greek classification of Nicomachus, c. 100 AD; Hardy and Wright,
+// ch. 16, section 16.8). The script computes ps(n) with the classroom
+// pair method, since epher has no divisor-sum builtin, and a def turns
+// the verdict into a word. Checks: 8 is deficient (1 + 2 + 4 = 7), 12 is
+// abundant (1 + 2 + 3 + 4 + 6 = 16), and 6 and 28 are perfect.
+//
+// Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+// ch. 16, section 16.8. Results are exact.
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/divisors/number-classification.epher"
+// In the REPL:             load epher scripts/number-theory/divisors/number-classification.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// There is no knob: the sample numbers are the point of the script.
+// ============================================================================
+
+// ---- the helpers ----------------------------------------------------------------------
+// pairdiv(n, i) adds each divisor of n with its partner n / i (a square
+// adds its root once), so pairdiv(n, 1) is sigma(n); ps subtracts n.
+def pairdiv(n, i) = if i * i > n then 0 else if mod(n, i) == 0 then (if i * i == n then i + pairdiv(n, i + 1) else i + n / i + pairdiv(n, i + 1)) else pairdiv(n, i + 1)
+def sigma(n) = pairdiv(n, 1)
+def ps(n) = sigma(n) - n
+def kind(n) = if ps(n) == n then "perfect" else if ps(n) > n then "abundant" else "deficient"
+
+// ---- the verdicts -----------------------------------------------------------------------
+for x in {6, 8, 12, 28, 30, 100} do kind(x)
+print("8 is deficient:", ps(8) < 8)            // 1 + 2 + 4 = 7
+print("12 is abundant:", ps(12) > 12)          // proper sum 16
+print("30 is abundant:", ps(30) > 30)          // proper sum 42
+print("proper sum of 100:", ps(100))           // 117: 100 is abundant
+// ---- expected output ----
+// = {perfect, deficient, abundant, perfect, abundant, abundant}
+// = 8 is deficient: true
+// = 12 is abundant: true
+// = 30 is abundant: true
+// = proper sum of 100: 117

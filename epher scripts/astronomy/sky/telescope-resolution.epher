@@ -1,0 +1,59 @@
+// ============================================================================
+// telescope-resolution.epher -- what a telescope can split apart
+//
+// The Dawes resolution limit for four telescope apertures, from the
+// built-in dawes(d) with d in millimetres, which returns arcseconds
+// (guide 1.16). The Dawes limit, 116 / d arcseconds, is the empirical
+// rule for splitting an equal pair of close stars of medium brightness;
+// the Rayleigh criterion, 138 / d arcseconds, is the physical one for
+// two point images of a perfect aperture (1.22 * wavelength / diameter
+// at 550 nm gives 138.4, rounded to 138 in the usual rule of thumb). Dawes is the easier test, so its
+// spacing is about 116/138 = 0.84 of Rayleigh's. A 100 mm refractor
+// reaches 1.16 arcsec; the 254 mm (10 inch) telescope reaches 0.46
+// arcsec. Values were checked in python (116 / d and 138 / d), the
+// oracle for the expected output.
+//
+// Run it from a terminal:  epher "epher scripts/astronomy/sky/telescope-resolution.epher"
+// In the REPL:             load epher scripts/astronomy/sky/telescope-resolution.epher
+//
+// Knob: none - the apertures below are fixed.
+// ============================================================================
+
+// ---- model ------------------------------------------------------------------
+// Rayleigh criterion for wavelength 550 nm, arcseconds (classroom
+// formula; there is no builtin for it, so the script defines it).
+def rayleigh(d) = 138 / d
+
+// ---- results ----------------------------------------------------------------
+// Dawes limit for a 60 mm finder scope, the classic 100 mm refractor,
+// a 200 mm reflector and a 254 mm (10 inch) telescope, in arcseconds.
+// Two of the values print as exact fractions (29/15 and 58/127): the
+// decimals repeat, and epher shows the exact value instead.
+print("Dawes, 60 mm:", dawes(60), "arcsec")
+print("Dawes, 100 mm:", dawes(100), "arcsec")
+print("Dawes, 200 mm:", dawes(200), "arcsec")
+print("Dawes, 254 mm:", dawes(254), "arcsec")
+
+// The Rayleigh criterion for the same apertures, for comparison: it is
+// the spacing at which two equal stars are just separated by the
+// diffraction physics, always a little wider than the Dawes limit.
+print("Rayleigh, 60 mm:", rayleigh(60), "arcsec")
+print("Rayleigh, 100 mm:", rayleigh(100), "arcsec")
+print("Rayleigh, 200 mm:", rayleigh(200), "arcsec")
+print("Rayleigh, 254 mm:", rayleigh(254), "arcsec")
+
+// For scale: the Moon spans about 1800 arcsec, Jupiter 30-50 arcsec
+// (planet-angular-diameters.epher), and Pluto's disk 0.09 arcsec - a
+// pair 0.46 arcsec apart is at the edge of what the 254 mm can split.
+print("Dawes / Rayleigh:", dawes(100) / rayleigh(100))
+
+// ---- expected output ----
+// = Dawes, 60 mm: 29/15 arcsec
+// = Dawes, 100 mm: 1.16 arcsec
+// = Dawes, 200 mm: 0.58 arcsec
+// = Dawes, 254 mm: 58/127 arcsec
+// = Rayleigh, 60 mm: 2.3 arcsec
+// = Rayleigh, 100 mm: 1.38 arcsec
+// = Rayleigh, 200 mm: 0.69 arcsec
+// = Rayleigh, 254 mm: 69/127 arcsec
+// = Dawes / Rayleigh: 58/69

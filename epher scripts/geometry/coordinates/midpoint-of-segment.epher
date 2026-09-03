@@ -1,0 +1,29 @@
+// ============================================================================
+// midpoint-of-segment.epher -- midpoint of a segment
+//
+// The midpoint of the segment from (x1, y1) to (x2, y2) is the average
+// of the endpoints, ((x1 + x2) / 2, (y1 + y2) / 2) (standard formula).
+// The results confirm the definition: a midpoint is equidistant from the
+// two ends, so the last result compares the two distances.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/coordinates/midpoint-of-segment.epher"
+// In the REPL:             load epher scripts/geometry/coordinates/midpoint-of-segment.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The endpoints to try are in the results section below; edit them
+// there.
+// ============================================================================
+
+// ---- the model ----------------------------------------------------------------
+def mid(p, q) = {(p[1] + q[1]) / 2, (p[2] + q[2]) / 2}
+def dist(p, q) = sqrt((p[1] - q[1]) ^ 2 + (p[2] - q[2]) ^ 2)   // for the check
+def same(p, q) = dist(p, mid(p, q)) == dist(q, mid(p, q))
+
+// ---- results ------------------------------------------------------------------
+print("midpoint of (1, 3)-(5, 7):", mid({1, 3}, {5, 7}))
+print("midpoint of (0, 0)-(2, 4):", mid({0, 0}, {2, 4}))
+print("equidistant from both ends:", same({1, 3}, {5, 7}))
+// ---- expected output ----
+// = midpoint of (1, 3)-(5, 7): {3, 5}
+// = midpoint of (0, 0)-(2, 4): {1, 2}
+// = equidistant from both ends: true

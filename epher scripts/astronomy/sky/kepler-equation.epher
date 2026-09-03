@@ -1,0 +1,54 @@
+// ============================================================================
+// kepler-equation.epher -- Kepler's equation, solved
+//
+// Kepler's equation M = E - e sin E ties the mean anomaly M of a body
+// on an elliptic orbit (the time since perihelion, as an angle) to its
+// eccentric anomaly E, with e the orbit's eccentricity. It is a
+// transcendental equation - E appears inside the sine - so it is solved
+// numerically; epher's builtin kepler(M, e) does that (guide 1.16).
+// The builtin is unit-consistent: feed M in degrees and it returns E in
+// degrees (the equation is homogeneous, so radians work the same way).
+// Each line below solves the equation for one orbit, then the script
+// evaluates E - e sin E from its own answer and checks it reproduces
+// M. The first pair is the Earth (e = 0.0167); the last two are
+// comet-like eccentricities. Values were checked in python by solving
+// E - e sin E = M in radians with Newton's method, the oracle.
+//
+// Run it from a terminal:  epher "epher scripts/astronomy/sky/kepler-equation.epher"
+// In the REPL:             load epher scripts/astronomy/sky/kepler-equation.epher
+//
+// Knob: none - the (M, e) pairs below are fixed.
+// ============================================================================
+
+// ---- model ------------------------------------------------------------------
+// Residual of the solved equation, all in radians.
+def kres(M, e) = rad(kepler(M, e)) - e * sin(rad(kepler(M, e))) - rad(M)
+
+// ---- results ----------------------------------------------------------------
+// Earth-like (e = 0.0167) at two mean anomalies, and two high-eccentric
+// orbits (e = 0.5 and 0.9, the latter close to a comet's). The solution
+// E runs ahead of M by e sin E, up to about 57 e degrees at M = 90.
+print("M = 1 deg, e = 0.0167: E =", kepler(1, 0.0167), "deg")
+print("solved, |residual| < 1e-9 rad:", abs(kres(1, 0.0167)) < 1e-9)
+print("M = 60 deg, e = 0.0167: E =", kepler(60, 0.0167), "deg")
+print("solved, |residual| < 1e-9 rad:", abs(kres(60, 0.0167)) < 1e-9)
+print("M = 200 deg, e = 0.5: E =", kepler(200, 0.5), "deg")
+print("solved, |residual| < 1e-9 rad:", abs(kres(200, 0.5)) < 1e-9)
+print("M = 10 deg, e = 0.9: E =", kepler(10, 0.9), "deg")
+print("solved, |residual| < 1e-9 rad:", abs(kres(10, 0.9)) < 1e-9)
+
+// The raw residual for the first pair, printed to show the scale: the
+// solver converges to machine precision (about 1e-16 rad), so the
+// boolean checks above are all true.
+print("raw residual (rad):", kres(60, 0.0167))
+
+// ---- expected output ----
+// = M = 1 deg, e = 0.0167: E = 1.01698271965 deg
+// = solved, |residual| < 1e-9 rad: true
+// = M = 60 deg, e = 0.0167: E = 60.8355356973 deg
+// = solved, |residual| < 1e-9 rad: true
+// = M = 200 deg, e = 0.5: E = 193.3737029 deg
+// = solved, |residual| < 1e-9 rad: true
+// = M = 10 deg, e = 0.9: E = 48.7979832632 deg
+// = solved, |residual| < 1e-9 rad: true
+// = raw residual (rad): 0.000000000000000222044604925

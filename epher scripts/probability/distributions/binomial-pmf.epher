@@ -1,0 +1,55 @@
+// ============================================================================
+// binomial-pmf.epher -- the binomial point probabilities, exact fractions
+//
+// If X counts successes in n independent trials, each with success
+// probability p, then X ~ Bin(n, p) and
+//
+//   P(X = k) = ncr(n, k) * p^k * (1 - p)^(n - k),
+//
+// the classroom formula (Ross, "A First Course in Probability", ch. 4).
+// The script evaluates that formula with epher's exact ncr arithmetic
+// instead of the binompdf builtin, so the probabilities come out as
+// exact fractions, and binompdf is used afterwards only to cross-check
+// (the builtin prints floats with noise around the last digit, which the
+// comparison tolerates).
+//
+// Cases: X ~ Bin(4, 1/3) (four independent trials, p = 1/3) shows the
+// full distribution as fractions, and X ~ Bin(10, 1/2) (ten fair coin
+// flips) shows the classic P(X = 3) = ncr(10, 3) / 2^10 = 15/128.
+//
+// Run it from a terminal:  epher "epher scripts/probability/distributions/binomial-pmf.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+// ============================================================================
+
+// ---- helpers ----
+def pmf(k, n, p) = ncr(n, k) * p ^ k * (1 - p) ^ (n - k)   // exact Bin(n, p) point probability
+
+// ---- case 1: Bin(4, 1/3), the whole distribution as exact fractions ----
+for k in 0 to 4 do pmf(k, 4, 1/3)
+
+// The probabilities of a distribution sum to 1; the packed while loop
+// (guide 1.30) adds the five exact fractions.
+v = {0, 0}
+while v[1] < 5 do v = {v[1] + 1, v[2] + pmf(v[1], 4, 1/3)}
+print("the five point probabilities sum to:", v[2])
+
+// Cross-check one point against the binompdf builtin: the exact value
+// is 8/27 = 0.296296296296..., and binompdf agrees to the noise level.
+print("exact P(X = 2):", pmf(2, 4, 1/3))
+print("binompdf(2, 4, 1/3):", binompdf(2, 4, 1/3))
+
+// ---- case 2: Bin(10, 1/2), ten fair coin flips ----
+// P(X = 3) = 120 / 1024 = 15/128 exactly; epher shows the terminating
+// decimal 0.1171875.
+print("exact P(X = 3):", pmf(3, 10, 1/2))
+print("as a fraction: 15/128")
+print("binompdf(3, 10, 0.5):", binompdf(3, 10, 0.5))
+// ---- expected output ----
+// = {16/81, 32/81, 8/27, 8/81, 1/81}
+// = {0, 0}
+// = the five point probabilities sum to: 1
+// = exact P(X = 2): 8/27
+// = binompdf(2, 4, 1/3): 0.296296296299
+// = exact P(X = 3): 0.1171875
+// = as a fraction: 15/128
+// = binompdf(3, 10, 0.5): 0.117187500002

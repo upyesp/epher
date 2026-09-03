@@ -1,0 +1,35 @@
+// ============================================================================
+// matrix-inverse-2x2.epher -- the 2x2 inverse by formula, A A^-1 = I
+//
+// For A = [[a, b], [c, d]] with det D = ad - bc nonzero, the inverse is
+// (1/D) [[d, -b], [-c, a]] (any linear algebra text, e.g. Strang,
+// "Introduction to Linear Algebra", 5th ed., sec. 2.5). The classroom
+// formula is built by hand below, then A times it is checked to be the
+// identity (exactly, since the arithmetic is rational), and the built-in
+// inv is compared entry by entry. A = [[4, 7], [2, 6]] has det 10, so the
+// inverse entries are the terminating decimals 0.6, 0.7, 0.2, 0.4.
+//
+// Run it from a terminal:  epher "epher scripts/algebra/matrices/matrix-inverse-2x2.epher"
+//
+// The knob to edit is the matrix A below.
+// ============================================================================
+
+// ---- the knob ----------------------------------------------------------------
+const A = [[4, 7], [2, 6]]
+
+// ---- helpers -----------------------------------------------------------------
+def det2(m) = m[1][1] * m[2][2] - m[1][2] * m[2][1]                    // det of a 2x2
+def invf(m) = (1 / det2(m)) * [[m[2][2], -m[1][2]], [-m[2][1], m[1][1]]]   // classroom formula
+def same2(m, n) = abs(m[1][1] - n[1][1]) + abs(m[1][2] - n[1][2]) + abs(m[2][1] - n[2][1]) + abs(m[2][2] - n[2][2])
+
+// ---- results -----------------------------------------------------------------
+print("det:", det2(A))
+print("inverse by formula:", invf(A))
+print("A times its inverse:", A * invf(A))
+print("builtin inv agrees:", same2(invf(A), inv(A)) < 1e-9)
+// ---- expected output ----
+// = [[4, 7], [2, 6]]
+// = det: 10
+// = inverse by formula: [[0.6, -0.7], [-0.2, 0.4]]
+// = A times its inverse: [[1, 0], [0, 1]]
+// = builtin inv agrees: true

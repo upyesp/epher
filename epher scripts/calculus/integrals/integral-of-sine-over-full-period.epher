@@ -1,0 +1,39 @@
+// ============================================================================
+// integral-of-sine-over-full-period.epher -- orthogonality on [0, 2 pi]
+//
+// Over one full period the arch of sine above the axis balances the
+// arch below it, so integral(sin(x), 0, 2*pi) = 0; the builtin returns
+// about -1.7e-17, which is zero to its precision. The deeper statement
+// is orthogonality (Fourier series groundwork, Stewart, "Calculus",
+// 8th ed., sec. 7.2):
+//
+//   integral(sin(x)^2, 0, 2*pi) = pi        (mean of sin^2 is 1/2)
+//   integral(sin(x)*cos(x), 0, 2*pi) = 0    (sin and cos are orthogonal)
+//
+// Accuracy: sin(x) integrates to about 1.7e-17 and sin(x)*cos(x) to
+// about 3.2e-16 (both checked at 1e-9); sin(x)^2 prints as pi to the
+// displayed digits.
+//
+// Run:  epher "epher scripts/calculus/integrals/integral-of-sine-over-full-period.epher"
+// No knobs: one full period is the demonstration.
+// ============================================================================
+
+// ---- sine over a full period is 0, to the builtin's precision ---------------
+integral(sin(x), 0, 2*pi)
+abs(integral(sin(x), 0, 2*pi)) < 1e-9
+
+// ---- sin^2 over a full period is pi -----------------------------------------
+integral(sin(x)^2, 0, 2*pi)
+abs(integral(sin(x)^2, 0, 2*pi) - pi) < 1e-9
+
+// ---- sin times cos over a full period is 0: orthogonality -------------------
+integral(sin(x)*cos(x), 0, 2*pi)
+abs(integral(sin(x)*cos(x), 0, 2*pi)) < 1e-9
+
+// ---- expected output ---------------------------------------------------------
+// = -0.0000000000000000170992950553
+// = true
+// = 3.14159265359
+// = true
+// = 0.000000000000000324886606051
+// = true

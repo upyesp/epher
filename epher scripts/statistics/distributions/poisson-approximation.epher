@@ -1,0 +1,40 @@
+// ============================================================================
+// poisson-approximation.epher -- the binomial for rare events as a Poisson
+//
+// Approximates the binomial probability P(X <= 3) for X with n = 1000
+// trials and p = 0.002 (a rare event) by the Poisson with rate
+// lambda = n * p = 2, using the builtin poissoncdf (guide 1.20). The
+// rule of thumb: the Poisson approximates the binomial well when n is
+// large and p small, here with n * p = 2. Both answers agree to about
+// two ten-thousandths.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/distributions/poisson-approximation.epher"
+// In the REPL:             load epher scripts/statistics/distributions/poisson-approximation.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// The knobs to edit are `n`, `p` and `k` below. Everything above the
+// results section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs -----------------------------------------------------------------
+const n = 1000   // trials, say components tested
+const p = 0.002  // failure probability per trial
+const k = 3      // the cut point: P(X <= k)
+
+// ---- the exact binomial and the Poisson approximation ---------------------------------
+print("exact binomial P(X <= 3):", binomcdf(k, n, p))
+print("Poisson approximation:", poissoncdf(k, n * p))
+print("difference:", binomcdf(k, n, p) - poissoncdf(k, n * p))
+
+// ---- the parameters --------------------------------------------------------------------
+print("rate lambda = n * p:", n * p)
+
+// ---- expected output ----
+// = 1000
+// = 0.002
+// = 3
+// = exact binomial P(X <= 3): 0.857304238915
+// = Poisson approximation: 0.857123460509
+// = difference: 0.000180778405915
+// = rate lambda = n * p: 2

@@ -1,0 +1,40 @@
+// ============================================================================
+// sum-of-primes-below.epher -- the sum of the primes below n
+//
+// Adds the primes below a bound with a packed while loop (guide 1.30):
+// the state holds {candidate, running sum}, the loop is silent, and one
+// labelled print shows the total. The check value is the classic one: the
+// primes below 100 add to 1060 (Hardy and Wright, ch. 1, exercise).
+//
+// Source: standard number theory; the result is exact because isprime is
+// exact and the sums stay far below the calculator's exact range.
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/primes/sum-of-primes-below.epher"
+// In the REPL:             load epher scripts/number-theory/primes/sum-of-primes-below.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The one knob to edit is `bound` below.
+// ============================================================================
+
+// ---- the knob -----------------------------------------------------------------
+bound = 100
+
+// ---- sum the primes below `bound` ----------------------------------------------
+// v holds {candidate, sum}; each pass adds the candidate when it is prime
+// and moves on, so the loop stops with v[2] = sum of the primes below it.
+v = {2, 0}
+while v[1] < bound do v = {v[1] + 1, v[2] + (if isprime(v[1]) then v[1] else 0)}
+print("sum of primes below " + str(bound) + ":", v[2])
+
+// ---- the same sum for a larger bound -------------------------------------------
+bound = 1000
+v = {2, 0}
+while v[1] < bound do v = {v[1] + 1, v[2] + (if isprime(v[1]) then v[1] else 0)}
+print("sum of primes below " + str(bound) + ":", v[2])
+// ---- expected output ----
+// = 100
+// = {2, 0}
+// = sum of primes below 100: 1060
+// = 1000
+// = {2, 0}
+// = sum of primes below 1000: 76127

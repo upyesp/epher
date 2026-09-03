@@ -1,0 +1,69 @@
+// ============================================================================
+// easter-sunday.epher -- the date of Easter for several years
+//
+// Computes Gregorian Easter for a list of years with the computus of
+// chapter 8 of Jean Meeus, "Astronomical Algorithms" (2nd ed.,
+// Willmann-Bell, 1998): a chain of integer divisions and remainders
+// (floor and mod) on the year, ending in the month (March or April)
+// and day. The algorithm is exact integer arithmetic, so the results
+// are exact for every Gregorian year from 1583 on. Easter always falls
+// between March 22 and April 25; 2038 (April 25) is the latest it can
+// be. The dates were checked against python's datetime (each one is a
+// Sunday), and the expected output records them.
+//
+// Run it from a terminal:  epher "epher scripts/astronomy/time/easter-sunday.epher"
+// In the REPL:             load epher scripts/astronomy/time/easter-sunday.epher
+//
+// Knob: the list of years below.
+// ============================================================================
+
+// ---- the knob ---------------------------------------------------------------
+const years = {2000, 2024, 2025, 2026, 2027, 2038}
+
+// ---- Meeus ch. 8, Gregorian computus: one def per table value ---------------
+def ea(y) = mod(y, 19)
+def eb(y) = floor(y / 100)
+def ec(y) = mod(y, 100)
+def ed(y) = floor(eb(y) / 4)
+def ee(y) = mod(eb(y), 4)
+def ef(y) = floor((eb(y) + 8) / 25)
+def eg(y) = floor((eb(y) - ef(y) + 1) / 3)
+def eh(y) = mod(19 * ea(y) + eb(y) - ed(y) - eg(y) + 15, 30)
+def ei(y) = floor(ec(y) / 4)
+def ek(y) = mod(ec(y), 4)
+def el(y) = mod(32 + 2 * ee(y) + 2 * ei(y) - eh(y) - ek(y), 7)
+def em(y) = floor((ea(y) + 11 * eh(y) + 22 * el(y)) / 451)
+def emonth(y) = floor((eh(y) + el(y) - 7 * em(y) + 114) / 31)
+def eday(y) = mod(eh(y) + el(y) - 7 * em(y) + 114, 31) + 1
+
+// ---- display ----------------------------------------------------------------
+def pad2(n) = if n < 10 then "0" + str(n) else str(n)
+def iso(y, m, d) = str(y) + "-" + pad2(m) + "-" + pad2(d)
+
+// ---- results ----------------------------------------------------------------
+// Easter 2026 is April 5 (the anchor of this script); 2038 lands on
+// April 25, the latest possible date, and 2024 on March 31.
+print("Easter 2000:", iso(2000, emonth(2000), eday(2000)))
+print("Easter 2024:", iso(2024, emonth(2024), eday(2024)))
+print("Easter 2025:", iso(2025, emonth(2025), eday(2025)))
+print("Easter 2026:", iso(2026, emonth(2026), eday(2026)))
+print("Easter 2027:", iso(2027, emonth(2027), eday(2027)))
+print("Easter 2038:", iso(2038, emonth(2038), eday(2038)))
+
+// A check that needs no calendar table: every computed Easter must be
+// a Sunday, i.e. weekday number 0 in the 0 = Sunday convention of
+// day-of-week-from-date.epher. It prints true.
+def sunday(y) = mod(floor(jd(y, emonth(y), eday(y)) + 1.5), 7) == 0
+print("computed Easter 2026 is a Sunday:", sunday(2026))
+print("computed Easter 2038 is a Sunday:", sunday(2038))
+
+// ---- expected output ----
+// = {2000, 2024, 2025, 2026, 2027, 2038}
+// = Easter 2000: 2000-04-23
+// = Easter 2024: 2024-03-31
+// = Easter 2025: 2025-04-20
+// = Easter 2026: 2026-04-05
+// = Easter 2027: 2027-03-28
+// = Easter 2038: 2038-04-25
+// = computed Easter 2026 is a Sunday: true
+// = computed Easter 2038 is a Sunday: true

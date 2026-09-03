@@ -1,0 +1,41 @@
+// ============================================================================
+// heron-area.epher -- triangle area from three sides (Heron's formula)
+//
+// With the semiperimeter s = (a + b + c) / 2, the area of a triangle is
+// sqrt(s (s - a) (s - b) (s - c)), Heron's formula (Heron of Alexandria,
+// Metrica, about 60 AD; standard formula). The 13-14-15 triangle has
+// semiperimeter 21 and area sqrt(21 * 8 * 7 * 6) = sqrt(7056) = 84,
+// exactly, and the 3-4-5 triangle lands on 6, matching base times height.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/triangles/heron-area.epher"
+// In the REPL:             load epher scripts/geometry/triangles/heron-area.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are `a`, `b`, `c`, the three side lengths.
+// Everything above the results section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs ----------------------------------------------------------------
+const a = 13
+const b = 14
+const c = 15
+
+// ---- the model ----------------------------------------------------------------
+def semi(a, b, c) = (a + b + c) / 2                 // the semiperimeter
+def heron(s, a, b, c) = sqrt(s * (s - a) * (s - b) * (s - c))
+
+// ---- results ------------------------------------------------------------------
+print("semiperimeter:", semi(a, b, c))
+print("area of the 13-14-15 triangle:", heron(semi(a, b, c), a, b, c))
+print("area of the 3-4-5 triangle:", heron(semi(3, 4, 5), 3, 4, 5))
+print("3-4-5 by base times height:", 3 * 4 / 2)
+print("Heron matches base-height:", heron(semi(3, 4, 5), 3, 4, 5) == 3 * 4 / 2)
+// ---- expected output ----
+// = 13
+// = 14
+// = 15
+// = semiperimeter: 21
+// = area of the 13-14-15 triangle: 84
+// = area of the 3-4-5 triangle: 6
+// = 3-4-5 by base times height: 6
+// = Heron matches base-height: true

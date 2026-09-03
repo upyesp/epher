@@ -1,0 +1,57 @@
+// ============================================================================
+// roman-numerals.epher -- decimal to Roman and back, for 1 to 3999
+//
+// Spells numbers in the classic subtractive Roman system, where fours
+// and nines write one before five or ten: 4 = IV, 9 = IX, 40 = XL,
+// 90 = XC, 400 = CD, 900 = CM. The def roman(n) builds each digit place
+// from a small digit helper with the symbols of that place; checks:
+// 1994 = MCMXCIV and 2026 = MMXXVI. A second def val(c) scores a single
+// Roman symbol, and a packed while loop (guide 1.30) parses a numeral
+// with the subtractive rule: when a symbol is smaller than the next one,
+// it subtracts instead of adding, so MCMXCIV reads as 1994.
+//
+// Source: the standard Roman numeral convention, as tabulated in any
+// reference; the subtractive scheme is the one in common use since the
+// Middle Ages. All values are exact.
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/bases/roman-numerals.epher"
+// In the REPL:             load epher scripts/number-theory/bases/roman-numerals.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// There is no knob: the sample numbers are the point of the script.
+// ============================================================================
+
+// ---- the digit helper ----------------------------------------------------------------
+// digit(v, one, five, ten) spells one digit v with the place symbols:
+// 1 to 3 repeat one, 4 is one before five, 5 is five, 6 to 8 put one to
+// three ones after five, and 9 is one before ten.
+def digit(v, one, five, ten) = if v == 0 then "" else if v < 4 then one + digit(v - 1, one, five, ten) else if v == 4 then one + five else if v == 5 then five else if v < 9 then five + digit(v - 5, one, five, ten) else one + ten
+// roman(n) takes the thousands, hundreds, tens and units digits apart
+// with floor and mod, and spells each with its place symbols.
+def roman(n) = digit(floor(n / 1000), "M", "M", "M") + digit(mod(floor(n / 100), 10), "C", "D", "M") + digit(mod(floor(n / 10), 10), "X", "L", "C") + digit(mod(n, 10), "I", "V", "X")
+
+// ---- decimal to Roman ------------------------------------------------------------------
+print("1994 is", roman(1994))            // MCMXCIV: M CM XC IV
+print("2026 is", roman(2026))            // MMXXVI
+print("2024 is", roman(2024))            // MMXXIV
+print("3999 is", roman(3999))            // MMMCMXCIX, the largest of the range
+for x in {1, 4, 9, 49, 99, 1994, 2026, 3999} do roman(x)
+
+// ---- Roman to decimal ---------------------------------------------------------------------
+// val(c) is the value of one symbol; the while loop walks the numeral
+// and applies the subtractive rule: a smaller symbol before a larger one
+// is subtracted (I before V is one less, so IV is four).
+def val(c) = if c == "I" then 1 else if c == "V" then 5 else if c == "X" then 10 else if c == "L" then 50 else if c == "C" then 100 else if c == "D" then 500 else if c == "M" then 1000 else 0
+s = "MCMXCIV"
+v = {1, 0}
+while v[1] <= len(s) do v = {v[1] + 1, v[2] + (if v[1] < len(s) and val(s[v[1]]) < val(s[v[1] + 1]) then 0 - val(s[v[1]]) else val(s[v[1]]))}
+print("MCMXCIV reads as:", v[2])         // 1994, the round trip of the first check
+// ---- expected output ----
+// = 1994 is MCMXCIV
+// = 2026 is MMXXVI
+// = 2024 is MMXXIV
+// = 3999 is MMMCMXCIX
+// = {I, IV, IX, XLIX, XCIX, MCMXCIV, MMXXVI, MMMCMXCIX}
+// = MCMXCIV
+// = {1, 0}
+// = MCMXCIV reads as: 1994

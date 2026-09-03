@@ -1,0 +1,40 @@
+// ============================================================================
+// present-value.epher -- what a future sum is worth today at a discount rate
+//
+// A sum F received n years from now is worth F/(1+r)^n today when money can
+// grow at rate r: that is the present value. The script computes it two
+// ways that must agree: the bare formula, and the finance builtin tvm_pv,
+// which solves the same equation from the other end. Source: standard
+// finance formulas; see Kellison, The Theory of Interest, chapter 1.
+//
+// Accuracy: the two routes agree to all twelve displayed digits. The builtin
+// signs its answer negative (money out today, in the builtin's sign
+// convention); the sum itself is 20863.25.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/interest/present-value.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const goal = 50000          // the future sum, USD
+const rate = 6%             // annual discount rate
+const years = 15            // years until the sum arrives
+
+// ---- results -----------------------------------------------------------------
+// The bare classroom formula, fv/(1+r)^n.
+print("present value, formula fv/(1+r)^n:", goal / (1 + rate) ^ years)
+// The builtin tvm_pv(n, i, pmt, fv) with no payments in between: same
+// number, negative because buying that future 50000 means paying today.
+print("present value, builtin tvm_pv:", tvm_pv(years, rate, 0, goal))
+// Round trip: invest the present value at 6% and the goal comes back.
+print("compounding the pv forward returns:", tvm_fv(years, rate, tvm_pv(years, rate, 0, goal), 0))
+// ---- expected output ----
+// = 50000
+// = 0.06
+// = 15
+// = present value, formula fv/(1+r)^n: 20863.2530368
+// = present value, builtin tvm_pv: -20863.2530368
+// = compounding the pv forward returns: 50000

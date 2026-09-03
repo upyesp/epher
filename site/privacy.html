@@ -41,8 +41,12 @@
       /* without JavaScript the disclosure button cannot work: show the
          links as a plain stacked row instead (progressive enhancement) */
       .menu-toggle { display: none; }
+      .docs-toggle { display: none; }
       .site-nav { display: flex !important; flex-direction: column; position: static;
                   border: 0; box-shadow: none; padding: 0.5rem 0; }
+      .docs { position: static; }
+      .docs-menu { display: flex !important; position: static; padding-inline-start: 1rem;
+                   border: 0; box-shadow: none; }
     </style>
   </noscript>
 </head>
@@ -56,8 +60,17 @@
     </a>
     <nav class="site-nav" id="site-nav" hidden aria-label="Main" data-i18n-aria="nav-label">
       <a href="pwa/" data-i18n="nav-app">App</a>
-      <a href="guide/en/" data-i18n="guide" data-i18n-href="guide">User guide</a>
-      <a href="examples.html" data-i18n="nav-examples">Examples</a>
+      <div class="docs">
+        <button type="button" class="docs-toggle" id="docs-toggle" aria-expanded="false" aria-controls="docs-menu" aria-haspopup="true">
+          <span data-i18n="nav-docs">Docs</span>
+          <svg class="icon-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg>
+        </button>
+        <div class="docs-menu" id="docs-menu" hidden>
+          <a href="guide/en/" data-i18n="guide" data-i18n-href="guide">User guide</a>
+          <a href="examples.html" data-i18n="nav-examples">Examples</a>
+          <a href="scripts.html" data-i18n="nav-scripts">Scripts</a>
+        </div>
+      </div>
       <a href="privacy.html" aria-current="page" data-i18n="nav-privacy">Privacy</a>
       <a class="gh-link" href="https://github.com/upyesp/epher" data-i18n="source-link">
         Source code
@@ -143,6 +156,7 @@
           <li><a href="pwa/" data-i18n="nav-app">App</a></li>
           <li><a href="guide/en/" data-i18n="guide" data-i18n-href="guide">User guide</a></li>
           <li><a href="examples.html" data-i18n="nav-examples">Examples</a></li>
+          <li><a href="scripts.html" data-i18n="nav-scripts">Scripts</a></li>
           <li><a href="privacy.html" aria-current="page" data-i18n="nav-privacy">Privacy</a></li>
         </ul>
       </nav>

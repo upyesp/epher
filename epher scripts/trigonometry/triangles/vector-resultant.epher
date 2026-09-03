@@ -1,0 +1,57 @@
+// ============================================================================
+// vector-resultant.epher -- magnitude and direction of a vector sum
+//
+// Two forces (or displacements) of magnitudes v1 and v2, at angles t1 and
+// t2 to the x-axis, add head to tail. The resultant's magnitude follows
+// from the law of cosines on the triangle the two vectors form:
+// R^2 = v1^2 + v2^2 + 2 v1 v2 cos(t2 - t1) (the included angle is the
+// angle between the vectors), and its direction comes from the components
+// R_x = v1 cos t1 + v2 cos t2, R_y = v1 sin t1 + v2 sin t2 through
+// atan2(R_y, R_x). The two routes are cross-checked below. Angles are
+// degrees through the knobs, converted with rad() for the builtin trig;
+// magnitudes keep meters.
+//
+// Run it from a terminal:  epher "epher scripts/trigonometry/triangles/vector-resultant.epher"
+// In the REPL:             load epher scripts/trigonometry/triangles/vector-resultant.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are the two vector pairs below. Printed values carry
+// about 12 significant digits.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const v1 = 10 m      // first vector's magnitude
+const t1 = 30        // first vector's direction, degrees
+const v2 = 15 m      // second vector's magnitude
+const t2 = 120       // second vector's direction, degrees
+
+// ---- helpers ----------------------------------------------------------------
+def rmag(v1, t1, v2, t2) = sqrt((v1 ^ 2) + (v2 ^ 2) + 2 * v1 * v2 * cos(rad(t2) - rad(t1)))   // law of cosines
+def rx(v1, t1, v2, t2) = v1 * cos(rad(t1)) + v2 * cos(rad(t2))   // x component of the sum
+def ry(v1, t1, v2, t2) = v1 * sin(rad(t1)) + v2 * sin(rad(t2))   // y component of the sum
+def dirn(x, y) = if deg(atan2(y, x)) < 0 then deg(atan2(y, x)) + 360 else deg(atan2(y, x))   // direction in [0, 360)
+
+// ---- results -----------------------------------------------------------------
+// The two vectors sit 90 deg apart (120 - 30), so the cosine term vanishes
+// and R = sqrt(100 + 225) = sqrt(325) ~ 18.0278 m.
+print("resultant magnitude:", rmag(v1, t1, v2, t2))
+
+// The resultant's components, then the magnitude rebuilt from them: the
+// law-of-cosines route and the component route must agree.
+print("resultant components:", rx(v1, t1, v2, t2), "and", ry(v1, t1, v2, t2))
+print("magnitude from components:", sqrt((rx(v1, t1, v2, t2) ^ 2) + (ry(v1, t1, v2, t2) ^ 2)))
+print("law of cosines matches components:", abs((rmag(v1, t1, v2, t2) ^ 2) / ((rx(v1, t1, v2, t2) ^ 2) + (ry(v1, t1, v2, t2) ^ 2)) - 1) < 1e-12)
+
+// The direction of the resultant, mostly straight up the y-axis since the
+// 15 m vector dominates.
+print("resultant direction:", dirn(rx(v1, t1, v2, t2), ry(v1, t1, v2, t2)), "deg")
+// ---- expected output
+// = 10 m
+// = 30
+// = 15 m
+// = 120
+// = resultant magnitude: 18.0277563773 m
+// = resultant components: 1.16025403784 m and 17.9903810568 m
+// = magnitude from components: 18.0277563773 m
+// = law of cosines matches components: true
+// = resultant direction: 86.309932474 deg

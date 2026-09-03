@@ -1,0 +1,43 @@
+// ============================================================================
+// paired-t-test.epher -- systolic pressure before and after a program
+//
+// Tests whether an eight-week program changed systolic blood pressure,
+// using the builtin paired t test ttestpaired(before, after) (guide
+// 1.20): one person, two measurements, so the test works on the seven
+// before-minus-after differences. It prints the t statistic and the
+// two-sided p-value as a display string. The lines above show the
+// differences and their mean and standard deviation.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/tests/paired-t-test.epher"
+// In the REPL:             load epher scripts/statistics/tests/paired-t-test.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// The knobs to edit are `before` and `after` below. Everything above the
+// results section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs -----------------------------------------------------------------
+const before = {147, 140, 154, 140, 147, 147, 140}   // systolic, mm Hg, before
+const after = {142, 139, 150, 140, 144, 145, 141}    // systolic, mm Hg, after
+
+// ---- helpers: the differences and their spread ------------------------------------
+def sdd() = sqrt(variance(before - after) * len(before - after) / (len(before - after) - 1))  /* sample stdev of the differences */
+
+// ---- what the test sees --------------------------------------------------------------
+print("differences, before minus after:", before - after)
+print("mean difference:", mean(before - after))
+print("sample stdev of the differences:", sdd())
+
+// ---- the test ---------------------------------------------------------------------------
+ttestpaired(before, after)  // t = 2.4495, p = 0.0498: the drop is just
+                            // significant at the 5% level, so the program
+                            // measurably lowered systolic pressure here
+
+// ---- expected output ----
+// = {147, 140, 154, 140, 147, 147, 140}
+// = {142, 139, 150, 140, 144, 145, 141}
+// = differences, before minus after: {5, 1, 4, 0, 3, 2, -1}
+// = mean difference: 2
+// = sample stdev of the differences: 2.16024689947
+// = t = 2.4495, p = 0.0498

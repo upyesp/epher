@@ -1,0 +1,34 @@
+// ============================================================================
+// cylinder-surface-area.epher -- surface area of a cylinder
+//
+// A cylinder of radius r and height h has a curved side that unrolls
+// into a 2 pi r by h rectangle, plus two end disks, so
+// S = 2 pi r h + 2 pi r^2 (standard formula). The factorized form
+// 2 pi r (r + h) is checked against it, and the lateral part alone is
+// printed too.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/solids/cylinder-surface-area.epher"
+// In the REPL:             load epher scripts/geometry/solids/cylinder-surface-area.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are `r` (radius) and `h` (height).
+// Everything above the results section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs ----------------------------------------------------------------
+const r = 3
+const h = 5
+
+// ---- the model ----------------------------------------------------------------
+def surf(r, h) = 2 * pi * r * h + 2 * pi * r ^ 2   // S = 2 pi r h + 2 pi r^2
+
+// ---- results ------------------------------------------------------------------
+print("surface area:", surf(r, h))
+print("lateral part, 2 pi r h:", 2 * pi * r * h)
+print("factorized form agrees:", abs(surf(r, h) - 2 * pi * r * (r + h)) < 1e-9)
+// ---- expected output ----
+// = 3
+// = 5
+// = surface area: 150.796447372
+// = lateral part, 2 pi r h: 94.2477796077
+// = factorized form agrees: true

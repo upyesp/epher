@@ -1,0 +1,58 @@
+// ============================================================================
+// euler-method.epher -- Euler's method for y' = y on [0, 1]
+//
+// epher has no builtin ODE solver (derivative and integral work on
+// expressions, not initial-value problems), so the method is the
+// point. Euler's method steps along the slope field: from (t, y) with
+// y' = f(t, y), the next point is (t + h, y + h f(t, y)) (Stewart,
+// "Calculus", 8th ed., sec. 9.2; Burden and Faires, "Numerical
+// Analysis", ch. 5).
+//
+// The packed while loop carries the state {t, y, step} in one list and
+// takes one Euler step per iteration; with h = 0.1 and y(0) = 1 the
+// value at t = 1 is (1.1)^10 = 2.5937424601, short of e = 2.71828...
+// Euler is a first-order method: halving h roughly halves the error
+// (0.12454 at h = 0.1, 0.06498 at h = 0.05).
+//
+// Accuracy: the h = 0.1 result is exact to the printed digits; its
+// error against e is 0.124539368359, about (e/2) h as the theory of
+// the method predicts.
+//
+// Run:  epher "epher scripts/calculus/models/euler-method.epher"
+// The knobs to edit are `h` and `steps` below.
+// ============================================================================
+
+// ---- the knobs --------------------------------------------------------------
+const h = 0.1                  // step size
+const steps = 10               // steps to reach t = 1
+
+// ---- helpers ----------------------------------------------------------------
+def slope(t, y) = y            // the equation: y' = y
+
+// ---- one Euler run from t = 0 to t = 1, state {t, y, step} ------------------
+v = {0, 1, 0}
+while v[3] < steps do v = {v[1] + h, v[2] + h*slope(v[1], v[2]), v[3] + 1}
+v
+print("y(1) by Euler with h = 0.1:", v[2])
+print("true value e:", e)
+print("error:", e - v[2])
+
+// ---- the same run at h = 0.05: the error nearly halves ----------------------
+w = {0, 1, 0}
+while w[3] < 20 do w = {w[1] + 0.05, w[2] + 0.05*slope(w[1], w[2]), w[3] + 1}
+print("y(1) by Euler with h = 0.05:", w[2])
+print("error:", e - w[2])
+print("halving h halves the error:", e - w[2] < (e - v[2])/1.9)
+
+// ---- expected output ---------------------------------------------------------
+// = 0.1
+// = 10
+// = {0, 1, 0}
+// = {1, 2.5937424601, 10}
+// = y(1) by Euler with h = 0.1: 2.5937424601
+// = true value e: 2.71828182846
+// = error: 0.124539368359
+// = {0, 1, 0}
+// = y(1) by Euler with h = 0.05: 2.65329770514
+// = error: 0.0649841233146
+// = halving h halves the error: true

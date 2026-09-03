@@ -1,0 +1,72 @@
+// ============================================================================
+// law-of-sines-ambiguous.epher -- the SSA case: two, one, or no triangles
+//
+// Given angle A, side b and side a (side-side-angle), the law of sines
+// gives sin B = b sin A / a, and the number of triangles that fit depends
+// on how a compares with the altitude h = b sin A:
+//
+//   a < h        no triangle: the side a never reaches the base line
+//   a = h        one right triangle: it just touches
+//   h < a < b    two triangles: B and 180 deg - B both work
+//   a = b        one triangle (the second candidate collapses)
+//   a > b        one triangle
+//
+// This is the classic ambiguous case of any trigonometry course (e.g.
+// Stewart, Redlin and Watson, "Precalculus", ch. 6). The script compares
+// h against a with a 1e-12 slack, because sin(30 deg) is 0.5 to twelve
+// digits but not to the last binary bit.
+//
+// Run it from a terminal:  epher "epher scripts/trigonometry/triangles/law-of-sines-ambiguous.epher"
+// In the REPL:             load epher scripts/trigonometry/triangles/law-of-sines-ambiguous.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are A (degrees), bside and the five a-values below
+// (meters). Printed values carry about 12 significant digits.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const A = 30            // given angle, degrees
+const bside = 12 m      // given side b
+const a1 = 4 m          // a shorter than h: no triangle
+const a2 = 6 m          // a equal to h: one right triangle
+const a3 = 8 m          // a between h and b: two triangles
+const a4 = 12 m         // a equal to b: one triangle
+const a5 = 16 m         // a longer than b: one triangle
+
+// ---- helpers ----------------------------------------------------------------
+// The altitude the far side must clear. A def body only sees names that
+// exist as consts or defs when it is written, so this is a const, not an
+// assignment.
+const hgt = bside * sin(rad(A))
+def sinB(a) = bside * sin(rad(A)) / a       // law of sines for the candidate B
+def b1(a) = deg(asin(sinB(a)))              // first candidate angle B
+def b2(a) = 180 - b1(a)                     // second candidate angle B
+def verdict(a) = if a / hgt < 1 then "no triangle (a < h)" else if a / hgt < 1 + 1e-12 then "one right triangle (a = h)" else if a >= bside then "one triangle (a >= b)" else "two triangles (h < a < b)"
+
+// ---- results -----------------------------------------------------------------
+// h = b sin A = 12 m x 0.5 = 6 m.
+print("h = b sin A =", hgt)
+
+// The five cases in order of growing a.
+print("a = 4 m:", verdict(a1))
+print("a = 6 m:", verdict(a2))
+print("a = 8 m:", verdict(a3), "B =", b1(a3), "deg or", b2(a3), "deg")
+print("then C =", 180 - A - b1(a3), "deg or", 180 - A - b2(a3), "deg")
+print("a = 12 m:", verdict(a4), "with B =", b1(a4), "deg")
+print("a = 16 m:", verdict(a5), "with B =", b1(a5), "deg")
+// ---- expected output
+// = 30
+// = 12 m
+// = 4 m
+// = 6 m
+// = 8 m
+// = 12 m
+// = 16 m
+// = 6 m
+// = h = b sin A = 6 m
+// = a = 4 m: no triangle (a < h)
+// = a = 6 m: one right triangle (a = h)
+// = a = 8 m: two triangles (h < a < b) B = 48.5903778907 deg or 131.409622109 deg
+// = then C = 101.409622109 deg or 18.5903778907 deg
+// = a = 12 m: one triangle (a >= b) with B = 30 deg
+// = a = 16 m: one triangle (a >= b) with B = 22.024312837 deg

@@ -1,0 +1,46 @@
+// ============================================================================
+// mortgage-affordability.epher -- how large a mortgage a target payment
+// supports, using the 28% income rule
+//
+// The 28% rule of thumb keeps housing costs at or under 28% of gross
+// income, so a borrower earning `income` can pay about income/12*28% per
+// month. The finance builtin tvm_pv answers how large a loan that payment
+// buys at a given rate and term: it solves the same annuity equation as
+// tvm_pmt, but for the principal. Source: standard TVM formulas and the
+// common lender rule; the formula is Kellison, The Theory of Interest,
+// chapter 3.
+//
+// Sign convention: the payment is entered negative (money leaves the pocket
+// each month) and the answer comes back positive. Property tax, insurance
+// and other debts are not part of this 28% slice.
+//
+// Accuracy: 12 displayed digits.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/loans/mortgage-affordability.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const income = 90000        // gross yearly income, USD
+const share = 28%           // the 28% rule: housing budget share of income
+const rate = 6.5%           // quoted annual rate
+const years = 30            // term in years
+
+// ---- results -----------------------------------------------------------------
+print("monthly budget at the 28% rule:", income / 12 * share)
+// tvm_pv(360, 6.5%/12, -2100, 0): the loan whose 360 payments of 2100 at
+// 6.5% exactly repay it.
+print("largest loan at 6.5% for 30 years:", tvm_pv(years * 12, rate / 12, -(income / 12 * share), 0))
+// With the usual 20% down payment the loan covers 80% of the price.
+print("largest home price with 20% down:", tvm_pv(years * 12, rate / 12, -(income / 12 * share), 0) / 80%)
+// ---- expected output ----
+// = 90000
+// = 0.28
+// = 0.065
+// = 30
+// = monthly budget at the 28% rule: 2100
+// = largest loan at 6.5% for 30 years: 332242.721028
+// = largest home price with 20% down: 415303.401285

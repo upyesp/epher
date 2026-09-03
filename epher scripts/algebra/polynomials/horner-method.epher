@@ -1,0 +1,37 @@
+// ============================================================================
+// horner-method.epher -- evaluate a polynomial with Horner's scheme
+//
+// Horner's scheme (W. G. Horner, 1819, "A New Method of Solving Numerical
+// Equations of All Higher Degrees"; also Ruffini) evaluates
+// p(x) = a x^3 + b x^2 + c x + d as ((a x + b) x + c) x + d: one
+// multiplication and one addition per coefficient, n operations instead of
+// about 2n for the plain powers. Both evaluations are exact rationals here,
+// so the cross-check compares exactly.
+//
+// Run it from a terminal:  epher "epher scripts/algebra/polynomials/horner-method.epher"
+//
+// The knobs to edit are cs and the sample point xv below.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const cs = {1, -6, 11, -6}       // p(t) = t^3 - 6t^2 + 11t - 6 = (t-1)(t-2)(t-3)
+const xv = 2.5
+
+// ---- results -----------------------------------------------------------------
+// Horner: fold the coefficients, highest first
+acc = {1, cs[1]}
+while acc[1] < len(cs) do acc = {acc[1] + 1, acc[2] * xv + cs[acc[1] + 1]}
+print("Horner:", acc[2])
+// the plain sum cs[k+1] x^(3-k), powers included; same value
+s = {0, 0}
+while s[1] < len(cs) do s = {s[1] + 1, s[2] + cs[len(cs) - s[1]] * xv ^ s[1]}
+print("direct sum:", s[2])
+print("they agree:", acc[2] == s[2])
+// ---- expected output ----
+// = {1, -6, 11, -6}
+// = 2.5
+// = {1, 1}
+// = Horner: -0.375
+// = {0, 0}
+// = direct sum: -0.375
+// = they agree: true

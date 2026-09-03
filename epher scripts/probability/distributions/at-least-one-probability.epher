@@ -1,0 +1,47 @@
+// ============================================================================
+// at-least-one-probability.epher -- P(at least one success) = 1 - (1-p)^n
+//
+// If an event has probability p in each of n independent tries, the
+// chance it happens at least once is one minus the chance it never
+// happens: every try must fail, with probability (1 - p) each, so
+//
+//   P(at least one) = 1 - (1 - p)^n,
+//
+// the complement trick of Ross, "A First Course in Probability",
+// chapter 2. Adding probabilities instead would be wrong: five tries at
+// a 20% event do not add up to a 100% chance, they give 1 - 0.8^5 =
+// 2101/3125 = 0.67232.
+//
+// The script works each case with exact rational powers, so 91/216, for
+// instance, is the exact fraction, not an approximation.
+//
+// Run it from a terminal:  epher "epher scripts/probability/distributions/at-least-one-probability.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+// ============================================================================
+
+// ---- results ----
+// A 20% event tried 5 times: exact fraction 2101/3125 = 0.67232.
+print("20% event, 5 tries:", 1 - (4/5) ^ 5)
+print("as a fraction: 2101/3125")
+
+// Rolling a die, at least one 6 in 3 rolls: 1 - (5/6)^3 = 91/216.
+print("at least one 6 in 3 rolls:", 1 - (5/6) ^ 3)
+
+// The classic companion: at least one 6 in 6 rolls is only about 0.665,
+// not the 1 that "six chances in six" suggests.
+print("at least one 6 in 6 rolls:", 1 - (5/6) ^ 6)
+print("exact fraction: 31031/46656")
+
+// A fair coin: at least one head in 10 flips is 1023/1024.
+print("at least one head in 10 flips:", 1 - (1/2) ^ 10)
+
+// Two independent 1-in-1000 shots: the double-failure trick scales.
+print("1-in-1000 event, 2 tries:", 1 - (999/1000) ^ 2)
+// ---- expected output ----
+// = 20% event, 5 tries: 0.67232
+// = as a fraction: 2101/3125
+// = at least one 6 in 3 rolls: 91/216
+// = at least one 6 in 6 rolls: 0.66510202332
+// = exact fraction: 31031/46656
+// = at least one head in 10 flips: 0.9990234375
+// = 1-in-1000 event, 2 tries: 0.001999

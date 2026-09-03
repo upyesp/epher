@@ -1,0 +1,43 @@
+// ============================================================================
+// college-fund-payment.epher -- monthly deposit that grows to a college
+// fund over 18 years
+//
+// Saving for a child born today means a monthly deposit for 18 years (216
+// months) that must reach the goal by then. The finance builtin tvm_pmt
+// solves the deposit: tvm_pmt(n, i, 0, goal), present value 0, the goal as
+// the future value. Source: standard annuity formulas; see Kellison, The
+// Theory of Interest, chapter 3.
+//
+// Sign convention: the builtin returns the deposit negative (money out);
+// the size is printed positive.
+//
+// Accuracy: 12 displayed digits; the round-trip line below compounds the
+// exact deposit back to the goal.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/savings/college-fund-payment.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const goal = 80000          // college fund needed in 18 years, USD
+const rate = 5%             // annual rate of return
+const years = 18            // years until college starts
+
+// ---- results -----------------------------------------------------------------
+print("monthly deposit needed:", 0 - tvm_pmt(years * 12, rate / 12, 0, goal))
+print("round trip: the deposits grow to:", tvm_fv(years * 12, rate / 12, 0, tvm_pmt(years * 12, rate / 12, 0, goal)))
+print("total deposited out of pocket:", (0 - tvm_pmt(years * 12, rate / 12, 0, goal)) * (years * 12))
+print("growth supplies:", goal - (0 - tvm_pmt(years * 12, rate / 12, 0, goal)) * (years * 12))
+// 216 deposits of about 229.09 put in 49484.25; the remaining 30515.75 of
+// the goal (38%) comes from growth.
+// ---- expected output ----
+// = 80000
+// = 0.05
+// = 18
+// = monthly deposit needed: 229.093748265
+// = round trip: the deposits grow to: 80000
+// = total deposited out of pocket: 49484.2496252
+// = growth supplies: 30515.7503748

@@ -1,0 +1,63 @@
+// ============================================================================
+// law-of-cosines-angle.epher -- angle C from three sides (SSS)
+//
+// Solving the law of cosines for the angle opposite side c,
+// cos C = (a^2 + b^2 - c^2) / (2ab), turns three known sides into the
+// angles of the triangle (the SSS case). The builtin acos is the inverse
+// of cosine on [0, pi], so C lands in (0, 180) deg, obtuse included: a
+// negative cosine means an obtuse angle. Angles are reported in degrees
+// with deg(). The sides are given in meters and are plain numbers here,
+// which is safe because the formula only uses their ratios and the units
+// cancel. Standard classroom material (e.g. Stewart, Redlin and Watson,
+// "Precalculus", ch. 6).
+//
+// Run it from a terminal:  epher "epher scripts/trigonometry/triangles/law-of-cosines-angle.epher"
+// In the REPL:             load epher scripts/trigonometry/triangles/law-of-cosines-angle.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are the two side triples below (meters). Printed
+// values carry about 12 significant digits.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const t1a = 3    // first triangle: the 3-4-5, sides in meters
+const t1b = 4
+const t1c = 5
+const t2a = 5    // second triangle: 5-7-9, sides in meters
+const t2b = 7
+const t2c = 9
+
+// ---- helpers ----------------------------------------------------------------
+def angc(a, b, c) = deg(acos(((a ^ 2) + (b ^ 2) - (c ^ 2)) / (2 * a * b)))   // angle opposite c
+def anga(a, b, c) = deg(acos(((b ^ 2) + (c ^ 2) - (a ^ 2)) / (2 * b * c)))   // angle opposite a
+def angb(a, b, c) = deg(acos(((a ^ 2) + (c ^ 2) - (b ^ 2)) / (2 * a * c)))   // angle opposite b
+
+// ---- results -----------------------------------------------------------------
+// The 3-4-5 triangle: the angle opposite the 5 m side is exactly 90 deg,
+// because (9 + 16 - 25) / 24 = 0 and acos(0) = 90 deg.
+print("3-4-5: angle opposite 5 m:", angc(t1a, t1b, t1c), "deg")
+
+// All three angles of the 3-4-5, and their sum: 180 deg.
+print("3-4-5 angles:", anga(t1a, t1b, t1c), "deg", angb(t1a, t1b, t1c), "deg", angc(t1a, t1b, t1c), "deg")
+print("3-4-5 sum:", anga(t1a, t1b, t1c) + angb(t1a, t1b, t1c) + angc(t1a, t1b, t1c), "deg")
+
+// The 5-7-9 triangle: (25 + 49 - 81) / 70 = -0.1, so the angle opposite
+// the 9 m side is obtuse, about 95.74 deg.
+print("5-7-9: angle opposite 9 m:", angc(t2a, t2b, t2c), "deg")
+
+// The three angles of the 5-7-9 and their sum.
+print("5-7-9 angles:", anga(t2a, t2b, t2c), "deg", angb(t2a, t2b, t2c), "deg", angc(t2a, t2b, t2c), "deg")
+print("5-7-9 sum:", anga(t2a, t2b, t2c) + angb(t2a, t2b, t2c) + angc(t2a, t2b, t2c), "deg")
+// ---- expected output
+// = 3
+// = 4
+// = 5
+// = 5
+// = 7
+// = 9
+// = 3-4-5: angle opposite 5 m: 90 deg
+// = 3-4-5 angles: 36.8698976458 deg 53.1301023542 deg 90 deg
+// = 3-4-5 sum: 180 deg
+// = 5-7-9: angle opposite 9 m: 95.7391704773 deg
+// = 5-7-9 angles: 33.5573097619 deg 50.7035197608 deg 95.7391704773 deg
+// = 5-7-9 sum: 180 deg

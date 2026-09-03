@@ -1,0 +1,35 @@
+// ============================================================================
+// infinite-geometric-sum.epher -- a/(1 - r) when |r| < 1
+//
+// When the common ratio r satisfies |r| < 1, the partial sums S_n of the
+// geometric sequence a, ar, ar^2, ... approach a / (1 - r): the tail
+// a r^n / (1 - r) shrinks to zero (Archimedes summed 1/4 + 1/16 + ... this
+// way in 250 BC; any algebra text, e.g. Stewart, Redlin and Watson,
+// "College Algebra", 7th ed., sec. 9.2). With a = 4, r = 1/3 the infinite
+// sum is exactly 6, and the exact fractions of the partial sums below
+// approach it: 0, 4, 16/3, 52/9, ...
+//
+// Run it from a terminal:  epher "epher scripts/algebra/sequences-series/infinite-geometric-sum.epher"
+//
+// The knobs to edit are a and r below.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const a = 4                      // first term
+const r = 1/3                    // common ratio, |r| < 1
+
+// ---- results -----------------------------------------------------------------
+print("infinite sum a/(1 - r):", a / (1 - r))
+// the partial sums S_0 .. S_5, as exact fractions
+for k in 0 to 5 do a * (1 - r ^ k) / (1 - r)
+// the tail that is left after 10 terms
+print("tail after 10 terms:", a * r ^ 10 / (1 - r))
+// S10 plus that tail telescopes back to the full sum
+print("S10 + tail telescopes:", a * ((1 - r ^ 10) + r ^ 10) / (1 - r) == a / (1 - r))
+// ---- expected output ----
+// = 4
+// = 1/3
+// = infinite sum a/(1 - r): 6
+// = {0, 4, 16/3, 52/9, 160/27, 484/81}
+// = tail after 10 terms: 0.000101610526851
+// = S10 + tail telescopes: true

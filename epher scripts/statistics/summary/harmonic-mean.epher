@@ -1,0 +1,34 @@
+// ============================================================================
+// harmonic-mean.epher -- the right average for rates: 60 there, 40 back
+//
+// The harmonic mean of the speeds in `s`, len(s) / sum(1 / s): the
+// correct average for rates over equal amounts (here: two equal legs of
+// a trip, at 60 and 40 km/h). Because the slower leg takes longer, the
+// average speed is not 50 km/h but 2 / (1/60 + 1/40) = 48 km/h. The
+// harmonic mean is always at or below the arithmetic mean.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/summary/harmonic-mean.epher"
+// In the REPL:             load epher scripts/statistics/summary/harmonic-mean.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// The one knob to edit is `s` below. Everything above the results section
+// is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knob -----------------------------------------------------------------
+const s = {60, 40}   // km/h on the outward and return legs of a trip
+
+// ---- helpers: the harmonic mean ---------------------------------------------------
+def hmean(xs) = len(xs) / sum(1 / xs)  /* count over the sum of reciprocals */
+
+// ---- the average speed over the whole trip ------------------------------------------
+hmean(s)                    // harmonic mean: 2 / (1/60 + 1/40) = 48 km/h
+mean(s)                     // arithmetic mean, the wrong average here
+2 / (1 / 60 + 1 / 40)       // the textbook formula written out
+
+// ---- expected output ----
+// = {60, 40}
+// = 48
+// = 50
+// = 48

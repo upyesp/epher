@@ -1,0 +1,41 @@
+// ============================================================================
+// special-triangle-ratios.epher -- 30-60-90 and 45-45-90 side ratios
+//
+// The 30-60-90 triangle has sides in the ratio 1 : sqrt(3) : 2 (short
+// leg, long leg, hypotenuse) and the 45-45-90 triangle in the ratio
+// 1 : 1 : sqrt(2), both from Pythagoras on the half equilateral triangle
+// and the half square (standard formula). The results scale the ratios,
+// then verify them against the builtin sin: the opposite side over the
+// hypotenuse must equal sin of the opposite angle. Angles are written
+// with the deg unit, which epher converts to radians for trig.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/triangles/special-triangle-ratios.epher"
+// In the REPL:             load epher scripts/geometry/triangles/special-triangle-ratios.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The scales to try are in the results section (5 and 4 below).
+// ============================================================================
+
+// ---- the model ----------------------------------------------------------------
+def long30(s) = s * sqrt(3)   // long leg of a 30-60-90, short leg s
+def hyp30(s) = 2 * s          // hypotenuse of a 30-60-90, short leg s
+def hyp45(s) = s * sqrt(2)    // hypotenuse of a 45-45-90, legs s
+
+// ---- results ------------------------------------------------------------------
+print("30-60-90, short leg 5:", 5, long30(5), hyp30(5))
+print("45-45-90, legs 4:", 4, 4, hyp45(4))
+print("short over hyp = sin(30 deg):", 5 / hyp30(5))
+print("long over hyp = sin(60 deg):", long30(5) / hyp30(5))
+print("leg over hyp = sin(45 deg):", 4 / hyp45(4))
+print("sin(30 deg) matches:", abs(5 / hyp30(5) - sin(30 deg)) < 1e-9)
+print("sin(60 deg) matches:", abs(long30(5) / hyp30(5) - sin(60 deg)) < 1e-9)
+print("sin(45 deg) matches:", abs(4 / hyp45(4) - sin(45 deg)) < 1e-9)
+// ---- expected output ----
+// = 30-60-90, short leg 5: 5 8.66025403784 10
+// = 45-45-90, legs 4: 4 4 5.65685424949
+// = short over hyp = sin(30 deg): 0.5
+// = long over hyp = sin(60 deg): 0.866025403784
+// = leg over hyp = sin(45 deg): 0.707106781187
+// = sin(30 deg) matches: true
+// = sin(60 deg) matches: true
+// = sin(45 deg) matches: true

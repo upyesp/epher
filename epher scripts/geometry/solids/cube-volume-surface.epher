@@ -1,0 +1,33 @@
+// ============================================================================
+// cube-volume-surface.epher -- volume and surface area of a cube
+//
+// A cube of edge a has volume V = a^3 and surface area S = 6 a^2 (six
+// square faces; standard formula). This script works in meters: lengths
+// carry the m unit, volumes print as m^3 and areas as m^2, and the
+// conversions to centimeters show the `in` operator at work. With edge
+// 2 m the volume is 8 m^3 and the surface 24 m^2, exact.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/solids/cube-volume-surface.epher"
+// In the REPL:             load epher scripts/geometry/solids/cube-volume-surface.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knob to edit is `a`, the edge length, unit included (try 3 cm).
+// Everything above the results section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knob -----------------------------------------------------------------
+const a = 2 m
+
+// ---- results ------------------------------------------------------------------
+print("volume:", a ^ 3)
+print("surface area:", 6 * a ^ 2)
+print("edge in cm:", a in cm)
+print("volume in cm^3:", (a ^ 3) in cm ^ 3)
+print("1 m^3 in cm^3:", (1 m ^ 3) in cm ^ 3)
+// ---- expected output ----
+// = 2 m
+// = volume: 8 m^3
+// = surface area: 24 m^2
+// = edge in cm: 200 cm
+// = volume in cm^3: 8000000 cm^3
+// = 1 m^3 in cm^3: 1000000 cm^3

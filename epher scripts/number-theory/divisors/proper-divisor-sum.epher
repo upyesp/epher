@@ -1,0 +1,40 @@
+// ============================================================================
+// proper-divisor-sum.epher -- what the divisors below n add to
+//
+// Sums the proper divisors of n, that is all divisors except n itself:
+// proper sum = sigma(n) - n. The classic check is 12, whose proper
+// divisors 1, 2, 3, 4 and 6 add to 16 (the full divisor sum is 28 from
+// the sibling script divisor-sum.epher). The script reuses the classroom
+// pair method of that script, since epher has no divisor-sum builtin.
+//
+// Source: the divisor functions, Hardy and Wright, "An Introduction to
+// the Theory of Numbers", ch. 16, section 16.7; the proper divisor sum
+// is the summand of the aliquot sequence. Results are exact.
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/divisors/proper-divisor-sum.epher"
+// In the REPL:             load epher scripts/number-theory/divisors/proper-divisor-sum.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// There is no knob: the sample numbers are the point of the script.
+// ============================================================================
+
+// ---- the proper-divisor-sum def -----------------------------------------------------
+// pairdiv(n, i) walks the trial divisors up to the square root and adds
+// each divisor with its partner n / i (a square adds its root once), so
+// pairdiv(n, 1) is sigma(n); subtracting n leaves the proper divisors.
+def pairdiv(n, i) = if i * i > n then 0 else if mod(n, i) == 0 then (if i * i == n then i + pairdiv(n, i + 1) else i + n / i + pairdiv(n, i + 1)) else pairdiv(n, i + 1)
+def sigma(n) = pairdiv(n, 1)
+def ps(n) = sigma(n) - n
+
+// ---- the checks ----------------------------------------------------------------------
+for x in {12, 15, 6, 100} do ps(x)
+print("proper divisors of 12 add to:", ps(12))      // 1 + 2 + 3 + 4 + 6 = 16
+print("sigma(12) - 12:", sigma(12) - 12)            // 28 - 12 = 16, the same
+print("proper divisors of 15 add to:", ps(15))      // 1 + 3 + 5 = 9
+print("proper divisors of 100 add to:", ps(100))    // 117, so 100 is abundant
+// ---- expected output ----
+// = {16, 9, 6, 117}
+// = proper divisors of 12 add to: 16
+// = sigma(12) - 12: 16
+// = proper divisors of 15 add to: 9
+// = proper divisors of 100 add to: 117

@@ -1,0 +1,50 @@
+// ============================================================================
+// linear-regression-prediction.epher -- least squares by hand, then predict
+//
+// Fits the least-squares line to the five (hours, score) pairs in `xs`
+// and `ys` with the classroom formulas: the slope is
+// b1 = sum((x - xbar)(y - ybar)) / sum((x - xbar)^2) and the intercept
+// is b0 = ybar - b1 * xbar. epher's linreg fits the same line, so the
+// print of linreg below is the cross-check. The line then predicts the
+// score for six study hours, just past the data.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/regression/linear-regression-prediction.epher"
+// In the REPL:             load epher scripts/statistics/regression/linear-regression-prediction.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// The knobs to edit are `xs` and `ys` below. Everything above the results
+// section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs -----------------------------------------------------------------
+const xs = {1, 2, 3, 4, 5}       // hours of study, one per student
+const ys = {2.1, 3.8, 6.1, 7.9, 10.2}   // practice-test scores out of 15
+
+// ---- helpers: the classroom least-squares formulas ------------------------------
+def mx() = mean(xs)                    /* mean of x */
+def my() = mean(ys)                    /* mean of y */
+def sxy() = sum((xs - mx()) * (ys - my()))  /* sum of x-deviation times y-deviation */
+def sxx() = sum((xs - mx()) ^ 2)            /* sum of squared x-deviations */
+def b1() = sxy() / sxx()                   /* the least-squares slope */
+def b0() = my() - b1() * mx()              /* the least-squares intercept */
+
+// ---- the pieces of the fit -----------------------------------------------------------
+print("sum of x-deviation times y-deviation:", sxy())
+print("sum of squared x-deviations:", sxx())
+print("slope b1:", b1())
+print("intercept b0:", b0())
+
+// ---- prediction at a new x -------------------------------------------------------------
+print("predicted score at 6 hours:", b0() + b1() * 6)
+linreg(xs, ys)      // cross-check: the builtin reports the same line
+
+// ---- expected output ----
+// = {1, 2, 3, 4, 5}
+// = {2.1, 3.8, 6.1, 7.9, 10.2}
+// = sum of x-deviation times y-deviation: 20.3
+// = sum of squared x-deviations: 10
+// = slope b1: 2.03
+// = intercept b0: -0.07
+// = predicted score at 6 hours: 12.11
+// = y = 2.03*x + -0.07 (r = 0.9988)

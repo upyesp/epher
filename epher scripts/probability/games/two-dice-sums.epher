@@ -1,0 +1,39 @@
+// ============================================================================
+// two-dice-sums.epher -- the exact distribution of the sum of two dice
+//
+// Two fair dice give 36 equally likely ordered pairs (a, b), so the sum
+// s = a + b occurs in s - 1 of those pairs when s <= 7 and in 13 - s of
+// them when s > 7 (the distribution is triangular, peaking at s = 7).
+// The probabilities are the counts over 36, and every one of them is an
+// exact fraction here: 6/36 = 1/6 for the sum 7.
+//
+// Source: the standard counting argument; Feller, "An Introduction to
+// Probability Theory and Its Applications", volume 1, chapter 1.
+//
+// Run it from a terminal:  epher "epher scripts/probability/games/two-dice-sums.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+// ============================================================================
+
+// ---- results ----
+// The count of pairs giving each sum from 2 to 12: {1, 2, ..., 6, ...}.
+for s in 2 to 12 do if s <= 7 then s - 1 else 13 - s
+
+// The same counts over 36, as exact probabilities.
+for s in 2 to 12 do (if s <= 7 then s - 1 else 13 - s) / 36
+
+// The anchor: P(sum 7) = 6/36 = 1/6, and the two extreme sums are the
+// rarest with 1/36 each.
+print("P(sum 7):", 6 / 36)
+print("P(sum 2):", 1 / 36)
+print("P(sum 12):", 1 / 36)
+
+// Self-checks: the eleven counts add to the 36 ordered pairs, so the
+// probabilities sum to 1, and the distribution is symmetric about 7.
+print("the counts add to 36:", 1 + 2 + 3 + 4 + 5 + 6 + 5 + 4 + 3 + 2 + 1 == 36)
+// ---- expected output ----
+// = {1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1}
+// = {1/36, 1/18, 1/12, 1/9, 5/36, 1/6, 5/36, 1/9, 1/12, 1/18, 1/36}
+// = P(sum 7): 1/6
+// = P(sum 2): 1/36
+// = P(sum 12): 1/36
+// = the counts add to 36: true

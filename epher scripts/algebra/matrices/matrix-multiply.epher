@@ -1,0 +1,33 @@
+// ============================================================================
+// matrix-multiply.epher -- products of a 2x2 pair and a 2x3 times 3x2 pair
+//
+// The built-in * multiplies matrices: entry (AB)[r][c] is the dot product
+// of row r of A with column c of B, and the inner dimensions must match
+// (any linear algebra text, e.g. Strang, "Introduction to Linear Algebra",
+// 5th ed., sec. 1.4). The classic check 2x2 product is
+// [[1,2],[3,4]] [[5,6],[7,8]] = [[19,22],[43,50]], and the last line
+// recomputes one entry by hand. All values are exact.
+//
+// Run it from a terminal:  epher "epher scripts/algebra/matrices/matrix-multiply.epher"
+//
+// The knobs to edit are the matrices P, Q, R and S below.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const P = [[1, 2], [3, 4]]
+const Q = [[5, 6], [7, 8]]
+const R = [[1, 2, 3], [4, 5, 6]]       // 2 rows, 3 columns
+const S = [[7, 8], [9, 10], [11, 12]]  // 3 rows, 2 columns
+
+// ---- results -----------------------------------------------------------------
+print("P Q (2x2 times 2x2):", P * Q)
+print("R S (2x3 times 3x2):", R * S)
+print("entry (P Q)[2][1] by hand:", P[2][1] * Q[1][1] + P[2][2] * Q[2][1])
+// ---- expected output ----
+// = [[1, 2], [3, 4]]
+// = [[5, 6], [7, 8]]
+// = [[1, 2, 3], [4, 5, 6]]
+// = [[7, 8], [9, 10], [11, 12]]
+// = P Q (2x2 times 2x2): [[19, 22], [43, 50]]
+// = R S (2x3 times 3x2): [[58, 64], [139, 154]]
+// = entry (P Q)[2][1] by hand: 43

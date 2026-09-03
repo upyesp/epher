@@ -5,7 +5,8 @@
   "description": "Build tooling for the epher.org landing page and user guides",
   "scripts": {
     "build:guide": "node scripts/build-guide.mjs",
-    "build:examples": "node scripts/build-examples.mjs"
+    "build:examples": "node scripts/build-examples.mjs",
+    "build:scripts": "node scripts/build-scripts.mjs"
   },
   "dependencies": {
     "marked": "^12.0.2"

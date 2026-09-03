@@ -1,0 +1,42 @@
+// ============================================================================
+// cagr.epher -- compound annual growth rate of an investment over several
+// years
+//
+// An investment that grows from start to end over n years has the compound
+// annual growth rate cagr = (end/start)^(1/n) - 1: the single yearly rate
+// that would produce the same final value when compounded. The script also
+// compounds the rate back over the n years, which must recover the end
+// value. Source: standard finance formulas; see Kellison, The Theory of
+// Interest, chapter 2.
+//
+// Accuracy: the rate is irrational and prints to 12 digits; the check line
+// recovers 35000 to all twelve displayed digits.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/investing/cagr.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const start = 10000         // value at the beginning, USD
+const end = 35000           // value n years later, USD
+const years = 8             // years between the two values
+
+// ---- helpers ----------------------------------------------------------------
+def cagr(s, e, n) = (e / s) ^ (1 / n) - 1   // compound annual growth rate
+
+// ---- results -----------------------------------------------------------------
+print("cagr:", cagr(start, end, years))
+print("cagr in percent:", cagr(start, end, years) * 100)
+print("compounding check, start*(1+cagr)^8:", start * (1 + cagr(start, end, years)) ^ years)
+// The 10000 grew to 35000 in 8 years: a smooth 16.952% a year, even if the
+// year-by-year returns actually swung around that average.
+// ---- expected output ----
+// = 10000
+// = 35000
+// = 8
+// = cagr: 0.169522295584
+// = cagr in percent: 16.9522295584
+// = compounding check, start*(1+cagr)^8: 35000

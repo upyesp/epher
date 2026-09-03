@@ -1,0 +1,36 @@
+// ============================================================================
+// gcd-of-two-numbers.epher -- the greatest common divisor of pairs
+//
+// Calls the gcd builtin on several pairs. The builtin is Euclid's
+// algorithm (Elements, book VII, proposition 2), so the script does not
+// reimplement it; the comments spell out the Euclidean chain for the
+// classic pair 48 and 36: 48 = 36 * 1 + 12, 36 = 12 * 3 + 0, so the last
+// nonzero remainder 12 is the gcd. gcd(0, n) = n because everything
+// divides 0.
+//
+// Source: Euclid's Elements, book VII; see Hardy and Wright, "An
+// Introduction to the Theory of Numbers", ch. 1. gcd is exact.
+//
+// Run it from a terminal:  epher "epher scripts/number-theory/divisors/gcd-of-two-numbers.epher"
+// In the REPL:             load epher scripts/number-theory/divisors/gcd-of-two-numbers.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// There is no knob: the sample pairs are the point of the script.
+// ============================================================================
+
+// ---- the classic check -----------------------------------------------------------
+print("gcd(48, 36):", gcd(48, 36))          // 12: the Euclidean chain above
+print("gcd(17, 5):", gcd(17, 5))            // 1: 17 and 5 are coprime
+print("gcd(100, 75):", gcd(100, 75))        // 25: 100 = 4 * 25, 75 = 3 * 25
+print("gcd(35, 49):", gcd(35, 49))          // 7: 35 = 5 * 7, 49 = 7^2
+print("gcd(8, 12):", gcd(8, 12))            // 4, and not the lcm 24
+print("gcd(0, 5):", gcd(0, 5))              // 5: every number divides 0
+print("gcd(7, 11):", gcd(7, 11))            // 1: two primes that differ
+// ---- expected output ----
+// = gcd(48, 36): 12
+// = gcd(17, 5): 1
+// = gcd(100, 75): 25
+// = gcd(35, 49): 7
+// = gcd(8, 12): 4
+// = gcd(0, 5): 5
+// = gcd(7, 11): 1

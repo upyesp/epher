@@ -1,0 +1,47 @@
+// ============================================================================
+// dice-sum-simulation.epher -- 6000 two-dice rolls, counting the 7s
+//
+// Roll two fair dice 6000 times and count how often the sum is 7. The
+// theoretical rate is P(sum 7) = 6/36 = 1/6, so the count should sit
+// near 1000 with a standard deviation of sqrt(6000 * 1/6 * 5/6) = 28.9;
+// the seeded run below is expected to land within about two standard
+// deviations, and the empirical frequency within 0.015 of 1/6.
+//
+// Each roll is randint(1, 6) + randint(1, 6) after randseed(11). The
+// stream is reproducible: the same seed replays the same rolls, so
+// every run of this file prints the same count.
+//
+// Source: standard Monte Carlo practice; see Ross, "Simulation",
+// chapter 4.
+//
+// Run it from a terminal:  epher "epher scripts/probability/simulations/dice-sum-simulation.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+//
+// The knob to edit is `rolls`; everything below it is machinery.
+// ============================================================================
+
+// ---- the knobs ----
+const rolls = 6000
+
+// ---- results ----
+// The packed loop {roll number, count of sevens}: one pair of dice per
+// step, counted when the two faces add to 7.
+randseed(11)
+v = {0, 0}
+while v[1] < rolls do v = {v[1] + 1, v[2] + (if randint(1, 6) + randint(1, 6) == 7 then 1 else 0)}
+
+// The count, the expectation and the two rates.
+print("rolls:", rolls)
+print("count of sums equal to 7:", v[2])
+print("expected count, 6000 / 6:", rolls / 6)
+print("empirical frequency:", v[2] / rolls)
+print("theoretical frequency 1/6:", 1/6)
+// ---- expected output ----
+// = 6000
+// = 11
+// = {0, 0}
+// = rolls: 6000
+// = count of sums equal to 7: 985
+// = expected count, 6000 / 6: 1000
+// = empirical frequency: 0.164166666667
+// = theoretical frequency 1/6: 1/6

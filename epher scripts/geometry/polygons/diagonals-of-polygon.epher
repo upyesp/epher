@@ -1,0 +1,34 @@
+// ============================================================================
+// diagonals-of-polygon.epher -- diagonals of a convex n-gon
+//
+// Each of the n vertices connects to n - 3 others (everyone but itself
+// and its two neighbors), and each diagonal is counted twice that way,
+// so the number of diagonals is n (n - 3) / 2 (standard formula). The
+// results are exact: 5 * 2 / 2 = 5 for the pentagon and 6 * 3 / 2 = 9
+// for the hexagon.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/polygons/diagonals-of-polygon.epher"
+// In the REPL:             load epher scripts/geometry/polygons/diagonals-of-polygon.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The values of n to try are in the results section below; edit them
+// there.
+// ============================================================================
+
+// ---- the model ----------------------------------------------------------------
+def diag(n) = n * (n - 3) / 2   // diagonals of a convex n-gon
+
+// ---- results ------------------------------------------------------------------
+print("quadrilateral:", diag(4))
+print("pentagon:", diag(5))
+print("hexagon:", diag(6))
+print("octagon:", diag(8))
+print("decagon:", diag(10))
+print("pentagon and hexagon checks:", diag(5) == 5, diag(6) == 9)
+// ---- expected output ----
+// = quadrilateral: 2
+// = pentagon: 5
+// = hexagon: 9
+// = octagon: 20
+// = decagon: 35
+// = pentagon and hexagon checks: true true

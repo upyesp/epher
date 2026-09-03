@@ -1,0 +1,50 @@
+// ============================================================================
+// poisson-pmf.epher -- Poisson point probabilities around rate 2
+//
+// The Poisson distribution models the count of rare independent events
+// in a fixed window: if calls arrive at a switchboard at a mean rate of
+// `rate` per minute, the number X of calls in one minute satisfies
+//
+//   P(X = k) = e^-rate * rate^k / k!,
+//
+// and epher's poissonpdf(k, rate) builtin evaluates that formula. This
+// script reads the builtin for k = 0..5 and verifies one point against
+// the formula written out by hand. The builtin prints floats with tiny
+// noise around the last digit, which the comparison below tolerates.
+//
+// Source: Ross, "A First Course in Probability", chapter 4.
+//
+// Run it from a terminal:  epher "epher scripts/probability/distributions/poisson-pmf.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+//
+// The knob to edit is `rate`; everything below it is machinery.
+// ============================================================================
+
+// ---- the knob ----
+const rate = 2
+
+// ---- results ----
+// The point probabilities for k = 0..2 and k = 3..5 (two short collected
+// lists keep the lines readable).
+for k in 0 to 2 do poissonpdf(k, rate)
+for k in 3 to 5 do poissonpdf(k, rate)
+
+// The distribution is dominated by small k: at 2 calls per minute, a
+// minute with three calls has probability about 0.180, and five calls
+// about 0.036.
+
+// Verify P(X = 3) against the formula e^-rate * rate^3 / 3!.
+print("formula e^-2 * 2^3 / 3!:", exp(-2) * 2 ^ 3 / fact(3))
+print("poissonpdf(3, 2):", poissonpdf(3, rate))
+
+// P(X = 0) = e^-rate is the quiet-minute probability.
+print("P(X = 0) = e^-2:", exp(-2))
+print("poissonpdf(0, 2):", poissonpdf(0, rate))
+// ---- expected output ----
+// = 2
+// = {0.135335283237, 0.270670566476, 0.270670566477}
+// = {0.180447044318, 0.0902235221593, 0.0360894088637}
+// = formula e^-2 * 2^3 / 3!: 0.180447044315
+// = poissonpdf(3, 2): 0.180447044318
+// = P(X = 0) = e^-2: 0.135335283237
+// = poissonpdf(0, 2): 0.135335283237

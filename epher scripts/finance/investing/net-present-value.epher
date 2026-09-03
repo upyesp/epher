@@ -1,0 +1,39 @@
+// ============================================================================
+// net-present-value.epher -- npv of a small project at an 8% cost of
+// capital, and the accept/reject decision it implies
+//
+// The net present value discounts every cash flow back to today at the cost
+// of capital r: npv = sum of flow_k/(1+r)^k, with year 0's outflow counted
+// at k = 0. The finance builtin npv(r, flows) computes the sum. A positive
+// npv means the project earns more than the 8% the money could earn
+// elsewhere, so it adds value; a negative one destroys value. Source:
+// standard capital-budgeting formulas; see Brealey and Myers, Principles of
+// Corporate Finance, chapter 2 (the classic reference for npv).
+//
+// Cash flows: the project costs 100000 today and returns 30000, 40000,
+// 40000 and 30000 over the next four years.
+//
+// Accuracy: 12 displayed digits.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/investing/net-present-value.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const rate = 8%             // the cost of capital (hurdle rate)
+const flows = {-100000, 30000, 40000, 40000, 30000}   // year 0 outflow, then four yearly inflows, USD
+
+// ---- results -----------------------------------------------------------------
+print("net present value at 8%:", npv(rate, flows))
+print("decision:", if npv(rate, flows) > 0 then "accept: the project earns more than the 8% cost of capital" else "reject: the project destroys value at an 8% cost of capital")
+// The npv of 15875.52 is the value the project adds, in today's money,
+// after paying for the capital it uses. The sibling script
+// internal-rate-of-return.epher asks the same question as a rate.
+// ---- expected output ----
+// = 0.08
+// = {-100000, 30000, 40000, 40000, 30000}
+// = net present value at 8%: 15875.5158145
+// = decision: accept: the project earns more than the 8% cost of capital

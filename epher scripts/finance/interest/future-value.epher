@@ -1,0 +1,39 @@
+// ============================================================================
+// future-value.epher -- what a lump sum grows to at a compound rate, three
+// ways that must agree
+//
+// A sum P invested for n years at annual rate r grows to P*(1+r)^n. This
+// script computes that future value with the finance builtin tvm_fv and
+// cross-checks it against the plain compound formula and against the
+// compound_interest builtin (interest plus the original principal).
+// Source: standard finance formulas; see Kellison, The Theory of Interest,
+// chapters 1-2.
+//
+// Accuracy: all three routes agree to all twelve displayed digits.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/interest/future-value.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const principal = 10000     // the lump sum, USD
+const rate = 5%             // annual rate
+const years = 20            // years invested
+
+// ---- results -----------------------------------------------------------------
+// The builtin tvm_fv(n, i, pv, pmt) with no periodic payments: the principal
+// is entered negative (money out today), the future value comes back
+// positive. With pmt = 0 the builtin is exactly the compound formula.
+print("future value, builtin tvm_fv:", tvm_fv(years, rate, -principal, 0))
+print("future value, compound formula:", principal * (1 + rate) ^ years)
+print("compound_interest plus principal:", compound_interest(principal, rate, years) + principal)
+// ---- expected output ----
+// = 10000
+// = 0.05
+// = 20
+// = future value, builtin tvm_fv: 26532.9770514
+// = future value, compound formula: 26532.9770514
+// = compound_interest plus principal: 26532.9770514

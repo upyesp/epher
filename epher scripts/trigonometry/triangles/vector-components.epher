@@ -1,0 +1,65 @@
+// ============================================================================
+// vector-components.epher -- magnitude and direction into x/y, and back
+//
+// A vector of magnitude m at angle t to the x-axis has components
+// x = m cos t and y = m sin t; the builtin atan2(y, x) inverts the pair:
+// its argument is the direction the vector came from, and atan2 keeps the
+// signs straight, which the single-argument atan cannot do (t = 210 deg
+// below would look like 30 deg to atan). Rebuilding the magnitude with
+// sqrt(x^2 + y^2) closes the round trip. Angles are degrees through the
+// knobs, converted with rad() for the builtin trig; the vector keeps
+// meters.
+//
+// Run it from a terminal:  epher "epher scripts/trigonometry/triangles/vector-components.epher"
+// In the REPL:             load epher scripts/trigonometry/triangles/vector-components.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are the two vector pairs below (magnitude in meters,
+// direction in degrees). Printed values carry about 12 significant digits.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const mag1 = 12.5 m   // first vector's magnitude
+const t1 = 210        // first vector's direction, degrees (third quadrant)
+const mag2 = 8 m      // second vector's magnitude
+const t2 = 45         // second vector's direction, degrees
+
+// ---- helpers ----------------------------------------------------------------
+def vx(m, t) = m * cos(rad(t))      // x component of magnitude m at angle t
+def vy(m, t) = m * sin(rad(t))      // y component of magnitude m at angle t
+def vmag(x, y) = sqrt((x ^ 2) + (y ^ 2))   // magnitude back from components
+def vdir(x, y) = if deg(atan2(y, x)) < 0 then deg(atan2(y, x)) + 360 else deg(atan2(y, x))   // direction back, in [0, 360)
+
+// ---- results -----------------------------------------------------------------
+// First vector: 12.5 m at 210 deg. Both components come out negative:
+// cos(210 deg) = -sqrt(3)/2 and sin(210 deg) = -1/2.
+print("x:", vx(mag1, t1))
+print("y:", vy(mag1, t1))
+
+// The round trip: atan2 returns -150 deg for the third-quadrant pair, so
+// vdir adds 360 deg to land back on 210 deg.
+print("magnitude back:", vmag(vx(mag1, t1), vy(mag1, t1)))
+print("direction back:", vdir(vx(mag1, t1), vy(mag1, t1)), "deg")
+print("round trip magnitude:", abs(vmag(vx(mag1, t1), vy(mag1, t1)) / mag1 - 1) < 1e-12)
+print("round trip direction:", abs(vdir(vx(mag1, t1), vy(mag1, t1)) - t1) < 1e-9)
+
+// Second vector: 8 m at 45 deg, where x = y = 8 sqrt(2)/2 ~ 5.6569 m.
+print("x:", vx(mag2, t2))
+print("y:", vy(mag2, t2))
+print("magnitude back:", vmag(vx(mag2, t2), vy(mag2, t2)))
+print("direction back:", vdir(vx(mag2, t2), vy(mag2, t2)), "deg")
+// ---- expected output
+// = 12.5 m
+// = 210
+// = 8 m
+// = 45
+// = x: -10.8253175473 m
+// = y: -6.25 m
+// = magnitude back: 12.5 m
+// = direction back: 210 deg
+// = round trip magnitude: true
+// = round trip direction: true
+// = x: 5.65685424949 m
+// = y: 5.65685424949 m
+// = magnitude back: 8 m
+// = direction back: 45 deg

@@ -1,0 +1,48 @@
+// ============================================================================
+// mortgage-total-interest.epher -- interest paid over the full life of a
+// 30-year fixed-rate mortgage
+//
+// Over n months of payment pmt on a principal P, the borrower pays n*pmt
+// in total, of which n*pmt - P is interest (the principal is repaid exactly
+// once). The payment comes from the finance builtin tvm_pmt, the same
+// annuity formula as the sibling script mortgage-payment.epher. Source:
+// standard amortization formulas; see Kellison, The Theory of Interest,
+// chapter 3.
+//
+// Sign convention: principal negative, payment positive, as in the builtin
+// example tvm_pmt(360, 0.08/12, -100000, 0).
+//
+// Accuracy: 12 displayed digits; rounding to the cent is omitted.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/loans/mortgage-total-interest.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const principal = 250000    // loan amount at closing, USD
+const rate = 6.5%           // quoted annual rate
+const years = 30            // term in years
+
+// ---- helpers ----------------------------------------------------------------
+def cents(x) = floor(x * 100 + 0.5) / 100   // rounds to the cent, for display
+
+// ---- results -----------------------------------------------------------------
+payment = tvm_pmt(years * 12, rate / 12, -principal, 0)   // monthly payment, USD
+print("monthly payment:", payment)
+print("total paid over the term:", cents(payment * (years * 12)))
+print("total interest over the term:", cents(payment * (years * 12) - principal))
+// The totals round the 360 full-precision payments to the cent, the way real
+// mortgages are paid; the unrounded total is 568861.2211436688. Interest
+// dominates early: the first month's interest alone is principal*rate/12 =
+// 1354.17 of the 1580.17 payment, about 86%.
+// ---- expected output ----
+// = 250000
+// = 0.065
+// = 30
+// = 1580.17005873
+// = monthly payment: 1580.17005873
+// = total paid over the term: 568861.22
+// = total interest over the term: 318861.22

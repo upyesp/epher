@@ -1,0 +1,41 @@
+// ============================================================================
+// mortgage-payment.epher -- monthly payment of a 30-year fixed-rate mortgage
+//
+// A mortgage of P at annual rate r over n months is an annuity: each month
+// the borrower pays the same amount, and the payment formula is
+// pmt = P*i/(1 - (1+i)^-n) with i = r/12, solved here by the finance
+// builtin tvm_pmt (see the finance builtins in "epher scripts/README.md").
+// Source: standard amortization formulas; see Kellison, The Theory of
+// Interest, chapter 3.
+//
+// Sign convention: the principal is entered negative and the payment comes
+// back positive, exactly as in the builtin's own example
+// tvm_pmt(360, 0.08/12, -100000, 0) = 733.764573879. Only the size of the
+// payment matters below.
+//
+// Accuracy: 12 displayed digits. Real lenders round the payment to the
+// cent, and escrow for tax and insurance is separate; both are omitted.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/loans/mortgage-payment.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const principal = 250000    // loan amount at closing, USD
+const rate = 6.5%           // quoted annual rate (APR-style, monthly compounding)
+const years = 30            // term in years
+
+// ---- results -----------------------------------------------------------------
+// n = 30*12 = 360 months, i = 6.5%/12 per month. The payment is constant
+// over the whole term (end of each month, the builtin's default timing).
+print("monthly payment:", tvm_pmt(years * 12, rate / 12, -principal, 0))
+print("annual total (12 payments):", 12 * tvm_pmt(years * 12, rate / 12, -principal, 0))
+// ---- expected output ----
+// = 250000
+// = 0.065
+// = 30
+// = monthly payment: 1580.17005873
+// = annual total (12 payments): 18962.0407048

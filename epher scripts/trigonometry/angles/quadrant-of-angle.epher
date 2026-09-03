@@ -1,0 +1,50 @@
+// ============================================================================
+// quadrant-of-angle.epher -- which quadrant an angle lands in
+//
+// An angle in standard position lands in one of four quadrants, or on an
+// axis when it is a multiple of 90 deg. The recipe: reduce the angle to
+// [0, 360) (see coterminal-angles.epher in this folder), then compare with
+// the four boundaries 0, 90, 180 and 270 deg. The boundaries are checked
+// first, so 90 deg reports the positive y-axis and 270 the negative one,
+// not a quadrant.
+//
+// Run it from a terminal:  epher "epher scripts/trigonometry/angles/quadrant-of-angle.epher"
+// In the REPL:             load epher scripts/trigonometry/angles/quadrant-of-angle.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The one knob to edit is the `angs` list below (degrees); an axis angle,
+// a negative angle and an angle past a turn are included on purpose.
+// ============================================================================
+
+// ---- the knob ---------------------------------------------------------------
+const angs = {45, 135, 225, 315, 0, 90, 180, 270, -90, 390}   // angles, in degrees
+
+// ---- helpers ----------------------------------------------------------------
+def reduce360(x) = x - 360 * floor(x / 360)   // angle into [0, 360)
+def quad(x) = if reduce360(x) == 0 then "the positive x-axis" else if reduce360(x) == 90 then "the positive y-axis" else if reduce360(x) == 180 then "the negative x-axis" else if reduce360(x) == 270 then "the negative y-axis" else if reduce360(x) < 90 then "quadrant I" else if reduce360(x) < 180 then "quadrant II" else if reduce360(x) < 270 then "quadrant III" else "quadrant IV"
+
+// ---- results -----------------------------------------------------------------
+// One line per knob angle: the angle, then where it lands. -90 deg reduces
+// to 270, the negative y-axis, and 390 deg reduces to 30, quadrant I.
+print(angs[1], "deg ->", quad(angs[1]))
+print(angs[2], "deg ->", quad(angs[2]))
+print(angs[3], "deg ->", quad(angs[3]))
+print(angs[4], "deg ->", quad(angs[4]))
+print(angs[5], "deg ->", quad(angs[5]))
+print(angs[6], "deg ->", quad(angs[6]))
+print(angs[7], "deg ->", quad(angs[7]))
+print(angs[8], "deg ->", quad(angs[8]))
+print(angs[9], "deg ->", quad(angs[9]))
+print(angs[10], "deg ->", quad(angs[10]))
+// ---- expected output
+// = {45, 135, 225, 315, 0, 90, 180, 270, -90, 390}
+// = 45 deg -> quadrant I
+// = 135 deg -> quadrant II
+// = 225 deg -> quadrant III
+// = 315 deg -> quadrant IV
+// = 0 deg -> the positive x-axis
+// = 90 deg -> the positive y-axis
+// = 180 deg -> the negative x-axis
+// = 270 deg -> the negative y-axis
+// = -90 deg -> the negative y-axis
+// = 390 deg -> quadrant I

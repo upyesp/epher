@@ -1,0 +1,56 @@
+// ============================================================================
+// carbon-dating.epher -- age of a sample from its carbon-14 fraction
+//
+// Radiocarbon dating (Libby, 1949; any archaeology text) reads the age
+// of a sample off the fraction of carbon-14 still in it. With decay
+// constant lambda = ln(2)/5730 per year (half-life 5730 years), the
+// fraction left after t years is e^(-lambda t), so the age is
+//
+//   age = -ln(fraction) * 5730/ln(2)
+//
+// The script ages three samples (50%, 25% and 90% of the original
+// carbon-14), checks the two textbook anchors (half left means 5730
+// years, a quarter left means 11460 years) and runs a round trip: a
+// sample that has decayed for 10000 years holds fraction 0.29829..., a
+// value the age formula sends back to 10000 years.
+//
+// Assumptions, stated honestly: the decay constant is unchanged over
+// time, the sample's initial carbon-14 matched the atmosphere of its
+// day, and nothing was added or removed since (no contamination).
+//
+// Accuracy: the anchors print exactly 5730 and 11460; the round trip
+// agrees to better than 1e-6 years.
+//
+// Run:  epher "epher scripts/calculus/models/carbon-dating.epher"
+// The knob to edit is `thalf` (or the sample fractions in `fs`).
+// ============================================================================
+
+// ---- the knobs --------------------------------------------------------------
+const thalf = 5730               // half-life of carbon-14, years
+const fs = {0.5, 0.25, 0.9}      // fractions of carbon-14 left
+
+// ---- helpers ----------------------------------------------------------------
+def age(f) = -thalf*ln(f)/ln(2)          // sample age in years
+def leftover(t) = e^(-ln(2)*t/thalf)     // fraction left after t years
+
+// ---- ages of the three samples, as a collected list -------------------------
+for f in fs do age(f)
+
+// ---- the anchors: 50% left is 5730 years, 25% left is 11460 years -----------
+abs(age(0.5) - 5730) < 1e-6
+abs(age(0.25) - 2*thalf) < 1e-6
+
+// ---- round trip: 10000 years of decay, then back to 10000 years -------------
+print("fraction left after 10000 years:", leftover(10000))
+print("age of that fraction, years:", age(leftover(10000)))
+abs(age(leftover(10000)) - 10000) < 1e-6
+
+// ---- expected output ---------------------------------------------------------
+// = 5730
+// = {0.5, 0.25, 0.9}
+// = {5730, 11460, 870.97772544}
+// = true
+// = true
+// = fraction left after 10000 years: 0.298292436424
+// = age of that fraction, years: 10000
+// = true

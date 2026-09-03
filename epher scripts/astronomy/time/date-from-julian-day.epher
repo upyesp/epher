@@ -1,0 +1,67 @@
+// ============================================================================
+// date-from-julian-day.epher -- Julian Date back to a calendar date
+//
+// The inverse of jd(y, m, d): turns a Julian Date into year, month and
+// day with the algorithm of chapter 7 of Jean Meeus, "Astronomical
+// Algorithms" (2nd ed., Willmann-Bell, 1998), Gregorian calendar. The
+// steps are floor arithmetic on the day number a = floor(jd + 0.5); the
+// constants 365.25 and 30.6001 are the calendar's mean month and year
+// in the form the tables use. Meeus's day carries the time of day as a
+// fraction; the test JDs below all fall at 0h or 12h UT, so flooring
+// the day is enough. Every result is checked by a round trip back
+// through jd(), which prints true when the pair of functions agree.
+//
+// Run it from a terminal:  epher "epher scripts/astronomy/time/date-from-julian-day.epher"
+// In the REPL:             load epher scripts/astronomy/time/date-from-julian-day.epher
+//
+// Knob: none - the dates below are fixed, including leap-day and
+// century-boundary cases the round trips exercise.
+// ============================================================================
+
+// ---- Meeus ch. 7: JD to calendar date (Gregorian), one step per def -------
+def m7a(jd) = floor(jd + 0.5)                       // a: day number
+def m7alpha(a) = floor((a - 1867216.25) / 36524.25) // Gregorian correction
+def m7b(a) = a + 1 + m7alpha(a) - floor(m7alpha(a) / 4)
+def m7c(b) = b + 1524
+def m7d(c) = floor((c - 122.1) / 365.25)
+def m7e(d) = floor(365.25 * d)
+def m7f(c) = floor((c - m7e(m7d(c))) / 30.6001)
+def m7day(c) = c - m7e(m7d(c)) - floor(30.6001 * m7f(c))
+def m7month(c) = if m7f(c) < 14 then m7f(c) - 1 else m7f(c) - 13
+def m7year(c) = if m7month(c) > 2 then m7d(c) - 4716 else m7d(c) - 4715
+def ymd(jd) = {m7year(m7c(m7b(m7a(jd)))), m7month(m7c(m7b(m7a(jd)))), floor(m7day(m7c(m7b(m7a(jd)))))}
+
+// ---- display -----------------------------------------------------------------
+def pad2(n) = if n < 10 then "0" + str(n) else str(n)
+def iso(t) = str(t[1]) + "-" + pad2(t[2]) + "-" + pad2(t[3])
+
+// ---- results ----------------------------------------------------------------
+// Round trips: the date of a JD that jd() produced, and the check that
+// converting back yields the original JD (true on every line). The
+// famous bare JD 2451545 is J2000.0, noon on 2000-01-01; ymd() returns
+// the calendar date (the day's fraction carries the 12:00, which the
+// date alone cannot recover), and flooring the day reads 01 as 1.
+print("jd(2026, 3, 15) ->", iso(ymd(jd(2026, 3, 15))))
+print("round trip:", jd(ymd(jd(2026, 3, 15))[1], ymd(jd(2026, 3, 15))[2], ymd(jd(2026, 3, 15))[3]) == jd(2026, 3, 15))
+print("J2000.0, JD 2451545 ->", iso(ymd(2451545)))
+print("leap day, jd(2000, 2, 29) ->", iso(ymd(jd(2000, 2, 29))))
+print("round trip:", jd(ymd(jd(2000, 2, 29))[1], ymd(jd(2000, 2, 29))[2], ymd(jd(2000, 2, 29))[3]) == jd(2000, 2, 29))
+print("Gregorian start, jd(1582, 10, 15) ->", iso(ymd(jd(1582, 10, 15))))
+print("round trip:", jd(ymd(jd(1582, 10, 15))[1], ymd(jd(1582, 10, 15))[2], ymd(jd(1582, 10, 15))[3]) == jd(1582, 10, 15))
+print("century non-leap, jd(2100, 2, 28) ->", iso(ymd(jd(2100, 2, 28))))
+print("round trip:", jd(ymd(jd(2100, 2, 28))[1], ymd(jd(2100, 2, 28))[2], ymd(jd(2100, 2, 28))[3]) == jd(2100, 2, 28))
+print("year end, jd(2026, 12, 31) ->", iso(ymd(jd(2026, 12, 31))))
+print("round trip:", jd(ymd(jd(2026, 12, 31))[1], ymd(jd(2026, 12, 31))[2], ymd(jd(2026, 12, 31))[3]) == jd(2026, 12, 31))
+
+// ---- expected output ----
+// = jd(2026, 3, 15) -> 2026-03-15
+// = round trip: true
+// = J2000.0, JD 2451545 -> 2000-01-01
+// = leap day, jd(2000, 2, 29) -> 2000-02-29
+// = round trip: true
+// = Gregorian start, jd(1582, 10, 15) -> 1582-10-15
+// = round trip: true
+// = century non-leap, jd(2100, 2, 28) -> 2100-02-28
+// = round trip: true
+// = year end, jd(2026, 12, 31) -> 2026-12-31
+// = round trip: true

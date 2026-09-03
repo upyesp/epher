@@ -1,0 +1,30 @@
+// ============================================================================
+// quadratic-regression.epher -- fit a parabola to braking distance data
+//
+// Fits the least-squares curve y = a * x^2 + b * x + c to the braking
+// distances in `ys` recorded at the speeds in `xs` with the builtin
+// quadreg (guide 1.20), which prints the fitted model and the
+// correlation r as a display string. Physics says braking distance grows
+// with the square of speed, so a parabola should fit well; r = 0.9985
+// confirms it. The data are illustrative example values.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/regression/quadratic-regression.epher"
+// In the REPL:             load epher scripts/statistics/regression/quadratic-regression.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// The knobs to edit are `xs` and `ys` below. Everything above the results
+// section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs -----------------------------------------------------------------
+const xs = {20, 30, 40, 50, 60}   // speed, kilometers per hour
+const ys = {6.4, 13.2, 25.8, 37.4, 58.1}   // braking distance, meters
+
+// ---- the fitted parabola ------------------------------------------------------------
+quadreg(xs, ys)     // least-squares quadratic, printed with its correlation r
+
+// ---- expected output ----
+// = {20, 30, 40, 50, 60}
+// = {6.4, 13.2, 25.8, 37.4, 58.1}
+// = y = 0.0191*x^2 + -0.2554*x + 3.94 (r = 0.9985)

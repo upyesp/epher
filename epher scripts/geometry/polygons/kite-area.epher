@@ -1,0 +1,34 @@
+// ============================================================================
+// kite-area.epher -- area of a kite from its diagonals
+//
+// The diagonals of a kite (a quadrilateral with two pairs of adjacent
+// equal sides) are perpendicular, so the long diagonal splits the kite
+// into two triangles and the area is A = d1 d2 / 2, the same rule that
+// holds for the rhombus (standard formula). With diagonals 6 and 4 the
+// area is 12, exactly.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/polygons/kite-area.epher"
+// In the REPL:             load epher scripts/geometry/polygons/kite-area.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are `d1` and `d2`, the two diagonals.
+// Everything above the results section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs ----------------------------------------------------------------
+const d1 = 6
+const d2 = 4
+
+// ---- the model ----------------------------------------------------------------
+def area(d1, d2) = d1 * d2 / 2   // A = d1 d2 / 2 for perpendicular diagonals
+
+// ---- results ------------------------------------------------------------------
+print("area:", area(d1, d2))
+print("two triangles of area d1 d2 / 4 each:", 2 * (d1 / 2 * d2 / 2))
+print("matches d1 d2 / 2:", area(d1, d2) == 6 * 4 / 2)
+// ---- expected output ----
+// = 6
+// = 4
+// = area: 12
+// = two triangles of area d1 d2 / 4 each: 12
+// = matches d1 d2 / 2: true

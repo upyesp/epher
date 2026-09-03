@@ -1,0 +1,32 @@
+// ============================================================================
+// box-space-diagonal.epher -- space diagonal of a rectangular box
+//
+// The space diagonal of a box of sides l, w, h is the hypotenuse of the
+// right triangle made of the height and the face diagonal, so
+// d = sqrt(l^2 + w^2 + h^2), Pythagoras applied twice (standard
+// formula). The 3 by 4 by 12 box has diagonal sqrt(9 + 16 + 144) = 13,
+// exact, and the unit cube gives sqrt(3). The last result walks the
+// face-diagonal route and checks it agrees.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/solids/box-space-diagonal.epher"
+// In the REPL:             load epher scripts/geometry/solids/box-space-diagonal.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The boxes to try are in the results section below; edit them there.
+// ============================================================================
+
+// ---- the model ----------------------------------------------------------------
+def diag(l, w, h) = sqrt(l ^ 2 + w ^ 2 + h ^ 2)   // d = sqrt(l^2 + w^2 + h^2)
+def face(l, w) = sqrt(l ^ 2 + w ^ 2)   // the face diagonal, for the check
+def diag2(l, w, h) = sqrt(face(l, w) ^ 2 + h ^ 2)   // Pythagoras twice
+
+// ---- results ------------------------------------------------------------------
+print("3 by 4 by 12 box:", diag(3, 4, 12))
+print("2 by 3 by 6 box:", diag(2, 3, 6))
+print("unit cube:", diag(1, 1, 1))
+print("face-diagonal route:", abs(diag(3, 4, 12) - diag2(3, 4, 12)) < 1e-9)
+// ---- expected output ----
+// = 3 by 4 by 12 box: 13
+// = 2 by 3 by 6 box: 7
+// = unit cube: 1.73205080757
+// = face-diagonal route: true

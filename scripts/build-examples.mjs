@@ -123,11 +123,11 @@ const page = template
     '<meta name="description" content="A programmable, scriptable calculator: command line, terminal UI, desktop app, and offline web app. Graphs in 2D and 3D, exact numerics, eight languages, no accounts." />',
     '<meta name="description" content="Copyable examples for every version of epher: app expressions, REPL sessions with ans, CLI commands, piped scripts, and 2D and 3D graphs." />'
   )
-  // index.html's header nav already carries the Examples link (all site
-  // pages do); mark it as the current page.
+  // index.html's header nav already carries the Examples link under the
+  // Docs item (all site pages do); mark it as the current page.
   .replace(
-    '      <a href="examples.html" data-i18n="nav-examples">Examples</a>',
-    '      <a href="examples.html" aria-current="page" data-i18n="nav-examples">Examples</a>'
+    '          <a href="examples.html" data-i18n="nav-examples">Examples</a>',
+    '          <a href="examples.html" aria-current="page" data-i18n="nav-examples">Examples</a>'
   )
   .replace(
     /<main id="main">[\s\S]*?<\/main>/,

@@ -1,0 +1,35 @@
+// ============================================================================
+// median-of-data.epher -- the middle of a dataset, even and odd counts
+//
+// The median of ten exam scores (an even count: the mean of the two middle
+// values) and of a five-score set (an odd count: the middle value itself),
+// from the builtin median (guide 1.20) and by hand on the sorted list.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/summary/median-of-data.epher"
+// In the REPL:             load epher scripts/statistics/summary/median-of-data.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// The one knob to edit is `d` below. Everything above the results section
+// is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs -----------------------------------------------------------------
+const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students (even count)
+const od = {64, 70, 72, 79, 83}                      // a five-score set (odd count)
+
+// ---- median of the even count: the mean of the two middle values ---------------
+median(d)                   // builtin median
+s = sort(d)                 // the sorted list; the two middle entries straddle
+(s[5] + s[6]) / 2           // the 5th and 6th sorted scores, averaged by hand
+
+// ---- median of the odd count: the middle value itself ---------------------------
+median(od)                  // builtin median of the five scores
+
+// ---- expected output ----
+// = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
+// = {64, 70, 72, 79, 83}
+// = 84
+// = {64, 70, 72, 79, 83, 85, 86, 88, 91, 95}
+// = 84
+// = 72

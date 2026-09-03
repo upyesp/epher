@@ -1,0 +1,34 @@
+// ============================================================================
+// substitution-check.epher -- integral of 2x exp(x^2) equals e - 1
+//
+// The substitution u = x^2 (du = 2x dx) turns the integral into a
+// one-liner (Stewart, "Calculus", 8th ed., sec. 5.5):
+//
+//   integral(2*x*exp(x^2), 0, 1) = integral(e^u, 0, 1) = e - 1
+//
+// because 2x exp(x^2) is exactly the derivative of exp(x^2): the
+// integrand is already in the form f'(x) e^(f(x)) with f(x) = x^2.
+// The builtin integral is numeric (it does not substitute symbolically),
+// so the check is: evaluate the substituted integral integral(e^x, 0, 1)
+// and the original one, and compare both with e - 1.
+//
+// Accuracy: all three values agree to about 1e-15 at the displayed
+// precision; the boolean residual is checked at 1e-6.
+//
+// Run:  epher "epher scripts/calculus/integrals/substitution-check.epher"
+// No knobs: the interval [0, 1] is the demonstration.
+// ============================================================================
+
+// ---- the original integral: integrand 2x exp(x^2) on [0, 1] -----------------
+integral(2*x*exp(x^2), 0, 1)
+
+// ---- after u = x^2 the same integral is integral(e^x, 0, 1) = e - 1 ---------
+integral(e^x, 0, 1)
+e - 1
+abs(integral(2*x*exp(x^2), 0, 1) - (e - 1)) < 1e-6
+
+// ---- expected output ---------------------------------------------------------
+// = 1.71828182846
+// = 1.71828182846
+// = 1.71828182846
+// = true

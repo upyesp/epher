@@ -1,0 +1,36 @@
+// ============================================================================
+// trapezoid-area.epher -- area of a trapezoid from its bases and height
+//
+// A trapezoid with parallel bases a and b and height h (the distance
+// between them) has area A = (a + b) h / 2, the average base times the
+// height (standard formula; two congruent trapezoids tile a parallelogram
+// of base a + b). The 5 and 7 by 4 example gives 6 * 4 = 24, exactly.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/polygons/trapezoid-area.epher"
+// In the REPL:             load epher scripts/geometry/polygons/trapezoid-area.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are `a` and `b` (the parallel bases) and `h` (the
+// height). Everything above the results section is machinery you can
+// leave alone.
+// ============================================================================
+
+// ---- the knobs ----------------------------------------------------------------
+const a = 5
+const b = 7
+const h = 4
+
+// ---- the model ----------------------------------------------------------------
+def area(a, b, h) = (a + b) / 2 * h   // A = (a + b) h / 2
+
+// ---- results ------------------------------------------------------------------
+print("area:", area(a, b, h))
+print("bases 10 and 6, height 5:", area(10, 6, 5))
+print("average base times height:", area(a, b, h) == (5 + 7) / 2 * 4)
+// ---- expected output ----
+// = 5
+// = 7
+// = 4
+// = area: 24
+// = bases 10 and 6, height 5: 40
+// = average base times height: true

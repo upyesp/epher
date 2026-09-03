@@ -1,0 +1,52 @@
+// ============================================================================
+// gradians-conversion.epher -- degrees and radians into gradians (gons)
+//
+// Gradians divide the right angle into 100 parts, so a full circle is 400
+// gon. Surveying instruments in Europe and artillery sights read gradians;
+// the conversion is g = d * 200/180 = d * 10/9 from degrees, and
+// g = r * 200/pi from radians. The same numbers backwards are
+// d = g * 9/10. This is plain arithmetic over the builtin constants and
+// conversions (guide 1.13); nothing here is redefined.
+//
+// Run it from a terminal:  epher "epher scripts/trigonometry/angles/gradians-conversion.epher"
+// In the REPL:             load epher scripts/trigonometry/angles/gradians-conversion.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The one knob to edit is the `degs` list below. Printed values carry about
+// 12 significant digits.
+// ============================================================================
+
+// ---- the knob ---------------------------------------------------------------
+const degs = {27, 90, 180, 360}   // sample angles, in degrees
+
+// ---- helpers ----------------------------------------------------------------
+def togon(d) = d * 10 / 9          // degrees to gradians: 200/180 = 10/9
+def todeg(g) = g * 9 / 10          // gradians back to degrees
+def fromrad(r) = r * 200 / pi      // radians to gradians: 200 gon per pi rad
+
+// ---- results -----------------------------------------------------------------
+// Degree knobs to gradians: 90 deg is a right angle, which is 100 gon by
+// definition, and a full turn of 360 deg is 400 gon.
+for d in degs do togon(d)
+
+// The landmark radians. fromrad(pi) exercises the builtin pi constant.
+print("pi/2 rad =", fromrad(pi / 2), "gon")
+print("pi rad =", fromrad(pi), "gon")
+print("1 rad =", fromrad(1), "gon")
+
+// And back: 100 gon is the right angle again, now read from the gradian
+// side. 100 * 9/10 is 90 exactly.
+print("100 gon =", todeg(100), "deg")
+
+// Spot checks against the definitions.
+print("90 deg = 100 gon:", togon(90) == 100)
+print("pi rad = 200 gon:", abs(fromrad(pi) - 200) < 1e-12)
+// ---- expected output
+// = {27, 90, 180, 360}
+// = {30, 100, 200, 400}
+// = pi/2 rad = 100 gon
+// = pi rad = 200 gon
+// = 1 rad = 63.6619772368 gon
+// = 100 gon = 90 deg
+// = 90 deg = 100 gon: true
+// = pi rad = 200 gon: true

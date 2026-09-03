@@ -1,0 +1,55 @@
+// ============================================================================
+// choosing-a-fit.epher -- four curves on one growth dataset, compare the r
+//
+// Fits all four builtin curves to the same (hour, size) pairs in `xs`
+// and `ys` and lets the reported correlations pick the model. The sizes
+// grow by a nearly constant ratio each hour, the fingerprint of
+// exponential growth, so expreg should win: its r = 0.9999 beats the
+// linear 0.9312, the quadratic 0.9963, the power 0.9552 and the
+// logarithmic 0.8051. The manual Pearson r below recomputes the
+// correlation between x and ln(y) by the textbook formula; its square,
+// r^2 = 0.99984..., is the fraction of the log-variance the model
+// explains and agrees with the r in the expreg display.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/regression/choosing-a-fit.epher"
+// In the REPL:             load epher scripts/statistics/regression/choosing-a-fit.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// The knobs to edit are `xs` and `ys` below. Everything above the results
+// section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs -----------------------------------------------------------------
+const xs = {1, 2, 3, 4, 5, 6, 7, 8}   // hours since the culture was started
+const ys = {2.5, 3.6, 5.4, 8.1, 12.2, 18.3, 27.5, 41.3}   // size, thousands
+
+// ---- helpers: Pearson r of x against ln(y), textbook formula ----------------------
+def lny(i) = ln(ys[i])                       /* natural log of the i-th size */
+def sumlny(i) = if i > len(ys) then 0 else lny(i) + sumlny(i + 1)  /* sum of the logs */
+def mlog() = sumlny(1) / len(ys)             /* mean of ln(y) */
+def slx(i) = if i > len(ys) then 0 else (xs[i] - mean(xs)) * (lny(i) - mlog()) + slx(i + 1)
+def sll(i) = if i > len(ys) then 0 else (lny(i) - mlog()) ^ 2 + sll(i + 1)
+def rlog() = slx(1) / sqrt(sum((xs - mean(xs)) ^ 2) * sll(1))   /* r of x vs ln(y) */
+
+// ---- the four candidate models on the same data -------------------------------------
+linreg(xs, ys)      // straight line: r = 0.9312, the worst of the four
+quadreg(xs, ys)     // parabola: r = 0.9963, good but not best
+expreg(xs, ys)      // exponential: r = 0.9999, the clear winner
+powreg(xs, ys)      // power curve: r = 0.9552, and it must pass through zero
+logreg(xs, ys)      // logarithmic: r = 0.8051, badly bent the wrong way
+
+// ---- the r^2 remark from the manual Pearson r -----------------------------------------
+print("Pearson r of x against ln(y):", rlog())
+print("and its square, r^2:", rlog() ^ 2)
+
+// ---- expected output ----
+// = {1, 2, 3, 4, 5, 6, 7, 8}
+// = {2.5, 3.6, 5.4, 8.1, 12.2, 18.3, 27.5, 41.3}
+// = y = 5.1655*x + -8.3821 (r = 0.9312)
+// = y = 0.9827*x^2 + -3.6792*x + 6.3589 (r = 0.9963)
+// = y = 1.6289*e^(0.4032*x) (r = 0.9999)
+// = y = 1.6892*x^1.3414 (r = 0.9552)
+// = y = -5.7535 + 15.5525*ln(x) (r = 0.8051)
+// = Pearson r of x against ln(y): 0.999920198771
+// = and its square, r^2: 0.99984040391

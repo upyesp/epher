@@ -1,0 +1,43 @@
+// ============================================================================
+// quadratic-complex-roots.epher -- complex roots of ax^2 + bx + c, formula and solve
+//
+// When the discriminant b^2 - 4ac is negative, sqrt returns a complex value
+// and the quadratic formula (-b +/- sqrt(b^2 - 4ac)) / (2a) works unchanged
+// (Stewart, Redlin and Watson, "College Algebra", 7th ed., sec. 1.4). The
+// roots are conjugate pairs; evaluating the polynomial at each root gives an
+// exact zero. The built-in solve agrees (its answer is a display string).
+//
+// Run it from a terminal:  epher "epher scripts/algebra/equations/quadratic-complex-roots.epher"
+//
+// The knobs to edit are a, b and c below.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const a = 1
+const b = 2
+const c = 5
+
+// ---- helpers -----------------------------------------------------------------
+def disc(a, b, c) = b ^ 2 - 4 * a * c        // the discriminant b^2 - 4ac
+def rplus(a, b, c) = (-b + sqrt(disc(a, b, c))) / (2 * a)  // root with the plus sign
+def rminus(a, b, c) = (-b - sqrt(disc(a, b, c))) / (2 * a) // root with the minus sign
+def p(a, b, c, x) = a * x ^ 2 + b * x + c    // the polynomial at x
+
+// ---- results -----------------------------------------------------------------
+print("discriminant:", disc(a, b, c))
+print("root 1:", rplus(a, b, c))
+print("root 2:", rminus(a, b, c))
+print("p(root 1):", p(a, b, c, rplus(a, b, c)))
+print("p(root 2):", p(a, b, c, rminus(a, b, c)))
+// the built-in solver finds the same conjugate pair
+solve x ^ 2 + 2 * x + 5 == 0
+// ---- expected output ----
+// = 1
+// = 2
+// = 5
+// = discriminant: -16
+// = root 1: -1+2i
+// = root 2: -1-2i
+// = p(root 1): 0
+// = p(root 2): 0
+// = x = -1-2i, x = -1+2i

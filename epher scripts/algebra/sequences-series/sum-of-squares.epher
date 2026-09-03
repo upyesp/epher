@@ -1,0 +1,33 @@
+// ============================================================================
+// sum-of-squares.epher -- 1^2 + ... + n^2, formula and loop cross-check
+//
+// The sum of the first n squares is n(n + 1)(2n + 1)/6, proved by induction
+// in any algebra text (e.g. Stewart, Redlin and Watson, "College Algebra",
+// 7th ed., sec. 9.1, exercises). For n = 10 it is 10 * 11 * 21 / 6 = 385,
+// cross-checked below by adding the squares one by one in a quiet while
+// loop. All values are exact.
+//
+// Run it from a terminal:  epher "epher scripts/algebra/sequences-series/sum-of-squares.epher"
+//
+// The knob to edit is n below.
+// ============================================================================
+
+// ---- the knob ----------------------------------------------------------------
+const n = 10
+
+// ---- helpers -----------------------------------------------------------------
+def sq(n) = n * (n + 1) * (2 * n + 1) / 6      // 1^2 + ... + n^2
+
+// ---- results -----------------------------------------------------------------
+print("formula:", sq(n))
+// add the squares one by one (a for loop would echo all n partial sums)
+acc = {0, 0}
+while acc[1] < n do acc = {acc[1] + 1, acc[2] + (acc[1] + 1) ^ 2}
+print("by adding:", acc[2])
+print("they agree:", sq(n) == acc[2])
+// ---- expected output ----
+// = 10
+// = formula: 385
+// = {0, 0}
+// = by adding: 385
+// = they agree: true

@@ -1,0 +1,47 @@
+// ============================================================================
+// payback-period.epher -- how many years until a project's cash flows
+// recover its cost, ignoring the time value of money
+//
+// The payback period adds up the yearly inflows until the cumulative total
+// reaches the initial outflow. The table below carries the cumulative total
+// year by year; a packed while loop then counts the full years and the
+// final print adds the exact fraction of the next year (the builtin npv
+// knows no payback, so the recurrence is written out). Source: standard
+// capital-budgeting practice; see Brealey and Myers, Principles of
+// Corporate Finance, chapter 5.
+//
+// Accuracy: the cumulative rows and the payback year are exact. The plain
+// payback ignores the time value of money; the discounted version is the
+// sibling script discounted-payback-period.epher.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/investing/payback-period.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const invested = 100000     // the project's cost today, USD
+const yearly = {30000, 40000, 40000, 30000}   // inflows at the end of years 1 to 4, USD
+
+// ---- helpers ----------------------------------------------------------------
+def cum(k) = if k == 1 then yearly[1] - invested else cum(k - 1) + yearly[k]  // cumulative cash flow through year k
+
+// ---- results -----------------------------------------------------------------
+// Cumulative cash flow through each year: still 70000 short after year 1,
+// 30000 short after year 2, positive from year 3 on.
+for k in 1 to 4 do {k, cum(k)}
+// Count the full years: the loop state is {year, cumulative cash flow} and
+// runs until the cumulative total turns positive.
+v = {0, 0 - invested}
+while v[2] < 0 do v = {v[1] + 1, v[2] + yearly[v[1] + 1]}
+// The payback is the last full year plus the fraction of the next year
+// needed to cover the shortfall: 2 + 30000/40000 = 2.75 years.
+print("payback period:", (v[1] - 1) + (yearly[v[1]] - v[2]) / yearly[v[1]], "years")
+// ---- expected output ----
+// = 100000
+// = {30000, 40000, 40000, 30000}
+// = {{1, -70000}, {2, -30000}, {3, 10000}, {4, 40000}}
+// = {0, -100000}
+// = payback period: 2.75 years

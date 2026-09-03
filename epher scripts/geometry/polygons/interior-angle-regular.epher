@@ -1,0 +1,34 @@
+// ============================================================================
+// interior-angle-regular.epher -- one interior angle of a regular n-gon
+//
+// A regular n-gon has equal interior angles, so each is the angle sum
+// (n - 2) * 180 divided by n (standard formula). The results are exact:
+// 540 / 5 = 108 for the pentagon, 1080 / 8 = 135 for the octagon, and so
+// on, all hand-checkable. The 3-gon case, 60 degrees, is the equilateral
+// triangle.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/polygons/interior-angle-regular.epher"
+// In the REPL:             load epher scripts/geometry/polygons/interior-angle-regular.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The values of n to try are in the results section below; edit them
+// there.
+// ============================================================================
+
+// ---- the model ----------------------------------------------------------------
+def angreg(n) = (n - 2) * 180 / n   // degrees, one angle of a regular n-gon
+
+// ---- results ------------------------------------------------------------------
+print("equilateral triangle:", angreg(3))
+print("square:", angreg(4))
+print("pentagon:", angreg(5))
+print("hexagon:", angreg(6))
+print("octagon:", angreg(8))
+print("the pentagon angle is exact:", angreg(5) == 108)
+// ---- expected output ----
+// = equilateral triangle: 60
+// = square: 90
+// = pentagon: 108
+// = hexagon: 120
+// = octagon: 135
+// = the pentagon angle is exact: true

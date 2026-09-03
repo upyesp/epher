@@ -1,0 +1,56 @@
+// ============================================================================
+// permutations.epher -- ordered arrangements: npr(n, r) and the runners
+//
+// Counts ordered selections with the npr builtin (guide 1.13): the number
+// of ways to pick and order r distinct objects out of n. The classic
+// setting is the race: with 10 runners there are npr(10, 3) = 720 ways the
+// gold, silver and bronze medals can be awarded, because the order of the
+// top three matters.
+//
+// Cross-check: npr(n, r) = n! / (n - r)! is the standard formula, and
+// npr(n, r) = n * npr(n - 1, r - 1) builds the count one seat at a time.
+// Both identities are verified below with exact integer arithmetic.
+//
+// Source: Ross, "A First Course in Probability", chapter 1. The counts
+// are exact integers.
+//
+// Run it from a terminal:  epher "epher scripts/probability/counting/permutations.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+//
+// The knob to edit is `runners`; everything below it is machinery.
+// ============================================================================
+
+// ---- the knob ----
+const runners = 10
+
+// ---- results ----
+// The medals problem: the top three of `runners`, in order.
+print("medal orders for", runners, "runners:", npr(runners, 3))
+print("podium top two in order:", npr(runners, 2))
+
+// More ordered counts from everyday settings.
+print("3 distinct offices among 8 members:", npr(8, 3))
+print("4-digit codes from 10 distinct digits:", npr(10, 4))
+print("3-letter words from 5 distinct letters:", npr(5, 3))
+
+// The standard formula npr(n, r) = n! / (n - r)!: an exact equality.
+npr(runners, 3) == fact(runners) / fact(runners - 3)
+npr(10, 4) == fact(10) / fact(6)
+
+// Seat-by-seat building: 10 choices for gold, then npr(9, 2) for the
+// next two seats, and the product is the same count.
+10 * npr(9, 2) == npr(10, 3)
+
+// The same race with more finishers.
+print("with 12 runners, 3 medals:", npr(12, 3))
+// ---- expected output ----
+// = 10
+// = medal orders for 10 runners: 720
+// = podium top two in order: 90
+// = 3 distinct offices among 8 members: 336
+// = 4-digit codes from 10 distinct digits: 5040
+// = 3-letter words from 5 distinct letters: 60
+// = true
+// = true
+// = true
+// = with 12 runners, 3 medals: 1320

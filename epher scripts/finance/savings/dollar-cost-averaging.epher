@@ -1,0 +1,45 @@
+// ============================================================================
+// dollar-cost-averaging.epher -- 500 a month into an index fund versus the
+// same money invested as a lump sum at the start
+//
+// Dollar-cost averaging feeds a fixed amount into the market every month.
+// Its balance after n months at monthly rate i is the annuity future value
+// (finance builtin tvm_fv). The comparison invests the same total money,
+// all of it, at the start and lets it compound for the whole term. Source:
+// standard annuity and compound formulas, Kellison, The Theory of Interest,
+// chapters 2-3.
+//
+// Sign convention: money in negative, balance positive.
+//
+// Accuracy: 12 displayed digits. The comparison assumes the market simply
+// earns its average rate every month, with no ups and downs; real markets
+// swing, which is exactly where dollar-cost averaging earns its keep.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/savings/dollar-cost-averaging.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const deposit = 500         // monthly deposit, USD
+const rate = 8%             // average annual return of the fund
+const years = 20            // years of investing
+
+// ---- results -----------------------------------------------------------------
+print("balance after 20 years of monthly deposits:", tvm_fv(years * 12, rate / 12, 0, -deposit))
+print("lump sum equal to all the deposits, invested at the start:", deposit * (years * 12) * (1 + rate / 12) ^ (years * 12))
+print("difference:", deposit * (years * 12) * (1 + rate / 12) ^ (years * 12) - tvm_fv(years * 12, rate / 12, 0, -deposit))
+// The 120000 total invested up front beats the monthly plan by 296706.12
+// at the same average return: every lump dollar earns the full 20 years
+// while the monthly dollars earn less and less. Dollar-cost averaging does
+// not raise the expected return; it smooths the risk of buying at one
+// unlucky moment, and it is the only option for money that arrives monthly.
+// ---- expected output ----
+// = 500
+// = 0.08
+// = 20
+// = balance after 20 years of monthly deposits: 294510.207811
+// = lump sum equal to all the deposits, invested at the start: 591216.332497
+// = difference: 296706.124686

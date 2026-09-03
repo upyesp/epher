@@ -1,0 +1,30 @@
+// ============================================================================
+// linear-regression.epher -- fit a line to study hours versus exam score
+//
+// Fits the least-squares line y = b1 * x + b0 to the seven (hours, score)
+// pairs in `xs` and `ys` with the builtin linreg (guide 1.20), which
+// prints the fitted model and the correlation r as a display string. The
+// slope says a study hour is worth about 5.7 score points over this
+// range, and r = 0.9981 marks a very tight fit. The data are example
+// values, not measurements.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/regression/linear-regression.epher"
+// In the REPL:             load epher scripts/statistics/regression/linear-regression.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// The knobs to edit are `xs` and `ys` below. Everything above the results
+// section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs -----------------------------------------------------------------
+const xs = {1, 2, 3, 4, 5, 6, 7}     // hours of study, one per student
+const ys = {55, 63, 68, 74, 79, 85, 90}   // exam scores out of 100, same order
+
+// ---- the fitted model -------------------------------------------------------------
+linreg(xs, ys)      // least-squares line, printed with its correlation r
+
+// ---- expected output ----
+// = {1, 2, 3, 4, 5, 6, 7}
+// = {55, 63, 68, 74, 79, 85, 90}
+// = y = 5.7143*x + 50.5714 (r = 0.9981)

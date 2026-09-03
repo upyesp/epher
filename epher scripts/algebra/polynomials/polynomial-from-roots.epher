@@ -1,0 +1,40 @@
+// ============================================================================
+// polynomial-from-roots.epher -- expand (x - r1)(x - r2)(x - r3)
+//
+// Vieta's formulas (Francois Viete, 1591; any algebra text) read the
+// coefficients of a monic polynomial off the roots: for three roots the
+// coefficient of x^2 is -(r1 + r2 + r3), of x is r1 r2 + r1 r3 + r2 r3, and
+// the constant is -r1 r2 r3. With roots 1, 2 and 3 that gives the running
+// cubic x^3 - 6x^2 + 11x - 6, then both forms are evaluated at x = 4 and
+// compared. All values are exact.
+//
+// Run it from a terminal:  epher "epher scripts/algebra/polynomials/polynomial-from-roots.epher"
+//
+// The knobs to edit are the roots r1, r2 and r3 below.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const r1 = 1
+const r2 = 2
+const r3 = 3
+
+// ---- results -----------------------------------------------------------------
+// the elementary symmetric sums of the roots (Vieta)
+e1 = r1 + r2 + r3                // echoes 6
+e2 = r1 * r2 + r1 * r3 + r2 * r3 // echoes 11
+e3 = r1 * r2 * r3                // echoes 6
+cs = {1, -e1, e2, -e3}           // p(x) = x^3 - 6x^2 + 11x - 6 (echoes the list)
+print("product form at x = 4:", (4 - r1) * (4 - r2) * (4 - r3))
+print("expanded form at x = 4:", 4 ^ 3 + cs[2] * 4 ^ 2 + cs[3] * 4 + cs[4])
+print("both forms agree:", (4 - r1) * (4 - r2) * (4 - r3) == 4 ^ 3 + cs[2] * 4 ^ 2 + cs[3] * 4 + cs[4])
+// ---- expected output ----
+// = 1
+// = 2
+// = 3
+// = 6
+// = 11
+// = 6
+// = {1, -6, 11, -6}
+// = product form at x = 4: 6
+// = expanded form at x = 4: 6
+// = both forms agree: true

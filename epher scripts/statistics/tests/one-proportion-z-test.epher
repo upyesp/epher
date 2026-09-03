@@ -1,0 +1,42 @@
+// ============================================================================
+// one-proportion-z-test.epher -- support for a change, against 25 percent
+//
+// Tests whether the share of supporters differs from the claimed 25
+// percent when 42 of 200 people back a change, with the textbook one-
+// proportion z test: z = (phat - p0) / sqrt(p0 * (1 - p0) / n) and a
+// two-sided p-value from the normal tail, 2 * normcdf(z) for the
+// negative z below. There is no builtin proportion test, so the formula
+// is written out.
+//
+// Run it from a terminal:  epher "epher scripts/statistics/tests/one-proportion-z-test.epher"
+// In the REPL:             load epher scripts/statistics/tests/one-proportion-z-test.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+// Everything also works line by line in the TUI.
+//
+// The knobs to edit are `x`, `n` and `p0` below. Everything above the
+// results section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs -----------------------------------------------------------------
+const x = 42    // supporters of the change in the sample
+const n = 200   // people polled
+const p0 = 0.25 // the claimed population proportion
+
+// ---- the pieces of the statistic -----------------------------------------------------
+print("sample proportion:", x / n)
+print("standard error under p0:", sqrt(p0 * (1 - p0) / n))
+def zstat() = (x / n - p0) / sqrt(p0 * (1 - p0) / n)  /* the z statistic */
+print("z:", zstat())
+
+// ---- the two-sided p-value from the normal tail ---------------------------------------
+print("two-sided p:", 2 * normcdf(zstat()))   // p = 0.191: 42 of 200 (21%) does
+                                        // not differ significantly from 25%
+
+// ---- expected output ----
+// = 42
+// = 200
+// = 0.25
+// = sample proportion: 0.21
+// = standard error under p0: 0.0306186217848
+// = z: -1.30639452948
+// = two-sided p: 0.191418425238

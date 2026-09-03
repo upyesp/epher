@@ -1,0 +1,34 @@
+// ============================================================================
+// arc-length.epher -- length of a circular arc
+//
+// An arc of radius r and central angle t (degrees) is the fraction
+// t / 360 of the circumference, length L = t / 360 * 2 pi r. Written
+// with the angle in radians, theta = rad(t), this is the standard form
+// L = r theta. The results compute both forms and check they agree; the
+// semicircle case, t = 180, is half of 2 pi r, that is, pi r.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/circles/arc-length.epher"
+// In the REPL:             load epher scripts/geometry/circles/arc-length.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are `r` (radius) and `t` (central angle in degrees).
+// Everything above the results section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs ----------------------------------------------------------------
+const r = 5
+const t = 60
+
+// ---- the model ----------------------------------------------------------------
+def arc(r, t) = rad(t) * r   // L = r theta, theta in radians
+
+// ---- results ------------------------------------------------------------------
+print("arc length:", arc(r, t))
+print("t / 360 form agrees:", abs(arc(r, t) - t / 360 * 2 * pi * r) < 1e-9)
+print("semicircle of radius 5:", arc(5, 180))
+// ---- expected output ----
+// = 5
+// = 60
+// = arc length: 5.23598775598
+// = t / 360 form agrees: true
+// = semicircle of radius 5: 15.7079632679

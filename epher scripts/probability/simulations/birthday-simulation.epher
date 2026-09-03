@@ -1,0 +1,64 @@
+// ============================================================================
+// birthday-simulation.epher -- 5000 groups of 23: how many share a day
+//
+// Fill rooms of 23 people with birthdays drawn uniformly from 365 days
+// and count the rooms where at least two people share a birthday. The
+// theoretical rate is the birthday-problem answer, 0.507297234324, so
+// about half of all 23-person rooms collide; with 5000 rooms the
+// standard error is about 0.007 and the seeded run below (randseed(19))
+// should land within 0.02 of the theory.
+//
+// One room is simulated exactly: birthdays are drawn one at a time and
+// the draw collides with probability (distinct days seen) / 365, which
+// is exact by symmetry; the first collision ends the room. A recursion
+// of depth at most 23 plays the room, and the packed loop replays it
+// 5000 times. The stream is reproducible, so every run of this file
+// prints the same rate.
+//
+// Source: the birthday problem of Feller, volume 1, chapter 2, played
+// as a simulation.
+//
+// Run it from a terminal:  epher "epher scripts/probability/simulations/birthday-simulation.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+//
+// The knobs to edit are `rooms` and `size`; everything below them is
+// machinery.
+// ============================================================================
+
+// ---- the knobs ----
+const rooms = 5000
+const size = 23
+
+// ---- helpers ----
+def fill(k, d) = if k == size then 0 else if randint(1, 365) <= d then 1 else fill(k + 1, d + 1)
+// fill(k, d): k birthdays drawn so far, d of them distinct. The next
+// draw collides with probability d/365 (the distinct days may be
+// relabelled 1..d), so the room returns 1 on the first collision and 0
+// if all `size` birthdays are distinct. Exact simulation, no pruning.
+
+// ---- results ----
+// The 5000 rooms, seeded: one shared-birthday flag per room, totalled.
+randseed(19)
+v = {0, 0}
+while v[1] < rooms do v = {v[1] + 1, v[2] + fill(1, 1)}
+
+// The empirical rate against the exact theory of the companion script
+// probability/counting/birthday-problem.epher: 1 - prod(1 - k/365).
+print("rooms:", rooms)
+print("rooms with a shared birthday:", v[2])
+print("empirical rate:", v[2] / rooms)
+w = {1, 1}
+while w[1] < size do w = {w[1] + 1, w[2] * (1 - w[1] / 365)}
+print("theoretical rate:", 1 - w[2])
+print("difference:", v[2] / rooms - (1 - w[2]))
+// ---- expected output ----
+// = 5000
+// = 23
+// = 19
+// = {0, 0}
+// = rooms: 5000
+// = rooms with a shared birthday: 2526
+// = empirical rate: 0.5052
+// = {1, 1}
+// = theoretical rate: 0.507297234324
+// = difference: -0.00209723432399

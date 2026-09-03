@@ -1,0 +1,48 @@
+// ============================================================================
+// mortgage-balance-after-years.epher -- what is still owed on a 30-year
+// mortgage after 5 and 10 years
+//
+// Each payment on an amortizing loan splits into interest on the remaining
+// balance and principal that reduces it. The balance after k of n payments
+// is computed by the finance builtin amort(P, r, n, k), which runs the
+// recurrence balance_k = balance_(k-1)*(1+r) - pmt for k months. Source:
+// standard amortization formulas; see Kellison, The Theory of Interest,
+// chapter 3.
+//
+// Accuracy: 12 displayed digits; rounding to the cent is omitted.
+//
+// Run it from a terminal:
+//   epher "epher scripts/finance/loans/mortgage-balance-after-years.epher"
+//
+// The knobs to edit are in the knob section; everything after it is
+// machinery you can leave alone.
+// ============================================================================
+
+// ---- knobs ------------------------------------------------------------------
+const principal = 250000    // loan amount at closing, USD
+const rate = 6.5%           // quoted annual rate
+const years = 30            // term in years
+
+// ---- results -----------------------------------------------------------------
+payment = tvm_pmt(years * 12, rate / 12, -principal, 0)   // monthly payment, USD
+print("monthly payment:", payment)
+// Balances after 60 and 120 payments of the 360-month loan.
+print("balance after 5 years:", amort(principal, rate / 12, years * 12, 5 * 12))
+print("balance after 10 years:", amort(principal, rate / 12, years * 12, 10 * 12))
+print("principal paid off in the first 5 years:", principal - amort(principal, rate / 12, years * 12, 5 * 12))
+print("principal paid off in the first 10 years:", principal - amort(principal, rate / 12, years * 12, 10 * 12))
+print("payments made in the first 10 years:", payment * (10 * 12))
+// After 10 years the borrower has paid 189620.41 but only about 38059.68 of
+// it (one fifth) has reduced the debt; the other four fifths went to
+// interest. The balance is what a refinance would have to cover.
+// ---- expected output ----
+// = 250000
+// = 0.065
+// = 30
+// = 1580.17005873
+// = monthly payment: 1580.17005873
+// = balance after 5 years: 234027.443604
+// = balance after 10 years: 211940.315908
+// = principal paid off in the first 5 years: 15972.5563961
+// = principal paid off in the first 10 years: 38059.6840925
+// = payments made in the first 10 years: 189620.407048

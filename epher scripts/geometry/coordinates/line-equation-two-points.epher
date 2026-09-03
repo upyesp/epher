@@ -1,0 +1,39 @@
+// ============================================================================
+// line-equation-two-points.epher -- y = m x + b through two points
+//
+// The line through two points has slope m = (y2 - y1) / (x2 - x1) and
+// intercept b = y1 - m x1, so the equation is y = m x + b (standard
+// formula; b solves the line through (x1, y1)). Points are two-number
+// lists. The example line has slope 2/3, shown as an exact fraction,
+// and the checks plug both points back into the equation.
+//
+// Run it from a terminal:  epher "epher scripts/geometry/coordinates/line-equation-two-points.epher"
+// In the REPL:             load epher scripts/geometry/coordinates/line-equation-two-points.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are `P` and `Q`, the two points on the line.
+// Everything above the results section is machinery you can leave alone.
+// ============================================================================
+
+// ---- the knobs ----------------------------------------------------------------
+const P = {0, 2}
+const Q = {3, 4}
+
+// ---- the model ----------------------------------------------------------------
+def mof(p, q) = (q[2] - p[2]) / (q[1] - p[1])   // slope m
+def bof(p, q) = p[2] - mof(p, q) * p[1]         // intercept b
+
+// ---- results ------------------------------------------------------------------
+print("slope:", mof(P, Q))
+print("intercept:", bof(P, Q))
+print("equation: y =", mof(P, Q), "x +", bof(P, Q))
+print("P lies on the line:", mof(P, Q) * P[1] + bof(P, Q) == P[2])
+print("Q lies on the line:", mof(P, Q) * Q[1] + bof(P, Q) == Q[2])
+// ---- expected output ----
+// = {0, 2}
+// = {3, 4}
+// = slope: 2/3
+// = intercept: 2
+// = equation: y = 2/3 x + 2
+// = P lies on the line: true
+// = Q lies on the line: true

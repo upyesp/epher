@@ -1,0 +1,50 @@
+// ============================================================================
+// airmass-table.epher -- how much sky the light crosses
+//
+// The airmass for a set of altitudes, from the built-in airmass(alt)
+// (guide 1.16): the length of the path through the atmosphere relative
+// to the zenith path, in the flat-atmosphere model airmass = sec of the
+// zenith distance = 1 / sin(alt). At 45 deg the path is sqrt(2) = 1.414
+// times the zenith path; at 10 deg it is 5.76 - the light of a star
+// low in the sky crosses nearly six times as much air as when the star
+// is overhead, which is why low stars twinkle and fade. The model
+// diverges toward the horizon (airmass would be infinite at 0 deg); the
+// real atmosphere is curved and finite, about 38 airmasses at the
+// horizon. The values below were checked in python against
+// 1 / sin(altitude in radians), the oracle for the expected output.
+//
+// Run it from a terminal:  epher "epher scripts/astronomy/sky/airmass-table.epher"
+// In the REPL:             load epher scripts/astronomy/sky/airmass-table.epher
+//
+// Knob: none - the altitudes below are fixed.
+// ============================================================================
+
+// ---- results ----------------------------------------------------------------
+// One airmass per altitude, zenith (90 deg) down to 5 deg above the
+// horizon. Notice the famous values in the middle: airmass(45) is
+// exactly sqrt(2), and airmass(30) = 2 is exactly twice the zenith
+// airmass, because 1 / sin(30 deg) = 2.
+print("airmass at 90 deg (zenith):", airmass(90))
+print("airmass at 60 deg:", airmass(60))
+print("airmass at 45 deg:", airmass(45), "(= sqrt(2))")
+print("airmass at 30 deg:", airmass(30))
+print("airmass at 20 deg:", airmass(20))
+print("airmass at 10 deg:", airmass(10))
+print("airmass at 5 deg:", airmass(5))
+
+// The jump from 10 deg to 5 deg doubles the airmass again (5.76 to
+// 11.47): near the horizon the path length through the atmosphere
+// grows explosively, which is why the Sun flattens and reddens as it
+// sets. Photographers and observers use this table to plan exposures:
+// a star at 30 deg needs 2x the exposure time of one at the zenith.
+print("ratio 5 deg / 45 deg:", airmass(5) / airmass(45))
+
+// ---- expected output ----
+// = airmass at 90 deg (zenith): 1
+// = airmass at 60 deg: 1.15470053838
+// = airmass at 45 deg: 1.41421356237 (= sqrt(2))
+// = airmass at 30 deg: 2
+// = airmass at 20 deg: 2.92380440016
+// = airmass at 10 deg: 5.75877048314
+// = airmass at 5 deg: 11.4737132457
+// = ratio 5 deg / 45 deg: 8.1131404414

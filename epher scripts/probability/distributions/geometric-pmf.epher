@@ -1,0 +1,48 @@
+// ============================================================================
+// geometric-pmf.epher -- waiting time for the first success, by formula
+//
+// Roll a die until the first 6 appears. The rolls are independent, so
+// the first 6 lands on roll k exactly when rolls 1..k - 1 show 1..5 and
+// roll k shows 6:
+//
+//   P(T = k) = (1 - p)^(k - 1) * p,    p = 1/6 for a die,
+//
+// the geometric distribution. There is no geometric builtin in epher, so
+// the script evaluates the formula itself; the probabilities of a fair
+// die are exact fractions (1/6, 5/36, 25/216, ...) until the denominator
+// outgrows 1000 and epher switches to decimals.
+//
+// The probabilities over all k sum to 1, but only in the limit: after
+// 10 rolls there is still a (5/6)^10 = 0.1615 chance that no 6 has come,
+// so P(T <= 10) = 0.8385. With a fair coin (p = 1/2) the tail after 10
+// tosses is 2^-10 and the partial sum 1023/1024 is already close to 1.
+//
+// Source: Ross, "A First Course in Probability", chapter 4.
+//
+// Run it from a terminal:  epher "epher scripts/probability/distributions/geometric-pmf.epher"
+// Web/desktop:             paste the file into the entry, press Enter
+// ============================================================================
+
+// ---- helpers ----
+def pgeo(k, p) = (1 - p) ^ (k - 1) * p   // P(first success on trial k)
+
+// ---- case 1: waiting for a 6 on a fair die, p = 1/6 ----
+for k in 1 to 5 do pgeo(k, 1/6)
+print("P(T <= 10):", 1 - (5/6) ^ 10)
+print("P(T > 10), the tail:", (5/6) ^ 10)
+
+// ---- case 2: a fair coin, p = 1/2, and the partial sum to 10 ----
+// The sum of the point probabilities from k = 1 to 10, accumulated in a
+// packed while loop (guide 1.30), is 1023/1024 = 0.9990234375, close to
+// 1 because the tail after 10 tosses is only 2^-10.
+v = {1, 0}
+while v[1] <= 10 do v = {v[1] + 1, v[2] + pgeo(v[1], 1/2)}
+print("sum of P(T = 1..10), p = 1/2:", v[2])
+print("exact: 1023/1024 =", 1023 / 1024)
+// ---- expected output ----
+// = {1/6, 5/36, 25/216, 0.096450617284, 0.0803755144033}
+// = P(T <= 10): 0.83849441711
+// = P(T > 10), the tail: 0.16150558289
+// = {1, 0}
+// = sum of P(T = 1..10), p = 1/2: 0.9990234375
+// = exact: 1023/1024 = 0.9990234375

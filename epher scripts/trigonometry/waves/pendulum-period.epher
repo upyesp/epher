@@ -1,0 +1,52 @@
+// ============================================================================
+// pendulum-period.epher -- T = 2 pi sqrt(L / g) for a simple pendulum
+//
+// A simple pendulum of length L swings with period T = 2 pi sqrt(L / g),
+// independent of the mass and, for small swings, of the amplitude
+// (Huygens, 1673; the formula is the small-angle solution of the pendulum
+// equation, good while the swing stays under a few degrees of arc). The
+// script keeps the units honest: L is a length and the builtin g is
+// 9.80665 m/s^2, so L / g is a time squared and the square root lands in
+// seconds. Note the g builtin divides as a bare number, so the script
+// converts it with `in m/s^2` first to get a real quantity for the
+// division (see the units note in the README).
+//
+// Run it from a terminal:  epher "epher scripts/trigonometry/waves/pendulum-period.epher"
+// In the REPL:             load epher scripts/trigonometry/waves/pendulum-period.epher
+// Web/desktop:             paste the whole file into the entry, press Enter
+//
+// The knobs to edit are the two lengths below (meters). Printed values
+// carry about 12 significant digits.
+// ============================================================================
+
+// ---- the knobs ---------------------------------------------------------------
+const L1 = 1 m     // a one-meter pendulum
+const L2 = 4 m     // a four-meter pendulum
+
+// ---- helpers ----------------------------------------------------------------
+def period(L) = 2 * pi * sqrt(L / (g in m/s^2))   // T = 2 pi sqrt(L/g)
+
+// ---- results -----------------------------------------------------------------
+// The one-meter pendulum: T = 2 pi sqrt(1/9.80665) s ~ 2.0064 s. A useful
+// rule of thumb: a pendulum one meter long beats seconds (half a period
+// per swing, about one second per beat).
+print("T for L = 1 m:", period(L1))
+
+// The four-meter pendulum: the length is four times as large, so the
+// period doubles: sqrt(4) = 2.
+print("T for L = 4 m:", period(L2))
+
+// The check that it really doubled, and the inverse use: the length of a
+// pendulum with a given period, L = g (T / 2 pi)^2. A two-second pendulum
+// (one beat per second) needs L = g / pi^2 ~ 0.9936 m, close to the
+// one-meter pendulum above: that closeness is why the seconds pendulum
+// was proposed as the first definition of the metre (Huygens, 1673).
+print("T(4 m) = 2 T(1 m):", abs(period(L2) / period(L1) - 2) < 1e-12)
+print("L for T = 2 s:", (g in m/s^2) * (2 s / (2 * pi)) ^ 2)
+// ---- expected output
+// = 1 m
+// = 4 m
+// = T for L = 1 m: 2.00640929259 s
+// = T for L = 4 m: 4.01281858518 s
+// = T(4 m) = 2 T(1 m): true
+// = L for T = 2 s: 0.993621385566 m

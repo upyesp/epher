@@ -1,0 +1,54 @@
+// ============================================================================
+// derivative-of-sin-check.epher -- derivative(sin x) against cos x
+//
+// If the builtin derivative does its job, derivative(sin(x), p) should
+// match cos(p) at every point p: that is the identity d/dx sin x = cos x
+// (Stewart, "Calculus", 8th ed., sec. 3.3). The builtin derivative is a
+// numeric central difference, so the comparison is the honest one: each
+// line pairs the computed slope with cos(p) and prints a boolean
+// residual check at 1e-9.
+//
+// The four sample points (0.3, 1, 2 and pi/2) are ordinary arguments,
+// including one where cos(p) itself is nearly zero (at pi/2 the exact
+// slope of sin x is 0, and the numeric value is about 7e-14).
+//
+// Accuracy: every residual below is well under 1e-9; at p = pi/2 the
+// absolute residual is about 7.2e-14.
+//
+// Run:  epher "epher scripts/calculus/derivatives/derivative-of-sin-check.epher"
+// No knobs: the four points are the demonstration.
+// ============================================================================
+
+// ---- at p = 0.3 -------------------------------------------------------------
+derivative(sin(x), 0.3)
+cos(0.3)
+abs(derivative(sin(x), 0.3) - cos(0.3)) < 1e-9
+
+// ---- at p = 1 ---------------------------------------------------------------
+derivative(sin(x), 1)
+cos(1)
+abs(derivative(sin(x), 1) - cos(1)) < 1e-9
+
+// ---- at p = 2 ---------------------------------------------------------------
+derivative(sin(x), 2)
+cos(2)
+abs(derivative(sin(x), 2) - cos(2)) < 1e-9
+
+// ---- at p = pi/2, where the exact slope is 0 --------------------------------
+derivative(sin(x), pi/2)
+cos(pi/2)
+abs(derivative(sin(x), pi/2) - cos(pi/2)) < 1e-9
+
+// ---- expected output ---------------------------------------------------------
+// = 0.955336489126
+// = 0.955336489126
+// = true
+// = 0.540302305868
+// = 0.540302305868
+// = true
+// = -0.416146836547
+// = -0.416146836547
+// = true
+// = -0.0000000000000719765968398
+// = 0.0000000000000000612323399574
+// = true
