@@ -1617,10 +1617,11 @@ in diesem Handbuch an, um es ins Eingabefeld zu laden. **Hilfe → Konstanten** 
 
 Das Ergebnis erscheint in großer Schrift unter dem Feld. Alles aus
 Kapitel 1 funktioniert hier, einschließlich Variablen, Funktionen und
-Skripten. Wenn ein Skript mehrere Antworten erzeugt, werden sie zusammen
-angezeigt, in einer Zeile und mit Semikolon getrennt, wenn sie
-hineinpassen; eine Antwort, die zu lang für die Zeile ist, wird nie
-geteilt - sie wandert im Ganzen in die nächste Zeile.
+Skripten. Eine kurze einzelne Antwort bleibt in dieser Zeile. Eine
+längere Antwort - das Protokoll eines Skripts mit mehreren Antworten,
+eine Tabelle, eine lange Zahl - erscheint im Ergebnisbereich, dem
+Bereich, der auch Graphen zeigt, mit je einer Antwort pro Zeile; auf
+dem Telefon schiebt sich der Bereich von selbst ins Blickfeld.
 
 Während du einen Namen tippst, erscheint unter dem Feld eine Vorschlagsliste: die Pfeile bewegen die Markierung, **Enter** oder **Tab** übernimmt, **Esc** schließt, und ein Klick übernimmt, ohne die Tastatur zu verlassen. Jeder Vorschlag trägt eine kurze Beschreibung der Funktion oder Konstante. **F1** zeigt dieselbe Beschreibung für das Wort unter dem Cursor in der Hinweisleiste über dem Tastenfeld. Beginnt eine leere Eingabe mit einem Operator (`+ - * / ^ % !`), fügt epher `ans` ein, und die Zeile macht mit dem letzten Ergebnis weiter.
 

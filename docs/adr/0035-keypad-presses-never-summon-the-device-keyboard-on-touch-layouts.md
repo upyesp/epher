@@ -314,3 +314,14 @@ carried by more than color (WCAG 1.4.1) and survives the hover-less
 touch layouts this ADR governs. True form controls (checkboxes,
 sliders, the keypad's keys) keep their existing affordances. See
 ADR-0038 for the same-day changes these buttons sit beside.
+
+## Amendment (2026-09-03): long results slide the result pane into view
+
+The pane-switch tab and the pane's label read "Result" now (ADR-0056):
+the pane renders graphs and long answers alike. The slide contract
+grows one trigger to match: a submission whose answer is too long for
+the answer panel — a pasted script's transcript, a table, a long
+number — slides the result pane into view exactly as a drawn plot
+always has, and drops the entry's focus for the same reason (the
+keyboard must close so the answer can be read). Short single answers
+change nothing: they stay in the answer panel on the calculator pane.

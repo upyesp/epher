@@ -1630,10 +1630,11 @@ quel exemple de ce guide pour le charger dans le champ de saisie. **Aide → Con
 
 Le résultat apparaît en grand sous le champ. Tout le chapitre 1 fonctionne
 ici, y compris variables, fonctions et scripts. Quand un script produit
-plusieurs réponses, elles s'affichent ensemble, sur une même ligne et
-séparées par des points-virgules quand elles tiennent ; une réponse
-trop longue pour la ligne n'est jamais coupée - elle passe entière à
-la ligne suivante.
+Une réponse courte et unique reste sur cette ligne. Une réponse plus
+longue - la sortie d'un script avec plusieurs réponses, un tableau, un
+long nombre - apparaît dans le volet de résultats, le volet qui montre
+aussi les graphiques, avec une réponse par ligne ; sur un téléphone le
+volet s'amène tout seul à l'écran.
 
 Pendant que vous tapez un nom, une liste de suggestions apparaît sous le champ : les flèches déplacent la sélection, **Entrée** ou **Tab** accepte, **Échap** referme, et un clic accepte sans quitter le clavier. Chaque suggestion porte une courte description de la fonction ou de la constante. **F1** affiche la même description pour le mot sous le curseur dans la barre d'aide au-dessus du clavier. Si le premier caractère saisi dans un champ vide est un opérateur (`+ - * / ^ % !`), epher insère `ans` pour vous : la ligne continue depuis le résultat précédent.
 

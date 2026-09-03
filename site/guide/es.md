@@ -1618,9 +1618,11 @@ para cargarlo en el campo de entrada. **Ayuda → Constantes** abre el explorado
 
 El resultado aparece en texto grande debajo del campo. Todo lo del capítulo
 1 funciona aquí, incluidas variables, funciones y scripts. Cuando un
-script produce varias respuestas, se muestran juntas, en una línea y
-separadas por punto y coma si caben; una respuesta demasiado larga para
-la línea nunca se divide: pasa entera a la línea siguiente.
+Una respuesta corta y única se queda en esa línea. Una respuesta más
+larga - la salida de un script con varias respuestas, una tabla, un
+número largo - aparece en el panel de resultados, el panel que también
+muestra gráficas, con una respuesta por línea; en el teléfono el panel
+se desliza a la vista por sí solo.
 
 Mientras escribes un nombre, aparece una lista de sugerencias debajo del campo: las flechas mueven el resaltado, **Intro** o **Tab** acepta, **Esc** cierra, y un clic acepta sin salir del teclado. Cada sugerencia lleva una descripción breve de la función o constante. **F1** muestra la misma descripción de la palabra bajo el cursor en la barra de pistas sobre el teclado. Si lo primero que escribes en un campo vacío es un operador (`+ - * / ^ % !`), epher inserta `ans` por ti, y la línea continúa desde la respuesta anterior.
 

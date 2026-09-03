@@ -1611,10 +1611,11 @@ para o carregar no campo de entrada. **Ajuda → Constantes** abre o explorador 
 
 O resultado aparece em texto grande por baixo do campo. Tudo o que está no
 capítulo 1 funciona aqui, incluindo variáveis, funções e scripts. Quando
-um script produz várias respostas, elas são mostradas em conjunto, na
-mesma linha e separadas por ponto e vírgula quando couberem; uma
-resposta demasiado longa para a linha nunca é dividida - passa inteira
-para a linha seguinte.
+Uma resposta curta e única fica nessa linha. Uma resposta mais longa - a
+saída de um script com várias respostas, uma tabela, um número longo -
+aparece no painel de resultados, o painel que também mostra gráficos,
+com uma resposta por linha; no telefone o painel desliza para a vista
+por si próprio.
 
 Enquanto escreve um nome, aparece uma lista de sugestões por baixo do campo: as setas movem o realce, **Enter** ou **Tab** aceita, **Esc** fecha, e um clique aceita sem sair do teclado. Cada sugestão traz uma breve descrição da função ou constante. **F1** mostra a mesma descrição da palavra sob o cursor, na barra de dicas acima do teclado. Se o primeiro que escreve num campo vazio for um operador (`+ - * / ^ % !`), o epher insere `ans` por si, e a linha continua a partir da resposta anterior.
 

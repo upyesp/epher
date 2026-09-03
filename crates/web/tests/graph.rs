@@ -278,3 +278,25 @@ fn gesture_windows_keep_the_anchor_still() {
     }
     assert!(((far.1 - far.0) / (20.0 * 1e9) - 1.0).abs() < 1e-6);
 }
+
+#[test]
+fn answer_fits_routes_short_single_answers_to_the_answer_line() {
+    // The headless desktop width (>880px): one short answer, no line
+    // breaks, fits the answer line (ADR-0056).
+    assert!(epher_web::answer_fits_at("= 2", false));
+    assert!(epher_web::answer_fits_at("= [[1, 2, 3], [4, 5, 6], [7, 8, 10]]", false));
+    assert!(epher_web::answer_fits_at("= they agree within 1e-12: true", false));
+    // A script transcript (several answers) renders in the result pane.
+    assert!(!epher_web::answer_fits_at("= 2\u{1f}= 6", false));
+    // The same rule on a phone: a shorter cap, same decisions otherwise.
+    assert!(epher_web::answer_fits_at("= 0.5", true));
+    assert!(!epher_web::answer_fits_at("= [[1, 2, 3], [4, 5, 6], [7, 8, 10]]", true));
+    // So does a table or matrix with its own line breaks.
+    assert!(!epher_web::answer_fits_at("x  y\n1  2", false));
+    // So does an answer too long for one calm line.
+    let long = format!("= {}", "1234567890".repeat(5));
+    assert!(!epher_web::answer_fits_at(&long, false));
+    // Empty keeps whatever routing the absence implies (the answer line
+    // renders nothing either way).
+    assert!(!epher_web::answer_fits_at("", false));
+}

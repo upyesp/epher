@@ -365,6 +365,20 @@
       color: var(--muted);
       padding-inline: 0.25rem 0.5rem;
     }
+    /* The result transcript (ADR-0056): a long answer renders in the
+       result pane, one answer per line - never joined onto one line.
+       The pane gives it the room the one-line answer area cannot. */
+    .pane-result {
+      padding: 0.75rem 1rem;
+      font-size: 1.15rem;
+      font-weight: 300;
+    }
+    .pane-answer {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      padding: 0.15rem 0;
+    }
     form {
       flex: none;
       display: flex;

@@ -1152,6 +1152,29 @@ fn download_icon() -> yew::Html {
     /// render exactly as one item.
 const ANSWER_SEP: char = '\u{1f}';
 
+/// True when the answer line keeps a result (ADR-0056): exactly one
+/// answer, no line breaks, and short enough to read without scrolling.
+/// Anything longer - a pasted script's transcript, a table, a long
+/// number - renders in the result pane instead, one answer per line.
+pub fn answer_fits(text: &str) -> bool {
+    answer_fits_at(text, mobile_layout())
+}
+
+/// The routing rule with the layout question abstracted, so tests can
+/// run without a window: `narrow` is the mobile-layout answer.
+pub fn answer_fits_at(text: &str, narrow: bool) -> bool {
+    if text.is_empty() || text.contains(ANSWER_SEP) || text.contains('\n') {
+        return false;
+    }
+    // Conservative caps keep the answer on one calm line: about 44
+    // monospace characters fit a desktop answer line without
+    // scrolling, about 24 fit a phone's. A borderline answer moving to
+    // the result pane is a smaller fault than one the answer line
+    // clips (ADR-0035's everything-visible contract).
+    let cap = if narrow { 24 } else { 44 };
+    text.chars().count() <= cap
+}
+
 /// Render the result text as answer items (ADR-0055): short answers flow
 /// on one line separated by semicolons; an answer that carries its own
 /// line breaks (a table, a matrix) or cannot fit on the line is never
@@ -3671,7 +3694,19 @@ fn epher_app() -> Html {
             // command finishing the script keeps its own message
             // (graphs print nothing, ADR-0027).
             if last_was_eval {
-                result.set(script_outputs.join(&ANSWER_SEP.to_string()));
+                let joined = script_outputs.join(&ANSWER_SEP.to_string());
+                // A long result renders in the result pane (ADR-0056):
+                // on mobile it slides into view, and the entry drops the
+                // focus so the keyboard closes for it (ADR-0035's slide
+                // contract, now for transcripts as well as plots).
+                let to_pane = !answer_fits(&joined);
+                result.set(joined);
+                if to_pane && mobile_layout() {
+                    scroll_pane_for_submit.emit("graph-pane");
+                    if let Some(ta) = input_ref.cast::<web_sys::HtmlTextAreaElement>() {
+                        let _ = ta.blur();
+                    }
+                }
             }
             // Publish the loop's outcomes once: points of interest and the
             // slider set follow from the final curves and session.
@@ -5660,17 +5695,16 @@ fn epher_app() -> Html {
                         }}
                     >
                         { localizer.lookup("calc-pane") }
-                    </button>
-                    <button
+                    </button>                    <button
                         type="button"
                         aria-pressed={(*active_pane == "graph").to_string()}
-                        aria-label={localizer.lookup("graph-pane")}
+                        aria-label={localizer.lookup("result-pane")}
                         onclick={{
                             let scroll_pane = scroll_pane.clone();
                             Callback::from(move |_| scroll_pane.emit("graph-pane"))
                         }}
                     >
-                        { localizer.lookup("graph-pane") }
+                        { localizer.lookup("result-pane") }
                     </button>
                 </nav>
                 <button
@@ -5987,7 +6021,17 @@ fn epher_app() -> Html {
                             aria-labelledby="answer-label"
                             tabindex="0"
                         >
-                            { for answer_items(&result) }
+                            {
+                                // The answer line keeps only what reads well
+                                // on one line (ADR-0056): a short single
+                                // answer. Anything longer renders in the
+                                // result pane instead, one answer per line.
+                                if answer_fits(&result) {
+                                    html! { { for answer_items(&result) } }
+                                } else {
+                                    html! {}
+                                }
+                            }
                         </div>
                     </div>
                     <section class="history-box" tabindex="0" aria-label={localizer.lookup("history")} ref={history_box_ref.clone()}>
@@ -6220,7 +6264,27 @@ fn epher_app() -> Html {
                         </div>
                     </section>
                 </section>
-                <section class="pane" id="graph-pane" aria-label={localizer.lookup("graph-pane")}>
+                <section class="pane" id="graph-pane" aria-label={localizer.lookup("result-pane")}>
+                    {
+                        // The result transcript (ADR-0056): a long answer -
+                        // a pasted script's transcript, a table, a long
+                        // number - renders here, one answer per line, where
+                        // the pane can give it room. Short single answers
+                        // stay on the answer line under the entry; graphs
+                        // and curves share this pane as before.
+                        if !result.is_empty() && !answer_fits(&result) {
+                            html! {
+                                <section class="pane-result" role="status" aria-live="polite">
+                                    { for result
+                                        .split(ANSWER_SEP)
+                                        .filter(|p| !p.is_empty())
+                                        .map(|p| html! { <div class="pane-answer">{ p }</div> }) }
+                                </section>
+                            }
+                        } else {
+                            html! {}
+                        }
+                    }
                     {
                         // The toolbar shows for every plotting pane: 2D,
                         // 3D surfaces, 3D parametric curves (ADR-0055:

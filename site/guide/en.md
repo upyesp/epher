@@ -1658,10 +1658,11 @@ the guide to load it into the entry field.
 3. Press **Enter** or click the **=** button.
 
 The result appears in large text below the field. Everything from chapter 1
-works here, including variables, functions, and scripts. When a script
-produces several answers they are shown together, on one line and
-separated by semicolons when they fit; an answer that is too long for
-the line is never split - it moves whole to the next line.
+works here, including variables, functions, and scripts. A short single
+answer stays on that line. A longer answer - a script's transcript with
+several answers, a table, a long number - appears in the result pane, the
+pane that also shows graphs, with one answer per line; on a phone the
+pane slides into view on its own.
 
 While you type a name, a suggestion list appears beneath the field: the
 arrows move the highlight, **Enter** or **Tab** accepts, **Esc** closes,
