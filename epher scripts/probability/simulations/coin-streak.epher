@@ -1,26 +1,26 @@
-// ============================================================================
-// coin-streak.epher -- the longest run of heads in 100 tosses, per seed
-//
-// Toss a fair coin 100 times and find the longest run of consecutive
-// heads. The expected value is close to log2(100) = 6.64 (the classic
-// estimate of Erdos and Renyi), so runs of 5 to 8 are the usual range,
-// with 4 or 9 at the edges.
-//
-// The script replays the same 100 tosses under six seeds and prints the
-// longest head run of each; the first seed is 17 and the others were
-// chosen to show the usual spread, and randseed() makes every stream
-// reproducible, so the six values below are exactly what those seeds
-// produce. Each run is its own packed while loop (guide 1.30) whose
-// state packs {current head run, best so far} into one integer, and the
-// body consumes exactly one randint(0, 1) per toss.
-//
-// Source: Erdos and Renyi (1970), "On a new law of large numbers".
-//
-// Run it from a terminal:  epher "epher scripts/probability/simulations/coin-streak.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-//
-// The knobs to edit are `coins` (tosses per run) and the seeds below.
-// ============================================================================
+/* ============================================================================
+   coin-streak.epher -- the longest run of heads in 100 tosses, per seed
+
+   Toss a fair coin 100 times and find the longest run of consecutive
+   heads. The expected value is close to log2(100) = 6.64 (the classic
+   estimate of Erdos and Renyi), so runs of 5 to 8 are the usual range,
+   with 4 or 9 at the edges.
+
+   The script replays the same 100 tosses under six seeds and prints the
+   longest head run of each; the first seed is 17 and the others were
+   chosen to show the usual spread, and randseed() makes every stream
+   reproducible, so the six values below are exactly what those seeds
+   produce. Each run is its own packed while loop (guide 1.30) whose
+   state packs {current head run, best so far} into one integer, and the
+   body consumes exactly one randint(0, 1) per toss.
+
+   Source: Erdos and Renyi (1970), "On a new law of large numbers".
+
+   Run it from a terminal:  epher "epher scripts/probability/simulations/coin-streak.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+
+   The knobs to edit are `coins` (tosses per run) and the seeds below.
+   ============================================================================ */
 
 // ---- the knobs ----
 const coins = 100
@@ -34,10 +34,10 @@ def grow(s, c) = if c == 1 then (run(s) + 1) * 1000 + (if run(s) + 1 > best(s) t
 // grow consumes one toss c (1 heads, 0 tails): heads extends the run,
 // tails resets it, and the best-so-far follows along.
 
-// ---- results ----
-// Six runs of `coins` tosses, one seed each. The structure repeats
-// because a while body holds one statement; the seed and the final
-// state are all that change between runs.
+/* ---- results ----
+   Six runs of `coins` tosses, one seed each. The structure repeats
+   because a while body holds one statement; the seed and the final
+   state are all that change between runs. */
 randseed(17)
 v = {0, 0}
 while v[1] < coins do v = {v[1] + 1, grow(v[2], randint(0, 1))}
@@ -72,24 +72,25 @@ print("seed 100, longest head run:", best(v[2]))
 // above land between 5 and 8, clustering around this scale; the mean
 // of the six is 6.5.
 print("log2(100), the expected scale:", log(100) / log(2))
-// ---- expected output ----
-// = 100
-// = 17
-// = {0, 0}
-// = seed 17, longest head run: 5
-// = 96
-// = {0, 0}
-// = seed 96, longest head run: 8
-// = 97
-// = {0, 0}
-// = seed 97, longest head run: 5
-// = 98
-// = {0, 0}
-// = seed 98, longest head run: 7
-// = 99
-// = {0, 0}
-// = seed 99, longest head run: 6
-// = 100
-// = {0, 0}
-// = seed 100, longest head run: 8
-// = log2(100), the expected scale: 6.64385618977
+/* ---- expected output ----
+= 100
+= 17
+= {0, 0}
+= seed 17, longest head run: 5
+= 96
+= {0, 0}
+= seed 96, longest head run: 8
+= 97
+= {0, 0}
+= seed 97, longest head run: 5
+= 98
+= {0, 0}
+= seed 98, longest head run: 7
+= 99
+= {0, 0}
+= seed 99, longest head run: 6
+= 100
+= {0, 0}
+= seed 100, longest head run: 8
+= log2(100), the expected scale: 6.64385618977
+*/

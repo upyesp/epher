@@ -1,20 +1,20 @@
-// ============================================================================
-// limit-of-one-plus-one-over-n.epher -- the sequence that defines e
-//
-// (1 + 1/n)^n approaches e as n grows (Stewart, "Calculus", 8th ed.,
-// sec. 6.2, where e is defined by this very limit). The sequence creeps
-// up toward e from below: 2.59 at n = 10, 2.718268... at n = 100000,
-// still about 1.4e-4 short of e = 2.718281828459...
-//
-// A for loop over the n values collects the terms into one printed
-// list, and the last term is compared with the builtin constant e.
-//
-// Accuracy: each term is printed as the calculator shows it; the gap
-// to e falls like e/(2n), so it is 1.4e-4 at n = 100000.
-//
-// Run:  epher "epher scripts/calculus/limits/limit-of-one-plus-one-over-n.epher"
-// The knob to edit is `ns`, the sample sizes below.
-// ============================================================================
+/* ============================================================================
+   limit-of-one-plus-one-over-n.epher -- the sequence that defines e
+
+   (1 + 1/n)^n approaches e as n grows (Stewart, "Calculus", 8th ed.,
+   sec. 6.2, where e is defined by this very limit). The sequence creeps
+   up toward e from below: 2.59 at n = 10, 2.718268... at n = 100000,
+   still about 1.4e-4 short of e = 2.718281828459...
+
+   A for loop over the n values collects the terms into one printed
+   list, and the last term is compared with the builtin constant e.
+
+   Accuracy: each term is printed as the calculator shows it; the gap
+   to e falls like e/(2n), so it is 1.4e-4 at n = 100000.
+
+   Run:  epher "epher scripts/calculus/limits/limit-of-one-plus-one-over-n.epher"
+   The knob to edit is `ns`, the sample sizes below.
+   ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const ns = {10, 100, 1000, 100000}
@@ -26,8 +26,9 @@ for n in ns do (1 + 1/n)^n
 e
 abs((1 + 1/100000)^100000 - e) < 1e-3
 
-// ---- expected output ---------------------------------------------------------
-// = {10, 100, 1000, 100000}
-// = {2.5937424601, 2.70481382942, 2.71692393224, 2.71826823719}
-// = 2.71828182846
-// = true
+/* ---- expected output ---------------------------------------------------------
+= {10, 100, 1000, 100000}
+= {2.5937424601, 2.70481382942, 2.71692393224, 2.71826823719}
+= 2.71828182846
+= true
+*/

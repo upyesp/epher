@@ -1,22 +1,22 @@
-// ============================================================================
-// moon-phase-angle.epher -- the Sun-Moon-Earth angle across one month
-//
-// The phase angle of the Moon on the same five dates of one month as
-// moon-illumination.epher, from the built-in accessor phase (the
-// solar-ephemeris crate, JPL-validated; guide 1.16). The phase angle is
-// the angle Sun-Moon-Earth measured at the Moon: 0 deg at full moon (Sun
-// and Earth line up on the same side of the Moon), 180 deg at new moon.
-// The lit fraction is exactly (1 + cos(phase angle)) / 2, and illum is
-// that value rounded to four decimals while phase is rounded to two, so
-// rebuilding illum from phase agrees to about 1e-4, as the checks below
-// show. Because of the Moon's 5 deg orbital tilt the angle at full moon
-// stays a few degrees above zero.
-//
-// Run it from a terminal:  epher "epher scripts/astronomy/moon/moon-phase-angle.epher"
-// In the REPL:             load epher scripts/astronomy/moon/moon-phase-angle.epher
-//
-// Knobs: year, month, and the sample days of the month.
-// ============================================================================
+/* ============================================================================
+   moon-phase-angle.epher -- the Sun-Moon-Earth angle across one month
+
+   The phase angle of the Moon on the same five dates of one month as
+   moon-illumination.epher, from the built-in accessor phase (the
+   solar-ephemeris crate, JPL-validated; guide 1.16). The phase angle is
+   the angle Sun-Moon-Earth measured at the Moon: 0 deg at full moon (Sun
+   and Earth line up on the same side of the Moon), 180 deg at new moon.
+   The lit fraction is exactly (1 + cos(phase angle)) / 2, and illum is
+   that value rounded to four decimals while phase is rounded to two, so
+   rebuilding illum from phase agrees to about 1e-4, as the checks below
+   show. Because of the Moon's 5 deg orbital tilt the angle at full moon
+   stays a few degrees above zero.
+
+   Run it from a terminal:  epher "epher scripts/astronomy/moon/moon-phase-angle.epher"
+   In the REPL:             load epher scripts/astronomy/moon/moon-phase-angle.epher
+
+   Knobs: year, month, and the sample days of the month.
+   ============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const year = 2026
@@ -27,10 +27,10 @@ const days = {1, 8, 15, 22, 29}
 // The lit fraction from the phase angle, radians trig (guide 1.13).
 def lit(ph) = (1 + cos(rad(ph))) / 2
 
-// ---- results ----------------------------------------------------------------
-// Phase angle in degrees on the sample days. Small near the full moon of
-// June 29 (day 29: 11.81 deg), large near the new moon of June 15
-// (day 15: 174.94 deg); near 90 deg at the quarters (days 8 and 22).
+/* ---- results ----------------------------------------------------------------
+   Phase angle in degrees on the sample days. Small near the full moon of
+   June 29 (day 29: 11.81 deg), large near the new moon of June 15
+   (day 15: 174.94 deg); near 90 deg at the quarters (days 8 and 22). */
 for d in days do phase(11, jd(year, month, d))
 
 // The illuminated fraction on the same days (the same list as
@@ -46,14 +46,15 @@ print("day 15 rebuilt:", lit(phase(11, jd(year, month, 15))), "vs", illum(11, jd
 print("day 22 rebuilt:", lit(phase(11, jd(year, month, 22))), "vs", illum(11, jd(year, month, 22)))
 print("day 29 rebuilt:", lit(phase(11, jd(year, month, 29))), "vs", illum(11, jd(year, month, 29)))
 
-// ---- expected output ----
-// = 2026
-// = 6
-// = {1, 8, 15, 22, 29}
-// = {8.43, 84.88, 174.94, 88.84, 11.81}
-// = {0.9946, 0.5447, 0.0019, 0.5102, 0.9894}
-// = day 1  rebuilt: 0.994597854232 vs 0.9946
-// = day 8  rebuilt: 0.544620987683 vs 0.5447
-// = day 15 rebuilt: 0.00194855869838 vs 0.0019
-// = day 22 rebuilt: 0.510122218124 vs 0.5102
-// = day 29 rebuilt: 0.989415841279 vs 0.9894
+/* ---- expected output ----
+= 2026
+= 6
+= {1, 8, 15, 22, 29}
+= {8.43, 84.88, 174.94, 88.84, 11.81}
+= {0.9946, 0.5447, 0.0019, 0.5102, 0.9894}
+= day 1  rebuilt: 0.994597854232 vs 0.9946
+= day 8  rebuilt: 0.544620987683 vs 0.5447
+= day 15 rebuilt: 0.00194855869838 vs 0.0019
+= day 22 rebuilt: 0.510122218124 vs 0.5102
+= day 29 rebuilt: 0.989415841279 vs 0.9894
+*/

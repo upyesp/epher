@@ -1,20 +1,20 @@
-// ============================================================================
-// rhombus-area.epher -- area from the diagonals
-//
-// The diagonals of a rhombus cross at right angles and bisect each other
-// (Euclid's Elements, book I, proposition 46 corollary; standard fact),
-// so they split it into four right triangles and the area is
-// A = d1 d2 / 2. The side is the hypotenuse of half-diagonals, so with
-// diagonals 4 and 3 the side is sqrt(2^2 + 1.5^2) = 2.5 and the perimeter
-// is 10, all exact.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/polygons/rhombus-area.epher"
-// In the REPL:             load epher scripts/geometry/polygons/rhombus-area.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are `d1` and `d2`, the two diagonals.
-// Everything above the results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   rhombus-area.epher -- area from the diagonals
+
+   The diagonals of a rhombus cross at right angles and bisect each other
+   (Euclid's Elements, book I, proposition 46 corollary; standard fact),
+   so they split it into four right triangles and the area is
+   A = d1 d2 / 2. The side is the hypotenuse of half-diagonals, so with
+   diagonals 4 and 3 the side is sqrt(2^2 + 1.5^2) = 2.5 and the perimeter
+   is 10, all exact.
+
+   Run it from a terminal:  epher "epher scripts/geometry/polygons/rhombus-area.epher"
+   In the REPL:             load epher scripts/geometry/polygons/rhombus-area.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are `d1` and `d2`, the two diagonals.
+   Everything above the results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const d1 = 4
@@ -29,10 +29,11 @@ print("area:", area(d1, d2))
 print("side from the diagonals:", side(d1, d2))
 print("perimeter:", 4 * side(d1, d2))
 print("area is the 3-4 rectangle halved:", area(d1, d2) == 4 * 3 / 2)
-// ---- expected output ----
-// = 4
-// = 3
-// = area: 6
-// = side from the diagonals: 2.5
-// = perimeter: 10
-// = area is the 3-4 rectangle halved: true
+/* ---- expected output ----
+= 4
+= 3
+= area: 6
+= side from the diagonals: 2.5
+= perimeter: 10
+= area is the 3-4 rectangle halved: true
+*/

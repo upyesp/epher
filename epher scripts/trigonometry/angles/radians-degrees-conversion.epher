@@ -1,20 +1,20 @@
-// ============================================================================
-// radians-degrees-conversion.epher -- convert angles between degrees and radians
-//
-// A full turn is 360 degrees = 2 pi radians, so 1 deg = pi/180 rad and
-// 1 rad = 180/pi deg. The conversions are builtins (guide 1.13): rad(x)
-// turns degrees into radians and deg(x) turns radians into degrees, and an
-// angle can be written straight in degrees with the deg unit suffix, so
-// sin(30 deg) = 0.5. Everything below just calls the builtins; nothing is
-// redefined.
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/angles/radians-degrees-conversion.epher"
-// In the REPL:             load epher scripts/trigonometry/angles/radians-degrees-conversion.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The one knob to edit is the `degs` list below. Printed values carry about
-// 12 significant digits, exact to double precision.
-// ============================================================================
+/* ============================================================================
+   radians-degrees-conversion.epher -- convert angles between degrees and radians
+
+   A full turn is 360 degrees = 2 pi radians, so 1 deg = pi/180 rad and
+   1 rad = 180/pi deg. The conversions are builtins (guide 1.13): rad(x)
+   turns degrees into radians and deg(x) turns radians into degrees, and an
+   angle can be written straight in degrees with the deg unit suffix, so
+   sin(30 deg) = 0.5. Everything below just calls the builtins; nothing is
+   redefined.
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/angles/radians-degrees-conversion.epher"
+   In the REPL:             load epher scripts/trigonometry/angles/radians-degrees-conversion.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The one knob to edit is the `degs` list below. Printed values carry about
+   12 significant digits, exact to double precision.
+   ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const degs = {30, 45, 60, 90, 180}   // sample angles, in degrees
@@ -40,14 +40,15 @@ print("tan(60 deg) =", tan(60 deg))
 
 // Round trips land back on the knob values (within 1e-12 degree).
 for x in degs do abs(deg(rad(x)) - x) < 1e-12
-// ---- expected output
-// = {30, 45, 60, 90, 180}
-// = {0.523598775598, 0.785398163397, 1.0471975512, 1.57079632679, 3.14159265359}
-// = {30, 45, 60, 90, 180}
-// = 1 rad = 57.2957795131 deg
-// = pi rad = 180 deg
-// = tau rad = 360 deg
-// = sin(30 deg) = 0.5
-// = cos(45 deg) = 0.707106781187
-// = tan(60 deg) = 1.73205080757
-// = {true, true, true, true, true}
+/* ---- expected output
+= {30, 45, 60, 90, 180}
+= {0.523598775598, 0.785398163397, 1.0471975512, 1.57079632679, 3.14159265359}
+= {30, 45, 60, 90, 180}
+= 1 rad = 57.2957795131 deg
+= pi rad = 180 deg
+= tau rad = 360 deg
+= sin(30 deg) = 0.5
+= cos(45 deg) = 0.707106781187
+= tan(60 deg) = 1.73205080757
+= {true, true, true, true, true}
+*/

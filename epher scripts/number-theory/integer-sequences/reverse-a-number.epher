@@ -1,23 +1,23 @@
-// ============================================================================
-// reverse-a-number.epher -- the digits of n read backwards
-//
-// Builds the reversed number with a packed while loop (guide 1.30): each
-// pass takes the last digit with mod(n, 10), appends it to the reversed
-// value by shifting that value left one place (times 10), and drops the
-// digit with floor(n / 10). The classic check: 12345 reverses to 54321.
-// Trailing zeros of n become leading zeros of the reversal and vanish,
-// so 1000 reverses to 1, not 0001.
-//
-// Source: standard number theory; reversal is the machinery behind
-// palindromic numbers, the subject of the next script. Exact for every
-// integer here.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/reverse-a-number.epher"
-// In the REPL:             load epher scripts/number-theory/integer-sequences/reverse-a-number.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// There is no knob: the sample numbers are the point of the script.
-// ============================================================================
+/* ============================================================================
+   reverse-a-number.epher -- the digits of n read backwards
+
+   Builds the reversed number with a packed while loop (guide 1.30): each
+   pass takes the last digit with mod(n, 10), appends it to the reversed
+   value by shifting that value left one place (times 10), and drops the
+   digit with floor(n / 10). The classic check: 12345 reverses to 54321.
+   Trailing zeros of n become leading zeros of the reversal and vanish,
+   so 1000 reverses to 1, not 0001.
+
+   Source: standard number theory; reversal is the machinery behind
+   palindromic numbers, the subject of the next script. Exact for every
+   integer here.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/reverse-a-number.epher"
+   In the REPL:             load epher scripts/number-theory/integer-sequences/reverse-a-number.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   There is no knob: the sample numbers are the point of the script.
+   ============================================================================ */
 
 // ---- reverse 12345 ----------------------------------------------------------------------------
 // v = {remaining digits, reversed so far}; each pass moves the last
@@ -37,12 +37,13 @@ print("reverse of 1000:", v[2])             // 1: the zeros fall away
 v = {12321, 0}
 while v[1] > 0 do v = {floor(v[1] / 10), v[2] * 10 + mod(v[1], 10)}
 print("reverse of 12321:", v[2])            // itself: a palindrome
-// ---- expected output ----
-// = {12345, 0}
-// = reverse of 12345: 54321
-// = {2026, 0}
-// = reverse of 2026: 6202
-// = {1000, 0}
-// = reverse of 1000: 1
-// = {12321, 0}
-// = reverse of 12321: 12321
+/* ---- expected output ----
+= {12345, 0}
+= reverse of 12345: 54321
+= {2026, 0}
+= reverse of 2026: 6202
+= {1000, 0}
+= reverse of 1000: 1
+= {12321, 0}
+= reverse of 12321: 12321
+*/

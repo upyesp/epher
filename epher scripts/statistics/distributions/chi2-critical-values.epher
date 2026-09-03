@@ -1,19 +1,19 @@
-// ============================================================================
-// chi2-critical-values.epher -- chi-square cut points for levels and df
-//
-// The chi-square cut points x such that P(chi2 <= x) equals the
-// probability in `p` with the given degrees of freedom, from the builtin
-// invchi2 (guide 1.20). The 95th percentile with 5 df is the 11.0705 of
-// goodness-of-fit tests. The last lines feed each cut point back through
-// chi2cdf: the lower-tail area at the cut point comes back to p.
-//
-// Run it from a terminal:  epher "epher scripts/statistics/distributions/chi2-critical-values.epher"
-// In the REPL:             load epher scripts/statistics/distributions/chi2-critical-values.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// No knobs: the levels and degrees of freedom below are the demonstration.
-// ============================================================================
+/* ============================================================================
+   chi2-critical-values.epher -- chi-square cut points for levels and df
+
+   The chi-square cut points x such that P(chi2 <= x) equals the
+   probability in `p` with the given degrees of freedom, from the builtin
+   invchi2 (guide 1.20). The 95th percentile with 5 df is the 11.0705 of
+   goodness-of-fit tests. The last lines feed each cut point back through
+   chi2cdf: the lower-tail area at the cut point comes back to p.
+
+   Run it from a terminal:  epher "epher scripts/statistics/distributions/chi2-critical-values.epher"
+   In the REPL:             load epher scripts/statistics/distributions/chi2-critical-values.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   No knobs: the levels and degrees of freedom below are the demonstration.
+   ============================================================================ */
 
 // ---- the cut points -------------------------------------------------------------------
 print("invchi2(0.95, 5):", invchi2(0.95, 5))      // the 5% chi2 with 5 df
@@ -24,9 +24,10 @@ print("invchi2(0.99, 20):", invchi2(0.99, 20))    // the 1% chi2 with 20 df
 print("chi2cdf(invchi2(0.95, 5), 5):", chi2cdf(invchi2(0.95, 5), 5))
 print("chi2cdf(invchi2(0.99, 20), 20):", chi2cdf(invchi2(0.99, 20), 20))
 
-// ---- expected output ----
-// = invchi2(0.95, 5): 11.0704976935
-// = invchi2(0.975, 10): 20.4831773509
-// = invchi2(0.99, 20): 37.5662347867
-// = chi2cdf(invchi2(0.95, 5), 5): 0.95
-// = chi2cdf(invchi2(0.99, 20), 20): 0.99
+/* ---- expected output ----
+= invchi2(0.95, 5): 11.0704976935
+= invchi2(0.975, 10): 20.4831773509
+= invchi2(0.99, 20): 37.5662347867
+= chi2cdf(invchi2(0.95, 5), 5): 0.95
+= chi2cdf(invchi2(0.99, 20), 20): 0.99
+*/

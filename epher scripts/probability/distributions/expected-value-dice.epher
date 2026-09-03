@@ -1,25 +1,25 @@
-// ============================================================================
-// expected-value-dice.epher -- the mean of one die and of two dice
-//
-// The expected value of a random outcome is the sum of x * P(X = x)
-// over all outcomes x (Ross, "A First Course in Probability", ch. 4).
-// For a fair die every face has probability 1/6, so
-//
-//   E[X] = (1 + 2 + 3 + 4 + 5 + 6) / 6 = 21/6 = 3.5,
-//
-// and for the sum of two dice the definition sums over all 36 ordered
-// pairs (a, b), each with probability 1/36. The sums below are exact:
-// the packed while loops (guide 1.30) add exact rationals, and the
-// totals come out as 3.5 and 7.
-//
-// Linearity gives the two-dice answer in one line: E[A + B] = E[A] +
-// E[B] = 3.5 + 3.5 = 7, which the 36-term sum confirms.
-//
-// Source: Ross, "A First Course in Probability", chapter 4.
-//
-// Run it from a terminal:  epher "epher scripts/probability/distributions/expected-value-dice.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-// ============================================================================
+/* ============================================================================
+   expected-value-dice.epher -- the mean of one die and of two dice
+
+   The expected value of a random outcome is the sum of x * P(X = x)
+   over all outcomes x (Ross, "A First Course in Probability", ch. 4).
+   For a fair die every face has probability 1/6, so
+
+     E[X] = (1 + 2 + 3 + 4 + 5 + 6) / 6 = 21/6 = 3.5,
+
+   and for the sum of two dice the definition sums over all 36 ordered
+   pairs (a, b), each with probability 1/36. The sums below are exact:
+   the packed while loops (guide 1.30) add exact rationals, and the
+   totals come out as 3.5 and 7.
+
+   Linearity gives the two-dice answer in one line: E[A + B] = E[A] +
+   E[B] = 3.5 + 3.5 = 7, which the 36-term sum confirms.
+
+   Source: Ross, "A First Course in Probability", chapter 4.
+
+   Run it from a terminal:  epher "epher scripts/probability/distributions/expected-value-dice.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+   ============================================================================ */
 
 // ---- results ----
 // One die, from the definition: sum x * 1/6 over the six faces.
@@ -37,11 +37,12 @@ print("E[sum of two dice] from the definition:", w[2])
 
 // Linearity does the same sum in one step.
 print("linearity 3.5 + 3.5:", 3.5 + 3.5)
-// ---- expected output ----
-// = {1, 0}
-// = E[one die] from the definition: 3.5
-// = as a fraction: 21/6 = 3.5
-// = the arithmetic-mean formula (1 + 6) / 2: 3.5
-// = {1, 0}
-// = E[sum of two dice] from the definition: 7
-// = linearity 3.5 + 3.5: 7
+/* ---- expected output ----
+= {1, 0}
+= E[one die] from the definition: 3.5
+= as a fraction: 21/6 = 3.5
+= the arithmetic-mean formula (1 + 6) / 2: 3.5
+= {1, 0}
+= E[sum of two dice] from the definition: 7
+= linearity 3.5 + 3.5: 7
+*/

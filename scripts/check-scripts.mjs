@@ -3,10 +3,11 @@
 // the expected-output block at the end of the file, and report.
 //
 // Expected-output convention (see "epher scripts/README.md"): the last
-// comment section of a script starts with a line beginning
-// "// ---- expected output"; every following line is a "// = ..."
-// comment whose text is one line of the CLI transcript. The checker
-// treats that block as the oracle.
+// section of a script is a block comment whose opening line starts with
+// "/* ---- expected output"; every line inside is one line of the CLI
+// transcript, and the block closes with "*/" on its own line. The older
+// line style ("// ---- expected output" then "// = ..." comments) is
+// still accepted. The checker treats that block as the oracle.
 //
 // Run: cargo build -p epher-cli && node scripts/check-scripts.mjs
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -30,14 +31,21 @@ function walk(dir, out = []) {
 }
 
 /** Expected transcript from the footer block, or null when the file has
- *  no "// ---- expected output" section. */
+ *  no expected-output section. */
 function expectedTranscript(path) {
   const text = readFileSync(path, "utf8");
   const lines = text.split("\n");
   let start = -1;
+  let block = true;
   for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].startsWith("/* ---- expected output")) {
+      start = i;
+      block = true;
+      break;
+    }
     if (lines[i].startsWith("// ---- expected output")) {
       start = i;
+      block = false;
       break;
     }
   }
@@ -46,8 +54,13 @@ function expectedTranscript(path) {
   for (let i = start + 1; i < lines.length; i++) {
     const line = lines[i];
     if (line.trim() === "") continue;
-    if (!line.startsWith("// ")) break; // footer must run to EOF
-    out.push(line.slice(3));
+    if (block) {
+      if (line.trim() === "*/") break; // the block closes at the end
+      out.push(line);
+    } else {
+      if (!line.startsWith("// ")) break; // footer must run to EOF
+      out.push(line.slice(3));
+    }
   }
   return out;
 }

@@ -1,22 +1,22 @@
-// ============================================================================
-// binomial-to-normal-approximation.epher -- the continuity correction at work
-//
-// Approximates the binomial probability P(X <= 55) for X with n = 100
-// trials and p = 0.5 by the normal with mean 50 and standard deviation
-// 5, using the continuity correction: the binomial at 55 is matched by
-// the normal area up to 55.5, so the approximation is
-// normcdf((55.5 - 50) / 5). The rule of thumb says the normal is a good
-// stand-in when np and n(1 - p) are both at least 5, which holds here
-// with 50 and 50.
-//
-// Run it from a terminal:  epher "epher scripts/statistics/distributions/binomial-to-normal-approximation.epher"
-// In the REPL:             load epher scripts/statistics/distributions/binomial-to-normal-approximation.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// The knobs to edit are `n`, `p` and `k` below. Everything above the
-// results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   binomial-to-normal-approximation.epher -- the continuity correction at work
+
+   Approximates the binomial probability P(X <= 55) for X with n = 100
+   trials and p = 0.5 by the normal with mean 50 and standard deviation
+   5, using the continuity correction: the binomial at 55 is matched by
+   the normal area up to 55.5, so the approximation is
+   normcdf((55.5 - 50) / 5). The rule of thumb says the normal is a good
+   stand-in when np and n(1 - p) are both at least 5, which holds here
+   with 50 and 50.
+
+   Run it from a terminal:  epher "epher scripts/statistics/distributions/binomial-to-normal-approximation.epher"
+   In the REPL:             load epher scripts/statistics/distributions/binomial-to-normal-approximation.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   The knobs to edit are `n`, `p` and `k` below. Everything above the
+   results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const n = 100    // trials of a fair coin
@@ -32,12 +32,13 @@ print("difference:", binomcdf(k, n, p) - normcdf((k + 0.5 - n * p) / sqrt(n * p 
 print("mean n * p:", n * p)
 print("stdev sqrt(n * p * (1 - p)):", sqrt(n * p * (1 - p)))
 
-// ---- expected output ----
-// = 100
-// = 0.5
-// = 55
-// = exact binomial P(X <= 55): 0.864373487962
-// = normal approximation with correction: 0.864333939054
-// = difference: 0.0000395489088035
-// = mean n * p: 50
-// = stdev sqrt(n * p * (1 - p)): 5
+/* ---- expected output ----
+= 100
+= 0.5
+= 55
+= exact binomial P(X <= 55): 0.864373487962
+= normal approximation with correction: 0.864333939054
+= difference: 0.0000395489088035
+= mean n * p: 50
+= stdev sqrt(n * p * (1 - p)): 5
+*/

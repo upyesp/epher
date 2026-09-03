@@ -1,28 +1,28 @@
-// ============================================================================
-// projectile-motion.epher -- range, height and flight time of a launch
-//
-// A projectile launched at speed v0 and angle theta over level ground
-// follows the ballistic parabola; neglecting air drag, the range, peak
-// height and flight time are
-//
-//   R = v0^2 sin(2 theta) / g     H = v0^2 sin^2(theta) / (2 g)
-//   t = 2 v0 sin(theta) / g
-//
-// At 45 deg, sin(2 theta) = sin(90 deg) = 1, so R = v0^2 / g: with
-// v0 = 20 m/s that is 400 / 9.80665 ~ 40.79 m, checkable by hand, and the
-// peak height is exactly a quarter of the range. The builtin g constant
-// is converted with `in m/s^2` so the units cancel properly: meters
-// squared per second squared over meters per second squared leaves
-// meters, and the flight time lands in seconds.
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/waves/projectile-motion.epher"
-// In the REPL:             load epher scripts/trigonometry/waves/projectile-motion.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are the launch speed and the two angles below
-// (degrees, converted with rad() for the builtin trig). Printed values
-// carry about 12 significant digits.
-// ============================================================================
+/* ============================================================================
+   projectile-motion.epher -- range, height and flight time of a launch
+
+   A projectile launched at speed v0 and angle theta over level ground
+   follows the ballistic parabola; neglecting air drag, the range, peak
+   height and flight time are
+
+     R = v0^2 sin(2 theta) / g     H = v0^2 sin^2(theta) / (2 g)
+     t = 2 v0 sin(theta) / g
+
+   At 45 deg, sin(2 theta) = sin(90 deg) = 1, so R = v0^2 / g: with
+   v0 = 20 m/s that is 400 / 9.80665 ~ 40.79 m, checkable by hand, and the
+   peak height is exactly a quarter of the range. The builtin g constant
+   is converted with `in m/s^2` so the units cancel properly: meters
+   squared per second squared over meters per second squared leaves
+   meters, and the flight time lands in seconds.
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/waves/projectile-motion.epher"
+   In the REPL:             load epher scripts/trigonometry/waves/projectile-motion.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are the launch speed and the two angles below
+   (degrees, converted with rad() for the builtin trig). Printed values
+   carry about 12 significant digits.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const v0 = 20 m/s    // launch speed
@@ -34,10 +34,10 @@ def rng(v, th) = (v ^ 2) * sin(2 * rad(th)) / (g in m/s^2)   // R = v0^2 sin(2 t
 def hmax(v, th) = (v ^ 2) * (sin(rad(th)) ^ 2) / (2 * (g in m/s^2))   // peak height
 def tfly(v, th) = 2 * v * sin(rad(th)) / (g in m/s^2)   // flight time
 
-// ---- results -----------------------------------------------------------------
-// Launch at 45 deg, v0 = 20 m/s. The range is v0^2 / g ~ 40.79 m (hand
-// check: 400 / 9.80665); the peak is R/4 ~ 10.20 m; the flight time is
-// 2 v0 sin(45 deg) / g ~ 2.88 s.
+/* ---- results -----------------------------------------------------------------
+   Launch at 45 deg, v0 = 20 m/s. The range is v0^2 / g ~ 40.79 m (hand
+   check: 400 / 9.80665); the peak is R/4 ~ 10.20 m; the flight time is
+   2 v0 sin(45 deg) / g ~ 2.88 s. */
 print("range at 45 deg:", rng(v0, th1))
 print("max height at 45 deg:", hmax(v0, th1))
 print("flight time at 45 deg:", tfly(v0, th1))
@@ -53,15 +53,16 @@ print("range = 4 x height:", abs(rng(v0, th1) / (4 * hmax(v0, th1)) - 1) < 1e-12
 print("range at 30 deg:", rng(v0, th2))
 print("max height at 30 deg:", hmax(v0, th2))
 print("flight time at 30 deg:", tfly(v0, th2))
-// ---- expected output
-// = 20 m/s
-// = 45
-// = 30
-// = range at 45 deg: 40.7886485191 m
-// = max height at 45 deg: 10.1971621298 m
-// = flight time at 45 deg: 2.88419299633 s
-// = range = v0^2/g: true
-// = range = 4 x height: true
-// = range at 30 deg: 35.3240058036 m
-// = max height at 30 deg: 5.09858106489 m
-// = flight time at 30 deg: 2.03943242596 s
+/* ---- expected output
+= 20 m/s
+= 45
+= 30
+= range at 45 deg: 40.7886485191 m
+= max height at 45 deg: 10.1971621298 m
+= flight time at 45 deg: 2.88419299633 s
+= range = v0^2/g: true
+= range = 4 x height: true
+= range at 30 deg: 35.3240058036 m
+= max height at 30 deg: 5.09858106489 m
+= flight time at 30 deg: 2.03943242596 s
+*/

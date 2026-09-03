@@ -1,22 +1,22 @@
-// ============================================================================
-// simple-harmonic-motion.epher -- position, velocity and acceleration
-//
-// A mass on a spring obeys x(t) = A cos(omega t) with angular frequency
-// omega = 2 pi / T for period T. Differentiating: v = -A omega sin(omega t)
-// and a = -A omega^2 cos(omega t) = -omega^2 x, which is Hooke's law
-// written as an acceleration. The script evaluates all three at a chosen
-// instant, with the units kept through the arithmetic: A in meters and
-// omega in 1/s (displayed as Hz) give x in m, v in m/s and a in m/s^2.
-// Two invariants are checked: a = -omega^2 x, and the energy identity
-// x^2 + (v/omega)^2 = A^2.
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/waves/simple-harmonic-motion.epher"
-// In the REPL:             load epher scripts/trigonometry/waves/simple-harmonic-motion.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are the amplitude, the period and the instant below.
-// Printed values carry about 12 significant digits.
-// ============================================================================
+/* ============================================================================
+   simple-harmonic-motion.epher -- position, velocity and acceleration
+
+   A mass on a spring obeys x(t) = A cos(omega t) with angular frequency
+   omega = 2 pi / T for period T. Differentiating: v = -A omega sin(omega t)
+   and a = -A omega^2 cos(omega t) = -omega^2 x, which is Hooke's law
+   written as an acceleration. The script evaluates all three at a chosen
+   instant, with the units kept through the arithmetic: A in meters and
+   omega in 1/s (displayed as Hz) give x in m, v in m/s and a in m/s^2.
+   Two invariants are checked: a = -omega^2 x, and the energy identity
+   x^2 + (v/omega)^2 = A^2.
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/waves/simple-harmonic-motion.epher"
+   In the REPL:             load epher scripts/trigonometry/waves/simple-harmonic-motion.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are the amplitude, the period and the instant below.
+   Printed values carry about 12 significant digits.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const A = 0.05 m    // amplitude of the motion
@@ -33,18 +33,18 @@ def aof(t) = -A * (omega(T) ^ 2) * cos(omega(T) * t)   // acceleration
 // The angular frequency: omega = 2 pi / 2 s = pi /s (1/s displays as Hz).
 print("omega = 2 pi / T =", omega(T))
 
-// Position, velocity and acceleration at t = 0.25 s = T/8. With omega t =
-// pi/4, x = A cos(pi/4) ~ 0.03536 m, v = -A omega sin(pi/4) ~ -0.1111 m/s
-// and a = -omega^2 x ~ -0.3489 m/s^2. The mass is on its way back through
-// the middle of the swing, so v is large and a points toward the origin.
+/* Position, velocity and acceleration at t = 0.25 s = T/8. With omega t =
+   pi/4, x = A cos(pi/4) ~ 0.03536 m, v = -A omega sin(pi/4) ~ -0.1111 m/s
+   and a = -omega^2 x ~ -0.3489 m/s^2. The mass is on its way back through
+   the middle of the swing, so v is large and a points toward the origin. */
 print("x(0.25 s) =", xof(t))
 print("v(0.25 s) =", vof(t))
 print("a(0.25 s) =", aof(t))
 
-// The two invariants: acceleration tracks position with the minus sign of
-// a restoring force, and position plus velocity energy stay at A^2. Both
-// checks divide by one unit of the quantity first, because abs() takes
-// plain numbers, not quantities.
+/* The two invariants: acceleration tracks position with the minus sign of
+   a restoring force, and position plus velocity energy stay at A^2. Both
+   checks divide by one unit of the quantity first, because abs() takes
+   plain numbers, not quantities. */
 print("a = -omega^2 x:", abs((aof(t) + (omega(T) ^ 2) * xof(t)) / (1 m/s^2)) < 1e-12)
 print("x^2 + (v/omega)^2 = A^2:", abs(((xof(t) ^ 2) + ((vof(t) / omega(T)) ^ 2) - (A ^ 2)) / (1 m^2)) < 1e-15)
 
@@ -53,15 +53,16 @@ print("x^2 + (v/omega)^2 = A^2:", abs(((xof(t) ^ 2) + ((vof(t) / omega(T)) ^ 2) 
 // negative.
 print("x(0) =", xof(0 s))
 print("a(0) =", aof(0 s))
-// ---- expected output
-// = 0.05 m
-// = 2 s
-// = 0.25 s
-// = omega = 2 pi / T = 3.14159265359 Hz
-// = x(0.25 s) = 0.0353553390593 m
-// = v(0.25 s) = -0.111072073454 m/s
-// = a(0.25 s) = -0.348943209982 m/s^2
-// = a = -omega^2 x: true
-// = x^2 + (v/omega)^2 = A^2: true
-// = x(0) = 0.05 m
-// = a(0) = -0.493480220054 m/s^2
+/* ---- expected output
+= 0.05 m
+= 2 s
+= 0.25 s
+= omega = 2 pi / T = 3.14159265359 Hz
+= x(0.25 s) = 0.0353553390593 m
+= v(0.25 s) = -0.111072073454 m/s
+= a(0.25 s) = -0.348943209982 m/s^2
+= a = -omega^2 x: true
+= x^2 + (v/omega)^2 = A^2: true
+= x(0) = 0.05 m
+= a(0) = -0.493480220054 m/s^2
+*/

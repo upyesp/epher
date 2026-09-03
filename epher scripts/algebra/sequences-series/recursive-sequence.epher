@@ -1,17 +1,17 @@
-// ============================================================================
-// recursive-sequence.epher -- iterate x_(n+1) = f(x_n) for n steps
-//
-// Newton's method for x^2 = 2 iterates x_(n+1) = (x_n + 2/x_n) / 2 (Isaac
-// Newton, 1669; see any numerical analysis text). The for loop collects the
-// trajectory, and because the iteration doubles the good digits each step
-// (quadratic convergence), six steps from x_0 = 1 reach machine precision.
-// The trajectory values are exact fractions, printed as fractions where the
-// decimal would repeat. The final x is checked against sqrt(2).
-//
-// Run it from a terminal:  epher "epher scripts/algebra/sequences-series/recursive-sequence.epher"
-//
-// The knobs to edit are the start and the number of steps below.
-// ============================================================================
+/* ============================================================================
+   recursive-sequence.epher -- iterate x_(n+1) = f(x_n) for n steps
+
+   Newton's method for x^2 = 2 iterates x_(n+1) = (x_n + 2/x_n) / 2 (Isaac
+   Newton, 1669; see any numerical analysis text). The for loop collects the
+   trajectory, and because the iteration doubles the good digits each step
+   (quadratic convergence), six steps from x_0 = 1 reach machine precision.
+   The trajectory values are exact fractions, printed as fractions where the
+   decimal would repeat. The final x is checked against sqrt(2).
+
+   Run it from a terminal:  epher "epher scripts/algebra/sequences-series/recursive-sequence.epher"
+
+   The knobs to edit are the start and the number of steps below.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const x0 = 1                      // starting value
@@ -23,11 +23,12 @@ for k in 1 to steps do x = (x + 2 / x) / 2      // echoes the trajectory
 print("x6:", x)
 print("|x^2 - 2| < 1e-9:", abs(x ^ 2 - 2) < 1e-9)
 print("sqrt(2):", sqrt(2))
-// ---- expected output ----
-// = 1
-// = 6
-// = 1
-// = {1.5, 17/12, 577/408, 1.41421356237, 1.41421356237, 1.41421356237}
-// = x6: 1.41421356237
-// = |x^2 - 2| < 1e-9: true
-// = sqrt(2): 1.41421356237
+/* ---- expected output ----
+= 1
+= 6
+= 1
+= {1.5, 17/12, 577/408, 1.41421356237, 1.41421356237, 1.41421356237}
+= x6: 1.41421356237
+= |x^2 - 2| < 1e-9: true
+= sqrt(2): 1.41421356237
+*/

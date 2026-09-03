@@ -1,20 +1,20 @@
-// ============================================================================
-// tangent-line.epher -- the tangent line to y = x^2 at x = 2
-//
-// The tangent line to y = f(x) at x = a is y = f(a) + f'(a)(x - a)
-// (Stewart, "Calculus", 8th ed., sec. 2.7). For f(x) = x^2 at a = 2 the
-// slope f'(2) = 4 comes from the builtin numeric derivative, and the
-// line is y = 4x - 4. The script checks the line where it must hold
-// exactly (at x = 2) and where it only approximates: 0.5 away, at
-// x = 2.5, the parabola has risen 6.25 while the tangent says 6. The
-// gap is the square of the offset: f(2 + d) - L(2 + d) = d^2 = 0.25.
-//
-// Accuracy: the slope prints exactly 4; all checks are exact decimal
-// arithmetic at the displayed precision.
-//
-// Run:  epher "epher scripts/calculus/derivatives/tangent-line.epher"
-// The knob to edit is `a`, the point of tangency.
-// ============================================================================
+/* ============================================================================
+   tangent-line.epher -- the tangent line to y = x^2 at x = 2
+
+   The tangent line to y = f(x) at x = a is y = f(a) + f'(a)(x - a)
+   (Stewart, "Calculus", 8th ed., sec. 2.7). For f(x) = x^2 at a = 2 the
+   slope f'(2) = 4 comes from the builtin numeric derivative, and the
+   line is y = 4x - 4. The script checks the line where it must hold
+   exactly (at x = 2) and where it only approximates: 0.5 away, at
+   x = 2.5, the parabola has risen 6.25 while the tangent says 6. The
+   gap is the square of the offset: f(2 + d) - L(2 + d) = d^2 = 0.25.
+
+   Accuracy: the slope prints exactly 4; all checks are exact decimal
+   arithmetic at the displayed precision.
+
+   Run:  epher "epher scripts/calculus/derivatives/tangent-line.epher"
+   The knob to edit is `a`, the point of tangency.
+   ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const a = 2
@@ -35,12 +35,13 @@ print("parabola at x = 2.5:", f(2.5))
 print("gap f - tangent at 2.5:", f(2.5) - tangent(2.5))
 abs(tangent(a) - f(a)) < 1e-12
 
-// ---- expected output ---------------------------------------------------------
-// = 2
-// = slope at x = 2: 4 by the power rule: 4
-// = true
-// = tangent at x = 2: 4 parabola there: 4
-// = tangent at x = 2.5: 6 line formula: 6
-// = parabola at x = 2.5: 6.25
-// = gap f - tangent at 2.5: 0.25
-// = true
+/* ---- expected output ---------------------------------------------------------
+= 2
+= slope at x = 2: 4 by the power rule: 4
+= true
+= tangent at x = 2: 4 parabola there: 4
+= tangent at x = 2.5: 6 line formula: 6
+= parabola at x = 2.5: 6.25
+= gap f - tangent at 2.5: 0.25
+= true
+*/

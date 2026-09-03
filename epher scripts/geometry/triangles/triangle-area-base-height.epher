@@ -1,19 +1,19 @@
-// ============================================================================
-// triangle-area-base-height.epher -- area from a base and its height
-//
-// The area of a triangle is half the product of any side (the base) and
-// the perpendicular distance to the opposite vertex (the height),
-// A = b h / 2 (Euclid's Elements, book I, proposition 41; standard
-// formula). The 10 by 6 example gives 30, exactly.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/triangles/triangle-area-base-height.epher"
-// In the REPL:             load epher scripts/geometry/triangles/triangle-area-base-height.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are `b` (the base) and `h` (the height to that
-// base). Everything above the results section is machinery you can leave
-// alone.
-// ============================================================================
+/* ============================================================================
+   triangle-area-base-height.epher -- area from a base and its height
+
+   The area of a triangle is half the product of any side (the base) and
+   the perpendicular distance to the opposite vertex (the height),
+   A = b h / 2 (Euclid's Elements, book I, proposition 41; standard
+   formula). The 10 by 6 example gives 30, exactly.
+
+   Run it from a terminal:  epher "epher scripts/geometry/triangles/triangle-area-base-height.epher"
+   In the REPL:             load epher scripts/geometry/triangles/triangle-area-base-height.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are `b` (the base) and `h` (the height to that
+   base). Everything above the results section is machinery you can leave
+   alone.
+   ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const b = 10
@@ -27,9 +27,10 @@ def area(b, h) = b * h / 2
 print("area of the 10 by 6 triangle:", area(b, h))
 print("area of a 7 by 4 triangle:", area(7, 4))
 print("half of the rectangle:", area(b, h) == 10 * 6 / 2)
-// ---- expected output ----
-// = 10
-// = 6
-// = area of the 10 by 6 triangle: 30
-// = area of a 7 by 4 triangle: 14
-// = half of the rectangle: true
+/* ---- expected output ----
+= 10
+= 6
+= area of the 10 by 6 triangle: 30
+= area of a 7 by 4 triangle: 14
+= half of the rectangle: true
+*/

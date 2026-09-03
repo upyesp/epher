@@ -1,25 +1,25 @@
-// ============================================================================
-// hypergeometric-pmf.epher -- sampling without replacement, exactly
-//
-// Draw n objects without replacement from a population of N that holds
-// K special objects. The number X of special objects in the sample is
-// hypergeometric: choose k of the K special ones and n - k of the N - K
-// others, out of all ncr(N, n) samples, so
-//
-//   P(X = k) = ncr(K, k) * ncr(N - K, n - k) / ncr(N, n).
-//
-// There is no hypergeometric builtin in epher, so the formula is the
-// method. The urn example (10 balls, 4 red, draw 4) keeps every answer
-// an exact fraction; the deck example is the classic aces problem (52
-// cards, 4 aces, 5-card hand) and prints as decimals because its exact
-// denominators exceed 1000.
-//
-// Source: Feller, "An Introduction to Probability Theory and Its
-// Applications", volume 1, chapter 2.
-//
-// Run it from a terminal:  epher "epher scripts/probability/distributions/hypergeometric-pmf.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-// ============================================================================
+/* ============================================================================
+   hypergeometric-pmf.epher -- sampling without replacement, exactly
+
+   Draw n objects without replacement from a population of N that holds
+   K special objects. The number X of special objects in the sample is
+   hypergeometric: choose k of the K special ones and n - k of the N - K
+   others, out of all ncr(N, n) samples, so
+
+     P(X = k) = ncr(K, k) * ncr(N - K, n - k) / ncr(N, n).
+
+   There is no hypergeometric builtin in epher, so the formula is the
+   method. The urn example (10 balls, 4 red, draw 4) keeps every answer
+   an exact fraction; the deck example is the classic aces problem (52
+   cards, 4 aces, 5-card hand) and prints as decimals because its exact
+   denominators exceed 1000.
+
+   Source: Feller, "An Introduction to Probability Theory and Its
+   Applications", volume 1, chapter 2.
+
+   Run it from a terminal:  epher "epher scripts/probability/distributions/hypergeometric-pmf.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+   ============================================================================ */
 
 // ---- helpers ----
 def hg(k, N, K, n) = ncr(K, k) * ncr(N - K, n - k) / ncr(N, n)
@@ -44,9 +44,10 @@ print("P(at least one ace):", 1 - hg(0, 52, 4, 5))
 
 // The probability of at least one ace is 1 - ncr(48, 5)/ncr(52, 5) =
 // 1 - 1712304/2598960 = 0.341158001662, about one hand in three.
-// ---- expected output ----
-// = {1/14, 8/21, 3/7, 4/35, 1/210}
-// = P(exactly 2 red): 3/7
-// = P(exactly 2 aces in 5 cards): 0.0399298180811
-// = P(no aces in 5 cards): 0.658841998338
-// = P(at least one ace): 0.341158001662
+/* ---- expected output ----
+= {1/14, 8/21, 3/7, 4/35, 1/210}
+= P(exactly 2 red): 3/7
+= P(exactly 2 aces in 5 cards): 0.0399298180811
+= P(no aces in 5 cards): 0.658841998338
+= P(at least one ace): 0.341158001662
+*/

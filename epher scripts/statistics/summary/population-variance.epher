@@ -1,20 +1,20 @@
-// ============================================================================
-// population-variance.epher -- variance of the ten scores, dividing by n
-//
-// The variance of the exam scores in `d`, from the builtin variance and
-// from its defining formula, the mean squared deviation from the mean.
-// epher's variance is the POPULATION variance: it divides by the count n
-// (guide 1.20). When the data are a sample, use the n - 1 version instead
-// (sample-variance.epher shows it).
-//
-// Run it from a terminal:  epher "epher scripts/statistics/summary/population-variance.epher"
-// In the REPL:             load epher scripts/statistics/summary/population-variance.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// The one knob to edit is `d` below. Everything above the results section
-// is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   population-variance.epher -- variance of the ten scores, dividing by n
+
+   The variance of the exam scores in `d`, from the builtin variance and
+   from its defining formula, the mean squared deviation from the mean.
+   epher's variance is the POPULATION variance: it divides by the count n
+   (guide 1.20). When the data are a sample, use the n - 1 version instead
+   (sample-variance.epher shows it).
+
+   Run it from a terminal:  epher "epher scripts/statistics/summary/population-variance.epher"
+   In the REPL:             load epher scripts/statistics/summary/population-variance.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   The one knob to edit is `d` below. Everything above the results section
+   is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
@@ -24,8 +24,9 @@ variance(d)                         // builtin variance, population version (n)
 sum((d - mean(d)) ^ 2) / len(d)     // the formula: sum of squared deviations over n
 sum((d - mean(d)) ^ 2)              // the squared deviations total 884.1
 
-// ---- expected output ----
-// = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-// = 88.41
-// = 88.41
-// = 884.1
+/* ---- expected output ----
+= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
+= 88.41
+= 88.41
+= 884.1
+*/

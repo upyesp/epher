@@ -1,21 +1,21 @@
-// ============================================================================
-// moon-altitude-azimuth.epher -- where to look for the Moon one evening
-//
-// Altitude and azimuth of the Moon at three times of one evening (19:00,
-// 20:30, 22:00 UT) on 2026-06-22 at Berlin, from the built-in accessors
-// alt and az (the solar-ephemeris crate, JPL-validated; guide 1.16).
-// Altitude is degrees above the horizon (negative means below); azimuth
-// is degrees from north through east: 90 east, 180 south, 270 west. The
-// Moon is near first quarter that evening: it culminated at 17:32 UT
-// (see moon-transit-time.epher) and is descending in the southwest, so
-// the altitude falls while the azimuth swings from south-southwest
-// toward west-southwest; it sets at 23:01 UT (moonrise-moonset.epher).
-//
-// Run it from a terminal:  epher "epher scripts/astronomy/moon/moon-altitude-azimuth.epher"
-// In the REPL:             load epher scripts/astronomy/moon/moon-altitude-azimuth.epher
-//
-// Knobs: date, the three clock hours (UT), latitude and longitude.
-// ============================================================================
+/* ============================================================================
+   moon-altitude-azimuth.epher -- where to look for the Moon one evening
+
+   Altitude and azimuth of the Moon at three times of one evening (19:00,
+   20:30, 22:00 UT) on 2026-06-22 at Berlin, from the built-in accessors
+   alt and az (the solar-ephemeris crate, JPL-validated; guide 1.16).
+   Altitude is degrees above the horizon (negative means below); azimuth
+   is degrees from north through east: 90 east, 180 south, 270 west. The
+   Moon is near first quarter that evening: it culminated at 17:32 UT
+   (see moon-transit-time.epher) and is descending in the southwest, so
+   the altitude falls while the azimuth swings from south-southwest
+   toward west-southwest; it sets at 23:01 UT (moonrise-moonset.epher).
+
+   Run it from a terminal:  epher "epher scripts/astronomy/moon/moon-altitude-azimuth.epher"
+   In the REPL:             load epher scripts/astronomy/moon/moon-altitude-azimuth.epher
+
+   Knobs: date, the three clock hours (UT), latitude and longitude.
+   ============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const year = 2026
@@ -27,30 +27,31 @@ const h3 = 22
 const lat = 52.52      // Berlin
 const lon = 13.405
 
-// ---- results ----------------------------------------------------------------
-// Each line is one look at the sky: altitude and azimuth of the Moon.
-// At 19:00 UT the Moon is 26.7 deg up in the south-southwest; two hours
-// later it is 7.8 deg up in the west-southwest, minutes from setting.
+/* ---- results ----------------------------------------------------------------
+   Each line is one look at the sky: altitude and azimuth of the Moon.
+   At 19:00 UT the Moon is 26.7 deg up in the south-southwest; two hours
+   later it is 7.8 deg up in the west-southwest, minutes from setting. */
 print("at", h1, "hr UT: alt", alt(11, jd(year, month, day, h1), lat, lon), "deg; az", az(11, jd(year, month, day, h1), lat, lon), "deg")
 print("at", h2, "hr UT: alt", alt(11, jd(year, month, day, h2), lat, lon), "deg; az", az(11, jd(year, month, day, h2), lat, lon), "deg")
 print("at", h3, "hr UT: alt", alt(11, jd(year, month, day, h3), lat, lon), "deg; az", az(11, jd(year, month, day, h3), lat, lon), "deg")
 
-// The azimuth runs 202 -> 225 -> 244 deg while the altitude falls from
-// 26.7 to 7.8 deg: the Moon is moving west as the Earth turns, and its
-// path carries it below the horizon at 23:01 UT. All three altitudes are
-// positive, so the Moon is above the horizon through the whole sample.
+/* The azimuth runs 202 -> 225 -> 244 deg while the altitude falls from
+   26.7 to 7.8 deg: the Moon is moving west as the Earth turns, and its
+   path carries it below the horizon at 23:01 UT. All three altitudes are
+   positive, so the Moon is above the horizon through the whole sample. */
 print("Moon still up at", h3, "hr:", alt(11, jd(year, month, day, h3), lat, lon) > 0)
 
-// ---- expected output ----
-// = 2026
-// = 6
-// = 22
-// = 19
-// = 20.5
-// = 22
-// = 52.52
-// = 13.405
-// = at 19 hr UT: alt 26.6848797 deg; az 202.4219241 deg
-// = at 20.5 hr UT: alt 18.958019 deg; az 224.5829753 deg
-// = at 22 hr UT: alt 7.8453117 deg; az 243.8107775 deg
-// = Moon still up at 22 hr: true
+/* ---- expected output ----
+= 2026
+= 6
+= 22
+= 19
+= 20.5
+= 22
+= 52.52
+= 13.405
+= at 19 hr UT: alt 26.6848797 deg; az 202.4219241 deg
+= at 20.5 hr UT: alt 18.958019 deg; az 224.5829753 deg
+= at 22 hr UT: alt 7.8453117 deg; az 243.8107775 deg
+= Moon still up at 22 hr: true
+*/

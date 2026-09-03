@@ -1,22 +1,22 @@
-// ============================================================================
-// mortgage-rate.epher -- the interest rate a given payment implies, and the
-// difference between the quoted (APR) rate and the effective annual rate
-//
-// The finance builtin tvm_i solves the annuity equation for the per-period
-// rate: given the term, principal (negative) and payment, it returns the
-// monthly rate i. Multiplying by 12 gives the nominal annual rate, the way
-// lenders quote an APR; compounding that monthly rate for a year gives the
-// higher effective annual rate (1+i)^12 - 1. Source: standard TVM
-// formulas; see Kellison, The Theory of Interest, chapters 2-3.
-//
-// Accuracy: 12 displayed digits; tvm_i bisects the rate to about 1e-15.
-//
-// Run it from a terminal:
-//   epher "epher scripts/finance/loans/mortgage-rate.epher"
-//
-// The knobs to edit are in the knob section; everything after it is
-// machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   mortgage-rate.epher -- the interest rate a given payment implies, and the
+   difference between the quoted (APR) rate and the effective annual rate
+
+   The finance builtin tvm_i solves the annuity equation for the per-period
+   rate: given the term, principal (negative) and payment, it returns the
+   monthly rate i. Multiplying by 12 gives the nominal annual rate, the way
+   lenders quote an APR; compounding that monthly rate for a year gives the
+   higher effective annual rate (1+i)^12 - 1. Source: standard TVM
+   formulas; see Kellison, The Theory of Interest, chapters 2-3.
+
+   Accuracy: 12 displayed digits; tvm_i bisects the rate to about 1e-15.
+
+   Run it from a terminal:
+     epher "epher scripts/finance/loans/mortgage-rate.epher"
+
+   The knobs to edit are in the knob section; everything after it is
+   machinery you can leave alone.
+   ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const principal = 200000    // loan amount at closing, USD
@@ -31,11 +31,12 @@ print("effective annual rate (1+i)^12 - 1:", (1 + i) ^ 12 - 1)
 // The gap between 8.232% and 8.550% is monthly compounding: interest added
 // every month earns interest itself. The quoted APR is the nominal 8.232%;
 // the effective rate is what a year of that compounding truly costs.
-// ---- expected output ----
-// = 200000
-// = 1500
-// = 30
-// = 0.00685998148446
-// = monthly rate: 0.00685998148446
-// = nominal annual rate (APR, 12 x monthly): 0.0823197778135
-// = effective annual rate (1+i)^12 - 1: 0.0854978247676
+/* ---- expected output ----
+= 200000
+= 1500
+= 30
+= 0.00685998148446
+= monthly rate: 0.00685998148446
+= nominal annual rate (APR, 12 x monthly): 0.0823197778135
+= effective annual rate (1+i)^12 - 1: 0.0854978247676
+*/

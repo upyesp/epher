@@ -1,23 +1,23 @@
-// ============================================================================
-// reference-angle.epher -- the reference angle of any angle in degrees
-//
-// The reference angle of an angle in standard position is the acute angle
-// (0 to 90 deg) its terminal side makes with the x-axis, and it is what the
-// trig functions of large or negative angles reduce to. Two steps: bring
-// the angle into [0, 360) by subtracting whole turns, then take the acute
-// distance to the nearest x-axis point, 0 deg or 180 deg. This is the
-// classroom recipe of any precalculus text (e.g. Stewart, Redlin and
-// Watson, "Precalculus", ch. 6, section on trigonometric functions of any
-// angle); no builtin does it, so the script states the formula.
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/angles/reference-angle.epher"
-// In the REPL:             load epher scripts/trigonometry/angles/reference-angle.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The one knob to edit is the `angs` list below (degrees; negatives and
-// angles past 360 are the point). Printed values carry about 12 significant
-// digits.
-// ============================================================================
+/* ============================================================================
+   reference-angle.epher -- the reference angle of any angle in degrees
+
+   The reference angle of an angle in standard position is the acute angle
+   (0 to 90 deg) its terminal side makes with the x-axis, and it is what the
+   trig functions of large or negative angles reduce to. Two steps: bring
+   the angle into [0, 360) by subtracting whole turns, then take the acute
+   distance to the nearest x-axis point, 0 deg or 180 deg. This is the
+   classroom recipe of any precalculus text (e.g. Stewart, Redlin and
+   Watson, "Precalculus", ch. 6, section on trigonometric functions of any
+   angle); no builtin does it, so the script states the formula.
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/angles/reference-angle.epher"
+   In the REPL:             load epher scripts/trigonometry/angles/reference-angle.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The one knob to edit is the `angs` list below (degrees; negatives and
+   angles past 360 are the point). Printed values carry about 12 significant
+   digits.
+   ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const angs = {210, 135, 330, -60, 750, 90, 180, 1000}   // angles, in degrees
@@ -30,17 +30,18 @@ def refang(x) = abs(reduce360(x) - 180 * round(reduce360(x) / 180))   // acute d
 // Step one: every knob angle reduced to its coterminal angle in [0, 360).
 for x in angs do reduce360(x)
 
-// Step two: the reference angle of each. Examples to read off: 210 deg is
-// 30 deg past 180, so its reference angle is 30; 750 deg has already come
-// full circle twice (750 = 2 x 360 + 30) and shares 30 deg with 30 itself;
-// -60 deg lands at 300 and is 60 deg short of 360. On the axes the recipe
-// still works: 180 gives 0 and 90 stays 90.
+/* Step two: the reference angle of each. Examples to read off: 210 deg is
+   30 deg past 180, so its reference angle is 30; 750 deg has already come
+   full circle twice (750 = 2 x 360 + 30) and shares 30 deg with 30 itself;
+   -60 deg lands at 300 and is 60 deg short of 360. On the axes the recipe
+   still works: 180 gives 0 and 90 stays 90. */
 for x in angs do refang(x)
 
 // One side-by-side reading for the first knob value.
 print("reference angle of 210 deg:", refang(210), "deg")
-// ---- expected output
-// = {210, 135, 330, -60, 750, 90, 180, 1000}
-// = {210, 135, 330, 300, 30, 90, 180, 280}
-// = {30, 45, 30, 60, 30, 90, 0, 80}
-// = reference angle of 210 deg: 30 deg
+/* ---- expected output
+= {210, 135, 330, -60, 750, 90, 180, 1000}
+= {210, 135, 330, 300, 30, 90, 180, 280}
+= {30, 45, 30, 60, 30, 90, 0, 80}
+= reference angle of 210 deg: 30 deg
+*/

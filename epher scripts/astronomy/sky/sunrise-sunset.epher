@@ -1,21 +1,21 @@
-// ============================================================================
-// sunrise-sunset.epher -- when the Sun rises and sets at a city
-//
-// Sunrise and sunset at Berlin on three dates of 2026 - the March
-// equinox (Mar 20) and the June and December solstices (Jun 21, Dec 21)
-// - from the built-in accessors rise and set for the Sun, body 10 (the
-// solar-ephemeris crate, JPL-validated; guide 1.16). Each returns the
-// event of the day that starts at j0 (0h UT) as a Julian Date; the
-// clock hour below is (event - j0) * 24 in hours UT (Berlin civil time
-// is UT + 1 in winter, UT + 2 in summer). The seasonal spread is the
-// point: Berlin's sunrise swings from 2.72 hr UT on the June solstice
-// to 7.25 hr on the December solstice, nearly five hours.
-//
-// Run it from a terminal:  epher "epher scripts/astronomy/sky/sunrise-sunset.epher"
-// In the REPL:             load epher scripts/astronomy/sky/sunrise-sunset.epher
-//
-// Knobs: latitude and longitude (Berlin below); the three dates below.
-// ============================================================================
+/* ============================================================================
+   sunrise-sunset.epher -- when the Sun rises and sets at a city
+
+   Sunrise and sunset at Berlin on three dates of 2026 - the March
+   equinox (Mar 20) and the June and December solstices (Jun 21, Dec 21)
+   - from the built-in accessors rise and set for the Sun, body 10 (the
+   solar-ephemeris crate, JPL-validated; guide 1.16). Each returns the
+   event of the day that starts at j0 (0h UT) as a Julian Date; the
+   clock hour below is (event - j0) * 24 in hours UT (Berlin civil time
+   is UT + 1 in winter, UT + 2 in summer). The seasonal spread is the
+   point: Berlin's sunrise swings from 2.72 hr UT on the June solstice
+   to 7.25 hr on the December solstice, nearly five hours.
+
+   Run it from a terminal:  epher "epher scripts/astronomy/sky/sunrise-sunset.epher"
+   In the REPL:             load epher scripts/astronomy/sky/sunrise-sunset.epher
+
+   Knobs: latitude and longitude (Berlin below); the three dates below.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const lat = 52.52          // Berlin
@@ -29,11 +29,11 @@ const d_dec = {2026, 12, 21}   // December solstice
 def rh(ds, lat, lon) = (rise(10, jd(ds[1], ds[2], ds[3]), lat, lon) - jd(ds[1], ds[2], ds[3])) * 24 in hr
 def sh(ds, lat, lon) = (set(10, jd(ds[1], ds[2], ds[3]), lat, lon) - jd(ds[1], ds[2], ds[3])) * 24 in hr
 
-// ---- results ----------------------------------------------------------------
-// On the equinox the Sun rises about 5.15 UT (6:09 CET) and sets about
-// 17.32 UT; on the June solstice it is up from 2.72 (4:43 CEST) to
-// 19.55 UT, and on the December solstice from 7.25 (8:15 CET) to
-// 14.90 UT. All six hours lie in 0-24 as events of their day must.
+/* ---- results ----------------------------------------------------------------
+   On the equinox the Sun rises about 5.15 UT (6:09 CET) and sets about
+   17.32 UT; on the June solstice it is up from 2.72 (4:43 CEST) to
+   19.55 UT, and on the December solstice from 7.25 (8:15 CET) to
+   14.90 UT. All six hours lie in 0-24 as events of their day must. */
 print("sunrise 2026-03-20:", rh(d_mar, lat, lon))
 print("sunset  2026-03-20:", sh(d_mar, lat, lon))
 print("sunrise 2026-06-21:", rh(d_jun, lat, lon))
@@ -41,21 +41,22 @@ print("sunset  2026-06-21:", sh(d_jun, lat, lon))
 print("sunrise 2026-12-21:", rh(d_dec, lat, lon))
 print("sunset  2026-12-21:", sh(d_dec, lat, lon))
 
-// The equinox day is close to 12 h long but not exactly: the Sun's
-// upper limb and atmospheric refraction make daylight a little longer
-// than the geometric half-day (see day-length.epher for the numbers).
-// The longest and shortest days of the year sit within a day of the
-// solstices, which fall on 2026-06-21 and 2026-12-21.
+/* The equinox day is close to 12 h long but not exactly: the Sun's
+   upper limb and atmospheric refraction make daylight a little longer
+   than the geometric half-day (see day-length.epher for the numbers).
+   The longest and shortest days of the year sit within a day of the
+   solstices, which fall on 2026-06-21 and 2026-12-21. */
 
-// ---- expected output ----
-// = 52.52
-// = 13.405
-// = {2026, 3, 20}
-// = {2026, 6, 21}
-// = {2026, 12, 21}
-// = sunrise 2026-03-20: 5.15429040045 hr
-// = sunset  2026-03-20: 17.3239701614 hr
-// = sunrise 2026-06-21: 2.71892880276 hr
-// = sunset  2026-06-21: 19.5539001636 hr
-// = sunrise 2026-12-21: 7.24788695946 hr
-// = sunset  2026-12-21: 14.8994872794 hr
+/* ---- expected output ----
+= 52.52
+= 13.405
+= {2026, 3, 20}
+= {2026, 6, 21}
+= {2026, 12, 21}
+= sunrise 2026-03-20: 5.15429040045 hr
+= sunset  2026-03-20: 17.3239701614 hr
+= sunrise 2026-06-21: 2.71892880276 hr
+= sunset  2026-06-21: 19.5539001636 hr
+= sunrise 2026-12-21: 7.24788695946 hr
+= sunset  2026-12-21: 14.8994872794 hr
+*/

@@ -1,24 +1,24 @@
-// ============================================================================
-// roulette-expected-value.epher -- red versus a single number in Europe
-//
-// A European roulette wheel has 37 pockets: 18 red, 18 black and one
-// green zero. A $10 bet on red wins $10 with probability 18/37 and
-// loses $10 with probability 19/37, and a $10 bet on a single number
-// pays 35 to 1, winning $350 with probability 1/37 and losing $10 with
-// probability 36/37:
-//
-//   E[red]          = 10 * 18/37 - 10 * 19/37 = -10/37
-//   E[single number] = 350 * 1/37 - 10 * 36/37 = -10/37
-//
-// Both bets lose 10/37 of a dollar, about 27 cents, per $10 spin: the
-// house edge is 1/37 of every dollar staked, about 2.7 percent, and it
-// is the same for every bet on the wheel, which is the design.
-//
-// Run it from a terminal:  epher "epher scripts/probability/games/roulette-expected-value.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-//
-// The knob to edit is `stake`; everything below it is machinery.
-// ============================================================================
+/* ============================================================================
+   roulette-expected-value.epher -- red versus a single number in Europe
+
+   A European roulette wheel has 37 pockets: 18 red, 18 black and one
+   green zero. A $10 bet on red wins $10 with probability 18/37 and
+   loses $10 with probability 19/37, and a $10 bet on a single number
+   pays 35 to 1, winning $350 with probability 1/37 and losing $10 with
+   probability 36/37:
+
+     E[red]          = 10 * 18/37 - 10 * 19/37 = -10/37
+     E[single number] = 350 * 1/37 - 10 * 36/37 = -10/37
+
+   Both bets lose 10/37 of a dollar, about 27 cents, per $10 spin: the
+   house edge is 1/37 of every dollar staked, about 2.7 percent, and it
+   is the same for every bet on the wheel, which is the design.
+
+   Run it from a terminal:  epher "epher scripts/probability/games/roulette-expected-value.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+
+   The knob to edit is `stake`; everything below it is machinery.
+   ============================================================================ */
 
 // ---- the knob ----
 const stake = 10
@@ -38,10 +38,11 @@ print("exact: -10/37 dollars per spin")
 // bet chosen.
 print("house edge as a fraction of the stake:", 1/37)
 print("house edge, percent of the stake:", 100 * (1/37))
-// ---- expected output ----
-// = 10
-// = E[$10 on red]: -10/37
-// = E[$10 on a single number]: -10/37
-// = exact: -10/37 dollars per spin
-// = house edge as a fraction of the stake: 1/37
-// = house edge, percent of the stake: 100/37
+/* ---- expected output ----
+= 10
+= E[$10 on red]: -10/37
+= E[$10 on a single number]: -10/37
+= exact: -10/37 dollars per spin
+= house edge as a fraction of the stake: 1/37
+= house edge, percent of the stake: 100/37
+*/

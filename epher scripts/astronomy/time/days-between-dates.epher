@@ -1,26 +1,26 @@
-// ============================================================================
-// days-between-dates.epher -- the day count between two dates
-//
-// The number of days between two calendar dates, as the difference of
-// their Julian Dates (guide 1.16). Because jd(y, m, d) counts from the
-// same 0h-UT instant for every date, the difference is exactly the day
-// count of the civil calendar, leap days included - no month lengths
-// need summing by hand. The spans below were verified with python's
-// datetime module, which is the oracle for the expected output. The
-// sign of the difference follows the order of the subtraction, so the
-// same two dates give +9497 one way and -9497 the other.
-//
-// Run it from a terminal:  epher "epher scripts/astronomy/time/days-between-dates.epher"
-// In the REPL:             load epher scripts/astronomy/time/days-between-dates.epher
-//
-// Knob: none - the spans below are fixed.
-// ============================================================================
+/* ============================================================================
+   days-between-dates.epher -- the day count between two dates
 
-// ---- results ----------------------------------------------------------------
-// 26 years from 2000-01-01 to 2026-01-01: 26 * 365 + 7 leap days (2000,
-// 2004, ..., 2024) = 9497. Then the leap-year contrast around 2024:
-// 365 days across an ordinary year, 366 across one that holds a
-// February 29, and the shorter span from mid-March to the solstice.
+   The number of days between two calendar dates, as the difference of
+   their Julian Dates (guide 1.16). Because jd(y, m, d) counts from the
+   same 0h-UT instant for every date, the difference is exactly the day
+   count of the civil calendar, leap days included - no month lengths
+   need summing by hand. The spans below were verified with python's
+   datetime module, which is the oracle for the expected output. The
+   sign of the difference follows the order of the subtraction, so the
+   same two dates give +9497 one way and -9497 the other.
+
+   Run it from a terminal:  epher "epher scripts/astronomy/time/days-between-dates.epher"
+   In the REPL:             load epher scripts/astronomy/time/days-between-dates.epher
+
+   Knob: none - the spans below are fixed.
+   ============================================================================ */
+
+/* ---- results ----------------------------------------------------------------
+   26 years from 2000-01-01 to 2026-01-01: 26 * 365 + 7 leap days (2000,
+   2004, ..., 2024) = 9497. Then the leap-year contrast around 2024:
+   365 days across an ordinary year, 366 across one that holds a
+   February 29, and the shorter span from mid-March to the solstice. */
 print("2000-01-01 to 2026-01-01:", jd(2026, 1, 1) - jd(2000, 1, 1), "days")
 print("2023-01-01 to 2024-01-01:", jd(2024, 1, 1) - jd(2023, 1, 1), "days")
 print("2024-01-01 to 2025-01-01:", jd(2025, 1, 1) - jd(2024, 1, 1), "days (2024 is a leap year)")
@@ -28,10 +28,11 @@ print("2026-03-15 to 2026-06-21:", jd(2026, 6, 21) - jd(2026, 3, 15), "days")
 print("signed the other way:", jd(2000, 1, 1) - jd(2026, 1, 1), "days")
 print("1582-10-15 to 2000-01-01:", jd(2000, 1, 1) - jd(1582, 10, 15), "days")
 
-// ---- expected output ----
-// = 2000-01-01 to 2026-01-01: 9497 days
-// = 2023-01-01 to 2024-01-01: 365 days
-// = 2024-01-01 to 2025-01-01: 366 days (2024 is a leap year)
-// = 2026-03-15 to 2026-06-21: 98 days
-// = signed the other way: -9497 days
-// = 1582-10-15 to 2000-01-01: 152384 days
+/* ---- expected output ----
+= 2000-01-01 to 2026-01-01: 9497 days
+= 2023-01-01 to 2024-01-01: 365 days
+= 2024-01-01 to 2025-01-01: 366 days (2024 is a leap year)
+= 2026-03-15 to 2026-06-21: 98 days
+= signed the other way: -9497 days
+= 1582-10-15 to 2000-01-01: 152384 days
+*/

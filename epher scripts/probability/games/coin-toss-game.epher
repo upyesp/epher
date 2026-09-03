@@ -1,20 +1,20 @@
-// ============================================================================
-// coin-toss-game.epher -- the expected value of a two-outcome game
-//
-// A coin is tossed once. Heads pays you $2 and tails costs you $1, so
-// your net gain G is $2 with probability 1/2 and -$1 with probability
-// 1/2, and the expected value of the game is
-//
-//   E[G] = 2 * 1/2 + (-1) * 1/2 = 1/2,
-//
-// 50 cents in your favor every toss. A game is fair when its expected
-// value is zero (Ross, "A First Course in Probability", ch. 4): this
-// one is not, unless you pay 50 cents for the right to play, which
-// shifts the expectation to exactly zero.
-//
-// Run it from a terminal:  epher "epher scripts/probability/games/coin-toss-game.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-// ============================================================================
+/* ============================================================================
+   coin-toss-game.epher -- the expected value of a two-outcome game
+
+   A coin is tossed once. Heads pays you $2 and tails costs you $1, so
+   your net gain G is $2 with probability 1/2 and -$1 with probability
+   1/2, and the expected value of the game is
+
+     E[G] = 2 * 1/2 + (-1) * 1/2 = 1/2,
+
+   50 cents in your favor every toss. A game is fair when its expected
+   value is zero (Ross, "A First Course in Probability", ch. 4): this
+   one is not, unless you pay 50 cents for the right to play, which
+   shifts the expectation to exactly zero.
+
+   Run it from a terminal:  epher "epher scripts/probability/games/coin-toss-game.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+   ============================================================================ */
 
 // ---- results ----
 // The two outcomes and their probabilities, as exact fractions.
@@ -29,10 +29,11 @@ print("expected value of the game:", ev)
 // fair, because the player's expectation becomes 1/2 - 1/2 = 0.
 print("fair entry fee:", 1/2)
 print("house expected gain per free toss:", 0 - ev)
-// ---- expected output ----
-// = P(heads, +$2): 0.5
-// = P(tails, -$1): 0.5
-// = 0.5
-// = expected value of the game: 0.5
-// = fair entry fee: 0.5
-// = house expected gain per free toss: -0.5
+/* ---- expected output ----
+= P(heads, +$2): 0.5
+= P(tails, -$1): 0.5
+= 0.5
+= expected value of the game: 0.5
+= fair entry fee: 0.5
+= house expected gain per free toss: -0.5
+*/

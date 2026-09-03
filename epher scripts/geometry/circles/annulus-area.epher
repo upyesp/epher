@@ -1,18 +1,18 @@
-// ============================================================================
-// annulus-area.epher -- area of a ring between two circles
-//
-// The annulus between the circles of radius R and r (R > r) has area
-// A = pi R^2 - pi r^2 = pi (R^2 - r^2), the disk minus its hole
-// (standard formula). The results check the difference form against the
-// separate disk areas, and the r = 0 case reduces to the whole circle.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/circles/annulus-area.epher"
-// In the REPL:             load epher scripts/geometry/circles/annulus-area.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are `R` (outer radius) and `r` (inner radius).
-// Everything above the results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   annulus-area.epher -- area of a ring between two circles
+
+   The annulus between the circles of radius R and r (R > r) has area
+   A = pi R^2 - pi r^2 = pi (R^2 - r^2), the disk minus its hole
+   (standard formula). The results check the difference form against the
+   separate disk areas, and the r = 0 case reduces to the whole circle.
+
+   Run it from a terminal:  epher "epher scripts/geometry/circles/annulus-area.epher"
+   In the REPL:             load epher scripts/geometry/circles/annulus-area.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are `R` (outer radius) and `r` (inner radius).
+   Everything above the results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const R = 8
@@ -26,9 +26,10 @@ def minus(R, r) = pi * R ^ 2 - pi * r ^ 2   // the disk areas taken separately
 print("annulus area:", annulus(R, r))
 print("difference form agrees:", abs(annulus(R, r) - minus(R, r)) < 1e-9)
 print("radius 5 with no hole is the circle:", annulus(5, 0))
-// ---- expected output ----
-// = 8
-// = 3
-// = annulus area: 172.787595947
-// = difference form agrees: true
-// = radius 5 with no hole is the circle: 78.5398163397
+/* ---- expected output ----
+= 8
+= 3
+= annulus area: 172.787595947
+= difference form agrees: true
+= radius 5 with no hole is the circle: 78.5398163397
+*/

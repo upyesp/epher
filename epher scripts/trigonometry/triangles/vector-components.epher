@@ -1,22 +1,22 @@
-// ============================================================================
-// vector-components.epher -- magnitude and direction into x/y, and back
-//
-// A vector of magnitude m at angle t to the x-axis has components
-// x = m cos t and y = m sin t; the builtin atan2(y, x) inverts the pair:
-// its argument is the direction the vector came from, and atan2 keeps the
-// signs straight, which the single-argument atan cannot do (t = 210 deg
-// below would look like 30 deg to atan). Rebuilding the magnitude with
-// sqrt(x^2 + y^2) closes the round trip. Angles are degrees through the
-// knobs, converted with rad() for the builtin trig; the vector keeps
-// meters.
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/triangles/vector-components.epher"
-// In the REPL:             load epher scripts/trigonometry/triangles/vector-components.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are the two vector pairs below (magnitude in meters,
-// direction in degrees). Printed values carry about 12 significant digits.
-// ============================================================================
+/* ============================================================================
+   vector-components.epher -- magnitude and direction into x/y, and back
+
+   A vector of magnitude m at angle t to the x-axis has components
+   x = m cos t and y = m sin t; the builtin atan2(y, x) inverts the pair:
+   its argument is the direction the vector came from, and atan2 keeps the
+   signs straight, which the single-argument atan cannot do (t = 210 deg
+   below would look like 30 deg to atan). Rebuilding the magnitude with
+   sqrt(x^2 + y^2) closes the round trip. Angles are degrees through the
+   knobs, converted with rad() for the builtin trig; the vector keeps
+   meters.
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/triangles/vector-components.epher"
+   In the REPL:             load epher scripts/trigonometry/triangles/vector-components.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are the two vector pairs below (magnitude in meters,
+   direction in degrees). Printed values carry about 12 significant digits.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const mag1 = 12.5 m   // first vector's magnitude
@@ -48,18 +48,19 @@ print("x:", vx(mag2, t2))
 print("y:", vy(mag2, t2))
 print("magnitude back:", vmag(vx(mag2, t2), vy(mag2, t2)))
 print("direction back:", vdir(vx(mag2, t2), vy(mag2, t2)), "deg")
-// ---- expected output
-// = 12.5 m
-// = 210
-// = 8 m
-// = 45
-// = x: -10.8253175473 m
-// = y: -6.25 m
-// = magnitude back: 12.5 m
-// = direction back: 210 deg
-// = round trip magnitude: true
-// = round trip direction: true
-// = x: 5.65685424949 m
-// = y: 5.65685424949 m
-// = magnitude back: 8 m
-// = direction back: 45 deg
+/* ---- expected output
+= 12.5 m
+= 210
+= 8 m
+= 45
+= x: -10.8253175473 m
+= y: -6.25 m
+= magnitude back: 12.5 m
+= direction back: 210 deg
+= round trip magnitude: true
+= round trip direction: true
+= x: 5.65685424949 m
+= y: 5.65685424949 m
+= magnitude back: 8 m
+= direction back: 45 deg
+*/

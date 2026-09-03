@@ -1,19 +1,19 @@
-// ============================================================================
-// pythagorean-hypotenuse.epher -- hypotenuse c from the legs a and b
-//
-// Computes the hypotenuse of a right triangle from its two legs with the
-// Pythagorean theorem, c = sqrt(a^2 + b^2) (Euclid's Elements, book I,
-// proposition 47). The builtin hypot(a, b) returns the same length in one
-// call, and the last result cross-checks the formula against it; the
-// formula is written out because the method is the point of the script.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/triangles/pythagorean-hypotenuse.epher"
-// In the REPL:             load epher scripts/geometry/triangles/pythagorean-hypotenuse.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are `a` and `b`, the two legs. Everything above the
-// results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   pythagorean-hypotenuse.epher -- hypotenuse c from the legs a and b
+
+   Computes the hypotenuse of a right triangle from its two legs with the
+   Pythagorean theorem, c = sqrt(a^2 + b^2) (Euclid's Elements, book I,
+   proposition 47). The builtin hypot(a, b) returns the same length in one
+   call, and the last result cross-checks the formula against it; the
+   formula is written out because the method is the point of the script.
+
+   Run it from a terminal:  epher "epher scripts/geometry/triangles/pythagorean-hypotenuse.epher"
+   In the REPL:             load epher scripts/geometry/triangles/pythagorean-hypotenuse.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are `a` and `b`, the two legs. Everything above the
+   results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const a = 3
@@ -27,9 +27,10 @@ def hyp(a, b) = sqrt(a ^ 2 + b ^ 2)
 print("hypotenuse of the 3-4-5 triangle:", hyp(a, b))
 print("hypotenuse of a 5-12-13 triangle:", hyp(5, 12))
 print("the builtin hypot agrees:", hyp(a, b) == hypot(a, b))
-// ---- expected output ----
-// = 3
-// = 4
-// = hypotenuse of the 3-4-5 triangle: 5
-// = hypotenuse of a 5-12-13 triangle: 13
-// = the builtin hypot agrees: true
+/* ---- expected output ----
+= 3
+= 4
+= hypotenuse of the 3-4-5 triangle: 5
+= hypotenuse of a 5-12-13 triangle: 13
+= the builtin hypot agrees: true
+*/

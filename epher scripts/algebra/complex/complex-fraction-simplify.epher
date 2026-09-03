@@ -1,18 +1,18 @@
-// ============================================================================
-// complex-fraction-simplify.epher -- 1/(2 + 3i) + 1/(1 - i) as a + bi
-//
-// To divide by a complex number, multiply numerator and denominator by the
-// conjugate of the denominator: 1/(2 + 3i) = (2 - 3i)/13 and 1/(1 - i) =
-// (1 + i)/2 (Churchill and Brown, "Complex Variables and Applications",
-// sec. 5). The denominators (2 + 3i)(2 - 3i) = 13 and (1 - i)(1 + i) = 2
-// are exact, and the sum is 17/26 + (7/26)i = 0.653846153846 +
-// 0.269230769231i, displayed to about 12 digits; the last boolean compares
-// the sum with the exact fractions.
-//
-// Run it from a terminal:  epher "epher scripts/algebra/complex/complex-fraction-simplify.epher"
-//
-// No knobs to edit; the fractions below are fixed examples.
-// ============================================================================
+/* ============================================================================
+   complex-fraction-simplify.epher -- 1/(2 + 3i) + 1/(1 - i) as a + bi
+
+   To divide by a complex number, multiply numerator and denominator by the
+   conjugate of the denominator: 1/(2 + 3i) = (2 - 3i)/13 and 1/(1 - i) =
+   (1 + i)/2 (Churchill and Brown, "Complex Variables and Applications",
+   sec. 5). The denominators (2 + 3i)(2 - 3i) = 13 and (1 - i)(1 + i) = 2
+   are exact, and the sum is 17/26 + (7/26)i = 0.653846153846 +
+   0.269230769231i, displayed to about 12 digits; the last boolean compares
+   the sum with the exact fractions.
+
+   Run it from a terminal:  epher "epher scripts/algebra/complex/complex-fraction-simplify.epher"
+
+   No knobs to edit; the fractions below are fixed examples.
+   ============================================================================ */
 
 // ---- results -----------------------------------------------------------------
 z1 = 1 / (2 + 3i)                 // 1/(2 + 3i), echoes (2 - 3i)/13 in decimals
@@ -21,10 +21,11 @@ z1 + z2                           // the sum, echoes 0.653846153846+0.2692307692
 print("conjugate route for z1:", conj(2 + 3i) / ((2 + 3i) * conj(2 + 3i)))
 print("(2 + 3i)(2 - 3i):", (2 + 3i) * conj(2 + 3i))
 print("matches 17/26 + 7i/26:", abs(z1 + z2 - (17 / 26 + i * 7 / 26)) < 1e-12)
-// ---- expected output ----
-// = 0.153846153846-0.230769230769i
-// = 0.5+0.5i
-// = 0.653846153846+0.269230769231i
-// = conjugate route for z1: 0.153846153846-0.230769230769i
-// = (2 + 3i)(2 - 3i): 13
-// = matches 17/26 + 7i/26: true
+/* ---- expected output ----
+= 0.153846153846-0.230769230769i
+= 0.5+0.5i
+= 0.653846153846+0.269230769231i
+= conjugate route for z1: 0.153846153846-0.230769230769i
+= (2 + 3i)(2 - 3i): 13
+= matches 17/26 + 7i/26: true
+*/

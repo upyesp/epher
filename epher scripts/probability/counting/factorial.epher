@@ -1,19 +1,19 @@
-// ============================================================================
-// factorial.epher -- the factorial function, 5! up to 12!, exact integers
-//
-// Computes n! = 1 * 2 * ... * n with the fact builtin and the postfix
-// operator (guide 1.13) for n from 5 to 12. Every value here is an exact
-// integer. The ratios show where the growth comes from: each step of the
-// product multiplies by n itself, so 12! is 12 times 11! and 132 times 10!.
-//
-// Source: the definition; see Ross, "A First Course in Probability",
-// chapter 1. No accuracy issue: the integers are exact.
-//
-// Run it from a terminal:  epher "epher scripts/probability/counting/factorial.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-//
-// The knob to edit is `nmax`. Everything below the knob is machinery.
-// ============================================================================
+/* ============================================================================
+   factorial.epher -- the factorial function, 5! up to 12!, exact integers
+
+   Computes n! = 1 * 2 * ... * n with the fact builtin and the postfix
+   operator (guide 1.13) for n from 5 to 12. Every value here is an exact
+   integer. The ratios show where the growth comes from: each step of the
+   product multiplies by n itself, so 12! is 12 times 11! and 132 times 10!.
+
+   Source: the definition; see Ross, "A First Course in Probability",
+   chapter 1. No accuracy issue: the integers are exact.
+
+   Run it from a terminal:  epher "epher scripts/probability/counting/factorial.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+
+   The knob to edit is `nmax`. Everything below the knob is machinery.
+   ============================================================================ */
 
 // ---- the knob ----
 const nmax = 12
@@ -37,13 +37,14 @@ print("ratios 12!/11! and 12!/10!:", fact(12) / fact(11), fact(12) / fact(10))
 // is about 15 years.
 print("10! seconds:", fact(10) / 86400, "days")
 print("12! seconds: about", round(fact(12) / 86400 / 365), "years")
-// ---- expected output ----
-// = 12
-// = 479001600
-// = 479001600
-// = 3628800
-// = 3628800
-// = {120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600}
-// = ratios 12!/11! and 12!/10!: 12 132
-// = 10! seconds: 42 days
-// = 12! seconds: about 15 years
+/* ---- expected output ----
+= 12
+= 479001600
+= 479001600
+= 3628800
+= 3628800
+= {120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600}
+= ratios 12!/11! and 12!/10!: 12 132
+= 10! seconds: 42 days
+= 12! seconds: about 15 years
+*/

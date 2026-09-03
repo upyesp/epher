@@ -1,34 +1,34 @@
-// ============================================================================
-// two-sample-t-test.epher -- Welch's test for two independent groups
-//
-// Compares the mean scores of two teaching methods, groups `a` and `b`,
-// with Welch's two-sample t test: unequal variances are assumed, so the
-// standard error pools the two sample variances divided by their own
-// group sizes and the degrees of freedom come from the Satterthwaite
-// formula. There is no builtin two-sample t test, so the textbook
-// formulas are written out below; scipy's ttest_ind with
-// equal_var = False reproduces these same numbers.
-//
-// Run it from a terminal:  epher "epher scripts/statistics/tests/two-sample-t-test.epher"
-// In the REPL:             load epher scripts/statistics/tests/two-sample-t-test.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// The knobs to edit are `a` and `b` below. Everything above the results
-// section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   two-sample-t-test.epher -- Welch's test for two independent groups
+
+   Compares the mean scores of two teaching methods, groups `a` and `b`,
+   with Welch's two-sample t test: unequal variances are assumed, so the
+   standard error pools the two sample variances divided by their own
+   group sizes and the degrees of freedom come from the Satterthwaite
+   formula. There is no builtin two-sample t test, so the textbook
+   formulas are written out below; scipy's ttest_ind with
+   equal_var = False reproduces these same numbers.
+
+   Run it from a terminal:  epher "epher scripts/statistics/tests/two-sample-t-test.epher"
+   In the REPL:             load epher scripts/statistics/tests/two-sample-t-test.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   The knobs to edit are `a` and `b` below. Everything above the results
+   section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const a = {78, 82, 84, 80, 79, 81, 83}   // method A scores, 7 students
 const b = {76, 74, 79, 75, 78}           // method B scores, 5 students
 
 // ---- helpers: Welch's formulas -----------------------------------------------------
-def sva() = variance(a) * len(a) / (len(a) - 1)  /* sample variance of A, n - 1 */
-def svb() = variance(b) * len(b) / (len(b) - 1)  /* sample variance of B, n - 1 */
-def se() = sqrt(sva() / len(a) + svb() / len(b)) /* the Welch standard error */
-def t() = (mean(a) - mean(b)) / se()             /* the t statistic */
-def df() = (sva() / len(a) + svb() / len(b)) ^ 2 / ((sva() / len(a)) ^ 2 / (len(a) - 1) + (svb() / len(b)) ^ 2 / (len(b) - 1))  /* Satterthwaite df */
-def p() = 2 * (1 - tcdf(abs(t()), df()))         /* two-sided p-value */
+def sva() = variance(a) * len(a) / (len(a) - 1) // sample variance of A, n - 1
+def svb() = variance(b) * len(b) / (len(b) - 1) // sample variance of B, n - 1
+def se() = sqrt(sva() / len(a) + svb() / len(b)) // the Welch standard error
+def t() = (mean(a) - mean(b)) / se() // the t statistic
+def df() = (sva() / len(a) + svb() / len(b)) ^ 2 / ((sva() / len(a)) ^ 2 / (len(a) - 1) + (svb() / len(b)) ^ 2 / (len(b) - 1)) // Satterthwaite df
+def p() = 2 * (1 - tcdf(abs(t()), df())) // two-sided p-value
 
 // ---- what the test sees ----------------------------------------------------------------
 print("method A, n:", len(a))
@@ -45,16 +45,17 @@ print("Satterthwaite df:", df())
 print("two-sided p:", p())      // p = 0.0047: method A scores significantly
                                 // higher than method B in this sample
 
-// ---- expected output ----
-// = {78, 82, 84, 80, 79, 81, 83}
-// = {76, 74, 79, 75, 78}
-// = method A, n: 7
-// = method A, mean: 81
-// = method A, sample variance: 14/3
-// = method B, n: 5
-// = method B, mean: 76.4
-// = method B, sample variance: 4.3
-// = Welch standard error: 1.23558353286
-// = Welch t: 3.72293728241
-// = Satterthwaite df: 8.99978547831
-// = two-sided p: 0.00474921073903
+/* ---- expected output ----
+= {78, 82, 84, 80, 79, 81, 83}
+= {76, 74, 79, 75, 78}
+= method A, n: 7
+= method A, mean: 81
+= method A, sample variance: 14/3
+= method B, n: 5
+= method B, mean: 76.4
+= method B, sample variance: 4.3
+= Welch standard error: 1.23558353286
+= Welch t: 3.72293728241
+= Satterthwaite df: 8.99978547831
+= two-sided p: 0.00474921073903
+*/

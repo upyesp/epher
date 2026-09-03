@@ -1,27 +1,27 @@
-// ============================================================================
-// geometric-mean.epher -- the average growth factor over several years
-//
-// The geometric mean of the yearly growth factors in `r`: the nth root of
-// the product, product(r) ^ (1 / len(r)). A fund that returned 5, 8, 3,
-// 6 and 2 percent in five years grew by the factors 1.05, 1.08, 1.03,
-// 1.06 and 1.02. The geometric mean 1.0478 is the factor that, applied
-// five times in a row, gives the same total growth; the arithmetic mean
-// 1.048 slightly overstates it, as it always does for ratios.
-//
-// Run it from a terminal:  epher "epher scripts/statistics/summary/geometric-mean.epher"
-// In the REPL:             load epher scripts/statistics/summary/geometric-mean.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// The one knob to edit is `r` below. Everything above the results section
-// is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   geometric-mean.epher -- the average growth factor over several years
+
+   The geometric mean of the yearly growth factors in `r`: the nth root of
+   the product, product(r) ^ (1 / len(r)). A fund that returned 5, 8, 3,
+   6 and 2 percent in five years grew by the factors 1.05, 1.08, 1.03,
+   1.06 and 1.02. The geometric mean 1.0478 is the factor that, applied
+   five times in a row, gives the same total growth; the arithmetic mean
+   1.048 slightly overstates it, as it always does for ratios.
+
+   Run it from a terminal:  epher "epher scripts/statistics/summary/geometric-mean.epher"
+   In the REPL:             load epher scripts/statistics/summary/geometric-mean.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   The one knob to edit is `r` below. Everything above the results section
+   is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const r = {1.05, 1.08, 1.03, 1.06, 1.02}   // yearly growth factors: 1 + return
 
 // ---- helpers: the geometric mean --------------------------------------------------
-def gmean(xs) = product(xs) ^ (1 / len(xs))  /* nth root of the product */
+def gmean(xs) = product(xs) ^ (1 / len(xs)) // nth root of the product
 
 // ---- the average yearly growth ------------------------------------------------------
 gmean(r)                        // geometric mean of the five factors
@@ -29,9 +29,10 @@ product(r)                      // total growth over the five years
 mean(r)                         // arithmetic mean for contrast
 (gmean(r) - 1) * 100            // as an average yearly return, percent
 
-// ---- expected output ----
-// = {1.05, 1.08, 1.03, 1.06, 1.02}
-// = 1.0477827959
-// = 1.262863224
-// = 1.048
-// = 4.77827958955
+/* ---- expected output ----
+= {1.05, 1.08, 1.03, 1.06, 1.02}
+= 1.0477827959
+= 1.262863224
+= 1.048
+= 4.77827958955
+*/

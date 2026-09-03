@@ -1,30 +1,30 @@
-// ============================================================================
-// day-of-week-from-date.epher -- what weekday a date falls on
-//
-// The weekday of a calendar date from its Julian Date: the day number
-// is floor(jd + 1.5), and its remainder mod 7 names the weekday with
-// 0 = Sunday (the convention of Meeus, "Astronomical Algorithms",
-// ch. 7; the +1.5 moves the count from the noon-based JD to civil
-// days). The dates below are famous or fixed, and their weekdays were
-// verified with python's datetime module, which is the oracle for the
-// expected output. Two of them are history: 1582-10-15 was a Friday,
-// the day after the Thursday of 1582-10-04 in the Julian calendar -
-// the Gregorian reform skipped ten days.
-//
-// Run it from a terminal:  epher "epher scripts/astronomy/time/day-of-week-from-date.epher"
-// In the REPL:             load epher scripts/astronomy/time/day-of-week-from-date.epher
-//
-// Knob: none - the dates below are fixed.
-// ============================================================================
+/* ============================================================================
+   day-of-week-from-date.epher -- what weekday a date falls on
+
+   The weekday of a calendar date from its Julian Date: the day number
+   is floor(jd + 1.5), and its remainder mod 7 names the weekday with
+   0 = Sunday (the convention of Meeus, "Astronomical Algorithms",
+   ch. 7; the +1.5 moves the count from the noon-based JD to civil
+   days). The dates below are famous or fixed, and their weekdays were
+   verified with python's datetime module, which is the oracle for the
+   expected output. Two of them are history: 1582-10-15 was a Friday,
+   the day after the Thursday of 1582-10-04 in the Julian calendar -
+   the Gregorian reform skipped ten days.
+
+   Run it from a terminal:  epher "epher scripts/astronomy/time/day-of-week-from-date.epher"
+   In the REPL:             load epher scripts/astronomy/time/day-of-week-from-date.epher
+
+   Knob: none - the dates below are fixed.
+   ============================================================================ */
 
 // ---- helpers ----------------------------------------------------------------
 def wd(jd0) = mod(floor(jd0 + 1.5), 7)   // 0 = Sunday ... 6 = Saturday
 def dayname(h) = if h == 0 then "Sunday" else if h == 1 then "Monday" else if h == 2 then "Tuesday" else if h == 3 then "Wednesday" else if h == 4 then "Thursday" else if h == 5 then "Friday" else "Saturday"
 
-// ---- results ----------------------------------------------------------------
-// The anchors the guide gives: 2000-01-01 was a Saturday, 2026-01-01 a
-// Thursday. The raw weekday number for the first one shows the 0 =
-// Sunday convention at work (h = 6 for Saturday).
+/* ---- results ----------------------------------------------------------------
+   The anchors the guide gives: 2000-01-01 was a Saturday, 2026-01-01 a
+   Thursday. The raw weekday number for the first one shows the 0 =
+   Sunday convention at work (h = 6 for Saturday). */
 print("2000-01-01:", dayname(wd(jd(2000, 1, 1))))
 print("h for that date:", wd(jd(2000, 1, 1)), "(0 = Sunday)")
 print("1582-10-15:", dayname(wd(jd(1582, 10, 15))))
@@ -33,11 +33,12 @@ print("2026-03-15:", dayname(wd(jd(2026, 3, 15))))
 print("2026-06-21:", dayname(wd(jd(2026, 6, 21))))
 print("2026-12-25:", dayname(wd(jd(2026, 12, 25))))
 
-// ---- expected output ----
-// = 2000-01-01: Saturday
-// = h for that date: 6 (0 = Sunday)
-// = 1582-10-15: Friday
-// = 2026-01-01: Thursday
-// = 2026-03-15: Sunday
-// = 2026-06-21: Sunday
-// = 2026-12-25: Friday
+/* ---- expected output ----
+= 2000-01-01: Saturday
+= h for that date: 6 (0 = Sunday)
+= 1582-10-15: Friday
+= 2026-01-01: Thursday
+= 2026-03-15: Sunday
+= 2026-06-21: Sunday
+= 2026-12-25: Friday
+*/

@@ -1,33 +1,33 @@
-// ============================================================================
-// kaprekar-steps.epher -- steps to 6174 for a four-digit number
-//
-// Kaprekar's routine sorts the four digits of n into descending and
-// ascending order, subtracts the smaller from the larger, and repeats;
-// every four-digit number with at least two distinct digits reaches the
-// constant 6174 in at most 7 steps (Kaprekar, 1949). The script sorts
-// with the list builtin and subtracts with a packed while loop (guide
-// 1.30). The check: 3524 sorts to 5432 and 2345, and 5432 - 2345 = 3087,
-// then 8730 - 0378 = 8352, then 8532 - 2358 = 6174: three steps.
-//
-// Source: D. R. Kaprekar, "An Interesting Property of the Number 6174",
-// Scripta Mathematica 15 (1949); see also Martin Gardner, "The Magic of
-// 6174", in "Penrose Tiles to Trapdoor Ciphers". Results are exact.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/kaprekar-steps.epher"
-// In the REPL:             load epher scripts/number-theory/integer-sequences/kaprekar-steps.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The one knob to edit is `n` below: a four-digit number with at least
-// two distinct digits (repdigits like 1111 get stuck at 0).
-// ============================================================================
+/* ============================================================================
+   kaprekar-steps.epher -- steps to 6174 for a four-digit number
+
+   Kaprekar's routine sorts the four digits of n into descending and
+   ascending order, subtracts the smaller from the larger, and repeats;
+   every four-digit number with at least two distinct digits reaches the
+   constant 6174 in at most 7 steps (Kaprekar, 1949). The script sorts
+   with the list builtin and subtracts with a packed while loop (guide
+   1.30). The check: 3524 sorts to 5432 and 2345, and 5432 - 2345 = 3087,
+   then 8730 - 0378 = 8352, then 8532 - 2358 = 6174: three steps.
+
+   Source: D. R. Kaprekar, "An Interesting Property of the Number 6174",
+   Scripta Mathematica 15 (1949); see also Martin Gardner, "The Magic of
+   6174", in "Penrose Tiles to Trapdoor Ciphers". Results are exact.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/kaprekar-steps.epher"
+   In the REPL:             load epher scripts/number-theory/integer-sequences/kaprekar-steps.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The one knob to edit is `n` below: a four-digit number with at least
+   two distinct digits (repdigits like 1111 get stuck at 0).
+   ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const n = 3524
 
-// ---- the digit-sorting helpers --------------------------------------------------
-// The four digits come from the fixed places (thousands down to units),
-// so a value like 3087 keeps its leading zero as the digit 0. sort puts
-// them in ascending order; asc4 and desc4 read the sorted list out.
+/* ---- the digit-sorting helpers --------------------------------------------------
+   The four digits come from the fixed places (thousands down to units),
+   so a value like 3087 keeps its leading zero as the digit 0. sort puts
+   them in ascending order; asc4 and desc4 read the sorted list out. */
 def d4(n) = sort({mod(floor(n / 1000), 10), mod(floor(n / 100), 10), mod(floor(n / 10), 10), mod(n, 10)})
 def asc4(n) = d4(n)[1] * 1000 + d4(n)[2] * 100 + d4(n)[3] * 10 + d4(n)[4]
 def desc4(n) = d4(n)[4] * 1000 + d4(n)[3] * 100 + d4(n)[2] * 10 + d4(n)[1]
@@ -45,10 +45,11 @@ print("6174 reached in", v[2], "steps")             // 3 for 3524
 // ---- the fixed point ------------------------------------------------------------------
 // 6174 sorts to 7641 and 1467, and 7641 - 1467 is 6174 again.
 print("7641 - 1467:", desc4(6174) - asc4(6174))
-// ---- expected output ----
-// = 3524
-// = 3524 sorted: 2345 and 5432
-// = 5432 - 2345: 3087
-// = {3524, 0}
-// = 6174 reached in 3 steps
-// = 7641 - 1467: 6174
+/* ---- expected output ----
+= 3524
+= 3524 sorted: 2345 and 5432
+= 5432 - 2345: 3087
+= {3524, 0}
+= 6174 reached in 3 steps
+= 7641 - 1467: 6174
+*/

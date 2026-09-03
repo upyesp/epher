@@ -1,23 +1,23 @@
-// ============================================================================
-// collatz-peak.epher -- the highest value a Collatz sequence reaches
-//
-// Runs the Collatz sequence from a starting n and records the maximum
-// value seen along the way (the flight height of the sequence). A packed
-// while loop (guide 1.30) carries {current value, peak, steps}; the loop
-// is silent, so one labelled print shows the peak. The classic checks:
-// from 27 the sequence climbs to 9232 before falling to 1 in 111 steps,
-// and from 13 it peaks at 40.
-//
-// Source: the Collatz conjecture, posed by Lothar Collatz in 1937; see
-// Lagarias (ed.), "The Ultimate Challenge: The 3x+1 Problem", AMS, 2010.
-// All values stay small here, so every result is exact.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/collatz-peak.epher"
-// In the REPL:             load epher scripts/number-theory/integer-sequences/collatz-peak.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// There is no knob: the starting values 27 and 13 are the checks.
-// ============================================================================
+/* ============================================================================
+   collatz-peak.epher -- the highest value a Collatz sequence reaches
+
+   Runs the Collatz sequence from a starting n and records the maximum
+   value seen along the way (the flight height of the sequence). A packed
+   while loop (guide 1.30) carries {current value, peak, steps}; the loop
+   is silent, so one labelled print shows the peak. The classic checks:
+   from 27 the sequence climbs to 9232 before falling to 1 in 111 steps,
+   and from 13 it peaks at 40.
+
+   Source: the Collatz conjecture, posed by Lothar Collatz in 1937; see
+   Lagarias (ed.), "The Ultimate Challenge: The 3x+1 Problem", AMS, 2010.
+   All values stay small here, so every result is exact.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/collatz-peak.epher"
+   In the REPL:             load epher scripts/number-theory/integer-sequences/collatz-peak.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   There is no knob: the starting values 27 and 13 are the checks.
+   ============================================================================ */
 
 // ---- one Collatz step ----------------------------------------------------------------
 def step(n) = if mod(n, 2) == 0 then n / 2 else 3 * n + 1
@@ -34,8 +34,9 @@ print("27 peaks at:", v[2], "after", v[3], "steps")   // 9232, 111
 v = {13, 13, 0}
 while v[1] != 1 do v = {step(v[1]), max(v[2], step(v[1])), v[3] + 1}
 print("13 peaks at:", v[2], "after", v[3], "steps")   // 40, 9
-// ---- expected output ----
-// = {27, 27, 0}
-// = 27 peaks at: 9232 after 111 steps
-// = {13, 13, 0}
-// = 13 peaks at: 40 after 9 steps
+/* ---- expected output ----
+= {27, 27, 0}
+= 27 peaks at: 9232 after 111 steps
+= {13, 13, 0}
+= 13 peaks at: 40 after 9 steps
+*/

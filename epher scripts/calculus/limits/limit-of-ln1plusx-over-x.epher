@@ -1,21 +1,21 @@
-// ============================================================================
-// limit-of-ln1plusx-over-x.epher -- ln(1 + x)/x tends to 1 at x = 0
-//
-// The standard limit ln(1 + x)/x -> 1 as x -> 0 (Stewart, "Calculus",
-// 8th ed., sec. 3.8 exercises): it is the derivative of ln x at x = 1.
-// Probed at x = 1e-2, 1e-4 and 1e-8; the last sample trails 1 by about
-// 1.1e-8 because adding x to 1 rounds at the 16th decimal digit, which
-// then divides back out only approximately.
-//
-// The builtin derivative of ln at 1 is the same limit, so it is printed
-// as a cross-check.
-//
-// Accuracy: samples print at about the 12th digit; the deficit at
-// x = 1e-8 is an artifact of rounding 1 + x, not of the limit.
-//
-// Run:  epher "epher scripts/calculus/limits/limit-of-ln1plusx-over-x.epher"
-// The knob to edit is `x` below.
-// ============================================================================
+/* ============================================================================
+   limit-of-ln1plusx-over-x.epher -- ln(1 + x)/x tends to 1 at x = 0
+
+   The standard limit ln(1 + x)/x -> 1 as x -> 0 (Stewart, "Calculus",
+   8th ed., sec. 3.8 exercises): it is the derivative of ln x at x = 1.
+   Probed at x = 1e-2, 1e-4 and 1e-8; the last sample trails 1 by about
+   1.1e-8 because adding x to 1 rounds at the 16th decimal digit, which
+   then divides back out only approximately.
+
+   The builtin derivative of ln at 1 is the same limit, so it is printed
+   as a cross-check.
+
+   Accuracy: samples print at about the 12th digit; the deficit at
+   x = 1e-8 is an artifact of rounding 1 + x, not of the limit.
+
+   Run:  epher "epher scripts/calculus/limits/limit-of-ln1plusx-over-x.epher"
+   The knob to edit is `x` below.
+   ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const x = 1e-8
@@ -29,9 +29,10 @@ abs(ln(1 + x)/x - 1) < 1e-6
 // (x is bound by the knob above; t is free).
 derivative(ln(t), 1)
 
-// ---- expected output ---------------------------------------------------------
-// = 0.00000001
-// = 0.999999988923
-// = {0.995033085317, 0.999950003333, 0.999999988923}
-// = true
-// = 1
+/* ---- expected output ---------------------------------------------------------
+= 0.00000001
+= 0.999999988923
+= {0.995033085317, 0.999950003333, 0.999999988923}
+= true
+= 1
+*/

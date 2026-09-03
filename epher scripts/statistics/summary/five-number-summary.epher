@@ -1,20 +1,20 @@
-// ============================================================================
-// five-number-summary.epher -- min, Q1, median, Q3, max of a dataset
-//
-// The five-number summary of the ten exam scores in `d`: the minimum, the
-// first quartile, the median, the third quartile and the maximum. Quartiles
-// come from the builtin quartile(d, k), which follows the TI-83/84
-// convention: the median of the lower half for Q1, of the upper half for
-// Q3, and on an even count the median is the mean of the two middle values.
-//
-// Run it from a terminal:  epher "epher scripts/statistics/summary/five-number-summary.epher"
-// In the REPL:             load epher scripts/statistics/summary/five-number-summary.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// The one knob to edit is `d` below. Everything above the results section
-// is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   five-number-summary.epher -- min, Q1, median, Q3, max of a dataset
+
+   The five-number summary of the ten exam scores in `d`: the minimum, the
+   first quartile, the median, the third quartile and the maximum. Quartiles
+   come from the builtin quartile(d, k), which follows the TI-83/84
+   convention: the median of the lower half for Q1, of the upper half for
+   Q3, and on an even count the median is the mean of the two middle values.
+
+   Run it from a terminal:  epher "epher scripts/statistics/summary/five-number-summary.epher"
+   In the REPL:             load epher scripts/statistics/summary/five-number-summary.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   The one knob to edit is `d` below. Everything above the results section
+   is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
@@ -26,10 +26,11 @@ print("median:", quartile(d, 2))   // the middle value (builtin median agrees)
 print("Q3:", quartile(d, 3))       // median of the upper half
 print("max:", max(d))              // largest score
 
-// ---- expected output ----
-// = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-// = min: 64
-// = Q1: 72
-// = median: 84
-// = Q3: 88
-// = max: 95
+/* ---- expected output ----
+= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
+= min: 64
+= Q1: 72
+= median: 84
+= Q3: 88
+= max: 95
+*/

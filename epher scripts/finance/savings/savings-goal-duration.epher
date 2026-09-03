@@ -1,33 +1,34 @@
-// ============================================================================
-// savings-goal-duration.epher -- how long different monthly deposits take
-// to reach a vacation fund
-//
-// The finance builtin tvm_n solves the annuity equation for the term:
-// tvm_n(i, 0, -deposit, goal) returns the months of deposit needed to grow
-// an empty account to the goal at monthly rate i. Source: standard annuity
-// formulas; see Kellison, The Theory of Interest, chapter 3.
-//
-// Sign convention: deposit negative, goal positive.
-//
-// Accuracy: 12 displayed digits; the terms are fractional months.
-//
-// Run it from a terminal:
-//   epher "epher scripts/finance/savings/savings-goal-duration.epher"
-//
-// The knobs to edit are in the knob section; everything after it is
-// machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   savings-goal-duration.epher -- how long different monthly deposits take
+   to reach a vacation fund
+
+   The finance builtin tvm_n solves the annuity equation for the term:
+   tvm_n(i, 0, -deposit, goal) returns the months of deposit needed to grow
+   an empty account to the goal at monthly rate i. Source: standard annuity
+   formulas; see Kellison, The Theory of Interest, chapter 3.
+
+   Sign convention: deposit negative, goal positive.
+
+   Accuracy: 12 displayed digits; the terms are fractional months.
+
+   Run it from a terminal:
+     epher "epher scripts/finance/savings/savings-goal-duration.epher"
+
+   The knobs to edit are in the knob section; everything after it is
+   machinery you can leave alone.
+   ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const goal = 20000          // the vacation fund target, USD
 const rate = 4%             // annual rate of return
 
-// ---- results -----------------------------------------------------------------
-// Rows are {monthly deposit, months to reach 20000}. Doubling the deposit
-// from 200 to 400 does not halve the time (86.45 to 46.32 months): the
-// bigger plan leans less on the account's interest.
+/* ---- results -----------------------------------------------------------------
+   Rows are {monthly deposit, months to reach 20000}. Doubling the deposit
+   from 200 to 400 does not halve the time (86.45 to 46.32 months): the
+   bigger plan leans less on the account's interest. */
 for deposit in {200, 300, 400} do {deposit, tvm_n(rate / 12, 0, -deposit, goal)}
-// ---- expected output ----
-// = 20000
-// = 0.04
-// = {{200, 86.448382993}, {300, 60.3014883372}, {400, 46.3222365397}}
+/* ---- expected output ----
+= 20000
+= 0.04
+= {{200, 86.448382993}, {300, 60.3014883372}, {400, 46.3222365397}}
+*/

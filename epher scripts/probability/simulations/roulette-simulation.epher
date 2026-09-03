@@ -1,26 +1,26 @@
-// ============================================================================
-// roulette-simulation.epher -- 10000 spins betting red, European wheel
-//
-// Bet two units on red for 10000 spins of a European wheel (37 pockets:
-// 18 red, 18 black, one green zero). Each spin wins two units with
-// probability 18/37 and loses two with probability 19/37, so the
-// expected value per spin is
-//
-//   E[spin] = 2 * 18/37 - 2 * 19/37 = -2/37 = -0.054054...
-//
-// units, and 10000 spins should lose about 540 units with a standard
-// deviation of sqrt(10000) * 2 = 200 units, so the per-spin value sits
-// within about 0.03 of the theory. The seeded run below (randseed(31))
-// is reproducible: the same seed replays the same spins.
-//
-// Source: standard Monte Carlo practice; see Ross, "Simulation",
-// chapter 4.
-//
-// Run it from a terminal:  epher "epher scripts/probability/simulations/roulette-simulation.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-//
-// The knob to edit is `spins`; everything below it is machinery.
-// ============================================================================
+/* ============================================================================
+   roulette-simulation.epher -- 10000 spins betting red, European wheel
+
+   Bet two units on red for 10000 spins of a European wheel (37 pockets:
+   18 red, 18 black, one green zero). Each spin wins two units with
+   probability 18/37 and loses two with probability 19/37, so the
+   expected value per spin is
+
+     E[spin] = 2 * 18/37 - 2 * 19/37 = -2/37 = -0.054054...
+
+   units, and 10000 spins should lose about 540 units with a standard
+   deviation of sqrt(10000) * 2 = 200 units, so the per-spin value sits
+   within about 0.03 of the theory. The seeded run below (randseed(31))
+   is reproducible: the same seed replays the same spins.
+
+   Source: standard Monte Carlo practice; see Ross, "Simulation",
+   chapter 4.
+
+   Run it from a terminal:  epher "epher scripts/probability/simulations/roulette-simulation.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+
+   The knob to edit is `spins`; everything below it is machinery.
+   ============================================================================ */
 
 // ---- the knobs ----
 const spins = 10000
@@ -42,13 +42,14 @@ print("simulated value per spin:", (4 * v[2] - 2 * spins) / spins)
 // The theoretical value: -2/37 units per spin, exact.
 print("theoretical value per spin:", -2/37)
 print("expected loss over", spins, "spins:", -2 * spins / 37)
-// ---- expected output ----
-// = 10000
-// = 31
-// = {0, 0}
-// = spins: 10000
-// = red wins: 4901
-// = profit in units: -396
-// = simulated value per spin: -0.0396
-// = theoretical value per spin: -2/37
-// = expected loss over 10000 spins: -20000/37
+/* ---- expected output ----
+= 10000
+= 31
+= {0, 0}
+= spins: 10000
+= red wins: 4901
+= profit in units: -396
+= simulated value per spin: -0.0396
+= theoretical value per spin: -2/37
+= expected loss over 10000 spins: -20000/37
+*/

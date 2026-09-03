@@ -1,19 +1,19 @@
-// ============================================================================
-// point-to-line-distance.epher -- distance from a point to a line
-//
-// The distance from (x0, y0) to the line a x + b y + c = 0 is
-// d = |a x0 + b y0 + c| / sqrt(a^2 + b^2) (standard formula; drop the
-// perpendicular and solve, or project the point onto the normal). The
-// line 3 x + 4 y - 5 = 0 has normal length 5, so the origin is 1 unit
-// away and (1, 2) is 6/5 = 1.2, exact. A point on the line gives 0.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/coordinates/point-to-line-distance.epher"
-// In the REPL:             load epher scripts/geometry/coordinates/point-to-line-distance.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are `a`, `b`, `c` (the line a x + b y + c = 0).
-// Everything above the results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   point-to-line-distance.epher -- distance from a point to a line
+
+   The distance from (x0, y0) to the line a x + b y + c = 0 is
+   d = |a x0 + b y0 + c| / sqrt(a^2 + b^2) (standard formula; drop the
+   perpendicular and solve, or project the point onto the normal). The
+   line 3 x + 4 y - 5 = 0 has normal length 5, so the origin is 1 unit
+   away and (1, 2) is 6/5 = 1.2, exact. A point on the line gives 0.
+
+   Run it from a terminal:  epher "epher scripts/geometry/coordinates/point-to-line-distance.epher"
+   In the REPL:             load epher scripts/geometry/coordinates/point-to-line-distance.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are `a`, `b`, `c` (the line a x + b y + c = 0).
+   Everything above the results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const a = 3
@@ -28,11 +28,12 @@ print("origin to the line:", dist(a, b, c, {0, 0}))
 print("(1, 2) to the line:", dist(a, b, c, {1, 2}))
 print("(-1, 1) to the line:", dist(a, b, c, {-1, 1}))
 print("a point on the line:", dist(a, b, c, {1, 0.5}))
-// ---- expected output ----
-// = 3
-// = 4
-// = -5
-// = origin to the line: 1
-// = (1, 2) to the line: 1.2
-// = (-1, 1) to the line: 0.8
-// = a point on the line: 0
+/* ---- expected output ----
+= 3
+= 4
+= -5
+= origin to the line: 1
+= (1, 2) to the line: 1.2
+= (-1, 1) to the line: 0.8
+= a point on the line: 0
+*/

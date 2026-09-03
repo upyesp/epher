@@ -1,21 +1,21 @@
-// ============================================================================
-// arithmetic-across-bases.epher -- mixed-base sums and products
-//
-// Arithmetic mixes base spellings freely, because a prefix only changes
-// how a value is spelled, never what it is: 0xFF + 0b1 + 0o10 adds 255,
-// 1 and 8 to 264. Results print in decimal, and the bin, oct and hex
-// builtins spell them back. The script only uses the builtins and
-// literals; it does not reimplement any conversion.
-//
-// Source: standard numeral systems; positional notation in bases 2, 8
-// and 16. Every value here is small, so all arithmetic is exact.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/bases/arithmetic-across-bases.epher"
-// In the REPL:             load epher scripts/number-theory/bases/arithmetic-across-bases.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// There is no knob: the sample expressions are the point of the script.
-// ============================================================================
+/* ============================================================================
+   arithmetic-across-bases.epher -- mixed-base sums and products
+
+   Arithmetic mixes base spellings freely, because a prefix only changes
+   how a value is spelled, never what it is: 0xFF + 0b1 + 0o10 adds 255,
+   1 and 8 to 264. Results print in decimal, and the bin, oct and hex
+   builtins spell them back. The script only uses the builtins and
+   literals; it does not reimplement any conversion.
+
+   Source: standard numeral systems; positional notation in bases 2, 8
+   and 16. Every value here is small, so all arithmetic is exact.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/bases/arithmetic-across-bases.epher"
+   In the REPL:             load epher scripts/number-theory/bases/arithmetic-across-bases.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   There is no knob: the sample expressions are the point of the script.
+   ============================================================================ */
 
 // ---- one sum, spelled three ways ---------------------------------------------------------
 0xFF + 0b1 + 0o10             // 255 + 1 + 8 = 264, in decimal
@@ -32,14 +32,15 @@ print("0x64 == 100:", 0x64 == 100)
 // ---- subtraction and powers -----------------------------------------------------------------
 0x100 - 0b1                   // 256 - 1 = 255
 0b10 ^ 8                      // 2^8 = 256, written with a binary two
-// ---- expected output ----
-// = 264
-// = 0b100001000
-// = 0o410
-// = 0x108
-// = 0x108 == 264: true
-// = 100
-// = 0x64
-// = 0x64 == 100: true
-// = 255
-// = 256
+/* ---- expected output ----
+= 264
+= 0b100001000
+= 0o410
+= 0x108
+= 0x108 == 264: true
+= 100
+= 0x64
+= 0x64 == 100: true
+= 255
+= 256
+*/

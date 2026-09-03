@@ -1,29 +1,29 @@
-// ============================================================================
-// derangements.epher -- permutations with no fixed point: round(n! / e)
-//
-// A derangement is a rearrangement in which nothing stays put: for a
-// shuffled deck or a gift exchange, the number of arrangements where no
-// card (or no guest) keeps its place. For n objects the count !n is the
-// integer nearest n! / e, a classic result of de Montmort, and the
-// script checks that rounding recipe against an exact recursion,
-//
-//   !0 = 1,  !1 = 0,  !n = (n - 1) * (!(n - 1) + !(n - 2)),
-//
-// for n = 4 through 8. The values: 9, 44, 265, 1854, 14833. The share
-// of all n! arrangements that are derangements tends to 1/e, about
-// 0.3679, whatever n is.
-//
-// Source: de Montmort (1708); Feller, "An Introduction to Probability
-// Theory and Its Applications", volume 1, chapter 4. The recursion is
-// exact; n! / e is a float, and rounding it stays safe because n! / e
-// is never near a half-integer once n is past 2 (the error of the
-// approximation is about 1/(n + 1)).
-//
-// Run it from a terminal:  epher "epher scripts/probability/counting/derangements.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-//
-// The knob to edit is `nmax`; everything below it is machinery.
-// ============================================================================
+/* ============================================================================
+   derangements.epher -- permutations with no fixed point: round(n! / e)
+
+   A derangement is a rearrangement in which nothing stays put: for a
+   shuffled deck or a gift exchange, the number of arrangements where no
+   card (or no guest) keeps its place. For n objects the count !n is the
+   integer nearest n! / e, a classic result of de Montmort, and the
+   script checks that rounding recipe against an exact recursion,
+
+     !0 = 1,  !1 = 0,  !n = (n - 1) * (!(n - 1) + !(n - 2)),
+
+   for n = 4 through 8. The values: 9, 44, 265, 1854, 14833. The share
+   of all n! arrangements that are derangements tends to 1/e, about
+   0.3679, whatever n is.
+
+   Source: de Montmort (1708); Feller, "An Introduction to Probability
+   Theory and Its Applications", volume 1, chapter 4. The recursion is
+   exact; n! / e is a float, and rounding it stays safe because n! / e
+   is never near a half-integer once n is past 2 (the error of the
+   approximation is about 1/(n + 1)).
+
+   Run it from a terminal:  epher "epher scripts/probability/counting/derangements.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+
+   The knob to edit is `nmax`; everything below it is machinery.
+   ============================================================================ */
 
 // ---- the knob ----
 const nmax = 8
@@ -49,11 +49,12 @@ print("derangements of 4 objects:", der(4))
 // The limiting share 1/e of arrangements with no fixed point.
 print("share that are derangements, for large n:", 1 / exp(1))
 print("share for n = 8:", der(8) / fact(8))
-// ---- expected output ----
-// = 8
-// = {8.82910658811, 44.1455329406, 264.873197643, 1854.1123835, 14832.899068}
-// = {9, 44, 265, 1854, 14833}
-// = {true, true, true, true, true}
-// = derangements of 4 objects: 9
-// = share that are derangements, for large n: 0.367879441171
-// = share for n = 8: 0.367881944444
+/* ---- expected output ----
+= 8
+= {8.82910658811, 44.1455329406, 264.873197643, 1854.1123835, 14832.899068}
+= {9, 44, 265, 1854, 14833}
+= {true, true, true, true, true}
+= derangements of 4 objects: 9
+= share that are derangements, for large n: 0.367879441171
+= share for n = 8: 0.367881944444
+*/

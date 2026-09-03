@@ -1,17 +1,17 @@
-// ============================================================================
-// complex-powers.epher -- (1 + i)^10 and (2 + 3i)^3, |z^n| = |z|^n
-//
-// Powers of a complex number multiply moduli and add arguments (de Moivre's
-// formula, 1722; Churchill and Brown, "Complex Variables and Applications",
-// sec. 9). (1 + i)^10 = (sqrt(2) e^(i pi/4))^10 = 32 e^(i 5 pi/2) = 32i,
-// exactly, and (2 + 3i)^3 = -46 + 9i, exactly. The modulus identity
-// |z^n| = |z|^n is checked for both: 32 = 32 exactly in the first case,
-// and sqrt(2197) from either side in the second, within 1e-9.
-//
-// Run it from a terminal:  epher "epher scripts/algebra/complex/complex-powers.epher"
-//
-// No knobs to edit; the values below are fixed examples.
-// ============================================================================
+/* ============================================================================
+   complex-powers.epher -- (1 + i)^10 and (2 + 3i)^3, |z^n| = |z|^n
+
+   Powers of a complex number multiply moduli and add arguments (de Moivre's
+   formula, 1722; Churchill and Brown, "Complex Variables and Applications",
+   sec. 9). (1 + i)^10 = (sqrt(2) e^(i pi/4))^10 = 32 e^(i 5 pi/2) = 32i,
+   exactly, and (2 + 3i)^3 = -46 + 9i, exactly. The modulus identity
+   |z^n| = |z|^n is checked for both: 32 = 32 exactly in the first case,
+   and sqrt(2197) from either side in the second, within 1e-9.
+
+   Run it from a terminal:  epher "epher scripts/algebra/complex/complex-powers.epher"
+
+   No knobs to edit; the values below are fixed examples.
+   ============================================================================ */
 
 // ---- results -----------------------------------------------------------------
 print("(1 + i)^10:", (1 + i) ^ 10)
@@ -20,10 +20,11 @@ print("(2 + 3i)^3:", (2 + 3i) ^ 3)
 print("|(2 + 3i)^3|:", abs((2 + 3i) ^ 3))
 print("|z|^n = |z^n| for 1 + i:", abs(abs((1 + i) ^ 10) - abs(1 + i) ^ 10) < 1e-9)
 print("|z|^n = |z^n| for 2 + 3i:", abs(abs((2 + 3i) ^ 3) - abs(2 + 3i) ^ 3) < 1e-9)
-// ---- expected output ----
-// = (1 + i)^10: 32i
-// = |(1 + i)^10|: 32
-// = (2 + 3i)^3: -46+9i
-// = |(2 + 3i)^3|: 46.872166581
-// = |z|^n = |z^n| for 1 + i: true
-// = |z|^n = |z^n| for 2 + 3i: true
+/* ---- expected output ----
+= (1 + i)^10: 32i
+= |(1 + i)^10|: 32
+= (2 + 3i)^3: -46+9i
+= |(2 + 3i)^3|: 46.872166581
+= |z|^n = |z^n| for 1 + i: true
+= |z|^n = |z^n| for 2 + 3i: true
+*/

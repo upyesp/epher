@@ -1,25 +1,25 @@
-// ============================================================================
-// discounted-payback-period.epher -- how many years until a project's
-// DISCOUNTED cash flows recover its cost
-//
-// The discounted payback works like the plain payback (the sibling script
-// payback-period.epher) but discounts every inflow back to today at the
-// cost of capital first: each year k contributes flow_k/(1+r)^k. Because
-// later money is worth less, the discounted cumulative total recovers more
-// slowly, and the payback lengthens. The recurrence is written out; the
-// builtin npv validates the final cumulative total (it is the project's
-// npv). Source: standard capital-budgeting practice; see Brealey and
-// Myers, Principles of Corporate Finance, chapter 5.
-//
-// Accuracy: exact fractions where the decimal repeats, 12 displayed digits
-// otherwise. The discount rate r = 8% is the cost of capital.
-//
-// Run it from a terminal:
-//   epher "epher scripts/finance/investing/discounted-payback-period.epher"
-//
-// The knobs to edit are in the knob section; everything after it is
-// machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   discounted-payback-period.epher -- how many years until a project's
+   DISCOUNTED cash flows recover its cost
+
+   The discounted payback works like the plain payback (the sibling script
+   payback-period.epher) but discounts every inflow back to today at the
+   cost of capital first: each year k contributes flow_k/(1+r)^k. Because
+   later money is worth less, the discounted cumulative total recovers more
+   slowly, and the payback lengthens. The recurrence is written out; the
+   builtin npv validates the final cumulative total (it is the project's
+   npv). Source: standard capital-budgeting practice; see Brealey and
+   Myers, Principles of Corporate Finance, chapter 5.
+
+   Accuracy: exact fractions where the decimal repeats, 12 displayed digits
+   otherwise. The discount rate r = 8% is the cost of capital.
+
+   Run it from a terminal:
+     epher "epher scripts/finance/investing/discounted-payback-period.epher"
+
+   The knobs to edit are in the knob section; everything after it is
+   machinery you can leave alone.
+   ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const invested = 100000     // the project's cost today, USD
@@ -30,10 +30,10 @@ const yearly = {30000, 40000, 40000, 30000}   // inflows at the end of years 1 t
 def dflow(k) = yearly[k] / (1 + rate) ^ k                                    // year k inflow, discounted to today
 def dcum(k) = if k == 1 then dflow(1) - invested else dcum(k - 1) + dflow(k)  // discounted cumulative through year k
 
-// ---- results -----------------------------------------------------------------
-// Discounted cumulative cash flow through each year. Row 1, -650000/9, is
-// the exact fraction for -72222.22...; the display keeps fractions when the
-// decimal repeats (epher's exact display). Row 4 is the project's npv.
+/* ---- results -----------------------------------------------------------------
+   Discounted cumulative cash flow through each year. Row 1, -650000/9, is
+   the exact fraction for -72222.22...; the display keeps fractions when the
+   decimal repeats (epher's exact display). Row 4 is the project's npv. */
 for k in 1 to 4 do {k, dcum(k)}
 print("npv (the row 4 total), builtin check:", npv(rate, {-100000, 30000, 40000, 40000, 30000}))
 // Count the full years on the discounted totals: the loop state is {year,
@@ -43,15 +43,16 @@ while v[2] < 0 do v = {v[1] + 1, v[2] + dflow(v[1] + 1)}
 // Payback = last full year plus the fraction of the next year that covers
 // the shortfall.
 print("discounted payback period:", (v[1] - 1) + (dflow(v[1]) - v[2]) / dflow(v[1]), "years")
-// The discounted payback of 3.28 years beats the plain payback of 2.75
-// because the 40000 inflows of years 3 and 4 are worth only 31753.29 and
-// 22050.90 once discounted. Raise the discount rate far enough and the
-// project never pays back at all (its npv turns negative).
-// ---- expected output ----
-// = 100000
-// = 0.08
-// = {30000, 40000, 40000, 30000}
-// = {{1, -650000/9}, {2, -27650000/729}, {3, -6175.37976934}, {4, 15875.5158145}}
-// = npv (the row 4 total), builtin check: 15875.5158145
-// = {0, -100000}
-// = discounted payback period: 3.2800512 years
+/* The discounted payback of 3.28 years beats the plain payback of 2.75
+   because the 40000 inflows of years 3 and 4 are worth only 31753.29 and
+   22050.90 once discounted. Raise the discount rate far enough and the
+   project never pays back at all (its npv turns negative). */
+/* ---- expected output ----
+= 100000
+= 0.08
+= {30000, 40000, 40000, 30000}
+= {{1, -650000/9}, {2, -27650000/729}, {3, -6175.37976934}, {4, 15875.5158145}}
+= npv (the row 4 total), builtin check: 15875.5158145
+= {0, -100000}
+= discounted payback period: 3.2800512 years
+*/

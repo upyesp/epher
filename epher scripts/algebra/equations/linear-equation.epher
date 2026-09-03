@@ -1,15 +1,15 @@
-// ============================================================================
-// linear-equation.epher -- solve ax + b = c for x
-//
-// Subtract b and divide by a: x = (c - b)/a, exact one-line algebra of any
-// college algebra text (Stewart, Redlin and Watson, "College Algebra", 7th
-// ed., sec. 1.2). All values are exact rationals. The built-in solve could
-// scan the equation too; here the rearrangement is the point.
-//
-// Run it from a terminal:  epher "epher scripts/algebra/equations/linear-equation.epher"
-//
-// The knobs to edit are a, b and c below.
-// ============================================================================
+/* ============================================================================
+   linear-equation.epher -- solve ax + b = c for x
+
+   Subtract b and divide by a: x = (c - b)/a, exact one-line algebra of any
+   college algebra text (Stewart, Redlin and Watson, "College Algebra", 7th
+   ed., sec. 1.2). All values are exact rationals. The built-in solve could
+   scan the equation too; here the rearrangement is the point.
+
+   Run it from a terminal:  epher "epher scripts/algebra/equations/linear-equation.epher"
+
+   The knobs to edit are a, b and c below.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 4
@@ -24,10 +24,11 @@ def lhs(a, b, c, x) = a * x + b             // the left side at x
 print("x:", sol(a, b, c))
 print("a x + b at that x:", lhs(a, b, c, sol(a, b, c)))
 print("back in the equation:", lhs(a, b, c, sol(a, b, c)) == c)
-// ---- expected output ----
-// = 4
-// = -2
-// = 3
-// = x: 1.25
-// = a x + b at that x: 3
-// = back in the equation: true
+/* ---- expected output ----
+= 4
+= -2
+= 3
+= x: 1.25
+= a x + b at that x: 3
+= back in the equation: true
+*/

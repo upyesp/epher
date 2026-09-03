@@ -1,25 +1,25 @@
-// ============================================================================
-// poisson-cdf.epher -- cumulative Poisson probabilities with poissoncdf
-//
-// Calls arrive at a switchboard at a mean rate of 2 per minute, so the
-// number X of calls in a minute is Poisson(2) and the chance of at most
-// k calls is the cumulative probability P(X <= k), which epher's
-// poissoncdf(k, rate) builtin sums from the point formula e^-rate *
-// rate^j / j!. The builtin prints floats with tiny noise around the
-// last digit.
-//
-// The script checks P(X <= 2) against the hand-written sum
-// e^-2 * (1 + 2 + 2) = 5 * e^-2, and reads off the complementary tail
-// P(X >= 3) = 1 - P(X <= 2): with only 0.323 of minutes carrying three
-// or more calls, the operator is usually free.
-//
-// Source: Ross, "A First Course in Probability", chapter 4.
-//
-// Run it from a terminal:  epher "epher scripts/probability/distributions/poisson-cdf.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-//
-// The knob to edit is `rate`; everything below it is machinery.
-// ============================================================================
+/* ============================================================================
+   poisson-cdf.epher -- cumulative Poisson probabilities with poissoncdf
+
+   Calls arrive at a switchboard at a mean rate of 2 per minute, so the
+   number X of calls in a minute is Poisson(2) and the chance of at most
+   k calls is the cumulative probability P(X <= k), which epher's
+   poissoncdf(k, rate) builtin sums from the point formula e^-rate *
+   rate^j / j!. The builtin prints floats with tiny noise around the
+   last digit.
+
+   The script checks P(X <= 2) against the hand-written sum
+   e^-2 * (1 + 2 + 2) = 5 * e^-2, and reads off the complementary tail
+   P(X >= 3) = 1 - P(X <= 2): with only 0.323 of minutes carrying three
+   or more calls, the operator is usually free.
+
+   Source: Ross, "A First Course in Probability", chapter 4.
+
+   Run it from a terminal:  epher "epher scripts/probability/distributions/poisson-cdf.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+
+   The knob to edit is `rate`; everything below it is machinery.
+   ============================================================================ */
 
 // ---- the knob ----
 const rate = 2
@@ -42,12 +42,13 @@ print("P(X <= 8):", poissoncdf(8, rate))
 // about 2 calls per minute, with spread sqrt(2) = 1.414.
 print("mean and variance:", rate)
 print("standard deviation:", sqrt(rate))
-// ---- expected output ----
-// = 2
-// = poissoncdf(2, 2): 0.67667641619
-// = hand sum 5 * e^-2: 0.676676416183
-// = P(X >= 3): 0.32332358381
-// = P(X <= 4): 0.947346982668
-// = P(X <= 8): 0.999762552684
-// = mean and variance: 2
-// = standard deviation: 1.41421356237
+/* ---- expected output ----
+= 2
+= poissoncdf(2, 2): 0.67667641619
+= hand sum 5 * e^-2: 0.676676416183
+= P(X >= 3): 0.32332358381
+= P(X <= 4): 0.947346982668
+= P(X <= 8): 0.999762552684
+= mean and variance: 2
+= standard deviation: 1.41421356237
+*/

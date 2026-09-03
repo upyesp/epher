@@ -1,18 +1,18 @@
-// ============================================================================
-// complex-polar-form.epher -- rectangular to polar and back, with a self-check
-//
-// z = a + bi has the polar form z = r (cos t + i sin t) with radius
-// r = |z| and angle t = arg(z); conversely a = r cos t and b = r sin t
-// (Churchill and Brown, "Complex Variables and Applications", sec. 7).
-// For z = 3 + 4i the radius is the exact integer 5 and the angle is
-// arctan(4/3) = 0.927295218002 radians = 53.1301023542 degrees. Rebuilding
-// the rectangle from r and t reproduces z, checked to 1e-9; the trig values
-// are floats accurate to about 12 digits.
-//
-// Run it from a terminal:  epher "epher scripts/algebra/complex/complex-polar-form.epher"
-//
-// The knob to edit is z below.
-// ============================================================================
+/* ============================================================================
+   complex-polar-form.epher -- rectangular to polar and back, with a self-check
+
+   z = a + bi has the polar form z = r (cos t + i sin t) with radius
+   r = |z| and angle t = arg(z); conversely a = r cos t and b = r sin t
+   (Churchill and Brown, "Complex Variables and Applications", sec. 7).
+   For z = 3 + 4i the radius is the exact integer 5 and the angle is
+   arctan(4/3) = 0.927295218002 radians = 53.1301023542 degrees. Rebuilding
+   the rectangle from r and t reproduces z, checked to 1e-9; the trig values
+   are floats accurate to about 12 digits.
+
+   Run it from a terminal:  epher "epher scripts/algebra/complex/complex-polar-form.epher"
+
+   The knob to edit is z below.
+   ============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
 const z = 3 + 4i
@@ -25,12 +25,13 @@ print("theta in degrees:", deg(t))
 print("re(z):", re(z))
 print("im(z):", im(z))
 print("round trip within 1e-9:", abs(r * (cos(t) + i * sin(t)) - z) < 1e-9)
-// ---- expected output ----
-// = 3+4i
-// = 5
-// = 0.927295218002
-// = r: 5
-// = theta in degrees: 53.1301023542
-// = re(z): 3
-// = im(z): 4
-// = round trip within 1e-9: true
+/* ---- expected output ----
+= 3+4i
+= 5
+= 0.927295218002
+= r: 5
+= theta in degrees: 53.1301023542
+= re(z): 3
+= im(z): 4
+= round trip within 1e-9: true
+*/

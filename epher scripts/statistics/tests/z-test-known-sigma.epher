@@ -1,21 +1,21 @@
-// ============================================================================
-// z-test-known-sigma.epher -- class mean against a known population spread
-//
-// Tests whether the ten exam scores in `d` differ from the claimed mean
-// 75 when the population standard deviation is known to be 9 from past
-// administrations of the exam, using the builtin z test ztest(data, mu0,
-// sigma) (guide 1.20), which prints the z statistic and the two-sided
-// p-value as a display string. With sigma known the standard error of
-// the mean is sigma / sqrt(n) and no sample standard deviation is needed.
-//
-// Run it from a terminal:  epher "epher scripts/statistics/tests/z-test-known-sigma.epher"
-// In the REPL:             load epher scripts/statistics/tests/z-test-known-sigma.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// The knobs to edit are `mu0` and `sigma` below, or `d` for other data.
-// Everything above the results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   z-test-known-sigma.epher -- class mean against a known population spread
+
+   Tests whether the ten exam scores in `d` differ from the claimed mean
+   75 when the population standard deviation is known to be 9 from past
+   administrations of the exam, using the builtin z test ztest(data, mu0,
+   sigma) (guide 1.20), which prints the z statistic and the two-sided
+   p-value as a display string. With sigma known the standard error of
+   the mean is sigma / sqrt(n) and no sample standard deviation is needed.
+
+   Run it from a terminal:  epher "epher scripts/statistics/tests/z-test-known-sigma.epher"
+   In the REPL:             load epher scripts/statistics/tests/z-test-known-sigma.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   The knobs to edit are `mu0` and `sigma` below, or `d` for other data.
+   Everything above the results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
@@ -32,11 +32,12 @@ ztest(d, mu0, sigma)    // z = 2.2136, p = 0.0269: the sample mean of 81.3
                         // is 2.21 standard errors above the claimed 75,
                         // significant at the 5% level
 
-// ---- expected output ----
-// = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-// = 75
-// = 9
-// = sample mean: 81.3
-// = standard error sigma / sqrt(n): 2.84604989415
-// = z by hand: 2.21359436212
-// = z = 2.2136, p = 0.0269
+/* ---- expected output ----
+= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
+= 75
+= 9
+= sample mean: 81.3
+= standard error sigma / sqrt(n): 2.84604989415
+= z by hand: 2.21359436212
+= z = 2.2136, p = 0.0269
+*/

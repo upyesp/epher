@@ -1,34 +1,34 @@
-// ============================================================================
-// moon-distance.epher -- how far the Moon is, in Earth radii and km
-//
-// Geocentric distance of the Moon (built-in accessor dist, in AU; the
-// solar-ephemeris crate, JPL-validated; guide 1.16) on five dates of one
-// month, expressed two ways: Earth radii (dist * au / r_earth, with the
-// au and r_earth constants) and kilometres ((dist * (1 AU)) in km). The
-// Moon's orbit is eccentric (e about 0.055): the distance swings between
-// roughly 356500 km at perigee and 406700 km at apogee, about 4 Earth
-// radii (25000 km) either way of the mean 384400 km (60.3 Earth radii).
-// In June 2026 the new moon of the 15th falls near perigee and the full
-// moon near apogee, so the sample spans nearly the whole range.
-//
-// Run it from a terminal:  epher "epher scripts/astronomy/moon/moon-distance.epher"
-// In the REPL:             load epher scripts/astronomy/moon/moon-distance.epher
-//
-// Knobs: year, month, and the sample days of the month.
-// ============================================================================
+/* ============================================================================
+   moon-distance.epher -- how far the Moon is, in Earth radii and km
+
+   Geocentric distance of the Moon (built-in accessor dist, in AU; the
+   solar-ephemeris crate, JPL-validated; guide 1.16) on five dates of one
+   month, expressed two ways: Earth radii (dist * au / r_earth, with the
+   au and r_earth constants) and kilometres ((dist * (1 AU)) in km). The
+   Moon's orbit is eccentric (e about 0.055): the distance swings between
+   roughly 356500 km at perigee and 406700 km at apogee, about 4 Earth
+   radii (25000 km) either way of the mean 384400 km (60.3 Earth radii).
+   In June 2026 the new moon of the 15th falls near perigee and the full
+   moon near apogee, so the sample spans nearly the whole range.
+
+   Run it from a terminal:  epher "epher scripts/astronomy/moon/moon-distance.epher"
+   In the REPL:             load epher scripts/astronomy/moon/moon-distance.epher
+
+   Knobs: year, month, and the sample days of the month.
+   ============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const year = 2026
 const month = 6
 const days = {1, 8, 15, 22, 29}
 
-// ---- results ----------------------------------------------------------------
-// Distance on each sample day. r_earth is 6371 km, so Earth radii here
-// run 56.1 (perigee near the new moon of day 15) to 63.8 (apogee near the
-// full moons of days 1 and 29); the whole sample sits inside the 356500
-// to 406700 km band of the real orbit. Compare day 15 (357197 km) with
-// day 1 (406354 km): the apogee distance is about 14 percent greater
-// than the perigee distance (perigee is about 12 percent closer).
+/* ---- results ----------------------------------------------------------------
+   Distance on each sample day. r_earth is 6371 km, so Earth radii here
+   run 56.1 (perigee near the new moon of day 15) to 63.8 (apogee near the
+   full moons of days 1 and 29); the whole sample sits inside the 356500
+   to 406700 km band of the real orbit. Compare day 15 (357197 km) with
+   day 1 (406354 km): the apogee distance is about 14 percent greater
+   than the perigee distance (perigee is about 12 percent closer). */
 print("day 1:", dist(11, jd(year, month, 1)) * au / r_earth, "Earth radii;", (dist(11, jd(year, month, 1)) * (1 AU)) in km)
 print("day 8:", dist(11, jd(year, month, 8)) * au / r_earth, "Earth radii;", (dist(11, jd(year, month, 8)) * (1 AU)) in km)
 print("day 15:", dist(11, jd(year, month, 15)) * au / r_earth, "Earth radii;", (dist(11, jd(year, month, 15)) * (1 AU)) in km)
@@ -40,13 +40,14 @@ print("day 29:", dist(11, jd(year, month, 29)) * au / r_earth, "Earth radii;", (
 // diameter swings the same way, see moon-angular-diameter.epher.
 print("day 1, raw AU:", dist(11, jd(year, month, 1)))
 
-// ---- expected output ----
-// = 2026
-// = 6
-// = {1, 8, 15, 22, 29}
-// = day 1: 63.7817755454 Earth radii; 406353.692 km
-// = day 8: 60.8961169361 Earth radii; 387969.161 km
-// = day 15: 56.066125412 Earth radii; 357197.285 km
-// = day 22: 61.0418698791 Earth radii; 388897.753 km
-// = day 29: 63.7399491446 Earth radii; 406087.216 km
-// = day 1, raw AU: 0.00271630665663
+/* ---- expected output ----
+= 2026
+= 6
+= {1, 8, 15, 22, 29}
+= day 1: 63.7817755454 Earth radii; 406353.692 km
+= day 8: 60.8961169361 Earth radii; 387969.161 km
+= day 15: 56.066125412 Earth radii; 357197.285 km
+= day 22: 61.0418698791 Earth radii; 388897.753 km
+= day 29: 63.7399491446 Earth radii; 406087.216 km
+= day 1, raw AU: 0.00271630665663
+*/

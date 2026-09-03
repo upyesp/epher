@@ -1,26 +1,26 @@
-// ============================================================================
-// lump-sum-vs-annuity.epher -- take 500000 now, or 3000 a month for 30
-// years? Compare at one rate, then find the rate that ties them
-//
-// The annuity's present value is what a 30-year stream of 3000/month is
-// worth today at the given rate, from the finance builtin tvm_pv. If that
-// value beats the lump sum, the annuity is the better deal at this rate;
-// otherwise the lump sum is. The tie rate comes from tvm_i, the rate that
-// makes a 500000 account exactly fund 360 withdrawals of 3000. Source:
-// standard TVM formulas; see Kellison, The Theory of Interest, chapters
-// 3-4.
-//
-// Sign convention: the stream is entered as its monthly payment (positive,
-// money in), so tvm_pv answers negative; the value is printed positive.
-//
-// Accuracy: 12 displayed digits.
-//
-// Run it from a terminal:
-//   epher "epher scripts/finance/savings/lump-sum-vs-annuity.epher"
-//
-// The knobs to edit are in the knob section; everything after it is
-// machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   lump-sum-vs-annuity.epher -- take 500000 now, or 3000 a month for 30
+   years? Compare at one rate, then find the rate that ties them
+
+   The annuity's present value is what a 30-year stream of 3000/month is
+   worth today at the given rate, from the finance builtin tvm_pv. If that
+   value beats the lump sum, the annuity is the better deal at this rate;
+   otherwise the lump sum is. The tie rate comes from tvm_i, the rate that
+   makes a 500000 account exactly fund 360 withdrawals of 3000. Source:
+   standard TVM formulas; see Kellison, The Theory of Interest, chapters
+   3-4.
+
+   Sign convention: the stream is entered as its monthly payment (positive,
+   money in), so tvm_pv answers negative; the value is printed positive.
+
+   Accuracy: 12 displayed digits.
+
+   Run it from a terminal:
+     epher "epher scripts/finance/savings/lump-sum-vs-annuity.epher"
+
+   The knobs to edit are in the knob section; everything after it is
+   machinery you can leave alone.
+   ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const lump = 500000         // the lump sum offered today, USD
@@ -39,18 +39,19 @@ print("the stream beats the lump sum by:", cents(0 - tvm_pv(years * 12, rate / 1
 print("better deal at 5%:", if 0 - tvm_pv(years * 12, rate / 12, monthly, 0) > lump then "the 3000/month annuity (worth more today)" else "the lump sum")
 print("the lump alone at 5% funds 3000/month for:", tvm_n(rate / 12, -lump, monthly, 0), "months")
 print("rate that ties the two (nominal, 12 x monthly):", 12 * tvm_i(years * 12, -lump, monthly, 0))
-// At 5% the stream is worth 558844.85 today, more than the 500000 lump, so
-// the annuity wins; invested at 5% the lump runs dry after 285.14 months
-// (23.8 years) of 3000/month withdrawals. Above about 6.0% nominal (6.18%
-// effective) the lump sum overtakes the annuity: then investing it yourself
-// is the better deal.
-// ---- expected output ----
-// = 500000
-// = 3000
-// = 30
-// = 0.05
-// = annuity present value at 5%: 558844.85
-// = the stream beats the lump sum by: 58844.85
-// = better deal at 5%: the 3000/month annuity (worth more today)
-// = the lump alone at 5% funds 3000/month for: 285.142080771 months
-// = rate that ties the two (nominal, 12 x monthly): 0.0600699000811
+/* At 5% the stream is worth 558844.85 today, more than the 500000 lump, so
+   the annuity wins; invested at 5% the lump runs dry after 285.14 months
+   (23.8 years) of 3000/month withdrawals. Above about 6.0% nominal (6.18%
+   effective) the lump sum overtakes the annuity: then investing it yourself
+   is the better deal. */
+/* ---- expected output ----
+= 500000
+= 3000
+= 30
+= 0.05
+= annuity present value at 5%: 558844.85
+= the stream beats the lump sum by: 58844.85
+= better deal at 5%: the 3000/month annuity (worth more today)
+= the lump alone at 5% funds 3000/month for: 285.142080771 months
+= rate that ties the two (nominal, 12 x monthly): 0.0600699000811
+*/

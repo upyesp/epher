@@ -1,30 +1,30 @@
-// ============================================================================
-// one-sample-t-test.epher -- is the class mean really 75?
-//
-// Tests whether the mean of the ten exam scores in `d` differs from the
-// claimed population mean 75 with the builtin one-sample t test
-// ttest(data, mu0) (guide 1.20), which prints the t statistic and the
-// two-sided p-value. The t statistic uses the sample standard deviation
-// (n - 1) under the mean, here about 9.9113. The test prints its result
-// as a display string; the lines above it show the pieces the statistic
-// is built from.
-//
-// Run it from a terminal:  epher "epher scripts/statistics/tests/one-sample-t-test.epher"
-// In the REPL:             load epher scripts/statistics/tests/one-sample-t-test.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// The knob to edit is `mu0` (the claimed mean) below, or `d` for other
-// data. Everything above the results section is machinery you can leave
-// alone.
-// ============================================================================
+/* ============================================================================
+   one-sample-t-test.epher -- is the class mean really 75?
+
+   Tests whether the mean of the ten exam scores in `d` differs from the
+   claimed population mean 75 with the builtin one-sample t test
+   ttest(data, mu0) (guide 1.20), which prints the t statistic and the
+   two-sided p-value. The t statistic uses the sample standard deviation
+   (n - 1) under the mean, here about 9.9113. The test prints its result
+   as a display string; the lines above it show the pieces the statistic
+   is built from.
+
+   Run it from a terminal:  epher "epher scripts/statistics/tests/one-sample-t-test.epher"
+   In the REPL:             load epher scripts/statistics/tests/one-sample-t-test.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   The knob to edit is `mu0` (the claimed mean) below, or `d` for other
+   data. Everything above the results section is machinery you can leave
+   alone.
+   ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
 const mu0 = 75                                       // the claimed population mean
 
 // ---- helpers: the pieces of the t statistic --------------------------------------
-def sds() = sqrt(variance(d) * len(d) / (len(d) - 1))  /* sample stdev, n - 1 */
+def sds() = sqrt(variance(d) * len(d) / (len(d) - 1)) // sample stdev, n - 1
 
 // ---- what the test sees ------------------------------------------------------------
 print("sample mean:", mean(d))
@@ -36,10 +36,11 @@ ttest(d, mu0)   // t = 2.0101, p = 0.0753: at the 5% level the data do not
                 // firmly contradict the claimed mean of 75, though the
                 // sample mean of 81.3 sits 6.3 points above it
 
-// ---- expected output ----
-// = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-// = 75
-// = sample mean: 81.3
-// = sample size: 10
-// = sample stdev (n - 1): 9.91127304302
-// = t = 2.0101, p = 0.0753
+/* ---- expected output ----
+= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
+= 75
+= sample mean: 81.3
+= sample size: 10
+= sample stdev (n - 1): 9.91127304302
+= t = 2.0101, p = 0.0753
+*/

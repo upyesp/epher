@@ -1,17 +1,17 @@
-// ============================================================================
-// complex-quadratic-roots.epher -- a quadratic with negative discriminant
-//
-// x^2 + 2x + 5 = 0 has discriminant 4 - 20 = -16, so its roots are the
-// conjugate pair -1 +/- 2i. The built-in solve finds polynomial roots,
-// complex ones included, and reports them as a display string; the roots
-// are then verified by evaluating the polynomial, which gives exact zeros
-// because the complex arithmetic is exact. The formula route with sqrt of
-// a negative number is shown in quadratic-complex-roots.epher.
-//
-// Run it from a terminal:  epher "epher scripts/algebra/complex/complex-quadratic-roots.epher"
-//
-// The knob to edit is the coefficient list cs below.
-// ============================================================================
+/* ============================================================================
+   complex-quadratic-roots.epher -- a quadratic with negative discriminant
+
+   x^2 + 2x + 5 = 0 has discriminant 4 - 20 = -16, so its roots are the
+   conjugate pair -1 +/- 2i. The built-in solve finds polynomial roots,
+   complex ones included, and reports them as a display string; the roots
+   are then verified by evaluating the polynomial, which gives exact zeros
+   because the complex arithmetic is exact. The formula route with sqrt of
+   a negative number is shown in quadratic-complex-roots.epher.
+
+   Run it from a terminal:  epher "epher scripts/algebra/complex/complex-quadratic-roots.epher"
+
+   The knob to edit is the coefficient list cs below.
+   ============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
 const cs = {1, 2, 5}              // coefficients of x^2 + 2x + 5, highest first
@@ -23,8 +23,9 @@ def p(cs, x) = cs[1] * x ^ 2 + cs[2] * x + cs[3]
 solve x ^ 2 + 2 * x + 5 == 0
 print("p(-1 + 2i):", p(cs, -1 + 2i))
 print("p(-1 - 2i):", p(cs, -1 - 2i))
-// ---- expected output ----
-// = {1, 2, 5}
-// = x = -1-2i, x = -1+2i
-// = p(-1 + 2i): 0
-// = p(-1 - 2i): 0
+/* ---- expected output ----
+= {1, 2, 5}
+= x = -1-2i, x = -1+2i
+= p(-1 + 2i): 0
+= p(-1 - 2i): 0
+*/

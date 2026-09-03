@@ -1,21 +1,21 @@
-// ============================================================================
-// digit-sum.epher -- the sum of the digits of a number
-//
-// Adds the digits of n with a packed while loop (guide 1.30): each pass
-// takes the last digit with mod(n, 10), adds it to the running total, and
-// drops it with floor(n / 10). The loop is silent, so labelled prints
-// show the sums. The classic check: the digits of 12345 add to 15.
-//
-// Source: standard number theory; digit sums underlie divisibility by 3
-// and 9 (the casting out of nines, Hardy and Wright, ch. 9) and feed the
-// digital root of the next script. All results are exact.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/digit-sum.epher"
-// In the REPL:             load epher scripts/number-theory/integer-sequences/digit-sum.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// There is no knob: the sample numbers are the point of the script.
-// ============================================================================
+/* ============================================================================
+   digit-sum.epher -- the sum of the digits of a number
+
+   Adds the digits of n with a packed while loop (guide 1.30): each pass
+   takes the last digit with mod(n, 10), adds it to the running total, and
+   drops it with floor(n / 10). The loop is silent, so labelled prints
+   show the sums. The classic check: the digits of 12345 add to 15.
+
+   Source: standard number theory; digit sums underlie divisibility by 3
+   and 9 (the casting out of nines, Hardy and Wright, ch. 9) and feed the
+   digital root of the next script. All results are exact.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/digit-sum.epher"
+   In the REPL:             load epher scripts/number-theory/integer-sequences/digit-sum.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   There is no knob: the sample numbers are the point of the script.
+   ============================================================================ */
 
 // ---- sum the digits of 12345 --------------------------------------------------------------
 // v = {remaining digits, running sum}; the loop ends when nothing is
@@ -34,11 +34,12 @@ v = {2026, 0}
 while v[1] > 0 do v = {floor(v[1] / 10), v[2] + mod(v[1], 10)}
 print("digit sum of 2026:", v[2])           // 2 + 0 + 2 + 6 = 10
 print("12345 mod 9:", mod(12345, 9))        // 15 mod 9 = 6, the old check
-// ---- expected output ----
-// = {12345, 0}
-// = digit sum of 12345: 15
-// = {9999, 0}
-// = digit sum of 9999: 36
-// = {2026, 0}
-// = digit sum of 2026: 10
-// = 12345 mod 9: 6
+/* ---- expected output ----
+= {12345, 0}
+= digit sum of 12345: 15
+= {9999, 0}
+= digit sum of 9999: 36
+= {2026, 0}
+= digit sum of 2026: 10
+= 12345 mod 9: 6
+*/

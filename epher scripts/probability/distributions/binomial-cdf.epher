@@ -1,23 +1,23 @@
-// ============================================================================
-// binomial-cdf.epher -- cumulative binomial probabilities with binomcdf
-//
-// The cumulative probability P(X <= k) for X ~ Bin(n, p) is the sum of
-// the point probabilities from 0 to k. epher's binomcdf builtin does
-// that sum, and this script checks it against the same sum written out
-// with exact ncr arithmetic. X counts heads in 10 fair coin flips.
-//
-//   P(X <= 2) = (ncr(10, 0) + ncr(10, 1) + ncr(10, 2)) / 2^10 = 7/128
-//
-// By symmetry P(X >= 8) = P(X <= 2), and P(X >= 1) uses the complement
-// trick P(X >= 1) = 1 - P(X = 0) = 1 - 2^-10 = 1023/1024. The builtin
-// prints floats with tiny noise around the last digit; the comparisons
-// below tolerate that.
-//
-// Source: Ross, "A First Course in Probability", chapter 4.
-//
-// Run it from a terminal:  epher "epher scripts/probability/distributions/binomial-cdf.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-// ============================================================================
+/* ============================================================================
+   binomial-cdf.epher -- cumulative binomial probabilities with binomcdf
+
+   The cumulative probability P(X <= k) for X ~ Bin(n, p) is the sum of
+   the point probabilities from 0 to k. epher's binomcdf builtin does
+   that sum, and this script checks it against the same sum written out
+   with exact ncr arithmetic. X counts heads in 10 fair coin flips.
+
+     P(X <= 2) = (ncr(10, 0) + ncr(10, 1) + ncr(10, 2)) / 2^10 = 7/128
+
+   By symmetry P(X >= 8) = P(X <= 2), and P(X >= 1) uses the complement
+   trick P(X >= 1) = 1 - P(X = 0) = 1 - 2^-10 = 1023/1024. The builtin
+   prints floats with tiny noise around the last digit; the comparisons
+   below tolerate that.
+
+   Source: Ross, "A First Course in Probability", chapter 4.
+
+   Run it from a terminal:  epher "epher scripts/probability/distributions/binomial-cdf.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+   ============================================================================ */
 
 // ---- results ----
 // The exact partial sum by hand: 56 / 1024 = 7/128, shown as its
@@ -37,12 +37,13 @@ print("exact: 7/128 =", 7 / 128)
 // At least one head in ten flips: 1 - P(X = 0) = 1 - 2^-10 = 1023/1024.
 print("P(X >= 1):", 1 - 1 / 2 ^ 10)
 print("exact: 1023/1024 =", 1023 / 1024)
-// ---- expected output ----
-// = exact sum of P(X = 0..2): 0.0546875
-// = binomcdf(2, 10, 0.5): 0.0546875000008
-// = P(X <= 5): 0.623046875011
-// = P(X <= 8): 0.989257812518
-// = P(X >= 8) via complement: 0.0546874999827
-// = exact: 7/128 = 0.0546875
-// = P(X >= 1): 0.9990234375
-// = exact: 1023/1024 = 0.9990234375
+/* ---- expected output ----
+= exact sum of P(X = 0..2): 0.0546875
+= binomcdf(2, 10, 0.5): 0.0546875000008
+= P(X <= 5): 0.623046875011
+= P(X <= 8): 0.989257812518
+= P(X >= 8) via complement: 0.0546874999827
+= exact: 7/128 = 0.0546875
+= P(X >= 1): 0.9990234375
+= exact: 1023/1024 = 0.9990234375
+*/

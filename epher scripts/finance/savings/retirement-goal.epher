@@ -1,24 +1,24 @@
-// ============================================================================
-// retirement-goal.epher -- how long monthly deposits take to reach a
-// million, at 6%
-//
-// The finance builtin tvm_n solves the annuity equation for the number of
-// periods: tvm_n(i, pv, pmt, fv) returns the months of deposit pmt (money
-// out, negative) that grow an empty account to the goal fv. Source:
-// standard annuity formulas; see Kellison, The Theory of Interest,
-// chapter 3.
-//
-// Sign convention: deposit negative, goal positive.
-//
-// Accuracy: 12 displayed digits. The answer is fractional (359.25 months);
-// in practice the last month's deposit is smaller.
-//
-// Run it from a terminal:
-//   epher "epher scripts/finance/savings/retirement-goal.epher"
-//
-// The knobs to edit are in the knob section; everything after it is
-// machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   retirement-goal.epher -- how long monthly deposits take to reach a
+   million, at 6%
+
+   The finance builtin tvm_n solves the annuity equation for the number of
+   periods: tvm_n(i, pv, pmt, fv) returns the months of deposit pmt (money
+   out, negative) that grow an empty account to the goal fv. Source:
+   standard annuity formulas; see Kellison, The Theory of Interest,
+   chapter 3.
+
+   Sign convention: deposit negative, goal positive.
+
+   Accuracy: 12 displayed digits. The answer is fractional (359.25 months);
+   in practice the last month's deposit is smaller.
+
+   Run it from a terminal:
+     epher "epher scripts/finance/savings/retirement-goal.epher"
+
+   The knobs to edit are in the knob section; everything after it is
+   machinery you can leave alone.
+   ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const goal = 1000000        // the retirement target, USD
@@ -33,11 +33,12 @@ print("interest earned:", goal - months * deposit)
 // Almost 30 years of 1000/month deposits put in 359247.03; compounding
 // supplies the other 640752.97, about 64% of the goal. At 8% the same
 // deposits reach the goal in about 306 months instead of 359.
-// ---- expected output ----
-// = 1000000
-// = 1000
-// = 0.06
-// = 359.247028874
-// = reaching 1,000,000 takes: 359.247028874 months, or 29.9372524062 years
-// = deposited out of pocket in that time: 359247.028874
-// = interest earned: 640752.971126
+/* ---- expected output ----
+= 1000000
+= 1000
+= 0.06
+= 359.247028874
+= reaching 1,000,000 takes: 359.247028874 months, or 29.9372524062 years
+= deposited out of pocket in that time: 359247.028874
+= interest earned: 640752.971126
+*/

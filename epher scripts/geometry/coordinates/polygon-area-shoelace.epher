@@ -1,22 +1,22 @@
-// ============================================================================
-// polygon-area-shoelace.epher -- area of a polygon, shoelace formula
-//
-// For vertices taken in order around a polygon, twice the area is the
-// absolute value of the alternating sum x_i y_(i+1) - y_i x_(i+1) over
-// consecutive pairs, with the last vertex paired back to the first
-// (the shoelace, or surveyor's, formula; Gauss, 1794; standard
-// formula). The helper pair(p, q) is one shoelace term, and the helper
-// sums the terms around the polygon. The pentagon example has area 9
-// and the rectangle cross-check, 12, matches width times height; the
-// signed sum before halving is also exact.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/coordinates/polygon-area-shoelace.epher"
-// In the REPL:             load epher scripts/geometry/coordinates/polygon-area-shoelace.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The vertices to try are in the results section below; edit them
-// there. List them in order around the polygon.
-// ============================================================================
+/* ============================================================================
+   polygon-area-shoelace.epher -- area of a polygon, shoelace formula
+
+   For vertices taken in order around a polygon, twice the area is the
+   absolute value of the alternating sum x_i y_(i+1) - y_i x_(i+1) over
+   consecutive pairs, with the last vertex paired back to the first
+   (the shoelace, or surveyor's, formula; Gauss, 1794; standard
+   formula). The helper pair(p, q) is one shoelace term, and the helper
+   sums the terms around the polygon. The pentagon example has area 9
+   and the rectangle cross-check, 12, matches width times height; the
+   signed sum before halving is also exact.
+
+   Run it from a terminal:  epher "epher scripts/geometry/coordinates/polygon-area-shoelace.epher"
+   In the REPL:             load epher scripts/geometry/coordinates/polygon-area-shoelace.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The vertices to try are in the results section below; edit them
+   there. List them in order around the polygon.
+   ============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 // pair(p, q) is one shoelace term; the raw helpers sum the terms around
@@ -32,8 +32,9 @@ print("pentagon:", area5({0, 0}, {2, 0}, {3, 2}, {2, 4}, {0, 3}))
 print("rectangle:", area4({0, 0}, {4, 0}, {4, 3}, {0, 3}))
 print("rectangle by width times height:", 4 * 3)
 print("signed sum, pentagon:", raw5({0, 0}, {2, 0}, {3, 2}, {2, 4}, {0, 3}))
-// ---- expected output ----
-// = pentagon: 9
-// = rectangle: 12
-// = rectangle by width times height: 12
-// = signed sum, pentagon: 18
+/* ---- expected output ----
+= pentagon: 9
+= rectangle: 12
+= rectangle by width times height: 12
+= signed sum, pentagon: 18
+*/

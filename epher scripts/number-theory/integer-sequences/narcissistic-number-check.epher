@@ -1,29 +1,29 @@
-// ============================================================================
-// narcissistic-number-check.epher -- three-digit Armstrong numbers
-//
-// A three-digit number is narcissistic (an Armstrong number) when it
-// equals the sum of the cubes of its digits: 153 = 1^3 + 5^3 + 3^3. The
-// script checks the four classic three-digit cases with a digit-cube def
-// built on floor and mod extraction, then counts how many three-digit
-// narcissistic numbers exist below 1000 with a packed while loop
-// (guide 1.30). Exactly 153, 370, 371 and 407 qualify.
-//
-// Source: the narcissistic numbers are sequence A005188 in the OEIS;
-// the three-digit case is the classic Armstrong number puzzle of
-// recreational number theory (see David Wells, "The Penguin Dictionary
-// of Curious and Interesting Numbers"). All results are exact.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/narcissistic-number-check.epher"
-// In the REPL:             load epher scripts/number-theory/integer-sequences/narcissistic-number-check.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// There is no knob: the four checks are the point of the script.
-// ============================================================================
+/* ============================================================================
+   narcissistic-number-check.epher -- three-digit Armstrong numbers
 
-// ---- the digit-cube sum ---------------------------------------------------------------------
-// For a three-digit n = 100a + 10b + c, the hundreds digit is
-// mod(floor(n / 100), 10), the tens digit mod(floor(n / 10), 10), and
-// the units digit mod(n, 10); the def adds their cubes.
+   A three-digit number is narcissistic (an Armstrong number) when it
+   equals the sum of the cubes of its digits: 153 = 1^3 + 5^3 + 3^3. The
+   script checks the four classic three-digit cases with a digit-cube def
+   built on floor and mod extraction, then counts how many three-digit
+   narcissistic numbers exist below 1000 with a packed while loop
+   (guide 1.30). Exactly 153, 370, 371 and 407 qualify.
+
+   Source: the narcissistic numbers are sequence A005188 in the OEIS;
+   the three-digit case is the classic Armstrong number puzzle of
+   recreational number theory (see David Wells, "The Penguin Dictionary
+   of Curious and Interesting Numbers"). All results are exact.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/narcissistic-number-check.epher"
+   In the REPL:             load epher scripts/number-theory/integer-sequences/narcissistic-number-check.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   There is no knob: the four checks are the point of the script.
+   ============================================================================ */
+
+/* ---- the digit-cube sum ---------------------------------------------------------------------
+   For a three-digit n = 100a + 10b + c, the hundreds digit is
+   mod(floor(n / 100), 10), the tens digit mod(floor(n / 10), 10), and
+   the units digit mod(n, 10); the def adds their cubes. */
 def sumc(n) = mod(floor(n / 100), 10) ^ 3 + mod(floor(n / 10), 10) ^ 3 + mod(n, 10) ^ 3
 
 // ---- the four checks --------------------------------------------------------------------------
@@ -39,12 +39,13 @@ print("sumc(153):", sumc(153))               // 1 + 125 + 27 = 153
 v = {100, 0}
 while v[1] < 1000 do v = {v[1] + 1, v[2] + (if sumc(v[1]) == v[1] then 1 else 0)}
 print("three-digit narcissistic numbers:", v[2])    // the four above
-// ---- expected output ----
-// = {true, true, true, true}
-// = 153 = 1^3 + 5^3 + 3^3: true
-// = 370 = 3^3 + 7^3 + 0^3: true
-// = 371 = 3^3 + 7^3 + 1^3: true
-// = 407 = 4^3 + 0^3 + 7^3: true
-// = sumc(153): 153
-// = {100, 0}
-// = three-digit narcissistic numbers: 4
+/* ---- expected output ----
+= {true, true, true, true}
+= 153 = 1^3 + 5^3 + 3^3: true
+= 370 = 3^3 + 7^3 + 0^3: true
+= 371 = 3^3 + 7^3 + 1^3: true
+= 407 = 4^3 + 0^3 + 7^3: true
+= sumc(153): 153
+= {100, 0}
+= three-digit narcissistic numbers: 4
+*/

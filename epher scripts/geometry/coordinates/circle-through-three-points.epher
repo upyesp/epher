@@ -1,34 +1,34 @@
-// ============================================================================
-// circle-through-three-points.epher -- center and radius of a circle
-//
-// Three non-collinear points determine a circle. Writing the circle as
-// (x - h)^2 + (y - k)^2 = r^2 and subtracting the equation at the first
-// point from the other two gives two linear equations in h and k,
-// solved here with Cramer's rule (standard formula; the two equations
-// are the perpendicular bisectors of two sides). The example triangle
-// (0, 0), (6, 0), (3, 6) is isosceles, so the center is hand-checkable:
-// it sits on x = 3 and 3^2 + k^2 = (6 - k)^2 gives k = 9/4, and the
-// radius is sqrt(9 + (9/4)^2) = 15/4. The last results re-check the
-// distance from the center to each vertex.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/coordinates/circle-through-three-points.epher"
-// In the REPL:             load epher scripts/geometry/coordinates/circle-through-three-points.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are `A`, `B`, `C`, the three points (they must not
-// be collinear). Everything above the results section is machinery you
-// can leave alone.
-// ============================================================================
+/* ============================================================================
+   circle-through-three-points.epher -- center and radius of a circle
+
+   Three non-collinear points determine a circle. Writing the circle as
+   (x - h)^2 + (y - k)^2 = r^2 and subtracting the equation at the first
+   point from the other two gives two linear equations in h and k,
+   solved here with Cramer's rule (standard formula; the two equations
+   are the perpendicular bisectors of two sides). The example triangle
+   (0, 0), (6, 0), (3, 6) is isosceles, so the center is hand-checkable:
+   it sits on x = 3 and 3^2 + k^2 = (6 - k)^2 gives k = 9/4, and the
+   radius is sqrt(9 + (9/4)^2) = 15/4. The last results re-check the
+   distance from the center to each vertex.
+
+   Run it from a terminal:  epher "epher scripts/geometry/coordinates/circle-through-three-points.epher"
+   In the REPL:             load epher scripts/geometry/coordinates/circle-through-three-points.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are `A`, `B`, `C`, the three points (they must not
+   be collinear). Everything above the results section is machinery you
+   can leave alone.
+   ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const A = {0, 0}
 const B = {6, 0}
 const C = {3, 6}
 
-// ---- the model ----------------------------------------------------------------
-// Subtract the circle equation at A from the equations at B and C:
-// 2 (Bx - Ax) h + 2 (By - Ay) k = Bx^2 + By^2 - Ax^2 - Ay^2, and the
-// same with C. Cramer's rule solves the 2 by 2 system for (h, k).
+/* ---- the model ----------------------------------------------------------------
+   Subtract the circle equation at A from the equations at B and C:
+   2 (Bx - Ax) h + 2 (By - Ay) k = Bx^2 + By^2 - Ax^2 - Ay^2, and the
+   same with C. Cramer's rule solves the 2 by 2 system for (h, k). */
 def p2(A, B) = 2 * (B[1] - A[1])
 def q2(A, B) = 2 * (B[2] - A[2])
 def u2(A, B) = B[1] ^ 2 + B[2] ^ 2 - A[1] ^ 2 - A[2] ^ 2
@@ -47,13 +47,14 @@ print("distance from A to the center:", rdist(A, center(A, B, C)))
 print("A on the circle:", oncircle(A, A, B, C))
 print("B on the circle:", oncircle(B, A, B, C))
 print("C on the circle:", oncircle(C, A, B, C))
-// ---- expected output ----
-// = {0, 0}
-// = {6, 0}
-// = {3, 6}
-// = center: {3, 2.25}
-// = radius: 3.75
-// = distance from A to the center: 3.75
-// = A on the circle: true
-// = B on the circle: true
-// = C on the circle: true
+/* ---- expected output ----
+= {0, 0}
+= {6, 0}
+= {3, 6}
+= center: {3, 2.25}
+= radius: 3.75
+= distance from A to the center: 3.75
+= A on the circle: true
+= B on the circle: true
+= C on the circle: true
+*/

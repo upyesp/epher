@@ -1,25 +1,25 @@
-// ============================================================================
-// car-loan-payment.epher -- monthly payment of a 5-year auto loan with a
-// down payment
-//
-// The buyer puts a down payment on the price and finances the rest with a
-// fixed-rate loan: the financed amount is price*(1 - down), and the monthly
-// payment over n months at rate r comes from the finance builtin tvm_pmt,
-// the annuity formula pmt = P*i/(1 - (1+i)^-n). Source: standard
-// amortization formulas; see Kellison, The Theory of Interest, chapter 3.
-//
-// Sign convention: principal negative, payment positive, as in the builtin
-// example tvm_pmt(360, 0.08/12, -100000, 0).
-//
-// Accuracy: 12 displayed digits. Dealers quote "6.9% APR" for the monthly
-// rate 6.9%/12; fees and sales tax are not part of this price.
-//
-// Run it from a terminal:
-//   epher "epher scripts/finance/loans/car-loan-payment.epher"
-//
-// The knobs to edit are in the knob section; everything after it is
-// machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   car-loan-payment.epher -- monthly payment of a 5-year auto loan with a
+   down payment
+
+   The buyer puts a down payment on the price and finances the rest with a
+   fixed-rate loan: the financed amount is price*(1 - down), and the monthly
+   payment over n months at rate r comes from the finance builtin tvm_pmt,
+   the annuity formula pmt = P*i/(1 - (1+i)^-n). Source: standard
+   amortization formulas; see Kellison, The Theory of Interest, chapter 3.
+
+   Sign convention: principal negative, payment positive, as in the builtin
+   example tvm_pmt(360, 0.08/12, -100000, 0).
+
+   Accuracy: 12 displayed digits. Dealers quote "6.9% APR" for the monthly
+   rate 6.9%/12; fees and sales tax are not part of this price.
+
+   Run it from a terminal:
+     epher "epher scripts/finance/loans/car-loan-payment.epher"
+
+   The knobs to edit are in the knob section; everything after it is
+   machinery you can leave alone.
+   ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const price = 32000         // the car's price, USD
@@ -34,14 +34,15 @@ payment = tvm_pmt(years * 12, rate / 12, -(price * (1 - down)), 0)   // monthly 
 print("monthly payment:", payment)
 print("total of 60 payments:", payment * (years * 12))
 print("interest over the term:", payment * (years * 12) - price * (1 - down))
-// ---- expected output ----
-// = 32000
-// = 0.15
-// = 0.069
-// = 5
-// = down payment: 4800
-// = amount financed: 27200
-// = 537.310224456
-// = monthly payment: 537.310224456
-// = total of 60 payments: 32238.6134674
-// = interest over the term: 5038.61346738
+/* ---- expected output ----
+= 32000
+= 0.15
+= 0.069
+= 5
+= down payment: 4800
+= amount financed: 27200
+= 537.310224456
+= monthly payment: 537.310224456
+= total of 60 payments: 32238.6134674
+= interest over the term: 5038.61346738
+*/

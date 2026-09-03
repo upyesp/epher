@@ -1,16 +1,16 @@
-// ============================================================================
-// cubic-roots.epher -- roots of a cubic, shown by the built-in solve
-//
-// The cubic x^3 - 6x^2 + 11x - 6 factors as (x - 1)(x - 2)(x - 3). The
-// The built-in solve finds all roots of a polynomial, real and
-// complex alike; its answer is a display string, so each printed root is
-// then verified by evaluating the polynomial (exact zeros). The cubic is
-// x^3 - 6x^2 + 11x - 6, a running example of the algebra folder.
-//
-// Run it from a terminal:  epher "epher scripts/algebra/equations/cubic-roots.epher"
-//
-// The knob to edit is the coefficient list cs below.
-// ============================================================================
+/* ============================================================================
+   cubic-roots.epher -- roots of a cubic, shown by the built-in solve
+
+   The cubic x^3 - 6x^2 + 11x - 6 factors as (x - 1)(x - 2)(x - 3). The
+   The built-in solve finds all roots of a polynomial, real and
+   complex alike; its answer is a display string, so each printed root is
+   then verified by evaluating the polynomial (exact zeros). The cubic is
+   x^3 - 6x^2 + 11x - 6, a running example of the algebra folder.
+
+   Run it from a terminal:  epher "epher scripts/algebra/equations/cubic-roots.epher"
+
+   The knob to edit is the coefficient list cs below.
+   ============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
 const cs = {1, -6, 11, -6}       // coefficients of x^3 - 6x^2 + 11x - 6, highest first
@@ -23,9 +23,10 @@ solve x ^ 3 - 6 * x ^ 2 + 11 * x - 6 == 0
 print("p(1):", p(cs, 1))
 print("p(2):", p(cs, 2))
 print("p(3):", p(cs, 3))
-// ---- expected output ----
-// = {1, -6, 11, -6}
-// = x = 1, x = 2, x = 3
-// = p(1): 0
-// = p(2): 0
-// = p(3): 0
+/* ---- expected output ----
+= {1, -6, 11, -6}
+= x = 1, x = 2, x = 3
+= p(1): 0
+= p(2): 0
+= p(3): 0
+*/

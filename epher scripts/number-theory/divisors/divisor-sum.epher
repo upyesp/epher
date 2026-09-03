@@ -1,24 +1,24 @@
-// ============================================================================
-// divisor-sum.epher -- the sum of the divisors of n, sigma(n)
-//
-// Sums all positive divisors of n. The def pairdiv(n, i) walks the trial
-// divisors up to the square root and adds each divisor and its partner
-// n / i together (a square adds its root once), which is the classroom
-// method; epher has no divisor-sum builtin (ndivisors counts, factors
-// only displays). The classic check: the divisors of 12 are 1, 2, 3, 4,
-// 6 and 12, and they add to 28.
-//
-// Source: the divisor function sigma(n), Hardy and Wright, "An
-// Introduction to the Theory of Numbers", ch. 16, section 16.7. Results
-// are exact; the recursion depth limits the def to n of a few thousand,
-// which is plenty for the checks below.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/divisors/divisor-sum.epher"
-// In the REPL:             load epher scripts/number-theory/divisors/divisor-sum.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// There is no knob: the sample numbers are the point of the script.
-// ============================================================================
+/* ============================================================================
+   divisor-sum.epher -- the sum of the divisors of n, sigma(n)
+
+   Sums all positive divisors of n. The def pairdiv(n, i) walks the trial
+   divisors up to the square root and adds each divisor and its partner
+   n / i together (a square adds its root once), which is the classroom
+   method; epher has no divisor-sum builtin (ndivisors counts, factors
+   only displays). The classic check: the divisors of 12 are 1, 2, 3, 4,
+   6 and 12, and they add to 28.
+
+   Source: the divisor function sigma(n), Hardy and Wright, "An
+   Introduction to the Theory of Numbers", ch. 16, section 16.7. Results
+   are exact; the recursion depth limits the def to n of a few thousand,
+   which is plenty for the checks below.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/divisors/divisor-sum.epher"
+   In the REPL:             load epher scripts/number-theory/divisors/divisor-sum.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   There is no knob: the sample numbers are the point of the script.
+   ============================================================================ */
 
 // ---- the divisor-sum def ----------------------------------------------------------
 // pairdiv(n, i) adds i and n / i when i divides n, walking i = 1, 2, ...
@@ -40,10 +40,11 @@ while v[1] <= 12 do v = {v[1] + 1, v[2] + (if mod(12, v[1]) == 0 then v[1] else 
 print("divisors of 12 add to:", v[2])
 print("sigma(12):", sigma(12))
 print("sigma(360):", sigma(360))            // 15 * 13 * 6 = 1170
-// ---- expected output ----
-// = {12, 28, 60, 91, 217}
-// = 28
-// = {1, 0}
-// = divisors of 12 add to: 28
-// = sigma(12): 28
-// = sigma(360): 1170
+/* ---- expected output ----
+= {12, 28, 60, 91, 217}
+= 28
+= {1, 0}
+= divisors of 12 add to: 28
+= sigma(12): 28
+= sigma(360): 1170
+*/

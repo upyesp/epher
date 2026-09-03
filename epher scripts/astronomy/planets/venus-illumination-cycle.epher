@@ -1,46 +1,47 @@
-// ============================================================================
-// venus-illumination-cycle.epher -- Venus's phases across one year
-//
-// Illuminated fraction of Venus on the 15th of every month of 2026, from
-// the built-in accessor illum (the solar-ephemeris crate, JPL-validated;
-// guide 1.16; rounded to four decimals). Venus is an inferior planet:
-// its orbit lies inside Earth's, so Earth sees it at every elongation,
-// and it runs through the same crescent-to-gibbous cycle as the Moon -
-// full-looking near superior conjunction (far side of the Sun), a thin
-// crescent near inferior conjunction (between Earth and the Sun). The
-// cycle takes the synodic period of 584 days; one year of 2026 samples
-// shows the wane from 0.9993 in January to the 0.0372 sliver on
-// October 15 - days before the inferior conjunction of late October -
-// and the start of the waxing half in November.
-//
-// Run it from a terminal:  epher "epher scripts/astronomy/planets/venus-illumination-cycle.epher"
-// In the REPL:             load epher scripts/astronomy/planets/venus-illumination-cycle.epher
-//
-// Knob: the year.
-// ============================================================================
+/* ============================================================================
+   venus-illumination-cycle.epher -- Venus's phases across one year
+
+   Illuminated fraction of Venus on the 15th of every month of 2026, from
+   the built-in accessor illum (the solar-ephemeris crate, JPL-validated;
+   guide 1.16; rounded to four decimals). Venus is an inferior planet:
+   its orbit lies inside Earth's, so Earth sees it at every elongation,
+   and it runs through the same crescent-to-gibbous cycle as the Moon -
+   full-looking near superior conjunction (far side of the Sun), a thin
+   crescent near inferior conjunction (between Earth and the Sun). The
+   cycle takes the synodic period of 584 days; one year of 2026 samples
+   shows the wane from 0.9993 in January to the 0.0372 sliver on
+   October 15 - days before the inferior conjunction of late October -
+   and the start of the waxing half in November.
+
+   Run it from a terminal:  epher "epher scripts/astronomy/planets/venus-illumination-cycle.epher"
+   In the REPL:             load epher scripts/astronomy/planets/venus-illumination-cycle.epher
+
+   Knob: the year.
+   ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const year = 2026
 
-// ---- results ----------------------------------------------------------------
-// Twelve values, one per month on the 15th: January through December.
-// The list runs 0.9993 (nearly full, Venus far on the far side of the
-// Sun) down to 0.0372 (October 15, a few days before the inferior
-// conjunction of late October, when the crescent thins to about 0.006)
-// and back up to 0.3835 in December. A for loop over the months
-// (guide 1.30) collects the values into the printed list.
+/* ---- results ----------------------------------------------------------------
+   Twelve values, one per month on the 15th: January through December.
+   The list runs 0.9993 (nearly full, Venus far on the far side of the
+   Sun) down to 0.0372 (October 15, a few days before the inferior
+   conjunction of late October, when the crescent thins to about 0.006)
+   and back up to 0.3835 in December. A for loop over the months
+   (guide 1.30) collects the values into the printed list. */
 for m in 1 to 12 do illum(2, jd(year, m, 15))
 
-// The extremes of the twelve monthly samples, labelled. All twelve
-// entries sit in [0, 1] as an illuminated fraction must. Note the
-// counter-intuitive bit of the phase cycle: Venus is brightest in our
-// sky not when it looks full but around dichotomy (half lit), when it
-// is far closer to Earth.
+/* The extremes of the twelve monthly samples, labelled. All twelve
+   entries sit in [0, 1] as an illuminated fraction must. Note the
+   counter-intuitive bit of the phase cycle: Venus is brightest in our
+   sky not when it looks full but around dichotomy (half lit), when it
+   is far closer to Earth. */
 print("most lit of the monthly samples:", illum(2, jd(year, 1, 15)))
 print("least lit of the monthly samples:", illum(2, jd(year, 10, 15)))
 
-// ---- expected output ----
-// = 2026
-// = {0.9993, 0.9872, 0.9616, 0.9136, 0.8446, 0.7494, 0.635, 0.4884, 0.2875, 0.0372, 0.134, 0.3835}
-// = most lit of the monthly samples: 0.9993
-// = least lit of the monthly samples: 0.0372
+/* ---- expected output ----
+= 2026
+= {0.9993, 0.9872, 0.9616, 0.9136, 0.8446, 0.7494, 0.635, 0.4884, 0.2875, 0.0372, 0.134, 0.3835}
+= most lit of the monthly samples: 0.9993
+= least lit of the monthly samples: 0.0372
+*/

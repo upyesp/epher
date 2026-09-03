@@ -16,11 +16,18 @@ const SITE = join(ROOT, "site");
 const SCRIPTS = join(ROOT, "epher scripts");
 
 /** The one-line purpose from the header: the standard writes the file's
- *  second line as `// name.epher -- short purpose`. */
+ *  banner block's second line as `name.epher -- short purpose` (older
+ *  `// name.epher -- ...` line-comment headers still parse). */
 function purpose(path, name) {
   const head = readFileSync(path, "utf8").split("\n").slice(0, 12);
   for (const line of head) {
-    const m = line.match(/^\/\/ .*\.epher -- (.*)$/);
+    const cleaned = line
+      .replace(/^\s+/, "")
+      .replace(/^\/\*+\s*/, "")
+      .replace(/^\*\/\s*/, "")
+      .replace(/^\/\/\s*/, "")
+      .replace(/^#\s*/, "");
+    const m = cleaned.match(/^\S+\.epher -- (.*)$/);
     if (m) return m[1].trim();
   }
   return "";

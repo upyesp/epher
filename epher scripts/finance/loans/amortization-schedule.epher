@@ -1,27 +1,27 @@
-// ============================================================================
-// amortization-schedule.epher -- the first twelve months of a small loan,
-// month by month: interest, principal and balance
-//
-// For a loan of P at monthly rate r paid off in n equal payments pmt, the
-// amortization recurrence is, for month k:
-//   interest_k = balance_(k-1) * r
-//   principal_k = pmt - interest_k
-//   balance_k = balance_(k-1) - principal_k = balance_(k-1)*(1+r) - pmt
-// The helper bal(k) below is the closed form of that recurrence,
-// P*(1+r)^k - pmt*((1+r)^k - 1)/r. The payment comes from the finance
-// builtin tvm_pmt. Source: standard amortization formulas; see Kellison,
-// The Theory of Interest, chapter 3.
-//
-// Accuracy: the schedule rows are rounded to the cent for display; the
-// underlying math runs on the full-precision values, and the builtin amort
-// check at the end confirms the exact balance after 12 months is 0.
-//
-// Run it from a terminal:
-//   epher "epher scripts/finance/loans/amortization-schedule.epher"
-//
-// The knobs to edit are in the knob section; everything after it is
-// machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   amortization-schedule.epher -- the first twelve months of a small loan,
+   month by month: interest, principal and balance
+
+   For a loan of P at monthly rate r paid off in n equal payments pmt, the
+   amortization recurrence is, for month k:
+     interest_k = balance_(k-1) * r
+     principal_k = pmt - interest_k
+     balance_k = balance_(k-1) - principal_k = balance_(k-1)*(1+r) - pmt
+   The helper bal(k) below is the closed form of that recurrence,
+   P*(1+r)^k - pmt*((1+r)^k - 1)/r. The payment comes from the finance
+   builtin tvm_pmt. Source: standard amortization formulas; see Kellison,
+   The Theory of Interest, chapter 3.
+
+   Accuracy: the schedule rows are rounded to the cent for display; the
+   underlying math runs on the full-precision values, and the builtin amort
+   check at the end confirms the exact balance after 12 months is 0.
+
+   Run it from a terminal:
+     epher "epher scripts/finance/loans/amortization-schedule.epher"
+
+   The knobs to edit are in the knob section; everything after it is
+   machinery you can leave alone.
+   ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const principal = 1000      // amount borrowed, USD
@@ -35,18 +35,19 @@ def interest(k) = bal(k - 1) * mrate       // interest in month k: previous bala
 def cents(x) = floor(x * 100 + 0.5) / 100  // rounds to the cent, for the display rows
 def row(k) = {k, cents(interest(k)), cents(payment - interest(k)), cents(bal(k))}
 
-// ---- results -----------------------------------------------------------------
-// The payment is the same every month; each row below is
-// {month, interest, principal, balance}, rounded to the cent. Notice the
-// interest column shrinking while the principal column grows.
+/* ---- results -----------------------------------------------------------------
+   The payment is the same every month; each row below is
+   {month, interest, principal, balance}, rounded to the cent. Notice the
+   interest column shrinking while the principal column grows. */
 for k in 1 to months do row(k)
 print("builtin amort check, balance after 12 months:", amort(principal, mrate, months, months))
 print("total interest over the year, rounded:", cents(payment * months - principal))
-// ---- expected output ----
-// = 1000
-// = 0.01
-// = 12
-// = 88.8487886783
-// = {{1, 10, 78.85, 921.15}, {2, 9.21, 79.64, 841.51}, {3, 8.42, 80.43, 761.08}, {4, 7.61, 81.24, 679.84}, {5, 6.8, 82.05, 597.79}, {6, 5.98, 82.87, 514.92}, {7, 5.15, 83.7, 431.22}, {8, 4.31, 84.54, 346.68}, {9, 3.47, 85.38, 261.3}, {10, 2.61, 86.24, 175.07}, {11, 1.75, 87.1, 87.97}, {12, 0.88, 87.97, 0}}
-// = builtin amort check, balance after 12 months: 0
-// = total interest over the year, rounded: 66.19
+/* ---- expected output ----
+= 1000
+= 0.01
+= 12
+= 88.8487886783
+= {{1, 10, 78.85, 921.15}, {2, 9.21, 79.64, 841.51}, {3, 8.42, 80.43, 761.08}, {4, 7.61, 81.24, 679.84}, {5, 6.8, 82.05, 597.79}, {6, 5.98, 82.87, 514.92}, {7, 5.15, 83.7, 431.22}, {8, 4.31, 84.54, 346.68}, {9, 3.47, 85.38, 261.3}, {10, 2.61, 86.24, 175.07}, {11, 1.75, 87.1, 87.97}, {12, 0.88, 87.97, 0}}
+= builtin amort check, balance after 12 months: 0
+= total interest over the year, rounded: 66.19
+*/

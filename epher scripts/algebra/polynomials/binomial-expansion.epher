@@ -1,16 +1,16 @@
-// ============================================================================
-// binomial-expansion.epher -- expand (a + b)^n: coefficients and terms
-//
-// The binomial theorem (Newton, 1665; any algebra text): (a + b)^n is the
-// sum over k of ncr(n, k) a^(n-k) b^k. The built-in ncr gives
-// the coefficients, which are row n of Pascal's triangle (see pascal-row.
-// epher). Numeric values: a = 2, b = 3, n = 6, so the expansion is
-// (2 + 3)^6 = 5^6 = 15625, the check at the end. Everything is exact.
-//
-// Run it from a terminal:  epher "epher scripts/algebra/polynomials/binomial-expansion.epher"
-//
-// The knobs to edit are a, b and n below.
-// ============================================================================
+/* ============================================================================
+   binomial-expansion.epher -- expand (a + b)^n: coefficients and terms
+
+   The binomial theorem (Newton, 1665; any algebra text): (a + b)^n is the
+   sum over k of ncr(n, k) a^(n-k) b^k. The built-in ncr gives
+   the coefficients, which are row n of Pascal's triangle (see pascal-row.
+   epher). Numeric values: a = 2, b = 3, n = 6, so the expansion is
+   (2 + 3)^6 = 5^6 = 15625, the check at the end. Everything is exact.
+
+   Run it from a terminal:  epher "epher scripts/algebra/polynomials/binomial-expansion.epher"
+
+   The knobs to edit are a, b and n below.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 2
@@ -27,12 +27,13 @@ acc = {0, 0}
 while acc[1] <= n do acc = {acc[1] + 1, acc[2] + ncr(n, acc[1]) * a ^ (n - acc[1]) * b ^ acc[1]}
 print("sum of the terms:", acc[2])
 print("equals (a + b)^n:", acc[2] == (a + b) ^ n)
-// ---- expected output ----
-// = 2
-// = 3
-// = 6
-// = {1, 6, 15, 20, 15, 6, 1}
-// = {64, 576, 2160, 4320, 4860, 2916, 729}
-// = {0, 0}
-// = sum of the terms: 15625
-// = equals (a + b)^n: true
+/* ---- expected output ----
+= 2
+= 3
+= 6
+= {1, 6, 15, 20, 15, 6, 1}
+= {64, 576, 2160, 4320, 4860, 2916, 729}
+= {0, 0}
+= sum of the terms: 15625
+= equals (a + b)^n: true
+*/

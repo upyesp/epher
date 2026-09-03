@@ -1,25 +1,25 @@
-// ============================================================================
-// grid-paths.epher -- monotone paths across a grid: ncr(m + n, m)
-//
-// A path from one corner of an m by n grid to the opposite corner, made
-// only of right and down steps, is a word of m right steps and n down
-// steps. Choosing which m of the m + n positions carry the right steps
-// fixes the whole word, so the path count is ncr(m + n, m), the same
-// formula as choosing a committee.
-//
-// The 2 by 2 case is verified by hand below (six words: RRDD, RDRD,
-// RDDR, DRRD, DRDR, DDRR), and the symmetry ncr(m + n, m) = ncr(m + n, n)
-// says the count does not change when the grid is turned around.
-//
-// Source: Ross, "A First Course in Probability", chapter 1. The counts
-// are exact integers; ncr(40, 20) shows the growth for a 20 by 20 grid.
-//
-// Run it from a terminal:  epher "epher scripts/probability/counting/grid-paths.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-//
-// The knobs to edit are `rows` and `cols`; everything below them is
-// machinery.
-// ============================================================================
+/* ============================================================================
+   grid-paths.epher -- monotone paths across a grid: ncr(m + n, m)
+
+   A path from one corner of an m by n grid to the opposite corner, made
+   only of right and down steps, is a word of m right steps and n down
+   steps. Choosing which m of the m + n positions carry the right steps
+   fixes the whole word, so the path count is ncr(m + n, m), the same
+   formula as choosing a committee.
+
+   The 2 by 2 case is verified by hand below (six words: RRDD, RDRD,
+   RDDR, DRRD, DRDR, DDRR), and the symmetry ncr(m + n, m) = ncr(m + n, n)
+   says the count does not change when the grid is turned around.
+
+   Source: Ross, "A First Course in Probability", chapter 1. The counts
+   are exact integers; ncr(40, 20) shows the growth for a 20 by 20 grid.
+
+   Run it from a terminal:  epher "epher scripts/probability/counting/grid-paths.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+
+   The knobs to edit are `rows` and `cols`; everything below them is
+   machinery.
+   ============================================================================ */
 
 // ---- the knobs ----
 const rows = 4
@@ -48,13 +48,14 @@ print("20 by 20 grid:", paths(20, 20))
 // at row m + n, and the count also equals the sum of paths(m - 1, n) and
 // paths(m, n - 1) (first step right or down).
 paths(4, 4) == paths(3, 4) + paths(4, 3)
-// ---- expected output ----
-// = 4
-// = 4
-// = 2 by 2 grid: 6
-// = 2 by 3 grid: 10
-// = 3 by 3 grid: 20
-// = 4 by 4 grid: 70
-// = true
-// = 20 by 20 grid: 137846528820
-// = true
+/* ---- expected output ----
+= 4
+= 4
+= 2 by 2 grid: 6
+= 2 by 3 grid: 10
+= 3 by 3 grid: 20
+= 4 by 4 grid: 70
+= true
+= 20 by 20 grid: 137846528820
+= true
+*/

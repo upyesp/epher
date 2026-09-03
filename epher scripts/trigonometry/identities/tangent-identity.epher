@@ -1,22 +1,22 @@
-// ============================================================================
-// tangent-identity.epher -- tan x = sin x / cos x
-//
-// The tangent is defined as the quotient sin(x) / cos(x) wherever the
-// cosine does not vanish, so the check is a restatement of the definition
-// rather than a theorem. It still deserves a look: tangent grows without
-// bound as x approaches 90 deg, while the quotient keeps step at every
-// step. The script checks the identity at several angles as boolean
-// residual checks (true when the sides differ by less than 1e-12;
-// double-precision noise here is around 1e-15).
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/identities/tangent-identity.epher"
-// In the REPL:             load epher scripts/trigonometry/identities/tangent-identity.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The one knob to edit is the `degs` list below (degrees, converted with
-// rad() because the builtin trig works in radians). Angles sit between 0
-// and 90 deg so no cosine is zero.
-// ============================================================================
+/* ============================================================================
+   tangent-identity.epher -- tan x = sin x / cos x
+
+   The tangent is defined as the quotient sin(x) / cos(x) wherever the
+   cosine does not vanish, so the check is a restatement of the definition
+   rather than a theorem. It still deserves a look: tangent grows without
+   bound as x approaches 90 deg, while the quotient keeps step at every
+   step. The script checks the identity at several angles as boolean
+   residual checks (true when the sides differ by less than 1e-12;
+   double-precision noise here is around 1e-15).
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/identities/tangent-identity.epher"
+   In the REPL:             load epher scripts/trigonometry/identities/tangent-identity.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The one knob to edit is the `degs` list below (degrees, converted with
+   rad() because the builtin trig works in radians). Angles sit between 0
+   and 90 deg so no cosine is zero.
+   ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const degs = {15, 30, 45, 60, 75}   // sample angles, in degrees
@@ -37,10 +37,11 @@ print("sin(45 deg) / cos(45 deg) =", sin(45 deg) / cos(45 deg))
 // And at 60 deg, where the quotient is sqrt(3) ~ 1.73205.
 print("tan(60 deg) =", tan(60 deg))
 print("sin(60 deg) / cos(60 deg) =", sin(60 deg) / cos(60 deg))
-// ---- expected output
-// = {15, 30, 45, 60, 75}
-// = {true, true, true, true, true}
-// = tan(45 deg) = 1
-// = sin(45 deg) / cos(45 deg) = 1
-// = tan(60 deg) = 1.73205080757
-// = sin(60 deg) / cos(60 deg) = 1.73205080757
+/* ---- expected output
+= {15, 30, 45, 60, 75}
+= {true, true, true, true, true}
+= tan(45 deg) = 1
+= sin(45 deg) / cos(45 deg) = 1
+= tan(60 deg) = 1.73205080757
+= sin(60 deg) / cos(60 deg) = 1.73205080757
+*/

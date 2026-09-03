@@ -1,20 +1,20 @@
-// ============================================================================
-// chord-length.epher -- chord of a circle from radius and central angle
-//
-// A chord spans the central angle t; the radius to either endpoint and
-// the chord form an isosceles triangle, so the chord is
-// L = 2 r sin(t / 2) (standard formula; drop the perpendicular from the
-// center, which bisects the chord). Angles go in radians, so t is
-// converted with rad() before halving. A 60 degree chord of radius 5 is
-// 10 sin(30 deg) = 5, and 180 degrees spans the full diameter.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/circles/chord-length.epher"
-// In the REPL:             load epher scripts/geometry/circles/chord-length.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are `r` (radius) and `t` (central angle in degrees).
-// Everything above the results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   chord-length.epher -- chord of a circle from radius and central angle
+
+   A chord spans the central angle t; the radius to either endpoint and
+   the chord form an isosceles triangle, so the chord is
+   L = 2 r sin(t / 2) (standard formula; drop the perpendicular from the
+   center, which bisects the chord). Angles go in radians, so t is
+   converted with rad() before halving. A 60 degree chord of radius 5 is
+   10 sin(30 deg) = 5, and 180 degrees spans the full diameter.
+
+   Run it from a terminal:  epher "epher scripts/geometry/circles/chord-length.epher"
+   In the REPL:             load epher scripts/geometry/circles/chord-length.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are `r` (radius) and `t` (central angle in degrees).
+   Everything above the results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const r = 5
@@ -28,10 +28,11 @@ print("chord of 60 degrees:", chord(r, t))
 print("chord of 90 degrees:", chord(5, 90))
 print("180 degrees spans the diameter:", chord(5, 180))
 print("diameter check:", abs(chord(5, 180) - 2 * r) < 1e-9)
-// ---- expected output ----
-// = 5
-// = 60
-// = chord of 60 degrees: 5
-// = chord of 90 degrees: 7.07106781187
-// = 180 degrees spans the diameter: 10
-// = diameter check: true
+/* ---- expected output ----
+= 5
+= 60
+= chord of 60 degrees: 5
+= chord of 90 degrees: 7.07106781187
+= 180 degrees spans the diameter: 10
+= diameter check: true
+*/

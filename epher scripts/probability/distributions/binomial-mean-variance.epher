@@ -1,22 +1,22 @@
-// ============================================================================
-// binomial-mean-variance.epher -- E[X] = np and Var[X] = np(1 - p)
-//
-// For X ~ Bin(n, p) the mean is np and the variance is np(1 - p): each
-// of the n trials contributes p to the expected count and p(1 - p) to
-// the variance, and expectations add even though the variance sum needs
-// the trials to be independent. The standard deviation is the square
-// root of the variance.
-//
-// The script computes the formulas for two distributions and then
-// verifies them from the definition, summing k * P(X = k) and
-// (k - np)^2 * P(X = k) with exact ncr arithmetic in packed while
-// loops (guide 1.30).
-//
-// Source: Ross, "A First Course in Probability", chapter 4.
-//
-// Run it from a terminal:  epher "epher scripts/probability/distributions/binomial-mean-variance.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-// ============================================================================
+/* ============================================================================
+   binomial-mean-variance.epher -- E[X] = np and Var[X] = np(1 - p)
+
+   For X ~ Bin(n, p) the mean is np and the variance is np(1 - p): each
+   of the n trials contributes p to the expected count and p(1 - p) to
+   the variance, and expectations add even though the variance sum needs
+   the trials to be independent. The standard deviation is the square
+   root of the variance.
+
+   The script computes the formulas for two distributions and then
+   verifies them from the definition, summing k * P(X = k) and
+   (k - np)^2 * P(X = k) with exact ncr arithmetic in packed while
+   loops (guide 1.30).
+
+   Source: Ross, "A First Course in Probability", chapter 4.
+
+   Run it from a terminal:  epher "epher scripts/probability/distributions/binomial-mean-variance.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+   ============================================================================ */
 
 // ---- results ----
 // Bin(20, 0.3): mean np = 20 * 0.3 = 6, variance np(1 - p) = 6 * 0.7.
@@ -41,15 +41,16 @@ w = {0, 0}
 while w[1] < 11 do w = {w[1] + 1, w[2] + (w[1] - 5) ^ 2 * ncr(10, w[1]) / 2 ^ 10}
 print("definition sum of (k - 5)^2 * P(X = k):", w[2])
 print("formula np(1 - p) =", 10 * (1/2) * (1 - 1/2))
-// ---- expected output ----
-// = Bin(20, 0.3) mean: 6
-// = Bin(20, 0.3) variance: 4.2
-// = Bin(20, 0.3) standard deviation: 2.04939015319
-// = Bin(100, 1/2) mean: 50
-// = Bin(100, 1/2) variance: 25
-// = Bin(100, 1/2) standard deviation: 5
-// = {0, 0}
-// = definition sum of k * P(X = k): 5
-// = {0, 0}
-// = definition sum of (k - 5)^2 * P(X = k): 2.5
-// = formula np(1 - p) = 2.5
+/* ---- expected output ----
+= Bin(20, 0.3) mean: 6
+= Bin(20, 0.3) variance: 4.2
+= Bin(20, 0.3) standard deviation: 2.04939015319
+= Bin(100, 1/2) mean: 50
+= Bin(100, 1/2) variance: 25
+= Bin(100, 1/2) standard deviation: 5
+= {0, 0}
+= definition sum of k * P(X = k): 5
+= {0, 0}
+= definition sum of (k - 5)^2 * P(X = k): 2.5
+= formula np(1 - p) = 2.5
+*/

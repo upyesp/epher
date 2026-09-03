@@ -1,25 +1,25 @@
-// ============================================================================
-// lottery-odds.epher -- the 6-of-49 lottery: ticket odds, exactly
-//
-// A lottery draw picks 6 numbers out of 49, so there are ncr(49, 6) =
-// 13983816 equally likely tickets. A fixed ticket with 6 chosen numbers
-// matches k of the drawn numbers in ncr(6, k) * ncr(43, 6 - k) ways
-// (choose which of your numbers hit, and which of the 43 others fill the
-// rest of the draw), so the probabilities are exact rationals:
-//
-//   P(6 of 6) = 1 / 13983816
-//   P(3 of 6) = ncr(6, 3) * ncr(43, 3) / ncr(49, 6) = 246820 / 13983816
-//
-// The hypergeometric model is the same one used for poker hands; the
-// quoted "1 in ..." odds are the reciprocal of each probability.
-//
-// Source: Feller, "An Introduction to Probability Theory and Its
-// Applications", volume 1, chapter 2. Fractions are exact; epher shows
-// about 12 digits for the probabilities whose denominator is large.
-//
-// Run it from a terminal:  epher "epher scripts/probability/counting/lottery-odds.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-// ============================================================================
+/* ============================================================================
+   lottery-odds.epher -- the 6-of-49 lottery: ticket odds, exactly
+
+   A lottery draw picks 6 numbers out of 49, so there are ncr(49, 6) =
+   13983816 equally likely tickets. A fixed ticket with 6 chosen numbers
+   matches k of the drawn numbers in ncr(6, k) * ncr(43, 6 - k) ways
+   (choose which of your numbers hit, and which of the 43 others fill the
+   rest of the draw), so the probabilities are exact rationals:
+
+     P(6 of 6) = 1 / 13983816
+     P(3 of 6) = ncr(6, 3) * ncr(43, 3) / ncr(49, 6) = 246820 / 13983816
+
+   The hypergeometric model is the same one used for poker hands; the
+   quoted "1 in ..." odds are the reciprocal of each probability.
+
+   Source: Feller, "An Introduction to Probability Theory and Its
+   Applications", volume 1, chapter 2. Fractions are exact; epher shows
+   about 12 digits for the probabilities whose denominator is large.
+
+   Run it from a terminal:  epher "epher scripts/probability/counting/lottery-odds.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+   ============================================================================ */
 
 // ---- results ----
 // All possible tickets.
@@ -39,22 +39,23 @@ print("3-of-6 odds, 1 in:", ncr(49, 6) / (ncr(6, 3) * ncr(43, 3)))
 print("P(4 of 6):", ncr(6, 4) * ncr(43, 2) / ncr(49, 6))
 print("P(5 of 6):", ncr(6, 5) * ncr(43, 1) / ncr(49, 6))
 
-// Every ticket matches 0 to 6 numbers, so the seven probabilities sum to
-// 1. The counting version of that identity is Vandermonde's: summing
-// ncr(6, k) * ncr(43, 6 - k) over k = 0..6 counts all ncr(49, 6) draws
-// by splitting each draw into matches and non-matches of the ticket.
+/* Every ticket matches 0 to 6 numbers, so the seven probabilities sum to
+   1. The counting version of that identity is Vandermonde's: summing
+   ncr(6, k) * ncr(43, 6 - k) over k = 0..6 counts all ncr(49, 6) draws
+   by splitting each draw into matches and non-matches of the ticket. */
 v = {0, 0}
 while v[1] < 7 do v = {v[1] + 1, v[2] + ncr(6, v[1]) * ncr(43, 6 - v[1])}
 v[2] == ncr(49, 6)
-// ---- expected output ----
-// = 13983816
-// = possible tickets: 13983816
-// = P(6 of 6): 0.0000000715112384202
-// = jackpot odds: 1 in 13983816
-// = P(3 of 6): 0.0176504038669
-// = exact fraction: 246820 / 13983816
-// = 3-of-6 odds, 1 in: 56.6559273965
-// = P(4 of 6): 0.000968619724401
-// = P(5 of 6): 0.0000184498995124
-// = {0, 0}
-// = true
+/* ---- expected output ----
+= 13983816
+= possible tickets: 13983816
+= P(6 of 6): 0.0000000715112384202
+= jackpot odds: 1 in 13983816
+= P(3 of 6): 0.0176504038669
+= exact fraction: 246820 / 13983816
+= 3-of-6 odds, 1 in: 56.6559273965
+= P(4 of 6): 0.000968619724401
+= P(5 of 6): 0.0000184498995124
+= {0, 0}
+= true
+*/

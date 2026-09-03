@@ -1,20 +1,20 @@
-// ============================================================================
-// exponential-growth.epher -- population with a constant growth rate
-//
-// The exponential model N(t) = N0 e^(r t) (Stewart, "Calculus", 8th
-// ed., sec. 3.8) describes a population whose rate of change is
-// proportional to its size, with N0 the initial size and r the growth
-// rate per year. The script tabulates N(t) for t = 0, 10, 25 and 50
-// years at r = 0.02 per year (2% per year) and recovers the doubling
-// time t2 = ln(2)/r: after t2 years the population has exactly
-// doubled, which the closing boolean checks.
-//
-// Accuracy: values are printed as the calculator shows them; the
-// doubling-time check agrees with 2 N0 to about 1e-12.
-//
-// Run:  epher "epher scripts/calculus/models/exponential-growth.epher"
-// The knobs to edit are `n0`, `r` and `ts` below.
-// ============================================================================
+/* ============================================================================
+   exponential-growth.epher -- population with a constant growth rate
+
+   The exponential model N(t) = N0 e^(r t) (Stewart, "Calculus", 8th
+   ed., sec. 3.8) describes a population whose rate of change is
+   proportional to its size, with N0 the initial size and r the growth
+   rate per year. The script tabulates N(t) for t = 0, 10, 25 and 50
+   years at r = 0.02 per year (2% per year) and recovers the doubling
+   time t2 = ln(2)/r: after t2 years the population has exactly
+   doubled, which the closing boolean checks.
+
+   Accuracy: values are printed as the calculator shows them; the
+   doubling-time check agrees with 2 N0 to about 1e-12.
+
+   Run:  epher "epher scripts/calculus/models/exponential-growth.epher"
+   The knobs to edit are `n0`, `r` and `ts` below.
+   ============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const n0 = 1000
@@ -32,11 +32,12 @@ print("doubling time, years:", ln(2)/r)
 print("population at the doubling time:", grow(ln(2)/r))
 abs(grow(ln(2)/r) - 2*n0) < 1e-6
 
-// ---- expected output ---------------------------------------------------------
-// = 1000
-// = 0.02
-// = {0, 10, 25, 50}
-// = {1000, 1221.40275816, 1648.7212707, 2718.28182846}
-// = doubling time, years: 34.657359028
-// = population at the doubling time: 2000
-// = true
+/* ---- expected output ---------------------------------------------------------
+= 1000
+= 0.02
+= {0, 10, 25, 50}
+= {1000, 1221.40275816, 1648.7212707, 2718.28182846}
+= doubling time, years: 34.657359028
+= population at the doubling time: 2000
+= true
+*/

@@ -1,22 +1,22 @@
-// ============================================================================
-// power-regression.epher -- fit y = a * x^b to pendulum data
-//
-// Fits the least-squares power curve y = a * x^b to the pendulum periods
-// in `ys` measured at the lengths in `xs` with the builtin powreg (guide
-// 1.20), which prints the fitted model and the correlation r of the
-// log-transformed fit as a display string. Theory says the period goes
-// as the square root of the length, T = 2 * pi * sqrt(L / g), so the
-// fitted exponent should land near 0.5 and the coefficient near
-// 2 * pi / sqrt(g) = 2.0064. Both do. The data are illustrative.
-//
-// Run it from a terminal:  epher "epher scripts/statistics/regression/power-regression.epher"
-// In the REPL:             load epher scripts/statistics/regression/power-regression.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// The knobs to edit are `xs` and `ys` below. Everything above the results
-// section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   power-regression.epher -- fit y = a * x^b to pendulum data
+
+   Fits the least-squares power curve y = a * x^b to the pendulum periods
+   in `ys` measured at the lengths in `xs` with the builtin powreg (guide
+   1.20), which prints the fitted model and the correlation r of the
+   log-transformed fit as a display string. Theory says the period goes
+   as the square root of the length, T = 2 * pi * sqrt(L / g), so the
+   fitted exponent should land near 0.5 and the coefficient near
+   2 * pi / sqrt(g) = 2.0064. Both do. The data are illustrative.
+
+   Run it from a terminal:  epher "epher scripts/statistics/regression/power-regression.epher"
+   In the REPL:             load epher scripts/statistics/regression/power-regression.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   The knobs to edit are `xs` and `ys` below. Everything above the results
+   section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const xs = {0.5, 0.8, 1.1, 1.4, 1.7}   // pendulum length, meters
@@ -28,8 +28,9 @@ powreg(xs, ys)      // least-squares power fit, printed with its r
 // ---- the physics it recovers --------------------------------------------------------------
 2 * pi / sqrt(g)    // the theoretical coefficient 2 * pi / sqrt(g), about 2.0064
 
-// ---- expected output ----
-// = {0.5, 0.8, 1.1, 1.4, 1.7}
-// = {1.39, 1.82, 2.08, 2.41, 2.59}
-// = y = 2.001*x^0.5105 (r = 0.9981)
-// = 2.00640929259
+/* ---- expected output ----
+= {0.5, 0.8, 1.1, 1.4, 1.7}
+= {1.39, 1.82, 2.08, 2.41, 2.59}
+= y = 2.001*x^0.5105 (r = 0.9981)
+= 2.00640929259
+*/

@@ -1,17 +1,17 @@
-// ============================================================================
-// two-linear-equations.epher -- 2x2 system by Cramer's rule, with determinants
-//
-// Cramer's rule (Gabriel Cramer, 1750) solves the pair a1 x + b1 y = k1 and
-// a2 x + b2 y = k2 by replacing columns of the system determinant
-// D = a1 b2 - a2 b1: x = Dx / D and y = Dy / D, where Dx and Dy put (k1, k2)
-// in the first and second column (any linear-algebra text). The 2x2
-// determinants are written out as the classroom formula ad - bc; the builtin
-// det gives the same number, checked at the end. Everything here is exact.
-//
-// Run it from a terminal:  epher "epher scripts/algebra/equations/two-linear-equations.epher"
-//
-// The knobs to edit are a1, b1, k1, a2, b2 and k2 below.
-// ============================================================================
+/* ============================================================================
+   two-linear-equations.epher -- 2x2 system by Cramer's rule, with determinants
+
+   Cramer's rule (Gabriel Cramer, 1750) solves the pair a1 x + b1 y = k1 and
+   a2 x + b2 y = k2 by replacing columns of the system determinant
+   D = a1 b2 - a2 b1: x = Dx / D and y = Dy / D, where Dx and Dy put (k1, k2)
+   in the first and second column (any linear-algebra text). The 2x2
+   determinants are written out as the classroom formula ad - bc; the builtin
+   det gives the same number, checked at the end. Everything here is exact.
+
+   Run it from a terminal:  epher "epher scripts/algebra/equations/two-linear-equations.epher"
+
+   The knobs to edit are a1, b1, k1, a2, b2 and k2 below.
+   ============================================================================ */
 
 // ---- the knobs: a1 x + b1 y = k1, a2 x + b2 y = k2 ---------------------------
 const a1 = 1
@@ -33,16 +33,17 @@ yv = cy(a1, b1, k1, a2, b2, k2)             // y = Dy / D (echoes -1)
 print("x + 2y = 0 holds:", a1 * xv + b1 * yv == k1)
 print("3x + 4y = 2 holds:", a2 * xv + b2 * yv == k2)
 print("D by the built-in det:", cdet(a1, b1, a2, b2) == det([[a1, b1], [a2, b2]]))
-// ---- expected output ----
-// = 1
-// = 2
-// = 0
-// = 3
-// = 4
-// = 2
-// = -2
-// = 2
-// = -1
-// = x + 2y = 0 holds: true
-// = 3x + 4y = 2 holds: true
-// = D by the built-in det: true
+/* ---- expected output ----
+= 1
+= 2
+= 0
+= 3
+= 4
+= 2
+= -2
+= 2
+= -1
+= x + 2y = 0 holds: true
+= 3x + 4y = 2 holds: true
+= D by the built-in det: true
+*/

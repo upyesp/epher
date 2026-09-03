@@ -1,26 +1,26 @@
-// ============================================================================
-// extrema-of-a-cubic.epher -- classify the extrema of x^3 - 3x
-//
-// Standard calculus routine (Stewart, "Calculus", 8th ed., sec. 4.3):
-// find the critical points where f'(x) = 0, then classify each with the
-// second derivative. For f(x) = x^3 - 3x:
-//
-//   f'(x) = 3x^2 - 3, so the critical points solve 3x^2 - 3 = 0.
-//   f''(x) = 6x: negative at x = -1 (local maximum), positive at
-//   x = 1 (local minimum).
-//
-// The builtin solve finds the roots of the polynomial equation (the
-// equation is the analytic derivative, written by hand); the factored
-// form 3(x - 1)(x + 1) gives the same two roots for the checks below.
-// The builtin numeric derivative confirms that the slope really is 0
-// at both critical points.
-//
-// Accuracy: f values and second derivatives at the roots are exact;
-// the numeric slope at the roots is about 1e-12, checked at 1e-9.
-//
-// Run:  epher "epher scripts/calculus/derivatives/extrema-of-a-cubic.epher"
-// No knobs: the cubic is the demonstration.
-// ============================================================================
+/* ============================================================================
+   extrema-of-a-cubic.epher -- classify the extrema of x^3 - 3x
+
+   Standard calculus routine (Stewart, "Calculus", 8th ed., sec. 4.3):
+   find the critical points where f'(x) = 0, then classify each with the
+   second derivative. For f(x) = x^3 - 3x:
+
+     f'(x) = 3x^2 - 3, so the critical points solve 3x^2 - 3 = 0.
+     f''(x) = 6x: negative at x = -1 (local maximum), positive at
+     x = 1 (local minimum).
+
+   The builtin solve finds the roots of the polynomial equation (the
+   equation is the analytic derivative, written by hand); the factored
+   form 3(x - 1)(x + 1) gives the same two roots for the checks below.
+   The builtin numeric derivative confirms that the slope really is 0
+   at both critical points.
+
+   Accuracy: f values and second derivatives at the roots are exact;
+   the numeric slope at the roots is about 1e-12, checked at 1e-9.
+
+   Run:  epher "epher scripts/calculus/derivatives/extrema-of-a-cubic.epher"
+   No knobs: the cubic is the demonstration.
+   ============================================================================ */
 
 // ---- helpers ----------------------------------------------------------------
 def f(x) = x^3 - 3*x
@@ -39,11 +39,12 @@ print("local minimum f(1):", f(1))
 abs(derivative(f(x), -1)) < 1e-9
 abs(derivative(f(x), 1)) < 1e-9
 
-// ---- expected output ---------------------------------------------------------
-// = x = -1, x = 1
-// = f'' at -1: -6 negative, so a local maximum
-// = f'' at 1: 6 positive, so a local minimum
-// = local maximum f(-1): 2
-// = local minimum f(1): -2
-// = true
-// = true
+/* ---- expected output ---------------------------------------------------------
+= x = -1, x = 1
+= f'' at -1: -6 negative, so a local maximum
+= f'' at 1: 6 positive, so a local minimum
+= local maximum f(-1): 2
+= local minimum f(1): -2
+= true
+= true
+*/

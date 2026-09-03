@@ -1,17 +1,17 @@
-// ============================================================================
-// complex-modulus.epher -- the modulus |z| of several complex numbers
-//
-// |a + bi| = sqrt(a^2 + b^2) is the distance of z from the origin in the
-// complex plane (any complex analysis text, e.g. Churchill and Brown,
-// "Complex Variables and Applications", sec. 1). The first two examples are
-// the Pythagorean triples 3-4-5 and 5-12-13, so their moduli are the exact
-// integers 5 and 13. The built-in abs gives the modulus; a def restates the
-// classroom formula sqrt(re^2 + im^2) and is checked against it.
-//
-// Run it from a terminal:  epher "epher scripts/algebra/complex/complex-modulus.epher"
-//
-// No knobs to edit; the values below are fixed examples.
-// ============================================================================
+/* ============================================================================
+   complex-modulus.epher -- the modulus |z| of several complex numbers
+
+   |a + bi| = sqrt(a^2 + b^2) is the distance of z from the origin in the
+   complex plane (any complex analysis text, e.g. Churchill and Brown,
+   "Complex Variables and Applications", sec. 1). The first two examples are
+   the Pythagorean triples 3-4-5 and 5-12-13, so their moduli are the exact
+   integers 5 and 13. The built-in abs gives the modulus; a def restates the
+   classroom formula sqrt(re^2 + im^2) and is checked against it.
+
+   Run it from a terminal:  epher "epher scripts/algebra/complex/complex-modulus.epher"
+
+   No knobs to edit; the values below are fixed examples.
+   ============================================================================ */
 
 // ---- helpers -----------------------------------------------------------------
 def modz(z) = sqrt(re(z) ^ 2 + im(z) ^ 2)   // classroom formula; builtin: abs
@@ -23,10 +23,11 @@ print("|1 + i|:", abs(1 + i))
 print("|2 - 3i|:", abs(2 - 3i))
 print("classroom formula on 3 + 4i:", modz(3 + 4i))
 print("formula matches builtin:", abs(modz(3 + 4i) - abs(3 + 4i)) < 1e-12)
-// ---- expected output ----
-// = |3 + 4i|: 5
-// = |5 - 12i|: 13
-// = |1 + i|: 1.41421356237
-// = |2 - 3i|: 3.60555127546
-// = classroom formula on 3 + 4i: 5
-// = formula matches builtin: true
+/* ---- expected output ----
+= |3 + 4i|: 5
+= |5 - 12i|: 13
+= |1 + i|: 1.41421356237
+= |2 - 3i|: 3.60555127546
+= classroom formula on 3 + 4i: 5
+= formula matches builtin: true
+*/

@@ -1,24 +1,24 @@
-// ============================================================================
-// prime-factors-demo.epher -- the prime factorization of several numbers
-//
-// Prints the factors builtin for a few numbers. Every integer greater
-// than 1 factors uniquely into primes (the fundamental theorem of
-// arithmetic), and factors spells that factorization with exponents:
-// factors(360) is the display string "2^3 * 3^2 * 5". The script prints
-// the strings (they are display strings: readable, not arithmetic), and
-// multiplies the 360 case back out with plain arithmetic to show the
-// factorization really is 360.
-//
-// Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
-// ch. 1, the fundamental theorem of arithmetic (the unique factorization
-// theorem). factors is exact for every integer the calculator can hold.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/primes/prime-factors-demo.epher"
-// In the REPL:             load epher scripts/number-theory/primes/prime-factors-demo.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// There is no knob: the sample numbers are the point of the script.
-// ============================================================================
+/* ============================================================================
+   prime-factors-demo.epher -- the prime factorization of several numbers
+
+   Prints the factors builtin for a few numbers. Every integer greater
+   than 1 factors uniquely into primes (the fundamental theorem of
+   arithmetic), and factors spells that factorization with exponents:
+   factors(360) is the display string "2^3 * 3^2 * 5". The script prints
+   the strings (they are display strings: readable, not arithmetic), and
+   multiplies the 360 case back out with plain arithmetic to show the
+   factorization really is 360.
+
+   Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+   ch. 1, the fundamental theorem of arithmetic (the unique factorization
+   theorem). factors is exact for every integer the calculator can hold.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/primes/prime-factors-demo.epher"
+   In the REPL:             load epher scripts/number-theory/primes/prime-factors-demo.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   There is no knob: the sample numbers are the point of the script.
+   ============================================================================ */
 
 // ---- factorizations --------------------------------------------------------------
 factors(360)                    // 2^3 * 3^2 * 5: 360 = 8 * 9 * 5
@@ -34,13 +34,14 @@ factors(1)                      // 1 has no prime factors and shows as 1
 // divisor count is (a + 1)(b + 1)(c + 1), so 360 should have 24 divisors.
 (3 + 1) * (2 + 1) * (1 + 1)     // the divisor-count formula for 360
 ndivisors(360)                  // the builtin agrees
-// ---- expected output ----
-// = 2^3 * 3^2 * 5
-// = 2^10
-// = 2 * 1013
-// = 97
-// = 2^2 * 3 * 5
-// = 1
-// = 360
-// = 24
-// = 24
+/* ---- expected output ----
+= 2^3 * 3^2 * 5
+= 2^10
+= 2 * 1013
+= 97
+= 2^2 * 3 * 5
+= 1
+= 360
+= 24
+= 24
+*/

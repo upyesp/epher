@@ -1,23 +1,24 @@
-// ============================================================================
-// euler-identity-check.epher -- exp(i pi) + 1 is zero within 1e-12
-//
-// Euler's identity e^(i pi) = -1 (Leonhard Euler, 1748, "Introductio in
-// analysin infinitorum") is the special case x = pi of Euler's formula
-// e^(ix) = cos x + i sin x. exp accepts complex arguments here, so both
-// identities are checked directly. The imaginary residue of e^(i pi) is
-// floating-point noise of about 1e-16, so the transcript prints the
-// magnitude checks, which come out true, and the exact real part -1.
-//
-// Run it from a terminal:  epher "epher scripts/algebra/complex/euler-identity-check.epher"
-//
-// No knobs to edit; the identities below are fixed checks.
-// ============================================================================
+/* ============================================================================
+   euler-identity-check.epher -- exp(i pi) + 1 is zero within 1e-12
+
+   Euler's identity e^(i pi) = -1 (Leonhard Euler, 1748, "Introductio in
+   analysin infinitorum") is the special case x = pi of Euler's formula
+   e^(ix) = cos x + i sin x. exp accepts complex arguments here, so both
+   identities are checked directly. The imaginary residue of e^(i pi) is
+   floating-point noise of about 1e-16, so the transcript prints the
+   magnitude checks, which come out true, and the exact real part -1.
+
+   Run it from a terminal:  epher "epher scripts/algebra/complex/euler-identity-check.epher"
+
+   No knobs to edit; the identities below are fixed checks.
+   ============================================================================ */
 
 // ---- results -----------------------------------------------------------------
 print("|e^(i pi) + 1| < 1e-12:", abs(exp(i * pi) + 1) < 1e-12)
 print("real part of e^(i pi):", re(exp(i * pi)))
 print("|e^i - (cos 1 + i sin 1)| < 1e-12:", abs(exp(i) - (cos(1) + i * sin(1))) < 1e-12)
-// ---- expected output ----
-// = |e^(i pi) + 1| < 1e-12: true
-// = real part of e^(i pi): -1
-// = |e^i - (cos 1 + i sin 1)| < 1e-12: true
+/* ---- expected output ----
+= |e^(i pi) + 1| < 1e-12: true
+= real part of e^(i pi): -1
+= |e^i - (cos 1 + i sin 1)| < 1e-12: true
+*/

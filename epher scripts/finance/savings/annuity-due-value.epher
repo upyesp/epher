@@ -1,25 +1,25 @@
-// ============================================================================
-// annuity-due-value.epher -- retirement balance when deposits are made at
-// the START of each month, compared with end-of-month deposits
-//
-// The finance builtin tvm_fv takes an optional last argument, the payment
-// timing: 0 (the default) means the payment lands at the END of each
-// period, 1 means the BEGINNING (an annuity due). A deposit made at the
-// start of the month earns that month's interest, so the annuity-due
-// balance is the end-of-period balance times (1+i). Source: standard
-// annuity formulas; see Kellison, The Theory of Interest, chapter 3.
-//
-// Sign convention: deposit negative, balance positive.
-//
-// Accuracy: 12 displayed digits; the difference printed below is exactly
-// one month of interest on the end-of-period balance.
-//
-// Run it from a terminal:
-//   epher "epher scripts/finance/savings/annuity-due-value.epher"
-//
-// The knobs to edit are in the knob section; everything after it is
-// machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   annuity-due-value.epher -- retirement balance when deposits are made at
+   the START of each month, compared with end-of-month deposits
+
+   The finance builtin tvm_fv takes an optional last argument, the payment
+   timing: 0 (the default) means the payment lands at the END of each
+   period, 1 means the BEGINNING (an annuity due). A deposit made at the
+   start of the month earns that month's interest, so the annuity-due
+   balance is the end-of-period balance times (1+i). Source: standard
+   annuity formulas; see Kellison, The Theory of Interest, chapter 3.
+
+   Sign convention: deposit negative, balance positive.
+
+   Accuracy: 12 displayed digits; the difference printed below is exactly
+   one month of interest on the end-of-period balance.
+
+   Run it from a terminal:
+     epher "epher scripts/finance/savings/annuity-due-value.epher"
+
+   The knobs to edit are in the knob section; everything after it is
+   machinery you can leave alone.
+   ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const deposit = 300         // monthly deposit, USD
@@ -33,10 +33,11 @@ print("difference:", tvm_fv(years * 12, rate / 12, 0, -deposit, 1) - tvm_fv(year
 // The difference is one month of interest on the end-of-period balance:
 // 365991.30 * 7%/12 = 2134.95. Moving the deposits one month earlier, once,
 // is worth that much after 30 years.
-// ---- expected output ----
-// = 300
-// = 0.07
-// = 30
-// = deposits at month end (timing 0): 365991.298733
-// = deposits at month start (timing 1): 368126.247975
-// = difference: 2134.94924261
+/* ---- expected output ----
+= 300
+= 0.07
+= 30
+= deposits at month end (timing 0): 365991.298733
+= deposits at month start (timing 1): 368126.247975
+= difference: 2134.94924261
+*/

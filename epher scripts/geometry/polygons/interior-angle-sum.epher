@@ -1,18 +1,18 @@
-// ============================================================================
-// interior-angle-sum.epher -- sum of the interior angles of an n-gon
-//
-// Any n-gon triangulates into n - 2 triangles, so its interior angles
-// sum to (n - 2) * 180 degrees (Euclid's Elements, book I, proposition
-// 32 applied by triangulation; standard formula). All results are exact
-// integers, easy to check by hand: a hexagon holds four triangles.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/polygons/interior-angle-sum.epher"
-// In the REPL:             load epher scripts/geometry/polygons/interior-angle-sum.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The values of n to try are in the results section below; edit them
-// there.
-// ============================================================================
+/* ============================================================================
+   interior-angle-sum.epher -- sum of the interior angles of an n-gon
+
+   Any n-gon triangulates into n - 2 triangles, so its interior angles
+   sum to (n - 2) * 180 degrees (Euclid's Elements, book I, proposition
+   32 applied by triangulation; standard formula). All results are exact
+   integers, easy to check by hand: a hexagon holds four triangles.
+
+   Run it from a terminal:  epher "epher scripts/geometry/polygons/interior-angle-sum.epher"
+   In the REPL:             load epher scripts/geometry/polygons/interior-angle-sum.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The values of n to try are in the results section below; edit them
+   there.
+   ============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 def angsum(n) = (n - 2) * 180   // degrees; n - 2 triangles of 180 degrees
@@ -24,10 +24,11 @@ print("pentagon:", angsum(5))
 print("hexagon:", angsum(6))
 print("octagon:", angsum(8))
 print("a hexagon is four triangles:", angsum(6) == 4 * 180)
-// ---- expected output ----
-// = triangle: 180
-// = quadrilateral: 360
-// = pentagon: 540
-// = hexagon: 720
-// = octagon: 1080
-// = a hexagon is four triangles: true
+/* ---- expected output ----
+= triangle: 180
+= quadrilateral: 360
+= pentagon: 540
+= hexagon: 720
+= octagon: 1080
+= a hexagon is four triangles: true
+*/

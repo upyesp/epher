@@ -1,19 +1,19 @@
-// ============================================================================
-// square-pyramid-volume.epher -- volume of a square pyramid
-//
-// A pyramid is one third of the prism on the same base and height,
-// V = b^2 h / 3 for a square base of side b (standard formula; the cube
-// splits into three congruent pyramids). The 6 by 6 base with height 10
-// gives V = 360 / 3 = 120, exact. The results check that the pyramid
-// with a 3 by 3 base and height 4 holds exactly 12.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/solids/square-pyramid-volume.epher"
-// In the REPL:             load epher scripts/geometry/solids/square-pyramid-volume.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are `b` (base side) and `h` (height).
-// Everything above the results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   square-pyramid-volume.epher -- volume of a square pyramid
+
+   A pyramid is one third of the prism on the same base and height,
+   V = b^2 h / 3 for a square base of side b (standard formula; the cube
+   splits into three congruent pyramids). The 6 by 6 base with height 10
+   gives V = 360 / 3 = 120, exact. The results check that the pyramid
+   with a 3 by 3 base and height 4 holds exactly 12.
+
+   Run it from a terminal:  epher "epher scripts/geometry/solids/square-pyramid-volume.epher"
+   In the REPL:             load epher scripts/geometry/solids/square-pyramid-volume.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are `b` (base side) and `h` (height).
+   Everything above the results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const b = 6
@@ -26,9 +26,10 @@ def vol(b, h) = b ^ 2 * h / 3   // V = b^2 h / 3
 print("volume:", vol(b, h))
 print("base 3, height 4:", vol(3, 4))
 print("third of the surrounding box:", vol(b, h) == 6 * 6 * 10 / 3)
-// ---- expected output ----
-// = 6
-// = 10
-// = volume: 120
-// = base 3, height 4: 12
-// = third of the surrounding box: true
+/* ---- expected output ----
+= 6
+= 10
+= volume: 120
+= base 3, height 4: 12
+= third of the surrounding box: true
+*/

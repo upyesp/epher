@@ -1,19 +1,19 @@
-// ============================================================================
-// radius-from-circumference.epher -- radius from the circumference
-//
-// The circumference formula C = 2 pi r solved for the radius:
-// r = C / (2 pi) (standard formula). The knob is a symbolic
-// circumference, pi * 10, so the first result is exactly 5; the second
-// example takes a plain circumference of 100. The round-trip check
-// multiplies the radius back up and compares with the starting value.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/circles/radius-from-circumference.epher"
-// In the REPL:             load epher scripts/geometry/circles/radius-from-circumference.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knob to edit is `circ`. Everything above the results section is
-// machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   radius-from-circumference.epher -- radius from the circumference
+
+   The circumference formula C = 2 pi r solved for the radius:
+   r = C / (2 pi) (standard formula). The knob is a symbolic
+   circumference, pi * 10, so the first result is exactly 5; the second
+   example takes a plain circumference of 100. The round-trip check
+   multiplies the radius back up and compares with the starting value.
+
+   Run it from a terminal:  epher "epher scripts/geometry/circles/radius-from-circumference.epher"
+   In the REPL:             load epher scripts/geometry/circles/radius-from-circumference.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knob to edit is `circ`. Everything above the results section is
+   machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const circ = pi * 10
@@ -25,8 +25,9 @@ def radius(c) = c / (2 * pi)   // r = C / (2 pi)
 print("radius of the 10 pi circle:", radius(circ))
 print("radius of a circumference-100 circle:", radius(100))
 print("round trip:", abs(2 * pi * radius(100) - 100) < 1e-9)
-// ---- expected output ----
-// = 31.4159265359
-// = radius of the 10 pi circle: 5
-// = radius of a circumference-100 circle: 15.9154943092
-// = round trip: true
+/* ---- expected output ----
+= 31.4159265359
+= radius of the 10 pi circle: 5
+= radius of a circumference-100 circle: 15.9154943092
+= round trip: true
+*/

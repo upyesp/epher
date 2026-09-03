@@ -1,40 +1,41 @@
-// ============================================================================
-// divisor-count.epher -- how many divisors a number has, tau(n)
-//
-// Prints the ndivisors builtin for a few numbers. The count is the
-// divisor function tau(n), and the formula behind it is the point of the
-// comments: if n = p^a * q^b * r^c with distinct primes, then every
-// divisor chooses an exponent 0..a for p, 0..b for q and 0..c for r, so
-// tau(n) = (a + 1)(b + 1)(c + 1). For 360 = 2^3 * 3^2 * 5 that gives
-// 4 * 3 * 2 = 24. The script calls the builtin; it does not reimplement
-// the count.
-//
-// Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
-// ch. 16, section 16.7 (the divisor functions). ndivisors is exact.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/divisors/divisor-count.epher"
-// In the REPL:             load epher scripts/number-theory/divisors/divisor-count.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// There is no knob: the sample numbers are the point of the script.
-// ============================================================================
+/* ============================================================================
+   divisor-count.epher -- how many divisors a number has, tau(n)
+
+   Prints the ndivisors builtin for a few numbers. The count is the
+   divisor function tau(n), and the formula behind it is the point of the
+   comments: if n = p^a * q^b * r^c with distinct primes, then every
+   divisor chooses an exponent 0..a for p, 0..b for q and 0..c for r, so
+   tau(n) = (a + 1)(b + 1)(c + 1). For 360 = 2^3 * 3^2 * 5 that gives
+   4 * 3 * 2 = 24. The script calls the builtin; it does not reimplement
+   the count.
+
+   Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+   ch. 16, section 16.7 (the divisor functions). ndivisors is exact.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/divisors/divisor-count.epher"
+   In the REPL:             load epher scripts/number-theory/divisors/divisor-count.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   There is no knob: the sample numbers are the point of the script.
+   ============================================================================ */
 
 // ---- divisor counts -----------------------------------------------------------------
 for x in {1, 12, 360, 100, 97} do ndivisors(x)
 
-// ---- what the formula says -----------------------------------------------------------
-// 1 has one divisor (itself); 12 = 2^2 * 3 gives (2 + 1)(1 + 1) = 6.
-// 360 = 2^3 * 3^2 * 5 gives (3 + 1)(2 + 1)(1 + 1) = 24, the classic check.
-// 100 = 2^2 * 5^2 gives 3 * 3 = 9 (odd: a square has an odd divisor count,
-// because its divisors pair up except the square root).
-// 97 is prime, so it has exactly 2 divisors.
+/* ---- what the formula says -----------------------------------------------------------
+   1 has one divisor (itself); 12 = 2^2 * 3 gives (2 + 1)(1 + 1) = 6.
+   360 = 2^3 * 3^2 * 5 gives (3 + 1)(2 + 1)(1 + 1) = 24, the classic check.
+   100 = 2^2 * 5^2 gives 3 * 3 = 9 (odd: a square has an odd divisor count,
+   because its divisors pair up except the square root).
+   97 is prime, so it has exactly 2 divisors. */
 print("tau(360) from the exponents:", (3 + 1) * (2 + 1) * (1 + 1))
 print("ndivisors(360):", ndivisors(360))
 print("tau(100) from the exponents:", (2 + 1) * (2 + 1))
 print("ndivisors(100):", ndivisors(100))
-// ---- expected output ----
-// = {1, 6, 24, 9, 2}
-// = tau(360) from the exponents: 24
-// = ndivisors(360): 24
-// = tau(100) from the exponents: 9
-// = ndivisors(100): 9
+/* ---- expected output ----
+= {1, 6, 24, 9, 2}
+= tau(360) from the exponents: 24
+= ndivisors(360): 24
+= tau(100) from the exponents: 9
+= ndivisors(100): 9
+*/

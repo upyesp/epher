@@ -1,21 +1,21 @@
-// ============================================================================
-// t-confidence-interval.epher -- where the class mean lies, with a t
-//
-// Builds a confidence interval for the mean of the ten exam scores in
-// `d` with the builtin tinterval(data, level) (guide 1.20): the sample
-// mean plus or minus the t critical value times the sample standard
-// error. The level knob is the confidence level, 0.95 for a 95 percent
-// interval: about 95 percent of such intervals would capture the true
-// mean. Raising the level to 0.99 widens the interval.
-//
-// Run it from a terminal:  epher "epher scripts/statistics/tests/t-confidence-interval.epher"
-// In the REPL:             load epher scripts/statistics/tests/t-confidence-interval.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// The knobs to edit are `level` below, or `d` for other data. Everything
-// above the results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   t-confidence-interval.epher -- where the class mean lies, with a t
+
+   Builds a confidence interval for the mean of the ten exam scores in
+   `d` with the builtin tinterval(data, level) (guide 1.20): the sample
+   mean plus or minus the t critical value times the sample standard
+   error. The level knob is the confidence level, 0.95 for a 95 percent
+   interval: about 95 percent of such intervals would capture the true
+   mean. Raising the level to 0.99 widens the interval.
+
+   Run it from a terminal:  epher "epher scripts/statistics/tests/t-confidence-interval.epher"
+   In the REPL:             load epher scripts/statistics/tests/t-confidence-interval.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   The knobs to edit are `level` below, or `d` for other data. Everything
+   above the results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
@@ -29,10 +29,11 @@ print("sample stdev (n - 1):", sqrt(variance(d) * len(d) / (len(d) - 1)))
 tinterval(d, level)         // (74.2099, 88.3901): the 95% interval for the mean
 tinterval(d, 0.99)          // the 99% interval is wider: (71.1143, 91.4857)
 
-// ---- expected output ----
-// = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-// = 0.95
-// = sample mean: 81.3
-// = sample stdev (n - 1): 9.91127304302
-// = (74.2099, 88.3901)
-// = (71.1143, 91.4857)
+/* ---- expected output ----
+= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
+= 0.95
+= sample mean: 81.3
+= sample stdev (n - 1): 9.91127304302
+= (74.2099, 88.3901)
+= (71.1143, 91.4857)
+*/

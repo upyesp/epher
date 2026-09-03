@@ -1,19 +1,19 @@
-// ============================================================================
-// sector-area.epher -- area of a circular sector
-//
-// A sector of radius r and central angle t (degrees) holds the fraction
-// t / 360 of the disk, so its area is A = t / 360 * pi r^2. Written with
-// the angle in radians, theta = rad(t), this is the standard form
-// A = theta r^2 / 2 (two lines cancel: pi r^2 * theta / (2 pi)). The
-// results compute both forms and check they agree.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/circles/sector-area.epher"
-// In the REPL:             load epher scripts/geometry/circles/sector-area.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are `r` (radius) and `t` (central angle in degrees).
-// Everything above the results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   sector-area.epher -- area of a circular sector
+
+   A sector of radius r and central angle t (degrees) holds the fraction
+   t / 360 of the disk, so its area is A = t / 360 * pi r^2. Written with
+   the angle in radians, theta = rad(t), this is the standard form
+   A = theta r^2 / 2 (two lines cancel: pi r^2 * theta / (2 pi)). The
+   results compute both forms and check they agree.
+
+   Run it from a terminal:  epher "epher scripts/geometry/circles/sector-area.epher"
+   In the REPL:             load epher scripts/geometry/circles/sector-area.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are `r` (radius) and `t` (central angle in degrees).
+   Everything above the results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const r = 6
@@ -26,9 +26,10 @@ def sector(r, t) = rad(t) * r ^ 2 / 2   // A = theta r^2 / 2, theta in radians
 print("sector area:", sector(r, t))
 print("t / 360 form agrees:", abs(sector(r, t) - t / 360 * pi * r ^ 2) < 1e-9)
 print("quarter circle, radius 4:", sector(4, 90))
-// ---- expected output ----
-// = 6
-// = 60
-// = sector area: 18.8495559215
-// = t / 360 form agrees: true
-// = quarter circle, radius 4: 12.5663706144
+/* ---- expected output ----
+= 6
+= 60
+= sector area: 18.8495559215
+= t / 360 form agrees: true
+= quarter circle, radius 4: 12.5663706144
+*/

@@ -1,19 +1,19 @@
-// ============================================================================
-// distance-between-points-2d.epher -- distance between two points
-//
-// The distance between (x1, y1) and (x2, y2) is the hypotenuse of the
-// right triangle they span, d = sqrt((x2 - x1)^2 + (y2 - y1)^2)
-// (Pythagorean theorem; standard formula). Points are held as two-number
-// lists {x, y}. The builtin hypot(dx, dy) computes the same distance and
-// the last result cross-checks the formula against it.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/coordinates/distance-between-points-2d.epher"
-// In the REPL:             load epher scripts/geometry/coordinates/distance-between-points-2d.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The point pairs to try are in the results section below; edit them
-// there.
-// ============================================================================
+/* ============================================================================
+   distance-between-points-2d.epher -- distance between two points
+
+   The distance between (x1, y1) and (x2, y2) is the hypotenuse of the
+   right triangle they span, d = sqrt((x2 - x1)^2 + (y2 - y1)^2)
+   (Pythagorean theorem; standard formula). Points are held as two-number
+   lists {x, y}. The builtin hypot(dx, dy) computes the same distance and
+   the last result cross-checks the formula against it.
+
+   Run it from a terminal:  epher "epher scripts/geometry/coordinates/distance-between-points-2d.epher"
+   In the REPL:             load epher scripts/geometry/coordinates/distance-between-points-2d.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The point pairs to try are in the results section below; edit them
+   there.
+   ============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 def dist(p, q) = sqrt((p[1] - q[1]) ^ 2 + (p[2] - q[2]) ^ 2)
@@ -23,8 +23,9 @@ print("(0, 0) to (3, 4):", dist({0, 0}, {3, 4}))
 print("(1, 1) to (4, 5):", dist({1, 1}, {4, 5}))
 print("(0, 0) to (1, 1):", dist({0, 0}, {1, 1}))
 print("hypot agrees:", dist({0, 0}, {3, 4}) == hypot(3, 4))
-// ---- expected output ----
-// = (0, 0) to (3, 4): 5
-// = (1, 1) to (4, 5): 5
-// = (0, 0) to (1, 1): 1.41421356237
-// = hypot agrees: true
+/* ---- expected output ----
+= (0, 0) to (3, 4): 5
+= (1, 1) to (4, 5): 5
+= (0, 0) to (1, 1): 1.41421356237
+= hypot agrees: true
+*/

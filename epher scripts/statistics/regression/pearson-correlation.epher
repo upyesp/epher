@@ -1,21 +1,21 @@
-// ============================================================================
-// pearson-correlation.epher -- the correlation coefficient by its formula
-//
-// The Pearson correlation r of the seven (hours, score) pairs in `xs`
-// and `ys`, from the textbook formula r = sxy / sqrt(sxx * syy), where
-// each s is a sum of squared or paired deviations from the means. The
-// builtin linreg prints r inside its display string, and the number
-// below should agree with it. The syy term prints as the exact fraction
-// 6424/7 because epher shows repeating decimals as fractions.
-//
-// Run it from a terminal:  epher "epher scripts/statistics/regression/pearson-correlation.epher"
-// In the REPL:             load epher scripts/statistics/regression/pearson-correlation.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// The knobs to edit are `xs` and `ys` below. Everything above the results
-// section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   pearson-correlation.epher -- the correlation coefficient by its formula
+
+   The Pearson correlation r of the seven (hours, score) pairs in `xs`
+   and `ys`, from the textbook formula r = sxy / sqrt(sxx * syy), where
+   each s is a sum of squared or paired deviations from the means. The
+   builtin linreg prints r inside its display string, and the number
+   below should agree with it. The syy term prints as the exact fraction
+   6424/7 because epher shows repeating decimals as fractions.
+
+   Run it from a terminal:  epher "epher scripts/statistics/regression/pearson-correlation.epher"
+   In the REPL:             load epher scripts/statistics/regression/pearson-correlation.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   The knobs to edit are `xs` and `ys` below. Everything above the results
+   section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const xs = {1, 2, 3, 4, 5, 6, 7}     // hours of study, one per student
@@ -24,10 +24,10 @@ const ys = {55, 63, 68, 74, 79, 85, 90}   // exam scores out of 100, same order
 // ---- helpers: the sums behind the textbook formula --------------------------------
 def mx() = mean(xs)
 def my() = mean(ys)
-def sxy() = sum((xs - mx()) * (ys - my()))  /* paired deviations, x and y */
-def sxx() = sum((xs - mx()) ^ 2)            /* x-deviations squared */
-def syy() = sum((ys - my()) ^ 2)            /* y-deviations squared */
-def r() = sxy() / sqrt(sxx() * syy())       /* Pearson correlation */
+def sxy() = sum((xs - mx()) * (ys - my())) // paired deviations, x and y
+def sxx() = sum((xs - mx()) ^ 2) // x-deviations squared
+def syy() = sum((ys - my()) ^ 2) // y-deviations squared
+def r() = sxy() / sqrt(sxx() * syy()) // Pearson correlation
 
 // ---- the formula, piece by piece ------------------------------------------------------
 print("sxy:", sxy())
@@ -36,11 +36,12 @@ print("syy:", syy())
 print("Pearson r:", r())
 linreg(xs, ys)      // cross-check: its display string reports the same r
 
-// ---- expected output ----
-// = {1, 2, 3, 4, 5, 6, 7}
-// = {55, 63, 68, 74, 79, 85, 90}
-// = sxy: 160
-// = sxx: 28
-// = syy: 6424/7
-// = Pearson r: 0.998130257012
-// = y = 5.7143*x + 50.5714 (r = 0.9981)
+/* ---- expected output ----
+= {1, 2, 3, 4, 5, 6, 7}
+= {55, 63, 68, 74, 79, 85, 90}
+= sxy: 160
+= sxx: 28
+= syy: 6424/7
+= Pearson r: 0.998130257012
+= y = 5.7143*x + 50.5714 (r = 0.9981)
+*/

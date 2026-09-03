@@ -1,24 +1,24 @@
-// ============================================================================
-// bit-count.epher -- how many 1 bits a number has, the popcount
-//
-// Counts the 1 bits of a value, its population count. The packed while
-// loop (guide 1.30) peels off the lowest bit with mod(n, 2) and shifts
-// the rest down one place by halving, exactly a one-bit right shift;
-// the loop is silent, so labelled prints show the counts. The checks:
-// 255 = 0xff has eight 1 bits (each hex digit f is four ones) and 240 =
-// 0xf0 has four. A recursive def repeats the same count for a whole
-// list of values.
-//
-// Source: standard computer arithmetic; the popcount underlies Hamming
-// weight and error-correcting codes. All values here are small, so the
-// counts are exact.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/bases/bit-count.epher"
-// In the REPL:             load epher scripts/number-theory/bases/bit-count.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// There is no knob: the sample values are the point of the script.
-// ============================================================================
+/* ============================================================================
+   bit-count.epher -- how many 1 bits a number has, the popcount
+
+   Counts the 1 bits of a value, its population count. The packed while
+   loop (guide 1.30) peels off the lowest bit with mod(n, 2) and shifts
+   the rest down one place by halving, exactly a one-bit right shift;
+   the loop is silent, so labelled prints show the counts. The checks:
+   255 = 0xff has eight 1 bits (each hex digit f is four ones) and 240 =
+   0xf0 has four. A recursive def repeats the same count for a whole
+   list of values.
+
+   Source: standard computer arithmetic; the popcount underlies Hamming
+   weight and error-correcting codes. All values here are small, so the
+   counts are exact.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/bases/bit-count.epher"
+   In the REPL:             load epher scripts/number-theory/bases/bit-count.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   There is no knob: the sample values are the point of the script.
+   ============================================================================ */
 
 // ---- the def, and a list of counts -----------------------------------------------------------
 // pop(n) adds the lowest bit, then counts the rest after halving.
@@ -38,12 +38,13 @@ print("hex of 240:", hex(240))          // 0xf0: one f, then a zero
 v = {1024, 0}
 while v[1] > 0 do v = {floor(v[1] / 2), v[2] + mod(v[1], 2)}
 print("popcount(1024):", v[2])          // 1: a single bit, 2^10
-// ---- expected output ----
-// = {0, 1, 1, 2, 3, 4, 8, 1}
-// = {255, 0}
-// = popcount(255): 8
-// = {240, 0}
-// = popcount(240): 4
-// = hex of 240: 0xf0
-// = {1024, 0}
-// = popcount(1024): 1
+/* ---- expected output ----
+= {0, 1, 1, 2, 3, 4, 8, 1}
+= {255, 0}
+= popcount(255): 8
+= {240, 0}
+= popcount(240): 4
+= hex of 240: 0xf0
+= {1024, 0}
+= popcount(1024): 1
+*/

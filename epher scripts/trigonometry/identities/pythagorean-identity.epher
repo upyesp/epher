@@ -1,21 +1,21 @@
-// ============================================================================
-// pythagorean-identity.epher -- sin^2 x + cos^2 x = 1 and its siblings
-//
-// The Pythagorean identity sin^2(x) + cos^2(x) = 1 holds for every angle,
-// and dividing it by cos^2(x) or sin^2(x) gives the two forms
-// 1 + tan^2(x) = sec^2(x) and 1 + cot^2(x) = csc^2(x). The script checks
-// all three at several angles, as boolean residual checks: each line is
-// true when the two sides differ by less than 1e-12 (double-precision
-// noise is around 1e-15 here, so the checks are honest).
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/identities/pythagorean-identity.epher"
-// In the REPL:             load epher scripts/trigonometry/identities/pythagorean-identity.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The one knob to edit is the `degs` list below (degrees; the checks run
-// the builtin trig, which works in radians, so each is converted with
-// rad()).
-// ============================================================================
+/* ============================================================================
+   pythagorean-identity.epher -- sin^2 x + cos^2 x = 1 and its siblings
+
+   The Pythagorean identity sin^2(x) + cos^2(x) = 1 holds for every angle,
+   and dividing it by cos^2(x) or sin^2(x) gives the two forms
+   1 + tan^2(x) = sec^2(x) and 1 + cot^2(x) = csc^2(x). The script checks
+   all three at several angles, as boolean residual checks: each line is
+   true when the two sides differ by less than 1e-12 (double-precision
+   noise is around 1e-15 here, so the checks are honest).
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/identities/pythagorean-identity.epher"
+   In the REPL:             load epher scripts/trigonometry/identities/pythagorean-identity.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The one knob to edit is the `degs` list below (degrees; the checks run
+   the builtin trig, which works in radians, so each is converted with
+   rad()).
+   ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const degs = {15, 30, 45, 60, 75}   // sample angles, in degrees
@@ -36,18 +36,19 @@ for x in degs do ok_pyth(rad(x))
 for x in degs do ok_sec(rad(x))
 for x in degs do ok_csc(rad(x))
 
-// One reading of the identity at 30 deg, to see the numbers behind the
-// boolean. Both sides come out as 4/3: epher prints the exact fraction
-// where the decimal would repeat (1.333...), which is a nice check that
-// the two sides agree to full precision.
+/* One reading of the identity at 30 deg, to see the numbers behind the
+   boolean. Both sides come out as 4/3: epher prints the exact fraction
+   where the decimal would repeat (1.333...), which is a nice check that
+   the two sides agree to full precision. */
 print("sin^2(30 deg) + cos^2(30 deg) =", sin(rad(30)) ^ 2 + cos(rad(30)) ^ 2)
 print("1 + tan^2(30 deg) =", 1 + tan(rad(30)) ^ 2)
 print("sec^2(30 deg) =", 1 / cos(rad(30)) ^ 2)
-// ---- expected output
-// = {15, 30, 45, 60, 75}
-// = {true, true, true, true, true}
-// = {true, true, true, true, true}
-// = {true, true, true, true, true}
-// = sin^2(30 deg) + cos^2(30 deg) = 1
-// = 1 + tan^2(30 deg) = 4/3
-// = sec^2(30 deg) = 4/3
+/* ---- expected output
+= {15, 30, 45, 60, 75}
+= {true, true, true, true, true}
+= {true, true, true, true, true}
+= {true, true, true, true, true}
+= sin^2(30 deg) + cos^2(30 deg) = 1
+= 1 + tan^2(30 deg) = 4/3
+= sec^2(30 deg) = 4/3
+*/

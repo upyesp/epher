@@ -1,17 +1,17 @@
-// ============================================================================
-// factor-theorem-check.epher -- is (x - r) a factor? evaluate p(r)
-//
-// The factor theorem (corollary of the remainder theorem; any algebra text,
-// e.g. Stewart, Redlin and Watson, "College Algebra", 7th ed., sec. 3.3):
-// (x - r) divides p(x) exactly when p(r) = 0. Here p(x) = x^3 - 6x^2 + 11x
-// - 6 = (x - 1)(x - 2)(x - 3), so r = 3 is a root and r = 4 is not; the
-// printed booleans show both verdicts. A synthetic-division carry chain by
-// (x - 3) then confirms the factor with remainder 0. All values are exact.
-//
-// Run it from a terminal:  epher "epher scripts/algebra/polynomials/factor-theorem-check.epher"
-//
-// The knobs to edit are cs and the divisors to test below.
-// ============================================================================
+/* ============================================================================
+   factor-theorem-check.epher -- is (x - r) a factor? evaluate p(r)
+
+   The factor theorem (corollary of the remainder theorem; any algebra text,
+   e.g. Stewart, Redlin and Watson, "College Algebra", 7th ed., sec. 3.3):
+   (x - r) divides p(x) exactly when p(r) = 0. Here p(x) = x^3 - 6x^2 + 11x
+   - 6 = (x - 1)(x - 2)(x - 3), so r = 3 is a root and r = 4 is not; the
+   printed booleans show both verdicts. A synthetic-division carry chain by
+   (x - 3) then confirms the factor with remainder 0. All values are exact.
+
+   Run it from a terminal:  epher "epher scripts/algebra/polynomials/factor-theorem-check.epher"
+
+   The knobs to edit are cs and the divisors to test below.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const cs = {1, -6, 11, -6}       // p(x) = x^3 - 6x^2 + 11x - 6 = (x-1)(x-2)(x-3)
@@ -31,15 +31,16 @@ q2 = cs[2] + r1 * cs[1]          // echoes -3
 q3 = cs[3] + r1 * q2             // echoes 2
 rem = cs[4] + r1 * q3            // echoes 0
 print("division identity holds at x = 5:", p(cs, 5) == (5 - r1) * (5 ^ 2 - 3 * 5 + 2) + rem)
-// ---- expected output ----
-// = {1, -6, 11, -6}
-// = 3
-// = 4
-// = p(3): 0
-// = p(4): 6
-// = (x - 3) is a factor because p(3) = 0: true
-// = (x - 4) is not because p(4) != 0: false
-// = -3
-// = 2
-// = 0
-// = division identity holds at x = 5: true
+/* ---- expected output ----
+= {1, -6, 11, -6}
+= 3
+= 4
+= p(3): 0
+= p(4): 6
+= (x - 3) is a factor because p(3) = 0: true
+= (x - 4) is not because p(4) != 0: false
+= -3
+= 2
+= 0
+= division identity holds at x = 5: true
+*/

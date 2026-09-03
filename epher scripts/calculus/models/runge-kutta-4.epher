@@ -1,30 +1,30 @@
-// ============================================================================
-// runge-kutta-4.epher -- the classic RK4 method for y' = y on [0, 1]
-//
-// epher has no builtin ODE solver, so the method is the point. The
-// classic fourth-order Runge-Kutta method (Kutta, 1901; Burden and
-// Faires, "Numerical Analysis", ch. 5) estimates the slope of y' = y
-// as a weighted average of four trial slopes per step:
-//
-//   k1 = f(t, y)
-//   k2 = f(t + h/2, y + h k1/2)
-//   k3 = f(t + h/2, y + h k2/2)
-//   k4 = f(t + h, y + h k3)
-//   y += h (k1 + 2 k2 + 2 k3 + k4)/6
-//
-// For y' = y the slope f(t, y) = y never uses t, so the helpers below
-// take y alone; a def helper holds each slope and one def composes the
-// step. The packed while loop carries {t, y, step} and runs 10 steps of
-// h = 0.1 from y(0) = 1. The result at t = 1, 2.71827974414, misses e by
-// 2.08e-6, about 60000 times closer than Euler's 0.12454 at the same
-// step size: RK4 is a fourth-order method, its error falls like h^4.
-//
-// Accuracy: the printed value is exact at its 12 displayed digits; the
-// residual against e is 0.00000208432387927, checked at 1e-5.
-//
-// Run:  epher "epher scripts/calculus/models/runge-kutta-4.epher"
-// The knobs to edit are `h` and `steps` below.
-// ============================================================================
+/* ============================================================================
+   runge-kutta-4.epher -- the classic RK4 method for y' = y on [0, 1]
+
+   epher has no builtin ODE solver, so the method is the point. The
+   classic fourth-order Runge-Kutta method (Kutta, 1901; Burden and
+   Faires, "Numerical Analysis", ch. 5) estimates the slope of y' = y
+   as a weighted average of four trial slopes per step:
+
+     k1 = f(t, y)
+     k2 = f(t + h/2, y + h k1/2)
+     k3 = f(t + h/2, y + h k2/2)
+     k4 = f(t + h, y + h k3)
+     y += h (k1 + 2 k2 + 2 k3 + k4)/6
+
+   For y' = y the slope f(t, y) = y never uses t, so the helpers below
+   take y alone; a def helper holds each slope and one def composes the
+   step. The packed while loop carries {t, y, step} and runs 10 steps of
+   h = 0.1 from y(0) = 1. The result at t = 1, 2.71827974414, misses e by
+   2.08e-6, about 60000 times closer than Euler's 0.12454 at the same
+   step size: RK4 is a fourth-order method, its error falls like h^4.
+
+   Accuracy: the printed value is exact at its 12 displayed digits; the
+   residual against e is 0.00000208432387927, checked at 1e-5.
+
+   Run:  epher "epher scripts/calculus/models/runge-kutta-4.epher"
+   The knobs to edit are `h` and `steps` below.
+   ============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const h = 0.1                  // step size
@@ -50,13 +50,14 @@ print("error:", e - v[2])
 abs(v[2] - e) < 1e-5
 print("Euler's error at the same h for contrast:", 0.124539368359)
 
-// ---- expected output ---------------------------------------------------------
-// = 0.1
-// = 10
-// = {0, 1, 0}
-// = {1, 2.71827974414, 10}
-// = y(1) by RK4 with h = 0.1: 2.71827974414
-// = true value e: 2.71828182846
-// = error: 0.00000208432387927
-// = true
-// = Euler's error at the same h for contrast: 0.124539368359
+/* ---- expected output ---------------------------------------------------------
+= 0.1
+= 10
+= {0, 1, 0}
+= {1, 2.71827974414, 10}
+= y(1) by RK4 with h = 0.1: 2.71827974414
+= true value e: 2.71828182846
+= error: 0.00000208432387927
+= true
+= Euler's error at the same h for contrast: 0.124539368359
+*/

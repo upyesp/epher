@@ -1,22 +1,22 @@
-// ============================================================================
-// law-of-cosines-side.epher -- side c from a, b and the included angle C
-//
-// The law of cosines generalizes Pythagoras: c^2 = a^2 + b^2 - 2ab cos C
-// gives the third side of a triangle from two sides and the angle between
-// them (the SAS case). When C = 90 deg the cosine term vanishes and the
-// law reduces to c^2 = a^2 + b^2. Angles come in degrees through the
-// knobs and are converted with rad() for the builtin trig; the sides keep
-// meters, and the squares and products cancel back to meters under the
-// square root. Standard classroom material (e.g. Stewart, Redlin and
-// Watson, "Precalculus", ch. 6).
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/triangles/law-of-cosines-side.epher"
-// In the REPL:             load epher scripts/trigonometry/triangles/law-of-cosines-side.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are the two sides and the two angles below. Printed
-// values carry about 12 significant digits.
-// ============================================================================
+/* ============================================================================
+   law-of-cosines-side.epher -- side c from a, b and the included angle C
+
+   The law of cosines generalizes Pythagoras: c^2 = a^2 + b^2 - 2ab cos C
+   gives the third side of a triangle from two sides and the angle between
+   them (the SAS case). When C = 90 deg the cosine term vanishes and the
+   law reduces to c^2 = a^2 + b^2. Angles come in degrees through the
+   knobs and are converted with rad() for the builtin trig; the sides keep
+   meters, and the squares and products cancel back to meters under the
+   square root. Standard classroom material (e.g. Stewart, Redlin and
+   Watson, "Precalculus", ch. 6).
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/triangles/law-of-cosines-side.epher"
+   In the REPL:             load epher scripts/trigonometry/triangles/law-of-cosines-side.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are the two sides and the two angles below. Printed
+   values carry about 12 significant digits.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 5 m       // first side
@@ -43,13 +43,14 @@ print("side c of 3-4-5:", sidec(3 m, 4 m, C90))
 // it just produced, so both directions of the law agree.
 print("angle C back out:", angc(a, b, sidec(a, b, C)), "deg")
 print("round trip:", abs(angc(a, b, sidec(a, b, C)) - C) < 1e-9)
-// ---- expected output
-// = 5 m
-// = 7 m
-// = 43
-// = 90
-// = side c at C = 43 deg: 4.77548331446 m
-// = side c at C = 90 deg: 8.60232526704 m
-// = side c of 3-4-5: 5 m
-// = angle C back out: 43 deg
-// = round trip: true
+/* ---- expected output
+= 5 m
+= 7 m
+= 43
+= 90
+= side c at C = 43 deg: 4.77548331446 m
+= side c at C = 90 deg: 8.60232526704 m
+= side c of 3-4-5: 5 m
+= angle C back out: 43 deg
+= round trip: true
+*/

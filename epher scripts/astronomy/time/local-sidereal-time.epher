@@ -1,25 +1,25 @@
-// ============================================================================
-// local-sidereal-time.epher -- the hour angle of the stars
-//
-// Local sidereal time (LST) for one instant at two longitudes, from the
-// built-in lst(jd, lon), which returns hours east of the meridian
-// (guide 1.16; the solar-ephemeris crate, JPL-validated). LST is the
-// hour angle of the vernal equinox: the Earth-fixed sky coordinate that
-// says which stars are up. It gains 360 deg per sidereal day, and the
-// sidereal day (23.9345 h) is shorter than the solar day because the
-// Earth must turn a little extra each day to face the Sun again - so a
-// given star rises about 3.94 min earlier every night, and LST at a
-// fixed clock hour gains the same amount. Two built-in checks close the
-// script: LST grows eastward by exactly lon / 15 hours, and at the
-// Sun's meridian transit the LST equals the Sun's right ascension (the
-// gap of about 2 arcsec is the equation of equinoxes, mean versus
-// apparent sidereal time).
-//
-// Run it from a terminal:  epher "epher scripts/astronomy/time/local-sidereal-time.epher"
-// In the REPL:             load epher scripts/astronomy/time/local-sidereal-time.epher
-//
-// Knobs: the instant, the two longitudes, latitude for the transit.
-// ============================================================================
+/* ============================================================================
+   local-sidereal-time.epher -- the hour angle of the stars
+
+   Local sidereal time (LST) for one instant at two longitudes, from the
+   built-in lst(jd, lon), which returns hours east of the meridian
+   (guide 1.16; the solar-ephemeris crate, JPL-validated). LST is the
+   hour angle of the vernal equinox: the Earth-fixed sky coordinate that
+   says which stars are up. It gains 360 deg per sidereal day, and the
+   sidereal day (23.9345 h) is shorter than the solar day because the
+   Earth must turn a little extra each day to face the Sun again - so a
+   given star rises about 3.94 min earlier every night, and LST at a
+   fixed clock hour gains the same amount. Two built-in checks close the
+   script: LST grows eastward by exactly lon / 15 hours, and at the
+   Sun's meridian transit the LST equals the Sun's right ascension (the
+   gap of about 2 arcsec is the equation of equinoxes, mean versus
+   apparent sidereal time).
+
+   Run it from a terminal:  epher "epher scripts/astronomy/time/local-sidereal-time.epher"
+   In the REPL:             load epher scripts/astronomy/time/local-sidereal-time.epher
+
+   Knobs: the instant, the two longitudes, latitude for the transit.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const t0 = jd(2026, 6, 21, 12)     // 12:00 UT on the solstice date
@@ -27,19 +27,19 @@ const lon_b = 13.405               // Berlin
 const lon_g = 0                    // Greenwich
 const lat = 52.52                  // Berlin, for the Sun transit check
 
-// ---- results ----------------------------------------------------------------
-// The same physical instant, read at Greenwich (lon 0) and at Berlin,
-// 13.405 deg east: Berlin's sky is ahead by 13.405 / 15 = 0.8937 hours.
-// As a clock reading, deg2hms of the hours times 15 (guide 1.16).
+/* ---- results ----------------------------------------------------------------
+   The same physical instant, read at Greenwich (lon 0) and at Berlin,
+   13.405 deg east: Berlin's sky is ahead by 13.405 / 15 = 0.8937 hours.
+   As a clock reading, deg2hms of the hours times 15 (guide 1.16). */
 print("LST at Greenwich:", lst(t0, lon_g) in hr)
 print("LST at Berlin:", lst(t0, lon_b) in hr)
 print("eastward gain:", (lst(t0, lon_b) - lst(t0, lon_g)) in hr, "= lon / 15:", (lon_b / 15) in hr)
 print("Berlin, as a clock:", deg2hms(lst(t0, lon_b) * 15))
 
-// The sidereal drift: 24 solar hours later, at 0h UT on June 22, LST at
-// Greenwich has gained 0.0657 h = 3.94 min - the stars rise 3.94 min
-// earlier each night, because a solar day holds 24 * 366.25 / 365.25 =
-// 24.0657 sidereal hours (the Earth spins 366.25 times per year).
+/* The sidereal drift: 24 solar hours later, at 0h UT on June 22, LST at
+   Greenwich has gained 0.0657 h = 3.94 min - the stars rise 3.94 min
+   earlier each night, because a solar day holds 24 * 366.25 / 365.25 =
+   24.0657 sidereal hours (the Earth spins 366.25 times per year). */
 print("LST gain over 24 h:", (lst(jd(2026, 6, 22), lon_g) - lst(jd(2026, 6, 21), lon_g)) in hr)
 
 // The Sun check: at solar transit the Sun stands on the meridian, so
@@ -49,16 +49,17 @@ print("LST * 15 at solar transit:", lst(transit(10, jd(2026, 6, 21), lat, lon_b)
 print("Sun RA at that instant:", ra(10, transit(10, jd(2026, 6, 21), lat, lon_b)), "deg")
 print("gap:", (ra(10, transit(10, jd(2026, 6, 21), lat, lon_b)) - lst(transit(10, jd(2026, 6, 21), lat, lon_b), lon_b) * 15) * 3600, "arcsec")
 
-// ---- expected output ----
-// = 2461213
-// = 13.405
-// = 0
-// = 52.52
-// = LST at Greenwich: 5.98008964453 hr
-// = LST at Berlin: 6.8737563112 hr
-// = eastward gain: 0.893666666667 hr = lon / 15: 0.893666666667 hr
-// = Berlin, as a clock: 6h 52m 26s
-// = LST gain over 24 h: 0.0657092126912 hr
-// = LST * 15 at solar transit: 90.1171104235 deg
-// = Sun RA at that instant: 90.117670936 deg
-// = gap: 2.01784510509 arcsec
+/* ---- expected output ----
+= 2461213
+= 13.405
+= 0
+= 52.52
+= LST at Greenwich: 5.98008964453 hr
+= LST at Berlin: 6.8737563112 hr
+= eastward gain: 0.893666666667 hr = lon / 15: 0.893666666667 hr
+= Berlin, as a clock: 6h 52m 26s
+= LST gain over 24 h: 0.0657092126912 hr
+= LST * 15 at solar transit: 90.1171104235 deg
+= Sun RA at that instant: 90.117670936 deg
+= gap: 2.01784510509 arcsec
+*/

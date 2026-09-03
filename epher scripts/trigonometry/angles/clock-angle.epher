@@ -1,21 +1,21 @@
-// ============================================================================
-// clock-angle.epher -- the angle between the hands of a clock
-//
-// At h hours and m minutes past twelve, the minute hand has swept 6 m
-// degrees (6 deg per minute) and the hour hand 30 h + 0.5 m degrees
-// (30 deg per hour, plus half a degree per minute of drift). The smaller
-// angle between them is the acute one: min(diff, 360 - diff), where diff
-// is the absolute difference of the two sweeps. The classic puzzle answer
-// for 3:00 is 90 deg and for 6:00 it is 180 deg; both fall out below.
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/angles/clock-angle.epher"
-// In the REPL:             load epher scripts/trigonometry/angles/clock-angle.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are the `hs` and `ms` lists below, one clock time per
-// column (hour 1-12, minute 0-59). Printed values carry about 12
-// significant digits.
-// ============================================================================
+/* ============================================================================
+   clock-angle.epher -- the angle between the hands of a clock
+
+   At h hours and m minutes past twelve, the minute hand has swept 6 m
+   degrees (6 deg per minute) and the hour hand 30 h + 0.5 m degrees
+   (30 deg per hour, plus half a degree per minute of drift). The smaller
+   angle between them is the acute one: min(diff, 360 - diff), where diff
+   is the absolute difference of the two sweeps. The classic puzzle answer
+   for 3:00 is 90 deg and for 6:00 it is 180 deg; both fall out below.
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/angles/clock-angle.epher"
+   In the REPL:             load epher scripts/trigonometry/angles/clock-angle.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are the `hs` and `ms` lists below, one clock time per
+   column (hour 1-12, minute 0-59). Printed values carry about 12
+   significant digits.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const hs = {3, 6, 12, 9, 2, 1}      // hours of the sample times
@@ -39,13 +39,14 @@ print("hands at 12:30:", hand_angle(12, 30), "deg")
 print("hands at 9:15:", hand_angle(9, 15), "deg")
 print("hands at 2:47:", hand_angle(2, 47), "deg")
 print("hands at 1:05:", hand_angle(1, 5), "deg")
-// ---- expected output
-// = {3, 6, 12, 9, 2, 1}
-// = {0, 0, 30, 15, 47, 5}
-// = {90, 180, 165, 172.5, 161.5, 2.5}
-// = hands at 3:00: 90 deg
-// = hands at 6:00: 180 deg
-// = hands at 12:30: 165 deg
-// = hands at 9:15: 172.5 deg
-// = hands at 2:47: 161.5 deg
-// = hands at 1:05: 2.5 deg
+/* ---- expected output
+= {3, 6, 12, 9, 2, 1}
+= {0, 0, 30, 15, 47, 5}
+= {90, 180, 165, 172.5, 161.5, 2.5}
+= hands at 3:00: 90 deg
+= hands at 6:00: 180 deg
+= hands at 12:30: 165 deg
+= hands at 9:15: 172.5 deg
+= hands at 2:47: 161.5 deg
+= hands at 1:05: 2.5 deg
+*/

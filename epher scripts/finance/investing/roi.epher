@@ -1,27 +1,27 @@
-// ============================================================================
-// roi.epher -- return on investment of a small business venture
-//
-// The return on investment of a venture is its net profit divided by what
-// was put in: roi = (money back - money in)/money in. Here a 25000 venture
-// returns 8000, 12000 and 15000 over three years. Source: standard
-// accounting practice (the simple, cash-based roi taught in every
-// introductory finance course; see Brealey and Myers, Principles of
-// Corporate Finance, chapter 1).
-//
-// Assumptions: the flows are the venture's net cash flows (revenue minus
-// running costs), and the 25000 is the whole investment. This simple roi
-// ignores WHEN the profits arrive; the sibling scripts npv and irr value
-// the timing, and a venture paying early is worth more than one paying
-// late at the same roi.
-//
-// Accuracy: exact arithmetic, so the printed roi is exact.
-//
-// Run it from a terminal:
-//   epher "epher scripts/finance/investing/roi.epher"
-//
-// The knobs to edit are in the knob section; everything after it is
-// machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   roi.epher -- return on investment of a small business venture
+
+   The return on investment of a venture is its net profit divided by what
+   was put in: roi = (money back - money in)/money in. Here a 25000 venture
+   returns 8000, 12000 and 15000 over three years. Source: standard
+   accounting practice (the simple, cash-based roi taught in every
+   introductory finance course; see Brealey and Myers, Principles of
+   Corporate Finance, chapter 1).
+
+   Assumptions: the flows are the venture's net cash flows (revenue minus
+   running costs), and the 25000 is the whole investment. This simple roi
+   ignores WHEN the profits arrive; the sibling scripts npv and irr value
+   the timing, and a venture paying early is worth more than one paying
+   late at the same roi.
+
+   Accuracy: exact arithmetic, so the printed roi is exact.
+
+   Run it from a terminal:
+     epher "epher scripts/finance/investing/roi.epher"
+
+   The knobs to edit are in the knob section; everything after it is
+   machinery you can leave alone.
+   ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const invested = 25000      // money put into the venture, USD
@@ -34,10 +34,11 @@ print("roi:", (sum(flows) - invested) / invested)
 print("roi in percent:", (sum(flows) - invested) / invested * 100)
 // 40000 came back on 25000 put in: a 40% roi over the life of the venture,
 // which averages to about 13% a year before timing is considered.
-// ---- expected output ----
-// = 25000
-// = {8000, 12000, 15000}
-// = total returned over the three years: 35000
-// = net profit: 10000
-// = roi: 0.4
-// = roi in percent: 40
+/* ---- expected output ----
+= 25000
+= {8000, 12000, 15000}
+= total returned over the three years: 35000
+= net profit: 10000
+= roi: 0.4
+= roi in percent: 40
+*/

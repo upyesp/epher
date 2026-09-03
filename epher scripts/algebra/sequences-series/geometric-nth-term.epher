@@ -1,16 +1,16 @@
-// ============================================================================
-// geometric-nth-term.epher -- the n-th term of a geometric sequence
-//
-// A geometric sequence starts at a and multiplies by the common ratio r each
-// step, so the n-th term is t_n = a r^(n-1) (any algebra text, e.g. Stewart,
-// Redlin and Watson, "College Algebra", 7th ed., sec. 9.2). With a = 3,
-// r = 2 the sequence is 3, 6, 12, 24, ... and t_10 = 1536. All values are
-// exact.
-//
-// Run it from a terminal:  epher "epher scripts/algebra/sequences-series/geometric-nth-term.epher"
-//
-// The knobs to edit are a, r and n below.
-// ============================================================================
+/* ============================================================================
+   geometric-nth-term.epher -- the n-th term of a geometric sequence
+
+   A geometric sequence starts at a and multiplies by the common ratio r each
+   step, so the n-th term is t_n = a r^(n-1) (any algebra text, e.g. Stewart,
+   Redlin and Watson, "College Algebra", 7th ed., sec. 9.2). With a = 3,
+   r = 2 the sequence is 3, 6, 12, 24, ... and t_10 = 1536. All values are
+   exact.
+
+   Run it from a terminal:  epher "epher scripts/algebra/sequences-series/geometric-nth-term.epher"
+
+   The knobs to edit are a, r and n below.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 3                      // first term
@@ -25,11 +25,12 @@ print("t1:", gn(a, r, 1))
 print("t10:", gn(a, r, n))
 print("t10 / t9:", gn(a, r, n) / gn(a, r, n - 1))
 print("that ratio is r:", gn(a, r, n) / gn(a, r, n - 1) == r)
-// ---- expected output ----
-// = 3
-// = 2
-// = 10
-// = t1: 3
-// = t10: 1536
-// = t10 / t9: 2
-// = that ratio is r: true
+/* ---- expected output ----
+= 3
+= 2
+= 10
+= t1: 3
+= t10: 1536
+= t10 / t9: 2
+= that ratio is r: true
+*/

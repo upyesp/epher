@@ -1,22 +1,22 @@
-// ============================================================================
-// present-value.epher -- what a future sum is worth today at a discount rate
-//
-// A sum F received n years from now is worth F/(1+r)^n today when money can
-// grow at rate r: that is the present value. The script computes it two
-// ways that must agree: the bare formula, and the finance builtin tvm_pv,
-// which solves the same equation from the other end. Source: standard
-// finance formulas; see Kellison, The Theory of Interest, chapter 1.
-//
-// Accuracy: the two routes agree to all twelve displayed digits. The builtin
-// signs its answer negative (money out today, in the builtin's sign
-// convention); the sum itself is 20863.25.
-//
-// Run it from a terminal:
-//   epher "epher scripts/finance/interest/present-value.epher"
-//
-// The knobs to edit are in the knob section; everything after it is
-// machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   present-value.epher -- what a future sum is worth today at a discount rate
+
+   A sum F received n years from now is worth F/(1+r)^n today when money can
+   grow at rate r: that is the present value. The script computes it two
+   ways that must agree: the bare formula, and the finance builtin tvm_pv,
+   which solves the same equation from the other end. Source: standard
+   finance formulas; see Kellison, The Theory of Interest, chapter 1.
+
+   Accuracy: the two routes agree to all twelve displayed digits. The builtin
+   signs its answer negative (money out today, in the builtin's sign
+   convention); the sum itself is 20863.25.
+
+   Run it from a terminal:
+     epher "epher scripts/finance/interest/present-value.epher"
+
+   The knobs to edit are in the knob section; everything after it is
+   machinery you can leave alone.
+   ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const goal = 50000          // the future sum, USD
@@ -31,10 +31,11 @@ print("present value, formula fv/(1+r)^n:", goal / (1 + rate) ^ years)
 print("present value, builtin tvm_pv:", tvm_pv(years, rate, 0, goal))
 // Round trip: invest the present value at 6% and the goal comes back.
 print("compounding the pv forward returns:", tvm_fv(years, rate, tvm_pv(years, rate, 0, goal), 0))
-// ---- expected output ----
-// = 50000
-// = 0.06
-// = 15
-// = present value, formula fv/(1+r)^n: 20863.2530368
-// = present value, builtin tvm_pv: -20863.2530368
-// = compounding the pv forward returns: 50000
+/* ---- expected output ----
+= 50000
+= 0.06
+= 15
+= present value, formula fv/(1+r)^n: 20863.2530368
+= present value, builtin tvm_pv: -20863.2530368
+= compounding the pv forward returns: 50000
+*/

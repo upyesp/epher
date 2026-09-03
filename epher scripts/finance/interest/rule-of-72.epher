@@ -1,24 +1,24 @@
-// ============================================================================
-// rule-of-72.epher -- the Rule of 72 estimate of doubling time versus the
-// exact doubling time, for rates from 6% to 10%
-//
-// The Rule of 72 says money doubles in about 72/(100*r) years at annual
-// rate r, i.e. 72 divided by the rate in percent: 12 years at 6%. The exact
-// doubling time solves (1+r)^t = 2, so t = ln(2)/ln(1+r). This script prints
-// both side by side for every whole percent from 6 to 10. Source: standard
-// finance lore; the exact formula is Kellison, The Theory of Interest,
-// chapter 2. The rule stays within a few months of the truth across this
-// range.
-//
-// Accuracy: the exact times are irrational and print to 12 digits; 72/7
-// prints as the fraction 72/7 because its decimal repeats (epher's exact
-// fraction display shows the same number as 10.2857142857...).
-//
-// Run it from a terminal:
-//   epher "epher scripts/finance/interest/rule-of-72.epher"
-//
-// The rate range 6% to 10% is the rule's usual comfort zone.
-// ============================================================================
+/* ============================================================================
+   rule-of-72.epher -- the Rule of 72 estimate of doubling time versus the
+   exact doubling time, for rates from 6% to 10%
+
+   The Rule of 72 says money doubles in about 72/(100*r) years at annual
+   rate r, i.e. 72 divided by the rate in percent: 12 years at 6%. The exact
+   doubling time solves (1+r)^t = 2, so t = ln(2)/ln(1+r). This script prints
+   both side by side for every whole percent from 6 to 10. Source: standard
+   finance lore; the exact formula is Kellison, The Theory of Interest,
+   chapter 2. The rule stays within a few months of the truth across this
+   range.
+
+   Accuracy: the exact times are irrational and print to 12 digits; 72/7
+   prints as the fraction 72/7 because its decimal repeats (epher's exact
+   fraction display shows the same number as 10.2857142857...).
+
+   Run it from a terminal:
+     epher "epher scripts/finance/interest/rule-of-72.epher"
+
+   The rate range 6% to 10% is the rule's usual comfort zone.
+   ============================================================================ */
 
 // ---- helpers ----------------------------------------------------------------
 def doubletime(r) = ln(2) / ln(1 + r)   // exact doubling time at rate r, years
@@ -31,7 +31,8 @@ for p in 6 to 10 do {p, 72 / p, doubletime(p / 100)}
 // 11.8957, so the rule runs about 0.10 years (5 weeks) high.
 print("rule of 72 at 6%:", 72 / 6, "years")
 print("exact doubling time at 6%:", doubletime(6%))
-// ---- expected output ----
-// = {{6, 12, 11.8956610459}, {7, 72/7, 10.2447683511}, {8, 9, 9.006468342}, {9, 8, 8.04323172693}, {10, 7.2, 7.27254089734}}
-// = rule of 72 at 6%: 12 years
-// = exact doubling time at 6%: 11.8956610459
+/* ---- expected output ----
+= {{6, 12, 11.8956610459}, {7, 72/7, 10.2447683511}, {8, 9, 9.006468342}, {9, 8, 8.04323172693}, {10, 7.2, 7.27254089734}}
+= rule of 72 at 6%: 12 years
+= exact doubling time at 6%: 11.8956610459
+*/

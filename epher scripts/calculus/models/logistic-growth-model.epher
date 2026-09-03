@@ -1,24 +1,24 @@
-// ============================================================================
-// logistic-growth-model.epher -- growth with a carrying capacity
-//
-// The logistic model (Verhulst, 1838; Stewart, "Calculus", 8th ed.,
-// sec. 9.4) describes a population that levels off at a carrying
-// capacity K instead of growing without bound:
-//
-//   P(t) = K/(1 + A e^(-r t)),  with A = (K - P0)/P0
-//
-// The knobs below model a population of 100 that grows at rate r =
-// 0.1 per year toward capacity K = 1000, so A = 9. The script tabs
-// P(t), notes that P tends to K (after 100 years it is within 0.5 of
-// the capacity), and locates the half-capacity time ln(A)/r = 21.97
-// years, where P = K/2 = 500.
-//
-// Accuracy: values print as the calculator shows them; the boolean
-// checks agree to better than 1e-9 at half capacity.
-//
-// Run:  epher "epher scripts/calculus/models/logistic-growth-model.epher"
-// The knobs to edit are `K`, `p0`, `r` and `ts` below.
-// ============================================================================
+/* ============================================================================
+   logistic-growth-model.epher -- growth with a carrying capacity
+
+   The logistic model (Verhulst, 1838; Stewart, "Calculus", 8th ed.,
+   sec. 9.4) describes a population that levels off at a carrying
+   capacity K instead of growing without bound:
+
+     P(t) = K/(1 + A e^(-r t)),  with A = (K - P0)/P0
+
+   The knobs below model a population of 100 that grows at rate r =
+   0.1 per year toward capacity K = 1000, so A = 9. The script tabs
+   P(t), notes that P tends to K (after 100 years it is within 0.5 of
+   the capacity), and locates the half-capacity time ln(A)/r = 21.97
+   years, where P = K/2 = 500.
+
+   Accuracy: values print as the calculator shows them; the boolean
+   checks agree to better than 1e-9 at half capacity.
+
+   Run:  epher "epher scripts/calculus/models/logistic-growth-model.epher"
+   The knobs to edit are `K`, `p0`, `r` and `ts` below.
+   ============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const K = 1000                 // carrying capacity
@@ -40,15 +40,16 @@ print("half-capacity time ln(A)/r, years:", ln(A)/r)
 print("population there:", pop(ln(A)/r))
 abs(pop(ln(A)/r) - K/2) < 1e-6
 
-// ---- expected output ---------------------------------------------------------
-// = 1000
-// = 100
-// = 0.1
-// = {0, 20, 50, 100}
-// = 9
-// = {100, 450.853060379, 942.825618574, 999.591567517}
-// = gap to K after 100 years: 0.408432482608
-// = true
-// = half-capacity time ln(A)/r, years: 21.9722457734
-// = population there: 500
-// = true
+/* ---- expected output ---------------------------------------------------------
+= 1000
+= 100
+= 0.1
+= {0, 20, 50, 100}
+= 9
+= {100, 450.853060379, 942.825618574, 999.591567517}
+= gap to K after 100 years: 0.408432482608
+= true
+= half-capacity time ln(A)/r, years: 21.9722457734
+= population there: 500
+= true
+*/

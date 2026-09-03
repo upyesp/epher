@@ -1,21 +1,21 @@
-// ============================================================================
-// law-of-sines.epher -- two angles and one side (AAS and ASA)
-//
-// The law of sines, a / sin A = b / sin B = c / sin C, solves any triangle
-// once one side and its opposite angle are known. Given angles A and B and
-// side a (the AAS case), C = 180 - A - B follows from the angle sum and
-// then b = a sin B / sin A and c = a sin C / sin A. Given the side c
-// between A and B instead (the ASA case), the same C gives
-// a = c sin A / sin C. Angles come in degrees through the knobs and are
-// converted with rad() for the builtin trig; the sides keep meters.
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/triangles/law-of-sines.epher"
-// In the REPL:             load epher scripts/trigonometry/triangles/law-of-sines.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are the angles A and B (degrees) and the two given
-// sides below. Printed values carry about 12 significant digits.
-// ============================================================================
+/* ============================================================================
+   law-of-sines.epher -- two angles and one side (AAS and ASA)
+
+   The law of sines, a / sin A = b / sin B = c / sin C, solves any triangle
+   once one side and its opposite angle are known. Given angles A and B and
+   side a (the AAS case), C = 180 - A - B follows from the angle sum and
+   then b = a sin B / sin A and c = a sin C / sin A. Given the side c
+   between A and B instead (the ASA case), the same C gives
+   a = c sin A / sin C. Angles come in degrees through the knobs and are
+   converted with rad() for the builtin trig; the sides keep meters.
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/triangles/law-of-sines.epher"
+   In the REPL:             load epher scripts/trigonometry/triangles/law-of-sines.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are the angles A and B (degrees) and the two given
+   sides below. Printed values carry about 12 significant digits.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const A = 40        // angle at A, degrees (shared by both problems)
@@ -45,15 +45,16 @@ print("b / sin B =", side_b(a_side, A, B) / sin(rad(B)))
 // ASA problem: the same angles with the side between them, c = 100 m.
 print("ASA: side a:", side_a_asa(c_side, A, B))
 print("ASA: side b:", side_b_asa(c_side, A, B))
-// ---- expected output
-// = 40
-// = 60
-// = 10 m
-// = 100 m
-// = angle C: 80 deg
-// = AAS: side b: 13.4729635533 m
-// = AAS: side c: 15.3208888624 m
-// = a / sin A = 15.5572382686 m
-// = b / sin B = 15.5572382686 m
-// = ASA: side a: 65.2703644666 m
-// = ASA: side b: 87.9385241572 m
+/* ---- expected output
+= 40
+= 60
+= 10 m
+= 100 m
+= angle C: 80 deg
+= AAS: side b: 13.4729635533 m
+= AAS: side c: 15.3208888624 m
+= a / sin A = 15.5572382686 m
+= b / sin B = 15.5572382686 m
+= ASA: side a: 65.2703644666 m
+= ASA: side b: 87.9385241572 m
+*/

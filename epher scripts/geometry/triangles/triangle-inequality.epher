@@ -1,18 +1,18 @@
-// ============================================================================
-// triangle-inequality.epher -- do three lengths make a triangle?
-//
-// Three lengths a, b, c bound a triangle exactly when every side is
-// shorter than the sum of the other two: a + b > c and a + c > b and
-// b + c > a (Euclid's Elements, book I, proposition 20; standard
-// formula). The comparison is strict: a + b = c means the three points
-// are collinear, a degenerate triangle, so those triples report false.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/triangles/triangle-inequality.epher"
-// In the REPL:             load epher scripts/geometry/triangles/triangle-inequality.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The triples to test are in the results section below; edit them there.
-// ============================================================================
+/* ============================================================================
+   triangle-inequality.epher -- do three lengths make a triangle?
+
+   Three lengths a, b, c bound a triangle exactly when every side is
+   shorter than the sum of the other two: a + b > c and a + c > b and
+   b + c > a (Euclid's Elements, book I, proposition 20; standard
+   formula). The comparison is strict: a + b = c means the three points
+   are collinear, a degenerate triangle, so those triples report false.
+
+   Run it from a terminal:  epher "epher scripts/geometry/triangles/triangle-inequality.epher"
+   In the REPL:             load epher scripts/geometry/triangles/triangle-inequality.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The triples to test are in the results section below; edit them there.
+   ============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 // Strict triangle inequality on all three pairs of sides.
@@ -25,10 +25,11 @@ print("1, 1, 1:", valid(1, 1, 1))
 print("1, 2, 3 (collinear):", valid(1, 2, 3))
 print("1, 1, 2 (collinear):", valid(1, 1, 2))
 print("3, 4, 8 (too long):", valid(3, 4, 8))
-// ---- expected output ----
-// = 2, 3, 4: true
-// = 5, 12, 13: true
-// = 1, 1, 1: true
-// = 1, 2, 3 (collinear): false
-// = 1, 1, 2 (collinear): false
-// = 3, 4, 8 (too long): false
+/* ---- expected output ----
+= 2, 3, 4: true
+= 5, 12, 13: true
+= 1, 1, 1: true
+= 1, 2, 3 (collinear): false
+= 1, 1, 2 (collinear): false
+= 3, 4, 8 (too long): false
+*/

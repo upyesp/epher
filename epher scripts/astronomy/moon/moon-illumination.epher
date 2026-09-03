@@ -1,47 +1,48 @@
-// ============================================================================
-// moon-illumination.epher -- the Moon's lit fraction across one month
-//
-// The illuminated fraction of the Moon's disk (0 = new moon, 1 = full) on
-// five dates of one month, from the built-in ephemeris accessor illum
-// (the solar-ephemeris crate, JPL-validated; guide 1.16). The accessor
-// rounds the fraction to four decimals. Full moon is the instant the
-// Sun-Moon-Earth angle at the Moon is smallest, and that angle never
-// reaches zero because the Moon's orbit is tilted about 5 deg to the
-// ecliptic: illum tops out near 0.9986-0.9988, not 1. In June 2026 the
-// full moon falls on the 29th at about 23:58 UT and the new moon on the
-// 15th (see full-moons.epher in this folder for the full-moon series).
-//
-// Run it from a terminal:  epher "epher scripts/astronomy/moon/moon-illumination.epher"
-// In the REPL:             load epher scripts/astronomy/moon/moon-illumination.epher
-//
-// Knobs: year, month, and the sample days of the month.
-// ============================================================================
+/* ============================================================================
+   moon-illumination.epher -- the Moon's lit fraction across one month
+
+   The illuminated fraction of the Moon's disk (0 = new moon, 1 = full) on
+   five dates of one month, from the built-in ephemeris accessor illum
+   (the solar-ephemeris crate, JPL-validated; guide 1.16). The accessor
+   rounds the fraction to four decimals. Full moon is the instant the
+   Sun-Moon-Earth angle at the Moon is smallest, and that angle never
+   reaches zero because the Moon's orbit is tilted about 5 deg to the
+   ecliptic: illum tops out near 0.9986-0.9988, not 1. In June 2026 the
+   full moon falls on the 29th at about 23:58 UT and the new moon on the
+   15th (see full-moons.epher in this folder for the full-moon series).
+
+   Run it from a terminal:  epher "epher scripts/astronomy/moon/moon-illumination.epher"
+   In the REPL:             load epher scripts/astronomy/moon/moon-illumination.epher
+
+   Knobs: year, month, and the sample days of the month.
+   ============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const year = 2026
 const month = 6
 const days = {1, 8, 15, 22, 29}     // sample dates; 15 is new moon, 29 full
 
-// ---- results ----------------------------------------------------------------
-// One value per sample day, collected by the for loop (guide 1.30): the
-// month wanes from 0.9946 (just past full), through last quarter (day 8)
-// and new moon (day 15, near 0), then waxes through first quarter (day 22)
-// toward the full moon of June 29. The fraction is rounded to 4 decimals.
+/* ---- results ----------------------------------------------------------------
+   One value per sample day, collected by the for loop (guide 1.30): the
+   month wanes from 0.9946 (just past full), through last quarter (day 8)
+   and new moon (day 15, near 0), then waxes through first quarter (day 22)
+   toward the full moon of June 29. The fraction is rounded to 4 decimals. */
 for d in days do illum(11, jd(year, month, d))
 
-// The extremes, labelled. Near new moon the lit sliver is 0.0019, not 0:
-// alignment is never exact. At the full instant (23:58 UT on the 29th,
-// from the Meeus series of full-moons.epher) illum reads 0.9988: the 5 deg
-// tilt leaves a phase angle of a few degrees, so the face is not quite
-// all-lit. Moon-illumination and moon-phase-angle in this folder show the
-// same days; moon-phase-angle.epher relates illum to the phase angle.
+/* The extremes, labelled. Near new moon the lit sliver is 0.0019, not 0:
+   alignment is never exact. At the full instant (23:58 UT on the 29th,
+   from the Meeus series of full-moons.epher) illum reads 0.9988: the 5 deg
+   tilt leaves a phase angle of a few degrees, so the face is not quite
+   all-lit. Moon-illumination and moon-phase-angle in this folder show the
+   same days; moon-phase-angle.epher relates illum to the phase angle. */
 print("near new moon (day 15):", illum(11, jd(year, month, 15)))
 print("full instant (day 29, 23.97 hr UT):", illum(11, jd(year, month, 29, 23.97)))
 
-// ---- expected output ----
-// = 2026
-// = 6
-// = {1, 8, 15, 22, 29}
-// = {0.9946, 0.5447, 0.0019, 0.5102, 0.9894}
-// = near new moon (day 15): 0.0019
-// = full instant (day 29, 23.97 hr UT): 0.9988
+/* ---- expected output ----
+= 2026
+= 6
+= {1, 8, 15, 22, 29}
+= {0.9946, 0.5447, 0.0019, 0.5102, 0.9894}
+= near new moon (day 15): 0.0019
+= full instant (day 29, 23.97 hr UT): 0.9988
+*/

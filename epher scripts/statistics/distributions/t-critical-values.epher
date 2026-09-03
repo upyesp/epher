@@ -1,20 +1,20 @@
-// ============================================================================
-// t-critical-values.epher -- t cut points for common levels and df
-//
-// The t distribution cut points t such that P(T <= t) equals the
-// probability in `p` with the given degrees of freedom, from the builtin
-// invt (guide 1.20). The 97.5th percentile with 10 df is the 2.2281 of
-// two-sided 95 percent intervals. As the degrees of freedom grow the t
-// approaches the standard normal, so the last line compares invt with
-// 60 df against invnorm(0.975) = 1.96.
-//
-// Run it from a terminal:  epher "epher scripts/statistics/distributions/t-critical-values.epher"
-// In the REPL:             load epher scripts/statistics/distributions/t-critical-values.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// No knobs: the levels and degrees of freedom below are the demonstration.
-// ============================================================================
+/* ============================================================================
+   t-critical-values.epher -- t cut points for common levels and df
+
+   The t distribution cut points t such that P(T <= t) equals the
+   probability in `p` with the given degrees of freedom, from the builtin
+   invt (guide 1.20). The 97.5th percentile with 10 df is the 2.2281 of
+   two-sided 95 percent intervals. As the degrees of freedom grow the t
+   approaches the standard normal, so the last line compares invt with
+   60 df against invnorm(0.975) = 1.96.
+
+   Run it from a terminal:  epher "epher scripts/statistics/distributions/t-critical-values.epher"
+   In the REPL:             load epher scripts/statistics/distributions/t-critical-values.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   No knobs: the levels and degrees of freedom below are the demonstration.
+   ============================================================================ */
 
 // ---- the cut points -------------------------------------------------------------------
 print("invt(0.975, 10):", invt(0.975, 10))    // the 95% two-sided t with 10 df
@@ -28,10 +28,11 @@ print("tcdf(invt(0.975, 10), 10):", tcdf(invt(0.975, 10), 10))
 print("invt(0.975, 60):", invt(0.975, 60))
 print("invnorm(0.975):", invnorm(0.975))
 
-// ---- expected output ----
-// = invt(0.975, 10): 2.22813885199
-// = invt(0.95, 20): 1.72471824292
-// = invt(0.995, 30): 2.74999565357
-// = tcdf(invt(0.975, 10), 10): 0.975
-// = invt(0.975, 60): 2.00029782202
-// = invnorm(0.975): 1.95996398454
+/* ---- expected output ----
+= invt(0.975, 10): 2.22813885199
+= invt(0.95, 20): 1.72471824292
+= invt(0.995, 30): 2.74999565357
+= tcdf(invt(0.975, 10), 10): 0.975
+= invt(0.975, 60): 2.00029782202
+= invnorm(0.975): 1.95996398454
+*/

@@ -1,21 +1,21 @@
-// ============================================================================
-// gcd-of-a-list.epher -- the greatest common divisor of several numbers
-//
-// Reduces a list of numbers to one gcd by nesting the two-argument
-// builtin: gcd(gcd(a, b), c) divides a, b and c, and no larger number
-// does, because gcd is associative. The script demonstrates the builtin;
-// it does not reimplement it. The checks: the numbers 48, 36 and 60
-// share the factor 12, and 14, 21 and 28 share 7.
-//
-// Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
-// ch. 1 (the gcd, and its associativity). gcd is exact.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/divisors/gcd-of-a-list.epher"
-// In the REPL:             load epher scripts/number-theory/divisors/gcd-of-a-list.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// There is no knob: the sample lists are the point of the script.
-// ============================================================================
+/* ============================================================================
+   gcd-of-a-list.epher -- the greatest common divisor of several numbers
+
+   Reduces a list of numbers to one gcd by nesting the two-argument
+   builtin: gcd(gcd(a, b), c) divides a, b and c, and no larger number
+   does, because gcd is associative. The script demonstrates the builtin;
+   it does not reimplement it. The checks: the numbers 48, 36 and 60
+   share the factor 12, and 14, 21 and 28 share 7.
+
+   Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+   ch. 1 (the gcd, and its associativity). gcd is exact.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/divisors/gcd-of-a-list.epher"
+   In the REPL:             load epher scripts/number-theory/divisors/gcd-of-a-list.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   There is no knob: the sample lists are the point of the script.
+   ============================================================================ */
 
 // ---- reductions of three numbers at a time --------------------------------------
 print("gcd of 48, 36 and 60:", gcd(gcd(48, 36), 60))      // gcd(12, 60) = 12
@@ -28,11 +28,12 @@ print("gcd of 12, 18 and 30:", gcd(gcd(12, 18), 30))      // gcd(6, 30) = 6
 // Four numbers reduce the same way, folding from the left.
 print("gcd of 8, 12, 16 and 20:", gcd(gcd(gcd(8, 12), 16), 20))  // 4
 print("gcd of 6, 10, 15 and 21:", gcd(gcd(gcd(6, 10), 15), 21))  // 1: coprime group
-// ---- expected output ----
-// = gcd of 48, 36 and 60: 12
-// = gcd of 24, 36 and 60: 12
-// = gcd of 14, 21 and 28: 7
-// = gcd of 15, 25 and 40: 5
-// = gcd of 12, 18 and 30: 6
-// = gcd of 8, 12, 16 and 20: 4
-// = gcd of 6, 10, 15 and 21: 1
+/* ---- expected output ----
+= gcd of 48, 36 and 60: 12
+= gcd of 24, 36 and 60: 12
+= gcd of 14, 21 and 28: 7
+= gcd of 15, 25 and 40: 5
+= gcd of 12, 18 and 30: 6
+= gcd of 8, 12, 16 and 20: 4
+= gcd of 6, 10, 15 and 21: 1
+*/

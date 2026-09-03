@@ -1,18 +1,18 @@
-// ============================================================================
-// parallelogram-area.epher -- area from a base and its height
-//
-// A parallelogram of base b and height h (perpendicular distance between
-// the parallel sides) has area A = b h, because shearing along the base
-// preserves area and turns it into a rectangle (Euclid's Elements,
-// book I, proposition 35; standard formula). All results are exact.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/polygons/parallelogram-area.epher"
-// In the REPL:             load epher scripts/geometry/polygons/parallelogram-area.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are `b` (the base) and `h` (the height to it).
-// Everything above the results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   parallelogram-area.epher -- area from a base and its height
+
+   A parallelogram of base b and height h (perpendicular distance between
+   the parallel sides) has area A = b h, because shearing along the base
+   preserves area and turns it into a rectangle (Euclid's Elements,
+   book I, proposition 35; standard formula). All results are exact.
+
+   Run it from a terminal:  epher "epher scripts/geometry/polygons/parallelogram-area.epher"
+   In the REPL:             load epher scripts/geometry/polygons/parallelogram-area.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are `b` (the base) and `h` (the height to it).
+   Everything above the results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const b = 9
@@ -25,9 +25,10 @@ def area(b, h) = b * h   // A = b h
 print("area:", area(b, h))
 print("base 6, height 3.5:", area(6, 3.5))
 print("rectangle with the same base and height:", area(b, h) == 9 * 5)
-// ---- expected output ----
-// = 9
-// = 5
-// = area: 45
-// = base 6, height 3.5: 21
-// = rectangle with the same base and height: true
+/* ---- expected output ----
+= 9
+= 5
+= area: 45
+= base 6, height 3.5: 21
+= rectangle with the same base and height: true
+*/

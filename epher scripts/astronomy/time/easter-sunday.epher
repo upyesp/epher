@@ -1,21 +1,21 @@
-// ============================================================================
-// easter-sunday.epher -- the date of Easter for several years
-//
-// Computes Gregorian Easter for a list of years with the computus of
-// chapter 8 of Jean Meeus, "Astronomical Algorithms" (2nd ed.,
-// Willmann-Bell, 1998): a chain of integer divisions and remainders
-// (floor and mod) on the year, ending in the month (March or April)
-// and day. The algorithm is exact integer arithmetic, so the results
-// are exact for every Gregorian year from 1583 on. Easter always falls
-// between March 22 and April 25; 2038 (April 25) is the latest it can
-// be. The dates were checked against python's datetime (each one is a
-// Sunday), and the expected output records them.
-//
-// Run it from a terminal:  epher "epher scripts/astronomy/time/easter-sunday.epher"
-// In the REPL:             load epher scripts/astronomy/time/easter-sunday.epher
-//
-// Knob: the list of years below.
-// ============================================================================
+/* ============================================================================
+   easter-sunday.epher -- the date of Easter for several years
+
+   Computes Gregorian Easter for a list of years with the computus of
+   chapter 8 of Jean Meeus, "Astronomical Algorithms" (2nd ed.,
+   Willmann-Bell, 1998): a chain of integer divisions and remainders
+   (floor and mod) on the year, ending in the month (March or April)
+   and day. The algorithm is exact integer arithmetic, so the results
+   are exact for every Gregorian year from 1583 on. Easter always falls
+   between March 22 and April 25; 2038 (April 25) is the latest it can
+   be. The dates were checked against python's datetime (each one is a
+   Sunday), and the expected output records them.
+
+   Run it from a terminal:  epher "epher scripts/astronomy/time/easter-sunday.epher"
+   In the REPL:             load epher scripts/astronomy/time/easter-sunday.epher
+
+   Knob: the list of years below.
+   ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const years = {2000, 2024, 2025, 2026, 2027, 2038}
@@ -57,13 +57,14 @@ def sunday(y) = mod(floor(jd(y, emonth(y), eday(y)) + 1.5), 7) == 0
 print("computed Easter 2026 is a Sunday:", sunday(2026))
 print("computed Easter 2038 is a Sunday:", sunday(2038))
 
-// ---- expected output ----
-// = {2000, 2024, 2025, 2026, 2027, 2038}
-// = Easter 2000: 2000-04-23
-// = Easter 2024: 2024-03-31
-// = Easter 2025: 2025-04-20
-// = Easter 2026: 2026-04-05
-// = Easter 2027: 2027-03-28
-// = Easter 2038: 2038-04-25
-// = computed Easter 2026 is a Sunday: true
-// = computed Easter 2038 is a Sunday: true
+/* ---- expected output ----
+= {2000, 2024, 2025, 2026, 2027, 2038}
+= Easter 2000: 2000-04-23
+= Easter 2024: 2024-03-31
+= Easter 2025: 2025-04-20
+= Easter 2026: 2026-04-05
+= Easter 2027: 2027-03-28
+= Easter 2038: 2038-04-25
+= computed Easter 2026 is a Sunday: true
+= computed Easter 2038 is a Sunday: true
+*/

@@ -33,7 +33,7 @@ and that block is checked mechanically by `scripts/check-scripts.mjs`.
 
 ## Running a script
 
-From a terminal (the CLI runs every line in order and prints each
+From a terminal (the CLI runs every statement in order and prints each
 statement's value):
 
 ```sh
@@ -53,17 +53,15 @@ the TUI. See the guide, chapter 4, for scripts, `save` and `load`.
 ## The format standard
 
 The language shapes the format: a script file runs **one statement per
-line** (`;` joins statements on a line), comments are PHP-style (`//` or
-`#` to the end of the line, and `/* ... */` between tokens on one line;
-none of them can span lines in a script file, because a script is read
-line by line), and every statement's value shows as epher displays it,
-exact fractions included. The reference example turns those facts into a
-house style:
+line** (`;` joins statements on a line), and every statement's value
+shows as epher displays it, exact fractions included. A script file is a
+whole program, so block comments may span lines in it. The reference
+example turns those facts into a house style:
 
-1. **Header comment first.** A `// ===` banner, then `name.epher -- one
-   line saying what it does`, the algorithm and its published source, an
-   honest accuracy statement, how to run the script, and what the file
-   demonstrates.
+1. **Header comment first.** A `/* === ... === */` banner block, then
+   `name.epher -- one line saying what it does`, the algorithm and its
+   published source, an honest accuracy statement, how to run the
+   script, and what the file demonstrates.
 2. **Knobs at the top.** Every value a user might change is one `const`
    in a clearly marked block right after the header. Nothing to edit
    below it.
@@ -90,10 +88,11 @@ house style:
    Order outputs the way a reader wants them; one line, one answer.
    Values that are display strings (solve, linreg, the tests) print as
    they are. Keep printed lines short enough not to wrap at 80 columns.
-9. **Show the expected output.** End with `// ---- expected output ----`
-   and the shipped default's transcript as `// = ...` comment lines, so
-   anyone can check their build and their edit. `scripts/check-scripts.mjs`
-   runs every script and compares its transcript to that block.
+9. **Show the expected output.** End with a `/* ---- expected output
+   ---- ... */` block holding the shipped default's transcript, one line
+   per output line, so anyone can check their build and their edit.
+   `scripts/check-scripts.mjs` runs every script and compares its
+   transcript to that block.
 10. **Determinism.** No `now()`; any randomness is seeded with
     `randseed(n)` first (guide 1.23). Everything else must print the
     same transcript on every machine.
@@ -109,14 +108,30 @@ author needs every day.
 
 **Statements.** One per line; `;` joins them. `def f(x) = expr` defines
  a function (silent), `const name = expr` a knob (prints its value),
-`name = expr` assigns (prints its value), a bare expression prints its
-value, and `//`, `#` and `/* */` comment. Strings hold no escape
-sequences, so a `"` cannot appear inside a string. A `def` body sees its
-parameters, the builtins, `const` names, and other `def` names; it
-cannot read a variable set with `=` (use `const` for a value a helper
-needs), and it sees only the `const` names and `def` names that were
-already defined when the `def` line ran (define helpers in dependency
-order, like the reference example).
+`name = expr` assigns (prints its value), and a bare expression prints
+its value. Strings hold no escape sequences, so a `"` cannot appear
+inside a string. A `def` body sees its parameters, the builtins,
+`const` names, and other `def` names; it cannot read a variable set
+with `=` (use `const` for a value a helper needs), and it sees only the
+`const` names and `def` names that were already defined when the `def`
+line ran (define helpers in dependency order, like the reference
+example).
+
+**Comments.** `//` or `#` comments to the end of the line; `/* ... */`
+is a block comment. The house rules for which style to use:
+
+- more than three consecutive comment lines become one block comment
+  (`/*` on the first line, `*/` on the last), the header banner
+  included;
+- three or fewer consecutive comment lines keep the `//` style, one
+  `//` per line;
+- a note at the end of a statement line uses `//` after the statement;
+- a comment never sits inside a statement (never between the tokens of
+  one statement).
+
+In whole-program input (a script file, a pasted program) a block
+comment may span lines; in line-oriented entry (typing into the REPL or
+TUI, or a piped script) a block comment closes on its own line.
 
 **Values.** Numbers, exact fractions (`1/3` prints as `1/3`, while
 `10/4` prints `2.5`), strings (`"..."`, `+` joins, `s[i]` is the i-th

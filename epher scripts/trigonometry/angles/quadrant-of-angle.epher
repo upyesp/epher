@@ -1,20 +1,20 @@
-// ============================================================================
-// quadrant-of-angle.epher -- which quadrant an angle lands in
-//
-// An angle in standard position lands in one of four quadrants, or on an
-// axis when it is a multiple of 90 deg. The recipe: reduce the angle to
-// [0, 360) (see coterminal-angles.epher in this folder), then compare with
-// the four boundaries 0, 90, 180 and 270 deg. The boundaries are checked
-// first, so 90 deg reports the positive y-axis and 270 the negative one,
-// not a quadrant.
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/angles/quadrant-of-angle.epher"
-// In the REPL:             load epher scripts/trigonometry/angles/quadrant-of-angle.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The one knob to edit is the `angs` list below (degrees); an axis angle,
-// a negative angle and an angle past a turn are included on purpose.
-// ============================================================================
+/* ============================================================================
+   quadrant-of-angle.epher -- which quadrant an angle lands in
+
+   An angle in standard position lands in one of four quadrants, or on an
+   axis when it is a multiple of 90 deg. The recipe: reduce the angle to
+   [0, 360) (see coterminal-angles.epher in this folder), then compare with
+   the four boundaries 0, 90, 180 and 270 deg. The boundaries are checked
+   first, so 90 deg reports the positive y-axis and 270 the negative one,
+   not a quadrant.
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/angles/quadrant-of-angle.epher"
+   In the REPL:             load epher scripts/trigonometry/angles/quadrant-of-angle.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The one knob to edit is the `angs` list below (degrees); an axis angle,
+   a negative angle and an angle past a turn are included on purpose.
+   ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const angs = {45, 135, 225, 315, 0, 90, 180, 270, -90, 390}   // angles, in degrees
@@ -36,15 +36,16 @@ print(angs[7], "deg ->", quad(angs[7]))
 print(angs[8], "deg ->", quad(angs[8]))
 print(angs[9], "deg ->", quad(angs[9]))
 print(angs[10], "deg ->", quad(angs[10]))
-// ---- expected output
-// = {45, 135, 225, 315, 0, 90, 180, 270, -90, 390}
-// = 45 deg -> quadrant I
-// = 135 deg -> quadrant II
-// = 225 deg -> quadrant III
-// = 315 deg -> quadrant IV
-// = 0 deg -> the positive x-axis
-// = 90 deg -> the positive y-axis
-// = 180 deg -> the negative x-axis
-// = 270 deg -> the negative y-axis
-// = -90 deg -> the negative y-axis
-// = 390 deg -> quadrant I
+/* ---- expected output
+= {45, 135, 225, 315, 0, 90, 180, 270, -90, 390}
+= 45 deg -> quadrant I
+= 135 deg -> quadrant II
+= 225 deg -> quadrant III
+= 315 deg -> quadrant IV
+= 0 deg -> the positive x-axis
+= 90 deg -> the positive y-axis
+= 180 deg -> the negative x-axis
+= 270 deg -> the negative y-axis
+= -90 deg -> the negative y-axis
+= 390 deg -> quadrant I
+*/

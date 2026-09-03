@@ -1,20 +1,20 @@
-// ============================================================================
-// coefficient-of-variation.epher -- spread relative to the mean, as a percent
-//
-// The coefficient of variation of two datasets, stdev / mean as a percent:
-// a unit-free spread measure that lets datasets with different means or
-// units be compared. Ten exam scores (mean 81.3) scatter more, relative
-// to their mean, than eight adult heights in centimeters (mean 174).
-// The stdev here is the population version (the builtin divides by n).
-//
-// Run it from a terminal:  epher "epher scripts/statistics/summary/coefficient-of-variation.epher"
-// In the REPL:             load epher scripts/statistics/summary/coefficient-of-variation.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// The knobs to edit are `d` and `h` below. Everything above the results
-// section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   coefficient-of-variation.epher -- spread relative to the mean, as a percent
+
+   The coefficient of variation of two datasets, stdev / mean as a percent:
+   a unit-free spread measure that lets datasets with different means or
+   units be compared. Ten exam scores (mean 81.3) scatter more, relative
+   to their mean, than eight adult heights in centimeters (mean 174).
+   The stdev here is the population version (the builtin divides by n).
+
+   Run it from a terminal:  epher "epher scripts/statistics/summary/coefficient-of-variation.epher"
+   In the REPL:             load epher scripts/statistics/summary/coefficient-of-variation.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   The knobs to edit are `d` and `h` below. Everything above the results
+   section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, out of 100
@@ -30,12 +30,13 @@ print("exam scores, stdev:", stdev(d))
 print("heights, mean:", mean(h))
 print("heights, stdev:", stdev(h))
 
-// ---- expected output ----
-// = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-// = {170, 175, 168, 182, 177, 171, 169, 180}
-// = exam scores, CV: 11.5653864678 percent
-// = heights, CV: 2.84468245305 percent
-// = exam scores, mean: 81.3
-// = exam scores, stdev: 9.40265919833
-// = heights, mean: 174
-// = heights, stdev: 4.94974746831
+/* ---- expected output ----
+= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
+= {170, 175, 168, 182, 177, 171, 169, 180}
+= exam scores, CV: 11.5653864678 percent
+= heights, CV: 2.84468245305 percent
+= exam scores, mean: 81.3
+= exam scores, stdev: 9.40265919833
+= heights, mean: 174
+= heights, stdev: 4.94974746831
+*/

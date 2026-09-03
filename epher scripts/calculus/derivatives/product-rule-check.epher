@@ -1,21 +1,21 @@
-// ============================================================================
-// product-rule-check.epher -- derivative of x^2 sin(x) vs the product rule
-//
-// For f(x) = x^2 sin(x) the product rule gives f'(x) = 2x sin(x) +
-// x^2 cos(x) (Stewart, "Calculus", 8th ed., sec. 3.2). The builtin
-// derivative works on one expression in one free variable, so the check
-// writes the product directly inside derivative(f(x), p) and compares
-// with the rule applied by hand at three points.
-//
-// The three points (0.7, 1.5, 2.5) exercise the rule away from the
-// origin, where neither term of the product dominates.
-//
-// Accuracy: the boolean residuals are checked at 1e-9; the largest of
-// the three is about 2e-12.
-//
-// Run:  epher "epher scripts/calculus/derivatives/product-rule-check.epher"
-// No knobs: the three points are the demonstration.
-// ============================================================================
+/* ============================================================================
+   product-rule-check.epher -- derivative of x^2 sin(x) vs the product rule
+
+   For f(x) = x^2 sin(x) the product rule gives f'(x) = 2x sin(x) +
+   x^2 cos(x) (Stewart, "Calculus", 8th ed., sec. 3.2). The builtin
+   derivative works on one expression in one free variable, so the check
+   writes the product directly inside derivative(f(x), p) and compares
+   with the rule applied by hand at three points.
+
+   The three points (0.7, 1.5, 2.5) exercise the rule away from the
+   origin, where neither term of the product dominates.
+
+   Accuracy: the boolean residuals are checked at 1e-9; the largest of
+   the three is about 2e-12.
+
+   Run:  epher "epher scripts/calculus/derivatives/product-rule-check.epher"
+   No knobs: the three points are the demonstration.
+   ============================================================================ */
 
 // ---- helpers ----------------------------------------------------------------
 def f(x) = x^2*sin(x)
@@ -36,13 +36,14 @@ derivative(f(x), 2.5)
 fp(2.5)
 abs(derivative(f(x), 2.5) - fp(2.5)) < 1e-9
 
-// ---- expected output ---------------------------------------------------------
-// = 1.2766774339
-// = 1.2766774339
-// = true
-// = 3.15164366357
-// = 3.15164366356
-// = true
-// = -2.01478687665
-// = -2.01478687665
-// = true
+/* ---- expected output ---------------------------------------------------------
+= 1.2766774339
+= 1.2766774339
+= true
+= 3.15164366357
+= 3.15164366356
+= true
+= -2.01478687665
+= -2.01478687665
+= true
+*/

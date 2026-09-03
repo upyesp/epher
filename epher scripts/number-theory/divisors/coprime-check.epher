@@ -1,23 +1,23 @@
-// ============================================================================
-// coprime-check.epher -- when gcd(a, b) = 1, and how many pairs qualify
-//
-// Two numbers are coprime when their gcd is 1. The script checks named
-// pairs with the gcd builtin, then counts the coprime pairs a < b below a
-// small bound with a packed while loop (guide 1.30). The count walks all
-// pairs (a, b) with 1 <= a < b <= n; its cross-check is the classical
-// count by Euler's totient: for each b exactly totient(b) values of a
-// below b are coprime to it.
-//
-// Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
-// ch. 1 (coprime numbers) and ch. 5 (Euler's totient). All counts are
-// exact.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/divisors/coprime-check.epher"
-// In the REPL:             load epher scripts/number-theory/divisors/coprime-check.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The one knob to edit is `n` below (the bound of the pair count).
-// ============================================================================
+/* ============================================================================
+   coprime-check.epher -- when gcd(a, b) = 1, and how many pairs qualify
+
+   Two numbers are coprime when their gcd is 1. The script checks named
+   pairs with the gcd builtin, then counts the coprime pairs a < b below a
+   small bound with a packed while loop (guide 1.30). The count walks all
+   pairs (a, b) with 1 <= a < b <= n; its cross-check is the classical
+   count by Euler's totient: for each b exactly totient(b) values of a
+   below b are coprime to it.
+
+   Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+   ch. 1 (coprime numbers) and ch. 5 (Euler's totient). All counts are
+   exact.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/divisors/coprime-check.epher"
+   In the REPL:             load epher scripts/number-theory/divisors/coprime-check.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The one knob to edit is `n` below (the bound of the pair count).
+   ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const n = 10
@@ -43,14 +43,15 @@ print("coprime pairs a < b <= " + str(n) + ":", v[3])
 // For each b from 2 to n, exactly totient(b) smaller values of a are
 // coprime to b, so the two counts must agree.
 print("sum of totients 2 to " + str(n) + ":", totient(2) + totient(3) + totient(4) + totient(5) + totient(6) + totient(7) + totient(8) + totient(9) + totient(10))
-// ---- expected output ----
-// = 10
-// = gcd(14, 15): 1
-// = gcd(17, 19): 1
-// = gcd(21, 22): 1
-// = gcd(8, 12): 4
-// = gcd(35, 49): 7
-// = 14 and 15 coprime: true
-// = {1, 2, 0}
-// = coprime pairs a < b <= 10: 31
-// = sum of totients 2 to 10: 31
+/* ---- expected output ----
+= 10
+= gcd(14, 15): 1
+= gcd(17, 19): 1
+= gcd(21, 22): 1
+= gcd(8, 12): 4
+= gcd(35, 49): 7
+= 14 and 15 coprime: true
+= {1, 2, 0}
+= coprime pairs a < b <= 10: 31
+= sum of totients 2 to 10: 31
+*/

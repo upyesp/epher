@@ -1,25 +1,25 @@
-// ============================================================================
-// amicable-pair-search.epher -- pairs where each sums to the other
-//
-// Two numbers are amicable when the proper divisor sum of each is the
-// other: ps(220) = 284 and ps(284) = 220. The script computes proper
-// divisor sums with the classroom pair method (epher has no divisor-sum
-// builtin), checks the classic pair, finds the smallest amicable pair
-// below 1000 with a packed while loop, and counts how many pairs lie
-// wholly below 1000: just one, 220 and 284. Amicable numbers were known
-// to the Pythagoreans (c. 500 BC); the sigma identity is that sigma(a)
-// and sigma(b) both equal a + b for an amicable pair.
-//
-// Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
-// ch. 16, section 16.8 (amicable numbers). Results are exact; the
-// recursion depth limits the def to n of a few thousand, plenty here.
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/divisors/amicable-pair-search.epher"
-// In the REPL:             load epher scripts/number-theory/divisors/amicable-pair-search.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// There is no knob: the bound 1000 is the point of the script.
-// ============================================================================
+/* ============================================================================
+   amicable-pair-search.epher -- pairs where each sums to the other
+
+   Two numbers are amicable when the proper divisor sum of each is the
+   other: ps(220) = 284 and ps(284) = 220. The script computes proper
+   divisor sums with the classroom pair method (epher has no divisor-sum
+   builtin), checks the classic pair, finds the smallest amicable pair
+   below 1000 with a packed while loop, and counts how many pairs lie
+   wholly below 1000: just one, 220 and 284. Amicable numbers were known
+   to the Pythagoreans (c. 500 BC); the sigma identity is that sigma(a)
+   and sigma(b) both equal a + b for an amicable pair.
+
+   Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+   ch. 16, section 16.8 (amicable numbers). Results are exact; the
+   recursion depth limits the def to n of a few thousand, plenty here.
+
+   Run it from a terminal:  epher "epher scripts/number-theory/divisors/amicable-pair-search.epher"
+   In the REPL:             load epher scripts/number-theory/divisors/amicable-pair-search.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   There is no knob: the bound 1000 is the point of the script.
+   ============================================================================ */
 
 // ---- the proper-divisor-sum def ------------------------------------------------------
 // pairdiv(n, i) adds each divisor of n with its partner n / i (a square
@@ -46,12 +46,13 @@ print("smallest amicable pair:", v[1], "and", ps(v[1]))
 v = {2, 0}
 while v[1] < 1000 do v = {v[1] + 1, v[2] + (if ps(v[1]) > v[1] and ps(v[1]) < 1000 and ps(ps(v[1])) == v[1] then 1 else 0)}
 print("amicable pairs below 1000:", v[2])       // only 220 and 284
-// ---- expected output ----
-// = proper divisor sum of 220: 284
-// = proper divisor sum of 284: 220
-// = sigma(220): 504
-// = sigma(284): 504
-// = {2}
-// = smallest amicable pair: 220 and 284
-// = {2, 0}
-// = amicable pairs below 1000: 1
+/* ---- expected output ----
+= proper divisor sum of 220: 284
+= proper divisor sum of 284: 220
+= sigma(220): 504
+= sigma(284): 504
+= {2}
+= smallest amicable pair: 220 and 284
+= {2, 0}
+= amicable pairs below 1000: 1
+*/

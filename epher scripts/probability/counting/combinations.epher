@@ -1,25 +1,25 @@
-// ============================================================================
-// combinations.epher -- unordered selections: ncr(n, r) and committees
-//
-// Counts unordered selections with the ncr builtin (guide 1.13): the
-// number of ways to choose r distinct objects out of n when the order
-// does not matter. The classic setting: choosing a committee of 3 from
-// 10 people, where the group is the same no matter how its members are
-// listed, gives ncr(10, 3) = 120 committees.
-//
-// Cross-checks: ncr(n, r) = ncr(n, n - r) (choosing the 3 members is
-// choosing the 7 left out), ncr(n, r) = npr(n, r) / r! (each committee
-// is counted r! times among ordered lists), and the hockey-stick
-// identity ncr(n, r) = ncr(n - 1, r - 1) + ncr(n - 1, r). The counts are
-// exact integers; the sums are accumulated in a packed while loop.
-//
-// Source: Ross, "A First Course in Probability", chapter 1.
-//
-// Run it from a terminal:  epher "epher scripts/probability/counting/combinations.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-//
-// The knob to edit is `group`; everything below it is machinery.
-// ============================================================================
+/* ============================================================================
+   combinations.epher -- unordered selections: ncr(n, r) and committees
+
+   Counts unordered selections with the ncr builtin (guide 1.13): the
+   number of ways to choose r distinct objects out of n when the order
+   does not matter. The classic setting: choosing a committee of 3 from
+   10 people, where the group is the same no matter how its members are
+   listed, gives ncr(10, 3) = 120 committees.
+
+   Cross-checks: ncr(n, r) = ncr(n, n - r) (choosing the 3 members is
+   choosing the 7 left out), ncr(n, r) = npr(n, r) / r! (each committee
+   is counted r! times among ordered lists), and the hockey-stick
+   identity ncr(n, r) = ncr(n - 1, r - 1) + ncr(n - 1, r). The counts are
+   exact integers; the sums are accumulated in a packed while loop.
+
+   Source: Ross, "A First Course in Probability", chapter 1.
+
+   Run it from a terminal:  epher "epher scripts/probability/counting/combinations.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+
+   The knob to edit is `group`; everything below it is machinery.
+   ============================================================================ */
 
 // ---- the knob ----
 const group = 10
@@ -50,16 +50,17 @@ while v[1] < 6 do v = {v[1] + 1, v[2] + ncr(5, v[1])}
 print("row 5 of Pascal's triangle sums to:", v[2])
 print("and 2^5 =", 2 ^ 5)
 v[2] == 2 ^ 5
-// ---- expected output ----
-// = 10
-// = committees of 3 from 10 people: 120
-// = the same choice as 7 left out: 120
-// = true
-// = true
-// = true
-// = 5-card hands from a 52-card deck: 2598960
-// = lottery tickets, 6 of 49 numbers: 13983816
-// = {0, 0}
-// = row 5 of Pascal's triangle sums to: 32
-// = and 2^5 = 32
-// = true
+/* ---- expected output ----
+= 10
+= committees of 3 from 10 people: 120
+= the same choice as 7 left out: 120
+= true
+= true
+= true
+= 5-card hands from a 52-card deck: 2598960
+= lottery tickets, 6 of 49 numbers: 13983816
+= {0, 0}
+= row 5 of Pascal's triangle sums to: 32
+= and 2^5 = 32
+= true
+*/

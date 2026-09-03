@@ -1,19 +1,19 @@
-// ============================================================================
-// box-volume-surface.epher -- volume and surface area of a box
-//
-// A rectangular box of sides l, w, h has volume V = l w h and surface
-// area S = 2 (l w + l h + w h), three pairs of congruent faces (standard
-// formula). The 6 by 4 by 3 box has volume 72 and surface 108, both
-// exact, and the last result checks the surface against its unfolded
-// net, the six faces laid flat.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/solids/box-volume-surface.epher"
-// In the REPL:             load epher scripts/geometry/solids/box-volume-surface.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are `l`, `w`, `h`, the three edge lengths.
-// Everything above the results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   box-volume-surface.epher -- volume and surface area of a box
+
+   A rectangular box of sides l, w, h has volume V = l w h and surface
+   area S = 2 (l w + l h + w h), three pairs of congruent faces (standard
+   formula). The 6 by 4 by 3 box has volume 72 and surface 108, both
+   exact, and the last result checks the surface against its unfolded
+   net, the six faces laid flat.
+
+   Run it from a terminal:  epher "epher scripts/geometry/solids/box-volume-surface.epher"
+   In the REPL:             load epher scripts/geometry/solids/box-volume-surface.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are `l`, `w`, `h`, the three edge lengths.
+   Everything above the results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const l = 6
@@ -28,10 +28,11 @@ def surf(l, w, h) = 2 * (l * w + l * h + w * h)          // S = 2(lw + lh + wh)
 print("volume:", vol(l, w, h))
 print("surface area:", surf(l, w, h))
 print("unfolded net:", surf(l, w, h) == 2 * (6 * 4 + 6 * 3 + 4 * 3))
-// ---- expected output ----
-// = 6
-// = 4
-// = 3
-// = volume: 72
-// = surface area: 108
-// = unfolded net: true
+/* ---- expected output ----
+= 6
+= 4
+= 3
+= volume: 72
+= surface area: 108
+= unfolded net: true
+*/

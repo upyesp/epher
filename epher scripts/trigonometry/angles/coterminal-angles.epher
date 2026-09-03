@@ -1,20 +1,20 @@
-// ============================================================================
-// coterminal-angles.epher -- a coterminal angle in [0, 360) for any angle
-//
-// Angles that differ by whole turns share a terminal side; they are called
-// coterminal. To place any angle, negative or larger than a turn, into
-// [0, 360): subtract 360 * floor(x / 360), the largest whole number of
-// turns that does not overshoot. The formula is the standard one from any
-// precalculus text (see reference-angle.epher in this folder); no builtin
-// reduces angles, so the script states it.
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/angles/coterminal-angles.epher"
-// In the REPL:             load epher scripts/trigonometry/angles/coterminal-angles.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The one knob to edit is the `angs` list below (degrees). Printed values
-// carry about 12 significant digits.
-// ============================================================================
+/* ============================================================================
+   coterminal-angles.epher -- a coterminal angle in [0, 360) for any angle
+
+   Angles that differ by whole turns share a terminal side; they are called
+   coterminal. To place any angle, negative or larger than a turn, into
+   [0, 360): subtract 360 * floor(x / 360), the largest whole number of
+   turns that does not overshoot. The formula is the standard one from any
+   precalculus text (see reference-angle.epher in this folder); no builtin
+   reduces angles, so the script states it.
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/angles/coterminal-angles.epher"
+   In the REPL:             load epher scripts/trigonometry/angles/coterminal-angles.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The one knob to edit is the `angs` list below (degrees). Printed values
+   carry about 12 significant digits.
+   ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const angs = {750, 930, -45, 1440, -720, 3620}   // angles, in degrees
@@ -22,10 +22,10 @@ const angs = {750, 930, -45, 1440, -720, 3620}   // angles, in degrees
 // ---- helpers ----------------------------------------------------------------
 def cot(x) = x - 360 * floor(x / 360)   // coterminal angle in [0, 360)
 
-// ---- results -----------------------------------------------------------------
-// Each angle reduced into [0, 360): 750 = 2 x 360 + 30, 930 = 2 x 360 + 210,
-// -45 = -1 x 360 + 315, 1440 = 4 x 360 + 0, -720 = -2 x 360 + 0,
-// 3620 = 10 x 360 + 20.
+/* ---- results -----------------------------------------------------------------
+   Each angle reduced into [0, 360): 750 = 2 x 360 + 30, 930 = 2 x 360 + 210,
+   -45 = -1 x 360 + 315, 1440 = 4 x 360 + 0, -720 = -2 x 360 + 0,
+   3620 = 10 x 360 + 20. */
 for x in angs do cot(x)
 
 // How many whole turns each one needed, (x - cot(x)) / 360.
@@ -37,10 +37,11 @@ for x in angs do (cot(x) >= 0 and cot(x) < 360)
 // Two readings in words.
 print("coterminal with 750 deg:", cot(750), "deg")
 print("coterminal with -45 deg:", cot(-45), "deg")
-// ---- expected output
-// = {750, 930, -45, 1440, -720, 3620}
-// = {30, 210, 315, 0, 0, 20}
-// = {2, 2, -1, 4, -2, 10}
-// = {true, true, true, true, true, true}
-// = coterminal with 750 deg: 30 deg
-// = coterminal with -45 deg: 315 deg
+/* ---- expected output
+= {750, 930, -45, 1440, -720, 3620}
+= {30, 210, 315, 0, 0, 20}
+= {2, 2, -1, 4, -2, 10}
+= {true, true, true, true, true, true}
+= coterminal with 750 deg: 30 deg
+= coterminal with -45 deg: 315 deg
+*/

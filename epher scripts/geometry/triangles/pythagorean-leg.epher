@@ -1,18 +1,18 @@
-// ============================================================================
-// pythagorean-leg.epher -- a leg a from the hypotenuse c and the other leg b
-//
-// The Pythagorean theorem solved for a leg of a right triangle:
-// a = sqrt(c^2 - b^2) (Euclid's Elements, book I, proposition 47). The
-// 5-12-13 example lands exactly on 12: 13^2 - 5^2 = 169 - 25 = 144, a
-// perfect square, so the results are exact.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/triangles/pythagorean-leg.epher"
-// In the REPL:             load epher scripts/geometry/triangles/pythagorean-leg.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are `c` (the hypotenuse) and `b` (the known leg).
-// Everything above the results section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   pythagorean-leg.epher -- a leg a from the hypotenuse c and the other leg b
+
+   The Pythagorean theorem solved for a leg of a right triangle:
+   a = sqrt(c^2 - b^2) (Euclid's Elements, book I, proposition 47). The
+   5-12-13 example lands exactly on 12: 13^2 - 5^2 = 169 - 25 = 144, a
+   perfect square, so the results are exact.
+
+   Run it from a terminal:  epher "epher scripts/geometry/triangles/pythagorean-leg.epher"
+   In the REPL:             load epher scripts/geometry/triangles/pythagorean-leg.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are `c` (the hypotenuse) and `b` (the known leg).
+   Everything above the results section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const c = 13
@@ -27,10 +27,11 @@ print("leg of the 5-12-13 triangle:", leg(c, b))
 print("3-4-5 check: the missing leg is", leg(5, 4))
 print("7-24-25 check: the missing leg is", leg(25, 7))
 print("exact integer result:", leg(c, b) == 12)
-// ---- expected output ----
-// = 13
-// = 5
-// = leg of the 5-12-13 triangle: 12
-// = 3-4-5 check: the missing leg is 3
-// = 7-24-25 check: the missing leg is 24
-// = exact integer result: true
+/* ---- expected output ----
+= 13
+= 5
+= leg of the 5-12-13 triangle: 12
+= 3-4-5 check: the missing leg is 3
+= 7-24-25 check: the missing leg is 24
+= exact integer result: true
+*/

@@ -1,22 +1,22 @@
-// ============================================================================
-// hexadecimal-to-decimal.epher -- hex literals read as decimal values
-//
-// Evaluates hexadecimal literals and prints their decimal values. A hex
-// literal is the prefix 0x followed by digits 0 to 9 and a to f, and its
-// value is the sum of the powers of sixteen in it: 0xff = 15 * 16 + 15 =
-// 255. The prefix changes the spelling, never the value, so the results
-// below are plain decimal numbers.
-//
-// Source: standard numeral systems; positional notation in base 16, the
-// place values 1, 16, 256 and so on. Evaluation is exact for every value
-// here (the largest, 0xdeadbeef, stays far below the exactness limit).
-//
-// Run it from a terminal:  epher "epher scripts/number-theory/bases/hexadecimal-to-decimal.epher"
-// In the REPL:             load epher scripts/number-theory/bases/hexadecimal-to-decimal.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// There is no knob: the sample literals are the point of the script.
-// ============================================================================
+/* ============================================================================
+   hexadecimal-to-decimal.epher -- hex literals read as decimal values
+
+   Evaluates hexadecimal literals and prints their decimal values. A hex
+   literal is the prefix 0x followed by digits 0 to 9 and a to f, and its
+   value is the sum of the powers of sixteen in it: 0xff = 15 * 16 + 15 =
+   255. The prefix changes the spelling, never the value, so the results
+   below are plain decimal numbers.
+
+   Source: standard numeral systems; positional notation in base 16, the
+   place values 1, 16, 256 and so on. Evaluation is exact for every value
+   here (the largest, 0xdeadbeef, stays far below the exactness limit).
+
+   Run it from a terminal:  epher "epher scripts/number-theory/bases/hexadecimal-to-decimal.epher"
+   In the REPL:             load epher scripts/number-theory/bases/hexadecimal-to-decimal.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   There is no knob: the sample literals are the point of the script.
+   ============================================================================ */
 
 // ---- named values --------------------------------------------------------------------
 0xF                           // fifteen: the largest single digit
@@ -29,12 +29,13 @@ for x in {0x1, 0x9, 0xA, 0xF, 0x10, 0xFF, 0x100} do x
 print("15 * 16 + 15:", 15 * 16 + 15)              // how 0xff reads
 print("0xFF is 255:", 0xFF == 255)
 print("0xA is 10:", 0xA == 10)
-// ---- expected output ----
-// = 15
-// = 255
-// = 16
-// = 3735928559
-// = {1, 9, 10, 15, 16, 255, 256}
-// = 15 * 16 + 15: 255
-// = 0xFF is 255: true
-// = 0xA is 10: true
+/* ---- expected output ----
+= 15
+= 255
+= 16
+= 3735928559
+= {1, 9, 10, 15, 16, 255, 256}
+= 15 * 16 + 15: 255
+= 0xFF is 255: true
+= 0xA is 10: true
+*/

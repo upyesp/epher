@@ -1,19 +1,19 @@
-// ============================================================================
-// equilateral-area-height.epher -- height and area from the side
-//
-// An equilateral triangle of side s splits into two 30-60-90 triangles,
-// so the height is h = s sqrt(3) / 2 and the area is A = s^2 sqrt(3) / 4
-// (standard formula; Pythagoras applied to the half triangle). For s = 6
-// the height is 3 sqrt(3) and the area 9 sqrt(3). The last result checks
-// that the area also comes out of base times height.
-//
-// Run it from a terminal:  epher "epher scripts/geometry/triangles/equilateral-area-height.epher"
-// In the REPL:             load epher scripts/geometry/triangles/equilateral-area-height.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knob to edit is `s`, the side length. Everything above the results
-// section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   equilateral-area-height.epher -- height and area from the side
+
+   An equilateral triangle of side s splits into two 30-60-90 triangles,
+   so the height is h = s sqrt(3) / 2 and the area is A = s^2 sqrt(3) / 4
+   (standard formula; Pythagoras applied to the half triangle). For s = 6
+   the height is 3 sqrt(3) and the area 9 sqrt(3). The last result checks
+   that the area also comes out of base times height.
+
+   Run it from a terminal:  epher "epher scripts/geometry/triangles/equilateral-area-height.epher"
+   In the REPL:             load epher scripts/geometry/triangles/equilateral-area-height.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knob to edit is `s`, the side length. Everything above the results
+   section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const s = 6
@@ -26,8 +26,9 @@ def area(s) = s ^ 2 * sqrt(3) / 4  // A = s^2 sqrt(3) / 4
 print("height:", height(s))
 print("area:", area(s))
 print("area from base times height:", abs(area(s) - s * height(s) / 2) < 1e-9)
-// ---- expected output ----
-// = 6
-// = height: 5.19615242271
-// = area: 15.5884572681
-// = area from base times height: true
+/* ---- expected output ----
+= 6
+= height: 5.19615242271
+= area: 15.5884572681
+= area from base times height: true
+*/

@@ -1,24 +1,24 @@
-// ============================================================================
-// apy-from-nominal-rate.epher -- effective annual yield of a nominal rate
-// compounded m times a year
-//
-// A nominal annual rate r compounded m times a year grows money by the
-// factor (1 + r/m)^m per year, so the effective annual yield (APY) is
-// (1 + r/m)^m - 1: what a year of compounding really pays, expressed as a
-// yearly rate. The script prints the APY of a 4.8% rate compounded monthly,
-// then a ladder of compounding frequencies for a 5% rate, ending at the
-// continuous limit e^r - 1. Source: standard finance formulas; see
-// Kellison, The Theory of Interest, chapter 2.
-//
-// Accuracy: the ladder values print to 12 digits; the m = 365 row differs
-// from the continuous limit by about 4/1000 of a percent.
-//
-// Run it from a terminal:
-//   epher "epher scripts/finance/interest/apy-from-nominal-rate.epher"
-//
-// The one knob to edit is the nominal rate in the first result line (the
-// ladder below it is fixed at a nominal 5% to show the trend).
-// ============================================================================
+/* ============================================================================
+   apy-from-nominal-rate.epher -- effective annual yield of a nominal rate
+   compounded m times a year
+
+   A nominal annual rate r compounded m times a year grows money by the
+   factor (1 + r/m)^m per year, so the effective annual yield (APY) is
+   (1 + r/m)^m - 1: what a year of compounding really pays, expressed as a
+   yearly rate. The script prints the APY of a 4.8% rate compounded monthly,
+   then a ladder of compounding frequencies for a 5% rate, ending at the
+   continuous limit e^r - 1. Source: standard finance formulas; see
+   Kellison, The Theory of Interest, chapter 2.
+
+   Accuracy: the ladder values print to 12 digits; the m = 365 row differs
+   from the continuous limit by about 4/1000 of a percent.
+
+   Run it from a terminal:
+     epher "epher scripts/finance/interest/apy-from-nominal-rate.epher"
+
+   The one knob to edit is the nominal rate in the first result line (the
+   ladder below it is fixed at a nominal 5% to show the trend).
+   ============================================================================ */
 
 // ---- helpers ----------------------------------------------------------------
 def apy(nom, m) = (1 + nom / m) ^ m - 1   // effective annual yield of nominal rate nom, m compounds a year
@@ -32,8 +32,9 @@ print("same apy in percent:", apy(4.8%, 12) * 100)
 // creeps up with m and approaches e^0.05 - 1 from below.
 for m in {1, 2, 4, 12, 365} do {m, apy(5%, m)}
 print("continuous limit e^r - 1:", e ^ 5% - 1)
-// ---- expected output ----
-// = apy of 4.8% compounded monthly: 0.0490702075348
-// = same apy in percent: 4.90702075348
-// = {{1, 0.05}, {2, 0.050625}, {4, 0.0509453369141}, {12, 0.0511618978817}, {365, 0.0512674964674}}
-// = continuous limit e^r - 1: 0.051271096376
+/* ---- expected output ----
+= apy of 4.8% compounded monthly: 0.0490702075348
+= same apy in percent: 4.90702075348
+= {{1, 0.05}, {2, 0.050625}, {4, 0.0509453369141}, {12, 0.0511618978817}, {365, 0.0512674964674}}
+= continuous limit e^r - 1: 0.051271096376
+*/

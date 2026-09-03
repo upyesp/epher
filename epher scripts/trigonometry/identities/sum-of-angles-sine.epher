@@ -1,21 +1,21 @@
-// ============================================================================
-// sum-of-angles-sine.epher -- sin(a + b) = sin a cos b + cos a sin b
-//
-// The sine addition formula, sin(a + b) = sin(a) cos(b) + cos(a) sin(b),
-// is the workhorse behind every other sine identity: double angles, the
-// sine of a difference (b negative), and phasor addition all fall out of
-// it. The script checks it at several angle pairs as boolean residual
-// checks (true when the two sides differ by less than 1e-12;
-// double-precision noise here is around 1e-16).
-//
-// Run it from a terminal:  epher "epher scripts/trigonometry/identities/sum-of-angles-sine.epher"
-// In the REPL:             load epher scripts/trigonometry/identities/sum-of-angles-sine.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-//
-// The knobs to edit are the `as` and `bs` lists below: one angle pair per
-// column, in degrees, converted with rad() because the builtin trig works
-// in radians. The last pair (80, 10) sums to 90 deg, the sharpest test.
-// ============================================================================
+/* ============================================================================
+   sum-of-angles-sine.epher -- sin(a + b) = sin a cos b + cos a sin b
+
+   The sine addition formula, sin(a + b) = sin(a) cos(b) + cos(a) sin(b),
+   is the workhorse behind every other sine identity: double angles, the
+   sine of a difference (b negative), and phasor addition all fall out of
+   it. The script checks it at several angle pairs as boolean residual
+   checks (true when the two sides differ by less than 1e-12;
+   double-precision noise here is around 1e-16).
+
+   Run it from a terminal:  epher "epher scripts/trigonometry/identities/sum-of-angles-sine.epher"
+   In the REPL:             load epher scripts/trigonometry/identities/sum-of-angles-sine.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+
+   The knobs to edit are the `as` and `bs` lists below: one angle pair per
+   column, in degrees, converted with rad() because the builtin trig works
+   in radians. The last pair (80, 10) sums to 90 deg, the sharpest test.
+   ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const as = {30, 15, 37, 80}    // first angles of the pairs, in degrees
@@ -37,11 +37,12 @@ print("sin(30) cos(45) + cos(30) sin(45) =", sin(rad(30)) * cos(rad(45)) + cos(r
 // recovers 1 from products that individually reach 0.985.
 print("sin(80 deg + 10 deg) =", sin(rad(80) + rad(10)))
 print("sin(80) cos(10) + cos(80) sin(10) =", sin(rad(80)) * cos(rad(10)) + cos(rad(80)) * sin(rad(10)))
-// ---- expected output
-// = {30, 15, 37, 80}
-// = {45, 60, 22, 10}
-// = {true, true, true, true}
-// = sin(30 deg + 45 deg) = 0.965925826289
-// = sin(30) cos(45) + cos(30) sin(45) = 0.965925826289
-// = sin(80 deg + 10 deg) = 1
-// = sin(80) cos(10) + cos(80) sin(10) = 1
+/* ---- expected output
+= {30, 15, 37, 80}
+= {45, 60, 22, 10}
+= {true, true, true, true}
+= sin(30 deg + 45 deg) = 0.965925826289
+= sin(30) cos(45) + cos(30) sin(45) = 0.965925826289
+= sin(80 deg + 10 deg) = 1
+= sin(80) cos(10) + cos(80) sin(10) = 1
+*/

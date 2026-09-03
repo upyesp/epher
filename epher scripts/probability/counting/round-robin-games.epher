@@ -1,24 +1,24 @@
-// ============================================================================
-// round-robin-games.epher -- league fixtures: ncr(n, 2) games
-//
-// In a round-robin league every pair of teams meets exactly once, and a
-// pair of teams is an unordered set, so n teams play ncr(n, 2) games.
-// With a home and an away leg the pair is ordered (team A hosts team B
-// is a different fixture from B hosting A), which doubles the count to
-// 2 * ncr(n, 2) = npr(n, 2).
-//
-// Cross-checks: npr(n, 2) = n * (n - 1) counts the ordered pairs
-// directly, and 2 * ncr(n, 2) = npr(n, 2) verifies the doubling. All
-// counts are exact integers.
-//
-// Source: standard combinatorics, as in Ross, "A First Course in
-// Probability", chapter 1.
-//
-// Run it from a terminal:  epher "epher scripts/probability/counting/round-robin-games.epher"
-// Web/desktop:             paste the file into the entry, press Enter
-//
-// The knob to edit is `teams`; everything below it is machinery.
-// ============================================================================
+/* ============================================================================
+   round-robin-games.epher -- league fixtures: ncr(n, 2) games
+
+   In a round-robin league every pair of teams meets exactly once, and a
+   pair of teams is an unordered set, so n teams play ncr(n, 2) games.
+   With a home and an away leg the pair is ordered (team A hosts team B
+   is a different fixture from B hosting A), which doubles the count to
+   2 * ncr(n, 2) = npr(n, 2).
+
+   Cross-checks: npr(n, 2) = n * (n - 1) counts the ordered pairs
+   directly, and 2 * ncr(n, 2) = npr(n, 2) verifies the doubling. All
+   counts are exact integers.
+
+   Source: standard combinatorics, as in Ross, "A First Course in
+   Probability", chapter 1.
+
+   Run it from a terminal:  epher "epher scripts/probability/counting/round-robin-games.epher"
+   Web/desktop:             paste the file into the entry, press Enter
+
+   The knob to edit is `teams`; everything below it is machinery.
+   ============================================================================ */
 
 // ---- the knob ----
 const teams = 8
@@ -45,14 +45,15 @@ print("4 groups of 4 (group stage):", 4 * ncr(4, 2), "matches")
 // the same pair count: sides plus diagonals of an 8-sided figure.
 print("handshakes in a room of", teams, "people:", ncr(teams, 2))
 print("diagonals of an", teams, "-sided polygon:", ncr(teams, 2) - teams)
-// ---- expected output ----
-// = 8
-// = single round robin, 8 teams: 28
-// = home and away: 56
-// = true
-// = ordered fixtures npr(8, 2): 56
-// = 10 teams: 45 games, 90 with home and away
-// = 12 teams: 66 games, 132 with home and away
-// = 4 groups of 4 (group stage): 24 matches
-// = handshakes in a room of 8 people: 28
-// = diagonals of an 8 -sided polygon: 20
+/* ---- expected output ----
+= 8
+= single round robin, 8 teams: 28
+= home and away: 56
+= true
+= ordered fixtures npr(8, 2): 56
+= 10 teams: 45 games, 90 with home and away
+= 12 teams: 66 games, 132 with home and away
+= 4 groups of 4 (group stage): 24 matches
+= handshakes in a room of 8 people: 28
+= diagonals of an 8 -sided polygon: 20
+*/

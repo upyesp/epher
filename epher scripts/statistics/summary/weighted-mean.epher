@@ -1,27 +1,27 @@
-// ============================================================================
-// weighted-mean.epher -- a grade average where credits set the weights
-//
-// The weighted mean of the grades in `g`, weighted by the course credits
-// in `w`: sum(w[i] * g[i]) / sum(w). A three-credit course counts three
-// times as much as a one-credit course, so the weighted mean 87.5 sits
-// above the plain mean 86.8, pulled up by the top grade in the heaviest
-// course.
-//
-// Run it from a terminal:  epher "epher scripts/statistics/summary/weighted-mean.epher"
-// In the REPL:             load epher scripts/statistics/summary/weighted-mean.epher
-// Web/desktop:             paste the whole file into the entry, press Enter
-// Everything also works line by line in the TUI.
-//
-// The knobs to edit are `g` and `w` below. Everything above the results
-// section is machinery you can leave alone.
-// ============================================================================
+/* ============================================================================
+   weighted-mean.epher -- a grade average where credits set the weights
+
+   The weighted mean of the grades in `g`, weighted by the course credits
+   in `w`: sum(w[i] * g[i]) / sum(w). A three-credit course counts three
+   times as much as a one-credit course, so the weighted mean 87.5 sits
+   above the plain mean 86.8, pulled up by the top grade in the heaviest
+   course.
+
+   Run it from a terminal:  epher "epher scripts/statistics/summary/weighted-mean.epher"
+   In the REPL:             load epher scripts/statistics/summary/weighted-mean.epher
+   Web/desktop:             paste the whole file into the entry, press Enter
+   Everything also works line by line in the TUI.
+
+   The knobs to edit are `g` and `w` below. Everything above the results
+   section is machinery you can leave alone.
+   ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const g = {85, 92, 78, 88, 91}   // grades out of 100, one per course
 const w = {3, 4, 2, 3, 2}        // course credits: 3, 4, 2, 3 and 2 credit hours
 
 // ---- helpers: the weighted mean --------------------------------------------------
-def wmean(xs, ws) = sum(xs * ws) / sum(ws)  /* sum of value times weight, over total weight */
+def wmean(xs, ws) = sum(xs * ws) / sum(ws) // sum of value times weight, over total weight
 
 // ---- the grade point average by credits -------------------------------------------
 wmean(g, w)                 // weighted mean: sum(g * w) / sum(w)
@@ -29,10 +29,11 @@ sum(g * w)                  // the weighted grade total
 sum(w)                      // the total credits
 mean(g)                     // the plain mean for contrast, every course equal
 
-// ---- expected output ----
-// = {85, 92, 78, 88, 91}
-// = {3, 4, 2, 3, 2}
-// = 87.5
-// = 1225
-// = 14
-// = 86.8
+/* ---- expected output ----
+= {85, 92, 78, 88, 91}
+= {3, 4, 2, 3, 2}
+= 87.5
+= 1225
+= 14
+= 86.8
+*/

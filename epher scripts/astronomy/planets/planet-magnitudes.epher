@@ -1,40 +1,41 @@
-// ============================================================================
-// planet-magnitudes.epher -- how bright the planets look
-//
-// Apparent visual magnitudes of the planets on 2026-06-01, from the
-// built-in accessor mag (the solar-ephemeris crate, JPL-validated; guide
-// 1.16). Magnitude is the logarithmic brightness scale: brighter means
-// smaller, and negative values are reserved for the brightest objects -
-// Sirius, the brightest star in the night sky, is -1.46. The magnitude
-// of a planet depends on its distance from Earth and from the Sun, and
-// on its phase.
-//
-// Run it from a terminal:  epher "epher scripts/astronomy/planets/planet-magnitudes.epher"
-// In the REPL:             load epher scripts/astronomy/planets/planet-magnitudes.epher
-//
-// Knob: the date t.
-// ============================================================================
+/* ============================================================================
+   planet-magnitudes.epher -- how bright the planets look
+
+   Apparent visual magnitudes of the planets on 2026-06-01, from the
+   built-in accessor mag (the solar-ephemeris crate, JPL-validated; guide
+   1.16). Magnitude is the logarithmic brightness scale: brighter means
+   smaller, and negative values are reserved for the brightest objects -
+   Sirius, the brightest star in the night sky, is -1.46. The magnitude
+   of a planet depends on its distance from Earth and from the Sun, and
+   on its phase.
+
+   Run it from a terminal:  epher "epher scripts/astronomy/planets/planet-magnitudes.epher"
+   In the REPL:             load epher scripts/astronomy/planets/planet-magnitudes.epher
+
+   Knob: the date t.
+   ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const t = jd(2026, 6, 1)     // 0h UT
 
-// ---- results ----------------------------------------------------------------
-// Magnitudes in body-number order (Mercury, Venus, Mars, Jupiter,
-// Saturn, Uranus, Neptune, Pluto). Reading the list, the brightest
-// planet of the eight is Venus at -3.98; Jupiter at -1.88 comes second.
-// For the eye's scale: Sirius is -1.46, so on this date Venus and
-// Jupiter both outshine every star in the sky, while Uranus (5.81) and
-// Neptune (7.91) need binoculars and Pluto (14.47) a large telescope.
-// (Mercury at -0.55 is an evening object low in the west; Mars at 1.27
-// is faint because it is 2.18 AU away near the far side of its orbit.)
+/* ---- results ----------------------------------------------------------------
+   Magnitudes in body-number order (Mercury, Venus, Mars, Jupiter,
+   Saturn, Uranus, Neptune, Pluto). Reading the list, the brightest
+   planet of the eight is Venus at -3.98; Jupiter at -1.88 comes second.
+   For the eye's scale: Sirius is -1.46, so on this date Venus and
+   Jupiter both outshine every star in the sky, while Uranus (5.81) and
+   Neptune (7.91) need binoculars and Pluto (14.47) a large telescope.
+   (Mercury at -0.55 is an evening object low in the west; Mars at 1.27
+   is faint because it is 2.18 AU away near the far side of its orbit.) */
 for b in {1, 2, 4, 5, 6, 7, 8, 9} do mag(b, t)
 
 // The two brightest, labelled, with the Sirius anchor for scale.
 print("Venus:", mag(2, t), "(brighter than Sirius at -1.46)")
 print("Jupiter:", mag(5, t))
 
-// ---- expected output ----
-// = 2461192.5
-// = {-0.55, -3.98, 1.27, -1.88, 0.65, 5.81, 7.91, 14.4693840929}
-// = Venus: -3.98 (brighter than Sirius at -1.46)
-// = Jupiter: -1.88
+/* ---- expected output ----
+= 2461192.5
+= {-0.55, -3.98, 1.27, -1.88, 0.65, 5.81, 7.91, 14.4693840929}
+= Venus: -3.98 (brighter than Sirius at -1.46)
+= Jupiter: -1.88
+*/
