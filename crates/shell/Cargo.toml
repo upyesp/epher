@@ -1,6 +1,6 @@
 [package]
 name = "epher-shell"
-version = "0.5.22"
+version = "0.5.23"
 edition = "2021"
 license = "MIT"
 description = "The interactive-shell kernel shared by the CLI, TUI, and web frontends: line classification and command policy (ADR-0010)."
