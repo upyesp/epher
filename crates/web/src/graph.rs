@@ -25,13 +25,13 @@ use yew::prelude::*;
 /// re-exports keep this module's long-standing surface.
 pub use epher_core::graph_svg::{
     aria_label, curve_caption, curve_parts, data_geometry, data_svg, data_svg_in, data_svg_styled,
-    escape, fit_legend, fill_points, geometry, geometry_in, graph3d_curve_svg, graph3d_svg,
-    graph_svg, graph3d_curve_svg_indexed, graph3d_curve_svg_styled, graph3d_svg_indexed,
-    graph3d_svg_styled, graph_svg_indexed, graph_svg_styled, label, layers_svg,
-    palette_curve, polyline_points, scene_parts_indexed, segments, solar3d_styled,
-    solar_parts_in, solar_view_box, ticks, trace_nearest, Geometry, LegendEntry, Poi, SvgPalette,
-    TracePoint, BOTTOM, DEFAULT_STROKE_WIDTH, HEIGHT, LEFT, RIGHT, THREE_D_DEFAULT_WIDTH,
-    THREE_D_PX_PER_WIDTH, TOP, WIDTH,
+    escape, fill_points, fit_legend, geometry, geometry_in, graph3d_curve_svg,
+    graph3d_curve_svg_indexed, graph3d_curve_svg_styled, graph3d_svg, graph3d_svg_indexed,
+    graph3d_svg_styled, graph_svg, graph_svg_indexed, graph_svg_styled, label, layers_svg,
+    palette_curve, polyline_points, scene_parts_indexed, segments, solar3d_styled, solar_parts_in,
+    solar_view_box, three_d_default_width, three_d_width_range, ticks, trace_nearest, Geometry,
+    LegendEntry, Poi, SvgPalette, TracePoint, BOTTOM, DEFAULT_STROKE_WIDTH, HEIGHT, LEFT, RIGHT,
+    THREE_D_DEFAULT_WIDTH, THREE_D_DEFAULT_WIDTH_MOBILE, THREE_D_PX_PER_WIDTH, TOP, WIDTH,
 };
 /// The live 3D renderer's content for a space-curve set (ADR-0054):
 /// the same (view box, markup) contract as [`surface_svg`].
@@ -332,7 +332,10 @@ pub fn graph_html(props: &GraphProps) -> Html {
     // window (scatter points, histogram bins) exactly like 2D curves
     // refit theirs; None means the classic auto-fit around the data.
     let geom = if props.data.is_some() {
-        props.data.as_ref().and_then(|d| data_geometry(d, props.window))
+        props
+            .data
+            .as_ref()
+            .and_then(|d| data_geometry(d, props.window))
     } else {
         match props.window {
             Some((lo, hi)) => geometry_in(&all, lo, hi),
@@ -913,82 +916,76 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
             {
                 let el = el.clone();
                 let touch_active = touch_active.clone();
-                bound.push(gloo_events::EventListener::new(
-                    &el,
-                    "touchstart",
-                    {
-                        let el = el.clone();
-                        move |e| {
-                            if let Some(te) = e.dyn_ref::<web_sys::TouchEvent>() {
+                bound.push(gloo_events::EventListener::new(&el, "touchstart", {
+                    let el = el.clone();
+                    move |e| {
+                        if let Some(te) = e.dyn_ref::<web_sys::TouchEvent>() {
+                            // Only a pinch stands the pointer stream
+                            // down. A single finger must leave it
+                            // alone: its pointer events are the
+                            // swipe-orbit (ADR-0035) - marking every
+                            // touchstart here blinded the orbit on
+                            // real touch hardware while desktop
+                            // mice kept working.
+                            if te.touches().length() >= 2 {
                                 touch_active.set(true);
-                                if te.touches().length() >= 2 {
-                                    e.prevent_default();
-                                    let t0 = te.touches().get(0).unwrap();
-                                    let t1 = te.touches().get(1).unwrap();
-                                    let dx = t1.client_x() as f64 - t0.client_x() as f64;
-                                    let dy = t1.client_y() as f64 - t0.client_y() as f64;
-                                    let dist = (dx * dx + dy * dy).sqrt();
-                                    let _ =
-                                        el.set_attribute("data-touch-dist", &format!("{dist}"));
-                                }
+                                e.prevent_default();
+                                let t0 = te.touches().get(0).unwrap();
+                                let t1 = te.touches().get(1).unwrap();
+                                let dx = t1.client_x() as f64 - t0.client_x() as f64;
+                                let dy = t1.client_y() as f64 - t0.client_y() as f64;
+                                let dist = (dx * dx + dy * dy).sqrt();
+                                let _ = el.set_attribute("data-touch-dist", &format!("{dist}"));
                             }
                         }
-                    },
-                ));
+                    }
+                }));
             }
             {
                 let el = el.clone();
                 let on_zoom = on_zoom.clone();
-                bound.push(gloo_events::EventListener::new(
-                    &el,
-                    "touchmove",
-                    {
-                        let el = el.clone();
-                        move |e| {
-                            if let Some(te) = e.dyn_ref::<web_sys::TouchEvent>() {
-                                if te.touches().length() >= 2 {
-                                    e.prevent_default();
-                                    let t0 = te.touches().get(0).unwrap();
-                                    let t1 = te.touches().get(1).unwrap();
-                                    let dx = t1.client_x() as f64 - t0.client_x() as f64;
-                                    let dy = t1.client_y() as f64 - t0.client_y() as f64;
-                                    let dist = (dx * dx + dy * dy).sqrt();
-                                    let last = el
-                                        .get_attribute("data-touch-dist")
-                                        .and_then(|v| v.parse::<f64>().ok());
-                                    let _ = el
-                                        .set_attribute("data-touch-dist", &format!("{dist}"));
-                                    if let Some(last) = last {
-                                        if last > 1.0 && dist > 1.0 {
-                                            on_zoom.emit(last / dist);
-                                        }
+                bound.push(gloo_events::EventListener::new(&el, "touchmove", {
+                    let el = el.clone();
+                    move |e| {
+                        if let Some(te) = e.dyn_ref::<web_sys::TouchEvent>() {
+                            if te.touches().length() >= 2 {
+                                e.prevent_default();
+                                let t0 = te.touches().get(0).unwrap();
+                                let t1 = te.touches().get(1).unwrap();
+                                let dx = t1.client_x() as f64 - t0.client_x() as f64;
+                                let dy = t1.client_y() as f64 - t0.client_y() as f64;
+                                let dist = (dx * dx + dy * dy).sqrt();
+                                let last = el
+                                    .get_attribute("data-touch-dist")
+                                    .and_then(|v| v.parse::<f64>().ok());
+                                let _ = el.set_attribute("data-touch-dist", &format!("{dist}"));
+                                if let Some(last) = last {
+                                    if last > 1.0 && dist > 1.0 {
+                                        on_zoom.emit(last / dist);
                                     }
                                 }
                             }
                         }
-                    },
-                ));
+                    }
+                }));
             }
             for touch_end in ["touchend", "touchcancel"] {
                 let el = el.clone();
                 let touch_active = touch_active.clone();
-                bound.push(gloo_events::EventListener::new(
-                    &el,
-                    touch_end,
-                    {
-                        let el = el.clone();
-                        move |e| {
-                            if let Some(te) = e.dyn_ref::<web_sys::TouchEvent>() {
-                                if te.touches().length() < 2 {
-                                    let _ = el.remove_attribute("data-touch-dist");
-                                }
-                                if te.touches().length() == 0 {
-                                    touch_active.set(false);
-                                }
+                bound.push(gloo_events::EventListener::new(&el, touch_end, {
+                    let el = el.clone();
+                    move |e| {
+                        if let Some(te) = e.dyn_ref::<web_sys::TouchEvent>() {
+                            // Back to single-finger (or none): the
+                            // pinch is over, so the pointer stream
+                            // may orbit again on the next gesture.
+                            if te.touches().length() < 2 {
+                                touch_active.set(false);
+                                let _ = el.remove_attribute("data-touch-dist");
                             }
                         }
-                    },
-                ));
+                    }
+                }));
             }
             {
                 let el = el.clone();

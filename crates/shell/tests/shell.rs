@@ -514,7 +514,10 @@ fn split_statements_respects_strings_and_comments() {
     );
     // An unterminated string or block comment stays one piece: the
     // parser reports the unterminated construct itself.
-    assert_eq!(split_statements("\"open; still open"), vec!["\"open; still open"]);
+    assert_eq!(
+        split_statements("\"open; still open"),
+        vec!["\"open; still open"]
+    );
     assert_eq!(
         split_statements("1 /* open; still open"),
         vec!["1 /* open; still open"]

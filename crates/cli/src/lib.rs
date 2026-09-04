@@ -230,13 +230,8 @@ pub fn run_repl() -> Result<(), EpherError> {
             match load_script_text(&store, arg) {
                 Ok(text) => {
                     session.record(&line);
-                    let failed = eval_whole_text(
-                        &text,
-                        &mut session,
-                        &store,
-                        &localizer,
-                        &mut plots,
-                    )?;
+                    let failed =
+                        eval_whole_text(&text, &mut session, &store, &localizer, &mut plots)?;
                     if failed {
                         term::error(&localizer.lookup("load-failed"));
                     }

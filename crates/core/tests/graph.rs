@@ -681,11 +681,9 @@ fn implicit_relations_respect_the_domain() {
 #[test]
 fn scatter_models_fit_the_family() {
     let env = epher_core::Env::default();
-    let exact = epher_core::graph::sample_data_plot(
-        "scatter({1, 2, 3, 4}, {1, 4, 9, 16}, quadreg)",
-        &env,
-    )
-    .unwrap();
+    let exact =
+        epher_core::graph::sample_data_plot("scatter({1, 2, 3, 4}, {1, 4, 9, 16}, quadreg)", &env)
+            .unwrap();
     let fit = exact.fit.expect("quad fit for 4 points");
     assert_eq!(fit.model, epher_core::graph::ScatterFit::Quadreg);
     assert!((fit.fit.a - 1.0).abs() < 1e-9);
@@ -695,7 +693,10 @@ fn scatter_models_fit_the_family() {
 
     // The default stays linreg.
     let line = epher_core::graph::sample_data_plot("scatter({1, 2}, {2, 4})", &env).unwrap();
-    assert_eq!(line.fit.unwrap().model, epher_core::graph::ScatterFit::Linreg);
+    assert_eq!(
+        line.fit.unwrap().model,
+        epher_core::graph::ScatterFit::Linreg
+    );
 
     // An unknown model word is a parse error naming the family.
     let err = epher_core::graph::sample_data_plot("scatter({1}, {1}, cubreg)", &env)
@@ -739,8 +740,7 @@ fn table_parses_values_and_exact_keywords() {
 fn table_rows_at_evaluates_the_list() {
     let env = epher_core::Env::default();
     let expr = epher_core::parse("x^2").unwrap();
-    let rows =
-        epher_core::graph::table_rows_at(&expr, None, &[1.0, 2.0, 3.5], &env).unwrap();
+    let rows = epher_core::graph::table_rows_at(&expr, None, &[1.0, 2.0, 3.5], &env).unwrap();
     assert_eq!(rows.len(), 3);
     assert_eq!(rows[0], (1.0, Some(1.0), None));
     assert_eq!(rows[2].0, 3.5);

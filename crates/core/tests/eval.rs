@@ -2711,14 +2711,8 @@ fn dimension_errors_name_the_operands() {
 #[test]
 fn the_conversion_operator_rescales_and_remembers() {
     // `in` and `->` are the same operator
-    assert_eq!(
-        format_value_of("60 mile/hr in km/hr"),
-        "96.56064 km/hr"
-    );
-    assert_eq!(
-        format_value_of("60 mile/hr -> km/hr"),
-        "96.56064 km/hr"
-    );
+    assert_eq!(format_value_of("60 mile/hr in km/hr"), "96.56064 km/hr");
+    assert_eq!(format_value_of("60 mile/hr -> km/hr"), "96.56064 km/hr");
     assert_eq!(format_value_of("1 km in m"), "1000 m");
     assert_eq!(format_value_of("3.2 AU in km"), "478713186.24 km");
     // a plain number converts into a quantity
@@ -3209,13 +3203,22 @@ fn submit_all_returns_every_answer_in_order() {
     let mut session = Session::new();
     // A script's whole transcript, one answer per line, in order
     // (ADR-0052); the history entry keeps the last answer suffix.
-    assert_eq!(session.submit_all("x = 10; y = x + 5; x + y"), "= 10\n= 15\n= 25");
-    assert_eq!(session.history().last().unwrap(), "x = 10; y = x + 5; x + y  = 25");
+    assert_eq!(
+        session.submit_all("x = 10; y = x + 5; x + y"),
+        "= 10\n= 15\n= 25"
+    );
+    assert_eq!(
+        session.history().last().unwrap(),
+        "x = 10; y = x + 5; x + y  = 25"
+    );
     assert_eq!(session.submit_all("x * 2"), "= 20");
     // def produces no answer; a later expression does
     assert_eq!(session.submit_all("def f(t) = t ^ 2\nf(3)"), "= 9");
     // while loops produce no value; the surrounding statements do
-    assert_eq!(session.submit_all("x = 0; while x < 5 do x = x + 1; x"), "= 0\n= 5");
+    assert_eq!(
+        session.submit_all("x = 0; while x < 5 do x = x + 1; x"),
+        "= 0\n= 5"
+    );
     // single-value lines behave exactly like submit
     assert_eq!(session.submit_all("2 + 3"), "= 5");
     assert_eq!(session.submit_all(""), "");
@@ -3301,7 +3304,10 @@ fn regression_family_fits_and_reports_r() {
 
 #[test]
 fn strings_concatenate_compare_and_index() {
-    assert_eq!(eval_display_script("\"hello\" + \" \" + \"world\""), "hello world");
+    assert_eq!(
+        eval_display_script("\"hello\" + \" \" + \"world\""),
+        "hello world"
+    );
     assert_eq!(eval_display_script("len(\"hello\")"), "5");
     assert_eq!(eval_display_script("len(\"\")"), "0");
     assert_eq!(eval_display_script("\"hello\"[1]"), "h");
@@ -3336,9 +3342,15 @@ fn for_loops_iterate_ranges_and_lists() {
         "{20, 30, 40}"
     );
     // Step: half steps land exactly (no drift).
-    assert_eq!(eval_display_script("for i in 0 to 1 step 0.5 do i"), "{0, 0.5, 1}");
+    assert_eq!(
+        eval_display_script("for i in 0 to 1 step 0.5 do i"),
+        "{0, 0.5, 1}"
+    );
     // Negative steps count down.
-    assert_eq!(eval_display_script("for i in 3 to 1 step -1 do i"), "{3, 2, 1}");
+    assert_eq!(
+        eval_display_script("for i in 3 to 1 step -1 do i"),
+        "{3, 2, 1}"
+    );
     // A reversed range with positive step is simply empty.
     assert_eq!(eval_display_script("for i in 5 to 1 do i"), "{}");
     // The loop variable keeps its last value (TI's For behavior).

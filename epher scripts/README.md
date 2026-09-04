@@ -34,7 +34,22 @@ and that block is checked mechanically by `scripts/check-scripts.mjs`.
 ## Running a script
 
 From a terminal (the CLI runs every statement in order and prints each
-statement's value):
+statement's value). Every installer ships this whole folder, so on an
+installed epher the path is the installed one - per operating system:
+
+```sh
+# Debian, Ubuntu, Fedora (deb, rpm)
+epher /usr/lib/epher/scripts/astronomy/moon/full-moons.epher
+
+# Windows (PowerShell)
+epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\full-moons.epher"
+
+# macOS
+epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/full-moons.epher
+```
+
+From a source checkout the same script sits in this folder, so the path
+carries the folder name:
 
 ```sh
 epher "epher scripts/astronomy/moon/full-moons.epher"
@@ -43,7 +58,7 @@ epher "epher scripts/astronomy/moon/full-moons.epher"
 In the REPL, `load` takes a file path or a script saved with `save script`:
 
 ```text
-epher> load epher scripts/astronomy/moon/full-moons.epher
+epher> load /usr/lib/epher/scripts/astronomy/moon/full-moons.epher
 ```
 
 In the web or desktop app, paste the whole file into the entry and press

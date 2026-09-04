@@ -14,6 +14,8 @@ window.EPHER_I18N["en"] = {
   "scripts-title": "Scripts",
   "scripts-lede": "Ready-to-run scripts for the epher calculator, organized by field and topic. Open a folder to browse, click a script to read it, and copy any script to the clipboard.",
   "scripts-search": "Search scripts (names and content)",
+  "scripts-run-title": "Run them from your terminal",
+  "scripts-run-lede": "Every installer ships this whole collection, installed beside the program. The same script above runs from the installed folder on each operating system:",
   "scripts-no-results": "No scripts match your search",
   "guide-cta": "Read the user guide",
   "source-link": "Source code",

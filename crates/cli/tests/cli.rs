@@ -582,7 +582,10 @@ fn script_files_whole_parse_spanning_block_comments() {
         String::from_utf8_lossy(&out.stderr)
     );
     assert!(out.stderr.is_empty());
-    assert_eq!(String::from_utf8_lossy(&out.stdout), "= 6\n= n squared: 36\n");
+    assert_eq!(
+        String::from_utf8_lossy(&out.stdout),
+        "= 6\n= n squared: 36\n"
+    );
 }
 
 #[test]

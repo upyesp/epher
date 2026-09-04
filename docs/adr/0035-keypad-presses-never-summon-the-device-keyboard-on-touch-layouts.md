@@ -338,3 +338,28 @@ lands, even under `touch-action: none`. The 3D scene therefore also
 listens to touch events directly (ADR-0057): the same distance ratio
 zooms the camera through them, the two streams mutually exclude, and
 the slider's value is the single source of truth either way.
+
+## Amendment (2026-09-04): one finger orbits, two fingers pinch - and the touch layout keeps its width range
+
+The pinch amendment's implementation taught two corrections to the code,
+and the graph-controls review left one contract half-kept:
+
+- **A touchstart marks `touch_active` only when two fingers are down.**
+  Marking every touchstart stood the pointer stream down for a single
+  finger too - and the touch path implements only the pinch, so the
+  swipe-orbit died on real touch hardware while desktop mice kept
+  working (found on a phone; desktop-only tooling missed it). The touch
+  streams' contract is now exact: one finger belongs to the pointer
+  stream's orbit, two fingers to the touch stream's pinch, and
+  `touch_active` clears as soon as fewer than two fingers remain, so the
+  next single-finger gesture orbits again.
+- **The touch layout's 3D width range is reinstated** (with
+  ADR-0057's live-cell reading of the zoom): 0-0.2 step 0.01 with the
+  0.1 default - one screen px at ADR-0055's 10x non-scaling factor -
+  matching the per-kind clause above. ADR-0055's desktop revision
+  (0-0.4 step 0.05, default 0.2) applies on the desktop layout, and the
+  pure helpers `three_d_width_range(mobile)` /
+  `three_d_default_width(mobile)` carry the split so native tests can
+  pin it (the same take-the-layout-as-an-argument shape as
+  `answer_fits_at`). Each layout clamps the remembered per-kind width
+  into its own range on restore and on a layout flip.

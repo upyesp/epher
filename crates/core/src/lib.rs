@@ -722,7 +722,8 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
                         Some(c2) => s.push(c2),
                         None => {
                             return Err(EpherError::Parse(
-                                "unterminated string: a literal needs its closing quote".to_string(),
+                                "unterminated string: a literal needs its closing quote"
+                                    .to_string(),
                             ))
                         }
                     }
@@ -911,7 +912,11 @@ impl Parser {
                 } else {
                     None
                 };
-                ForIterable::Range { start: first, end, step }
+                ForIterable::Range {
+                    start: first,
+                    end,
+                    step,
+                }
             } else {
                 ForIterable::Items(first)
             };
@@ -1768,7 +1773,12 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                             "index {i} is out of range for a string of {n} character(s)"
                         )));
                     }
-                    Ok(Value::Str(s.chars().nth((i - 1) as usize).expect("in range").to_string()))
+                    Ok(Value::Str(
+                        s.chars()
+                            .nth((i - 1) as usize)
+                            .expect("in range")
+                            .to_string(),
+                    ))
                 }
                 other => Err(EpherError::Type(format!(
                     "indexing needs a list, matrix, or string, got {other:?}"
@@ -1844,7 +1854,11 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                 // String equality (ADR-0054): `"a" == "b"` compares
                 // whole strings; ordering stays a type error.
                 (Value::Str(a), Value::Str(b)) if matches!(op, CmpOp::Eq | CmpOp::Ne) => {
-                    Ok(Value::Bool(if matches!(op, CmpOp::Eq) { a == b } else { a != b }))
+                    Ok(Value::Bool(if matches!(op, CmpOp::Eq) {
+                        a == b
+                    } else {
+                        a != b
+                    }))
                 }
                 // Numeric comparisons across all the numeric types
                 // (ADR-0047): same-type exact pairs compare exactly;
@@ -2153,7 +2167,11 @@ fn eval_random(name: &str, args: Vec<Value>, env: &Env) -> Result<Value, EpherEr
             let uniform = || {
                 let u = ((next(env) >> 11) as f64) * (1.0 / 9_007_199_254_740_992.0);
                 // 0.0 is measure-zero but a ln(0) would poison the draw
-                if u == 0.0 { f64::MIN_POSITIVE } else { u }
+                if u == 0.0 {
+                    f64::MIN_POSITIVE
+                } else {
+                    u
+                }
             };
             let u1 = uniform();
             let u2 = uniform();
@@ -3059,7 +3077,12 @@ impl Fit {
     pub fn caption(&self) -> String {
         match self.kind {
             FitKind::Linear => {
-                format!("y = {}*x + {} (r = {})", stat_str(self.a), stat_str(self.b), stat_str(self.r))
+                format!(
+                    "y = {}*x + {} (r = {})",
+                    stat_str(self.a),
+                    stat_str(self.b),
+                    stat_str(self.r)
+                )
             }
             FitKind::Quadratic => format!(
                 "y = {}*x^2 + {}*x + {} (r = {})",
@@ -3075,7 +3098,12 @@ impl Fit {
                 stat_str(self.r)
             ),
             FitKind::Power => {
-                format!("y = {}*x^{} (r = {})", stat_str(self.a), stat_str(self.b), stat_str(self.r))
+                format!(
+                    "y = {}*x^{} (r = {})",
+                    stat_str(self.a),
+                    stat_str(self.b),
+                    stat_str(self.r)
+                )
             }
             FitKind::Logarithmic => format!(
                 "y = {} + {}*ln(x) (r = {})",
@@ -3099,7 +3127,13 @@ pub fn fit_regression(kind: FitKind, xs: &[f64], ys: &[f64]) -> Result<Fit, Ephe
     match kind {
         FitKind::Linear => {
             let (a, b, r) = linear_fit(xs, ys)?;
-            Ok(Fit { kind, a, b, c: 0.0, r })
+            Ok(Fit {
+                kind,
+                a,
+                b,
+                c: 0.0,
+                r,
+            })
         }
         FitKind::Quadratic => {
             if xs.len() < 3 {
@@ -3120,10 +3154,8 @@ pub fn fit_regression(kind: FitKind, xs: &[f64], ys: &[f64]) -> Result<Fit, Ephe
                 t1 += x * y;
                 t2 += x2 * y;
             }
-            let Some([a, b, c]) = solve3(
-                [[s4, s3, s2], [s3, s2, s1], [s2, s1, s0]],
-                [t2, t1, t0],
-            ) else {
+            let Some([a, b, c]) = solve3([[s4, s3, s2], [s3, s2, s1], [s2, s1, s0]], [t2, t1, t0])
+            else {
                 return Err(domain_error(
                     "quadratic fit needs at least 3 distinct x values",
                 ));
@@ -3146,7 +3178,13 @@ pub fn fit_regression(kind: FitKind, xs: &[f64], ys: &[f64]) -> Result<Fit, Ephe
             if ln_a > 700.0 {
                 return Err(domain_error("the exponential fit overflows"));
             }
-            Ok(Fit { kind, a: ln_a.exp(), b, c: 0.0, r })
+            Ok(Fit {
+                kind,
+                a: ln_a.exp(),
+                b,
+                c: 0.0,
+                r,
+            })
         }
         FitKind::Power => {
             if xs.len() < 2 {
@@ -3163,7 +3201,13 @@ pub fn fit_regression(kind: FitKind, xs: &[f64], ys: &[f64]) -> Result<Fit, Ephe
             if ln_a > 700.0 {
                 return Err(domain_error("the power fit overflows"));
             }
-            Ok(Fit { kind, a: ln_a.exp(), b, c: 0.0, r })
+            Ok(Fit {
+                kind,
+                a: ln_a.exp(),
+                b,
+                c: 0.0,
+                r,
+            })
         }
         FitKind::Logarithmic => {
             if xs.len() < 2 {
@@ -3176,7 +3220,13 @@ pub fn fit_regression(kind: FitKind, xs: &[f64], ys: &[f64]) -> Result<Fit, Ephe
             }
             let lx: Vec<f64> = xs.iter().map(|x| x.ln()).collect();
             let (b, a, r) = linear_fit(&lx, ys)?;
-            Ok(Fit { kind, a, b, c: 0.0, r })
+            Ok(Fit {
+                kind,
+                a,
+                b,
+                c: 0.0,
+                r,
+            })
         }
     }
 }
@@ -6776,7 +6826,11 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             let (mean, sd) = sample_mean_std(&diffs);
             let t = (mean) / (sd / n.sqrt());
             let p = if sd == 0.0 {
-                if mean == 0.0 { 1.0 } else { 0.0 }
+                if mean == 0.0 {
+                    1.0
+                } else {
+                    0.0
+                }
             } else {
                 t_two_sided(t, n - 1.0)
             };
@@ -6807,15 +6861,9 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             let k = groups.len() as f64;
             let n_total: f64 = groups.iter().map(|g| g.len()).sum::<usize>() as f64;
             if n_total <= k {
-                return Err(domain_error(
-                    "anova needs more data points than groups",
-                ));
+                return Err(domain_error("anova needs more data points than groups"));
             }
-            let grand = groups
-                .iter()
-                .flat_map(|g| g.iter().copied())
-                .sum::<f64>()
-                / n_total;
+            let grand = groups.iter().flat_map(|g| g.iter().copied()).sum::<f64>() / n_total;
             let ssb: f64 = groups
                 .iter()
                 .map(|g| {
@@ -6835,7 +6883,11 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             let (f_stat, p) = if ssw == 0.0 {
                 // every value in every group identical: no within-group
                 // variance, so the F statistic is degenerate
-                if ssb == 0.0 { (0.0, 1.0) } else { (f64::INFINITY, 0.0) }
+                if ssb == 0.0 {
+                    (0.0, 1.0)
+                } else {
+                    (f64::INFINITY, 0.0)
+                }
             } else {
                 let f = (ssb / df1) / (ssw / df2);
                 (f, (1.0 - f_cdf(f, df1, df2)).max(0.0))
@@ -7147,7 +7199,9 @@ fn run_for(
                 ));
             };
             let Value::Float(end) = eval(end, env)? else {
-                return Err(EpherError::Type("the range end must be a number".to_string()));
+                return Err(EpherError::Type(
+                    "the range end must be a number".to_string(),
+                ));
             };
             let step = match step {
                 Some(expr) => match eval(expr, env)? {

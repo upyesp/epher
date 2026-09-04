@@ -559,7 +559,9 @@ pub fn table_rows_at(
     env: &Env,
 ) -> Result<Vec<TableRow>, EpherError> {
     if xs.is_empty() {
-        return Err(EpherError::Type("the values list needs at least one x".to_string()));
+        return Err(EpherError::Type(
+            "the values list needs at least one x".to_string(),
+        ));
     }
     if xs.len() > 1000 {
         return Err(EpherError::Type(format!(
@@ -1063,8 +1065,7 @@ pub fn sample_data_plot(source: &str, env: &Env) -> Result<DataPlot, EpherError>
         };
         let fit = if points.len() >= min_points {
             let (px, py): (Vec<f64>, Vec<f64>) = points.iter().copied().unzip();
-            crate::fit_regression(model.kind(), &px, &py)
-                .map(|f| Some(Fit { model, fit: f }))?
+            crate::fit_regression(model.kind(), &px, &py).map(|f| Some(Fit { model, fit: f }))?
         } else if model != ScatterFit::Linreg {
             return Err(EpherError::Type(format!(
                 "{} needs at least {} points, got {}",
@@ -1781,8 +1782,7 @@ pub fn parse_space_curve_source(
     if domain.0 >= domain.1 {
         return Err(EpherError::Parse(format!(
             "graph domain must run low to high, got {:.3} .. {:.3}",
-            domain.0,
-            domain.1
+            domain.0, domain.1
         )));
     }
     Ok((parse(x)?, parse(y)?, parse(z)?, domain))
@@ -1791,7 +1791,11 @@ pub fn parse_space_curve_source(
 /// Sample a space curve over its t domain; `t` is bound for each point
 /// like the 2D parametric sampler binds it. Points that do not
 /// evaluate to numbers are skipped; a curve needs at least two of them.
-pub fn sample_space_curve(source: &str, points: usize, env: &Env) -> Result<SpaceCurve, EpherError> {
+pub fn sample_space_curve(
+    source: &str,
+    points: usize,
+    env: &Env,
+) -> Result<SpaceCurve, EpherError> {
     let (x, y, z, domain) = parse_space_curve_source(source)?;
     let mut child = Env::new_child(env);
     let mut out: Vec<[f64; 3]> = Vec::with_capacity(points);
@@ -1803,11 +1807,9 @@ pub fn sample_space_curve(source: &str, points: usize, env: &Env) -> Result<Spac
         };
         let t = domain.0 + t * (domain.1 - domain.0);
         child.set("t", Value::float(t));
-        let (Ok(Value::Float(px)), Ok(Value::Float(py)), Ok(Value::Float(pz))) = (
-            eval(&x, &child),
-            eval(&y, &child),
-            eval(&z, &child),
-        ) else {
+        let (Ok(Value::Float(px)), Ok(Value::Float(py)), Ok(Value::Float(pz))) =
+            (eval(&x, &child), eval(&y, &child), eval(&z, &child))
+        else {
             continue;
         };
         out.push([px, py, pz]);

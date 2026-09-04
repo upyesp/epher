@@ -284,13 +284,22 @@ fn answer_fits_routes_short_single_answers_to_the_answer_line() {
     // The headless desktop width (>880px): one short answer, no line
     // breaks, fits the answer line (ADR-0056).
     assert!(epher_web::answer_fits_at("= 2", false));
-    assert!(epher_web::answer_fits_at("= [[1, 2, 3], [4, 5, 6], [7, 8, 10]]", false));
-    assert!(epher_web::answer_fits_at("= they agree within 1e-12: true", false));
+    assert!(epher_web::answer_fits_at(
+        "= [[1, 2, 3], [4, 5, 6], [7, 8, 10]]",
+        false
+    ));
+    assert!(epher_web::answer_fits_at(
+        "= they agree within 1e-12: true",
+        false
+    ));
     // A script transcript (several answers) renders in the result pane.
     assert!(!epher_web::answer_fits_at("= 2\u{1f}= 6", false));
     // The same rule on a phone: a shorter cap, same decisions otherwise.
     assert!(epher_web::answer_fits_at("= 0.5", true));
-    assert!(!epher_web::answer_fits_at("= [[1, 2, 3], [4, 5, 6], [7, 8, 10]]", true));
+    assert!(!epher_web::answer_fits_at(
+        "= [[1, 2, 3], [4, 5, 6], [7, 8, 10]]",
+        true
+    ));
     // So does a table or matrix with its own line breaks.
     assert!(!epher_web::answer_fits_at("x  y\n1  2", false));
     // So does an answer too long for one calm line.
@@ -299,4 +308,38 @@ fn answer_fits_routes_short_single_answers_to_the_answer_line() {
     // Empty keeps whatever routing the absence implies (the answer line
     // renders nothing either way).
     assert!(!epher_web::answer_fits_at("", false));
+}
+
+#[test]
+fn three_d_width_contract_follows_the_layout() {
+    // The touch layout keeps ADR-0035's original slider and default
+    // (0-0.2 step 0.01, 0.1); the desktop keeps ADR-0055's revision
+    // (0-0.4 step 0.05, 0.2). Both render at 10 px per unit of width
+    // (non-scaling stroke), so the defaults draw 1 px and 2 px.
+    assert_eq!(
+        epher_core::graph_svg::three_d_width_range(true),
+        (0.2, 0.01)
+    );
+    assert_eq!(
+        epher_core::graph_svg::three_d_width_range(false),
+        (0.4, 0.05)
+    );
+    assert_eq!(
+        epher_core::graph_svg::three_d_default_width(true),
+        epher_core::graph_svg::THREE_D_DEFAULT_WIDTH_MOBILE
+    );
+    assert_eq!(
+        epher_core::graph_svg::three_d_default_width(false),
+        epher_core::graph_svg::THREE_D_DEFAULT_WIDTH
+    );
+    assert_eq!(
+        epher_core::graph_svg::three_d_default_width(true)
+            * epher_core::graph_svg::THREE_D_PX_PER_WIDTH,
+        1.0
+    );
+    assert_eq!(
+        epher_core::graph_svg::three_d_default_width(false)
+            * epher_core::graph_svg::THREE_D_PX_PER_WIDTH,
+        2.0
+    );
 }

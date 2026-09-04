@@ -369,7 +369,9 @@
        answer - in the answer line and in the result pane alike. */
     .answer-row {
       display: flex;
-      align-items: flex-start;
+      /* A short answer is one line: the icon centers on that line
+         (the pane's transcript top-aligns, ADR-0057). */
+      align-items: center;
       gap: 0.35rem;
       padding-inline: 0.4rem;
     }

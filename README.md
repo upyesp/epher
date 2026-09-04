@@ -47,6 +47,19 @@ cargo run --release -- gui           # desktop app
 
 Open [epher.org](https://epher.org) for the web app, the [user guide](https://epher.org/guide/en/), and copyable [examples](https://epher.org/examples.html). The command's own help pages everything: `epher --help`, `epher help`.
 
+Every installer ships the whole [script collection](https://epher.org/scripts.html) (333 ready-to-run scripts), installed beside the program. The same script, on each operating system:
+
+```sh
+# Debian, Ubuntu, Fedora (deb, rpm)
+epher /usr/lib/epher/scripts/astronomy/moon/full-moons.epher
+
+# Windows (PowerShell)
+epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\full-moons.epher"
+
+# macOS
+epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/full-moons.epher
+```
+
 ---
 
 ## More Information

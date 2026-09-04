@@ -199,10 +199,7 @@ fn resample_surfaces(surfaces: &mut [epher_core::graph::Surface], session: &Sess
 
 /// Re-sample every 3D parametric curve against the current environment
 /// (ADR-0054): a moved constant reshapes the curve.
-fn resample_space_curves(
-    curves: &mut [epher_core::graph::SpaceCurve],
-    session: &Session,
-) {
+fn resample_space_curves(curves: &mut [epher_core::graph::SpaceCurve], session: &Session) {
     for c in curves.iter_mut() {
         if let Ok(fresh) = epher_core::graph::sample_space_curve(&c.source, 240, session.env()) {
             *c = fresh;
@@ -450,7 +447,12 @@ static TABS: &[TabDef] = &[
                 "fn",
                 "key-hint-derivative",
             ),
-            key("integral", KeyAction::Call("integral"), "fn", "key-hint-integral"),
+            key(
+                "integral",
+                KeyAction::Call("integral"),
+                "fn",
+                "key-hint-integral",
+            ),
         ],
     },
     TabDef {
@@ -487,9 +489,19 @@ static TABS: &[TabDef] = &[
             key("%", KeyAction::Text("%"), "op", "key-hint-percent"),
             // The seeded-random keys (ADR-0045, ADR-0055 keypad): the
             // generator family joins the statistics bank.
-            key("randint", KeyAction::Call("randint"), "fn", "key-hint-randint"),
+            key(
+                "randint",
+                KeyAction::Call("randint"),
+                "fn",
+                "key-hint-randint",
+            ),
             key("random", KeyAction::Call("random"), "fn", "key-hint-random"),
-            key("randseed", KeyAction::Call("randseed"), "fn", "key-hint-randseed"),
+            key(
+                "randseed",
+                KeyAction::Call("randseed"),
+                "fn",
+                "key-hint-randseed",
+            ),
             key("randn", KeyAction::Call("randn"), "fn", "key-hint-randn"),
         ],
     },
@@ -528,7 +540,12 @@ static TABS: &[TabDef] = &[
             // The stats-class keys (ADR-0054, ADR-0055 keypad): fits,
             // tests, and the distribution family in one bank.
             key("linreg", KeyAction::Call("linreg"), "fn", "key-hint-linreg"),
-            key("quadreg", KeyAction::Call("quadreg"), "fn", "key-hint-quadreg"),
+            key(
+                "quadreg",
+                KeyAction::Call("quadreg"),
+                "fn",
+                "key-hint-quadreg",
+            ),
             key("expreg", KeyAction::Call("expreg"), "fn", "key-hint-expreg"),
             key("powreg", KeyAction::Call("powreg"), "fn", "key-hint-powreg"),
             key("logreg", KeyAction::Call("logreg"), "fn", "key-hint-logreg"),
@@ -539,9 +556,24 @@ static TABS: &[TabDef] = &[
                 "fn",
                 "key-hint-ttestpaired",
             ),
-            key("normcdf", KeyAction::Call("normcdf"), "fn", "key-hint-normcdf"),
-            key("normpdf", KeyAction::Call("normpdf"), "fn", "key-hint-normpdf"),
-            key("invnorm", KeyAction::Call("invnorm"), "fn", "key-hint-invnorm"),
+            key(
+                "normcdf",
+                KeyAction::Call("normcdf"),
+                "fn",
+                "key-hint-normcdf",
+            ),
+            key(
+                "normpdf",
+                KeyAction::Call("normpdf"),
+                "fn",
+                "key-hint-normpdf",
+            ),
+            key(
+                "invnorm",
+                KeyAction::Call("invnorm"),
+                "fn",
+                "key-hint-invnorm",
+            ),
             key("tcdf", KeyAction::Call("tcdf"), "fn", "key-hint-tcdf"),
             key("tpdf", KeyAction::Call("tpdf"), "fn", "key-hint-tpdf"),
             key("invt", KeyAction::Call("invt"), "fn", "key-hint-invt"),
@@ -583,9 +615,24 @@ static TABS: &[TabDef] = &[
                 "fn",
                 "key-hint-poissonpdf",
             ),
-            key("chi2cdf", KeyAction::Call("chi2cdf"), "fn", "key-hint-chi2cdf"),
-            key("chi2pdf", KeyAction::Call("chi2pdf"), "fn", "key-hint-chi2pdf"),
-            key("invchi2", KeyAction::Call("invchi2"), "fn", "key-hint-invchi2"),
+            key(
+                "chi2cdf",
+                KeyAction::Call("chi2cdf"),
+                "fn",
+                "key-hint-chi2cdf",
+            ),
+            key(
+                "chi2pdf",
+                KeyAction::Call("chi2pdf"),
+                "fn",
+                "key-hint-chi2pdf",
+            ),
+            key(
+                "invchi2",
+                KeyAction::Call("invchi2"),
+                "fn",
+                "key-hint-invchi2",
+            ),
         ],
     },
     TabDef {
@@ -597,7 +644,12 @@ static TABS: &[TabDef] = &[
             key("tvm_n", KeyAction::Call("tvm_n"), "fn", "key-hint-tvm_n"),
             key("tvm_i", KeyAction::Call("tvm_i"), "fn", "key-hint-tvm_i"),
             key("tvm_pv", KeyAction::Call("tvm_pv"), "fn", "key-hint-tvm_pv"),
-            key("tvm_pmt", KeyAction::Call("tvm_pmt"), "fn", "key-hint-tvm_pmt"),
+            key(
+                "tvm_pmt",
+                KeyAction::Call("tvm_pmt"),
+                "fn",
+                "key-hint-tvm_pmt",
+            ),
             key("tvm_fv", KeyAction::Call("tvm_fv"), "fn", "key-hint-tvm_fv"),
             key("npv", KeyAction::Call("npv"), "fn", "key-hint-npv"),
             key("irr", KeyAction::Call("irr"), "fn", "key-hint-irr"),
@@ -848,9 +900,12 @@ fn mobile_layout() -> bool {
 /// 3D remember their values independently on every display — the 2D key
 /// falls back to the legacy shared key and clamps into the 2D range
 /// (0–4), the 3D key falls back to the same legacy key and clamps into
-/// the 3D range (0–0.4). Each kind's plot renders with its own value;
-/// the toolbar shows and edits the kind in view.
-fn stored_widths(store: &web_sys::Storage) -> (Option<f64>, Option<f64>) {
+/// the 3D range of the layout in question (0–0.2 on the touch layout,
+/// ADR-0035; 0–0.4 on the desktop, ADR-0055). The layout question
+/// arrives as an argument so the clamp stays testable off-wasm. Each
+/// kind's plot renders with its own value; the toolbar shows and edits
+/// the kind in view.
+fn stored_widths(store: &web_sys::Storage, mobile: bool) -> (Option<f64>, Option<f64>) {
     let read = |key: &str| {
         store
             .get_item(key)
@@ -858,13 +913,14 @@ fn stored_widths(store: &web_sys::Storage) -> (Option<f64>, Option<f64>) {
             .flatten()
             .and_then(|v| v.parse::<f64>().ok())
     };
+    let (w3d_max, _) = graph::three_d_width_range(mobile);
     let legacy = read("epher-line-width");
     let w2d = read("epher-line-width-2d")
         .or(legacy)
         .map(|w| w.clamp(0.0, 4.0));
     let w3d = read("epher-line-width-3d")
         .or(legacy)
-        .map(|w| w.clamp(0.0, 0.4));
+        .map(|w| w.clamp(0.0, w3d_max));
     (w2d, w3d)
 }
 
@@ -1151,11 +1207,11 @@ fn download_icon() -> yew::Html {
 }
 
 /// The private separator between answers in the result state (ADR-0052,
-    /// ADR-0055 layout): the state joins a script's outputs with a unit
-    /// separator so the renderer can lay them out as separate items -
-    /// same line with `;` between them, never splitting one answer - while
-    /// messages and single outputs (which never contain the character)
-    /// render exactly as one item.
+/// ADR-0055 layout): the state joins a script's outputs with a unit
+/// separator so the renderer can lay them out as separate items -
+/// same line with `;` between them, never splitting one answer - while
+/// messages and single outputs (which never contain the character)
+/// render exactly as one item.
 const ANSWER_SEP: char = '\u{1f}';
 
 /// True when the answer line keeps a result (ADR-0056): exactly one
@@ -2125,12 +2181,14 @@ fn epher_app() -> Html {
     let poi_list = use_state(|| true);
     let poi_markers = use_state(|| true);
     let width_2d = use_state(|| graph::DEFAULT_STROKE_WIDTH);
-    // The 3D wireframe width (ADR-0055): range 0–0.4 step 0.05 with 0.2
-    // the default. The width is a screen-px measure (vector-effect), so
-    // the default draws a 2 px line on any display and in the exports —
-    // the two kinds own separate sliders, and a 3D surface keeps its own
-    // default rather than inheriting the 2D curve's.
-    let width_3d = use_state(|| graph::THREE_D_DEFAULT_WIDTH);
+    // The 3D wireframe width (ADR-0055 desktop, ADR-0035 mobile): the
+    // desktop range is 0–0.4 step 0.05 with 0.2 the default; the touch
+    // layout keeps ADR-0035's 0–0.2 step 0.01 with 0.1. The width is a
+    // screen-px measure (vector-effect), so the defaults draw a 2 px
+    // (desktop) or 1 px (mobile) line on any display and in the exports
+    // — the two kinds own separate sliders, and a 3D surface keeps its
+    // own default rather than inheriting the 2D curve's.
+    let width_3d = use_state(|| graph::three_d_default_width(mobile_layout()));
     // Per-curve visibility (ADR-0015 amendment): each legend entry has a
     // checkbox, checked by default; unchecking hides that curve from the
     // plot, its points of interest, and the SVG export. Reset whenever a
@@ -2460,7 +2518,7 @@ fn epher_app() -> Html {
                                         poi_markers.set(false);
                                     }
                                 }
-                                let (w2d, w3d) = stored_widths(&store);
+                                let (w2d, w3d) = stored_widths(&store, mobile_layout());
                                 if let Some(w) = w2d {
                                     width_2d.set(w);
                                 }
@@ -2533,7 +2591,7 @@ fn epher_app() -> Html {
                             });
                         }
                     }
-                    let (w2d, w3d) = stored_widths(&store);
+                    let (w2d, w3d) = stored_widths(&store, mobile_layout());
                     if let Some(w) = w2d {
                         width_2d.set(w);
                     }
@@ -2813,8 +2871,14 @@ fn epher_app() -> Html {
                     .and_then(|d| d.query_selector(".graph-width-slider").ok().flatten())
                     .and_then(|el| el.dyn_into::<web_sys::HtmlInputElement>().ok())
                 {
+                    // The flip may have changed the kind's range (ADR-0035
+                    // mobile 0-0.2 vs ADR-0055 desktop 0-0.4); keep the
+                    // remembered value inside the slider now in view.
                     if let Ok(w) = el.value().parse::<f64>() {
-                        on_set_line_width.emit(w);
+                        if let (Ok(lo), Ok(hi)) = (el.min().parse::<f64>(), el.max().parse::<f64>())
+                        {
+                            on_set_line_width.emit(w.clamp(lo, hi));
+                        }
                     }
                 }
             });
@@ -3526,9 +3590,7 @@ fn epher_app() -> Html {
                                 // the screen. Drop the focus so the
                                 // keyboard closes and the pane is ready
                                 // for touch rotation.
-                                if let Some(ta) =
-                                    input_ref.cast::<web_sys::HtmlTextAreaElement>()
-                                {
+                                if let Some(ta) = input_ref.cast::<web_sys::HtmlTextAreaElement>() {
                                     let _ = ta.blur();
                                 }
                             }
@@ -3554,7 +3616,7 @@ fn epher_app() -> Html {
                         view_h.set(0.0);
                         view_v.set(0.0);
                         *view_z_cell.borrow_mut() = 0.0;
-                    view_z.set(0.0);
+                        view_z.set(0.0);
                         // The spin loop reads the live cells (not the
                         // states): stale non-zero cells here kept a
                         // fresh graph spinning with the sliders at 0
@@ -3583,7 +3645,7 @@ fn epher_app() -> Html {
                                     view_h.set(0.0);
                                     view_v.set(0.0);
                                     *view_z_cell.borrow_mut() = 0.0;
-                    view_z.set(0.0);
+                                    view_z.set(0.0);
                                     spin_phase.set((0.0, 0.0));
                                     *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                                 }
@@ -3623,7 +3685,7 @@ fn epher_app() -> Html {
                                 view_h.set(0.0);
                                 view_v.set(0.0);
                                 *view_z_cell.borrow_mut() = 0.0;
-                    view_z.set(0.0);
+                                view_z.set(0.0);
                                 spin_phase.set((0.0, 0.0));
                                 *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                             }
@@ -3635,9 +3697,7 @@ fn epher_app() -> Html {
                             // the view across to the freshly drawn pane.
                             if mobile_layout() {
                                 scroll_pane.emit("graph-pane");
-                                if let Some(ta) =
-                                    input_ref.cast::<web_sys::HtmlTextAreaElement>()
-                                {
+                                if let Some(ta) = input_ref.cast::<web_sys::HtmlTextAreaElement>() {
                                     let _ = ta.blur();
                                 }
                             }
@@ -3663,7 +3723,7 @@ fn epher_app() -> Html {
                         view_h.set(0.0);
                         view_v.set(0.0);
                         *view_z_cell.borrow_mut() = 0.0;
-                    view_z.set(0.0);
+                        view_z.set(0.0);
                         // The spin loop reads the live cells (not the
                         // states): stale non-zero cells here kept a
                         // fresh graph spinning with the sliders at 0
@@ -3702,7 +3762,7 @@ fn epher_app() -> Html {
                             view_h.set(0.0);
                             view_v.set(0.0);
                             *view_z_cell.borrow_mut() = 0.0;
-                    view_z.set(0.0);
+                            view_z.set(0.0);
                             // The spin loop reads the live cells: stale
                             // non-zero cells kept a fresh graph spinning
                             // with the sliders at 0 (ADR-0038 amendment).
@@ -3713,9 +3773,7 @@ fn epher_app() -> Html {
                             result.set(String::new());
                             if mobile_layout() {
                                 scroll_pane.emit("graph-pane");
-                                if let Some(ta) =
-                                    input_ref.cast::<web_sys::HtmlTextAreaElement>()
-                                {
+                                if let Some(ta) = input_ref.cast::<web_sys::HtmlTextAreaElement>() {
                                     let _ = ta.blur();
                                 }
                             }
@@ -3772,9 +3830,7 @@ fn epher_app() -> Html {
                             match &cmd {
                                 epher_shell::Command::Table { .. } => {
                                     match prepare(&cmd, &s, &localizer) {
-                                        Ok(prepared) => {
-                                            result.set(message(&prepared, &localizer))
-                                        }
+                                        Ok(prepared) => result.set(message(&prepared, &localizer)),
                                         Err(msg) => result.set(msg),
                                     }
                                 }
@@ -4470,14 +4526,8 @@ fn epher_app() -> Html {
                         caption: format!("z = {}", s.source.trim()),
                     })
                     .collect();
-                graph::graph3d_svg_styled(
-                    &visible_surfaces3d,
-                    &view3d,
-                    *width_3d,
-                    palette,
-                    &legend,
-                )
-                .unwrap_or_default()
+                graph::graph3d_svg_styled(&visible_surfaces3d, &view3d, *width_3d, palette, &legend)
+                    .unwrap_or_default()
             };
             if svg.is_empty() {
                 return;
@@ -4625,14 +4675,8 @@ fn epher_app() -> Html {
                         caption: format!("z = {}", s.source.trim()),
                     })
                     .collect();
-                graph::graph3d_svg_styled(
-                    &visible_surfaces3d,
-                    &view3d,
-                    *width_3d,
-                    palette,
-                    &legend,
-                )
-                .unwrap_or_default()
+                graph::graph3d_svg_styled(&visible_surfaces3d, &view3d, *width_3d, palette, &legend)
+                    .unwrap_or_default()
             };
             if svg.is_empty() {
                 return;
@@ -4785,7 +4829,7 @@ fn epher_app() -> Html {
             _ => {
                 *view_z_cell.borrow_mut() = 0.0;
                 *view_z_cell.borrow_mut() = 0.0;
-                    view_z.set(0.0);
+                view_z.set(0.0);
             }
         })
     };
@@ -4798,7 +4842,7 @@ fn epher_app() -> Html {
     let on_reset_width_3d = {
         let on_set_line_width = on_set_line_width.clone();
         Callback::from(move |_: web_sys::MouseEvent| {
-            on_set_line_width.emit(graph::THREE_D_DEFAULT_WIDTH)
+            on_set_line_width.emit(graph::three_d_default_width(mobile_layout()))
         })
     };
     // The solar legend's per-body checkboxes (ADR-0038): like the curve
@@ -5426,7 +5470,9 @@ fn epher_app() -> Html {
                     <input
                         type="range"
                         class="graph-width-slider"
-                        min="0" max="0.4" step="0.05"
+                        min="0"
+                        max={graph::three_d_width_range(*is_mobile).0.to_string()}
+                        step={graph::three_d_width_range(*is_mobile).1.to_string()}
                         value={width_3d.to_string()}
                         title={localizer.lookup("tune-line-width")}
                         aria-label={localizer.lookup("tune-line-width")}
@@ -5566,7 +5612,7 @@ fn epher_app() -> Html {
             view_h.set(0.0);
             view_v.set(0.0);
             *view_z_cell.borrow_mut() = 0.0;
-                    view_z.set(0.0);
+            view_z.set(0.0);
             spin_phase.set((0.0, 0.0));
             *spin_phase_cell.borrow_mut() = (0.0, 0.0);
             result.set(localizer.lookup("graph-cleared"));

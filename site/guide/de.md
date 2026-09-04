@@ -448,714 +448,6 @@ for i in 1 to 3 do print("line", i)
 Derselbe Sicherheitsschalter von 100.000 Schritten begrenzt eine for-Schleife wie eine while-Schleife.
 
 
-## 2. Die Web-App (PWA)
-
-### 2.1 Sie öffnen
-
-Die Web-App liegt unter:
-
-```text
-https://epher.org/pwa/
-```
-
-Keine Installation nötig. Sie funktioniert in jedem modernen Browser auf
-Computer, Telefon oder Tablet.
-
-Dieses Handbuch ist auch in die App eingebaut: öffne **Help → In-app user guide**
-in der Menüleiste (tippe auf einem Telefon auf **☰**), um es in der App in
-der aktuell eingestellten Sprache zu lesen. Tippe ein beliebiges Beispiel
-in diesem Handbuch an, um es ins Eingabefeld zu laden. **Hilfe → Konstanten** öffnet den Konstanten-Browser: alle eingebauten Konstanten in Gruppen (Mathematik, Astronomie, Physik, Chemie), jede mit ihrem Wert und einer kurzen Beschreibung; tippe eine an, um ihren Namen ins Eingabefeld einzufügen, und das Suchfeld filtert die Liste.
-
-### 2.2 Deine erste Berechnung
-
-1. Klicke auf das Textfeld (es ist beim Laden der Seite bereits fokussiert).
-2. Tippe einen Ausdruck, zum Beispiel `2 + 3 * 4`.
-3. Drücke **Enter** oder klicke auf den Button **=**.
-
-Das Ergebnis erscheint in großer Schrift unter dem Feld. Alles aus
-Kapitel 1 funktioniert hier, einschließlich Variablen, Funktionen und
-Skripten. Eine kurze einzelne Antwort bleibt in dieser Zeile. Eine
-längere Antwort - das Protokoll eines Skripts mit mehreren Antworten,
-eine Tabelle, eine lange Zahl - erscheint im Ergebnisbereich, dem
-Bereich, der auch Graphen zeigt, mit je einer Antwort pro Zeile; auf
-dem Telefon schiebt sich der Bereich von selbst ins Blickfeld. Links der Antwort sitzt ein Kopiersymbol: Ein Druck legt die Werte der Antwort in die Zwischenablage, je einer pro Zeile; lange Antworten im Ergebnisbereich kopieren genauso.
-
-Während du einen Namen tippst, erscheint unter dem Feld eine Vorschlagsliste: die Pfeile bewegen die Markierung, **Enter** oder **Tab** übernimmt, **Esc** schließt, und ein Klick übernimmt, ohne die Tastatur zu verlassen. Jeder Vorschlag trägt eine kurze Beschreibung der Funktion oder Konstante. **F1** zeigt dieselbe Beschreibung für das Wort unter dem Cursor in der Hinweisleiste über dem Tastenfeld. Beginnt eine leere Eingabe mit einem Operator (`+ - * / ^ % !`), fügt epher `ans` ein, und die Zeile macht mit dem letzten Ergebnis weiter.
-
-Das Tastenfeld auf dem Bildschirm tippt für dich, genau als hättest du die Tasten gedrückt. Seine Bänke decken die ganze Sprache ab: `123` Ziffern und Operatoren, `trig`, `ƒ` Funktionen, `nΣ` Zahlen und Statistik, `data` Matrizen, Listen und Zeichenketten (die Bank, die `[[1, 2], [3, 4]]`, `{1, 2, 3}` und `"text"` tippt), `0x` Umwandlungen und Basen, `dist` Regressions- und Verteilungsfamilien, `$` Finanzen, `π∇` Konstanten und Graph-Befehle sowie `☉` Astronomie (die einzige Bank, die scrollt). Jede Funktion in diesem Handbuch liegt irgendwo auf einer Taste. Aktiviere **key hints** (der **?**-Button), um jede Taste zu beschriften, oder verweile auf einer Taste, um zu lesen, was sie tut.
-
-Das Menü **Einstellungen** (das Zahnrad-Symbol oder **☰ → Einstellungen** am Telefon) enthält drei Gruppen. **Design** und **Sprache** tun, was ihre Namen sagen. **Ergebnisse** bestimmt die Darstellung der Antworten: exakte Brüche (standardmäßig an, so wird `1 / 3` als `1/3` angezeigt), die Notation (Auto, wissenschaftlich oder technisch) und Tausendertrenner. Das sind reine Anzeigeoptionen; die Werte darunter bleiben gewöhnliche Zahlen.
-
-### 2.3 Verlauf
-
-Jede Berechnung wird zur Verlaufsliste unter dem Ergebnis hinzugefügt,
-damit du zurückscrollen und sehen kannst, was du gemacht hast. Die neuesten
-Einträge erscheinen oben, und das Mülleimer-Symbol links von der
-Überschrift **Verlauf** leert sie (im Terminal: Strg+L oder ein Klick
-auf dasselbe Symbol). Der Verlauf bleibt erhalten, solange die Seite offen
-ist.
-
-Jeder Eintrag liegt zwischen dünnen Trennlinien: ein einzeiliger Ausdruck ist eine Zeile, und ein mehrzeiliges Skript ist ein Eintrag, der alle seine Zeilen zeigt. Klicke einen Eintrag an, um ihn zurück ins Eingabefeld zu laden und erneut auszuführen.
-
-### 2.4 Graphen zeichnen
-
-Tippe `graph`, gefolgt von einem Ausdruck, und drücke **Enter**:
-
-```epher
-graph x ^ 2
-```
-
-epher zeichnet die Kurve y = f(x) von x = −10 bis x = 10 unterhalb des
-Eingabefelds, auf einem Raster mit beschrifteten Achsen. Du kannst jeden
-Ausdruck zeichnen, auch deine eigenen Funktionen:
-
-```epher
-def f(x) = x ^ 3
-graph f(x)
-```
-
-Jede `graph`-Zeile fügt demselben Plot eine weitere Kurve hinzu, jede mit
-eigener Farbe. Die Kurven sind alle durchgezogen, und die Legende
-und die Beschriftungen unterscheiden sie ohne Farbe.
-`graph clear` leert den Plot, und ein Button **Clear graph** oben im
-Graph-Panel macht dasselbe für Kurven und 3D-Flächen zusammen. Die TUI
-behält den Befehl in ihrem **Graph**-Menü.
-
-Ganz oben im Graph-Bereich, neben **Clear graph**, **Copy SVG** und
-**Save PNG**, blendest du in der Symbolleiste die Liste der besonderen Punkte und die
-hervorgehobenen Punkte im Plot selbst aus. Direkt über jedem Plot liegt
-eine Leiste mit Symbol-Reglern, die Worte stehen im jeweiligen
-Hinweisfeld: Linienstärke (0 bis 4 in Schritten von 0.1 für
-2D-Kurven, 0 bis 0.4 in Schritten von 0.05 für 3D-Plots, mit 0.2 als
-Vorgabe - nur der Regler der gerade sichtbaren Art wird angezeigt, und
-jede Art merkt sich ihren eigenen Wert), dazu Zoom auf jedem Plot und
-bei 3D und dem Sonnensystem die horizontale und vertikale
-Drehgeschwindigkeit. Ein Druck auf das Symbol eines Reglers setzt diesen
-Regler auf seinen Vorgabewert zurück. Jeder Eintrag in der Legende hat
-ein Kästchen, standardmäßig aktiviert: Abhaken blendet eine Kurve, eine
-3D-Fläche, eine Raumkurve oder einen Himmelskörper aus dem Plot, seinen
-besonderen Punkten und dem SVG-Export aus.
-
-```epher
-graph x ^ 2
-graph x ^ 3
-```
-
-Punkte, an denen der Ausdruck keinen Wert hat (zum Beispiel eine Division
-durch null), werden übersprungen und hinterlassen eine Lücke in der
-Kurve. Ein Sprung, der eigentlich eine senkrechte Asymptote ist,
-wird nie als Verbindungslinie gezeichnet.
-
-#### 2.4.1 Was du zeichnen kannst
-
-Ein Definitionsbereich deiner Wahl:
-
-```epher
-graph sin(x) from 0 to 2*pi
-```
-
-Parametrische Kurven (t läuft von 0 bis 2π):
-
-```epher
-graph param 2*cos(t), 3*sin(t)
-```
-
-Polarkurven:
-
-```epher
-graph polar 1 + cos(theta)
-```
-
-Bereiche: `y <` schattiert die Fläche unter der Kurve, `y >` schattiert darüber:
-
-```epher
-graph y < x ^ 2
-```
-#### 2.4.2 Den Plot lesen
-
-**Verfolgen:** Bewege den Zeiger über den Plot oder fokussiere ihn und
-drücke die Pfeiltasten. Der nächstgelegene Punkt auf einer Kurve
-wird markiert, seine Koordinaten werden unter dem Plot angezeigt.
-
-**Besondere Punkte:** Nach jedem graph-Befehl findet epher die Nullstellen
-und Extrempunkte jeder Kurve und die Schnittpunkte zwischen Kurven,
-markiert sie im Plot und listet sie darunter auf:
-
-```text
-root (-1, 0)   minimum (0, 0)   root (1, 0)
-```
-
-**Tabellen:** Der Befehl `table` druckt eine Wertetabelle (Zeilen, an
-denen der Ausdruck keinen Wert hat, bleiben leer):
-
-Ein optionaler `derivative <ausdruck>`-Zusatz fügt eine dritte
-Spalte hinzu, die numerische Ableitung dieses Ausdrucks an jeder
-Stelle x:
-
-```epher
-table x ^ 2 from -2 to 2 points 5 derivative x ^ 2
-```
-
-```text
-         x           y          y'
-        -2           4          -4
-        -1           1          -2
-         0           0           0
-         1           1           2
-         2           4           4
-```
-
-Die Tabellenzellen folgen den Ergebniseinstellungen: bei
-eingeschalteten exakten Brüchen (Standard) zeigt sich ein Wert, der
-ein einfacher Bruch ist, als solcher — `table x / 3 from 0 to 1
-points 4` listet `1/3` statt `0.333`.
-```epher
-table x ^ 2 from -2 to 2 points 5
-```
-
-```text
-         x           y
-        -2           4
-        -1           1
-         0           0
-         1           1
-         2           4
-```
-
-Zwei weitere Klauseln decken den Rest der Arbeit ab. `values <liste>` nimmt die x-Spalte aus einer Datenliste statt aus einem gleichmäßigen Raster: gib deine Daten hinein und sieh sie verwandelt:
-
-```epher
-d = {1, 2, 3, 4, 5}
-table x ^ 2 values d
-```
-
-```text
-         x           y
-         1           1
-         2           4
-         3           9
-         4          16
-         5          25
-```
-
-Und `exact` / `approx` erzwingen die Zellanzeige für genau diese Tabelle: `exact` zeigt einfache Brüche, wo sie passen, `approx` zeigt Dezimalzahlen; jedes überschreibt die Ergebniseinstellungen für diesen einen Befehl.
-
-#### 2.4.3 Schieberegler und Export
-
-Definiere eine Konstante, verwende sie in einem Graphen, und unter dem
-Plot erscheint ein Schieberegler. Ziehe ihn (oder bewege ihn mit den
-Pfeiltasten) und jede Kurve wird neu gezeichnet:
-
-```epher
-const a = 1
-graph a * x ^ 2
-```
-
-Jeder Plot zoomt auf dieselbe Weise: Rolle mit dem Mausrad darüber (oder zoome per Pinch-Geste auf einem Touchscreen) hinein und hinaus, und der Zoom-Regler über dem Plot wandert mit. Daten-Plots - Punktwolke, Histogramm und Kastendiagramm - zoomen genau wie Kurven.
-
-**SVG kopieren** kopiert den aktuellen Plot als eigenständiges SVG-Bild
-zum Einfügen in Dokumente. Die Farben sind eingebaut und der Hintergrund ist transparent, so sitzt es auf jeder Seite, Folie oder in jedem Dokument. **PNG speichern** speichert dasselbe Bild als Bitmap in doppelter Größe, damit die Kurven scharf bleiben, mit demselben transparenten Hintergrund; die Desktop-App fragt, wohin, die Web-App legt es in den Download-Ordner (oder fragt, wo der Browser es anbietet). Die Reglerzeilen und animierten Konstanten sitzen direkt
-unter dem Plot, über der Liste der besonderen Punkte. Ein animierter Regler ist ein echtes Bedienelement: fasse seinen Zeiger und ziehe ihn auf einen neuen Wert (das Ziehen stoppt zuerst die Animation), oder bewege ihn mit den Pfeiltasten, während er fokussiert ist.
-
-#### 2.4.4 3D-Flächen
-
-`graph3d` zeichnet eine Fläche z = f(x, y) über einem quadratischen
-Bereich (−5 bis 5 oder dein `from a to b`):
-
-```epher
-graph3d x ^ 2 - y ^ 2
-```
-
-Netzlinien, die näher bei dir liegen, werden kräftiger gezeichnet, sodass
-die Form räumliche Tiefe bekommt. Mehrere `graph3d`-Zeilen überlagern
-sich wie Kurven, und `graph3d clear` leert den Plot. Drehe die Ansicht
-durch Ziehen oder fokussiere den Plot und verwende die Pfeiltasten. Die
-TUI zeichnet dieselbe Fläche als ASCII-Drahtgitter; mit den Pfeiltasten
-drehst du es.
-
-Raumkurven zeichnet `param`: `graph3d param cos(t), sin(t), t` zeichnet eine Helix über den t-Bereich deiner Wahl (`from 0 to 6.28318`), standardmäßig 0 bis 2pi. Gleiches Pane, gleiches Drehen, Zoomen und Animieren.
-#### 2.4.5 Animation
-
-Jeder Schieberegler hat eine Wiedergabetaste. Sie lässt seine Konstante
-den Bereich des Schiebereglers durchlaufen und beginnt danach wieder von
-vorn: Der Zeiger wandert über die ganze Spur und kehrt am Ende an den
-Anfang zurück. So animieren Taschenrechner üblicherweise: Du animierst einen
-Parameter, und alles, was ihn verwendet, bewegt sich mit. Drücke die Taste erneut, um zu
-pausieren.
-
-Eine "Zeit"-Variable ist nur eine Konstante, die du animierst:
-
-```epher
-const t = 0
-graph sin(x - t)
-```
-
-Wenn du den Schieberegler von t abspielst, wandert die Welle.
-3D-Flächen animieren sich genauso. Definiere zuerst eine Konstante und
-spiele dann ihren Schieberegler ab:
-
-```epher
-const a = 1
-graph3d sin(a * (x ^ 2 + y ^ 2)) from -3 to 3
-```
-
-In der TUI startet und stoppt die Leertaste die Animation.
-
-### 2.5 Installieren und offline nutzen
-
-Die Web-App ist eine *progressive Web-App*: nach einem Besuch funktioniert
-sie vollständig offline, und du kannst sie wie eine normale App
-installieren.
-
-- **Chrome, Edge oder Android:** klicke auf das Installieren-Symbol in der
-  Adressleiste (oder *App installieren* im Browser-Menü) und bestätige.
-- **iPhone / iPad (Safari):** tippe auf **Teilen** → **Zum Home-Bildschirm**.
-- **Andere Browser:** suche im Menü nach *Installieren* oder *Zum
-  Home-Bildschirm hinzufügen*.
-
-Sobald sie installiert ist, starte sie über deinen Home-Bildschirm oder
-deine App-Liste. Sie öffnet sich sofort, auch ohne Internetverbindung.
-
-### 2.6 Was die Web-App nicht kann
-
-Die Web-App hält deine Arbeit in der aktuellen Sitzung: Sie wertet
-Ausdrücke aus, zeichnet ihre Graphen (Abschnitt 2.4) und führt einen
-Verlauf. Die Befehle **save**, **save script** und **language**
-funktionieren in der Desktop-, Befehlszeilen- und Terminal-Version
-(Kapitel 3, 4 und 5). In der Web-App antworten sie mit einem Hinweis,
-dass Speichern dort funktioniert. Was du zuletzt getan hast, bleibt
-erhalten - Verlauf, Variablen, Funktionen und die letzte Antwort
-überstehen das Schließen der App und liegen nur in diesem Browser.
-
-## 3. Die Desktop-App
-
-Die Desktop-App ist ein normales Fenster um dieselbe Web-App herum. Alles
-aus Kapitel 2 gilt; der Unterschied liegt nur darin, wie du sie
-installierst und startest.
-
-### 3.1 Installieren
-
-Lade von der epher-Website einen Installer für dein System herunter:
-
-- **Windows:** führe `epher-windows-x86_64.exe` aus. Der Installer legt
-  `epher` in deinen PATH. Öffne ein neues CMD- oder PowerShell-Fenster
-  und `epher "2 + 2"` funktioniert. Da der Build nicht signiert ist, wähle
-  beim ersten Start *Weitere Informationen* → *Trotzdem ausführen*.
-- **macOS:** öffne `epher-macos-aarch64.dmg` und ziehe epher in Programme.
-  Da der Build nicht signiert ist, braucht der erste Start einen
-  Rechtsklick → **Öffnen**.
-- **Linux (Debian/Ubuntu):** das Paket `.deb`
-
-```sh
-sudo apt install ./epher-linux-x86_64.deb
-```
-
-- **Linux (Fedora/RHEL):** das Paket `.rpm`
-
-```sh
-sudo dnf install ./epher-linux-x86_64.rpm
-```
-
-- **Linux (jede Distribution, auch Arch):** das AppImage. Mach es
-  ausführbar und starte es:
-
-```sh
-chmod +x epher-linux-x86_64.AppImage
-./epher-linux-x86_64.AppImage
-```
-
-Jeder Installer enthält *ganz* epher: die Desktop-App, die Befehlszeile
-(Kapitel 4) und die Terminal-Oberfläche (Kapitel 5), als den einzigen
-Befehl `epher`. Unter Linux legt das Paket `epher` in `/usr/bin` ab.
-
-### 3.2 Verwenden
-
-Starte epher wie jede andere Anwendung. Du bekommst ein Fenster mit
-derselben Oberfläche wie die Web-App: tippe einen Ausdruck, drücke
-**Enter** oder klicke auf **=**, und lies das Ergebnis. Graphen zeichnen
-funktioniert auch hier. `graph x ^ 2` zeichnet im Fenster (Kapitel 2.4).
-Das Fenster lässt sich frei skalieren. Die Menüleiste enthält
-**Help → In-app user guide**, dasselbe Handbuch wie diese Seite, mit antippbaren
-Beispielen.
-
-Du kannst es auch aus einem Terminal öffnen: ein bloßes `epher` (oder
-`epher gui`) startet die Desktop-App. Verwende unter macOS den Button
-**Install the epher command** in der App, um `epher` in den PATH deines
-Terminals zu legen.
-
-### 3.3 Speicherung: ein Speicher, gemeinsam mit CLI und TUI
-
-Die Desktop-App teilt ihren Speicher mit der Befehlszeilen- und der
-Terminal-Version. Funktionen, Konstanten, Skripte, Verlauf und die
-Sprachpräferenz leben an einem Ort, `~/.epher` auf deinem Computer (oder
-`EPHER_STORE_DIR`, Kapitel 4.6), und alles, was in einer Version
-gespeichert wurde, ist in den anderen verfügbar:
-
-```text
-def area(w, h) = w * h
-save area
-```
-
-Definiere `area` in der Desktop-App, speichere sie mit `save`, schließe
-das Fenster. Dann öffne die CLI und `area(3, 4)` funktioniert einfach.
-Andersherum geht es auch: Funktionen und Skripte, die du in der CLI oder
-TUI gespeichert hast, sind beim Öffnen des Desktop-Fensters schon da,
-einschließlich Variablen, die gespeicherte Skripte gesetzt haben. Die
-Befehle `save`, `save script` und `language` aus Kapitel 4 funktionieren
-hier genau gleich.
-
-Befehle, die du in der CLI, der REPL, der TUI oder der Desktop-App
-eingibst, landen alle im selben Verlauf, und die Sitzung wandert mit:
-Variablen, die du zuweist, und der `ans`-Wert folgen dir von einer
-Version zur nächsten. Der gemeinsame Speicher ist live: Wenn zwei
-Versionen gleichzeitig geöffnet sind, erscheint eine Änderung in der
-einen sofort in der anderen (die Desktop-App und die TUI beobachten den
-Speicher und aktualisieren sich von selbst).
-
-> Die Web-App im Browser ist die eine Version, die diesen Speicher nicht
-> nutzt. Sie behält jede Sitzung für sich (Kapitel 2.6).
-
-## 4. Die Befehlszeile (CLI)
-
-Die CLI ist die Textseite desselben `epher`-Programms wie die Desktop-App.
-Sie hat drei Modi: einmalige Auswertung, gepipete Skripte und eine
-interaktive Sitzung für längere Arbeit.
-
-Für Hilfe zu jeder Zeit führe `epher --help` aus (alle Befehle, mit
-Beispielen) oder `epher help` (das vollständige Handbuch; bei
-Linux-Paketen ist das die Seite `man epher`).
-
-### 4.1 Einmalige Berechnungen
-
-Gib den Ausdruck als Argument an:
-
-```sh
-epher "2 + 3 * 4"
-```
-
-```text
-14
-```
-
-Du kannst alles aus Kapitel 1 machen, das ein einzelner Ausdruck ist:
-
-```sh
-epher "if 3 > 2 then 10 else 20"
-```
-
-```text
-10
-```
-
-Ein Ausdruck, der mit einem Minuszeichen beginnt, funktioniert direkt:
-
-```sh
-epher "-2 + 5"
-```
-
-```text
-3
-```
-
-Der Einmal-Modus ist für Skripte, von einem einzelnen Ausdruck bis zu
-einem ganzen Programm. Der Wert jeder Anweisung wird in einer eigenen
-Zeile ausgegeben:
-
-```sh
-epher "x = 10; x + 5"
-```
-
-```text
-10
-15
-```
-
-Anweisungen, verbunden mit Zeilenumbrüchen, funktionieren im Argument
-genauso. Alles aus Kapitel 1 ist verfügbar: Variablen, Funktionen,
-Schleifen, alles. Die Zeilen teilen eine Sitzung, wie ein gepipetes
-Skript (Abschnitt 4.2).
-
-### 4.2 Gepipete Skripte
-
-`epher -` liest Ausdrücke aus der Standardeingabe, Zeile für Zeile, so
-wie Skriptsprachen in Pipelines verwendet werden:
-
-```sh
-printf "x = 3\nx * 10\n" | epher -
-```
-
-```text
-= 3
-= 30
-```
-
-Alles aus Kapitel 1 funktioniert, und die Zeilen teilen eine Sitzung:
-Eine Funktion, die in einer frühen Zeile definiert wurde, ist später
-verfügbar, und `save` schreibt wie immer in denselben Speicher. Fehler
-werden ausgegeben und das Skript läuft weiter. Eine Zeile kann mehrere
-Anweisungen mit `;` verbinden. Zeilenumbrüche und `;` bedeuten überall
-in epher dasselbe.
-
-
-Eine Datei funktioniert genauso: `epher plots/sine.es` führt jede Zeile der Datei der Reihe nach aus und druckt jedes Ergebnis. Das Argument gilt als Datei, wenn es eine vorhandene Datei benennt und einen `.`, `/` oder `\` enthält - `epher x` wertet also weiterhin den Namen `x` aus.
-### 4.3 Die interaktive Sitzung (REPL)
-
-Starte sie mit `epher repl`:
-
-```sh
-epher repl
-```
-
-> Ein bloßes `epher` ohne Argumente öffnet die Desktop-App (Kapitel 3).
-
-epher zeigt seinen Prompt und wartet:
-
-```text
-epher>
-```
-
-Tippe nun irgendetwas aus Kapitel 1, eine Zeile nach der anderen.
-Variablen behalten ihre Werte zwischen den Zeilen:
-
-```text
-epher> x = 5
-= 5
-epher> x ^ 2
-= 25
-```
-
-Der Befehl `table` (Abschnitt 2.4.2) druckt auch hier eine Wertetabelle:
-
-```text
-epher> table x ^ 2 from -2 to 2 points 5
-         x           y
-        -2           4
-        -1           1
-         0           0
-         1  Auch `graph`-Zeilen funktionieren hier: Die Kurven sammeln sich über die
-Zeilen, und `graph save plot.svg` schreibt dasselbe SVG-Bild, das die
-Schaltfläche **SVG kopieren** der Web-App liefert. `graph3d
-save datei.svg` speichert eine 3D-Fläche auf dieselbe Weise. Dieselben
-graph-Zeilen gelten auch in Einzeilern und gepipeten Skripten:
-`epher "graph sin(x); graph save plot.svg"` ist ein fertiger Plot in
-einem Befehl.
-
-         1
-         2           4
-```
-
-Jede Antwort wird als `= result` angezeigt. Zum Verlassen tippe `quit`
-(oder `exit`):
-
-```text
-epher> quit
-```
-
-Dein Verlauf wird gemerkt: Wenn du das nächste Mal `epher repl` ausführst,
-sind die Zeilen der vorherigen Sitzung noch da.
-
-
-Der Befehl `load` führt ein Skript aus - einen Dateipfad oder den Namen eines mit `save script` gespeicherten Skripts - Zeile für Zeile, genau als hättest du es eingetippt:
-
-```text
-epher> load plots/sine.es
-epher> load my_setup
-```
-### 4.4 Funktionen, Konstanten und Skripte speichern
-
-Definiere eine Funktion und speichere sie dann:
-
-```text
-epher> def fib(n) = if n <= 1 then n else fib(n - 1) + fib(n - 2)
-epher> save fib
-saved fib
-```
-
-Der Befehl `save fib` legt die Funktion auf der Festplatte ab. Wenn du die
-Sitzung das nächste Mal startest, ist `fib` bereits definiert:
-
-```text
-epher> fib(10)
-= 55
-```
-
-Konstanten speichern sich genauso. `save` auf den Namen der Konstante:
-
-```text
-epher> const tax = 0.2
-= 0.2
-epher> save tax
-saved tax
-```
-
-Um ein ganzes Skript zu speichern (die letzte Zeile, die du getippt
-hast), verwende `save script`:
-
-```text
-epher> x = 0; while x < 5 do x = x + 1; x
-= 5
-epher> save script count_to_five
-saved script count_to_five
-```
-
-Gespeicherte Skripte laufen beim Start von epher automatisch, sodass
-alles, was sie definieren, für dich bereitsteht.
-
-
-Du kannst ein gespeichertes Skript auch bei Bedarf mit `load count_to_five` laden, es als einfache Datei behalten und `load count_to_five.es` ausführen; `epher count_to_five.es` startet es direkt von der Kommandozeile (Abschnitt 4.2).
-### 4.5 Die Sprache der Oberfläche ändern
-
-Die Sprache der Oberfläche wird aus den Sprachen gewählt, die du auf
-deinem Gerät eingestellt hast. Um sie zu überschreiben, tippe `language`,
-gefolgt von einer dieser: `en`, `zh-CN`, `hi`, `es`, `fr`, `ar`, `de`,
-`pt`:
-
-```text
-epher> language fr
-language set to fr
-```
-
-Die Wahl wird für das nächste Mal gemerkt. Hinweis: Die Sprache, die du
-*tippst*, die Ausdruckssprache, ist immer dieselbe, egal welche Sprache
-die Oberfläche hat.
-
-### 4.6 Wo deine Daten leben
-
-Funktionen, Skripte, Verlauf und deine Sprachwahl werden in einem Ordner
-auf deinem Computer gespeichert:
-
-```text
-~/.epher
-```
-
-Lösche diesen Ordner, um ganz von vorn zu beginnen. Um einen anderen Ort
-zu verwenden, setze die Umgebungsvariable `EPHER_STORE_DIR`, bevor du
-epher startest:
-
-```sh
-EPHER_STORE_DIR=/tmp/my-epher epher repl
-```
-
-## 5. Die Terminal-Oberfläche (TUI)
-
-Die TUI ist eine Vollbild-Version der interaktiven Sitzung, in deinem
-Terminal. Sie ist Teil desselben `epher`-Programms. Starte sie mit:
-
-```sh
-epher tui
-```
-
-### 5.1 Der Bildschirm
-
-Der Bildschirm ist in Panels unterteilt:
-
-- **Ausdruck**: das Eingabefeld (oben). Shift+Enter beginnt eine neue
-  Zeile; die Pfeiltasten oder ein Mausklick bewegen den Cursor im Text.
-- Das aktuelle **Ergebnis** direkt darunter.
-- **Verlauf**: jede Zeile, die du eingegeben hast, mit ihrer Antwort.
-- **Graph**: die Zeichnung aus dem Befehl `graph` (unten).
-- Eine Hinweiszeile zeigt die Tastenkürzel.
-
-### 5.2 Tasten
-
-| Taste | Aktion |
-|---|---|
-| Tippen | am Cursor zum Ausdruck hinzufügen |
-| **Enter** | das ganze Skript auswerten (eine mehrzeilige Eingabe läuft als ein Verlaufseintrag) |
-| **Shift+Enter** | eine neue Zeile beginnen |
-| **← → ↑ ↓** | den Cursor bewegen (bei leerer Eingabe: die 3D-Ansicht drehen) |
-| **Esc** | die Eingabezeile leeren |
-| **F1** | die Funktion unter dem Cursor beschreiben (in der Ergebniszeile) |
-| **Ctrl+C** | beenden |
-| **q** | beenden (wenn die Eingabe leer ist) |
-| **Arrow keys** | die 3D-Ansicht drehen (wenn die Eingabe leer ist) |
-| **Space** | die Animation starten/stoppen (wenn die Eingabe leer ist) |
-| **F10** | die Menüs öffnen (Datei, Bearbeiten, Graph, Einstellungen, Hilfe) |
-| **Tab** | das immer sichtbare Tastenfeld fokussieren (bzw. den Verlauf, vom Tastenfeld aus); Gruppen wechseln (**Esc** zurück zum Tippen) |
-| **Maus** | Menüs und Menüeinträge anklicken, Tastenfeld-Zellen und Bank-Registerkarten, Verlaufszeilen (lädt den Ausdruck); im Grafikfeld ziehen, um zu drehen (3D) bzw. zu verschieben (2D), das Rad zoomt, ein Doppelklick setzt die Ansicht zurück |
-| **Ctrl+L** | den Verlauf leeren |
-
-Das Menü **Hilfe** öffnet das eingebaute Handbuch, die Tastenfeld-Hilfe und einen Konstanten-Browser: die Konstanten in Gruppen, die Pfeile wählen eine Zeile, **Enter** fügt ihren Namen in den Ausdruck am Cursor ein, **Esc** schließt.
-
-Die Gruppen des Tastenfelds enthalten jede Funktion, jede Konstante und
-jeden Befehl der Sprache: **trig**, **fn**, **num**, **0x** und
-**var**. Die 0x-Gruppe enthält die exakten und Basis-Umwandlungen
-(`frac`, `dec`, `big`, `bin`, `oct`, `hex`) und die Fakultät `!`. Die
-Pfeiltasten bewegen die Markierung, **Enter** fügt das Token ein, und
-**Tab** wechselt die Gruppen. Ein Operator am Anfang einer leeren Zeile (oder vom Tastenfeld eingefügt) setzt `ans` davor, die Zeile macht also mit dem letzten Ergebnis weiter.
-
-Das Menü **Einstellungen** bietet dieselben Ergebnisdarstellungs-Optionen wie die Web-App (exakte Brüche, Notation, Tausendertrenner), neben den Zeilen für Design und Sprache.
-
-### 5.3 Graphen zeichnen
-
-Tippe `graph`, gefolgt von einem Ausdruck, und drücke **Enter**:
-
-```epher
-graph x ^ 2
-```
-
-epher tastet die Kurve von x = −10 bis x = 10 ab und zeichnet sie als
-ASCII-Plot in das Panel Graph; die Legende über dem Plot benennt, was
-gezeichnet wird.
-
-`graph clear` leert den Plot, und das **Graph**-Menü macht dasselbe; das
-**Help**-Menü öffnet dieses Handbuch in der TUI (Pfeiltasten scrollen,
-**Esc** schließt). Das **Settings**-Menü kann die besonderen Punkte unter
-dem Plot ausblenden.
-
-Du kannst jeden Ausdruck zeichnen, auch deine eigenen Funktionen.
-Definiere zuerst eine und zeichne sie dann:
-
-```epher
-def f(x) = x ^ 3
-graph f(x)
-```
-
-Jede `graph`-Zeile fügt dem Plot eine Kurve hinzu, gezeichnet mit ihrem
-eigenen Symbol (`o`, `x`, `+`, `*`); `graph clear` leert den Plot.
-Dieselbe Grammatik wie in der Web-App gilt: ein Definitionsbereich
-(`graph sin(x) from 0 to 2*pi`), parametrische Kurven
-(`graph param 2*cos(t), 3*sin(t)`), Polarkurven
-(`graph polar 1 + cos(theta)`) und Bereiche (`graph y < x ^ 2` schattiert
-die Fläche unter der Kurve).
-
-Punkte, an denen der Ausdruck keinen Wert hat (zum Beispiel die Division
-durch null), werden einfach übersprungen und hinterlassen eine Lücke im
-Plot. Nach jedem graph-Befehl listet die TUI die besonderen Punkte
-(Nullstellen, Extrempunkte und Schnittpunkte) unter dem Plot auf. Der
-Befehl `table` (Abschnitt 2.4.2) funktioniert auch hier.
-
-`graph3d x ^ 2 - y ^ 2` zeichnet eine 3D-Fläche als ASCII-Drahtgitter.
-Drehe sie mit den Pfeiltasten, solange die Eingabe leer ist, und drücke
-die Leertaste, um die Konstante eines Schiebereglers zu animieren
-(Abschnitt 2.4.5). Die Hinweiszeile unten zeigt die Pfeil- und
-Leertasten-Hinweise nur, solange eine 3D-Fläche oder eine animierbare
-Kurve angezeigt wird.
-
-`graph save plot.svg` schreibt den aktuellen Plot als dasselbe SVG-Bild,
-das die Schaltfläche **SVG kopieren** der Web-App liefert; `graph3d save
-datei.svg` speichert das 3D-Gitter aus dem Blickwinkel, den du gerade
-siehst.
-
-### 5.4 Speichern und Persistenz
-
-Die TUI teilt ihren Speicher mit der CLI: alles, was in der einen
-gespeichert ist, ist in der anderen verfügbar. Funktionen, Skripte,
-Verlauf und die Sprachpräferenz leben in `~/.epher` (Kapitel 4.6), und
-dieselben Befehle `save`, `save script` und `language` funktionieren hier.
-
-## 6. Deine Daten und Privatsphäre
-
-- Das **installierte epher-Programm** (Desktop-App, CLI und TUI)
-  speichert Funktionen, Skripte, Verlauf und die Sprachwahl lokal in
-  `~/.epher` (oder `EPHER_STORE_DIR`). Nichts verlässt deinen Computer.
-- Die **Web-App** behält nichts auf der Festplatte: Der Verlauf dauert
-  nur, solange die Seite offen ist. Die Web-App kann offline arbeiten,
-  weil die Seite selbst von deinem Browser gespeichert wird.
-
-Alle fünf Versionen führen die Berechnung vollständig auf deinem Gerät
-aus. Nichts wird irgendwohin gesendet.
-
 ### 1.11 Eigene Funktionen mit def
 
 Eine Funktion ist eine Berechnung mit einem Namen und Parametern:
@@ -2297,4 +1589,734 @@ npv(0.1, {-100, 60, 60})
 `amort(p, r, n, k)` ist der Restsaldo nach k Zahlungen eines
 n-Perioden-Darlehens, `simple_interest(p, r, t)` ist `p*r*t`, und
 `compound_interest(p, r, n)` ist `p*(1+r)^n - p`.
+
+## 2. Die Web-App (PWA)
+
+### 2.1 Sie öffnen
+
+Die Web-App liegt unter:
+
+```text
+https://epher.org/pwa/
+```
+
+Keine Installation nötig. Sie funktioniert in jedem modernen Browser auf
+Computer, Telefon oder Tablet.
+
+Dieses Handbuch ist auch in die App eingebaut: öffne **Help → In-app user guide**
+in der Menüleiste (tippe auf einem Telefon auf **☰**), um es in der App in
+der aktuell eingestellten Sprache zu lesen. Tippe ein beliebiges Beispiel
+in diesem Handbuch an, um es ins Eingabefeld zu laden. **Hilfe → Konstanten** öffnet den Konstanten-Browser: alle eingebauten Konstanten in Gruppen (Mathematik, Astronomie, Physik, Chemie), jede mit ihrem Wert und einer kurzen Beschreibung; tippe eine an, um ihren Namen ins Eingabefeld einzufügen, und das Suchfeld filtert die Liste.
+
+### 2.2 Deine erste Berechnung
+
+1. Klicke auf das Textfeld (es ist beim Laden der Seite bereits fokussiert).
+2. Tippe einen Ausdruck, zum Beispiel `2 + 3 * 4`.
+3. Drücke **Enter** oder klicke auf den Button **=**.
+
+Das Ergebnis erscheint in großer Schrift unter dem Feld. Alles aus
+Kapitel 1 funktioniert hier, einschließlich Variablen, Funktionen und
+Skripten. Eine kurze einzelne Antwort bleibt in dieser Zeile. Eine
+längere Antwort - das Protokoll eines Skripts mit mehreren Antworten,
+eine Tabelle, eine lange Zahl - erscheint im Ergebnisbereich, dem
+Bereich, der auch Graphen zeigt, mit je einer Antwort pro Zeile; auf
+dem Telefon schiebt sich der Bereich von selbst ins Blickfeld. Links der Antwort sitzt ein Kopiersymbol: Ein Druck legt die Werte der Antwort in die Zwischenablage, je einer pro Zeile; lange Antworten im Ergebnisbereich kopieren genauso.
+
+Während du einen Namen tippst, erscheint unter dem Feld eine Vorschlagsliste: die Pfeile bewegen die Markierung, **Enter** oder **Tab** übernimmt, **Esc** schließt, und ein Klick übernimmt, ohne die Tastatur zu verlassen. Jeder Vorschlag trägt eine kurze Beschreibung der Funktion oder Konstante. **F1** zeigt dieselbe Beschreibung für das Wort unter dem Cursor in der Hinweisleiste über dem Tastenfeld. Beginnt eine leere Eingabe mit einem Operator (`+ - * / ^ % !`), fügt epher `ans` ein, und die Zeile macht mit dem letzten Ergebnis weiter.
+
+Das Tastenfeld auf dem Bildschirm tippt für dich, genau als hättest du die Tasten gedrückt. Seine Bänke decken die ganze Sprache ab: `123` Ziffern und Operatoren, `trig`, `ƒ` Funktionen, `nΣ` Zahlen und Statistik, `data` Matrizen, Listen und Zeichenketten (die Bank, die `[[1, 2], [3, 4]]`, `{1, 2, 3}` und `"text"` tippt), `0x` Umwandlungen und Basen, `dist` Regressions- und Verteilungsfamilien, `$` Finanzen, `π∇` Konstanten und Graph-Befehle sowie `☉` Astronomie (die einzige Bank, die scrollt). Jede Funktion in diesem Handbuch liegt irgendwo auf einer Taste. Aktiviere **key hints** (der **?**-Button), um jede Taste zu beschriften, oder verweile auf einer Taste, um zu lesen, was sie tut.
+
+Das Menü **Einstellungen** (das Zahnrad-Symbol oder **☰ → Einstellungen** am Telefon) enthält drei Gruppen. **Design** und **Sprache** tun, was ihre Namen sagen. **Ergebnisse** bestimmt die Darstellung der Antworten: exakte Brüche (standardmäßig an, so wird `1 / 3` als `1/3` angezeigt), die Notation (Auto, wissenschaftlich oder technisch) und Tausendertrenner. Das sind reine Anzeigeoptionen; die Werte darunter bleiben gewöhnliche Zahlen.
+
+### 2.3 Verlauf
+
+Jede Berechnung wird zur Verlaufsliste unter dem Ergebnis hinzugefügt,
+damit du zurückscrollen und sehen kannst, was du gemacht hast. Die neuesten
+Einträge erscheinen oben, und das Mülleimer-Symbol links von der
+Überschrift **Verlauf** leert sie (im Terminal: Strg+L oder ein Klick
+auf dasselbe Symbol). Der Verlauf bleibt erhalten, solange die Seite offen
+ist.
+
+Jeder Eintrag liegt zwischen dünnen Trennlinien: ein einzeiliger Ausdruck ist eine Zeile, und ein mehrzeiliges Skript ist ein Eintrag, der alle seine Zeilen zeigt. Klicke einen Eintrag an, um ihn zurück ins Eingabefeld zu laden und erneut auszuführen.
+
+### 2.4 Graphen zeichnen
+
+Tippe `graph`, gefolgt von einem Ausdruck, und drücke **Enter**:
+
+```epher
+graph x ^ 2
+```
+
+epher zeichnet die Kurve y = f(x) von x = −10 bis x = 10 unterhalb des
+Eingabefelds, auf einem Raster mit beschrifteten Achsen. Du kannst jeden
+Ausdruck zeichnen, auch deine eigenen Funktionen:
+
+```epher
+def f(x) = x ^ 3
+graph f(x)
+```
+
+Jede `graph`-Zeile fügt demselben Plot eine weitere Kurve hinzu, jede mit
+eigener Farbe. Die Kurven sind alle durchgezogen, und die Legende
+und die Beschriftungen unterscheiden sie ohne Farbe.
+`graph clear` leert den Plot, und ein Button **Clear graph** oben im
+Graph-Panel macht dasselbe für Kurven und 3D-Flächen zusammen. Die TUI
+behält den Befehl in ihrem **Graph**-Menü.
+
+Ganz oben im Graph-Bereich, neben **Clear graph**, **Copy SVG** und
+**Save PNG**, blendest du in der Symbolleiste die Liste der besonderen Punkte und die
+hervorgehobenen Punkte im Plot selbst aus. Direkt über jedem Plot liegt
+eine Leiste mit Symbol-Reglern, die Worte stehen im jeweiligen
+Hinweisfeld: Linienstärke (0 bis 4 in Schritten von 0.1 für
+2D-Kurven, 0 bis 0.4 in Schritten von 0.05 für 3D-Plots, mit 0.2 als
+Vorgabe - nur der Regler der gerade sichtbaren Art wird angezeigt, und
+jede Art merkt sich ihren eigenen Wert), dazu Zoom auf jedem Plot und
+bei 3D und dem Sonnensystem die horizontale und vertikale
+Drehgeschwindigkeit. Ein Druck auf das Symbol eines Reglers setzt diesen
+Regler auf seinen Vorgabewert zurück. Jeder Eintrag in der Legende hat
+ein Kästchen, standardmäßig aktiviert: Abhaken blendet eine Kurve, eine
+3D-Fläche, eine Raumkurve oder einen Himmelskörper aus dem Plot, seinen
+besonderen Punkten und dem SVG-Export aus.
+
+```epher
+graph x ^ 2
+graph x ^ 3
+```
+
+Punkte, an denen der Ausdruck keinen Wert hat (zum Beispiel eine Division
+durch null), werden übersprungen und hinterlassen eine Lücke in der
+Kurve. Ein Sprung, der eigentlich eine senkrechte Asymptote ist,
+wird nie als Verbindungslinie gezeichnet.
+
+#### 2.4.1 Was du zeichnen kannst
+
+Ein Definitionsbereich deiner Wahl:
+
+```epher
+graph sin(x) from 0 to 2*pi
+```
+
+Parametrische Kurven (t läuft von 0 bis 2π):
+
+```epher
+graph param 2*cos(t), 3*sin(t)
+```
+
+Polarkurven:
+
+```epher
+graph polar 1 + cos(theta)
+```
+
+Bereiche: `y <` schattiert die Fläche unter der Kurve, `y >` schattiert darüber:
+
+```epher
+graph y < x ^ 2
+```
+#### 2.4.2 Den Plot lesen
+
+**Verfolgen:** Bewege den Zeiger über den Plot oder fokussiere ihn und
+drücke die Pfeiltasten. Der nächstgelegene Punkt auf einer Kurve
+wird markiert, seine Koordinaten werden unter dem Plot angezeigt.
+
+**Besondere Punkte:** Nach jedem graph-Befehl findet epher die Nullstellen
+und Extrempunkte jeder Kurve und die Schnittpunkte zwischen Kurven,
+markiert sie im Plot und listet sie darunter auf:
+
+```text
+root (-1, 0)   minimum (0, 0)   root (1, 0)
+```
+
+**Tabellen:** Der Befehl `table` druckt eine Wertetabelle (Zeilen, an
+denen der Ausdruck keinen Wert hat, bleiben leer):
+
+Ein optionaler `derivative <ausdruck>`-Zusatz fügt eine dritte
+Spalte hinzu, die numerische Ableitung dieses Ausdrucks an jeder
+Stelle x:
+
+```epher
+table x ^ 2 from -2 to 2 points 5 derivative x ^ 2
+```
+
+```text
+         x           y          y'
+        -2           4          -4
+        -1           1          -2
+         0           0           0
+         1           1           2
+         2           4           4
+```
+
+Die Tabellenzellen folgen den Ergebniseinstellungen: bei
+eingeschalteten exakten Brüchen (Standard) zeigt sich ein Wert, der
+ein einfacher Bruch ist, als solcher — `table x / 3 from 0 to 1
+points 4` listet `1/3` statt `0.333`.
+```epher
+table x ^ 2 from -2 to 2 points 5
+```
+
+```text
+         x           y
+        -2           4
+        -1           1
+         0           0
+         1           1
+         2           4
+```
+
+Zwei weitere Klauseln decken den Rest der Arbeit ab. `values <liste>` nimmt die x-Spalte aus einer Datenliste statt aus einem gleichmäßigen Raster: gib deine Daten hinein und sieh sie verwandelt:
+
+```epher
+d = {1, 2, 3, 4, 5}
+table x ^ 2 values d
+```
+
+```text
+         x           y
+         1           1
+         2           4
+         3           9
+         4          16
+         5          25
+```
+
+Und `exact` / `approx` erzwingen die Zellanzeige für genau diese Tabelle: `exact` zeigt einfache Brüche, wo sie passen, `approx` zeigt Dezimalzahlen; jedes überschreibt die Ergebniseinstellungen für diesen einen Befehl.
+
+#### 2.4.3 Schieberegler und Export
+
+Definiere eine Konstante, verwende sie in einem Graphen, und unter dem
+Plot erscheint ein Schieberegler. Ziehe ihn (oder bewege ihn mit den
+Pfeiltasten) und jede Kurve wird neu gezeichnet:
+
+```epher
+const a = 1
+graph a * x ^ 2
+```
+
+Jeder Plot zoomt auf dieselbe Weise: Rolle mit dem Mausrad darüber (oder zoome per Pinch-Geste auf einem Touchscreen) hinein und hinaus, und der Zoom-Regler über dem Plot wandert mit. Daten-Plots - Punktwolke, Histogramm und Kastendiagramm - zoomen genau wie Kurven.
+
+**SVG kopieren** kopiert den aktuellen Plot als eigenständiges SVG-Bild
+zum Einfügen in Dokumente. Die Farben sind eingebaut und der Hintergrund ist transparent, so sitzt es auf jeder Seite, Folie oder in jedem Dokument. **PNG speichern** speichert dasselbe Bild als Bitmap in doppelter Größe, damit die Kurven scharf bleiben, mit demselben transparenten Hintergrund; die Desktop-App fragt, wohin, die Web-App legt es in den Download-Ordner (oder fragt, wo der Browser es anbietet). Die Reglerzeilen und animierten Konstanten sitzen direkt
+unter dem Plot, über der Liste der besonderen Punkte. Ein animierter Regler ist ein echtes Bedienelement: fasse seinen Zeiger und ziehe ihn auf einen neuen Wert (das Ziehen stoppt zuerst die Animation), oder bewege ihn mit den Pfeiltasten, während er fokussiert ist.
+
+#### 2.4.4 3D-Flächen
+
+`graph3d` zeichnet eine Fläche z = f(x, y) über einem quadratischen
+Bereich (−5 bis 5 oder dein `from a to b`):
+
+```epher
+graph3d x ^ 2 - y ^ 2
+```
+
+Netzlinien, die näher bei dir liegen, werden kräftiger gezeichnet, sodass
+die Form räumliche Tiefe bekommt. Mehrere `graph3d`-Zeilen überlagern
+sich wie Kurven, und `graph3d clear` leert den Plot. Drehe die Ansicht
+durch Ziehen oder fokussiere den Plot und verwende die Pfeiltasten. Die
+TUI zeichnet dieselbe Fläche als ASCII-Drahtgitter; mit den Pfeiltasten
+drehst du es.
+
+Raumkurven zeichnet `param`: `graph3d param cos(t), sin(t), t` zeichnet eine Helix über den t-Bereich deiner Wahl (`from 0 to 6.28318`), standardmäßig 0 bis 2pi. Gleiches Pane, gleiches Drehen, Zoomen und Animieren.
+#### 2.4.5 Animation
+
+Jeder Schieberegler hat eine Wiedergabetaste. Sie lässt seine Konstante
+den Bereich des Schiebereglers durchlaufen und beginnt danach wieder von
+vorn: Der Zeiger wandert über die ganze Spur und kehrt am Ende an den
+Anfang zurück. So animieren Taschenrechner üblicherweise: Du animierst einen
+Parameter, und alles, was ihn verwendet, bewegt sich mit. Drücke die Taste erneut, um zu
+pausieren.
+
+Eine "Zeit"-Variable ist nur eine Konstante, die du animierst:
+
+```epher
+const t = 0
+graph sin(x - t)
+```
+
+Wenn du den Schieberegler von t abspielst, wandert die Welle.
+3D-Flächen animieren sich genauso. Definiere zuerst eine Konstante und
+spiele dann ihren Schieberegler ab:
+
+```epher
+const a = 1
+graph3d sin(a * (x ^ 2 + y ^ 2)) from -3 to 3
+```
+
+In der TUI startet und stoppt die Leertaste die Animation.
+
+### 2.5 Installieren und offline nutzen
+
+Die Web-App ist eine *progressive Web-App*: nach einem Besuch funktioniert
+sie vollständig offline, und du kannst sie wie eine normale App
+installieren.
+
+- **Chrome, Edge oder Android:** klicke auf das Installieren-Symbol in der
+  Adressleiste (oder *App installieren* im Browser-Menü) und bestätige.
+- **iPhone / iPad (Safari):** tippe auf **Teilen** → **Zum Home-Bildschirm**.
+- **Andere Browser:** suche im Menü nach *Installieren* oder *Zum
+  Home-Bildschirm hinzufügen*.
+
+Sobald sie installiert ist, starte sie über deinen Home-Bildschirm oder
+deine App-Liste. Sie öffnet sich sofort, auch ohne Internetverbindung.
+
+### 2.6 Was die Web-App nicht kann
+
+Die Web-App hält deine Arbeit in der aktuellen Sitzung: Sie wertet
+Ausdrücke aus, zeichnet ihre Graphen (Abschnitt 2.4) und führt einen
+Verlauf. Die Befehle **save**, **save script** und **language**
+funktionieren in der Desktop-, Befehlszeilen- und Terminal-Version
+(Kapitel 3, 4 und 5). In der Web-App antworten sie mit einem Hinweis,
+dass Speichern dort funktioniert. Was du zuletzt getan hast, bleibt
+erhalten - Verlauf, Variablen, Funktionen und die letzte Antwort
+überstehen das Schließen der App und liegen nur in diesem Browser.
+
+## 3. Die Desktop-App
+
+Die Desktop-App ist ein normales Fenster um dieselbe Web-App herum. Alles
+aus Kapitel 2 gilt; der Unterschied liegt nur darin, wie du sie
+installierst und startest.
+
+### 3.1 Installieren
+
+Lade von der epher-Website einen Installer für dein System herunter:
+
+- **Windows:** führe `epher-windows-x86_64.exe` aus. Der Installer legt
+  `epher` in deinen PATH. Öffne ein neues CMD- oder PowerShell-Fenster
+  und `epher "2 + 2"` funktioniert. Da der Build nicht signiert ist, wähle
+  beim ersten Start *Weitere Informationen* → *Trotzdem ausführen*.
+- **macOS:** öffne `epher-macos-aarch64.dmg` und ziehe epher in Programme.
+  Da der Build nicht signiert ist, braucht der erste Start einen
+  Rechtsklick → **Öffnen**.
+- **Linux (Debian/Ubuntu):** das Paket `.deb`
+
+```sh
+sudo apt install ./epher-linux-x86_64.deb
+```
+
+- **Linux (Fedora/RHEL):** das Paket `.rpm`
+
+```sh
+sudo dnf install ./epher-linux-x86_64.rpm
+```
+
+- **Linux (jede Distribution, auch Arch):** das AppImage. Mach es
+  ausführbar und starte es:
+
+```sh
+chmod +x epher-linux-x86_64.AppImage
+./epher-linux-x86_64.AppImage
+```
+
+Jeder Installer enthält *ganz* epher: die Desktop-App, die Befehlszeile
+(Kapitel 4) und die Terminal-Oberfläche (Kapitel 5), als den einzigen
+Befehl `epher`. Unter Linux legt das Paket `epher` in `/usr/bin` ab.
+
+### 3.2 Verwenden
+
+Starte epher wie jede andere Anwendung. Du bekommst ein Fenster mit
+derselben Oberfläche wie die Web-App: tippe einen Ausdruck, drücke
+**Enter** oder klicke auf **=**, und lies das Ergebnis. Graphen zeichnen
+funktioniert auch hier. `graph x ^ 2` zeichnet im Fenster (Kapitel 2.4).
+Das Fenster lässt sich frei skalieren. Die Menüleiste enthält
+**Help → In-app user guide**, dasselbe Handbuch wie diese Seite, mit antippbaren
+Beispielen.
+
+Du kannst es auch aus einem Terminal öffnen: ein bloßes `epher` (oder
+`epher gui`) startet die Desktop-App. Verwende unter macOS den Button
+**Install the epher command** in der App, um `epher` in den PATH deines
+Terminals zu legen.
+
+### 3.3 Speicherung: ein Speicher, gemeinsam mit CLI und TUI
+
+Die Desktop-App teilt ihren Speicher mit der Befehlszeilen- und der
+Terminal-Version. Funktionen, Konstanten, Skripte, Verlauf und die
+Sprachpräferenz leben an einem Ort, `~/.epher` auf deinem Computer (oder
+`EPHER_STORE_DIR`, Kapitel 4.6), und alles, was in einer Version
+gespeichert wurde, ist in den anderen verfügbar:
+
+```text
+def area(w, h) = w * h
+save area
+```
+
+Definiere `area` in der Desktop-App, speichere sie mit `save`, schließe
+das Fenster. Dann öffne die CLI und `area(3, 4)` funktioniert einfach.
+Andersherum geht es auch: Funktionen und Skripte, die du in der CLI oder
+TUI gespeichert hast, sind beim Öffnen des Desktop-Fensters schon da,
+einschließlich Variablen, die gespeicherte Skripte gesetzt haben. Die
+Befehle `save`, `save script` und `language` aus Kapitel 4 funktionieren
+hier genau gleich.
+
+Befehle, die du in der CLI, der REPL, der TUI oder der Desktop-App
+eingibst, landen alle im selben Verlauf, und die Sitzung wandert mit:
+Variablen, die du zuweist, und der `ans`-Wert folgen dir von einer
+Version zur nächsten. Der gemeinsame Speicher ist live: Wenn zwei
+Versionen gleichzeitig geöffnet sind, erscheint eine Änderung in der
+einen sofort in der anderen (die Desktop-App und die TUI beobachten den
+Speicher und aktualisieren sich von selbst).
+
+> Die Web-App im Browser ist die eine Version, die diesen Speicher nicht
+> nutzt. Sie behält jede Sitzung für sich (Kapitel 2.6).
+
+## 4. Die Befehlszeile (CLI)
+
+Die CLI ist die Textseite desselben `epher`-Programms wie die Desktop-App.
+Sie hat drei Modi: einmalige Auswertung, gepipete Skripte und eine
+interaktive Sitzung für längere Arbeit.
+
+Für Hilfe zu jeder Zeit führe `epher --help` aus (alle Befehle, mit
+Beispielen) oder `epher help` (das vollständige Handbuch; bei
+Linux-Paketen ist das die Seite `man epher`).
+
+Jedes Installationspaket bringt die ganze Skriptsammlung mit - dieselben
+Skripte, die die Skripte-Seite der Website durchsucht - und installiert
+sie neben dem Programm. Die kopierbaren Terminal-Befehle auf der Website,
+im README der Skripte und hier unten zeigen alle auf diesen
+installierten Ordner, sie funktionieren also, sobald epher installiert
+ist:
+
+```sh
+# Debian, Ubuntu, Fedora (deb, rpm)
+epher /usr/lib/epher/scripts/astronomy/moon/full-moons.epher
+
+# Windows (PowerShell)
+epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\full-moons.epher"
+
+# macOS
+epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/full-moons.epher
+```
+
+### 4.1 Einmalige Berechnungen
+
+Gib den Ausdruck als Argument an:
+
+```sh
+epher "2 + 3 * 4"
+```
+
+```text
+14
+```
+
+Du kannst alles aus Kapitel 1 machen, das ein einzelner Ausdruck ist:
+
+```sh
+epher "if 3 > 2 then 10 else 20"
+```
+
+```text
+10
+```
+
+Ein Ausdruck, der mit einem Minuszeichen beginnt, funktioniert direkt:
+
+```sh
+epher "-2 + 5"
+```
+
+```text
+3
+```
+
+Der Einmal-Modus ist für Skripte, von einem einzelnen Ausdruck bis zu
+einem ganzen Programm. Der Wert jeder Anweisung wird in einer eigenen
+Zeile ausgegeben:
+
+```sh
+epher "x = 10; x + 5"
+```
+
+```text
+10
+15
+```
+
+Anweisungen, verbunden mit Zeilenumbrüchen, funktionieren im Argument
+genauso. Alles aus Kapitel 1 ist verfügbar: Variablen, Funktionen,
+Schleifen, alles. Die Zeilen teilen eine Sitzung, wie ein gepipetes
+Skript (Abschnitt 4.2).
+
+### 4.2 Gepipete Skripte
+
+`epher -` liest Ausdrücke aus der Standardeingabe, Zeile für Zeile, so
+wie Skriptsprachen in Pipelines verwendet werden:
+
+```sh
+# Linux and macOS (bash, zsh)
+printf "x = 3\nx * 10\n" | epher -
+
+# Windows PowerShell
+"x = 3`nx * 10" | epher -
+```
+
+```text
+= 3
+= 30
+```
+
+Alles aus Kapitel 1 funktioniert, und die Zeilen teilen eine Sitzung:
+Eine Funktion, die in einer frühen Zeile definiert wurde, ist später
+verfügbar, und `save` schreibt wie immer in denselben Speicher. Fehler
+werden ausgegeben und das Skript läuft weiter. Eine Zeile kann mehrere
+Anweisungen mit `;` verbinden. Zeilenumbrüche und `;` bedeuten überall
+in epher dasselbe.
+
+
+Eine Datei funktioniert genauso: `epher plots/sine.es` führt jede Zeile der Datei der Reihe nach aus und druckt jedes Ergebnis. Das Argument gilt als Datei, wenn es eine vorhandene Datei benennt und einen `.`, `/` oder `\` enthält - `epher x` wertet also weiterhin den Namen `x` aus.
+### 4.3 Die interaktive Sitzung (REPL)
+
+Starte sie mit `epher repl`:
+
+```sh
+epher repl
+```
+
+> Ein bloßes `epher` ohne Argumente öffnet die Desktop-App (Kapitel 3).
+
+epher zeigt seinen Prompt und wartet:
+
+```text
+epher>
+```
+
+Tippe nun irgendetwas aus Kapitel 1, eine Zeile nach der anderen.
+Variablen behalten ihre Werte zwischen den Zeilen:
+
+```text
+epher> x = 5
+= 5
+epher> x ^ 2
+= 25
+```
+
+Der Befehl `table` (Abschnitt 2.4.2) druckt auch hier eine Wertetabelle:
+
+```text
+epher> table x ^ 2 from -2 to 2 points 5
+         x           y
+        -2           4
+        -1           1
+         0           0
+         1  Auch `graph`-Zeilen funktionieren hier: Die Kurven sammeln sich über die
+Zeilen, und `graph save plot.svg` schreibt dasselbe SVG-Bild, das die
+Schaltfläche **SVG kopieren** der Web-App liefert. `graph3d
+save datei.svg` speichert eine 3D-Fläche auf dieselbe Weise. Dieselben
+graph-Zeilen gelten auch in Einzeilern und gepipeten Skripten:
+`epher "graph sin(x); graph save plot.svg"` ist ein fertiger Plot in
+einem Befehl.
+
+         1
+         2           4
+```
+
+Jede Antwort wird als `= result` angezeigt. Zum Verlassen tippe `quit`
+(oder `exit`):
+
+```text
+epher> quit
+```
+
+Dein Verlauf wird gemerkt: Wenn du das nächste Mal `epher repl` ausführst,
+sind die Zeilen der vorherigen Sitzung noch da.
+
+
+Der Befehl `load` führt ein Skript aus - einen Dateipfad oder den Namen eines mit `save script` gespeicherten Skripts - Zeile für Zeile, genau als hättest du es eingetippt:
+
+```text
+epher> load plots/sine.es
+epher> load my_setup
+```
+### 4.4 Funktionen, Konstanten und Skripte speichern
+
+Definiere eine Funktion und speichere sie dann:
+
+```text
+epher> def fib(n) = if n <= 1 then n else fib(n - 1) + fib(n - 2)
+epher> save fib
+saved fib
+```
+
+Der Befehl `save fib` legt die Funktion auf der Festplatte ab. Wenn du die
+Sitzung das nächste Mal startest, ist `fib` bereits definiert:
+
+```text
+epher> fib(10)
+= 55
+```
+
+Konstanten speichern sich genauso. `save` auf den Namen der Konstante:
+
+```text
+epher> const tax = 0.2
+= 0.2
+epher> save tax
+saved tax
+```
+
+Um ein ganzes Skript zu speichern (die letzte Zeile, die du getippt
+hast), verwende `save script`:
+
+```text
+epher> x = 0; while x < 5 do x = x + 1; x
+= 5
+epher> save script count_to_five
+saved script count_to_five
+```
+
+Gespeicherte Skripte laufen beim Start von epher automatisch, sodass
+alles, was sie definieren, für dich bereitsteht.
+
+
+Du kannst ein gespeichertes Skript auch bei Bedarf mit `load count_to_five` laden, es als einfache Datei behalten und `load count_to_five.es` ausführen; `epher count_to_five.es` startet es direkt von der Kommandozeile (Abschnitt 4.2).
+### 4.5 Die Sprache der Oberfläche ändern
+
+Die Sprache der Oberfläche wird aus den Sprachen gewählt, die du auf
+deinem Gerät eingestellt hast. Um sie zu überschreiben, tippe `language`,
+gefolgt von einer dieser: `en`, `zh-CN`, `hi`, `es`, `fr`, `ar`, `de`,
+`pt`:
+
+```text
+epher> language fr
+language set to fr
+```
+
+Die Wahl wird für das nächste Mal gemerkt. Hinweis: Die Sprache, die du
+*tippst*, die Ausdruckssprache, ist immer dieselbe, egal welche Sprache
+die Oberfläche hat.
+
+### 4.6 Wo deine Daten leben
+
+Funktionen, Skripte, Verlauf und deine Sprachwahl werden in einem Ordner
+auf deinem Computer gespeichert:
+
+```text
+~/.epher
+```
+
+Lösche diesen Ordner, um ganz von vorn zu beginnen. Um einen anderen Ort
+zu verwenden, setze die Umgebungsvariable `EPHER_STORE_DIR`, bevor du
+epher startest:
+
+```sh
+EPHER_STORE_DIR=/tmp/my-epher epher repl
+```
+
+## 5. Die Terminal-Oberfläche (TUI)
+
+Die TUI ist eine Vollbild-Version der interaktiven Sitzung, in deinem
+Terminal. Sie ist Teil desselben `epher`-Programms. Starte sie mit:
+
+```sh
+epher tui
+```
+
+### 5.1 Der Bildschirm
+
+Der Bildschirm ist in Panels unterteilt:
+
+- **Ausdruck**: das Eingabefeld (oben). Shift+Enter beginnt eine neue
+  Zeile; die Pfeiltasten oder ein Mausklick bewegen den Cursor im Text.
+- Das aktuelle **Ergebnis** direkt darunter.
+- **Verlauf**: jede Zeile, die du eingegeben hast, mit ihrer Antwort.
+- **Graph**: die Zeichnung aus dem Befehl `graph` (unten).
+- Eine Hinweiszeile zeigt die Tastenkürzel.
+
+### 5.2 Tasten
+
+| Taste | Aktion |
+|---|---|
+| Tippen | am Cursor zum Ausdruck hinzufügen |
+| **Enter** | das ganze Skript auswerten (eine mehrzeilige Eingabe läuft als ein Verlaufseintrag) |
+| **Shift+Enter** | eine neue Zeile beginnen |
+| **← → ↑ ↓** | den Cursor bewegen (bei leerer Eingabe: die 3D-Ansicht drehen) |
+| **Esc** | die Eingabezeile leeren |
+| **F1** | die Funktion unter dem Cursor beschreiben (in der Ergebniszeile) |
+| **Ctrl+C** | beenden |
+| **q** | beenden (wenn die Eingabe leer ist) |
+| **Arrow keys** | die 3D-Ansicht drehen (wenn die Eingabe leer ist) |
+| **Space** | die Animation starten/stoppen (wenn die Eingabe leer ist) |
+| **F10** | die Menüs öffnen (Datei, Bearbeiten, Graph, Einstellungen, Hilfe) |
+| **Tab** | das immer sichtbare Tastenfeld fokussieren (bzw. den Verlauf, vom Tastenfeld aus); Gruppen wechseln (**Esc** zurück zum Tippen) |
+| **Maus** | Menüs und Menüeinträge anklicken, Tastenfeld-Zellen und Bank-Registerkarten, Verlaufszeilen (lädt den Ausdruck); im Grafikfeld ziehen, um zu drehen (3D) bzw. zu verschieben (2D), das Rad zoomt, ein Doppelklick setzt die Ansicht zurück |
+| **Ctrl+L** | den Verlauf leeren |
+
+Das Menü **Hilfe** öffnet das eingebaute Handbuch, die Tastenfeld-Hilfe und einen Konstanten-Browser: die Konstanten in Gruppen, die Pfeile wählen eine Zeile, **Enter** fügt ihren Namen in den Ausdruck am Cursor ein, **Esc** schließt.
+
+Die Gruppen des Tastenfelds enthalten jede Funktion, jede Konstante und
+jeden Befehl der Sprache: **trig**, **fn**, **num**, **0x** und
+**var**. Die 0x-Gruppe enthält die exakten und Basis-Umwandlungen
+(`frac`, `dec`, `big`, `bin`, `oct`, `hex`) und die Fakultät `!`. Die
+Pfeiltasten bewegen die Markierung, **Enter** fügt das Token ein, und
+**Tab** wechselt die Gruppen. Ein Operator am Anfang einer leeren Zeile (oder vom Tastenfeld eingefügt) setzt `ans` davor, die Zeile macht also mit dem letzten Ergebnis weiter.
+
+Das Menü **Einstellungen** bietet dieselben Ergebnisdarstellungs-Optionen wie die Web-App (exakte Brüche, Notation, Tausendertrenner), neben den Zeilen für Design und Sprache.
+
+### 5.3 Graphen zeichnen
+
+Tippe `graph`, gefolgt von einem Ausdruck, und drücke **Enter**:
+
+```epher
+graph x ^ 2
+```
+
+epher tastet die Kurve von x = −10 bis x = 10 ab und zeichnet sie als
+ASCII-Plot in das Panel Graph; die Legende über dem Plot benennt, was
+gezeichnet wird.
+
+`graph clear` leert den Plot, und das **Graph**-Menü macht dasselbe; das
+**Help**-Menü öffnet dieses Handbuch in der TUI (Pfeiltasten scrollen,
+**Esc** schließt). Das **Settings**-Menü kann die besonderen Punkte unter
+dem Plot ausblenden.
+
+Du kannst jeden Ausdruck zeichnen, auch deine eigenen Funktionen.
+Definiere zuerst eine und zeichne sie dann:
+
+```epher
+def f(x) = x ^ 3
+graph f(x)
+```
+
+Jede `graph`-Zeile fügt dem Plot eine Kurve hinzu, gezeichnet mit ihrem
+eigenen Symbol (`o`, `x`, `+`, `*`); `graph clear` leert den Plot.
+Dieselbe Grammatik wie in der Web-App gilt: ein Definitionsbereich
+(`graph sin(x) from 0 to 2*pi`), parametrische Kurven
+(`graph param 2*cos(t), 3*sin(t)`), Polarkurven
+(`graph polar 1 + cos(theta)`) und Bereiche (`graph y < x ^ 2` schattiert
+die Fläche unter der Kurve).
+
+Punkte, an denen der Ausdruck keinen Wert hat (zum Beispiel die Division
+durch null), werden einfach übersprungen und hinterlassen eine Lücke im
+Plot. Nach jedem graph-Befehl listet die TUI die besonderen Punkte
+(Nullstellen, Extrempunkte und Schnittpunkte) unter dem Plot auf. Der
+Befehl `table` (Abschnitt 2.4.2) funktioniert auch hier.
+
+`graph3d x ^ 2 - y ^ 2` zeichnet eine 3D-Fläche als ASCII-Drahtgitter.
+Drehe sie mit den Pfeiltasten, solange die Eingabe leer ist, und drücke
+die Leertaste, um die Konstante eines Schiebereglers zu animieren
+(Abschnitt 2.4.5). Die Hinweiszeile unten zeigt die Pfeil- und
+Leertasten-Hinweise nur, solange eine 3D-Fläche oder eine animierbare
+Kurve angezeigt wird.
+
+`graph save plot.svg` schreibt den aktuellen Plot als dasselbe SVG-Bild,
+das die Schaltfläche **SVG kopieren** der Web-App liefert; `graph3d save
+datei.svg` speichert das 3D-Gitter aus dem Blickwinkel, den du gerade
+siehst.
+
+### 5.4 Speichern und Persistenz
+
+Die TUI teilt ihren Speicher mit der CLI: alles, was in der einen
+gespeichert ist, ist in der anderen verfügbar. Funktionen, Skripte,
+Verlauf und die Sprachpräferenz leben in `~/.epher` (Kapitel 4.6), und
+dieselben Befehle `save`, `save script` und `language` funktionieren hier.
+
+## 6. Deine Daten und Privatsphäre
+
+- Das **installierte epher-Programm** (Desktop-App, CLI und TUI)
+  speichert Funktionen, Skripte, Verlauf und die Sprachwahl lokal in
+  `~/.epher` (oder `EPHER_STORE_DIR`). Nichts verlässt deinen Computer.
+- Die **Web-App** behält nichts auf der Festplatte: Der Verlauf dauert
+  nur, solange die Seite offen ist. Die Web-App kann offline arbeiten,
+  weil die Seite selbst von deinem Browser gespeichert wird.
+
+Alle fünf Versionen führen die Berechnung vollständig auf deinem Gerät
+aus. Nichts wird irgendwohin gesendet.
 

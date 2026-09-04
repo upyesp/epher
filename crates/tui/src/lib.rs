@@ -9,8 +9,7 @@ use epher_core::astro::SolarScene;
 use epher_core::graph::{
     analyze, curve_frame, free_names, parse_graph_source, project_space_curve, project_surface,
     sample_data_plot, sample_space_curve, sample_spec, sample_surface, surface_frame, zoom_window,
-    DataPlot,
-    InterestKind, InterestPoint, SampledCurve, Segment3D, SpaceCurve, Surface, View3D,
+    DataPlot, InterestKind, InterestPoint, SampledCurve, Segment3D, SpaceCurve, Surface, View3D,
 };
 use epher_core::Session;
 use epher_i18n::Localizer;
@@ -1060,9 +1059,7 @@ impl App {
     }
 
     /// The loaded guide text (ADR-0053): (locale, markdown or the miss).
-    pub fn guide_text(
-        &self,
-    ) -> Option<&(String, Result<String, epher_guide::GuideUnavailable>)> {
+    pub fn guide_text(&self) -> Option<&(String, Result<String, epher_guide::GuideUnavailable>)> {
         self.guide_md.as_ref()
     }
 
@@ -4032,10 +4029,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         // open; when the install has none, the pager says where it
         // looked instead of a blank page.
         let (chapters, guide_lines) = match app.guide_md.as_ref().map(|(_, md)| md) {
-            Some(Ok(md)) => (
-                epher_guide::chapters(md),
-                epher_guide::render_text(md),
-            ),
+            Some(Ok(md)) => (epher_guide::chapters(md), epher_guide::render_text(md)),
             _ => {
                 let tried = app
                     .guide_md
@@ -4302,10 +4296,10 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         // (entry, result, history, keypad). The keypad pane is 8 rows:
         // the bank row plus the digits bank's five key rows.
         let calc_rows = Layout::vertical([
-            Constraint::Length(input_h), // input (grows with the script)
+            Constraint::Length(input_h),  // input (grows with the script)
             Constraint::Length(result_h), // result (grows with the transcript)
-            Constraint::Min(0),          // history
-            Constraint::Length(8),       // keypad (bank row + 5 key rows)
+            Constraint::Min(0),           // history
+            Constraint::Length(8),        // keypad (bank row + 5 key rows)
         ])
         .split(calc_col);
         (

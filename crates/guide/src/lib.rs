@@ -106,7 +106,10 @@ pub fn load(locale: &str) -> Result<String, GuideUnavailable> {
         }
     }
     if let Some(data) = std::env::var_os("XDG_DATA_HOME") {
-        if let Some(md) = push(std::path::PathBuf::from(data).join("epher/guide"), &mut tried) {
+        if let Some(md) = push(
+            std::path::PathBuf::from(data).join("epher/guide"),
+            &mut tried,
+        ) {
             return Ok(md);
         }
     } else if let Some(home) = std::env::var_os("HOME") {
@@ -531,7 +534,10 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("epher-guide-miss-{}", std::process::id()));
         std::env::set_var("EPHER_GUIDE_DIR", &dir);
         let err = load("en").expect_err("empty dir has no guide");
-        assert!(err.tried.iter().any(|d| d.contains(&dir.display().to_string())));
+        assert!(err
+            .tried
+            .iter()
+            .any(|d| d.contains(&dir.display().to_string())));
         std::env::remove_var("EPHER_GUIDE_DIR");
     }
 

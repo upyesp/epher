@@ -1,0 +1,104 @@
+# ADR-0058: Installers carry the script collection, and every command string names its operating systems
+
+Date: 2026-09-04
+
+Status: Accepted
+
+## Context
+
+The project ships 333 ready-to-run scripts in the `epher scripts/` folder
+of the repository. The website's Scripts page browses them, the scripts'
+README teaches them, and the guide's copy-and-paste commands reference
+them — but every path in those examples pointed at the source checkout.
+A user who installed epher from a release had none of them: the
+copy-and-paste instructions from the previous round failed with parse
+errors, because a path that names no existing file is evaluated as an
+expression, and the error messages ("invalid number", "unexpected
+character") pointed at the tokenizer rather than at the missing file.
+
+The same round exposed a second documentation defect. The examples I
+handed a user mixed operating systems under one heading: a bash-friendly
+path for Debian and a PowerShell path for Windows, each looking like THE
+way to run epher. A reader cannot tell from an unlabeled command string
+which operating system it is for, so a working instruction reads as a
+broken one on the other platform.
+
+## Analysis
+
+- **The scripts must travel with the installers, not the checkout.**
+  Downloading a script from GitHub before the first run is exactly the
+  ceremony epher exists to remove. The bundler already has a mechanism
+  that fits: `bundle.resources`, whose map form copies a directory tree
+  preserving structure (`tauri-utils` `ResourcePaths`: a directory key
+  walks its contents under the mapped destination). One config line puts
+  the tree inside every artifact — deb and rpm under `/usr/lib/epher`,
+  the NSIS installer beside the binaries in `%LOCALAPPDATA%\epher`, the
+  macOS app bundle at `Contents/Resources` — with no per-platform hooks.
+  Verified empirically: `dpkg -c` on a locally built deb lists all 333
+  `.epher` files under `usr/lib/epher/scripts/`.
+- **The installed path is per operating system, so the documentation
+  must be too.** One path per platform is not a wart to hide but the
+  fact to state. A fenced block whose comment lines name the systems
+  (`# Debian, Ubuntu, Fedora (deb, rpm)`, `# Windows (PowerShell)`,
+  `# macOS`) lets a reader find their line and skip the rest. The guide's
+  fence discipline (byte-identical across the eight locales) applies
+  unchanged: the labels live inside the fence, the translations around
+  it.
+- **Where the copy/paste instructions live, the installed path must
+  live too.** The guide's CLI chapter, the scripts' README, the Scripts
+  page on the website, and the repository README all teach running
+  scripts from a terminal; all four now show the installed paths. The
+  source-checkout path keeps its place in the scripts' README —
+  contributors run from the tree — with the installed paths beside it.
+
+## Decision
+
+1. The tauri bundle's resources map gains `"../../../epher scripts":
+   "scripts"`. Every installer built from this repository carries the
+   script collection, structure intact, at the platform's resource
+   location:
+
+   - Linux (deb, rpm): `/usr/lib/epher/scripts/`
+   - Windows: `%LOCALAPPDATA%\epher\scripts\`
+   - macOS: `/Applications/epher.app/Contents/Resources/scripts/`
+
+2. Documentation shows terminal commands with each command's operating
+   systems named in a comment line directly above it, and the three
+   installed paths appear wherever scripts are taught: the guide's CLI
+   chapter (section 4 intro), the scripts' README (Running a script),
+   the website's Scripts page ("Run them from your terminal"), and the
+   repository README's Quick Start.
+
+3. The guide's piped-script example labels its shell: the `printf` pipe
+   is marked for Linux and macOS shells, with the PowerShell
+   spelling (`"x = 3`nx * 10" | epher -`) beside it.
+
+## Consequences
+
+- A fresh install of epher on any of the three desktop platforms can run
+  the reference script from the terminal with the copied command, before
+  anything is downloaded.
+- The installers grow by the size of the collection (about half a
+  megabyte uncompressed, less packaged) — noise against the webview
+  runtime they already ship.
+- The web app and the TUI are unchanged; the collection rides in their
+  bundles' resources but nothing reads it from disk there.
+- Future scripts added to `epher scripts/` ride the next release without
+  further config; the Scripts page already builds its catalog from the
+  same folder, so the two cannot drift apart.
+
+## Alternatives considered
+
+- **Downloading the scripts at install time.** Rejected: it makes the
+  installer's behavior depend on the network, contradicts the privacy
+  stance of chapter 6 ("nothing leaves your computer"), and breaks
+  offline installs.
+- **Materializing scripts into the user's home on first run of the
+  app.** Rejected for this round: it writes into user space without a
+  visible act, duplicates the collection per user, and still leaves the
+  CLI-only user empty-handed. The installers' own file layout is the
+  honest place.
+- **A single user-home path on every OS** (`~/epher-scripts`). Rejected:
+  system packages cannot write one user's home cleanly, and the per-OS
+  resource locations are already correct, standard places that the
+  OS-labeled fences state plainly.

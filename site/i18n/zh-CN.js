@@ -14,6 +14,8 @@ window.EPHER_I18N["zh-CN"] = {
   "scripts-title": "脚本",
   "scripts-lede": "epher 计算器的现成脚本，按领域和主题整理。打开文件夹浏览，点击脚本阅读，一键复制到剪贴板。",
   "scripts-search": "搜索脚本（名称和内容）",
+  "scripts-run-title": "在终端里运行它们",
+  "scripts-run-lede": "每个安装程序都自带整个合集，安装到程序旁边。上面同一个脚本在每种操作系统上都从安装好的文件夹运行：",
   "scripts-no-results": "没有匹配的脚本",
   "guide-cta": "阅读用户指南",
   "source-link": "源代码",

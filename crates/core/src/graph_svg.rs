@@ -216,9 +216,19 @@ pub fn fit_legend(f: &crate::graph::Fit) -> String {
             label(g.c),
             label(g.r)
         ),
-        ScatterFit::Expreg => format!("y = {}*e^({}*x) (r = {})", label(g.a), label(g.b), label(g.r)),
+        ScatterFit::Expreg => format!(
+            "y = {}*e^({}*x) (r = {})",
+            label(g.a),
+            label(g.b),
+            label(g.r)
+        ),
         ScatterFit::Powreg => format!("y = {}*x^{} (r = {})", label(g.a), label(g.b), label(g.r)),
-        ScatterFit::Logreg => format!("y = {} + {}*ln(x) (r = {})", label(g.a), label(g.b), label(g.r)),
+        ScatterFit::Logreg => format!(
+            "y = {} + {}*ln(x) (r = {})",
+            label(g.a),
+            label(g.b),
+            label(g.r)
+        ),
     }
 }
 
@@ -396,6 +406,35 @@ pub const DEFAULT_STROKE_WIDTH: f64 = 1.0;
 /// the mid-range value is what a fresh plot draws.
 pub const THREE_D_DEFAULT_WIDTH: f64 = 0.2;
 
+/// The 3D default on the mobile layout (ADR-0035): the touch contract's
+/// original 0.1 - half the desktop default, one screen px at the
+/// non-scaling factor below. ADR-0055 revised the desktop default
+/// without touching this one.
+pub const THREE_D_DEFAULT_WIDTH_MOBILE: f64 = 0.1;
+
+/// The 3D width slider's `(max, step)` for the display in question
+/// (ADR-0035 amended, ADR-0055): the desktop range is 0.0-0.4 in 0.05
+/// steps; the touch layout keeps ADR-0035's original 0.0-0.2 in 0.01
+/// steps. Pure so the contract is testable off-wasm.
+pub fn three_d_width_range(mobile: bool) -> (f64, f64) {
+    if mobile {
+        (0.2, 0.01)
+    } else {
+        (0.4, 0.05)
+    }
+}
+
+/// The 3D width a fresh plot draws on the display in question (the
+/// reset button's target too): ADR-0035's 0.1 on the touch layout,
+/// ADR-0055's 0.2 on the desktop.
+pub fn three_d_default_width(mobile: bool) -> f64 {
+    if mobile {
+        THREE_D_DEFAULT_WIDTH_MOBILE
+    } else {
+        THREE_D_DEFAULT_WIDTH
+    }
+}
+
 /// 3D widths are screen px: `vector-effect="non-scaling-stroke"` keeps
 /// a mesh line at the slider's value times this factor no matter how the
 /// scene letterboxes or zooms (the old world-unit strokes scaled with
@@ -420,7 +459,15 @@ impl SvgPalette {
     /// label halo behind plot text) for one theme, mirroring
     /// crates/web/index.html's `--accent`, `--curve-*`, `--text`, and
     /// `--muted` variables with their recorded contrast ratios.
-    fn colors(self) -> (&'static str, &'static str, &'static str, &'static str, [&'static str; 4]) {
+    fn colors(
+        self,
+    ) -> (
+        &'static str,
+        &'static str,
+        &'static str,
+        &'static str,
+        [&'static str; 4],
+    ) {
         match self {
             SvgPalette::Dark => (
                 "#f5f6f7",
@@ -766,13 +813,23 @@ fn fit_label(plot: &DataPlot) -> String {
             short(g.r)
         ),
         crate::graph::ScatterFit::Expreg => {
-            format!("y = {}*e^({}*x) (r = {})", short(g.a), short(g.b), short(g.r))
+            format!(
+                "y = {}*e^({}*x) (r = {})",
+                short(g.a),
+                short(g.b),
+                short(g.r)
+            )
         }
         crate::graph::ScatterFit::Powreg => {
             format!("y = {}*x^{} (r = {})", short(g.a), short(g.b), short(g.r))
         }
         crate::graph::ScatterFit::Logreg => {
-            format!("y = {} + {}*ln(x) (r = {})", short(g.a), short(g.b), short(g.r))
+            format!(
+                "y = {} + {}*ln(x) (r = {})",
+                short(g.a),
+                short(g.b),
+                short(g.r)
+            )
         }
     }
 }

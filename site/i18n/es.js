@@ -14,6 +14,8 @@ window.EPHER_I18N["es"] = {
   "scripts-title": "Scripts",
   "scripts-lede": "Scripts listos para usar de la calculadora epher, organizados por campo y tema. Abra una carpeta para explorar, haga clic en un script para leerlo y copie cualquier script al portapapeles.",
   "scripts-search": "Buscar scripts (nombres y contenido)",
+  "scripts-run-title": "Ejecútalos desde tu terminal",
+  "scripts-run-lede": "Cada instalador trae toda esta colección, instalada junto al programa. El mismo script de arriba se ejecuta desde la carpeta instalada en cada sistema operativo:",
   "scripts-no-results": "Ningún script coincide con la búsqueda",
   "guide-cta": "Leer la guía de usuario",
   "source-link": "Código fuente",
