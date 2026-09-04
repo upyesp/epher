@@ -81,6 +81,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0054 | The stats class, table columns, space curves, and the language surface | 2026-09-02 | accepted |
 | 0055 | Keypad banks for the new language, transparent exports, and the graph-controls review | 2026-09-02 | accepted |
 | 0056 | The result pane: long answers render where graphs render | 2026-09-03 | accepted |
+| 0057 | Answer copying, the PWA's recent activity, faithful exports, and the touch pinch | 2026-09-04 | accepted |
 
 ## Decision chains
 

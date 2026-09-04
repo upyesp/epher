@@ -24,12 +24,14 @@ use yew::prelude::*;
 /// so an SVG saved from the TUI is byte-for-byte the app's plot. The
 /// re-exports keep this module's long-standing surface.
 pub use epher_core::graph_svg::{
-    aria_label, curve_caption, curve_parts, data_geometry, data_svg, data_svg_in, escape,
-    fit_legend, fill_points, geometry, geometry_in, graph3d_curve_svg, graph3d_svg, graph_svg,
-    graph3d_curve_svg_indexed, graph3d_svg_indexed, graph_svg_indexed, label, layers_svg,
-    polyline_points, scene_parts_indexed, segments, solar_parts_in, solar_view_box, ticks,
-    trace_nearest, Geometry, Poi, TracePoint, BOTTOM, DEFAULT_STROKE_WIDTH, HEIGHT, LEFT, RIGHT,
-    THREE_D_DEFAULT_WIDTH, TOP, WIDTH,
+    aria_label, curve_caption, curve_parts, data_geometry, data_svg, data_svg_in, data_svg_styled,
+    escape, fit_legend, fill_points, geometry, geometry_in, graph3d_curve_svg, graph3d_svg,
+    graph_svg, graph3d_curve_svg_indexed, graph3d_curve_svg_styled, graph3d_svg_indexed,
+    graph3d_svg_styled, graph_svg_indexed, graph_svg_styled, label, layers_svg,
+    palette_curve, polyline_points, scene_parts_indexed, segments, solar3d_styled,
+    solar_parts_in, solar_view_box, ticks, trace_nearest, Geometry, LegendEntry, Poi, SvgPalette,
+    TracePoint, BOTTOM, DEFAULT_STROKE_WIDTH, HEIGHT, LEFT, RIGHT, THREE_D_DEFAULT_WIDTH,
+    THREE_D_PX_PER_WIDTH, TOP, WIDTH,
 };
 /// The live 3D renderer's content for a space-curve set (ADR-0054):
 /// the same (view box, markup) contract as [`surface_svg`].
@@ -645,6 +647,14 @@ pub struct Graph3DProps {
     pub view_box: String,
     pub content: String,
     pub aria_label: String,
+    /// The mesh's on-screen line width in px (ADR-0057): the width
+    /// slider's value times THREE_D_PX_PER_WIDTH, the same number the
+    /// mesh markup carries as its stroke-width attribute. Set as the
+    /// svg's `--curve-width` so the shared `svg .curve` CSS rule (whose
+    /// var() default is the 2D width) no longer pins every mesh line to
+    /// 1px — the bug that made the slider move the frame but not the
+    /// surface.
+    pub stroke_px: f64,
     /// (dyaw, dpitch) from a drag or arrow key.
     pub on_orbit: Callback<(f64, f64)>,
     /// Wheel notch or pinch (ADR-0038): a camera-distance factor -
@@ -723,14 +733,25 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
             }
             *bound_to.borrow_mut() = Some(el.clone());
             let mut bound = Vec::new();
+            // True while the touch fallback below is driving the pinch:
+            // some engines cancel the pointer stream when a second finger
+            // lands (iOS WebKit's gesture recognizer does it even under
+            // touch-action: none), and the pointer handlers must stand
+            // down while touch events carry the zoom instead (ADR-0035
+            // amendment).
+            let touch_active = std::rc::Rc::new(std::cell::Cell::new(false));
             {
                 let el_closure = el.clone();
                 let drag = drag.clone();
                 let pointers = pointers.clone();
+                let touch_active = touch_active.clone();
                 bound.push(gloo_events::EventListener::new(
                     &el,
                     "pointerdown",
                     move |e| {
+                        if touch_active.get() {
+                            return;
+                        }
                         if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
                             el_closure.set_pointer_capture(pe.pointer_id()).ok();
                             let mut pts = pointers.borrow_mut();
@@ -765,10 +786,14 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
                 let frame = frame.clone();
                 let pointers = pointers.clone();
                 let el_move = el.clone();
+                let touch_active_move = touch_active.clone();
                 bound.push(gloo_events::EventListener::new(
                     &el,
                     "pointermove",
                     move |e| {
+                        if touch_active_move.get() {
+                            return;
+                        }
                         let el = el_move.clone();
                         if let Some(pe) = e.dyn_ref::<web_sys::PointerEvent>() {
                             // Pinch first (ADR-0038): with two pointers on
@@ -879,6 +904,92 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
                     on_zoom.emit((we.delta_y() / 300.0).exp().clamp(0.5, 2.0));
                 }));
             }
+            // Touch fallback for the pinch (ADR-0035 amendment): engines
+            // that cancel the pointer stream when the second finger lands
+            // still deliver touch events, so the same distance ratio zooms
+            // the camera through them. touchstart marks `touch_active` so
+            // the pointer handlers above stand down (no doubled zoom), and
+            // preventDefault keeps the browser from page-zooming instead.
+            {
+                let el = el.clone();
+                let touch_active = touch_active.clone();
+                bound.push(gloo_events::EventListener::new(
+                    &el,
+                    "touchstart",
+                    {
+                        let el = el.clone();
+                        move |e| {
+                            if let Some(te) = e.dyn_ref::<web_sys::TouchEvent>() {
+                                touch_active.set(true);
+                                if te.touches().length() >= 2 {
+                                    e.prevent_default();
+                                    let t0 = te.touches().get(0).unwrap();
+                                    let t1 = te.touches().get(1).unwrap();
+                                    let dx = t1.client_x() as f64 - t0.client_x() as f64;
+                                    let dy = t1.client_y() as f64 - t0.client_y() as f64;
+                                    let dist = (dx * dx + dy * dy).sqrt();
+                                    let _ =
+                                        el.set_attribute("data-touch-dist", &format!("{dist}"));
+                                }
+                            }
+                        }
+                    },
+                ));
+            }
+            {
+                let el = el.clone();
+                let on_zoom = on_zoom.clone();
+                bound.push(gloo_events::EventListener::new(
+                    &el,
+                    "touchmove",
+                    {
+                        let el = el.clone();
+                        move |e| {
+                            if let Some(te) = e.dyn_ref::<web_sys::TouchEvent>() {
+                                if te.touches().length() >= 2 {
+                                    e.prevent_default();
+                                    let t0 = te.touches().get(0).unwrap();
+                                    let t1 = te.touches().get(1).unwrap();
+                                    let dx = t1.client_x() as f64 - t0.client_x() as f64;
+                                    let dy = t1.client_y() as f64 - t0.client_y() as f64;
+                                    let dist = (dx * dx + dy * dy).sqrt();
+                                    let last = el
+                                        .get_attribute("data-touch-dist")
+                                        .and_then(|v| v.parse::<f64>().ok());
+                                    let _ = el
+                                        .set_attribute("data-touch-dist", &format!("{dist}"));
+                                    if let Some(last) = last {
+                                        if last > 1.0 && dist > 1.0 {
+                                            on_zoom.emit(last / dist);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                ));
+            }
+            for touch_end in ["touchend", "touchcancel"] {
+                let el = el.clone();
+                let touch_active = touch_active.clone();
+                bound.push(gloo_events::EventListener::new(
+                    &el,
+                    touch_end,
+                    {
+                        let el = el.clone();
+                        move |e| {
+                            if let Some(te) = e.dyn_ref::<web_sys::TouchEvent>() {
+                                if te.touches().length() < 2 {
+                                    let _ = el.remove_attribute("data-touch-dist");
+                                }
+                                if te.touches().length() == 0 {
+                                    touch_active.set(false);
+                                }
+                            }
+                        }
+                    },
+                ));
+            }
             {
                 let el = el.clone();
                 let on_orbit = on_orbit.clone();
@@ -909,6 +1020,7 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
             viewBox={props.view_box.clone()}
             preserveAspectRatio="xMidYMid meet"
             class="graph3d-svg"
+            style={format!("--curve-width: {}px", props.stroke_px)}
         >
             <g ref={g_ref}></g>
         </svg>

@@ -403,36 +403,125 @@ pub const THREE_D_DEFAULT_WIDTH: f64 = 0.2;
 /// curves it sat beside). The factor turns the 0.2 default into 2 px.
 pub const THREE_D_PX_PER_WIDTH: f64 = 10.0;
 
-/// The embedded stylesheet: the app's default (dark) palette, drawn on a
-/// transparent canvas so exported plots sit on any document, slide, or
-/// page without a painted box. Every color keeps the recorded contrast
-/// ratios of the app's dark theme (WCAG 1.4.11: curves >= 3:1 on the
-/// dark background the palette was chosen for).
-fn style_svg(stroke_width: f64) -> String {
+/// The embedded stylesheet: one of the app's three theme palettes
+/// (ADR-0057), drawn on a transparent canvas so exported plots sit on
+/// any document, slide, or page without a painted box. Colors mirror
+/// the app's CSS variables for the chosen theme, so an export wears
+/// the same colors the pane wears.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum SvgPalette {
+    Dark,
+    Light,
+    Night,
+}
+
+impl SvgPalette {
+    /// (curve-0..3, foreground for grid/axes, muted for ticks, the
+    /// label halo behind plot text) for one theme, mirroring
+    /// crates/web/index.html's `--accent`, `--curve-*`, `--text`, and
+    /// `--muted` variables with their recorded contrast ratios.
+    fn colors(self) -> (&'static str, &'static str, &'static str, &'static str, [&'static str; 4]) {
+        match self {
+            SvgPalette::Dark => (
+                "#f5f6f7",
+                "#9a9ba2",
+                "#141416",
+                "#2dd4bf",
+                ["#2dd4bf", "#4da3ff", "#ffb340", "#c39dff"],
+            ),
+            SvgPalette::Light => (
+                "#1b1d1f",
+                "#565d63",
+                "#f7f8f8",
+                "#0e8074",
+                ["#0e8074", "#1e66c8", "#9a5b00", "#7a4bd6"],
+            ),
+            SvgPalette::Night => (
+                "#ffb3a8",
+                "#d98878",
+                "#0d0000",
+                "#ff6b5a",
+                ["#ff6b5a", "#ffb340", "#ff9e8a", "#e0483e"],
+            ),
+        }
+    }
+}
+
+/// The palette color for curve index `i` (wraps past four, exactly
+/// like the CSS classes the live pane uses).
+pub fn palette_curve(palette: SvgPalette, i: usize) -> &'static str {
+    palette.colors().4[i % 4]
+}
+
+/// One legend row in an exported document (ADR-0057): the swatch color
+/// and the caption text, the same entry the pane's legend list shows.
+#[derive(Clone, Debug)]
+pub struct LegendEntry {
+    pub color: String,
+    pub caption: String,
+}
+
+fn style_svg(stroke_width: f64, palette: SvgPalette) -> String {
+    let (fg, muted, halo, _accent, curves) = palette.colors();
+    let c0 = curves[0];
+    let (c1, c2, c3) = (curves[1], curves[2], curves[3]);
     format!(
         "<style>\
 .curve {{ stroke-width: {stroke_width:.2}; stroke-linejoin: round; stroke-linecap: round; fill: none; }}\
-.curve-0 {{ stroke: #2dd4bf; }}\
-.curve-1 {{ stroke: #4da3ff; }}\
-.curve-2 {{ stroke: #ffb340; }}\
-.curve-3 {{ stroke: #c39dff; }}\
-.label {{ font-size: 11px; font-family: ui-monospace, Menlo, Consolas, monospace; stroke: #141416; stroke-width: 3px; paint-order: stroke; }}\
-.label.curve-0 {{ fill: #2dd4bf; }}\
-.label.curve-1 {{ fill: #4da3ff; }}\
-.label.curve-2 {{ fill: #ffb340; }}\
-.label.curve-3 {{ fill: #c39dff; }}\
-.fill.curve-0 {{ fill: #2dd4bf; fill-opacity: 0.18; stroke: none; }}\
-.fill.curve-1 {{ fill: #4da3ff; fill-opacity: 0.18; stroke: none; }}\
-.fill.curve-2 {{ fill: #ffb340; fill-opacity: 0.18; stroke: none; }}\
-.fill.curve-3 {{ fill: #c39dff; fill-opacity: 0.18; stroke: none; }}\
-.grid {{ stroke: #f5f6f7; stroke-opacity: 0.15; }}\
-.axis {{ stroke: #f5f6f7; stroke-opacity: 0.5; }}\
-.tick {{ fill: #9a9ba2; font-size: 11px; font-family: ui-monospace, Menlo, Consolas, monospace; }}\
-.poi {{ fill: #2dd4bf; }}\
-.poi-label {{ fill: #f5f6f7; font-size: 11px; font-family: ui-monospace, Menlo, Consolas, monospace; }}\
-.trace {{ fill: #2dd4bf; stroke: #141416; stroke-width: 2; }}\
+.curve-0 {{ stroke: {c0}; }}\
+.curve-1 {{ stroke: {c1}; }}\
+.curve-2 {{ stroke: {c2}; }}\
+.curve-3 {{ stroke: {c3}; }}\
+.label {{ font-size: 11px; font-family: ui-monospace, Menlo, Consolas, monospace; stroke: {halo}; stroke-width: 3px; paint-order: stroke; }}\
+.label.curve-0 {{ fill: {c0}; }}\
+.label.curve-1 {{ fill: {c1}; }}\
+.label.curve-2 {{ fill: {c2}; }}\
+.label.curve-3 {{ fill: {c3}; }}\
+.fill.curve-0 {{ fill: {c0}; fill-opacity: 0.18; stroke: none; }}\
+.fill.curve-1 {{ fill: {c1}; fill-opacity: 0.18; stroke: none; }}\
+.fill.curve-2 {{ fill: {c2}; fill-opacity: 0.18; stroke: none; }}\
+.fill.curve-3 {{ fill: {c3}; fill-opacity: 0.18; stroke: none; }}\
+.grid {{ stroke: {fg}; stroke-opacity: 0.15; }}\
+.axis {{ stroke: {fg}; stroke-opacity: 0.5; }}\
+.tick {{ fill: {muted}; font-size: 11px; font-family: ui-monospace, Menlo, Consolas, monospace; }}\
+.poi {{ fill: {c0}; }}\
+.poi-label {{ fill: {fg}; font-size: 11px; font-family: ui-monospace, Menlo, Consolas, monospace; }}\
+.trace {{ fill: {c0}; stroke: {halo}; stroke-width: 2; }}\
 </style>"
     )
+}
+
+/// The legend band under an exported plot (ADR-0057): the pane's
+/// legend entries, at most two per row, each a color swatch and its
+/// caption in the theme's foreground. Returns (band height, markup);
+/// an empty legend renders nothing. The caller grows the canvas by the
+/// band height.
+fn legend_band(legend: &[LegendEntry], palette: SvgPalette) -> (f64, String) {
+    if legend.is_empty() {
+        return (0.0, String::new());
+    }
+    let (fg, _, _, _, _) = palette.colors();
+    let rows = legend.len().div_ceil(2);
+    let mut out = String::new();
+    for (k, e) in legend.iter().enumerate() {
+        let row = (k / 2) as f64;
+        let col = k % 2;
+        let x = 14.0 + col as f64 * 312.0;
+        let y = HEIGHT + 14.0 + row * 16.0;
+        out.push_str(&format!(
+            "<line x1=\"{x:.1}\" y1=\"{:.1}\" x2=\"{:.1}\" y2=\"{:.1}\" stroke=\"{}\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>",
+            y - 4.0,
+            x + 18.0,
+            y - 4.0,
+            escape(&e.color),
+        ));
+        out.push_str(&format!(
+            "<text x=\"{:.1}\" y=\"{y:.1}\" fill=\"{fg}\" font-size=\"12px\" font-family=\"ui-monospace, Menlo, Consolas, monospace\">{}</text>",
+            x + 24.0,
+            escape(&e.caption),
+        ));
+    }
+    (rows as f64 * 16.0 + 6.0, out)
 }
 
 /// The plot geometry of a data plot (ADR-0044), optionally inside an
@@ -511,17 +600,32 @@ pub fn data_svg(data: &DataPlot, stroke_width: f64) -> String {
 /// zoom window clips the picture the same way the live renderer does,
 /// so the export shows what the pane shows.
 pub fn data_svg_in(data: &DataPlot, window: Option<(f64, f64)>, stroke_width: f64) -> String {
+    data_svg_styled(data, window, stroke_width, SvgPalette::Dark, &[])
+}
+
+/// [`data_svg_in`] wearing the app's theme palette and carrying the
+/// pane's legend entries (ADR-0057): the export shows the same colors
+/// and the same captions the pane does.
+pub fn data_svg_styled(
+    data: &DataPlot,
+    window: Option<(f64, f64)>,
+    stroke_width: f64,
+    palette: SvgPalette,
+    legend: &[LegendEntry],
+) -> String {
     use crate::graph::DataPlotKind;
     let Some(geom) = data_geometry(data, window) else {
         return String::new();
     };
+    let (band, legend_svg) = legend_band(legend, palette);
+    let height = HEIGHT + band;
     let mut svg = String::new();
     svg.push_str(&format!(
-        "<svg viewBox=\"0 0 {WIDTH} {HEIGHT}\" width=\"{WIDTH}\" height=\"{HEIGHT}\" role=\"img\" aria-label=\"{}\" xmlns=\"http://www.w3.org/2000/svg\">",
+        "<svg viewBox=\"0 0 {WIDTH} {height}\" width=\"{WIDTH}\" height=\"{height}\" role=\"img\" aria-label=\"{}\" xmlns=\"http://www.w3.org/2000/svg\">",
         escape(&data.source)
     ));
     svg.push_str(&format!("<title>{}</title>", escape(&data.source)));
-    svg.push_str(&style_svg(stroke_width));
+    svg.push_str(&style_svg(stroke_width, palette));
     svg.push_str(&layers_svg(&geom, geom.zero_axis));
     for v in ticks(geom.x_min, geom.x_max, geom.step_x) {
         let x = geom.sx(v);
@@ -637,6 +741,7 @@ pub fn data_svg_in(data: &DataPlot, window: Option<(f64, f64)>, stroke_width: f6
             }
         }
     }
+    svg.push_str(&legend_svg);
     svg.push_str("</svg>");
     svg
 }
@@ -705,7 +810,15 @@ pub fn graph_svg(
         .enumerate()
         .map(|(i, c)| (i, c.clone()))
         .collect();
-    graph_svg_indexed(&indexed, pois, trace, markers, stroke_width)
+    graph_svg_styled(
+        &indexed,
+        pois,
+        trace,
+        markers,
+        stroke_width,
+        SvgPalette::Dark,
+        &[],
+    )
 }
 
 /// [`graph_svg`] with explicit palette indices: the web pane filters
@@ -718,19 +831,44 @@ pub fn graph_svg_indexed(
     markers: bool,
     stroke_width: f64,
 ) -> String {
+    graph_svg_styled(
+        curves,
+        pois,
+        trace,
+        markers,
+        stroke_width,
+        SvgPalette::Dark,
+        &[],
+    )
+}
+
+/// [`graph_svg_indexed`] wearing the app's theme palette and carrying
+/// the pane's legend entries (ADR-0057).
+#[allow(clippy::too_many_arguments)]
+pub fn graph_svg_styled(
+    curves: &[(usize, SampledCurve)],
+    pois: &[Poi],
+    trace: Option<TracePoint>,
+    markers: bool,
+    stroke_width: f64,
+    palette: SvgPalette,
+    legend: &[LegendEntry],
+) -> String {
     let all: Vec<SampledCurve> = curves.iter().map(|(_, c)| c.clone()).collect();
     let Some(geom) = geometry(&all) else {
         return String::new();
     };
     let y_span = geom.y_max - geom.y_min;
 
+    let (band, legend_svg) = legend_band(legend, palette);
+    let height = HEIGHT + band;
     let mut svg = String::new();
     svg.push_str(&format!(
-        "<svg viewBox=\"0 0 {WIDTH} {HEIGHT}\" width=\"{WIDTH}\" height=\"{HEIGHT}\" role=\"img\" aria-label=\"{}\" xmlns=\"http://www.w3.org/2000/svg\">",
+        "<svg viewBox=\"0 0 {WIDTH} {height}\" width=\"{WIDTH}\" height=\"{height}\" role=\"img\" aria-label=\"{}\" xmlns=\"http://www.w3.org/2000/svg\">",
         escape(&aria_label(&all))
     ));
     svg.push_str(&format!("<title>{}</title>", escape(&aria_label(&all))));
-    svg.push_str(&style_svg(stroke_width));
+    svg.push_str(&style_svg(stroke_width, palette));
     svg.push_str(&layers_svg(&geom, geom.zero_axis));
 
     for (i, c) in curves {
@@ -787,6 +925,7 @@ pub fn graph_svg_indexed(
         ));
     }
 
+    svg.push_str(&legend_svg);
     svg.push_str("</svg>");
     svg
 }
@@ -985,7 +1124,7 @@ pub fn scene_parts_indexed(
 /// be drawn.
 pub fn graph3d_svg(surfaces: &[Surface], view: &View3D, stroke_width: f64) -> Option<String> {
     let (view_box, parts) = surface_parts(surfaces, view, stroke_width)?;
-    letterboxed_3d_svg(&view_box, &parts, stroke_width)
+    letterboxed_3d_svg(&view_box, &parts, stroke_width, SvgPalette::Dark, &[])
 }
 
 /// Render a 3D curve set as a self-contained SVG document: the same
@@ -997,7 +1136,7 @@ pub fn graph3d_curve_svg(
     stroke_width: f64,
 ) -> Option<String> {
     let (view_box, parts) = curve_parts(curves, view, stroke_width)?;
-    letterboxed_3d_svg(&view_box, &parts, stroke_width)
+    letterboxed_3d_svg(&view_box, &parts, stroke_width, SvgPalette::Dark, &[])
 }
 
 /// [`graph3d_svg`] with explicit palette indices (ADR-0015 amendment):
@@ -1008,8 +1147,20 @@ pub fn graph3d_svg_indexed(
     view: &View3D,
     stroke_width: f64,
 ) -> Option<String> {
+    graph3d_svg_styled(surfaces, view, stroke_width, SvgPalette::Dark, &[])
+}
+
+/// [`graph3d_svg_indexed`] wearing the app's theme palette and
+/// carrying the pane's legend entries (ADR-0057).
+pub fn graph3d_svg_styled(
+    surfaces: &[(usize, Surface)],
+    view: &View3D,
+    stroke_width: f64,
+    palette: SvgPalette,
+    legend: &[LegendEntry],
+) -> Option<String> {
     let (view_box, parts) = scene_parts_indexed(surfaces, &[], view, stroke_width)?;
-    letterboxed_3d_svg(&view_box, &parts, stroke_width)
+    letterboxed_3d_svg(&view_box, &parts, stroke_width, palette, legend)
 }
 
 /// [`graph3d_curve_svg`] with explicit palette indices: the space-curve
@@ -1019,13 +1170,31 @@ pub fn graph3d_curve_svg_indexed(
     view: &View3D,
     stroke_width: f64,
 ) -> Option<String> {
+    graph3d_curve_svg_styled(curves, view, stroke_width, SvgPalette::Dark, &[])
+}
+
+/// [`graph3d_curve_svg_indexed`] wearing the app's theme palette and
+/// carrying the pane's legend entries (ADR-0057).
+pub fn graph3d_curve_svg_styled(
+    curves: &[(usize, crate::graph::SpaceCurve)],
+    view: &View3D,
+    stroke_width: f64,
+    palette: SvgPalette,
+    legend: &[LegendEntry],
+) -> Option<String> {
     let (view_box, parts) = scene_parts_indexed(&[], curves, view, stroke_width)?;
-    letterboxed_3d_svg(&view_box, &parts, stroke_width)
+    letterboxed_3d_svg(&view_box, &parts, stroke_width, palette, legend)
 }
 
 /// Letterbox a scene's content box into the WIDTH×HEIGHT canvas, the
 /// way preserveAspectRatio="xMidYMid meet" would.
-fn letterboxed_3d_svg(view_box: &str, parts: &str, stroke_width: f64) -> Option<String> {
+fn letterboxed_3d_svg(
+    view_box: &str,
+    parts: &str,
+    stroke_width: f64,
+    palette: SvgPalette,
+    legend: &[LegendEntry],
+) -> Option<String> {
     let mut it = view_box.split_whitespace();
     let (mut x, mut y, mut w, mut h) = (0.0f64, 0.0f64, 1.0f64, 1.0f64);
     if let (Some(a), Some(b), Some(c), Some(d)) = (it.next(), it.next(), it.next(), it.next()) {
@@ -1038,15 +1207,19 @@ fn letterboxed_3d_svg(view_box: &str, parts: &str, stroke_width: f64) -> Option<
     let scale = (WIDTH / w).min(HEIGHT / h);
     let tx = (WIDTH - w * scale) / 2.0 - x * scale;
     let ty = (HEIGHT - h * scale) / 2.0 - y * scale;
+    let (band, legend_svg) = legend_band(legend, palette);
+    let height = HEIGHT + band;
+    let (fg, _, _, _, _) = palette.colors();
     let mut svg = String::new();
     svg.push_str(&format!(
-        "<svg viewBox=\"0 0 {WIDTH} {HEIGHT}\" width=\"{WIDTH}\" height=\"{HEIGHT}\" role=\"img\" aria-label=\"3D graph\" xmlns=\"http://www.w3.org/2000/svg\">"
+        "<svg viewBox=\"0 0 {WIDTH} {height}\" width=\"{WIDTH}\" height=\"{height}\" role=\"img\" aria-label=\"3D graph\" xmlns=\"http://www.w3.org/2000/svg\">"
     ));
     svg.push_str("<title>3D graph</title>");
-    svg.push_str(&style_svg(stroke_width));
+    svg.push_str(&style_svg(stroke_width, palette));
     svg.push_str(&format!(
-        "<g stroke=\"#f5f6f7\" transform=\"translate({tx:.3} {ty:.3}) scale({scale:.5})\">{parts}</g>"
+        "<g stroke=\"{fg}\" transform=\"translate({tx:.3} {ty:.3}) scale({scale:.5})\">{parts}</g>"
     ));
+    svg.push_str(&legend_svg);
     svg.push_str("</svg>");
     Some(svg)
 }
@@ -1206,6 +1379,18 @@ pub fn solar3d_svg(
     view: &View3D,
     stroke_width: f64,
 ) -> Option<String> {
+    solar3d_styled(scene, view, stroke_width, SvgPalette::Dark, &[])
+}
+
+/// [`solar3d_svg`] wearing the app's theme palette and carrying the
+/// pane's legend entries (ADR-0057).
+pub fn solar3d_styled(
+    scene: &crate::astro::SolarScene,
+    view: &View3D,
+    stroke_width: f64,
+    palette: SvgPalette,
+    legend: &[LegendEntry],
+) -> Option<String> {
     let (view_box, parts) = solar_parts(scene, view, stroke_width)?;
     let mut it = view_box.split_whitespace();
     let (mut x, mut y, mut w, mut h) = (0.0f64, 0.0f64, 1.0f64, 1.0f64);
@@ -1222,16 +1407,19 @@ pub fn solar3d_svg(
         .iter()
         .map(|d| crate::astro::body_name(d.body))
         .collect();
+    let (band, legend_svg) = legend_band(legend, palette);
+    let height = HEIGHT + band;
     let mut svg = String::new();
     svg.push_str(&format!(
-        "<svg viewBox=\"0 0 {WIDTH} {HEIGHT}\" width=\"{WIDTH}\" height=\"{HEIGHT}\" role=\"img\" aria-label=\"Solar system: {}\" xmlns=\"http://www.w3.org/2000/svg\">",
+        "<svg viewBox=\"0 0 {WIDTH} {height}\" width=\"{WIDTH}\" height=\"{height}\" role=\"img\" aria-label=\"Solar system: {}\" xmlns=\"http://www.w3.org/2000/svg\">",
         names.join(", ")
     ));
     svg.push_str("<title>Solar system</title>");
-    svg.push_str(&style_svg(stroke_width));
+    svg.push_str(&style_svg(stroke_width, palette));
     svg.push_str(&format!(
         "<g transform=\"translate({tx:.3} {ty:.3}) scale({scale:.5})\">{parts}</g>"
     ));
+    svg.push_str(&legend_svg);
     svg.push_str("</svg>");
     Some(svg)
 }

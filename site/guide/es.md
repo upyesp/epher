@@ -339,1203 +339,7 @@ función (capítulo 4.4).
 > `const tax = 0.2`, `tax = ...` siempre es un error. Elige otro nombre o
 > empieza una sesión nueva.
 
-### 1.7 Decisiones con if
-
-`if` elige entre dos valores:
-
-```epher
-if 3 > 2 then 10 else 20
-```
-
-```text
-10
-```
-
-La forma es siempre `if condición then valor_si_verdadero
-else valor_si_falso`. La parte `else` es obligatoria.
-
-Un ejemplo más útil con una variable:
-
-```epher
-price = 100
-if price > 50 then 2 else 1
-```
-
-```text
-100
-2
-```
-
-> Un `if` también puede comparar cadenas (sección 1.29): ambas ramas solo
-> necesitan ser valores del mismo tipo: números con números, cadenas con
-> cadenas.
-
-### 1.8 Bucles con while
-
-`while` repite una instrucción mientras se cumpla una condición:
-
-```epher
-x = 0; while x < 5 do x = x + 1; x
-```
-
-```text
-0
-5
-```
-
-Lee ese script así: *empieza x en 0; mientras x sea menor que 5, suma 1 a x;
-luego muestra x.* El resultado es 5 porque el bucle se ejecutó cinco veces.
-
-> **Red de seguridad:** epher detiene cualquier bucle después de 100 000
-> pasos y muestra `error: step limit exceeded`. Eso te protege de bucles que
-> nunca terminarían. Si lo ves, tu condición probablemente nunca se volvió
-> falsa.
-
-### 1.9 Tus propias funciones con def
-
-Una función es un cálculo con nombre y parámetros:
-
-```epher
-def f(x) = x ^ 2
-```
-
-Luego úsala:
-
-```epher
-f(7)
-```
-
-```text
-49
-```
-
-Las funciones pueden tener varios parámetros:
-
-```epher
-def area(w, h) = w * h
-area(3, 4)
-```
-
-```text
-12
-```
-
-También puedes definir una función sin parámetros:
-
-```epher
-def answer() = 42
-answer()
-```
-
-```text
-42
-```
-
-### 1.10 Recursión: una función que se llama a sí misma
-
-El ejemplo más famoso son los números de Fibonacci:
-
-```epher
-def fib(n) = if n <= 1 then n else fib(n - 1) + fib(n - 2)
-```
-
-```epher
-fib(10)
-```
-
-```text
-55
-```
-
-`fib(10)` es el décimo número de Fibonacci. La función se llama a sí misma
-con argumentos más pequeños hasta llegar a `n <= 1`. Esto funciona porque la
-forma `if ... then ... else ...` solo calcula la rama que necesita.
-
-> El cuerpo de una función es una sola expresión, una línea. Combina
-> varios cálculos con `;` en un script en su lugar (sección siguiente).
-
-### 1.11 Scripts: varias instrucciones a la vez
-
-Un *script* es varias instrucciones unidas con `;` o con saltos de
-línea, que significan exactamente lo mismo, ejecutadas una tras otra:
-
-```epher
-x = 10; y = x + 5; x + y
-```
-
-```text
-10
-15
-25
-```
-
-Los scripts son la forma de construir pequeños programas: prepara
-variables, haz bucles y muestra un resultado final.
-
-Los saltos de línea y `;` son el mismo separador, y puedes mezclarlos
-libremente. El botón **Copiar** situado encima de cada ejemplo de varias
-líneas copia el script completo, y puedes pegarlo directamente en epher: el
-campo de entrada de la aplicación web y de la aplicación de escritorio, la
-interfaz de terminal y `epher repl` ejecutan todas las líneas en orden,
-exactamente como si las hubieras escrito una a una. Unir varias
-instrucciones con `;` en una línea funciona en todas partes también,
-incluida la línea de comandos de un solo uso (sección 4.1).
-
-
-Los scripts pueden llevar **comentarios**: notas para ti que epher se salta, escritos al estilo PHP. `//` o `#` comentan hasta el final de la línea, y `/* ... */` comenta un bloque. Una nota sobre una instrucción va al final de esta, tras `//`, nunca dentro de la instrucción:
-
-```epher
-// a small script with notes
-r = 3 # radius in metres
-area = pi * r ^ 2 // pi r squared
-area
-```
-
-A block comment may also span several lines. A script file or a pasted
-program arrives as one whole program, so its block comments may span
-lines:
-
-```epher
-/* the area of a circle
-   of radius 3 */
-pi * 3 ^ 2
-```
-
-Input that arrives line by line - typing into the REPL or the terminal
-UI, or a piped script - takes one line at a time, so there a block
-comment opens and closes on the same line.
-### 1.12 Resultados exactos: frac, dec y big
-
-Normalmente epher calcula con números decimales como una
-calculadora de bolsillo, y los resultados se redondean a doce cifras
-significativas como los muestra una calculadora: `0.1 + 0.2` es
-`0.3`, nunca `0.30000000000000004`. Las fracciones exactas están
-activadas por defecto — un resultado con una buena fracción de
-denominador pequeño cuyo decimal se repite se muestra como tal.
-`1 / 3` se muestra como `1/3` sin pedirlo:
-
-```epher
-1 / 3
-```
-
-```text
-1/3
-```
-
-Con **fracciones exactas desactivadas** en los ajustes de resultados
-(capítulo 2.2), la misma división muestra `0.333333333333`.
-**frac(n, d)** crea una fracción exacta que se mantiene exacta a través
-de los cálculos:
-
-```epher
-frac(1, 3)
-```
-
-```text
-1/3
-```
-
-Las fracciones se mantienen exactas a través de los cálculos:
-
-```epher
-frac(1, 3) * 3
-```
-
-```text
-1
-```
-
-**dec(x)** crea un decimal exacto. `0.1 + 0.2` muestra `0.3` en ambos
-casos — la diferencia es aritmética:
-
-```epher
-0.1 * 3 - 0.3
-dec(0.1) * 3 - dec(0.3)
-```
-
-```text
-0.0000000000000000555111512313
-0.0
-```
-
-El resultado flotante lleva el pequeño error de redondeo que toda
-computadora comete con los decimales; `dec()` mantiene la aritmética
-exacta.
-
-**big(x)** crea un número entero exacto, para valores demasiado grandes para
-una calculadora de bolsillo:
-
-```epher
-big(10 ^ 20)
-```
-
-```text
-100000000000000000000
-```
-
-**Bases numéricas** escriben los enteros como los escribe la comunidad
-matemática: `0b` para binario, `0o` para octal, `0x` para hexadecimal
-(el prefijo cambia la escritura, nunca el valor):
-
-```epher
-0b1010 + 0xFF
-```
-
-```text
-265
-```
-
-Para volver, **bin(x)**, **oct(x)** y **hex(x)** devuelven la escritura
-con prefijo de un número entero, lista para usarse de nuevo:
-
-```epher
-hex(255)
-bin(10)
-```
-
-```text
-0xff
-```
-0b1010
-```
-
-**exact(x)** reconstruye la fracción exacta detrás de un resultado decimal: cualquier valor con una buena fracción de denominador pequeño se muestra así. Es la misma reconstrucción que las aplicaciones usan por defecto, por eso `1 / 3` normalmente se muestra como `1/3`:
-
-```epher
-exact(0.3333333333333333)
-exact(0.30000000000000004)
-```
-
-```text
-1/3
-3/10
-```
-
-Un valor irracional como `pi` no tiene una buena fracción, así que `exact()` lo deja igual.
-
-Los verbos de formato escriben un número en otra notación. **scientific(x)** usa una cifra antes del exponente, **engineering(x)** exponentes en pasos de tres (la mantisa queda entre 1 y 1000), y **grouped(x)** inserta espacios finos como separadores de miles:
-
-```epher
-scientific(12345)
-engineering(12345)
-engineering(0.5)
-grouped(1234567.89)
-```
-
-```text
-1.2345e4
-12.345e3
-500e-3
-1 234 567.89
-```
-
-La aplicación web y la TUI también ofrecen estas opciones de visualización (capítulos 2.2 y 5.2): fracciones exactas activadas o desactivadas, notación Auto/científica/de ingeniería y separadores de miles. Los ajustes solo cambian cómo se muestran los resultados; los valores siguen siendo números decimales normales.
-
-### ### 1.13 Funciones integradas
-
-epher tiene las funciones de una calculadora científica, agrupadas por familia.
-
-La trigonometría trabaja en radianes. Usa `deg` y `rad` para convertir:
-
-| Función | Significado | Ejemplo | Resultado |
-|---|---|---|---|
-| `sin(x)`, `cos(x)`, `tan(x)` | funciones trigonométricas | `sin(pi / 2)` | `1` |
-| `asin(x)`, `acos(x)`, `atan(x)` | trigonometría inversa | `atan(1)` | `0.7853981633974483` |
-| `atan2(y, x)` | ángulo del punto (x, y) | `atan2(1, 1)` | `0.7853981633974483` |
-| `deg(x)` | radianes → grados | `deg(pi)` | `180` |
-| `rad(x)` | grados → radianes | `rad(180)` | `3.14159265359` |
-| `sinh(x)`, `cosh(x)`, `tanh(x)` | funciones hiperbólicas | `sinh(1)` | `1.1752011936438014` |
-| `asinh(x)`, `acosh(x)`, `atanh(x)` | hiperbólicas inversas | `acosh(1)` | `0` |
-
-Potencias, raíces y logaritmos (en una calculadora `log` es base 10):
-
-| Función | Significado | Ejemplo | Resultado |
-|---|---|---|---|
-| `sqrt(x)` | raíz cuadrada | `sqrt(16)` | `4` |
-| `cbrt(x)` | raíz cúbica | `cbrt(-27)` | `-3` |
-| `root(n, x)` | raíz n-ésima | `root(3, 8)` | `2` |
-| `exp(x)` | e elevado a x | `exp(1)` | `2.71828182846` |
-| `ln(x)` | logaritmo natural | `ln(e)` | `1` |
-| `log(x)` | logaritmo base 10 | `log(100)` | `2` |
-| `log2(x)` | logaritmo base 2 | `log2(8)` | `3` |
-| `logb(b, x)` | logaritmo en base b | `logb(2, 8)` | `3` |
-| `hypot(a, b)` | hipotenusa | `hypot(3, 4)` | `5` |
-| `5!` (también `fact(n)`) | factorial | `5!` | `120` |
-
-Redondeo, signos y números enteros:
-
-| Función | Significado | Ejemplo | Resultado |
-|---|---|---|---|
-| `abs(x)` | valor absoluto | `abs(-3)` | `3` |
-| `floor(x)` / `ceil(x)` | redondear abajo / arriba | `floor(2.7)` | `2` |
-| `round(x)` | el más cercano, medio siempre lejos de cero | `round(2.5)` | `3` |
-| `trunc(x)` | quitar la parte decimal | `trunc(-2.9)` | `-2` |
-| `sign(x)` | -1, 0 o 1 | `sign(-5)` | `-1` |
-| `ncr(n, r)` | combinaciones | `ncr(52, 5)` | `2598960` |
-| `npr(n, r)` | permutaciones | `npr(5, 2)` | `20` |
-| `gcd(a, b)` / `lcm(a, b)` | divisores y múltiplos comunes | `gcd(12, 18)` | `6` |
-| `mod(a, b)` | resto | `mod(7, 3)` | `1` |
-
-Los primos y los divisores trabajan con números enteros:
-
-| Función | Significado | Ejemplo | Resultado |
-|---|---|---|---|
-| `isprime(n)` | verdadero cuando n es primo | `isprime(97)` | `true` |
-| `nextprime(n)` / `prevprime(n)` | los primos más cercanos | `nextprime(10)` | `11` |
-| `factors(n)` | factorización en primos | `factors(360)` |
-| Literal de lista | `{…}` | `{1, 2, 3}` |
-| Elemento de lista | `list[i]` (base 1) | `{5, 6}[2]` |
-| Estadística de lista | `mean(lista)`, `median(lista)`, … | `stdev(d)` |
-| Forma de lista | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
-| Regresión lineal | `linreg(xs, ys)` | `linreg(x, y)` |
-| Familia de regresiones | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
-| Familia normal | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
-| Familia t | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
-| Familia chi-cuadrado | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
-| Familias discretas | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
-| Pruebas e intervalos | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
-| ANOVA y t emparejada | `anova(listas...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
-| Gráficos de datos | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
-| Números aleatorios | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
-| Extracciones normales | `randn(mu, sigma)` | `randn(0, 1)` |
-| Explorador de constantes | Ayuda → Constantes: todas las constantes, agrupadas | Ayuda → Constantes |
-| Cantidad | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
-| Convertir | `expr in unidad` o `expr -> unidad` | `72 km/hr in m/s` |
-| Prefijos | `k M G T m µ n p` escalan cualquier unidad | `5 km`, `3 MPa`, `1 GHz` |
-| Y, O bit a bit | `a & b`, `a \| b` | `0xFF & 0x0F` |
-| O exclusivo bit a bit | `a xor b` | `5 xor 3` |
-| No bit a bit | `~a` | `~0` |
-| Desplazamientos | `a << n`, `a >> n` | `1 << 8` |
-| Tamaño de palabra | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
-| Relación implícita | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
-| Literal de matriz | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
-| Funciones matriciales | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
-| Solucionador TVM | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
-| VAN y TIR | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
-| Amortización | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
-| Interés | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` | `2^3 * 3^2 * 5` |
-| `totient(n)` | phi de Euler | `totient(12)` | `4` |
-| `ndivisors(n)` | cuántos divisores tiene | `ndivisors(360)` | `24` |
-| `modpow(b, e, m)` | b elevado a e, módulo m, exacto | `modpow(2, 10, 1000)` | `24` |
-
-
-La estadística acepta cualquier número de argumentos:
-
-| Función | Significado | Ejemplo | Resultado |
-|---|---|---|---|
-| `sum(...)` / `product(...)` | totales | `sum(1, 2, 3)` | `6` |
-| `mean(...)` | promedio | `mean(1, 2, 3)` | `2` |
-| `median(...)` | valor central | `median(1, 2, 3, 4)` | `2.5` |
-| `min(...)` / `max(...)` | el menor / el mayor | `max(4, 1, 3)` | `4` |
-| `variance(...)` / `stdev(...)` | dispersión de los valores | `stdev(2, 4)` | `1` |
-
-Las capas exactas de la sección 1.12 se mantienen:
-
-| Función | Significado | Ejemplo | Resultado |
-|---|---|---|---|
-| `frac(n, d)` | fracción exacta | `frac(1, 3)` | `1/3` |
-| `dec(x)` | decimal exacto | `dec(0.1)` | `0.1` |
-| `big(x)` | número entero exacto | `big(10 ^ 20)` | `100000000000000000000` |
-| Binario, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
-| Escritura en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
-| Primos | `isprime(n)`, `factors(n)`, … | `factors(360)` |
-| `bin(x)` / `oct(x)` / `hex(x)` | escritura con prefijo en base 2 / 8 / 16 | `hex(255)` | `0xff` |
-
-Se combinan como todo lo demás:
-
-```epher
-min(sqrt(16), 5)
-```
-
-```text
-4
-```
-
-Las constantes físicas usan unidades del SI, como las astronómicas de la sección 1.16:
-
-| Nombre | Significado | Valor |
-|---|---|---|
-| `G` | constante gravitacional de Newton | 6.6743e-11 |
-| `gamma` | constante de Euler-Mascheroni | 0.577215664902 |
-| `q_e` | carga elemental | 1.602176634e-19 |
-| `ev` | electronvoltio, en julios | 1.602176634e-19 |
-| `eps_0` | permitividad del vacío | 8.8541878128e-12 |
-| `mu_0` | permeabilidad del vacío | 1.25663706212e-6 |
-| `z_0` | impedancia del vacío | 376.730313668 |
-| `m_e` | masa del electrón | 9.1093837139e-31 |
-| `m_p` | masa del protón | 1.67262192595e-27 |
-| `m_n` | masa del neutrón | 1.67492750056e-27 |
-| `m_u` | unidad de masa atómica | 1.66053906892e-27 |
-| `a_0` | radio de Bohr | 5.29177210544e-11 |
-| `alpha` | constante de estructura fina | 0.0072973525643 |
-| `r_inf` | constante de Rydberg | 10973731.568160 |
-| `mu_b` | magnetrón de Bohr | 9.2740100783e-24 |
-| `n_a` | constante de Avogadro | 6.02214076e23 |
-| `faraday` | constante de Faraday, C/mol | 96485.33212 |
-| `r_gas` | constante molar de los gases | 8.31446261815 |
-| `atm` | atmósfera estándar, en pascales | 101325 |
-| `wien` | constante de longitud de onda de Wien | 0.002897771955 |
-| `phi_0` | cuanto de flujo magnético | 2.067833848e-15 |
-| `m_P` | Planck-Masse | 2.176434e-8 |
-| `l_P` | Planck-Länge | 1.616255e-35 |
-| `t_P` | Planck-Zeit | 5.391247e-44 |
-| `r_e` | klassischer Elektronenradius | 2.8179403205e-15 |
-| `lambda_c` | Compton-Wellenlänge | 2.42631023867e-12 |
-| `mu_n` | Kernmagneton | 5.050783699e-27 |
-
-
-### 1.14 Leer los errores
-
-Cuando algo sale mal, epher te lo dice en lugar de adivinar:
-
-```epher
-1 / 0
-```
-
-```text
-error: division by zero
-```
-
-```epher
-sqrt(-4)
-```
-
-```text
-2i
-```
-
-```epher
-unknown_name
-```
-
-```text
-error: unknown name: unknown_name
-```
-
-```epher
-foo(1)
-```
-
-```text
-error: unknown name: foo
-```
-
-El último ejemplo es importante: epher te dice exactamente qué nombre no
-conoce, para que puedas arreglar tu expresión.
-
-### 1.15 Referencia rápida
-
-| Qué | Sintaxis | Ejemplo |
-|---|---|---|
-| Sumar, restar, multiplicar, dividir | `+ - * /` | `7 / 2` |
-| Potencia | `^` (de derecha a izquierda) | `2 ^ 10` |
-| Factorial | `!` (postfijo) | `5!` |
-| Porcentaje | `%` (posfijo) | `200 * (1 + 10%)` |
-| Paréntesis | `( )` | `(2 + 3) * 4` |
-| Constantes | `pi`, `e`, `tau`, `phi` | `2 * pi` |
-| Notación científica | `2.5e-3` | `6.02e23` |
-| Comparar | `> < >= <= == !=` | `3 >= 2` |
-| Lógica | `and or not` | `a > 1 and a < 10` |
-| Variable | `name = value` | `x = 5` |
-| Constante | `const name = value` | `const tax = 0.2` |
-| Decisión | `if c then a else b` | `if x > 0 then 1 else -1` |
-| Bucle | `while c do statement` | `while x < 5 do x = x + 1` |
-| Bucle for | `for i in a to b step s do sentencia` | `for i in 1 to 5 do i^2` |
-| Función | `def name(params) = expr` | `def f(x) = x ^ 2` |
-| Cadenas | `"..."`, `+` une, `s[i]`, `==` | `"a" + "b"` |
-| Print | `print(a, b, ...)` | `print("x =", 42)` |
-| Script | instrucciones unidas con `;` o saltos de línea | `x = 1; x + 1` |
-| Fracción exacta | `frac(n, d)` | `frac(1, 3)` |
-| Decimal exacto | `dec(x)` | `dec(0.1) + dec(0.2)` |
-| Número entero exacto | `big(x)` | `big(10 ^ 20)` |
-| Reconstruir una fracción | `exact(x)` | `exact(0.3333333333333333)` |
-| Científica, ingeniería, agrupada | `scientific(x)` `engineering(x)` `grouped(x)` | `engineering(12345)` |
-| Unidad imaginaria | `i`, o un literal `4i` | `sqrt(-1)` |
-| Partes de un complejo | `re(z)` `im(z)` `arg(z)` `conj(z)` `abs(z)` | `re(3 + 4i)` |
-| Resolver una ecuación | `solve lhs == rhs` | `solve x^2 == 9` |
-| Derivada numérica | `derivative(expr, x)` | `derivative(x^2, 3)` |
-| Integral definida | `integral(expr, a, b)` | `integral(x^2, 0, 3)` |
-| Binario, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
-| Escritura en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
-
-### 1.16 Astronomía y el sistema solar
-
-epher habla astronomía: sufijos de unidad, constantes físicas, funciones de
-calendario y tiempo, y una efeméride en vivo para el Sol, la Luna, los
-planetas y Plutón. Todo funciona sin conexión.
-
-**Unidades que hablan astronomía.** Escribe un número seguido de un sufijo
-de unidad y epher lo convierte a unidades SI al instante:
-
-| Sufijo | Unidad | Convierte a |
-|---|---|---|
-| `AU` o `au` | unidad astronómica | metros |
-| `pc` | pársec | metros |
-| `ly` | año luz | metros |
-| `deg` | grado | radianes |
-| `arcmin`, `arcsec` | minuto y segundo de arco | radianes |
-| `min`, `hr`, `d`, `yr` | minuto, hora, día, año juliano | segundos |
-| `Jy` | jansky | W m-2 Hz-1 |
-
-```epher
-3.2 AU in m
-```
-
-```text
-478713186240 m
-```
-
-```epher
-sin(30 deg)
-```
-
-```text
-0.5
-```
-
-Los sufijos son parte de la gramática: ninguna constante propia puede
-cambiar lo que significa `3.2 AU`, y `h` sigue siendo la constante de
-Planck; las horas se escriben `hr`. Las funciones devuelven conteos en
-unidades naturales; un sufijo convierte un conteo a SI, así que
-`mag2jy(20)` es un conteo en janskys y `mag2jy(20) Jy` es el mismo flujo
-en vatios por metro cuadrado y hercio.
-
-**Constantes astronómicas.** `au`, `pc`, `ly`, `c`, `g`, `h`, `h_bar`,
-`k_b`, `sigma_sb`, `m_sun`, `r_sun`, `l_sun`, `m_earth`, `r_earth`, `m_moon`, `r_moon` funcionan
-como `pi`, y puedes ensombrecerlas con tus propias constantes.
-
-**Fechas y tiempo.** `jd(y, m, d [, hr])` y `mjd(...)` convierten una fecha
-de calendario en fecha juliana; `now()` lee el instante actual:
-
-```epher
-jd(2000, 1, 1, 12)
-```
-
-```text
-2451545
-```
-
-`delta_t(jd)` es la corrección TT - UT1, y `lst(jd, lon)` es el tiempo
-sideral local en horas para una longitud este en grados.
-
-**Horas, minutos y segundos.** `hms2deg(h, m, s)` convierte ascensión recta
-a grados, `dms2deg(d, m, s)` un ángulo sexagesimal, y `deg2hms(x)` /
-`deg2dms(x)` escriben un ángulo como texto:
-
-```epher
-deg2hms(90)
-```
-
-```text
-6h 0m 0s
-```
-
-**El cielo, cuantificado.** Da a cada función un número de cuerpo:
-Mercurio 1, Venus 2, Marte 4, Júpiter 5, Saturno 6, Urano 7, Neptuno 8,
-Plutón 9, Sol 10, Luna 11 (la Tierra es 3, la observadora, nunca un
-objetivo).
-
-| Función | Significado |
-|---|---|
-| `ra(b, jd)`, `decl(b, jd)` | ascensión recta y declinación geocéntricas (grados) |
-| `dist(b, jd)` | distancia en UA |
-| `alt(b, jd, lat, lon)`, `az(b, jd, lat, lon)` | altura y acimut topocéntricos (grados, verdaderos) |
-| `rise(b, jd, lat, lon)`, `set(...)`, `transit(...)` | eventos del día solar local, como fechas julianas |
-| `mag(b, jd)` | magnitud aparente |
-| `phase(b, jd)`, `illum(b, jd)` | ángulo de fase (grados) y fracción iluminada |
-| `diam(b, jd)` | diámetro angular (grados) |
-
-```epher
-decl(10, jd(2000, 6, 21, 1.8))
-```
-
-```text
-23.437882351
-```
-
-Latitudes y longitudes son grados, este positivo. Las posiciones son
-geocéntricas salvo que se dé un observador. Plutón usa una órbita
-aproximada honesta a un minuto de arco, muy por debajo de la precisión de
-los demás cuerpos; los eclipses y las búsquedas de conjunciones no están
-incluidos.
-
-**Óptica y luz.** `kepler(M, e)` resuelve la ecuación de Kepler,
-`airmass(alt)` es la masa de aire sec(z), `dawes(d)` es el poder de
-resolución de una apertura de d milímetros en segundos de arco, y
-`dist_mod(mu)` convierte un módulo de distancia en pársecs.
-
-**Estaciones.** `march_equinox(year)`, `june_solstice(year)`,
-`september_equinox(year)` y `december_solstice(year)` devuelven la fecha
-juliana de cada cambio de estación:
-
-```epher
-march_equinox(2000)
-```
-
-```text
-1012520636/413
-```
-
-**El sistema solar en 3D.** El comando `solar3d` dibuja todo el sistema:
-cada órbita como una curva, cada cuerpo como un punto etiquetado, con una
-estela que muestra dónde estaba:
-
-```epher
-solar3d jd(2020, 7, 1)
-```
-
-Da el tiempo como una constante y pulsa el botón de reproducir para ver
-moverse los planetas: `const t = now(); solar3d t`. Arrastra o usa las
-flechas para orbitar, `clear` para vaciar y `solar3d save file.svg` para
-exportar.
-
-La efeméride la calcula el crate solar-ephemeris
-(github.com/Protonmatter/sol), validado contra JPL Horizons; gracias a su
-autor. La precisión es de clase arcsecond para el Sol, la Luna y los
-planetas a lo largo de unos 5000 años alrededor del presente.
-
-### 1.17 Números complejos
-
-epher calcula con números complejos automáticamente. La unidad imaginaria es **i**, igual que `pi`:
-
-```epher
-i ^ 2
-sqrt(-1)
-```
-
-```text
--1
-i
-```
-
-Escribe un número complejo con el sufijo `i`, sin signo de multiplicación: `3 + 4i` es un literal, `2.5i` funciona, y también los literales con base (`0xFFi`). La aritmética habitual se extiende: sumar, restar, multiplicar, dividir y potencias funcionan, e `i` sigue la precedencia normal (`i ^ 2` se agrupa como cualquier potencia).
-
-Las funciones reales también se extienden. Con un argumento complejo calculan en el plano complejo; con un argumento real fuera de su dominio real devuelven el resultado complejo principal en lugar de un error:
-
-```epher
-ln(-1)
-asin(2)
-exp(i * pi)
-```
-
-```text
-3.14159265359i
-1.57079632679-1.31695789692i
--1+0.000000000000000122464679915i
-```
-
-(`exp(i * pi)` es exactamente `-1`; los últimos dígitos son el ruido de `sin(pi)` en la aritmética de la máquina.)
-
-Cuatro funciones leen las partes de un número complejo, y `abs()` es su módulo:
-
-```epher
-re(3 + 4i)
-im(3 + 4i)
-arg(-1)
-conj(3 - 4i)
-abs(3 + 4i)
-```
-
-```text
-3
-4
-3.14159265359
-3+4i
-5
-```
-
-Las funciones de enteros (`fact`, `gcd`, `floor`, `isprime`, ...) rechazan argumentos complejos con un error de tipo.
-
-### 1.18 Resolver ecuaciones
-
-**solve** encuentra las raíces de una ecuación con una variable. La ecuación usa `==`:
-
-```epher
-solve x^2 == 5*x + 6
-```
-
-```text
-x = -1, x = 6
-```
-
-Las ecuaciones polinómicas (construidas con `+ - * ^` y constantes) dan todas las raíces, reales y complejas:
-
-```epher
-solve x^2 == -1
-solve x^2 + 2*x + 5 == 0
-solve (x - 1)^2 == 0
-```
-
-```text
-x = -i, x = i
-x = -1-2i, x = -1+2i
-x = 1
-```
-
-La variable a resolver es `x` si aparece, si no la única otra variable. Las constantes y variables ligadas actúan como parámetros:
-
-```epher
-const k = 3
-solve k*x == 12
-```
-
-```text
-3
-x = 4
-```
-
-Cualquier otra ecuación se explora numéricamente en -100..100: las raíces se encierran por cambios de signo, así que `solve sin(x) == 0.5` lista cada raíz del intervalo. Dos límites honestos: una raíz donde la función solo toca cero (como `x^2 == 0` por el camino numérico) puede perderse, y las ecuaciones con varias variables sin ligar son un error.
-
-### 1.19 Cálculo: derivada e integral
-
-**derivative(expr, p)** es la derivada numérica de `expr` en `p`. El primer argumento sigue siendo una expresión, y su variable libre es la que se deriva:
-
-```epher
-derivative(x^2, 3)
-derivative(sin(t), 0)
-```
-
-```text
-6
-1
-```
-
-Como el argumento sigue siendo una expresión, la derivada se puede graficar: `graph derivative(x^3 - x, x)` dibuja la curva de pendientes.
-
-**integral(expr, a, b)** es la integral definida de `a` a `b`, calculada con cuadratura adaptativa de Simpson:
-
-```epher
-integral(x^2, 0, 3)
-integral(sin(x), 0, pi)
-```
-
-```text
-9
-2
-```
-
-`integral(x^2, 3, 0)` es `-9` (la integral con signo), y un límite superior graficable funciona: `graph integral(x^2, 0, x)`.
-
-Ambos son numéricos; las expresiones deben tomar valores reales en el intervalo, y una expresión con varias variables es un error.
-
-### 1.20 Datos: listas, estadística y regresión
-
-Una lista es una columna de números entre llaves: `{1, 2, 3}`. Los
-elementos son expresiones, la lista vacía `{}` está permitida, y una
-lista se asigna a un nombre como cualquier valor:
-
-```epher
-d = {12, 15, 14, 16, 13, 15, 14, 17}
-d[2]
-len(d)
-```
-
-`list[i]` es el elemento i-ésimo, con base 1 como en una calculadora;
-un índice fuera de la lista es un error. El corchete une más fuerte
-que `^`, así que `d[2]^2` es `(d[2])^2`.
-
-La aritmética sobre una lista es elemento a elemento, y un número solo
-se aplica a cada elemento:
-
-```epher
-{1, 2, 3} * 2
-{1, 2, 3} + 10
-```
-
-Dos listas deben tener la misma longitud para `+ - * / ^`. `==` y `!=`
-comparan listas completas; las comparaciones de orden las rechazan.
-
-Las funciones estadísticas aceptan una lista como único argumento (la
-forma con varios argumentos se mantiene — `mean(1, 2, 3)` sigue
-funcionando): `sum product mean median mode variance stdev min max
-range`. Las nuevas funciones de forma son `len(lista)`, `sort(lista)`
-(copia ascendente), `mode(lista)` (valor más frecuente, el menor en
-caso de empate), `range(lista)` (mayor menos menor valor) y
-`quartile(lista, k)` para k en 1..3 (cuartiles al estilo TI, mediana
-de las mitades):
-
-```epher
-mean(d)
-median(d)
-quartile(d, 1)
-```
-
-**linreg(xs, ys)** ajusta la recta de mínimos cuadrados a dos listas
-de la misma longitud y la informa con el coeficiente de correlación r:
-
-```epher
-linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})
-```
-
-La recta ajustada es una presentación, como las raíces de solve; la
-imagen del ajuste vive en el gráfico de dispersión (sección 1.22).
-
-El resto de la familia de regresiones ajusta los modelos a los que crecen las calculadoras: **quadreg** ajusta `y = a*x^2 + b*x + c` (al menos 3 puntos), **expreg** ajusta `y = a*e^(b*x)` (y > 0), **powreg** ajusta `y = a*x^b` (x e y > 0), y **logreg** ajusta `y = a + b*ln(x)` (x > 0). Cada uno informa el modelo con su r:
-
-```epher
-quadreg({1, 2, 3, 4}, {1, 4.1, 8.9, 16.2})
-expreg({1, 2, 3}, {2.7, 7.4, 20.1})
-```
-
-```text
-y = 1.05*x^2 + -0.21*x + 0.2 (r = 0.9999)
-y = 0.9911*e^(1.0037*x) (r = 1)
-```
-
-El r de un ajuste transformado es la correlación del par linealizado: el mismo número que informan TI y NumWorks. Cada modelo también puede dibujarse sobre un diagrama de dispersión: `graph scatter(xs, ys, quadreg)` (o expreg, powreg, logreg) traza los puntos con la curva de ese modelo.
-
-### 1.21 Distribuciones y pruebas de hipótesis
-
-Las funciones de probabilidad cubren la normal estándar, la t de
-Student, la chi-cuadrado, la binomial y la de Poisson. La familia
-normal admite uno o tres argumentos — un solo argumento es la normal
-estándar:
-
-```epher
-normcdf(1.96)
-invnorm(0.975)
-normcdf(12, 10, 2)
-```
-
-`normpdf(x[, mu, sigma])`, `normcdf(x[, mu, sigma])`, `invnorm(p[,
-mu, sigma])`; `tpdf(x, df)`, `tcdf(x, df)`, `invt(p, df)`;
-`chi2pdf(x, df)`, `chi2cdf(x, df)`, `invchi2(p, df)`;
-`binompdf(k, n, p)`, `binomcdf(k, n, p)`; `poissonpdf(k, lambda)`,
-`poissoncdf(k, lambda)`. Las funciones `inv*` responden a la pregunta
-inversa: `invt(0.975, 10)` es el valor de t bajo el cual está el
-97.5 % de la masa.
-
-Las pruebas toman una lista de datos e informan el estadístico y el
-valor p bilateral como texto de presentación; los intervalos informan
-`(bajo, alto)` al nivel que usted nombre:
-
-```epher
-d = {12, 15, 14, 16, 13, 15, 14, 17}
-ttest(d, 14)
-tinterval(d, 0.95)
-ztest(d, 14, 1.5)
-chisq_gof({20, 30, 25, 25}, {25, 25, 25, 25})
-```
-
-```text
-{12, 15, 14, 16, 13, 15, 14, 17}
-t = 0.8819, p = 0.4071
-(13.1594, 15.8406)
-z = 0.9428, p = 0.3458
-chi2 = 2, p = 0.5724
-```
-
-`ttest(datos, mu0)` y `tinterval(datos, nivel)` usan la desviación
-estándar muestral (n−1); `ztest(datos, mu0, sigma)` y
-`zinterval(datos, sigma, nivel)` necesitan el sigma conocido.
-`chisq_gof(observados, esperados)` es la prueba de bondad de ajuste
-con k−1 grados de libertad. Los resultados son textos de presentación:
-legibles y copiables, pero la aritmética no puede tocarlos.
-
-Dos pruebas más comparten la misma forma. **anova(lista1, lista2, …)** es el análisis de varianza de una vía sobre dos o más grupos (las longitudes desiguales están bien) e informa F con su valor p:
-
-```epher
-anova({1, 2, 3}, {4, 5, 6}, {7, 8, 9})
-```
-
-```text
-F = 27, p = 0.001
-```
-
-**ttestpaired(a, b)** es la prueba t emparejada: toma las diferencias de dos listas de la misma longitud y las contrasta contra 0, la prueba de "antes y después" del aula:
-
-```epher
-ttestpaired({80, 85, 90}, {82, 84, 91})
-```
-
-```text
-t = -0.7559, p = 0.5286
-```
-
-### 1.22 Gráficos de datos
-
-La familia de gráficos también acepta listas: un diagrama de
-dispersión, un histograma y un diagrama de caja. Un gráfico de datos
-ocupa el panel solo, como un sistema solar — el comando más reciente
-gana, y `graph clear` lo vacía.
-
-```epher
-x = {1, 2, 3, 4, 5}
-y = {2.1, 4.2, 5.8, 8.1, 9.9}
-graph scatter(x, y)
-```
-
-```epher
-graph histogram({1, 2, 2, 3, 3, 3, 4, 5})
-```
-
-```epher
-graph boxplot({1, 2, 2, 3, 3, 3, 9})
-```
-
-**scatter(xs, ys)** dibuja los puntos y, con dos o más, la recta de
-mínimos cuadrados, con la leyenda `y = a*x + b (r = …)`.
-**histogram(datos[, clases])** dibuja un histograma de frecuencias; el
-número de clases es opcional (regla de Sturges por defecto) y debe ser
-un entero entre 1 y 50. **boxplot(datos)** dibuja el diagrama de caja:
-mínimo, Q1, mediana, Q3, máximo, con bigotes hasta los extremos. La
-ventana se abre ajustada a los datos — las palabras clave `from a to
-b` siguen sin aplicarse — y una vez dibujada, la imagen se acerca igual
-que un gráfico de curvas: la rueda del ratón, el pellizco y el
-deslizador de zoom funcionan, y la exportación guarda lo que muestra el
-panel.
-
-Una tercera palabra opcional elige el modelo: `graph scatter(xs, ys, quadreg)` (o expreg, powreg, logreg) dibuja ese ajuste en lugar de la recta.
-### 1.23 Números aleatorios
-
-`random()` sortea un número uniforme en `[0, 1)`, `random(a, b)` uno en
-`[a, b)`, y `randint(a, b)` un número entero del intervalo cerrado
-`[a, b]` — una tirada de dados:
-
-```epher
-randseed(7)
-randint(1, 6)
-```
-
-```text
-7
-3
-```
-
-La secuencia es reproducible: `randseed(n)` reinicia el generador con `n`
-y lo muestra, así que la misma semilla repite los mismos sorteos en cada
-sesión y en cada interfaz.
-
-**randn(mu, sigma)** extrae de la distribución normal con media mu y desviación estándar sigma (Desmos la llama randomNormal, TI la llama randNorm):
-
-```epher
-randseed(7)
-randn(0, 1)
-```
-
-```text
-7
-1.36499229746
-```
-
-La misma semilla repite las mismas extracciones, exactamente como las uniformes.
-
-### 1.24 Unidades y conversión
-
-Un número seguido de una unidad se convierte en una *cantidad*: el
-valor en unidades del SI más sus dimensiones. La tabla de unidades
-cubre las unidades base y derivadas del SI (`m`, `s`, `kg`, `A`, `K`,
-`mol`, `cd`, `Hz`, `N`, `Pa`, `J`, `W`, `C`, `V`, `F`, `ohm`, `S`,
-`Wb`, `T`, `H`, `lm`, `lx`, `Bq`, `Gy`, `Sv`), las unidades cotidianas
-(`min`, `hr`, `d`, `yr`, `L`, `t`, `bar`, `atm`, `torr`, `psi`, `eV`,
-`mile`, `yd`, `ft`, `inch`, `nmi`, `lb`, `oz`, `gal`, `qt`, `pt`,
-`mph`, `knot`) y los sufijos de astronomía de la sección 1.16. Las
-unidades compuestas encadenan: `60 mile/hr` y `5 m/s^2` son unidades
-individuales.
-
-```epher
-60 mile/hr
-```
-
-```text
-60 mile/hr
-```
-
-Los prefijos del SI escalan cualquiera de ellas: `k M G T m µ n p` son
-kilo, mega, giga, tera, mili, micro, nano, pico — `5 km`, `3 MPa`,
-`1 GHz` funcionan, y `2 kg` es el propio kilogramo.
-
-Las dimensiones se comprueban: sumar o comparar cantidades con
-unidades distintas da error en lugar de mezclar metros y segundos:
-
-```epher
-5 m + 3 s
-```
-
-```text
-error: dimension error: cannot add 5 m and 3 s
-```
-
-La aritmética compone las dimensiones: `5 m * 3 m` es `15 m^2`,
-`(3 m)^2` es `9 m^2`, `sqrt(4 m^2)` es `2 m`, y una expresión completa
-cuyas dimensiones se cancelan vuelve a ser un número ordinario
-(`5 m / 5 m` es `1`). Los resultados prefieren el nombre derivado
-exacto cuando las dimensiones coinciden con uno — `5 kg * 3 m / 1 s^2`
-responde `15 N`.
-
-**Conversión.** `expr in unidad` (o `expr -> unidad`) muestra una
-cantidad en la unidad nombrada; las dimensiones deben coincidir. `in`
-liga con la menor prioridad de los operadores, así que `5 m + 3 m in
-km` convierte la suma entera:
-
-```epher
-72 km/hr in m/s
-```
-
-```text
-20 m/s
-```
-
-```epher
-2 m^2 in cm^2
-```
-
-```text
-20000 cm^2
-```
-
-Las escalas de temperatura (Celsius, Fahrenheit) no son unidades aquí
-— los kelvins sí, y `K` funciona como cualquier otra.
-
-
-### 1.25 Operaciones bit a bit
-
-Los literales de base de la sección 1.13 están hechos para esto:
-`0b101`, `0o17`, `0xFF`. Los operadores bit a bit trabajan con números
-enteros y responden con enteros exactos:
-
-```epher
-0xFF & 0x0F
-```
-
-```text
-15
-```
-
-| Operador | Significado |
-|---|---|
-| `a & b` | y bit a bit |
-| `a \| b` | o bit a bit |
-| `a xor b` | o exclusivo bit a bit |
-| `~a` | no bit a bit (complemento a dos) |
-| `a << n` | desplazar a la izquierda (multiplicar por 2^n) |
-| `a >> n` | desplazar a la derecha, aritmético (dividir por 2^n, redondeando hacia abajo) |
-
-Los resultados son enteros `big` exactos, así que `1 << 60` conserva
-cada dígito. El tamaño de palabra es de 64 bits por defecto: los
-resultados se leen como complemento a dos con signo, así que `~0` es
--1 y `1 << 100` envuelve a 0. `bits(n)` cambia el tamaño de palabra a
-8, 16, 32 o 64, y `bits()` lo informa:
-
-```epher
-bits(8)
-~0
-```
-
-```text
-8
--1
-```
-
-Un desplazamiento negativo invierte la dirección (`8 << -1` es `4`).
-El `and` y `or` booleanos conservan sus significados; `&` y `|` son
-las grafías bit a bit.
-
-
-### 1.26 Relaciones implícitas
-
-Una ecuación con dos incógnitas se dibuja como una curva: la familia de gráficos muestrea la relación con marching squares y traza su contorno cero. El círculo, la parábola y la recta vertical, cada uno con un solo comando:
-
-```epher
-graph x^2 + y^2 == 1
-```
-
-```epher
-graph y == x^2
-```
-
-```epher
-graph x == 2
-```
-
-La relación se muestrea sobre el cuadrado de `from a to b` (o la ventana por defecto), así que `graph x^2 + y^2 == 1 from -2 to 2` encaja la ventana del círculo. Todo lo que hace una curva aplica: la leyenda rotula la ecuación, los deslizadores animan sus constantes, y la imagen se amplía, desplaza y exporta como cualquier otra. Los rellenos de desigualdad (`y < …`, `y > …`) siguen siendo curvas sombreadas; una relación no tiene puntos de interés.
-
-
-### 1.27 Matrices
-
-Una matriz es una rejilla de números, escrita como filas de listas:
-`[[1, 2], [3, 4]]` es la matriz 2×2. `+` y `-` son elemento a elemento
-(con formas que coinciden), `*` es el producto matricial, un número
-escala elemento a elemento, y `^` es la potencia matricial entera
-(`A ^ 0` es la identidad, así que las potencias necesitan matrices
-cuadradas). `M[2][1]` es el elemento de la fila 2, columna 1 — las
-filas se indexan como listas, desde 1.
-
-```epher
-[[1, 2], [3, 4]] * [[5, 6], [7, 8]]
-```
-
-```text
-[[19, 22], [43, 50]]
-```
-
-Las funciones matriciales cubren el mínimo del aula: `det(M)` (solo
-cuadradas), `inv(M)` (las singulares dan error), `transpose(M)`,
-`trace(M)` (cuadradas), `dim(M)` (la lista `{filas, columnas}`), y
-`ref(M)` con `rref(M)` para la reducción por filas. Los sistemas
-lineales se resuelven con rref sobre la matriz aumentada:
-
-```epher
-rref([[2, 1, 5], [1, -1, 1]])
-```
-
-```text
-[[1, 0, 2], [0, 1, 1]]
-```
-
-Las filas leen `x = 2`, `y = 1` — la última columna de la matriz
-aumentada reducida. Las fracciones exactas se muestran dentro de las
-matrices como en las listas, así que `inv([[1, 2], [3, 4]])` muestra
-`[[-2, 1], [3/2, -1/2]]`.
-
-
-### 1.28 Finanzas
-
-El solucionador de valor del dinero en el tiempo (convención de signos
-TI: el dinero que sale es negativo, el que entra positivo) resuelve
-cualquiera de los cinco campos dados los otros cuatro. `i` es la tasa
-por periodo como fracción — 0.01 es el 1% — y el último argumento
-opcional es el momento del pago: 0 para fin de periodo (el
-predeterminado), 1 para inicio (anualidad anticipada).
-
-```epher
-tvm_pmt(360, 0.08/12, -100000, 0)
-```
-
-```text
-733.764573879
-```
-
-La hipoteca clásica del 8%: 360 pagos mensuales de 733.76 contra un
-préstamo de 100,000 — `tvm_pmt` es el pago, `tvm_pv` el préstamo,
-`tvm_fv` el saldo, `tvm_n` el plazo y `tvm_i` la tasa:
-
-```epher
-tvm_i(360, -100000, 733.76, 0)
-```
-
-```text
-0.00666661199068
-```
-
-La tasa aquí es algo inferior al 8%/12 porque 733.76 está redondeado.
-`npv(r, flows)` descuenta una lista de flujos y `irr(flows)` halla la
-tasa donde el valor actual neto es cero:
-
-```epher
-npv(0.1, {-100, 60, 60})
-```
-
-```text
-500/121
-```
-
-`amort(p, r, n, k)` es el saldo restante tras k pagos de un préstamo a
-n periodos, `simple_interest(p, r, t)` es `p*r*t`, y
-`compound_interest(p, r, n)` es `p*(1+r)^n - p`.
-
-
-### 1.29 Cadenas y print
+### 1.7 Cadenas y print
 
 Una cadena es texto entre comillas dobles: `"hello"`. Las cadenas se concatenan con `+`, se comparan con `==` y `!=`, se cuentan con `len` y se indexan desde 1 como las listas:
 
@@ -1563,7 +367,59 @@ print("x =", 42)
 x = 42
 ```
 
-### 1.30 Bucles con for
+### 1.8 Decisiones con if
+
+`if` elige entre dos valores:
+
+```epher
+if 3 > 2 then 10 else 20
+```
+
+```text
+10
+```
+
+La forma es siempre `if condición then valor_si_verdadero
+else valor_si_falso`. La parte `else` es obligatoria.
+
+Un ejemplo más útil con una variable:
+
+```epher
+price = 100
+if price > 50 then 2 else 1
+```
+
+```text
+100
+2
+```
+
+> Un `if` también puede comparar cadenas (sección 1.7): ambas ramas solo
+> necesitan ser valores del mismo tipo: números con números, cadenas con
+> cadenas.
+
+### 1.9 Bucles con while
+
+`while` repite una instrucción mientras se cumpla una condición:
+
+```epher
+x = 0; while x < 5 do x = x + 1; x
+```
+
+```text
+0
+5
+```
+
+Lee ese script así: *empieza x en 0; mientras x sea menor que 5, suma 1 a x;
+luego muestra x.* El resultado es 5 porque el bucle se ejecutó cinco veces.
+
+> **Red de seguridad:** epher detiene cualquier bucle después de 100 000
+> pasos y muestra `error: step limit exceeded`. Eso te protege de bucles que
+> nunca terminarían. Si lo ves, tu condición probablemente nunca se volvió
+> falsa.
+
+### 1.10 Bucles con for
 
 `for` repite una sentencia una vez por valor y reúne los valores del cuerpo en una lista: sobre un rango `start to end` (inclusive) con un `step` opcional, o sobre los elementos de una lista:
 
@@ -1622,7 +478,7 @@ Una respuesta corta y única se queda en esa línea. Una respuesta más
 larga - la salida de un script con varias respuestas, una tabla, un
 número largo - aparece en el panel de resultados, el panel que también
 muestra gráficas, con una respuesta por línea; en el teléfono el panel
-se desliza a la vista por sí solo.
+se desliza a la vista por sí solo. A la izquierda de la respuesta hay un icono de copiar: al pulsarlo, los valores de la respuesta quedan en el portapapeles, uno por línea; las respuestas largas del panel de resultados se copian igual.
 
 Mientras escribes un nombre, aparece una lista de sugerencias debajo del campo: las flechas mueven el resaltado, **Intro** o **Tab** acepta, **Esc** cierra, y un clic acepta sin salir del teclado. Cada sugerencia lleva una descripción breve de la función o constante. **F1** muestra la misma descripción de la palabra bajo el cursor en la barra de pistas sobre el teclado. Si lo primero que escribes en un campo vacío es un operador (`+ - * / ^ % !`), epher inserta `ans` por ti, y la línea continúa desde la respuesta anterior.
 
@@ -1868,7 +724,9 @@ expresiones, las grafica (sección 2.4) y mantiene un historial. Los
 comandos **save**, **save script** y **language** funcionan en las
 versiones de escritorio, línea de comandos y terminal (capítulos 3, 4 y
 5). En la aplicación web responden con una nota de que guardar funciona
-allí. El historial no se guarda entre visitas.
+allí. Tu actividad reciente se
+recuerda: el historial, tus variables y funciones y la última respuesta
+sobreviven al cerrar la aplicación, guardados solo en este navegador.
 
 ## 3. La aplicación de escritorio
 
@@ -2295,3 +1153,1147 @@ idioma viven en `~/.epher` (capítulo 4.6), y los mismos comandos `save`,
 
 Las cinco versiones ejecutan el cálculo íntegramente en tu dispositivo.
 Nada se envía a ningún sitio.
+
+### 1.11 Tus propias funciones con def
+
+Una función es un cálculo con nombre y parámetros:
+
+```epher
+def f(x) = x ^ 2
+```
+
+Luego úsala:
+
+```epher
+f(7)
+```
+
+```text
+49
+```
+
+Las funciones pueden tener varios parámetros:
+
+```epher
+def area(w, h) = w * h
+area(3, 4)
+```
+
+```text
+12
+```
+
+También puedes definir una función sin parámetros:
+
+```epher
+def answer() = 42
+answer()
+```
+
+```text
+42
+```
+
+### 1.12 Recursión: una función que se llama a sí misma
+
+El ejemplo más famoso son los números de Fibonacci:
+
+```epher
+def fib(n) = if n <= 1 then n else fib(n - 1) + fib(n - 2)
+```
+
+```epher
+fib(10)
+```
+
+```text
+55
+```
+
+`fib(10)` es el décimo número de Fibonacci. La función se llama a sí misma
+con argumentos más pequeños hasta llegar a `n <= 1`. Esto funciona porque la
+forma `if ... then ... else ...` solo calcula la rama que necesita.
+
+> El cuerpo de una función es una sola expresión, una línea. Combina
+> varios cálculos con `;` en un script en su lugar (sección siguiente).
+
+### 1.13 Scripts: varias instrucciones a la vez
+
+Un *script* es varias instrucciones unidas con `;` o con saltos de
+línea, que significan exactamente lo mismo, ejecutadas una tras otra:
+
+```epher
+x = 10; y = x + 5; x + y
+```
+
+```text
+10
+15
+25
+```
+
+Los scripts son la forma de construir pequeños programas: prepara
+variables, haz bucles y muestra un resultado final.
+
+Los saltos de línea y `;` son el mismo separador, y puedes mezclarlos
+libremente. El botón **Copiar** situado encima de cada ejemplo de varias
+líneas copia el script completo, y puedes pegarlo directamente en epher: el
+campo de entrada de la aplicación web y de la aplicación de escritorio, la
+interfaz de terminal y `epher repl` ejecutan todas las líneas en orden,
+exactamente como si las hubieras escrito una a una. Unir varias
+instrucciones con `;` en una línea funciona en todas partes también,
+incluida la línea de comandos de un solo uso (sección 4.1).
+
+
+Los scripts pueden llevar **comentarios**: notas para ti que epher se salta, escritos al estilo PHP. `//` o `#` comentan hasta el final de la línea, y `/* ... */` comenta un bloque. Una nota sobre una instrucción va al final de esta, tras `//`, nunca dentro de la instrucción:
+
+```epher
+// a small script with notes
+r = 3 # radius in metres
+area = pi * r ^ 2 // pi r squared
+area
+```
+
+A block comment may also span several lines. A script file or a pasted
+program arrives as one whole program, so its block comments may span
+lines:
+
+```epher
+/* the area of a circle
+   of radius 3 */
+pi * 3 ^ 2
+```
+
+Input that arrives line by line - typing into the REPL or the terminal
+UI, or a piped script - takes one line at a time, so there a block
+comment opens and closes on the same line.
+### 1.14 Resultados exactos: frac, dec y big
+
+Normalmente epher calcula con números decimales como una
+calculadora de bolsillo, y los resultados se redondean a doce cifras
+significativas como los muestra una calculadora: `0.1 + 0.2` es
+`0.3`, nunca `0.30000000000000004`. Las fracciones exactas están
+activadas por defecto — un resultado con una buena fracción de
+denominador pequeño cuyo decimal se repite se muestra como tal.
+`1 / 3` se muestra como `1/3` sin pedirlo:
+
+```epher
+1 / 3
+```
+
+```text
+1/3
+```
+
+Con **fracciones exactas desactivadas** en los ajustes de resultados
+(capítulo 2.2), la misma división muestra `0.333333333333`.
+**frac(n, d)** crea una fracción exacta que se mantiene exacta a través
+de los cálculos:
+
+```epher
+frac(1, 3)
+```
+
+```text
+1/3
+```
+
+Las fracciones se mantienen exactas a través de los cálculos:
+
+```epher
+frac(1, 3) * 3
+```
+
+```text
+1
+```
+
+**dec(x)** crea un decimal exacto. `0.1 + 0.2` muestra `0.3` en ambos
+casos — la diferencia es aritmética:
+
+```epher
+0.1 * 3 - 0.3
+dec(0.1) * 3 - dec(0.3)
+```
+
+```text
+0.0000000000000000555111512313
+0.0
+```
+
+El resultado flotante lleva el pequeño error de redondeo que toda
+computadora comete con los decimales; `dec()` mantiene la aritmética
+exacta.
+
+**big(x)** crea un número entero exacto, para valores demasiado grandes para
+una calculadora de bolsillo:
+
+```epher
+big(10 ^ 20)
+```
+
+```text
+100000000000000000000
+```
+
+**Bases numéricas** escriben los enteros como los escribe la comunidad
+matemática: `0b` para binario, `0o` para octal, `0x` para hexadecimal
+(el prefijo cambia la escritura, nunca el valor):
+
+```epher
+0b1010 + 0xFF
+```
+
+```text
+265
+```
+
+Para volver, **bin(x)**, **oct(x)** y **hex(x)** devuelven la escritura
+con prefijo de un número entero, lista para usarse de nuevo:
+
+```epher
+hex(255)
+bin(10)
+```
+
+```text
+0xff
+```
+0b1010
+```
+
+**exact(x)** reconstruye la fracción exacta detrás de un resultado decimal: cualquier valor con una buena fracción de denominador pequeño se muestra así. Es la misma reconstrucción que las aplicaciones usan por defecto, por eso `1 / 3` normalmente se muestra como `1/3`:
+
+```epher
+exact(0.3333333333333333)
+exact(0.30000000000000004)
+```
+
+```text
+1/3
+3/10
+```
+
+Un valor irracional como `pi` no tiene una buena fracción, así que `exact()` lo deja igual.
+
+Los verbos de formato escriben un número en otra notación. **scientific(x)** usa una cifra antes del exponente, **engineering(x)** exponentes en pasos de tres (la mantisa queda entre 1 y 1000), y **grouped(x)** inserta espacios finos como separadores de miles:
+
+```epher
+scientific(12345)
+engineering(12345)
+engineering(0.5)
+grouped(1234567.89)
+```
+
+```text
+1.2345e4
+12.345e3
+500e-3
+1 234 567.89
+```
+
+La aplicación web y la TUI también ofrecen estas opciones de visualización (capítulos 2.2 y 5.2): fracciones exactas activadas o desactivadas, notación Auto/científica/de ingeniería y separadores de miles. Los ajustes solo cambian cómo se muestran los resultados; los valores siguen siendo números decimales normales.
+
+### 1.15 Funciones integradas
+
+epher tiene las funciones de una calculadora científica, agrupadas por familia.
+
+La trigonometría trabaja en radianes. Usa `deg` y `rad` para convertir:
+
+| Función | Significado | Ejemplo | Resultado |
+|---|---|---|---|
+| `sin(x)`, `cos(x)`, `tan(x)` | funciones trigonométricas | `sin(pi / 2)` | `1` |
+| `asin(x)`, `acos(x)`, `atan(x)` | trigonometría inversa | `atan(1)` | `0.7853981633974483` |
+| `atan2(y, x)` | ángulo del punto (x, y) | `atan2(1, 1)` | `0.7853981633974483` |
+| `deg(x)` | radianes → grados | `deg(pi)` | `180` |
+| `rad(x)` | grados → radianes | `rad(180)` | `3.14159265359` |
+| `sinh(x)`, `cosh(x)`, `tanh(x)` | funciones hiperbólicas | `sinh(1)` | `1.1752011936438014` |
+| `asinh(x)`, `acosh(x)`, `atanh(x)` | hiperbólicas inversas | `acosh(1)` | `0` |
+
+Potencias, raíces y logaritmos (en una calculadora `log` es base 10):
+
+| Función | Significado | Ejemplo | Resultado |
+|---|---|---|---|
+| `sqrt(x)` | raíz cuadrada | `sqrt(16)` | `4` |
+| `cbrt(x)` | raíz cúbica | `cbrt(-27)` | `-3` |
+| `root(n, x)` | raíz n-ésima | `root(3, 8)` | `2` |
+| `exp(x)` | e elevado a x | `exp(1)` | `2.71828182846` |
+| `ln(x)` | logaritmo natural | `ln(e)` | `1` |
+| `log(x)` | logaritmo base 10 | `log(100)` | `2` |
+| `log2(x)` | logaritmo base 2 | `log2(8)` | `3` |
+| `logb(b, x)` | logaritmo en base b | `logb(2, 8)` | `3` |
+| `hypot(a, b)` | hipotenusa | `hypot(3, 4)` | `5` |
+| `5!` (también `fact(n)`) | factorial | `5!` | `120` |
+
+Redondeo, signos y números enteros:
+
+| Función | Significado | Ejemplo | Resultado |
+|---|---|---|---|
+| `abs(x)` | valor absoluto | `abs(-3)` | `3` |
+| `floor(x)` / `ceil(x)` | redondear abajo / arriba | `floor(2.7)` | `2` |
+| `round(x)` | el más cercano, medio siempre lejos de cero | `round(2.5)` | `3` |
+| `trunc(x)` | quitar la parte decimal | `trunc(-2.9)` | `-2` |
+| `sign(x)` | -1, 0 o 1 | `sign(-5)` | `-1` |
+| `ncr(n, r)` | combinaciones | `ncr(52, 5)` | `2598960` |
+| `npr(n, r)` | permutaciones | `npr(5, 2)` | `20` |
+| `gcd(a, b)` / `lcm(a, b)` | divisores y múltiplos comunes | `gcd(12, 18)` | `6` |
+| `mod(a, b)` | resto | `mod(7, 3)` | `1` |
+
+Los primos y los divisores trabajan con números enteros:
+
+| Función | Significado | Ejemplo | Resultado |
+|---|---|---|---|
+| `isprime(n)` | verdadero cuando n es primo | `isprime(97)` | `true` |
+| `nextprime(n)` / `prevprime(n)` | los primos más cercanos | `nextprime(10)` | `11` |
+| `factors(n)` | factorización en primos | `factors(360)` |
+| Literal de lista | `{…}` | `{1, 2, 3}` |
+| Elemento de lista | `list[i]` (base 1) | `{5, 6}[2]` |
+| Estadística de lista | `mean(lista)`, `median(lista)`, … | `stdev(d)` |
+| Forma de lista | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
+| Regresión lineal | `linreg(xs, ys)` | `linreg(x, y)` |
+| Familia de regresiones | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
+| Familia normal | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
+| Familia t | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
+| Familia chi-cuadrado | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
+| Familias discretas | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
+| Pruebas e intervalos | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| ANOVA y t emparejada | `anova(listas...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
+| Gráficos de datos | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
+| Números aleatorios | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| Extracciones normales | `randn(mu, sigma)` | `randn(0, 1)` |
+| Explorador de constantes | Ayuda → Constantes: todas las constantes, agrupadas | Ayuda → Constantes |
+| Cantidad | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
+| Convertir | `expr in unidad` o `expr -> unidad` | `72 km/hr in m/s` |
+| Prefijos | `k M G T m µ n p` escalan cualquier unidad | `5 km`, `3 MPa`, `1 GHz` |
+| Y, O bit a bit | `a & b`, `a \| b` | `0xFF & 0x0F` |
+| O exclusivo bit a bit | `a xor b` | `5 xor 3` |
+| No bit a bit | `~a` | `~0` |
+| Desplazamientos | `a << n`, `a >> n` | `1 << 8` |
+| Tamaño de palabra | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
+| Relación implícita | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
+| Literal de matriz | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
+| Funciones matriciales | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
+| Solucionador TVM | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
+| VAN y TIR | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
+| Amortización | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
+| Interés | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` | `2^3 * 3^2 * 5` |
+| `totient(n)` | phi de Euler | `totient(12)` | `4` |
+| `ndivisors(n)` | cuántos divisores tiene | `ndivisors(360)` | `24` |
+| `modpow(b, e, m)` | b elevado a e, módulo m, exacto | `modpow(2, 10, 1000)` | `24` |
+
+
+La estadística acepta cualquier número de argumentos:
+
+| Función | Significado | Ejemplo | Resultado |
+|---|---|---|---|
+| `sum(...)` / `product(...)` | totales | `sum(1, 2, 3)` | `6` |
+| `mean(...)` | promedio | `mean(1, 2, 3)` | `2` |
+| `median(...)` | valor central | `median(1, 2, 3, 4)` | `2.5` |
+| `min(...)` / `max(...)` | el menor / el mayor | `max(4, 1, 3)` | `4` |
+| `variance(...)` / `stdev(...)` | dispersión de los valores | `stdev(2, 4)` | `1` |
+
+Las capas exactas de la sección 1.14 se mantienen:
+
+| Función | Significado | Ejemplo | Resultado |
+|---|---|---|---|
+| `frac(n, d)` | fracción exacta | `frac(1, 3)` | `1/3` |
+| `dec(x)` | decimal exacto | `dec(0.1)` | `0.1` |
+| `big(x)` | número entero exacto | `big(10 ^ 20)` | `100000000000000000000` |
+| Binario, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
+| Escritura en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
+| Primos | `isprime(n)`, `factors(n)`, … | `factors(360)` |
+| `bin(x)` / `oct(x)` / `hex(x)` | escritura con prefijo en base 2 / 8 / 16 | `hex(255)` | `0xff` |
+
+Se combinan como todo lo demás:
+
+```epher
+min(sqrt(16), 5)
+```
+
+```text
+4
+```
+
+Las constantes físicas usan unidades del SI, como las astronómicas de la sección 1.29:
+
+| Nombre | Significado | Valor |
+|---|---|---|
+| `G` | constante gravitacional de Newton | 6.6743e-11 |
+| `gamma` | constante de Euler-Mascheroni | 0.577215664902 |
+| `q_e` | carga elemental | 1.602176634e-19 |
+| `ev` | electronvoltio, en julios | 1.602176634e-19 |
+| `eps_0` | permitividad del vacío | 8.8541878128e-12 |
+| `mu_0` | permeabilidad del vacío | 1.25663706212e-6 |
+| `z_0` | impedancia del vacío | 376.730313668 |
+| `m_e` | masa del electrón | 9.1093837139e-31 |
+| `m_p` | masa del protón | 1.67262192595e-27 |
+| `m_n` | masa del neutrón | 1.67492750056e-27 |
+| `m_u` | unidad de masa atómica | 1.66053906892e-27 |
+| `a_0` | radio de Bohr | 5.29177210544e-11 |
+| `alpha` | constante de estructura fina | 0.0072973525643 |
+| `r_inf` | constante de Rydberg | 10973731.568160 |
+| `mu_b` | magnetrón de Bohr | 9.2740100783e-24 |
+| `n_a` | constante de Avogadro | 6.02214076e23 |
+| `faraday` | constante de Faraday, C/mol | 96485.33212 |
+| `r_gas` | constante molar de los gases | 8.31446261815 |
+| `atm` | atmósfera estándar, en pascales | 101325 |
+| `wien` | constante de longitud de onda de Wien | 0.002897771955 |
+| `phi_0` | cuanto de flujo magnético | 2.067833848e-15 |
+| `m_P` | Planck-Masse | 2.176434e-8 |
+| `l_P` | Planck-Länge | 1.616255e-35 |
+| `t_P` | Planck-Zeit | 5.391247e-44 |
+| `r_e` | klassischer Elektronenradius | 2.8179403205e-15 |
+| `lambda_c` | Compton-Wellenlänge | 2.42631023867e-12 |
+| `mu_n` | Kernmagneton | 5.050783699e-27 |
+
+
+### 1.16 Leer los errores
+
+Cuando algo sale mal, epher te lo dice en lugar de adivinar:
+
+```epher
+1 / 0
+```
+
+```text
+error: division by zero
+```
+
+```epher
+sqrt(-4)
+```
+
+```text
+2i
+```
+
+```epher
+unknown_name
+```
+
+```text
+error: unknown name: unknown_name
+```
+
+```epher
+foo(1)
+```
+
+```text
+error: unknown name: foo
+```
+
+El último ejemplo es importante: epher te dice exactamente qué nombre no
+conoce, para que puedas arreglar tu expresión.
+
+### 1.17 Referencia rápida
+
+| Qué | Sintaxis | Ejemplo |
+|---|---|---|
+| Sumar, restar, multiplicar, dividir | `+ - * /` | `7 / 2` |
+| Potencia | `^` (de derecha a izquierda) | `2 ^ 10` |
+| Factorial | `!` (postfijo) | `5!` |
+| Porcentaje | `%` (posfijo) | `200 * (1 + 10%)` |
+| Paréntesis | `( )` | `(2 + 3) * 4` |
+| Constantes | `pi`, `e`, `tau`, `phi` | `2 * pi` |
+| Notación científica | `2.5e-3` | `6.02e23` |
+| Comparar | `> < >= <= == !=` | `3 >= 2` |
+| Lógica | `and or not` | `a > 1 and a < 10` |
+| Variable | `name = value` | `x = 5` |
+| Constante | `const name = value` | `const tax = 0.2` |
+| Decisión | `if c then a else b` | `if x > 0 then 1 else -1` |
+| Bucle | `while c do statement` | `while x < 5 do x = x + 1` |
+| Bucle for | `for i in a to b step s do sentencia` | `for i in 1 to 5 do i^2` |
+| Función | `def name(params) = expr` | `def f(x) = x ^ 2` |
+| Cadenas | `"..."`, `+` une, `s[i]`, `==` | `"a" + "b"` |
+| Print | `print(a, b, ...)` | `print("x =", 42)` |
+| Script | instrucciones unidas con `;` o saltos de línea | `x = 1; x + 1` |
+| Fracción exacta | `frac(n, d)` | `frac(1, 3)` |
+| Decimal exacto | `dec(x)` | `dec(0.1) + dec(0.2)` |
+| Número entero exacto | `big(x)` | `big(10 ^ 20)` |
+| Reconstruir una fracción | `exact(x)` | `exact(0.3333333333333333)` |
+| Científica, ingeniería, agrupada | `scientific(x)` `engineering(x)` `grouped(x)` | `engineering(12345)` |
+| Unidad imaginaria | `i`, o un literal `4i` | `sqrt(-1)` |
+| Partes de un complejo | `re(z)` `im(z)` `arg(z)` `conj(z)` `abs(z)` | `re(3 + 4i)` |
+| Resolver una ecuación | `solve lhs == rhs` | `solve x^2 == 9` |
+| Derivada numérica | `derivative(expr, x)` | `derivative(x^2, 3)` |
+| Integral definida | `integral(expr, a, b)` | `integral(x^2, 0, 3)` |
+| Binario, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
+| Escritura en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
+
+### 1.18 Números complejos
+
+epher calcula con números complejos automáticamente. La unidad imaginaria es **i**, igual que `pi`:
+
+```epher
+i ^ 2
+sqrt(-1)
+```
+
+```text
+-1
+i
+```
+
+Escribe un número complejo con el sufijo `i`, sin signo de multiplicación: `3 + 4i` es un literal, `2.5i` funciona, y también los literales con base (`0xFFi`). La aritmética habitual se extiende: sumar, restar, multiplicar, dividir y potencias funcionan, e `i` sigue la precedencia normal (`i ^ 2` se agrupa como cualquier potencia).
+
+Las funciones reales también se extienden. Con un argumento complejo calculan en el plano complejo; con un argumento real fuera de su dominio real devuelven el resultado complejo principal en lugar de un error:
+
+```epher
+ln(-1)
+asin(2)
+exp(i * pi)
+```
+
+```text
+3.14159265359i
+1.57079632679-1.31695789692i
+-1+0.000000000000000122464679915i
+```
+
+(`exp(i * pi)` es exactamente `-1`; los últimos dígitos son el ruido de `sin(pi)` en la aritmética de la máquina.)
+
+Cuatro funciones leen las partes de un número complejo, y `abs()` es su módulo:
+
+```epher
+re(3 + 4i)
+im(3 + 4i)
+arg(-1)
+conj(3 - 4i)
+abs(3 + 4i)
+```
+
+```text
+3
+4
+3.14159265359
+3+4i
+5
+```
+
+Las funciones de enteros (`fact`, `gcd`, `floor`, `isprime`, ...) rechazan argumentos complejos con un error de tipo.
+
+### 1.19 Resolver ecuaciones
+
+**solve** encuentra las raíces de una ecuación con una variable. La ecuación usa `==`:
+
+```epher
+solve x^2 == 5*x + 6
+```
+
+```text
+x = -1, x = 6
+```
+
+Las ecuaciones polinómicas (construidas con `+ - * ^` y constantes) dan todas las raíces, reales y complejas:
+
+```epher
+solve x^2 == -1
+solve x^2 + 2*x + 5 == 0
+solve (x - 1)^2 == 0
+```
+
+```text
+x = -i, x = i
+x = -1-2i, x = -1+2i
+x = 1
+```
+
+La variable a resolver es `x` si aparece, si no la única otra variable. Las constantes y variables ligadas actúan como parámetros:
+
+```epher
+const k = 3
+solve k*x == 12
+```
+
+```text
+3
+x = 4
+```
+
+Cualquier otra ecuación se explora numéricamente en -100..100: las raíces se encierran por cambios de signo, así que `solve sin(x) == 0.5` lista cada raíz del intervalo. Dos límites honestos: una raíz donde la función solo toca cero (como `x^2 == 0` por el camino numérico) puede perderse, y las ecuaciones con varias variables sin ligar son un error.
+
+### 1.20 Cálculo: derivada e integral
+
+**derivative(expr, p)** es la derivada numérica de `expr` en `p`. El primer argumento sigue siendo una expresión, y su variable libre es la que se deriva:
+
+```epher
+derivative(x^2, 3)
+derivative(sin(t), 0)
+```
+
+```text
+6
+1
+```
+
+Como el argumento sigue siendo una expresión, la derivada se puede graficar: `graph derivative(x^3 - x, x)` dibuja la curva de pendientes.
+
+**integral(expr, a, b)** es la integral definida de `a` a `b`, calculada con cuadratura adaptativa de Simpson:
+
+```epher
+integral(x^2, 0, 3)
+integral(sin(x), 0, pi)
+```
+
+```text
+9
+2
+```
+
+`integral(x^2, 3, 0)` es `-9` (la integral con signo), y un límite superior graficable funciona: `graph integral(x^2, 0, x)`.
+
+Ambos son numéricos; las expresiones deben tomar valores reales en el intervalo, y una expresión con varias variables es un error.
+
+### 1.21 Datos: listas, estadística y regresión
+
+Una lista es una columna de números entre llaves: `{1, 2, 3}`. Los
+elementos son expresiones, la lista vacía `{}` está permitida, y una
+lista se asigna a un nombre como cualquier valor:
+
+```epher
+d = {12, 15, 14, 16, 13, 15, 14, 17}
+d[2]
+len(d)
+```
+
+`list[i]` es el elemento i-ésimo, con base 1 como en una calculadora;
+un índice fuera de la lista es un error. El corchete une más fuerte
+que `^`, así que `d[2]^2` es `(d[2])^2`.
+
+La aritmética sobre una lista es elemento a elemento, y un número solo
+se aplica a cada elemento:
+
+```epher
+{1, 2, 3} * 2
+{1, 2, 3} + 10
+```
+
+Dos listas deben tener la misma longitud para `+ - * / ^`. `==` y `!=`
+comparan listas completas; las comparaciones de orden las rechazan.
+
+Las funciones estadísticas aceptan una lista como único argumento (la
+forma con varios argumentos se mantiene — `mean(1, 2, 3)` sigue
+funcionando): `sum product mean median mode variance stdev min max
+range`. Las nuevas funciones de forma son `len(lista)`, `sort(lista)`
+(copia ascendente), `mode(lista)` (valor más frecuente, el menor en
+caso de empate), `range(lista)` (mayor menos menor valor) y
+`quartile(lista, k)` para k en 1..3 (cuartiles al estilo TI, mediana
+de las mitades):
+
+```epher
+mean(d)
+median(d)
+quartile(d, 1)
+```
+
+**linreg(xs, ys)** ajusta la recta de mínimos cuadrados a dos listas
+de la misma longitud y la informa con el coeficiente de correlación r:
+
+```epher
+linreg({1, 2, 3, 4}, {2.1, 4.2, 5.8, 8.1})
+```
+
+La recta ajustada es una presentación, como las raíces de solve; la
+imagen del ajuste vive en el gráfico de dispersión (sección 1.23).
+
+El resto de la familia de regresiones ajusta los modelos a los que crecen las calculadoras: **quadreg** ajusta `y = a*x^2 + b*x + c` (al menos 3 puntos), **expreg** ajusta `y = a*e^(b*x)` (y > 0), **powreg** ajusta `y = a*x^b` (x e y > 0), y **logreg** ajusta `y = a + b*ln(x)` (x > 0). Cada uno informa el modelo con su r:
+
+```epher
+quadreg({1, 2, 3, 4}, {1, 4.1, 8.9, 16.2})
+expreg({1, 2, 3}, {2.7, 7.4, 20.1})
+```
+
+```text
+y = 1.05*x^2 + -0.21*x + 0.2 (r = 0.9999)
+y = 0.9911*e^(1.0037*x) (r = 1)
+```
+
+El r de un ajuste transformado es la correlación del par linealizado: el mismo número que informan TI y NumWorks. Cada modelo también puede dibujarse sobre un diagrama de dispersión: `graph scatter(xs, ys, quadreg)` (o expreg, powreg, logreg) traza los puntos con la curva de ese modelo.
+
+### 1.22 Distribuciones y pruebas de hipótesis
+
+Las funciones de probabilidad cubren la normal estándar, la t de
+Student, la chi-cuadrado, la binomial y la de Poisson. La familia
+normal admite uno o tres argumentos — un solo argumento es la normal
+estándar:
+
+```epher
+normcdf(1.96)
+invnorm(0.975)
+normcdf(12, 10, 2)
+```
+
+`normpdf(x[, mu, sigma])`, `normcdf(x[, mu, sigma])`, `invnorm(p[,
+mu, sigma])`; `tpdf(x, df)`, `tcdf(x, df)`, `invt(p, df)`;
+`chi2pdf(x, df)`, `chi2cdf(x, df)`, `invchi2(p, df)`;
+`binompdf(k, n, p)`, `binomcdf(k, n, p)`; `poissonpdf(k, lambda)`,
+`poissoncdf(k, lambda)`. Las funciones `inv*` responden a la pregunta
+inversa: `invt(0.975, 10)` es el valor de t bajo el cual está el
+97.5 % de la masa.
+
+Las pruebas toman una lista de datos e informan el estadístico y el
+valor p bilateral como texto de presentación; los intervalos informan
+`(bajo, alto)` al nivel que usted nombre:
+
+```epher
+d = {12, 15, 14, 16, 13, 15, 14, 17}
+ttest(d, 14)
+tinterval(d, 0.95)
+ztest(d, 14, 1.5)
+chisq_gof({20, 30, 25, 25}, {25, 25, 25, 25})
+```
+
+```text
+{12, 15, 14, 16, 13, 15, 14, 17}
+t = 0.8819, p = 0.4071
+(13.1594, 15.8406)
+z = 0.9428, p = 0.3458
+chi2 = 2, p = 0.5724
+```
+
+`ttest(datos, mu0)` y `tinterval(datos, nivel)` usan la desviación
+estándar muestral (n−1); `ztest(datos, mu0, sigma)` y
+`zinterval(datos, sigma, nivel)` necesitan el sigma conocido.
+`chisq_gof(observados, esperados)` es la prueba de bondad de ajuste
+con k−1 grados de libertad. Los resultados son textos de presentación:
+legibles y copiables, pero la aritmética no puede tocarlos.
+
+Dos pruebas más comparten la misma forma. **anova(lista1, lista2, …)** es el análisis de varianza de una vía sobre dos o más grupos (las longitudes desiguales están bien) e informa F con su valor p:
+
+```epher
+anova({1, 2, 3}, {4, 5, 6}, {7, 8, 9})
+```
+
+```text
+F = 27, p = 0.001
+```
+
+**ttestpaired(a, b)** es la prueba t emparejada: toma las diferencias de dos listas de la misma longitud y las contrasta contra 0, la prueba de "antes y después" del aula:
+
+```epher
+ttestpaired({80, 85, 90}, {82, 84, 91})
+```
+
+```text
+t = -0.7559, p = 0.5286
+```
+
+### 1.23 Gráficos de datos
+
+La familia de gráficos también acepta listas: un diagrama de
+dispersión, un histograma y un diagrama de caja. Un gráfico de datos
+ocupa el panel solo, como un sistema solar — el comando más reciente
+gana, y `graph clear` lo vacía.
+
+```epher
+x = {1, 2, 3, 4, 5}
+y = {2.1, 4.2, 5.8, 8.1, 9.9}
+graph scatter(x, y)
+```
+
+```epher
+graph histogram({1, 2, 2, 3, 3, 3, 4, 5})
+```
+
+```epher
+graph boxplot({1, 2, 2, 3, 3, 3, 9})
+```
+
+**scatter(xs, ys)** dibuja los puntos y, con dos o más, la recta de
+mínimos cuadrados, con la leyenda `y = a*x + b (r = …)`.
+**histogram(datos[, clases])** dibuja un histograma de frecuencias; el
+número de clases es opcional (regla de Sturges por defecto) y debe ser
+un entero entre 1 y 50. **boxplot(datos)** dibuja el diagrama de caja:
+mínimo, Q1, mediana, Q3, máximo, con bigotes hasta los extremos. La
+ventana se abre ajustada a los datos — las palabras clave `from a to
+b` siguen sin aplicarse — y una vez dibujada, la imagen se acerca igual
+que un gráfico de curvas: la rueda del ratón, el pellizco y el
+deslizador de zoom funcionan, y la exportación guarda lo que muestra el
+panel.
+
+Una tercera palabra opcional elige el modelo: `graph scatter(xs, ys, quadreg)` (o expreg, powreg, logreg) dibuja ese ajuste en lugar de la recta.
+### 1.24 Números aleatorios
+
+`random()` sortea un número uniforme en `[0, 1)`, `random(a, b)` uno en
+`[a, b)`, y `randint(a, b)` un número entero del intervalo cerrado
+`[a, b]` — una tirada de dados:
+
+```epher
+randseed(7)
+randint(1, 6)
+```
+
+```text
+7
+3
+```
+
+La secuencia es reproducible: `randseed(n)` reinicia el generador con `n`
+y lo muestra, así que la misma semilla repite los mismos sorteos en cada
+sesión y en cada interfaz.
+
+**randn(mu, sigma)** extrae de la distribución normal con media mu y desviación estándar sigma (Desmos la llama randomNormal, TI la llama randNorm):
+
+```epher
+randseed(7)
+randn(0, 1)
+```
+
+```text
+7
+1.36499229746
+```
+
+La misma semilla repite las mismas extracciones, exactamente como las uniformes.
+
+### 1.25 Unidades y conversión
+
+Un número seguido de una unidad se convierte en una *cantidad*: el
+valor en unidades del SI más sus dimensiones. La tabla de unidades
+cubre las unidades base y derivadas del SI (`m`, `s`, `kg`, `A`, `K`,
+`mol`, `cd`, `Hz`, `N`, `Pa`, `J`, `W`, `C`, `V`, `F`, `ohm`, `S`,
+`Wb`, `T`, `H`, `lm`, `lx`, `Bq`, `Gy`, `Sv`), las unidades cotidianas
+(`min`, `hr`, `d`, `yr`, `L`, `t`, `bar`, `atm`, `torr`, `psi`, `eV`,
+`mile`, `yd`, `ft`, `inch`, `nmi`, `lb`, `oz`, `gal`, `qt`, `pt`,
+`mph`, `knot`) y los sufijos de astronomía de la sección 1.29. Las
+unidades compuestas encadenan: `60 mile/hr` y `5 m/s^2` son unidades
+individuales.
+
+```epher
+60 mile/hr
+```
+
+```text
+60 mile/hr
+```
+
+Los prefijos del SI escalan cualquiera de ellas: `k M G T m µ n p` son
+kilo, mega, giga, tera, mili, micro, nano, pico — `5 km`, `3 MPa`,
+`1 GHz` funcionan, y `2 kg` es el propio kilogramo.
+
+Las dimensiones se comprueban: sumar o comparar cantidades con
+unidades distintas da error en lugar de mezclar metros y segundos:
+
+```epher
+5 m + 3 s
+```
+
+```text
+error: dimension error: cannot add 5 m and 3 s
+```
+
+La aritmética compone las dimensiones: `5 m * 3 m` es `15 m^2`,
+`(3 m)^2` es `9 m^2`, `sqrt(4 m^2)` es `2 m`, y una expresión completa
+cuyas dimensiones se cancelan vuelve a ser un número ordinario
+(`5 m / 5 m` es `1`). Los resultados prefieren el nombre derivado
+exacto cuando las dimensiones coinciden con uno — `5 kg * 3 m / 1 s^2`
+responde `15 N`.
+
+**Conversión.** `expr in unidad` (o `expr -> unidad`) muestra una
+cantidad en la unidad nombrada; las dimensiones deben coincidir. `in`
+liga con la menor prioridad de los operadores, así que `5 m + 3 m in
+km` convierte la suma entera:
+
+```epher
+72 km/hr in m/s
+```
+
+```text
+20 m/s
+```
+
+```epher
+2 m^2 in cm^2
+```
+
+```text
+20000 cm^2
+```
+
+Las escalas de temperatura (Celsius, Fahrenheit) no son unidades aquí
+— los kelvins sí, y `K` funciona como cualquier otra.
+
+
+### 1.26 Operaciones bit a bit
+
+Los literales de base de la sección 1.15 están hechos para esto:
+`0b101`, `0o17`, `0xFF`. Los operadores bit a bit trabajan con números
+enteros y responden con enteros exactos:
+
+```epher
+0xFF & 0x0F
+```
+
+```text
+15
+```
+
+| Operador | Significado |
+|---|---|
+| `a & b` | y bit a bit |
+| `a \| b` | o bit a bit |
+| `a xor b` | o exclusivo bit a bit |
+| `~a` | no bit a bit (complemento a dos) |
+| `a << n` | desplazar a la izquierda (multiplicar por 2^n) |
+| `a >> n` | desplazar a la derecha, aritmético (dividir por 2^n, redondeando hacia abajo) |
+
+Los resultados son enteros `big` exactos, así que `1 << 60` conserva
+cada dígito. El tamaño de palabra es de 64 bits por defecto: los
+resultados se leen como complemento a dos con signo, así que `~0` es
+-1 y `1 << 100` envuelve a 0. `bits(n)` cambia el tamaño de palabra a
+8, 16, 32 o 64, y `bits()` lo informa:
+
+```epher
+bits(8)
+~0
+```
+
+```text
+8
+-1
+```
+
+Un desplazamiento negativo invierte la dirección (`8 << -1` es `4`).
+El `and` y `or` booleanos conservan sus significados; `&` y `|` son
+las grafías bit a bit.
+
+
+### 1.27 Relaciones implícitas
+
+Una ecuación con dos incógnitas se dibuja como una curva: la familia de gráficos muestrea la relación con marching squares y traza su contorno cero. El círculo, la parábola y la recta vertical, cada uno con un solo comando:
+
+```epher
+graph x^2 + y^2 == 1
+```
+
+```epher
+graph y == x^2
+```
+
+```epher
+graph x == 2
+```
+
+La relación se muestrea sobre el cuadrado de `from a to b` (o la ventana por defecto), así que `graph x^2 + y^2 == 1 from -2 to 2` encaja la ventana del círculo. Todo lo que hace una curva aplica: la leyenda rotula la ecuación, los deslizadores animan sus constantes, y la imagen se amplía, desplaza y exporta como cualquier otra. Los rellenos de desigualdad (`y < …`, `y > …`) siguen siendo curvas sombreadas; una relación no tiene puntos de interés.
+
+
+### 1.28 Matrices
+
+Una matriz es una rejilla de números, escrita como filas de listas:
+`[[1, 2], [3, 4]]` es la matriz 2×2. `+` y `-` son elemento a elemento
+(con formas que coinciden), `*` es el producto matricial, un número
+escala elemento a elemento, y `^` es la potencia matricial entera
+(`A ^ 0` es la identidad, así que las potencias necesitan matrices
+cuadradas). `M[2][1]` es el elemento de la fila 2, columna 1 — las
+filas se indexan como listas, desde 1.
+
+```epher
+[[1, 2], [3, 4]] * [[5, 6], [7, 8]]
+```
+
+```text
+[[19, 22], [43, 50]]
+```
+
+Las funciones matriciales cubren el mínimo del aula: `det(M)` (solo
+cuadradas), `inv(M)` (las singulares dan error), `transpose(M)`,
+`trace(M)` (cuadradas), `dim(M)` (la lista `{filas, columnas}`), y
+`ref(M)` con `rref(M)` para la reducción por filas. Los sistemas
+lineales se resuelven con rref sobre la matriz aumentada:
+
+```epher
+rref([[2, 1, 5], [1, -1, 1]])
+```
+
+```text
+[[1, 0, 2], [0, 1, 1]]
+```
+
+Las filas leen `x = 2`, `y = 1` — la última columna de la matriz
+aumentada reducida. Las fracciones exactas se muestran dentro de las
+matrices como en las listas, así que `inv([[1, 2], [3, 4]])` muestra
+`[[-2, 1], [3/2, -1/2]]`.
+
+
+### 1.29 Astronomía y el sistema solar
+
+epher habla astronomía: sufijos de unidad, constantes físicas, funciones de
+calendario y tiempo, y una efeméride en vivo para el Sol, la Luna, los
+planetas y Plutón. Todo funciona sin conexión.
+
+**Unidades que hablan astronomía.** Escribe un número seguido de un sufijo
+de unidad y epher lo convierte a unidades SI al instante:
+
+| Sufijo | Unidad | Convierte a |
+|---|---|---|
+| `AU` o `au` | unidad astronómica | metros |
+| `pc` | pársec | metros |
+| `ly` | año luz | metros |
+| `deg` | grado | radianes |
+| `arcmin`, `arcsec` | minuto y segundo de arco | radianes |
+| `min`, `hr`, `d`, `yr` | minuto, hora, día, año juliano | segundos |
+| `Jy` | jansky | W m-2 Hz-1 |
+
+```epher
+3.2 AU in m
+```
+
+```text
+478713186240 m
+```
+
+```epher
+sin(30 deg)
+```
+
+```text
+0.5
+```
+
+Los sufijos son parte de la gramática: ninguna constante propia puede
+cambiar lo que significa `3.2 AU`, y `h` sigue siendo la constante de
+Planck; las horas se escriben `hr`. Las funciones devuelven conteos en
+unidades naturales; un sufijo convierte un conteo a SI, así que
+`mag2jy(20)` es un conteo en janskys y `mag2jy(20) Jy` es el mismo flujo
+en vatios por metro cuadrado y hercio.
+
+**Constantes astronómicas.** `au`, `pc`, `ly`, `c`, `g`, `h`, `h_bar`,
+`k_b`, `sigma_sb`, `m_sun`, `r_sun`, `l_sun`, `m_earth`, `r_earth`, `m_moon`, `r_moon` funcionan
+como `pi`, y puedes ensombrecerlas con tus propias constantes.
+
+**Fechas y tiempo.** `jd(y, m, d [, hr])` y `mjd(...)` convierten una fecha
+de calendario en fecha juliana; `now()` lee el instante actual:
+
+```epher
+jd(2000, 1, 1, 12)
+```
+
+```text
+2451545
+```
+
+`delta_t(jd)` es la corrección TT - UT1, y `lst(jd, lon)` es el tiempo
+sideral local en horas para una longitud este en grados.
+
+**Horas, minutos y segundos.** `hms2deg(h, m, s)` convierte ascensión recta
+a grados, `dms2deg(d, m, s)` un ángulo sexagesimal, y `deg2hms(x)` /
+`deg2dms(x)` escriben un ángulo como texto:
+
+```epher
+deg2hms(90)
+```
+
+```text
+6h 0m 0s
+```
+
+**El cielo, cuantificado.** Da a cada función un número de cuerpo:
+Mercurio 1, Venus 2, Marte 4, Júpiter 5, Saturno 6, Urano 7, Neptuno 8,
+Plutón 9, Sol 10, Luna 11 (la Tierra es 3, la observadora, nunca un
+objetivo).
+
+| Función | Significado |
+|---|---|
+| `ra(b, jd)`, `decl(b, jd)` | ascensión recta y declinación geocéntricas (grados) |
+| `dist(b, jd)` | distancia en UA |
+| `alt(b, jd, lat, lon)`, `az(b, jd, lat, lon)` | altura y acimut topocéntricos (grados, verdaderos) |
+| `rise(b, jd, lat, lon)`, `set(...)`, `transit(...)` | eventos del día solar local, como fechas julianas |
+| `mag(b, jd)` | magnitud aparente |
+| `phase(b, jd)`, `illum(b, jd)` | ángulo de fase (grados) y fracción iluminada |
+| `diam(b, jd)` | diámetro angular (grados) |
+
+```epher
+decl(10, jd(2000, 6, 21, 1.8))
+```
+
+```text
+23.437882351
+```
+
+Latitudes y longitudes son grados, este positivo. Las posiciones son
+geocéntricas salvo que se dé un observador. Plutón usa una órbita
+aproximada honesta a un minuto de arco, muy por debajo de la precisión de
+los demás cuerpos; los eclipses y las búsquedas de conjunciones no están
+incluidos.
+
+**Óptica y luz.** `kepler(M, e)` resuelve la ecuación de Kepler,
+`airmass(alt)` es la masa de aire sec(z), `dawes(d)` es el poder de
+resolución de una apertura de d milímetros en segundos de arco, y
+`dist_mod(mu)` convierte un módulo de distancia en pársecs.
+
+**Estaciones.** `march_equinox(year)`, `june_solstice(year)`,
+`september_equinox(year)` y `december_solstice(year)` devuelven la fecha
+juliana de cada cambio de estación:
+
+```epher
+march_equinox(2000)
+```
+
+```text
+1012520636/413
+```
+
+**El sistema solar en 3D.** El comando `solar3d` dibuja todo el sistema:
+cada órbita como una curva, cada cuerpo como un punto etiquetado, con una
+estela que muestra dónde estaba:
+
+```epher
+solar3d jd(2020, 7, 1)
+```
+
+Da el tiempo como una constante y pulsa el botón de reproducir para ver
+moverse los planetas: `const t = now(); solar3d t`. Arrastra o usa las
+flechas para orbitar, `clear` para vaciar y `solar3d save file.svg` para
+exportar.
+
+La efeméride la calcula el crate solar-ephemeris
+(github.com/Protonmatter/sol), validado contra JPL Horizons; gracias a su
+autor. La precisión es de clase arcsecond para el Sol, la Luna y los
+planetas a lo largo de unos 5000 años alrededor del presente.
+
+### 1.30 Finanzas
+
+El solucionador de valor del dinero en el tiempo (convención de signos
+TI: el dinero que sale es negativo, el que entra positivo) resuelve
+cualquiera de los cinco campos dados los otros cuatro. `i` es la tasa
+por periodo como fracción — 0.01 es el 1% — y el último argumento
+opcional es el momento del pago: 0 para fin de periodo (el
+predeterminado), 1 para inicio (anualidad anticipada).
+
+```epher
+tvm_pmt(360, 0.08/12, -100000, 0)
+```
+
+```text
+733.764573879
+```
+
+La hipoteca clásica del 8%: 360 pagos mensuales de 733.76 contra un
+préstamo de 100,000 — `tvm_pmt` es el pago, `tvm_pv` el préstamo,
+`tvm_fv` el saldo, `tvm_n` el plazo y `tvm_i` la tasa:
+
+```epher
+tvm_i(360, -100000, 733.76, 0)
+```
+
+```text
+0.00666661199068
+```
+
+La tasa aquí es algo inferior al 8%/12 porque 733.76 está redondeado.
+`npv(r, flows)` descuenta una lista de flujos y `irr(flows)` halla la
+tasa donde el valor actual neto es cero:
+
+```epher
+npv(0.1, {-100, 60, 60})
+```
+
+```text
+500/121
+```
+
+`amort(p, r, n, k)` es el saldo restante tras k pagos de un préstamo a
+n periodos, `simple_interest(p, r, t)` es `p*r*t`, y
+`compound_interest(p, r, n)` es `p*(1+r)^n - p`.
+

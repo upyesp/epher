@@ -1134,6 +1134,12 @@ fn copy_icon() -> yew::Html {
     }
 }
 
+/// The "copied" check (ADR-0057): the answer's copy button answers a
+/// press with a check for a moment, then returns to the copy mark.
+fn check_icon() -> yew::Html {
+    platform_icon("icon-svg", "<path d=\"M4.5 12.5 10 18 19.5 6.5\"/>")
+}
+
 /// The Save PNG icon (ADR-0042): an arrow into a tray, the standard
 /// download mark; the name stays available through the aria-label and
 /// tooltip like the other icon buttons.
@@ -1173,6 +1179,68 @@ pub fn answer_fits_at(text: &str, narrow: bool) -> bool {
     // clips (ADR-0035's everything-visible contract).
     let cap = if narrow { 24 } else { 44 };
     text.chars().count() <= cap
+}
+
+/// The export palette for the app's theme name (ADR-0057): an exported
+/// plot wears the same colors the pane wears.
+fn export_palette(theme: &str) -> graph::SvgPalette {
+    match theme {
+        "light" => graph::SvgPalette::Light,
+        "night" => graph::SvgPalette::Night,
+        _ => graph::SvgPalette::Dark,
+    }
+}
+
+/// The solar scene with the legend's unchecked bodies removed, the
+/// exact filter the live pane renders through (ADR-0038 amendment);
+/// exports go through it too so a hidden body stays hidden.
+fn filter_solar_scene(
+    scene: &epher_core::astro::SolarScene,
+    hidden: &[i64],
+) -> epher_core::astro::SolarScene {
+    epher_core::astro::SolarScene {
+        jd: scene.jd,
+        orbits: scene
+            .orbits
+            .iter()
+            .filter(|p| !hidden.contains(&p.body))
+            .cloned()
+            .collect(),
+        trails: scene
+            .trails
+            .iter()
+            .filter(|p| !hidden.contains(&p.body))
+            .cloned()
+            .collect(),
+        dots: scene
+            .dots
+            .iter()
+            .filter(|d| !hidden.contains(&d.body))
+            .cloned()
+            .collect(),
+    }
+}
+
+/// Serialize a value to a JSON string for localStorage (ADR-0057).
+/// serde_json, not serde_wasm_bindgen + JSON.stringify: the latter's
+/// value carries a deserialization prototype that stringifies to an
+/// empty object.
+fn json_string<T: serde::Serialize>(v: &T) -> Option<String> {
+    serde_json::to_string(v).ok()
+}
+
+/// The clipboard text for an answer (ADR-0057): the displayed answers
+/// without the "= " voice, one per line, so a paste gives the values.
+fn answer_clip(result: &str) -> String {
+    result
+        .split(ANSWER_SEP)
+        .map(|p| {
+            let t = p.trim();
+            t.strip_prefix("= ").unwrap_or(t).to_string()
+        })
+        .filter(|p| !p.is_empty())
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 /// Render the result text as answer items (ADR-0055): short answers flow
@@ -2017,6 +2085,31 @@ fn epher_app() -> Html {
     let form_ref = use_node_ref();
     let input_ref = use_node_ref();
     let result = use_state(String::new);
+    // Flips true for a moment after the answer's copy button is pressed
+    // (ADR-0057): the icon answers as a check and the label as
+    // "Copied", then the timer resets both.
+    let answer_copied = use_state(|| false);
+    // The answer on screen is part of the PWA's recent activity
+    // (ADR-0057). An effect keyed on the result state persists it with
+    // the fresh value: a submit closure's handle still derefs to the
+    // previous render's answer, the exact trap the session-live cell
+    // exists to avoid.
+    {
+        let result = result.clone();
+        use_effect_with(result.clone(), move |r| {
+            // The empty mount value never writes: the init restore below
+            // reads this same key, and a mount-time wipe would erase the
+            // answer before the restore could see it.
+            if !r.is_empty() {
+                if let Some(store) =
+                    web_sys::window().and_then(|w| w.local_storage().ok().flatten())
+                {
+                    let _ = store.set_item("epher-result", r);
+                }
+            }
+            || {}
+        });
+    }
     let localizer = use_state(|| Localizer::resolve(None, &[]));
     let graph = use_state(Vec::<SampledCurve>::new);
     let data = use_state(|| Option::<DataPlot>::None);
@@ -2103,6 +2196,11 @@ fn epher_app() -> Html {
     // Live mirrors of the rotation slider values for the spin loop.
     let view_h_cell = use_state(|| Rc::new(RefCell::new(0.0_f64)));
     let view_v_cell = use_state(|| Rc::new(RefCell::new(0.0_f64)));
+    // The zoom's live cell (ADR-0057): a pinch delivers a burst of
+    // pointer moves within one render, and the state handle's deref
+    // trails the render - the cell keeps every step composing on the
+    // true value.
+    let view_z_cell = use_state(|| Rc::new(RefCell::new(0.0_f64)));
     let play = use_state(|| Option::<PlaySpec>::None);
     // The playback analysis throttle: a persistent counter shared by the
     // per-render on_tick closures (each render rebuilds the closure for
@@ -2262,6 +2360,10 @@ fn epher_app() -> Html {
             s.clear_history();
             session.set(s);
             bridge.save_history(&[]);
+            if let Some(store) = web_sys::window().and_then(|w| w.local_storage().ok().flatten()) {
+                let _ = store.set_item("epher-history", "[]");
+                let _ = store.remove_item("epher-result");
+            }
             result.set(String::new());
         })
     };
@@ -2333,6 +2435,7 @@ fn epher_app() -> Html {
         let cursor_cell = cursor_cell.clone();
         let display_prefs = display_prefs.clone();
         let session_live = session_live.clone();
+        let session = session.clone();
         use_effect_with((), move |_| {
             if bridge == Bridge::Tauri {
                 let apply = apply_store_state.clone();
@@ -2437,10 +2540,40 @@ fn epher_app() -> Html {
                     if let Some(w) = w3d {
                         width_3d.set(w);
                     }
+                    // The PWA's recent activity (ADR-0057): history, the
+                    // session bindings (`ans` and every assignment), and the
+                    // answer on screen — reopening shows where the user left
+                    // off instead of a blank slate.
+                    let mut restored: Option<Session> = None;
+                    if let Ok(Some(json)) = store.get_item("epher-history") {
+                        if let Ok(hist) = serde_json::from_str::<Vec<String>>(&json) {
+                            let mut s = Session::with_history(hist);
+                            if let Ok(Some(json)) = store.get_item("epher-bindings") {
+                                if let Ok(bindings) = serde_json::from_str::<
+                                    std::collections::HashMap<String, epher_core::Value>,
+                                >(&json)
+                                {
+                                    s.restore_bindings(&bindings);
+                                }
+                            }
+                            s.set_display(*display_prefs);
+                            restored = Some(s);
+                        }
+                    }
+                    if let Some(s) = restored {
+                        session.set(s.clone());
+                        *session_live.borrow_mut() = s;
+                    } else {
+                        // The loaded display preferences (ADR-0043) shape the
+                        // live session from the first submit on.
+                        session_live.borrow_mut().set_display(*display_prefs);
+                    }
+                    if let Ok(Some(text)) = store.get_item("epher-result") {
+                        if !text.is_empty() {
+                            result.set(text);
+                        }
+                    }
                 }
-                // The loaded display preferences (ADR-0043) shape the
-                // live session from the first submit on.
-                session_live.borrow_mut().set_display(*display_prefs);
                 // The site's Examples page hands an example over via
                 // localStorage on touch devices (ADR-0035 amendment):
                 // tapping an example there copies it and opens the app
@@ -3195,6 +3328,7 @@ fn epher_app() -> Html {
         let view_v = view_v.clone();
         let view_h_cell = view_h_cell.clone();
         let view_v_cell = view_v_cell.clone();
+        let view_z_cell = view_z_cell.clone();
         let view_z = view_z.clone();
         let spin_phase = spin_phase.clone();
         let spin_phase_cell = spin_phase_cell.clone();
@@ -3293,6 +3427,7 @@ fn epher_app() -> Html {
                     hidden_curves3d.set(Vec::new());
                     view_h.set(0.0);
                     view_v.set(0.0);
+                    *view_z_cell.borrow_mut() = 0.0;
                     view_z.set(0.0);
                     spin_phase.set((0.0, 0.0));
                     *spin_phase_cell.borrow_mut() = (0.0, 0.0);
@@ -3418,7 +3553,8 @@ fn epher_app() -> Html {
                         hidden_curves3d.set(Vec::new());
                         view_h.set(0.0);
                         view_v.set(0.0);
-                        view_z.set(0.0);
+                        *view_z_cell.borrow_mut() = 0.0;
+                    view_z.set(0.0);
                         // The spin loop reads the live cells (not the
                         // states): stale non-zero cells here kept a
                         // fresh graph spinning with the sliders at 0
@@ -3446,7 +3582,8 @@ fn epher_app() -> Html {
                                 if curve3ds_local.is_empty() {
                                     view_h.set(0.0);
                                     view_v.set(0.0);
-                                    view_z.set(0.0);
+                                    *view_z_cell.borrow_mut() = 0.0;
+                    view_z.set(0.0);
                                     spin_phase.set((0.0, 0.0));
                                     *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                                 }
@@ -3485,7 +3622,8 @@ fn epher_app() -> Html {
                             if surfaces.is_empty() {
                                 view_h.set(0.0);
                                 view_v.set(0.0);
-                                view_z.set(0.0);
+                                *view_z_cell.borrow_mut() = 0.0;
+                    view_z.set(0.0);
                                 spin_phase.set((0.0, 0.0));
                                 *spin_phase_cell.borrow_mut() = (0.0, 0.0);
                             }
@@ -3524,7 +3662,8 @@ fn epher_app() -> Html {
                         solar_hidden.set(Vec::new());
                         view_h.set(0.0);
                         view_v.set(0.0);
-                        view_z.set(0.0);
+                        *view_z_cell.borrow_mut() = 0.0;
+                    view_z.set(0.0);
                         // The spin loop reads the live cells (not the
                         // states): stale non-zero cells here kept a
                         // fresh graph spinning with the sliders at 0
@@ -3562,7 +3701,8 @@ fn epher_app() -> Html {
                             *view_cell.borrow_mut() = home;
                             view_h.set(0.0);
                             view_v.set(0.0);
-                            view_z.set(0.0);
+                            *view_z_cell.borrow_mut() = 0.0;
+                    view_z.set(0.0);
                             // The spin loop reads the live cells: stale
                             // non-zero cells kept a fresh graph spinning
                             // with the sliders at 0 (ADR-0038 amendment).
@@ -3752,6 +3892,18 @@ fn epher_app() -> Html {
                 // The shared session snapshot travels with it: `ans` and
                 // user assignments survive into the next frontend.
                 bridge.save_session_state(s.bindings());
+            } else if let Some(store) =
+                web_sys::window().and_then(|w| w.local_storage().ok().flatten())
+            {
+                // The PWA's recent activity (ADR-0057): history, bindings,
+                // and the answer on screen, saved per line like the
+                // desktop store.
+                if let Some(json) = json_string(&s.history()) {
+                    let _ = store.set_item("epher-history", &json);
+                }
+                if let Some(json) = json_string(&s.bindings()) {
+                    let _ = store.set_item("epher-bindings", &json);
+                }
             }
         })
     };
@@ -3912,6 +4064,7 @@ fn epher_app() -> Html {
         let view_v = view_v.clone();
         let view_h_cell = view_h_cell.clone();
         let view_v_cell = view_v_cell.clone();
+        let view_z_cell = view_z_cell.clone();
         let view_z = view_z.clone();
         Callback::from(move |(axis, v): (&'static str, f64)| {
             let v = v.clamp(-1.0, 1.0);
@@ -3924,7 +4077,10 @@ fn epher_app() -> Html {
                     *view_v_cell.borrow_mut() = v;
                     view_v.set(v);
                 }
-                _ => view_z.set(v),
+                _ => {
+                    *view_z_cell.borrow_mut() = v;
+                    view_z.set(v);
+                }
             }
         })
     };
@@ -4209,6 +4365,8 @@ fn epher_app() -> Html {
         let view_z = view_z.clone();
         let spin_phase = spin_phase.clone();
         let view2d = view2d.clone();
+        let solar_hidden = solar_hidden.clone();
+        let theme = theme.clone();
         let result = result.clone();
         let localizer = localizer.clone();
         Callback::from(move |_| {
@@ -4240,33 +4398,86 @@ fn epher_app() -> Html {
                 .filter(|(i, _)| !(*hidden_surfaces).contains(i))
                 .map(|(i, s)| (i, s.clone()))
                 .collect();
+            // The export wears the app theme's palette and carries the
+            // pane's legend entries (ADR-0057): the picture answers to the
+            // same colors, widths, zoom, and captions the pane shows.
+            let palette = export_palette(&theme);
+            let view3d = effective_view(&view, *view_h, *view_v, *view_z, *spin_phase);
             let svg = if let Some(data) = (*data).as_ref() {
                 // The data plot's zoom window clips the export, exactly
                 // as the pane shows it (ADR-0055).
-                graph::data_svg_in(data, *view2d, *width_2d)
+                let mut legend = vec![graph::LegendEntry {
+                    color: graph::palette_curve(palette, 0).to_string(),
+                    caption: data.source.trim().to_string(),
+                }];
+                if let Some(f) = data.fit {
+                    legend[0].caption.push(' ');
+                    legend[0].caption.push_str(&graph::fit_legend(&f));
+                }
+                graph::data_svg_styled(data, *view2d, *width_2d, palette, &legend)
             } else if !visible.is_empty() {
-                graph::graph_svg_indexed(&visible, &pois_visible, *trace, *poi_markers, *width_2d)
+                let legend: Vec<graph::LegendEntry> = visible
+                    .iter()
+                    .map(|(i, c)| graph::LegendEntry {
+                        color: graph::palette_curve(palette, *i).to_string(),
+                        caption: graph::curve_caption(c),
+                    })
+                    .collect();
+                graph::graph_svg_styled(
+                    &visible,
+                    &pois_visible,
+                    *trace,
+                    *poi_markers,
+                    *width_2d,
+                    palette,
+                    &legend,
+                )
             } else if let Some(scene) = (*solar).as_ref() {
-                graph::solar3d_doc(
-                    scene,
-                    &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
+                // The legend's unchecked bodies stay out of the export too,
+                // through the same filtered scene the pane renders.
+                let shown = filter_solar_scene(scene, &solar_hidden);
+                let legend: Vec<graph::LegendEntry> = shown
+                    .dots
+                    .iter()
+                    .map(|d| graph::LegendEntry {
+                        color: epher_core::graph_svg::solar_color(d.body).to_string(),
+                        caption: epher_core::astro::body_name(d.body).to_string(),
+                    })
+                    .collect();
+                graph::solar3d_styled(&shown, &view3d, *width_3d, palette, &legend)
+                    .unwrap_or_default()
+            } else if !visible_curves3d.is_empty() {
+                let legend: Vec<graph::LegendEntry> = visible_curves3d
+                    .iter()
+                    .map(|(i, c)| graph::LegendEntry {
+                        color: graph::palette_curve(palette, *i).to_string(),
+                        caption: format!("param {}", c.source.trim()),
+                    })
+                    .collect();
+                graph::graph3d_curve_svg_styled(
+                    &visible_curves3d,
+                    &view3d,
                     *width_3d,
+                    palette,
+                    &legend,
                 )
                 .unwrap_or_default()
-            } else if let Some(doc) = graph::graph3d_curve_svg_indexed(
-                &visible_curves3d,
-                &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
-                *width_3d,
-            ) {
-                doc
-            } else if let Some(doc) = graph::graph3d_svg_indexed(
-                &visible_surfaces3d,
-                &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
-                *width_3d,
-            ) {
-                doc
             } else {
-                String::new()
+                let legend: Vec<graph::LegendEntry> = visible_surfaces3d
+                    .iter()
+                    .map(|(i, s)| graph::LegendEntry {
+                        color: graph::palette_curve(palette, *i).to_string(),
+                        caption: format!("z = {}", s.source.trim()),
+                    })
+                    .collect();
+                graph::graph3d_svg_styled(
+                    &visible_surfaces3d,
+                    &view3d,
+                    *width_3d,
+                    palette,
+                    &legend,
+                )
+                .unwrap_or_default()
             };
             if svg.is_empty() {
                 return;
@@ -4310,6 +4521,8 @@ fn epher_app() -> Html {
         let view_z = view_z.clone();
         let spin_phase = spin_phase.clone();
         let view2d = view2d.clone();
+        let solar_hidden = solar_hidden.clone();
+        let theme = theme.clone();
         let result = result.clone();
         let localizer = localizer.clone();
         Callback::from(move |_| {
@@ -4340,30 +4553,84 @@ fn epher_app() -> Html {
                 .filter(|(i, _)| !(*hidden_surfaces).contains(i))
                 .map(|(i, s)| (i, s.clone()))
                 .collect();
+            // The export wears the app theme's palette and carries the
+            // pane's legend entries (ADR-0057): the picture answers to the
+            // same colors, widths, zoom, and captions the pane shows.
+            let palette = export_palette(&theme);
+            let view3d = effective_view(&view, *view_h, *view_v, *view_z, *spin_phase);
             let svg = if let Some(data) = (*data).as_ref() {
                 // The data plot's zoom window clips the export, exactly
                 // as the pane shows it (ADR-0055).
-                graph::data_svg_in(data, *view2d, *width_2d)
+                let mut legend = vec![graph::LegendEntry {
+                    color: graph::palette_curve(palette, 0).to_string(),
+                    caption: data.source.trim().to_string(),
+                }];
+                if let Some(f) = data.fit {
+                    legend[0].caption.push(' ');
+                    legend[0].caption.push_str(&graph::fit_legend(&f));
+                }
+                graph::data_svg_styled(data, *view2d, *width_2d, palette, &legend)
             } else if !visible.is_empty() {
-                graph::graph_svg_indexed(&visible, &pois_visible, *trace, *poi_markers, *width_2d)
+                let legend: Vec<graph::LegendEntry> = visible
+                    .iter()
+                    .map(|(i, c)| graph::LegendEntry {
+                        color: graph::palette_curve(palette, *i).to_string(),
+                        caption: graph::curve_caption(c),
+                    })
+                    .collect();
+                graph::graph_svg_styled(
+                    &visible,
+                    &pois_visible,
+                    *trace,
+                    *poi_markers,
+                    *width_2d,
+                    palette,
+                    &legend,
+                )
             } else if let Some(scene) = (*solar).as_ref() {
-                graph::solar3d_doc(
-                    scene,
-                    &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
+                // The legend's unchecked bodies stay out of the export too,
+                // through the same filtered scene the pane renders.
+                let shown = filter_solar_scene(scene, &solar_hidden);
+                let legend: Vec<graph::LegendEntry> = shown
+                    .dots
+                    .iter()
+                    .map(|d| graph::LegendEntry {
+                        color: epher_core::graph_svg::solar_color(d.body).to_string(),
+                        caption: epher_core::astro::body_name(d.body).to_string(),
+                    })
+                    .collect();
+                graph::solar3d_styled(&shown, &view3d, *width_3d, palette, &legend)
+                    .unwrap_or_default()
+            } else if !visible_curves3d.is_empty() {
+                let legend: Vec<graph::LegendEntry> = visible_curves3d
+                    .iter()
+                    .map(|(i, c)| graph::LegendEntry {
+                        color: graph::palette_curve(palette, *i).to_string(),
+                        caption: format!("param {}", c.source.trim()),
+                    })
+                    .collect();
+                graph::graph3d_curve_svg_styled(
+                    &visible_curves3d,
+                    &view3d,
                     *width_3d,
+                    palette,
+                    &legend,
                 )
                 .unwrap_or_default()
-            } else if let Some(doc) = graph::graph3d_curve_svg_indexed(
-                &visible_curves3d,
-                &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
-                *width_3d,
-            ) {
-                doc
             } else {
-                graph::graph3d_svg_indexed(
+                let legend: Vec<graph::LegendEntry> = visible_surfaces3d
+                    .iter()
+                    .map(|(i, s)| graph::LegendEntry {
+                        color: graph::palette_curve(palette, *i).to_string(),
+                        caption: format!("z = {}", s.source.trim()),
+                    })
+                    .collect();
+                graph::graph3d_svg_styled(
                     &visible_surfaces3d,
-                    &effective_view(&view, *view_h, *view_v, *view_z, *spin_phase),
+                    &view3d,
                     *width_3d,
+                    palette,
+                    &legend,
                 )
                 .unwrap_or_default()
             };
@@ -4483,14 +4750,17 @@ fn epher_app() -> Html {
     // moves: the effective camera is base × 10^(−2z).
     let on_zoom3d = {
         let view_z = view_z.clone();
+        let view_z_cell = view_z_cell.clone();
         Callback::from(move |factor: f64| {
-            let z = *view_z;
+            let z = *view_z_cell.borrow();
             // camera ∝ 10^(−2z): a camera factor f is a shift of
             // −log10(f)/2 in z. The clamp keeps the effective camera in
             // the band the old direct-camera zoom used (0.01..1e7).
             let zmin = -0.5 * (1e7_f64 / 30.0).log10();
             let zmax = -0.5 * (0.01_f64 / 30.0).log10();
-            view_z.set((z - 0.5 * factor.log10()).clamp(zmin, zmax));
+            let next = (z - 0.5 * factor.log10()).clamp(zmin, zmax);
+            *view_z_cell.borrow_mut() = next;
+            view_z.set(next);
         })
     };
     // Reset a 3D fine-control slider to its default (ADR-0055): pressing
@@ -4499,6 +4769,7 @@ fn epher_app() -> Html {
     let on_reset_view = {
         let view_h = view_h.clone();
         let view_v = view_v.clone();
+        let view_z_cell = view_z_cell.clone();
         let view_z = view_z.clone();
         let view_h_cell = view_h_cell.clone();
         let view_v_cell = view_v_cell.clone();
@@ -4511,7 +4782,11 @@ fn epher_app() -> Html {
                 *view_v_cell.borrow_mut() = 0.0;
                 view_v.set(0.0);
             }
-            _ => view_z.set(0.0),
+            _ => {
+                *view_z_cell.borrow_mut() = 0.0;
+                *view_z_cell.borrow_mut() = 0.0;
+                    view_z.set(0.0);
+            }
         })
     };
     let on_reset_width_2d = {
@@ -4540,6 +4815,43 @@ fn epher_app() -> Html {
             solar_hidden.set(hidden);
         })
     };
+    // Copy the answer (ADR-0057): the values behind what's on screen —
+    // the answer line's single answer or the result pane's whole
+    // transcript — one per line, onto the clipboard. The icon answers
+    // with a check for a moment; the answer itself never moves.
+    let on_copy_answer = {
+        let result = result.clone();
+        let answer_copied = answer_copied.clone();
+        let localizer = localizer.clone();
+        Callback::from(move |_| {
+            let text = answer_clip(&result);
+            if text.is_empty() {
+                return;
+            }
+            answer_copied.set(true);
+            if let Some(window) = web_sys::window() {
+                let answer_copied = answer_copied.clone();
+                let reset = Closure::once(move || answer_copied.set(false));
+                let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(
+                    reset.as_ref().unchecked_ref(),
+                    1600,
+                );
+                reset.forget();
+            }
+            let result = result.clone();
+            let localizer = localizer.clone();
+            spawn_local(async move {
+                let ok = match web_sys::window().map(|w| w.navigator().clipboard()) {
+                    Some(clipboard) => clipboard.write_text(&text).await.is_ok(),
+                    None => false,
+                };
+                if !ok {
+                    result.set(localizer.lookup("answer-copy-failed"));
+                }
+            });
+        })
+    };
+
     // Copy the points of interest (ADR-0038): the same lines the list
     // shows, one per line, onto the clipboard.
     let on_copy_pois = {
@@ -5253,7 +5565,8 @@ fn epher_app() -> Html {
             *live.borrow_mut() = GraphLive::default();
             view_h.set(0.0);
             view_v.set(0.0);
-            view_z.set(0.0);
+            *view_z_cell.borrow_mut() = 0.0;
+                    view_z.set(0.0);
             spin_phase.set((0.0, 0.0));
             *spin_phase_cell.borrow_mut() = (0.0, 0.0);
             result.set(localizer.lookup("graph-cleared"));
@@ -6013,6 +6326,28 @@ fn epher_app() -> Html {
                         <span class="visually-hidden" id="answer-label">
                             { localizer.lookup("answer") }
                         </span>
+                        <div class="answer-row">
+                        {
+                            // Copy the answer (ADR-0057): one copy icon
+                            // just left of the answer, present only while
+                            // an answer is on screen. It answers a press
+                            // with a check, then returns to the copy mark.
+                            if answer_fits(&result) && !result.is_empty() {
+                                html! {
+                                    <button
+                                        type="button"
+                                        class="icon-btn copy-answer"
+                                        title={ if *answer_copied { localizer.lookup("answer-copied") } else { localizer.lookup("answer-copy") } }
+                                        aria-label={ if *answer_copied { localizer.lookup("answer-copied") } else { localizer.lookup("answer-copy") } }
+                                        onclick={on_copy_answer.clone()}
+                                    >
+                                        { if *answer_copied { check_icon() } else { copy_icon() } }
+                                    </button>
+                                }
+                            } else {
+                                html! {}
+                            }
+                        }
                         <div
                             id="epher-result"
                             class="result"
@@ -6032,6 +6367,7 @@ fn epher_app() -> Html {
                                     html! {}
                                 }
                             }
+                        </div>
                         </div>
                     </div>
                     <section class="history-box" tabindex="0" aria-label={localizer.lookup("history")} ref={history_box_ref.clone()}>
@@ -6275,10 +6611,21 @@ fn epher_app() -> Html {
                         if !result.is_empty() && !answer_fits(&result) {
                             html! {
                                 <section class="pane-result" role="status" aria-live="polite">
-                                    { for result
-                                        .split(ANSWER_SEP)
-                                        .filter(|p| !p.is_empty())
-                                        .map(|p| html! { <div class="pane-answer">{ p }</div> }) }
+                                    <button
+                                        type="button"
+                                        class="icon-btn copy-answer"
+                                        title={ if *answer_copied { localizer.lookup("answer-copied") } else { localizer.lookup("answer-copy") } }
+                                        aria-label={ if *answer_copied { localizer.lookup("answer-copied") } else { localizer.lookup("answer-copy") } }
+                                        onclick={on_copy_answer.clone()}
+                                    >
+                                        { if *answer_copied { check_icon() } else { copy_icon() } }
+                                    </button>
+                                    <div class="pane-answers">
+                                        { for result
+                                            .split(ANSWER_SEP)
+                                            .filter(|p| !p.is_empty())
+                                            .map(|p| html! { <div class="pane-answer">{ p }</div> }) }
+                                    </div>
                                 </section>
                             }
                         } else {
@@ -6635,6 +6982,7 @@ fn epher_app() -> Html {
                                                 view_box={shown_box}
                                                 content={content}
                                                 aria_label={aria}
+                                                stroke_px={graph::THREE_D_PX_PER_WIDTH * *width_3d}
                                                 on_orbit={on_orbit}
                                                 on_zoom={on_zoom3d.clone()}
                                             />
@@ -6727,6 +7075,7 @@ fn epher_app() -> Html {
                                                             view_box={shown_box}
                                                             content={content}
                                                             aria_label={aria}
+                                                stroke_px={graph::THREE_D_PX_PER_WIDTH * *width_3d}
                                                             on_orbit={on_orbit}
                                                             on_zoom={on_zoom3d.clone()}
                                                         />
@@ -6823,6 +7172,7 @@ fn epher_app() -> Html {
                                                             view_box={shown_box}
                                                             content={content}
                                                             aria_label={aria}
+                                                stroke_px={graph::THREE_D_PX_PER_WIDTH * *width_3d}
                                                             on_orbit={on_orbit}
                                                             on_zoom={on_zoom3d.clone()}
                                                         />

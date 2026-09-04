@@ -325,3 +325,16 @@ number — slides the result pane into view exactly as a drawn plot
 always has, and drops the entry's focus for the same reason (the
 keyboard must close so the answer can be read). Short single answers
 change nothing: they stay in the answer panel on the calculator pane.
+
+## Amendment (2026-09-04): the pinch belongs to the graph, on every engine
+
+Two fingers on a plot zoom the app, never the page: the plots claim
+the gesture for themselves (`touch-action: none`), the camera answers,
+and the zoom slider follows the fingers (the 2D pane since ADR-0038;
+the 3D scene's pinch drives the same slider state). One engine fact
+needed recording: some touch stacks - iOS WebKit's gesture recognizer
+among them - cancel the pointer stream the moment a second finger
+lands, even under `touch-action: none`. The 3D scene therefore also
+listens to touch events directly (ADR-0057): the same distance ratio
+zooms the camera through them, the two streams mutually exclude, and
+the slider's value is the single source of truth either way.

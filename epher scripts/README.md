@@ -25,8 +25,8 @@ epher scripts/
 `astronomy/moon/full-moons.epher` is the **reference example**: read it
 first, and follow it when you contribute. It shows the language as it
 stands today: plain arithmetic and `def` helpers, `const` knobs, the
-`for`, `if`, `print` and strings surface (guide 1.7-1.9 and 1.29-1.30),
-recursion, and the astronomy accessors and constants (guide 1.16). Each
+`for`, `if`, `print` and strings surface (guide 1.7-1.11), recursion,
+and the astronomy accessors and constants (guide 1.18). Each
 use names the guide chapter that teaches it, so a reader can look any
 line up. Its expected-output block shows the whole transcript of a run,
 and that block is checked mechanically by `scripts/check-scripts.mjs`.
@@ -73,7 +73,7 @@ example turns those facts into a house style:
    trailing note saying what it is. Helpers are defined before first
    use. A `def` body is one expression on one line; recursion is fine up
    to a few dozen calls, and longer iteration uses `for` or `while`
-   (guide 1.8-1.10, 1.30).
+   (guide 1.8-1.12).
 6. **Use the builtins.** epher ships a full function library (guide
    1.13-1.28): do not redefine `mean`, `gcd`, `isprime`, `solve`, or any
    other function the language already has. A script that demonstrates a

@@ -4601,9 +4601,12 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             graph_text.push_str(&poi_lines.join("   "));
         }
     }
+    // The plot pane shares the web app's pane name (ADR-0056): the
+    // localized "Result" — graphs and long answers live in the same
+    // pane there, and the terminal calls it the same thing.
     let graph = Paragraph::new(graph_text)
         .style(Style::default().fg(fg))
-        .block(block(localizer.lookup("tui-graph")));
+        .block(block(localizer.lookup("result-pane")));
     frame.render_widget(graph, graph_area);
 
     // The open menu popup goes on top of everything else: draw it last,

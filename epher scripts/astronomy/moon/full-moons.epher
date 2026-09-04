@@ -16,16 +16,11 @@
 
    This file is the reference example for the epher scripts folder (the
    README at its root explains the format standard). It sits with the other
-   Moon scripts under astronomy/moon/. Every statement fits one line, and
-   the comments follow the folder's convention: a run of more than three
-   comment lines becomes a block comment like this banner, short notes keep
-   the `//` style, and a note that belongs to one statement sits at its end
-   after `//`, never inside the statement. A script file is a whole program,
-   so a block comment may span lines here; when typing into the REPL or TUI,
-   close a block comment on its own line. The file shows the language's
+   Moon scripts under astronomy/moon/; comment style and file format are
+   the README's business, not this banner's. The file shows the language's
    modern surface, one idea per line, with the guide chapter for each:
-   `for` loops (1.30), strings and `print` (1.29), `if` decisions (1.7),
-   and the astronomy accessors and constants (1.16).
+   `for` loops (1.10), strings and `print` (1.7), `if` decisions (1.8),
+   and the astronomy accessors and constants (1.18).
 
    Run it from a terminal:  epher "epher scripts/astronomy/moon/full-moons.epher"
    In the REPL:             load epher scripts/astronomy/moon/full-moons.epher
@@ -80,10 +75,8 @@ def kfirst(jd0) = ceil((jd0 - 2451550.09766) / 29.530588861 - 0.5) + 0.5
 k = kfirst(jd(year, 1, 1))
 
 // ---- results ------------------------------------------------------------------
-// The results print below. The banner is a block comment (runs of more
-// than three comment lines become blocks); short notes keep the `//`
-// style, and a note on a statement line sits at its end, never inside.
-/* The full moons of the year, Julian Dates in UT. A for loop (guide 1.30)
+// The results print below.
+/* The full moons of the year, Julian Dates in UT. A for loop (guide 1.10)
    stands in for typing thirteen calls: it collects one value per step into
    a list, and n runs 0 to 12 inclusive. Thirteen entries: a year usually
    has twelve full moons and the thirteenth lands a few days into January;
@@ -94,7 +87,7 @@ k = kfirst(jd(year, 1, 1))
 for n in 0 to 12 do fullmoon(k + n)
 
 // The first full moon in everyday terms: how far into the year it falls,
-// then its clock time in UT. print (guide 1.29) joins its arguments with
+// then its clock time in UT. print (guide 1.7) joins its arguments with
 // spaces into one readable line, and a unit conversion (`in hr`) keeps its
 // unit label when a print argument carries it.
 print("first full moon:", fullmoon(k) - jd(year, 1, 1), "days into", year)
@@ -103,17 +96,17 @@ print("clock time in UT:", ((fullmoon(k) + 0.5) - floor(fullmoon(k) + 0.5)) * 24
 /* How many full moons the year carries, which answers the blue-moon
    exercise: thirteen moons over twelve months means one month held two
    (a month can hold two only when the year has thirteen; the count is
-   the safe half of that fact). if (guide 1.7) picks between two strings,
+   the safe half of that fact). if (guide 1.8) picks between two strings,
    which print then writes out. */
 if fullmoon(k + 12) < jd(year + 1, 1, 1) then "13 full moons this year: one month holds two (a blue moon)" else "12 full moons this year"
 
 /* The Moon's distance at that first instant: the built-in ephemeris
-   accessor dist (guide 1.16) gives AU, and the au and r_earth constants
+   accessor dist (guide 1.18) gives AU, and the au and r_earth constants
    convert the count to Earth radii, the number the eye can hold. */
 print("Moon distance:", dist(11, fullmoon(k)) * au / r_earth, "Earth radii =", dist(11, fullmoon(k)), "AU")
 
 /* Cross-check against the built-in ephemeris (the solar-ephemeris crate,
-   JPL-validated; guide 1.16), which knows nothing of Meeus: the Moon's
+   JPL-validated; guide 1.18), which knows nothing of Meeus: the Moon's
    lit face at the first instant and half a day either side. Full moon
    tops out at 0.9986, not 1: the Moon runs 5 degrees off the ecliptic,
    so the instant of full illumination in longitude is not quite the

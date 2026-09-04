@@ -365,13 +365,32 @@
       color: var(--muted);
       padding-inline: 0.25rem 0.5rem;
     }
+    /* The answer's copy row (ADR-0057): one copy icon just left of the
+       answer - in the answer line and in the result pane alike. */
+    .answer-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.35rem;
+      padding-inline: 0.4rem;
+    }
+    .answer-row .result {
+      flex: 1;
+      min-width: 0;
+    }
     /* The result transcript (ADR-0056): a long answer renders in the
        result pane, one answer per line - never joined onto one line.
        The pane gives it the room the one-line answer area cannot. */
     .pane-result {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.35rem;
       padding: 0.75rem 1rem;
       font-size: 1.15rem;
       font-weight: 300;
+    }
+    .pane-answers {
+      flex: 1;
+      min-width: 0;
     }
     .pane-answer {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
