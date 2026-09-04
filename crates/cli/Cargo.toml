@@ -1,6 +1,6 @@
 [package]
 name = "epher-cli"
-version = "0.5.23"
+version = "0.5.24"
 edition = "2021"
 license = "MIT"
 description = "Native command-line frontend — one-shot evaluation + REPL."
