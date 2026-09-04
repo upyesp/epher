@@ -8,8 +8,11 @@
    the relation V = r S / 3 with the surface area S = 4 pi r^2, the
    sphere seen as a cone with base S and apex at the center.
 
-   Run it from a terminal:  epher "epher scripts/geometry/solids/sphere-volume.epher"
-   In the REPL:             load epher scripts/geometry/solids/sphere-volume.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/sphere-volume.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\sphere-volume.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/sphere-volume.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knob to edit is `r`, the radius. Everything above the results

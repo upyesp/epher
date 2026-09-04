@@ -11,8 +11,11 @@
    place values 1, 8, 64 and 512 made explicit under the first check.
    Evaluation is exact for every value here.
 
-   Run it from a terminal:  epher "epher scripts/number-theory/bases/octal-to-decimal.epher"
-   In the REPL:             load epher scripts/number-theory/bases/octal-to-decimal.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/bases/octal-to-decimal.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\bases\octal-to-decimal.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/bases/octal-to-decimal.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    There is no knob: the sample literals are the point of the script.

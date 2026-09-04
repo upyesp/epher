@@ -13,7 +13,10 @@
    Source: Feller, "An Introduction to Probability Theory and Its
    Applications", volume 1, chapter 2. The counts are exact integers.
 
-   Run it from a terminal:  epher "epher scripts/probability/counting/poker-hand-counts.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/poker-hand-counts.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\poker-hand-counts.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/poker-hand-counts.epher
    Web/desktop:             paste the file into the entry, press Enter
    ============================================================================ */
 

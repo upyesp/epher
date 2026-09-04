@@ -9,8 +9,11 @@
    a = c sin A / sin C. Angles come in degrees through the knobs and are
    converted with rad() for the builtin trig; the sides keep meters.
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/triangles/law-of-sines.epher"
-   In the REPL:             load epher scripts/trigonometry/triangles/law-of-sines.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/law-of-sines.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\law-of-sines.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/law-of-sines.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are the angles A and B (degrees) and the two given

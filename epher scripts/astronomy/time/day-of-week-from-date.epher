@@ -11,8 +11,11 @@
    the day after the Thursday of 1582-10-04 in the Julian calendar -
    the Gregorian reform skipped ten days.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/time/day-of-week-from-date.epher"
-   In the REPL:             load epher scripts/astronomy/time/day-of-week-from-date.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/day-of-week-from-date.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\day-of-week-from-date.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/day-of-week-from-date.epher
+   In the REPL:             load one of the paths above
 
    Knob: none - the dates below are fixed.
    ============================================================================ */

@@ -8,7 +8,10 @@
    The trajectory values are exact fractions, printed as fractions where the
    decimal would repeat. The final x is checked against sqrt(2).
 
-   Run it from a terminal:  epher "epher scripts/algebra/sequences-series/recursive-sequence.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/recursive-sequence.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\recursive-sequence.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/recursive-sequence.epher
 
    The knobs to edit are the start and the number of steps below.
    ============================================================================ */

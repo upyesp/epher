@@ -7,8 +7,11 @@
    gives V = 360 / 3 = 120, exact. The results check that the pyramid
    with a 3 by 3 base and height 4 holds exactly 12.
 
-   Run it from a terminal:  epher "epher scripts/geometry/solids/square-pyramid-volume.epher"
-   In the REPL:             load epher scripts/geometry/solids/square-pyramid-volume.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/square-pyramid-volume.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\square-pyramid-volume.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/square-pyramid-volume.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are `b` (base side) and `h` (height).

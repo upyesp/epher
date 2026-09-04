@@ -8,8 +8,11 @@
    true when the two sides differ by less than 1e-12 (double-precision
    noise is around 1e-15 here, so the checks are honest).
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/identities/pythagorean-identity.epher"
-   In the REPL:             load epher scripts/trigonometry/identities/pythagorean-identity.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/pythagorean-identity.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\pythagorean-identity.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/pythagorean-identity.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The one knob to edit is the `degs` list below (degrees; the checks run

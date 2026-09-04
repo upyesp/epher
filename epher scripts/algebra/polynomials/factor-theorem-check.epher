@@ -8,7 +8,10 @@
    printed booleans show both verdicts. A synthetic-division carry chain by
    (x - 3) then confirms the factor with remainder 0. All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/polynomials/factor-theorem-check.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/factor-theorem-check.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\factor-theorem-check.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/factor-theorem-check.epher
 
    The knobs to edit are cs and the divisors to test below.
    ============================================================================ */

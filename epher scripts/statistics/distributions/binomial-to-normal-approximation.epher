@@ -9,8 +9,11 @@
    stand-in when np and n(1 - p) are both at least 5, which holds here
    with 50 and 50.
 
-   Run it from a terminal:  epher "epher scripts/statistics/distributions/binomial-to-normal-approximation.epher"
-   In the REPL:             load epher scripts/statistics/distributions/binomial-to-normal-approximation.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/binomial-to-normal-approximation.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\binomial-to-normal-approximation.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/binomial-to-normal-approximation.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

@@ -13,7 +13,10 @@
    Accuracy: the boolean residuals are checked at 1e-9; the largest of
    the three is about 2e-12.
 
-   Run:  epher "epher scripts/calculus/derivatives/product-rule-check.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/derivatives/product-rule-check.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\derivatives\product-rule-check.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/derivatives/product-rule-check.epher
    No knobs: the three points are the demonstration.
    ============================================================================ */
 

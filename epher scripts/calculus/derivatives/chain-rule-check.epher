@@ -15,7 +15,10 @@
    second derivative of x^3 at 2 lands within 1.2e-8 of 12, and of
    exp(x^2) at 0.5 within 6.2e-8 of (2 + 4x^2) exp(x^2) = 3 exp(0.25).
 
-   Run:  epher "epher scripts/calculus/derivatives/chain-rule-check.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/derivatives/chain-rule-check.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\derivatives\chain-rule-check.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/derivatives/chain-rule-check.epher
    No knobs: the points are the demonstration.
    ============================================================================ */
 

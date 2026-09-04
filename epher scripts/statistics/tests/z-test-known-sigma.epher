@@ -8,8 +8,11 @@
    p-value as a display string. With sigma known the standard error of
    the mean is sigma / sqrt(n) and no sample standard deviation is needed.
 
-   Run it from a terminal:  epher "epher scripts/statistics/tests/z-test-known-sigma.epher"
-   In the REPL:             load epher scripts/statistics/tests/z-test-known-sigma.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/z-test-known-sigma.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\z-test-known-sigma.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/z-test-known-sigma.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

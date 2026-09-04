@@ -17,7 +17,10 @@
    full distribution as fractions, and X ~ Bin(10, 1/2) (ten fair coin
    flips) shows the classic P(X = 3) = ncr(10, 3) / 2^10 = 15/128.
 
-   Run it from a terminal:  epher "epher scripts/probability/distributions/binomial-pmf.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/binomial-pmf.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\binomial-pmf.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/binomial-pmf.epher
    Web/desktop:             paste the file into the entry, press Enter
    ============================================================================ */
 

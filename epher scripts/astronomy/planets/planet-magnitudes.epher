@@ -9,8 +9,11 @@
    of a planet depends on its distance from Earth and from the Sun, and
    on its phase.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/planets/planet-magnitudes.epher"
-   In the REPL:             load epher scripts/astronomy/planets/planet-magnitudes.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-magnitudes.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-magnitudes.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-magnitudes.epher
+   In the REPL:             load one of the paths above
 
    Knob: the date t.
    ============================================================================ */

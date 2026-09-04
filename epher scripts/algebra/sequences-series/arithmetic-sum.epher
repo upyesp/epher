@@ -8,7 +8,10 @@
    25 terms sum to 25 (3 + 99) / 2 = 1275, cross-checked by adding the terms
    one by one in a quiet while loop. All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/sequences-series/arithmetic-sum.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/arithmetic-sum.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\arithmetic-sum.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/arithmetic-sum.epher
 
    The knobs to edit are a, d and n below.
    ============================================================================ */

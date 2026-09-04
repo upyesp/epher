@@ -17,7 +17,10 @@
 
    Source: Ross, "A First Course in Probability", chapter 4.
 
-   Run it from a terminal:  epher "epher scripts/probability/distributions/expected-value-dice.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/expected-value-dice.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\expected-value-dice.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/expected-value-dice.epher
    Web/desktop:             paste the file into the entry, press Enter
    ============================================================================ */
 

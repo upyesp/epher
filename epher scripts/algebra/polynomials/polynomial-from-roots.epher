@@ -8,7 +8,10 @@
    cubic x^3 - 6x^2 + 11x - 6, then both forms are evaluated at x = 4 and
    compared. All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/polynomials/polynomial-from-roots.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/polynomial-from-roots.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\polynomial-from-roots.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/polynomial-from-roots.epher
 
    The knobs to edit are the roots r1, r2 and r3 below.
    ============================================================================ */

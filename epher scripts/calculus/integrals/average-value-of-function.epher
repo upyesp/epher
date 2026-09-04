@@ -13,7 +13,10 @@
    Accuracy: exact at the displayed precision (the average of x^2 on
    [0, 3] prints exactly 3).
 
-   Run:  epher "epher scripts/calculus/integrals/average-value-of-function.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/average-value-of-function.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\average-value-of-function.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/average-value-of-function.epher
    No knobs: the two examples are the demonstration.
    ============================================================================ */
 

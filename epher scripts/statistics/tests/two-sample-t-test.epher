@@ -9,8 +9,11 @@
    formulas are written out below; scipy's ttest_ind with
    equal_var = False reproduces these same numbers.
 
-   Run it from a terminal:  epher "epher scripts/statistics/tests/two-sample-t-test.epher"
-   In the REPL:             load epher scripts/statistics/tests/two-sample-t-test.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/two-sample-t-test.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\two-sample-t-test.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/two-sample-t-test.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

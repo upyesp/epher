@@ -15,7 +15,10 @@
    Accuracy: every residual below is well under 1e-9; at p = pi/2 the
    absolute residual is about 7.2e-14.
 
-   Run:  epher "epher scripts/calculus/derivatives/derivative-of-sin-check.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/derivatives/derivative-of-sin-check.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\derivatives\derivative-of-sin-check.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/derivatives/derivative-of-sin-check.epher
    No knobs: the four points are the demonstration.
    ============================================================================ */
 

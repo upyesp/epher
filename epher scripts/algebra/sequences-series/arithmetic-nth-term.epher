@@ -7,7 +7,10 @@
    a = 3, d = 4 the sequence is 3, 7, 11, 15, ... and t_25 = 99. All values
    are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/sequences-series/arithmetic-nth-term.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/arithmetic-nth-term.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\arithmetic-nth-term.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/arithmetic-nth-term.epher
 
    The knobs to edit are a, d and n below.
    ============================================================================ */

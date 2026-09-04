@@ -7,8 +7,11 @@
    plain area of 100. The round-trip check squares the radius again and
    compares with the starting area.
 
-   Run it from a terminal:  epher "epher scripts/geometry/circles/radius-from-area.epher"
-   In the REPL:             load epher scripts/geometry/circles/radius-from-area.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/circles/radius-from-area.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\circles\radius-from-area.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/circles/radius-from-area.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knob to edit is `area`. Everything above the results section is

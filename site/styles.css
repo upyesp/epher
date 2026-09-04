@@ -1068,10 +1068,27 @@ a:hover {
 
 .script-run {
   margin: 0.75rem 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.run-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.run-os {
+  flex: 0 0 auto;
+  min-width: 8.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 
 .script-run code {
-  display: inline-block;
+  flex: 1 1 auto;
+  width: fit-content;
   padding: 0.35rem 0.6rem;
   background: var(--panel);
   border: 1px solid var(--border);

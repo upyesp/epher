@@ -22,7 +22,10 @@
    Accuracy: the printed value is exact at its 12 displayed digits; the
    residual against e is 0.00000208432387927, checked at 1e-5.
 
-   Run:  epher "epher scripts/calculus/models/runge-kutta-4.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/runge-kutta-4.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\runge-kutta-4.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/runge-kutta-4.epher
    The knobs to edit are `h` and `steps` below.
    ============================================================================ */
 

@@ -14,7 +14,10 @@
    Source: standard Monte Carlo practice; see Ross, "Simulation",
    chapter 4.
 
-   Run it from a terminal:  epher "epher scripts/probability/simulations/dice-sum-simulation.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/simulations/dice-sum-simulation.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\simulations\dice-sum-simulation.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/simulations/dice-sum-simulation.epher
    Web/desktop:             paste the file into the entry, press Enter
 
    The knob to edit is `rolls`; everything below it is machinery.

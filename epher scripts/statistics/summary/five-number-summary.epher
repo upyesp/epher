@@ -7,8 +7,11 @@
    convention: the median of the lower half for Q1, of the upper half for
    Q3, and on an even count the median is the mean of the two middle values.
 
-   Run it from a terminal:  epher "epher scripts/statistics/summary/five-number-summary.epher"
-   In the REPL:             load epher scripts/statistics/summary/five-number-summary.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/five-number-summary.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\five-number-summary.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/five-number-summary.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

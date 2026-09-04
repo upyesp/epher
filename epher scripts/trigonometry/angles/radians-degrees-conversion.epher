@@ -8,8 +8,11 @@
    sin(30 deg) = 0.5. Everything below just calls the builtins; nothing is
    redefined.
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/angles/radians-degrees-conversion.epher"
-   In the REPL:             load epher scripts/trigonometry/angles/radians-degrees-conversion.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/radians-degrees-conversion.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\radians-degrees-conversion.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/radians-degrees-conversion.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The one knob to edit is the `degs` list below. Printed values carry about

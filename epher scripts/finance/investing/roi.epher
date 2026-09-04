@@ -17,7 +17,9 @@
    Accuracy: exact arithmetic, so the printed roi is exact.
 
    Run it from a terminal:
-     epher "epher scripts/finance/investing/roi.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/roi.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\roi.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/roi.epher
 
    The knobs to edit are in the knob section; everything after it is
    machinery you can leave alone.

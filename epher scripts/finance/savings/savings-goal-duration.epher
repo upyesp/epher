@@ -12,7 +12,9 @@
    Accuracy: 12 displayed digits; the terms are fractional months.
 
    Run it from a terminal:
-     epher "epher scripts/finance/savings/savings-goal-duration.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/savings-goal-duration.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\savings-goal-duration.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/savings-goal-duration.epher
 
    The knobs to edit are in the knob section; everything after it is
    machinery you can leave alone.

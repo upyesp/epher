@@ -10,7 +10,10 @@
    the five 3-step walks 1 to 2 are 1-2-1-2, 1-2-3-2, 1-3-1-2, 1-4-1-2 and
    1-4-3-2. All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/matrices/adjacency-matrix-walks.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/adjacency-matrix-walks.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\adjacency-matrix-walks.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/adjacency-matrix-walks.epher
 
    The knob to edit is the adjacency matrix A below.
    ============================================================================ */

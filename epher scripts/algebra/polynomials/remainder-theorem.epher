@@ -8,7 +8,10 @@
    q(x) = 2x^2 + 3x + 9 with p(x) = (x - 2) q(x) + 13. The loop version of
    the carry chain lives in synthetic-division.epher. All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/polynomials/remainder-theorem.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/remainder-theorem.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\remainder-theorem.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/remainder-theorem.epher
 
    The knobs to edit are cs and r below.
    ============================================================================ */

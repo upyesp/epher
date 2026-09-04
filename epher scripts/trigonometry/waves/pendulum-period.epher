@@ -11,8 +11,11 @@
    converts it with `in m/s^2` first to get a real quantity for the
    division (see the units note in the README).
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/waves/pendulum-period.epher"
-   In the REPL:             load epher scripts/trigonometry/waves/pendulum-period.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/waves/pendulum-period.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\waves\pendulum-period.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/waves/pendulum-period.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are the two lengths below (meters). Printed values

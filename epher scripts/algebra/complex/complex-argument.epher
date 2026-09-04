@@ -8,7 +8,10 @@
    -90 degrees, and 3 + 4i at arctan(4/3) = 53.1301023542 degrees. The
    radian values are floats accurate to about 12 digits.
 
-   Run it from a terminal:  epher "epher scripts/algebra/complex/complex-argument.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-argument.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-argument.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-argument.epher
 
    No knobs to edit; the values below are fixed examples.
    ============================================================================ */

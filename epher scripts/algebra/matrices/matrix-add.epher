@@ -7,7 +7,10 @@
    reverses of each other, so every entry of the sum is 10; subtracting B
    again returns A, which the last boolean checks. All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/matrices/matrix-add.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/matrix-add.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\matrix-add.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/matrix-add.epher
 
    The knobs to edit are the matrices A and B below.
    ============================================================================ */

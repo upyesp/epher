@@ -6,7 +6,10 @@
    ed., sec. 1.2). All values are exact rationals. The built-in solve could
    scan the equation too; here the rearrangement is the point.
 
-   Run it from a terminal:  epher "epher scripts/algebra/equations/linear-equation.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/linear-equation.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\linear-equation.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/linear-equation.epher
 
    The knobs to edit are a, b and c below.
    ============================================================================ */

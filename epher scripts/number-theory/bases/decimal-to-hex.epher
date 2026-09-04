@@ -13,8 +13,11 @@
    hex digit covers four bits. hex is exact for every integer the
    calculator can hold.
 
-   Run it from a terminal:  epher "epher scripts/number-theory/bases/decimal-to-hex.epher"
-   In the REPL:             load epher scripts/number-theory/bases/decimal-to-hex.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/bases/decimal-to-hex.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\bases\decimal-to-hex.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/bases/decimal-to-hex.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    There is no knob: the sample values are the point of the script.

@@ -10,8 +10,11 @@
    and 9 (the casting out of nines, Hardy and Wright, ch. 9) and feed the
    digital root of the next script. All results are exact.
 
-   Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/digit-sum.epher"
-   In the REPL:             load epher scripts/number-theory/integer-sequences/digit-sum.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/digit-sum.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\digit-sum.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/digit-sum.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    There is no knob: the sample numbers are the point of the script.

@@ -9,8 +9,11 @@
    hypotenuse must equal sin of the opposite angle. Angles are written
    with the deg unit, which epher converts to radians for trig.
 
-   Run it from a terminal:  epher "epher scripts/geometry/triangles/special-triangle-ratios.epher"
-   In the REPL:             load epher scripts/geometry/triangles/special-triangle-ratios.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/special-triangle-ratios.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\special-triangle-ratios.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/special-triangle-ratios.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The scales to try are in the results section (5 and 4 below).

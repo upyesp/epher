@@ -19,7 +19,10 @@
    is never near a half-integer once n is past 2 (the error of the
    approximation is about 1/(n + 1)).
 
-   Run it from a terminal:  epher "epher scripts/probability/counting/derangements.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/derangements.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\derangements.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/derangements.epher
    Web/desktop:             paste the file into the entry, press Enter
 
    The knob to edit is `nmax`; everything below it is machinery.

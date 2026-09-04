@@ -16,8 +16,11 @@
    h against a with a 1e-12 slack, because sin(30 deg) is 0.5 to twelve
    digits but not to the last binary bit.
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/triangles/law-of-sines-ambiguous.epher"
-   In the REPL:             load epher scripts/trigonometry/triangles/law-of-sines-ambiguous.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/law-of-sines-ambiguous.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\law-of-sines-ambiguous.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/law-of-sines-ambiguous.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are A (degrees), bside and the five a-values below

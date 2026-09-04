@@ -12,8 +12,11 @@
    and a magnitude 20 source, 0.00003631 Jy, is near the limit of a
    large survey telescope. Values were checked in python, the oracle.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/sky/magnitude-flux-conversions.epher"
-   In the REPL:             load epher scripts/astronomy/sky/magnitude-flux-conversions.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/magnitude-flux-conversions.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\magnitude-flux-conversions.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/magnitude-flux-conversions.epher
+   In the REPL:             load one of the paths above
 
    Knob: none - the magnitudes below are fixed.
    ============================================================================ */

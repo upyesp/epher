@@ -13,7 +13,10 @@
    Accuracy: samples print at about the 12th digit; the deficit at
    x = 1e-8 is an artifact of rounding 1 + x, not of the limit.
 
-   Run:  epher "epher scripts/calculus/limits/limit-of-ln1plusx-over-x.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/limits/limit-of-ln1plusx-over-x.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\limits\limit-of-ln1plusx-over-x.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/limits/limit-of-ln1plusx-over-x.epher
    The knob to edit is `x` below.
    ============================================================================ */
 

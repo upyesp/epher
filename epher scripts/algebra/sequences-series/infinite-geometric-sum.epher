@@ -9,7 +9,10 @@
    sum is exactly 6, and the exact fractions of the partial sums below
    approach it: 0, 4, 16/3, 52/9, ...
 
-   Run it from a terminal:  epher "epher scripts/algebra/sequences-series/infinite-geometric-sum.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/infinite-geometric-sum.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\infinite-geometric-sum.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/infinite-geometric-sum.epher
 
    The knobs to edit are a and r below.
    ============================================================================ */

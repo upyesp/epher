@@ -18,7 +18,10 @@
    Source: Feller, "An Introduction to Probability Theory and Its
    Applications", volume 1, chapter 3 (random walks).
 
-   Run it from a terminal:  epher "epher scripts/probability/simulations/random-walk.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/simulations/random-walk.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\simulations\random-walk.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/simulations/random-walk.epher
    Web/desktop:             paste the file into the entry, press Enter
 
    The knob to edit is `steps`; everything below it is machinery.

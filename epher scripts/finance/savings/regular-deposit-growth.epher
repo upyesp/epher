@@ -15,7 +15,9 @@
    check line are the same number.
 
    Run it from a terminal:
-     epher "epher scripts/finance/savings/regular-deposit-growth.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/regular-deposit-growth.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\regular-deposit-growth.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/regular-deposit-growth.epher
 
    The knobs to edit are in the knob section; everything after it is
    machinery you can leave alone.

@@ -7,8 +7,11 @@
    V = a^3 sqrt(2) / 12 as a cross-check and the a = 2 case, whose
    volume is 8 / (6 sqrt(2)).
 
-   Run it from a terminal:  epher "epher scripts/geometry/solids/tetrahedron-volume.epher"
-   In the REPL:             load epher scripts/geometry/solids/tetrahedron-volume.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/tetrahedron-volume.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\tetrahedron-volume.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/tetrahedron-volume.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knob to edit is `a`, the edge length. Everything above the results

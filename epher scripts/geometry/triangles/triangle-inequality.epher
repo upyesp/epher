@@ -7,8 +7,11 @@
    formula). The comparison is strict: a + b = c means the three points
    are collinear, a degenerate triangle, so those triples report false.
 
-   Run it from a terminal:  epher "epher scripts/geometry/triangles/triangle-inequality.epher"
-   In the REPL:             load epher scripts/geometry/triangles/triangle-inequality.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/triangle-inequality.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\triangle-inequality.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/triangle-inequality.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The triples to test are in the results section below; edit them there.

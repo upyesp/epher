@@ -8,7 +8,10 @@
    real numbers 25 and 2 below, and the identity is checked against |z|^2.
    All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/complex/complex-conjugate.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-conjugate.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-conjugate.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-conjugate.epher
 
    No knobs to edit; the values below are fixed examples.
    ============================================================================ */

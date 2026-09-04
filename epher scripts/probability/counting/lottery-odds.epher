@@ -17,7 +17,10 @@
    Applications", volume 1, chapter 2. Fractions are exact; epher shows
    about 12 digits for the probabilities whose denominator is large.
 
-   Run it from a terminal:  epher "epher scripts/probability/counting/lottery-odds.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/lottery-odds.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\lottery-odds.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/lottery-odds.epher
    Web/desktop:             paste the file into the entry, press Enter
    ============================================================================ */
 

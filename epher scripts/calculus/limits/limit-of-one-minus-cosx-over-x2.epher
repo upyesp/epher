@@ -14,7 +14,10 @@
    Accuracy: values print at about the 12th digit; the identity form at
    x = 1e-8 is 1/2 to machine precision.
 
-   Run:  epher "epher scripts/calculus/limits/limit-of-one-minus-cosx-over-x2.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/limits/limit-of-one-minus-cosx-over-x2.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\limits\limit-of-one-minus-cosx-over-x2.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/limits/limit-of-one-minus-cosx-over-x2.epher
    The knob to edit is `x` below.
    ============================================================================ */
 

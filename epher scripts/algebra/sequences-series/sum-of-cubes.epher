@@ -7,7 +7,10 @@
    cross-checked below by adding the cubes one by one in a quiet while loop.
    All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/sequences-series/sum-of-cubes.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/sum-of-cubes.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\sum-of-cubes.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/sum-of-cubes.epher
 
    The knob to edit is n below.
    ============================================================================ */

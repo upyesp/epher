@@ -19,7 +19,10 @@
    All the arithmetic is exact rational arithmetic: 1e6 / 1e7 = 1/10,
    and the totals are exact too.
 
-   Run it from a terminal:  epher "epher scripts/probability/distributions/expected-value-lottery.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/expected-value-lottery.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\expected-value-lottery.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/expected-value-lottery.epher
    Web/desktop:             paste the file into the entry, press Enter
 
    The knobs to edit are the prize table below (prize, chance) and

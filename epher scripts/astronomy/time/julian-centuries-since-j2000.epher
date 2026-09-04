@@ -10,8 +10,11 @@
    verified against plain arithmetic in python, the oracle for the
    expected output.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/time/julian-centuries-since-j2000.epher"
-   In the REPL:             load epher scripts/astronomy/time/julian-centuries-since-j2000.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/julian-centuries-since-j2000.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\julian-centuries-since-j2000.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/julian-centuries-since-j2000.epher
+   In the REPL:             load one of the paths above
 
    Knob: none - the epochs below are fixed.
    ============================================================================ */

@@ -18,7 +18,10 @@
    Source: the birthday problem of Feller, volume 1, chapter 2, played
    as a simulation.
 
-   Run it from a terminal:  epher "epher scripts/probability/simulations/birthday-simulation.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/simulations/birthday-simulation.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\simulations\birthday-simulation.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/simulations/birthday-simulation.epher
    Web/desktop:             paste the file into the entry, press Enter
 
    The knobs to edit are `rooms` and `size`; everything below them is

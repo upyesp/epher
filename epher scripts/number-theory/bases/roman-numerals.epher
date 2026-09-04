@@ -14,8 +14,11 @@
    reference; the subtractive scheme is the one in common use since the
    Middle Ages. All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/number-theory/bases/roman-numerals.epher"
-   In the REPL:             load epher scripts/number-theory/bases/roman-numerals.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/bases/roman-numerals.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\bases\roman-numerals.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/bases/roman-numerals.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    There is no knob: the sample numbers are the point of the script.

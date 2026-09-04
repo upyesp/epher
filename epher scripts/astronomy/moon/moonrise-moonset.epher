@@ -11,8 +11,11 @@
    each event lands about 50 min later than the previous day, and on many
    dates the moonset precedes the moonrise.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/moon/moonrise-moonset.epher"
-   In the REPL:             load epher scripts/astronomy/moon/moonrise-moonset.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moonrise-moonset.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moonrise-moonset.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moonrise-moonset.epher
+   In the REPL:             load one of the paths above
 
    Knobs: latitude and longitude (Berlin below), and the three dates.
    ============================================================================ */

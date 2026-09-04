@@ -8,7 +8,10 @@
    to rounding of about 1e-15; the helper adds the absolute errors of all
    nine entries, and the last line checks that sum is below 1e-9.
 
-   Run it from a terminal:  epher "epher scripts/algebra/matrices/matrix-inverse-3x3.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/matrix-inverse-3x3.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\matrix-inverse-3x3.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/matrix-inverse-3x3.epher
 
    The knob to edit is the matrix M below.
    ============================================================================ */

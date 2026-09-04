@@ -15,8 +15,11 @@
    squared per second squared over meters per second squared leaves
    meters, and the flight time lands in seconds.
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/waves/projectile-motion.epher"
-   In the REPL:             load epher scripts/trigonometry/waves/projectile-motion.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/waves/projectile-motion.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\waves\projectile-motion.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/waves/projectile-motion.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are the launch speed and the two angles below

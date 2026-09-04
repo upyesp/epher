@@ -6,8 +6,11 @@
    5-12-13 example lands exactly on 12: 13^2 - 5^2 = 169 - 25 = 144, a
    perfect square, so the results are exact.
 
-   Run it from a terminal:  epher "epher scripts/geometry/triangles/pythagorean-leg.epher"
-   In the REPL:             load epher scripts/geometry/triangles/pythagorean-leg.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/pythagorean-leg.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\pythagorean-leg.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/pythagorean-leg.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are `c` (the hypotenuse) and `b` (the known leg).

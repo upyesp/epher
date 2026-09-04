@@ -18,7 +18,10 @@
    Accuracy: f values and second derivatives at the roots are exact;
    the numeric slope at the roots is about 1e-12, checked at 1e-9.
 
-   Run:  epher "epher scripts/calculus/derivatives/extrema-of-a-cubic.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/derivatives/extrema-of-a-cubic.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\derivatives\extrema-of-a-cubic.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/derivatives/extrema-of-a-cubic.epher
    No knobs: the cubic is the demonstration.
    ============================================================================ */
 

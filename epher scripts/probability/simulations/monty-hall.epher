@@ -19,7 +19,10 @@
    formulation here follows Ross, "A First Course in Probability",
    chapter 3.
 
-   Run it from a terminal:  epher "epher scripts/probability/simulations/monty-hall.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/simulations/monty-hall.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\simulations\monty-hall.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/simulations/monty-hall.epher
    Web/desktop:             paste the file into the entry, press Enter
 
    The knob to edit is `games`; everything below it is machinery.

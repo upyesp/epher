@@ -18,7 +18,10 @@
    Applications", volume 1, chapter 3 (the 244/495 value is derived
    there). All the fractions below are exact.
 
-   Run it from a terminal:  epher "epher scripts/probability/games/craps-first-roll.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/craps-first-roll.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\craps-first-roll.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/craps-first-roll.epher
    Web/desktop:             paste the file into the entry, press Enter
    ============================================================================ */
 

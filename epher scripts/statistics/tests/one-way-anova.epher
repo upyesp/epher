@@ -9,8 +9,11 @@
    the within-group spread, and p = 0.0007 says yields under the three
    fertilizers differ clearly. The yields are example values.
 
-   Run it from a terminal:  epher "epher scripts/statistics/tests/one-way-anova.epher"
-   In the REPL:             load epher scripts/statistics/tests/one-way-anova.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/one-way-anova.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\one-way-anova.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/one-way-anova.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

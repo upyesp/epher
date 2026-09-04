@@ -8,7 +8,10 @@
    a = 2, b = 32 and k = 5 the step is 5 and the means are 7, 12, 17, 22,
    27. A for loop collects them into one list. All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/sequences-series/arithmetic-means.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/arithmetic-means.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\arithmetic-means.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/arithmetic-means.epher
 
    The knobs to edit are a, b and k below.
    ============================================================================ */

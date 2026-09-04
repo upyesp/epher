@@ -15,7 +15,9 @@
    exact deposit back to the goal.
 
    Run it from a terminal:
-     epher "epher scripts/finance/savings/college-fund-payment.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/college-fund-payment.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\college-fund-payment.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/college-fund-payment.epher
 
    The knobs to edit are in the knob section; everything after it is
    machinery you can leave alone.

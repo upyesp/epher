@@ -7,8 +7,11 @@
    lists. The example line has slope 2/3, shown as an exact fraction,
    and the checks plug both points back into the equation.
 
-   Run it from a terminal:  epher "epher scripts/geometry/coordinates/line-equation-two-points.epher"
-   In the REPL:             load epher scripts/geometry/coordinates/line-equation-two-points.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/line-equation-two-points.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\line-equation-two-points.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/line-equation-two-points.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are `P` and `Q`, the two points on the line.

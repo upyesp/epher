@@ -9,8 +9,11 @@
    (approx - exact) / exact of sin(x) ~ x and tan(x) ~ x, which is negative
    for sine (sin < x) and positive for tangent (tan > x).
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/angles/small-angle-approximation.epher"
-   In the REPL:             load epher scripts/trigonometry/angles/small-angle-approximation.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/small-angle-approximation.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\small-angle-approximation.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/small-angle-approximation.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The one knob to edit is the `xs` list below (radians; the file works in

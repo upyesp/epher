@@ -10,8 +10,11 @@
    Two invariants are checked: a = -omega^2 x, and the energy identity
    x^2 + (v/omega)^2 = A^2.
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/waves/simple-harmonic-motion.epher"
-   In the REPL:             load epher scripts/trigonometry/waves/simple-harmonic-motion.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/waves/simple-harmonic-motion.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\waves\simple-harmonic-motion.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/waves/simple-harmonic-motion.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are the amplitude, the period and the instant below.

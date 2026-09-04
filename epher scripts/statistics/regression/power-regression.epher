@@ -9,8 +9,11 @@
    fitted exponent should land near 0.5 and the coefficient near
    2 * pi / sqrt(g) = 2.0064. Both do. The data are illustrative.
 
-   Run it from a terminal:  epher "epher scripts/statistics/regression/power-regression.epher"
-   In the REPL:             load epher scripts/statistics/regression/power-regression.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/power-regression.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\power-regression.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/power-regression.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

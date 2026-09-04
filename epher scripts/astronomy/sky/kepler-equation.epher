@@ -14,8 +14,11 @@
    comet-like eccentricities. Values were checked in python by solving
    E - e sin E = M in radians with Newton's method, the oracle.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/sky/kepler-equation.epher"
-   In the REPL:             load epher scripts/astronomy/sky/kepler-equation.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/kepler-equation.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\kepler-equation.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/kepler-equation.epher
+   In the REPL:             load one of the paths above
 
    Knob: none - the (M, e) pairs below are fixed.
    ============================================================================ */

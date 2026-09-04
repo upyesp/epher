@@ -9,8 +9,11 @@
    p-value is the upper tail of the chi2 distribution with 5 degrees of
    freedom.
 
-   Run it from a terminal:  epher "epher scripts/statistics/tests/chi-square-goodness-of-fit.epher"
-   In the REPL:             load epher scripts/statistics/tests/chi-square-goodness-of-fit.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/chi-square-goodness-of-fit.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\chi-square-goodness-of-fit.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/chi-square-goodness-of-fit.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

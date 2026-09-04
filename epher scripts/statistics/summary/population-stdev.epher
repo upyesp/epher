@@ -7,8 +7,11 @@
    the count n, and stdev is its square root (guide 1.20). When the data
    are a sample, use the n - 1 version (sample-stdev.epher shows it).
 
-   Run it from a terminal:  epher "epher scripts/statistics/summary/population-stdev.epher"
-   In the REPL:             load epher scripts/statistics/summary/population-stdev.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/population-stdev.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\population-stdev.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/population-stdev.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

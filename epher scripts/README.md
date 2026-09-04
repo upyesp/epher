@@ -48,8 +48,9 @@ epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\full-moons.epher"
 epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/full-moons.epher
 ```
 
-From a source checkout the same script sits in this folder, so the path
-carries the folder name:
+From a source checkout (contributors running from the repository root
+-- an installed epher has no `epher scripts` folder), the path carries
+the folder name:
 
 ```sh
 epher "epher scripts/astronomy/moon/full-moons.epher"
@@ -76,7 +77,8 @@ example turns those facts into a house style:
 1. **Header comment first.** A `/* === ... === */` banner block, then
    `name.epher -- one line saying what it does`, the algorithm and its
    published source, an honest accuracy statement, how to run the
-   script, and what the file demonstrates.
+   script (the three installed commands, one per operating system),
+   and what the file demonstrates.
 2. **Knobs at the top.** Every value a user might change is one `const`
    in a clearly marked block right after the header. Nothing to edit
    below it.

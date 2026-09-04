@@ -7,8 +7,11 @@
    the height is 3 sqrt(3) and the area 9 sqrt(3). The last result checks
    that the area also comes out of base times height.
 
-   Run it from a terminal:  epher "epher scripts/geometry/triangles/equilateral-area-height.epher"
-   In the REPL:             load epher scripts/geometry/triangles/equilateral-area-height.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/equilateral-area-height.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\equilateral-area-height.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/equilateral-area-height.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knob to edit is `s`, the side length. Everything above the results

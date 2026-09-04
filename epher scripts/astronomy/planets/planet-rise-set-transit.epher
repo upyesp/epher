@@ -11,8 +11,11 @@
    (2.72 hr UT, see sunrise-sunset.epher): about eight months before its
    February 2027 opposition the planet is a morning object.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/planets/planet-rise-set-transit.epher"
-   In the REPL:             load epher scripts/astronomy/planets/planet-rise-set-transit.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-rise-set-transit.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-rise-set-transit.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-rise-set-transit.epher
+   In the REPL:             load one of the paths above
 
    Knobs: the date j0, latitude and longitude.
    ============================================================================ */

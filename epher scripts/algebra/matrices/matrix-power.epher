@@ -8,7 +8,10 @@
    Vorobiev, "Fibonacci Numbers"). So A^12 = [[233, 144], [144, 89]] and its
    entries are F13 = 233, F12 = 144 and F11 = 89. All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/matrices/matrix-power.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/matrix-power.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\matrix-power.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/matrix-power.epher
 
    The knob to edit is the matrix A below.
    ============================================================================ */

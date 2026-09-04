@@ -8,8 +8,11 @@
    print of linreg below is the cross-check. The line then predicts the
    score for six study hours, just past the data.
 
-   Run it from a terminal:  epher "epher scripts/statistics/regression/linear-regression-prediction.epher"
-   In the REPL:             load epher scripts/statistics/regression/linear-regression-prediction.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/linear-regression-prediction.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\linear-regression-prediction.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/linear-regression-prediction.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

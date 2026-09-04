@@ -15,7 +15,10 @@
    Source: the classic Monte Carlo method; see Ross, "Simulation",
    chapter 4.
 
-   Run it from a terminal:  epher "epher scripts/probability/simulations/monte-carlo-pi.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/simulations/monte-carlo-pi.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\simulations\monte-carlo-pi.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/simulations/monte-carlo-pi.epher
    Web/desktop:             paste the file into the entry, press Enter
 
    The knob to edit is `points`; everything below it is machinery.

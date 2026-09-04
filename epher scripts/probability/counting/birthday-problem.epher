@@ -17,7 +17,10 @@
    Applications", volume 1, chapter 2. The product is a float product,
    exact to about 12 digits, which is far more than the answer needs.
 
-   Run it from a terminal:  epher "epher scripts/probability/counting/birthday-problem.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/birthday-problem.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\birthday-problem.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/birthday-problem.epher
    Web/desktop:             paste the file into the entry, press Enter
 
    The knobs to edit are `days` and `target`; everything below them is

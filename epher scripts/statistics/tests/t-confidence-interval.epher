@@ -8,8 +8,11 @@
    interval: about 95 percent of such intervals would capture the true
    mean. Raising the level to 0.99 widens the interval.
 
-   Run it from a terminal:  epher "epher scripts/statistics/tests/t-confidence-interval.epher"
-   In the REPL:             load epher scripts/statistics/tests/t-confidence-interval.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/t-confidence-interval.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\t-confidence-interval.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/t-confidence-interval.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

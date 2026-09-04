@@ -9,7 +9,10 @@
    1e-16, so the transcript prints the booleans, not the residues), and
    raising the first nontrivial root to the fifth power returns 1.
 
-   Run it from a terminal:  epher "epher scripts/algebra/complex/complex-roots-of-unity.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-roots-of-unity.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-roots-of-unity.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-roots-of-unity.epher
 
    No knobs to edit; the fifth roots below are fixed examples.
    ============================================================================ */

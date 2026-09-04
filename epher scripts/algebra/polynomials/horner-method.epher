@@ -8,7 +8,10 @@
    about 2n for the plain powers. Both evaluations are exact rationals here,
    so the cross-check compares exactly.
 
-   Run it from a terminal:  epher "epher scripts/algebra/polynomials/horner-method.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/horner-method.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\horner-method.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/horner-method.epher
 
    The knobs to edit are cs and the sample point xv below.
    ============================================================================ */

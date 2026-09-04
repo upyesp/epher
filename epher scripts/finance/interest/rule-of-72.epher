@@ -15,7 +15,9 @@
    fraction display shows the same number as 10.2857142857...).
 
    Run it from a terminal:
-     epher "epher scripts/finance/interest/rule-of-72.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/rule-of-72.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\rule-of-72.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/rule-of-72.epher
 
    The rate range 6% to 10% is the rule's usual comfort zone.
    ============================================================================ */

@@ -7,7 +7,10 @@
    epher). Numeric values: a = 2, b = 3, n = 6, so the expansion is
    (2 + 3)^6 = 5^6 = 15625, the check at the end. Everything is exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/polynomials/binomial-expansion.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/binomial-expansion.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\binomial-expansion.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/binomial-expansion.epher
 
    The knobs to edit are a, b and n below.
    ============================================================================ */

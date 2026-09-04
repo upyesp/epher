@@ -15,7 +15,9 @@
    Accuracy: 12 displayed digits; rounding to the cent is omitted.
 
    Run it from a terminal:
-     epher "epher scripts/finance/loans/mortgage-total-interest.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/mortgage-total-interest.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\mortgage-total-interest.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/mortgage-total-interest.epher
 
    The knobs to edit are in the knob section; everything after it is
    machinery you can leave alone.

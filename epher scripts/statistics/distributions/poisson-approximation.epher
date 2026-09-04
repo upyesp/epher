@@ -8,8 +8,11 @@
    large and p small, here with n * p = 2. Both answers agree to about
    two ten-thousandths.
 
-   Run it from a terminal:  epher "epher scripts/statistics/distributions/poisson-approximation.epher"
-   In the REPL:             load epher scripts/statistics/distributions/poisson-approximation.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/poisson-approximation.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\poisson-approximation.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/poisson-approximation.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

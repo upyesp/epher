@@ -9,7 +9,10 @@
    same statement as a while loop then runs on quietly to F_20 = 6765.
    Everything is exact, and F_21 / F_20 is close to the golden ratio phi.
 
-   Run it from a terminal:  epher "epher scripts/algebra/sequences-series/fibonacci-number.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/fibonacci-number.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\fibonacci-number.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/fibonacci-number.epher
 
    No knobs to edit; the run goes to F_20 = 6765 below.
    ============================================================================ */

@@ -15,7 +15,9 @@
    otherwise. The discount rate r = 8% is the cost of capital.
 
    Run it from a terminal:
-     epher "epher scripts/finance/investing/discounted-payback-period.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/discounted-payback-period.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\discounted-payback-period.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/discounted-payback-period.epher
 
    The knobs to edit are in the knob section; everything after it is
    machinery you can leave alone.

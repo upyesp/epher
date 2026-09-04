@@ -45,12 +45,13 @@ for (const field of readdirSync(SCRIPTS).sort()) {
     for (const file of readdirSync(areaDir).sort()) {
       if (!file.endsWith(".epher")) continue;
       const abs = join(areaDir, file);
-      const rel = `epher scripts/${field}/${area}/${file}`;
+      const rel = `${field}/${area}/${file}`;
       const name = file.slice(0, -".epher".length);
       scripts.push({
         name,
         title: purpose(abs, name),
-        path: rel,
+        path: `epher scripts/${rel}`,
+        rel,
         text: readFileSync(abs, "utf8"),
       });
     }

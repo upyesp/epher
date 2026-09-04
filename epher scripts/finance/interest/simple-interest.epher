@@ -13,7 +13,9 @@
    printed below are exact.
 
    Run it from a terminal:
-     epher "epher scripts/finance/interest/simple-interest.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/simple-interest.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\simple-interest.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/simple-interest.epher
 
    The knobs to edit are in the knob section; everything after it is
    machinery you can leave alone.

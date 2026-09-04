@@ -6,8 +6,11 @@
    A = b h / 2 (Euclid's Elements, book I, proposition 41; standard
    formula). The 10 by 6 example gives 30, exactly.
 
-   Run it from a terminal:  epher "epher scripts/geometry/triangles/triangle-area-base-height.epher"
-   In the REPL:             load epher scripts/geometry/triangles/triangle-area-base-height.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/triangle-area-base-height.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\triangle-area-base-height.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/triangle-area-base-height.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are `b` (the base) and `h` (the height to that

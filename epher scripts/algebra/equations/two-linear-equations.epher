@@ -8,7 +8,10 @@
    determinants are written out as the classroom formula ad - bc; the builtin
    det gives the same number, checked at the end. Everything here is exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/equations/two-linear-equations.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/two-linear-equations.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\two-linear-equations.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/two-linear-equations.epher
 
    The knobs to edit are a1, b1, k1, a2, b2 and k2 below.
    ============================================================================ */

@@ -13,8 +13,11 @@
    Problem", AMS, 2010. The conjecture that every starting value reaches
    1 is unproved but checked to enormous heights; every value below stops.
 
-   Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/collatz-steps.epher"
-   In the REPL:             load epher scripts/number-theory/integer-sequences/collatz-steps.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/collatz-steps.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\collatz-steps.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/collatz-steps.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    There is no knob: the starting values 27 and 13 are the checks.

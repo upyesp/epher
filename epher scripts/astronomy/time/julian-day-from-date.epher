@@ -14,8 +14,11 @@
    defines for all years), matching the datetime module of python, which
    is the oracle the expected output was checked against.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/time/julian-day-from-date.epher"
-   In the REPL:             load epher scripts/astronomy/time/julian-day-from-date.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/julian-day-from-date.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\julian-day-from-date.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/julian-day-from-date.epher
+   In the REPL:             load one of the paths above
 
    Knob: none - the dates below are fixed, famous ones.
    ============================================================================ */

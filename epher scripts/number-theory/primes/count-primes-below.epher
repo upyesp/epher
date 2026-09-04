@@ -10,8 +10,11 @@
    ch. 1 and ch. 22; the values pi(100) = 25 and pi(1000) = 168 are the
    classic checks. isprime is exact, so the counts are exact.
 
-   Run it from a terminal:  epher "epher scripts/number-theory/primes/count-primes-below.epher"
-   In the REPL:             load epher scripts/number-theory/primes/count-primes-below.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/count-primes-below.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\count-primes-below.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/count-primes-below.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The one knob to edit is `bound` below. Everything above the results

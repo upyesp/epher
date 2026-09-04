@@ -9,7 +9,10 @@
    Source: the definition; see Ross, "A First Course in Probability",
    chapter 1. No accuracy issue: the integers are exact.
 
-   Run it from a terminal:  epher "epher scripts/probability/counting/factorial.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/factorial.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\factorial.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/factorial.epher
    Web/desktop:             paste the file into the entry, press Enter
 
    The knob to edit is `nmax`. Everything below the knob is machinery.

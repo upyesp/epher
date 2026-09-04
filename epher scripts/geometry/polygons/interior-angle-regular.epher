@@ -7,8 +7,11 @@
    on, all hand-checkable. The 3-gon case, 60 degrees, is the equilateral
    triangle.
 
-   Run it from a terminal:  epher "epher scripts/geometry/polygons/interior-angle-regular.epher"
-   In the REPL:             load epher scripts/geometry/polygons/interior-angle-regular.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/interior-angle-regular.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\interior-angle-regular.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/interior-angle-regular.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The values of n to try are in the results section below; edit them

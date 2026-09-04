@@ -7,8 +7,11 @@
    results are exact: 5 * 2 / 2 = 5 for the pentagon and 6 * 3 / 2 = 9
    for the hexagon.
 
-   Run it from a terminal:  epher "epher scripts/geometry/polygons/diagonals-of-polygon.epher"
-   In the REPL:             load epher scripts/geometry/polygons/diagonals-of-polygon.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/diagonals-of-polygon.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\diagonals-of-polygon.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/diagonals-of-polygon.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The values of n to try are in the results section below; edit them

@@ -11,8 +11,11 @@
    cancel. Standard classroom material (e.g. Stewart, Redlin and Watson,
    "Precalculus", ch. 6).
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/triangles/law-of-cosines-angle.epher"
-   In the REPL:             load epher scripts/trigonometry/triangles/law-of-cosines-angle.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/law-of-cosines-angle.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\law-of-cosines-angle.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/law-of-cosines-angle.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are the two side triples below (meters). Printed

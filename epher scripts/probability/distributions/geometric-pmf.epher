@@ -19,7 +19,10 @@
 
    Source: Ross, "A First Course in Probability", chapter 4.
 
-   Run it from a terminal:  epher "epher scripts/probability/distributions/geometric-pmf.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/geometric-pmf.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\geometric-pmf.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/geometric-pmf.epher
    Web/desktop:             paste the file into the entry, press Enter
    ============================================================================ */
 

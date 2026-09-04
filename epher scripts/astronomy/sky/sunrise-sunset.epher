@@ -11,8 +11,11 @@
    point: Berlin's sunrise swings from 2.72 hr UT on the June solstice
    to 7.25 hr on the December solstice, nearly five hours.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/sky/sunrise-sunset.epher"
-   In the REPL:             load epher scripts/astronomy/sky/sunrise-sunset.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/sunrise-sunset.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\sunrise-sunset.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/sunrise-sunset.epher
+   In the REPL:             load one of the paths above
 
    Knobs: latitude and longitude (Berlin below); the three dates below.
    ============================================================================ */

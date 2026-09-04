@@ -9,8 +9,11 @@
    residual checks (true when the sides differ by less than 1e-12;
    double-precision noise here is around 1e-15).
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/identities/tangent-identity.epher"
-   In the REPL:             load epher scripts/trigonometry/identities/tangent-identity.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/tangent-identity.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\tangent-identity.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/tangent-identity.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The one knob to edit is the `degs` list below (degrees, converted with

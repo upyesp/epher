@@ -15,7 +15,9 @@
    against the builtin npv in the sibling scripts).
 
    Run it from a terminal:
-     epher "epher scripts/finance/investing/internal-rate-of-return.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/internal-rate-of-return.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\internal-rate-of-return.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/internal-rate-of-return.epher
 
    The flows knob below is the only value to edit.
    ============================================================================ */

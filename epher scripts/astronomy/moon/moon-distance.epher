@@ -11,8 +11,11 @@
    In June 2026 the new moon of the 15th falls near perigee and the full
    moon near apogee, so the sample spans nearly the whole range.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/moon/moon-distance.epher"
-   In the REPL:             load epher scripts/astronomy/moon/moon-distance.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-distance.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-distance.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-distance.epher
+   In the REPL:             load one of the paths above
 
    Knobs: year, month, and the sample days of the month.
    ============================================================================ */

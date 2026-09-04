@@ -6,8 +6,11 @@
    85 is the mode. A second dataset shows the tie rule: when two values
    tie for the lead, the builtin reports the smaller one.
 
-   Run it from a terminal:  epher "epher scripts/statistics/summary/mode-of-data.epher"
-   In the REPL:             load epher scripts/statistics/summary/mode-of-data.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/mode-of-data.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\mode-of-data.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/mode-of-data.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

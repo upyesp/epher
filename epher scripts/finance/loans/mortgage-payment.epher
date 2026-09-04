@@ -17,7 +17,9 @@
    cent, and escrow for tax and insurance is separate; both are omitted.
 
    Run it from a terminal:
-     epher "epher scripts/finance/loans/mortgage-payment.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/mortgage-payment.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\mortgage-payment.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/mortgage-payment.epher
 
    The knobs to edit are in the knob section; everything after it is
    machinery you can leave alone.

@@ -16,7 +16,9 @@
    swing, which is exactly where dollar-cost averaging earns its keep.
 
    Run it from a terminal:
-     epher "epher scripts/finance/savings/dollar-cost-averaging.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/dollar-cost-averaging.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\dollar-cost-averaging.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/dollar-cost-averaging.epher
 
    The knobs to edit are in the knob section; everything after it is
    machinery you can leave alone.

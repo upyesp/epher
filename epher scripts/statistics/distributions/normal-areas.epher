@@ -7,8 +7,11 @@
    of the curve: P(Z > -0.8) equals P(Z < 0.8), and the last subtracts
    the two cumulative areas. normcdf(x) is the lower tail P(Z <= x).
 
-   Run it from a terminal:  epher "epher scripts/statistics/distributions/normal-areas.epher"
-   In the REPL:             load epher scripts/statistics/distributions/normal-areas.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/normal-areas.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\normal-areas.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/normal-areas.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

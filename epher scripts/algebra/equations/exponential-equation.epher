@@ -9,7 +9,10 @@
    scan the equation numerically too; the logarithm rearrangement is the
    classic method and is exact up to the final rounding.
 
-   Run it from a terminal:  epher "epher scripts/algebra/equations/exponential-equation.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/exponential-equation.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\exponential-equation.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/exponential-equation.epher
 
    The knob to edit is rhs below.
    ============================================================================ */

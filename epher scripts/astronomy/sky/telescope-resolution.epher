@@ -13,8 +13,11 @@
    arcsec. Values were checked in python (116 / d and 138 / d), the
    oracle for the expected output.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/sky/telescope-resolution.epher"
-   In the REPL:             load epher scripts/astronomy/sky/telescope-resolution.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/telescope-resolution.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\telescope-resolution.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/telescope-resolution.epher
+   In the REPL:             load one of the paths above
 
    Knob: none - the apertures below are fixed.
    ============================================================================ */

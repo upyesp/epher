@@ -14,7 +14,9 @@
    a real lender takes 210 payments, the last one smaller.
 
    Run it from a terminal:
-     epher "epher scripts/finance/loans/mortgage-term.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/mortgage-term.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\mortgage-term.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/mortgage-term.epher
 
    The knobs to edit are in the knob section; everything after it is
    machinery you can leave alone.

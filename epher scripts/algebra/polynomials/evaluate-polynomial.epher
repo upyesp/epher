@@ -8,7 +8,10 @@
    (t - 1)(t - 2)(t - 3), so p(3) = 0 double-checks the machinery. Exact for
    the whole-number coefficients and the rational x below.
 
-   Run it from a terminal:  epher "epher scripts/algebra/polynomials/evaluate-polynomial.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/evaluate-polynomial.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\evaluate-polynomial.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/evaluate-polynomial.epher
 
    The knobs to edit are cs and the sample points x1, x2 below.
    ============================================================================ */

@@ -7,8 +7,11 @@
    15 pi. The results check the one-third relation against the cylinder
    volume and confirm a cone of radius 1 and height 3 holds exactly pi.
 
-   Run it from a terminal:  epher "epher scripts/geometry/solids/cone-volume.epher"
-   In the REPL:             load epher scripts/geometry/solids/cone-volume.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/cone-volume.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\cone-volume.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/cone-volume.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are `r` (radius) and `h` (height).

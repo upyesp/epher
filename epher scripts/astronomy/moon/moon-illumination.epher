@@ -11,8 +11,11 @@
    full moon falls on the 29th at about 23:58 UT and the new moon on the
    15th (see full-moons.epher in this folder for the full-moon series).
 
-   Run it from a terminal:  epher "epher scripts/astronomy/moon/moon-illumination.epher"
-   In the REPL:             load epher scripts/astronomy/moon/moon-illumination.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-illumination.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-illumination.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-illumination.epher
+   In the REPL:             load one of the paths above
 
    Knobs: year, month, and the sample days of the month.
    ============================================================================ */

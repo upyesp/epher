@@ -8,8 +8,11 @@
    below should agree with it. The syy term prints as the exact fraction
    6424/7 because epher shows repeating decimals as fractions.
 
-   Run it from a terminal:  epher "epher scripts/statistics/regression/pearson-correlation.epher"
-   In the REPL:             load epher scripts/statistics/regression/pearson-correlation.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/pearson-correlation.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\pearson-correlation.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/pearson-correlation.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

@@ -14,7 +14,10 @@
    about 3.2e-16 (both checked at 1e-9); sin(x)^2 prints as pi to the
    displayed digits.
 
-   Run:  epher "epher scripts/calculus/integrals/integral-of-sine-over-full-period.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/integral-of-sine-over-full-period.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\integral-of-sine-over-full-period.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/integral-of-sine-over-full-period.epher
    No knobs: one full period is the demonstration.
    ============================================================================ */
 

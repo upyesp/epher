@@ -15,7 +15,10 @@
    Accuracy: the builtin value and the closed form agree to about
    5e-12; both are checked at 1e-9.
 
-   Run:  epher "epher scripts/calculus/integrals/arc-length-of-parabola.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/arc-length-of-parabola.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\arc-length-of-parabola.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/arc-length-of-parabola.epher
    No knobs: the arc from x = 0 to x = 1 is the demonstration.
    ============================================================================ */
 

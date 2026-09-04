@@ -10,8 +10,11 @@
    sign of the difference follows the order of the subtraction, so the
    same two dates give +9497 one way and -9497 the other.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/time/days-between-dates.epher"
-   In the REPL:             load epher scripts/astronomy/time/days-between-dates.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/days-between-dates.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\days-between-dates.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/days-between-dates.epher
+   In the REPL:             load one of the paths above
 
    Knob: none - the spans below are fixed.
    ============================================================================ */

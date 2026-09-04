@@ -17,7 +17,9 @@
    Accuracy: 12 displayed digits.
 
    Run it from a terminal:
-     epher "epher scripts/finance/loans/refinance-breakeven.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/refinance-breakeven.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\refinance-breakeven.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/refinance-breakeven.epher
 
    The knobs to edit are in the knob section; everything after it is
    machinery you can leave alone.

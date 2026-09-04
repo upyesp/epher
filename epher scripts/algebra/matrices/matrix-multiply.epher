@@ -8,7 +8,10 @@
    [[1,2],[3,4]] [[5,6],[7,8]] = [[19,22],[43,50]], and the last line
    recomputes one entry by hand. All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/matrices/matrix-multiply.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/matrix-multiply.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\matrix-multiply.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/matrix-multiply.epher
 
    The knobs to edit are the matrices P, Q, R and S below.
    ============================================================================ */

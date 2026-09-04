@@ -8,8 +8,11 @@
    approaches the standard normal, so the last line compares invt with
    60 df against invnorm(0.975) = 1.96.
 
-   Run it from a terminal:  epher "epher scripts/statistics/distributions/t-critical-values.epher"
-   In the REPL:             load epher scripts/statistics/distributions/t-critical-values.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/t-critical-values.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\t-critical-values.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/t-critical-values.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

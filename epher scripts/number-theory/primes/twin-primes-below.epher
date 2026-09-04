@@ -12,8 +12,11 @@
    ch. 1; whether infinitely many twin primes exist is open (the twin
    prime conjecture, ibid. ch. 1). isprime is exact, so the count is exact.
 
-   Run it from a terminal:  epher "epher scripts/number-theory/primes/twin-primes-below.epher"
-   In the REPL:             load epher scripts/number-theory/primes/twin-primes-below.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/twin-primes-below.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\twin-primes-below.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/twin-primes-below.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    There is no knob: the bound 100 is the check value.

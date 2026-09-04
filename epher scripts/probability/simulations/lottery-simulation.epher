@@ -23,7 +23,10 @@
 
    Source: Ross, "Simulation", chapter 5 (hypergeometric sampling).
 
-   Run it from a terminal:  epher "epher scripts/probability/simulations/lottery-simulation.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/simulations/lottery-simulation.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\simulations\lottery-simulation.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/simulations/lottery-simulation.epher
    Web/desktop:             paste the file into the entry, press Enter
 
    The knob to edit is `pass`; everything below it is machinery.

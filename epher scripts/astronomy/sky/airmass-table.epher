@@ -13,8 +13,11 @@
    horizon. The values below were checked in python against
    1 / sin(altitude in radians), the oracle for the expected output.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/sky/airmass-table.epher"
-   In the REPL:             load epher scripts/astronomy/sky/airmass-table.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/airmass-table.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\airmass-table.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/airmass-table.epher
+   In the REPL:             load one of the paths above
 
    Knob: none - the altitudes below are fixed.
    ============================================================================ */

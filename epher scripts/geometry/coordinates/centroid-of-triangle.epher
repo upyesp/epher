@@ -8,8 +8,11 @@
    example is the (0, 0), (6, 0), (3, 6) triangle, whose centroid is
    (3, 2); both results are exact.
 
-   Run it from a terminal:  epher "epher scripts/geometry/coordinates/centroid-of-triangle.epher"
-   In the REPL:             load epher scripts/geometry/coordinates/centroid-of-triangle.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/centroid-of-triangle.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\centroid-of-triangle.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/centroid-of-triangle.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The vertices to try are in the results section below; edit them

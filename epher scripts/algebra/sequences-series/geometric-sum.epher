@@ -8,7 +8,10 @@
    10 terms sum to 3 (2^10 - 1) = 3069, cross-checked by adding the terms
    one by one in a quiet while loop. All values are exact.
 
-   Run it from a terminal:  epher "epher scripts/algebra/sequences-series/geometric-sum.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/geometric-sum.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\geometric-sum.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/geometric-sum.epher
 
    The knobs to edit are a, r and n below.
    ============================================================================ */

@@ -8,7 +8,10 @@
    floating-point noise of about 1e-16, so the transcript prints the
    magnitude checks, which come out true, and the exact real part -1.
 
-   Run it from a terminal:  epher "epher scripts/algebra/complex/euler-identity-check.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/euler-identity-check.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\euler-identity-check.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/euler-identity-check.epher
 
    No knobs to edit; the identities below are fixed checks.
    ============================================================================ */

@@ -11,8 +11,11 @@
    radius is sqrt(9 + (9/4)^2) = 15/4. The last results re-check the
    distance from the center to each vertex.
 
-   Run it from a terminal:  epher "epher scripts/geometry/coordinates/circle-through-three-points.epher"
-   In the REPL:             load epher scripts/geometry/coordinates/circle-through-three-points.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/circle-through-three-points.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\circle-through-three-points.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/circle-through-three-points.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are `A`, `B`, `C`, the three points (they must not

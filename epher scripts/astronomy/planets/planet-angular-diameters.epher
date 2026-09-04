@@ -10,8 +10,11 @@
    Venus, closer at 1.26 AU, shows 13.3 arcsec as a gibbous phase; Pluto
    is 0.09 arcsec, far below what any telescope can resolve as a disk.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/planets/planet-angular-diameters.epher"
-   In the REPL:             load epher scripts/astronomy/planets/planet-angular-diameters.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-angular-diameters.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-angular-diameters.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-angular-diameters.epher
+   In the REPL:             load one of the paths above
 
    Knob: the date t.
    ============================================================================ */

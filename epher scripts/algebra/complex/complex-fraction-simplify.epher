@@ -9,7 +9,10 @@
    0.269230769231i, displayed to about 12 digits; the last boolean compares
    the sum with the exact fractions.
 
-   Run it from a terminal:  epher "epher scripts/algebra/complex/complex-fraction-simplify.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-fraction-simplify.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-fraction-simplify.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-fraction-simplify.epher
 
    No knobs to edit; the fractions below are fixed examples.
    ============================================================================ */

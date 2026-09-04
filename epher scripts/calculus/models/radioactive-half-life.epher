@@ -16,7 +16,10 @@
    Accuracy: the recovered half-life prints as 5730 exactly; fractions
    at 1, 2 and 10000 half-lives agree to better than 1e-12.
 
-   Run:  epher "epher scripts/calculus/models/radioactive-half-life.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/radioactive-half-life.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\radioactive-half-life.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/radioactive-half-life.epher
    The knob to edit is `thalf` (use any isotope's half-life, same units).
    ============================================================================ */
 

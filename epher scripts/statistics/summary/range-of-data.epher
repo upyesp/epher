@@ -5,8 +5,11 @@
    cross-checked as max(d) - min(d), with the two endpoints shown. The
    range is the crudest spread measure: it uses only the two extremes.
 
-   Run it from a terminal:  epher "epher scripts/statistics/summary/range-of-data.epher"
-   In the REPL:             load epher scripts/statistics/summary/range-of-data.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/range-of-data.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\range-of-data.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/range-of-data.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

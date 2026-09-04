@@ -13,7 +13,10 @@
    the house an edge of $1/6 per roll: over six rolls the house expects
    to keep one dollar.
 
-   Run it from a terminal:  epher "epher scripts/probability/games/fair-game-price.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/fair-game-price.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\fair-game-price.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/fair-game-price.epher
    Web/desktop:             paste the file into the entry, press Enter
    ============================================================================ */
 

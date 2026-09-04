@@ -14,7 +14,10 @@
    Source: Ross, "A First Course in Probability", chapter 1. The counts
    are exact integers.
 
-   Run it from a terminal:  epher "epher scripts/probability/counting/permutations.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/permutations.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\permutations.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/permutations.epher
    Web/desktop:             paste the file into the entry, press Enter
 
    The knob to edit is `runners`; everything below it is machinery.

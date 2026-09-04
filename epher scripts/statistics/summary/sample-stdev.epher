@@ -7,8 +7,11 @@
    sample-variance.epher for the variance alone. With ten scores the result
    is sqrt(2947/30), about 9.9113, against the population 9.4027 below.
 
-   Run it from a terminal:  epher "epher scripts/statistics/summary/sample-stdev.epher"
-   In the REPL:             load epher scripts/statistics/summary/sample-stdev.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/sample-stdev.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\sample-stdev.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/sample-stdev.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

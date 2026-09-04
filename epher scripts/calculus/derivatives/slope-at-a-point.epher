@@ -16,7 +16,10 @@
    the numeric derivative agrees to about 1e-12 or better (it is exact
    at the displayed precision for polynomials at integer points).
 
-   Run:  epher "epher scripts/calculus/derivatives/slope-at-a-point.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/derivatives/slope-at-a-point.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\derivatives\slope-at-a-point.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/derivatives/slope-at-a-point.epher
    No knobs: the five (function, point) pairs are the demonstration.
    ============================================================================ */
 

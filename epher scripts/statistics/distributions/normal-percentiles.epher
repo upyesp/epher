@@ -8,8 +8,11 @@
    The last three lines feed each percentile back through normcdf: the
    lower-tail area at the percentile comes back to p, as it must.
 
-   Run it from a terminal:  epher "epher scripts/statistics/distributions/normal-percentiles.epher"
-   In the REPL:             load epher scripts/statistics/distributions/normal-percentiles.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/normal-percentiles.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\normal-percentiles.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/normal-percentiles.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

@@ -8,7 +8,10 @@
    because the complex arithmetic is exact. The formula route with sqrt of
    a negative number is shown in quadratic-complex-roots.epher.
 
-   Run it from a terminal:  epher "epher scripts/algebra/complex/complex-quadratic-roots.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-quadratic-roots.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-quadratic-roots.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-quadratic-roots.epher
 
    The knob to edit is the coefficient list cs below.
    ============================================================================ */

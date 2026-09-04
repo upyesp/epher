@@ -12,7 +12,10 @@
    Accuracy: the slope prints exactly 4; all checks are exact decimal
    arithmetic at the displayed precision.
 
-   Run:  epher "epher scripts/calculus/derivatives/tangent-line.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/derivatives/tangent-line.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\derivatives\tangent-line.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/derivatives/tangent-line.epher
    The knob to edit is `a`, the point of tangency.
    ============================================================================ */
 

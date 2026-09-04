@@ -8,8 +8,11 @@
    is the absolute difference of the two sweeps. The classic puzzle answer
    for 3:00 is 90 deg and for 6:00 it is 180 deg; both fall out below.
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/angles/clock-angle.epher"
-   In the REPL:             load epher scripts/trigonometry/angles/clock-angle.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/clock-angle.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\clock-angle.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/clock-angle.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are the `hs` and `ms` lists below, one clock time per

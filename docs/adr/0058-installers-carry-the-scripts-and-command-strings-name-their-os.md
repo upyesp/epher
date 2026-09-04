@@ -123,12 +123,26 @@ on every platform instead of trusting the config line: `dpkg-deb -c` /
 `test -f` on macOS, all looking for
 `scripts/astronomy/moon/full-moons.epher`.
 
-Two CLI changes ride along. First, an argument that names no existing
+An argument that names no existing
 file but *looks like* a path — it starts with `/`, `\`, `./`, `../`, or
 a drive letter, none of which any expression can start with — now fails
 with `error: no such script file: <path>` instead of a parse error, so
 a missing install names the file rather than the tokenizer. Arguments
 that could still be expressions keep ADR-0040's behavior: `1.5.5`
-reports a parse error, and `a/b` stays division. Second, the man page's
+reports a parse error, and `a/b` stays division. The man page's
 EXAMPLES section now shows the installed script path on each operating
 system, so the manual and the guide agree.
+
+## Amendment (2026-09-07, later the same day): the script headers and the Scripts page name the installed paths too
+
+The report came back once more: every script's page on the website
+still showed `epher "epher scripts/..."` — the checkout command each
+file's header comment carries, and the run hint the Scripts browser
+rendered from the repository-relative path. A reader on Windows or
+macOS had no copyable equivalent at all. Both surfaces now speak the
+installed locations: every one of the 333 headers carries the three
+commands (`Linux (deb, rpm)`, `Windows`, `macOS`) over the installed
+path, the REPL line points at them, and the Scripts page renders the
+same three commands, each with its own copy button. The transcripts
+are untouched — the lines are comments — and the checker passes all
+333.

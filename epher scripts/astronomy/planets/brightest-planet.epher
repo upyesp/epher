@@ -11,8 +11,11 @@
    built-in min. Magnitudes come from the accessor mag (the solar-
    ephemeris crate, JPL-validated; guide 1.16).
 
-   Run it from a terminal:  epher "epher scripts/astronomy/planets/brightest-planet.epher"
-   In the REPL:             load epher scripts/astronomy/planets/brightest-planet.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/brightest-planet.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\brightest-planet.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/brightest-planet.epher
+   In the REPL:             load one of the paths above
 
    Knob: the date t.
    ============================================================================ */

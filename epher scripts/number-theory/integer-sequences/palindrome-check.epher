@@ -12,8 +12,11 @@
    Penguin Dictionary of Curious and Interesting Numbers". All results
    are exact.
 
-   Run it from a terminal:  epher "epher scripts/number-theory/integer-sequences/palindrome-check.epher"
-   In the REPL:             load epher scripts/number-theory/integer-sequences/palindrome-check.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/palindrome-check.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\palindrome-check.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/palindrome-check.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    There is no knob: the sample numbers and bound 1000 are the checks.

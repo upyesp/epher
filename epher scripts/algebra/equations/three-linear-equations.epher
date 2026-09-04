@@ -8,7 +8,10 @@
    exact, so the printed solution is exact. The system below has the
    solution x = 1, y = 2, z = 3.
 
-   Run it from a terminal:  epher "epher scripts/algebra/equations/three-linear-equations.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/three-linear-equations.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\three-linear-equations.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/three-linear-equations.epher
 
    The knob to edit is the augmented matrix AM below.
    ============================================================================ */

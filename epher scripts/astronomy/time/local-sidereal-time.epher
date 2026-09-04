@@ -15,8 +15,11 @@
    gap of about 2 arcsec is the equation of equinoxes, mean versus
    apparent sidereal time).
 
-   Run it from a terminal:  epher "epher scripts/astronomy/time/local-sidereal-time.epher"
-   In the REPL:             load epher scripts/astronomy/time/local-sidereal-time.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/local-sidereal-time.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\local-sidereal-time.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/local-sidereal-time.epher
+   In the REPL:             load one of the paths above
 
    Knobs: the instant, the two longitudes, latitude for the transit.
    ============================================================================ */

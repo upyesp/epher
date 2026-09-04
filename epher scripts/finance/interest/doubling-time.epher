@@ -12,7 +12,9 @@
    twelve displayed digits).
 
    Run it from a terminal:
-     epher "epher scripts/finance/interest/doubling-time.epher"
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/doubling-time.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\doubling-time.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/doubling-time.epher
 
    There are no knobs: the three rates below are the demonstration.
    ============================================================================ */

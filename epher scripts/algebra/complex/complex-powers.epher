@@ -8,7 +8,10 @@
    |z^n| = |z|^n is checked for both: 32 = 32 exactly in the first case,
    and sqrt(2197) from either side in the second, within 1e-9.
 
-   Run it from a terminal:  epher "epher scripts/algebra/complex/complex-powers.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-powers.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-powers.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-powers.epher
 
    No knobs to edit; the values below are fixed examples.
    ============================================================================ */

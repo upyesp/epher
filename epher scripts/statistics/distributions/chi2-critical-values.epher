@@ -7,8 +7,11 @@
    goodness-of-fit tests. The last lines feed each cut point back through
    chi2cdf: the lower-tail area at the cut point comes back to p.
 
-   Run it from a terminal:  epher "epher scripts/statistics/distributions/chi2-critical-values.epher"
-   In the REPL:             load epher scripts/statistics/distributions/chi2-critical-values.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/chi2-critical-values.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\chi2-critical-values.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/chi2-critical-values.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

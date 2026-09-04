@@ -17,7 +17,10 @@
    Source: Feller, "An Introduction to Probability Theory and Its
    Applications", volume 1, chapter 1. All fractions are exact.
 
-   Run it from a terminal:  epher "epher scripts/probability/games/card-draw-probabilities.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/card-draw-probabilities.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\card-draw-probabilities.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/card-draw-probabilities.epher
    Web/desktop:             paste the file into the entry, press Enter
    ============================================================================ */
 

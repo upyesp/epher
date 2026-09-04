@@ -12,8 +12,11 @@
    Goldbach conjecture", 2014. isprime is exact, so the pair found is a
    true Goldbach pair; the search depth is tiny for the values below.
 
-   Run it from a terminal:  epher "epher scripts/number-theory/primes/goldbach-pair.epher"
-   In the REPL:             load epher scripts/number-theory/primes/goldbach-pair.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/goldbach-pair.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\goldbach-pair.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/goldbach-pair.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The one knob to edit is `n` below; it must be even and at least 6.

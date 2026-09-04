@@ -7,8 +7,11 @@
    line 3 x + 4 y - 5 = 0 has normal length 5, so the origin is 1 unit
    away and (1, 2) is 6/5 = 1.2, exact. A point on the line gives 0.
 
-   Run it from a terminal:  epher "epher scripts/geometry/coordinates/point-to-line-distance.epher"
-   In the REPL:             load epher scripts/geometry/coordinates/point-to-line-distance.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/point-to-line-distance.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\point-to-line-distance.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/point-to-line-distance.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are `a`, `b`, `c` (the line a x + b y + c = 0).

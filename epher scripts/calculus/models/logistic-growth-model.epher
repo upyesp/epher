@@ -16,7 +16,10 @@
    Accuracy: values print as the calculator shows them; the boolean
    checks agree to better than 1e-9 at half capacity.
 
-   Run:  epher "epher scripts/calculus/models/logistic-growth-model.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/logistic-growth-model.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\logistic-growth-model.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/logistic-growth-model.epher
    The knobs to edit are `K`, `p0`, `r` and `ts` below.
    ============================================================================ */
 

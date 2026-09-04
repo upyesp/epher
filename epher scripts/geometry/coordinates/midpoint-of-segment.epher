@@ -6,8 +6,11 @@
    The results confirm the definition: a midpoint is equidistant from the
    two ends, so the last result compares the two distances.
 
-   Run it from a terminal:  epher "epher scripts/geometry/coordinates/midpoint-of-segment.epher"
-   In the REPL:             load epher scripts/geometry/coordinates/midpoint-of-segment.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/midpoint-of-segment.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\midpoint-of-segment.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/midpoint-of-segment.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The endpoints to try are in the results section below; edit them

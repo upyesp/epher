@@ -10,8 +10,11 @@
    ch. 6); the builtin trig is used, in radians, so the degree knob is
    converted with rad().
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/triangles/right-triangle-solver.epher"
-   In the REPL:             load epher scripts/trigonometry/triangles/right-triangle-solver.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/right-triangle-solver.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\right-triangle-solver.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/right-triangle-solver.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are the two problems below. The first is the famous

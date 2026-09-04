@@ -16,7 +16,10 @@
 
    Source: Erdos and Renyi (1970), "On a new law of large numbers".
 
-   Run it from a terminal:  epher "epher scripts/probability/simulations/coin-streak.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/simulations/coin-streak.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\simulations\coin-streak.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/simulations/coin-streak.epher
    Web/desktop:             paste the file into the entry, press Enter
 
    The knobs to edit are `coins` (tosses per run) and the seeds below.

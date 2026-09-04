@@ -8,8 +8,11 @@
    first, so 90 deg reports the positive y-axis and 270 the negative one,
    not a quadrant.
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/angles/quadrant-of-angle.epher"
-   In the REPL:             load epher scripts/trigonometry/angles/quadrant-of-angle.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/quadrant-of-angle.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\quadrant-of-angle.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/quadrant-of-angle.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The one knob to edit is the `angs` list below (degrees); an axis angle,

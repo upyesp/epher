@@ -13,8 +13,11 @@
    planet: Jupiter's phase angle stays under about 11 deg and Saturn's
    under 7 deg, so they always look nearly full (illum above 0.99).
 
-   Run it from a terminal:  epher "epher scripts/astronomy/planets/planet-illuminations.epher"
-   In the REPL:             load epher scripts/astronomy/planets/planet-illuminations.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-illuminations.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-illuminations.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-illuminations.epher
+   In the REPL:             load one of the paths above
 
    Knob: the date t.
    ============================================================================ */

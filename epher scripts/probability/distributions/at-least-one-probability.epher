@@ -15,7 +15,10 @@
    The script works each case with exact rational powers, so 91/216, for
    instance, is the exact fraction, not an approximation.
 
-   Run it from a terminal:  epher "epher scripts/probability/distributions/at-least-one-probability.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/at-least-one-probability.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\at-least-one-probability.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/at-least-one-probability.epher
    Web/desktop:             paste the file into the entry, press Enter
    ============================================================================ */
 

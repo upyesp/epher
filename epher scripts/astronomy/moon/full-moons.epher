@@ -22,8 +22,11 @@
    `for` loops (1.10), strings and `print` (1.7), `if` decisions (1.8),
    and the astronomy accessors and constants (1.18).
 
-   Run it from a terminal:  epher "epher scripts/astronomy/moon/full-moons.epher"
-   In the REPL:             load epher scripts/astronomy/moon/full-moons.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/full-moons.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\full-moons.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/full-moons.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
    Everything also works line by line in the TUI.
 

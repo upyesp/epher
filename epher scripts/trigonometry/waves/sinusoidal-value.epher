@@ -9,8 +9,11 @@
    f = 50 Hz the argument is 2 pi (0.5) + pi/6 = 7 pi/6, whose sine is
    -1/2, so y = -1.25 m exactly.
 
-   Run it from a terminal:  epher "epher scripts/trigonometry/waves/sinusoidal-value.epher"
-   In the REPL:             load epher scripts/trigonometry/waves/sinusoidal-value.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/waves/sinusoidal-value.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\waves\sinusoidal-value.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/waves/sinusoidal-value.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are A (meters), f (hertz), phi (degrees) and the

@@ -6,8 +6,11 @@
    preserves area and turns it into a rectangle (Euclid's Elements,
    book I, proposition 35; standard formula). All results are exact.
 
-   Run it from a terminal:  epher "epher scripts/geometry/polygons/parallelogram-area.epher"
-   In the REPL:             load epher scripts/geometry/polygons/parallelogram-area.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/parallelogram-area.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\parallelogram-area.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/parallelogram-area.epher
+   In the REPL:             load one of the paths above
    Web/desktop:             paste the whole file into the entry, press Enter
 
    The knobs to edit are `b` (the base) and `h` (the height to it).

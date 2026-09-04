@@ -23,7 +23,10 @@
    to 40 C is 16.2992550228 minutes and the round trip agrees to
    better than 1e-9.
 
-   Run:  epher "epher scripts/calculus/models/newton-law-of-cooling.epher"
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/newton-law-of-cooling.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\newton-law-of-cooling.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/newton-law-of-cooling.epher
    The knobs to edit are `t0`, `tenv`, `obs_t` and `obs_temp` below.
    ============================================================================ */
 

@@ -11,8 +11,11 @@
    scripts share their sample days so the sizes and distances can be
    compared line by line.
 
-   Run it from a terminal:  epher "epher scripts/astronomy/moon/moon-angular-diameter.epher"
-   In the REPL:             load epher scripts/astronomy/moon/moon-angular-diameter.epher
+   Run it from a terminal:
+     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-angular-diameter.epher
+     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-angular-diameter.epher"
+     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-angular-diameter.epher
+   In the REPL:             load one of the paths above
 
    Knobs: year, month, and the sample days of the month.
    ============================================================================ */
