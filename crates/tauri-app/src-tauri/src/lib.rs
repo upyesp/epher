@@ -406,6 +406,10 @@ where
                 Ok(())
             })
         }
+        dispatch::Action::MissingScriptFile(path) => {
+            epher_cli::term::error(&format!("error: no such script file: {path}"));
+            std::process::exit(1);
+        }
         dispatch::Action::Repl => epher_cli::run_repl(),
         dispatch::Action::Tui => {
             epher_tui::run().map_err(|e| epher_core::EpherError::Io(e.to_string()))

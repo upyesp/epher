@@ -172,12 +172,29 @@ jobs:
               grep -q "guide/en.md" <(dpkg-deb -c artifacts/epher-linux-x86_64.deb)
               grep -q "guide/zh-CN.md" <(dpkg-deb -c artifacts/epher-linux-x86_64.deb)
               grep -q "guide/en.md" <(rpm -qlp artifacts/epher-linux-x86_64.rpm)
+              # ADR-0058: the deb/rpm must also carry the script
+              # collection under /usr/lib/epher/scripts — the guide's
+              # terminal examples name those installed paths. (The
+              # resources-map line was once lost between rounds and a
+              # release shipped installers without the scripts.)
+              grep -q "scripts/astronomy/moon/full-moons.epher" <(dpkg-deb -c artifacts/epher-linux-x86_64.deb)
+              grep -q "scripts/astronomy/moon/full-moons.epher" <(rpm -qlp artifacts/epher-linux-x86_64.rpm)
               ;;
             macOS)
               cp "$BUNDLE"/dmg/*.dmg artifacts/epher-${{ matrix.target }}.dmg
+              # ADR-0058: the app bundle carries the scripts at
+              # Contents/Resources/scripts.
+              hdiutil attach -nobrowse -readonly artifacts/epher-${{ matrix.target }}.dmg
+              VOL="$(ls -d /Volumes/epher* | head -1)"
+              test -f "$VOL/epher.app/Contents/Resources/scripts/astronomy/moon/full-moons.epher"
+              hdiutil detach "$VOL"
               ;;
             Windows)
               cp "$BUNDLE"/nsis/*-setup.exe artifacts/epher-windows-x86_64.exe
+              # ADR-0058: the NSIS installer carries the scripts beside
+              # the binaries (%LOCALAPPDATA%\epher\scripts in currentUser
+              # mode). 7-Zip lists the archive on the runner.
+              7z l artifacts/epher-windows-x86_64.exe | grep -q "full-moons.epher"
               ;;
           esac
 

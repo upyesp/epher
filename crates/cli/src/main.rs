@@ -21,6 +21,10 @@ fn main() {
             }
             Ok(())
         }),
+        Action::MissingScriptFile(path) => {
+            epher_cli::term::error(&format!("error: no such script file: {path}"));
+            std::process::exit(1);
+        }
         Action::Repl => epher_cli::run_repl(),
         Action::HelpManual => std::process::exit(epher_cli::help::manual()),
         Action::HelpTopic(topic) => epher_cli::help::topic(&topic),

@@ -485,6 +485,39 @@ fn a_script_file_argument_runs_line_by_line() {
 }
 
 #[test]
+fn a_missing_path_names_the_file_instead_of_parse_errors() {
+    // ADR-0058 amendment: a path-shaped argument that names no file
+    // says so — evaluating the path as an expression only reports a
+    // tokenizer error (the bug round where the documented installed
+    // paths hit missing scripts showed exactly those).
+    let dir = tempfile::tempdir().unwrap();
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .arg("/usr/lib/epher/scripts/astronomy/moon/full-moons.epher")
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(1));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("no such script file"), "stderr was: {err}");
+    assert!(err.contains("full-moons.epher"), "stderr was: {err}");
+}
+
+#[test]
+fn dotted_typos_stay_parse_errors_not_missing_files() {
+    // ADR-0040: `1.5.5` is a typo'd expression — a dot alone does not
+    // make it a path, so it keeps its parse error.
+    let dir = tempfile::tempdir().unwrap();
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .arg("1.5.5")
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(1));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("parse error"), "stderr was: {err}");
+}
+
+#[test]
 fn a_failing_script_line_exits_nonzero_but_continues() {
     let dir = tempfile::tempdir().unwrap();
     let script = dir.path().join("mixed.es");

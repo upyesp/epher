@@ -32,7 +32,8 @@
     "active": true,
     "targets": "all",
     "resources": {
-      "../../../site/guide/*.md": "guide/"
+      "../../../site/guide/*.md": "guide/",
+      "../../../epher scripts": "scripts"
     },
     "icon": [
       "icons/32x32.png",

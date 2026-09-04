@@ -193,6 +193,9 @@ read a script from standard input, line by line
 printf "def f(x) = x ^ 2\\nf(9)\\n" | epher \-
 lines share one session: prints = 81
 .TP 4
+epher /usr/lib/epher/scripts/astronomy/moon/full\-moons.epher
+run an installed script file, line by line (on Windows the path is %LOCALAPPDATA%\\epher\\scripts\\astronomy\\moon\\full\-moons.epher, on macOS /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/full\-moons.epher)
+.TP 4
 epher repl
 interactive session; answers print as `= result`
 .TP 4

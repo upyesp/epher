@@ -64,6 +64,52 @@ fn help_and_version_still_work_despite_hyphen_values() {
 }
 
 #[test]
+fn existing_files_are_scripts_not_expressions() {
+    // A file with a path-ish character runs as a script (ADR-0040).
+    let dir = tempfile::tempdir().unwrap();
+    let script = dir.path().join("sine.es");
+    std::fs::write(&script, "1 + 1\n").unwrap();
+    assert_eq!(
+        parse(&[script.display().to_string().as_str()]),
+        Action::ScriptFile(script)
+    );
+}
+
+#[test]
+fn path_shaped_arguments_that_name_no_file_are_reported() {
+    // ADR-0058 amendment: nothing the tokenizer could parse starts with
+    // a slash, backslash, `./`, `../`, or a drive letter, so these are
+    // missing scripts, not expressions.
+    for path in [
+        "/usr/lib/epher/scripts/astronomy/moon/full-moons.epher",
+        "./sine.es",
+        "../sine.es",
+        "C:\\Users\\pete\\scripts\\full-moons.epher",
+        "C:/Users/pete/scripts/full-moons.epher",
+        "\\\\server\\share\\sine.es",
+    ] {
+        assert_eq!(
+            parse(&[path]),
+            Action::MissingScriptFile(path.to_string()),
+            "{path:?}"
+        );
+    }
+}
+
+#[test]
+fn dotted_typos_and_division_stay_expressions() {
+    // ADR-0040: `1.5.5` keeps its parse error, and interior slashes are
+    // division — `a/b` is a real expression, not a path.
+    for expr in ["1.5.5", "1/2", "a/b", ".5", "-5"] {
+        assert_eq!(
+            parse(&[expr]),
+            Action::OneShot(expr.to_string()),
+            "{expr:?}"
+        );
+    }
+}
+
+#[test]
 fn repl_after_an_expression_is_rejected_not_silently_merged() {
     // `epher "1+1" repl` must not quietly pick one meaning: the positional
     // expression and the subcommands are mutually exclusive (an error that

@@ -102,3 +102,33 @@ broken one on the other platform.
   system packages cannot write one user's home cleanly, and the per-OS
   resource locations are already correct, standard places that the
   OS-labeled fences state plainly.
+
+## Amendment (2026-09-07): decision 1 lands one release late, and a
+path that names no file says so
+
+The release that carried this ADR (v0.5.25) shipped without the
+resources-map line: the local build that verified it used an edited
+`tauri.conf.json`, and the edit never reached the commit, so the
+installers kept shipping only the guide files while the guide, the
+scripts' README, the Scripts page, and the repository README all named
+the installed script paths. A user copying any of those commands got a
+tokenizer error — "unexpected character: ':'" from the Windows drive
+letter, "invalid number: '.'" from the `.epher` suffix — because a path
+that names no file is evaluated as an expression (ADR-0040).
+
+The resources map now gains `"../../../epher scripts": "scripts"` in
+`tauri.conf.json`, and the release workflow checks the artifact contents
+on every platform instead of trusting the config line: `dpkg-deb -c` /
+`rpm -qlp` on Linux, `7z l` on the NSIS installer, and a mounted-dmg
+`test -f` on macOS, all looking for
+`scripts/astronomy/moon/full-moons.epher`.
+
+Two CLI changes ride along. First, an argument that names no existing
+file but *looks like* a path — it starts with `/`, `\`, `./`, `../`, or
+a drive letter, none of which any expression can start with — now fails
+with `error: no such script file: <path>` instead of a parse error, so
+a missing install names the file rather than the tokenizer. Arguments
+that could still be expressions keep ADR-0040's behavior: `1.5.5`
+reports a parse error, and `a/b` stays division. Second, the man page's
+EXAMPLES section now shows the installed script path on each operating
+system, so the manual and the guide agree.

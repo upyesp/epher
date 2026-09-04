@@ -114,6 +114,11 @@ pub enum Action {
     Stdin,
     /// Evaluate a script file, line by line (`epher plots/sine.es`).
     ScriptFile(std::path::PathBuf),
+    /// The argument looked like a path (it starts with `/`, `\`, `./`,
+    /// `../`, or a drive letter) but named no file. Evaluating it as an
+    /// expression could only produce a tokenizer error, so the frontends
+    /// say "no such script file" instead (ADR-0058 amendment).
+    MissingScriptFile(String),
     /// Interactive REPL in the terminal.
     Repl,
     /// Full-screen terminal UI.
@@ -150,6 +155,15 @@ pub fn action_from(args: &Args) -> Action {
         // name can never contain `.`, `/`, or `\\`, so `epher x` still
         // evaluates the name `x` even when a file called x sits nearby.
         Some(expr) if is_script_file(expr) => Action::ScriptFile(expr.into()),
+        // A path that names no file is a missing script, not an
+        // expression: no expression can start with a slash, a backslash,
+        // `./`, `../`, or a drive letter, so the parse error it would
+        // produce names the tokenizer, not the problem (ADR-0058: the
+        // documented installed paths did exactly that when the scripts
+        // were missing from an installer). Paths that could be
+        // expressions keep their old behavior: `1.5.5` stays a parse
+        // error, and `epher plots/sine.es` too.
+        Some(expr) if looks_like_path(expr) => Action::MissingScriptFile(expr.to_string()),
         Some(expr) => Action::OneShot(expr.to_string()),
         None => Action::Gui,
     }
@@ -175,4 +189,22 @@ DOCUMENTATION:
 fn is_script_file(arg: &str) -> bool {
     (arg.contains('/') || arg.contains('\\') || arg.contains('.'))
         && std::path::Path::new(arg).is_file()
+}
+
+/// Does this argument have the shape of a path no expression could have:
+/// a leading `/`, `\`, `./`, `../`, or a Windows drive letter (`C:\`,
+/// `C:/`)? Such an argument that names no file is reported as a missing
+/// script file rather than fed to the tokenizer.
+fn looks_like_path(arg: &str) -> bool {
+    if arg.starts_with('/')
+        || arg.starts_with('\\')
+        || arg.starts_with("./")
+        || arg.starts_with("../")
+        || arg.starts_with(".\\")
+        || arg.starts_with("..\\")
+    {
+        return true;
+    }
+    let b = arg.as_bytes();
+    b.len() >= 3 && b[0].is_ascii_alphabetic() && b[1] == b':' && (b[2] == b'\\' || b[2] == b'/')
 }
