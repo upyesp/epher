@@ -106,8 +106,9 @@ jobs:
           grep -q '<polyline' "$OUT/surface.svg"
           grep -q 'points="' "$OUT/surface.svg"
           grep -q 'vector-effect="non-scaling-stroke"' "$OUT/surface.svg"
-          # Piped stdin: success exits 0, a bad line exits 1.
-          [ "$(printf '6 * 7' | "$BIN" -)" = "42" ]
+          # Piped stdin: success exits 0 (transcript-style "= " prefix),
+          # a bad line exits 1.
+          [ "$(printf '6 * 7' | "$BIN" -)" = "= 42" ]
           if printf '1 +\n' | "$BIN" - >/dev/null 2>&1; then
             echo "a failing piped script must exit nonzero"; exit 1
           fi
