@@ -90,7 +90,7 @@ jobs:
 
       - name: CLI smoke
         run: |
-          set -e
+          set -ex
           BIN="$EPHER"
           VERSION="$(grep -m1 '^version' crates/cli/Cargo.toml | cut -d'"' -f2)"
           "$BIN" --version | grep -q "$VERSION"
