@@ -6,8 +6,8 @@
    itself and the relative error grows like x^2. This is why the small-angle
    approximation is always stated in radians: the x in the series is the
    radian measure. The script prints the relative error
-   (approx - exact) / exact of sin(x) ~ x and tan(x) ~ x, which is negative
-   for sine (sin < x) and positive for tangent (tan > x).
+   (approx - exact) / exact of sin(x) ~ x and tan(x) ~ x: positive for
+   both, since sin(x) < x < tan(x) for a positive angle.
 
    Run it from a terminal:
      Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/small-angle-approximation.epher
@@ -18,7 +18,10 @@
 
    The one knob to edit is the `xs` list below (radians; the file works in
    radians on purpose, since the approximation is about radian measure).
-   Printed values carry about 12 significant digits.
+   Printed values are rounded to 11 significant digits: sin, cos and tan
+   come from the platform's math library, and platforms can disagree in
+   the twelfth digit (Linux and Apple silicon do, for tan at these
+   angles). The rounding keeps this transcript identical everywhere.
    ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
@@ -28,27 +31,31 @@ const xs = {0.5, 0.1, 0.01, 0.001}   // angles, in radians
 def relerr_sin(t) = (t - sin(t)) / sin(t)    // relative error of sin(x) ~ x
 def relerr_tan(t) = (tan(t) - t) / tan(t)    // relative error of tan(x) ~ x
 
+// Round to 11 significant digits (see the header): the platform math
+// libraries agree to about eleven digits, and the transcript should too.
+def r11(x) = round(x * 10^(10 - floor(log(abs(x))))) * 10^(floor(log(abs(x))) - 10)
+
 /* ---- results -----------------------------------------------------------------
    Relative errors across the knob angles, biggest to smallest: at 0.5 rad
    sine is about 4% low and tangent about 8% high, at 0.001 rad both are
    within a few parts in 10^7. The errors fall off like x^2, as the series
    predicts. */
-for t in xs do relerr_sin(t)
-for t in xs do relerr_tan(t)
+for t in xs do r11(relerr_sin(t))
+for t in xs do r11(relerr_tan(t))
 
 // The promised close look at x = 0.01 rad (about 0.573 deg).
 print("x =", 0.01, "rad")
-print("sin(x) =", sin(0.01))
-print("tan(x) =", tan(0.01))
-print("relative error of sin(x) ~ x:", relerr_sin(0.01))
-print("relative error of tan(x) ~ x:", relerr_tan(0.01))
+print("sin(x) =", r11(sin(0.01)))
+print("tan(x) =", r11(tan(0.01)))
+print("relative error of sin(x) ~ x:", r11(relerr_sin(0.01)))
+print("relative error of tan(x) ~ x:", r11(relerr_tan(0.01)))
 /* ---- expected output
 = {0.5, 0.1, 0.01, 0.001}
-= {0.0429148214667, 0.00166861316348, 0.0000166668611132, 0.000000166666686117}
-= {0.0847561391438, 0.00333555767408, 0.0000333335555577, 0.00000033333335562}
+= {0.042914821467, 0.0016686131635, 0.000016666861113, 0.00000016666668612}
+= {0.084756139144, 0.0033355576741, 0.000033333555558, 0.00000033333335562}
 = x = 0.01 rad
-= sin(x) = 0.00999983333417
-= tan(x) = 0.0100003333467
-= relative error of sin(x) ~ x: 0.0000166668611132
-= relative error of tan(x) ~ x: 0.0000333335555577
+= sin(x) = 0.0099998333342
+= tan(x) = 0.010000333347
+= relative error of sin(x) ~ x: 0.000016666861113
+= relative error of tan(x) ~ x: 0.000033333555558
 */
