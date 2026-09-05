@@ -42,7 +42,7 @@ window.EPHER_I18N["de"] = {
   "win-desc": "Ein Installer. Er legt epher in deinen PATH. Nutze es aus CMD, PowerShell, dem Startmenü oder per Doppelklick.",
   "win-download": "Windows-Installer herunterladen",
   "mac-name": "macOS",
-  "mac-desc": "Eine App. Ziehe sie in Programme; ein Button darin installiert den Terminal-Befehl epher für dich.",
+  "mac-desc": "Eine App. Ziehe sie in Programme; ein Button darin installiert den Terminal-Befehl epher für dich. Beim ersten Start: Rechtsklick auf die App und Öffnen wählen.",
   "mac-download": "Für macOS herunterladen (Apple Silicon)",
   "linux-name": "Linux",
   "linux-desc": "Eine Installation pro Paketfamilie: Debian/Ubuntu, Fedora/RHEL oder das AppImage für alles andere (auch Arch). Alle legen epher in deinen PATH.",

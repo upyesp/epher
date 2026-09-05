@@ -42,7 +42,7 @@ window.EPHER_I18N["ar"] = {
   "win-desc": "مثبِّت واحد. يضع epher في PATH. استخدمه من CMD أو PowerShell أو قائمة ابدأ أو بنقرة مزدوجة.",
   "win-download": "تنزيل مثبِّت Windows",
   "mac-name": "macOS",
-  "mac-desc": "تطبيق واحد. اسحبه إلى Applications؛ وزرٌ بداخله يثبِّت أمر epher الطرفي لك.",
+  "mac-desc": "تطبيق واحد. اسحبه إلى Applications؛ وزرٌ بداخله يثبِّت أمر epher الطرفي لك. عند التشغيل أول مرة: انقر بزر الفأرة الأيمن على التطبيق واختر فتح.",
   "mac-download": "تنزيل لنظام macOS (Apple Silicon)",
   "linux-name": "Linux",
   "linux-desc": "تثبيت واحد لكل عائلة حزم: Debian/Ubuntu وFedora/RHEL أو AppImage لكل ما عداها (بما فيها Arch). كلها تضع epher في PATH.",

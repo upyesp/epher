@@ -166,3 +166,29 @@ on script pages for exactly that reason), so the collection-wide block
 repeated what the per-script commands do better: an example nobody
 asked for, three operating systems of path noise above the browser.
 The section is gone; the per-script run commands stay as they are.
+
+## Amendment (2026-09-05): the macOS bundle is ad-hoc signed, and the release verifies it
+
+A fresh download of the DMG opened with macOS's "epher is damaged and
+can't be opened" dialog. Nothing was damaged: the app bundle inside had
+no code signature at all (the Mach-O is ad-hoc signed by the linker,
+but the bundle carries no `Contents/_CodeSignature`), and every browser
+download arrives stamped with the `com.apple.quarantine` flag.
+Gatekeeper's check of a quarantined, unsigned bundle fails hard and
+reports "damaged" — with no right-click escape hatch, which made the
+guide's documented first-launch path impossible to follow.
+
+The release now ad-hoc signs the app bundle (`codesign --force --deep
+--sign -`) and builds the DMG from the signed bundle — the tauri dmg
+bundler's own layout (volume `epher`, the app, the Applications
+symlink), rebuilt so the signature is in place before imaging. An
+ad-hoc signature is a valid signature: Gatekeeper's damaged check
+passes, and first launch degrades to the ordinary overridable warning
+the guide has documented all along (right-click → **Open**, or System
+Settings → Privacy & Security → *Open Anyway*). The packaging step
+verifies the signature **inside the shipped DMG** (`codesign --verify
+--deep --strict` on the mounted volume) and fails the release if the
+seal is ever broken again. The build still carries no developer
+identity, so macOS cannot confirm who built it — that needs an Apple
+Developer account and notarization, and stays open until the project
+has one.

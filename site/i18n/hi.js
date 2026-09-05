@@ -25,7 +25,7 @@ window.EPHER_I18N["hi"] = {
   "win-desc": "एक इंस्टॉलर। यह epher को आपके PATH पर रखता है। CMD, PowerShell, स्टार्ट मेनू या डबल-क्लिक से चलाएँ।",
   "win-download": "Windows इंस्टॉलर डाउनलोड करें",
   "mac-name": "macOS",
-  "mac-desc": "एक ऐप। इसे Applications में खींचें; अंदर एक बटन आपके लिए epher टर्मिनल कमांड इंस्टॉल करता है।",
+  "mac-desc": "एक ऐप। इसे Applications में खींचें; अंदर एक बटन आपके लिए epher टर्मिनल कमांड इंस्टॉल करता है। पहली बार लॉन्च पर: ऐप पर राइट-क्लिक करें और Open चुनें।",
   "mac-download": "macOS के लिए डाउनलोड करें (Apple Silicon)",
   "linux-name": "Linux",
   "linux-desc": "हर पैकेज परिवार के लिए एक इंस्टॉल: Debian/Ubuntu, Fedora/RHEL, या बाकी सबके लिए AppImage (Arch समेत)। सभी epher को आपके PATH पर रखते हैं।",

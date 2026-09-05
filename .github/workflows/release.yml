@@ -20,7 +20,10 @@
 #   epher-linux-x86_64.deb          Debian/Ubuntu and derivatives
 #   epher-linux-x86_64.rpm          Fedora/RHEL and derivatives
 #   epher-linux-x86_64.AppImage     everything else, incl. Arch — runs as-is
-# macOS and Windows builds are unsigned; your OS may warn on first launch.
+# The builds carry no developer identity: Windows is unsigned, macOS is
+# ad-hoc signed (a valid signature, so Gatekeeper's "damaged" check
+# passes) — first launch shows the ordinary overridable warning, and the
+# guide documents the right-click → Open path for each OS.
 #
 # The Linux leg pins ubuntu-22.04 (glibc 2.35) so the shipped binary runs
 # on Debian 12, Ubuntu 22.04+, and every newer distro — building on
@@ -63,10 +66,16 @@ jobs:
         include:
           - os: ubuntu-22.04
             target: linux-x86_64
+            bundles: all
           - os: macos-latest
             target: macos-aarch64
+            # Only the .app: the release job signs it itself (ad-hoc) and
+            # builds the DMG from the signed bundle, so Gatekeeper never
+            # sees an unsigned bundle (ADR-0058 amendment).
+            bundles: app
           - os: windows-latest
             target: windows-x86_64
+            bundles: all
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -113,7 +122,7 @@ jobs:
         run: cargo install tauri-cli --version 2.11.4 --locked
 
       - name: Build desktop bundles
-        run: cargo tauri build
+        run: cargo tauri build --bundles ${{ matrix.bundles }}
         working-directory: crates/tauri-app/src-tauri
 
       - name: Smoke-test the unified CLI
@@ -181,11 +190,31 @@ jobs:
               grep -q "scripts/astronomy/moon/full-moons.epher" <(rpm -qlp artifacts/epher-linux-x86_64.rpm)
               ;;
             macOS)
-              cp "$BUNDLE"/dmg/*.dmg artifacts/epher-${{ matrix.target }}.dmg
-              # ADR-0058: the app bundle carries the scripts at
-              # Contents/Resources/scripts.
+              # Ad-hoc signing (ADR-0058 amendment): a downloaded DMG
+              # arrives with the com.apple.quarantine flag, and
+              # Gatekeeper's check of a quarantined UNSIGNED bundle fails
+              # hard — macOS reports the app as "damaged" with no
+              # override. An ad-hoc signature is a valid signature: the
+              # check passes and first launch shows the ordinary
+              # right-click → Open warning the guide documents.
+              APP="$GITHUB_WORKSPACE/target/release/bundle/macos/epher.app"
+              test -d "$APP"
+              codesign --force --deep --sign - "$APP"
+              codesign --verify --deep --strict "$APP"
+              # The DMG: volume epher, the app, the Applications symlink
+              # — what the tauri dmg bundler lays out, rebuilt here from
+              # the SIGNED bundle.
+              STAGE="$(mktemp -d)"
+              cp -R "$APP" "$STAGE/"
+              ln -s /Applications "$STAGE/Applications"
+              hdiutil create -volname epher -srcfolder "$STAGE" -ov -format UDZO \
+                artifacts/epher-${{ matrix.target }}.dmg
+              # The shipped DMG itself must verify: the Gatekeeper gate.
               hdiutil attach -nobrowse -readonly artifacts/epher-${{ matrix.target }}.dmg
               VOL="$(ls -d /Volumes/epher* | head -1)"
+              codesign --verify --deep --strict "$VOL/epher.app"
+              # ADR-0058: the app bundle carries the scripts at
+              # Contents/Resources/scripts.
               test -f "$VOL/epher.app/Contents/Resources/scripts/astronomy/moon/full-moons.epher"
               hdiutil detach "$VOL"
               ;;
@@ -238,5 +267,7 @@ jobs:
             - **Web app (PWA)**: https://epher.org/pwa/ — works
               fully offline.
 
-            > Note: the macOS and Windows builds are unsigned; your OS may
-            > warn on first launch.
+            > Note: the builds carry no developer identity. Windows is
+            > unsigned (choose *More info* → *Run anyway*). macOS is
+            > ad-hoc signed — first launch: right-click epher → **Open**,
+            > or System Settings → Privacy & Security → *Open Anyway*.

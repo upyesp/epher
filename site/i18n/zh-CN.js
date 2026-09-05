@@ -42,7 +42,7 @@ window.EPHER_I18N["zh-CN"] = {
   "win-desc": "一个安装程序。安装后 epher 即可在 PATH 中使用。CMD、PowerShell、开始菜单或双击都能启动。",
   "win-download": "下载 Windows 安装程序",
   "mac-name": "macOS",
-  "mac-desc": "一个应用。拖入「应用程序」文件夹即可；应用内有一个按钮可为你安装 epher 终端命令。",
+  "mac-desc": "一个应用。拖入「应用程序」文件夹即可；应用内有一个按钮可为你安装 epher 终端命令。首次打开时：右键点击应用并选择「打开」。",
   "mac-download": "下载 macOS 版（Apple 芯片）",
   "linux-name": "Linux",
   "linux-desc": "每个包系列各一个安装包：Debian/Ubuntu 用 .deb，Fedora/RHEL 用 .rpm，其他发行版（包括 Arch）用 AppImage。安装后 epher 均在 PATH 中。",
