@@ -149,8 +149,9 @@ are untouched — the lines are comments — and the checker passes all
 
 A later pass settled the page layout the same way: the per-script run
 box sits *below* the script text (the reader sees the code first, then
-how to run it), each copy button sits directly to the right of its
-command string, and the page's static "Run them from your terminal"
-section — which documents the installed paths for the whole
+how to run it), each command's copy button sits at the left of its
+row — before the operating-system name it copies for, so label and
+command read as one line — and the page's static "Run them from your
+terminal" section — which documents the installed paths for the whole
 collection — hides while a single script is open, since the script
 page then carries the same commands itself.

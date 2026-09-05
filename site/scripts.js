@@ -237,9 +237,11 @@
     ];
     for (const [osName, cmd] of commands) {
       const line = el("div", "run-line");
+      // The copy button leads the row, before the operating-system name
+      // it copies for: label, command, icon read as one line.
+      line.appendChild(copyButton(cmd));
       line.appendChild(el("span", "run-os", osName));
       line.appendChild(el("code", "", cmd));
-      line.appendChild(copyButton(cmd));
       box.appendChild(line);
     }
     return box;
@@ -260,7 +262,7 @@
     panel.appendChild(pre);
     // The run commands sit under the script: the reader sees the code
     // first, then how to run it (each command carries its own copy
-    // button, to the right of the command string).
+    // button, at the left of the operating-system name it applies to).
     panel.appendChild(runBox(script));
     browser.appendChild(panel);
   }
