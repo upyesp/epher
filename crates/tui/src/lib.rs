@@ -4333,9 +4333,19 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     };
     let input_rows = input_lines.min(4);
     let input_h = 2 + input_rows as u16;
-    // The answer area grows with the result (ADR-0052): a script's
-    // transcript is several lines, and every answer must stay visible.
-    let result_rows = (app.result().chars().filter(|&c| c == '\n').count() + 1).min(6);
+    // The answer line keeps only what reads well on one line (ADR-0056):
+    // a short single answer. Anything longer — a script's transcript, a
+    // table, a long number — renders in the result pane, one answer per
+    // line, by the same rule the web app routes with. The answer area
+    // keeps one row while its text is away in the pane, so the layout
+    // does not jump when a long answer arrives; the pane now carries
+    // ADR-0052's every-answer-visible contract for transcripts.
+    let long_answer = !answer_fits(app.result(), wide);
+    let result_rows = if long_answer {
+        1
+    } else {
+        (app.result().chars().filter(|&c| c == '\n').count() + 1).min(6)
+    };
     let result_h = result_rows as u16;
     let (input_area, result_area, history_area, graph_area, keypad_area, hints_area) = if wide {
         let split =
@@ -4414,7 +4424,14 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         .block(block(input_title));
     frame.render_widget(input, input_area);
 
-    let result = Paragraph::new(app.result()).style(result_style);
+    // A long answer empties the answer line — its transcript renders in
+    // the result pane instead (ADR-0056).
+    let answer_line = if long_answer {
+        String::new()
+    } else {
+        app.result().to_string()
+    };
+    let result = Paragraph::new(answer_line).style(result_style);
     frame.render_widget(result, result_area);
 
     // History (ADR-0027): entries render newest first, one row per line
@@ -4570,8 +4587,22 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         .wrap(ratatui::widgets::Wrap { trim: true });
     frame.render_widget(hints, hints_area);
 
-    // Legend + plot + points of interest, capped to the panel height.
+    // A long answer renders in the result pane (ADR-0056), one answer
+    // per line, above any curves — the pane gives the transcript the
+    // room the answer line cannot.
     let mut graph_text = String::new();
+    let mut transcript_rows = 0u16;
+    if long_answer {
+        graph_text.push_str(app.result());
+        graph_text.push('\n');
+        transcript_rows = app.result().lines().count() as u16 + 1;
+    }
+    // The plot shares the pane with the transcript: it draws below it,
+    // sized to the rows the transcript leaves.
+    let plot_dims_area = Rect {
+        height: graph_area.height.saturating_sub(transcript_rows),
+        ..graph_area
+    };
     let curves = app.graph();
     if let Some(scene) = app.solar() {
         let _ = curves;
@@ -4582,13 +4613,13 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             .collect();
         graph_text.push_str(&legend.join("   "));
         graph_text.push('\n');
-        let (w, h) = graph_dims(graph_area);
+        let (w, h) = graph_dims(plot_dims_area);
         graph_text.push_str(&render_solar_ascii(scene, &app.effective_view(), w, h));
     } else if let Some(data) = app.data() {
         let _ = curves;
         graph_text.push_str(data.source.trim());
         graph_text.push('\n');
-        let (w, h) = graph_dims(graph_area);
+        let (w, h) = graph_dims(plot_dims_area);
         graph_text.push_str(&render_ascii_data(data, w, h));
     } else if !app.curve3ds().is_empty() {
         // 3D parametric curves (ADR-0054): the surface pane's pose,
@@ -4600,7 +4631,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             .collect();
         graph_text.push_str(&legend.join("   "));
         graph_text.push('\n');
-        let (w, h) = graph_dims(graph_area);
+        let (w, h) = graph_dims(plot_dims_area);
         graph_text.push_str(&render_ascii3d_curves(
             app.curve3ds(),
             &app.effective_view(),
@@ -4615,7 +4646,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             .collect();
         graph_text.push_str(&legend.join("   "));
         graph_text.push('\n');
-        let (w, h) = graph_dims(graph_area);
+        let (w, h) = graph_dims(plot_dims_area);
         graph_text.push_str(&render_ascii3d(app.surfaces(), &app.effective_view(), w, h));
     } else if !curves.is_empty() {
         let legend: Vec<String> = curves
@@ -4634,7 +4665,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             .collect();
         graph_text.push_str(&legend.join("   "));
         graph_text.push('\n');
-        let (w, h) = graph_dims(graph_area);
+        let (w, h) = graph_dims(plot_dims_area);
         graph_text.push_str(&render_ascii(curves, w, h, app.graph2d_effective()));
         let poi_lines: Vec<String> = app
             .pois()
@@ -4751,6 +4782,27 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
 
 /// The ASCII plot size: the graph panel's own dimensions (the renderer
 /// scales to them) — wide, narrow, and keypad variants all share it.
+/// True when the answer line keeps a result (ADR-0056): exactly one
+/// answer, no line breaks, and short enough to read without scrolling.
+/// Anything longer — a pasted script's transcript, a table, a long
+/// number — renders in the result pane instead, one answer per line.
+/// The terminal routes by the same rule as the web; the TUI joins a
+/// script's answers with newlines (the web joins with a private
+/// separator), so the newline test covers both multi-answer
+/// transcripts and multiline tables.
+pub fn answer_fits(text: &str, wide: bool) -> bool {
+    if text.is_empty() || text.contains('\n') {
+        return false;
+    }
+    // The web's conservative caps (ADR-0056): about 44 monospace
+    // characters fit the wide layout's calculator column (46 columns
+    // minus its borders), about 24 fit the narrow stack's phone-like
+    // answer line. A borderline answer moving to the result pane is a
+    // smaller fault than one the answer line clips.
+    let cap = if wide { 44 } else { 24 };
+    text.chars().count() <= cap
+}
+
 fn graph_dims(graph_area: ratatui::layout::Rect) -> (usize, usize) {
     let w = graph_area.width.saturating_sub(2) as usize;
     let h = graph_area.height.saturating_sub(4) as usize;
@@ -4856,6 +4908,167 @@ mod draw_tests {
     use ratatui::backend::TestBackend;
     use ratatui::layout::Rect;
     use ratatui::Terminal;
+
+    /// ADR-0056 (amended): a long answer — one line, but over the
+    /// answer line's calm cap — renders in the result pane on the
+    /// right, and the answer line under the entry empties. Exactly the
+    /// web app's routing.
+    #[test]
+    fn a_long_answer_moves_to_the_result_pane() {
+        let mut app = App::default();
+        let long = format!("= {}", "3".repeat(60));
+        app.set_result(&long);
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let mut in_answer_column = false;
+        let mut in_pane = false;
+        for y in 1..24 {
+            let mut calc_row = String::new();
+            let mut pane_row = String::new();
+            for x in 0..46 {
+                calc_row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            for x in 46..80 {
+                pane_row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            // The pane is 32 columns wide inside its borders: a 60-digit
+            // answer clips, so look for its head.
+            if pane_row.contains(&"3".repeat(20)) {
+                in_pane = true;
+            }
+            if calc_row.contains(&"3".repeat(10)) {
+                in_answer_column = true;
+            }
+        }
+        assert!(in_pane, "the long answer must render in the result pane");
+        assert!(
+            !in_answer_column,
+            "the answer line must not clip a long answer"
+        );
+    }
+
+    /// ADR-0056: a short single answer stays where it has always been,
+    /// in the answer line under the entry — and out of the result pane.
+    #[test]
+    fn a_short_answer_stays_on_the_answer_line() {
+        let mut app = App::default();
+        app.set_result("= 42");
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let mut answer_line = false;
+        let mut pane_has_it = false;
+        for y in 1..24 {
+            let mut calc_row = String::new();
+            let mut pane_row = String::new();
+            for x in 0..46 {
+                calc_row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            for x in 46..80 {
+                pane_row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            if calc_row.contains("= 42") {
+                answer_line = true;
+            }
+            if pane_row.contains("= 42") {
+                pane_has_it = true;
+            }
+        }
+        assert!(answer_line, "the short answer must stay on the answer line");
+        assert!(!pane_has_it, "the result pane must stay out of short answers");
+    }
+
+    /// ADR-0056: a multi-answer transcript renders in the result pane,
+    /// one answer per line, never joined on the answer line.
+    #[test]
+    fn a_transcript_renders_in_the_pane_one_answer_per_line() {
+        let mut app = App::default();
+        app.set_result("= 111
+= 222");
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let (mut first, mut second) = (None, None);
+        for y in 1..24 {
+            let mut pane_row = String::new();
+            for x in 46..80 {
+                pane_row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            if first.is_none() && pane_row.contains("= 111") {
+                first = Some(y);
+            }
+            if pane_row.contains("= 222") {
+                second = Some(y);
+            }
+        }
+        let (first, second) = (
+            first.expect("the first answer must render in the pane"),
+            second.expect("the second answer must render in the pane"),
+        );
+        assert!(
+            second > first,
+            "the transcript reads one answer per line, in order"
+        );
+    }
+
+    /// ADR-0056: answers and plots share the pane without ceremony — a
+    /// transcript renders above any curves.
+    #[test]
+    fn a_transcript_renders_above_the_curves() {
+        let mut app = App::default();
+        app.submit_graph("x").unwrap();
+        let long = format!("= {}", "7".repeat(60));
+        app.set_result(&long);
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 30);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let (mut marker_y, mut legend_y) = (None, None);
+        for y in 1..30 {
+            let mut pane_row = String::new();
+            for x in 46..80 {
+                pane_row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            if marker_y.is_none() && pane_row.contains(&"7".repeat(20)) {
+                marker_y = Some(y);
+            }
+            if legend_y.is_none() && pane_row.contains("o y = x") {
+                legend_y = Some(y);
+            }
+        }
+        let (marker_y, legend_y) = (
+            marker_y.expect("the transcript must render in the pane"),
+            legend_y.expect("the curve legend must still render in the pane"),
+        );
+        assert!(
+            marker_y < legend_y,
+            "the transcript renders above the curves"
+        );
+    }
 
     /// The menu popup must paint over the screen's existing content, not
     /// behind it: ratatui renders into one buffer in call order, and the

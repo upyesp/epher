@@ -1,6 +1,6 @@
 use epher_core::Sample;
 use epher_core::Session;
-use epher_tui::{render_ascii, render_ascii3d, render_ascii_data, App};
+use epher_tui::{answer_fits, render_ascii, render_ascii3d, render_ascii_data, App};
 
 fn app_session_constant(app: &App, name: &str) -> epher_core::Value {
     app.session()
@@ -8,6 +8,29 @@ fn app_session_constant(app: &App, name: &str) -> epher_core::Value {
         .constant(name)
         .cloned()
         .unwrap_or(epher_core::Value::float(f64::NAN))
+}
+
+#[test]
+fn answer_routing_follows_the_web_rule() {
+    // ADR-0056: one short answer stays on the answer line; empty,
+    // multi-line, and over-cap results go to the result pane.
+    assert!(answer_fits("= 4", true));
+    assert!(answer_fits(&"= 4".to_string(), false));
+    assert!(!answer_fits("", true), "empty renders nowhere");
+    assert!(
+        !answer_fits("= 2\n= 4", true),
+        "a transcript is never a one-line answer"
+    );
+    // The caps count the whole line, "= " prefix included, exactly as
+    // the web's rule counts the result text.
+    assert!(
+        !answer_fits(&format!("= {}", "3".repeat(43)), true),
+        "over the desktop cap the answer moves to the pane"
+    );
+    assert!(answer_fits(&format!("= {}", "3".repeat(42)), true));
+    // The narrow stack uses the phone-like cap, like the web on mobile.
+    assert!(answer_fits(&format!("= {}", "3".repeat(22)), false));
+    assert!(!answer_fits(&format!("= {}", "3".repeat(23)), false));
 }
 
 #[test]

@@ -54,3 +54,23 @@ and where the submit path decides whether to slide.
   "Result" in the eight fluent locales.
 - Long transcripts in the pane scroll inside the pane, like long plots;
   nothing about the fixed-viewport mobile layout (ADR-0035) changes.
+
+## Amendment (2026-09-05): the terminal routes answers by the same rule
+
+The routing was web-only: the terminal showed every answer in the
+small answer area between the entry and the history, where a long
+transcript clipped after six rows. The desktop app and the PWA sent
+the same answer to the result pane, so the same paste behaved
+differently depending on the frontend — confusing for anyone moving
+between them.
+
+The terminal now consults the same rule. `answer_fits` keeps the web's
+definition (one answer, no line breaks, at most 44 characters wide
+layout / 24 narrow, counting the whole line including the `= ` voice);
+the TUI needs no separator test because its transcripts are
+newline-joined. A long answer empties the answer line (which keeps
+one row, so the layout does not jump) and renders in the result pane —
+the pane the terminal already calls "Result" — one answer per line,
+above any curves, with the plot sized to the rows the transcript
+leaves. The every-answer-visible contract (ADR-0052) is carried by the
+pane for transcripts, as it is on the web.
