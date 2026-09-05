@@ -16,8 +16,7 @@ two).
 
 This file is the reference example for the epher scripts folder (the
 README at its root explains the format standard). It sits with the other
-Moon scripts under astronomy/moon/; comment style and file format are
-the README's business, not this banner's. The file shows the language's
+Moon scripts under astronomy/moon/. The file shows the language's
 modern surface, one idea per line, with the guide chapter for each:
 `for` loops (1.10), strings and `print` (1.7), `if` decisions (1.8),
 and the astronomy accessors and constants (1.18).
