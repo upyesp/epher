@@ -246,7 +246,18 @@ pub fn run_repl() -> Result<(), EpherError> {
                 session.record(&line);
                 out
             }
-            None => step(&mut session, &store, &localizer, &line),
+            None => {
+                // A table is a computation: the line joins the history
+                // like every other line (the graph precedent). The other
+                // shell commands persist their effect and leave no
+                // entry, and a `load`ed script's lines record nothing —
+                // the `load` line itself recorded (ADR-0040) — so the
+                // recording stays here in the REPL loop, out of `step`.
+                if matches!(classify(&line), Some(epher_shell::Command::Table { .. })) {
+                    session.record(&line);
+                }
+                step(&mut session, &store, &localizer, &line)
+            }
         };
         print_step(&out);
         if let Some(code) = out.language {

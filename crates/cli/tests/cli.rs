@@ -120,6 +120,21 @@ fn repl_save_requires_a_definition_in_session() {
 }
 
 #[test]
+fn repl_records_a_table_in_history() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+    let out = repl_output(path, "table sin(x) from 0 to 3\nquit\n");
+    assert!(out.contains("x"), "the table prints: {out}");
+    // The command joins the shared history like every other line (the
+    // graph precedent): the REPL records it, not just the plot lines.
+    let history = std::fs::read_to_string(dir.path().join("setting/history.json")).unwrap();
+    assert!(
+        history.contains("table sin(x) from 0 to 3"),
+        "history was: {history}"
+    );
+}
+
+#[test]
 fn language_command_persists_the_setting() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().to_str().unwrap();

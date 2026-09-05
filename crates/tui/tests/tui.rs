@@ -383,6 +383,31 @@ fn submit_line_keeps_graph_special_case() {
     assert_eq!(app.history(), ["graph x ^ 2".to_string()]);
 }
 
+#[test]
+fn submit_line_records_a_table_in_history() {
+    let (store, _keep) = scratch_store();
+    let mut app = App::default();
+    app.submit_line(
+        "table sin(x) from 0 to 3",
+        &store,
+        &Localizer::resolve(Some("en"), &[]),
+    );
+    // The table itself lands in the result area (multi-line text).
+    assert!(
+        app.result().contains("x"),
+        "the table renders: {}",
+        app.result()
+    );
+    // The command joins the history list like every submitted line (the
+    // graph precedent, ADR-0027): picking it loads the command, and
+    // re-running it regenerates the table.
+    assert_eq!(app.history(), ["table sin(x) from 0 to 3".to_string()]);
+    assert_eq!(
+        load_history(&store).unwrap(),
+        vec!["table sin(x) from 0 to 3".to_string()]
+    );
+}
+
 // ===== 3D surfaces and animation (ADR-0015) =====
 
 fn tui_store() -> epher_store::DocStore<epher_store::FsStore> {

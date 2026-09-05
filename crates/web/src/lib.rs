@@ -4014,6 +4014,15 @@ fn epher_app() -> Html {
                 // bridge in the desktop shell; explain the web app's limits
                 // otherwise.
                 if let Some(cmd) = classify(&line) {
+                    // A table is a computation: the command joins the
+                    // history list like every submitted line (the graph
+                    // precedent, ADR-0027) — picking it loads the
+                    // command, and re-running it regenerates the table.
+                    // A multi-statement line records once at the tail,
+                    // so only a single statement records here.
+                    if matches!(cmd, epher_shell::Command::Table { .. }) && single && !multiline {
+                        s.record(piece);
+                    }
                     match bridge {
                         Bridge::Tauri => match prepare(&cmd, &s, &localizer) {
                             Ok(prepared) => {

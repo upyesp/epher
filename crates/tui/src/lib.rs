@@ -1824,6 +1824,16 @@ impl App {
         if let Some(cmd) = classify(piece) {
             let handled = run_command(&cmd, &mut self.session, store, localizer);
             self.result = plain(handled.message);
+            // A table is a computation: the command joins the session
+            // history like every other submitted line (the graph
+            // precedent, ADR-0027) — picking it loads the command, and
+            // re-running it regenerates the table. The other shell
+            // commands persist their effect and leave no entry.
+            if matches!(cmd, epher_shell::Command::Table { .. }) && !quiet {
+                self.session.record(piece);
+                let _ = save_history(store, self.history());
+                let _ = save_session(store, self.bindings());
+            }
             self.input.clear();
             // The `theme` command persists through run_command (the shell
             // kernel saved it); the App re-applies its palette right here,

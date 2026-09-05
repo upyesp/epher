@@ -129,3 +129,28 @@ string renderer the unit tests exercise. No raster export, no share URLs.
   accessibility surface (keyboard trace, `aria-live` announcements, legend
   as text alternative, contrast-verified palette) is part of the contract,
   not an afterthought.
+
+## Amendment (2026-09-05): the table command joins the history
+
+A `table` run landed in the result pane but never in the history list —
+in the web app (and so the desktop app and PWA), the TUI, and the CLI
+REPL alike. Every other submitted line joins the history: expressions
+record their answer (ADR-0021), and the plot commands record the bare
+command with the plot as the output (ADR-0027: "the command joins the
+history list"). The table was the one computation command whose
+dispatch branch — the shell-command branch, shared with `save`,
+`language`, and `theme` — recorded nothing, so a table could not be
+reached, re-run, or shared from the history it belonged in.
+
+The table now records like the plots do: the bare command line, no
+answer suffix — the rendered table is the output, and picking the
+entry loads the command, so re-running it regenerates the table. The
+recording stays in each frontend's dispatch (not in the shell kernel
+or `Session::submit`): a table never reaches the evaluator, and the
+kernel's `run_command` must stay recording-free for the `load` path,
+whose lines record nothing beyond the `load` line itself (ADR-0040).
+Multi-statement lines already record once for the whole line at their
+tails, so only the single-statement table changes behavior. The
+administrative commands (`save`, `language`, `theme`) keep leaving no
+entry, and the piped CLI keeps recording nothing (scripts are not
+interactive pasts).
