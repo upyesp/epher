@@ -146,3 +146,11 @@ path, the REPL line points at them, and the Scripts page renders the
 same three commands, each with its own copy button. The transcripts
 are untouched — the lines are comments — and the checker passes all
 333.
+
+A later pass settled the page layout the same way: the per-script run
+box sits *below* the script text (the reader sees the code first, then
+how to run it), each copy button sits directly to the right of its
+command string, and the page's static "Run them from your terminal"
+section — which documents the installed paths for the whole
+collection — hides while a single script is open, since the script
+page then carries the same commands itself.

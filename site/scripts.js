@@ -32,6 +32,7 @@
   let tree = null; // { fields: [{ name, areas: [{ name, scripts: [...] }] }] }
   let flat = [];   // every script with { field, area, ...script }
   const browser = document.getElementById("scripts-browser");
+  const runSection = document.getElementById("scripts-run-section");
   const crumbs = document.getElementById("scripts-crumbs");
   const searchInput = document.getElementById("scripts-search");
 
@@ -160,6 +161,11 @@
   function render() {
     const state = parseHash();
     renderCrumbs(state);
+    // The static "Run them from your terminal" section documents the
+    // installed paths for the whole collection; a script page carries
+    // the same three commands (copyable) right under the script, so
+    // the section only shows while no single script is open.
+    if (runSection) runSection.hidden = Boolean(state.field && state.area && state.script);
     if (state.field && state.area && state.script) return renderScript(state);
     if (state.field && state.area) return renderScripts(state);
     if (state.field) return renderAreas(state);
@@ -248,11 +254,14 @@
     head.appendChild(copyButton(script));
     head.appendChild(el("h2", "", script.name));
     panel.appendChild(head);
-    panel.appendChild(runBox(script));
     const pre = el("pre", "script-text");
     pre.tabIndex = 0;
     pre.textContent = script.text;
     panel.appendChild(pre);
+    // The run commands sit under the script: the reader sees the code
+    // first, then how to run it (each command carries its own copy
+    // button, to the right of the command string).
+    panel.appendChild(runBox(script));
     browser.appendChild(panel);
   }
 

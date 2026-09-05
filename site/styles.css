@@ -1067,7 +1067,7 @@ a:hover {
 }
 
 .script-run {
-  margin: 0.75rem 0;
+  margin: 1.25rem 0 0.75rem;
   display: grid;
   gap: 0.4rem;
 }
@@ -1087,7 +1087,7 @@ a:hover {
 }
 
 .script-run code {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   width: fit-content;
   padding: 0.35rem 0.6rem;
   background: var(--panel);
