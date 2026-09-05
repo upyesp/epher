@@ -1654,3 +1654,53 @@ fn help_menu_lists_constants_browser() {
         Some(epher_tui::MenuAction::BrowseConstants)
     );
 }
+
+#[test]
+fn paste_lands_whole_text_in_the_entry_as_one_unit() {
+    let mut app = App::default();
+    app.paste_text("1 +\n2");
+    assert_eq!(app.input(), "1 +\n2");
+    // The cursor sits after what was pasted, so a follow-up paste
+    // appends at the caret like typing would.
+    app.paste_text(" + 3");
+    assert_eq!(app.input(), "1 +\n2 + 3");
+}
+
+#[test]
+fn paste_normalizes_windows_line_endings() {
+    let mut app = App::default();
+    app.paste_text("2 + 2\r\n3 * 3\r4 ^ 2");
+    assert_eq!(app.input(), "2 + 2\n3 * 3\n4 ^ 2");
+}
+
+#[test]
+fn paste_does_not_inject_ans_for_a_leading_operator() {
+    let mut app = App::default();
+    // Typing "+" into an empty entry means "continue from the previous
+    // answer" (ADR-0042); a paste is verbatim.
+    app.paste_text("+1");
+    assert_eq!(app.input(), "+1");
+}
+
+#[test]
+fn pasted_script_runs_on_one_enter_like_the_gui_entry() {
+    let (store, _keep) = scratch_store();
+    let mut app = App::default();
+    // A miniature of the website's script text: banner comment, line
+    // comment, blank lines, a print group. Pasted whole, one Enter
+    // (the entry's submit path) runs it like the desktop and web
+    // entries do — not line by line, which would die on the opening
+    // unterminated `/*`.
+    let script = "/* === banner ===\n   a comment block, newlines and all\n   === */\n\n// a line comment\nprint(\"half of ten:\", 10 / 2)\nprint(\"double of three:\", 3 * 2)\n";
+    app.paste_text(script);
+    let pasted = app.input().to_string();
+    app.submit_line(&pasted, &store, &Localizer::resolve(Some("en"), &[]));
+    assert!(app.result().contains("= half of ten: 5"), "{}", app.result());
+    assert!(
+        app.result().contains("= double of three: 6"),
+        "{}",
+        app.result()
+    );
+    assert_eq!(app.history().len(), 1, "one history entry for the whole paste");
+    assert!(app.input().is_empty(), "the entry is clean after the run");
+}

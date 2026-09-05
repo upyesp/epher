@@ -1447,6 +1447,17 @@ impl App {
         self.cursor = at + text.len();
     }
 
+    /// Insert a pasted text at the cursor as one unit (ADR-0059): the
+    /// clipboard can carry a whole multi-line script, newlines and all,
+    /// and the next Enter runs it exactly like the desktop and web
+    /// entries run theirs. Line endings normalize to `\n` (Windows
+    /// clipboards carry `\r\n`). Unlike typing, no `ans` is injected
+    /// for a leading operator — pasted text is verbatim.
+    pub fn paste_text(&mut self, text: &str) {
+        let text = text.replace("\r\n", "\n").replace('\r', "\n");
+        self.insert_text(&text);
+    }
+
     /// Insert a character at the cursor (ADR-0035 amendment): typing,
     /// the keypad's token insert, and Shift+Enter's newline all land at
     /// the insertion point, which moves past what was inserted.
@@ -2782,9 +2793,22 @@ pub fn run() -> std::io::Result<()> {
     let mut terminal = ratatui::init();
     // Mouse capture (ADR-0034): the menu bar, history, keypad, and the
     // graph panels all respond to the pointer; released on restore.
-    let _ = execute!(std::io::stdout(), crossterm::event::EnableMouseCapture);
+    // Bracketed paste (ADR-0059): the terminal wraps a paste between
+    // marker sequences, so the whole clipboard arrives as one
+    // Event::Paste instead of a burst of keystrokes; terminals without
+    // support keep delivering keystrokes, which the key arm still
+    // accepts (the Ctrl+J convention below).
+    let _ = execute!(
+        std::io::stdout(),
+        crossterm::event::EnableMouseCapture,
+        crossterm::event::EnableBracketedPaste
+    );
     let result = run_loop(&mut terminal);
-    let _ = execute!(std::io::stdout(), crossterm::event::DisableMouseCapture);
+    let _ = execute!(
+        std::io::stdout(),
+        crossterm::event::DisableMouseCapture,
+        crossterm::event::DisableBracketedPaste
+    );
     ratatui::restore();
     result
 }
@@ -3006,10 +3030,13 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         }
                         continue;
                     }
-                    // Pasted newlines arrive as LF, which crossterm parses as
-                    // Ctrl+J (the terminal convention for line feed). Treat it
-                    // as Enter so multi-line pastes submit line by line, like
-                    // the REPL and piped scripts.
+                    // With bracketed paste off — the terminal does not
+                    // support it, or a frontend sends keys directly — a
+                    // pasted newline arrives as LF, which crossterm parses
+                    // as Ctrl+J (the terminal convention for line feed).
+                    // Treat it as Enter so the paste still submits, line
+                    // by line. With bracketed paste on, the whole
+                    // clipboard lands as one Event::Paste (ADR-0059).
                     let is_enter = key.code == KeyCode::Enter
                         || (key.code == KeyCode::Char('j')
                             && key.modifiers.contains(KeyModifiers::CONTROL));
@@ -3295,6 +3322,31 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                     } else if is_enter && !shift_enter {
                         app.keypad_insert();
                     }
+                }
+            }
+            Some(Event::Paste(text)) => {
+                // Bracketed paste (ADR-0059): the clipboard arrives as
+                // one event. Land it in the entry as one unit — newlines
+                // and all — so a script pasted from the website runs on
+                // the next Enter, exactly like the desktop and web
+                // entries. The old keystroke-by-keystroke delivery
+                // submitted each line on its own, and a script's opening
+                // `/* banner` line died as an unterminated comment. The
+                // guide stays modal; a path prompt takes the text
+                // without its control characters.
+                if app.guide_active() {
+                    // Modal: pasted text is swallowed, like every key
+                    // but scrolling and closing.
+                } else if app.prompt_active().is_some() {
+                    for c in text.chars().filter(|c| !c.is_control()) {
+                        app.prompt_push(c);
+                    }
+                } else {
+                    app.keypad_close();
+                    app.history_close();
+                    app.menu_close();
+                    app.constants_close();
+                    app.paste_text(&text);
                 }
             }
             None => {}
