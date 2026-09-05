@@ -1,0 +1,199 @@
+# Confirm epher on Apple silicon (aarch64) — the hardware the macOS dmg
+# ships for (ADR-0025 dropped the Intel build). This is a test floor, not
+# a release: it publishes nothing.
+#
+# Four frontends, driven black-box on the arm64 runner:
+#   - the workspace test suite (engine numerics, CLI dispatch, TUI App
+#     seam, store, i18n, guide) — `cargo test --workspace`;
+#   - the CLI: version, arithmetic, bases, 2D/3D graph exports with the
+#     transparent-export contract (ADR-0055), piped stdin both ways,
+#     a repository script end to end, the missing-path error
+#     (ADR-0058), and the embedded web build hash;
+#   - all 333 repository scripts replaying their expected transcripts
+#     through the unified release binary (catches any arm64 drift in
+#     evaluation or number formatting);
+#   - the REPL: one piped session covering definitions, `ans`, saved
+#     scripts, `load` by name and by path, and graph export;
+#   - the TUI: driven through a real pty with a terminal emulator
+#     replaying the output (scripts/tui-smoke.py) — typing, bracketed
+#     paste of a whole script (ADR-0059), history, and a clean quit;
+#   - the desktop app: bundled as a .app, inspected (scripts and guide
+#     resources, ADR-0053/0058), ad-hoc signed, launched on the
+#     runner's window server, and required to stay up.
+name: macOS Apple silicon
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: macos-silicon-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  silicon:
+    name: build and test on Apple silicon
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      EPHER: ${{ github.workspace }}/target/release/epher
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: jetli/trunk-action@v0.5.0
+        with:
+          version: "v0.21.14"
+
+      - name: This runner is Apple silicon
+        run: |
+          set -e
+          echo "machine: $(sysctl -n machdep.cpu.brand_string)"
+          ARCH="$(uname -m)"
+          echo "uname -m: $ARCH"
+          test "$ARCH" = "arm64"
+          rustc -vV | grep -q "host: aarch64-apple-darwin"
+
+      - name: Workspace test suite
+        run: cargo test --workspace
+
+      - name: Build the embedded web app
+        run: trunk build --release
+        working-directory: crates/web
+
+      - name: Install tauri-cli
+        run: cargo install tauri-cli --version 2.11.4 --locked
+
+      - name: Build the unified binary
+        run: cargo tauri build --no-bundle
+        working-directory: crates/tauri-app/src-tauri
+
+      - name: The unified binary is arm64
+        run: file "$EPHER" | grep -q arm64
+
+      - name: CLI smoke
+        run: |
+          set -e
+          BIN="$EPHER"
+          VERSION="$(grep -m1 '^version' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          "$BIN" --version | grep -q "$VERSION"
+          [ "$("$BIN" '2 + 2')" = "4" ]
+          [ "$("$BIN" 'hex(255)')" = "0xff" ]
+          [ "$("$BIN" '0b1010 + 0o17')" = "25" ]
+          # Graphs: 2D and 3D, transparent exports (ADR-0055).
+          OUT="$(mktemp -d)"
+          "$BIN" $'graph x^2\ngraph save '"$OUT"'/curves.svg' >/dev/null
+          grep -q 'stroke-width: 1.00' "$OUT/curves.svg"
+          ! grep -q 'class="bg"' "$OUT/curves.svg"
+          "$BIN" $'graph3d x^2 - y^2\ngraph3d save '"$OUT"'/surface.svg' >/dev/null
+          grep -q '<polyline' "$OUT/surface.svg"
+          grep -q 'points="' "$OUT/surface.svg"
+          grep -q 'vector-effect="non-scaling-stroke"' "$OUT/surface.svg"
+          # Piped stdin: success exits 0, a bad line exits 1.
+          [ "$(printf '6 * 7' | "$BIN" -)" = "42" ]
+          if printf '1 +\n' | "$BIN" - >/dev/null 2>&1; then
+            echo "a failing piped script must exit nonzero"; exit 1
+          fi
+          # A repository script runs end to end.
+          "$BIN" "epher scripts/algebra/complex/euler-identity-check.epher" \
+            | grep -qF 'real part of e^(i pi): -1'
+          # A path that names no file says so (ADR-0058).
+          "$BIN" /no/such/script.epher 2>&1 | grep -q "no such script file"
+          # The embedded webview is THIS run's web build. (strings first,
+          # then grep: piping straight into grep -q SIGPIPEs strings,
+          # which macOS reports as a pipeline failure under pipefail.)
+          HASH="$(grep -o 'epher-web-[a-f0-9]*\.js' crates/web/dist/index.html | head -1)"
+          strings "$BIN" > "$OUT/strings.txt"
+          grep -qF "$HASH" "$OUT/strings.txt"
+          echo "embedded web build: $HASH"
+
+      - name: All 333 scripts replay their transcripts
+        run: node scripts/check-scripts.mjs
+        env:
+          EPHER_CLI: ${{ env.EPHER }}
+
+      - name: REPL session (piped)
+        run: |
+          set -e
+          BIN="$EPHER"
+          WORK="$(mktemp -d)"
+          export EPHER_STORE_DIR="$(mktemp -d)"
+          cp "epher scripts/algebra/complex/euler-identity-check.epher" "$WORK/euler.epher"
+          cat > "$WORK/in.txt" <<REPL
+          2 + 3
+          def double(n) = n * 2
+          double(21)
+          ans + 1
+          hex(255)
+          save script tiny
+          load tiny
+          load $WORK/euler.epher
+          graph sin(x)
+          graph save $WORK/plot.svg
+          quit
+          REPL
+          if ! "$BIN" repl < "$WORK/in.txt" > "$WORK/out.txt" 2>&1; then
+            echo "the REPL exited nonzero"; cat "$WORK/out.txt"; exit 1
+          fi
+          grep -q "= 5" "$WORK/out.txt"
+          grep -q "= 42" "$WORK/out.txt"
+          grep -q "= 43" "$WORK/out.txt"
+          [ "$(grep -c "0xff" "$WORK/out.txt")" -ge 2 ]
+          grep -qF 'real part of e^(i pi): -1' "$WORK/out.txt"
+          test -f "$WORK/plot.svg"
+          grep -q '<polyline' "$WORK/plot.svg"
+          echo "REPL: session, definitions, ans, saved scripts, load, plots"
+
+      - name: TUI drive (pty + terminal emulator)
+        run: |
+          python3 -m pip install --user pyte \
+            || python3 -m pip install --user --break-system-packages pyte
+          export EPHER_STORE_DIR="$(mktemp -d)"
+          python3 scripts/tui-smoke.py "$EPHER"
+
+      - name: Bundle the desktop app
+        run: cargo tauri build --bundles app
+        working-directory: crates/tauri-app/src-tauri
+
+      - name: Desktop app smoke
+        run: |
+          set -e
+          APP="$GITHUB_WORKSPACE/target/release/bundle/macos/epher.app"
+          test -d "$APP"
+          test -f "$APP/Contents/MacOS/epher"
+          # The bundle resources: scripts (ADR-0058) and the guide (ADR-0053).
+          test -f "$APP/Contents/Resources/scripts/astronomy/moon/full-moons.epher"
+          N_GUIDES="$(ls "$APP"/Contents/Resources/guide/*.md | wc -l | tr -d ' ')"
+          test "$N_GUIDES" = "8"
+          # Ad-hoc sign (the build is unsigned) and launch on the
+          # runner's window server: the app must stay up.
+          codesign --force --deep -s - "$APP" 2>/dev/null || true
+          LOG="$(mktemp)"
+          "$APP/Contents/MacOS/epher" > "$LOG" 2>&1 &
+          APP_PID=$!
+          sleep 15
+          if ! kill -0 "$APP_PID" 2>/dev/null; then
+            echo "the desktop app exited early:"; cat "$LOG"; exit 1
+          fi
+          echo "desktop app alive after 15s"
+          kill "$APP_PID" 2>/dev/null || true
+          sleep 2
+          kill -9 "$APP_PID" 2>/dev/null || true
+
+      - name: Result
+        if: always()
+        run: echo "Apple silicon — suite, CLI, 333 scripts, REPL, TUI, desktop app."
