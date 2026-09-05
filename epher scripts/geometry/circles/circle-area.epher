@@ -1,22 +1,22 @@
 /* ============================================================================
-   circle-area.epher -- area from the radius
+circle-area.epher -- area from the radius
 
-   The area of a circle of radius r is A = pi r^2 (standard formula;
-   Archimedes' "Measurement of a Circle", about 250 BC). For radius 5 the
-   area is 25 pi. The last result recovers the same area from the
-   circumference with A = C^2 / (4 pi), which is the same formula in
-   disguise, and checks the two computations agree.
+The area of a circle of radius r is A = pi r^2 (standard formula;
+Archimedes' "Measurement of a Circle", about 250 BC). For radius 5 the
+area is 25 pi. The last result recovers the same area from the
+circumference with A = C^2 / (4 pi), which is the same formula in
+disguise, and checks the two computations agree.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/circles/circle-area.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\circles\circle-area.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/circles/circle-area.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/circles/circle-area.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\circles\circle-area.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/circles/circle-area.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knob to edit is `r`, the radius. Everything above the results
-   section is machinery you can leave alone.
-   ============================================================================ */
+The knob to edit is `r`, the radius. Everything above the results
+section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const r = 5

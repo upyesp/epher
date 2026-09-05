@@ -1,22 +1,22 @@
 /* ============================================================================
-   box-volume-surface.epher -- volume and surface area of a box
+box-volume-surface.epher -- volume and surface area of a box
 
-   A rectangular box of sides l, w, h has volume V = l w h and surface
-   area S = 2 (l w + l h + w h), three pairs of congruent faces (standard
-   formula). The 6 by 4 by 3 box has volume 72 and surface 108, both
-   exact, and the last result checks the surface against its unfolded
-   net, the six faces laid flat.
+A rectangular box of sides l, w, h has volume V = l w h and surface
+area S = 2 (l w + l h + w h), three pairs of congruent faces (standard
+formula). The 6 by 4 by 3 box has volume 72 and surface 108, both
+exact, and the last result checks the surface against its unfolded
+net, the six faces laid flat.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/box-volume-surface.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\box-volume-surface.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/box-volume-surface.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/box-volume-surface.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\box-volume-surface.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/box-volume-surface.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `l`, `w`, `h`, the three edge lengths.
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `l`, `w`, `h`, the three edge lengths.
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const l = 6

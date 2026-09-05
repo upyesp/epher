@@ -1,26 +1,26 @@
 /* ============================================================================
-   twin-primes-below.epher -- twin-prime pairs below 100
+twin-primes-below.epher -- twin-prime pairs below 100
 
-   Counts the twin-prime pairs (p, p + 2) with both members prime and both
-   below 100. A packed while loop over odd candidates (guide 1.30) keeps
-   the count; the loop is silent, so one labelled print shows the total.
-   The eight pairs below 100 are the classic check (Hardy and Wright,
-   ch. 1): (3, 5), (5, 7), (11, 13), (17, 19), (29, 31), (41, 43),
-   (59, 61) and (71, 73).
+Counts the twin-prime pairs (p, p + 2) with both members prime and both
+below 100. A packed while loop over odd candidates (guide 1.30) keeps
+the count; the loop is silent, so one labelled print shows the total.
+The eight pairs below 100 are the classic check (Hardy and Wright,
+ch. 1): (3, 5), (5, 7), (11, 13), (17, 19), (29, 31), (41, 43),
+(59, 61) and (71, 73).
 
-   Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
-   ch. 1; whether infinitely many twin primes exist is open (the twin
-   prime conjecture, ibid. ch. 1). isprime is exact, so the count is exact.
+Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+ch. 1; whether infinitely many twin primes exist is open (the twin
+prime conjecture, ibid. ch. 1). isprime is exact, so the count is exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/twin-primes-below.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\twin-primes-below.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/twin-primes-below.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/twin-primes-below.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\twin-primes-below.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/twin-primes-below.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the bound 100 is the check value.
-   ============================================================================ */
+There is no knob: the bound 100 is the check value.
+============================================================================ */
 
 // ---- count twin pairs (p, p + 2) with p + 2 below 100 -------------------------
 // p runs over the odd numbers 3, 5, ..., 97; p = 2 never starts a twin

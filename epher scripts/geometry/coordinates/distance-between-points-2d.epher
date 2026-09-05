@@ -1,22 +1,22 @@
 /* ============================================================================
-   distance-between-points-2d.epher -- distance between two points
+distance-between-points-2d.epher -- distance between two points
 
-   The distance between (x1, y1) and (x2, y2) is the hypotenuse of the
-   right triangle they span, d = sqrt((x2 - x1)^2 + (y2 - y1)^2)
-   (Pythagorean theorem; standard formula). Points are held as two-number
-   lists {x, y}. The builtin hypot(dx, dy) computes the same distance and
-   the last result cross-checks the formula against it.
+The distance between (x1, y1) and (x2, y2) is the hypotenuse of the
+right triangle they span, d = sqrt((x2 - x1)^2 + (y2 - y1)^2)
+(Pythagorean theorem; standard formula). Points are held as two-number
+lists {x, y}. The builtin hypot(dx, dy) computes the same distance and
+the last result cross-checks the formula against it.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/distance-between-points-2d.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\distance-between-points-2d.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/distance-between-points-2d.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/distance-between-points-2d.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\distance-between-points-2d.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/distance-between-points-2d.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The point pairs to try are in the results section below; edit them
-   there.
-   ============================================================================ */
+The point pairs to try are in the results section below; edit them
+there.
+============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 def dist(p, q) = sqrt((p[1] - q[1]) ^ 2 + (p[2] - q[2]) ^ 2)

@@ -1,23 +1,23 @@
 /* ============================================================================
-   rhombus-area.epher -- area from the diagonals
+rhombus-area.epher -- area from the diagonals
 
-   The diagonals of a rhombus cross at right angles and bisect each other
-   (Euclid's Elements, book I, proposition 46 corollary; standard fact),
-   so they split it into four right triangles and the area is
-   A = d1 d2 / 2. The side is the hypotenuse of half-diagonals, so with
-   diagonals 4 and 3 the side is sqrt(2^2 + 1.5^2) = 2.5 and the perimeter
-   is 10, all exact.
+The diagonals of a rhombus cross at right angles and bisect each other
+(Euclid's Elements, book I, proposition 46 corollary; standard fact),
+so they split it into four right triangles and the area is
+A = d1 d2 / 2. The side is the hypotenuse of half-diagonals, so with
+diagonals 4 and 3 the side is sqrt(2^2 + 1.5^2) = 2.5 and the perimeter
+is 10, all exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/rhombus-area.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\rhombus-area.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/rhombus-area.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/rhombus-area.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\rhombus-area.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/rhombus-area.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `d1` and `d2`, the two diagonals.
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `d1` and `d2`, the two diagonals.
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const d1 = 4

@@ -1,20 +1,20 @@
 /* ============================================================================
-   evaluate-polynomial.epher -- value of a polynomial at x, coefficients as a list
+evaluate-polynomial.epher -- value of a polynomial at x, coefficients as a list
 
-   The coefficients live in a list, highest power first, and a packed while
-   loop folds them: start with the leading coefficient, then for each next
-   coefficient c do value = value * x + c (Horner's scheme; see the sibling
-   horner-method.epher). The polynomial p(t) = t^3 - 6t^2 + 11t - 6 factors as
-   (t - 1)(t - 2)(t - 3), so p(3) = 0 double-checks the machinery. Exact for
-   the whole-number coefficients and the rational x below.
+The coefficients live in a list, highest power first, and a packed while
+loop folds them: start with the leading coefficient, then for each next
+coefficient c do value = value * x + c (Horner's scheme; see the sibling
+horner-method.epher). The polynomial p(t) = t^3 - 6t^2 + 11t - 6 factors as
+(t - 1)(t - 2)(t - 3), so p(3) = 0 double-checks the machinery. Exact for
+the whole-number coefficients and the rational x below.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/evaluate-polynomial.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\evaluate-polynomial.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/evaluate-polynomial.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/evaluate-polynomial.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\evaluate-polynomial.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/evaluate-polynomial.epher
 
-   The knobs to edit are cs and the sample points x1, x2 below.
-   ============================================================================ */
+The knobs to edit are cs and the sample points x1, x2 below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const cs = {1, -6, 11, -6}       // p(t) = t^3 - 6t^2 + 11t - 6 = (t-1)(t-2)(t-3)

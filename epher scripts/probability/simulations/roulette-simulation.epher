@@ -1,29 +1,29 @@
 /* ============================================================================
-   roulette-simulation.epher -- 10000 spins betting red, European wheel
+roulette-simulation.epher -- 10000 spins betting red, European wheel
 
-   Bet two units on red for 10000 spins of a European wheel (37 pockets:
-   18 red, 18 black, one green zero). Each spin wins two units with
-   probability 18/37 and loses two with probability 19/37, so the
-   expected value per spin is
+Bet two units on red for 10000 spins of a European wheel (37 pockets:
+18 red, 18 black, one green zero). Each spin wins two units with
+probability 18/37 and loses two with probability 19/37, so the
+expected value per spin is
 
-     E[spin] = 2 * 18/37 - 2 * 19/37 = -2/37 = -0.054054...
+  E[spin] = 2 * 18/37 - 2 * 19/37 = -2/37 = -0.054054...
 
-   units, and 10000 spins should lose about 540 units with a standard
-   deviation of sqrt(10000) * 2 = 200 units, so the per-spin value sits
-   within about 0.03 of the theory. The seeded run below (randseed(31))
-   is reproducible: the same seed replays the same spins.
+units, and 10000 spins should lose about 540 units with a standard
+deviation of sqrt(10000) * 2 = 200 units, so the per-spin value sits
+within about 0.03 of the theory. The seeded run below (randseed(31))
+is reproducible: the same seed replays the same spins.
 
-   Source: standard Monte Carlo practice; see Ross, "Simulation",
-   chapter 4.
+Source: standard Monte Carlo practice; see Ross, "Simulation",
+chapter 4.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/simulations/roulette-simulation.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\simulations\roulette-simulation.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/simulations/roulette-simulation.epher
-   Web/desktop:             paste the file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/simulations/roulette-simulation.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\simulations\roulette-simulation.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/simulations/roulette-simulation.epher
+Web/desktop:             paste the file into the entry, press Enter
 
-   The knob to edit is `spins`; everything below it is machinery.
-   ============================================================================ */
+The knob to edit is `spins`; everything below it is machinery.
+============================================================================ */
 
 // ---- the knobs ----
 const spins = 10000

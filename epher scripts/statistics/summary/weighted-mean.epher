@@ -1,23 +1,23 @@
 /* ============================================================================
-   weighted-mean.epher -- a grade average where credits set the weights
+weighted-mean.epher -- a grade average where credits set the weights
 
-   The weighted mean of the grades in `g`, weighted by the course credits
-   in `w`: sum(w[i] * g[i]) / sum(w). A three-credit course counts three
-   times as much as a one-credit course, so the weighted mean 87.5 sits
-   above the plain mean 86.8, pulled up by the top grade in the heaviest
-   course.
+The weighted mean of the grades in `g`, weighted by the course credits
+in `w`: sum(w[i] * g[i]) / sum(w). A three-credit course counts three
+times as much as a one-credit course, so the weighted mean 87.5 sits
+above the plain mean 86.8, pulled up by the top grade in the heaviest
+course.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/weighted-mean.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\weighted-mean.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/weighted-mean.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/weighted-mean.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\weighted-mean.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/weighted-mean.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `g` and `w` below. Everything above the results
-   section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `g` and `w` below. Everything above the results
+section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const g = {85, 92, 78, 88, 91}   // grades out of 100, one per course

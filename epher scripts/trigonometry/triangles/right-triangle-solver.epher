@@ -1,27 +1,27 @@
 /* ============================================================================
-   right-triangle-solver.epher -- one side and one acute angle, find the rest
+right-triangle-solver.epher -- one side and one acute angle, find the rest
 
-   In a right triangle with acute angle A and the leg a opposite it, the
-   definitions of sine and tangent give the other two sides directly:
-   sin A = a / c so the hypotenuse is c = a / sin A, and tan A = a / b so
-   the other leg is b = a / tan A; the remaining acute angle is
-   B = 90 deg - A. The sides keep meters through the arithmetic. Standard
-   classroom material (e.g. Stewart, Redlin and Watson, "Precalculus",
-   ch. 6); the builtin trig is used, in radians, so the degree knob is
-   converted with rad().
+In a right triangle with acute angle A and the leg a opposite it, the
+definitions of sine and tangent give the other two sides directly:
+sin A = a / c so the hypotenuse is c = a / sin A, and tan A = a / b so
+the other leg is b = a / tan A; the remaining acute angle is
+B = 90 deg - A. The sides keep meters through the arithmetic. Standard
+classroom material (e.g. Stewart, Redlin and Watson, "Precalculus",
+ch. 6); the builtin trig is used, in radians, so the degree knob is
+converted with rad().
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/right-triangle-solver.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\right-triangle-solver.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/right-triangle-solver.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/right-triangle-solver.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\right-triangle-solver.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/right-triangle-solver.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are the two problems below. The first is the famous
-   3-4-5 triangle, written so that its angle comes out of the builtin
-   asin; the second is a 30-60-90 triangle. Printed values carry about 12
-   significant digits.
-   ============================================================================ */
+The knobs to edit are the two problems below. The first is the famous
+3-4-5 triangle, written so that its angle comes out of the builtin
+asin; the second is a 30-60-90 triangle. Printed values carry about 12
+significant digits.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const side_a = 3 m                    // leg opposite angle A

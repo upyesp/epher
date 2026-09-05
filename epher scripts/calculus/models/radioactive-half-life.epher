@@ -1,27 +1,27 @@
 /* ============================================================================
-   radioactive-half-life.epher -- carbon-14 decay and its half-life
+radioactive-half-life.epher -- carbon-14 decay and its half-life
 
-   Radioactive decay is exponential: the fraction left after time t is
-   e^(-lambda t), where lambda is the decay constant, and the half-life
-   is T = ln(2)/lambda, the time after which half remains (Stewart,
-   "Calculus", 8th ed., sec. 3.8; any nuclear physics text). Carbon-14
-   has the well-known half-life of 5730 years, so its decay constant is
-   lambda = ln(2)/5730 per year.
+Radioactive decay is exponential: the fraction left after time t is
+e^(-lambda t), where lambda is the decay constant, and the half-life
+is T = ln(2)/lambda, the time after which half remains (Stewart,
+"Calculus", 8th ed., sec. 3.8; any nuclear physics text). Carbon-14
+has the well-known half-life of 5730 years, so its decay constant is
+lambda = ln(2)/5730 per year.
 
-   The script builds lambda from the half-life knob, checks that the
-   fraction left after one and two half-lives is 1/2 and 1/4, computes
-   the fraction left after 10000 years (about 0.2983, or 29.83%), and
-   recovers the half-life from the decay constant by the formula above.
+The script builds lambda from the half-life knob, checks that the
+fraction left after one and two half-lives is 1/2 and 1/4, computes
+the fraction left after 10000 years (about 0.2983, or 29.83%), and
+recovers the half-life from the decay constant by the formula above.
 
-   Accuracy: the recovered half-life prints as 5730 exactly; fractions
-   at 1, 2 and 10000 half-lives agree to better than 1e-12.
+Accuracy: the recovered half-life prints as 5730 exactly; fractions
+at 1, 2 and 10000 half-lives agree to better than 1e-12.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/radioactive-half-life.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\radioactive-half-life.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/radioactive-half-life.epher
-   The knob to edit is `thalf` (use any isotope's half-life, same units).
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/radioactive-half-life.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\radioactive-half-life.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/radioactive-half-life.epher
+The knob to edit is `thalf` (use any isotope's half-life, same units).
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const thalf = 5730                  // half-life of carbon-14, years

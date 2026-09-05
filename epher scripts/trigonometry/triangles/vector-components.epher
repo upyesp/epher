@@ -1,25 +1,25 @@
 /* ============================================================================
-   vector-components.epher -- magnitude and direction into x/y, and back
+vector-components.epher -- magnitude and direction into x/y, and back
 
-   A vector of magnitude m at angle t to the x-axis has components
-   x = m cos t and y = m sin t; the builtin atan2(y, x) inverts the pair:
-   its argument is the direction the vector came from, and atan2 keeps the
-   signs straight, which the single-argument atan cannot do (t = 210 deg
-   below would look like 30 deg to atan). Rebuilding the magnitude with
-   sqrt(x^2 + y^2) closes the round trip. Angles are degrees through the
-   knobs, converted with rad() for the builtin trig; the vector keeps
-   meters.
+A vector of magnitude m at angle t to the x-axis has components
+x = m cos t and y = m sin t; the builtin atan2(y, x) inverts the pair:
+its argument is the direction the vector came from, and atan2 keeps the
+signs straight, which the single-argument atan cannot do (t = 210 deg
+below would look like 30 deg to atan). Rebuilding the magnitude with
+sqrt(x^2 + y^2) closes the round trip. Angles are degrees through the
+knobs, converted with rad() for the builtin trig; the vector keeps
+meters.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/vector-components.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\vector-components.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/vector-components.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/vector-components.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\vector-components.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/vector-components.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are the two vector pairs below (magnitude in meters,
-   direction in degrees). Printed values carry about 12 significant digits.
-   ============================================================================ */
+The knobs to edit are the two vector pairs below (magnitude in meters,
+direction in degrees). Printed values carry about 12 significant digits.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const mag1 = 12.5 m   // first vector's magnitude

@@ -1,24 +1,24 @@
 /* ============================================================================
-   brightest-planet.epher -- which planet is brightest, by a search loop
+brightest-planet.epher -- which planet is brightest, by a search loop
 
-   Finds the planet with the smallest apparent magnitude (the brightest)
-   on 2026-06-01, by scanning the body numbers 1-9 (Earth, 3, is the
-   observer and never a target) with a while loop (guide 1.30). A loop
-   body is one statement, so the search state - the index, the best
-   magnitude so far and the best body number - is packed into one list
-   and updated as a whole. The magnitudes are first printed in a list;
-   the loop result is then checked against the list minimum from the
-   built-in min. Magnitudes come from the accessor mag (the solar-
-   ephemeris crate, JPL-validated; guide 1.16).
+Finds the planet with the smallest apparent magnitude (the brightest)
+on 2026-06-01, by scanning the body numbers 1-9 (Earth, 3, is the
+observer and never a target) with a while loop (guide 1.30). A loop
+body is one statement, so the search state - the index, the best
+magnitude so far and the best body number - is packed into one list
+and updated as a whole. The magnitudes are first printed in a list;
+the loop result is then checked against the list minimum from the
+built-in min. Magnitudes come from the accessor mag (the solar-
+ephemeris crate, JPL-validated; guide 1.16).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/brightest-planet.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\brightest-planet.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/brightest-planet.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/brightest-planet.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\brightest-planet.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/brightest-planet.epher
+In the REPL:             load one of the paths above
 
-   Knob: the date t.
-   ============================================================================ */
+Knob: the date t.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const t = jd(2026, 6, 1)     // 0h UT
@@ -34,9 +34,9 @@ def name(b) = if b == 1 then "Mercury" else if b == 2 then "Venus" else if b == 
 m = {mag(1, t), mag(2, t), mag(4, t), mag(5, t), mag(6, t), mag(7, t), mag(8, t), mag(9, t)}
 
 /* Search: s = {next index, best magnitude so far, best body number}.
-   Each step compares one magnitude against the best so far and keeps
-   the smaller (magnitude grows as brightness falls, so the minimum
-   magnitude is the brightest planet). */
+Each step compares one magnitude against the best so far and keeps
+the smaller (magnitude grows as brightness falls, so the minimum
+magnitude is the brightest planet). */
 s = {1, m[1], bodies[1]}
 while s[1] < len(bodies) do s = {s[1] + 1, if m[s[1] + 1] < s[2] then m[s[1] + 1] else s[2], if m[s[1] + 1] < s[2] then bodies[s[1] + 1] else s[3]}
 

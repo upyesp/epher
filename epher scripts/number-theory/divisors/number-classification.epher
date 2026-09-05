@@ -1,26 +1,26 @@
 /* ============================================================================
-   number-classification.epher -- deficient, perfect or abundant
+number-classification.epher -- deficient, perfect or abundant
 
-   Classifies a number by its proper divisor sum ps(n): ps(n) < n makes n
-   deficient, ps(n) = n makes it perfect, and ps(n) > n makes it abundant
-   (the Greek classification of Nicomachus, c. 100 AD; Hardy and Wright,
-   ch. 16, section 16.8). The script computes ps(n) with the classroom
-   pair method, since epher has no divisor-sum builtin, and a def turns
-   the verdict into a word. Checks: 8 is deficient (1 + 2 + 4 = 7), 12 is
-   abundant (1 + 2 + 3 + 4 + 6 = 16), and 6 and 28 are perfect.
+Classifies a number by its proper divisor sum ps(n): ps(n) < n makes n
+deficient, ps(n) = n makes it perfect, and ps(n) > n makes it abundant
+(the Greek classification of Nicomachus, c. 100 AD; Hardy and Wright,
+ch. 16, section 16.8). The script computes ps(n) with the classroom
+pair method, since epher has no divisor-sum builtin, and a def turns
+the verdict into a word. Checks: 8 is deficient (1 + 2 + 4 = 7), 12 is
+abundant (1 + 2 + 3 + 4 + 6 = 16), and 6 and 28 are perfect.
 
-   Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
-   ch. 16, section 16.8. Results are exact.
+Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+ch. 16, section 16.8. Results are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/divisors/number-classification.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\divisors\number-classification.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/divisors/number-classification.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/divisors/number-classification.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\divisors\number-classification.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/divisors/number-classification.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the sample numbers are the point of the script.
-   ============================================================================ */
+There is no knob: the sample numbers are the point of the script.
+============================================================================ */
 
 // ---- the helpers ----------------------------------------------------------------------
 // pairdiv(n, i) adds each divisor of n with its partner n / i (a square

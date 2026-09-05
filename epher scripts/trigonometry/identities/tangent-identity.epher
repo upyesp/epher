@@ -1,25 +1,25 @@
 /* ============================================================================
-   tangent-identity.epher -- tan x = sin x / cos x
+tangent-identity.epher -- tan x = sin x / cos x
 
-   The tangent is defined as the quotient sin(x) / cos(x) wherever the
-   cosine does not vanish, so the check is a restatement of the definition
-   rather than a theorem. It still deserves a look: tangent grows without
-   bound as x approaches 90 deg, while the quotient keeps step at every
-   step. The script checks the identity at several angles as boolean
-   residual checks (true when the sides differ by less than 1e-12;
-   double-precision noise here is around 1e-15).
+The tangent is defined as the quotient sin(x) / cos(x) wherever the
+cosine does not vanish, so the check is a restatement of the definition
+rather than a theorem. It still deserves a look: tangent grows without
+bound as x approaches 90 deg, while the quotient keeps step at every
+step. The script checks the identity at several angles as boolean
+residual checks (true when the sides differ by less than 1e-12;
+double-precision noise here is around 1e-15).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/tangent-identity.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\tangent-identity.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/tangent-identity.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/tangent-identity.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\tangent-identity.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/tangent-identity.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The one knob to edit is the `degs` list below (degrees, converted with
-   rad() because the builtin trig works in radians). Angles sit between 0
-   and 90 deg so no cosine is zero.
-   ============================================================================ */
+The one knob to edit is the `degs` list below (degrees, converted with
+rad() because the builtin trig works in radians). Angles sit between 0
+and 90 deg so no cosine is zero.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const degs = {15, 30, 45, 60, 75}   // sample angles, in degrees

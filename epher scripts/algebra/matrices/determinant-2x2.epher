@@ -1,19 +1,19 @@
 /* ============================================================================
-   determinant-2x2.epher -- the 2x2 determinant, formula and builtin cross-check
+determinant-2x2.epher -- the 2x2 determinant, formula and builtin cross-check
 
-   The determinant of [[a, b], [c, d]] is ad - bc; it is zero exactly when
-   the rows are proportional and the matrix is singular (any linear algebra
-   text, e.g. Strang, "Introduction to Linear Algebra", 5th ed., sec. 5.1).
-   The classroom formula is written out for teaching; the built-in det gives
-   the same number, and each result is checked against it. All exact.
+The determinant of [[a, b], [c, d]] is ad - bc; it is zero exactly when
+the rows are proportional and the matrix is singular (any linear algebra
+text, e.g. Strang, "Introduction to Linear Algebra", 5th ed., sec. 5.1).
+The classroom formula is written out for teaching; the built-in det gives
+the same number, and each result is checked against it. All exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/determinant-2x2.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\determinant-2x2.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/determinant-2x2.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/determinant-2x2.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\determinant-2x2.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/determinant-2x2.epher
 
-   The knobs to edit are the matrices A and B below.
-   ============================================================================ */
+The knobs to edit are the matrices A and B below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const A = [[3, 7], [2, -4]]

@@ -1,26 +1,26 @@
 /* ============================================================================
-   sinking-fund-payment.epher -- monthly deposit that grows to a target sum
+sinking-fund-payment.epher -- monthly deposit that grows to a target sum
 
-   A sinking fund is the saver's mirror of a loan: regular deposits that
-   accumulate to a known target at the end. The finance builtin tvm_pmt
-   solves the deposit: tvm_pmt(n, i, 0, target) with present value 0 and the
-   target as the future value. Source: standard annuity formulas; see
-   Kellison, The Theory of Interest, chapter 3.
+A sinking fund is the saver's mirror of a loan: regular deposits that
+accumulate to a known target at the end. The finance builtin tvm_pmt
+solves the deposit: tvm_pmt(n, i, 0, target) with present value 0 and the
+target as the future value. Source: standard annuity formulas; see
+Kellison, The Theory of Interest, chapter 3.
 
-   Sign convention: the builtin returns the deposit negative (money out each
-   month); the size is printed positive.
+Sign convention: the builtin returns the deposit negative (money out each
+month); the size is printed positive.
 
-   Accuracy: 12 displayed digits; the round-trip line below compounds the
-   exact deposit back to the target.
+Accuracy: 12 displayed digits; the round-trip line below compounds the
+exact deposit back to the target.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/sinking-fund-payment.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\sinking-fund-payment.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/sinking-fund-payment.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/sinking-fund-payment.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\sinking-fund-payment.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/sinking-fund-payment.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const target = 50000        // the sum needed at the end, USD

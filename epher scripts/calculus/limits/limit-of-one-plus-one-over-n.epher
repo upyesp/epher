@@ -1,23 +1,23 @@
 /* ============================================================================
-   limit-of-one-plus-one-over-n.epher -- the sequence that defines e
+limit-of-one-plus-one-over-n.epher -- the sequence that defines e
 
-   (1 + 1/n)^n approaches e as n grows (Stewart, "Calculus", 8th ed.,
-   sec. 6.2, where e is defined by this very limit). The sequence creeps
-   up toward e from below: 2.59 at n = 10, 2.718268... at n = 100000,
-   still about 1.4e-4 short of e = 2.718281828459...
+(1 + 1/n)^n approaches e as n grows (Stewart, "Calculus", 8th ed.,
+sec. 6.2, where e is defined by this very limit). The sequence creeps
+up toward e from below: 2.59 at n = 10, 2.718268... at n = 100000,
+still about 1.4e-4 short of e = 2.718281828459...
 
-   A for loop over the n values collects the terms into one printed
-   list, and the last term is compared with the builtin constant e.
+A for loop over the n values collects the terms into one printed
+list, and the last term is compared with the builtin constant e.
 
-   Accuracy: each term is printed as the calculator shows it; the gap
-   to e falls like e/(2n), so it is 1.4e-4 at n = 100000.
+Accuracy: each term is printed as the calculator shows it; the gap
+to e falls like e/(2n), so it is 1.4e-4 at n = 100000.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/limits/limit-of-one-plus-one-over-n.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\limits\limit-of-one-plus-one-over-n.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/limits/limit-of-one-plus-one-over-n.epher
-   The knob to edit is `ns`, the sample sizes below.
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/limits/limit-of-one-plus-one-over-n.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\limits\limit-of-one-plus-one-over-n.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/limits/limit-of-one-plus-one-over-n.epher
+The knob to edit is `ns`, the sample sizes below.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const ns = {10, 100, 1000, 100000}

@@ -1,25 +1,25 @@
 /* ============================================================================
-   two-sample-t-test.epher -- Welch's test for two independent groups
+two-sample-t-test.epher -- Welch's test for two independent groups
 
-   Compares the mean scores of two teaching methods, groups `a` and `b`,
-   with Welch's two-sample t test: unequal variances are assumed, so the
-   standard error pools the two sample variances divided by their own
-   group sizes and the degrees of freedom come from the Satterthwaite
-   formula. There is no builtin two-sample t test, so the textbook
-   formulas are written out below; scipy's ttest_ind with
-   equal_var = False reproduces these same numbers.
+Compares the mean scores of two teaching methods, groups `a` and `b`,
+with Welch's two-sample t test: unequal variances are assumed, so the
+standard error pools the two sample variances divided by their own
+group sizes and the degrees of freedom come from the Satterthwaite
+formula. There is no builtin two-sample t test, so the textbook
+formulas are written out below; scipy's ttest_ind with
+equal_var = False reproduces these same numbers.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/two-sample-t-test.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\two-sample-t-test.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/two-sample-t-test.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/two-sample-t-test.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\two-sample-t-test.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/two-sample-t-test.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `a` and `b` below. Everything above the results
-   section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `a` and `b` below. Everything above the results
+section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const a = {78, 82, 84, 80, 79, 81, 83}   // method A scores, 7 students

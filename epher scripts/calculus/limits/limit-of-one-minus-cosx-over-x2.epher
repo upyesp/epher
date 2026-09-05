@@ -1,25 +1,25 @@
 /* ============================================================================
-   limit-of-one-minus-cosx-over-x2.epher -- (1 - cos x)/x^2 tends to 1/2
+limit-of-one-minus-cosx-over-x2.epher -- (1 - cos x)/x^2 tends to 1/2
 
-   The classic limit behind the derivative of cos x (Stewart, "Calculus",
-   8th ed., sec. 2.6): (1 - cos x)/x^2 -> 1/2 as x -> 0. Direct numeric
-   evaluation is treacherous: below x ~ 1e-7 the subtraction 1 - cos x
-   cancels completely (at x = 1e-8 it prints 0). At x = 1e-2 to 1e-4 the
-   ratio approaches 1/2 with a truncation error of order x^2/24.
+The classic limit behind the derivative of cos x (Stewart, "Calculus",
+8th ed., sec. 2.6): (1 - cos x)/x^2 -> 1/2 as x -> 0. Direct numeric
+evaluation is treacherous: below x ~ 1e-7 the subtraction 1 - cos x
+cancels completely (at x = 1e-8 it prints 0). At x = 1e-2 to 1e-4 the
+ratio approaches 1/2 with a truncation error of order x^2/24.
 
-   The double-angle identity 1 - cos x = 2 sin^2(x/2) rewrites the ratio
-   as 2 sin^2(x/2)/x^2, a form that survives down to x = 1e-8 and prints
-   1/2 exactly; that stable form is what any careful code should use.
+The double-angle identity 1 - cos x = 2 sin^2(x/2) rewrites the ratio
+as 2 sin^2(x/2)/x^2, a form that survives down to x = 1e-8 and prints
+1/2 exactly; that stable form is what any careful code should use.
 
-   Accuracy: values print at about the 12th digit; the identity form at
-   x = 1e-8 is 1/2 to machine precision.
+Accuracy: values print at about the 12th digit; the identity form at
+x = 1e-8 is 1/2 to machine precision.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/limits/limit-of-one-minus-cosx-over-x2.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\limits\limit-of-one-minus-cosx-over-x2.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/limits/limit-of-one-minus-cosx-over-x2.epher
-   The knob to edit is `x` below.
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/limits/limit-of-one-minus-cosx-over-x2.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\limits\limit-of-one-minus-cosx-over-x2.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/limits/limit-of-one-minus-cosx-over-x2.epher
+The knob to edit is `x` below.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const x = 1e-8

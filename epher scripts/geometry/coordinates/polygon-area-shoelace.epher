@@ -1,25 +1,25 @@
 /* ============================================================================
-   polygon-area-shoelace.epher -- area of a polygon, shoelace formula
+polygon-area-shoelace.epher -- area of a polygon, shoelace formula
 
-   For vertices taken in order around a polygon, twice the area is the
-   absolute value of the alternating sum x_i y_(i+1) - y_i x_(i+1) over
-   consecutive pairs, with the last vertex paired back to the first
-   (the shoelace, or surveyor's, formula; Gauss, 1794; standard
-   formula). The helper pair(p, q) is one shoelace term, and the helper
-   sums the terms around the polygon. The pentagon example has area 9
-   and the rectangle cross-check, 12, matches width times height; the
-   signed sum before halving is also exact.
+For vertices taken in order around a polygon, twice the area is the
+absolute value of the alternating sum x_i y_(i+1) - y_i x_(i+1) over
+consecutive pairs, with the last vertex paired back to the first
+(the shoelace, or surveyor's, formula; Gauss, 1794; standard
+formula). The helper pair(p, q) is one shoelace term, and the helper
+sums the terms around the polygon. The pentagon example has area 9
+and the rectangle cross-check, 12, matches width times height; the
+signed sum before halving is also exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/polygon-area-shoelace.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\polygon-area-shoelace.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/polygon-area-shoelace.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/polygon-area-shoelace.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\polygon-area-shoelace.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/polygon-area-shoelace.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The vertices to try are in the results section below; edit them
-   there. List them in order around the polygon.
-   ============================================================================ */
+The vertices to try are in the results section below; edit them
+there. List them in order around the polygon.
+============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 // pair(p, q) is one shoelace term; the raw helpers sum the terms around

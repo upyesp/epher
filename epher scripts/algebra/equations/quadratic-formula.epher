@@ -1,19 +1,19 @@
 /* ============================================================================
-   quadratic-formula.epher -- real roots of ax^2 + bx + c via the quadratic formula
+quadratic-formula.epher -- real roots of ax^2 + bx + c via the quadratic formula
 
-   The roots of a x^2 + b x + c = 0 are (-b +/- sqrt(b^2 - 4ac)) / (2a), the
-   quadratic formula of every college-algebra text (Stewart, Redlin and Watson,
-   "College Algebra", 7th ed., sec. 1.4). The discriminant b^2 - 4ac is
-   positive here, so both roots are real. Whole-number coefficients make every
-   printed value exact; the roots are checked by evaluating the polynomial.
+The roots of a x^2 + b x + c = 0 are (-b +/- sqrt(b^2 - 4ac)) / (2a), the
+quadratic formula of every college-algebra text (Stewart, Redlin and Watson,
+"College Algebra", 7th ed., sec. 1.4). The discriminant b^2 - 4ac is
+positive here, so both roots are real. Whole-number coefficients make every
+printed value exact; the roots are checked by evaluating the polynomial.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/quadratic-formula.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\quadratic-formula.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/quadratic-formula.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/quadratic-formula.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\quadratic-formula.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/quadratic-formula.epher
 
-   The knobs to edit are a, b and c below.
-   ============================================================================ */
+The knobs to edit are a, b and c below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 1

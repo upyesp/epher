@@ -1,23 +1,23 @@
 /* ============================================================================
-   distance-between-points-3d.epher -- distance between two points in space
+distance-between-points-3d.epher -- distance between two points in space
 
-   The distance between (x1, y1, z1) and (x2, y2, z2) extends Pythagoras
-   by one dimension: d = sqrt((x2 - x1)^2 + (y2 - y1)^2 + (z2 - z1)^2)
-   (standard formula; apply the 2-D distance to the face diagonal, then
-   one more right triangle with the height). Points are three-number
-   lists {x, y, z}. The examples land on exact integers, and the last
-   one, sqrt(61), is checked against the builtin directly.
+The distance between (x1, y1, z1) and (x2, y2, z2) extends Pythagoras
+by one dimension: d = sqrt((x2 - x1)^2 + (y2 - y1)^2 + (z2 - z1)^2)
+(standard formula; apply the 2-D distance to the face diagonal, then
+one more right triangle with the height). Points are three-number
+lists {x, y, z}. The examples land on exact integers, and the last
+one, sqrt(61), is checked against the builtin directly.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/distance-between-points-3d.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\distance-between-points-3d.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/distance-between-points-3d.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/distance-between-points-3d.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\distance-between-points-3d.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/distance-between-points-3d.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The point pairs to try are in the results section below; edit them
-   there.
-   ============================================================================ */
+The point pairs to try are in the results section below; edit them
+there.
+============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 def dist(p, q) = sqrt((p[1] - q[1]) ^ 2 + (p[2] - q[2]) ^ 2 + (p[3] - q[3]) ^ 2)

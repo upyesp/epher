@@ -1,24 +1,24 @@
 /* ============================================================================
-   paired-t-test.epher -- systolic pressure before and after a program
+paired-t-test.epher -- systolic pressure before and after a program
 
-   Tests whether an eight-week program changed systolic blood pressure,
-   using the builtin paired t test ttestpaired(before, after) (guide
-   1.20): one person, two measurements, so the test works on the seven
-   before-minus-after differences. It prints the t statistic and the
-   two-sided p-value as a display string. The lines above show the
-   differences and their mean and standard deviation.
+Tests whether an eight-week program changed systolic blood pressure,
+using the builtin paired t test ttestpaired(before, after) (guide
+1.20): one person, two measurements, so the test works on the seven
+before-minus-after differences. It prints the t statistic and the
+two-sided p-value as a display string. The lines above show the
+differences and their mean and standard deviation.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/paired-t-test.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\paired-t-test.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/paired-t-test.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/paired-t-test.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\paired-t-test.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/paired-t-test.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `before` and `after` below. Everything above the
-   results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `before` and `after` below. Everything above the
+results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const before = {147, 140, 154, 140, 147, 147, 140}   // systolic, mm Hg, before

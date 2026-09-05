@@ -1,23 +1,23 @@
 /* ============================================================================
-   double-angle-sine.epher -- sin(2x) = 2 sin x cos x
+double-angle-sine.epher -- sin(2x) = 2 sin x cos x
 
-   The double-angle formula for sine, sin(2x) = 2 sin(x) cos(x), follows
-   from the sum formula sin(a + b) = sin a cos b + cos a sin b with
-   a = b = x. The script checks it at several angles as boolean residual
-   checks (true when the two sides differ by less than 1e-12;
-   double-precision noise here is around 1e-16).
+The double-angle formula for sine, sin(2x) = 2 sin(x) cos(x), follows
+from the sum formula sin(a + b) = sin a cos b + cos a sin b with
+a = b = x. The script checks it at several angles as boolean residual
+checks (true when the two sides differ by less than 1e-12;
+double-precision noise here is around 1e-16).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/double-angle-sine.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\double-angle-sine.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/double-angle-sine.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/double-angle-sine.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\double-angle-sine.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/double-angle-sine.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The one knob to edit is the `degs` list below (degrees, converted with
-   rad() because the builtin trig works in radians). Twice each angle stays
-   under 180 deg, where sine is still one-valued and well behaved.
-   ============================================================================ */
+The one knob to edit is the `degs` list below (degrees, converted with
+rad() because the builtin trig works in radians). Twice each angle stays
+under 180 deg, where sine is still one-valued and well behaved.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const degs = {10, 30, 45, 60, 80}   // sample angles, in degrees

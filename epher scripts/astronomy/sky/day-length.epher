@@ -1,25 +1,25 @@
 /* ============================================================================
-   day-length.epher -- how long the daylight lasts through the year
+day-length.epher -- how long the daylight lasts through the year
 
-   Length of daylight at Berlin on three dates of 2026 (the March
-   equinox and the two solstices), as the span between the built-in set
-   and rise events of the Sun, body 10 (the solar-ephemeris crate,
-   JPL-validated; guide 1.16): (set - rise) * 24 hours. The two events
-   both fall inside the same UT day at this latitude, so the difference
-   is the day length. The swing is the tilt of the Earth's axis: about
-   16.83 h at the June solstice, 7.65 h at the December solstice. The
-   equinox day is 12.17 h, not 12: sunrise and sunset are taken at the
-   moment the Sun's upper limb touches the horizon and refraction lifts
-   it, so daylight outlasts the geometric half-day by some minutes.
+Length of daylight at Berlin on three dates of 2026 (the March
+equinox and the two solstices), as the span between the built-in set
+and rise events of the Sun, body 10 (the solar-ephemeris crate,
+JPL-validated; guide 1.16): (set - rise) * 24 hours. The two events
+both fall inside the same UT day at this latitude, so the difference
+is the day length. The swing is the tilt of the Earth's axis: about
+16.83 h at the June solstice, 7.65 h at the December solstice. The
+equinox day is 12.17 h, not 12: sunrise and sunset are taken at the
+moment the Sun's upper limb touches the horizon and refraction lifts
+it, so daylight outlasts the geometric half-day by some minutes.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/day-length.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\day-length.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/day-length.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/day-length.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\day-length.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/day-length.epher
+In the REPL:             load one of the paths above
 
-   Knobs: latitude and longitude (Berlin below); the three dates below.
-   ============================================================================ */
+Knobs: latitude and longitude (Berlin below); the three dates below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const lat = 52.52          // Berlin
@@ -33,17 +33,17 @@ const d_dec = {2026, 12, 21}   // December solstice
 def dl(ds, lat, lon) = (set(10, jd(ds[1], ds[2], ds[3]), lat, lon) - rise(10, jd(ds[1], ds[2], ds[3]), lat, lon)) * 24 in hr
 
 /* ---- results ----------------------------------------------------------------
-   The June solstice carries Berlin's longest day (16.83 h) and the
-   December solstice the shortest (7.65 h); the equinox splits the
-   difference at 12.17 h. Each reading is positive and less than 24 h. */
+The June solstice carries Berlin's longest day (16.83 h) and the
+December solstice the shortest (7.65 h); the equinox splits the
+difference at 12.17 h. Each reading is positive and less than 24 h. */
 print("day length 2026-03-20:", dl(d_mar, lat, lon))
 print("day length 2026-06-21:", dl(d_jun, lat, lon))
 print("day length 2026-12-21:", dl(d_dec, lat, lon))
 
 /* The two solstice readings add to about 24.5 h, not 24: each daylight
-   reading carries the upper-limb and refraction extras of its season,
-   and the Sun's declination is still moving on both dates, so the pair
-   is only roughly complementary. */
+reading carries the upper-limb and refraction extras of its season,
+and the Sun's declination is still moving on both dates, so the pair
+is only roughly complementary. */
 print("June plus December:", (dl(d_jun, lat, lon) + dl(d_dec, lat, lon)) in hr)
 
 /* ---- expected output ----

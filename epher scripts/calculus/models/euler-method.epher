@@ -1,29 +1,29 @@
 /* ============================================================================
-   euler-method.epher -- Euler's method for y' = y on [0, 1]
+euler-method.epher -- Euler's method for y' = y on [0, 1]
 
-   epher has no builtin ODE solver (derivative and integral work on
-   expressions, not initial-value problems), so the method is the
-   point. Euler's method steps along the slope field: from (t, y) with
-   y' = f(t, y), the next point is (t + h, y + h f(t, y)) (Stewart,
-   "Calculus", 8th ed., sec. 9.2; Burden and Faires, "Numerical
-   Analysis", ch. 5).
+epher has no builtin ODE solver (derivative and integral work on
+expressions, not initial-value problems), so the method is the
+point. Euler's method steps along the slope field: from (t, y) with
+y' = f(t, y), the next point is (t + h, y + h f(t, y)) (Stewart,
+"Calculus", 8th ed., sec. 9.2; Burden and Faires, "Numerical
+Analysis", ch. 5).
 
-   The packed while loop carries the state {t, y, step} in one list and
-   takes one Euler step per iteration; with h = 0.1 and y(0) = 1 the
-   value at t = 1 is (1.1)^10 = 2.5937424601, short of e = 2.71828...
-   Euler is a first-order method: halving h roughly halves the error
-   (0.12454 at h = 0.1, 0.06498 at h = 0.05).
+The packed while loop carries the state {t, y, step} in one list and
+takes one Euler step per iteration; with h = 0.1 and y(0) = 1 the
+value at t = 1 is (1.1)^10 = 2.5937424601, short of e = 2.71828...
+Euler is a first-order method: halving h roughly halves the error
+(0.12454 at h = 0.1, 0.06498 at h = 0.05).
 
-   Accuracy: the h = 0.1 result is exact to the printed digits; its
-   error against e is 0.124539368359, about (e/2) h as the theory of
-   the method predicts.
+Accuracy: the h = 0.1 result is exact to the printed digits; its
+error against e is 0.124539368359, about (e/2) h as the theory of
+the method predicts.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/euler-method.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\euler-method.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/euler-method.epher
-   The knobs to edit are `h` and `steps` below.
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/euler-method.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\euler-method.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/euler-method.epher
+The knobs to edit are `h` and `steps` below.
+============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const h = 0.1                  // step size

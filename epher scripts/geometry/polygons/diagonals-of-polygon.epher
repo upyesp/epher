@@ -1,22 +1,22 @@
 /* ============================================================================
-   diagonals-of-polygon.epher -- diagonals of a convex n-gon
+diagonals-of-polygon.epher -- diagonals of a convex n-gon
 
-   Each of the n vertices connects to n - 3 others (everyone but itself
-   and its two neighbors), and each diagonal is counted twice that way,
-   so the number of diagonals is n (n - 3) / 2 (standard formula). The
-   results are exact: 5 * 2 / 2 = 5 for the pentagon and 6 * 3 / 2 = 9
-   for the hexagon.
+Each of the n vertices connects to n - 3 others (everyone but itself
+and its two neighbors), and each diagonal is counted twice that way,
+so the number of diagonals is n (n - 3) / 2 (standard formula). The
+results are exact: 5 * 2 / 2 = 5 for the pentagon and 6 * 3 / 2 = 9
+for the hexagon.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/diagonals-of-polygon.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\diagonals-of-polygon.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/diagonals-of-polygon.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/diagonals-of-polygon.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\diagonals-of-polygon.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/diagonals-of-polygon.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The values of n to try are in the results section below; edit them
-   there.
-   ============================================================================ */
+The values of n to try are in the results section below; edit them
+there.
+============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 def diag(n) = n * (n - 3) / 2   // diagonals of a convex n-gon

@@ -1,33 +1,33 @@
 /* ============================================================================
-   julian-day-from-date.epher -- calendar dates as Julian Dates
+julian-day-from-date.epher -- calendar dates as Julian Dates
 
-   Converts a few famous calendar dates to Julian Dates with the built-in
-   jd(y, m, d [, hr]) (guide 1.16), the count of days since 4713 BC
-   January 1, 12:00 UT (the epoch of the Julian Period). A JD is noon-
-   based: the .5 that ends so many values below is midnight, and
-   jd(2000, 1, 1, 12) = 2451545 defines the J2000.0 epoch that most
-   astronomy formulas count from. The inverse conversion, JD to calendar
-   date, is date-from-julian-day.epher in this folder, and the
-   difference of two JDs is the day count that days-between-dates.epher
-   prints. The dates here
-   are proleptic Gregorian (the calendar the Gregorian reform of 1582
-   defines for all years), matching the datetime module of python, which
-   is the oracle the expected output was checked against.
+Converts a few famous calendar dates to Julian Dates with the built-in
+jd(y, m, d [, hr]) (guide 1.16), the count of days since 4713 BC
+January 1, 12:00 UT (the epoch of the Julian Period). A JD is noon-
+based: the .5 that ends so many values below is midnight, and
+jd(2000, 1, 1, 12) = 2451545 defines the J2000.0 epoch that most
+astronomy formulas count from. The inverse conversion, JD to calendar
+date, is date-from-julian-day.epher in this folder, and the
+difference of two JDs is the day count that days-between-dates.epher
+prints. The dates here
+are proleptic Gregorian (the calendar the Gregorian reform of 1582
+defines for all years), matching the datetime module of python, which
+is the oracle the expected output was checked against.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/julian-day-from-date.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\julian-day-from-date.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/julian-day-from-date.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/julian-day-from-date.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\julian-day-from-date.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/julian-day-from-date.epher
+In the REPL:             load one of the paths above
 
-   Knob: none - the dates below are fixed, famous ones.
-   ============================================================================ */
+Knob: none - the dates below are fixed, famous ones.
+============================================================================ */
 
 /* ---- results ----------------------------------------------------------------
-   The J2000.0 epoch, the Unix epoch (1970-01-01 00:00 UT, whose JD
-   2440587.5 every POSIX clock counts seconds from), and the start of
-   the Gregorian calendar. Then two dates of 2026 and one with an hour
-   of day: jd(2026, 6, 21, 18) is 18:00 UT on the summer solstice date. */
+The J2000.0 epoch, the Unix epoch (1970-01-01 00:00 UT, whose JD
+2440587.5 every POSIX clock counts seconds from), and the start of
+the Gregorian calendar. Then two dates of 2026 and one with an hour
+of day: jd(2026, 6, 21, 18) is 18:00 UT on the summer solstice date. */
 print("J2000.0, 2000-01-01 12:00 UT:", jd(2000, 1, 1, 12))
 print("Unix epoch, 1970-01-01:", jd(1970, 1, 1))
 print("Gregorian adoption, 1582-10-15:", jd(1582, 10, 15))

@@ -1,23 +1,23 @@
 /* ============================================================================
-   even-odd-identities.epher -- how sine, cosine and tangent see a minus sign
+even-odd-identities.epher -- how sine, cosine and tangent see a minus sign
 
-   Reflecting an angle across the x-axis negates the y-coordinate on the
-   unit circle, so sine is odd and cosine is even: sin(-x) = -sin(x),
-   cos(-x) = cos(x), and their quotient makes tangent odd,
-   tan(-x) = -tan(x). The script checks all three at several angles as
-   boolean residual checks (true when the two sides differ by less than
-   1e-12; double-precision noise here is around 1e-16).
+Reflecting an angle across the x-axis negates the y-coordinate on the
+unit circle, so sine is odd and cosine is even: sin(-x) = -sin(x),
+cos(-x) = cos(x), and their quotient makes tangent odd,
+tan(-x) = -tan(x). The script checks all three at several angles as
+boolean residual checks (true when the two sides differ by less than
+1e-12; double-precision noise here is around 1e-16).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/even-odd-identities.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\even-odd-identities.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/even-odd-identities.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/even-odd-identities.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\even-odd-identities.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/even-odd-identities.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The one knob to edit is the `degs` list below (degrees, converted with
-   rad() because the builtin trig works in radians).
-   ============================================================================ */
+The one knob to edit is the `degs` list below (degrees, converted with
+rad() because the builtin trig works in radians).
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const degs = {15, 30, 45, 60, 75}   // sample angles, in degrees

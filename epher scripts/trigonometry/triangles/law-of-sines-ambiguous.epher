@@ -1,31 +1,31 @@
 /* ============================================================================
-   law-of-sines-ambiguous.epher -- the SSA case: two, one, or no triangles
+law-of-sines-ambiguous.epher -- the SSA case: two, one, or no triangles
 
-   Given angle A, side b and side a (side-side-angle), the law of sines
-   gives sin B = b sin A / a, and the number of triangles that fit depends
-   on how a compares with the altitude h = b sin A:
+Given angle A, side b and side a (side-side-angle), the law of sines
+gives sin B = b sin A / a, and the number of triangles that fit depends
+on how a compares with the altitude h = b sin A:
 
-     a < h        no triangle: the side a never reaches the base line
-     a = h        one right triangle: it just touches
-     h < a < b    two triangles: B and 180 deg - B both work
-     a = b        one triangle (the second candidate collapses)
-     a > b        one triangle
+  a < h        no triangle: the side a never reaches the base line
+  a = h        one right triangle: it just touches
+  h < a < b    two triangles: B and 180 deg - B both work
+  a = b        one triangle (the second candidate collapses)
+  a > b        one triangle
 
-   This is the classic ambiguous case of any trigonometry course (e.g.
-   Stewart, Redlin and Watson, "Precalculus", ch. 6). The script compares
-   h against a with a 1e-12 slack, because sin(30 deg) is 0.5 to twelve
-   digits but not to the last binary bit.
+This is the classic ambiguous case of any trigonometry course (e.g.
+Stewart, Redlin and Watson, "Precalculus", ch. 6). The script compares
+h against a with a 1e-12 slack, because sin(30 deg) is 0.5 to twelve
+digits but not to the last binary bit.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/law-of-sines-ambiguous.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\law-of-sines-ambiguous.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/law-of-sines-ambiguous.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/law-of-sines-ambiguous.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\law-of-sines-ambiguous.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/law-of-sines-ambiguous.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are A (degrees), bside and the five a-values below
-   (meters). Printed values carry about 12 significant digits.
-   ============================================================================ */
+The knobs to edit are A (degrees), bside and the five a-values below
+(meters). Printed values carry about 12 significant digits.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const A = 30            // given angle, degrees
@@ -37,9 +37,9 @@ const a4 = 12 m         // a equal to b: one triangle
 const a5 = 16 m         // a longer than b: one triangle
 
 /* ---- helpers ----------------------------------------------------------------
-   The altitude the far side must clear. A def body only sees names that
-   exist as consts or defs when it is written, so this is a const, not an
-   assignment. */
+The altitude the far side must clear. A def body only sees names that
+exist as consts or defs when it is written, so this is a const, not an
+assignment. */
 const hgt = bside * sin(rad(A))
 def sinB(a) = bside * sin(rad(A)) / a       // law of sines for the candidate B
 def b1(a) = deg(asin(sinB(a)))              // first candidate angle B

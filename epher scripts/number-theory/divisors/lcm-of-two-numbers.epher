@@ -1,23 +1,23 @@
 /* ============================================================================
-   lcm-of-two-numbers.epher -- the least common multiple of pairs
+lcm-of-two-numbers.epher -- the least common multiple of pairs
 
-   Calls the lcm builtin on several pairs and cross-checks it with the
-   identity lcm(a, b) * gcd(a, b) = a * b, which ties the two builtins
-   together (Hardy and Wright, ch. 1). The script uses the builtins; it
-   does not reimplement them. The classic check is lcm(4, 6) = 12.
+Calls the lcm builtin on several pairs and cross-checks it with the
+identity lcm(a, b) * gcd(a, b) = a * b, which ties the two builtins
+together (Hardy and Wright, ch. 1). The script uses the builtins; it
+does not reimplement them. The classic check is lcm(4, 6) = 12.
 
-   Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
-   ch. 1. lcm and gcd are exact.
+Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+ch. 1. lcm and gcd are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/divisors/lcm-of-two-numbers.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\divisors\lcm-of-two-numbers.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/divisors/lcm-of-two-numbers.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/divisors/lcm-of-two-numbers.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\divisors\lcm-of-two-numbers.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/divisors/lcm-of-two-numbers.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the sample pairs are the point of the script.
-   ============================================================================ */
+There is no knob: the sample pairs are the point of the script.
+============================================================================ */
 
 // ---- the classic check -----------------------------------------------------------
 print("lcm(4, 6):", lcm(4, 6))              // 12: multiples 4, 8, 12 and 6, 12

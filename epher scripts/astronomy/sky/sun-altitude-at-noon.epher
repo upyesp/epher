@@ -1,27 +1,27 @@
 /* ============================================================================
-   sun-altitude-at-noon.epher -- how high the Sun gets, season by season
+sun-altitude-at-noon.epher -- how high the Sun gets, season by season
 
-   The Sun's altitude at Berlin around local noon on the March equinox
-   and the two solstices of 2026, from the built-in accessor alt for the
-   Sun, body 10 (the solar-ephemeris crate, JPL-validated; guide 1.16).
-   The script prints two readings per date: the altitude at 12:00 UT
-   (the noon-hour knob; Berlin's solar noon is about 11.1 UT, see
-   solar-noon-time.epher, so the Sun is past its peak by then), and the
-   altitude at the true transit instant, which the meridian formula
-   90 - |lat - decl| predicts: the Sun's maximum altitude follows from
-   the observer's latitude and the Sun's declination, read here from
-   the built-in decl accessor. The measured and the formula agree to
-   about 0.002 deg on each date: that residual is the Sun's parallax, a
-   few arcseconds, and the altitudes are geometric (no refraction).
+The Sun's altitude at Berlin around local noon on the March equinox
+and the two solstices of 2026, from the built-in accessor alt for the
+Sun, body 10 (the solar-ephemeris crate, JPL-validated; guide 1.16).
+The script prints two readings per date: the altitude at 12:00 UT
+(the noon-hour knob; Berlin's solar noon is about 11.1 UT, see
+solar-noon-time.epher, so the Sun is past its peak by then), and the
+altitude at the true transit instant, which the meridian formula
+90 - |lat - decl| predicts: the Sun's maximum altitude follows from
+the observer's latitude and the Sun's declination, read here from
+the built-in decl accessor. The measured and the formula agree to
+about 0.002 deg on each date: that residual is the Sun's parallax, a
+few arcseconds, and the altitudes are geometric (no refraction).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/sun-altitude-at-noon.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\sun-altitude-at-noon.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/sun-altitude-at-noon.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/sun-altitude-at-noon.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\sun-altitude-at-noon.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/sun-altitude-at-noon.epher
+In the REPL:             load one of the paths above
 
-   Knobs: latitude and longitude (Berlin below), the noon hour, dates.
-   ============================================================================ */
+Knobs: latitude and longitude (Berlin below), the noon hour, dates.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const lat = 52.52          // Berlin
@@ -38,13 +38,13 @@ def culm(ds, lat, lon) = alt(10, transit(10, jd(ds[1], ds[2], ds[3]), lat, lon),
 def cdec(ds, lat, lon) = decl(10, transit(10, jd(ds[1], ds[2], ds[3]), lat, lon))
 
 /* ---- results ----------------------------------------------------------------
-   The noon sample at 12:00 UT: 36.5 deg in March, 59.3 deg in June,
-   13.1 deg in December. The formula 90 - |lat - decl| shows why: at the
-   solstices the Sun's declination is about +23.44 and -23.44 deg, so
-   the maximum altitude is 90 - (52.52 - 23.44) = 60.92 deg in summer
-   and 90 - (52.52 + 23.44) = 14.04 deg in winter. The 12:00-UT sample
-   sits about 1.6 deg below the summer maximum because culmination
-   falls at 11.14 UT, not 12. */
+The noon sample at 12:00 UT: 36.5 deg in March, 59.3 deg in June,
+13.1 deg in December. The formula 90 - |lat - decl| shows why: at the
+solstices the Sun's declination is about +23.44 and -23.44 deg, so
+the maximum altitude is 90 - (52.52 - 23.44) = 60.92 deg in summer
+and 90 - (52.52 + 23.44) = 14.04 deg in winter. The 12:00-UT sample
+sits about 1.6 deg below the summer maximum because culmination
+falls at 11.14 UT, not 12. */
 print("alt at 12:00 UT, 2026-03-20:", alt(10, jd(d_mar[1], d_mar[2], d_mar[3], hr), lat, lon), "deg")
 print("alt at 12:00 UT, 2026-06-21:", alt(10, jd(d_jun[1], d_jun[2], d_jun[3], hr), lat, lon), "deg")
 print("alt at 12:00 UT, 2026-12-21:", alt(10, jd(d_dec[1], d_dec[2], d_dec[3], hr), lat, lon), "deg")

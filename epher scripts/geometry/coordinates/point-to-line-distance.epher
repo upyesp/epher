@@ -1,22 +1,22 @@
 /* ============================================================================
-   point-to-line-distance.epher -- distance from a point to a line
+point-to-line-distance.epher -- distance from a point to a line
 
-   The distance from (x0, y0) to the line a x + b y + c = 0 is
-   d = |a x0 + b y0 + c| / sqrt(a^2 + b^2) (standard formula; drop the
-   perpendicular and solve, or project the point onto the normal). The
-   line 3 x + 4 y - 5 = 0 has normal length 5, so the origin is 1 unit
-   away and (1, 2) is 6/5 = 1.2, exact. A point on the line gives 0.
+The distance from (x0, y0) to the line a x + b y + c = 0 is
+d = |a x0 + b y0 + c| / sqrt(a^2 + b^2) (standard formula; drop the
+perpendicular and solve, or project the point onto the normal). The
+line 3 x + 4 y - 5 = 0 has normal length 5, so the origin is 1 unit
+away and (1, 2) is 6/5 = 1.2, exact. A point on the line gives 0.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/point-to-line-distance.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\point-to-line-distance.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/point-to-line-distance.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/point-to-line-distance.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\point-to-line-distance.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/point-to-line-distance.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `a`, `b`, `c` (the line a x + b y + c = 0).
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `a`, `b`, `c` (the line a x + b y + c = 0).
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const a = 3

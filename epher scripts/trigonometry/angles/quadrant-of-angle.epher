@@ -1,23 +1,23 @@
 /* ============================================================================
-   quadrant-of-angle.epher -- which quadrant an angle lands in
+quadrant-of-angle.epher -- which quadrant an angle lands in
 
-   An angle in standard position lands in one of four quadrants, or on an
-   axis when it is a multiple of 90 deg. The recipe: reduce the angle to
-   [0, 360) (see coterminal-angles.epher in this folder), then compare with
-   the four boundaries 0, 90, 180 and 270 deg. The boundaries are checked
-   first, so 90 deg reports the positive y-axis and 270 the negative one,
-   not a quadrant.
+An angle in standard position lands in one of four quadrants, or on an
+axis when it is a multiple of 90 deg. The recipe: reduce the angle to
+[0, 360) (see coterminal-angles.epher in this folder), then compare with
+the four boundaries 0, 90, 180 and 270 deg. The boundaries are checked
+first, so 90 deg reports the positive y-axis and 270 the negative one,
+not a quadrant.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/quadrant-of-angle.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\quadrant-of-angle.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/quadrant-of-angle.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/quadrant-of-angle.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\quadrant-of-angle.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/quadrant-of-angle.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The one knob to edit is the `angs` list below (degrees); an axis angle,
-   a negative angle and an angle past a turn are included on purpose.
-   ============================================================================ */
+The one knob to edit is the `angs` list below (degrees); an axis angle,
+a negative angle and an angle past a turn are included on purpose.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const angs = {45, 135, 225, 315, 0, 90, 180, 270, -90, 390}   // angles, in degrees

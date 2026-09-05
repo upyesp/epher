@@ -1,27 +1,27 @@
 /* ============================================================================
-   car-loan-payment.epher -- monthly payment of a 5-year auto loan with a
-   down payment
+car-loan-payment.epher -- monthly payment of a 5-year auto loan with a
+down payment
 
-   The buyer puts a down payment on the price and finances the rest with a
-   fixed-rate loan: the financed amount is price*(1 - down), and the monthly
-   payment over n months at rate r comes from the finance builtin tvm_pmt,
-   the annuity formula pmt = P*i/(1 - (1+i)^-n). Source: standard
-   amortization formulas; see Kellison, The Theory of Interest, chapter 3.
+The buyer puts a down payment on the price and finances the rest with a
+fixed-rate loan: the financed amount is price*(1 - down), and the monthly
+payment over n months at rate r comes from the finance builtin tvm_pmt,
+the annuity formula pmt = P*i/(1 - (1+i)^-n). Source: standard
+amortization formulas; see Kellison, The Theory of Interest, chapter 3.
 
-   Sign convention: principal negative, payment positive, as in the builtin
-   example tvm_pmt(360, 0.08/12, -100000, 0).
+Sign convention: principal negative, payment positive, as in the builtin
+example tvm_pmt(360, 0.08/12, -100000, 0).
 
-   Accuracy: 12 displayed digits. Dealers quote "6.9% APR" for the monthly
-   rate 6.9%/12; fees and sales tax are not part of this price.
+Accuracy: 12 displayed digits. Dealers quote "6.9% APR" for the monthly
+rate 6.9%/12; fees and sales tax are not part of this price.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/car-loan-payment.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\car-loan-payment.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/car-loan-payment.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/car-loan-payment.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\car-loan-payment.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/car-loan-payment.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const price = 32000         // the car's price, USD

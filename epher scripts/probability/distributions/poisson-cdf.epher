@@ -1,28 +1,28 @@
 /* ============================================================================
-   poisson-cdf.epher -- cumulative Poisson probabilities with poissoncdf
+poisson-cdf.epher -- cumulative Poisson probabilities with poissoncdf
 
-   Calls arrive at a switchboard at a mean rate of 2 per minute, so the
-   number X of calls in a minute is Poisson(2) and the chance of at most
-   k calls is the cumulative probability P(X <= k), which epher's
-   poissoncdf(k, rate) builtin sums from the point formula e^-rate *
-   rate^j / j!. The builtin prints floats with tiny noise around the
-   last digit.
+Calls arrive at a switchboard at a mean rate of 2 per minute, so the
+number X of calls in a minute is Poisson(2) and the chance of at most
+k calls is the cumulative probability P(X <= k), which epher's
+poissoncdf(k, rate) builtin sums from the point formula e^-rate *
+rate^j / j!. The builtin prints floats with tiny noise around the
+last digit.
 
-   The script checks P(X <= 2) against the hand-written sum
-   e^-2 * (1 + 2 + 2) = 5 * e^-2, and reads off the complementary tail
-   P(X >= 3) = 1 - P(X <= 2): with only 0.323 of minutes carrying three
-   or more calls, the operator is usually free.
+The script checks P(X <= 2) against the hand-written sum
+e^-2 * (1 + 2 + 2) = 5 * e^-2, and reads off the complementary tail
+P(X >= 3) = 1 - P(X <= 2): with only 0.323 of minutes carrying three
+or more calls, the operator is usually free.
 
-   Source: Ross, "A First Course in Probability", chapter 4.
+Source: Ross, "A First Course in Probability", chapter 4.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/poisson-cdf.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\poisson-cdf.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/poisson-cdf.epher
-   Web/desktop:             paste the file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/poisson-cdf.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\poisson-cdf.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/poisson-cdf.epher
+Web/desktop:             paste the file into the entry, press Enter
 
-   The knob to edit is `rate`; everything below it is machinery.
-   ============================================================================ */
+The knob to edit is `rate`; everything below it is machinery.
+============================================================================ */
 
 // ---- the knob ----
 const rate = 2

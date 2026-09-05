@@ -1,27 +1,27 @@
 /* ============================================================================
-   choosing-a-fit.epher -- four curves on one growth dataset, compare the r
+choosing-a-fit.epher -- four curves on one growth dataset, compare the r
 
-   Fits all four builtin curves to the same (hour, size) pairs in `xs`
-   and `ys` and lets the reported correlations pick the model. The sizes
-   grow by a nearly constant ratio each hour, the fingerprint of
-   exponential growth, so expreg should win: its r = 0.9999 beats the
-   linear 0.9312, the quadratic 0.9963, the power 0.9552 and the
-   logarithmic 0.8051. The manual Pearson r below recomputes the
-   correlation between x and ln(y) by the textbook formula; its square,
-   r^2 = 0.99984..., is the fraction of the log-variance the model
-   explains and agrees with the r in the expreg display.
+Fits all four builtin curves to the same (hour, size) pairs in `xs`
+and `ys` and lets the reported correlations pick the model. The sizes
+grow by a nearly constant ratio each hour, the fingerprint of
+exponential growth, so expreg should win: its r = 0.9999 beats the
+linear 0.9312, the quadratic 0.9963, the power 0.9552 and the
+logarithmic 0.8051. The manual Pearson r below recomputes the
+correlation between x and ln(y) by the textbook formula; its square,
+r^2 = 0.99984..., is the fraction of the log-variance the model
+explains and agrees with the r in the expreg display.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/choosing-a-fit.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\choosing-a-fit.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/choosing-a-fit.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/choosing-a-fit.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\choosing-a-fit.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/choosing-a-fit.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `xs` and `ys` below. Everything above the results
-   section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `xs` and `ys` below. Everything above the results
+section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const xs = {1, 2, 3, 4, 5, 6, 7, 8}   // hours since the culture was started

@@ -1,25 +1,25 @@
 /* ============================================================================
-   nth-prime.epher -- the n-th prime number
+nth-prime.epher -- the n-th prime number
 
-   Counts primes until the counter reaches n, with a packed while loop
-   (guide 1.30). The state holds {candidate, primes counted}; each pass
-   checks the next candidate and moves on, and the loop stops the moment
-   the n-th prime has been counted. Checks: the 10th prime is 29, the
-   25th is 97, and the 100th is 541 (Hardy and Wright, ch. 1, tables).
+Counts primes until the counter reaches n, with a packed while loop
+(guide 1.30). The state holds {candidate, primes counted}; each pass
+checks the next candidate and moves on, and the loop stops the moment
+the n-th prime has been counted. Checks: the 10th prime is 29, the
+25th is 97, and the 100th is 541 (Hardy and Wright, ch. 1, tables).
 
-   Source: standard number theory; the count is exact because isprime is
-   exact. The loop runs about n log n steps, so keep n below a few
-   thousand for an instant run.
+Source: standard number theory; the count is exact because isprime is
+exact. The loop runs about n log n steps, so keep n below a few
+thousand for an instant run.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/nth-prime.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\nth-prime.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/nth-prime.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/nth-prime.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\nth-prime.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/nth-prime.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The one knob to edit is `n` below.
-   ============================================================================ */
+The one knob to edit is `n` below.
+============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const n = 25

@@ -1,25 +1,25 @@
 /* ============================================================================
-   degrees-minutes-seconds.epher -- decimal degrees, DMS, and back again
+degrees-minutes-seconds.epher -- decimal degrees, DMS, and back again
 
-   Nautical charts and hand sightings give bearings and positions as degrees,
-   minutes and seconds of arc (122 deg 32' 15"), while calculators, plotters
-   and GPS math want decimal degrees (122.5375). The conversion builtins are
-   deg2dms(x), which formats decimal degrees as a DMS string, and
-   dms2deg(d, m, s), which folds a DMS triple back into decimal degrees
-   (guide 1.16, the astronomy helpers). The worked example is the bearing of
-   a buoy from a harbor entrance; west or south bearings just take a minus
-   sign on the whole decimal value.
+Nautical charts and hand sightings give bearings and positions as degrees,
+minutes and seconds of arc (122 deg 32' 15"), while calculators, plotters
+and GPS math want decimal degrees (122.5375). The conversion builtins are
+deg2dms(x), which formats decimal degrees as a DMS string, and
+dms2deg(d, m, s), which folds a DMS triple back into decimal degrees
+(guide 1.16, the astronomy helpers). The worked example is the bearing of
+a buoy from a harbor entrance; west or south bearings just take a minus
+sign on the whole decimal value.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/degrees-minutes-seconds.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\degrees-minutes-seconds.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/degrees-minutes-seconds.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/degrees-minutes-seconds.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\degrees-minutes-seconds.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/degrees-minutes-seconds.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knob to edit is `bearing` below (decimal degrees). Printed values
-   carry about 12 significant digits.
-   ============================================================================ */
+The knob to edit is `bearing` below (decimal degrees). Printed values
+carry about 12 significant digits.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const bearing = 122.5375          // buoy bearing, decimal degrees

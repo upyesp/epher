@@ -1,24 +1,24 @@
 /* ============================================================================
-   fair-game-price.epher -- the entry fee that makes a dice game fair
+fair-game-price.epher -- the entry fee that makes a dice game fair
 
-   A game pays $10 when a die shows 6, $1 when it shows 5, and nothing
-   otherwise. One roll costs an entry fee, and the fair fee is the
-   expected payout: the game is fair when the player's expected net gain
-   (payout minus fee) is zero (Ross, "A First Course in Probability",
-   ch. 4).
+A game pays $10 when a die shows 6, $1 when it shows 5, and nothing
+otherwise. One roll costs an entry fee, and the fair fee is the
+expected payout: the game is fair when the player's expected net gain
+(payout minus fee) is zero (Ross, "A First Course in Probability",
+ch. 4).
 
-     E[payout] = 10 * 1/6 + 1 * 1/6 + 0 * 4/6 = 11/6,
+  E[payout] = 10 * 1/6 + 1 * 1/6 + 0 * 4/6 = 11/6,
 
-   so the fair entry fee is 11/6 = $1.8333... Charging $2 instead gives
-   the house an edge of $1/6 per roll: over six rolls the house expects
-   to keep one dollar.
+so the fair entry fee is 11/6 = $1.8333... Charging $2 instead gives
+the house an edge of $1/6 per roll: over six rolls the house expects
+to keep one dollar.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/fair-game-price.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\fair-game-price.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/fair-game-price.epher
-   Web/desktop:             paste the file into the entry, press Enter
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/fair-game-price.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\fair-game-price.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/fair-game-price.epher
+Web/desktop:             paste the file into the entry, press Enter
+============================================================================ */
 
 // ---- results ----
 // The payout for each face: $10 for a 6, $1 for a 5, nothing else.

@@ -1,23 +1,23 @@
 /* ============================================================================
-   empirical-rule.epher -- 68, 95, 99.7 percent of a normal distribution
+empirical-rule.epher -- 68, 95, 99.7 percent of a normal distribution
 
-   The empirical rule for a normal distribution, from the builtin
-   normcdf (guide 1.20): about 68 percent of the probability lies within
-   one standard deviation of the mean, 95 percent within two, and 99.7
-   percent within three. In standard units the three areas are
-   P(-1 < Z < 1), P(-2 < Z < 2) and P(-3 < Z < 3), each computed as
-   normcdf(k) - normcdf(-k) and shown as a percent below.
+The empirical rule for a normal distribution, from the builtin
+normcdf (guide 1.20): about 68 percent of the probability lies within
+one standard deviation of the mean, 95 percent within two, and 99.7
+percent within three. In standard units the three areas are
+P(-1 < Z < 1), P(-2 < Z < 2) and P(-3 < Z < 3), each computed as
+normcdf(k) - normcdf(-k) and shown as a percent below.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/empirical-rule.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\empirical-rule.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/empirical-rule.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/empirical-rule.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\empirical-rule.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/empirical-rule.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   No knobs: the rule is the demonstration.
-   ============================================================================ */
+No knobs: the rule is the demonstration.
+============================================================================ */
 
 // ---- the three bands, as probabilities and as percents ---------------------------------
 normcdf(1) - normcdf(-1)    // P(mu - sigma < X < mu + sigma), about 0.6827

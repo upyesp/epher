@@ -1,40 +1,40 @@
 /* ============================================================================
-   birthday-problem.epher -- the smallest group with a shared birthday
+birthday-problem.epher -- the smallest group with a shared birthday
 
-   With n people, the chance that no two share a birthday is the product
-   (1 - 1/365) * (1 - 2/365) * ... * (1 - (n - 1)/365): each newcomer
-   must miss all the birthdays already in the room. The script walks n
-   upward, multiplying one more factor at a time in a packed while loop
-   (guide 1.30), and stops at the first n where the complement, the
-   probability of at least one shared birthday, reaches 1/2.
+With n people, the chance that no two share a birthday is the product
+(1 - 1/365) * (1 - 2/365) * ... * (1 - (n - 1)/365): each newcomer
+must miss all the birthdays already in the room. The script walks n
+upward, multiplying one more factor at a time in a packed while loop
+(guide 1.30), and stops at the first n where the complement, the
+probability of at least one shared birthday, reaches 1/2.
 
-   That n is 23: P(shared birthday among 23 people) = 0.507297234324,
-   a famously counterintuitive small number. With 30 people it is about
-   0.7063, and the product model also answers the exact question "how
-   many people before the odds turn".
+That n is 23: P(shared birthday among 23 people) = 0.507297234324,
+a famously counterintuitive small number. With 30 people it is about
+0.7063, and the product model also answers the exact question "how
+many people before the odds turn".
 
-   Source: Feller, "An Introduction to Probability Theory and Its
-   Applications", volume 1, chapter 2. The product is a float product,
-   exact to about 12 digits, which is far more than the answer needs.
+Source: Feller, "An Introduction to Probability Theory and Its
+Applications", volume 1, chapter 2. The product is a float product,
+exact to about 12 digits, which is far more than the answer needs.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/birthday-problem.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\birthday-problem.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/birthday-problem.epher
-   Web/desktop:             paste the file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/birthday-problem.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\birthday-problem.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/birthday-problem.epher
+Web/desktop:             paste the file into the entry, press Enter
 
-   The knobs to edit are `days` and `target`; everything below them is
-   machinery.
-   ============================================================================ */
+The knobs to edit are `days` and `target`; everything below them is
+machinery.
+============================================================================ */
 
 // ---- the knobs ----
 const days = 365
 const target = 1/2
 
 /* ---- results ----
-   Packed loop state {n, q}: q is the probability that the n people seen
-   so far all have distinct birthdays. Each step adds one person, who
-   must miss the n birthdays already taken: q *= (1 - n/days). */
+Packed loop state {n, q}: q is the probability that the n people seen
+so far all have distinct birthdays. Each step adds one person, who
+must miss the n birthdays already taken: q *= (1 - n/days). */
 v = {1, 1}
 while 1 - v[2] < target do v = {v[1] + 1, v[2] * (1 - v[1] / days)}
 

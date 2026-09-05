@@ -1,21 +1,21 @@
 /* ============================================================================
-   interior-angle-sum.epher -- sum of the interior angles of an n-gon
+interior-angle-sum.epher -- sum of the interior angles of an n-gon
 
-   Any n-gon triangulates into n - 2 triangles, so its interior angles
-   sum to (n - 2) * 180 degrees (Euclid's Elements, book I, proposition
-   32 applied by triangulation; standard formula). All results are exact
-   integers, easy to check by hand: a hexagon holds four triangles.
+Any n-gon triangulates into n - 2 triangles, so its interior angles
+sum to (n - 2) * 180 degrees (Euclid's Elements, book I, proposition
+32 applied by triangulation; standard formula). All results are exact
+integers, easy to check by hand: a hexagon holds four triangles.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/interior-angle-sum.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\interior-angle-sum.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/interior-angle-sum.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/interior-angle-sum.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\interior-angle-sum.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/interior-angle-sum.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The values of n to try are in the results section below; edit them
-   there.
-   ============================================================================ */
+The values of n to try are in the results section below; edit them
+there.
+============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 def angsum(n) = (n - 2) * 180   // degrees; n - 2 triangles of 180 degrees

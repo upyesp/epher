@@ -1,24 +1,24 @@
 /* ============================================================================
-   planet-rise-set-transit.epher -- Mars through one day at a city
+planet-rise-set-transit.epher -- Mars through one day at a city
 
-   Rise, meridian transit and set of Mars on 2026-06-01 at Berlin, from
-   the built-in accessors rise, transit and set (the solar-ephemeris
-   crate, JPL-validated; guide 1.16). Each returns the event of the day
-   that starts at j0 (0h UT) as a Julian Date; subtracting j0 and
-   multiplying by 24 gives the clock hour, printed in hours and as a
-   clock time (deg2hms of the hour times 15, guide 1.16). Hours are UT;
-   Berlin civil time is UT + 2 in summer. Mars rises before the Sun
-   (2.72 hr UT, see sunrise-sunset.epher): about eight months before its
-   February 2027 opposition the planet is a morning object.
+Rise, meridian transit and set of Mars on 2026-06-01 at Berlin, from
+the built-in accessors rise, transit and set (the solar-ephemeris
+crate, JPL-validated; guide 1.16). Each returns the event of the day
+that starts at j0 (0h UT) as a Julian Date; subtracting j0 and
+multiplying by 24 gives the clock hour, printed in hours and as a
+clock time (deg2hms of the hour times 15, guide 1.16). Hours are UT;
+Berlin civil time is UT + 2 in summer. Mars rises before the Sun
+(2.72 hr UT, see sunrise-sunset.epher): about eight months before its
+February 2027 opposition the planet is a morning object.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-rise-set-transit.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-rise-set-transit.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-rise-set-transit.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-rise-set-transit.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-rise-set-transit.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-rise-set-transit.epher
+In the REPL:             load one of the paths above
 
-   Knobs: the date j0, latitude and longitude.
-   ============================================================================ */
+Knobs: the date j0, latitude and longitude.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const j0 = jd(2026, 6, 1)    // 0h UT
@@ -31,10 +31,10 @@ def evh(ev, j0) = (ev - j0) * 24
 def evd(ev, j0) = (ev - j0) * 24 * 15
 
 /* ---- results ----------------------------------------------------------------
-   The three events of the day, in order: rise at 1.63, transit at 8.97,
-   set at 16.33 hr UT. The ordering check below confirms rise comes
-   first: on this date Mars is up from 01:38 to 16:20 UT, crossing the
-   meridian just before 09:00 UT in the morning sky. */
+The three events of the day, in order: rise at 1.63, transit at 8.97,
+set at 16.33 hr UT. The ordering check below confirms rise comes
+first: on this date Mars is up from 01:38 to 16:20 UT, crossing the
+meridian just before 09:00 UT in the morning sky. */
 print("Mars rise 2026-06-01:", evh(rise(4, j0, lat, lon), j0) in hr, "UT; clock", deg2hms(evd(rise(4, j0, lat, lon), j0)))
 print("Mars transit 2026-06-01:", evh(transit(4, j0, lat, lon), j0) in hr, "UT; clock", deg2hms(evd(transit(4, j0, lat, lon), j0)))
 print("Mars set 2026-06-01:", evh(set(4, j0, lat, lon), j0) in hr, "UT; clock", deg2hms(evd(set(4, j0, lat, lon), j0)))

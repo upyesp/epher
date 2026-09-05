@@ -1,26 +1,26 @@
 /* ============================================================================
-   area-between-curves.epher -- the area between y = x and y = x^2
+area-between-curves.epher -- the area between y = x and y = x^2
 
-   The area between two curves is the integral of (top curve minus
-   bottom curve) over the interval where the top stays on top (Stewart,
-   "Calculus", 8th ed., sec. 6.1). On [0, 1] the line y = x lies above
-   the parabola y = x^2 (they meet at x = 0 and x = 1), so:
+The area between two curves is the integral of (top curve minus
+bottom curve) over the interval where the top stays on top (Stewart,
+"Calculus", 8th ed., sec. 6.1). On [0, 1] the line y = x lies above
+the parabola y = x^2 (they meet at x = 0 and x = 1), so:
 
-     area = integral(x - x^2, 0, 1) = 1/2 - 1/3 = 1/6
+  area = integral(x - x^2, 0, 1) = 1/2 - 1/3 = 1/6
 
-   The adaptive Simpson builtin is exact on this quadratic integrand,
-   and 1/6 is a repeating decimal, so epher prints the exact fraction
-   1/6. The same area built from the two separate integrals agrees:
-   integral(x, 0, 1) - integral(x^2, 0, 1).
+The adaptive Simpson builtin is exact on this quadratic integrand,
+and 1/6 is a repeating decimal, so epher prints the exact fraction
+1/6. The same area built from the two separate integrals agrees:
+integral(x, 0, 1) - integral(x^2, 0, 1).
 
-   Accuracy: exact at the displayed precision.
+Accuracy: exact at the displayed precision.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/area-between-curves.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\area-between-curves.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/area-between-curves.epher
-   No knobs: the interval [0, 1] is the demonstration.
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/area-between-curves.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\area-between-curves.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/area-between-curves.epher
+No knobs: the interval [0, 1] is the demonstration.
+============================================================================ */
 
 // ---- the area as one integral of top minus bottom ---------------------------
 integral(x - x^2, 0, 1)

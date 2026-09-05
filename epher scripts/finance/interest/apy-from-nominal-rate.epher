@@ -1,26 +1,26 @@
 /* ============================================================================
-   apy-from-nominal-rate.epher -- effective annual yield of a nominal rate
-   compounded m times a year
+apy-from-nominal-rate.epher -- effective annual yield of a nominal rate
+compounded m times a year
 
-   A nominal annual rate r compounded m times a year grows money by the
-   factor (1 + r/m)^m per year, so the effective annual yield (APY) is
-   (1 + r/m)^m - 1: what a year of compounding really pays, expressed as a
-   yearly rate. The script prints the APY of a 4.8% rate compounded monthly,
-   then a ladder of compounding frequencies for a 5% rate, ending at the
-   continuous limit e^r - 1. Source: standard finance formulas; see
-   Kellison, The Theory of Interest, chapter 2.
+A nominal annual rate r compounded m times a year grows money by the
+factor (1 + r/m)^m per year, so the effective annual yield (APY) is
+(1 + r/m)^m - 1: what a year of compounding really pays, expressed as a
+yearly rate. The script prints the APY of a 4.8% rate compounded monthly,
+then a ladder of compounding frequencies for a 5% rate, ending at the
+continuous limit e^r - 1. Source: standard finance formulas; see
+Kellison, The Theory of Interest, chapter 2.
 
-   Accuracy: the ladder values print to 12 digits; the m = 365 row differs
-   from the continuous limit by about 4/1000 of a percent.
+Accuracy: the ladder values print to 12 digits; the m = 365 row differs
+from the continuous limit by about 4/1000 of a percent.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/apy-from-nominal-rate.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\apy-from-nominal-rate.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/apy-from-nominal-rate.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/apy-from-nominal-rate.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\apy-from-nominal-rate.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/apy-from-nominal-rate.epher
 
-   The one knob to edit is the nominal rate in the first result line (the
-   ladder below it is fixed at a nominal 5% to show the trend).
-   ============================================================================ */
+The one knob to edit is the nominal rate in the first result line (the
+ladder below it is fixed at a nominal 5% to show the trend).
+============================================================================ */
 
 // ---- helpers ----------------------------------------------------------------
 def apy(nom, m) = (1 + nom / m) ^ m - 1   // effective annual yield of nominal rate nom, m compounds a year

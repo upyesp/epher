@@ -1,25 +1,25 @@
 /* ============================================================================
-   frustum-volume.epher -- volume of a conical frustum
+frustum-volume.epher -- volume of a conical frustum
 
-   A conical frustum is a cone with its top cut off: with base radius R,
-   top radius r and height h, its volume is V = pi h (R^2 + R r + r^2) / 3
-   (standard formula; the average of the two disk areas and their
-   geometric mean times the height). For R = 4, r = 2, h = 6 the volume
-   is 56 pi. The checks: R = r reduces the frustum to a cylinder, and the
-   frustum equals the full cone of height 12 minus its tip (similar
-   cones, h R / (R - r) = 12).
+A conical frustum is a cone with its top cut off: with base radius R,
+top radius r and height h, its volume is V = pi h (R^2 + R r + r^2) / 3
+(standard formula; the average of the two disk areas and their
+geometric mean times the height). For R = 4, r = 2, h = 6 the volume
+is 56 pi. The checks: R = r reduces the frustum to a cylinder, and the
+frustum equals the full cone of height 12 minus its tip (similar
+cones, h R / (R - r) = 12).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/frustum-volume.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\frustum-volume.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/frustum-volume.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/frustum-volume.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\frustum-volume.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/frustum-volume.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `R` (base radius), `r` (top radius) and `h`
-   (height). Everything above the results section is machinery you can
-   leave alone.
-   ============================================================================ */
+The knobs to edit are `R` (base radius), `r` (top radius) and `h`
+(height). Everything above the results section is machinery you can
+leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const R = 4

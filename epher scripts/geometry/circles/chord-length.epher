@@ -1,23 +1,23 @@
 /* ============================================================================
-   chord-length.epher -- chord of a circle from radius and central angle
+chord-length.epher -- chord of a circle from radius and central angle
 
-   A chord spans the central angle t; the radius to either endpoint and
-   the chord form an isosceles triangle, so the chord is
-   L = 2 r sin(t / 2) (standard formula; drop the perpendicular from the
-   center, which bisects the chord). Angles go in radians, so t is
-   converted with rad() before halving. A 60 degree chord of radius 5 is
-   10 sin(30 deg) = 5, and 180 degrees spans the full diameter.
+A chord spans the central angle t; the radius to either endpoint and
+the chord form an isosceles triangle, so the chord is
+L = 2 r sin(t / 2) (standard formula; drop the perpendicular from the
+center, which bisects the chord). Angles go in radians, so t is
+converted with rad() before halving. A 60 degree chord of radius 5 is
+10 sin(30 deg) = 5, and 180 degrees spans the full diameter.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/circles/chord-length.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\circles\chord-length.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/circles/chord-length.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/circles/chord-length.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\circles\chord-length.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/circles/chord-length.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `r` (radius) and `t` (central angle in degrees).
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `r` (radius) and `t` (central angle in degrees).
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const r = 5

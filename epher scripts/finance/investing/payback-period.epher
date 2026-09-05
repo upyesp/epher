@@ -1,27 +1,27 @@
 /* ============================================================================
-   payback-period.epher -- how many years until a project's cash flows
-   recover its cost, ignoring the time value of money
+payback-period.epher -- how many years until a project's cash flows
+recover its cost, ignoring the time value of money
 
-   The payback period adds up the yearly inflows until the cumulative total
-   reaches the initial outflow. The table below carries the cumulative total
-   year by year; a packed while loop then counts the full years and the
-   final print adds the exact fraction of the next year (the builtin npv
-   knows no payback, so the recurrence is written out). Source: standard
-   capital-budgeting practice; see Brealey and Myers, Principles of
-   Corporate Finance, chapter 5.
+The payback period adds up the yearly inflows until the cumulative total
+reaches the initial outflow. The table below carries the cumulative total
+year by year; a packed while loop then counts the full years and the
+final print adds the exact fraction of the next year (the builtin npv
+knows no payback, so the recurrence is written out). Source: standard
+capital-budgeting practice; see Brealey and Myers, Principles of
+Corporate Finance, chapter 5.
 
-   Accuracy: the cumulative rows and the payback year are exact. The plain
-   payback ignores the time value of money; the discounted version is the
-   sibling script discounted-payback-period.epher.
+Accuracy: the cumulative rows and the payback year are exact. The plain
+payback ignores the time value of money; the discounted version is the
+sibling script discounted-payback-period.epher.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/payback-period.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\payback-period.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/payback-period.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/payback-period.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\payback-period.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/payback-period.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const invested = 100000     // the project's cost today, USD

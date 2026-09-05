@@ -1,25 +1,25 @@
 /* ============================================================================
-   moon-phase-angle.epher -- the Sun-Moon-Earth angle across one month
+moon-phase-angle.epher -- the Sun-Moon-Earth angle across one month
 
-   The phase angle of the Moon on the same five dates of one month as
-   moon-illumination.epher, from the built-in accessor phase (the
-   solar-ephemeris crate, JPL-validated; guide 1.16). The phase angle is
-   the angle Sun-Moon-Earth measured at the Moon: 0 deg at full moon (Sun
-   and Earth line up on the same side of the Moon), 180 deg at new moon.
-   The lit fraction is exactly (1 + cos(phase angle)) / 2, and illum is
-   that value rounded to four decimals while phase is rounded to two, so
-   rebuilding illum from phase agrees to about 1e-4, as the checks below
-   show. Because of the Moon's 5 deg orbital tilt the angle at full moon
-   stays a few degrees above zero.
+The phase angle of the Moon on the same five dates of one month as
+moon-illumination.epher, from the built-in accessor phase (the
+solar-ephemeris crate, JPL-validated; guide 1.16). The phase angle is
+the angle Sun-Moon-Earth measured at the Moon: 0 deg at full moon (Sun
+and Earth line up on the same side of the Moon), 180 deg at new moon.
+The lit fraction is exactly (1 + cos(phase angle)) / 2, and illum is
+that value rounded to four decimals while phase is rounded to two, so
+rebuilding illum from phase agrees to about 1e-4, as the checks below
+show. Because of the Moon's 5 deg orbital tilt the angle at full moon
+stays a few degrees above zero.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-phase-angle.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-phase-angle.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-phase-angle.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-phase-angle.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-phase-angle.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-phase-angle.epher
+In the REPL:             load one of the paths above
 
-   Knobs: year, month, and the sample days of the month.
-   ============================================================================ */
+Knobs: year, month, and the sample days of the month.
+============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const year = 2026
@@ -31,9 +31,9 @@ const days = {1, 8, 15, 22, 29}
 def lit(ph) = (1 + cos(rad(ph))) / 2
 
 /* ---- results ----------------------------------------------------------------
-   Phase angle in degrees on the sample days. Small near the full moon of
-   June 29 (day 29: 11.81 deg), large near the new moon of June 15
-   (day 15: 174.94 deg); near 90 deg at the quarters (days 8 and 22). */
+Phase angle in degrees on the sample days. Small near the full moon of
+June 29 (day 29: 11.81 deg), large near the new moon of June 15
+(day 15: 174.94 deg); near 90 deg at the quarters (days 8 and 22). */
 for d in days do phase(11, jd(year, month, d))
 
 // The illuminated fraction on the same days (the same list as

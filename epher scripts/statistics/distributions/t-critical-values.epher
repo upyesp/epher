@@ -1,23 +1,23 @@
 /* ============================================================================
-   t-critical-values.epher -- t cut points for common levels and df
+t-critical-values.epher -- t cut points for common levels and df
 
-   The t distribution cut points t such that P(T <= t) equals the
-   probability in `p` with the given degrees of freedom, from the builtin
-   invt (guide 1.20). The 97.5th percentile with 10 df is the 2.2281 of
-   two-sided 95 percent intervals. As the degrees of freedom grow the t
-   approaches the standard normal, so the last line compares invt with
-   60 df against invnorm(0.975) = 1.96.
+The t distribution cut points t such that P(T <= t) equals the
+probability in `p` with the given degrees of freedom, from the builtin
+invt (guide 1.20). The 97.5th percentile with 10 df is the 2.2281 of
+two-sided 95 percent intervals. As the degrees of freedom grow the t
+approaches the standard normal, so the last line compares invt with
+60 df against invnorm(0.975) = 1.96.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/t-critical-values.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\t-critical-values.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/t-critical-values.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/t-critical-values.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\t-critical-values.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/t-critical-values.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   No knobs: the levels and degrees of freedom below are the demonstration.
-   ============================================================================ */
+No knobs: the levels and degrees of freedom below are the demonstration.
+============================================================================ */
 
 // ---- the cut points -------------------------------------------------------------------
 print("invt(0.975, 10):", invt(0.975, 10))    // the 95% two-sided t with 10 df

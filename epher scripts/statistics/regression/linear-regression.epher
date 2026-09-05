@@ -1,24 +1,24 @@
 /* ============================================================================
-   linear-regression.epher -- fit a line to study hours versus exam score
+linear-regression.epher -- fit a line to study hours versus exam score
 
-   Fits the least-squares line y = b1 * x + b0 to the seven (hours, score)
-   pairs in `xs` and `ys` with the builtin linreg (guide 1.20), which
-   prints the fitted model and the correlation r as a display string. The
-   slope says a study hour is worth about 5.7 score points over this
-   range, and r = 0.9981 marks a very tight fit. The data are example
-   values, not measurements.
+Fits the least-squares line y = b1 * x + b0 to the seven (hours, score)
+pairs in `xs` and `ys` with the builtin linreg (guide 1.20), which
+prints the fitted model and the correlation r as a display string. The
+slope says a study hour is worth about 5.7 score points over this
+range, and r = 0.9981 marks a very tight fit. The data are example
+values, not measurements.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/linear-regression.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\linear-regression.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/linear-regression.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/linear-regression.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\linear-regression.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/linear-regression.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `xs` and `ys` below. Everything above the results
-   section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `xs` and `ys` below. Everything above the results
+section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const xs = {1, 2, 3, 4, 5, 6, 7}     // hours of study, one per student

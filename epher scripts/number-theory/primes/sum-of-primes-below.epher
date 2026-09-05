@@ -1,23 +1,23 @@
 /* ============================================================================
-   sum-of-primes-below.epher -- the sum of the primes below n
+sum-of-primes-below.epher -- the sum of the primes below n
 
-   Adds the primes below a bound with a packed while loop (guide 1.30):
-   the state holds {candidate, running sum}, the loop is silent, and one
-   labelled print shows the total. The check value is the classic one: the
-   primes below 100 add to 1060 (Hardy and Wright, ch. 1, exercise).
+Adds the primes below a bound with a packed while loop (guide 1.30):
+the state holds {candidate, running sum}, the loop is silent, and one
+labelled print shows the total. The check value is the classic one: the
+primes below 100 add to 1060 (Hardy and Wright, ch. 1, exercise).
 
-   Source: standard number theory; the result is exact because isprime is
-   exact and the sums stay far below the calculator's exact range.
+Source: standard number theory; the result is exact because isprime is
+exact and the sums stay far below the calculator's exact range.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/sum-of-primes-below.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\sum-of-primes-below.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/sum-of-primes-below.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/sum-of-primes-below.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\sum-of-primes-below.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/sum-of-primes-below.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The one knob to edit is `bound` below.
-   ============================================================================ */
+The one knob to edit is `bound` below.
+============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 bound = 100

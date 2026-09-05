@@ -1,24 +1,24 @@
 /* ============================================================================
-   pearson-correlation.epher -- the correlation coefficient by its formula
+pearson-correlation.epher -- the correlation coefficient by its formula
 
-   The Pearson correlation r of the seven (hours, score) pairs in `xs`
-   and `ys`, from the textbook formula r = sxy / sqrt(sxx * syy), where
-   each s is a sum of squared or paired deviations from the means. The
-   builtin linreg prints r inside its display string, and the number
-   below should agree with it. The syy term prints as the exact fraction
-   6424/7 because epher shows repeating decimals as fractions.
+The Pearson correlation r of the seven (hours, score) pairs in `xs`
+and `ys`, from the textbook formula r = sxy / sqrt(sxx * syy), where
+each s is a sum of squared or paired deviations from the means. The
+builtin linreg prints r inside its display string, and the number
+below should agree with it. The syy term prints as the exact fraction
+6424/7 because epher shows repeating decimals as fractions.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/pearson-correlation.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\pearson-correlation.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/pearson-correlation.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/pearson-correlation.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\pearson-correlation.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/pearson-correlation.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `xs` and `ys` below. Everything above the results
-   section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `xs` and `ys` below. Everything above the results
+section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const xs = {1, 2, 3, 4, 5, 6, 7}     // hours of study, one per student

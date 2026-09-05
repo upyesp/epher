@@ -1,23 +1,23 @@
 /* ============================================================================
-   doubling-time.epher -- exact doubling time of an investment at a given
-   annual rate, verified by compounding forward
+doubling-time.epher -- exact doubling time of an investment at a given
+annual rate, verified by compounding forward
 
-   Money invested at annual rate r doubles when (1+r)^t = 2, so the exact
-   doubling time is t = ln(2)/ln(1+r) years. This script prints t for three
-   rates and then compounds one rate forward by its own t: the result must
-   come back to 2. Source: Kellison, The Theory of Interest, chapter 2.
+Money invested at annual rate r doubles when (1+r)^t = 2, so the exact
+doubling time is t = ln(2)/ln(1+r) years. This script prints t for three
+rates and then compounds one rate forward by its own t: the result must
+come back to 2. Source: Kellison, The Theory of Interest, chapter 2.
 
-   Accuracy: t is irrational and prints to 12 digits; the compounding check
-   lands on 2 to floating-point precision (the printed 2 is exact to all
-   twelve displayed digits).
+Accuracy: t is irrational and prints to 12 digits; the compounding check
+lands on 2 to floating-point precision (the printed 2 is exact to all
+twelve displayed digits).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/doubling-time.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\doubling-time.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/doubling-time.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/doubling-time.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\doubling-time.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/doubling-time.epher
 
-   There are no knobs: the three rates below are the demonstration.
-   ============================================================================ */
+There are no knobs: the three rates below are the demonstration.
+============================================================================ */
 
 // ---- helpers ----------------------------------------------------------------
 def doubletime(r) = ln(2) / ln(1 + r)   // years for (1+r)^t to reach 2

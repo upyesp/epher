@@ -1,26 +1,26 @@
 /* ============================================================================
-   decimal-to-octal.epher -- decimal values spelled in base 8
+decimal-to-octal.epher -- decimal values spelled in base 8
 
-   Spells decimal integers in octal with the oct builtin. The spelling is
-   the language's octal literal form: the prefix 0o, then the digits 0 to
-   7, so oct(42) prints 0o52 (four eights and two ones) and reads back as
-   the literal 0o52. The script only calls the builtin; it does not
-   reimplement the conversion.
+Spells decimal integers in octal with the oct builtin. The spelling is
+the language's octal literal form: the prefix 0o, then the digits 0 to
+7, so oct(42) prints 0o52 (four eights and two ones) and reads back as
+the literal 0o52. The script only calls the builtin; it does not
+reimplement the conversion.
 
-   Source: standard numeral systems; positional notation in base 8, with
-   place values 1, 8, 64, ... . Octal was a favourite shorthand for
-   binary on early computers, since each octal digit covers three bits.
-   oct is exact for every integer the calculator can hold.
+Source: standard numeral systems; positional notation in base 8, with
+place values 1, 8, 64, ... . Octal was a favourite shorthand for
+binary on early computers, since each octal digit covers three bits.
+oct is exact for every integer the calculator can hold.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/bases/decimal-to-octal.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\bases\decimal-to-octal.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/bases/decimal-to-octal.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/bases/decimal-to-octal.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\bases\decimal-to-octal.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/bases/decimal-to-octal.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the sample values are the point of the script.
-   ============================================================================ */
+There is no knob: the sample values are the point of the script.
+============================================================================ */
 
 // ---- named spellings ---------------------------------------------------------------
 oct(42)                       // 42 = 5 * 8 + 2 = 0o52

@@ -1,26 +1,26 @@
 /* ============================================================================
-   reverse-a-number.epher -- the digits of n read backwards
+reverse-a-number.epher -- the digits of n read backwards
 
-   Builds the reversed number with a packed while loop (guide 1.30): each
-   pass takes the last digit with mod(n, 10), appends it to the reversed
-   value by shifting that value left one place (times 10), and drops the
-   digit with floor(n / 10). The classic check: 12345 reverses to 54321.
-   Trailing zeros of n become leading zeros of the reversal and vanish,
-   so 1000 reverses to 1, not 0001.
+Builds the reversed number with a packed while loop (guide 1.30): each
+pass takes the last digit with mod(n, 10), appends it to the reversed
+value by shifting that value left one place (times 10), and drops the
+digit with floor(n / 10). The classic check: 12345 reverses to 54321.
+Trailing zeros of n become leading zeros of the reversal and vanish,
+so 1000 reverses to 1, not 0001.
 
-   Source: standard number theory; reversal is the machinery behind
-   palindromic numbers, the subject of the next script. Exact for every
-   integer here.
+Source: standard number theory; reversal is the machinery behind
+palindromic numbers, the subject of the next script. Exact for every
+integer here.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/reverse-a-number.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\reverse-a-number.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/reverse-a-number.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/reverse-a-number.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\reverse-a-number.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/reverse-a-number.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the sample numbers are the point of the script.
-   ============================================================================ */
+There is no knob: the sample numbers are the point of the script.
+============================================================================ */
 
 // ---- reverse 12345 ----------------------------------------------------------------------------
 // v = {remaining digits, reversed so far}; each pass moves the last

@@ -1,27 +1,27 @@
 /* ============================================================================
-   slope-at-a-point.epher -- the builtin derivative vs textbook rules
+slope-at-a-point.epher -- the builtin derivative vs textbook rules
 
-   derivative(f(x), p) evaluates the numeric derivative of an expression
-   at a point p (a central difference, not a symbolic rule: the variable
-   is the free variable of the expression, here x). This script checks
-   five power, root, log and exponential slopes against their textbook
-   derivatives, written out by hand next to each result.
+derivative(f(x), p) evaluates the numeric derivative of an expression
+at a point p (a central difference, not a symbolic rule: the variable
+is the free variable of the expression, here x). This script checks
+five power, root, log and exponential slopes against their textbook
+derivatives, written out by hand next to each result.
 
-   The derivative rules checked are the power rule (x^2 -> 2x, x^3 ->
-   3x^2), the root rule (sqrt(x) -> 1/(2 sqrt(x))), the logarithm rule
-   (ln x -> 1/x) and the exponential rule (e^x -> e^x), all in Stewart,
-   "Calculus", 8th ed., ch. 3.
+The derivative rules checked are the power rule (x^2 -> 2x, x^3 ->
+3x^2), the root rule (sqrt(x) -> 1/(2 sqrt(x))), the logarithm rule
+(ln x -> 1/x) and the exponential rule (e^x -> e^x), all in Stewart,
+"Calculus", 8th ed., ch. 3.
 
-   Accuracy: each boolean asks for agreement to 1e-9; at these points
-   the numeric derivative agrees to about 1e-12 or better (it is exact
-   at the displayed precision for polynomials at integer points).
+Accuracy: each boolean asks for agreement to 1e-9; at these points
+the numeric derivative agrees to about 1e-12 or better (it is exact
+at the displayed precision for polynomials at integer points).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/derivatives/slope-at-a-point.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\derivatives\slope-at-a-point.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/derivatives/slope-at-a-point.epher
-   No knobs: the five (function, point) pairs are the demonstration.
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/derivatives/slope-at-a-point.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\derivatives\slope-at-a-point.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/derivatives/slope-at-a-point.epher
+No knobs: the five (function, point) pairs are the demonstration.
+============================================================================ */
 
 // ---- helpers: the analytic derivatives, for comparison ----------------------
 def fp_sq(x) = 2*x

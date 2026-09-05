@@ -548,7 +548,7 @@ lines:
 
 ```epher
 /* the area of a circle
-   of radius 3 */
+of radius 3 */
 pi * 3 ^ 2
 ```
 

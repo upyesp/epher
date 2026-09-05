@@ -1,34 +1,34 @@
 /* ============================================================================
-   goldbach-pair.epher -- a pair of primes that sums to an even n
+goldbach-pair.epher -- a pair of primes that sums to an even n
 
-   Goldbach's conjecture says every even integer greater than 2 is the sum
-   of two primes; it is still unproved, but it has been checked for every
-   even n up to 4 * 10^18 (Oliveira e Silva, Herzog and Pardi, 2014). This
-   script finds the smallest such pair for a given even n: it tries the
-   odd candidates p = 3, 5, 7, ... until p and n - p are both prime.
+Goldbach's conjecture says every even integer greater than 2 is the sum
+of two primes; it is still unproved, but it has been checked for every
+even n up to 4 * 10^18 (Oliveira e Silva, Herzog and Pardi, 2014). This
+script finds the smallest such pair for a given even n: it tries the
+odd candidates p = 3, 5, 7, ... until p and n - p are both prime.
 
-   Source: Goldbach's conjecture, letter to Euler, 1742; the check bound is
-   from Oliveira e Silva et al., "Empirical verification of the even
-   Goldbach conjecture", 2014. isprime is exact, so the pair found is a
-   true Goldbach pair; the search depth is tiny for the values below.
+Source: Goldbach's conjecture, letter to Euler, 1742; the check bound is
+from Oliveira e Silva et al., "Empirical verification of the even
+Goldbach conjecture", 2014. isprime is exact, so the pair found is a
+true Goldbach pair; the search depth is tiny for the values below.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/goldbach-pair.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\goldbach-pair.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/goldbach-pair.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/goldbach-pair.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\goldbach-pair.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/goldbach-pair.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The one knob to edit is `n` below; it must be even and at least 6.
-   ============================================================================ */
+The one knob to edit is `n` below; it must be even and at least 6.
+============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const n = 100
 
 /* ---- the search -----------------------------------------------------------------
-   pair(n, p) returns the first odd candidate p with p and n - p prime.
-   The recursion unwinds one level per candidate tried; for the small n
-   here the first pair lies within a few steps (3 + 97 for n = 100). */
+pair(n, p) returns the first odd candidate p with p and n - p prime.
+The recursion unwinds one level per candidate tried; for the small n
+here the first pair lies within a few steps (3 + 97 for n = 100). */
 def pair(n, p) = if isprime(p) and isprime(n - p) then p else pair(n, p + 2)
 
 // ---- results -------------------------------------------------------------------

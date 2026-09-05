@@ -1,22 +1,22 @@
 /* ============================================================================
-   interior-angle-regular.epher -- one interior angle of a regular n-gon
+interior-angle-regular.epher -- one interior angle of a regular n-gon
 
-   A regular n-gon has equal interior angles, so each is the angle sum
-   (n - 2) * 180 divided by n (standard formula). The results are exact:
-   540 / 5 = 108 for the pentagon, 1080 / 8 = 135 for the octagon, and so
-   on, all hand-checkable. The 3-gon case, 60 degrees, is the equilateral
-   triangle.
+A regular n-gon has equal interior angles, so each is the angle sum
+(n - 2) * 180 divided by n (standard formula). The results are exact:
+540 / 5 = 108 for the pentagon, 1080 / 8 = 135 for the octagon, and so
+on, all hand-checkable. The 3-gon case, 60 degrees, is the equilateral
+triangle.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/interior-angle-regular.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\interior-angle-regular.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/interior-angle-regular.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/interior-angle-regular.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\interior-angle-regular.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/interior-angle-regular.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The values of n to try are in the results section below; edit them
-   there.
-   ============================================================================ */
+The values of n to try are in the results section below; edit them
+there.
+============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 def angreg(n) = (n - 2) * 180 / n   // degrees, one angle of a regular n-gon

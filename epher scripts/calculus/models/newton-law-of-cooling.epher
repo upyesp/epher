@@ -1,34 +1,34 @@
 /* ============================================================================
-   newton-law-of-cooling.epher -- a cooling cup of coffee
+newton-law-of-cooling.epher -- a cooling cup of coffee
 
-   Newton's law of cooling: the temperature gap to the room shrinks
-   exponentially, T(t) = Tenv + (T0 - Tenv) e^(-k t) (Stewart,
-   "Calculus", 8th ed., sec. 9.1 example). The script solves a small
-   puzzle: coffee brewed at 95 C cools to 70 C in 5 minutes in a 20 C
-   room.
+Newton's law of cooling: the temperature gap to the room shrinks
+exponentially, T(t) = Tenv + (T0 - Tenv) e^(-k t) (Stewart,
+"Calculus", 8th ed., sec. 9.1 example). The script solves a small
+puzzle: coffee brewed at 95 C cools to 70 C in 5 minutes in a 20 C
+room.
 
-     1. The rate constant k comes from that one observation:
-        k = ln((T0 - Tenv)/(70 - Tenv))/5 = ln(1.5)/5 per minute.
-     2. The temperature at 10 minutes follows from the model: 20 C +
-        75 C e^(-10k) = 53.333... C (printed as the fraction 160/3).
-     3. The time to reach a target temperature uses the closed form
-        t = -ln((T - Tenv)/(T0 - Tenv))/k, inverted from the model by
-        hand. No root finder is needed; solve() would only be required
-        if the model could not be inverted.
+  1. The rate constant k comes from that one observation:
+     k = ln((T0 - Tenv)/(70 - Tenv))/5 = ln(1.5)/5 per minute.
+  2. The temperature at 10 minutes follows from the model: 20 C +
+     75 C e^(-10k) = 53.333... C (printed as the fraction 160/3).
+  3. The time to reach a target temperature uses the closed form
+     t = -ln((T - Tenv)/(T0 - Tenv))/k, inverted from the model by
+     hand. No root finder is needed; solve() would only be required
+     if the model could not be inverted.
 
-   The closing check feeds the computed time back into the model and
-   asks for the target temperature back.
+The closing check feeds the computed time back into the model and
+asks for the target temperature back.
 
-   Accuracy: k is good to about 1e-14 per minute; the closed-form time
-   to 40 C is 16.2992550228 minutes and the round trip agrees to
-   better than 1e-9.
+Accuracy: k is good to about 1e-14 per minute; the closed-form time
+to 40 C is 16.2992550228 minutes and the round trip agrees to
+better than 1e-9.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/newton-law-of-cooling.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\newton-law-of-cooling.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/newton-law-of-cooling.epher
-   The knobs to edit are `t0`, `tenv`, `obs_t` and `obs_temp` below.
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/newton-law-of-cooling.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\newton-law-of-cooling.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/newton-law-of-cooling.epher
+The knobs to edit are `t0`, `tenv`, `obs_t` and `obs_temp` below.
+============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const t0 = 95                  // coffee temperature at t = 0, C

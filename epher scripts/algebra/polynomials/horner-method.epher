@@ -1,20 +1,20 @@
 /* ============================================================================
-   horner-method.epher -- evaluate a polynomial with Horner's scheme
+horner-method.epher -- evaluate a polynomial with Horner's scheme
 
-   Horner's scheme (W. G. Horner, 1819, "A New Method of Solving Numerical
-   Equations of All Higher Degrees"; also Ruffini) evaluates
-   p(x) = a x^3 + b x^2 + c x + d as ((a x + b) x + c) x + d: one
-   multiplication and one addition per coefficient, n operations instead of
-   about 2n for the plain powers. Both evaluations are exact rationals here,
-   so the cross-check compares exactly.
+Horner's scheme (W. G. Horner, 1819, "A New Method of Solving Numerical
+Equations of All Higher Degrees"; also Ruffini) evaluates
+p(x) = a x^3 + b x^2 + c x + d as ((a x + b) x + c) x + d: one
+multiplication and one addition per coefficient, n operations instead of
+about 2n for the plain powers. Both evaluations are exact rationals here,
+so the cross-check compares exactly.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/horner-method.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\horner-method.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/horner-method.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/horner-method.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\horner-method.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/horner-method.epher
 
-   The knobs to edit are cs and the sample point xv below.
-   ============================================================================ */
+The knobs to edit are cs and the sample point xv below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const cs = {1, -6, 11, -6}       // p(t) = t^3 - 6t^2 + 11t - 6 = (t-1)(t-2)(t-3)

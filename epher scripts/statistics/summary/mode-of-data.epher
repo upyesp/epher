@@ -1,22 +1,22 @@
 /* ============================================================================
-   mode-of-data.epher -- the most frequent value, ties and all
+mode-of-data.epher -- the most frequent value, ties and all
 
-   The mode of the exam scores in `d` from the builtin mode (guide 1.20):
-   the value that occurs most often. Two of the ten students scored 85, so
-   85 is the mode. A second dataset shows the tie rule: when two values
-   tie for the lead, the builtin reports the smaller one.
+The mode of the exam scores in `d` from the builtin mode (guide 1.20):
+the value that occurs most often. Two of the ten students scored 85, so
+85 is the mode. A second dataset shows the tie rule: when two values
+tie for the lead, the builtin reports the smaller one.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/mode-of-data.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\mode-of-data.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/mode-of-data.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/mode-of-data.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\mode-of-data.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/mode-of-data.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The one knob to edit is `d` below. Everything above the results section
-   is machinery you can leave alone.
-   ============================================================================ */
+The one knob to edit is `d` below. Everything above the results section
+is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const d = {72, 85, 91, 85, 88, 79, 83, 95, 70, 86}   // exam scores; 85 appears twice

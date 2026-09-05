@@ -1,21 +1,21 @@
 /* ============================================================================
-   circle-circumference.epher -- circumference from the radius
+circle-circumference.epher -- circumference from the radius
 
-   The circumference of a circle of radius r is C = 2 pi r (standard
-   formula; the ratio of circumference to diameter is the constant pi).
-   For radius 5 the circumference is 10 pi, and for radius 1 it is tau,
-   the builtin constant for one full turn, 2 pi.
+The circumference of a circle of radius r is C = 2 pi r (standard
+formula; the ratio of circumference to diameter is the constant pi).
+For radius 5 the circumference is 10 pi, and for radius 1 it is tau,
+the builtin constant for one full turn, 2 pi.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/circles/circle-circumference.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\circles\circle-circumference.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/circles/circle-circumference.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/circles/circle-circumference.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\circles\circle-circumference.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/circles/circle-circumference.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knob to edit is `r`, the radius. Everything above the results
-   section is machinery you can leave alone.
-   ============================================================================ */
+The knob to edit is `r`, the radius. Everything above the results
+section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const r = 5

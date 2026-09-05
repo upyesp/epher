@@ -1,25 +1,25 @@
 /* ============================================================================
-   sample-variance.epher -- variance of a sample with the n - 1 correction
+sample-variance.epher -- variance of a sample with the n - 1 correction
 
-   The sample variance of the ten exam scores in `d`: the builtin variance
-   divides by n (population), while the sample version divides by n - 1
-   (Bessel's correction), so it is computed from the builtin as
-   variance(d) * n / (n - 1). There is no separate builtin for it. With
-   ten scores the population variance is 88.41 and the sample variance
-   88.41 * 10 / 9 = 98.23..., which epher shows as the exact fraction
-   2947/30 (its exact-fraction display: 98.2333... repeats).
+The sample variance of the ten exam scores in `d`: the builtin variance
+divides by n (population), while the sample version divides by n - 1
+(Bessel's correction), so it is computed from the builtin as
+variance(d) * n / (n - 1). There is no separate builtin for it. With
+ten scores the population variance is 88.41 and the sample variance
+88.41 * 10 / 9 = 98.23..., which epher shows as the exact fraction
+2947/30 (its exact-fraction display: 98.2333... repeats).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/sample-variance.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\sample-variance.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/sample-variance.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/sample-variance.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\sample-variance.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/sample-variance.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The one knob to edit is `d` below. Everything above the results section
-   is machinery you can leave alone.
-   ============================================================================ */
+The one knob to edit is `d` below. Everything above the results section
+is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students

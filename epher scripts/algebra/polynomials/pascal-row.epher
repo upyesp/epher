@@ -1,19 +1,19 @@
 /* ============================================================================
-   pascal-row.epher -- the n-th row of Pascal's triangle
+pascal-row.epher -- the n-th row of Pascal's triangle
 
-   The n-th row of Pascal's triangle (Blaise Pascal, 1653; known to earlier
-   mathematicians) holds the binomial coefficients ncr(n, 0) .. ncr(n, n), and
-   the row sums to 2^n because it expands (1 + 1)^n. A for loop collects the
-   nine entries of row 8 into one list; a quiet while loop adds the same
-   coefficients to check the sum. Everything is exact.
+The n-th row of Pascal's triangle (Blaise Pascal, 1653; known to earlier
+mathematicians) holds the binomial coefficients ncr(n, 0) .. ncr(n, n), and
+the row sums to 2^n because it expands (1 + 1)^n. A for loop collects the
+nine entries of row 8 into one list; a quiet while loop adds the same
+coefficients to check the sum. Everything is exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/pascal-row.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\pascal-row.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/pascal-row.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/pascal-row.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\pascal-row.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/pascal-row.epher
 
-   The knob to edit is n below.
-   ============================================================================ */
+The knob to edit is n below.
+============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
 const n = 8

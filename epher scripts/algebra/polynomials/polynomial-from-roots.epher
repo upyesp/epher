@@ -1,20 +1,20 @@
 /* ============================================================================
-   polynomial-from-roots.epher -- expand (x - r1)(x - r2)(x - r3)
+polynomial-from-roots.epher -- expand (x - r1)(x - r2)(x - r3)
 
-   Vieta's formulas (Francois Viete, 1591; any algebra text) read the
-   coefficients of a monic polynomial off the roots: for three roots the
-   coefficient of x^2 is -(r1 + r2 + r3), of x is r1 r2 + r1 r3 + r2 r3, and
-   the constant is -r1 r2 r3. With roots 1, 2 and 3 that gives the running
-   cubic x^3 - 6x^2 + 11x - 6, then both forms are evaluated at x = 4 and
-   compared. All values are exact.
+Vieta's formulas (Francois Viete, 1591; any algebra text) read the
+coefficients of a monic polynomial off the roots: for three roots the
+coefficient of x^2 is -(r1 + r2 + r3), of x is r1 r2 + r1 r3 + r2 r3, and
+the constant is -r1 r2 r3. With roots 1, 2 and 3 that gives the running
+cubic x^3 - 6x^2 + 11x - 6, then both forms are evaluated at x = 4 and
+compared. All values are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/polynomial-from-roots.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\polynomial-from-roots.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/polynomial-from-roots.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/polynomial-from-roots.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\polynomial-from-roots.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/polynomial-from-roots.epher
 
-   The knobs to edit are the roots r1, r2 and r3 below.
-   ============================================================================ */
+The knobs to edit are the roots r1, r2 and r3 below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const r1 = 1

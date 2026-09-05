@@ -1,20 +1,20 @@
 /* ============================================================================
-   matrix-power.epher -- A^5 and A^0, and Fibonacci numbers from A^n
+matrix-power.epher -- A^5 and A^0, and Fibonacci numbers from A^n
 
-   The built-in ^ raises a square matrix to a power, A^0 being the identity.
-   With A = [[1,1],[1,0]] the powers carry the Fibonacci numbers:
-   A^n = [[F(n+1), F(n)], [F(n), F(n-1)]] where F_0 = 0, F_1 = 1 (the
-   identity is proved by induction; see any text on Fibonacci numbers, e.g.
-   Vorobiev, "Fibonacci Numbers"). So A^12 = [[233, 144], [144, 89]] and its
-   entries are F13 = 233, F12 = 144 and F11 = 89. All values are exact.
+The built-in ^ raises a square matrix to a power, A^0 being the identity.
+With A = [[1,1],[1,0]] the powers carry the Fibonacci numbers:
+A^n = [[F(n+1), F(n)], [F(n), F(n-1)]] where F_0 = 0, F_1 = 1 (the
+identity is proved by induction; see any text on Fibonacci numbers, e.g.
+Vorobiev, "Fibonacci Numbers"). So A^12 = [[233, 144], [144, 89]] and its
+entries are F13 = 233, F12 = 144 and F11 = 89. All values are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/matrix-power.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\matrix-power.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/matrix-power.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/matrix-power.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\matrix-power.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/matrix-power.epher
 
-   The knob to edit is the matrix A below.
-   ============================================================================ */
+The knob to edit is the matrix A below.
+============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
 const A = [[1, 1], [1, 0]]

@@ -1,24 +1,24 @@
 /* ============================================================================
-   compound-interest.epher -- balance of a sum growing at a compound annual
-   rate, with the year-by-year trajectory as a cross-check
+compound-interest.epher -- balance of a sum growing at a compound annual
+rate, with the year-by-year trajectory as a cross-check
 
-   Computes the interest earned by a principal P over n years at annual rate
-   r when interest is compounded yearly: the builtin compound_interest(P, r, n)
-   returns P*((1+r)^n - 1), the growth beyond the principal. The balance after
-   n years is principal plus interest. Source: standard finance formulas; see
-   Kellison, The Theory of Interest, chapters 1-2.
+Computes the interest earned by a principal P over n years at annual rate
+r when interest is compounded yearly: the builtin compound_interest(P, r, n)
+returns P*((1+r)^n - 1), the growth beyond the principal. The balance after
+n years is principal plus interest. Source: standard finance formulas; see
+Kellison, The Theory of Interest, chapters 1-2.
 
-   Accuracy: the builtin arithmetic on the exact knob values is exact; the
-   trajectory rows are exact too (each is P*(1+r)^y for a whole y).
+Accuracy: the builtin arithmetic on the exact knob values is exact; the
+trajectory rows are exact too (each is P*(1+r)^y for a whole y).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/compound-interest.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\compound-interest.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/compound-interest.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/compound-interest.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\compound-interest.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/compound-interest.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const principal = 2000      // starting sum, USD

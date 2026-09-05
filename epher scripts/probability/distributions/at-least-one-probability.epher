@@ -1,26 +1,26 @@
 /* ============================================================================
-   at-least-one-probability.epher -- P(at least one success) = 1 - (1-p)^n
+at-least-one-probability.epher -- P(at least one success) = 1 - (1-p)^n
 
-   If an event has probability p in each of n independent tries, the
-   chance it happens at least once is one minus the chance it never
-   happens: every try must fail, with probability (1 - p) each, so
+If an event has probability p in each of n independent tries, the
+chance it happens at least once is one minus the chance it never
+happens: every try must fail, with probability (1 - p) each, so
 
-     P(at least one) = 1 - (1 - p)^n,
+  P(at least one) = 1 - (1 - p)^n,
 
-   the complement trick of Ross, "A First Course in Probability",
-   chapter 2. Adding probabilities instead would be wrong: five tries at
-   a 20% event do not add up to a 100% chance, they give 1 - 0.8^5 =
-   2101/3125 = 0.67232.
+the complement trick of Ross, "A First Course in Probability",
+chapter 2. Adding probabilities instead would be wrong: five tries at
+a 20% event do not add up to a 100% chance, they give 1 - 0.8^5 =
+2101/3125 = 0.67232.
 
-   The script works each case with exact rational powers, so 91/216, for
-   instance, is the exact fraction, not an approximation.
+The script works each case with exact rational powers, so 91/216, for
+instance, is the exact fraction, not an approximation.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/at-least-one-probability.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\at-least-one-probability.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/at-least-one-probability.epher
-   Web/desktop:             paste the file into the entry, press Enter
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/at-least-one-probability.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\at-least-one-probability.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/at-least-one-probability.epher
+Web/desktop:             paste the file into the entry, press Enter
+============================================================================ */
 
 // ---- results ----
 // A 20% event tried 5 times: exact fraction 2101/3125 = 0.67232.

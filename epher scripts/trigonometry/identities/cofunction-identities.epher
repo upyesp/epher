@@ -1,25 +1,25 @@
 /* ============================================================================
-   cofunction-identities.epher -- sine and cosine of 90 deg - x
+cofunction-identities.epher -- sine and cosine of 90 deg - x
 
-   In a right triangle the two acute angles add to 90 deg, and the sine of
-   one is the cosine of the other: sin(90 deg - x) = cos(x),
-   cos(90 deg - x) = sin(x), and dividing the two,
-   tan(90 deg - x) = 1 / tan(x) wherever the tangent is finite. The script
-   checks all three at several angles as boolean residual checks (true when
-   the two sides differ by less than 1e-12; double-precision noise here is
-   around 1e-16).
+In a right triangle the two acute angles add to 90 deg, and the sine of
+one is the cosine of the other: sin(90 deg - x) = cos(x),
+cos(90 deg - x) = sin(x), and dividing the two,
+tan(90 deg - x) = 1 / tan(x) wherever the tangent is finite. The script
+checks all three at several angles as boolean residual checks (true when
+the two sides differ by less than 1e-12; double-precision noise here is
+around 1e-16).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/cofunction-identities.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\cofunction-identities.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/cofunction-identities.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/cofunction-identities.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\cofunction-identities.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/cofunction-identities.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The one knob to edit is the `degs` list below (degrees, converted with
-   rad() because the builtin trig works in radians). The angles stay clear
-   of 0 and 90 deg so no tangent vanishes or blows up.
-   ============================================================================ */
+The one knob to edit is the `degs` list below (degrees, converted with
+rad() because the builtin trig works in radians). The angles stay clear
+of 0 and 90 deg so no tangent vanishes or blows up.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const degs = {15, 30, 45, 60, 75}   // sample angles, in degrees

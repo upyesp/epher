@@ -1,30 +1,30 @@
 /* ============================================================================
-   committee-selection.epher -- counting committees with ncr and npr
+committee-selection.epher -- counting committees with ncr and npr
 
-   A committee is an unordered set, so ncr does the counting; adding an
-   office (chair, secretary) turns part of the choice into an ordered one
-   and npr takes over. This script walks through the standard scenarios
-   of a first probability course:
+A committee is an unordered set, so ncr does the counting; adding an
+office (chair, secretary) turns part of the choice into an ordered one
+and npr takes over. This script walks through the standard scenarios
+of a first probability course:
 
-     - a committee of 3 from 8 people:            ncr(8, 3)
-     - the same, but one member is the chair:     8 * ncr(7, 2)
-     - 3 men and 2 women from 5 men and 6 women:  ncr(5, 3) * ncr(6, 2)
-     - 3 of 8 with distinct offices:              npr(8, 3)
-     - 3 of 8 with at least one of two named      ncr(8, 3) - ncr(6, 3)
-       people included (all committees minus the
-       ones that avoid both)
+  - a committee of 3 from 8 people:            ncr(8, 3)
+  - the same, but one member is the chair:     8 * ncr(7, 2)
+  - 3 men and 2 women from 5 men and 6 women:  ncr(5, 3) * ncr(6, 2)
+  - 3 of 8 with distinct offices:              npr(8, 3)
+  - 3 of 8 with at least one of two named      ncr(8, 3) - ncr(6, 3)
+    people included (all committees minus the
+    ones that avoid both)
 
-   Source: Ross, "A First Course in Probability", chapter 1. All counts
-   are exact integers.
+Source: Ross, "A First Course in Probability", chapter 1. All counts
+are exact integers.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/committee-selection.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\committee-selection.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/committee-selection.epher
-   Web/desktop:             paste the file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/committee-selection.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\committee-selection.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/committee-selection.epher
+Web/desktop:             paste the file into the entry, press Enter
 
-   The knob to edit is `group`; everything below it is machinery.
-   ============================================================================ */
+The knob to edit is `group`; everything below it is machinery.
+============================================================================ */
 
 // ---- the knob ----
 const group = 8

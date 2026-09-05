@@ -1,22 +1,22 @@
 /* ============================================================================
-   normal-areas.epher -- areas under the standard normal curve
+normal-areas.epher -- areas under the standard normal curve
 
-   Three textbook areas under the standard normal density, from the
-   builtin normcdf (guide 1.20): the probability that Z lies below 1.5,
-   above -0.8, and between 0.5 and 1.5. The middle one uses the symmetry
-   of the curve: P(Z > -0.8) equals P(Z < 0.8), and the last subtracts
-   the two cumulative areas. normcdf(x) is the lower tail P(Z <= x).
+Three textbook areas under the standard normal density, from the
+builtin normcdf (guide 1.20): the probability that Z lies below 1.5,
+above -0.8, and between 0.5 and 1.5. The middle one uses the symmetry
+of the curve: P(Z > -0.8) equals P(Z < 0.8), and the last subtracts
+the two cumulative areas. normcdf(x) is the lower tail P(Z <= x).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/normal-areas.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\normal-areas.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/normal-areas.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/normal-areas.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\normal-areas.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/normal-areas.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   No knobs: the three cut points below are the demonstration.
-   ============================================================================ */
+No knobs: the three cut points below are the demonstration.
+============================================================================ */
 
 // ---- P(Z < 1.5): most of the curve sits below 1.5 -------------------------------
 normcdf(1.5)                    // about 0.9332: the lower tail at 1.5

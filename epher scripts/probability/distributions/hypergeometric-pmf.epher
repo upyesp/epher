@@ -1,28 +1,28 @@
 /* ============================================================================
-   hypergeometric-pmf.epher -- sampling without replacement, exactly
+hypergeometric-pmf.epher -- sampling without replacement, exactly
 
-   Draw n objects without replacement from a population of N that holds
-   K special objects. The number X of special objects in the sample is
-   hypergeometric: choose k of the K special ones and n - k of the N - K
-   others, out of all ncr(N, n) samples, so
+Draw n objects without replacement from a population of N that holds
+K special objects. The number X of special objects in the sample is
+hypergeometric: choose k of the K special ones and n - k of the N - K
+others, out of all ncr(N, n) samples, so
 
-     P(X = k) = ncr(K, k) * ncr(N - K, n - k) / ncr(N, n).
+  P(X = k) = ncr(K, k) * ncr(N - K, n - k) / ncr(N, n).
 
-   There is no hypergeometric builtin in epher, so the formula is the
-   method. The urn example (10 balls, 4 red, draw 4) keeps every answer
-   an exact fraction; the deck example is the classic aces problem (52
-   cards, 4 aces, 5-card hand) and prints as decimals because its exact
-   denominators exceed 1000.
+There is no hypergeometric builtin in epher, so the formula is the
+method. The urn example (10 balls, 4 red, draw 4) keeps every answer
+an exact fraction; the deck example is the classic aces problem (52
+cards, 4 aces, 5-card hand) and prints as decimals because its exact
+denominators exceed 1000.
 
-   Source: Feller, "An Introduction to Probability Theory and Its
-   Applications", volume 1, chapter 2.
+Source: Feller, "An Introduction to Probability Theory and Its
+Applications", volume 1, chapter 2.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/hypergeometric-pmf.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\hypergeometric-pmf.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/hypergeometric-pmf.epher
-   Web/desktop:             paste the file into the entry, press Enter
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/hypergeometric-pmf.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\hypergeometric-pmf.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/hypergeometric-pmf.epher
+Web/desktop:             paste the file into the entry, press Enter
+============================================================================ */
 
 // ---- helpers ----
 def hg(k, N, K, n) = ncr(K, k) * ncr(N - K, n - k) / ncr(N, n)

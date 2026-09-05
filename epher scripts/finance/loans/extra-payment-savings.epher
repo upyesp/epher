@@ -1,26 +1,26 @@
 /* ============================================================================
-   extra-payment-savings.epher -- how an extra 100 a month shortens a 30-year
-   mortgage and cuts its interest
+extra-payment-savings.epher -- how an extra 100 a month shortens a 30-year
+mortgage and cuts its interest
 
-   The borrower pays the regular monthly payment plus a fixed extra amount.
-   Each month the balance grows by one month of interest and then loses the
-   boosted payment; the packed while loop below counts the payments until
-   the balance turns zero or negative. The baseline is the same loan at its
-   minimum payment over the full 360 months. Source: the amortization
-   recurrence, Kellison, The Theory of Interest, chapter 3.
+The borrower pays the regular monthly payment plus a fixed extra amount.
+Each month the balance grows by one month of interest and then loses the
+boosted payment; the packed while loop below counts the payments until
+the balance turns zero or negative. The baseline is the same loan at its
+minimum payment over the full 360 months. Source: the amortization
+recurrence, Kellison, The Theory of Interest, chapter 3.
 
-   Accuracy: 12 displayed digits. The loop's last full payment overshoots,
-   so the true final payment is smaller; the interest figures below account
-   for that smaller payment.
+Accuracy: 12 displayed digits. The loop's last full payment overshoots,
+so the true final payment is smaller; the interest figures below account
+for that smaller payment.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/extra-payment-savings.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\extra-payment-savings.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/extra-payment-savings.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/extra-payment-savings.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\extra-payment-savings.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/extra-payment-savings.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const principal = 200000    // loan amount at closing, USD
@@ -31,9 +31,9 @@ const payment = tvm_pmt(years * 12, rate / 12, -principal, 0)   // minimum month
 const boosted = payment + extra                                  // payment with the extra 100
 
 /* ---- results -----------------------------------------------------------------
-   The baseline: 360 payments at the minimum, then the packed loop for the
-   boosted payment. The loop state is {payments made, balance}; it stops as
-   soon as a payment leaves the balance at zero or below. */
+The baseline: 360 payments at the minimum, then the packed loop for the
+boosted payment. The loop state is {payments made, balance}; it stops as
+soon as a payment leaves the balance at zero or below. */
 v = {0, principal}
 while v[2] > 0 do v = {v[1] + 1, v[2] * (1 + rate / 12) - boosted}
 print("minimum payment:", payment)
@@ -43,9 +43,9 @@ print("interest paid with the extra 100:", v[1] * boosted + v[2] - principal)
 print("interest paid on the baseline plan:", years * 12 * payment - principal)
 print("interest saved:", (years * 12 * payment - principal) - (v[1] * boosted + v[2] - principal))
 /* The extra 100 cuts the term from 360 months to 295 (24.6 years) and saves
-   about 49138.41 of interest. The builtin tvm_n gives the fractional term
-   294.46 months on the same numbers, consistent with 295 full payments and
-   a smaller last one. */
+about 49138.41 of interest. The builtin tvm_n gives the fractional term
+294.46 months on the same numbers, consistent with 295 full payments and
+a smaller last one. */
 /* ---- expected output ----
 = 200000
 = 0.06

@@ -1,25 +1,25 @@
 /* ============================================================================
-   exponential-regression.epher -- fit y = a * e^(b x) to growth data
+exponential-regression.epher -- fit y = a * e^(b x) to growth data
 
-   Fits the least-squares exponential curve y = a * e^(b * x) to the
-   culture sizes in `ys` sampled hourly in `xs` with the builtin expreg
-   (guide 1.20), which prints the fitted model and the correlation r of
-   the log-transformed fit as a display string. Unrestrained growth
-   doubles in size at a steady rate, so an exponential fits well; the
-   fitted b = 0.6766 per hour is a doubling about every hour. The data
-   are illustrative example values, not measurements.
+Fits the least-squares exponential curve y = a * e^(b * x) to the
+culture sizes in `ys` sampled hourly in `xs` with the builtin expreg
+(guide 1.20), which prints the fitted model and the correlation r of
+the log-transformed fit as a display string. Unrestrained growth
+doubles in size at a steady rate, so an exponential fits well; the
+fitted b = 0.6766 per hour is a doubling about every hour. The data
+are illustrative example values, not measurements.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/exponential-regression.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\exponential-regression.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/exponential-regression.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/exponential-regression.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\exponential-regression.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/exponential-regression.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `xs` and `ys` below. Everything above the results
-   section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `xs` and `ys` below. Everything above the results
+section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const xs = {0, 1, 2, 3, 4, 5}   // hours since the culture was started

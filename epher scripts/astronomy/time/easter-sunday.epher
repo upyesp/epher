@@ -1,24 +1,24 @@
 /* ============================================================================
-   easter-sunday.epher -- the date of Easter for several years
+easter-sunday.epher -- the date of Easter for several years
 
-   Computes Gregorian Easter for a list of years with the computus of
-   chapter 8 of Jean Meeus, "Astronomical Algorithms" (2nd ed.,
-   Willmann-Bell, 1998): a chain of integer divisions and remainders
-   (floor and mod) on the year, ending in the month (March or April)
-   and day. The algorithm is exact integer arithmetic, so the results
-   are exact for every Gregorian year from 1583 on. Easter always falls
-   between March 22 and April 25; 2038 (April 25) is the latest it can
-   be. The dates were checked against python's datetime (each one is a
-   Sunday), and the expected output records them.
+Computes Gregorian Easter for a list of years with the computus of
+chapter 8 of Jean Meeus, "Astronomical Algorithms" (2nd ed.,
+Willmann-Bell, 1998): a chain of integer divisions and remainders
+(floor and mod) on the year, ending in the month (March or April)
+and day. The algorithm is exact integer arithmetic, so the results
+are exact for every Gregorian year from 1583 on. Easter always falls
+between March 22 and April 25; 2038 (April 25) is the latest it can
+be. The dates were checked against python's datetime (each one is a
+Sunday), and the expected output records them.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/easter-sunday.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\easter-sunday.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/easter-sunday.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/easter-sunday.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\easter-sunday.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/easter-sunday.epher
+In the REPL:             load one of the paths above
 
-   Knob: the list of years below.
-   ============================================================================ */
+Knob: the list of years below.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const years = {2000, 2024, 2025, 2026, 2027, 2038}

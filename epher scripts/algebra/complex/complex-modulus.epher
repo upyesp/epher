@@ -1,20 +1,20 @@
 /* ============================================================================
-   complex-modulus.epher -- the modulus |z| of several complex numbers
+complex-modulus.epher -- the modulus |z| of several complex numbers
 
-   |a + bi| = sqrt(a^2 + b^2) is the distance of z from the origin in the
-   complex plane (any complex analysis text, e.g. Churchill and Brown,
-   "Complex Variables and Applications", sec. 1). The first two examples are
-   the Pythagorean triples 3-4-5 and 5-12-13, so their moduli are the exact
-   integers 5 and 13. The built-in abs gives the modulus; a def restates the
-   classroom formula sqrt(re^2 + im^2) and is checked against it.
+|a + bi| = sqrt(a^2 + b^2) is the distance of z from the origin in the
+complex plane (any complex analysis text, e.g. Churchill and Brown,
+"Complex Variables and Applications", sec. 1). The first two examples are
+the Pythagorean triples 3-4-5 and 5-12-13, so their moduli are the exact
+integers 5 and 13. The built-in abs gives the modulus; a def restates the
+classroom formula sqrt(re^2 + im^2) and is checked against it.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-modulus.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-modulus.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-modulus.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-modulus.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-modulus.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-modulus.epher
 
-   No knobs to edit; the values below are fixed examples.
-   ============================================================================ */
+No knobs to edit; the values below are fixed examples.
+============================================================================ */
 
 // ---- helpers -----------------------------------------------------------------
 def modz(z) = sqrt(re(z) ^ 2 + im(z) ^ 2)   // classroom formula; builtin: abs

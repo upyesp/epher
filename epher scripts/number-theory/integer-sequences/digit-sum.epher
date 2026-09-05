@@ -1,24 +1,24 @@
 /* ============================================================================
-   digit-sum.epher -- the sum of the digits of a number
+digit-sum.epher -- the sum of the digits of a number
 
-   Adds the digits of n with a packed while loop (guide 1.30): each pass
-   takes the last digit with mod(n, 10), adds it to the running total, and
-   drops it with floor(n / 10). The loop is silent, so labelled prints
-   show the sums. The classic check: the digits of 12345 add to 15.
+Adds the digits of n with a packed while loop (guide 1.30): each pass
+takes the last digit with mod(n, 10), adds it to the running total, and
+drops it with floor(n / 10). The loop is silent, so labelled prints
+show the sums. The classic check: the digits of 12345 add to 15.
 
-   Source: standard number theory; digit sums underlie divisibility by 3
-   and 9 (the casting out of nines, Hardy and Wright, ch. 9) and feed the
-   digital root of the next script. All results are exact.
+Source: standard number theory; digit sums underlie divisibility by 3
+and 9 (the casting out of nines, Hardy and Wright, ch. 9) and feed the
+digital root of the next script. All results are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/digit-sum.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\digit-sum.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/digit-sum.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/digit-sum.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\digit-sum.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/digit-sum.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the sample numbers are the point of the script.
-   ============================================================================ */
+There is no knob: the sample numbers are the point of the script.
+============================================================================ */
 
 // ---- sum the digits of 12345 --------------------------------------------------------------
 // v = {remaining digits, running sum}; the loop ends when nothing is

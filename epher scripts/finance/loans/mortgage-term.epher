@@ -1,26 +1,26 @@
 /* ============================================================================
-   mortgage-term.epher -- how long a fixed monthly payment takes to clear a
-   mortgage
+mortgage-term.epher -- how long a fixed monthly payment takes to clear a
+mortgage
 
-   The finance builtin tvm_n solves the annuity equation for the number of
-   periods: given the rate, the principal (negative) and a fixed payment, it
-   returns the months until the balance is zero. Source: standard TVM
-   formulas; see Kellison, The Theory of Interest, chapter 3.
+The finance builtin tvm_n solves the annuity equation for the number of
+periods: given the rate, the principal (negative) and a fixed payment, it
+returns the months until the balance is zero. Source: standard TVM
+formulas; see Kellison, The Theory of Interest, chapter 3.
 
-   Sign convention: principal negative, payment positive, as in the builtin
-   example tvm_pmt(360, 0.08/12, -100000, 0).
+Sign convention: principal negative, payment positive, as in the builtin
+example tvm_pmt(360, 0.08/12, -100000, 0).
 
-   Accuracy: 12 displayed digits. The answer 209.25 months is fractional;
-   a real lender takes 210 payments, the last one smaller.
+Accuracy: 12 displayed digits. The answer 209.25 months is fractional;
+a real lender takes 210 payments, the last one smaller.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/mortgage-term.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\mortgage-term.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/mortgage-term.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/mortgage-term.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\mortgage-term.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/mortgage-term.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const principal = 250000    // loan amount at closing, USD
@@ -32,9 +32,9 @@ months = tvm_n(rate / 12, -principal, payment, 0)   // months to pay off, from t
 print("paying 2000 per month clears the loan in:", months, "months")
 print("that is", months / 12, "years")
 /* The minimum payment on this loan is 1580.17 (see mortgage-payment.epher),
-   which runs the full 360 months. The extra 419.83 per month shortens the
-   term by about 150.75 months (12.6 years) and saves roughly 150,000 of
-   interest. */
+which runs the full 360 months. The extra 419.83 per month shortens the
+term by about 150.75 months (12.6 years) and saves roughly 150,000 of
+interest. */
 /* ---- expected output ----
 = 250000
 = 0.065

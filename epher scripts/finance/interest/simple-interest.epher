@@ -1,25 +1,25 @@
 /* ============================================================================
-   simple-interest.epher -- interest earned on a principal at a simple rate
+simple-interest.epher -- interest earned on a principal at a simple rate
 
-   Computes the interest I = P*r*t on a principal P at annual rate r over t
-   years, and the total (principal plus interest) due at maturity. Simple
-   interest pays no interest on interest: every year earns rate times the
-   original principal. The script calls the builtin simple_interest(P, r, t),
-   which implements exactly that formula (see the finance builtins in
-   "epher scripts/README.md"). Source: standard finance formulas; see
-   Kellison, The Theory of Interest, chapter 1.
+Computes the interest I = P*r*t on a principal P at annual rate r over t
+years, and the total (principal plus interest) due at maturity. Simple
+interest pays no interest on interest: every year earns rate times the
+original principal. The script calls the builtin simple_interest(P, r, t),
+which implements exactly that formula (see the finance builtins in
+"epher scripts/README.md"). Source: standard finance formulas; see
+Kellison, The Theory of Interest, chapter 1.
 
-   Accuracy: the builtin multiplies the exact knob values, so the numbers
-   printed below are exact.
+Accuracy: the builtin multiplies the exact knob values, so the numbers
+printed below are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/simple-interest.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\simple-interest.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/simple-interest.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/simple-interest.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\simple-interest.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/simple-interest.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const principal = 5000      // amount lent or deposited, USD

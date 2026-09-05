@@ -1,24 +1,24 @@
 /* ============================================================================
-   moon-transit-time.epher -- when the Moon crosses the meridian
+moon-transit-time.epher -- when the Moon crosses the meridian
 
-   Meridian transit (culmination) of the Moon at one place on three dates
-   of June 2026, from the built-in accessor transit (the solar-ephemeris
-   crate, JPL-validated; guide 1.16). Transit is the moment the Moon
-   crosses the observer's meridian; at Berlin's latitude it then stands
-   due south, so the azimuth at that instant should read about 180 deg,
-   and the script prints it as a check. The lunar day is about 24 h 50 min,
-   so transit comes about 50 min later each day (the delay varies with the
-   Moon's fast-changing declination). Near new moon the Moon transits with
-   the Sun around noon; near full moon, around midnight. Hours are UT.
+Meridian transit (culmination) of the Moon at one place on three dates
+of June 2026, from the built-in accessor transit (the solar-ephemeris
+crate, JPL-validated; guide 1.16). Transit is the moment the Moon
+crosses the observer's meridian; at Berlin's latitude it then stands
+due south, so the azimuth at that instant should read about 180 deg,
+and the script prints it as a check. The lunar day is about 24 h 50 min,
+so transit comes about 50 min later each day (the delay varies with the
+Moon's fast-changing declination). Near new moon the Moon transits with
+the Sun around noon; near full moon, around midnight. Hours are UT.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-transit-time.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-transit-time.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-transit-time.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-transit-time.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-transit-time.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-transit-time.epher
+In the REPL:             load one of the paths above
 
-   Knobs: year, month, latitude and longitude (Berlin below).
-   ============================================================================ */
+Knobs: year, month, latitude and longitude (Berlin below).
+============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const year = 2026
@@ -33,25 +33,25 @@ def trd(y, m, d, lat, lon) = trh(y, m, d, lat, lon) * 15    // hours as degrees
 def azm(y, m, d, lat, lon) = az(11, transit(11, jd(y, m, d), lat, lon), lat, lon)
 
 /* ---- results ----------------------------------------------------------------
-   June 15 is new moon: transit near local noon. June 29 is full moon:
-   transit near midnight. The clock column is deg2hms of the hour * 15
-   (guide 1.16), i.e. hour angle turned into hours-minutes-seconds. */
+June 15 is new moon: transit near local noon. June 29 is full moon:
+transit near midnight. The clock column is deg2hms of the hour * 15
+(guide 1.16), i.e. hour angle turned into hours-minutes-seconds. */
 print("transit 2026-06-15:", trh(2026, 6, 15, lat, lon) in hr, "UT; clock", deg2hms(trd(2026, 6, 15, lat, lon)))
 print("transit 2026-06-22:", trh(2026, 6, 22, lat, lon) in hr, "UT; clock", deg2hms(trd(2026, 6, 22, lat, lon)))
 print("transit 2026-06-29:", trh(2026, 6, 29, lat, lon) in hr, "UT; clock", deg2hms(trd(2026, 6, 29, lat, lon)))
 
 /* The culmination check: at transit the azimuth is due south, 180 deg.
-   The scatter of about 2 deg is the Moon's diurnal parallax (up to 1 deg)
-   and its fast motion; the Sun's own transit check in
-   local-sidereal-time.epher agrees to 0.001 deg. */
+The scatter of about 2 deg is the Moon's diurnal parallax (up to 1 deg)
+and its fast motion; the Sun's own transit check in
+local-sidereal-time.epher agrees to 0.001 deg. */
 print("azimuth at transit 15:", azm(2026, 6, 15, lat, lon), "deg")
 print("azimuth at transit 22:", azm(2026, 6, 22, lat, lon), "deg")
 print("azimuth at transit 29:", azm(2026, 6, 29, lat, lon), "deg")
 
 /* The daily delay between transits (mean about 50 min = 24.84 h lunar day
-   minus the 24 h solar day). On some dates the transit falls just before
-   0h UT and belongs to the previous civil evening: 1 June 2026 transited
-   at 23:30 UT on 31 May, so asking for June 1 would give a negative hour. */
+minus the 24 h solar day). On some dates the transit falls just before
+0h UT and belongs to the previous civil evening: 1 June 2026 transited
+at 23:30 UT on 31 May, so asking for June 1 would give a negative hour. */
 print("delay, 22nd to 23rd:", (trh(2026, 6, 23, lat, lon) - trh(2026, 6, 22, lat, lon)) in hr)
 
 /* ---- expected output ----

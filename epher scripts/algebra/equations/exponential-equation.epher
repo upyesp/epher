@@ -1,21 +1,21 @@
 /* ============================================================================
-   exponential-equation.epher -- solve 2^x = 12 via logarithms
+exponential-equation.epher -- solve 2^x = 12 via logarithms
 
-   Take natural logarithms of both sides: x ln 2 = ln 12, so x = ln(12)/ln(2)
-   (any algebra text, e.g. Stewart, Redlin and Watson, "College Algebra",
-   7th ed., sec. 5.5). The value is irrational, so it prints to about 12
-   significant digits; raising 2 back to that power returns 12 within
-   rounding, which the last line checks to 1e-9. The built-in solve could
-   scan the equation numerically too; the logarithm rearrangement is the
-   classic method and is exact up to the final rounding.
+Take natural logarithms of both sides: x ln 2 = ln 12, so x = ln(12)/ln(2)
+(any algebra text, e.g. Stewart, Redlin and Watson, "College Algebra",
+7th ed., sec. 5.5). The value is irrational, so it prints to about 12
+significant digits; raising 2 back to that power returns 12 within
+rounding, which the last line checks to 1e-9. The built-in solve could
+scan the equation numerically too; the logarithm rearrangement is the
+classic method and is exact up to the final rounding.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/exponential-equation.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\exponential-equation.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/exponential-equation.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/exponential-equation.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\exponential-equation.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/exponential-equation.epher
 
-   The knob to edit is rhs below.
-   ============================================================================ */
+The knob to edit is rhs below.
+============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
 const rhs = 12                             // solve 2^x = rhs

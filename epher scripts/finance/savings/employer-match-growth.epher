@@ -1,27 +1,27 @@
 /* ============================================================================
-   employer-match-growth.epher -- a 401k with a full 5% employer match:
-   final balance and how much of it the match built
+employer-match-growth.epher -- a 401k with a full 5% employer match:
+final balance and how much of it the match built
 
-   The saver contributes 5% of salary and the employer matches it 100%, so
-   every month two equal deposits land in the account. The final balance is
-   the annuity future value of their sum (finance builtin tvm_fv), and the
-   employer's share is the future value of the employer's deposits alone.
-   Source: standard annuity formulas, Kellison, The Theory of Interest,
-   chapter 3; the 5% match is the common plan design.
+The saver contributes 5% of salary and the employer matches it 100%, so
+every month two equal deposits land in the account. The final balance is
+the annuity future value of their sum (finance builtin tvm_fv), and the
+employer's share is the future value of the employer's deposits alone.
+Source: standard annuity formulas, Kellison, The Theory of Interest,
+chapter 3; the 5% match is the common plan design.
 
-   Sign convention: deposits negative, balance positive.
+Sign convention: deposits negative, balance positive.
 
-   Accuracy: 12 displayed digits; matches usually cap at a share of salary,
-   which here is the full 5%.
+Accuracy: 12 displayed digits; matches usually cap at a share of salary,
+which here is the full 5%.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/employer-match-growth.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\employer-match-growth.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/employer-match-growth.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/employer-match-growth.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\employer-match-growth.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/employer-match-growth.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const salary = 60000        // yearly salary, USD

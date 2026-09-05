@@ -1,29 +1,29 @@
 /* ============================================================================
-   refinance-breakeven.epher -- when a refinance pays for its closing costs
+refinance-breakeven.epher -- when a refinance pays for its closing costs
 
-   Refinancing the same principal from an old rate to a new one lowers the
-   monthly payment; the closing costs spent up front are recovered once the
-   accumulated savings equal them, so the break-even point in months is
-   costs / (old payment - new payment). Both payments come from the finance
-   builtin tvm_pmt. Source: standard amortization formulas; the break-even
-   arithmetic is common lender practice, see Kellison, The Theory of
-   Interest, chapter 3.
+Refinancing the same principal from an old rate to a new one lowers the
+monthly payment; the closing costs spent up front are recovered once the
+accumulated savings equal them, so the break-even point in months is
+costs / (old payment - new payment). Both payments come from the finance
+builtin tvm_pmt. Source: standard amortization formulas; the break-even
+arithmetic is common lender practice, see Kellison, The Theory of
+Interest, chapter 3.
 
-   Assumptions: the same 300000 principal and a fresh 30-year term at the
-   new rate, which is what most refinances do (the clock restarts). A real
-   refinance starts from the remaining balance and may roll costs into the
-   loan, which shifts the break-even a little.
+Assumptions: the same 300000 principal and a fresh 30-year term at the
+new rate, which is what most refinances do (the clock restarts). A real
+refinance starts from the remaining balance and may roll costs into the
+loan, which shifts the break-even a little.
 
-   Accuracy: 12 displayed digits.
+Accuracy: 12 displayed digits.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/refinance-breakeven.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\refinance-breakeven.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/refinance-breakeven.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/refinance-breakeven.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\refinance-breakeven.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/refinance-breakeven.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const principal = 300000    // loan amount at closing, USD
@@ -38,9 +38,9 @@ print("new payment at 5.5%:", tvm_pmt(years * 12, rate_new / 12, -principal, 0))
 print("monthly saving:", tvm_pmt(years * 12, rate_old / 12, -principal, 0) - tvm_pmt(years * 12, rate_new / 12, -principal, 0))
 print("break-even in months:", costs / (tvm_pmt(years * 12, rate_old / 12, -principal, 0) - tvm_pmt(years * 12, rate_new / 12, -principal, 0)))
 /* The 6000 in costs is recovered after about 20.5 months (1.7 years); every
-   month after that saves 292.54. Two cautions: the term restarts at 30
-   years, and if the loan is sold or refinanced again before the break-even,
-   the costs are lost. */
+month after that saves 292.54. Two cautions: the term restarts at 30
+years, and if the loan is sold or refinanced again before the break-even,
+the costs are lost. */
 /* ---- expected output ----
 = 300000
 = 0.07

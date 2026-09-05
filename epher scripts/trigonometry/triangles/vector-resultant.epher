@@ -1,26 +1,26 @@
 /* ============================================================================
-   vector-resultant.epher -- magnitude and direction of a vector sum
+vector-resultant.epher -- magnitude and direction of a vector sum
 
-   Two forces (or displacements) of magnitudes v1 and v2, at angles t1 and
-   t2 to the x-axis, add head to tail. The resultant's magnitude follows
-   from the law of cosines on the triangle the two vectors form:
-   R^2 = v1^2 + v2^2 + 2 v1 v2 cos(t2 - t1) (the included angle is the
-   angle between the vectors), and its direction comes from the components
-   R_x = v1 cos t1 + v2 cos t2, R_y = v1 sin t1 + v2 sin t2 through
-   atan2(R_y, R_x). The two routes are cross-checked below. Angles are
-   degrees through the knobs, converted with rad() for the builtin trig;
-   magnitudes keep meters.
+Two forces (or displacements) of magnitudes v1 and v2, at angles t1 and
+t2 to the x-axis, add head to tail. The resultant's magnitude follows
+from the law of cosines on the triangle the two vectors form:
+R^2 = v1^2 + v2^2 + 2 v1 v2 cos(t2 - t1) (the included angle is the
+angle between the vectors), and its direction comes from the components
+R_x = v1 cos t1 + v2 cos t2, R_y = v1 sin t1 + v2 sin t2 through
+atan2(R_y, R_x). The two routes are cross-checked below. Angles are
+degrees through the knobs, converted with rad() for the builtin trig;
+magnitudes keep meters.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/vector-resultant.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\vector-resultant.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/vector-resultant.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/vector-resultant.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\vector-resultant.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/vector-resultant.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are the two vector pairs below. Printed values carry
-   about 12 significant digits.
-   ============================================================================ */
+The knobs to edit are the two vector pairs below. Printed values carry
+about 12 significant digits.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const v1 = 10 m      // first vector's magnitude

@@ -1,24 +1,24 @@
 /* ============================================================================
-   sum-of-angles-sine.epher -- sin(a + b) = sin a cos b + cos a sin b
+sum-of-angles-sine.epher -- sin(a + b) = sin a cos b + cos a sin b
 
-   The sine addition formula, sin(a + b) = sin(a) cos(b) + cos(a) sin(b),
-   is the workhorse behind every other sine identity: double angles, the
-   sine of a difference (b negative), and phasor addition all fall out of
-   it. The script checks it at several angle pairs as boolean residual
-   checks (true when the two sides differ by less than 1e-12;
-   double-precision noise here is around 1e-16).
+The sine addition formula, sin(a + b) = sin(a) cos(b) + cos(a) sin(b),
+is the workhorse behind every other sine identity: double angles, the
+sine of a difference (b negative), and phasor addition all fall out of
+it. The script checks it at several angle pairs as boolean residual
+checks (true when the two sides differ by less than 1e-12;
+double-precision noise here is around 1e-16).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/sum-of-angles-sine.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\sum-of-angles-sine.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/sum-of-angles-sine.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/sum-of-angles-sine.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\sum-of-angles-sine.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/sum-of-angles-sine.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are the `as` and `bs` lists below: one angle pair per
-   column, in degrees, converted with rad() because the builtin trig works
-   in radians. The last pair (80, 10) sums to 90 deg, the sharpest test.
-   ============================================================================ */
+The knobs to edit are the `as` and `bs` lists below: one angle pair per
+column, in degrees, converted with rad() because the builtin trig works
+in radians. The last pair (80, 10) sums to 90 deg, the sharpest test.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const as = {30, 15, 37, 80}    // first angles of the pairs, in degrees

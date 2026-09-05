@@ -1,24 +1,24 @@
 /* ============================================================================
-   moon-angular-diameter.epher -- the Moon's apparent size across a month
+moon-angular-diameter.epher -- the Moon's apparent size across a month
 
-   Angular diameter of the Moon (built-in accessor diam, in degrees; the
-   solar-ephemeris crate, JPL-validated; guide 1.16) on the same five
-   dates of one month as the other moon scripts, printed in degrees and
-   in arcminutes (1 deg = 60 arcmin, so arcmin = diam * 60). The Moon's
-   disk spans about 0.49 deg (29.4 arcmin) at apogee to 0.56 deg
-   (33.5 arcmin) at perigee: it looks about 14 percent wider when close,
-   the same swing as the distance in moon-distance.epher, and the two
-   scripts share their sample days so the sizes and distances can be
-   compared line by line.
+Angular diameter of the Moon (built-in accessor diam, in degrees; the
+solar-ephemeris crate, JPL-validated; guide 1.16) on the same five
+dates of one month as the other moon scripts, printed in degrees and
+in arcminutes (1 deg = 60 arcmin, so arcmin = diam * 60). The Moon's
+disk spans about 0.49 deg (29.4 arcmin) at apogee to 0.56 deg
+(33.5 arcmin) at perigee: it looks about 14 percent wider when close,
+the same swing as the distance in moon-distance.epher, and the two
+scripts share their sample days so the sizes and distances can be
+compared line by line.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-angular-diameter.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-angular-diameter.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-angular-diameter.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-angular-diameter.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-angular-diameter.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-angular-diameter.epher
+In the REPL:             load one of the paths above
 
-   Knobs: year, month, and the sample days of the month.
-   ============================================================================ */
+Knobs: year, month, and the sample days of the month.
+============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const year = 2026
@@ -26,10 +26,10 @@ const month = 6
 const days = {1, 8, 15, 22, 29}
 
 /* ---- results ----------------------------------------------------------------
-   Diameter in degrees and arcminutes per sample day. Day 15 (new moon,
-   perigee) is the widest at 0.557 deg; days 1 and 29 (near full moon,
-   apogee) the narrowest at about 0.490 deg. For scale the Sun is about
-   the same apparent size, which is why total solar eclipses happen. */
+Diameter in degrees and arcminutes per sample day. Day 15 (new moon,
+perigee) is the widest at 0.557 deg; days 1 and 29 (near full moon,
+apogee) the narrowest at about 0.490 deg. For scale the Sun is about
+the same apparent size, which is why total solar eclipses happen. */
 print("day 1:", diam(11, jd(year, month, 1)), "deg =", diam(11, jd(year, month, 1)) * 60, "arcmin")
 print("day 8:", diam(11, jd(year, month, 8)), "deg =", diam(11, jd(year, month, 8)) * 60, "arcmin")
 print("day 15:", diam(11, jd(year, month, 15)), "deg =", diam(11, jd(year, month, 15)) * 60, "arcmin")

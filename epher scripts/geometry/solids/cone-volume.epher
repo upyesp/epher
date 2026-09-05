@@ -1,22 +1,22 @@
 /* ============================================================================
-   cone-volume.epher -- volume of a cone from radius and height
+cone-volume.epher -- volume of a cone from radius and height
 
-   A cone is one third of the cylinder on the same base and height,
-   V = pi r^2 h / 3 (Archimedes and Eudoxus, by the method of
-   exhaustion; standard formula). For radius 3 and height 5 the volume is
-   15 pi. The results check the one-third relation against the cylinder
-   volume and confirm a cone of radius 1 and height 3 holds exactly pi.
+A cone is one third of the cylinder on the same base and height,
+V = pi r^2 h / 3 (Archimedes and Eudoxus, by the method of
+exhaustion; standard formula). For radius 3 and height 5 the volume is
+15 pi. The results check the one-third relation against the cylinder
+volume and confirm a cone of radius 1 and height 3 holds exactly pi.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/cone-volume.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\cone-volume.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/cone-volume.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/cone-volume.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\cone-volume.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/cone-volume.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `r` (radius) and `h` (height).
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `r` (radius) and `h` (height).
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const r = 3

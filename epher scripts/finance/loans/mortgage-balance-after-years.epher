@@ -1,24 +1,24 @@
 /* ============================================================================
-   mortgage-balance-after-years.epher -- what is still owed on a 30-year
-   mortgage after 5 and 10 years
+mortgage-balance-after-years.epher -- what is still owed on a 30-year
+mortgage after 5 and 10 years
 
-   Each payment on an amortizing loan splits into interest on the remaining
-   balance and principal that reduces it. The balance after k of n payments
-   is computed by the finance builtin amort(P, r, n, k), which runs the
-   recurrence balance_k = balance_(k-1)*(1+r) - pmt for k months. Source:
-   standard amortization formulas; see Kellison, The Theory of Interest,
-   chapter 3.
+Each payment on an amortizing loan splits into interest on the remaining
+balance and principal that reduces it. The balance after k of n payments
+is computed by the finance builtin amort(P, r, n, k), which runs the
+recurrence balance_k = balance_(k-1)*(1+r) - pmt for k months. Source:
+standard amortization formulas; see Kellison, The Theory of Interest,
+chapter 3.
 
-   Accuracy: 12 displayed digits; rounding to the cent is omitted.
+Accuracy: 12 displayed digits; rounding to the cent is omitted.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/mortgage-balance-after-years.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\mortgage-balance-after-years.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/mortgage-balance-after-years.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/mortgage-balance-after-years.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\mortgage-balance-after-years.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/mortgage-balance-after-years.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const principal = 250000    // loan amount at closing, USD

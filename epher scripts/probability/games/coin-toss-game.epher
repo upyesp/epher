@@ -1,23 +1,23 @@
 /* ============================================================================
-   coin-toss-game.epher -- the expected value of a two-outcome game
+coin-toss-game.epher -- the expected value of a two-outcome game
 
-   A coin is tossed once. Heads pays you $2 and tails costs you $1, so
-   your net gain G is $2 with probability 1/2 and -$1 with probability
-   1/2, and the expected value of the game is
+A coin is tossed once. Heads pays you $2 and tails costs you $1, so
+your net gain G is $2 with probability 1/2 and -$1 with probability
+1/2, and the expected value of the game is
 
-     E[G] = 2 * 1/2 + (-1) * 1/2 = 1/2,
+  E[G] = 2 * 1/2 + (-1) * 1/2 = 1/2,
 
-   50 cents in your favor every toss. A game is fair when its expected
-   value is zero (Ross, "A First Course in Probability", ch. 4): this
-   one is not, unless you pay 50 cents for the right to play, which
-   shifts the expectation to exactly zero.
+50 cents in your favor every toss. A game is fair when its expected
+value is zero (Ross, "A First Course in Probability", ch. 4): this
+one is not, unless you pay 50 cents for the right to play, which
+shifts the expectation to exactly zero.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/coin-toss-game.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\coin-toss-game.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/coin-toss-game.epher
-   Web/desktop:             paste the file into the entry, press Enter
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/coin-toss-game.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\coin-toss-game.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/coin-toss-game.epher
+Web/desktop:             paste the file into the entry, press Enter
+============================================================================ */
 
 // ---- results ----
 // The two outcomes and their probabilities, as exact fractions.

@@ -1,26 +1,26 @@
 /* ============================================================================
-   z-confidence-interval.epher -- the mean interval when sigma is known
+z-confidence-interval.epher -- the mean interval when sigma is known
 
-   Builds a confidence interval for the mean of the ten exam scores in
-   `d` with the builtin zinterval(data, sigma, level) (guide 1.20): the
-   sample mean plus or minus the normal critical value times sigma /
-   sqrt(n). The sigma knob is the population standard deviation, known
-   here from past administrations of the exam; the level knob is the
-   confidence level. Contrast the z interval with the t interval of
-   t-confidence-interval.epher on the same data.
+Builds a confidence interval for the mean of the ten exam scores in
+`d` with the builtin zinterval(data, sigma, level) (guide 1.20): the
+sample mean plus or minus the normal critical value times sigma /
+sqrt(n). The sigma knob is the population standard deviation, known
+here from past administrations of the exam; the level knob is the
+confidence level. Contrast the z interval with the t interval of
+t-confidence-interval.epher on the same data.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/z-confidence-interval.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\z-confidence-interval.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/z-confidence-interval.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/z-confidence-interval.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\z-confidence-interval.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/z-confidence-interval.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `sigma` and `level` below, or `d` for other
-   data. Everything above the results section is machinery you can leave
-   alone.
-   ============================================================================ */
+The knobs to edit are `sigma` and `level` below, or `d` for other
+data. Everything above the results section is machinery you can leave
+alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students

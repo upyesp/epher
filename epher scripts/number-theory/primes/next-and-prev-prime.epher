@@ -1,25 +1,25 @@
 /* ============================================================================
-   next-and-prev-prime.epher -- the primes adjacent to a value
+next-and-prev-prime.epher -- the primes adjacent to a value
 
-   Walks nextprime and prevprime around several values. The functions mean
-   strictly greater and strictly smaller: nextprime(97) is 101 (the gap of
-   four after 97), and prevprime(97) is 89. Applied to a prime itself they
-   skip it, so nextprime(prevprime(n)) lands back on the prime below n.
-   The script only calls the builtins, which are exact; it does not
-   reimplement them.
+Walks nextprime and prevprime around several values. The functions mean
+strictly greater and strictly smaller: nextprime(97) is 101 (the gap of
+four after 97), and prevprime(97) is 89. Applied to a prime itself they
+skip it, so nextprime(prevprime(n)) lands back on the prime below n.
+The script only calls the builtins, which are exact; it does not
+reimplement them.
 
-   Source: standard number theory; the functions are epher's builtins
-   (guide 1.22, number theory functions).
+Source: standard number theory; the functions are epher's builtins
+(guide 1.22, number theory functions).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/next-and-prev-prime.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\next-and-prev-prime.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/next-and-prev-prime.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/next-and-prev-prime.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\next-and-prev-prime.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/next-and-prev-prime.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the sample values are the point of the script.
-   ============================================================================ */
+There is no knob: the sample values are the point of the script.
+============================================================================ */
 
 // ---- next prime after n --------------------------------------------------------
 print("nextprime(97):", nextprime(97))            // the first prime above 97

@@ -1,27 +1,27 @@
 /* ============================================================================
-   college-fund-payment.epher -- monthly deposit that grows to a college
-   fund over 18 years
+college-fund-payment.epher -- monthly deposit that grows to a college
+fund over 18 years
 
-   Saving for a child born today means a monthly deposit for 18 years (216
-   months) that must reach the goal by then. The finance builtin tvm_pmt
-   solves the deposit: tvm_pmt(n, i, 0, goal), present value 0, the goal as
-   the future value. Source: standard annuity formulas; see Kellison, The
-   Theory of Interest, chapter 3.
+Saving for a child born today means a monthly deposit for 18 years (216
+months) that must reach the goal by then. The finance builtin tvm_pmt
+solves the deposit: tvm_pmt(n, i, 0, goal), present value 0, the goal as
+the future value. Source: standard annuity formulas; see Kellison, The
+Theory of Interest, chapter 3.
 
-   Sign convention: the builtin returns the deposit negative (money out);
-   the size is printed positive.
+Sign convention: the builtin returns the deposit negative (money out);
+the size is printed positive.
 
-   Accuracy: 12 displayed digits; the round-trip line below compounds the
-   exact deposit back to the goal.
+Accuracy: 12 displayed digits; the round-trip line below compounds the
+exact deposit back to the goal.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/college-fund-payment.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\college-fund-payment.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/college-fund-payment.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/college-fund-payment.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\college-fund-payment.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/college-fund-payment.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const goal = 80000          // college fund needed in 18 years, USD

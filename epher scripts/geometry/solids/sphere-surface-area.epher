@@ -1,22 +1,22 @@
 /* ============================================================================
-   sphere-surface-area.epher -- surface area of a sphere from its radius
+sphere-surface-area.epher -- surface area of a sphere from its radius
 
-   The surface area of a sphere of radius r is S = 4 pi r^2 (Archimedes,
-   "On the Sphere and Cylinder", about 225 BC: the sphere's surface is
-   exactly the area of its circumscribed cylinder's curved side; standard
-   formula). For radius 3 it is 36 pi, the same number as the volume of
-   the radius-3 sphere: the volume is V = r S / 3, checked below.
+The surface area of a sphere of radius r is S = 4 pi r^2 (Archimedes,
+"On the Sphere and Cylinder", about 225 BC: the sphere's surface is
+exactly the area of its circumscribed cylinder's curved side; standard
+formula). For radius 3 it is 36 pi, the same number as the volume of
+the radius-3 sphere: the volume is V = r S / 3, checked below.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/sphere-surface-area.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\sphere-surface-area.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/sphere-surface-area.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/sphere-surface-area.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\sphere-surface-area.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/sphere-surface-area.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knob to edit is `r`, the radius. Everything above the results
-   section is machinery you can leave alone.
-   ============================================================================ */
+The knob to edit is `r`, the radius. Everything above the results
+section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const r = 3

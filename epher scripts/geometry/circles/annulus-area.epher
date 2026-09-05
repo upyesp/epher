@@ -1,21 +1,21 @@
 /* ============================================================================
-   annulus-area.epher -- area of a ring between two circles
+annulus-area.epher -- area of a ring between two circles
 
-   The annulus between the circles of radius R and r (R > r) has area
-   A = pi R^2 - pi r^2 = pi (R^2 - r^2), the disk minus its hole
-   (standard formula). The results check the difference form against the
-   separate disk areas, and the r = 0 case reduces to the whole circle.
+The annulus between the circles of radius R and r (R > r) has area
+A = pi R^2 - pi r^2 = pi (R^2 - r^2), the disk minus its hole
+(standard formula). The results check the difference form against the
+separate disk areas, and the r = 0 case reduces to the whole circle.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/circles/annulus-area.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\circles\annulus-area.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/circles/annulus-area.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/circles/annulus-area.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\circles\annulus-area.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/circles/annulus-area.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `R` (outer radius) and `r` (inner radius).
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `R` (outer radius) and `r` (inner radius).
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const R = 8

@@ -1,22 +1,22 @@
 /* ============================================================================
-   sector-area.epher -- area of a circular sector
+sector-area.epher -- area of a circular sector
 
-   A sector of radius r and central angle t (degrees) holds the fraction
-   t / 360 of the disk, so its area is A = t / 360 * pi r^2. Written with
-   the angle in radians, theta = rad(t), this is the standard form
-   A = theta r^2 / 2 (two lines cancel: pi r^2 * theta / (2 pi)). The
-   results compute both forms and check they agree.
+A sector of radius r and central angle t (degrees) holds the fraction
+t / 360 of the disk, so its area is A = t / 360 * pi r^2. Written with
+the angle in radians, theta = rad(t), this is the standard form
+A = theta r^2 / 2 (two lines cancel: pi r^2 * theta / (2 pi)). The
+results compute both forms and check they agree.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/circles/sector-area.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\circles\sector-area.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/circles/sector-area.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/circles/sector-area.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\circles\sector-area.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/circles/sector-area.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `r` (radius) and `t` (central angle in degrees).
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `r` (radius) and `t` (central angle in degrees).
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const r = 6

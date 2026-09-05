@@ -1,20 +1,20 @@
 /* ============================================================================
-   factor-theorem-check.epher -- is (x - r) a factor? evaluate p(r)
+factor-theorem-check.epher -- is (x - r) a factor? evaluate p(r)
 
-   The factor theorem (corollary of the remainder theorem; any algebra text,
-   e.g. Stewart, Redlin and Watson, "College Algebra", 7th ed., sec. 3.3):
-   (x - r) divides p(x) exactly when p(r) = 0. Here p(x) = x^3 - 6x^2 + 11x
-   - 6 = (x - 1)(x - 2)(x - 3), so r = 3 is a root and r = 4 is not; the
-   printed booleans show both verdicts. A synthetic-division carry chain by
-   (x - 3) then confirms the factor with remainder 0. All values are exact.
+The factor theorem (corollary of the remainder theorem; any algebra text,
+e.g. Stewart, Redlin and Watson, "College Algebra", 7th ed., sec. 3.3):
+(x - r) divides p(x) exactly when p(r) = 0. Here p(x) = x^3 - 6x^2 + 11x
+- 6 = (x - 1)(x - 2)(x - 3), so r = 3 is a root and r = 4 is not; the
+printed booleans show both verdicts. A synthetic-division carry chain by
+(x - 3) then confirms the factor with remainder 0. All values are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/factor-theorem-check.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\factor-theorem-check.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/factor-theorem-check.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/factor-theorem-check.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\factor-theorem-check.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/factor-theorem-check.epher
 
-   The knobs to edit are cs and the divisors to test below.
-   ============================================================================ */
+The knobs to edit are cs and the divisors to test below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const cs = {1, -6, 11, -6}       // p(x) = x^3 - 6x^2 + 11x - 6 = (x-1)(x-2)(x-3)

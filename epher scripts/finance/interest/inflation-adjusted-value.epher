@@ -1,26 +1,26 @@
 /* ============================================================================
-   inflation-adjusted-value.epher -- translating sums of money across years
-   at a steady inflation rate
+inflation-adjusted-value.epher -- translating sums of money across years
+at a steady inflation rate
 
-   At yearly inflation i, prices multiply by (1+i)^n over n years. So a sum
-   of money today buys, n years from now, what (1+i)^n times as many dollars
-   buy today; and a sum quoted in n-year dollars is worth only 1/(1+i)^n as
-   much in today's dollars. This script prints both directions for one sum.
-   Source: standard finance formulas; the same deflation appears in
-   Kellison, The Theory of Interest, chapter 1.
+At yearly inflation i, prices multiply by (1+i)^n over n years. So a sum
+of money today buys, n years from now, what (1+i)^n times as many dollars
+buy today; and a sum quoted in n-year dollars is worth only 1/(1+i)^n as
+much in today's dollars. This script prints both directions for one sum.
+Source: standard finance formulas; the same deflation appears in
+Kellison, The Theory of Interest, chapter 1.
 
-   Accuracy: the values print to 12 digits and are exact rationals of the
-   knob values (the division 1000/1.03^10 does not repeat in a way the
-   display keeps as a fraction, so it shows as a decimal).
+Accuracy: the values print to 12 digits and are exact rationals of the
+knob values (the division 1000/1.03^10 does not repeat in a way the
+display keeps as a fraction, so it shows as a decimal).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/inflation-adjusted-value.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\inflation-adjusted-value.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/inflation-adjusted-value.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/inflation-adjusted-value.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\inflation-adjusted-value.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/inflation-adjusted-value.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const amount = 1000         // the sum of money, USD

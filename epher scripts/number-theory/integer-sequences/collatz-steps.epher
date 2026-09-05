@@ -1,27 +1,27 @@
 /* ============================================================================
-   collatz-steps.epher -- how many steps to reach 1, the stopping time
+collatz-steps.epher -- how many steps to reach 1, the stopping time
 
-   For a starting n, the Collatz sequence halves even values and sends odd
-   values to 3n + 1. The stopping time is the number of steps until the
-   sequence first reaches 1. A packed while loop (guide 1.30) runs the
-   sequence; the loop is silent, so labelled prints show the counts. The
-   classic checks: 27 takes 111 steps, and 13 takes 9 (13, 40, 20, 10, 5,
-   16, 8, 4, 2, 1).
+For a starting n, the Collatz sequence halves even values and sends odd
+values to 3n + 1. The stopping time is the number of steps until the
+sequence first reaches 1. A packed while loop (guide 1.30) runs the
+sequence; the loop is silent, so labelled prints show the counts. The
+classic checks: 27 takes 111 steps, and 13 takes 9 (13, 40, 20, 10, 5,
+16, 8, 4, 2, 1).
 
-   Source: the Collatz conjecture (the 3n + 1 problem), posed by Lothar
-   Collatz in 1937; see Lagarias (ed.), "The Ultimate Challenge: The 3x+1
-   Problem", AMS, 2010. The conjecture that every starting value reaches
-   1 is unproved but checked to enormous heights; every value below stops.
+Source: the Collatz conjecture (the 3n + 1 problem), posed by Lothar
+Collatz in 1937; see Lagarias (ed.), "The Ultimate Challenge: The 3x+1
+Problem", AMS, 2010. The conjecture that every starting value reaches
+1 is unproved but checked to enormous heights; every value below stops.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/collatz-steps.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\collatz-steps.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/collatz-steps.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/collatz-steps.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\collatz-steps.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/collatz-steps.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the starting values 27 and 13 are the checks.
-   ============================================================================ */
+There is no knob: the starting values 27 and 13 are the checks.
+============================================================================ */
 
 // ---- one Collatz step ----------------------------------------------------------------
 def step(n) = if mod(n, 2) == 0 then n / 2 else 3 * n + 1

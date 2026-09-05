@@ -1,26 +1,26 @@
 /* ============================================================================
-   palindrome-check.epher -- numbers that read the same both ways
+palindrome-check.epher -- numbers that read the same both ways
 
-   A number is a palindrome when it equals its own reversal. The script
-   reverses with a recursive def (one level per digit) and compares, then
-   counts the palindromes below 1000 with a packed while loop (guide
-   1.30). The count is the classic one: 9 one-digit palindromes (1 to 9),
-   9 two-digit ones (11, 22, ..., 99) and 90 three-digit ones (aba with a
-   from 1 to 9 and b from 0 to 9) total 108.
+A number is a palindrome when it equals its own reversal. The script
+reverses with a recursive def (one level per digit) and compares, then
+counts the palindromes below 1000 with a packed while loop (guide
+1.30). The count is the classic one: 9 one-digit palindromes (1 to 9),
+9 two-digit ones (11, 22, ..., 99) and 90 three-digit ones (aba with a
+from 1 to 9 and b from 0 to 9) total 108.
 
-   Source: standard recreational number theory; see David Wells, "The
-   Penguin Dictionary of Curious and Interesting Numbers". All results
-   are exact.
+Source: standard recreational number theory; see David Wells, "The
+Penguin Dictionary of Curious and Interesting Numbers". All results
+are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/palindrome-check.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\palindrome-check.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/palindrome-check.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/palindrome-check.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\palindrome-check.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/palindrome-check.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the sample numbers and bound 1000 are the checks.
-   ============================================================================ */
+There is no knob: the sample numbers and bound 1000 are the checks.
+============================================================================ */
 
 // ---- the reversal helper ----------------------------------------------------------------------
 // dlen(n) counts digits; rev(n) puts the last digit in front: the digit

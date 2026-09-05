@@ -1,20 +1,20 @@
 /* ============================================================================
-   three-linear-equations.epher -- 3x3 system via rref on the augmented matrix
+three-linear-equations.epher -- 3x3 system via rref on the augmented matrix
 
-   A system of three linear equations in x, y and z is solved by Gaussian
-   elimination: put the coefficients and the right side into the augmented
-   matrix and reduce it to reduced row echelon form with the built-in rref.
-   The solution column then reads off the last column, and the arithmetic is
-   exact, so the printed solution is exact. The system below has the
-   solution x = 1, y = 2, z = 3.
+A system of three linear equations in x, y and z is solved by Gaussian
+elimination: put the coefficients and the right side into the augmented
+matrix and reduce it to reduced row echelon form with the built-in rref.
+The solution column then reads off the last column, and the arithmetic is
+exact, so the printed solution is exact. The system below has the
+solution x = 1, y = 2, z = 3.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/three-linear-equations.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\three-linear-equations.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/three-linear-equations.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/three-linear-equations.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\three-linear-equations.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/three-linear-equations.epher
 
-   The knob to edit is the augmented matrix AM below.
-   ============================================================================ */
+The knob to edit is the augmented matrix AM below.
+============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
 // x + y + z = 6, 2x - y + z = 3, x + 2y - z = 2, as an augmented matrix

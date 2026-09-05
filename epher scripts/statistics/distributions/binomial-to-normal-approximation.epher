@@ -1,25 +1,25 @@
 /* ============================================================================
-   binomial-to-normal-approximation.epher -- the continuity correction at work
+binomial-to-normal-approximation.epher -- the continuity correction at work
 
-   Approximates the binomial probability P(X <= 55) for X with n = 100
-   trials and p = 0.5 by the normal with mean 50 and standard deviation
-   5, using the continuity correction: the binomial at 55 is matched by
-   the normal area up to 55.5, so the approximation is
-   normcdf((55.5 - 50) / 5). The rule of thumb says the normal is a good
-   stand-in when np and n(1 - p) are both at least 5, which holds here
-   with 50 and 50.
+Approximates the binomial probability P(X <= 55) for X with n = 100
+trials and p = 0.5 by the normal with mean 50 and standard deviation
+5, using the continuity correction: the binomial at 55 is matched by
+the normal area up to 55.5, so the approximation is
+normcdf((55.5 - 50) / 5). The rule of thumb says the normal is a good
+stand-in when np and n(1 - p) are both at least 5, which holds here
+with 50 and 50.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/binomial-to-normal-approximation.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\binomial-to-normal-approximation.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/binomial-to-normal-approximation.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/binomial-to-normal-approximation.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\binomial-to-normal-approximation.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/binomial-to-normal-approximation.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `n`, `p` and `k` below. Everything above the
-   results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `n`, `p` and `k` below. Everything above the
+results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const n = 100    // trials of a fair coin

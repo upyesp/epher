@@ -1,29 +1,29 @@
 /* ============================================================================
-   future-value-of-annuity.epher -- retirement balance of regular monthly
-   deposits at the end of each month
+future-value-of-annuity.epher -- retirement balance of regular monthly
+deposits at the end of each month
 
-   Depositing the same amount at the end of every month for n months at
-   monthly rate i builds the annuity future value
-     fv = pmt * ((1+i)^n - 1) / i
-   computed here by the finance builtin tvm_fv (see the finance builtins in
-   "epher scripts/README.md"). Source: standard annuity formulas; see
-   Kellison, The Theory of Interest, chapter 3.
+Depositing the same amount at the end of every month for n months at
+monthly rate i builds the annuity future value
+  fv = pmt * ((1+i)^n - 1) / i
+computed here by the finance builtin tvm_fv (see the finance builtins in
+"epher scripts/README.md"). Source: standard annuity formulas; see
+Kellison, The Theory of Interest, chapter 3.
 
-   Sign convention: the deposit is entered negative (money out each month)
-   and the balance comes back positive. Deposits at the START of the month
-   are the sibling script annuity-due-value.epher.
+Sign convention: the deposit is entered negative (money out each month)
+and the balance comes back positive. Deposits at the START of the month
+are the sibling script annuity-due-value.epher.
 
-   Accuracy: 12 displayed digits; the last deposit (end of month n) earns
-   no interest.
+Accuracy: 12 displayed digits; the last deposit (end of month n) earns
+no interest.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/future-value-of-annuity.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\future-value-of-annuity.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/future-value-of-annuity.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/future-value-of-annuity.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\future-value-of-annuity.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/future-value-of-annuity.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const deposit = 300         // monthly deposit, USD

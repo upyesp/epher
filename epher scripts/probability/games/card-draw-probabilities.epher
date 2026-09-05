@@ -1,33 +1,33 @@
 /* ============================================================================
-   card-draw-probabilities.epher -- two draws from a deck, two methods
+card-draw-probabilities.epher -- two draws from a deck, two methods
 
-   Drawing two cards without replacement makes the second draw depend on
-   the first, so probabilities can be counted two equivalent ways: with
-   combinations, which count the unordered hands directly, or with
-   conditional products, which multiply along the draws,
+Drawing two cards without replacement makes the second draw depend on
+the first, so probabilities can be counted two equivalent ways: with
+combinations, which count the unordered hands directly, or with
+conditional products, which multiply along the draws,
 
-     P(ace then ace) = (4/52) * (3/51)
-     P(heart then spade) = (13/52) * (13/51)
+  P(ace then ace) = (4/52) * (3/51)
+  P(heart then spade) = (13/52) * (13/51)
 
-   The heart-then-spade probability is slightly larger than the
-   with-replacement value (13/52)^2 = 1/16 = 0.0625, because taking a
-   heart out of the deck leaves 51 cards with all 13 spades still in
-   them: 13/51 > 13/52.
+The heart-then-spade probability is slightly larger than the
+with-replacement value (13/52)^2 = 1/16 = 0.0625, because taking a
+heart out of the deck leaves 51 cards with all 13 spades still in
+them: 13/51 > 13/52.
 
-   Source: Feller, "An Introduction to Probability Theory and Its
-   Applications", volume 1, chapter 1. All fractions are exact.
+Source: Feller, "An Introduction to Probability Theory and Its
+Applications", volume 1, chapter 1. All fractions are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/card-draw-probabilities.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\card-draw-probabilities.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/card-draw-probabilities.epher
-   Web/desktop:             paste the file into the entry, press Enter
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/card-draw-probabilities.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\card-draw-probabilities.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/card-draw-probabilities.epher
+Web/desktop:             paste the file into the entry, press Enter
+============================================================================ */
 
 /* ---- results ----
-   Two aces in two draws: combinations count the 6 ace pairs among all
-   ncr(52, 2) = 1326 hands; the conditional product multiplies 4/52 by
-   the 3/51 chance of a second ace once one is gone. */
+Two aces in two draws: combinations count the 6 ace pairs among all
+ncr(52, 2) = 1326 hands; the conditional product multiplies 4/52 by
+the 3/51 chance of a second ace once one is gone. */
 print("ncr count: ncr(4, 2) / ncr(52, 2) =", ncr(4, 2) / ncr(52, 2))
 print("product: (4/52) * (3/51) =", (4/52) * (3/51))
 (4/52) * (3/51) == ncr(4, 2) / ncr(52, 2)

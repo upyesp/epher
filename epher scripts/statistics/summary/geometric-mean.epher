@@ -1,24 +1,24 @@
 /* ============================================================================
-   geometric-mean.epher -- the average growth factor over several years
+geometric-mean.epher -- the average growth factor over several years
 
-   The geometric mean of the yearly growth factors in `r`: the nth root of
-   the product, product(r) ^ (1 / len(r)). A fund that returned 5, 8, 3,
-   6 and 2 percent in five years grew by the factors 1.05, 1.08, 1.03,
-   1.06 and 1.02. The geometric mean 1.0478 is the factor that, applied
-   five times in a row, gives the same total growth; the arithmetic mean
-   1.048 slightly overstates it, as it always does for ratios.
+The geometric mean of the yearly growth factors in `r`: the nth root of
+the product, product(r) ^ (1 / len(r)). A fund that returned 5, 8, 3,
+6 and 2 percent in five years grew by the factors 1.05, 1.08, 1.03,
+1.06 and 1.02. The geometric mean 1.0478 is the factor that, applied
+five times in a row, gives the same total growth; the arithmetic mean
+1.048 slightly overstates it, as it always does for ratios.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/geometric-mean.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\geometric-mean.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/geometric-mean.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/geometric-mean.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\geometric-mean.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/geometric-mean.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The one knob to edit is `r` below. Everything above the results section
-   is machinery you can leave alone.
-   ============================================================================ */
+The one knob to edit is `r` below. Everything above the results section
+is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const r = {1.05, 1.08, 1.03, 1.06, 1.02}   // yearly growth factors: 1 + return

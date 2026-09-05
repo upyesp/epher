@@ -1,20 +1,20 @@
 /* ============================================================================
-   complex-quadratic-roots.epher -- a quadratic with negative discriminant
+complex-quadratic-roots.epher -- a quadratic with negative discriminant
 
-   x^2 + 2x + 5 = 0 has discriminant 4 - 20 = -16, so its roots are the
-   conjugate pair -1 +/- 2i. The built-in solve finds polynomial roots,
-   complex ones included, and reports them as a display string; the roots
-   are then verified by evaluating the polynomial, which gives exact zeros
-   because the complex arithmetic is exact. The formula route with sqrt of
-   a negative number is shown in quadratic-complex-roots.epher.
+x^2 + 2x + 5 = 0 has discriminant 4 - 20 = -16, so its roots are the
+conjugate pair -1 +/- 2i. The built-in solve finds polynomial roots,
+complex ones included, and reports them as a display string; the roots
+are then verified by evaluating the polynomial, which gives exact zeros
+because the complex arithmetic is exact. The formula route with sqrt of
+a negative number is shown in quadratic-complex-roots.epher.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-quadratic-roots.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-quadratic-roots.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-quadratic-roots.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-quadratic-roots.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-quadratic-roots.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-quadratic-roots.epher
 
-   The knob to edit is the coefficient list cs below.
-   ============================================================================ */
+The knob to edit is the coefficient list cs below.
+============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
 const cs = {1, 2, 5}              // coefficients of x^2 + 2x + 5, highest first

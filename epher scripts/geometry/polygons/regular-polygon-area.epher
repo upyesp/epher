@@ -1,23 +1,23 @@
 /* ============================================================================
-   regular-polygon-area.epher -- area of a regular n-gon from its side
+regular-polygon-area.epher -- area of a regular n-gon from its side
 
-   A regular n-gon of side s is n congruent isosceles triangles with apex
-   angle 2 pi / n at the center, each of area s^2 / (4 tan(pi / n)), so
-   A = n s^2 / (4 tan(pi / n)) (standard formula; tangent in radians).
-   The n = 6 case is six equilateral triangles: 6 * 2^2 * sqrt(3) / 4,
-   about 10.392. The square case recovers side times side, and the n = 3
-   case matches the equilateral formula s^2 sqrt(3) / 4.
+A regular n-gon of side s is n congruent isosceles triangles with apex
+angle 2 pi / n at the center, each of area s^2 / (4 tan(pi / n)), so
+A = n s^2 / (4 tan(pi / n)) (standard formula; tangent in radians).
+The n = 6 case is six equilateral triangles: 6 * 2^2 * sqrt(3) / 4,
+about 10.392. The square case recovers side times side, and the n = 3
+case matches the equilateral formula s^2 sqrt(3) / 4.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/regular-polygon-area.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\regular-polygon-area.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/regular-polygon-area.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/regular-polygon-area.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\regular-polygon-area.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/regular-polygon-area.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `n` (number of sides) and `s` (side length).
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `n` (number of sides) and `s` (side length).
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const n = 6

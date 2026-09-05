@@ -1,24 +1,24 @@
 /* ============================================================================
-   normal-percentiles.epher -- cut points that leave a given area below
+normal-percentiles.epher -- cut points that leave a given area below
 
-   The standard normal percentiles z such that P(Z <= z) equals the
-   probability in `p`, from the builtin inverse normal invnorm(p, 0, 1)
-   (guide 1.20). The 90th percentile is the familiar 1.2816, the 97.5th
-   is the 1.96 of two-sided 95 percent intervals, and the 99th is 2.3263.
-   The last three lines feed each percentile back through normcdf: the
-   lower-tail area at the percentile comes back to p, as it must.
+The standard normal percentiles z such that P(Z <= z) equals the
+probability in `p`, from the builtin inverse normal invnorm(p, 0, 1)
+(guide 1.20). The 90th percentile is the familiar 1.2816, the 97.5th
+is the 1.96 of two-sided 95 percent intervals, and the 99th is 2.3263.
+The last three lines feed each percentile back through normcdf: the
+lower-tail area at the percentile comes back to p, as it must.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/normal-percentiles.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\normal-percentiles.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/normal-percentiles.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/normal-percentiles.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\normal-percentiles.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/normal-percentiles.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knob to edit is `p` below. Everything above the results section is
-   machinery you can leave alone.
-   ============================================================================ */
+The knob to edit is `p` below. Everything above the results section is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const p = 0.90    // the lower-tail probability, between 0 and 1

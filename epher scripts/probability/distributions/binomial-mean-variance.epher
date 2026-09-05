@@ -1,25 +1,25 @@
 /* ============================================================================
-   binomial-mean-variance.epher -- E[X] = np and Var[X] = np(1 - p)
+binomial-mean-variance.epher -- E[X] = np and Var[X] = np(1 - p)
 
-   For X ~ Bin(n, p) the mean is np and the variance is np(1 - p): each
-   of the n trials contributes p to the expected count and p(1 - p) to
-   the variance, and expectations add even though the variance sum needs
-   the trials to be independent. The standard deviation is the square
-   root of the variance.
+For X ~ Bin(n, p) the mean is np and the variance is np(1 - p): each
+of the n trials contributes p to the expected count and p(1 - p) to
+the variance, and expectations add even though the variance sum needs
+the trials to be independent. The standard deviation is the square
+root of the variance.
 
-   The script computes the formulas for two distributions and then
-   verifies them from the definition, summing k * P(X = k) and
-   (k - np)^2 * P(X = k) with exact ncr arithmetic in packed while
-   loops (guide 1.30).
+The script computes the formulas for two distributions and then
+verifies them from the definition, summing k * P(X = k) and
+(k - np)^2 * P(X = k) with exact ncr arithmetic in packed while
+loops (guide 1.30).
 
-   Source: Ross, "A First Course in Probability", chapter 4.
+Source: Ross, "A First Course in Probability", chapter 4.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/binomial-mean-variance.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\binomial-mean-variance.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/binomial-mean-variance.epher
-   Web/desktop:             paste the file into the entry, press Enter
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/binomial-mean-variance.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\binomial-mean-variance.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/binomial-mean-variance.epher
+Web/desktop:             paste the file into the entry, press Enter
+============================================================================ */
 
 // ---- results ----
 // Bin(20, 0.3): mean np = 20 * 0.3 = 6, variance np(1 - p) = 6 * 0.7.

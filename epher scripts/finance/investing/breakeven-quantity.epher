@@ -1,29 +1,29 @@
 /* ============================================================================
-   breakeven-quantity.epher -- units that must sell to cover fixed costs,
-   and the profit at a planned volume
+breakeven-quantity.epher -- units that must sell to cover fixed costs,
+and the profit at a planned volume
 
-   Each unit sold brings in the price and costs the variable cost, leaving a
-   contribution of price - variable toward the fixed costs. The breakeven
-   quantity is fixed/(price - variable): the volume at which contribution
-   exactly covers the fixed costs and profit is zero. Above that volume each
-   extra unit adds the full contribution to profit. Source: standard cost
-   accounting; see any managerial accounting text (e.g. Horngren), the
-   cost-volume-profit chapter.
+Each unit sold brings in the price and costs the variable cost, leaving a
+contribution of price - variable toward the fixed costs. The breakeven
+quantity is fixed/(price - variable): the volume at which contribution
+exactly covers the fixed costs and profit is zero. Above that volume each
+extra unit adds the full contribution to profit. Source: standard cost
+accounting; see any managerial accounting text (e.g. Horngren), the
+cost-volume-profit chapter.
 
-   Assumptions: fixed costs (rent, salaries) do not change with volume;
-   variable costs (materials) are proportional to units; everything produced
-   sells at one price. The plan volume below is the seller's target.
+Assumptions: fixed costs (rent, salaries) do not change with volume;
+variable costs (materials) are proportional to units; everything produced
+sells at one price. The plan volume below is the seller's target.
 
-   Accuracy: exact arithmetic on the knobs.
+Accuracy: exact arithmetic on the knobs.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/breakeven-quantity.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\breakeven-quantity.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/breakeven-quantity.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/breakeven-quantity.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\breakeven-quantity.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/breakeven-quantity.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const fixed = 12000         // monthly fixed costs, USD
@@ -38,9 +38,9 @@ print("revenue at breakeven:", fixed / (price - variable) * price)
 print("profit at 6000 units:", planned * (price - variable) - fixed)
 print("contribution margin ratio:", (price - variable) / price)
 /* Selling 4000 units breaks even at 32000 of revenue; every unit beyond
-   4000 adds 3 of profit, so 6000 units profit 6000. The contribution
-   margin ratio 0.375 says each dollar of revenue leaves 37.5 cents toward
-   fixed costs and profit. */
+4000 adds 3 of profit, so 6000 units profit 6000. The contribution
+margin ratio 0.375 says each dollar of revenue leaves 37.5 cents toward
+fixed costs and profit. */
 /* ---- expected output ----
 = 12000
 = 8

@@ -1,27 +1,27 @@
 /* ============================================================================
-   round-robin-games.epher -- league fixtures: ncr(n, 2) games
+round-robin-games.epher -- league fixtures: ncr(n, 2) games
 
-   In a round-robin league every pair of teams meets exactly once, and a
-   pair of teams is an unordered set, so n teams play ncr(n, 2) games.
-   With a home and an away leg the pair is ordered (team A hosts team B
-   is a different fixture from B hosting A), which doubles the count to
-   2 * ncr(n, 2) = npr(n, 2).
+In a round-robin league every pair of teams meets exactly once, and a
+pair of teams is an unordered set, so n teams play ncr(n, 2) games.
+With a home and an away leg the pair is ordered (team A hosts team B
+is a different fixture from B hosting A), which doubles the count to
+2 * ncr(n, 2) = npr(n, 2).
 
-   Cross-checks: npr(n, 2) = n * (n - 1) counts the ordered pairs
-   directly, and 2 * ncr(n, 2) = npr(n, 2) verifies the doubling. All
-   counts are exact integers.
+Cross-checks: npr(n, 2) = n * (n - 1) counts the ordered pairs
+directly, and 2 * ncr(n, 2) = npr(n, 2) verifies the doubling. All
+counts are exact integers.
 
-   Source: standard combinatorics, as in Ross, "A First Course in
-   Probability", chapter 1.
+Source: standard combinatorics, as in Ross, "A First Course in
+Probability", chapter 1.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/round-robin-games.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\round-robin-games.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/round-robin-games.epher
-   Web/desktop:             paste the file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/round-robin-games.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\round-robin-games.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/round-robin-games.epher
+Web/desktop:             paste the file into the entry, press Enter
 
-   The knob to edit is `teams`; everything below it is machinery.
-   ============================================================================ */
+The knob to edit is `teams`; everything below it is machinery.
+============================================================================ */
 
 // ---- the knob ----
 const teams = 8

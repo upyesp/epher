@@ -1,21 +1,21 @@
 /* ============================================================================
-   infinite-geometric-sum.epher -- a/(1 - r) when |r| < 1
+infinite-geometric-sum.epher -- a/(1 - r) when |r| < 1
 
-   When the common ratio r satisfies |r| < 1, the partial sums S_n of the
-   geometric sequence a, ar, ar^2, ... approach a / (1 - r): the tail
-   a r^n / (1 - r) shrinks to zero (Archimedes summed 1/4 + 1/16 + ... this
-   way in 250 BC; any algebra text, e.g. Stewart, Redlin and Watson,
-   "College Algebra", 7th ed., sec. 9.2). With a = 4, r = 1/3 the infinite
-   sum is exactly 6, and the exact fractions of the partial sums below
-   approach it: 0, 4, 16/3, 52/9, ...
+When the common ratio r satisfies |r| < 1, the partial sums S_n of the
+geometric sequence a, ar, ar^2, ... approach a / (1 - r): the tail
+a r^n / (1 - r) shrinks to zero (Archimedes summed 1/4 + 1/16 + ... this
+way in 250 BC; any algebra text, e.g. Stewart, Redlin and Watson,
+"College Algebra", 7th ed., sec. 9.2). With a = 4, r = 1/3 the infinite
+sum is exactly 6, and the exact fractions of the partial sums below
+approach it: 0, 4, 16/3, 52/9, ...
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/infinite-geometric-sum.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\infinite-geometric-sum.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/infinite-geometric-sum.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/infinite-geometric-sum.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\infinite-geometric-sum.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/infinite-geometric-sum.epher
 
-   The knobs to edit are a and r below.
-   ============================================================================ */
+The knobs to edit are a and r below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 4                      // first term

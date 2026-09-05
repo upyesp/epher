@@ -1,21 +1,21 @@
 /* ============================================================================
-   triangle-inequality.epher -- do three lengths make a triangle?
+triangle-inequality.epher -- do three lengths make a triangle?
 
-   Three lengths a, b, c bound a triangle exactly when every side is
-   shorter than the sum of the other two: a + b > c and a + c > b and
-   b + c > a (Euclid's Elements, book I, proposition 20; standard
-   formula). The comparison is strict: a + b = c means the three points
-   are collinear, a degenerate triangle, so those triples report false.
+Three lengths a, b, c bound a triangle exactly when every side is
+shorter than the sum of the other two: a + b > c and a + c > b and
+b + c > a (Euclid's Elements, book I, proposition 20; standard
+formula). The comparison is strict: a + b = c means the three points
+are collinear, a degenerate triangle, so those triples report false.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/triangle-inequality.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\triangle-inequality.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/triangle-inequality.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/triangle-inequality.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\triangle-inequality.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/triangle-inequality.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The triples to test are in the results section below; edit them there.
-   ============================================================================ */
+The triples to test are in the results section below; edit them there.
+============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 // Strict triangle inequality on all three pairs of sides.

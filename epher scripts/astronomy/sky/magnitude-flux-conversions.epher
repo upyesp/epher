@@ -1,30 +1,30 @@
 /* ============================================================================
-   magnitude-flux-conversions.epher -- magnitudes and Janskys
+magnitude-flux-conversions.epher -- magnitudes and Janskys
 
-   Conversions between apparent magnitude and flux density in Janskys
-   with the built-ins mag2jy and jy2mag (guide 1.16). The magnitude
-   scale is logarithmic: five magnitudes are a factor of 100 in flux, so
-   one magnitude is 100^(1/5) = 2.512, and the zero point is 3631 Jy
-   (the builtin's convention): mag2jy(m) = 3631 * 10^(-m / 2.5). A
-   Jansky is 1e-26 W per square metre per hertz; modern radio
-   telescopes work in millijanskys, optical surveys in microjanskys.
-   For scale: Sirius at -1.46 mag is about 13900 Jy in this convention,
-   and a magnitude 20 source, 0.00003631 Jy, is near the limit of a
-   large survey telescope. Values were checked in python, the oracle.
+Conversions between apparent magnitude and flux density in Janskys
+with the built-ins mag2jy and jy2mag (guide 1.16). The magnitude
+scale is logarithmic: five magnitudes are a factor of 100 in flux, so
+one magnitude is 100^(1/5) = 2.512, and the zero point is 3631 Jy
+(the builtin's convention): mag2jy(m) = 3631 * 10^(-m / 2.5). A
+Jansky is 1e-26 W per square metre per hertz; modern radio
+telescopes work in millijanskys, optical surveys in microjanskys.
+For scale: Sirius at -1.46 mag is about 13900 Jy in this convention,
+and a magnitude 20 source, 0.00003631 Jy, is near the limit of a
+large survey telescope. Values were checked in python, the oracle.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/magnitude-flux-conversions.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\magnitude-flux-conversions.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/magnitude-flux-conversions.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/magnitude-flux-conversions.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\magnitude-flux-conversions.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/magnitude-flux-conversions.epher
+In the REPL:             load one of the paths above
 
-   Knob: none - the magnitudes below are fixed.
-   ============================================================================ */
+Knob: none - the magnitudes below are fixed.
+============================================================================ */
 
 /* ---- results ----------------------------------------------------------------
-   The same zero-point chain every five magnitudes: 3631 Jy at mag 0,
-   36.31 Jy at mag 5, 0.3631 Jy at mag 10, and so on down to 3.631e-5 Jy
-   at mag 20 - each step of five divides the flux by exactly 100. */
+The same zero-point chain every five magnitudes: 3631 Jy at mag 0,
+36.31 Jy at mag 5, 0.3631 Jy at mag 10, and so on down to 3.631e-5 Jy
+at mag 20 - each step of five divides the flux by exactly 100. */
 print("mag 0:", mag2jy(0), "Jy")
 print("mag 5:", mag2jy(5), "Jy")
 print("mag 10:", mag2jy(10), "Jy")

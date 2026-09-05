@@ -1,27 +1,27 @@
 /* ============================================================================
-   circle-through-three-points.epher -- center and radius of a circle
+circle-through-three-points.epher -- center and radius of a circle
 
-   Three non-collinear points determine a circle. Writing the circle as
-   (x - h)^2 + (y - k)^2 = r^2 and subtracting the equation at the first
-   point from the other two gives two linear equations in h and k,
-   solved here with Cramer's rule (standard formula; the two equations
-   are the perpendicular bisectors of two sides). The example triangle
-   (0, 0), (6, 0), (3, 6) is isosceles, so the center is hand-checkable:
-   it sits on x = 3 and 3^2 + k^2 = (6 - k)^2 gives k = 9/4, and the
-   radius is sqrt(9 + (9/4)^2) = 15/4. The last results re-check the
-   distance from the center to each vertex.
+Three non-collinear points determine a circle. Writing the circle as
+(x - h)^2 + (y - k)^2 = r^2 and subtracting the equation at the first
+point from the other two gives two linear equations in h and k,
+solved here with Cramer's rule (standard formula; the two equations
+are the perpendicular bisectors of two sides). The example triangle
+(0, 0), (6, 0), (3, 6) is isosceles, so the center is hand-checkable:
+it sits on x = 3 and 3^2 + k^2 = (6 - k)^2 gives k = 9/4, and the
+radius is sqrt(9 + (9/4)^2) = 15/4. The last results re-check the
+distance from the center to each vertex.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/circle-through-three-points.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\circle-through-three-points.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/circle-through-three-points.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/circle-through-three-points.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\circle-through-three-points.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/circle-through-three-points.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `A`, `B`, `C`, the three points (they must not
-   be collinear). Everything above the results section is machinery you
-   can leave alone.
-   ============================================================================ */
+The knobs to edit are `A`, `B`, `C`, the three points (they must not
+be collinear). Everything above the results section is machinery you
+can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const A = {0, 0}
@@ -29,9 +29,9 @@ const B = {6, 0}
 const C = {3, 6}
 
 /* ---- the model ----------------------------------------------------------------
-   Subtract the circle equation at A from the equations at B and C:
-   2 (Bx - Ax) h + 2 (By - Ay) k = Bx^2 + By^2 - Ax^2 - Ay^2, and the
-   same with C. Cramer's rule solves the 2 by 2 system for (h, k). */
+Subtract the circle equation at A from the equations at B and C:
+2 (Bx - Ax) h + 2 (By - Ay) k = Bx^2 + By^2 - Ax^2 - Ay^2, and the
+same with C. Cramer's rule solves the 2 by 2 system for (h, k). */
 def p2(A, B) = 2 * (B[1] - A[1])
 def q2(A, B) = 2 * (B[2] - A[2])
 def u2(A, B) = B[1] ^ 2 + B[2] ^ 2 - A[1] ^ 2 - A[2] ^ 2

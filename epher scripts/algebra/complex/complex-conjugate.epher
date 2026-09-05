@@ -1,20 +1,20 @@
 /* ============================================================================
-   complex-conjugate.epher -- conj(z), and z conj(z) = |z|^2
+complex-conjugate.epher -- conj(z), and z conj(z) = |z|^2
 
-   The conjugate of a + bi is a - bi, the reflection across the real axis;
-   multiplying z by its conjugate clears the imaginary part:
-   (a + bi)(a - bi) = a^2 + b^2 = |z|^2 (Churchill and Brown, "Complex
-   Variables and Applications", sec. 5). The product comes out as the exact
-   real numbers 25 and 2 below, and the identity is checked against |z|^2.
-   All values are exact.
+The conjugate of a + bi is a - bi, the reflection across the real axis;
+multiplying z by its conjugate clears the imaginary part:
+(a + bi)(a - bi) = a^2 + b^2 = |z|^2 (Churchill and Brown, "Complex
+Variables and Applications", sec. 5). The product comes out as the exact
+real numbers 25 and 2 below, and the identity is checked against |z|^2.
+All values are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-conjugate.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-conjugate.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-conjugate.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-conjugate.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-conjugate.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-conjugate.epher
 
-   No knobs to edit; the values below are fixed examples.
-   ============================================================================ */
+No knobs to edit; the values below are fixed examples.
+============================================================================ */
 
 // ---- the examples -----------------------------------------------------------
 const z = 3 + 4i

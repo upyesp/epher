@@ -1,23 +1,23 @@
 /* ============================================================================
-   sound-wavelength.epher -- wavelength = speed / frequency
+sound-wavelength.epher -- wavelength = speed / frequency
 
-   A tone of frequency f in air at about 20 deg C travels at v = 343 m/s,
-   and one full cycle occupies one wavelength: lambda = v / f. The script
-   keeps the units in the arithmetic (343 m/s divided by 440 Hz is a
-   length) and converts the answer to centimeters with `in cm`. 440 Hz is
-   the standard tuning A; 220 Hz is the A an octave below, whose
-   wavelength is twice as long because the frequency is half.
+A tone of frequency f in air at about 20 deg C travels at v = 343 m/s,
+and one full cycle occupies one wavelength: lambda = v / f. The script
+keeps the units in the arithmetic (343 m/s divided by 440 Hz is a
+length) and converts the answer to centimeters with `in cm`. 440 Hz is
+the standard tuning A; 220 Hz is the A an octave below, whose
+wavelength is twice as long because the frequency is half.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/waves/sound-wavelength.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\waves\sound-wavelength.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/waves/sound-wavelength.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/waves/sound-wavelength.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\waves\sound-wavelength.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/waves/sound-wavelength.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are the speed of sound and the two frequencies below.
-   Printed values carry about 12 significant digits.
-   ============================================================================ */
+The knobs to edit are the speed of sound and the two frequencies below.
+Printed values carry about 12 significant digits.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const vsnd = 343 m/s     // speed of sound in air, 20 deg C

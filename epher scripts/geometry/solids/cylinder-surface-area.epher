@@ -1,22 +1,22 @@
 /* ============================================================================
-   cylinder-surface-area.epher -- surface area of a cylinder
+cylinder-surface-area.epher -- surface area of a cylinder
 
-   A cylinder of radius r and height h has a curved side that unrolls
-   into a 2 pi r by h rectangle, plus two end disks, so
-   S = 2 pi r h + 2 pi r^2 (standard formula). The factorized form
-   2 pi r (r + h) is checked against it, and the lateral part alone is
-   printed too.
+A cylinder of radius r and height h has a curved side that unrolls
+into a 2 pi r by h rectangle, plus two end disks, so
+S = 2 pi r h + 2 pi r^2 (standard formula). The factorized form
+2 pi r (r + h) is checked against it, and the lateral part alone is
+printed too.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/cylinder-surface-area.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\cylinder-surface-area.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/cylinder-surface-area.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/cylinder-surface-area.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\cylinder-surface-area.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/cylinder-surface-area.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `r` (radius) and `h` (height).
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `r` (radius) and `h` (height).
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const r = 3

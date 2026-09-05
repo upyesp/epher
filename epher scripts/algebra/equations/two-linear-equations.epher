@@ -1,20 +1,20 @@
 /* ============================================================================
-   two-linear-equations.epher -- 2x2 system by Cramer's rule, with determinants
+two-linear-equations.epher -- 2x2 system by Cramer's rule, with determinants
 
-   Cramer's rule (Gabriel Cramer, 1750) solves the pair a1 x + b1 y = k1 and
-   a2 x + b2 y = k2 by replacing columns of the system determinant
-   D = a1 b2 - a2 b1: x = Dx / D and y = Dy / D, where Dx and Dy put (k1, k2)
-   in the first and second column (any linear-algebra text). The 2x2
-   determinants are written out as the classroom formula ad - bc; the builtin
-   det gives the same number, checked at the end. Everything here is exact.
+Cramer's rule (Gabriel Cramer, 1750) solves the pair a1 x + b1 y = k1 and
+a2 x + b2 y = k2 by replacing columns of the system determinant
+D = a1 b2 - a2 b1: x = Dx / D and y = Dy / D, where Dx and Dy put (k1, k2)
+in the first and second column (any linear-algebra text). The 2x2
+determinants are written out as the classroom formula ad - bc; the builtin
+det gives the same number, checked at the end. Everything here is exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/two-linear-equations.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\two-linear-equations.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/two-linear-equations.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/two-linear-equations.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\two-linear-equations.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/two-linear-equations.epher
 
-   The knobs to edit are a1, b1, k1, a2, b2 and k2 below.
-   ============================================================================ */
+The knobs to edit are a1, b1, k1, a2, b2 and k2 below.
+============================================================================ */
 
 // ---- the knobs: a1 x + b1 y = k1, a2 x + b2 y = k2 ---------------------------
 const a1 = 1

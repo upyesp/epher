@@ -1,21 +1,21 @@
 /* ============================================================================
-   complex-fraction-simplify.epher -- 1/(2 + 3i) + 1/(1 - i) as a + bi
+complex-fraction-simplify.epher -- 1/(2 + 3i) + 1/(1 - i) as a + bi
 
-   To divide by a complex number, multiply numerator and denominator by the
-   conjugate of the denominator: 1/(2 + 3i) = (2 - 3i)/13 and 1/(1 - i) =
-   (1 + i)/2 (Churchill and Brown, "Complex Variables and Applications",
-   sec. 5). The denominators (2 + 3i)(2 - 3i) = 13 and (1 - i)(1 + i) = 2
-   are exact, and the sum is 17/26 + (7/26)i = 0.653846153846 +
-   0.269230769231i, displayed to about 12 digits; the last boolean compares
-   the sum with the exact fractions.
+To divide by a complex number, multiply numerator and denominator by the
+conjugate of the denominator: 1/(2 + 3i) = (2 - 3i)/13 and 1/(1 - i) =
+(1 + i)/2 (Churchill and Brown, "Complex Variables and Applications",
+sec. 5). The denominators (2 + 3i)(2 - 3i) = 13 and (1 - i)(1 + i) = 2
+are exact, and the sum is 17/26 + (7/26)i = 0.653846153846 +
+0.269230769231i, displayed to about 12 digits; the last boolean compares
+the sum with the exact fractions.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-fraction-simplify.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-fraction-simplify.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-fraction-simplify.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-fraction-simplify.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-fraction-simplify.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-fraction-simplify.epher
 
-   No knobs to edit; the fractions below are fixed examples.
-   ============================================================================ */
+No knobs to edit; the fractions below are fixed examples.
+============================================================================ */
 
 // ---- results -----------------------------------------------------------------
 z1 = 1 / (2 + 3i)                 // 1/(2 + 3i), echoes (2 - 3i)/13 in decimals

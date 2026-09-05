@@ -1,69 +1,69 @@
 /* ============================================================================
-   season-boundaries.epher -- the equinoxes and solstices of a year
+season-boundaries.epher -- the equinoxes and solstices of a year
 
-   The four season boundaries of 2026 - March equinox, June solstice,
-   September equinox, December solstice - from the built-ins
-   march_equinox, june_solstice, september_equinox and december_solstice,
-   which return the instant as a Julian Date (the solar-ephemeris
-   crate, JPL-validated; guide 1.16). Each boundary is printed as days
-   into the year, ((event - jd(year, 1, 1)) days), which reads cleanly
-   where the raw JD may print as an exact fraction. The Sun's declination
-   at each instant is printed as a structural check: about 0 at the
-   equinoxes, about +23.44 deg at the June solstice and -23.44 deg at
-   the December solstice. The boundaries fall on March 20, June 21,
-   September 23 and December 21 in 2026, and the year's four seasons
-   are not equal in length: the Sun runs fastest near perihelion in
-   early January, so northern winter is the shortest season.
+The four season boundaries of 2026 - March equinox, June solstice,
+September equinox, December solstice - from the built-ins
+march_equinox, june_solstice, september_equinox and december_solstice,
+which return the instant as a Julian Date (the solar-ephemeris
+crate, JPL-validated; guide 1.16). Each boundary is printed as days
+into the year, ((event - jd(year, 1, 1)) days), which reads cleanly
+where the raw JD may print as an exact fraction. The Sun's declination
+at each instant is printed as a structural check: about 0 at the
+equinoxes, about +23.44 deg at the June solstice and -23.44 deg at
+the December solstice. The boundaries fall on March 20, June 21,
+September 23 and December 21 in 2026, and the year's four seasons
+are not equal in length: the Sun runs fastest near perihelion in
+early January, so northern winter is the shortest season.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/season-boundaries.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\season-boundaries.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/season-boundaries.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/season-boundaries.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\season-boundaries.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/season-boundaries.epher
+In the REPL:             load one of the paths above
 
-   Knob: the year.
-   ============================================================================ */
+Knob: the year.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const year = 2026
 
 /* ---- results ----------------------------------------------------------------
-   Days into the year of each boundary. Read as calendar dates: March 20
-   at about 14:46 UT, June 21 at 08:25, September 23 at 00:05, December
-   21 at 20:50. The autumn equinox lands on the 23rd because the leap
-   day of 2024 pushed the equinoxes later in the calendar (in 2025 the
-   autumn equinox fell on September 22). The four gaps are the
-   seasons' lengths: spring 92.7 days, summer 93.7, autumn 89.9,
-   winter 89.0 (to the next March equinox) - the winter half of the
-   year is about a week shorter than the summer half because the Earth
-   is nearest the Sun in January. */
+Days into the year of each boundary. Read as calendar dates: March 20
+at about 14:46 UT, June 21 at 08:25, September 23 at 00:05, December
+21 at 20:50. The autumn equinox lands on the 23rd because the leap
+day of 2024 pushed the equinoxes later in the calendar (in 2025 the
+autumn equinox fell on September 22). The four gaps are the
+seasons' lengths: spring 92.7 days, summer 93.7, autumn 89.9,
+winter 89.0 (to the next March equinox) - the winter half of the
+year is about a week shorter than the summer half because the Earth
+is nearest the Sun in January. */
 print("spring equinox:", march_equinox(year) - jd(year, 1, 1), "days into", year)
 print("summer solstice:", june_solstice(year) - jd(year, 1, 1), "days into", year)
 print("autumn equinox:", september_equinox(year) - jd(year, 1, 1), "days into", year)
 print("winter solstice:", december_solstice(year) - jd(year, 1, 1), "days into", year)
 
 /* The raw JDs of two boundaries: an event JD is a moment in time like
-   any other JD. The June solstice displays as a plain decimal; the
-   March equinox's decimal would repeat, so it shows as the exact
-   fraction 1129654133/459 - same moment, different display. */
+any other JD. The June solstice displays as a plain decimal; the
+March equinox's decimal would repeat, so it shows as the exact
+fraction 1129654133/459 - same moment, different display. */
 print("raw JD of the March equinox:", march_equinox(year))
 print("raw JD of the June solstice:", june_solstice(year))
 
 /* The structural check: the Sun's declination at each boundary. The
-   equinox is defined by declination 0, and the solstices by the
-   extremes of about +23.44 and -23.44 deg (the axial tilt); all four
-   readings land where they must, to well under 0.001 deg. */
+equinox is defined by declination 0, and the solstices by the
+extremes of about +23.44 and -23.44 deg (the axial tilt); all four
+readings land where they must, to well under 0.001 deg. */
 print("sun decl at spring equinox:", decl(10, march_equinox(year)), "deg")
 print("sun decl at summer solstice:", decl(10, june_solstice(year)), "deg")
 print("sun decl at autumn equinox:", decl(10, september_equinox(year)), "deg")
 print("sun decl at winter solstice:", decl(10, december_solstice(year)), "deg")
 
 /* The tropical year, measured solstice to solstice: about 365.24 days
-   (the classical tropical year, equinox to equinox, is 365.2422 days;
-   the solstice-to-solstice span wobbles by minutes). The Gregorian
-   calendar averages 365.2425 days a year, so the boundaries drift
-   slowly - hours per century - and the leap-year rhythm makes the
-   day-of-year readings jump by a few hours each year. */
+(the classical tropical year, equinox to equinox, is 365.2422 days;
+the solstice-to-solstice span wobbles by minutes). The Gregorian
+calendar averages 365.2425 days a year, so the boundaries drift
+slowly - hours per century - and the leap-year rhythm makes the
+day-of-year readings jump by a few hours each year. */
 print("June solstice to June solstice:", june_solstice(year + 1) - june_solstice(year), "days")
 
 /* ---- expected output ----

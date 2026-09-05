@@ -1,24 +1,24 @@
 /* ============================================================================
-   law-of-sines.epher -- two angles and one side (AAS and ASA)
+law-of-sines.epher -- two angles and one side (AAS and ASA)
 
-   The law of sines, a / sin A = b / sin B = c / sin C, solves any triangle
-   once one side and its opposite angle are known. Given angles A and B and
-   side a (the AAS case), C = 180 - A - B follows from the angle sum and
-   then b = a sin B / sin A and c = a sin C / sin A. Given the side c
-   between A and B instead (the ASA case), the same C gives
-   a = c sin A / sin C. Angles come in degrees through the knobs and are
-   converted with rad() for the builtin trig; the sides keep meters.
+The law of sines, a / sin A = b / sin B = c / sin C, solves any triangle
+once one side and its opposite angle are known. Given angles A and B and
+side a (the AAS case), C = 180 - A - B follows from the angle sum and
+then b = a sin B / sin A and c = a sin C / sin A. Given the side c
+between A and B instead (the ASA case), the same C gives
+a = c sin A / sin C. Angles come in degrees through the knobs and are
+converted with rad() for the builtin trig; the sides keep meters.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/law-of-sines.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\law-of-sines.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/law-of-sines.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/triangles/law-of-sines.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\triangles\law-of-sines.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/triangles/law-of-sines.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are the angles A and B (degrees) and the two given
-   sides below. Printed values carry about 12 significant digits.
-   ============================================================================ */
+The knobs to edit are the angles A and B (degrees) and the two given
+sides below. Printed values carry about 12 significant digits.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const A = 40        // angle at A, degrees (shared by both problems)

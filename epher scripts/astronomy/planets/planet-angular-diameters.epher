@@ -1,33 +1,33 @@
 /* ============================================================================
-   planet-angular-diameters.epher -- apparent disk sizes of the planets
+planet-angular-diameters.epher -- apparent disk sizes of the planets
 
-   Angular diameters of the planets on 2026-06-01, from the built-in
-   accessor diam, which returns degrees (the solar-ephemeris crate,
-   JPL-validated; guide 1.16). One degree is 3600 arcseconds, so the
-   arcsecond values below are diam * 3600. To the naked eye every planet
-   is a point; a telescope shows the disks. Jupiter's disk spans about
-   30-50 arcsec depending on its distance (here 32.4 arcsec at 5.95 AU);
-   Venus, closer at 1.26 AU, shows 13.3 arcsec as a gibbous phase; Pluto
-   is 0.09 arcsec, far below what any telescope can resolve as a disk.
+Angular diameters of the planets on 2026-06-01, from the built-in
+accessor diam, which returns degrees (the solar-ephemeris crate,
+JPL-validated; guide 1.16). One degree is 3600 arcseconds, so the
+arcsecond values below are diam * 3600. To the naked eye every planet
+is a point; a telescope shows the disks. Jupiter's disk spans about
+30-50 arcsec depending on its distance (here 32.4 arcsec at 5.95 AU);
+Venus, closer at 1.26 AU, shows 13.3 arcsec as a gibbous phase; Pluto
+is 0.09 arcsec, far below what any telescope can resolve as a disk.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-angular-diameters.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-angular-diameters.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-angular-diameters.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-angular-diameters.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-angular-diameters.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-angular-diameters.epher
+In the REPL:             load one of the paths above
 
-   Knob: the date t.
-   ============================================================================ */
+Knob: the date t.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const t = jd(2026, 6, 1)     // 0h UT
 
 /* ---- results ----------------------------------------------------------------
-   Arcseconds in body-number order (Mercury, Venus, Mars, Jupiter,
-   Saturn, Uranus, Neptune, Pluto). The Moon, for scale, spans about
-   1800 arcsec, and the Dawes limit of a 100 mm telescope is 1.16 arcsec
-   (see telescope-resolution.epher): only Jupiter (32.4), Venus (13.3)
-   and Saturn (16.1, ringless here) show real disks in a small scope. */
+Arcseconds in body-number order (Mercury, Venus, Mars, Jupiter,
+Saturn, Uranus, Neptune, Pluto). The Moon, for scale, spans about
+1800 arcsec, and the Dawes limit of a 100 mm telescope is 1.16 arcsec
+(see telescope-resolution.epher): only Jupiter (32.4), Venus (13.3)
+and Saturn (16.1, ringless here) show real disks in a small scope. */
 for b in {1, 2, 4, 5, 6, 7, 8, 9} do diam(b, t) * 3600
 
 // The same reading for the two classic showpieces, in degrees and

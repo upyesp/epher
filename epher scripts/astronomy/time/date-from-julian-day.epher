@@ -1,25 +1,25 @@
 /* ============================================================================
-   date-from-julian-day.epher -- Julian Date back to a calendar date
+date-from-julian-day.epher -- Julian Date back to a calendar date
 
-   The inverse of jd(y, m, d): turns a Julian Date into year, month and
-   day with the algorithm of chapter 7 of Jean Meeus, "Astronomical
-   Algorithms" (2nd ed., Willmann-Bell, 1998), Gregorian calendar. The
-   steps are floor arithmetic on the day number a = floor(jd + 0.5); the
-   constants 365.25 and 30.6001 are the calendar's mean month and year
-   in the form the tables use. Meeus's day carries the time of day as a
-   fraction; the test JDs below all fall at 0h or 12h UT, so flooring
-   the day is enough. Every result is checked by a round trip back
-   through jd(), which prints true when the pair of functions agree.
+The inverse of jd(y, m, d): turns a Julian Date into year, month and
+day with the algorithm of chapter 7 of Jean Meeus, "Astronomical
+Algorithms" (2nd ed., Willmann-Bell, 1998), Gregorian calendar. The
+steps are floor arithmetic on the day number a = floor(jd + 0.5); the
+constants 365.25 and 30.6001 are the calendar's mean month and year
+in the form the tables use. Meeus's day carries the time of day as a
+fraction; the test JDs below all fall at 0h or 12h UT, so flooring
+the day is enough. Every result is checked by a round trip back
+through jd(), which prints true when the pair of functions agree.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/date-from-julian-day.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\date-from-julian-day.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/date-from-julian-day.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/date-from-julian-day.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\date-from-julian-day.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/date-from-julian-day.epher
+In the REPL:             load one of the paths above
 
-   Knob: none - the dates below are fixed, including leap-day and
-   century-boundary cases the round trips exercise.
-   ============================================================================ */
+Knob: none - the dates below are fixed, including leap-day and
+century-boundary cases the round trips exercise.
+============================================================================ */
 
 // ---- Meeus ch. 7: JD to calendar date (Gregorian), one step per def -------
 def m7a(jd) = floor(jd + 0.5)                       // a: day number
@@ -39,11 +39,11 @@ def pad2(n) = if n < 10 then "0" + str(n) else str(n)
 def iso(t) = str(t[1]) + "-" + pad2(t[2]) + "-" + pad2(t[3])
 
 /* ---- results ----------------------------------------------------------------
-   Round trips: the date of a JD that jd() produced, and the check that
-   converting back yields the original JD (true on every line). The
-   famous bare JD 2451545 is J2000.0, noon on 2000-01-01; ymd() returns
-   the calendar date (the day's fraction carries the 12:00, which the
-   date alone cannot recover), and flooring the day reads 01 as 1. */
+Round trips: the date of a JD that jd() produced, and the check that
+converting back yields the original JD (true on every line). The
+famous bare JD 2451545 is J2000.0, noon on 2000-01-01; ymd() returns
+the calendar date (the day's fraction carries the 12:00, which the
+date alone cannot recover), and flooring the day reads 01 as 1. */
 print("jd(2026, 3, 15) ->", iso(ymd(jd(2026, 3, 15))))
 print("round trip:", jd(ymd(jd(2026, 3, 15))[1], ymd(jd(2026, 3, 15))[2], ymd(jd(2026, 3, 15))[3]) == jd(2026, 3, 15))
 print("J2000.0, JD 2451545 ->", iso(ymd(2451545)))

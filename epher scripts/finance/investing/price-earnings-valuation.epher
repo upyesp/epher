@@ -1,27 +1,27 @@
 /* ============================================================================
-   price-earnings-valuation.epher -- fair price of a share from earnings
-   per share and a target P/E, with an over/under-valued verdict
+price-earnings-valuation.epher -- fair price of a share from earnings
+per share and a target P/E, with an over/under-valued verdict
 
-   The P/E approach prices a share as eps * target_pe: what the market
-   typically pays per dollar of earnings for comparable firms. Comparing the
-   fair price with the market price gives the verdict (an if/else prints it)
-   and the gap in percent. Source: standard equity-valuation practice; see
-   Brealey and Myers, Principles of Corporate Finance, chapter 4.
+The P/E approach prices a share as eps * target_pe: what the market
+typically pays per dollar of earnings for comparable firms. Comparing the
+fair price with the market price gives the verdict (an if/else prints it)
+and the gap in percent. Source: standard equity-valuation practice; see
+Brealey and Myers, Principles of Corporate Finance, chapter 4.
 
-   Assumptions: the target P/E comes from comparable companies or the
-   industry and is a rule of thumb, not a law; the verdict is about price,
-   not quality. Earnings are the trailing twelve months.
+Assumptions: the target P/E comes from comparable companies or the
+industry and is a rule of thumb, not a law; the verdict is about price,
+not quality. Earnings are the trailing twelve months.
 
-   Accuracy: exact arithmetic, so the fair prices and gaps are exact.
+Accuracy: exact arithmetic, so the fair prices and gaps are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/price-earnings-valuation.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\price-earnings-valuation.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/price-earnings-valuation.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/price-earnings-valuation.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\price-earnings-valuation.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/price-earnings-valuation.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const eps_a = 2.40          // earnings per share, scenario A, USD
@@ -42,9 +42,9 @@ print("fair value B:", fair(eps_b, pe_b))
 print("verdict B:", if fair(eps_b, pe_b) > market_b then "undervalued: fair value sits above the market price" else "overvalued: fair value sits below the market price")
 print("gap B in percent:", (fair(eps_b, pe_b) - market_b) / market_b * 100)
 /* Scenario A: 2.40 of earnings at a P/E of 18 prices the share at 43.20
-   against a 40 market price, an 8% upside if the target P/E is right.
-   Scenario B: 3.10 at a P/E of 15 prices it at 46.50 against a 50 market
-   price, 7% downside. Same method, opposite verdicts. */
+against a 40 market price, an 8% upside if the target P/E is right.
+Scenario B: 3.10 at a P/E of 15 prices it at 46.50 against a 50 market
+price, 7% downside. Same method, opposite verdicts. */
 /* ---- expected output ----
 = 2.4
 = 18

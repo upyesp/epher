@@ -1,25 +1,25 @@
 /* ============================================================================
-   limit-of-rational-at-infinity.epher -- a ratio of quadratics tends to 3
+limit-of-rational-at-infinity.epher -- a ratio of quadratics tends to 3
 
-   (3n^2 + 2n - 1)/(n^2 + 5) -> 3 as n -> infinity: dividing top and
-   bottom by n^2 gives (3 + 2/n - 1/n^2)/(1 + 5/n^2), whose terms all
-   die except the 3 (Stewart, "Calculus", 8th ed., sec. 2.6, limits of
-   rational functions at infinity). The leading correction is 2/n, which
-   is why n = 1e4 gives 3.0002 and n = 1e9 gives 3.000000002.
+(3n^2 + 2n - 1)/(n^2 + 5) -> 3 as n -> infinity: dividing top and
+bottom by n^2 gives (3 + 2/n - 1/n^2)/(1 + 5/n^2), whose terms all
+die except the 3 (Stewart, "Calculus", 8th ed., sec. 2.6, limits of
+rational functions at infinity). The leading correction is 2/n, which
+is why n = 1e4 gives 3.0002 and n = 1e9 gives 3.000000002.
 
-   At n = 10 and n = 100 the arithmetic is exact integer division, and
-   epher shows the repeating decimals as fractions: 319/105 and 1313/435
-   (3.038095... and 3.01999...). The display, not the math, differs.
+At n = 10 and n = 100 the arithmetic is exact integer division, and
+epher shows the repeating decimals as fractions: 319/105 and 1313/435
+(3.038095... and 3.01999...). The display, not the math, differs.
 
-   Accuracy: exact rational values at small n; values at large n round
-   at about the 12th digit (2e-9 from the limit at n = 1e9).
+Accuracy: exact rational values at small n; values at large n round
+at about the 12th digit (2e-9 from the limit at n = 1e9).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/limits/limit-of-rational-at-infinity.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\limits\limit-of-rational-at-infinity.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/limits/limit-of-rational-at-infinity.epher
-   The knobs to edit are `ns` and `big` below.
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/limits/limit-of-rational-at-infinity.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\limits\limit-of-rational-at-infinity.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/limits/limit-of-rational-at-infinity.epher
+The knobs to edit are `ns` and `big` below.
+============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const ns = {10, 100, 10000, 1000000000}

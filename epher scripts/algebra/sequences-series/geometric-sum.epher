@@ -1,20 +1,20 @@
 /* ============================================================================
-   geometric-sum.epher -- sum of the first n terms of a geometric sequence
+geometric-sum.epher -- sum of the first n terms of a geometric sequence
 
-   The sum of the first n terms of a geometric sequence is
-   S_n = a (1 - r^n) / (1 - r), since the pairing trick subtracts the tail
-   a r^n from the shifted sum (any algebra text, e.g. Stewart, Redlin and
-   Watson, "College Algebra", 7th ed., sec. 9.2). With a = 3, r = 2 the first
-   10 terms sum to 3 (2^10 - 1) = 3069, cross-checked by adding the terms
-   one by one in a quiet while loop. All values are exact.
+The sum of the first n terms of a geometric sequence is
+S_n = a (1 - r^n) / (1 - r), since the pairing trick subtracts the tail
+a r^n from the shifted sum (any algebra text, e.g. Stewart, Redlin and
+Watson, "College Algebra", 7th ed., sec. 9.2). With a = 3, r = 2 the first
+10 terms sum to 3 (2^10 - 1) = 3069, cross-checked by adding the terms
+one by one in a quiet while loop. All values are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/geometric-sum.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\geometric-sum.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/geometric-sum.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/geometric-sum.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\geometric-sum.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/geometric-sum.epher
 
-   The knobs to edit are a, r and n below.
-   ============================================================================ */
+The knobs to edit are a, r and n below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 3                      // first term

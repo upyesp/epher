@@ -1,24 +1,24 @@
 /* ============================================================================
-   z-test-known-sigma.epher -- class mean against a known population spread
+z-test-known-sigma.epher -- class mean against a known population spread
 
-   Tests whether the ten exam scores in `d` differ from the claimed mean
-   75 when the population standard deviation is known to be 9 from past
-   administrations of the exam, using the builtin z test ztest(data, mu0,
-   sigma) (guide 1.20), which prints the z statistic and the two-sided
-   p-value as a display string. With sigma known the standard error of
-   the mean is sigma / sqrt(n) and no sample standard deviation is needed.
+Tests whether the ten exam scores in `d` differ from the claimed mean
+75 when the population standard deviation is known to be 9 from past
+administrations of the exam, using the builtin z test ztest(data, mu0,
+sigma) (guide 1.20), which prints the z statistic and the two-sided
+p-value as a display string. With sigma known the standard error of
+the mean is sigma / sqrt(n) and no sample standard deviation is needed.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/z-test-known-sigma.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\z-test-known-sigma.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/z-test-known-sigma.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/z-test-known-sigma.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\z-test-known-sigma.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/z-test-known-sigma.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `mu0` and `sigma` below, or `d` for other data.
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `mu0` and `sigma` below, or `d` for other data.
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students

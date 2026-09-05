@@ -1,35 +1,35 @@
 /* ============================================================================
-   julian-centuries-since-j2000.epher -- the T of astronomy formulas
+julian-centuries-since-j2000.epher -- the T of astronomy formulas
 
-   The time variable T = (jd - 2451545) / 36525: Julian centuries of
-   36525 days (100 Julian years of 365.25 days) since the J2000.0 epoch,
-   2000-01-01 12:00 UT (guide 1.16). Nearly every series in practical
-   astronomy - the VSOP87 planetary theory, the lunar theories, the
-   precession and nutation polynomials - is a polynomial in T, so one
-   script's first line is usually the one below. The examples were
-   verified against plain arithmetic in python, the oracle for the
-   expected output.
+The time variable T = (jd - 2451545) / 36525: Julian centuries of
+36525 days (100 Julian years of 365.25 days) since the J2000.0 epoch,
+2000-01-01 12:00 UT (guide 1.16). Nearly every series in practical
+astronomy - the VSOP87 planetary theory, the lunar theories, the
+precession and nutation polynomials - is a polynomial in T, so one
+script's first line is usually the one below. The examples were
+verified against plain arithmetic in python, the oracle for the
+expected output.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/julian-centuries-since-j2000.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\julian-centuries-since-j2000.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/julian-centuries-since-j2000.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/julian-centuries-since-j2000.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\julian-centuries-since-j2000.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/julian-centuries-since-j2000.epher
+In the REPL:             load one of the paths above
 
-   Knob: none - the epochs below are fixed.
-   ============================================================================ */
+Knob: none - the epochs below are fixed.
+============================================================================ */
 
 // ---- model ------------------------------------------------------------------
 def T(j) = (j - 2451545) / 36525
 
 /* ---- results ----------------------------------------------------------------
-   The anchor epochs: J2000.0 itself is T = 0 by definition; 1950-01-01
-   is exactly half a Julian century before it, and 2050-01-01 exactly
-   half a century after. 2026-01-01 is 26 Julian years after 2000, and
-   26 * 365.25 = 9496.5 days is exactly 0.26 of a Julian century, so T
-   prints 0.26 exactly rather than a repeating decimal. The last line
-   is a mid-year epoch whose decimal repeats and so displays as the
-   exact fraction 9668/36525. */
+The anchor epochs: J2000.0 itself is T = 0 by definition; 1950-01-01
+is exactly half a Julian century before it, and 2050-01-01 exactly
+half a century after. 2026-01-01 is 26 Julian years after 2000, and
+26 * 365.25 = 9496.5 days is exactly 0.26 of a Julian century, so T
+prints 0.26 exactly rather than a repeating decimal. The last line
+is a mid-year epoch whose decimal repeats and so displays as the
+exact fraction 9668/36525. */
 print("J2000.0 (2000-01-01 12:00 UT):", T(jd(2000, 1, 1, 12)))
 print("1950-01-01:", T(jd(1950, 1, 1)))
 print("2026-01-01:", T(jd(2026, 1, 1)))
@@ -37,14 +37,14 @@ print("2050-01-01:", T(jd(2050, 1, 1)))
 print("2026-06-21 12:00 UT:", T(jd(2026, 6, 21, 12)))
 
 /* For a sense of scale: T reaches 1 exactly 36525 days (100 Julian
-   years) after J2000.0, but the Gregorian century is one day short
-   because 2100 is not a leap year, so 2100-01-01 sits at T = 0.999986.
-   (The March equinox of 2026 prints as the exact fraction 1129654133/459
-   in season-boundaries.epher - event JDs with repeating decimals show
-   as fractions, while 9668/36525 here happens to display as the
-   decimal 0.2646954141.) The solar-ephemeris crate that backs the
-   astronomy accessors stays arcsecond-class over roughly T = -50 to
-   +50, about 5000 years around the present (guide 1.16). */
+years) after J2000.0, but the Gregorian century is one day short
+because 2100 is not a leap year, so 2100-01-01 sits at T = 0.999986.
+(The March equinox of 2026 prints as the exact fraction 1129654133/459
+in season-boundaries.epher - event JDs with repeating decimals show
+as fractions, while 9668/36525 here happens to display as the
+decimal 0.2646954141.) The solar-ephemeris crate that backs the
+astronomy accessors stays arcsecond-class over roughly T = -50 to
++50, about 5000 years around the present (guide 1.16). */
 print("2100-01-01:", T(jd(2100, 1, 1)))
 
 /* ---- expected output ----

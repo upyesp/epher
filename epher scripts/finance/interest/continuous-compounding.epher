@@ -1,27 +1,27 @@
 /* ============================================================================
-   continuous-compounding.epher -- growth of a sum under continuous, daily,
-   monthly and yearly compounding of the same nominal rate
+continuous-compounding.epher -- growth of a sum under continuous, daily,
+monthly and yearly compounding of the same nominal rate
 
-   A sum P invested for t years at nominal annual rate r grows to
-   P*(1 + r/m)^(m*t) when interest is credited m times a year, and to
-   P*e^(r*t) when it is credited continuously (the limit of the discrete
-   formula as m grows without bound). This script prints all four rungs of
-   the ladder for one P, r and t. Source: standard finance formulas; the
-   limit result is Kellison, The Theory of Interest, chapter 2.
+A sum P invested for t years at nominal annual rate r grows to
+P*(1 + r/m)^(m*t) when interest is credited m times a year, and to
+P*e^(r*t) when it is credited continuously (the limit of the discrete
+formula as m grows without bound). This script prints all four rungs of
+the ladder for one P, r and t. Source: standard finance formulas; the
+limit result is Kellison, The Theory of Interest, chapter 2.
 
-   Accuracy: 12 displayed digits; the daily value differs from the
-   continuous one by about 0.003% of the balance, the gap the comment below
-   names. Real accounts compound on business days and may pay a slightly
-   different daily rate; the difference is immaterial at these sizes.
+Accuracy: 12 displayed digits; the daily value differs from the
+continuous one by about 0.003% of the balance, the gap the comment below
+names. Real accounts compound on business days and may pay a slightly
+different daily rate; the difference is immaterial at these sizes.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/continuous-compounding.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\continuous-compounding.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/continuous-compounding.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/continuous-compounding.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\continuous-compounding.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/continuous-compounding.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const principal = 1000      // starting sum, USD

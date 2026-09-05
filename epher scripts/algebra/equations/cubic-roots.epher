@@ -1,19 +1,19 @@
 /* ============================================================================
-   cubic-roots.epher -- roots of a cubic, shown by the built-in solve
+cubic-roots.epher -- roots of a cubic, shown by the built-in solve
 
-   The cubic x^3 - 6x^2 + 11x - 6 factors as (x - 1)(x - 2)(x - 3). The
-   The built-in solve finds all roots of a polynomial, real and
-   complex alike; its answer is a display string, so each printed root is
-   then verified by evaluating the polynomial (exact zeros). The cubic is
-   x^3 - 6x^2 + 11x - 6, a running example of the algebra folder.
+The cubic x^3 - 6x^2 + 11x - 6 factors as (x - 1)(x - 2)(x - 3). The
+The built-in solve finds all roots of a polynomial, real and
+complex alike; its answer is a display string, so each printed root is
+then verified by evaluating the polynomial (exact zeros). The cubic is
+x^3 - 6x^2 + 11x - 6, a running example of the algebra folder.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/cubic-roots.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\cubic-roots.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/cubic-roots.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/cubic-roots.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\cubic-roots.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/cubic-roots.epher
 
-   The knob to edit is the coefficient list cs below.
-   ============================================================================ */
+The knob to edit is the coefficient list cs below.
+============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
 const cs = {1, -6, 11, -6}       // coefficients of x^3 - 6x^2 + 11x - 6, highest first

@@ -1,24 +1,24 @@
 /* ============================================================================
-   one-proportion-z-test.epher -- support for a change, against 25 percent
+one-proportion-z-test.epher -- support for a change, against 25 percent
 
-   Tests whether the share of supporters differs from the claimed 25
-   percent when 42 of 200 people back a change, with the textbook one-
-   proportion z test: z = (phat - p0) / sqrt(p0 * (1 - p0) / n) and a
-   two-sided p-value from the normal tail, 2 * normcdf(z) for the
-   negative z below. There is no builtin proportion test, so the formula
-   is written out.
+Tests whether the share of supporters differs from the claimed 25
+percent when 42 of 200 people back a change, with the textbook one-
+proportion z test: z = (phat - p0) / sqrt(p0 * (1 - p0) / n) and a
+two-sided p-value from the normal tail, 2 * normcdf(z) for the
+negative z below. There is no builtin proportion test, so the formula
+is written out.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/one-proportion-z-test.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\one-proportion-z-test.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/one-proportion-z-test.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/one-proportion-z-test.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\one-proportion-z-test.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/one-proportion-z-test.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `x`, `n` and `p0` below. Everything above the
-   results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `x`, `n` and `p0` below. Everything above the
+results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const x = 42    // supporters of the change in the sample

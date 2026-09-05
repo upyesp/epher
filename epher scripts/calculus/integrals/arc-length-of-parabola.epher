@@ -1,26 +1,26 @@
 /* ============================================================================
-   arc-length-of-parabola.epher -- length of y = x^2 from x = 0 to 1
+arc-length-of-parabola.epher -- length of y = x^2 from x = 0 to 1
 
-   The arc length formula (Stewart, "Calculus", 8th ed., sec. 8.1) for
-   y = f(x) on [a, b] is integral(sqrt(1 + (dy/dx)^2), a, b). Here
-   y = x^2, so dy/dx = 2x and the integrand is sqrt(1 + 4x^2):
+The arc length formula (Stewart, "Calculus", 8th ed., sec. 8.1) for
+y = f(x) on [a, b] is integral(sqrt(1 + (dy/dx)^2), a, b). Here
+y = x^2, so dy/dx = 2x and the integrand is sqrt(1 + 4x^2):
 
-     length = integral(sqrt(1 + (2*x)^2), 0, 1)
+  length = integral(sqrt(1 + (2*x)^2), 0, 1)
 
-   which the adaptive Simpson builtin evaluates numerically. The closed
-   form, from the integral of sqrt(1 + 4x^2) with the substitution
-   x = (1/2) sinh(u), is [ x sqrt(1 + 4x^2)/2 + asinh(2x)/4 ] from 0 to
-   1 = sqrt(5)/2 + asinh(2)/4, printed underneath for comparison.
+which the adaptive Simpson builtin evaluates numerically. The closed
+form, from the integral of sqrt(1 + 4x^2) with the substitution
+x = (1/2) sinh(u), is [ x sqrt(1 + 4x^2)/2 + asinh(2x)/4 ] from 0 to
+1 = sqrt(5)/2 + asinh(2)/4, printed underneath for comparison.
 
-   Accuracy: the builtin value and the closed form agree to about
-   5e-12; both are checked at 1e-9.
+Accuracy: the builtin value and the closed form agree to about
+5e-12; both are checked at 1e-9.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/arc-length-of-parabola.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\arc-length-of-parabola.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/arc-length-of-parabola.epher
-   No knobs: the arc from x = 0 to x = 1 is the demonstration.
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/arc-length-of-parabola.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\arc-length-of-parabola.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/arc-length-of-parabola.epher
+No knobs: the arc from x = 0 to x = 1 is the demonstration.
+============================================================================ */
 
 // ---- the arc length by the builtin integral ---------------------------------
 integral(sqrt(1 + (2*x)^2), 0, 1)

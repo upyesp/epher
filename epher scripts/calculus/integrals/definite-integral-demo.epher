@@ -1,32 +1,32 @@
 /* ============================================================================
-   definite-integral-demo.epher -- the builtin integral vs exact values
+definite-integral-demo.epher -- the builtin integral vs exact values
 
-   integral(expr, a, b) is the adaptive Simpson definite integral of an
-   expression in its free variable, from a to b. Adaptive Simpson is
-   exact (up to rounding) on polynomials of degree 3 or less, which is
-   why the polynomial results print as exact numbers and fractions:
+integral(expr, a, b) is the adaptive Simpson definite integral of an
+expression in its free variable, from a to b. Adaptive Simpson is
+exact (up to rounding) on polynomials of degree 3 or less, which is
+why the polynomial results print as exact numbers and fractions:
 
-     integral(x^2, 0, 3) = 3^3/3 = 9        (power rule)
-     integral(x^3, 0, 2) = 2^4/4 = 4        (power rule)
-     integral(x^2, 1, 2) = 8/3 - 1/3 = 7/3  (prints as the fraction 7/3)
+  integral(x^2, 0, 3) = 3^3/3 = 9        (power rule)
+  integral(x^3, 0, 2) = 2^4/4 = 4        (power rule)
+  integral(x^2, 1, 2) = 8/3 - 1/3 = 7/3  (prints as the fraction 7/3)
 
-   and sin is handled by Simpson's own refinement:
+and sin is handled by Simpson's own refinement:
 
-     integral(sin(x), 0, pi) = 2            (one full arch of sine)
+  integral(sin(x), 0, pi) = 2            (one full arch of sine)
 
-   The interval direction follows the convention of the fundamental
-   theorem: integral(x^2, 3, 0) = -9, reversing the limits.
+The interval direction follows the convention of the fundamental
+theorem: integral(x^2, 3, 0) = -9, reversing the limits.
 
-   Accuracy: each value below is exact at the displayed precision; the
-   endpoints are the standard Stewart, "Calculus", 8th ed., ch. 5
-   examples.
+Accuracy: each value below is exact at the displayed precision; the
+endpoints are the standard Stewart, "Calculus", 8th ed., ch. 5
+examples.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/definite-integral-demo.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\definite-integral-demo.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/definite-integral-demo.epher
-   No knobs: the five integrals are the demonstration.
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/definite-integral-demo.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\definite-integral-demo.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/definite-integral-demo.epher
+No knobs: the five integrals are the demonstration.
+============================================================================ */
 
 // ---- polynomial integrands: exact by the power rule -------------------------
 integral(x^2, 0, 3)

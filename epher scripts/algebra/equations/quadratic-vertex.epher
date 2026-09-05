@@ -1,19 +1,19 @@
 /* ============================================================================
-   quadratic-vertex.epher -- vertex (h, k) of the parabola y = ax^2 + bx + c
+quadratic-vertex.epher -- vertex (h, k) of the parabola y = ax^2 + bx + c
 
-   Completing the square puts the parabola in vertex form y = a(x - h)^2 + k
-   with h = -b/(2a) and k = c - b^2/(4a), the standard formulas of a college
-   algebra text (Stewart, Redlin and Watson, "College Algebra", 7th ed.,
-   sec. 4.1). Exact: the rational arithmetic stays exact, so h and k print as
-   exact fractions (-3/4 and -49/8 for the knobs below).
+Completing the square puts the parabola in vertex form y = a(x - h)^2 + k
+with h = -b/(2a) and k = c - b^2/(4a), the standard formulas of a college
+algebra text (Stewart, Redlin and Watson, "College Algebra", 7th ed.,
+sec. 4.1). Exact: the rational arithmetic stays exact, so h and k print as
+exact fractions (-3/4 and -49/8 for the knobs below).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/quadratic-vertex.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\quadratic-vertex.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/quadratic-vertex.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/quadratic-vertex.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\quadratic-vertex.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/quadratic-vertex.epher
 
-   The knobs to edit are a, b and c below.
-   ============================================================================ */
+The knobs to edit are a, b and c below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 2

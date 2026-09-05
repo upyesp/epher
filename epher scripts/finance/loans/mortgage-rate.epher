@@ -1,24 +1,24 @@
 /* ============================================================================
-   mortgage-rate.epher -- the interest rate a given payment implies, and the
-   difference between the quoted (APR) rate and the effective annual rate
+mortgage-rate.epher -- the interest rate a given payment implies, and the
+difference between the quoted (APR) rate and the effective annual rate
 
-   The finance builtin tvm_i solves the annuity equation for the per-period
-   rate: given the term, principal (negative) and payment, it returns the
-   monthly rate i. Multiplying by 12 gives the nominal annual rate, the way
-   lenders quote an APR; compounding that monthly rate for a year gives the
-   higher effective annual rate (1+i)^12 - 1. Source: standard TVM
-   formulas; see Kellison, The Theory of Interest, chapters 2-3.
+The finance builtin tvm_i solves the annuity equation for the per-period
+rate: given the term, principal (negative) and payment, it returns the
+monthly rate i. Multiplying by 12 gives the nominal annual rate, the way
+lenders quote an APR; compounding that monthly rate for a year gives the
+higher effective annual rate (1+i)^12 - 1. Source: standard TVM
+formulas; see Kellison, The Theory of Interest, chapters 2-3.
 
-   Accuracy: 12 displayed digits; tvm_i bisects the rate to about 1e-15.
+Accuracy: 12 displayed digits; tvm_i bisects the rate to about 1e-15.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/mortgage-rate.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\mortgage-rate.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/mortgage-rate.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/mortgage-rate.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\mortgage-rate.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/mortgage-rate.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const principal = 200000    // loan amount at closing, USD

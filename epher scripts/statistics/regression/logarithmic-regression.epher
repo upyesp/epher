@@ -1,24 +1,24 @@
 /* ============================================================================
-   logarithmic-regression.epher -- fit y = a + b * ln(x) to a saturating curve
+logarithmic-regression.epher -- fit y = a + b * ln(x) to a saturating curve
 
-   Fits the least-squares logarithmic curve y = a + b * ln(x) to the
-   response scores in `ys` measured at the doses in `xs` with the builtin
-   logreg (guide 1.20), which prints the fitted model and the correlation
-   r of the fit as a display string. A response that rises quickly and
-   then flattens is the classic logarithmic shape, so doubling the dose
-   adds a roughly constant amount of response. Data are illustrative.
+Fits the least-squares logarithmic curve y = a + b * ln(x) to the
+response scores in `ys` measured at the doses in `xs` with the builtin
+logreg (guide 1.20), which prints the fitted model and the correlation
+r of the fit as a display string. A response that rises quickly and
+then flattens is the classic logarithmic shape, so doubling the dose
+adds a roughly constant amount of response. Data are illustrative.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/logarithmic-regression.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\logarithmic-regression.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/logarithmic-regression.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/logarithmic-regression.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\logarithmic-regression.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/logarithmic-regression.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `xs` and `ys` below. Everything above the results
-   section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `xs` and `ys` below. Everything above the results
+section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const xs = {1, 2, 4, 8, 16, 32}   // dose, milligrams, doubling each step

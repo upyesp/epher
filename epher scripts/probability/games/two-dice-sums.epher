@@ -1,21 +1,21 @@
 /* ============================================================================
-   two-dice-sums.epher -- the exact distribution of the sum of two dice
+two-dice-sums.epher -- the exact distribution of the sum of two dice
 
-   Two fair dice give 36 equally likely ordered pairs (a, b), so the sum
-   s = a + b occurs in s - 1 of those pairs when s <= 7 and in 13 - s of
-   them when s > 7 (the distribution is triangular, peaking at s = 7).
-   The probabilities are the counts over 36, and every one of them is an
-   exact fraction here: 6/36 = 1/6 for the sum 7.
+Two fair dice give 36 equally likely ordered pairs (a, b), so the sum
+s = a + b occurs in s - 1 of those pairs when s <= 7 and in 13 - s of
+them when s > 7 (the distribution is triangular, peaking at s = 7).
+The probabilities are the counts over 36, and every one of them is an
+exact fraction here: 6/36 = 1/6 for the sum 7.
 
-   Source: the standard counting argument; Feller, "An Introduction to
-   Probability Theory and Its Applications", volume 1, chapter 1.
+Source: the standard counting argument; Feller, "An Introduction to
+Probability Theory and Its Applications", volume 1, chapter 1.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/two-dice-sums.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\two-dice-sums.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/two-dice-sums.epher
-   Web/desktop:             paste the file into the entry, press Enter
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/two-dice-sums.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\two-dice-sums.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/two-dice-sums.epher
+Web/desktop:             paste the file into the entry, press Enter
+============================================================================ */
 
 // ---- results ----
 // The count of pairs giving each sum from 2 to 12: {1, 2, ..., 6, ...}.

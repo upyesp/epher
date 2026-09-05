@@ -1,21 +1,21 @@
 /* ============================================================================
-   synthetic-division.epher -- divide a cubic by (x - r): quotient and remainder
+synthetic-division.epher -- divide a cubic by (x - r): quotient and remainder
 
-   Synthetic division (Ruffini, 1804; Horner, 1819) divides
-   p(x) = x^3 - 6x^2 + 11x - 6 by x - 5 in n multiply-adds: the carry starts
-   as the leading coefficient cs[1] = 1, and each step does carry = cs[j] + r
-   * carry. The for loop below collects those carries: the first two are the
-   remaining quotient coefficients (-1 and 6, so q(x) = x^2 - x + 6) and the
-   last is the remainder 24. The remainder theorem says 24 = p(5), checked
-   at the end along with the identity p = (x - 5) q + 24. All exact.
+Synthetic division (Ruffini, 1804; Horner, 1819) divides
+p(x) = x^3 - 6x^2 + 11x - 6 by x - 5 in n multiply-adds: the carry starts
+as the leading coefficient cs[1] = 1, and each step does carry = cs[j] + r
+* carry. The for loop below collects those carries: the first two are the
+remaining quotient coefficients (-1 and 6, so q(x) = x^2 - x + 6) and the
+last is the remainder 24. The remainder theorem says 24 = p(5), checked
+at the end along with the identity p = (x - 5) q + 24. All exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/synthetic-division.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\synthetic-division.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/synthetic-division.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/synthetic-division.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\synthetic-division.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/synthetic-division.epher
 
-   The knobs to edit are cs and r below.
-   ============================================================================ */
+The knobs to edit are cs and r below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const cs = {1, -6, 11, -6}       // p(x) = x^3 - 6x^2 + 11x - 6 = (x-1)(x-2)(x-3)

@@ -1,27 +1,27 @@
 /* ============================================================================
-   abundant-numbers-below.epher -- how many numbers beat their proper sum
+abundant-numbers-below.epher -- how many numbers beat their proper sum
 
-   A number is abundant when its proper divisor sum exceeds it, that is
-   sigma(n) > 2n (the Greek classification; Hardy and Wright, ch. 16,
-   section 16.8). The script counts the abundant numbers from 2 up to
-   1000 with a packed while loop (guide 1.30) around the classroom pair
-   divisor sum, since epher has no divisor-sum builtin. The count up to
-   and including 1000 is 246; strictly below 1000 there are 245, because
-   1000 itself is abundant (its proper divisors add to 1340).
+A number is abundant when its proper divisor sum exceeds it, that is
+sigma(n) > 2n (the Greek classification; Hardy and Wright, ch. 16,
+section 16.8). The script counts the abundant numbers from 2 up to
+1000 with a packed while loop (guide 1.30) around the classroom pair
+divisor sum, since epher has no divisor-sum builtin. The count up to
+and including 1000 is 246; strictly below 1000 there are 245, because
+1000 itself is abundant (its proper divisors add to 1340).
 
-   Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
-   ch. 16, section 16.8. Results are exact; the recursion depth limits
-   the def to n of a few thousand, plenty for the bound 1000.
+Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+ch. 16, section 16.8. Results are exact; the recursion depth limits
+the def to n of a few thousand, plenty for the bound 1000.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/abundant-numbers-below.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\abundant-numbers-below.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/abundant-numbers-below.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/abundant-numbers-below.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\abundant-numbers-below.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/abundant-numbers-below.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the bound 1000 is the point of the script.
-   ============================================================================ */
+There is no knob: the bound 1000 is the point of the script.
+============================================================================ */
 
 // ---- the proper-divisor-sum def ------------------------------------------------------
 // pairdiv(n, i) adds each divisor of n with its partner n / i (a square

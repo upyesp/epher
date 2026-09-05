@@ -1,25 +1,25 @@
 /* ============================================================================
-   real-rate-of-return.epher -- the Fisher equation: real return after
-   inflation
+real-rate-of-return.epher -- the Fisher equation: real return after
+inflation
 
-   If an investment earns nominal rate n while prices rise at inflation rate
-   i, the real (inflation-adjusted) rate of return is the rate r that solves
-   1 + r = (1 + n)/(1 + i), so r = (1+n)/(1+i) - 1. The popular approximation
-   r ~ n - i is printed underneath for comparison. Source: Irving Fisher,
-   "The Theory of Interest" (1930); the multiplicative form is standard.
+If an investment earns nominal rate n while prices rise at inflation rate
+i, the real (inflation-adjusted) rate of return is the rate r that solves
+1 + r = (1 + n)/(1 + i), so r = (1+n)/(1+i) - 1. The popular approximation
+r ~ n - i is printed underneath for comparison. Source: Irving Fisher,
+"The Theory of Interest" (1930); the multiplicative form is standard.
 
-   Accuracy: exact. The exact rate 9/205 prints as a fraction because its
-   decimal 0.0439024390... repeats forever; it is the same number as
-   4.3902%. The approximation overshoots by about 0.11 percentage points.
+Accuracy: exact. The exact rate 9/205 prints as a fraction because its
+decimal 0.0439024390... repeats forever; it is the same number as
+4.3902%. The approximation overshoots by about 0.11 percentage points.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/real-rate-of-return.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\real-rate-of-return.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/real-rate-of-return.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/real-rate-of-return.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\real-rate-of-return.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/real-rate-of-return.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const nominal = 7%          // return the investment pays, per year

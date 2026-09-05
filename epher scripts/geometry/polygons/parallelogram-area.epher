@@ -1,21 +1,21 @@
 /* ============================================================================
-   parallelogram-area.epher -- area from a base and its height
+parallelogram-area.epher -- area from a base and its height
 
-   A parallelogram of base b and height h (perpendicular distance between
-   the parallel sides) has area A = b h, because shearing along the base
-   preserves area and turns it into a rectangle (Euclid's Elements,
-   book I, proposition 35; standard formula). All results are exact.
+A parallelogram of base b and height h (perpendicular distance between
+the parallel sides) has area A = b h, because shearing along the base
+preserves area and turns it into a rectangle (Euclid's Elements,
+book I, proposition 35; standard formula). All results are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/parallelogram-area.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\parallelogram-area.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/parallelogram-area.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/parallelogram-area.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\parallelogram-area.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/parallelogram-area.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `b` (the base) and `h` (the height to it).
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `b` (the base) and `h` (the height to it).
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const b = 9

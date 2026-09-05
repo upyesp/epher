@@ -1,23 +1,23 @@
 /* ============================================================================
-   radians-degrees-conversion.epher -- convert angles between degrees and radians
+radians-degrees-conversion.epher -- convert angles between degrees and radians
 
-   A full turn is 360 degrees = 2 pi radians, so 1 deg = pi/180 rad and
-   1 rad = 180/pi deg. The conversions are builtins (guide 1.13): rad(x)
-   turns degrees into radians and deg(x) turns radians into degrees, and an
-   angle can be written straight in degrees with the deg unit suffix, so
-   sin(30 deg) = 0.5. Everything below just calls the builtins; nothing is
-   redefined.
+A full turn is 360 degrees = 2 pi radians, so 1 deg = pi/180 rad and
+1 rad = 180/pi deg. The conversions are builtins (guide 1.13): rad(x)
+turns degrees into radians and deg(x) turns radians into degrees, and an
+angle can be written straight in degrees with the deg unit suffix, so
+sin(30 deg) = 0.5. Everything below just calls the builtins; nothing is
+redefined.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/radians-degrees-conversion.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\radians-degrees-conversion.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/radians-degrees-conversion.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/radians-degrees-conversion.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\radians-degrees-conversion.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/radians-degrees-conversion.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The one knob to edit is the `degs` list below. Printed values carry about
-   12 significant digits, exact to double precision.
-   ============================================================================ */
+The one knob to edit is the `degs` list below. Printed values carry about
+12 significant digits, exact to double precision.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const degs = {30, 45, 60, 90, 180}   // sample angles, in degrees

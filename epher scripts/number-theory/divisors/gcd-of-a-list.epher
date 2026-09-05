@@ -1,24 +1,24 @@
 /* ============================================================================
-   gcd-of-a-list.epher -- the greatest common divisor of several numbers
+gcd-of-a-list.epher -- the greatest common divisor of several numbers
 
-   Reduces a list of numbers to one gcd by nesting the two-argument
-   builtin: gcd(gcd(a, b), c) divides a, b and c, and no larger number
-   does, because gcd is associative. The script demonstrates the builtin;
-   it does not reimplement it. The checks: the numbers 48, 36 and 60
-   share the factor 12, and 14, 21 and 28 share 7.
+Reduces a list of numbers to one gcd by nesting the two-argument
+builtin: gcd(gcd(a, b), c) divides a, b and c, and no larger number
+does, because gcd is associative. The script demonstrates the builtin;
+it does not reimplement it. The checks: the numbers 48, 36 and 60
+share the factor 12, and 14, 21 and 28 share 7.
 
-   Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
-   ch. 1 (the gcd, and its associativity). gcd is exact.
+Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
+ch. 1 (the gcd, and its associativity). gcd is exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/divisors/gcd-of-a-list.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\divisors\gcd-of-a-list.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/divisors/gcd-of-a-list.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/divisors/gcd-of-a-list.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\divisors\gcd-of-a-list.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/divisors/gcd-of-a-list.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the sample lists are the point of the script.
-   ============================================================================ */
+There is no knob: the sample lists are the point of the script.
+============================================================================ */
 
 // ---- reductions of three numbers at a time --------------------------------------
 print("gcd of 48, 36 and 60:", gcd(gcd(48, 36), 60))      // gcd(12, 60) = 12

@@ -1,29 +1,29 @@
 /* ============================================================================
-   mortgage-affordability.epher -- how large a mortgage a target payment
-   supports, using the 28% income rule
+mortgage-affordability.epher -- how large a mortgage a target payment
+supports, using the 28% income rule
 
-   The 28% rule of thumb keeps housing costs at or under 28% of gross
-   income, so a borrower earning `income` can pay about income/12*28% per
-   month. The finance builtin tvm_pv answers how large a loan that payment
-   buys at a given rate and term: it solves the same annuity equation as
-   tvm_pmt, but for the principal. Source: standard TVM formulas and the
-   common lender rule; the formula is Kellison, The Theory of Interest,
-   chapter 3.
+The 28% rule of thumb keeps housing costs at or under 28% of gross
+income, so a borrower earning `income` can pay about income/12*28% per
+month. The finance builtin tvm_pv answers how large a loan that payment
+buys at a given rate and term: it solves the same annuity equation as
+tvm_pmt, but for the principal. Source: standard TVM formulas and the
+common lender rule; the formula is Kellison, The Theory of Interest,
+chapter 3.
 
-   Sign convention: the payment is entered negative (money leaves the pocket
-   each month) and the answer comes back positive. Property tax, insurance
-   and other debts are not part of this 28% slice.
+Sign convention: the payment is entered negative (money leaves the pocket
+each month) and the answer comes back positive. Property tax, insurance
+and other debts are not part of this 28% slice.
 
-   Accuracy: 12 displayed digits.
+Accuracy: 12 displayed digits.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/mortgage-affordability.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\mortgage-affordability.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/mortgage-affordability.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/loans/mortgage-affordability.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\loans\mortgage-affordability.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/loans/mortgage-affordability.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const income = 90000        // gross yearly income, USD

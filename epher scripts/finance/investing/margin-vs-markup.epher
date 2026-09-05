@@ -1,24 +1,24 @@
 /* ============================================================================
-   margin-vs-markup.epher -- profit margin (profit over price) versus markup
-   (profit over cost), and the conversion between them
+margin-vs-markup.epher -- profit margin (profit over price) versus markup
+(profit over cost), and the conversion between them
 
-   A product bought for `cost` and sold for `price` earns the same profit
-   either way it is quoted, but the two quotings differ: margin = profit/
-   price, markup = profit/cost. The classic confusion is forgetting which is
-   which: a 25% markup is only a 20% margin. The conversions are
-   markup = margin/(1 - margin) and margin = markup/(1 + markup). Source:
-   standard retail accounting practice.
+A product bought for `cost` and sold for `price` earns the same profit
+either way it is quoted, but the two quotings differ: margin = profit/
+price, markup = profit/cost. The classic confusion is forgetting which is
+which: a 25% markup is only a 20% margin. The conversions are
+markup = margin/(1 - margin) and margin = markup/(1 + markup). Source:
+standard retail accounting practice.
 
-   Accuracy: exact arithmetic, so every number below is exact.
+Accuracy: exact arithmetic, so every number below is exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/margin-vs-markup.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\margin-vs-markup.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/margin-vs-markup.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/margin-vs-markup.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\margin-vs-markup.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/margin-vs-markup.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const cost = 80             // what the seller pays, USD

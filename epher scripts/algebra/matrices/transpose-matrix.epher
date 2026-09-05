@@ -1,20 +1,20 @@
 /* ============================================================================
-   transpose-matrix.epher -- the transpose of a 3x2 matrix
+transpose-matrix.epher -- the transpose of a 3x2 matrix
 
-   The transpose flips a matrix across its main diagonal: (T)[r][c] =
-   M[c][r], so a 3x2 matrix becomes 2x3 (any linear algebra text, e.g.
-   Strang, "Introduction to Linear Algebra", 5th ed., sec. 1.6). The
-   built-in transpose does it; transposing twice returns the original, and
-   a symmetric matrix equals its own transpose, both checked as booleans.
-   All values are exact.
+The transpose flips a matrix across its main diagonal: (T)[r][c] =
+M[c][r], so a 3x2 matrix becomes 2x3 (any linear algebra text, e.g.
+Strang, "Introduction to Linear Algebra", 5th ed., sec. 1.6). The
+built-in transpose does it; transposing twice returns the original, and
+a symmetric matrix equals its own transpose, both checked as booleans.
+All values are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/transpose-matrix.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\transpose-matrix.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/transpose-matrix.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/transpose-matrix.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\transpose-matrix.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/transpose-matrix.epher
 
-   The knobs to edit are the matrices A and S below.
-   ============================================================================ */
+The knobs to edit are the matrices A and S below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const A = [[1, 2], [3, 4], [5, 6]]       // 3 rows, 2 columns

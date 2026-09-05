@@ -1,20 +1,20 @@
 /* ============================================================================
-   arithmetic-sum.epher -- sum of the first n terms of an arithmetic sequence
+arithmetic-sum.epher -- sum of the first n terms of an arithmetic sequence
 
-   The sum of the first n terms of an arithmetic sequence is
-   S_n = n (t1 + tn) / 2, the Gauss pairing trick (legend has it Gauss added
-   1..100 this way at age seven; any algebra text, e.g. Stewart, Redlin and
-   Watson, "College Algebra", 7th ed., sec. 9.1). With a = 3, d = 4 the first
-   25 terms sum to 25 (3 + 99) / 2 = 1275, cross-checked by adding the terms
-   one by one in a quiet while loop. All values are exact.
+The sum of the first n terms of an arithmetic sequence is
+S_n = n (t1 + tn) / 2, the Gauss pairing trick (legend has it Gauss added
+1..100 this way at age seven; any algebra text, e.g. Stewart, Redlin and
+Watson, "College Algebra", 7th ed., sec. 9.1). With a = 3, d = 4 the first
+25 terms sum to 25 (3 + 99) / 2 = 1275, cross-checked by adding the terms
+one by one in a quiet while loop. All values are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/arithmetic-sum.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\arithmetic-sum.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/arithmetic-sum.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/arithmetic-sum.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\arithmetic-sum.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/arithmetic-sum.epher
 
-   The knobs to edit are a, d and n below.
-   ============================================================================ */
+The knobs to edit are a, d and n below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 3                      // first term

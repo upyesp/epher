@@ -1,24 +1,24 @@
 /* ============================================================================
-   limit-of-sinx-over-x.epher -- sin(x)/x at tiny x rounds to 1
+limit-of-sinx-over-x.epher -- sin(x)/x at tiny x rounds to 1
 
-   The classic squeeze-theorem limit sin(x)/x -> 1 as x -> 0 (Stewart,
-   "Calculus", 8th ed., sec. 2.6) probed numerically at x = 1e-8, both
-   signs. The ratio misses 1 by about x^2/6 = 1.7e-17 there, far below
-   the calculator's precision, so it prints exactly 1; at x = 1e-4 the
-   deficit x^2/6 = 1.7e-9 shows up in the last printed digits instead.
+The classic squeeze-theorem limit sin(x)/x -> 1 as x -> 0 (Stewart,
+"Calculus", 8th ed., sec. 2.6) probed numerically at x = 1e-8, both
+signs. The ratio misses 1 by about x^2/6 = 1.7e-17 there, far below
+the calculator's precision, so it prints exactly 1; at x = 1e-4 the
+deficit x^2/6 = 1.7e-9 shows up in the last printed digits instead.
 
-   The same limit defines the derivative of sin x at 0, and the builtin
-   derivative (a numeric central difference, not symbolic) agrees.
+The same limit defines the derivative of sin x at 0, and the builtin
+derivative (a numeric central difference, not symbolic) agrees.
 
-   Accuracy: in exact arithmetic sin(x)/x at x = 1e-8 is 1 - 1.7e-25;
-   every value below rounds at about the 12th printed digit.
+Accuracy: in exact arithmetic sin(x)/x at x = 1e-8 is 1 - 1.7e-25;
+every value below rounds at about the 12th printed digit.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/limits/limit-of-sinx-over-x.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\limits\limit-of-sinx-over-x.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/limits/limit-of-sinx-over-x.epher
-   The knob to edit is `x` below.
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/limits/limit-of-sinx-over-x.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\limits\limit-of-sinx-over-x.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/limits/limit-of-sinx-over-x.epher
+The knob to edit is `x` below.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const x = 1e-8

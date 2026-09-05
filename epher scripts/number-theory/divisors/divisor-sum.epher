@@ -1,27 +1,27 @@
 /* ============================================================================
-   divisor-sum.epher -- the sum of the divisors of n, sigma(n)
+divisor-sum.epher -- the sum of the divisors of n, sigma(n)
 
-   Sums all positive divisors of n. The def pairdiv(n, i) walks the trial
-   divisors up to the square root and adds each divisor and its partner
-   n / i together (a square adds its root once), which is the classroom
-   method; epher has no divisor-sum builtin (ndivisors counts, factors
-   only displays). The classic check: the divisors of 12 are 1, 2, 3, 4,
-   6 and 12, and they add to 28.
+Sums all positive divisors of n. The def pairdiv(n, i) walks the trial
+divisors up to the square root and adds each divisor and its partner
+n / i together (a square adds its root once), which is the classroom
+method; epher has no divisor-sum builtin (ndivisors counts, factors
+only displays). The classic check: the divisors of 12 are 1, 2, 3, 4,
+6 and 12, and they add to 28.
 
-   Source: the divisor function sigma(n), Hardy and Wright, "An
-   Introduction to the Theory of Numbers", ch. 16, section 16.7. Results
-   are exact; the recursion depth limits the def to n of a few thousand,
-   which is plenty for the checks below.
+Source: the divisor function sigma(n), Hardy and Wright, "An
+Introduction to the Theory of Numbers", ch. 16, section 16.7. Results
+are exact; the recursion depth limits the def to n of a few thousand,
+which is plenty for the checks below.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/divisors/divisor-sum.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\divisors\divisor-sum.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/divisors/divisor-sum.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/divisors/divisor-sum.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\divisors\divisor-sum.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/divisors/divisor-sum.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the sample numbers are the point of the script.
-   ============================================================================ */
+There is no knob: the sample numbers are the point of the script.
+============================================================================ */
 
 // ---- the divisor-sum def ----------------------------------------------------------
 // pairdiv(n, i) adds i and n / i when i divides n, walking i = 1, 2, ...

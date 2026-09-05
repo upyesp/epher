@@ -1,22 +1,22 @@
 /* ============================================================================
-   line-equation-two-points.epher -- y = m x + b through two points
+line-equation-two-points.epher -- y = m x + b through two points
 
-   The line through two points has slope m = (y2 - y1) / (x2 - x1) and
-   intercept b = y1 - m x1, so the equation is y = m x + b (standard
-   formula; b solves the line through (x1, y1)). Points are two-number
-   lists. The example line has slope 2/3, shown as an exact fraction,
-   and the checks plug both points back into the equation.
+The line through two points has slope m = (y2 - y1) / (x2 - x1) and
+intercept b = y1 - m x1, so the equation is y = m x + b (standard
+formula; b solves the line through (x1, y1)). Points are two-number
+lists. The example line has slope 2/3, shown as an exact fraction,
+and the checks plug both points back into the equation.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/line-equation-two-points.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\line-equation-two-points.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/line-equation-two-points.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/line-equation-two-points.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\line-equation-two-points.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/line-equation-two-points.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `P` and `Q`, the two points on the line.
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `P` and `Q`, the two points on the line.
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const P = {0, 2}

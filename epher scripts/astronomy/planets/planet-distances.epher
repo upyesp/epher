@@ -1,31 +1,31 @@
 /* ============================================================================
-   planet-distances.epher -- how far the planets are on one date
+planet-distances.epher -- how far the planets are on one date
 
-   Geocentric distances of the planets on 2026-06-01, from the built-in
-   accessor dist, in AU (the solar-ephemeris crate, JPL-validated; guide
-   1.16; body numbers: Mercury 1, Venus 2, Earth 3, Mars 4, Jupiter 5,
-   Saturn 6, Uranus 7, Neptune 8, Pluto 9). The AU is the mean
-   Earth-Sun distance, 149597870.7 km. Two distances are also converted
-   to kilometres with the (1 AU) quantity; light itself takes 8.3 min to
-   cross 1 AU and about 4.2 h to reach Neptune, which is 30 AU away.
+Geocentric distances of the planets on 2026-06-01, from the built-in
+accessor dist, in AU (the solar-ephemeris crate, JPL-validated; guide
+1.16; body numbers: Mercury 1, Venus 2, Earth 3, Mars 4, Jupiter 5,
+Saturn 6, Uranus 7, Neptune 8, Pluto 9). The AU is the mean
+Earth-Sun distance, 149597870.7 km. Two distances are also converted
+to kilometres with the (1 AU) quantity; light itself takes 8.3 min to
+cross 1 AU and about 4.2 h to reach Neptune, which is 30 AU away.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-distances.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-distances.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-distances.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-distances.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-distances.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-distances.epher
+In the REPL:             load one of the paths above
 
-   Knob: the date t.
-   ============================================================================ */
+Knob: the date t.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const t = jd(2026, 6, 1)     // 0h UT
 
 /* ---- results ----------------------------------------------------------------
-   One AU per planet, in body-number order (Mercury, Venus, Mars, Jupiter,
-   Saturn, Uranus, Neptune, Pluto). The spread of the list is the scale
-   of the solar system: Mercury at 1.1 AU, Neptune at 30.3 AU, Pluto at
-   34.9 AU. A for loop over a list (guide 1.30) collects these values. */
+One AU per planet, in body-number order (Mercury, Venus, Mars, Jupiter,
+Saturn, Uranus, Neptune, Pluto). The spread of the list is the scale
+of the solar system: Mercury at 1.1 AU, Neptune at 30.3 AU, Pluto at
+34.9 AU. A for loop over a list (guide 1.30) collects these values. */
 for b in {1, 2, 4, 5, 6, 7, 8, 9} do dist(b, t)
 
 // Two of the eight in kilometres. Mars is on the far side of its orbit
@@ -35,11 +35,11 @@ print("Mars, km:", (dist(4, t) * (1 AU)) in km)
 print("Neptune, km:", (dist(8, t) * (1 AU)) in km)
 
 /* Sanity by eye: every entry of the list above sits inside its orbit's
-   possible range - Mercury 0.3-1.7 AU, Venus 0.3-1.7, Mars 0.4-2.7,
-   Jupiter 4.0-6.5, Saturn 8.0-11.1, Uranus 18-21, Neptune 29-31,
-   Pluto 29-49 - so all eight are ordinary, unremarkable distances.
-   Light travel time to Neptune: au and c are plain numbers in m and
-   m/s, so dist * au / c is seconds. */
+possible range - Mercury 0.3-1.7 AU, Venus 0.3-1.7, Mars 0.4-2.7,
+Jupiter 4.0-6.5, Saturn 8.0-11.1, Uranus 18-21, Neptune 29-31,
+Pluto 29-49 - so all eight are ordinary, unremarkable distances.
+Light travel time to Neptune: au and c are plain numbers in m and
+m/s, so dist * au / c is seconds. */
 print("Neptune light travel:", dist(8, t) * au / c / 3600, "hr")
 
 /* ---- expected output ----

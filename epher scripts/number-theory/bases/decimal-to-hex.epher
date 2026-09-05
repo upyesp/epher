@@ -1,27 +1,27 @@
 /* ============================================================================
-   decimal-to-hex.epher -- decimal values spelled in base 16
+decimal-to-hex.epher -- decimal values spelled in base 16
 
-   Spells decimal integers in hexadecimal with the hex builtin. The
-   spelling is the language's hex literal form: the prefix 0x, then the
-   digits 0 to 9 and a to f in lowercase, so hex(255) prints 0xff and
-   reads back as the literal 0xff. The famous value 3735928559 spells as
-   0xdeadbeef. The script only calls the builtin; it does not reimplement
-   the conversion.
+Spells decimal integers in hexadecimal with the hex builtin. The
+spelling is the language's hex literal form: the prefix 0x, then the
+digits 0 to 9 and a to f in lowercase, so hex(255) prints 0xff and
+reads back as the literal 0xff. The famous value 3735928559 spells as
+0xdeadbeef. The script only calls the builtin; it does not reimplement
+the conversion.
 
-   Source: standard numeral systems; positional notation in base 16, with
-   place values 1, 16, 256, ... . Hex is a compact binary shorthand: each
-   hex digit covers four bits. hex is exact for every integer the
-   calculator can hold.
+Source: standard numeral systems; positional notation in base 16, with
+place values 1, 16, 256, ... . Hex is a compact binary shorthand: each
+hex digit covers four bits. hex is exact for every integer the
+calculator can hold.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/bases/decimal-to-hex.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\bases\decimal-to-hex.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/bases/decimal-to-hex.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/bases/decimal-to-hex.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\bases\decimal-to-hex.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/bases/decimal-to-hex.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   There is no knob: the sample values are the point of the script.
-   ============================================================================ */
+There is no knob: the sample values are the point of the script.
+============================================================================ */
 
 // ---- named spellings ---------------------------------------------------------------
 hex(255)                      // 15 * 16 + 15 = 0xff

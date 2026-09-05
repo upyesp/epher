@@ -1,20 +1,20 @@
 /* ============================================================================
-   recursive-sequence.epher -- iterate x_(n+1) = f(x_n) for n steps
+recursive-sequence.epher -- iterate x_(n+1) = f(x_n) for n steps
 
-   Newton's method for x^2 = 2 iterates x_(n+1) = (x_n + 2/x_n) / 2 (Isaac
-   Newton, 1669; see any numerical analysis text). The for loop collects the
-   trajectory, and because the iteration doubles the good digits each step
-   (quadratic convergence), six steps from x_0 = 1 reach machine precision.
-   The trajectory values are exact fractions, printed as fractions where the
-   decimal would repeat. The final x is checked against sqrt(2).
+Newton's method for x^2 = 2 iterates x_(n+1) = (x_n + 2/x_n) / 2 (Isaac
+Newton, 1669; see any numerical analysis text). The for loop collects the
+trajectory, and because the iteration doubles the good digits each step
+(quadratic convergence), six steps from x_0 = 1 reach machine precision.
+The trajectory values are exact fractions, printed as fractions where the
+decimal would repeat. The final x is checked against sqrt(2).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/recursive-sequence.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\recursive-sequence.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/recursive-sequence.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/recursive-sequence.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\recursive-sequence.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/recursive-sequence.epher
 
-   The knobs to edit are the start and the number of steps below.
-   ============================================================================ */
+The knobs to edit are the start and the number of steps below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const x0 = 1                      // starting value

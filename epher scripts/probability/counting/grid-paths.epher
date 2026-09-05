@@ -1,28 +1,28 @@
 /* ============================================================================
-   grid-paths.epher -- monotone paths across a grid: ncr(m + n, m)
+grid-paths.epher -- monotone paths across a grid: ncr(m + n, m)
 
-   A path from one corner of an m by n grid to the opposite corner, made
-   only of right and down steps, is a word of m right steps and n down
-   steps. Choosing which m of the m + n positions carry the right steps
-   fixes the whole word, so the path count is ncr(m + n, m), the same
-   formula as choosing a committee.
+A path from one corner of an m by n grid to the opposite corner, made
+only of right and down steps, is a word of m right steps and n down
+steps. Choosing which m of the m + n positions carry the right steps
+fixes the whole word, so the path count is ncr(m + n, m), the same
+formula as choosing a committee.
 
-   The 2 by 2 case is verified by hand below (six words: RRDD, RDRD,
-   RDDR, DRRD, DRDR, DDRR), and the symmetry ncr(m + n, m) = ncr(m + n, n)
-   says the count does not change when the grid is turned around.
+The 2 by 2 case is verified by hand below (six words: RRDD, RDRD,
+RDDR, DRRD, DRDR, DDRR), and the symmetry ncr(m + n, m) = ncr(m + n, n)
+says the count does not change when the grid is turned around.
 
-   Source: Ross, "A First Course in Probability", chapter 1. The counts
-   are exact integers; ncr(40, 20) shows the growth for a 20 by 20 grid.
+Source: Ross, "A First Course in Probability", chapter 1. The counts
+are exact integers; ncr(40, 20) shows the growth for a 20 by 20 grid.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/grid-paths.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\grid-paths.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/grid-paths.epher
-   Web/desktop:             paste the file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/grid-paths.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\grid-paths.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/grid-paths.epher
+Web/desktop:             paste the file into the entry, press Enter
 
-   The knobs to edit are `rows` and `cols`; everything below them is
-   machinery.
-   ============================================================================ */
+The knobs to edit are `rows` and `cols`; everything below them is
+machinery.
+============================================================================ */
 
 // ---- the knobs ----
 const rows = 4

@@ -1,25 +1,25 @@
 /* ============================================================================
-   solar-noon-time.epher -- when the Sun crosses the meridian
+solar-noon-time.epher -- when the Sun crosses the meridian
 
-   Solar noon (the Sun's meridian transit) at Berlin on three dates of
-   2026, from the built-in transit accessor for the Sun, body 10 (the
-   solar-ephemeris crate, JPL-validated; guide 1.16), converted to clock
-   hours and to a clock display (deg2hms of the hour times 15). Two
-   things keep solar noon from being 12:00. First the longitude: Berlin
-   is 13.405 deg east of Greenwich, so the mean Sun crosses Berlin's
-   meridian at 12 - 13.405/15 = 11.106 UT. Second the equation of time:
-   the real Sun runs ahead of or behind the mean Sun by up to about
-   16 min over the year (the orbit is elliptical and the ecliptic is
-   tilted), so the actual noon wanders around 11.106 UT.
+Solar noon (the Sun's meridian transit) at Berlin on three dates of
+2026, from the built-in transit accessor for the Sun, body 10 (the
+solar-ephemeris crate, JPL-validated; guide 1.16), converted to clock
+hours and to a clock display (deg2hms of the hour times 15). Two
+things keep solar noon from being 12:00. First the longitude: Berlin
+is 13.405 deg east of Greenwich, so the mean Sun crosses Berlin's
+meridian at 12 - 13.405/15 = 11.106 UT. Second the equation of time:
+the real Sun runs ahead of or behind the mean Sun by up to about
+16 min over the year (the orbit is elliptical and the ecliptic is
+tilted), so the actual noon wanders around 11.106 UT.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/solar-noon-time.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\solar-noon-time.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/solar-noon-time.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/solar-noon-time.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\solar-noon-time.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/solar-noon-time.epher
+In the REPL:             load one of the paths above
 
-   Knobs: latitude and longitude (Berlin below); the three dates below.
-   ============================================================================ */
+Knobs: latitude and longitude (Berlin below); the three dates below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const lat = 52.52          // Berlin
@@ -34,12 +34,12 @@ def nh(ds, lat, lon) = (transit(10, jd(ds[1], ds[2], ds[3]), lat, lon) - jd(ds[1
 def nd(ds, lat, lon) = (transit(10, jd(ds[1], ds[2], ds[3]), lat, lon) - jd(ds[1], ds[2], ds[3])) * 24 * 15
 
 /* ---- results ----------------------------------------------------------------
-   The three noons, hours UT, compared with the mean 11.106 UT: the
-   March equinox noon runs 7.8 min late (equation of time about -8
-   min), the June solstice noon 1.8 min late, the December solstice
-   noon 2.0 min early - in mid-February or early November the swing
-   reaches about 14-16 min. The clock column shows the same hours as a
-   civil reading. */
+The three noons, hours UT, compared with the mean 11.106 UT: the
+March equinox noon runs 7.8 min late (equation of time about -8
+min), the June solstice noon 1.8 min late, the December solstice
+noon 2.0 min early - in mid-February or early November the swing
+reaches about 14-16 min. The clock column shows the same hours as a
+civil reading. */
 print("solar noon 2026-03-20:", nh(d_mar, lat, lon), "UT; clock", deg2hms(nd(d_mar, lat, lon)))
 print("solar noon 2026-06-21:", nh(d_jun, lat, lon), "UT; clock", deg2hms(nd(d_jun, lat, lon)))
 print("solar noon 2026-12-21:", nh(d_dec, lat, lon), "UT; clock", deg2hms(nd(d_dec, lat, lon)))

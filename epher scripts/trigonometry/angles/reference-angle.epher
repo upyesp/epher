@@ -1,26 +1,26 @@
 /* ============================================================================
-   reference-angle.epher -- the reference angle of any angle in degrees
+reference-angle.epher -- the reference angle of any angle in degrees
 
-   The reference angle of an angle in standard position is the acute angle
-   (0 to 90 deg) its terminal side makes with the x-axis, and it is what the
-   trig functions of large or negative angles reduce to. Two steps: bring
-   the angle into [0, 360) by subtracting whole turns, then take the acute
-   distance to the nearest x-axis point, 0 deg or 180 deg. This is the
-   classroom recipe of any precalculus text (e.g. Stewart, Redlin and
-   Watson, "Precalculus", ch. 6, section on trigonometric functions of any
-   angle); no builtin does it, so the script states the formula.
+The reference angle of an angle in standard position is the acute angle
+(0 to 90 deg) its terminal side makes with the x-axis, and it is what the
+trig functions of large or negative angles reduce to. Two steps: bring
+the angle into [0, 360) by subtracting whole turns, then take the acute
+distance to the nearest x-axis point, 0 deg or 180 deg. This is the
+classroom recipe of any precalculus text (e.g. Stewart, Redlin and
+Watson, "Precalculus", ch. 6, section on trigonometric functions of any
+angle); no builtin does it, so the script states the formula.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/reference-angle.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\reference-angle.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/reference-angle.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/reference-angle.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\reference-angle.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/reference-angle.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The one knob to edit is the `angs` list below (degrees; negatives and
-   angles past 360 are the point). Printed values carry about 12 significant
-   digits.
-   ============================================================================ */
+The one knob to edit is the `angs` list below (degrees; negatives and
+angles past 360 are the point). Printed values carry about 12 significant
+digits.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const angs = {210, 135, 330, -60, 750, 90, 180, 1000}   // angles, in degrees
@@ -34,10 +34,10 @@ def refang(x) = abs(reduce360(x) - 180 * round(reduce360(x) / 180))   // acute d
 for x in angs do reduce360(x)
 
 /* Step two: the reference angle of each. Examples to read off: 210 deg is
-   30 deg past 180, so its reference angle is 30; 750 deg has already come
-   full circle twice (750 = 2 x 360 + 30) and shares 30 deg with 30 itself;
-   -60 deg lands at 300 and is 60 deg short of 360. On the axes the recipe
-   still works: 180 gives 0 and 90 stays 90. */
+30 deg past 180, so its reference angle is 30; 750 deg has already come
+full circle twice (750 = 2 x 360 + 30) and shares 30 deg with 30 itself;
+-60 deg lands at 300 and is 60 deg short of 360. On the axes the recipe
+still works: 180 gives 0 and 90 stays 90. */
 for x in angs do refang(x)
 
 // One side-by-side reading for the first knob value.

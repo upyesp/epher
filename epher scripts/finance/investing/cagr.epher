@@ -1,25 +1,25 @@
 /* ============================================================================
-   cagr.epher -- compound annual growth rate of an investment over several
-   years
+cagr.epher -- compound annual growth rate of an investment over several
+years
 
-   An investment that grows from start to end over n years has the compound
-   annual growth rate cagr = (end/start)^(1/n) - 1: the single yearly rate
-   that would produce the same final value when compounded. The script also
-   compounds the rate back over the n years, which must recover the end
-   value. Source: standard finance formulas; see Kellison, The Theory of
-   Interest, chapter 2.
+An investment that grows from start to end over n years has the compound
+annual growth rate cagr = (end/start)^(1/n) - 1: the single yearly rate
+that would produce the same final value when compounded. The script also
+compounds the rate back over the n years, which must recover the end
+value. Source: standard finance formulas; see Kellison, The Theory of
+Interest, chapter 2.
 
-   Accuracy: the rate is irrational and prints to 12 digits; the check line
-   recovers 35000 to all twelve displayed digits.
+Accuracy: the rate is irrational and prints to 12 digits; the check line
+recovers 35000 to all twelve displayed digits.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/cagr.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\cagr.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/cagr.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/cagr.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\cagr.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/cagr.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const start = 10000         // value at the beginning, USD

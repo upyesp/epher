@@ -1,22 +1,22 @@
 /* ============================================================================
-   slope-of-line.epher -- slope of the line through two points
+slope-of-line.epher -- slope of the line through two points
 
-   The slope is rise over run, m = (y2 - y1) / (x2 - x1) (standard
-   formula). A vertical line has x1 = x2, so its slope is undefined;
-   the helper returns a string for that case instead of dividing by
-   zero. A horizontal line has slope 0. Reversing the two points leaves
-   the slope unchanged: both numerator and denominator change sign.
+The slope is rise over run, m = (y2 - y1) / (x2 - x1) (standard
+formula). A vertical line has x1 = x2, so its slope is undefined;
+the helper returns a string for that case instead of dividing by
+zero. A horizontal line has slope 0. Reversing the two points leaves
+the slope unchanged: both numerator and denominator change sign.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/slope-of-line.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\slope-of-line.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/slope-of-line.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/slope-of-line.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\slope-of-line.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/slope-of-line.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The point pairs to try are in the results section below; edit them
-   there.
-   ============================================================================ */
+The point pairs to try are in the results section below; edit them
+there.
+============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 def slope(p, q) = if p[1] == q[1] then "vertical, undefined" else (q[2] - p[2]) / (q[1] - p[1])

@@ -1,24 +1,24 @@
 /* ============================================================================
-   moonrise-moonset.epher -- when the Moon rises and sets at a city
+moonrise-moonset.epher -- when the Moon rises and sets at a city
 
-   Moonrise and moonset at one place on three dates of June 2026, from the
-   built-in accessors rise and set (the solar-ephemeris crate, JPL-validated;
-   guide 1.16). Each returns the event of the day that starts at j0 (0h UT)
-   as a Julian Date; subtracting j0 and multiplying by 24 gives the clock
-   hour of the day, which prints cleanly where the raw JD often prints as
-   an exact fraction. Hours below are UT; Berlin civil time is UT + 2 in
-   summer. The lunar day (moonrise to moonrise) averages 24 h 50 min, so
-   each event lands about 50 min later than the previous day, and on many
-   dates the moonset precedes the moonrise.
+Moonrise and moonset at one place on three dates of June 2026, from the
+built-in accessors rise and set (the solar-ephemeris crate, JPL-validated;
+guide 1.16). Each returns the event of the day that starts at j0 (0h UT)
+as a Julian Date; subtracting j0 and multiplying by 24 gives the clock
+hour of the day, which prints cleanly where the raw JD often prints as
+an exact fraction. Hours below are UT; Berlin civil time is UT + 2 in
+summer. The lunar day (moonrise to moonrise) averages 24 h 50 min, so
+each event lands about 50 min later than the previous day, and on many
+dates the moonset precedes the moonrise.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moonrise-moonset.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moonrise-moonset.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moonrise-moonset.epher
-   In the REPL:             load one of the paths above
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moonrise-moonset.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moonrise-moonset.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moonrise-moonset.epher
+In the REPL:             load one of the paths above
 
-   Knobs: latitude and longitude (Berlin below), and the three dates.
-   ============================================================================ */
+Knobs: latitude and longitude (Berlin below), and the three dates.
+============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const lat = 52.52          // Berlin
@@ -45,10 +45,10 @@ print("moonrise 2026-06-23:", mrh(j23, lat, lon))
 print("rise-to-rise delay:", mrh(j23, lat, lon) - mrh(j22, lat, lon))
 
 /* June 29 is the full moon: moonset came in the small hours (1.47) and
-   the moonrise at dusk (19.90), so set precedes rise that day and the
-   Moon is up all night. The raw rise JD (same moment as the 19.90 hr
-   above) is also printed: event JDs sometimes display as exact
-   fractions, and converting to hours keeps the reading clean. */
+the moonrise at dusk (19.90), so set precedes rise that day and the
+Moon is up all night. The raw rise JD (same moment as the 19.90 hr
+above) is also printed: event JDs sometimes display as exact
+fractions, and converting to hours keeps the reading clean. */
 print("moonset  2026-06-29:", msh(j29, lat, lon))
 print("moonrise 2026-06-29:", mrh(j29, lat, lon))
 print("raw rise JD:", rise(11, j29, lat, lon))

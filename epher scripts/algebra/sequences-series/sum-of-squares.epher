@@ -1,19 +1,19 @@
 /* ============================================================================
-   sum-of-squares.epher -- 1^2 + ... + n^2, formula and loop cross-check
+sum-of-squares.epher -- 1^2 + ... + n^2, formula and loop cross-check
 
-   The sum of the first n squares is n(n + 1)(2n + 1)/6, proved by induction
-   in any algebra text (e.g. Stewart, Redlin and Watson, "College Algebra",
-   7th ed., sec. 9.1, exercises). For n = 10 it is 10 * 11 * 21 / 6 = 385,
-   cross-checked below by adding the squares one by one in a quiet while
-   loop. All values are exact.
+The sum of the first n squares is n(n + 1)(2n + 1)/6, proved by induction
+in any algebra text (e.g. Stewart, Redlin and Watson, "College Algebra",
+7th ed., sec. 9.1, exercises). For n = 10 it is 10 * 11 * 21 / 6 = 385,
+cross-checked below by adding the squares one by one in a quiet while
+loop. All values are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/sum-of-squares.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\sum-of-squares.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/sum-of-squares.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/sum-of-squares.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\sum-of-squares.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/sum-of-squares.epher
 
-   The knob to edit is n below.
-   ============================================================================ */
+The knob to edit is n below.
+============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
 const n = 10

@@ -1,22 +1,22 @@
 /* ============================================================================
-   right-triangle-angles.epher -- the acute angles of a right triangle
+right-triangle-angles.epher -- the acute angles of a right triangle
 
-   From the side lengths, the angle opposite a side is
-   atan(opposite / adjacent), the SOH-CAH-TOA tangent rule (standard
-   formula). epher's trig functions take radians, and deg() converts each
-   angle to degrees for the results. The two acute angles of a right
-   triangle must sum to 90 degrees, and the results verify that.
+From the side lengths, the angle opposite a side is
+atan(opposite / adjacent), the SOH-CAH-TOA tangent rule (standard
+formula). epher's trig functions take radians, and deg() converts each
+angle to degrees for the results. The two acute angles of a right
+triangle must sum to 90 degrees, and the results verify that.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/right-triangle-angles.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\right-triangle-angles.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/right-triangle-angles.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/right-triangle-angles.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\right-triangle-angles.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/right-triangle-angles.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `a` and `b`, the two legs. Everything above the
-   results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `a` and `b`, the two legs. Everything above the
+results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const a = 3

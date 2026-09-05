@@ -1,25 +1,25 @@
 /* ============================================================================
-   irr-vs-hurdle-rate.epher -- judging a project by comparing its irr with
-   the required return, with an if/else verdict at two hurdle rates
+irr-vs-hurdle-rate.epher -- judging a project by comparing its irr with
+the required return, with an if/else verdict at two hurdle rates
 
-   The irr decision rule: accept the project when its internal rate of
-   return (the builtin irr, the rate that zeroes the npv) beats the required
-   return, reject it when it does not. The verdict is printed by an if/else
-   expression for each hurdle. The npv at the hurdle is printed underneath
-   because it must carry the same sign as the verdict: npv above zero means
-   accept. Source: standard capital-budgeting formulas; see Brealey and
-   Myers, Principles of Corporate Finance, chapters 2 and 5.
+The irr decision rule: accept the project when its internal rate of
+return (the builtin irr, the rate that zeroes the npv) beats the required
+return, reject it when it does not. The verdict is printed by an if/else
+expression for each hurdle. The npv at the hurdle is printed underneath
+because it must carry the same sign as the verdict: npv above zero means
+accept. Source: standard capital-budgeting formulas; see Brealey and
+Myers, Principles of Corporate Finance, chapters 2 and 5.
 
-   Accuracy: 12 displayed digits.
+Accuracy: 12 displayed digits.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/irr-vs-hurdle-rate.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\irr-vs-hurdle-rate.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/irr-vs-hurdle-rate.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/irr-vs-hurdle-rate.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\irr-vs-hurdle-rate.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/irr-vs-hurdle-rate.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const hurdle_low = 8%       // a lenient required return
@@ -34,10 +34,10 @@ print("at a 20% hurdle:", if r > hurdle_high then "accept: the irr beats the req
 print("npv at the 8% hurdle:", npv(hurdle_low, flows))
 print("npv at the 20% hurdle:", npv(hurdle_high, flows))
 /* The npv signs agree with the verdicts: positive npv at 8% (accept),
-   negative npv at 20% (reject). The two rules never contradict each other
-   for a project whose cash flows change sign once. The 20% line prints as
-   the exact fraction -259375/27 because its decimal -9606.48148148...
-   repeats (epher keeps the fraction when the decimal repeats). */
+negative npv at 20% (reject). The two rules never contradict each other
+for a project whose cash flows change sign once. The 20% line prints as
+the exact fraction -259375/27 because its decimal -9606.48148148...
+repeats (epher keeps the fraction when the decimal repeats). */
 /* ---- expected output ----
 = 0.08
 = 0.2

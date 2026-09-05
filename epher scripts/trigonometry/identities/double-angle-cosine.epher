@@ -1,23 +1,23 @@
 /* ============================================================================
-   double-angle-cosine.epher -- cos(2x) in its three equivalent forms
+double-angle-cosine.epher -- cos(2x) in its three equivalent forms
 
-   The cosine double-angle formula has three faces, all equal for every x:
-   cos(2x) = cos^2(x) - sin^2(x) = 2 cos^2(x) - 1 = 1 - 2 sin^2(x). The
-   script checks the first two against cos(2x) at several angles as boolean
-   residual checks (true when the sides differ by less than 1e-12;
-   double-precision noise here is around 1e-16).
+The cosine double-angle formula has three faces, all equal for every x:
+cos(2x) = cos^2(x) - sin^2(x) = 2 cos^2(x) - 1 = 1 - 2 sin^2(x). The
+script checks the first two against cos(2x) at several angles as boolean
+residual checks (true when the sides differ by less than 1e-12;
+double-precision noise here is around 1e-16).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/double-angle-cosine.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\double-angle-cosine.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/double-angle-cosine.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/identities/double-angle-cosine.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\identities\double-angle-cosine.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/identities/double-angle-cosine.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The one knob to edit is the `degs` list below (degrees, converted with
-   rad() because the builtin trig works in radians). Twice each angle stays
-   under 180 deg, so no cosine double-angle value repeats.
-   ============================================================================ */
+The one knob to edit is the `degs` list below (degrees, converted with
+rad() because the builtin trig works in radians). Twice each angle stays
+under 180 deg, so no cosine double-angle value repeats.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const degs = {10, 30, 45, 60, 80}   // sample angles, in degrees

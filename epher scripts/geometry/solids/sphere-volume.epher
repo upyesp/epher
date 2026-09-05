@@ -1,23 +1,23 @@
 /* ============================================================================
-   sphere-volume.epher -- volume of a sphere from its radius
+sphere-volume.epher -- volume of a sphere from its radius
 
-   The volume of a sphere of radius r is V = 4 pi r^3 / 3, which
-   Archimedes proved by comparing the sphere with the cylinder around it
-   ("On the Sphere and Cylinder", about 225 BC; standard formula). For
-   radius 3 the volume is 36 pi, about 113.097. The last result checks
-   the relation V = r S / 3 with the surface area S = 4 pi r^2, the
-   sphere seen as a cone with base S and apex at the center.
+The volume of a sphere of radius r is V = 4 pi r^3 / 3, which
+Archimedes proved by comparing the sphere with the cylinder around it
+("On the Sphere and Cylinder", about 225 BC; standard formula). For
+radius 3 the volume is 36 pi, about 113.097. The last result checks
+the relation V = r S / 3 with the surface area S = 4 pi r^2, the
+sphere seen as a cone with base S and apex at the center.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/sphere-volume.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\sphere-volume.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/sphere-volume.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/sphere-volume.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\sphere-volume.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/sphere-volume.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knob to edit is `r`, the radius. Everything above the results
-   section is machinery you can leave alone.
-   ============================================================================ */
+The knob to edit is `r`, the radius. Everything above the results
+section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const r = 3

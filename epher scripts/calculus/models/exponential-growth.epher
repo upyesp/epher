@@ -1,23 +1,23 @@
 /* ============================================================================
-   exponential-growth.epher -- population with a constant growth rate
+exponential-growth.epher -- population with a constant growth rate
 
-   The exponential model N(t) = N0 e^(r t) (Stewart, "Calculus", 8th
-   ed., sec. 3.8) describes a population whose rate of change is
-   proportional to its size, with N0 the initial size and r the growth
-   rate per year. The script tabulates N(t) for t = 0, 10, 25 and 50
-   years at r = 0.02 per year (2% per year) and recovers the doubling
-   time t2 = ln(2)/r: after t2 years the population has exactly
-   doubled, which the closing boolean checks.
+The exponential model N(t) = N0 e^(r t) (Stewart, "Calculus", 8th
+ed., sec. 3.8) describes a population whose rate of change is
+proportional to its size, with N0 the initial size and r the growth
+rate per year. The script tabulates N(t) for t = 0, 10, 25 and 50
+years at r = 0.02 per year (2% per year) and recovers the doubling
+time t2 = ln(2)/r: after t2 years the population has exactly
+doubled, which the closing boolean checks.
 
-   Accuracy: values are printed as the calculator shows them; the
-   doubling-time check agrees with 2 N0 to about 1e-12.
+Accuracy: values are printed as the calculator shows them; the
+doubling-time check agrees with 2 N0 to about 1e-12.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/exponential-growth.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\exponential-growth.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/exponential-growth.epher
-   The knobs to edit are `n0`, `r` and `ts` below.
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/exponential-growth.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\exponential-growth.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/exponential-growth.epher
+The knobs to edit are `n0`, `r` and `ts` below.
+============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const n0 = 1000

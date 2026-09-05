@@ -1,24 +1,24 @@
 /* ============================================================================
-   beats-frequency.epher -- the beat between two tuning forks
+beats-frequency.epher -- the beat between two tuning forks
 
-   Two tones a little apart in frequency, f1 and f2, interfere into a
-   single tone whose loudness swells and fades at the beat frequency
-   |f1 - f2|: the envelope of sin(2 pi f1 t) + sin(2 pi f2 t) oscillates
-   at the difference (standard result of any acoustics text, e.g. Halliday,
-   Resnick and Walker, "Fundamentals of Physics", ch. 17). Piano tuners
-   listen for the beats between a fork and a string and turn the peg until
-   they vanish.
+Two tones a little apart in frequency, f1 and f2, interfere into a
+single tone whose loudness swells and fades at the beat frequency
+|f1 - f2|: the envelope of sin(2 pi f1 t) + sin(2 pi f2 t) oscillates
+at the difference (standard result of any acoustics text, e.g. Halliday,
+Resnick and Walker, "Fundamentals of Physics", ch. 17). Piano tuners
+listen for the beats between a fork and a string and turn the peg until
+they vanish.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/waves/beats-frequency.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\waves\beats-frequency.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/waves/beats-frequency.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/waves/beats-frequency.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\waves\beats-frequency.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/waves/beats-frequency.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are the three frequencies below (hertz). Printed
-   values carry about 12 significant digits.
-   ============================================================================ */
+The knobs to edit are the three frequencies below (hertz). Printed
+values carry about 12 significant digits.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const f_a = 440 Hz     // the reference fork: concert A4

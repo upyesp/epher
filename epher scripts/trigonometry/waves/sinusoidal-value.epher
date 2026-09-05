@@ -1,24 +1,24 @@
 /* ============================================================================
-   sinusoidal-value.epher -- y = A sin(2 pi f t + phi) at a chosen instant
+sinusoidal-value.epher -- y = A sin(2 pi f t + phi) at a chosen instant
 
-   A tone or a wave on a string is y(t) = A sin(2 pi f t + phi): amplitude
-   A, frequency f in hertz, time t in seconds, and phase phi, a knob in
-   degrees here that the phase term rad(phi) turns into radians. The script
-   evaluates the wave at the instants given below. The sample numbers are
-   chosen so the phase is a clean multiple of 30 deg: at t = 0.01 s with
-   f = 50 Hz the argument is 2 pi (0.5) + pi/6 = 7 pi/6, whose sine is
-   -1/2, so y = -1.25 m exactly.
+A tone or a wave on a string is y(t) = A sin(2 pi f t + phi): amplitude
+A, frequency f in hertz, time t in seconds, and phase phi, a knob in
+degrees here that the phase term rad(phi) turns into radians. The script
+evaluates the wave at the instants given below. The sample numbers are
+chosen so the phase is a clean multiple of 30 deg: at t = 0.01 s with
+f = 50 Hz the argument is 2 pi (0.5) + pi/6 = 7 pi/6, whose sine is
+-1/2, so y = -1.25 m exactly.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/waves/sinusoidal-value.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\waves\sinusoidal-value.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/waves/sinusoidal-value.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/waves/sinusoidal-value.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\waves\sinusoidal-value.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/waves/sinusoidal-value.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are A (meters), f (hertz), phi (degrees) and the
-   instants below. Printed values carry about 12 significant digits.
-   ============================================================================ */
+The knobs to edit are A (meters), f (hertz), phi (degrees) and the
+instants below. Printed values carry about 12 significant digits.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const A = 2.5 m     // amplitude of the wave

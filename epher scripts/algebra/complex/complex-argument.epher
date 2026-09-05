@@ -1,20 +1,20 @@
 /* ============================================================================
-   complex-argument.epher -- arg(z) in radians and degrees
+complex-argument.epher -- arg(z) in radians and degrees
 
-   arg(z) is the angle of z from the positive real axis, in (-pi, pi]
-   (Churchill and Brown, "Complex Variables and Applications", sec. 1, 7).
-   The built-in arg gives radians; deg converts to degrees. The four
-   diagonal directions come out at the exact multiples 45, 135, -135 and
-   -90 degrees, and 3 + 4i at arctan(4/3) = 53.1301023542 degrees. The
-   radian values are floats accurate to about 12 digits.
+arg(z) is the angle of z from the positive real axis, in (-pi, pi]
+(Churchill and Brown, "Complex Variables and Applications", sec. 1, 7).
+The built-in arg gives radians; deg converts to degrees. The four
+diagonal directions come out at the exact multiples 45, 135, -135 and
+-90 degrees, and 3 + 4i at arctan(4/3) = 53.1301023542 degrees. The
+radian values are floats accurate to about 12 digits.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-argument.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-argument.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-argument.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-argument.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-argument.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-argument.epher
 
-   No knobs to edit; the values below are fixed examples.
-   ============================================================================ */
+No knobs to edit; the values below are fixed examples.
+============================================================================ */
 
 // ---- results -----------------------------------------------------------------
 print("arg(1 + i):", arg(1 + i))

@@ -1,25 +1,25 @@
 /* ============================================================================
-   volume-of-revolution.epher -- y = x^2 spun around the x-axis, [0, 2]
+volume-of-revolution.epher -- y = x^2 spun around the x-axis, [0, 2]
 
-   The disc method (Stewart, "Calculus", 8th ed., sec. 6.2): rotating
-   y = f(x) about the x-axis on [a, b] sweeps discs of radius f(x), so
+The disc method (Stewart, "Calculus", 8th ed., sec. 6.2): rotating
+y = f(x) about the x-axis on [a, b] sweeps discs of radius f(x), so
 
-     volume = pi * integral(f(x)^2, a, b).
+  volume = pi * integral(f(x)^2, a, b).
 
-   For f(x) = x^2 on [0, 2] the integrand is (x^2)^2 = x^4 and the
-   volume is pi * integral(x^4, 0, 2) = pi * 2^5/5 = 32 pi / 5, about
-   20.106193. The exact value 32*pi/5 is printed beneath it for
-   comparison.
+For f(x) = x^2 on [0, 2] the integrand is (x^2)^2 = x^4 and the
+volume is pi * integral(x^4, 0, 2) = pi * 2^5/5 = 32 pi / 5, about
+20.106193. The exact value 32*pi/5 is printed beneath it for
+comparison.
 
-   Accuracy: Simpson is exact on the polynomial x^4; the two printed
-   values agree to about 1e-15.
+Accuracy: Simpson is exact on the polynomial x^4; the two printed
+values agree to about 1e-15.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/volume-of-revolution.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\volume-of-revolution.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/volume-of-revolution.epher
-   The knobs to edit are `a` and `b`, the ends of the interval.
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/volume-of-revolution.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\volume-of-revolution.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/volume-of-revolution.epher
+The knobs to edit are `a` and `b`, the ends of the interval.
+============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------
 const a = 0

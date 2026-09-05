@@ -1,23 +1,23 @@
 /* ============================================================================
-   sample-stdev.epher -- standard deviation of a sample with the n - 1 correction
+sample-stdev.epher -- standard deviation of a sample with the n - 1 correction
 
-   The sample standard deviation of the ten exam scores in `d`. The builtin
-   stdev is the population version (divides by n), so the sample version
-   (n - 1) is built from it as sqrt(variance(d) * n / (n - 1)); see
-   sample-variance.epher for the variance alone. With ten scores the result
-   is sqrt(2947/30), about 9.9113, against the population 9.4027 below.
+The sample standard deviation of the ten exam scores in `d`. The builtin
+stdev is the population version (divides by n), so the sample version
+(n - 1) is built from it as sqrt(variance(d) * n / (n - 1)); see
+sample-variance.epher for the variance alone. With ten scores the result
+is sqrt(2947/30), about 9.9113, against the population 9.4027 below.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/sample-stdev.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\sample-stdev.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/sample-stdev.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/summary/sample-stdev.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\summary\sample-stdev.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/summary/sample-stdev.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The one knob to edit is `d` below. Everything above the results section
-   is machinery you can leave alone.
-   ============================================================================ */
+The one knob to edit is `d` below. Everything above the results section
+is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
 const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students

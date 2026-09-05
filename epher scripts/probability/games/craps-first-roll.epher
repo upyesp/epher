@@ -1,29 +1,29 @@
 /* ============================================================================
-   craps-first-roll.epher -- the come-out roll of craps, exact fractions
+craps-first-roll.epher -- the come-out roll of craps, exact fractions
 
-   Craps opens with a come-out roll of two dice. The shooter wins at once
-   with a 7 or an 11 and loses at once with a 2, a 3 or a 12; any other
-   sum sets a "point" and the game continues with further rolls. Using
-   the two-dice sums of the companion script (games/two-dice-sums.epher):
+Craps opens with a come-out roll of two dice. The shooter wins at once
+with a 7 or an 11 and loses at once with a 2, a 3 or a 12; any other
+sum sets a "point" and the game continues with further rolls. Using
+the two-dice sums of the companion script (games/two-dice-sums.epher):
 
-     P(win now)  = P(7 or 11) = (6 + 2) / 36 = 8/36 = 2/9
-     P(lose now) = P(2, 3 or 12) = (1 + 2 + 1) / 36 = 4/36 = 1/9
+  P(win now)  = P(7 or 11) = (6 + 2) / 36 = 8/36 = 2/9
+  P(lose now) = P(2, 3 or 12) = (1 + 2 + 1) / 36 = 4/36 = 1/9
 
-   The remaining 24/36 = 2/3 of come-out rolls go to a point round. The
-   full game, point rounds included, is won with probability 244/495 =
-   0.492929292929, so the pass line carries a house edge of about 1.41%,
-   which is why the casino stays in business.
+The remaining 24/36 = 2/3 of come-out rolls go to a point round. The
+full game, point rounds included, is won with probability 244/495 =
+0.492929292929, so the pass line carries a house edge of about 1.41%,
+which is why the casino stays in business.
 
-   Source: Feller, "An Introduction to Probability Theory and Its
-   Applications", volume 1, chapter 3 (the 244/495 value is derived
-   there). All the fractions below are exact.
+Source: Feller, "An Introduction to Probability Theory and Its
+Applications", volume 1, chapter 3 (the 244/495 value is derived
+there). All the fractions below are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/craps-first-roll.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\craps-first-roll.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/craps-first-roll.epher
-   Web/desktop:             paste the file into the entry, press Enter
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/games/craps-first-roll.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\games\craps-first-roll.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/games/craps-first-roll.epher
+Web/desktop:             paste the file into the entry, press Enter
+============================================================================ */
 
 // ---- results ----
 // The immediate outcomes of the come-out roll.

@@ -1,21 +1,21 @@
 /* ============================================================================
-   cylinder-volume.epher -- volume of a cylinder from radius and height
+cylinder-volume.epher -- volume of a cylinder from radius and height
 
-   A cylinder is a prism, so its volume is the base area times the
-   height, V = pi r^2 h (standard formula; a disk of area pi r^2 stacked
-   h times). For radius 3 and height 5 the volume is 45 pi. The unit
-   cylinder holds exactly pi.
+A cylinder is a prism, so its volume is the base area times the
+height, V = pi r^2 h (standard formula; a disk of area pi r^2 stacked
+h times). For radius 3 and height 5 the volume is 45 pi. The unit
+cylinder holds exactly pi.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/cylinder-volume.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\cylinder-volume.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/cylinder-volume.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/solids/cylinder-volume.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\solids\cylinder-volume.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/solids/cylinder-volume.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `r` (radius) and `h` (height).
-   Everything above the results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `r` (radius) and `h` (height).
+Everything above the results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const r = 3

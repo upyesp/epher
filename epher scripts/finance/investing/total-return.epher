@@ -1,29 +1,29 @@
 /* ============================================================================
-   total-return.epher -- return on a shareholding, including the dividends
-   collected along the way
+total-return.epher -- return on a shareholding, including the dividends
+collected along the way
 
-   The total return of an investment is everything it returned, divided by
-   what it cost: (price gain + dividends)/cost. The script splits the return
-   of a 100-share holding into the price part and the dividend part, then
-   adds them. Source: standard investment-measurement practice; see
-   Brealey and Myers, Principles of Corporate Finance, chapter 8 (total
-   return on common stock).
+The total return of an investment is everything it returned, divided by
+what it cost: (price gain + dividends)/cost. The script splits the return
+of a 100-share holding into the price part and the dividend part, then
+adds them. Source: standard investment-measurement practice; see
+Brealey and Myers, Principles of Corporate Finance, chapter 8 (total
+return on common stock).
 
-   Assumptions: 100 shares bought at 45 and sold at 61.20, with 3.60 per
-   share of dividends collected over the holding period. Taxes, commissions
-   and the timing of the dividends are ignored, and the return is not
-   annualized (the sibling script cagr.epher does that).
+Assumptions: 100 shares bought at 45 and sold at 61.20, with 3.60 per
+share of dividends collected over the holding period. Taxes, commissions
+and the timing of the dividends are ignored, and the return is not
+annualized (the sibling script cagr.epher does that).
 
-   Accuracy: exact arithmetic, so the three returns print exactly.
+Accuracy: exact arithmetic, so the three returns print exactly.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/total-return.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\total-return.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/total-return.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/total-return.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\total-return.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/total-return.epher
 
-   The knobs to edit are in the knob section; everything after it is
-   machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are in the knob section; everything after it is
+machinery you can leave alone.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const shares = 100          // shares bought

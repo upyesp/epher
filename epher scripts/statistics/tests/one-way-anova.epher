@@ -1,25 +1,25 @@
 /* ============================================================================
-   one-way-anova.epher -- do three fertilizers grow the same yield?
+one-way-anova.epher -- do three fertilizers grow the same yield?
 
-   Compares the plot yields under three fertilizers, the groups `a`, `b`
-   and `c`, with the builtin one-way analysis of variance anova(g1, g2,
-   ...) (guide 1.20), which prints the F statistic and its p-value as a
-   display string. F compares the spread between the group means with the
-   spread within the groups; here the between-group spread is 14 times
-   the within-group spread, and p = 0.0007 says yields under the three
-   fertilizers differ clearly. The yields are example values.
+Compares the plot yields under three fertilizers, the groups `a`, `b`
+and `c`, with the builtin one-way analysis of variance anova(g1, g2,
+...) (guide 1.20), which prints the F statistic and its p-value as a
+display string. F compares the spread between the group means with the
+spread within the groups; here the between-group spread is 14 times
+the within-group spread, and p = 0.0007 says yields under the three
+fertilizers differ clearly. The yields are example values.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/one-way-anova.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\one-way-anova.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/one-way-anova.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/tests/one-way-anova.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\tests\one-way-anova.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/tests/one-way-anova.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `a`, `b` and `c` below. Everything above the
-   results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `a`, `b` and `c` below. Everything above the
+results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const a = {12, 14, 15, 13, 16}   // yield per plot, fertilizer A, kg

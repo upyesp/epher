@@ -1,23 +1,23 @@
 /* ============================================================================
-   coterminal-angles.epher -- a coterminal angle in [0, 360) for any angle
+coterminal-angles.epher -- a coterminal angle in [0, 360) for any angle
 
-   Angles that differ by whole turns share a terminal side; they are called
-   coterminal. To place any angle, negative or larger than a turn, into
-   [0, 360): subtract 360 * floor(x / 360), the largest whole number of
-   turns that does not overshoot. The formula is the standard one from any
-   precalculus text (see reference-angle.epher in this folder); no builtin
-   reduces angles, so the script states it.
+Angles that differ by whole turns share a terminal side; they are called
+coterminal. To place any angle, negative or larger than a turn, into
+[0, 360): subtract 360 * floor(x / 360), the largest whole number of
+turns that does not overshoot. The formula is the standard one from any
+precalculus text (see reference-angle.epher in this folder); no builtin
+reduces angles, so the script states it.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/coterminal-angles.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\coterminal-angles.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/coterminal-angles.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/trigonometry/angles/coterminal-angles.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\trigonometry\angles\coterminal-angles.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/trigonometry/angles/coterminal-angles.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The one knob to edit is the `angs` list below (degrees). Printed values
-   carry about 12 significant digits.
-   ============================================================================ */
+The one knob to edit is the `angs` list below (degrees). Printed values
+carry about 12 significant digits.
+============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
 const angs = {750, 930, -45, 1440, -720, 3620}   // angles, in degrees
@@ -26,9 +26,9 @@ const angs = {750, 930, -45, 1440, -720, 3620}   // angles, in degrees
 def cot(x) = x - 360 * floor(x / 360)   // coterminal angle in [0, 360)
 
 /* ---- results -----------------------------------------------------------------
-   Each angle reduced into [0, 360): 750 = 2 x 360 + 30, 930 = 2 x 360 + 210,
-   -45 = -1 x 360 + 315, 1440 = 4 x 360 + 0, -720 = -2 x 360 + 0,
-   3620 = 10 x 360 + 20. */
+Each angle reduced into [0, 360): 750 = 2 x 360 + 30, 930 = 2 x 360 + 210,
+-45 = -1 x 360 + 315, 1440 = 4 x 360 + 0, -720 = -2 x 360 + 0,
+3620 = 10 x 360 + 20. */
 for x in angs do cot(x)
 
 // How many whole turns each one needed, (x - cot(x)) / 360.

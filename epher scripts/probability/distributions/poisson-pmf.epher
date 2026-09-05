@@ -1,27 +1,27 @@
 /* ============================================================================
-   poisson-pmf.epher -- Poisson point probabilities around rate 2
+poisson-pmf.epher -- Poisson point probabilities around rate 2
 
-   The Poisson distribution models the count of rare independent events
-   in a fixed window: if calls arrive at a switchboard at a mean rate of
-   `rate` per minute, the number X of calls in one minute satisfies
+The Poisson distribution models the count of rare independent events
+in a fixed window: if calls arrive at a switchboard at a mean rate of
+`rate` per minute, the number X of calls in one minute satisfies
 
-     P(X = k) = e^-rate * rate^k / k!,
+  P(X = k) = e^-rate * rate^k / k!,
 
-   and epher's poissonpdf(k, rate) builtin evaluates that formula. This
-   script reads the builtin for k = 0..5 and verifies one point against
-   the formula written out by hand. The builtin prints floats with tiny
-   noise around the last digit, which the comparison below tolerates.
+and epher's poissonpdf(k, rate) builtin evaluates that formula. This
+script reads the builtin for k = 0..5 and verifies one point against
+the formula written out by hand. The builtin prints floats with tiny
+noise around the last digit, which the comparison below tolerates.
 
-   Source: Ross, "A First Course in Probability", chapter 4.
+Source: Ross, "A First Course in Probability", chapter 4.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/poisson-pmf.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\poisson-pmf.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/poisson-pmf.epher
-   Web/desktop:             paste the file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/distributions/poisson-pmf.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\distributions\poisson-pmf.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/distributions/poisson-pmf.epher
+Web/desktop:             paste the file into the entry, press Enter
 
-   The knob to edit is `rate`; everything below it is machinery.
-   ============================================================================ */
+The knob to edit is `rate`; everything below it is machinery.
+============================================================================ */
 
 // ---- the knob ----
 const rate = 2

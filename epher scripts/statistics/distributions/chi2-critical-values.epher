@@ -1,22 +1,22 @@
 /* ============================================================================
-   chi2-critical-values.epher -- chi-square cut points for levels and df
+chi2-critical-values.epher -- chi-square cut points for levels and df
 
-   The chi-square cut points x such that P(chi2 <= x) equals the
-   probability in `p` with the given degrees of freedom, from the builtin
-   invchi2 (guide 1.20). The 95th percentile with 5 df is the 11.0705 of
-   goodness-of-fit tests. The last lines feed each cut point back through
-   chi2cdf: the lower-tail area at the cut point comes back to p.
+The chi-square cut points x such that P(chi2 <= x) equals the
+probability in `p` with the given degrees of freedom, from the builtin
+invchi2 (guide 1.20). The 95th percentile with 5 df is the 11.0705 of
+goodness-of-fit tests. The last lines feed each cut point back through
+chi2cdf: the lower-tail area at the cut point comes back to p.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/chi2-critical-values.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\chi2-critical-values.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/chi2-critical-values.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/chi2-critical-values.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\chi2-critical-values.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/chi2-critical-values.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   No knobs: the levels and degrees of freedom below are the demonstration.
-   ============================================================================ */
+No knobs: the levels and degrees of freedom below are the demonstration.
+============================================================================ */
 
 // ---- the cut points -------------------------------------------------------------------
 print("invchi2(0.95, 5):", invchi2(0.95, 5))      // the 5% chi2 with 5 df

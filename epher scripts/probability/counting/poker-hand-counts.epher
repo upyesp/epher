@@ -1,24 +1,24 @@
 /* ============================================================================
-   poker-hand-counts.epher -- five-card hands: totals, flushes, big hands
+poker-hand-counts.epher -- five-card hands: totals, flushes, big hands
 
-   Counts hands with the ncr builtin (guide 1.13): the 52-card deck holds
-   ncr(52, 5) = 2598960 five-card hands, of which 4 * ncr(13, 5) = 5148
-   are flushes (five cards of one suit; the straight flushes are included,
-   so 40 of those 5148 are straight flushes and 4 of the 40 are royal).
+Counts hands with the ncr builtin (guide 1.13): the 52-card deck holds
+ncr(52, 5) = 2598960 five-card hands, of which 4 * ncr(13, 5) = 5148
+are flushes (five cards of one suit; the straight flushes are included,
+so 40 of those 5148 are straight flushes and 4 of the 40 are royal).
 
-   The probability of a flush is 4 * ncr(13, 5) / ncr(52, 5) = 33/16660
-   exactly, about 0.00198, or one hand in 505. The fraction and the
-   computed quotient are cross-checked below with exact arithmetic.
+The probability of a flush is 4 * ncr(13, 5) / ncr(52, 5) = 33/16660
+exactly, about 0.00198, or one hand in 505. The fraction and the
+computed quotient are cross-checked below with exact arithmetic.
 
-   Source: Feller, "An Introduction to Probability Theory and Its
-   Applications", volume 1, chapter 2. The counts are exact integers.
+Source: Feller, "An Introduction to Probability Theory and Its
+Applications", volume 1, chapter 2. The counts are exact integers.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/poker-hand-counts.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\poker-hand-counts.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/poker-hand-counts.epher
-   Web/desktop:             paste the file into the entry, press Enter
-   ============================================================================ */
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/probability/counting/poker-hand-counts.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\probability\counting\poker-hand-counts.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/probability/counting/poker-hand-counts.epher
+Web/desktop:             paste the file into the entry, press Enter
+============================================================================ */
 
 // ---- results ----
 // The total number of five-card hands: 52 choose 5.

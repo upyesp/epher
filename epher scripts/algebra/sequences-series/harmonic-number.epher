@@ -1,20 +1,20 @@
 /* ============================================================================
-   harmonic-number.epher -- the partial sum H_n, compared with ln(n) + gamma
+harmonic-number.epher -- the partial sum H_n, compared with ln(n) + gamma
 
-   H_n = 1 + 1/2 + ... + 1/n grows like ln n: the difference H_n - ln n
-   approaches the Euler-Mascheroni constant gamma = 0.5772156649... (Leonhard
-   Euler, 1734; Lorenzo Mascheroni, 1790; see any analysis text), and the
-   error after n terms is about 1/(2n). A packed while loop adds the 1000
-   terms quietly (a for loop would echo 1000 partial sums). The floats are
-   accurate to about 12 digits.
+H_n = 1 + 1/2 + ... + 1/n grows like ln n: the difference H_n - ln n
+approaches the Euler-Mascheroni constant gamma = 0.5772156649... (Leonhard
+Euler, 1734; Lorenzo Mascheroni, 1790; see any analysis text), and the
+error after n terms is about 1/(2n). A packed while loop adds the 1000
+terms quietly (a for loop would echo 1000 partial sums). The floats are
+accurate to about 12 digits.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/harmonic-number.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\harmonic-number.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/harmonic-number.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/harmonic-number.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\harmonic-number.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/harmonic-number.epher
 
-   The knob to edit is n below.
-   ============================================================================ */
+The knob to edit is n below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const n = 1000                            // terms of the harmonic series

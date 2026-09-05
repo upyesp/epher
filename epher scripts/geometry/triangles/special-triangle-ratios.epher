@@ -1,23 +1,23 @@
 /* ============================================================================
-   special-triangle-ratios.epher -- 30-60-90 and 45-45-90 side ratios
+special-triangle-ratios.epher -- 30-60-90 and 45-45-90 side ratios
 
-   The 30-60-90 triangle has sides in the ratio 1 : sqrt(3) : 2 (short
-   leg, long leg, hypotenuse) and the 45-45-90 triangle in the ratio
-   1 : 1 : sqrt(2), both from Pythagoras on the half equilateral triangle
-   and the half square (standard formula). The results scale the ratios,
-   then verify them against the builtin sin: the opposite side over the
-   hypotenuse must equal sin of the opposite angle. Angles are written
-   with the deg unit, which epher converts to radians for trig.
+The 30-60-90 triangle has sides in the ratio 1 : sqrt(3) : 2 (short
+leg, long leg, hypotenuse) and the 45-45-90 triangle in the ratio
+1 : 1 : sqrt(2), both from Pythagoras on the half equilateral triangle
+and the half square (standard formula). The results scale the ratios,
+then verify them against the builtin sin: the opposite side over the
+hypotenuse must equal sin of the opposite angle. Angles are written
+with the deg unit, which epher converts to radians for trig.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/special-triangle-ratios.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\special-triangle-ratios.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/special-triangle-ratios.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/special-triangle-ratios.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\special-triangle-ratios.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/special-triangle-ratios.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The scales to try are in the results section (5 and 4 below).
-   ============================================================================ */
+The scales to try are in the results section (5 and 4 below).
+============================================================================ */
 
 // ---- the model ----------------------------------------------------------------
 def long30(s) = s * sqrt(3)   // long leg of a 30-60-90, short leg s

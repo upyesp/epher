@@ -1,26 +1,26 @@
 /* ============================================================================
-   internal-rate-of-return.epher -- the rate that makes the project's npv
-   zero
+internal-rate-of-return.epher -- the rate that makes the project's npv
+zero
 
-   The internal rate of return is the discount rate at which the project's
-   cash flows exactly pay back their cost: npv(irr, flows) = 0. The finance
-   builtin irr(flows) solves that equation. If the irr beats the cost of
-   capital, the project is worth doing; here the same flows as
-   net-present-value.epher carry an 8% hurdle. Source: standard
-   capital-budgeting formulas; see Brealey and Myers, Principles of
-   Corporate Finance, chapter 5.
+The internal rate of return is the discount rate at which the project's
+cash flows exactly pay back their cost: npv(irr, flows) = 0. The finance
+builtin irr(flows) solves that equation. If the irr beats the cost of
+capital, the project is worth doing; here the same flows as
+net-present-value.epher carry an 8% hurdle. Source: standard
+capital-budgeting formulas; see Brealey and Myers, Principles of
+Corporate Finance, chapter 5.
 
-   Accuracy: 12 displayed digits. At the printed rate the npv is about
-   -2.9e-11 in floating point, i.e. zero to float precision (verified
-   against the builtin npv in the sibling scripts).
+Accuracy: 12 displayed digits. At the printed rate the npv is about
+-2.9e-11 in floating point, i.e. zero to float precision (verified
+against the builtin npv in the sibling scripts).
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/internal-rate-of-return.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\internal-rate-of-return.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/internal-rate-of-return.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/internal-rate-of-return.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\internal-rate-of-return.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/internal-rate-of-return.epher
 
-   The flows knob below is the only value to edit.
-   ============================================================================ */
+The flows knob below is the only value to edit.
+============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
 const flows = {-100000, 30000, 40000, 40000, 30000}   // year 0 outflow, then four yearly inflows, USD

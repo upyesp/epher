@@ -1,19 +1,19 @@
 /* ============================================================================
-   binomial-expansion.epher -- expand (a + b)^n: coefficients and terms
+binomial-expansion.epher -- expand (a + b)^n: coefficients and terms
 
-   The binomial theorem (Newton, 1665; any algebra text): (a + b)^n is the
-   sum over k of ncr(n, k) a^(n-k) b^k. The built-in ncr gives
-   the coefficients, which are row n of Pascal's triangle (see pascal-row.
-   epher). Numeric values: a = 2, b = 3, n = 6, so the expansion is
-   (2 + 3)^6 = 5^6 = 15625, the check at the end. Everything is exact.
+The binomial theorem (Newton, 1665; any algebra text): (a + b)^n is the
+sum over k of ncr(n, k) a^(n-k) b^k. The built-in ncr gives
+the coefficients, which are row n of Pascal's triangle (see pascal-row.
+epher). Numeric values: a = 2, b = 3, n = 6, so the expansion is
+(2 + 3)^6 = 5^6 = 15625, the check at the end. Everything is exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/binomial-expansion.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\binomial-expansion.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/binomial-expansion.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/binomial-expansion.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\binomial-expansion.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/binomial-expansion.epher
 
-   The knobs to edit are a, b and n below.
-   ============================================================================ */
+The knobs to edit are a, b and n below.
+============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 2

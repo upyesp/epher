@@ -1,21 +1,21 @@
 /* ============================================================================
-   complex-roots-of-unity.epher -- the five fifth roots of unity
+complex-roots-of-unity.epher -- the five fifth roots of unity
 
-   The n-th roots of unity are e^(2 pi i k / n) = cos(2 pi k / n) + i sin(2
-   pi k / n) for k = 0 .. n - 1: they sit on the unit circle and their sum
-   is zero (Churchill and Brown, "Complex Variables and Applications",
-   sec. 9). A for loop collects the five roots of x^5 = 1; a quiet while
-   loop adds the real and imaginary parts separately (they cancel to about
-   1e-16, so the transcript prints the booleans, not the residues), and
-   raising the first nontrivial root to the fifth power returns 1.
+The n-th roots of unity are e^(2 pi i k / n) = cos(2 pi k / n) + i sin(2
+pi k / n) for k = 0 .. n - 1: they sit on the unit circle and their sum
+is zero (Churchill and Brown, "Complex Variables and Applications",
+sec. 9). A for loop collects the five roots of x^5 = 1; a quiet while
+loop adds the real and imaginary parts separately (they cancel to about
+1e-16, so the transcript prints the booleans, not the residues), and
+raising the first nontrivial root to the fifth power returns 1.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-roots-of-unity.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-roots-of-unity.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-roots-of-unity.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-roots-of-unity.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-roots-of-unity.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-roots-of-unity.epher
 
-   No knobs to edit; the fifth roots below are fixed examples.
-   ============================================================================ */
+No knobs to edit; the fifth roots below are fixed examples.
+============================================================================ */
 
 // ---- results -----------------------------------------------------------------
 // the five fifth roots of 1, k = 0..4

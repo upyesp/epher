@@ -1,24 +1,24 @@
 /* ============================================================================
-   linear-regression-prediction.epher -- least squares by hand, then predict
+linear-regression-prediction.epher -- least squares by hand, then predict
 
-   Fits the least-squares line to the five (hours, score) pairs in `xs`
-   and `ys` with the classroom formulas: the slope is
-   b1 = sum((x - xbar)(y - ybar)) / sum((x - xbar)^2) and the intercept
-   is b0 = ybar - b1 * xbar. epher's linreg fits the same line, so the
-   print of linreg below is the cross-check. The line then predicts the
-   score for six study hours, just past the data.
+Fits the least-squares line to the five (hours, score) pairs in `xs`
+and `ys` with the classroom formulas: the slope is
+b1 = sum((x - xbar)(y - ybar)) / sum((x - xbar)^2) and the intercept
+is b0 = ybar - b1 * xbar. epher's linreg fits the same line, so the
+print of linreg below is the cross-check. The line then predicts the
+score for six study hours, just past the data.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/linear-regression-prediction.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\linear-regression-prediction.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/linear-regression-prediction.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/regression/linear-regression-prediction.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\regression\linear-regression-prediction.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/regression/linear-regression-prediction.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `xs` and `ys` below. Everything above the results
-   section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `xs` and `ys` below. Everything above the results
+section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const xs = {1, 2, 3, 4, 5}       // hours of study, one per student

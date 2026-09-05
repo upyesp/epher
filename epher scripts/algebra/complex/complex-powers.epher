@@ -1,20 +1,20 @@
 /* ============================================================================
-   complex-powers.epher -- (1 + i)^10 and (2 + 3i)^3, |z^n| = |z|^n
+complex-powers.epher -- (1 + i)^10 and (2 + 3i)^3, |z^n| = |z|^n
 
-   Powers of a complex number multiply moduli and add arguments (de Moivre's
-   formula, 1722; Churchill and Brown, "Complex Variables and Applications",
-   sec. 9). (1 + i)^10 = (sqrt(2) e^(i pi/4))^10 = 32 e^(i 5 pi/2) = 32i,
-   exactly, and (2 + 3i)^3 = -46 + 9i, exactly. The modulus identity
-   |z^n| = |z|^n is checked for both: 32 = 32 exactly in the first case,
-   and sqrt(2197) from either side in the second, within 1e-9.
+Powers of a complex number multiply moduli and add arguments (de Moivre's
+formula, 1722; Churchill and Brown, "Complex Variables and Applications",
+sec. 9). (1 + i)^10 = (sqrt(2) e^(i pi/4))^10 = 32 e^(i 5 pi/2) = 32i,
+exactly, and (2 + 3i)^3 = -46 + 9i, exactly. The modulus identity
+|z^n| = |z|^n is checked for both: 32 = 32 exactly in the first case,
+and sqrt(2197) from either side in the second, within 1e-9.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-powers.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-powers.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-powers.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-powers.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-powers.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-powers.epher
 
-   No knobs to edit; the values below are fixed examples.
-   ============================================================================ */
+No knobs to edit; the values below are fixed examples.
+============================================================================ */
 
 // ---- results -----------------------------------------------------------------
 print("(1 + i)^10:", (1 + i) ^ 10)

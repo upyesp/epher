@@ -1,24 +1,24 @@
 /* ============================================================================
-   poisson-approximation.epher -- the binomial for rare events as a Poisson
+poisson-approximation.epher -- the binomial for rare events as a Poisson
 
-   Approximates the binomial probability P(X <= 3) for X with n = 1000
-   trials and p = 0.002 (a rare event) by the Poisson with rate
-   lambda = n * p = 2, using the builtin poissoncdf (guide 1.20). The
-   rule of thumb: the Poisson approximates the binomial well when n is
-   large and p small, here with n * p = 2. Both answers agree to about
-   two ten-thousandths.
+Approximates the binomial probability P(X <= 3) for X with n = 1000
+trials and p = 0.002 (a rare event) by the Poisson with rate
+lambda = n * p = 2, using the builtin poissoncdf (guide 1.20). The
+rule of thumb: the Poisson approximates the binomial well when n is
+large and p small, here with n * p = 2. Both answers agree to about
+two ten-thousandths.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/poisson-approximation.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\poisson-approximation.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/poisson-approximation.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
-   Everything also works line by line in the TUI.
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/statistics/distributions/poisson-approximation.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\statistics\distributions\poisson-approximation.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/statistics/distributions/poisson-approximation.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+Everything also works line by line in the TUI.
 
-   The knobs to edit are `n`, `p` and `k` below. Everything above the
-   results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `n`, `p` and `k` below. Everything above the
+results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const n = 1000   // trials, say components tested

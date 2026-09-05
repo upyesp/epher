@@ -1,22 +1,22 @@
 /* ============================================================================
-   pythagorean-hypotenuse.epher -- hypotenuse c from the legs a and b
+pythagorean-hypotenuse.epher -- hypotenuse c from the legs a and b
 
-   Computes the hypotenuse of a right triangle from its two legs with the
-   Pythagorean theorem, c = sqrt(a^2 + b^2) (Euclid's Elements, book I,
-   proposition 47). The builtin hypot(a, b) returns the same length in one
-   call, and the last result cross-checks the formula against it; the
-   formula is written out because the method is the point of the script.
+Computes the hypotenuse of a right triangle from its two legs with the
+Pythagorean theorem, c = sqrt(a^2 + b^2) (Euclid's Elements, book I,
+proposition 47). The builtin hypot(a, b) returns the same length in one
+call, and the last result cross-checks the formula against it; the
+formula is written out because the method is the point of the script.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/pythagorean-hypotenuse.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\pythagorean-hypotenuse.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/pythagorean-hypotenuse.epher
-   In the REPL:             load one of the paths above
-   Web/desktop:             paste the whole file into the entry, press Enter
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/triangles/pythagorean-hypotenuse.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\triangles\pythagorean-hypotenuse.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/triangles/pythagorean-hypotenuse.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
 
-   The knobs to edit are `a` and `b`, the two legs. Everything above the
-   results section is machinery you can leave alone.
-   ============================================================================ */
+The knobs to edit are `a` and `b`, the two legs. Everything above the
+results section is machinery you can leave alone.
+============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const a = 3

@@ -1,19 +1,19 @@
 /* ============================================================================
-   determinant-3x3.epher -- the 3x3 determinant by the rule of Sarrus
+determinant-3x3.epher -- the 3x3 determinant by the rule of Sarrus
 
-   Sarrus' rule (Pierre Frederic Sarrus, 1833) computes a 3x3 determinant by
-   summing three downward diagonals and subtracting three upward ones. It
-   holds only for 3x3 matrices; larger determinants need expansion or row
-   reduction, which is why the built-in det exists. The classroom formula is
-   written out for teaching and checked against det. All values are exact.
+Sarrus' rule (Pierre Frederic Sarrus, 1833) computes a 3x3 determinant by
+summing three downward diagonals and subtracting three upward ones. It
+holds only for 3x3 matrices; larger determinants need expansion or row
+reduction, which is why the built-in det exists. The classroom formula is
+written out for teaching and checked against det. All values are exact.
 
-   Run it from a terminal:
-     Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/determinant-3x3.epher
-     Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\determinant-3x3.epher"
-     macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/determinant-3x3.epher
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/matrices/determinant-3x3.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\matrices\determinant-3x3.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/matrices/determinant-3x3.epher
 
-   The knob to edit is the matrix M below.
-   ============================================================================ */
+The knob to edit is the matrix M below.
+============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
 const M = [[1, 2, 3], [4, 5, 6], [7, 8, 10]]
