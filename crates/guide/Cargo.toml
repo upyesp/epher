@@ -1,6 +1,6 @@
 [package]
 name = "epher-guide"
-version = "0.5.28"
+version = "0.5.29"
 edition = "2021"
 description = "The epher user guide renderers: site/guide/*.md markdown to HTML (web/desktop) or plain text (TUI). The content is not compiled in; frontends fetch or read it on demand (ADR-0053)."
 license = "MIT"
