@@ -14,8 +14,6 @@ window.EPHER_I18N["de"] = {
   "scripts-title": "Skripte",
   "scripts-lede": "Fertige Skripte für den epher-Rechner, nach Fachgebiet und Thema geordnet. Öffnen Sie einen Ordner zum Stöbern, klicken Sie ein Skript zum Lesen an und kopieren Sie jedes Skript in die Zwischenablage.",
   "scripts-search": "Skripte suchen (Namen und Inhalt)",
-  "scripts-run-title": "Im Terminal ausführen",
-  "scripts-run-lede": "Jedes Installationspaket bringt diese ganze Sammlung mit und installiert sie neben dem Programm. Dasselbe Skript von oben läuft auf jedem Betriebssystem aus dem installierten Ordner:",
   "scripts-no-results": "Keine Skripte entsprechen Ihrer Suche",
   "guide-cta": "Benutzerhandbuch lesen",
   "source-link": "Quellcode",

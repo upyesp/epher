@@ -74,3 +74,17 @@ the pane the terminal already calls "Result" — one answer per line,
 above any curves, with the plot sized to the rows the transcript
 leaves. The every-answer-visible contract (ADR-0052) is carried by the
 pane for transcripts, as it is on the web.
+
+## Amendment (2026-09-05): a table result slides the pane into view on mobile
+
+The `table` command sent its answer to the result pane but skipped the
+slide: on a phone the values were drawn in the pane the user could not
+see, one swipe away, while a long transcript or a plot brought the pane
+into view by itself. Inconsistent for no reason — a table result is a
+multi-line pane answer like a transcript.
+
+The table command now follows the same slide contract as every other
+long answer (ADR-0035's): on the mobile layout the result pane slides
+into view on submit and the entry drops the focus so the keyboard
+closes. Short answers still stay on the calculator. The desktop layout
+is untouched — the pane is already on screen there.

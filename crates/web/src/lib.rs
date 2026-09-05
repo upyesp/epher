@@ -1318,15 +1318,156 @@ fn json_string<T: serde::Serialize>(v: &T) -> Option<String> {
 /// The clipboard text for an answer (ADR-0057): the displayed answers
 /// without the "= " voice, one per line, so a paste gives the values.
 fn answer_clip(result: &str) -> String {
+    clip_parts(result)
+        .into_iter()
+        .map(|(text, _table)| text)
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// One clipboard answer: its plain text and whether it is a table.
+/// A table keeps its exact space-aligned form; every other answer drops
+/// the "= " voice like it always has.
+fn clip_parts(result: &str) -> Vec<(String, bool)> {
     result
         .split(ANSWER_SEP)
         .map(|p| {
-            let t = p.trim();
-            t.strip_prefix("= ").unwrap_or(t).to_string()
+            if table_cells(p).is_some() {
+                // A table keeps its exact form, leading padding
+                // included — the padding IS the alignment.
+                (p.to_string(), true)
+            } else {
+                let t = p.trim();
+                (t.strip_prefix("= ").unwrap_or(t).to_string(), false)
+            }
         })
-        .filter(|p| !p.is_empty())
-        .collect::<Vec<_>>()
-        .join("\n")
+        .filter(|(p, _)| !p.is_empty())
+        .collect()
+}
+
+/// Parse an answer block as a table (ADR-0014's `table` command): at
+/// least two rows, every row at least two single-token cells, every
+/// cell separated from its neighbor by a run of two or more spaces —
+/// exactly the form `format_table` emits. Anything else (a transcript
+/// like "= 5\n= 6", whose voice is single-spaced) is not a table.
+fn table_cells(block: &str) -> Option<Vec<Vec<String>>> {
+    let lines = block.lines().filter(|l| !l.trim().is_empty());
+    let mut rows: Vec<Vec<String>> = Vec::new();
+    for line in lines {
+        // Right-aligned cells are padded with leading spaces, and a
+        // column gap is a run of two or more spaces, so splitting on
+        // two-space runs and dropping the empties leaves exactly the
+        // cells. A cell itself never holds whitespace (numbers, 1/3,
+        // the em dash) — a piece that still does is not a table row.
+        let cells: Vec<String> = line
+            .split("  ")
+            .map(|c| c.trim().to_string())
+            .filter(|c| !c.is_empty())
+            .collect();
+        if cells.iter().any(|c| c.contains(' ')) {
+            return None;
+        }
+        if cells.len() < 2 {
+            return None;
+        }
+        if let Some(first) = rows.first() {
+            if first.len() != cells.len() {
+                return None;
+            }
+        }
+        rows.push(cells);
+    }
+    if rows.len() < 2 {
+        None
+    } else {
+        Some(rows)
+    }
+}
+
+/// Write both clipboard flavors (ADR-0057 amendment): text/plain plus
+/// text/html in one ClipboardItem when the browser supports the write —
+/// plain text alone when it refuses or lacks the API. Plain text keeps
+/// every paste target working; the HTML flavor is what makes a table
+/// land in columns in documents and spreadsheets.
+async fn write_clipboard(plain: &str, html: &str) -> bool {
+    let Some(clipboard) = web_sys::window().map(|w| w.navigator().clipboard()) else {
+        return false;
+    };
+    let both = (|| {
+        let bag = |ty: &str| {
+            let options = web_sys::BlobPropertyBag::new();
+            options.set_type(ty);
+            options
+        };
+        let parts = |text: &str| ::js_sys::Array::of1(&JsValue::from_str(text));
+        let plain_blob =
+            web_sys::Blob::new_with_str_sequence_and_options(&parts(plain), &bag("text/plain"))?;
+        let html_blob =
+            web_sys::Blob::new_with_str_sequence_and_options(&parts(html), &bag("text/html"))?;
+        // ClipboardItem's record values are promises of blobs.
+        let record = ::js_sys::Object::new();
+        ::js_sys::Reflect::set(
+            &record,
+            &JsValue::from_str("text/plain"),
+            &::js_sys::Promise::resolve::<::js_sys::Object>(&plain_blob.into()).into(),
+        )?;
+        ::js_sys::Reflect::set(
+            &record,
+            &JsValue::from_str("text/html"),
+            &::js_sys::Promise::resolve::<::js_sys::Object>(&html_blob.into()).into(),
+        )?;
+        let item = web_sys::ClipboardItem::new_with_record_from_str_to_blob_promise(&record)?;
+        Ok::<_, JsValue>(clipboard.write(&::js_sys::Array::of1(&item.into())))
+    })();
+    if let Ok(promise) = both {
+        if JsFuture::from(promise).await.is_ok() {
+            return true;
+        }
+    }
+    // No ClipboardItem, or the browser refused a flavor: the aligned
+    // plain text still pastes aligned in every monospace surface.
+    JsFuture::from(clipboard.write_text(plain)).await.is_ok()
+}
+
+/// The clipboard's HTML flavor for an answer (ADR-0057 amendment): a
+/// table pastes as a real table (cells land in Sheets/Docs columns);
+/// any other block pastes as preformatted text. Plain-text targets
+/// keep taking `answer_clip`'s space-aligned form, which aligns in
+/// every monospace surface — terminals, editors, code blocks.
+fn answer_clip_html(result: &str) -> String {
+    let mut body = String::new();
+    for (text, table) in clip_parts(result) {
+        if table {
+            // Inline attributes only: webmail strips <style> blocks.
+            body.push_str("<table>\n");
+            for row in table_cells(&text).unwrap_or_default() {
+                body.push_str("<tr>");
+                for cell in row {
+                    body.push_str(&format!(
+                        "<td align=\"right\" style=\"text-align:right;padding:0 8px\">{}</td>",
+                        html_escape(&cell)
+                    ));
+                }
+                body.push_str("</tr>\n");
+            }
+            body.push_str("</table>");
+        } else if text.contains('\n') {
+            body.push_str(&format!(
+                "<pre style=\"margin:0\">{}</pre>",
+                html_escape(&text)
+            ));
+        } else {
+            body.push_str(&format!("<div>{}</div>", html_escape(&text)));
+        }
+    }
+    format!("<div style=\"font-family:ui-monospace,Menlo,Consolas,monospace\">{body}</div>")
+}
+
+/// Escape a clipboard cell for the HTML flavor.
+fn html_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
 }
 
 /// Render the result text as answer items (ADR-0055): short answers flow
@@ -4085,6 +4226,17 @@ fn epher_app() -> Html {
                             }
                         }
                     }
+                    // A table's result is a multi-line pane answer
+                    // (ADR-0056): on mobile the result pane slides into
+                    // view exactly like a long transcript, and the entry
+                    // drops the focus so the keyboard closes (ADR-0035's
+                    // slide contract).
+                    if matches!(cmd, epher_shell::Command::Table { .. }) && mobile_layout() {
+                        scroll_pane_for_submit.emit("graph-pane");
+                        if let Some(ta) = input_ref.cast::<web_sys::HtmlTextAreaElement>() {
+                            let _ = ta.blur();
+                        }
+                    }
                     continue;
                 }
 
@@ -5095,19 +5247,22 @@ fn epher_app() -> Html {
             solar_hidden.set(hidden);
         })
     };
-    // Copy the answer (ADR-0057): the values behind what's on screen —
-    // the answer line's single answer or the result pane's whole
-    // transcript — one per line, onto the clipboard. The icon answers
-    // with a check for a moment; the answer itself never moves.
+    // Copy the answer (ADR-0057, amended): the clipboard carries both
+    // flavors — the space-aligned plain text that aligns in every
+    // monospace surface (terminals, editors, code blocks), and a real
+    // HTML table, so a paste into a document or a spreadsheet lands in
+    // columns. The icon answers with a check for a moment; the answer
+    // itself never moves.
     let on_copy_answer = {
         let result = result.clone();
         let answer_copied = answer_copied.clone();
         let localizer = localizer.clone();
         Callback::from(move |_| {
-            let text = answer_clip(&result);
-            if text.is_empty() {
+            let plain = answer_clip(&result);
+            if plain.is_empty() {
                 return;
             }
+            let html = answer_clip_html(&result);
             answer_copied.set(true);
             if let Some(window) = web_sys::window() {
                 let answer_copied = answer_copied.clone();
@@ -5121,10 +5276,7 @@ fn epher_app() -> Html {
             let result = result.clone();
             let localizer = localizer.clone();
             spawn_local(async move {
-                let ok = match web_sys::window().map(|w| w.navigator().clipboard()) {
-                    Some(clipboard) => clipboard.write_text(&text).await.is_ok(),
-                    None => false,
-                };
+                let ok = write_clipboard(&plain, &html).await;
                 if !ok {
                     result.set(localizer.lookup("answer-copy-failed"));
                 }
@@ -7834,7 +7986,59 @@ pub fn start() {
 
 #[cfg(test)]
 mod tests {
-    use super::{keypad_snap, slider_span, TABS};
+    use super::{answer_clip, answer_clip_html, keypad_snap, slider_span, table_cells, TABS};
+
+    /// The table grammar (ADR-0014 amendment): a table block is rows of
+    /// single-token cells separated by two-or-more-space runs; a
+    /// transcript's single-spaced "= 5" voice is not a table.
+    #[test]
+    fn table_cells_recognizes_exactly_the_table_form() {
+        let table = "         x           y\n         0           0\n       0.3       0.296";
+        let rows = table_cells(table).unwrap();
+        assert_eq!(rows.len(), 3);
+        assert_eq!(rows[0], vec!["x", "y"]);
+        assert_eq!(rows[2], vec!["0.3", "0.296"]);
+        // The derivative form carries a third column.
+        assert_eq!(
+            table_cells("         x           y          y'\n         0           0            1")
+                .unwrap()[0],
+            vec!["x", "y", "y'"]
+        );
+        // Transcripts are single-spaced — never a table.
+        assert_eq!(table_cells("= 5\n= 6"), None);
+        // A ragged row breaks the contract.
+        assert_eq!(table_cells("a   b\nc   d   e"), None);
+        // One line is not a table.
+        assert_eq!(table_cells("a   b"), None);
+    }
+
+    /// The plain clipboard flavor keeps the table's exact alignment and
+    /// strips the voice elsewhere (ADR-0057).
+    #[test]
+    fn answer_clip_keeps_tables_verbatim_and_strips_the_voice() {
+        let table = "x   y\n0   0";
+        assert_eq!(answer_clip(table), table);
+        assert_eq!(answer_clip("= 4"), "4");
+        assert_eq!(answer_clip(&format!("= 4\u{1f}= 9")), "4\n9");
+    }
+
+    /// The HTML clipboard flavor carries a real table so a paste lands
+    /// in columns (ADR-0057 amendment).
+    #[test]
+    fn answer_clip_html_wraps_tables_in_a_table() {
+        let html = answer_clip_html("x   y\n0   0");
+        assert!(html.contains("<table>"), "{html}");
+        assert!(html.contains("<td"), "{html}");
+        assert!(html.contains(">y<"), "{html}");
+        // Transcripts stay preformatted text, not cells.
+        let html = answer_clip_html("= 5\n= 6");
+        assert!(!html.contains("<table>"), "{html}");
+        assert!(html.contains("<pre"), "{html}");
+        // Cells are escaped.
+        let html = answer_clip_html("a<b   c&d\n1   2");
+        assert!(html.contains("a&lt;b"), "{html}");
+        assert!(html.contains("c&amp;d"), "{html}");
+    }
 
     /// The snap contract (ADR-0060): a downward flick collapses, an
     /// upward flick opens, and a slow release keeps the keypad wherever

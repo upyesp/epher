@@ -97,18 +97,6 @@ const page = template
       </div>
       <nav id="scripts-crumbs" class="scripts-crumbs" aria-label="Path"></nav>
       <div id="scripts-browser" class="scripts-browser"></div>
-      <div id="scripts-run-section">
-        <h2 data-i18n="scripts-run-title">Run them from your terminal</h2>
-        <p data-i18n="scripts-run-lede">Every installer ships this whole collection, installed beside the program. The same script above runs from the installed folder on each operating system:</p>
-        <pre><code># Debian, Ubuntu, Fedora (deb, rpm)
-epher /usr/lib/epher/scripts/astronomy/moon/full-moons.epher
-
-# Windows (PowerShell)
-epher "$env:LOCALAPPDATA\\epher\\scripts\\astronomy\\moon\\full-moons.epher"
-
-# macOS
-epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/full-moons.epher</code></pre>
-      </div>
       <noscript>
         <p class="note">The scripts browser needs JavaScript. The same
         scripts live in the repository folder

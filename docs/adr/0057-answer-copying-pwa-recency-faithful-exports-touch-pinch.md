@@ -57,3 +57,22 @@ agree.
   theme/language/display keys are untouched.
 - The TUI's plot pane now carries the web app's localized pane name
   ("Result"), one word for the same pane everywhere.
+
+## Amendment (2026-09-05): the pane copy carries the alignment
+
+The result pane's copy wrote plain text only. For a `table` answer that
+plain text is exactly the space-aligned form on screen — perfect in a
+terminal, an editor, or a code block, and ragged the moment it landed
+in a proportional-font app, because spaces carry no alignment there.
+
+The copy now writes both clipboard flavors in one `ClipboardItem`:
+`text/plain` unchanged (the aligned monospace text), and `text/html`
+that carries the structure a rich-text paste consumes — a table answer
+pastes as a real `<table>`, right-aligned cells, so values land in
+columns in a document or a spreadsheet; any other multi-line answer
+pastes as preformatted text; single answers as plain lines. Browsers
+that refuse the two-flavor write fall back to plain text, so every
+paste target keeps working. A table answer is recognized structurally
+(rows of single-token cells split by runs of two or more spaces —
+exactly `format_table`'s emission), not by a flag: a transcript's
+single-spaced `= 5` voice is never mistaken for a table.

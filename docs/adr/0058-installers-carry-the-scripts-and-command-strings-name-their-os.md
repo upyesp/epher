@@ -155,3 +155,14 @@ command read as one line — and the page's static "Run them from your
 terminal" section — which documents the installed paths for the whole
 collection — hides while a single script is open, since the script
 page then carries the same commands itself.
+
+## Amendment (2026-09-05): the collection-wide run section leaves the Scripts page
+
+The Scripts page carried a static "Run them from your terminal" section
+— an example script's installed path on each operating system, shown
+whenever no single script was open. Every script page already carries
+its own three copyable commands under the code (the section hid itself
+on script pages for exactly that reason), so the collection-wide block
+repeated what the per-script commands do better: an example nobody
+asked for, three operating systems of path noise above the browser.
+The section is gone; the per-script run commands stay as they are.
