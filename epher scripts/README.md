@@ -1,10 +1,10 @@
 # epher scripts
 
-Ready-to-run scripts for the epher calculator, written by the maintainers.
+Ready-to-run scripts for the epher calculator.
 Every file here is a plain `.epher` script: the same format the desktop app
-and web app save and open, and the CLI and REPL run. The scripts are also
+and web app save and open, and the CLI, REPL and TUI app run. The scripts are also
 browsable on the website (Docs > Scripts), which builds its catalog from
-this folder, so folder and file names are public: keep them simple.
+this folder.
 
 The repository is organized by field, then by area inside the field:
 
@@ -26,10 +26,9 @@ epher scripts/
 first, and follow it when you contribute. It shows the language as it
 stands today: plain arithmetic and `def` helpers, `const` knobs, the
 `for`, `if`, `print` and strings surface (guide 1.7-1.11), recursion,
-and the astronomy accessors and constants (guide 1.18). Each
-use names the guide chapter that teaches it, so a reader can look any
-line up. Its expected-output block shows the whole transcript of a run,
-and that block is checked mechanically by `scripts/check-scripts.mjs`.
+and the astronomy accessors and constants (guide 1.18). 
+
+Its expected-output block shows the output of a run, and that block is checked mechanically by `scripts/check-scripts.mjs`.
 
 ## Running a script
 
@@ -62,17 +61,21 @@ In the REPL, `load` takes a file path or a script saved with `save script`:
 epher> load /usr/lib/epher/scripts/astronomy/moon/full-moons.epher
 ```
 
-In the web or desktop app, paste the whole file into the entry and press
+In the web, desktop ot TUI app, paste the whole file into the entry and press
 Enter (Shift+Enter for new lines). Everything also works line by line in
-the TUI. See the guide, chapter 4, for scripts, `save` and `load`.
+the TUI.
+
+See the guide, chapter 4, for scripts, `save` and `load`.
 
 ## The format standard
 
 The language shapes the format: a script file runs **one statement per
-line** (`;` joins statements on a line), and every statement's value
-shows as epher displays it, exact fractions included. A script file is a
-whole program, so block comments may span lines in it. The reference
-example turns those facts into a house style:
+line** (`;` joins statements on a single line), and every statement's value
+shows as epher displays it, including fractions.
+A script file is a
+whole program, so block comments may span lines in it.
+
+The reference example turns those facts into a house style:
 
 1. **Header comment first.** A `/* === ... === */` banner block, then
    `name.epher -- one line saying what it does`, the algorithm and its

@@ -68,12 +68,15 @@ jobs:
           test "$ARCH" = "arm64"
           rustc -vV | grep -q "host: aarch64-apple-darwin"
 
-      - name: Workspace test suite
-        run: cargo test --workspace
-
       - name: Build the embedded web app
+        # Must precede the test suite: compiling the tauri-app crate runs
+        # tauri::generate_context!, which requires the frontendDist
+        # (crates/web/dist) to exist.
         run: trunk build --release
         working-directory: crates/web
+
+      - name: Workspace test suite
+        run: cargo test --workspace
 
       - name: Install tauri-cli
         run: cargo install tauri-cli --version 2.11.4 --locked
