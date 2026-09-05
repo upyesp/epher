@@ -632,10 +632,81 @@
       margin: 0;
     }
     /* --- keypad (ADR-0016) --------------------------------------------- */
+    /* The drawer (ADR-0060) carries the rule the keypad used to: the grab
+       bar rides it, and the keypad slides under it. */
+    .keypad-drawer {
+      flex: none;
+      border-top: 1px solid var(--border);
+    }
     .keypad {
       flex: none;
       padding-top: 0.25rem;
-      border-top: 1px solid var(--border);
+    }
+    /* The grab bar (ADR-0060): a 24px strip (WCAG 2.5.8 target floor)
+       with a centered pill as the visible handle. A real button: mouse,
+       touch, and pen drag it, and Enter/Space toggle for the keyboard
+       (aria-expanded tracks the docked state). touch-action: none hands
+       the whole gesture to us — a finger on the bar drags the drawer,
+       it never scrolls the pane or swipes the pane deck. */
+    .keypad-grab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 24px;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .keypad-grab:active { cursor: grabbing; }
+    .keypad-grab-pill {
+      width: 44px;
+      height: 4px;
+      border-radius: 2px;
+      /* --muted: the app's proven subtle-on-bg gray (6.6:1); the app's
+         index.html defines no --border-strong (only the site stylesheet
+         does), so a var() here would resolve transparent. */
+      background: var(--muted);
+      transition: background 0.15s;
+    }
+    .keypad-grab:hover .keypad-grab-pill,
+    .keypad-grab:focus-visible .keypad-grab-pill {
+      background: var(--accent);
+    }
+    /* The clip (ADR-0060): during a drag its height is set inline in px
+       (the `.dragging` class takes the transition off so the keypad
+       tracks the pointer exactly); a snap animates the inline px to the
+       target over 280ms, then the inline height clears and the resting
+       state is pure CSS — open has no height rule (natural), closed is
+       0 via [data-open]. prefers-reduced-motion drops the transition:
+       the pane jumps, as that query's contract asks. */
+    .keypad-clip {
+      overflow: hidden;
+      transition: height 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .keypad-drawer.dragging .keypad-clip {
+      transition: none;
+      /* a drag-up from the docked state must show the keypad while the
+         [data-open="false"] rule below still holds — release flips the
+         attribute */
+      visibility: visible;
+    }
+    /* visibility joins the closed rule (rather than display:none) so the
+       height can animate, with a zero-second transition delayed to the
+       collapse's end: the keypad leaves the tab order and the a11y tree
+       exactly when it finishes sliding away, and returns to both the
+       moment the opening direction starts. */
+    .keypad-drawer[data-open="false"] .keypad-clip {
+      height: 0;
+      visibility: hidden;
+      transition: height 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s 0.28s;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .keypad-clip { transition: none; }
     }
     /* screen-reader-only text (WCAG 1.3.1: labelled, not duplicated) */
     .visually-hidden {

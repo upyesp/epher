@@ -75,9 +75,16 @@ def main():
         return True
 
     def wait_for(text, timeout=15.0):
+        # Whitespace-normalized matching: a wrapped hint line breaks
+        # phrases at the wrap column (and Paragraph's wrap trims the
+        # broken space), so the literal text may straddle two rows.
+        # Joining the rows with spaces and collapsing runs of white-
+        # space reconstructs the phrase wherever it wrapped.
+        needle = " ".join(text.split())
         end = time.time() + timeout
         while time.time() < end:
-            if text in "\n".join(screen.display):
+            haystack = " ".join(" ".join(screen.display).split())
+            if needle in haystack:
                 return
             drain(0.1)
         fail(screen, f"timed out waiting for {text!r}")

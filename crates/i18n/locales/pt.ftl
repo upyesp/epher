@@ -109,7 +109,7 @@ tune-zoom = Velocidade de zoom
 tui-hint-base-a = Enter avalia · Tab teclado/histórico · F10 menu · ? ajuda de teclas · Esc limpa
 tui-hint-rotate =  · setas rodar
 tui-hint-play =  · espaço animar
-tui-hint-base-b =  · Ctrl+L limpar histórico · Ctrl+C sair · q sair
+tui-hint-base-b =  · Ctrl+K teclado · Ctrl+L limpar histórico · Ctrl+C sair · q sair
 
 poi-copy = Copiar os pontos de interesse
 poi-copied = Pontos de interesse copiados para a área de transferência
@@ -259,6 +259,8 @@ key-hint-u-jy = Jansky como sufixo: 3 Jy
 ## Os mecanismos de dica (ADR-0039): a barra acima da grelha, o
 ## alternador que legenda cada tecla e a ajuda de teclas do TUI.
 keypad-hints = Dicas das teclas
+keypad-grab-hide = Ocultar o teclado
+keypad-grab-show = Mostrar o teclado
 keypad-hint-idle = Pouse o ponteiro ou foque uma tecla para ver o que faz.
 menu-key-help = Ajuda de teclas
 tui-key-help-hint = Setas deslocam · q ou Esc fecha

@@ -1718,12 +1718,20 @@ fn pasted_script_runs_on_one_enter_like_the_gui_entry() {
     app.paste_text(script);
     let pasted = app.input().to_string();
     app.submit_line(&pasted, &store, &Localizer::resolve(Some("en"), &[]));
-    assert!(app.result().contains("= half of ten: 5"), "{}", app.result());
+    assert!(
+        app.result().contains("= half of ten: 5"),
+        "{}",
+        app.result()
+    );
     assert!(
         app.result().contains("= double of three: 6"),
         "{}",
         app.result()
     );
-    assert_eq!(app.history().len(), 1, "one history entry for the whole paste");
+    assert_eq!(
+        app.history().len(),
+        1,
+        "one history entry for the whole paste"
+    );
     assert!(app.input().is_empty(), "the entry is clean after the run");
 }

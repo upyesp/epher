@@ -25,7 +25,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::{spawn_local, JsFuture};
-use web_sys::{HtmlInputElement, HtmlTextAreaElement};
+use web_sys::{Element, HtmlElement, HtmlInputElement, HtmlTextAreaElement};
 use yew::events::{InputEvent, SubmitEvent};
 use yew::prelude::*;
 
@@ -894,6 +894,36 @@ fn mobile_layout() -> bool {
         .and_then(|v| v.as_f64())
         .map(|w| w < 880.0)
         .unwrap_or(false)
+}
+
+/// One active grab-bar drag (ADR-0060): where the gesture began, the
+/// heights it works between, and the newest sample for the release
+/// flick's velocity. Lives in a cell the pointer handlers read and
+/// write without re-rendering — the dragged height lands on the DOM
+/// directly.
+struct KeypadDrag {
+    pointer_id: i32,
+    y0: f64,
+    start_h: f64,
+    open_h: f64,
+    last_y: f64,
+    last_t: f64,
+    moved: bool,
+}
+
+/// The drag's release decision (ADR-0060): collapse when the bar moved
+/// down past half the keypad's height, or when the last samples show a
+/// downward flick faster than 0.5 px/ms; an upward flick opens it; a
+/// slow release springs back to wherever the majority of the keypad
+/// already is. Pure so the threshold contract is testable off-wasm.
+fn keypad_snap(current_h: f64, open_h: f64, velocity_px_per_ms: f64) -> bool {
+    if velocity_px_per_ms >= 0.5 {
+        return true;
+    }
+    if velocity_px_per_ms <= -0.5 {
+        return false;
+    }
+    current_h * 2.0 < open_h
 }
 
 /// The stored line widths (ADR-0035 amendment, ADR-0055 range): 2D and
@@ -2278,6 +2308,203 @@ fn epher_app() -> Html {
     // focus do not exist.
     let key_hint_bar = use_state(String::new);
     let show_key_hints = use_state(|| false);
+    // The keypad drawer (ADR-0060): false docks the keypad away, the
+    // history list grows into its place, and the grab bar stays for the
+    // drag, tap, or Enter that brings the keypad back to its spot.
+    let keypad_open = use_state(|| true);
+    let keypad_drawer_ref = use_node_ref();
+    // The pending snap animation's timer: a new gesture (or toggle)
+    // cancels it, or its cleanup would clear the height a live drag just
+    // froze.
+    let keypad_anim =
+        use_state(|| Rc::new(RefCell::new(Option::<gloo_timers::callback::Timeout>::None)));
+    let keypad_drag = use_state(|| Rc::new(RefCell::new(Option::<KeypadDrag>::None)));
+    // The time of the last pointer release on the grab bar: the browser
+    // synthesizes a click right after pointerup, and that click must not
+    // toggle the drawer a second time (the release already acted). A
+    // click within half a second of a gesture is that echo; a keyboard
+    // click (Enter/Space) comes without a gesture and toggles. A
+    // timestamp, not a latch, so a cancelled gesture can never eat a
+    // later keyboard toggle.
+    let keypad_last_gesture = use_state(|| Rc::new(RefCell::new(0.0f64)));
+    // The drawer's helper (ADR-0060): animate to a final state from
+    // wherever the drawer is now — frozen inline height, one forced
+    // reflow, target height with the transition on, then the inline
+    // height clears so the resting class rule takes over. Shared by the
+    // keyboard toggle and the drag's snap, so both get the same motion.
+    let keypad_animate = {
+        let keypad_drawer_ref = keypad_drawer_ref.clone();
+        let keypad_open = keypad_open.clone();
+        let keypad_anim = keypad_anim.clone();
+        move |open: bool| {
+            let Some(drawer) = keypad_drawer_ref.cast::<Element>() else {
+                return;
+            };
+            let _ = drawer.class_list().remove_1("dragging");
+            let Some(clip) = drawer
+                .last_element_child()
+                .and_then(|c| c.dyn_into::<HtmlElement>().ok())
+            else {
+                return;
+            };
+            let Some(body) = clip
+                .first_element_child()
+                .and_then(|b| b.dyn_into::<HtmlElement>().ok())
+            else {
+                return;
+            };
+            let open_h = body.offset_height() as f64;
+            let start = clip.get_bounding_client_rect().height();
+            let _ = clip.style().set_property("height", &format!("{start}px"));
+            // The read forces the layout flush so the transition runs
+            // from the frozen height, not from the rule it just left.
+            let _ = clip.offset_height();
+            let _ = clip
+                .style()
+                .set_property("height", &format!("{}", if open { open_h } else { 0.0 }));
+            keypad_open.set(open);
+            if let Some(t) = keypad_anim.borrow_mut().take() {
+                t.cancel();
+            }
+            let clip = clip.clone();
+            // The cell owns the timer: it stays alive until it fires (or
+            // until the next gesture takes and cancels it — gloo's
+            // Timeout cancels on drop). The fired timer sitting in the
+            // cell is harmless; dropping it cancels nothing that runs.
+            *keypad_anim.borrow_mut() = Some(gloo_timers::callback::Timeout::new(300, move || {
+                let _ = clip.style().remove_property("height");
+            }));
+        }
+    };
+    let on_grab_down = {
+        let keypad_drawer_ref = keypad_drawer_ref.clone();
+        let keypad_drag = keypad_drag.clone();
+        let keypad_anim = keypad_anim.clone();
+        Callback::from(move |e: web_sys::PointerEvent| {
+            // A second pointer never steals the gesture.
+            if keypad_drag.borrow().is_some() {
+                return;
+            }
+            if let Some(t) = keypad_anim.borrow_mut().take() {
+                t.cancel();
+            }
+            let Some(drawer) = keypad_drawer_ref.cast::<Element>() else {
+                return;
+            };
+            let Some(clip) = drawer
+                .last_element_child()
+                .and_then(|c| c.dyn_into::<HtmlElement>().ok())
+            else {
+                return;
+            };
+            let Some(body) = clip
+                .first_element_child()
+                .and_then(|b| b.dyn_into::<HtmlElement>().ok())
+            else {
+                return;
+            };
+            let _ = drawer.class_list().add_1("dragging");
+            // Capture on the pressed element: moves keep arriving even
+            // when the finger or cursor leaves the 24px strip.
+            if let Some(el) = e.target().and_then(|t| t.dyn_into::<Element>().ok()) {
+                let _ = el.set_pointer_capture(e.pointer_id());
+            }
+            let y = e.client_y() as f64;
+            *keypad_drag.borrow_mut() = Some(KeypadDrag {
+                pointer_id: e.pointer_id(),
+                y0: y,
+                start_h: clip.get_bounding_client_rect().height(),
+                open_h: body.offset_height() as f64,
+                last_y: y,
+                last_t: js_sys::Date::now(),
+                moved: false,
+            });
+            e.prevent_default();
+        })
+    };
+    let on_grab_move = {
+        let keypad_drawer_ref = keypad_drawer_ref.clone();
+        let keypad_drag = keypad_drag.clone();
+        Callback::from(move |e: web_sys::PointerEvent| {
+            let mut drag = keypad_drag.borrow_mut();
+            let Some(d) = drag.as_mut() else {
+                return;
+            };
+            if d.pointer_id != e.pointer_id() {
+                return;
+            }
+            let y = e.client_y() as f64;
+            if (y - d.y0).abs() > 4.0 {
+                d.moved = true;
+            }
+            // The keypad follows the pointer: dragging down shrinks it,
+            // and the history list grows into the freed space live.
+            let h = (d.start_h - (y - d.y0)).clamp(0.0, d.open_h);
+            if let Some(drawer) = keypad_drawer_ref.cast::<Element>() {
+                if let Some(clip) = drawer
+                    .last_element_child()
+                    .and_then(|c| c.dyn_into::<HtmlElement>().ok())
+                {
+                    let _ = clip.style().set_property("height", &format!("{h}px"));
+                }
+            }
+            d.last_y = y;
+            d.last_t = js_sys::Date::now();
+        })
+    };
+    let on_grab_end = {
+        let keypad_drawer_ref = keypad_drawer_ref.clone();
+        let keypad_drag = keypad_drag.clone();
+        let keypad_last_gesture = keypad_last_gesture.clone();
+        let keypad_animate = keypad_animate.clone();
+        let keypad_open = keypad_open.clone();
+        Callback::from(move |e: web_sys::PointerEvent| {
+            let Some(d) = keypad_drag.borrow_mut().take() else {
+                return;
+            };
+            if d.pointer_id != e.pointer_id() {
+                return;
+            }
+            let _ = keypad_drawer_ref
+                .cast::<Element>()
+                .map(|drawer| drawer.class_list().remove_1("dragging"));
+            *keypad_last_gesture.borrow_mut() = js_sys::Date::now();
+            if !d.moved {
+                // A tap toggles — the same as Enter on the button. The
+                // click that follows this release is ignored by the
+                // gesture timestamp.
+                keypad_animate(!*keypad_open);
+                return;
+            }
+            let dt = js_sys::Date::now() - d.last_t;
+            let v = if dt > 0.0 {
+                (e.client_y() as f64 - d.last_y) / dt
+            } else {
+                0.0
+            };
+            let current = keypad_drawer_ref
+                .cast::<Element>()
+                .and_then(|drawer| drawer.last_element_child())
+                .and_then(|c| c.dyn_into::<HtmlElement>().ok())
+                .map(|clip| clip.get_bounding_client_rect().height())
+                .unwrap_or(0.0);
+            keypad_animate(!keypad_snap(current, d.open_h, v));
+        })
+    };
+    let on_grab_click = {
+        let keypad_last_gesture = keypad_last_gesture.clone();
+        let keypad_animate = keypad_animate.clone();
+        let keypad_open = keypad_open.clone();
+        Callback::from(move |_| {
+            // The click a pointer gesture just synthesized, not a press:
+            // the release already acted. A keyboard click (Enter/Space)
+            // has no gesture behind it and toggles.
+            if js_sys::Date::now() - *keypad_last_gesture.borrow() < 500.0 {
+                return;
+            }
+            keypad_animate(!*keypad_open);
+        })
+    };
     let active_pane = use_state(|| "calc".to_string());
     // The entry's selection, mirrored while it owns focus and refreshed
     // at each keypad mousedown (ADR-0035): keypad presses read it, because
@@ -6494,6 +6721,38 @@ fn epher_app() -> Html {
                             }) }
                         </ul>
                     </section>
+                    // The drawer (ADR-0060): the grab bar rides the rule
+                    // above the keypad; dragging it down (or a tap, or
+                    // Enter — it is a real button, aria-expanded) docks
+                    // the keypad away and hands its height to the
+                    // history list; dragging up brings it back to this
+                    // exact place. The clip animates the height; the
+                    // section below is untouched.
+                    <div class="keypad-drawer" data-open={(*keypad_open).to_string()} ref={keypad_drawer_ref.clone()}>
+                        <button
+                            type="button"
+                            class="keypad-grab"
+                            aria-expanded={(*keypad_open).to_string()}
+                            aria-controls="keypad-panel"
+                            aria-label={if *keypad_open {
+                                localizer.lookup("keypad-grab-hide")
+                            } else {
+                                localizer.lookup("keypad-grab-show")
+                            }}
+                            title={if *keypad_open {
+                                localizer.lookup("keypad-grab-hide")
+                            } else {
+                                localizer.lookup("keypad-grab-show")
+                            }}
+                            onpointerdown={on_grab_down}
+                            onpointermove={on_grab_move}
+                            onpointerup={on_grab_end.clone()}
+                            onpointercancel={on_grab_end}
+                            onclick={on_grab_click}
+                        >
+                            <span class="keypad-grab-pill" aria-hidden="true"></span>
+                        </button>
+                        <div class="keypad-clip">
                     <section class="keypad" aria-label={localizer.lookup("keypad")}>
                         // The hints row (ADR-0039): the tab list plus the
                         // hints toggle, a sibling OUTSIDE the tablist (a
@@ -6645,6 +6904,8 @@ fn epher_app() -> Html {
                                 .unwrap_or_default() }
                         </div>
                     </section>
+                        </div>
+                    </div>
                 </section>
                 <section class="pane" id="graph-pane" aria-label={localizer.lookup("result-pane")}>
                     {
@@ -7564,7 +7825,34 @@ pub fn start() {
 
 #[cfg(test)]
 mod tests {
-    use super::{slider_span, TABS};
+    use super::{keypad_snap, slider_span, TABS};
+
+    /// The snap contract (ADR-0060): a downward flick collapses, an
+    /// upward flick opens, and a slow release keeps the keypad wherever
+    /// the majority of it already is.
+    #[test]
+    fn keypad_snap_flicks_beat_distance() {
+        // Mostly open, but flicked down fast: away.
+        assert!(keypad_snap(240.0, 260.0, 0.8));
+        // Mostly closed, but flicked up fast: back.
+        assert!(!keypad_snap(20.0, 260.0, -0.8));
+        // The exact flick threshold (0.5 px/ms) belongs to the flick.
+        assert!(keypad_snap(240.0, 260.0, 0.5));
+        assert!(!keypad_snap(20.0, 260.0, -0.5));
+    }
+
+    #[test]
+    fn keypad_snap_slow_release_follows_the_majority() {
+        let open_h = 260.0;
+        // Slower than half stays open.
+        assert!(!keypad_snap(open_h * 0.5, open_h, 0.0));
+        assert!(!keypad_snap(open_h - 1.0, open_h, 0.0));
+        // Past half (any slow speed) goes away.
+        assert!(keypad_snap(open_h * 0.5 - 0.5, open_h, 0.1));
+        assert!(keypad_snap(0.0, open_h, 0.0));
+        // Exactly half stays: the tie belongs to the keypad.
+        assert!(!keypad_snap(open_h * 0.5, open_h, -0.1));
+    }
 
     #[test]
     fn small_values_keep_the_base_window() {

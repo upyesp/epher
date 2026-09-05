@@ -109,7 +109,7 @@ tune-zoom = سرعة التقريب
 tui-hint-base-a = Enter يحسب · Tab لوحة/السجل · F10 القائمة · ? مساعدة المفاتيح · Esc يمسح
 tui-hint-rotate =  · الأسهم تدوير
 tui-hint-play =  · مسافة تحريك
-tui-hint-base-b =  · Ctrl+L مسح السجلّ · Ctrl+C خروج · q خروج
+tui-hint-base-b =  · Ctrl+K لوحة المفاتيح · Ctrl+L مسح السجلّ · Ctrl+C خروج · q خروج
 
 poi-copy = نسخ نقاط الاهتمام
 poi-copied = تم نسخ نقاط الاهتمام إلى الحافظة
@@ -259,6 +259,8 @@ key-hint-u-jy = لاحقة الجانسكي: 3 Jy
 ## آليات التلميحات (ADR-0039): الشريط فوق الشبكة، والمبدّل الذي يعلق
 ## كل مفتاح، ومساعدة المفاتيح في الواجهة النصية.
 keypad-hints = تلميحات المفاتيح
+keypad-grab-hide = إخفاء لوحة المفاتيح
+keypad-grab-show = إظهار لوحة المفاتيح
 keypad-hint-idle = ضع المؤشر على مفتاح أو ركز عليه لترى وظيفته.
 menu-key-help = مساعدة المفاتيح
 tui-key-help-hint = الأسهم تمرر · q أو Esc يغلق

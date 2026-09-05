@@ -109,7 +109,7 @@ tune-zoom = Zoomgeschwindigkeit
 tui-hint-base-a = Enter auswerten · Tab Keypad/Verlauf · F10 Menü · ? Tastenhilfe · Esc leeren
 tui-hint-rotate =  · Pfeile drehen
 tui-hint-play =  · Leertaste animieren
-tui-hint-base-b =  · Ctrl+L Verlauf leeren · Ctrl+C beenden · q beenden
+tui-hint-base-b =  · Ctrl+K Tastenfeld · Ctrl+L Verlauf leeren · Ctrl+C beenden · q beenden
 
 poi-copy = Besondere Punkte kopieren
 poi-copied = Besondere Punkte in die Zwischenablage kopiert
@@ -260,6 +260,8 @@ key-hint-u-jy = Jansky als Suffix: 3 Jy
 ## Die Hinweis-Mechanik (ADR-0039): die Leiste über dem Raster, der
 ## Schalter, der jede Taste beschriftet, und die Tastenhilfe des TUI.
 keypad-hints = Tastenhinweise
+keypad-grab-hide = Tastenfeld ausblenden
+keypad-grab-show = Tastenfeld einblenden
 keypad-hint-idle = Auf einer Taste ruhen oder sie fokussieren, um zu sehen, was sie tut.
 menu-key-help = Tastenhilfe
 tui-key-help-hint = Pfeile blättern · q oder Esc schließt

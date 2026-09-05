@@ -109,7 +109,7 @@ tune-zoom = Vitesse de zoom
 tui-hint-base-a = Enter évalue · Tab pavé/historique · F10 menu · ? aide des touches · Esc efface
 tui-hint-rotate =  · flèches pivoter
 tui-hint-play =  · espace animer
-tui-hint-base-b =  · Ctrl+L effacer l'historique · Ctrl+C quitter · q quitter
+tui-hint-base-b =  · Ctrl+K clavier · Ctrl+L effacer l'historique · Ctrl+C quitter · q quitter
 
 poi-copy = Copier les points d'intérêt
 poi-copied = Points d'intérêt copiés dans le presse-papiers
@@ -260,6 +260,8 @@ key-hint-u-jy = Jansky comme suffixe : 3 Jy
 ## Les mécanismes d'aide (ADR-0039) : la barre au-dessus de la grille,
 ## l'interrupteur qui légende chaque touche et l'aide des touches du TUI.
 keypad-hints = Aide des touches
+keypad-grab-hide = Masquer le clavier
+keypad-grab-show = Afficher le clavier
 keypad-hint-idle = Survolez ou focalisez une touche pour voir ce qu'elle fait.
 menu-key-help = Aide des touches
 tui-key-help-hint = Flèches font défiler · q ou Esc ferme

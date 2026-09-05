@@ -158,6 +158,12 @@ pub struct App {
     /// switches its banks, arrows move the highlight, Enter appends
     /// the token, Esc closes.
     keypad: bool,
+    /// The keypad's docked-away state (ADR-0060): true has slid the
+    /// keypad out of view — the strip row where its top border sat
+    /// remains as the grab area, and the history list grows into the
+    /// freed space. Inverted so `App::default()` (the derived one)
+    /// starts with the keypad shown. Session state; never persisted.
+    keypad_docked: bool,
     /// The key-help overlay's scroll offset while open (ADR-0039).
     key_help: Option<usize>,
     /// The constants browser's selected row while open (ADR-0045): the
@@ -657,6 +663,7 @@ impl App {
             view2d: None,
             play: None,
             keypad: false,
+            keypad_docked: false,
             key_help: None,
             constants: None,
             constants_rows: Vec::new(),
@@ -822,6 +829,22 @@ impl App {
 
     pub fn keypad_close(&mut self) {
         self.keypad = false;
+    }
+
+    /// The keypad's docked state (ADR-0060): false while the keypad
+    /// shows.
+    pub fn keypad_shown(&self) -> bool {
+        !self.keypad_docked
+    }
+
+    /// Toggle the docked state (ADR-0060): the grab drag, the strip
+    /// click, and Ctrl+K all land here. Hiding also drops keypad focus
+    /// — a focused grid the user cannot see is a focus trap.
+    pub fn keypad_toggle(&mut self) {
+        self.keypad_docked = !self.keypad_docked;
+        if self.keypad_docked {
+            self.keypad = false;
+        }
     }
 
     /// The highlighted bank's label.
@@ -3083,6 +3106,14 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         KeyCode::Up if app.menu_active().is_some() => app.menu_move(0, -1),
                         KeyCode::Down if app.menu_active().is_some() => app.menu_move(0, 1),
                         KeyCode::Esc if app.menu_active().is_some() => app.menu_close(),
+                        // The keypad's docked state (ADR-0060): Ctrl+K
+                        // slides the keypad away and back — the keyboard
+                        // spelling of the grab bar's drag. Works while
+                        // the keypad has focus too (hiding drops the
+                        // focus, so the grid is never an invisible trap).
+                        KeyCode::Char('k') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                            app.keypad_toggle();
+                        }
                         KeyCode::Char('l') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                             app.clear_history();
                             let _ = save_history(&store, app.history());
@@ -3458,6 +3489,14 @@ fn perform_menu_action(
 enum MouseDrag {
     Pan2D,
     Rotate3D,
+    /// A grab-area drag (ADR-0060): the pointer went down on the
+    /// keypad's top border (or the docked strip row) — drag down two
+    /// rows to dock the keypad away, up two rows to restore, release
+    /// on the bar without crossing either threshold to toggle.
+    Keypad {
+        start_row: u16,
+        shown_at_start: bool,
+    },
 }
 
 /// Handle one mouse event against the areas the last frame drew
@@ -3607,6 +3646,19 @@ fn handle_mouse(
                 return false;
             }
             if inside(areas.keypad, col, row) {
+                // The grab area (ADR-0060): the panel's top border row
+                // when shown, the whole strip row when docked away.
+                if row == areas.keypad.y {
+                    *drag = Some((
+                        col,
+                        row,
+                        MouseDrag::Keypad {
+                            start_row: row,
+                            shown_at_start: app.keypad_shown(),
+                        },
+                    ));
+                    return false;
+                }
                 // The bank label row.
                 if row == areas.keypad.y.saturating_add(1) {
                     if let Some(b) = areas
@@ -3686,6 +3738,29 @@ fn handle_mouse(
             let dx = event.column as f64 - last_col as f64;
             let dy = event.row as f64 - last_row as f64;
             match kind {
+                // The grab drag (ADR-0060) measures from its start row,
+                // not from the last event, so the drag position itself
+                // is never updated. Two rows down docks the keypad away,
+                // two rows up restores; the drag ends on the toggle so
+                // continuing the motion never toggles twice — the
+                // release arm owns the click case.
+                MouseDrag::Keypad {
+                    start_row,
+                    shown_at_start,
+                } => {
+                    let dy = event.row as i32 - start_row as i32;
+                    // Still in the state the gesture started from — a
+                    // finished (already-toggled) drag is inert. The
+                    // return skips the shared tail that re-arms the
+                    // drag with the new position: a grab drag measures
+                    // from its start row and ends when it fires.
+                    let crossed = (shown_at_start && dy >= 2) || (!shown_at_start && dy <= -2);
+                    if crossed && app.keypad_shown() == shown_at_start {
+                        app.keypad_toggle();
+                        *drag = None;
+                    }
+                    return false;
+                }
                 MouseDrag::Rotate3D => {
                     let v = *app.view();
                     app.view = v
@@ -3701,6 +3776,22 @@ fn handle_mouse(
             false
         }
         MouseEventKind::Up(crossterm::event::MouseButton::Left) => {
+            // Releasing a grab drag back on the grab row (no threshold
+            // crossed) is a click: toggle (ADR-0060) — the mouse
+            // spelling of the web bar's tap.
+            if let Some((
+                _,
+                _,
+                MouseDrag::Keypad {
+                    start_row,
+                    shown_at_start,
+                },
+            )) = *drag
+            {
+                if event.row == start_row && app.keypad_shown() == shown_at_start {
+                    app.keypad_toggle();
+                }
+            }
             *drag = None;
             false
         }
@@ -4347,6 +4438,11 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         (app.result().chars().filter(|&c| c == '\n').count() + 1).min(6)
     };
     let result_h = result_rows as u16;
+    // The keypad's docked state (ADR-0060): shown, the panel is the
+    // bank row plus the digits bank's five key rows; docked away, one
+    // grab strip remains where its top border sat, and the history —
+    // the Min(0) sibling — grows into the freed rows.
+    let keypad_h = if app.keypad_shown() { 8 } else { 1 };
     let (input_area, result_area, history_area, graph_area, keypad_area, hints_area) = if wide {
         let split =
             Layout::vertical([Constraint::Min(0), Constraint::Length(hint_rows)]).split(body);
@@ -4355,13 +4451,12 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         let (calc_col, graph_col) = (split[0], split[1]);
         // Input, answer, history, then the keypad — the calculator
         // column reads top to bottom exactly like the app and the PWA
-        // (entry, result, history, keypad). The keypad pane is 8 rows:
-        // the bank row plus the digits bank's five key rows.
+        // (entry, result, history, keypad).
         let calc_rows = Layout::vertical([
             Constraint::Length(input_h),  // input (grows with the script)
             Constraint::Length(result_h), // result (grows with the transcript)
             Constraint::Min(0),           // history
-            Constraint::Length(8),        // keypad (bank row + 5 key rows)
+            Constraint::Length(keypad_h), // keypad, or its grab strip (ADR-0060)
         ])
         .split(calc_col);
         (
@@ -4375,13 +4470,13 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     } else {
         // The narrow stack (ADR-0016): input, answer, then history and
         // graph sharing what is left, then the always-visible keypad
-        // and the wrapped hints.
+        // (or its grab strip, ADR-0060) and the wrapped hints.
         let rows = Layout::vertical([
             Constraint::Length(input_h),   // input (grows with the script)
             Constraint::Length(result_h),  // result (grows with the transcript)
             Constraint::Min(0),            // history
             Constraint::Min(0),            // graph
-            Constraint::Length(8),         // keypad (bank row + 5 key rows)
+            Constraint::Length(keypad_h),  // keypad, or its grab strip (ADR-0060)
             Constraint::Length(hint_rows), // hints
         ])
         .split(body);
@@ -4509,53 +4604,48 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // The keypad grid (ADR-0016): bank tabs on the first row — Tab
     // cycles them — and the highlighted cell inserts its token.
     if let Some(kp_area) = keypad_area {
-        let bank = &BANKS[app.keypad_bank_index()].1;
-        let cols = bank.iter().map(|r| r.len()).max().unwrap_or(1);
-        // Cell width from the keypad's actual pane width: in the 46-wide
-        // calc pane 5 columns → 8-wide cells, 4 columns → 11 (enough for
-        // `variance`); narrower terminals shrink cells down to 6 so the
-        // grid always fits its pane.
-        let cell = ((kp_area.width.saturating_sub(2)) as usize / cols).clamp(6, 11);
-        areas.kp_cell_w = cell as u16;
-        areas.kp_cols = cols;
-        let mut bx = kp_area.x + 1;
-        for (b, (label, _)) in BANKS.iter().enumerate() {
-            let text = format!(" {label} ");
-            areas.kp_bank_labels[b] = Rect {
-                x: bx,
-                y: kp_area.y + 1,
-                width: text.chars().count() as u16,
-                height: 1,
-            };
-            bx += text.chars().count() as u16;
-        }
-        let bank_line = Line::from(
-            BANKS
-                .iter()
-                .enumerate()
-                .map(|(b, (label, _))| {
-                    let selected = b == app.keypad_bank_index();
-                    let style = if selected {
-                        Style::default()
-                            .bg(sel_bg)
-                            .fg(sel_fg)
-                            .add_modifier(Modifier::BOLD)
-                    } else {
-                        Style::default().fg(fg)
-                    };
-                    Span::styled(format!(" {label} "), style)
-                })
-                .collect::<Vec<Span>>(),
-        );
-        let rows: Vec<Line> = bank
-            .iter()
-            .enumerate()
-            .map(|(r, row)| {
-                let cells: Vec<Span> = row
+        if !app.keypad_shown() {
+            // Docked away (ADR-0060): the strip row is the whole grab
+            // area — the same three bold dots the shown border carries,
+            // at the same columns, so the handle never shifts.
+            let buf = frame.buffer_mut();
+            let (cy, cx) = (kp_area.y, kp_area.x + kp_area.width / 2);
+            for dx in [-2i16, -1, 0] {
+                let col = cx as i16 + dx;
+                if col > kp_area.x as i16 && col < (kp_area.x + kp_area.width - 1) as i16 {
+                    if let Some(cell) = buf.cell_mut((col as u16, cy)) {
+                        cell.set_char('·')
+                            .set_style(Style::default().fg(border_fg).add_modifier(Modifier::BOLD));
+                    }
+                }
+            }
+        } else {
+            let bank = &BANKS[app.keypad_bank_index()].1;
+            let cols = bank.iter().map(|r| r.len()).max().unwrap_or(1);
+            // Cell width from the keypad's actual pane width: in the 46-wide
+            // calc pane 5 columns → 8-wide cells, 4 columns → 11 (enough for
+            // `variance`); narrower terminals shrink cells down to 6 so the
+            // grid always fits its pane.
+            let cell = ((kp_area.width.saturating_sub(2)) as usize / cols).clamp(6, 11);
+            areas.kp_cell_w = cell as u16;
+            areas.kp_cols = cols;
+            let mut bx = kp_area.x + 1;
+            for (b, (label, _)) in BANKS.iter().enumerate() {
+                let text = format!(" {label} ");
+                areas.kp_bank_labels[b] = Rect {
+                    x: bx,
+                    y: kp_area.y + 1,
+                    width: text.chars().count() as u16,
+                    height: 1,
+                };
+                bx += text.chars().count() as u16;
+            }
+            let bank_line = Line::from(
+                BANKS
                     .iter()
                     .enumerate()
-                    .map(|(c, (disp, _))| {
-                        let selected = r == app.keypad_row() && c == app.keypad_col();
+                    .map(|(b, (label, _))| {
+                        let selected = b == app.keypad_bank_index();
                         let style = if selected {
                             Style::default()
                                 .bg(sel_bg)
@@ -4564,22 +4654,60 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                         } else {
                             Style::default().fg(fg)
                         };
-                        Span::styled(format!(" {:<width$}", disp, width = cell - 1), style)
+                        Span::styled(format!(" {label} "), style)
                     })
-                    .collect();
-                Line::from(cells)
-            })
-            .collect();
-        let mut grid = vec![bank_line];
-        grid.extend(rows);
-        let keypad = Paragraph::new(Text::from(grid))
-            .style(Style::default().fg(fg))
-            .block(block(if app.keypad_focused() {
-                localizer.lookup("tui-keypad-active")
-            } else {
-                localizer.lookup("tui-keypad")
-            }));
-        frame.render_widget(keypad, kp_area);
+                    .collect::<Vec<Span>>(),
+            );
+            let rows: Vec<Line> = bank
+                .iter()
+                .enumerate()
+                .map(|(r, row)| {
+                    let cells: Vec<Span> = row
+                        .iter()
+                        .enumerate()
+                        .map(|(c, (disp, _))| {
+                            let selected = r == app.keypad_row() && c == app.keypad_col();
+                            let style = if selected {
+                                Style::default()
+                                    .bg(sel_bg)
+                                    .fg(sel_fg)
+                                    .add_modifier(Modifier::BOLD)
+                            } else {
+                                Style::default().fg(fg)
+                            };
+                            Span::styled(format!(" {:<width$}", disp, width = cell - 1), style)
+                        })
+                        .collect();
+                    Line::from(cells)
+                })
+                .collect();
+            let mut grid = vec![bank_line];
+            grid.extend(rows);
+            let keypad = Paragraph::new(Text::from(grid))
+                .style(Style::default().fg(fg))
+                .block(block(if app.keypad_focused() {
+                    localizer.lookup("tui-keypad-active")
+                } else {
+                    localizer.lookup("tui-keypad")
+                }));
+            frame.render_widget(keypad, kp_area);
+            // The grab area (ADR-0060): three bold dots replacing the top
+            // border at the panel's center — the handle the mouse drags
+            // down to dock the keypad away. Same glyph the docked strip
+            // shows, so the affordance reads as the same thing.
+            let buf = frame.buffer_mut();
+            let cy = kp_area.y;
+            let cx = kp_area.x + kp_area.width / 2;
+            for dx in [-2i16, -1, 0] {
+                let col = cx as i16 + dx;
+                if col > kp_area.x as i16 && col < (kp_area.x + kp_area.width - 1) as i16 {
+                    if let Some(cell) = buf.cell_mut((col as u16, cy)) {
+                        cell.set_char('·')
+                            .set_style(Style::default().fg(border_fg).add_modifier(Modifier::BOLD));
+                    }
+                }
+            }
+        }
     }
 
     let hints = Paragraph::new(hint_text)
@@ -4988,7 +5116,10 @@ mod draw_tests {
             }
         }
         assert!(answer_line, "the short answer must stay on the answer line");
-        assert!(!pane_has_it, "the result pane must stay out of short answers");
+        assert!(
+            !pane_has_it,
+            "the result pane must stay out of short answers"
+        );
     }
 
     /// ADR-0056: a multi-answer transcript renders in the result pane,
@@ -4996,8 +5127,10 @@ mod draw_tests {
     #[test]
     fn a_transcript_renders_in_the_pane_one_answer_per_line() {
         let mut app = App::default();
-        app.set_result("= 111
-= 222");
+        app.set_result(
+            "= 111
+= 222",
+        );
         let localizer = Localizer::resolve(None, &[]);
 
         let backend = TestBackend::new(80, 24);
@@ -5218,5 +5351,234 @@ mod draw_tests {
         }
         assert!(text.contains("Chemistry"), "tail groups: {text}");
         assert!(text.contains("n_a"), "Avogadro row near the end");
+    }
+}
+
+/// The keypad's docked state (ADR-0060): the grab-bar toggle, the
+/// space it hands to history, the strip that remains, and the mouse
+/// drag that docks and restores.
+#[cfg(test)]
+mod keypad_dock_tests {
+    use super::*;
+    use crossterm::event::{KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
+    use ratatui::backend::TestBackend;
+    use ratatui::Terminal;
+
+    fn tui_store() -> DocStore<FsStore> {
+        let dir = std::env::temp_dir().join(format!("epher-tui-kp-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&dir);
+        DocStore::new(FsStore::new(dir))
+    }
+
+    fn draw_once(app: &mut App, localizer: &Localizer, w: u16, h: u16) -> ratatui::buffer::Buffer {
+        let backend = TestBackend::new(w, h);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal.draw(|frame| draw(frame, app, localizer)).unwrap();
+        terminal.backend().buffer().clone()
+    }
+
+    fn mouse(kind: MouseEventKind, col: u16, row: u16) -> MouseEvent {
+        MouseEvent {
+            kind,
+            column: col,
+            row,
+            modifiers: KeyModifiers::empty(),
+        }
+    }
+
+    #[test]
+    fn toggle_docks_the_keypad_and_hands_its_rows_to_history() {
+        let mut app = App::default();
+        let localizer = Localizer::resolve(None, &[]);
+        draw_once(&mut app, &localizer, 80, 24);
+        let shown_h = app.areas.history.height;
+        let keypad_y = app.areas.keypad.y;
+        assert!(app.areas.keypad.height >= 8, "the keypad panel shows");
+
+        app.keypad_toggle();
+        assert!(!app.keypad_shown());
+        draw_once(&mut app, &localizer, 80, 24);
+        assert_eq!(app.areas.keypad.height, 1, "the grab strip remains");
+        assert_eq!(
+            app.areas.keypad.y,
+            keypad_y + 7,
+            "the strip pins to the pane's bottom edge — the row the keypad's bottom border held"
+        );
+        assert_eq!(
+            app.areas.history.height,
+            shown_h + 7,
+            "history grows by the seven rows the keypad gave up"
+        );
+
+        app.keypad_toggle();
+        assert!(app.keypad_shown());
+    }
+
+    #[test]
+    fn hiding_drops_keypad_focus_so_the_grid_is_never_an_invisible_trap() {
+        let mut app = App::default();
+        app.keypad_open();
+        assert!(app.keypad_focused());
+        app.keypad_toggle();
+        assert!(!app.keypad_focused());
+    }
+
+    #[test]
+    fn the_grab_dots_render_on_the_border_and_on_the_docked_strip() {
+        let mut app = App::default();
+        let localizer = Localizer::resolve(None, &[]);
+        let buffer = draw_once(&mut app, &localizer, 80, 24);
+        let kp = app.areas.keypad;
+        let cx = kp.x + kp.width / 2;
+        for dx in [-2i32, -1, 0] {
+            assert_eq!(
+                buffer
+                    .cell(((cx as i32 + dx) as u16, kp.y))
+                    .unwrap()
+                    .symbol(),
+                "·",
+                "shown: the grab dots ride the top border, centered"
+            );
+        }
+
+        app.keypad_toggle();
+        let buffer = draw_once(&mut app, &localizer, 80, 24);
+        let strip = app.areas.keypad;
+        let cx = strip.x + strip.width / 2;
+        for dx in [-2i32, -1, 0] {
+            assert_eq!(
+                buffer
+                    .cell(((cx as i32 + dx) as u16, strip.y))
+                    .unwrap()
+                    .symbol(),
+                "·",
+                "docked: the strip row carries the same dots"
+            );
+        }
+    }
+
+    #[test]
+    fn a_grab_drag_docks_and_an_upward_drag_restores() {
+        let mut app = App::default();
+        let mut localizer = Localizer::resolve(None, &[]);
+        let store = tui_store();
+        let mut drag: Option<(u16, u16, MouseDrag)> = None;
+        let mut last_click: Option<(std::time::Instant, u16, u16)> = None;
+
+        draw_once(&mut app, &localizer, 80, 24);
+        let kp = app.areas.keypad;
+        let col = kp.x + kp.width / 2;
+
+        // Press on the border row, drag two rows down: docked away.
+        handle_mouse(
+            &mut app,
+            &mut localizer,
+            &store,
+            mouse(MouseEventKind::Down(MouseButton::Left), col, kp.y),
+            &mut drag,
+            &mut last_click,
+        );
+        handle_mouse(
+            &mut app,
+            &mut localizer,
+            &store,
+            mouse(MouseEventKind::Drag(MouseButton::Left), col, kp.y + 2),
+            &mut drag,
+            &mut last_click,
+        );
+        assert!(!app.keypad_shown(), "two rows down docks the keypad");
+        assert!(drag.is_none(), "the finished drag is inert");
+
+        // A fresh frame puts the strip where the border was; drag two
+        // rows up: restored.
+        draw_once(&mut app, &localizer, 80, 24);
+        let strip = app.areas.keypad;
+        handle_mouse(
+            &mut app,
+            &mut localizer,
+            &store,
+            mouse(MouseEventKind::Down(MouseButton::Left), col, strip.y),
+            &mut drag,
+            &mut last_click,
+        );
+        handle_mouse(
+            &mut app,
+            &mut localizer,
+            &store,
+            mouse(MouseEventKind::Drag(MouseButton::Left), col, strip.y - 2),
+            &mut drag,
+            &mut last_click,
+        );
+        assert!(app.keypad_shown(), "two rows up brings the keypad back");
+    }
+
+    #[test]
+    fn a_click_on_the_grab_area_toggles_without_dragging() {
+        let mut app = App::default();
+        let mut localizer = Localizer::resolve(None, &[]);
+        let store = tui_store();
+        let mut drag: Option<(u16, u16, MouseDrag)> = None;
+        let mut last_click: Option<(std::time::Instant, u16, u16)> = None;
+
+        draw_once(&mut app, &localizer, 80, 24);
+        let kp = app.areas.keypad;
+        let col = kp.x + kp.width / 2;
+        handle_mouse(
+            &mut app,
+            &mut localizer,
+            &store,
+            mouse(MouseEventKind::Down(MouseButton::Left), col, kp.y),
+            &mut drag,
+            &mut last_click,
+        );
+        handle_mouse(
+            &mut app,
+            &mut localizer,
+            &store,
+            mouse(MouseEventKind::Up(MouseButton::Left), col, kp.y),
+            &mut drag,
+            &mut last_click,
+        );
+        assert!(!app.keypad_shown(), "press and release on the bar toggles");
+    }
+
+    #[test]
+    fn a_small_wiggle_that_ends_elsewhere_does_not_toggle() {
+        let mut app = App::default();
+        let mut localizer = Localizer::resolve(None, &[]);
+        let store = tui_store();
+        let mut drag: Option<(u16, u16, MouseDrag)> = None;
+        let mut last_click: Option<(std::time::Instant, u16, u16)> = None;
+
+        draw_once(&mut app, &localizer, 80, 24);
+        let kp = app.areas.keypad;
+        let col = kp.x + kp.width / 2;
+        // Down one row (under the threshold) and release off the bar:
+        // not a click, not a dock — nothing changes.
+        handle_mouse(
+            &mut app,
+            &mut localizer,
+            &store,
+            mouse(MouseEventKind::Down(MouseButton::Left), col, kp.y),
+            &mut drag,
+            &mut last_click,
+        );
+        handle_mouse(
+            &mut app,
+            &mut localizer,
+            &store,
+            mouse(MouseEventKind::Drag(MouseButton::Left), col, kp.y + 1),
+            &mut drag,
+            &mut last_click,
+        );
+        handle_mouse(
+            &mut app,
+            &mut localizer,
+            &store,
+            mouse(MouseEventKind::Up(MouseButton::Left), col, kp.y + 1),
+            &mut drag,
+            &mut last_click,
+        );
+        assert!(app.keypad_shown(), "an unfinished drag changes nothing");
     }
 }

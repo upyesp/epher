@@ -109,7 +109,7 @@ tune-zoom = ज़ूम गति
 tui-hint-base-a = Enter मूल्यांकन · Tab कीपैड/इतिहास · F10 मेनू · ? कुंजी सहायता · Esc साफ़
 tui-hint-rotate =  · तीर घुमाएँ
 tui-hint-play =  · स्पेस एनिमेट
-tui-hint-base-b =  · Ctrl+L इतिहास साफ़ करें · Ctrl+C बाहर निकलें · q बाहर निकलें
+tui-hint-base-b =  · Ctrl+K कीपैड · Ctrl+L इतिहास साफ़ करें · Ctrl+C बाहर निकलें · q बाहर निकलें
 
 poi-copy = रुचि के बिंदु कॉपी करें
 poi-copied = रुचि के बिंदु क्लिपबोर्ड पर कॉपी हो गए
@@ -259,6 +259,8 @@ key-hint-u-jy = जांस्की प्रत्यय: 3 Jy
 ## संकेत की सुविधाएँ (ADR-0039): ग्रिड के ऊपर पट्टी, हर कुंजी का
 ## कैप्शन दिखाने वाला टॉगल, और TUI की कुंजी-सहायता।
 keypad-hints = कुंजी संकेत
+keypad-grab-hide = कीपैड छिपाएँ
+keypad-grab-show = कीपैड दिखाएँ
 keypad-hint-idle = कुंजी का काम देखने के लिए उस पर संकेतक रखें या उसे फोकस दें।
 menu-key-help = कुंजी सहायता
 tui-key-help-hint = तीर स्क्रॉल करते हैं · q या Esc बंद करता है

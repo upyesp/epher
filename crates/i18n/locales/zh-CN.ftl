@@ -109,7 +109,7 @@ tune-zoom = 缩放速度
 tui-hint-base-a = Enter 求值 · Tab 键盘/历史 · F10 菜单 · ? 按键帮助 · Esc 清除
 tui-hint-rotate =  · 方向键旋转
 tui-hint-play =  · 空格动画
-tui-hint-base-b =  · Ctrl+L 清空历史 · Ctrl+C 退出 · q 退出
+tui-hint-base-b =  · Ctrl+K 键盘 · Ctrl+L 清空历史 · Ctrl+C 退出 · q 退出
 
 poi-copy = 复制关注点
 poi-copied = 关注点已复制到剪贴板
@@ -258,6 +258,8 @@ key-hint-u-jy = Jansky 后缀：3 Jy
 ## 提示机制（ADR-0039）：网格上方的提示栏、为每个按键加说明的
 ## 开关，以及终端界面的按键帮助。
 keypad-hints = 按键提示
+keypad-grab-hide = 隐藏键盘
+keypad-grab-show = 显示键盘
 keypad-hint-idle = 将指针悬停或聚焦在按键上，查看它的作用。
 menu-key-help = 按键帮助
 tui-key-help-hint = 方向键滚动 · q 或 Esc 关闭
