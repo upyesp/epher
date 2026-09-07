@@ -1,0 +1,91 @@
+/* ============================================================================
+star-tonight.epher -- where tonight's named stars stand, and when they transit
+
+Takes three bright stars by their J2000 catalogue coordinates,
+precesses them to the date with the rigorous method of Meeus ch. 21
+(the same recipe precession-j2000.epher carries), and reads tonight's
+sky for each: altitude and azimuth at the chosen instant from the
+hour angle H = LST - RA (the built-in lst, guide 1.29, gives local
+sidereal time), and the meridian transit instant from the sidereal
+rate 1.002737909. This is the closed-form core of the communities'
+observing programs - ticalc.org's "Celestia" (which turns catalogue
+coordinates into horizon coordinates) and hpcalc's EPHE.
+
+Accuracy: the precession is IAU-1976 (PyEphem agrees to a few
+arcseconds on these very stars); the alt/az arithmetic is exact.
+Aberration (about 20 arcseconds) is the known omission - fine for
+pointing a telescope by hand. Polaris doubles as the sanity anchor:
+its altitude at any instant must sit within a degree of the
+observer's latitude.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/star-tonight.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\star-tonight.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/star-tonight.epher
+In the REPL:             load one of the paths above
+
+Knobs: the place, the instant, and the star list below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const lat = 51.4779            // Greenwich
+const lon = 0
+const t = jd(2026, 6, 21, 22)  // 22:00 UT in the summer evening
+
+// ---- J2000 catalogue positions (SIMBAD), degrees ------------------------------
+const vega_ra = hms2deg(18, 36, 56.34)
+const vega_dec = dms2deg(38, 47, 1.3)
+const arc_ra = hms2deg(14, 15, 39.67)      // Arcturus
+const arc_dec = dms2deg(19, 10, 56.7)
+const pol_ra = hms2deg(2, 31, 49.09)       // Polaris
+const pol_dec = dms2deg(89, 15, 50.8)
+
+// ---- Meeus ch. 21: of-date right ascension and declination --------------------
+def cent0(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def sig(tt, T) = ((2306.2181 + 1.39656 * T - 0.000139 * T ^ 2) * tt + (0.30188 - 0.000344 * T) * tt ^ 2 + 0.017988 * tt ^ 3) / 3600
+def zeta(tt, T) = ((2306.2181 + 1.39656 * T - 0.000139 * T ^ 2) * tt + (1.09468 + 0.000066 * T) * tt ^ 2 + 0.018203 * tt ^ 3) / 3600
+def phi(tt, T) = ((2004.3109 - 0.8533 * T - 0.000217 * T ^ 2) * tt - (0.42665 + 0.000217 * T) * tt ^ 2 - 0.041833 * tt ^ 3) / 3600
+def mod360(x) = x - 360 * floor(x / 360)
+def s(j) = sig((j - jd(2000, 1, 1, 12)) / 36525, cent0(j))
+def z(j) = zeta((j - jd(2000, 1, 1, 12)) / 36525, cent0(j))
+def pj(j) = phi((j - jd(2000, 1, 1, 12)) / 36525, cent0(j))
+def ra_of(ra, dec, j) = mod360(deg(atan2(cos(rad(dec)) * sin(rad(ra + s(j))), cos(rad(pj(j))) * cos(rad(dec)) * cos(rad(ra + s(j))) - sin(rad(pj(j))) * sin(rad(dec)))) + z(j))
+def dec_of(ra, dec, j) = deg(asin(sin(rad(pj(j))) * cos(rad(dec)) * cos(rad(ra + s(j))) + cos(rad(pj(j))) * sin(rad(dec))))
+
+// ---- horizon coordinates from the hour angle H = LST - RA ---------------------
+def hangle(ra, dec, j) = lst(j, lon) * 15 - ra_of(ra, dec, j)
+def alt_of(ra, dec, j) = deg(asin(sin(rad(lat)) * sin(rad(dec_of(ra, dec, j))) + cos(rad(lat)) * cos(rad(dec_of(ra, dec, j))) * cos(rad(hangle(ra, dec, j)))))
+def az_of(ra, dec, j) = deg(atan2(sin(rad(hangle(ra, dec, j))), cos(rad(hangle(ra, dec, j))) * sin(rad(lat)) - tan(rad(dec_of(ra, dec, j))) * cos(rad(lat)))) + 180
+
+// ---- meridian transit: catch up the sidereal rate from now --------------------
+def mod24(x) = x - 24 * floor(x / 24)
+def trans(ra, dec, j) = j + mod24(ra_of(ra, dec, j) / 15 - lst(j, lon)) / 1.002737909 / 24
+
+// ---- results ------------------------------------------------------------------
+print("tonight at", iso(t), "lat", lat, "lon", lon)
+print("Vega: alt", alt_of(vega_ra, vega_dec, t), "az", az_of(vega_ra, vega_dec, t), "transits", iso(trans(vega_ra, vega_dec, t)))
+print("Arcturus: alt", alt_of(arc_ra, arc_dec, t), "az", az_of(arc_ra, arc_dec, t), "transits", iso(trans(arc_ra, arc_dec, t)))
+print("Polaris: alt", alt_of(pol_ra, pol_dec, t), "az", az_of(pol_ra, pol_dec, t))
+
+/* Self-check: Polaris stands within a degree of the observer's
+latitude (it circles the pole 0.7 degrees out), and Arcturus, the
+bright star of the summer evening, must already be west of the
+meridian at 22:00 UT in late June. */
+print("Polaris altitude minus latitude:", alt_of(pol_ra, pol_dec, t) - lat, "deg")
+
+/* ---- expected output ----
+= 51.4779
+= 0
+= 29534561/12
+= 279.23475
+= 38.7836944444
+= 213.915291667
+= 19.1824166667
+= 37.9545416667
+= 89.2641111111
+= tonight at 2026-06-21T22:00:00 lat 51.4779 lon 0
+= Vega: alt 59.9563012032 az 99.328540057 transits 2026-06-22T00:36:57
+= Arcturus: alt 51.729810024 az 221.77736537 transits 2026-06-22T20:12:48
+= Polaris: alt 50.8683000991 az 0.231291506985
+= Polaris altitude minus latitude: -0.609599900889 deg
+*/

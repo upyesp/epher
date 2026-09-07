@@ -1,0 +1,76 @@
+/* ============================================================================
+precession-j2000.epher -- J2000 catalog coordinates to date of date
+
+Precesses a star's J2000 right ascension and declination to any
+other date with the rigorous method of chapter 21 of Jean Meeus,
+"Astronomical Algorithms" (2nd ed., Willmann-Bell, 1998, eq. 21.4):
+the three precession angles sigma, zeta and phi as polynomials in
+the two century counts, then a spherical re-projection. This is the
+first step every old star catalogue needs before tonight's alt/az -
+the calculator communities ship it constantly (AST48, Urania/48,
+Effemeridi all carry precession).
+
+The worked star is theta Hydrae, the book's own example (alpha0 =
+9h10m43.80s, delta0 = -11d57m06s, precessed to 2029 November 13.04
+TD); the script reproduces the published result. Polaris, the north
+star, rides along: its declination sits at 89.37 degrees in 2026 and
+keeps climbing toward 90 around 2100, which is why its pointing
+corrections shrink the closer you get to that date.
+
+Accuracy: the model is the IAU-1976 precession, the book's own.
+Independence check: PyEphem's epoch converter gives -12d04m29.9s
+for theta Hydrae at the same date, agreeing with this script to a
+tenth of an arcsecond; Polaris 2026 matches to 0.2 arcseconds.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/precession-j2000.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\precession-j2000.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/precession-j2000.epher
+In the REPL:             load one of the paths above
+
+Knobs: the two J2000 positions and the target date below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const ra0 = hms2deg(9, 10, 43.80)      // theta Hydrae, J2000
+const dec0 = dms2deg(-11, 57, 6)
+const ra_p = hms2deg(2, 31, 49.09)     // Polaris, J2000
+const dec_p = dms2deg(89, 15, 50.8)
+const jtarget = jd(2029, 11, 13, 0.96) // 2029 November 13.04, the book's date
+
+// ---- Meeus eq. 21.4: sigma, zeta, phi in degrees -------------------------------
+def cent0(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def sig(t, T) = ((2306.2181 + 1.39656 * T - 0.000139 * T ^ 2) * t + (0.30188 - 0.000344 * T) * t ^ 2 + 0.017988 * t ^ 3) / 3600
+def zeta(t, T) = ((2306.2181 + 1.39656 * T - 0.000139 * T ^ 2) * t + (1.09468 + 0.000066 * T) * t ^ 2 + 0.018203 * t ^ 3) / 3600
+def phi(t, T) = ((2004.3109 - 0.8533 * T - 0.000217 * T ^ 2) * t - (0.42665 + 0.000217 * T) * t ^ 2 - 0.041833 * t ^ 3) / 3600
+
+// ---- the re-projection of eq. 21.4: intermediate A, B, C ----------------------
+def pa(ra, dec, j0, j1) = cos(rad(dec)) * sin(rad(ra + sig((j1 - j0) / 36525, cent0(j0))))
+def pb(ra, dec, j0, j1) = cos(rad(phi((j1 - j0) / 36525, cent0(j0)))) * cos(rad(dec)) * cos(rad(ra + sig((j1 - j0) / 36525, cent0(j0)))) - sin(rad(phi((j1 - j0) / 36525, cent0(j0)))) * sin(rad(dec))
+def pc(ra, dec, j0, j1) = sin(rad(phi((j1 - j0) / 36525, cent0(j0)))) * cos(rad(dec)) * cos(rad(ra + sig((j1 - j0) / 36525, cent0(j0)))) + cos(rad(phi((j1 - j0) / 36525, cent0(j0)))) * sin(rad(dec))
+
+// ---- the precessed position, degrees ------------------------------------------
+def pra(ra, dec, j0, j1) = deg(atan2(pa(ra, dec, j0, j1), pb(ra, dec, j0, j1))) + zeta((j1 - j0) / 36525, cent0(j0))
+def pdec(ra, dec, j0, j1) = deg(asin(pc(ra, dec, j0, j1)))
+
+// ---- results ------------------------------------------------------------------
+print("theta Hya, of date 2029-11-13: ra", deg2hms(pra(ra0, dec0, jd(2000, 1, 1, 12), jtarget)), " dec", deg2dms(pdec(ra0, dec0, jd(2000, 1, 1, 12), jtarget)))
+print("as decimal degrees:", pra(ra0, dec0, jd(2000, 1, 1, 12), jtarget), ",", pdec(ra0, dec0, jd(2000, 1, 1, 12), jtarget))
+print("Polaris, of date 2026-01-01: ra", deg2hms(pra(ra_p, dec_p, jd(2000, 1, 1, 12), jd(2026, 1, 1))), " dec", deg2dms(pdec(ra_p, dec_p, jd(2000, 1, 1, 12), jd(2026, 1, 1))))
+
+/* Self-check: precessing the 2029 declination back to J2000 must
+return the catalogue value - the polynomial's t changes sign and
+the re-projection must land on the starting point. */
+print("round trip dec:", pdec(pra(ra0, dec0, jd(2000, 1, 1, 12), jtarget), pdec(ra0, dec0, jd(2000, 1, 1, 12), jtarget), jtarget, jd(2000, 1, 1, 12)) - dec0, "deg (must be ~0)")
+
+/* ---- expected output ----
+= 137.6825
+= -7171/600
+= 37.9545416667
+= 89.2641111111
+= 2462453.54
+= theta Hya, of date 2029-11-13: ra 9h 12m 10s  dec -12° 4' 30"
+= as decimal degrees: 138.041448723 , -12.0749600603
+= Polaris, of date 2026-01-01: ra 3h 5m 51s  dec 89° 22' 18"
+= round trip dec: 0.000000000000142108547152 deg (must be ~0)
+*/

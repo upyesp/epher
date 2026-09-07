@@ -1,0 +1,91 @@
+/* ============================================================================
+noon-sight.epher -- latitude from the Sun's meridian altitude
+
+Works the oldest navigation calculation there is: at local apparent
+noon the Sun stands on the meridian, its altitude read off the
+sextant gives the zenith distance z = 90 - Ho, and the latitude
+follows as decl + or - z (add when the Sun bears south of you and
+the declination has your same name, as here; subtract when it bears
+north). The sight corrections run in the standard order: index
+error, dip of the horizon (1.76 x sqrt(eye height in metres),
+arcminutes), refraction (Bennett's formula, S. Y. van Altena ed.,
+"Astronomical Almanac" refraction notes), the Sun's semidiameter
+from the built-in diam accessor, and solar parallax (8.79 arcsec x
+cos altitude). Declination and the LAN instant come from the
+built-in transit and decl (guide 1.29), so the almanac table lookup
+the old navigators performed is live.
+
+This is the bread and butter of the HP community's celestial
+navigation programs (hpcalc.org "Celestial Navigation 4.2", the
+Sparcom Celestial Navigation Pac, "Almanac").
+
+Accuracy: the recovered latitude is honest to about half a
+kilometre (0.3 arcminutes) with a steady hand and a clear horizon;
+the worked sight below was taken from a boat at 40.000 N and the
+script recovers it.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/navigation/noon-sight.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\navigation\noon-sight.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/navigation/noon-sight.epher
+In the REPL:             load one of the paths above
+
+Knobs: the date, the dead-reckoning position, the sextant altitude
+Hs (degrees, Sun's lower limb), the index correction ic (arcminutes,
+on-the-arc negative) and the eye height eye (metres).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const day = {2026, 6, 21}
+const drlat = 40               // dead-reckoning latitude, degrees N
+const lon = 15                 // longitude, degrees E
+const hs = 73.2464             // sextant altitude of the Sun's lower limb, deg
+const ic = -1.0                // index correction, arcminutes
+const eye = 3                  // height of eye, metres
+
+// ---- the sight, step by step --------------------------------------------------
+lan = transit(10, jd(day[1], day[2], day[3]), drlat, lon)
+dec = decl(10, lan)
+sd = diam(10, lan) / 2
+
+// ---- corrections: dip and refraction in arcminutes ----------------------------
+def dip(e) = 1.76 * sqrt(e)
+def refr(h) = 0.97127 / tan(rad(h + 7.31 / (h + 4.4)))
+
+// ---- observed altitude to true central altitude (Ho), then the latitude -------
+ha = hs + ic / 60 - dip(eye) / 60
+ho = ha - refr(ha) / 60 + sd + 8.79 * cos(rad(ha)) / 3600
+z = 90 - ho
+lat = dec + z
+
+// ---- results ------------------------------------------------------------------
+print("local apparent noon:", iso(lan))
+print("Ho (true central altitude):", ho, "deg")
+print("zenith distance:", z, "deg, declination:", dec, "deg")
+print("latitude from the noon sight:", lat, "N")
+
+/* Self-check: the sight was taken from a boat whose DR latitude is
+40 N; the noon sight must land on it - the printed difference is
+the navigator's error bar for this sight. */
+print("recovered minus DR:", lat - drlat, "deg")
+
+/* ---- expected output ----
+= {2026, 6, 21}
+= 40
+= 15
+= 73.2464
+= -1
+= 3
+= 1887750340/767
+= 23.437886495
+= 0.262204861111
+= 73.1789265096
+= 73.436973098
+= 16.563026902
+= 40.000913397
+= local apparent noon: 2026-06-21T11:01:48
+= Ho (true central altitude): 73.436973098 deg
+= zenith distance: 16.563026902 deg, declination: 23.437886495 deg
+= latitude from the noon sight: 40.000913397 N
+= recovered minus DR: 0.000913396971313 deg
+*/

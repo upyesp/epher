@@ -11,7 +11,7 @@ The repository is organized by field, then by area inside the field:
 ```text
 epher scripts/
   algebra/            equations, polynomials, sequences-series, matrices, complex
-  astronomy/          moon, planets, time, sky
+  astronomy/          moon, planets, sky, time, ephemeris, sun, eclipses, coordinates, stars, navigation
   calculus/           limits, derivatives, integrals, models
   finance/            interest, loans, savings, investing
   geometry/           triangles, circles, polygons, solids, coordinates

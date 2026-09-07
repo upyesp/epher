@@ -1,0 +1,88 @@
+/* ============================================================================
+moon-age.epher -- how old is the Moon: days since new moon
+
+Computes the Moon's age at an instant: the elapsed days since the
+last new moon, plus the traditional phase name. The new-moon
+instant comes from chapter 49 of Jean Meeus, "Astronomical
+Algorithms" (2nd ed., Willmann-Bell, 1998): the mean phase (eq.
+49.1), the new-moon column of table 49.A and the planetary
+corrections of table 49.C - the same series full-moons.epher and
+phases-of-the-month.epher carry, here only its new-moon column. The
+community ancestor is hpcalc.org's "Moon Phase" (7975) and ticalc's
+"moonecl"-style phase finders.
+
+Accuracy: about a minute on the new-moon instant for 2000-2100, so
+the age is honest to a few ten-thousandths of a day (a couple of
+minutes of Moon).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-age.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-age.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-age.epher
+In the REPL:             load one of the paths above
+
+Knobs: the two instants `t1` (mid-January, waxing) and `t2` (early
+February, waning) below, in UT.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const t1 = jd(2026, 1, 21)
+const t2 = jd(2026, 2, 10)
+
+// ---- Meeus ch. 49 mean elements and new-moon column ---------------------------
+def e3(t) = 1 - 0.002516 * t - 0.0000074 * t ^ 2      // Earth's orbital eccentricity (no unit)
+def mp(k) = 201.5643 + 385.81693528 * k               // Moon's mean anomaly, degrees
+def ms(k) = 2.5534 + 29.10535670 * k                  // Sun's mean anomaly, degrees
+def mf(k) = 160.7108 + 390.67050284 * k               // Moon's argument of latitude, degrees
+def node(k) = 124.7746 - 1.56375588 * k               // Moon's ascending node, degrees
+def base(k) = 2451550.09766 + 29.530588861 * k + 0.00015437 * (k / 1236.85) ^ 2 - 0.000000150 * (k / 1236.85) ^ 3 + 0.00000000073 * (k / 1236.85) ^ 4
+
+def corr_new(k) = -0.40720 * sin(rad(mp(k))) + 0.17241 * e3(k / 1236.85) * sin(rad(ms(k))) + 0.01608 * sin(rad(2 * mp(k))) + 0.01039 * sin(rad(2 * mf(k))) + 0.00739 * e3(k / 1236.85) * sin(rad(mp(k) - ms(k))) - 0.00514 * e3(k / 1236.85) * sin(rad(mp(k) + ms(k))) + 0.00208 * e3(k / 1236.85) ^ 2 * sin(rad(2 * ms(k))) - 0.00111 * sin(rad(mp(k) - 2 * mf(k))) - 0.00057 * sin(rad(mp(k) + 2 * mf(k))) + 0.00056 * e3(k / 1236.85) * sin(rad(2 * mp(k) + ms(k))) - 0.00042 * sin(rad(3 * mp(k))) + 0.00042 * e3(k / 1236.85) * sin(rad(ms(k) + 2 * mf(k))) + 0.00038 * e3(k / 1236.85) * sin(rad(ms(k) - 2 * mf(k))) - 0.00024 * e3(k / 1236.85) * sin(rad(2 * mp(k) - ms(k))) - 0.00017 * sin(rad(node(k))) - 0.00007 * sin(rad(mp(k) + 2 * ms(k))) + 0.00004 * sin(rad(2 * mp(k) - 2 * mf(k))) + 0.00004 * sin(rad(3 * ms(k))) + 0.00003 * sin(rad(mp(k) + ms(k) - 2 * mf(k))) + 0.00003 * sin(rad(2 * mp(k) + 2 * mf(k))) - 0.00003 * sin(rad(mp(k) + ms(k) + 2 * mf(k))) + 0.00003 * sin(rad(mp(k) - ms(k) + 2 * mf(k))) - 0.00002 * sin(rad(mp(k) - ms(k) - 2 * mf(k))) - 0.00002 * sin(rad(3 * mp(k) + ms(k))) + 0.00002 * sin(rad(4 * mp(k)))
+
+// ---- table 49.C planetary corrections in days ----------------------------------
+def a1(k) = 299.77 + 0.107408 * k
+def a2(k) = 251.88 + 0.016321 * k
+def a3(k) = 251.83 + 26.651886 * k
+def a4(k) = 349.42 + 36.412478 * k
+def a5(k) = 84.66 + 18.206239 * k
+def a6(k) = 141.74 + 53.303771 * k
+def a7(k) = 207.14 + 2.453732 * k
+def a8(k) = 154.84 + 7.306860 * k
+def a9(k) = 34.52 + 27.261239 * k
+def a10(k) = 207.19 + 0.121824 * k
+def a11(k) = 291.34 + 1.844379 * k
+def a12(k) = 161.72 + 24.198154 * k
+def a13(k) = 239.56 + 25.513099 * k
+def a14(k) = 331.55 + 3.592518 * k
+def corr_d(k) = 0.000325 * sin(rad(a1(k))) + 0.000165 * sin(rad(a2(k))) + 0.000164 * sin(rad(a3(k))) + 0.000126 * sin(rad(a4(k))) + 0.000110 * sin(rad(a5(k))) + 0.000062 * sin(rad(a6(k))) + 0.000060 * sin(rad(a7(k))) + 0.000056 * sin(rad(a8(k))) + 0.000047 * sin(rad(a9(k))) + 0.000042 * sin(rad(a10(k))) + 0.000040 * sin(rad(a11(k))) + 0.000037 * sin(rad(a12(k))) + 0.000035 * sin(rad(a13(k))) + 0.000023 * sin(rad(a14(k)))
+
+// ---- the new moon nearest (at or before) an instant, and the age --------------
+def newmoon(k) = base(k) + corr_new(k) + corr_d(k)
+def kb(j) = (j - 2451550.09766) / 29.530588861
+def kn(j) = if newmoon(round(kb(j))) > j then round(kb(j)) - 1 else round(kb(j))
+def age(j) = j - newmoon(kn(j))
+
+// ---- the traditional name, by age in days (synodic month 29.53 d) -------------
+def name(a) = if a < 0.75 then "new" else if a < 6.63 then "waxing crescent" else if a < 8.13 then "first quarter" else if a < 14.02 then "waxing gibbous" else if a < 15.52 then "full" else if a < 21.40 then "waning gibbous" else if a < 22.90 then "last quarter" else "waning crescent"
+
+// ---- results ------------------------------------------------------------------
+print("at", iso(t1), "the Moon is", age(t1), "days old -", name(age(t1)))
+print("at", iso(t2), "the Moon is", age(t2), "days old -", name(age(t2)))
+
+/* Self-check: the age through the phase law k = (1 - cos(360 x age
+/ month)) / 2 against the built-in illum. Near new and full the two
+agree to half a percent; near the quarters the slack can reach a
+few percent, because the Moon runs up to 5 degrees off the ecliptic
+(the same geometry that caps a full moon's illum at 0.9986 - see
+full-moons.epher). */
+print("illum from age at", "t1:", (1 - cos(rad(360 * age(t1) / 29.530588861))) / 2, "vs built-in:", illum(11, t1))
+print("illum from age at", "t2:", (1 - cos(rad(360 * age(t2) / 29.530588861))) / 2, "vs built-in:", illum(11, t2))
+
+/* ---- expected output ----
+= 2461061.5
+= 2461081.5
+= at 2026-01-21T00:00:00 the Moon is 2.17134509422 days old - waxing crescent
+= at 2026-02-10T00:00:00 the Moon is 22.1713450942 days old - last quarter
+= illum from age at t1: 0.0524173237196 vs built-in: 0.0486
+= illum from age at t2: 0.497510249515 vs built-in: 0.457
+*/

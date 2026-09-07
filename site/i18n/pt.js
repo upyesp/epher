@@ -127,7 +127,7 @@ window.EPHER_I18N["pt"] = {
   "features-p-programming": "A superfície de programação é parcial: há cadeias, ciclos for e print; não há entrada por teclado, nem E/S de ficheiros, nem vários valores de retorno.",
   "features-h-unique": "Onde a epher está sozinha",
   "features-li-orrery": "Um sistema solar offline: efemérides em direto do Sol, da Lua, dos planetas e de Plutão - posições, nascer e pôr, fases, magnitudes - e um planetário 3D animável. Nenhuma das nove tem algo assim.",
-  "features-li-scripts": "333 scripts viajam em cada instalador - fases da Lua, matrizes, finanças, astronomia - cada um com uma transcrição verificada contra o motor a cada alteração.",
+  "features-li-scripts": "347 scripts viajam em cada instalador - fases da Lua, matrizes, finanças, astronomia - cada um com uma transcrição verificada contra o motor a cada alteração.",
   "features-li-guide": "O guia completo fala oito idiomas, idêntico na aplicação web, na aplicação de desktop, no terminal e neste site.",
   "features-li-seeded": "O acaso tem semente: a mesma semente repete as mesmas jogadas em todos os frontends, os exercícios de aula reproduzem-se exatamente.",
   "features-li-jd": "As datas da astronomia convertem nos dois sentidos: os dias julianos leem-se como data do calendário e hora do relógio (date, time, iso).",
