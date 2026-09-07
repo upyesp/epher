@@ -1,0 +1,85 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "epher",
+  "version": "0.5.38",
+  "identifier": "com.epher.desktop",
+  "mainBinaryName": "epher",
+  "build": {
+    "frontendDist": "../../web/dist",
+    "devUrl": "http://localhost:8080",
+    "beforeDevCommand": "cd ../web && trunk serve --port 8080"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "epher",
+        "width": 1024,
+        "height": 720,
+        "minWidth": 900,
+        "minHeight": 640,
+        "resizable": true,
+        "fullscreen": false,
+        "theme": "Dark",
+        "additionalBrowserArgs": "--disk-cache-size=0"
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "withGlobalTauri": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "resources": {
+      "../../../site/guide/*.md": "guide/",
+      "../../../epher scripts": "scripts"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/48x48.png",
+      "icons/64x64.png",
+      "icons/128x128.png",
+      "icons/256x256.png",
+      "icons/512x512.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "android": {
+      "debugApplicationIdSuffix": ".debug"
+    },
+    "linux": {
+      "deb": {
+        "files": {
+          "/usr/share/man/man1/epher.1": "../../../packaging/man/epher.1",
+          "/usr/share/icons/hicolor/scalable/apps/epher.svg": "../../../site/icon.svg",
+          "/usr/share/pixmaps/epher.png": "icons/256x256.png"
+        },
+        "postInstallScript": "../../../packaging/postinst.sh",
+        "postRemoveScript": "../../../packaging/postrm.sh"
+      },
+      "rpm": {
+        "files": {
+          "/usr/share/man/man1/epher.1": "../../../packaging/man/epher.1",
+          "/usr/share/icons/hicolor/scalable/apps/epher.svg": "../../../site/icon.svg",
+          "/usr/share/pixmaps/epher.png": "icons/256x256.png"
+        },
+        "postInstallScript": "../../../packaging/postinst.sh",
+        "postRemoveScript": "../../../packaging/postrm.sh"
+      }
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "installerHooks": "./nsis-hooks.nsh",
+        "installerIcon": "icons/icon.ico",
+        "uninstallerIcon": "icons/icon.ico",
+        "template": "./nsis/installer.nsi",
+        "headerImage": "./nsis/header.bmp",
+        "sidebarImage": "./nsis/sidebar.bmp",
+        "uninstallerHeaderImage": "./nsis/header.bmp"
+      }
+    },
+    "category": "Utility"
+  }
+}

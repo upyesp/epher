@@ -1,0 +1,67 @@
+/* ============================================================================
+solar-noon-time.epher -- when the Sun crosses the meridian
+
+Solar noon (the Sun's meridian transit) at Greenwich (the Royal
+Observatory) on three dates of 2026, from the built-in transit
+accessor for the Sun, body 10 (the solar-ephemeris crate, JPL-
+validated; guide 1.16), converted to clock hours and to a clock
+display (deg2hms of the hour times 15). Two things set solar noon's
+clock time. First the longitude: the mean Sun crosses the meridian
+at 12 - lon/15 in UT, hours west of Greenwich later, east earlier --
+set `lon` below to your own site and every line follows. Greenwich
+sits 0 deg from the prime meridian, so there the mean Sun crosses at
+12 - 0/15 = 12 UT: UT is mean solar time on the prime meridian.
+Second the equation of time: the real Sun runs ahead of or behind
+the mean Sun by up to about 16 min over the year (the orbit is
+elliptical and the ecliptic is tilted), so the actual noon wanders
+around the mean transit.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/solar-noon-time.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\solar-noon-time.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/solar-noon-time.epher
+In the REPL:             load one of the paths above
+
+Knobs: latitude and longitude (Greenwich below); the three dates below.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const lat = 51.4779        // Greenwich — the Royal Observatory
+const lon = 0
+const d_mar = {2026, 3, 20}    // March equinox
+const d_jun = {2026, 6, 21}    // June solstice
+const d_dec = {2026, 12, 21}   // December solstice
+
+// ---- helpers ----------------------------------------------------------------
+// Clock hour of solar noon, and its clock-time display.
+def nh(ds, lat, lon) = (transit(10, jd(ds[1], ds[2], ds[3]), lat, lon) - jd(ds[1], ds[2], ds[3])) * 24 in hr
+def nd(ds, lat, lon) = (transit(10, jd(ds[1], ds[2], ds[3]), lat, lon) - jd(ds[1], ds[2], ds[3])) * 24 * 15
+
+/* ---- results ----------------------------------------------------------------
+The three noons, hours UT, compared with the mean 12 UT: the March
+equinox noon runs 7.8 min late (equation of time about -8 min), the
+June solstice noon 1.8 min late, the December solstice noon 1.9 min
+early - in mid-February or early November the swing reaches about
+14-16 min. The clock column shows the same hours as a civil reading. */
+print("solar noon 2026-03-20:", nh(d_mar, lat, lon), "UT; clock", deg2hms(nd(d_mar, lat, lon)))
+print("solar noon 2026-06-21:", nh(d_jun, lat, lon), "UT; clock", deg2hms(nd(d_jun, lat, lon)))
+print("solar noon 2026-12-21:", nh(d_dec, lat, lon), "UT; clock", deg2hms(nd(d_dec, lat, lon)))
+
+// The reference the noons wander around: the mean Sun's transit hour
+// for the longitude (no equation of time): 12 - lon/15. At Greenwich
+// the longitude term is 0/15 and the reference is 12 UT exactly; at
+// another site it moves by the site's longitude. All three readings
+// sit within about 8 min of it, and every one of them is within 0-24.
+print("mean solar noon (12 - lon/15):", (12 - lon / 15) in hr)
+
+/* ---- expected output ----
+= 51.4779
+= 0
+= {2026, 3, 20}
+= {2026, 6, 21}
+= {2026, 12, 21}
+= solar noon 2026-03-20: 12.1291872002 hr UT; clock 12h 7m 45s
+= solar noon 2026-06-21: 12.0302131176 hr UT; clock 12h 1m 49s
+= solar noon 2026-12-21: 11.9676772803 hr UT; clock 11h 58m 4s
+= mean solar noon (12 - lon/15): 12 hr
+*/

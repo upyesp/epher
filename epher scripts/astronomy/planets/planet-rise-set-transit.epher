@@ -1,0 +1,60 @@
+/* ============================================================================
+planet-rise-set-transit.epher -- Mars through one day at Greenwich
+
+Rise, meridian transit and set of Mars on 2026-06-01 at Greenwich
+(the Royal Observatory), from the built-in accessors rise, transit
+and set (the solar-ephemeris crate, JPL-validated; guide 1.16). Each
+returns the event of the day that starts at j0 (0h UT) as a Julian
+Date; subtracting j0 and multiplying by 24 gives the clock hour,
+printed in hours and as a clock time (deg2hms of the hour times 15,
+guide 1.16). Hours are UT - on the prime meridian that is Greenwich
+Mean Time itself. Mars rises before the Sun (3.81 hr UT that day, see
+sunrise-sunset.epher): about eight months before its February 2027
+opposition the planet is a morning object.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-rise-set-transit.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-rise-set-transit.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-rise-set-transit.epher
+In the REPL:             load one of the paths above
+
+Knobs: the date j0, latitude and longitude.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const j0 = jd(2026, 6, 1)    // 0h UT
+const lat = 51.4779        // Greenwich — the Royal Observatory
+const lon = 0
+
+// ---- helpers ----------------------------------------------------------------
+// Clock hour of an event, and the clock-time display for it.
+def evh(ev, j0) = (ev - j0) * 24
+def evd(ev, j0) = (ev - j0) * 24 * 15
+
+/* ---- results ----------------------------------------------------------------
+The three events of the day, in order: rise at 2.57, transit at 9.87,
+set at 17.17 hr UT. The ordering check below confirms rise comes
+first: on this date Mars is up from 02:34 to 17:10 UT, crossing the
+meridian just before 10:00 UT in the morning sky. */
+print("Mars rise 2026-06-01:", evh(rise(4, j0, lat, lon), j0) in hr, "UT; clock", deg2hms(evd(rise(4, j0, lat, lon), j0)))
+print("Mars transit 2026-06-01:", evh(transit(4, j0, lat, lon), j0) in hr, "UT; clock", deg2hms(evd(transit(4, j0, lat, lon), j0)))
+print("Mars set 2026-06-01:", evh(set(4, j0, lat, lon), j0) in hr, "UT; clock", deg2hms(evd(set(4, j0, lat, lon), j0)))
+print("rise before transit before set:", rise(4, j0, lat, lon) < transit(4, j0, lat, lon) and transit(4, j0, lat, lon) < set(4, j0, lat, lon))
+print("transit instant as a date-time:", iso(transit(4, j0, lat, lon)), "UT")
+
+// The Sun the same day transits at 11.97 hr UT (solar-noon-time.epher),
+// so Mars culminates about 2.1 h earlier: the planet leads the Sun
+// across the sky, the signature of a morning object.
+print("Mars up at 4:00 UT:", alt(4, jd(2026, 6, 1, 4), lat, lon) > 0)
+
+/* ---- expected output ----
+= 2461192.5
+= 51.4779
+= 0
+= Mars rise 2026-06-01: 2.57032056525 hr UT; clock 2h 34m 13s
+= Mars transit 2026-06-01: 9.86627928168 hr UT; clock 9h 51m 59s
+= Mars set 2026-06-01: 17.1711040847 hr UT; clock 17h 10m 16s
+= rise before transit before set: true
+= transit instant as a date-time: 2026-06-01T09:51:59 UT
+= Mars up at 4:00 UT: true
+*/

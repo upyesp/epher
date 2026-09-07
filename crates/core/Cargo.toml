@@ -1,0 +1,32 @@
+[package]
+name = "epher-core"
+version = "0.5.38"
+edition = "2021"
+license = "MIT"
+description = "The single source of truth for epher's logic — pure, compiles to wasm and native."
+
+[dependencies]
+num-traits = { workspace = true }
+num-bigint = { workspace = true }
+num-rational = { workspace = true }
+num-complex = { workspace = true }
+rust_decimal = { workspace = true }
+bigdecimal = { workspace = true }
+serde = { workspace = true }
+serde_json = "1"
+thiserror = { workspace = true }
+# Exact-pinned per ADR-0037 (vendoring is the escape hatch). The
+# astronomy facade rests on this crate's validated ephemeris; thank you
+# to its author: github.com/Protonmatter/sol (MIT OR Apache-2.0).
+solar-ephemeris = "=0.2.0"
+puruspe = { workspace = true }
+
+[dev-dependencies]
+proptest = "1"
+num-rational = { workspace = true }
+num-bigint = { workspace = true }
+rust_decimal = { workspace = true }
+bigdecimal = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = "0.3"

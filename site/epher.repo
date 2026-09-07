@@ -1,0 +1,10 @@
+# epher's dnf repository — install with:
+#   sudo cp epher.repo /etc/yum.repos.d/
+#   sudo dnf install epher
+[epher]
+name=epher
+baseurl=https://epher.org/rpm/$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://epher.org/apt/KEY.gpg

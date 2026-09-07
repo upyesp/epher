@@ -1,0 +1,601 @@
+//! app_lib — the Tauri desktop shell (ADR-0001, ADR-0010).
+//!
+//! The native process owns the Native Store: a `DocStore<FsStore>` rooted
+//! at `default_store_dir()` (`EPHER_STORE_DIR` override, `~/.epher` default) —
+//! the same files the CLI and TUI use. The webview bridges to it through
+//! five IPC commands, all thin wrappers over epher-store's persist helpers;
+//! evaluation itself stays in the webview on the wasm core.
+
+use std::path::PathBuf;
+
+use clap::Parser;
+use epher_store::persist;
+use epher_store::{DocStore, FsStore};
+use serde::Serialize;
+use tauri::{Emitter, Manager, State};
+
+/// The desktop's native store: one instance, managed by Tauri and shared by
+/// every command.
+pub struct DesktopStore {
+    store: DocStore<FsStore>,
+}
+
+impl DesktopStore {
+    pub fn with_dir(dir: impl Into<PathBuf>) -> Self {
+        Self {
+            store: DocStore::new(FsStore::new(dir)),
+        }
+    }
+
+    /// Everything the webview needs at startup: history, the replay lines
+    /// (functions, then constants, then scripts), the language preference,
+    /// and the shared session snapshot (ADR-0010 amendment).
+    pub fn init(&self) -> epher_store::StoreResult<InitState> {
+        Ok(InitState {
+            history: persist::history(&self.store)?,
+            replay: persist::replay_lines(&self.store)?,
+            language: persist::load_language(&self.store)?,
+            theme: persist::load_theme(&self.store)?,
+            session: persist::session_bindings(&self.store)?.unwrap_or_default(),
+        })
+    }
+
+    pub fn save_function(&self, name: &str, source: &str) -> epher_store::StoreResult<()> {
+        persist::save_function(&self.store, name, source)
+    }
+
+    pub fn save_constant(&self, name: &str, source: &str) -> epher_store::StoreResult<()> {
+        persist::save_constant(&self.store, name, source)
+    }
+
+    pub fn save_script(&self, name: &str, source: &str) -> epher_store::StoreResult<()> {
+        persist::save_script(&self.store, name, source)
+    }
+
+    pub fn save_history(&self, history: &[String]) -> epher_store::StoreResult<()> {
+        persist::save_history(&self.store, history)
+    }
+
+    pub fn save_session(
+        &self,
+        bindings: &std::collections::HashMap<String, epher_core::Value>,
+    ) -> epher_store::StoreResult<()> {
+        persist::save_session(&self.store, bindings)
+    }
+
+    pub fn save_language(&self, language: &str) -> epher_store::StoreResult<()> {
+        persist::save_language(&self.store, language)
+    }
+
+    pub fn save_theme(&self, theme: &str) -> epher_store::StoreResult<()> {
+        persist::save_theme(&self.store, theme)
+    }
+
+    pub fn save_exact(&self, exact: bool) -> epher_store::StoreResult<()> {
+        persist::save_exact(&self.store, exact)
+    }
+
+    pub fn save_format(&self, format: &str) -> epher_store::StoreResult<()> {
+        persist::save_format(&self.store, format)
+    }
+
+    pub fn save_separators(&self, separators: bool) -> epher_store::StoreResult<()> {
+        persist::save_separators(&self.store, separators)
+    }
+}
+
+/// The answer to `init`: the store's contents as plain data, so the webview
+/// can rebuild its Session exactly like `load_session` does natively.
+#[derive(Debug, Serialize)]
+pub struct InitState {
+    pub history: Vec<String>,
+    pub replay: Vec<String>,
+    pub language: Option<String>,
+    /// The theme preference (light/dark/night), if the user set one.
+    pub theme: Option<String>,
+    /// The shared session snapshot (ADR-0010 amendment): bindings saved by
+    /// whichever CLI/REPL/TUI/desktop frontend ran last.
+    pub session: std::collections::HashMap<String, epher_core::Value>,
+}
+
+#[tauri::command]
+fn init(state: State<DesktopStore>, window: tauri::WebviewWindow) -> Result<InitState, String> {
+    // Windows launches hidden (ADR-0032): the frontend calls init after
+    // its first mount — the shell has painted its dark first frame by
+    // then — so this is the first-paint signal. Show the window here and
+    // the user's first visible frame is the dark app, never a white one.
+    // (The boot-fallback script calls init too, so a failed wasm boot
+    // shows its dark fallback window instead of nothing.)
+    #[cfg(target_os = "windows")]
+    {
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+    #[cfg(not(target_os = "windows"))]
+    let _ = &window;
+    state.init().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_function(state: State<DesktopStore>, name: String, source: String) -> Result<(), String> {
+    state
+        .save_function(&name, &source)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_constant(state: State<DesktopStore>, name: String, source: String) -> Result<(), String> {
+    state
+        .save_constant(&name, &source)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_script(state: State<DesktopStore>, name: String, source: String) -> Result<(), String> {
+    state.save_script(&name, &source).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_history(state: State<DesktopStore>, history: Vec<String>) -> Result<(), String> {
+    state.save_history(&history).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_session(
+    state: State<DesktopStore>,
+    bindings: Vec<(String, epher_core::Value)>,
+) -> Result<(), String> {
+    // The webview ships the bindings inside a struct (SessionArgs), the
+    // same shape as every other save command: serde_wasm_bindgen renders
+    // HashMap as a JS Map, which the Linux webkitgtk IPC cannot
+    // transport — the save silently never arrived, so the desktop app
+    // never wrote setting/session.json.
+    // The webview ships the bindings inside a struct (SessionArgs, field
+    // `bindings`), the same shape as every other save command: the raw
+    // HashMap rendered as a JS Map that the Linux webkitgtk IPC drops,
+    // and a bare array never matched the command's field name, so the
+    // desktop app never wrote setting/session.json before.
+    let session: std::collections::HashMap<String, epher_core::Value> =
+        bindings.into_iter().collect();
+    state.save_session(&session).map_err(|e| e.to_string())
+}
+
+pub mod cli_install;
+pub mod dispatch;
+
+#[tauri::command]
+fn save_language(state: State<DesktopStore>, code: String) -> Result<(), String> {
+    state.save_language(&code).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_theme(state: State<DesktopStore>, name: String) -> Result<(), String> {
+    state.save_theme(&name).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_exact(state: State<DesktopStore>, exact: bool) -> Result<(), String> {
+    state.save_exact(exact).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_format(state: State<DesktopStore>, format: String) -> Result<(), String> {
+    state.save_format(&format).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_separators(state: State<DesktopStore>, separators: bool) -> Result<(), String> {
+    state.save_separators(separators).map_err(|e| e.to_string())
+}
+
+/// File → Quit (ADR-0023): close the app's last window; Tauri exits the
+/// process when none remain.
+#[tauri::command]
+fn quit(app: tauri::AppHandle) {
+    app.exit(0);
+}
+
+/// Open a URL in the system browser (the brand link: the epher mark →
+/// epher.org). The webview must not navigate away from the app — the
+/// calculator would be gone with no way back — so external links ride
+/// the OS opener instead of the webview's own navigation.
+#[tauri::command]
+fn open_url(url: String) -> Result<(), String> {
+    open::that_detached(&url).map_err(|e| e.to_string())
+}
+
+/// Write a file at a chosen path (ADR-0024). Split from the dialog
+/// command so tests can cover the write without a native dialog.
+fn write_file(path: &std::path::Path, content: &str) -> Result<(), String> {
+    std::fs::write(path, content).map_err(|e| e.to_string())
+}
+
+/// File → Save script (ADR-0024): the operating system's save
+/// dialog — the user picks the directory and the file name, then the
+/// file is written there. `Ok(None)` means the user cancelled: the UI
+/// stays silent, as native apps do. `Ok(Some(path))` is the written
+/// path, shown in the status line.
+///
+/// The command is **async** and the dialog runs inside
+/// `spawn_blocking`: a synchronous Tauri command executes on the main
+/// thread, and a modal OS dialog parked there freezes the whole
+/// webview for as long as it is open — on Linux Mint the dialog could
+/// end up behind the window, looking like a hard lock (ADR-0027). Off
+/// the main thread the app stays live regardless of what the dialog
+/// backend does.
+#[tauri::command]
+async fn save_file_dialog(
+    app: tauri::AppHandle,
+    content: String,
+    default_name: String,
+) -> Result<Option<String>, String> {
+    let path = tauri::async_runtime::spawn_blocking(move || {
+        // No extension filter: the user may rename to any extension
+        // (.epher is the pre-filled default, not a restriction), and
+        // rfd's Windows filter would otherwise fight typed names by
+        // appending the filtered extension (ADR-0027).
+        use tauri_plugin_dialog::DialogExt;
+        let mut builder = app.dialog().file();
+        if let Some(window) = app.get_webview_window("main") {
+            builder = builder.set_parent(&window);
+        }
+        builder.set_file_name(&default_name).blocking_save_file()
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+    let Some(path) = path else {
+        return Ok(None);
+    };
+    let path = path
+        .into_path()
+        .map_err(|_| "the chosen location is not a local file".to_string())?;
+    write_file(&path, &content)?;
+    Ok(Some(path.display().to_string()))
+}
+
+/// Save PNG (ADR-0042): the same save dialog as [`save_file_dialog`], for
+/// the rasterized plot bytes. Async + spawn_blocking keeps the dialog off
+/// the main thread (ADR-0027) for the same reasons.
+#[tauri::command]
+async fn save_png_dialog(
+    app: tauri::AppHandle,
+    data: Vec<u8>,
+    default_name: String,
+) -> Result<Option<String>, String> {
+    let path = tauri::async_runtime::spawn_blocking(move || {
+        use tauri_plugin_dialog::DialogExt;
+        let mut builder = app.dialog().file();
+        if let Some(window) = app.get_webview_window("main") {
+            builder = builder.set_parent(&window);
+        }
+        builder.set_file_name(&default_name).blocking_save_file()
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+    let Some(path) = path else {
+        return Ok(None);
+    };
+    let path = path
+        .into_path()
+        .map_err(|_| "the chosen location is not a local file".to_string())?;
+    std::fs::write(&path, data).map_err(|e| e.to_string())?;
+    Ok(Some(path.display().to_string()))
+}
+
+/// Can this shell install the `epher` terminal command? (macOS app bundle
+/// only — see cli_install.) The webview asks at startup to decide whether
+/// to show the button.
+#[tauri::command]
+fn cli_install_supported() -> bool {
+    cfg!(target_os = "macos")
+}
+
+/// Install the `epher` command (macOS): symlink `/usr/local/bin/epher` to
+/// the app bundle's executable, with an osascript administrator-privilege
+/// fallback. Ok carries a Fluent key; Err carries readable instructions.
+/// Async + spawn_blocking: the password prompt can be open a long while,
+/// and the UI must stay responsive.
+#[tauri::command]
+async fn install_cli() -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(cli_install::install)
+        .await
+        .map_err(|e| format!("join error: {e}"))?
+}
+
+/// Run the desktop GUI (the Tauri event loop). On Windows this is called
+/// via [`launch_gui`] after the detach dance; on macOS/Linux it runs
+/// in-process in the foreground, like any GUI binary launched from a
+/// terminal.
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .manage(DesktopStore::with_dir(persist::default_store_dir()))
+        .invoke_handler(tauri::generate_handler![
+            init,
+            save_function,
+            save_constant,
+            save_script,
+            save_history,
+            save_session,
+            save_language,
+            save_theme,
+            save_exact,
+            save_format,
+            save_separators,
+            cli_install_supported,
+            install_cli,
+            save_file_dialog,
+            save_png_dialog,
+            quit,
+            open_url
+        ])
+        .setup(|app| {
+            // Publish/subscribe for the shared store (ADR-0010
+            // amendment): the desktop writes every state change to the
+            // store immediately (the webview's save_* commands), and a
+            // watcher thread delivers a `store-changed` event whenever
+            // another frontend — the TUI, the REPL, a one-shot CLI run
+            // — writes the store, so the open app refreshes live.
+            // The watcher re-reads the store itself (the managed
+            // DesktopStore is not Send, and this thread is long-lived);
+            // FsStore is just a directory, so a second reader is
+            // trivially consistent. The webview applies the same
+            // InitState it consumed at startup.
+            let store_dir = persist::default_store_dir();
+            let store_rx = epher_store::watch::spawn_store_watcher(store_dir.clone());
+            let app_handle = app.handle().clone();
+            std::thread::Builder::new()
+                .name("epher-store-broadcast".into())
+                .spawn(move || {
+                    let store = DesktopStore::with_dir(store_dir);
+                    for _ in &store_rx {
+                        // Collapse the burst of atomic-write events into
+                        // one reload, then broadcast the fresh state.
+                        while store_rx.try_recv().is_ok() {}
+                        let Ok(state) = store.init() else {
+                            continue;
+                        };
+                        let _ = app_handle.emit("store-changed", &state);
+                    }
+                })
+                .ok();
+            // Version in the title bar: every release ships an installer
+            // with the same filename, and stale downloads are a recurring
+            // support issue — a glance at the title settles which build is
+            // running. The version lives in one place (Cargo.toml, which
+            // tauri.conf.json mirrors for the bundle).
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.set_title(&format!("epher {}", env!("CARGO_PKG_VERSION")));
+            }
+            // Windows: the window is created hidden and shown when the
+            // page has loaded (ADR-0032). Tao ignores the window
+            // background color on Windows and the WebView2 default is
+            // white, so a shown-at-creation window flashes white for a
+            // frame or two; hidden-until-loaded shows the already-dark
+            // page as the very first frame, and the corrected
+            // --default-background-color=FF141416 browser argument
+            // (AARRGGBB — the bare six digits v0.4.19 passed are not a
+            // valid color and were ignored) darkens the webview itself.
+            // The show happens in the `init` command (the frontend calls
+            // it right after its first mount — the first-paint signal);
+            // the boot-fallback script invokes it too.
+            if cfg!(debug_assertions) {
+                app.handle().plugin(
+                    tauri_plugin_log::Builder::default()
+                        .level(log::LevelFilter::Info)
+                        .build(),
+                )?;
+            }
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+
+/// The unified-binary entry point (ADR-0011): parse arguments with
+/// [`dispatch`], then run the chosen frontend — every mode is a thin call
+/// into the frontend's own library entry point, so behavior is defined
+/// once (CLI/REPL/stdin: epher-cli; TUI: epher-tui; GUI: this crate).
+/// Errors print to stderr (red on a terminal) and exit 1; usage errors
+/// exit 2 through clap (ADR-0013).
+pub fn run_with_args<I>(args: I)
+where
+    I: IntoIterator,
+    I::Item: Into<std::ffi::OsString> + Clone,
+{
+    let parsed = dispatch::Args::try_parse_from(args).unwrap_or_else(|e| e.exit());
+    let result = match dispatch::action_from(&parsed) {
+        dispatch::Action::OneShot(expr) => epher_cli::run_one_shot(&expr),
+        dispatch::Action::Stdin => epher_cli::run_stdin_and_exit(),
+        dispatch::Action::ScriptFile(path) => {
+            epher_cli::run_script_file(&path).and_then(|failed| {
+                if failed {
+                    std::process::exit(1);
+                }
+                Ok(())
+            })
+        }
+        dispatch::Action::MissingScriptFile(path) => {
+            epher_cli::term::error(&format!("error: no such script file: {path}"));
+            std::process::exit(1);
+        }
+        dispatch::Action::Repl => epher_cli::run_repl(),
+        dispatch::Action::Tui => {
+            epher_tui::run().map_err(|e| epher_core::EpherError::Io(e.to_string()))
+        }
+        dispatch::Action::Gui => {
+            launch_gui();
+            return;
+        }
+        dispatch::Action::HelpManual => std::process::exit(epher_cli::help::manual()),
+        dispatch::Action::HelpTopic(topic) => epher_cli::help::topic(&topic),
+    };
+    if let Err(e) = result {
+        epher_cli::term::error(&format!("error: {e}"));
+        std::process::exit(1);
+    }
+}
+
+/// Launch the desktop GUI.
+///
+/// The console `epher` binary is a *console* application (so `epher "2 + 2"`
+/// can print and pipe from CMD/PowerShell). On Windows the GUI therefore
+/// runs in the GUI-subsystem sibling `epher-gui.exe` (ADR-0011): the
+/// console process spawns it detached — no console window, ever — and
+/// exits immediately, so a double-click never lingers on a terminal and a
+/// terminal prompt returns right away while the window appears. The
+/// GUI-subsystem build itself (`epher-gui.exe`, the double-click target)
+/// and the env-marked child have no console to shed, so they run the
+/// window in-process. The spawn prefers the sibling `epher-gui.exe` (same
+/// directory, then one level up); if none exists it falls back to
+/// re-spawning itself with `EPHER_GUI_CHILD` set — the guard (and the
+/// `DETACHED_PROCESS` child having no console to begin with) stops the
+/// chain after one hop. On macOS/Linux the GUI runs in-process in the
+/// foreground, like any GUI binary run from a terminal.
+fn launch_gui() {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const DETACHED_PROCESS: u32 = 0x0000_0008;
+        let exe = std::env::current_exe().unwrap_or_default();
+        let is_gui_build = exe.file_stem().is_some_and(|s| s == "epher-gui");
+        if !is_gui_build && std::env::var_os("EPHER_GUI_CHILD").is_none() {
+            for candidate in gui_launch_candidates(&exe) {
+                let spawned = std::process::Command::new(&candidate)
+                    .env("EPHER_GUI_CHILD", "1")
+                    .creation_flags(DETACHED_PROCESS)
+                    .stdin(std::process::Stdio::null())
+                    .stdout(std::process::Stdio::null())
+                    .stderr(std::process::Stdio::null())
+                    .spawn();
+                if spawned.is_ok() {
+                    std::process::exit(0);
+                }
+                // Spawn failed: try the next candidate, then run in-process.
+            }
+        }
+    }
+    run();
+}
+
+/// The Windows GUI-spawn candidates for the console binary at `current_exe`:
+/// the sibling GUI-subsystem build first (same directory, then the parent
+/// directory), then `current_exe` itself as the pre-W2 fallback. Pure path
+/// logic so it is testable on any host.
+#[cfg_attr(not(windows), allow(dead_code))]
+fn gui_launch_candidates(current_exe: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let Some(dir) = current_exe.parent() else {
+        return vec![current_exe.to_path_buf()];
+    };
+    let mut candidates = vec![dir.join("epher-gui.exe")];
+    if let Some(parent) = dir.parent() {
+        candidates.push(parent.join("epher-gui.exe"));
+    }
+    candidates.push(current_exe.to_path_buf());
+    candidates
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use epher_store::persist::load_session;
+
+    #[test]
+    fn write_file_puts_the_content_at_the_chosen_path() {
+        let dir = tempfile::tempdir().unwrap();
+        let target = dir.path().join("chosen-name.epher");
+        write_file(&target, "2 + 3  = 5\n").unwrap();
+        assert_eq!(std::fs::read_to_string(&target).unwrap(), "2 + 3  = 5\n");
+    }
+
+    #[test]
+    fn init_reports_what_the_cli_would_load() {
+        let dir = tempfile::tempdir().unwrap();
+        let desktop = DesktopStore::with_dir(dir.path());
+        desktop
+            .save_function(
+                "fib",
+                "def fib(n) = if n <= 1 then n else fib(n - 1) + fib(n - 2)",
+            )
+            .unwrap();
+        desktop.save_constant("k", "const k = 41").unwrap();
+        desktop
+            .save_script("count", "x = 0; while x < 5 do x = x + 1; x")
+            .unwrap();
+        desktop.save_history(&["2 + 3  = 5".to_string()]).unwrap();
+        desktop.save_language("fr").unwrap();
+
+        let state = desktop.init().unwrap();
+        assert_eq!(state.history, vec!["2 + 3  = 5".to_string()]);
+        assert_eq!(state.language, Some("fr".to_string()));
+        assert_eq!(state.replay.len(), 3);
+        assert!(state.replay[0].starts_with("def fib"));
+        assert_eq!(state.replay[1], "const k = 41");
+        assert!(state.replay[2].starts_with("x = 0"));
+    }
+
+    #[test]
+    fn the_cli_loads_what_the_desktop_saved() {
+        // The whole point (ADR-0010): the same files. The CLI's own startup
+        // path must see the desktop's writes — function *and* variables set
+        // by a saved script.
+        let dir = tempfile::tempdir().unwrap();
+        let desktop = DesktopStore::with_dir(dir.path());
+        // the function body uses the constant: proves constants replay and
+        // are visible inside functions (ADR-0012)
+        desktop.save_function("f", "def f(x) = x ^ 2 + c").unwrap();
+        desktop.save_constant("c", "const c = 5").unwrap();
+        desktop.save_script("vars", "y = 7").unwrap();
+
+        let mut session = load_session(&DocStore::new(FsStore::new(dir.path()))).unwrap();
+        assert!(session.def_sources().contains_key("f"));
+        assert_eq!(session.submit("f(3) + y"), "= 21");
+    }
+
+    #[test]
+    fn init_on_an_empty_store_is_empty_not_an_error() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = DesktopStore::with_dir(dir.path()).init().unwrap();
+        assert!(state.history.is_empty());
+        assert!(state.replay.is_empty());
+        assert_eq!(state.language, None);
+    }
+
+    // --- GUI hand-off candidates (ADR-0011, W2) -------------------------
+
+    #[test]
+    fn console_binary_prefers_the_gui_sibling_then_parent_then_itself() {
+        use std::path::{Path, PathBuf};
+        // forward slashes: valid path separators on every host
+        let exe = Path::new("C:/Program Files/epher/epher.exe");
+        let candidates = gui_launch_candidates(exe);
+        assert_eq!(
+            candidates,
+            vec![
+                PathBuf::from("C:/Program Files/epher/epher-gui.exe"),
+                PathBuf::from("C:/Program Files/epher-gui.exe"),
+                PathBuf::from("C:/Program Files/epher/epher.exe"),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_path_without_a_parent_yields_the_sibling_and_itself() {
+        use std::path::{Path, PathBuf};
+        let exe = Path::new("epher.exe");
+        assert_eq!(
+            gui_launch_candidates(exe),
+            vec![PathBuf::from("epher-gui.exe"), PathBuf::from("epher.exe")]
+        );
+    }
+
+    #[test]
+    fn the_gui_build_never_dances_it_runs_in_process() {
+        // launch_gui short-circuits for the GUI-subsystem build: it has no
+        // console to shed. The file-stem check is what this asserts.
+        use std::path::Path;
+        let exe = Path::new("C:/Program Files/epher/epher-gui.exe");
+        assert_eq!(exe.file_stem().and_then(|s| s.to_str()), Some("epher-gui"));
+    }
+}

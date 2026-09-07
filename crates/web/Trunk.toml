@@ -1,0 +1,15 @@
+# Trunk build config for epher-web.
+#
+# public-url "./": emit relative asset paths so the built PWA works from any
+# mount point — the deployed site serves it at /pwa/ on epher.org
+# (see docs/website.md) and the Tauri shell embeds the same dist.
+#
+# wasm-opt: Debian's binaryen 108 is too old to parse modern rustc wasm output,
+# so trunk downloads a newer prebuilt binaryen from the WebAssembly/binaryen
+# releases and runs it at level "z" (super size-focused) — see data-wasm-opt
+# in index.html.
+[build]
+public_url = "./"
+
+[tools]
+wasm_opt = "version_132"

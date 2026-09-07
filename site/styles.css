@@ -1,0 +1,1254 @@
+/* epher website: light/dark themes via [data-theme] on <html>.
+
+   Design tokens (2026 redesign, see docs/research/modern-ui-accessibility.md
+   and docs/accessibility.md):
+
+   Accent: teal. The old amber read like every other developer site; teal
+   is distinct, technical, and passes contrast in both themes. WCAG 2.2 AA
+   contrast (computed with the relative-luminance formula, cross-checked
+   against docs/research/modern-ui-accessibility.md §5, 2026-08-20):
+
+   light (bg #ffffff):
+     text #1c1c1e        17.0:1
+     muted #5c5d63        6.6:1
+     link #0f766e         5.5:1   hover #115e59  7.6:1
+     primary btn text #ffffff on #0f766e   5.5:1 (hover bg #115e59 7.6:1)
+     accent icon #0d9488  3.7:1  (non-text: clears 1.4.11's 3:1)
+     ring #0d9488         3.7:1  (non-text indicator)
+     border-strong #5a5b60 6.8:1 (interactive control borders)
+   dark (bg #141416, L=0.007070):
+     text #f5f6f7        17.0:1
+     muted #9a9ba2        6.6:1
+     link #5eead4        12.4:1  hover underline thickened
+     primary btn text #0b1512 on #2dd4bf 10.0:1 (hover bg #5eead4 12.6:1)
+     accent #2dd4bf       9.9:1
+     ring #2dd4bf         9.9:1
+     border-strong #6a6b70 3.5:1 (vs bg; 3.1:1 vs --panel: interactive
+       control borders and card edges (1.4.11's 3:1). Decorative
+       separators (header rule, section hairlines) use --border, which
+       carries no information: content headings identify the blocks.
+
+   All layout uses logical properties so Arabic (dir="rtl") mirrors it.
+   Interactive targets are at least 44x44 CSS px (WCAG 2.5.5 best
+   practice; 2.5.8 AA asks 24px). Motion is limited to 150ms color
+   transitions and is disabled under prefers-reduced-motion (2.3.3). */
+
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --panel: #f6f7f8;
+  --panel-2: #eef0f2;
+  --border: #e3e5e8;
+  --border-strong: #5a5b60;
+  --text: #1c1c1e;
+  --muted: #5c5d63;
+  --accent: #0f766e;        /* text-safe accent on light surfaces */
+  --accent-hover: #115e59;
+  --accent-icon: #0d9488;   /* non-text accent: icons, rings (3:1+) */
+  --accent-btn: #0f766e;    /* primary button background */
+  --accent-btn-hover: #115e59;
+  --accent-contrast: #ffffff;
+  --link: #0f766e;
+  --ring: #0d9488;
+  --header-bg: rgba(255, 255, 255, 0.86);
+  --shadow: 0 1px 2px rgb(16 18 20 / 5%), 0 8px 24px rgb(16 18 20 / 6%);
+  --terminal-bg: #0c0d0f;
+  --terminal-border: #2a2c30;
+  --terminal-text: #d7dade;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #141416;
+  --panel: #1d1f22;
+  --panel-2: #232529;
+  --border: #26282c;
+  --border-strong: #6a6b70;
+  --text: #f5f6f7;
+  --muted: #9a9ba2;
+  --accent: #2dd4bf;
+  --accent-hover: #5eead4;
+  --accent-icon: #2dd4bf;
+  --accent-btn: #2dd4bf;
+  --accent-btn-hover: #5eead4;
+  --accent-contrast: #0b1512;
+  --link: #5eead4;
+  --ring: #2dd4bf;
+  --header-bg: rgba(20, 20, 22, 0.86);
+  --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 32%);
+  --terminal-bg: #0c0d0f;
+  --terminal-border: #2a2c30;
+  --terminal-text: #d7dade;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+/* --- focus indicators (WCAG 2.4.7, 1.4.11) ------------------------------ */
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* accent-filled surfaces get an inset ring in their text color: an outer
+   ring would sit on the page background, and an outline of the accent
+   color is invisible against the accent surface itself */
+.btn-primary:focus-visible,
+.icon-btn:focus-visible,
+.menu-toggle:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--accent-contrast);
+}
+
+select:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--ring);
+}
+
+/* --- links --------------------------------------------------------------- */
+
+a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* --- skip link (WCAG 2.4.1) ---------------------------------------------- */
+
+.skip-link {
+  position: absolute;
+  top: -10rem;
+  inset-inline-start: 1rem;
+  z-index: 20;
+  padding: 0.625rem 1rem;
+  border-radius: 0 0 10px 10px;
+  background: var(--accent-btn);
+  color: var(--accent-contrast);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus-visible {
+  top: 0;
+  outline: none;
+}
+
+/* --- header -------------------------------------------------------------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  /* One row, always: the header must never wrap. A wrapped row can land
+     the menu toggle at the left edge (it happened at 320px with long
+     language names). When space is short the language select shrinks
+     instead; the 44px buttons keep their target size (WCAG 2.5.8). */
+  gap: 1rem;
+  min-height: 64px;
+  padding-block: 0.25rem;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+  background: var(--header-bg);
+  -webkit-backdrop-filter: saturate(1.4) blur(10px);
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-decoration: none;
+  margin-inline-end: auto;
+  flex-shrink: 0;
+}
+
+.brand-icon {
+  display: block;
+  border-radius: 8px;
+}
+
+/* nav: inline row on wide screens, disclosure panel below 880px */
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.site-nav a {
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 500;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.site-nav a:hover {
+  color: var(--accent);
+  background: var(--panel);
+}
+
+.site-nav a[aria-current="page"] {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* the Docs disclosure: a button on the nav row with a dropdown panel on
+   wide screens and an inline expanding block inside the mobile menu */
+.docs {
+  position: relative;
+}
+
+.docs-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.55rem 0.85rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.docs-toggle:hover {
+  color: var(--accent);
+  background: var(--panel);
+}
+
+.docs-toggle .icon-chevron {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .docs-toggle .icon-chevron {
+    transition: none;
+  }
+}
+
+.docs-toggle[aria-expanded="true"] .icon-chevron {
+  transform: rotate(180deg);
+}
+
+.docs-menu {
+  display: none;
+  flex-direction: column;
+  padding: 0.35rem;
+}
+
+.docs-menu:not([hidden]) {
+  display: flex;
+}
+
+@media (min-width: 880px) {
+  .docs-menu {
+    position: absolute;
+    inset-inline-start: 0;
+    top: calc(100% + 4px);
+    min-width: 200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    z-index: 20;
+  }
+}
+
+@media (max-width: 879px) {
+  .docs-toggle {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.85rem 0.5rem;
+    font-size: 1.05rem;
+    border-radius: 8px;
+  }
+
+  .docs-toggle .icon-chevron {
+    margin-inline-start: auto;
+  }
+
+  .docs-menu {
+    padding: 0.15rem 0 0.35rem 1.1rem;
+  }
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline-start: auto;
+  min-width: 0;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: var(--panel);
+  color: var(--accent);
+}
+
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.icon-sun {
+  display: none;
+}
+
+[data-theme="dark"] .icon-moon {
+  display: none;
+}
+
+[data-theme="dark"] .icon-sun {
+  display: block;
+}
+
+#lang-select {
+  min-height: 44px;
+  padding-inline: 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  /* the select alone is allowed to shrink on very narrow screens; the
+     full names stay available in its dropdown */
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* the disclosure button: hidden on wide screens */
+.menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.menu-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+@media (max-width: 879px) {
+  .menu-toggle {
+    display: inline-flex;
+  }
+
+  /* collapsed panel under the header (its `hidden` state is toggled by
+     app.js / the guide's inline script; author rules beat the UA
+     `[hidden] { display: none }` only where we say so) */
+  .site-nav {
+    display: none;
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.5rem clamp(1rem, 4vw, 2rem) 0.75rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .site-nav:not([hidden]) {
+    display: flex;
+  }
+
+  .site-nav a {
+    padding: 0.85rem 0.5rem;
+    font-size: 1.05rem;
+    border-radius: 8px;
+  }
+
+  /* the guide header has no language select; keep the toggle flush */
+  .guide-header .header-controls {
+    margin-inline-start: auto;
+  }
+}
+
+@media (min-width: 880px) {
+  .site-nav[hidden] {
+    display: flex;
+  }
+
+  .guide-header .header-controls {
+    margin-inline-start: auto;
+  }
+}
+
+/* --- buttons ------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.7em 1.35em;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn:hover {
+  border-color: var(--accent-icon);
+  color: var(--accent);
+}
+
+.btn-primary {
+  border-color: transparent;
+  background: var(--accent-btn);
+  color: var(--accent-contrast);
+}
+
+.btn-primary:hover {
+  background: var(--accent-btn-hover);
+  color: var(--accent-contrast);
+}
+
+/* --- hero ---------------------------------------------------------------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+  padding-block: clamp(3.5rem, 9vw, 6.5rem) clamp(2.5rem, 6vw, 4rem);
+}
+
+.hero-copy h1 {
+  font-size: clamp(2.1rem, 1.4rem + 3.5vw, 3.3rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  font-weight: 750;
+  margin-block-end: 1rem;
+}
+/* The two-line heading: the brand leads at full size, the descriptor
+   follows a step down, and the pair reads as one heading. */
+.hero-title-brand,
+.hero-title-sub {
+  display: block;
+}
+/* With the brand reduced to just "epher" the line takes the h1's full
+   size again — the old 0.8em existed to keep "epher... ephemeris" from
+   wrapping mid-word. */
+.hero-title-sub {
+  font-size: 0.6em;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0;
+  max-width: 18ch;
+  margin-block-start: 0.3rem;
+}
+
+.lede {
+  font-size: clamp(1.05rem, 1rem + 0.5vw, 1.2rem);
+  color: var(--muted);
+  max-width: 54ch;
+  margin-block-end: 1.75rem;
+}
+
+.hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.hero-visual {
+  display: grid;
+  gap: 1rem;
+}
+
+/* the terminal is dark in both themes, so code reads on a dark surface */
+.terminal-card {
+  direction: ltr;
+  background: var(--terminal-bg);
+  border: 1px solid var(--terminal-border);
+  border-radius: 14px;
+  /* one prompt line plus the try-this link: tight padding and no stray
+     margin on the only children, so the text sits vertically centred
+     and the box is no taller than its content */
+  padding: 0.55rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 0.95rem;
+  color: var(--terminal-text);
+  box-shadow: var(--shadow);
+}
+
+.terminal-prompt {
+  margin: 0;
+}
+
+/* The hero prompt's "try this" link: opens the PWA with the command
+   staged in the entry (?expr=..., the same share URL the app's history
+   list produces). The terminal stays dark in both themes, so the link
+   takes the dark-theme link token directly: #5eead4 is ≈13:1 on
+   #0c0d0f (WCAG 1.4.3), and it overrides the theme ring on focus. */
+.terminal-try {
+  margin-block-start: 0.15rem;
+  padding: 0.1rem 0;
+  font-size: 0.8rem;
+  color: #5eead4;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.terminal-try:hover {
+  text-decoration-thickness: 2px;
+}
+
+.terminal-try:focus-visible {
+  outline-color: #5eead4;
+}
+
+.terminal-out {
+  color: #f2f4f6;
+}
+
+.graph-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.9rem;
+}
+
+.graph-card svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* The rotating saddle (app.js initHero3d): the mesh and frame lines
+   carry stroke="currentColor", so the palette flips with the theme.
+   The lines use the accent green for consistency with the site's
+   accent-coloured elements (light #0f766e on --panel 5.1:1, dark
+   #2dd4bf on --panel 8.9:1; the 3:1 non-text bar is cleared in both). */
+.hero3d-svg {
+  color: var(--accent);
+}
+
+.hero3d-svg polyline,
+.hero3d-svg line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 959px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding-block-start: clamp(2.5rem, 8vw, 4rem);
+  }
+
+  .hero-copy h1 {
+    max-width: none;
+  }
+
+  .hero-title-sub {
+    max-width: none;
+  }
+
+  .hero-visual {
+    max-width: 480px;
+  }
+}
+
+/* --- features ------------------------------------------------------------ */
+
+.features {
+  padding-block: clamp(2.5rem, 6vw, 4rem);
+  border-block-start: 1px solid var(--border);
+}
+
+.features h2,
+.builds h2 {
+  font-size: clamp(1.4rem, 1.2rem + 1vw, 1.9rem);
+  letter-spacing: -0.015em;
+  margin-block-end: 1.75rem;
+}
+
+.feature-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
+  gap: 1rem;
+}
+
+.feature-card {
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  padding: 1.35rem;
+}
+
+.feature-card svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: var(--accent-icon);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  margin-block-end: 0.9rem;
+}
+
+.feature-card h3 {
+  font-size: 1.02rem;
+  letter-spacing: -0.01em;
+  margin-block-end: 0.4rem;
+}
+
+.feature-card p {
+  font-size: 0.93rem;
+  color: var(--muted);
+}
+
+/* --- build cards --------------------------------------------------------- */
+
+.builds {
+  padding-block: clamp(2.5rem, 6vw, 4rem);
+  border-block-start: 1px solid var(--border);
+}
+
+/* The one-install note spans the card grid and sets the offer: one
+   download, every frontend (the ADR-0011 story). */
+.one-install {
+  grid-column: 1 / -1;
+  font-size: 1.05rem;
+  max-width: 60ch;
+  margin-block-end: 0.5rem;
+  color: var(--muted);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
+  gap: 1rem;
+  margin-block-start: 1.25rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  padding: 1.35rem;
+}
+
+.card h3 {
+  font-size: 1.05rem;
+  margin-block-end: 0.4rem;
+}
+
+.card > p:not(.dl-title) {
+  font-size: 0.93rem;
+  color: var(--muted);
+}
+
+.dl-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-block: 1rem 0.5rem;
+}
+
+.dl-list {
+  list-style: none;
+  display: grid;
+  gap: 0.6rem;
+  margin-block-end: 0.5rem;
+}
+
+/* --- the Linux card's install tabs (ADR-0061) --------------------------- */
+.linux-tabs .tablist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-block: 0.9rem 0.55rem;
+}
+
+.linux-tabs [role="tab"] {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.linux-tabs [role="tab"][aria-selected="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.linux-tabs [role="tab"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.linux-tabs .tabpanel {
+  font-size: 0.9rem;
+}
+
+.linux-tabs .repo-steps {
+  margin: 0 0 0.35rem;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.linux-tabs .repo-steps li {
+  margin-inline-start: 1.1rem;
+}
+
+.linux-tabs .repo-cmd {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 0.8rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  overflow-x: auto;
+  white-space: pre;
+  margin-block: 0.4rem 0.55rem;
+}
+
+.linux-tabs .repo-alt {
+  font-size: 0.85rem;
+}
+
+.linux-tabs .repo-alt a {
+  color: var(--accent);
+}
+
+.card .note {
+  font-size: 0.85rem;
+}
+
+/* --- prose pages (about, privacy) ---------------------------------------- */
+
+.prose {
+  max-width: 66ch;
+  padding-block: clamp(2.5rem, 7vw, 4.5rem) clamp(3rem, 8vw, 5rem);
+}
+
+.prose h1 {
+  font-size: clamp(1.9rem, 1.4rem + 2vw, 2.6rem);
+  letter-spacing: -0.02em;
+  margin-block-end: 1rem;
+}
+
+.prose h2 {
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+  margin-block: 2rem 0.6rem;
+}
+
+.prose p {
+  color: var(--text);
+  margin-block-end: 1rem;
+}
+
+.prose p:first-of-type {
+  font-size: 1.08rem;
+  color: var(--muted);
+}
+
+/* --- footer -------------------------------------------------------------- */
+
+.site-footer {
+  border-block-start: 1px solid var(--border);
+  background: var(--panel);
+  padding-block: 2.25rem;
+  margin-block-start: clamp(2rem, 6vw, 4rem);
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 2rem;
+  max-width: 1100px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+.footer-brand .brand {
+  font-size: 1rem;
+  margin-inline-end: 0;
+  margin-block-end: 0.5rem;
+}
+
+.footer-brand .muted {
+  font-size: 0.9rem;
+  max-width: 32ch;
+}
+
+.footer-col h2 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-block-end: 0.75rem;
+}
+
+.footer-col ul {
+  list-style: none;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.footer-col a {
+  font-size: 0.95rem;
+}
+
+/* guide pages keep their slim footer: one row of links + the tag */
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  max-width: 1100px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+  margin-block-end: 1rem;
+}
+
+@media (max-width: 720px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* --- utilities ----------------------------------------------------------- */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* --- the Scripts page (scripts.html, scripts.js) ------------------------ */
+
+.scripts-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.scripts-toolbar label {
+  font-weight: 600;
+}
+
+#scripts-search {
+  min-height: 44px;
+  padding: 0.5rem 0.85rem;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  max-width: 34rem;
+}
+
+#scripts-search:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.scripts-crumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 1rem;
+  font-size: 0.95rem;
+}
+
+.scripts-crumbs .crumb {
+  color: var(--link);
+  text-decoration: none;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.25rem;
+  border-radius: 6px;
+}
+
+.scripts-crumbs .crumb:hover {
+  text-decoration: underline;
+}
+
+.scripts-crumbs .crumb.current {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.scripts-crumbs .crumb-sep {
+  color: var(--muted, var(--border-strong));
+}
+
+.folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.folder-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  text-decoration: none;
+  min-height: 76px;
+}
+
+.folder-card:hover {
+  border-color: var(--accent);
+}
+
+.folder-card .folder-name {
+  font-weight: 600;
+}
+
+.folder-card .folder-meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.script-list {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+}
+
+.script-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Copy buttons: icon-only, the ubiquitous two-overlapping-sheets copy
+   icon sized to the surrounding font; the button box itself stays above
+   the 24px target-size floor (WCAG 2.5.8). Success swaps the icon for a
+   check mark and a text label (never color alone, WCAG 1.4.1). */
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0.2rem 0.45rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.copy-btn:hover {
+  background: var(--panel);
+}
+
+.copy-btn svg {
+  width: 1em;
+  height: 1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.copy-btn .icon-check {
+  display: none;
+}
+
+.copy-btn.copied .icon-copy {
+  display: none;
+}
+
+.copy-btn.copied .icon-check {
+  display: block;
+  stroke: var(--link);
+}
+
+.copy-label {
+  font-size: 0.85rem;
+}
+
+.script-row .copy-btn {
+  flex-shrink: 0;
+  padding: 0.2rem;
+}
+
+.script-link {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  padding: 0 0.2rem;
+}
+
+.script-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.script-title,
+.script-path {
+  color: var(--muted);
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.script-path {
+  margin-inline-start: auto;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 0.8rem;
+}
+
+.script-view-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.script-view-head h2 {
+  margin: 0;
+}
+
+.script-run {
+  margin: 1.25rem 0 0.75rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.run-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.run-os {
+  flex: 0 0 auto;
+  min-width: 8.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.script-run code {
+  flex: 0 1 auto;
+  width: fit-content;
+  padding: 0.35rem 0.6rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 0.88rem;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.script-text {
+  max-height: 70vh;
+  overflow: auto;
+  margin: 0.5rem 0 2rem;
+  padding: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .script-row {
+    flex-wrap: wrap;
+  }
+
+  .script-title {
+    flex-basis: 100%;
+    padding-inline-start: calc(32px + 0.6rem);
+  }
+
+  .script-path {
+    display: none;
+  }
+}
+
+/* --- features comparison chart ------------------------------------------
+   Eleven columns cannot fit a phone: the wrapper scrolls horizontally
+   and the table keeps a minimum width so cells never crush. The epher
+   column speaks the same language as the rest - plain symbols, no
+   highlighting - so its absences read exactly like its coverage. */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.prose table.compare {
+  border-collapse: collapse;
+  min-width: 44rem;
+  width: 100%;
+  margin-block: 1rem;
+}
+.prose table.compare th,
+.prose table.compare td {
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.5rem;
+  text-align: start;
+  font-size: 0.9rem;
+  font-weight: inherit;
+}
+.prose table.compare thead th {
+  background: var(--panel);
+  position: sticky;
+  inset-inline-start: 0;
+}
+.prose table.compare td.c {
+  text-align: center;
+  min-width: 2.2rem;
+}

@@ -1,0 +1,62 @@
+/* ============================================================================
+moon-altitude-azimuth.epher -- where to look for the Moon one evening
+
+Altitude and azimuth of the Moon at three times of one evening (19:00,
+20:30, 22:00 UT) on 2026-06-22 at Greenwich (the Royal Observatory),
+from the built-in accessors alt and az (the solar-ephemeris crate,
+JPL-validated; guide 1.16). Altitude is degrees above the horizon
+(negative means below); azimuth is degrees from north through east:
+90 east, 180 south, 270 west. The Moon is near first quarter that
+evening: it culminated at 18:28 UT (see moon-transit-time.epher) and
+is descending in the south, so the altitude falls while the azimuth
+swings from south toward southwest; it sets at 23:57 UT
+(moonrise-moonset.epher).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-altitude-azimuth.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-altitude-azimuth.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-altitude-azimuth.epher
+In the REPL:             load one of the paths above
+
+Knobs: date, the three clock hours (UT), latitude and longitude.
+============================================================================ */
+
+// ---- the knobs --------------------------------------------------------------
+const year = 2026
+const month = 6
+const day = 22
+const h1 = 19          // three sample times of the evening, hours UT
+const h2 = 20.5
+const h3 = 22
+const lat = 51.4779        // Greenwich — the Royal Observatory
+const lon = 0
+
+/* ---- results ----------------------------------------------------------------
+Each line is one look at the sky: altitude and azimuth of the Moon.
+At 19:00 UT the Moon is 29.8 deg up, an hour past culminating in the
+south (azimuth 188); two hours later it is 15.4 deg up in the
+southwest (azimuth 232), still climbing west. */
+print("at", h1, "hr UT: alt", alt(11, jd(year, month, day, h1), lat, lon), "deg; az", az(11, jd(year, month, day, h1), lat, lon), "deg")
+print("at", h2, "hr UT: alt", alt(11, jd(year, month, day, h2), lat, lon), "deg; az", az(11, jd(year, month, day, h2), lat, lon), "deg")
+print("at", h3, "hr UT: alt", alt(11, jd(year, month, day, h3), lat, lon), "deg; az", az(11, jd(year, month, day, h3), lat, lon), "deg")
+
+/* The azimuth runs 188 -> 212 -> 232 deg while the altitude falls from
+29.8 to 15.4 deg: the Moon is moving west as the Earth turns, and its
+path carries it below the horizon at 23:57 UT. All three altitudes are
+positive, so the Moon is above the horizon through the whole sample. */
+print("Moon still up at", h3, "hr:", alt(11, jd(year, month, day, h3), lat, lon) > 0)
+
+/* ---- expected output ----
+= 2026
+= 6
+= 22
+= 19
+= 20.5
+= 22
+= 51.4779
+= 0
+= at 19 hr UT: alt 29.8480081 deg; az 187.5518308 deg
+= at 20.5 hr UT: alt 24.8969995 deg; az 211.5385071 deg
+= at 22 hr UT: alt 15.4187962 deg; az 232.4553314 deg
+= Moon still up at 22 hr: true
+*/

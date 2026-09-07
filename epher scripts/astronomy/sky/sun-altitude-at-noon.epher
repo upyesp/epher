@@ -1,0 +1,75 @@
+/* ============================================================================
+sun-altitude-at-noon.epher -- how high the Sun gets, season by season
+
+The Sun's altitude at Greenwich (the Royal Observatory) around local
+noon on the March equinox and the two solstices of 2026, from the
+built-in accessor alt for the Sun, body 10 (the solar-ephemeris
+crate, JPL-validated; guide 1.16). The script prints two readings
+per date: the altitude at 12:00 UT (the noon-hour knob; on the prime
+meridian the mean Sun crosses at 12:00 UT exactly, and the true noon
+stays within about 8 min of it on these dates, see
+solar-noon-time.epher), and the altitude at the true transit
+instant, which the meridian formula 90 - |lat - decl| predicts: the
+Sun's maximum altitude follows from the observer's latitude and the
+Sun's declination, read here from the built-in decl accessor. The
+measured and the formula agree to about 0.003 deg on each date: that
+residual is the Sun's parallax, a few arcseconds, and the altitudes
+are geometric (no refraction).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/sun-altitude-at-noon.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\sun-altitude-at-noon.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/sun-altitude-at-noon.epher
+In the REPL:             load one of the paths above
+
+Knobs: latitude and longitude (Greenwich below), the noon hour, dates.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const lat = 51.4779        // Greenwich — the Royal Observatory
+const lon = 0
+const hr = 12              // noon sample, hours UT
+const d_mar = {2026, 3, 20}    // March equinox
+const d_jun = {2026, 6, 21}    // June solstice
+const d_dec = {2026, 12, 21}   // December solstice
+
+// ---- model ------------------------------------------------------------------
+// The meridian formula and the Sun's culmination data at a date.
+def mer(lat, dec) = 90 - abs(lat - dec)
+def culm(ds, lat, lon) = alt(10, transit(10, jd(ds[1], ds[2], ds[3]), lat, lon), lat, lon)
+def cdec(ds, lat, lon) = decl(10, transit(10, jd(ds[1], ds[2], ds[3]), lat, lon))
+
+/* ---- results ----------------------------------------------------------------
+The noon sample at 12:00 UT: 38.5 deg in March, 62.0 deg in June,
+15.1 deg in December. The formula 90 - |lat - decl| shows why: at the
+solstices the Sun's declination is about +23.44 and -23.44 deg, so
+the maximum altitude is 90 - (51.48 - 23.44) = 61.96 deg in summer
+and 90 - (51.48 + 23.44) = 15.08 deg in winter. At Greenwich the
+true noon falls within about 8 min of 12:00 UT on these dates, so
+the 12:00-UT sample sits within a few hundredths of a degree of the
+maximum. */
+print("alt at 12:00 UT, 2026-03-20:", alt(10, jd(d_mar[1], d_mar[2], d_mar[3], hr), lat, lon), "deg")
+print("alt at 12:00 UT, 2026-06-21:", alt(10, jd(d_jun[1], d_jun[2], d_jun[3], hr), lat, lon), "deg")
+print("alt at 12:00 UT, 2026-12-21:", alt(10, jd(d_dec[1], d_dec[2], d_dec[3], hr), lat, lon), "deg")
+
+// At the true transit instant the measured altitude and the meridian
+// formula meet: culmination altitude on the left, 90 - |lat - decl| on
+// the right, declination read from the builtin at the same instant.
+print("culmination 2026-03-20:", culm(d_mar, lat, lon), "deg; formula:", mer(lat, cdec(d_mar, lat, lon)), "deg")
+print("culmination 2026-06-21:", culm(d_jun, lat, lon), "deg; formula:", mer(lat, cdec(d_jun, lat, lon)), "deg")
+print("culmination 2026-12-21:", culm(d_dec, lat, lon), "deg; formula:", mer(lat, cdec(d_dec, lat, lon)), "deg")
+
+/* ---- expected output ----
+= 51.4779
+= 0
+= 12
+= {2026, 3, 20}
+= {2026, 6, 21}
+= {2026, 12, 21}
+= alt at 12:00 UT, 2026-03-20: 38.450645 deg
+= alt at 12:00 UT, 2026-06-21: 61.9566445 deg
+= alt at 12:00 UT, 2026-12-21: 15.0815426 deg
+= culmination 2026-03-20: 38.4767143 deg; formula: 38.478669299 deg
+= culmination 2026-06-21: 61.9588272 deg; formula: 61.959948058 deg
+= culmination 2026-12-21: 15.0827563 deg; formula: 15.085158744 deg
+*/

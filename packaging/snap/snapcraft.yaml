@@ -1,0 +1,62 @@
+# The Snap Store package (ADR-0061): a strict-confinement repack of the
+# release .deb, so the snap and the deb can never drift. The gnome
+# extension carries the GTK platform; the deb's webkit dependency is
+# staged explicitly. CI builds this for amd64 and arm64 (the release
+# workflow's snap job) and publishes to the stable channel when the
+# SNAPCRAFT_STORE_CREDENTIALS secret exists. The workflow seds the
+# release version into `version:` before building — override-pull needs
+# it for the deb URL, before any craftctl could set it.
+name: epher
+base: core22
+version: "0.0.0"
+summary: A programmable, scriptable calculator
+description: |
+  One binary, every frontend: a one-shot CLI, an interactive REPL,
+  piped scripts, a full-screen terminal UI, and a desktop app with
+  keypad, history, 2D/3D graphing, tables, and a script collection —
+  in eight languages, fully offline.
+grade: stable
+confinement: strict
+website: https://epher.org
+contact: https://github.com/upyesp/epher
+issues: https://github.com/upyesp/epher/issues
+apps:
+  epher:
+    # The deb's /usr/bin/epher, run in the snap's layout. The gnome
+    # extension brings the desktop integration (Wayland/X11 sockets,
+    # portals, themes); network covers the PWA-less webview needs.
+    command: usr/bin/epher
+    extensions: [gnome]
+    plugs:
+      - network
+parts:
+  epher:
+    plugin: nil
+    override-pull: |
+      case "$SNAPCRAFT_TARGET_ARCH" in
+        amd64)  DEB_ARCH="x86_64" ;;
+        arm64)  DEB_ARCH="aarch64" ;;
+        *)      echo "unsupported arch $SNAPCRAFT_TARGET_ARCH"; exit 1 ;;
+      esac
+      curl -fsSL --retry 3 \
+        "https://github.com/upyesp/epher/releases/download/v${SNAPCRAFT_PROJECT_VERSION}/epher-linux-${DEB_ARCH}.deb" \
+        -o "$SNAPCRAFT_PART_SRC/epher.deb"
+    override-build: |
+      mkdir deb
+      cd deb
+      ar x "$SNAPCRAFT_PART_SRC/epher.deb"
+      tar -xf data.tar.* -C "$SNAPCRAFT_PART_INSTALL"
+      cd "$SNAPCRAFT_PART_INSTALL"
+      # Strip the dpkg metadata the snap layout does not use.
+      rm -rf usr/share/doc usr/share/lintian
+      craftctl default
+    stage-packages:
+      # The deb Declares these as Depends; inside the snap they must be
+      # staged. The gnome extension covers GTK/themes — webkit is the
+      # one heavyweight the snap must carry itself. (core22 = Ubuntu
+      # 22.04 package names: no t64 suffix.)
+      - libwebkit2gtk-4.1-0
+    stage:
+      # Keep the deb's binary and resources; drop distro cron noise.
+      - -etc/cron.d
+      - -usr/share/applications

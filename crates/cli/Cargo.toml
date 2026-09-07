@@ -1,0 +1,23 @@
+[package]
+name = "epher-cli"
+version = "0.5.38"
+edition = "2021"
+license = "MIT"
+description = "Native command-line frontend — one-shot evaluation + REPL."
+
+# No [[bin]] override: the dev binary takes the package name `epher-cli`.
+# The unified `epher` executable lives in crates/tauri-app (ADR-0011).
+
+[dependencies]
+epher-core = { path = "../core" }
+epher-shell = { path = "../shell" }
+epher-store = { path = "../store", features = ["fs"] }
+epher-i18n = { path = "../i18n" }
+clap = { version = "4", features = ["derive"] }
+sys-locale = "0.3"
+anstream = "1"
+anstyle = "1.0"
+
+[dev-dependencies]
+clap_mangen = "0.3.3"
+tempfile = "3"

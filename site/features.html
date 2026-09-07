@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<!--
+  epher Features page: the comparison chart against nine
+  scientific calculators and math tools, from the third gap analysis
+  (docs/research/calculator-gap-analysis-3rd.md). Chrome and i18n like
+  privacy.html; the strings are features-* / feat-* catalog keys.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Features: epher</title>
+  <meta name="description" content="A feature comparison: epher against nine scientific calculators and math tools - what it has, what it lacks, and what only it has." />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141416" />
+  <link rel="icon" href="icon.svg?v=3" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem("epher-theme");
+        if (theme !== "light" && theme !== "dark") {
+          theme = window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        }
+        document.documentElement.dataset.theme = theme;
+      } catch (e) {
+        document.documentElement.dataset.theme = "light";
+      }
+      try {
+        var lang = localStorage.getItem("epher-lang");
+        if (lang) {
+          document.documentElement.lang = lang;
+          if (lang === "ar") document.documentElement.dir = "rtl";
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <noscript>
+    <style>
+      .menu-toggle { display: none; }
+      .docs-toggle { display: none; }
+      .site-nav { display: flex !important; flex-direction: column; position: static;
+                  border: 0; box-shadow: none; padding: 0.5rem 0; }
+      .docs { position: static; }
+      .docs-menu { display: flex !important; position: static; padding-inline-start: 1rem;
+                   border: 0; box-shadow: none; }
+    </style>
+  </noscript>
+</head>
+<body class="page-features">
+  <a class="skip-link" href="#main" data-i18n="skip-link">Skip to content</a>
+
+  <header class="site-header">
+    <a class="brand" href="./">
+      <img class="brand-icon" id="brand-icon" src="icon.svg?v=3" alt="" width="32" height="32" />
+      <span>epher</span>
+    </a>
+    <nav class="site-nav" id="site-nav" hidden aria-label="Main" data-i18n-aria="nav-label">
+      <a href="pwa/" data-i18n="nav-app">App</a>
+      <div class="docs">
+        <button type="button" class="docs-toggle" id="docs-toggle" aria-expanded="false" aria-controls="docs-menu" aria-haspopup="true">
+          <span data-i18n="nav-docs">Docs</span>
+          <svg class="icon-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg>
+        </button>
+        <div class="docs-menu" id="docs-menu" hidden>
+          <a href="guide/en/" data-i18n="guide" data-i18n-href="guide">User guide</a>
+          <a href="examples.html" data-i18n="nav-examples">Examples</a>
+          <a href="scripts.html" data-i18n="nav-scripts">Scripts</a>
+        </div>
+      </div>
+      <a href="features.html" aria-current="page" data-i18n="nav-features">Features</a>
+      <a href="privacy.html" data-i18n="nav-privacy">Privacy</a>
+      <a class="gh-link" href="https://github.com/upyesp/epher" data-i18n="source-link">
+        Source code
+      </a>
+    </nav>
+    <div class="header-controls">
+      <button type="button" id="theme-toggle" class="icon-btn" aria-pressed="false">
+        <svg class="icon-moon" aria-hidden="true" viewBox="0 0 24 24">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" />
+        </svg>
+        <svg class="icon-sun" aria-hidden="true" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4.5" />
+          <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8" />
+        </svg>
+        <span class="visually-hidden" data-i18n="theme-dark">Use dark theme</span>
+      </button>
+      <label class="visually-hidden" for="lang-select" data-i18n="lang-label">Language</label>
+      <select id="lang-select">
+        <option value="en">English</option>
+        <option value="zh-CN">中文</option>
+        <option value="hi">हिन्दी</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="ar">العربية</option>
+        <option value="de">Deutsch</option>
+        <option value="pt">Português</option>
+      </select>
+    </div>
+    <button type="button" id="menu-toggle" class="menu-toggle" aria-expanded="false" aria-controls="site-nav">
+      <svg class="icon-burger" aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M3 6h18M3 12h18M3 18h18" />
+      </svg>
+      <span class="visually-hidden" data-i18n="menu-open">Menu</span>
+    </button>
+  </header>
+
+  <main id="main">
+    <article class="prose">
+      <h1 data-i18n="features-title">Features</h1>
+      <p data-i18n="features-p1">
+        How does epher stack up against the calculators people already
+        know? This page compares it with nine scientific
+        calculators and math tools - including where epher comes up
+        short.
+      </p>
+      <h2 data-i18n="features-h-chart">The comparison chart</h2>
+      <p data-i18n="features-legend">
+        ✓ full support · ~ partial · – absent. epher v0.5.37 was probed
+        feature by feature; the nine columns were checked against each
+        product's official documentation.
+      </p>
+      <div class="table-scroll">
+        <table class="compare">
+          <thead>
+            <tr>
+              <th scope="col" data-i18n="features-col-feature">Feature</th>
+              <th scope="col" class="c">epher</th>
+              <th scope="col" class="c" abbr="NumWorks">NW</th>
+              <th scope="col" class="c" abbr="Desmos">DM</th>
+              <th scope="col" class="c" abbr="GeoGebra">GG</th>
+              <th scope="col" class="c" abbr="TI-84 Plus CE / TI-Nspire CX II">TI</th>
+              <th scope="col" class="c" abbr="WolframAlpha / Wolfram Language">WL</th>
+              <th scope="col" class="c" abbr="SpeedCrunch">SC</th>
+              <th scope="col" class="c" abbr="HiPER Scientific">HP</th>
+              <th scope="col" class="c" abbr="HP Prime">Pr</th>
+              <th scope="col" class="c" abbr="MATLAB / GNU Octave">Oc</th>
+            </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <th scope="row" data-i18n="feat-row-complex">Complex numbers</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-solve">Numeric equation solving</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-lists">Lists as values</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-regression">Regression / curve fitting</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-dists">Probability distributions</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-random">Random numbers</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-matrices">Matrices</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-calculus">Calculus (derivative / integral)</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-plots">Data plots (histogram / box / scatter)</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-units">Units and conversion</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-exact">Exact / fraction results</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-display">Display formats (sci / eng / digits)</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-table">Table of values</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-poi">Automatic points of interest</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-sliders">Parameter sliders and animation</th>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-ineq">Inequality graphing</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-percent">Percentage operator</th>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-tests">Hypothesis tests + confidence intervals</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-consts">Constants library (physics)</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-finance">Finance (TVM / NPV / IRR)</th>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-bitwise">Bitwise operations</th>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-numtheory">Prime factorization / number theory</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-implicit">Implicit relations (x² + y² = 1)</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-cas">CAS (symbolic algebra)</th>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-exam">Exam mode</th>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-steps">Step-by-step solutions</th>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-sheet">Spreadsheet view</th>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-geometry">Dynamic geometry</th>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-programming">Programming surface</th>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-nlp">Natural-language input</th>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-live">Curated / live data</th>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted" data-i18n="features-col-note">
+        NW NumWorks · DM Desmos · GG GeoGebra · TI TI-84 Plus CE /
+        TI-Nspire CX II · WL WolframAlpha / Wolfram Language · SC
+        SpeedCrunch · HP HiPER Scientific · Pr HP Prime · Oc MATLAB /
+        GNU Octave.
+      </p>
+      <h2 data-i18n="features-h-missing">Where epher is missing</h2>
+      <p data-i18n="features-p-missing">
+        No computer-algebra system (CAS), no exam mode, no step-by-step
+        solutions, no spreadsheet view, no dynamic geometry, no
+        natural-language input, and no curated or live data. These are
+        deliberate boundaries, not oversights: epher computes with
+        numbers, exactly, on your own machine.
+      </p>
+      <p data-i18n="features-p-programming">
+        The programming surface is partial: strings, for-loops and
+        print exist; keyboard input, file I/O and multiple return
+        values do not.
+      </p>
+      <h2 data-i18n="features-h-unique">Where epher stands alone</h2>
+      <ul>
+        <li data-i18n="features-li-modes">
+          Four native interface modes with one memory: a desktop app, and
+          in the terminal a one-shot CLI, an interactive REPL, and a
+          full-screen TUI. The same history, saved functions, constants
+          and scripts answer in all of them - none of the nine carries
+          one store across that many native frontends.
+        </li>
+        <li data-i18n="features-li-web">
+          A fully featured web app in a sandbox: installable on phone
+          and desktop, offline after the first load, every evaluation
+          on-device - no accounts, no cookies, no server calls - with
+          the scripts, the guide and the whole keypad embedded.
+        </li>
+        <li data-i18n="features-li-share">
+          Sharing is caring: any history item shares as a link that
+          carries the expression itself, and the person who opens it
+          runs the maths on their own device - no account, no cloud
+          copy in between. Pasted as plain text, it runs in every
+          epher frontend, terminal ones included.
+        </li>
+        <li data-i18n="features-li-orrery">
+          An offline solar system: a live ephemeris for the Sun, the
+          Moon, the planets and Pluto - positions, rise and set times,
+          phases, magnitudes - and a 3D orrery you can animate. None of
+          the nine has one.
+        </li>
+        <li data-i18n="features-li-scripts">
+          333 scripts ship inside every installer - moon phases,
+          matrices, finance, astronomy - each with a transcript that is
+          verified against the engine on every change.
+        </li>
+        <li data-i18n="features-li-guide">
+          The full user guide speaks eight languages, identical in the
+          web app, the desktop app, the terminal, and on this website.
+        </li>
+        <li data-i18n="features-li-seeded">
+          Randomness is seeded: the same seed replays the same draws on
+          every frontend, so classroom exercises reproduce exactly.
+        </li>
+        <li data-i18n="features-li-jd">
+          Astronomy dates convert both ways: Julian Dates read back as
+          calendar dates and clock times (date, time, iso).
+        </li>
+      </ul>
+      <h2 data-i18n="features-h-method">Method</h2>
+      <p data-i18n="features-p-method">
+        The chart comes from a three-pass feature analysis (baseline,
+        rerun, and this one), re-probing epher and re-checking every
+        app column against primary sources - the full notes, with
+        sources and dates, are in the repository:
+        <a href="https://github.com/upyesp/epher/blob/main/docs/research/calculator-gap-analysis-3rd.md">calculator-gap-analysis-3rd.md</a>.
+      </p>
+      <h2 data-i18n="features-h-contact">Questions</h2>
+      <p data-i18n="features-p-questions">
+        If a row looks wrong, say so: open an issue on GitHub with what
+        your calculator does, and the chart will be corrected.
+      </p>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <p class="brand"><img class="brand-icon" src="icon.svg?v=3" alt="" width="24" height="24" /> <span>epher</span></p>
+        <p class="muted" data-i18n="footer-license">epher is free and open source (MIT).</p>
+      </div>
+      <nav class="footer-col" aria-label="Site" data-i18n-aria="footer-site">
+        <h2 data-i18n="footer-site">Site</h2>
+        <ul>
+          <li><a href="pwa/" data-i18n="nav-app">App</a></li>
+          <li><a href="guide/en/" data-i18n="guide" data-i18n-href="guide">User guide</a></li>
+          <li><a href="examples.html" data-i18n="nav-examples">Examples</a></li>
+          <li><a href="scripts.html" data-i18n="nav-scripts">Scripts</a></li>
+          <li><a href="features.html" aria-current="page" data-i18n="nav-features">Features</a></li>
+          <li><a href="privacy.html" data-i18n="nav-privacy">Privacy</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-col" aria-label="Project" data-i18n-aria="footer-project">
+        <h2 data-i18n="footer-project">Project</h2>
+        <ul>
+          <li><a href="https://github.com/upyesp/epher" data-i18n="footer-source">Source code on GitHub</a></li>
+          <li><a href="https://github.com/upyesp/epher/releases" data-i18n="footer-release">Downloads come from the latest GitHub release.</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="i18n/en.js"></script>
+  <script src="i18n/zh-CN.js"></script>
+  <script src="i18n/hi.js"></script>
+  <script src="i18n/es.js"></script>
+  <script src="i18n/fr.js"></script>
+  <script src="i18n/ar.js"></script>
+  <script src="i18n/de.js"></script>
+  <script src="i18n/pt.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

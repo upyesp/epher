@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<!-- lang must stay in sync with the resolved UI locale when detection lands
+     (WCAG 3.1.1); add dir="rtl" when the resolved locale is Arabic. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <script>
+    // Fit the app to the space the browser actually shows (ADR-0035
+    // amendment): mobile browsers take screen area for the address bar
+    // and for bottom navigation (Edge, Chrome, Safari), while an
+    // installed PWA hands that space back. The visual viewport reports
+    // the area that is visible right now, so we track it and expose it
+    // as CSS custom properties: --avail-h is the current visible height
+    // and --avail-top the strip the browser chrome overlaps at the top.
+    // The app's layout is sized against them, and the properties update
+    // live as the chrome appears, shrinks, and disappears. Browsers
+    // without visualViewport fall back to the window height, and the
+    // CSS falls back to 100dvh when the script has not run.
+    (function () {
+      var root = document.documentElement;
+      function fit() {
+        var vv = window.visualViewport;
+        // The visual viewport is the area not covered by browser chrome;
+        // clamp it to the layout viewport in case a browser reports
+        // more than the page can ever show.
+        var h = vv ? Math.min(vv.height, window.innerHeight) : window.innerHeight;
+        var top = vv ? vv.offsetTop : 0;
+        root.style.setProperty("--avail-h", h + "px");
+        root.style.setProperty("--avail-top", top + "px");
+      }
+      fit();
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", fit);
+        window.visualViewport.addEventListener("scroll", fit);
+      }
+      // Resizes, rotation, and back/forward cache restores can all
+      // change how much browser chrome covers the page, so re-measure
+      // on every one of them.
+      window.addEventListener("resize", fit);
+      window.addEventListener("orientationchange", fit);
+      window.addEventListener("pageshow", fit);
+    })();
+  </script>
+  <title>epher</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <style>
+    /* The html element carries the dark background directly so the very
+       first painted frame is dark — no white flash on desktop launch.
+       data-theme (set by the app once loaded) switches the token set:
+       dark (default), light, night. Every token's contrast is recorded
+       at its definition (WCAG 1.4.3 text 4.5:1, 1.4.11 non-text 3:1). */
+    html { background: #141416; }
+    :root, :root[data-theme="dark"] {
+      --bg: #141416;
+      --panel: #1d1f22;
+      /* field boundary: 3.5:1 vs --bg, 3.1:1 vs --panel (WCAG 1.4.11) */
+      --border: #6a6b70;
+      --text: #f5f6f7;
+      --accent: #2dd4bf;
+      /* history text: 6.6:1 vs --bg (WCAG 1.4.3) */
+      --muted: #9a9ba2;
+      /* text on accent-filled controls: 10.0:1 on --accent */
+      --on-accent: #0b1512;
+    }
+    :root[data-theme="light"] {
+      --bg: #f7f8f8;
+      --panel: #ffffff;
+      --border: #80858a; /* 3.5:1 vs --bg */
+      --text: #1b1d1f;   /* 15.9:1 vs --bg */
+      --accent: #0e8074; /* 4.5:1 vs --bg, 4.8:1 vs --panel */
+      --muted: #565d63;  /* 6.3:1 vs --bg */
+      --on-accent: #ffffff; /* 4.8:1 on --accent */
+    }
+    /* Night: long-wavelength reds on near-black, for dark-adapted eyes.
+       The curve palette stays inside warm hues so no blue light leaks in. */
+    :root[data-theme="night"] {
+      --bg: #0d0000;
+      --panel: #170404;
+      --border: #aa4033; /* 3.4:1 vs --bg, 3.3:1 vs --panel */
+      --text: #ffb3a8;   /* 12.1:1 vs --bg */
+      --accent: #ff6b5a; /* 7.4:1 vs --bg, 7.1:1 vs --panel */
+      --muted: #d98878;  /* 7.6:1 vs --bg */
+      --on-accent: #1a0000; /* 7.2:1 on --accent */
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Fixed viewport, no page scrolling (ADR-0016): the app is one screen —
+       answer, input, history, keypad, graph. Growth happens inside fixed
+       regions (history, graph pane) that scroll themselves. */
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", sans-serif;
+      display: flex;
+      justify-content: center;
+      /* The app is sized to the space that is actually visible: --avail-h
+         tracks the visual viewport (ADR-0035 amendment) and falls back to
+         the dynamic viewport unit in browsers without visualViewport.
+         --avail-top pushes the page below an overlapping top bar. */
+      margin-top: var(--avail-top, 0px);
+      min-height: var(--avail-h, 100dvh);
+      height: var(--avail-h, 100dvh);
+      overflow: hidden;
+    }
+    .epher {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      /* Declaration order is load-bearing: 100vh is the fallback for
+         browsers without the dynamic viewport, and the --avail-h line
+         must come LAST so it wins the cascade everywhere else. A
+         trailing 100vh here once pinned the app to the full viewport,
+         hiding the keypad's bottom row under the bottom chrome of Edge
+         and Firefox on Android (ADR-0035 amendment). */
+      height: 100vh;
+      height: var(--avail-h, 100dvh);
+      display: flex;
+      flex-direction: column;
+      /* viewport-fit=cover lets the layout reach the screen edges; these
+         insets push the app's chrome clear of notches and gesture bars,
+         in the browser and in the installed PWA alike (ADR-0035
+         amendment). They are 0 on desktop and in browsers without
+         safe-area insets. */
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    h1 { font-size: 1.5rem; font-weight: 600; }
+    /* --- the top bar: menu bar (ADR-0017) + mobile pane switch -------- */
+    .topbar {
+      position: relative;
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.75rem 0;
+      min-height: 48px;
+    }
+    .menubar {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.25rem;
+    }
+    .menu {
+      position: relative;
+    }
+    /* ADR-0032: the top level is an icon rail — square icon buttons with
+       the menu name on the aria-label and the native tooltip. */
+    .menu-top {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0;
+      border: none;
+      background: none;
+      color: var(--text);
+      cursor: pointer;
+      border-radius: 10px;
+    }
+    .menu-top:hover {
+      color: var(--accent);
+    }
+    .menu-top.open {
+      background: var(--panel);
+      color: var(--accent);
+    }
+    .menu-icon {
+      width: 22px;
+      height: 22px;
+      flex: none;
+    }
+    /* --- the brand: the mark links to epher.org ------------------------ */
+    /* The mark's palette tracks the theme: the tile and the counter take
+       the text color and the glyph the background color — the same flip
+       the website's icon variants make for the dark theme. */
+    .brand-icon .brand-tile,
+    .brand-icon .brand-counter {
+      fill: currentColor;
+    }
+    .brand-icon .brand-glyph {
+      fill: var(--bg);
+    }
+    /* Mobile: the mark beside the word on the top line, left of the
+       pane switch — the same height and face as the pane-switch
+       buttons, underlined like them (ADR-0035 amendment). The desktop
+       breakpoint hides it; the rail's brand item takes over there. */
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      min-height: 44px;
+      padding: 0.4rem 0.15rem;
+      border-radius: 10px;
+      color: var(--text);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      flex: none;
+    }
+    .brand-link:hover {
+      color: var(--accent);
+    }
+    .brand-link .brand-icon {
+      width: 22px;
+      height: 22px;
+      flex: none;
+    }
+    /* Desktop rail: the mark over the word, the same width as the
+       menu-top icon buttons below it. */
+    .menu-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.15rem;
+      width: 44px;
+      min-height: 48px;
+      padding: 0.25rem 0;
+      border-radius: 10px;
+      color: var(--text);
+      text-decoration: none;
+      flex: none;
+    }
+    .menu-brand:hover {
+      color: var(--accent);
+    }
+    .menu-brand .brand-icon {
+      width: 24px;
+      height: 24px;
+      flex: none;
+    }
+    .menu-brand-name {
+      font-size: 0.68rem;
+      font-weight: 600;
+      line-height: 1;
+    }
+    .menu-drop {
+      position: absolute;
+      top: 0;
+      left: 100%;
+      margin-inline-start: 0.25rem;
+      z-index: 10;
+      min-width: 190px;
+      max-height: calc(var(--avail-h, 100dvh) - 110px);
+      overflow-y: auto;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.3rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .menu-item {
+      min-height: 40px;
+      padding: 0.3rem 0.75rem;
+      border: none;
+      background: none;
+      color: var(--text);
+      font: inherit;
+      text-align: start;
+      cursor: pointer;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .menu-item:hover {
+      color: var(--accent);
+    }
+    .menu-item[aria-checked="true"] {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .menu-check {
+      width: 1.1em;
+      display: inline-block;
+      text-align: center;
+      flex: none;
+    }
+    .menu-group {
+      padding: 0.45rem 0.75rem 0.15rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .menu-sep {
+      border-top: 1px solid var(--border);
+      margin: 0.25rem 0.5rem;
+    }
+    /* The File→Load picker must never render as a visible button — on
+       mobile it would crowd the top bar (ADR-0017). display:none still
+       answers a programmatic click() with the picker in every browser. */
+    .visually-hidden-file {
+      display: none;
+    }
+    /* --- mobile hamburger (ADR-0017): the menu bar folds into one
+       button below the desktop breakpoint ------------------------------- */
+    .hamburger-btn {
+      min-height: 44px;
+      min-width: 44px;
+      padding: 0 0.7rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 1.2rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .hamburger-btn[aria-expanded="true"] {
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .mobile-menu {
+      position: absolute;
+      top: calc(100% - 0.25rem);
+      left: 0.5rem;
+      right: 0.5rem;
+      z-index: 20;
+      max-height: min(70vh, calc(var(--avail-h, 100dvh) - 60px));
+      overflow-y: auto;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.3rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+    }
+    /* --- pane switching (mobile: the graph is one swipe away) ---------- */
+    .pane-switch {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-left: auto;
+      flex: none;
+    }
+    .pane-switch button {
+      min-height: 44px;
+      min-width: 44px;
+      padding: 0.4rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+      /* Text-styled buttons carry an underline (ADR-0035 amendment). */
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .pane-switch button[aria-pressed="true"] {
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .panes {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      overscroll-behavior-x: contain;
+    }
+    .pane {
+      flex: 0 0 100%;
+      min-width: 100%;
+      scroll-snap-align: start;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      /* fallback for very short viewports (landscape phones): content can
+         overflow the pane and this scrolls — the app page itself never
+         does */
+      overflow-y: auto;
+    }
+    /* --- calculator pane: input / answer / history / keypad -----------
+       The top padding keeps the input from sitting flush against the
+       top bar. */
+    #calc-pane {
+      padding: 0.35rem 0.75rem 0.4rem;
+      gap: 0.35rem;
+    }
+    /* the answer panel: fixed height, always visible (ADR-0016); it sits
+       directly under the input — typed entry first, outcome second.
+       ADR-0040 trimmed it one step (3.4rem → 3rem) to hand the space to
+       the history list. */
+    .answer {
+      flex: none;
+      min-height: 3rem;
+      display: flex;
+      align-items: center;
+      padding: 0 0.25rem;
+    }
+    .result {
+      font-size: 1.28rem;
+      font-weight: 300;
+      max-height: 2.8rem;
+      overflow-y: auto;
+      overflow-x: auto;
+      flex: 1;
+      /* tables and multi-line outputs need monospace alignment and
+         preserved line breaks */
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: normal;
+    }
+    /* Answers (ADR-0055): short answers share one line, each joined by a
+       semicolon; an answer never splits across lines - one too long for
+       the line, or one with its own line breaks (a table, a matrix),
+       moves to its own line whole. */
+    .ans-inline {
+      display: inline;
+      white-space: nowrap;
+    }
+    .ans-block {
+      display: block;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .ans-sep {
+      color: var(--muted);
+      padding-inline: 0.25rem 0.5rem;
+    }
+    /* The answer's copy row (ADR-0057): one copy icon just left of the
+       answer - in the answer line and in the result pane alike. */
+    .answer-row {
+      display: flex;
+      /* A short answer is one line: the icon centers on that line
+         (the pane's transcript top-aligns, ADR-0057). */
+      align-items: center;
+      gap: 0.35rem;
+      padding-inline: 0.4rem;
+    }
+    .answer-row .result {
+      flex: 1;
+      min-width: 0;
+    }
+    /* The result transcript (ADR-0056): a long answer renders in the
+       result pane, one answer per line - never joined onto one line.
+       The pane gives it the room the one-line answer area cannot. */
+    .pane-result {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.35rem;
+      padding: 0.75rem 1rem;
+      font-size: 1.15rem;
+      font-weight: 300;
+    }
+    .pane-answers {
+      flex: 1;
+      min-width: 0;
+    }
+    .pane-answer {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      padding: 0.15rem 0;
+    }
+    form {
+      flex: none;
+      display: flex;
+      gap: 0.5rem;
+    }
+    /* The suggestion list (ADR-0042): a combobox anchored under the
+       entry. The pane is the positioning context; the list floats over
+       the answer without pushing layout around. */
+    #calc-pane {
+      position: relative;
+    }
+    .autocomplete {
+      position: absolute;
+      z-index: 30;
+      left: 0.5rem;
+      right: 0.5rem;
+      top: calc(100% - 16.5rem);
+      margin: 0;
+      padding: 0.25rem;
+      list-style: none;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      max-height: 16rem;
+      overflow-y: auto;
+    }
+    .autocomplete li {
+      display: flex;
+      gap: 0.75rem;
+      align-items: baseline;
+      padding: 0.45rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      min-height: 44px;
+    }
+    .autocomplete li[aria-selected="true"] {
+      background: var(--accent);
+      color: var(--on-accent);
+    }
+    .autocomplete .ac-name {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 1.05rem;
+    }
+    .autocomplete .ac-hint {
+      font-size: 0.85rem;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .autocomplete li[aria-selected="true"] .ac-hint {
+      color: var(--on-accent);
+    }
+    input, textarea {
+      flex: 1;
+      padding: 0.75rem;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+    }
+    /* Range and checkbox controls take none of the text-input chrome:
+       the thumb must travel edge to edge, the input's ends being the
+       slider's min and max (ADR-0032). */
+    input[type="range"], input[type="checkbox"] {
+      padding: 0;
+      border: none;
+    }
+    /* The entry is a one-row textarea: single-line input keeps its height,
+       Shift+Enter grows the field up to a few lines; pasted scripts stay
+       visible and scrollable rather than silently truncating. */
+    textarea {
+      font-family: inherit;
+      line-height: 1.3;
+      resize: none;
+      overflow-y: auto;
+      min-height: 3.2rem;
+      max-height: 8rem;
+      field-sizing: content;
+    }
+    /* placeholder: 6.4:1 on --panel (WCAG 1.4.3); it is a hint, the label
+       is the aria-label on the input (WCAG 3.3.2) */
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    /* Keyboard focus indicators (WCAG 2.4.7, 1.4.11): accent ring 9.9:1 vs
+       the page background; the button gets an inset dark-teal ring —
+       10.0:1 on the accent surface — since an outer ring would blend into
+       the button. */
+    :focus { outline: none; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    button:focus-visible {
+      outline: none;
+      box-shadow: inset 0 0 0 3px var(--on-accent);
+    }
+    /* No animations exist today; guard any future motion (WCAG 2.3.3). */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+    /* --- history: fixed region, scrolls inside (ADR-0016) -------------- */
+    .history-box {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      border-top: 1px solid var(--border);
+      padding-top: 0.25rem;
+      /* keyboard-scrollable region (WCAG 2.1.1) */
+      outline: none;
+    }
+    .history-head {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.25rem;
+      background: var(--bg);
+      padding-block: 0.25rem;
+    }
+    .history-head h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .clear-history {
+      /* ADR-0041, ADR-0055 layout: the trash icon (it shares .icon-btn's
+         44px target and tooltip) sits left of the History heading. */
+      margin-inline-start: -0.35rem;
+    }
+    .history {
+      list-style: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding-bottom: 0.5rem;
+    }
+    /* Clickable history lines (ADR-0027): each entry is a full-width
+       button that loads its text into the expression entry. The bottom
+       border is the entry's visible boundary (ADR-0027 amendment): a
+       single-line expression shows one row between two borders, a
+       multi-line script shows all of its lines between them. */
+    .history-item {
+      display: block;
+      width: 100%;
+      text-align: start;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: inherit;
+      font-size: inherit;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      padding: 0.15rem 0.3rem;
+      min-height: 28px;
+      cursor: pointer;
+    }
+    .history-item:hover {
+      color: var(--accent);
+    }
+    .history-item:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    /* --- share and copy icon buttons (ADR-0038) ------------------------- */
+    /* The share icon sits left of every history item; the copy icon sits
+       right of the points-of-interest heading. Both carry the OS-native
+       glyph artwork for the device (Apple SF-style or the squared
+       Material mark) and a 44px target (WCAG 2.5.8). */
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0.35rem;
+      background: transparent;
+      color: var(--accent);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .icon-btn:hover {
+      color: var(--accent);
+      background: var(--panel);
+    }
+    .icon-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .icon-svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+    .history-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0.15rem;
+    }
+    .history-row .history-item {
+      flex: 1;
+      min-width: 0;
+    }
+    .history-row .share-btn {
+      align-self: center;
+    }
+    /* The points-of-interest heading with its copy button (ADR-0038,
+       amended: the icon leads, left of the heading). */
+    .poi-head {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.15rem;
+    }
+    .poi-head .icon-btn {
+      min-width: 40px;
+      min-height: 40px;
+    }
+    .poi-head .poi-heading {
+      margin: 0;
+    }
+    /* --- keypad (ADR-0016) --------------------------------------------- */
+    /* The drawer (ADR-0060) carries the rule the keypad used to: the grab
+       bar rides it, and the keypad slides under it. */
+    .keypad-drawer {
+      flex: none;
+      border-top: 1px solid var(--border);
+    }
+    .keypad {
+      flex: none;
+      padding-top: 0.25rem;
+    }
+    /* The grab bar (ADR-0060): a 24px strip (WCAG 2.5.8 target floor)
+       with a centered pill as the visible handle. A real button: mouse,
+       touch, and pen drag it, and Enter/Space toggle for the keyboard
+       (aria-expanded tracks the docked state). touch-action: none hands
+       the whole gesture to us — a finger on the bar drags the drawer,
+       it never scrolls the pane or swipes the pane deck. */
+    .keypad-grab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 24px;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .keypad-grab:active { cursor: grabbing; }
+    .keypad-grab-pill {
+      width: 44px;
+      height: 4px;
+      border-radius: 2px;
+      /* --muted: the app's proven subtle-on-bg gray (6.6:1); the app's
+         index.html defines no --border-strong (only the site stylesheet
+         does), so a var() here would resolve transparent. */
+      background: var(--muted);
+      transition: background 0.15s;
+    }
+    .keypad-grab:hover .keypad-grab-pill,
+    .keypad-grab:focus-visible .keypad-grab-pill {
+      background: var(--accent);
+    }
+    /* The clip (ADR-0060): during a drag its height is set inline in px
+       (the `.dragging` class takes the transition off so the keypad
+       tracks the pointer exactly); a snap animates the inline px to
+       the target, then the inline height clears and the resting state
+       is pure CSS — open has no height rule (natural), closed is 0 via
+       [data-open]. prefers-reduced-motion drops the transition: the
+       pane jumps, as that query's contract asks. */
+    .keypad-clip {
+      overflow: hidden;
+      transition: height 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    /* visibility joins the closed rule (rather than display:none) so the
+       height can animate, with a zero-second transition delayed to the
+       collapse's end: the keypad leaves the tab order and the a11y tree
+       exactly when it finishes sliding away, and returns to both the
+       moment the opening direction starts. */
+    .keypad-drawer[data-open="false"] .keypad-clip {
+      height: 0;
+      visibility: hidden;
+      transition: height 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s 0.24s;
+    }
+    /* AFTER the [data-open] rule on purpose: the two selectors tie on
+       specificity, and the drag must win — a drag-up from the docked
+       state shows the keypad live, while [data-open="false"] still
+       holds (the release flips the attribute). Before this ordering
+       the hidden rule won and the drawer dragged up as a blank void
+       that only filled on release. */
+    .keypad-drawer.dragging .keypad-clip {
+      transition: none;
+      visibility: visible;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .keypad-clip { transition: none; }
+    }
+    /* screen-reader-only text (WCAG 1.3.1: labelled, not duplicated) */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      border: 0;
+      clip-path: inset(50%);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .keypad-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      justify-content: center;
+      padding-bottom: 0.3rem;
+    }
+    /* ADR-0040: the tabs are 34px tall (the 24px AA floor with room to
+       spare) — two rows of them wrapped on narrow panes, and every pixel
+       went to the history list. The 44px width floor stays. */
+    .keypad-tabs [role="tab"] {
+      min-height: 34px;
+      min-width: 44px;
+      padding: 0.15rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg);
+      color: var(--muted);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .keypad-tabs [role="tab"][aria-selected="true"] {
+      color: var(--text);
+      border-color: var(--accent);
+      background: var(--panel);
+    }
+    /* The hints row (ADR-0039): tab list plus the hints toggle, which
+       sits outside the tablist element (a non-tab button inside a
+       tablist breaks the ARIA tabs pattern). */
+    .keypad-top {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .keypad-top .keypad-tabs {
+      flex: 1;
+    }
+    .keypad-hints-btn {
+      min-height: 34px;
+      min-width: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg);
+      color: var(--muted);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .keypad-hints-btn:hover,
+    .keypad-hints-btn[aria-pressed="true"] {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--panel);
+    }
+    /* The hint bar (ADR-0039): one line between the tabs and the grid,
+       spoken on hover and focus. A docked bar cannot clip the way a
+       floating tooltip would inside the scrolling grid. --muted keeps
+       the 4.5:1 text contrast on --bg. */
+    .keypad-hint-bar {
+      min-height: 1.2em;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: start;
+      padding-inline: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-block-end: 0.15rem;
+    }
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-auto-rows: minmax(44px, auto);
+      align-content: start;
+      gap: 0.3rem;
+      /* exactly five rows, always (ADR-0039): every tab is the same
+         height — the digits tab's height — so the long astronomy bank
+         scrolls instead of growing over the screen. No bottom padding:
+         the 123 keys must fit the window exactly (ADR-0041). */
+      min-height: calc(5 * 44px + 4 * 0.3rem);
+      max-height: calc(5 * 44px + 4 * 0.3rem);
+      overflow-y: auto;
+      padding: 0 0.25rem 0 0;
+    }
+    /* With the captions toggle on (ADR-0039's ? button) each key grows a
+       fixed 64px so five rows + captions still fit with no scrollbar —
+       all banks share the window (ADR-0041). Captions clamp to two
+       lines inside the fixed key. */
+    .keypad-grid.show-hints {
+      min-height: calc(5 * 64px + 4 * 0.3rem);
+      max-height: calc(5 * 64px + 4 * 0.3rem);
+      grid-auto-rows: 64px;
+    }
+    .keypad-btn {
+      min-height: 44px;
+      border-radius: 10px;
+      border: 1px solid var(--border-strong);
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      font-size: 1rem;
+      font-weight: 500;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .keypad-btn:hover { border-color: var(--accent); color: var(--accent); }
+    /* Captioned keys (ADR-0039): with the hints toggle on, each key
+       grows a meaning line beneath its label. The button becomes a
+       column, the row grows (grid-auto-rows), and the grid scrolls. */
+    .keypad-btn.show-hint {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.15rem;
+      white-space: normal;
+      padding: 0.2rem;
+      line-height: 1.1;
+      height: 64px;
+    }
+    .keypad-hint {
+      font-size: 0.62rem;
+      font-weight: 400;
+      font-family: inherit;
+      color: var(--muted);
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+    .keypad-btn.op { color: var(--accent); font-weight: 600; }
+    .keypad-btn.fn { font-size: 0.92rem; }
+    .keypad-btn.eq {
+      grid-column: span 2;
+      background: var(--accent);
+      color: var(--on-accent); /* dark 10.0:1, light 4.8:1, night 7.2:1 on the accent (WCAG 1.4.3) */
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+    .keypad-btn.eq:hover { color: var(--on-accent); border-color: var(--accent); }
+    .keypad-btn.act { color: var(--muted); }
+    /* --- graph pane ----------------------------------------------------- */
+    #graph-pane {
+      overflow-y: auto; /* chrome may exceed short viewports; scrolls inside */
+      padding: 0.3rem 0.75rem 0.6rem;
+      gap: 0.2rem;
+    }
+    .graph {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+      min-height: 0;
+    }
+    /* The visible text alternative for the plot (WCAG 1.1.1): what is
+       plotted, readable by everyone. --muted is 6.6:1 on --bg (1.4.3). */
+    .graph-caption {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    /* The curve is currentColor = --accent (9.9:1 on --bg); the axes
+       blend toward the background at opacity 0.5 to ~5.4:1 — both clear
+       the 3:1 graphics threshold (WCAG 1.4.11). */
+    .graph svg { color: var(--accent); }
+    /* The plot lives in a fixed-size pane (ADR-0016): the SVG fills its
+       box and letterboxes to its own aspect ratio (viewBox +
+       preserveAspectRatio), so every plot fits the pane. */
+    .plot-box {
+      flex: 1;
+      /* ADR-0040: a real floor, not a token one. The pane scrolls (the
+         POI list can run long), and a scrolling flex column squeezed
+         the plot down to the old 96px floor — "some of the graphs end
+         up being very small". The plot now claims at least 38% of the
+         viewport (220px at any size) and the list scrolls beneath it. */
+      min-height: max(220px, 38vh);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+    .plot-box svg {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 10px;
+      background: var(--panel);
+      /* Wheel and pinch zoom the plot (ADR-0038), so the SVG keeps the
+         gesture for itself on touch: a two-finger pinch scales the view
+         instead of the page. The pane strip stays swipeable everywhere
+         around the plot (toolbar, margins, and the pane edge). The 3D
+         rule below keeps full capture too - orbiting needs both axes,
+         and a swipe on a 3D graph rotates it, not the strip (ADR-0035).
+         The 3D rule needs the extra specificity: `.plot-box svg` above
+         (0,1,1) outranks a bare `.graph3d-svg` (0,1,0). */
+      touch-action: none;
+    }
+    .plot-box svg.graph3d-svg {
+      touch-action: none;
+    }
+    .plot-box svg:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    /* Curve palette (ADR-0014): every color is >= 3:1 on --bg (WCAG
+       1.4.11) — accent 9.9:1, #4da3ff 7.0:1, #ffb340 10.3:1, #c39dff
+       8.4:1 — and every curve after the first also gets a distinct dash
+       pattern so the plots stay distinguishable without color (1.4.1).
+       Light and night palettes below carry their own recorded ratios. */
+    .curve-0 { --curve: var(--accent); }
+    .curve-1 { --curve: #4da3ff; }
+    .curve-2 { --curve: #ffb340; }
+    .curve-3 { --curve: #c39dff; }
+    :root[data-theme="light"] .curve-1 { --curve: #1e66c8; } /* 5.2:1 */
+    :root[data-theme="light"] .curve-2 { --curve: #9a5b00; } /* 5.1:1 */
+    :root[data-theme="light"] .curve-3 { --curve: #7a4bd6; } /* 5.2:1 */
+    :root[data-theme="night"] .curve-1 { --curve: #ffb340; } /* 11.6:1 */
+    :root[data-theme="night"] .curve-2 { --curve: #ff9e8a; } /* 10.3:1 */
+    :root[data-theme="night"] .curve-3 { --curve: #e0483e; } /* 5.1:1 */
+    svg .curve {
+      stroke: var(--curve, var(--accent));
+      /* The slider sets --curve-width on the svg element (ADR-0020); the
+         var() default is the new DEFAULT_STROKE_WIDTH (half the old 2). */
+      stroke-width: var(--curve-width, 1);
+      stroke-linejoin: round;
+      stroke-linecap: round;
+    }
+    svg .fill { stroke: none; }
+    svg .grid { stroke: currentColor; opacity: 0.15; }
+    svg .axis { stroke: currentColor; opacity: 0.5; }
+    svg .tick {
+      fill: var(--muted);
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    svg .poi { fill: var(--accent); }
+    svg .poi-label {
+      fill: var(--text);
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    svg .trace {
+      fill: var(--accent);
+      stroke: var(--bg);
+      stroke-width: 2;
+    }
+    .legend {
+      list-style: none;
+      /* ADR-0040: the legend is a horizontal strip that wraps, not a
+         vertical stack — a 44px row per curve ate the graph pane from
+         above, and three curves pushed the plot half out of view. The
+         entries keep the curve checkboxes (ADR-0015 amendment) but sit
+         shoulder to shoulder, like the solar legend below. */
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0.1rem 1.1rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    /* The legend checkboxes (ADR-0015 amendment): each entry is a real
+       labelled control — the curve's caption names the checkbox, so the
+       plot can be hidden or restored without touching the expression. */
+    .legend-item {
+      display: flex;
+      align-items: center;
+      min-height: 0;
+    }
+    .legend-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      color: var(--text);
+      min-height: 32px;
+    }
+    .legend-check input[type="checkbox"] {
+      width: 1.15rem;
+      height: 1.15rem;
+      /* Each entry's checkbox renders in its line's own colour: the
+         label carries the curve-* class, so --curve (ADR-0014) inherits
+         here (and into the swatch). Every palette colour is >= 3:1 on
+         its background (recorded above), so the box stays visible. */
+      accent-color: var(--curve, var(--accent));
+    }
+    .legend-check input[type="checkbox"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .swatch {
+      display: inline-block;
+      width: 2em;
+      margin-inline-end: 0.5em;
+      border-top: 3px solid var(--curve, var(--accent));
+      vertical-align: middle;
+    }
+    .trace {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.9rem;
+      color: var(--muted);
+      min-height: 1.2em;
+    }
+    /* The solar legend (ADR-0038, amended): a compact multi-column
+       strip ABOVE the plot - eleven one-line entries must not shrink
+       the scene they name. Narrower panes drop to two columns. */
+    .legend-solar {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.1rem 0.75rem;
+      font-size: 0.8rem;
+      margin-block: 0.2rem 0.35rem;
+    }
+    .legend-solar .legend-item {
+      min-height: 0;
+    }
+    .legend-solar .legend-check {
+      min-height: 32px;
+      gap: 0.3rem;
+    }
+    .legend-solar .legend-check input[type="checkbox"] {
+      width: 0.95rem;
+      height: 0.95rem;
+    }
+    .legend-solar .swatch {
+      width: 1.2em;
+      margin-inline-end: 0.2em;
+      border-top-width: 2px;
+    }
+    @media (max-width: 700px) {
+      .legend-solar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    .poi-heading {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+    .poi-list {
+      list-style: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.9rem;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .sliders {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+    .slider {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .slider input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent);
+      min-height: 24px;
+    }
+    .slider-value {
+      min-width: 4.5em;
+      text-align: end;
+      color: var(--muted);
+    }
+    /* The parameter play/pause button (ADR-0015): square, keyboard-visible,
+       aria-pressed announces its state. */
+    .play-btn {
+      width: 2.4rem;
+      height: 2.4rem;
+      min-width: 2.4rem;
+      min-height: 2.4rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--panel);
+      color: var(--accent);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    /* The 3D plot section (ADR-0015). */
+    .graph3d-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .graph3d-svg {
+      display: block;
+      color: var(--accent);
+      cursor: grab;
+      /* Dragging orbits, it never selects: without this, dragging from
+         the left side of the plot text-selects the y-axis tick labels
+         and paints the selection band down the pane's left edge
+         (ADR-0026). */
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .graph3d-svg:active { cursor: grabbing; }
+    .graph3d-hint {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    /* --- the graph pane toolbar (ADR-0018/0020/0023) -------------------
+       Clear graph and Copy SVG are equal, same-styled buttons; the graph
+       options (POI toggles, line width) sit beside them, all above the
+       plot. Wraps on narrow panes; every control keeps its 44-48px
+       target and focus-visible ring. */
+    .graph-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.3rem 0.6rem;
+      padding: 0.1rem 0 0.25rem;
+    }
+    .graph-options {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem 1.25rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .graph-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-height: 40px;
+      cursor: pointer;
+    }
+    .graph-option input[type="checkbox"] {
+      width: 1.15rem;
+      height: 1.15rem;
+      accent-color: var(--accent);
+    }
+    .graph-option input[type="checkbox"]:focus-visible,
+    .graph-width-slider:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .graph-width {
+      gap: 0.6rem;
+    }
+    .graph-width-slider {
+      width: 9rem;
+      accent-color: var(--accent);
+    }
+    .graph-width-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.85rem;
+      min-width: 2.6em;
+      text-align: right;
+    }
+    /* The tuning strip (ADR-0041): every graph's adjustment sliders -
+       line thickness, the rotation speeds, zoom - in one compact row
+       above the plot, each named by an icon with the words in its
+       tooltip. Rows align because every slider gets the same width. */
+    .graph-tuning {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.1rem 0.9rem;
+      padding: 0.05rem 0.25rem;
+    }
+    .tune {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      min-height: 32px;
+      color: var(--muted);
+    }
+    .tune .icon-svg {
+      width: 1.05rem;
+      height: 1.05rem;
+      flex: none;
+    }
+    /* The icon beside each tuning slider is the reset button (ADR-0055):
+       pressing it returns that slider to its default. Compact (32px, the
+       strip's own height) but still a real focusable button. */
+    .tune-reset {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      min-height: 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+    .tune-reset:hover {
+      color: var(--accent);
+      border-color: var(--border-strong);
+    }
+    .tune-reset:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .tune-reset .icon-svg {
+      width: 1rem;
+      height: 1rem;
+    }
+    .tune input[type="range"] {
+      width: 7.5rem;
+      accent-color: var(--accent);
+    }
+    .tune input[type="range"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    /* The macOS "install the epher command" action (ADR-0011): a quiet,
+       secondary button — it must not compete with the = button. Contrast
+       9.9:1 accent-on-background (WCAG 1.4.3); 48px target (2.5.8). */
+    .install-cli {
+      font-size: 0.95rem;
+      font-weight: 500;
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 0.5rem 1rem;
+      min-height: 48px;
+      align-self: flex-start;
+      margin-bottom: 0.75rem;
+    }
+
+    /* --- the in-app user guide overlay (ADR-0018) -----------------------
+       Same content as the website guide: site/guide/*.md embedded at
+       build time and rendered here; ```epher / ```sh examples are
+       buttons that load the example into the entry field. */
+    .guide-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      background: var(--bg);
+      padding: 0.75rem;
+    }
+    .guide-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .guide-head h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+    }
+    .guide-close-btn {
+      min-height: 44px;
+      padding: 0.4rem 1rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+      /* Text-styled buttons carry an underline (ADR-0035 amendment). */
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .guide-insert-hint {
+      color: var(--muted);
+      margin: 0;
+      font-size: 0.9rem;
+    }
+    /* --- constants browser (ADR-0045) ----------------------------------- */
+    .constants-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      max-height: 55vh;
+      overflow-y: auto;
+      margin: 0;
+      padding: 0.25rem 0.25rem 0.5rem;
+    }
+    .constants-group {
+      margin: 0.6rem 0 0.2rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .constants-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: 0.6rem;
+      row-gap: 0.1rem;
+      width: 100%;
+      text-align: start;
+      padding: 0.45rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+    }
+    .constants-row:hover,
+    .constants-row:focus-visible {
+      border-color: var(--accent);
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .constants-name {
+      font-family: ui-monospace, Consolas, monospace;
+      font-weight: 600;
+    }
+    .constants-value {
+      color: var(--text);
+      font-family: ui-monospace, Consolas, monospace;
+    }
+    .constants-hint {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    /* --- guide search (ADR-0038) ---------------------------------------- */
+    .guide-search {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .guide-search input[type="search"] {
+      min-height: 48px;
+      padding: 0.4rem 0.8rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+    }
+    .guide-search input[type="search"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .guide-no-results {
+      color: var(--muted);
+      margin: 0;
+      font-size: 0.9rem;
+    }
+    .guide-results {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      max-height: 40vh;
+      overflow-y: auto;
+      margin: 0;
+      padding: 0;
+    }
+    .guide-result {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.15rem;
+      width: 100%;
+      text-align: start;
+      padding: 0.4rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+      min-height: 44px;
+    }
+    .guide-result:hover {
+      border-color: var(--accent);
+    }
+    .guide-result:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .guide-result-chapter {
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .guide-result-snippet {
+      color: var(--muted);
+      font-size: 0.9rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    /* The flash on a jumped-to hit: finds the match again after the
+       scroll, and moves (not just color) marks it (WCAG 2.3.3-safe:
+       opacity only). */
+    @keyframes guide-hit-flash {
+      0%, 60% { opacity: 1; }
+      30% { opacity: 0.35; }
+      100% { opacity: 1; }
+    }
+    .guide-hit {
+      animation: guide-hit-flash 1.6s ease-in-out 1;
+    }
+    /* The in-app table of contents (ADR-0018 amendment): top-level
+       chapters as buttons; picking one scrolls the body to its
+       chapter. Border = the ToC's own visible boundary. */
+    .guide-toc {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.5rem 0.75rem;
+    }
+    .guide-toc-heading {
+      margin: 0 0 0.3rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .guide-toc ol {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 1.25rem;
+    }
+    .guide-toc-btn {
+      border: none;
+      background: transparent;
+      color: var(--accent);
+      font: inherit;
+      font-size: 0.9rem;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      padding: 0.25rem 0.1rem;
+      min-height: 32px;
+      cursor: pointer;
+    }
+    .guide-toc-btn:hover {
+      text-decoration-thickness: 2px;
+    }
+    .guide-toc-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .guide-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1.1rem;
+    }
+    /* The guide loads on demand (ADR-0053): the fetch state and the
+       not-installed notice share the body's padding and palette. */
+    .guide-loading, .guide-load-failed {
+      color: var(--muted);
+      margin: 0.5rem 0;
+    }
+    .guide-load-failed a { color: var(--accent); }
+    .guide-body h1 { font-size: 1.6rem; margin: 0.5rem 0 0.4rem; }
+    .guide-body h2 {
+      font-size: 1.3rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.2rem;
+      margin: 1.2rem 0 0.4rem;
+    }
+    .guide-body h3 { font-size: 1.1rem; margin: 1rem 0 0.3rem; }
+    .guide-body h4 { font-size: 1rem; margin: 0.8rem 0 0.3rem; }
+    .guide-body p,
+    .guide-body li { line-height: 1.55; }
+    .guide-body code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: var(--bg);
+      padding: 0 0.25rem;
+      border-radius: 4px;
+    }
+    .guide-body blockquote {
+      margin: 0.5rem 0;
+      padding: 0.4rem 0.8rem;
+      border-inline-start: 3px solid var(--accent);
+      color: var(--muted);
+    }
+    .guide-body table {
+      border-collapse: collapse;
+      margin: 0.6rem 0;
+      width: 100%;
+    }
+    .guide-body th,
+    .guide-body td {
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.6rem;
+      text-align: start;
+      vertical-align: top;
+    }
+    .guide-body th { background: var(--bg); }
+    .guide-example { margin: 0.5rem 0; }
+    .guide-example-btn {
+      display: block;
+      width: 100%;
+      text-align: start;
+      min-height: 44px;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      cursor: pointer;
+    }
+    .guide-example-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .guide-out {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      margin: 0.5rem 0;
+    }
+    /* --- mobile: the menu bar folds into the hamburger (ADR-0017) ------ */
+    @media (max-width: 879.98px) {
+      .menubar { display: none; }
+      /* The 3D hint mentions the arrow keys — a keyboard affordance.
+         On touch layouts rotation happens by swiping the plot
+         (ADR-0035 amendment); the hint is irrelevant there, so it is
+         not displayed. */
+      .graph3d-hint { display: none; }
+      /* The line-width slider takes its own row under the toolbar on
+         small screens (ADR-0035 amendment): Clear, Copy SVG, and the
+         POI options stay on the first line, the slider on the line
+         below — a finger-wide target on a row of its own. The `order`
+         puts it after the options row even though the toolbar DOM
+         places it right of Copy SVG for desktop. */
+    }
+    /* --- desktop: the graph pane sits beside the calculator (ADR-0016) - */
+    @media (min-width: 880px) {
+      .hamburger-btn { display: none; }
+      .mobile-menu { display: none; }
+      .pane-switch { display: none; }
+      .brand-link { display: none; }
+      /* ADR-0032: the menu bar becomes a vertical icon rail on the left.
+         The topbar column carries it beside the panes; everything else
+         in the topbar (pane switch, hamburger, mobile menu) is already
+         hidden at this width. */
+      .epher {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr);
+      }
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        min-height: 0;
+        padding: 0.5rem 0.25rem;
+        gap: 0.25rem;
+        border-inline-end: 1px solid var(--border);
+      }
+      .panes {
+        grid-column: 2;
+        grid-row: 1;
+        overflow: visible;
+        gap: 0;
+      }
+      /* lift the mobile full-width basis: desktop panes share the row */
+      .pane {
+        min-width: 0;
+        flex-basis: auto;
+      }
+      #calc-pane {
+        flex: 0 0 360px;
+        border-inline-end: 1px solid var(--border);
+      }
+      #graph-pane {
+        flex: 1 1 auto;
+        padding-inline-start: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <link data-trunk rel="rust" data-wasm-opt="z" />
+  <!-- copy-file (not copy-dir): the manifest/sw/icon must land at the dist
+       root, where index.html references them — copy-dir would bury them in
+       dist/public/ and break installability and the service worker. -->
+  <link data-trunk rel="copy-file" href="public/manifest.webmanifest" />
+  <link data-trunk rel="copy-file" href="public/sw.js" />
+  <link data-trunk rel="copy-file" href="public/icon.svg" />
+  <!-- The guide markdown (ADR-0053): the app fetches guide/<locale>.md
+       on demand; the committed site/guide/*.md files are the single
+       source, copied straight into dist (no generated intermediate). -->
+  <link data-trunk rel="copy-dir" href="../../site/guide" data-target-path="guide" />
+  <!-- Boot diagnostic: if the wasm app has not mounted after six seconds,
+       say so instead of leaving a blank window. The app's own markup has
+       class="epher", so its presence is the success signal. While the
+       fallback is visible the script keeps watching — a late mount (slow
+       disk, antivirus scanning the wasm) hides it again — and any
+       script/module error captured meanwhile is shown as the detail line,
+       so a failed start names its reason. -->
+  <div id="boot-fallback" hidden>
+    <p>epher could not start in this window.</p>
+    <p>Try again, or use the web app at epher.org — your device's web
+       browser works everywhere the desktop window does.</p>
+    <p id="boot-fallback-detail" class="boot-detail"></p>
+  </div>
+  <style>
+    /* display:none by default — the `hidden` attribute plus the id rule
+       must not fight the UA stylesheet; :not([hidden]) turns it on */
+    #boot-fallback {
+      display: none;
+      position: fixed;
+      inset: 0;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 2rem;
+      background: #141416;
+      color: #f5f6f7;
+      font: 1rem/1.5 -apple-system, "Segoe UI", Roboto, sans-serif;
+      text-align: center;
+    }
+    #boot-fallback:not([hidden]) {
+      display: flex;
+    }
+    /* the technical detail line (an error message when one was captured) —
+       smaller, monospaced, muted but still 4.5:1 on the fallback background */
+    #boot-fallback .boot-detail {
+      font: 0.8125rem/1.4 ui-monospace, Consolas, monospace;
+      color: #9aa4af;
+      max-width: 44rem;
+      overflow-wrap: anywhere;
+    }
+    #boot-fallback .boot-detail:empty {
+      display: none;
+    }
+  </style>
+  <script>
+    (function () {
+      var fallback = document.getElementById("boot-fallback");
+      var detail = document.getElementById("boot-fallback-detail");
+      var errors = [];
+      function record(msg) {
+        if (!msg) return;
+        errors.push(String(msg).slice(0, 300));
+        if (errors.length > 3) errors.shift();
+      }
+      // capture phase: resource errors (the module script and the wasm
+      // fetch) fire here, not in the bubble phase
+      window.addEventListener(
+        "error",
+        function (e) {
+          var src = e.target && (e.target.src || e.target.href);
+          record(e.message || (src ? "could not load " + src : "script error"));
+        },
+        true
+      );
+      window.addEventListener("unhandledrejection", function (e) {
+        var r = e.reason;
+        record(r && (r.message || r.name) ? r.message || r.name : "unhandled rejection");
+      });
+      function mounted() {
+        return !!document.querySelector(".epher");
+      }
+      // A failed first mount is usually a stale cached bundle after an
+      // upgrade — Ctrl+F5 fixed it by hand. Reload once automatically
+      // (ADR-0023); with the desktop shell's disk cache disabled
+      // (`additionalBrowserArgs`), the reload fetches the fresh assets.
+      function retryOnce() {
+        try {
+          if (sessionStorage.getItem("epher-boot-retry")) return false;
+          sessionStorage.setItem("epher-boot-retry", "1");
+          location.reload();
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+      setTimeout(function () {
+        if (mounted()) {
+          // Healthy load: the per-tab retry marker can go.
+          try { sessionStorage.removeItem("epher-boot-retry"); } catch (e) {}
+          return;
+        }
+        if (retryOnce()) return; // the reloaded page mounts on its own
+        fallback.hidden = false;
+        // On Windows the desktop window launches hidden until the
+        // frontend's init call (ADR-0032) — a failed wasm boot would
+        // otherwise leave an invisible window. Show the dark fallback.
+        if (window.__TAURI_INTERNALS__) {
+          try { window.__TAURI_INTERNALS__.invoke("init"); } catch (e) {}
+        }
+        if (errors.length) detail.textContent = errors.join(" · ");
+        // a late mount (e.g. a slow first compile) recovers on its own
+        var iv = setInterval(function () {
+          if (mounted()) {
+            clearInterval(iv);
+            fallback.hidden = true;
+            detail.textContent = "";
+            try { sessionStorage.removeItem("epher-boot-retry"); } catch (e) {}
+          }
+        }, 500);
+        setTimeout(function () { clearInterval(iv); }, 30000);
+      }, 6000);
+    })();
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>

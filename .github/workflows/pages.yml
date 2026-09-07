@@ -1,0 +1,67 @@
+# Build the landing page + PWA and deploy to GitHub Pages.
+#
+# Layout of the published site at epher.org (see docs/website.md):
+#   /                 landing page (site/)
+#   /pwa/             the offline-first web app (crates/web/dist)
+#
+# The workflow builds the PWA with trunk (public_url "./" → relative asset
+# paths, safe under any mount point), assembles the site, and deploys via
+# actions/deploy-pages. Requires: Settings → Pages → Source → "GitHub Actions".
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install trunk
+        # From crates.io rather than a third-party action: the action's
+        # tarball downloads from codeload.github.com, which rate-limits
+        # (429/503) and takes the whole deploy down.
+        run: cargo install trunk --locked --version 0.21.14
+
+      - name: Build the PWA
+        run: trunk build --release
+        working-directory: crates/web
+
+      - name: Install site tooling
+        run: npm ci
+
+      - name: Build the user guide
+        run: npm run build:guide && npm run build:examples && npm run build:scripts
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site/pwa
+          cp -r site/* _site/
+          cp -r crates/web/dist/* _site/pwa/
+          # The apt and dnf repositories (ADR-0061) live on the gh-pages
+          # branch — the release workflow commits them there. Serve them
+          # from the same origin so epher.org/apt and /rpm resolve.
+          git fetch --depth=1 origin gh-pages
+          git archive FETCH_HEAD apt rpm | tar -x -C _site
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4

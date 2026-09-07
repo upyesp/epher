@@ -1,0 +1,11 @@
+[package]
+name = "epher-shell"
+version = "0.5.38"
+edition = "2021"
+license = "MIT"
+description = "The interactive-shell kernel shared by the CLI, TUI, and web frontends: line classification and command policy (ADR-0010)."
+
+[dependencies]
+epher-core = { path = "../core" }
+epher-store = { path = "../store" }
+epher-i18n = { path = "../i18n" }

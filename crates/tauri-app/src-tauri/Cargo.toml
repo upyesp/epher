@@ -1,0 +1,60 @@
+[package]
+name = "app"
+version = "0.5.18"
+description = "epher: a programmable, scriptable calculator — the unified desktop binary"
+authors = ["upyesp"]
+license = "MIT"
+repository = "https://github.com/upyesp/epher"
+edition = "2021"
+rust-version = "1.77.2"
+# Which bin tauri bundles as the app (ADR-0011, W2): the GUI-subsystem build.
+# On macOS/Linux tauri's mainBinaryName (tauri.conf.json) renames it to
+# `epher`, so those platforms ship the usual single unified binary; on
+# Windows the overlay keeps the name epher-gui and the console build
+# (epher.exe) is installed alongside it by the NSIS hook in nsis-hooks.nsh.
+default-run = "epher-gui"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+# The unified binary users install on every platform (`epher` on PATH,
+# epher.exe on Windows). It hosts every frontend (ADR-0011).
+[[bin]]
+name = "epher"
+path = "src/main.rs"
+
+# The GUI-subsystem sibling for Windows (ADR-0011): the double-click/Start
+# Menu target — no console window, ever. macOS/Linux don't bundle it.
+[[bin]]
+name = "epher-gui"
+path = "src/bin/epher-gui.rs"
+
+[build-dependencies]
+tauri-build = { version = "2.6.3", features = [] }
+
+[dependencies]
+epher-core = { path = "../../../crates/core" }
+epher-cli = { path = "../../../crates/cli" }
+epher-tui = { path = "../../../crates/tui" }
+epher-store = { path = "../../../crates/store", features = ["fs"] }
+# Store watcher (ADR-0010 amendment): file-watch signals for the
+# publish/subscribe sync between open frontends.
+notify = "6"
+clap = { version = "4", features = ["derive"] }
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+# open: external URLs (the brand link → epher.org) ride the OS opener
+open = "5"
+# custom-protocol is required for production: without it tauri's build.rs
+# reports dev mode and the app loads devUrl instead of the embedded assets
+# (cargo tauri build injects it, plain cargo build does not — keep it here).
+tauri = { version = "2.11.3", features = ["custom-protocol"] }
+tauri-plugin-log = "2"
+tauri-plugin-dialog = "2"
+
+[dev-dependencies]
+tempfile = "3"

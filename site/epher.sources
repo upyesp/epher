@@ -1,0 +1,9 @@
+## epher's apt repository — install with:
+##   curl -fsSL https://epher.org/apt/KEY.gpg | sudo tee /etc/apt/keyrings/epher.gpg >/dev/null
+##   sudo cp epher.sources /etc/apt/sources.list.d/
+##   sudo apt update && sudo apt install epher
+Types: deb
+URIs: https://epher.org/apt
+Suites: stable
+Components: main
+Signed-By: /etc/apt/keyrings/epher.gpg

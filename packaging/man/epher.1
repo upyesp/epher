@@ -1,0 +1,217 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH EPHER 1  "epher 0.5.1" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH NAME
+epher \- A programmable, scriptable calculator.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH SYNOPSIS
+\fBepher\fR [\fB\-h\fR|\fB\-\-help\fR] [\fB\-V\fR|\fB\-\-version\fR] [\fIEXPRESSION\fR] [\fIsubcommands\fR]
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH DESCRIPTION
+A programmable, scriptable calculator. One engine, five ways to use it: a one\-shot command (`epher "2 + 3"`), an interactive session (`epher repl`), a full\-screen terminal UI (`epher tui`), a desktop app (`epher gui`), and an offline web app at https://epher.org/pwa/. All five speak the same language.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH OPTIONS
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help (see a summary with \*(Aq\-h\*(Aq)
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Print version
+.TP
+[\fIEXPRESSION\fR]
+A script to evaluate; each statement\*(Aqs result prints on its own line.
+
+Anything from the language works — `2 + 3 * 4`, `if 3 > 2 then 1 else 0`, a leading minus — and statements join with `;` or newlines: `epher "x = 10; x + 5"` prints `10` then `15`. Use `\-` to read a script from standard input, line by line, instead. `graph`/`graph3d` statements plot too; `graph save file.svg` writes the plot as an SVG image (`epher "graph sin(x); graph save plot.svg"`).
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH SUBCOMMANDS
+.TP
+epher\-repl(1)
+Start an interactive session in the terminal
+.TP
+epher\-tui(1)
+Start the full\-screen terminal interface
+.TP
+epher\-gui(1)
+Start the desktop app
+.TP
+epher\-help(1)
+Print the manual, or help for a subcommand
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH "THE EPHER LANGUAGE"
+epher evaluates arithmetic with the usual precedence: factorial (!) binds strongest, then power (^, right to left), then * and /, then + and \-. Parentheses group. Numbers may use scientific notation (6.02e23). The constants pi, e, tau, and phi are always available.
+Comparison and logic:
+.TP 4
+a > b, < >= <= == !=
+comparisons (true/false)
+.TP 4
+and, or, not
+logical connectives
+Statements:
+.TP 4
+name = value
+assign a variable (x = 5)
+.TP 4
+const name = value
+define a constant (const tax = 0.2); immutable, visible everywhere, saved with `save`
+.TP 4
+if c then a else b
+conditional expression
+.TP 4
+while c do statement
+loop
+.TP 4
+def name(params) = expr
+define a function; recursion works (def fib(n) = if n <= 1 then n else fib(n \- 1) + fib(n \- 2))
+.TP 4
+stmt1; stmt2
+a script: statements joined with `;` or newlines (the same separator)
+Exact layers (binary floats are exact here):
+.TP 4
+frac(n, d)
+exact fraction (frac(1, 3) = 1/3)
+.TP 4
+dec(x)
+exact decimal (dec(0.1) + dec(0.2) = 0.3)
+.TP 4
+big(x)
+exact whole number (big(10 ^ 20))
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH "BUILT-IN FUNCTIONS"
+Trigonometry works in radians; deg(x) and rad(x) convert.
+.TP 4
+sin cos tan asin acos atan atan2
+trigonometric and inverse trigonometric
+.TP 4
+deg(x), rad(x)
+radians to degrees and back
+.TP 4
+sinh cosh tanh asinh acosh atanh
+hyperbolic and inverse hyperbolic
+.TP 4
+sqrt cbrt root(n, x) exp
+powers and roots
+.TP 4
+ln log log2 logb(b, x) hypot(a, b)
+logarithms and hypotenuse
+.TP 4
+n! or fact(n)
+factorial
+.TP 4
+abs floor ceil round trunc sign
+rounding and sign
+.TP 4
+mod(a, b) gcd(a, b) lcm(a, b)
+remainders and common divisors
+.TP 4
+ncr(n, r), npr(n, r)
+combinations and permutations
+.TP 4
+sum product mean median min max variance stdev
+statistics over any number of arguments
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH "SHELL COMMANDS"
+Inside the interactive session (repl) and piped scripts, these lines are shell commands, not expressions:
+.TP 4
+save name
+save the function or constant `name` for future sessions
+.TP 4
+save script name
+save the last evaluated line as a script
+.TP 4
+graph expr [from a to b]
+plot a curve (cartesian, param, polar; regions with y < / y >); the curves accumulate
+.TP 4
+graph3d z = f(x, y) [from a to b]
+plot a 3D surface
+.TP 4
+graph save file.svg | graph3d save file.svg
+write the current plot as a self\-contained SVG image
+.TP 4
+graph clear | graph3d clear
+empty the plot
+.TP 4
+language code
+set the interface language: en, zh\-CN, hi, es, fr, ar, de, pt
+.TP 4
+table expr [from a to b] [points n]
+print a table of values (TI\-style defaults: \-5..5, 11 rows)
+.TP 4
+quit, exit
+leave the interactive session (Ctrl\-D too)
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH "EXIT STATUS"
+.TP 4
+0
+success
+.TP 4
+1
+a calculation or runtime error
+.TP 4
+2
+usage error (bad arguments; also when `epher \-` finds a terminal on stdin)
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH FILES
+.TP 4
+~/.epher/
+the epher store: saved functions, constants, scripts, history, and the language preference. Delete it to start fresh.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH ENVIRONMENT
+.TP 4
+EPHER_STORE_DIR
+relocate the store (EPHER_STORE_DIR=/tmp/scratch epher repl)
+.TP 4
+NO_COLOR
+disable colored error output when set (see no\-color.org)
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH EXAMPLES
+.TP 4
+epher "2 + 3 * 4"
+print the value of an expression: 14
+.TP 4
+epher "x = 10; x + 5"
+scripts work too: each statement\*(Aqs value prints (10 then 15)
+.TP 4
+epher "\-2 + 5"
+a leading minus is part of the expression; prints 3
+.TP 4
+printf "x = 3\\nx * 10\\n" | epher \-
+read a script from standard input, line by line
+.TP 4
+printf "def f(x) = x ^ 2\\nf(9)\\n" | epher \-
+lines share one session: prints = 81
+.TP 4
+epher /usr/lib/epher/scripts/astronomy/moon/full\-moons.epher
+run an installed script file, line by line (on Windows the path is %LOCALAPPDATA%\\epher\\scripts\\astronomy\\moon\\full\-moons.epher, on macOS /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/full\-moons.epher)
+.TP 4
+epher repl
+interactive session; answers print as `= result`
+.TP 4
+epher tui
+full\-screen interface with graphing (graph x ^ 2, graph3d x ^ 2 \- y ^ 2, space animates)
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH VERSION
+v0.5.1
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH "SEE ALSO"
+The user guide, in eight languages, and the project itself:
+.TP 4
+https://epher.org/guide/
+the full user guide
+.TP 4
+https://github.com/upyesp/epher
+source code, releases, and the issue tracker

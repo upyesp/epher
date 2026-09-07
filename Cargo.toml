@@ -1,0 +1,43 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/core",
+    "crates/store",
+    "crates/i18n",
+    "crates/shell",
+    "crates/guide",
+    "crates/cli",
+    "crates/tui",
+    "crates/web",
+    "crates/tauri-app/src-tauri",
+]
+# `epher-web` targets `wasm32-unknown-unknown`; keep it out of default native builds.
+default-members = [
+    "crates/core",
+    "crates/store",
+    "crates/i18n",
+    "crates/shell",
+    "crates/cli",
+    "crates/tui",
+]
+
+# NOTE: the Tauri desktop shell (crates/tauri-app) is scaffolded separately —
+# it wraps the same web artifact and joins this workspace then.
+
+[workspace.dependencies]
+# Numerics — verified wasm32-unknown-unknown + native compatible
+# (see docs/research/numerics-options.md). num-bigint pinned to 0.4 to match
+# num-rational 0.4.
+num-traits = "0.2"
+num-bigint = { version = "0.4", features = ["serde"] }
+num-rational = { version = "0.4", features = ["serde"] }
+num-complex = { version = "0.4", features = ["serde"] }
+# Special functions (ln_gamma, incomplete gamma/beta, erfc): puruspe is
+# pure Rust, dependency-light, and wasm-safe — it replaced the in-house
+# Numerical-Recipes ports (ADR-0053).
+puruspe = "0.4"
+rust_decimal = { version = "1", default-features = false, features = ["std", "serde"] }
+bigdecimal = { version = "0.4", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"

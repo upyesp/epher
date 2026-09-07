@@ -1,0 +1,11 @@
+[package]
+name = "epher-i18n"
+version = "0.5.38"
+edition = "2021"
+license = "MIT"
+description = "Shared UI localization — Fluent catalogs embedded at build time, device-detected."
+
+[dependencies]
+fluent = "0.17"
+fluent-langneg = "0.14"
+unic-langid = "0.9"

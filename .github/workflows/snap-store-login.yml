@@ -1,0 +1,59 @@
+# One-time Snap Store bootstrapping (ADR-0061): the login runs HERE (the
+# runner has snapd) via snapcraft's device flow — the human authorizes in
+# their own browser with the printed URL + code. A bare runner has no
+# Secret Service keyring, so login/register/export run inside a D-Bus
+# session with an unlocked (empty-password) gnome-keyring — all three in
+# ONE session, since credentials live in that keyring. The provision
+# wizard (provision-linux-stores.sh) dispatches this, lifts the URL and
+# code out of the run log, downloads the exported credentials, sets
+# SNAPCRAFT_STORE_CREDENTIALS, and deletes the artifact.
+# Trigger: workflow_dispatch.
+name: snap-store-login
+
+on:
+  workflow_dispatch:
+    inputs:
+      snap_name:
+        description: The snap name to register and export credentials for
+        default: epher
+
+permissions:
+  contents: read
+
+jobs:
+  login:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    env:
+      # snapcraft 8: the device flow is selected via env, not a flag.
+      SNAPCRAFT_STORE_AUTH: candid
+    steps:
+      - name: Install snapcraft
+        run: sudo snap install snapcraft --classic
+
+      - name: Install keyring support (snapcraft stores credentials in a Secret Service keyring)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gnome-keyring dbus
+
+      - name: Log in, register, and export CI credentials (device flow — watch this log for the URL and code)
+        run: |
+          dbus-run-session -- bash -c '
+            set -euo pipefail
+            export PATH="/snap/bin:$PATH"
+            command -v snapcraft
+            eval "$(echo -n "" | gnome-keyring-daemon --unlock --replace --components=secrets)"
+            snapcraft login
+            if snapcraft register "${{ inputs.snap_name }}"; then
+              echo "registered ${{ inputs.snap_name }}"
+            else
+              echo "::notice::register failed — the name may be taken or reserved; pick another and update packaging/snap/snapcraft.yaml."
+            fi
+            snapcraft export-login --snaps="${{ inputs.snap_name }}" snap-store-credentials
+          '
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: snap-store-credentials
+          path: snap-store-credentials
+          retention-days: 1
