@@ -127,7 +127,7 @@ window.EPHER_I18N["en"] = {
   "features-p-programming": "The programming surface is partial: strings, for-loops and print exist; keyboard input, file I/O and multiple return values do not.",
   "features-h-unique": "Where epher stands alone",
   "features-li-orrery": "An offline solar system: a live ephemeris for the Sun, the Moon, the planets and Pluto - positions, rise and set times, phases, magnitudes - and a 3D orrery you can animate. None of the nine has one.",
-  "features-li-scripts": "347 scripts ship inside every installer - moon phases, matrices, finance, astronomy - each with a transcript that is verified against the engine on every change.",
+  "features-li-scripts": "357 scripts ship inside every installer - moon phases, matrices, finance, astronomy - each with a transcript that is verified against the engine on every change.",
   "features-li-guide": "The full user guide speaks eight languages, identical in the web app, the desktop app, the terminal, and on this website.",
   "features-li-seeded": "Randomness is seeded: the same seed replays the same draws on every frontend, so classroom exercises reproduce exactly.",
   "features-li-jd": "Astronomy dates convert both ways: Julian Dates read back as calendar dates and clock times (date, time, iso).",

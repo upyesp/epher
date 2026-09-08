@@ -127,7 +127,7 @@ window.EPHER_I18N["de"] = {
   "features-p-programming": "Die Programmieroberfläche ist teilweise vorhanden: Zeichenketten, for-Schleifen und print gibt es; Tastatureingabe, Datei-I/O und mehrere Rückgabewerte nicht.",
   "features-h-unique": "Wo epher allein dasteht",
   "features-li-orrery": "Ein Sonnensystem offline: eine Live-Ephemeride für Sonne, Mond, Planeten und Pluto - Positionen, Auf- und Untergänge, Phasen, Helligkeiten - und ein 3D-Planetarium zum Animieren. Keiner der neun hat das.",
-  "features-li-scripts": "347 Skripte kommen mit jeder Installation mit - Mondphasen, Matrizen, Finanzen, Astronomie - jedes mit einem Ausgabeprotokoll, das bei jeder Änderung gegen die Engine geprüft wird.",
+  "features-li-scripts": "357 Skripte kommen mit jeder Installation mit - Mondphasen, Matrizen, Finanzen, Astronomie - jedes mit einem Ausgabeprotokoll, das bei jeder Änderung gegen die Engine geprüft wird.",
   "features-li-guide": "Die vollständige Anleitung spricht acht Sprachen, identisch in der Web-App, der Desktop-App, dem Terminal und auf dieser Website.",
   "features-li-seeded": "Zufallszahlen sind gesät: derselbe Seed erzeugt dieselben Werte in jedem Frontend, sodass Übungsaufgaben exakt reproduzierbar sind.",
   "features-li-jd": "Astronomische Daten rechnen in beide Richtungen: Julianische Daten lassen sich als Kalenderdatum und Uhrzeit zurücklesen (date, time, iso).",

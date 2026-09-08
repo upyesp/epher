@@ -127,7 +127,7 @@ window.EPHER_I18N["fr"] = {
   "features-p-programming": "La surface de programmation est partielle : chaînes, boucles for et print existent ; la saisie clavier, les E/S fichiers et les valeurs de retour multiples n'existent pas.",
   "features-h-unique": "Là où epher est seul",
   "features-li-orrery": "Un système solaire hors ligne : des éphémérides en direct du Soleil, de la Lune, des planètes et de Pluton - positions, levers et couchers, phases, magnitudes - et un orrery 3D animable. Aucun des neuf n'en a un.",
-  "features-li-scripts": "347 scripts voyagent dans chaque installateur - phases de la Lune, matrices, finances, astronomie - chacun avec une transcription vérifiée contre le moteur à chaque changement.",
+  "features-li-scripts": "357 scripts voyagent dans chaque installateur - phases de la Lune, matrices, finances, astronomie - chacun avec une transcription vérifiée contre le moteur à chaque changement.",
   "features-li-guide": "Le guide complet parle huit langues, à l'identique dans l'application web, l'application de bureau, le terminal et sur ce site.",
   "features-li-seeded": "Le hasard est semé : la même graine rejoue les mêmes tirages sur tous les frontends, les exercices de classe se reproduisent exactement.",
   "features-li-jd": "Les dates d'astronomie se convertissent dans les deux sens : les jours juliens se relisent comme date du calendrier et heure (date, time, iso).",

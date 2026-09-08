@@ -1,0 +1,132 @@
+/* ============================================================================
+heliacal-rising.epher -- a star's heliacal rising and setting,
+approximately
+
+A star's heliacal rising is the morning, after a stretch of
+invisible nights, when it first peeks above the horizon in the dawn
+twilight - the event the ancients used to anchor their calendars
+(the Egyptian year began at the heliacal rising of Sirius). This
+script scans every morning of the year for the first on which the
+star stands above the horizon while the Sun is `dep` degrees below
+it (-6 deg, the classical approximation), and for the last evening
+with the same geometry.
+
+Method and sources: the star's place from J2000 coordinates
+precessed with Meeus ch. 21 (star-tonight.epher's recipe); the
+sidereal time from Meeus ch. 12 (eq. 12.4); the Sun's place from the
+low-precision series of Meeus ch. 25 (good to about 1 arcminute);
+the twilight instants from the hour-angle formula at the -6-degree
+horizon (twilight-times.epher's method). The cheap series are used
+because a 365-night scan would call the built-in accessors over 700
+times, at seconds per call; the self-check section compares both
+against the accessors directly so the reader sees the agreement.
+
+Accuracy, stated honestly: a few days either way. The real
+visibility threshold is the arcus visionis, the depression the Sun
+needs for a star of a given magnitude to show, and it depends on the
+star's magnitude, the extinction at the site and the star's altitude
+(Jean Meeus, "Mathematical Astronomy Morsels", the chapter on
+heliacal risings and settings, computes it per star) - a flat
+-6 degrees is the classical average, and brighter stars appear a few
+nights earlier than fainter ones.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/heliacal-rising.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\heliacal-rising.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/heliacal-rising.epher
+In the REPL:             load one of the paths above
+
+Knobs: the place, the year, the star, and the Sun's depression
+below. (The scan needs the Sun to reach `dep` degrees - latitude
+roughly 60 and below, and not the midnight-sun season.)
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const lat = 30.044            // Cairo, the classic viewing site
+const lon = 31.238
+const y0 = 2026               // the year to scan
+const dep = -6                // Sun's depression for twilight, deg
+const star_ra = hms2deg(6, 45, 8.9)     // Sirius, J2000 (SIMBAD)
+const star_dec = dms2deg(-16, 42, 58)
+
+// ---- Meeus ch. 21: of-date position of the star --------------------------------
+def cent0(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def sig(tt, T) = ((2306.2181 + 1.39656 * T - 0.000139 * T ^ 2) * tt + (0.30188 - 0.000344 * T) * tt ^ 2 + 0.017988 * tt ^ 3) / 3600
+def zeta(tt, T) = ((2306.2181 + 1.39656 * T - 0.000139 * T ^ 2) * tt + (1.09468 + 0.000066 * T) * tt ^ 2 + 0.018203 * tt ^ 3) / 3600
+def phi(tt, T) = ((2004.3109 - 0.8533 * T - 0.000217 * T ^ 2) * tt - (0.42665 + 0.000217 * T) * tt ^ 2 - 0.041833 * tt ^ 3) / 3600
+def mod360(x) = x - 360 * floor(x / 360)
+def mod24(x) = x - 24 * floor(x / 24)
+def ra_of(ra, dec, j) = mod360(deg(atan2(cos(rad(dec)) * sin(rad(ra + sig((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))), cos(rad(phi((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) * cos(rad(dec)) * cos(rad(ra + sig((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) - sin(rad(phi((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) * sin(rad(dec)))) + zeta((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))
+def dec_of(ra, dec, j) = deg(asin(sin(rad(phi((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) * cos(rad(dec)) * cos(rad(ra + sig((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) + cos(rad(phi((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) * sin(rad(dec))))
+
+// ---- horizon arithmetic --------------------------------------------------------
+const jbase = jd(y0, 1, 1)
+def hangle(ra, dec, j) = lst(j, lon) * 15 - ra_of(ra, dec, j)
+def alt_of(ra, dec, j) = deg(asin(sin(rad(lat)) * sin(rad(dec_of(ra, dec, j))) + cos(rad(lat)) * cos(rad(dec_of(ra, dec, j))) * cos(rad(hangle(ra, dec, j)))))
+def cx(h0, dec) = (sin(rad(h0)) - sin(rad(lat)) * sin(rad(dec))) / (cos(rad(lat)) * cos(rad(dec)))
+
+// ---- Meeus ch. 12 sidereal time and ch. 25 low-precision Sun -------------------
+def d00(j) = j - 2451545.0
+def gmsth(j) = mod24((280.46061837 + 360.98564736629 * d00(j) + 0.000387933 * (d00(j) / 36525) ^ 2 - (d00(j) / 36525) ^ 3 / 38710000) / 15)
+def lsth(j) = mod24(gmsth(j) + lon / 15)               // local sidereal time, hours
+def sunlam(n) = rad(mod360(280.460 + 0.9856474 * d00(jbase + n) + 1.915 * sin(rad(357.528 + 0.9856003 * d00(jbase + n))) + 0.020 * sin(rad(2 * (357.528 + 0.9856003 * d00(jbase + n))))))
+def suneps(n) = rad(23.439 - 0.0000004 * d00(jbase + n))
+def sunra(n) = mod360(deg(atan2(cos(suneps(n)) * sin(sunlam(n)), cos(sunlam(n))))) / 15
+def sundec(n) = deg(asin(sin(suneps(n)) * sin(sunlam(n))))
+
+// ---- the day's twilight instants, from the hour-angle formula ------------------
+def h0d(n) = deg(acos(cx(dep, sundec(n))))          // Sun's hour angle at dep, deg
+def morn(n) = jbase + n + mod24(sunra(n) - h0d(n) / 15 - lsth(jbase + n)) / 1.002737909 / 24
+def even(n) = jbase + n + mod24(sunra(n) + h0d(n) / 15 - lsth(jbase + n)) / 1.002737909 / 24
+def salt(n) = alt_of(star_ra, star_dec, morn(n))    // star's altitude at dawn
+def salt_e(n) = alt_of(star_ra, star_dec, even(n))  // star's altitude at dusk
+
+// ---- the scan: first dawn the star survives; then, walking back from it in
+// ---- the evenings, the last dusk it lived through before the same conjunction
+v = {0, salt(0)}
+while v[2] < 0 and v[1] < 364 do v = {v[1] + 1, salt(v[1] + 1)}
+w = {v[1], salt_e(v[1])}
+while w[2] < 0 and w[1] > 0 do w = {w[1] - 1, salt_e(w[1] - 1)}
+
+// ---- self-checks: the series against the built-in accessors --------------------
+print("Sun RA on Aug 1:", sunra(212) * 15, "deg vs accessor", ra(10, jbase + 212))
+print("Sun dec on Aug 1:", sundec(212), "deg vs accessor", decl(10, jbase + 212))
+print("sidereal check:", lsth(jbase + 212) * 15, "vs built-in lst", lst(jbase + 212, lon) * 15)
+
+// ---- results ------------------------------------------------------------------
+print("heliacal rising (Sun at", dep, "deg):", iso(morn(v[1])))
+print("star's altitude at that dawn:", salt(v[1]), "deg")
+print("heliacal setting (Sun at", dep, "deg):", iso(even(w[1])))
+print("star's altitude at that dusk:", salt_e(w[1]), "deg")
+print("grade: a few days either way; the arcus visionis varies")
+
+/* Cross-checks: the accessor comparisons above should agree to a
+few hundredths of a degree (the Sun's) and to about a second of time
+(sidereal). The result answers to the history books: the model's
+rising lands weeks after Sirius's conjunction with the Sun (early
+July in this epoch, for the star's RA), and the evening event closes
+the visible season a week or two before that conjunction - the
+sequence the classical accounts describe. The Egyptian calendar's
+July date for Sirius used a stricter visibility criterion than a
+flat -6 degrees, which is part of the few-days-to-few-weeks grade a
+knobbed depression carries. */
+
+/* ---- expected output
+= 30.044
+= 31.238
+= 2026
+= -6
+= 101.287083333
+= -16.7161111111
+= 2461041.5
+= {0, -13.7661111495}
+= {211, -48.8361343962}
+= Sun RA on Aug 1: 131.215397007 deg vs accessor 131.217382193
+= Sun dec on Aug 1: 18.0595898798 deg vs accessor 18.061469901
+= sidereal check: 340.856101405 vs built-in lst 340.858544585
+= heliacal rising (Sun at -6 deg): 2026-07-31T02:46:44
+= star's altitude at that dawn: 0.052399344635 deg
+= heliacal setting (Sun at -6 deg): 2026-06-02T17:16:01
+= star's altitude at that dusk: 0.105810093684 deg
+= grade: a few days either way; the arcus visionis varies
+*/

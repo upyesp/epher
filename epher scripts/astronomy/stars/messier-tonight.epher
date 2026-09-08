@@ -1,0 +1,174 @@
+/* ============================================================================
+messier-tonight.epher -- which famous Messier objects transit in
+tonight's dark window
+
+Takes eight of the sky's showpieces (the Andromeda Galaxy, the Orion
+Nebula, the Hercules Cluster, the Pleiades, the Ring, the Dumbbell,
+the Whirlpool and the Sombrero) by their J2000 catalogue coordinates
+and magnitudes (SIMBAD values, cited catalogue: the Messier catalog
+as given in H. G. Corwin's and SIMBAD's modern positions), precesses
+them to the date with the rigorous method of Meeus ch. 21 (the same
+recipe star-tonight.epher carries), and answers the observer's
+question: which of them come to the meridian between the end of
+evening astronomical twilight (Sun 18 degrees down) and the start of
+morning astronomical twilight? The window comes from the hour-angle
+formula at the -18-degree horizon (the method of
+twilight-times.epher, USNO/NOAA); transit times from the sidereal
+rate 1.002737909. Objects whose transit altitude is zero or less are
+guarded as never rising - from southern sites the guard fires on the
+northern objects.
+
+Accuracy: the same as star-tonight.epher - IAU-1976 precession,
+exact horizon arithmetic, about an arcsecond of omitted aberration;
+twilight instants good to a couple of minutes (refraction
+approximated).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/messier-tonight.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\messier-tonight.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/messier-tonight.epher
+In the REPL:             load one of the paths above
+
+Knobs: the place, the observing night, and the eight objects below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const lat = 51.4779           // Greenwich
+const lon = 0
+const night = {2026, 2, 25}   // the observing night (evening of this date)
+const dep = -18               // astronomical twilight: the Sun this far down
+
+// ---- J2000 catalogue positions and visual magnitudes (SIMBAD) ------------------
+const m31_ra = hms2deg(0, 42, 44.3)     // M31 Andromeda Galaxy
+const m31_dec = dms2deg(41, 16, 9)
+const m31_mag = 3.4
+const m42_ra = hms2deg(5, 35, 17.3)     // M42 Orion Nebula
+const m42_dec = dms2deg(-5, 23, 28)
+const m42_mag = 4.0
+const m13_ra = hms2deg(16, 41, 41.4)    // M13 Hercules Cluster
+const m13_dec = dms2deg(36, 27, 37)
+const m13_mag = 5.8
+const m45_ra = hms2deg(3, 47, 0)        // M45 Pleiades
+const m45_dec = dms2deg(24, 7, 0)
+const m45_mag = 1.6
+const m57_ra = hms2deg(18, 53, 35.9)    // M57 Ring Nebula
+const m57_dec = dms2deg(33, 1, 45)
+const m57_mag = 8.8
+const m27_ra = hms2deg(19, 59, 36.3)    // M27 Dumbbell Nebula
+const m27_dec = dms2deg(22, 43, 16)
+const m27_mag = 7.4
+const m51_ra = hms2deg(13, 29, 52.7)    // M51 Whirlpool Galaxy
+const m51_dec = dms2deg(47, 11, 43)
+const m51_mag = 8.4
+const m104_ra = hms2deg(12, 40, 2.4)    // M104 Sombrero Galaxy
+const m104_dec = dms2deg(-11, 37, 23)
+const m104_mag = 8.0
+
+// ---- Meeus ch. 21: of-date right ascension and declination --------------------
+def cent0(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def sig(tt, T) = ((2306.2181 + 1.39656 * T - 0.000139 * T ^ 2) * tt + (0.30188 - 0.000344 * T) * tt ^ 2 + 0.017988 * tt ^ 3) / 3600
+def zeta(tt, T) = ((2306.2181 + 1.39656 * T - 0.000139 * T ^ 2) * tt + (1.09468 + 0.000066 * T) * tt ^ 2 + 0.018203 * tt ^ 3) / 3600
+def phi(tt, T) = ((2004.3109 - 0.8533 * T - 0.000217 * T ^ 2) * tt - (0.42665 + 0.000217 * T) * tt ^ 2 - 0.041833 * tt ^ 3) / 3600
+def mod360(x) = x - 360 * floor(x / 360)
+def mod24(x) = x - 24 * floor(x / 24)
+def ra_of(ra, dec, j) = mod360(deg(atan2(cos(rad(dec)) * sin(rad(ra + sig((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))), cos(rad(phi((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) * cos(rad(dec)) * cos(rad(ra + sig((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) - sin(rad(phi((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) * sin(rad(dec)))) + zeta((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))
+def dec_of(ra, dec, j) = deg(asin(sin(rad(phi((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) * cos(rad(dec)) * cos(rad(ra + sig((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) + cos(rad(phi((j - jd(2000, 1, 1, 12)) / 36525, cent0(j)))) * sin(rad(dec))))
+
+// ---- horizon arithmetic: hour angle, altitude, meridian transit ----------------
+def hangle(ra, dec, j) = lst(j, lon) * 15 - ra_of(ra, dec, j)
+def alt_of(ra, dec, j) = deg(asin(sin(rad(lat)) * sin(rad(dec_of(ra, dec, j))) + cos(rad(lat)) * cos(rad(dec_of(ra, dec, j))) * cos(rad(hangle(ra, dec, j)))))
+def trans(ra, dec, j) = j + mod24(ra_of(ra, dec, j) / 15 - lst(j, lon)) / 1.002737909 / 24
+
+// ---- tonight: the observing instant and each object's transit ------------------
+const j0 = jd(night[1], night[2], night[3], 12)   // noon: each next transit is tonight's
+def trj(ra, dec) = trans(ra, dec, j0)
+def talt(ra, dec) = alt_of(ra, dec, trj(ra, dec))
+
+// ---- the dark window: Sun 18 deg down, evening side to morning side ------------
+def cx(h0, dec) = (sin(rad(h0)) - sin(rad(lat)) * sin(rad(dec))) / (cos(rad(lat)) * cos(rad(dec)))
+const sun_t1 = transit(10, jd(night[1], night[2], night[3], 8), lat, lon)
+const sun_t2 = transit(10, jd(night[1], night[2], night[3], 8) + 1, lat, lon)
+const wbegin = sun_t1 + deg(acos(cx(dep, decl(10, sun_t1)))) / 360
+const wend = sun_t2 - deg(acos(cx(dep, decl(10, sun_t2)))) / 360
+def vis(ra, dec) = if talt(ra, dec) <= 0 then "never rises here" else if trj(ra, dec) >= wbegin and trj(ra, dec) <= wend then "in the dark window" else "transits outside the window"
+
+// ---- results ------------------------------------------------------------------
+print("dark window:", iso(wbegin), "to", iso(wend))
+print("M31 Andromeda Galaxy: m", m31_mag, "transit", iso(trj(m31_ra, m31_dec)), "alt", talt(m31_ra, m31_dec))
+print("M31:", vis(m31_ra, m31_dec))
+print("M42 Orion Nebula: m", m42_mag, "transit", iso(trj(m42_ra, m42_dec)), "alt", talt(m42_ra, m42_dec))
+print("M42:", vis(m42_ra, m42_dec))
+print("M13 Hercules Cluster: m", m13_mag, "transit", iso(trj(m13_ra, m13_dec)), "alt", talt(m13_ra, m13_dec))
+print("M13:", vis(m13_ra, m13_dec))
+print("M45 Pleiades: m", m45_mag, "transit", iso(trj(m45_ra, m45_dec)), "alt", talt(m45_ra, m45_dec))
+print("M45:", vis(m45_ra, m45_dec))
+print("M57 Ring Nebula: m", m57_mag, "transit", iso(trj(m57_ra, m57_dec)), "alt", talt(m57_ra, m57_dec))
+print("M57:", vis(m57_ra, m57_dec))
+print("M27 Dumbbell Nebula: m", m27_mag, "transit", iso(trj(m27_ra, m27_dec)), "alt", talt(m27_ra, m27_dec))
+print("M27:", vis(m27_ra, m27_dec))
+print("M51 Whirlpool Galaxy: m", m51_mag, "transit", iso(trj(m51_ra, m51_dec)), "alt", talt(m51_ra, m51_dec))
+print("M51:", vis(m51_ra, m51_dec))
+print("M104 Sombrero Galaxy: m", m104_mag, "transit", iso(trj(m104_ra, m104_dec)), "alt", talt(m104_ra, m104_dec))
+print("M104:", vis(m104_ra, m104_dec))
+
+/* Self-check: the transit altitude of M13 must equal the meridian
+formula 90 - |lat - dec| (the same check body-almanac.epher runs on
+Mars). The verdicts also carry the season's lesson: this winter night
+belongs to the spring galaxies (M104 and M51 transit near mid-window)
+while Orion's nebula is a near-miss, on the meridian minutes before
+the sky is properly dark - its night comes a month earlier. */
+print("M13 alt check:", talt(m13_ra, m13_dec), "vs", 90 - abs(lat - dec_of(m13_ra, m13_dec, trj(m13_ra, m13_dec))))
+
+/* ---- expected output
+= 51.4779
+= 0
+= {2026, 2, 25}
+= -18
+= 10.6845833333
+= 41.2691666667
+= 3.4
+= 83.8220833333
+= -1213/225
+= 4
+= 250.4225
+= 36.4602777778
+= 5.8
+= 56.75
+= 1447/60
+= 1.6
+= 283.399583333
+= 7927/240
+= 8.8
+= 299.90125
+= 20449/900
+= 7.4
+= 202.469583333
+= 47.1952777778
+= 8.4
+= 190.01
+= -11.6230555556
+= 8
+= 2461097
+= 2461097.00926
+= 1882739977/765
+= 1875356149/762
+= 566052473/230
+= dark window: 2026-02-25T19:24:06 to 2026-02-26T05:00:31
+= M31 Andromeda Galaxy: m 3.4 transit 2026-02-25T14:22:19 alt 79.9342361639
+= M31: transits outside the window
+= M42 Orion Nebula: m 4 transit 2026-02-25T19:13:55 alt 33.1462497237
+= M42: transits outside the window
+= M13 Hercules Cluster: m 5.8 transit 2026-02-26T06:18:09 alt 74.9338735803
+= M13: transits outside the window
+= M45 Pleiades: m 1.6 transit 2026-02-25T17:26:12 alt 62.7181729482
+= M45: transits outside the window
+= M57 Ring Nebula: m 8.8 transit 2026-02-26T08:29:44 alt 71.5853062477
+= M57: transits outside the window
+= M27 Dumbbell Nebula: m 7.4 transit 2026-02-26T09:35:43 alt 61.3160999091
+= M27: transits outside the window
+= M51 Whirlpool Galaxy: m 8.4 transit 2026-02-26T03:07:02 alt 85.5829773359
+= M51: in the dark window
+= M104 Sombrero Galaxy: m 8 transit 2026-02-26T02:17:35 alt 26.7557501363
+= M104: in the dark window
+= M13 alt check: 74.9338735803 vs 74.9338735803
+*/

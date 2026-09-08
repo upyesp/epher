@@ -1,0 +1,74 @@
+/* ============================================================================
+bv-temperature.epher -- a star's B-V colour index into its effective
+temperature
+
+The B-V colour index measures how much brighter a star is in blue
+than in visual light, which tracks its surface temperature. The
+interpolation law used here is the closed fit of F. J. Ballesteros,
+"New insights into black bodies" (EPL 97, 34008, 2012):
+
+  T = 4600 * (1 / (0.92 (B-V) + 1.7) + 1 / (0.92 (B-V) + 0.62))
+
+a two-term rational (Pade) approximation to the Planck curve that needs no
+tables - the reason the Z-Routines community programs carry it.
+The table runs from a hot white A-star to a red supergiant.
+
+Accuracy and domain, stated honestly: the fit claims validity from
+about 3700 K to 50000 K (B-V from about -0.33 to 1.5), and inside
+that it is within a few per cent of measured temperatures for normal
+stars (the Sun lands at 5778 K against the accepted 5772 K). It runs
+hot for cool M dwarfs and it is a colour-mean: variable and dust-
+reddened stars like Betelgeuse scatter about the fit.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/bv-temperature.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\bv-temperature.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/bv-temperature.epher
+In the REPL:             load one of the paths above
+
+Knobs: the B-V values below (SIMBAD, mostly Johnson et al. photometry).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const bv_sir = 0       // Sirius A, B-V (the zero point of the scale)
+const bv_proc = 0.42   // Procyon
+const bv_sun = 0.65    // the Sun
+const bv_arc = 1.23    // Arcturus
+const bv_barnard = 1.57  // Barnard's Star, an M dwarf
+const bv_bet = 1.85    // Betelgeuse, a red supergiant, B-V variable
+
+// ---- Ballesteros 2012, EPL 97, 34008 ------------------------------------------
+def bvt(bv) = 4600 * (1 / (0.92 * bv + 1.7) + 1 / (0.92 * bv + 0.62))
+
+// ---- results: the famous-star table -------------------------------------------
+print("Sirius A: B-V", bv_sir, "->", bvt(bv_sir), "K")
+print("Procyon: B-V", bv_proc, "->", bvt(bv_proc), "K")
+print("Sun: B-V", bv_sun, "->", bvt(bv_sun), "K")
+print("Arcturus: B-V", bv_arc, "->", bvt(bv_arc), "K")
+print("Barnard's Star: B-V", bv_barnard, "->", bvt(bv_barnard), "K")
+print("Betelgeuse: B-V", bv_bet, "->", bvt(bv_bet), "K")
+
+/* Cross-checks the reader can carry out: the Sun's 5778 K here sits
+against the accepted 5772 K (within 0.1 per cent), Arcturus lands near
+its measured 4300 K, and Sirius's ~10100 K is high against its 9940 K
+- the fit's zero-point stretch at B-V = 0. wien-peak.epher turns any
+of these temperatures into a peak wavelength. */
+
+// The fit's domain, flagged in the output as the header promises:
+print("domain: the fit claims 3700-50000 K; cool M dwarfs read hot")
+
+/* ---- expected output
+= 0
+= 0.42
+= 0.65
+= 1.23
+= 1.57
+= 1.85
+= Sirius A: B-V 0 -> 5336000/527 K
+= Procyon: B-V 0.42 -> 6775.50181903 K
+= Sun: B-V 0.65 -> 5778.42373107 K
+= Arcturus: B-V 1.23 -> 4250.69359627 K
+= Barnard's Star: B-V 1.57 -> 3691.16854287 K
+= Betelgeuse: B-V 1.85 -> 3333.19661485 K
+= domain: the fit claims 3700-50000 K; cool M dwarfs read hot
+*/

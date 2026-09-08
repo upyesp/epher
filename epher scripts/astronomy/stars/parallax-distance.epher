@@ -1,0 +1,72 @@
+/* ============================================================================
+parallax-distance.epher -- a star's distance from its annual parallax
+
+The annual parallax p is the half-angle the Earth's orbit subtends at
+the star, so the distance follows from simple trigonometry: at one
+parsec the parallax is one arcsecond, hence d = 1/p parsecs (d in pc,
+p in arcseconds, the classroom formula Meeus ch. 56 recalls). The pc
+and ly constants (guide 1.18) convert to light-years. This is the
+oldest geometric rung of the cosmic distance ladder (Bessel, 61 Cygni,
+1838) and the whole reason the parsec exists.
+
+Accuracy: exact within the model; real error is the parallax error
+itself, and the table's three stars carry very different ones.
+
+The vintage of each value, stated honestly:
+  Proxima Centauri  0.7687"  CTIO/RECONS trigonometric program,
+                             consistent with Gaia DR2's 0.76851" - good
+                             to about 0.0001", so the distance is solid.
+  Sirius A          0.379"   Hipparcos (van Leeuwen 2007); Sirius is
+                             too bright for Gaia, so Hipparcos still
+                             stands - good to about 0.001".
+  Betelgeuse        0.005"   an order-of-magnitude figure: Hipparcos
+                             gave 6.55 +/- 0.83 mas, interferometric
+                             and HST estimates scatter from about 4.5
+                             to 6.5 mas, so the distance here is
+                             uncertain by roughly half its value.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/parallax-distance.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\parallax-distance.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/parallax-distance.epher
+In the REPL:             load one of the paths above
+
+Knobs: the three parallaxes below, in arcseconds.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const prox_par = 0.7687   // Proxima Centauri, arcsec (CTIO/RECONS, Gaia-consistent)
+const sir_par = 0.379     // Sirius A, arcsec (Hipparcos, van Leeuwen 2007)
+const bet_par = 0.005     // Betelgeuse, arcsec (order-of-magnitude; see header)
+
+// ---- model: d = 1/p with the pc and ly constants -------------------------------
+def dpc(p) = 1 / p                   // parsecs from parallax in arcsec
+def dly(p) = dpc(p) * pc / ly        // light-years (pc, ly are metres, guide 1.18)
+
+// ---- results ------------------------------------------------------------------
+print("Proxima Centauri:", dpc(prox_par), "pc =", dly(prox_par), "ly")
+print("Sirius A:", dpc(sir_par), "pc =", dly(sir_par), "ly")
+print("Betelgeuse (uncertain):", dpc(bet_par), "pc =", dly(bet_par), "ly")
+
+// The rule of thumb the law gives: a parallax of 0.1 arcsec is always
+// 10 parsecs, whatever the star. Doubling the parallax halves the
+// distance, which the last line shows on Proxima.
+print("rule of thumb: p = 0.1 arcsec means", dpc(0.1), "pc")
+print("halve Proxima's parallax, distance doubles:", dpc(prox_par / 2), "pc")
+
+/* Self-check: Proxima must land near the 4.24 ly of the almanacs
+(it is the nearest known star) and Sirius near its 8.6 ly; both do,
+which is the whole table cross-checked against the literature. The
+Betelgeuse line cannot be checked that way - its distance is the
+disputed one - hence the uncertainty carried in the header. */
+
+/* ---- expected output
+= 0.7687
+= 0.379
+= 0.005
+= Proxima Centauri: 1.30089761936 pc = 4.2429605531 ly
+= Sirius A: 1000/379 pc = 8.60570917458 ly
+= Betelgeuse (uncertain): 200 pc = 652.312755433 ly
+= rule of thumb: p = 0.1 arcsec means 10 pc
+= halve Proxima's parallax, distance doubles: 2.60179523871 pc
+*/

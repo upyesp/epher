@@ -127,7 +127,7 @@ window.EPHER_I18N["zh-CN"] = {
   "features-p-programming": "编程面是部分的：有字符串、for 循环和 print；没有键盘输入、文件 I/O 和多返回值。",
   "features-h-unique": "epher 独有的",
   "features-li-orrery": "一个离线太阳系：太阳、月球、行星和冥王星的实时星历——位置、升落时刻、相位、星等——还有一个可以动的 3D 太阳系仪。九者中没有一家有。",
-  "features-li-scripts": "每个安装器都带 347 个脚本——月相、矩阵、财务、天文——每个脚本都有随引擎每次变更而验证的输出记录。",
+  "features-li-scripts": "每个安装器都带 357 个脚本——月相、矩阵、财务、天文——每个脚本都有随引擎每次变更而验证的输出记录。",
   "features-li-guide": "完整用户指南支持八种语言，网页应用、桌面应用、终端和本网站完全一致。",
   "features-li-seeded": "随机数带种子：同一种子在所有前端重放出同样的抽取，课堂练习可以精确复现。",
   "features-li-jd": "天文日期双向转换：儒略日可以读回公历日期和时钟时间 (date、time、iso)。",

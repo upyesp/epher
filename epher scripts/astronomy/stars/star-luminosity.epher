@@ -1,0 +1,85 @@
+/* ============================================================================
+star-luminosity.epher -- a star's luminosity from its apparent
+magnitude and distance
+
+Two steps of the classic chain (Meeus ch. 56 carries the magnitude
+law; the distance modulus is standard photometry): the distance
+modulus m - M = 5 log10(d / 10 pc) turns apparent magnitude and
+distance into absolute magnitude M, and the Pogson law against the
+Sun turns M into luminosity, L/Lsun = 10^(0.4 (4.83 - M)), with
+4.83 the Sun's absolute visual magnitude (the knob here) and the
+builtin dist_mod(dm) = 10^(1 + dm/5) pc used as the independent
+cross-check of the first step (its convention: modulus in,
+parsecs out). l_sun converts the final ratio to watts.
+
+Accuracy: exact arithmetic on the inputs; the honest caveat is the
+band. These are VISUAL magnitudes, so the result is visual
+luminosity. Bolometric corrections shift it: the Sun barely (+0.07
+mag), but Betelgeuse radiates most of its power in the infrared (its
+true bolometric output is several times the number below) and M
+dwarfs similarly; hot stars lose ultraviolet flux to the V band too.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/star-luminosity.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\star-luminosity.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/star-luminosity.epher
+In the REPL:             load one of the paths above
+
+Knobs: the Sun's absolute magnitude and each star's apparent
+magnitude and distance (parsecs) below. Sirius/Vega/Proxima
+distances are Hipparcos; Betelgeuse's distance and magnitude are
+both uncertain (see parallax-distance.epher).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const msun_mag = 4.83     // Sun's absolute visual magnitude
+const sir_m = -1.46       // Sirius A, apparent mag
+const sir_d = 2.637       // Sirius A, pc (Hipparcos parallax 0.379")
+const veg_m = 0.03        // Vega, apparent mag (the V=0 definition star)
+const veg_d = 7.68        // Vega, pc (Hipparcos 130.2 mas)
+const bet_m = 0.5         // Betelgeuse, apparent mag (varies 0.0-1.6)
+const bet_d = 168         // Betelgeuse, pc (~548 ly, interferometric; uncertain)
+const prox_m = 11.13      // Proxima Centauri, apparent mag
+const prox_d = 1.301      // Proxima Centauri, pc (0.7687")
+
+// ---- the two-step chain --------------------------------------------------------
+def dabsm(m, d) = m - 5 * log(d / 10)          // absolute magnitude, d in pc
+def lum(M) = 10 ^ (0.4 * (msun_mag - M))       // luminosity in Lsun
+def lumw(M) = l_sun * lum(M)                   // the same in watts (l_sun, 1.18)
+
+// ---- results ------------------------------------------------------------------
+print("Sun check: M 4.83 gives", lum(msun_mag), "Lsun (must be 1)")
+print("Sirius A: M", dabsm(sir_m, sir_d), "L", lum(dabsm(sir_m, sir_d)), "Lsun")
+print("Vega: M", dabsm(veg_m, veg_d), "L", lum(dabsm(veg_m, veg_d)), "Lsun")
+print("Betelgeuse: M", dabsm(bet_m, bet_d), "L", lum(dabsm(bet_m, bet_d)), "Lsun")
+print("Proxima: M", dabsm(prox_m, prox_d), "L", lum(dabsm(prox_m, prox_d)), "Lsun")
+print("Sirius in watts:", lumw(dabsm(sir_m, sir_d)), "W")
+
+/* Independent cross-check of the distance-modulus step with the
+builtin dist_mod (modulus in, parsecs out): fed Sirius's modulus it
+must return the 2.637 pc we started from. The M values also match
+the literature (Sirius 1.43, Vega 0.58, Proxima 15.6). */
+print("dist_mod check, Sirius:", dist_mod(sir_m - dabsm(sir_m, sir_d)), "pc")
+
+// The band honesty, in the output as in the header:
+print("note: visual band; bolometric adds the IR and UV")
+
+/* ---- expected output
+= 4.83
+= -1.46
+= 2.637
+= 0.03
+= 7.68
+= 0.5
+= 168
+= 11.13
+= 1.301
+= Sun check: M 4.83 gives 1 Lsun (must be 1)
+= Sirius A: M 1.43444935103 L 22.814988783 Lsun
+= Vega: M 0.603193899842 L 49.0594234527 Lsun
+= Betelgeuse: M -5.62654640863 L 15227.1478099 Lsun
+= Proxima: M 15.5586135172 L 0.000051115733019 Lsun
+= Sirius in watts: 8733577706116784000000000000 W
+= dist_mod check, Sirius: 2.637 pc
+= note: visual band; bolometric adds the IR and UV
+*/
