@@ -98,9 +98,9 @@ t2 = gsm({jd0 + s2[4] * 2 - 6, jd0 + s2[4] * 2 + 6, jd0 + s2[4] * 2 - 6 + 0.3819
 // ---- results ------------------------------------------------------------------
 print("planet", planet, "searching from", iso(jd0), "(predictor + engine refinement)")
 print("station 1 (direct to retrograde):", iso(t1), "UT")
-print("ecliptic longitude there:", glon(t1), "deg; drift", drift(t1 - 4), "deg/day 4 days before,", drift(t1 + 4), "deg/day 4 days after")
+print("ecliptic longitude there:", round(glon(t1) * 1e9) / 1e9, "deg; drift", round(drift(t1 - 4) * 1e10) / 1e10, "deg/day 4 days before,", round(drift(t1 + 4) * 1e10) / 1e10, "deg/day 4 days after")
 print("station 2 (retrograde to direct):", iso(t2), "UT")
-print("ecliptic longitude there:", glon(t2), "deg; drift", drift(t2 - 4), "deg/day 4 days before,", drift(t2 + 4), "deg/day 4 days after")
+print("ecliptic longitude there:", round(glon(t2) * 1e9) / 1e9, "deg; drift", round(drift(t2 - 4) * 1e10) / 1e10, "deg/day 4 days before,", round(drift(t2 + 4) * 1e10) / 1e10, "deg/day 4 days after")
 print("retrograde arc:", iso(t1), "to", iso(t2), "=", t2 - t1, "days")
 
 /* ---- expected output ----
@@ -120,8 +120,8 @@ print("retrograde arc:", iso(t1), "to", iso(t2), "=", t2 - t1, "days")
 = 1252907873/509
 = planet 5 searching from 2026-06-01T00:00:00 (predictor + engine refinement)
 = station 1 (direct to retrograde): 2026-12-13T01:07:05 UT
-= ecliptic longitude there: 147.025031098 deg; drift 0.0130940144344 deg/day 4 days before, -0.013160483569 deg/day 4 days after
+= ecliptic longitude there: 147.025031098 deg; drift 0.0130940144 deg/day 4 days before, -0.0131604836 deg/day 4 days after
 = station 2 (retrograde to direct): 2027-04-13T02:11:33 UT
-= ecliptic longitude there: 136.995458671 deg; drift -0.0126969455398 deg/day 4 days before, 0.0124390786837 deg/day 4 days after
+= ecliptic longitude there: 136.995458671 deg; drift -0.0126969455 deg/day 4 days before, 0.0124390787 deg/day 4 days after
 = retrograde arc: 2026-12-13T01:07:05 to 2027-04-13T02:11:33 = 121.044771885 days
 */
