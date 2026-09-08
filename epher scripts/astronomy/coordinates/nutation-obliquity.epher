@@ -1,0 +1,59 @@
+/* ============================================================================
+nutation-obliquity.epher -- nutation in longitude and obliquity
+
+Computes the nutation of the Earth's axis for a knob date: Delta
+psi (nutation in longitude) and Delta epsilon (nutation in
+obliquity), plus the true obliquity of the ecliptic. The series is
+the classic short one (Duffett-Smith, "Practical Astronomy with
+your Calculator or Spreadsheet": Nutation and the obliquity of the
+ecliptic; Meeus ch. 22 gives the full 63-term version):
+
+  dpsi = -17.20 sin(Omega) - 1.32 sin(2 Ls) - 0.23 sin(2 Lm) + 0.21 sin(2 Omega)
+  deps = +9.20 cos(Omega) + 0.57 cos(2 Ls) + 0.10 cos(2 Lm) - 0.09 cos(2 Omega)
+
+with Omega the mean longitude of the lunar node, Ls the Sun's mean
+longitude and Lm the Moon's mean longitude - all Meeus mean
+elements. The 4-term series is good to about half an arcsecond
+against the full series.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/nutation-obliquity.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\nutation-obliquity.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/nutation-obliquity.epher
+In the REPL:             load one of the paths above
+
+Knob: the date t below (the Meeus ch. 22 worked example date).
+============================================================================ */
+
+// ---- the knob ------------------------------------------------------------------------
+const t = jd(1987, 4, 10, 0)   // Meeus's ch. 22 example: dpsi -3.788, deps +9.380
+
+// ---- mean elements (Meeus ch. 22/25/47), T in Julian centuries ---------------------------
+def wrap(x) = x - 360 * floor(x / 360)
+def T(j) = (j - 2451545) / 36525
+def om(j) = wrap(125.04452 - 1934.136261 * T(j) + 0.0020708 * T(j) ^ 2 + T(j) ^ 3 / 450000)
+def ls(j) = wrap(280.46646 + 36000.76983 * T(j) + 0.0003032 * T(j) ^ 2)
+def lm(j) = wrap(218.3164477 + 481267.88123421 * T(j) - 0.0015786 * T(j) ^ 2 + T(j) ^ 3 / 538841 - T(j) ^ 4 / 65194000)
+def dpsi(j) = -17.20 * sin(rad(om(j))) - 1.32 * sin(rad(2 * ls(j))) - 0.23 * sin(rad(2 * lm(j))) + 0.21 * sin(rad(2 * om(j)))
+def deps(j) = 9.20 * cos(rad(om(j))) + 0.57 * cos(rad(2 * ls(j))) + 0.10 * cos(rad(2 * lm(j))) - 0.09 * cos(rad(2 * om(j)))
+def eps0(j) = 23.4392911 - 46.8150 * T(j) / 3600 - 0.00059 * T(j) ^ 2 / 3600 + 0.001813 * T(j) ^ 3 / 3600
+
+// ---- results ----------------------------------------------------------------------------
+print("at", iso(t))
+print("Delta psi (nutation in longitude):", dpsi(t), "arcsec")
+print("Delta eps (nutation in obliquity):", deps(t), "arcsec")
+print("mean obliquity:", eps0(t), "deg   true obliquity:", eps0(t) + deps(t) / 3600, "deg")
+
+/* Self-check: Meeus ch. 22 works this very date with the full
+series: dpsi = -3.788 arcsec, deps = +9.380 arcsec; the short
+series must sit within an arcsecond of those. */
+print("Meeus example within 1.0 arcsec:", abs(dpsi(t) - -3.788) < 1.0 and abs(deps(t) - 9.380) < 1.0)
+
+/* ---- expected output ----
+= 2446895.5
+= at 1987-04-10T00:00:00
+= Delta psi (nutation in longitude): -3.86276567138 arcsec
+= Delta eps (nutation in obliquity): 9.46798399833 arcsec
+= mean obliquity: 23.4409464795 deg   true obliquity: 23.4435764751 deg
+= Meeus example within 1.0 arcsec: true
+*/

@@ -1,0 +1,49 @@
+/* ============================================================================
+gha-sun.epher -- Greenwich hour angle and declination of the Sun
+
+Prints the Sun's Greenwich hour angle and declination at a knob
+instant, nautical-almanac style - the pair a navigator takes from
+the daily pages to reduce a sight. GHA is the Sun's hour angle
+measured west from Greenwich: with the engine's sidereal clock,
+
+  GHA(sun) = Greenwich apparent sidereal time - right ascension
+
+which this script reads as lst(jd, 0) (hours) and ra(10, jd), then
+prints in the almanac's degrees-and-minutes form (the engine gives
+positions about an arcsecond from JPL Horizons; the GHA is good to
+a fraction of an arcminute of the almanac pages).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/navigation/gha-sun.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\navigation\gha-sun.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/navigation/gha-sun.epher
+In the REPL:             load one of the paths above
+
+Knob: the instant below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------------
+const t = jd(2026, 9, 10, 12)
+
+// ---- the almanac pair -------------------------------------------------------------------
+gha = 15 * lst(t, 0) - ra(10, t)
+def wrap(x) = x - 360 * floor(x / 360)
+ghaw = wrap(gha)
+print("at", iso(t))
+print("GHA:", deg2dms(ghaw), "(", ghaw, "deg )")
+print("Dec:", deg2dms(decl(10, t)))
+
+/* Self-check: the Sun's GHA grows by about 15.041 degrees per
+hour, and at Greenwich apparent noon it reads near zero (within
+the equation of time). */
+print("GHA one hour later minus now:", wrap(15 * lst(t + 1 / 24, 0) - ra(10, t + 1 / 24)) - ghaw, "deg")
+
+/* ---- expected output ----
+= 2461294
+= 0.75420171633
+= 0.75420171633
+= at 2026-09-10T12:00:00
+= GHA: 0° 45' 15" ( 0.75420171633 deg )
+= Dec: 4° 49' 10"
+= GHA one hour later minus now: 15.0036353123 deg
+*/

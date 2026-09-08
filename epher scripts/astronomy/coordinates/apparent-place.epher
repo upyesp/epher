@@ -1,0 +1,132 @@
+/* ============================================================================
+apparent-place.epher -- a catalog star reduced to its place of date
+
+Reduces a J2000 catalog position to its apparent place of date
+through the three classical steps (Meeus ch. 21 and 23): proper
+motion over the elapsed years (knobbed, Vega's Hipparcos values by
+default), precession from J2000 to the mean equinox of date (the
+three-angle method of ch. 21), and the two wobbles - nutation
+(the short series of nutation-obliquity.epher applied as small
+corrections) and annual aberration (the vector displacement
+toward the apex, as in aberration-fix.epher). Light deflection and
+annual parallax are omitted (Vega: deflection ~4 mas, parallax
+~0.13 arcsec - stated, not applied).
+
+Accuracy: precession is rigorous; the short nutation series costs
+about half an arcsecond and the aberration is applied in full, so
+the result is good to ~1 arcsec against a full apparent-place
+reduction - enough to point a telescope.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/apparent-place.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\apparent-place.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/apparent-place.epher
+In the REPL:             load one of the paths above
+
+Knobs: the catalog position, proper motion (arcsec per year, 0 to
+hold the star fixed), and the date below.
+============================================================================ */
+
+// ---- the knobs -------------------------------------------------------------------------
+const ara = 279.23473479      // Vega J2000, degrees
+const ade = 38.78368896
+const pma = 0.201             // arcsec/yr (Hipparcos)
+const pmd = 0.286
+const t = jd(2026, 9, 10, 0)
+
+// ---- helpers ------------------------------------------------------------------------------
+def wrap(x) = x - 360 * floor(x / 360)
+def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
+def T(j) = (j - 2451545) / 36525
+def eps0(j) = 23.4392911 - 46.8150 * T(j) / 3600 - 0.00059 * T(j) ^ 2 / 3600 + 0.001813 * T(j) ^ 3 / 3600
+def om(j) = wrap(125.04452 - 1934.136261 * T(j) + 0.0020708 * T(j) ^ 2)
+def ls(j) = wrap(280.46646 + 36000.76983 * T(j) + 0.0003032 * T(j) ^ 2)
+def lm(j) = wrap(218.3164477 + 481267.88123421 * T(j) - 0.0015786 * T(j) ^ 2)
+def dpsi(j) = (-17.20 * sin(rad(om(j))) - 1.32 * sin(rad(2 * ls(j))) - 0.23 * sin(rad(2 * lm(j))) + 0.21 * sin(rad(2 * om(j)))) / 3600
+def deps(j) = (9.20 * cos(rad(om(j))) + 0.57 * cos(rad(2 * ls(j))) + 0.10 * cos(rad(2 * lm(j))) - 0.09 * cos(rad(2 * om(j)))) / 3600
+def sunlon(j) = wrap(280.46646 + 36000.76983 * T(j) + 0.0003032 * T(j) ^ 2 + (1.914602 - 0.004817 * T(j)) * sin(rad(357.52911 + 35999.05029 * T(j) - 0.0001537 * T(j) ^ 2)) + 0.019993 * sin(rad(2 * (357.52911 + 35999.05029 * T(j) - 0.0001537 * T(j) ^ 2))))
+
+// ---- step 1: proper motion and precession J2000 -> mean equinox of date -------------------
+dy = (t - 2451545) / 365.25
+r0 = ara + pma * dy / 3600 / cos(rad(ade))
+d0 = ade + pmd * dy / 3600
+zc = rad(2306.2181 * T(t) / 3600 + 0.30188 * T(t) ^ 2 / 3600 + 0.017998 * T(t) ^ 3 / 3600)
+z2 = rad(2306.2181 * T(t) / 3600 + 1.09468 * T(t) ^ 2 / 3600 + 0.018203 * T(t) ^ 3 / 3600)
+th = rad(2004.3109 * T(t) / 3600 - 0.42665 * T(t) ^ 2 / 3600 - 0.041833 * T(t) ^ 3 / 3600)
+aa = cos(rad(d0)) * sin(rad(r0) + zc)
+bb = cos(th) * cos(rad(d0)) * cos(rad(r0) + zc) - sin(th) * sin(rad(d0))
+cc = sin(th) * cos(rad(d0)) * cos(rad(r0) + zc) + cos(th) * sin(rad(d0))
+r1 = wrap(deg(atan2(aa, bb)) + deg(z2))
+d1 = deg(asin(cc))
+
+// ---- step 2: nutation (short series) ---------------------------------------------------------
+r2 = r1 + dpsi(t) * (cos(rad(eps0(t))) + sin(rad(eps0(t))) * sin(rad(r1)) * tan(rad(d1))) - deps(t) * cos(rad(r1)) * tan(rad(d1))
+d2 = d1 + dpsi(t) * sin(rad(eps0(t))) * cos(rad(r1)) + deps(t) * sin(rad(r1))
+
+// ---- step 3: annual aberration toward the apex ------------------------------------------------
+def apexra(j) = deg(atan2(sin(rad(sunlon(j) - 90)) * cos(rad(eps0(j))), cos(rad(sunlon(j) - 90))))
+def apexde(j) = deg(asin(sin(rad(sunlon(j) - 90)) * sin(rad(eps0(j)))))
+sx = cos(rad(d2)) * cos(rad(r2))
+sy = cos(rad(d2)) * sin(rad(r2))
+sz = sin(rad(d2))
+ax = cos(rad(apexde(t))) * cos(rad(apexra(t)))
+ay = cos(rad(apexde(t))) * sin(rad(apexra(t)))
+az = sin(rad(apexde(t)))
+kx = sx + 20.49552 / 206265 * ax
+ky = sy + 20.49552 / 206265 * ay
+kz = sz + 20.49552 / 206265 * az
+r3 = wrap(deg(atan2(ky, kx)))
+d3 = deg(atan2(kz, sqrt(kx ^ 2 + ky ^ 2)))
+
+// ---- results ------------------------------------------------------------------------------------
+print("Vega, apparent place at", iso(t))
+print("catalog J2000 (with proper motion): ra", deg2hms(r0), " dec", deg2dms(d0))
+print("precessed to date:                 ra", deg2hms(r1), " dec", deg2dms(d1))
+print("nutated:                           ra", deg2hms(r2), " dec", deg2dms(d2))
+print("apparent (aberration applied):     ra", deg2hms(r3), " dec", deg2dms(d3))
+print("total shift:", spread(r3 - r0) * cos(rad(d0)) * 3600, "arcsec in ra*cos(dec),", (d3 - d0) * 3600, "arcsec in dec")
+
+/* Self-check: the two wobbles sit in their physical envelopes -
+nutation under about 17 arcsec (its 4-term series is well under)
+and the aberration magnitude under kappa = 20.5 arcsec; the check
+prints the aberration component alone. */
+print("aberration component:", sqrt((spread(r3 - r2) * cos(rad(d2)) * 3600) ^ 2 + ((d3 - d2) * 3600) ^ 2), "arcsec (must be < 20.5)")
+
+/* ---- expected output ----
+= 279.23473479
+= 38.78368896
+= 0.201
+= 0.286
+= 2461293.5
+= 12998/487
+= 279.236646473
+= 38.7858093273
+= 0.00298427079305
+= 0.00298454461208
+= 0.00259335640609
+= -0.769009260155
+= 0.125788977082
+= 0.626739093276
+= 279.46076191
+= 38.8099464211
+= 279.462027647
+= 38.8078147979
+= 0.128104368986
+= -0.768650582543
+= 0.626710102522
+= 0.21947794177
+= 0.89513502831
+= 0.388024115447
+= 0.12812617741
+= -0.768561637458
+= 0.626748658535
+= 279.464684726
+= 38.8125580461
+= Vega, apparent place at 2026-09-10T00:00:00
+= catalog J2000 (with proper motion): ra 18h 36m 57s  dec 38° 47' 9"
+= precessed to date:                 ra 18h 37m 51s  dec 38° 48' 36"
+= nutated:                           ra 18h 37m 51s  dec 38° 48' 28"
+= apparent (aberration applied):     ra 18h 37m 52s  dec 38° 48' 45"
+= total shift: 639.915307646 arcsec in ra*cos(dec), 96.2953875344 arcsec in dec
+= aberration component: 18.6317016412 arcsec (must be < 20.5)
+*/

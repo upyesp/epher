@@ -1,0 +1,66 @@
+/* ============================================================================
+subsolar-sublunar.epher -- the ground points beneath Sun and Moon
+
+Computes the point on Earth's surface directly below the Sun (the
+subsolar point) and below the Moon (the sublunar point), then the
+great-circle distance between them. Latitude: the geocentric
+declination of the body (the point where the body is at the zenith
+has geocentric latitude equal to the declination; the geodetic
+latitude differs by well under a degree). Longitude: the meridian
+whose local sidereal time equals the body's right ascension, i.e.
+lon = ra - 15 * GMST hours, wrapped to +/-180 degrees east.
+
+Accuracy: positions arcsecond-grade; the stated latitude
+simplification (geocentric vs geodetic, and for the Moon a
+topocentric shift of up to ~1 degree) dominates - the points are
+good to about a degree, fine for the "who is overhead right now"
+question the weather-satellite apps answer for the Sun.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/subsolar-sublunar.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\subsolar-sublunar.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/subsolar-sublunar.epher
+In the REPL:             load one of the paths above
+
+Knobs: the instant t below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const t = jd(2026, 9, 10, 22)
+
+// ---- helpers ----------------------------------------------------------------------
+def wrap(x) = x - 360 * floor(x / 360)
+def lonof(ar) = if wrap(ar - 15 * lst(t, 0)) > 180 then wrap(ar - 15 * lst(t, 0)) - 360 else wrap(ar - 15 * lst(t, 0))  // east positive
+def sep(a1, d1, a2, d2) = deg(acos(sin(rad(d1)) * sin(rad(d2)) + cos(rad(d1)) * cos(rad(d2)) * cos(rad(a1 - a2))))
+
+// ---- the two points ----------------------------------------------------------------
+sunra = ra(10, t)
+sunde = decl(10, t)
+moonra = ra(11, t)
+moonde = decl(11, t)
+
+print("at", iso(t))
+print("subsolar point:  lat", sunde, " lon", lonof(sunra), "(east positive)")
+print("sublunar point:  lat", moonde, " lon", lonof(moonra), "(east positive)")
+print("separation:", sep(lonof(sunra), sunde, lonof(moonra), moonde), "deg on the sphere")
+
+/* Self-check: the subsolar longitude must be near -15 * (12:00 - UT)
++ equation-of-time terms at the instant; cheaper and stronger: the
+Sun is overhead only where its hour angle vanishes, so the subsolar
+point's local sidereal time equals the Sun's right ascension - the
+construction above guarantees that by definition. The printed
+sanity line is the sublunar point's LST vs the Moon's ra. */
+print("sublunar LST:", lst(t, lonof(moonra)), "h  vs Moon ra:", moonra / 15, "h")
+
+/* ---- expected output ----
+= 29535533/12
+= 169.159366232
+= 4.661386822
+= 165.929578333
+= 4.492071972
+= at 2026-09-10T22:00:00
+= subsolar point:  lat 4.661386822  lon -150.790596618 (east positive)
+= sublunar point:  lat 4.492071972  lon -154.020384517 (east positive)
+= separation: 3.22393450336 deg on the sphere
+= sublunar LST: 11.0619718889 h  vs Moon ra: 11.0619718889 h
+*/

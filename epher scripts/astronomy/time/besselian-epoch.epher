@@ -1,0 +1,53 @@
+/* ============================================================================
+besselian-epoch.epher -- Besselian years and Julian dates
+
+Converts between the Besselian epochs that old catalogues use
+(B1875, B1900, B1950 - the 1950 positions of the Palomar Sky Atlas
+and of a generation of atlases) and Julian dates. A Besselian year
+is a tropical year of 365.242198781 days, counted from the
+Besselian epoch of 1900.0 at JD 2415020.31352:
+
+  B = 1900 + (jd - 2415020.31352) / 365.242198781
+
+so B1950.0 falls on JD 2433282.4235. Compare the Julian EPOCHS
+(J2000.0 = JD 2451545.0 exactly, the modern frame): J2000.0 reads
+Besselian 2000.001278, because a Besselian year is the tropical
+year, 0.001278 years (about 11 hours) shorter than the Julian year
+the modern epochs count - mix the two epoch types up and old and
+new catalogues disagree by the precession of that span.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/besselian-epoch.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\besselian-epoch.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/besselian-epoch.epher
+In the REPL:             load one of the paths above
+
+Knobs: the date below.
+============================================================================ */
+
+// ---- the knobs -------------------------------------------------------------------------
+const t = jd(2026, 9, 10, 0)
+
+// ---- the conversions ---------------------------------------------------------------------
+b = 1900 + (t - 2415020.31352) / 365.242198781
+tb = 2415020.31352 + 365.242198781 * (b - 1900)
+
+print("JD", t, "is Besselian year", b)
+print("back to JD:", tb, " (difference", tb - t, "d)")
+
+/* Self-checks: the B1950.0 anchor sits at JD 2433282.4235, and
+J2000.0 (the Julian epoch, JD 2451545.0) reads Besselian
+2000.001278 - the 0.001278-year offset between the two epoch
+types. */
+print("B1950.0 anchor residual (d):", 2415020.31352 + 365.242198781 * 50 - 2433282.4235)
+print("J2000.0 in Besselian years:", 1900 + (2451545 - 2415020.31352) / 365.242198781)
+
+/* ---- expected output ----
+= 2461293.5
+= 2026.69178598
+= 2461293.5
+= JD 2461293.5 is Besselian year 2026.69178598
+= back to JD: 2461293.5  (difference 0 d)
+= B1950.0 anchor residual (d): -0.0000409502536058
+= J2000.0 in Besselian years: 2000.00127751
+*/

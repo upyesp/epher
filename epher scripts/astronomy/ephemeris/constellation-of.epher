@@ -1,0 +1,71 @@
+/* ============================================================================
+constellation-of.epher -- which zodiacal constellation a body is in
+
+Prints the constellation of any solar-system body from its ecliptic
+longitude (geocentric; computed from the engine's ra/decl and the
+mean obliquity - see ecliptic-position.epher). The ecliptic crosses
+13 constellations; the bounds below are the traditional band
+boundaries (IAU constellation limits projected onto the ecliptic;
+the commonly quoted values, e.g. the table in Wikipedia's "zodiac"
+article), good to well under a degree on the ecliptic itself.
+
+Accuracy: bounds ~0.5 deg of longitude; engine positions ~1 arcsec -
+the constellation is certain except for a body sitting within a
+few tenths of a degree of a boundary at the instant.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/constellation-of.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\constellation-of.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/constellation-of.epher
+In the REPL:             load one of the paths above
+
+Knobs: the body (guide 1.29 numbering) and the instant t below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const body = 5                 // Jupiter
+const t = jd(2026, 9, 10, 2)
+
+// ---- helpers ----------------------------------------------------------------------
+def wrap(x) = x - 360 * floor(x / 360)
+def epsdeg(j) = 23.4392911 - 46.8150 * ((j - 2451545) / 36525) / 3600 - 0.00059 * ((j - 2451545) / 36525) ^ 2 / 3600 + 0.001813 * ((j - 2451545) / 36525) ^ 3 / 3600
+def eclon(ar, dr) = deg(atan2(sin(rad(ar)) * cos(rad(epsdeg(t))) + tan(rad(dr)) * sin(rad(epsdeg(t))), cos(rad(ar))))
+def cons(l) = if l < 29 then "Pisces" else if l < 53 then "Aries" else if l < 90 then "Taurus" else if l < 118 then "Gemini" else if l < 138 then "Cancer" else if l < 174 then "Leo" else if l < 218 then "Virgo" else if l < 241 then "Libra" else if l < 248 then "Scorpius" else if l < 266 then "Ophiuchus" else if l < 300 then "Sagittarius" else if l < 328 then "Capricornus" else if l < 352 then "Aquarius" else "Pisces"
+
+// ---- results ----------------------------------------------------------------------
+bra = ra(body, t)
+bde = decl(body, t)
+sra = ra(10, t)
+sde = decl(10, t)
+bl = eclon(bra, bde)
+sl = eclon(sra, sde)
+
+print("at", iso(t))
+print("Jupiter ecliptic lon", bl, " ->", cons(bl))
+print("Sun     ecliptic lon", sl, " ->", cons(sl))
+
+/* Self-check: the Sun crosses the September equinox at ecliptic
+longitude 180, inside Virgo (174-218), on 2026-09-22 - check the
+Sun's constellation on that day. */
+eq = september_equinox(2026)
+eqra = ra(10, eq)
+eqde = decl(10, eq)
+print("Sun at the equinox (", iso(eq), "):", cons(eclon(eqra, eqde)))
+
+/* ---- expected output ----
+= 5
+= 29535523/12
+= 138.207853769
+= 16.688116193
+= 168.410710614
+= 4.977535832
+= 135.577543558
+= 167.40045609
+= at 2026-09-10T02:00:00
+= Jupiter ecliptic lon 135.577543558  -> Cancer
+= Sun     ecliptic lon 167.40045609  -> Leo
+= 2252095451/915
+= 179.999982968
+= -0.000039286
+= Sun at the equinox ( 2026-09-23T00:05:30 ): Virgo
+*/

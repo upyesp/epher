@@ -1,0 +1,60 @@
+/* ============================================================================
+rise-set-azimuth.epher -- where a body comes up and goes down
+
+Prints the azimuth of a body's rise and of its set for one place and
+day - the compass numbers a photographer or a radio operator wants
+beside the horizon times (timeanddate prints the same two columns
+beside its rise and set times; Meeus ch. 15 derives them from the
+rise geometry). The azimuths are read off the engine's own event
+instants: rise and set are defined by an altitude crossing, so the
+azimuth at that instant IS the rise (or set) azimuth.
+
+Accuracy: the events land within seconds of the true crossing and the
+azimuth moves well under a degree in that time, so the printed values
+are good to a few hundredths of a degree. The engine's convention is
+apparent altitude: the altitude at the event reads about -0.83 deg
+for the Moon (-34 arcmin of standard refraction minus the Moon's
+semidiameter) and about -0.57 deg for the Sun.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/rise-set-azimuth.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\rise-set-azimuth.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/rise-set-azimuth.epher
+In the REPL:             load one of the paths above
+
+Knobs: the body (guide 1.29 numbering), the day t and the place below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const body = 11                 // Moon
+const t = jd(2026, 9, 10, 0)    // the local day
+const lat = 51.4779             // Greenwich
+const lon = 0
+
+// ---- the events and their compass bearings --------------------------------------
+tr = rise(body, t, lat, lon)
+ts = set(body, t, lat, lon)
+azr = az(body, tr, lat, lon)
+azs = az(body, ts, lat, lon)
+
+print("rises", iso(tr), "at azimuth", azr)
+print("sets  ", iso(ts), "at azimuth", azs)
+
+/* Self-check: at the event instant the altitude must read about
+-0.83 deg for the Moon, i.e. the upper limb on the apparent horizon
+(-34 arcmin refraction minus the semidiameter). */
+print("altitude at rise (about -0.83 for the Moon):", alt(body, tr, lat, lon))
+
+/* ---- expected output ----
+= 11
+= 2461293.5
+= 51.4779
+= 0
+= 435648982/177
+= 1228185832/499
+= 75.3570601
+= 278.7558128
+= rises 2026-09-10T04:24:24 at azimuth 75.3570601
+= sets   2026-09-10T18:03:36 at azimuth 278.7558128
+= altitude at rise (about -0.83 for the Moon): -0.8333433
+*/

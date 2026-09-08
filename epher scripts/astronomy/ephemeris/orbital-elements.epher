@@ -1,0 +1,125 @@
+/* ============================================================================
+orbital-elements.epher -- the mean orbital elements of the planets
+
+Prints the mean Keplerian orbital elements of the seven classic
+planets for a knob date: semi-major axis a (AU), eccentricity e,
+inclination i, mean longitude L, longitude of perihelion and
+longitude of the ascending node (degrees), from the epoch J2000
+values and per-century rates of Meeus, "Astronomical Algorithms"
+2nd ed., table 31.A (valid 1800-2050):
+
+  element(T) = element(2000) + rate * T,  T in Julian centuries
+
+These are the elements behind the hand-computed ephemerides of the
+chapter 32-33 elliptic-motion reduction (see planet-by-hand); the
+table is the classic one every almanac page reproduces. One quirk
+of the printed table is kept faithfully: the EARTH row's L rate is
+quoted in arcseconds per century (129597740.63) where every other
+row is in degrees - the script divides that one rate by 3600.
+
+Accuracy: the linear elements reproduce the true positions to
+about an arcminute over the table's validity range; the table is
+quoted as printed.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/orbital-elements.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\orbital-elements.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/orbital-elements.epher
+In the REPL:             load one of the paths above
+
+Knob: the date t below (as a JD from jd(...)).
+============================================================================ */
+
+// ---- the knob ---------------------------------------------------------------------
+const t = jd(2026, 9, 10, 0)
+
+// ---- table 31.A: {a, e, i, L, long.peri, node} at J2000 and per century -------------
+// a in AU; angles in degrees; the Mercury..Neptune rows are Meeus's as printed.
+const m = {0.387098310, 0.20563175, 7.00498602, 252.25032350, 77.45779628, 48.33076593}
+const v = {0.723329820, 0.00677188, 3.39466189, 181.97970850, 131.60246718, 76.67984255}
+const e = {1.000001018, 0.01670862, -0.00002622, 100.46691572, 102.93005885, 0}
+const r = {1.523710340, 0.09339410, 1.84969142, -4.55343205, -23.94362959, 49.55953891}
+const j = {5.202887000, 0.04838624, 1.30439695, 34.39644051, 14.72847983, 100.47390909}
+const s = {9.536675940, 0.05386179, 2.48599187, 49.95424423, 92.59887831, 113.66242448}
+const u = {19.189164640, 0.04725744, 0.77263783, 313.23810451, 170.95427630, 74.01692503}
+const n = {30.069922760, 0.00859048, 1.77004347, -55.12002969, 44.96476227, 131.78422574}
+// per-century rates: {a, e, i, L, long.peri, node}
+const mr = {0, 0.00001906, -0.00594749, 149472.67411175, 0.16047689, -0.12534081}
+const vr = {0, -0.00004107, -0.00083405, 58517.81560260, 0.00268329, -0.27769418}
+const er = {0, -0.00004392, -0.01294668, 129597740.62963260, 0.32327364, 0}
+const rr = {0, 0.00007882, -0.00813131, 19140.30268499, 0.44441088, -0.29257343}
+const jr = {0, -0.00013253, -0.00183714, 3034.74612775, 0.21252668, 0.20469106}
+const sr = {0, -0.00050991, 0.00193609, 1222.49362201, -0.41897216, -0.28867794}
+const ur = {0, -0.00004397, -0.00242939, 428.48202785, 0.40805281, 0.04240589}
+const nr = {0, 0.00005105, 0.00035372, 218.45945325, -0.32241464, -0.00508664}
+
+// ---- helpers -------------------------------------------------------------------------
+def wrap(x) = x - 360 * floor(x / 360)
+def T(j) = (j - 2451545) / 36525
+def ev(el, rate) = el + rate * T(t)     // elementwise: value at the knob date
+
+// ---- the table: two lines per planet ---------------------------------------------------
+print("mean orbital elements at", iso(t), "(J2000 values + table 31.A rates)")
+print("a in AU; e dimensionless; angles in degrees")
+print("Mercury  a", ev(m, mr)[1], " e", ev(m, mr)[2], " i", ev(m, mr)[3])
+print("         L", wrap(ev(m, mr)[4]), " peri", wrap(ev(m, mr)[5]), " node", wrap(ev(m, mr)[6]))
+print("Venus    a", ev(v, vr)[1], " e", ev(v, vr)[2], " i", ev(v, vr)[3])
+print("         L", wrap(ev(v, vr)[4]), " peri", wrap(ev(v, vr)[5]), " node", wrap(ev(v, vr)[6]))
+print("Earth    a", ev(e, er)[1], " e", ev(e, er)[2], " i", ev(e, er)[3])
+print("         L", wrap(e[4] + er[4] * T(t) / 3600), " peri", wrap(ev(e, er)[5]), " node", wrap(ev(e, er)[6]))
+print("Mars     a", ev(r, rr)[1], " e", ev(r, rr)[2], " i", ev(r, rr)[3])
+print("         L", wrap(ev(r, rr)[4]), " peri", wrap(ev(r, rr)[5]), " node", wrap(ev(r, rr)[6]))
+print("Jupiter  a", ev(j, jr)[1], " e", ev(j, jr)[2], " i", ev(j, jr)[3])
+print("         L", wrap(ev(j, jr)[4]), " peri", wrap(ev(j, jr)[5]), " node", wrap(ev(j, jr)[6]))
+print("Saturn   a", ev(s, sr)[1], " e", ev(s, sr)[2], " i", ev(s, sr)[3])
+print("         L", wrap(ev(s, sr)[4]), " peri", wrap(ev(s, sr)[5]), " node", wrap(ev(s, sr)[6]))
+print("Uranus   a", ev(u, ur)[1], " e", ev(u, ur)[2], " i", ev(u, ur)[3])
+print("         L", wrap(ev(u, ur)[4]), " peri", wrap(ev(u, ur)[5]), " node", wrap(ev(u, ur)[6]))
+print("Neptune  a", ev(n, nr)[1], " e", ev(n, nr)[2], " i", ev(n, nr)[3])
+print("         L", wrap(ev(n, nr)[4]), " peri", wrap(ev(n, nr)[5]), " node", wrap(ev(n, nr)[6]))
+
+/* Self-checks. The Earth row must reproduce the well-known J2000
+values (a ~ 1.000000 AU, e ~ 0.01671, L near 100.5 deg, peri near
+102.9 deg, node 0), and its L rate after the arcsecond division
+must be 35999.37 deg/cy - the 360 deg per sidereal year the
+calendar pages quote. */
+print("Earth L rate (deg per century):", er[4] / 3600)
+
+/* ---- expected output ----
+= 2461293.5
+= {0.38709831, 0.20563175, 7.00498602, 252.2503235, 77.45779628, 48.33076593}
+= {0.72332982, 0.00677188, 3.39466189, 181.9797085, 131.60246718, 76.67984255}
+= {1.000001018, 0.01670862, -0.00002622, 100.46691572, 102.93005885, 0}
+= {1.52371034, 0.0933941, 1.84969142, -4.55343205, -23.94362959, 49.55953891}
+= {5.202887, 0.04838624, 1.30439695, 34.39644051, 14.72847983, 100.47390909}
+= {9.53667594, 0.05386179, 2.48599187, 49.95424423, 92.59887831, 113.66242448}
+= {19.18916464, 0.04725744, 0.77263783, 313.23810451, 170.9542763, 74.01692503}
+= {30.06992276, 0.00859048, 1.77004347, -55.12002969, 44.96476227, 131.78422574}
+= {0, 0.00001906, -0.00594749, 149472.674112, 0.16047689, -0.12534081}
+= {0, -0.00004107, -0.00083405, 58517.8156026, 0.00268329, -0.27769418}
+= {0, -0.00004392, -0.01294668, 3499138997/27, 0.32327364, 0}
+= {0, 0.00007882, -0.00813131, 19140.302685, 0.44441088, -0.29257343}
+= {0, -0.00013253, -0.00183714, 3034.74612775, 0.21252668, 0.20469106}
+= {0, -0.00050991, 0.00193609, 1222.49362201, -0.41897216, -0.28867794}
+= {0, -0.00004397, -0.00242939, 428.48202785, 0.40805281, 0.04240589}
+= {0, 0.00005105, 0.00035372, 218.45945325, -0.32241464, -0.00508664}
+= mean orbital elements at 2026-09-10T00:00:00 (J2000 values + table 31.A rates)
+= a in AU; e dimensionless; angles in degrees
+= Mercury  a 0.38709831  e 0.205636837102  i 7.00339863858
+=          L 186.414966303  peri 77.5006274631  node 48.297312545
+= Venus    a 0.72332982  e 0.0067609184423  i 3.39443928257
+=          L 320.348644898  peri 131.603183348  node 76.6057261444
+= Earth    a 1.000001018  e 0.0166968977791  i -0.00348168091663
+=          L 348.677232307  peri 103.016340385  node 0
+= Mars     a 1.52371034  e 0.0934151370094  i 1.84752117837
+=          L 63.981563833  peri 336.1749834  node 49.4814512418
+= Jupiter  a 5.202887  e 0.0483508678246  i 1.30390661847
+=          L 124.368312553  peri 14.78520307  node 100.528541008
+= Saturn   a 9.53667594  e 0.0537256953351  i 2.48650861123
+=          L 16.2370388683  peri 92.4870548986  node 113.585376516
+= Uranus   a 19.18916464  e 0.0472457044341  i 0.771989427306
+=          L 67.5996937912  peri 171.063185344  node 74.0282431359
+= Neptune  a 30.06992276  e 0.00860410521355  i 1.77013787765
+=          L 3.18666380781  peri 44.8787100012  node 131.782868119
+= Earth L rate (deg per century): 35999.3723971
+*/

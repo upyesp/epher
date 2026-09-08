@@ -1,0 +1,69 @@
+/* ============================================================================
+parallactic-angle.epher -- the parallactic angle of an object
+
+Prints the parallactic angle q of a body at one place and instant:
+the angle at the body between the direction to the celestial north
+pole and the direction to the zenith, measured through east - the
+angle that tells which way the horizon tilts under the field, the
+one an imager of planets needs for field rotation and that names
+the "parallactic" component of refraction and dispersion. The
+formula (Meeus ch. 14; Duffett-Smith, "The parallactic angle"):
+
+  tan(q) = sin(H) / (tan(phi) cos(delta) - sin(delta) cos(H))
+
+with H the local hour angle. q runs 0..180 through east when the
+object transits south of the zenith (phi > delta) and -180..0
+through west when it transits north; exactly on the meridian q is
+0 or 180 - the check below.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/parallactic-angle.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\parallactic-angle.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/parallactic-angle.epher
+In the REPL:             load one of the paths above
+
+Knobs: the body, the instant and the place below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------------
+const body = 4              // Mars
+const t = jd(2026, 9, 10, 21)
+const lat = 51.4779         // Greenwich
+const lon = 0
+
+// ---- helpers --------------------------------------------------------------------------
+def wrap(x) = x - 360 * floor(x / 360)
+def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
+def qa(H, phi, de) = deg(atan2(sin(rad(H)), tan(rad(phi)) * cos(rad(de)) - sin(rad(de)) * cos(rad(H))))
+
+// ---- the angle ---------------------------------------------------------------------------
+bra = ra(body, t)
+bde = decl(body, t)
+h = spread(15 * lst(t, lon) - bra)
+q = qa(h, lat, bde)
+
+print("at", iso(t), "lat", lat, "lon", lon)
+print("body hour angle:", h, "deg")
+print("parallactic angle:", q, "deg")
+
+/* Self-check: on the meridian (hour angle 0) the parallactic angle
+is 0 or 180. This object transits south of the zenith (its
+declination is below the latitude), and for such a transit both
+the pole and the zenith lie north of the object - so q must read
+0, not 180. */
+print("q on the meridian (expect 0, south transit):", qa(0, lat, bde), "deg")
+
+/* ---- expected output ----
+= 4
+= 2461294.375
+= 51.4779
+= 0
+= 111.301826937
+= 22.6874052
+= -166.392931663
+= -8.72004300144
+= at 2026-09-10T21:00:00 lat 51.4779 lon 0
+= body hour angle: -166.392931663 deg
+= parallactic angle: -8.72004300144 deg
+= q on the meridian (expect 0, south transit): 0 deg
+*/
