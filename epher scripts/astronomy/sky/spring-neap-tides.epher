@@ -1,0 +1,106 @@
+/* ============================================================================
+spring-neap-tides.epher -- the Moon's and Sun's tides, and the month's dates
+
+Two tidal numbers for a knob month. First the ratio of the Moon's tidal
+pull to the Sun's at a knob date, from the inverse-cube law of tides:
+tidal force goes as the body's mass over the cube of its distance, so
+  F_moon / F_sun = (m_moon / m_sun) * (dist_sun / dist_moon)^3
+with the masses from the built-in constants and the distances from the
+engine's dist accessor. The mean ratio is about 2.2 (Meeus-style
+essays give 2.18); at the dates below the Moon's distance swings it
+between about 2 and 2.6. The ratio is why the Moon rules the tides,
+and why spring tides (Sun and Moon pulling along the same line, at new
+and full moon) are higher than neaps (at first and last quarter, the
+Sun's tide pulls at right angles and subtracts).
+
+Second, the spring and neap dates of the lunation that follows the
+knob date, found by scanning the Moon's phase angle day by day (the
+phase angle is 0 deg at full moon and 180 deg at new): a local minimum
+is a full moon, a local maximum a new moon - the springs - and a
+crossing of 90 deg is a quarter - the neaps, distinguished by the
+direction of the crossing. The instants are refined by interpolation
+between the daily samples, good to about half a day; the exact times
+are the business of full-moons.epher and its sister scripts.
+
+Sources: Newton's inverse-cube tidal law (Principia, Book III), as
+worked through in Jean Meeus, "Mathematical Astronomy Morsels" (the
+spring/neap cycle essays).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/spring-neap-tides.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\spring-neap-tides.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/spring-neap-tides.epher
+In the REPL:             load one of the paths above
+
+Knobs: the start date (the lunation is followed from there) and how
+many days of window the scans may use.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const day = {2026, 6, 1}     // start date: ratio here, lunation followed from here
+const window = 37            // scan days (a lunation is 29.53)
+
+// ---- model ------------------------------------------------------------------
+def p(j) = phase(11, j)      // the Moon's phase angle, deg: 0 at full, 180 at new
+def fu(j, end, pp, cp) = if j > end then -1 else if pp < 90 and cp >= 90 then j else fu(j + 1, end, cp, p(j + 1))
+def fd(j, end, pp, cp) = if j > end then -1 else if pp > 90 and cp <= 90 then j else fd(j + 1, end, cp, p(j + 1))
+def fmax(j, end, pp, cp, np) = if j > end then -1 else if cp >= pp and cp >= np then j else fmax(j + 1, end, cp, np, p(j + 2))
+def fmin(j, end, pp, cp, np) = if j > end then -1 else if cp <= pp and cp <= np then j else fmin(j + 1, end, cp, np, p(j + 2))
+def xt(j) = (j - 1) + (90 - p(j - 1)) / (p(j) - p(j - 1))   // quarter instant by linear interpolation
+def xa(j) = j + 0.5 * (p(j - 1) - p(j + 1)) / (p(j - 1) - 2 * p(j) + p(j + 1))  // extremum by parabola
+
+// ---- the ratio at the knob date -------------------------------------------------
+j0 = jd(day[1], day[2], day[3])
+jend = j0 + window
+r = (m_moon / m_sun) * (dist(10, j0) / dist(11, j0)) ^ 3
+print("Moon:Sun tidal-force ratio at", iso(j0), ":", r)
+print("  (mean ratio about 2.2; the Sun's tide is", 1 / r, "of the Moon's)")
+
+/* ---- the month's spring and neap dates ------------------------------------------
+The lunation's four events in order: last quarter (a neap, the phase
+angle crossing 90 deg upward), new moon (a spring, the maximum), first
+quarter (a neap, crossing downward), full moon (a spring, the
+minimum). Each line carries the event's role. */
+c1 = fu(j0 + 1, jend, p(j0), p(j0 + 1))
+m1 = fmax(c1 + 1, jend, p(c1), p(c1 + 1), p(c1 + 2))
+c2 = fd(m1 + 1, jend, p(m1), p(m1 + 1))
+m2 = fmin(c2 + 1, jend, p(c2), p(c2 + 1), p(c2 + 2))
+t1 = xt(c1)
+t2 = xa(m1)
+t3 = xt(c2)
+t4 = xa(m2)
+print("lunation events from", iso(j0), "(instants to about half a day):")
+print("  neap, last quarter:", iso(t1))
+print("  spring, new moon:", iso(t2))
+print("  neap, first quarter:", iso(t3))
+print("  spring, full moon:", iso(t4))
+
+// Plausibility check against the engine's own illuminated fraction:
+// the lit fraction must be near 0 at the new moon and near 1 at the full.
+print("illuminated fraction at the new moon above:", illum(11, t2))
+print("illuminated fraction at the full moon above:", illum(11, t4))
+
+/* ---- expected output ----
+= {2026, 6, 1}
+= 37
+= 2461192.5
+= 2461229.5
+= 1.92011165835
+= Moon:Sun tidal-force ratio at 2026-06-01T00:00:00 : 1.92011165835
+=   (mean ratio about 2.2; the Sun's tide is 0.520803045828 of the Moon's)
+= 2461200.5
+= 2461206.5
+= 2461213.5
+= 2461221.5
+= 1481642355/602
+= 1917279934/779
+= 1513646243/615
+= 2461221.51118
+= lunation events from 2026-06-01T00:00:00 (instants to about half a day):
+=   neap, last quarter: 2026-06-08T10:12:22
+=   spring, new moon: 2026-06-15T02:10:19
+=   neap, first quarter: 2026-06-21T21:40:41
+=   spring, full moon: 2026-06-30T00:16:06
+= illuminated fraction at the new moon above: 0.0017
+= illuminated fraction at the full moon above: 0.9988
+*/

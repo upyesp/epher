@@ -1,0 +1,93 @@
+/* ============================================================================
+moon-max-declination.epher -- the month's extreme declinations
+
+Finds the month's maximum and minimum geocentric declination of the
+Moon - when it stands highest and lowest against the stars - by
+scanning the built-in decl accessor (the solar-ephemeris crate,
+ELP-MPP02, JPL-validated; guide 1.16) in the same three cheap stages
+as moon-perigee-apogee.epher: every 2 days across the month (the
+Moon's draconic month is 27.2 days, so each declination extreme has a
+sample within a day), every 6 hours over a 2-day window around each
+coarse extreme, then a parabolic vertex through the best three
+6-hour samples.
+
+The monthly swing is the 18.6-year standstill cycle at work: the
+declination extremes reach about 28.5 deg in a major-standstill year
+and shrink to about 18.3 deg at the minor standstill (see
+lunar-standstill-season.epher). Mid-2026 sits in the aftermath of the
+2024-25 major standstill, so June 2026 swings between +27.9 and -28.0
+deg. Meeus, "Astronomical Algorithms" ch. 52 treats the maximum
+declinations of the Moon with mean elements; here the ephemeris
+itself is scanned, which is why the values are exact to the engine
+and the times carry only the sampling slack.
+
+Accuracy: the declination values are engine-grade, and the 6-hour
+parabolic refinement reads the extreme itself to well under 0.01 deg
+(the curve is very nearly parabolic near its turning point); the
+times are good to a few minutes. The coarse scan compares samples,
+so when a month holds two extremes of one kind (June 2026's two
+southern extremes) the finer one wins the reported value. There is
+no independent builtin to cross-check against: the engine is its
+own source here.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-max-declination.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-max-declination.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-max-declination.epher
+In the REPL:             load one of the paths above
+
+Knobs: `year` and `month` (below: June 2026, whose Moon reaches
++27.99 deg on the 15th and -27.99 deg on the 1st - the month carries
+a second southern extreme, -27.99 deg again near the 29th, and the
+scan reports the deepest).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const year = 2026
+const month = 6
+
+// ---- the scan geometry ----------------------------------------------------------
+const j0 = jd(year, month, 1)                     // 1st of the month, 0h UT
+const d0 = j0 - 3                                 // coarse scan starts 3 days early
+const n = 18                                      // coarse samples, one every 2 days
+
+// ---- declination accessors, deg -------------------------------------------------
+def dv(i) = decl(11, d0 + 2 * i)                  // coarse sample i
+def fv(k, c) = decl(11, c - 1 + 0.25 * k)         // fine sample k, 6-hour steps in a 2-day window around day c
+def cscan(lo, hi, ilo, ihi, i) = if i >= n then {lo, hi, ilo, ihi} else if dv(i) < lo then cscan(dv(i), hi, i, ihi, i + 1) else if dv(i) > hi then cscan(lo, dv(i), ilo, i, i + 1) else cscan(lo, hi, ilo, ihi, i + 1)   // {min, max, argmin, argmax} of the coarse declinations
+def fmin(c, v, iv, k) = if k >= 9 then iv else if fv(k, c) < v then fmin(c, fv(k, c), k, k + 1) else fmin(c, v, iv, k + 1)   // fine scan: index of the smallest sample
+def fmax(c, v, iv, k) = if k >= 9 then iv else if fv(k, c) > v then fmax(c, fv(k, c), k, k + 1) else fmax(c, v, iv, k + 1)   // fine scan: index of the largest sample
+def vtx(c, m) = c - 1 + 0.25 * m + 0.125 * (fv(m - 1, c) - fv(m + 1, c)) / (fv(m - 1, c) - 2 * fv(m, c) + fv(m + 1, c))   // parabolic vertex through fine samples m-1, m, m+1 (JD)
+def dcld(t) = decl(11, j0 + t / 24)               // declination at t hours after the 1st, deg
+
+// ---- results ---------------------------------------------------------------------
+r = cscan(dv(0), dv(0), 0, 0, 1)
+cm = d0 + 2 * r[3]     // the coarse minimum day
+cM = d0 + 2 * r[4]     // the coarse maximum day
+tn = (vtx(cm, fmin(cm, fv(0, cm), 0, 1)) - j0) * 24   // minimum declination, hours after the 1st
+tx = (vtx(cM, fmax(cM, fv(0, cM), 0, 1)) - j0) * 24   // maximum declination, hours after the 1st
+print("minimum declination of", month, "/", year, ":", iso(j0 + tn / 24), "UT:", dcld(tn), "deg")
+print("  in degrees/minutes/seconds:", deg2dms(dcld(tn)))
+print("maximum declination of", month, "/", year, ":", iso(j0 + tx / 24), "UT:", dcld(tx), "deg")
+print("  in degrees/minutes/seconds:", deg2dms(dcld(tx)))
+print("monthly swing:", dcld(tx) - dcld(tn), "deg (the standstill-cycle amplitude in 2026)")
+print("grade: values engine-grade (vertex reading <0.01 deg); times a few minutes")
+
+/* ---- expected output ----
+= 2026
+= 6
+= 2461192.5
+= 2461189.5
+= 18
+= {-27.934162624, 27.339509068, 2, 9}
+= 2461193.5
+= 2461207.5
+= 16.7971925475
+= 341.293696582
+= minimum declination of 6 / 2026 : 2026-06-01T16:47:50 UT: -27.992830996 deg
+=   in degrees/minutes/seconds: -27° 59' 34"
+= maximum declination of 6 / 2026 : 2026-06-15T05:17:37 UT: 27.990237301 deg
+=   in degrees/minutes/seconds: 27° 59' 25"
+= monthly swing: 55.983068297 deg (the standstill-cycle amplitude in 2026)
+= grade: values engine-grade (vertex reading <0.01 deg); times a few minutes
+*/

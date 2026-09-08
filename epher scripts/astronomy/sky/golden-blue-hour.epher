@@ -1,0 +1,110 @@
+/* ============================================================================
+golden-blue-hour.epher -- the photography golden/blue hour for a place
+
+When the warm light happens: the morning and evening spans in which the
+Sun's altitude lies between 6 degrees above the horizon and 4 degrees
+below it - the band the photography apps call the golden hour (with
+the pre-sunrise -4-to-0-degree slice carrying the blue hour tones).
+The script reports the Sun's crossings of -4 deg and +6 deg, morning
+and evening, as ISO date-times in UT, and the length of each band.
+
+The hour-angle machinery is the same as twilight-times.epher: the
+events come from cos(H) = (sin(h0) - sin(lat) sin(dec)) / (cos(lat)
+cos(dec)) at the custom horizons h0 = -4 and +6, with the Sun's
+declination at the day's transit from the built-in accessors, and each
+event time = transit -/+ 4 minutes per degree of hour angle, as UT.
+
+Sources: the USNO/NOAA hour-angle method (see twilight-times.epher)
+and the photography convention used by PhotoPills and timeanddate's
+golden-hour pages: the golden hour window runs from the Sun at -4 deg
+to +6 deg, morning and evening.
+
+Accuracy: about a minute, as in twilight-times.epher. Where a band
+cannot form - the Sun never climbs to +6 deg in a high-latitude winter,
+or never drops below it in summer - the script says so rather than
+printing an event.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/golden-blue-hour.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\golden-blue-hour.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/golden-blue-hour.epher
+In the REPL:             load one of the paths above
+
+Knobs: the place (lat, lon), the polar-test place (latp, lonp) and the
+three dates below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const lat = 51.4779            // Greenwich
+const lon = 0
+const latp = 78.2              // Longyearbyen, Svalbard - the polar test
+const lonp = 15.6
+const day1 = {2026, 6, 21}     // June solstice: the long light
+const day2 = {2026, 12, 21}    // December solstice: the short light
+const day3 = {2026, 12, 21}    // polar night at the polar-test place
+
+// ---- one transit and one declination per date ---------------------------------
+t1 = transit(10, jd(day1[1], day1[2], day1[3]), lat, lon)
+t2 = transit(10, jd(day2[1], day2[2], day2[3]), lat, lon)
+t3 = transit(10, jd(day3[1], day3[2], day3[3]), latp, lonp)
+d1 = decl(10, t1)
+d2 = decl(10, t2)
+d3 = decl(10, t3)
+
+// ---- the hour-angle machinery at a custom horizon h0 --------------------------
+def cx(h0, dec, phi) = (sin(rad(h0)) - sin(rad(phi)) * sin(rad(dec))) / (cos(rad(phi)) * cos(rad(dec)))
+def nom(h0) = if h0 == -4 then "no -4 deg crossing today" else "no +6 deg crossing today"
+def evm(h0, dec, tt, phi) = if abs(cx(h0, dec, phi)) > 1 then nom(h0) else iso(tt - 4 * deg(acos(cx(h0, dec, phi))) / 1440)
+def eve(h0, dec, tt, phi) = if abs(cx(h0, dec, phi)) > 1 then nom(h0) else iso(tt + 4 * deg(acos(cx(h0, dec, phi))) / 1440)
+def dur(h0a, h0b, dec, phi) = (deg(acos(cx(h0a, dec, phi))) - deg(acos(cx(h0b, dec, phi)))) * 4 / 60
+def both(h0a, h0b, dec, phi) = abs(cx(h0a, dec, phi)) <= 1 and abs(cx(h0b, dec, phi)) <= 1
+
+/* ---- results ------------------------------------------------------------------
+Each band starts when the Sun crosses -4 deg (blue tones while it is
+still below the horizon, golden after it clears it) and ends when it
+reaches +6 deg; in the evening the order reverses. The two bands of a
+day last the same length, because the crossings are symmetric about
+the transit instant. */
+print("golden/blue hour band: Sun between -4 deg and +6 deg")
+print("2026-06-21 at lat 51.4779 lon 0:")
+print("  morning:", evm(-4, d1, t1, lat), "to", evm(6, d1, t1, lat))
+print("  evening:", eve(6, d1, t1, lat), "to", eve(-4, d1, t1, lat))
+if both(-4, 6, d1, lat) then print("  each band lasts:", dur(-4, 6, d1, lat) in hr) else print("  no band forms today")
+print("2026-12-21 at lat 51.4779 lon 0:")
+print("  morning:", evm(-4, d2, t2, lat), "to", evm(6, d2, t2, lat))
+print("  evening:", eve(6, d2, t2, lat), "to", eve(-4, d2, t2, lat))
+if both(-4, 6, d2, lat) then print("  each band lasts:", dur(-4, 6, d2, lat) in hr) else print("  no band forms today")
+
+// The polar test: in the December polar night the Sun never climbs to
+// -4 deg, so no band exists; the honest print shows why. This whole
+// choice is one statement, so it sits on one line.
+print("polar test, 2026-12-21 at lat 78.2 lon 15.6:")
+if cx(-4, d3, latp) > 1 then print("  the Sun never reaches -4 deg: no golden/blue hour - polar night") else if cx(6, d3, latp) < -1 then print("  the Sun never drops below +6 deg: no golden/blue hour - midnight sun") else print("  morning:", evm(-4, d3, t3, latp), "to", evm(6, d3, t3, latp), "; evening:", eve(6, d3, t3, latp), "to", eve(-4, d3, t3, latp))
+print("  (highest the Sun gets:", 90 - abs(latp - d3), "deg)")
+/* ---- expected output ----
+= 51.4779
+= 0
+= 78.2
+= 15.6
+= {2026, 6, 21}
+= {2026, 12, 21}
+= {2026, 12, 21}
+= 1954203123/794
+= 1826355831/742
+= 1486683157/604
+= 23.437848058
+= -23.436941256
+= -23.436808724
+= golden/blue hour band: Sun between -4 deg and +6 deg
+= 2026-06-21 at lat 51.4779 lon 0:
+=   morning: 2026-06-21T03:14:34 to 2026-06-21T04:37:00
+=   evening: 2026-06-21T19:26:37 to 2026-06-21T20:49:03
+=   each band lasts: 1.37383037215 hr
+= 2026-12-21 at lat 51.4779 lon 0:
+=   morning: 2026-12-21T07:38:02 to 2026-12-21T09:04:46
+=   evening: 2026-12-21T14:51:21 to 2026-12-21T16:18:06
+=   each band lasts: 1.44560565835 hr
+= polar test, 2026-12-21 at lat 78.2 lon 15.6:
+=   the Sun never reaches -4 deg: no golden/blue hour - polar night
+=   (highest the Sun gets: -11.636808724 deg)
+*/

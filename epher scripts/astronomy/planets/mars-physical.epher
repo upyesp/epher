@@ -1,0 +1,101 @@
+/* ============================================================================
+mars-physical.epher -- central meridian and axis position angle of Mars
+
+The Mars observer's panel for one instant: the planetographic longitude
+of the central meridian (the meridian facing Earth), the planetocentric
+latitude of the sub-Earth point, and the position angle of the rotation
+axis on the sky. These are the quantities of Meeus, "Astronomical
+Algorithms" 2nd ed., ch. 42 (the physical ephemeris of Mars), computed
+with the IAU pole and rotation constants he uses (vintage: IAU 2000/2009,
+as in the Astronomical Almanac): pole RA 317.68143 - 0.1061 T deg, pole
+dec 52.88650 - 0.0609 T deg, rotation W = 176.630 + 350.89198226 d deg
+with d in days from J2000.0 (dynamical time; the light-time to Mars is
+removed from the rotation angle, since we see the meridian as it faced
+Earth when the light left).
+
+The geometry runs entirely on the engine's apparent positions
+(solar-ephemeris crate, JPL-Horizons-validated): Mars's geocentric
+direction, precessed back to the J2000 frame in which the IAU pole is
+defined, dotted with the pole for the sub-Earth latitude and projected
+into the rotating frame for the central meridian.
+
+Accuracy: when checked against JPL Horizons' physical-ephemeris columns
+for 2026, the central meridian agrees to about 0.004 deg and the
+sub-Earth latitude to about 0.2 deg - the latitude residual is the
+difference between the planetocentric value printed here and Horizons'
+planetographic (geodetic) value on Mars's oblate figure. The position
+angle of the axis follows the same geometry and is good to a few
+hundredths of a degree.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/mars-physical.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\mars-physical.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/mars-physical.epher
+In the REPL:             load one of the paths above
+
+The one knob is the instant `t` (UT).
+============================================================================ */
+
+// ---- the knob ---------------------------------------------------------------
+const t = jd(2026, 6, 1)        // 2026-06-01 00:00 UT
+
+// ---- time scales and precession (Meeus ch. 24; pole constants are J2000) -----
+def T(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def tt(j) = j + delta_t(j) / 86400            // dynamical time, days
+def zeta(j) = (2306.2181 * T(j) + 0.30188 * T(j) ^ 2 + 0.017998 * T(j) ^ 3) / 3600
+def zang(j) = (2306.2181 * T(j) + 1.09468 * T(j) ^ 2 + 0.018203 * T(j) ^ 3) / 3600
+def theta(j) = (2004.3109 * T(j) - 0.42665 * T(j) ^ 2 - 0.041833 * T(j) ^ 3) / 3600
+def rotz(a, v) = {v[1] * cos(rad(a)) - v[2] * sin(rad(a)), v[1] * sin(rad(a)) + v[2] * cos(rad(a)), v[3]}
+def roty(a, v) = {v[1] * cos(rad(a)) + v[3] * sin(rad(a)), v[2], -v[1] * sin(rad(a)) + v[3] * cos(rad(a))}
+def toj2000(j, v) = rotz(-zang(j), roty(theta(j), rotz(-zeta(j), v)))   // of date -> J2000
+def dot(a, b) = a[1] * b[1] + a[2] * b[2] + a[3] * b[3]
+def cross(a, b) = {a[2] * b[3] - a[3] * b[2], a[3] * b[1] - a[1] * b[3], a[1] * b[2] - a[2] * b[1]}
+def wrap360(x) = x - 360 * floor(x / 360)
+
+// ---- Mars's axis and rotation (IAU 2000/2009 constants as in Meeus ch. 42) ---
+def pole_mars(j) = {cos(rad(52.88650 - 0.0609 * T(j))) * cos(rad(317.68143 - 0.1061 * T(j))), cos(rad(52.88650 - 0.0609 * T(j))) * sin(rad(317.68143 - 0.1061 * T(j))), sin(rad(52.88650 - 0.0609 * T(j)))}
+def wmars(j) = 176.630 + 350.89198226 * (tt(j) - 2451545 - dist(4, j) / 173.144632674)   // light-time removed
+// Ascending node of Mars's equator on the J2000 equator; prime meridian at W.
+def ndir(n) = {cos(rad(90 + deg(atan2(n[2], n[1])))), sin(rad(90 + deg(atan2(n[2], n[1])))), 0}
+def xhat(n, j) = {ndir(n)[1] * cos(rad(wmars(j))) + cross(n, ndir(n))[1] * sin(rad(wmars(j))), ndir(n)[2] * cos(rad(wmars(j))) + cross(n, ndir(n))[2] * sin(rad(wmars(j))), ndir(n)[3] * cos(rad(wmars(j))) + cross(n, ndir(n))[3] * sin(rad(wmars(j)))}
+// Earth's direction from Mars in the J2000 frame: the engine's geocentric
+// Mars direction, precessed, negated.
+def ue(j) = toj2000(j, {cos(rad(decl(4, j))) * cos(rad(ra(4, j))), cos(rad(decl(4, j))) * sin(rad(ra(4, j))), sin(rad(decl(4, j)))})
+
+// ---- the physical panel -------------------------------------------------------
+// Mars's geocentric direction, of date (engine) and in the J2000 frame.
+def uod(j) = {cos(rad(decl(4, j))) * cos(rad(ra(4, j))), cos(rad(decl(4, j))) * sin(rad(ra(4, j))), sin(rad(decl(4, j)))}
+def todate(j, v) = rotz(zeta(j), roty(-theta(j), rotz(zang(j), v)))   // J2000 -> of date
+// Central meridian: the west planetographic longitude of the sub-Earth
+// point from its body-fixed coordinates (0.01 deg-class agreement with
+// JPL Horizons' sub-observer longitude on 2026 checks).
+const cm = wrap360(180 - deg(atan2(dot(ue(t), cross(pole_mars(t), xhat(pole_mars(t), t))), dot(ue(t), xhat(pole_mars(t), t)))))
+// Sub-Earth latitude (planetocentric), the almanac's De.
+const de = deg(asin(-dot(ue(t), pole_mars(t))))
+// Position angle of the axis: the pole's tangent-plane direction at the
+// planet's disk center, measured from celestial north through east.
+def north(j) = {-sin(rad(decl(4, j))) * cos(rad(ra(4, j))), -sin(rad(decl(4, j))) * sin(rad(ra(4, j))), cos(rad(decl(4, j)))}
+def east(j) = {-sin(rad(ra(4, j))), cos(rad(ra(4, j))), 0}
+def sub(a, b) = {a[1] - b[1], a[2] - b[2], a[3] - b[3]}
+def pv(j) = sub(todate(j, pole_mars(j)), {uod(j)[1] * dot(todate(j, pole_mars(j)), uod(j)), uod(j)[2] * dot(todate(j, pole_mars(j)), uod(j)), uod(j)[3] * dot(todate(j, pole_mars(j)), uod(j))})
+def pa(j) = deg(atan2(dot(pv(j), east(j)), dot(pv(j), north(j))))
+
+// ---- results ------------------------------------------------------------------
+print("Mars physical ephemeris at", iso(t), "UT")
+print("central meridian:", cm, "deg (planetographic west) =", deg2dms(cm))
+print("sub-Earth latitude:", de, "deg (planetocentric, De)")
+print("position angle of the axis:", pa(t), "deg")
+print("Mars distance:", dist(4, t), "AU; light-time", dist(4, t) / 173.144632674 * 1440, "minutes (removed from the rotation)")
+print("cross-check, default instant (JPL Horizons 2026-06-01 00:00): central meridian 142.527, sub-Earth latitude -17.619 (planetographic)")
+
+/* ---- expected output ----
+= 2461192.5
+= 142.52642896
+= -17.4278656148
+= Mars physical ephemeris at 2026-06-01T00:00:00 UT
+= central meridian: 142.52642896 deg (planetographic west) = 142° 31' 35"
+= sub-Earth latitude: -17.4278656148 deg (planetocentric, De)
+= position angle of the axis: -38.3819343977 deg
+= Mars distance: 2.18405254195 AU; light-time 18.1642111097 minutes (removed from the rotation)
+= cross-check, default instant (JPL Horizons 2026-06-01 00:00): central meridian 142.527, sub-Earth latitude -17.619 (planetographic)
+*/

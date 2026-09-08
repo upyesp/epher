@@ -1,0 +1,135 @@
+/* ============================================================================
+venus-morning-evening.epher -- where Venus sits in its 584-day cycle
+
+Roadmap item 27. Venus alternates between evening and morning star on
+the beat of its synodic period with the Sun (mean 583.92 d). After a
+superior conjunction (Venus behind the Sun, lost in the glare) it
+pulls east of the Sun into the evening sky, reaches its greatest
+eastern elongation - about 46 deg, set by the tangent geometry of
+Venus' orbit - and then falls back toward the Sun, slips through
+inferior conjunction (Venus between Earth and Sun, invisible), and
+climbs out west of the Sun as the morning star to its greatest
+western elongation, rounding back to the next superior conjunction
+(Morsels, "Practical Astronomy with your Calculator", the Venus
+chapters; the terminology follows elongation.epher: east of the Sun
+is the evening sky, west is the morning sky).
+
+The engine (solar-ephemeris crate, JPL-Horizons-validated) supplies
+the exact current geometry: Venus' signed ecliptic-longitude gap east
+or west of the Sun, and the lit fraction of its disk. The switch
+dates - the conjunctions - come from a mean-element model: Venus'
+heliocentric longitude from the Meeus "Astronomical Algorithms"
+2nd ed. ch. 32/33 elements, Earth's from the ch. 25 solar mean
+elements; a longitude alignment is an inferior conjunction, an
+opposition of the longitudes is a superior one. The model dates are
+good to a day or two, which the engine checks at each event: the lit
+fraction must be near 0 at an inferior conjunction and near 1 at a
+superior one. In cycle terms the inferior conjunction opens the
+morning-star half of the cycle and the superior conjunction the
+evening-star half (the greatest elongations sit at 12% and 88% of
+the cycle, the tangent points of Venus' orbit as seen from Earth).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/venus-morning-evening.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\venus-morning-evening.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/venus-morning-evening.epher
+In the REPL:             load one of the paths above
+
+Knob: the instant `t0` below (jd of 2026-09-10 12:00 UT). The engine
+accessors cost about half a second each: the script makes a dozen
+calls and runs in a few seconds.
+============================================================================ */
+
+// ---- the knob -------------------------------------------------------------------------
+const t0 = jd(2026, 9, 10, 12)
+
+// ---- shared machinery -----------------------------------------------------------------
+def mod360(x) = x - 360 * floor(x / 360)
+def wrap180(x) = mod360(x + 180) - 180
+def T(j) = (j - jd(2000, 1, 1, 12)) / 36525
+
+// Earth's heliocentric longitude (Meeus ch. 25 solar mean elements).
+def L0s(j) = mod360(280.46646 + 36000.76983 * T(j) + 0.0003032 * T(j) * T(j))
+def Ms(j) = mod360(357.52911 + 35999.05029 * T(j) - 0.0001537 * T(j) * T(j))
+def Cs(j) = sin(rad(Ms(j))) * (1.914602 - T(j) * (0.004817 + 0.000014 * T(j))) + sin(rad(2 * Ms(j))) * (0.019993 - 0.000101 * T(j)) + 0.000289 * sin(rad(3 * Ms(j)))
+def elam(j) = mod360(L0s(j) + Cs(j) + 180)
+
+// Venus' heliocentric longitude (Meeus ch. 33 elements; e and the
+// perihelion longitude carry no measurable rate over this span).
+def Lven(j) = mod360(181.9790995 + 58517.8153873 * T(j))
+def Cven(j) = deg(2 * 0.00677672 * sin(rad(Lven(j) - 131.60246718)))
+def lven(j) = mod360(Lven(j) + Cven(j))
+// The relative angle: 0 at an inferior conjunction, 180 at superior.
+def gven(j) = wrap180(lven(j) - elam(j))
+
+// Ecliptic-longitude rotation for the engine checks (Meeus ch. 13).
+const ob = 23.4392911 - 0.0130042 * ((t0 - jd(2000, 1, 1, 12)) / 36525)
+def erot(alpha, delta) = deg(atan2(sin(rad(alpha)) * cos(rad(ob)) + tan(rad(delta)) * sin(rad(ob)), cos(rad(alpha))))
+def elongat(j) = wrap180(erot(ra(2, j), decl(2, j)) - erot(ra(10, j), decl(10, j)))
+
+// The engine's view of now: signed elongation (east positive) and lit fraction.
+const eng = elongat(t0)
+const lite = illum(2, t0)
+
+// ---- the cycle around t0 ---------------------------------------------------------------
+// Day scans of the relative angle (one day per step, then a linear
+// interpolation): gven crosses 0 at the inferior conjunctions, and
+// hven = gven - 180 crosses 0 at the superior ones. The |g| < 90
+// filter keeps the scan from mistaking the +-180 wrap for an event.
+def hven(j) = wrap180(gven(j) - 180)
+def bkinf(j, prev) = if j < t0 - 630 then -1 else if gven(j) * prev < 0 and abs(gven(j)) < 90 and abs(prev) < 90 then j else bkinf(j - 1, gven(j))
+def fkinf(j, prev) = if j > t0 + 630 then -1 else if gven(j) * prev < 0 and abs(gven(j)) < 90 and abs(prev) < 90 then j else fkinf(j + 1, gven(j))
+def bksup(j, prev) = if j < t0 - 630 then -1 else if hven(j) * prev < 0 and abs(hven(j)) < 90 and abs(prev) < 90 then j else bksup(j - 1, hven(j))
+def fksup(j, prev) = if j > t0 + 630 then -1 else if hven(j) * prev < 0 and abs(hven(j)) < 90 and abs(prev) < 90 then j else fksup(j + 1, hven(j))
+def tinf(h) = h - 1 - gven(h - 1) / (gven(h) - gven(h - 1))
+def tsup(h) = h - 1 - hven(h - 1) / (hven(h) - hven(h - 1))
+const hb_i = bkinf(t0 - 1, gven(t0))
+const hf_i = fkinf(t0 + 1, gven(t0))
+const hb_s = bksup(t0 - 1, hven(t0))
+const hf_s = fksup(t0 + 1, hven(t0))
+
+// ---- results ---------------------------------------------------------------------------
+print("Venus on 2026-09-10 12:00 UT")
+print("  signed elongation from the Sun (engine):", round(eng * 100) / 100, "deg - " + (if eng > 0 then "evening star (east of the Sun, sets after it)" else "morning star (west of the Sun, rises before it)"))
+print("  lit fraction (engine):", round(lite * 10000) / 10000, "- full near 1, new near 0")
+print("  cycle: last inferior conjunction", iso(tinf(hb_i)), "UT; next", iso(tinf(hf_i)), "UT")
+print("  cycle: last superior conjunction", iso(tsup(hb_s)), "UT; next", iso(tsup(hf_s)), "UT")
+print("  the evening -> morning switch happens at the inferior conjunction")
+print("  (Venus passes between Earth and the Sun) and the morning ->")
+print("  evening switch at the superior one (Venus passes behind the Sun)")
+print("  phase:", round(10000 * (t0 - tinf(hb_i)) / 583.92) / 100, "% of the 583.92-day cycle since the last inferior conjunction")
+
+/* Engine checks of the model's dates: the lit fraction is near 0 at
+an inferior conjunction and near 1 at a superior one, and the known
+2026 canon is inferior conjunction 2025-03-23 / superior 2026-01-09
+(NASA; the model agrees within two days on both). */
+print("  engine check: lit fraction at the model's last inferior conj:", round(illum(2, tinf(hb_i)) * 10000) / 10000, "(near 0: true)")
+print("  engine check: lit fraction at the model's next superior conj:", round(illum(2, tsup(hf_s)) * 10000) / 10000, "(near 1: true)")
+print("  canon: model last inferior conj", iso(tinf(hb_i)), "UT vs NASA 2025-03-23:", abs(tinf(hb_i) - jd(2025, 3, 23)) < 2)
+print("  canon: model last superior conj", iso(tsup(hb_s)), "UT vs NASA 2026-01-09:", abs(tsup(hb_s) - jd(2026, 1, 9)) < 2)
+print("  self-check: engine elongation sign agrees with the model cycle side:", (if eng > 0 and (t0 - tinf(hb_i)) / 583.92 > 0.5 then "evening: yes" else if eng < 0 and (t0 - tinf(hb_i)) / 583.92 < 0.5 then "morning: yes" else "no"))
+
+/* ---- expected output ----
+= 2461294
+= 23.435820109
+= 42.2997769446
+= 0.3218
+= 2460758
+= 2461339
+= 2461047
+= 2461631
+= Venus on 2026-09-10 12:00 UT
+=   signed elongation from the Sun (engine): 42.3 deg - evening star (east of the Sun, sets after it)
+=   lit fraction (engine): 0.3218 - full near 1, new near 0
+=   cycle: last inferior conjunction 2025-03-23T16:02:59 UT; next 2026-10-24T20:39:32 UT
+=   cycle: last superior conjunction 2026-01-07T05:38:58 UT; next 2027-08-12T12:18:07 UT
+=   the evening -> morning switch happens at the inferior conjunction
+=   (Venus passes between Earth and the Sun) and the morning ->
+=   evening switch at the superior one (Venus passes behind the Sun)
+=   phase: 91.76 % of the 583.92-day cycle since the last inferior conjunction
+=   engine check: lit fraction at the model's last inferior conj: 0.0104 (near 0: true)
+=   engine check: lit fraction at the model's next superior conj: 0.9998 (near 1: true)
+=   canon: model last inferior conj 2025-03-23T16:02:59 UT vs NASA 2025-03-23: true
+=   canon: model last superior conj 2026-01-07T05:38:58 UT vs NASA 2026-01-09: true
+=   self-check: engine elongation sign agrees with the model cycle side: evening: yes
+*/

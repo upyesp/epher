@@ -1,0 +1,141 @@
+/* ============================================================================
+mercury-transits.epher -- the next transits of Mercury
+
+Mercury crosses the Sun's disk only when an inferior conjunction
+(Mercury between Earth and Sun) finds Mercury near a node of its
+orbit - the May and November transit seasons, where Mercury's
+ecliptic latitude at conjunction stays under the Sun's apparent
+radius, about 0.27 deg. This script reports the next transits after
+a knob date, in two stages:
+
+  1. Prefilter (pure arithmetic, no ephemeris calls): a mean-orbit
+     model finds each year's candidate conjunctions - Mercury's
+     heliocentric longitude from its chapter 31 elements (Jean
+     Meeus, "Astronomical Algorithms" 2nd ed., mean longitude
+     252.250906 + 149472.6746358 T with the equation of center in
+     e), the Earth's from the Sun's chapter 25 longitude (the NOAA
+     series) plus 180 deg. A conjunction is where the two longitudes
+     meet; only those within about 7 deg of a node (|ecliptic
+     latitude| under 0.5 deg, the transit window) are kept. The
+     model is good to about a degree - ample for finding candidate
+     days.
+
+  2. Verification with the engine's ephemeris (the solar-ephemeris
+     crate, JPL-validated): the Sun-Mercury right-ascension gap is
+     sampled one day each side of the candidate, the crossing is
+     located by linear interpolation (the gap flips sign only at a
+     conjunction), and the event is accepted as a transit only if
+     the two disks actually touch: at the crossing the two share a
+     right-ascension meridian, so their separation is exactly
+     |decl(1) - decl(10)|, which must stay under the Sun's
+     semidiameter plus Mercury's (about 0.002 deg); Mercury must
+     also be on the near side (dist under 0.8 AU), which rejects
+     the superior conjunctions. The node constraint shows up in the
+     printed ecliptic latitude of Mercury at each found transit.
+
+Accuracy: dates match NASA's Five-Millennium transit catalog to the
+day; the printed instant is the moment the two share a
+right-ascension meridian, within about an hour of mid-transit (the
+exact mid-eclipse instant needs the full Besselian elements);
+detection matches the catalog -
+the found dates below are 2032 Nov 13, 2039 Nov 7, 2049 May 7 and
+2052 Nov 9 - and only a grazing transit within a few hundredths of a
+degree of the limb could go either way. Note that 2039-07-07 is not
+a transit date: NASA's catalog has none in July (the scan agrees);
+the date sometimes quoted is 2039-11-07, printed as the canon check.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/eclipses/mercury-transits.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\eclipses\mercury-transits.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/eclipses/mercury-transits.epher
+In the REPL:             load one of the paths above
+
+Knobs: the date to search from and the horizon year. The engine
+stage is call-frugal (about a hundred ephemeris calls); allow half
+a minute.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const day = {2026, 1, 1}     // search from here
+const horizon = 2052         // last year searched (the next four transits fit by 2053)
+
+// ---- stage 1: the mean-orbit prefilter (pure arithmetic) -----------------------
+def mod360(x) = x - 360 * floor(x / 360)
+def signed(x) = mod360(x + 180) - 180
+def cent(j) = (j - jd(2000, 1, 1, 12)) / 36525
+// Mercury's heliocentric longitude: mean longitude L, equation of center in e
+def lmerc(j) = mod360(252.250906 + 149472.6746358 * cent(j))
+def mmerc(j) = lmerc(j) - (77.457718 + 0.159400 * cent(j))
+def cmerc(j) = deg((2 * 0.20563661 - 0.20563661 ^ 3 / 4) * sin(rad(mmerc(j))) + 1.25 * 0.20563661 ^ 2 * sin(rad(2 * mmerc(j))) + 1.08333 * 0.20563661 ^ 3 * sin(rad(3 * mmerc(j))))
+def lammerc(j) = mod360(lmerc(j) + cmerc(j))
+def bmerc(j) = deg(asin(sin(rad(7.005)) * sin(rad(lammerc(j) - 48.330765))))   // heliocentric ecliptic latitude, deg
+// The Sun's (and so the Earth's) longitude: the ch. 25 / NOAA series
+def l0s(j) = mod360(280.46646 + cent(j) * (36000.76983 + cent(j) * 0.0003032))
+def msun(j) = mod360(357.52911 + cent(j) * (35999.05029 - 0.0001537 * cent(j)))
+def csun(j) = sin(rad(msun(j))) * (1.914602 - cent(j) * (0.004817 + 0.000014 * cent(j))) + sin(rad(2 * msun(j))) * (0.019993 - 0.000101 * cent(j)) + 0.000289 * sin(rad(3 * msun(j)))
+def learth(j) = mod360(l0s(j) + csun(j) + 180)      // Earth's heliocentric longitude, deg
+def dlam(j) = signed(lammerc(j) - learth(j))        // the conjunction gap, deg (crosses zero only at an inferior conjunction)
+def zero(j0) = j0 + abs(dlam(j0)) / (abs(dlam(j0)) + abs(dlam(j0 + 1)))   // linear interpolation of the crossing
+
+// ---- stage 2: engine verification ----------------------------------------------
+def dra(j) = ra(1, j) - ra(10, j)                  // true right-ascension gap, deg
+def fin(t) = if dist(1, t) < 0.8 and abs(decl(1, t) - decl(10, t)) < diam(10, t) / 2 + 0.002 then t else -1
+def echeck(t) = if dra(t - 1) * dra(t + 1) < 0 then fin(t - 1 + 2 * (-dra(t - 1)) / (dra(t + 1) - dra(t - 1))) else -1
+def cs(j0, n) = if n == 0 then -1 else if dlam(j0) * dlam(j0 + 1) < 0 then if abs(bmerc(zero(j0))) < 0.5 then echeck(zero(j0)) else -1 else cs(j0 + 1, n - 1)
+def wmay(y) = cs(jd(y, 5, 1), 15)    // the May transit window, days May 1-16
+def wnov(y) = cs(jd(y, 11, 1), 17)   // the November window, days Nov 1-18
+def tfind(y) = if wmay(y) > 0 then wmay(y) else wnov(y)   // the year's transit, if any (no year has two)
+def findt(y, n) = if n == 0 then -1 else if tfind(y) > 0 then tfind(y) else findt(y + 1, n - 1)
+def yearof(t, y) = if t < jd(y + 1, 1, 1) then y else yearof(t, y + 1)
+def eps0(j) = 23.4392911 - 0.0130042 * cent(j)      // mean obliquity of date, deg
+def mbeta(j) = deg(asin(cos(rad(eps0(j))) * sin(rad(decl(1, j))) - sin(rad(eps0(j))) * cos(rad(decl(1, j))) * sin(rad(ra(1, j)))))  // Mercury's geocentric ecliptic latitude, deg
+
+// ---- the found transits (consts, in date order) --------------------------------
+const t1 = findt(day[1], horizon - day[1] + 1)
+const t2 = findt(yearof(t1, day[1]) + 1, horizon - yearof(t1, day[1]))
+const t3 = findt(yearof(t2, day[1]) + 1, horizon - yearof(t2, day[1]))
+const t4 = findt(yearof(t3, day[1]) + 1, horizon - yearof(t3, day[1]))
+
+// ---- results -------------------------------------------------------------------
+print("next Mercury transits after", iso(jd(day[1], day[2], day[3])), "up to", horizon)
+if t1 > 0 then print("transit 1:", iso(t1), "UT; Mercury ecliptic lat", mbeta(t1), "deg") else "no transit found in the scan"
+if t2 > 0 then print("transit 2:", iso(t2), "UT; Mercury ecliptic lat", mbeta(t2), "deg") else "no second transit before the horizon"
+if t3 > 0 then print("transit 3:", iso(t3), "UT; Mercury ecliptic lat", mbeta(t3), "deg") else "no third transit before the horizon"
+if t4 > 0 then print("transit 4:", iso(t4), "UT; Mercury ecliptic lat", mbeta(t4), "deg") else "no fourth transit before the horizon"
+
+/* The node constraint in one line: each found crossing must show
+Mercury's ecliptic latitude inside the Sun's radius - the printed
+pairs above compare the two numbers directly. The May and November
+windows are the transit seasons because Mercury reaches its nodes
+then; the detection itself never assumes the season, it only tests
+the geometry, so a hypothetical out-of-season transit would still be
+found (there is none: Mercury's latitude at other conjunctions runs
+to 7 deg, far outside the disk). */
+
+/* Canon self-check against NASA's Five-Millennium transit catalog:
+2032 Nov 13 and 2039 Nov 7 are transits of Mercury. (2039-07-07 is
+sometimes misquoted in this context; the catalog has no July
+transit - the next one after 2032 is 2039-11-07.) The lines print
+whether the scan above found each date. */
+def onday(t, y, mo, d) = t > 0 and abs(t - jd(y, mo, d)) < 1
+def foundany(y, mo, d) = onday(t1, y, mo, d) or onday(t2, y, mo, d) or onday(t3, y, mo, d) or onday(t4, y, mo, d)
+print("canon: 2032-11-13 transit, found by scan:", foundany(2032, 11, 13))
+print("canon: 2039-07-07 found by scan:", foundany(2039, 7, 7), "(NASA catalog: no July transit)")
+print("canon: 2039-11-07 transit, found by scan:", foundany(2039, 11, 7))
+
+/* ---- expected output ----
+= {2026, 1, 1}
+= 2052
+= 2463549.90346
+= 2466099.82349
+= 2469569.05535
+= 1312021664/531
+= next Mercury transits after 2026-01-01T00:00:00 up to 2052
+= transit 1: 2032-11-13T09:40:59 UT; Mercury ecliptic lat 0.170236411119 deg
+= transit 2: 2039-11-07T07:45:50 UT; Mercury ecliptic lat -0.240967721676 deg
+= transit 3: 2049-05-07T13:19:42 UT; Mercury ecliptic lat 0.152145542016 deg
+= transit 4: 2052-11-09T02:11:32 UT; Mercury ecliptic lat -0.0902645382988 deg
+= canon: 2032-11-13 transit, found by scan: true
+= canon: 2039-07-07 found by scan: false (NASA catalog: no July transit)
+= canon: 2039-11-07 transit, found by scan: true
+*/

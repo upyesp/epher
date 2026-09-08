@@ -1,0 +1,106 @@
+/* ============================================================================
+solar-irradiance.epher -- clear-sky direct sun on a tilted panel
+
+The direct-beam solar irradiance on a tilted plane at a knob place,
+date and hour, under a clear sky. The beam is attenuated by the air it
+crosses, and the airmass comes from the built-in airmass(altitude)
+(the secant model - fine above about 20 deg, which is when a panel
+collects anyway):
+
+  I = 1.353 kW/m2 * 0.7^(airmass^0.678)
+
+with 1.353 kW/m2 the solar constant (Thekaekara's value, the basis of
+the standard spectra) and 0.7^(X^0.678) the classic clear-sky beam
+transmission parameterization quoted after F. Kasten in the
+solar-engineering texts (Kreith, "Principles of Solar Engineering";
+Meinel & Meinel, "Applied Solar Energy", use the same form). That is
+the beam on a surface facing the Sun; the panel gets the beam times
+the cosine of the angle between the panel normal and the Sun:
+
+  cos i = cos(tilt) sin(alt) + sin(tilt) cos(alt) cos(az - panel az),
+
+the standard tilted-surface geometry. Honest grade: the model is a
+clear-sky direct-beam estimate, good to about 10 percent near noon -
+it omits the diffuse sky component (10-20 percent of the total on
+clear days), aerosols and clouds. The direct beam on the horizontal is
+printed too, and the sanity check at the end asks whether a summer
+noon lands in the familiar 0.8-1.0 kW/m2 band.
+
+The day's optimal fixed tilt follows the installer rule of thumb
+(SEI-style handbook): latitude minus 15 degrees in the summer half,
+latitude plus 15 in the winter half, about latitude at the equinoxes.
+The panel below is set near the summer optimum, facing due south.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/solar-irradiance.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\solar-irradiance.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/solar-irradiance.epher
+In the REPL:             load one of the paths above
+
+Knobs: the place, date and hour (UT), the panel tilt (deg from
+horizontal) and azimuth (deg from north) - 180 is due south in the
+northern hemisphere.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const lat = 51.4779         // Greenwich
+const lon = 0
+const day = {2026, 6, 21}   // June solstice: summer sun
+const hr = 12               // sample hour, UT (solar noon is 12:01:49)
+const tilt = 35             // panel tilt from the horizontal, deg
+const azp = 180             // panel azimuth: due south
+
+// ---- model ------------------------------------------------------------------
+def dni(x) = 1.353 * 0.7 ^ (x ^ 0.678)   // clear-sky direct normal beam, kW/m2
+def cosi(a, z) = cos(rad(tilt)) * sin(rad(a)) + sin(rad(tilt)) * cos(rad(a)) * cos(rad(z - azp))
+def tiltopt(m, phi) = if m >= 4 and m <= 9 then phi - 15 else if m == 3 or m == 9 then phi else phi + 15
+
+/* ---- results ------------------------------------------------------------------
+The readings at the knob hour: the Sun at 62 deg (airmass 1.13) sends
+a direct beam of about 0.92 kW/m2, of which the horizontal surface
+catches sin(alt) = 0.81 kW/m2 and the 35-deg south-facing panel, whose
+normal lies within a degree of the Sun, catches nearly the whole beam.
+The guard lines cover a knob hour after sunset. */
+a = alt(10, jd(day[1], day[2], day[3], hr), lat, lon)
+z = az(10, jd(day[1], day[2], day[3], hr), lat, lon)
+print("clear-sky direct beam,", iso(jd(day[1], day[2], day[3], hr)), "at lat", lat, "lon", lon)
+print("Sun: alt", a, "deg, az", z, "deg; airmass", airmass(a))
+if a > 0 then print("direct normal beam:", dni(airmass(a)), "kW/m2") else print("the Sun is below the horizon: no direct beam")
+if a > 0 then print("on the horizontal:", dni(airmass(a)) * sin(rad(a)), "kW/m2") else print("(horizontal reading skipped)")
+if a > 0 and cosi(a, z) > 0 then print("panel tilted", tilt, "deg toward az", azp, ": cos(incidence)", cosi(a, z)) else print("the panel faces away from the Sun: no direct beam on it")
+if a > 0 and cosi(a, z) > 0 then print("beam on the panel:", dni(airmass(a)) * cosi(a, z), "kW/m2") else print("(panel reading skipped)")
+
+/* The sanity check and the seasonal rule. The noon horizontal reading
+should sit in the familiar 0.8-1.0 kW/m2 summer band, and the optimal
+tilt for the knob month (June: the summer branch of the rule of thumb)
+should sit near the panel's 35 deg. */
+print("sanity: noon horizontal direct beam in the 0.8-1.0 kW/m2 band:", 0.8 <= dni(airmass(a)) * sin(rad(a)) and dni(airmass(a)) * sin(rad(a)) <= 1)
+print("optimal fixed tilt this month (latitude +-15 deg rule):", tiltopt(day[2], lat), "deg")
+
+/* Self-check at the true transit: the meridian formula 90 - |lat -
+dec| predicts the Sun's noon altitude, and the engine agrees within
+its parallax arcseconds (see sun-altitude-at-noon.epher). */
+t0 = transit(10, jd(day[1], day[2], day[3]), lat, lon)
+print("alt at solar transit", iso(t0), ":", alt(10, t0, lat, lon), "deg")
+print("  meridian formula 90 - |lat - dec|:", 90 - abs(lat - decl(10, t0)), "deg")
+/* ---- expected output ----
+= 51.4779
+= 0
+= {2026, 6, 21}
+= 12
+= 35
+= 180
+= 61.9566445
+= 179.114422
+= clear-sky direct beam, 2026-06-21T12:00:00 at lat 51.4779 lon 0
+= Sun: alt 61.9566445 deg, az 179.114422 deg; airmass 1.13302623966
+= direct normal beam: 0.91771509252 kW/m2
+= on the horizontal: 0.809968084056 kW/m2
+= panel tilted 35 deg toward az 180 : cos(incidence) 0.992605875759
+= beam on the panel: 0.910929393108 kW/m2
+= sanity: noon horizontal direct beam in the 0.8-1.0 kW/m2 band: true
+= optimal fixed tilt this month (latitude +-15 deg rule): 36.4779 deg
+= 1954203123/794
+= alt at solar transit 2026-06-21T12:01:49 : 61.9588272 deg
+=   meridian formula 90 - |lat - dec|: 61.959948058 deg
+*/

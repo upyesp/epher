@@ -1,0 +1,128 @@
+/* ============================================================================
+moon-libration.epher -- optical libration and the terminator longitudes
+
+The optical librations: the selenographic longitude and latitude of
+the sub-Earth point (how far the Moon has "nodded" and "rolled"
+relative to its mean face), plus the selenographic longitudes of the
+sun and of the morning and evening terminators. The geometry follows
+the treatment of Duffett-Smith & Zwart, "Practical Astronomy with
+your Calculator or Spreadsheet", 4th ed., section "Selenographic
+coordinates", worked here in vector form (the full physical ephemeris
+of Meeus ch. 53 adds only ~0.02-0.04 deg of physical libration, which
+is omitted).
+
+The frame: the lunar equator is taken as the ecliptic tilted by
+i = 1.5424 deg about the mean node line; the prime meridian points at
+the Moon's mean longitude L' (Meeus ch. 47 series), and the node
+comes from the mean elements (Meeus ch. 49). Inputs at the chosen
+instant: the Moon's and the Sun's geocentric ra and decl (the
+solar-ephemeris crate, JPL-validated; guide 1.16), rotated to the
+ecliptic with the mean obliquity (the ch. 13 rotation of
+moon-ecliptic-position.epher). With lambda/beta the ecliptic
+coordinates, Lbar the mean lunar longitude and O the node:
+
+  sin b  = sin i cos beta cos(O + lambda) - cos i sin beta
+  tan l  = (cos beta cos i sin(lambda - Lbar)
+            - sin beta sin i sin(O + Lbar)) / (cos beta cos(lambda - Lbar))
+  l_sun  = the same rotation applied to the Sun's direction
+           (its longitude comes out near 0 at full moon, 180 at new)
+  morning terminator at l_sun - 90, evening at l_sun + 90
+
+Conventions printed below: l > 0 means the sub-Earth point lies east
+of the mean meridian (a little of the Moon's east limb is visible);
+b > 0 means the Earth is north of the lunar equator (the north polar
+region tips into view). The small projection terms of order i times
+beta (up to 0.15 deg) are kept in l; terms of order i squared are
+dropped.
+
+Accuracy: the librations come out to a few tenths of a degree (the
+dropped i-squared and physical terms together are under 0.05 deg, and
+the engine's positions are arcsecond-class). The self-check below is
+the geometry's own bound: the libration in latitude cannot leave the
++/-7 deg band (5.15 deg of orbital tilt plus 1.54 deg of equator
+tilt), and the sub-solar longitude must read near 0 at the full
+moon chosen.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-libration.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-libration.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-libration.epher
+In the REPL:             load one of the paths above
+
+Knobs: the instant (below: the full moon of 2026-05-31 08:46 UT, from
+full-moons.epher - the sub-solar longitude must then read near 0).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const year = 2026
+const month = 5
+const day = 31
+const hr = 8.77       // hours UT (the full moon fell at 08:46)
+
+// ---- mean elements and obliquity (angles in degrees) ----------------------------
+def w360(x) = x - 360 * floor(x / 360)
+def sym(x) = x - 360 * floor((x + 180) / 360)     // wrap into (-180, 180]
+def T(j) = (j - 2451545) / 36525
+const i = 1.5424       // lunar equator's tilt to the ecliptic, deg (Meeus ch. 53)
+def eps(j) = 23.4392911 - 46.8150 * T(j) / 3600 - 0.00059 * T(j) ^ 2 / 3600 + 0.001813 * T(j) ^ 3 / 3600   // mean obliquity of date
+def Lbar(j) = w360(218.3164477 + 481267.88123421 * T(j) - 0.0015786 * T(j) ^ 2 + T(j) ^ 3 / 538841 - T(j) ^ 4 / 65194000)   // Moon's mean longitude, ch. 47
+def node(j) = 124.7746 - 1.56375588 * (j - 2451550.09766) / 29.530588861   // Moon's mean ascending node, ch. 49
+
+// ---- equatorial to ecliptic (the ch. 13 rotation) -------------------------------
+def elon(j, b) = w360(deg(atan2(sin(rad(ra(b, j))) * cos(rad(eps(j))) + tan(rad(decl(b, j))) * sin(rad(eps(j))), cos(rad(ra(b, j))))))
+def elat(j, b) = deg(asin(sin(rad(decl(b, j))) * cos(rad(eps(j))) - cos(rad(decl(b, j))) * sin(rad(eps(j))) * sin(rad(ra(b, j)))))
+
+// ---- the sub-Earth and sub-solar selenographic coordinates -----------------------
+/* b_E and l_E are the Earth's selenographic latitude and longitude (the
+optical librations); l_s is the Sun's selenographic longitude; all
+from the vector frame described above. The small frame-tilt terms of
+order i are kept in l. */
+def bsub(j, lb, be) = deg(asin(sin(rad(i)) * cos(rad(be)) * cos(rad(node(j) + lb)) - cos(rad(i)) * sin(rad(be))))
+def lsub(j, lb, be) = deg(atan2(cos(rad(be)) * cos(rad(i)) * sin(rad(lb - Lbar(j))) - sin(rad(be)) * sin(rad(i)) * sin(rad(node(j) + Lbar(j))), cos(rad(be)) * cos(rad(lb - Lbar(j)))))
+
+// ---- results ---------------------------------------------------------------------
+t = jd(year, month, day, hr)
+print("at", iso(t), "UT:")
+lm = elon(t, 11)
+bm = elat(t, 11)
+lsun = elon(t, 10)
+print("Moon ecliptic lon/lat:", lm, "/", bm, "deg")
+print("Sun ecliptic lon:", lsun, "deg")
+print("mean lunar longitude L':", Lbar(t), "deg; mean node:", sym(node(t)), "deg")
+print("libration in longitude (sub-Earth lon):", sym(lsub(t, lm, bm)), "deg")
+print("libration in latitude (sub-Earth lat):", bsub(t, lm, bm), "deg")
+
+/* Self-checks: the latitude libration must sit inside the +/-7 deg
+band of the geometry, and the Sun's selenographic longitude must read
+near 0 at this full-moon instant (the Sun stands behind the Earth, in
+the direction of the mean meridian). The sub-solar longitude is the
+anti-solar reading of the formula turned around by 180 deg. */
+print("self-check: |libration in latitude| <= 7:", abs(bsub(t, lm, bm)) <= 7)
+print("sub-solar longitude:", sym(lsub(t, lsun, 0) - 180), "deg (near 0 at full moon)")
+
+// The terminators: the sunrise line sits 90 deg west of the sub-solar
+// meridian, the sunset line 90 deg east of it (in selenographic lon).
+print("morning terminator (sunrise) at longitude:", sym(lsub(t, lsun, 0) - 270), "deg")
+print("evening terminator (sunset) at longitude:", sym(lsub(t, lsun, 0) - 90), "deg")
+
+/* ---- expected output ----
+= 2026
+= 5
+= 31
+= 8.77
+= 1.5424
+= 1444719625/587
+= at 2026-05-31T08:46:12 UT:
+= 249.93757467
+= -4.96413066038
+= 69.9297100558
+= Moon ecliptic lon/lat: 249.93757467 / -4.96413066038 deg
+= Sun ecliptic lon: 69.9297100558 deg
+= mean lunar longitude L': 249.239804573 deg; mean node: -25.7933095683 deg
+= libration in longitude (sub-Earth lon): 0.605405748088 deg
+= libration in latitude (sub-Earth lat): 3.85651368997 deg
+= self-check: |libration in latitude| <= 7: true
+= sub-solar longitude: 0.689655540163 deg (near 0 at full moon)
+= morning terminator (sunrise) at longitude: -89.3103444598 deg
+= evening terminator (sunset) at longitude: 90.6896555402 deg
+*/

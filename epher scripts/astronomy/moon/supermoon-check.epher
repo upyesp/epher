@@ -1,0 +1,134 @@
+/* ============================================================================
+supermoon-check.epher -- how a named full moon measures up in its year
+
+Picks the full moon that falls in one chosen month of a year (from the
+chapter 49 series of Jean Meeus, "Astronomical Algorithms" 2nd ed. -
+the same mean-phase machinery full-moons.epher carries) and checks it
+against the year's other full moons: its geocentric distance and angular
+diameter versus the closest, the farthest and the mean of that year's
+full-moon distances, and the popular "supermoon" verdict.
+
+Distance and diameter come from the built-in ephemeris (the
+solar-ephemeris crate, JPL-validated; guide 1.16) evaluated only at the
+full-moon instants, about thirteen dates a year. The supermoon test is
+the common press rule (Espenak / timeanddate): a full moon counts as a
+supermoon when it lies within 10% of the year's closest approach to
+Earth; the exact rule scans every perigee of the year, and this script
+approximates "closest approach" with the year's closest full moon, a
+surrogate within a few thousand kilometres of the perigee figure.
+Meeus discusses the range of extreme Earth-Moon distances in
+"Mathematical Astronomy Morsels".
+
+Accuracy: the instants are good to a minute (the series' grade for
+2000-2100) and the distances are the engine's own (ELP-MPP02), so the
+rankings below are trustworthy to their last printed kilometre; the
+supermoon call itself depends on the convention, stated above.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/supermoon-check.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\supermoon-check.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/supermoon-check.epher
+In the REPL:             load one of the paths above
+
+Knobs: `year` and the `month` whose full moon is under test (2026's
+December full moon, 2026-12-24, is the year's closest: a supermoon;
+every month of the year must hold one full moon).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const year = 2026
+const month = 12
+
+// ---- Meeus ch. 49: mean elements, angles in degrees (eq. 49.3-49.7) -----------
+def e3(t) = 1 - 0.002516 * t - 0.0000074 * t ^ 2      // Earth's orbital eccentricity (no unit)
+def mp(k) = 201.5643 + 385.81693528 * k               // Moon's mean anomaly, degrees
+def ms(k) = 2.5534 + 29.10535670 * k                  // Sun's mean anomaly, degrees
+def mf(k) = 160.7108 + 390.67050284 * k               // Moon's argument of latitude, degrees
+def node(k) = 124.7746 - 1.56375588 * k               // Moon's ascending node, degrees
+
+// ---- mean full-moon instant in JD: k counts lunations, full moons end in .5 --
+def base(k) = 2451550.09766 + 29.530588861 * k + 0.00015437 * (k / 1236.85) ^ 2 - 0.000000150 * (k / 1236.85) ^ 3 + 0.00000000073 * (k / 1236.85) ^ 4
+
+// ---- periodic corrections in days, table 49.A full-moon column, by size -------
+def corr_a(k) = -0.40614 * sin(rad(mp(k))) + 0.17302 * e3(k / 1236.85) * sin(rad(ms(k))) + 0.01614 * sin(rad(2 * mp(k))) + 0.01043 * sin(rad(2 * mf(k))) + 0.00734 * e3(k / 1236.85) * sin(rad(mp(k) - ms(k))) - 0.00515 * e3(k / 1236.85) * sin(rad(mp(k) + ms(k))) + 0.00209 * e3(k / 1236.85) ^ 2 * sin(rad(2 * ms(k))) - 0.00111 * sin(rad(mp(k) - 2 * mf(k)))
+def corr_b(k) = -0.00057 * sin(rad(mp(k) + 2 * mf(k))) + 0.00056 * e3(k / 1236.85) * sin(rad(2 * mp(k) + ms(k))) - 0.00042 * sin(rad(3 * mp(k))) + 0.00042 * e3(k / 1236.85) * sin(rad(ms(k) + 2 * mf(k))) + 0.00038 * e3(k / 1236.85) * sin(rad(ms(k) - 2 * mf(k))) - 0.00024 * e3(k / 1236.85) * sin(rad(2 * mp(k) - ms(k)))
+def corr_c(k) = -0.00017 * sin(rad(node(k))) - 0.00007 * sin(rad(mp(k) + 2 * ms(k))) + 0.00004 * sin(rad(2 * mp(k) - 2 * mf(k))) + 0.00004 * sin(rad(3 * ms(k))) + 0.00003 * sin(rad(mp(k) + ms(k) - 2 * mf(k))) + 0.00003 * sin(rad(2 * mp(k) + 2 * mf(k))) - 0.00003 * sin(rad(mp(k) + ms(k) + 2 * mf(k))) + 0.00003 * sin(rad(mp(k) - ms(k) + 2 * mf(k))) - 0.00002 * sin(rad(mp(k) - ms(k) - 2 * mf(k))) - 0.00002 * sin(rad(3 * mp(k) + ms(k))) + 0.00002 * sin(rad(4 * mp(k)))
+
+// ---- planetary corrections in days, table 49.C --------------------------------
+// A1's T^2 term is under a second and is omitted (Meeus, note to 49.C).
+def a1(k) = 299.77 + 0.107408 * k
+def a2(k) = 251.88 + 0.016321 * k
+def a3(k) = 251.83 + 26.651886 * k
+def a4(k) = 349.42 + 36.412478 * k
+def a5(k) = 84.66 + 18.206239 * k
+def a6(k) = 141.74 + 53.303771 * k
+def a7(k) = 207.14 + 2.453732 * k
+def a8(k) = 154.84 + 7.306860 * k
+def a9(k) = 34.52 + 27.261239 * k
+def a10(k) = 207.19 + 0.121824 * k
+def a11(k) = 291.34 + 1.844379 * k
+def a12(k) = 161.72 + 24.198154 * k
+def a13(k) = 239.56 + 25.513099 * k
+def a14(k) = 331.55 + 3.592518 * k
+def corr_d(k) = 0.000325 * sin(rad(a1(k))) + 0.000165 * sin(rad(a2(k))) + 0.000164 * sin(rad(a3(k))) + 0.000126 * sin(rad(a4(k))) + 0.000110 * sin(rad(a5(k))) + 0.000062 * sin(rad(a6(k))) + 0.000060 * sin(rad(a7(k))) + 0.000056 * sin(rad(a8(k))) + 0.000047 * sin(rad(a9(k))) + 0.000042 * sin(rad(a10(k))) + 0.000040 * sin(rad(a11(k))) + 0.000037 * sin(rad(a12(k))) + 0.000035 * sin(rad(a13(k))) + 0.000023 * sin(rad(a14(k)))
+
+// ---- the instant of full moon for lunation k ----------------------------------
+def fullmoon(k) = base(k) + corr_a(k) + corr_b(k) + corr_c(k) + corr_d(k)
+
+// ---- the year's lunations, bucketing and engine distances ----------------------
+def kfirst(jd0) = ceil((jd0 - 2451550.09766) / 29.530588861 - 0.5) + 0.5  // first full moon on/after Jan 1
+const k0 = kfirst(jd(year, 1, 1))                 // first lunation of the year (its value echoes below)
+def mon(k) = date(fullmoon(k))[2]                 // calendar month of the lunation's full moon
+def nfull(i, c) = if i >= 13 then c else if fullmoon(k0 + i) < jd(year + 1, 1, 1) then nfull(i + 1, c + 1) else c   // full moons of the year
+def dkm(i) = dist(11, fullmoon(k0 + i)) * au / 1000   // the lunation's full-moon distance, km (au is in metres)
+def findm(n, i, m) = if i >= n then -1 else if mon(k0 + i) == m then i else findm(n, i + 1, m)   // first full moon of month m
+def scan(n, i, lo, hi, sm, ilo, ihi) = if i >= n then {lo, hi, sm, ilo, ihi} else if dkm(i) < lo then scan(n, i + 1, dkm(i), hi, sm + dkm(i), i, ihi) else if dkm(i) > hi then scan(n, i + 1, lo, dkm(i), sm + dkm(i), ilo, i) else scan(n, i + 1, lo, hi, sm + dkm(i), ilo, ihi)  // {min, max, sum, argmin, argmax} in km
+def ncloser(n, i, c, d) = if i >= n then c else if dkm(i) < d then ncloser(n, i + 1, c + 1, d) else ncloser(n, i + 1, c, d)   // how many full moons are closer than d km
+
+// ---- results ------------------------------------------------------------------
+count = nfull(0, 0)
+i0 = findm(count, 0, month)
+rank = ncloser(count, 0, 0, dkm(i0)) + 1
+print("the year's", count, "full moons are lunations", k0, "through", k0 + count - 1)
+
+/* One scan over the year's full moons collects the closest, the
+farthest and the summed distance (the echoed list {lo, hi, sum, index
+of lo, index of hi}); the mean follows by division. */
+stats = scan(count, 1, dkm(0), dkm(0), dkm(0), 0, 0)
+print("closest full moon:", iso(fullmoon(k0 + stats[4])), "UT,", stats[1], "km")
+print("farthest full moon:", iso(fullmoon(k0 + stats[5])), "UT,", stats[2], "km")
+print("mean full-moon distance:", stats[3] / count, "km")
+
+/* The month's full moon under test: its instant, distance and angular
+diameter (diam gives degrees; the eye reads arcminutes). */
+print("full moon of month", month, ":", iso(fullmoon(k0 + i0)), "UT")
+print("distance:", dkm(i0), "km; diameter:", diam(11, fullmoon(k0 + i0)) * 60, "arcmin")
+print("rank among the year's full moons (1 = closest):", rank, "of", count)
+
+// ---- the supermoon verdict: the 90% rule on the year's closest full moon ------
+print(if dkm(i0) <= stats[1] + 0.1 * (stats[2] - stats[1]) then "supermoon by the 90% rule (within 10% of the year's closest full moon)" else "not a supermoon by the 90% rule")
+
+/* Self-check: the built-in diameter read back from the distance - the
+angular radius is asin of the Moon's radius over the distance, so
+2*asin(r_moon / dist) must agree with the engine's diam at the same
+instant (both geocentric). */
+print("self-check: diam from dist:", 2 * deg(asin((r_moon / 1000) / dkm(i0))), "deg vs engine", diam(11, fullmoon(k0 + i0)), "deg")
+
+/* ---- expected output ----
+= 2026
+= 12
+= 321.5
+= 13
+= 12
+= 1
+= the year's 13 full moons are lunations 321.5 through 333.5
+= {356737.601, 406135.642, 4979120.343, 12, 5}
+= closest full moon: 2026-12-24T01:29:24 UT, 356737.601 km
+= farthest full moon: 2026-05-31T08:46:26 UT, 406135.642 km
+= mean full-moon distance: 383009.257154 km
+= full moon of month 12 : 2026-12-24T01:29:24 UT
+= distance: 356737.601 km; diameter: 33.48548 arcmin
+= rank among the year's full moons (1 = closest): 1 of 13
+= supermoon by the 90% rule (within 10% of the year's closest full moon)
+= self-check: diam from dist: 0.558091328623 deg vs engine 0.558091333333 deg
+*/

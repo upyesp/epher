@@ -1,0 +1,127 @@
+/* ============================================================================
+retrograde-stations.epher -- when a planet stands still, twice an apparition
+
+Finds the two stationary points of an outer planet's next apparition: the
+instants when the planet's geocentric ecliptic longitude stops advancing,
+turns around (retrograde motion begins) and later resumes its eastward
+drift. The planet's daily change of ecliptic longitude changes sign at
+each station.
+
+The search is two-stage. A cheap predictor - the planet's and Earth's
+heliocentric positions from the mean Keplerian elements of Meeus ch. 31
+(table 31.A: Standish & Williams 1992, valid 1800-2050), reduced to the
+geocentric ecliptic longitude - is scanned day by day (pure arithmetic,
+no ephemeris calls) to bracket each station to a few days. A recursive
+golden-section search over the engine's own ecliptic longitude (from
+ra/decl via the Meeus ch. 13 obliquity rotation) then homes each station
+to about a quarter of an hour.
+
+Accuracy: the engine positions (solar-ephemeris crate, JPL-validated)
+are arcsecond-grade; the refined station instants are good to well under
+an hour, and the retrograde arc between them spans the planet's
+opposition by construction. The default run finds Jupiter's stations of
+the 2026-27 apparition (retrograde December 2026 - April 2027, the
+opposition falling mid-February 2027).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/retrograde-stations.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\retrograde-stations.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/retrograde-stations.epher
+In the REPL:             load one of the paths above
+
+Knobs: the planet (4 Mars .. 9 Neptune), the start date `day` (choose
+one a few months before the apparition's retrograde arc), and the number
+of days to scan ahead.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const planet = 5                // Jupiter
+const day = {2026, 6, 1}        // search from here
+const span = 560                // days to scan ahead
+const jd0 = jd(day[1], day[2], day[3])
+
+// ---- ch. 31 mean elements, rows of {a, da, e, de, i, di, L, dL, peri, dperi, node, dnode}
+const emb = {1.00000261, 0.00000562, 0.01671123, -0.00004392, 0, 0, 100.46457166, 35999.37244981, 102.93768193, 0.32327364, 0, 0}
+const ma = {1.52371034, 0.00001847, 0.09339410, 0.00007882, 1.84969142, -0.00813131, -4.55343205, 19140.30268499, -23.94362959, 0.44441088, 49.55953891, -0.29257343}
+const ju = {5.20288700, -0.00011607, 0.04838624, -0.00013253, 1.30439695, -0.00183714, 34.39644051, 3034.74612775, 14.72847983, 0.21252668, 100.47390909, 0.20469106}
+const sa = {9.53667594, -0.00125060, 0.05386179, -0.00050991, 2.48599187, 0.00193609, 49.95424423, 1222.49362201, 92.59887831, -0.41897216, 113.66242448, -0.28867794}
+const ur = {19.18916464, -0.00196176, 0.04725744, -0.00004397, 0.77263783, -0.00242939, 313.23810451, 428.48202785, 170.95427630, 0.40805281, 74.01692503, 0.04240589}
+const ne = {30.06992276, 0.00026291, 0.00859048, 0.00005105, 1.77004347, 0.00035372, -55.12002969, 218.45945325, 44.96476227, -0.32241464, 131.78422574, -0.00508664}
+def row(p) = if p == 4 then ma else if p == 5 then ju else if p == 6 then sa else if p == 7 then ur else ne
+def centuries(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def wrap360(x) = x - 360 * floor(x / 360)
+def wrap180(x) = x - 360 * floor((x + 180) / 360)
+
+// ---- predictor: heliocentric x/y of a body from its elements (J2000 ecliptic)
+def ev(k, j) = emb[k] + emb[k + 1] * centuries(j)      // Earth row element at j
+def pv(k, j) = row(planet)[k] + row(planet)[k + 1] * centuries(j)
+// Heliocentric rectangular coordinates in the J2000 ecliptic (ch. 31-33):
+// x' = a(cos E - e), y' = a sqrt(1-e^2) sin E, rotated by -node, -i, -omega.
+def cx(p, j) = cos(rad(pv(9, j) - pv(11, j))) * cos(rad(pv(11, j))) - sin(rad(pv(9, j) - pv(11, j))) * sin(rad(pv(11, j))) * cos(rad(pv(5, j)))
+def sx(p, j) = -sin(rad(pv(9, j) - pv(11, j))) * cos(rad(pv(11, j))) - cos(rad(pv(9, j) - pv(11, j))) * sin(rad(pv(11, j))) * cos(rad(pv(5, j)))
+def cy(p, j) = cos(rad(pv(9, j) - pv(11, j))) * sin(rad(pv(11, j))) + sin(rad(pv(9, j) - pv(11, j))) * cos(rad(pv(11, j))) * cos(rad(pv(5, j)))
+def sy(p, j) = -sin(rad(pv(9, j) - pv(11, j))) * sin(rad(pv(11, j))) + cos(rad(pv(9, j) - pv(11, j))) * cos(rad(pv(11, j))) * cos(rad(pv(5, j)))
+def xpp(j) = pv(1, j) * (cos(rad(kepler(wrap360(pv(7, j) - pv(9, j)), pv(3, j)))) - pv(3, j))
+def ypp(j) = pv(1, j) * sqrt(1 - pv(3, j) ^ 2) * sin(rad(kepler(wrap360(pv(7, j) - pv(9, j)), pv(3, j))))
+def xp(j) = cx(planet, j) * xpp(j) + sx(planet, j) * ypp(j)
+def yp(j) = cy(planet, j) * xpp(j) + sy(planet, j) * ypp(j)
+def me(j) = wrap360(ev(7, j) - ev(9, j))
+// The EMB row's node is 0 and inclination ~0, so only the omega = peri - node
+// rotation remains: x = x' cos w - y' sin w, y = x' sin w + y' cos w.
+def xppE(j) = ev(1, j) * (cos(rad(kepler(me(j), ev(3, j)))) - ev(3, j))
+def yppE(j) = ev(1, j) * sqrt(1 - ev(3, j) ^ 2) * sin(rad(kepler(me(j), ev(3, j))))
+def xe(j) = xppE(j) * cos(rad(wrap360(ev(9, j) - ev(11, j)))) - yppE(j) * sin(rad(wrap360(ev(9, j) - ev(11, j))))
+def ye(j) = xppE(j) * sin(rad(wrap360(ev(9, j) - ev(11, j)))) + yppE(j) * cos(rad(wrap360(ev(9, j) - ev(11, j))))
+// Predicted geocentric ecliptic longitude (J2000 frame), degrees.
+def glonp(j) = deg(atan2(yp(j) - ye(j), xp(j) - xe(j)))
+
+// ---- engine ecliptic longitude of date (Meeus ch. 13 rotation) ----------------
+def obl(j) = 23.4392911 - 0.0130042 * centuries(j)
+def eclon(b, j) = deg(atan2(sin(rad(ra(b, j))) * cos(rad(obl(j))) + tan(rad(decl(b, j))) * sin(rad(obl(j))), cos(rad(ra(b, j)))))
+def glon(j) = eclon(planet, j)
+def drift(j) = wrap180(glon(j + 1) - glon(j - 1)) / 2      // deg per day
+// Golden-section maximizer, state {a, b, x1, x2, f1, f2}, one date per step.
+def gsx(s) = if s[2] - s[1] < 0.05 then (s[1] + s[2]) / 2 else if s[5] > s[6] then gsx({s[1], s[4], s[1] + 0.381966011 * (s[4] - s[1]), s[3], glon(s[1] + 0.381966011 * (s[4] - s[1])), s[5]}) else gsx({s[3], s[2], s[4], s[2] - 0.381966011 * (s[2] - s[3]), s[6], glon(s[2] - 0.381966011 * (s[2] - s[3]))})
+def gsm(s) = if s[2] - s[1] < 0.05 then (s[1] + s[2]) / 2 else if s[5] < s[6] then gsm({s[1], s[4], s[1] + 0.381966011 * (s[4] - s[1]), s[3], glon(s[1] + 0.381966011 * (s[4] - s[1])), s[5]}) else gsm({s[3], s[2], s[4], s[2] - 0.381966011 * (s[2] - s[3]), s[6], glon(s[2] - 0.381966011 * (s[2] - s[3]))})
+
+// ---- predictor scans (pure arithmetic): first the direct->retrograde turn ----
+s1 = {2, glonp(jd0 + 2), wrap180(glonp(jd0 + 2) - glonp(jd0)), -1}
+while s1[1] * 2 <= span and s1[4] < 0 do s1 = {s1[1] + 1, glonp(jd0 + s1[1] * 2), wrap180(glonp(jd0 + s1[1] * 2) - s1[2]), if s1[3] > 0 and wrap180(glonp(jd0 + s1[1] * 2) - s1[2]) < 0 then s1[1] else -1}
+// ---- then the retrograde->direct turn, scanning on from the first station ----
+s2 = {s1[4] + 1, glonp(jd0 + (s1[4] + 1) * 2), wrap180(glonp(jd0 + (s1[4] + 1) * 2) - glonp(jd0 + s1[4] * 2)), -1}
+while s2[1] * 2 <= span and s2[4] < 0 do s2 = {s2[1] + 1, glonp(jd0 + s2[1] * 2), wrap180(glonp(jd0 + s2[1] * 2) - s2[2]), if s2[3] < 0 and wrap180(glonp(jd0 + s2[1] * 2) - s2[2]) > 0 then s2[1] else -1}
+
+// ---- refine each station with the engine's own longitude ----------------------
+t1 = gsx({jd0 + s1[4] * 2 - 6, jd0 + s1[4] * 2 + 6, jd0 + s1[4] * 2 - 6 + 0.381966011 * 12, jd0 + s1[4] * 2 - 6 + 0.618033989 * 12, glon(jd0 + s1[4] * 2 - 6 + 0.381966011 * 12), glon(jd0 + s1[4] * 2 - 6 + 0.618033989 * 12)})
+t2 = gsm({jd0 + s2[4] * 2 - 6, jd0 + s2[4] * 2 + 6, jd0 + s2[4] * 2 - 6 + 0.381966011 * 12, jd0 + s2[4] * 2 - 6 + 0.618033989 * 12, glon(jd0 + s2[4] * 2 - 6 + 0.381966011 * 12), glon(jd0 + s2[4] * 2 - 6 + 0.618033989 * 12)})
+
+// ---- results ------------------------------------------------------------------
+print("planet", planet, "searching from", iso(jd0), "(predictor + engine refinement)")
+print("station 1 (direct to retrograde):", iso(t1), "UT")
+print("ecliptic longitude there:", glon(t1), "deg; drift", drift(t1 - 4), "deg/day 4 days before,", drift(t1 + 4), "deg/day 4 days after")
+print("station 2 (retrograde to direct):", iso(t2), "UT")
+print("ecliptic longitude there:", glon(t2), "deg; drift", drift(t2 - 4), "deg/day 4 days before,", drift(t2 + 4), "deg/day 4 days after")
+print("retrograde arc:", iso(t1), "to", iso(t2), "=", t2 - t1, "days")
+
+/* ---- expected output ----
+= 5
+= {2026, 6, 1}
+= 560
+= 2461192.5
+= {1.00000261, 0.00000562, 0.01671123, -0.00004392, 0, 0, 100.46457166, 35999.3724498, 102.93768193, 0.32327364, 0, 0}
+= {1.52371034, 0.00001847, 0.0933941, 0.00007882, 1.84969142, -0.00813131, -4.55343205, 19140.302685, -23.94362959, 0.44441088, 49.55953891, -0.29257343}
+= {5.202887, -0.00011607, 0.04838624, -0.00013253, 1.30439695, -0.00183714, 34.39644051, 3034.74612775, 14.72847983, 0.21252668, 100.47390909, 0.20469106}
+= {9.53667594, -0.0012506, 0.05386179, -0.00050991, 2.48599187, 0.00193609, 49.95424423, 1222.49362201, 92.59887831, -0.41897216, 113.66242448, -0.28867794}
+= {19.18916464, -0.00196176, 0.04725744, -0.00004397, 0.77263783, -0.00242939, 313.23810451, 428.48202785, 170.9542763, 0.40805281, 74.01692503, 0.04240589}
+= {30.06992276, 0.00026291, 0.00859048, 0.00005105, 1.77004347, 0.00035372, -55.12002969, 218.45945325, 44.96476227, -0.32241464, 131.78422574, -0.00508664}
+= {2, 114.090667567, 0.380083175473, -1}
+= {100, 146.637456913, -0.0258476908051, -1}
+= 396283395/161
+= 1252907873/509
+= planet 5 searching from 2026-06-01T00:00:00 (predictor + engine refinement)
+= station 1 (direct to retrograde): 2026-12-13T01:07:05 UT
+= ecliptic longitude there: 147.025031098 deg; drift 0.0130940144344 deg/day 4 days before, -0.013160483569 deg/day 4 days after
+= station 2 (retrograde to direct): 2027-04-13T02:11:33 UT
+= ecliptic longitude there: 136.995458671 deg; drift -0.0126969455398 deg/day 4 days before, 0.0124390786837 deg/day 4 days after
+= retrograde arc: 2026-12-13T01:07:05 to 2027-04-13T02:11:33 = 121.044771885 days
+*/

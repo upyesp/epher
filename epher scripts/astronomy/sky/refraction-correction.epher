@@ -1,0 +1,83 @@
+/* ============================================================================
+refraction-correction.epher -- how refraction lifts the stars
+
+The refraction correction that raises every celestial body as seen
+through the air: a table of correction and true altitude for apparent
+altitudes 0 to 60 degrees, from Bennett's formula (1982), as quoted in
+Jean Meeus, "Astronomical Algorithms", 2nd ed., ch. 16:
+
+  R = 1 / tan(h + 7.31 / (h + 4.4))  arcminutes, h the apparent
+  altitude in degrees.
+
+The formula is calibrated for the standard atmosphere (about 10 C,
+1010 hPa); under those conditions it is good to about 0.1 arcminute
+above 15 degrees, and below 15 degrees real refraction depends on the
+temperature gradient of the day and the formula is only approximate.
+At the horizon it gives 34.5 arcminutes - the textbook half-degree
+lift that makes the Sun set minutes late (the -0.833 degree horizon of
+the rise/set scripts is 34 arcmin of refraction plus the Sun's radius).
+Bennett's formula takes the apparent altitude; for the reverse
+direction the companion Saeundsson variant (1986), R = 1.02 / tan(h +
+10.3 / (h + 5.11)) arcminutes with h the true altitude, is used below
+for a round-trip check. See Duffett-Smith, "Practical Astronomy",
+chapter on refraction, for the same pair. No engine calls: the
+formulas are the point.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/refraction-correction.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\refraction-correction.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/refraction-correction.epher
+In the REPL:             load one of the paths above
+
+Knob: the altitude at which the single correction below is printed.
+============================================================================ */
+
+// ---- the knob ---------------------------------------------------------------
+const h_knob = 15           // degrees apparent; the correction at this altitude
+
+// ---- the two formulas -------------------------------------------------------
+def r(h) = 1 / tan(rad(h + 7.31 / (h + 4.4)))       // Bennett: h apparent, result arcmin
+def rs(h) = 1.02 / tan(rad(h + 10.3 / (h + 5.11)))  // Saeundsson: h true, result arcmin
+
+/* ---- results ----------------------------------------------------------------
+One row per apparent altitude: the correction in arcminutes and the
+true altitude that follows (true = apparent - R/60). Notice the sweep:
+a body seen on the horizon is really 0.57 degrees below it, while at
+60 degrees the correction is barely half an arcminute. */
+print("Bennett refraction, standard atmosphere (about 10 C, 1010 hPa)")
+print("at apparent 0 deg -> R", r(0), "arcmin, true", -r(0) / 60, "deg")
+print("at apparent 5 deg -> R", r(5), "arcmin, true", 5 - r(5) / 60, "deg")
+print("at apparent 10 deg -> R", r(10), "arcmin, true", 10 - r(10) / 60, "deg")
+print("at apparent 20 deg -> R", r(20), "arcmin, true", 20 - r(20) / 60, "deg")
+print("at apparent 30 deg -> R", r(30), "arcmin, true", 30 - r(30) / 60, "deg")
+print("at apparent 60 deg -> R", r(60), "arcmin, true", 60 - r(60) / 60, "deg")
+
+// The single correction at the knob altitude.
+print("correction at", h_knob, "deg apparent:", r(h_knob), "arcmin")
+
+/* Round-trip self-check of the two directions: Saeundsson's variant
+turns a true altitude of 0.5 deg into an apparent one, and Bennett's
+formula read back at that apparent altitude must return the same
+correction. The pair agree to a few hundredths of an arcminute. */
+print("Saeundsson round trip at true 0.5 deg:", rs(0.5), "arcmin")
+print("Bennett read back at the apparent altitude:", r(0.5 + rs(0.5) / 60), "arcmin")
+
+/* Known-value check: at the horizon the formula gives about 34.5
+arcmin, within a minute of the 34 arcmin standard horizon refraction
+the rise/set machinery folds into its -0.833 deg horizon. */
+print("R at 0 deg minus the textbook 34 arcmin:", r(0) - 34, "arcmin")
+
+/* ---- expected output ----
+= 15
+= Bennett refraction, standard atmosphere (about 10 C, 1010 hPa)
+= at apparent 0 deg -> R 34.4775337433 arcmin, true -0.574625562388 deg
+= at apparent 5 deg -> R 9.88314423418 arcmin, true 4.83528092943 deg
+= at apparent 10 deg -> R 5.39150546757 arcmin, true 9.91014157554 deg
+= at apparent 20 deg -> R 2.70341069988 arcmin, true 19.954943155 deg
+= at apparent 30 deg -> R 1.71731013355 arcmin, true 29.9713781644 deg
+= at apparent 60 deg -> R 0.574711801858 arcmin, true 59.99042147 deg
+= correction at 15 deg apparent: 3.63622639517 arcmin
+= Saeundsson round trip at true 0.5 deg: 25.0039088882 arcmin
+= Bennett read back at the apparent altitude: 24.9887891294 arcmin
+= R at 0 deg minus the textbook 34 arcmin: 0.477533743263 arcmin
+*/

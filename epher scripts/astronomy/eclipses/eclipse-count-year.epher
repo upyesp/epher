@@ -1,0 +1,94 @@
+/* ============================================================================
+eclipse-count-year.epher -- how many eclipses a year carries
+
+Counts the solar and lunar eclipses of one year by scanning its
+lunations with the chapter 54 test of Jean Meeus, "Astronomical
+Algorithms" (2nd ed., Willmann-Bell, 1998) - the same |sin F| <=
+0.36 node test and gamma/u machinery that next-solar-eclipse.epher
+and next-lunar-eclipse.epher carry: each new moon of the year is
+tested as a solar candidate and each full moon as a lunar candidate
+(penumbral lunar eclipses included, as in next-lunar-eclipse.epher).
+The count of eclipses per calendar year always lies between 4 and 7
+(Meeus, "More Mathematical Astronomy Morsels" (2002), its chapter
+"how many eclipses in a year"): every year has two eclipse seasons
+about 173 days apart, and each season usually yields one solar and
+one lunar eclipse - the 4-eclipse minimum - while a year can catch
+extra eclipses when a season straddles the year boundary or a node
+passage falls inside a season twice. No year can exceed 7, because
+the two seasons are too short to hold more.
+
+Accuracy: the same mean-element series as the two next-eclipse
+scripts - candidate times within about a minute of the canon and
+counts exact for the years 2000-2100 (Meeus grades the test that
+far).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/eclipses/eclipse-count-year.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\eclipses\eclipse-count-year.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/eclipses/eclipse-count-year.epher
+In the REPL:             load one of the paths above
+
+Knob: the year.
+============================================================================ */
+
+// ---- the knob ----------------------------------------------------------------
+const year = 2026
+
+// ---- Meeus ch. 49/54 mean elements in T = k / 1236.85 -------------------------
+def e3(t) = 1 - 0.002516 * t - 0.0000074 * t ^ 2
+def mp(k) = 201.5643 + 385.81693528 * k + 0.0107582 * (k / 1236.85) ^ 2 + 0.00001238 * (k / 1236.85) ^ 3 - 0.000000058 * (k / 1236.85) ^ 4
+def ms(k) = 2.5534 + 29.10535670 * k - 0.0000014 * (k / 1236.85) ^ 2 - 0.00000011 * (k / 1236.85) ^ 3
+def mf(k) = 160.7108 + 390.67050284 * k - 0.0016118 * (k / 1236.85) ^ 2 - 0.00000227 * (k / 1236.85) ^ 3 + 0.000000011 * (k / 1236.85) ^ 4
+def node(k) = 124.7746 - 1.56375588 * k + 0.0020672 * (k / 1236.85) ^ 2 + 0.00000215 * (k / 1236.85) ^ 3
+def base(k) = 2451550.09766 + 29.530588861 * k + 0.00015437 * (k / 1236.85) ^ 2 - 0.000000150 * (k / 1236.85) ^ 3 + 0.00000000073 * (k / 1236.85) ^ 4
+def kb(j) = (j - 2451550.09766) / 29.530588861
+def f1(k) = mf(k) - 0.02665 * sin(rad(node(k)))
+def tmaxn(k) = base(k) - 0.4075 * sin(rad(mp(k))) + 0.1721 * e3(k / 1236.85) * sin(rad(ms(k))) + 0.0161 * sin(rad(2 * mp(k))) - 0.0097 * sin(rad(2 * f1(k))) + 0.0073 * e3(k / 1236.85) * sin(rad(mp(k) - ms(k))) - 0.0050 * e3(k / 1236.85) * sin(rad(mp(k) + ms(k))) - 0.0023 * sin(rad(mp(k) - 2 * f1(k))) + 0.0021 * e3(k / 1236.85) * sin(rad(2 * ms(k))) + 0.0012 * sin(rad(mp(k) + 2 * f1(k))) + 0.0006 * e3(k / 1236.85) * sin(rad(2 * mp(k) + ms(k))) - 0.0004 * sin(rad(3 * mp(k))) - 0.0003 * e3(k / 1236.85) * sin(rad(ms(k) + 2 * f1(k))) + 0.0003 * sin(rad(299.77 + 0.107408 * k)) - 0.0002 * e3(k / 1236.85) * sin(rad(ms(k) - 2 * f1(k))) - 0.0002 * e3(k / 1236.85) * sin(rad(2 * mp(k) - ms(k))) - 0.0002 * sin(rad(node(k)))
+def tmaxl(k) = base(k) - 0.4065 * sin(rad(mp(k))) + 0.1727 * e3(k / 1236.85) * sin(rad(ms(k))) + 0.0161 * sin(rad(2 * mp(k))) - 0.0097 * sin(rad(2 * f1(k))) + 0.0073 * e3(k / 1236.85) * sin(rad(mp(k) - ms(k))) - 0.0050 * e3(k / 1236.85) * sin(rad(mp(k) + ms(k))) - 0.0023 * sin(rad(mp(k) - 2 * f1(k))) + 0.0021 * e3(k / 1236.85) * sin(rad(2 * ms(k))) + 0.0012 * sin(rad(mp(k) + 2 * f1(k))) + 0.0006 * e3(k / 1236.85) * sin(rad(2 * mp(k) + ms(k))) - 0.0004 * sin(rad(3 * mp(k))) - 0.0003 * e3(k / 1236.85) * sin(rad(ms(k) + 2 * f1(k))) + 0.0003 * sin(rad(299.77 + 0.107408 * k)) - 0.0002 * e3(k / 1236.85) * sin(rad(ms(k) - 2 * f1(k))) - 0.0002 * e3(k / 1236.85) * sin(rad(2 * mp(k) - ms(k))) - 0.0002 * sin(rad(node(k)))
+def pang(k) = 0.2070 * e3(k / 1236.85) * sin(rad(ms(k))) + 0.0024 * e3(k / 1236.85) * sin(rad(2 * ms(k))) - 0.0392 * sin(rad(mp(k))) + 0.0116 * sin(rad(2 * mp(k))) - 0.0073 * e3(k / 1236.85) * sin(rad(mp(k) + ms(k))) + 0.0067 * e3(k / 1236.85) * sin(rad(mp(k) - ms(k))) + 0.0118 * sin(rad(2 * f1(k)))
+def qang(k) = 5.2207 - 0.0048 * e3(k / 1236.85) * cos(rad(ms(k))) + 0.0020 * e3(k / 1236.85) * cos(rad(2 * ms(k))) - 0.3299 * cos(rad(mp(k))) - 0.0060 * e3(k / 1236.85) * cos(rad(mp(k) + ms(k))) + 0.0041 * e3(k / 1236.85) * cos(rad(mp(k) - ms(k)))
+def gamma(k) = (pang(k) * cos(rad(f1(k))) + qang(k) * sin(rad(f1(k)))) * (1 - 0.0048 * abs(cos(rad(f1(k)))))
+def uval(k) = 0.0059 + 0.0046 * e3(k / 1236.85) * cos(rad(ms(k))) - 0.0182 * cos(rad(mp(k))) + 0.0004 * cos(rad(2 * mp(k))) - 0.0005 * cos(rad(ms(k) + mp(k)))
+def penmag(k) = (1.5573 + uval(k) - abs(gamma(k))) / 0.5450
+def tmaxx(k) = if k - floor(k) == 0 then tmaxn(k) else tmaxl(k)
+def inyear(j) = j >= jd(year, 1, 1) and j < jd(year + 1, 1, 1)
+def is_solar(k) = inyear(tmaxn(k)) and abs(sin(rad(mf(k)))) <= 0.36 and abs(gamma(k)) <= 1.5433 + uval(k)
+def is_lunar(k) = inyear(tmaxl(k)) and abs(sin(rad(mf(k)))) <= 0.36 and abs(gamma(k)) <= 1.5433 + uval(k) and penmag(k) > 0
+def kstart(j) = ceil((kb(j) - 2) * 2) / 2
+
+// ---- the counting scans (recursive, over half-lunation steps) ------------------
+const k0 = kstart(jd(year, 1, 1))
+def csol(k, n) = if n == 0 then 0 else if k - floor(k) == 0 and is_solar(k) then 1 + csol(k + 0.5, n - 1) else csol(k + 0.5, n - 1)
+def clun(k, n) = if n == 0 then 0 else if k - floor(k) == 0.5 and is_lunar(k) then 1 + clun(k + 0.5, n - 1) else clun(k + 0.5, n - 1)
+def total(k) = csol(k, 48) + clun(k, 48)
+def mo(j, m) = if m == 1 then 1 else if j >= jd(year, m, 1) then m else mo(j, m - 1)   // month 1..12 of an in-year instant
+def cm(m) = cscan(k0, 48, m)
+def cscan(k, n, m) = if n == 0 then 0 else if (if k - floor(k) == 0 then is_solar(k) else is_lunar(k)) and mo(tmaxx(k), 12) == m then 1 + cscan(k + 0.5, n - 1, m) else cscan(k + 0.5, n - 1, m)
+
+// ---- results -------------------------------------------------------------------
+print("solar eclipses in", year, ":", csol(k0, 48))
+print("lunar eclipses in", year, ":", clun(k0, 48))
+print("total eclipses in", year, ":", total(k0))
+print("months carrying eclipses (flags Jan..Dec):")
+for m in 1 to 12 do (if cm(m) > 0 then 1 else 0)
+print("Morsels: any calendar year carries 4 to 7 eclipses; no year can exceed 7")
+
+/* The canon self-check: NASA's canon lists exactly four eclipses in
+2026, two of each kind, in February, March and August - the counts
+and the month flags above must say 2, 2, 4 and flag months 2, 3, 8
+only. */
+print("canon: NASA's", year, "set = 4: Feb 17 annular solar, Mar 3 total lunar,")
+print("      Aug 12 total solar, Aug 28 partial lunar; counted", total(k0), if total(k0) == 4 then "-> match" else "-> MISMATCH")
+
+/* ---- expected output ----
+= 2026
+= 319.5
+= solar eclipses in 2026 : 2
+= lunar eclipses in 2026 : 2
+= total eclipses in 2026 : 4
+= months carrying eclipses (flags Jan..Dec):
+= {0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0}
+= Morsels: any calendar year carries 4 to 7 eclipses; no year can exceed 7
+= canon: NASA's 2026 set = 4: Feb 17 annular solar, Mar 3 total lunar,
+=       Aug 12 total solar, Aug 28 partial lunar; counted 4 -> match
+*/

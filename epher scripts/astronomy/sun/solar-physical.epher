@@ -1,0 +1,105 @@
+/* ============================================================================
+solar-physical.epher -- the Sun's disk orientation: P, B0, L0
+
+The physical ephemeris of the Sun for one date: P, the position angle
+of the Sun's rotation axis measured eastward from the celestial north
+pole; B0, the heliographic latitude of the center of the disk; and L0,
+the heliographic longitude of the disk's center (the Carrington
+longitude of the central meridian). All three come from chapter 29 of
+Jean Meeus, "Astronomical Algorithms" (2nd ed., Willmann-Bell, 1998),
+the closed-form physical-ephemeris section: the Sun's apparent
+geocentric position here comes from the engine's built-in ra/decl
+accessors (the solar-ephemeris crate, arcsecond-class, JPL-validated;
+guide 1.18) instead of Meeus's own solar theory, and the chapter's
+transformation then applies the standard solar rotation elements: the
+solar equator's inclination i = 7.25 deg to the ecliptic, its
+ascending node at 73.6667 + 1.3958333 T deg (T in Julian centuries
+from 1850.0, the Carrington node epoch JD 2396758.0), the Carrington
+frame phase theta = (JD - 2398220.0) x 360 / 25.38 deg of the
+25.38-day sidereal rotation (2398220.0 is the modern convention's
+frame constant; the combination puts L0 = 0 at the start of rotation
+1, 1853 Nov 9), and the mean obliquity of date for the ecliptic-to-
+equatorial reduction. The three outputs are the ones solar observers
+read from the almanac's daily Sun table to orient images and place
+sunspot latitudes.
+
+Accuracy: the engine position is arcsecond-class, so the residual
+error is the closed-form transformation itself; against the worked
+example of Meeus ch. 29 (1992 Oct 13, 0h TD: P = 26.27, B0 = 5.99,
+L0 = 238.63 deg) the script below prints its own values and the
+differences - a few hundredths of a degree, dominated by nutation
+handling at the 0.005 deg level. Almanac tables agree within their
+0.01-deg rounding.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sun/solar-physical.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sun\solar-physical.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sun/solar-physical.epher
+In the REPL:             load one of the paths above
+
+Knob: the sample date (the instant is 0h UT of that date).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const day = {2026, 6, 21}    // sample date; the instant is 0h TD of it
+const incl = 7.25            // inclination of the solar equator to the ecliptic, deg
+
+// ---- ch. 29 machinery, angles in degrees -------------------------------------
+def mod360(x) = x - 360 * floor(x / 360)
+def dyn(j0) = j0 + delta_t(j0) / 86400  // the 0h-TD instant, on the engine's UT-referenced JD scale
+def cent(j) = (j - jd(2000, 1, 1, 12)) / 36525
+/* The engine's accessors and the calendar JD are UT-based, while the
+ch. 29 series want the dynamical instant; feeding the TD offset to
+both keeps them on the same instant to well under a tenth of a
+minute (the engine adds delta_t internally for its positions). j
+below is the dynamical JD returned by dyn(). */
+def eps0(t) = 23.4392911 - 0.0130042 * t - 0.000000164 * t ^ 2 + 0.000000504 * t ^ 3  // mean obliquity, eq. 22.2
+/* The standard solar rotation elements (Meeus ch. 29): inclination
+incl, the ascending node of the solar equator on the ecliptic of
+date (anchor 1850.0, JD 2396758.0), and the Carrington frame
+phase from the 25.38-day sidereal rotation (frame constant JD
+2398220.0; L0 = 0 falls at the start of rotation 1, 1853 Nov 9). */
+def node(j) = 73.6667 + 1.3958333 * (j - 2396758.0) / 36525
+def theta(j) = (j - 2398220.0) * 360 / 25.38
+def sunlon(j) = deg(atan2(sin(rad(ra(10, j))) * cos(rad(eps0(cent(j)))) + tan(rad(decl(10, j))) * sin(rad(eps0(cent(j)))), cos(rad(ra(10, j)))))  // the Sun's geocentric apparent longitude, from the built-in ra/decl
+def b0(j) = deg(asin(sin(rad(sunlon(j) - node(j))) * sin(rad(incl))))
+def eta(j) = deg(atan2(-sin(rad(sunlon(j) - node(j))) * cos(rad(incl)), -cos(rad(sunlon(j) - node(j)))))
+def l0(j) = mod360(eta(j) - theta(j))
+def px(j) = deg(atan(-cos(rad(sunlon(j))) * tan(rad(eps0(cent(j))))))
+def py(j) = deg(atan(-cos(rad(sunlon(j) - node(j))) * tan(rad(incl))))
+def p(j) = px(j) + py(j)
+
+// ---- results ------------------------------------------------------------------
+j0 = dyn(jd(day[1], day[2], day[3]))
+print("solar physical ephemeris at", iso(jd(day[1], day[2], day[3])), "0h TD")
+print("P  (axis position angle):", p(j0), "deg")
+print("B0 (disk-center latitude):", b0(j0), "deg")
+print("L0 (disk-center longitude):", l0(j0), "deg")
+
+/* Structure notes: B0 stays within +-7.25 deg (the inclination) and
+is zero when the Sun's longitude meets the node, early June and early
+December; L0 runs 0..360 and wraps at each Carrington rotation start.
+The knobs' values change slowly through the day - L0 moves about
+13.2 deg per day - so the printed instant matters for L0. */
+
+/* Self-check against the worked example of Meeus ch. 29: 1992 Oct 13,
+0h TD gives P = 26.27, B0 = 5.99, L0 = 238.63 deg (rounded to 0.01).
+The same dyn() offset puts the example on its dynamical instant. */
+je = dyn(jd(1992, 10, 13))
+print("example, 1992-10-13 0h TD: P", p(je), "B0", b0(je), "L0", l0(je))
+print("Meeus example: 26.27 / 5.99 / 238.63; differences:")
+print(p(je) - 26.27, b0(je) - 5.99, l0(je) - 238.63, "deg (P, B0, L0)")
+
+/* ---- expected output ----
+= {2026, 6, 21}
+= 7.25
+= 2461212.5008
+= solar physical ephemeris at 2026-06-21T00:00:00 0h TD
+= P  (axis position angle): -7.19552175864 deg
+= B0 (disk-center latitude): 1.69262509614 deg
+= L0 (disk-center longitude): 202.782037871 deg
+= 1795049931/733
+= example, 1992-10-13 0h TD: P 26.2739814267 B0 5.98784870686 L0 238.636752275
+= Meeus example: 26.27 / 5.99 / 238.63; differences:
+= 0.00398142673141 -0.00215129313813 0.00675227505155 deg (P, B0, L0)
+*/

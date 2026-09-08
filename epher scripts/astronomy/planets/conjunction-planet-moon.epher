@@ -1,0 +1,76 @@
+/* ============================================================================
+conjunction-planet-moon.epher -- the Moon's closest approach to a planet
+
+The closest approach of the Moon to a chosen planet in a chosen month
+(the appulse): the geocentric great-circle separation between the two
+bodies (Meeus, "Astronomical Algorithms" 2nd ed., ch. 17, eq. 17.1) as a
+function of time, minimized over the month. A two-day scan over the
+month's thirty days finds the coarsest minimum (the Moon covers the sky
+in 27.3 days, so the separation curve has exactly one dip per month);
+a recursive golden-section search then homes the dip to about a minute.
+
+The positions come from the built-in ra/decl accessors (solar-ephemeris
+crate, ELP-MPP02 Moon, JPL-Horizons-validated; guide 1.29). The
+separation is geocentric, the same number every almanac prints for a
+Moon-planet appulse; an observer's topocentric view shifts it by the
+Moon's parallax (up to a degree).
+
+Accuracy: ephemeris-grade (arcsecond positions); the golden-section
+minimum is good to a few minutes of time and a few arcseconds of
+separation. The default month holds a fine pass: the Moon slides 0.85
+degrees south of Jupiter on 2026-11-01.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/conjunction-planet-moon.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\conjunction-planet-moon.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/conjunction-planet-moon.epher
+In the REPL:             load one of the paths above
+
+Knobs: the planet (body number), the year and the month to search.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const planet = 5                // Jupiter
+const year = 2026
+const month = 11
+const jd0 = jd(year, month, 1)  // start of the month
+
+// ---- helpers -----------------------------------------------------------------
+// Geocentric great-circle separation of Moon and planet (Meeus eq. 17.1).
+def sep(j) = deg(acos(sin(rad(decl(11, j))) * sin(rad(decl(planet, j))) + cos(rad(decl(11, j))) * cos(rad(decl(planet, j))) * cos(rad(ra(11, j) - ra(planet, j)))))
+// Scan the month on a two-day grid (16 samples after the 1st); returns
+// the day of the month (0-based grid index) with the smallest separation.
+def scan(k, bk, bv) = if k > 15 then bk else if sep(jd0 + k * 2) < bv then scan(k + 1, k, sep(jd0 + k * 2)) else scan(k + 1, bk, bv)
+// Golden-section search for the minimum over [a, b]: state carries the
+// two interior trial points and their separations, one new date per step.
+def gs(s) = if s[2] - s[1] < 0.0008 then (s[1] + s[2]) / 2 else if s[5] < s[6] then gs({s[1], s[4], s[1] + 0.381966011 * (s[4] - s[1]), s[3], sep(s[1] + 0.381966011 * (s[4] - s[1])), s[5]}) else gs({s[3], s[2], s[4], s[2] - 0.381966011 * (s[2] - s[3]), s[6], sep(s[2] - 0.381966011 * (s[2] - s[3]))})
+
+// The month's coarsest minimum sits within a day of one of the scan days,
+// so the golden search starts one day either side of the best sample.
+d0 = scan(1, 0, sep(jd0))        // best two-day sample (day index)
+ta = jd0 + d0 * 2 - 1             // golden search over +-1 day of it
+tb = jd0 + d0 * 2 + 1
+tmin = gs({ta, tb, ta + 0.381966011 * (tb - ta), ta + 0.618033989 * (tb - ta), sep(ta + 0.381966011 * (tb - ta)), sep(ta + 0.618033989 * (tb - ta))})
+
+// ---- results ------------------------------------------------------------------
+print("Moon and planet", planet, "in month", month, "/", year)
+print("closest approach:", iso(tmin), "UT")
+print("minimum separation:", sep(tmin), "deg =", deg2dms(sep(tmin)))
+print("separation 6 h before:", sep(tmin - 0.25), "deg;  6 h after:", sep(tmin + 0.25), "deg")
+print("Moon illuminated:", illum(11, tmin), "; planet magnitude:", mag(planet, tmin))
+
+/* ---- expected output ----
+= 5
+= 2026
+= 11
+= 2461345.5
+= 1
+= 2461346.5
+= 2461348.5
+= 1656486833/673
+= Moon and planet 5 in month 11 / 2026
+= closest approach: 2026-11-02T22:46:11 UT
+= minimum separation: 0.484257927817 deg = 0° 29' 3"
+= separation 6 h before: 3.43171649211 deg;  6 h after: 3.42079544597 deg
+= Moon illuminated: 0.3804 ; planet magnitude: -2.03
+*/

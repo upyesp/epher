@@ -1,0 +1,90 @@
+/* ============================================================================
+oppositions-of-a-planet.epher -- oppositions and solar conjunctions ahead
+
+Finds the next solar conjunction and opposition of an outer planet from a
+start date: the instants when the planet's geocentric ecliptic longitude
+equals the Sun's (conjunction) or differs from it by 180 degrees
+(opposition). At conjunction the planet sits behind the Sun; at
+opposition it is opposite the Sun and up all night. A coarse grid locates
+each sign change of the separation and a recursive bisection (Meeus,
+"Astronomical Algorithms" 2nd ed., ch. 36) refines it to about a minute.
+
+The separation is the signed difference of geocentric ecliptic
+longitudes, from the built-in ra/decl accessors (solar-ephemeris crate,
+JPL-Horizons-validated; guide 1.29) rotated into the ecliptic with the
+mean obliquity (Meeus ch. 13). Almanacs define opposition and conjunction
+in longitude, not by the great-circle angle, which differs by the
+planet's ecliptic latitude.
+
+Accuracy: ephemeris-grade: the engine positions are good to about an
+arcsecond and the bisection lands each event within a few minutes.
+Sanity anchor: the default run finds the Mars opposition of
+2027-02-19 (the best Mars opposition of the decade's late years,
+widely publicized).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/oppositions-of-a-planet.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\oppositions-of-a-planet.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/oppositions-of-a-planet.epher
+In the REPL:             load one of the paths above
+
+Knobs: the planet (body number of an outer planet), the start date
+`day`, and how many days to search ahead.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const planet = 4                // Mars
+const day = {2026, 1, 1}        // search from here
+const span = 480                // days to search ahead
+const jd0 = jd(day[1], day[2], day[3])
+
+// ---- helpers -----------------------------------------------------------------
+// Mean obliquity of date; ecliptic longitude of a body (Meeus ch. 13).
+def centuries(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def obliquity(j) = 23.4392911 - 0.0130042 * centuries(j)
+def eclon(b, j) = deg(atan2(sin(rad(ra(b, j))) * cos(rad(obliquity(j))) + tan(rad(decl(b, j))) * sin(rad(obliquity(j))), cos(rad(ra(b, j)))))
+// Signed solar elongation in longitude, wrapped to -180..180: 0 is a
+// conjunction, +-180 an opposition; sin(elong) changes sign at both, so
+// one bisection serves both event types.
+def wrap180(x) = x - 360 * floor((x + 180) / 360)
+def elong(j) = wrap180(eclon(planet, j) - eclon(10, j))
+// First grid cell (25 days wide) whose endpoints straddle an event,
+// scanning from cell k with the previous sample's elongation in `prev`.
+def findcell(k, prev) = if k * 40 > span then -1 else if elong(jd0 + k * 40) * prev < 0 then k else findcell(k + 1, elong(jd0 + k * 40))
+// Bisection on sin(elong) over a straddling cell; 13 halvings turn a
+// 25-day cell into ~3 minutes.
+def refine(a, b, sa, n) = if n == 0 then (a + b) / 2 else if sin(rad(elong((a + b) / 2))) * sa > 0 then refine((a + b) / 2, b, sa, n - 1) else refine(a, (a + b) / 2, sa, n - 1)
+def kind(k) = if abs(elong(jd0 + k * 40)) < 90 and abs(elong(jd0 + (k - 1) * 40)) < 90 then "conjunction" else "opposition"
+
+// ---- the search ---------------------------------------------------------------
+const k1 = findcell(1, elong(jd0))          // first event's grid cell, or -1
+const r1 = if k1 < 0 then jd0 else refine(jd0 + (k1 - 1) * 40, jd0 + k1 * 40, sin(rad(elong(jd0 + (k1 - 1) * 40))), 13)
+const k2 = if k1 < 0 then -1 else findcell(k1 + 1, elong(jd0 + k1 * 40))
+const r2 = if k2 < 0 then jd0 else refine(jd0 + (k2 - 1) * 40, jd0 + k2 * 40, sin(rad(elong(jd0 + (k2 - 1) * 40))), 13)
+const e1 = elong(r1)                        // separation at the found instants
+const e2 = if k2 < 0 then 0 else elong(r2)
+
+// ---- results ------------------------------------------------------------------
+print("searching from", iso(jd0), "for planet", planet, "over", span, "days")
+print("event 1:", iso(r1), kind(k1))
+print("event 2:", iso(r2), kind(k2))
+print("solar elongation in longitude at event 1:", e1, "deg")
+print("solar elongation in longitude at event 2:", e2, "deg")
+
+/* ---- expected output ----
+= 4
+= {2026, 1, 1}
+= 480
+= 2461041.5
+= 1
+= 2461049.98877
+= 11
+= 2461456.16064
+= -0.00060317331598
+= 179.999311978
+= searching from 2026-01-01T00:00:00 for planet 4 over 480 days
+= event 1: 2026-01-09T11:43:50 conjunction
+= event 2: 2027-02-19T15:51:20 opposition
+= solar elongation in longitude at event 1: -0.00060317331598 deg
+= solar elongation in longitude at event 2: 179.999311978 deg
+*/

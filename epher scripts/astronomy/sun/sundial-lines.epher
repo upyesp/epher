@@ -1,0 +1,102 @@
+/* ============================================================================
+sundial-lines.epher -- hour-line angles for a vertical declining dial
+
+The hour lines of a planar sundial are where the Sun's hour planes
+meet the dial plane. An hour plane contains the Earth's axis and the
+Sun at that hour angle, so it is the meridian plane rotated around
+the axis by the hour angle H (15 deg per hour, positive after noon),
+and its intersection with a vertical wall whose outward normal
+declines D degrees west of south gives the hour line. The angle v of
+that line from the wall's vertical noon line is, for a wall at
+latitude phi (Meeus, "Astronomical Algorithms" 2nd ed., ch. 58,
+planar sundials, declining vertical wall; the same result as Waugh,
+"Sundials: Their Theory and Construction"):
+
+  tan v = cos(phi) sin(H) / (cos(D) cos(H) + sin(phi) sin(H) sin(D))
+
+For a due-south wall (D = 0) this reduces to the classic vertical
+south dial tan v = cos(phi) tan(H); for a wall facing due west or
+east (D = +-90) the lines become parallel, the polar dial, making
+the angle 90 - phi with the noon line - the two limits printed as
+checks below. The gnomon is a rod parallel to the Earth's axis
+sticking out of the wall; the hour lines do not depend on its
+length. Solar (apparent) time is meant: a clock reads mean time, so
+the equation of time (a quarter hour at most) must be added to the
+clock before reading the dial, and the wall's longitude fixes local
+noon.
+
+Accuracy: the geometry is exact for an ideal wall and a point gnomon;
+real dials add gnomon thickness, wall tilt and refraction at the
+1-2 arcmin level and above, which are not modeled.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sun/sundial-lines.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sun\sundial-lines.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sun/sundial-lines.epher
+In the REPL:             load one of the paths above
+
+Knobs: the latitude and the wall's declination (orientation).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const lat = 51.4779          // dial latitude, deg (Greenwich)
+const wdecl = 25             // wall declination, deg: the wall faces 25 deg west of south
+
+// ---- the dial geometry --------------------------------------------------------
+def v(h) = deg(atan2(cos(rad(lat)) * sin(rad(h)), cos(rad(wdecl)) * cos(rad(h)) + sin(rad(lat)) * sin(rad(h)) * sin(rad(wdecl))))  // hour-line angle from the noon line, deg
+def ha(hh) = (hh - 12) * 15  // hour angle H of a solar-time hour
+
+// ---- results ------------------------------------------------------------------
+print("vertical declining dial at lat", lat, "facing", wdecl, "deg west of south")
+print("hour-line angle v from the vertical noon line (positive toward the east end):")
+
+/* One labelled row per hour, 6:00 to 18:00 solar time. Positive v
+leans toward the wall's east end, where the afternoon shadow falls;
+the morning lines mirror on the west side but not symmetrically -
+the declining wall's hour fan is asymmetric, its signature. Angles
+past +-90 deg mean the ray climbs above the style's foot (that hour
+the Sun stands behind the wall's facing); the paired rays h and
+h + 12 lie on one straight line, as on every planar dial. */
+print("6:00  H", ha(6), ": line at", v(ha(6)), "deg")
+print("7:00  H", ha(7), ": line at", v(ha(7)), "deg")
+print("8:00  H", ha(8), ": line at", v(ha(8)), "deg")
+print("9:00  H", ha(9), ": line at", v(ha(9)), "deg")
+print("10:00 H", ha(10), ": line at", v(ha(10)), "deg")
+print("11:00 H", ha(11), ": line at", v(ha(11)), "deg")
+print("12:00 H", ha(12), ": line at", v(ha(12)), "deg (the noon line)")
+print("13:00 H", ha(13), ": line at", v(ha(13)), "deg")
+print("14:00 H", ha(14), ": line at", v(ha(14)), "deg")
+print("15:00 H", ha(15), ": line at", v(ha(15)), "deg")
+print("16:00 H", ha(16), ": line at", v(ha(16)), "deg")
+print("17:00 H", ha(17), ": line at", v(ha(17)), "deg")
+print("18:00 H", ha(18), ": line at", v(ha(18)), "deg")
+
+/* Checks against the two textbook limits of the same formula. A
+due-south wall (D = 0) at this latitude puts the 1 pm line at
+atan(cos(phi) tan 15) = 9.48 deg, the classic vertical south dial
+value; a wall facing due west (D = 90) degenerates into the polar
+dial whose lines are all parallel at 90 - phi from the noon line. */
+print("check, due-south wall (D = 0), 1 pm line:", deg(atan(cos(rad(lat)) * tan(rad(15)))), "deg")
+print("check, polar-dial limit (D = 90): lines parallel at", 90 - lat, "deg")
+
+/* ---- expected output ----
+= 51.4779
+= 25
+= vertical declining dial at lat 51.4779 facing 25 deg west of south
+= hour-line angle v from the vertical noon line (positive toward the east end):
+= 6:00  H -90 : line at -117.96309623 deg
+= 7:00  H -75 : line at -98.0241226486 deg
+= 8:00  H -60 : line at -72.8150998009 deg
+= 9:00  H -45 : line at -47.2530172188 deg
+= 10:00 H -30 : line at -26.6852339829 deg
+= 11:00 H -15 : line at -11.5348300422 deg
+= 12:00 H 0 : line at 0 deg (the noon line)
+= 13:00 H 15 : line at 9.5220398875 deg
+= 14:00 H 30 : line at 18.1453515136 deg
+= 15:00 H 45 : line at 26.7256883376 deg
+= 16:00 H 60 : line at 36.1062126729 deg
+= 17:00 H 75 : line at 47.3612264364 deg
+= 18:00 H 90 : line at 62.0369037702 deg
+= check, due-south wall (D = 0), 1 pm line: 9.47439105165 deg
+= check, polar-dial limit (D = 90): lines parallel at 38.5221 deg
+*/

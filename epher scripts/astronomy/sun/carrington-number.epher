@@ -1,0 +1,97 @@
+/* ============================================================================
+carrington-number.epher -- the Carrington rotation number of a date
+
+The Sun rotates on its axis in about 25.4 days, and since 1853 the
+rotations have been numbered. This script computes the Carrington
+rotation number of a knob date from the mean-rate convention of
+Duffett-Smith and Zwart, "Practical Astronomy with your Calculator
+or Spreadsheet" (4th ed., Cambridge, 2017), their section on
+Carrington rotation numbers: rotation 1 began on 1853 November 9 and
+the mean synodic rotation is 27.2753 days, so
+
+  rotation number = 1 + floor((JD - 2398167.0) / 27.2753)
+
+The epoch instant used here is JD 2398167.0, noon of 1853 Nov 9 (the
+JD of that date is sometimes quoted loosely as 2398220.0, which is in
+fact 1854 Jan 1; the astronomically consistent choice is the JD the
+engine gives for 1853 Nov 9, and it keeps the count aligned with the
+almanac numbering). The date's rotation starts at the epoch plus
+(rotation - 1) times 27.2753 days; the script prints that start, the
+following rotation's start, and how far into the rotation the knob
+date falls.
+
+The mean grid drifts against the corrected boundaries: Meeus,
+"Astronomical Algorithms" 2nd ed. ch. 29, eqs. 29.1-29.2 gives the
+corrected start JDE = 2398140.227 + 27.2752316 N plus a periodic
+term of amplitude 0.15 day, and the two agree within the +/-1 day
+convention caveat stated for this script - the printed corrected
+boundary of the knob date's rotation is the cross-check.
+
+Accuracy: the rotation NUMBER of a date more than a day inside a
+rotation is exact; dates within about a day of a boundary can be
+assigned to the neighbouring rotation by tables that use the
+corrected or observed (sunspot-based) boundaries, and the historical
+rotation count itself carries an uncertainty of the same size.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sun/carrington-number.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sun\carrington-number.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sun/carrington-number.epher
+In the REPL:             load one of the paths above
+
+Knob: the date. No ephemeris accessors are used - pure calendar
+arithmetic (jd and iso), as the mean convention deserves.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const day = {2026, 6, 21}    // the date to number
+const epoch = 2398167.0      // JD of 1853 Nov 9 12:00, start of rotation 1
+const period = 27.2753       // mean synodic rotation, days (DS)
+
+// ---- helpers ------------------------------------------------------------------
+def num(j) = floor((j - epoch) / period) + 1          // rotation containing JD j
+def rstart(n) = epoch + (n - 1) * period              // grid start of rotation n
+def mcorr(n) = 281.96 + 26.882476 * n                 // Meeus ch. 29, eq. 29.2 angle
+def corr(n) = 0.1454 * sin(rad(mcorr(n))) - 0.0085 * sin(rad(2 * mcorr(n))) - 0.0141 * cos(rad(2 * mcorr(n)))
+def rcorr(n) = 2398140.227 + 27.2752316 * n + corr(n) // corrected start, eq. 29.1-29.2 (TD)
+
+// ---- results ------------------------------------------------------------------
+n = num(jd(day[1], day[2], day[3]))
+print("Carrington rotation number of", iso(jd(day[1], day[2], day[3])), ":", n)
+print("rotation", n, "start (mean grid):", iso(rstart(n)))
+print("rotation", n + 1, "start:", iso(rstart(n + 1)))
+print("days into rotation", n, ":", jd(day[1], day[2], day[3]) - rstart(n))
+
+/* Cross-check against the corrected almanac boundary (Meeus ch. 29,
+eqs. 29.1-29.2), evaluated at this rotation's own number: the grid
+sits within about half a day of it, and never more than about a day
+away for dates between 1853 and now - the +/- 1 day convention
+caveat. The corrected instant comes out in TD, converted to UT. */
+print("corrected start of rotation", n, ":", iso(rcorr(n) - delta_t(rcorr(n)) / 86400), "UT")
+print("difference grid - corrected:", rstart(n) - (rcorr(n) - delta_t(rcorr(n)) / 86400), "days (negative = grid early)")
+
+/* Epoch self-check: the grid must number the days right after the
+epoch as rotation 1 and the days after the first mean rotation as
+rotation 2 (checked a day inside each boundary, away from the
+floating-point edge at the exact boundary instant). */
+print("epoch check: rotation on 1853-11-10:", num(jd(1853, 11, 10)), "and on 1853-12-07:", num(jd(1853, 12, 7)))
+
+/* Caveat: the real rotation boundaries wobble by up to about a day
+around this mean grid (the Sun's rotation is not perfectly uniform
+and the grid's fixed 27.2753-day period is a mean), so a date within
+about one day of a printed boundary can belong to the neighbouring
+rotation in tables built on observed boundaries. */
+
+/* ---- expected output ----
+= {2026, 6, 21}
+= 2398167
+= 27.2753
+= 2312
+= Carrington rotation number of 2026-06-21T00:00:00 : 2312
+= rotation 2312 start (mean grid): 2026-06-08T17:14:21
+= rotation 2313 start: 2026-07-05T23:50:47
+= days into rotation 2312 : 12.2817000002
+= corrected start of rotation 2312 : 2026-06-09T02:56:43 UT
+= difference grid - corrected: -0.404418156482 days (negative = grid early)
+= epoch check: rotation on 1853-11-10: 1 and on 1853-12-07: 2
+*/

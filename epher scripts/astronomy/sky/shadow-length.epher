@@ -1,0 +1,106 @@
+/* ============================================================================
+shadow-length.epher -- the gnomon's shadow, length and bearing
+
+Where a vertical gnomon's shadow falls at a given place and time: the
+Sun's altitude and azimuth from the built-in accessors (topocentric,
+geometric - no refraction; guide 1.16) give the shadow of a gnomon of
+height h as
+  length = h / tan(altitude),   bearing = solar azimuth + 180 degrees
+because the shadow points exactly away from the Sun. Azimuth runs from
+north through east, 0-360 degrees, so at Greenwich the 15:00-UT June
+Sun sits in the south-west (azimuth about 248 deg) and the shadow
+falls toward the north-east (about 68 deg). At solar noon the shadow
+is shortest and points north (bearing near 0 deg), the moment a
+sundial or a compass-and-string can find.
+
+Sources: the geometry is elementary (any surveying or sundial text;
+Duffett-Smith, "Practical Astronomy", the Sun's altitude and azimuth
+chapter); the Sun's position itself comes from the engine's
+solar-ephemeris accessors.
+
+Accuracy: the shadow geometry is exact; the reading inherits the
+engine's arcsecond-class solar position, and no refraction is applied,
+so the printed length fits the geometric Sun. The usual caveat: a real
+shadow's edge is softened by the solar disc (about half a degree).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/shadow-length.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\shadow-length.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/shadow-length.epher
+In the REPL:             load one of the paths above
+
+Knobs: gnomon height (m), the place, the sample date and hour (UT), and
+the night date used to show the Sun-down guard.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const hgt = 1               // gnomon height, m
+const lat = 51.4779         // Greenwich
+const lon = 0
+const day = {2026, 6, 21}   // sample date
+const hr = 15               // sample hour, UT
+const day2 = {2026, 12, 21} // night date for the Sun-down guard
+const hr2 = 0               // 00:00 UT: the Sun is far below
+
+// ---- model ------------------------------------------------------------------
+def wb(a) = a + 180 - 360 * floor((a + 180) / 360)   // shadow bearing, 0-360 deg from north
+def len(a) = hgt / tan(rad(a))                        // shadow length for solar altitude a
+
+// ---- the sample instant -----------------------------------------------------
+a1 = alt(10, jd(day[1], day[2], day[3], hr), lat, lon)
+z1 = az(10, jd(day[1], day[2], day[3], hr), lat, lon)
+
+/* ---- results ------------------------------------------------------------------
+The 15:00-UT sample: the Sun is past the meridian, in the south-west,
+so the shadow lies north-east. The length is close to the gnomon's own
+height - the Sun at 45.9 deg makes tan(45.9) near 1 - and a one-metre
+stick throws a shadow of about 0.97 m. */
+print("gnomon height", hgt, "m at lat", lat, "lon", lon)
+print("2026-06-21 15:00 UT: Sun alt", a1, "deg, az", z1, "deg")
+print("  shadow length:", len(a1), "m; shadow bearing:", wb(z1), "deg from north")
+
+// ---- the noon cross-check ----------------------------------------------------
+t0 = transit(10, jd(day[1], day[2], day[3]), lat, lon)
+a0 = alt(10, t0, lat, lon)
+z0 = az(10, t0, lat, lon)
+d0 = decl(10, t0)
+print("at solar noon", iso(t0), ": Sun alt", a0, "deg, az", z0, "deg")
+print("  shortest shadow:", len(a0), "m; bearing", wb(z0), "deg (north)")
+
+/* Self-check: at the transit instant the measured altitude and the
+meridian formula 90 - |lat - decl| meet (they differ by the Sun's
+parallax, arcseconds, as in sun-altitude-at-noon.epher), and the
+azimuth reads due south, 180 deg. */
+print("alt at transit vs 90 - |lat - decl|:", a0, "vs", 90 - abs(lat - d0), "deg")
+print("azimuth at transit: due south reads 180 deg - measured", z0, "deg")
+
+// ---- the Sun-down guard ------------------------------------------------------
+a2 = alt(10, jd(day2[1], day2[2], day2[3], hr2), lat, lon)
+z2 = az(10, jd(day2[1], day2[2], day2[3], hr2), lat, lon)
+if a2 <= 0 then print("2026-12-21 00:00 UT: the Sun is down (alt", a2, "deg): no shadow") else print("2026-12-21 00:00 UT: shadow length", len(a2), "m, bearing", wb(z2), "deg")
+
+/* ---- expected output ----
+= 1
+= 51.4779
+= 0
+= {2026, 6, 21}
+= 15
+= {2026, 12, 21}
+= 0
+= 45.9278503
+= 247.7014893
+= gnomon height 1 m at lat 51.4779 lon 0
+= 2026-06-21 15:00 UT: Sun alt 45.9278503 deg, az 247.7014893 deg
+=   shadow length: 0.968125308321 m; shadow bearing: 67.7014893 deg from north
+= 1954203123/794
+= 61.9588272
+= 179.9987742
+= 23.437848058
+= at solar noon 2026-06-21T12:01:49 : Sun alt 61.9588272 deg, az 179.9987742 deg
+=   shortest shadow: 0.532631544272 m; bearing 359.9987742 deg (north)
+= alt at transit vs 90 - |lat - decl|: 61.9588272 vs 61.959948058 deg
+= azimuth at transit: due south reads 180 deg - measured 179.9987742 deg
+= -61.9546138
+= 1.065261
+= 2026-12-21 00:00 UT: the Sun is down (alt -61.9546138 deg): no shadow
+*/
