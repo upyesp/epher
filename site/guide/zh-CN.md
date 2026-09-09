@@ -248,6 +248,29 @@ ans * 2
 10
 ```
 
+一个列表可以一次填入多个名字——`{a, b} = list` 把列表从左到右拆开
+（1.11 节会展示这样返回多个答案的函数）：
+
+```epher
+{a, b} = {10, 20}; a + b
+```
+
+```text
+{10, 20}
+30
+```
+
+不想要的位置写作 `_`：
+
+```epher
+{x, _} = {7, 8}; x
+```
+
+```text
+{7, 8}
+7
+```
+
 ### 1.6 常量：永不改变的名称
 
 *常量*是一个值永不改变的名称，就像内置的 `pi`，但由你自己选择。用 `const`
@@ -320,13 +343,14 @@ weight(80)
 
 ### 1.7 字符串与 print
 
-字符串是双引号中的文本：`"hello"`。字符串用 `+` 拼接，用 `==` 和 `!=` 比较，用 `len` 计数，并像列表一样从 1 开始索引：
+字符串是双引号中的文本：`"hello"`。字符串用 `+` 拼接，用 `==` 和 `!=` 比较，用 `<` 和 `>` 排序（字典序），用 `len` 计数，并像列表一样从 1 开始索引：
 
 ```epher
 "hello" + " " + "world"
 len("hello")
 "hello"[1]
 "abc" == "abd"
+"apple" < "banana"
 ```
 
 ```text
@@ -334,9 +358,24 @@ hello world
 5
 h
 false
+true
 ```
 
-没有转义序列：字符串里不能出现双引号。**str(x)** 按答案面板的方式写出一个值，**print(a, b, …)** 把参数用空格连成一行：
+字符串里的反斜杠开启一个**转义序列**：`\n` 是换行，`\t` 是制表符，
+`\\` 和 `\"` 则是反斜杠和引号本身——因此字符串可以包含双引号：
+
+```epher
+s = "say \"hi\""
+len("a\nb")
+```
+
+```text
+say "hi"
+3
+```
+
+**str(x)** 按答案面板的方式写出一个值，**print(a, b, …)** 把参数用
+空格连成一行：
 
 ```epher
 print("x =", 42)
@@ -344,6 +383,33 @@ print("x =", 42)
 
 ```text
 x = 42
+```
+
+一个小函数库覆盖了写报告的其余部分。**upper** 和 **lower** 改变大小
+写，**trim** 去掉两端的空格，**substr** 取出一段（和其他索引一样从
+1 开始），**find** 报告一段文字出现在哪里（没有时为 0），**replace**
+把一段文字的每个副本换成另一段，**split** 在分隔符处把文字拆成列表，
+**join** 把列表粘成一个文字，**fixed** 则把数字写成指定的小数位数——
+报告想要的那个零，得以保留：
+
+```epher
+upper("hello")
+substr("2026-09-17", 1, 4)
+find("hello world", "world")
+replace("2026-09-17", "-", "/")
+split("a,b,c", ",")
+join({1, 2, 3}, "-")
+fixed(3.1, 2)
+```
+
+```text
+HELLO
+2026
+7
+2026/09/17
+{a, b, c}
+1-2-3
+3.10
 ```
 
 ### 1.8 用 if 做判断
@@ -392,6 +458,9 @@ x = 0; while x < 5 do x = x + 1; x
 
 > **安全网：** epher 会在 100 000 步之后停止任何循环并显示 `error: step limit exceeded`。这能保护你免受永不结束的循环的困扰。如果看到这个错误，说明你的条件可能永远不会变成假。
 
+循环也可以主动离开：下一节加入 `break` 和 `continue`，函数则有
+`return`（见 1.11 节）。
+
 ### 1.10 用 for 循环
 
 `for` 对每个值重复一次语句，并把语句的值收集成一个列表：可以遍历 `start to end` 区间（含端点，可带 `step`），也可以遍历列表的元素：
@@ -419,6 +488,33 @@ for i in 1 to 3 do print("line", i)
 ```
 
 与 while 一样，10 万步的安全网同样限制 for 循环。
+
+**提前离开循环。** `break` 就地停止循环；到此为止收集到的值就是循环
+的答案。`continue` 跳过本轮剩余部分，进入下一个值。两者都是语句，
+所以放在 `if` 后面：
+
+```epher
+for k in 1 to 6 do if mod(k, 2) == 1 then k
+for k in 1 to 10 do if k == 4 then break else k
+total = 0
+for k in 1 to 6 do if mod(k, 2) == 0 then continue else total = total + k
+total
+```
+
+```text
+{1, 3, 5}
+{1, 2, 3}
+0
+{1, 4, 9}
+9
+```
+
+中间那个读作：k 从 1 到 10，如果 k 是 4 就停止；否则交回 k。循环的
+答案是它停止之前看到的值。最后一对展示 `continue` 计数：for 行收集
+的列表是累计和 - 1，然后 4，然后 9 - 偶数轮被跳过，所以什么也没加。
+最后的 `total`，9，是奇数值的和。没有 `else` 的 `if` 在条件为假时
+什么也不贡献，第一个循环正是这样只留下奇数值，循环也正是这样既能
+*筛选*一个列表，也能变换它。
 
 
 ### 1.11 用 def 定义自己的函数
@@ -461,6 +557,66 @@ answer()
 42
 ```
 
+**多步的函数体。** 当一个表达式不够用时，给函数一个 `do … end` 函数
+体。语句按顺序逐条执行，最后一条的值就是答案：
+
+```epher
+def hyp(a, b) do
+  c = a ^ 2 + b ^ 2
+  sqrt(c)
+end
+hyp(3, 4)
+```
+
+```text
+5
+```
+
+中间名字 `c` 存在于调用内部；外部看不见它，两次调用也看不见彼此的
+`c`。
+
+**return：立刻给出答案。** `return value` 立即作答并跳过函数体的其
+余部分——带提前出口的选择，这是最自然的形状：
+
+```epher
+def grade(s) do
+  if s >= 90 then return "A"
+  if s >= 80 then return "B"
+  "C"
+end
+grade(95); grade(85); grade(40)
+```
+
+```text
+A
+B
+C
+```
+
+`return` 也会在搜索的循环找到的那一刻离开循环：
+
+```epher
+def firstsq(xs) do
+  for x in xs do
+    if x ^ 0.5 == floor(x ^ 0.5) then return x
+  0
+end
+firstsq({3, 5, 9, 11}); firstsq({3, 5, 7})
+```
+
+```text
+9
+0
+```
+
+一条规则让这些块保持可读：`end` 永远闭合函数的 do——`if`、`for`、
+`while` 都不带 `end`。函数体在没有答案的情况下结束（比如每条路径都
+没返回任何东西）是一个错误，而不是沉默：epher 会说明这一点，并点名
+那个函数。
+
+> **不止一个答案？** 返回一个列表——并用 1.5 节的解构一举命名：
+> `{mean, sd} = {4, 1.6}`。
+
 ### 1.12 递归：调用自身的函数
 
 最著名的例子是斐波那契数列：
@@ -479,7 +635,9 @@ fib(10)
 
 `fib(10)` 是第 10 个斐波那契数。函数用更小的参数调用自己，直到达到 `n <= 1`。这能成立是因为 `if ... then ... else ...` 形式只计算它需要的分支。
 
-> 函数体是一个单独的表达式，一行。需要组合多个计算时，改用 `;` 写成脚本（见下一节）。
+> 函数体是 `=` 之后的一个表达式，或是一个带多条语句的 `do … end` 块，
+> 需要提前退出时用 `return`（见 1.11 节）。不需要函数时，改用脚本
+> （见下一节）组合多个计算。
 
 ### 1.13 脚本：一次执行多条语句
 
@@ -850,10 +1008,15 @@ error: unknown name: foo
 | 变量 | `name = value` | `x = 5` |
 | 常量 | `const name = value` | `const tax = 0.2` |
 | 判断 | `if c then a else b` | `if x > 0 then 1 else -1` |
+| 选择语句 | `if c then 语句 [else 语句]` | `if k == 4 then break` |
 | 循环 | `while c do statement` | `while x < 5 do x = x + 1` |
 | for 循环 | `for i in a to b step s do 语句` | `for i in 1 to 5 do i^2` |
-| 函数 | `def name(params) = expr` | `def f(x) = x ^ 2` |
-| 字符串 | `"..."`，`+` 拼接，`s[i]`，`==` | `"a" + "b"` |
+| 离开 / 跳过循环 | `break`, `continue` | `if k == 4 then break` |
+| 函数 | `def name(params) = expr` 或 `do … end` | `def f(x) = x ^ 2` |
+| 立刻作答 | `return value` | `if ok then return x` |
+| 多个名称 | `{a, b} = list`（`_` 跳过） | `{m, sd} = stats(d)` |
+| 字符串 | `"..."`，`+` 拼接，`s[i]`，`==`，`<` | `"a" + "b"` |
+| 字符串库 | `upper` `lower` `trim` `substr` `split` `join` `find` `replace` `fixed` | `split("a,b", ",")` |
 | Print | `print(a, b, ...)` | `print("x =", 42)` |
 | 脚本 | 用 `;` 或换行符连接语句 | `x = 1; x + 1` |
 | 精确分数 | `frac(n, d)` | `frac(1, 3)` |
@@ -868,6 +1031,38 @@ error: unknown name: foo
 | 定积分 | `integral(expr, a, b)` | `integral(x^2, 0, 3)` |
 | 二进制、八进制、十六进制 | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | 进制拼写 | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
+| 素数 | `isprime(n)`、`factors(n)` 等 | `factors(360)` |
+| 列表字面量 | `{…}` | `{1, 2, 3}` |
+| 列表元素 | `list[i]`（从 1 起） | `{5, 6}[2]` |
+| 列表统计 | `mean(列表)`, `median(列表)`, … | `stdev(d)` |
+| 列表形态 | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
+| 线性回归 | `linreg(xs, ys)` | `linreg(x, y)` |
+| 回归家族 | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
+| 正态族 | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
+| t 族 | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
+| 卡方族 | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
+| 离散族 | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
+| 检验与区间 | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| ANOVA 与配对 t | `anova(列表...)`、`ttestpaired(a, b)` | `anova(g1, g2, g3)` |
+| 数据图 | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
+| 随机数 | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| 正态抽值 | `randn(mu, sigma)` | `randn(0, 1)` |
+| 常量浏览器 | 帮助 → 常量：全部内置常量，按组分类 | 帮助 → 常量 |
+| 量 | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
+| 换算 | `expr in 单位` 或 `expr -> 单位` | `72 km/hr in m/s` |
+| 词头 | `k M G T m µ n p` 缩放任意单位 | `5 km`, `3 MPa`, `1 GHz` |
+| 按位与、或 | `a & b`, `a \| b` | `0xFF & 0x0F` |
+| 按位异或 | `a xor b` | `5 xor 3` |
+| 按位取反 | `~a` | `~0` |
+| 移位 | `a << n`, `a >> n` | `1 << 8` |
+| 字长 | `bits(n)`，取 8、16、32、64 | `bits(8)` |
+| 隐式关系 | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
+| 矩阵字面量 | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
+| 矩阵函数 | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
+| TVM 求解器 | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
+| 净现值与内部收益率 | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
+| 摊还 | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
+| 利息 | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` |
 
 ### 1.18 复数
 

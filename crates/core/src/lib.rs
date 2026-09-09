@@ -311,7 +311,7 @@ pub enum CmpOp {
 pub enum Statement {
     Assign(String, Expression),
     Const(String, Expression),
-    FunctionDef(String, Vec<String>, Expression),
+    FunctionDef(String, Vec<String>, FunctionBody),
     While(Expression, Box<Statement>),
     /// `for name in iter do body` (ADR-0054): the iterable is either a
     /// range `start to end [step s]` or a list expression. Each body
@@ -321,6 +321,36 @@ pub enum Statement {
     /// `solve lhs == rhs` (ADR-0043): numeric equation solving, no CAS.
     Solve(Expression),
     Expr(Expression),
+    /// A `do ... end` block (ADR-0064): the body of a `def`, run one
+    /// statement after another in the call's own environment; the last
+    /// statement's value is the call's answer.
+    Block(Vec<Statement>),
+    /// A statement-level `if cond then stmt else stmt` (ADR-0064). The
+    /// expression form stays the chooser of values; the statement form
+    /// chooses between statements, which is how `then break` reads.
+    /// A missing `else` branch that is taken produces no value, which is
+    /// how a `for` loop filters.
+    If(Expression, Box<Statement>, Option<Box<Statement>>),
+    /// `return expr` (ADR-0064): leave the enclosing function now, with
+    /// this value.
+    Return(Expression),
+    /// `break` (ADR-0064): leave the enclosing loop now.
+    Break,
+    /// `continue` (ADR-0064): skip to the loop's next pass.
+    Continue,
+    /// `{a, b} = expr` (ADR-0064): bind several names from one list —
+    /// the written form of returning several answers. `_` skips a
+    /// position.
+    Destructure(Vec<String>, Expression),
+}
+
+/// The body of a user-defined function (ADR-0064): a single expression
+/// after `=` — the original, unchanged form — or a `do ... end` block of
+/// statements whose last value is the answer.
+#[derive(Debug, Clone)]
+pub enum FunctionBody {
+    Expr(Expression),
+    Block(Vec<Statement>),
 }
 
 /// What a `for` loop iterates (ADR-0054): an inclusive numeric range
@@ -335,11 +365,12 @@ pub enum ForIterable {
     Items(Expression),
 }
 
-/// A user-defined function: parameter names and a body expression.
+/// A user-defined function: parameter names and a body (an expression
+/// after `=`, or a `do ... end` block — ADR-0064).
 #[derive(Debug, Clone)]
 pub struct Function {
     params: Vec<String>,
-    body: Expression,
+    body: FunctionBody,
 }
 
 /// Errors crossing the epher-core seams.
@@ -726,6 +757,28 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
                 loop {
                     match chars.next() {
                         Some('"') => break,
+                        // Escape sequences (ADR-0064): the five the
+                        // calculator needs — newline, tab, carriage
+                        // return, the backslash itself, and the quote.
+                        // Anything else is named as a mistake, so a
+                        // typo like `\d` cannot silently mean `d`.
+                        Some('\\') => match chars.next() {
+                            Some('n') => s.push('\n'),
+                            Some('t') => s.push('\t'),
+                            Some('r') => s.push('\r'),
+                            Some('\\') => s.push('\\'),
+                            Some('"') => s.push('"'),
+                            Some(other) => {
+                                return Err(EpherError::Parse(format!(
+                                    "unknown escape \\{other} in a string: the escapes are \\n, \\t, \\r and \\\\"
+                                )));
+                            }
+                            None => {
+                                return Err(EpherError::Parse(
+                                    "a string ends on a lone backslash".to_string(),
+                                ))
+                            }
+                        },
                         Some(c2) => s.push(c2),
                         None => {
                             return Err(EpherError::Parse(
@@ -830,12 +883,13 @@ fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
                     .map_err(|_| EpherError::Parse(format!("invalid number: {num:?}")))?;
                 tokens.push(imaginary_or_number(n, &mut chars));
             }
-            c if c.is_alphabetic() => {
+            c if c.is_alphabetic() || c == '_' => {
                 let mut ident = String::new();
                 while let Some(&c2) = chars.peek() {
                     // identifiers may contain digits after the first
-                    // character (atan2, log10, x2), but must start with a
-                    // letter so numbers still tokenize as numbers
+                    // character (atan2, log10, x2), but must start with
+                    // a letter or `_` so numbers still tokenize as
+                    // numbers
                     if c2.is_alphanumeric() || c2 == '_' {
                         ident.push(c2);
                         chars.next();
@@ -891,12 +945,48 @@ impl Parser {
 
     /// A statement is `while cond do stmt` (loop), `def name(params) = expr`
     /// (function definition), `const name = expr` (constant definition,
-    /// ADR-0012), `name = expr` (assignment), or `expr`.
+    /// ADR-0012), `name = expr` (assignment), or `expr`. ADR-0064 adds
+    /// the statement-level `if`, `break`/`continue`/`return`, the
+    /// `{a, b} = list` destructure, and `do ... end` block bodies for
+    /// `def`.
     fn parse_statement(&mut self) -> Result<Statement, EpherError> {
+        if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "break") {
+            self.next(); // consume 'break'
+            return Ok(Statement::Break);
+        }
+        if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "continue") {
+            self.next(); // consume 'continue'
+            return Ok(Statement::Continue);
+        }
+        if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "return") {
+            self.next(); // consume 'return'
+            let value = self.parse_expression()?;
+            return Ok(Statement::Return(value));
+        }
+        if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "if") {
+            // The statement form of `if` (ADR-0064): it chooses between
+            // statements, so `then break` and `then continue` read the
+            // way they sound. Without `else`, a false condition produces
+            // no value — which is how a for loop filters.
+            self.next(); // consume 'if'
+            let cond = self.parse_expression()?;
+            self.expect_keyword("then")?;
+            self.skip_semicolons();
+            let then = Box::new(self.parse_statement()?);
+            let els = if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "else") {
+                self.next(); // consume 'else'
+                self.skip_semicolons();
+                Some(Box::new(self.parse_statement()?))
+            } else {
+                None
+            };
+            return Ok(Statement::If(cond, then, els));
+        }
         if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "while") {
             self.next(); // consume 'while'
             let cond = self.parse_expression()?;
             self.expect_keyword("do")?;
+            self.skip_semicolons();
             let body = Box::new(self.parse_statement()?);
             return Ok(Statement::While(cond, body));
         }
@@ -928,6 +1018,7 @@ impl Parser {
                 ForIterable::Items(first)
             };
             self.expect_keyword("do")?;
+            self.skip_semicolons();
             let body = Box::new(self.parse_statement()?);
             return Ok(Statement::For(var, iterable, body));
         }
@@ -968,9 +1059,34 @@ impl Parser {
             } else {
                 self.next(); // zero-parameter function
             }
-            self.expect_token(Token::Equals, "'='")?;
+            // Two body forms (ADR-0064): `= expr` — the original
+            // one-expression body — or `do stmt ... end`, a block of
+            // statements whose last value is the answer.
+            if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "do") {
+                self.next(); // consume 'do'
+                let stmts = self.parse_block()?;
+                return Ok(Statement::FunctionDef(name, params, FunctionBody::Block(stmts)));
+            }
+            self.expect_token(Token::Equals, "'=' or 'do'")?;
             let body = self.parse_expression()?;
-            return Ok(Statement::FunctionDef(name, params, body));
+            return Ok(Statement::FunctionDef(name, params, FunctionBody::Expr(body)));
+        }
+        // `{a, b} = expr` (ADR-0064): a list pattern of names before an
+        // `=` is a destructure. The pattern grammar is tried first and
+        // rewound on any deviation, so `{1, 2}` at the start of a line
+        // stays the list expression it always was.
+        if matches!(self.peek(), Some(Token::LBrace)) {
+            let save = self.pos;
+            let parsed = (|| {
+                let names = self.parse_name_pattern()?;
+                self.expect_token(Token::Equals, "'='")?;
+                let expr = self.parse_expression()?;
+                Ok(Statement::Destructure(names, expr))
+            })();
+            if parsed.is_ok() {
+                return parsed;
+            }
+            self.pos = save; // a plain list expression, as always
         }
         if let Some(Token::Ident(name)) = self.peek().cloned() {
             if matches!(self.tokens.get(self.pos + 1), Some(Token::Equals)) {
@@ -982,6 +1098,87 @@ impl Parser {
         }
         let expr = self.parse_expression()?;
         Ok(Statement::Expr(expr))
+    }
+
+    /// A `do ... end` block's statements (ADR-0064): the caller has
+    /// consumed `do`; statements run one after another, separated by `;`
+    /// or newlines, until `end`.
+    fn parse_block(&mut self) -> Result<Vec<Statement>, EpherError> {
+        let mut stmts = Vec::new();
+        loop {
+            while matches!(self.peek(), Some(Token::Semicolon)) {
+                self.next();
+            }
+            if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "end") {
+                self.next(); // consume 'end'
+                return Ok(stmts);
+            }
+            if self.peek().is_none() {
+                return Err(EpherError::Parse(
+                    "unterminated block: a `do` body needs its `end`".into(),
+                ));
+            }
+            stmts.push(self.parse_statement()?);
+            match self.next() {
+                Some(Token::Semicolon) => {}
+                Some(Token::Ident(kw)) if kw == "end" => return Ok(stmts),
+                Some(other) => {
+                    return Err(EpherError::Parse(format!(
+                        "expected ';' or 'end' in a do body, found {other:?}"
+                    )));
+                }
+                None => {
+                    return Err(EpherError::Parse(
+                        "unterminated block: a `do` body needs its `end`".into(),
+                    ))
+                }
+            }
+        }
+    }
+
+    /// A destructuring pattern's names (ADR-0064): `{a, b, _}` — plain
+    /// names, with `_` marking a position to skip.
+    fn parse_name_pattern(&mut self) -> Result<Vec<String>, EpherError> {
+        self.next(); // consume '{'
+        let mut names = Vec::new();
+        loop {
+            match self.next() {
+                Some(Token::Ident(name)) => names.push(name),
+                Some(other) => {
+                    return Err(EpherError::Parse(format!(
+                        "a destructuring pattern holds names, found {other:?}"
+                    )));
+                }
+                None => {
+                    return Err(EpherError::Parse(
+                        "unexpected end of input in a destructuring pattern".into(),
+                    ))
+                }
+            }
+            match self.next() {
+                Some(Token::Comma) => continue,
+                Some(Token::RBrace) => return Ok(names),
+                Some(other) => {
+                    return Err(EpherError::Parse(format!(
+                        "expected ',' or '}}' in a destructuring pattern, found {other:?}"
+                    )));
+                }
+                None => {
+                    return Err(EpherError::Parse(
+                        "unexpected end of input in a destructuring pattern".into(),
+                    ))
+                }
+            }
+        }
+    }
+
+    /// A body may open on the line after `do`/`then`/`else`: the
+    /// tokenizer turned those newlines into `;` tokens, and a body
+    /// simply does not start with one (ADR-0064).
+    fn skip_semicolons(&mut self) {
+        while matches!(self.peek(), Some(Token::Semicolon)) {
+            self.next();
+        }
     }
 
     fn expect_ident(&mut self, what: &str) -> Result<String, EpherError> {
@@ -1695,10 +1892,13 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
             for item in items {
                 let v = eval(item, env)?;
                 match v {
-                    Value::Float(_) => out.push(v),
+                    // Numbers are the data column (ADR-0044); strings
+                    // joined the list family in ADR-0064, so `{"a", "b"}`
+                    // and split's results can be written and joined.
+                    Value::Float(_) | Value::Str(_) => out.push(v),
                     other => {
                         return Err(EpherError::Type(format!(
-                            "lists hold numbers, got {other:?}"
+                            "lists hold numbers and strings, got {other:?}"
                         )))
                     }
                 }
@@ -1858,14 +2058,20 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                         l != r
                     }))
                 }
-                // String equality (ADR-0054): `"a" == "b"` compares
-                // whole strings; ordering stays a type error.
-                (Value::Str(a), Value::Str(b)) if matches!(op, CmpOp::Eq | CmpOp::Ne) => {
-                    Ok(Value::Bool(if matches!(op, CmpOp::Eq) {
-                        a == b
-                    } else {
-                        a != b
-                    }))
+                // String comparisons (ADR-0054, ADR-0064): `==`/`!=`
+                // compare whole strings; the ordering comparisons read
+                // dictionary order, so word lists can sort and search.
+                (Value::Str(a), Value::Str(b)) => {
+                    let ord = a.chars().cmp(b.chars());
+                    let result = match op {
+                        CmpOp::Gt => ord == std::cmp::Ordering::Greater,
+                        CmpOp::Lt => ord == std::cmp::Ordering::Less,
+                        CmpOp::Ge => ord != std::cmp::Ordering::Less,
+                        CmpOp::Le => ord != std::cmp::Ordering::Greater,
+                        CmpOp::Eq => ord == std::cmp::Ordering::Equal,
+                        CmpOp::Ne => ord != std::cmp::Ordering::Equal,
+                    };
+                    Ok(Value::Bool(result))
                 }
                 // Numeric comparisons across all the numeric types
                 // (ADR-0047): same-type exact pairs compare exactly;
@@ -1942,7 +2148,8 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                 }
                 if f.params.len() != values.len() {
                     return Err(EpherError::Type(format!(
-                        "{name} expects {} arguments, got {}",
+                        "{} expects {} arguments, got {}",
+                        name,
                         f.params.len(),
                         values.len()
                     )));
@@ -1951,7 +2158,30 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                 for (param, value) in f.params.iter().zip(values) {
                     child.set(param.clone(), value);
                 }
-                return eval(&f.body, &child);
+                // A block body runs its statements in the call's own
+                // environment (ADR-0064). Each call carries its own
+                // step budget: the runaway guard bounds every function
+                // activation the way it bounds a script.
+                return match &f.body {
+                    FunctionBody::Expr(body) => eval(body, &child),
+                    FunctionBody::Block(stmts) => {
+                        let mut steps = STEP_LIMIT;
+                        match run_block(stmts, &mut child, &mut steps)? {
+                            Flow::Normal(Some(v)) => Ok(v),
+                            Flow::Normal(None) => Err(EpherError::Type(format!(
+                                "{name} produced no value: end the body with an \
+                                 expression or a return"
+                            ))),
+                            Flow::Return(v) => Ok(v),
+                            Flow::Break => {
+                                Err(EpherError::Type("break outside a loop".into()))
+                            }
+                            Flow::Continue => {
+                                Err(EpherError::Type("continue outside a loop".into()))
+                            }
+                        }
+                    }
+                };
             }
             // Numeric calculus (ADR-0043): the first argument stays an
             // expression - derivative(x^2, 3) differentiates, and
@@ -3938,6 +4168,14 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Constant,
     },
     CatalogEntry {
+        name: "find",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "fixed",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "floor",
         kind: CatalogKind::Function,
     },
@@ -4022,6 +4260,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "join",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "k_b",
         kind: CatalogKind::Constant,
     },
@@ -4067,6 +4309,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "logb",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "lower",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -4278,6 +4524,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "replace",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "rise",
         kind: CatalogKind::Function,
     },
@@ -4326,6 +4576,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "split",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "sqrt",
         kind: CatalogKind::Function,
     },
@@ -4335,6 +4589,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     },
     CatalogEntry {
         name: "str",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
+        name: "substr",
         kind: CatalogKind::Function,
     },
     CatalogEntry {
@@ -4386,6 +4644,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "trim",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "trunc",
         kind: CatalogKind::Function,
     },
@@ -4414,6 +4676,10 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
     },
     CatalogEntry {
+        name: "upper",
+        kind: CatalogKind::Function,
+    },
+    CatalogEntry {
         name: "wien",
         kind: CatalogKind::Constant,
     },
@@ -4435,6 +4701,43 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
 /// ships, for autocomplete and F1 help (ADR-0042).
 pub fn catalog() -> &'static [CatalogEntry] {
     BUILTIN_CATALOG
+}
+
+/// Take exactly one string argument (ADR-0064 string library).
+fn one_string(name: &str, args: &[Value]) -> Result<String, EpherError> {
+    match args {
+        [Value::Str(s)] => Ok(s.clone()),
+        other => Err(EpherError::Type(format!(
+            "{name} expects a string, got {} argument(s)",
+            other.len()
+        ))),
+    }
+}
+
+/// The substring of `s` (ADR-0064): 1-based `start`, and either the rest
+/// of the string (`len` infinite) or exactly `len` characters, clamped
+/// to the end. Chars, not bytes, so accented letters count as one.
+fn substr_chars(s: &str, start: f64, len: f64) -> Result<String, EpherError> {
+    if start < 1.0 || start.fract() != 0.0 {
+        return Err(domain_error(format!(
+            "substr's start is a whole number from 1, got {start}"
+        )));
+    }
+    // An infinite length means "the rest of the string" (the one-argument
+    // form); only a finite length is validated.
+    if !len.is_infinite() && (len < 0.0 || len.fract() != 0.0) {
+        return Err(domain_error(format!(
+            "substr's length is a whole number from 0, got {len}"
+        )));
+    }
+    let chars: Vec<char> = s.chars().collect();
+    let begin = (start as usize - 1).min(chars.len());
+    let end = if len.is_infinite() {
+        chars.len()
+    } else {
+        begin.saturating_add(len as usize).min(chars.len())
+    };
+    Ok(chars[begin..end].iter().collect())
 }
 
 /// Take exactly one Float argument.
@@ -6420,6 +6723,136 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                 .collect::<Vec<_>>()
                 .join(" "),
         )),
+        // The string library (ADR-0064): case, trimming, slicing,
+        // splitting, joining, searching, replacing, and fixed-decimal
+        // spelling — the pieces report-writing scripts reach for.
+        "upper" | "lower" | "trim" => {
+            let s = one_string(name, &args)?;
+            match name {
+                "upper" => Ok(Value::Str(s.to_uppercase())),
+                "lower" => Ok(Value::Str(s.to_lowercase())),
+                _ => Ok(Value::Str(s.trim().to_string())),
+            }
+        }
+        // substr(s, start[, len]) — 1-based like every index in epher.
+        // Without a length the rest of the string; a start past the end
+        // is an empty string; a length that runs past the end clamps.
+        "substr" => match args.as_slice() {
+            [s, Value::Float(start)] => {
+                let s = one_string("substr", std::slice::from_ref(s))?;
+                Ok(Value::Str(substr_chars(&s, *start, f64::INFINITY)?))
+            }
+            [s, Value::Float(start), Value::Float(len)] => {
+                let s = one_string("substr", std::slice::from_ref(s))?;
+                Ok(Value::Str(substr_chars(&s, *start, *len)?))
+            }
+            other => Err(EpherError::Type(format!(
+                "substr expects a string, a start, and an optional length, got {} argument(s)",
+                other.len()
+            ))),
+        },
+        "split" => {
+            let [s, sep] = args.as_slice() else {
+                return Err(EpherError::Type(format!(
+                    "split expects 2 arguments, got {}",
+                    args.len()
+                )));
+            };
+            let s = one_string("split", std::slice::from_ref(s))?;
+            let sep = one_string("split", std::slice::from_ref(sep))?;
+            if sep.is_empty() {
+                return Err(domain_error(
+                    "split needs a non-empty separator".to_string(),
+                ));
+            }
+            Ok(Value::List(
+                s.split(sep.as_str())
+                    .map(|part| Value::Str(part.to_string()))
+                    .collect(),
+            ))
+        }
+        // join(list, sep) spells each element the way print would, so
+        // numbers and strings join alike.
+        "join" => match args.as_slice() {
+            [items, sep] => {
+                let Value::List(items) = items else {
+                    return Err(EpherError::Type(format!(
+                        "join expects a list, got {}",
+                        format_value(items, &DisplayPrefs::default())
+                    )));
+                };
+                let sep = one_string("join", std::slice::from_ref(sep))?;
+                let parts: Vec<String> = items
+                    .iter()
+                    .map(|v| match v {
+                        Value::Str(s) => s.clone(),
+                        other => format_value(other, &DisplayPrefs::default()),
+                    })
+                    .collect();
+                Ok(Value::Str(parts.join(&sep)))
+            }
+            other => Err(EpherError::Type(format!(
+                "join expects 2 arguments, got {}",
+                other.len()
+            ))),
+        },
+        "find" => {
+            let [s, sub] = args.as_slice() else {
+                return Err(EpherError::Type(format!(
+                    "find expects 2 arguments, got {}",
+                    args.len()
+                )));
+            };
+            let s = one_string("find", std::slice::from_ref(s))?;
+            let sub = one_string("find", std::slice::from_ref(sub))?;
+            if sub.is_empty() {
+                return Err(domain_error(
+                    "find needs a non-empty text to search for".to_string(),
+                ));
+            }
+            Ok(Value::Float(
+                s.find(sub.as_str())
+                    .map(|byte| s[..byte].chars().count() as f64 + 1.0)
+                    .unwrap_or(0.0),
+            ))
+        }
+        "replace" => {
+            let [v1, v2, v3] = args.as_slice() else {
+                return Err(EpherError::Type(format!(
+                    "replace expects 3 arguments, got {}",
+                    args.len()
+                )));
+            };
+            let s = one_string("replace", &[v1.clone()])?;
+            let old = one_string("replace", &[v2.clone()])?;
+            let new = one_string("replace", &[v3.clone()])?;
+            if old.is_empty() {
+                return Err(domain_error(
+                    "replace needs a non-empty text to replace".to_string(),
+                ));
+            }
+            Ok(Value::Str(s.replace(old.as_str(), new.as_str())))
+        }
+        // fixed(x, digits) — the value as text with exactly that many
+        // decimal places, the way a report wants 3.10 to keep its zero.
+        "fixed" => match args.as_slice() {
+            [x, Value::Float(digits)] => {
+                let value = one_float("fixed", std::slice::from_ref(x))?;
+                if *digits < 0.0 || digits.fract() != 0.0 || *digits > 15.0 {
+                    return Err(domain_error(format!(
+                        "fixed expects a whole number of digits from 0 to 15, got {digits}"
+                    )));
+                }
+                Ok(Value::Str(format!(
+                    "{value:.*}",
+                    *digits as usize
+                )))
+            }
+            other => Err(EpherError::Type(format!(
+                "fixed expects a number and a number of digits, got {} argument(s)",
+                other.len()
+            ))),
+        },
         "sort" => {
             let mut xs = any_floats(name, &args)?;
             xs.sort_by(|a, b| a.partial_cmp(b).expect("floats are comparable"));
@@ -7070,22 +7503,46 @@ fn consume_step(steps: &mut u64) -> Result<(), EpherError> {
     Ok(())
 }
 
-/// Execute one statement and return its value. Every value-producing
-/// statement records its result as the variable `ans` — the previous
-/// answer, like a pocket calculator's `Ans` (the keypads carry an `ans`
-/// key). Statements that produce no value (definitions, `while`) leave
-/// `ans` untouched, and so do errors. `ans` is an ordinary variable: it
-/// lives in the session's environment and is not persisted.
+/// How a statement's execution ended (ADR-0064). `Normal` carries the
+/// statement's value, if it produced one; the other three are the
+/// control-flow jumps a body can request — leave the loop, next pass,
+/// and leave the function with this value.
+enum Flow {
+    Normal(Option<Value>),
+    Break,
+    Continue,
+    Return(Value),
+}
+
+/// Execute one statement and return its value, rejecting control-flow
+/// jumps: at the top level of a script there is no enclosing loop or
+/// function to jump out of, and the error says so.
 fn stmt_value(
     stmt: &Statement,
     env: &mut Env,
     steps: &mut u64,
 ) -> Result<Option<Value>, EpherError> {
+    match stmt_flow(stmt, env, steps)? {
+        Flow::Normal(v) => Ok(v),
+        Flow::Return(_) => Err(EpherError::Type("return outside a function".into())),
+        Flow::Break => Err(EpherError::Type("break outside a loop".into())),
+        Flow::Continue => Err(EpherError::Type("continue outside a loop".into())),
+    }
+}
+
+/// Execute one statement, following the control-flow jumps a body can
+/// request. Every value-producing statement records its result as the
+/// variable `ans` — the previous answer, like a pocket calculator's
+/// `Ans` (the keypads carry an `ans` key). Statements that produce no
+/// value (definitions, `while`) leave `ans` untouched, and so do errors.
+/// `ans` is an ordinary variable: it lives in the session's environment
+/// and is not persisted.
+fn stmt_flow(stmt: &Statement, env: &mut Env, steps: &mut u64) -> Result<Flow, EpherError> {
     consume_step(steps)?;
-    let value = match stmt {
-        Statement::Expr(expr) => Some(eval(expr, env)?),
-        Statement::Assign(name, expr) => Some(assign(env, name, expr)?),
-        Statement::Const(name, expr) => Some(define_constant(env, name, expr)?),
+    let flow = match stmt {
+        Statement::Expr(expr) => Flow::Normal(Some(eval(expr, env)?)),
+        Statement::Assign(name, expr) => Flow::Normal(Some(assign(env, name, expr)?)),
+        Statement::Const(name, expr) => Flow::Normal(Some(define_constant(env, name, expr)?)),
         Statement::FunctionDef(name, params, body) => {
             env.set_function(
                 name.clone(),
@@ -7095,19 +7552,75 @@ fn stmt_value(
                 },
             );
             // a definition produces no value
-            None
+            Flow::Normal(None)
         }
-        Statement::While(cond, body) => {
-            run_while(cond, body, env, steps)?;
-            None
+        Statement::While(cond, body) => run_while(cond, body, env, steps)?,
+        Statement::For(var, iterable, body) => run_for(var, iterable, body, env, steps)?,
+        Statement::Solve(equation) => Flow::Normal(Some(solve_statement(equation, env)?)),
+        Statement::Block(stmts) => run_block(stmts, env, steps)?,
+        Statement::If(cond, then_stmt, else_stmt) => match eval(cond, env)? {
+            Value::Bool(true) => stmt_flow(then_stmt, env, steps)?,
+            // No `else` and the condition is false: nothing happened,
+            // which is how a `for` loop filters.
+            Value::Bool(false) => match else_stmt {
+                Some(s) => stmt_flow(s, env, steps)?,
+                None => Flow::Normal(None),
+            },
+            other => {
+                return Err(EpherError::Type(format!(
+                    "if condition must be a boolean, got {other:?}"
+                )));
+            }
+        },
+        Statement::Return(expr) => Flow::Return(eval(expr, env)?),
+        Statement::Break => Flow::Break,
+        Statement::Continue => Flow::Continue,
+        Statement::Destructure(names, expr) => {
+            let value = eval(expr, env)?;
+            let Value::List(items) = &value else {
+                return Err(EpherError::Type(format!(
+                    "destructuring needs a list to take apart, got {}; \
+                     try {{a, b}} = {{1, 2}}",
+                    format_value(&value, &DisplayPrefs::default())
+                )));
+            };
+            if items.len() != names.len() {
+                return Err(EpherError::Type(format!(
+                    "the pattern has {} name(s) but the list holds {} value(s)",
+                    names.len(),
+                    items.len()
+                )));
+            }
+            for (name, item) in names.iter().zip(items) {
+                if name == "_" {
+                    continue;
+                }
+                if env.constant(name).is_some() {
+                    return Err(EpherError::AssignToConstant(name.clone()));
+                }
+                env.set(name.clone(), item.clone());
+            }
+            Flow::Normal(Some(value))
         }
-        Statement::For(var, iterable, body) => Some(run_for(var, iterable, body, env, steps)?),
-        Statement::Solve(equation) => Some(solve_statement(equation, env)?),
     };
-    if let Some(v) = &value {
+    if let Flow::Normal(Some(v)) = &flow {
         env.set("ans", v.clone());
     }
-    Ok(value)
+    Ok(flow)
+}
+
+/// Run a `do ... end` block's statements in order (ADR-0064); the block's
+/// value is its last statement's. A jump — `break`, `continue`,
+/// `return` — ends the block and propagates to whatever can honor it.
+fn run_block(stmts: &[Statement], env: &mut Env, steps: &mut u64) -> Result<Flow, EpherError> {
+    let mut last = Flow::Normal(None);
+    for stmt in stmts {
+        last = stmt_flow(stmt, env, steps)?;
+        if !matches!(last, Flow::Normal(_)) {
+            return Ok(last);
+        }
+    }
+    Ok(last)
 }
 
 fn run_inner(
@@ -7156,23 +7669,22 @@ fn define_constant(env: &mut Env, name: &str, expr: &Expression) -> Result<Value
     Ok(value)
 }
 
-/// Execute one statement for its effect (used by loop bodies; loops produce no
-/// value).
-fn execute_stmt(stmt: &Statement, env: &mut Env, steps: &mut u64) -> Result<(), EpherError> {
-    // Body statements set `ans` exactly like top-level ones.
-    stmt_value(stmt, env, steps).map(|_| ())
-}
-
-/// Drive a while loop: evaluate the condition, run the body while it's true.
+/// Drive a while loop: evaluate the condition, run the body while it's
+/// true. `break` leaves the loop, `continue` starts the next pass, and
+/// `return` propagates out to the enclosing function.
 fn run_while(
     cond: &Expression,
     body: &Statement,
     env: &mut Env,
     steps: &mut u64,
-) -> Result<(), EpherError> {
+) -> Result<Flow, EpherError> {
     loop {
         match eval(cond, env)? {
-            Value::Bool(true) => execute_stmt(body, env, steps)?,
+            Value::Bool(true) => match stmt_flow(body, env, steps)? {
+                Flow::Normal(_) | Flow::Continue => {}
+                Flow::Break => break,
+                ret @ Flow::Return(_) => return Ok(ret),
+            },
             Value::Bool(false) => break,
             other => {
                 return Err(EpherError::Type(format!(
@@ -7181,7 +7693,7 @@ fn run_while(
             }
         }
     }
-    Ok(())
+    Ok(Flow::Normal(None))
 }
 
 /// The most iterations a `for` loop may run (ADR-0054): the same
@@ -7203,7 +7715,7 @@ fn run_for(
     body: &Statement,
     env: &mut Env,
     steps: &mut u64,
-) -> Result<Value, EpherError> {
+) -> Result<Flow, EpherError> {
     let items: Vec<Value> = match iterable {
         ForIterable::Items(expr) => match eval(expr, env)? {
             Value::List(items) => items,
@@ -7263,15 +7775,30 @@ fn run_for(
     let prior = env.get(var).cloned();
     for item in items {
         env.set(var.to_string(), item);
-        if let Some(value) = stmt_value(body, env, steps)? {
-            collected.push(value);
+        match stmt_flow(body, env, steps)? {
+            Flow::Normal(Some(value)) => collected.push(value),
+            // A body that produces no value (a definition, an `if`
+            // without `else` that was false) contributes nothing; that
+            // is how a `for` loop filters.
+            Flow::Normal(None) | Flow::Continue => {}
+            // `break` stops the loop; the list so far is the loop's
+            // value. `return` leaves for the enclosing function, but
+            // restores the loop variable on the way out.
+            Flow::Break => break,
+            ret @ Flow::Return(_) => {
+                match prior {
+                    Some(value) => env.set(var.to_string(), value),
+                    None => env.remove(var),
+                }
+                return Ok(ret);
+            }
         }
     }
     match prior {
         Some(value) => env.set(var.to_string(), value),
         None => env.remove(var),
     }
-    Ok(Value::List(collected))
+    Ok(Flow::Normal(Some(Value::List(collected))))
 }
 
 /// An interactive session: a persistent [`Env`] plus history — the shared

@@ -266,6 +266,30 @@ ans * 2
 10
 ```
 
+Una lista puede llenar varios nombres a la vez — `{a, b} = list` desarma
+una lista de izquierda a derecha (la sección 1.11 muestra funciones que
+devuelven así más de una respuesta):
+
+```epher
+{a, b} = {10, 20}; a + b
+```
+
+```text
+{10, 20}
+30
+```
+
+Una posición que no quieres se escribe `_`:
+
+```epher
+{x, _} = {7, 8}; x
+```
+
+```text
+{7, 8}
+7
+```
+
 ### 1.6 Constantes: nombres que nunca cambian
 
 Una *constante* es un nombre cuyo valor nunca cambia, como el `pi`
@@ -341,13 +365,14 @@ función (capítulo 4.4).
 
 ### 1.7 Cadenas y print
 
-Una cadena es texto entre comillas dobles: `"hello"`. Las cadenas se concatenan con `+`, se comparan con `==` y `!=`, se cuentan con `len` y se indexan desde 1 como las listas:
+Una cadena es texto entre comillas dobles: `"hello"`. Las cadenas se concatenan con `+`, se comparan con `==` y `!=`, se ordenan con `<` y `>` (orden de diccionario), se cuentan con `len` y se indexan desde 1 como las listas:
 
 ```epher
 "hello" + " " + "world"
 len("hello")
 "hello"[1]
 "abc" == "abd"
+"apple" < "banana"
 ```
 
 ```text
@@ -355,9 +380,26 @@ hello world
 5
 h
 false
+true
 ```
 
-No hay secuencias de escape: una cadena no puede contener comillas dobles. **str(x)** escribe un valor como lo haría el panel de respuestas, y **print(a, b, …)** une sus argumentos con espacios en una línea:
+Una barra invertida dentro de una cadena inicia una **secuencia de
+escape**: `\n` es una línea nueva, `\t` una tabulación, y `\\` y `\"`
+son la barra invertida y la comilla en sí — así una cadena puede
+contener comillas dobles:
+
+```epher
+s = "say \"hi\""
+len("a\nb")
+```
+
+```text
+say "hi"
+3
+```
+
+**str(x)** escribe un valor como lo haría el panel de respuestas, y
+**print(a, b, …)** une sus argumentos con espacios en una línea:
 
 ```epher
 print("x =", 42)
@@ -365,6 +407,35 @@ print("x =", 42)
 
 ```text
 x = 42
+```
+
+Una pequeña biblioteca cubre el resto de la escritura de informes.
+**upper** y **lower** cambian la caja, **trim** recorta los espacios de
+los extremos, **substr** toma un trozo (desde 1, como cualquier
+índice), **find** informa dónde aparece un texto (0 cuando no está),
+**replace** cambia cada copia de un texto por otra, **split** rompe un
+texto en una lista en un separador, **join** pega una lista en un solo
+texto, y **fixed** escribe un número con exactamente los decimales que
+pidas — el cero que un informe quiere, conservado:
+
+```epher
+upper("hello")
+substr("2026-09-17", 1, 4)
+find("hello world", "world")
+replace("2026-09-17", "-", "/")
+split("a,b,c", ",")
+join({1, 2, 3}, "-")
+fixed(3.1, 2)
+```
+
+```text
+HELLO
+2026
+7
+2026/09/17
+{a, b, c}
+1-2-3
+3.10
 ```
 
 ### 1.8 Decisiones con if
@@ -419,6 +490,9 @@ luego muestra x.* El resultado es 5 porque el bucle se ejecutó cinco veces.
 > nunca terminarían. Si lo ves, tu condición probablemente nunca se volvió
 > falsa.
 
+Un bucle también se puede dejar a propósito: la sección siguiente añade
+`break` y `continue`, y una función añade `return` (sección 1.11).
+
 ### 1.10 Bucles con for
 
 `for` repite una sentencia una vez por valor y reúne los valores del cuerpo en una lista: sobre un rango `start to end` (inclusive) con un `step` opcional, o sobre los elementos de una lista:
@@ -446,6 +520,37 @@ for i in 1 to 3 do print("line", i)
 ```
 
 La misma red de seguridad de 100.000 pasos limita un bucle for que un while.
+
+**Salir de un bucle antes de tiempo.** `break` detiene el bucle en el
+acto; los valores recogidos hasta ahí son la respuesta del bucle.
+`continue` se salta el resto de la pasada y pasa al valor siguiente.
+Ambos son sentencias, así que van detrás de un `if`:
+
+```epher
+for k in 1 to 6 do if mod(k, 2) == 1 then k
+for k in 1 to 10 do if k == 4 then break else k
+total = 0
+for k in 1 to 6 do if mod(k, 2) == 0 then continue else total = total + k
+total
+```
+
+```text
+{1, 3, 5}
+{1, 2, 3}
+0
+{1, 4, 9}
+9
+```
+
+El del medio se lee así: para k de 1 a 10, si k es 4 para; si no,
+devuelve k. La respuesta del bucle son los valores que vio antes de
+parar. El último par muestra `continue` contando: la lista recogida de
+la línea for es la suma acumulada - 1, luego 4, luego 9 - y las pasadas
+pares se saltaron, así que no aportaron nada. El `total` final, 9, es
+la suma de los valores impares. Un `if` sin `else` no aporta nada
+cuando su condición es falsa: así el primer bucle conserva solo los
+impares, y así un bucle puede *filtrar* una lista además de
+transformarla.
 
 
 ### 1.11 Tus propias funciones con def
@@ -488,6 +593,71 @@ answer()
 42
 ```
 
+**Un cuerpo con varios pasos.** Cuando una expresión no basta, dale a
+la función un cuerpo `do … end`. Las sentencias se ejecutan una tras
+otra en orden, y el valor de la última es la respuesta:
+
+```epher
+def hyp(a, b) do
+  c = a ^ 2 + b ^ 2
+  sqrt(c)
+end
+hyp(3, 4)
+```
+
+```text
+5
+```
+
+El nombre intermedio `c` vive dentro de la llamada; no es visible desde
+fuera, y dos llamadas no ven el `c` de la otra.
+
+**return: respuesta ahora.** `return value` responde de inmediato y se
+salta el resto del cuerpo — la forma natural para una elección con
+salida anticipada:
+
+```epher
+def grade(s) do
+  if s >= 90 then return "A"
+  if s >= 80 then return "B"
+  "C"
+end
+grade(95); grade(85); grade(40)
+```
+
+```text
+A
+B
+C
+```
+
+`return` también abandona un bucle que busca, en el momento en que
+encuentra:
+
+```epher
+def firstsq(xs) do
+  for x in xs do
+    if x ^ 0.5 == floor(x ^ 0.5) then return x
+  0
+end
+firstsq({3, 5, 9, 11}); firstsq({3, 5, 7})
+```
+
+```text
+9
+0
+```
+
+Una regla mantiene los bloques legibles: el `end` siempre cierra el do
+de la función — un `if`, un `for` o un `while` no lleva `end`. Un
+cuerpo que termina sin respuesta (digamos, que todos los caminos
+devolvieron nada) es un error, no un silencio: epher lo dice y nombra
+la función.
+
+> **¿Más de una respuesta?** Devuelve una lista — y ponle nombre de un
+> solo golpe con la desestructuración de la sección 1.5:
+> `{mean, sd} = {4, 1.6}`.
+
 ### 1.12 Recursión: una función que se llama a sí misma
 
 El ejemplo más famoso son los números de Fibonacci:
@@ -508,8 +678,10 @@ fib(10)
 con argumentos más pequeños hasta llegar a `n <= 1`. Esto funciona porque la
 forma `if ... then ... else ...` solo calcula la rama que necesita.
 
-> El cuerpo de una función es una sola expresión, una línea. Combina
-> varios cálculos con `;` en un script en su lugar (sección siguiente).
+> El cuerpo de una función es una expresión tras el `=`, o un bloque
+> `do … end` de varias sentencias con `return` para salidas anticipadas
+> (sección 1.11). Combina varios cálculos en un script en su lugar
+> (sección siguiente) cuando no hace falta una función.
 
 ### 1.13 Scripts: varias instrucciones a la vez
 
@@ -896,10 +1068,15 @@ conoce, para que puedas arreglar tu expresión.
 | Variable | `name = value` | `x = 5` |
 | Constante | `const name = value` | `const tax = 0.2` |
 | Decisión | `if c then a else b` | `if x > 0 then 1 else -1` |
+| Elegir sentencias | `if c then sentencia [else sentencia]` | `if k == 4 then break` |
 | Bucle | `while c do statement` | `while x < 5 do x = x + 1` |
 | Bucle for | `for i in a to b step s do sentencia` | `for i in 1 to 5 do i^2` |
-| Función | `def name(params) = expr` | `def f(x) = x ^ 2` |
-| Cadenas | `"..."`, `+` une, `s[i]`, `==` | `"a" + "b"` |
+| Salir / saltar un bucle | `break`, `continue` | `if k == 4 then break` |
+| Función | `def name(params) = expr` o `do … end` | `def f(x) = x ^ 2` |
+| Respuesta ahora | `return value` | `if ok then return x` |
+| Varios nombres | `{a, b} = list` (`_` se salta) | `{m, sd} = stats(d)` |
+| Cadenas | `"..."`, `+` une, `s[i]`, `==`, `<` | `"a" + "b"` |
+| Biblioteca de cadenas | `upper` `lower` `trim` `substr` `split` `join` `find` `replace` `fixed` | `split("a,b", ",")` |
 | Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Script | instrucciones unidas con `;` o saltos de línea | `x = 1; x + 1` |
 | Fracción exacta | `frac(n, d)` | `frac(1, 3)` |
@@ -914,6 +1091,38 @@ conoce, para que puedas arreglar tu expresión.
 | Integral definida | `integral(expr, a, b)` | `integral(x^2, 0, 3)` |
 | Binario, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Escritura en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
+| Primos | `isprime(n)`, `factors(n)`, … | `factors(360)` |
+| Literal de lista | `{…}` | `{1, 2, 3}` |
+| Elemento de lista | `list[i]` (base 1) | `{5, 6}[2]` |
+| Estadística de lista | `mean(lista)`, `median(lista)`, … | `stdev(d)` |
+| Forma de lista | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
+| Regresión lineal | `linreg(xs, ys)` | `linreg(x, y)` |
+| Familia de regresiones | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
+| Familia normal | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
+| Familia t | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
+| Familia chi-cuadrado | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
+| Familias discretas | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
+| Pruebas e intervalos | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| ANOVA y t emparejada | `anova(listas...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
+| Gráficos de datos | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
+| Números aleatorios | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| Extracciones normales | `randn(mu, sigma)` | `randn(0, 1)` |
+| Explorador de constantes | Ayuda → Constantes: todas las constantes, agrupadas | Ayuda → Constantes |
+| Cantidad | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
+| Convertir | `expr in unidad` o `expr -> unidad` | `72 km/hr in m/s` |
+| Prefijos | `k M G T m µ n p` escalan cualquier unidad | `5 km`, `3 MPa`, `1 GHz` |
+| Y, O bit a bit | `a & b`, `a \| b` | `0xFF & 0x0F` |
+| O exclusivo bit a bit | `a xor b` | `5 xor 3` |
+| No bit a bit | `~a` | `~0` |
+| Desplazamientos | `a << n`, `a >> n` | `1 << 8` |
+| Tamaño de palabra | `bits(n)` para 8, 16, 32, 64 | `bits(8)` |
+| Relación implícita | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
+| Literal de matriz | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
+| Funciones matriciales | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
+| Solucionador TVM | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
+| VAN y TIR | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
+| Amortización | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
+| Interés | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` |
 
 ### 1.18 Números complejos
 

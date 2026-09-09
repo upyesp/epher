@@ -83,22 +83,33 @@ pub fn split_statements(text: &str) -> Vec<&str> {
     let mut start = 0usize;
     let mut in_str = false;
     let mut in_block = false;
+    // A `def name(...) do` block body (ADR-0064): its `;` and newlines
+    // belong to the block, so no piece may split inside it. `do` opens
+    // only after a `def` (a while/for body keeps its one-statement
+    // shape), and every `end` at a word boundary closes one level.
+    let mut block_depth = 0usize;
+    let mut pending_def = false;
     let mut i = 0usize;
     while i < b.len() {
         let c = b[i];
         if c == b'\n' {
-            if !in_block {
+            if !in_block && block_depth == 0 {
                 push_piece(&mut pieces, text, start, i);
                 start = i + 1;
                 in_str = false;
             }
             i += 1;
         } else if in_str {
-            // No escape sequences: the next quote closes the string.
-            if c == b'"' {
-                in_str = false;
+            // Escape sequences (ADR-0064): a backslash skips the next
+            // character, so `\\"` stays inside the string.
+            if c == b'\\' {
+                i += 2;
+            } else {
+                if c == b'"' {
+                    in_str = false;
+                }
+                i += 1;
             }
-            i += 1;
         } else if in_block {
             if c == b'*' && b.get(i + 1) == Some(&b'/') {
                 in_block = false;
@@ -110,9 +121,31 @@ pub fn split_statements(text: &str) -> Vec<&str> {
             in_str = true;
             i += 1;
         } else if c == b';' {
-            push_piece(&mut pieces, text, start, i);
-            start = i + 1;
+            if block_depth == 0 {
+                push_piece(&mut pieces, text, start, i);
+                start = i + 1;
+            }
             i += 1;
+        } else if c == b'=' {
+            // `def name(...) = expr` — an expression body, no `end`.
+            pending_def = false;
+            i += 1;
+        } else if c.is_ascii_alphabetic() || c == b'_' {
+            // Scan a whole identifier so `do_it` and `endgame` are not
+            // the words `do` and `end`.
+            let word_start = i;
+            while i < b.len() && (b[i].is_ascii_alphanumeric() || b[i] == b'_') {
+                i += 1;
+            }
+            match &text[word_start..i] {
+                "def" => pending_def = true,
+                "do" if pending_def => {
+                    block_depth += 1;
+                    pending_def = false;
+                }
+                "end" if block_depth > 0 => block_depth -= 1,
+                _ => {}
+            }
         } else if c == b'/' && b.get(i + 1) == Some(&b'/') {
             // `//` comments to the end of the line.
             while i < b.len() && b[i] != b'\n' {
