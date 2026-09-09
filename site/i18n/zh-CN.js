@@ -10,6 +10,8 @@ window.EPHER_I18N["zh-CN"] = {
   "menu-open": "菜单",
     "guide": "用户指南",
   "nav-docs": "文档",
+  "reference": "语言参考",
+
   "nav-scripts": "脚本",
   "scripts-title": "脚本",
   "scripts-lede": "epher 计算器的现成脚本，按领域和主题整理。打开文件夹浏览，点击脚本阅读，一键复制到剪贴板。",

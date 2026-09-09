@@ -10,6 +10,8 @@ window.EPHER_I18N["de"] = {
   "menu-open": "Menü",
     "guide": "Benutzerhandbuch",
   "nav-docs": "Dokumentation",
+  "reference": "Sprachreferenz",
+
   "nav-scripts": "Skripte",
   "scripts-title": "Skripte",
   "scripts-lede": "Fertige Skripte für den epher-Rechner, nach Fachgebiet und Thema geordnet. Öffnen Sie einen Ordner zum Stöbern, klicken Sie ein Skript zum Lesen an und kopieren Sie jedes Skript in die Zwischenablage.",
