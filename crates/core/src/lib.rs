@@ -392,6 +392,8 @@ pub enum EpherError {
     StepLimit,
     #[error("cannot assign to constant {0}")]
     AssignToConstant(String),
+    #[error("cannot assign to i: that name is the imaginary unit")]
+    ImaginaryReserved,
     #[error("constant already defined: {0}")]
     ConstantAlreadyDefined(String),
     #[error("cannot define constant {0}: the name is already a variable")]
@@ -3043,8 +3045,9 @@ fn builtin_const(name: &str) -> Option<Value> {
         "e" => Some(Value::float(std::f64::consts::E)),
         "tau" => Some(Value::float(std::f64::consts::TAU)),
         "phi" => Some(Value::float(1.618_033_988_749_895)),
-        // The imaginary unit (ADR-0043): `i` is a constant like `pi`, and
-        // `4i` is its literal spelling. Shadowable like every builtin.
+        // The imaginary unit (ADR-0043): `i` is a constant like `pi`,
+        // and `4i` is its literal spelling. The one reserved name
+        // (ADR-0065): assignment refuses it, so no store can shadow it.
         "i" => Some(Value::Complex(Complex::new(0.0, 1.0))),
         // Astronomy constants (ADR-0037): SI values throughout - metres,
         // seconds, kilograms, watts. Shadowable like `pi` (resolution
@@ -7595,6 +7598,9 @@ fn stmt_flow(stmt: &Statement, env: &mut Env, steps: &mut u64) -> Result<Flow, E
                 if name == "_" {
                     continue;
                 }
+                if name == "i" {
+                    return Err(EpherError::ImaginaryReserved);
+                }
                 if env.constant(name).is_some() {
                     return Err(EpherError::AssignToConstant(name.clone()));
                 }
@@ -7643,6 +7649,12 @@ fn assign(env: &mut Env, name: &str, expr: &Expression) -> Result<Value, EpherEr
     if env.constant(name).is_some() {
         return Err(EpherError::AssignToConstant(name.to_string()));
     }
+    // The imaginary unit is the one reserved name (ADR-0065): a bare
+    // `i = 5` once persisted through the shared store and turned
+    // `3+4i` into `23` on every frontend.
+    if name == "i" {
+        return Err(EpherError::ImaginaryReserved);
+    }
     let value = eval(expr, env)?;
     env.set(name.to_string(), value.clone());
     Ok(value)
@@ -7663,6 +7675,9 @@ fn define_constant(env: &mut Env, name: &str, expr: &Expression) -> Result<Value
     }
     if env.get(name).is_some() {
         return Err(EpherError::ConstantNameTaken(name.to_string()));
+    }
+    if name == "i" {
+        return Err(EpherError::ImaginaryReserved);
     }
     let value = eval(expr, env)?;
     env.set_constant(name.to_string(), value.clone());
@@ -8013,8 +8028,13 @@ impl Session {
     /// Restore bindings saved by another frontend of the same installation
     /// (ADR-0010 amendment): each name is bound into the environment, so
     /// `ans` and every user assignment survive across CLI/REPL/TUI/GUI.
+    /// A stored `i` is dropped: the imaginary unit is reserved
+    /// (ADR-0065), and old stores may still carry one from before.
     pub fn restore_bindings(&mut self, bindings: &ValueBindings) {
         for (name, value) in bindings {
+            if name == "i" {
+                continue;
+            }
             self.env.set(name.clone(), value.clone());
         }
     }

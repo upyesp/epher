@@ -255,6 +255,8 @@ x = x + 1
 > `my_total`. Ils ne peuvent pas contenir d'espaces ni commencer par un
 > chiffre.
 
+Un nom est réservé : `i`, l'unité imaginaire (section 1.18).
+
 La variable spéciale `ans` contient toujours la réponse précédente,
 comme la touche `Ans` d'une calculatrice de poche, pratique pour
 enchaîner les calculs :
@@ -1152,6 +1154,8 @@ sqrt(-1)
 -1
 i
 ```
+
+À la différence de tout autre nom intégré, `i` ne peut pas être réutilisé : `i = 5` est refusé, si bien que l'unité imaginaire ne peut jamais être masquée - ni par une affectation, ni par une ancienne session enregistrée.
 
 Écrivez un nombre complexe avec le suffixe `i`, sans signe de multiplication : `3 + 4i` est un littéral, `2.5i` fonctionne, ainsi que les littéraux à base (`0xFFi`). L'arithmétique habituelle s'étend : addition, soustraction, multiplication, division et puissances fonctionnent, et `i` suit la précédence normale (`i ^ 2` se lie comme toute puissance).
 

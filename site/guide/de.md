@@ -254,6 +254,8 @@ x = x + 1
 > Namen dürfen Buchstaben und Unterstriche enthalten, wie `radius` oder
 > `my_total`. Sie dürfen keine Leerzeichen enthalten und nicht mit einer Zahl beginnen.
 
+Ein Name ist reserviert: `i`, die imaginäre Einheit (Abschnitt 1.18).
+
 Die besondere Variable `ans` enthält immer die vorherige Antwort, wie
 die `Ans`-Taste eines Taschenrechners, praktisch für Kettenrechnungen:
 
@@ -1145,6 +1147,8 @@ sqrt(-1)
 -1
 i
 ```
+
+Anders als jeder andere eingebaute Name kann `i` nicht wiederverwendet werden: `i = 5` wird abgelehnt, sodass die imaginäre Einheit nie verdeckt werden kann - weder durch eine Zuweisung noch durch eine alte gespeicherte Sitzung.
 
 Schreiben Sie eine komplexe Zahl mit dem `i`-Suffix, ohne Multiplikationszeichen: `3 + 4i` ist ein Literal, `2.5i` funktioniert, ebenso die Basisliterale (`0xFFi`). Die übliche Arithmetik erweitert sich: Addieren, Subtrahieren, Multiplizieren, Dividieren und Potenzen funktionieren, und `i` folgt der normalen Rangfolge (`i ^ 2` bindet wie jede Potenz).
 
