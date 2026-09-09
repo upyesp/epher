@@ -1517,6 +1517,9 @@ deg2dms(-23.4333)
 | `mag(b, jd)` | 视星等 |
 | `phase(b, jd)`, `illum(b, jd)` | 相位角（度）和照亮比例 |
 | `diam(b, jd)` | 角直径（度） |
+| `satx(5, s, jd)`, `saty(5, s, jd)`, `satz(5, s, jd)` | 木星的卫星（s 1-4：Io、Europa、Ganymede、Callisto）或土星的卫星（s 1-8：Mimas、Enceladus、Tethys、Dione、Rhea、Titan、Hyperion、Iapetus），以行星半径计（x 向西，y 向北，z 朝向观察者） |
+| `satsep(5, s, jd)` | 卫星到行星中心的角距，单位角秒 |
+| `satphen(5, s, jd)` | 卫星状态：0 可见，1 凌星，2 被掩，3 在影中，4 影凌 |
 
 ```epher
 decl(10, jd(2000, 6, 21, 1.8))

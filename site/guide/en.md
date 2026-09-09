@@ -1666,6 +1666,9 @@ Sun 10, Moon 11 (Earth is 3, the observer, never a target).
 | `mag(b, jd)` | apparent magnitude |
 | `phase(b, jd)`, `illum(b, jd)` | phase angle (degrees) and illuminated fraction |
 | `diam(b, jd)` | angular diameter (degrees) |
+| `satx(5, s, jd)`, `saty(5, s, jd)`, `satz(5, s, jd)` | a moon of Jupiter (s 1-4: Io, Europa, Ganymede, Callisto) or Saturn (s 1-8: Mimas, Enceladus, Tethys, Dione, Rhea, Titan, Hyperion, Iapetus), in the planet's radii (x west, y north, z toward you) |
+| `satsep(5, s, jd)` | the moon's separation from the planet's centre, in arcseconds |
+| `satphen(5, s, jd)` | the moon's state: 0 visible, 1 transit, 2 occulted, 3 in eclipse, 4 shadow transit |
 
 ```epher
 decl(10, jd(2000, 6, 21, 1.8))
