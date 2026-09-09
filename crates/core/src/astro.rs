@@ -418,6 +418,12 @@ fn jy2mag(name: &str, args: &[Value]) -> Result<Value, EpherError> {
 // (1800-2050, arcminute grade, honestly documented).
 
 use solar_ephemeris::coords::AU_KM;
+use solar_ephemeris::earth_orientation::corrected_observer_geodetic;
+use solar_ephemeris::elpmpp02::moon_apparent_ecliptic;
+use solar_ephemeris::planets::sun_apparent_ecliptic;
+use solar_ephemeris::timescales::AstroTime;
+use solar_ephemeris::time::{centuries, gast_deg, mean_obliquity_deg, nutation_deg};
+use solar_ephemeris::coords::{alt_az, ecl_to_equ, observer_rho, topocentric};
 
 /// One solar-system body: its DSL number, the crate's name for it (the
 /// JSON contract's key and the magnitude table's key), and its radius
@@ -571,6 +577,139 @@ fn json_f64(obj: &serde_json::Value, key: &str) -> Result<f64, EpherError> {
         .ok_or_else(|| EpherError::Domain(format!("ephemeris snapshot missing {key}")))
 }
 
+// --- the direct single-body path (Sun and Moon) ---
+//
+// A full sky snapshot (every body's apparent place PLUS its
+// rise/transit/set event scan) costs ~0.5 s. The scan/bisect accessors
+// behind the astronomy scripts need one body's place at hundreds of
+// instants, so a snapshot per step means minutes per script. The Sun
+// and Moon have complete PUBLIC paths in the crate (its planets do
+// not: `planet_apparent_ecliptic` needs a VSOP2013 table handle the
+// crate keeps private), so for those two the facade computes the place
+// directly, mirroring the crate's private `topocentric_sky_at_time`
+// expression-for-expression (same functions, same order, same f64
+// ops): results are bit-identical to the snapshot's, and each value is
+// put through the same string quantization the snapshot's JSON
+// formatting applies ({:.9} for RA/Dec, {:.3} for km, {:.7} for
+// alt/az, {:.4} for arcseconds), because the snapshot path parsed
+// those printed strings. The `astro_direct` test suite pins the
+// identity; if a crate upgrade changes the private path, it fails
+// loudly there instead of letting transcripts drift silently. When a
+// future crate exposes per-body places for the planets, the direct
+// path extends to them and the planet scripts speed up by the same
+// three orders of magnitude.
+
+/// The crate's `Body` for a facade body number (Pluto is not the
+/// crate's: the crate stops at Neptune, and the facade reduces Pluto
+/// itself from JPL elements).
+fn crate_body(number: i64) -> Option<solar_ephemeris::Body> {
+    use solar_ephemeris::Body;
+    match number {
+        1 => Some(Body::Mercury),
+        2 => Some(Body::Venus),
+        4 => Some(Body::Mars),
+        5 => Some(Body::Jupiter),
+        6 => Some(Body::Saturn),
+        7 => Some(Body::Uranus),
+        8 => Some(Body::Neptune),
+        10 => Some(Body::Sun),
+        11 => Some(Body::Moon),
+        _ => None,
+    }
+}
+
+/// Round-trip a value through the `{:.places}` formatting the snapshot's
+/// JSON uses, since the snapshot path read those printed strings back.
+fn quant(value: f64, places: usize) -> f64 {
+    format!("{:.*}", places, value).parse().unwrap_or(value)
+}
+
+/// One body's apparent place, computed directly (see the block comment
+/// above). Geocentric RA/Dec quantized to the snapshot's 9 places,
+/// distance to its 3, alt/az to its 7, angular size to its 4.
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct DirectSky {
+    ra: f64,
+    dec: f64,
+    dist_au: f64,
+    alt: f64,
+    az: f64,
+    angular_size_arcsec: f64,
+}
+
+fn direct_sky(body: &BodyDef, jd: f64, lat: f64, lon: f64) -> DirectSky {
+    use solar_ephemeris::Body;
+    let crate_body = crate_body(body.number).expect("direct path is Sun/Moon only");
+    let astro = AstroTime::from_jd_utc(jd);
+    let t = centuries(astro.jd_tt);
+    let (dpsi, deps) = nutation_deg(t);
+    let eps_true = mean_obliquity_deg(t) + deps;
+    let (lambda, beta, dist_km) = match crate_body {
+        Body::Sun => {
+            let (l, b, dist_au) = sun_apparent_ecliptic(astro.jd_tt, dpsi);
+            (l, b, dist_au * AU_KM)
+        }
+        Body::Moon => moon_apparent_ecliptic(astro.jd_tt, dpsi),
+        _ => unreachable!("the direct path is Sun/Moon only"),
+    };
+    let (ra, dec) = ecl_to_equ(lambda, beta, eps_true);
+    let (observer_lat, observer_lon) =
+        corrected_observer_geodetic(lat, lon, astro.eop.xp_arcsec, astro.eop.yp_arcsec);
+    let lst = (gast_deg(astro.jd_ut1, dpsi, eps_true) + observer_lon).rem_euclid(360.0);
+    let (rho_sin, rho_cos) = observer_rho(observer_lat, 0.0);
+    let (ra_t, dec_t) = topocentric(ra, dec, dist_km, lst, rho_sin, rho_cos);
+    let (alt, az) = alt_az(ra_t, dec_t, lst, observer_lat);
+    // the snapshot assembles angular size from the UNQUANTIZED distance
+    let angular_size =
+        2.0 * (body.radius_km / dist_km).asin() * (180.0 / std::f64::consts::PI) * 3600.0;
+    DirectSky {
+        ra: quant(ra, 9),
+        dec: quant(dec, 9),
+        dist_au: quant(dist_km, 3) / AU_KM,
+        alt: quant(alt, 7),
+        az: quant(az, 7),
+        angular_size_arcsec: quant(angular_size, 4),
+    }
+}
+
+/// One body's place as the accessors see it: geocentric RA/Dec and
+/// distance, topocentric alt/az, angular diameter - each quantized
+/// exactly as the snapshot path quantizes it. The Sun and Moon come
+/// from the direct path (see the block comment above); the rest from a
+/// full sky snapshot.
+struct SkyPlace {
+    ra: f64,
+    dec: f64,
+    dist_au: f64,
+    alt: f64,
+    az: f64,
+    diam_deg: f64,
+}
+
+fn sky_place(body: &BodyDef, jd: f64, lat: f64, lon: f64) -> Result<SkyPlace, EpherError> {
+    if matches!(body.name, "Sun" | "Moon") {
+        let s = direct_sky(body, jd, lat, lon);
+        return Ok(SkyPlace {
+            ra: s.ra,
+            dec: s.dec,
+            dist_au: s.dist_au,
+            alt: s.alt,
+            az: s.az,
+            diam_deg: s.angular_size_arcsec / 3600.0,
+        });
+    }
+    let snapshot = sky_snapshot(jd, lat, lon)?;
+    let entry = snapshot_body(&snapshot, body.name)?;
+    Ok(SkyPlace {
+        ra: json_f64(entry, "geocentric_apparent_ra_deg")?,
+        dec: json_f64(entry, "geocentric_apparent_dec_deg")?,
+        dist_au: json_f64(entry, "distance_km")? / AU_KM,
+        alt: json_f64(entry, "alt_deg")?,
+        az: json_f64(entry, "az_deg")?,
+        diam_deg: json_f64(entry, "angular_size_arcsec")? / 3600.0,
+    })
+}
+
 /// Find one body's entry in a snapshot's bodies array.
 fn snapshot_body<'a>(
     snapshot: &'a serde_json::Value,
@@ -592,12 +731,8 @@ fn snapshot_body<'a>(
 /// (ra, dec) in degrees, geocentric apparent of date, from the sky
 /// snapshot's explicit geocentric fields.
 fn geocentric_radec(body: &BodyDef, jd: f64) -> Result<(f64, f64), EpherError> {
-    let snapshot = sky_snapshot(jd, 0.0, 0.0)?;
-    let entry = snapshot_body(&snapshot, body.name)?;
-    Ok((
-        json_f64(entry, "geocentric_apparent_ra_deg")?,
-        json_f64(entry, "geocentric_apparent_dec_deg")?,
-    ))
+    let place = sky_place(body, jd, 0.0, 0.0)?;
+    Ok((place.ra, place.dec))
 }
 
 fn ra_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
@@ -625,10 +760,8 @@ fn dist_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
         let (_, delta_au) = pluto_geometry(jd)?;
         return Ok(Value::Float(delta_au));
     }
-    let snapshot = sky_snapshot(jd, 0.0, 0.0)?;
-    let entry = snapshot_body(&snapshot, body.name)?;
-    let km = json_f64(entry, "distance_km")?;
-    Ok(Value::Float(km / AU_KM))
+    let place = sky_place(body, jd, 0.0, 0.0)?;
+    Ok(Value::Float(place.dist_au))
 }
 
 /// Topocentric altitude (true, unrefracted) at the observer.
@@ -638,9 +771,8 @@ fn alt_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
         let (alt, _) = pluto_altaz(jd, lat, lon)?;
         return Ok(Value::Float(alt));
     }
-    let snapshot = sky_snapshot(jd, lat, lon)?;
-    let entry = snapshot_body(&snapshot, body.name)?;
-    Ok(Value::Float(json_f64(entry, "alt_deg")?))
+    let place = sky_place(body, jd, lat, lon)?;
+    Ok(Value::Float(place.alt))
 }
 
 fn az_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
@@ -649,9 +781,8 @@ fn az_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
         let (_, az) = pluto_altaz(jd, lat, lon)?;
         return Ok(Value::Float(az));
     }
-    let snapshot = sky_snapshot(jd, lat, lon)?;
-    let entry = snapshot_body(&snapshot, body.name)?;
-    Ok(Value::Float(json_f64(entry, "az_deg")?))
+    let place = sky_place(body, jd, lat, lon)?;
+    Ok(Value::Float(place.az))
 }
 
 /// `(lat, lon), body, jd` for the horizontal-accessor signatures
@@ -786,11 +917,8 @@ fn diam_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
         let semi = (body.radius_km / (delta_au * AU_KM)).asin().to_degrees();
         return Ok(Value::Float(2.0 * semi));
     }
-    let snapshot = sky_snapshot(jd, 0.0, 0.0)?;
-    let entry = snapshot_body(&snapshot, body.name)?;
-    Ok(Value::Float(
-        json_f64(entry, "angular_size_arcsec")? / 3600.0,
-    ))
+    let place = sky_place(body, jd, 0.0, 0.0)?;
+    Ok(Value::Float(place.diam_deg))
 }
 
 // --- Pluto: the facade's own approximate ephemeris ---
