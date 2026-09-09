@@ -1842,12 +1842,46 @@ auteur. La précision est de l'ordre de la seconde d'arc pour le Soleil, la
 Lune et les planètes sur environ 5000 ans autour du présent.
 ### 1.30 Finance
 
-Le solveur de valeur temps de l'argent (convention de signes TI :
-l'argent sortant est négatif, l'argent entrant positif) résout l'un
-des cinq champs quand les quatre autres sont donnés. `i` est le taux
-par période en fraction — 0,01 vaut 1 % — et le dernier argument
-facultatif est le moment du paiement : 0 pour la fin de période (par
-défaut), 1 pour le début (annuité due).
+epher parle argent aussi bien qu'astronomie : un solveur de valeur
+temps de l'argent, l'amortissement des prêts, les intérêts et
+l'analyse de flux de trésorerie, tout hors ligne. Tout ce qui suit
+rend des nombres simples — pas des chaînes de devise — : les
+réponses sont indépendantes de la monnaie et retournent directement
+dans l'arithmétique. Les taux sont toujours par période et en
+fraction : `0.08/12` est un taux annuel de 8 % facturé chaque mois,
+et `0.01` vaut 1 % (le suffixe `%` de 1.2 marche aussi : `6 * 100%`
+vaut 0.06).
+
+**La convention de signes.** Le solveur suit le standard des
+calculatrices (TI) : l'argent que vous versez est négatif, celui que
+vous recevez est positif. Pour un prêt contracté, le versement est
+négatif et les mensualités positives ; pour un plan d'épargne, les
+dépôts sont négatifs et le capital récolté positif. Cinq champs
+cohérents annulent le solde :
+
+```text
+pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0
+```
+
+Des signes mélangés (prêt et mensualités négatifs tous les deux) se
+lisent « l'argent ne s'équilibre jamais », et le solveur répond par
+une erreur de domaine plutôt que par un nombre absurde.
+
+**Le solveur de valeur temps de l'argent.** Cinq fonctions résolvent
+un champ quand les quatre autres sont donnés. `n` est le nombre de
+périodes, `i` le taux par période, `pv` la valeur actuelle, `pmt` la
+mensualité, `fv` la valeur finale :
+
+| Fonction | Répond |
+|---|---|
+| `tvm_pmt(n, i, pv, fv)` | la mensualité |
+| `tvm_n(i, pv, pmt, fv)` | le nombre de périodes |
+| `tvm_i(n, pv, pmt, fv)` | le taux par période |
+| `tvm_pv(n, i, pmt, fv)` | la valeur actuelle |
+| `tvm_fv(n, i, pv, pmt)` | la valeur finale |
+
+Le prêt hypothécaire classique à 8 % : 360 mensualités de 733,76
+pour un prêt de 100 000 :
 
 ```epher
 tvm_pmt(360, 0.08/12, -100000, 0)
@@ -1857,9 +1891,19 @@ tvm_pmt(360, 0.08/12, -100000, 0)
 733.764573879
 ```
 
-Le prêt hypothécaire classique à 8 % : 360 mensualités de 733,76 pour
-un prêt de 100 000 — `tvm_pmt` est la mensualité, `tvm_pv` le prêt,
-`tvm_fv` le solde, `tvm_n` la durée et `tvm_i` le taux :
+L'intérêt payé sur toute la durée, c'est la mensualité fois son
+nombre moins le prêt :
+
+```epher
+tvm_pmt(360, 0.08/12, -100000, 0) * 360 - 100000
+```
+
+```text
+164155.246597
+```
+
+`tvm_i` relit le taux à partir d'une mensualité annoncée (un peu
+sous 8 %/12, parce que 733,76 est arrondi) :
 
 ```epher
 tvm_i(360, -100000, 733.76, 0)
@@ -1869,9 +1913,166 @@ tvm_i(360, -100000, 733.76, 0)
 0.00666661199068
 ```
 
-Le taux est ici un peu sous 8 %/12 parce que 733,76 est arrondi.
-`npv(r, flows)` actualise une liste de flux et `irr(flows)` trouve le
-taux où la valeur actuelle nette est nulle :
+`tvm_n` répond « combien de temps ». En payant 900 par mois au lieu
+du minimum :
+
+```epher
+tvm_n(0.08/12, -100000, 900, 0)
+```
+
+```text
+203.163223431
+```
+
+Environ 203 mois au lieu de 360. Et l'offre de la banque se vérifie
+d'elle-même : un prêt de 100 000 à 5 % avec 536,82 par mois, c'est
+bien 30 ans :
+
+```epher
+tvm_n(0.05/12, 100000, -536.82, 0)
+```
+
+```text
+360.002521488
+```
+
+(Attention aux signes inversés : ici le prêt est de l'argent reçu,
+donc positif, et les mensualités sont négatives.)
+
+`tvm_fv` fait fructifier un plan d'épargne : 200 par mois pendant
+40 ans à 6 % :
+
+```epher
+tvm_fv(480, 0.06/12, 0, -200)
+```
+
+```text
+398298.146866
+```
+
+`tvm_pv` évalue un flux de paiements : ce qu'un fonds doit détenir
+aujourd'hui pour verser 1 500 par mois pendant 20 ans à 5 % :
+
+```epher
+tvm_pv(240, 0.05/12, 1500, 0)
+```
+
+```text
+-227287.969611
+```
+
+La réponse est négative car acheter le fonds est de l'argent qui
+sort aujourd'hui. Dans l'autre sens — combien mettre de côté chaque
+mois pour atteindre un objectif —, on interroge `tvm_pmt` avec
+l'objectif en `fv` : 50 000 en dix ans à 5 % coûtent 322 par mois :
+
+```epher
+tvm_pmt(120, 0.05/12, 0, -50000)
+```
+
+```text
+321.994242862
+```
+
+Chacune des cinq accepte un dernier argument facultatif `begin` : 0
+signifie des paiements en fin de période (par défaut), 1 au début
+(annuité due — un loyer, la plupart des salaires). Payées en début
+de période, les mensualités portent intérêt une période de plus, et
+la mensualité du prêt baisse un peu :
+
+```epher
+tvm_pmt(360, 0.08/12, -100000, 0, 1)
+```
+
+```text
+728.90520584
+```
+
+La recherche de taux couvre jusqu'à 100 % par période et celle de
+durée jusqu'à dix millions de périodes ; un problème hors de ces
+portées (ou un jeu de signes qui ne s'équilibre jamais) renvoie une
+erreur de domaine qui dit ce qu'elle a tenté.
+
+**Amortissement.** `amort(p, r, n, k)` est le solde restant après k
+paiements d'un prêt de p au taux r sur n périodes — à 0 périodes le
+capital, au bout des n, zéro :
+
+```epher
+amort(100000, 0.08/12, 360, 120)
+```
+
+```text
+87724.7039064
+```
+
+Après dix ans du prêt à 8 %, il reste 87 725 à devoir. Une boucle
+(1.10) en fait le tableau d'amortissement, une ligne tous les cinq
+ans :
+
+```epher
+for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
+```
+
+```text
+{100000, 95069.8567174, 87724.7039064, 76781.5595143, 60477.9628062, 36188.1192209, 0}
+```
+
+**Intérêts.** `simple_interest(p, r, t)` vaut `p*r*t` et
+`compound_interest(p, r, n)` vaut `p*(1+r)^n - p` — tous deux
+répondent l'intérêt gagné, pas le solde :
+
+```epher
+simple_interest(1000, 0.05, 2)
+```
+
+```text
+100
+```
+
+```epher
+compound_interest(1000, 0.05, 2)
+```
+
+```text
+102.5
+```
+
+Le solde lui-même est une arithmétique simple — c'est tout l'intérêt
+des nombres simples :
+
+```epher
+1000 * 1.05 ^ 2
+```
+
+```text
+1102.5
+```
+
+Deux taux du quotidien, bâtis pareil. Le taux annuel effectif d'un
+taux nominal de 6 % capitalisé chaque mois, et le temps de
+doublement de la règle des 72 à 6 % :
+
+```epher
+(1 + 0.06/12) ^ 12 - 1
+```
+
+```text
+0.0616778118645
+```
+
+```epher
+72 / (6 * 100%)
+```
+
+```text
+12
+```
+
+**Analyse de flux de trésorerie.** `npv(r, flows)` actualise une
+liste de flux au taux r : `flows[1]` est le décaissement d'aujourd'hui,
+le reste arrive à un période d'écart. `irr(flows)` trouve le taux où
+la valeur actuelle nette s'annule. Payer 100 aujourd'hui et recevoir
+60 pendant chacune des deux années suivantes :
 
 ```epher
 npv(0.1, {-100, 60, 60})
@@ -1881,9 +2082,58 @@ npv(0.1, {-100, 60, 60})
 500/121
 ```
 
-`amort(p, r, n, k)` est le solde restant après k paiements d'un prêt à
-n périodes, `simple_interest(p, r, t)` vaut `p*r*t`, et
-`compound_interest(p, r, n)` vaut `p*(1+r)^n - p`.
+```epher
+irr({-100, 60, 60})
+```
+
+```text
+0.130662386292
+```
+
+Le placement rapporte 13,07 %. (`500/121` est l'affichage en
+fraction exacte d'epher, 1.14 : la valeur dont le décimal se répète ;
+`dec(500/121)` écrit 4.13223140496.) La règle de décision : prenez
+le projet quand `npv` à votre taux plancher est positif, c'est-à-dire
+quand `irr` bat le taux plancher. Avec un plancher de 15 %, celui-ci
+échoue :
+
+```epher
+npv(0.15, {-100, 60, 60})
+```
+
+```text
+-1300/529
+```
+
+Une liste de flux dont les termes ne changent jamais de signe n'a
+pas de taux qui ait du sens ; `irr` renvoie une erreur de domaine.
+
+**Des lignes de tous les jours.** Le taux de croissance annuel
+composé d'un placement passé de 1 000 à 2 400 en cinq ans, et le
+rendement réel d'un 7 % nominal contre 2 % d'inflation (encore
+l'affichage en fraction exacte ; `dec(5/102)` donne
+0.0490196078431) :
+
+```epher
+(2400/1000) ^ (1/5) - 1
+```
+
+```text
+0.191357898167
+```
+
+```epher
+1.07 / 1.02 - 1
+```
+
+```text
+5/102
+```
+
+La collection de scripts livre 42 scripts de finance prêts à
+l'emploi bâtis sur ces dix fonctions — quatre dossiers : intérêts,
+investissement, prêts et épargne —, chacun avec une transcription
+vérifiée contre le moteur (scripts.html les liste avec des résumés d'une ligne).
 
 ## 2. L'application web (PWA)
 
