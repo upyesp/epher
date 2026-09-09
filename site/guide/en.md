@@ -430,7 +430,7 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-The loop variable keeps its last value afterwards, like TI's For. With print, a loop writes readable lines:
+The loop variable is scoped to the loop: afterwards the name means what it meant before (so a loop over `i` never disturbs the imaginary unit), while assignments to other names inside the body persist. With print, a loop writes readable lines:
 
 ```epher
 for i in 1 to 3 do print("line", i)

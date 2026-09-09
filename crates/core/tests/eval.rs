@@ -3430,8 +3430,27 @@ fn for_loops_iterate_ranges_and_lists() {
     );
     // A reversed range with positive step is simply empty.
     assert_eq!(eval_display_script("for i in 5 to 1 do i"), "{}");
-    // The loop variable keeps its last value (TI's For behavior).
-    assert_eq!(eval_display_script("for i in 1 to 3 do i\ni"), "3");
+    // The loop variable is scoped to the loop (ADR-0063): the name
+    // reverts afterwards, so a loop over `i` never leaves an `i = last`
+    // behind — bare `i` is the imaginary unit again (the gap-analysis
+    // defect: a stored `i = 5` once made `3+4i` answer 23).
+    assert_eq!(eval_display_script("for i in 1 to 3 do i\ni"), "i");
+    // A binding from before the loop is restored, not clobbered.
+    assert_eq!(eval_display_script("i = 7\nfor i in 1 to 3 do i\ni"), "7");
+    // The complex literal is intact after a loop over `i`.
+    assert_eq!(eval_display_script("for i in 1 to 3 do i\n3 + 4i"), "3+4i");
+    // Nested loops over the same name unwind in order: the inner loop
+    // owns its `i`, the outer restores its own per iteration.
+    assert_eq!(
+        eval_display_script("n = 0\nfor i in 1 to 2 do for i in 1 to 3 do n = n + i"),
+        "{{1, 3, 6}, {7, 9, 12}}"
+    );
+    assert_eq!(eval_display_script("for i in 1 to 2 do for i in 1 to 3 do i\ni"), "i");
+    // Accumulators (other names) still persist — that is how loops work.
+    assert_eq!(
+        eval_display_script("total = 0\nfor k in 1 to 4 do total = total + k\ntotal"),
+        "10"
+    );
     // print turns the loop into readable lines.
     assert_eq!(
         eval_display_script("for i in 1 to 3 do print(\"line\", i)"),
@@ -3447,6 +3466,20 @@ fn for_loops_iterate_ranges_and_lists() {
     assert!(script_err("for i in 1 to 200000 do i").contains("at most 100000"));
     // Iterating a non-list is a type error with guidance.
     assert!(script_err("for i in 5 do i").contains("list or a range"));
+}
+
+#[test]
+fn session_for_loop_leaves_nothing_in_the_store() {
+    // ADR-0063: the loop variable never reaches the session bindings,
+    // so the store snapshot carries nothing to shadow `i` across
+    // sessions (the gap-analysis defect: a stored `i = 5` once made
+    // `3+4i` answer 23 in a later session).
+    let mut session = Session::new();
+    session.submit("for i in 1 to 3 do i");
+    assert!(!session.env().bindings().contains_key("i"));
+    // an ordinary assignment persists exactly as before
+    session.submit("k = 9");
+    assert_eq!(session.env().bindings().get("k"), Some(&Value::float(9.0)));
 }
 
 #[test]

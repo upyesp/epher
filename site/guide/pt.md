@@ -434,7 +434,7 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-A variável do ciclo guarda o seu último valor depois, como o For da TI. Com print, um ciclo escreve linhas legíveis:
+A variável do loop tem âmbito próprio do loop: depois, o nome volta a significar o que significava antes (um loop sobre `i` não afeta a unidade imaginária), enquanto atribuições a outros nomes no corpo persistem. Com print, um loop escreve linhas legíveis:
 
 ```epher
 for i in 1 to 3 do print("line", i)
