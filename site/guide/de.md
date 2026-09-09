@@ -267,6 +267,30 @@ ans * 2
 10
 ```
 
+Eine Liste kann auf einmal mehrere Namen füllen — `{a, b} = list` nimmt
+eine Liste auseinander, von links nach rechts (Abschnitt 1.11 zeigt
+Funktionen, die so mehr als eine Antwort zurückgeben):
+
+```epher
+{a, b} = {10, 20}; a + b
+```
+
+```text
+{10, 20}
+30
+```
+
+Eine Position, die du nicht willst, schreibst du als `_`:
+
+```epher
+{x, _} = {7, 8}; x
+```
+
+```text
+{7, 8}
+7
+```
+
 ### 1.6 Konstanten: Namen, die sich nie ändern
 
 Eine *Konstante* ist ein Name für einen Wert, der sich nie ändert, wie
@@ -342,13 +366,14 @@ eine Funktion (Kapitel 4.4).
 
 ### 1.7 Zeichenketten und print
 
-Eine Zeichenkette ist Text in doppelten Anführungszeichen: `"hello"`. Zeichenketten hängen mit `+` aneinander, vergleichen mit `==` und `!=`, zählen mit `len` und indizieren 1-basiert wie Listen:
+Eine Zeichenkette ist Text in doppelten Anführungszeichen: `"hello"`. Zeichenketten hängen mit `+` aneinander, vergleichen mit `==` und `!=`, ordnen mit `<` und `>` (Wörterbuchreihenfolge), zählen mit `len` und indizieren 1-basiert wie Listen:
 
 ```epher
 "hello" + " " + "world"
 len("hello")
 "hello"[1]
 "abc" == "abd"
+"apple" < "banana"
 ```
 
 ```text
@@ -356,9 +381,27 @@ hello world
 5
 h
 false
+true
 ```
 
-Es gibt keine Escape-Folgen: Eine Zeichenkette kann kein doppeltes Anführungszeichen enthalten. **str(x)** schreibt einen Wert so, wie es das Antwortfeld täte, und **print(a, b, …)** verbindet seine Argumente mit Leerzeichen zu einer Zeile:
+Ein Backslash in einer Zeichenkette beginnt eine **Escape-Folge**: `\n`
+ist eine neue Zeile, `\t` ein Tabulator, und `\\` und `\"` sind der
+Backslash und das Anführungszeichen selbst — so kann eine Zeichenkette
+ein doppeltes Anführungszeichen enthalten:
+
+```epher
+s = "say \"hi\""
+len("a\nb")
+```
+
+```text
+say "hi"
+3
+```
+
+**str(x)** schreibt einen Wert so, wie es das Antwortfeld täte, und
+**print(a, b, …)** verbindet seine Argumente mit Leerzeichen zu einer
+Zeile:
 
 ```epher
 print("x =", 42)
@@ -366,6 +409,36 @@ print("x =", 42)
 
 ```text
 x = 42
+```
+
+Eine kleine Bibliothek deckt den Rest beim Schreiben von Berichten ab.
+**upper** und **lower** ändern Groß- und Kleinschreibung, **trim**
+entfernt Leerzeichen an den Enden, **substr** nimmt ein Stück heraus
+(1-basiert wie jeder Index), **find** meldet, wo ein Text vorkommt (0,
+wenn er fehlt), **replace** tauscht jedes Vorkommen eines Texts gegen
+einen anderen, **split** zerbricht einen Text an einem Trennzeichen in
+eine Liste, **join** klebt eine Liste zu einem Text zusammen, und
+**fixed** schreibt eine Zahl mit genau so vielen Dezimalstellen, wie du
+verlangst — die Null, die ein Bericht will, bleibt erhalten:
+
+```epher
+upper("hello")
+substr("2026-09-17", 1, 4)
+find("hello world", "world")
+replace("2026-09-17", "-", "/")
+split("a,b,c", ",")
+join({1, 2, 3}, "-")
+fixed(3.1, 2)
+```
+
+```text
+HELLO
+2026
+7
+2026/09/17
+{a, b, c}
+1-2-3
+3.10
 ```
 
 ### 1.8 Entscheidungen mit if
@@ -419,6 +492,10 @@ zu x; zeige dann x.* Das Ergebnis ist 5, weil die Schleife fünfmal lief.
 > `error: step limit exceeded`. Das schützt dich vor Schleifen, die nie
 > enden würden. Wenn du das siehst, ist deine Bedingung vermutlich nie falsch geworden.
 
+Eine Schleife lässt sich auch absichtlich verlassen: der nächste
+Abschnitt führt `break` und `continue` ein, und eine Funktion `return`
+(Abschnitt 1.11).
+
 ### 1.10 Schleifen mit for
 
 `for` wiederholt eine Anweisung einmal pro Wert und sammelt die Werte des Körpers in einer Liste: über einen Bereich `start to end` (einschließlich) mit optionalem `step` oder über die Elemente einer Liste:
@@ -446,6 +523,39 @@ for i in 1 to 3 do print("line", i)
 ```
 
 Derselbe Sicherheitsschalter von 100.000 Schritten begrenzt eine for-Schleife wie eine while-Schleife.
+
+**Eine Schleife vorzeitig verlassen.** `break` stoppt die Schleife auf
+der Stelle; die bis dahin gesammelten Werte sind die Antwort der
+Schleife. `continue` überspringt den Rest des Durchlaufs und geht zum
+nächsten Wert. Beide sind Anweisungen, sie stehen also hinter einem
+`if`:
+
+```epher
+for k in 1 to 6 do if mod(k, 2) == 1 then k
+for k in 1 to 10 do if k == 4 then break else k
+total = 0
+for k in 1 to 6 do if mod(k, 2) == 0 then continue else total = total + k
+total
+```
+
+```text
+{1, 3, 5}
+{1, 2, 3}
+0
+{1, 4, 9}
+9
+```
+
+Den mittleren lies so: für k von 1 bis 10, wenn k gleich 4 ist, stopp;
+sonst gib k zurück. Die Antwort der Schleife sind die Werte, die sie
+vor dem Stoppen gesehen hat. Das letzte Paar zeigt `continue` beim
+Zählen: die gesammelte Liste der for-Zeile ist die laufende Summe - 1,
+dann 4, dann 9 - und die geraden Durchläufe wurden übersprungen, also
+trugen sie nichts bei. Das abschließende `total`, 9, ist die Summe der
+ungeraden Werte. Ein `if` ohne `else` trägt nichts bei, wenn seine
+Bedingung falsch ist — so behält die erste Schleife nur die ungeraden
+Werte, und so kann eine Schleife eine Liste *filtern* wie auch
+umformen.
 
 
 ### 1.11 Eigene Funktionen mit def
@@ -488,6 +598,70 @@ answer()
 42
 ```
 
+**Ein Körper mit mehreren Schritten.** Wenn ein Ausdruck nicht reicht,
+gib der Funktion einen `do … end`-Körper. Die Anweisungen laufen der
+Reihe nach ab, und der Wert der letzten ist die Antwort:
+
+```epher
+def hyp(a, b) do
+  c = a ^ 2 + b ^ 2
+  sqrt(c)
+end
+hyp(3, 4)
+```
+
+```text
+5
+```
+
+Der Zwischenname `c` lebt innerhalb des Aufrufs; er ist nach außen
+nicht sichtbar, und zwei Aufrufe sehen gegenseitig ihr `c` nicht.
+
+**return: Antwort sofort.** `return value` antwortet sofort und
+überspringt den Rest des Körpers — die natürliche Form für eine Wahl
+mit frühzeitigem Ausstieg:
+
+```epher
+def grade(s) do
+  if s >= 90 then return "A"
+  if s >= 80 then return "B"
+  "C"
+end
+grade(95); grade(85); grade(40)
+```
+
+```text
+A
+B
+C
+```
+
+`return` verlässt auch eine Schleife, die sucht, in dem Moment, in dem
+sie findet:
+
+```epher
+def firstsq(xs) do
+  for x in xs do
+    if x ^ 0.5 == floor(x ^ 0.5) then return x
+  0
+end
+firstsq({3, 5, 9, 11}); firstsq({3, 5, 7})
+```
+
+```text
+9
+0
+```
+
+Eine Regel hält die Blöcke lesbar: das `end` schließt immer das do der
+Funktion — ein `if`, `for` oder `while` bekommt kein `end`. Ein Körper,
+der ohne Antwort endet (etwa weil jeder Pfad nichts zurückgab), ist ein
+Fehler, keine Stille: epher sagt es und nennt die Funktion.
+
+> **Mehr als eine Antwort?** Gib eine Liste zurück — und benenne sie in
+> einem Zug mit dem Destrukturieren aus Abschnitt 1.5:
+> `{mean, sd} = {4, 1.6}`.
+
 ### 1.12 Rekursion: eine Funktion, die sich selbst aufruft
 
 Das berühmteste Beispiel sind die Fibonacci-Zahlen:
@@ -509,8 +683,11 @@ kleineren Argumenten auf, bis sie `n <= 1` erreicht. Das funktioniert,
 weil die Form `if ... then ... else ...` nur den Zweig berechnet, den sie
 braucht.
 
-> Der Körper einer Funktion ist ein einzelner Ausdruck, eine Zeile. Kombiniere
-> stattdessen mehrere Berechnungen mit `;` in einem Skript (nächster Abschnitt).
+> Der Körper einer Funktion ist ein Ausdruck nach dem `=`, oder ein
+> `do … end`-Block aus mehreren Anweisungen mit `return` für frühe
+> Ausstiege (Abschnitt 1.11). Kombiniere mehrere Berechnungen
+> stattdessen in einem Skript (nächster Abschnitt), wenn keine
+> Funktion nötig ist.
 
 ### 1.13 Skripte: mehrere Anweisungen auf einmal
 
@@ -899,10 +1076,15 @@ nicht kennt, damit du deinen Ausdruck korrigieren kannst.
 | Variable | `name = value` | `x = 5` |
 | Konstante | `const name = value` | `const tax = 0.2` |
 | Entscheidung | `if c then a else b` | `if x > 0 then 1 else -1` |
+| Anweisungen wählen | `if c then Anweisung [else Anweisung]` | `if k == 4 then break` |
 | Schleife | `while c do statement` | `while x < 5 do x = x + 1` |
 | for-Schleife | `for i in a to b step s do Anweisung` | `for i in 1 to 5 do i^2` |
-| Funktion | `def name(params) = expr` | `def f(x) = x ^ 2` |
-| Zeichenketten | `"..."`, `+` fügt zusammen, `s[i]`, `==` | `"a" + "b"` |
+| Schleife verlassen / überspringen | `break`, `continue` | `if k == 4 then break` |
+| Funktion | `def name(params) = expr` oder `do … end` | `def f(x) = x ^ 2` |
+| Antwort sofort | `return value` | `if ok then return x` |
+| Mehrere Namen | `{a, b} = list` (`_` überspringt) | `{m, sd} = stats(d)` |
+| Zeichenketten | `"..."`, `+` fügt zusammen, `s[i]`, `==`, `<` | `"a" + "b"` |
+| Zeichenketten-Bibliothek | `upper` `lower` `trim` `substr` `split` `join` `find` `replace` `fixed` | `split("a,b", ",")` |
 | Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Skript | Anweisungen, verbunden mit `;` oder Zeilenumbrüchen | `x = 1; x + 1` |
 | Exakter Bruch | `frac(n, d)` | `frac(1, 3)` |
@@ -917,6 +1099,38 @@ nicht kennt, damit du deinen Ausdruck korrigieren kannst.
 | Bestimmtes Integral | `integral(expr, a, b)` | `integral(x^2, 0, 3)` |
 | Binär, oktal, hexadezimal | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Basisschreibweise | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
+| Primzahlen | `isprime(n)`, `factors(n)`, … | `factors(360)` |
+| Listenliteral | `{…}` | `{1, 2, 3}` |
+| Listenelement | `list[i]` (ab 1) | `{5, 6}[2]` |
+| Listenstatistik | `mean(liste)`, `median(liste)`, … | `stdev(d)` |
+| Listenform | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
+| Lineare Regression | `linreg(xs, ys)` | `linreg(x, y)` |
+| Regressionsfamilie | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
+| Normalverteilung | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
+| t-Verteilung | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
+| Chi-Quadrat | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
+| Diskrete Verteilungen | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
+| Tests und Intervalle | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
+| ANOVA und gepaarter t | `anova(listen...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
+| Datenplots | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
+| Zufallszahlen | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
+| Normalverteilte Ziehungen | `randn(mu, sigma)` | `randn(0, 1)` |
+| Konstanten-Browser | Hilfe → Konstanten: alle eingebauten Konstanten, nach Gruppe | Hilfe → Konstanten |
+| Größe | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
+| Umrechnen | `expr in Einheit` oder `expr -> Einheit` | `72 km/hr in m/s` |
+| Vorsätze | `k M G T m µ n p` skalieren jede Einheit | `5 km`, `3 MPa`, `1 GHz` |
+| Bitweises Und, Oder | `a & b`, `a \| b` | `0xFF & 0x0F` |
+| Bitweises exklusives Oder | `a xor b` | `5 xor 3` |
+| Bitweises Nicht | `~a` | `~0` |
+| Verschiebungen | `a << n`, `a >> n` | `1 << 8` |
+| Wortbreite | `bits(n)` für 8, 16, 32, 64 | `bits(8)` |
+| Implizite Beziehung | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
+| Matrix-Literal | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
+| Matrixfunktionen | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
+| TVM-Löser | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
+| Kapitalwert und interner Zinsfuß | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
+| Tilgung | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
+| Zinsen | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` |
 
 ### 1.18 Komplexe Zahlen
 

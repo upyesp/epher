@@ -25,7 +25,7 @@
 ## What It Does
 
 - **One download, five frontends** — every installer carries the unified `epher` binary: one-shot command, REPL, piped scripts, TUI, and desktop app, plus the web app in your browser
-- **A real language** — variables, functions with recursion, loops, and saveable scripts; newlines and `;` separate statements
+- **A real language** — variables, functions with statement bodies and early `return`, loops with `break`/`continue`, destructuring, a string library, and saveable scripts; newlines and `;` separate statements
 - **Exact when it matters** — binary floats by default, with exact `frac`, `dec`, and `big` layers one call away
 - **Graphs in 2D and 3D** — curves and surfaces, trace, points of interest, animated constants with a play button, SVG export
 - **Private by design** — no accounts, no telemetry, no cloud; everything computes and stores on your device

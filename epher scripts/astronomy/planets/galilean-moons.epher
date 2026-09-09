@@ -55,11 +55,15 @@ line(4, "Callisto:")
 
 /* The next time Io is not plainly visible - a transit, an eclipse, or
 a shadow pass - scanned in 30-minute steps for up to three days from
-`when`. The list `v` packs the loop's state: {instant, state, steps},
-because a loop body is one statement (guide 1.10). */
-v = {when, 0, 0}
-while v[3] < 144 and v[2] == 0 do v = {v[1] + 1 / 48, satphen(5, 1, v[1] + 1 / 48), v[3] + 1}
-if v[2] > 0 then print("Io's next phenomenon:", iso(v[1]), "UT -", word(v[2])) else print("Io: nothing but plain visible within 3 days")
+`when`. The scan answers the instant the moment it finds one (`return`
+leaves the loop, guide 1.11), or 0 when all three days are plain
+visible. */
+def next_phenomenon(p, m, name, t0) do
+  t = t0
+  while t - t0 < 3 do if satphen(p, m, t + 1 / 48) != 0 then return print(name + "'s next phenomenon:", iso(t + 1 / 48), "UT -", word(satphen(p, m, t + 1 / 48))) else t = t + 1 / 48
+  print(name + ": nothing but plain visible within 3 days")
+end
+next_phenomenon(5, 1, "Io", when)
 
 /* Jupiter's distance right then, for scale: at opposition the whole
 system is 44 arcseconds per Io-orbit wide and every moon fits in one
@@ -73,7 +77,6 @@ print("Jupiter distance:", round(dist(5, when) * 100) / 100, "AU")
 = Europa: 138 arcsec E - visible
 = Ganymede: 242 arcsec W - visible
 = Callisto: 287 arcsec E - visible
-= {2461300.5, 0, 0}
 = Io's next phenomenon: 2026-09-17T02:30:00 UT - in transit
 = Jupiter distance: 6.07 AU
 */

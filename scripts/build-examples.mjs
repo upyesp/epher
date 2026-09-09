@@ -34,6 +34,19 @@ const SECTIONS = [
       { cap: "ex-a9", capText: "Powers and roots work like the rest of the language.", kind: "epher", code: `sqrt(2 ^ 10)` },
       { cap: "ex-a10", capText: "Exact fractions where binary floats would round.", kind: "epher", code: `frac(1, 3) + frac(1, 6)` },
       { cap: "ex-a11", capText: "Defining a function and calling it in the same line.", kind: "epher", code: `def sq(x) = x * x; sq(9)` },
+      { cap: "ex-a17", capText: "A function with steps: a `do ... end` body runs its statements in order and answers with the last one.", kind: "epher", code: `def hyp(a, b) do
+  c = a ^ 2 + b ^ 2
+  sqrt(c)
+end
+hyp(3, 4)` },
+      { cap: "ex-a18", capText: "`return` answers early: the loop stops the moment the search finds.", kind: "epher", code: `def firstsq(xs) do
+  for x in xs do
+    if x ^ 0.5 == floor(x ^ 0.5) then return x
+  0
+end
+firstsq({3, 5, 9, 11})` },
+      { cap: "ex-a19", capText: "Split a text, name the pieces, and join them back: the string library at work.", kind: "epher", code: `{name, ext} = split("report.txt", ".")
+join({upper(name), ext}, ".")` },
       { cap: "ex-a12", capText: "Arithmetic across number bases: `0xff` is hex, `0b1` is binary, and `hex(...)` spells the answer as hex.", kind: "epher", code: `0xff + 0b1\nhex(ans)` },
       { cap: "ex-a1", capText: "A multi-line script. Shift+Enter starts a new line, Enter runs the whole script as one history item, and every answer shows in order.", kind: "epher", code: `x = 10\ny = x + 5\ny ^ 2` },
       { cap: "ex-a2", capText: "A basic 2D curve.", kind: "epher", code: `graph x ^ 2` },

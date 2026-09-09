@@ -263,6 +263,30 @@ ans * 2
 10
 ```
 
+One list can fill several names at once — `{a, b} = list` takes a list
+apart, left to right (section 1.11 shows functions that hand back more
+than one answer this way):
+
+```epher
+{a, b} = {10, 20}; a + b
+```
+
+```text
+{10, 20}
+30
+```
+
+A position you do not want is written `_`:
+
+```epher
+{x, _} = {7, 8}; x
+```
+
+```text
+{7, 8}
+7
+```
+
 ### 1.6 Constants: names that never change
 
 A *constant* is a name for a value that never changes, like the built-in
@@ -338,13 +362,14 @@ function (chapter 4.4).
 
 ### 1.7 Strings and print
 
-A string is text in double quotes: `"hello"`. Strings concatenate with `+`, compare with `==` and `!=`, count with `len`, and index 1-based like lists:
+A string is text in double quotes: `"hello"`. Strings concatenate with `+`, compare with `==` and `!=`, order with `<` and `>` (dictionary order), count with `len`, and index 1-based like lists:
 
 ```epher
 "hello" + " " + "world"
 len("hello")
 "hello"[1]
 "abc" == "abd"
+"apple" < "banana"
 ```
 
 ```text
@@ -352,9 +377,24 @@ hello world
 5
 h
 false
+true
 ```
 
-There are no escape sequences: a string cannot contain a double quote. **str(x)** spells one value the way the answer panel would, and **print(a, b, …)** joins its arguments with spaces into one line:
+A backslash inside a string starts an **escape**: `\n` is a new line, `\t`
+a tab, and `\\` and `\"` are the backslash and the quote themselves — so a
+string can contain a double quote:
+
+```epher
+s = "say \"hi\""
+len("a\nb")
+```
+
+```text
+say "hi"
+3
+```
+
+**str(x)** spells one value the way the answer panel would, and **print(a, b, …)** joins its arguments with spaces into one line:
 
 ```epher
 print("x =", 42)
@@ -362,6 +402,34 @@ print("x =", 42)
 
 ```text
 x = 42
+```
+
+A small library covers the rest of report writing. **upper** and **lower**
+change case, **trim** strips spaces from the ends, **substr** takes a piece
+(1-based, like every index), **find** reports where a text appears (0 when
+it does not), **replace** swaps every copy of one text for another,
+**split** breaks a text into a list at a separator, **join** glues a list
+into one text, and **fixed** spells a number with exactly as many decimal
+places as you ask — the zero a report wants, kept:
+
+```epher
+upper("hello")
+substr("2026-09-17", 1, 4)
+find("hello world", "world")
+replace("2026-09-17", "-", "/")
+split("a,b,c", ",")
+join({1, 2, 3}, "-")
+fixed(3.1, 2)
+```
+
+```text
+HELLO
+2026
+7
+2026/09/17
+{a, b, c}
+1-2-3
+3.10
 ```
 
 ### 1.8 Decisions with if
@@ -414,6 +482,9 @@ show x.* The result is 5 because the loop ran five times.
 > `error: step limit exceeded`. That protects you from loops that would
 > never end. If you see it, your condition probably never became false.
 
+A loop can also be left on purpose: the next section adds `break` and
+`continue`, and a function adds `return` (section 1.11).
+
 ### 1.10 Loops with for
 
 `for` repeats a statement once per value, collecting the body's values into a list: over a range `start to end` (inclusive) with an optional `step`, or over the elements of a list:
@@ -441,6 +512,36 @@ for i in 1 to 3 do print("line", i)
 ```
 
 The same 100,000-step safety net bounds a for loop as a while.
+
+**Leaving a loop early.** `break` stops the loop on the spot; the values
+collected so far are the loop's answer. `continue` skips the rest of the
+pass and moves to the next value. Both are statements, so they sit behind
+an `if`:
+
+```epher
+for k in 1 to 6 do if mod(k, 2) == 1 then k
+for k in 1 to 10 do if k == 4 then break else k
+total = 0
+for k in 1 to 6 do if mod(k, 2) == 0 then continue else total = total + k
+total
+```
+
+```text
+{1, 3, 5}
+{1, 2, 3}
+0
+{1, 4, 9}
+9
+```
+
+Read the middle one as: for k from 1 to 10, if k is 4 stop; otherwise hand
+back k. The loop's answer is the values it saw before it stopped. The last
+pair shows `continue` counting: the for line's collected list is the
+running total - 1, then 4, then 9 - and the even passes were skipped, so
+they added nothing. The final `total`, 9, is the sum of the odd values. An
+`if` without an `else` contributes nothing when its condition is false,
+which is how the first loop keeps only the odd values, and how a loop can
+*filter* a list as well as transform it.
 
 
 ### 1.11 Your own functions with def
@@ -483,6 +584,68 @@ answer()
 42
 ```
 
+**A body with several steps.** When one expression is not enough, give the
+function a `do … end` body. The statements run one after another in order,
+and the last one's value is the answer:
+
+```epher
+def hyp(a, b) do
+  c = a ^ 2 + b ^ 2
+  sqrt(c)
+end
+hyp(3, 4)
+```
+
+```text
+5
+```
+
+The intermediate name `c` lives inside the call; it is not visible outside,
+and two calls do not see each other's `c`.
+
+**return: answer now.** `return value` answers immediately and skips the
+rest of the body — the natural shape for a choice with an early exit:
+
+```epher
+def grade(s) do
+  if s >= 90 then return "A"
+  if s >= 80 then return "B"
+  "C"
+end
+grade(95); grade(85); grade(40)
+```
+
+```text
+A
+B
+C
+```
+
+`return` also leaves a loop that is searching, the moment it finds:
+
+```epher
+def firstsq(xs) do
+  for x in xs do
+    if x ^ 0.5 == floor(x ^ 0.5) then return x
+  0
+end
+firstsq({3, 5, 9, 11}); firstsq({3, 5, 7})
+```
+
+```text
+9
+0
+```
+
+One rule keeps the blocks readable: the `end` always closes the function's
+do — an `if`, `for`, or `while` takes no `end`. A body that ends without an
+answer (say, every path returned nothing) is an error, not a silence:
+epher says so and names the function.
+
+> **More than one answer?** Give back a list — and name it in one move
+> with the destructuring from section 1.5:
+> `{mean, sd} = {4, 1.6}`.
+
 ### 1.12 Recursion: a function that calls itself
 
 The most famous example is the Fibonacci numbers:
@@ -503,8 +666,10 @@ fib(10)
 smaller arguments until it reaches `n <= 1`. This works because the
 `if ... then ... else ...` form only calculates the branch it needs.
 
-> A function's body is a single expression, one line. Combine several
-> calculations with `;` in a script instead (next section).
+> A function's body is one expression after `=`, or a `do … end` block
+> of several statements with `return` for early exits (section 1.11).
+> Combine several calculations in a script instead (next section) when
+> no function is needed.
 
 ### 1.13 Scripts: several statements at once
 
@@ -863,10 +1028,15 @@ not know, so you can fix your expression.
 | Variable | `name = value` | `x = 5` |
 | Constant | `const name = value` | `const tax = 0.2` |
 | Decision | `if c then a else b` | `if x > 0 then 1 else -1` |
+| Choose statements | `if c then stmt [else stmt]` | `if k == 4 then break` |
 | Loop | `while c do statement` | `while x < 5 do x = x + 1` |
 | For loop | `for i in a to b step s do stmt` | `for i in 1 to 5 do i^2` |
-| Function | `def name(params) = expr` | `def f(x) = x ^ 2` |
-| Strings | `"..."`, `+` joins, `s[i]`, `==` | `"a" + "b"` |
+| Leave / skip a loop | `break`, `continue` | `if k == 4 then break` |
+| Function | `def name(params) = expr` or `do … end` | `def f(x) = x ^ 2` |
+| Answer now | `return value` | `if ok then return x` |
+| Several names | `{a, b} = list` (`_` skips) | `{m, sd} = stats(d)` |
+| Strings | `"..."`, `+` joins, `s[i]`, `==`, `<` | `"a" + "b"` |
+| String library | `upper` `lower` `trim` `substr` `split` `join` `find` `replace` `fixed` | `split("a,b", ",")` |
 | Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Script | statements joined with `;` or newlines | `x = 1; x + 1` |
 | Exact fraction | `frac(n, d)` | `frac(1, 3)` |

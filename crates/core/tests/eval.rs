@@ -1,7 +1,7 @@
 use bigdecimal::BigDecimal;
 use epher_core::{
-    eval, evaluate, parse, parse_latex, parse_script, run, run_all, sample, sample_parametric,
-    sample_polar, Env, Sample, Session, Value,
+    catalog, eval, evaluate, parse, parse_latex, parse_script, run, run_all, sample,
+    sample_parametric, sample_polar, Env, Sample, Session, Value,
 };
 use num_rational::BigRational;
 use rust_decimal::Decimal;
@@ -3393,8 +3393,9 @@ fn strings_concatenate_compare_and_index() {
     assert_eq!(eval_display_script("\"a\" != \"b\""), "true");
     // Mixed arithmetic with a string is a type error, not a surprise.
     assert!(script_err("\"a\" + 1").contains("only support +"));
-    // Ordering is deliberately unsupported.
-    assert!(script_err("\"a\" < \"b\"").contains("cannot compare"));
+    // Ordering reads dictionary order (ADR-0064).
+    assert_eq!(eval_display_script("\"a\" < \"b\""), "true");
+    assert_eq!(eval_display_script("\"b\" >= \"a\""), "true");
     // len reaches strings as well as lists.
     assert_eq!(eval_display_script("len({1, 2, 3})"), "3");
     // A string survives a variable round trip.
@@ -3493,3 +3494,200 @@ fn str_and_print_format_like_the_display() {
     // strings concatenate onto printed results.
     assert_eq!(eval_display_script("print(\"a\") + \"!\""), "a!");
 }
+
+// ===== statement bodies, control flow, destructuring, string library
+// (ADR-0064) =====
+
+#[test]
+fn def_takes_a_do_end_block_body() {
+    // two statements, the last one's value is the answer
+    assert_eq!(
+        eval_display_script("def hyp(a, b) do c = a^2 + b^2; sqrt(c) end; hyp(3, 4)"),
+        "5"
+    );
+    // `= expr` bodies still work unchanged
+    assert_eq!(eval_display_script("def f(x) = x + 1; f(41)"), "42");
+    // an assignment's value can be the body's answer, like a script's
+    assert_eq!(eval_display_script("def g() do a = 6 end; g()"), "6");
+    // a body that produces no value is named as the mistake it is
+    assert!(script_err("def h() do end; h()").contains("produced no value"));
+    let err = {
+        let mut env = Env::default();
+        run_all(
+            &parse_script("def h() do end; h()").expect("parse"),
+            &mut env,
+        )
+        .unwrap_err()
+        .to_string()
+    };
+    assert!(err.contains("produced no value"));
+}
+
+#[test]
+fn return_leaves_a_function_early() {
+    assert_eq!(
+        eval_display_script(
+            // `end` closes the function's do — an if takes none
+            "def grade(s) do if s >= 90 then return \"A\"; if s >= 80 then return \"B\"; \"C\" end; grade(95); grade(85); grade(40)"
+        ),
+        "C"
+    );
+    // return from inside a loop
+    assert_eq!(
+        eval_display_script(
+            "def firstsq(xs) do for x in xs do if x ^ 0.5 == floor(x ^ 0.5) then return x; 0 end; firstsq({3, 5, 9, 11})"
+        ),
+        "9"
+    );
+    // a return through a while: the one-statement body is an if that
+    // either returns or advances — and the returned value comes out of
+    // the call even though the return crossed the loop
+    assert_eq!(
+        eval_display_script(
+            "def hot(t) = t > 80; def f(t0) do t = t0; while 1 == 1 do if hot(t) then return t else t = t + 5 end; f(60); f(90)"
+        ),
+        "90"
+    );
+}
+
+#[test]
+fn break_and_continue_steer_loops() {
+    // break: the values so far are the loop's list (the else branch
+    // keeps contributing values; the loop variable is scoped to the
+    // loop, ADR-0063, so `k` could not be read after it)
+    assert_eq!(
+        eval_display_script("for k in 1 to 10 do if k == 4 then break else k"),
+        "{1, 2, 3}"
+    );
+    // continue: skip a pass (the else branch does the accumulating,
+    // because a loop body is one statement)
+    assert_eq!(
+        eval_display_script(
+            "total = 0; for k in 1 to 6 do if mod(k, 2) == 0 then continue else total = total + k; total"
+        ),
+        "9"
+    );
+    // a bare for filter: no else, false produces nothing (documented
+    // in the loop chapter, so use the collected form here)
+    assert_eq!(
+        eval_display_script("v = 0; for k in 1 to 6 do if mod(k, 2) == 0 then v = v + k; v"),
+        "12"
+    );
+    // break in a while (`true` is spelled `1 == 1`; epher's booleans
+    // come from comparisons)
+    assert_eq!(
+        eval_display_script("x = 0; while 1 == 1 do if x == 3 then break else x = x + 1; x"),
+        "3"
+    );
+    // at top level they are structure errors, not crashes
+    assert!(script_err("break").contains("break outside a loop"));
+    assert!(script_err("continue").contains("continue outside a loop"));
+    assert!(script_err("return 5").contains("return outside a function"));
+    // break inside a def with no loop is the same mistake
+    assert!(script_err("def g() do break end; g()").contains("break outside a loop"));
+}
+
+#[test]
+fn statement_if_chooses_between_statements() {
+    // the expression form still parses and values the same
+    assert_eq!(eval_display_script("if 3 > 2 then 10 else 20"), "10");
+    // the statement form runs assignments
+    assert_eq!(
+        eval_display_script("m = 0; if 3 > 2 then m = 10 else m = 20; m"),
+        "10"
+    );
+    // without else, a false condition does nothing
+    assert_eq!(
+        eval_display_script("m = 7; if 2 > 3 then m = 99; m"),
+        "7"
+    );
+}
+
+#[test]
+fn destructuring_binds_several_names() {
+    assert_eq!(
+        eval_display_script("{m, sd} = {4, 1.6}; m + sd"),
+        "5.6"
+    );
+    // _ skips a position
+    assert_eq!(eval_display_script("{x, _} = {7, 8}; x"), "7");
+    // the statement's value is the whole list, like an assignment's
+    assert_eq!(eval_display_script("{a, b} = {1, 2}"), "{1, 2}");
+    // arity and shape are named errors
+    assert!(script_err("{a, b} = {1, 2, 3}").contains("name(s) but the list holds 3"));
+    assert!(script_err("{q} = 5").contains("needs a list"));
+    // constants keep their guard
+    assert!(script_err("const k = 3; {a, k} = {1, 2}").contains("constant"));
+    // a list literal at the start of a statement is still a list
+    assert_eq!(eval_display_script("{1, 2}"), "{1, 2}");
+}
+
+#[test]
+fn string_escapes_and_comparisons() {
+    assert_eq!(eval_display_script("s = \"a\\tb\"; len(s)"), "3");
+    assert_eq!(eval_display_script("s = \"say \\\"hi\\\"\"; len(s)"), "8");
+    assert_eq!(
+        eval_display_script("len(\"x\\ny\")"),
+        "3"
+    );
+    // unknown escapes are named
+    assert!(parse_script("s = \"a\\db\"").unwrap_err().to_string().contains("unknown escape"));
+    // dictionary order
+    assert_eq!(eval_display_script("\"apple\" < \"banana\""), "true");
+    assert_eq!(eval_display_script("\"abc\" < \"abd\""), "true");
+    assert_eq!(eval_display_script("\"b\" > \"a\" and \"a\" == \"a\""), "true");
+}
+
+#[test]
+fn the_string_library() {
+    assert_eq!(eval_display_script("upper(\"hello\")"), "HELLO");
+    assert_eq!(eval_display_script("lower(\"WORLD\")"), "world");
+    assert_eq!(eval_display_script("trim(\"  pad  \")"), "pad");
+    assert_eq!(eval_display_script("substr(\"abcdef\", 2, 3)"), "bcd");
+    assert_eq!(eval_display_script("substr(\"abcdef\", 4)"), "def");
+    assert_eq!(eval_display_script("substr(\"abcdef\", 1, 0)"), "");
+    assert_eq!(eval_display_script("substr(\"abcdef\", 9)"), "");
+    assert_eq!(eval_display_script("split(\"a,b,c\", \",\")"), "{a, b, c}");
+    // join spells numbers the way print does
+    assert_eq!(eval_display_script("join({1, 2, 3}, \"-\")"), "1-2-3");
+    assert_eq!(eval_display_script("join({\"x\", \"y\"}, \"+\")"), "x+y");
+    assert_eq!(eval_display_script("find(\"hello world\", \"world\")"), "7");
+    assert_eq!(eval_display_script("find(\"abc\", \"z\")"), "0");
+    assert_eq!(
+        eval_display_script("replace(\"2026-09-17\", \"-\", \"/\")"),
+        "2026/09/17"
+    );
+    // fixed keeps the trailing zero a report wants
+    assert_eq!(eval_display_script("fixed(3.14159, 2)"), "3.14");
+    assert_eq!(eval_display_script("fixed(3.1, 2)"), "3.10");
+    assert_eq!(eval_display_script("fixed(1/3, 4)"), "0.3333");
+    // guards
+    assert!(script_err("substr(\"abc\", 0)").contains("whole number from 1"));
+    assert!(script_err("split(\"a,b\", \"\")").contains("non-empty separator"));
+    assert!(script_err("find(\"abc\", \"\")").contains("non-empty"));
+    assert!(script_err("replace(\"abc\", \"\", \"x\")").contains("non-empty"));
+    assert!(script_err("fixed(1.2, 2.5)").contains("whole number of digits"));
+    assert!(script_err("join(5, \",\")").contains("join expects a list"));
+}
+
+#[test]
+fn string_list_literals_and_the_catalog() {
+    // {"a", "b"} is writable now (ADR-0064), and split's results behave
+    // like any list
+    assert_eq!(eval_display_script("join({\"a\", \"b\"}, \"-\")"), "a-b");
+    assert_eq!(eval_display_script("len(split(\"a b c\", \" \"))"), "3");
+    // numbers and strings mix, as a for-collect list always could
+    assert_eq!(eval_display_script("join({1, \"b\"}, \"\")"), "1b");
+    // the new builtins suggest themselves (sorted catalog)
+    let names: Vec<&str> = catalog()
+        .iter()
+        .map(|e| e.name)
+        .collect();
+    for name in ["find", "fixed", "join", "lower", "replace", "split", "substr", "trim", "upper"] {
+        assert!(names.contains(&name), "{name} missing from catalog");
+    }
+    let mut sorted = names.clone();
+    sorted.sort();
+    assert_eq!(names, sorted, "catalog must stay sorted");
+}
+

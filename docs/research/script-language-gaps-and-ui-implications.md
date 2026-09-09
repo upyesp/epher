@@ -1,6 +1,9 @@
 # Script-language gaps after the third gap analysis, and what each costs per frontend
 
-Date: 2026-09-17 · Status: analysis only, nothing implemented · Basis:
+Date: 2026-09-17 · Status: gaps 3-6 closed by ADR-0064 (statement
+bodies, return/break/continue, destructuring, the string library); gaps
+1-2 declared out of scope by decision; gap 7 deferred to the user ·
+Basis:
 docs/research/calculator-gap-analysis-3rd.md (2026-09-06, measured on
 v0.5.37), re-verified by probe against the current staging binary
 (v0.5.40 + satellites, `03cc614`).

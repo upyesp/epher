@@ -60,12 +60,16 @@ line(8, "Iapetus:")
 
 /* The next time Titan is not plainly visible - a transit, an eclipse,
 or a shadow pass - scanned in 30-minute steps for up to three days
-from `when`. The list `v` packs the loop's state: {instant, state,
-steps}, because a loop body is one statement (guide 1.10). Titan
-crosses the disc or its shadow about once a fortnight. */
-v = {when, 0, 0}
-while v[3] < 144 and v[2] == 0 do v = {v[1] + 1 / 48, satphen(6, 6, v[1] + 1 / 48), v[3] + 1}
-if v[2] > 0 then print("Titan's next phenomenon:", iso(v[1]), "UT -", word(v[2])) else print("Titan: nothing but plain visible within 3 days")
+from `when`. The scan answers the instant the moment it finds one
+(`return` leaves the loop, guide 1.11), or 0 when all three days are
+plain visible. Titan crosses the disc or its shadow about once a
+fortnight. */
+def next_phenomenon(p, m, name, t0) do
+  t = t0
+  while t - t0 < 3 do if satphen(p, m, t + 1 / 48) != 0 then return print(name + "'s next phenomenon:", iso(t + 1 / 48), "UT -", word(satphen(p, m, t + 1 / 48))) else t = t + 1 / 48
+  print(name + ": nothing but plain visible within 3 days")
+end
+next_phenomenon(6, 6, "Titan", when)
 
 /* Saturn's distance right then, for scale: the whole train of moons
 spans about 4 degrees at Iapetus when the rings are wide open. */
@@ -82,7 +86,6 @@ print("Saturn distance:", round(dist(6, when) * 100) / 100, "AU")
 = Titan: 166 arcsec E - visible
 = Hyperion: 166 arcsec W - visible
 = Iapetus: 198 arcsec W - visible
-= {2461300.5, 0, 0}
 = Titan: nothing but plain visible within 3 days
 = Saturn distance: 8.48 AU
 */
