@@ -7,6 +7,7 @@
 pub mod astro;
 pub mod graph;
 pub mod graph_svg;
+pub mod satellites;
 
 use std::cell::Cell;
 use std::collections::HashMap;

@@ -1,0 +1,79 @@
+/* ============================================================================
+galilean-moons.epher -- Jupiter's four bright moons, positions and phenomena
+
+Where are Io, Europa, Ganymede, and Callisto right now, which side of
+Jupiter is each on, and is any of them doing something worth getting up
+for: crossing the disc (a transit), hidden behind it (an occultation),
+in Jupiter's shadow (an eclipse), or casting its own tiny shadow onto
+the clouds (a shadow transit) - the show Galileo watched in 1610.
+
+The positions come from the E5 theory of the Galilean satellites
+(Lieske; chapter 44 of Jean Meeus, "Astronomical Algorithms" 2nd ed.),
+computed by the engine's satellite accessors (`satx saty satz satsep
+satphen`, guide 1.18) and fed with the engine's real Earth-Jupiter
+geometry. Earth's height above Jupiter's equatorial plane swings
+between about plus and minus 3.4 degrees over Jupiter's 12-year orbit,
+so the moons' apparent paths open and close: when the plane is edge-on
+to us (the next time is in late 2026) transits and eclipses chain into
+one another nearly every night. Distances are good to a few arcseconds
+against JPL Horizons; treat event times from the scan below as good to
+about ten minutes.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/galilean-moons.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\galilean-moons.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/galilean-moons.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+
+The one knob to edit is `when` below: the instant you want the table
+for (and the anchor the scan searches forward from).
+============================================================================ */
+
+// ---- the knob ------------------------------------------------------------------
+const when = jd(2026, 9, 17)
+
+// ---- arcseconds per Jupiter radius at the observer, from the engine ------------
+def sc(t) = 71492 / (dist(5, t) * au) * 206264.806247
+
+// ---- which side of the disc: satx counts positive to the West ------------------
+def side(t, s) = if satx(5, s, t) > 0 then "W" else "E"
+
+// ---- the phenomenon code as a word --------------------------------------------
+def word(p) = if p == 1 then "in transit" else if p == 2 then "occulted" else if p == 3 then "in eclipse" else if p == 4 then "shadow transit" else "visible"
+
+// ---- one table line: name, separation from Jupiter's centre, side, phenomenon --
+def line(s, name) = print(name, round(satsep(5, s, when)), "arcsec", side(when, s), "-", word(satphen(5, s, when)))
+
+// ---- results -------------------------------------------------------------------
+print("The Galilean moons at", iso(when), "UT")
+print("(separation from Jupiter's centre, in arcseconds; W/E = which side)")
+line(1, "Io:")
+line(2, "Europa:")
+line(3, "Ganymede:")
+line(4, "Callisto:")
+
+/* The next time Io is not plainly visible - a transit, an eclipse, or
+a shadow pass - scanned in 30-minute steps for up to three days from
+`when`. The list `v` packs the loop's state: {instant, state, steps},
+because a loop body is one statement (guide 1.10). */
+v = {when, 0, 0}
+while v[3] < 144 and v[2] == 0 do v = {v[1] + 1 / 48, satphen(5, 1, v[1] + 1 / 48), v[3] + 1}
+if v[2] > 0 then print("Io's next phenomenon:", iso(v[1]), "UT -", word(v[2])) else print("Io: nothing but plain visible within 3 days")
+
+/* Jupiter's distance right then, for scale: at opposition the whole
+system is 44 arcseconds per Io-orbit wide and every moon fits in one
+eyepiece field; near conjunction Jupiter is gone anyway. */
+print("Jupiter distance:", round(dist(5, when) * 100) / 100, "AU")
+/* ---- expected output ----
+= 2461300.5
+= The Galilean moons at 2026-09-17T00:00:00 UT
+= (separation from Jupiter's centre, in arcseconds; W/E = which side)
+= Io: 45 arcsec W - visible
+= Europa: 138 arcsec E - visible
+= Ganymede: 242 arcsec W - visible
+= Callisto: 287 arcsec E - visible
+= {2461300.5, 0, 0}
+= Io's next phenomenon: 2026-09-17T02:30:00 UT - in transit
+= Jupiter distance: 6.07 AU
+*/

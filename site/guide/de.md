@@ -1609,6 +1609,9 @@ niemals ein Ziel).
 | `mag(b, jd)` | scheinbare Helligkeit |
 | `phase(b, jd)`, `illum(b, jd)` | Phasenwinkel (Grad) und beleuchteter Anteil |
 | `diam(b, jd)` | scheinbarer Durchmesser (Grad) |
+| `satx(5, s, jd)`, `saty(5, s, jd)`, `satz(5, s, jd)` | ein Jupitermond (s 1-4: Io, Europa, Ganymede, Callisto) oder Saturnmond (s 1-8: Mimas, Enceladus, Tethys, Dione, Rhea, Titan, Hyperion, Iapetus), in Planetenradien (x west, y nord, z zum Beobachter) |
+| `satsep(5, s, jd)` | Abstand des Mondes vom Planetenzentrum, in Bogensekunden |
+| `satphen(5, s, jd)` | Zustand des Mondes: 0 sichtbar, 1 Durchgang, 2 verfinstert (okkultiert), 3 im Schatten, 4 Schattendurchgang |
 
 ```epher
 decl(10, jd(2000, 6, 21, 1.8))

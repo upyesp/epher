@@ -1540,6 +1540,9 @@ deg2dms(-23.4333)
 | `mag(b, jd)` | दृश्य कांतिमान |
 | `phase(b, jd)`, `illum(b, jd)` | कला कोण (डिग्री) और प्रदीप्त भाग |
 | `diam(b, jd)` | कोणीय व्यास (डिग्री) |
+| `satx(5, s, jd)`, `saty(5, s, jd)`, `satz(5, s, jd)` | बृहस्पति का चंद्रमा (s 1-4: Io, Europa, Ganymede, Callisto) या शनि का (s 1-8: Mimas, Enceladus, Tethys, Dione, Rhea, Titan, Hyperion, Iapetus), ग्रह की त्रिज्याओं में (x पश्चिम, y उत्तर, z आपकी ओर) |
+| `satsep(5, s, jd)` | चंद्रमा की ग्रह के केंद्र से दूरी, आर्कसेकंड में |
+| `satphen(5, s, jd)` | चंद्रमा की स्थिति: 0 दृश्यमान, 1 पारगमन, 2 छिपा हुआ, 3 ग्रहण में, 4 छाया पारगमन |
 
 ```epher
 decl(10, jd(2000, 6, 21, 1.8))

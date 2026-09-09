@@ -1622,6 +1622,9 @@ jamais une cible).
 | `mag(b, jd)` | magnitude apparente |
 | `phase(b, jd)`, `illum(b, jd)` | angle de phase (degrés) et fraction éclairée |
 | `diam(b, jd)` | diamètre angulaire (degrés) |
+| `satx(5, s, jd)`, `saty(5, s, jd)`, `satz(5, s, jd)` | une lune de Jupiter (s 1-4 : Io, Europa, Ganymede, Callisto) ou de Saturne (s 1-8 : Mimas, Enceladus, Tethys, Dione, Rhea, Titan, Hyperion, Iapetus), en rayons de la planète (x ouest, y nord, z vers vous) |
+| `satsep(5, s, jd)` | séparation de la lune au centre de la planète, en secondes d'arc |
+| `satphen(5, s, jd)` | état de la lune : 0 visible, 1 transit, 2 occultée, 3 dans l'ombre, 4 passage d'ombre |
 
 ```epher
 decl(10, jd(2000, 6, 21, 1.8))
