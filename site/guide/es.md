@@ -1610,6 +1610,9 @@ objetivo).
 | `mag(b, jd)` | magnitud aparente |
 | `phase(b, jd)`, `illum(b, jd)` | ángulo de fase (grados) y fracción iluminada |
 | `diam(b, jd)` | diámetro angular (grados) |
+| `satx(5, s, jd)`, `saty(5, s, jd)`, `satz(5, s, jd)` | una luna de Júpiter (s 1-4: Io, Europa, Ganymede, Callisto) o de Saturno (s 1-8: Mimas, Enceladus, Tethys, Dione, Rhea, Titan, Hyperion, Iapetus), en radios del planeta (x oeste, y norte, z hacia ti) |
+| `satsep(5, s, jd)` | separación de la luna al centro del planeta, en segundos de arco |
+| `satphen(5, s, jd)` | estado de la luna: 0 visible, 1 tránsito, 2 ocultada, 3 en eclipse, 4 tránsito de sombra |
 
 ```epher
 decl(10, jd(2000, 6, 21, 1.8))

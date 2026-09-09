@@ -130,9 +130,10 @@ the ephemeris-model landscape (VSOP87/ELP/Moshier/Schlyter/NOAA/USNO).
     Morsels ("approximate periodicities"). ✅
 25. **galilean-moons** — Io/Europa/Ganymede/Callisto positions and
     phenomena. Meeus ch. 44; community: JMOON 2.0 (hpcalc 1942),
-    ASTRO2012. ⚙️ (needs satellite tables in the engine)
+    ASTRO2012. ✅ (the E5 tables live in the engine; Horizons-checked)
 26. **saturn-satellites** — Titan and the bright moons' elongations.
-    Meeus ch. 46 (2nd-edition chapter); ASTRO2012. ⚙️
+    Meeus ch. 46 (2nd-edition chapter); ASTRO2012. ✅ (all eight moons
+    in the engine; Horizons-checked)
 27. **venus-morning-evening** — where Venus sits in its 584-day cycle:
     morning/evening star switch, inferior/superior conjunction.
     Morsels. ✅

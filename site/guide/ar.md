@@ -1529,6 +1529,9 @@ deg2dms(-23.4333)
 | `mag(b, jd)` | القدر الظاهري |
 | `phase(b, jd)`, `illum(b, jd)` | زاوية الطور (درجات) والجزء المضيء |
 | `diam(b, jd)` | القطر الزاوي (درجات) |
+| `satx(5, s, jd)`، `saty(5, s, jd)`، `satz(5, s, jd)` | قمر من أقمار المشتري (s 1-4: Io وEuropa وGanymede وCallisto) أو زحل (s 1-8: Mimas وEnceladus وTethys وDione وRhea وTitan وHyperion وIapetus)، بأنصاف أقطار الكوكب (x غربًا، y شمالًا، z نحوك) |
+| `satsep(5, s, jd)` | بُعد القمر عن مركز الكوكب، بالثواني القوسية |
+| `satphen(5, s, jd)` | حالة القمر: 0 مرئي، 1 عبور، 2 مخفي خلف الكوكب، 3 في الظل، 4 عبور الظل |
 
 ```epher
 decl(10, jd(2000, 6, 21, 1.8))

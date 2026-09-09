@@ -1604,6 +1604,9 @@ Sol 10, Lua 11 (a Terra é 3, a observadora, nunca um alvo).
 | `mag(b, jd)` | magnitude aparente |
 | `phase(b, jd)`, `illum(b, jd)` | ângulo de fase (graus) e fração iluminada |
 | `diam(b, jd)` | diâmetro angular (graus) |
+| `satx(5, s, jd)`, `saty(5, s, jd)`, `satz(5, s, jd)` | uma lua de Júpiter (s 1-4: Io, Europa, Ganymede, Callisto) ou de Saturno (s 1-8: Mimas, Enceladus, Tethys, Dione, Rhea, Titan, Hyperion, Iapetus), em raios do planeta (x oeste, y norte, z para você) |
+| `satsep(5, s, jd)` | separação da lua ao centro do planeta, em segundos de arco |
+| `satphen(5, s, jd)` | estado da lua: 0 visível, 1 trânsito, 2 ocultada, 3 em eclipse, 4 trânsito de sombra |
 
 ```epher
 decl(10, jd(2000, 6, 21, 1.8))

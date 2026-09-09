@@ -75,6 +75,11 @@ pub(crate) fn call(name: &str, args: Vec<Value>) -> Option<Result<Value, EpherEr
         "phase" => phase_fn(name, &args),
         "illum" => illum_fn(name, &args),
         "diam" => diam_fn(name, &args),
+        "satx" => sat_fn(name, &args, 0),
+        "saty" => sat_fn(name, &args, 1),
+        "satz" => sat_fn(name, &args, 2),
+        "satsep" => sat_sep_fn(name, &args),
+        "satphen" => sat_phen_fn(name, &args),
         "march_equinox" => march_equinox(name, &args),
         "june_solstice" => june_solstice(name, &args),
         "september_equinox" => september_equinox(name, &args),
@@ -554,7 +559,7 @@ fn sky_snapshot(jd: f64, lat: f64, lon: f64) -> Result<serde_json::Value, EpherE
 /// ecliptic-J2000 positions (AU), magnitudes, phases, and osculating
 /// elements for the eight planets plus the Moon. One-entry memo, same
 /// rationale as [`sky_snapshot`].
-fn system_snapshot(jd: f64) -> Result<serde_json::Value, EpherError> {
+pub(crate) fn system_snapshot(jd: f64) -> Result<serde_json::Value, EpherError> {
     thread_local! {
         static SYSTEM: std::cell::RefCell<Option<(f64, serde_json::Value)>> =
             const { std::cell::RefCell::new(None) };
@@ -571,7 +576,7 @@ fn system_snapshot(jd: f64) -> Result<serde_json::Value, EpherError> {
     Ok(parsed)
 }
 
-fn json_f64(obj: &serde_json::Value, key: &str) -> Result<f64, EpherError> {
+pub(crate) fn json_f64(obj: &serde_json::Value, key: &str) -> Result<f64, EpherError> {
     obj.get(key)
         .and_then(|v| v.as_f64())
         .ok_or_else(|| EpherError::Domain(format!("ephemeris snapshot missing {key}")))
@@ -711,7 +716,7 @@ fn sky_place(body: &BodyDef, jd: f64, lat: f64, lon: f64) -> Result<SkyPlace, Ep
 }
 
 /// Find one body's entry in a snapshot's bodies array.
-fn snapshot_body<'a>(
+pub(crate) fn snapshot_body<'a>(
     snapshot: &'a serde_json::Value,
     body_name: &str,
 ) -> Result<&'a serde_json::Value, EpherError> {
@@ -910,6 +915,60 @@ fn illum_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
     Ok(Value::Float(json_f64(entry, "illuminated_fraction")?))
 }
 
+/// Parse a satellite accessor's (planet, satellite, jd) arguments.
+fn sat_args(name: &str, args: &[Value]) -> Result<(usize, usize, f64), EpherError> {
+    let (planet, sat, jd) = match args {
+        [Value::Float(a), Value::Float(b), Value::Float(c)] => {
+            match (crate::float_to_int(*a), crate::float_to_int(*b)) {
+                (Some(p), Some(s)) => (p as usize, s as usize, *c),
+                _ => {
+                    return Err(EpherError::Type(format!(
+                        "{name} expects whole-number planet and satellite, got {args:?}"
+                    )))
+                }
+            }
+        }
+        _ => {
+            return Err(EpherError::Type(format!(
+                "{name} expects (planet, satellite, jd): 5 Io..Callisto 1-4, 6 Mimas..Iapetus 1-8"
+            )))
+        }
+    };
+    if planet != 5 && planet != 6 {
+        return Err(domain_error(format!(
+            "{name} tabulates satellites of Jupiter (5) and Saturn (6) only, got body {planet}"
+        )));
+    }
+    Ok((planet, sat, jd))
+}
+
+fn sat_view(name: &str, args: &[Value]) -> Result<(crate::satellites::SatView, usize), EpherError> {
+    let (planet, sat, jd) = sat_args(name, args)?;
+    let view = match planet {
+        5 => crate::satellites::galilean(sat, jd)?,
+        _ => crate::satellites::saturn_moon(sat, jd)?,
+    };
+    Ok((view, planet))
+}
+
+#[allow(dead_code)]
+fn sat_fn(name: &str, args: &[Value], component: usize) -> Result<Value, EpherError> {
+    let (view, _) = sat_view(name, args)?;
+    let v = [view.x, view.y, view.z][component];
+    Ok(Value::Float(v))
+}
+
+fn sat_sep_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let (view, planet) = sat_view(name, args)?;
+    let radius = if planet == 5 { 71492.0 } else { 60268.0 };
+    Ok(Value::Float(view.separation_arcsec(radius)))
+}
+
+fn sat_phen_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
+    let (view, _) = sat_view(name, args)?;
+    Ok(Value::Float(view.phenomenon()))
+}
+
 fn diam_fn(name: &str, args: &[Value]) -> Result<Value, EpherError> {
     let (body, jd) = body_arg(name, args)?;
     if body.name == "Pluto" {
@@ -989,7 +1048,7 @@ fn pluto_geometry(jd: f64) -> Result<(f64, f64), EpherError> {
 
 /// TT Julian Date of a UTC Julian Date, through the crate's own
 /// Delta-T policy.
-fn jd_tt_of(jd_utc: f64) -> f64 {
+pub(crate) fn jd_tt_of(jd_utc: f64) -> f64 {
     solar_ephemeris::timescales::AstroTime::from_jd_utc(jd_utc).jd_tt
 }
 
