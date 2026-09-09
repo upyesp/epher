@@ -1823,12 +1823,45 @@ seu autor. A precisão é de classe arcsecond para o Sol, a Lua e os
 planetas ao longo de cerca de 5000 anos em torno do presente.
 ### 1.30 Finanças
 
-O resolutor do valor do dinheiro no tempo (convenção de sinais TI: o
-dinheiro que sai é negativo, o que entra é positivo) resolve qualquer
-um dos cinco campos dados os outros quatro. `i` é a taxa por período
-como fração — 0.01 é 1% — e o último argumento opcional é o momento do
-pagamento: 0 para o fim do período (predefinição), 1 para o início
-(anuidade antecipada).
+O epher fala de dinheiro tão bem como fala de astronomia: um
+resolutor de valor do dinheiro no tempo, amortização de empréstimos,
+juros e análise de fluxo de caixa, tudo sem ligação. Tudo nesta
+secção devolve números simples — não cadeias de moeda —, as respostas
+são agnósticas quanto à moeda e voltam directo à aritmética. As taxas
+são sempre por período e em forma de fração: `0.08/12` é uma taxa
+anual de 8% cobrada mensalmente, e `0.01` é 1% (o sufixo `%` do 1.2
+também serve: `6 * 100%` é 0.06).
+
+**A convenção de sinais.** O resolutor segue o padrão das
+calculadoras (TI): o dinheiro que paga é negativo, o que recebe é
+positivo. Num empréstimo que contraiu, a entrega é negativa e as
+prestações são positivas; num plano de poupança, os depósitos são
+negativos e o pecúlio que recolhe é positivo. Um conjunto coerente de
+cinco campos zera o saldo:
+
+```text
+pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0
+```
+
+Sinais trocados (empréstimo e prestações ambos negativos) lêem-se
+como «o dinheiro nunca fecha», e o resolutor responde com um erro de
+domínio em vez de um número sem sentido.
+
+**O resolutor do valor do dinheiro no tempo.** Cinco funções
+resolvem um campo dados os outros quatro. `n` é o número de
+períodos, `i` a taxa por período, `pv` o valor presente, `pmt` a
+prestação, `fv` o valor final:
+
+| Função | Responde |
+|---|---|
+| `tvm_pmt(n, i, pv, fv)` | a prestação |
+| `tvm_n(i, pv, pmt, fv)` | o número de períodos |
+| `tvm_i(n, pv, pmt, fv)` | a taxa por período |
+| `tvm_pv(n, i, pmt, fv)` | o valor presente |
+| `tvm_fv(n, i, pv, pmt)` | o valor final |
+
+A hipoteca clássica de 8%: 360 prestações mensais de 733.76 sobre um
+empréstimo de 100,000:
 
 ```epher
 tvm_pmt(360, 0.08/12, -100000, 0)
@@ -1838,9 +1871,19 @@ tvm_pmt(360, 0.08/12, -100000, 0)
 733.764573879
 ```
 
-A hipoteca clássica de 8%: 360 pagamentos mensais de 733.76 contra um
-empréstimo de 100,000 — `tvm_pmt` é o pagamento, `tvm_pv` o empréstimo,
-`tvm_fv` o saldo, `tvm_n` o prazo e `tvm_i` a taxa:
+Os juros de toda a vida são a prestação vezes o número de prestações
+menos o empréstimo:
+
+```epher
+tvm_pmt(360, 0.08/12, -100000, 0) * 360 - 100000
+```
+
+```text
+164155.246597
+```
+
+`tvm_i` lê a taxa de volta a partir de uma prestação anunciada
+(ligeiramente abaixo de 8%/12, porque 733.76 está arredondado):
 
 ```epher
 tvm_i(360, -100000, 733.76, 0)
@@ -1850,9 +1893,166 @@ tvm_i(360, -100000, 733.76, 0)
 0.00666661199068
 ```
 
-A taxa aqui é ligeiramente inferior a 8%/12 porque 733.76 está
-arredondado. `npv(r, flows)` desconta uma lista de fluxos e `irr(flows)`
-encontra a taxa onde o valor atual líquido é zero:
+`tvm_n` responde «quanto tempo». A pagar 900 por mês em vez do
+mínimo:
+
+```epher
+tvm_n(0.08/12, -100000, 900, 0)
+```
+
+```text
+203.163223431
+```
+
+Cerca de 203 meses em vez de 360. E a oferta do banco verifica-se a
+si própria: um empréstimo de 100,000 a 5% com 536.82 por mês são
+realmente 30 anos:
+
+```epher
+tvm_n(0.05/12, 100000, -536.82, 0)
+```
+
+```text
+360.002521488
+```
+
+(Repare nos sinais invertidos: aqui o empréstimo é dinheiro
+recebido, logo positivo, e as prestações são negativas.)
+
+`tvm_fv` faz crescer um plano de poupança: 200 por mês durante 40
+anos a 6%:
+
+```epher
+tvm_fv(480, 0.06/12, 0, -200)
+```
+
+```text
+398298.146866
+```
+
+`tvm_pv` dá preço a um fluxo de pagamentos: o que um fundo deve
+ter hoje para pagar 1,500 por mês durante 20 anos a 5%:
+
+```epher
+tvm_pv(240, 0.05/12, 1500, 0)
+```
+
+```text
+-227287.969611
+```
+
+A resposta é negativa porque comprar o fundo é dinheiro que sai
+hoje. No outro sentido — quanto guardar por mês para chegar a uma
+meta — pergunta-se a `tvm_pmt` com a meta em `fv`: 50,000 em dez
+anos a 5% custam 322 por mês:
+
+```epher
+tvm_pmt(120, 0.05/12, 0, -50000)
+```
+
+```text
+321.994242862
+```
+
+Cada uma das cinco aceita um último argumento opcional `begin`: 0
+significa pagamentos no fim de cada período (a predefinição), 1 no
+início (anuidade antecipada — a renda, a maioria dos salários).
+Pagamentos no início do período rendem juros um período a mais, por
+isso a prestação da hipoteca baixa um pouco:
+
+```epher
+tvm_pmt(360, 0.08/12, -100000, 0, 1)
+```
+
+```text
+728.90520584
+```
+
+A procura de taxas cobre até 100% por período e a de prazos até dez
+milhões de períodos; um problema fora desses intervalos (ou um padrão
+de sinais que nunca fecha) reporta um erro de domínio que diz o que
+tentou.
+
+**Amortização.** `amort(p, r, n, k)` é o saldo remanescente após k
+pagamentos de um empréstimo de p à taxa r em n períodos — com 0
+períodos é o principal, com todos os n é zero:
+
+```epher
+amort(100000, 0.08/12, 360, 120)
+```
+
+```text
+87724.7039064
+```
+
+Ao fim de dez anos da hipoteca de 8%, ainda se devem 87,725. Um
+ciclo (1.10) transforma isso na tabela de amortização, uma linha a
+cada cinco anos:
+
+```epher
+for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
+```
+
+```text
+{100000, 95069.8567174, 87724.7039064, 76781.5595143, 60477.9628062, 36188.1192209, 0}
+```
+
+**Juros.** `simple_interest(p, r, t)` é `p*r*t` e
+`compound_interest(p, r, n)` é `p*(1+r)^n - p` — ambos respondem com
+os juros ganhos, não com o saldo:
+
+```epher
+simple_interest(1000, 0.05, 2)
+```
+
+```text
+100
+```
+
+```epher
+compound_interest(1000, 0.05, 2)
+```
+
+```text
+102.5
+```
+
+O saldo em si é aritmética simples — e é esse o ponto dos números
+simples:
+
+```epher
+1000 * 1.05 ^ 2
+```
+
+```text
+1102.5
+```
+
+Duas taxas do dia-a-dia, construídas da mesma forma. A taxa efetiva
+anual de uma taxa nominal de 6% capitalizada mensalmente, e o tempo
+de duplicação da regra dos 72 a 6%:
+
+```epher
+(1 + 0.06/12) ^ 12 - 1
+```
+
+```text
+0.0616778118645
+```
+
+```epher
+72 / (6 * 100%)
+```
+
+```text
+12
+```
+
+**Análise de fluxo de caixa.** `npv(r, flows)` desconta uma lista de
+fluxos de caixa à taxa r: `flows[1]` é o desembolso de hoje e o
+resto chega separado por um período. `irr(flows)` encontra a taxa em
+que o valor atual líquido é zero. Pagar 100 hoje e receber 60 em
+cada um dos próximos dois anos:
 
 ```epher
 npv(0.1, {-100, 60, 60})
@@ -1862,9 +2062,56 @@ npv(0.1, {-100, 60, 60})
 500/121
 ```
 
-`amort(p, r, n, k)` é o saldo restante após k pagamentos de um
-empréstimo a n períodos, `simple_interest(p, r, t)` é `p*r*t`, e
-`compound_interest(p, r, n)` é `p*(1+r)^n - p`.
+```epher
+irr({-100, 60, 60})
+```
+
+```text
+0.130662386292
+```
+
+O investimento rende 13,07%. (`500/121` é a visualização em fração
+exata do epher, 1.14: o valor cujo decimal se repete; `dec(500/121)`
+escreve 4.13223140496.) A regra de decisão: aceite o projeto quando
+o `npv` à sua taxa mínima é positivo, ou seja, quando o `irr` vence
+a taxa mínima. Com uma taxa mínima de 15%, este falha:
+
+```epher
+npv(0.15, {-100, 60, 60})
+```
+
+```text
+-1300/529
+```
+
+Uma lista de fluxos cujos termos nunca mudam de sinal não tem uma
+taxa com sentido; o `irr` reporta um erro de domínio nesses casos.
+
+**Frases de um dia normal.** A taxa de crescimento anual composta de
+um investimento que passou de 1,000 para 2,400 em cinco anos, e o
+rendimento real de 7% nominal contra 2% de inflação (de novo a
+visualização em fração exata; `dec(5/102)` dá 0.0490196078431):
+
+```epher
+(2400/1000) ^ (1/5) - 1
+```
+
+```text
+0.191357898167
+```
+
+```epher
+1.07 / 1.02 - 1
+```
+
+```text
+5/102
+```
+
+A coleção de scripts traz 42 scripts de finanças prontos a usar
+sobre estas dez funções — quatro pastas: juros, investimento,
+empréstimos e poupança —, cada um com uma transcrição verificada
+contra o motor (scripts.html lista-os com resumos de uma linha).
 
 ## 2. A aplicação web (PWA)
 

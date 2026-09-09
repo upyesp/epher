@@ -1829,11 +1829,44 @@ Autor. Die Genauigkeit ist bogensekundenklassig für Sonne, Mond und
 Planeten über etwa 5000 Jahre um die Gegenwart.
 ### 1.30 Finanzen
 
-Der Zeitwert-Löser (TI-Vorzeichenkonvention: abgehendes Geld negativ,
-ankommendes positiv) löst jedes der fünf Felder, wenn die anderen vier
-gegeben sind. `i` ist der Zinssatz pro Periode als Bruchteil — 0.01
-ist 1 % — und das optionale letzte Argument ist der Zahlungszeitpunkt:
-0 für Periodenende (Standard), 1 für Periodenanfang (vorschüssig).
+epher spricht Geld genauso wie Astronomie: ein Zeitwert-Löser, eine
+Darlehensabrechnung, Zinsen und Cashflow-Analyse, alles offline. Alles
+in diesem Abschnitt liefert schlichte Zahlen — keine
+Währungszeichenketten —, die Antworten sind währungsneutral und
+fließen direkt in die weitere Rechnung zurück. Zinssätze sind stets
+pro Periode als Bruchteil: `0.08/12` ist ein Jahreszins von 8 %,
+monatlich verrechnet, und `0.01` ist 1 % (das %-Nachzeichen aus 1.2
+funktioniert auch: `6 * 100%` ist 0.06).
+
+**Die Vorzeichenkonvention.** Der Löser folgt dem
+Taschenrechner-Standard (TI): Geld, das Sie ausgeben, ist negativ,
+Geld, das Sie erhalten, positiv. Bei einem aufgenommenen Darlehen ist
+die Auszahlung negativ und die Zahlungen sind positiv; beim Sparplan
+sind die Einzahlungen negativ und das gesammelte Guthaben positiv.
+Ein stimmiger Satz aus fünf Feldern bringt den Saldo auf null:
+
+```text
+pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0
+```
+
+Verdrehte Vorzeichen (Darlehen und Zahlungen beide negativ) lesen
+sich als „das Geld geht nie auf“, und der Löser antwortet mit einem
+Domänenfehler statt einer unsinnigen Zahl.
+
+**Der Zeitwert-Löser.** Fünf Funktionen lösen je ein Feld, wenn die
+anderen vier gegeben sind. `n` ist die Periodenzahl, `i` der Zinssatz
+pro Periode, `pv` der Barwert, `pmt` die Zahlung, `fv` der Endwert:
+
+| Funktion | Beantwortet |
+|---|---|
+| `tvm_pmt(n, i, pv, fv)` | die Zahlung |
+| `tvm_n(i, pv, pmt, fv)` | die Periodenzahl |
+| `tvm_i(n, pv, pmt, fv)` | den Zinssatz pro Periode |
+| `tvm_pv(n, i, pmt, fv)` | den Barwert |
+| `tvm_fv(n, i, pv, pmt)` | den Endwert |
+
+Die klassische 8-%-Hypothek: 360 monatliche Zahlungen von 733.76 auf
+ein Darlehen von 100,000:
 
 ```epher
 tvm_pmt(360, 0.08/12, -100000, 0)
@@ -1843,10 +1876,18 @@ tvm_pmt(360, 0.08/12, -100000, 0)
 733.764573879
 ```
 
-Die klassische 8-%-Hypothek: 360 monatliche Zahlungen von 733.76 auf
-ein Darlehen von 100,000 — `tvm_pmt` ist die Zahlung, `tvm_pv` das
-Darlehen, `tvm_fv` der Saldo, `tvm_n` die Laufzeit und `tvm_i` der
-Zinssatz:
+Die Zinsen über die Laufzeit sind Zahlung mal Anzahl minus Darlehen:
+
+```epher
+tvm_pmt(360, 0.08/12, -100000, 0) * 360 - 100000
+```
+
+```text
+164155.246597
+```
+
+`tvm_i` liest den Zinssatz aus einer quoted Zahlung zurück (knapp
+unter 8 %/12, weil 733.76 gerundet ist):
 
 ```epher
 tvm_i(360, -100000, 733.76, 0)
@@ -1856,9 +1897,164 @@ tvm_i(360, -100000, 733.76, 0)
 0.00666661199068
 ```
 
-Der Zinssatz liegt hier knapp unter 8 %/12, weil 733.76 gerundet ist.
-`npv(r, flows)` diskontiert eine Zahlungsstrom-Liste und `irr(flows)`
-findet den Zinssatz, bei dem der Kapitalwert null ist:
+`tvm_n` beantwortet „wie lange“. 900 statt der Mindestrate im Monat:
+
+```epher
+tvm_n(0.08/12, -100000, 900, 0)
+```
+
+```text
+203.163223431
+```
+
+Rund 203 Monate statt 360. Und das Angebot der Bank prüft sich
+selbst: ein Darlehen von 100,000 bei 5 % mit 536.82 im Monat ist
+wirklich 30 Jahre:
+
+```epher
+tvm_n(0.05/12, 100000, -536.82, 0)
+```
+
+```text
+360.002521488
+```
+
+(Beachten Sie die gedrehten Vorzeichen: hier ist das Darlehen
+empfangenes Geld, also positiv, und die Zahlungen sind negativ.)
+
+`tvm_fv` wächst einen Sparplan: 200 im Monat, 40 Jahre bei 6 %:
+
+```epher
+tvm_fv(480, 0.06/12, 0, -200)
+```
+
+```text
+398298.146866
+```
+
+`tvm_pv` bepreist einen Zahlungsstrom: was ein Fonds heute halten
+muss, um 20 Jahre lang 1,500 im Monat zu zahlen, bei 5 %:
+
+```epher
+tvm_pv(240, 0.05/12, 1500, 0)
+```
+
+```text
+-227287.969611
+```
+
+Die Antwort ist negativ, weil der Kauf des Fonds heute ausgehendes
+Geld ist. Die andere Richtung — wie viel im Monat beiseitelegen für
+ein Ziel — fragt `tvm_pmt` mit dem Ziel als `fv`: 50,000 in zehn
+Jahren bei 5 % kosten 322 im Monat:
+
+```epher
+tvm_pmt(120, 0.05/12, 0, -50000)
+```
+
+```text
+321.994242862
+```
+
+Jede der fünf nimmt ein optionales letztes Argument `begin`: 0
+bedeutet Zahlungen am Periodenende (Standard), 1 am Periodenanfang
+(vorschüssig — Miete, die meisten Gehälter). Zahlungen am
+Periodenanfang tragen eine Periode länger Zinsen, die Hypothekenrate
+fällt daher ein wenig:
+
+```epher
+tvm_pmt(360, 0.08/12, -100000, 0, 1)
+```
+
+```text
+728.90520584
+```
+
+Die Zinssuche deckt 100 % pro Periode ab, die Laufzeitsuche zehn
+Millionen Perioden; Probleme außerhalb dieser Bereiche (oder eine
+Vorzeichenlage, die nie auf geht) melden einen Domänenfehler, der
+nennt, was versucht wurde.
+
+**Amortisation.** `amort(p, r, n, k)` ist der Restsaldo nach k
+Zahlungen eines n-Perioden-Darlehens von p zum Satz r — bei 0
+Perioden die Summe, bei allen n null:
+
+```epher
+amort(100000, 0.08/12, 360, 120)
+```
+
+```text
+87724.7039064
+```
+
+Nach zehn Jahren der 8-%-Hypothek sind noch 87,725 offen. Eine
+Schleife (1.10) macht daraus den Tilgungsplan, je eine Zeile pro
+fünf Jahre:
+
+```epher
+for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
+```
+
+```text
+{100000, 95069.8567174, 87724.7039064, 76781.5595143, 60477.9628062, 36188.1192209, 0}
+```
+
+**Zinsen.** `simple_interest(p, r, t)` ist `p*r*t` und
+`compound_interest(p, r, n)` ist `p*(1+r)^n - p` — beide antworten
+mit den verdienten Zinsen, nicht mit dem Saldo:
+
+```epher
+simple_interest(1000, 0.05, 2)
+```
+
+```text
+100
+```
+
+```epher
+compound_interest(1000, 0.05, 2)
+```
+
+```text
+102.5
+```
+
+Der Saldo selbst ist schlichte Arithmetik — genau das ist der Sinn
+schlichter Zahlen:
+
+```epher
+1000 * 1.05 ^ 2
+```
+
+```text
+1102.5
+```
+
+Zwei Alltagsraten, genauso gebaut. Der effektive Jahreszins eines
+nominalen Zinses von 6 % bei monatlicher Verrechnung und die
+Verdoppelungszeit der 72er-Regel bei 6 %:
+
+```epher
+(1 + 0.06/12) ^ 12 - 1
+```
+
+```text
+0.0616778118645
+```
+
+```epher
+72 / (6 * 100%)
+```
+
+```text
+12
+```
+
+**Cashflow-Analyse.** `npv(r, flows)` diskontiert eine
+Cashflow-Liste zum Satz r: `flows[1]` ist die Ausgabe heute, der
+Rest trifft im Abstand einer Periode ein. `irr(flows)` findet den
+Satz, bei dem der Kapitalwert null ist. Heute 100 zahlen, in den
+nächsten beiden Jahren je 60 erhalten:
 
 ```epher
 npv(0.1, {-100, 60, 60})
@@ -1868,9 +2064,57 @@ npv(0.1, {-100, 60, 60})
 500/121
 ```
 
-`amort(p, r, n, k)` ist der Restsaldo nach k Zahlungen eines
-n-Perioden-Darlehens, `simple_interest(p, r, t)` ist `p*r*t`, und
-`compound_interest(p, r, n)` ist `p*(1+r)^n - p`.
+```epher
+irr({-100, 60, 60})
+```
+
+```text
+0.130662386292
+```
+
+Die Anlage erwirtschaftet 13,07 %. (`500/121` ist ephers exakte
+Bruchanzeige, 1.14: der Wert, dessen Dezimalzahl sich wiederholt;
+`dec(500/121)` schreibt 4.13223140496.) Die Entscheidungsregel:
+Nimm das Projekt, wenn `npv` zu deiner Mindestverzinsung positiv
+ist — das heißt, wenn `irr` die Mindestverzinsung schlägt. Bei 15 %
+scheitert dieses hier:
+
+```epher
+npv(0.15, {-100, 60, 60})
+```
+
+```text
+-1300/529
+```
+
+Eine Flussliste, deren Einträge nie das Vorzeichen wechseln, hat
+keinen sinnvollen Satz; `irr` meldet dafür einen Domänenfehler.
+
+**Alltags-Einzeiler.** Die jährliche Wachstumsrate einer Anlage, die
+in fünf Jahren von 1,000 auf 2,400 ging, und die reale Rendite von
+7 % nominal gegen 2 % Inflation (wieder die exakte Bruchanzeige;
+`dec(5/102)` ergibt 0.0490196078431):
+
+```epher
+(2400/1000) ^ (1/5) - 1
+```
+
+```text
+0.191357898167
+```
+
+```epher
+1.07 / 1.02 - 1
+```
+
+```text
+5/102
+```
+
+Die Skriptsammlung liefert 42 fertige Finanzskripte auf diesen zehn
+Funktionen mit — vier Ordner: Zinsen (interest), Investieren,
+Darlehen und Sparen —, jedes mit einem gegen die Engine geprüften
+Transkript (scripts.html listet sie mit Einzeiler-Zusammenfassungen auf).
 
 ## 2. Die Web-App (PWA)
 
