@@ -10,6 +10,8 @@ window.EPHER_I18N["fr"] = {
   "menu-open": "Menu",
     "guide": "Guide de l'utilisateur",
   "nav-docs": "Documentation",
+  "reference": "Référence du langage",
+
   "nav-scripts": "Scripts",
   "scripts-title": "Scripts",
   "scripts-lede": "Des scripts prêts à l'emploi pour la calculatrice epher, classés par domaine et par thème. Ouvrez un dossier pour parcourir, cliquez sur un script pour le lire et copiez n'importe quel script dans le presse-papiers.",
