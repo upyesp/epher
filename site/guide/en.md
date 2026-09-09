@@ -1886,11 +1886,44 @@ roughly 5000 years around the present.
 
 ### 1.30 Finance
 
-The time-value-of-money solver (TI sign convention: money out is
-negative, money in positive) solves any one of the five fields given
-the other four. `i` is the per-period rate as a fraction — 0.01 is 1%
-— and the optional last argument is the payment timing: 0 for end of
-period (the default), 1 for beginning (annuity due).
+epher speaks money as well as it speaks astronomy: a time-value-of-money
+solver, loan amortization, interest, and cash-flow analysis, all working
+offline. Everything in this section returns plain numbers — not currency
+strings — so the answers are currency-agnostic and flow straight back
+into arithmetic. Rates are always per period as a fraction: `0.08/12` is
+an 8% annual rate billed monthly, and `0.01` is 1% (the `%` postfix from
+1.2 works too: `6 * 100%` is 0.06).
+
+**The sign convention.** The solver follows the calculator standard
+(TI): money you pay out is negative, money you receive is positive. For
+a loan you took, the payout is negative and the payments are positive;
+for a savings plan, the deposits are negative and the nest egg you
+collect is positive. A consistent set of five fields makes the balance
+zero:
+
+```text
+pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0
+```
+
+Mixing the signs up (both the loan and the payments negative) reads as
+"the money never balances", and the solver answers with a domain error
+rather than a nonsense number.
+
+**The time-value-of-money solver.** Five functions solve for one field
+given the other four. `n` is the number of periods, `i` the per-period
+rate, `pv` the present value, `pmt` the payment, `fv` the value at the
+end:
+
+| Function | Answers |
+|---|---|
+| `tvm_pmt(n, i, pv, fv)` | the payment |
+| `tvm_n(i, pv, pmt, fv)` | the number of periods |
+| `tvm_i(n, pv, pmt, fv)` | the per-period rate |
+| `tvm_pv(n, i, pmt, fv)` | the present value |
+| `tvm_fv(n, i, pv, pmt)` | the future value |
+
+The classic 8% mortgage: 360 monthly payments of 733.76 against a
+100,000 loan:
 
 ```epher
 tvm_pmt(360, 0.08/12, -100000, 0)
@@ -1900,9 +1933,19 @@ tvm_pmt(360, 0.08/12, -100000, 0)
 733.764573879
 ```
 
-The classic 8% mortgage: 360 monthly payments of 733.76 against a
-100,000 loan — `tvm_pmt` is the payment, `tvm_pv` the loan, `tvm_fv`
-the balance, `tvm_n` the term, and `tvm_i` the rate:
+The lifetime interest is the payments times their count minus the
+loan:
+
+```epher
+tvm_pmt(360, 0.08/12, -100000, 0) * 360 - 100000
+```
+
+```text
+164155.246597
+```
+
+`tvm_i` reads the rate back out of a quoted payment (just under 8%/12,
+because 733.76 is rounded):
 
 ```epher
 tvm_i(360, -100000, 733.76, 0)
@@ -1912,9 +1955,160 @@ tvm_i(360, -100000, 733.76, 0)
 0.00666661199068
 ```
 
-The rate here is just under 8%/12 because 733.76 is rounded. `npv(r,
-flows)` discounts a cash-flow list and `irr(flows)` finds the rate
-where the net present value is zero:
+`tvm_n` answers "how long". Paying 900 a month instead of the minimum:
+
+```epher
+tvm_n(0.08/12, -100000, 900, 0)
+```
+
+```text
+203.163223431
+```
+
+About 203 months instead of 360. And the bank's own quote checks out:
+a 100,000 loan at 5% quoting 536.82 a month really is 30 years:
+
+```epher
+tvm_n(0.05/12, 100000, -536.82, 0)
+```
+
+```text
+360.002521488
+```
+
+(Note the signs flipped: here the loan is money received, so it is
+positive and the payments are negative.)
+
+`tvm_fv` grows a savings plan: 200 a month for 40 years at 6%:
+
+```epher
+tvm_fv(480, 0.06/12, 0, -200)
+```
+
+```text
+398298.146866
+```
+
+`tvm_pv` prices a stream of payments: what a fund must hold today to
+pay 1,500 a month for 20 years at 5%:
+
+```epher
+tvm_pv(240, 0.05/12, 1500, 0)
+```
+
+```text
+-227287.969611
+```
+
+The answer is negative because buying the fund is money out today. The
+other direction — how much to put aside each month to reach a goal —
+asks `tvm_pmt` with the goal as `fv`: 50,000 in ten years at 5% costs
+322 a month:
+
+```epher
+tvm_pmt(120, 0.05/12, 0, -50000)
+```
+
+```text
+321.994242862
+```
+
+Every one of the five takes an optional last argument `begin`: 0 means
+payments fall at the end of each period (the default), 1 at the
+beginning (an annuity due — rent, most salaries). Beginning-of-period
+payments earn interest one period longer, so the mortgage payment is a
+little lower:
+
+```epher
+tvm_pmt(360, 0.08/12, -100000, 0, 1)
+```
+
+```text
+728.90520584
+```
+
+The rate search caps at 100% per period and the term search at ten
+million periods; a problem outside those ranges (or a sign pattern
+that never balances) reports a domain error naming what it tried.
+
+**Amortization.** `amort(p, r, n, k)` is the remaining balance after k
+payments of an n-period loan of p at rate r — 0 periods in is the
+principal, all n is zero:
+
+```epher
+amort(100000, 0.08/12, 360, 120)
+```
+
+```text
+87724.7039064
+```
+
+After ten years of the 8% mortgage, 87,725 still owed. A loop (1.10)
+turns that into the amortization schedule, one line every five years:
+
+```epher
+for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
+```
+
+```text
+{100000, 95069.8567174, 87724.7039064, 76781.5595143, 60477.9628062, 36188.1192209, 0}
+```
+
+**Interest.** `simple_interest(p, r, t)` is `p*r*t` and
+`compound_interest(p, r, n)` is `p*(1+r)^n - p` — both answer the
+interest earned, not the balance:
+
+```epher
+simple_interest(1000, 0.05, 2)
+```
+
+```text
+100
+```
+
+```epher
+compound_interest(1000, 0.05, 2)
+```
+
+```text
+102.5
+```
+
+The balance itself is plain arithmetic, which is the point of plain
+numbers:
+
+```epher
+1000 * 1.05 ^ 2
+```
+
+```text
+1102.5
+```
+
+Two everyday rates built the same way. The effective annual rate of a
+6% nominal rate compounded monthly, and the rule of 72's doubling
+time at 6%:
+
+```epher
+(1 + 0.06/12) ^ 12 - 1
+```
+
+```text
+0.0616778118645
+```
+
+```epher
+72 / (6 * 100%)
+```
+
+```text
+12
+```
+
+**Cash-flow analysis.** `npv(r, flows)` discounts a cash-flow list at
+rate r: `flows[1]` is the outlay today, the rest arrive one period
+apart. `irr(flows)` finds the rate where the net present value is
+zero. Pay 100 today, receive 60 in each of the next two years:
 
 ```epher
 npv(0.1, {-100, 60, 60})
@@ -1924,9 +2118,56 @@ npv(0.1, {-100, 60, 60})
 500/121
 ```
 
-`amort(p, r, n, k)` is the remaining balance after k payments of an
-n-period loan, `simple_interest(p, r, t)` is `p*r*t`, and
-`compound_interest(p, r, n)` is `p*(1+r)^n - p`.
+```epher
+irr({-100, 60, 60})
+```
+
+```text
+0.130662386292
+```
+
+The investment earns 13.07%. (`500/121` is epher's exact-fraction
+display, 1.14, showing the value whose decimal repeats; `dec(500/121)`
+spells it as 4.13223140496.) The decision rule: take the project when
+`npv` at your hurdle rate is positive, that is, when `irr` beats the
+hurdle. At a 15% hurdle this one fails:
+
+```epher
+npv(0.15, {-100, 60, 60})
+```
+
+```text
+-1300/529
+```
+
+A flow list whose entries never change sign has no meaningful rate;
+`irr` reports a domain error for those.
+
+**Everyday one-liners.** The compound annual growth rate of an
+investment that went 1,000 → 2,400 in five years, and the real return
+of a 7% nominal return against 2% inflation (the exact-fraction display
+again; `dec(5/102)` is 0.0490196078431):
+
+```epher
+(2400/1000) ^ (1/5) - 1
+```
+
+```text
+0.191357898167
+```
+
+```epher
+1.07 / 1.02 - 1
+```
+
+```text
+5/102
+```
+
+The script collection ships 42 ready-made finance scripts building on
+these ten functions — four folders: interest, investing, loans, and
+savings — each with a transcript verified against the engine
+(scripts.html lists them with one-line summaries).
 ## 2. The web app (PWA)
 
 ### 2.1 Opening it
