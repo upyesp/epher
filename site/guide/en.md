@@ -250,6 +250,8 @@ x = x + 1
 > Names can contain letters and underscores, like `radius` or `my_total`.
 > They cannot contain spaces or start with a number.
 
+One name is reserved: `i`, the imaginary unit (section 1.18).
+
 The special variable `ans` always holds the previous answer, like the
 `Ans` key on a pocket calculator, handy for chained calculations:
 
@@ -1098,6 +1100,8 @@ sqrt(-1)
 -1
 i
 ```
+
+Unlike every other built-in name, `i` cannot be reused: `i = 5` is refused, so the imaginary unit can never be shadowed - not by an assignment, not by an old saved session.
 
 Write a complex number with the `i` suffix, no multiplication sign
 needed: `3 + 4i` is one literal, `2.5i` works, and so do the based

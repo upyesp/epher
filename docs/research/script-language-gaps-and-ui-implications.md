@@ -2,7 +2,8 @@
 
 Date: 2026-09-17 · Status: gaps 3-6 closed by ADR-0064 (statement
 bodies, return/break/continue, destructuring, the string library); gaps
-1-2 declared out of scope by decision; gap 7 deferred to the user ·
+1-2 declared out of scope by decision; gap 7 closed by ADR-0065 (the
+imaginary unit is reserved, stored `i` bindings drop at load) ·
 Basis:
 docs/research/calculator-gap-analysis-3rd.md (2026-09-06, measured on
 v0.5.37), re-verified by probe against the current staging binary
