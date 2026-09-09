@@ -1,0 +1,124 @@
+# Build the staged installers and refresh the hidden test draft
+# (ADR-0062).
+#
+# Manual dispatch, on demand — a full multi-platform build costs ~45
+# runner-minutes, so it runs when a batch is ready to test, not on every
+# push. The preview site (preview.yml) updates on every staging push;
+# this workflow produces the installers.
+#
+# What it does:
+#   1. builds the chosen ref with the shared build-installers.yml — the
+#      exact recipe a public vX.Y.Z release runs;
+#   2. drops the resulting installers into a DRAFT GitHub release
+#      (tag_name "staging-build", name "staging build <sha>"). Drafts
+#      are visible only to the repo owner: the public Releases page
+#      never shows them, and publishing to the public stores never
+#      happens from them. Each run replaces the previous draft, so
+#      exactly one current staging build exists.
+#
+# The draft is created tag-less through the API — GitHub creates the
+# git ref only when a draft is published, so no accidental release.yml
+# trigger (tags v*) can ever fire from a staging build. Draft asset
+# names are the same stable names the public release uses, so what you
+# download from the draft is byte-identical to what a release will
+# carry.
+#
+# Version note: build-installers.yml reads the version the built CLI
+# must report from crates/cli/Cargo.toml ("auto"). Before the release
+# version-bump commit lands on staging, the staged installers report
+# the previous public version number — fine for testing content, but
+# test the final draft AFTER the bump commit so the version matches
+# what will ship.
+name: staging build
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch or commit to build (default: staging tip)"
+        type: string
+        default: staging
+
+permissions:
+  contents: write
+
+concurrency:
+  group: staging-draft
+  cancel-in-progress: false
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-installers.yml
+    with:
+      ref: ${{ inputs.ref }}
+      version: auto
+
+  draft:
+    name: Refresh the hidden draft release
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "*"
+          merge-multiple: true
+          path: assets
+
+      - name: Replace the previous staging draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO="$GITHUB_REPOSITORY"
+          # Drop any previous draft (tag_name "staging-build"). Drafts
+          # never carry a git tag, so this can only touch our own draft.
+          gh api "repos/$REPO/releases?per_page=100" \
+            | jq -r '.[] | select(.draft and .tag_name == "staging-build") | .id' \
+            | while read -r id; do
+                gh api -X DELETE "repos/$REPO/releases/$id" >/dev/null
+              done
+
+      - name: Create the draft and upload the installers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO="$GITHUB_REPOSITORY"
+          SHA="$(git rev-parse HEAD)"
+          SHORT="${SHA:0:10}"
+          VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          {
+            echo "epher staging build — $SHORT (version $VERSION, $(date -u +%Y-%m-%dT%H:%MZ))"
+            echo
+            echo "Hidden draft: the public Releases page does not show this. Download the"
+            echo "installers for your platform, install, and test. When it passes, tell the"
+            echo "maintainer to promote: the next release ships exactly these bytes."
+            echo
+            echo "Commits on this branch since live (main):"
+            echo
+            git log --oneline origin/main..HEAD 2>/dev/null | head -50 \
+              || echo "(could not read the main history)"
+          } > body.txt
+          ID="$(gh api --method POST "repos/$REPO/releases" \
+            -f tag_name=staging-build \
+            -F draft=true \
+            -f target_commitish="$SHA" \
+            -f name="staging build $SHORT" \
+            -f body="$(cat body.txt)" | jq -r .id)"
+          echo "draft id: $ID"
+          for f in assets/*; do
+            name="$(basename "$f")"
+            echo "uploading $name ($(du -h "$f" | cut -f1))"
+            gh api --method POST -H "Content-Type: application/octet-stream" \
+              "repos/$REPO/releases/$ID/assets?name=$name" \
+              --input "$f" >/dev/null
+          done
+          URL="$(gh api "repos/$REPO/releases/$ID" -q .html_url)"
+          echo "draft ready: $URL"
+          echo "## Staging draft refreshed" >> "$GITHUB_STEP_SUMMARY"
+          echo "Build of \`$SHORT\` (version $VERSION) — [open the draft]($URL)" >> "$GITHUB_STEP_SUMMARY"

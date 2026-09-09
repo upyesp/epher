@@ -2,7 +2,11 @@
 
 The project is published at **https://epher.org/** (custom domain on
 GitHub Pages), built and deployed by the `pages` workflow
-(`.github/workflows/pages.yml`).
+(`.github/workflows/pages.yml`). Delivery is staged (ADR-0062): work
+lands on the `staging` branch, a preview of every push appears at
+**https://upyesp.github.io/epher-preview/**, test installers build on
+demand into a hidden draft release, and only a promotion (a `staging →
+main` pull request + version tag) moves anything live.
 
 ## Site layout
 
@@ -179,12 +183,25 @@ the option to the `lang-select` in `site/index.html`.
 
 ## Releases
 
-Push a version tag and the `release` workflow builds and attaches everything:
+Public releases are the last act of a promotion (ADR-0062) — nothing
+publishes from a bare tag push anymore:
+
+1. Work accumulates on `staging`; every push rebuilds the preview site
+   (`preview.yml`).
+2. When a batch is ready to test, run the **staging build** workflow
+   (Actions → staging build → Run workflow): ~45 minutes later a hidden
+   draft release holds the installers for every platform. Test them.
+3. The go-ahead: merge the `staging → main` pull request (the
+   Apple-silicon check must pass), then push the version tag — the
+   `release` workflow builds and attaches everything:
 
 ```
 git tag v0.3.1
 git push origin v0.3.1
 ```
+
+The draft is replaced by the real release; the apt/dnf repositories and
+the store bumps follow as before.
 
 One download per platform (ADR-0011): every installer carries the unified
 `epher` executable — one-shot CLI, REPL (`epher repl`), piped
@@ -269,7 +286,26 @@ links need to change (e.g. a new platform), change the names here and in
    `gh api repos/upyesp/epher/pages -X PUT -f cname=epher.org`
 3. Re-enable "Enforce HTTPS" once the certificate state is `approved`
    (the setting resets when a domain is added).
-4. Push `main` — the `pages` workflow builds and deploys.
+4. Push `main` — the `pages` workflow builds and deploys. (Under the
+staged model, main moves only by promoting a staging→main pull request —
+see "Releases" above and ADR-0062.)
 If the repository ever gets recreated, redo steps 1–3; the custom domain
 is repo Pages settings, not stored in the repo (no `CNAME` file is needed
 with the workflow deploy).
+
+### Preview Pages repo (upyesp/epher-preview)
+
+The preview site (ADR-0062) is a second Pages repo the `preview`
+workflow force-pushes to (`gh-pages` branch, "deploy from a branch").
+To recreate it:
+
+1. Create the repo, then enable Pages from `gh-pages`:
+   `gh api repos/upyesp/epher-preview/pages -X PUT -f source[branch]=gh-pages`
+2. Generate a deploy key and add the public half with write access:
+   `gh api repos/upyesp/epher-preview/keys -f title=preview-push -f read_only=false -f key="$(cat key.pub)"`
+3. Store the private half as the `EPHER_PREVIEW_KEY` secret on the main
+   repo (Actions → secrets):
+   `gh secret set EPHER_PREVIEW_KEY --repo upyesp/epher < key`
+4. Push the `staging` branch — the preview workflow builds and deploys.
+If the preview repo is deleted, the `preview` workflow fails loudly at
+the push step (missing secret or unknown repo), never silently.

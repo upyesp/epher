@@ -1,0 +1,83 @@
+# Build the landing page + PWA into a _site artifact (reusable).
+#
+# Shared by the live pages workflow (epher.org, main branch only — see
+# ADR-0062) and the preview workflow (upyesp.github.io/epher-preview,
+# staging branch). One builder means the preview is byte-for-byte the
+# same build the live site will serve, and a preview run validates the
+# site build before any main push.
+#
+# Layout of the published site (see docs/website.md):
+#   /                 landing page (site/)
+#   /pwa/             the offline-first web app (crates/web/dist)
+#
+# The PWA is built with trunk (public_url "./" → relative asset paths,
+# safe under any mount point — the preview repo serves the same tree
+# under /epher-preview/).
+name: site build (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Ref to build (empty = the triggering commit)
+        type: string
+        default: ""
+      include_repos:
+        description: >-
+          Also serve the apt/ and rpm/ trees from this repo's gh-pages
+          branch (ADR-0061). Live site only — the preview repo has no
+          repositories behind it.
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install trunk
+        # From crates.io rather than a third-party action: the action's
+        # tarball downloads from codeload.github.com, which rate-limits
+        # (429/503) and takes the whole deploy down.
+        run: cargo install trunk --locked --version 0.21.14
+
+      - name: Build the PWA
+        run: trunk build --release
+        working-directory: crates/web
+
+      - name: Install site tooling
+        run: npm ci
+
+      - name: Build the user guide
+        run: npm run build:guide && npm run build:examples && npm run build:scripts
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site/pwa
+          cp -r site/* _site/
+          cp -r crates/web/dist/* _site/pwa/
+
+      - name: Add the apt and dnf repositories (live site only)
+        # The apt and dnf repositories (ADR-0061) live on the gh-pages
+        # branch — the release workflow commits them there. Serve them
+        # from the same origin so epher.org/apt and /rpm resolve.
+        if: inputs.include_repos
+        run: |
+          git fetch --depth=1 origin gh-pages
+          git archive FETCH_HEAD apt rpm | tar -x -C _site
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: _site
+          if-no-files-found: error

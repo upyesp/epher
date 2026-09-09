@@ -9,9 +9,11 @@
 #     transparent-export contract (ADR-0055), piped stdin both ways,
 #     a repository script end to end, the missing-path error
 #     (ADR-0058), and the embedded web build hash;
-#   - all 333 repository scripts replaying their expected transcripts
+#   - every repository script replaying its expected transcript
 #     through the unified release binary (catches any arm64 drift in
-#     evaluation or number formatting);
+#     evaluation or number formatting — and on PRs it is the promotion
+#     gate, so main only ever merges a staging tree whose transcripts
+#     replay on arm64);
 #   - the REPL: one piped session covering definitions, `ans`, saved
 #     scripts, `load` by name and by path, and graph export;
 #   - the TUI: driven through a real pty with a terminal emulator
@@ -22,9 +24,14 @@
 #     runner's window server, and required to stay up.
 name: macOS Apple silicon
 
+# Runs on every main push (live = release-only, ADR-0062), on every
+# staging push (the staged batch's test floor), and on pull requests
+# into main — the latter is the promotion gate: main's branch
+# protection requires this check to pass before a staging→main PR can
+# merge.
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
   pull_request:
   workflow_dispatch:
 
@@ -125,7 +132,7 @@ jobs:
           grep -qF "$HASH" "$OUT/strings.txt"
           echo "embedded web build: $HASH"
 
-      - name: All 333 scripts replay their transcripts
+      - name: Every repository script replays its transcript
         run: node scripts/check-scripts.mjs
         env:
           EPHER_CLI: ${{ env.EPHER }}

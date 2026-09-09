@@ -83,6 +83,10 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0056 | The result pane: long answers render where graphs render | 2026-09-03 | accepted |
 | 0057 | Answer copying, the PWA's recent activity, faithful exports, and the touch pinch | 2026-09-04 | accepted |
 | 0058 | Installers carry the scripts, command strings name their OS | 2026-09-04 | accepted |
+| 0059 | The TUI takes a paste as one paste, and Enter runs the whole entry | 2026-09-08 | accepted |
+| 0060 | The keypad docks away on a grab bar, and returns to its place | 2026-09-08 | accepted |
+| 0061 | Linux installs come from apt, dnf, Flathub, Snap, and AUR (amended 2026-09-06: the AUR channel is removed before its first publish) | 2026-09-05 | accepted |
+| 0062 | Staged delivery — a staging branch, a preview site, and draft installers | 2026-09-08 | accepted |
 
 ## Decision chains
 

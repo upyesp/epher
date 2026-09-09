@@ -1,12 +1,19 @@
-# Build the landing page + PWA and deploy to GitHub Pages.
+# Deploy the landing page + PWA to GitHub Pages (the live site).
+#
+# Live = main, and main moves only through a promotion (ADR-0062): a
+# staging→main pull request merged after the staged build was tested.
+# Nothing else pushes main, so this workflow is the last leg of the
+# release chain, never the first. Development builds go to the preview
+# repo instead (preview.yml).
 #
 # Layout of the published site at epher.org (see docs/website.md):
 #   /                 landing page (site/)
 #   /pwa/             the offline-first web app (crates/web/dist)
 #
-# The workflow builds the PWA with trunk (public_url "./" → relative asset
-# paths, safe under any mount point), assembles the site, and deploys via
-# actions/deploy-pages. Requires: Settings → Pages → Source → "GitHub Actions".
+# The site itself is built by the shared site-build.yml (the preview
+# workflow builds the same tree, so a staging push validates this build
+# before any main push happens). Requires: Settings → Pages → Source →
+# "GitHub Actions".
 name: pages
 
 on:
@@ -24,42 +31,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build:
+    uses: ./.github/workflows/site-build.yml
+    with:
+      include_repos: true
+
   deploy:
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/download-artifact@v4
         with:
-          targets: wasm32-unknown-unknown
-
-      - name: Install trunk
-        # From crates.io rather than a third-party action: the action's
-        # tarball downloads from codeload.github.com, which rate-limits
-        # (429/503) and takes the whole deploy down.
-        run: cargo install trunk --locked --version 0.21.14
-
-      - name: Build the PWA
-        run: trunk build --release
-        working-directory: crates/web
-
-      - name: Install site tooling
-        run: npm ci
-
-      - name: Build the user guide
-        run: npm run build:guide && npm run build:examples && npm run build:scripts
-
-      - name: Assemble site
-        run: |
-          mkdir -p _site/pwa
-          cp -r site/* _site/
-          cp -r crates/web/dist/* _site/pwa/
-          # The apt and dnf repositories (ADR-0061) live on the gh-pages
-          # branch — the release workflow commits them there. Serve them
-          # from the same origin so epher.org/apt and /rpm resolve.
-          git fetch --depth=1 origin gh-pages
-          git archive FETCH_HEAD apt rpm | tar -x -C _site
-
+          name: site
+          path: _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -1,0 +1,101 @@
+# Publish a preview of the website + PWA for testing (ADR-0062).
+#
+# Every push to the staging branch rebuilds the site and pushes it to
+# the preview Pages repo (upyesp.github.io/epher-preview), so work is
+# visible at a public URL without touching the live epher.org deploy.
+# The tree is the exact output of the live site build (site-build.yml);
+# only two things differ:
+#   - the apt/ and rpm/ repository trees are not included (the preview
+#     repo is a test site, not a package mirror), and
+#   - the landing page's single root-absolute link (href="/pwa/") is
+#     rewritten to a relative one — the preview serves under
+#     /epher-preview/, not at the domain root.
+#
+# The push uses a write-only deploy key on the preview repo
+# (secret EPHER_PREVIEW_KEY, added there via repo Settings → Deploy
+# keys; see docs/website.md). One squashed commit per build — the
+# preview repo is disposable; its history is not meaningful.
+name: preview
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch or commit to preview (default: staging)"
+        type: string
+        default: staging
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/site-build.yml
+    with:
+      # Push events build the pushed commit (empty ref falls back to
+      # github.sha in site-build.yml); dispatches build the chosen ref.
+      ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
+
+  publish:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: preview-site
+
+      - name: Rewrite the landing page's absolute PWA link for the subpath
+        run: sed -i 's#href="/pwa/"#href="pwa/"#' preview-site/index.html
+
+      - name: No other root-absolute links may exist under a subpath
+        run: |
+          if grep -rEn '(href|src)="/' preview-site \
+              --include='*.html' --include='*.js' --include='*.json' \
+              --include='*.css' --include='*.xml' --include='*.webmanifest'; then
+            echo "::error::root-absolute link found (would break the /epher-preview/ mount):" >&2
+            exit 1
+          fi
+
+      - name: Publish to the preview Pages repo
+        env:
+          PREVIEW_KEY: ${{ secrets.EPHER_PREVIEW_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$PREVIEW_KEY" ]; then
+            echo "::error::EPHER_PREVIEW_KEY is not set (see docs/website.md — preview repo deploy key)."
+            exit 1
+          fi
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$PREVIEW_KEY" > "$HOME/.ssh/preview_ed25519"
+          chmod 600 "$HOME/.ssh/preview_ed25519"
+          ssh-keyscan -t ed25519 github.com >> "$HOME/.ssh/known_hosts" 2>/dev/null
+          cd preview-site
+          git init -q
+          git config user.name "epher preview"
+          git config user.email "preview@epher.org"
+          git add -A
+          git commit -q -m "preview ${GITHUB_RUN_ID} ($(date -u +%Y-%m-%dT%H:%MZ))"
+          GIT_SSH_COMMAND="ssh -i $HOME/.ssh/preview_ed25519 -o IdentitiesOnly=yes" \
+            git push -f git@github.com:upyesp/epher-preview.git HEAD:refs/heads/gh-pages
+          echo "pushed preview-site (${GITHUB_RUN_ID})"
+
+      - name: Wait for the Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 40); do
+            STATE="$(gh api repos/upyesp/epher-preview/pages/builds/latest -q .status 2>/dev/null || echo none)"
+            [ "$STATE" = "built" ] && break
+            sleep 6
+          done
+          echo "preview Pages build: ${STATE:-unknown}"
+          gh api repos/upyesp/epher-preview/pages -q '"https://" + .html_url' 2>/dev/null \
+            || echo "https://upyesp.github.io/epher-preview/"
