@@ -381,6 +381,29 @@ fn graph3d_save_from_a_one_shot() {
     assert!(doc.contains("transform=\"translate("), "{doc}");
 }
 
+#[test]
+fn graph3d_param_saves_from_a_one_shot() {
+    // The CLI routes `graph3d param` exactly as the TUI and the web
+    // frontend do (ADR-0054): a space curve, sampled over t, saved as
+    // the same self-contained 3D SVG.
+    let dir = tempfile::tempdir().unwrap();
+    let svg = dir.path().join("helix.svg");
+    let input = format!(
+        "graph3d param cos(t), sin(t), t / 6; graph3d save {}",
+        svg.display()
+    );
+    let out = epher_bin()
+        .env("EPHER_STORE_DIR", dir.path())
+        .arg(input)
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(0));
+    let doc = std::fs::read_to_string(&svg).unwrap();
+    assert!(doc.contains("viewBox=\"0 0 640 400\""), "{doc}");
+    // the curve itself is drawn as stroked polylines
+    assert!(doc.contains("<polyline"), "{doc}");
+}
+
 // ===== The shared store across frontends (ADR-0010 amendment) =====
 
 #[test]
