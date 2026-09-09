@@ -51,10 +51,34 @@ jobs:
           name: site
           path: preview-site
 
-      - name: Rewrite the landing page's absolute PWA link for the subpath
-        run: sed -i 's#href="/pwa/"#href="pwa/"#' preview-site/index.html
+      - name: Rewrite root-absolute /pwa/ links for the subpath mount
+        # The landing page and every guide page link to the app with an
+        # absolute href="/pwa/" (correct at the domain root on the live
+        # site). Under the /epher-preview/ mount each page needs a
+        # relative href computed from its own directory depth:
+        #   /epher-preview/index.html            -> pwa/
+        #   /epher-preview/guide/de/index.html   -> ../../pwa/
+        run: |
+          python3 - <<'PYEOF'
+          import os
+          for root, _dirs, files in os.walk("preview-site"):
+              for fn in files:
+                  if not fn.endswith((".html", ".js", ".json", ".css", ".xml", ".webmanifest")):
+                      continue
+                  p = os.path.join(root, fn)
+                  s = open(p, encoding="utf-8").read()
+                  if "/pwa/" not in s:
+                      continue
+                  rel = os.path.relpath("preview-site/pwa", root) + "/"
+                  s = s.replace('href="/pwa/"', 'href="%s"' % rel)
+                  s = s.replace('src="/pwa/"', 'src="%s"' % rel)
+                  open(p, "w", encoding="utf-8").write(s)
+          PYEOF
 
-      - name: No other root-absolute links may exist under a subpath
+      - name: No root-absolute links may remain under a subpath
+        # Guard for the future: any new absolute href/src in the site or
+        # guide would 404 on the preview mount, so the build must fail
+        # until the link is made relative or handled here.
         run: |
           if grep -rEn '(href|src)="/' preview-site \
               --include='*.html' --include='*.js' --include='*.json' \
