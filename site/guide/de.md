@@ -435,7 +435,7 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-Die Schleifenvariable behält danach ihren letzten Wert, wie TIs For. Mit print schreibt eine Schleife lesbare Zeilen:
+Die Schleifenvariable gilt nur innerhalb der Schleife: Danach bedeutet der Name wieder wie zuvor (eine Schleife über `i` berührt die imaginäre Einheit nicht), während Zuweisungen an andere Namen im Schleifenkörper erhalten bleiben. Mit print schreibt eine Schleife lesbare Zeilen:
 
 ```epher
 for i in 1 to 3 do print("line", i)

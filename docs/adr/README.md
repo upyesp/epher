@@ -87,6 +87,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0060 | The keypad docks away on a grab bar, and returns to its place | 2026-09-08 | accepted |
 | 0061 | Linux installs come from apt, dnf, Flathub, Snap, and AUR (amended 2026-09-06: the AUR channel is removed before its first publish) | 2026-09-05 | accepted |
 | 0062 | Staged delivery — a staging branch, a preview site, and draft installers | 2026-09-08 | accepted |
+| 0063 | A for loop scopes its variable | 2026-09-09 | accepted |
 
 ## Decision chains
 

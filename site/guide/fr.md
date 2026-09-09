@@ -439,7 +439,7 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-La variable de boucle garde sa dernière valeur ensuite, comme le For de TI. Avec print, une boucle écrit des lignes lisibles :
+La variable de boucle est limitée à la boucle : ensuite, le nom retrouve sa signification d'avant (une boucle sur `i` ne touche pas l'unité imaginaire), tandis que les affectations d'autres noms dans le corps persistent. Avec print, une boucle écrit des lignes lisibles :
 
 ```epher
 for i in 1 to 3 do print("line", i)

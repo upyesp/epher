@@ -435,7 +435,7 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-La variable del bucle conserva su último valor, como el For de TI. Con print, un bucle escribe líneas legibles:
+La variable del bucle tiene ámbito de bucle: después, el nombre vuelve a significar lo que significaba antes (un bucle sobre `i` no toca la unidad imaginaria), mientras que las asignaciones a otros nombres dentro del cuerpo persisten. Con print, un bucle escribe líneas legibles:
 
 ```epher
 for i in 1 to 3 do print("line", i)

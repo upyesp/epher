@@ -191,6 +191,12 @@ impl Env {
         self.bindings.insert(name.into(), value);
     }
 
+    /// Drop a name's binding (a scoped construct restoring the state it
+    /// found — a `for` loop's variable leaves nothing behind).
+    pub fn remove(&mut self, name: &str) {
+        self.bindings.remove(name);
+    }
+
     /// The session's variable bindings (user assignments plus `ans`), for
     /// the shared-store snapshot every interactive frontend persists
     /// (ADR-0010 amendment): CLI/REPL, TUI, and desktop GUI.
@@ -7182,11 +7188,14 @@ fn run_while(
 /// because each iteration does real work the step budget also counts.
 const MAX_FOR_ITERATIONS: i64 = 100_000;
 
-/// Run a `for` loop (ADR-0054): bind the loop variable for each
+/// Run a `for` loop (ADR-0054, amended by ADR-0063): bind the loop variable for each
 /// element, collect the body's values (statements with no value, such
 /// as a definition or a nested `while`, contribute nothing), and return the
-/// collected list. The loop variable keeps its last value afterwards,
-/// like TI's `For`.
+/// collected list. The loop variable is scoped to the loop: afterwards
+/// the name reverts to the binding it had before (usually none), so a
+/// loop over `i` never leaves an `i` behind to shadow the imaginary
+/// unit. Assignments to OTHER names inside the body persist as any
+/// script statement's do, which is how accumulators work.
 fn run_for(
     var: &str,
     iterable: &ForIterable,
@@ -7247,11 +7256,19 @@ fn run_for(
         }
     };
     let mut collected = Vec::with_capacity(items.len());
+    // The control variable is the loop's own (ADR-0063): whatever `var`
+    // meant before the loop is restored afterwards, and a name that was
+    // unbound stays unbound (and never reaches the session store).
+    let prior = env.get(var).cloned();
     for item in items {
         env.set(var.to_string(), item);
         if let Some(value) = stmt_value(body, env, steps)? {
             collected.push(value);
         }
+    }
+    match prior {
+        Some(value) => env.set(var.to_string(), value),
+        None => env.remove(var),
     }
     Ok(Value::List(collected))
 }
