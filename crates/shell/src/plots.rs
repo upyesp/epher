@@ -11,11 +11,12 @@
 
 use epher_core::astro::SolarScene;
 use epher_core::graph::{
-    analyze, parse_graph_source, sample_data_plot, sample_spec, sample_surface, DataPlot,
-    InterestPoint, SampledCurve, Surface, View3D,
+    analyze, parse_graph_source, sample_data_plot, sample_spec, sample_space_curve, sample_surface,
+    DataPlot, InterestPoint, SampledCurve, SpaceCurve, Surface, View3D,
 };
 use epher_core::graph_svg::{
-    data_svg, graph3d_svg, graph_svg, solar3d_svg, Poi, DEFAULT_STROKE_WIDTH, THREE_D_DEFAULT_WIDTH,
+    data_svg, graph3d_curve_svg, graph3d_svg, graph_svg, solar3d_svg, Poi, DEFAULT_STROKE_WIDTH,
+    THREE_D_DEFAULT_WIDTH,
 };
 use epher_core::Env;
 use epher_i18n::Localizer;
@@ -50,6 +51,7 @@ impl PlotOutcome {
 pub struct Plots {
     curves: Vec<SampledCurve>,
     surfaces: Vec<Surface>,
+    curve3d: Vec<SpaceCurve>,
     data: Option<DataPlot>,
     solar: Option<SolarScene>,
 }
@@ -92,6 +94,7 @@ impl Plots {
         Plots {
             curves: Vec::new(),
             surfaces: Vec::new(),
+            curve3d: Vec::new(),
             data: Some(data),
             solar: None,
         }
@@ -103,6 +106,7 @@ impl Plots {
         Plots {
             curves,
             surfaces: Vec::new(),
+            curve3d: Vec::new(),
             data: None,
             solar: None,
         }
@@ -113,6 +117,7 @@ impl Plots {
         Plots {
             curves: Vec::new(),
             surfaces,
+            curve3d: Vec::new(),
             data: None,
             solar: None,
         }
@@ -124,6 +129,7 @@ impl Plots {
         Plots {
             curves: Vec::new(),
             surfaces: Vec::new(),
+            curve3d: Vec::new(),
             data: None,
             solar: Some(scene),
         }
@@ -147,6 +153,11 @@ impl Plots {
     /// The plotted surfaces.
     pub fn surfaces(&self) -> &[Surface] {
         &self.surfaces
+    }
+
+    /// The plotted 3D parametric curves (ADR-0054).
+    pub fn curve3ds(&self) -> &[SpaceCurve] {
+        &self.curve3d
     }
 
     /// Handle the text after `graph ` (ADR-0014 grammar, plus `clear` and
@@ -214,6 +225,7 @@ impl Plots {
         let source = source.trim();
         if source == "clear" {
             self.surfaces.clear();
+            self.curve3d.clear();
             self.data = None;
             return PlotOutcome::ok(localizer.lookup("graph-cleared"));
         }
@@ -227,15 +239,34 @@ impl Plots {
             }
             return self.save_3d_svg(path, localizer);
         }
-        match sample_surface(source, 40, env) {
-            Ok(surface) => {
-                // the newest command owns the pane (ADR-0044: data plots
-                // are displaced like curves are)
-                self.data = None;
-                self.surfaces.push(surface);
-                PlotOutcome::ok(format!("graph3d: {source}"))
+        // A `param` body is a space curve (ADR-0054), exactly as the TUI
+        // and the web frontend route it; anything else is a surface.
+        // Both own the pane alone (the newest command wins).
+        if source.starts_with("param ") {
+            match sample_space_curve(source, 240, env) {
+                Ok(curve) => {
+                    self.data = None;
+                    self.surfaces.clear();
+                    self.curve3d.push(curve);
+                    PlotOutcome::ok(format!("graph3d: {source}"))
+                }
+                Err(e) => PlotOutcome::err(e.to_string()),
             }
-            Err(e) => PlotOutcome::err(e.to_string()),
+        }
+        // A surface displaces any 3D curves, like it displaces data
+        // plots and 2D curves.
+        else {
+            match sample_surface(source, 40, env) {
+                Ok(surface) => {
+                    // the newest command owns the pane (ADR-0044: data plots
+                    // are displaced like curves are)
+                    self.data = None;
+                    self.curve3d.clear();
+                    self.surfaces.push(surface);
+                    PlotOutcome::ok(format!("graph3d: {source}"))
+                }
+                Err(e) => PlotOutcome::err(e.to_string()),
+            }
         }
     }
 
@@ -326,10 +357,16 @@ impl Plots {
         view: &View3D,
         localizer: &Localizer,
     ) -> PlotOutcome {
-        if self.surfaces.is_empty() {
+        if self.surfaces.is_empty() && self.curve3d.is_empty() {
             return PlotOutcome::err(localizer.lookup("graph-empty"));
         }
-        match graph3d_svg(&self.surfaces, view, THREE_D_DEFAULT_WIDTH) {
+        // The pane shows one kind at a time; whichever is loaded renders.
+        let doc = if self.surfaces.is_empty() {
+            graph3d_curve_svg(&self.curve3d, view, THREE_D_DEFAULT_WIDTH)
+        } else {
+            graph3d_svg(&self.surfaces, view, THREE_D_DEFAULT_WIDTH)
+        };
+        match doc {
             Some(doc) => write_document(path, doc, localizer),
             None => PlotOutcome::err(localizer.lookup("graph-empty")),
         }
