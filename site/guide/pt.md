@@ -252,6 +252,8 @@ x = x + 1
 > Os nomes podem conter letras e sublinhados, como `radius` ou `my_total`.
 > Não podem conter espaços nem começar com um número.
 
+Um nome é reservado: `i`, a unidade imaginária (secção 1.18).
+
 A variável especial `ans` sempre guarda a resposta anterior, como a
 tecla `Ans` de uma calculadora de bolso, útil para encadear cálculos:
 
@@ -1135,6 +1137,8 @@ sqrt(-1)
 -1
 i
 ```
+
+Ao contrário de qualquer outro nome interno, `i` não pode ser reutilizado: `i = 5` é recusado, por isso a unidade imaginária nunca pode ser encoberta - nem por uma atribuição, nem por uma sessão antiga guardada.
 
 Escreva um número complexo com o sufixo `i`, sem sinal de multiplicação: `3 + 4i` é um literal, `2.5i` funciona, e os literais com base também (`0xFFi`). A aritmética usual se estende: somar, subtrair, multiplicar, dividir e potências funcionam, e `i` segue a precedência normal (`i ^ 2` se liga como qualquer potência).
 

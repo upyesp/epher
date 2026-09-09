@@ -2028,11 +2028,8 @@ fn imaginary_literals_and_the_i_constant() {
     // an i glued to a longer name is not an imaginary suffix: `4it` is
     // a number followed by a name, which the grammar rejects
     assert!(eval_err("4it").contains("trailing"));
-    // i is shadowable like pi
-    assert_eq!(
-        run_script_text("i = 5\ni + 1").last().unwrap().to_string(),
-        "6"
-    );
+    // i is the one reserved name (ADR-0065): assignment refuses it
+    assert!(script_err("i = 5").contains("cannot assign to i"));
 }
 
 #[test]
@@ -3436,8 +3433,9 @@ fn for_loops_iterate_ranges_and_lists() {
     // behind — bare `i` is the imaginary unit again (the gap-analysis
     // defect: a stored `i = 5` once made `3+4i` answer 23).
     assert_eq!(eval_display_script("for i in 1 to 3 do i\ni"), "i");
-    // A binding from before the loop is restored, not clobbered.
-    assert_eq!(eval_display_script("i = 7\nfor i in 1 to 3 do i\ni"), "7");
+    // A binding from before the loop is restored, not clobbered
+    // (`k`, since `i` no longer assigns).
+    assert_eq!(eval_display_script("k = 7\nfor k in 1 to 3 do k\nk"), "7");
     // The complex literal is intact after a loop over `i`.
     assert_eq!(eval_display_script("for i in 1 to 3 do i\n3 + 4i"), "3+4i");
     // Nested loops over the same name unwind in order: the inner loop
@@ -3691,3 +3689,42 @@ fn string_list_literals_and_the_catalog() {
     assert_eq!(names, sorted, "catalog must stay sorted");
 }
 
+
+// ===== the reserved imaginary unit (ADR-0065) =====
+
+#[test]
+fn the_imaginary_unit_is_reserved() {
+    // bare assignment is refused, in every form that binds
+    assert!(script_err("i = 5").contains("cannot assign to i"));
+    assert!(script_err("const i = 3").contains("cannot assign to i"));
+    assert!(script_err("{a, i} = {1, 2}").contains("cannot assign to i"));
+    // the unit itself still works, alone and in literals
+    assert_eq!(eval_display_script("3 + 4i"), "3+4i");
+    assert_eq!(eval_display_script("i ^ 2"), "-1");
+    // the classic loop counter keeps working: a for's variable is
+    // scoped to the loop (ADR-0063), it never persists
+    assert_eq!(eval_display_script("for i in 1 to 3 do i; 3 + 4i"), "3+4i");
+    assert_eq!(eval_display_script("def f(i) = i + 1; f(2); 3 + 4i"), "3+4i");
+}
+
+#[test]
+fn a_stored_i_is_dropped_at_restore() {
+    use epher_core::ValueBindings;
+    let mut session = Session::default();
+    let mut stored = ValueBindings::new();
+    stored.insert("i".to_string(), Value::float(5.0));
+    stored.insert("x".to_string(), Value::float(7.0));
+    session.restore_bindings(&stored);
+    let mut env = session.env_mut();
+    assert_eq!(env.get("i"), None, "a stored i must not survive restore");
+    assert_eq!(env.get("x"), Some(&Value::float(7.0)));
+    drop(env);
+    // and the imaginary unit answers, not the dropped 5
+    assert_eq!(
+        {
+            let v = eval(&parse("3 + 4i").expect("parse"), session.env()).expect("eval");
+            v.to_string()
+        },
+        "3+4i"
+    );
+}
