@@ -28,6 +28,14 @@
 #   epher-linux-x86_64.AppImage     everything else, incl. Arch — runs as-is
 #   epher-linux-aarch64.*           the same three, ARM64 (ADR-0061)
 #
+# The language server rides the same release (ADR-0066): the shared
+# epher-lsp binary per platform, the assets the IDE extensions resolve
+# on first run:
+#   epher-lsp-linux-x86_64.gz
+#   epher-lsp-linux-aarch64.gz
+#   epher-lsp-macos-aarch64.gz
+#   epher-lsp-windows-x86_64.zip
+#
 # The repositories and stores (ADR-0061): the linux-repos job serves the
 # same debs/rpms from epher.org's apt and dnf repositories (GitHub Pages,
 # GPG-signed, container install-smoke before publish); the snap job
@@ -101,6 +109,11 @@ jobs:
               directly (x86_64 and ARM64). Flathub
               (`com.epher.Desktop`) and Snap (`epher`)
               carry the same app when the store packages are published.
+
+            - **Editors**: the language server binaries ride this
+              release too (`epher-lsp-<target>.gz`, Windows `.zip`),
+              the shared server the IDE extensions download on first
+              run (ADR-0066).
 
             - **Web app (PWA)**: https://epher.org/pwa/ — works
               fully offline.
