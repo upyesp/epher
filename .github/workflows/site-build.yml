@@ -59,7 +59,7 @@ jobs:
         run: npm ci
 
       - name: Build the user guide
-        run: npm run build:guide && npm run build:examples && npm run build:scripts && npm run build:reference
+        run: npm run build:guide && npm run build:examples && npm run build:scripts
 
       - name: Assemble site
         run: |

@@ -87,10 +87,6 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0060 | The keypad docks away on a grab bar, and returns to its place | 2026-09-08 | accepted |
 | 0061 | Linux installs come from apt, dnf, Flathub, Snap, and AUR (amended 2026-09-06: the AUR channel is removed before its first publish) | 2026-09-05 | accepted |
 | 0062 | Staged delivery — a staging branch, a preview site, and draft installers | 2026-09-08 | accepted |
-| 0063 | A for loop scopes its variable | 2026-09-09 | accepted |
-| 0064 | Statement bodies, control flow, destructuring, and the string library | 2026-09-17 | accepted |
-| 0065 | The imaginary unit is reserved | 2026-09-17 | accepted |
-| 0066 | IDE extensions speak one LSP server | 2026-09-17 | accepted |
 
 ## Decision chains
 
@@ -181,16 +177,6 @@ at the end of the chain.
   → **0054 (strings, `for` loops, `print`, and `str`)**
 - **Statistics** - **0044 (lists, elementwise arithmetic, statistics, distributions, tests, regression)**
   → **0054 (ANOVA, the paired t, `randn`, and the quad/exp/power/log regression family with scatter overlays)**
-- **Language surface** - 0054 (strings, `for`, `print`) → **0064
-  (statement bodies with `do … end`, `return`/`break`/`continue`, the
-  statement `if`, `{a, b} =` destructuring, string escapes and the
-  string library; script input and file I/O out of scope)** →
-  **0065 (`i` is the one reserved name; stored `i` bindings drop at
-  load)**.
-- **IDE extensions** - **0066 (one `epher-lsp` binary per platform
-  with epher compiled in, downloaded on first run by thin universal
-  extensions; the core gains source spans, the per-statement
-  evaluation trace, and catalog descriptions)**.
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.

@@ -218,11 +218,7 @@ redefining them. The guide gives the examples.
   deg2hms deg2dms`, the body accessors `ra decl dist alt az rise set
   transit mag phase illum diam` (Mercury 1 ... Neptune 8, Pluto 9,
   Sun 10, Moon 11), `kepler airmass dawes dist_mod mag2jy jy2mag`,
-  `march_equinox june_solstice september_equinox december_solstice`,
-  the satellite accessors `satx saty satz satsep satphen` (planet 5
-  with satellites 1 Io 2 Europa 3 Ganymede 4 Callisto; planet 6 with
-  1 Mimas 2 Enceladus 3 Tethys 4 Dione 5 Rhea 6 Titan 7 Hyperion
-  8 Iapetus)
+  `march_equinox june_solstice september_equinox december_solstice`
 - Matrices: `det inv transpose trace dim ref rref`
 - Constants: `pi e tau phi`; astronomy `au pc ly c g h h_bar k_b
   sigma_sb m_sun r_sun l_sun m_earth r_earth m_moon r_moon`; physics

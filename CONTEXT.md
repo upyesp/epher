@@ -221,34 +221,6 @@ The Store instance inside the browser/PWA sandbox, physically separate from
 the Native Store but sharing the same logical schema.
 _Avoid_: browser storage, cache, local storage
 
-### Editors
-
-**Language server**:
-The standalone `epher-lsp` binary that speaks the Language Server
-Protocol for editors. epher is compiled in; the core builds one binary
-per platform and every extension shares it.
-_Avoid_: LSP plugin, linter, bundled REPL
-
-**Extension**:
-A thin editor package (VS Code, JetBrains, Zed, and the rest): manifest,
-shared grammar, snippets, and glue that obtains the Language server on
-first run. An Extension carries no epher code of its own. (JetBrains
-calls its packages plugins; the glossary term for the shared idea is
-Extension.)
-_Avoid_: add-on, integration
-
-**Inline result**:
-The value of a statement, shown in the editor beside the statement as it
-is written; the Extension face of the Evaluation trace.
-_Avoid_: tooltip output, console echo
-
-**Evaluation trace**:
-The per-statement list of source spans and the values they produced,
-returned by the core for a script; what Inline results and hover ranges
-are built from. Distinct from Trace (reading coordinates off a plotted
-curve).
-_Avoid_: trace (ambiguous with the plotting sense), execution log
-
 
 ## Style
 

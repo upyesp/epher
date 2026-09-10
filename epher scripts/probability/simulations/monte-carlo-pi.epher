@@ -29,27 +29,21 @@ const points = 10000
 
 /* ---- results ----
 The seeded thrower: one random x and one random y per point, both in
-[0, 1), counted when x^2 + y^2 <= 1. The counting loop lives in a
-definition with a do-body (guide 1.11): the for walks the known number
-of points, the if behind it does the counting, and the block hands
-back the hits. */
-def thrower(n) do
-  hits = 0
-  for i in 1 to n do if random() ^ 2 + random() ^ 2 <= 1 then hits = hits + 1
-  hits
-end
+[0, 1), counted when x^2 + y^2 <= 1. A packed while loop (guide 1.30)
+keeps {point number, hits}. */
 randseed(7)
-hits = thrower(points)
+v = {0, 0}
+while v[1] < points do v = {v[1] + 1, v[2] + (if random() ^ 2 + random() ^ 2 <= 1 then 1 else 0)}
 
 // The estimate and the comparison with the true pi.
-print("hits inside the quarter circle:", hits)
-print("estimate of pi:", 4 * hits / points)
+print("hits inside the quarter circle:", v[2])
+print("estimate of pi:", 4 * v[2] / points)
 print("true pi:", pi)
-print("relative error:", (4 * hits / points - pi) / pi)
+print("relative error:", (4 * v[2] / points - pi) / pi)
 /* ---- expected output ----
 = 10000
 = 7
-= 7895
+= {0, 0}
 = hits inside the quarter circle: 7895
 = estimate of pi: 3.158
 = true pi: 3.14159265359

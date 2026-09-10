@@ -252,8 +252,6 @@ x = x + 1
 > Los nombres pueden contener letras y guiones bajos, como `radius` o
 > `my_total`. No pueden contener espacios ni empezar por un número.
 
-Un nombre está reservado: `i`, la unidad imaginaria (sección 1.18).
-
 La variable especial `ans` contiene siempre la respuesta anterior,
 como la tecla `Ans` de una calculadora de bolsillo, útil para encadenar
 cálculos:
@@ -266,30 +264,6 @@ ans * 2
 ```text
 5
 10
-```
-
-Una lista puede llenar varios nombres a la vez — `{a, b} = list` desarma
-una lista de izquierda a derecha (la sección 1.11 muestra funciones que
-devuelven así más de una respuesta):
-
-```epher
-{a, b} = {10, 20}; a + b
-```
-
-```text
-{10, 20}
-30
-```
-
-Una posición que no quieres se escribe `_`:
-
-```epher
-{x, _} = {7, 8}; x
-```
-
-```text
-{7, 8}
-7
 ```
 
 ### 1.6 Constantes: nombres que nunca cambian
@@ -367,14 +341,13 @@ función (capítulo 4.4).
 
 ### 1.7 Cadenas y print
 
-Una cadena es texto entre comillas dobles: `"hello"`. Las cadenas se concatenan con `+`, se comparan con `==` y `!=`, se ordenan con `<` y `>` (orden de diccionario), se cuentan con `len` y se indexan desde 1 como las listas:
+Una cadena es texto entre comillas dobles: `"hello"`. Las cadenas se concatenan con `+`, se comparan con `==` y `!=`, se cuentan con `len` y se indexan desde 1 como las listas:
 
 ```epher
 "hello" + " " + "world"
 len("hello")
 "hello"[1]
 "abc" == "abd"
-"apple" < "banana"
 ```
 
 ```text
@@ -382,26 +355,9 @@ hello world
 5
 h
 false
-true
 ```
 
-Una barra invertida dentro de una cadena inicia una **secuencia de
-escape**: `\n` es una línea nueva, `\t` una tabulación, y `\\` y `\"`
-son la barra invertida y la comilla en sí — así una cadena puede
-contener comillas dobles:
-
-```epher
-s = "say \"hi\""
-len("a\nb")
-```
-
-```text
-say "hi"
-3
-```
-
-**str(x)** escribe un valor como lo haría el panel de respuestas, y
-**print(a, b, …)** une sus argumentos con espacios en una línea:
+No hay secuencias de escape: una cadena no puede contener comillas dobles. **str(x)** escribe un valor como lo haría el panel de respuestas, y **print(a, b, …)** une sus argumentos con espacios en una línea:
 
 ```epher
 print("x =", 42)
@@ -409,35 +365,6 @@ print("x =", 42)
 
 ```text
 x = 42
-```
-
-Una pequeña biblioteca cubre el resto de la escritura de informes.
-**upper** y **lower** cambian la caja, **trim** recorta los espacios de
-los extremos, **substr** toma un trozo (desde 1, como cualquier
-índice), **find** informa dónde aparece un texto (0 cuando no está),
-**replace** cambia cada copia de un texto por otra, **split** rompe un
-texto en una lista en un separador, **join** pega una lista en un solo
-texto, y **fixed** escribe un número con exactamente los decimales que
-pidas — el cero que un informe quiere, conservado:
-
-```epher
-upper("hello")
-substr("2026-09-17", 1, 4)
-find("hello world", "world")
-replace("2026-09-17", "-", "/")
-split("a,b,c", ",")
-join({1, 2, 3}, "-")
-fixed(3.1, 2)
-```
-
-```text
-HELLO
-2026
-7
-2026/09/17
-{a, b, c}
-1-2-3
-3.10
 ```
 
 ### 1.8 Decisiones con if
@@ -492,9 +419,6 @@ luego muestra x.* El resultado es 5 porque el bucle se ejecutó cinco veces.
 > nunca terminarían. Si lo ves, tu condición probablemente nunca se volvió
 > falsa.
 
-Un bucle también se puede dejar a propósito: la sección siguiente añade
-`break` y `continue`, y una función añade `return` (sección 1.11).
-
 ### 1.10 Bucles con for
 
 `for` repite una sentencia una vez por valor y reúne los valores del cuerpo en una lista: sobre un rango `start to end` (inclusive) con un `step` opcional, o sobre los elementos de una lista:
@@ -511,7 +435,7 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-La variable del bucle tiene ámbito de bucle: después, el nombre vuelve a significar lo que significaba antes (un bucle sobre `i` no toca la unidad imaginaria), mientras que las asignaciones a otros nombres dentro del cuerpo persisten. Con print, un bucle escribe líneas legibles:
+La variable del bucle conserva su último valor, como el For de TI. Con print, un bucle escribe líneas legibles:
 
 ```epher
 for i in 1 to 3 do print("line", i)
@@ -522,37 +446,6 @@ for i in 1 to 3 do print("line", i)
 ```
 
 La misma red de seguridad de 100.000 pasos limita un bucle for que un while.
-
-**Salir de un bucle antes de tiempo.** `break` detiene el bucle en el
-acto; los valores recogidos hasta ahí son la respuesta del bucle.
-`continue` se salta el resto de la pasada y pasa al valor siguiente.
-Ambos son sentencias, así que van detrás de un `if`:
-
-```epher
-for k in 1 to 6 do if mod(k, 2) == 1 then k
-for k in 1 to 10 do if k == 4 then break else k
-total = 0
-for k in 1 to 6 do if mod(k, 2) == 0 then continue else total = total + k
-total
-```
-
-```text
-{1, 3, 5}
-{1, 2, 3}
-0
-{1, 4, 9}
-9
-```
-
-El del medio se lee así: para k de 1 a 10, si k es 4 para; si no,
-devuelve k. La respuesta del bucle son los valores que vio antes de
-parar. El último par muestra `continue` contando: la lista recogida de
-la línea for es la suma acumulada - 1, luego 4, luego 9 - y las pasadas
-pares se saltaron, así que no aportaron nada. El `total` final, 9, es
-la suma de los valores impares. Un `if` sin `else` no aporta nada
-cuando su condición es falsa: así el primer bucle conserva solo los
-impares, y así un bucle puede *filtrar* una lista además de
-transformarla.
 
 
 ### 1.11 Tus propias funciones con def
@@ -595,71 +488,6 @@ answer()
 42
 ```
 
-**Un cuerpo con varios pasos.** Cuando una expresión no basta, dale a
-la función un cuerpo `do … end`. Las sentencias se ejecutan una tras
-otra en orden, y el valor de la última es la respuesta:
-
-```epher
-def hyp(a, b) do
-  c = a ^ 2 + b ^ 2
-  sqrt(c)
-end
-hyp(3, 4)
-```
-
-```text
-5
-```
-
-El nombre intermedio `c` vive dentro de la llamada; no es visible desde
-fuera, y dos llamadas no ven el `c` de la otra.
-
-**return: respuesta ahora.** `return value` responde de inmediato y se
-salta el resto del cuerpo — la forma natural para una elección con
-salida anticipada:
-
-```epher
-def grade(s) do
-  if s >= 90 then return "A"
-  if s >= 80 then return "B"
-  "C"
-end
-grade(95); grade(85); grade(40)
-```
-
-```text
-A
-B
-C
-```
-
-`return` también abandona un bucle que busca, en el momento en que
-encuentra:
-
-```epher
-def firstsq(xs) do
-  for x in xs do
-    if x ^ 0.5 == floor(x ^ 0.5) then return x
-  0
-end
-firstsq({3, 5, 9, 11}); firstsq({3, 5, 7})
-```
-
-```text
-9
-0
-```
-
-Una regla mantiene los bloques legibles: el `end` siempre cierra el do
-de la función — un `if`, un `for` o un `while` no lleva `end`. Un
-cuerpo que termina sin respuesta (digamos, que todos los caminos
-devolvieron nada) es un error, no un silencio: epher lo dice y nombra
-la función.
-
-> **¿Más de una respuesta?** Devuelve una lista — y ponle nombre de un
-> solo golpe con la desestructuración de la sección 1.5:
-> `{mean, sd} = {4, 1.6}`.
-
 ### 1.12 Recursión: una función que se llama a sí misma
 
 El ejemplo más famoso son los números de Fibonacci:
@@ -680,10 +508,8 @@ fib(10)
 con argumentos más pequeños hasta llegar a `n <= 1`. Esto funciona porque la
 forma `if ... then ... else ...` solo calcula la rama que necesita.
 
-> El cuerpo de una función es una expresión tras el `=`, o un bloque
-> `do … end` de varias sentencias con `return` para salidas anticipadas
-> (sección 1.11). Combina varios cálculos en un script en su lugar
-> (sección siguiente) cuando no hace falta una función.
+> El cuerpo de una función es una sola expresión, una línea. Combina
+> varios cálculos con `;` en un script en su lugar (sección siguiente).
 
 ### 1.13 Scripts: varias instrucciones a la vez
 
@@ -1070,15 +896,10 @@ conoce, para que puedas arreglar tu expresión.
 | Variable | `name = value` | `x = 5` |
 | Constante | `const name = value` | `const tax = 0.2` |
 | Decisión | `if c then a else b` | `if x > 0 then 1 else -1` |
-| Elegir sentencias | `if c then sentencia [else sentencia]` | `if k == 4 then break` |
 | Bucle | `while c do statement` | `while x < 5 do x = x + 1` |
 | Bucle for | `for i in a to b step s do sentencia` | `for i in 1 to 5 do i^2` |
-| Salir / saltar un bucle | `break`, `continue` | `if k == 4 then break` |
-| Función | `def name(params) = expr` o `do … end` | `def f(x) = x ^ 2` |
-| Respuesta ahora | `return value` | `if ok then return x` |
-| Varios nombres | `{a, b} = list` (`_` se salta) | `{m, sd} = stats(d)` |
-| Cadenas | `"..."`, `+` une, `s[i]`, `==`, `<` | `"a" + "b"` |
-| Biblioteca de cadenas | `upper` `lower` `trim` `substr` `split` `join` `find` `replace` `fixed` | `split("a,b", ",")` |
+| Función | `def name(params) = expr` | `def f(x) = x ^ 2` |
+| Cadenas | `"..."`, `+` une, `s[i]`, `==` | `"a" + "b"` |
 | Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Script | instrucciones unidas con `;` o saltos de línea | `x = 1; x + 1` |
 | Fracción exacta | `frac(n, d)` | `frac(1, 3)` |
@@ -1093,38 +914,6 @@ conoce, para que puedas arreglar tu expresión.
 | Integral definida | `integral(expr, a, b)` | `integral(x^2, 0, 3)` |
 | Binario, octal, hex | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Escritura en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
-| Primos | `isprime(n)`, `factors(n)`, … | `factors(360)` |
-| Literal de lista | `{…}` | `{1, 2, 3}` |
-| Elemento de lista | `list[i]` (base 1) | `{5, 6}[2]` |
-| Estadística de lista | `mean(lista)`, `median(lista)`, … | `stdev(d)` |
-| Forma de lista | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
-| Regresión lineal | `linreg(xs, ys)` | `linreg(x, y)` |
-| Familia de regresiones | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
-| Familia normal | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
-| Familia t | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
-| Familia chi-cuadrado | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
-| Familias discretas | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
-| Pruebas e intervalos | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
-| ANOVA y t emparejada | `anova(listas...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
-| Gráficos de datos | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
-| Números aleatorios | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
-| Extracciones normales | `randn(mu, sigma)` | `randn(0, 1)` |
-| Explorador de constantes | Ayuda → Constantes: todas las constantes, agrupadas | Ayuda → Constantes |
-| Cantidad | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
-| Convertir | `expr in unidad` o `expr -> unidad` | `72 km/hr in m/s` |
-| Prefijos | `k M G T m µ n p` escalan cualquier unidad | `5 km`, `3 MPa`, `1 GHz` |
-| Y, O bit a bit | `a & b`, `a \| b` | `0xFF & 0x0F` |
-| O exclusivo bit a bit | `a xor b` | `5 xor 3` |
-| No bit a bit | `~a` | `~0` |
-| Desplazamientos | `a << n`, `a >> n` | `1 << 8` |
-| Tamaño de palabra | `bits(n)` para 8, 16, 32, 64 | `bits(8)` |
-| Relación implícita | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
-| Literal de matriz | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
-| Funciones matriciales | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
-| Solucionador TVM | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
-| VAN y TIR | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
-| Amortización | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
-| Interés | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` |
 
 ### 1.18 Números complejos
 
@@ -1139,8 +928,6 @@ sqrt(-1)
 -1
 i
 ```
-
-A diferencia de cualquier otro nombre integrado, `i` no puede reutilizarse: `i = 5` se rechaza, así que la unidad imaginaria nunca puede quedar oculta - ni por una asignación, ni por una sesión antigua guardada.
 
 Escribe un número complejo con el sufijo `i`, sin signo de multiplicación: `3 + 4i` es un literal, `2.5i` funciona, y también los literales con base (`0xFFi`). La aritmética habitual se extiende: sumar, restar, multiplicar, dividir y potencias funcionan, e `i` sigue la precedencia normal (`i ^ 2` se agrupa como cualquier potencia).
 
@@ -1823,9 +1610,6 @@ objetivo).
 | `mag(b, jd)` | magnitud aparente |
 | `phase(b, jd)`, `illum(b, jd)` | ángulo de fase (grados) y fracción iluminada |
 | `diam(b, jd)` | diámetro angular (grados) |
-| `satx(5, s, jd)`, `saty(5, s, jd)`, `satz(5, s, jd)` | una luna de Júpiter (s 1-4: Io, Europa, Ganymede, Callisto) o de Saturno (s 1-8: Mimas, Enceladus, Tethys, Dione, Rhea, Titan, Hyperion, Iapetus), en radios del planeta (x oeste, y norte, z hacia ti) |
-| `satsep(5, s, jd)` | separación de la luna al centro del planeta, en segundos de arco |
-| `satphen(5, s, jd)` | estado de la luna: 0 visible, 1 tránsito, 2 ocultada, 3 en eclipse, 4 tránsito de sombra |
 
 ```epher
 decl(10, jd(2000, 6, 21, 1.8))
@@ -2043,45 +1827,12 @@ autor. La precisión es de clase arcsecond para el Sol, la Luna y los
 planetas a lo largo de unos 5000 años alrededor del presente.
 ### 1.30 Finanzas
 
-epher habla de dinero tan bien como de astronomía: un solucionador de
-valor del dinero en el tiempo, amortización de préstamos, interés y
-análisis de flujos de caja, todo sin conexión. Todo en esta sección
-devuelve números sencillos —no cadenas de divisa—, así que las
-respuestas no dependen de la moneda y vuelven directo a la
-aritmética. Las tasas son siempre por periodo y en forma de fracción:
-`0.08/12` es una tasa anual del 8% cobrada mensualmente, y `0.01` es
-el 1% (el sufijo `%` de 1.2 también sirve: `6 * 100%` es 0.06).
-
-**La convención de signos.** El solucionador sigue el estándar de las
-calculadoras (TI): el dinero que pagas es negativo, el que recibes es
-positivo. En un préstamo que tomaste, la entrega es negativa y las
-cuotas son positivas; en un plan de ahorro, los depósitos son
-negativos y el ahorro que recolectas es positivo. Un conjunto
-coherente de cinco campos hace cero el saldo:
-
-```text
-pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0
-```
-
-Cambiar los signos (préstamo y cuotas ambos negativos) se lee como
-«el dinero nunca cuadra», y el solucionador responde con un error de
-dominio en lugar de un número sin sentido.
-
-**El solucionador de valor del dinero en el tiempo.** Cinco
-funciones resuelven un campo dados los otros cuatro. `n` es el número
-de periodos, `i` la tasa por periodo, `pv` el valor presente, `pmt` el
-pago, `fv` el valor final:
-
-| Función | Responde |
-|---|---|
-| `tvm_pmt(n, i, pv, fv)` | el pago |
-| `tvm_n(i, pv, pmt, fv)` | el número de periodos |
-| `tvm_i(n, pv, pmt, fv)` | la tasa por periodo |
-| `tvm_pv(n, i, pmt, fv)` | el valor presente |
-| `tvm_fv(n, i, pv, pmt)` | el valor final |
-
-La hipoteca clásica del 8%: 360 pagos mensuales de 733.76 contra un
-préstamo de 100,000:
+El solucionador de valor del dinero en el tiempo (convención de signos
+TI: el dinero que sale es negativo, el que entra positivo) resuelve
+cualquiera de los cinco campos dados los otros cuatro. `i` es la tasa
+por periodo como fracción — 0.01 es el 1% — y el último argumento
+opcional es el momento del pago: 0 para fin de periodo (el
+predeterminado), 1 para inicio (anualidad anticipada).
 
 ```epher
 tvm_pmt(360, 0.08/12, -100000, 0)
@@ -2091,19 +1842,9 @@ tvm_pmt(360, 0.08/12, -100000, 0)
 733.764573879
 ```
 
-El interés de toda la vida es el pago por el número de pagos menos el
-préstamo:
-
-```epher
-tvm_pmt(360, 0.08/12, -100000, 0) * 360 - 100000
-```
-
-```text
-164155.246597
-```
-
-`tvm_i` lee la tasa de vuelta desde una cuota ofrecida (algo inferior
-al 8%/12, porque 733.76 está redondeado):
+La hipoteca clásica del 8%: 360 pagos mensuales de 733.76 contra un
+préstamo de 100,000 — `tvm_pmt` es el pago, `tvm_pv` el préstamo,
+`tvm_fv` el saldo, `tvm_n` el plazo y `tvm_i` la tasa:
 
 ```epher
 tvm_i(360, -100000, 733.76, 0)
@@ -2113,166 +1854,9 @@ tvm_i(360, -100000, 733.76, 0)
 0.00666661199068
 ```
 
-`tvm_n` responde «cuánto tiempo». Pagando 900 al mes en lugar del
-mínimo:
-
-```epher
-tvm_n(0.08/12, -100000, 900, 0)
-```
-
-```text
-203.163223431
-```
-
-Unos 203 meses en lugar de 360. Y la oferta del banco se comprueba a
-sí misma: un préstamo de 100,000 al 5% con 536.82 al mes son
-realmente 30 años:
-
-```epher
-tvm_n(0.05/12, 100000, -536.82, 0)
-```
-
-```text
-360.002521488
-```
-
-(Fíjate en los signos invertidos: aquí el préstamo es dinero
-recibido, así que es positivo, y los pagos son negativos.)
-
-`tvm_fv` hace crecer un plan de ahorro: 200 al mes durante 40 años
-al 6%:
-
-```epher
-tvm_fv(480, 0.06/12, 0, -200)
-```
-
-```text
-398298.146866
-```
-
-`tvm_pv` pone precio a un flujo de pagos: lo que un fondo debe tener
-hoy para pagar 1,500 al mes durante 20 años al 5%:
-
-```epher
-tvm_pv(240, 0.05/12, 1500, 0)
-```
-
-```text
--227287.969611
-```
-
-La respuesta es negativa porque comprar el fondo es dinero que sale
-hoy. La otra dirección —cuánto apartar cada mes para llegar a una
-meta— se pregunta a `tvm_pmt` con la meta como `fv`: 50,000 en diez
-años al 5% cuestan 322 al mes:
-
-```epher
-tvm_pmt(120, 0.05/12, 0, -50000)
-```
-
-```text
-321.994242862
-```
-
-Cada una de las cinco acepta un último argumento opcional `begin`: 0
-significa pagos al final de cada periodo (lo predeterminado), 1 al
-comienzo (una anualidad anticipada: el alquiler, la mayoría de los
-sueldos). Los pagos a comienzo de periodo ganan interés un periodo
-más, así que la cuota de la hipoteca baja un poco:
-
-```epher
-tvm_pmt(360, 0.08/12, -100000, 0, 1)
-```
-
-```text
-728.90520584
-```
-
-La búsqueda de tasas cubre hasta el 100% por periodo y la de plazos
-hasta diez millones de periodos; un problema fuera de esos rangos (o
-un patrón de signos que nunca cuadra) reporta un error de dominio que
-dice qué intentó.
-
-**Amortización.** `amort(p, r, n, k)` es el saldo pendiente tras k
-pagos de un préstamo de p a la tasa r a n plazos — con 0 periodos es
-el principal, con los n es cero:
-
-```epher
-amort(100000, 0.08/12, 360, 120)
-```
-
-```text
-87724.7039064
-```
-
-Tras diez años de la hipoteca del 8%, aún se deben 87,725. Un bucle
-(1.10) lo convierte en la tabla de amortización, una línea cada cinco
-años:
-
-```epher
-for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
-```
-
-```text
-{100000, 95069.8567174, 87724.7039064, 76781.5595143, 60477.9628062, 36188.1192209, 0}
-```
-
-**Interés.** `simple_interest(p, r, t)` es `p*r*t` y
-`compound_interest(p, r, n)` es `p*(1+r)^n - p` — ambos responden con
-el interés ganado, no con el saldo:
-
-```epher
-simple_interest(1000, 0.05, 2)
-```
-
-```text
-100
-```
-
-```epher
-compound_interest(1000, 0.05, 2)
-```
-
-```text
-102.5
-```
-
-El saldo en sí es aritmética sencilla, que es la gracia de los
-números sencillos:
-
-```epher
-1000 * 1.05 ^ 2
-```
-
-```text
-1102.5
-```
-
-Dos tasas cotidianas construidas igual. La tasa anual efectiva de un
-6% nominal capitalizado mensualmente, y el tiempo de duplicación de
-la regla del 72 al 6%:
-
-```epher
-(1 + 0.06/12) ^ 12 - 1
-```
-
-```text
-0.0616778118645
-```
-
-```epher
-72 / (6 * 100%)
-```
-
-```text
-12
-```
-
-**Análisis de flujos de caja.** `npv(r, flows)` descuenta una lista
-de flujos de caja a la tasa r: `flows[1]` es el desembolso de hoy y
-el resto llega con un periodo de separación. `irr(flows)` encuentra
-la tasa donde el valor actual neto es cero. Pagar 100 hoy y recibir
-60 en cada uno de los próximos dos años:
+La tasa aquí es algo inferior al 8%/12 porque 733.76 está redondeado.
+`npv(r, flows)` descuenta una lista de flujos y `irr(flows)` halla la
+tasa donde el valor actual neto es cero:
 
 ```epher
 npv(0.1, {-100, 60, 60})
@@ -2282,58 +1866,9 @@ npv(0.1, {-100, 60, 60})
 500/121
 ```
 
-```epher
-irr({-100, 60, 60})
-```
-
-```text
-0.130662386292
-```
-
-La inversión rinde el 13,07%. (`500/121` es la visualización de
-fracción exacta de epher, 1.14: el valor cuyo decimal se repite;
-`dec(500/121)` lo escribe como 4.13223140496.) La regla de decisión:
-toma el proyecto cuando `npv` a tu tasa mínima es positivo, es decir,
-cuando `irr` supera la tasa mínima. Con una valla del 15% este
-fracasa:
-
-```epher
-npv(0.15, {-100, 60, 60})
-```
-
-```text
--1300/529
-```
-
-Una lista de flujos cuyos términos nunca cambian de signo no tiene
-una tasa con sentido; `irr` reporta un error de dominio en ese caso.
-
-**Una línea para cada día.** La tasa compuesta anual de crecimiento
-de una inversión que pasó de 1,000 a 2,400 en cinco años, y el
-rendimiento real de un 7% nominal contra un 2% de inflación (la
-visualización de fracción exacta otra vez; `dec(5/102)` da
-0.0490196078431):
-
-```epher
-(2400/1000) ^ (1/5) - 1
-```
-
-```text
-0.191357898167
-```
-
-```epher
-1.07 / 1.02 - 1
-```
-
-```text
-5/102
-```
-
-La colección de scripts trae 42 scripts de finanzas listos para usar
-sobre estas diez funciones —cuatro carpetas: interés, inversión,
-préstamos y ahorro—, cada uno con una transcripción verificada contra
-el motor (scripts.html los lista con resúmenes de una línea).
+`amort(p, r, n, k)` es el saldo restante tras k pagos de un préstamo a
+n periodos, `simple_interest(p, r, t)` es `p*r*t`, y
+`compound_interest(p, r, n)` es `p*(1+r)^n - p`.
 
 ## 2. La aplicación web (PWA)
 

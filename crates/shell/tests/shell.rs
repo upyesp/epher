@@ -399,36 +399,6 @@ fn graph3d_save_writes_a_standalone_document() {
 }
 
 #[test]
-fn graph3d_param_saves_the_same_standalone_document() {
-    // `graph3d param` (ADR-0054) routes to the space-curve sampler and
-    // saves through the same 3D SVG path as surfaces.
-    let mut plots = Plots::new();
-    let env = epher_core::Env::default();
-    plots.submit_surface("param cos(t), sin(t), t / 6", &env, &en());
-    let path = temp_svg("curve3d");
-    let out = plots.submit_surface(&format!("save {path}"), &env, &en());
-    assert!(!out.error, "{}", out.message);
-    let doc = std::fs::read_to_string(&path).unwrap();
-    assert!(doc.contains("viewBox=\"0 0 640 400\""));
-    let _ = std::fs::remove_file(&path);
-}
-
-#[test]
-fn graph3d_param_displaces_a_surface_and_vice_versa() {
-    // The newest command owns the pane: a param after a surface saves
-    // as the curve; a surface after a param saves as the surface.
-    let mut plots = Plots::new();
-    let env = epher_core::Env::default();
-    plots.submit_surface("x ^ 2 - y ^ 2", &env, &en());
-    plots.submit_surface("param cos(t), sin(t), t / 6", &env, &en());
-    assert!(plots.surfaces().is_empty());
-    assert_eq!(plots.curve3ds().len(), 1);
-    plots.submit_surface("sin(x) * cos(y)", &env, &en());
-    assert!(plots.curve3ds().is_empty());
-    assert_eq!(plots.surfaces().len(), 1);
-}
-
-#[test]
 fn saving_an_empty_plot_is_a_diagnostic() {
     let plots = Plots::new();
     let out = plots.save_svg(

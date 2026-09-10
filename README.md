@@ -25,7 +25,7 @@
 ## What It Does
 
 - **One download, five frontends** — every installer carries the unified `epher` binary: one-shot command, REPL, piped scripts, TUI, and desktop app, plus the web app in your browser
-- **A real language** — variables, functions with statement bodies and early `return`, loops with `break`/`continue`, destructuring, a string library, and saveable scripts; newlines and `;` separate statements
+- **A real language** — variables, functions with recursion, loops, and saveable scripts; newlines and `;` separate statements
 - **Exact when it matters** — binary floats by default, with exact `frac`, `dec`, and `big` layers one call away
 - **Graphs in 2D and 3D** — curves and surfaces, trace, points of interest, animated constants with a play button, SVG export
 - **Private by design** — no accounts, no telemetry, no cloud; everything computes and stores on your device
@@ -47,7 +47,7 @@ cargo run --release -- gui           # desktop app
 
 Open [epher.org](https://epher.org) for the web app, the [user guide](https://epher.org/guide/en/), and copyable [examples](https://epher.org/examples.html). The command's own help pages everything: `epher --help`, `epher help`.
 
-Every installer ships the whole [script collection](https://epher.org/scripts.html) (433 ready-to-run scripts), installed beside the program. The same script, on each operating system:
+Every installer ships the whole [script collection](https://epher.org/scripts.html) (431 ready-to-run scripts), installed beside the program. The same script, on each operating system:
 
 ```sh
 # Debian, Ubuntu, Fedora (deb, rpm)

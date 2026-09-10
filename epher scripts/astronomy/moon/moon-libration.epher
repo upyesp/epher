@@ -63,7 +63,7 @@ const hr = 8.77       // hours UT (the full moon fell at 08:46)
 def w360(x) = x - 360 * floor(x / 360)
 def sym(x) = x - 360 * floor((x + 180) / 360)     // wrap into (-180, 180]
 def T(j) = (j - 2451545) / 36525
-const incl = 1.5424    // lunar equator's tilt to the ecliptic, deg - Meeus's i (ch. 53); named incl because i is reserved (guide 1.18)
+const i = 1.5424       // lunar equator's tilt to the ecliptic, deg (Meeus ch. 53)
 def eps(j) = 23.4392911 - 46.8150 * T(j) / 3600 - 0.00059 * T(j) ^ 2 / 3600 + 0.001813 * T(j) ^ 3 / 3600   // mean obliquity of date
 def Lbar(j) = w360(218.3164477 + 481267.88123421 * T(j) - 0.0015786 * T(j) ^ 2 + T(j) ^ 3 / 538841 - T(j) ^ 4 / 65194000)   // Moon's mean longitude, ch. 47
 def node(j) = 124.7746 - 1.56375588 * (j - 2451550.09766) / 29.530588861   // Moon's mean ascending node, ch. 49
@@ -77,8 +77,8 @@ def elat(j, b) = deg(asin(sin(rad(decl(b, j))) * cos(rad(eps(j))) - cos(rad(decl
 optical librations); l_s is the Sun's selenographic longitude; all
 from the vector frame described above. The small frame-tilt terms of
 order i are kept in l. */
-def bsub(j, lb, be) = deg(asin(sin(rad(incl)) * cos(rad(be)) * cos(rad(node(j) + lb)) - cos(rad(incl)) * sin(rad(be))))
-def lsub(j, lb, be) = deg(atan2(cos(rad(be)) * cos(rad(incl)) * sin(rad(lb - Lbar(j))) - sin(rad(be)) * sin(rad(incl)) * sin(rad(node(j) + Lbar(j))), cos(rad(be)) * cos(rad(lb - Lbar(j)))))
+def bsub(j, lb, be) = deg(asin(sin(rad(i)) * cos(rad(be)) * cos(rad(node(j) + lb)) - cos(rad(i)) * sin(rad(be))))
+def lsub(j, lb, be) = deg(atan2(cos(rad(be)) * cos(rad(i)) * sin(rad(lb - Lbar(j))) - sin(rad(be)) * sin(rad(i)) * sin(rad(node(j) + Lbar(j))), cos(rad(be)) * cos(rad(lb - Lbar(j)))))
 
 // ---- results ---------------------------------------------------------------------
 t = jd(year, month, day, hr)
