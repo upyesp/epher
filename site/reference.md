@@ -12,7 +12,7 @@ reference defines it exactly. Where the two appear to disagree, this
 page wins, and the disagreement is a bug worth
 [filing](https://github.com/upyesp/epher/issues).
 
-## Notation
+## 1. Notation
 
 - `code` spells a token, expression, or statement exactly as written.
 - *italic* names in the grammar name non-terminals.
@@ -23,7 +23,7 @@ page wins, and the disagreement is a bug worth
 - Every example in a code block is engine-verified: the `epher` block
   evaluates, the `text` block is what the engine answers.
 
-## Program structure
+## 2. Program structure
 
 An epher *program* (a script file, a pasted block, a piped stdin, or a
 REPL line) is a sequence of *statements* separated by `;` or by a
@@ -59,11 +59,11 @@ closing `*/` is required, and its absence is a parse error.
 A statement is one of: an assignment, a constant definition, a function
 definition, a destructuring, `if`, `while`, `for`, `solve`, `return`,
 `break`, `continue`, or an expression. The full grammar is given in
-[The complete grammar](#the-complete-grammar-ebnf).
+[The complete grammar](#15-the-complete-grammar-ebnf).
 
-## Lexical grammar
+## 3. Lexical grammar
 
-### Numbers
+### 3.1 Numbers
 
 - Decimal: digits with an optional fractional part (`3`, `3.5`, `.5`)
   and an optional decimal-exponent suffix (`2e3`, `1.5E-3`, `2e+2`).
@@ -82,7 +82,7 @@ definition, a destructuring, `if`, `while`, `for`, `solve`, `return`,
   2^53; beyond that, spelling a literal keeps at most the 53 most
   significant bits.
 
-### Strings
+### 3.2 Strings
 
 A string literal is double quotes around any run of characters. Five
 escapes exist (ADR-0064): `\n` newline, `\t` tab, `\r` carriage
@@ -100,13 +100,13 @@ line two
 quote: " backslash: \
 ```
 
-### Names
+### 3.3 Names
 
 A name starts with a letter or `_` and continues with letters, digits,
 or `_`. Letters are Unicode; `atan2`, `log10`, and `x2` are names.
 Names are case-sensitive: `G` and `g` are different constants.
 
-## Names and keywords
+## 4. Names and keywords
 
 The following words are keywords. They cannot be written where a value
 is expected, and they are recognized by exact spelling:
@@ -123,11 +123,11 @@ is an unknown-name error.
 
 One further name is reserved: `i`, the imaginary unit. It cannot be
 re-bound by assignment, by `const`, or by a destructuring pattern; see
-[Names, scope, and the session store](#names-scope-and-the-session-store).
+[Names, scope, and the session store](#8-names-scope-and-the-session-store).
 `i` is not a keyword — it resolves as a built-in constant and can be
 shadowed by nothing.
 
-## Types and values
+## 5. Types and values
 
 | Type | Written as | Examples |
 |---|---|---|
@@ -147,18 +147,18 @@ Notes:
 - Lists hold numbers, or strings — not a mix. A complex element is
   rejected at construction.
 - Matrices are reals only, stored row-major; matrix functions are in
-  the [function index](#built-in-functions).
+  the [function index](#10-built-in-functions).
 - A quantity is an SI value plus its seven base dimensions and an
-  optional display unit; see [Units](#units).
+  optional display unit; see [Units](#11-units).
 - `ans` is a normal variable the frontend rebinds after each
   computation; it holds the previous answer.
 
-The answer panel spells values as [Number display](#number-display)
+The answer panel spells values as [Number display](#12-number-display)
 defines.
 
-## Expressions and operators
+## 6. Expressions and operators
 
-### Precedence, tightest to loosest
+### 6.1 Precedence, tightest to loosest
 
 | Level | Operators | Associativity |
 |---|---|---|
@@ -183,7 +183,7 @@ defines.
 `not x > 3` is `not (x > 3)`;
 `5 & 3 == 1` is `(5 & 3) == 1`.
 
-### Arithmetic
+### 6.2 Arithmetic
 
 `+`, `-`, `*`, `/` work over reals and complex; a complex operand
 computes in complex. `/` by zero is a division error. `^` is
@@ -195,21 +195,21 @@ right-associative; `0 ^ 0` is `1`.
 - String `+` concatenates two strings; a string with a non-string is a
   type error (spell the number first with `str` or `fixed`).
 - Unit suffixes ride through `+ - * /` with dimension checking; see
-  [Units](#units).
+  [Units](#11-units).
 
-### Factorial and percent
+### 6.3 Factorial and percent
 
 `n!` is the factorial of a non-negative whole number. `x%` is exactly
 `x / 100` — a transparent suffix, so `200 + 10%` is `200.1`; the
 Casio add-on reading (`220`) is deliberately not a grammar rule.
 
-### Indexing
+### 6.4 Indexing
 
 `expr[i]` indexes a list or string, **1-based**; the index is any
 expression. A matrix indexed with one expression gives one whole row
 as a list: `m[2]` is the second row.
 
-### Comparisons
+### 6.5 Comparisons
 
 `==` and `!=` compare any two values of the same kind; `<`, `<=`,
 `>`, `>=` order numbers and strings (strings in dictionary/code-point
@@ -217,13 +217,13 @@ order). Complex values refuse ordering. Lists and matrices do not
 compare. Comparisons return booleans, and comparisons do not chain:
 `1 < 2 < 3` is a type error, not `(1 < 2) < 3`.
 
-### Booleans
+### 6.6 Booleans
 
 `and`, `or`, `not` take booleans only and produce booleans. `and` and
 `or` short-circuit: the right side is not evaluated when the left
 decides. There is no truthiness: numbers are not booleans.
 
-### Bitwise operations
+### 6.7 Bitwise operations
 
 `&`, `|`, `xor`, `~`, `<<`, `>>` take integers (whole floats, exact
 Big, integral rationals/decimals) and produce the exact result masked
@@ -231,21 +231,21 @@ to the session's word size — a signed two's-complement word of 8, 16,
 32, or 64 bits, set with `bits(w)` and defaulting to 64. Right shift
 is arithmetic; a negative shift amount reverses the direction.
 
-## Statements
+## 7. Statements
 
-### Assignment: `name = expr`
+### 7.1 Assignment: `name = expr`
 
 Evaluates the expression and binds the name in the session. Rebinding
 is allowed; binding `i` is refused (see below).
 
-### Constant definition: `const name = expr`
+### 7.2 Constant definition: `const name = expr`
 
 Binds an immutable name. Re-declaring with the *same* value succeeds —
 examples get pasted twice; a different value is a
 `constant already defined` error. Naming an existing variable is a
 `cannot define constant x: the name is already a variable` error.
 
-### Destructuring: `{a, b} = expr` (ADR-0064)
+### 7.3 Destructuring: `{a, b} = expr` (ADR-0064)
 
 The expression must be a list whose length equals the number of
 pattern names; each name binds to its position's element. `_` skips a
@@ -255,7 +255,7 @@ is recognized only when the statement *begins* with `{names} =`; a
 `{1, 2}` at the start of a line stays the list expression it always
 was.
 
-### Function definition: `def name(params) = expr` and `def name(params) do … end`
+### 7.4 Function definition: `def name(params) = expr` and `def name(params) do … end`
 
 Two body forms. `= expr` evaluates the expression in a child
 environment seeded with the arguments. `do … end` runs its statements
@@ -265,7 +265,7 @@ value is a named error. Recursion works in both forms. A call carries
 its own 100,000-step budget. Parameters shadow session values only
 inside the call.
 
-### `return`, `break`, `continue` (ADR-0064)
+### 7.5 `return`, `break`, `continue` (ADR-0064)
 
 `return expr` leaves the enclosing function now, with the value;
 `return` at top level (outside any function) is a named error.
@@ -274,19 +274,19 @@ skips to its next pass. Outside a loop both are named errors. In a
 `for` loop, a pass ended by `continue` contributes no value to the
 collected list.
 
-### `if` as a statement: `if cond then stmt` / `if cond then stmt else stmt`
+### 7.6 `if` as a statement: `if cond then stmt` / `if cond then stmt else stmt`
 
 The condition must be a boolean. Without `else`, a false condition
 produces no value — which is how a `for` loop filters: a pass whose
 body produces no value adds nothing to the loop's list.
 
-### `while cond do stmt`
+### 7.7 `while cond do stmt`
 
 Evaluates the condition (which must be a boolean) and runs the
 one-statement body until it is false, `break` fires, or the step
 budget runs out. A `while` loop produces no value.
 
-### `for name in iterable do stmt` (ADR-0054, scoped per ADR-0063)
+### 7.8 `for name in iterable do stmt` (ADR-0054, scoped per ADR-0063)
 
 Two iterable forms: a range `start to end` (optionally `step s`), or
 any expression evaluating to a list. The variable is bound per pass
@@ -294,7 +294,7 @@ and **removed afterwards**: the loop never leaves its variable in the
 session, and a binding that existed before the loop is restored after
 it. The loop's value is the list of the body's per-pass values.
 
-### `solve lhs == rhs` (ADR-0043)
+### 7.9 `solve lhs == rhs` (ADR-0043)
 
 Numeric equation solving — no CAS. The equation must use `==`. The
 unknown is `x` when `x` appears, otherwise the single other name;
@@ -302,12 +302,12 @@ constants (built-in and user) are parameters, never unknowns. Real
 roots in a wide search window are reported, as a display string:
 `solve x^2 == 9` answers `x = -3, x = 3`.
 
-### Expression statements
+### 7.10 Expression statements
 
 Any expression, typically a call. Its value, when there is one,
 becomes the statement's value.
 
-## Names, scope, and the session store
+## 8. Names, scope, and the session store
 
 Name resolution tries, in order: session variables, then session
 constants, then built-in constants, then built-in functions (a call),
@@ -332,14 +332,14 @@ built-in of the same name.
 - `save name` asks the interactive frontend to persist a function or
   constant into the store; saving a *script* is a frontend command,
   not language (see
-  [Beyond the grammar](#beyond-the-grammar-interactive-commands)).
+  [Beyond the grammar](#16-beyond-the-grammar-interactive-commands)).
 
-## Built-in constants
+## 9. Built-in constants
 
 Values are SI throughout. A name's value is fixed by the engine; a
 user `const` of the same name shadows it by the resolution order.
 
-### Mathematics
+### 9.1 Mathematics
 
 | Name | Value | Meaning |
 |---|---|---|
@@ -350,7 +350,7 @@ user `const` of the same name shadows it by the resolution order.
 | `gamma` | `0.5772156649015329` | the Euler–Mascheroni constant |
 | `i` | `0+1i (the imaginary unit)` | the imaginary unit — the one reserved name (assignment refuses it) |
 
-### Astronomy
+### 9.2 Astronomy
 
 | Name | Value | Meaning |
 |---|---|---|
@@ -370,7 +370,7 @@ user `const` of the same name shadows it by the resolution order.
 | `h_bar` | `h/tau = 1.0545718176461565e-34` | reduced Planck constant (J·s) |
 | `k_b` | `1.380649e-23` | Boltzmann constant (J/K) |
 
-### Physics
+### 9.3 Physics
 
 | Name | Value | Meaning |
 |---|---|---|
@@ -396,7 +396,7 @@ user `const` of the same name shadows it by the resolution order.
 | `m_P` | `2.176434e-8` | Planck mass (kg) |
 | `t_P` | `5.391247e-44` | Planck time (s) |
 
-### Chemistry and thermodynamics
+### 9.4 Chemistry and thermodynamics
 
 | Name | Value | Meaning |
 |---|---|---|
@@ -409,9 +409,9 @@ user `const` of the same name shadows it by the resolution order.
 
 The imaginary unit's value is the complex number with real part 0 and
 imaginary part 1; its literal spellings `i` and `4i` tokenize as
-[literals](#lexical-grammar).
+[literals](#3-lexical-grammar).
 
-## Built-in functions
+## 10. Built-in functions
 
 Every callable the engine knows, grouped by domain. Argument shapes are
 normative: `x` is a real number, `z` any number (complex allowed),
@@ -419,7 +419,7 @@ normative: `x` is a real number, `z` any number (complex allowed),
 count or kinds is a type error that names the function, e.g.
 `rad expects 1 number, got 1 argument(s)`.
 
-### Angles and logarithms
+### 10.1 Angles and logarithms
 
 | Function | Answers |
 |---|---|
@@ -431,7 +431,7 @@ count or kinds is a type error that names the function, e.g.
 | `logb(base, x)` | logarithm of `x` to the given `base` |
 | `exp(z)` | e to the `x` |
 
-### Powers, roots, rounding
+### 10.2 Powers, roots, rounding
 
 | Function | Answers |
 |---|---|
@@ -446,7 +446,7 @@ count or kinds is a type error that names the function, e.g.
 | `min(x…)`, `max(x…)` | extreme of any number of reals |
 | `gcd(a, b)`, `lcm(a, b)` | whole-number gcd and lcm |
 
-### Trigonometry (complex where the domain needs it)
+### 10.3 Trigonometry (complex where the domain needs it)
 
 | Function | Answers |
 |---|---|
@@ -456,7 +456,7 @@ count or kinds is a type error that names the function, e.g.
 | `sinh(z)`, `cosh(z)`, `tanh(z)` | hyperbolic functions |
 | `asinh(z)`, `acosh(z)`, `atanh(z)` | inverse hyperbolic functions |
 
-### Complex parts
+### 10.4 Complex parts
 
 | Function | Answers |
 |---|---|
@@ -464,7 +464,7 @@ count or kinds is a type error that names the function, e.g.
 | `arg(z)` | principal argument |
 | `conj(z)` | complex conjugate (a real passes through) |
 
-### Exact and display spellings
+### 10.5 Exact and display spellings
 
 | Function | Answers |
 |---|---|
@@ -480,7 +480,7 @@ count or kinds is a type error that names the function, e.g.
 | `str(v)` | one value spelled the way the answer panel spells it |
 | `print(v…)` | the arguments joined with spaces, as one string |
 
-### Number theory
+### 10.6 Number theory
 
 Integers the float type reaches exactly (`|n| < 2^53`).
 
@@ -496,7 +496,7 @@ Integers the float type reaches exactly (`|n| < 2^53`).
 | `ndivisors(n)` | how many whole numbers divide `n` |
 | `factors(n)` | the prime factorization, as text: `factors(360)` is `2^3 * 3^2 * 5` |
 
-### Statistics and probability
+### 10.7 Statistics and probability
 
 `L` is a list of reals; variance is population variance (divide by `n`).
 
@@ -526,7 +526,7 @@ Integers the float type reaches exactly (`|n| < 2^53`).
 | `tinterval(L, level)` | confidence interval, as text |
 | `chisq_gof(observed, expected)` | chi-square goodness of fit |
 
-### Lists, strings, matrices
+### 10.8 Lists, strings, matrices
 
 | Function | Answers |
 |---|---|
@@ -543,14 +543,14 @@ Integers the float type reaches exactly (`|n| < 2^53`).
 | `dim(M)` | `{rows, cols}` |
 | `ref(M)`, `rref(M)` | row echelon and reduced row echelon form |
 
-### Calculus (numeric)
+### 10.9 Calculus (numeric)
 
 | Function | Answers |
 |---|---|
 | `derivative(expr, at)` | 5-point central difference of `expr` at `at`; `expr` stays symbolic, and the unknown is `x` when `x` appears, else the single free name |
 | `integral(expr, a, b)` | definite integral of `expr` from `a` to `b` |
 
-### Randomness (seeded, reproducible)
+### 10.10 Randomness (seeded, reproducible)
 
 | Function | Answers |
 |---|---|
@@ -560,14 +560,14 @@ Integers the float type reaches exactly (`|n| < 2^53`).
 | `randn()` | standard normal draw (Box–Muller) |
 | `randseed(n)` | re-seed the generator and report `n`; a fresh session seeds from the clock, `randseed` makes draws reproducible |
 
-### Word size
+### 10.11 Word size
 
 | Function | Answers |
 |---|---|
 | `bits()` | the current bitwise word size (8, 16, 32, or 64) |
 | `bits(w)` | set the word size to `w` and report it |
 
-### Finance
+### 10.12 Finance
 
 Sign convention: money you pay out is negative. `r` is the rate per
 period.
@@ -585,7 +585,7 @@ period.
 | `simple_interest(p, r, t)` | `p*r*t` |
 | `compound_interest(p, r, n)` | interest earned: `p(1+r)^n − p` |
 
-### Astronomy and time
+### 10.13 Astronomy and time
 
 Bodies are whole numbers: Mercury 1 … Neptune 8, Pluto 9, Sun 10,
 Moon 11. `jd` is a Julian Date. Observer functions take terrestrial
@@ -623,9 +623,9 @@ latitude and longitude in degrees.
 
 `i` the loop variable and `i` the imaginary unit coexist inside a
 `for` loop exactly because the loop scopes its variable; see
-[Statements](#statements).
+[Statements](#7-statements).
 
-## Units
+## 11. Units
 
 A number directly followed by a unit name is a **quantity** (ADR-0046):
 the number times the unit's SI factor, carrying its dimensions.
@@ -640,7 +640,7 @@ may start a unit: `30 cm`, `5 kHz`, `3 ns`.
 dimensions: adding `2 m` to `30 cm` gives `2.3 m`; adding a metre to
 a second is a dimension error.
 
-### Prefixes
+### 11.1 Prefixes
 
 The 21 SI prefixes, as spellings before a unit: `da` (×10¹), `h` (×10²),
 `k` (×10³), `M` (×10⁶), `G` (×10⁹), `T` (×10¹²), `P` (×10¹⁵),
@@ -648,7 +648,7 @@ The 21 SI prefixes, as spellings before a unit: `da` (×10¹), `h` (×10²),
 `m` (×10⁻³), `µ` or `u` (×10⁻⁶), `n` (×10⁻⁹), `p` (×10⁻¹²),
 `f` (×10⁻¹⁵), `a` (×10⁻¹⁸), `z` (×10⁻²¹), `y` (×10⁻²⁴).
 
-### Base and derived units
+### 11.2 Base and derived units
 
 | Unit | SI factor | Dimensions |
 |---|---|---|
@@ -715,7 +715,7 @@ converted), otherwise in the SI spelling of its dimensions (`m/s^2`,
 or the exact derived name when the dimensions match one: `N`, `W`,
 `Pa`, …).
 
-## Number display
+## 12. Number display
 
 The answer panel's automatic spelling (ADR-0051):
 
@@ -730,7 +730,7 @@ The answer panel's automatic spelling (ADR-0051):
 - The display verbs (`scientific`, `engineering`, `grouped`, `fixed`,
   `bin`, `oct`, `hex`) return text, ready to `print` or `join`.
 
-## Errors
+## 13. Errors
 
 An error stops evaluation of the statement in progress; in a script
 the whole run stops and the exit carries the message. Error classes,
@@ -749,7 +749,7 @@ with the verbatim shape of each message:
 | Limits | the step budget exhausted; `for runs at most 100000 iterations, got 100001` |
 | Dimension | `cannot add m and s` (dimension mismatch); `cannot take the square root of 2 m: the dimensions do not divide evenly` |
 
-## Limits and determinism
+## 14. Limits and determinism
 
 - **Step budget**: every program run carries a 100,000-step budget;
   each function call gets its own fresh budget. Exhausting it stops
@@ -763,7 +763,7 @@ with the verbatim shape of each message:
 - **Display**: 12 significant digits, fractions only through
   denominator 1000.
 
-## The complete grammar (EBNF)
+## 15. The complete grammar (EBNF)
 
 The grammar is written in EBNF, the Extended Backus–Naur Form. Each rule
 names a construct and says how it is built: `,` joins parts in sequence,
@@ -838,7 +838,7 @@ Grammar notes the EBNF cannot say:
 - Number literals absorb an `i` suffix into an imaginary token; based
   literals (`0b`, `0o`, `0x`) too.
 
-## Beyond the grammar: interactive commands
+## 16. Beyond the grammar: interactive commands
 
 The language is what this page defines. The frontends add **commands**
 around it, recognized before the parser sees the line; they are
