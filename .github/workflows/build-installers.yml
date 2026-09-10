@@ -27,6 +27,7 @@
 #   epher-lsp-linux-aarch64.gz
 #   epher-lsp-macos-aarch64.gz      stripped, ad-hoc signed
 #   epher-lsp-windows-x86_64.zip    zip with the exe at the archive root
+#   epher-vscode.vsix               the VS Code extension (stable name)
 #
 # Callers (ADR-0062):
 #   - release.yml — a public vX.Y.Z tag push: builds the tag, then the
@@ -313,4 +314,57 @@ jobs:
         with:
           name: desktop-${{ matrix.target }}
           path: artifacts
+          if-no-files-found: error
+
+  vscode:
+    # The VS Code pilot extension (ADR-0066), packaged for the release
+    # and the staging draft. Marketplace publication is deliberately
+    # out of scope until the extensions are proven: the releases page
+    # is the distribution, and the website page links this asset. The
+    # version rides the release train: the extension resolves
+    # releases/download/v<its own version>/ for the server, so the
+    # packaged version must equal what the CLI reports.
+    name: vscode extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Resolve the release version
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -e
+          if [ "$VERSION" = "auto" ]; then
+            VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          fi
+          echo "VERSION=${VERSION#v}" >> "$GITHUB_ENV"
+      - name: Build and package
+        shell: bash
+        run: |
+          set -e
+          cd clients/vscode
+          npm ci --no-audit --no-fund
+          npm version --no-git-tag-version "$VERSION"
+          npm run compile
+          npx --yes @vscode/vsce@3.9.2 package --allow-missing-repository \
+            --out epher-vscode.vsix
+      - name: Smoke-test the package
+        shell: bash
+        run: |
+          set -e
+          python3 - <<'PY'
+          import zipfile
+          z = zipfile.ZipFile("clients/vscode/epher-vscode.vsix")
+          names = z.namelist()
+          assert "extension/out/extension.js" in names, sorted(names)[:20]
+          assert any("vscode-languageclient" in n for n in names), \
+            "the client library did not ship"
+          print("vsix ok:", len(names), "files")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension
+          path: clients/vscode/epher-vscode.vsix
           if-no-files-found: error

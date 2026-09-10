@@ -1,40 +1,22 @@
 <!DOCTYPE html>
 <!--
-  epher Scripts page. Built by scripts/build-scripts.mjs from the
-  index.html chrome: header, docs nav, theme, i18n catalogs + app.js.
-  The browser (scripts.js) fetches scripts-data.json, which the same
-  builder writes from the `epher scripts` folder of the repository.
-  -->
-<!--
-  - Languages: en, zh-CN, hi, es, fr, ar, de, pt; auto-detected, stored preference,
-    English fallback (mirrors the Localizer in crates/i18n; see app.js).
-    The catalogs live in i18n/<lang>.js (loaded before app.js).
-  - Themes: light/dark, defaults to the device preference, toggle persisted.
-  - Accessibility: WCAG 2.2 AA (see docs/accessibility.md). The visible
-    (English) text is the noscript fallback; app.js swaps in the other
-    locales. lang/dir must match the active locale (3.1.1, RTL for ar).
-  - Navigation: the header collapses into a disclosure (hamburger) menu
-    below 880px (WAI-ARIA APG disclosure pattern: aria-expanded, Escape
-    closes, links hidden from the tab order when closed). The Docs item
-    is a disclosure button with its own menu (User guide, Examples,
-    Scripts); it works the same way at every width.
+  epher IDE Extensions page: the editor story (ADR-0066). One shared
+  language server (epher-lsp) per platform, thin extensions on top;
+  today the VS Code pilot, with the release assets linked for any LSP
+  client. Chrome and i18n like features.html; the strings are the
+  nav-ide / ide-* catalog keys.
 -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>epher... ephemeris: a scriptable, graphing calculator</title>
-  <meta
-    name="description"
-    content="epher... ephemeris: a scriptable, graphing calculator. Command line, terminal UI, desktop app, and offline web app. Graphs in 2D and 3D, exact numerics, eight languages, no accounts."
-  />
+  <title>IDE Extensions: epher</title>
+  <meta name="description" content="epher in your editor: the shared epher-lsp language server brings live diagnostics, inline answers, hover signatures, completion, snippets, and unit-aware coloring to VS Code and any LSP client." />
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141416" />
   <link rel="icon" href="icon.svg?v=3" type="image/svg+xml" />
   <link rel="stylesheet" href="styles.css" />
   <script>
-    // Apply the stored (or device-default) theme and the stored language
-    // before first paint, so there is no flash of the wrong theme/locale.
     (function () {
       try {
         var theme = localStorage.getItem("epher-theme");
@@ -58,8 +40,6 @@
   </script>
   <noscript>
     <style>
-      /* without JavaScript the disclosure button cannot work: show the
-         links as a plain stacked row instead (progressive enhancement) */
       .menu-toggle { display: none; }
       .docs-toggle { display: none; }
       .site-nav { display: flex !important; flex-direction: column; position: static;
@@ -70,7 +50,7 @@
     </style>
   </noscript>
 </head>
-<body>
+<body class="page-ide">
   <a class="skip-link" href="#main" data-i18n="skip-link">Skip to content</a>
 
   <header class="site-header">
@@ -88,13 +68,12 @@
         <div class="docs-menu" id="docs-menu" hidden>
           <a href="guide/en/" data-i18n="guide" data-i18n-href="guide">User guide</a>
           <a href="examples.html" data-i18n="nav-examples">Examples</a>
-          <a href="scripts.html" aria-current="page" data-i18n="nav-scripts">Scripts</a>
-        
+          <a href="scripts.html" data-i18n="nav-scripts">Scripts</a>
           <a href="reference/" data-i18n="reference">Language reference</a>
         </div>
       </div>
       <a href="features.html" data-i18n="nav-features">Features</a>
-      <a href="ide.html" data-i18n="nav-ide">IDE Extensions</a>
+      <a href="ide.html" aria-current="page" data-i18n="nav-ide">IDE Extensions</a>
       <a href="privacy.html" data-i18n="nav-privacy">Privacy</a>
       <a class="gh-link" href="https://github.com/upyesp/epher" data-i18n="source-link">
         Source code
@@ -102,7 +81,6 @@
     </nav>
     <div class="header-controls">
       <button type="button" id="theme-toggle" class="icon-btn" aria-pressed="false">
-        <!-- the visible label names the theme the button switches TO -->
         <svg class="icon-moon" aria-hidden="true" viewBox="0 0 24 24">
           <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" />
         </svg>
@@ -133,20 +111,104 @@
   </header>
 
   <main id="main">
-    <article class="prose scripts-page">
-      <h1 data-i18n="scripts-title">Scripts</h1>
-      <p class="lede" data-i18n="scripts-lede">Ready-to-run scripts for the epher calculator, organized by field and topic. Open a folder to browse, click a script to read it, and copy any script to the clipboard.</p>
-      <div class="scripts-toolbar">
-        <label for="scripts-search" data-i18n="scripts-search">Search scripts (names and content)</label>
-        <input id="scripts-search" type="search" autocomplete="off" spellcheck="false" />
-      </div>
-      <nav id="scripts-crumbs" class="scripts-crumbs" aria-label="Path"></nav>
-      <div id="scripts-browser" class="scripts-browser"></div>
-      <noscript>
-        <p class="note">The scripts browser needs JavaScript. The same
-        scripts live in the repository folder
-        <code>epher scripts/</code> on GitHub.</p>
-      </noscript>
+    <article class="prose">
+      <h1 data-i18n="ide-title">IDE Extensions</h1>
+      <p data-i18n="ide-lede">
+        Write epher in your editor: a language server checks every
+        statement as you type, shows each answer next to its line, and
+        completes names from the catalog.
+      </p>
+
+      <h2 data-i18n="ide-how-title">One server, every editor</h2>
+      <p data-i18n="ide-how-p">
+        Every extension shares one program, epher-lsp: a small language
+        server with the whole epher engine compiled in. The extension
+        is a thin shell: on first use it downloads the server for your
+        platform from the releases page and caches it. Everything runs
+        on your machine; nothing is sent anywhere.
+      </p>
+
+      <h2 data-i18n="ide-features-title">What the editor gets</h2>
+      <ul>
+        <li><strong data-i18n="ide-f1-title">Live diagnostics</strong>:
+          <span data-i18n="ide-f1-desc">Syntax errors point at the exact token, and evaluation errors carry the same message the calculator shows.</span></li>
+        <li><strong data-i18n="ide-f2-title">Answers inline</strong>:
+          <span data-i18n="ide-f2-desc">Each statement's result renders next to its line: `x = 40 + 2` shows `= 42`.</span></li>
+        <li><strong data-i18n="ide-f3-title">Hover signatures</strong>:
+          <span data-i18n="ide-f3-desc">Hover a name for its canonical signature and description; your own constants show their current values.</span></li>
+        <li><strong data-i18n="ide-f4-title">Completion and snippets</strong>:
+          <span data-i18n="ide-f4-desc">Catalog names, your own definitions, keywords, and snippets for the common statement shapes.</span></li>
+        <li><strong data-i18n="ide-f5-title">Unit-aware coloring</strong>:
+          <span data-i18n="ide-f5-desc">Semantic tokens color unit suffixes by meaning: the `m` in `2 m` is a unit, not a variable.</span></li>
+      </ul>
+
+      <h2 data-i18n="ide-vscode-title">VS Code</h2>
+      <p data-i18n="ide-vscode-p1">
+        Download `epher-vscode.vsix` from the releases page, then
+        install it: Extensions view, the ⋯ menu, Install from VSIX.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest" data-i18n="ide-vscode-link">Download epher-vscode.vsix from the releases page</a>
+      </p>
+      <p data-i18n="ide-vscode-p2">
+        On first use the extension downloads the server for your
+        platform (Windows x86_64, Linux x86_64 and ARM64, or macOS
+        Apple silicon) and needs the network once; after that,
+        everything is local. Open a `.epher` file and the answers
+        appear.
+      </p>
+
+      <h2 data-i18n="ide-editors-title">Other editors</h2>
+      <p data-i18n="ide-editors-p">
+        More extensions are planned in this order: JetBrains, Zed,
+        then Neovim, Vim, and Sublime as ready-made configs, and
+        Visual Studio last.
+      </p>
+
+      <h2 data-i18n="ide-manual-title">Any LSP client</h2>
+      <p data-i18n="ide-manual-p">
+        The server speaks the Language Server Protocol over stdio, so
+        any LSP client works. Download the binary for your platform
+        from the releases page, uncompress it, and point your editor's
+        client at it:
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col" data-i18n="ide-th-platform">Platform</th>
+            <th scope="col" data-i18n="ide-th-asset">Release asset</th>
+            <th scope="col" data-i18n="ide-th-binary">After extracting</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Windows (x86_64)</td>
+            <td><code>epher-lsp-windows-x86_64.zip</code></td>
+            <td><code>epher-lsp.exe</code></td>
+          </tr>
+          <tr>
+            <td>macOS (Apple silicon)</td>
+            <td><code>epher-lsp-macos-aarch64.gz</code></td>
+            <td><code>epher-lsp</code></td>
+          </tr>
+          <tr>
+            <td>Linux (x86_64)</td>
+            <td><code>epher-lsp-linux-x86_64.gz</code></td>
+            <td><code>epher-lsp</code></td>
+          </tr>
+          <tr>
+            <td>Linux (ARM64)</td>
+            <td><code>epher-lsp-linux-aarch64.gz</code></td>
+            <td><code>epher-lsp</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <p data-i18n="ide-manual-p2">
+        Check the install with `epher-lsp --version`.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest" data-i18n="ide-download">Everything is on the releases page.</a>
+      </p>
     </article>
   </main>
 
@@ -164,9 +226,8 @@
           <li><a href="examples.html" data-i18n="nav-examples">Examples</a></li>
           <li><a href="scripts.html" data-i18n="nav-scripts">Scripts</a></li>
           <li><a href="reference/" data-i18n="reference">Language reference</a></li>
-          <li><a href="reference/" data-i18n="reference">Language reference</a></li>
           <li><a href="features.html" data-i18n="nav-features">Features</a></li>
-          <li><a href="ide.html" data-i18n="nav-ide">IDE Extensions</a></li>
+          <li><a href="ide.html" aria-current="page" data-i18n="nav-ide">IDE Extensions</a></li>
           <li><a href="privacy.html" data-i18n="nav-privacy">Privacy</a></li>
         </ul>
       </nav>
@@ -189,7 +250,5 @@
   <script src="i18n/de.js"></script>
   <script src="i18n/pt.js"></script>
   <script src="app.js"></script>
-<p class="visually-hidden" id="copy-status" role="status"></p>
-  <script src="scripts.js"></script>
 </body>
 </html>

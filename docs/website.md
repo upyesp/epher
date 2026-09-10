@@ -18,6 +18,7 @@ main` pull request + version tag) moves anything live.
 | `/examples.html` | Copyable examples (CLI, REPL, app) | `scripts/build-examples.mjs` → built |
 | `/scripts.html` | The scripts browser (the `epher scripts` repository) | `scripts/build-scripts.mjs` → built |
 | `/reference/` | The language reference — the formal, normative definition of epher (English only; the guide teaches, the reference specifies) | `site/reference.md` → `scripts/build-reference.mjs` → built |
+| `/ide.html` | IDE Extensions: the editor story (ADR-0066), the shared language server, the VS Code pilot, and the release assets | `site/ide.html` (static HTML/CSS/JS, committed) |
 | `/pwa/` | The web app (PWA, offline-first) | `crates/web/dist` (built by trunk in CI) |
 | GitHub Releases | unified platform installers (ADR-0011) | built by `.github/workflows/release.yml` |
 
@@ -95,8 +96,9 @@ links never need a version number.
   Escape and outside clicks close it, and the `<noscript>` style shows
   its links stacked.
 - **Pages**: `/` (landing: hero, features, downloads), `/privacy.html`,
-  `/examples.html`, `/scripts.html` — the same header/footer chrome,
-  content strings under `privacy-*` / `ex-*` / `scripts-*` keys. The
+  `/examples.html`, `/scripts.html`, `/ide.html` — the same
+  header/footer chrome, content strings under `privacy-*` / `ex-*` /
+  `scripts-*` / `ide-*` keys. The
   guide pages share the header chrome via `scripts/build-guide.mjs`
   (labels in its `CHROME` map) with the same disclosure-nav script
   inlined.
