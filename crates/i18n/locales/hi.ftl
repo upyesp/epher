@@ -402,15 +402,6 @@ key-hint-lbrace = मानों की सूची खोलें
 key-hint-rbrace = सूची बंद करें
 key-hint-quote = पाठ आरंभ या समाप्त करें
 key-hint-str = मान का पाठ रूप: str(1/3) = 1/3
-key-hint-upper = टेक्स्ट का बड़ा-अक्षर रूप: upper("abc") = ABC
-key-hint-lower = टेक्स्ट का छोटा-अक्षर रूप: lower("ABC") = abc
-key-hint-trim = सिरे की खाली जगह हटा कर टेक्स्ट
-key-hint-substr = टेक्स्ट का अंश: substr("hello", 2, 3) = ell
-key-hint-split = हर विभाजक पर टेक्स्ट को सूची में तोड़ता है: split("a,b", ",") = a, b
-key-hint-join = सूची को एक टेक्स्ट में जोड़ता है: 1 और 2 को "-" से जोड़ने पर 1-2
-key-hint-find = एक टेक्स्ट दूसरे में कहाँ है, 1 से गिनती; न हो तो 0
-key-hint-replace = हर पुराने की जगह नया टेक्स्ट: replace("2026-09", "-", "/") = 2026/09
-key-hint-fixed = निश्चित दशमलवों वाली संख्या-टेक्स्ट: fixed(3.1, 2) = 3.10
 key-hint-quadreg = द्विघात फिट: quadreg(xs, ys)
 key-hint-expreg = घातांकीय फिट: expreg(xs, ys)
 key-hint-powreg = घात फिट: powreg(xs, ys)

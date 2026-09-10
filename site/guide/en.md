@@ -250,8 +250,6 @@ x = x + 1
 > Names can contain letters and underscores, like `radius` or `my_total`.
 > They cannot contain spaces or start with a number.
 
-One name is reserved: `i`, the imaginary unit (section 1.18).
-
 The special variable `ans` always holds the previous answer, like the
 `Ans` key on a pocket calculator, handy for chained calculations:
 
@@ -263,30 +261,6 @@ ans * 2
 ```text
 5
 10
-```
-
-One list can fill several names at once — `{a, b} = list` takes a list
-apart, left to right (section 1.11 shows functions that hand back more
-than one answer this way):
-
-```epher
-{a, b} = {10, 20}; a + b
-```
-
-```text
-{10, 20}
-30
-```
-
-A position you do not want is written `_`:
-
-```epher
-{x, _} = {7, 8}; x
-```
-
-```text
-{7, 8}
-7
 ```
 
 ### 1.6 Constants: names that never change
@@ -364,14 +338,13 @@ function (chapter 4.4).
 
 ### 1.7 Strings and print
 
-A string is text in double quotes: `"hello"`. Strings concatenate with `+`, compare with `==` and `!=`, order with `<` and `>` (dictionary order), count with `len`, and index 1-based like lists:
+A string is text in double quotes: `"hello"`. Strings concatenate with `+`, compare with `==` and `!=`, count with `len`, and index 1-based like lists:
 
 ```epher
 "hello" + " " + "world"
 len("hello")
 "hello"[1]
 "abc" == "abd"
-"apple" < "banana"
 ```
 
 ```text
@@ -379,24 +352,9 @@ hello world
 5
 h
 false
-true
 ```
 
-A backslash inside a string starts an **escape**: `\n` is a new line, `\t`
-a tab, and `\\` and `\"` are the backslash and the quote themselves — so a
-string can contain a double quote:
-
-```epher
-s = "say \"hi\""
-len("a\nb")
-```
-
-```text
-say "hi"
-3
-```
-
-**str(x)** spells one value the way the answer panel would, and **print(a, b, …)** joins its arguments with spaces into one line:
+There are no escape sequences: a string cannot contain a double quote. **str(x)** spells one value the way the answer panel would, and **print(a, b, …)** joins its arguments with spaces into one line:
 
 ```epher
 print("x =", 42)
@@ -404,34 +362,6 @@ print("x =", 42)
 
 ```text
 x = 42
-```
-
-A small library covers the rest of report writing. **upper** and **lower**
-change case, **trim** strips spaces from the ends, **substr** takes a piece
-(1-based, like every index), **find** reports where a text appears (0 when
-it does not), **replace** swaps every copy of one text for another,
-**split** breaks a text into a list at a separator, **join** glues a list
-into one text, and **fixed** spells a number with exactly as many decimal
-places as you ask — the zero a report wants, kept:
-
-```epher
-upper("hello")
-substr("2026-09-17", 1, 4)
-find("hello world", "world")
-replace("2026-09-17", "-", "/")
-split("a,b,c", ",")
-join({1, 2, 3}, "-")
-fixed(3.1, 2)
-```
-
-```text
-HELLO
-2026
-7
-2026/09/17
-{a, b, c}
-1-2-3
-3.10
 ```
 
 ### 1.8 Decisions with if
@@ -484,9 +414,6 @@ show x.* The result is 5 because the loop ran five times.
 > `error: step limit exceeded`. That protects you from loops that would
 > never end. If you see it, your condition probably never became false.
 
-A loop can also be left on purpose: the next section adds `break` and
-`continue`, and a function adds `return` (section 1.11).
-
 ### 1.10 Loops with for
 
 `for` repeats a statement once per value, collecting the body's values into a list: over a range `start to end` (inclusive) with an optional `step`, or over the elements of a list:
@@ -503,7 +430,7 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-The loop variable is scoped to the loop: afterwards the name means what it meant before (so a loop over `i` never disturbs the imaginary unit), while assignments to other names inside the body persist. With print, a loop writes readable lines:
+The loop variable keeps its last value afterwards, like TI's For. With print, a loop writes readable lines:
 
 ```epher
 for i in 1 to 3 do print("line", i)
@@ -514,36 +441,6 @@ for i in 1 to 3 do print("line", i)
 ```
 
 The same 100,000-step safety net bounds a for loop as a while.
-
-**Leaving a loop early.** `break` stops the loop on the spot; the values
-collected so far are the loop's answer. `continue` skips the rest of the
-pass and moves to the next value. Both are statements, so they sit behind
-an `if`:
-
-```epher
-for k in 1 to 6 do if mod(k, 2) == 1 then k
-for k in 1 to 10 do if k == 4 then break else k
-total = 0
-for k in 1 to 6 do if mod(k, 2) == 0 then continue else total = total + k
-total
-```
-
-```text
-{1, 3, 5}
-{1, 2, 3}
-0
-{1, 4, 9}
-9
-```
-
-Read the middle one as: for k from 1 to 10, if k is 4 stop; otherwise hand
-back k. The loop's answer is the values it saw before it stopped. The last
-pair shows `continue` counting: the for line's collected list is the
-running total - 1, then 4, then 9 - and the even passes were skipped, so
-they added nothing. The final `total`, 9, is the sum of the odd values. An
-`if` without an `else` contributes nothing when its condition is false,
-which is how the first loop keeps only the odd values, and how a loop can
-*filter* a list as well as transform it.
 
 
 ### 1.11 Your own functions with def
@@ -586,68 +483,6 @@ answer()
 42
 ```
 
-**A body with several steps.** When one expression is not enough, give the
-function a `do … end` body. The statements run one after another in order,
-and the last one's value is the answer:
-
-```epher
-def hyp(a, b) do
-  c = a ^ 2 + b ^ 2
-  sqrt(c)
-end
-hyp(3, 4)
-```
-
-```text
-5
-```
-
-The intermediate name `c` lives inside the call; it is not visible outside,
-and two calls do not see each other's `c`.
-
-**return: answer now.** `return value` answers immediately and skips the
-rest of the body — the natural shape for a choice with an early exit:
-
-```epher
-def grade(s) do
-  if s >= 90 then return "A"
-  if s >= 80 then return "B"
-  "C"
-end
-grade(95); grade(85); grade(40)
-```
-
-```text
-A
-B
-C
-```
-
-`return` also leaves a loop that is searching, the moment it finds:
-
-```epher
-def firstsq(xs) do
-  for x in xs do
-    if x ^ 0.5 == floor(x ^ 0.5) then return x
-  0
-end
-firstsq({3, 5, 9, 11}); firstsq({3, 5, 7})
-```
-
-```text
-9
-0
-```
-
-One rule keeps the blocks readable: the `end` always closes the function's
-do — an `if`, `for`, or `while` takes no `end`. A body that ends without an
-answer (say, every path returned nothing) is an error, not a silence:
-epher says so and names the function.
-
-> **More than one answer?** Give back a list — and name it in one move
-> with the destructuring from section 1.5:
-> `{mean, sd} = {4, 1.6}`.
-
 ### 1.12 Recursion: a function that calls itself
 
 The most famous example is the Fibonacci numbers:
@@ -668,10 +503,8 @@ fib(10)
 smaller arguments until it reaches `n <= 1`. This works because the
 `if ... then ... else ...` form only calculates the branch it needs.
 
-> A function's body is one expression after `=`, or a `do … end` block
-> of several statements with `return` for early exits (section 1.11).
-> Combine several calculations in a script instead (next section) when
-> no function is needed.
+> A function's body is a single expression, one line. Combine several
+> calculations with `;` in a script instead (next section).
 
 ### 1.13 Scripts: several statements at once
 
@@ -1030,15 +863,10 @@ not know, so you can fix your expression.
 | Variable | `name = value` | `x = 5` |
 | Constant | `const name = value` | `const tax = 0.2` |
 | Decision | `if c then a else b` | `if x > 0 then 1 else -1` |
-| Choose statements | `if c then stmt [else stmt]` | `if k == 4 then break` |
 | Loop | `while c do statement` | `while x < 5 do x = x + 1` |
 | For loop | `for i in a to b step s do stmt` | `for i in 1 to 5 do i^2` |
-| Leave / skip a loop | `break`, `continue` | `if k == 4 then break` |
-| Function | `def name(params) = expr` or `do … end` | `def f(x) = x ^ 2` |
-| Answer now | `return value` | `if ok then return x` |
-| Several names | `{a, b} = list` (`_` skips) | `{m, sd} = stats(d)` |
-| Strings | `"..."`, `+` joins, `s[i]`, `==`, `<` | `"a" + "b"` |
-| String library | `upper` `lower` `trim` `substr` `split` `join` `find` `replace` `fixed` | `split("a,b", ",")` |
+| Function | `def name(params) = expr` | `def f(x) = x ^ 2` |
+| Strings | `"..."`, `+` joins, `s[i]`, `==` | `"a" + "b"` |
 | Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Script | statements joined with `;` or newlines | `x = 1; x + 1` |
 | Exact fraction | `frac(n, d)` | `frac(1, 3)` |
@@ -1100,8 +928,6 @@ sqrt(-1)
 -1
 i
 ```
-
-Unlike every other built-in name, `i` cannot be reused: `i = 5` is refused, so the imaginary unit can never be shadowed - not by an assignment, not by an old saved session.
 
 Write a complex number with the `i` suffix, no multiplication sign
 needed: `3 + 4i` is one literal, `2.5i` works, and so do the based
@@ -1840,9 +1666,6 @@ Sun 10, Moon 11 (Earth is 3, the observer, never a target).
 | `mag(b, jd)` | apparent magnitude |
 | `phase(b, jd)`, `illum(b, jd)` | phase angle (degrees) and illuminated fraction |
 | `diam(b, jd)` | angular diameter (degrees) |
-| `satx(5, s, jd)`, `saty(5, s, jd)`, `satz(5, s, jd)` | a moon of Jupiter (s 1-4: Io, Europa, Ganymede, Callisto) or Saturn (s 1-8: Mimas, Enceladus, Tethys, Dione, Rhea, Titan, Hyperion, Iapetus), in the planet's radii (x west, y north, z toward you) |
-| `satsep(5, s, jd)` | the moon's separation from the planet's centre, in arcseconds |
-| `satphen(5, s, jd)` | the moon's state: 0 visible, 1 transit, 2 occulted, 3 in eclipse, 4 shadow transit |
 
 ```epher
 decl(10, jd(2000, 6, 21, 1.8))
@@ -2060,44 +1883,11 @@ roughly 5000 years around the present.
 
 ### 1.30 Finance
 
-epher speaks money as well as it speaks astronomy: a time-value-of-money
-solver, loan amortization, interest, and cash-flow analysis, all working
-offline. Everything in this section returns plain numbers — not currency
-strings — so the answers are currency-agnostic and flow straight back
-into arithmetic. Rates are always per period as a fraction: `0.08/12` is
-an 8% annual rate billed monthly, and `0.01` is 1% (the `%` postfix from
-1.2 works too: `6 * 100%` is 0.06).
-
-**The sign convention.** The solver follows the calculator standard
-(TI): money you pay out is negative, money you receive is positive. For
-a loan you took, the payout is negative and the payments are positive;
-for a savings plan, the deposits are negative and the nest egg you
-collect is positive. A consistent set of five fields makes the balance
-zero:
-
-```text
-pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0
-```
-
-Mixing the signs up (both the loan and the payments negative) reads as
-"the money never balances", and the solver answers with a domain error
-rather than a nonsense number.
-
-**The time-value-of-money solver.** Five functions solve for one field
-given the other four. `n` is the number of periods, `i` the per-period
-rate, `pv` the present value, `pmt` the payment, `fv` the value at the
-end:
-
-| Function | Answers |
-|---|---|
-| `tvm_pmt(n, i, pv, fv)` | the payment |
-| `tvm_n(i, pv, pmt, fv)` | the number of periods |
-| `tvm_i(n, pv, pmt, fv)` | the per-period rate |
-| `tvm_pv(n, i, pmt, fv)` | the present value |
-| `tvm_fv(n, i, pv, pmt)` | the future value |
-
-The classic 8% mortgage: 360 monthly payments of 733.76 against a
-100,000 loan:
+The time-value-of-money solver (TI sign convention: money out is
+negative, money in positive) solves any one of the five fields given
+the other four. `i` is the per-period rate as a fraction — 0.01 is 1%
+— and the optional last argument is the payment timing: 0 for end of
+period (the default), 1 for beginning (annuity due).
 
 ```epher
 tvm_pmt(360, 0.08/12, -100000, 0)
@@ -2107,19 +1897,9 @@ tvm_pmt(360, 0.08/12, -100000, 0)
 733.764573879
 ```
 
-The lifetime interest is the payments times their count minus the
-loan:
-
-```epher
-tvm_pmt(360, 0.08/12, -100000, 0) * 360 - 100000
-```
-
-```text
-164155.246597
-```
-
-`tvm_i` reads the rate back out of a quoted payment (just under 8%/12,
-because 733.76 is rounded):
+The classic 8% mortgage: 360 monthly payments of 733.76 against a
+100,000 loan — `tvm_pmt` is the payment, `tvm_pv` the loan, `tvm_fv`
+the balance, `tvm_n` the term, and `tvm_i` the rate:
 
 ```epher
 tvm_i(360, -100000, 733.76, 0)
@@ -2129,160 +1909,9 @@ tvm_i(360, -100000, 733.76, 0)
 0.00666661199068
 ```
 
-`tvm_n` answers "how long". Paying 900 a month instead of the minimum:
-
-```epher
-tvm_n(0.08/12, -100000, 900, 0)
-```
-
-```text
-203.163223431
-```
-
-About 203 months instead of 360. And the bank's own quote checks out:
-a 100,000 loan at 5% quoting 536.82 a month really is 30 years:
-
-```epher
-tvm_n(0.05/12, 100000, -536.82, 0)
-```
-
-```text
-360.002521488
-```
-
-(Note the signs flipped: here the loan is money received, so it is
-positive and the payments are negative.)
-
-`tvm_fv` grows a savings plan: 200 a month for 40 years at 6%:
-
-```epher
-tvm_fv(480, 0.06/12, 0, -200)
-```
-
-```text
-398298.146866
-```
-
-`tvm_pv` prices a stream of payments: what a fund must hold today to
-pay 1,500 a month for 20 years at 5%:
-
-```epher
-tvm_pv(240, 0.05/12, 1500, 0)
-```
-
-```text
--227287.969611
-```
-
-The answer is negative because buying the fund is money out today. The
-other direction — how much to put aside each month to reach a goal —
-asks `tvm_pmt` with the goal as `fv`: 50,000 in ten years at 5% costs
-322 a month:
-
-```epher
-tvm_pmt(120, 0.05/12, 0, -50000)
-```
-
-```text
-321.994242862
-```
-
-Every one of the five takes an optional last argument `begin`: 0 means
-payments fall at the end of each period (the default), 1 at the
-beginning (an annuity due — rent, most salaries). Beginning-of-period
-payments earn interest one period longer, so the mortgage payment is a
-little lower:
-
-```epher
-tvm_pmt(360, 0.08/12, -100000, 0, 1)
-```
-
-```text
-728.90520584
-```
-
-The rate search caps at 100% per period and the term search at ten
-million periods; a problem outside those ranges (or a sign pattern
-that never balances) reports a domain error naming what it tried.
-
-**Amortization.** `amort(p, r, n, k)` is the remaining balance after k
-payments of an n-period loan of p at rate r — 0 periods in is the
-principal, all n is zero:
-
-```epher
-amort(100000, 0.08/12, 360, 120)
-```
-
-```text
-87724.7039064
-```
-
-After ten years of the 8% mortgage, 87,725 still owed. A loop (1.10)
-turns that into the amortization schedule, one line every five years:
-
-```epher
-for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
-```
-
-```text
-{100000, 95069.8567174, 87724.7039064, 76781.5595143, 60477.9628062, 36188.1192209, 0}
-```
-
-**Interest.** `simple_interest(p, r, t)` is `p*r*t` and
-`compound_interest(p, r, n)` is `p*(1+r)^n - p` — both answer the
-interest earned, not the balance:
-
-```epher
-simple_interest(1000, 0.05, 2)
-```
-
-```text
-100
-```
-
-```epher
-compound_interest(1000, 0.05, 2)
-```
-
-```text
-102.5
-```
-
-The balance itself is plain arithmetic, which is the point of plain
-numbers:
-
-```epher
-1000 * 1.05 ^ 2
-```
-
-```text
-1102.5
-```
-
-Two everyday rates built the same way. The effective annual rate of a
-6% nominal rate compounded monthly, and the rule of 72's doubling
-time at 6%:
-
-```epher
-(1 + 0.06/12) ^ 12 - 1
-```
-
-```text
-0.0616778118645
-```
-
-```epher
-72 / (6 * 100%)
-```
-
-```text
-12
-```
-
-**Cash-flow analysis.** `npv(r, flows)` discounts a cash-flow list at
-rate r: `flows[1]` is the outlay today, the rest arrive one period
-apart. `irr(flows)` finds the rate where the net present value is
-zero. Pay 100 today, receive 60 in each of the next two years:
+The rate here is just under 8%/12 because 733.76 is rounded. `npv(r,
+flows)` discounts a cash-flow list and `irr(flows)` finds the rate
+where the net present value is zero:
 
 ```epher
 npv(0.1, {-100, 60, 60})
@@ -2292,56 +1921,9 @@ npv(0.1, {-100, 60, 60})
 500/121
 ```
 
-```epher
-irr({-100, 60, 60})
-```
-
-```text
-0.130662386292
-```
-
-The investment earns 13.07%. (`500/121` is epher's exact-fraction
-display, 1.14, showing the value whose decimal repeats; `dec(500/121)`
-spells it as 4.13223140496.) The decision rule: take the project when
-`npv` at your hurdle rate is positive, that is, when `irr` beats the
-hurdle. At a 15% hurdle this one fails:
-
-```epher
-npv(0.15, {-100, 60, 60})
-```
-
-```text
--1300/529
-```
-
-A flow list whose entries never change sign has no meaningful rate;
-`irr` reports a domain error for those.
-
-**Everyday one-liners.** The compound annual growth rate of an
-investment that went 1,000 → 2,400 in five years, and the real return
-of a 7% nominal return against 2% inflation (the exact-fraction display
-again; `dec(5/102)` is 0.0490196078431):
-
-```epher
-(2400/1000) ^ (1/5) - 1
-```
-
-```text
-0.191357898167
-```
-
-```epher
-1.07 / 1.02 - 1
-```
-
-```text
-5/102
-```
-
-The script collection ships 42 ready-made finance scripts building on
-these ten functions — four folders: interest, investing, loans, and
-savings — each with a transcript verified against the engine
-(scripts.html lists them with one-line summaries).
+`amort(p, r, n, k)` is the remaining balance after k payments of an
+n-period loan, `simple_interest(p, r, t)` is `p*r*t`, and
+`compound_interest(p, r, n)` is `p*(1+r)^n - p`.
 ## 2. The web app (PWA)
 
 ### 2.1 Opening it

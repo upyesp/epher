@@ -17,7 +17,6 @@ main` pull request + version tag) moves anything live.
 | `/guide/<lang>/` | User guide, eight languages | `site/guide/<lang>.md` → built |
 | `/examples.html` | Copyable examples (CLI, REPL, app) | `scripts/build-examples.mjs` → built |
 | `/scripts.html` | The scripts browser (the `epher scripts` repository) | `scripts/build-scripts.mjs` → built |
-| `/reference/` | The language reference — the formal, normative definition of epher (English only; the guide teaches, the reference specifies) | `site/reference.md` → `scripts/build-reference.mjs` → built |
 | `/pwa/` | The web app (PWA, offline-first) | `crates/web/dist` (built by trunk in CI) |
 | GitHub Releases | unified platform installers (ADR-0011) | built by `.github/workflows/release.yml` |
 
@@ -149,29 +148,6 @@ links never need a version number.
 2. Add the key to `site/i18n/en.js` and to the seven other catalogs in
    `site/i18n/` (English fallback covers the gap until they land).
 3. Keep the `docs/accessibility.md` checklist in mind (labels, language).
-
-## Language reference
-
-`site/reference.md` is the formal definition of the epher language:
-lexical rules, grammar, types, every operator and statement, all
-built-in constants and functions with their signatures, the unit
-table, display rules, error classes, and limits. It is English-only by
-design — it is the specification, while the localized user guide
-teaches; the site's Docs menus list it last on every page. The build
-(`npm run build:reference`, run by `site-build.yml` alongside the
-other site builders) renders it through the same pipeline as the
-guide (shared highlighting, table wrapping, TOC, themes).
-
-Two rules keep it honest:
-
-- **Generated tables, hand-written prose.** The constant values and
-  the function/constant name lists were extracted from `epher-core`'s
-  dispatch and catalog; the surrounding prose explains them. When you
-  add or change a builtin, update `site/reference.md` in the same
-  commit.
-- **A drift-guard test.** `crates/core/tests/reference.rs` fails the
-  build if any callable or constant name is missing from the page, so
-  the reference cannot silently fall behind the engine.
 
 ## User guide
 

@@ -7,7 +7,6 @@
 pub mod astro;
 pub mod graph;
 pub mod graph_svg;
-pub mod satellites;
 
 use std::cell::Cell;
 use std::collections::HashMap;
@@ -181,14 +180,6 @@ impl Default for Env {
     }
 }
 
-/// The keys of a name table, sorted: the one shape behind every
-/// name-listing accessor (ADR-0066).
-fn sorted_keys<V>(map: &std::collections::HashMap<String, V>) -> Vec<String> {
-    let mut names: Vec<String> = map.keys().cloned().collect();
-    names.sort();
-    names
-}
-
 impl Env {
     /// Look up a name.
     pub fn get(&self, name: &str) -> Option<&Value> {
@@ -198,12 +189,6 @@ impl Env {
     /// Bind a name to a value.
     pub fn set(&mut self, name: impl Into<String>, value: Value) {
         self.bindings.insert(name.into(), value);
-    }
-
-    /// Drop a name's binding (a scoped construct restoring the state it
-    /// found — a `for` loop's variable leaves nothing behind).
-    pub fn remove(&mut self, name: &str) {
-        self.bindings.remove(name);
     }
 
     /// The session's variable bindings (user assignments plus `ans`), for
@@ -225,29 +210,6 @@ impl Env {
     }
 
     /// Look up a user-defined function.
-    /// Sorted variable names, for completion (ADR-0066).
-    pub fn binding_names(&self) -> Vec<String> {
-        sorted_keys(&self.bindings)
-    }
-
-    /// Sorted user-defined constant names (ADR-0066); builtins resolve
-    /// elsewhere, so `pi` is not here.
-    pub fn constant_names(&self) -> Vec<String> {
-        sorted_keys(&self.constants)
-    }
-
-    /// Sorted user-defined function names (ADR-0066).
-    pub fn function_names(&self) -> Vec<String> {
-        sorted_keys(&self.functions)
-    }
-
-    /// A user-defined function's signature as spelled: `gem(a)`.
-    pub fn function_signature(&self, name: &str) -> Option<String> {
-        self.functions.get(name).map(|f| {
-            format!("{}({})", name, f.params.join(", "))
-        })
-    }
-
     pub fn function(&self, name: &str) -> Option<&Function> {
         self.functions.get(name)
     }
@@ -342,7 +304,7 @@ pub enum CmpOp {
 pub enum Statement {
     Assign(String, Expression),
     Const(String, Expression),
-    FunctionDef(String, Vec<String>, FunctionBody),
+    FunctionDef(String, Vec<String>, Expression),
     While(Expression, Box<Statement>),
     /// `for name in iter do body` (ADR-0054): the iterable is either a
     /// range `start to end [step s]` or a list expression. Each body
@@ -352,36 +314,6 @@ pub enum Statement {
     /// `solve lhs == rhs` (ADR-0043): numeric equation solving, no CAS.
     Solve(Expression),
     Expr(Expression),
-    /// A `do ... end` block (ADR-0064): the body of a `def`, run one
-    /// statement after another in the call's own environment; the last
-    /// statement's value is the call's answer.
-    Block(Vec<Statement>),
-    /// A statement-level `if cond then stmt else stmt` (ADR-0064). The
-    /// expression form stays the chooser of values; the statement form
-    /// chooses between statements, which is how `then break` reads.
-    /// A missing `else` branch that is taken produces no value, which is
-    /// how a `for` loop filters.
-    If(Expression, Box<Statement>, Option<Box<Statement>>),
-    /// `return expr` (ADR-0064): leave the enclosing function now, with
-    /// this value.
-    Return(Expression),
-    /// `break` (ADR-0064): leave the enclosing loop now.
-    Break,
-    /// `continue` (ADR-0064): skip to the loop's next pass.
-    Continue,
-    /// `{a, b} = expr` (ADR-0064): bind several names from one list —
-    /// the written form of returning several answers. `_` skips a
-    /// position.
-    Destructure(Vec<String>, Expression),
-}
-
-/// The body of a user-defined function (ADR-0064): a single expression
-/// after `=` — the original, unchanged form — or a `do ... end` block of
-/// statements whose last value is the answer.
-#[derive(Debug, Clone)]
-pub enum FunctionBody {
-    Expr(Expression),
-    Block(Vec<Statement>),
 }
 
 /// What a `for` loop iterates (ADR-0054): an inclusive numeric range
@@ -396,12 +328,11 @@ pub enum ForIterable {
     Items(Expression),
 }
 
-/// A user-defined function: parameter names and a body (an expression
-/// after `=`, or a `do ... end` block — ADR-0064).
+/// A user-defined function: parameter names and a body expression.
 #[derive(Debug, Clone)]
 pub struct Function {
     params: Vec<String>,
-    body: FunctionBody,
+    body: Expression,
 }
 
 /// Errors crossing the epher-core seams.
@@ -423,8 +354,6 @@ pub enum EpherError {
     StepLimit,
     #[error("cannot assign to constant {0}")]
     AssignToConstant(String),
-    #[error("cannot assign to i: that name is the imaginary unit")]
-    ImaginaryReserved,
     #[error("constant already defined: {0}")]
     ConstantAlreadyDefined(String),
     #[error("cannot define constant {0}: the name is already a variable")]
@@ -437,131 +366,8 @@ pub enum EpherError {
 ///
 /// Tokenizer + recursive-descent parser with precedence (additive below
 /// multiplicative) and left-associative operator folding.
-/// A half-open byte-offset range in the source text: where a token, a
-/// statement, or an error lives. Offsets are bytes (UTF-8); frontends
-/// map them onto their own line and column coordinates (ADR-0066).
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Span {
-    pub start: usize,
-    pub end: usize,
-}
-
-/// A parse failure together with where it sits in the source: the span
-/// covers the blame, always present (ADR-0066).
-#[derive(Debug)]
-pub struct SpannedError {
-    pub error: EpherError,
-    pub span: Span,
-}
-
-/// A tokenized-with-span failure at a known range: the shared shape of
-/// every tokenizer error.
-fn spanned(error: EpherError, start: usize, end: usize) -> SpannedError {
-    SpannedError {
-        error,
-        span: Span { start, end },
-    }
-}
-
-/// A statement together with the source range it was parsed from: the
-/// anchor for inline results and error attribution (ADR-0066).
-#[derive(Debug)]
-pub struct SpannedStatement {
-    pub node: Statement,
-    pub span: Span,
-}
-
-/// What kind of token a classified token is (ADR-0066). Coarser than
-/// the parser's tokens on purpose: this is the coloring-and-hover
-/// view, not the grammar's.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum TokenClass {
-    Number,
-    Name,
-    Keyword,
-    Operator,
-    String,
-    /// A unit suffix: the name directly attached to a number (`2 m`,
-    /// `9.8 m/s^2`'s leading `m`). Colors by meaning, not like a
-    /// variable that happens to follow a number.
-    Unit,
-}
-
-/// A classified token: its class, where it sits, and its text (the
-/// source slice, so names arrive ready for lookup).
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SpannedToken {
-    pub class: TokenClass,
-    pub span: Span,
-    pub text: String,
-}
-
-/// The language's keywords, in one place. They are ordinary
-/// identifiers to the lexer; the parser reads them by spelling, and
-/// anything not on this list is a name.
-pub const KEYWORDS: &[&str] = &[
-    "and", "break", "const", "continue", "def", "do", "else", "end",
-    "for", "if", "in", "not", "or", "return", "solve", "step", "then",
-    "to", "while", "xor",
-];
-
-pub fn is_keyword(name: &str) -> bool {
-    KEYWORDS.contains(&name)
-}
-
-/// Classify the source token by token (ADR-0066): the editor view of
-/// the real lexer. Comments and separators produce nothing; a parse
-/// error ends the classification with the failure and its span.
-pub fn token_classes(text: &str) -> Result<Vec<SpannedToken>, SpannedError> {
-    let tokens = tokenize(text)?;
-    // Classify everything, separators included: the unit pass must see
-    // whether a separator sits between a number and a name (then the
-    // name starts a new statement, it is not a unit).
-    let mut classified: Vec<(SpannedToken, bool)> = tokens
-        .into_iter()
-        .map(|(token, span)| {
-            let (class, text, separator) = match token {
-                Token::Number(_) | Token::Imaginary(_) => (TokenClass::Number, String::new(), false),
-                Token::Str(_) => (TokenClass::String, String::new(), false),
-                Token::Ident(name) => {
-                    let class = if is_keyword(&name) {
-                        TokenClass::Keyword
-                    } else {
-                        TokenClass::Name
-                    };
-                    (class, name, false)
-                }
-                Token::Semicolon => (TokenClass::Operator, String::new(), true),
-                _ => (TokenClass::Operator, String::new(), false),
-            };
-            (SpannedToken { class, span, text }, separator)
-        })
-        .collect();
-    // A name whose previous token is a number is a unit suffix
-    // (ADR-0037): the `m` in `2 m`, the `h` in `3.5h`. Token adjacency
-    // is the same rule the parser reads; a `(` means the name is a
-    // call. A number's own `i` stays inside its Number token: `4i` is
-    // one literal, not a number times a name.
-    for i in 1..classified.len() {
-        let (prev, prev_separator) = &classified[i - 1];
-        let follows_number = !prev_separator && prev.class == TokenClass::Number;
-        let is_call = text[classified[i].0.span.end..].starts_with('(');
-        if follows_number
-            && !classified[i].1
-            && classified[i].0.class == TokenClass::Name
-            && !is_call
-        {
-            classified[i].0.class = TokenClass::Unit;
-        }
-    }
-    Ok(classified
-        .into_iter()
-        .filter_map(|(token, separator)| if separator { None } else { Some(token) })
-        .collect())
-}
-
 pub fn parse(text: &str) -> Result<Expression, EpherError> {
-    let tokens = tokenize(text).map_err(|e| e.error)?;
+    let tokens = tokenize(text)?;
     let mut parser = Parser { tokens, pos: 0 };
     let expr = parser.parse_expression()?;
     if parser.peek().is_some() {
@@ -660,15 +466,6 @@ fn take_braced(chars: &mut impl Iterator<Item = char>) -> Result<String, EpherEr
 
 /// Parse a sequence of statements separated by `;` (the script seam).
 pub fn parse_script(text: &str) -> Result<Vec<Statement>, EpherError> {
-    parse_script_with_spans(text)
-        .map(|stmts| stmts.into_iter().map(|s| s.node).collect())
-        .map_err(|e| e.error)
-}
-
-/// Parse a script keeping each statement's source span (ADR-0066): the
-/// anchor every editor feature hangs off. A parse failure carries the
-/// span of the token the parser stopped at.
-pub fn parse_script_with_spans(text: &str) -> Result<Vec<SpannedStatement>, SpannedError> {
     let tokens = tokenize(text)?;
     let mut parser = Parser { tokens, pos: 0 };
     let mut statements = Vec::new();
@@ -681,13 +478,8 @@ pub fn parse_script_with_spans(text: &str) -> Result<Vec<SpannedStatement>, Span
         if parser.peek().is_none() {
             break;
         }
-        let start = parser.peek_span().expect("checked above").start;
-        let node = parser.parse_statement().map_err(|e| parser.error_at(e))?;
-        let span = Span {
-            start,
-            end: parser.last_end(),
-        };
-        statements.push(SpannedStatement { node, span });
+        let stmt = parser.parse_statement()?;
+        statements.push(stmt);
         match parser.peek() {
             Some(Token::Semicolon) => {
                 parser.next();
@@ -695,9 +487,9 @@ pub fn parse_script_with_spans(text: &str) -> Result<Vec<SpannedStatement>, Span
             }
             None => break,
             Some(_) => {
-                return Err(parser.error_at_next(EpherError::Parse(
+                return Err(EpherError::Parse(
                     "expected ';' or a newline between statements".into(),
-                )));
+                ));
             }
         }
     }
@@ -747,23 +539,10 @@ enum Token {
     Str(String),
 }
 
-/// Tokenize with source spans (ADR-0066): every token records the byte
-/// range it was scanned from. The scan itself is unchanged from the
-/// unspanned lexer it replaced: same tokens, same order, same errors.
-fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
-    let mut tokens: Vec<(Token, Span)> = Vec::new();
+fn tokenize(text: &str) -> Result<Vec<Token>, EpherError> {
+    let mut tokens = Vec::new();
     let mut chars = text.chars().peekable();
-    // Bytes consumed so far; every advance keeps this current.
-    let mut offset = 0usize;
-    macro_rules! adv {
-        () => {
-            if let Some(c) = chars.next() {
-                offset += c.len_utf8();
-            }
-        };
-    }
     while let Some(&c) = chars.peek() {
-        let tok_start = offset;
         match c {
             c if c.is_whitespace() => {
                 // Newlines are statement separators, exactly like `;`
@@ -771,10 +550,10 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                 // strings or multi-line constructs, so a newline can
                 // only ever appear between statements (a comment's
                 // newlines are consumed by the comment itself).
-                adv!();
                 if c == '\n' || c == '\r' {
-                    tokens.push((Token::Semicolon, Span { start: tok_start, end: offset }));
+                    tokens.push(Token::Semicolon);
                 }
+                chars.next();
             }
             '#' => {
                 // Line comment, PHP style (ADR-0040): `#` runs to the
@@ -784,30 +563,29 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                     if c2 == '\n' || c2 == '\r' {
                         break;
                     }
-                    adv!();
+                    chars.next();
                 }
             }
             '/' => {
-                adv!();
+                chars.next();
                 match chars.peek() {
                     // Block comment, PHP style: `/* ... */` may span
                     // lines and may sit inline between tokens. Its
                     // newlines belong to the comment, not to the
                     // statement separator.
                     Some('*') => {
-                        adv!();
+                        chars.next();
                         loop {
                             match chars.next() {
                                 Some('*') if matches!(chars.peek(), Some('/')) => {
-                                    offset += 1; // the '*' this arm consumed
-                                    adv!(); // the '/' it saw ahead
+                                    chars.next();
                                     break;
                                 }
-                                Some(consumed) => offset += consumed.len_utf8(),
+                                Some(_) => {}
                                 None => {
-                                    return Err(spanned(EpherError::Parse(
-                                            "unterminated block comment: expected */".into(),
-                                        ), tok_start, offset));
+                                    return Err(EpherError::Parse(
+                                        "unterminated block comment: expected */".into(),
+                                    ))
                                 }
                             }
                         }
@@ -815,174 +593,142 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                     // Line comment, PHP style: `//` runs to the end of
                     // the line; the newline still separates statements.
                     Some('/') => {
-                        adv!();
+                        chars.next();
                         while let Some(&c2) = chars.peek() {
                             if c2 == '\n' || c2 == '\r' {
                                 break;
                             }
-                            adv!();
+                            chars.next();
                         }
                     }
-                    _ => tokens.push((Token::Slash, Span { start: tok_start, end: offset })),
+                    _ => tokens.push(Token::Slash),
                 }
             }
             '+' => {
-                adv!();
-                tokens.push((Token::Plus, Span { start: tok_start, end: offset }));
+                tokens.push(Token::Plus);
+                chars.next();
             }
             '-' => {
-                adv!();
-                tokens.push((Token::Minus, Span { start: tok_start, end: offset }));
+                tokens.push(Token::Minus);
+                chars.next();
             }
             '*' => {
-                adv!();
-                tokens.push((Token::Star, Span { start: tok_start, end: offset }));
+                tokens.push(Token::Star);
+                chars.next();
             }
             '^' => {
-                adv!();
-                tokens.push((Token::Caret, Span { start: tok_start, end: offset }));
+                tokens.push(Token::Caret);
+                chars.next();
             }
             ',' => {
-                adv!();
-                tokens.push((Token::Comma, Span { start: tok_start, end: offset }));
+                tokens.push(Token::Comma);
+                chars.next();
             }
             '>' => {
-                adv!();
+                chars.next();
                 if matches!(chars.peek(), Some('>')) {
-                    adv!();
-                    tokens.push((Token::ShiftRight, Span { start: tok_start, end: offset }));
+                    chars.next();
+                    tokens.push(Token::ShiftRight);
                 } else if matches!(chars.peek(), Some('=')) {
-                    adv!();
-                    tokens.push((Token::GreaterEqual, Span { start: tok_start, end: offset }));
+                    chars.next();
+                    tokens.push(Token::GreaterEqual);
                 } else {
-                    tokens.push((Token::GreaterThan, Span { start: tok_start, end: offset }));
+                    tokens.push(Token::GreaterThan);
                 }
             }
             '<' => {
-                adv!();
+                chars.next();
                 if matches!(chars.peek(), Some('<')) {
-                    adv!();
-                    tokens.push((Token::ShiftLeft, Span { start: tok_start, end: offset }));
+                    chars.next();
+                    tokens.push(Token::ShiftLeft);
                 } else if matches!(chars.peek(), Some('=')) {
-                    adv!();
-                    tokens.push((Token::LessEqual, Span { start: tok_start, end: offset }));
+                    chars.next();
+                    tokens.push(Token::LessEqual);
                 } else {
-                    tokens.push((Token::LessThan, Span { start: tok_start, end: offset }));
+                    tokens.push(Token::LessThan);
                 }
             }
             '&' => {
-                adv!();
-                tokens.push((Token::Amp, Span { start: tok_start, end: offset }));
+                tokens.push(Token::Amp);
+                chars.next();
             }
             '|' => {
-                adv!();
-                tokens.push((Token::Pipe, Span { start: tok_start, end: offset }));
+                tokens.push(Token::Pipe);
+                chars.next();
             }
             '~' => {
-                adv!();
-                tokens.push((Token::Tilde, Span { start: tok_start, end: offset }));
+                tokens.push(Token::Tilde);
+                chars.next();
             }
             '=' => {
-                adv!();
+                chars.next();
                 if matches!(chars.peek(), Some('=')) {
-                    adv!();
-                    tokens.push((Token::EqualEqual, Span { start: tok_start, end: offset }));
+                    chars.next();
+                    tokens.push(Token::EqualEqual);
                 } else {
-                    tokens.push((Token::Equals, Span { start: tok_start, end: offset }));
+                    tokens.push(Token::Equals);
                 }
             }
             '!' => {
-                adv!();
+                chars.next();
                 if matches!(chars.peek(), Some('=')) {
-                    adv!();
-                    tokens.push((Token::NotEqual, Span { start: tok_start, end: offset }));
+                    chars.next();
+                    tokens.push(Token::NotEqual);
                 } else {
-                    tokens.push((Token::Bang, Span { start: tok_start, end: offset }));
+                    tokens.push(Token::Bang);
                 }
             }
             '%' => {
-                adv!();
-                tokens.push((Token::Percent, Span { start: tok_start, end: offset }));
+                tokens.push(Token::Percent);
+                chars.next();
             }
             ';' => {
-                adv!();
-                tokens.push((Token::Semicolon, Span { start: tok_start, end: offset }));
+                tokens.push(Token::Semicolon);
+                chars.next();
             }
             '(' => {
-                adv!();
-                tokens.push((Token::LParen, Span { start: tok_start, end: offset }));
+                tokens.push(Token::LParen);
+                chars.next();
             }
             ')' => {
-                adv!();
-                tokens.push((Token::RParen, Span { start: tok_start, end: offset }));
+                tokens.push(Token::RParen);
+                chars.next();
             }
             '{' => {
-                adv!();
-                tokens.push((Token::LBrace, Span { start: tok_start, end: offset }));
+                tokens.push(Token::LBrace);
+                chars.next();
             }
             '}' => {
-                adv!();
-                tokens.push((Token::RBrace, Span { start: tok_start, end: offset }));
+                tokens.push(Token::RBrace);
+                chars.next();
             }
             '[' => {
-                adv!();
-                tokens.push((Token::LBracket, Span { start: tok_start, end: offset }));
+                tokens.push(Token::LBracket);
+                chars.next();
             }
             ']' => {
-                adv!();
-                tokens.push((Token::RBracket, Span { start: tok_start, end: offset }));
+                tokens.push(Token::RBracket);
+                chars.next();
             }
             '"' => {
                 // A string literal (ADR-0054): read to the closing
                 // quote. No escape sequences; a string cannot contain a
                 // double quote, which keeps the tokenizer one pass.
-                adv!(); // the opening quote
+                chars.next(); // the opening quote
                 let mut s = String::new();
                 loop {
                     match chars.next() {
-                        Some('"') => {
-                            offset += 1;
-                            break;
-                        }
-                        // Escape sequences (ADR-0064): the five the
-                        // calculator needs — newline, tab, carriage
-                        // return, the backslash itself, and the quote.
-                        // Anything else is named as a mistake, so a
-                        // typo like `\d` cannot silently mean `d`.
-                        Some('\\') => {
-                            let escaped = chars.next();
-                            offset += escaped.as_ref().map_or(0, |c| c.len_utf8());
-                            match escaped {
-                                Some('n') => s.push('\n'),
-                                Some('t') => s.push('\t'),
-                                Some('r') => s.push('\r'),
-                                Some('\\') => s.push('\\'),
-                                Some('"') => s.push('"'),
-                                Some(other) => {
-                                    return Err(spanned(EpherError::Parse(format!(
-                                            "unknown escape \\{other} in a string: the escapes are \\n, \\t, \\r and \\\\"
-                                        )), tok_start, offset));
-                                }
-                                None => {
-                                    return Err(spanned(EpherError::Parse(
-                                            "a string ends on a lone backslash".to_string(),
-                                        ), tok_start, offset));
-                                }
-                            }
-                        }
-                        Some(c2) => {
-                            s.push(c2);
-                            offset += c2.len_utf8();
-                        }
+                        Some('"') => break,
+                        Some(c2) => s.push(c2),
                         None => {
-                            return Err(spanned(EpherError::Parse(
-                                    "unterminated string: a literal needs its closing quote"
-                                        .to_string(),
-                                ), tok_start, offset));
+                            return Err(EpherError::Parse(
+                                "unterminated string: a literal needs its closing quote"
+                                    .to_string(),
+                            ))
                         }
                     }
                 }
-                tokens.push((Token::Str(s), Span { start: tok_start, end: offset }));
+                tokens.push(Token::Str(s));
             }
             '0' if matches!(
                 chars.clone().nth(1),
@@ -995,9 +741,7 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                 // the result. Like decimal literals, the token is an f64
                 // (exact up to 2^53), so `0xFF` and `255` are the same.
                 chars.next(); // the 0
-                offset += 1;
                 let marker = chars.next().expect("peeked above");
-                offset += marker.len_utf8();
                 let radix: u32 = match marker.to_ascii_lowercase() {
                     'b' => 2,
                     'o' => 8,
@@ -1012,7 +756,7 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                     };
                     if ok {
                         digits.push(c2);
-                        adv!();
+                        chars.next();
                     } else {
                         break;
                     }
@@ -1020,34 +764,29 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                 if digits.is_empty() {
                     if let Some(ch) = chars.peek().copied() {
                         if ch.is_ascii_alphanumeric() {
-                            return Err(spanned(EpherError::Parse(format!(
-                                    "invalid digit {ch} after 0{marker}"
-                                )), tok_start, offset));
+                            return Err(EpherError::Parse(format!(
+                                "invalid digit {ch} after 0{marker}"
+                            )));
                         }
                     }
-                    return Err(spanned(EpherError::Parse(format!("expected digits after 0{marker}")), tok_start, offset));
+                    return Err(EpherError::Parse(format!(
+                        "expected digits after 0{marker}"
+                    )));
                 }
                 let big = num_bigint::BigInt::parse_bytes(digits.as_bytes(), radix)
                     .expect("only valid digits were collected");
-                let n: f64 = match big.to_string().parse() {
-                    Ok(n) => n,
-                    Err(_) => {
-                        return Err(spanned(
-                            EpherError::Parse(format!("invalid number: 0{marker}{digits}")),
-                            tok_start,
-                            offset,
-                        ))
-                    }
-                };
-                let token = imaginary_or_number(n, &mut chars, &mut offset);
-                tokens.push((token, Span { start: tok_start, end: offset }));
+                let n: f64 = big
+                    .to_string()
+                    .parse()
+                    .map_err(|_| EpherError::Parse(format!("invalid number: 0{marker}{digits}")))?;
+                tokens.push(imaginary_or_number(n, &mut chars));
             }
             c if c.is_ascii_digit() || c == '.' => {
                 let mut num = String::new();
                 while let Some(&c2) = chars.peek() {
                     if c2.is_ascii_digit() || c2 == '.' {
                         num.push(c2);
-                        adv!();
+                        chars.next();
                     } else {
                         break;
                     }
@@ -1063,59 +802,46 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                         rest.next();
                     }
                     if matches!(rest.peek(), Some(c3) if c3.is_ascii_digit()) {
-                        let e = chars.next().expect("checked above");
-                        offset += e.len_utf8();
-                        num.push(e);
+                        num.push(*chars.peek().expect("checked above"));
+                        chars.next();
                         if signed {
-                            let s = chars.next().expect("checked above");
-                            offset += s.len_utf8();
-                            num.push(s);
+                            num.push(*chars.peek().expect("checked above"));
+                            chars.next();
                         }
                         while let Some(&c2) = chars.peek() {
                             if c2.is_ascii_digit() {
                                 num.push(c2);
-                                adv!();
+                                chars.next();
                             } else {
                                 break;
                             }
                         }
                     }
                 }
-                let n: f64 = match num.parse() {
-                    Ok(n) => n,
-                    Err(_) => {
-                        return Err(spanned(
-                            EpherError::Parse(format!("invalid number: {num:?}")),
-                            tok_start,
-                            offset,
-                        ))
-                    }
-                };
-                let token = imaginary_or_number(n, &mut chars, &mut offset);
-                tokens.push((token, Span { start: tok_start, end: offset }));
+                let n: f64 = num
+                    .parse()
+                    .map_err(|_| EpherError::Parse(format!("invalid number: {num:?}")))?;
+                tokens.push(imaginary_or_number(n, &mut chars));
             }
-            c if c.is_alphabetic() || c == '_' => {
+            c if c.is_alphabetic() => {
                 let mut ident = String::new();
                 while let Some(&c2) = chars.peek() {
                     // identifiers may contain digits after the first
-                    // character (atan2, log10, x2), but must start with
-                    // a letter or `_` so numbers still tokenize as
-                    // numbers
+                    // character (atan2, log10, x2), but must start with a
+                    // letter so numbers still tokenize as numbers
                     if c2.is_alphanumeric() || c2 == '_' {
                         ident.push(c2);
-                        adv!();
+                        chars.next();
                     } else {
                         break;
                     }
                 }
-                tokens.push((Token::Ident(ident), Span { start: tok_start, end: offset }));
+                tokens.push(Token::Ident(ident));
             }
             other => {
-                return Err(spanned(
-                    EpherError::Parse(format!("unexpected character: {other:?}")),
-                    tok_start,
-                    tok_start + other.len_utf8(),
-                ));
+                return Err(EpherError::Parse(format!(
+                    "unexpected character: {other:?}"
+                )))
             }
         }
     }
@@ -1125,18 +851,13 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
 /// A number directly followed by an `i` that is not part of a longer
 /// identifier becomes an imaginary literal (ADR-0043): `4i` is a token,
 /// `4it` stays a number and a name. Based literals share the suffix, so
-/// `0xFFi` works too. The consumed suffix keeps the offset current.
-fn imaginary_or_number(
-    n: f64,
-    chars: &mut std::iter::Peekable<std::str::Chars>,
-    offset: &mut usize,
-) -> Token {
+/// `0xFFi` works too.
+fn imaginary_or_number(n: f64, chars: &mut std::iter::Peekable<std::str::Chars>) -> Token {
     if matches!(chars.peek(), Some('i')) {
         let mut rest = chars.clone();
         rest.next();
         if !matches!(rest.peek(), Some(c) if c.is_alphanumeric() || *c == '_') {
             chars.next();
-            *offset += 1; // 'i' is one byte
             return Token::Imaginary(n);
         }
     }
@@ -1144,105 +865,31 @@ fn imaginary_or_number(
 }
 
 struct Parser {
-    tokens: Vec<(Token, Span)>,
+    tokens: Vec<Token>,
     pos: usize,
 }
 
 impl Parser {
     fn peek(&self) -> Option<&Token> {
-        self.tokens.get(self.pos).map(|(t, _)| t)
-    }
-
-    /// The span of the token the parser sits at.
-    fn peek_span(&self) -> Option<Span> {
-        self.tokens.get(self.pos).map(|(_, s)| *s)
-    }
-
-    /// The end offset of the last consumed token: where a statement's
-    /// span closes.
-    fn last_end(&self) -> usize {
-        self.tokens[..self.pos]
-            .last()
-            .map(|(_, s)| s.end)
-            .unwrap_or(0)
-    }
-
-    /// The span to blame for a parse failure. Most parser errors are
-    /// raised after consuming the offending token (parse_primary takes
-    /// `self.next()` and then complains), so the blame lands on the
-    /// last consumed token; a failure with nothing consumed (an empty
-    /// source) has nowhere to point.
-    fn error_span(&self) -> Span {
-        if self.pos > 0 {
-            if let Some((_, s)) = self.tokens.get(self.pos - 1) {
-                return *s;
-            }
-        }
-        Span { start: 0, end: 0 }
-    }
-
-    fn error_at(&self, error: EpherError) -> SpannedError {
-        spanned(error, self.error_span().start, self.error_span().end)
-    }
-
-    /// Like [`Parser::error_at`], but the blame lands on the token the
-    /// parser sits at (not yet consumed): the shape of a missing
-    /// separator, where the next token is the one in the wrong place.
-    fn error_at_next(&self, error: EpherError) -> SpannedError {
-        let span = self.peek_span().unwrap_or_else(|| self.error_span());
-        spanned(error, span.start, span.end)
+        self.tokens.get(self.pos)
     }
 
     fn next(&mut self) -> Option<Token> {
-        let (token, _) = self.tokens.get(self.pos).cloned()?;
-        self.pos += 1;
-        Some(token)
+        let token = self.tokens.get(self.pos).cloned();
+        if token.is_some() {
+            self.pos += 1;
+        }
+        token
     }
 
     /// A statement is `while cond do stmt` (loop), `def name(params) = expr`
     /// (function definition), `const name = expr` (constant definition,
-    /// ADR-0012), `name = expr` (assignment), or `expr`. ADR-0064 adds
-    /// the statement-level `if`, `break`/`continue`/`return`, the
-    /// `{a, b} = list` destructure, and `do ... end` block bodies for
-    /// `def`.
+    /// ADR-0012), `name = expr` (assignment), or `expr`.
     fn parse_statement(&mut self) -> Result<Statement, EpherError> {
-        if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "break") {
-            self.next(); // consume 'break'
-            return Ok(Statement::Break);
-        }
-        if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "continue") {
-            self.next(); // consume 'continue'
-            return Ok(Statement::Continue);
-        }
-        if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "return") {
-            self.next(); // consume 'return'
-            let value = self.parse_expression()?;
-            return Ok(Statement::Return(value));
-        }
-        if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "if") {
-            // The statement form of `if` (ADR-0064): it chooses between
-            // statements, so `then break` and `then continue` read the
-            // way they sound. Without `else`, a false condition produces
-            // no value — which is how a for loop filters.
-            self.next(); // consume 'if'
-            let cond = self.parse_expression()?;
-            self.expect_keyword("then")?;
-            self.skip_semicolons();
-            let then = Box::new(self.parse_statement()?);
-            let els = if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "else") {
-                self.next(); // consume 'else'
-                self.skip_semicolons();
-                Some(Box::new(self.parse_statement()?))
-            } else {
-                None
-            };
-            return Ok(Statement::If(cond, then, els));
-        }
         if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "while") {
             self.next(); // consume 'while'
             let cond = self.parse_expression()?;
             self.expect_keyword("do")?;
-            self.skip_semicolons();
             let body = Box::new(self.parse_statement()?);
             return Ok(Statement::While(cond, body));
         }
@@ -1274,7 +921,6 @@ impl Parser {
                 ForIterable::Items(first)
             };
             self.expect_keyword("do")?;
-            self.skip_semicolons();
             let body = Box::new(self.parse_statement()?);
             return Ok(Statement::For(var, iterable, body));
         }
@@ -1315,37 +961,12 @@ impl Parser {
             } else {
                 self.next(); // zero-parameter function
             }
-            // Two body forms (ADR-0064): `= expr` — the original
-            // one-expression body — or `do stmt ... end`, a block of
-            // statements whose last value is the answer.
-            if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "do") {
-                self.next(); // consume 'do'
-                let stmts = self.parse_block()?;
-                return Ok(Statement::FunctionDef(name, params, FunctionBody::Block(stmts)));
-            }
-            self.expect_token(Token::Equals, "'=' or 'do'")?;
+            self.expect_token(Token::Equals, "'='")?;
             let body = self.parse_expression()?;
-            return Ok(Statement::FunctionDef(name, params, FunctionBody::Expr(body)));
-        }
-        // `{a, b} = expr` (ADR-0064): a list pattern of names before an
-        // `=` is a destructure. The pattern grammar is tried first and
-        // rewound on any deviation, so `{1, 2}` at the start of a line
-        // stays the list expression it always was.
-        if matches!(self.peek(), Some(Token::LBrace)) {
-            let save = self.pos;
-            let parsed = (|| {
-                let names = self.parse_name_pattern()?;
-                self.expect_token(Token::Equals, "'='")?;
-                let expr = self.parse_expression()?;
-                Ok(Statement::Destructure(names, expr))
-            })();
-            if parsed.is_ok() {
-                return parsed;
-            }
-            self.pos = save; // a plain list expression, as always
+            return Ok(Statement::FunctionDef(name, params, body));
         }
         if let Some(Token::Ident(name)) = self.peek().cloned() {
-            if matches!(self.tokens.get(self.pos + 1), Some((Token::Equals, _))) {
+            if matches!(self.tokens.get(self.pos + 1), Some(Token::Equals)) {
                 self.next(); // consume the identifier
                 self.next(); // consume '='
                 let expr = self.parse_expression()?;
@@ -1354,87 +975,6 @@ impl Parser {
         }
         let expr = self.parse_expression()?;
         Ok(Statement::Expr(expr))
-    }
-
-    /// A `do ... end` block's statements (ADR-0064): the caller has
-    /// consumed `do`; statements run one after another, separated by `;`
-    /// or newlines, until `end`.
-    fn parse_block(&mut self) -> Result<Vec<Statement>, EpherError> {
-        let mut stmts = Vec::new();
-        loop {
-            while matches!(self.peek(), Some(Token::Semicolon)) {
-                self.next();
-            }
-            if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "end") {
-                self.next(); // consume 'end'
-                return Ok(stmts);
-            }
-            if self.peek().is_none() {
-                return Err(EpherError::Parse(
-                    "unterminated block: a `do` body needs its `end`".into(),
-                ));
-            }
-            stmts.push(self.parse_statement()?);
-            match self.next() {
-                Some(Token::Semicolon) => {}
-                Some(Token::Ident(kw)) if kw == "end" => return Ok(stmts),
-                Some(other) => {
-                    return Err(EpherError::Parse(format!(
-                        "expected ';' or 'end' in a do body, found {other:?}"
-                    )));
-                }
-                None => {
-                    return Err(EpherError::Parse(
-                        "unterminated block: a `do` body needs its `end`".into(),
-                    ))
-                }
-            }
-        }
-    }
-
-    /// A destructuring pattern's names (ADR-0064): `{a, b, _}` — plain
-    /// names, with `_` marking a position to skip.
-    fn parse_name_pattern(&mut self) -> Result<Vec<String>, EpherError> {
-        self.next(); // consume '{'
-        let mut names = Vec::new();
-        loop {
-            match self.next() {
-                Some(Token::Ident(name)) => names.push(name),
-                Some(other) => {
-                    return Err(EpherError::Parse(format!(
-                        "a destructuring pattern holds names, found {other:?}"
-                    )));
-                }
-                None => {
-                    return Err(EpherError::Parse(
-                        "unexpected end of input in a destructuring pattern".into(),
-                    ))
-                }
-            }
-            match self.next() {
-                Some(Token::Comma) => continue,
-                Some(Token::RBrace) => return Ok(names),
-                Some(other) => {
-                    return Err(EpherError::Parse(format!(
-                        "expected ',' or '}}' in a destructuring pattern, found {other:?}"
-                    )));
-                }
-                None => {
-                    return Err(EpherError::Parse(
-                        "unexpected end of input in a destructuring pattern".into(),
-                    ))
-                }
-            }
-        }
-    }
-
-    /// A body may open on the line after `do`/`then`/`else`: the
-    /// tokenizer turned those newlines into `;` tokens, and a body
-    /// simply does not start with one (ADR-0064).
-    fn skip_semicolons(&mut self) {
-        while matches!(self.peek(), Some(Token::Semicolon)) {
-            self.next();
-        }
     }
 
     fn expect_ident(&mut self, what: &str) -> Result<String, EpherError> {
@@ -1694,7 +1234,7 @@ impl Parser {
         loop {
             let is_in = matches!(self.peek(), Some(Token::Ident(kw)) if kw == "in");
             let is_arrow = matches!(self.peek(), Some(Token::Minus))
-                && matches!(self.tokens.get(self.pos + 1), Some((Token::GreaterThan, _)));
+                && matches!(self.tokens.get(self.pos + 1), Some(Token::GreaterThan));
             if is_in || is_arrow {
                 self.next();
                 if is_arrow {
@@ -1739,7 +1279,7 @@ impl Parser {
                     if let Expression::Unit(inner, f, d, u) = &left {
                         if let Some(Token::Ident(unit)) = self.peek().cloned() {
                             if let Some(UnitDef { factor, dims }) = unit_def_with_prefix(&unit) {
-                                if !matches!(self.tokens.get(self.pos + 1), Some((Token::LParen, _))) {
+                                if !matches!(self.tokens.get(self.pos + 1), Some(Token::LParen)) {
                                     self.next();
                                     let mut u2 = unit;
                                     let mut f2 = factor;
@@ -1865,7 +1405,7 @@ impl Parser {
                 // metres, `(2 m)^2` the square of two metres.
                 if let Some(Token::Ident(name)) = self.peek().cloned() {
                     if let Some(UnitDef { factor, dims }) = unit_def_with_prefix(&name) {
-                        if !matches!(self.tokens.get(self.pos + 1), Some((Token::LParen, _))) {
+                        if !matches!(self.tokens.get(self.pos + 1), Some(Token::LParen)) {
                             self.next();
                             return self.apply_unit_suffix(
                                 Expression::Literal(n),
@@ -1924,7 +1464,7 @@ impl Parser {
                             if let Some(Token::Ident(unit)) = self.peek().cloned() {
                                 if let Some(UnitDef { factor, dims }) = unit_def_with_prefix(&unit)
                                 {
-                                    if !matches!(self.tokens.get(self.pos + 1), Some((Token::LParen, _)))
+                                    if !matches!(self.tokens.get(self.pos + 1), Some(Token::LParen))
                                     {
                                         self.next();
                                         return self.apply_unit_suffix(expr, factor, dims, unit);
@@ -2148,13 +1688,10 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
             for item in items {
                 let v = eval(item, env)?;
                 match v {
-                    // Numbers are the data column (ADR-0044); strings
-                    // joined the list family in ADR-0064, so `{"a", "b"}`
-                    // and split's results can be written and joined.
-                    Value::Float(_) | Value::Str(_) => out.push(v),
+                    Value::Float(_) => out.push(v),
                     other => {
                         return Err(EpherError::Type(format!(
-                            "lists hold numbers and strings, got {other:?}"
+                            "lists hold numbers, got {other:?}"
                         )))
                     }
                 }
@@ -2314,20 +1851,14 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                         l != r
                     }))
                 }
-                // String comparisons (ADR-0054, ADR-0064): `==`/`!=`
-                // compare whole strings; the ordering comparisons read
-                // dictionary order, so word lists can sort and search.
-                (Value::Str(a), Value::Str(b)) => {
-                    let ord = a.chars().cmp(b.chars());
-                    let result = match op {
-                        CmpOp::Gt => ord == std::cmp::Ordering::Greater,
-                        CmpOp::Lt => ord == std::cmp::Ordering::Less,
-                        CmpOp::Ge => ord != std::cmp::Ordering::Less,
-                        CmpOp::Le => ord != std::cmp::Ordering::Greater,
-                        CmpOp::Eq => ord == std::cmp::Ordering::Equal,
-                        CmpOp::Ne => ord != std::cmp::Ordering::Equal,
-                    };
-                    Ok(Value::Bool(result))
+                // String equality (ADR-0054): `"a" == "b"` compares
+                // whole strings; ordering stays a type error.
+                (Value::Str(a), Value::Str(b)) if matches!(op, CmpOp::Eq | CmpOp::Ne) => {
+                    Ok(Value::Bool(if matches!(op, CmpOp::Eq) {
+                        a == b
+                    } else {
+                        a != b
+                    }))
                 }
                 // Numeric comparisons across all the numeric types
                 // (ADR-0047): same-type exact pairs compare exactly;
@@ -2404,8 +1935,7 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                 }
                 if f.params.len() != values.len() {
                     return Err(EpherError::Type(format!(
-                        "{} expects {} arguments, got {}",
-                        name,
+                        "{name} expects {} arguments, got {}",
                         f.params.len(),
                         values.len()
                     )));
@@ -2414,30 +1944,7 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                 for (param, value) in f.params.iter().zip(values) {
                     child.set(param.clone(), value);
                 }
-                // A block body runs its statements in the call's own
-                // environment (ADR-0064). Each call carries its own
-                // step budget: the runaway guard bounds every function
-                // activation the way it bounds a script.
-                return match &f.body {
-                    FunctionBody::Expr(body) => eval(body, &child),
-                    FunctionBody::Block(stmts) => {
-                        let mut steps = STEP_LIMIT;
-                        match run_block(stmts, &mut child, &mut steps)? {
-                            Flow::Normal(Some(v)) => Ok(v),
-                            Flow::Normal(None) => Err(EpherError::Type(format!(
-                                "{name} produced no value: end the body with an \
-                                 expression or a return"
-                            ))),
-                            Flow::Return(v) => Ok(v),
-                            Flow::Break => {
-                                Err(EpherError::Type("break outside a loop".into()))
-                            }
-                            Flow::Continue => {
-                                Err(EpherError::Type("continue outside a loop".into()))
-                            }
-                        }
-                    }
-                };
+                return eval(&f.body, &child);
             }
             // Numeric calculus (ADR-0043): the first argument stays an
             // expression - derivative(x^2, 3) differentiates, and
@@ -3299,9 +2806,8 @@ fn builtin_const(name: &str) -> Option<Value> {
         "e" => Some(Value::float(std::f64::consts::E)),
         "tau" => Some(Value::float(std::f64::consts::TAU)),
         "phi" => Some(Value::float(1.618_033_988_749_895)),
-        // The imaginary unit (ADR-0043): `i` is a constant like `pi`,
-        // and `4i` is its literal spelling. The one reserved name
-        // (ADR-0065): assignment refuses it, so no store can shadow it.
+        // The imaginary unit (ADR-0043): `i` is a constant like `pi`, and
+        // `4i` is its literal spelling. Shadowable like every builtin.
         "i" => Some(Value::Complex(Complex::new(0.0, 1.0))),
         // Astronomy constants (ADR-0037): SI values throughout - metres,
         // seconds, kilograms, watts. Shadowable like `pi` (resolution
@@ -4215,19 +3721,6 @@ fn interval_str(lo: f64, hi: f64) -> String {
 pub struct CatalogEntry {
     pub name: &'static str,
     pub kind: CatalogKind,
-    /// How the call is spelled: `deg(x)`, or the constant's own name.
-    /// Single-sourced from the language reference (ADR-0066).
-    pub signature: &'static str,
-    /// The one-line meaning, word for word from the reference.
-    pub description: &'static str,
-}
-
-impl CatalogEntry {
-    /// A constant, not a callable: how hover and completion say so
-    /// without each re-matching the kind.
-    pub fn is_constant(&self) -> bool {
-        self.kind == CatalogKind::Constant
-    }
 }
 
 /// The builtin catalog, sorted by name so suggestions appear in a stable
@@ -4236,1345 +3729,705 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
     CatalogEntry {
         name: "G",
         kind: CatalogKind::Constant,
-        signature: "G",
-        description: "gravitational constant (m³/(kg·s²))",
     },
     CatalogEntry {
         name: "a_0",
         kind: CatalogKind::Constant,
-        signature: "a_0",
-        description: "Bohr radius (m)",
     },
     CatalogEntry {
         name: "abs",
         kind: CatalogKind::Function,
-        signature: "abs(z)",
-        description: "magnitude: for complex, distance from the origin",
     },
     CatalogEntry {
         name: "acos",
         kind: CatalogKind::Function,
-        signature: "acos(z)",
-        description: "inverse circular functions; real `asin(2)` falls back to complex",
     },
     CatalogEntry {
         name: "acosh",
         kind: CatalogKind::Function,
-        signature: "acosh(z)",
-        description: "inverse hyperbolic functions",
     },
     CatalogEntry {
         name: "alpha",
         kind: CatalogKind::Constant,
-        signature: "alpha",
-        description: "fine-structure constant",
     },
     CatalogEntry {
         name: "alt",
         kind: CatalogKind::Function,
-        signature: "alt(body, jd, lat, lon)",
-        description: "topocentric horizon coordinates, degrees",
     },
     CatalogEntry {
         name: "amort",
         kind: CatalogKind::Function,
-        signature: "amort(p, r, n, k)",
-        description: "balance after period `k` of an `n`-period loan",
     },
     CatalogEntry {
         name: "arg",
         kind: CatalogKind::Function,
-        signature: "arg(z)",
-        description: "principal argument",
     },
     CatalogEntry {
         name: "asin",
         kind: CatalogKind::Function,
-        signature: "asin(z)",
-        description: "inverse circular functions; real `asin(2)` falls back to complex",
     },
     CatalogEntry {
         name: "asinh",
         kind: CatalogKind::Function,
-        signature: "asinh(z)",
-        description: "inverse hyperbolic functions",
     },
     CatalogEntry {
         name: "atan",
         kind: CatalogKind::Function,
-        signature: "atan(z)",
-        description: "inverse circular functions; real `asin(2)` falls back to complex",
     },
     CatalogEntry {
         name: "atan2",
         kind: CatalogKind::Function,
-        signature: "atan2(y, x)",
-        description: "angle of the point `(x, y)`, quadrant-correct",
     },
     CatalogEntry {
         name: "atanh",
         kind: CatalogKind::Function,
-        signature: "atanh(z)",
-        description: "inverse hyperbolic functions",
     },
     CatalogEntry {
         name: "atm",
         kind: CatalogKind::Constant,
-        signature: "atm",
-        description: "standard atmosphere (Pa)",
     },
     CatalogEntry {
         name: "au",
         kind: CatalogKind::Constant,
-        signature: "au",
-        description: "astronomical unit (m)",
     },
     CatalogEntry {
         name: "az",
         kind: CatalogKind::Function,
-        signature: "az(body, jd, lat, lon)",
-        description: "topocentric horizon coordinates, degrees",
     },
     CatalogEntry {
         name: "big",
         kind: CatalogKind::Function,
-        signature: "big(x)",
-        description: "the value as an exact (big) integer",
     },
     CatalogEntry {
         name: "bin",
         kind: CatalogKind::Function,
-        signature: "bin(n)",
-        description: "spelling with prefix: `bin(10)` is `0b1010`; negatives keep the sign on the prefix",
     },
     CatalogEntry {
         name: "binomcdf",
         kind: CatalogKind::Function,
-        signature: "binomcdf(k, n, p)",
-        description: "binomial",
     },
     CatalogEntry {
         name: "binompdf",
         kind: CatalogKind::Function,
-        signature: "binompdf(k, n, p)",
-        description: "binomial",
     },
     CatalogEntry {
         name: "bits",
         kind: CatalogKind::Function,
-        signature: "bits() / bits(w)",
-        description: "the current bitwise word size (8, 16, 32, or 64); set the word size to `w` and report it",
     },
     CatalogEntry {
         name: "c",
         kind: CatalogKind::Constant,
-        signature: "c",
-        description: "speed of light in vacuum (m/s)",
     },
     CatalogEntry {
         name: "cbrt",
         kind: CatalogKind::Function,
-        signature: "cbrt(z)",
-        description: "real cube root (principal complex root for complex)",
     },
     CatalogEntry {
         name: "ceil",
         kind: CatalogKind::Function,
-        signature: "ceil(x)",
-        description: "round down, up, toward zero",
     },
     CatalogEntry {
         name: "chi2cdf",
         kind: CatalogKind::Function,
-        signature: "chi2cdf(x, df)",
-        description: "chi-square",
     },
     CatalogEntry {
         name: "chi2pdf",
         kind: CatalogKind::Function,
-        signature: "chi2pdf(x, df)",
-        description: "chi-square",
     },
     CatalogEntry {
         name: "chisq_gof",
         kind: CatalogKind::Function,
-        signature: "chisq_gof(observed, expected)",
-        description: "chi-square goodness of fit",
     },
     CatalogEntry {
         name: "compound_interest",
         kind: CatalogKind::Function,
-        signature: "compound_interest(p, r, n)",
-        description: "interest earned: `p(1+r)^n − p`",
     },
     CatalogEntry {
         name: "conj",
         kind: CatalogKind::Function,
-        signature: "conj(z)",
-        description: "complex conjugate (a real passes through)",
     },
     CatalogEntry {
         name: "cos",
         kind: CatalogKind::Function,
-        signature: "cos(z)",
-        description: "circular functions",
     },
     CatalogEntry {
         name: "cosh",
         kind: CatalogKind::Function,
-        signature: "cosh(z)",
-        description: "hyperbolic functions",
     },
     CatalogEntry {
         name: "date",
         kind: CatalogKind::Function,
-        signature: "date(jd)",
-        description: "`{y, m, d}`",
     },
     CatalogEntry {
         name: "dec",
         kind: CatalogKind::Function,
-        signature: "dec(x)",
-        description: "the value as an exact decimal",
     },
     CatalogEntry {
         name: "decl",
         kind: CatalogKind::Function,
-        signature: "decl(body, jd)",
-        description: "geocentric equatorial coordinates, degrees",
     },
     CatalogEntry {
         name: "deg",
         kind: CatalogKind::Function,
-        signature: "deg(x)",
-        description: "`x` radians to degrees",
     },
     CatalogEntry {
         name: "deg2hms",
         kind: CatalogKind::Function,
-        signature: "deg2hms(x)",
-        description: "decimal degrees to sexagesimal text",
     },
     CatalogEntry {
         name: "delta_t",
         kind: CatalogKind::Function,
-        signature: "delta_t(jd)",
-        description: "TT − UT1 in seconds",
     },
     CatalogEntry {
         name: "derivative",
         kind: CatalogKind::Function,
-        signature: "derivative(expr, at)",
-        description: "5-point central difference of `expr` at `at`; `expr` stays symbolic, and the unknown is `x` when `x` appears, else the single free name",
     },
     CatalogEntry {
         name: "det",
         kind: CatalogKind::Function,
-        signature: "det(M)",
-        description: "square-matrix determinant and trace",
     },
     CatalogEntry {
         name: "dim",
         kind: CatalogKind::Function,
-        signature: "dim(M)",
-        description: "`{rows, cols}`",
     },
     CatalogEntry {
         name: "dist",
         kind: CatalogKind::Function,
-        signature: "dist(body, jd)",
-        description: "distance, km",
     },
     CatalogEntry {
         name: "e",
         kind: CatalogKind::Constant,
-        signature: "e",
-        description: "Euler's number, the natural-log base",
     },
     CatalogEntry {
         name: "engineering",
         kind: CatalogKind::Function,
-        signature: "engineering(x)",
-        description: "the value in engineering notation (exponent a multiple of 3), as text",
     },
     CatalogEntry {
         name: "eps_0",
         kind: CatalogKind::Constant,
-        signature: "eps_0",
-        description: "vacuum permittivity (F/m)",
     },
     CatalogEntry {
         name: "ev",
         kind: CatalogKind::Constant,
-        signature: "ev",
-        description: "electronvolt (J)",
     },
     CatalogEntry {
         name: "exact",
         kind: CatalogKind::Function,
-        signature: "exact(x)",
-        description: "the rational behind a float, when one agrees through all twelve displayed digits (`exact(0.3333333333333333)` is `1/3`); irrationals pass through",
     },
     CatalogEntry {
         name: "exp",
         kind: CatalogKind::Function,
-        signature: "exp(z)",
-        description: "e to the `x`",
     },
     CatalogEntry {
         name: "fact",
         kind: CatalogKind::Function,
-        signature: "fact(n)",
-        description: "`n!`",
     },
     CatalogEntry {
         name: "factors",
         kind: CatalogKind::Function,
-        signature: "factors(n)",
-        description: "the prime factorization, as text: `factors(360)` is `2^3 * 3^2 * 5`",
     },
     CatalogEntry {
         name: "faraday",
         kind: CatalogKind::Constant,
-        signature: "faraday",
-        description: "Faraday constant (C/mol)",
-    },
-    CatalogEntry {
-        name: "find",
-        kind: CatalogKind::Function,
-        signature: "find(s, sub)",
-        description: "1-based position of `sub`, or 0",
-    },
-    CatalogEntry {
-        name: "fixed",
-        kind: CatalogKind::Function,
-        signature: "fixed(x, d)",
-        description: "the value with exactly `d` decimals (0–15), as text",
     },
     CatalogEntry {
         name: "floor",
         kind: CatalogKind::Function,
-        signature: "floor(x)",
-        description: "round down, up, toward zero",
     },
     CatalogEntry {
         name: "frac",
         kind: CatalogKind::Function,
-        signature: "frac(n, d)",
-        description: "the exact fraction `n/d`",
     },
     CatalogEntry {
         name: "g",
         kind: CatalogKind::Constant,
-        signature: "g",
-        description: "standard gravity (m/s²)",
     },
     CatalogEntry {
         name: "gamma",
         kind: CatalogKind::Constant,
-        signature: "gamma",
-        description: "the Euler–Mascheroni constant",
     },
     CatalogEntry {
         name: "gcd",
         kind: CatalogKind::Function,
-        signature: "gcd(a, b)",
-        description: "whole-number gcd and lcm",
     },
     CatalogEntry {
         name: "grouped",
         kind: CatalogKind::Function,
-        signature: "grouped(x)",
-        description: "the value with thin-space thousands grouping, as text",
     },
     CatalogEntry {
         name: "h_bar",
         kind: CatalogKind::Constant,
-        signature: "h_bar",
-        description: "reduced Planck constant (J·s)",
     },
     CatalogEntry {
         name: "hex",
         kind: CatalogKind::Function,
-        signature: "hex(n)",
-        description: "spelling with prefix: `bin(10)` is `0b1010`; negatives keep the sign on the prefix",
     },
     CatalogEntry {
         name: "hms2deg",
         kind: CatalogKind::Function,
-        signature: "hms2deg(h, m, s)",
-        description: "sexagesimal to decimal degrees",
     },
     CatalogEntry {
         name: "hypot",
         kind: CatalogKind::Function,
-        signature: "hypot(a, b)",
-        description: "`sqrt(a^2 + b^2)` without the overflow",
     },
     CatalogEntry {
         name: "i",
         kind: CatalogKind::Constant,
-        signature: "i",
-        description: "the imaginary unit: the one reserved name (assignment refuses it)",
     },
     CatalogEntry {
         name: "im",
         kind: CatalogKind::Function,
-        signature: "im(z)",
-        description: "real and imaginary part (0 for a real)",
     },
     CatalogEntry {
         name: "integral",
         kind: CatalogKind::Function,
-        signature: "integral(expr, a, b)",
-        description: "definite integral of `expr` from `a` to `b`",
     },
     CatalogEntry {
         name: "inv",
         kind: CatalogKind::Function,
-        signature: "inv(M)",
-        description: "square-matrix inverse",
     },
     CatalogEntry {
         name: "invchi2",
         kind: CatalogKind::Function,
-        signature: "invchi2(p, df)",
-        description: "chi-square",
     },
     CatalogEntry {
         name: "invnorm",
         kind: CatalogKind::Function,
-        signature: "invnorm(p)",
-        description: "standard normal (1 argument) or general (`x, mu, sigma`)",
     },
     CatalogEntry {
         name: "invt",
         kind: CatalogKind::Function,
-        signature: "invt(p, df)",
-        description: "Student's t",
     },
     CatalogEntry {
         name: "irr",
         kind: CatalogKind::Function,
-        signature: "irr(flows)",
-        description: "internal rate of return of a flow list",
     },
     CatalogEntry {
         name: "iso",
         kind: CatalogKind::Function,
-        signature: "iso(jd)",
-        description: "the instant as `YYYY-MM-DDTHH:MM:SS` text",
     },
     CatalogEntry {
         name: "isprime",
         kind: CatalogKind::Function,
-        signature: "isprime(n)",
-        description: "whether `n` is prime (deterministic Miller–Rabin)",
     },
     CatalogEntry {
         name: "jd",
         kind: CatalogKind::Function,
-        signature: "jd(y, m, d[, hr])",
-        description: "Julian Date of a calendar date (Gregorian from 1582-10-15, Julian before)",
-    },
-    CatalogEntry {
-        name: "join",
-        kind: CatalogKind::Function,
-        signature: "join(L, sep)",
-        description: "elements spelled as `print` would, joined",
     },
     CatalogEntry {
         name: "k_b",
         kind: CatalogKind::Constant,
-        signature: "k_b",
-        description: "Boltzmann constant (J/K)",
     },
     CatalogEntry {
         name: "kepler",
         kind: CatalogKind::Function,
-        signature: "kepler(M, e)",
-        description: "Kepler's equation: eccentric anomaly for mean anomaly `M`",
     },
     CatalogEntry {
         name: "l_P",
         kind: CatalogKind::Constant,
-        signature: "l_P",
-        description: "Planck length (m)",
     },
     CatalogEntry {
         name: "l_sun",
         kind: CatalogKind::Constant,
-        signature: "l_sun",
-        description: "solar luminosity (W)",
     },
     CatalogEntry {
         name: "lambda_c",
         kind: CatalogKind::Constant,
-        signature: "lambda_c",
-        description: "electron Compton wavelength (m)",
     },
     CatalogEntry {
         name: "lcm",
         kind: CatalogKind::Function,
-        signature: "lcm(a, b)",
-        description: "whole-number gcd and lcm",
     },
     CatalogEntry {
         name: "len",
         kind: CatalogKind::Function,
-        signature: "len(v)",
-        description: "length of a list, or character count of a string",
     },
     CatalogEntry {
         name: "linreg",
         kind: CatalogKind::Function,
-        signature: "linreg(xs, ys)",
-        description: "least-squares line and `r`, as text",
     },
     CatalogEntry {
         name: "ln",
         kind: CatalogKind::Function,
-        signature: "ln(z)",
-        description: "natural logarithm; `ln(-1)` is `i*pi`",
     },
     CatalogEntry {
         name: "log",
         kind: CatalogKind::Function,
-        signature: "log(z)",
-        description: "base-10 logarithm (calculator convention)",
     },
     CatalogEntry {
         name: "log2",
         kind: CatalogKind::Function,
-        signature: "log2(z)",
-        description: "base-2 logarithm",
     },
     CatalogEntry {
         name: "logb",
         kind: CatalogKind::Function,
-        signature: "logb(base, x)",
-        description: "logarithm of `x` to the given `base`",
-    },
-    CatalogEntry {
-        name: "lower",
-        kind: CatalogKind::Function,
-        signature: "lower(s)",
-        description: "case and whitespace",
     },
     CatalogEntry {
         name: "lst",
         kind: CatalogKind::Function,
-        signature: "lst(jd, lon)",
-        description: "local sidereal time in **hours** at longitude `lon`",
     },
     CatalogEntry {
         name: "ly",
         kind: CatalogKind::Constant,
-        signature: "ly",
-        description: "light year (m)",
     },
     CatalogEntry {
         name: "m_P",
         kind: CatalogKind::Constant,
-        signature: "m_P",
-        description: "Planck mass (kg)",
     },
     CatalogEntry {
         name: "m_e",
         kind: CatalogKind::Constant,
-        signature: "m_e",
-        description: "electron mass (kg)",
     },
     CatalogEntry {
         name: "m_moon",
         kind: CatalogKind::Constant,
-        signature: "m_moon",
-        description: "lunar mass (kg)",
     },
     CatalogEntry {
         name: "m_n",
         kind: CatalogKind::Constant,
-        signature: "m_n",
-        description: "neutron mass (kg)",
     },
     CatalogEntry {
         name: "m_p",
         kind: CatalogKind::Constant,
-        signature: "m_p",
-        description: "proton mass (kg)",
     },
     CatalogEntry {
         name: "m_sun",
         kind: CatalogKind::Constant,
-        signature: "m_sun",
-        description: "solar mass (kg)",
     },
     CatalogEntry {
         name: "m_u",
         kind: CatalogKind::Constant,
-        signature: "m_u",
-        description: "atomic mass unit (kg)",
     },
     CatalogEntry {
         name: "mag2jy",
         kind: CatalogKind::Function,
-        signature: "mag2jy(m)",
-        description: "Jansky ↔ magnitude (AB, 3631 Jy zero point)",
     },
     CatalogEntry {
         name: "max",
         kind: CatalogKind::Function,
-        signature: "max(x…)",
-        description: "extreme of any number of reals",
     },
     CatalogEntry {
         name: "mean",
         kind: CatalogKind::Function,
-        signature: "mean(L)",
-        description: "centers",
     },
     CatalogEntry {
         name: "median",
         kind: CatalogKind::Function,
-        signature: "median(L)",
-        description: "centers",
     },
     CatalogEntry {
         name: "min",
         kind: CatalogKind::Function,
-        signature: "min(x…)",
-        description: "extreme of any number of reals",
     },
     CatalogEntry {
         name: "mjd",
         kind: CatalogKind::Function,
-        signature: "mjd(y, m, d[, hr])",
-        description: "Modified Julian Date",
     },
     CatalogEntry {
         name: "mode",
         kind: CatalogKind::Function,
-        signature: "mode(L)",
-        description: "centers",
     },
     CatalogEntry {
         name: "mu_0",
         kind: CatalogKind::Constant,
-        signature: "mu_0",
-        description: "vacuum permeability (H/m)",
     },
     CatalogEntry {
         name: "mu_b",
         kind: CatalogKind::Constant,
-        signature: "mu_b",
-        description: "Bohr magneton (J/T)",
     },
     CatalogEntry {
         name: "mu_n",
         kind: CatalogKind::Constant,
-        signature: "mu_n",
-        description: "nuclear magneton (J/T)",
     },
     CatalogEntry {
         name: "n_a",
         kind: CatalogKind::Constant,
-        signature: "n_a",
-        description: "Avogadro constant (1/mol)",
     },
     CatalogEntry {
         name: "ncr",
         kind: CatalogKind::Function,
-        signature: "ncr(n, r)",
-        description: "combinations and permutations",
     },
     CatalogEntry {
         name: "ndivisors",
         kind: CatalogKind::Function,
-        signature: "ndivisors(n)",
-        description: "how many whole numbers divide `n`",
     },
     CatalogEntry {
         name: "nextprime",
         kind: CatalogKind::Function,
-        signature: "nextprime(n)",
-        description: "nearest prime above/below",
     },
     CatalogEntry {
         name: "normcdf",
         kind: CatalogKind::Function,
-        signature: "normcdf(x)",
-        description: "standard normal (1 argument) or general (`x, mu, sigma`)",
     },
     CatalogEntry {
         name: "normpdf",
         kind: CatalogKind::Function,
-        signature: "normpdf(x)",
-        description: "standard normal (1 argument) or general (`x, mu, sigma`)",
     },
     CatalogEntry {
         name: "now",
         kind: CatalogKind::Function,
-        signature: "now()",
-        description: "the current Julian Date",
     },
     CatalogEntry {
         name: "npr",
         kind: CatalogKind::Function,
-        signature: "npr(n, r)",
-        description: "combinations and permutations",
     },
     CatalogEntry {
         name: "npv",
         kind: CatalogKind::Function,
-        signature: "npv(r, flows)",
-        description: "net present value of a flow list",
     },
     CatalogEntry {
         name: "oct",
         kind: CatalogKind::Function,
-        signature: "oct(n)",
-        description: "spelling with prefix: `bin(10)` is `0b1010`; negatives keep the sign on the prefix",
     },
     CatalogEntry {
         name: "pc",
         kind: CatalogKind::Constant,
-        signature: "pc",
-        description: "parsec (m)",
     },
     CatalogEntry {
         name: "phi",
         kind: CatalogKind::Constant,
-        signature: "phi",
-        description: "the golden ratio, (1+√5)/2",
     },
     CatalogEntry {
         name: "phi_0",
         kind: CatalogKind::Constant,
-        signature: "phi_0",
-        description: "magnetic flux quantum (Wb)",
     },
     CatalogEntry {
         name: "pi",
         kind: CatalogKind::Constant,
-        signature: "pi",
-        description: "the circle constant",
     },
     CatalogEntry {
         name: "poissoncdf",
         kind: CatalogKind::Function,
-        signature: "poissoncdf(k, lambda)",
-        description: "Poisson",
     },
     CatalogEntry {
         name: "poissonpdf",
         kind: CatalogKind::Function,
-        signature: "poissonpdf(k, lambda)",
-        description: "Poisson",
     },
     CatalogEntry {
         name: "prevprime",
         kind: CatalogKind::Function,
-        signature: "prevprime(n)",
-        description: "nearest prime above/below",
     },
     CatalogEntry {
         name: "product",
         kind: CatalogKind::Function,
-        signature: "product(L)",
-        description: "total and product (lists or bare numbers)",
     },
     CatalogEntry {
         name: "q_e",
         kind: CatalogKind::Constant,
-        signature: "q_e",
-        description: "elementary charge (C)",
     },
     CatalogEntry {
         name: "quartile",
         kind: CatalogKind::Function,
-        signature: "quartile(L, k)",
-        description: "quartile `k` in `1..3`",
     },
     CatalogEntry {
         name: "r_earth",
         kind: CatalogKind::Constant,
-        signature: "r_earth",
-        description: "Earth mean radius (m)",
     },
     CatalogEntry {
         name: "r_gas",
         kind: CatalogKind::Constant,
-        signature: "r_gas",
-        description: "molar gas constant (J/(mol·K))",
     },
     CatalogEntry {
         name: "r_inf",
         kind: CatalogKind::Constant,
-        signature: "r_inf",
-        description: "Rydberg constant (1/m)",
     },
     CatalogEntry {
         name: "r_moon",
         kind: CatalogKind::Constant,
-        signature: "r_moon",
-        description: "lunar mean radius (m)",
     },
     CatalogEntry {
         name: "r_sun",
         kind: CatalogKind::Constant,
-        signature: "r_sun",
-        description: "solar radius (m)",
     },
     CatalogEntry {
         name: "ra",
         kind: CatalogKind::Function,
-        signature: "ra(body, jd)",
-        description: "geocentric equatorial coordinates, degrees",
     },
     CatalogEntry {
         name: "rad",
         kind: CatalogKind::Function,
-        signature: "rad(x)",
-        description: "`x` degrees to radians",
     },
     CatalogEntry {
         name: "randint",
         kind: CatalogKind::Function,
-        signature: "randint(a, b)",
-        description: "whole number in the closed range `[a, b]`",
     },
     CatalogEntry {
         name: "random",
         kind: CatalogKind::Function,
-        signature: "random() / random(a, b)",
-        description: "uniform draw in `[0, 1)`; uniform draw in `[a, b)`",
     },
     CatalogEntry {
         name: "randseed",
         kind: CatalogKind::Function,
-        signature: "randseed(n)",
-        description: "re-seed the generator and report `n`; a fresh session seeds from the clock, `randseed` makes draws reproducible",
     },
     CatalogEntry {
         name: "range",
         kind: CatalogKind::Function,
-        signature: "range(L)",
-        description: "max minus min",
     },
     CatalogEntry {
         name: "re",
         kind: CatalogKind::Function,
-        signature: "re(z)",
-        description: "real and imaginary part (0 for a real)",
     },
     CatalogEntry {
         name: "ref",
         kind: CatalogKind::Function,
-        signature: "ref(M)",
-        description: "row echelon and reduced row echelon form",
-    },
-    CatalogEntry {
-        name: "replace",
-        kind: CatalogKind::Function,
-        signature: "replace(s, old, new)",
-        description: "every `old` replaced",
     },
     CatalogEntry {
         name: "rise",
         kind: CatalogKind::Function,
-        signature: "rise(body, jd, lat, lon)",
-        description: "the event's JD for the local day containing `jd`; a named error when the event never happens that day",
     },
     CatalogEntry {
         name: "root",
         kind: CatalogKind::Function,
-        signature: "root(n, x)",
-        description: "real `n`-th root; odd roots of negatives are negative",
     },
     CatalogEntry {
         name: "round",
         kind: CatalogKind::Function,
-        signature: "round(x)",
-        description: "half away from zero, like a calculator",
     },
     CatalogEntry {
         name: "rref",
         kind: CatalogKind::Function,
-        signature: "rref(M)",
-        description: "row echelon and reduced row echelon form",
     },
     CatalogEntry {
         name: "scientific",
         kind: CatalogKind::Function,
-        signature: "scientific(x)",
-        description: "the value in scientific notation, as text",
     },
     CatalogEntry {
         name: "set",
         kind: CatalogKind::Function,
-        signature: "set(…)",
-        description: "the event's JD for the local day containing `jd`; a named error when the event never happens that day",
     },
     CatalogEntry {
         name: "sigma_sb",
         kind: CatalogKind::Constant,
-        signature: "sigma_sb",
-        description: "Stefan–Boltzmann constant (W/(m²·K⁴))",
     },
     CatalogEntry {
         name: "sign",
         kind: CatalogKind::Function,
-        signature: "sign(x)",
-        description: "`-1`, `0`, or `1`",
     },
     CatalogEntry {
         name: "simple_interest",
         kind: CatalogKind::Function,
-        signature: "simple_interest(p, r, t)",
-        description: "`p*r*t`",
     },
     CatalogEntry {
         name: "sin",
         kind: CatalogKind::Function,
-        signature: "sin(z)",
-        description: "circular functions",
     },
     CatalogEntry {
         name: "sinh",
         kind: CatalogKind::Function,
-        signature: "sinh(z)",
-        description: "hyperbolic functions",
     },
     CatalogEntry {
         name: "sort",
         kind: CatalogKind::Function,
-        signature: "sort(L)",
-        description: "the list, ascending",
-    },
-    CatalogEntry {
-        name: "split",
-        kind: CatalogKind::Function,
-        signature: "split(s, sep)",
-        description: "the parts, as a list of strings (non-empty `sep`)",
     },
     CatalogEntry {
         name: "sqrt",
         kind: CatalogKind::Function,
-        signature: "sqrt(q)",
-        description: "square root; negative reals fall back to complex; quantities need even dimensions",
     },
     CatalogEntry {
         name: "stdev",
         kind: CatalogKind::Function,
-        signature: "stdev(L)",
-        description: "spread",
     },
     CatalogEntry {
         name: "str",
         kind: CatalogKind::Function,
-        signature: "str(v)",
-        description: "one value spelled the way the answer panel spells it",
-    },
-    CatalogEntry {
-        name: "substr",
-        kind: CatalogKind::Function,
-        signature: "substr(s, start[, len])",
-        description: "1-based slice; no `len` means the rest",
     },
     CatalogEntry {
         name: "sum",
         kind: CatalogKind::Function,
-        signature: "sum(L)",
-        description: "total and product (lists or bare numbers)",
     },
     CatalogEntry {
         name: "t_P",
         kind: CatalogKind::Constant,
-        signature: "t_P",
-        description: "Planck time (s)",
     },
     CatalogEntry {
         name: "tan",
         kind: CatalogKind::Function,
-        signature: "tan(z)",
-        description: "circular functions",
     },
     CatalogEntry {
         name: "tanh",
         kind: CatalogKind::Function,
-        signature: "tanh(z)",
-        description: "hyperbolic functions",
     },
     CatalogEntry {
         name: "tau",
         kind: CatalogKind::Constant,
-        signature: "tau",
-        description: "two pi",
     },
     CatalogEntry {
         name: "tcdf",
         kind: CatalogKind::Function,
-        signature: "tcdf(x, df)",
-        description: "Student's t",
     },
     CatalogEntry {
         name: "time",
         kind: CatalogKind::Function,
-        signature: "time(jd)",
-        description: "`{h, min, s}`",
     },
     CatalogEntry {
         name: "tinterval",
         kind: CatalogKind::Function,
-        signature: "tinterval(L, level)",
-        description: "confidence interval, as text",
     },
     CatalogEntry {
         name: "totient",
         kind: CatalogKind::Function,
-        signature: "totient(n)",
-        description: "Euler's totient",
     },
     CatalogEntry {
         name: "tpdf",
         kind: CatalogKind::Function,
-        signature: "tpdf(x, df)",
-        description: "Student's t",
     },
     CatalogEntry {
         name: "trace",
         kind: CatalogKind::Function,
-        signature: "trace(M)",
-        description: "square-matrix determinant and trace",
     },
     CatalogEntry {
         name: "transpose",
         kind: CatalogKind::Function,
-        signature: "transpose(M)",
-        description: "rows and columns swapped",
-    },
-    CatalogEntry {
-        name: "trim",
-        kind: CatalogKind::Function,
-        signature: "trim(s)",
-        description: "case and whitespace",
     },
     CatalogEntry {
         name: "trunc",
         kind: CatalogKind::Function,
-        signature: "trunc(x)",
-        description: "round down, up, toward zero",
     },
     CatalogEntry {
         name: "ttest",
         kind: CatalogKind::Function,
-        signature: "ttest(L, mu0)",
-        description: "one-sample t test",
     },
     CatalogEntry {
         name: "tvm_fv",
         kind: CatalogKind::Function,
-        signature: "tvm_fv(n, r, pv, pmt)",
-        description: "future value",
     },
     CatalogEntry {
         name: "tvm_i",
         kind: CatalogKind::Function,
-        signature: "tvm_i(n, pv, pmt, fv)",
-        description: "periodic rate that makes the amounts balance",
     },
     CatalogEntry {
         name: "tvm_n",
         kind: CatalogKind::Function,
-        signature: "tvm_n(r, pv, pmt, fv)",
-        description: "periods needed",
     },
     CatalogEntry {
         name: "tvm_pmt",
         kind: CatalogKind::Function,
-        signature: "tvm_pmt(n, r, pv, fv)",
-        description: "payment per period",
     },
     CatalogEntry {
         name: "tvm_pv",
         kind: CatalogKind::Function,
-        signature: "tvm_pv(n, r, pmt, fv)",
-        description: "present value",
-    },
-    CatalogEntry {
-        name: "upper",
-        kind: CatalogKind::Function,
-        signature: "upper(s)",
-        description: "case and whitespace",
     },
     CatalogEntry {
         name: "wien",
         kind: CatalogKind::Constant,
-        signature: "wien",
-        description: "Wien displacement constant (m·K)",
     },
     CatalogEntry {
         name: "z_0",
         kind: CatalogKind::Constant,
-        signature: "z_0",
-        description: "vacuum impedance (Ω)",
     },
     CatalogEntry {
         name: "zinterval",
         kind: CatalogKind::Function,
-        signature: "zinterval(L, sigma, level)",
-        description: "confidence interval, as text",
     },
     CatalogEntry {
         name: "ztest",
         kind: CatalogKind::Function,
-        signature: "ztest(L, mu0, sigma)",
-        description: "one-sample z test, `z = …, p = …`",
     },
 ];
-
-/// Callables the reference documents but the catalog does not
-/// list (the astronomy family, `print`, the calculus specials):
-/// hover and completion fuel for names users type but the data
-/// keypad banks never suggested (ADR-0066). Membership of
-/// `catalog()` itself is unchanged.
-static SUPPLEMENTARY_CATALOG: &[CatalogEntry] = &[
-    CatalogEntry {
-        name: "airmass",
-        kind: CatalogKind::Function,
-        signature: "airmass(body, jd, lat, lon)",
-        description: "relative airmass along the line of sight",
-    },
-    CatalogEntry {
-        name: "anova",
-        kind: CatalogKind::Function,
-        signature: "anova(G1, G2, …)",
-        description: "one-way ANOVA, `F = …, p = …`",
-    },
-    CatalogEntry {
-        name: "dawes",
-        kind: CatalogKind::Function,
-        signature: "dawes(aperture)",
-        description: "Dawes limit in arcseconds for an aperture in mm",
-    },
-    CatalogEntry {
-        name: "december_solstice",
-        kind: CatalogKind::Function,
-        signature: "december_solstice(y)",
-        description: "the JD of the Earth's season mark in year `y`",
-    },
-    CatalogEntry {
-        name: "deg2dms",
-        kind: CatalogKind::Function,
-        signature: "deg2dms(x)",
-        description: "decimal degrees to sexagesimal text",
-    },
-    CatalogEntry {
-        name: "diam",
-        kind: CatalogKind::Function,
-        signature: "diam(body, jd)",
-        description: "angular diameter, arcseconds",
-    },
-    CatalogEntry {
-        name: "dist_mod",
-        kind: CatalogKind::Function,
-        signature: "dist_mod(mu)",
-        description: "distance modulus `mu` to distance in parsecs",
-    },
-    CatalogEntry {
-        name: "dms2deg",
-        kind: CatalogKind::Function,
-        signature: "dms2deg(d, m, s)",
-        description: "sexagesimal to decimal degrees",
-    },
-    CatalogEntry {
-        name: "expreg",
-        kind: CatalogKind::Function,
-        signature: "expreg(xs, ys)",
-        description: "exponential fit and `r`, as text",
-    },
-    CatalogEntry {
-        name: "illum",
-        kind: CatalogKind::Function,
-        signature: "illum(body, jd)",
-        description: "illuminated fraction",
-    },
-    CatalogEntry {
-        name: "june_solstice",
-        kind: CatalogKind::Function,
-        signature: "june_solstice(y)",
-        description: "the JD of the Earth's season mark in year `y`",
-    },
-    CatalogEntry {
-        name: "jy2mag",
-        kind: CatalogKind::Function,
-        signature: "jy2mag(f)",
-        description: "Jansky ↔ magnitude (AB, 3631 Jy zero point)",
-    },
-    CatalogEntry {
-        name: "logreg",
-        kind: CatalogKind::Function,
-        signature: "logreg(xs, ys)",
-        description: "logarithmic fit and `r`, as text",
-    },
-    CatalogEntry {
-        name: "mag",
-        kind: CatalogKind::Function,
-        signature: "mag(body, jd)",
-        description: "apparent magnitude",
-    },
-    CatalogEntry {
-        name: "march_equinox",
-        kind: CatalogKind::Function,
-        signature: "march_equinox(y)",
-        description: "the JD of the Earth's season mark in year `y`",
-    },
-    CatalogEntry {
-        name: "mod",
-        kind: CatalogKind::Function,
-        signature: "mod(a, b)",
-        description: "truncated remainder: the sign of the dividend",
-    },
-    CatalogEntry {
-        name: "modpow",
-        kind: CatalogKind::Function,
-        signature: "modpow(b, e, m)",
-        description: "`b` to the `e` modulo `m`, exact via big integers",
-    },
-    CatalogEntry {
-        name: "phase",
-        kind: CatalogKind::Function,
-        signature: "phase(body, jd)",
-        description: "phase angle, degrees",
-    },
-    CatalogEntry {
-        name: "powreg",
-        kind: CatalogKind::Function,
-        signature: "powreg(xs, ys)",
-        description: "power fit and `r`, as text",
-    },
-    CatalogEntry {
-        name: "print",
-        kind: CatalogKind::Function,
-        signature: "print(v…)",
-        description: "the arguments joined with spaces, as one string",
-    },
-    CatalogEntry {
-        name: "quadreg",
-        kind: CatalogKind::Function,
-        signature: "quadreg(xs, ys)",
-        description: "quadratic fit and `r`, as text",
-    },
-    CatalogEntry {
-        name: "randn",
-        kind: CatalogKind::Function,
-        signature: "randn()",
-        description: "standard normal draw (Box–Muller)",
-    },
-    CatalogEntry {
-        name: "satphen",
-        kind: CatalogKind::Function,
-        signature: "satphen(moon, jd)",
-        description: "the satellite's next phenomenon (occultation, transit, eclipse, shadow), as text",
-    },
-    CatalogEntry {
-        name: "satsep",
-        kind: CatalogKind::Function,
-        signature: "satsep(m1, m2, jd)",
-        description: "separation of two satellites, in Jupiter radii",
-    },
-    CatalogEntry {
-        name: "satx",
-        kind: CatalogKind::Function,
-        signature: "satx(moon, jd)",
-        description: "a Jupiter satellite's offset from Jupiter, in Jupiter radii (moon 1..4 = Io..Callisto)",
-    },
-    CatalogEntry {
-        name: "saty",
-        kind: CatalogKind::Function,
-        signature: "saty(…)",
-        description: "a Jupiter satellite's offset from Jupiter, in Jupiter radii (moon 1..4 = Io..Callisto)",
-    },
-    CatalogEntry {
-        name: "satz",
-        kind: CatalogKind::Function,
-        signature: "satz(…)",
-        description: "a Jupiter satellite's offset from Jupiter, in Jupiter radii (moon 1..4 = Io..Callisto)",
-    },
-    CatalogEntry {
-        name: "september_equinox",
-        kind: CatalogKind::Function,
-        signature: "september_equinox(y)",
-        description: "the JD of the Earth's season mark in year `y`",
-    },
-    CatalogEntry {
-        name: "transit",
-        kind: CatalogKind::Function,
-        signature: "transit(…)",
-        description: "the event's JD for the local day containing `jd`; a named error when the event never happens that day",
-    },
-    CatalogEntry {
-        name: "ttestpaired",
-        kind: CatalogKind::Function,
-        signature: "ttestpaired(A, B)",
-        description: "paired t on the differences",
-    },
-    CatalogEntry {
-        name: "variance",
-        kind: CatalogKind::Function,
-        signature: "variance(L)",
-        description: "spread",
-    },
-];
-
-/// The supplementary callables (ADR-0066): documented names
-/// outside the curated catalog.
-pub fn supplementary_catalog() -> &'static [CatalogEntry] {
-    SUPPLEMENTARY_CATALOG
-}
-
 
 /// The sorted builtin catalog: every function and constant the language
 /// ships, for autocomplete and F1 help (ADR-0042).
 pub fn catalog() -> &'static [CatalogEntry] {
     BUILTIN_CATALOG
-}
-
-/// Take exactly one string argument (ADR-0064 string library).
-fn one_string(name: &str, args: &[Value]) -> Result<String, EpherError> {
-    match args {
-        [Value::Str(s)] => Ok(s.clone()),
-        other => Err(EpherError::Type(format!(
-            "{name} expects a string, got {} argument(s)",
-            other.len()
-        ))),
-    }
-}
-
-/// The substring of `s` (ADR-0064): 1-based `start`, and either the rest
-/// of the string (`len` infinite) or exactly `len` characters, clamped
-/// to the end. Chars, not bytes, so accented letters count as one.
-fn substr_chars(s: &str, start: f64, len: f64) -> Result<String, EpherError> {
-    if start < 1.0 || start.fract() != 0.0 {
-        return Err(domain_error(format!(
-            "substr's start is a whole number from 1, got {start}"
-        )));
-    }
-    // An infinite length means "the rest of the string" (the one-argument
-    // form); only a finite length is validated.
-    if !len.is_infinite() && (len < 0.0 || len.fract() != 0.0) {
-        return Err(domain_error(format!(
-            "substr's length is a whole number from 0, got {len}"
-        )));
-    }
-    let chars: Vec<char> = s.chars().collect();
-    let begin = (start as usize - 1).min(chars.len());
-    let end = if len.is_infinite() {
-        chars.len()
-    } else {
-        begin.saturating_add(len as usize).min(chars.len())
-    };
-    Ok(chars[begin..end].iter().collect())
 }
 
 /// Take exactly one Float argument.
@@ -7560,136 +6413,6 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                 .collect::<Vec<_>>()
                 .join(" "),
         )),
-        // The string library (ADR-0064): case, trimming, slicing,
-        // splitting, joining, searching, replacing, and fixed-decimal
-        // spelling — the pieces report-writing scripts reach for.
-        "upper" | "lower" | "trim" => {
-            let s = one_string(name, &args)?;
-            match name {
-                "upper" => Ok(Value::Str(s.to_uppercase())),
-                "lower" => Ok(Value::Str(s.to_lowercase())),
-                _ => Ok(Value::Str(s.trim().to_string())),
-            }
-        }
-        // substr(s, start[, len]) — 1-based like every index in epher.
-        // Without a length the rest of the string; a start past the end
-        // is an empty string; a length that runs past the end clamps.
-        "substr" => match args.as_slice() {
-            [s, Value::Float(start)] => {
-                let s = one_string("substr", std::slice::from_ref(s))?;
-                Ok(Value::Str(substr_chars(&s, *start, f64::INFINITY)?))
-            }
-            [s, Value::Float(start), Value::Float(len)] => {
-                let s = one_string("substr", std::slice::from_ref(s))?;
-                Ok(Value::Str(substr_chars(&s, *start, *len)?))
-            }
-            other => Err(EpherError::Type(format!(
-                "substr expects a string, a start, and an optional length, got {} argument(s)",
-                other.len()
-            ))),
-        },
-        "split" => {
-            let [s, sep] = args.as_slice() else {
-                return Err(EpherError::Type(format!(
-                    "split expects 2 arguments, got {}",
-                    args.len()
-                )));
-            };
-            let s = one_string("split", std::slice::from_ref(s))?;
-            let sep = one_string("split", std::slice::from_ref(sep))?;
-            if sep.is_empty() {
-                return Err(domain_error(
-                    "split needs a non-empty separator".to_string(),
-                ));
-            }
-            Ok(Value::List(
-                s.split(sep.as_str())
-                    .map(|part| Value::Str(part.to_string()))
-                    .collect(),
-            ))
-        }
-        // join(list, sep) spells each element the way print would, so
-        // numbers and strings join alike.
-        "join" => match args.as_slice() {
-            [items, sep] => {
-                let Value::List(items) = items else {
-                    return Err(EpherError::Type(format!(
-                        "join expects a list, got {}",
-                        format_value(items, &DisplayPrefs::default())
-                    )));
-                };
-                let sep = one_string("join", std::slice::from_ref(sep))?;
-                let parts: Vec<String> = items
-                    .iter()
-                    .map(|v| match v {
-                        Value::Str(s) => s.clone(),
-                        other => format_value(other, &DisplayPrefs::default()),
-                    })
-                    .collect();
-                Ok(Value::Str(parts.join(&sep)))
-            }
-            other => Err(EpherError::Type(format!(
-                "join expects 2 arguments, got {}",
-                other.len()
-            ))),
-        },
-        "find" => {
-            let [s, sub] = args.as_slice() else {
-                return Err(EpherError::Type(format!(
-                    "find expects 2 arguments, got {}",
-                    args.len()
-                )));
-            };
-            let s = one_string("find", std::slice::from_ref(s))?;
-            let sub = one_string("find", std::slice::from_ref(sub))?;
-            if sub.is_empty() {
-                return Err(domain_error(
-                    "find needs a non-empty text to search for".to_string(),
-                ));
-            }
-            Ok(Value::Float(
-                s.find(sub.as_str())
-                    .map(|byte| s[..byte].chars().count() as f64 + 1.0)
-                    .unwrap_or(0.0),
-            ))
-        }
-        "replace" => {
-            let [v1, v2, v3] = args.as_slice() else {
-                return Err(EpherError::Type(format!(
-                    "replace expects 3 arguments, got {}",
-                    args.len()
-                )));
-            };
-            let s = one_string("replace", &[v1.clone()])?;
-            let old = one_string("replace", &[v2.clone()])?;
-            let new = one_string("replace", &[v3.clone()])?;
-            if old.is_empty() {
-                return Err(domain_error(
-                    "replace needs a non-empty text to replace".to_string(),
-                ));
-            }
-            Ok(Value::Str(s.replace(old.as_str(), new.as_str())))
-        }
-        // fixed(x, digits) — the value as text with exactly that many
-        // decimal places, the way a report wants 3.10 to keep its zero.
-        "fixed" => match args.as_slice() {
-            [x, Value::Float(digits)] => {
-                let value = one_float("fixed", std::slice::from_ref(x))?;
-                if *digits < 0.0 || digits.fract() != 0.0 || *digits > 15.0 {
-                    return Err(domain_error(format!(
-                        "fixed expects a whole number of digits from 0 to 15, got {digits}"
-                    )));
-                }
-                Ok(Value::Str(format!(
-                    "{value:.*}",
-                    *digits as usize
-                )))
-            }
-            other => Err(EpherError::Type(format!(
-                "fixed expects a number and a number of digits, got {} argument(s)",
-                other.len()
-            ))),
-        },
         "sort" => {
             let mut xs = any_floats(name, &args)?;
             xs.sort_by(|a, b| a.partial_cmp(b).expect("floats are comparable"));
@@ -8332,73 +7055,6 @@ pub fn run_all(script: &[Statement], env: &mut Env) -> Result<Vec<Value>, EpherE
 /// Maximum statement executions per `run` — protects against runaway loops.
 const STEP_LIMIT: u64 = 100_000;
 
-/// One statement's fate in an evaluation trace (ADR-0066): where it sat
-/// in the source and what it produced. `display` is the calculator's
-/// own rendering of the value (empty for statements that produce no
-/// value, like a `def`); `error` is set only on the statement that
-/// ended the pass.
-pub struct StatementOutcome {
-    pub span: Span,
-    pub display: Option<String>,
-    pub error: Option<EpherError>,
-}
-
-/// Evaluate a whole document statement by statement, recording each
-/// statement's span and what it produced: the evaluation trace
-/// (ADR-0066), the data behind inline results and ranged diagnostics. The pass is fail-fast: the
-/// first statement that errors ends it, and earlier outcomes stand.
-/// The step budget is one per document, exactly like `run`. Unlike
-/// `submit`, nothing enters the session's history.
-pub fn evaluation_trace(session: &mut Session, text: &str) -> Vec<StatementOutcome> {
-    let stmts = match parse_script_with_spans(text) {
-        Ok(stmts) => stmts,
-        Err(e) => {
-            return vec![StatementOutcome {
-                span: e.span,
-                display: None,
-                error: Some(e.error),
-            }];
-        }
-    };
-    let mut outcomes = Vec::new();
-    let mut steps = STEP_LIMIT;
-    for stmt in stmts {
-        let mut outcome = StatementOutcome {
-            span: stmt.span,
-            display: None,
-            error: None,
-        };
-        match stmt_value(&stmt.node, &mut session.env, &mut steps) {
-            Ok(Some(value)) => {
-                outcome.display = Some(format_value(&value, &session.display));
-            }
-            Ok(None) => {}
-            Err(error) => {
-                outcome.error = Some(error);
-                outcomes.push(outcome);
-                break;
-            }
-        }
-        // Definitions record their source for hover and completion,
-        // the same bookkeeping `submit` does for interactive lines.
-        match &stmt.node {
-            Statement::FunctionDef(name, _, _) => {
-                session
-                    .defs
-                    .insert(name.clone(), text[stmt.span.start..stmt.span.end].to_string());
-            }
-            Statement::Const(name, _) => {
-                session
-                    .consts
-                    .insert(name.clone(), text[stmt.span.start..stmt.span.end].to_string());
-            }
-            _ => {}
-        }
-        outcomes.push(outcome);
-    }
-    outcomes
-}
-
 fn consume_step(steps: &mut u64) -> Result<(), EpherError> {
     if *steps == 0 {
         return Err(EpherError::StepLimit);
@@ -8407,46 +7063,22 @@ fn consume_step(steps: &mut u64) -> Result<(), EpherError> {
     Ok(())
 }
 
-/// How a statement's execution ended (ADR-0064). `Normal` carries the
-/// statement's value, if it produced one; the other three are the
-/// control-flow jumps a body can request — leave the loop, next pass,
-/// and leave the function with this value.
-enum Flow {
-    Normal(Option<Value>),
-    Break,
-    Continue,
-    Return(Value),
-}
-
-/// Execute one statement and return its value, rejecting control-flow
-/// jumps: at the top level of a script there is no enclosing loop or
-/// function to jump out of, and the error says so.
+/// Execute one statement and return its value. Every value-producing
+/// statement records its result as the variable `ans` — the previous
+/// answer, like a pocket calculator's `Ans` (the keypads carry an `ans`
+/// key). Statements that produce no value (definitions, `while`) leave
+/// `ans` untouched, and so do errors. `ans` is an ordinary variable: it
+/// lives in the session's environment and is not persisted.
 fn stmt_value(
     stmt: &Statement,
     env: &mut Env,
     steps: &mut u64,
 ) -> Result<Option<Value>, EpherError> {
-    match stmt_flow(stmt, env, steps)? {
-        Flow::Normal(v) => Ok(v),
-        Flow::Return(_) => Err(EpherError::Type("return outside a function".into())),
-        Flow::Break => Err(EpherError::Type("break outside a loop".into())),
-        Flow::Continue => Err(EpherError::Type("continue outside a loop".into())),
-    }
-}
-
-/// Execute one statement, following the control-flow jumps a body can
-/// request. Every value-producing statement records its result as the
-/// variable `ans` — the previous answer, like a pocket calculator's
-/// `Ans` (the keypads carry an `ans` key). Statements that produce no
-/// value (definitions, `while`) leave `ans` untouched, and so do errors.
-/// `ans` is an ordinary variable: it lives in the session's environment
-/// and is not persisted.
-fn stmt_flow(stmt: &Statement, env: &mut Env, steps: &mut u64) -> Result<Flow, EpherError> {
     consume_step(steps)?;
-    let flow = match stmt {
-        Statement::Expr(expr) => Flow::Normal(Some(eval(expr, env)?)),
-        Statement::Assign(name, expr) => Flow::Normal(Some(assign(env, name, expr)?)),
-        Statement::Const(name, expr) => Flow::Normal(Some(define_constant(env, name, expr)?)),
+    let value = match stmt {
+        Statement::Expr(expr) => Some(eval(expr, env)?),
+        Statement::Assign(name, expr) => Some(assign(env, name, expr)?),
+        Statement::Const(name, expr) => Some(define_constant(env, name, expr)?),
         Statement::FunctionDef(name, params, body) => {
             env.set_function(
                 name.clone(),
@@ -8456,78 +7088,19 @@ fn stmt_flow(stmt: &Statement, env: &mut Env, steps: &mut u64) -> Result<Flow, E
                 },
             );
             // a definition produces no value
-            Flow::Normal(None)
+            None
         }
-        Statement::While(cond, body) => run_while(cond, body, env, steps)?,
-        Statement::For(var, iterable, body) => run_for(var, iterable, body, env, steps)?,
-        Statement::Solve(equation) => Flow::Normal(Some(solve_statement(equation, env)?)),
-        Statement::Block(stmts) => run_block(stmts, env, steps)?,
-        Statement::If(cond, then_stmt, else_stmt) => match eval(cond, env)? {
-            Value::Bool(true) => stmt_flow(then_stmt, env, steps)?,
-            // No `else` and the condition is false: nothing happened,
-            // which is how a `for` loop filters.
-            Value::Bool(false) => match else_stmt {
-                Some(s) => stmt_flow(s, env, steps)?,
-                None => Flow::Normal(None),
-            },
-            other => {
-                return Err(EpherError::Type(format!(
-                    "if condition must be a boolean, got {other:?}"
-                )));
-            }
-        },
-        Statement::Return(expr) => Flow::Return(eval(expr, env)?),
-        Statement::Break => Flow::Break,
-        Statement::Continue => Flow::Continue,
-        Statement::Destructure(names, expr) => {
-            let value = eval(expr, env)?;
-            let Value::List(items) = &value else {
-                return Err(EpherError::Type(format!(
-                    "destructuring needs a list to take apart, got {}; \
-                     try {{a, b}} = {{1, 2}}",
-                    format_value(&value, &DisplayPrefs::default())
-                )));
-            };
-            if items.len() != names.len() {
-                return Err(EpherError::Type(format!(
-                    "the pattern has {} name(s) but the list holds {} value(s)",
-                    names.len(),
-                    items.len()
-                )));
-            }
-            for (name, item) in names.iter().zip(items) {
-                if name == "_" {
-                    continue;
-                }
-                if name == "i" {
-                    return Err(EpherError::ImaginaryReserved);
-                }
-                if env.constant(name).is_some() {
-                    return Err(EpherError::AssignToConstant(name.clone()));
-                }
-                env.set(name.clone(), item.clone());
-            }
-            Flow::Normal(Some(value))
+        Statement::While(cond, body) => {
+            run_while(cond, body, env, steps)?;
+            None
         }
+        Statement::For(var, iterable, body) => Some(run_for(var, iterable, body, env, steps)?),
+        Statement::Solve(equation) => Some(solve_statement(equation, env)?),
     };
-    if let Flow::Normal(Some(v)) = &flow {
+    if let Some(v) = &value {
         env.set("ans", v.clone());
     }
-    Ok(flow)
-}
-
-/// Run a `do ... end` block's statements in order (ADR-0064); the block's
-/// value is its last statement's. A jump — `break`, `continue`,
-/// `return` — ends the block and propagates to whatever can honor it.
-fn run_block(stmts: &[Statement], env: &mut Env, steps: &mut u64) -> Result<Flow, EpherError> {
-    let mut last = Flow::Normal(None);
-    for stmt in stmts {
-        last = stmt_flow(stmt, env, steps)?;
-        if !matches!(last, Flow::Normal(_)) {
-            return Ok(last);
-        }
-    }
-    Ok(last)
+    Ok(value)
 }
 
 fn run_inner(
@@ -8550,12 +7123,6 @@ fn assign(env: &mut Env, name: &str, expr: &Expression) -> Result<Value, EpherEr
     if env.constant(name).is_some() {
         return Err(EpherError::AssignToConstant(name.to_string()));
     }
-    // The imaginary unit is the one reserved name (ADR-0065): a bare
-    // `i = 5` once persisted through the shared store and turned
-    // `3+4i` into `23` on every frontend.
-    if name == "i" {
-        return Err(EpherError::ImaginaryReserved);
-    }
     let value = eval(expr, env)?;
     env.set(name.to_string(), value.clone());
     Ok(value)
@@ -8577,30 +7144,28 @@ fn define_constant(env: &mut Env, name: &str, expr: &Expression) -> Result<Value
     if env.get(name).is_some() {
         return Err(EpherError::ConstantNameTaken(name.to_string()));
     }
-    if name == "i" {
-        return Err(EpherError::ImaginaryReserved);
-    }
     let value = eval(expr, env)?;
     env.set_constant(name.to_string(), value.clone());
     Ok(value)
 }
 
-/// Drive a while loop: evaluate the condition, run the body while it's
-/// true. `break` leaves the loop, `continue` starts the next pass, and
-/// `return` propagates out to the enclosing function.
+/// Execute one statement for its effect (used by loop bodies; loops produce no
+/// value).
+fn execute_stmt(stmt: &Statement, env: &mut Env, steps: &mut u64) -> Result<(), EpherError> {
+    // Body statements set `ans` exactly like top-level ones.
+    stmt_value(stmt, env, steps).map(|_| ())
+}
+
+/// Drive a while loop: evaluate the condition, run the body while it's true.
 fn run_while(
     cond: &Expression,
     body: &Statement,
     env: &mut Env,
     steps: &mut u64,
-) -> Result<Flow, EpherError> {
+) -> Result<(), EpherError> {
     loop {
         match eval(cond, env)? {
-            Value::Bool(true) => match stmt_flow(body, env, steps)? {
-                Flow::Normal(_) | Flow::Continue => {}
-                Flow::Break => break,
-                ret @ Flow::Return(_) => return Ok(ret),
-            },
+            Value::Bool(true) => execute_stmt(body, env, steps)?,
             Value::Bool(false) => break,
             other => {
                 return Err(EpherError::Type(format!(
@@ -8609,7 +7174,7 @@ fn run_while(
             }
         }
     }
-    Ok(Flow::Normal(None))
+    Ok(())
 }
 
 /// The most iterations a `for` loop may run (ADR-0054): the same
@@ -8617,21 +7182,18 @@ fn run_while(
 /// because each iteration does real work the step budget also counts.
 const MAX_FOR_ITERATIONS: i64 = 100_000;
 
-/// Run a `for` loop (ADR-0054, amended by ADR-0063): bind the loop variable for each
+/// Run a `for` loop (ADR-0054): bind the loop variable for each
 /// element, collect the body's values (statements with no value, such
 /// as a definition or a nested `while`, contribute nothing), and return the
-/// collected list. The loop variable is scoped to the loop: afterwards
-/// the name reverts to the binding it had before (usually none), so a
-/// loop over `i` never leaves an `i` behind to shadow the imaginary
-/// unit. Assignments to OTHER names inside the body persist as any
-/// script statement's do, which is how accumulators work.
+/// collected list. The loop variable keeps its last value afterwards,
+/// like TI's `For`.
 fn run_for(
     var: &str,
     iterable: &ForIterable,
     body: &Statement,
     env: &mut Env,
     steps: &mut u64,
-) -> Result<Flow, EpherError> {
+) -> Result<Value, EpherError> {
     let items: Vec<Value> = match iterable {
         ForIterable::Items(expr) => match eval(expr, env)? {
             Value::List(items) => items,
@@ -8685,36 +7247,13 @@ fn run_for(
         }
     };
     let mut collected = Vec::with_capacity(items.len());
-    // The control variable is the loop's own (ADR-0063): whatever `var`
-    // meant before the loop is restored afterwards, and a name that was
-    // unbound stays unbound (and never reaches the session store).
-    let prior = env.get(var).cloned();
     for item in items {
         env.set(var.to_string(), item);
-        match stmt_flow(body, env, steps)? {
-            Flow::Normal(Some(value)) => collected.push(value),
-            // A body that produces no value (a definition, an `if`
-            // without `else` that was false) contributes nothing; that
-            // is how a `for` loop filters.
-            Flow::Normal(None) | Flow::Continue => {}
-            // `break` stops the loop; the list so far is the loop's
-            // value. `return` leaves for the enclosing function, but
-            // restores the loop variable on the way out.
-            Flow::Break => break,
-            ret @ Flow::Return(_) => {
-                match prior {
-                    Some(value) => env.set(var.to_string(), value),
-                    None => env.remove(var),
-                }
-                return Ok(ret);
-            }
+        if let Some(value) = stmt_value(body, env, steps)? {
+            collected.push(value);
         }
     }
-    match prior {
-        Some(value) => env.set(var.to_string(), value),
-        None => env.remove(var),
-    }
-    Ok(Flow::Normal(Some(Value::List(collected))))
+    Ok(Value::List(collected))
 }
 
 /// An interactive session: a persistent [`Env`] plus history — the shared
@@ -8929,13 +7468,8 @@ impl Session {
     /// Restore bindings saved by another frontend of the same installation
     /// (ADR-0010 amendment): each name is bound into the environment, so
     /// `ans` and every user assignment survive across CLI/REPL/TUI/GUI.
-    /// A stored `i` is dropped: the imaginary unit is reserved
-    /// (ADR-0065), and old stores may still carry one from before.
     pub fn restore_bindings(&mut self, bindings: &ValueBindings) {
         for (name, value) in bindings {
-            if name == "i" {
-                continue;
-            }
             self.env.set(name.clone(), value.clone());
         }
     }

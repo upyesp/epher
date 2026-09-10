@@ -111,12 +111,13 @@ jobs:
             -f name="staging build $SHORT" \
             -f body="$(cat body.txt)" | jq -r .id)"
           echo "draft id: $ID"
-          # Asset uploads go to uploads.github.com, which only the gh CLI
-          # routes to (raw api.github.com asset POSTs 404). The draft is
-          # resolved by its tag_name — drafts carry no git tag, so this
-          # can only ever touch the staging draft itself.
-          gh release upload staging-build assets/* --repo "$REPO" --clobber
-          echo "uploaded $(ls assets | wc -l) installers"
+          for f in assets/*; do
+            name="$(basename "$f")"
+            echo "uploading $name ($(du -h "$f" | cut -f1))"
+            gh api --method POST -H "Content-Type: application/octet-stream" \
+              "repos/$REPO/releases/$ID/assets?name=$name" \
+              --input "$f" >/dev/null
+          done
           URL="$(gh api "repos/$REPO/releases/$ID" -q .html_url)"
           echo "draft ready: $URL"
           echo "## Staging draft refreshed" >> "$GITHUB_STEP_SUMMARY"

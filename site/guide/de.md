@@ -254,8 +254,6 @@ x = x + 1
 > Namen dürfen Buchstaben und Unterstriche enthalten, wie `radius` oder
 > `my_total`. Sie dürfen keine Leerzeichen enthalten und nicht mit einer Zahl beginnen.
 
-Ein Name ist reserviert: `i`, die imaginäre Einheit (Abschnitt 1.18).
-
 Die besondere Variable `ans` enthält immer die vorherige Antwort, wie
 die `Ans`-Taste eines Taschenrechners, praktisch für Kettenrechnungen:
 
@@ -267,30 +265,6 @@ ans * 2
 ```text
 5
 10
-```
-
-Eine Liste kann auf einmal mehrere Namen füllen — `{a, b} = list` nimmt
-eine Liste auseinander, von links nach rechts (Abschnitt 1.11 zeigt
-Funktionen, die so mehr als eine Antwort zurückgeben):
-
-```epher
-{a, b} = {10, 20}; a + b
-```
-
-```text
-{10, 20}
-30
-```
-
-Eine Position, die du nicht willst, schreibst du als `_`:
-
-```epher
-{x, _} = {7, 8}; x
-```
-
-```text
-{7, 8}
-7
 ```
 
 ### 1.6 Konstanten: Namen, die sich nie ändern
@@ -368,14 +342,13 @@ eine Funktion (Kapitel 4.4).
 
 ### 1.7 Zeichenketten und print
 
-Eine Zeichenkette ist Text in doppelten Anführungszeichen: `"hello"`. Zeichenketten hängen mit `+` aneinander, vergleichen mit `==` und `!=`, ordnen mit `<` und `>` (Wörterbuchreihenfolge), zählen mit `len` und indizieren 1-basiert wie Listen:
+Eine Zeichenkette ist Text in doppelten Anführungszeichen: `"hello"`. Zeichenketten hängen mit `+` aneinander, vergleichen mit `==` und `!=`, zählen mit `len` und indizieren 1-basiert wie Listen:
 
 ```epher
 "hello" + " " + "world"
 len("hello")
 "hello"[1]
 "abc" == "abd"
-"apple" < "banana"
 ```
 
 ```text
@@ -383,27 +356,9 @@ hello world
 5
 h
 false
-true
 ```
 
-Ein Backslash in einer Zeichenkette beginnt eine **Escape-Folge**: `\n`
-ist eine neue Zeile, `\t` ein Tabulator, und `\\` und `\"` sind der
-Backslash und das Anführungszeichen selbst — so kann eine Zeichenkette
-ein doppeltes Anführungszeichen enthalten:
-
-```epher
-s = "say \"hi\""
-len("a\nb")
-```
-
-```text
-say "hi"
-3
-```
-
-**str(x)** schreibt einen Wert so, wie es das Antwortfeld täte, und
-**print(a, b, …)** verbindet seine Argumente mit Leerzeichen zu einer
-Zeile:
+Es gibt keine Escape-Folgen: Eine Zeichenkette kann kein doppeltes Anführungszeichen enthalten. **str(x)** schreibt einen Wert so, wie es das Antwortfeld täte, und **print(a, b, …)** verbindet seine Argumente mit Leerzeichen zu einer Zeile:
 
 ```epher
 print("x =", 42)
@@ -411,36 +366,6 @@ print("x =", 42)
 
 ```text
 x = 42
-```
-
-Eine kleine Bibliothek deckt den Rest beim Schreiben von Berichten ab.
-**upper** und **lower** ändern Groß- und Kleinschreibung, **trim**
-entfernt Leerzeichen an den Enden, **substr** nimmt ein Stück heraus
-(1-basiert wie jeder Index), **find** meldet, wo ein Text vorkommt (0,
-wenn er fehlt), **replace** tauscht jedes Vorkommen eines Texts gegen
-einen anderen, **split** zerbricht einen Text an einem Trennzeichen in
-eine Liste, **join** klebt eine Liste zu einem Text zusammen, und
-**fixed** schreibt eine Zahl mit genau so vielen Dezimalstellen, wie du
-verlangst — die Null, die ein Bericht will, bleibt erhalten:
-
-```epher
-upper("hello")
-substr("2026-09-17", 1, 4)
-find("hello world", "world")
-replace("2026-09-17", "-", "/")
-split("a,b,c", ",")
-join({1, 2, 3}, "-")
-fixed(3.1, 2)
-```
-
-```text
-HELLO
-2026
-7
-2026/09/17
-{a, b, c}
-1-2-3
-3.10
 ```
 
 ### 1.8 Entscheidungen mit if
@@ -494,10 +419,6 @@ zu x; zeige dann x.* Das Ergebnis ist 5, weil die Schleife fünfmal lief.
 > `error: step limit exceeded`. Das schützt dich vor Schleifen, die nie
 > enden würden. Wenn du das siehst, ist deine Bedingung vermutlich nie falsch geworden.
 
-Eine Schleife lässt sich auch absichtlich verlassen: der nächste
-Abschnitt führt `break` und `continue` ein, und eine Funktion `return`
-(Abschnitt 1.11).
-
 ### 1.10 Schleifen mit for
 
 `for` wiederholt eine Anweisung einmal pro Wert und sammelt die Werte des Körpers in einer Liste: über einen Bereich `start to end` (einschließlich) mit optionalem `step` oder über die Elemente einer Liste:
@@ -514,7 +435,7 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-Die Schleifenvariable gilt nur innerhalb der Schleife: Danach bedeutet der Name wieder wie zuvor (eine Schleife über `i` berührt die imaginäre Einheit nicht), während Zuweisungen an andere Namen im Schleifenkörper erhalten bleiben. Mit print schreibt eine Schleife lesbare Zeilen:
+Die Schleifenvariable behält danach ihren letzten Wert, wie TIs For. Mit print schreibt eine Schleife lesbare Zeilen:
 
 ```epher
 for i in 1 to 3 do print("line", i)
@@ -525,39 +446,6 @@ for i in 1 to 3 do print("line", i)
 ```
 
 Derselbe Sicherheitsschalter von 100.000 Schritten begrenzt eine for-Schleife wie eine while-Schleife.
-
-**Eine Schleife vorzeitig verlassen.** `break` stoppt die Schleife auf
-der Stelle; die bis dahin gesammelten Werte sind die Antwort der
-Schleife. `continue` überspringt den Rest des Durchlaufs und geht zum
-nächsten Wert. Beide sind Anweisungen, sie stehen also hinter einem
-`if`:
-
-```epher
-for k in 1 to 6 do if mod(k, 2) == 1 then k
-for k in 1 to 10 do if k == 4 then break else k
-total = 0
-for k in 1 to 6 do if mod(k, 2) == 0 then continue else total = total + k
-total
-```
-
-```text
-{1, 3, 5}
-{1, 2, 3}
-0
-{1, 4, 9}
-9
-```
-
-Den mittleren lies so: für k von 1 bis 10, wenn k gleich 4 ist, stopp;
-sonst gib k zurück. Die Antwort der Schleife sind die Werte, die sie
-vor dem Stoppen gesehen hat. Das letzte Paar zeigt `continue` beim
-Zählen: die gesammelte Liste der for-Zeile ist die laufende Summe - 1,
-dann 4, dann 9 - und die geraden Durchläufe wurden übersprungen, also
-trugen sie nichts bei. Das abschließende `total`, 9, ist die Summe der
-ungeraden Werte. Ein `if` ohne `else` trägt nichts bei, wenn seine
-Bedingung falsch ist — so behält die erste Schleife nur die ungeraden
-Werte, und so kann eine Schleife eine Liste *filtern* wie auch
-umformen.
 
 
 ### 1.11 Eigene Funktionen mit def
@@ -600,70 +488,6 @@ answer()
 42
 ```
 
-**Ein Körper mit mehreren Schritten.** Wenn ein Ausdruck nicht reicht,
-gib der Funktion einen `do … end`-Körper. Die Anweisungen laufen der
-Reihe nach ab, und der Wert der letzten ist die Antwort:
-
-```epher
-def hyp(a, b) do
-  c = a ^ 2 + b ^ 2
-  sqrt(c)
-end
-hyp(3, 4)
-```
-
-```text
-5
-```
-
-Der Zwischenname `c` lebt innerhalb des Aufrufs; er ist nach außen
-nicht sichtbar, und zwei Aufrufe sehen gegenseitig ihr `c` nicht.
-
-**return: Antwort sofort.** `return value` antwortet sofort und
-überspringt den Rest des Körpers — die natürliche Form für eine Wahl
-mit frühzeitigem Ausstieg:
-
-```epher
-def grade(s) do
-  if s >= 90 then return "A"
-  if s >= 80 then return "B"
-  "C"
-end
-grade(95); grade(85); grade(40)
-```
-
-```text
-A
-B
-C
-```
-
-`return` verlässt auch eine Schleife, die sucht, in dem Moment, in dem
-sie findet:
-
-```epher
-def firstsq(xs) do
-  for x in xs do
-    if x ^ 0.5 == floor(x ^ 0.5) then return x
-  0
-end
-firstsq({3, 5, 9, 11}); firstsq({3, 5, 7})
-```
-
-```text
-9
-0
-```
-
-Eine Regel hält die Blöcke lesbar: das `end` schließt immer das do der
-Funktion — ein `if`, `for` oder `while` bekommt kein `end`. Ein Körper,
-der ohne Antwort endet (etwa weil jeder Pfad nichts zurückgab), ist ein
-Fehler, keine Stille: epher sagt es und nennt die Funktion.
-
-> **Mehr als eine Antwort?** Gib eine Liste zurück — und benenne sie in
-> einem Zug mit dem Destrukturieren aus Abschnitt 1.5:
-> `{mean, sd} = {4, 1.6}`.
-
 ### 1.12 Rekursion: eine Funktion, die sich selbst aufruft
 
 Das berühmteste Beispiel sind die Fibonacci-Zahlen:
@@ -685,11 +509,8 @@ kleineren Argumenten auf, bis sie `n <= 1` erreicht. Das funktioniert,
 weil die Form `if ... then ... else ...` nur den Zweig berechnet, den sie
 braucht.
 
-> Der Körper einer Funktion ist ein Ausdruck nach dem `=`, oder ein
-> `do … end`-Block aus mehreren Anweisungen mit `return` für frühe
-> Ausstiege (Abschnitt 1.11). Kombiniere mehrere Berechnungen
-> stattdessen in einem Skript (nächster Abschnitt), wenn keine
-> Funktion nötig ist.
+> Der Körper einer Funktion ist ein einzelner Ausdruck, eine Zeile. Kombiniere
+> stattdessen mehrere Berechnungen mit `;` in einem Skript (nächster Abschnitt).
 
 ### 1.13 Skripte: mehrere Anweisungen auf einmal
 
@@ -1078,15 +899,10 @@ nicht kennt, damit du deinen Ausdruck korrigieren kannst.
 | Variable | `name = value` | `x = 5` |
 | Konstante | `const name = value` | `const tax = 0.2` |
 | Entscheidung | `if c then a else b` | `if x > 0 then 1 else -1` |
-| Anweisungen wählen | `if c then Anweisung [else Anweisung]` | `if k == 4 then break` |
 | Schleife | `while c do statement` | `while x < 5 do x = x + 1` |
 | for-Schleife | `for i in a to b step s do Anweisung` | `for i in 1 to 5 do i^2` |
-| Schleife verlassen / überspringen | `break`, `continue` | `if k == 4 then break` |
-| Funktion | `def name(params) = expr` oder `do … end` | `def f(x) = x ^ 2` |
-| Antwort sofort | `return value` | `if ok then return x` |
-| Mehrere Namen | `{a, b} = list` (`_` überspringt) | `{m, sd} = stats(d)` |
-| Zeichenketten | `"..."`, `+` fügt zusammen, `s[i]`, `==`, `<` | `"a" + "b"` |
-| Zeichenketten-Bibliothek | `upper` `lower` `trim` `substr` `split` `join` `find` `replace` `fixed` | `split("a,b", ",")` |
+| Funktion | `def name(params) = expr` | `def f(x) = x ^ 2` |
+| Zeichenketten | `"..."`, `+` fügt zusammen, `s[i]`, `==` | `"a" + "b"` |
 | Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Skript | Anweisungen, verbunden mit `;` oder Zeilenumbrüchen | `x = 1; x + 1` |
 | Exakter Bruch | `frac(n, d)` | `frac(1, 3)` |
@@ -1101,38 +917,6 @@ nicht kennt, damit du deinen Ausdruck korrigieren kannst.
 | Bestimmtes Integral | `integral(expr, a, b)` | `integral(x^2, 0, 3)` |
 | Binär, oktal, hexadezimal | `0b…`, `0o…`, `0x…` | `0xFF + 0b1` |
 | Basisschreibweise | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
-| Primzahlen | `isprime(n)`, `factors(n)`, … | `factors(360)` |
-| Listenliteral | `{…}` | `{1, 2, 3}` |
-| Listenelement | `list[i]` (ab 1) | `{5, 6}[2]` |
-| Listenstatistik | `mean(liste)`, `median(liste)`, … | `stdev(d)` |
-| Listenform | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
-| Lineare Regression | `linreg(xs, ys)` | `linreg(x, y)` |
-| Regressionsfamilie | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
-| Normalverteilung | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
-| t-Verteilung | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
-| Chi-Quadrat | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
-| Diskrete Verteilungen | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
-| Tests und Intervalle | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
-| ANOVA und gepaarter t | `anova(listen...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
-| Datenplots | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
-| Zufallszahlen | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
-| Normalverteilte Ziehungen | `randn(mu, sigma)` | `randn(0, 1)` |
-| Konstanten-Browser | Hilfe → Konstanten: alle eingebauten Konstanten, nach Gruppe | Hilfe → Konstanten |
-| Größe | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
-| Umrechnen | `expr in Einheit` oder `expr -> Einheit` | `72 km/hr in m/s` |
-| Vorsätze | `k M G T m µ n p` skalieren jede Einheit | `5 km`, `3 MPa`, `1 GHz` |
-| Bitweises Und, Oder | `a & b`, `a \| b` | `0xFF & 0x0F` |
-| Bitweises exklusives Oder | `a xor b` | `5 xor 3` |
-| Bitweises Nicht | `~a` | `~0` |
-| Verschiebungen | `a << n`, `a >> n` | `1 << 8` |
-| Wortbreite | `bits(n)` für 8, 16, 32, 64 | `bits(8)` |
-| Implizite Beziehung | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
-| Matrix-Literal | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
-| Matrixfunktionen | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
-| TVM-Löser | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
-| Kapitalwert und interner Zinsfuß | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
-| Tilgung | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
-| Zinsen | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` |
 
 ### 1.18 Komplexe Zahlen
 
@@ -1147,8 +931,6 @@ sqrt(-1)
 -1
 i
 ```
-
-Anders als jeder andere eingebaute Name kann `i` nicht wiederverwendet werden: `i = 5` wird abgelehnt, sodass die imaginäre Einheit nie verdeckt werden kann - weder durch eine Zuweisung noch durch eine alte gespeicherte Sitzung.
 
 Schreiben Sie eine komplexe Zahl mit dem `i`-Suffix, ohne Multiplikationszeichen: `3 + 4i` ist ein Literal, `2.5i` funktioniert, ebenso die Basisliterale (`0xFFi`). Die übliche Arithmetik erweitert sich: Addieren, Subtrahieren, Multiplizieren, Dividieren und Potenzen funktionieren, und `i` folgt der normalen Rangfolge (`i ^ 2` bindet wie jede Potenz).
 
@@ -1827,9 +1609,6 @@ niemals ein Ziel).
 | `mag(b, jd)` | scheinbare Helligkeit |
 | `phase(b, jd)`, `illum(b, jd)` | Phasenwinkel (Grad) und beleuchteter Anteil |
 | `diam(b, jd)` | scheinbarer Durchmesser (Grad) |
-| `satx(5, s, jd)`, `saty(5, s, jd)`, `satz(5, s, jd)` | ein Jupitermond (s 1-4: Io, Europa, Ganymede, Callisto) oder Saturnmond (s 1-8: Mimas, Enceladus, Tethys, Dione, Rhea, Titan, Hyperion, Iapetus), in Planetenradien (x west, y nord, z zum Beobachter) |
-| `satsep(5, s, jd)` | Abstand des Mondes vom Planetenzentrum, in Bogensekunden |
-| `satphen(5, s, jd)` | Zustand des Mondes: 0 sichtbar, 1 Durchgang, 2 verfinstert (okkultiert), 3 im Schatten, 4 Schattendurchgang |
 
 ```epher
 decl(10, jd(2000, 6, 21, 1.8))
@@ -2047,44 +1826,11 @@ Autor. Die Genauigkeit ist bogensekundenklassig für Sonne, Mond und
 Planeten über etwa 5000 Jahre um die Gegenwart.
 ### 1.30 Finanzen
 
-epher spricht Geld genauso wie Astronomie: ein Zeitwert-Löser, eine
-Darlehensabrechnung, Zinsen und Cashflow-Analyse, alles offline. Alles
-in diesem Abschnitt liefert schlichte Zahlen — keine
-Währungszeichenketten —, die Antworten sind währungsneutral und
-fließen direkt in die weitere Rechnung zurück. Zinssätze sind stets
-pro Periode als Bruchteil: `0.08/12` ist ein Jahreszins von 8 %,
-monatlich verrechnet, und `0.01` ist 1 % (das %-Nachzeichen aus 1.2
-funktioniert auch: `6 * 100%` ist 0.06).
-
-**Die Vorzeichenkonvention.** Der Löser folgt dem
-Taschenrechner-Standard (TI): Geld, das Sie ausgeben, ist negativ,
-Geld, das Sie erhalten, positiv. Bei einem aufgenommenen Darlehen ist
-die Auszahlung negativ und die Zahlungen sind positiv; beim Sparplan
-sind die Einzahlungen negativ und das gesammelte Guthaben positiv.
-Ein stimmiger Satz aus fünf Feldern bringt den Saldo auf null:
-
-```text
-pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0
-```
-
-Verdrehte Vorzeichen (Darlehen und Zahlungen beide negativ) lesen
-sich als „das Geld geht nie auf“, und der Löser antwortet mit einem
-Domänenfehler statt einer unsinnigen Zahl.
-
-**Der Zeitwert-Löser.** Fünf Funktionen lösen je ein Feld, wenn die
-anderen vier gegeben sind. `n` ist die Periodenzahl, `i` der Zinssatz
-pro Periode, `pv` der Barwert, `pmt` die Zahlung, `fv` der Endwert:
-
-| Funktion | Beantwortet |
-|---|---|
-| `tvm_pmt(n, i, pv, fv)` | die Zahlung |
-| `tvm_n(i, pv, pmt, fv)` | die Periodenzahl |
-| `tvm_i(n, pv, pmt, fv)` | den Zinssatz pro Periode |
-| `tvm_pv(n, i, pmt, fv)` | den Barwert |
-| `tvm_fv(n, i, pv, pmt)` | den Endwert |
-
-Die klassische 8-%-Hypothek: 360 monatliche Zahlungen von 733.76 auf
-ein Darlehen von 100,000:
+Der Zeitwert-Löser (TI-Vorzeichenkonvention: abgehendes Geld negativ,
+ankommendes positiv) löst jedes der fünf Felder, wenn die anderen vier
+gegeben sind. `i` ist der Zinssatz pro Periode als Bruchteil — 0.01
+ist 1 % — und das optionale letzte Argument ist der Zahlungszeitpunkt:
+0 für Periodenende (Standard), 1 für Periodenanfang (vorschüssig).
 
 ```epher
 tvm_pmt(360, 0.08/12, -100000, 0)
@@ -2094,18 +1840,10 @@ tvm_pmt(360, 0.08/12, -100000, 0)
 733.764573879
 ```
 
-Die Zinsen über die Laufzeit sind Zahlung mal Anzahl minus Darlehen:
-
-```epher
-tvm_pmt(360, 0.08/12, -100000, 0) * 360 - 100000
-```
-
-```text
-164155.246597
-```
-
-`tvm_i` liest den Zinssatz aus einer quoted Zahlung zurück (knapp
-unter 8 %/12, weil 733.76 gerundet ist):
+Die klassische 8-%-Hypothek: 360 monatliche Zahlungen von 733.76 auf
+ein Darlehen von 100,000 — `tvm_pmt` ist die Zahlung, `tvm_pv` das
+Darlehen, `tvm_fv` der Saldo, `tvm_n` die Laufzeit und `tvm_i` der
+Zinssatz:
 
 ```epher
 tvm_i(360, -100000, 733.76, 0)
@@ -2115,164 +1853,9 @@ tvm_i(360, -100000, 733.76, 0)
 0.00666661199068
 ```
 
-`tvm_n` beantwortet „wie lange“. 900 statt der Mindestrate im Monat:
-
-```epher
-tvm_n(0.08/12, -100000, 900, 0)
-```
-
-```text
-203.163223431
-```
-
-Rund 203 Monate statt 360. Und das Angebot der Bank prüft sich
-selbst: ein Darlehen von 100,000 bei 5 % mit 536.82 im Monat ist
-wirklich 30 Jahre:
-
-```epher
-tvm_n(0.05/12, 100000, -536.82, 0)
-```
-
-```text
-360.002521488
-```
-
-(Beachten Sie die gedrehten Vorzeichen: hier ist das Darlehen
-empfangenes Geld, also positiv, und die Zahlungen sind negativ.)
-
-`tvm_fv` wächst einen Sparplan: 200 im Monat, 40 Jahre bei 6 %:
-
-```epher
-tvm_fv(480, 0.06/12, 0, -200)
-```
-
-```text
-398298.146866
-```
-
-`tvm_pv` bepreist einen Zahlungsstrom: was ein Fonds heute halten
-muss, um 20 Jahre lang 1,500 im Monat zu zahlen, bei 5 %:
-
-```epher
-tvm_pv(240, 0.05/12, 1500, 0)
-```
-
-```text
--227287.969611
-```
-
-Die Antwort ist negativ, weil der Kauf des Fonds heute ausgehendes
-Geld ist. Die andere Richtung — wie viel im Monat beiseitelegen für
-ein Ziel — fragt `tvm_pmt` mit dem Ziel als `fv`: 50,000 in zehn
-Jahren bei 5 % kosten 322 im Monat:
-
-```epher
-tvm_pmt(120, 0.05/12, 0, -50000)
-```
-
-```text
-321.994242862
-```
-
-Jede der fünf nimmt ein optionales letztes Argument `begin`: 0
-bedeutet Zahlungen am Periodenende (Standard), 1 am Periodenanfang
-(vorschüssig — Miete, die meisten Gehälter). Zahlungen am
-Periodenanfang tragen eine Periode länger Zinsen, die Hypothekenrate
-fällt daher ein wenig:
-
-```epher
-tvm_pmt(360, 0.08/12, -100000, 0, 1)
-```
-
-```text
-728.90520584
-```
-
-Die Zinssuche deckt 100 % pro Periode ab, die Laufzeitsuche zehn
-Millionen Perioden; Probleme außerhalb dieser Bereiche (oder eine
-Vorzeichenlage, die nie auf geht) melden einen Domänenfehler, der
-nennt, was versucht wurde.
-
-**Amortisation.** `amort(p, r, n, k)` ist der Restsaldo nach k
-Zahlungen eines n-Perioden-Darlehens von p zum Satz r — bei 0
-Perioden die Summe, bei allen n null:
-
-```epher
-amort(100000, 0.08/12, 360, 120)
-```
-
-```text
-87724.7039064
-```
-
-Nach zehn Jahren der 8-%-Hypothek sind noch 87,725 offen. Eine
-Schleife (1.10) macht daraus den Tilgungsplan, je eine Zeile pro
-fünf Jahre:
-
-```epher
-for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
-```
-
-```text
-{100000, 95069.8567174, 87724.7039064, 76781.5595143, 60477.9628062, 36188.1192209, 0}
-```
-
-**Zinsen.** `simple_interest(p, r, t)` ist `p*r*t` und
-`compound_interest(p, r, n)` ist `p*(1+r)^n - p` — beide antworten
-mit den verdienten Zinsen, nicht mit dem Saldo:
-
-```epher
-simple_interest(1000, 0.05, 2)
-```
-
-```text
-100
-```
-
-```epher
-compound_interest(1000, 0.05, 2)
-```
-
-```text
-102.5
-```
-
-Der Saldo selbst ist schlichte Arithmetik — genau das ist der Sinn
-schlichter Zahlen:
-
-```epher
-1000 * 1.05 ^ 2
-```
-
-```text
-1102.5
-```
-
-Zwei Alltagsraten, genauso gebaut. Der effektive Jahreszins eines
-nominalen Zinses von 6 % bei monatlicher Verrechnung und die
-Verdoppelungszeit der 72er-Regel bei 6 %:
-
-```epher
-(1 + 0.06/12) ^ 12 - 1
-```
-
-```text
-0.0616778118645
-```
-
-```epher
-72 / (6 * 100%)
-```
-
-```text
-12
-```
-
-**Cashflow-Analyse.** `npv(r, flows)` diskontiert eine
-Cashflow-Liste zum Satz r: `flows[1]` ist die Ausgabe heute, der
-Rest trifft im Abstand einer Periode ein. `irr(flows)` findet den
-Satz, bei dem der Kapitalwert null ist. Heute 100 zahlen, in den
-nächsten beiden Jahren je 60 erhalten:
+Der Zinssatz liegt hier knapp unter 8 %/12, weil 733.76 gerundet ist.
+`npv(r, flows)` diskontiert eine Zahlungsstrom-Liste und `irr(flows)`
+findet den Zinssatz, bei dem der Kapitalwert null ist:
 
 ```epher
 npv(0.1, {-100, 60, 60})
@@ -2282,57 +1865,9 @@ npv(0.1, {-100, 60, 60})
 500/121
 ```
 
-```epher
-irr({-100, 60, 60})
-```
-
-```text
-0.130662386292
-```
-
-Die Anlage erwirtschaftet 13,07 %. (`500/121` ist ephers exakte
-Bruchanzeige, 1.14: der Wert, dessen Dezimalzahl sich wiederholt;
-`dec(500/121)` schreibt 4.13223140496.) Die Entscheidungsregel:
-Nimm das Projekt, wenn `npv` zu deiner Mindestverzinsung positiv
-ist — das heißt, wenn `irr` die Mindestverzinsung schlägt. Bei 15 %
-scheitert dieses hier:
-
-```epher
-npv(0.15, {-100, 60, 60})
-```
-
-```text
--1300/529
-```
-
-Eine Flussliste, deren Einträge nie das Vorzeichen wechseln, hat
-keinen sinnvollen Satz; `irr` meldet dafür einen Domänenfehler.
-
-**Alltags-Einzeiler.** Die jährliche Wachstumsrate einer Anlage, die
-in fünf Jahren von 1,000 auf 2,400 ging, und die reale Rendite von
-7 % nominal gegen 2 % Inflation (wieder die exakte Bruchanzeige;
-`dec(5/102)` ergibt 0.0490196078431):
-
-```epher
-(2400/1000) ^ (1/5) - 1
-```
-
-```text
-0.191357898167
-```
-
-```epher
-1.07 / 1.02 - 1
-```
-
-```text
-5/102
-```
-
-Die Skriptsammlung liefert 42 fertige Finanzskripte auf diesen zehn
-Funktionen mit — vier Ordner: Zinsen (interest), Investieren,
-Darlehen und Sparen —, jedes mit einem gegen die Engine geprüften
-Transkript (scripts.html listet sie mit Einzeiler-Zusammenfassungen auf).
+`amort(p, r, n, k)` ist der Restsaldo nach k Zahlungen eines
+n-Perioden-Darlehens, `simple_interest(p, r, t)` ist `p*r*t`, und
+`compound_interest(p, r, n)` ist `p*(1+r)^n - p`.
 
 ## 2. Die Web-App (PWA)
 

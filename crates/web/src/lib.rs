@@ -530,16 +530,6 @@ static TABS: &[TabDef] = &[
             key("dim", KeyAction::Call("dim"), "fn", "key-hint-dim"),
             key("str", KeyAction::Call("str"), "fn", "key-hint-str"),
             key("len", KeyAction::Call("len"), "fn", "key-hint-len"),
-            // The string library (ADR-0064), beside the string types.
-            key("upper", KeyAction::Call("upper"), "fn", "key-hint-upper"),
-            key("lower", KeyAction::Call("lower"), "fn", "key-hint-lower"),
-            key("trim", KeyAction::Call("trim"), "fn", "key-hint-trim"),
-            key("substr", KeyAction::Call("substr"), "fn", "key-hint-substr"),
-            key("split", KeyAction::Call("split"), "fn", "key-hint-split"),
-            key("join", KeyAction::Call("join"), "fn", "key-hint-join"),
-            key("find", KeyAction::Call("find"), "fn", "key-hint-find"),
-            key("replace", KeyAction::Call("replace"), "fn", "key-hint-replace"),
-            key("fixed", KeyAction::Call("fixed"), "fn", "key-hint-fixed"),
         ],
     },
     TabDef {
