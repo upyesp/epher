@@ -57,6 +57,21 @@ impl Client {
             }
         }
     }
+
+    /// The next publishDiagnostics within `millis`, or None: how the
+    /// tests wait out the debounce without flaking.
+    fn diagnostics_within(&self, millis: u64) -> Option<PublishDiagnosticsParams> {
+        let deadline = std::time::Instant::now() + std::time::Duration::from_millis(millis);
+        loop {
+            let left = deadline.saturating_duration_since(std::time::Instant::now());
+            let message = self.connection.receiver.recv_timeout(left).ok()?;
+            if let Message::Notification(notification) = message {
+                if notification.method == "textDocument/publishDiagnostics" {
+                    return Some(serde_json::from_value(notification.params).expect("params"));
+                }
+            }
+        }
+    }
 }
 
 fn uri(text: &str) -> Uri {
@@ -199,3 +214,78 @@ fn an_edit_reanalyzes_and_republishes() -> Result<(), Box<dyn Error>> {
 /// connection's receiver is read through `recv`, never polled.
 #[allow(dead_code)]
 fn _receiver_is_drained(_rx: &Receiver<Message>) {}
+
+#[test]
+fn snippets_arrive_as_snippet_completion_items() -> Result<(), Box<dyn Error>> {
+    let mut client = start()?;
+    let uri = open(&mut client, "memo://snip.epher", "1");
+    let _ = client.diagnostics();
+    let id = client.request(
+        "textDocument/completion",
+        serde_json::to_value(TextDocumentPositionParams {
+            text_document: TextDocumentIdentifier { uri },
+            position: Position { line: 0, character: 0 },
+        })?,
+    );
+    let response = client.response(id);
+    let items = response.result.expect("items").as_array().expect("array").clone();
+    let def = items
+        .iter()
+        .find(|i| i["label"] == "def")
+        .expect("a def snippet");
+    assert_eq!(def["insertTextFormat"], 2, "snippet format");
+    assert!(def["insertText"].as_str().expect("body").contains("def ${1:"));
+    Ok(())
+}
+
+#[test]
+fn rapid_edits_coalesce_into_one_pass() -> Result<(), Box<dyn Error>> {
+    let mut client = start()?;
+    let uri = open(&mut client, "memo://burst.epher", "1");
+    let first = client.diagnostics();
+    assert_eq!(first.version, Some(1));
+
+    // Two keystrokes inside the quiet gap: one pass for the newest text.
+    for (version, text) in [(2, "2"), (3, "3")] {
+        client.notify(
+            "textDocument/didChange",
+            json!({
+                "textDocument": { "uri": uri.to_string(), "version": version },
+                "contentChanges": [ { "text": text } ]
+            }),
+        );
+    }
+    let coalesced = client
+        .diagnostics_within(2000)
+        .expect("the quiet gap ends with one publish");
+    assert_eq!(coalesced.version, Some(3), "the newest text wins");
+    assert!(
+        client.diagnostics_within(500).is_none(),
+        "no second pass for the intermediate version"
+    );
+    Ok(())
+}
+
+#[test]
+fn unit_suffixes_color_as_units() -> Result<(), Box<dyn Error>> {
+    let mut client = start()?;
+    // 2 m is a quantity (the m is a unit); y is a variable; f(1) a call.
+    let uri = open(&mut client, "memo://units.epher", "2 m + y\nf(1)");
+    let _ = client.diagnostics();
+    let id = client.request(
+        "textDocument/semanticTokens/full",
+        json!({ "textDocument": { "uri": uri.to_string() } }),
+    );
+    let response = client.response(id);
+    let data = response.result.expect("tokens")["data"]
+        .as_array()
+        .expect("array")
+        .clone();
+    // legend: 0 number, 1 variable, 2 function, 3 keyword, 4 operator, 5 string, 6 unit
+    let types: Vec<u64> = data
+        .chunks(5)
+        .map(|t| t[3].as_u64().expect("token type"))
+        .collect();
+    assert_eq!(types, vec![0, 6, 4, 1, 2, 4, 0, 4], "the m in 2 m is a unit");
+    Ok(())
+}
