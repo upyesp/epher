@@ -1787,6 +1787,13 @@ script&#39;s transcript is byte-stable.</li>
 denominator 1000.</li>
 </ul>
 <h2 id="the-complete-grammar-ebnf">The complete grammar (EBNF)</h2>
+<p>The grammar is written in EBNF, the Extended Backus–Naur Form. Each rule
+names a construct and says how it is built: <code>,</code> joins parts in sequence,
+<code>|</code> separates alternatives, <code>[ … ]</code> marks a part that may be absent,
+<code>{ … }</code> a part that may repeat, and <code>&quot;quoted text&quot;</code> is a token written
+exactly so; rules refer to one another until every chain ends in a
+literal token, and any input that a chain of these rules accepts parses,
+and anything else does not.</p>
 <pre tabindex="0"><code class="language-text">program     = statement , { separator , statement } ;
 separator   = &quot;;&quot; | newline ;
 

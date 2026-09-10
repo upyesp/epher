@@ -765,6 +765,14 @@ with the verbatim shape of each message:
 
 ## The complete grammar (EBNF)
 
+The grammar is written in EBNF, the Extended Backus–Naur Form. Each rule
+names a construct and says how it is built: `,` joins parts in sequence,
+`|` separates alternatives, `[ … ]` marks a part that may be absent,
+`{ … }` a part that may repeat, and `"quoted text"` is a token written
+exactly so; rules refer to one another until every chain ends in a
+literal token, and any input that a chain of these rules accepts parses,
+and anything else does not.
+
 ```text
 program     = statement , { separator , statement } ;
 separator   = ";" | newline ;
