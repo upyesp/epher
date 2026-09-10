@@ -1,0 +1,78 @@
+{
+  "name": "Epher",
+  "scopeName": "source.epher",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#defname" },
+    { "include": "#keywords" },
+    { "include": "#number-unit" },
+    { "include": "#numbers" },
+    { "include": "#calls" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        { "name": "comment.block.epher", "begin": "/\\*", "end": "\\*/" },
+        { "name": "comment.line.double-slash.epher", "match": "//.*$" },
+        { "name": "comment.line.number-sign.epher", "match": "#.*$" }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.epher",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        { "name": "constant.character.escape.epher", "match": "\\\\[ntr\\\\\"]" }
+      ]
+    },
+    "defname": {
+      "comment": "the name being defined, with or without a parameter list",
+      "match": "\\b(def)[ \\t]+([A-Za-z_]\\w*)",
+      "captures": {
+        "1": { "name": "keyword.declaration.epher" },
+        "2": { "name": "entity.name.function.epher" }
+      }
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.epher",
+          "match": "\\b(if|then|else|for|to|in|do|while|end|return|break|continue)\\b"
+        },
+        { "name": "keyword.declaration.epher", "match": "\\b(def|const)\\b" },
+        { "name": "keyword.operator.word.epher", "match": "\\b(and|or|not|xor)\\b" },
+        { "name": "keyword.other.epher", "match": "\\b(solve)\\b" }
+      ]
+    },
+    "number-unit": {
+      "comment": "the m in 2 m, the h in 3.5h: a word after a number with only blanks between, never a keyword and never the imaginary i, and never across a newline. This is the baseline spelling; the language server's unit tokens are the exact rule.",
+      "match": "\\b(\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?i?|0[bBoOxX][0-9a-fA-F]+i?)[ \\t]*(?!\\b(?:and|or|not|xor|if|then|else|for|to|in|do|while|end|return|break|continue|def|const|solve|i)\\b)([A-Za-z_]\\w*)\\b",
+      "captures": {
+        "1": { "name": "constant.numeric.epher" },
+        "2": { "name": "variable.other.unit.epher" }
+      }
+    },
+    "numbers": {
+      "comment": "decimal, scientific, based (0b/0o/0x), imaginary, and a leading-dot decimal",
+      "match": "\\b(?:\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?i?|0[bBoOxX][0-9a-fA-F]+i?|\\.\\d+i?)\\b",
+      "name": "constant.numeric.epher"
+    },
+    "calls": {
+      "comment": "a name followed by a paren is a call; the parser reads the same adjacency",
+      "match": "\\b([A-Za-z_]\\w*)[ \\t]*(?=\\()",
+      "captures": { "1": { "name": "entity.name.function.epher" } }
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.epher",
+          "match": "<<|>>|<=|>=|==|!=|->|[-+*/^%<>=!&|~]"
+        },
+        { "name": "punctuation.separator.epher", "match": "[,;:]" },
+        { "name": "meta.bracket.epher", "match": "[()\\[\\]{}]" }
+      ]
+    }
+  }
+}
