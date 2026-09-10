@@ -35,6 +35,7 @@ flowchart TB
         WEBAPP["Yew frontend — epher-web<br/>the one graphical UI,<br/>Rust compiled to WebAssembly"]
         GUI["Desktop GUI — epher-gui<br/>native Tauri shell (window, webview,<br/>native bridge); hosts the Yew frontend"]
         PWA["PWA — the same Yew frontend<br/>served at epher.org<br/>(service worker + manifest)"]
+        LSP["Language server — epher-lsp<br/>LSP over stdio for IDE extensions<br/>(ADR-0066)"]
     end
 
     subgraph lang["Languages — 8 externalized locales (.ftl)"]
@@ -56,6 +57,7 @@ flowchart TB
     CLI --> engine
     REPL --> engine
     TUI --> engine
+    LSP --> engine
     CLI --> SHELL
     REPL --> SHELL
     TUI --> SHELL
@@ -114,6 +116,13 @@ installed files when the guide opens (ADR-0053).
 expression evaluator and the REPL. `epher-tui` is the full-screen
 ratatui app: keypad, menus, clickable history, 2D/3D plots. Both link
 the engine as an ordinary Rust dependency.
+
+**Editors (native).** `epher-lsp` is the language server the IDE
+extensions share (ADR-0066): one synchronous binary per platform that
+speaks LSP over stdio, embedding the engine. Its analysis pass is the
+evaluation trace: ranged diagnostics, inline results as inlay hints,
+hover from the catalog's signatures and descriptions, completion, and
+semantic tokens, all from one run of the open document per edit.
 
 **Browser frontends (WebAssembly).** `epher-web` is the Yew
 single-page app — the one and only graphical interface. Trunk compiles
