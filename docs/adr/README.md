@@ -90,6 +90,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0063 | A for loop scopes its variable | 2026-09-09 | accepted |
 | 0064 | Statement bodies, control flow, destructuring, and the string library | 2026-09-17 | accepted |
 | 0065 | The imaginary unit is reserved | 2026-09-17 | accepted |
+| 0066 | IDE extensions speak one LSP server | 2026-09-17 | accepted |
 
 ## Decision chains
 
@@ -186,6 +187,10 @@ at the end of the chain.
   string library; script input and file I/O out of scope)** →
   **0065 (`i` is the one reserved name; stored `i` bindings drop at
   load)**.
+- **IDE extensions** - **0066 (one `epher-lsp` binary per platform
+  with epher compiled in, downloaded on first run by thin universal
+  extensions; the core gains source spans, the per-statement
+  evaluation trace, and catalog descriptions)**.
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.
