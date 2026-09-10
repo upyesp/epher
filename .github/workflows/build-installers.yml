@@ -20,6 +20,14 @@
 #   epher-linux-x86_64.AppImage     everything else, incl. Arch — runs as-is
 #   epher-linux-aarch64.*           the same three, ARM64 (ADR-0061)
 #
+# Every leg also builds the language server (ADR-0066) and drops it in
+# the same artifacts dir, so it rides the public release and the staging
+# draft under the same stable names the extensions resolve:
+#   epher-lsp-linux-x86_64.gz       the shared epher-lsp binary, gzipped
+#   epher-lsp-linux-aarch64.gz
+#   epher-lsp-macos-aarch64.gz      stripped, ad-hoc signed
+#   epher-lsp-windows-x86_64.zip    zip with the exe at the archive root
+#
 # Callers (ADR-0062):
 #   - release.yml — a public vX.Y.Z tag push: builds the tag, then the
 #     caller's publish jobs attach the artifacts to the public release,
@@ -161,6 +169,21 @@ jobs:
         run: cargo tauri build --bundles ${{ matrix.bundles }}
         working-directory: crates/tauri-app/src-tauri
 
+      - name: Build the language server
+        # ADR-0066: the shared epher-lsp binary the IDE extensions
+        # download on first run. Its version is locked to the release
+        # train, so it must report exactly what the CLI reports.
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -e
+          cargo build --release -p epher-lsp
+          if [ "$VERSION" = "auto" ]; then
+            VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          fi
+          ./target/release/epher-lsp --version | grep -q "$(echo "$VERSION" | sed 's/^v//')"
+
       - name: Smoke-test the unified CLI
         if: runner.os != 'Windows'
         shell: bash
@@ -231,6 +254,10 @@ jobs:
               # release shipped installers without the scripts.)
               grep -q "scripts/astronomy/moon/full-moons.epher" <(dpkg-deb -c artifacts/epher-${{ matrix.target }}.deb)
               grep -q "scripts/astronomy/moon/full-moons.epher" <(rpm -qlp artifacts/epher-${{ matrix.target }}.rpm)
+              # The language server rides the same artifacts dir; both
+              # callers attach everything they find there.
+              strip target/release/epher-lsp
+              gzip -9 -n -c target/release/epher-lsp > artifacts/epher-lsp-${{ matrix.target }}.gz
               ;;
             macOS)
               # Ad-hoc signing (ADR-0058 amendment): a downloaded DMG
@@ -260,6 +287,14 @@ jobs:
               # Contents/Resources/scripts.
               test -f "$VOL/epher.app/Contents/Resources/scripts/astronomy/moon/full-moons.epher"
               hdiutil detach "$VOL"
+              # The language server: stripped, then re-signed ad-hoc
+              # (strip drops the linker's signature, and a valid
+              # signature keeps any Gatekeeper check overridable, the
+              # same policy as the app itself).
+              strip target/release/epher-lsp
+              codesign --force --sign - target/release/epher-lsp
+              codesign --verify target/release/epher-lsp
+              gzip -9 -n -c target/release/epher-lsp > artifacts/epher-lsp-${{ matrix.target }}.gz
               ;;
             Windows)
               cp "$BUNDLE"/nsis/*-setup.exe artifacts/epher-windows-x86_64.exe
@@ -267,6 +302,10 @@ jobs:
               # the binaries (%LOCALAPPDATA%\epher\scripts in currentUser
               # mode). 7-Zip lists the archive on the runner.
               7z l artifacts/epher-windows-x86_64.exe | grep -q "full-moons.epher"
+              # The language server: a zip with the exe at the archive
+              # root, the layout the VS Code downloader's Expand-Archive
+              # step expects.
+              powershell.exe -NoProfile -Command "Compress-Archive -Path 'target/release/epher-lsp.exe' -DestinationPath 'artifacts/epher-lsp-windows-x86_64.zip' -Force"
               ;;
           esac
 
