@@ -8,17 +8,9 @@
 //! page knows the name; describing it correctly is the reviewer's job and
 //! the examples' job.
 
-use epher_core::{builtin_constant_groups, catalog};
+use epher_core::{builtin_constant_groups, catalog, supplementary_catalog};
 
 const REFERENCE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../site/reference.md");
-
-/// Callable names the autocomplete catalog does not list (ADR-0042: the
-/// catalog is descriptive; these still evaluate): print, the display-verb
-/// neighbors, and the statistics entries that arrived with their families.
-const UNCATALOGED_CALLABLES: &[&str] = &[
-    "anova", "expreg", "logreg", "mod", "modpow", "powreg", "print",
-    "quadreg", "randn", "ttestpaired", "variance",
-];
 
 #[test]
 fn the_reference_names_every_builtin() {
@@ -31,9 +23,9 @@ fn the_reference_names_every_builtin() {
             missing.push(entry.name);
         }
     }
-    for name in UNCATALOGED_CALLABLES {
-        if !page.contains(name) {
-            missing.push(name);
+    for name in supplementary_catalog() {
+        if !page.contains(name.name) {
+            missing.push(name.name);
         }
     }
     assert!(
@@ -63,4 +55,28 @@ fn the_reference_names_every_builtin_constant() {
         missing.is_empty(),
         "site/reference.md does not name these constants: {missing:?}"
     );
+}
+
+/// Catalog docs may not drift empty (ADR-0066): hover in editors reads
+/// these strings, so every entry, curated or supplementary, carries a
+/// signature and a one-line description, lifted from the reference.
+#[test]
+fn every_catalog_entry_carries_signature_and_description() {
+    for entry in catalog().iter().chain(supplementary_catalog()) {
+        assert!(
+            !entry.signature.is_empty(),
+            "{} has no signature",
+            entry.name
+        );
+        assert!(
+            !entry.description.is_empty(),
+            "{} has no description",
+            entry.name
+        );
+        assert!(
+            !entry.description.contains('\u{2014}'),
+            "{} description carries an em-dash (house style forbids them)",
+            entry.name
+        );
+    }
 }
