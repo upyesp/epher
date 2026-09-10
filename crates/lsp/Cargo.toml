@@ -1,6 +1,6 @@
 [package]
 name = "epher-lsp"
-version = "0.5.40"
+version = "0.5.41"
 edition = "2021"
 license = "MIT"
 description = "The epher language server: one synchronous binary every IDE extension shares (ADR-0066)."
