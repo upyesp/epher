@@ -8,6 +8,7 @@ members = [
     "crates/guide",
     "crates/cli",
     "crates/tui",
+    "crates/lsp",
     "crates/web",
     "crates/tauri-app/src-tauri",
 ]
@@ -19,6 +20,7 @@ default-members = [
     "crates/shell",
     "crates/cli",
     "crates/tui",
+    "crates/lsp",
 ]
 
 # NOTE: the Tauri desktop shell (crates/tauri-app) is scaffolded separately —
