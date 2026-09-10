@@ -12,25 +12,6 @@ reference defines it exactly. Where the two appear to disagree, this
 page wins, and the disagreement is a bug worth
 [filing](https://github.com/upyesp/epher/issues).
 
-Contents:
-
-1. [Notation](#notation)
-2. [Program structure](#program-structure)
-3. [Lexical grammar](#lexical-grammar)
-4. [Names and keywords](#names-and-keywords)
-5. [Types and values](#types-and-values)
-6. [Expressions and operators](#expressions-and-operators)
-7. [Statements](#statements)
-8. [Names, scope, and the session store](#names-scope-and-the-session-store)
-9. [Built-in constants](#built-in-constants)
-10. [Built-in functions](#built-in-functions)
-11. [Units](#units)
-12. [Number display](#number-display)
-13. [Errors](#errors)
-14. [Limits and determinism](#limits-and-determinism)
-15. [The complete grammar (EBNF)](#the-complete-grammar-ebnf)
-16. [Beyond the grammar: interactive commands](#beyond-the-grammar-interactive-commands)
-
 ## Notation
 
 - `code` spells a token, expression, or statement exactly as written.
