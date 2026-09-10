@@ -74,7 +74,7 @@
   <main id="main" class="guide">
     <nav class="toc" aria-label="Contents" tabindex="0">
       <h2 class="toc-title">Contents</h2>
-      <ul><li class="toc-l2"><a href="#notation">Notation</a></li><li class="toc-l2"><a href="#program-structure">Program structure</a></li><li class="toc-l2"><a href="#lexical-grammar">Lexical grammar</a></li><li class="toc-l3"><a href="#numbers">Numbers</a></li><li class="toc-l3"><a href="#strings">Strings</a></li><li class="toc-l3"><a href="#names">Names</a></li><li class="toc-l2"><a href="#names-and-keywords">Names and keywords</a></li><li class="toc-l2"><a href="#types-and-values">Types and values</a></li><li class="toc-l2"><a href="#expressions-and-operators">Expressions and operators</a></li><li class="toc-l3"><a href="#precedence-tightest-to-loosest">Precedence, tightest to loosest</a></li><li class="toc-l3"><a href="#arithmetic">Arithmetic</a></li><li class="toc-l3"><a href="#factorial-and-percent">Factorial and percent</a></li><li class="toc-l3"><a href="#indexing">Indexing</a></li><li class="toc-l3"><a href="#comparisons">Comparisons</a></li><li class="toc-l3"><a href="#booleans">Booleans</a></li><li class="toc-l3"><a href="#bitwise-operations">Bitwise operations</a></li><li class="toc-l2"><a href="#statements">Statements</a></li><li class="toc-l3"><a href="#assignment-name-expr">Assignment: name = expr</a></li><li class="toc-l3"><a href="#constant-definition-const-name-expr">Constant definition: const name = expr</a></li><li class="toc-l3"><a href="#destructuring-a-b-expr-adr-0064">Destructuring: {a, b} = expr (ADR-0064)</a></li><li class="toc-l3"><a href="#function-definition-def-nameparams-expr-and-def-nameparams-do-end">Function definition: def name(params) = expr and def name(params) do … end</a></li><li class="toc-l3"><a href="#return-break-continue-adr-0064">return, break, continue (ADR-0064)</a></li><li class="toc-l3"><a href="#if-as-a-statement-if-cond-then-stmt-if-cond-then-stmt-else-stmt">if as a statement: if cond then stmt / if cond then stmt else stmt</a></li><li class="toc-l3"><a href="#while-cond-do-stmt">while cond do stmt</a></li><li class="toc-l3"><a href="#for-name-in-iterable-do-stmt-adr-0054-scoped-per-adr-0063">for name in iterable do stmt (ADR-0054, scoped per ADR-0063)</a></li><li class="toc-l3"><a href="#solve-lhs-rhs-adr-0043">solve lhs == rhs (ADR-0043)</a></li><li class="toc-l3"><a href="#expression-statements">Expression statements</a></li><li class="toc-l2"><a href="#names-scope-and-the-session-store">Names, scope, and the session store</a></li><li class="toc-l2"><a href="#built-in-constants">Built-in constants</a></li><li class="toc-l3"><a href="#mathematics">Mathematics</a></li><li class="toc-l3"><a href="#astronomy">Astronomy</a></li><li class="toc-l3"><a href="#physics">Physics</a></li><li class="toc-l3"><a href="#chemistry-and-thermodynamics">Chemistry and thermodynamics</a></li><li class="toc-l2"><a href="#built-in-functions">Built-in functions</a></li><li class="toc-l3"><a href="#angles-and-logarithms">Angles and logarithms</a></li><li class="toc-l3"><a href="#powers-roots-rounding">Powers, roots, rounding</a></li><li class="toc-l3"><a href="#trigonometry-complex-where-the-domain-needs-it">Trigonometry (complex where the domain needs it)</a></li><li class="toc-l3"><a href="#complex-parts">Complex parts</a></li><li class="toc-l3"><a href="#exact-and-display-spellings">Exact and display spellings</a></li><li class="toc-l3"><a href="#number-theory">Number theory</a></li><li class="toc-l3"><a href="#statistics-and-probability">Statistics and probability</a></li><li class="toc-l3"><a href="#lists-strings-matrices">Lists, strings, matrices</a></li><li class="toc-l3"><a href="#calculus-numeric">Calculus (numeric)</a></li><li class="toc-l3"><a href="#randomness-seeded-reproducible">Randomness (seeded, reproducible)</a></li><li class="toc-l3"><a href="#word-size">Word size</a></li><li class="toc-l3"><a href="#finance">Finance</a></li><li class="toc-l3"><a href="#astronomy-and-time">Astronomy and time</a></li><li class="toc-l2"><a href="#units">Units</a></li><li class="toc-l3"><a href="#prefixes">Prefixes</a></li><li class="toc-l3"><a href="#base-and-derived-units">Base and derived units</a></li><li class="toc-l2"><a href="#number-display">Number display</a></li><li class="toc-l2"><a href="#errors">Errors</a></li><li class="toc-l2"><a href="#limits-and-determinism">Limits and determinism</a></li><li class="toc-l2"><a href="#the-complete-grammar-ebnf">The complete grammar (EBNF)</a></li><li class="toc-l2"><a href="#beyond-the-grammar-interactive-commands">Beyond the grammar: interactive commands</a></li></ul>
+      <ul><li class="toc-l2"><a href="#1-notation">1. Notation</a></li><li class="toc-l2"><a href="#2-program-structure">2. Program structure</a></li><li class="toc-l2"><a href="#3-lexical-grammar">3. Lexical grammar</a></li><li class="toc-l3"><a href="#31-numbers">3.1 Numbers</a></li><li class="toc-l3"><a href="#32-strings">3.2 Strings</a></li><li class="toc-l3"><a href="#33-names">3.3 Names</a></li><li class="toc-l2"><a href="#4-names-and-keywords">4. Names and keywords</a></li><li class="toc-l2"><a href="#5-types-and-values">5. Types and values</a></li><li class="toc-l2"><a href="#6-expressions-and-operators">6. Expressions and operators</a></li><li class="toc-l3"><a href="#61-precedence-tightest-to-loosest">6.1 Precedence, tightest to loosest</a></li><li class="toc-l3"><a href="#62-arithmetic">6.2 Arithmetic</a></li><li class="toc-l3"><a href="#63-factorial-and-percent">6.3 Factorial and percent</a></li><li class="toc-l3"><a href="#64-indexing">6.4 Indexing</a></li><li class="toc-l3"><a href="#65-comparisons">6.5 Comparisons</a></li><li class="toc-l3"><a href="#66-booleans">6.6 Booleans</a></li><li class="toc-l3"><a href="#67-bitwise-operations">6.7 Bitwise operations</a></li><li class="toc-l2"><a href="#7-statements">7. Statements</a></li><li class="toc-l3"><a href="#71-assignment-name-expr">7.1 Assignment: name = expr</a></li><li class="toc-l3"><a href="#72-constant-definition-const-name-expr">7.2 Constant definition: const name = expr</a></li><li class="toc-l3"><a href="#73-destructuring-a-b-expr-adr-0064">7.3 Destructuring: {a, b} = expr (ADR-0064)</a></li><li class="toc-l3"><a href="#74-function-definition-def-nameparams-expr-and-def-nameparams-do-end">7.4 Function definition: def name(params) = expr and def name(params) do … end</a></li><li class="toc-l3"><a href="#75-return-break-continue-adr-0064">7.5 return, break, continue (ADR-0064)</a></li><li class="toc-l3"><a href="#76-if-as-a-statement-if-cond-then-stmt-if-cond-then-stmt-else-stmt">7.6 if as a statement: if cond then stmt / if cond then stmt else stmt</a></li><li class="toc-l3"><a href="#77-while-cond-do-stmt">7.7 while cond do stmt</a></li><li class="toc-l3"><a href="#78-for-name-in-iterable-do-stmt-adr-0054-scoped-per-adr-0063">7.8 for name in iterable do stmt (ADR-0054, scoped per ADR-0063)</a></li><li class="toc-l3"><a href="#79-solve-lhs-rhs-adr-0043">7.9 solve lhs == rhs (ADR-0043)</a></li><li class="toc-l3"><a href="#710-expression-statements">7.10 Expression statements</a></li><li class="toc-l2"><a href="#8-names-scope-and-the-session-store">8. Names, scope, and the session store</a></li><li class="toc-l2"><a href="#9-built-in-constants">9. Built-in constants</a></li><li class="toc-l3"><a href="#91-mathematics">9.1 Mathematics</a></li><li class="toc-l3"><a href="#92-astronomy">9.2 Astronomy</a></li><li class="toc-l3"><a href="#93-physics">9.3 Physics</a></li><li class="toc-l3"><a href="#94-chemistry-and-thermodynamics">9.4 Chemistry and thermodynamics</a></li><li class="toc-l2"><a href="#10-built-in-functions">10. Built-in functions</a></li><li class="toc-l3"><a href="#101-angles-and-logarithms">10.1 Angles and logarithms</a></li><li class="toc-l3"><a href="#102-powers-roots-rounding">10.2 Powers, roots, rounding</a></li><li class="toc-l3"><a href="#103-trigonometry-complex-where-the-domain-needs-it">10.3 Trigonometry (complex where the domain needs it)</a></li><li class="toc-l3"><a href="#104-complex-parts">10.4 Complex parts</a></li><li class="toc-l3"><a href="#105-exact-and-display-spellings">10.5 Exact and display spellings</a></li><li class="toc-l3"><a href="#106-number-theory">10.6 Number theory</a></li><li class="toc-l3"><a href="#107-statistics-and-probability">10.7 Statistics and probability</a></li><li class="toc-l3"><a href="#108-lists-strings-matrices">10.8 Lists, strings, matrices</a></li><li class="toc-l3"><a href="#109-calculus-numeric">10.9 Calculus (numeric)</a></li><li class="toc-l3"><a href="#1010-randomness-seeded-reproducible">10.10 Randomness (seeded, reproducible)</a></li><li class="toc-l3"><a href="#1011-word-size">10.11 Word size</a></li><li class="toc-l3"><a href="#1012-finance">10.12 Finance</a></li><li class="toc-l3"><a href="#1013-astronomy-and-time">10.13 Astronomy and time</a></li><li class="toc-l2"><a href="#11-units">11. Units</a></li><li class="toc-l3"><a href="#111-prefixes">11.1 Prefixes</a></li><li class="toc-l3"><a href="#112-base-and-derived-units">11.2 Base and derived units</a></li><li class="toc-l2"><a href="#12-number-display">12. Number display</a></li><li class="toc-l2"><a href="#13-errors">13. Errors</a></li><li class="toc-l2"><a href="#14-limits-and-determinism">14. Limits and determinism</a></li><li class="toc-l2"><a href="#15-the-complete-grammar-ebnf">15. The complete grammar (EBNF)</a></li><li class="toc-l2"><a href="#16-beyond-the-grammar-interactive-commands">16. Beyond the grammar: interactive commands</a></li></ul>
     </nav>
     <div class="guide-body">
       <h1 id="the-epher-language-reference">The epher language reference</h1>
@@ -88,7 +88,7 @@ prose.</em></p>
 reference defines it exactly. Where the two appear to disagree, this
 page wins, and the disagreement is a bug worth
 <a href="https://github.com/upyesp/epher/issues">filing</a>.</p>
-<h2 id="notation">Notation</h2>
+<h2 id="1-notation">1. Notation</h2>
 <ul>
 <li><code>code</code> spells a token, expression, or statement exactly as written.</li>
 <li><em>italic</em> names in the grammar name non-terminals.</li>
@@ -99,7 +99,7 @@ reals as the special case with zero imaginary part.</li>
 <li>Every example in a code block is engine-verified: the <code>epher</code> block
 evaluates, the <code>text</code> block is what the engine answers.</li>
 </ul>
-<h2 id="program-structure">Program structure</h2>
+<h2 id="2-program-structure">2. Program structure</h2>
 <p>An epher <em>program</em> (a script file, a pasted block, a piped stdin, or a
 REPL line) is a sequence of <em>statements</em> separated by <code>;</code> or by a
 newline. Both separators are equivalent; <code>;</code> never terminates a
@@ -132,9 +132,9 @@ closing <code>*/</code> is required, and its absence is a parse error.</p>
 <p>A statement is one of: an assignment, a constant definition, a function
 definition, a destructuring, <code>if</code>, <code>while</code>, <code>for</code>, <code>solve</code>, <code>return</code>,
 <code>break</code>, <code>continue</code>, or an expression. The full grammar is given in
-<a href="#the-complete-grammar-ebnf">The complete grammar</a>.</p>
-<h2 id="lexical-grammar">Lexical grammar</h2>
-<h3 id="numbers">Numbers</h3>
+<a href="#15-the-complete-grammar-ebnf">The complete grammar</a>.</p>
+<h2 id="3-lexical-grammar">3. Lexical grammar</h2>
+<h3 id="31-numbers">3.1 Numbers</h3>
 <ul>
 <li>Decimal: digits with an optional fractional part (<code>3</code>, <code>3.5</code>, <code>.5</code>)
 and an optional decimal-exponent suffix (<code>2e3</code>, <code>1.5E-3</code>, <code>2e+2</code>).
@@ -153,7 +153,7 @@ which the grammar then rejects.</li>
 2^53; beyond that, spelling a literal keeps at most the 53 most
 significant bits.</li>
 </ul>
-<h3 id="strings">Strings</h3>
+<h3 id="32-strings">3.2 Strings</h3>
 <p>A string literal is double quotes around any run of characters. Five
 escapes exist (ADR-0064): <code>\n</code> newline, <code>\t</code> tab, <code>\r</code> carriage
 return, <code>\\</code> backslash, <code>\&quot;</code> quote. Any other escape is a parse error
@@ -171,11 +171,11 @@ that names the mistake, and a string cannot end on a lone backslash.</p>
 </div><pre tabindex="0"><code class="language-text">line one
 line two
 quote: &quot; backslash: \
-</code></pre><h3 id="names">Names</h3>
+</code></pre><h3 id="33-names">3.3 Names</h3>
 <p>A name starts with a letter or <code>_</code> and continues with letters, digits,
 or <code>_</code>. Letters are Unicode; <code>atan2</code>, <code>log10</code>, and <code>x2</code> are names.
 Names are case-sensitive: <code>G</code> and <code>g</code> are different constants.</p>
-<h2 id="names-and-keywords">Names and keywords</h2>
+<h2 id="4-names-and-keywords">4. Names and keywords</h2>
 <p>The following words are keywords. They cannot be written where a value
 is expected, and they are recognized by exact spelling:</p>
 <pre tabindex="0"><code class="language-text">break   const   continue   def   do   else   end   for   if
@@ -186,10 +186,10 @@ comparisons and predicates (<code>1 &lt; 2</code>, <code>isprime(7)</code>), and
 is an unknown-name error.</p>
 <p>One further name is reserved: <code>i</code>, the imaginary unit. It cannot be
 re-bound by assignment, by <code>const</code>, or by a destructuring pattern; see
-<a href="#names-scope-and-the-session-store">Names, scope, and the session store</a>.
+<a href="#8-names-scope-and-the-session-store">Names, scope, and the session store</a>.
 <code>i</code> is not a keyword — it resolves as a built-in constant and can be
 shadowed by nothing.</p>
-<h2 id="types-and-values">Types and values</h2>
+<h2 id="5-types-and-values">5. Types and values</h2>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -254,16 +254,16 @@ shadowed by nothing.</p>
 <li>Lists hold numbers, or strings — not a mix. A complex element is
 rejected at construction.</li>
 <li>Matrices are reals only, stored row-major; matrix functions are in
-the <a href="#built-in-functions">function index</a>.</li>
+the <a href="#10-built-in-functions">function index</a>.</li>
 <li>A quantity is an SI value plus its seven base dimensions and an
-optional display unit; see <a href="#units">Units</a>.</li>
+optional display unit; see <a href="#11-units">Units</a>.</li>
 <li><code>ans</code> is a normal variable the frontend rebinds after each
 computation; it holds the previous answer.</li>
 </ul>
-<p>The answer panel spells values as <a href="#number-display">Number display</a>
+<p>The answer panel spells values as <a href="#12-number-display">Number display</a>
 defines.</p>
-<h2 id="expressions-and-operators">Expressions and operators</h2>
-<h3 id="precedence-tightest-to-loosest">Precedence, tightest to loosest</h3>
+<h2 id="6-expressions-and-operators">6. Expressions and operators</h2>
+<h3 id="61-precedence-tightest-to-loosest">6.1 Precedence, tightest to loosest</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -348,7 +348,7 @@ defines.</p>
 <code>3! ^ 2</code> is <code>36</code>; <code>d[2] ^ 2</code> indexes first;
 <code>not x &gt; 3</code> is <code>not (x &gt; 3)</code>;
 <code>5 &amp; 3 == 1</code> is <code>(5 &amp; 3) == 1</code>.</p>
-<h3 id="arithmetic">Arithmetic</h3>
+<h3 id="62-arithmetic">6.2 Arithmetic</h3>
 <p><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> work over reals and complex; a complex operand
 computes in complex. <code>/</code> by zero is a division error. <code>^</code> is
 right-associative; <code>0 ^ 0</code> is <code>1</code>.</p>
@@ -359,42 +359,42 @@ list. Different lengths are a type error.</li>
 <li>String <code>+</code> concatenates two strings; a string with a non-string is a
 type error (spell the number first with <code>str</code> or <code>fixed</code>).</li>
 <li>Unit suffixes ride through <code>+ - * /</code> with dimension checking; see
-<a href="#units">Units</a>.</li>
+<a href="#11-units">Units</a>.</li>
 </ul>
-<h3 id="factorial-and-percent">Factorial and percent</h3>
+<h3 id="63-factorial-and-percent">6.3 Factorial and percent</h3>
 <p><code>n!</code> is the factorial of a non-negative whole number. <code>x%</code> is exactly
 <code>x / 100</code> — a transparent suffix, so <code>200 + 10%</code> is <code>200.1</code>; the
 Casio add-on reading (<code>220</code>) is deliberately not a grammar rule.</p>
-<h3 id="indexing">Indexing</h3>
+<h3 id="64-indexing">6.4 Indexing</h3>
 <p><code>expr[i]</code> indexes a list or string, <strong>1-based</strong>; the index is any
 expression. A matrix indexed with one expression gives one whole row
 as a list: <code>m[2]</code> is the second row.</p>
-<h3 id="comparisons">Comparisons</h3>
+<h3 id="65-comparisons">6.5 Comparisons</h3>
 <p><code>==</code> and <code>!=</code> compare any two values of the same kind; <code>&lt;</code>, <code>&lt;=</code>,
 <code>&gt;</code>, <code>&gt;=</code> order numbers and strings (strings in dictionary/code-point
 order). Complex values refuse ordering. Lists and matrices do not
 compare. Comparisons return booleans, and comparisons do not chain:
 <code>1 &lt; 2 &lt; 3</code> is a type error, not <code>(1 &lt; 2) &lt; 3</code>.</p>
-<h3 id="booleans">Booleans</h3>
+<h3 id="66-booleans">6.6 Booleans</h3>
 <p><code>and</code>, <code>or</code>, <code>not</code> take booleans only and produce booleans. <code>and</code> and
 <code>or</code> short-circuit: the right side is not evaluated when the left
 decides. There is no truthiness: numbers are not booleans.</p>
-<h3 id="bitwise-operations">Bitwise operations</h3>
+<h3 id="67-bitwise-operations">6.7 Bitwise operations</h3>
 <p><code>&amp;</code>, <code>|</code>, <code>xor</code>, <code>~</code>, <code>&lt;&lt;</code>, <code>&gt;&gt;</code> take integers (whole floats, exact
 Big, integral rationals/decimals) and produce the exact result masked
 to the session&#39;s word size — a signed two&#39;s-complement word of 8, 16,
 32, or 64 bits, set with <code>bits(w)</code> and defaulting to 64. Right shift
 is arithmetic; a negative shift amount reverses the direction.</p>
-<h2 id="statements">Statements</h2>
-<h3 id="assignment-name-expr">Assignment: <code>name = expr</code></h3>
+<h2 id="7-statements">7. Statements</h2>
+<h3 id="71-assignment-name-expr">7.1 Assignment: <code>name = expr</code></h3>
 <p>Evaluates the expression and binds the name in the session. Rebinding
 is allowed; binding <code>i</code> is refused (see below).</p>
-<h3 id="constant-definition-const-name-expr">Constant definition: <code>const name = expr</code></h3>
+<h3 id="72-constant-definition-const-name-expr">7.2 Constant definition: <code>const name = expr</code></h3>
 <p>Binds an immutable name. Re-declaring with the <em>same</em> value succeeds —
 examples get pasted twice; a different value is a
 <code>constant already defined</code> error. Naming an existing variable is a
 <code>cannot define constant x: the name is already a variable</code> error.</p>
-<h3 id="destructuring-a-b-expr-adr-0064">Destructuring: <code>{a, b} = expr</code> (ADR-0064)</h3>
+<h3 id="73-destructuring-a-b-expr-adr-0064">7.3 Destructuring: <code>{a, b} = expr</code> (ADR-0064)</h3>
 <p>The expression must be a list whose length equals the number of
 pattern names; each name binds to its position&#39;s element. <code>_</code> skips a
 position: <code>{x, _} = {1, 2}</code> binds only <code>x</code>. Names in the pattern
@@ -402,7 +402,7 @@ follow assignment rules (<code>i</code> refused, constants refused). The pattern
 is recognized only when the statement <em>begins</em> with <code>{names} =</code>; a
 <code>{1, 2}</code> at the start of a line stays the list expression it always
 was.</p>
-<h3 id="function-definition-def-nameparams-expr-and-def-nameparams-do-end">Function definition: <code>def name(params) = expr</code> and <code>def name(params) do … end</code></h3>
+<h3 id="74-function-definition-def-nameparams-expr-and-def-nameparams-do-end">7.4 Function definition: <code>def name(params) = expr</code> and <code>def name(params) do … end</code></h3>
 <p>Two body forms. <code>= expr</code> evaluates the expression in a child
 environment seeded with the arguments. <code>do … end</code> runs its statements
 one after another in that child environment; the last statement&#39;s
@@ -410,37 +410,37 @@ value is the call&#39;s answer, and a body whose statements produce no
 value is a named error. Recursion works in both forms. A call carries
 its own 100,000-step budget. Parameters shadow session values only
 inside the call.</p>
-<h3 id="return-break-continue-adr-0064"><code>return</code>, <code>break</code>, <code>continue</code> (ADR-0064)</h3>
+<h3 id="75-return-break-continue-adr-0064">7.5 <code>return</code>, <code>break</code>, <code>continue</code> (ADR-0064)</h3>
 <p><code>return expr</code> leaves the enclosing function now, with the value;
 <code>return</code> at top level (outside any function) is a named error.
 <code>break</code> leaves the innermost enclosing <code>for</code> or <code>while</code>; <code>continue</code>
 skips to its next pass. Outside a loop both are named errors. In a
 <code>for</code> loop, a pass ended by <code>continue</code> contributes no value to the
 collected list.</p>
-<h3 id="if-as-a-statement-if-cond-then-stmt-if-cond-then-stmt-else-stmt"><code>if</code> as a statement: <code>if cond then stmt</code> / <code>if cond then stmt else stmt</code></h3>
+<h3 id="76-if-as-a-statement-if-cond-then-stmt-if-cond-then-stmt-else-stmt">7.6 <code>if</code> as a statement: <code>if cond then stmt</code> / <code>if cond then stmt else stmt</code></h3>
 <p>The condition must be a boolean. Without <code>else</code>, a false condition
 produces no value — which is how a <code>for</code> loop filters: a pass whose
 body produces no value adds nothing to the loop&#39;s list.</p>
-<h3 id="while-cond-do-stmt"><code>while cond do stmt</code></h3>
+<h3 id="77-while-cond-do-stmt">7.7 <code>while cond do stmt</code></h3>
 <p>Evaluates the condition (which must be a boolean) and runs the
 one-statement body until it is false, <code>break</code> fires, or the step
 budget runs out. A <code>while</code> loop produces no value.</p>
-<h3 id="for-name-in-iterable-do-stmt-adr-0054-scoped-per-adr-0063"><code>for name in iterable do stmt</code> (ADR-0054, scoped per ADR-0063)</h3>
+<h3 id="78-for-name-in-iterable-do-stmt-adr-0054-scoped-per-adr-0063">7.8 <code>for name in iterable do stmt</code> (ADR-0054, scoped per ADR-0063)</h3>
 <p>Two iterable forms: a range <code>start to end</code> (optionally <code>step s</code>), or
 any expression evaluating to a list. The variable is bound per pass
 and <strong>removed afterwards</strong>: the loop never leaves its variable in the
 session, and a binding that existed before the loop is restored after
 it. The loop&#39;s value is the list of the body&#39;s per-pass values.</p>
-<h3 id="solve-lhs-rhs-adr-0043"><code>solve lhs == rhs</code> (ADR-0043)</h3>
+<h3 id="79-solve-lhs-rhs-adr-0043">7.9 <code>solve lhs == rhs</code> (ADR-0043)</h3>
 <p>Numeric equation solving — no CAS. The equation must use <code>==</code>. The
 unknown is <code>x</code> when <code>x</code> appears, otherwise the single other name;
 constants (built-in and user) are parameters, never unknowns. Real
 roots in a wide search window are reported, as a display string:
 <code>solve x^2 == 9</code> answers <code>x = -3, x = 3</code>.</p>
-<h3 id="expression-statements">Expression statements</h3>
+<h3 id="710-expression-statements">7.10 Expression statements</h3>
 <p>Any expression, typically a call. Its value, when there is one,
 becomes the statement&#39;s value.</p>
-<h2 id="names-scope-and-the-session-store">Names, scope, and the session store</h2>
+<h2 id="8-names-scope-and-the-session-store">8. Names, scope, and the session store</h2>
 <p>Name resolution tries, in order: session variables, then session
 constants, then built-in constants, then built-in functions (a call),
 then the error <code>unknown name</code>. A user function or constant shadows a
@@ -464,12 +464,12 @@ inside a function body are local to that call.</li>
 <li><code>save name</code> asks the interactive frontend to persist a function or
 constant into the store; saving a <em>script</em> is a frontend command,
 not language (see
-<a href="#beyond-the-grammar-interactive-commands">Beyond the grammar</a>).</li>
+<a href="#16-beyond-the-grammar-interactive-commands">Beyond the grammar</a>).</li>
 </ul>
-<h2 id="built-in-constants">Built-in constants</h2>
+<h2 id="9-built-in-constants">9. Built-in constants</h2>
 <p>Values are SI throughout. A name&#39;s value is fixed by the engine; a
 user <code>const</code> of the same name shadows it by the resolution order.</p>
-<h3 id="mathematics">Mathematics</h3>
+<h3 id="91-mathematics">9.1 Mathematics</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -509,7 +509,7 @@ user <code>const</code> of the same name shadows it by the resolution order.</p>
 <td>the imaginary unit — the one reserved name (assignment refuses it)</td>
 </tr>
 </tbody></table></div>
-<h3 id="astronomy">Astronomy</h3>
+<h3 id="92-astronomy">9.2 Astronomy</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -594,7 +594,7 @@ user <code>const</code> of the same name shadows it by the resolution order.</p>
 <td>Boltzmann constant (J/K)</td>
 </tr>
 </tbody></table></div>
-<h3 id="physics">Physics</h3>
+<h3 id="93-physics">9.3 Physics</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -709,7 +709,7 @@ user <code>const</code> of the same name shadows it by the resolution order.</p>
 <td>Planck time (s)</td>
 </tr>
 </tbody></table></div>
-<h3 id="chemistry-and-thermodynamics">Chemistry and thermodynamics</h3>
+<h3 id="94-chemistry-and-thermodynamics">9.4 Chemistry and thermodynamics</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -751,14 +751,14 @@ user <code>const</code> of the same name shadows it by the resolution order.</p>
 </tbody></table></div>
 <p>The imaginary unit&#39;s value is the complex number with real part 0 and
 imaginary part 1; its literal spellings <code>i</code> and <code>4i</code> tokenize as
-<a href="#lexical-grammar">literals</a>.</p>
-<h2 id="built-in-functions">Built-in functions</h2>
+<a href="#3-lexical-grammar">literals</a>.</p>
+<h2 id="10-built-in-functions">10. Built-in functions</h2>
 <p>Every callable the engine knows, grouped by domain. Argument shapes are
 normative: <code>x</code> is a real number, <code>z</code> any number (complex allowed),
 <code>n</code> a whole number, <code>s</code> a string, <code>L</code> a list. A call with the wrong
 count or kinds is a type error that names the function, e.g.
 <code>rad expects 1 number, got 1 argument(s)</code>.</p>
-<h3 id="angles-and-logarithms">Angles and logarithms</h3>
+<h3 id="101-angles-and-logarithms">10.1 Angles and logarithms</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -795,7 +795,7 @@ count or kinds is a type error that names the function, e.g.
 <td>e to the <code>x</code></td>
 </tr>
 </tbody></table></div>
-<h3 id="powers-roots-rounding">Powers, roots, rounding</h3>
+<h3 id="102-powers-roots-rounding">10.2 Powers, roots, rounding</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -844,7 +844,7 @@ count or kinds is a type error that names the function, e.g.
 <td>whole-number gcd and lcm</td>
 </tr>
 </tbody></table></div>
-<h3 id="trigonometry-complex-where-the-domain-needs-it">Trigonometry (complex where the domain needs it)</h3>
+<h3 id="103-trigonometry-complex-where-the-domain-needs-it">10.3 Trigonometry (complex where the domain needs it)</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -873,7 +873,7 @@ count or kinds is a type error that names the function, e.g.
 <td>inverse hyperbolic functions</td>
 </tr>
 </tbody></table></div>
-<h3 id="complex-parts">Complex parts</h3>
+<h3 id="104-complex-parts">10.4 Complex parts</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -894,7 +894,7 @@ count or kinds is a type error that names the function, e.g.
 <td>complex conjugate (a real passes through)</td>
 </tr>
 </tbody></table></div>
-<h3 id="exact-and-display-spellings">Exact and display spellings</h3>
+<h3 id="105-exact-and-display-spellings">10.5 Exact and display spellings</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -947,7 +947,7 @@ count or kinds is a type error that names the function, e.g.
 <td>the arguments joined with spaces, as one string</td>
 </tr>
 </tbody></table></div>
-<h3 id="number-theory">Number theory</h3>
+<h3 id="106-number-theory">10.6 Number theory</h3>
 <p>Integers the float type reaches exactly (<code>|n| &lt; 2^53</code>).</p>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
@@ -993,7 +993,7 @@ count or kinds is a type error that names the function, e.g.
 <td>the prime factorization, as text: <code>factors(360)</code> is <code>2^3 * 3^2 * 5</code></td>
 </tr>
 </tbody></table></div>
-<h3 id="statistics-and-probability">Statistics and probability</h3>
+<h3 id="107-statistics-and-probability">10.7 Statistics and probability</h3>
 <p><code>L</code> is a list of reals; variance is population variance (divide by <code>n</code>).</p>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
@@ -1095,7 +1095,7 @@ count or kinds is a type error that names the function, e.g.
 <td>chi-square goodness of fit</td>
 </tr>
 </tbody></table></div>
-<h3 id="lists-strings-matrices">Lists, strings, matrices</h3>
+<h3 id="108-lists-strings-matrices">10.8 Lists, strings, matrices</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -1152,7 +1152,7 @@ count or kinds is a type error that names the function, e.g.
 <td>row echelon and reduced row echelon form</td>
 </tr>
 </tbody></table></div>
-<h3 id="calculus-numeric">Calculus (numeric)</h3>
+<h3 id="109-calculus-numeric">10.9 Calculus (numeric)</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -1169,7 +1169,7 @@ count or kinds is a type error that names the function, e.g.
 <td>definite integral of <code>expr</code> from <code>a</code> to <code>b</code></td>
 </tr>
 </tbody></table></div>
-<h3 id="randomness-seeded-reproducible">Randomness (seeded, reproducible)</h3>
+<h3 id="1010-randomness-seeded-reproducible">10.10 Randomness (seeded, reproducible)</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -1198,7 +1198,7 @@ count or kinds is a type error that names the function, e.g.
 <td>re-seed the generator and report <code>n</code>; a fresh session seeds from the clock, <code>randseed</code> makes draws reproducible</td>
 </tr>
 </tbody></table></div>
-<h3 id="word-size">Word size</h3>
+<h3 id="1011-word-size">10.11 Word size</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -1215,7 +1215,7 @@ count or kinds is a type error that names the function, e.g.
 <td>set the word size to <code>w</code> and report it</td>
 </tr>
 </tbody></table></div>
-<h3 id="finance">Finance</h3>
+<h3 id="1012-finance">10.12 Finance</h3>
 <p>Sign convention: money you pay out is negative. <code>r</code> is the rate per
 period.</p>
 <div class="table-wrap" tabindex="0"><table>
@@ -1266,7 +1266,7 @@ period.</p>
 <td>interest earned: <code>p(1+r)^n − p</code></td>
 </tr>
 </tbody></table></div>
-<h3 id="astronomy-and-time">Astronomy and time</h3>
+<h3 id="1013-astronomy-and-time">10.13 Astronomy and time</h3>
 <p>Bodies are whole numbers: Mercury 1 … Neptune 8, Pluto 9, Sun 10,
 Moon 11. <code>jd</code> is a Julian Date. Observer functions take terrestrial
 latitude and longitude in degrees.</p>
@@ -1388,8 +1388,8 @@ latitude and longitude in degrees.</p>
 </tbody></table></div>
 <p><code>i</code> the loop variable and <code>i</code> the imaginary unit coexist inside a
 <code>for</code> loop exactly because the loop scopes its variable; see
-<a href="#statements">Statements</a>.</p>
-<h2 id="units">Units</h2>
+<a href="#7-statements">Statements</a>.</p>
+<h2 id="11-units">11. Units</h2>
 <p>A number directly followed by a unit name is a <strong>quantity</strong> (ADR-0046):
 the number times the unit&#39;s SI factor, carrying its dimensions.
 <code>2 m</code> stores 2 with length dimensions; <code>60 mile/hr</code> stores
@@ -1401,13 +1401,13 @@ may start a unit: <code>30 cm</code>, <code>5 kHz</code>, <code>3 ns</code>.</p>
 <code>3.10685596119 mile</code>, and the display unit sticks. Arithmetic checks
 dimensions: adding <code>2 m</code> to <code>30 cm</code> gives <code>2.3 m</code>; adding a metre to
 a second is a dimension error.</p>
-<h3 id="prefixes">Prefixes</h3>
+<h3 id="111-prefixes">11.1 Prefixes</h3>
 <p>The 21 SI prefixes, as spellings before a unit: <code>da</code> (×10¹), <code>h</code> (×10²),
 <code>k</code> (×10³), <code>M</code> (×10⁶), <code>G</code> (×10⁹), <code>T</code> (×10¹²), <code>P</code> (×10¹⁵),
 <code>E</code> (×10¹⁸), <code>Z</code> (×10²¹), <code>Y</code> (×10²⁴), <code>d</code> (×10⁻¹), <code>c</code> (×10⁻²),
 <code>m</code> (×10⁻³), <code>µ</code> or <code>u</code> (×10⁻⁶), <code>n</code> (×10⁻⁹), <code>p</code> (×10⁻¹²),
 <code>f</code> (×10⁻¹⁵), <code>a</code> (×10⁻¹⁸), <code>z</code> (×10⁻²¹), <code>y</code> (×10⁻²⁴).</p>
-<h3 id="base-and-derived-units">Base and derived units</h3>
+<h3 id="112-base-and-derived-units">11.2 Base and derived units</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -1706,7 +1706,7 @@ a second is a dimension error.</p>
 converted), otherwise in the SI spelling of its dimensions (<code>m/s^2</code>,
 or the exact derived name when the dimensions match one: <code>N</code>, <code>W</code>,
 <code>Pa</code>, …).</p>
-<h2 id="number-display">Number display</h2>
+<h2 id="12-number-display">12. Number display</h2>
 <p>The answer panel&#39;s automatic spelling (ADR-0051):</p>
 <ul>
 <li>A float prints with up to <strong>12 significant digits</strong>, exact integers
@@ -1720,7 +1720,7 @@ Lists print <code>{1, 2, 3}</code>; matrices print row by row: <code>[[1, 2], [3
 <li>The display verbs (<code>scientific</code>, <code>engineering</code>, <code>grouped</code>, <code>fixed</code>,
 <code>bin</code>, <code>oct</code>, <code>hex</code>) return text, ready to <code>print</code> or <code>join</code>.</li>
 </ul>
-<h2 id="errors">Errors</h2>
+<h2 id="13-errors">13. Errors</h2>
 <p>An error stops evaluation of the statement in progress; in a script
 the whole run stops and the exit carries the message. Error classes,
 with the verbatim shape of each message:</p>
@@ -1772,7 +1772,7 @@ with the verbatim shape of each message:</p>
 <td><code>cannot add m and s</code> (dimension mismatch); <code>cannot take the square root of 2 m: the dimensions do not divide evenly</code></td>
 </tr>
 </tbody></table></div>
-<h2 id="limits-and-determinism">Limits and determinism</h2>
+<h2 id="14-limits-and-determinism">14. Limits and determinism</h2>
 <ul>
 <li><strong>Step budget</strong>: every program run carries a 100,000-step budget;
 each function call gets its own fresh budget. Exhausting it stops
@@ -1786,7 +1786,7 @@ script&#39;s transcript is byte-stable.</li>
 <li><strong>Display</strong>: 12 significant digits, fractions only through
 denominator 1000.</li>
 </ul>
-<h2 id="the-complete-grammar-ebnf">The complete grammar (EBNF)</h2>
+<h2 id="15-the-complete-grammar-ebnf">15. The complete grammar (EBNF)</h2>
 <p>The grammar is written in EBNF, the Extended Backus–Naur Form. Each rule
 names a construct and says how it is built: <code>,</code> joins parts in sequence,
 <code>|</code> separates alternatives, <code>[ … ]</code> marks a part that may be absent,
@@ -1856,7 +1856,7 @@ position disambiguates.</li>
 <li>Number literals absorb an <code>i</code> suffix into an imaginary token; based
 literals (<code>0b</code>, <code>0o</code>, <code>0x</code>) too.</li>
 </ul>
-<h2 id="beyond-the-grammar-interactive-commands">Beyond the grammar: interactive commands</h2>
+<h2 id="16-beyond-the-grammar-interactive-commands">16. Beyond the grammar: interactive commands</h2>
 <p>The language is what this page defines. The frontends add <strong>commands</strong>
 around it, recognized before the parser sees the line; they are
 conveniences, not part of the language definition:</p>
