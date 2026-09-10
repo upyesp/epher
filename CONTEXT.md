@@ -255,3 +255,14 @@ _Avoid_: trace (ambiguous with the plotting sense), execution log
 - No em-dashes (—) anywhere, in any language: use colons, commas,
   parentheses, or separate sentences instead (user rule, 2026-08-27).
   The website, the guides, and the in-app copy must stay free of them.
+
+## Delivery
+
+- Promotion (staging to live) happens only on a go-ahead the user has
+  explicitly confirmed. When a user message reads as a promotion
+  instruction, stop and ask for confirmation first: post the exact
+  promotion steps and wait for a yes. Never promote on inference, and
+  never treat a bare "go ahead" or "do it" as naming promotion, even
+  when promotion looks like the obvious referent (user rule,
+  2026-09-17, after the v0.5.41 promotion was made on an ambiguous
+  reply and had to be reversed in full).
