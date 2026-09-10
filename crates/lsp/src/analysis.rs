@@ -306,7 +306,7 @@ pub fn semantic_token_types() -> Vec<lsp_types::SemanticTokenType> {
 /// server so editors without a snippet engine of their own get them
 /// too (ADR-0066).
 fn snippet_items() -> Vec<lsp_types::CompletionItem> {
-    const SNIPPETS: &str = include_str!("../assets/epher-snippets.json");
+    const SNIPPETS: &str = include_str!("../../../clients/shared/epher-snippets.json");
     let Ok(raw) = serde_json::from_str::<serde_json::Value>(SNIPPETS) else {
         return Vec::new();
     };
