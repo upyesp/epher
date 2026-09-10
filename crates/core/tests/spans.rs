@@ -52,7 +52,7 @@ fn a_parse_error_points_at_the_offending_token() {
     // `2` parses; `3` has no separator before it, so the error sits on `3`.
     let text = "2 3";
     let err = parse_script_with_spans(text).expect_err("does not parse");
-    let span = err.span.expect("the error carries a span");
+    let span = err.span;
     assert_eq!(&text[span.start..span.end], "3");
 }
 
@@ -62,7 +62,7 @@ fn a_parse_error_at_the_end_points_at_the_last_token() {
     // token), so the span is that newline.
     let text = "1 +\n2";
     let err = parse_script_with_spans(text).expect_err("does not parse");
-    let span = err.span.expect("the error carries a span");
+    let span = err.span;
     assert_eq!(&text[span.start..span.end], "\n");
 }
 
@@ -70,7 +70,7 @@ fn a_parse_error_at_the_end_points_at_the_last_token() {
 fn an_unterminated_string_points_at_itself() {
     let text = "x = \"oops";
     let err = parse_script_with_spans(text).expect_err("does not parse");
-    let span = err.span.expect("the error carries a span");
+    let span = err.span;
     assert_eq!(&text[span.start..span.end], "\"oops");
 }
 

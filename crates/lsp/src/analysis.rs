@@ -2,7 +2,7 @@
 //! the analysis pass that keeps it current (ADR-0066).
 //!
 //! Every change re-runs the whole file on a fresh [`Session`] through
-//! [`eval_with_trace`]: evaluation is deterministic and step-bounded,
+//! [`evaluation_trace`]: evaluation is deterministic and step-bounded,
 //! so the simplest correct pass is also the fast one. The pass yields
 //! everything the editor features need at once: ranged diagnostics,
 //! inline-result hints, classified tokens for coloring and hover, and
@@ -11,8 +11,8 @@
 use std::collections::HashMap;
 
 use epher_core::{
-    catalog, eval_with_trace, format_value, supplementary_catalog, token_classes, CatalogKind,
-    DisplayPrefs, Session, Span, SpannedError, SpannedToken, StatementOutcome, TokenClass, Value,
+    catalog, evaluation_trace, format_value, supplementary_catalog, token_classes, CatalogKind,
+    DisplayPrefs, Session, Span, SpannedToken, StatementOutcome, TokenClass, Value,
 };
 
 /// One open document, current as of `version`.
@@ -21,9 +21,9 @@ pub struct Document {
     pub version: i32,
     /// Byte offset where each line starts (line 0 starts at 0).
     line_starts: Vec<usize>,
-    /// The latest analysis pass.
+    /// The latest analysis pass. A parse failure is its first error
+    /// outcome, spanning the offending token.
     pub outcomes: Vec<StatementOutcome>,
-    pub parse_error: Option<SpannedError>,
     pub tokens: Vec<SpannedToken>,
     pub session: Session,
 }
@@ -35,14 +35,13 @@ impl Document {
     pub fn new(text: String, version: i32) -> Self {
         let line_starts = line_starts(&text);
         let mut session = Session::default();
-        let outcomes = eval_with_trace(&mut session, &text);
+        let outcomes = evaluation_trace(&mut session, &text);
         let tokens = token_classes(&text).unwrap_or_default();
         Document {
             text,
             version,
             line_starts,
             outcomes,
-            parse_error: None,
             tokens,
             session,
         }
@@ -142,6 +141,7 @@ impl Document {
             return None;
         }
         let name = &token.text;
+
         if let Some(sig) = self.session.env().function_signature(name) {
             let source = self
                 .session
@@ -167,11 +167,7 @@ impl Document {
             if entry.name != name {
                 continue;
             }
-            let kind_word = if entry.kind == CatalogKind::Constant {
-                "constant"
-            } else {
-                "function"
-            };
+            let kind_word = if entry.is_constant() { "constant" } else { "function" };
             let value_line = match builtin_value(entry.name, entry.kind) {
                 Some(v) => format!("\n\n= {}", format_value(&v, &DisplayPrefs::default())),
                 None => String::new(),
@@ -193,15 +189,12 @@ impl Document {
         for entry in catalog().iter().chain(supplementary_catalog()) {
             items.push(lsp_types::CompletionItem {
                 label: entry.name.to_string(),
-                kind: Some(if entry.kind == CatalogKind::Constant {
-                    K::CONSTANT
-                } else {
-                    K::FUNCTION
-                }),
+                kind: Some(if entry.is_constant() { K::CONSTANT } else { K::FUNCTION }),
                 detail: Some(format!("{}: {}", entry.signature, entry.description)),
                 ..Default::default()
             });
         }
+        items.extend(snippet_items());
         for name in self.session.env().binding_names() {
             let detail = self
                 .session
@@ -254,6 +247,7 @@ impl Document {
                 TokenClass::Keyword => TOKEN_KEYWORD,
                 TokenClass::Operator => TOKEN_OPERATOR,
                 TokenClass::String => TOKEN_STRING,
+                TokenClass::Unit => TOKEN_UNIT,
                 TokenClass::Name => {
                     // a name directly followed by `(` is a call
                     if self.text[token.span.end..].starts_with('(') {
@@ -293,6 +287,7 @@ pub const TOKEN_FUNCTION: u32 = 2;
 pub const TOKEN_KEYWORD: u32 = 3;
 pub const TOKEN_OPERATOR: u32 = 4;
 pub const TOKEN_STRING: u32 = 5;
+pub const TOKEN_UNIT: u32 = 6;
 
 pub fn semantic_token_types() -> Vec<lsp_types::SemanticTokenType> {
     vec![
@@ -302,7 +297,46 @@ pub fn semantic_token_types() -> Vec<lsp_types::SemanticTokenType> {
         lsp_types::SemanticTokenType::KEYWORD,
         lsp_types::SemanticTokenType::OPERATOR,
         lsp_types::SemanticTokenType::STRING,
+        lsp_types::SemanticTokenType::new("unit"),
     ]
+}
+
+/// The shared snippet assets, as completion items. One JSON file in the
+/// repository is the source every client reads, shipped inside the
+/// server so editors without a snippet engine of their own get them
+/// too (ADR-0066).
+fn snippet_items() -> Vec<lsp_types::CompletionItem> {
+    const SNIPPETS: &str = include_str!("../assets/epher-snippets.json");
+    let Ok(raw) = serde_json::from_str::<serde_json::Value>(SNIPPETS) else {
+        return Vec::new();
+    };
+    let Some(entries) = raw.as_object() else {
+        return Vec::new();
+    };
+    entries
+        .values()
+        .filter_map(|snippet| {
+            let prefix = snippet.get("prefix")?.as_str()?.to_string();
+            let body = snippet.get("body")?.as_array()?;
+            let text = body
+                .iter()
+                .filter_map(|line| line.as_str())
+                .collect::<Vec<_>>()
+                .join("\n");
+            let description = snippet
+                .get("description")
+                .and_then(|d| d.as_str())
+                .map(str::to_string);
+            Some(lsp_types::CompletionItem {
+                label: prefix,
+                kind: None,
+                detail: description,
+                insert_text: Some(text),
+                insert_text_format: Some(lsp_types::InsertTextFormat::SNIPPET),
+                ..Default::default()
+            })
+        })
+        .collect()
 }
 
 fn diagnostic(range: lsp_types::Range, message: &str) -> lsp_types::Diagnostic {

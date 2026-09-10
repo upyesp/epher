@@ -80,3 +80,35 @@ fn every_catalog_entry_carries_signature_and_description() {
         );
     }
 }
+
+/// The catalog docs are a lift of the reference's words (ADR-0066), so
+/// they may not silently leave the page either: every piece of every
+/// signature and description must still be on it. Pieces, because the
+/// generator joins a name's overloads with " / " and sibling meanings
+/// with "; ", and applies the house-style em-dash cleaning on the way
+/// in. A reference edit that changes what hover says fails here until
+/// the catalog is regenerated.
+#[test]
+fn catalog_docs_are_word_for_word_from_the_reference() {
+    let page = std::fs::read_to_string(REFERENCE_PATH)
+        .expect("site/reference.md exists next to the crates");
+    let normalized = page.replace(" \u{2014} ", ": ").replace('\u{2014}', "-");
+
+    let mut left = Vec::new();
+    for entry in catalog().iter().chain(supplementary_catalog()) {
+        for piece in entry.signature.split(" / ") {
+            if !normalized.contains(piece) {
+                left.push(format!("{}: signature {piece:?}", entry.name));
+            }
+        }
+        for piece in entry.description.split("; ") {
+            if !normalized.contains(piece) {
+                left.push(format!("{}: description {piece:?}", entry.name));
+            }
+        }
+    }
+    assert!(
+        left.is_empty(),
+        "catalog docs no longer on the reference page: {left:?}"
+    );
+}

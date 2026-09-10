@@ -181,6 +181,14 @@ impl Default for Env {
     }
 }
 
+/// The keys of a name table, sorted: the one shape behind every
+/// name-listing accessor (ADR-0066).
+fn sorted_keys<V>(map: &std::collections::HashMap<String, V>) -> Vec<String> {
+    let mut names: Vec<String> = map.keys().cloned().collect();
+    names.sort();
+    names
+}
+
 impl Env {
     /// Look up a name.
     pub fn get(&self, name: &str) -> Option<&Value> {
@@ -217,26 +225,20 @@ impl Env {
     }
 
     /// Look up a user-defined function.
-    /// Sorted variable names — completion fuel (ADR-0066).
+    /// Sorted variable names, for completion (ADR-0066).
     pub fn binding_names(&self) -> Vec<String> {
-        let mut names: Vec<String> = self.bindings.keys().cloned().collect();
-        names.sort();
-        names
+        sorted_keys(&self.bindings)
     }
 
     /// Sorted user-defined constant names (ADR-0066); builtins resolve
     /// elsewhere, so `pi` is not here.
     pub fn constant_names(&self) -> Vec<String> {
-        let mut names: Vec<String> = self.constants.keys().cloned().collect();
-        names.sort();
-        names
+        sorted_keys(&self.constants)
     }
 
     /// Sorted user-defined function names (ADR-0066).
     pub fn function_names(&self) -> Vec<String> {
-        let mut names: Vec<String> = self.functions.keys().cloned().collect();
-        names.sort();
-        names
+        sorted_keys(&self.functions)
     }
 
     /// A user-defined function's signature as spelled: `gem(a)`.
@@ -445,11 +447,20 @@ pub struct Span {
 }
 
 /// A parse failure together with where it sits in the source: the span
-/// covers the token the parser stopped at (ADR-0066).
+/// covers the blame, always present (ADR-0066).
 #[derive(Debug)]
 pub struct SpannedError {
     pub error: EpherError,
-    pub span: Option<Span>,
+    pub span: Span,
+}
+
+/// A tokenized-with-span failure at a known range: the shared shape of
+/// every tokenizer error.
+fn spanned(error: EpherError, start: usize, end: usize) -> SpannedError {
+    SpannedError {
+        error,
+        span: Span { start, end },
+    }
 }
 
 /// A statement together with the source range it was parsed from: the
@@ -470,6 +481,10 @@ pub enum TokenClass {
     Keyword,
     Operator,
     String,
+    /// A unit suffix: the name directly attached to a number (`2 m`,
+    /// `9.8 m/s^2`'s leading `m`). Colors by meaning, not like a
+    /// variable that happens to follow a number.
+    Unit,
 }
 
 /// A classified token: its class, where it sits, and its text (the
@@ -499,24 +514,49 @@ pub fn is_keyword(name: &str) -> bool {
 /// error ends the classification with the failure and its span.
 pub fn token_classes(text: &str) -> Result<Vec<SpannedToken>, SpannedError> {
     let tokens = tokenize(text)?;
-    Ok(tokens
+    // Classify everything, separators included: the unit pass must see
+    // whether a separator sits between a number and a name (then the
+    // name starts a new statement, it is not a unit).
+    let mut classified: Vec<(SpannedToken, bool)> = tokens
         .into_iter()
-        .filter(|(token, _)| !matches!(token, Token::Semicolon))
         .map(|(token, span)| {
-            let (class, text) = match token {
-                Token::Number(_) | Token::Imaginary(_) => (TokenClass::Number, String::new()),
-                Token::Str(_) => (TokenClass::String, String::new()),
+            let (class, text, separator) = match token {
+                Token::Number(_) | Token::Imaginary(_) => (TokenClass::Number, String::new(), false),
+                Token::Str(_) => (TokenClass::String, String::new(), false),
                 Token::Ident(name) => {
-                    if is_keyword(&name) {
-                        (TokenClass::Keyword, name)
+                    let class = if is_keyword(&name) {
+                        TokenClass::Keyword
                     } else {
-                        (TokenClass::Name, name)
-                    }
+                        TokenClass::Name
+                    };
+                    (class, name, false)
                 }
-                _ => (TokenClass::Operator, String::new()),
+                Token::Semicolon => (TokenClass::Operator, String::new(), true),
+                _ => (TokenClass::Operator, String::new(), false),
             };
-            SpannedToken { class, span, text }
+            (SpannedToken { class, span, text }, separator)
         })
+        .collect();
+    // A name whose previous token is a number is a unit suffix
+    // (ADR-0037): the `m` in `2 m`, the `h` in `3.5h`. Token adjacency
+    // is the same rule the parser reads; a `(` means the name is a
+    // call. A number's own `i` stays inside its Number token: `4i` is
+    // one literal, not a number times a name.
+    for i in 1..classified.len() {
+        let (prev, prev_separator) = &classified[i - 1];
+        let follows_number = !prev_separator && prev.class == TokenClass::Number;
+        let is_call = text[classified[i].0.span.end..].starts_with('(');
+        if follows_number
+            && !classified[i].1
+            && classified[i].0.class == TokenClass::Name
+            && !is_call
+        {
+            classified[i].0.class = TokenClass::Unit;
+        }
+    }
+    Ok(classified
+        .into_iter()
+        .filter_map(|(token, separator)| if separator { None } else { Some(token) })
         .collect())
 }
 
@@ -765,12 +805,9 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                                 }
                                 Some(consumed) => offset += consumed.len_utf8(),
                                 None => {
-                                    return Err(SpannedError {
-                                        error: EpherError::Parse(
+                                    return Err(spanned(EpherError::Parse(
                                             "unterminated block comment: expected */".into(),
-                                        ),
-                                        span: Some(Span { start: tok_start, end: offset }),
-                                    });
+                                        ), tok_start, offset));
                                 }
                             }
                         }
@@ -922,20 +959,14 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                                 Some('\\') => s.push('\\'),
                                 Some('"') => s.push('"'),
                                 Some(other) => {
-                                    return Err(SpannedError {
-                                        error: EpherError::Parse(format!(
+                                    return Err(spanned(EpherError::Parse(format!(
                                             "unknown escape \\{other} in a string: the escapes are \\n, \\t, \\r and \\\\"
-                                        )),
-                                        span: Some(Span { start: tok_start, end: offset }),
-                                    });
+                                        )), tok_start, offset));
                                 }
                                 None => {
-                                    return Err(SpannedError {
-                                        error: EpherError::Parse(
+                                    return Err(spanned(EpherError::Parse(
                                             "a string ends on a lone backslash".to_string(),
-                                        ),
-                                        span: Some(Span { start: tok_start, end: offset }),
-                                    });
+                                        ), tok_start, offset));
                                 }
                             }
                         }
@@ -944,13 +975,10 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                             offset += c2.len_utf8();
                         }
                         None => {
-                            return Err(SpannedError {
-                                error: EpherError::Parse(
+                            return Err(spanned(EpherError::Parse(
                                     "unterminated string: a literal needs its closing quote"
                                         .to_string(),
-                                ),
-                                span: Some(Span { start: tok_start, end: offset }),
-                            });
+                                ), tok_start, offset));
                         }
                     }
                 }
@@ -992,30 +1020,23 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                 if digits.is_empty() {
                     if let Some(ch) = chars.peek().copied() {
                         if ch.is_ascii_alphanumeric() {
-                            return Err(SpannedError {
-                                error: EpherError::Parse(format!(
+                            return Err(spanned(EpherError::Parse(format!(
                                     "invalid digit {ch} after 0{marker}"
-                                )),
-                                span: Some(Span { start: tok_start, end: offset }),
-                            });
+                                )), tok_start, offset));
                         }
                     }
-                    return Err(SpannedError {
-                        error: EpherError::Parse(format!("expected digits after 0{marker}")),
-                        span: Some(Span { start: tok_start, end: offset }),
-                    });
+                    return Err(spanned(EpherError::Parse(format!("expected digits after 0{marker}")), tok_start, offset));
                 }
                 let big = num_bigint::BigInt::parse_bytes(digits.as_bytes(), radix)
                     .expect("only valid digits were collected");
                 let n: f64 = match big.to_string().parse() {
                     Ok(n) => n,
                     Err(_) => {
-                        return Err(SpannedError {
-                            error: EpherError::Parse(format!(
-                                "invalid number: 0{marker}{digits}"
-                            )),
-                            span: Some(Span { start: tok_start, end: offset }),
-                        })
+                        return Err(spanned(
+                            EpherError::Parse(format!("invalid number: 0{marker}{digits}")),
+                            tok_start,
+                            offset,
+                        ))
                     }
                 };
                 let token = imaginary_or_number(n, &mut chars, &mut offset);
@@ -1063,10 +1084,11 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                 let n: f64 = match num.parse() {
                     Ok(n) => n,
                     Err(_) => {
-                        return Err(SpannedError {
-                            error: EpherError::Parse(format!("invalid number: {num:?}")),
-                            span: Some(Span { start: tok_start, end: offset }),
-                        })
+                        return Err(spanned(
+                            EpherError::Parse(format!("invalid number: {num:?}")),
+                            tok_start,
+                            offset,
+                        ))
                     }
                 };
                 let token = imaginary_or_number(n, &mut chars, &mut offset);
@@ -1089,13 +1111,11 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                 tokens.push((Token::Ident(ident), Span { start: tok_start, end: offset }));
             }
             other => {
-                return Err(SpannedError {
-                    error: EpherError::Parse(format!("unexpected character: {other:?}")),
-                    span: Some(Span {
-                        start: tok_start,
-                        end: tok_start + other.len_utf8(),
-                    }),
-                });
+                return Err(spanned(
+                    EpherError::Parse(format!("unexpected character: {other:?}")),
+                    tok_start,
+                    tok_start + other.len_utf8(),
+                ));
             }
         }
     }
@@ -1162,20 +1182,15 @@ impl Parser {
     }
 
     fn error_at(&self, error: EpherError) -> SpannedError {
-        SpannedError {
-            error,
-            span: Some(self.error_span()),
-        }
+        spanned(error, self.error_span().start, self.error_span().end)
     }
 
     /// Like [`Parser::error_at`], but the blame lands on the token the
     /// parser sits at (not yet consumed): the shape of a missing
     /// separator, where the next token is the one in the wrong place.
     fn error_at_next(&self, error: EpherError) -> SpannedError {
-        SpannedError {
-            error,
-            span: Some(self.peek_span().unwrap_or_else(|| self.error_span())),
-        }
+        let span = self.peek_span().unwrap_or_else(|| self.error_span());
+        spanned(error, span.start, span.end)
     }
 
     fn next(&mut self) -> Option<Token> {
@@ -4205,6 +4220,14 @@ pub struct CatalogEntry {
     pub signature: &'static str,
     /// The one-line meaning, word for word from the reference.
     pub description: &'static str,
+}
+
+impl CatalogEntry {
+    /// A constant, not a callable: how hover and completion say so
+    /// without each re-matching the kind.
+    pub fn is_constant(&self) -> bool {
+        self.kind == CatalogKind::Constant
+    }
 }
 
 /// The builtin catalog, sorted by name so suggestions appear in a stable
@@ -8316,27 +8339,22 @@ const STEP_LIMIT: u64 = 100_000;
 /// ended the pass.
 pub struct StatementOutcome {
     pub span: Span,
-    pub value: Option<Value>,
     pub display: Option<String>,
     pub error: Option<EpherError>,
 }
 
 /// Evaluate a whole document statement by statement, recording each
-/// statement's span and what it produced (ADR-0066) — the data behind
-/// inline results and ranged diagnostics. The pass is fail-fast: the
+/// statement's span and what it produced: the evaluation trace
+/// (ADR-0066), the data behind inline results and ranged diagnostics. The pass is fail-fast: the
 /// first statement that errors ends it, and earlier outcomes stand.
 /// The step budget is one per document, exactly like `run`. Unlike
 /// `submit`, nothing enters the session's history.
-pub fn eval_with_trace(session: &mut Session, text: &str) -> Vec<StatementOutcome> {
+pub fn evaluation_trace(session: &mut Session, text: &str) -> Vec<StatementOutcome> {
     let stmts = match parse_script_with_spans(text) {
         Ok(stmts) => stmts,
         Err(e) => {
             return vec![StatementOutcome {
-                span: e.span.unwrap_or(Span {
-                    start: 0,
-                    end: text.len(),
-                }),
-                value: None,
+                span: e.span,
                 display: None,
                 error: Some(e.error),
             }];
@@ -8347,14 +8365,12 @@ pub fn eval_with_trace(session: &mut Session, text: &str) -> Vec<StatementOutcom
     for stmt in stmts {
         let mut outcome = StatementOutcome {
             span: stmt.span,
-            value: None,
             display: None,
             error: None,
         };
         match stmt_value(&stmt.node, &mut session.env, &mut steps) {
             Ok(Some(value)) => {
                 outcome.display = Some(format_value(&value, &session.display));
-                outcome.value = Some(value);
             }
             Ok(None) => {}
             Err(error) => {

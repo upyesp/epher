@@ -67,3 +67,25 @@ fn comments_produce_no_tokens() {
         vec![(TokenClass::Number, "1".into()), (TokenClass::Number, "2".into())]
     );
 }
+
+#[test]
+fn a_name_attached_to_a_number_is_a_unit_suffix() {
+    // `2 m` and `3.5h` color by meaning; `a + m` stays a name, and
+    // `4i` is one number literal.
+    let classes = rendered("2 m + 3.5h + x + 4i");
+    use TokenClass::*;
+    assert_eq!(
+        classes,
+        vec![
+            (Number, "2".into()),
+            (Unit, "m".into()),
+            (Operator, "+".into()),
+            (Number, "3.5".into()),
+            (Unit, "h".into()),
+            (Operator, "+".into()),
+            (Name, "x".into()),
+            (Operator, "+".into()),
+            (Number, "4i".into()),
+        ]
+    );
+}
