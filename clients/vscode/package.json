@@ -1,0 +1,69 @@
+{
+  "name": "epher",
+  "displayName": "Epher",
+  "description": "The epher calculator language: highlighting, answers inline next to every statement, diagnostics, hover, and completion, via the shared epher-lsp server.",
+  "version": "0.5.40",
+  "publisher": "upyesp",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/upyesp/epher"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "calculator",
+    "units",
+    "astronomy",
+    "language"
+  ],
+  "activationEvents": [
+    "onLanguage:epher"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "epher",
+        "aliases": [
+          "Epher",
+          "epher"
+        ],
+        "extensions": [
+          ".epher"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "epher",
+        "scopeName": "source.epher",
+        "path": "./syntaxes/epher.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "epher",
+        "path": "./snippets/epher.json"
+      }
+    ]
+  },
+  "scripts": {
+    "sync-assets": "node scripts/sync-assets.mjs",
+    "compile": "npm run sync-assets && tsc -p .",
+    "watch": "tsc -p . --watch"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0"
+  }
+}

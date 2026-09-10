@@ -17,6 +17,10 @@
 /crates/web/dist
 site/guide/*/index.html
 node_modules/
+# VS Code pilot build output
+clients/vscode/out/
+*.vsix
+
 # NSIS harness output (compile check)
 crates/tauri-app/src-tauri/nsis-check.exe
 
