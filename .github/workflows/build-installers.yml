@@ -346,7 +346,9 @@ jobs:
           set -e
           cd clients/vscode
           npm ci --no-audit --no-fund
-          npm version --no-git-tag-version "$VERSION"
+          # --allow-same-version: a staging build runs against the
+          # previous release number, where the bump is a no-op
+          npm version --no-git-tag-version --allow-same-version "$VERSION"
           npm run compile
           npx --yes @vscode/vsce@3.9.2 package --allow-missing-repository \
             --out epher-vscode.vsix
