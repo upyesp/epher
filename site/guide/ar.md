@@ -854,38 +854,7 @@ grouped(1234567.89)
 |---|---|---|---|
 | `isprime(n)` | صحيح إذا كان n أوليًا | `isprime(97)` | `true` |
 | `nextprime(n)` / `prevprime(n)` | أقرب الأعداد الأولية | `nextprime(10)` | `11` |
-| `factors(n)` | تحليل إلى عوامل أولية | `factors(360)` |
-| حرفية قائمة | `{…}` | `{1, 2, 3}` |
-| عنصر قائمة | `list[i]` (يبدأ من 1) | `{5, 6}[2]` |
-| إحصاء قائمة | `mean(قائمة)`, `median(قائمة)`, … | `stdev(d)` |
-| شكل قائمة | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
-| انحدار خطي | `linreg(xs, ys)` | `linreg(x, y)` |
-| عائلة الانحدار | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
-| عائلة طبيعية | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
-| عائلة t | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
-| عائلة كاي تربيع | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
-| عائلات متقطعة | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
-| اختبارات وفترات | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
-| ANOVA و t المزدوج | `anova(قوائم...)`، `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
-| مخططات بيانات | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
-| أعداد عشوائية | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
-| سحبات طبيعية | `randn(mu, sigma)` | `randn(0, 1)` |
-| مستعرض الثوابت | المساعدة → الثوابت: كل ثابت مدمج، مجمّعًا | المساعدة → الثوابت |
-| كمية | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
-| تحويل | `expr in وحدة` أو `expr -> وحدة` | `72 km/hr in m/s` |
-| سوابق | `k M G T m µ n p` تدرّج أي وحدة | `5 km`, `3 MPa`, `1 GHz` |
-| و، أو على مستوى البت | `a & b`, `a \| b` | `0xFF & 0x0F` |
-| أو الحصري على مستوى البت | `a xor b` | `5 xor 3` |
-| نفي على مستوى البت | `~a` | `~0` |
-| إزاحات | `a << n`, `a >> n` | `1 << 8` |
-| حجم الكلمة | `bits(n)` — 8، 16، 32، 64 | `bits(8)` |
-| علاقة ضمنية | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
-| حرفية مصفوفة | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
-| دوال مصفوفات | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
-| حالّ TVM | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
-| صافي القيمة الحالية ومعدل العائد الداخلي | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
-| استهلاك | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
-| فائدة | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` | `2^3 * 3^2 * 5` |
+| `factors(n)` | تحليل إلى عوامل أولية | `factors(360)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | دالة أويلر | `totient(12)` | `4` |
 | `ndivisors(n)` | عدد القواسم | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b مرفوعًا للأس e، والباقي قسمة m، بدقة | `modpow(2, 10, 1000)` | `24` |

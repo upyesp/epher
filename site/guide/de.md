@@ -921,38 +921,7 @@ Primzahlen und Teiler arbeiten mit ganzen Zahlen:
 |---|---|---|---|
 | `isprime(n)` | wahr, wenn n eine Primzahl ist | `isprime(97)` | `true` |
 | `nextprime(n)` / `prevprime(n)` | die nächsten Primzahlen | `nextprime(10)` | `11` |
-| `factors(n)` | Primfaktorzerlegung | `factors(360)` |
-| Listenliteral | `{…}` | `{1, 2, 3}` |
-| Listenelement | `list[i]` (ab 1) | `{5, 6}[2]` |
-| Listenstatistik | `mean(liste)`, `median(liste)`, … | `stdev(d)` |
-| Listenform | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
-| Lineare Regression | `linreg(xs, ys)` | `linreg(x, y)` |
-| Regressionsfamilie | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
-| Normalverteilung | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
-| t-Verteilung | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
-| Chi-Quadrat | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
-| Diskrete Verteilungen | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
-| Tests und Intervalle | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
-| ANOVA und gepaarter t | `anova(listen...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
-| Datenplots | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
-| Zufallszahlen | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
-| Normalverteilte Züge | `randn(mu, sigma)` | `randn(0, 1)` |
-| Konstanten-Browser | Hilfe → Konstanten: alle eingebauten Konstanten, nach Gruppe | Hilfe → Konstanten |
-| Größe | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
-| Umrechnen | `expr in Einheit` oder `expr -> Einheit` | `72 km/hr in m/s` |
-| Vorsätze | `k M G T m µ n p` skalieren jede Einheit | `5 km`, `3 MPa`, `1 GHz` |
-| Bitweises Und, Oder | `a & b`, `a \| b` | `0xFF & 0x0F` |
-| Bitweises exklusives Oder | `a xor b` | `5 xor 3` |
-| Bitweises Nicht | `~a` | `~0` |
-| Verschiebungen | `a << n`, `a >> n` | `1 << 8` |
-| Wortbreite | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
-| Implizite Beziehung | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
-| Matrix-Literal | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
-| Matrixfunktionen | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
-| TVM-Löser | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
-| Kapitalwert und interner Zinsfuß | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
-| Tilgung | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
-| Zinsen | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` | `2^3 * 3^2 * 5` |
+| `factors(n)` | Primfaktorzerlegung | `factors(360)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | Eulersche Phi-Funktion | `totient(12)` | `4` |
 | `ndivisors(n)` | Anzahl der Teiler | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b hoch e, modulo m, exakt | `modpow(2, 10, 1000)` | `24` |

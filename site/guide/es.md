@@ -913,38 +913,7 @@ Los primos y los divisores trabajan con números enteros:
 |---|---|---|---|
 | `isprime(n)` | verdadero cuando n es primo | `isprime(97)` | `true` |
 | `nextprime(n)` / `prevprime(n)` | los primos más cercanos | `nextprime(10)` | `11` |
-| `factors(n)` | factorización en primos | `factors(360)` |
-| Literal de lista | `{…}` | `{1, 2, 3}` |
-| Elemento de lista | `list[i]` (base 1) | `{5, 6}[2]` |
-| Estadística de lista | `mean(lista)`, `median(lista)`, … | `stdev(d)` |
-| Forma de lista | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
-| Regresión lineal | `linreg(xs, ys)` | `linreg(x, y)` |
-| Familia de regresiones | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
-| Familia normal | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
-| Familia t | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
-| Familia chi-cuadrado | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
-| Familias discretas | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
-| Pruebas e intervalos | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
-| ANOVA y t emparejada | `anova(listas...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
-| Gráficos de datos | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
-| Números aleatorios | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
-| Extracciones normales | `randn(mu, sigma)` | `randn(0, 1)` |
-| Explorador de constantes | Ayuda → Constantes: todas las constantes, agrupadas | Ayuda → Constantes |
-| Cantidad | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
-| Convertir | `expr in unidad` o `expr -> unidad` | `72 km/hr in m/s` |
-| Prefijos | `k M G T m µ n p` escalan cualquier unidad | `5 km`, `3 MPa`, `1 GHz` |
-| Y, O bit a bit | `a & b`, `a \| b` | `0xFF & 0x0F` |
-| O exclusivo bit a bit | `a xor b` | `5 xor 3` |
-| No bit a bit | `~a` | `~0` |
-| Desplazamientos | `a << n`, `a >> n` | `1 << 8` |
-| Tamaño de palabra | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
-| Relación implícita | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
-| Literal de matriz | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
-| Funciones matriciales | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
-| Solucionador TVM | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
-| VAN y TIR | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
-| Amortización | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
-| Interés | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` | `2^3 * 3^2 * 5` |
+| `factors(n)` | factorización en primos | `factors(360)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | phi de Euler | `totient(12)` | `4` |
 | `ndivisors(n)` | cuántos divisores tiene | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b elevado a e, módulo m, exacto | `modpow(2, 10, 1000)` | `24` |
