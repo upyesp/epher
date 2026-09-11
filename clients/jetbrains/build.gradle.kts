@@ -1,3 +1,5 @@
+import java.io.File
+
 // Build of the epher plugin for the JetBrains IDEs (ADR-0066, stage
 // five). The plugin is a thin shell: the shared grammar rides as a
 // TextMate bundle, the shared snippets ride as native live templates,
@@ -40,11 +42,37 @@ dependencies {
         // Commercial IDE only: see the header comment. 2024.2.x is the
         // oldest line with the LSP API public, hence sinceBuild 242.
         intellijIdeaUltimate("2024.2.4")
-        bundledPlugin("org.intellij.plugins.textmate")
     }
+    // The bundledPlugin(...) helper cannot see the TextMate plugin in
+    // this distribution: its Ide lookup misses entries until the
+    // plugin list has been materialized once, and IPG's first call is
+    // the lookup (plugin-structure lazy-init bug). The plugin is a
+    // compile-time-only need (one interface); its jar is picked out of
+    // the extracted IDE below, and at runtime the declared plugin
+    // dependency in plugin.xml provides it.
+    compileOnly(files(layout.buildDirectory.file("textmate/textmate.jar")))
     // The IDE ships the stdlib at runtime (see gradle.properties), the
     // compile classpath still needs it spelled out.
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
+}
+
+// Extract the bundled TextMate plugin's jar from the resolved IDE into
+// the build directory, so the compileOnly dependency above has a plain
+// file to compile against. The IDE artifact resolves at execution time
+// (it carries the IDE download and extraction with it).
+val prepareTextmateJar = tasks.register("prepareTextmateJar") {
+    val out = layout.buildDirectory.file("textmate/textmate.jar")
+    outputs.file(out)
+    doLast {
+        val artifactFiles = configurations.getByName("intellijPlatformDependency").incoming.artifacts.artifactFiles
+        val jar: File = artifactFiles.files
+            .filter { it.isDirectory }
+            .mapNotNull { dir -> File(dir, "plugins/textmate/lib/textmate.jar").takeIf { f -> f.exists() } }
+            .firstOrNull() ?: error("the extracted IntelliJ Platform does not bundle the TextMate plugin jar")
+        val target = out.get().asFile
+        target.parentFile.mkdirs()
+        jar.copyTo(target, overwrite = true)
+    }
 }
 
 java {
@@ -72,5 +100,14 @@ intellijPlatform {
             sinceBuild = "242"
             untilBuild = provider { null }
         }
+    }
+}
+
+tasks {
+    compileKotlin {
+        dependsOn(prepareTextmateJar)
+    }
+    compileJava {
+        dependsOn(prepareTextmateJar)
     }
 }

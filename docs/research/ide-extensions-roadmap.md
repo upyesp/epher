@@ -151,3 +151,12 @@ dozen guesses. The verified facts, for whoever touches this next:
   bound, build is IntelliJ Platform Gradle Plugin 2.18.1 (which needs
   Gradle 9.0+; CI pins 9.0.0 and temurin 21), and the plugin version
   rides the train like the vsix, pinning the server URL.
+- One build-system trap cost the first staging run: IPG's
+  bundledPlugin(...) helper could not see the TextMate plugin in the
+  extracted 2024.2 IDE, because plugin-structure's findPluginById
+  misses entries until the bundled plugin list has been materialized
+  once, and IPG's first access is the lookup itself (reproduced
+  locally against both IPG 2.5.0 and 2.18.1). The build sidesteps it:
+  a prepareTextmateJar task picks plugins/textmate/lib/textmate.jar out
+  of the resolved IDE artifact as a compileOnly file, and the declared
+  plugin dependency in plugin.xml provides the classes at runtime.

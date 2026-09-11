@@ -1,0 +1,6 @@
+# Gradle build output and caches
+.gradle/
+build/
+
+# IntelliJ Platform Gradle Plugin workspace (sandbox, caches)
+.intellijPlatform/
