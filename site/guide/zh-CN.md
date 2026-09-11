@@ -854,38 +854,7 @@ epher 拥有科学计算器的全部函数，按家族分组。
 |---|---|---|---|
 | `isprime(n)` | n 为素数时为真 | `isprime(97)` | `true` |
 | `nextprime(n)` / `prevprime(n)` | 相邻的素数 | `nextprime(10)` | `11` |
-| `factors(n)` | 素因数分解 | `factors(360)` |
-| 列表字面量 | `{…}` | `{1, 2, 3}` |
-| 列表元素 | `list[i]`（从 1 起） | `{5, 6}[2]` |
-| 列表统计 | `mean(列表)`, `median(列表)`, … | `stdev(d)` |
-| 列表形态 | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
-| 线性回归 | `linreg(xs, ys)` | `linreg(x, y)` |
-| 回归家族 | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
-| 正态族 | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
-| t 族 | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
-| 卡方族 | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
-| 离散族 | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
-| 检验与区间 | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
-| ANOVA 与配对 t | `anova(列表...)`、`ttestpaired(a, b)` | `anova(g1, g2, g3)` |
-| 数据图 | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
-| 随机数 | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
-| 正态抽值 | `randn(mu, sigma)` | `randn(0, 1)` |
-| 常量浏览器 | 帮助 → 常量：全部内置常量，按组分类 | 帮助 → 常量 |
-| 量 | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
-| 换算 | `expr in 单位` 或 `expr -> 单位` | `72 km/hr in m/s` |
-| 词头 | `k M G T m µ n p` 缩放任意单位 | `5 km`, `3 MPa`, `1 GHz` |
-| 按位与、或 | `a & b`, `a \| b` | `0xFF & 0x0F` |
-| 按位异或 | `a xor b` | `5 xor 3` |
-| 按位取反 | `~a` | `~0` |
-| 移位 | `a << n`, `a >> n` | `1 << 8` |
-| 字长 | `bits(n)`，取 8、16、32、64 | `bits(8)` |
-| 隐式关系 | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
-| 矩阵字面量 | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
-| 矩阵函数 | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
-| TVM 求解器 | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
-| 净现值与内部收益率 | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
-| 摊还 | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
-| 利息 | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` | `2^3 * 3^2 * 5` |
+| `factors(n)` | 素因数分解 | `factors(360)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | 欧拉函数 | `totient(12)` | `4` |
 | `ndivisors(n)` | 约数个数 | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b 的 e 次幂对 m 取模，结果精确 | `modpow(2, 10, 1000)` | `24` |

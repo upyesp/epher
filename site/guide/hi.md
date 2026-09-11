@@ -865,38 +865,7 @@ epher में वैज्ञानिक कैलकुलेटर के �
 |---|---|---|---|
 | `isprime(n)` | सही जब n अभाज्य हो | `isprime(97)` | `true` |
 | `nextprime(n)` / `prevprime(n)` | निकटतम अभाज्य संख्याएँ | `nextprime(10)` | `11` |
-| `factors(n)` | अभाज्य गुणनखंडन | `factors(360)` |
-| सूची शाब्दिक | `{…}` | `{1, 2, 3}` |
-| सूची तत्व | `list[i]` (1-आधारित) | `{5, 6}[2]` |
-| सूची सांख्यिकी | `mean(सूची)`, `median(सूची)`, … | `stdev(d)` |
-| सूची आकार | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
-| रेखीय प्रतिगमन | `linreg(xs, ys)` | `linreg(x, y)` |
-| प्रतिगमन परिवार | `quadreg` `expreg` `powreg` `logreg` | `quadreg(xs, ys)` |
-| सामान्य परिवार | `normpdf` `normcdf` `invnorm` | `invnorm(0.975)` |
-| t परिवार | `tpdf` `tcdf` `invt` | `invt(0.975, 10)` |
-| काई-वर्ग परिवार | `chi2pdf` `chi2cdf` `invchi2` | `chi2cdf(3.84, 1)` |
-| असतत परिवार | `binompdf` `binomcdf` `poissonpdf` `poissoncdf` | `binomcdf(2, 10, 0.5)` |
-| परीक्षण और अंतराल | `ztest` `ttest` `zinterval` `tinterval` `chisq_gof` | `tinterval(d, 0.95)` |
-| ANOVA और युग्मित t | `anova(सूचियाँ...)`, `ttestpaired(a, b)` | `anova(g1, g2, g3)` |
-| डेटा प्लॉट | `graph scatter(xs, ys)` `histogram(data)` `boxplot(data)` | `graph boxplot(d)` |
-| यादृच्छिक संख्याएँ | `random()`, `random(a, b)`, `randint(a, b)`, `randseed(n)` | `randint(1, 6)` |
-| प्रसामान्य खींच | `randn(mu, sigma)` | `randn(0, 1)` |
-| स्थिरांक ब्राउज़र | सहायता → स्थिरांक: हर अंतर्निर्मित स्थिरांक, समूहों में | सहायता → स्थिरांक |
-| राशि | `5 m`, `60 mile/hr`, `1 km` | `2 m^2` |
-| बदलें | `expr in इकाई` या `expr -> इकाई` | `72 km/hr in m/s` |
-| उपसर्ग | `k M G T m µ n p` किसी इकाई को स्केल करते हैं | `5 km`, `3 MPa`, `1 GHz` |
-| बिटवाइज़ और, या | `a & b`, `a \| b` | `0xFF & 0x0F` |
-| बिटवाइज़ अनन्य या | `a xor b` | `5 xor 3` |
-| बिटवाइज़ नहीं | `~a` | `~0` |
-| शिफ़्ट | `a << n`, `a >> n` | `1 << 8` |
-| शब्द आकार | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |
-| अंतर्निहित संबंध | `graph lhs == rhs` | `graph x^2 + y^2 == 1` |
-| मैट्रिक्स शाब्दिक | `[[1, 2], [3, 4]]` | `[[1, 2], [3, 4]] * [[5, 6], [7, 8]]` |
-| मैट्रिक्स फ़ंक्शन | `det` `inv` `transpose` `trace` `dim` `ref` `rref` | `rref([[2, 1, 5], [1, -1, 1]])` |
-| TVM सॉल्वर | `tvm_n` `tvm_i` `tvm_pv` `tvm_pmt` `tvm_fv` | `tvm_pmt(360, 0.08/12, -100000, 0)` |
-| NPV और IRR | `npv(rate, flows)` `irr(flows)` | `irr({-100, 60, 60})` |
-| परिशोधन | `amort(p, r, n, k)` | `amort(1000, 0.01, 12, 6)` |
-| ब्याज | `simple_interest` `compound_interest` | `compound_interest(1000, 0.05, 2)` | `2^3 * 3^2 * 5` |
+| `factors(n)` | अभाज्य गुणनखंडन | `factors(360)` | `2^3 * 3^2 * 5` |
 | `totient(n)` | यूलर टोशेंट | `totient(12)` | `4` |
 | `ndivisors(n)` | भाजकों की संख्या | `ndivisors(360)` | `24` |
 | `modpow(b, e, m)` | b की घात e, mod m, यथार्थ | `modpow(2, 10, 1000)` | `24` |
