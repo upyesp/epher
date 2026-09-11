@@ -497,7 +497,20 @@ jobs:
         shell: bash
         run: |
           set -e
-          msbuild -restore -nologo \
+          # setup-msbuild puts msbuild on PATH when it can; when the
+          # runner's Visual Studio moved somewhere it does not expect,
+          # resolve the same way the action does, via vswhere.
+          if command -v msbuild >/dev/null 2>&1; then
+            MSBUILD="msbuild"
+          else
+            MSBUILD="$(vswhere.exe -latest -products '*' -requires Microsoft.Component.MSBuild -find 'MSBuild\\**\\Bin\\MSBuild.exe' | head -1)"
+          fi
+          if [ -z "$MSBUILD" ]; then
+            echo "::error::msbuild not found"
+            exit 1
+          fi
+          echo "msbuild at: $MSBUILD"
+          "$MSBUILD" -restore -nologo \
             -p:Configuration=Release \
             -p:EpherVersion="$VERSION" \
             clients/visualstudio/Epher.VisualStudio.csproj
