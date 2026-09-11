@@ -178,8 +178,8 @@ window.EPHER_I18N["en"] = {
   "nav-ide": "IDE Extensions",
   "ide-title": "IDE Extensions",
   "ide-lede": "Write epher in your editor: a language server checks every statement as you type, shows each answer next to its line, and completes names from the catalog.",
-  "ide-how-title": "One server, every editor",
-  "ide-how-p": "Every extension shares one program, epher-lsp: a small language server with the whole epher engine compiled in. The extension is a thin shell: on first use it downloads the server for your platform from the releases page and caches it. Everything runs on your machine; nothing is sent anywhere.",
+  "ide-how-title": "One language server, used by every IDE",
+  "ide-how-p": "Every extension shares one program, epher-lsp: a small language server (LSP) with the whole epher engine compiled in. The extension is a thin shell: on first use it downloads the server for your platform from the releases page and caches it. Everything runs on your machine; nothing is sent anywhere.",
   "ide-features-title": "What the editor gets",
   "ide-f1-title": "Live diagnostics",
   "ide-f1-desc": "Syntax errors point at the exact token, and evaluation errors carry the same message the calculator shows.",
@@ -223,5 +223,6 @@ window.EPHER_I18N["en"] = {
   "ide-sublime-p1": "A package folder: the shared grammar in Sublime's own form, plus the client definition for the popular LSP package.",
   "ide-sublime-link": "Download epher-sublime.zip",
   "ide-vs-p1": "Install it like any Visual Studio extension: double-click the vsix, or Extensions, Manage Extensions, Install from file. Works in Visual Studio 2022. On first use it downloads the server for Windows; after that, everything is local.",
-  "ide-vs-link": "Download epher-visualstudio.vsix"
+  "ide-vs-link": "Download epher-visualstudio.vsix",
+  "ide-zed-p2": "The Rust step belongs to dev extensions, not to epher: extensions published to Zed's extension registry are compiled by Zed itself and install in one click, with no Rust. Publication there is planned; until it lands, the dev-extension route above is the way in."
 };

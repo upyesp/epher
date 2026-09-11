@@ -178,8 +178,8 @@ window.EPHER_I18N["pt"] = {
   "nav-ide": "Extensões IDE",
   "ide-title": "Extensões IDE",
   "ide-lede": "Escreva epher no seu editor: um servidor de linguagem verifica cada instrução enquanto escreve, mostra cada resposta junto à sua linha e completa nomes do catálogo.",
-  "ide-how-title": "Um servidor, todos os editores",
-  "ide-how-p": "Todas as extensões partilham o mesmo programa, epher-lsp: um pequeno servidor de linguagem com o motor completo do epher compilado dentro. A extensão é uma casca fina: na primeira utilização descarrega o servidor para a sua plataforma da página de versões e guarda-o em cache. Tudo corre na sua máquina; nada é enviado para lado nenhum.",
+  "ide-how-title": "Um servidor de linguagem, usado por todos os IDEs",
+  "ide-how-p": "Todas as extensões partilham o mesmo programa, epher-lsp: um pequeno servidor de linguagem (LSP) com o motor completo do epher compilado dentro. A extensão é uma casca fina: na primeira utilização descarrega o servidor para a sua plataforma da página de versões e guarda-o em cache. Tudo corre na sua máquina; nada é enviado para lado nenhum.",
   "ide-features-title": "O que o editor ganha",
   "ide-f1-title": "Diagnóstico em vivo",
   "ide-f1-desc": "Erros de sintaxe apontam para o token exato, e erros de avaliação trazem a mesma mensagem que a calculadora mostra.",
@@ -223,5 +223,6 @@ window.EPHER_I18N["pt"] = {
   "ide-sublime-p1": "Uma pasta de pacote: a gramática partilhada na forma própria do Sublime, mais a definição do cliente para o popular pacote LSP.",
   "ide-sublime-link": "Descarregar epher-sublime.zip",
   "ide-vs-p1": "Instale-o como qualquer extensão do Visual Studio: duplo clique no vsix, ou Extensions, Manage Extensions, Install from file. Funciona no Visual Studio 2022. Na primeira utilização descarrega o servidor para Windows; depois disso tudo é local.",
-  "ide-vs-link": "Descarregar epher-visualstudio.vsix"
+  "ide-vs-link": "Descarregar epher-visualstudio.vsix",
+  "ide-zed-p2": "O passo do Rust pertence às extensões de desenvolvimento, não ao epher: as extensões publicadas no registo de extensões do Zed são compiladas pelo próprio Zed e instalam-se com um clique, sem Rust. A publicação aí está planeada; até lá, o caminho da extensão de desenvolvimento acima é a entrada."
 };

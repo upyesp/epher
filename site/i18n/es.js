@@ -178,8 +178,8 @@ window.EPHER_I18N["es"] = {
   "nav-ide": "Extensiones IDE",
   "ide-title": "Extensiones IDE",
   "ide-lede": "Escribe epher en tu editor: un servidor de lenguaje comprueba cada instrucción mientras escribes, muestra cada respuesta junto a su línea y completa nombres del catálogo.",
-  "ide-how-title": "Un servidor, todos los editores",
-  "ide-how-p": "Todas las extensiones comparten un mismo programa, epher-lsp: un pequeño servidor de lenguaje con el motor completo de epher compilado dentro. La extensión es una cáscara fina: en el primer uso descarga el servidor para tu plataforma desde la página de versiones y lo guarda en caché. Todo se ejecuta en tu máquina; nada se envía a ningún sitio.",
+  "ide-how-title": "Un servidor de lenguaje, usado por cada IDE",
+  "ide-how-p": "Todas las extensiones comparten un mismo programa, epher-lsp: un pequeño servidor de lenguaje (LSP) con el motor completo de epher compilado dentro. La extensión es una cáscara fina: en el primer uso descarga el servidor para tu plataforma desde la página de versiones y lo guarda en caché. Todo se ejecuta en tu máquina; nada se envía a ningún sitio.",
   "ide-features-title": "Lo que gana el editor",
   "ide-f1-title": "Diagnóstico en vivo",
   "ide-f1-desc": "Los errores de sintaxis señalan el token exacto, y los errores de evaluación muestran el mismo mensaje que la calculadora.",
@@ -223,5 +223,6 @@ window.EPHER_I18N["es"] = {
   "ide-sublime-p1": "Una carpeta de paquete: la gramática compartida en el formato propio de Sublime, más la definición del cliente para el popular paquete LSP.",
   "ide-sublime-link": "Descargar epher-sublime.zip",
   "ide-vs-p1": "Instálalo como cualquier extensión de Visual Studio: doble clic en el vsix, o Extensions, Manage Extensions, Install from file. Funciona en Visual Studio 2022. En el primer uso descarga el servidor para Windows; después, todo es local.",
-  "ide-vs-link": "Descargar epher-visualstudio.vsix"
+  "ide-vs-link": "Descargar epher-visualstudio.vsix",
+  "ide-zed-p2": "El paso de Rust pertenece a las extensiones de desarrollo, no a epher: las extensiones publicadas en el registro de extensiones de Zed las compila el propio Zed y se instalan con un clic, sin Rust. La publicación allí está planeada; hasta entonces, la ruta de la extensión de desarrollo de arriba es la entrada."
 };
