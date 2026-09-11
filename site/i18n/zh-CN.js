@@ -177,7 +177,7 @@ window.EPHER_I18N["zh-CN"] = {
 
   "nav-ide": "IDE 扩展",
   "ide-title": "IDE 扩展",
-  "ide-lede": "在编辑器中书写 epher：语言服务器在您输入时检查每条语句，在语句旁边显示答案，并根据目录补全名称。",
+  "ide-lede": "您可以使用 IDE 来编写 epher 脚本。下载并安装适用于您偏好编辑器的官方 epher 扩展。",
   "ide-how-title": "一个语言服务器，所有 IDE 共用",
   "ide-how-p": "每个扩展共用同一个程序 epher-lsp：一个小型语言服务器（LSP），内嵌完整的 epher 引擎。扩展本身很薄：首次使用时，它会从发布页下载适合您平台的服务器并缓存。一切都在您的机器上运行，不会发送任何内容。",
   "ide-features-title": "编辑器能获得什么",
