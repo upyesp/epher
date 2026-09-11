@@ -1,0 +1,198 @@
+================================================================================
+Precedence as the reference spells it
+================================================================================
+
+a = -2 ^ 2
+b = 2 ^ -2
+c = 3! ^ 2
+d = d[2] ^ 2
+e = not x > 3
+
+---
+
+(source
+  (assignment
+    (identifier)
+    (unary_expression
+      (power_expression
+        (number)
+        (number))))
+  (assignment
+    (identifier)
+    (power_expression
+      (number)
+      (unary_expression
+        (number))))
+  (assignment
+    (identifier)
+    (power_expression
+      (postfix_expression
+        (number))
+      (number)))
+  (assignment
+    (identifier)
+    (power_expression
+      (postfix_expression
+        (identifier)
+        (index_suffix
+          (number)))
+      (number)))
+  (assignment
+    (identifier)
+    (not_expression
+      (comparison_expression
+        (identifier)
+        (number)))))
+
+================================================================================
+Quantities and unit conversion
+================================================================================
+
+l = 2 m
+v = 60 mile/hr
+conv = 72 km/hr in m/s
+back = 5 km -> m
+
+---
+
+(source
+  (assignment
+    (identifier)
+    (quantity
+      (number)
+      (unit)))
+  (assignment
+    (identifier)
+    (multiplicative_expression
+      (quantity
+        (number)
+        (unit))
+      (identifier)))
+  (assignment
+    (identifier)
+    (multiplicative_expression
+      (conversion_expression
+        (multiplicative_expression
+          (quantity
+            (number)
+            (unit))
+          (identifier))
+        (unit))
+      (identifier)))
+  (assignment
+    (identifier)
+    (conversion_expression
+      (quantity
+        (number)
+        (unit))
+      (unit))))
+
+================================================================================
+Numbers in every spelling
+================================================================================
+
+dec = 2.5
+sci = 1e9
+imag = 3 + 4i
+bin = 0b101
+oct = 0o17
+hex = 0xFF + 0b1
+half = .5
+
+---
+
+(source
+  (assignment
+    (identifier)
+    (number))
+  (assignment
+    (identifier)
+    (number))
+  (assignment
+    (identifier)
+    (additive_expression
+      (number)
+      (number)))
+  (assignment
+    (identifier)
+    (number))
+  (assignment
+    (identifier)
+    (number))
+  (assignment
+    (identifier)
+    (additive_expression
+      (number)
+      (number)))
+  (assignment
+    (identifier)
+    (number)))
+
+================================================================================
+Strings, lists, matrices, calls
+================================================================================
+
+s = "hello\nworld"
+list = {1, 2, 3}
+m = [[1, 2], [3, 4]]
+r = mean(1, 2, 3)
+idx = {5, 6}[2]
+
+---
+
+(source
+  (assignment
+    (identifier)
+    (string
+      (escape_sequence)))
+  (assignment
+    (identifier)
+    (list
+      (number)
+      (number)
+      (number)))
+  (assignment
+    (identifier)
+    (matrix
+      (row
+        (number)
+        (number))
+      (row
+        (number)
+        (number))))
+  (assignment
+    (identifier)
+    (call_expression
+      (identifier)
+      (number)
+      (number)
+      (number)))
+  (assignment
+    (identifier)
+    (postfix_expression
+      (list
+        (number)
+        (number))
+      (index_suffix
+        (number)))))
+
+================================================================================
+Comments in all three forms
+================================================================================
+
+# a line comment
+// another line comment
+/* a block
+   comment */
+x = 1 # trailing
+
+---
+
+(source
+  (line_comment)
+  (line_comment)
+  (block_comment)
+  (assignment
+    (identifier)
+    (number))
+  (line_comment))

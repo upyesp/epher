@@ -19,12 +19,12 @@ extension's work directory, and starts it over stdio.
 - semantic-token coloring: numbers, variables, functions, keywords,
   operators, strings, and unit suffixes colored by meaning.
 
-## One setting to flip
+## Baseline highlighting ships; one setting makes it exact
 
-Zed requests semantic tokens only when asked, and epher ships no
-tree-sitter grammar in v1 (grammar-less languages register fine;
-tree-sitter-driven extras like outline are simply absent). Turn on
-server-backed highlighting once in your settings:
+The extension pins the [tree-sitter-epher](https://github.com/upyesp/tree-sitter-epher)
+grammar, so baseline highlighting, bracket matching, and outline work
+out of the box. For the server's exact coloring (unit suffixes versus
+a variable named m), turn on semantic tokens in your settings:
 
 ```json
 {
@@ -56,6 +56,15 @@ Platforms: linux x86_64 and ARM64, macOS Apple silicon, Windows
 x86_64. Intel macOS and Windows ARM64 join when ADR-0066's second
 platform wave lands.
 
+## The grammar
+
+The tree-sitter grammar lives in its own repository (the Zed registry
+pins a revision): [upyesp/tree-sitter-epher](https://github.com/upyesp/tree-sitter-epher),
+written from the same source as this extension
+(`grammars/tree-sitter-epher` in the epher repository). It parses the
+whole shipped `epher scripts` corpus - all 433 scripts - without
+errors.
+
 ## Verifying by hand
 
 ```
@@ -69,6 +78,5 @@ The extension compiles for `wasm32-wasip1`, the target Zed loads.
 The version here (`extension.toml` and `Cargo.toml`, kept in
 lockstep) is the release the extension resolves: tag `v<version>`.
 It rides epher's 0.5.x train, so bumping epher bumps this in the
-same batch. A tree-sitter-epher grammar for baseline highlighting
-and outline may arrive in a later round; the server's semantic
-tokens already cover the coloring.
+same batch. When the grammar moves, bump its `rev` in
+`extension.toml` in the same commit.

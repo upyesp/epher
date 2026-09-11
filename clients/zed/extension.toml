@@ -15,6 +15,13 @@ authors = ["upyesp"]
 description = "epher in Zed: live diagnostics, inline answers, hover signatures, completion, and unit-aware coloring from the shared epher language server."
 repository = "https://github.com/upyesp/epher"
 
+# The tree-sitter grammar (standalone repo, the registry pins a
+# revision). Bump the rev whenever grammars/tree-sitter-epher moves in
+# the epher repository.
+[grammars.epher]
+repository = "https://github.com/upyesp/tree-sitter-epher"
+rev = "5d7567e9d5d2e561571ecde916c4384913c8604b"
+
 [language_servers.epher-lsp]
 name = "epher"
 languages = ["epher"]

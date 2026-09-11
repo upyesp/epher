@@ -1,0 +1,25 @@
+{
+  "name": "tree-sitter-epher",
+  "version": "0.5.40",
+  "description": "epher grammar for tree-sitter: the calculator language's statements, expressions, units, and comments",
+  "license": "MIT",
+  "main": "bindings/node",
+  "keywords": [
+    "incremental",
+    "parsing",
+    "tree-sitter",
+    "epher"
+  ],
+  "tree-sitter": [
+    {
+      "scope": "source.epher",
+      "file-types": [
+        "epher"
+      ],
+      "injection-regex": "^epher$"
+    }
+  ],
+  "devDependencies": {
+    "tree-sitter-cli": "^0.24.7"
+  }
+}

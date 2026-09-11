@@ -266,3 +266,9 @@ _Avoid_: trace (ambiguous with the plotting sense), execution log
   when promotion looks like the obvious referent (user rule,
   2026-09-17, after the v0.5.41 promotion was made on an ambiguous
   reply and had to be reversed in full).
+- Marketplace publication (VS Code Marketplace, Open VSX, JetBrains
+  Marketplace, the Zed extension registry, and any other editor
+  store) is parked until the user explicitly asks for it. The
+  releases page stays the distribution; do not start account setup,
+  registry submissions, or publishing pipelines for any marketplace
+  on general "keep going" instructions (user rule, 2026-09-17).
