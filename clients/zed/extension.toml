@@ -1,0 +1,20 @@
+# The Zed extension manifest. The language directory (languages/epher)
+# registers the epher language; this table binds the shared language
+# server to it. The languages list matches the `name` field in
+# languages/epher/config.toml, not the directory name.
+#
+# The version is locked to epher's 0.5.x train (ADR-0066): the Rust
+# crate reads its own version at compile time and downloads the
+# matching epher-lsp release, so these two versions must move
+# together. Bump this file and Cargo.toml in the same commit.
+id = "epher"
+name = "epher"
+version = "0.5.40"
+schema_version = 1
+authors = ["upyesp"]
+description = "epher in Zed: live diagnostics, inline answers, hover signatures, completion, and unit-aware coloring from the shared epher language server."
+repository = "https://github.com/upyesp/epher"
+
+[language_servers.epher-lsp]
+name = "epher"
+languages = ["epher"]
