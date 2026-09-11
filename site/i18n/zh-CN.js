@@ -178,8 +178,8 @@ window.EPHER_I18N["zh-CN"] = {
   "nav-ide": "IDE 扩展",
   "ide-title": "IDE 扩展",
   "ide-lede": "在编辑器中书写 epher：语言服务器在您输入时检查每条语句，在语句旁边显示答案，并根据目录补全名称。",
-  "ide-how-title": "一个服务器，所有编辑器",
-  "ide-how-p": "每个扩展共用同一个程序 epher-lsp：一个小型语言服务器，内嵌完整的 epher 引擎。扩展本身很薄：首次使用时，它会从发布页下载适合您平台的服务器并缓存。一切都在您的机器上运行，不会发送任何内容。",
+  "ide-how-title": "一个语言服务器，所有 IDE 共用",
+  "ide-how-p": "每个扩展共用同一个程序 epher-lsp：一个小型语言服务器（LSP），内嵌完整的 epher 引擎。扩展本身很薄：首次使用时，它会从发布页下载适合您平台的服务器并缓存。一切都在您的机器上运行，不会发送任何内容。",
   "ide-features-title": "编辑器能获得什么",
   "ide-f1-title": "实时诊断",
   "ide-f1-desc": "语法错误精确指向出错的记号；求值错误显示与计算器相同的信息。",
@@ -223,5 +223,6 @@ window.EPHER_I18N["zh-CN"] = {
   "ide-sublime-p1": "一个包文件夹：以 Sublime 自身格式提供的共享语法，加上流行 LSP 插件的客户端定义。",
   "ide-sublime-link": "下载 epher-sublime.zip",
   "ide-vs-p1": "像安装任何 Visual Studio 扩展一样安装：双击 vsix，或通过 Extensions、Manage Extensions、Install from file。适用于 Visual Studio 2022。首次使用会下载 Windows 服务器；之后一切都在本地。",
-  "ide-vs-link": "下载 epher-visualstudio.vsix"
+  "ide-vs-link": "下载 epher-visualstudio.vsix",
+  "ide-zed-p2": "Rust 这一步属于开发版扩展，而不属于 epher：上架 Zed 扩展注册中心的扩展由 Zed 自己编译，安装只需一次点击，无需 Rust。在那里发布已在计划中；在那之前，上面的开发版扩展方式是目前的入口。"
 };

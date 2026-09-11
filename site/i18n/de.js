@@ -178,8 +178,8 @@ window.EPHER_I18N["de"] = {
   "nav-ide": "IDE-Erweiterungen",
   "ide-title": "IDE-Erweiterungen",
   "ide-lede": "Schreiben Sie epher in Ihrem Editor: Ein Sprachserver prüft jede Anweisung beim Tippen, zeigt jede Antwort neben ihrer Zeile und vervollständigt Namen aus dem Katalog.",
-  "ide-how-title": "Ein Server, jeder Editor",
-  "ide-how-p": "Alle Erweiterungen teilen sich ein Programm, epher-lsp: einen kleinen Sprachserver mit der kompletten epher-Engine darin. Die Erweiterung ist eine dünne Hülle: Beim ersten Einsatz lädt sie den Server für Ihre Plattform von der Releases-Seite und speichert ihn zwischen. Alles läuft auf Ihrem Rechner; nichts wird irgendwohin gesendet.",
+  "ide-how-title": "Ein Sprachserver, von jeder IDE genutzt",
+  "ide-how-p": "Alle Erweiterungen teilen sich ein Programm, epher-lsp: einen kleinen Sprachserver (LSP) mit der kompletten epher-Engine darin. Die Erweiterung ist eine dünne Hülle: Beim ersten Einsatz lädt sie den Server für Ihre Plattform von der Releases-Seite und speichert ihn zwischen. Alles läuft auf Ihrem Rechner; nichts wird irgendwohin gesendet.",
   "ide-features-title": "Was der Editor bekommt",
   "ide-f1-title": "Live-Diagnose",
   "ide-f1-desc": "Syntaxfehler zeigen auf das genaue Token, und Auswertungsfehler tragen dieselbe Meldung wie der Rechner.",
@@ -223,5 +223,6 @@ window.EPHER_I18N["de"] = {
   "ide-sublime-p1": "Ein Paketordner: die gemeinsame Grammatik in Sublimes eigener Form, dazu die Client-Definition für das verbreitete LSP-Paket.",
   "ide-sublime-link": "epher-sublime.zip herunterladen",
   "ide-vs-p1": "Installieren Sie es wie jede Visual-Studio-Erweiterung: Doppelklick auf das VSIX, oder Extensions, Manage Extensions, Install from file. Funktioniert in Visual Studio 2022. Beim ersten Einsatz lädt es den Server für Windows; danach ist alles lokal.",
-  "ide-vs-link": "epher-visualstudio.vsix herunterladen"
+  "ide-vs-link": "epher-visualstudio.vsix herunterladen",
+  "ide-zed-p2": "Der Rust-Schritt gehört zu Dev-Extensions, nicht zu epher: Extensions im Extension-Registry von Zed werden von Zed selbst kompiliert und lassen sich mit einem Klick ohne Rust installieren. Die Veröffentlichung dort ist geplant; bis dahin ist der Dev-Extension-Weg von oben der Einstieg."
 };

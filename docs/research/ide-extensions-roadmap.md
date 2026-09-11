@@ -220,3 +220,23 @@ assemblies before the first CI run. What the docs settled:
   root-level epher-lsp.exe into %LocalAppData%\epher\bin behind a
   server-version marker. Only the Windows asset exists to this client;
   the other platforms' builds stay irrelevant, by design.
+
+## Follow-up round (same day, user feedback)
+
+- The JetBrains section lost its `ide-jetbrains-p1` paragraph in the
+  stage-six page edit (heading then straight to the download link).
+  Restored; the locale validation now also fails on dictionary keys
+  the page does not use, so that class of drop cannot pass silently
+  again.
+- Heading retitled "One language server, used by every IDE"; the
+  how-it-works paragraph now says "small language server (LSP)".
+- Zed section gained `ide-zed-p2`: the Rust requirement belongs to
+  dev extensions as a mechanism. Verified against Zed's own docs
+  (developing-extensions): Zed compiles dev extensions locally with
+  the wasm32-wasip2 target, grammars additionally use wasi-sdk
+  (downloaded by Zed). The compile-free path is the official
+  extension registry: a PR to zed-industries/extensions adds the
+  extension repo as a submodule, and once merged Zed packages and
+  hosts it; users install in one click with no Rust. That is
+  marketplace publication, parked by rule until the user explicitly
+  asks; the page copy says publication there is planned.
