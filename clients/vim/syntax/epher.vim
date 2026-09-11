@@ -4,7 +4,8 @@
 " decimal, scientific, the 0b/0o/0x bases, and the imaginary `i`
 " suffix; strings honor the five escapes; unit suffixes are matched
 " conservatively (identifier immediately after a number with no
-" separator), which is the parser's own adjacency rule.
+" separator, never a call), which is the parser's own adjacency
+" rule. The language server's semantic tokens are the exact rule.
 
 if exists("b:current_syntax")
   finish
@@ -24,23 +25,20 @@ syntax region epherString start=+"+ skip=+\\.+ end=+"+ contains=epherStringEscap
 syntax match epherNumber "\v<0[bB][01]+>"
 syntax match epherNumber "\v<0[oO][0-7]+>"
 syntax match epherNumber "\v<0[xX][0-9a-fA-F]+>"
-syntax match epherNumber "\v<\d+((\.\d+)?)([eE][-+]?\d+)?>"
+syntax match epherNumber "\v<\d+(\.\d+)?([eE][-+]?\d+)?>"
 syntax match epherNumber "\v<\d+(\.\d+)?([eE][-+]?\d+)?i>"
 
 " Keywords (crates/core KEYWORDS, verbatim).
 syntax keyword epherKeyword and break const continue def do else end for if in not or return solve step then to while xor
 
-" Booleans, where they are not already keywords.
-syntax keyword epherConstant true false pi tau e
-
 " Units: an identifier immediately after a number, separated by a
-" space, never `i`, never a call. Conservative on purpose; the
-" language server's semantic tokens are the exact rule.
-syntax match epherUnit "\v\d[ \t]+[A-Za-z_]\w{-}\ze\i@!"
+" space, never a call (no `(` follows), and never containing digits
+" (the parser rejects `2 m3`). Conservative on purpose; the language
+" server's semantic tokens are the exact rule.
+syntax match epherUnit "\v(\d[ \t])@<=[A-Za-z_]+(\i|\()@!"
 
 " Operators.
-syntax match epherOperator "\v[+\-*/%^=!<>]"
-syntax match epherOperator "\v\*\*|//"
+syntax match epherOperator "\v\*\*|//|[+\-*/%^=!<>]"
 
 " Names and calls.
 syntax match epherName "\v<[A-Za-z_]\w*>"
@@ -52,7 +50,6 @@ hi def link epherString String
 hi def link epherStringEscape SpecialChar
 hi def link epherNumber Number
 hi def link epherKeyword Keyword
-hi def link epherConstant Constant
 hi def link epherUnit Type
 hi def link epherOperator Operator
 hi def link epherCall Function
