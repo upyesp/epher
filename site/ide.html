@@ -144,60 +144,89 @@
 
       <h2 data-i18n="ide-vscode-title">VS Code</h2>
       <p data-i18n="ide-vscode-p1">
-        Download `epher-vscode.vsix` from the releases page, then
-        install it: Extensions view, the ⋯ menu, Install from VSIX.
+        Install it from the vsix: Extensions view, the ⋯ menu,
+        Install from VSIX. On first use the extension downloads the
+        server for your platform (Windows x86_64, Linux x86_64 and
+        ARM64, or macOS Apple silicon) and needs the network once;
+        after that, everything is local. Open a `.epher` file and the
+        answers appear.
       </p>
       <p>
-        <a href="https://github.com/upyesp/epher/releases/latest" data-i18n="ide-vscode-link">Download epher-vscode.vsix from the releases page</a>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vscode.vsix" data-i18n="ide-vscode-link">Download epher-vscode.vsix</a>
       </p>
-      <p data-i18n="ide-vscode-p2">
-        On first use the extension downloads the server for your
-        platform (Windows x86_64, Linux x86_64 and ARM64, or macOS
-        Apple silicon) and needs the network once; after that,
-        everything is local. Open a `.epher` file and the answers
-        appear.
+
+      <h2 data-i18n="ide-cursor-title">Cursor</h2>
+      <p data-i18n="ide-cursor-p1">
+        Cursor is a VS Code fork: the same vsix installs the same
+        way, from the Extensions view's ⋯ menu, Install from VSIX.
+        The first-use server download and every feature behave
+        identically.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vscode.vsix" data-i18n="ide-cursor-link">Download epher-vscode.vsix</a>
+      </p>
+
+      <h2 data-i18n="ide-vscodium-title">VSCodium</h2>
+      <p data-i18n="ide-vscodium-p1">
+        VSCodium is VS Code without Microsoft's marketplace, and
+        install-from-VSIX works exactly the same: Extensions view,
+        ⋯ menu, Install from VSIX. Same server, same features, same
+        local-only behavior.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vscode.vsix" data-i18n="ide-vscodium-link">Download epher-vscode.vsix</a>
       </p>
 
       <h2 data-i18n="ide-jetbrains-title">JetBrains IDEs</h2>
-      <p data-i18n="ide-jetbrains-p1">
-        Download `epher-jetbrains.zip` from the releases page and
-        install it from disk: Settings, Plugins, the gear menu,
-        Install Plugin from Disk. Works in IntelliJ IDEA, PyCharm,
-        WebStorm, GoLand, and the rest of the family, 2024.2 or
-        newer. On first use it downloads the server for your
-        platform; after that, everything is local.
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-jetbrains.zip" data-i18n="ide-jetbrains-link">Download epher-jetbrains.zip</a>
       </p>
 
       <h2 data-i18n="ide-zed-title">Zed</h2>
       <p data-i18n="ide-zed-p1">
         Install it as a dev extension: in Zed, run the `zed: install
-        dev extension` command and pick the `clients/zed` folder of
-        the repository. Zed compiles the extension itself, which
-        needs Rust installed. For coloring, flip one setting:
+        dev extension` command and pick the unzipped `epher-zed`
+        folder. Zed compiles the extension itself, which needs Rust
+        installed. A tree-sitter grammar ships with it, so baseline
+        highlighting and outline work out of the box; for the
+        server's exact unit coloring, flip one setting:
         `languages.epher.semantic_tokens = full`.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-zed.zip" data-i18n="ide-zed-link">Download epher-zed.zip</a>
       </p>
 
       <h2 data-i18n="ide-nvim-vim-title">Neovim and Vim</h2>
       <p data-i18n="ide-nvim-vim-p1">
-        Ready-made config files live in the repository under
-        `clients/vim` and `clients/nvim`: filetype detection, syntax,
-        and the LSP wiring around the same release binary. Point your
+        Ready-made config files: filetype detection, syntax, and the
+        LSP wiring around the same release binary. Point your
         runtimepath at the folder and call `require("epher").setup()`
         on Neovim 0.11 or newer.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-nvim.zip" data-i18n="ide-nvim-link">Download epher-nvim.zip</a>
+        ·
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vim.zip" data-i18n="ide-vim-link">Download epher-vim.zip</a>
       </p>
 
       <h2 data-i18n="ide-sublime-title">Sublime Text</h2>
       <p data-i18n="ide-sublime-p1">
-        A package folder under `clients/sublime`: the shared grammar
-        in Sublime's own form, plus the client definition for the
-        popular LSP package.
+        A package folder: the shared grammar in Sublime's own form,
+        plus the client definition for the popular LSP package.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-sublime.zip" data-i18n="ide-sublime-link">Download epher-sublime.zip</a>
       </p>
 
       <h2 data-i18n="ide-vs-title">Visual Studio</h2>
       <p data-i18n="ide-vs-p1">
-        Planned last: Visual Studio speaks the same protocol through
-        its SDK, and the extension follows once the other editors
-        have proven the server.
+        Install it like any Visual Studio extension: double-click
+        the vsix, or Extensions, Manage Extensions, Install from
+        file. Works in Visual Studio 2022. On first use it downloads
+        the server for Windows; after that, everything is local.
+      </p>
+      <p>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-visualstudio.vsix" data-i18n="ide-vs-link">Download epher-visualstudio.vsix</a>
       </p>
 
       <p>

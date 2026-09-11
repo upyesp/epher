@@ -193,7 +193,10 @@ at the end of the chain.
   evaluation trace, and catalog descriptions)** → **0067 (stage five:
   the JetBrains plugin ships from disk, the Zed dev extension rides
   the server's semantic tokens, Neovim/Vim/Sublime stay configs, and
-  Visual Studio is named future work)**.
+  Visual Studio is named future work)** → **0068 (per-editor download
+  links on the page, Cursor and VSCodium as first-class sections, the
+  Visual Studio extension and the standalone tree-sitter grammar
+  ship, marketplaces parked until explicitly asked)**.
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.

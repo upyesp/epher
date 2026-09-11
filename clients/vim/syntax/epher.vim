@@ -39,7 +39,7 @@ syntax keyword epherKeyword and break const continue def do else end for if in n
 syntax match epherUnit "\v\d[ \t]+\zs[A-Za-z_]+(\i|\()@!"
 
 " Operators.
-syntax match epherOperator "\v\*\*|//|[+\-*/%^=!<>]"
+syntax match epherOperator "\v[+\-*/%^=!<>]"
 
 " Names and calls.
 syntax match epherName "\v<[A-Za-z_]\w*>"

@@ -1,0 +1,29 @@
+{
+  "grammars": [
+    {
+      "name": "epher",
+      "scope": "source.epher",
+      "path": ".",
+      "file-types": ["epher"],
+      "injection-regex": "^epher$"
+    }
+  ],
+  "metadata": {
+    "version": "0.5.40",
+    "license": "MIT",
+    "description": "epher grammar for tree-sitter: the calculator language's statements, expressions, units, and comments",
+    "authors": [
+      { "name": "upyesp" }
+    ],
+    "links": {
+      "repository": "https://github.com/upyesp/tree-sitter-epher"
+    }
+  },
+  "bindings": {
+    "c": false,
+    "node": false,
+    "rust": false,
+    "swift": false,
+    "python": false
+  }
+}
