@@ -1,0 +1,41 @@
+<idea-plugin>
+    <!-- epher for the JetBrains IDEs (ADR-0066, stage five): a thin
+         shell that pairs the shared TextMate grammar, the shared
+         snippets, and the platform's built-in LSP client with the
+         shared epher-lsp binary downloaded on first use. -->
+    <id>io.epher.jetbrains</id>
+    <name>epher</name>
+    <vendor url="https://epher.org">upyesp</vendor>
+
+    <description><![CDATA[
+    <p>The epher calculator language in your JetBrains IDE: syntax
+    highlighting with bracket matching, a diagnostic for every broken
+    statement, the answer rendered inline next to every statement that
+    produces one, hover with canonical signatures, completion for the
+    catalog and your own names, and the shared snippets.</p>
+    <p>The plugin is a thin shell (ADR-0066): all understanding lives in
+    the shared epher-lsp language server, which the plugin downloads on
+    first use and caches. Works in the commercial JetBrains IDEs
+    (IntelliJ IDEA Ultimate, PyCharm Professional, WebStorm, GoLand, and
+    the rest) from 2024.2 on; the platform's LSP client does not ship in
+    Community builds. Marketplace publication comes later: install this
+    build from disk.</p>
+    ]]></description>
+
+    <!-- modules.lang covers the live-templates extension point and
+         implies modules.platform; the TextMate plugin carries the
+         grammar machinery. There is no LSP module at 242: the LSP
+         extension point lives in the IDE product itself. -->
+    <depends>com.intellij.modules.lang</depends>
+    <depends>org.intellij.plugins.textmate</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- The platform's built-in LSP client (commercial IDEs only). -->
+        <platform.lsp.serverSupportProvider implementation="io.epher.jetbrains.EpherLspServerSupportProvider"/>
+        <!-- The shared grammar, packed as a TextMate bundle. -->
+        <textmate.bundleProvider implementation="io.epher.jetbrains.EpherTextMateBundleProvider"/>
+        <!-- The shared snippets, as native live templates (the TextMate
+             snippet path is internal at 242, so the bundle ships none). -->
+        <defaultLiveTemplates file="liveTemplates/epher.xml"/>
+    </extensions>
+</idea-plugin>

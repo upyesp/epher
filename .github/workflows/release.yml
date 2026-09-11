@@ -110,10 +110,14 @@ jobs:
               (`com.epher.Desktop`) and Snap (`epher`)
               carry the same app when the store packages are published.
 
-            - **Editors**: the language server binaries ride this
-              release too (`epher-lsp-<target>.gz`, Windows `.zip`),
-              the shared server the IDE extensions download on first
-              run (ADR-0066).
+            - **Editors**: the IDE extensions ride this release too:
+              `epher-vscode.vsix` for VS Code, `epher-jetbrains.zip`
+              for the JetBrains IDEs (2024.2+; IDEA Community is not
+              supported, the platform's LSP client ships only in the
+              commercial IDEs). Both are thin shells (ADR-0066) that
+              download the shared language server on first run: the
+              `epher-lsp-<target>.gz` binaries (Windows `.zip`)
+              attached to this release.
 
             - **Web app (PWA)**: https://epher.org/pwa/ — works
               fully offline.

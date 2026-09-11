@@ -28,6 +28,7 @@
 #   epher-lsp-macos-aarch64.gz      stripped, ad-hoc signed
 #   epher-lsp-windows-x86_64.zip    zip with the exe at the archive root
 #   epher-vscode.vsix               the VS Code extension (stable name)
+#   epher-jetbrains.zip             the JetBrains plugin (stable name)
 #
 # Callers (ADR-0062):
 #   - release.yml — a public vX.Y.Z tag push: builds the tag, then the
@@ -369,4 +370,90 @@ jobs:
         with:
           name: vscode-extension
           path: clients/vscode/epher-vscode.vsix
+          if-no-files-found: error
+
+  jetbrains:
+    # The JetBrains plugin (ADR-0066, stage five), packaged for the
+    # release and the staging draft alongside the VS Code pilot.
+    # Marketplace publication stays out of scope: the website page
+    # links the zip and the IDE installs it from disk. Like the vsix,
+    # the plugin resolves releases/download/v<its own version>/ for the
+    # server, so the packaged version must equal what the CLI reports.
+    #
+    # The build compiles against IntelliJ IDEA Ultimate 2024.2.4: the
+    # platform's LSP client (com.intellij.platform.lsp.api) ships only
+    # in the commercial IDEs, so the Community artifact cannot provide
+    # the LSP classes. The IDE download is ~1.3 GB, expected. No gradle
+    # wrapper is committed; the version is pinned here instead.
+    name: jetbrains plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.0.0"
+      - name: Resolve the release version
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -e
+          if [ "$VERSION" = "auto" ]; then
+            VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          fi
+          echo "VERSION=${VERSION#v}" >> "$GITHUB_ENV"
+      - name: Build and package
+        shell: bash
+        run: |
+          set -e
+          cd clients/jetbrains
+          gradle buildPlugin -PpluginVersion="$VERSION"
+      - name: Smoke-test the package
+        shell: bash
+        run: |
+          set -e
+          python3 - <<'PY'
+          import glob, io, os, zipfile
+          version = os.environ["VERSION"]
+          zips = glob.glob("clients/jetbrains/build/distributions/*.zip")
+          assert len(zips) == 1, zips
+          z = zipfile.ZipFile(zips[0])
+          names = z.namelist()
+          # The plugin descriptor rides inside the plugin jar; find it
+          # wherever the packaging laid it down.
+          plugin_xml = None
+          for jar_name in (n for n in names if n.endswith(".jar")):
+              jar = zipfile.ZipFile(io.BytesIO(z.read(jar_name)))
+              if "META-INF/plugin.xml" in jar.namelist():
+                  plugin_xml = jar.read("META-INF/plugin.xml").decode()
+                  break
+          assert plugin_xml, "no plugin.xml in any jar of " + zips[0]
+          assert "<id>io.epher.jetbrains</id>" in plugin_xml, plugin_xml
+          assert f"<version>{version}</version>" in plugin_xml, plugin_xml
+          assert "platform.lsp.serverSupportProvider" in plugin_xml, plugin_xml
+          assert "textmate.bundleProvider" in plugin_xml, plugin_xml
+          jar_names = jar.namelist()
+          for resource in ("epher-bundle/package.json",
+                           "epher-bundle/syntaxes/epher.tmLanguage",
+                           "epher-bundle/language-configuration.json",
+                           "liveTemplates/epher.xml"):
+              assert resource in jar_names, sorted(jar_names)
+          print("jetbrains zip ok:", zips[0], len(names), "files")
+          PY
+      - name: Copy to the shared artifacts directory
+        shell: bash
+        run: |
+          set -e
+          mkdir -p artifacts
+          cp clients/jetbrains/build/distributions/*.zip artifacts/epher-jetbrains.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jetbrains-plugin
+          path: artifacts
           if-no-files-found: error

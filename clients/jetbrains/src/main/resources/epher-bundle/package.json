@@ -1,0 +1,23 @@
+{
+    "name": "epher",
+    "displayName": "epher",
+    "description": "The epher calculator language",
+    "version": "0.5.40",
+    "publisher": "upyesp",
+    "contributes": {
+        "languages": [
+            {
+                "id": "epher",
+                "extensions": [".epher"],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "epher",
+                "scopeName": "source.epher",
+                "path": "./syntaxes/epher.tmLanguage"
+            }
+        ]
+    }
+}
