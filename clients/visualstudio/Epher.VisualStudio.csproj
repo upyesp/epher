@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>17.0</MinimumVisualStudioVersion>
+    <!-- Microsoft.VSSDK.BuildTools (below) sets VSToolsPath to its own
+         tools directory, so the build does not require the VS SDK to be
+         installed; this is only the fallback. -->
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectGuid>{6D3F5F1E-8B0C-4CDB-9B2E-A0E97C0A5C41}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Epher.VisualStudio</RootNamespace>
+    <AssemblyName>Epher.VisualStudio</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+    <DeployExtension>false</DeployExtension>
+    <!-- The extension's version and, with it, the release the first-use
+         download resolves (releases/download/v<version>/..., ADR-0066).
+         CI overrides it with /p:EpherVersion=...; the vsix manifest and
+         the assembly's file version are stamped from it at build time. -->
+    <EpherVersion Condition="'$(EpherVersion)' == ''">0.5.40</EpherVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="EpherContentType.cs" />
+    <Compile Include="EpherLanguageClient.cs" />
+    <Compile Include="ServerDownload.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The pkgdef and the language configuration ride the vsix as
+         content (the TextMate and Language Configuration recipes), and
+         the manifest declares the pkgdef as a VsPackage asset so the
+         installer merges its registry entries. -->
+    <Content Include="Epher.pkgdef">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="epher-language-configuration.json">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Grammars\epher.tmLanguage">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Reference assemblies for net472 where a targeting pack is not
+         installed (CI runners); harmless when they are. -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <!-- The VsSDK build tasks and targets (CreateVsixContainer and
+         friends); sets VSToolsPath itself, so no SDK install needed. -->
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2142" PrivateAssets="all" />
+    <!-- The LSP client surface (ILanguageClient, Connection,
+         CodeRemoteContentDefinition). Its dependencies supply the
+         editor content type attributes and AsyncEventHandler; the
+         assemblies themselves are not packed, VS provides them. -->
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.14.60" />
+  </ItemGroup>
+  <!-- The extension learns its own version at runtime from the
+       assembly's file version (the download resolves
+       releases/download/v<this version>/), so stamp it here. -->
+  <Target Name="StampEpherVersion" BeforeTargets="CoreCompile">
+    <WriteLinesToFile File="$(IntermediateOutputPath)EpherVersion.g.cs"
+                      Lines="[assembly: System.Reflection.AssemblyFileVersion(&quot;$(EpherVersion)&quot;)]"
+                      Overwrite="true" />
+    <ItemGroup>
+      <Compile Include="$(IntermediateOutputPath)EpherVersion.g.cs" />
+      <FileWrites Include="$(IntermediateOutputPath)EpherVersion.g.cs" />
+    </ItemGroup>
+  </Target>
+  <!-- Keep the manifest's version in step with $(EpherVersion): the
+       vsix version is the only version the user sees, and the download
+       URL is keyed to it. -->
+  <Target Name="PatchEpherVsixVersion"
+          BeforeTargets="DetokenizeVsixManifestFile"
+          Condition="'$(EpherVersion)' != '' and Exists('source.extension.vsixmanifest')">
+    <PropertyGroup>
+      <_VsixNamespaceDeclaration>&lt;Namespace Prefix="ns" Uri="http://schemas.microsoft.com/developer/vsx-schema/2011" /&gt;</_VsixNamespaceDeclaration>
+    </PropertyGroup>
+    <XmlPoke XmlInputPath="source.extension.vsixmanifest"
+             Namespaces="$(_VsixNamespaceDeclaration)"
+             Query="/ns:PackageManifest/ns:Metadata/ns:Identity/@Version"
+             Value="$(EpherVersion)" />
+  </Target>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
+</Project>

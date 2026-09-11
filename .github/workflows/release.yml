@@ -114,8 +114,12 @@ jobs:
               `epher-vscode.vsix` for VS Code, `epher-jetbrains.zip`
               for the JetBrains IDEs (2024.2+; IDEA Community is not
               supported, the platform's LSP client ships only in the
-              commercial IDEs). Both are thin shells (ADR-0066) that
-              download the shared language server on first run: the
+              commercial IDEs), `epher-visualstudio.vsix` for Visual
+              Studio 2022, and the ready-made editor configurations
+              `epher-zed.zip` (Zed), `epher-nvim.zip` (Neovim),
+              `epher-vim.zip` (Vim), and `epher-sublime.zip` (Sublime
+              Text). All are thin shells (ADR-0066) that download the
+              shared language server on first run: the
               `epher-lsp-<target>.gz` binaries (Windows `.zip`)
               attached to this release.
 
