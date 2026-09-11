@@ -12,6 +12,11 @@ members = [
     "crates/web",
     "crates/tauri-app/src-tauri",
 ]
+# `clients/` stands outside the workspace on purpose: its crates are
+# compiled by the editors themselves (the Zed extension by Zed's
+# extension host), so they must not inherit epher's profiles or
+# dependency pins.
+exclude = ["clients"]
 # `epher-web` targets `wasm32-unknown-unknown`; keep it out of default native builds.
 default-members = [
     "crates/core",

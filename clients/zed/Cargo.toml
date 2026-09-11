@@ -1,0 +1,16 @@
+[package]
+name = "epher-zed"
+version = "0.5.40"
+edition = "2021"
+license = "MIT"
+description = "The epher language extension for Zed: downloads the shared epher-lsp binary and starts it per the Zed extension API."
+
+# Version note: this version is the release the extension resolves
+# (tag v0.5.40), and it must stay in lockstep with extension.toml.
+# Both ride epher's 0.5.x train (ADR-0066).
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+zed_extension_api = "0.7.0"

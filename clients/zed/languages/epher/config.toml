@@ -1,0 +1,30 @@
+# The epher language for Zed. No tree-sitter grammar is shipped in v1:
+# the `grammar` field is omitted, so tree-sitter-driven features
+# (baseline highlighting, outline, bracket matching over the syntax
+# tree) are absent. Highlighting instead rides the language server's
+# semantic tokens; users enable it once in their settings:
+#
+#   "languages": { "epher": { "semantic_tokens": "full" } }
+#
+# The server's token legend covers numbers, variables, functions,
+# keywords, operators, strings, and unit suffixes, so the coloring is
+# the same as the other editors (ADR-0066). semantic_token_rules.json
+# next to this file styles the custom `unit` token type.
+name = "epher"
+path_suffixes = ["epher"]
+line_comments = ["# ", "// "]
+block_comment = [
+  { start = "/*", prefix = "", end = "*/", tab_size = 0 },
+]
+autoclose_before = "}])\"'"
+word_characters = ["_"]
+
+brackets = [
+  { start = "{", end = "}", close = true, newline = true },
+  { start = "[", end = "]", close = true, newline = true },
+  { start = "(", end = ")", close = true, newline = false },
+  { start = "\"", end = "\"", close = true, newline = false },
+]
+
+increase_indent_pattern = "\\b(then|else|do)$"
+decrease_indent_pattern = "^(end|else)\\b"

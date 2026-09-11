@@ -158,11 +158,50 @@
         appear.
       </p>
 
-      <h2 data-i18n="ide-editors-title">Other editors</h2>
-      <p data-i18n="ide-editors-p">
-        More extensions are planned in this order: JetBrains, Zed,
-        then Neovim, Vim, and Sublime as ready-made configs, and
-        Visual Studio last.
+      <h2 data-i18n="ide-jetbrains-title">JetBrains IDEs</h2>
+      <p data-i18n="ide-jetbrains-p1">
+        Download `epher-jetbrains.zip` from the releases page and
+        install it from disk: Settings, Plugins, the gear menu,
+        Install Plugin from Disk. Works in IntelliJ IDEA, PyCharm,
+        WebStorm, GoLand, and the rest of the family, 2024.2 or
+        newer. On first use it downloads the server for your
+        platform; after that, everything is local.
+      </p>
+
+      <h2 data-i18n="ide-zed-title">Zed</h2>
+      <p data-i18n="ide-zed-p1">
+        Install it as a dev extension: in Zed, run the `zed: install
+        dev extension` command and pick the `clients/zed` folder of
+        the repository. Zed compiles the extension itself, which
+        needs Rust installed. For coloring, flip one setting:
+        `languages.epher.semantic_tokens = full`.
+      </p>
+
+      <h2 data-i18n="ide-nvim-vim-title">Neovim and Vim</h2>
+      <p data-i18n="ide-nvim-vim-p1">
+        Ready-made config files live in the repository under
+        `clients/vim` and `clients/nvim`: filetype detection, syntax,
+        and the LSP wiring around the same release binary. Point your
+        runtimepath at the folder and call `require("epher").setup()`
+        on Neovim 0.11 or newer.
+      </p>
+
+      <h2 data-i18n="ide-sublime-title">Sublime Text</h2>
+      <p data-i18n="ide-sublime-p1">
+        A package folder under `clients/sublime`: the shared grammar
+        in Sublime's own form, plus the client definition for the
+        popular LSP package.
+      </p>
+
+      <h2 data-i18n="ide-vs-title">Visual Studio</h2>
+      <p data-i18n="ide-vs-p1">
+        Planned last: Visual Studio speaks the same protocol through
+        its SDK, and the extension follows once the other editors
+        have proven the server.
+      </p>
+
+      <p>
+        <a href="https://github.com/upyesp/epher/tree/main/clients" data-i18n="ide-clients-link">All of this lives in the repository under clients/.</a>
       </p>
 
       <h2 data-i18n="ide-manual-title">Any LSP client</h2>
