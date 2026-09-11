@@ -160,3 +160,63 @@ dozen guesses. The verified facts, for whoever touches this next:
   a prepareTextmateJar task picks plugins/textmate/lib/textmate.jar out
   of the resolved IDE artifact as a compileOnly file, and the declared
   plugin dependency in plugin.xml provides the classes at runtime.
+
+## Stage six implementation notes
+
+The Visual Studio extension exists now (clients/visualstudio, C#
+net472, packaged by a visualstudio job in build-installers.yml as
+epher-visualstudio.vsix), plus an editor-configs job that zips the
+four configuration clients (epher-zed.zip, epher-nvim.zip,
+epher-vim.zip, epher-sublime.zip). Every API fact was verified against
+learn.microsoft.com before writing the code, and the C# was compiled
+against the real Microsoft.VisualStudio.LanguageServer.Client 17.14.60
+assemblies before the first CI run. What the docs settled:
+
+- There is no ILanguageClientProvider. The documented surface (adding
+  an LSP extension) exports ILanguageClient itself:
+  `[Export(typeof(ILanguageClient))]` plus `[ContentType("epher")]` on
+  the client class, with the content type defined as static MEF
+  fields (`Name("epher")` over `CodeRemoteContentDefinition
+  .CodeRemoteContentTypeName`, plus a `.epher`
+  FileExtensionToContentTypeDefinition). No package class, no AsyncPackage, no VSCT: a pure
+  MEF VSIX (MefComponent asset) plus a pkgdef asset. OnLoadedAsync
+  invokes StartAsync; ActivateAsync downloads the server and returns
+  `new Connection(stdout, stdin)` of the Process. Exceptions from
+  ActivateAsync surface in an InfoBar, so the download failure path is
+  the platform's own. One signature the docs underplay: the newer
+  `OnServerInitializeFailedAsync(ILanguageClientInitializationInfo)`
+  returns `Task<InitializationFailureContext>`, not `Task` (caught by
+  compiling against the real dll).
+- A VSIX can contribute a TextMate grammar, two documented mechanisms
+  deep: the grammar goes in a Grammars folder as Content with
+  IncludeInVSIX, and a pkgdef registers the folder under
+  `[$RootKey$\TextMate\Repositories]`. The same pkgdef maps the
+  grammar's scopeName and the content type to a
+  `epher-language-configuration.json` (the Language Configuration
+  recipe: comments, brackets, autoclosing, surrounding, word pattern),
+  which is where bracket matching comes from. The generated plist
+  copy carries `fileTypes: ["epher"]` because the TextMate repository
+  matches files by the grammar's declared extensions (the shared JSON
+  has none; VS Code takes that mapping from its manifest instead).
+- Semantic tokens: the in-box LSP client does not support them. The
+  feature table in the LSP docs lists the supported messages and
+  textDocument/semanticTokens is not a row; no docs page exists for
+  adding semantic tokens to an ILanguageClient (only the out-of-proc
+  VisualStudio.Extensibility model and VS's own servers touch the
+  protocol types). So Visual Studio gets the TextMate baseline only,
+  and the README says so.
+- The build is a classic VSIX csproj importing Microsoft.VsSDK.targets
+  from the pinned Microsoft.VSSDK.BuildTools package (its props set
+  VSToolsPath, so no SDK install is needed; the runner images carry
+  the VisualStudioExtension workload anyway). Version 0.5.40 lives in
+  an EpherVersion msbuild property: an XmlPoke target stamps it into
+  source.extension.vsixmanifest, a generated .cs stamps it into the
+  assembly's file version (the code reads FileVersionInfo to key the
+  download URL), and CI overrides it with /p:EpherVersion=... from the
+  same VERSION the other jobs resolve.
+- The first-use download is the vscode download.ts ported: HttpClient
+  (AllowAutoRedirect defaults to true, so GitHub's 302s just work)
+  fetching epher-lsp-windows-x86_64.zip, ZipArchive extracting the
+  root-level epher-lsp.exe into %LocalAppData%\epher\bin behind a
+  server-version marker. Only the Windows asset exists to this client;
+  the other platforms' builds stay irrelevant, by design.

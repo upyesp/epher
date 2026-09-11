@@ -29,6 +29,11 @@
 #   epher-lsp-windows-x86_64.zip    zip with the exe at the archive root
 #   epher-vscode.vsix               the VS Code extension (stable name)
 #   epher-jetbrains.zip             the JetBrains plugin (stable name)
+#   epher-visualstudio.vsix         the Visual Studio 2022 extension (stable name)
+#   epher-zed.zip                   the Zed dev extension (source; Zed compiles it)
+#   epher-nvim.zip                  the Neovim configuration
+#   epher-vim.zip                   the Vim configuration
+#   epher-sublime.zip               the Sublime Text configuration
 #
 # Callers (ADR-0062):
 #   - release.yml — a public vX.Y.Z tag push: builds the tag, then the
@@ -455,5 +460,119 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: jetbrains-plugin
+          path: artifacts
+          if-no-files-found: error
+
+  visualstudio:
+    # The Visual Studio 2022 extension (ADR-0066, stage six), packaged
+    # for the release and the staging draft. Like the vsix and the
+    # plugin above, it resolves releases/download/v<its own version>/
+    # for the server, so the packaged version must equal what the CLI
+    # reports; EpherVersion stamps both the manifest and the assembly.
+    # Marketplace publication stays out of scope: the website page
+    # links the vsix and the IDE installs it from disk.
+    #
+    # No local build exists for this one (the extension needs Windows
+    # and msbuild), so CI is the only verifier; the VsSDK tooling comes
+    # from the Microsoft.VSSDK.BuildTools package the project pins, and
+    # the runner's VS carries the extension-development workload.
+    name: visualstudio extension
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: microsoft/setup-msbuild@v2
+      - name: Resolve the release version
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -e
+          if [ "$VERSION" = "auto" ]; then
+            VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          fi
+          echo "VERSION=${VERSION#v}" >> "$GITHUB_ENV"
+      - name: Build the vsix
+        shell: bash
+        run: |
+          set -e
+          msbuild -restore -nologo \
+            -p:Configuration=Release \
+            -p:EpherVersion="$VERSION" \
+            clients/visualstudio/Epher.VisualStudio.csproj
+      - name: Smoke-test the vsix and copy to the shared artifacts directory
+        # The vsix is a zip: verify the manifest, the compiled assembly,
+        # and the editor assets it must carry, then give it the stable
+        # asset name both callers attach.
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $vsix = "clients/visualstudio/bin/Release/Epher.VisualStudio.vsix"
+          if (-not (Test-Path $vsix)) { throw "vsix not found at $vsix" }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [System.IO.Compression.ZipFile]::OpenRead($vsix)
+          $names = $zip.Entries | ForEach-Object { $_.FullName -replace '\\', '/' }
+          $zip.Dispose()
+          if ($names -notcontains "extension.vsixmanifest") { throw "no extension.vsixmanifest in the vsix" }
+          if ($names -notcontains "Epher.VisualStudio.dll") { throw "no compiled Epher.VisualStudio.dll in the vsix" }
+          if ($names -notcontains "Epher.pkgdef") { throw "no Epher.pkgdef in the vsix" }
+          if (-not ($names | Where-Object { $_ -eq "Grammars/epher.tmLanguage" })) { throw "no TextMate grammar in the vsix" }
+          if ($names -notcontains "epher-language-configuration.json") { throw "no language configuration in the vsix" }
+          # The docs' contract: VS provides the LSP client assemblies
+          # from its install directory, the vsix must not carry them.
+          if ($names | Where-Object { $_ -eq "Microsoft.VisualStudio.LanguageServer.Client.dll" }) { throw "the vsix packed the LSP client assembly; VS provides it" }
+          Write-Host "vsix ok:" $names.Count "files"
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item $vsix artifacts/epher-visualstudio.vsix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: visualstudio-extension
+          path: artifacts
+          if-no-files-found: error
+
+  editor-configs:
+    # The editor configurations (ADR-0067: Neovim, Vim, and Sublime as
+    # configuration, and Zed as a dev extension that ships as source),
+    # packaged as stable-named source zips. Nothing here is compiled:
+    # Zed compiles its dev extension itself, and the other editors read
+    # the files in place. The zed target/ directory (a local build
+    # output) and any build output never ride along.
+    name: editor configs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Package the editor configs
+        shell: bash
+        run: |
+          set -e
+          mkdir -p artifacts
+          for client in zed nvim vim sublime; do
+            stage="epher-$client"
+            rm -rf "$stage"
+            mkdir -p "$stage"
+            # Each zip carries the client's files under a top folder
+            # named after the client.
+            (cd "clients/$client" && tar --exclude=./target --exclude=./*.wasm -cf - .) | tar -xf - -C "$stage"
+            rm -f "artifacts/$stage.zip"
+            zip -qr "artifacts/$stage.zip" "$stage"
+          done
+      - name: Smoke-test the packages
+        shell: bash
+        run: |
+          set -e
+          unzip -l artifacts/epher-zed.zip | grep -q "epher-zed/extension.toml"
+          unzip -l artifacts/epher-nvim.zip | grep -q "epher-nvim/lua/epher.lua"
+          unzip -l artifacts/epher-vim.zip | grep -q "epher-vim/syntax/epher.vim"
+          unzip -l artifacts/epher-sublime.zip | grep -q "epher-sublime/epher.tmLanguage"
+          for z in artifacts/epher-zed.zip artifacts/epher-nvim.zip artifacts/epher-vim.zip artifacts/epher-sublime.zip; do
+            unzip -l "$z" | grep -q "README.md"
+            echo "$z: $(unzip -l "$z" | tail -1)"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: editor-configs
           path: artifacts
           if-no-files-found: error

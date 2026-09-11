@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <!-- The version is stamped from the EpherVersion msbuild property
+         at build time; both move together with the release train. -->
+    <Identity Language="en-US" Id="Epher.VisualStudio" Version="0.5.40" Publisher="upyesp" />
+    <DisplayName>Epher</DisplayName>
+    <Description xml:space="preserve">The epher calculator language in Visual Studio: syntax highlighting, a diagnostic for every broken statement, the answer rendered inline next to every statement that produces one, hover with canonical signatures, and completion for the catalog, your own names, and the shared snippets, via the shared epher-lsp server.</Description>
+    <Tags>epher, calculator, units, language</Tags>
+    <Categories>Programming Languages</Categories>
+  </Metadata>
+  <Installation>
+    <!-- VS 2022 only (17.x); the 64-bit IDE. -->
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+  </Installation>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
+  <Assets>
+    <!-- The MEF parts: the content type wiring and the language client. -->
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+    <!-- The registry entries the grammar and language configuration
+         need (Epher.pkgdef, merged at install time). -->
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="File" Path="Epher.pkgdef" />
+  </Assets>
+</PackageManifest>
