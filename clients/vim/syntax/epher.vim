@@ -31,11 +31,12 @@ syntax match epherNumber "\v<\d+(\.\d+)?([eE][-+]?\d+)?i>"
 " Keywords (crates/core KEYWORDS, verbatim).
 syntax keyword epherKeyword and break const continue def do else end for if in not or return solve step then to while xor
 
-" Units: an identifier immediately after a number, separated by a
-" space, never a call (no `(` follows), and never containing digits
-" (the parser rejects `2 m3`). Conservative on purpose; the language
+" Units: an identifier immediately after a number (the whitespace
+" run between them is what the parser's adjacency rule allows),
+" never a call (no `(` follows), and never containing digits (the
+" parser rejects `2 m3`). Conservative on purpose; the language
 " server's semantic tokens are the exact rule.
-syntax match epherUnit "\v(\d[ \t])@<=[A-Za-z_]+(\i|\()@!"
+syntax match epherUnit "\v\d[ \t]+\zs[A-Za-z_]+(\i|\()@!"
 
 " Operators.
 syntax match epherOperator "\v\*\*|//|[+\-*/%^=!<>]"
