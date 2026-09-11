@@ -177,7 +177,7 @@ window.EPHER_I18N["de"] = {
 
   "nav-ide": "IDE-Erweiterungen",
   "ide-title": "IDE-Erweiterungen",
-  "ide-lede": "Schreiben Sie epher in Ihrem Editor: Ein Sprachserver prüft jede Anweisung beim Tippen, zeigt jede Antwort neben ihrer Zeile und vervollständigt Namen aus dem Katalog.",
+  "ide-lede": "Sie können eine IDE zum Schreiben von epher-Skripten verwenden. Laden Sie die offizielle epher-Erweiterung für Ihren bevorzugten Editor herunter und installieren Sie sie.",
   "ide-how-title": "Ein Sprachserver, von jeder IDE genutzt",
   "ide-how-p": "Alle Erweiterungen teilen sich ein Programm, epher-lsp: einen kleinen Sprachserver (LSP) mit der kompletten epher-Engine darin. Die Erweiterung ist eine dünne Hülle: Beim ersten Einsatz lädt sie den Server für Ihre Plattform von der Releases-Seite und speichert ihn zwischen. Alles läuft auf Ihrem Rechner; nichts wird irgendwohin gesendet.",
   "ide-features-title": "Was der Editor bekommt",

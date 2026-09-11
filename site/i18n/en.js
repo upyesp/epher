@@ -177,7 +177,7 @@ window.EPHER_I18N["en"] = {
 
   "nav-ide": "IDE Extensions",
   "ide-title": "IDE Extensions",
-  "ide-lede": "Write epher in your editor: a language server checks every statement as you type, shows each answer next to its line, and completes names from the catalog.",
+  "ide-lede": "You can use an IDE to write epher scripts. Download and install the official epher extension for your preferred editor.",
   "ide-how-title": "One language server, used by every IDE",
   "ide-how-p": "Every extension shares one program, epher-lsp: a small language server (LSP) with the whole epher engine compiled in. The extension is a thin shell: on first use it downloads the server for your platform from the releases page and caches it. Everything runs on your machine; nothing is sent anywhere.",
   "ide-features-title": "What the editor gets",
