@@ -1,8 +1,12 @@
 src/**
 scripts/**
 tsconfig.json
-node_modules/.bin/**
-node_modules/typescript/**
-node_modules/@types/**
+tsconfig.web.json
+# Nothing ships from node_modules: the desktop entry bundles
+# vscode-languageclient, the web entry bundles the client plus the
+# wasm-wasi facades (see the bundle script). vsce packages with
+# --no-dependencies, so the loose modules are never even scanned.
+node_modules/**
 out/**/*.map
+dist/**/*.map
 **/.gitignore

@@ -206,6 +206,7 @@ window.EPHER_I18N["de"] = {
   "ide-vs-title": "Visual Studio",
   "ide-clients-link": "Das alles liegt im Repository unter clients/.",
   "ide-vscode-p1": "Installieren Sie es aus dem VSIX: Extensions-Ansicht, das Menü ⋯, Install from VSIX. Beim ersten Einsatz lädt die Erweiterung den Server für Ihre Plattform (Windows x86_64, Linux x86_64 und ARM64 oder macOS Apple silicon) und braucht einmal das Netz; danach ist alles lokal. Öffnen Sie eine `.epher`-Datei, und die Antworten erscheinen.",
+  "ide-vscode-p2": "Sie läuft auch im Browser: Derselbe VSIX funktioniert in VS Code for the Web (vscode.dev) und in github.dev — drücken Sie `.`, um sie von einem beliebigen GitHub-Repository oder Pull Request aus zu öffnen und zu installieren. Dort reist der Server im Erweiterungspaket mit und läuft als WebAssembly im Browser-Tab: nichts herunterzuladen, kein Netzkontakt beim ersten Einsatz, dieselben Inline-Antworten, Hover-Informationen und Vervollständigungen. Erfordert VS Code 1.88 oder neuer.",
   "ide-vscode-link": "epher-vscode.vsix herunterladen",
   "ide-cursor-title": "Cursor",
   "ide-cursor-p1": "Cursor ist ein VS-Code-Fork: dasselbe VSIX wird auf dieselbe Weise installiert, über das ⋯-Menü der Extensions-Ansicht, Install from VSIX. Der Server-Download beim ersten Einsatz und alle Funktionen verhalten sich identisch.",

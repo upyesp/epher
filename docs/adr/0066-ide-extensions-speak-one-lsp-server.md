@@ -91,3 +91,53 @@ LSP over stdio; thin universal extensions deliver it.
   extension 0.5.x speaks epher 0.5.x.
 - Build order: core prerequisites, then the server, then the VS Code
   pilot, then the website page, then the remaining IDE families.
+
+## Amendment (2026-09-12): the vsix runs the server in the browser too
+
+vscode.dev and github.dev (the editor behind the `.` key on GitHub)
+run extensions in a browser web worker: no Node, no child processes,
+no executables. ADR-0066's download-and-spawn delivery is
+categorically desktop-only there — a `main`-only extension is not
+even offered for install in the web. The requirements research
+(`docs/research/vscode-web-extension-requirements.md`) established the
+path; this amendment adopts it.
+
+**The vsix carries both entry points.** Desktop keeps `main` and its
+download-and-spawn behavior unchanged; a new `browser` entry serves
+the web extension host. vsce tags the package `__web_extension` from
+the manifest, so the Marketplace offers it in vscode.dev and
+github.dev automatically.
+
+**Web delivery: the server rides inside the extension.** `epher-lsp`
+gains a `wasm32-wasip1-threads` build (it compiles unchanged — the
+crate is stdio-plus-computation, and wasi-threads covers its debounce
+thread), built by CI from the same commit as the extension and shipped
+in the vsix. The web entry runs it through Microsoft's
+`ms-vscode.wasm-wasi-core` extension (declared in
+`extensionDependencies`; published on both the Marketplace and
+Open VSX) and bridges the WASI pipes to LSP transports with
+`@vscode/wasm-wasi-lsp`. No download, no first-use network step, and
+no version skew — the failure mode the desktop downloader's version
+marker exists for cannot happen. If the server fails to start anyway,
+web editing degrades to the TextMate baseline, the same contract as a
+desktop download failure.
+
+**Costs accepted:**
+
+- The engines floor rises to `^1.88.0` — `wasm-wasi-core`'s own floor.
+  Desktop and fork users below 1.88 stop receiving updates; the line
+  is old enough that the exposure is small.
+- The vsix grows by the wasm module (~2.1 MB, well under half that
+  compressed) in exchange for dropping the runtime download on web.
+- Both entries ship bundled (esbuild, single file each; the web worker
+  allows no module loading), and vsce packages with
+  `--no-dependencies`. `@vscode/wasm-wasi-lsp` pins an exact
+  vscode-languageclient prerelease as its peer while using only stable
+  APIs; the extension rides stable and carries a `.npmrc`
+  (`legacy-peer-deps`) so the intentionally unsatisfied peer never
+  blocks an install.
+- The debounce's `thread::spawn` + `sleep` runs under wasi-threads,
+  which Microsoft's own testbeds demonstrate; cross-origin isolation
+  on the live web hosts was observed but a hands-on vscode.dev/
+github.dev check is still the honest gate before calling the web
+  path proven.

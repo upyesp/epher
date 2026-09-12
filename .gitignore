@@ -19,6 +19,8 @@ site/guide/*/index.html
 node_modules/
 # VS Code pilot build output
 clients/vscode/out/
+clients/vscode/dist/
+clients/vscode/server/
 *.vsix
 
 # NSIS harness output (compile check)

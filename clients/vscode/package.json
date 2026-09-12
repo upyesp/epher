@@ -10,7 +10,7 @@
     "url": "https://github.com/upyesp/epher"
   },
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.88.0"
   },
   "categories": [
     "Programming Languages"
@@ -25,6 +25,10 @@
     "onLanguage:epher"
   ],
   "main": "./out/extension.js",
+  "browser": "./dist/browser.js",
+  "extensionDependencies": [
+    "ms-vscode.wasm-wasi-core"
+  ],
   "contributes": {
     "languages": [
       {
@@ -55,15 +59,19 @@
   },
   "scripts": {
     "sync-assets": "node scripts/sync-assets.mjs",
-    "compile": "npm run sync-assets && tsc -p .",
+    "compile": "npm run sync-assets && tsc -p . && tsc -p tsconfig.web.json && npm run bundle",
+    "bundle": "esbuild src/extension.ts --bundle --outfile=out/extension.js --format=cjs --platform=node --external:vscode --sourcemap && esbuild src/browser.ts --bundle --outfile=dist/browser.js --format=cjs --platform=browser --external:vscode --sourcemap",
     "watch": "tsc -p . --watch"
   },
   "dependencies": {
-    "vscode-languageclient": "^9.0.1"
+    "@vscode/wasm-wasi": "^1.0.1",
+    "@vscode/wasm-wasi-lsp": "0.1.0-pre.9",
+    "vscode-languageclient": "^10.1.1"
   },
   "devDependencies": {
     "@types/node": "^18.19.0",
-    "@types/vscode": "^1.85.0",
+    "@types/vscode": "^1.88.0",
+    "esbuild": "^0.25.0",
     "typescript": "^5.4.0"
   }
 }
