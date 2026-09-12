@@ -206,6 +206,7 @@ window.EPHER_I18N["pt"] = {
   "ide-vs-title": "Visual Studio",
   "ide-clients-link": "Tudo isto vive no repositório, sob clients/.",
   "ide-vscode-p1": "Instale-o a partir do vsix: vista de extensões, menu ⋯, Instalar do VSIX. Na primeira utilização a extensão descarrega o servidor para a sua plataforma (Windows x86_64, Linux x86_64 e ARM64, ou macOS Apple silicon) e precisa da rede uma vez; depois disso tudo é local. Abra um ficheiro `.epher` e as respostas aparecem.",
+  "ide-vscode-p2": "Ele também funciona no navegador: o mesmo vsix funciona no VS Code for the Web (vscode.dev) e no github.dev — pressione `.` em qualquer repositório ou pull request do GitHub para abrir e instalar. Lá o servidor viaja dentro da extensão e roda como WebAssembly na aba do navegador: nada para baixar, sem conexão no primeiro uso, as mesmas respostas em linha, hover e conclusão. Requer VS Code 1.88 ou mais recente.",
   "ide-vscode-link": "Descarregar epher-vscode.vsix",
   "ide-cursor-title": "Cursor",
   "ide-cursor-p1": "O Cursor é um derivado do VS Code: o mesmo vsix instala-se da mesma forma, pelo menu ⋯ da vista de extensões, Instalar do VSIX. A descarga do servidor na primeira utilização e todas as funções comportam-se igual.",

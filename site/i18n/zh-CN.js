@@ -206,6 +206,7 @@ window.EPHER_I18N["zh-CN"] = {
   "ide-vs-title": "Visual Studio",
   "ide-clients-link": "这一切都在仓库的 clients/ 目录下。",
   "ide-vscode-p1": "从 VSIX 安装：在“扩展”视图中通过“⋯”菜单选择“从 VSIX 安装”。首次使用时，扩展会为您的平台下载服务器（Windows x86_64、Linux x86_64 与 ARM64、macOS Apple silicon），这一次需要联网；之后一切都在本地完成。打开 `.epher` 文件，答案就会出现。",
+  "ide-vscode-p2": "它也能在浏览器中运行：同一个 vsix 适用于 VS Code for the Web（vscode.dev）和 github.dev——在任何 GitHub 仓库或拉取请求页面按 `.` 键即可打开并安装。在浏览器中，服务器随扩展一起提供，并以 WebAssembly 的形式在浏览器标签页中运行：无需下载，没有首次联网步骤，内联答案、悬停提示和补全一应俱全。需要 VS Code 1.88 或更高版本。",
   "ide-vscode-link": "下载 epher-vscode.vsix",
   "ide-cursor-title": "Cursor",
   "ide-cursor-p1": "Cursor 是 VS Code 的分支：同一个 vsix 以同样的方式安装，即在“扩展”视图的“⋯”菜单中选择“从 VSIX 安装”。首次使用的服务器下载和所有功能的行为完全一致。",

@@ -1,15 +1,15 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "node16",
+    "moduleResolution": "node16",
     "target": "ES2022",
     "lib": ["ES2022"],
-    "outDir": "out",
-    "rootDir": "src",
     "strict": true,
     "noUnusedLocals": true,
     "esModuleInterop": true,
-    "sourceMap": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmit": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/browser.ts"]
 }

@@ -327,15 +327,21 @@ jobs:
     # and the staging draft. Marketplace publication is deliberately
     # out of scope until the extensions are proven: the releases page
     # is the distribution, and the website page links this asset. The
-    # version rides the release train: the extension resolves
+    # version rides the release train: the desktop entry resolves
     # releases/download/v<its own version>/ for the server, so the
-    # packaged version must equal what the CLI reports.
+    # packaged version must equal what the CLI reports. The web entry
+    # (ADR-0066 amendment) needs no download: it runs the same server
+    # compiled to wasm32-wasip1-threads, built here from the same
+    # commit and shipped inside the vsix.
     name: vscode extension
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip1-threads
       - name: Resolve the release version
         shell: bash
         env:
@@ -346,6 +352,14 @@ jobs:
             VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
           fi
           echo "VERSION=${VERSION#v}" >> "$GITHUB_ENV"
+      - name: Build the wasm server
+        shell: bash
+        run: |
+          set -e
+          cargo build -p epher-lsp --target wasm32-wasip1-threads --release
+          mkdir -p clients/vscode/server
+          cp target/wasm32-wasip1-threads/release/epher-lsp.wasm \
+            clients/vscode/server/epher-lsp.wasm
       - name: Build and package
         shell: bash
         run: |
@@ -356,7 +370,13 @@ jobs:
           # previous release number, where the bump is a no-op
           npm version --no-git-tag-version --allow-same-version "$VERSION"
           npm run compile
+          # --no-dependencies: both entries are bundled and node_modules
+          # ships nothing, so npm's dependency scan is skipped. It would
+          # otherwise fail on the wasm-wasi-lsp peer pin (a prerelease
+          # vscode-languageclient version we intentionally don't ride;
+          # see .npmrc).
           npx --yes @vscode/vsce@3.9.2 package --allow-missing-repository \
+            --no-dependencies \
             --out epher-vscode.vsix
       - name: Smoke-test the package
         shell: bash
@@ -367,9 +387,14 @@ jobs:
           z = zipfile.ZipFile("clients/vscode/epher-vscode.vsix")
           names = z.namelist()
           assert "extension/out/extension.js" in names, sorted(names)[:20]
-          assert any("vscode-languageclient" in n for n in names), \
-            "the client library did not ship"
-          print("vsix ok:", len(names), "files")
+          assert "extension/dist/browser.js" in names, sorted(names)[:20]
+          assert "extension/server/epher-lsp.wasm" in names, sorted(names)[:20]
+          # The web entry loads the server by this path; if the name
+          # drifts the failure mode is a silent baseline-only web.
+          assert b"epher-lsp.wasm" in z.read("extension/dist/browser.js")
+          wasm = z.read("extension/server/epher-lsp.wasm")
+          assert wasm[:4] == b"\x00asm", "the shipped wasm is not a module"
+          print("vsix ok:", len(names), "files, wasm", len(wasm), "bytes")
           PY
       - uses: actions/upload-artifact@v4
         with:
