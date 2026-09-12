@@ -706,21 +706,19 @@
       flex: none;
       padding-top: 0.25rem;
     }
-    /* The grab bar (ADR-0060): a 24px strip (WCAG 2.5.8 target floor)
-       with a centered pill as the visible handle. A real button: mouse,
-       touch, and pen drag it, and Enter/Space toggle for the keyboard
-       (aria-expanded tracks the docked state). touch-action: none hands
-       the whole gesture to us — a finger on the bar drags the drawer,
-       it never scrolls the pane or swipes the pane deck. */
+    /* The grab bar (ADR-0060, amended drag-only): a 24px strip (WCAG
+       2.5.8 target floor) with a centered pill as the visible handle.
+       Mouse, touch, and pen drag it; there is no click path, so it is
+       a plain div — nothing to focus, nothing to activate.
+       touch-action: none hands the whole gesture to us — a finger on
+       the bar drags the drawer, it never scrolls the pane or swipes
+       the pane deck. */
     .keypad-grab {
       display: flex;
       align-items: center;
       justify-content: center;
       width: 100%;
       min-height: 24px;
-      padding: 0;
-      border: 0;
-      background: none;
       cursor: grab;
       touch-action: none;
       user-select: none;
@@ -737,8 +735,7 @@
       background: var(--muted);
       transition: background 0.15s;
     }
-    .keypad-grab:hover .keypad-grab-pill,
-    .keypad-grab:focus-visible .keypad-grab-pill {
+    .keypad-grab:hover .keypad-grab-pill {
       background: var(--accent);
     }
     /* The clip (ADR-0060): during a drag its height is set inline in px

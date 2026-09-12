@@ -258,8 +258,6 @@ key-hint-u-jy = Jansky 后缀：3 Jy
 ## 提示机制（ADR-0039）：网格上方的提示栏、为每个按键加说明的
 ## 开关，以及终端界面的按键帮助。
 keypad-hints = 按键提示
-keypad-grab-hide = 隐藏键盘
-keypad-grab-show = 显示键盘
 keypad-hint-idle = 将指针悬停或聚焦在按键上，查看它的作用。
 menu-key-help = 按键帮助
 tui-key-help-hint = 方向键滚动 · q 或 Esc 关闭

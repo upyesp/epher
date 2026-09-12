@@ -260,8 +260,6 @@ key-hint-u-jy = Jansky comme suffixe : 3 Jy
 ## Les mécanismes d'aide (ADR-0039) : la barre au-dessus de la grille,
 ## l'interrupteur qui légende chaque touche et l'aide des touches du TUI.
 keypad-hints = Aide des touches
-keypad-grab-hide = Masquer le clavier
-keypad-grab-show = Afficher le clavier
 keypad-hint-idle = Survolez ou focalisez une touche pour voir ce qu'elle fait.
 menu-key-help = Aide des touches
 tui-key-help-hint = Flèches font défiler · q ou Esc ferme
