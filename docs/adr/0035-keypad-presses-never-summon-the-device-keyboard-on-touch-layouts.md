@@ -363,3 +363,24 @@ and the graph-controls review left one contract half-kept:
   pin it (the same take-the-layout-as-an-argument shape as
   `answer_fits_at`). Each layout clamps the remembered per-kind width
   into its own range on restore and on a layout flip.
+
+## Amendment (2026-09-12): the mobile tuning strip wraps zoom under width, vertical under horizontal
+
+The 3D and solar tuning strip carries four controls: line thickness,
+horizontal rotation, vertical rotation, and zoom, in one flex-wrap row
+(ADR-0041). On a phone the row wraps into two rows of two, and the DOM
+order decided the pairing: thickness, horizontal, vertical, zoom
+wrapped as thickness/horizontal over vertical/zoom - zoom landed under
+the horizontal rotation and vertical rotation under the width slider,
+pairing controls that have nothing to do with each other.
+
+On mobile (the same 880px gate this ADR uses throughout) the strip's
+DOM order becomes **thickness, horizontal, zoom, vertical**, so the
+wrap reads as two deliberate rows: zoom under the width slider, and
+vertical rotation under the horizontal rotation - each row now pairs
+the controls a user adjusts together (the plot's look, then its
+orientation). The sliders themselves, their handlers, resets, and
+icons are untouched; only the order changes.
+
+Desktop keeps the one-row h, v, z order byte-identical - with all four
+controls visible at once the pairing question does not arise.

@@ -1254,7 +1254,9 @@
     /* The tuning strip (ADR-0041): every graph's adjustment sliders -
        line thickness, the rotation speeds, zoom - in one compact row
        above the plot, each named by an icon with the words in its
-       tooltip. Rows align because every slider gets the same width. */
+       tooltip. Rows align because every slider gets the same width.
+       On mobile the strip wraps into two rows of two (ADR-0035
+       amendment); the pairing is the DOM order, not CSS. */
     .graph-tuning {
       display: flex;
       flex-wrap: wrap;
