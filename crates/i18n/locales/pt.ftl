@@ -259,8 +259,6 @@ key-hint-u-jy = Jansky como sufixo: 3 Jy
 ## Os mecanismos de dica (ADR-0039): a barra acima da grelha, o
 ## alternador que legenda cada tecla e a ajuda de teclas do TUI.
 keypad-hints = Dicas das teclas
-keypad-grab-hide = Ocultar o teclado
-keypad-grab-show = Mostrar o teclado
 keypad-hint-idle = Pouse o ponteiro ou foque uma tecla para ver o que faz.
 menu-key-help = Ajuda de teclas
 tui-key-help-hint = Setas deslocam · q ou Esc fecha

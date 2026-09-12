@@ -260,8 +260,6 @@ key-hint-u-jy = Jansky als Suffix: 3 Jy
 ## Die Hinweis-Mechanik (ADR-0039): die Leiste über dem Raster, der
 ## Schalter, der jede Taste beschriftet, und die Tastenhilfe des TUI.
 keypad-hints = Tastenhinweise
-keypad-grab-hide = Tastenfeld ausblenden
-keypad-grab-show = Tastenfeld einblenden
 keypad-hint-idle = Auf einer Taste ruhen oder sie fokussieren, um zu sehen, was sie tut.
 menu-key-help = Tastenhilfe
 tui-key-help-hint = Pfeile blättern · q oder Esc schließt

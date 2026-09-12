@@ -924,7 +924,6 @@ struct KeypadDrag {
     open_h: f64,
     last_y: f64,
     last_t: f64,
-    moved: bool,
     pending_y: Option<f64>,
     frame_armed: bool,
     frame_handle: i32,
@@ -2467,7 +2466,7 @@ fn epher_app() -> Html {
     let show_key_hints = use_state(|| false);
     // The keypad drawer (ADR-0060): false docks the keypad away, the
     // history list grows into its place, and the grab bar stays for the
-    // drag, tap, or Enter that brings the keypad back to its spot.
+    // drag that brings the keypad back to its spot.
     let keypad_open = use_state(|| true);
     let keypad_drawer_ref = use_node_ref();
     // The pending snap animation's timer: a new gesture (or toggle)
@@ -2476,27 +2475,16 @@ fn epher_app() -> Html {
     let keypad_anim =
         use_state(|| Rc::new(RefCell::new(Option::<gloo_timers::callback::Timeout>::None)));
     let keypad_drag = use_state(|| Rc::new(RefCell::new(Option::<KeypadDrag>::None)));
-    // The time of the last pointer release on the grab bar: the browser
-    // synthesizes a click right after pointerup, and that click must not
-    // toggle the drawer a second time (the release already acted). A
-    // click within half a second of a gesture is that echo; a keyboard
-    // click (Enter/Space) comes without a gesture and toggles. A
-    // timestamp, not a latch, so a cancelled gesture can never eat a
-    // later keyboard toggle.
-    let keypad_last_gesture = use_state(|| Rc::new(RefCell::new(0.0f64)));
     // The drawer's helper (ADR-0060): animate to a final state from
     // wherever the drawer is now — frozen inline height, one forced
     // reflow, target height with the transition on, then the inline
     // height clears so the resting class rule takes over. `dur_ms`
-    // overrides the stylesheet's duration: a drag release snaps at a
-    // speed matched to the flick (None = the stylesheet's pace, for
-    // taps and the keyboard toggle). Shared by the keyboard toggle and
-    // the drag's snap, so both get the same motion.
+    // sets the snap's pace: a drag release is timed to its own flick.
     let keypad_animate = {
         let keypad_drawer_ref = keypad_drawer_ref.clone();
         let keypad_open = keypad_open.clone();
         let keypad_anim = keypad_anim.clone();
-        move |open: bool, dur_ms: Option<i32>| {
+        move |open: bool, dur_ms: i32| {
             let Some(drawer) = keypad_drawer_ref.cast::<Element>() else {
                 return;
             };
@@ -2527,17 +2515,16 @@ fn epher_app() -> Html {
             // direction's visibility delay follows the same speed; the
             // stylesheet's prefers-reduced-motion rule keeps control
             // when no inline transition is set.
-            let timeout_ms = match dur_ms {
-                Some(ms) if !prefers_reduced() => {
-                    let _ = clip.style().set_property(
-                        "transition",
-                        &format!(
-                            "height {ms}ms cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s {ms}ms"
-                        ),
-                    );
-                    ms as u32 + 80
-                }
-                _ => 300,
+            let timeout_ms = if prefers_reduced() {
+                300
+            } else {
+                let _ = clip.style().set_property(
+                    "transition",
+                    &format!(
+                        "height {dur_ms}ms cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s {dur_ms}ms"
+                    ),
+                );
+                dur_ms as u32 + 80
             };
             keypad_open.set(open);
             if let Some(t) = keypad_anim.borrow_mut().take() {
@@ -2598,7 +2585,6 @@ fn epher_app() -> Html {
                 open_h: body.offset_height() as f64,
                 last_y: y,
                 last_t: js_sys::Date::now(),
-                moved: false,
                 pending_y: None,
                 frame_armed: false,
                 frame_handle: 0,
@@ -2619,9 +2605,6 @@ fn epher_app() -> Html {
                 return;
             }
             let y = e.client_y() as f64;
-            if (y - d.y0).abs() > 4.0 {
-                d.moved = true;
-            }
             // The keypad follows the pointer one write per display
             // frame: the sample lands in the cell, and an armed
             // animation frame applies it. A 1000 Hz mouse then costs
@@ -2676,9 +2659,7 @@ fn epher_app() -> Html {
     let on_grab_end = {
         let keypad_drawer_ref = keypad_drawer_ref.clone();
         let keypad_drag = keypad_drag.clone();
-        let keypad_last_gesture = keypad_last_gesture.clone();
         let keypad_animate = keypad_animate.clone();
-        let keypad_open = keypad_open.clone();
         Callback::from(move |e: web_sys::PointerEvent| {
             let Some(d) = keypad_drag.borrow_mut().take() else {
                 return;
@@ -2697,14 +2678,6 @@ fn epher_app() -> Html {
             let _ = keypad_drawer_ref
                 .cast::<Element>()
                 .map(|drawer| drawer.class_list().remove_1("dragging"));
-            *keypad_last_gesture.borrow_mut() = js_sys::Date::now();
-            if !d.moved {
-                // A tap toggles — the same as Enter on the button. The
-                // click that follows this release is ignored by the
-                // gesture timestamp.
-                keypad_animate(!*keypad_open, None);
-                return;
-            }
             // The snap matches the flick: a fast fling crosses its
             // distance quickly (tens of ms), a slow release eases
             // over the full pace. The result lands between a floor
@@ -2723,21 +2696,7 @@ fn epher_app() -> Html {
             let target = if open { d.open_h } else { 0.0 };
             let speed = d.vel.abs().max(0.4);
             let dur = (((target - current).abs() / speed) as i32).clamp(110, 240);
-            keypad_animate(open, Some(dur));
-        })
-    };
-    let on_grab_click = {
-        let keypad_last_gesture = keypad_last_gesture.clone();
-        let keypad_animate = keypad_animate.clone();
-        let keypad_open = keypad_open.clone();
-        Callback::from(move |_| {
-            // The click a pointer gesture just synthesized, not a press:
-            // the release already acted. A keyboard click (Enter/Space)
-            // has no gesture behind it and toggles.
-            if js_sys::Date::now() - *keypad_last_gesture.borrow() < 500.0 {
-                return;
-            }
-            keypad_animate(!*keypad_open, None);
+            keypad_animate(open, dur);
         })
     };
     let active_pane = use_state(|| "calc".to_string());
@@ -6904,37 +6863,24 @@ fn epher_app() -> Html {
                             }) }
                         </ul>
                     </section>
-                    // The drawer (ADR-0060): the grab bar rides the rule
-                    // above the keypad; dragging it down (or a tap, or
-                    // Enter — it is a real button, aria-expanded) docks
-                    // the keypad away and hands its height to the
-                    // history list; dragging up brings it back to this
-                    // exact place. The clip animates the height; the
+                    // The drawer (ADR-0060, amended drag-only): the grab
+                    // bar rides the rule above the keypad; dragging it
+                    // down docks the keypad away and hands its height to
+                    // the history list; dragging up brings it back to
+                    // this exact place. There is no click path — the bar
+                    // is a plain div, not a button, and only a drag
+                    // moves it. The clip animates the height; the
                     // section below is untouched.
                     <div class="keypad-drawer" data-open={(*keypad_open).to_string()} ref={keypad_drawer_ref.clone()}>
-                        <button
-                            type="button"
+                        <div
                             class="keypad-grab"
-                            aria-expanded={(*keypad_open).to_string()}
-                            aria-controls="keypad-panel"
-                            aria-label={if *keypad_open {
-                                localizer.lookup("keypad-grab-hide")
-                            } else {
-                                localizer.lookup("keypad-grab-show")
-                            }}
-                            title={if *keypad_open {
-                                localizer.lookup("keypad-grab-hide")
-                            } else {
-                                localizer.lookup("keypad-grab-show")
-                            }}
                             onpointerdown={on_grab_down}
                             onpointermove={on_grab_move}
                             onpointerup={on_grab_end.clone()}
                             onpointercancel={on_grab_end}
-                            onclick={on_grab_click}
                         >
                             <span class="keypad-grab-pill" aria-hidden="true"></span>
-                        </button>
+                        </div>
                         <div class="keypad-clip">
                     <section class="keypad" aria-label={localizer.lookup("keypad")}>
                         // The hints row (ADR-0039): the tab list plus the

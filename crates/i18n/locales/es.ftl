@@ -260,8 +260,6 @@ key-hint-u-jy = Jansky como sufijo: 3 Jy
 ## Los mecanismos de sugerencia (ADR-0039): la barra sobre la cuadrícula,
 ## el interruptor que rotula cada tecla y la ayuda de teclas del TUI.
 keypad-hints = Sugerencias de teclas
-keypad-grab-hide = Ocultar el teclado
-keypad-grab-show = Mostrar el teclado
 keypad-hint-idle = Apoya el puntero o enfoca una tecla para ver qué hace.
 menu-key-help = Ayuda de teclas
 tui-key-help-hint = Flechas desplazan · q o Esc cierra

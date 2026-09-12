@@ -259,8 +259,6 @@ key-hint-u-jy = Jansky suffix: 3 Jy
 ## The hint affordances (ADR-0039): the bar above the grid, the toggle
 ## that captions every key, and the TUI's key-help overlay.
 keypad-hints = Key hints
-keypad-grab-hide = Hide the keypad
-keypad-grab-show = Show the keypad
 keypad-hint-idle = Rest on or focus a key to see what it does.
 menu-key-help = Key help
 tui-key-help-hint = Arrows scroll · q or Esc closes

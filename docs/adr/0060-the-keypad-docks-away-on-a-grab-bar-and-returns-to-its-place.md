@@ -119,3 +119,30 @@ toggle keep the stylesheet's 240 ms), and the inline transition is
 cleared when the snap settles so the next drag's `transition: none`
 applies. The drag decision (`keypad_snap`) is unchanged; so is the
 contract that the history grows into the freed space live.
+
+## Amendment (2026-09-12): the bar drags only — the tap/click and keyboard toggles are gone
+
+The tap path earned its keep when the bar was new, but in practice a
+plain click toggling the whole keypad read as an accident waiting to
+happen: the bar sits where thumbs and cursors travel, and the user
+asked for the toggle to go. **The web grab bar now answers to a drag
+alone.** Releasing without meaningful movement runs the same snap as
+any other release — since the height barely moved, the drawer springs
+back to wherever it was resting — and the synthesized click that
+follows pointerup has nothing to trigger, so the gesture-echo
+timestamp (`keypad_last_gesture`) and the click handler are deleted
+with it.
+
+The bar stops being a `<button>` and becomes a plain `div`: there is
+no activation to advertise, so `aria-expanded`, `aria-controls`, the
+show/hide labels, and the Enter/Space path all go — and with them the
+`keypad-grab-hide` / `keypad-grab-show` strings in every locale. The
+keyboard and screen-reader toggle this decision removes was real
+accessibility; the trade is deliberate — the bar is a pointer-only
+affordance, and the docked state is one drag away for every pointer
+user. The pill keeps its hover highlight and `cursor: grab` so the
+bar still reads as draggable.
+
+The TUI is untouched: releasing without moving still toggles there,
+and `Ctrl+K` remains the keyboard path — the two frontends no longer
+share the tap grammar, but each keeps the gesture its medium affords.
