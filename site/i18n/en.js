@@ -177,7 +177,7 @@ window.EPHER_I18N["en"] = {
 
   "nav-ide": "IDE Extensions",
   "ide-title": "IDE Extensions",
-  "ide-lede": "You can use an IDE to write epher scripts. Download and install the official epher extension for your preferred editor.",
+  "ide-lede": "You can use an IDE to write epher scripts. Download and install the official epher extension for your preferred IDE. Including rubbish ones. Like Neovim.",
   "ide-how-title": "One language server, used by every IDE",
   "ide-how-p": "Every extension shares one program, epher-lsp: a small language server (LSP) with the whole epher engine compiled in. The extension is a thin shell: on first use it downloads the server for your platform from the releases page and caches it. Everything runs on your machine; nothing is sent anywhere.",
   "ide-features-title": "What the editor gets",
@@ -223,6 +223,9 @@ window.EPHER_I18N["en"] = {
   "ide-vim-link": "Download epher-vim.zip",
   "ide-sublime-p1": "A package folder: the shared grammar in Sublime's own form, plus the client definition for the popular LSP package.",
   "ide-sublime-link": "Download epher-sublime.zip",
+  "ide-emacs-title": "Emacs",
+  "ide-emacs-p1": "Ready-made Emacs glue: an `epher-mode` with baseline highlighting, filetype detection, and the LSP wiring around the same release binary — eglot on Emacs 29 or newer (built in), or lsp-mode if you prefer. Diagnostics, inline answers as inlay hints, hover, and completion.",
+  "ide-emacs-link": "Download epher-emacs.zip",
   "ide-vs-p1": "Install it like any Visual Studio extension: double-click the vsix, or Extensions, Manage Extensions, Install from file. Works in Visual Studio 2022. On first use it downloads the server for Windows; after that, everything is local.",
   "ide-vs-link": "Download epher-visualstudio.vsix",
   "ide-zed-p2": "The Rust step belongs to dev extensions, not to epher: extensions published to Zed's extension registry are compiled by Zed itself and install in one click, with no Rust. Publication there is planned; until it lands, the dev-extension route above is the way in."
