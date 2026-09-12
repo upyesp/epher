@@ -177,7 +177,7 @@ window.EPHER_I18N["pt"] = {
 
   "nav-ide": "Extensões IDE",
   "ide-title": "Extensões IDE",
-  "ide-lede": "Pode usar um IDE para escrever scripts epher. Descarregue e instale a extensão oficial do epher para o seu editor preferido.",
+  "ide-lede": "Pode usar um IDE para escrever scripts epher. Descarregue e instale a extensão oficial do epher para o seu IDE preferido. Incluindo os maus. Como o Neovim.",
   "ide-how-title": "Um servidor de linguagem, usado por todos os IDEs",
   "ide-how-p": "Todas as extensões partilham o mesmo programa, epher-lsp: um pequeno servidor de linguagem (LSP) com o motor completo do epher compilado dentro. A extensão é uma casca fina: na primeira utilização descarrega o servidor para a sua plataforma da página de versões e guarda-o em cache. Tudo corre na sua máquina; nada é enviado para lado nenhum.",
   "ide-features-title": "O que o editor ganha",
@@ -223,6 +223,9 @@ window.EPHER_I18N["pt"] = {
   "ide-vim-link": "Descarregar epher-vim.zip",
   "ide-sublime-p1": "Uma pasta de pacote: a gramática partilhada na forma própria do Sublime, mais a definição do cliente para o popular pacote LSP.",
   "ide-sublime-link": "Descarregar epher-sublime.zip",
+  "ide-emacs-title": "Emacs",
+  "ide-emacs-p1": "Cola pronta para Emacs: um `epher-mode` com realce básico, deteção do tipo de ficheiro e a ligação LSP em torno do mesmo binário da versão — eglot no Emacs 29 ou mais recente (integrado), ou lsp-mode se preferir. Diagnósticos, respostas em linha como inlay hints, hover e conclusão.",
+  "ide-emacs-link": "Descarregar epher-emacs.zip",
   "ide-vs-p1": "Instale-o como qualquer extensão do Visual Studio: duplo clique no vsix, ou Extensions, Manage Extensions, Install from file. Funciona no Visual Studio 2022. Na primeira utilização descarrega o servidor para Windows; depois disso tudo é local.",
   "ide-vs-link": "Descarregar epher-visualstudio.vsix",
   "ide-zed-p2": "O passo do Rust pertence às extensões de desenvolvimento, não ao epher: as extensões publicadas no registo de extensões do Zed são compiladas pelo próprio Zed e instalam-se com um clique, sem Rust. A publicação aí está planeada; até lá, o caminho da extensão de desenvolvimento acima é a entrada."

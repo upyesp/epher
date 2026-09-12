@@ -71,3 +71,14 @@ a semantic-tokens setting.
   looseness (chained comparisons parse, the language rejects them).
 - Marketplace work has an explicit gate recorded in CONTEXT.md, so
   it cannot begin by inference.
+
+## Amendment (2026-09-12): Emacs joins as a config family
+
+The page names ten editor families now. Emacs ships as
+`epher-emacs.zip` — a ready-made `epher.el` (a derived major mode
+with the conservative font-lock view of the grammar, filetype
+detection, and the LSP wiring) speaking to the shared server through
+eglot, which Emacs 29 ships built in, with an lsp-mode registration
+beside it. Same rules as the other config families: source zip under
+a stable name, download link on the page, no package.el publication.
+The stable-name list above grows by one: `epher-emacs.zip`.
