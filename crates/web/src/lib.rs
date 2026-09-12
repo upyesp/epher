@@ -5744,7 +5744,10 @@ fn epher_app() -> Html {
     // icon is a real button, so the reset is keyboard-accessible); the
     // words live in the tooltip/aria-label. The numeric readouts are
     // gone; the slider IS the control. 2D carries thickness + zoom; 3D
-    // and solar carry thickness + the two rotation speeds + zoom.
+    // and solar carry thickness + the two rotation speeds + zoom. On
+    // mobile the strip wraps into two rows of two (ADR-0035 amendment):
+    // zoom lands under the width slider and vertical rotation under the
+    // horizontal, so each row pairs the controls that read together.
     let tune_reset = {
         let localizer = localizer.clone();
         move |name_key: &str, icon: yew::Html, reset: Callback<web_sys::MouseEvent>| {
@@ -5812,6 +5815,16 @@ fn epher_app() -> Html {
         let on_reset_width_3d = on_reset_width_3d.clone();
         let on_reset_view = on_reset_view.clone();
         let localizer = localizer.clone();
+        // The rotation sliders' order (ADR-0035 amendment): the mobile
+        // strip wraps into two rows of two, so the DOM order there puts
+        // zoom second — it lands under the width slider — and vertical
+        // rotation last, under the horizontal. Desktop keeps its one-row
+        // h, v, z order byte-identical.
+        let axes: [(&str, &str); 3] = if *is_mobile {
+            [("h", "tune-rot-h"), ("z", "tune-zoom"), ("v", "tune-rot-v")]
+        } else {
+            [("h", "tune-rot-h"), ("v", "tune-rot-v"), ("z", "tune-zoom")]
+        };
         html! {
             <>
                 <span class="tune">
@@ -5836,8 +5849,8 @@ fn epher_app() -> Html {
                         })}
                     />
                 </span>
-                { for [("h", "tune-rot-h"), ("v", "tune-rot-v"), ("z", "tune-zoom")].iter().map(|(axis, tip)| {
-                    let value = match *axis {
+                { for axes.iter().copied().map(|(axis, tip)| {
+                    let value = match axis {
                         "h" => *view_h,
                         "v" => *view_v,
                         // The zoom state may sit past the slider ends (a
@@ -5852,19 +5865,18 @@ fn epher_app() -> Html {
                                 .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
                             {
                                 if let Ok(v) = el.value().parse::<f64>() {
-                                    on_set_view.emit((*axis, v));
+                                    on_set_view.emit((axis, v));
                                 }
                             }
                         })
                     };
                     let reset = {
                         let on_reset_view = on_reset_view.clone();
-                        let axis = *axis;
                         Callback::from(move |_: web_sys::MouseEvent| on_reset_view.emit(axis))
                     };
                     html! {
                         <span class="tune">
-                            { tune_reset(tip, match *axis {
+                            { tune_reset(tip, match axis {
                                 "h" => rot_h_icon(),
                                 "v" => rot_v_icon(),
                                 _ => zoom_icon(),
