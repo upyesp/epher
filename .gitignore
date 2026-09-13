@@ -30,3 +30,8 @@ crates/tauri-app/src-tauri/nsis-check.exe
 **/nsis-check.exe
 **/nsis-theme-check.exe
 site/scripts-data.json
+
+# temporary local copy for the Pi Web file manager (web-vscode test)
+/epher-vscode.vsix
+# the staging test build rides the preview site until the test passes
+!site/tmp-epher-vscode.vsix
