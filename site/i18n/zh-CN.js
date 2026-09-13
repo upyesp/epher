@@ -229,6 +229,11 @@ window.EPHER_I18N["zh-CN"] = {
   "ide-eclipse-title": "Eclipse IDE",
   "ide-eclipse-p1": "一个开箱即用的 Eclipse 插件：注册 `.epher` 文件类型，通过 LSP4E 接入共享语言服务器，并复用 TextMate 语法实现基础高亮。诊断、悬停与补全一应俱全——在较新的 Eclipse 版本中，行内答案会以内联提示（inlay hints）显示。",
   "ide-eclipse-link": "下载 epher-eclipse.jar",
+  "ide-zed-prereq": "前提条件：`epher-lsp` 服务器二进制文件，安装一次并加入 PATH——请参阅下方的「任意 LSP 客户端」。",
+  "ide-nvim-vim-prereq": "前提条件：`epher-lsp` 服务器二进制文件，安装一次并加入 PATH——请参阅下方的「任意 LSP 客户端」。",
+  "ide-sublime-prereq": "前提条件：`epher-lsp` 服务器二进制文件，安装一次并加入 PATH——请参阅下方的「任意 LSP 客户端」。",
+  "ide-emacs-prereq": "前提条件：`epher-lsp` 服务器二进制文件，安装一次并加入 PATH——请参阅下方的「任意 LSP 客户端」。",
+  "ide-eclipse-prereq": "前提条件：`epher-lsp` 服务器二进制文件，安装一次并加入 PATH——请参阅下方的「任意 LSP 客户端」。",
   "ide-vs-p1": "像安装任何 Visual Studio 扩展一样安装：双击 vsix，或通过 Extensions、Manage Extensions、Install from file。适用于 Visual Studio 2022。首次使用会下载 Windows 服务器；之后一切都在本地。",
   "ide-vs-link": "下载 epher-visualstudio.vsix",
   "ide-zed-p2": "Rust 这一步属于开发版扩展，而不属于 epher：上架 Zed 扩展注册中心的扩展由 Zed 自己编译，安装只需一次点击，无需 Rust。在那里发布已在计划中；在那之前，上面的开发版扩展方式是目前的入口。"

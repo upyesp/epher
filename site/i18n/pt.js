@@ -229,6 +229,11 @@ window.EPHER_I18N["pt"] = {
   "ide-eclipse-title": "Eclipse IDE",
   "ide-eclipse-p1": "Um plugin Eclipse pronto a usar: regista o tipo de ficheiro `.epher`, liga o servidor de linguagem partilhado via LSP4E e reutiliza a gramática TextMate para o realce básico. Diagnósticos, hover e conclusão — nas versões recentes do Eclipse, as respostas em linha aparecem como inlay hints.",
   "ide-eclipse-link": "Descarregar epher-eclipse.jar",
+  "ide-zed-prereq": "Pré-requisito: o binário do servidor `epher-lsp`, instalado uma vez e no seu PATH — veja «Qualquer cliente LSP» abaixo.",
+  "ide-nvim-vim-prereq": "Pré-requisito: o binário do servidor `epher-lsp`, instalado uma vez e no seu PATH — veja «Qualquer cliente LSP» abaixo.",
+  "ide-sublime-prereq": "Pré-requisito: o binário do servidor `epher-lsp`, instalado uma vez e no seu PATH — veja «Qualquer cliente LSP» abaixo.",
+  "ide-emacs-prereq": "Pré-requisito: o binário do servidor `epher-lsp`, instalado uma vez e no seu PATH — veja «Qualquer cliente LSP» abaixo.",
+  "ide-eclipse-prereq": "Pré-requisito: o binário do servidor `epher-lsp`, instalado uma vez e no seu PATH — veja «Qualquer cliente LSP» abaixo.",
   "ide-vs-p1": "Instale-o como qualquer extensão do Visual Studio: duplo clique no vsix, ou Extensions, Manage Extensions, Install from file. Funciona no Visual Studio 2022. Na primeira utilização descarrega o servidor para Windows; depois disso tudo é local.",
   "ide-vs-link": "Descarregar epher-visualstudio.vsix",
   "ide-zed-p2": "O passo do Rust pertence às extensões de desenvolvimento, não ao epher: as extensões publicadas no registo de extensões do Zed são compiladas pelo próprio Zed e instalam-se com um clique, sem Rust. A publicação aí está planeada; até lá, o caminho da extensão de desenvolvimento acima é a entrada."

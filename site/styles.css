@@ -870,6 +870,13 @@ a:hover {
   filter: invert(1);
 }
 
+/* the per-IDE prerequisite callout (server binary on PATH) */
+.prose p.prereq {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-block-end: 0.9rem;
+}
+
 .prose p {
   color: var(--text);
   margin-block-end: 1rem;
