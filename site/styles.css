@@ -856,6 +856,20 @@ a:hover {
   margin-block: 2rem 0.6rem;
 }
 
+/* IDE logos inside section headings (ide.html). Sized to the heading
+   text; margin-inline-end flips with the reading direction. */
+.ide-logo {
+  height: 1.2em;
+  width: auto;
+  vertical-align: -0.22em;
+  margin-inline-end: 0.45em;
+}
+
+/* monochrome dark marks (Cursor) would vanish on the dark theme */
+[data-theme="dark"] .ide-logo-invert {
+  filter: invert(1);
+}
+
 .prose p {
   color: var(--text);
   margin-block-end: 1rem;
