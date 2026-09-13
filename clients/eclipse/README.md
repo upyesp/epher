@@ -43,9 +43,11 @@ highlighting, and the language server starts behind it.
 ## Troubleshooting
 
 - **No highlighting / no server**: the IDE needs LSP4E and TM4E.
-  Both ship in the standard Eclipse IDE packages (2023-12 or
-  newer); if yours lacks them, install them from the marketplace
-  (Help → Eclipse Marketplace → "LSP4E").
+  Both ship in the standard Eclipse IDE packages; if yours lacks
+  them, install them from the marketplace (Help → Eclipse
+  Marketplace → "LSP4E"). The plugin is compiled for Java 21 —
+  the same floor current LSP4E and Eclipse (2024-09 or newer)
+  set.
 - **"Unable to start language server"**: `epher-lsp` is not on the
   `PATH` Eclipse sees. Check with `which epher-lsp` inside
   *Help → Show shell* or a terminal launched the same way; the

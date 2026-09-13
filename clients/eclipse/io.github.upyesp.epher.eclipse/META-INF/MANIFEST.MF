@@ -4,5 +4,5 @@ Bundle-Name: epher language server
 Bundle-SymbolicName: io.github.upyesp.epher.eclipse;singleton:=true
 Bundle-Version: 0.0.0
 Bundle-Vendor: epher
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-21
 Require-Bundle: org.eclipse.lsp4e

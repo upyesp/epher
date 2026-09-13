@@ -635,6 +635,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
       - name: Resolve the compile classpath
         shell: bash
         run: |
@@ -659,9 +663,10 @@ jobs:
           cp "$src/META-INF/MANIFEST.MF" "$src/plugin.xml" "$bundle/"
           cp clients/shared/epher.tmLanguage.json "$bundle/syntaxes/"
           cp clients/vscode/language-configuration.json "$bundle/language-configuration.json"
-          # the class is the only compiled thing; --release 17 matches the
-          # Bundle-RequiredExecutionEnvironment and any current Eclipse JVM
-          javac --release 17 -cp "classpath/*" \
+          # plain javac on 21: current LSP4E bundles are class-file v65
+          # (Java 21), and --release 17 would refuse them; the BREE below
+          # states the same floor LSP4E itself sets
+          javac -cp "classpath/*" \
             "$src/src/io/github/upyesp/epher/eclipse/EpherConnectionProvider.java" \
             -d "$bundle"
           sed -i "s/^Bundle-Version: 0.0.0/Bundle-Version: $VERSION/" "$bundle/META-INF/MANIFEST.MF"
