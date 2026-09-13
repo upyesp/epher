@@ -208,6 +208,25 @@ function initLinuxTabs() {
   }
 }
 
+/** Download links point at the latest published release (ADR-0068),
+ *  which only exists after a promotion. On the preview host the
+ *  current train's artifacts ride the hidden "staging-build" draft
+ *  release instead — visible and downloadable to repository
+ *  collaborators only — so there the links are retargeted at that
+ *  draft. The live site (custom domain, no /epher-preview path) keeps
+ *  the published-release links untouched; staging tests work without
+ *  ever baking a version or draft tag into the shared page. */
+function retargetDownloads() {
+  if (!location.pathname.startsWith("/epher-preview")) return;
+  document.querySelectorAll('a[href*="/releases/latest/download/"]').forEach((a) => {
+    a.href = a.href.replace("/releases/latest/download/", "/releases/download/staging-build/");
+  });
+  // the plain "releases page" link goes to the draft's page, not its assets
+  document.querySelectorAll('a[href$="/releases/latest"]').forEach((a) => {
+    a.href = a.href.replace("/releases/latest", "/releases/tag/staging-build");
+  });
+}
+
 function init() {
   let stored = null;
   try {
@@ -236,6 +255,7 @@ function init() {
     setTheme(document.documentElement.dataset.theme); // refresh toggle label
   });
 
+  retargetDownloads();
   initMenu();
   initDocs();
   initLinuxTabs();
