@@ -6,6 +6,7 @@ the supported editors.
 
 | file | source |
 | --- | --- |
+| eclipse.svg | Eclipse Packaging project product icon (eclipse-packaging/packages, eclipse256.svg) |
 | vscode.svg | Wikimedia Commons, "Visual Studio Code 1.35 icon" |
 | cursor.svg | cursor.com favicon |
 | vscodium.svg | vscodium.com brand asset |

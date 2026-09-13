@@ -226,6 +226,9 @@ window.EPHER_I18N["ar"] = {
   "ide-emacs-title": "Emacs",
   "ide-emacs-p1": "غراء Emacs جاهز: `epher-mode` مع تلوين أساسي وكشف لنوع الملف وتوصيل LSP حول نفس الثنائي من الإصدار — eglot على Emacs 29 أو أحدث (مدمج)، أو lsp-mode إن فضّلت ذلك. التشخيصات، والإجابات المضمّنة كتلميحات داخلية، والتلميحات، والإكمال.",
   "ide-emacs-link": "نزّل epher-emacs.zip",
+  "ide-eclipse-title": "Eclipse IDE",
+  "ide-eclipse-p1": "إضافة Eclipse جاهزة للاستخدام: تُسجّل نوع الملفات `.epher`، وتربط خادم اللغة المشترك عبر LSP4E، وتعيد استخدام قواعد TextMate للتلوين الأساسي. تشخيصات، وتلميحات عند التحويم، وإكمال تلقائي — وفي الإصدارات الحديثة من Eclipse تظهر الإجابات المضمّنة كتلميحات داخل السطر.",
+  "ide-eclipse-link": "تنزيل epher-eclipse.jar",
   "ide-vs-p1": "ثبّته كأي إضافة Visual Studio: انقر نقرًا مزدوجًا على ملف vsix، أو Extensions ثم Manage Extensions ثم Install from file. يعمل في Visual Studio 2022. عند أول استخدام ينزّل الخادم لـ Windows؛ وبعد ذلك كل شيء محلي.",
   "ide-vs-link": "نزّل epher-visualstudio.vsix",
   "ide-zed-p2": "خطوة Rust تعود لإضافات التطوير لا لـ epher: الإضافات المنشورة في سجل إضافات Zed يجمعها Zed نفسه، وتُثبَّت بنقرة واحدة من دون Rust. النشر هناك مخطط له؛ وحتى يتم ذلك، يبقى طريق إضافة التطوير أعلاه هو المدخل."

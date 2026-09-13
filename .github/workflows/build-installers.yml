@@ -34,6 +34,7 @@
 #   epher-nvim.zip                  the Neovim configuration
 #   epher-vim.zip                   the Vim configuration
 #   epher-sublime.zip               the Sublime Text configuration
+#   epher-eclipse.jar               the Eclipse IDE plugin (dropins bundle)
 #
 # Callers (ADR-0062):
 #   - release.yml — a public vX.Y.Z tag push: builds the tag, then the
@@ -613,5 +614,70 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: editor-configs
+          path: artifacts
+          if-no-files-found: error
+
+  eclipse-extension:
+    # The Eclipse IDE plugin (ADR-0066): an LSP4E connection provider
+    # that launches epher-lsp from PATH (the emacs/vim/neovim contract —
+    # the plugin never downloads), plus declarative plugin.xml wiring:
+    # the .epher content type, the LSP4E server + contentTypeMapping, and
+    # the shared TextMate grammar via TM4E for baseline highlighting.
+    # One small Java class is compiled against the LSP4E bundle from the
+    # project's own p2 release repo (lsp4e is not on Maven Central) and
+    # org.eclipse.equinox.common from Maven Central (IAdaptable lives
+    # there). The jar is a dropins bundle — users copy it into
+    # <eclipse>/dropins/, the classic analog of VS Code's "Install from
+    # VSIX"; no p2 update site, no marketplace (ADR-0068).
+    name: eclipse extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Resolve the compile classpath
+        shell: bash
+        run: |
+          set -e
+          mkdir -p classpath
+          base="https://download.eclipse.org/lsp4e/releases/latest/plugins"
+          jar_name=$(curl -sfL "$base/" | grep -o 'org\.eclipse\.lsp4e_[0-9][^"]*\.jar' | sort -u | tail -1)
+          test -n "$jar_name"
+          echo "compiling against $jar_name"
+          curl -sfL "$base/$jar_name" -o classpath/org.eclipse.lsp4e.jar
+          curl -sfL "https://repo1.maven.org/maven2/org/eclipse/platform/org.eclipse.equinox.common/3.21.0/org.eclipse.equinox.common-3.21.0.jar" \
+            -o classpath/org.eclipse.equinox.common.jar
+      - name: Compile, package, smoke-test
+        shell: bash
+        run: |
+          set -e
+          VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          src="clients/eclipse/io.github.upyesp.epher.eclipse"
+          bundle=$(mktemp -d)
+          mkdir -p "$bundle/syntaxes"
+          cp "$src/META-INF/MANIFEST.MF" "$src/plugin.xml" "$bundle/"
+          cp clients/shared/epher.tmLanguage.json "$bundle/syntaxes/"
+          cp clients/vscode/language-configuration.json "$bundle/language-configuration.json"
+          # the class is the only compiled thing; --release 17 matches the
+          # Bundle-RequiredExecutionEnvironment and any current Eclipse JVM
+          javac --release 17 -cp "classpath/*" \
+            "$src/src/io/github/upyesp/epher/eclipse/EpherConnectionProvider.java" \
+            -d "$bundle"
+          sed -i "s/^Bundle-Version: 0.0.0/Bundle-Version: $VERSION/" "$bundle/META-INF/MANIFEST.MF"
+          mkdir -p artifacts
+          art="$PWD/artifacts/epher-eclipse.jar"
+          (cd "$bundle" && jar --create --file "$art" \
+            --manifest META-INF/MANIFEST.MF io plugin.xml syntaxes language-configuration.json)
+          # smoke: manifest readable and versioned, class and assets present
+          unzip -l artifacts/epher-eclipse.jar | grep -q "io/github/upyesp/epher/eclipse/EpherConnectionProvider.class"
+          unzip -l artifacts/epher-eclipse.jar | grep -q "plugin.xml"
+          unzip -l artifacts/epher-eclipse.jar | grep -q "syntaxes/epher.tmLanguage.json"
+          unzip -l artifacts/epher-eclipse.jar | grep -q "language-configuration.json"
+          unzip -p artifacts/epher-eclipse.jar META-INF/MANIFEST.MF | grep -q "Bundle-SymbolicName: io.github.upyesp.epher.eclipse"
+          unzip -p artifacts/epher-eclipse.jar META-INF/MANIFEST.MF | grep -q "Bundle-Version: $VERSION"
+          echo "epher-eclipse.jar: $(unzip -l artifacts/epher-eclipse.jar | tail -1)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eclipse-extension
           path: artifacts
           if-no-files-found: error

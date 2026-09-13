@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<!--
+  epher for the Eclipse IDE — everything declarative except the one
+  connection-provider class (LSP4E's extension point requires a
+  StreamConnectionProvider implementation; see src/).
+
+  Four contributions:
+  1. a `.epher` content type, so Eclipse knows the file kind;
+  2. an LSP4E server definition + content-type mapping — the shared
+     epher-lsp binary from PATH, the same bring-your-own-binary
+     contract as the emacs/vim/neovim clients (ADR-0066);
+  3. the TextMate grammar (shared with every other client) registered
+     with TM4E and bound to the content type for baseline highlighting;
+  4. a TM4E language configuration (comments, brackets) shared with
+     the VS Code client.
+-->
+<plugin>
+
+   <extension point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            id="io.github.upyesp.epher"
+            name="epher script"
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="epher"/>
+   </extension>
+
+   <extension point="org.eclipse.lsp4e.languageServer">
+      <server
+            id="io.github.upyesp.epher.server"
+            label="epher language server"
+            class="io.github.upyesp.epher.eclipse.EpherConnectionProvider"
+            singleton="true"/>
+      <contentTypeMapping
+            id="io.github.upyesp.epher.server.mapping"
+            contentType="io.github.upyesp.epher"
+            languageId="epher"/>
+   </extension>
+
+   <extension point="org.eclipse.tm4e.registry.grammars">
+      <grammar
+            scopeName="source.epher"
+            path="syntaxes/epher.tmLanguage.json"/>
+      <scopeNameContentTypeBinding
+            scopeName="source.epher"
+            contentTypeId="io.github.upyesp.epher"/>
+   </extension>
+
+   <extension point="org.eclipse.tm4e.languageconfiguration.languageConfigurations">
+      <languageConfiguration
+            contentTypeId="io.github.upyesp.epher"
+            path="language-configuration.json"/>
+   </extension>
+
+</plugin>

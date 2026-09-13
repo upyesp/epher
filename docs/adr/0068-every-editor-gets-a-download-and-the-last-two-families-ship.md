@@ -82,3 +82,21 @@ eglot, which Emacs 29 ships built in, with an lsp-mode registration
 beside it. Same rules as the other config families: source zip under
 a stable name, download link on the page, no package.el publication.
 The stable-name list above grows by one: `epher-emacs.zip`.
+
+## Amendment (2026-09-13): Eclipse joins as a dropins family
+
+Eleven families now. Eclipse ships as `epher-eclipse.jar` — a
+dropins bundle, the classic analog of VS Code's "Install from
+VSIX": the user copies the jar into `<eclipse>/dropins/` and
+restarts. Inside is the smallest thing LSP4E accepts: one Java
+connection-provider class that launches `epher-lsp` from PATH (the
+emacs/vim/neovim bring-your-own-binary contract — the plugin never
+downloads), and everything else declared in plugin.xml: the `.epher`
+content type, the LSP4E server definition and contentTypeMapping,
+and the shared TextMate grammar registered with TM4E with a
+scopeNameContentTypeBinding for baseline highlighting. CI compiles
+the class against the LSP4E bundle from the project's own p2
+release repo (it is not on Maven Central), packages the jar, and
+smoke-checks it; no p2 update site, no marketplace (the ADR-0068
+gate stands). The stable-name list above grows by one:
+`epher-eclipse.jar`.
