@@ -659,8 +659,9 @@ jobs:
           VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
           src="clients/eclipse/io.github.upyesp.epher.eclipse"
           bundle=$(mktemp -d)
-          mkdir -p "$bundle/syntaxes"
-          cp "$src/META-INF/MANIFEST.MF" "$src/plugin.xml" "$bundle/"
+          mkdir -p "$bundle/META-INF" "$bundle/syntaxes"
+          cp "$src/META-INF/MANIFEST.MF" "$bundle/META-INF/"
+          cp "$src/plugin.xml" "$bundle/"
           cp clients/shared/epher.tmLanguage.json "$bundle/syntaxes/"
           cp clients/vscode/language-configuration.json "$bundle/language-configuration.json"
           # plain javac on 21: current LSP4E bundles are class-file v65
