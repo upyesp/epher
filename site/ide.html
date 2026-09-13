@@ -114,9 +114,11 @@
     <article class="prose">
       <h1 data-i18n="ide-title">IDE Extensions</h1>
       <p data-i18n="ide-lede">
-        You can use an IDE to write epher scripts. Download and
-        install the official epher extension for your preferred
-        IDE. Including rubbish ones. Like Neovim.
+        You can use an IDE, such as VS Code (or others), to write epher
+        scripts. Download and install the official epher extension for
+        your IDE. The extension implements a full epher language server.
+        It is compliant with the Language Server Protocol (LSP), adding
+        a number of assistive features while editing code.
       </p>
 
       <h2 data-i18n="ide-features-title">What the editor gets</h2>
@@ -133,7 +135,7 @@
           <span data-i18n="ide-f5-desc">Semantic tokens color unit suffixes by meaning: the `m` in `2 m` is a unit, not a variable.</span></li>
       </ul>
 
-      <h2 data-i18n="ide-vscode-title">VS Code</h2>
+      <h2><img class="ide-logo" src="ide-logos/vscode.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vscode-title">VS Code</span></h2>
       <p data-i18n="ide-vscode-p1">
         Install it from the vsix: Extensions view, the ⋯ menu,
         Install from VSIX. On first use the extension downloads the
@@ -155,7 +157,7 @@
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vscode.vsix" data-i18n="ide-vscode-link">Download epher-vscode.vsix</a>
       </p>
 
-      <h2 data-i18n="ide-cursor-title">Cursor</h2>
+      <h2><img class="ide-logo ide-logo-invert" src="ide-logos/cursor.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-cursor-title">Cursor</span></h2>
       <p data-i18n="ide-cursor-p1">
         Cursor is a VS Code fork: the same vsix installs the same
         way, from the Extensions view's ⋯ menu, Install from VSIX.
@@ -166,7 +168,7 @@
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vscode.vsix" data-i18n="ide-cursor-link">Download epher-vscode.vsix</a>
       </p>
 
-      <h2 data-i18n="ide-vscodium-title">VSCodium</h2>
+      <h2><img class="ide-logo" src="ide-logos/vscodium.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vscodium-title">VSCodium</span></h2>
       <p data-i18n="ide-vscodium-p1">
         VSCodium is VS Code without Microsoft's marketplace, and
         install-from-VSIX works exactly the same: Extensions view,
@@ -177,7 +179,7 @@
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vscode.vsix" data-i18n="ide-vscodium-link">Download epher-vscode.vsix</a>
       </p>
 
-      <h2 data-i18n="ide-jetbrains-title">JetBrains IDEs</h2>
+      <h2><img class="ide-logo" src="ide-logos/jetbrains.png" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-jetbrains-title">JetBrains IDEs</span></h2>
       <p data-i18n="ide-jetbrains-p1">
         Install it from disk: Settings, Plugins, the gear menu,
         Install Plugin from Disk. Works in IntelliJ IDEA, PyCharm,
@@ -189,7 +191,7 @@
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-jetbrains.zip" data-i18n="ide-jetbrains-link">Download epher-jetbrains.zip</a>
       </p>
 
-      <h2 data-i18n="ide-zed-title">Zed</h2>
+      <h2><img class="ide-logo" src="ide-logos/zed.png" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-zed-title">Zed</span></h2>
       <p data-i18n="ide-zed-p1">
         Install it as a dev extension: in Zed, run the `zed: install
         dev extension` command and pick the unzipped `epher-zed`
@@ -210,7 +212,7 @@
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-zed.zip" data-i18n="ide-zed-link">Download epher-zed.zip</a>
       </p>
 
-      <h2 data-i18n="ide-nvim-vim-title">Neovim and Vim</h2>
+      <h2><img class="ide-logo" src="ide-logos/neovim.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-nvim-vim-title">Neovim and Vim</span></h2>
       <p data-i18n="ide-nvim-vim-p1">
         Ready-made config files: filetype detection, syntax, and the
         LSP wiring around the same release binary. Point your
@@ -223,7 +225,7 @@
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vim.zip" data-i18n="ide-vim-link">Download epher-vim.zip</a>
       </p>
 
-      <h2 data-i18n="ide-sublime-title">Sublime Text</h2>
+      <h2><img class="ide-logo" src="ide-logos/sublime.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-sublime-title">Sublime Text</span></h2>
       <p data-i18n="ide-sublime-p1">
         A package folder: the shared grammar in Sublime's own form,
         plus the client definition for the popular LSP package.
@@ -232,7 +234,7 @@
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-sublime.zip" data-i18n="ide-sublime-link">Download epher-sublime.zip</a>
       </p>
 
-      <h2 data-i18n="ide-emacs-title">Emacs</h2>
+      <h2><img class="ide-logo" src="ide-logos/emacs.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-emacs-title">Emacs</span></h2>
       <p data-i18n="ide-emacs-p1">
         Ready-made Emacs glue: an `epher-mode` with baseline
         highlighting, filetype detection, and the LSP wiring around
@@ -244,7 +246,7 @@
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-emacs.zip" data-i18n="ide-emacs-link">Download epher-emacs.zip</a>
       </p>
 
-      <h2 data-i18n="ide-vs-title">Visual Studio</h2>
+      <h2><img class="ide-logo" src="ide-logos/visualstudio.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vs-title">Visual Studio</span></h2>
       <p data-i18n="ide-vs-p1">
         Install it like any Visual Studio extension: double-click
         the vsix, or Extensions, Manage Extensions, Install from

@@ -177,7 +177,7 @@ window.EPHER_I18N["zh-CN"] = {
 
   "nav-ide": "IDE 扩展",
   "ide-title": "IDE 扩展",
-  "ide-lede": "您可以使用 IDE 来编写 epher 脚本。下载并安装适用于您偏好 IDE 的官方 epher 扩展。包括糟糕的那些。比如 Neovim。",
+  "ide-lede": "您可以使用 IDE（例如 VS Code 等）来编写 epher 脚本。请下载并安装适用于您的 IDE 的官方 epher 扩展。该扩展实现了完整的 epher 语言服务器，符合语言服务器协议（LSP），可在编辑代码时提供多项辅助功能。",
   "ide-how-title": "一个语言服务器，所有 IDE 共用",
   "ide-how-p": "每个扩展共用同一个程序 epher-lsp：一个小型语言服务器（LSP），内嵌完整的 epher 引擎。扩展本身很薄：首次使用时，它会从发布页下载适合您平台的服务器并缓存。一切都在您的机器上运行，不会发送任何内容。",
   "ide-features-title": "编辑器能获得什么",

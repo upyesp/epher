@@ -177,7 +177,7 @@ window.EPHER_I18N["en"] = {
 
   "nav-ide": "IDE Extensions",
   "ide-title": "IDE Extensions",
-  "ide-lede": "You can use an IDE to write epher scripts. Download and install the official epher extension for your preferred IDE. Including rubbish ones. Like Neovim.",
+  "ide-lede": "You can use an IDE, such as VS Code (or others), to write epher scripts. Download and install the official epher extension for your IDE. The extension implements a full epher language server. It is compliant with the Language Server Protocol (LSP), adding a number of assistive features while editing code.",
   "ide-how-title": "One language server, used by every IDE",
   "ide-how-p": "Every extension shares one program, epher-lsp: a small language server (LSP) with the whole epher engine compiled in. The extension is a thin shell: on first use it downloads the server for your platform from the releases page and caches it. Everything runs on your machine; nothing is sent anywhere.",
   "ide-features-title": "What the editor gets",

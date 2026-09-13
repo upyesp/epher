@@ -177,7 +177,7 @@ window.EPHER_I18N["pt"] = {
 
   "nav-ide": "Extensões IDE",
   "ide-title": "Extensões IDE",
-  "ide-lede": "Pode usar um IDE para escrever scripts epher. Descarregue e instale a extensão oficial do epher para o seu IDE preferido. Incluindo os maus. Como o Neovim.",
+  "ide-lede": "Pode usar um IDE, como o VS Code (ou outros), para escrever scripts epher. Descarregue e instale a extensão oficial do epher para o seu IDE. A extensão implementa um servidor de linguagem epher completo. É compatível com o Language Server Protocol (LSP), acrescentando vários recursos de assistência durante a edição do código.",
   "ide-how-title": "Um servidor de linguagem, usado por todos os IDEs",
   "ide-how-p": "Todas as extensões partilham o mesmo programa, epher-lsp: um pequeno servidor de linguagem (LSP) com o motor completo do epher compilado dentro. A extensão é uma casca fina: na primeira utilização descarrega o servidor para a sua plataforma da página de versões e guarda-o em cache. Tudo corre na sua máquina; nada é enviado para lado nenhum.",
   "ide-features-title": "O que o editor ganha",
