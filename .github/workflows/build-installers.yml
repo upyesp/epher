@@ -641,8 +641,9 @@ jobs:
           set -e
           mkdir -p classpath
           base="https://download.eclipse.org/lsp4e/releases/latest/plugins"
-          jar_name=$(curl -sfL "$base/" | grep -o 'org\.eclipse\.lsp4e_[0-9][^"]*\.jar' | sort -u | tail -1)
-          test -n "$jar_name"
+          # the listing is a themed index; keep only the bare jar filename
+          jar_name=$(curl -sfL "$base/" | grep -oE 'org\.eclipse\.lsp4e_[0-9][^"'\''<> ]*\.jar' | sort -u | tail -1)
+          case "$jar_name" in org.eclipse.lsp4e_*.jar) ;; *) echo "bad extraction: $jar_name"; exit 1;; esac
           echo "compiling against $jar_name"
           curl -sfL "$base/$jar_name" -o classpath/org.eclipse.lsp4e.jar
           curl -sfL "https://repo1.maven.org/maven2/org/eclipse/platform/org.eclipse.equinox.common/3.21.0/org.eclipse.equinox.common-3.21.0.jar" \
