@@ -226,6 +226,9 @@ window.EPHER_I18N["en"] = {
   "ide-emacs-title": "Emacs",
   "ide-emacs-p1": "Ready-made Emacs glue: an `epher-mode` with baseline highlighting, filetype detection, and the LSP wiring around the same release binary — eglot on Emacs 29 or newer (built in), or lsp-mode if you prefer. Diagnostics, inline answers as inlay hints, hover, and completion.",
   "ide-emacs-link": "Download epher-emacs.zip",
+  "ide-eclipse-title": "Eclipse IDE",
+  "ide-eclipse-p1": "A ready-made Eclipse plugin: it registers the `.epher` file type, hooks the shared language server into LSP4E, and reuses the TextMate grammar for baseline highlighting. Diagnostics, hover, and completion — on recent Eclipse releases the inline answers appear as inlay hints.",
+  "ide-eclipse-link": "Download epher-eclipse.jar",
   "ide-vs-p1": "Install it like any Visual Studio extension: double-click the vsix, or Extensions, Manage Extensions, Install from file. Works in Visual Studio 2022. On first use it downloads the server for Windows; after that, everything is local.",
   "ide-vs-link": "Download epher-visualstudio.vsix",
   "ide-zed-p2": "The Rust step belongs to dev extensions, not to epher: extensions published to Zed's extension registry are compiled by Zed itself and install in one click, with no Rust. Publication there is planned; until it lands, the dev-extension route above is the way in."
