@@ -137,7 +137,12 @@ desktop download failure.
   (`legacy-peer-deps`) so the intentionally unsatisfied peer never
   blocks an install.
 - The debounce's `thread::spawn` + `sleep` runs under wasi-threads,
-  which Microsoft's own testbeds demonstrate; cross-origin isolation
-  on the live web hosts was observed but a hands-on vscode.dev/
-github.dev check is still the honest gate before calling the web
-  path proven.
+  which Microsoft's own testbeds demonstrate. Hands-on verification
+  (2026-09-13): the packaged vsix served through `@vscode/test-web`
+  (the same web extension host code, over an HTTPS origin,
+  cross-origin isolated) on Android Chrome — the server starts, the
+  threads hold, and inline answers render next to the statements.
+  The literal vscode.dev/github.dev install check cannot happen for
+  an unpublished extension — plain web VS Code offers no vsix-install
+  route; gallery publication (ADR-0068 parks it until asked) is both
+  the remaining gate and the distribution.
