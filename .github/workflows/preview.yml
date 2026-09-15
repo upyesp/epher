@@ -52,6 +52,12 @@ jobs:
   publish:
     needs: [build]
     runs-on: ubuntu-latest
+    # contents: write (not read) because draft releases are only listed
+    # to callers with push access — the mirror step below must see the
+    # staging-build draft. The token is used for nothing else; the
+    # publish push itself rides the deploy key secret.
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -106,6 +112,10 @@ jobs:
         # is needed. The bare releases-page link goes to the mirror's
         # index, generated below. Runs only on the deployed copy.
         run: |
+          if [ ! -d preview-site/artifacts ]; then
+            echo "no mirror present (no staging-build draft yet); keeping releases/latest links"
+            exit 0
+          fi
           python3 - <<'PYEOF'
           import html, os
           root = "preview-site"
