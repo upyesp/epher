@@ -120,27 +120,28 @@ jobs:
           import html, os
           root = "preview-site"
           for dirpath, _dirs, files in os.walk(root):
-              if dirpath != root:
-                  for fn in files:
-                      if fn.endswith(".html"):
-                          raise SystemExit(
-                              "::error::releases/latest link in non-root page "
-                              + os.path.join(dirpath, fn)
-                              + " needs a depth-prefixed mirror prefix")
               for fn in files:
                   if not fn.endswith(".html"):
                       continue
                   p = os.path.join(dirpath, fn)
                   s = open(p, encoding="utf-8").read()
+                  if "releases/latest" not in s:
+                      continue
+                  # relative prefix from the page's own directory to the
+                  # site root ("" at the root, "../" under /pwa/, ...)
+                  up = os.path.relpath(root, dirpath).replace(os.sep, "/")
+                  prefix = "" if up == "." else up + "/"
                   t = s.replace(
                       "https://github.com/upyesp/epher/releases/latest/download/",
-                      "artifacts/")
+                      prefix + "artifacts/")
                   # download/ URLs are gone now; the bare releases link remains
                   t = t.replace(
                       "https://github.com/upyesp/epher/releases/latest",
-                      "artifacts/")
+                      prefix + "artifacts/")
                   if t != s:
                       open(p, "w", encoding="utf-8").write(t)
+                  elif "releases/latest" in t:
+                      raise SystemExit("::error::unrewritten releases/latest link in " + p)
           adir = os.path.join(root, "artifacts")
           rows = "".join(
               '<li><a href="%s">%s</a></li>' % (html.escape(f), html.escape(f))
