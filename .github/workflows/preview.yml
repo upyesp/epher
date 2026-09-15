@@ -4,12 +4,19 @@
 # the preview Pages repo (upyesp.github.io/epher-preview), so work is
 # visible at a public URL without touching the live epher.org deploy.
 # The tree is the exact output of the live site build (site-build.yml);
-# only two things differ:
+# only three things differ:
 #   - the apt/ and rpm/ repository trees are not included (the preview
-#     repo is a test site, not a package mirror), and
+#     repo is a test site, not a package mirror),
 #   - the landing page's single root-absolute link (href="/pwa/") is
 #     rewritten to a relative one — the preview serves under
-#     /epher-preview/, not at the domain root.
+#     /epher-preview/, not at the domain root, and
+#   - the staging-build draft's release assets are mirrored into
+#     artifacts/ and every releases/latest download link is rewritten
+#     to the mirror. Draft asset URLs are collaborator-only on GitHub,
+#     so pointing at them would 404 for anyone not logged in; the
+#     same-origin mirror lets the preview's download links be tested
+#     by anyone, byte-identical to what the eventual release serves.
+#     The live site keeps the releases/latest pattern (ADR-0068).
 #
 # The push uses a write-only deploy key on the preview repo
 # (secret EPHER_PREVIEW_KEY, added there via repo Settings → Deploy
@@ -50,6 +57,92 @@ jobs:
         with:
           name: site
           path: preview-site
+
+      - name: Mirror staging-build draft assets into the preview site
+        # Draft release asset URLs on GitHub are collaborator-only, so
+        # they cannot serve a public preview. Download the staging-build
+        # draft's assets here (the workflow token has repo read) and
+        # serve them from the preview itself; the step below rewrites
+        # the pages' download links to the mirror. If the staging build
+        # is mid-refresh (it replaces the draft per run), the download
+        # retries ride out the window and the count check fails loudly.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REL_ID="$(gh api "repos/${{ github.repository }}/releases" \
+            --jq '.[] | select(.draft and .tag_name == "staging-build") | .id' | head -1)"
+          if [ -z "$REL_ID" ]; then
+            echo "::warning::no staging-build draft found; preview links stay on releases/latest"
+            exit 0
+          fi
+          mkdir -p preview-site/artifacts
+          gh api "repos/${{ github.repository }}/releases/$REL_ID/assets?per_page=100" \
+            --paginate --jq '.[] | [.id, .name] | @tsv' > /tmp/assets.tsv
+          TOTAL="$(wc -l < /tmp/assets.tsv)"
+          while IFS=$'\t' read -r id name; do
+            case "$name" in epher-*) ;; *) continue ;; esac
+            for attempt in 1 2 3; do
+              if gh api -H "Accept: application/octet-stream" \
+                  "repos/${{ github.repository }}/releases/assets/$id" \
+                  > "preview-site/artifacts/$name"; then
+                echo "mirrored $name (attempt $attempt)"
+                break
+              fi
+              [ "$attempt" = 3 ] && { echo "::error::could not download $name" >&2; exit 1; }
+              sleep 15
+            done
+          done < /tmp/assets.tsv
+          DONE="$(ls preview-site/artifacts | wc -l)"
+          echo "mirrored $DONE of $TOTAL draft assets"
+          [ "$DONE" = "$TOTAL" ] || {
+            echo "::error::asset count mismatch — staging draft mid-refresh? rerun the preview workflow" >&2
+            exit 1
+          }
+
+      - name: Rewrite releases/latest download links to the artifact mirror
+        # Same-origin relative hrefs (artifacts/<asset>); both pages
+        # carrying such links sit at the site root, so no depth prefix
+        # is needed. The bare releases-page link goes to the mirror's
+        # index, generated below. Runs only on the deployed copy.
+        run: |
+          python3 - <<'PYEOF'
+          import html, os
+          root = "preview-site"
+          for dirpath, _dirs, files in os.walk(root):
+              if dirpath != root:
+                  for fn in files:
+                      if fn.endswith(".html"):
+                          raise SystemExit(
+                              "::error::releases/latest link in non-root page "
+                              + os.path.join(dirpath, fn)
+                              + " needs a depth-prefixed mirror prefix")
+              for fn in files:
+                  if not fn.endswith(".html"):
+                      continue
+                  p = os.path.join(dirpath, fn)
+                  s = open(p, encoding="utf-8").read()
+                  t = s.replace(
+                      "https://github.com/upyesp/epher/releases/latest/download/",
+                      "artifacts/")
+                  # download/ URLs are gone now; the bare releases link remains
+                  t = t.replace(
+                      "https://github.com/upyesp/epher/releases/latest",
+                      "artifacts/")
+                  if t != s:
+                      open(p, "w", encoding="utf-8").write(t)
+          adir = os.path.join(root, "artifacts")
+          rows = "".join(
+              '<li><a href="%s">%s</a></li>' % (html.escape(f), html.escape(f))
+              for f in sorted(os.listdir(adir)) if f != "index.html")
+          open(os.path.join(adir, "index.html"), "w", encoding="utf-8").write(
+              '<!doctype html><html lang="en"><meta charset="utf-8">'
+              '<title>epher staging artifacts</title>'
+              '<h1>epher staging artifacts</h1>'
+              '<p>Byte-identical mirror of the staging-build draft release,'
+              ' for preview testing. The public release lives on GitHub.</p>'
+              '<ul>%s</ul></html>' % rows)
+          PYEOF
 
       - name: Rewrite root-absolute /pwa/ links for the subpath mount
         # The landing page and every guide page link to the app with an
