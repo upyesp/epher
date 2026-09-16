@@ -328,12 +328,13 @@ jobs:
     # and the staging draft. Marketplace publication is deliberately
     # out of scope until the extensions are proven: the releases page
     # is the distribution, and the website page links this asset. The
-    # version rides the release train: the desktop entry resolves
-    # releases/download/v<its own version>/ for the server, so the
-    # packaged version must equal what the CLI reports. The web entry
-    # (ADR-0066 amendment) needs no download: it runs the same server
-    # compiled to wasm32-wasip1-threads, built here from the same
-    # commit and shipped inside the vsix.
+    # version rides the release train: the packaged version must equal
+    # what the CLI reports. Both entries (ADR-0066 amendment) need no
+    # download: desktop and web run the same server compiled to
+    # wasm32-wasip1-threads, built here from the same commit and
+    # shipped inside the vsix. The epher-lsp-* release assets remain
+    # for the PATH-family IDEs (nvim, vim, zed, sublime, emacs,
+    # eclipse).
     name: vscode extension
     runs-on: ubuntu-latest
     steps:

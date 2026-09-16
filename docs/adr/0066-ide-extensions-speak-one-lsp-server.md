@@ -146,3 +146,55 @@ desktop download failure.
   an unpublished extension — plain web VS Code offers no vsix-install
   route; gallery publication (ADR-0068 parks it until asked) is both
   the remaining gate and the distribution.
+
+## Amendment — 2026-09-16: the desktop joins the wasm; the download retires
+
+The web argument — the server rides inside the vsix, no first-use
+download — turned out to apply to the desktop too, and with numbers.
+VS Code desktop's extension host is Node.js, and `wasm-wasi-core` runs
+the same module there (engine: V8; threads: `worker_threads`). The
+premise "Electron means browser" is the wrong door but the right
+destination.
+
+**Decision:** the desktop entry runs the bundled wasm; `download.ts`
+(platform selection, asset fetch, extraction, version marker) is
+deleted. One server build ships everywhere; an extension update
+carries its matching server by construction, so the version-skew
+guard exists no longer even as a guard.
+
+**Measured (2026-09-16, VS Code 1.138.0's engine under Node 22, the
+wasm-wasi ABI with shared memory and wasi-threads on worker_threads;
+the native linux-x86_64 build as the baseline; identical protocol
+driver, documents of 18 and 759 lines):**
+
+| metric | native | wasm | note |
+| --- | --- | --- | --- |
+| startup → first response | 2.7 ms | 88 ms | once per window |
+| completion after edit, avg | 0.77 ms | 10.3 ms | p95 28.2 ms |
+| hover, avg | 0.14 ms | 0.56 ms | |
+| semanticTokens full (759 lines), avg | 0.11 ms | 1.55 ms | |
+
+The native server is 4–14× faster at compute; the wasm's worst
+observed request (28 ms) sits under half the ~50 ms floor where
+latency starts to feel instant. The compute ceiling is real but
+irrelevant at epher's document sizes.
+
+**Costs accepted:**
+
+- The `ms-vscode.wasm-wasi-core` dependency is now load-bearing on
+  desktop too: installing the vsix makes VS Code resolve it from the
+  Marketplace at install time (builtin on the web hosts). One
+  install-time fetch of a Microsoft-published extension replaces the
+  per-machine runtime download.
+- The wasm must be trusted to hold threads on every desktop platform;
+  it does by construction (`worker_threads` on Windows/macOS/Linux),
+  and was verified here on Linux: a real desktop VS Code 1.138.0
+  under Xvfb activated the extension, launched the bundled wasm
+  through wasm-wasi-core, and answered hover and completion end to
+  end. Windows and macOS run the same platform-independent artifact;
+  a packaged smoke test there remains worthwhile, not blocking.
+
+**Not changed:** the `epher-lsp-*` release assets continue — the
+PATH-family IDEs (nvim, vim, Zed, Sublime, Emacs, Eclipse) consume
+them, and the desktop VS Code client is the only one that stops
+needing a download.
