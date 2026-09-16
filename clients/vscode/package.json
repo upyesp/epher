@@ -1,7 +1,7 @@
 {
   "name": "epher",
   "displayName": "Epher",
-  "description": "The epher calculator language: highlighting, answers inline next to every statement, diagnostics, hover, and completion, via the shared epher-lsp server.",
+  "description": "The epher calculator language: answers inline next to every statement, units that convert, hover signatures, and completion \u2014 desktop, web, and the forks.",
   "version": "0.5.40",
   "publisher": "upyesp",
   "license": "MIT",
@@ -13,13 +13,17 @@
     "vscode": "^1.88.0"
   },
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Snippets"
   ],
   "keywords": [
     "calculator",
+    "calculator language",
     "units",
+    "unit conversion",
     "astronomy",
-    "language"
+    "physics",
+    "lsp"
   ],
   "activationEvents": [
     "onLanguage:epher"
@@ -73,5 +77,22 @@
     "@types/vscode": "^1.88.0",
     "esbuild": "^0.25.0",
     "typescript": "^5.4.0"
-  }
+  },
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#1c1c1e",
+    "theme": "dark"
+  },
+  "badges": [
+    {
+      "url": "https://img.shields.io/github/v/release/upyesp/epher?label=release&sort=semver",
+      "href": "https://github.com/upyesp/epher/releases/latest",
+      "description": "latest release"
+    },
+    {
+      "url": "https://github.com/upyesp/epher/actions/workflows/release.yml/badge.svg",
+      "href": "https://github.com/upyesp/epher/actions/workflows/release.yml",
+      "description": "release build"
+    }
+  ]
 }
