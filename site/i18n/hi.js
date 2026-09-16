@@ -209,7 +209,7 @@ window.EPHER_I18N["hi"] = {
   "ide-vscode-p2": "epher एक्सटेंशन VS Code के ब्राउज़़र संस्करणों, vscode.dev और github.dev के साथ भी काम करता है — किसी भी GitHub रिपॉज़िटोरी या पुल रिक्वेस्ट पर `.` दबाएुँ और VS Code को सीधा ब्राउज़़र में लॉन्च करें।",
   "ide-vscode-link": "epher-vscode.vsix डाउनलोड करें",
   "ide-cursor-title": "Cursor",
-  "ide-cursor-p1": "Cursor VS Code का एक फोर्क है: वही vsix उसी तरह इंस्टॉल होता है, Extensions दृश्य के ⋯ मेनू से, Install from VSIX। पहली बार का सर्वर डाउनलोड और हर फ़ीचर बिल्कुल वैसा ही व्यवहार करता है।",
+  "ide-cursor-p1": "Cursor VS Code का एक फोर्क है: वही vsix उसी तरह इंस्टॉल होता है — Extensions व्यू के ⋯ मेनू से, Install from VSIX। अंदर मौजूद सर्वर और हर फ़ीचर बिल्कुल वैसा ही व्यवहार करता है।",
   "ide-cursor-link": "epher-vscode.vsix डाउनलोड करें",
   "ide-vscodium-title": "VSCodium",
   "ide-vscodium-p1": "VSCodium बिना Microsoft के मार्केटप्लेस वाला VS Code है, और VSIX से इंस्टॉल बिल्कुल वैसे ही काम करता है: Extensions दृश्य, ⋯ मेनू, Install from VSIX। वही सर्वर, वही फ़ीचर, वही पूर्णतः स्थानीय व्यवहार।",

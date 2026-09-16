@@ -198,3 +198,18 @@ irrelevant at epher's document sizes.
 PATH-family IDEs (nvim, vim, Zed, Sublime, Emacs, Eclipse) consume
 them, and the desktop VS Code client is the only one that stops
 needing a download.
+
+**Scope note — why only the VS Code family rides the wasm (2026-09-16):**
+a WASI host must live in the editor's own process, and the VS Code
+family (VS Code, Cursor, VSCodium, vscode.dev/github.dev) is the
+complete set among our targets: one vsix serves all four through
+`wasm-wasi-core`. The JetBrains platform and Visual Studio spawn
+language servers as external processes and ship no WASI runtime —
+embedding one (Chicory, Wasmtime .NET) would mean carrying a second
+runtime to replace a native binary the release already provides, and
+neither embeds `wasi-threads` (the debounce thread requires it). Zed's
+extension API can only *configure* a server binary, not run a module;
+Neovim, Vim, Emacs, Sublime, and Eclipse have no in-process WASI host
+at all. Those clients keep the release's native `epher-lsp` binaries —
+downloaded on first use (JetBrains, Visual Studio) or pointed at on
+the PATH (the rest).
