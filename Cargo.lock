@@ -1114,7 +1114,7 @@ dependencies = [
 
 [[package]]
 name = "epher-cli"
-version = "0.5.40"
+version = "0.5.41"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1130,7 +1130,7 @@ dependencies = [
 
 [[package]]
 name = "epher-core"
-version = "0.5.40"
+version = "0.5.41"
 dependencies = [
  "bigdecimal",
  "js-sys",
@@ -1149,11 +1149,11 @@ dependencies = [
 
 [[package]]
 name = "epher-guide"
-version = "0.5.40"
+version = "0.5.41"
 
 [[package]]
 name = "epher-i18n"
-version = "0.5.40"
+version = "0.5.41"
 dependencies = [
  "fluent",
  "fluent-langneg 0.14.2",
@@ -1162,7 +1162,7 @@ dependencies = [
 
 [[package]]
 name = "epher-lsp"
-version = "0.5.40"
+version = "0.5.41"
 dependencies = [
  "crossbeam-channel",
  "epher-core",
@@ -1173,7 +1173,7 @@ dependencies = [
 
 [[package]]
 name = "epher-shell"
-version = "0.5.40"
+version = "0.5.41"
 dependencies = [
  "epher-core",
  "epher-i18n",
@@ -1182,7 +1182,7 @@ dependencies = [
 
 [[package]]
 name = "epher-store"
-version = "0.5.40"
+version = "0.5.41"
 dependencies = [
  "epher-core",
  "notify",
@@ -1194,7 +1194,7 @@ dependencies = [
 
 [[package]]
 name = "epher-tui"
-version = "0.5.40"
+version = "0.5.41"
 dependencies = [
  "crossterm",
  "epher-core",
@@ -1210,7 +1210,7 @@ dependencies = [
 
 [[package]]
 name = "epher-web"
-version = "0.5.40"
+version = "0.5.41"
 dependencies = [
  "console_error_panic_hook",
  "epher-core",
