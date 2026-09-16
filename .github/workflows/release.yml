@@ -117,10 +117,15 @@ jobs:
               commercial IDEs), `epher-visualstudio.vsix` for Visual
               Studio 2022, and the ready-made editor configurations
               `epher-zed.zip` (Zed), `epher-nvim.zip` (Neovim),
-              `epher-vim.zip` (Vim), and `epher-sublime.zip` (Sublime
-              Text). All are thin shells (ADR-0066) that download the
-              shared language server on first run: the
-              `epher-lsp-<target>.gz` binaries (Windows `.zip`)
+              `epher-vim.zip` (Vim), `epher-sublime.zip` (Sublime
+              Text), `epher-emacs.zip` (Emacs), and `epher-eclipse.jar`
+              (Eclipse dropins). All are thin shells (ADR-0066): the VS Code vsix
+              also serves Cursor and VSCodium and carries its server
+              inside — the same wasm module, no download; JetBrains
+              and Visual Studio download the shared language server on
+              first run; Zed, Neovim, Vim, Sublime, Emacs, and Eclipse
+              point an existing `epher-lsp` on your PATH. The
+              `epher-lsp-<target>.gz` binaries (Windows `.zip`) are
               attached to this release.
 
             - **Web app (PWA)**: https://epher.org/pwa/ — works

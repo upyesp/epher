@@ -209,7 +209,7 @@ window.EPHER_I18N["zh-CN"] = {
   "ide-vscode-p2": "epher 扩展也适用于浏览器版 VS Code（vscode.dev 和 github.dev）— 在任何 GitHub 仓库或拉取请求上按 `.`，即可直接在浏览器中启动 VS Code。",
   "ide-vscode-link": "下载 epher-vscode.vsix",
   "ide-cursor-title": "Cursor",
-  "ide-cursor-p1": "Cursor 是 VS Code 的分支：同一个 vsix 以同样的方式安装，即在“扩展”视图的“⋯”菜单中选择“从 VSIX 安装”。首次使用的服务器下载和所有功能的行为完全一致。",
+  "ide-cursor-p1": "Cursor 是 VS Code 的分支：同一个 vsix 以同样的方式安装，即在“扩展”视图的“⋯”菜单中选择“从 VSIX 安装”。内置的服务器和所有功能的行为完全一致。",
   "ide-cursor-link": "下载 epher-vscode.vsix",
   "ide-vscodium-title": "VSCodium",
   "ide-vscodium-p1": "VSCodium 是不含微软商店的 VS Code，“从 VSIX 安装”的方式完全一样：“扩展”视图、“⋯”菜单、“从 VSIX 安装”。同样的服务器、同样的功能、同样仅在本地的行为。",
