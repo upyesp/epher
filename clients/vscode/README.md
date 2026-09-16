@@ -7,35 +7,28 @@ hover with canonical signatures, and completion for the catalog, your
 own names, and the shared snippets.
 
 The Extension is a thin shell (ADR-0066). All understanding lives in
-`epher-lsp`, the shared language server, delivered two ways:
+`epher-lsp`, the shared language server — built once from the same
+commit as the extension and shipped inside the vsix as a
+`wasm32-wasip1-threads` module (`server/epher-lsp.wasm`). Desktop and
+web run that identical build; nothing is ever downloaded.
 
-**Desktop** (`main`, `out/extension.js`): downloaded on first
-activation and cached.
-
-- URL: `https://github.com/upyesp/epher/releases/download/v<extension
-  version>/epher-lsp-<target>`; an extension update re-fetches a
-  matching server.
-- Targets in the pilot: `linux-x86_64`, `linux-aarch64`,
-  `macos-aarch64`, `windows-x86_64` (`.gz`, Windows `.zip`).
-- Cache: the workspace-independent `globalStorage/bin` directory, with
-  a version marker so re-downloads only happen on extension updates.
-
-First activation needs the network once. Offline machines keep using
-the installers and today's frontends. If the download fails, editing
-still works through the TextMate baseline; only the live features are
-missing, and a window reload retries.
+**Desktop** (`main`, `out/extension.js`): the wasm module runs in the
+Node extension host through Microsoft's `ms-vscode.wasm-wasi-core`
+extension (auto-installed at install time via `extensionDependencies`;
+present on the Marketplace and Open VSX, and builtin on the web
+hosts), with the `@vscode/wasm-wasi-lsp` pipe bridge. One artifact
+covers every desktop platform VS Code ships — Windows, macOS, Linux,
+x64 and arm64 — because the engine (V8) and the threading host
+(worker_threads) are already there.
 
 **Web** (`browser`, `dist/browser.js`; vscode.dev, github.dev, any web
-extension host): the server is not downloaded — it ships inside the
-vsix as a `wasm32-wasip1-threads` module (`server/epher-lsp.wasm`)
-built from the same commit, and runs through Microsoft's
-`ms-vscode.wasm-wasi-core` extension (auto-installed via
-`extensionDependencies`, present on the Marketplace and Open VSX) with
-the `@vscode/wasm-wasi-lsp` pipe bridge. Nothing touches the network.
-If the server cannot start, the same TextMate baseline applies.
+extension host): the same module, run by the same wasm-wasi-core
+extension in its workers. Nothing touches the network.
 
-Both entry points ride the same one server source; the wasm build adds
-a target, not an implementation.
+If the server cannot start, the same TextMate baseline applies:
+editing keeps syntax highlighting and snippets; only the live
+features (diagnostics, inline answers, hover, completion) wait for a
+working host.
 
 ## The shared assets
 
@@ -46,6 +39,16 @@ syncs); never edit the copies.
 
 ## Building
 
+The wasm must be in place first (CI does this before packaging; the
+wasm is never checked in):
+
+    rustup target add wasm32-wasip1-threads
+    cargo build -p epher-lsp --target wasm32-wasip1-threads --release
+    mkdir -p server
+    cp ../../target/wasm32-wasip1-threads/release/epher-lsp.wasm server/
+
+Then:
+
     npm install
     npm run compile          # syncs shared assets, typechecks, bundles both entries
     npx @vscode/vsce package --no-dependencies
@@ -53,20 +56,6 @@ syncs); never edit the copies.
 `npm run compile` bundles the desktop entry to `out/extension.js` and
 the web entry to `dist/browser.js` with esbuild (single file each —
 the web worker allows no module loading) and typechecks both.
-
-The web build needs the server wasm in place first:
-
-    rustup target add wasm32-wasip1-threads
-    cargo build -p epher-lsp --target wasm32-wasip1-threads --release
-    mkdir -p server
-    cp ../../target/wasm32-wasip1-threads/release/epher-lsp.wasm server/
-
-CI (`build-installers.yml`) does exactly this before packaging; the
-wasm is never checked in.
-
-The Windows zip layout assumed by the downloader: the binary at the
-archive's root as `epher-lsp.exe` (the CI packaging stage fixes the
-layout; keep them in step).
 
 ## Status
 

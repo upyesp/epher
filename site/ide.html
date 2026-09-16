@@ -137,12 +137,10 @@
 
       <h2><img class="ide-logo" src="ide-logos/vscode.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vscode-title">VS Code</span></h2>
       <p data-i18n="ide-vscode-p1">
-        Install it from the vsix: Extensions view, the ⋯ menu,
-        Install from VSIX. On first use the extension downloads the
-        server for your platform (Windows x86_64, Linux x86_64 and
-        ARM64, or macOS Apple silicon) and needs the network once;
-        after that, everything is local. Open a `.epher` file and the
-        answers appear.
+        Install it from the vsix: Extensions view, the ⋯ menu, Install from
+        VSIX. The server ships inside the extension — no download, no
+        prerequisites, and it works offline on desktop and in the browser. Open
+        a `.epher` file and the answers appear.
       </p>
       <p data-i18n="ide-vscode-p2">
         The epher extension also works with the browser versions of
@@ -332,12 +330,12 @@
 
       <h2 data-i18n="ide-how-title">One language server, used by every IDE</h2>
       <p data-i18n="ide-how-p">
-        Every extension shares one program, epher-lsp: a small
-        language server (LSP) with the whole epher engine compiled
-        in. The extension is a thin shell: on first use it downloads
-        the server for your platform from the releases page and
-        caches it. Everything runs on your machine; nothing is sent
-        anywhere.
+        Every extension shares one program, epher-lsp: a small language server
+        (LSP) with the whole epher engine compiled in. The extension is a thin
+        shell: VS Code carries its server inside the extension; JetBrains and
+        Visual Studio download it on first use and cache it; the rest point at
+        an `epher-lsp` on your PATH. Everything runs on your machine; nothing is
+        sent anywhere.
       </p>
     </article>
   </main>
