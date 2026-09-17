@@ -3,7 +3,7 @@
      Screenshots are hosted on epher.org (site/img/flatpak, deployed by
      the site workflow); the release list mirrors the changelog. -->
 <component type="desktop-application">
-  <id>com.epher.Desktop</id>
+  <id>org.epher.Desktop</id>
   <metadata_license>MIT</metadata_license>
   <project_license>MIT</project_license>
   <name>epher</name>
@@ -25,7 +25,7 @@
       on your machine: no account, no network, no telemetry.
     </p>
   </description>
-  <launchable type="desktop-id">com.epher.Desktop.desktop</launchable>
+  <launchable type="desktop-id">org.epher.Desktop.desktop</launchable>
   <url type="homepage">https://epher.org</url>
   <url type="bugtracker">https://github.com/upyesp/epher/issues</url>
   <url type="help">https://epher.org/guide/en/</url>
