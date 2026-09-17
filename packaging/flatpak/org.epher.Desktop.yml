@@ -5,10 +5,10 @@
 # matched to the Sdk extension's rustc, and trunk plus wasm-bindgen-cli are
 # built in-sandbox from their own vendored sources. The GNOME Sdk ships
 # WebKitGTK 4.1, so no webkit shared module is needed. After acceptance
-# this file lives in github.com/flathub/com.epher.Desktop and Flathub's
+# this file lives in github.com/flathub/org.epher.Desktop and Flathub's
 # External Data Checker opens the version-bump PRs (x-checker-data on the
 # git tag below); this in-repo copy is the source of truth.
-app-id: com.epher.Desktop
+app-id: org.epher.Desktop
 runtime: org.gnome.Platform
 runtime-version: "50"
 sdk: org.gnome.Sdk
@@ -124,9 +124,9 @@ modules:
       - install -d /app/usr/share/epher
       - cp -r crates/web/dist/guide /app/usr/share/epher/guide
       - cp -r "epher scripts" /app/usr/share/epher/scripts
-      - install -Dm644 packaging/flatpak/com.epher.Desktop.desktop /app/usr/share/applications/com.epher.Desktop.desktop
-      - install -Dm644 packaging/flatpak/com.epher.Desktop.metainfo.xml /app/usr/share/metainfo/com.epher.Desktop.metainfo.xml
-      - install -Dm644 site/icon.svg /app/share/icons/hicolor/scalable/apps/com.epher.Desktop.svg
+      - install -Dm644 packaging/flatpak/org.epher.Desktop.desktop /app/usr/share/applications/org.epher.Desktop.desktop
+      - install -Dm644 packaging/flatpak/org.epher.Desktop.metainfo.xml /app/usr/share/metainfo/org.epher.Desktop.metainfo.xml
+      - install -Dm644 site/icon.svg /app/share/icons/hicolor/scalable/apps/org.epher.Desktop.svg
     sources:
       - type: git
         url: https://github.com/upyesp/epher.git
@@ -137,8 +137,8 @@ modules:
           tag-pattern: ^v([\d.]+)$
       - cargo-sources.json
       - type: file
-        path: com.epher.Desktop.desktop
+        path: org.epher.Desktop.desktop
       - type: file
-        path: com.epher.Desktop.metainfo.xml
+        path: org.epher.Desktop.metainfo.xml
       - type: file
         path: ../../site/icon.svg
