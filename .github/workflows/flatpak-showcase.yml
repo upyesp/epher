@@ -11,25 +11,20 @@ permissions:
 jobs:
   record:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
-      options: --privileged --user root
     steps:
       - uses: actions/checkout@v4
       - name: Install recording tools
         run: |
-          apt-get update -qq
-          apt-get install -y xvfb ffmpeg xdotool flatpak flatpak-builder
-          # the image ships an empty 'flathub' remote; replace it with the
-          # real one so dependency installs can fetch the runtimes
-          flatpak remote-delete flathub 2>/dev/null || true
-          flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          sudo apt-get update -qq
+          sudo apt-get install -y xvfb ffmpeg xdotool
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: epher.flatpak
           manifest-path: packaging/flatpak/org.epher.Desktop.yml
       - name: Install the bundle
-        run: flatpak install --user -y epher.flatpak
+        run: |
+          flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y ./epher.flatpak
       - name: Record the showcase
         run: |
           Xvfb :99 -screen 0 1440x900x24 &
@@ -43,7 +38,6 @@ jobs:
           FF=$!
           sleep 4
           WIN=$(xdotool search --name "^epher" | tail -1)
-          xdotool windowactivate $WIN || true
           type_line() {
             xdotool mousemove --window $WIN 230 33 click 1
             sleep 0.8
