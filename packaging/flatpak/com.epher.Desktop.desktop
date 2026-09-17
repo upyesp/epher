@@ -7,6 +7,6 @@ Comment=A programmable, scriptable calculator
 Exec=epher gui
 Icon=com.epher.Desktop
 Terminal=false
-Categories=Science;Math;Education;
+Categories=Science;Math;
 Keywords=calculator;math;graph;script;
 StartupNotify=true

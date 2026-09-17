@@ -1,0 +1,27 @@
+# Proves the Flathub manifest builds on a real runner (ADR-0061). The
+# manifest is the same file Flathub's buildbot compiles; a green run here
+# means runtime bumps, rust-stable updates, or dependency drift get caught
+# in this repo instead of in the public submission PR.
+name: flatpak build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [staging, main]
+    paths:
+      - packaging/flatpak/**
+      - Cargo.lock
+      - crates/**
+      - site/icon.svg
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: flatpak/flatpak-github-action@master
+        with:
+          manifest-path: packaging/flatpak/com.epher.Desktop.yml
+          flathub-repo: https://dl.flathub.org/repo/flathub.flatpakrepo
+          bundle: epher.flatpak
