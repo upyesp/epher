@@ -348,7 +348,7 @@ user `const` of the same name shadows it by the resolution order.
 | `e` | `2.718281828459045` | Euler's number, the natural-log base |
 | `phi` | `1.618033988749895` | the golden ratio, (1+√5)/2 |
 | `gamma` | `0.5772156649015329` | the Euler–Mascheroni constant |
-| `i` | `0+1i (the imaginary unit)` | the imaginary unit, the one reserved name (assignment refuses it) |
+| `i` | `0+1i (the imaginary unit)` | the imaginary unit: the one reserved name (assignment refuses it) |
 
 ### 9.2 Astronomy
 
@@ -438,7 +438,7 @@ count or kinds is a type error that names the function, e.g.
 | `sqrt(q)` | square root; negative reals fall back to complex; quantities need even dimensions |
 | `cbrt(z)` | real cube root (principal complex root for complex) |
 | `root(n, x)` | real `n`-th root; odd roots of negatives are negative |
-| `abs(z)` | magnitude, for complex, distance from the origin |
+| `abs(z)` | magnitude: for complex, distance from the origin |
 | `floor(x)`, `ceil(x)`, `trunc(x)` | round down, up, toward zero |
 | `round(x)` | half away from zero, like a calculator |
 | `sign(x)` | `-1`, `0`, or `1` |
@@ -470,7 +470,7 @@ count or kinds is a type error that names the function, e.g.
 |---|---|
 | `exact(x)` | the rational behind a float, when one agrees through all twelve displayed digits (`exact(0.3333333333333333)` is `1/3`); irrationals pass through |
 | `frac(n, d)` | the exact fraction `n/d` |
-| `bin(n)`, `oct(n)`, `hex(n)` | spelling with prefix, `bin(10)` is `0b1010`; negatives keep the sign on the prefix |
+| `bin(n)`, `oct(n)`, `hex(n)` | spelling with prefix: `bin(10)` is `0b1010`; negatives keep the sign on the prefix |
 | `dec(x)` | the value as an exact decimal |
 | `big(x)` | the value as an exact (big) integer |
 | `scientific(x)` | the value in scientific notation, as text |
@@ -491,7 +491,7 @@ Integers the float type reaches exactly (`|n| < 2^53`).
 | `isprime(n)` | whether `n` is prime (deterministic Miller–Rabin) |
 | `nextprime(n)`, `prevprime(n)` | nearest prime above/below |
 | `modpow(b, e, m)` | `b` to the `e` modulo `m`, exact via big integers |
-| `mod(a, b)` | truncated remainder, the sign of the dividend |
+| `mod(a, b)` | truncated remainder: the sign of the dividend |
 | `totient(n)` | Euler's totient |
 | `ndivisors(n)` | how many whole numbers divide `n` |
 | `factors(n)` | the prime factorization, as text: `factors(360)` is `2^3 * 3^2 * 5` |
