@@ -37,7 +37,7 @@ jobs:
           XVFB=$!
           sleep 2
           export DISPLAY=:99
-          flatpak run com.epher.Desktop > app.log 2>&1 &
+          flatpak run org.epher.Desktop > app.log 2>&1 &
           sleep 25
           echo "--- app log so far ---"
           cat app.log || true
