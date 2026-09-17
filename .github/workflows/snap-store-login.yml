@@ -29,7 +29,11 @@ jobs:
       SNAPCRAFT_STORE_AUTH: candid
     steps:
       - name: Install snapcraft
-        run: sudo snap install snapcraft --classic
+        # snapcraft 9 removed the candid login path this workflow uses
+        # (SNAPCRAFT_STORE_AUTH=candid now errors); the 8.x track keeps
+        # the device flow that works on a headless runner. Revisit when
+        # migrating the provisioning to the 9.x Ubuntu One prompt flow.
+        run: sudo snap install snapcraft --classic --channel=8.x/stable
 
       - name: Install keyring support (snapcraft stores credentials in a Secret Service keyring)
         run: |
