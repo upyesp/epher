@@ -909,6 +909,25 @@ fn mobile_layout() -> bool {
         .unwrap_or(false)
 }
 
+/// Put text in the expression entry with the cursor at its end, and on
+/// desktop layouts focus the entry. Loading a history pick, a shared
+/// link (ADR-0038), and a double-clicked `.epher` file (ADR-0069) all
+/// stage contents this way: placed, never auto-evaluated.
+fn stage_in_entry(
+    input: &UseStateHandle<String>,
+    cursor_cell: &UseStateHandle<Rc<RefCell<(usize, usize)>>>,
+    input_ref: &yew::NodeRef,
+    text: String,
+) {
+    input.set(text.clone());
+    *cursor_cell.borrow_mut() = (text.chars().count(), text.chars().count());
+    if !mobile_layout() {
+        if let Some(ta) = input_ref.cast::<HtmlTextAreaElement>() {
+            let _ = ta.focus();
+        }
+    }
+}
+
 /// One active grab-bar drag (ADR-0060): where the gesture began, the
 /// heights it works between, and the flick velocity. Lives in a cell
 /// the pointer handlers read and write without re-rendering — the
@@ -2958,6 +2977,30 @@ fn epher_app() -> Html {
                 // TUI's, the REPL's, a one-shot CLI run's — reapplies the
                 // shared state immediately (ADR-0010 amendment).
                 Bridge::listen_store_changed(apply_store_state.clone());
+                // A `.epher` file opened while the app runs (macOS
+                // document-open) stages in the entry like a history pick
+                // (ADR-0069).
+                {
+                    let input = input.clone();
+                    let cursor_cell = cursor_cell.clone();
+                    let input_ref = input_ref.clone();
+                    Bridge::listen_open_script(move |text| {
+                        stage_in_entry(&input, &cursor_cell, &input_ref, text);
+                    });
+                }
+                // The launch-time open (double-click association, the
+                // desktop entry's `gui %f`): the shell kept the file until
+                // the webview was ready; ask for it once (ADR-0069).
+                {
+                    let input = input.clone();
+                    let cursor_cell = cursor_cell.clone();
+                    let input_ref = input_ref.clone();
+                    spawn_local(async move {
+                        if let Some(file) = bridge.take_open_file().await {
+                            stage_in_entry(&input, &cursor_cell, &input_ref, file.content);
+                        }
+                    });
+                }
             } else {
                 // The web app persists its theme and language overrides in
                 // localStorage (no native store here, ADR-0010).

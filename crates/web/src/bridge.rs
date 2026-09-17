@@ -23,6 +23,14 @@ pub struct InitState {
     pub session: std::collections::HashMap<String, epher_core::Value>,
 }
 
+/// The script file the OS handed the desktop launch (double-click on a
+/// `.epher` file, ADR-0069): the shell kept it until the webview asked.
+#[derive(Debug, Default, Deserialize)]
+pub struct OpenFile {
+    pub name: String,
+    pub content: String,
+}
+
 /// Which persistence backend this frontend instance can reach.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Bridge {
@@ -54,6 +62,60 @@ impl Bridge {
             .await
             .map_err(js_err)?;
         serde_wasm_bindgen::from_value(value).map_err(|e| e.to_string())
+    }
+
+    /// Ask the desktop shell for the script file the launch opened (a
+    /// double-clicked `.epher` file, ADR-0069). The shell holds the file
+    /// until this call consumes it, so a launch-time open is never lost
+    /// to a listener that was not registered yet. The browser build has
+    /// no shell: always `None`.
+    pub async fn take_open_file(self) -> Option<OpenFile> {
+        if self != Bridge::Tauri {
+            return None;
+        }
+        let value = self.invoke("take_open_file", &JsValue::UNDEFINED).await.ok()?;
+        if value.is_null() || value.is_undefined() {
+            return None;
+        }
+        serde_wasm_bindgen::from_value(value).ok()
+    }
+
+    /// Subscribe to `.epher` files opened while the app runs (macOS
+    /// document-open events, ADR-0069): each arrives as the file's
+    /// contents.
+    pub fn listen_open_script(cb: impl Fn(String) + 'static) {
+        let Some(window) = web_sys::window() else {
+            return;
+        };
+        let tauri_marker = JsValue::from_str("__TAURI__");
+        let Ok(tauri) = js_sys::Reflect::get(&window, &tauri_marker) else {
+            return;
+        };
+        if tauri.is_undefined() || tauri.is_null() {
+            return;
+        }
+        let Ok(event_api) = js_sys::Reflect::get(&tauri, &JsValue::from_str("event")) else {
+            return;
+        };
+        let Ok(listen_fn) = js_sys::Reflect::get(&event_api, &JsValue::from_str("listen")) else {
+            return;
+        };
+        let Ok(listen_fn) = listen_fn.dyn_into::<js_sys::Function>() else {
+            return;
+        };
+        let handler = Closure::wrap(Box::new(move |ev: JsValue| {
+            if let Ok(payload) = js_sys::Reflect::get(&ev, &JsValue::from_str("payload")) {
+                if let Ok(content) = serde_wasm_bindgen::from_value::<String>(payload) {
+                    cb(content);
+                }
+            }
+        }) as Box<dyn FnMut(JsValue)>);
+        let _ = listen_fn.call2(
+            &event_api,
+            &JsValue::from_str("open-script"),
+            handler.as_ref(),
+        );
+        handler.forget();
     }
 
     /// Subscribe to the desktop shell's `store-changed` broadcasts
