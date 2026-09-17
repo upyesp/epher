@@ -627,7 +627,7 @@ Target state, per store:
 4. **Sublime**: decide whether a channel presence is worth a root-package
    repo; if yes, one PR to `sublimehq/package_control_channel`, then tags
    only.
-5. **Snap**: done (2026-09-17) — the credential is provisioned
+5. **Snap**: done (2026-09-17); the credential is provisioned
    (`--snaps=epher --channels=stable --acls=package_upload`, one-year
    default expiry). Rotate with the same local craft-store procedure
    before 2027-09-17; the `whoami` `expires:` line is the canary hook.
