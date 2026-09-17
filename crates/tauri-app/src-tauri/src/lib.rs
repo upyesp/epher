@@ -7,12 +7,27 @@
 //! evaluation itself stays in the webview on the wasm core.
 
 use std::path::PathBuf;
+use std::sync::Mutex;
 
 use clap::Parser;
 use epher_store::persist;
 use epher_store::{DocStore, FsStore};
 use serde::Serialize;
 use tauri::{Emitter, Manager, State};
+
+/// The script file the OS handed this launch (a double-clicked `.epher`
+/// file: the Linux desktop entry's `gui %f`, the Windows file
+/// association, `epher gui plan.epher`). The webview consumes it through
+/// [`take_open_file`] once it has mounted — file-open events can arrive
+/// before the page is ready, so the shell holds the path until then.
+pub struct PendingOpen(pub Mutex<Option<PathBuf>>);
+
+/// The answer to `take_open_file`: the opened file's name and contents.
+#[derive(Debug, Serialize)]
+pub struct OpenFile {
+    pub name: String,
+    pub content: String,
+}
 
 /// The desktop's native store: one instance, managed by Tauri and shared by
 /// every command.
@@ -188,6 +203,20 @@ fn save_separators(state: State<DesktopStore>, separators: bool) -> Result<(), S
     state.save_separators(separators).map_err(|e| e.to_string())
 }
 
+/// The script the OS handed the launch, consumed once by the webview.
+/// `None` after the first ask (and in browser builds, where the command
+/// does not exist).
+#[tauri::command]
+fn take_open_file(pending: State<PendingOpen>) -> Option<OpenFile> {
+    let path = pending.0.lock().ok()?.take()?;
+    let content = std::fs::read_to_string(&path).ok()?;
+    let name = path
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_default();
+    Some(OpenFile { name, content })
+}
+
 /// File → Quit (ADR-0023): close the app's last window; Tauri exits the
 /// process when none remain.
 #[tauri::command]
@@ -308,9 +337,17 @@ async fn install_cli() -> Result<String, String> {
 /// terminal.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    run_desktop(None);
+}
+
+/// The desktop GUI with an optional script the OS handed the launch (the
+/// `.epher` file association): it lands in [`PendingOpen`] for the
+/// webview to pick up.
+fn run_desktop(pending_script: Option<PathBuf>) {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(DesktopStore::with_dir(persist::default_store_dir()))
+        .manage(PendingOpen(Mutex::new(pending_script)))
         .invoke_handler(tauri::generate_handler![
             init,
             save_function,
@@ -327,6 +364,7 @@ pub fn run() {
             install_cli,
             save_file_dialog,
             save_png_dialog,
+            take_open_file,
             quit,
             open_url
         ])
@@ -389,8 +427,37 @@ pub fn run() {
             }
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| {
+            // macOS hands the app opened documents (Finder double-click
+            // on an associated file, drag onto the dock icon) through
+            // the Apple open event, launch time or later. Windows and
+            // Linux deliver files as argv instead, handled in
+            // [`run_with_args`]. Stage the file for the webview AND
+            // broadcast: launch-time events beat the page's listener
+            // (the pending slot covers that), later events need the
+            // broadcast (the page is live).
+            #[cfg(any(target_os = "macos", target_os = "ios", target_os = "android"))]
+            if let tauri::RunEvent::Opened { urls } = event {
+                for url in urls {
+                    if url.scheme() != "file" {
+                        continue;
+                    }
+                    let Ok(path) = url.to_file_path() else {
+                        continue;
+                    };
+                    if let Ok(mut slot) = app.state::<PendingOpen>().0.lock() {
+                        *slot = Some(path.clone());
+                    }
+                    if let Ok(content) = std::fs::read_to_string(&path) {
+                        let _ = app.emit("open-script", content);
+                    }
+                }
+            }
+            #[cfg(not(any(target_os = "macos", target_os = "ios", target_os = "android")))]
+            let _ = (app, event);
+        });
 }
 
 /// The unified-binary entry point (ADR-0011): parse arguments with
@@ -409,6 +476,12 @@ where
         dispatch::Action::OneShot(expr) => epher_cli::run_one_shot(&expr),
         dispatch::Action::Stdin => epher_cli::run_stdin_and_exit(),
         dispatch::Action::ScriptFile(path) => {
+            // The association's target build has no console: route the
+            // script to the window instead of invisible terminal output.
+            if is_gui_subsystem_binary() {
+                launch_gui(Some(path));
+                return;
+            }
             epher_cli::run_script_file(&path).and_then(|failed| {
                 if failed {
                     std::process::exit(1);
@@ -424,8 +497,8 @@ where
         dispatch::Action::Tui => {
             epher_tui::run().map_err(|e| epher_core::EpherError::Io(e.to_string()))
         }
-        dispatch::Action::Gui => {
-            launch_gui();
+        dispatch::Action::Gui(file) => {
+            launch_gui(file);
             return;
         }
         dispatch::Action::HelpManual => std::process::exit(epher_cli::help::manual()),
@@ -453,16 +526,20 @@ where
 /// `DETACHED_PROCESS` child having no console to begin with) stops the
 /// chain after one hop. On macOS/Linux the GUI runs in-process in the
 /// foreground, like any GUI binary run from a terminal.
-fn launch_gui() {
+fn launch_gui(pending: Option<PathBuf>) {
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
         const DETACHED_PROCESS: u32 = 0x0000_0008;
         let exe = std::env::current_exe().unwrap_or_default();
-        let is_gui_build = exe.file_stem().is_some_and(|s| s == "epher-gui");
+        let is_gui_build = exe_is_gui_build(&exe);
         if !is_gui_build && std::env::var_os("EPHER_GUI_CHILD").is_none() {
             for candidate in gui_launch_candidates(&exe) {
+                // The script path (when the association or `epher gui
+                // plan.epher` handed one over) rides argv: the GUI build
+                // treats a script argument as "stage it in the entry".
                 let spawned = std::process::Command::new(&candidate)
+                    .args(pending.iter())
                     .env("EPHER_GUI_CHILD", "1")
                     .creation_flags(DETACHED_PROCESS)
                     .stdin(std::process::Stdio::null())
@@ -476,7 +553,25 @@ fn launch_gui() {
             }
         }
     }
-    run();
+    #[cfg(not(windows))]
+    let _ = &pending;
+    run_desktop(pending);
+}
+
+/// Is this process the GUI-subsystem Windows build (`epher-gui.exe`, the
+/// file association's target, ADR-0011)? That binary exists for
+/// double-clicks and has no console, so a script argument can only mean
+/// "open it in the window", never "print answers somewhere invisible".
+fn is_gui_subsystem_binary() -> bool {
+    std::env::current_exe()
+        .map(|exe| exe_is_gui_build(&exe))
+        .unwrap_or(false)
+}
+
+/// The name half of [`is_gui_subsystem_binary`], pure so it is testable
+/// on any host.
+fn exe_is_gui_build(exe: &std::path::Path) -> bool {
+    exe.file_stem().is_some_and(|stem| stem == "epher-gui")
 }
 
 /// The Windows GUI-spawn candidates for the console binary at `current_exe`:
@@ -597,5 +692,16 @@ mod tests {
         use std::path::Path;
         let exe = Path::new("C:/Program Files/epher/epher-gui.exe");
         assert_eq!(exe.file_stem().and_then(|s| s.to_str()), Some("epher-gui"));
+    }
+
+    #[test]
+    fn the_association_target_build_is_recognized_by_name() {
+        use std::path::Path;
+        assert!(exe_is_gui_build(Path::new("C:/Program Files/epher/epher-gui.exe")));
+        assert!(exe_is_gui_build(Path::new("/usr/bin/epher-gui")));
+        // the console unified binary and anything else are terminal
+        // programs: their script arguments stay terminal output
+        assert!(!exe_is_gui_build(Path::new("/usr/bin/epher")));
+        assert!(!exe_is_gui_build(Path::new("C:/Program Files/epher/epher.exe")));
     }
 }

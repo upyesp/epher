@@ -90,8 +90,15 @@ pub enum Command {
     /// Start the desktop app.
     ///
     /// The windowed application — the same thing a bare `epher` with no
-    /// arguments starts.
-    Gui,
+    /// arguments starts. A script path stages it in the entry box, the
+    /// same contents a history pick loads; that is how the desktop
+    /// file's double-click association opens a `.epher` file
+    /// (`epher gui plan.epher`).
+    Gui {
+        /// A script file to stage in the desktop app's entry box.
+        #[arg(value_name = "SCRIPT")]
+        file: Option<std::path::PathBuf>,
+    },
 
     /// Print the manual, or help for a subcommand.
     ///
@@ -123,8 +130,8 @@ pub enum Action {
     Repl,
     /// Full-screen terminal UI.
     Tui,
-    /// Desktop GUI.
-    Gui,
+    /// Desktop GUI, with the script file to stage, if any.
+    Gui(Option<std::path::PathBuf>),
     /// Show the manual: `man epher` when installed, else the long help.
     HelpManual,
     /// Show help for one subcommand (may turn out to be an unknown name —
@@ -141,7 +148,7 @@ pub fn action_from(args: &Args) -> Action {
         return match command {
             Command::Repl => Action::Repl,
             Command::Tui => Action::Tui,
-            Command::Gui => Action::Gui,
+            Command::Gui { file } => Action::Gui(file.clone()),
             Command::Help { command: None } => Action::HelpManual,
             Command::Help {
                 command: Some(topic),
@@ -165,7 +172,7 @@ pub fn action_from(args: &Args) -> Action {
         // error, and `epher plots/sine.es` too.
         Some(expr) if looks_like_path(expr) => Action::MissingScriptFile(expr.to_string()),
         Some(expr) => Action::OneShot(expr.to_string()),
-        None => Action::Gui,
+        None => Action::Gui(None),
     }
 }
 

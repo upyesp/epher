@@ -28,7 +28,7 @@ fn main() {
         Action::Repl => epher_cli::run_repl(),
         Action::HelpManual => std::process::exit(epher_cli::help::manual()),
         Action::HelpTopic(topic) => epher_cli::help::topic(&topic),
-        Action::Tui | Action::Gui => {
+        Action::Tui | Action::Gui(_) => {
             epher_cli::term::error(
                 "the tui/gui frontends are part of the unified `epher` binary, not this dev binary",
             );

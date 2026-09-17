@@ -31,6 +31,15 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "fileAssociations": [
+      {
+        "ext": ["epher"],
+        "name": "epher.script",
+        "description": "epher calculation script",
+        "mimeType": "application/x-epher",
+        "role": "Editor"
+      }
+    ],
     "resources": {
       "../../../site/guide/*.md": "guide/",
       "../../../epher scripts": "scripts"
@@ -53,8 +62,10 @@
         "files": {
           "/usr/share/man/man1/epher.1": "../../../packaging/man/epher.1",
           "/usr/share/icons/hicolor/scalable/apps/epher.svg": "../../../site/icon.svg",
-          "/usr/share/pixmaps/epher.png": "icons/256x256.png"
+          "/usr/share/pixmaps/epher.png": "icons/256x256.png",
+          "/usr/share/mime/packages/epher.xml": "../../../packaging/mime/epher.xml"
         },
+        "desktopTemplate": "../../../packaging/desktop/epher.desktop.hbs",
         "postInstallScript": "../../../packaging/postinst.sh",
         "postRemoveScript": "../../../packaging/postrm.sh"
       },
@@ -62,8 +73,10 @@
         "files": {
           "/usr/share/man/man1/epher.1": "../../../packaging/man/epher.1",
           "/usr/share/icons/hicolor/scalable/apps/epher.svg": "../../../site/icon.svg",
-          "/usr/share/pixmaps/epher.png": "icons/256x256.png"
+          "/usr/share/pixmaps/epher.png": "icons/256x256.png",
+          "/usr/share/mime/packages/epher.xml": "../../../packaging/mime/epher.xml"
         },
+        "desktopTemplate": "../../../packaging/desktop/epher.desktop.hbs",
         "postInstallScript": "../../../packaging/postinst.sh",
         "postRemoveScript": "../../../packaging/postrm.sh"
       }

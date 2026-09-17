@@ -16,4 +16,7 @@ esac
 for home in /home/* /root; do
   [ -d "$home/.epher" ] && rm -rf "$home/.epher"
 done
+if command -v update-mime-database >/dev/null 2>&1; then
+  update-mime-database /usr/share/mime || true
+fi
 exit 0

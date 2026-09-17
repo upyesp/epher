@@ -17,12 +17,20 @@ fn parse(args: &[&str]) -> Action {
 
 #[test]
 fn bare_epher_opens_the_gui() {
-    assert_eq!(parse(&[]), Action::Gui);
+    assert_eq!(parse(&[]), Action::Gui(None));
 }
 
 #[test]
 fn gui_subcommand_is_explicit_gui() {
-    assert_eq!(parse(&["gui"]), Action::Gui);
+    assert_eq!(parse(&["gui"]), Action::Gui(None));
+}
+
+#[test]
+fn gui_subcommand_takes_a_script_to_stage() {
+    assert_eq!(
+        parse(&["gui", "plan.epher"]),
+        Action::Gui(Some("plan.epher".into()))
+    );
 }
 
 #[test]
