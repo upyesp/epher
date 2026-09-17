@@ -16,7 +16,7 @@ jobs:
       - name: Install recording tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y xvfb ffmpeg xdotool flatpak
+          sudo apt-get install -y xvfb ffmpeg xdotool flatpak flatpak-builder
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: epher.flatpak
