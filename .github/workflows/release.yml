@@ -3,29 +3,29 @@
 #   git tag v0.4.1 && git push origin v0.4.1
 #
 # Public releases only (ADR-0062): a tag push is the last act of a
-# promotion — the staged batch was built, previewed, and tested as a
+# promotion: the staged batch was built, previewed, and tested as a
 # hidden draft (staging-build.yml) before main moved and this tag was
 # pushed. Nothing else pushes v* tags; main is protected against
 # everything but the promotion pull request.
 #
 # One download per platform (ADR-0011): each installer carries the unified
-# `epher` executable — one-shot CLI, REPL (`epher repl`), piped scripts
+# `epher` executable: one-shot CLI, REPL (`epher repl`), piped scripts
 # (`epher -`), TUI (`epher tui`), and the desktop GUI (bare `epher` /
 # `epher gui`). Windows installs two subsystem builds of the same program
 # (console `epher.exe` on PATH; GUI-subsystem `epher-gui.exe` as the
-# double-click target — no console flash); macOS/Linux install the single
+# double-click target: no console flash); macOS/Linux install the single
 # binary. On Windows the NSIS installer adds the install directory to the
 # user PATH (nsis-hooks.nsh), and a hook Files the console build next to
-# the GUI main binary — `bundle.resources` cannot (tauri-build copies
+# the GUI main binary: `bundle.resources` cannot (tauri-build copies
 # resources during cargo build, before the sibling binary exists).
 #
-# Asset names (stable — the landing page links to these):
+# Asset names (stable: the landing page links to these):
 #   epher-windows-x86_64.exe        Windows installer (NSIS)
-#   epher-macos-aarch64.dmg         macOS disk image (Apple Silicon only —
+#   epher-macos-aarch64.dmg         macOS disk image (Apple Silicon only: 
 #                                   ADR-0025 dropped the Intel build)
 #   epher-linux-x86_64.deb          Debian/Ubuntu and derivatives
 #   epher-linux-x86_64.rpm          Fedora/RHEL and derivatives
-#   epher-linux-x86_64.AppImage     everything else, incl. Arch — runs as-is
+#   epher-linux-x86_64.AppImage     everything else, incl. Arch: runs as-is
 #   epher-linux-aarch64.*           the same three, ARM64 (ADR-0061)
 #
 # The language server rides the same release (ADR-0066): the shared
@@ -46,12 +46,12 @@
 #
 # The builds carry no developer identity: Windows is unsigned, macOS is
 # ad-hoc signed (a valid signature, so Gatekeeper's "damaged" check
-# passes) — first launch shows the ordinary overridable warning, and the
+# passes): first launch shows the ordinary overridable warning, and the
 # guide documents the right-click → Open path for each OS.
 #
 # The Linux legs pin ubuntu-22.04 and ubuntu-22.04-arm (glibc 2.35) so
 # the shipped binaries run on Debian 12, Ubuntu 22.04+, and every newer
-# distro — both architectures support the same set (ADR-0061); building
+# distro: both architectures support the same set (ADR-0061); building
 # on ubuntu-latest would require glibc 2.39 and break those systems.
 name: release
 
@@ -90,13 +90,13 @@ jobs:
           files: assets/*
           generate_release_notes: true
           body: |
-            epher ${{ github.ref_name }} — one install, every frontend.
+            epher ${{ github.ref_name }}, one install, every frontend.
 
             Each platform ships a single download: the one-shot CLI, the
             REPL (`epher repl`), piped scripts (`epher -`), the terminal UI
             (`epher tui`), and the desktop app (bare `epher` / `epher gui`).
 
-            - **Windows**: run `epher-windows-x86_64.exe` — the installer puts
+            - **Windows**: run `epher-windows-x86_64.exe`, the installer puts
               `epher` on your PATH (open a new terminal, then `epher "2 + 2"`).
               Desktop launches open the window with no console flash.
             - **macOS**: open `epher-macos-aarch64.dmg` (Apple Silicon) and
@@ -121,19 +121,19 @@ jobs:
               Text), `epher-emacs.zip` (Emacs), and `epher-eclipse.jar`
               (Eclipse dropins). All are thin shells (ADR-0066): the VS Code vsix
               also serves Cursor and VSCodium and carries its server
-              inside — the same wasm module, no download; JetBrains
+              inside, the same wasm module, no download; JetBrains
               and Visual Studio download the shared language server on
               first run; Zed, Neovim, Vim, Sublime, Emacs, and Eclipse
               point an existing `epher-lsp` on your PATH. The
               `epher-lsp-<target>.gz` binaries (Windows `.zip`) are
               attached to this release.
 
-            - **Web app (PWA)**: https://epher.org/pwa/ — works
+            - **Web app (PWA)**: https://epher.org/pwa/, works
               fully offline.
 
             > Note: the builds carry no developer identity. Windows is
             > unsigned (choose *More info* → *Run anyway*). macOS is
-            > ad-hoc signed — first launch: right-click epher → **Open**,
+            > ad-hoc signed, first launch: right-click epher → **Open**,
             > or System Settings → Privacy & Security → *Open Anyway*.
 
   linux-repos:
@@ -195,7 +195,7 @@ jobs:
           mkdir -p apt/pool/main/e/epher
           # Latest only (ADR-0061): the repo carries exactly the
           # current release under its canonical pool name. (Before the
-          # loop — inside it, the arm64 pass deletes the amd64 copy.)
+          # loop, inside it, the arm64 pass deletes the amd64 copy.)
           rm -f apt/pool/main/e/epher/*.deb
           for arch in amd64 arm64; do
             # Release artifacts use the Rust target name; the apt pool
@@ -209,7 +209,7 @@ jobs:
           mkdir -p apt/dists/stable/main/binary-amd64 apt/dists/stable/main/binary-arm64
           (
             cd apt
-            # Index each deb directly — that pins the Filename field to
+            # Index each deb directly, that pins the Filename field to
             # the pool path and keeps each suite's Packages file to its
             # own architecture (apt-ftparchive has no --arch filter).
             for arch in amd64 arm64; do
@@ -224,7 +224,7 @@ jobs:
               -o APT::FTPArchive::Release::Codename=stable \
               -o 'APT::FTPArchive::Release::Architectures=amd64 arm64' \
               -o APT::FTPArchive::Release::Components=main \
-              -o APT::FTPArchive::Release::Description="epher — a programmable, scriptable calculator" \
+              -o APT::FTPArchive::Release::Description="epher, a programmable, scriptable calculator" \
               release dists/stable > dists/stable/Release
             gpg $GPG_OPTS --armor --detach-sign --local-user "$KEYID" \
               -o dists/stable/Release.gpg dists/stable/Release
@@ -232,7 +232,7 @@ jobs:
               -o dists/stable/InRelease dists/stable/Release
           )
           # Binary keyring, not armored: apt's signed-by on Debian 12
-          # (apt 2.6) cannot verify an armored key — it fails with
+          # (apt 2.6) cannot verify an armored key; it fails with
           # NO_PUBKEY. dnf accepts either format.
           gpg --batch --export "$KEYID" > apt/KEY.gpg
 
@@ -247,7 +247,7 @@ jobs:
           cp assets/epher-linux-x86_64.rpm rpm/x86_64/
           cp assets/epher-linux-aarch64.rpm rpm/aarch64/
           # Latest only (ADR-0061): each publish replaces the tree.
-          # Tree layout: rpm/<arch> — epher.repo's baseurl is
+          # Tree layout: rpm/<arch>, epher.repo's baseurl is
           # https://epher.org/rpm/$basearch, so repodata must live at
           # rpm/<arch>/repodata (the smoke container checks exactly
           # that path).
@@ -366,7 +366,7 @@ jobs:
             exit 0
           fi
           # action-build leaves the .snap beside the manifest, not in the
-          # repo root — find it wherever it landed.
+          # repo root, find it wherever it landed.
           SNAP_FILE=$(find . -name "epher_${VERSION#v}_${ARCH}.snap" | head -1)
           if [ -z "$SNAP_FILE" ]; then
             echo "::error::built snap not found: epher_${VERSION#v}_${ARCH}.snap"

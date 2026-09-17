@@ -166,7 +166,7 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 
 ; ---------------------------------------------------------------------------
 ; epher light theme (ADR-0025, revised by ADR-0026, lightened by ADR-0028):
-; the installer and uninstaller use the OFFICIAL MUI2 mechanism only —
+; the installer and uninstaller use the OFFICIAL MUI2 mechanism only,
 ; MUI_BGCOLOR / MUI_TEXTCOLOR (header area, welcome/finish pages), the
 ; header/sidebar bitmaps, and MUI_INSTFILESPAGE_COLORS (install log).
 ; No SetCtlColors control repainting: v0.4.13's per-control paint walk
@@ -176,12 +176,12 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 ; corrupted proc.
 ;
 ; v0.4.13–v0.4.15 used a dark theme, but MUI2 can only darken the pages
-; it paints — the nsDialogs reinstall page and every native control stay
+; it paints; the nsDialogs reinstall page and every native control stay
 ; light (classic dialog gray), so the wizard mixed dark and light pages.
 ; ADR-0028 lightens the whole theme to the classic dialog gray so every
 ; page matches: MUI_BGCOLOR F0F0F0, black text, a light install log, and
 ; light header/sidebar bitmaps. The header bitmap (shown in the top-left
-; corner of every page — MUI2's default header layout, no
+; corner of every page, MUI2's default header layout, no
 ; MUI_HEADERIMAGE_RIGHT) carries the epher logo; the sidebar bitmap
 ; (welcome/finish pages) carries a larger mark. The uninstaller shares
 ; both bitmaps.
@@ -479,7 +479,7 @@ Function un.ConfirmShow ; Add add a `Delete app data` check box
   Pop $DeleteAppDataCheckbox
   SendMessage $HWNDPARENT ${WM_GETFONT} 0 0 $1
   SendMessage $DeleteAppDataCheckbox ${WM_SETFONT} $1 1
-  ; ADR-0025: "delete app data" starts checked — uninstalling leaves a
+  ; ADR-0025: "delete app data" starts checked, uninstalling leaves a
   ; clean slate (history, functions, constants) so a reinstall starts
   ; fresh. The user can still untick it.
   SendMessage $DeleteAppDataCheckbox ${BM_SETCHECK} ${BST_CHECKED} 0
@@ -506,13 +506,13 @@ FunctionEnd
 Function .onInit
   ; ADR-0028: the finish-page checkboxes ("Run epher", "Create
   ; desktop shortcut") are drawn with the CLASSIC button colors after
-  ; MUI2 strips their visual theme — and SetCtlColors cannot recolor
+  ; MUI2 strips their visual theme, and SetCtlColors cannot recolor
   ; checkbox text (NSIS bug #443). The light theme needs classic-dark
   ; text on its light pages; COLOR_BTNTEXT is the classic-control text
   ; color, and pointing it at black pins it deterministically (classic
   ; controls default to it anyway; the call makes the light theme
   ; explicit and independent of the user's system color choices).
-  ; One system call, no window procs touched — nothing can lock.
+  ; One system call, no window procs touched; nothing can lock.
   System::Call 'user32::SetSysColors(i 1, *i 18, *i 0x000000)'
 
   ${GetOptions} $CMDLINE "/P" $PassiveMode
@@ -794,7 +794,7 @@ Function .onInstSuccess
 FunctionEnd
 
 Function un.onInit
-  ; ADR-0028: same classic-control text color as the installer — the
+  ; ADR-0028: same classic-control text color as the installer, the
   ; light theme pins COLOR_BTNTEXT to black (see .onInit).
   System::Call 'user32::SetSysColors(i 1, *i 18, *i 0x000000)'
 

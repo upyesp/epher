@@ -1,4 +1,4 @@
-# ADR-0044: the data platform — lists, statistics, linear regression, data plots, table upgrades, and tests
+# ADR-0044: the data platform: lists, statistics, linear regression, data plots, table upgrades, and tests
 
 - Status: accepted
 - Date: 2026-09-01
@@ -10,7 +10,7 @@ Rounds 1 and 2 shipped the quick wins and the core block. The data
 platform is the statistics-class expectation: a named column of
 numbers, statistics over it, linear regression with a fitted-curve
 overlay, data plots (histogram, box-and-whisker, scatter), a richer
-table of values, and hypothesis tests with confidence intervals — the
+table of values, and hypothesis tests with confidence intervals, the
 z/t/chi-squared appliance of the stats course. Hypothesis tests need
 the probability distributions first (T2.2), which this round pulls in
 as a prerequisite. Eight of the nine researched apps have lists, data
@@ -24,7 +24,7 @@ plots, and regression; six have tests and intervals.
   (any count, including zero). The literal is `{1, 2, 3}` (NumWorks
   spelling, the user's chosen answer); elements are expressions, so
   `{1, 2 + 3, pi}` works. Lists nest only through variables: `d =
-  {1, 2, 3}` binds one, and a list element must be a number — complex
+  {1, 2, 3}` binds one, and a list element must be a number, complex
   values are rejected with a type error.
 - Element access is a postfix index: `d[2]` is the second element,
   1-based like the researched calculators. The index is any integer
@@ -43,7 +43,7 @@ plots, and regression; six have tests and intervals.
   1..3 (TI-style median-of-halves). All statistics reject complex
   elements; an empty list is a domain error.
 - `linreg(xs, ys)` fits the least-squares line: two same-length
-  numeric lists in, a display string out — `y = 2*x + 1 (r = 1)` —
+  numeric lists in, a display string out, `y = 2*x + 1 (r = 1)`,
   like solve's result spelling. The fitted line is a display, not a
   stored function; the overlay lives on the scatter plot (T2.7).
 
@@ -82,17 +82,17 @@ plots, and regression; six have tests and intervals.
 
 - Three graph-family members, `graph` commands that take list
   arguments instead of expressions:
-  - `graph scatter(xs, ys)` — the points, plus the least-squares fit
+  - `graph scatter(xs, ys)`, the points, plus the least-squares fit
     line and its `y = a*x + b (r = …)` legend entry when there are
     two or more points.
-  - `graph histogram(data)` — a frequency histogram; an optional
+  - `graph histogram(data)`, a frequency histogram; an optional
     second argument sets the bin count (`graph histogram(d, 8)`),
     otherwise Sturges' rule (ceil(log2 n) + 1).
-  - `graph boxplot(data)` — a box-and-whisker plot: min, Q1, median,
+  - `graph boxplot(data)`, a box-and-whisker plot: min, Q1, median,
     Q3, max (whiskers to the extremes; no outlier marking this
     round).
-- The core computes the plot primitives — points, the fit line, bin
-  rectangles, the five-number box — and the frontends render, exactly
+- The core computes the plot primitives, points, the fit line, bin
+  rectangles, the five-number box, and the frontends render, exactly
   the ADR-0006 seam: the web pane draws circles, bars, and boxes in
   SVG; the TUI draws glyphs and block characters in ASCII; `graph
   save` writes the same picture as SVG. A data plot is the pane's top
@@ -128,8 +128,8 @@ plots, and regression; six have tests and intervals.
 - The display strings of `linreg`/tests are not values arithmetic can
   use; coefficients live on in the scatter overlay only.
 - New builtins enter the catalog and the guide in all eight locales;
-  the keypad stays frozen — lists and tests are typed, and
+  the keypad stays frozen, lists and tests are typed, and
   autocomplete offers every new name.
-- Distribution and test functions are deterministic f64 arithmetic —
+- Distribution and test functions are deterministic f64 arithmetic,
   no new dependencies, wasm-safe, testable to the last digit against
   reference tables.

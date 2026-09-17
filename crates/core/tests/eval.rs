@@ -7,7 +7,7 @@ use num_rational::BigRational;
 use rust_decimal::Decimal;
 use std::str::FromStr;
 
-/// Evaluate source text with an empty environment — the common case in these
+/// Evaluate source text with an empty environment, the common case in these
 /// tests (the CLI's future `evaluate(text)` convenience does the same).
 fn eval_str(src: &str) -> Value {
     let env = Env::default();
@@ -254,7 +254,7 @@ fn sampler_skips_points_where_eval_errors() {
     let expr = parse("1 / x").expect("parse");
     let env = Env::default();
     let samples = sample(&expr, -1.0, 1.0, 3, &env).expect("sample");
-    // x = -1, 0, 1 — the x = 0 point errors (division by zero) and is skipped
+    // x = -1, 0, 1; the x = 0 point errors (division by zero) and is skipped
     assert_eq!(
         samples,
         vec![Sample { x: -1.0, y: -1.0 }, Sample { x: 1.0, y: 1.0 }]
@@ -956,8 +956,8 @@ fn ans_holds_a_converted_string_like_any_value() {
     );
 }
 
-/// ADR-0031: a history pick loads the expression — everything before the
-/// last recorded answer suffix — so the user can edit and re-run it.
+/// ADR-0031: a history pick loads the expression, everything before the
+/// last recorded answer suffix, so the user can edit and re-run it.
 #[test]
 fn history_expression_strips_the_answer_suffix() {
     use epher_core::history_expression;
@@ -979,7 +979,7 @@ fn history_expression_strips_the_answer_suffix() {
     assert_eq!(history_expression(script), script);
 }
 
-/// ADR-0031: the fine-control offsets — 0 leaves the pose unchanged; the
+/// ADR-0031: the fine-control offsets, 0 leaves the pose unchanged; the
 /// horizontal slider spans ±π of yaw, the vertical one keeps the full
 /// −1..1 range live at the default pose, and zoom scales the camera.
 #[test]
@@ -1001,7 +1001,7 @@ fn view3d_offsets_map_to_the_pose() {
     let over = base.with_offsets(0.0, 2.0, 0.0);
     assert!((over.pitch - 1.4).abs() < 1e-12);
     // ADR-0034: the mouse-wheel zoom sets the camera distance directly
-    // (clamped away from zero — a zero camera degenerates the projection).
+    // (clamped away from zero, a zero camera degenerates the projection).
     let near = base.with_camera(12.0);
     assert!((near.camera - 12.0).abs() < 1e-12);
     // The floor guards the projection, not the user (ADR-0038): wheel and
@@ -1011,7 +1011,7 @@ fn view3d_offsets_map_to_the_pose() {
 }
 
 /// The spin phase (ADR-0032) adds accumulated rotation with no pitch
-/// clamp — a vertical spin is a full revolution — and applies the zoom.
+/// clamp, a vertical spin is a full revolution, and applies the zoom.
 #[test]
 fn view3d_spin_phase_adds_unclamped_rotation() {
     use epher_core::graph::View3D;
@@ -1052,7 +1052,7 @@ fn session_bindings_round_trip_through_json_and_restore() {
     let back: ValueBindings = serde_json::from_str(&json).expect("deserialize bindings");
     let mut s2 = Session::new();
     s2.restore_bindings(&back);
-    // restoring bindings never touches history — that travels in its own
+    // restoring bindings never touches history, that travels in its own
     // setting
     assert!(s2.history().is_empty());
     assert_eq!(s2.submit("x + ans").trim(), "= 15");
@@ -1798,7 +1798,7 @@ fn redeclaring_a_constant_with_the_same_value_is_a_noop() {
 
 #[test]
 fn php_style_comments_are_ignored() {
-    // ADR-0040: the language gains PHP-style comments — `//` and `#`
+    // ADR-0040: the language gains PHP-style comments, `//` and `#`
     // run to the end of the line, `/* ... */` may span lines and sit
     // inline between tokens.
 
@@ -1993,7 +1993,7 @@ fn every_catalog_name_is_live() {
         );
         match outcome {
             Ok(_) => {}
-            // argument-shaped errors are fine — only "unknown" means the
+            // argument-shaped errors are fine, only "unknown" means the
             // catalog drifted from the real builtins
             Err(e) => assert!(
                 !matches!(e, epher_core::EpherError::UnknownName(_)),
@@ -2561,7 +2561,7 @@ fn table_commands_parse_and_evaluate_with_derivative() {
 
 // ===== seeded random numbers (ADR-0045) =====
 
-/// Run script lines against a fresh Env, returning the last value — the
+/// Run script lines against a fresh Env, returning the last value, the
 /// env-persistent counterpart of `eval_str` (the RNG state lives in the
 /// Env, ADR-0045).
 fn eval_in_env(src: &str, env: &mut Env) -> Result<Value, epher_core::EpherError> {
@@ -3430,7 +3430,7 @@ fn for_loops_iterate_ranges_and_lists() {
     assert_eq!(eval_display_script("for i in 5 to 1 do i"), "{}");
     // The loop variable is scoped to the loop (ADR-0063): the name
     // reverts afterwards, so a loop over `i` never leaves an `i = last`
-    // behind — bare `i` is the imaginary unit again (the gap-analysis
+    // behind, bare `i` is the imaginary unit again (the gap-analysis
     // defect: a stored `i = 5` once made `3+4i` answer 23).
     assert_eq!(eval_display_script("for i in 1 to 3 do i\ni"), "i");
     // A binding from before the loop is restored, not clobbered
@@ -3445,7 +3445,7 @@ fn for_loops_iterate_ranges_and_lists() {
         "{{1, 3, 6}, {7, 9, 12}}"
     );
     assert_eq!(eval_display_script("for i in 1 to 2 do for i in 1 to 3 do i\ni"), "i");
-    // Accumulators (other names) still persist — that is how loops work.
+    // Accumulators (other names) still persist, that is how loops work.
     assert_eq!(
         eval_display_script("total = 0\nfor k in 1 to 4 do total = total + k\ntotal"),
         "10"
@@ -3525,7 +3525,7 @@ fn def_takes_a_do_end_block_body() {
 fn return_leaves_a_function_early() {
     assert_eq!(
         eval_display_script(
-            // `end` closes the function's do — an if takes none
+            // `end` closes the function's do; an if takes none
             "def grade(s) do if s >= 90 then return \"A\"; if s >= 80 then return \"B\"; \"C\" end; grade(95); grade(85); grade(40)"
         ),
         "C"
@@ -3538,7 +3538,7 @@ fn return_leaves_a_function_early() {
         "9"
     );
     // a return through a while: the one-statement body is an if that
-    // either returns or advances — and the returned value comes out of
+    // either returns or advances, and the returned value comes out of
     // the call even though the return crossed the loop
     assert_eq!(
         eval_display_script(

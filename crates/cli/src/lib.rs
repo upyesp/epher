@@ -1,12 +1,12 @@
-//! epher-cli — native command-line frontend (ADR-0001).
+//! epher-cli, native command-line frontend (ADR-0001).
 //!
 //! The library hosts every mode so the unified `epher` binary
 //! (crates/tauri-app) can offer the same behavior without duplicating a
 //! line:
 //!
-//! - [`run_one_shot`] — evaluate a single expression, print the result;
-//! - [`run_repl`] — interactive REPL (prompt, persistent store);
-//! - [`run_stdin_and_exit`] — piped script mode (`epher -`): evaluate
+//! - [`run_one_shot`], evaluate a single expression, print the result;
+//! - [`run_repl`], interactive REPL (prompt, persistent store);
+//! - [`run_stdin_and_exit`], piped script mode (`epher -`): evaluate
 //!   stdin line by line, no prompts, history untouched.
 //!
 //! All three share [`step`], the one-line-at-a-time seam that classifies a
@@ -15,7 +15,7 @@
 //!
 //! The command-line conventions live here too (ADR-0013): [`dispatch`]
 //! defines the argument surface, [`help`] the manual/help behavior, and
-//! [`term`] the stdout/stderr/color policy — results on stdout, errors on
+//! [`term`] the stdout/stderr/color policy, results on stdout, errors on
 //! stderr with exit codes 0/1/2.
 
 pub mod dispatch;
@@ -33,7 +33,7 @@ use epher_store::persist::{
 use epher_store::{DocStore, FsStore};
 
 /// The outcome of processing one line: what to print (if anything),
-/// whether it is a diagnostic (stderr, not data — ADR-0013), and a
+/// whether it is a diagnostic (stderr, not data, ADR-0013), and a
 /// language switch requested by a `lang` command (if any).
 pub struct Step {
     pub output: Option<String>,
@@ -42,7 +42,7 @@ pub struct Step {
 }
 
 /// Is this engine output an error line? The engine renders errors as
-/// `error: …` — the only producer of that prefix on the result path.
+/// `error: …`: the only producer of that prefix on the result path.
 fn is_engine_error(output: &str) -> bool {
     output.starts_with("error: ")
 }
@@ -50,7 +50,7 @@ fn is_engine_error(output: &str) -> bool {
 /// Process one input line against the session and store. Shell commands
 /// (`save`, `lang`, …) run through epher-shell; anything else is a language
 /// statement evaluated against the session. Errors come back as
-/// `error: …` output marked `Step::error` — the session stays usable,
+/// `error: …` output marked `Step::error`: the session stays usable,
 /// exactly like the REPL.
 pub fn step(
     session: &mut Session,
@@ -87,7 +87,7 @@ pub fn step(
 
 /// Open the shared native store (ADR-0002): `EPHER_STORE_DIR` override,
 /// else `~/.epher`, and load the saved session (functions, scripts,
-/// history) — warning and starting fresh if the store is unreadable.
+/// history), warning and starting fresh if the store is unreadable.
 fn open_store_with_session() -> (DocStore<FsStore>, Session, Localizer) {
     let store = DocStore::new(FsStore::new(default_store_dir()));
     let session = match load_session(&store) {
@@ -144,16 +144,16 @@ fn step_from(out: epher_shell::plots::PlotOutcome) -> Step {
 /// Evaluate a single expression and print the result (no UI, no store).
 /// A `graph …`/`graph3d …` statement may appear among the statements
 /// (ADR-0020): curves accumulate over the statements and `graph save
-/// <file>` writes the SVG document — `epher "graph sin(x); graph save
+/// <file>` writes the SVG document, `epher "graph sin(x); graph save
 /// plot.svg"` is a complete plot in one command.
 pub fn run_one_shot(expr: &str) -> Result<(), EpherError> {
     // One-shot accepts a whole script (ADR-0001 seam unification):
     // statements separated by newlines or `;`, each result printed on its
-    // own line — the piped mode's output without the `=` prefix.
+    // own line, the piped mode's output without the `=` prefix.
     // `epher "2 + 3"` prints `5`, exactly as before. Graph statements
     // split out first; the rest keep the engine's exact script semantics.
     // The command runs against the shared store (ADR-0010 amendment): it
-    // sees the saved session — functions, constants, variables, `ans` —
+    // sees the saved session, functions, constants, variables, `ans`,
     // and records itself in the common history, so the CLI is part of the
     // same body of saved work as the REPL, TUI, and desktop app.
     let (store, mut session, localizer) = open_store_with_session();
@@ -179,7 +179,7 @@ pub fn run_one_shot(expr: &str) -> Result<(), EpherError> {
         }
     }
     // The command joins the shared history and its bindings (`ans` and
-    // any assignments) join the shared session snapshot — best effort,
+    // any assignments) join the shared session snapshot, best effort,
     // exactly like the REPL's per-line saves.
     session.record(expr.trim());
     let _ = save_history(&store, session.history());
@@ -216,7 +216,7 @@ pub fn run_repl() -> Result<(), EpherError> {
             break;
         }
         // `load <file-or-name>` (ADR-0040): run a script file, or a
-        // script saved with `save script name`, as a whole program —
+        // script saved with `save script name`, as a whole program,
         // statements split where the tokenizer sees separators, so a
         // block comment may span lines, exactly like running the file
         // from a terminal. The `load` line itself joins the history;
@@ -250,8 +250,8 @@ pub fn run_repl() -> Result<(), EpherError> {
                 // A table is a computation: the line joins the history
                 // like every other line (the graph precedent). The other
                 // shell commands persist their effect and leave no
-                // entry, and a `load`ed script's lines record nothing —
-                // the `load` line itself recorded (ADR-0040) — so the
+                // entry, and a `load`ed script's lines record nothing,
+                // the `load` line itself recorded (ADR-0040), so the
                 // recording stays here in the REPL loop, out of `step`.
                 if matches!(classify(&line), Some(epher_shell::Command::Table { .. })) {
                     session.record(&line);
@@ -291,7 +291,7 @@ pub const STDIN_IS_TERMINAL_MSG: &str =
 /// interactive terminal, evaluate stdin line by line printing each result,
 /// and exit 0 when every line succeeded, 1 when any line failed (per-line
 /// errors have already printed). Sessions load from (and `save` commands
-/// write to) the shared store; interactive history is not written —
+/// write to) the shared store; interactive history is not written,
 /// scripts are not interactive pasts.
 pub fn run_stdin_and_exit() -> ! {
     use std::io::IsTerminal;
@@ -318,21 +318,21 @@ pub fn run_stdin() -> Result<bool, EpherError> {
 }
 
 /// The testable core of [`run_stdin`]: any line-oriented reader. Lines
-/// share one session — a function defined on an early line is available
-/// later — and errors print (to stderr) while evaluation continues, like
+/// share one session, a function defined on an early line is available
+/// later, and errors print (to stderr) while evaluation continues, like
 /// the REPL. Returns whether any line failed.
 pub fn run_stdin_from<R: BufRead>(input: R) -> Result<bool, EpherError> {
     let (store, mut session, localizer) = open_store_with_session();
     // Piped scripts plot too (ADR-0020): the plot state spans the script's
-    // lines — `printf "graph sin(x)\ngraph save plot.svg\n" | epher -`.
+    // lines, `printf "graph sin(x)\ngraph save plot.svg\n" | epher -`.
     let mut plots = epher_shell::plots::Plots::new();
     eval_lines(input.lines(), &mut session, &store, &localizer, &mut plots)
 }
 
 /// Evaluate a script file as a one-shot run (ADR-0040): the same
-/// statement semantics as a piped script (`epher -`) — each result
+/// statement semantics as a piped script (`epher -`), each result
 /// prints, definitions and `save` commands go to the shared store,
-/// interactive history is not written — reading the statements from
+/// interactive history is not written, reading the statements from
 /// `path` instead of stdin. The file is a whole program: statements
 /// split where the tokenizer sees separators, so a block comment may
 /// span lines the way it does in the one-shot and web-paste paths.
@@ -346,13 +346,13 @@ pub fn run_script_file(path: &std::path::Path) -> Result<bool, EpherError> {
 
 /// Evaluate a whole program (a script file, a `load`ed script) as one
 /// piece of text (ADR-0040): statements split where the tokenizer sees
-/// separators — `;` inside a string literal or comment is text, and the
-/// newlines inside a block comment are comment text — so block comments
+/// separators, `;` inside a string literal or comment is text, and the
+/// newlines inside a block comment are comment text, so block comments
 /// can span lines in files exactly as in the one-shot and web-paste
 /// paths. Line-oriented input (REPL typing, piped mode) keeps the line
 /// model: there a block comment closes on its own line. Every statement
-/// evaluates against one live session — a function defined early is
-/// available later — `graph …` statements plot into the run's plot
+/// evaluates against one live session, a function defined early is
+/// available later, `graph …` statements plot into the run's plot
 /// state, and errors print while evaluation continues. Returns whether
 /// any statement failed.
 fn eval_whole_text(
@@ -379,8 +379,8 @@ fn eval_whole_text(
 }
 
 /// The shared line loop of piped mode (ADR-0040): every line evaluates
-/// against one live session — a function defined on an early line is
-/// available later — `graph …` lines plot into the run's plot state, and
+/// against one live session, a function defined on an early line is
+/// available later, `graph …` lines plot into the run's plot state, and
 /// errors print while evaluation continues. Returns whether any line
 /// failed.
 fn eval_lines(

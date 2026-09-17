@@ -1,5 +1,5 @@
 //! Graph command parsing and analysis (ADR-0006, ADR-0014): everything a
-//! frontend needs to turn a `graph …` line into plottable data lives here —
+//! frontend needs to turn a `graph …` line into plottable data lives here,
 //! the command grammar, per-curve sampling, points of interest (roots,
 //! intersections, extrema), tables of values, and tick-step selection.
 //! Frontends only render.
@@ -46,7 +46,7 @@ pub struct CurveSpec {
     pub fill: Option<Fill>,
 }
 
-/// A sampled curve ready to render — the seam payload every frontend holds.
+/// A sampled curve ready to render; the seam payload every frontend holds.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SampledCurve {
     /// What the user typed after `graph` (the accessible caption/legend text).
@@ -65,7 +65,7 @@ pub struct SampledCurve {
 /// - parametric: `param <x(t)>, <y(t)>`
 /// - polar: `polar <r(θ)>`
 /// - any form may end with `from a to b` (numeric bounds, expressions with
-///   built-in constants allowed — the language has no `from` identifier, so
+///   built-in constants allowed; the language has no `from` identifier, so
 ///   the keyword can never collide with the expression itself)
 pub fn parse_graph_source(source: &str) -> Result<CurveSpec, EpherError> {
     let source = source.trim();
@@ -673,7 +673,7 @@ fn roots_and_extrema(
         }
     }
     // Extrema: a sample strictly above (or below) at least one neighbor and
-    // no lower (higher) than the other — catches symmetric peaks where the
+    // no lower (higher) than the other, catches symmetric peaks where the
     // two neighbors tie, but never fires on a flat line (both sides strict).
     for w in finite.windows(3) {
         let (l, m, r) = (w[0], w[1], w[2]);
@@ -819,7 +819,7 @@ pub fn nice_step(span: f64, target: usize) -> f64 {
 }
 
 /// Every variable name referenced anywhere in an expression (sliders bind
-/// the constants among these — ADR-0014).
+/// the constants among these, ADR-0014).
 pub fn free_names(expr: &Expression, out: &mut BTreeSet<String>) {
     match expr {
         Expression::Literal(_) => {}
@@ -935,7 +935,7 @@ pub struct Fit {
 }
 
 /// The computed picture of a data plot: what the frontends render
-/// (ADR-0006 seam — the core computes the primitives, the web draws
+/// (ADR-0006 seam, the core computes the primitives, the web draws
 /// SVG and the TUI draws ASCII from this one struct).
 #[derive(Debug, Clone, PartialEq)]
 pub struct DataPlot {
@@ -1305,8 +1305,8 @@ impl View3D {
 
     /// Apply the fine-control sliders' offsets (ADR-0031), each −1..1
     /// with 0 = this pose unchanged: horizontal adds `h × π` to the yaw;
-    /// vertical adds `v × 0.8` to the pitch — the full range stays live
-    /// at the default pose (pitch 0.6 + 0.8 = 1.4, exactly the clamp) —
+    /// vertical adds `v × 0.8` to the pitch; the full range stays live
+    /// at the default pose (pitch 0.6 + 0.8 = 1.4, exactly the clamp),
     /// and zoom scales the render window by `10^(-2z)` (ADR-0038): 0 is
     /// the default window, +1 shrinks it 100× (a single object fills the
     /// pane), −1 grows it 100× (every object fits).
@@ -1321,7 +1321,7 @@ impl View3D {
     /// Compose an animated spin (ADR-0032): `yaw`/`pitch` are the
     /// accumulated rotation phase from the fine-control sliders' continuous
     /// spin, `zoom` the static zoom offset. Unlike [`Self::with_offsets`]
-    /// the pitch is NOT clamped — a vertical spin is a full revolution
+    /// the pitch is NOT clamped; a vertical spin is a full revolution
     /// around the horizontal axis; the sine/cosine projection keeps the
     /// pose continuous through the poles.
     pub fn with_spin_phase(&self, yaw: f64, pitch: f64, zoom: f64) -> Self {
@@ -1333,7 +1333,7 @@ impl View3D {
     }
 }
 
-/// A mesh segment in screen space with its mean view depth — larger depth
+/// A mesh segment in screen space with its mean view depth, larger depth
 /// is nearer to the camera, and renderers draw far-to-near (painter's
 /// algorithm) so nearer lines overpaint farther ones.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1405,7 +1405,7 @@ pub fn sample_surface(source: &str, grid: usize, env: &Env) -> Result<Surface, E
     }
     if zs.iter().flatten().all(|z| z.is_nan()) {
         // When every cell failed, say why: an undefined name, a division
-        // by zero, or — if the cells are holes rather than errors — the
+        // by zero, or, if the cells are holes rather than errors, the
         // generic no-finite-values message.
         return match first_err {
             Some(e) => Err(e),
@@ -1523,7 +1523,7 @@ pub fn project_surface(surface: &Surface, view: &View3D) -> Vec<Segment3D> {
 
 /// The orientation aids around a surface: the ground square (the domain at
 /// z = 0), the three axes through the origin within the plotted bounds, and
-/// the vertical extent of the surface — as projected segments.
+/// the vertical extent of the surface, as projected segments.
 pub fn surface_frame(surface: &Surface, view: &View3D) -> Vec<Segment3D> {
     let (a, b) = surface.domain;
     let mut frame = Vec::with_capacity(8);

@@ -47,7 +47,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <style>
     /* The html element carries the dark background directly so the very
-       first painted frame is dark — no white flash on desktop launch.
+       first painted frame is dark, no white flash on desktop launch.
        data-theme (set by the app once loaded) switches the token set:
        dark (default), light, night. Every token's contrast is recorded
        at its definition (WCAG 1.4.3 text 4.5:1, 1.4.11 non-text 3:1). */
@@ -85,7 +85,7 @@
       --on-accent: #1a0000; /* 7.2:1 on --accent */
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    /* Fixed viewport, no page scrolling (ADR-0016): the app is one screen —
+    /* Fixed viewport, no page scrolling (ADR-0016): the app is one screen,
        answer, input, history, keypad, graph. Growth happens inside fixed
        regions (history, graph pane) that scroll themselves. */
     html, body { height: 100%; }
@@ -147,7 +147,7 @@
     .menu {
       position: relative;
     }
-    /* ADR-0032: the top level is an icon rail — square icon buttons with
+    /* ADR-0032: the top level is an icon rail, square icon buttons with
        the menu name on the aria-label and the native tooltip. */
     .menu-top {
       display: flex;
@@ -178,7 +178,7 @@
     }
     /* --- the brand: the mark links to epher.org ------------------------ */
     /* The mark's palette tracks the theme: the tile and the counter take
-       the text color and the glyph the background color — the same flip
+       the text color and the glyph the background color; the same flip
        the website's icon variants make for the dark theme. */
     .brand-icon .brand-tile,
     .brand-icon .brand-counter {
@@ -188,7 +188,7 @@
       fill: var(--bg);
     }
     /* Mobile: the mark beside the word on the top line, left of the
-       pane switch — the same height and face as the pane-switch
+       pane switch, the same height and face as the pane-switch
        buttons, underlined like them (ADR-0035 amendment). The desktop
        breakpoint hides it; the rail's brand item takes over there. */
     .brand-link {
@@ -293,7 +293,7 @@
       border-top: 1px solid var(--border);
       margin: 0.25rem 0.5rem;
     }
-    /* The File→Load picker must never render as a visible button — on
+    /* The File→Load picker must never render as a visible button, on
        mobile it would crowd the top bar (ADR-0017). display:none still
        answers a programmatic click() with the picker in every browser. */
     .visually-hidden-file {
@@ -378,7 +378,7 @@
       display: flex;
       flex-direction: column;
       /* fallback for very short viewports (landscape phones): content can
-         overflow the pane and this scrolls — the app page itself never
+         overflow the pane and this scrolls; the app page itself never
          does */
       overflow-y: auto;
     }
@@ -390,7 +390,7 @@
       gap: 0.35rem;
     }
     /* the answer panel: fixed height, always visible (ADR-0016); it sits
-       directly under the input — typed entry first, outcome second.
+       directly under the input, typed entry first, outcome second.
        ADR-0040 trimmed it one step (3.4rem → 3rem) to hand the space to
        the history list. */
     .answer {
@@ -550,8 +550,8 @@
        is the aria-label on the input (WCAG 3.3.2) */
     input::placeholder, textarea::placeholder { color: var(--muted); }
     /* Keyboard focus indicators (WCAG 2.4.7, 1.4.11): accent ring 9.9:1 vs
-       the page background; the button gets an inset dark-teal ring —
-       10.0:1 on the accent surface — since an outer ring would blend into
+       the page background; the button gets an inset dark-teal ring,
+       10.0:1 on the accent surface, since an outer ring would blend into
        the button. */
     :focus { outline: none; }
     :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -709,8 +709,8 @@
     /* The grab bar (ADR-0060, amended drag-only): a 24px strip (WCAG
        2.5.8 target floor) with a centered pill as the visible handle.
        Mouse, touch, and pen drag it; there is no click path, so it is
-       a plain div — nothing to focus, nothing to activate.
-       touch-action: none hands the whole gesture to us — a finger on
+       a plain div; nothing to focus, nothing to activate.
+       touch-action: none hands the whole gesture to us, a finger on
        the bar drags the drawer, it never scrolls the pane or swipes
        the pane deck. */
     .keypad-grab {
@@ -742,7 +742,7 @@
        (the `.dragging` class takes the transition off so the keypad
        tracks the pointer exactly); a snap animates the inline px to
        the target, then the inline height clears and the resting state
-       is pure CSS — open has no height rule (natural), closed is 0 via
+       is pure CSS: open has no height rule (natural), closed is 0 via
        [data-open]. prefers-reduced-motion drops the transition: the
        pane jumps, as that query's contract asks. */
     .keypad-clip {
@@ -760,7 +760,7 @@
       transition: height 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s 0.24s;
     }
     /* AFTER the [data-open] rule on purpose: the two selectors tie on
-       specificity, and the drag must win — a drag-up from the docked
+       specificity, and the drag must win; a drag-up from the docked
        state shows the keypad live, while [data-open="false"] still
        holds (the release flips the attribute). Before this ordering
        the hidden rule won and the drawer dragged up as a blank void
@@ -792,7 +792,7 @@
       padding-bottom: 0.3rem;
     }
     /* ADR-0040: the tabs are 34px tall (the 24px AA floor with room to
-       spare) — two rows of them wrapped on narrow panes, and every pixel
+       spare), two rows of them wrapped on narrow panes, and every pixel
        went to the history list. The 44px width floor stays. */
     .keypad-tabs [role="tab"] {
       min-height: 34px;
@@ -861,7 +861,7 @@
       align-content: start;
       gap: 0.3rem;
       /* exactly five rows, always (ADR-0039): every tab is the same
-         height — the digits tab's height — so the long astronomy bank
+         height, the digits tab's height, so the long astronomy bank
          scrolls instead of growing over the screen. No bottom padding:
          the 123 keys must fit the window exactly (ADR-0041). */
       min-height: calc(5 * 44px + 4 * 0.3rem);
@@ -870,7 +870,7 @@
       padding: 0 0.25rem 0 0;
     }
     /* With the captions toggle on (ADR-0039's ? button) each key grows a
-       fixed 64px so five rows + captions still fit with no scrollbar —
+       fixed 64px so five rows + captions still fit with no scrollbar;
        all banks share the window (ADR-0041). Captions clamp to two
        lines inside the fixed key. */
     .keypad-grid.show-hints {
@@ -950,7 +950,7 @@
       color: var(--muted);
     }
     /* The curve is currentColor = --accent (9.9:1 on --bg); the axes
-       blend toward the background at opacity 0.5 to ~5.4:1 — both clear
+       blend toward the background at opacity 0.5 to ~5.4:1; both clear
        the 3:1 graphics threshold (WCAG 1.4.11). */
     .graph svg { color: var(--accent); }
     /* The plot lives in a fixed-size pane (ADR-0016): the SVG fills its
@@ -960,7 +960,7 @@
       flex: 1;
       /* ADR-0040: a real floor, not a token one. The pane scrolls (the
          POI list can run long), and a scrolling flex column squeezed
-         the plot down to the old 96px floor — "some of the graphs end
+         the plot down to the old 96px floor, "some of the graphs end
          up being very small". The plot now claims at least 38% of the
          viewport (220px at any size) and the list scrolls beneath it. */
       min-height: max(220px, 38vh);
@@ -995,8 +995,8 @@
       outline-offset: 2px;
     }
     /* Curve palette (ADR-0014): every color is >= 3:1 on --bg (WCAG
-       1.4.11) — accent 9.9:1, #4da3ff 7.0:1, #ffb340 10.3:1, #c39dff
-       8.4:1 — and every curve after the first also gets a distinct dash
+       1.4.11), accent 9.9:1, #4da3ff 7.0:1, #ffb340 10.3:1, #c39dff
+       8.4:1, and every curve after the first also gets a distinct dash
        pattern so the plots stay distinguishable without color (1.4.1).
        Light and night palettes below carry their own recorded ratios. */
     .curve-0 { --curve: var(--accent); }
@@ -1039,7 +1039,7 @@
     .legend {
       list-style: none;
       /* ADR-0040: the legend is a horizontal strip that wraps, not a
-         vertical stack — a 44px row per curve ate the graph pane from
+         vertical stack, a 44px row per curve ate the graph pane from
          above, and three curves pushed the plot half out of view. The
          entries keep the curve checkboxes (ADR-0015 amendment) but sit
          shoulder to shoulder, like the solar legend below. */
@@ -1052,7 +1052,7 @@
       color: var(--muted);
     }
     /* The legend checkboxes (ADR-0015 amendment): each entry is a real
-       labelled control — the curve's caption names the checkbox, so the
+       labelled control, the curve's caption names the checkbox, so the
        plot can be hidden or restored without touching the expression. */
     .legend-item {
       display: flex;
@@ -1314,7 +1314,7 @@
       outline-offset: 2px;
     }
     /* The macOS "install the epher command" action (ADR-0011): a quiet,
-       secondary button — it must not compete with the = button. Contrast
+       secondary button; it must not compete with the = button. Contrast
        9.9:1 accent-on-background (WCAG 1.4.3); 48px target (2.5.8). */
     .install-cli {
       font-size: 0.95rem;
@@ -1633,7 +1633,7 @@
     /* --- mobile: the menu bar folds into the hamburger (ADR-0017) ------ */
     @media (max-width: 879.98px) {
       .menubar { display: none; }
-      /* The 3D hint mentions the arrow keys — a keyboard affordance.
+      /* The 3D hint mentions the arrow keys, a keyboard affordance.
          On touch layouts rotation happens by swiping the plot
          (ADR-0035 amendment); the hint is irrelevant there, so it is
          not displayed. */
@@ -1641,7 +1641,7 @@
       /* The line-width slider takes its own row under the toolbar on
          small screens (ADR-0035 amendment): Clear, Copy SVG, and the
          POI options stay on the first line, the slider on the line
-         below — a finger-wide target on a row of its own. The `order`
+         below, a finger-wide target on a row of its own. The `order`
          puts it after the options row even though the toolbar DOM
          places it right of Copy SVG for desktop. */
     }
@@ -1694,7 +1694,7 @@
 <body>
   <link data-trunk rel="rust" data-wasm-opt="z" />
   <!-- copy-file (not copy-dir): the manifest/sw/icon must land at the dist
-       root, where index.html references them — copy-dir would bury them in
+       root, where index.html references them, copy-dir would bury them in
        dist/public/ and break installability and the service worker. -->
   <link data-trunk rel="copy-file" href="public/manifest.webmanifest" />
   <link data-trunk rel="copy-file" href="public/sw.js" />
@@ -1706,18 +1706,18 @@
   <!-- Boot diagnostic: if the wasm app has not mounted after six seconds,
        say so instead of leaving a blank window. The app's own markup has
        class="epher", so its presence is the success signal. While the
-       fallback is visible the script keeps watching — a late mount (slow
-       disk, antivirus scanning the wasm) hides it again — and any
+       fallback is visible the script keeps watching, a late mount (slow
+       disk, antivirus scanning the wasm) hides it again, and any
        script/module error captured meanwhile is shown as the detail line,
        so a failed start names its reason. -->
   <div id="boot-fallback" hidden>
     <p>epher could not start in this window.</p>
-    <p>Try again, or use the web app at epher.org — your device's web
+    <p>Try again, or use the web app at epher.org; your device's web
        browser works everywhere the desktop window does.</p>
     <p id="boot-fallback-detail" class="boot-detail"></p>
   </div>
   <style>
-    /* display:none by default — the `hidden` attribute plus the id rule
+    /* display:none by default; the `hidden` attribute plus the id rule
        must not fight the UA stylesheet; :not([hidden]) turns it on */
     #boot-fallback {
       display: none;
@@ -1736,7 +1736,7 @@
     #boot-fallback:not([hidden]) {
       display: flex;
     }
-    /* the technical detail line (an error message when one was captured) —
+    /* the technical detail line (an error message when one was captured),
        smaller, monospaced, muted but still 4.5:1 on the fallback background */
     #boot-fallback .boot-detail {
       font: 0.8125rem/1.4 ui-monospace, Consolas, monospace;
@@ -1776,7 +1776,7 @@
         return !!document.querySelector(".epher");
       }
       // A failed first mount is usually a stale cached bundle after an
-      // upgrade — Ctrl+F5 fixed it by hand. Reload once automatically
+      // upgrade, Ctrl+F5 fixed it by hand. Reload once automatically
       // (ADR-0023); with the desktop shell's disk cache disabled
       // (`additionalBrowserArgs`), the reload fetches the fresh assets.
       function retryOnce() {
@@ -1798,7 +1798,7 @@
         if (retryOnce()) return; // the reloaded page mounts on its own
         fallback.hidden = false;
         // On Windows the desktop window launches hidden until the
-        // frontend's init call (ADR-0032) — a failed wasm boot would
+        // frontend's init call (ADR-0032); a failed wasm boot would
         // otherwise leave an invisible window. Show the dark fallback.
         if (window.__TAURI_INTERNALS__) {
           try { window.__TAURI_INTERNALS__.invoke("init"); } catch (e) {}

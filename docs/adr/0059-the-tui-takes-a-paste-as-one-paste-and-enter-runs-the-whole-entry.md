@@ -11,15 +11,15 @@ same text pasted into the desktop app's entry ran fine. The reason is
 how each frontend receives the paste.
 
 The desktop and web entries are text areas: the paste lands in the
-entry as text, the user presses Enter once, and `submit_line` — which
+entry as text, the user presses Enter once, and `submit_line`, which
 splits on newlines and semicolons the way the tokenizer does (comments
-and string literals stay whole) — runs the whole program and records
+and string literals stay whole), runs the whole program and records
 one history entry.
 
 The TUI had no paste concept. It never enables bracketed paste, so the
 terminal delivers a paste as a burst of ordinary keystrokes, and each
-pasted newline arrives as Ctrl+J — the terminal convention for line
-feed — which the key arm treats as Enter. Every line of the paste
+pasted newline arrives as Ctrl+J, the terminal convention for line
+feed, which the key arm treats as Enter. Every line of the paste
 therefore submitted on its own, and a script's opening line,
 `/* ============ ...`, died as an unterminated block comment. The
 behavior was even deliberate (it mirrored the REPL and piped scripts),
@@ -32,7 +32,7 @@ The TUI enables bracketed paste for the session (alongside mouse
 capture, released with it) and handles `Event::Paste`: the clipboard
 lands in the entry as one unit at the cursor, newlines and all, via a
 new `App::paste_text` (which normalizes `\r\n` to `\n` and, unlike
-typing, injects no `ans` for a leading operator — a paste is verbatim).
+typing, injects no `ans` for a leading operator; a paste is verbatim).
 The next Enter runs the whole entry through the same `submit_line`
 path the desktop and web entries use, so a script pasted from the
 website behaves identically in every frontend: one paste, one Enter,
@@ -40,7 +40,7 @@ one transcript, one history entry.
 
 The keystroke fallback stays: on a terminal without bracketed paste the
 paste still arrives as key events, and Ctrl+J still submits, line by
-line — degraded but not broken for one-line pastes. The guide view
+line, degraded but not broken for one-line pastes. The guide view
 stays modal (pasted text is swallowed there, like every key but
 scrolling and closing), and a file-path prompt takes the pasted text
 without its control characters, since a path is single-line.

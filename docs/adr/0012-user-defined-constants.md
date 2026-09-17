@@ -18,19 +18,19 @@ niche, and "constant" and "function" are different domain nouns in
 
 Semantics:
 
-- **Evaluated once, immediately** — `const area = pi * r ^ 2` captures the
+- **Evaluated once, immediately**: `const area = pi * r ^ 2` captures the
   value, not the expression (JavaScript semantics).
-- **Immutable** — assigning with `=` after `const` is an error
+- **Immutable**: assigning with `=` after `const` is an error
   (`cannot assign to constant tax`), and so is redefining it with a
   different value (`constant already defined: tax`); re-declaring it with
   the value it already has is a no-op (see the amendment below). A name is
   either a variable or a constant, never both, so lookups stay unambiguous.
-- **Visible inside functions, like `pi`** — the built-in constants are visible
+- **Visible inside functions, like `pi`**: the built-in constants are visible
   in function bodies; session variables are not. User constants follow the
   built-ins (`new_child` copies them), which is what makes them useful:
   `const g = 9.81; def weight(m) = m * g` works. A parameter still shadows a
   constant.
-- **Persisted like functions** — `save tax` stores the `const` source line in
+- **Persisted like functions**: `save tax` stores the `const` source line in
   the Store (kind `constant`, ADR-0002), and startup replay orders functions,
   then constants, then scripts, so constants may call functions and scripts
   may use both. The web/PWA has no Store yet, exactly like functions

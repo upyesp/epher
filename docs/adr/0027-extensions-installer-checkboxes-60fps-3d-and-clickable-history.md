@@ -27,7 +27,7 @@ Eight reports after v0.4.14:
 - **Finish-page checkbox color.** MUI2 already applies `SetCtlColors`
   to its finish-page checkboxes, then strips their visual theme
   (`UXTHEME::SetWindowTheme`); a classic checkbox draws its label with
-  `GetSysColor(COLOR_BTNTEXT)` — black — and `SetCtlColors` cannot
+  `GetSysColor(COLOR_BTNTEXT)`, black, and `SetCtlColors` cannot
   recolor checkbox text (documented NSIS bug #443).
 - **Windows 3D.** The orbit fix in ADR-0026 removed the per-event
   re-render, but every animation-frame commit still re-injected the
@@ -35,7 +35,7 @@ Eight reports after v0.4.14:
   re-created, and garbage-collected per frame. WebView2 stalled on that
   churn; WebKitGTK and Chrome on the same hardware tolerated it.
 - **Missing slider.** The width slider lives in the pane toolbar shared
-  by 2D and 3D since v0.4.13 — present in the code on every platform;
+  by 2D and 3D since v0.4.13, present in the code on every platform;
   the Windows report matched a pre-0.4.13 build (the title bar carries
   the version for exactly this).
 - **Answer echo.** The web and TUI paths set `graph: <source>` /
@@ -44,7 +44,7 @@ Eight reports after v0.4.14:
 - **Linux Mint lock.** `save_file_dialog` was a *synchronous* Tauri
   command: sync commands run on the main thread, and
   `blocking_save_file()` parks it for as long as the modal OS dialog is
-  open (or forever, if the dialog appears behind the window — the Mint
+  open (or forever, if the dialog appears behind the window, the Mint
   report: frozen app, no dialog). The v0.4.13 casing error had masked
   this by failing before the dialog opened.
 
@@ -54,17 +54,17 @@ Eight reports after v0.4.14:
   `epher-script.esr` in every frontend (TUI prompt prefill, desktop
   dialog prefill, PWA download name). The desktop save dialog sets no
   extension filter: rfd's Windows filter appends the filtered extension
-  to typed names, which would fight "the user may change it" — with no
+  to typed names, which would fight "the user may change it", with no
   filter, the typed name wins everywhere and the prefill is only a
   suggestion.
 - **Finish checkboxes:** `SetSysColors(COLOR_BTNTEXT, 0xF5F6F7)` in the
-  installer's and uninstaller's `.onInit` — one system call, no window
+  installer's and uninstaller's `.onInit`, one system call, no window
   procs touched, so the ADR-0026 failure mode cannot recur. Themed
   controls (navigation buttons, the uninstaller's own checkbox) ignore
   it and stay readable.
 - **60fps 3D:** orbit frames keep the previous frame's element
   structure (one `<polyline>` per mesh line, one `<line>` per frame
-  segment — a deterministic shape from our own generator), so a frame
+  segment, a deterministic shape from our own generator), so a frame
   whose shape matches is applied by writing the mutable attributes
   (points, depth opacity, width) onto the existing elements instead of
   re-parsing the markup. Structure changes (different surfaces, slider
@@ -73,7 +73,7 @@ Eight reports after v0.4.14:
 - **Answer area:** successful `graph`/`graph3d` lines leave the answer
   area empty in the web app and TUI (the plot is the result; the
   command is in the history). The CLI keeps its one-line confirmation
-  on stdout — terminal output is its feedback channel (ADR-0013).
+  on stdout, terminal output is its feedback channel (ADR-0013).
 - **Slider:** `min="0" max="4" step="0.1"`. Zero is literal: an SVG
   stroke-width of 0 draws nothing, so at 0 the curves vanish and only
   the axes remain.
@@ -82,12 +82,12 @@ Eight reports after v0.4.14:
   focus mode in the Tab cycle (input → keypad → history): arrows move
   the selection (highlighted in the theme's selection colors, scrolled
   into view), Enter loads the line into the input without running it.
-  The picked text is the displayed line verbatim — evaluation lines
+  The picked text is the displayed line verbatim, evaluation lines
   carry their `  =  answer` suffix and may be edited before re-running;
   graph lines are raw commands and re-run as-is. (Extended by the 2026
   amendment below: multi-line scripts are one item, picked whole.)
 - **Linux save:** the command is async and runs the dialog inside
-  `spawn_blocking` — the webview stays live while the dialog is open,
+  `spawn_blocking`; the webview stays live while the dialog is open,
   wherever the dialog ends up on screen.
 
 ## Consequences
@@ -105,7 +105,7 @@ Eight reports after v0.4.14:
 
 **Context.** The entry fields accepted multi-line scripts (Shift+Enter
 composition, pasted scripts), but a submitted multi-line script was
-recorded one line at a time — history could never give the script back
+recorded one line at a time, history could never give the script back
 as a script. The user asked for the whole script to be selectable as a
 single item, with a visible boundary between items in every frontend.
 
@@ -113,7 +113,7 @@ single item, with a visible boundary between items in every frontend.
 
 - **One entry per submission, verbatim.** A submitted multi-line script
   becomes ONE history entry containing the script's lines joined with
-  newlines — no answer suffix, nothing trimmed except blank lines and
+  newlines, no answer suffix, nothing trimmed except blank lines and
   outer whitespace. Its statements still dispatch in order (each line
   and each `;` piece, graphs included); only the recording changes.
   Single-line submissions keep the original behavior: one entry per
@@ -121,12 +121,12 @@ single item, with a visible boundary between items in every frontend.
 - **Picking returns the whole script.** The web/desktop pick loads the
   entry verbatim into the entry field (a multi-line textarea, cursor at
   the end). The TUI input is one row, so its pick joins the script's
-  lines with `; ` — the same separator (ADR-0001), so the script re-runs
+  lines with `; `, the same separator (ADR-0001), so the script re-runs
   exactly as recorded. The CLI REPL's readline input is single-line and
   unchanged; multi-line scripts reach the CLI as piped stdin (`epher -`),
   which never touches interactive history.
 - **Visible boundaries.** The web/desktop history list gives every entry
-  a bottom border — one item sits between two rules, whether it is one
+  a bottom border, one item sits between two rules, whether it is one
   row or many. The TUI draws a full-width `─` rule between entries;
   multi-line entries occupy one row per line, and the focus highlight
   covers all of an entry's rows. The TUI's selection and scroll now work
@@ -135,7 +135,7 @@ single item, with a visible boundary between items in every frontend.
 - **File format.** `.ehs` files keep one entry per line: a multi-line
   entry saves with its newlines escaped as `\n`, and opening a history
   file restores them. Old files load unchanged (no escapes present).
-  The app store's JSON needs no change — entries are plain strings
+  The app store's JSON needs no change, entries are plain strings
   there. `history_expression` never strips a suffix inside a multi-line
   entry, so a line like `x = 2 + 2` survives a pick intact.
 
@@ -160,7 +160,7 @@ words. The TUI spells the same shape in the panel's border title
 
 Users found the history file items unnecessary: the share icon
 (ADR-0038) already moves history between devices. **Load history** and
-**Save history** are removed from every frontend — the web/desktop File
+**Save history** are removed from every frontend, the web/desktop File
 menu and the mobile hamburger, and the TUI's File menu with its file
 prompts. The `.ehs` history-file format (one entry per line, `\n`
 escapes) is retired with them. Nothing else about history changes:
@@ -172,7 +172,7 @@ and they carry **one extension: `.epher`**. Save prefills change from
 `epher-script.esr` to `epher-script.epher` in every frontend (TUI
 prompt, desktop dialog, PWA download); the whole script collection the
 installers ship was already `.epher`. Open dialogs stay unfiltered
-(ADR-0028) — any text file still opens — but what epher names its own
+(ADR-0028), any text file still opens, but what epher names its own
 is always `.epher`.
 
 **Consequences.** The Fluent catalogs lose `menu-open-history`,

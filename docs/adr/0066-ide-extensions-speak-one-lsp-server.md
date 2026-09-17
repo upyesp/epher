@@ -97,7 +97,7 @@ LSP over stdio; thin universal extensions deliver it.
 vscode.dev and github.dev (the editor behind the `.` key on GitHub)
 run extensions in a browser web worker: no Node, no child processes,
 no executables. ADR-0066's download-and-spawn delivery is
-categorically desktop-only there — a `main`-only extension is not
+categorically desktop-only there; a `main`-only extension is not
 even offered for install in the web. The requirements research
 (`docs/research/vscode-web-extension-requirements.md`) established the
 path; this amendment adopts it.
@@ -109,7 +109,7 @@ the manifest, so the Marketplace offers it in vscode.dev and
 github.dev automatically.
 
 **Web delivery: the server rides inside the extension.** `epher-lsp`
-gains a `wasm32-wasip1-threads` build (it compiles unchanged — the
+gains a `wasm32-wasip1-threads` build (it compiles unchanged; the
 crate is stdio-plus-computation, and wasi-threads covers its debounce
 thread), built by CI from the same commit as the extension and shipped
 in the vsix. The web entry runs it through Microsoft's
@@ -117,14 +117,14 @@ in the vsix. The web entry runs it through Microsoft's
 `extensionDependencies`; published on both the Marketplace and
 Open VSX) and bridges the WASI pipes to LSP transports with
 `@vscode/wasm-wasi-lsp`. No download, no first-use network step, and
-no version skew — the failure mode the desktop downloader's version
+no version skew, the failure mode the desktop downloader's version
 marker exists for cannot happen. If the server fails to start anyway,
 web editing degrades to the TextMate baseline, the same contract as a
 desktop download failure.
 
 **Costs accepted:**
 
-- The engines floor rises to `^1.88.0` — `wasm-wasi-core`'s own floor.
+- The engines floor rises to `^1.88.0`, `wasm-wasi-core`'s own floor.
   Desktop and fork users below 1.88 stop receiving updates; the line
   is old enough that the exposure is small.
 - The vsix grows by the wasm module (~2.1 MB, well under half that
@@ -140,17 +140,17 @@ desktop download failure.
   which Microsoft's own testbeds demonstrate. Hands-on verification
   (2026-09-13): the packaged vsix served through `@vscode/test-web`
   (the same web extension host code, over an HTTPS origin,
-  cross-origin isolated) on Android Chrome — the server starts, the
+  cross-origin isolated) on Android Chrome; the server starts, the
   threads hold, and inline answers render next to the statements.
   The literal vscode.dev/github.dev install check cannot happen for
-  an unpublished extension — plain web VS Code offers no vsix-install
+  an unpublished extension, plain web VS Code offers no vsix-install
   route; gallery publication (ADR-0068 parks it until asked) is both
   the remaining gate and the distribution.
 
-## Amendment — 2026-09-16: the desktop joins the wasm; the download retires
+## Amendment: 2026-09-16: the desktop joins the wasm; the download retires
 
-The web argument — the server rides inside the vsix, no first-use
-download — turned out to apply to the desktop too, and with numbers.
+The web argument, the server rides inside the vsix, no first-use
+download, turned out to apply to the desktop too, and with numbers.
 VS Code desktop's extension host is Node.js, and `wasm-wasi-core` runs
 the same module there (engine: V8; threads: `worker_threads`). The
 premise "Electron means browser" is the wrong door but the right
@@ -194,22 +194,22 @@ irrelevant at epher's document sizes.
   end. Windows and macOS run the same platform-independent artifact;
   a packaged smoke test there remains worthwhile, not blocking.
 
-**Not changed:** the `epher-lsp-*` release assets continue — the
+**Not changed:** the `epher-lsp-*` release assets continue, the
 PATH-family IDEs (nvim, vim, Zed, Sublime, Emacs, Eclipse) consume
 them, and the desktop VS Code client is the only one that stops
 needing a download.
 
-**Scope note — why only the VS Code family rides the wasm (2026-09-16):**
+**Scope note, why only the VS Code family rides the wasm (2026-09-16):**
 a WASI host must live in the editor's own process, and the VS Code
 family (VS Code, Cursor, VSCodium, vscode.dev/github.dev) is the
 complete set among our targets: one vsix serves all four through
 `wasm-wasi-core`. The JetBrains platform and Visual Studio spawn
-language servers as external processes and ship no WASI runtime —
+language servers as external processes and ship no WASI runtime,
 embedding one (Chicory, Wasmtime .NET) would mean carrying a second
 runtime to replace a native binary the release already provides, and
 neither embeds `wasi-threads` (the debounce thread requires it). Zed's
 extension API can only *configure* a server binary, not run a module;
 Neovim, Vim, Emacs, Sublime, and Eclipse have no in-process WASI host
-at all. Those clients keep the release's native `epher-lsp` binaries —
+at all. Those clients keep the release's native `epher-lsp` binaries,
 downloaded on first use (JetBrains, Visual Studio) or pointed at on
 the PATH (the rest).

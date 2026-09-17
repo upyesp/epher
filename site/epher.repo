@@ -1,4 +1,4 @@
-# epher's dnf repository — install with:
+# epher's dnf repository: install with:
 #   sudo cp epher.repo /etc/yum.repos.d/
 #   sudo dnf install epher
 [epher]

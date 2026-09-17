@@ -18,14 +18,14 @@ Setting in the Store as an override. English is the default and the
 always-complete fallback. The scripting language itself is never localized
 (ADR-0007).
 
-v1 ships six locales — English (`en`), Mandarin Chinese (`zh-CN`), Hindi (`hi`),
+v1 ships six locales, English (`en`), Mandarin Chinese (`zh-CN`), Hindi (`hi`),
 Spanish (`es`), French (`fr`), and Arabic (`ar`). The set covers the five most
 widely spoken languages plus Arabic, which brings right-to-left support into v1.
 Layout uses CSS logical properties and a root `dir`/`lang` driven by the active
 locale.
 
 > **Amendment (v0.3.x, 2026-08-17):** German (`de`) and Portuguese (`pt`)
-> joined the locale set — the guide, landing page, and app catalogs ship in
+> joined the locale set, the guide, landing page, and app catalogs ship in
 > eight languages. The mechanism is unchanged: the code list in
 > `SUPPORTED_LOCALES` is the single source of truth the CLI, shell, and all
 > frontends validate against.

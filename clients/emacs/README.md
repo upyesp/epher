@@ -2,7 +2,7 @@
 
 The LSP client glue for the shared `epher-lsp` server (ADR-0066
 ships Emacs as a ready-made config, not a package.el plugin).
-Requires Emacs 29 or newer — that is where eglot ships built in.
+Requires Emacs 29 or newer, that is where eglot ships built in.
 With lsp-mode installed instead, the client is registered there too.
 
 ## Install
@@ -62,7 +62,7 @@ locally after that.
 - `xref` definition jumps for names defined in the file.
 
 Baseline highlighting in `epher-mode` is the conservative view of
-the grammar — comments, strings, numbers, the twenty keywords, and
+the grammar, comments, strings, numbers, the twenty keywords, and
 number-adjacent units. The language server's semantic tokens are
 the exact rule; eglot does not consume them today, so the font-lock
 layer is what you see.

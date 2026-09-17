@@ -1,4 +1,4 @@
-//! gen-man — render `epher.1` (ADR-0013).
+//! gen-man: render `epher.1` (ADR-0013).
 //!
 //! Usage (from the repo root):
 //!
@@ -7,10 +7,10 @@
 //! ```
 //!
 //! clap_mangen renders the sections that mirror the argument surface
-//! (NAME/SYNOPSIS/DESCRIPTION/OPTIONS/SUBCOMMANDS/VERSION — regenerated
-//! whenever the CLI changes). The hand-written sections after it — the
+//! (NAME/SYNOPSIS/DESCRIPTION/OPTIONS/SUBCOMMANDS/VERSION, regenerated
+//! whenever the CLI changes). The hand-written sections after it, the
 //! language overview, shell commands, exit status, files, environment,
-//! examples, and see-also — summarize the user guide
+//! examples, and see-also, summarize the user guide
 //! (site/guide/en.md); edit them there first, then here, then rerun.
 
 use clap::CommandFactory;
@@ -55,7 +55,7 @@ fn section(title: &str, build: impl FnOnce(&mut Roff)) -> Roff {
     roff
 }
 
-/// A `.TP` entry — a term with its description on the next line.
+/// A `.TP` entry, a term with its description on the next line.
 fn tagged(roff: &mut Roff, term: &str, desc: &str) {
     roff.control("TP", ["4"]);
     roff.text([roman(term)]);

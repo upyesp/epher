@@ -1,4 +1,4 @@
-//! epher-i18n — shared UI localization (ADR-0008).
+//! epher-i18n, shared UI localization (ADR-0008).
 //!
 //! Fluent catalogs are embedded at build time; locale negotiation picks the
 //! best match for the device's languages with English as the always-complete

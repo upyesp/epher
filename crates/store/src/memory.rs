@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::{Storage, StoreResult};
 
-/// An in-memory [`Storage`] — the test fake and default fallback.
+/// An in-memory [`Storage`], the test fake and default fallback.
 #[derive(Debug, Default)]
 pub struct MemoryStore {
     map: RefCell<HashMap<String, Vec<u8>>>,

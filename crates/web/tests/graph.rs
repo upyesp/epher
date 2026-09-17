@@ -1,5 +1,5 @@
 //! Pure tests for the web graph renderer (ADR-0006/0014: the core samples,
-//! each frontend renders). SVG as a string so the tests run natively — no
+//! each frontend renders). SVG as a string so the tests run natively, no
 //! browser needed.
 
 use epher_core::graph::{parse_graph_source, sample_spec, CurveKind, InterestKind, SampledCurve};

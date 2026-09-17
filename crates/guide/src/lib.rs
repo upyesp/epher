@@ -62,7 +62,7 @@ impl std::error::Error for GuideUnavailable {}
 ///    (the Linux resource dir next to /usr/bin)
 /// 4. the system data dirs `/usr/local/share/epher/guide/` and
 ///    `/usr/share/epher/guide/` (the deb/rpm file maps)
-/// 5. the user's data dir (`$XDG_DATA_HOME` or `~/.local/share`) —
+/// 5. the user's data dir (`$XDG_DATA_HOME` or `~/.local/share`),
 ///    `epher/guide/` there, for installs without a package
 #[cfg(not(target_arch = "wasm32"))]
 pub fn load(locale: &str) -> Result<String, GuideUnavailable> {

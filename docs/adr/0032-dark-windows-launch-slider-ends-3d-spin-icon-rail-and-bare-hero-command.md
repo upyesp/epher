@@ -17,9 +17,9 @@ Five findings from using v0.4.19:
    minimum and maximum are.
 3. **The 3D rotation sliders are static.** A non-zero horizontal or
    vertical rotation value re-poses the plot once. Users expect a
-   non-zero rotation to *rotate* — the horizontal slider spinning the
+   non-zero rotation to *rotate*, the horizontal slider spinning the
    graph around the vertical axis, the vertical slider around the
-   horizontal axis, stopping at zero — with the mouse and arrow keys
+   horizontal axis, stopping at zero, with the mouse and arrow keys
    still available.
 4. **The horizontal menu bar wastes a row.** A vertical icon rail on the
    left is the requested shape; top-level names become icons (Settings =
@@ -37,22 +37,22 @@ Two layers paint on Windows: the tao window and the WebView2 surface.
   `--default-background-color` as an AARRGGBB hex value (the format its
   own transparency documentation uses, e.g. `00000000`). The six-digit
   `141416` v0.4.19 passed is not a valid color, so WebView2 silently kept
-  the white default — the fix did exactly nothing.
+  the white default; the fix did exactly nothing.
 - **The window-level `backgroundColor` is a no-op on Windows.** Tao
   creates the window class with the default (white) background brush and
   only stores the configured color; unlike the Linux (GTK) path it never
   applies it. That is why Linux has never flashed: its window background
   is dark from the first frame. (v0.4.3's blank-window bug taught us to
-  keep the tauri window config off Windows; nothing changed there — the
+  keep the tauri window config off Windows; nothing changed there; the
   color was simply never reaching the surface at all.)
 - **The reliable mechanism is hidden-until-loaded.** `visible: false` on
   the Windows window plus a show at the first-paint signal means the very
-  first presented frame is the already rendered page — the shell's inline
+  first presented frame is the already rendered page; the shell's inline
   CSS is dark from its first paint, and the boot-fallback (v0.4.2) is
   dark too. Even if WebView2 composited a white first frame, nobody can
   see it. The signal is the frontend's existing `init` IPC call, which
   fires right after Yew mounts (tauri exposes no page-load hook on the
-  window handle in 2.11.x — the builder has one, the created window does
+  window handle in 2.11.x; the builder has one, the created window does
   not, and a WebView event-loop route doesn't exist either); the Rust
   `init` command shows and focuses the window on Windows. The
   boot-fallback script invokes `init` too when it takes over, so a
@@ -71,7 +71,7 @@ The generic text-entry rule `input, textarea { padding: 0.75rem; border:
 12px side padding and the border inset the thumb's travel, so the
 minimum and maximum landed visibly inside the ends.
 
-Decision: range and checkbox inputs take no text-input chrome — `padding:
+Decision: range and checkbox inputs take no text-input chrome, `padding:
 0; border: none`. The thumb now travels edge to edge; the input's own
 ends are the slider's min and max.
 
@@ -84,7 +84,7 @@ clamped pitch (v × 0.8, ±1.4), zoom scales the camera.
 A spin is different in kind, not degree:
 
 - It is *continuous*: while the slider is non-zero the pose advances. The
-  advance must accumulate somewhere the orbit base cannot disturb —
+  advance must accumulate somewhere the orbit base cannot disturb,
   storing it in the base view would let a drag clamp the pitch back into
   ±1.4 and visibly snap a pose that had tumbled past the pole.
 - It must *cross the poles*: "rotate around the horizontal axis" is a
@@ -96,12 +96,12 @@ A spin is different in kind, not degree:
   effective pose = base + phase (no clamp) + zoom offset.
 - It must *stop at zero*: the phase freezes where the spin stopped, the
   sliders return to 0, and only a fresh 3D graph or Clear graph resets
-  the phase — the same lifecycle as the slider values themselves.
+  the phase, the same lifecycle as the slider values themselves.
 - It is *motion*: under `prefers-reduced-motion` the spin loop never
   runs and the sliders keep their v0.4.19 static-offset meaning (WCAG
   2.3.3, consistent with the parameter play button's one-step behavior).
 
-Decision: `View3D::with_spin_phase(yaw, pitch, zoom)` in the core — the
+Decision: `View3D::with_spin_phase(yaw, pitch, zoom)` in the core, the
 orbit base plus an unclamped accumulated rotation and the static zoom.
 The web frontend keeps a live `(yaw, pitch)` phase cell advanced by a
 single spawned loop at ~30fps while either rotation slider is non-zero
@@ -109,7 +109,7 @@ single spawned loop at ~30fps while either rotation slider is non-zero
 backgrounded tab cannot jump); the loop and the render both consult
 `prefers-reduced-motion`. Orbit gestures still mutate the base, so the
 mouse and arrow keys work during and after a spin. The TUI's Settings
-rows keep their static ±0.1 nudges — they are adjustment rows, not
+rows keep their static ±0.1 nudges; they are adjustment rows, not
 sliders, and a terminal has no continuous-render loop to host a spin
 (the t-parameter play loop paces itself at 120ms and re-runs the
 sampler; a spin there would thrash the grid).
@@ -119,7 +119,7 @@ sampler; a spin there would thrash the grid).
 The menubar becomes the app's left rail at the desktop breakpoint: the
 topbar column carries it as a grid column beside the panes (`display:
 grid` on `.epher`, `auto / minmax(0, 1fr)` columns), the bar itself
-runs top-down as 44px square icon buttons — inline lucide-style stroke
+runs top-down as 44px square icon buttons, inline lucide-style stroke
 SVGs in `currentColor` (file, pencil, gear, question circle), each with
 the menu name as `aria-label` and native tooltip, `role="menubar"` with
 `aria-orientation="vertical"`, dropdowns opening to the right with the
@@ -128,7 +128,7 @@ rail is hidden below 880px and the hamburger remains the mobile menu.
 
 The labels "Open history…" and "Open script…" become "Load history…"
 and "Load script…" in all eight locales (the TUI's open prompt and its
-failure message become "Load file:" / "Could not load the file" too —
+failure message become "Load file:" / "Could not load the file" too,
 the same words everywhere the file pickers are named).
 
 ### Hero code block
@@ -165,7 +165,7 @@ styling is removed with it.
   poles; the static pitch clamp no longer bounds what a spin can reach
   (it still bounds orbit drags and the reduced-motion offsets). Copy SVG
   exports the current spin pose, like any other pose.
-- The rail trades one horizontal row for a 53px column — a net width
+- The rail trades one horizontal row for a 53px column, a net width
   win at every window size; icon-only top levels rely on aria-labels
   and tooltips for their names, and the menu names remain in the
   dropdowns, the mobile hamburger, and the TUI.

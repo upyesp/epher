@@ -2,7 +2,7 @@
 //! geometry and document assembly shared by every frontend. The web app
 //! uses the same helpers for its live (Yew) renderer; the terminal
 //! frontends and the copy-to-clipboard button call [`graph_svg`] for a
-//! self-contained document — embedded style, fixed 640×400 viewBox — that
+//! self-contained document, embedded style, fixed 640×400 viewBox, that
 //! looks the same pasted into a document as it does in the app's default
 //! theme.
 //!
@@ -146,7 +146,7 @@ pub fn geometry_in(curves: &[SampledCurve], x_min: f64, x_max: f64) -> Option<Ge
 
 /// Split a curve's samples into polyline segments at non-finite points
 /// (gaps, not jumps) *and* at vertical jumps larger than a third of the
-/// sampled value range — a false asymptote line must never connect the two
+/// sampled value range; a false asymptote line must never connect the two
 /// branches of `1 / x` or `tan(x)`.
 pub fn segments(samples: &[Sample], y_span: f64) -> Vec<Vec<(f64, f64)>> {
     let threshold = 0.35 * y_span;
@@ -397,7 +397,7 @@ pub fn layers_svg(geom: &Geometry, x_axis: bool) -> String {
     s
 }
 
-/// The default curve stroke width — half the pre-slider constant 2 (the
+/// The default curve stroke width, half the pre-slider constant 2 (the
 /// plotted lines read thinner, and the slider ranges around it).
 pub const DEFAULT_STROKE_WIDTH: f64 = 1.0;
 
@@ -846,7 +846,7 @@ fn short(x: f64) -> String {
 }
 
 /// Render curves, points of interest, and the trace cursor as a
-/// self-contained SVG document (embedded style, 640×400 viewBox and size —
+/// self-contained SVG document (embedded style, 640×400 viewBox and size,
 /// the copy button, the terminal `graph save`, and the tests all produce
 /// the same bytes). `stroke_width` is the curve line width
 /// ([`DEFAULT_STROKE_WIDTH`] unless the user moved the slider). Nothing to
@@ -859,7 +859,7 @@ pub fn graph_svg(
     stroke_width: f64,
 ) -> String {
     // The plain entry point draws every curve with its position in the
-    // slice as the palette index — the callers without hidden curves
+    // slice as the palette index, the callers without hidden curves
     // (TUI, shell, core tests) always pass full slices, so position and
     // original index coincide.
     let indexed: Vec<(usize, SampledCurve)> = curves
@@ -880,7 +880,7 @@ pub fn graph_svg(
 
 /// [`graph_svg`] with explicit palette indices: the web pane filters
 /// hidden curves out of the slice but must keep each curve's own colour
-/// (ADR-0015 amendment) — a hidden neighbour must not shift the palette.
+/// (ADR-0015 amendment); a hidden neighbour must not shift the palette.
 pub fn graph_svg_indexed(
     curves: &[(usize, SampledCurve)],
     pois: &[Poi],
@@ -946,8 +946,8 @@ pub fn graph_svg_styled(
             ));
         }
         // A visible caption at the curve's end: curves are all solid
-        // (ADR-0023), so the caption — plus the aria-label and the
-        // `<title>` — is the non-color channel that keeps them apart
+        // (ADR-0023), so the caption, plus the aria-label and the
+        // `<title>`, is the non-color channel that keeps them apart
         // (WCAG 1.4.1).
         if let Some(last) = c.samples.iter().rev().find(|s| s.y.is_finite()) {
             let (x, y) = (geom.sx(last.x), geom.sy(last.y));

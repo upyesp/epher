@@ -126,7 +126,7 @@ _Avoid_: stats module, analysis tools
 
 **Test**:
 A hypothesis test or confidence interval as a function over a data
-list — `ztest ttest chisq_gof zinterval tinterval` — reporting a
+list (`ztest ttest chisq_gof zinterval tinterval`), reporting a
 display string (`z = …, p = …`, `(lo, hi)`; ADR-0044).
 _Avoid_: wizard, test editor
 
@@ -252,9 +252,14 @@ _Avoid_: trace (ambiguous with the plotting sense), execution log
 
 ## Style
 
-- No em-dashes (—) anywhere, in any language: use colons, commas,
-  parentheses, or separate sentences instead (user rule, 2026-08-27).
-  The website, the guides, and the in-app copy must stay free of them.
+- No em-dashes (U+2014) anywhere, in any language, in any project content
+  or asset: the website and its translations, the user guide (sources and
+  rendered pages), the in-app guide, docs and ADRs, client pages (VS
+  Code/JetBrains/etc. READMEs and descriptions), code comments, scripts,
+  commit messages going forward. Use colons, commas, parentheses, or
+  separate sentences instead (user rule, 2026-08-27; extended to all
+  content and assets 2026-09-17). Existing git history is left as it is;
+  every new edit obeys the rule.
 
 ## Delivery
 

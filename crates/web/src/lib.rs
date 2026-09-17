@@ -1,8 +1,8 @@
-//! epher-web — the Yew frontend compiled to `wasm32-unknown-unknown`, shared by
+//! epher-web, the Yew frontend compiled to `wasm32-unknown-unknown`, shared by
 //! the PWA and the Tauri desktop shell (ADR-0001).
 //!
 //! A thin component over the shared [`Session`]: input line, result, history,
-//! and the graph panel (ADR-0006/0014 — the core samples and analyzes, this
+//! and the graph panel (ADR-0006/0014, the core samples and analyzes, this
 //! file is presentation glue: curves, trace, points of interest, sliders).
 //! Inside the desktop shell, persistence goes through the native store via
 //! the Tauri IPC bridge (ADR-0010); in the browser, the session is the whole
@@ -30,7 +30,7 @@ use yew::events::{InputEvent, SubmitEvent};
 use yew::prelude::*;
 
 /// Live graph-interaction state. The SVG's event listeners are attached
-/// once, at mount, so the callbacks they hold must read current values —
+/// once, at mount, so the callbacks they hold must read current values,
 /// but a cloned `UseStateHandle` reads the snapshot it was created with
 /// (Yew replaces the handle's inner `Rc` on every `set`). This cell is the
 /// live copy; the Yew states mirror it for rendering.
@@ -68,7 +68,7 @@ impl PlaySpec {
     }
 }
 
-/// The names of session constants any plotted expression references — each
+/// The names of session constants any plotted expression references; each
 /// becomes a live slider (ADR-0014). Surfaces count too (ADR-0015): their
 /// constants animate the mesh the same way.
 /// The slider span for a constant whose value is `v`: the base −10..10
@@ -152,7 +152,7 @@ fn curve3d_slider_names(
     names.into_iter().collect()
 }
 
-/// The constants the solar pane's time expression references — the source
+/// The constants the solar pane's time expression references; the source
 /// is stored as written (e.g. `t` or `now() + 10`), so its free names come
 /// straight from the expression tree (ADR-0037).
 fn solar_slider_names(source: &str, session: &Session) -> Vec<String> {
@@ -317,7 +317,7 @@ fn curve_at(curves: &[SampledCurve], index: usize) -> Option<&SampledCurve> {
 
 /// What a keypad press does: insert text at the cursor, insert `name(`,
 /// submit the form, clear the entry, or backspace. The scripting language
-/// itself is untouched — the keypad is a second spelling of the same input.
+/// itself is untouched; the keypad is a second spelling of the same input.
 #[derive(Clone, Copy, PartialEq)]
 enum KeyAction {
     Text(&'static str),
@@ -354,7 +354,7 @@ const fn key(label: &'static str, act: KeyAction, cls: &'static str, hint: &'sta
 
 /// Every function, constant, and command the language supports, grouped
 /// like a scientific calculator's key banks (ADR-0016). Labels are the
-/// language tokens themselves (ADR-0007 — the language is never
+/// language tokens themselves (ADR-0007; the language is never
 /// localized); `÷`/`×`/`−` show the operator glyphs but insert the ASCII
 /// tokens the language spells them with.
 static TABS: &[TabDef] = &[
@@ -880,7 +880,7 @@ static TABS: &[TabDef] = &[
     },
 ];
 
-/// The name of a language in itself — the menu lists languages the way
+/// The name of a language in itself; the menu lists languages the way
 /// their speakers write them, independent of the UI language.
 fn native_language_name(code: &str) -> &str {
     match code {
@@ -930,7 +930,7 @@ fn stage_in_entry(
 
 /// One active grab-bar drag (ADR-0060): where the gesture began, the
 /// heights it works between, and the flick velocity. Lives in a cell
-/// the pointer handlers read and write without re-rendering — the
+/// the pointer handlers read and write without re-rendering, the
 /// dragged height lands on the DOM directly. `pending_y` carries the
 /// newest pointer sample; an armed animation frame applies it, so a
 /// 1000 Hz mouse writes one height per display frame, not one per
@@ -965,7 +965,7 @@ fn keypad_snap(current_h: f64, open_h: f64, velocity_px_per_ms: f64) -> bool {
 }
 
 /// The stored line widths (ADR-0035 amendment, ADR-0055 range): 2D and
-/// 3D remember their values independently on every display — the 2D key
+/// 3D remember their values independently on every display; the 2D key
 /// falls back to the legacy shared key and clamps into the 2D range
 /// (0–4), the 3D key falls back to the same legacy key and clamps into
 /// the 3D range of the layout in question (0–0.2 on the touch layout,
@@ -1372,7 +1372,7 @@ fn clip_parts(result: &str) -> Vec<(String, bool)> {
         .map(|p| {
             if table_cells(p).is_some() {
                 // A table keeps its exact form, leading padding
-                // included — the padding IS the alignment.
+                // included; the padding IS the alignment.
                 (p.to_string(), true)
             } else {
                 let t = p.trim();
@@ -1385,7 +1385,7 @@ fn clip_parts(result: &str) -> Vec<(String, bool)> {
 
 /// Parse an answer block as a table (ADR-0014's `table` command): at
 /// least two rows, every row at least two single-token cells, every
-/// cell separated from its neighbor by a run of two or more spaces —
+/// cell separated from its neighbor by a run of two or more spaces,
 /// exactly the form `format_table` emits. Anything else (a transcript
 /// like "= 5\n= 6", whose voice is single-spaced) is not a table.
 fn table_cells(block: &str) -> Option<Vec<Vec<String>>> {
@@ -1396,7 +1396,7 @@ fn table_cells(block: &str) -> Option<Vec<Vec<String>>> {
         // column gap is a run of two or more spaces, so splitting on
         // two-space runs and dropping the empties leaves exactly the
         // cells. A cell itself never holds whitespace (numbers, 1/3,
-        // the em dash) — a piece that still does is not a table row.
+        // the em dash); a piece that still does is not a table row.
         let cells: Vec<String> = line
             .split("  ")
             .map(|c| c.trim().to_string())
@@ -1423,7 +1423,7 @@ fn table_cells(block: &str) -> Option<Vec<Vec<String>>> {
 }
 
 /// Write both clipboard flavors (ADR-0057 amendment): text/plain plus
-/// text/html in one ClipboardItem when the browser supports the write —
+/// text/html in one ClipboardItem when the browser supports the write,
 /// plain text alone when it refuses or lacks the API. Plain text keeps
 /// every paste target working; the HTML flavor is what makes a table
 /// land in columns in documents and spreadsheets.
@@ -1471,7 +1471,7 @@ async fn write_clipboard(plain: &str, html: &str) -> bool {
 /// table pastes as a real table (cells land in Sheets/Docs columns);
 /// any other block pastes as preformatted text. Plain-text targets
 /// keep taking `answer_clip`'s space-aligned form, which aligns in
-/// every monospace surface — terminals, editors, code blocks.
+/// every monospace surface, terminals, editors, code blocks.
 fn answer_clip_html(result: &str) -> String {
     let mut body = String::new();
     for (text, table) in clip_parts(result) {
@@ -2050,12 +2050,12 @@ const ICON_EDIT: &str = "<path d=\"M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5
 const ICON_SETTINGS: &str = "<path d=\"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>";
 const ICON_HELP: &str = "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"/><path d=\"M12 17h.01\"/>";
 
-/// The project site — the target of the brand link in every frontend.
+/// The project site, the target of the brand link in every frontend.
 const BRAND_URL: &str = "https://www.epher.org";
 
 /// The epher mark: the rounded tile with the monogram "e" (the same
 /// artwork as the site's icon.svg), colored with the theme tokens so it
-/// reads on every theme — the tile and the counter take the text color
+/// reads on every theme; the tile and the counter take the text color
 /// and the glyph the background color, the same flip the website's icon
 /// variants make for the dark theme. The children carry classes
 /// (`brand-tile`, `brand-glyph`, `brand-counter`) that the stylesheet
@@ -2085,7 +2085,7 @@ fn download_text_file(filename: &str, text: &str) {
         return;
     };
     // The anchor must live in the document for the download to start,
-    // and the blob URL must outlive the click — revoke it later, not
+    // and the blob URL must outlive the click, revoke it later, not
     // synchronously.
     if let Some(doc) = win.document() {
         if let Some(a) = doc
@@ -2252,8 +2252,8 @@ async fn browser_save_dialog(default_name: &str, text: &str) -> Result<Option<St
     Ok(Some(name))
 }
 
-/// The browser's own open picker (File System Access API, Chromium) —
-/// the device's file explorer — or `None` when this browser has none
+/// The browser's own open picker (File System Access API, Chromium),
+/// the device's file explorer, or `None` when this browser has none
 /// (the caller falls back to the hidden file input).
 fn browser_open_picker() -> Option<js_sys::Function> {
     let window = web_sys::window()?;
@@ -2262,7 +2262,7 @@ fn browser_open_picker() -> Option<js_sys::Function> {
 }
 
 /// What `showOpenFilePicker` resolved to: a file, a user cancellation
-/// (stay silent, like the save dialog — ADR-0024), or a failure the
+/// (stay silent, like the save dialog, ADR-0024), or a failure the
 /// caller falls back from.
 enum OpenOutcome {
     File(web_sys::File),
@@ -2329,7 +2329,7 @@ async fn open_file_text(file: web_sys::File) -> Option<String> {
 }
 
 /// Load opened history text (ADR-0025): the current history clears,
-/// then each non-empty line is recorded — nothing executes — and the
+/// then each non-empty line is recorded, nothing executes, and the
 /// new history persists through the bridge. The answer names the count.
 /// Multi-line entries travel as one line with `\n` escapes (ADR-0027
 /// amendment): the two-character sequence becomes the entry's newline
@@ -2378,7 +2378,7 @@ fn epher_app() -> Html {
     let trace = use_state(|| Option::<graph::TracePoint>::None);
     // Graph options (ADR-0019, on the pane itself since ADR-0020): whether
     // the pane lists the points of interest and marks them on the plot,
-    // and the curve line width. Display-only — the analysis always runs,
+    // and the curve line width. Display-only; the analysis always runs,
     // so switching back is instant. Mobile remembers each graph kind's
     // width independently (ADR-0035): 3D starts at 0.1, thin lines for
     // the small screen (ADR-0031); 2D starts at the desktop default.
@@ -2391,7 +2391,7 @@ fn epher_app() -> Html {
     // layout keeps ADR-0035's 0–0.2 step 0.01 with 0.1. The width is a
     // screen-px measure (vector-effect), so the defaults draw a 2 px
     // (desktop) or 1 px (mobile) line on any display and in the exports
-    // — the two kinds own separate sliders, and a 3D surface keeps its
+    //, the two kinds own separate sliders, and a 3D surface keeps its
     // own default rather than inheriting the 2D curve's.
     let width_3d = use_state(|| graph::three_d_default_width(mobile_layout()));
     // Per-curve visibility (ADR-0015 amendment): each legend entry has a
@@ -2423,19 +2423,19 @@ fn epher_app() -> Html {
     // The live cell behind `view`: orbit emissions mutate it in place, so
     // a burst of drag/keyboard events accumulates instead of each event
     // reading the same stale handle snapshot and overwriting the last
-    // (the v0.4.13 "shivering" — the render-snapshot rule, ADR-0026).
+    // (the v0.4.13 "shivering", the render-snapshot rule, ADR-0026).
     let view_cell = use_state(|| Rc::new(RefCell::new(epher_core::graph::View3D::default())));
-    // Whether a 3D surface is currently plotted — the live spelling of
+    // Whether a 3D surface is currently plotted, the live spelling of
     // `!surface.is_empty()` for the width-slider's range decision, which
     // must read the kind at emit time (ADR-0035), not a stale handle
     // snapshot.
     let surface3d_cell = use_state(|| Rc::new(RefCell::new(false)));
     // The 3D fine-control sliders (ADR-0031): horizontal rotation,
-    // vertical rotation, and zoom offsets — each −1..1, step 0.1, with 0
+    // vertical rotation, and zoom offsets; each −1..1, step 0.1, with 0
     // the default. They ride on top of the orbit base view, applied via
     // View3D::with_offsets, and reset whenever a 3D graph is drawn into
     // an empty pane.
-    // ADR-0032: the two rotation sliders SPIN while non-zero — horizontal
+    // ADR-0032: the two rotation sliders SPIN while non-zero, horizontal
     // around the vertical axis, vertical around the horizontal axis,
     // roughly one revolution in six seconds at full deflection. The phase
     // accumulates in a live cell per frame; `spin_phase` mirrors it for
@@ -2495,7 +2495,7 @@ fn epher_app() -> Html {
         use_state(|| Rc::new(RefCell::new(Option::<gloo_timers::callback::Timeout>::None)));
     let keypad_drag = use_state(|| Rc::new(RefCell::new(Option::<KeypadDrag>::None)));
     // The drawer's helper (ADR-0060): animate to a final state from
-    // wherever the drawer is now — frozen inline height, one forced
+    // wherever the drawer is now, frozen inline height, one forced
     // reflow, target height with the transition on, then the inline
     // height clears so the resting class rule takes over. `dur_ms`
     // sets the snap's pace: a drag release is timed to its own flick.
@@ -2551,7 +2551,7 @@ fn epher_app() -> Html {
             }
             let clip = clip.clone();
             // The cell owns the timer: it stays alive until it fires (or
-            // until the next gesture takes and cancels it — gloo's
+            // until the next gesture takes and cancels it, gloo's
             // Timeout cancels on drop). The fired timer sitting in the
             // cell is harmless; dropping it cancels nothing that runs.
             // It clears the inline height AND transition, so the next
@@ -2687,7 +2687,7 @@ fn epher_app() -> Html {
                 return;
             }
             // A still-armed frame has nothing to apply (the cell went
-            // with the take) — cancel it so it cannot write after the
+            // with the take), cancel it so it cannot write after the
             // snap started.
             if d.frame_armed {
                 if let Some(w) = web_sys::window() {
@@ -2702,7 +2702,7 @@ fn epher_app() -> Html {
             // over the full pace. The result lands between a floor
             // (below which the animation cannot register) and the
             // stylesheet's resting pace. keypad_snap answers
-            // "collapse?" — open is its negation, as at every call
+            // "collapse?": open is its negation, as at every call
             // site.
             let current = keypad_drawer_ref
                 .cast::<Element>()
@@ -2721,7 +2721,7 @@ fn epher_app() -> Html {
     let active_pane = use_state(|| "calc".to_string());
     // The entry's selection, mirrored while it owns focus and refreshed
     // at each keypad mousedown (ADR-0035): keypad presses read it, because
-    // the button's mousedown default action blurs the entry — and the blur
+    // the button's mousedown default action blurs the entry, and the blur
     // that closes the mobile keyboard also zeroes the DOM selection in
     // Chromium. The tuple carries ranges, so replacing a selection works.
     let cursor_cell = use_state(|| Rc::new(RefCell::new((0usize, 0usize))));
@@ -2798,7 +2798,7 @@ fn epher_app() -> Html {
         let constants_open = constants_open.clone();
         Callback::from(move |_: web_sys::MouseEvent| constants_open.set(false))
     };
-    // Insert a constant name at the entry's cursor — the same splice a
+    // Insert a constant name at the entry's cursor; the same splice a
     // keypad press does (ADR-0045): selection-replacing, cursor after
     // the name, and the browser stays open for the next pick.
     let insert_constant = {
@@ -2865,9 +2865,9 @@ fn epher_app() -> Html {
         })
     };
 
-    // Inside the desktop shell: rebuild the session from the native store —
+    // Inside the desktop shell: rebuild the session from the native store,
     // history plus saved functions and scripts replayed quietly, the exact
-    // load_session recipe — and honor the stored language preference.
+    // load_session recipe, and honor the stored language preference.
     // The same apply path serves the live store-changed broadcasts
     // (ADR-0010 amendment): another frontend's write arrives as a fresh
     // InitState and this applies it in place, so the open app always
@@ -2904,7 +2904,7 @@ fn epher_app() -> Html {
                 }
             }
             // The shared session snapshot (ADR-0010 amendment): bindings
-            // saved by whichever CLI/REPL/TUI/desktop frontend ran last —
+            // saved by whichever CLI/REPL/TUI/desktop frontend ran last,
             // `ans` and every user assignment carry over.
             s.restore_bindings(&state.session);
             let display = *display_prefs;
@@ -2941,7 +2941,7 @@ fn epher_app() -> Html {
                         Ok(state) => {
                             apply(state);
                             // Graph pane options live in the webview's
-                            // localStorage on desktop too (ADR-0020) — the
+                            // localStorage on desktop too (ADR-0020); the
                             // native store carries only what must exist
                             // before mount.
                             if let Some(store) =
@@ -2973,8 +2973,8 @@ fn epher_app() -> Html {
                         }
                     }
                 });
-                // Live sync: every store write — this window's own or the
-                // TUI's, the REPL's, a one-shot CLI run's — reapplies the
+                // Live sync: every store write; this window's own or the
+                // TUI's, the REPL's, a one-shot CLI run's, reapplies the
                 // shared state immediately (ADR-0010 amendment).
                 Bridge::listen_store_changed(apply_store_state.clone());
                 // A `.epher` file opened while the app runs (macOS
@@ -3063,7 +3063,7 @@ fn epher_app() -> Html {
                     }
                     // The PWA's recent activity (ADR-0057): history, the
                     // session bindings (`ans` and every assignment), and the
-                    // answer on screen — reopening shows where the user left
+                    // answer on screen, reopening shows where the user left
                     // off instead of a blank slate.
                     let mut restored: Option<Session> = None;
                     if let Ok(Some(json)) = store.get_item("epher-history") {
@@ -3209,7 +3209,7 @@ fn epher_app() -> Html {
 
     // ---- menu actions (ADR-0017) ------------------------------------
     // Set the theme everywhere it lives: the render (state + attribute
-    // effect above) and the persistence layer — the native store in the
+    // effect above) and the persistence layer, the native store in the
     // desktop shell, localStorage in the browser.
     let on_set_theme = {
         let theme = theme.clone();
@@ -3287,8 +3287,8 @@ fn epher_app() -> Html {
         })
     };
     // The line-width sliders (ADR-0020, ADR-0035 amendment, ADR-0055):
-    // one slider per graph kind — 2D 0–4 step 0.1, 3D 0–0.4 step 0.05
-    // (default 0.2) — and only the kind in view is shown, so the range
+    // one slider per graph kind, 2D 0–4 step 0.1, 3D 0–0.4 step 0.05
+    // (default 0.2), and only the kind in view is shown, so the range
     // always matches the plot the user is adjusting. Each kind remembers
     // its own width under its own key (the legacy shared key still seeds
     // both), and each kind's plot renders with its own value. Persisted
@@ -3350,7 +3350,7 @@ fn epher_app() -> Html {
     }
 
     // File → Open script (ADR-0025, ADR-0031): on the PWA the browser's
-    // own open picker (File System Access API) runs when available — the
+    // own open picker (File System Access API) runs when available, the
     // device's file explorer, straight from the menu tap. Browsers
     // without it, and the desktop shell, fall back to the hidden input's
     // picker, and a picker failure falls back the same way.
@@ -3421,12 +3421,12 @@ fn epher_app() -> Html {
     };
 
     // File → Open history (ADR-0025): the hidden input's picker; the
-    // chosen file's lines REPLACE the history section — the current
-    // history clears first, then each non-empty line is recorded — and
+    // chosen file's lines REPLACE the history section, the current
+    // history clears first, then each non-empty line is recorded, and
     // the new history persists through the same store save every submit
     // uses. Nothing executes: the lines display exactly as saved.
 
-    // File → Save script: a Blob download of the entry field's script —
+    // File → Save script: a Blob download of the entry field's script,
     // the thing a user may want on disk.
     let on_save_script = {
         let input = input.clone();
@@ -3454,7 +3454,7 @@ fn epher_app() -> Html {
     // Edit → Cut/Copy/Paste: the platform clipboard. Copy takes the last
     // result (or the entry when nothing ran yet); Cut moves the entry to
     // the clipboard; Paste reads the clipboard into the entry at the
-    // cursor. When the browser withholds read access, say so — Ctrl+V
+    // cursor. When the browser withholds read access, say so, Ctrl+V
     // still works directly in the field.
     let on_copy = {
         let result = result.clone();
@@ -3720,7 +3720,7 @@ fn epher_app() -> Html {
 
     // Pane switching (ADR-0016): mobile swipes horizontally between the
     // calculator and the graph; these buttons are the non-swipe spelling.
-    // The jump is instant — one discrete step, which is also the
+    // The jump is instant, one discrete step, which is also the
     // reduced-motion behavior (WCAG 2.3.3). Defined before on_submit so
     // the submit path can slide the view to a freshly drawn graph.
     let scroll_pane = Callback::from(|id: &'static str| {
@@ -3779,7 +3779,7 @@ fn epher_app() -> Html {
             e.prevent_default();
             // A submitted entry may be several lines (pasted from the
             // guide, or composed with Shift+Enter). Each line runs in
-            // order against one session snapshot — script semantics, like
+            // order against one session snapshot, script semantics, like
             // the REPL and piped mode. Yew state handles do not expose
             // writes made earlier in the same callback, so the loop works
             // on locals and the states are published once, after the loop.
@@ -3791,7 +3791,7 @@ fn epher_app() -> Html {
             let mut solar_source = (*solar_source_handle).clone();
             let mut data_local = (*data).clone();
             // Mobile: a submit that empties the graph pane slides the
-            // view back to the calculator (ADR-0035) — the mirror of the
+            // view back to the calculator (ADR-0035), the mirror of the
             // draw slide. Tracked before the loop so only a pane that
             // HAD content moves.
             let had_graph = !curves.is_empty()
@@ -3799,13 +3799,13 @@ fn epher_app() -> Html {
                 || !curve3ds_local.is_empty()
                 || solar.is_some()
                 || data.is_some();
-            // Statements join with newlines or `;` — the same separator
+            // Statements join with newlines or `;`, the same separator
             // (ADR-0001). Each piece dispatches in order, exactly as if
-            // typed one by one — but the history keeps the script the way
+            // typed one by one, but the history keeps the script the way
             // the user entered it: a single-line submission is one entry
             // per line (semicolons intact, last answer appended), and a
             // multi-line submission is ONE entry carrying the whole
-            // script verbatim (ADR-0027 amendment) — the pieces below
+            // script verbatim (ADR-0027 amendment); the pieces below
             // must not record their own lines then.
             let raw = (*input).clone();
             let multiline = raw
@@ -3953,7 +3953,7 @@ fn epher_app() -> Html {
                             result.set(String::new());
                             // Mobile convenience: the graph pane is one
                             // horizontal slide away in the stacked-pane
-                            // layout — a drawn plot slides the view
+                            // layout, a drawn plot slides the view
                             // across so the curve is visible immediately.
                             if mobile_layout() {
                                 scroll_pane.emit("graph-pane");
@@ -4041,7 +4041,7 @@ fn epher_app() -> Html {
                             // The pane shows one kind at a time (ADR-0015
                             // amendment): drawing a surface clears any 2D
                             // curves, their points of interest, and any
-                            // solar scene — the newest command owns the pane.
+                            // solar scene, the newest command owns the pane.
                             curves.clear();
                             curve3ds_local.clear();
                             data_local = None;
@@ -4161,7 +4161,7 @@ fn epher_app() -> Html {
                 if let Some(cmd) = classify(&line) {
                     // A table is a computation: the command joins the
                     // history list like every submitted line (the graph
-                    // precedent, ADR-0027) — picking it loads the
+                    // precedent, ADR-0027), picking it loads the
                     // command, and re-running it regenerates the table.
                     // A multi-statement line records once at the tail,
                     // so only a single statement records here.
@@ -4206,7 +4206,7 @@ fn epher_app() -> Html {
                             Err(msg) => result.set(msg),
                         },
                         Bridge::None => {
-                            // Tables are pure computation — they work in the
+                            // Tables are pure computation; they work in the
                             // browser session just like an evaluation.
                             match &cmd {
                                 epher_shell::Command::Table { .. } => {
@@ -4271,7 +4271,7 @@ fn epher_app() -> Html {
             if multiline {
                 // One history entry for the whole multi-line script:
                 // the script verbatim, no answer suffix (the lines above
-                // recorded nothing) — and `save script` persists the
+                // recorded nothing), and `save script` persists the
                 // script, not its last statement.
                 s.record(&script_verbatim);
                 s.set_last_line(&script_verbatim);
@@ -4306,7 +4306,7 @@ fn epher_app() -> Html {
                 l.trace = None;
             }
             // Mobile (ADR-0035): once the graph pane has been cleared,
-            // slide back to the calculator — there is nothing left to
+            // slide back to the calculator; there is nothing left to
             // look at over there. Computed before the moves below.
             let cleared = mobile_layout()
                 && had_graph
@@ -4400,12 +4400,12 @@ fn epher_app() -> Html {
     };
 
     // The playback tick: what the animation loop applies every step. It
-    // is deliberately lighter than a slider drag — the loop runs at a
+    // is deliberately lighter than a slider drag; the loop runs at a
     // fixed cadence and must not fall behind on weak devices:
     //   - only curves/surfaces that reference the animated constant are
     //     re-sampled (the rest keep their samples),
     //   - the points-of-interest analysis runs at 2 Hz (every 4th tick),
-    //     not per tick — the markers track the moving curve, but the
+    //     not per tick, the markers track the moving curve, but the
     //     bisection/golden-section work does not gate every frame,
     //   - the visibility checkboxes are never rewritten mid-playback.
     // No storage is touched: the shared store only sees user actions
@@ -4561,11 +4561,11 @@ fn epher_app() -> Html {
         // The loop must be spawned once, not per render: use_effect (no
         // deps) re-runs after every render, so a bare use_effect here
         // would add a new loop on every tick, each tick re-rendering and
-        // spawning another — playback would accelerate to a crash.
+        // spawning another, playback would accelerate to a crash.
         use_effect_with((), move |_| {
             spawn_local(async move {
                 // One step per 120 ms: a fresh constant's slider spans
-                // ±10 (200 steps), so one full cycle takes 24 s — the
+                // ±10 (200 steps), so one full cycle takes 24 s, the
                 // vendor norm for playback speed.
                 // wasm32 has no std clock: the deadlines ride on
                 // js_sys::Date::now() (like the spin loop below).
@@ -4604,7 +4604,7 @@ fn epher_app() -> Html {
     }
     // The spin loop (ADR-0032): one spawned task advances the phase while
     // either rotation slider is non-zero. Under reduced motion it skips
-    // entirely — the sliders then keep their static-offset meaning.
+    // entirely; the sliders then keep their static-offset meaning.
     {
         let spin_phase = spin_phase.clone();
         let spin_phase_cell = spin_phase_cell.clone();
@@ -5252,7 +5252,7 @@ fn epher_app() -> Html {
         })
     };
     // Copy the answer (ADR-0057, amended): the clipboard carries both
-    // flavors — the space-aligned plain text that aligns in every
+    // flavors, the space-aligned plain text that aligns in every
     // monospace surface (terminals, editors, code blocks), and a real
     // HTML table, so a paste into a document or a spreadsheet lands in
     // columns. The icon answers with a check for a moment; the answer
@@ -5373,15 +5373,15 @@ fn epher_app() -> Html {
 
     let is_error = result.starts_with("error:") || result.starts_with("warning:");
 
-    // Keypad presses (ADR-0016): insert text at the textarea cursor —
-    // selection-replacing, cursor after the inserted text — or act like
+    // Keypad presses (ADR-0016): insert text at the textarea cursor,
+    // selection-replacing, cursor after the inserted text, or act like
     // the pocket calculator keys they are. The language itself is
     // untouched: the keypad only spells input the evaluator already reads.
     // ADR-0035: on touch layouts a press never refocuses the entry, so
     // the blur that closes the mobile keyboard also zeroes the DOM
-    // selection (Chromium). The selection therefore lives in a cell —
+    // selection (Chromium). The selection therefore lives in a cell,
     // mirrored by selectionchange while the entry is focused and
-    // refreshed at each keypad mousedown — and a press reads the cell,
+    // refreshed at each keypad mousedown, and a press reads the cell,
     // so the next insertion point is always immediately after what was
     // just inserted. Desktop keeps ADR-0016's focus return.
     let on_keypad = {
@@ -5460,7 +5460,7 @@ fn epher_app() -> Html {
             }
             *cursor_cell.borrow_mut() = new_cursor;
             // ADR-0035: on touch layouts a keypad press must never
-            // summon the device keyboard — the tap itself closes it,
+            // summon the device keyboard, the tap itself closes it,
             // and blurring makes that explicit for browsers that keep
             // focus on the entry through the tap. Desktop keeps
             // ADR-0016's rule: focus returns to the input so typing
@@ -5476,7 +5476,7 @@ fn epher_app() -> Html {
     // Mirror the entry's caret while it owns focus (ADR-0035). Keypad
     // presses read this cell when the entry is unfocused, because the
     // blur that closes the mobile keyboard also zeroes the DOM
-    // selection in Chromium — without the mirror, the next press would
+    // selection in Chromium, without the mirror, the next press would
     // lose the insertion point the user left.
     {
         let input_ref = input_ref.clone();
@@ -5505,7 +5505,7 @@ fn epher_app() -> Html {
 
     // Refresh the selection cell at each keypad mousedown (ADR-0035).
     // The mousedown handler runs before the button's default action moves
-    // focus, so the entry still owns the true DOM selection — the last
+    // focus, so the entry still owns the true DOM selection; the last
     // moment it is readable. Keyboard activation (Tab to a keypad button,
     // Enter) skips mousedown and relies on the selectionchange mirror.
     let on_key_capture = {
@@ -5550,7 +5550,7 @@ fn epher_app() -> Html {
     // numeric form, announced politely (the plot itself is an image).
     let trace_text = (*trace).map(|t| format!("x = {:.3}, y = {:.3}", t.x, t.y));
 
-    // Slider rows for a list of constant names — the 2D plot gets the
+    // Slider rows for a list of constant names; the 2D plot gets the
     // constants its curves reference, the 3D plot the constants its
     // surfaces reference (ADR-0014/0015). Dragging the animated slider
     // stops playback; the play button (re)starts it.
@@ -5725,7 +5725,7 @@ fn epher_app() -> Html {
 
     // The curves actually drawn: hidden ones stay out of the plot, the
     // points of interest, and the SVG export (ADR-0015 amendment). Each
-    // curve keeps its ORIGINAL palette index — a hidden neighbour must
+    // curve keeps its ORIGINAL palette index; a hidden neighbour must
     // not shift the remaining lines' colours (they must always match
     // their legend entries).
     let visible_curves: Vec<(usize, epher_core::graph::SampledCurve)> = (*graph)
@@ -5860,7 +5860,7 @@ fn epher_app() -> Html {
         let localizer = localizer.clone();
         // The rotation sliders' order (ADR-0035 amendment): the mobile
         // strip wraps into two rows of two, so the DOM order there puts
-        // zoom second — it lands under the width slider — and vertical
+        // zoom second, it lands under the width slider, and vertical
         // rotation last, under the horizontal. Desktop keeps its one-row
         // h, v, z order byte-identical.
         let axes: [(&str, &str); 3] = if *is_mobile {
@@ -5959,7 +5959,7 @@ fn epher_app() -> Html {
         })
     };
 
-    // ADR-0018: clear the graph pane — curves, points of interest, 3D
+    // ADR-0018: clear the graph pane, curves, points of interest, 3D
     // surfaces, and any trace/animation state (the same as the `graph
     // clear` / `graph3d clear` commands, in one button).
     let on_graph_clear = {
@@ -6005,7 +6005,7 @@ fn epher_app() -> Html {
             view2d.set(None);
             *surface3d_cell.borrow_mut() = false;
             trace.set(None);
-            // Mobile (ADR-0035): the pane is empty now — slide the view
+            // Mobile (ADR-0035): the pane is empty now, slide the view
             // back to the calculator.
             if mobile_layout() {
                 scroll_pane.emit("calc-pane");
@@ -6023,7 +6023,7 @@ fn epher_app() -> Html {
         })
     };
 
-    // ADR-0018: the in-app user guide — the same markdown the website
+    // ADR-0018: the in-app user guide; the same markdown the website
     // guide pages are built from, rendered for the current language.
     let on_open_guide = {
         let guide_open = guide_open.clone();
@@ -6036,7 +6036,7 @@ fn epher_app() -> Html {
 
     // File → Quit (ADR-0023): the desktop shell exits its process; a
     // browser tab can only ask the browser, which refuses for tabs it did
-    // not open — after a moment still on screen, say so honestly.
+    // not open, after a moment still on screen, say so honestly.
     let on_quit = {
         let result = result.clone();
         let localizer = localizer.clone();
@@ -6110,8 +6110,8 @@ fn epher_app() -> Html {
     }
 
     // The brand link to epher.org. In the desktop shell the webview must
-    // not navigate away — the calculator app would be gone with no way
-    // back — so the click rides the shell's OS opener command; the
+    // not navigate away, the calculator app would be gone with no way
+    // back, so the click rides the shell's OS opener command; the
     // browser PWA follows the anchor's href like any link.
     let on_brand_click = {
         let bridge = bridge;
@@ -6862,7 +6862,7 @@ fn epher_app() -> Html {
                                 // Clickable history (ADR-0027): picking a
                                 // line loads it into the entry, replacing
                                 // whatever is there, for editing and
-                                // re-running — the same gesture the TUI's
+                                // re-running, the same gesture the TUI's
                                 // history focus mode offers.
                                 let on_pick = {
                                     let input = input.clone();
@@ -6871,7 +6871,7 @@ fn epher_app() -> Html {
                                     let line = h.clone();
                                     Callback::from(move |_| {
                                         // ADR-0031: the pick loads the
-                                        // expression — the recorded
+                                        // expression, the recorded
                                         // answer suffix stays out of the
                                         // input so the user can edit and
                                         // re-run it.
@@ -6883,7 +6883,7 @@ fn epher_app() -> Html {
                                     (expr.chars().count(), expr.chars().count());
                                         // ADR-0035: on touch layouts the pick
                                         // loads the line without summoning
-                                        // the device keyboard — only a touch
+                                        // the device keyboard, only a touch
                                         // inside the entry opens it. Desktop
                                         // keeps ADR-0016's focus return.
                                         if !mobile_layout() {
@@ -6922,7 +6922,7 @@ fn epher_app() -> Html {
                     // bar rides the rule above the keypad; dragging it
                     // down docks the keypad away and hands its height to
                     // the history list; dragging up brings it back to
-                    // this exact place. There is no click path — the bar
+                    // this exact place. There is no click path; the bar
                     // is a plain div, not a button, and only a drag
                     // moves it. The clip animates the height; the
                     // section below is untouched.
@@ -7136,9 +7136,9 @@ fn epher_app() -> Html {
                         {
                             html! {
                                 // The pane toolbar (ADR-0023): commands and
-                                // settings sit above the plot — Clear and
+                                // settings sit above the plot, Clear and
                                 // Copy SVG as equal buttons, the graph
-                                // options beside them — not scattered under
+                                // options beside them, not scattered under
                                 // it. Everything is a real labelled control.
                                 <div class="graph-head">
                                     // The toolbar commands read as icons
@@ -7182,7 +7182,7 @@ fn epher_app() -> Html {
                                     // the two points-of-interest toggles
                                     // (ADR-0019) belong to the 2D plot only, so
                                     // they render just when curves exist. Real form
-                                    // controls — focusable and labelled — not menu
+                                    // controls, focusable and labelled, not menu
                                     // items, because they are adjustments, not
                                     // commands.
                                     <div class="graph-options">
@@ -7231,7 +7231,7 @@ fn epher_app() -> Html {
                                     // renders from the same shared view state, so it
                                     // inherits the same controls).
                                     // Each spans −1..1, step 0.1, default 0, and updates the
-                                    // plot in real time — on top of the orbit gesture.
+                                    // plot in real time, on top of the orbit gesture.
                                 </div>
                             }
                         } else {
@@ -7833,7 +7833,7 @@ fn epher_app() -> Html {
                                                 scroll_pane.emit("calc-pane");
                                                 // ADR-0035: on touch layouts the
                                                 // load does not summon the device
-                                                // keyboard — only a touch inside
+                                                // keyboard, only a touch inside
                                                 // the entry opens it. Desktop
                                                 // keeps ADR-0016's focus return.
                                                 if !mobile_layout() {
@@ -8027,7 +8027,7 @@ mod tests {
                 .unwrap()[0],
             vec!["x", "y", "y'"]
         );
-        // Transcripts are single-spaced — never a table.
+        // Transcripts are single-spaced, never a table.
         assert_eq!(table_cells("= 5\n= 6"), None);
         // A ragged row breaks the contract.
         assert_eq!(table_cells("a   b\nc   d   e"), None);
@@ -8137,7 +8137,7 @@ mod tests {
     #[test]
     fn large_values_get_a_tight_window() {
         // A Julian Date (or any large-magnitude constant) gets a v±2
-        // window: draggable, and play's 0.1 step loops in ≈ 5 s —
+        // window: draggable, and play's 0.1 step loops in ≈ 5 s,
         // not a multi-million-wide slider that wraps v to −10.
         let (lo, hi) = slider_span(2_461_282.762);
         assert!((lo - 2_461_280.762).abs() < 1e-9);

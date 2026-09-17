@@ -1,9 +1,9 @@
 // Build the website Scripts pages' data: walk "epher scripts/" (the
 // repository of example scripts, README there explains the layout) and
 // write:
-//   site/scripts-data.json  — the field/area/script tree with the full
+//   site/scripts-data.json, the field/area/script tree with the full
 //                             text of every script (fetched by scripts.js)
-//   site/scripts.html       — the browser page, built from the index.html
+//   site/scripts.html, the browser page, built from the index.html
 //                             chrome exactly like build-examples.mjs
 //
 // Run: npm run build:scripts  (CI: pages.yml runs this before assembling)

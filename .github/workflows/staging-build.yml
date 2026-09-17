@@ -1,13 +1,13 @@
 # Build the staged installers and refresh the hidden test draft
 # (ADR-0062).
 #
-# Manual dispatch, on demand — a full multi-platform build costs ~45
+# Manual dispatch, on demand: a full multi-platform build costs ~45
 # runner-minutes, so it runs when a batch is ready to test, not on every
 # push. The preview site (preview.yml) updates on every staging push;
 # this workflow produces the installers.
 #
 # What it does:
-#   1. builds the chosen ref with the shared build-installers.yml — the
+#   1. builds the chosen ref with the shared build-installers.yml: the
 #      exact recipe a public vX.Y.Z release runs;
 #   2. drops the resulting installers into a DRAFT GitHub release
 #      (tag_name "staging-build", name "staging build <sha>"). Drafts
@@ -16,7 +16,7 @@
 #      happens from them. Each run replaces the previous draft, so
 #      exactly one current staging build exists.
 #
-# The draft is created tag-less through the API — GitHub creates the
+# The draft is created tag-less through the API: GitHub creates the
 # git ref only when a draft is published, so no accidental release.yml
 # trigger (tags v*) can ever fire from a staging build. Draft asset
 # names are the same stable names the public release uses, so what you
@@ -26,7 +26,7 @@
 # Version note: build-installers.yml reads the version the built CLI
 # must report from crates/cli/Cargo.toml ("auto"). Before the release
 # version-bump commit lands on staging, the staged installers report
-# the previous public version number — fine for testing content, but
+# the previous public version number: fine for testing content, but
 # test the final draft AFTER the bump commit so the version matches
 # what will ship.
 name: staging build
@@ -93,7 +93,7 @@ jobs:
           SHORT="${SHA:0:10}"
           VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
           {
-            echo "epher staging build — $SHORT (version $VERSION, $(date -u +%Y-%m-%dT%H:%MZ))"
+            echo "epher staging build, $SHORT (version $VERSION, $(date -u +%Y-%m-%dT%H:%MZ))"
             echo
             echo "Hidden draft: the public Releases page does not show this. Download the"
             echo "installers for your platform, install, and test. When it passes, tell the"
@@ -113,11 +113,11 @@ jobs:
           echo "draft id: $ID"
           # Asset uploads go to uploads.github.com, which only the gh CLI
           # routes to (raw api.github.com asset POSTs 404). The draft is
-          # resolved by its tag_name — drafts carry no git tag, so this
+          # resolved by its tag_name, drafts carry no git tag, so this
           # can only ever touch the staging draft itself.
           gh release upload staging-build assets/* --repo "$REPO" --clobber
           echo "uploaded $(ls assets | wc -l) installers"
           URL="$(gh api "repos/$REPO/releases/$ID" -q .html_url)"
           echo "draft ready: $URL"
           echo "## Staging draft refreshed" >> "$GITHUB_STEP_SUMMARY"
-          echo "Build of \`$SHORT\` (version $VERSION) — [open the draft]($URL)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Build of \`$SHORT\` (version $VERSION), [open the draft]($URL)" >> "$GITHUB_STEP_SUMMARY"

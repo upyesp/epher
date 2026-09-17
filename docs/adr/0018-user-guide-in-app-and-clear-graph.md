@@ -10,7 +10,7 @@ Two requests landed together:
 
 1. **A visible way to clear the graph pane.** The `graph clear` and
    `graph3d clear` commands already existed in the web app, the TUI, and
-   the guide — but a discoverable UI affordance was missing.
+   the guide, but a discoverable UI affordance was missing.
 2. **The user guide inside every version of the app.** The website has
    a full guide (eight languages, generated from `site/guide/*.md`);
    the apps had nothing. Requirements: same content as the website,
@@ -24,16 +24,16 @@ Two requests landed together:
 The single source of truth stays `site/guide/<locale>.md`. Three
 consumers render it:
 
-- `scripts/build-guide.mjs` — the website's static guide pages
+- `scripts/build-guide.mjs`, the website's static guide pages
   (existing, uses `marked` + the epher syntax highlighter).
 - A new crate, `epher-guide`, embeds the same markdown at build time
   (build.rs copies the eight files into OUT_DIR) and offers two small
   renderers:
-  - `render_html` for the web/desktop overlay — headings, paragraphs,
+  - `render_html` for the web/desktop overlay, headings, paragraphs,
     flat lists, pipe tables, blockquotes, and inline `code`/bold/italic;
     every `` ```epher ``/`` ```sh `` fence becomes a clickable example
     button carrying the code in `data-code`.
-  - `render_text` for the TUI pager — the same parser producing styled
+  - `render_text` for the TUI pager, the same parser producing styled
     lines (headings bold, code and quotes muted).
 
 The guide's markdown feature set is bounded by what the guide actually
@@ -53,7 +53,7 @@ website.
   Esc/q close).
 
 The web overlay is an `role="dialog"` panel: the close button takes
-focus on open (imperatively — the HTML `autofocus` attribute only fires
+focus on open (imperatively, the HTML `autofocus` attribute only fires
 on first insert, which cost us a bug and a regression test), Escape
 closes, the scrollable body carries `tabindex="0"`, and clicking an
 example inserts its code into the entry field, closes the guide, and
@@ -73,7 +73,7 @@ returns to the calculator pane.
 
 - `crates/guide` joins the workspace; the web and TUI crates depend on
   it. The web bundle grows by the embedded guide (~90 KB markdown
-  before compression) — accepted for offline parity with the site.
+  before compression), accepted for offline parity with the site.
 - The guide's eight languages all render; the keys tables and TUI
   sections gained rows for F10, the menus, and the in-app guide, with
   the example fences kept byte-identical across locales.
@@ -89,7 +89,7 @@ table of contents since v0.1; the apps lagged.
 
 **Decision.** The in-app guide opens with a table of contents listing
 the guide's top-level chapters (`## ` headings), generated from the
-rendered markdown so it is automatically localized with the guide —
+rendered markdown so it is automatically localized with the guide,
 no per-language ToC data exists.
 
 - **Web/desktop overlay:** a `nav.guide-toc` sits between the hint line

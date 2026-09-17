@@ -1,5 +1,5 @@
 #!/bin/sh
-# epher postrm — clear per-user data on uninstall (ADR-0025).
+# epher postrm: clear per-user data on uninstall (ADR-0025).
 #
 # History, functions, constants, and settings live in ~/.epher per user.
 # The user asked that uninstalling clears them so a reinstall starts with

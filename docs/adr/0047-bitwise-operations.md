@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Date: 2026-09-02
-- Roadmap: feature-gap analysis round 6 (T2.8 bitwise operations —
+- Roadmap: feature-gap analysis round 6 (T2.8 bitwise operations,
   the parallel programmer track that rounds out the unit system)
 
 ## Context
@@ -21,7 +21,7 @@ SpeedCrunch, HiPER, and HP Prime have them.
 - Infix `&` (and), `|` (or), `xor` (exclusive or), `<<` (shift left),
   `>>` (shift right), and unary `~` (not). The boolean `and`/`or`
   keep their names; `^` stays the power operator, so xor is spelled
-  out — the word `xor` is reserved like `and`/`or`.
+  out; the word `xor` is reserved like `and`/`or`.
 - Precedence, C-style, below the comparisons: shift binds tighter than
   `&`, which binds tighter than `|`/`xor`; everything else binds
   tighter than them. `5 & 3 == 1` is `(5 & 3) == 1`, and
@@ -35,13 +35,13 @@ SpeedCrunch, HiPER, and HP Prime have them.
 
 - The working word size is a session state, `bits()` reports it and
   `bits(n)` sets it to 8, 16, 32, or 64 (anything else is a domain
-  error); the default is 64 — SpeedCrunch parity, no settings panel.
+  error); the default is 64, SpeedCrunch parity, no settings panel.
   Like `randseed`, it lives in the environment and shares through
   function bodies, so a script can pin it and restore it.
 - Every bitwise result is interpreted as a signed n-bit two's
   complement word: the mathematical result is masked to n bits and
   the top bit decides the sign. `bits(8)` then `~0` is -1, `255 & 1`
-  is 1, and `1 << 8` is 0 — the word wraps like the researched
+  is 1, and `1 << 8` is 0, the word wraps like the researched
   calculators. Right shift is arithmetic: `-8 >> 1` is -4.
 - The base-conversion displays (bin/oct/hex) are untouched: they
   show the exact integer, and a negative shows its sign, as today.

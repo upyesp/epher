@@ -3,7 +3,7 @@
 // Run: npm run build:reference  (CI: site-build.yml runs this with the others)
 //
 // The reference is the formal, normative definition of the epher language
-// (English only — it is the specification, not a tutorial; the localized
+// (English only; it is the specification, not a tutorial; the localized
 // user guide teaches). The page shares the guide's renderer, styles, and
 // accessibility chrome: same code highlighting, copy buttons, table
 // wrapping, heading ids, TOC, theme handling, disclosure nav.

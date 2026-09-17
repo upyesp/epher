@@ -1,9 +1,9 @@
-# ADR-0050: finance — the TVM solver, NPV/IRR, and amortization
+# ADR-0050: finance: the TVM solver, NPV/IRR, and amortization
 
 - Status: accepted
 - Date: 2026-09-02
 - Roadmap: feature-gap analysis round 9 (T3.2 finance: TVM any-field
-  solver, NPV/IRR, amortization — TI, HP Prime, NumWorks, GeoGebra)
+  solver, NPV/IRR, amortization, TI, HP Prime, NumWorks, GeoGebra)
 
 ## Context
 
@@ -27,7 +27,7 @@ it self-contained with no engine work and a moderate i18n burden.
   `tvm_pmt(n, i, pv, fv)`, `tvm_pv(n, i, pmt, fv)`,
   `tvm_fv(n, i, pv, pmt)`, `tvm_n(i, pv, pmt, fv)`, and
   `tvm_i(n, pv, pmt, fv)`. The linear fields (pv, pmt, fv) have
-  closed forms; n and i solve the balance numerically — bisection
+  closed forms; n and i solve the balance numerically, bisection
   with the factorized balance
   `(pv + pmt*(1+i*begin)/i)*(1+i)^n - pmt*(1+i*begin)/i + fv`
   (which stays finite where the expanded form would overflow), n over
@@ -40,7 +40,7 @@ it self-contained with no engine work and a moderate i18n burden.
 ### NPV, IRR, and amortization
 
 - `npv(rate, flows)` discounts a cash-flow list:
-  `sum(flows[k] / (1+rate)^k)` — flow 0 is the present outlay.
+  `sum(flows[k] / (1+rate)^k)`, flow 0 is the present outlay.
 - `irr(flows)` finds the rate where npv is zero by bisection over
   `(-0.999999, 1)`; no sign change is a domain error.
 - `amort(principal, rate, n, k)` answers the remaining balance after
@@ -49,7 +49,7 @@ it self-contained with no engine work and a moderate i18n burden.
 - `simple_interest(p, r, t)` is `p*r*t` and `compound_interest(p, r,
   n)` is `p*(1+r)^n - p` (NumWorks's two interest applets, one line
   each).
-- All ten functions return plain numbers — arithmetic-usable, unlike
+- All ten functions return plain numbers, arithmetic-usable, unlike
   the display strings of linreg and the tests.
 
 ## Consequences

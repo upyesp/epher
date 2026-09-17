@@ -1,5 +1,5 @@
 //! Tests for the graph command grammar, analysis, tables, and tick steps
-//! (ADR-0014) — pure math, no rendering.
+//! (ADR-0014), pure math, no rendering.
 
 use epher_core::graph::{
     analyze, free_names, nice_step, parse_graph_source, project_clipped, project_mesh,
@@ -457,7 +457,7 @@ fn surface_with_undefined_name_reports_the_name() {
 fn surface_with_all_holes_keeps_the_generic_message() {
     let env = Env::default();
     // inf - inf is NaN silently (IEEE arithmetic, no error raised):
-    // holes, not errors — the generic message. sqrt(-1), ln(-1) and
+    // holes, not errors, the generic message. sqrt(-1), ln(-1) and
     // fractional powers of negative bases raise domain errors that are
     // reported as the cause when they take out the whole grid (the ^
     // one points at root(); partial failures stay holes per the
@@ -488,7 +488,7 @@ fn scene() -> SolarScene {
 fn the_scene_carries_ten_dots_and_nine_orbits() {
     let s = scene();
     // Sun, Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus,
-    // Neptune, Pluto, Moon — eleven dots total
+    // Neptune, Pluto, Moon, eleven dots total
     assert_eq!(s.dots.len(), 11, "dots: {:?}", s.dots);
     // orbits for Mercury..Neptune plus Pluto (the Moon's orbit is a
     // point at solar-system scale and is not drawn)

@@ -5,7 +5,7 @@ import { createStdioOptions, startServer } from "@vscode/wasm-wasi-lsp";
 
 // The language server, launched from the wasm module shipped inside
 // the vsix. Both entries share this: desktop (main) and web (browser)
-// run the identical server build (ADR-0066 amendment) — no download,
+// run the identical server build (ADR-0066 amendment), no download,
 // no per-platform binaries, no first-use wait. The module rides the
 // extension, so server and extension versions can never drift.
 //

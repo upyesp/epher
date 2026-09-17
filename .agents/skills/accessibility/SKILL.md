@@ -157,7 +157,7 @@ Comprehensive accessibility guidelines based on WCAG 2.2 and Lighthouse accessib
 
 ### Keyboard accessible (2.1)
 
-**All functionality must be keyboard accessible.** Prefer native interactive elements — `<button>`, `<a href>`, and form controls handle Enter/Space activation, focus, and assistive-tech semantics for free. Only add manual keyboard handling when you cannot use a native element.
+**All functionality must be keyboard accessible.** Prefer native interactive elements: `<button>`, `<a href>`, and form controls handle Enter/Space activation, focus, and assistive-tech semantics for free. Only add manual keyboard handling when you cannot use a native element.
 
 ```html
 <!-- ❌ Non-interactive element with click only: not focusable, no keyboard activation -->
@@ -170,7 +170,7 @@ Comprehensive accessibility guidelines based on WCAG 2.2 and Lighthouse accessib
 ```javascript
 // ✅ When you MUST use a non-interactive element (e.g. div with role="button"),
 // make it focusable AND handle keyboard activation. Do NOT add this to a native
-// <button> — Enter/Space already fire click, so you'd double-trigger.
+// <button>: Enter/Space already fire click, so you'd double-trigger.
 element.setAttribute('role', 'button');
 element.setAttribute('tabindex', '0');
 element.addEventListener('click', handleAction);
@@ -182,7 +182,7 @@ element.addEventListener('keydown', (e) => {
 });
 ```
 
-**No keyboard traps.** Users must be able to Tab into and out of every component. Use the [modal focus trap pattern](references/A11Y-PATTERNS.md#modal-focus-trap) for dialogs—the native `<dialog>` element handles this automatically.
+**No keyboard traps.** Users must be able to Tab into and out of every component. Use the [modal focus trap pattern](references/A11Y-PATTERNS.md#modal-focus-trap) for dialogs; the native `<dialog>` element handles this automatically.
 
 ### Focus visible (2.4.7)
 
@@ -206,7 +206,7 @@ button:focus-visible {
 }
 ```
 
-### Focus not obscured (2.4.11) — new in 2.2
+### Focus not obscured (2.4.11): new in 2.2
 
 When an element receives keyboard focus, it must not be entirely hidden by other author-created content such as sticky headers, footers, or overlapping panels. At Level AAA (2.4.12), no part of the focused element may be hidden.
 
@@ -227,7 +227,7 @@ When an element receives keyboard focus, it must not be entirely hidden by other
 
 Provide a skip link so keyboard users can bypass repetitive navigation. See the [skip link pattern](references/A11Y-PATTERNS.md#skip-link) for full markup and styles.
 
-### Target size (2.5.8) — new in 2.2
+### Target size (2.5.8): new in 2.2
 
 Interactive targets must be at least **24 × 24 CSS pixels** (AA). Exceptions: inline text links, elements where the browser controls the size, and targets where a 24px circle centered on the bounding box does not overlap another target.
 
@@ -251,7 +251,7 @@ input[type="radio"] + label {
 }
 ```
 
-### Dragging movements (2.5.7) — new in 2.2
+### Dragging movements (2.5.7): new in 2.2
 
 Any action that requires dragging must have a single-pointer alternative (e.g., buttons, inputs). See the [dragging movements pattern](references/A11Y-PATTERNS.md#dragging-movements) for a sortable-list example.
 
@@ -318,7 +318,7 @@ function showSessionWarning() {
 </nav>
 ```
 
-### Consistent help (3.2.6) — new in 2.2
+### Consistent help (3.2.6): new in 2.2
 
 If a help mechanism (contact info, chat widget, FAQ link, self-help option) is repeated across multiple pages, it must appear in the **same relative order** each time. Users who rely on consistent placement shouldn't have to hunt for help on every page.
 
@@ -330,7 +330,7 @@ Every input needs a programmatically associated label. See the [form labels patt
 
 Announce errors to screen readers with `role="alert"` or `aria-live`, set `aria-invalid="true"` on invalid fields, and focus the first error on submit. See the [error handling pattern](references/A11Y-PATTERNS.md#error-handling) for full markup and JS.
 
-### Redundant entry (3.3.7) — new in 2.2
+### Redundant entry (3.3.7): new in 2.2
 
 Don't force users to re-enter information they already provided in the same session. Auto-populate from earlier steps, or let users select from previously entered values. Exceptions: security re-confirmation and content that has expired.
 
@@ -346,7 +346,7 @@ Don't force users to re-enter information they already provided in the same sess
 </fieldset>
 ```
 
-### Accessible authentication (3.3.8) — new in 2.2
+### Accessible authentication (3.3.8): new in 2.2
 
 Login flows must not rely on cognitive function tests (e.g., remembering a password, solving a puzzle) unless at least one of:
 - A copy-paste or autofill mechanism is available

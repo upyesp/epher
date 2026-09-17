@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Date: 2026-09-02
-- Roadmap: feature-gap analysis round 8 (T2.3 matrices — NumWorks's
+- Roadmap: feature-gap analysis round 8 (T2.3 matrices, NumWorks's
   minimal set is the floor; eigenvalues deferred per the report)
 
 ## Context
@@ -18,12 +18,12 @@ functions, with eigenvalues later.
 ### The value and the literal
 
 - New `Value::Matrix { rows: usize, cols: usize, data: Vec<f64> }`
-  (row-major, floats only like lists — ADR-0044's column rule).
+  (row-major, floats only like lists, ADR-0044's column rule).
 - The literal is the row-of-rows spelling the web calculators use:
-  `[[1, 2], [3, 4]]` — an expression-start `[` begins a matrix whose
+  `[[1, 2], [3, 4]]`; an expression-start `[` begins a matrix whose
   rows are bracket lists; every row must have the same length (a type
   error otherwise, like list shape). `M[i]` indexes a row as a list
-  (1-based, so `M[2][1]` is the element at row 2, column 1 — the
+  (1-based, so `M[2][1]` is the element at row 2, column 1, the
   existing postfix index composes), and `dim(M)` answers `{rows,
   cols}` as a list.
 
@@ -40,12 +40,12 @@ functions, with eigenvalues later.
 
 ### The functions
 
-- `det(M)` — LU with partial pivoting; square only.
-- `inv(M)` — Gauss-Jordan on the augmented identity; singular
+- `det(M)`, LU with partial pivoting; square only.
+- `inv(M)`, Gauss-Jordan on the augmented identity; singular
   matrices are a domain error.
 - `transpose(M)`, `trace(M)` (square), `dim(M)` (the `{rows, cols}`
   list).
-- `rref(M)` — reduced row echelon form; `ref(M)` — row echelon
+- `rref(M)`, reduced row echelon form; `ref(M)`, row echelon
   (forward elimination). Linear systems solve through rref on the
   augmented matrix, the TI/NumWorks pattern:
   `rref([[2, 1, 5], [1, -1, 1]])` reads `x = 2, y = 1` off
@@ -55,7 +55,7 @@ functions, with eigenvalues later.
 
 - Matrices are floats-only, exact fractions display inside them like
   lists (`inv` of an integer matrix shows `1/2` when the toggle is
-  on), and the keypad stays frozen — matrices are typed and
+  on), and the keypad stays frozen, matrices are typed and
   documented in the guide.
 - The sampler, calculus, and table paths already drop non-float
   values, so a matrix in a graph command is an empty plot rather than

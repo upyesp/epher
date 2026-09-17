@@ -24,7 +24,7 @@ Knobs: year, month, latitude and longitude (Greenwich below).
 // ---- the knobs --------------------------------------------------------------
 const year = 2026
 const month = 6
-const lat = 51.4779        // Greenwich — the Royal Observatory
+const lat = 51.4779        // Greenwich, the Royal Observatory
 const lon = 0
 
 // ---- helpers ----------------------------------------------------------------

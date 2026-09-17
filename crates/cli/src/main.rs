@@ -1,8 +1,8 @@
-//! epher-cli — native command-line frontend (ADR-0001).
+//! epher-cli, native command-line frontend (ADR-0001).
 //!
 //! The dev/test binary for this crate: the same argument surface as the
-//! unified `epher` executable (ADR-0011) — one-shot evaluation, `-` piped
-//! scripts, `repl`, and `help` — through the shared [`epher_cli::dispatch`].
+//! unified `epher` executable (ADR-0011), one-shot evaluation, `-` piped
+//! scripts, `repl`, and `help`, through the shared [`epher_cli::dispatch`].
 //! The `tui` and `gui` frontends live in the unified binary only; here
 //! they are an explicit error instead of a silent difference.
 

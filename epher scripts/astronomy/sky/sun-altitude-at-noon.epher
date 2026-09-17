@@ -26,7 +26,7 @@ Knobs: latitude and longitude (Greenwich below), the noon hour, dates.
 ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
-const lat = 51.4779        // Greenwich — the Royal Observatory
+const lat = 51.4779        // Greenwich, the Royal Observatory
 const lon = 0
 const hr = 12              // noon sample, hours UT
 const d_mar = {2026, 3, 20}    // March equinox

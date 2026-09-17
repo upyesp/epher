@@ -1,4 +1,4 @@
-# VS Code Marketplace page anatomy — what the popular extensions do
+# VS Code Marketplace page anatomy: what the popular extensions do
 
 Research of 2026-09-16, in preparation for the epher extension's
 marketplace readiness. Question: what do the most-installed extensions
@@ -11,15 +11,15 @@ top-installed extensions of different kinds (a language platform, a
 formatter, a git superpower) and catalogued their readme structure and
 image use:
 
-- **Python** (`ms-python.python`) — readme headings: intro → support
+- **Python** (`ms-python.python`), readme headings: intro → support
   for vscode.dev → installed extensions → extensibility → **quick
   start** → useful commands → feature details → locales → questions →
   data and telemetry. 12 images, 4 of them animated GIFs.
-- **Prettier** (`esbenp.prettier-vscode`) — one-line intro →
+- **Prettier** (`esbenp.prettier-vscode`), one-line intro →
   **installation first** → configuration → usage → linter integration
   → workspace trust → settings → troubleshooting. Images immediately
   under the intro.
-- **GitLens** (`eamodio.gitlens`) — hero value-prop line ("Git
+- **GitLens** (`eamodio.gitlens`), hero value-prop line ("Git
   supercharged") → getting started → one section per feature, **each
   with its own screenshot or GIF**. 12 images.
 
@@ -30,11 +30,11 @@ image use:
 2. **The first screen sells**: hero visual (screenshot or GIF) within
    the first viewport, above any installation text. GitLens and Python
    both lead with imagery; Prettier's single image sits at the top.
-3. **Install instructions are early and short** — one numbered list,
+3. **Install instructions are early and short**: one numbered list,
    no preconditions before it. Prettier makes it the first heading.
 4. **One feature, one visual**: moving features get GIFs (typing,
    completions, answers appearing); static features get PNGs.
-5. **A settings/requirements section** — even when the answer is
+5. **A settings/requirements section**: even when the answer is
    "nothing to configure" (Prettier's settings table; Python's data
    and telemetry statement).
 6. **Support/contribution footer** with links; license stated.
@@ -45,13 +45,13 @@ image use:
 ## What epher adopted (2026-09-16)
 
 - Icon: the existing epher mark (dark tile, white `e`) at 256 px;
-  galleryBanner `#1c1c1e` dark — the page header matches the icon.
+  galleryBanner `#1c1c1e` dark, the page header matches the icon.
 - Hero: a real screenshot of the extension working (inlay answers
   next to `6371 km` / `disc(2, 7, 3)` / `55 mile/hr` in `km/hr`),
   captured from an actual VS Code 1.138.0 session driving the packaged
   extension, not a mockup.
 - GIF: the script typed line by line with answers appearing
-  (`images/demo.gif`, 9 frames, ~260 KB — captured the same way).
+  (`images/demo.gif`, 9 frames, ~260 KB, captured the same way).
 - Hover and completion each get their own screenshot.
 - Install as an early numbered list (Quick start), the no-download
   story stated in one sentence, requirements ("no compiler, no

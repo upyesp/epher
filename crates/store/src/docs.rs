@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Storage, StoreError, StoreResult};
 
-/// A persisted user document — the single schema (ADR-0002). Documents are
+/// A persisted user document, the single schema (ADR-0002). Documents are
 /// JSON; functions, constants, and scripts are stored as source text so the
 /// grammar can evolve without breaking saved data.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

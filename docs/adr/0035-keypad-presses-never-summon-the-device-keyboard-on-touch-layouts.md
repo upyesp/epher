@@ -1,4 +1,4 @@
-# ADR-0035: Mobile PWA usability — the onscreen keypad is the primary input, and a drawn plot slides into view
+# ADR-0035: Mobile PWA usability: the onscreen keypad is the primary input, and a drawn plot slides into view
 
 Date: 2026-08-25 (amended 2026-08-26)
 
@@ -12,13 +12,13 @@ keypad is the primary way to enter expressions, the result of every
 command must land where the user can see it without extra gestures, and
 a touch on the graph must act on the graph, not the navigation around
 it. The keypad's focus discipline below came first; later amendments
-folded in the graph pane's auto-slide — first codified in ADR-0029 —
+folded in the graph pane's auto-slide, first codified in ADR-0029,
 the 3D swipe rotation, the kind-aware width slider, the slide back
 after a clear, and the per-kind width memory, so the contract reads as
 one piece.
 
 On the mobile PWA every on-screen keypad press ended by refocusing the
-expression entry — ADR-0016's rule, "focus returns to the input so typing
+expression entry, ADR-0016's rule, "focus returns to the input so typing
 continues". On a desktop that is pure convenience: the pointer hands the
 keyboard the focus it needs for the next keystrokes. On a touch device it
 is a bug: programmatic focus of a textarea opens the soft keyboard, so
@@ -29,7 +29,7 @@ keypad the user was pressing.
 The project had already accepted the mirror image of this fix once:
 ADR-0030 blurs the entry after the mobile auto-slide to the graph pane
 because a freshly drawn plot should not sit under a keyboard. The keypad
-press was the same problem at higher frequency — every press, not just
+press was the same problem at higher frequency, every press, not just
 plot draws.
 
 ## Analysis
@@ -37,7 +37,7 @@ plot draws.
 - **The keypad is the keyboard's stand-in on touch.** The whole point of
   the on-screen keypad on mobile is to *replace* typing; summoning the
   device keyboard after each press defeats it. When the user wants to
-  type, they tap the entry — that is the gesture that should open the
+  type, they tap the entry, that is the gesture that should open the
   keyboard.
 - **Desktop behavior is load-bearing.** ADR-0016's focus-return matters
   with a physical keyboard: click a function, keep typing. Nothing about
@@ -48,27 +48,27 @@ plot draws.
   a button tap) and makes the close deterministic rather than incidental.
 - **Composition must survive the blur.** Successive keypad presses build
   one expression, and the next insertion point must always be immediately
-  after what was just inserted — including mid-string: with the caret
+  after what was just inserted, including mid-string: with the caret
   between two characters, a press inserts there and leaves the caret right
   after the inserted token; a press over a selected range replaces the
   range and leaves the caret after the replacement. But the blur that
   closes the mobile keyboard is also the moment the DOM selection dies
   (Chromium zeroes it), and the button's mousedown default action steals
-  focus *before* the click handler runs — so at press time the DOM
+  focus *before* the click handler runs, so at press time the DOM
   selection is already gone, unreadable. The selection therefore lives in
   app state, not the DOM: a cell holding a `(start, end)` range. It is
   mirrored by a document `selectionchange` listener while the entry owns
   focus (every user caret move and selection drag fires it), refreshed at
-  each keypad mousedown — the handler runs before the default
+  each keypad mousedown; the handler runs before the default
   focus-stealing action, the last moment the entry's true selection is
-  readable — and updated by every keypad action, by history picks, and by
+  readable, and updated by every keypad action, by history picks, and by
   guide code loads (both put the cursor at the end of what they load).
   Keypad presses read the cell alone; keyboard activation of a keypad
   button (Tab + Enter) skips mousedown and relies on the mirror. On
   desktop the entry is refocused after each press, so the DOM and the
   cell stay in step either way.
-- **Scope.** Every keypad action takes the same path — `Text`, `Call`
-  (functions), `Backspace`, `Clear`, and `Submit` (`=`) — so one change
+- **Scope.** Every keypad action takes the same path, `Text`, `Call`
+  (functions), `Backspace`, `Clear`, and `Submit` (`=`), so one change
   in the shared handler covers all of them. The `mobile_layout()` gate
   is the same 880px breakpoint ADR-0029/0030/0031 use, so the behavior
   tracks the layout flip.
@@ -76,18 +76,18 @@ plot draws.
   only for a touch inside the entry.** That rule extends to everything
   that loads text into the entry from outside it: picking a history
   line and clicking a guide code button load the text with the cursor
-  at its end, and on mobile they do *not* refocus the entry — the
+  at its end, and on mobile they do *not* refocus the entry; the
   floating keyboard stays closed, and the keypad composes from the
   loaded text. (The earlier "picks keep focus because loading a line to
   edit requests the keyboard" reading is reversed: the pick itself is
   the edit gesture, and the keypad is what edits.) Desktop keeps
   ADR-0016's focus return for both.
 - **A drawn plot must be seen, not discovered (ADR-0029).** The mobile
-  layout holds the calculator and graph panes in a horizontal strip —
+  layout holds the calculator and graph panes in a horizontal strip,
   the graph is one slide away. A user who submits `graph x ^ 2` and
   stays on the calculator would otherwise have to go look for their
   result. When a submitted `graph` or `graph3d` command draws a plot,
-  the submit path slides the strip across to the graph pane — the same
+  the submit path slides the strip across to the graph pane; the same
   discrete instant jump the pane-switch buttons use (reduced-motion by
   construction, WCAG 2.3.3). Only successful draws slide: errors,
   `graph clear`, and plain evaluations leave the view alone, and the
@@ -95,42 +95,42 @@ plot draws.
   slide pairs with ADR-0030's blur: dropping the entry's focus closes
   the device keyboard so the fresh plot is not sitting under it, and
   the plot is ready for touch rotation.
-- **A swipe on a 3D graph rotates it — horizontally included.** With
+- **A swipe on a 3D graph rotates it, horizontally included.** With
   the graph pane in view, a swipe gesture on a 3D surface must orbit
   the surface, whichever axis the finger moves along: the vertical
   swipe already rotated (the strip only scrolls horizontally, so the
   browser never claimed it), but a horizontal swipe was captured by the
-  strip's own pan and slid the pane back to the calculator — the graph
+  strip's own pan and slid the pane back to the calculator; the graph
   the user was manipulating vanished mid-gesture. The 3D SVG therefore
   declares `touch-action: none`, and the rule's selector needs the
   extra specificity (`.plot-box svg.graph3d-svg`) because the 2D rule
-  `.plot-box svg` (0,1,1) outranks a bare class (0,1,0) — the original
+  `.plot-box svg` (0,1,1) outranks a bare class (0,1,0), the original
   selector silently lost and the swipe kept panning. The 2D plot keeps
   `pan-x`: a 2D graph does not orbit, so a horizontal swipe there
   remains the swipe-back-to-the-calculator gesture, and the pane-switch
   buttons are the always-available spelling of that same move.
-- **The width slider follows the graph kind on mobile — and remembers
+- **The width slider follows the graph kind on mobile, and remembers
   each kind's value independently.** On the small screen the thickness
   slider's range was the layout's alone (ADR-0031): 0–0.2 step 0.01
   for every graph, which is right for a 3D wireframe but starves a 2D
   curve of the desktop's 0.1–4 step 0.1 range. A 3D surface therefore
   keeps the thin range with its 0.1 default, while a 2D-only graph
-  gets exactly the desktop slider — range, step, and the desktop
+  gets exactly the desktop slider, range, step, and the desktop
   default (1.0). A single shared width was wrong: one remembered value
   applied to every new graph, so a width picked for a 2D curve re-
   shaped (or got re-clamped onto) every later 3D surface and vice
   versa. The widths are therefore stored per kind (`epher-line-width-2d`
   / `epher-line-width-3d`, falling back to the legacy shared key and
-  then the kind's default), each kind renders with its own value — a
-  2D curve at 2.5 stays 2.5 while a 3D surface sits at 0.15 — and the
+  then the kind's default), each kind renders with its own value, a
+  2D curve at 2.5 stays 2.5 while a 3D surface sits at 0.15, and the
   slider shows and edits the kind in view (3D while any surface is
   plotted). Desktop keeps its one shared width, unchanged.
-- **A cleared graph pane is nothing to look at — slide back.** The
+- **A cleared graph pane is nothing to look at, slide back.** The
   mirror of the draw slide (ADR-0029): on mobile, once the graph pane
   has been emptied the view slides back to the calculator. The Clear
   Graph button always empties the pane, so it always slides back; the
   `graph clear` and `graph3d clear` commands slide back exactly when
-  they leave the pane empty — a `graph3d clear` with a 2D curve still
+  they leave the pane empty; a `graph3d clear` with a 2D curve still
   plotted keeps the pane in view, because there is still a graph to
   look at. The submit path knows both facts at the right moment: it
   remembers whether the pane had content before the loop and whether
@@ -143,8 +143,8 @@ plot draws.
 device keyboard, explicitly and always), and on desktop it keeps
 ADR-0016's refocus exactly as before.
 
-Every keypad press inserts at the stored selection — a mid-string caret
-lands the insertion there, a selected range is replaced — and moves the
+Every keypad press inserts at the stored selection, a mid-string caret
+lands the insertion there, a selected range is replaced, and moves the
 insertion point to immediately after what was just inserted. Because the
 mobile blur zeroes the DOM selection, the selection lives in a cell that
 the `selectionchange` mirror and the keypad mousedown refresh keep
@@ -163,8 +163,8 @@ into view immediately: the `graph` and `graph3d` success arms emit the
 graph-pane scroll from the submit path, only under `mobile_layout()`,
 and drop the entry's focus at the same moment (ADR-0030) so the
 keyboard closes over nothing the user needs. The slide is the pane
-switch's own discrete jump; nothing else — errors, clears, plain
-evaluations, or any desktop submit — moves the view.
+switch's own discrete jump; nothing else, errors, clears, plain
+evaluations, or any desktop submit, moves the view.
 
 With the graph pane in view, a swipe on a 3D surface orbits it on both
 axes (`touch-action: none` on the 3D SVG, with the selector specificity
@@ -175,8 +175,8 @@ buttons cover the same move everywhere.
 On mobile the width slider's range is the graph kind's: a 3D surface
 keeps ADR-0031's 0–0.2 step 0.01 with the 0.1 default, a 2D-only graph
 gets the desktop range (0.1–4 step 0.1) and the desktop default. Each
-kind remembers its own width — stored under its own key and restored
-when its kind is in view — and each kind's plot renders with its own
+kind remembers its own width, stored under its own key and restored
+when its kind is in view, and each kind's plot renders with its own
 value; the slider shows and edits the kind in view. Desktop keeps one
 shared width, unchanged.
 
@@ -212,7 +212,7 @@ when nothing remains plotted.
   mobile `graph` and `graph3d` submits slide (the strip's scroll
   reaches the graph pane and the pane-switch state follows), `graph
   clear` and failed graphs do not slide, and desktop submits never
-  scroll. Focus stays with the entry's rules above — on mobile the
+  scroll. Focus stays with the entry's rules above, on mobile the
   slide drops it, so the keyboard closes over the fresh plot.
 - The `mobile-graph` suite pins the new rules with CDP-dispatched
   touch swipes and slider reads: a horizontal swipe across the 3D plot
@@ -228,7 +228,7 @@ when nothing remains plotted.
   byte-identical. The suite types commands with focus({preventScroll})
   because the browser's own caret reveal would otherwise scroll the
   strip during the test.
-- `docs/accessibility.md` records the behavior; no guide change — the
+- `docs/accessibility.md` records the behavior; no guide change; the
   guide never described the web keypad's focus handling, only its
   contents.
 
@@ -236,10 +236,10 @@ when nothing remains plotted.
 
 The 3D pane hints "Drag to rotate · arrow keys rotate · non-zero rotation
 sliders spin" under every plot. On a touch layout the arrow keys do not
-exist — rotation is the swipe this ADR already defines — so the hint
+exist, rotation is the swipe this ADR already defines, so the hint
 advertises an unavailable affordance. The hint is not displayed under the
 mobile media query (<880 px): `.graph3d-hint { display: none }` hides it
-for touch layouts (and screen readers — `display: none` removes it from
+for touch layouts (and screen readers, `display: none` removes it from
 the accessibility tree, so mobile users never hear about arrow keys
 either). Desktop, the TUI, and the web at ≥880 px keep the hint.
 
@@ -251,8 +251,8 @@ on every display, one per graph kind, only the kind in view shown**: 2D
 0–4 step 0.1 (default 1.0), 3D 0–0.2 step 0.01 (default 0.1). Desktop
 remembers each kind independently too (`epher-line-width-2d` /
 `epher-line-width-3d`, legacy shared key seeds both), and each kind
-renders its own value. Placement: desktop — the pane toolbar right of
-**Copy SVG**; mobile — its own row below the toolbar (the `.graph-width`
+renders its own value. Placement: desktop, the pane toolbar right of
+**Copy SVG**; mobile, its own row below the toolbar (the `.graph-width`
 flex-basis under the 880px media query), where it stays a
 finger-friendly target. This supersedes ADR-0031's mobile-range
 paragraphs and the earlier per-kind-on-mobile clause of this ADR.
@@ -260,15 +260,15 @@ paragraphs and the earlier per-kind-on-mobile clause of this ADR.
 The Examples page hands examples to the app on touch (ADR-0036
 amendment): a tap on an example copies it, stages it under the
 `epher-example` localStorage key, and opens `/pwa/`, where the app
-consumes it into the entry with the cursor at its end — on mobile
+consumes it into the entry with the cursor at its end, on mobile
 without summoning the device keyboard, the same rule as guide code
 loads. The copy button still only copies.
 
 ## Amendment (2026-08-28): the app fits the space the browser actually shows
 
-Mobile browsers reserve screen area for their chrome — the address bar
+Mobile browsers reserve screen area for their chrome, the address bar
 on top, and on browsers like Microsoft Edge a navigation bar at the
-bottom — and an installed PWA hands that space back. The Calculator
+bottom, and an installed PWA hands that space back. The Calculator
 page must never be obscured by either, in the browser or installed.
 
 The web app now detects the available space and sizes its layout to it
@@ -289,10 +289,10 @@ The web app now detects the available space and sizes its layout to it
   notches and gesture bars. Menus and overlays size against the same
   property instead of the raw viewport.
 
-Because the visual viewport already accounts for every kind of chrome —
+Because the visual viewport already accounts for every kind of chrome,
 expanded or collapsed address bars, Edge's bottom navigation, and the
 full screen of an installed standalone PWA (the manifest already uses
-`display: standalone`) — the same code covers all of them, and the
+`display: standalone`), the same code covers all of them, and the
 layout updates live when the chrome appears or hides.
 
 The reported height is clamped to the layout viewport, and the
@@ -320,8 +320,8 @@ ADR-0038 for the same-day changes these buttons sit beside.
 The pane-switch tab and the pane's label read "Result" now (ADR-0056):
 the pane renders graphs and long answers alike. The slide contract
 grows one trigger to match: a submission whose answer is too long for
-the answer panel — a pasted script's transcript, a table, a long
-number — slides the result pane into view exactly as a drawn plot
+the answer panel, a pasted script's transcript, a table, a long
+number, slides the result pane into view exactly as a drawn plot
 always has, and drops the entry's focus for the same reason (the
 keyboard must close so the answer can be read). Short single answers
 change nothing: they stay in the answer panel on the calculator pane.

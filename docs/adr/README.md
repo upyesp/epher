@@ -9,7 +9,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 
 - **Numbers are immutable.** ADR-0007 is ADR-0007 forever; nothing is
   renumbered, deleted, or renamed (the file name of an ADR whose title
-  later broadens keeps the original name — see ADR-0035).
+  later broadens keeps the original name: see ADR-0035).
 - **Amendments stay in place.** A decision that evolves is amended in
   its own file (see ADR-0004, ADR-0015, ADR-0035) or superseded by a
   later ADR; earlier records are *never rewritten*, only annotated with
@@ -19,7 +19,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 - **One decision per ADR.** Each ADR records one decision (or one
   tightly coupled cluster) with its own context and consequences. The
   release-batch ADRs (0016–0034) predate this rule and remain as they
-  were written — the rule governs new ADRs.
+  were written, the rule governs new ADRs.
 
 ## Index
 
@@ -34,7 +34,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0007 | Localize the UI; never localize the scripting language | 2026-08-13 | accepted |
 | 0008 | UI localization: Fluent catalogs embedded at build time (amended: de/pt joined) | 2026-08-13 | accepted |
 | 0009 | Accessibility: WCAG 2.2 AA for the web/PWA, keyboard-first terminals elsewhere (amended: automated axe scans in the `a11y` Playwright suite) | 2026-08-13 | accepted |
-| 0010 | The Desktop App Owns the Native Store; the Webview Bridges to It (amended: the store carries the shared session snapshot — variables and `ans` — and the CLI one-shot joins the store; publish/subscribe — live sync between open frontends, and the Windows store path fixed) | 2026-08-14 (amended 2026-08-27) | accepted |
+| 0010 | The Desktop App Owns the Native Store; the Webview Bridges to It (amended: the store carries the shared session snapshot, variables and `ans`, and the CLI one-shot joins the store; publish/subscribe, live sync between open frontends, and the Windows store path fixed) | 2026-08-14 (amended 2026-08-27) | accepted |
 | 0011 | One `epher` Binary Hosts Every Frontend | 2026-08-15 | accepted |
 | 0012 | User-defined constants: `const name = value`, visible like `pi` | 2026-08-16 | accepted |
 | 0013 | The command line follows clig.dev | 2026-08-17 | accepted |
@@ -45,22 +45,22 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0018 | The user guide inside the app, and one button to clear the graph pane (amended 2026-08-27: in-app table of contents with click-to-jump) | 2026-08-22 | accepted |
 | 0019 | Graph pane settings, a full-function keypad, and the hints row | 2026-08-22 | accepted |
 | 0020 | SVG export from every frontend and the graph pane's options row | 2026-08-23 | accepted |
-| 0021 | `ans` — the previous answer (amended: `ans` persists as part of the shared session snapshot — desktop only — and travels live between open frontends) | 2026-08-23 (amended 2026-08-27) | accepted |
-| 0022 | Number bases — `0b`/`0o`/`0x` literals and `bin`/`oct`/`hex` | 2026-08-23 | accepted |
+| 0021 | `ans`, the previous answer (amended: `ans` persists as part of the shared session snapshot, desktop only, and travels live between open frontends) | 2026-08-23 (amended 2026-08-27) | accepted |
+| 0022 | Number bases, `0b`/`0o`/`0x` literals and `bin`/`oct`/`hex` | 2026-08-23 | accepted |
 | 0023 | Native-feeling menus, pane toolbar, solid curves, and boot self-heal | 2026-08-23 | accepted |
 | 0024 | Save dialogs, the 0x keypad bank, and TUI menu paint order | 2026-08-23 | accepted |
 | 0025 | Apple Silicon only, dark launch, 3D pane controls, themed NSIS, uninstall cleanup, consistent TUI layout, split Open (NSIS theme superseded by 0026–0028) | 2026-08-24 | accepted |
-| 0026 | Three v0.4.13 regressions — NSIS repaint removed, save-dialog arg casing, 3D orbit accumulation | 2026-08-24 | accepted |
+| 0026 | Three v0.4.13 regressions, NSIS repaint removed, save-dialog arg casing, 3D orbit accumulation | 2026-08-24 | accepted |
 | 0027 | Extensions, readable installer checkboxes, 60fps 3D, and clickable history (amended 2026-08-27: multi-line scripts are one history item, picked whole, with visible item boundaries) | 2026-08-24 | accepted |
 | 0028 | Unfiltered open dialogs, 0.1 floor for line width, light installer theme with logo | 2026-08-24 | accepted |
 | 0029 | Auto-slide to the graph pane after drawing on mobile | 2026-08-24 | superseded by 0035 (absorbed; the focus consequence was reversed by 0030) |
 | 0030 | Five frontends everywhere, mobile blur after the auto-slide, scripts as one history entry, and a rotating 3D hero | 2026-08-24 | accepted (the blur decision is carried by 0035) |
 | 0031 | Dark Windows launch, mobile width range, device file pickers, 3D fine controls, and expression-only history picks (Windows launch superseded by 0032) | 2026-08-25 | accepted |
 | 0032 | Dark Windows launch, slider ends, 3D spin controls, vertical icon rail, and the bare hero command | 2026-08-25 | accepted |
-| 0033 | TUI layout fits 80×24 — always-visible keypad, wrapped hints, and sectioned settings | 2026-08-25 | accepted |
-| 0034 | TUI mouse support — menus, history, keypad, and graph manipulation | 2026-08-25 | accepted |
-| 0035 | Mobile PWA usability — the onscreen keypad is the primary input, and a drawn plot slides into view (file name keeps the original keypad-focus title) (amended 2026-08-26, 2026-08-27, 2026-08-28: touch no-arrow hints, per-kind sliders, examples tap-to-stage, visible-space fitting) | 2026-08-25 (amended 2026-08-26, 2026-08-27) | accepted |
-| 0036 | The website Examples page — copyable code for every frontend (amended 2026-08-27: the app section leads, four CLI examples moved into it, touch taps stage examples in the app; amended 2026-08-28: base-conversion example in the app section, the REPL section last) | 2026-08-27 (amended 2026-08-27, 2026-08-28) | accepted |
+| 0033 | TUI layout fits 80×24, always-visible keypad, wrapped hints, and sectioned settings | 2026-08-25 | accepted |
+| 0034 | TUI mouse support, menus, history, keypad, and graph manipulation | 2026-08-25 | accepted |
+| 0035 | Mobile PWA usability; the onscreen keypad is the primary input, and a drawn plot slides into view (file name keeps the original keypad-focus title) (amended 2026-08-26, 2026-08-27, 2026-08-28: touch no-arrow hints, per-kind sliders, examples tap-to-stage, visible-space fitting) | 2026-08-25 (amended 2026-08-26, 2026-08-27) | accepted |
+| 0036 | The website Examples page, copyable code for every frontend (amended 2026-08-27: the app section leads, four CLI examples moved into it, touch taps stage examples in the app; amended 2026-08-28: base-conversion example in the app section, the REPL section last) | 2026-08-27 (amended 2026-08-27, 2026-08-28) | accepted |
 | 0037 | Astronomy units, constants, time functions, and ephemeris: unit-suffix literals, the solar-ephemeris facade, accessor functions, and solar3d | 2026-08-29 | accepted |
 | 0038 | Zoom on every tile, the solar legend, guide search, shareable history, and the keypad's dead keys | 2026-08-30 | accepted |
 | 0039 | A fixed-height keypad with scrolling, and a meaning for every key | 2026-08-30 | accepted |
@@ -86,7 +86,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0059 | The TUI takes a paste as one paste, and Enter runs the whole entry | 2026-09-08 | accepted |
 | 0060 | The keypad docks away on a grab bar, and returns to its place | 2026-09-08 | accepted |
 | 0061 | Linux installs come from apt, dnf, Flathub, Snap, and AUR (amended 2026-09-06: the AUR channel is removed before its first publish) | 2026-09-05 | accepted |
-| 0062 | Staged delivery — a staging branch, a preview site, and draft installers | 2026-09-08 | accepted |
+| 0062 | Staged delivery, a staging branch, a preview site, and draft installers | 2026-09-08 | accepted |
 | 0063 | A for loop scopes its variable | 2026-09-09 | accepted |
 | 0064 | Statement bodies, control flow, destructuring, and the string library | 2026-09-17 | accepted |
 | 0065 | The imaginary unit is reserved | 2026-09-17 | accepted |
@@ -97,42 +97,42 @@ Context, Decision, Consequences, Status. This directory is the record of
 Some topics evolved across several ADRs; the current state of each lives
 at the end of the chain.
 
-- **Graph-pane options and line width** — 0019 (Settings menu) → 0020
+- **Graph-pane options and line width**: 0019 (Settings menu) → 0020
   (pane row, slider 0.5–4) → 0023 (top toolbar) → 0025 (3D toolbar) →
   0027 (0–4 step 0.1) → 0028 (0.1–4 floor) → 0031 (mobile range) →
   0032 (slider ends) → **0035 (per-kind widths on mobile; desktop
   shared width 0.1–4)** → **0055 (3D: 0–0.4 step 0.05, default 0.2,
   screen-px widths; 2D unchanged)**.
-- **Installer theme** — 0025 (dark via `SetCtlColors` walk) → 0026
+- **Installer theme**: 0025 (dark via `SetCtlColors` walk) → 0026
   (walk deleted; official MUI2 mechanism only) → 0027 (`SetSysColors`
   finish checkboxes) → **0028 (light, uniform, logo-bearing wizard)**.
-- **Windows first frame** — 0025 (overlays; Windows excluded) → 0031
+- **Windows first frame**: 0025 (overlays; Windows excluded) → 0031
   (`--default-background-color=141416`, ineffective) → **0032
   (hidden-until-loaded + valid AARRGGBB `FF141416`)**.
-- **Mobile graph-pane behavior** — 0029 (auto-slide) → 0030 (blur after
+- **Mobile graph-pane behavior**: 0029 (auto-slide) → 0030 (blur after
   the slide) → 0031 (mobile width range) → **0035 (the mobile PWA
   usability contract: keypad focus discipline, slide-in and slide-back,
   3D swipe rotation, per-kind widths)**.
-- **TUI keypad** — 0016 (4×5, Tab-gated) → 0019 (four banks) → 0024
+- **TUI keypad**: 0016 (4×5, Tab-gated) → 0019 (four banks) → 0024
   (0x bank) → **0033 (always visible; banks and geometry sized to the
   real panes)**.
-- **Keypad hints and height** — 0016 (the five-row digits tab) →
+- **Keypad hints and height**: 0016 (the five-row digits tab) →
   **0039 (every tab is the digits tab's height and longer banks scroll;
   every key speaks a localized hint through aria-labels, the docked
   hint bar, the touch captions toggle, and the TUI's `?` key-help
   overlay)**. → **0042 (the hints suggest and answer F1)** →
   **0055 (the data, dist, and $ banks cover matrices, lists, strings,
   statistics, and finance)**
-- **History** — 0021 (`ans`) → 0025 (open-history replaces) → 0027
+- **History**: 0021 (`ans`) → 0025 (open-history replaces) → 0027
   (clickable history) → 0030 (`;` scripts as one entry) → **0027
   amendment (multi-line scripts as one item, picked whole, visible
   boundaries)**. → **0041 (the trash beside the
   heading, clickable in the terminal too)** → **0055 (trash left of
   the heading)**.
-- **Website guide and examples** — 0018 (one guide, three renderers) →
+- **Website guide and examples**: 0018 (one guide, three renderers) →
   **0018 amendment (in-app table of contents)**; → **0036 (Examples
   page with the guide's copy buttons)**.
-- **Astronomy** — **0037 (unit-suffix literals as SI sugar, astro constants
+- **Astronomy**: **0037 (unit-suffix literals as SI sugar, astro constants
   and time functions, solar-ephemeris behind a core facade, accessor
   functions, solar3d)** → **0015 amendment (3D space curves and positioned
   points render the solar system)**.

@@ -1,4 +1,4 @@
-# ADR-0062: staged delivery — a staging branch, a preview site, and draft installers
+# ADR-0062: staged delivery: a staging branch, a preview site, and draft installers
 
 Date: 2026-09-08
 
@@ -25,7 +25,7 @@ same push that creates it.
 GitHub Pages serves exactly one site per repository, so a preview site
 cannot live in this repo beside the live one; it needs its own Pages
 repo. GitHub Releases are public the moment they are created unless
-they are drafts — and drafts are visible only to the repo owner.
+they are drafts, and drafts are visible only to the repo owner.
 
 ## Decision
 
@@ -51,7 +51,7 @@ build has been seen and tested.
    same reusable installer builder as a public release
    (`build-installers.yml`) and drops the result into a single
    replaced-each-time **draft** GitHub Release. Drafts are invisible to
-   the public and carry the same stable asset names a release uses —
+   the public and carry the same stable asset names a release uses,
    what is tested from the draft is byte-identical to what will ship.
    The draft is created tag-less through the API (GitHub creates the
    git ref only on publish), so a staging build can never trip the
@@ -64,7 +64,7 @@ build has been seen and tested.
    published.
 5. **Promotion is the go-ahead.** When the staged build passes, the
    release version-bump commit lands on `staging`, the PR is merged,
-   the `vX.Y.Z` tag is pushed from the merge — and only then do the
+   the `vX.Y.Z` tag is pushed from the merge, and only then do the
    unchanged live workflows run: `pages` deploys epher.org, `release`
    publishes the installers and rebuilds apt/dnf and the stores. The
    release choreography itself (notes, checks) is unchanged; it just
@@ -76,7 +76,7 @@ build has been seen and tested.
 One-time bootstrap exception: the workflow files and this record were
 committed straight to `main` (an "ops bootstrap" commit, no version or
 site content), because GitHub's Actions UI runs workflows from the
-default branch — the dispatch buttons for preview and staging builds
+default branch; the dispatch buttons for preview and staging builds
 must exist on `main`. After that commit, main obeys the promotion rule.
 
 ## Consequences
@@ -85,7 +85,7 @@ must exist on `main`. After that commit, main obeys the promotion rule.
   changes only through the promotion step. "Did that go live?" has a
   single answer: was it promoted?
 - A preview of every staged batch exists at
-  `upyesp.github.io/epher-preview` (public URL — anything on staging is
+  `upyesp.github.io/epher-preview` (public URL; anything on staging is
   visible there; sensitive work must not be pushed to staging).
 - Test installers are downloads the author can keep private (drafts are
   owner-only) and re-test until the batch passes.
@@ -94,8 +94,8 @@ must exist on `main`. After that commit, main obeys the promotion rule.
   suite; a staging installer build costs the same ~45 runner-minutes as
   a release; promotion now involves a PR (automated via `gh`) instead
   of a bare push. Releases are slightly slower by design.
-- Drafts must never be clicked "Publish" — publishing a draft would
+- Drafts must never be clicked "Publish", publishing a draft would
   create the `staging-build` tag and attach a half-baked release to the
   public page. Promotion replaces the draft with the real release.
 - The old muscle memory (`git push origin main` publishes) is now an
-  error message instead of a deployment — which is the point.
+  error message instead of a deployment, which is the point.

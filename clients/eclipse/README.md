@@ -4,8 +4,8 @@ A plugin for the Eclipse IDE that wires the shared `epher-lsp`
 language server (ADR-0066) into any `.epher` file: live diagnostics,
 hover, and completion through LSP4E, plus the same TextMate grammar
 every other client uses for baseline highlighting (through TM4E).
-On recent Eclipse releases the inline answers — the value each
-statement produces — appear as inlay hints next to the code.
+On recent Eclipse releases the inline answers, the value each
+statement produces, appear as inlay hints next to the code.
 
 There is nothing to configure. The plugin registers the `.epher`
 content type, starts `epher-lsp` when an epher editor opens, and
@@ -37,7 +37,7 @@ folder of your Eclipse install and (re)start Eclipse:
 mv ~/Downloads/epher-eclipse.jar /opt/eclipse/dropins/
 ```
 
-Then open any `.epher` file — the generic editor picks it up with
+Then open any `.epher` file, the generic editor picks it up with
 highlighting, and the language server starts behind it.
 
 ## Troubleshooting
@@ -45,7 +45,7 @@ highlighting, and the language server starts behind it.
 - **No highlighting / no server**: the IDE needs LSP4E and TM4E.
   Both ship in the standard Eclipse IDE packages; if yours lacks
   them, install them from the marketplace (Help → Eclipse
-  Marketplace → "LSP4E"). The plugin is compiled for Java 21 —
+  Marketplace → "LSP4E"). The plugin is compiled for Java 21,
   the same floor current LSP4E and Eclipse (2024-09 or newer)
   set.
 - **"Unable to start language server"**: `epher-lsp` is not on the

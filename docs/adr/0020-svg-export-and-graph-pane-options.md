@@ -9,13 +9,13 @@
 Two asymmetries after v0.4.8:
 
 1. Only the desktop and PWA could carry a plot out of the app (the
-   **Copy SVG** button). CLI, REPL, and TUI users could draw — the TUI
-   even plots 3D wireframes — but not save the picture.
+   **Copy SVG** button). CLI, REPL, and TUI users could draw, the TUI
+   even plots 3D wireframes, but not save the picture.
 2. The copy button's output was class-based SVG that depends on the
    page's CSS: pasted into a document it rendered as unstyled black
    lines. Meanwhile the plotted-line thickness was fixed at 2 viewBox
    units with no way to thin it, and the graph display settings added
-   in ADR-0019 lived in the Settings menu — far from the plot they
+   in ADR-0019 lived in the Settings menu, far from the plot they
    change.
 
 The pure renderer (`geometry`, `segments`, `ticks`, the SVG string
@@ -30,7 +30,7 @@ builder) lived in the web crate even though none of it touches the DOM.
    `<style>` with the default dark palette, 640×400 viewBox and size,
    and no background (transparent since ADR-0055). The copy button and
    every terminal save produce the same bytes. 3D export (`graph3d_svg`) letterboxes the mesh into the
-   same canvas with a transform — the identical math
+   same canvas with a transform, the identical math
    `preserveAspectRatio` performs in the live renderer.
 2. **`graph save <file>` and `graph3d save <file>`.** The `graph`
    grammar grows a `save` form beside `clear`. The REPL, piped scripts,
@@ -41,14 +41,14 @@ builder) lived in the web crate even though none of it touches the DOM.
 3. **The pane owns its options.** The ADR-0019 Settings-menu group
    moves onto the graph pane as an options row at its bottom: two
    labelled checkboxes (the POI list, the on-plot markers) and a
-   **line-width slider** (0.5–4, default 1 — half the old constant).
+   **line-width slider** (0.5–4, default 1, half the old constant).
    Real form controls, not menu items: they are adjustments with
    immediate visual effect, so they belong beside the plot. The slider
    sets `--curve-width` on the SVG element; the CSS default equals the
    new `DEFAULT_STROKE_WIDTH`. Persistence stays localStorage-based
    (`epher-line-width`), now restored on desktop too (the pre-0020
    desktop build silently dropped the POI settings on restart).
-4. The exported document always uses the default dark palette — the
+4. The exported document always uses the default dark palette; the
    file is deterministic regardless of the app theme at save time. Its
    background is transparent (ADR-0055).
 
@@ -64,7 +64,7 @@ builder) lived in the web crate even though none of it touches the DOM.
   in step.
 - Terminal saves always include POI markers in the TUI when its POI
   setting is on; CLI/REPL saves include them (there is no setting
-  there). The list itself is recomputed at save time — analysis is
+  there). The list itself is recomputed at save time, analysis is
   cheap and always-on (ADR-0019).
 
 

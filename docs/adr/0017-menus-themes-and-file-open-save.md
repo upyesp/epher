@@ -1,8 +1,8 @@
 # ADR-0017: Menu bar, themes, and file open/save
 
 - **Status:** accepted (amended 2026-09-06: the TUI menu key is
-  **F9** — the cross-platform TUI convention, Midnight Commander
-  style — replacing F10, which Apple keyboards turn into a media key;
+  **F9**: the cross-platform TUI convention, Midnight Commander
+  style, replacing F10, which Apple keyboards turn into a media key;
   `is_menu_toggle_key` defines the chord)
 - **Deciders:** epher maintainers
 - **Date:** 2026-08
@@ -11,9 +11,9 @@
 
 Three requests arrived together after the v0.4.3 layout work:
 
-1. **A menu bar** on every frontend (TUI, desktop GUI, PWA) — `File`
+1. **A menu bar** on every frontend (TUI, desktop GUI, PWA), `File`
    (Open, Save), `Edit` (Cut, Copy, Paste), `Settings` (Theme, Language).
-2. **Three themes** — Light, Dark, Night. Night is new: long-wavelength
+2. **Three themes**: Light, Dark, Night. Night is new: long-wavelength
    reds on a near-black background, for people who keep their night
    vision; blue-free light does not contract the pupil the way a bright
    or cool screen does.
@@ -30,12 +30,12 @@ curve palette `--curve-0..3`). Themes are therefore three token sets
 selected by a `data-theme` attribute on the root element, with the
 default dark set as the fallback so the first painted frame is unchanged.
 
-- **Dark** — the existing palette, unchanged.
-- **Light** — near-white canvas, darker teal accent (`#0e8074`, 4.5:1 on
+- **Dark**: the existing palette, unchanged.
+- **Light**: near-white canvas, darker teal accent (`#0e8074`, 4.5:1 on
   the background), darker curve colors; every value re-checked against
   WCAG 1.4.3 (text 4.5:1) and 1.4.11 (non-text 3:1) and recorded in the
   CSS comments.
-- **Night** — `#0d0000` background, red-tinted text (`#ffb3a8`, 12.1:1),
+- **Night**: `#0d0000` background, red-tinted text (`#ffb3a8`, 12.1:1),
   red accent (`#ff6b5a`, 7.4:1), and a warm-only curve palette
   (`#ffb340`, `#ff9e8a`, `#e0483e`) so no blue light leaks in; the
   existing dash patterns still distinguish curves beyond color.
@@ -47,8 +47,8 @@ colors).
 
 ### `theme` is a shell command
 
-Like `language` (ADR-0008), the theme is a session command — `theme
-light|dark|night` — classified by the shell kernel, persisted through
+Like `language` (ADR-0008), the theme is a session command, `theme
+light|dark|night`, classified by the shell kernel, persisted through
 the same store (a `theme` setting beside `language`), and applied by
 each frontend. The Settings menu is the discoverable spelling of the
 same command; both paths persist. Scriptability and the menu never
@@ -67,11 +67,11 @@ the language itself (native names), independent of the UI language.
 
 Each frontend implements the actions its platform allows, honestly:
 
-- **Web/PWA/desktop** — Open loads a picked file's text into the entry
+- **Web/PWA/desktop**: Open loads a picked file's text into the entry
   field (review before running); Save downloads the history or the entry
   script; Cut/Copy/Paste use the async Clipboard API (paste inserts at
   the cursor; blocked reads explain Ctrl+V instead of failing silently).
-- **TUI** — Open/Save prompt for a path in the input row (failed
+- **TUI**: Open/Save prompt for a path in the input row (failed
   operations keep the path for correction); Copy/Cut emit the clipboard
   via **OSC 52** (works locally and over SSH, base64-payloaded,
   dependency-free encoder); Paste cannot read the terminal clipboard
@@ -81,7 +81,7 @@ Each frontend implements the actions its platform allows, honestly:
 
 At ≥104 columns the TUI splits horizontally: the calculator column
 (input, result, history, keypad, hints) on the left, the graph in its
-own section on the right — mirroring the desktop GUI/PWA arrangement.
+own section on the right, mirroring the desktop GUI/PWA arrangement.
 Narrow terminals keep the ADR-0016 vertical stack. The ASCII plot
 renderers already scale to arbitrary widths, so the right-hand panel
 uses the area it is given.
@@ -100,11 +100,11 @@ uses the area it is given.
   Language groups, radio items included); the inline bar stays on
   desktop. The first release shipped the File→Open file input without
   its hiding rule, so the native picker button rendered in the top bar
-  on phones — the input is now `display: none` (programmatic `click()`
+  on phones; the input is now `display: none` (programmatic `click()`
   still opens the picker) and the result region carries `tabindex="0"`
   so its overflow scroll stays keyboard-reachable.
 - A latent Fluent bug surfaced during translation: `{name}` is a
-  message reference, not a variable — `theme-set` uses `{ $name }` in
+  message reference, not a variable, `theme-set` uses `{ $name }` in
   all eight catalogs.
 - The guide's menus-and-themes section arrived with ADR-0018 (in-app
   guide), ADR-0024 (keypad banks), and ADR-0033 (TUI table).
@@ -121,7 +121,7 @@ the desktop icon rail action for action.
 
 ## Amendment (2026-09-06): the File menu is script-and-quit (ADR-0027 amendment)
 
-Load history and Save history leave the File menu in every frontend —
+Load history and Save history leave the File menu in every frontend,
 the share icon (ADR-0038) moves history between devices, so the file
 items only ever duplicated it badly (ADR-0027 amendment). The File menu
 is now **Open script, Save script, Quit** on the desktop icon rail, in
@@ -133,7 +133,7 @@ the one script extension, `.epher`.
 
 The save prompt pre-fills `epher-script.epher`, but its buffer had no
 caret: Backspace deleted from the end and typed characters always
-appended, so the prefill could not be edited in place — the user had to
+appended, so the prefill could not be edited in place; the user had to
 wipe it and retype. The prompt now carries a caret (the same
 byte-aware machinery the entry has): Left/Right move it, Home/End jump,
 Backspace deletes before it, Delete removes under it, typed characters

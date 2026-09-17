@@ -141,13 +141,13 @@ and an optional decimal-exponent suffix (<code>2e3</code>, <code>1.5E-3</code>, 
 The exponent needs at least one digit, so <code>2e</code> and <code>2eggs</code> tokenize
 as the number <code>2</code> followed by a name.</li>
 <li>Based integers (ADR-0022): <code>0b</code> binary, <code>0o</code> octal, <code>0x</code>
-hexadecimal — <code>0b101</code>, <code>0o17</code>, <code>0xFF</code>. Digits after the prefix must
+hexadecimal, <code>0b101</code>, <code>0o17</code>, <code>0xFF</code>. Digits after the prefix must
 suit the base. A base prefix changes the spelling, never the value:
 <code>0xFF</code> <em>is</em> <code>255</code>.</li>
 <li>Imaginary suffix (ADR-0043): a number directly followed by <code>i</code>, with
 no letter or <code>_</code> after the <code>i</code>, is one imaginary literal: <code>4i</code>,
 <code>2.5i</code>, <code>0xFFi</code>. <code>3 + 4i</code> is a sum of two literals. <code>4it</code> is
-<em>not</em> imaginary — it is the number <code>4</code> followed by the name <code>it</code>,
+<em>not</em> imaginary; it is the number <code>4</code> followed by the name <code>it</code>,
 which the grammar then rejects.</li>
 <li>All numbers are 64-bit binary floats. Integers are exact up to
 2^53; beyond that, spelling a literal keeps at most the 53 most
@@ -187,7 +187,7 @@ is an unknown-name error.</p>
 <p>One further name is reserved: <code>i</code>, the imaginary unit. It cannot be
 re-bound by assignment, by <code>const</code>, or by a destructuring pattern; see
 <a href="#8-names-scope-and-the-session-store">Names, scope, and the session store</a>.
-<code>i</code> is not a keyword — it resolves as a built-in constant and can be
+<code>i</code> is not a keyword; it resolves as a built-in constant and can be
 shadowed by nothing.</p>
 <h2 id="5-types-and-values">5. Types and values</h2>
 <div class="table-wrap" tabindex="0"><table>
@@ -235,12 +235,12 @@ shadowed by nothing.</p>
 </tr>
 <tr>
 <td>List</td>
-<td><code>{a, b, c}</code> — a data column of reals, or a list of strings</td>
+<td><code>{a, b, c}</code>, a data column of reals, or a list of strings</td>
 <td><code>{1, 2, 3}</code>, <code>split(&quot;a b&quot;, &quot; &quot;)</code></td>
 </tr>
 <tr>
 <td>Matrix</td>
-<td><code>[[row], [row]]</code> — reals, row-major</td>
+<td><code>[[row], [row]]</code>, reals, row-major</td>
 <td><code>[[1, 2], [3, 4]]</code></td>
 </tr>
 <tr>
@@ -251,7 +251,7 @@ shadowed by nothing.</p>
 </tbody></table></div>
 <p>Notes:</p>
 <ul>
-<li>Lists hold numbers, or strings — not a mix. A complex element is
+<li>Lists hold numbers, or strings, not a mix. A complex element is
 rejected at construction.</li>
 <li>Matrices are reals only, stored row-major; matrix functions are in
 the <a href="#10-built-in-functions">function index</a>.</li>
@@ -275,7 +275,7 @@ defines.</p>
 <tbody><tr>
 <td>Primary</td>
 <td>literals, names, calls, <code>(…)</code>, <code>{…}</code>, <code>[[…]]</code></td>
-<td>—</td>
+<td>,</td>
 </tr>
 <tr>
 <td>Postfix</td>
@@ -290,7 +290,7 @@ defines.</p>
 <tr>
 <td>Unary</td>
 <td><code>-</code> negate, <code>~</code> bit-not</td>
-<td>—</td>
+<td>,</td>
 </tr>
 <tr>
 <td>Multiplicative</td>
@@ -325,7 +325,7 @@ defines.</p>
 <tr>
 <td>Not</td>
 <td><code>not</code></td>
-<td>—</td>
+<td>,</td>
 </tr>
 <tr>
 <td>And</td>
@@ -340,7 +340,7 @@ defines.</p>
 <tr>
 <td>Conditional</td>
 <td><code>if c then a else b</code> (expression form)</td>
-<td>—</td>
+<td>,</td>
 </tr>
 </tbody></table></div>
 <p><code>-2 ^ 2</code> is <code>-4</code> (unary minus binds looser than the power);
@@ -363,7 +363,7 @@ type error (spell the number first with <code>str</code> or <code>fixed</code>).
 </ul>
 <h3 id="63-factorial-and-percent">6.3 Factorial and percent</h3>
 <p><code>n!</code> is the factorial of a non-negative whole number. <code>x%</code> is exactly
-<code>x / 100</code> — a transparent suffix, so <code>200 + 10%</code> is <code>200.1</code>; the
+<code>x / 100</code>, a transparent suffix, so <code>200 + 10%</code> is <code>200.1</code>; the
 Casio add-on reading (<code>220</code>) is deliberately not a grammar rule.</p>
 <h3 id="64-indexing">6.4 Indexing</h3>
 <p><code>expr[i]</code> indexes a list or string, <strong>1-based</strong>; the index is any
@@ -382,7 +382,7 @@ decides. There is no truthiness: numbers are not booleans.</p>
 <h3 id="67-bitwise-operations">6.7 Bitwise operations</h3>
 <p><code>&amp;</code>, <code>|</code>, <code>xor</code>, <code>~</code>, <code>&lt;&lt;</code>, <code>&gt;&gt;</code> take integers (whole floats, exact
 Big, integral rationals/decimals) and produce the exact result masked
-to the session&#39;s word size — a signed two&#39;s-complement word of 8, 16,
+to the session&#39;s word size, a signed two&#39;s-complement word of 8, 16,
 32, or 64 bits, set with <code>bits(w)</code> and defaulting to 64. Right shift
 is arithmetic; a negative shift amount reverses the direction.</p>
 <h2 id="7-statements">7. Statements</h2>
@@ -390,7 +390,7 @@ is arithmetic; a negative shift amount reverses the direction.</p>
 <p>Evaluates the expression and binds the name in the session. Rebinding
 is allowed; binding <code>i</code> is refused (see below).</p>
 <h3 id="72-constant-definition-const-name-expr">7.2 Constant definition: <code>const name = expr</code></h3>
-<p>Binds an immutable name. Re-declaring with the <em>same</em> value succeeds —
+<p>Binds an immutable name. Re-declaring with the <em>same</em> value succeeds,
 examples get pasted twice; a different value is a
 <code>constant already defined</code> error. Naming an existing variable is a
 <code>cannot define constant x: the name is already a variable</code> error.</p>
@@ -419,7 +419,7 @@ skips to its next pass. Outside a loop both are named errors. In a
 collected list.</p>
 <h3 id="76-if-as-a-statement-if-cond-then-stmt-if-cond-then-stmt-else-stmt">7.6 <code>if</code> as a statement: <code>if cond then stmt</code> / <code>if cond then stmt else stmt</code></h3>
 <p>The condition must be a boolean. Without <code>else</code>, a false condition
-produces no value — which is how a <code>for</code> loop filters: a pass whose
+produces no value, which is how a <code>for</code> loop filters: a pass whose
 body produces no value adds nothing to the loop&#39;s list.</p>
 <h3 id="77-while-cond-do-stmt">7.7 <code>while cond do stmt</code></h3>
 <p>Evaluates the condition (which must be a boolean) and runs the
@@ -432,7 +432,7 @@ and <strong>removed afterwards</strong>: the loop never leaves its variable in t
 session, and a binding that existed before the loop is restored after
 it. The loop&#39;s value is the list of the body&#39;s per-pass values.</p>
 <h3 id="79-solve-lhs-rhs-adr-0043">7.9 <code>solve lhs == rhs</code> (ADR-0043)</h3>
-<p>Numeric equation solving — no CAS. The equation must use <code>==</code>. The
+<p>Numeric equation solving, no CAS. The equation must use <code>==</code>. The
 unknown is <code>x</code> when <code>x</code> appears, otherwise the single other name;
 constants (built-in and user) are parameters, never unknowns. Real
 roots in a wide search window are reported, as a display string:
@@ -446,8 +446,8 @@ constants, then built-in constants, then built-in functions (a call),
 then the error <code>unknown name</code>. A user function or constant shadows a
 built-in of the same name.</p>
 <ul>
-<li>Session variables persist for the session and — in interactive
-frontends — across sessions and frontends of the same installation
+<li>Session variables persist for the session and, in interactive
+frontends, across sessions and frontends of the same installation
 through the shared store (the <code>.epher</code> folder; the PWA keeps the
 same shape in browser storage).</li>
 <li><strong>The imaginary unit is reserved.</strong> <code>i = 5</code>, <code>const i = …</code>, and a
@@ -506,7 +506,7 @@ user <code>const</code> of the same name shadows it by the resolution order.</p>
 <tr>
 <td><code>i</code></td>
 <td><code>0+1i (the imaginary unit)</code></td>
-<td>the imaginary unit — the one reserved name (assignment refuses it)</td>
+<td>the imaginary unit, the one reserved name (assignment refuses it)</td>
 </tr>
 </tbody></table></div>
 <h3 id="92-astronomy">9.2 Astronomy</h3>
@@ -817,7 +817,7 @@ count or kinds is a type error that names the function, e.g.
 </tr>
 <tr>
 <td><code>abs(z)</code></td>
-<td>magnitude — for complex, distance from the origin</td>
+<td>magnitude, for complex, distance from the origin</td>
 </tr>
 <tr>
 <td><code>floor(x)</code>, <code>ceil(x)</code>, <code>trunc(x)</code></td>
@@ -912,7 +912,7 @@ count or kinds is a type error that names the function, e.g.
 </tr>
 <tr>
 <td><code>bin(n)</code>, <code>oct(n)</code>, <code>hex(n)</code></td>
-<td>spelling with prefix — <code>bin(10)</code> is <code>0b1010</code>; negatives keep the sign on the prefix</td>
+<td>spelling with prefix, <code>bin(10)</code> is <code>0b1010</code>; negatives keep the sign on the prefix</td>
 </tr>
 <tr>
 <td><code>dec(x)</code></td>
@@ -978,7 +978,7 @@ count or kinds is a type error that names the function, e.g.
 </tr>
 <tr>
 <td><code>mod(a, b)</code></td>
-<td>truncated remainder — the sign of the dividend</td>
+<td>truncated remainder, the sign of the dividend</td>
 </tr>
 <tr>
 <td><code>totient(n)</code></td>
@@ -1394,7 +1394,7 @@ latitude and longitude in degrees.</p>
 the number times the unit&#39;s SI factor, carrying its dimensions.
 <code>2 m</code> stores 2 with length dimensions; <code>60 mile/hr</code> stores
 26.8224 m/s. Units may carry a whole-number power (<code>2 m^2</code>, powers to
-±127) and a <code>/</code> may continue with another unit (<code>5 m/s^2</code>) — that is
+±127) and a <code>/</code> may continue with another unit (<code>5 m/s^2</code>), that is
 unit syntax, not division, whenever a unit name follows. An SI prefix
 may start a unit: <code>30 cm</code>, <code>5 kHz</code>, <code>3 ns</code>.</p>
 <p><code>x in unit</code> (or <code>x -&gt; unit</code>) converts: <code>5 km in mile</code> answers
@@ -1713,7 +1713,7 @@ or the exact derived name when the dimensions match one: <code>N</code>, <code>W
 keeping every digit.</li>
 <li><strong>Exact fractions</strong>: when a rational with denominator ≤ 1000 agrees
 with the value through all twelve displayed digits <em>and</em> is not a
-terminating decimal, the answer shows as a fraction — <code>1/3</code> stays
+terminating decimal, the answer shows as a fraction, <code>1/3</code> stays
 <code>1/3</code>, while <code>0.1 + 0.2</code> shows <code>0.3</code>, not <code>3/10</code>.</li>
 <li>Complex answers print in <code>a+bi</code> form. Booleans print <code>true</code>/<code>false</code>.
 Lists print <code>{1, 2, 3}</code>; matrices print row by row: <code>[[1, 2], [3, 4]]</code>.</li>
@@ -1899,7 +1899,7 @@ conveniences, not part of the language definition:</p>
 <td>end the session</td>
 </tr>
 </tbody></table></div>
-<p>Everything else — expression entry, scripts, the store — behaves as
+<p>Everything else, expression entry, scripts, the store, behaves as
 this reference defines, identically on every frontend.</p>
 <hr>
 <p><em>This reference corresponds to epher 0.5.41 (staging). The function

@@ -3,7 +3,7 @@
 Date: 2026-09-01 · Status: findings only, no code changed
 
 > Update (2026-09-02, v0.5.16): findings 1-4 below are fixed
-> (ADR-0052) — see the resolution table at the end. The invnorm
+> (ADR-0052): see the resolution table at the end. The invnorm
 > extreme-tail numbers in finding 2 deserve one nuance: `1 - 1e-12`
 > is not representable in f64, so the true quantile of the *stored*
 > input p is 7.0344869100, which is exactly what the fixed app (and
@@ -268,7 +268,7 @@ several points including edge cases.
 |---|---|---|
 | 1. invt/invchi2 tails | Fixed: survivor-space inversion, doubling bracket, step-based convergence | invt(0.999999, 3) = 103.299467779429, invt(0.9999, 1) = 3183.098757118, invt(0.995, 3) = 5.840909309733, invchi2(0.999999, 5) = 35.888186879610 (all within 1.8e-12 relative of the stored-p root, at the beta's accuracy limit) |
 | 2. invnorm far tails | Fixed: tail-space Newton | 1e-15 relative everywhere; the stored-p quantiles match 60-digit references to the last f64 bit (verified: rel err ~1e-15 at p = 1-1e-12, 1-1e-10, 0.99999999, 1e-12) |
-| 3. Over-eager fraction display | Fixed: half-display-unit tolerance (5e-13 relative) on display, exact(), and exact table cells | 123456.789 stays decimal; exact(123456.789) = 123456789/1000; the TVM coincidental fractions are gone (tvm_pmt = 733.764573879, tvm_pv = -99999.3766557 — the true roots, which the old 327259/446 and -7699952/77 misrepresented at the 6th-9th digit) |
+| 3. Over-eager fraction display | Fixed: half-display-unit tolerance (5e-13 relative) on display, exact(), and exact table cells | 123456.789 stays decimal; exact(123456.789) = 123456789/1000; the TVM coincidental fractions are gone (tvm_pmt = 733.764573879, tvm_pv = -99999.3766557, the true roots, which the old 327259/446 and -7699952/77 misrepresented at the 6th-9th digit) |
 | 4. Quantity display rounding | Fixed | 30 deg in rad = 0.523598775598; the length guard keeps exact integers (1 pc in m = 30856775814913670 m) |
 | 5. binomcdf exact recurrence | Not done (last-digit cleanliness only) | binomcdf(7, 10, 0.3) still displays ...601 vs exact ...600 |
 | 6. r_inf/faraday constants | Not done (value table, separate decision) | - |

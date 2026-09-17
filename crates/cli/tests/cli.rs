@@ -105,7 +105,7 @@ fn repl_persists_functions_and_history_across_restarts() {
     let out2 = repl_output(path, "f(4)\nquit\n");
     assert!(out2.contains("= 16"), "stdout was: {out2}");
 
-    // history persisted too (visible as the definition line on load? no —
+    // history persisted too (visible as the definition line on load? no,
     // history is display-only; check the store file exists)
     assert!(dir.path().join("function/f.json").exists());
     assert!(dir.path().join("setting/history.json").exists());
@@ -525,7 +525,7 @@ fn a_script_file_argument_runs_line_by_line() {
 #[test]
 fn a_missing_path_names_the_file_instead_of_parse_errors() {
     // ADR-0058 amendment: a path-shaped argument that names no file
-    // says so — evaluating the path as an expression only reports a
+    // says so, evaluating the path as an expression only reports a
     // tokenizer error (the bug round where the documented installed
     // paths hit missing scripts showed exactly those). The path lives
     // under a tempdir so the test never depends on whether this
@@ -545,7 +545,7 @@ fn a_missing_path_names_the_file_instead_of_parse_errors() {
 
 #[test]
 fn dotted_typos_stay_parse_errors_not_missing_files() {
-    // ADR-0040: `1.5.5` is a typo'd expression — a dot alone does not
+    // ADR-0040: `1.5.5` is a typo'd expression; a dot alone does not
     // make it a path, so it keeps its parse error.
     let dir = tempfile::tempdir().unwrap();
     let out = epher_bin()

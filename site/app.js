@@ -166,7 +166,7 @@ function initDocs() {
  * A WAI-ARIA tabs pattern like the nav disclosure: click or arrow-key
  * selects; the selected tab shows its panel and hides the others (the
  * `hidden` attribute keeps them out of the tab order). No library, no
- * framework — the card works with JS disabled only as far as the first
+ * framework; the card works with JS disabled only as far as the first
  * panel, which is the recommended Debian/Ubuntu path. */
 function initLinuxTabs() {
   const card = document.querySelector(".linux-tabs");

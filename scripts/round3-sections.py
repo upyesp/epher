@@ -23,7 +23,7 @@ Zwei Listen müssen für `+ - * / ^` gleich lang sein. `==` und `!=`
 vergleichen ganze Listen; Ordnungsvergleiche lehnen Listen ab.
 
 Die Statistikfunktionen nehmen eine Liste als einziges Argument (die
-Mehrfachargument-Form bleibt — `mean(1, 2, 3)` funktioniert weiter):
+Mehrfachargument-Form bleibt, `mean(1, 2, 3)` funktioniert weiter):
 `sum product mean median mode variance stdev min max range`. Die
 neuen Formfunktionen sind `len(liste)`, `sort(liste)` (aufsteigende
 Kopie), `mode(liste)` (häufigster Wert, bei Gleichstand der kleinste),
@@ -44,7 +44,7 @@ Bild der Anpassung zeigt das Streudiagramm (Abschnitt 1.22).
 
 Die Wahrscheinlichkeitsfunktionen decken die Standardnormal-, die
 t-, die Chi-Quadrat-, die Binomial- und die Poisson-Verteilung ab. Die
-Normal-Familie nimmt ein oder drei Argumente — ein Argument ist die
+Normal-Familie nimmt ein oder drei Argumente, ein Argument ist die
 Standardnormalverteilung:
 
 %%NORM%%
@@ -74,7 +74,7 @@ kopierbar, aber nicht rechnerisch weiterverwendbar.
 
 Die Graph-Familie nimmt auch Listen: ein Streudiagramm, ein
 Histogramm und ein Kastendiagramm. Ein Datenplot gehört wie ein
-Sonnensystem allein zum Feld — der neueste Befehl gewinnt, und
+Sonnensystem allein zum Feld, der neueste Befehl gewinnt, und
 `graph clear` leert es.
 
 %%SCATTER%%
@@ -90,7 +90,7 @@ Häufigkeitshistogramm; die Klassenzahl ist optional (standardmäßig
 nach Sturgess Regel) und muss eine ganze Zahl zwischen 1 und 50 sein.
 **boxplot(daten)** zeichnet das Kastendiagramm: Minimum, Q1, Median,
 Q3, Maximum, mit Antennen bis zu den Extremen. Das Fenster passt sich
-immer den Daten an — die `from a to b`-Schlüsselwörter gelten nicht —
+immer den Daten an, die `from a to b`-Schlüsselwörter gelten nicht,
 und das Bild exportiert und speichert wie jeder andere Plot.
 """
 
@@ -116,7 +116,7 @@ Deux listes doivent avoir la même longueur pour `+ - * / ^`. `==` et
 refusent.
 
 Les fonctions statistiques prennent une liste pour seul argument (la
-forme à plusieurs arguments reste — `mean(1, 2, 3)` fonctionne
+forme à plusieurs arguments reste, `mean(1, 2, 3)` fonctionne
 toujours) : `sum product mean median mode variance stdev min max
 range`. Les nouvelles fonctions de forme sont `len(liste)`, `sort(liste)`
 (copie croissante), `mode(liste)` (valeur la plus fréquente, la plus
@@ -138,7 +138,7 @@ dessin de l'ajustement vit sur le nuage de points (section 1.22).
 
 Les fonctions de probabilité couvrent la normale centrée réduite, la
 loi de Student, le khi-deux, la loi binomiale et la loi de Poisson.
-La famille normale prend un ou trois arguments — un seul argument est
+La famille normale prend un ou trois arguments, un seul argument est
 la normale centrée réduite :
 
 %%NORM%%
@@ -168,7 +168,7 @@ copiables, mais l'arithmétique ne peut pas les toucher.
 
 La famille graphique accepte aussi des listes : un nuage de points,
 un histogramme et une boîte à moustaches. Un graphique de données
-occupe le panneau seul, comme un système solaire — la dernière
+occupe le panneau seul, comme un système solaire, la dernière
 commande gagne, et `graph clear` le vide.
 
 %%SCATTER%%
@@ -183,8 +183,8 @@ droite des moindres carrés, légendée `y = a*x + b (r = …)`.
 le nombre de classes est facultatif (règle de Sturges par défaut) et
 doit être un entier entre 1 et 50. **boxplot(données)** trace la boîte
 à moustaches : minimum, Q1, médiane, Q3, maximum, moustaches jusqu'aux
-extrêmes. La fenêtre s'ajuste toujours aux données — les mots-clés
-`from a to b` ne s'appliquent pas — et l'image s'exporte et se
+extrêmes. La fenêtre s'ajuste toujours aux données, les mots-clés
+`from a to b` ne s'appliquent pas, et l'image s'exporte et se
 sauvegarde comme n'importe quel graphique.
 """
 
@@ -209,7 +209,7 @@ Dos listas deben tener la misma longitud para `+ - * / ^`. `==` y `!=`
 comparan listas completas; las comparaciones de orden las rechazan.
 
 Las funciones estadísticas aceptan una lista como único argumento (la
-forma con varios argumentos se mantiene — `mean(1, 2, 3)` sigue
+forma con varios argumentos se mantiene, `mean(1, 2, 3)` sigue
 funcionando): `sum product mean median mode variance stdev min max
 range`. Las nuevas funciones de forma son `len(lista)`, `sort(lista)`
 (copia ascendente), `mode(lista)` (valor más frecuente, el menor en
@@ -231,7 +231,7 @@ imagen del ajuste vive en el gráfico de dispersión (sección 1.22).
 
 Las funciones de probabilidad cubren la normal estándar, la t de
 Student, la chi-cuadrado, la binomial y la de Poisson. La familia
-normal admite uno o tres argumentos — un solo argumento es la normal
+normal admite uno o tres argumentos, un solo argumento es la normal
 estándar:
 
 %%NORM%%
@@ -261,7 +261,7 @@ legibles y copiables, pero la aritmética no puede tocarlos.
 
 La familia de gráficos también acepta listas: un diagrama de
 dispersión, un histograma y un diagrama de caja. Un gráfico de datos
-ocupa el panel solo, como un sistema solar — el comando más reciente
+ocupa el panel solo, como un sistema solar, el comando más reciente
 gana, y `graph clear` lo vacía.
 
 %%SCATTER%%
@@ -276,8 +276,8 @@ mínimos cuadrados, con la leyenda `y = a*x + b (r = …)`.
 número de clases es opcional (regla de Sturges por defecto) y debe ser
 un entero entre 1 y 50. **boxplot(datos)** dibuja el diagrama de caja:
 mínimo, Q1, mediana, Q3, máximo, con bigotes hasta los extremos. La
-ventana siempre se ajusta a los datos — las palabras clave `from a to
-b` no se aplican — y la imagen se exporta y guarda como cualquier
+ventana siempre se ajusta a los datos, las palabras clave `from a to
+b` no se aplican, y la imagen se exporta y guarda como cualquier
 gráfico.
 """
 
@@ -302,7 +302,7 @@ Duas listas têm de ter o mesmo comprimento para `+ - * / ^`. `==` e
 `!=` comparam listas inteiras; as comparações de ordem rejeitam-nas.
 
 As funções estatísticas aceitam uma lista como único argumento (a
-forma com vários argumentos mantém-se — `mean(1, 2, 3)` continua a
+forma com vários argumentos mantém-se, `mean(1, 2, 3)` continua a
 funcionar): `sum product mean median mode variance stdev min max
 range`. As novas funções de forma são `len(lista)`, `sort(lista)`
 (cópia crescente), `mode(lista)` (valor mais frequente, o menor em
@@ -324,7 +324,7 @@ do ajuste vive no gráfico de dispersão (secção 1.22).
 
 As funções de probabilidade cobrem a normal padrão, a t de Student,
 o qui-quadrado, a binomial e a de Poisson. A família normal aceita um
-ou três argumentos — um só argumento é a normal padrão:
+ou três argumentos, um só argumento é a normal padrão:
 
 %%NORM%%
 
@@ -353,7 +353,7 @@ aritmética não pode tocá-los.
 
 A família de gráficos também aceita listas: um gráfico de dispersão,
 um histograma e um gráfico de caixa. Um gráfico de dados ocupa o
-painel sozinho, como um sistema solar — o comando mais recente ganha,
+painel sozinho, como um sistema solar, o comando mais recente ganha,
 e `graph clear` esvazia-o.
 
 %%SCATTER%%
@@ -368,8 +368,8 @@ mínimos quadrados, com a legenda `y = a*x + b (r = …)`.
 o número de classes é opcional (regra de Sturges por predefinição) e
 tem de ser um inteiro entre 1 e 50. **boxplot(dados)** desenha o
 gráfico de caixa: mínimo, Q1, mediana, Q3, máximo, com bigodes até
-aos extremos. A janela ajusta-se sempre aos dados — as palavras-chave
-`from a to b` não se aplicam — e a imagem exporta-se e guarda-se como
+aos extremos. A janela ajusta-se sempre aos dados, as palavras-chave
+`from a to b` não se aplicam, e a imagem exporta-se e guarda-se como
 qualquer gráfico.
 """
 
@@ -390,7 +390,7 @@ SECTIONS["zh-CN"] = """### 1.20 数据：列表、统计与回归
 两个列表做 `+ - * / ^` 运算时长度必须相同。`==` 和 `!=` 比较整个
 列表；排序比较不接受列表。
 
-统计函数接受一个列表作为唯一参数（多参数形式保留——`mean(1, 2,
+统计函数接受一个列表作为唯一参数（多参数形式保留：`mean(1, 2,
 3)` 仍然可用）：`sum product mean median mode variance stdev min max
 range`。新的形态函数有 `len(列表)`、`sort(列表)`（升序副本）、
 `mode(列表)`（出现最多的值，并列时取最小）、`range(列表)`（最大
@@ -410,7 +410,7 @@ r 一起报告：
 ### 1.21 分布与假设检验
 
 概率函数覆盖标准正态、t、卡方、二项和泊松分布族。正态族接受一个
-或三个参数——一个参数即标准正态：
+或三个参数：一个参数即标准正态：
 
 %%NORM%%
 
@@ -434,7 +434,7 @@ mu, sigma])`；`tpdf(x, df)`、`tcdf(x, df)`、`invt(p, df)`；
 ### 1.22 数据图
 
 绘图家族也接受列表：散点图、直方图和箱线图。数据图独占面板，就像
-太阳系一样——最新命令胜出，`graph clear` 清空它。
+太阳系一样：最新命令胜出，`graph clear` 清空它。
 
 %%SCATTER%%
 
@@ -446,8 +446,8 @@ mu, sigma])`；`tpdf(x, df)`、`tcdf(x, df)`、`invt(p, df)`；
 直线，图例标注为 `y = a*x + b (r = …)`。**histogram(数据[,
 组数])** 绘制频率直方图；组数可选（默认使用斯特吉斯规则），必须是
 1 到 50 之间的整数。**boxplot(数据)** 绘制箱线图：最小值、Q1、
-中位数、Q3、最大值，须线延伸到两端。窗口始终适应数据——`from a
-to b` 域关键字不适用——图像像任何其他图一样导出和保存。
+中位数、Q3、最大值，须线延伸到两端。窗口始终适应数据：`from a
+to b` 域关键字不适用：图像像任何其他图一样导出和保存。
 """
 
 SECTIONS["hi"] = """### 1.20 डेटा: सूचियाँ, सांख्यिकी और प्रतिगमन
@@ -472,7 +472,7 @@ SECTIONS["hi"] = """### 1.20 डेटा: सूचियाँ, सांख�
 करती है।
 
 सांख्यिकी फलन एक सूची को एकमात्र तर्क के रूप में लेते हैं (बहु-तर्क
-रूप बना रहता है — `mean(1, 2, 3)` अब भी काम करता है): `sum product
+रूप बना रहता है, `mean(1, 2, 3)` अब भी काम करता है): `sum product
 mean median mode variance stdev min max range`। नए आकार फलन हैं
 `len(सूची)`, `sort(सूची)` (आरोही प्रति), `mode(सूची)` (सबसे बार-बार
 आने वाला मान, बराबरी पर सबसे छोटा), `range(सूची)` (सबसे बड़ा घटा
@@ -492,7 +492,7 @@ mean median mode variance stdev min max range`। नए आकार फलन 
 ### 1.21 वितरण और परिकल्पना परीक्षण
 
 प्रायिकता फलन मानक सामान्य, स्टूडेंट t, काई-वर्ग, द्विपद और पॉइसन
-परिवारों को कवर करते हैं। सामान्य परिवार एक या तीन तर्क लेता है —
+परिवारों को कवर करते हैं। सामान्य परिवार एक या तीन तर्क लेता है,
 एक तर्क मानक सामान्य है:
 
 %%NORM%%
@@ -519,7 +519,7 @@ k−1 स्वतंत्रता-कोटि वाला अनुकू�
 ### 1.22 डेटा प्लॉट
 
 ग्राफ़ परिवार सूचियाँ भी लेता है: स्कैटर, हिस्टोग्राम और बॉक्स
-प्लॉट। एक डेटा प्लॉट पैन पर अकेला होता है जैसे सौर मंडल — सबसे
+प्लॉट। एक डेटा प्लॉट पैन पर अकेला होता है जैसे सौर मंडल, सबसे
 नया आदेश जीतता है, और `graph clear` उसे खाली करता है।
 
 %%SCATTER%%
@@ -534,8 +534,8 @@ k−1 स्वतंत्रता-कोटि वाला अनुकू�
 bin गिनती वैकल्पिक है (डिफ़ॉल्ट स्टर्जेस नियम) और 1 से 50 के बीच
 पूर्ण संख्या होनी चाहिए। **boxplot(डेटा)** बॉक्स-एंड-व्हिस्कर
 बनाता है: न्यूनतम, Q1, माध्यिका, Q3, अधिकतम, छोर तक व्हिस्कर।
-खिड़की हमेशा डेटा में फिट होती है — `from a to b` डोमेन कीवर्ड
-लागू नहीं होते — और चित्र किसी भी अन्य प्लॉट की तरह निर्यात और
+खिड़की हमेशा डेटा में फिट होती है, `from a to b` डोमेन कीवर्ड
+लागू नहीं होते, और चित्र किसी भी अन्य प्लॉट की तरह निर्यात और
 सहेजता है।
 """
 
@@ -558,7 +558,7 @@ SECTIONS["ar"] = """### 1.20 البيانات: القوائم والإحصاء �
 يجب أن يكون طولا القائمتين متساويين في `+ - * / ^`. يقارن `==` و
 `!=` القائمتين كاملتين؛ ومقارنات الترتيب ترفض القوائم.
 
-تأخذ دوال الإحصاء قائمة واحدة كوسيط وحيد (الصيغة متعددة الوسائط باقية —
+تأخذ دوال الإحصاء قائمة واحدة كوسيط وحيد (الصيغة متعددة الوسائط باقية,
 `mean(1, 2, 3)` ما زالت تعمل): `sum product mean median mode variance
 stdev min max range`. دوال الشكل الجديدة هي `len(قائمة)` و`sort(قائمة)`
 (نسخة تصاعدية) و`mode(قائمة)` (القيمة الأكثر تكرارًا، والأصغر عند
@@ -579,7 +579,7 @@ stdev min max range`. دوال الشكل الجديدة هي `len(قائمة)` 
 
 تغطي دوال الاحتمال التوزيع الطبيعي المعياري و t لستودنت وكاي تربيع
 وذات الحدين وبوزون. تأخذ عائلة التوزيع الطبيعي وسيطًا واحدًا أو
-ثلاثة — الوسيط الواحد هو الطبيعي المعياري:
+ثلاثة، الوسيط الواحد هو الطبيعي المعياري:
 
 %%NORM%%
 
@@ -591,11 +591,11 @@ mu, sigma])`؛ و`tpdf(x, df)` و`tcdf(x, df)` و`invt(p, df)`؛
 `invt(0.975, 10)` هي قيمة t التي تحتها 97.5% من الكتلة.
 
 تأخذ الاختبارات قائمة بيانات وتُبلغ عن الإحصاء وقيمة p ثنائية الجانب
-كنص عرض؛ وتُبلغ الفترات عن `(أسفل, أعلى)` عند المستوى الذي تسميه:
+كنص عرض؛ وتُبلغ الفترات عن `(أسفل، أعلى)` عند المستوى الذي تسميه:
 
 %%TESTS%%
 
-يستخدمان `ttest(بيانات, mu0)` و`tinterval(بيانات, مستوى)` الانحراف
+يستخدمان `ttest(بيانات, mu0)` و`tinterval(بيانات، مستوى)` الانحراف
 المعياري للعينة (n−1)؛ ويحتاجان `ztest(بيانات, mu0, sigma)` و
 `zinterval(بيانات, sigma, مستوى)` إلى sigma معلوم. و`chisq_gof(ملاحظ,
 متوقع)` هو اختبار جودة المطابقة بدرجات حرية k−1. النتائج نصوص عرض:
@@ -604,7 +604,7 @@ mu, sigma])`؛ و`tpdf(x, df)` و`tcdf(x, df)` و`invt(p, df)`؛
 ### 1.22 مخططات البيانات
 
 تقبل عائلة الرسم قوائم أيضًا: مخطط التشتت والمدرج التكراري ومخطط
-الصندوق. يحتكر مخطط البيانات اللوحة مثل النظام الشمسي — أحدث أمر
+الصندوق. يحتكر مخطط البيانات اللوحة مثل النظام الشمسي، أحدث أمر
 يفوز، و`graph clear` يفرغه.
 
 %%SCATTER%%
@@ -619,6 +619,6 @@ mu, sigma])`؛ و`tpdf(x, df)` و`tcdf(x, df)` و`invt(p, df)`؛
 اختياري (قاعدة ستيرجس افتراضيًا) ويجب أن يكون عددًا صحيحًا بين 1 و50.
 **boxplot(بيانات)** يرسم مخطط الصندوق والشارب: الحد الأدنى وQ1
 والوسيط وQ3 والحد الأقصى، بشاربين حتى الطرفين. تتكيف النافذة دائمًا
-مع البيانات — كلمتا النطاق `from a to b` لا تنطبقان — وتُصدَّر
+مع البيانات، كلمتا النطاق `from a to b` لا تنطبقان، وتُصدَّر
 الصورة وتُحفظ مثل أي مخطط آخر.
 """

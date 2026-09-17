@@ -1,7 +1,7 @@
 //! The `epher` command surface: argument parsing → [`Action`] (pure, no
 //! side effects). The modes themselves are thin wrappers over the
 //! frontends' library entry points. The same suite covers the unified
-//! binary and the dev binary — they share this dispatch by construction.
+//! binary and the dev binary; they share this dispatch by construction.
 
 use clap::error::ErrorKind;
 use clap::Parser;
@@ -111,7 +111,7 @@ fn path_shaped_arguments_that_name_no_file_are_reported() {
 #[test]
 fn dotted_typos_and_division_stay_expressions() {
     // ADR-0040: `1.5.5` keeps its parse error, and interior slashes are
-    // division — `a/b` is a real expression, not a path.
+    // division, `a/b` is a real expression, not a path.
     for expr in ["1.5.5", "1/2", "a/b", ".5", "-5"] {
         assert_eq!(
             parse(&[expr]),

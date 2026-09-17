@@ -121,7 +121,7 @@ fn extra_curves_are_solid_and_captioned() {
 #[test]
 fn hidden_neighbour_keeps_original_palette_index() {
     // ADR-0015 amendment: the web pane filters hidden curves out of the
-    // slice but must keep each curve's own colour — hiding the middle
+    // slice but must keep each curve's own colour, hiding the middle
     // curve must not shift the remaining lines' palette entries.
     let indexed = vec![(0usize, curve("x ^ 2")), (2usize, curve("x ^ 3"))];
     let svg = graph_svg_indexed(&indexed, &[], None, true, DEFAULT_STROKE_WIDTH);

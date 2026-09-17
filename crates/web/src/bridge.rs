@@ -2,7 +2,7 @@
 //!
 //! Inside the Tauri desktop shell the webview persists through the native
 //! store over IPC (`window.__TAURI__`, exposed by `withGlobalTauri`). In the
-//! browser PWA there is no bridge — work lives in the session only — until
+//! browser PWA there is no bridge, work lives in the session only, until
 //! the browser store lands (ADR-0002/0003, deferred).
 
 use serde::Deserialize;
@@ -119,8 +119,8 @@ impl Bridge {
     }
 
     /// Subscribe to the desktop shell's `store-changed` broadcasts
-    /// (ADR-0010 amendment): every write to the native store — this
-    /// window's own or another frontend's (TUI, REPL, one-shot CLI) —
+    /// (ADR-0010 amendment): every write to the native store; this
+    /// window's own or another frontend's (TUI, REPL, one-shot CLI),
     /// arrives as the fresh [`InitState`], and the caller applies it.
     /// The payload is the same shape as `init`'s answer.
     pub fn listen_store_changed(cb: impl Fn(InitState) + 'static) {
@@ -185,7 +185,7 @@ impl Bridge {
     }
 
     /// Persist the shared session snapshot (ADR-0010 amendment): the
-    /// environment's bindings — user assignments and `ans` — so the next
+    /// environment's bindings, user assignments and `ans`, so the next
     /// CLI/REPL/TUI/desktop frontend starts where this one left off.
     /// The bindings travel as an array of pairs, not the HashMap itself:
     /// serde_wasm_bindgen serializes HashMap as a JS Map, which the
@@ -238,7 +238,7 @@ impl Bridge {
         self.spawn("save_separators", args);
     }
 
-    /// Quit the desktop app (File → Quit). No response — the process
+    /// Quit the desktop app (File → Quit). No response; the process
     /// ends before one could arrive.
     pub async fn quit(self) {
         let _ = self.invoke("quit", &JsValue::UNDEFINED).await;
@@ -246,7 +246,7 @@ impl Bridge {
 
     /// Open an external URL (the brand link → epher.org) in the system
     /// browser. The desktop webview must not navigate away from the app
-    /// — the calculator would be gone with no way back — so the click
+    ///, the calculator would be gone with no way back, so the click
     /// rides the shell's `open_url` command instead. The browser PWA
     /// never calls this: its anchor navigates like any link.
     pub fn open_external(self, url: &str) {

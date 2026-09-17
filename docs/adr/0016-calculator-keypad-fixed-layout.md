@@ -9,7 +9,7 @@
 The PWA/desktop UI was a single scrolling column (input, result, graph,
 history), and the TUI a read-eval-print screen. Users asked for the app to
 feel like a scientific calculator: clickable buttons exposing every function
-the epher language supports, alongside the existing typed input — so every
+the epher language supports, alongside the existing typed input, so every
 task has two ways in (buttons for discovery, typing for speed).
 
 Space is the problem: a scientific calculator's key surface is large (~50
@@ -22,20 +22,20 @@ scrolling.
 (`100dvh`, `overflow: hidden` on `body`). The calculator column is, top to
 bottom:
 
-1. **Input** (fixed height) — the existing textarea. First, so the user's
+1. **Input** (fixed height), the existing textarea. First, so the user's
    entry point leads; the outcome follows (amended 2026-08-22: user
-   feedback — the original answer-first order hid the input below the
+   feedback, the original answer-first order hid the input below the
    result panel).
-2. **Answer panel** (fixed height, `aria-live`) — the result of the last
+2. **Answer panel** (fixed height, `aria-live`), the result of the last
    evaluation, always visible.
-3. **History** (flex-1, `overflow-y: auto`, `tabindex="0"`) — fixed size
+3. **History** (flex-1, `overflow-y: auto`, `tabindex="0"`), fixed size
    because its neighbors are fixed; scrolls internally.
-4. **Keypad** (fixed height, ~5 rows) — tabbed buttons.
+4. **Keypad** (fixed height, ~5 rows), tabbed buttons.
 
 **The graph area is a fixed pane.** Desktop (≥880px, the site's breakpoint):
 the graph pane sits to the right of the calculator column, both fixed at
 viewport height. Mobile: the two panes sit side by side in a horizontal
-scroll-snap container — swipe left for the graph, right for the calculator —
+scroll-snap container, swipe left for the graph, right for the calculator,
 plus two accessible pane-switch buttons (visible on touch layouts). The
 panes are always 100% of the viewport width, so swiping is a full-pane flip.
 
@@ -46,19 +46,19 @@ growing it. Pointer tracing compensates for the letterbox: the fitted
 content box is computed from the viewBox ratio before mapping to data
 coordinates. 3D orbit is delta-based and needs no change.
 
-**Keypad design.** Buttons insert text at the textarea cursor — the
+**Keypad design.** Buttons insert text at the textarea cursor, the
 evaluator, separators, and error reporting stay exactly as they are for
 typed input; `=` submits the form, `C` clears the entry, `⌫` backspaces.
 Five tabs, five columns:
 
-- **123** — digits, `+ − × ÷ ^`, parens, `, ; .`, `ans`, `C`, `⌫`, `=`
-- **trig** — sin cos tan asin acos atan sinh cosh tanh asinh acosh atanh
+- **123**: digits, `+ − × ÷ ^`, parens, `, ; .`, `ans`, `C`, `⌫`, `=`
+- **trig**: sin cos tan asin acos atan sinh cosh tanh asinh acosh atanh
   deg rad atan2
-- **ƒ** — ln log log2 logb exp sqrt cbrt root hypot abs floor ceil round
+- **ƒ**: ln log log2 logb exp sqrt cbrt root hypot abs floor ceil round
   trunc sign min max
-- **nΣ** — gcd lcm mod fact ncr npr sum product mean median variance stdev
+- **nΣ**: gcd lcm mod fact ncr npr sum product mean median variance stdev
   frac dec big
-- **π∇** — pi e tau phi x t ans graph graph3d table clear history
+- **π∇**: pi e tau phi x t ans graph graph3d table clear history
 
 Functions insert `name(` with the cursor after the paren; constants and
 variables insert their name; commands insert their keyword followed by a
@@ -92,7 +92,7 @@ records annotated, never rewritten):
   and became an always-visible panel (ADR-0033).
 - **The focus rule is desktop-only.** "After a press, focus returns to
   the input" still holds on desktop; on mobile the press must never
-  summon the device keyboard — ADR-0035 (the mobile PWA usability
+  summon the device keyboard, ADR-0035 (the mobile PWA usability
   contract) carries the touch rule.
 
 ## Consequences
@@ -103,7 +103,7 @@ records annotated, never rewritten):
 - The web app keeps its existing dark palette and contrast numbers
   (ADR-0016 changes layout, not tokens).
 - Nothing changes for the CLI or the REPL; the scripting language is
-  untouched — the keypad is a second spelling of the same input.
+  untouched; the keypad is a second spelling of the same input.
 - The TUI gains ~40 lines of keypad state/rendering; its input remains a
   plain string (insertion appends at the end, where the terminal cursor
   already lives).
@@ -163,10 +163,10 @@ every new key has a hint in all eight locales.
 
 Users read the TUI as a port of the desktop GUI and the PWA, and its
 keypad being "a condensed grid" read as a missing feature rather than a
-design choice — five of the web's ten banks simply were not there. The
+design choice, five of the web's ten banks simply were not there. The
 condensed exemption is withdrawn: **the TUI now carries the same banks
-in the same order as the web** — `123`, `trig`, `fn`, `num`, `data`,
-`dist`, `fin`, `0x`, `var`, `astro` — with the complex-numbers and
+in the same order as the web**, `123`, `trig`, `fn`, `num`, `data`,
+`dist`, `fin`, `0x`, `var`, `astro`, with the complex-numbers and
 calculus keys on `fn`, the seeded-random keys on `num`, and the full
 astronomy bank (accessors, equinox/solstice functions, the JD readers
 `date`/`time`/`iso`, the physics constants, and the unit-suffix keys,
@@ -180,7 +180,7 @@ Two smaller corrections rode along with the same report:
 - The file prompt (ADR-0017) pre-fills `epher-script.epher`, but its
   buffer had no caret: Backspace deleted from the end, and typed
   characters always appended, so the prefill could not be edited in
-  place. The prompt now has a caret — Left/Right (and Home/End) move
+  place. The prompt now has a caret, Left/Right (and Home/End) move
   it, Backspace deletes before it, Delete removes under it, typed
   characters insert at it, and a click in the input row places it. The
   terminal cursor renders the caret position.

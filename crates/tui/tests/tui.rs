@@ -803,7 +803,7 @@ fn menu_navigation_and_actions() {
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::SaveScript));
     assert_eq!(app.menu_active(), None);
 
-    // File ends with Quit (ADR-0023, ADR-0025): three items now — open
+    // File ends with Quit (ADR-0023, ADR-0025): three items now: open
     // script, save script, quit. History has no file items: the share
     // icon moves it between devices (ADR-0027 amendment).
     assert_eq!(app.menu_len(0), 3);
@@ -946,7 +946,7 @@ fn guide_source_dir() -> std::path::PathBuf {
 
 #[test]
 fn prompt_prefill_edits_at_the_caret() {
-    // ADR-0017 amendment: the save prompt's prefill is editable text —
+    // ADR-0017 amendment: the save prompt's prefill is editable text,
     // the caret moves (arrows/click), Backspace deletes before it,
     // typed characters insert at it, Delete removes under it.
     let mut app = App::default();
@@ -1216,7 +1216,7 @@ fn view_fine_controls_appear_with_3d_and_nudge_within_range() {
 }
 
 /// ADR-0031: a history pick loads the expression, without the recorded
-/// answer suffix — the user can edit and re-run it directly.
+/// answer suffix; the user can edit and re-run it directly.
 #[test]
 fn history_pick_drops_the_answer_suffix() {
     let mut app = App::with_session(Session::with_history(vec![
@@ -1323,7 +1323,7 @@ fn mouse_double_click_resets_the_3d_pose() {
     assert_eq!(app.view(), &View3D::default());
 }
 
-/// ADR-0034: panning/zooming moves samples outside the window — the
+/// ADR-0034: panning/zooming moves samples outside the window; the
 /// renderer must clip them instead of indexing out of bounds.
 #[test]
 fn render_ascii_clips_samples_outside_the_viewport() {
@@ -1716,7 +1716,7 @@ fn pasted_script_runs_on_one_enter_like_the_gui_entry() {
     // A miniature of the website's script text: banner comment, line
     // comment, blank lines, a print group. Pasted whole, one Enter
     // (the entry's submit path) runs it like the desktop and web
-    // entries do — not line by line, which would die on the opening
+    // entries do, not line by line, which would die on the opening
     // unterminated `/*`.
     let script = "/* === banner ===\n   a comment block, newlines and all\n   === */\n\n// a line comment\nprint(\"half of ten:\", 10 / 2)\nprint(\"double of three:\", 3 * 2)\n";
     app.paste_text(script);
@@ -1743,7 +1743,7 @@ fn pasted_script_runs_on_one_enter_like_the_gui_entry() {
 #[test]
 fn menu_toggle_chord_is_f9() {
     use crossterm::event::{KeyCode, KeyModifiers};
-    // ADR-0017 amendment: F9 is the single menu key on every OS — the
+    // ADR-0017 amendment: F9 is the single menu key on every OS, the
     // cross-platform TUI convention. F10 held it until 2026-09-06;
     // Ctrl+O was briefly a macOS workaround and is gone too.
     assert!(epher_tui::is_menu_toggle_key(

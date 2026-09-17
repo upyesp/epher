@@ -2,7 +2,7 @@
 //!
 //! `epher help` follows the git/npm convention: when the system has an
 //! installed man page, open it (`man epher`) so the user gets the real,
-//! paged manual; otherwise print the full `--help` text — which is what
+//! paged manual; otherwise print the full `--help` text, which is what
 //! macOS app installs, Windows, and any system without the page get.
 //! `epher help <command>` prints clap's help for that subcommand.
 
@@ -28,8 +28,8 @@ pub fn manual() -> i32 {
 /// to the long help.
 fn run_man_page() -> Option<i32> {
     // `man -w epher` locates the page without displaying it: exit 0 with a
-    // printed path means the page exists on this system. Anything else —
-    // no man binary, no page — falls back to the built-in help.
+    // printed path means the page exists on this system. Anything else,
+    // no man binary, no page, falls back to the built-in help.
     let located = std::process::Command::new("man")
         .arg("-w")
         .arg("epher")
@@ -72,7 +72,7 @@ pub fn topic(name: &str) -> ! {
         std::process::exit(2);
     }
     // Re-parse with --help so clap renders the subcommand's help exactly
-    // as `epher <name> --help` would — right usage line, colors, and
+    // as `epher <name> --help` would, right usage line, colors, and
     // stdout (not stderr).
     match Args::try_parse_from(["epher", name, "--help"]) {
         Err(e) => e.exit(),

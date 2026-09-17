@@ -1,6 +1,6 @@
 # epher
 
-**A programmable, scriptable calculator** — one calculation engine, five ways to use it: command line, interactive REPL, full-screen TUI, desktop app, and an offline web app. Type expressions, save functions and scripts, graph results in 2D or 3D, animate constants, and keep history between sessions and user interfaces.
+**A programmable, scriptable calculator**: one calculation engine, five ways to use it: command line, interactive REPL, full-screen TUI, desktop app, and an offline web app. Type expressions, save functions and scripts, graph results in 2D or 3D, animate constants, and keep history between sessions and user interfaces.
 
 [![GitHub stars](https://img.shields.io/github/stars/upyesp/epher?style=social)](https://github.com/upyesp/epher/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -24,13 +24,13 @@
 
 ## What It Does
 
-- **One download, five frontends** — every installer carries the unified `epher` binary: one-shot command, REPL, piped scripts, TUI, and desktop app, plus the web app in your browser
-- **A real language** — variables, functions with statement bodies and early `return`, loops with `break`/`continue`, destructuring, a string library, and saveable scripts; newlines and `;` separate statements
-- **Exact when it matters** — binary floats by default, with exact `frac`, `dec`, and `big` layers one call away
-- **Graphs in 2D and 3D** — curves and surfaces, trace, points of interest, animated constants with a play button, SVG export
-- **Private by design** — no accounts, no telemetry, no cloud; everything computes and stores on your device
-- **Eight languages** — English, Chinese, Hindi, Spanish, French, German, Portuguese, Arabic, with right-to-left support
-- **Accessible** — WCAG 2.2 AA throughout (keyboard-only use, visible focus, recorded contrast)
+- **One download, five frontends**: every installer carries the unified `epher` binary: one-shot command, REPL, piped scripts, TUI, and desktop app, plus the web app in your browser
+- **A real language**: variables, functions with statement bodies and early `return`, loops with `break`/`continue`, destructuring, a string library, and saveable scripts; newlines and `;` separate statements
+- **Exact when it matters**: binary floats by default, with exact `frac`, `dec`, and `big` layers one call away
+- **Graphs in 2D and 3D**: curves and surfaces, trace, points of interest, animated constants with a play button, SVG export
+- **Private by design**: no accounts, no telemetry, no cloud; everything computes and stores on your device
+- **Eight languages**: English, Chinese, Hindi, Spanish, French, German, Portuguese, Arabic, with right-to-left support
+- **Accessible**: WCAG 2.2 AA throughout (keyboard-only use, visible focus, recorded contrast)
 
 ## Quick Start
 
@@ -64,9 +64,9 @@ epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/full-moo
 
 ## More Information
 
-- **[User guide](https://epher.org/guide/en/)** — the language, the frontends, and your data, in eight languages
-- **[Examples](https://epher.org/examples.html)** — copyable code for every frontend
-- **[Privacy](https://epher.org/privacy.html)** — what stays on your device (nothing leaves it)
-- **[Releases](https://github.com/upyesp/epher/releases)** — downloads and changelogs
-- **[Issues](https://github.com/upyesp/epher/issues)** — bug reports and feature requests
-- **[Architecture decision records](docs/adr/)** — every design decision, documented
+- **[User guide](https://epher.org/guide/en/)**: the language, the frontends, and your data, in eight languages
+- **[Examples](https://epher.org/examples.html)**: copyable code for every frontend
+- **[Privacy](https://epher.org/privacy.html)**: what stays on your device (nothing leaves it)
+- **[Releases](https://github.com/upyesp/epher/releases)**: downloads and changelogs
+- **[Issues](https://github.com/upyesp/epher/issues)**: bug reports and feature requests
+- **[Architecture decision records](docs/adr/)**: every design decision, documented

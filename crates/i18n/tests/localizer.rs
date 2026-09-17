@@ -17,7 +17,7 @@ fn missing_key_falls_back_to_english_then_to_key() {
 }
 
 /// Fluent wraps interpolated values in bidi isolating characters (U+2068/69)
-/// to prevent RTL text injection — a feature we keep. Strip them to assert on
+/// to prevent RTL text injection; a feature we keep. Strip them to assert on
 /// the visible text.
 fn strip_isolates(s: &str) -> String {
     s.chars()

@@ -9,7 +9,7 @@ Status: Accepted
 The project ships 333 ready-to-run scripts in the `epher scripts/` folder
 of the repository. The website's Scripts page browses them, the scripts'
 README teaches them, and the guide's copy-and-paste commands reference
-them — but every path in those examples pointed at the source checkout.
+them, but every path in those examples pointed at the source checkout.
 A user who installed epher from a release had none of them: the
 copy-and-paste instructions from the previous round failed with parse
 errors, because a path that names no existing file is evaluated as an
@@ -31,9 +31,9 @@ broken one on the other platform.
   that fits: `bundle.resources`, whose map form copies a directory tree
   preserving structure (`tauri-utils` `ResourcePaths`: a directory key
   walks its contents under the mapped destination). One config line puts
-  the tree inside every artifact — deb and rpm under `/usr/lib/epher`,
+  the tree inside every artifact, deb and rpm under `/usr/lib/epher`,
   the NSIS installer beside the binaries in `%LOCALAPPDATA%\epher`, the
-  macOS app bundle at `Contents/Resources` — with no per-platform hooks.
+  macOS app bundle at `Contents/Resources`, with no per-platform hooks.
   Verified empirically: `dpkg -c` on a locally built deb lists all 333
   `.epher` files under `usr/lib/epher/scripts/`.
 - **The installed path is per operating system, so the documentation
@@ -48,8 +48,8 @@ broken one on the other platform.
   live too.** The guide's CLI chapter, the scripts' README, the Scripts
   page on the website, and the repository README all teach running
   scripts from a terminal; all four now show the installed paths. The
-  source-checkout path keeps its place in the scripts' README —
-  contributors run from the tree — with the installed paths beside it.
+  source-checkout path keeps its place in the scripts' README,
+  contributors run from the tree, with the installed paths beside it.
 
 ## Decision
 
@@ -79,7 +79,7 @@ broken one on the other platform.
   the reference script from the terminal with the copied command, before
   anything is downloaded.
 - The installers grow by the size of the collection (about half a
-  megabyte uncompressed, less packaged) — noise against the webview
+  megabyte uncompressed, less packaged), noise against the webview
   runtime they already ship.
 - The web app and the TUI are unchanged; the collection rides in their
   bundles' resources but nothing reads it from disk there.
@@ -112,8 +112,8 @@ resources-map line: the local build that verified it used an edited
 installers kept shipping only the guide files while the guide, the
 scripts' README, the Scripts page, and the repository README all named
 the installed script paths. A user copying any of those commands got a
-tokenizer error — "unexpected character: ':'" from the Windows drive
-letter, "invalid number: '.'" from the `.epher` suffix — because a path
+tokenizer error, "unexpected character: ':'" from the Windows drive
+letter, "invalid number: '.'" from the `.epher` suffix, because a path
 that names no file is evaluated as an expression (ADR-0040).
 
 The resources map now gains `"../../../epher scripts": "scripts"` in
@@ -124,8 +124,8 @@ on every platform instead of trusting the config line: `dpkg-deb -c` /
 `scripts/astronomy/moon/full-moons.epher`.
 
 An argument that names no existing
-file but *looks like* a path — it starts with `/`, `\`, `./`, `../`, or
-a drive letter, none of which any expression can start with — now fails
+file but *looks like* a path, it starts with `/`, `\`, `./`, `../`, or
+a drive letter, none of which any expression can start with, now fails
 with `error: no such script file: <path>` instead of a parse error, so
 a missing install names the file rather than the tokenizer. Arguments
 that could still be expressions keep ADR-0040's behavior: `1.5.5`
@@ -136,7 +136,7 @@ system, so the manual and the guide agree.
 ## Amendment (2026-09-07, later the same day): the script headers and the Scripts page name the installed paths too
 
 The report came back once more: every script's page on the website
-still showed `epher "epher scripts/..."` — the checkout command each
+still showed `epher "epher scripts/..."`, the checkout command each
 file's header comment carries, and the run hint the Scripts browser
 rendered from the repository-relative path. A reader on Windows or
 macOS had no copyable equivalent at all. Both surfaces now speak the
@@ -144,22 +144,22 @@ installed locations: every one of the 333 headers carries the three
 commands (`Linux (deb, rpm)`, `Windows`, `macOS`) over the installed
 path, the REPL line points at them, and the Scripts page renders the
 same three commands, each with its own copy button. The transcripts
-are untouched — the lines are comments — and the checker passes all
+are untouched; the lines are comments, and the checker passes all
 333.
 
 A later pass settled the page layout the same way: the per-script run
 box sits *below* the script text (the reader sees the code first, then
 how to run it), each command's copy button sits at the left of its
-row — before the operating-system name it copies for, so label and
-command read as one line — and the page's static "Run them from your
-terminal" section — which documents the installed paths for the whole
-collection — hides while a single script is open, since the script
+row, before the operating-system name it copies for, so label and
+command read as one line, and the page's static "Run them from your
+terminal" section, which documents the installed paths for the whole
+collection, hides while a single script is open, since the script
 page then carries the same commands itself.
 
 ## Amendment (2026-09-05): the collection-wide run section leaves the Scripts page
 
-The Scripts page carried a static "Run them from your terminal" section
-— an example script's installed path on each operating system, shown
+The Scripts page carried a static "Run them from your terminal" section,
+an example script's installed path on each operating system, shown
 whenever no single script was open. Every script page already carries
 its own three copyable commands under the code (the section hid itself
 on script pages for exactly that reason), so the collection-wide block
@@ -175,11 +175,11 @@ no code signature at all (the Mach-O is ad-hoc signed by the linker,
 but the bundle carries no `Contents/_CodeSignature`), and every browser
 download arrives stamped with the `com.apple.quarantine` flag.
 Gatekeeper's check of a quarantined, unsigned bundle fails hard and
-reports "damaged" — with no right-click escape hatch, which made the
+reports "damaged", with no right-click escape hatch, which made the
 guide's documented first-launch path impossible to follow.
 
 The release now ad-hoc signs the app bundle (`codesign --force --deep
---sign -`) and builds the DMG from the signed bundle — the tauri dmg
+--sign -`) and builds the DMG from the signed bundle, the tauri dmg
 bundler's own layout (volume `epher`, the app, the Applications
 symlink), rebuilt so the signature is in place before imaging. An
 ad-hoc signature is a valid signature: Gatekeeper's damaged check
@@ -189,7 +189,7 @@ Settings → Privacy & Security → *Open Anyway*). The packaging step
 verifies the signature **inside the shipped DMG** (`codesign --verify
 --deep --strict` on the mounted volume) and fails the release if the
 seal is ever broken again. The build still carries no developer
-identity, so macOS cannot confirm who built it — that needs an Apple
+identity, so macOS cannot confirm who built it, that needs an Apple
 Developer account and notarization, and stays open until the project
 has one.
 
@@ -198,8 +198,8 @@ has one.
 The direct downloads this ADR documents gained companions: an apt
 repository and a dnf repository on epher.org, Flathub, Snap, and an
 AUR package, with an aarch64 build leg alongside x86_64. The
-installers themselves — and the run commands they carry, named for
-each operating system — are unchanged; the new channels wrap or serve
+installers themselves, and the run commands they carry, named for
+each operating system, are unchanged; the new channels wrap or serve
 the same artifacts. ADR-0061 records the repository and store
 decisions. (2026-09-06: the AUR package was removed before its first
-publish — ADR-0061's amendment has the details.)
+publish, ADR-0061's amendment has the details.)

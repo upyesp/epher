@@ -1,4 +1,4 @@
-// epher-gui — the Windows double-click entry point (ADR-0011).
+// epher-gui, the Windows double-click entry point (ADR-0011).
 //
 // A GUI-subsystem build of the same program as the console `epher` binary:
 // `windows_subsystem = "windows"` means Windows never creates a console
@@ -8,7 +8,7 @@
 // pipes, and exit codes.
 //
 // Bundled only on Windows (tauri.windows.conf.json sets mainBinaryName);
-// macOS and Linux keep the single unified binary — their OSes need no
+// macOS and Linux keep the single unified binary; their OSes need no
 // subsystem split (an .app bundle and a Terminal=false desktop entry do
 // the same job). Debug builds stay console apps for dev output.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]

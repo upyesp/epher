@@ -2,7 +2,7 @@
 # will pin the runtime/webkit pair and may ask for vendored build inputs
 # (Flathub builds without network). After acceptance this file lives in
 # github.com/flathub/com.epher.Desktop and the release workflow's
-# store-bumps job commits version bumps here — direct pushes trigger
+# store-bumps job commits version bumps here: direct pushes trigger
 # Flathub's bot builds. This in-repo copy is the source of truth.
 app-id: com.epher.Desktop
 runtime: org.gnome.Platform
@@ -33,7 +33,7 @@ modules:
       - cargo build --release --manifest-path crates/tauri-app/src-tauri/Cargo.toml --bin epher
       - install -Dm755 target/release/epher /app/bin/epher
       # ADR-0053/0058: the guide and the script collection ride along.
-      # /app/usr is /usr inside the sandbox — exactly where the guide
+      # /app/usr is /usr inside the sandbox, exactly where the guide
       # loader looks (its system data-dir candidates), and the script
       # collection's in-sandbox path documented in the guide.
       - install -d /app/usr/share/epher

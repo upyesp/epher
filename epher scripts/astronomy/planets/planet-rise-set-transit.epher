@@ -23,7 +23,7 @@ Knobs: the date j0, latitude and longitude.
 
 // ---- the knobs ---------------------------------------------------------------
 const j0 = jd(2026, 6, 1)    // 0h UT
-const lat = 51.4779        // Greenwich — the Royal Observatory
+const lat = 51.4779        // Greenwich, the Royal Observatory
 const lon = 0
 
 // ---- helpers ----------------------------------------------------------------

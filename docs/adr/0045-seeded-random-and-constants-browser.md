@@ -15,7 +15,7 @@ and the "random numbers" row of the expectation matrix is the last
 unfilled item in the top block. The T2.6 constants library is two
 halves: the standard physics/chemistry set (CODATA-backed values
 already in the grammar since ADR-0042, ~35 builtins) and the discovery
-surface the report asks for — SpeedCrunch's Ctrl+Space pattern: a
+surface the report asks for, SpeedCrunch's Ctrl+Space pattern: a
 browser that lists the constants in groups and inserts a chosen name.
 Typing a name is impossible when the name is unknown; the guide table
 is not browseable from the calculator.
@@ -31,12 +31,12 @@ is not browseable from the calculator.
   sequence). The seed is part of the session environment, not of a
   script, matching how `ans` and variables live.
 - New builtins:
-  - `random()` — uniform in `[0, 1)`.
-  - `random(a, b)` — uniform real in `[a, b)`.
-  - `randint(a, b)` — a uniformly chosen whole number in the closed
+  - `random()`, uniform in `[0, 1)`.
+  - `random(a, b)`, uniform real in `[a, b)`.
+  - `randint(a, b)`, a uniformly chosen whole number in the closed
     range `[a, b]` (whole-number arguments, `a <= b`, no modulo bias:
     Lemire's rejection method).
-  - `randseed(n)` — re-seeds the generator with the whole number `n`
+  - `randseed(n)`, re-seeds the generator with the whole number `n`
     and returns it, so the seed is visible in history and a script can
     chain draws off one fixed point (`randseed(7)` then `random()`
     always gives the same first draw in every frontend).
@@ -48,7 +48,7 @@ is not browseable from the calculator.
 
 - Core exports the grouping the browser needs:
   `builtin_constant_groups() -> &'static [(&'static str, ConstGroup)]`
-  — every builtin constant with its group (Math, Astronomy, Physics,
+, every builtin constant with its group (Math, Astronomy, Physics,
   Chemistry), the single source of truth for the frontends' browsers.
   The `ConstGroup` mirror of the guide's tables means the browser
   never drifts from the documented set.
@@ -67,7 +67,7 @@ is not browseable from the calculator.
 - TUI: the Help menu gains **Constants** too, opening a browser view
   in the guide-pager style: grouped rows, arrow-key selection,
   Enter inserts the selected name into the input line, Escape closes.
-- CLI: unchanged — `help` and the guide tables already cover it.
+- CLI: unchanged, `help` and the guide tables already cover it.
 
 ## Consequences
 

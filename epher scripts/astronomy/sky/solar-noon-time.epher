@@ -26,7 +26,7 @@ Knobs: latitude and longitude (Greenwich below); the three dates below.
 ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
-const lat = 51.4779        // Greenwich — the Royal Observatory
+const lat = 51.4779        // Greenwich, the Royal Observatory
 const lon = 0
 const d_mar = {2026, 3, 20}    // March equinox
 const d_jun = {2026, 6, 21}    // June solstice

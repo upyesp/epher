@@ -265,7 +265,7 @@ ans * 2
 10
 ```
 
-One list can fill several names at once — `{a, b} = list` takes a list
+One list can fill several names at once, `{a, b} = list` takes a list
 apart, left to right (section 1.11 shows functions that hand back more
 than one answer this way):
 
@@ -383,7 +383,7 @@ true
 ```
 
 A backslash inside a string starts an **escape**: `\n` is a new line, `\t`
-a tab, and `\\` and `\"` are the backslash and the quote themselves — so a
+a tab, and `\\` and `\"` are the backslash and the quote themselves, so a
 string can contain a double quote:
 
 ```epher
@@ -412,7 +412,7 @@ change case, **trim** strips spaces from the ends, **substr** takes a piece
 it does not), **replace** swaps every copy of one text for another,
 **split** breaks a text into a list at a separator, **join** glues a list
 into one text, and **fixed** spells a number with exactly as many decimal
-places as you ask — the zero a report wants, kept:
+places as you ask, the zero a report wants, kept:
 
 ```epher
 upper("hello")
@@ -606,7 +606,7 @@ The intermediate name `c` lives inside the call; it is not visible outside,
 and two calls do not see each other's `c`.
 
 **return: answer now.** `return value` answers immediately and skips the
-rest of the body — the natural shape for a choice with an early exit:
+rest of the body, the natural shape for a choice with an early exit:
 
 ```epher
 def grade(s) do
@@ -640,11 +640,11 @@ firstsq({3, 5, 9, 11}); firstsq({3, 5, 7})
 ```
 
 One rule keeps the blocks readable: the `end` always closes the function's
-do — an `if`, `for`, or `while` takes no `end`. A body that ends without an
+do, an `if`, `for`, or `while` takes no `end`. A body that ends without an
 answer (say, every path returned nothing) is an error, not a silence:
 epher says so and names the function.
 
-> **More than one answer?** Give back a list — and name it in one move
+> **More than one answer?** Give back a list, and name it in one move
 > with the destructuring from section 1.5:
 > `{mean, sd} = {4, 1.6}`.
 
@@ -727,7 +727,7 @@ comment opens and closes on the same line.
 Normally epher calculates with decimal numbers like a pocket
 calculator, and results round to twelve significant digits the way a
 pocket calculator shows them: `0.1 + 0.2` is `0.3`, never
-`0.30000000000000004`. Exact fractions are on by default — a result
+`0.30000000000000004`. Exact fractions are on by default; a result
 with a good small-denominator fraction whose decimal keeps repeating
 shows as one. `1 / 3` displays as `1/3` without asking:
 
@@ -761,8 +761,8 @@ frac(1, 3) * 3
 1
 ```
 
-**dec(x)** makes an exact decimal. `0.1 + 0.2` shows `0.3` either way
-— the difference is arithmetic:
+**dec(x)** makes an exact decimal. `0.1 + 0.2` shows `0.3` either way,
+the difference is arithmetic:
 
 ```epher
 0.1 * 3 - 0.3
@@ -1274,7 +1274,7 @@ Two lists must have the same length for `+ - * / ^`. `==` and `!=`
 compare whole lists; ordering comparisons reject them.
 
 The statistics functions take a list as their one argument (they keep
-their variadic form too — `mean(1, 2, 3)` still works): `sum product
+their variadic form too, `mean(1, 2, 3)` still works): `sum product
 mean median mode variance stdev min max range`. The new shape
 functions are `len(list)`, `sort(list)` (ascending copy), `mode(list)`
 (most frequent value, smallest on ties), `range(list)` (max minus
@@ -1325,7 +1325,7 @@ The r of a transformed fit is the correlation of the linearized pair: the same n
 
 The probability functions cover the standard normal, Student's t,
 chi-squared, binomial, and Poisson families. The normal family takes
-one or three arguments — one argument is the standard normal:
+one or three arguments, one argument is the standard normal:
 
 ```epher
 normcdf(1.96)
@@ -1398,7 +1398,7 @@ t = -0.7559, p = 0.5286
 
 The graph family takes lists too: a scatter, a histogram, and a
 box-and-whisker plot. A data plot owns the pane like a solar system
-does — the newest command wins, and `graph clear` empties it.
+does, the newest command wins, and `graph clear` empties it.
 
 ```epher
 x = {1, 2, 3, 4, 5}
@@ -1430,7 +1430,7 @@ An optional third word chooses the model: `graph scatter(xs, ys, quadreg)` (or e
 
 `random()` draws a uniform random number in `[0, 1)`, `random(a, b)`
 one in `[a, b)`, and `randint(a, b)` a whole number from the closed
-range `[a, b]` — a dice roll:
+range `[a, b]`, a dice roll:
 
 ```epher
 randseed(7)
@@ -1481,7 +1481,7 @@ suffixes from section 1.29. Compound units chain: `60 mile/hr` and
 ```
 
 The SI prefixes scale any of them: `k M G T m µ n p` are kilo, mega,
-giga, tera, milli, micro, nano, pico — `5 km`, `3 MPa`, `1 GHz` all
+giga, tera, milli, micro, nano, pico, `5 km`, `3 MPa`, `1 GHz` all
 work, and `2 kg` is the kilogram itself.
 
 The dimensions are checked: adding or comparing quantities with
@@ -1499,7 +1499,7 @@ Arithmetic composes the dimensions: `5 m * 3 m` is `15 m^2`,
 `(3 m)^2` is `9 m^2`, `sqrt(4 m^2)` is `2 m`, and a whole expression
 whose dimensions cancel is an ordinary number again (`5 m / 5 m` is
 `1`). Results prefer the exact derived name when the dimensions match
-one — `5 kg * 3 m / 1 s^2` answers `15 N`.
+one, `5 kg * 3 m / 1 s^2` answers `15 N`.
 
 **Conversion.** `expr in unit` (or `expr -> unit`) shows a quantity in
 the named unit; the dimensions must match. `in` binds loosest of the
@@ -1521,7 +1521,7 @@ operators, so `5 m + 3 m in km` converts the whole sum:
 20000 cm^2
 ```
 
-Temperature scales (Celsius, Fahrenheit) are not units here — kelvins
+Temperature scales (Celsius, Fahrenheit) are not units here, kelvins
 are, and `K` works like any other.
 
 ### 1.26 Bitwise operations
@@ -1600,7 +1600,7 @@ A matrix is a grid of numbers, spelled as rows of lists: `[[1, 2],
 shapes), `*` is the matrix product, a number scales elementwise, and
 `^` is the whole-number matrix power (`A ^ 0` is the identity, so
 powers need square matrices). `M[2][1]` is the element at row 2,
-column 1 — rows index like lists, 1-based.
+column 1, rows index like lists, 1-based.
 
 ```epher
 [[1, 2], [3, 4]] * [[5, 6], [7, 8]]
@@ -1624,7 +1624,7 @@ rref([[2, 1, 5], [1, -1, 1]])
 [[1, 0, 2], [0, 1, 1]]
 ```
 
-The rows read `x = 2`, `y = 1` — the last column of the reduced
+The rows read `x = 2`, `y = 1`, the last column of the reduced
 augmented matrix. Exact fractions display inside matrices like lists,
 so `inv([[1, 2], [3, 4]])` shows `[[-2, 1], [3/2, -1/2]]`.
 
@@ -2062,8 +2062,8 @@ roughly 5000 years around the present.
 
 epher speaks money as well as it speaks astronomy: a time-value-of-money
 solver, loan amortization, interest, and cash-flow analysis, all working
-offline. Everything in this section returns plain numbers — not currency
-strings — so the answers are currency-agnostic and flow straight back
+offline. Everything in this section returns plain numbers, not currency
+strings, so the answers are currency-agnostic and flow straight back
 into arithmetic. Rates are always per period as a fraction: `0.08/12` is
 an 8% annual rate billed monthly, and `0.01` is 1% (the `%` postfix from
 1.2 works too: `6 * 100%` is 0.06).
@@ -2175,7 +2175,7 @@ tvm_pv(240, 0.05/12, 1500, 0)
 ```
 
 The answer is negative because buying the fund is money out today. The
-other direction — how much to put aside each month to reach a goal —
+other direction, how much to put aside each month to reach a goal,
 asks `tvm_pmt` with the goal as `fv`: 50,000 in ten years at 5% costs
 322 a month:
 
@@ -2189,7 +2189,7 @@ tvm_pmt(120, 0.05/12, 0, -50000)
 
 Every one of the five takes an optional last argument `begin`: 0 means
 payments fall at the end of each period (the default), 1 at the
-beginning (an annuity due — rent, most salaries). Beginning-of-period
+beginning (an annuity due, rent, most salaries). Beginning-of-period
 payments earn interest one period longer, so the mortgage payment is a
 little lower:
 
@@ -2206,7 +2206,7 @@ million periods; a problem outside those ranges (or a sign pattern
 that never balances) reports a domain error naming what it tried.
 
 **Amortization.** `amort(p, r, n, k)` is the remaining balance after k
-payments of an n-period loan of p at rate r — 0 periods in is the
+payments of an n-period loan of p at rate r, 0 periods in is the
 principal, all n is zero:
 
 ```epher
@@ -2229,7 +2229,7 @@ for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
 ```
 
 **Interest.** `simple_interest(p, r, t)` is `p*r*t` and
-`compound_interest(p, r, n)` is `p*(1+r)^n - p` — both answer the
+`compound_interest(p, r, n)` is `p*(1+r)^n - p`; both answer the
 interest earned, not the balance:
 
 ```epher
@@ -2339,8 +2339,8 @@ again; `dec(5/102)` is 0.0490196078431):
 ```
 
 The script collection ships 42 ready-made finance scripts building on
-these ten functions — four folders: interest, investing, loans, and
-savings — each with a transcript verified against the engine
+these ten functions, four folders: interest, investing, loans, and
+savings, each with a transcript verified against the engine
 (scripts.html lists them with one-line summaries).
 ## 2. The web app (PWA)
 
@@ -2518,7 +2518,7 @@ table x ^ 2 from -2 to 2 points 5 derivative x ^ 2
 ```
 
 Table cells follow the Results settings: with exact fractions on (the
-default), a value that is a simple fraction shows as one — `table x / 3
+default), a value that is a simple fraction shows as one, `table x / 3
 from 0 to 1 points 4` lists `1/3` instead of `0.333`.
 
 ```epher
@@ -2681,7 +2681,7 @@ chmod +x epher-linux-x86_64.AppImage
 ./epher-linux-x86_64.AppImage
 ```
 
-**Or install from a repository or store** — updates then arrive with your
+**Or install from a repository or store**: updates then arrive with your
 package manager. On Debian/Ubuntu:
 
 ```sh

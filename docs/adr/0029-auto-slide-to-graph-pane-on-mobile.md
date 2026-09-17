@@ -1,6 +1,6 @@
 # ADR-0029: Auto-slide to the graph pane after drawing on mobile (v0.4.17)
 
-- **Status:** superseded by ADR-0035 — the mobile PWA usability
+- **Status:** superseded by ADR-0035, the mobile PWA usability
   contract absorbed the auto-slide into one record with the rest of the
   mobile graph-pane behavior (keypad focus discipline, the slide back
   after a clear, 3D swipe rotation, per-kind widths).
@@ -13,7 +13,7 @@ On the mobile layout (<880px) the calculator and graph panes form a
 swipeable horizontal strip (ADR-0016): the graph is one slide away,
 with the pane-switch buttons as the non-swipe spelling. A user who
 enters `graph x ^ 2` on the calculator pane submits the command and
-then sees… the calculator still — the curve exists but is off-screen.
+then sees… the calculator still; the curve exists but is off-screen.
 The ask: after a graph command that actually draws something, slide
 the view across to the graph pane automatically.
 
@@ -25,14 +25,14 @@ discretely (the reduced-motion behavior, WCAG 2.3.3) and feeds the
 buttons stay in sync for free. The submit path already walks each
 statement of the submitted entry; the successful arms of the `graph`
 and `graph3d` branches are the exact places that know a plot was
-*drawn* — errors, `graph clear`, `graph save`, and plain evaluations
+*drawn*, errors, `graph clear`, `graph save`, and plain evaluations
 must not move the view. The callback was defined after the submit
 closure, so it moves above it (it depends on nothing stateful).
 
 ## Decision
 
 - On the successful draw of a 2D or 3D plot, the submit path emits
-  `scroll_pane("graph-pane")` — but only when `mobile_layout()`: a
+  `scroll_pane("graph-pane")`, but only when `mobile_layout()`: a
   window narrower than 880px, mirroring the CSS breakpoint exactly.
 - The desktop layout (panes side by side, no horizontal strip) never
   scrolls.
@@ -49,4 +49,4 @@ closure, so it moves above it (it depends on nothing stateful).
 - This ADR originally ended "focus stays in the entry field; the
   slide is view-only convenience." ADR-0030 reversed that: the slide
   blurs the entry on mobile so the keyboard closes over the fresh
-  plot — ADR-0035 carries the current rule.
+  plot, ADR-0035 carries the current rule.

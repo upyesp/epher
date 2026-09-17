@@ -27,7 +27,7 @@ SECTIONS = {
 {F_SPEED}
 
 SI 词头可以缩放任意单位：`k M G T m µ n p` 是千、兆、吉、太、毫、微、
-纳、皮——`5 km`、`3 MPa`、`1 GHz` 都可以，`2 kg` 就是千克本身。
+纳、皮：`5 km`、`3 MPa`、`1 GHz` 都可以，`2 kg` 就是千克本身。
 
 量纲会被检查：不同单位的量相加或比较会报错，而不是混在一起算：
 
@@ -35,7 +35,7 @@ SI 词头可以缩放任意单位：`k M G T m µ n p` 是千、兆、吉、太�
 
 算术会组合量纲：`5 m * 3 m` 是 `15 m^2`，`(3 m)^2` 是 `9 m^2`，
 `sqrt(4 m^2)` 是 `2 m`，量纲完全相消的整个表达式又回到普通数字
-（`5 m / 5 m` 是 `1`）。量纲恰好匹配时，结果优先使用导出名称——
+（`5 m / 5 m` 是 `1`）。量纲恰好匹配时，结果优先使用导出名称：
 `5 kg * 3 m / 1 s^2` 得出 `15 N`。
 
 **换算。** `expr in 单位`（或 `expr -> 单位`）以指定单位显示一个量；
@@ -45,7 +45,7 @@ SI 词头可以缩放任意单位：`k M G T m µ n p` 是千、兆、吉、太�
 
 {F_AREA}
 
-温度标度（摄氏、华氏）在这里不是单位——开尔文是，`K` 和其他单位一样用。
+温度标度（摄氏、华氏）在这里不是单位：开尔文是，`K` 和其他单位一样用。
 
 """,
     "hi": """### 1.24 इकाइयाँ और रूपांतरण
@@ -62,7 +62,7 @@ SI 词头可以缩放任意单位：`k M G T m µ n p` 是千、兆、吉、太�
 {F_SPEED}
 
 SI उपसर्ग उनमें से किसी को भी स्केल करते हैं: `k M G T m µ n p` किलो,
-मेगा, गीगा, टेरा, मिली, माइक्रो, नैनो, पिको हैं — `5 km`, `3 MPa`,
+मेगा, गीगा, टेरा, मिली, माइक्रो, नैनो, पिको हैं, `5 km`, `3 MPa`,
 `1 GHz` सब चलते हैं, और `2 kg` खुद किलोग्राम है।
 
 आयाम जाँचे जाते हैं: अलग इकाइयों वाली राशियों को जोड़ना या तुलना करना
@@ -73,7 +73,7 @@ SI उपसर्ग उनमें से किसी को भी स्�
 अंकगणित आयामों को जोड़ता है: `5 m * 3 m` = `15 m^2`, `(3 m)^2` =
 `9 m^2`, `sqrt(4 m^2)` = `2 m`, और जिस व्यंजक के आयाम पूरी तरह कट जाते
 हैं वह फिर एक साधारण संख्या है (`5 m / 5 m` = `1`)। जब आयाम किसी
-व्युत्पन्न नाम से मेल खाते हैं तो परिणाम वही दिखाता है — `5 kg * 3 m / 1
+व्युत्पन्न नाम से मेल खाते हैं तो परिणाम वही दिखाता है, `5 kg * 3 m / 1
 s^2` का उत्तर `15 N` है।
 
 **रूपांतरण।** `expr in इकाई` (या `expr -> इकाई`) राशि को नामित इकाई में
@@ -84,7 +84,7 @@ s^2` का उत्तर `15 N` है।
 
 {F_AREA}
 
-तापमान पैमाने (सेल्सियस, फ़ारेनहाइट) यहाँ इकाइयाँ नहीं हैं — केल्विन है,
+तापमान पैमाने (सेल्सियस, फ़ारेनहाइट) यहाँ इकाइयाँ नहीं हैं, केल्विन है,
 और `K` बाकियों की तरह काम करता है।
 
 """,
@@ -104,7 +104,7 @@ individuales.
 {F_SPEED}
 
 Los prefijos del SI escalan cualquiera de ellas: `k M G T m µ n p` son
-kilo, mega, giga, tera, mili, micro, nano, pico — `5 km`, `3 MPa`,
+kilo, mega, giga, tera, mili, micro, nano, pico, `5 km`, `3 MPa`,
 `1 GHz` funcionan, y `2 kg` es el propio kilogramo.
 
 Las dimensiones se comprueban: sumar o comparar cantidades con
@@ -116,7 +116,7 @@ La aritmética compone las dimensiones: `5 m * 3 m` es `15 m^2`,
 `(3 m)^2` es `9 m^2`, `sqrt(4 m^2)` es `2 m`, y una expresión completa
 cuyas dimensiones se cancelan vuelve a ser un número ordinario
 (`5 m / 5 m` es `1`). Los resultados prefieren el nombre derivado
-exacto cuando las dimensiones coinciden con uno — `5 kg * 3 m / 1 s^2`
+exacto cuando las dimensiones coinciden con uno, `5 kg * 3 m / 1 s^2`
 responde `15 N`.
 
 **Conversión.** `expr in unidad` (o `expr -> unidad`) muestra una
@@ -128,8 +128,8 @@ km` convierte la suma entera:
 
 {F_AREA}
 
-Las escalas de temperatura (Celsius, Fahrenheit) no son unidades aquí
-— los kelvins sí, y `K` funciona como cualquier otra.
+Las escalas de temperatura (Celsius, Fahrenheit) no son unidades aquí,
+los kelvins sí, y `K` funciona como cualquier otra.
 
 """,
     "fr": """### 1.24 Unités et conversion
@@ -147,7 +147,7 @@ s'enchaînent : `60 mile/hr` et `5 m/s^2` sont des unités simples.
 {F_SPEED}
 
 Les préfixes SI les modifient toutes : `k M G T m µ n p` sont kilo,
-méga, giga, téra, milli, micro, nano, pico — `5 km`, `3 MPa`, `1 GHz`
+méga, giga, téra, milli, micro, nano, pico, `5 km`, `3 MPa`, `1 GHz`
 fonctionnent, et `2 kg` est le kilogramme lui-même.
 
 Les dimensions sont vérifiées : additionner ou comparer des grandeurs
@@ -160,7 +160,7 @@ L'arithmétique compose les dimensions : `5 m * 3 m` vaut `15 m^2`,
 `(3 m)^2` vaut `9 m^2`, `sqrt(4 m^2)` vaut `2 m`, et une expression
 entière dont les dimensions s'annulent redevient un nombre ordinaire
 (`5 m / 5 m` vaut `1`). Les résultats préfèrent le nom dérivé exact
-quand les dimensions correspondent — `5 kg * 3 m / 1 s^2` répond
+quand les dimensions correspondent, `5 kg * 3 m / 1 s^2` répond
 `15 N`.
 
 **Conversion.** `expr in unité` (ou `expr -> unité`) affiche une
@@ -173,7 +173,7 @@ convertit toute la somme :
 {F_AREA}
 
 Les échelles de température (Celsius, Fahrenheit) ne sont pas des
-unités ici — les kelvins le sont, et `K` fonctionne comme n'importe
+unités ici, les kelvins le sont, et `K` fonctionne comme n'importe
 quelle autre.
 
 """,
@@ -191,7 +191,7 @@ mile/hr` و`5 m/s^2` وحدتان مفردتان.
 {F_SPEED}
 
 سوابق SI تدرّج أيًا منها: `k M G T m µ n p` هي كيلو وميجا وجيجا وتيرا
-وميلي وميكرو ونانو وبيكو — `5 km` و`3 MPa` و`1 GHz` تعمل جميعًا،
+وميلي وميكرو ونانو وبيكو، `5 km` و`3 MPa` و`1 GHz` تعمل جميعًا،
 و`2 kg` هو الكيلوجرام نفسه.
 
 تُفحص الأبعاد: جمع أو مقارنة كميات بوحدات مختلفة ينتج خطأً بدل خلط
@@ -202,7 +202,7 @@ mile/hr` و`5 m/s^2` وحدتان مفردتان.
 الحساب يركّب الأبعاد: `5 m * 3 m` هي `15 m^2`، و`(3 m)^2` هي `9 m^2`،
 و`sqrt(4 m^2)` هي `2 m`، والتعبير الكامل الذي تتلاشى أبعاده يعود عددًا
 عاديًا (`5 m / 5 m` هو `1`). تفضّل النتائج الاسم المشتق الدقيق عندما
-تطابقه الأبعاد — `5 kg * 3 m / 1 s^2` يجيب `15 N`.
+تطابقه الأبعاد، `5 kg * 3 m / 1 s^2` يجيب `15 N`.
 
 **التحويل.** `expr in وحدة` (أو `expr -> وحدة`) يعرض كمية بالوحدة
 المذكورة؛ يجب أن تتطابق الأبعاد. `in` أضعف الروابط بين العوامل، لذا
@@ -212,7 +212,7 @@ mile/hr` و`5 m/s^2` وحدتان مفردتان.
 
 {F_AREA}
 
-مقاييس الحرارة (سلسيوس، فهرنهايت) ليست وحدات هنا — الكلفن وحدة، و`K`
+مقاييس الحرارة (سلسيوس، فهرنهايت) ليست وحدات هنا، الكلفن وحدة، و`K`
 تعمل مثل أي وحدة أخرى.
 
 """,
@@ -231,7 +231,7 @@ verkettet: `60 mile/hr` und `5 m/s^2` sind einzelne Einheiten.
 {F_SPEED}
 
 Die SI-Vorsätze skalieren jede davon: `k M G T m µ n p` sind Kilo,
-Mega, Giga, Tera, Milli, Mikro, Nano, Piko — `5 km`, `3 MPa`, `1 GHz`
+Mega, Giga, Tera, Milli, Mikro, Nano, Piko, `5 km`, `3 MPa`, `1 GHz`
 funktionieren alle, und `2 kg` ist das Kilogramm selbst.
 
 Die Dimensionen werden geprüft: Addition oder Vergleich von Größen mit
@@ -244,7 +244,7 @@ Die Arithmetik setzt die Dimensionen zusammen: `5 m * 3 m` ist
 `15 m^2`, `(3 m)^2` ist `9 m^2`, `sqrt(4 m^2)` ist `2 m`, und ein
 ganzer Ausdruck, dessen Dimensionen sich wegheben, ist wieder eine
 gewöhnliche Zahl (`5 m / 5 m` ist `1`). Ergebnisse bevorzugen den
-exakten abgeleiteten Namen, wenn die Dimensionen passen —
+exakten abgeleiteten Namen, wenn die Dimensionen passen,
 `5 kg * 3 m / 1 s^2` antwortet `15 N`.
 
 **Umrechnung.** `expr in Einheit` (oder `expr -> Einheit`) zeigt eine
@@ -256,7 +256,7 @@ Größe in der genannten Einheit; die Dimensionen müssen übereinstimmen.
 
 {F_AREA}
 
-Temperaturskalen (Celsius, Fahrenheit) sind hier keine Einheiten —
+Temperaturskalen (Celsius, Fahrenheit) sind hier keine Einheiten,
 Kelvin schon, und `K` funktioniert wie jede andere.
 
 """,
@@ -275,7 +275,7 @@ os sufixos de astronomia da secção 1.16. Unidades compostas encadeiam:
 {F_SPEED}
 
 Os prefixos SI escalam qualquer uma delas: `k M G T m µ n p` são quilo,
-mega, giga, tera, mili, micro, nano, pico — `5 km`, `3 MPa`, `1 GHz`
+mega, giga, tera, mili, micro, nano, pico, `5 km`, `3 MPa`, `1 GHz`
 funcionam, e `2 kg` é o próprio quilograma.
 
 As dimensões são verificadas: somar ou comparar grandezas com unidades
@@ -287,7 +287,7 @@ A aritmética compõe as dimensões: `5 m * 3 m` é `15 m^2`, `(3 m)^2` é
 `9 m^2`, `sqrt(4 m^2)` é `2 m`, e uma expressão inteira cujas dimensões
 se cancelam volta a ser um número vulgar (`5 m / 5 m` é `1`). Os
 resultados preferem o nome derivado exato quando as dimensões
-coincidem com um — `5 kg * 3 m / 1 s^2` responde `15 N`.
+coincidem com um, `5 kg * 3 m / 1 s^2` responde `15 N`.
 
 **Conversão.** `expr in unidade` (ou `expr -> unidade`) mostra uma
 grandeza na unidade nomeada; as dimensões têm de coincidir. `in` liga
@@ -298,8 +298,8 @@ converte a soma inteira:
 
 {F_AREA}
 
-As escalas de temperatura (Celsius, Fahrenheit) não são unidades aqui
-— os kelvins são, e `K` funciona como qualquer outra.
+As escalas de temperatura (Celsius, Fahrenheit) não são unidades aqui,
+os kelvins são, e `K` funciona como qualquer outra.
 
 """,
 }

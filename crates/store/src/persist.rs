@@ -1,6 +1,6 @@
 //! Persistence helpers shared by the native frontends (CLI/TUI/desktop):
 //! loading a [`Session`] from the store and saving history/functions. Logic
-//! once — the web frontend uses the same [`DocStore`] seam with its own
+//! once; the web frontend uses the same [`DocStore`] seam with its own
 //! backend.
 
 use crate::{ConstantDoc, DocStore, FunctionDoc, ScriptDoc, Storage, StoreError, StoreResult};
@@ -12,10 +12,10 @@ pub const HISTORY_SETTING: &str = "history";
 pub const LANGUAGE_SETTING: &str = "language";
 
 /// The store directory for native frontends: `EPHER_STORE_DIR` override, else
-/// the user's home directory's `.epher` — `HOME` on POSIX, `USERPROFILE` on
+/// the user's home directory's `.epher`, `HOME` on POSIX, `USERPROFILE` on
 /// Windows (where `HOME` is usually unset; the old fallback of `.epher` in
 /// the current directory meant every frontend launched from a different
-/// folder looked at a different store — the desktop app and the TUI could
+/// folder looked at a different store, the desktop app and the TUI could
 /// not see each other's history on Windows, ADR-0010 amendment).
 pub fn default_store_dir() -> std::path::PathBuf {
     std::env::var_os("EPHER_STORE_DIR")
@@ -34,7 +34,7 @@ pub fn default_store_dir() -> std::path::PathBuf {
 
 /// The saved lines to replay at startup, in load order: functions first,
 /// then constants, then scripts (the recipe [`load_session`] applies
-/// natively; the desktop webview replays them into its own Session —
+/// natively; the desktop webview replays them into its own Session,
 /// ADR-0010). Constants may call functions; scripts may use both.
 pub fn replay_lines<S: Storage>(store: &DocStore<S>) -> StoreResult<Vec<String>> {
     let mut lines = Vec::new();
@@ -52,7 +52,7 @@ pub fn replay_lines<S: Storage>(store: &DocStore<S>) -> StoreResult<Vec<String>>
 
 /// Rebuild a session from the store: history plus saved functions,
 /// constants, and scripts (re-run as definitions), then the shared
-/// session snapshot (user bindings, `ans` among them — ADR-0010
+/// session snapshot (user bindings, `ans` among them, ADR-0010
 /// amendment) so a frontend starts where the last one left off.
 pub fn load_session<S: Storage>(store: &DocStore<S>) -> StoreResult<Session> {
     let history = history(store)?;
@@ -83,7 +83,7 @@ pub fn save_history<S: Storage>(store: &DocStore<S>, history: &[String]) -> Stor
 pub const SESSION_SETTING: &str = "session";
 
 /// The shared session snapshot (ADR-0010 amendment): the environment's
-/// variable bindings — user assignments and `ans` — saved by whichever
+/// variable bindings, user assignments and `ans`, saved by whichever
 /// interactive frontend ran last, restored by the next one. One
 /// installation, one calculator state, across CLI/REPL/TUI/desktop.
 pub fn session_bindings<S: Storage>(
@@ -153,7 +153,7 @@ pub fn save_theme<S: Storage>(store: &DocStore<S>, theme: &str) -> StoreResult<(
 }
 
 /// Whether the graph panel lists the points of interest (default yes).
-/// A display toggle owned by the Settings menu — the analysis itself
+/// A display toggle owned by the Settings menu; the analysis itself
 /// always runs, so switching back is instant.
 pub const POIS_SETTING: &str = "pois";
 

@@ -222,32 +222,32 @@ QR = {
 | बिटवाइज़ अनन्य या | `a xor b` | `5 xor 3` |
 | बिटवाइज़ नहीं | `~a` | `~0` |
 | शिफ़्ट | `a << n`, `a >> n` | `1 << 8` |
-| शब्द आकार | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |""",
+| शब्द आकार | `bits(n)`, 8, 16, 32, 64 | `bits(8)` |""",
     "es": """| Y, O bit a bit | `a & b`, `a \\| b` | `0xFF & 0x0F` |
 | O exclusivo bit a bit | `a xor b` | `5 xor 3` |
 | No bit a bit | `~a` | `~0` |
 | Desplazamientos | `a << n`, `a >> n` | `1 << 8` |
-| Tamaño de palabra | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |""",
+| Tamaño de palabra | `bits(n)`, 8, 16, 32, 64 | `bits(8)` |""",
     "fr": """| Et, ou binaires | `a & b`, `a \\| b` | `0xFF & 0x0F` |
 | Ou exclusif binaire | `a xor b` | `5 xor 3` |
 | Non binaire | `~a` | `~0` |
 | Décalages | `a << n`, `a >> n` | `1 << 8` |
-| Taille de mot | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |""",
+| Taille de mot | `bits(n)`, 8, 16, 32, 64 | `bits(8)` |""",
     "ar": """| و، أو على مستوى البت | `a & b`, `a \\| b` | `0xFF & 0x0F` |
 | أو الحصري على مستوى البت | `a xor b` | `5 xor 3` |
 | نفي على مستوى البت | `~a` | `~0` |
 | إزاحات | `a << n`, `a >> n` | `1 << 8` |
-| حجم الكلمة | `bits(n)` — 8، 16، 32، 64 | `bits(8)` |""",
+| حجم الكلمة | `bits(n)`, 8، 16، 32، 64 | `bits(8)` |""",
     "de": """| Bitweises Und, Oder | `a & b`, `a \\| b` | `0xFF & 0x0F` |
 | Bitweises exklusives Oder | `a xor b` | `5 xor 3` |
 | Bitweises Nicht | `~a` | `~0` |
 | Verschiebungen | `a << n`, `a >> n` | `1 << 8` |
-| Wortbreite | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |""",
+| Wortbreite | `bits(n)`, 8, 16, 32, 64 | `bits(8)` |""",
     "pt": """| E, OU bit a bit | `a & b`, `a \\| b` | `0xFF & 0x0F` |
 | OU exclusivo bit a bit | `a xor b` | `5 xor 3` |
 | NÃO bit a bit | `~a` | `~0` |
 | Deslocamentos | `a << n`, `a >> n` | `1 << 8` |
-| Tamanho de palavra | `bits(n)` — 8, 16, 32, 64 | `bits(8)` |""",
+| Tamanho de palavra | `bits(n)`, 8, 16, 32, 64 | `bits(8)` |""",
 }
 
 ANCHORS2 = {

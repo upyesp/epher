@@ -13,7 +13,7 @@ Three reports from using v0.4.6:
    the plot itself were always on.
 2. On wide terminals the TUI's graph panel ran the full height of the
    body while the key hints lived in the bottom row of the 46-column
-   calculator column — so the panel sat level with (and visually cut
+   calculator column, so the panel sat level with (and visually cut
    into) the hints, and the hint text itself was clipped at the column
    edge.
 3. The TUI keypad showed 20 keys; the language has ~44 functions,
@@ -27,9 +27,9 @@ Three reports from using v0.4.6:
 The Settings menu (and the mobile panel) gains a **Graph** group with
 two `menuitemcheckbox` toggles:
 
-- **Points of interest** — the list under the plot (web/desktop) or in
+- **Points of interest**: the list under the plot (web/desktop) or in
   the Graph panel (TUI).
-- **Highlighted plot points** — the markers and labels drawn on the
+- **Highlighted plot points**: the markers and labels drawn on the
   plot itself (web/desktop only; the ASCII plot marks nothing).
 
 Both are display-only: the analysis always runs, so switching back is
@@ -37,7 +37,7 @@ instant and needs no re-evaluation. The web app persists them in
 `localStorage` (`epher-poi-list`, `epher-poi-markers`) like the theme;
 the TUI persists its single toggle in the native store (`pois`)
 alongside `theme` and `language`. They are deliberately not shell
-commands — they tune a pane, they do not compute.
+commands; they tune a pane, they do not compute.
 
 ### The hints row spans the terminal
 
@@ -53,7 +53,7 @@ bank (a terminal already has number keys): **trig**, **fn**, **num**,
 **var**. **Tab** opens the keypad and cycles its banks (Shift+Tab
 cycles back), arrows move the highlight with column clamping across
 ragged rows, **Enter** inserts, **Esc** closes. Tab no longer closes
-the keypad — with four banks it has to switch them, and Esc was
+the keypad, with four banks it has to switch them, and Esc was
 already the closer. Cell width derives from the bank's column count
 (5 columns → 8-wide cells, 4 → 11, enough for `variance`).
 
@@ -62,7 +62,7 @@ already the closer. Cell width derives from the bank's column count
 - `epher_tui::banks()` exposes the grid for tests; a regression test
   pins every function, constant, and command as reachable.
 - The Settings dropdown now mixes one checkbox with the theme and
-  language radios — each item carries its own role and checked state
+  language radios; each item carries its own role and checked state
   (`menuitemcheckbox` vs `menuitemradio`), and the ✓ marks stay as the
   non-color state marker.
 - Browser suites assert both toggles end-to-end: apply, persistence

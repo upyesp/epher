@@ -1,4 +1,4 @@
-# ADR-0051: display rounding — twelve significant digits, decimals stay decimal
+# ADR-0051: display rounding: twelve significant digits, decimals stay decimal
 
 - Status: accepted
 - Date: 2026-09-02
@@ -9,7 +9,7 @@
 Exact fractions on by default shipped (ADR-0043) with a reconstruction
 rule that showed a fraction for every value with a good
 small-denominator convergent. That made `0.1 + 0.2` display as `3/10`
-and `0.1` as `1/10` — and with exact fractions off, the same results
+and `0.1` as `1/10`, and with exact fractions off, the same results
 showed the raw float noise (`0.30000000000000004`). None of the nine
 reference calculators does either: they compute in binary floats too,
 then round the display to ~12 significant digits, so `0.1 + 0.2`
@@ -22,7 +22,7 @@ shows `0.3` and `1/3` shows `1/3` only in exact mode.
   when the rounded spelling is shorter than the shortest round-trip
   decimal. The guard protects exact integers: 1234567890123456 keeps
   every digit (its rounded spelling is no shorter).
-- **A terminating decimal displays as a decimal** — a reconstructed
+- **A terminating decimal displays as a decimal**: a reconstructed
   fraction whose denominator reduces to only 2s and 5s (`3/10`,
   `1/8`, `2001/10`) spells as `0.3`, `0.125`, `200.1`. Only a
   repeating value keeps the fraction (`1/3`, `2/3`, `1/7`). This
