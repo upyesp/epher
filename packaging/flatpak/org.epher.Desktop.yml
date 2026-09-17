@@ -124,9 +124,9 @@ modules:
       - install -d /app/usr/share/epher
       - cp -r crates/web/dist/guide /app/usr/share/epher/guide
       - cp -r "epher scripts" /app/usr/share/epher/scripts
-      - install -Dm644 packaging/flatpak/org.epher.Desktop.desktop /app/usr/share/applications/org.epher.Desktop.desktop
-      - install -Dm644 packaging/flatpak/org.epher.Desktop.metainfo.xml /app/usr/share/metainfo/org.epher.Desktop.metainfo.xml
-      - install -Dm644 site/icon.svg /app/share/icons/hicolor/scalable/apps/org.epher.Desktop.svg
+      - install -Dm644 org.epher.Desktop.desktop /app/usr/share/applications/org.epher.Desktop.desktop
+      - install -Dm644 org.epher.Desktop.metainfo.xml /app/usr/share/metainfo/org.epher.Desktop.metainfo.xml
+      - install -Dm644 icon.svg /app/share/icons/hicolor/scalable/apps/org.epher.Desktop.svg
     sources:
       - type: git
         url: https://github.com/upyesp/epher.git
