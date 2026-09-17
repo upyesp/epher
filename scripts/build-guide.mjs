@@ -20,14 +20,14 @@ const LANGS = ["en", "zh-CN", "hi", "es", "fr", "ar", "de", "pt"];
 // site/app.js; the guide page itself is single-language so no runtime i18n).
 // copy/copied label the example-block copy button (and its announcement).
 const CHROME = {
-  en: { title: "epher: User guide", app: "App", back: "Back to home", contents: "Contents", themeDark: "Use dark theme", themeLight: "Use light theme", footer: "epher user guide", copy: "Copy", copied: "Copied", privacy: "Privacy", menu: "Menu", examples: "Examples", docs: "Docs", guide: "User guide", scripts: "Scripts", reference: "Language reference" },
-  "zh-CN": { title: "epher: 用户指南", app: "应用", back: "返回主页", contents: "目录", themeDark: "使用深色主题", themeLight: "使用浅色主题", footer: "epher 用户指南", copy: "复制", copied: "已复制", privacy: "隐私", menu: "菜单", examples: "示例", docs: "文档", guide: "用户指南", scripts: "脚本", reference: "语言参考" },
-  hi: { title: "epher: उपयोगकर्ता गाइड", app: "ऐप", back: "मुख्य पृष्ठ पर वापस जाएँ", contents: "विषय-सूची", themeDark: "गहरी थीम का उपयोग करें", themeLight: "हल्की थीम का उपयोग करें", footer: "epher उपयोगकर्ता गाइड", copy: "कॉपी करें", copied: "कॉपी हो गया", privacy: "गोपनीयता", menu: "मेनू", examples: "उदाहरण", docs: "दस्तावेज़", guide: "उपयोगकर्ता गाइड", scripts: "स्क्रिप्ट", reference: "भाषा संदर्भ" },
-  es: { title: "epher: Guía de usuario", app: "App", back: "Volver al inicio", contents: "Contenido", themeDark: "Usar tema oscuro", themeLight: "Usar tema claro", footer: "Guía de usuario de epher", copy: "Copiar", copied: "Copiado", privacy: "Privacidad", menu: "Menú", examples: "Ejemplos", docs: "Documentación", guide: "Guía de usuario", scripts: "Scripts", reference: "Referencia del lenguaje" },
-  fr: { title: "epher: Guide de l'utilisateur", app: "App", back: "Retour à l'accueil", contents: "Sommaire", themeDark: "Utiliser le thème sombre", themeLight: "Utiliser le thème clair", footer: "Guide de l'utilisateur de epher", copy: "Copier", copied: "Copié", privacy: "Confidentialité", menu: "Menu", examples: "Exemples", docs: "Documentation", guide: "Guide de l'utilisateur", scripts: "Scripts", reference: "Référence du langage" },
-  ar: { title: "epher: دليل المستخدم", app: "التطبيق", back: "العودة إلى الصفحة الرئيسية", contents: "المحتويات", themeDark: "استخدام المظهر الداكن", themeLight: "استخدام المظهر الفاتح", footer: "دليل مستخدم epher", copy: "نسخ", copied: "تم النسخ", privacy: "الخصوصية", menu: "القائمة", examples: "أمثلة", docs: "التوثيق", guide: "دليل المستخدم", scripts: "النصوص البرمجية", reference: "مرجع اللغة" },
-  de: { title: "epher: Benutzerhandbuch", app: "App", back: "Zurück zur Startseite", contents: "Inhalt", themeDark: "Dunkles Design verwenden", themeLight: "Helles Design verwenden", footer: "epher-Benutzerhandbuch", copy: "Kopieren", copied: "Kopiert", privacy: "Datenschutz", menu: "Menü", examples: "Beispiele", docs: "Dokumentation", guide: "Benutzerhandbuch", scripts: "Skripte", reference: "Sprachreferenz" },
-  pt: { title: "epher: Guia de utilizador", app: "App", back: "Voltar ao início", contents: "Índice", themeDark: "Usar tema escuro", themeLight: "Usar tema claro", footer: "Guia de utilizador do epher", copy: "Copiar", copied: "Copiado", privacy: "Privacidade", menu: "Menu", examples: "Exemplos", docs: "Documentação", guide: "Guia de utilizador", scripts: "Scripts", reference: "Referência da linguagem" },
+  en: { title: "epher: User guide", app: "App", back: "Back to home", contents: "Contents", themeDark: "Use dark theme", themeLight: "Use light theme", footer: "epher user guide", copy: "Copy", copied: "Copied", privacy: "Privacy", menu: "Menu", examples: "Examples", docs: "Docs", guide: "User guide", scripts: "Scripts", reference: "Language reference", features: "Features", ide: "IDE Extension", source: "Source code" },
+  "zh-CN": { title: "epher: 用户指南", app: "应用", back: "返回主页", contents: "目录", themeDark: "使用深色主题", themeLight: "使用浅色主题", footer: "epher 用户指南", copy: "复制", copied: "已复制", privacy: "隐私", menu: "菜单", examples: "示例", docs: "文档", guide: "用户指南", scripts: "脚本", reference: "语言参考", features: "功能", ide: "IDE 扩展", source: "源代码" },
+  hi: { title: "epher: उपयोगकर्ता गाइड", app: "ऐप", back: "मुख्य पृष्ठ पर वापस जाएँ", contents: "विषय-सूची", themeDark: "गहरी थीम का उपयोग करें", themeLight: "हल्की थीम का उपयोग करें", footer: "epher उपयोगकर्ता गाइड", copy: "कॉपी करें", copied: "कॉपी हो गया", privacy: "गोपनीयता", menu: "मेनू", examples: "उदाहरण", docs: "दस्तावेज़", guide: "उपयोगकर्ता गाइड", scripts: "स्क्रिप्ट", reference: "भाषा संदर्भ", features: "विशेषताएँ", ide: "IDE एक्सटेंशन", source: "स्रोत कोड" },
+  es: { title: "epher: Guía de usuario", app: "App", back: "Volver al inicio", contents: "Contenido", themeDark: "Usar tema oscuro", themeLight: "Usar tema claro", footer: "Guía de usuario de epher", copy: "Copiar", copied: "Copiado", privacy: "Privacidad", menu: "Menú", examples: "Ejemplos", docs: "Documentación", guide: "Guía de usuario", scripts: "Scripts", reference: "Referencia del lenguaje", features: "Funciones", ide: "Extensión IDE", source: "Código fuente" },
+  fr: { title: "epher: Guide de l'utilisateur", app: "App", back: "Retour à l'accueil", contents: "Sommaire", themeDark: "Utiliser le thème sombre", themeLight: "Utiliser le thème clair", footer: "Guide de l'utilisateur de epher", copy: "Copier", copied: "Copié", privacy: "Confidentialité", menu: "Menu", examples: "Exemples", docs: "Documentation", guide: "Guide de l'utilisateur", scripts: "Scripts", reference: "Référence du langage", features: "Fonctions", ide: "Extension IDE", source: "Code source" },
+  ar: { title: "epher: دليل المستخدم", app: "التطبيق", back: "العودة إلى الصفحة الرئيسية", contents: "المحتويات", themeDark: "استخدام المظهر الداكن", themeLight: "استخدام المظهر الفاتح", footer: "دليل مستخدم epher", copy: "نسخ", copied: "تم النسخ", privacy: "الخصوصية", menu: "القائمة", examples: "أمثلة", docs: "التوثيق", guide: "دليل المستخدم", scripts: "النصوص البرمجية", reference: "مرجع اللغة", features: "الميزات", ide: "إضافة IDE", source: "الكود المصدري" },
+  de: { title: "epher: Benutzerhandbuch", app: "App", back: "Zurück zur Startseite", contents: "Inhalt", themeDark: "Dunkles Design verwenden", themeLight: "Helles Design verwenden", footer: "epher-Benutzerhandbuch", copy: "Kopieren", copied: "Kopiert", privacy: "Datenschutz", menu: "Menü", examples: "Beispiele", docs: "Dokumentation", guide: "Benutzerhandbuch", scripts: "Skripte", reference: "Sprachreferenz", features: "Funktionen", ide: "IDE-Erweiterung", source: "Quellcode" },
+  pt: { title: "epher: Guia de utilizador", app: "App", back: "Voltar ao início", contents: "Índice", themeDark: "Usar tema escuro", themeLight: "Usar tema claro", footer: "Guia de utilizador do epher", copy: "Copiar", copied: "Copiado", privacy: "Privacidade", menu: "Menu", examples: "Exemplos", docs: "Documentação", guide: "Guia de utilizador", scripts: "Scripts", reference: "Referência da linguagem", features: "Funções", ide: "Extensão IDE", source: "Código-fonte" },
 };
 
 // --- example code blocks ------------------------------------------------
@@ -215,7 +215,10 @@ function page(lang, body, toc) {
           <a href="../../reference/">${c.reference}</a>
         </div>
       </div>
+      <a href="../../features.html">${c.features}</a>
+      <a href="../../ide.html">${c.ide}</a>
       <a href="../../privacy.html">${c.privacy}</a>
+      <a class="gh-link" href="https://github.com/upyesp/epher">${c.source}</a>
     </nav>
     <div class="header-controls">
       <button type="button" id="theme-toggle" class="icon-btn" aria-pressed="false" aria-label="${c.themeDark}">
@@ -244,10 +247,13 @@ function page(lang, body, toc) {
     <nav class="footer-links" aria-label="${c.footer}">
       <a href="/pwa/">${c.app}</a>
       <a href="../../">${c.back}</a>
+      <a href="../../features.html">${c.features}</a>
+      <a href="../../ide.html">${c.ide}</a>
       <a href="../../examples.html">${c.examples}</a>
       <a href="../../scripts.html">${c.scripts}</a>
       <a href="../../reference/">${c.reference}</a>
       <a href="../../privacy.html">${c.privacy}</a>
+      <a href="https://github.com/upyesp/epher">${c.source}</a>
     </nav>
     <p class="muted">${c.footer}</p>
   </footer>
