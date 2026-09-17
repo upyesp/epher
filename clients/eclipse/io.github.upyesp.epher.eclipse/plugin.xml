@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <!--
-  epher for the Eclipse IDE — everything declarative except the one
+  epher for the Eclipse IDE; everything declarative except the one
   connection-provider class (LSP4E's extension point requires a
   StreamConnectionProvider implementation; see src/).
 
   Four contributions:
   1. a `.epher` content type, so Eclipse knows the file kind;
-  2. an LSP4E server definition + content-type mapping — the shared
+  2. an LSP4E server definition + content-type mapping, the shared
      epher-lsp binary from PATH, the same bring-your-own-binary
      contract as the emacs/vim/neovim clients (ADR-0066);
   3. the TextMate grammar (shared with every other client) registered

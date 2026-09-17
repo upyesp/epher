@@ -1,14 +1,14 @@
-; nsis-theme-check.nsi — compile-only harness for the theme additions
+; nsis-theme-check.nsi, compile-only harness for the theme additions
 ; in nsis/installer.nsi (ADR-0025, revised by ADR-0026, lightened by
 ; ADR-0028).
 ;
 ; The vendored installer template itself only compiles inside the Windows
 ; bundling job (it is a handlebars template rendered with build data, and
 ; tauri's bundled makensis 3.11 toolset); this harness compiles the exact
-; theme constructs that remain — the MUI color defines, the light header
+; theme constructs that remain, the MUI color defines, the light header
 ; and sidebar bitmaps (the header bitmap is the top-left logo on every
 ; page), the default-checked "delete app data" checkbox, and the
-; ~/.epher removal — against the system makensis and MUI2 so a syntax
+; ~/.epher removal, against the system makensis and MUI2 so a syntax
 ; slip in the additions fails CI before any bundle ships.
 ;
 ; ADR-0026: the per-control SetCtlColors repaint that lived here is gone.
@@ -34,7 +34,7 @@ Name "epher nsis theme check"
 
 ; ADR-0028: the finish-page checkboxes draw with the classic button
 ; colors after MUI2 strips their visual theme, and SetCtlColors cannot
-; recolor checkbox text (NSIS bug #443) — so COLOR_BTNTEXT is pinned to
+; recolor checkbox text (NSIS bug #443), so COLOR_BTNTEXT is pinned to
 ; black, which the light theme needs (see installer.nsi .onInit). The
 ; finish page below compiles the same constructs the installer uses.
 Var DeleteAppDataCheckbox
@@ -56,7 +56,7 @@ FunctionEnd
 !insertmacro MUI_UNPAGE_INSTFILES
 ; The installer's finish page: the Run and Create-desktop-shortcut
 ; checkboxes live here (MUI strips their theme; COLOR_BTNTEXT recolors
-; their labels — see ADR-0027).
+; their labels: see ADR-0027).
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_TEXT "Run epher"
 !define MUI_FINISHPAGE_SHOWREADME

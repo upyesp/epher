@@ -223,7 +223,7 @@ fn prepare_formats_a_table_with_blank_rows() {
     assert!(lines[1].contains("-1") && lines[1].contains('1'));
     assert!(lines[3].contains('1'));
 
-    // Undefined rows show the blank marker, not a crash or a number.
+    // Undefined rows show the n/a marker, not a crash or a number.
     s.submit("const k = 2");
     let out = prepare(
         &Command::Table {
@@ -236,7 +236,7 @@ fn prepare_formats_a_table_with_blank_rows() {
     let Prepared::Table { text } = out else {
         panic!("expected a table");
     };
-    assert!(text.lines().nth(3).unwrap().contains('—'));
+    assert!(text.lines().nth(3).unwrap().contains("n/a"));
 }
 
 #[test]

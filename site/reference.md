@@ -70,13 +70,13 @@ definition, a destructuring, `if`, `while`, `for`, `solve`, `return`,
   The exponent needs at least one digit, so `2e` and `2eggs` tokenize
   as the number `2` followed by a name.
 - Based integers (ADR-0022): `0b` binary, `0o` octal, `0x`
-  hexadecimal — `0b101`, `0o17`, `0xFF`. Digits after the prefix must
+  hexadecimal, `0b101`, `0o17`, `0xFF`. Digits after the prefix must
   suit the base. A base prefix changes the spelling, never the value:
   `0xFF` *is* `255`.
 - Imaginary suffix (ADR-0043): a number directly followed by `i`, with
   no letter or `_` after the `i`, is one imaginary literal: `4i`,
   `2.5i`, `0xFFi`. `3 + 4i` is a sum of two literals. `4it` is
-  *not* imaginary — it is the number `4` followed by the name `it`,
+  *not* imaginary; it is the number `4` followed by the name `it`,
   which the grammar then rejects.
 - All numbers are 64-bit binary floats. Integers are exact up to
   2^53; beyond that, spelling a literal keeps at most the 53 most
@@ -124,7 +124,7 @@ is an unknown-name error.
 One further name is reserved: `i`, the imaginary unit. It cannot be
 re-bound by assignment, by `const`, or by a destructuring pattern; see
 [Names, scope, and the session store](#8-names-scope-and-the-session-store).
-`i` is not a keyword — it resolves as a built-in constant and can be
+`i` is not a keyword; it resolves as a built-in constant and can be
 shadowed by nothing.
 
 ## 5. Types and values
@@ -138,13 +138,13 @@ shadowed by nothing.
 | Complex | imaginary literals, complex results | `3+4i`, `sqrt(-1)` |
 | Boolean | comparisons and predicates only | `1 < 2`, `isprime(7)` |
 | String | `"..."` | `"hello"` |
-| List | `{a, b, c}` — a data column of reals, or a list of strings | `{1, 2, 3}`, `split("a b", " ")` |
-| Matrix | `[[row], [row]]` — reals, row-major | `[[1, 2], [3, 4]]` |
+| List | `{a, b, c}`, a data column of reals, or a list of strings | `{1, 2, 3}`, `split("a b", " ")` |
+| Matrix | `[[row], [row]]`, reals, row-major | `[[1, 2], [3, 4]]` |
 | Quantity | number with a unit suffix | `2 m`, `60 mile/hr` |
 
 Notes:
 
-- Lists hold numbers, or strings — not a mix. A complex element is
+- Lists hold numbers, or strings, not a mix. A complex element is
   rejected at construction.
 - Matrices are reals only, stored row-major; matrix functions are in
   the [function index](#10-built-in-functions).
@@ -162,20 +162,20 @@ defines.
 
 | Level | Operators | Associativity |
 |---|---|---|
-| Primary | literals, names, calls, `(…)`, `{…}`, `[[…]]` | — |
+| Primary | literals, names, calls, `(…)`, `{…}`, `[[…]]` |, |
 | Postfix | `!` factorial, `%` percent, `[…]` index | left |
 | Power | `^` | right |
-| Unary | `-` negate, `~` bit-not | — |
+| Unary | `-` negate, `~` bit-not |, |
 | Multiplicative | `*`, `/`, unit division `60 mile/hr` | left |
 | Additive | `+`, `-`, unit conversion `in`, `->` | left |
 | Shift | `<<`, `>>` | left |
 | Bit-and | `&` | left |
 | Bit-or | `\|`, `xor` | left |
 | Comparison | `>`, `<`, `>=`, `<=`, `==`, `!=` | non-chaining |
-| Not | `not` | — |
+| Not | `not` |, |
 | And | `and` | left |
 | Or | `or` | left |
-| Conditional | `if c then a else b` (expression form) | — |
+| Conditional | `if c then a else b` (expression form) |, |
 
 `-2 ^ 2` is `-4` (unary minus binds looser than the power);
 `2 ^ -2` is `0.25` (the exponent may be unary);
@@ -200,7 +200,7 @@ right-associative; `0 ^ 0` is `1`.
 ### 6.3 Factorial and percent
 
 `n!` is the factorial of a non-negative whole number. `x%` is exactly
-`x / 100` — a transparent suffix, so `200 + 10%` is `200.1`; the
+`x / 100`, a transparent suffix, so `200 + 10%` is `200.1`; the
 Casio add-on reading (`220`) is deliberately not a grammar rule.
 
 ### 6.4 Indexing
@@ -227,7 +227,7 @@ decides. There is no truthiness: numbers are not booleans.
 
 `&`, `|`, `xor`, `~`, `<<`, `>>` take integers (whole floats, exact
 Big, integral rationals/decimals) and produce the exact result masked
-to the session's word size — a signed two's-complement word of 8, 16,
+to the session's word size, a signed two's-complement word of 8, 16,
 32, or 64 bits, set with `bits(w)` and defaulting to 64. Right shift
 is arithmetic; a negative shift amount reverses the direction.
 
@@ -240,7 +240,7 @@ is allowed; binding `i` is refused (see below).
 
 ### 7.2 Constant definition: `const name = expr`
 
-Binds an immutable name. Re-declaring with the *same* value succeeds —
+Binds an immutable name. Re-declaring with the *same* value succeeds,
 examples get pasted twice; a different value is a
 `constant already defined` error. Naming an existing variable is a
 `cannot define constant x: the name is already a variable` error.
@@ -277,7 +277,7 @@ collected list.
 ### 7.6 `if` as a statement: `if cond then stmt` / `if cond then stmt else stmt`
 
 The condition must be a boolean. Without `else`, a false condition
-produces no value — which is how a `for` loop filters: a pass whose
+produces no value, which is how a `for` loop filters: a pass whose
 body produces no value adds nothing to the loop's list.
 
 ### 7.7 `while cond do stmt`
@@ -296,7 +296,7 @@ it. The loop's value is the list of the body's per-pass values.
 
 ### 7.9 `solve lhs == rhs` (ADR-0043)
 
-Numeric equation solving — no CAS. The equation must use `==`. The
+Numeric equation solving, no CAS. The equation must use `==`. The
 unknown is `x` when `x` appears, otherwise the single other name;
 constants (built-in and user) are parameters, never unknowns. Real
 roots in a wide search window are reported, as a display string:
@@ -314,8 +314,8 @@ constants, then built-in constants, then built-in functions (a call),
 then the error `unknown name`. A user function or constant shadows a
 built-in of the same name.
 
-- Session variables persist for the session and — in interactive
-  frontends — across sessions and frontends of the same installation
+- Session variables persist for the session and, in interactive
+  frontends, across sessions and frontends of the same installation
   through the shared store (the `.epher` folder; the PWA keeps the
   same shape in browser storage).
 - **The imaginary unit is reserved.** `i = 5`, `const i = …`, and a
@@ -348,7 +348,7 @@ user `const` of the same name shadows it by the resolution order.
 | `e` | `2.718281828459045` | Euler's number, the natural-log base |
 | `phi` | `1.618033988749895` | the golden ratio, (1+√5)/2 |
 | `gamma` | `0.5772156649015329` | the Euler–Mascheroni constant |
-| `i` | `0+1i (the imaginary unit)` | the imaginary unit — the one reserved name (assignment refuses it) |
+| `i` | `0+1i (the imaginary unit)` | the imaginary unit, the one reserved name (assignment refuses it) |
 
 ### 9.2 Astronomy
 
@@ -438,7 +438,7 @@ count or kinds is a type error that names the function, e.g.
 | `sqrt(q)` | square root; negative reals fall back to complex; quantities need even dimensions |
 | `cbrt(z)` | real cube root (principal complex root for complex) |
 | `root(n, x)` | real `n`-th root; odd roots of negatives are negative |
-| `abs(z)` | magnitude — for complex, distance from the origin |
+| `abs(z)` | magnitude, for complex, distance from the origin |
 | `floor(x)`, `ceil(x)`, `trunc(x)` | round down, up, toward zero |
 | `round(x)` | half away from zero, like a calculator |
 | `sign(x)` | `-1`, `0`, or `1` |
@@ -470,7 +470,7 @@ count or kinds is a type error that names the function, e.g.
 |---|---|
 | `exact(x)` | the rational behind a float, when one agrees through all twelve displayed digits (`exact(0.3333333333333333)` is `1/3`); irrationals pass through |
 | `frac(n, d)` | the exact fraction `n/d` |
-| `bin(n)`, `oct(n)`, `hex(n)` | spelling with prefix — `bin(10)` is `0b1010`; negatives keep the sign on the prefix |
+| `bin(n)`, `oct(n)`, `hex(n)` | spelling with prefix, `bin(10)` is `0b1010`; negatives keep the sign on the prefix |
 | `dec(x)` | the value as an exact decimal |
 | `big(x)` | the value as an exact (big) integer |
 | `scientific(x)` | the value in scientific notation, as text |
@@ -491,7 +491,7 @@ Integers the float type reaches exactly (`|n| < 2^53`).
 | `isprime(n)` | whether `n` is prime (deterministic Miller–Rabin) |
 | `nextprime(n)`, `prevprime(n)` | nearest prime above/below |
 | `modpow(b, e, m)` | `b` to the `e` modulo `m`, exact via big integers |
-| `mod(a, b)` | truncated remainder — the sign of the dividend |
+| `mod(a, b)` | truncated remainder, the sign of the dividend |
 | `totient(n)` | Euler's totient |
 | `ndivisors(n)` | how many whole numbers divide `n` |
 | `factors(n)` | the prime factorization, as text: `factors(360)` is `2^3 * 3^2 * 5` |
@@ -631,7 +631,7 @@ A number directly followed by a unit name is a **quantity** (ADR-0046):
 the number times the unit's SI factor, carrying its dimensions.
 `2 m` stores 2 with length dimensions; `60 mile/hr` stores
 26.8224 m/s. Units may carry a whole-number power (`2 m^2`, powers to
-±127) and a `/` may continue with another unit (`5 m/s^2`) — that is
+±127) and a `/` may continue with another unit (`5 m/s^2`), that is
 unit syntax, not division, whenever a unit name follows. An SI prefix
 may start a unit: `30 cm`, `5 kHz`, `3 ns`.
 
@@ -723,7 +723,7 @@ The answer panel's automatic spelling (ADR-0051):
   keeping every digit.
 - **Exact fractions**: when a rational with denominator ≤ 1000 agrees
   with the value through all twelve displayed digits *and* is not a
-  terminating decimal, the answer shows as a fraction — `1/3` stays
+  terminating decimal, the answer shows as a fraction, `1/3` stays
   `1/3`, while `0.1 + 0.2` shows `0.3`, not `3/10`.
 - Complex answers print in `a+bi` form. Booleans print `true`/`false`.
   Lists print `{1, 2, 3}`; matrices print row by row: `[[1, 2], [3, 4]]`.
@@ -853,7 +853,7 @@ conveniences, not part of the language definition:
 | `language` | interactive frontends | switch the interface language |
 | `quit`, `exit` | REPL | end the session |
 
-Everything else — expression entry, scripts, the store — behaves as
+Everything else, expression entry, scripts, the store, behaves as
 this reference defines, identically on every frontend.
 
 ---

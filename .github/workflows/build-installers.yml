@@ -1,23 +1,23 @@
 # Build the unified epher installers for every platform (reusable).
 #
 # One download per platform (ADR-0011): each installer carries the unified
-# `epher` executable — one-shot CLI, REPL (`epher repl`), piped scripts
+# `epher` executable: one-shot CLI, REPL (`epher repl`), piped scripts
 # (`epher -`), TUI (`epher tui`), and the desktop GUI (bare `epher` /
 # `epher gui`). Windows installs two subsystem builds of the same program
 # (console `epher.exe` on PATH; GUI-subsystem `epher-gui.exe` as the
-# double-click target — no console flash); macOS/Linux install the single
+# double-click target: no console flash); macOS/Linux install the single
 # binary. On Windows the NSIS installer adds the install directory to the
 # user PATH (nsis-hooks.nsh), and a hook Files the console build next to
-# the GUI main binary — `bundle.resources` cannot (tauri-build copies
+# the GUI main binary: `bundle.resources` cannot (tauri-build copies
 # resources during cargo build, before the sibling binary exists).
 #
-# Asset names (stable — the landing page links to these):
+# Asset names (stable: the landing page links to these):
 #   epher-windows-x86_64.exe        Windows installer (NSIS)
-#   epher-macos-aarch64.dmg         macOS disk image (Apple Silicon only —
+#   epher-macos-aarch64.dmg         macOS disk image (Apple Silicon only:
 #                                   ADR-0025 dropped the Intel build)
 #   epher-linux-x86_64.deb          Debian/Ubuntu and derivatives
 #   epher-linux-x86_64.rpm          Fedora/RHEL and derivatives
-#   epher-linux-x86_64.AppImage     everything else, incl. Arch — runs as-is
+#   epher-linux-x86_64.AppImage     everything else, incl. Arch: runs as-is
 #   epher-linux-aarch64.*           the same three, ARM64 (ADR-0061)
 #
 # Every leg also builds the language server (ADR-0066) and drops it in
@@ -37,22 +37,22 @@
 #   epher-eclipse.jar               the Eclipse IDE plugin (dropins bundle)
 #
 # Callers (ADR-0062):
-#   - release.yml — a public vX.Y.Z tag push: builds the tag, then the
+#   - release.yml, a public vX.Y.Z tag push: builds the tag, then the
 #     caller's publish jobs attach the artifacts to the public release,
 #     rebuild the apt/dnf repositories, and bump the stores;
-#   - staging-build.yml — a manual dispatch against the staging branch:
+#   - staging-build.yml: a manual dispatch against the staging branch:
 #     builds the branch, then the caller drops the artifacts into a
 #     hidden draft release for testing. A staging build is therefore the
 #     dress rehearsal of the exact bytes a public release will ship.
 #
 # The builds carry no developer identity: Windows is unsigned, macOS is
 # ad-hoc signed (a valid signature, so Gatekeeper's "damaged" check
-# passes) — first launch shows the ordinary overridable warning, and the
+# passes): first launch shows the ordinary overridable warning, and the
 # guide documents the right-click → Open path for each OS.
 #
 # The Linux legs pin ubuntu-22.04 and ubuntu-22.04-arm (glibc 2.35) so
 # the shipped binaries run on Debian 12, Ubuntu 22.04+, and every newer
-# distro — both architectures support the same set (ADR-0061); building
+# distro: both architectures support the same set (ADR-0061); building
 # the webview dependencies natively (no prebuilt cache) keeps the two
 # architectures identical by construction. The macOS leg runs on
 # macos-latest (Apple silicon) and the Windows leg on windows-latest.
@@ -80,7 +80,7 @@ jobs:
     # Compile-check nsis-hooks.nsh with makensis before any bundle ships.
     # nsis-check.nsi mirrors Tauri's installer.nsi consumption (hooks file
     # included whole; POSTINSTALL expanded in installer context,
-    # POSTUNINSTALL inside Section Uninstall — where only `un.` functions
+    # POSTUNINSTALL inside Section Uninstall, where only `un.` functions
     # may be Called).
     runs-on: ubuntu-latest
     steps:
@@ -134,7 +134,7 @@ jobs:
         # From crates.io rather than a third-party action, as the pages
         # workflow does: the action's tarball downloads from
         # codeload.github.com, which rate-limits (429/503), and its
-        # prebuilt trunk is x86_64-only — the arm64 leg got "Exec format
+        # prebuilt trunk is x86_64-only; the arm64 leg got "Exec format
         # error". Compiling natively works on every runner arch.
         run: cargo install trunk --locked --version 0.21.14
 
@@ -142,7 +142,7 @@ jobs:
         # The desktop shell embeds crates/web/dist (frontendDist), so the
         # embedded PWA must be built here with the exact command the pages
         # workflow uses. beforeBuildCommand was removed from tauri.conf.json
-        # so `cargo tauri build` embeds THIS build unchanged — a second,
+        # so `cargo tauri build` embeds THIS build unchanged, a second,
         # divergent trunk run once shipped a stale webview into the
         # installers (v0.4.34: the reload-merge fix was missing, constants
         # vanished on store reloads, and the guide's 3D animation example
@@ -242,7 +242,7 @@ jobs:
           case "${{ runner.os }}" in
             Linux)
               # The target is already linux-<arch> (linux-x86_64,
-              # linux-aarch64) — no extra prefix.
+              # linux-aarch64), no extra prefix.
               cp "$BUNDLE"/deb/*.deb artifacts/epher-${{ matrix.target }}.deb
               cp "$BUNDLE"/rpm/*.rpm artifacts/epher-${{ matrix.target }}.rpm
               cp "$BUNDLE"/appimage/*.AppImage artifacts/epher-${{ matrix.target }}.AppImage
@@ -256,7 +256,7 @@ jobs:
               grep -q "guide/zh-CN.md" <(dpkg-deb -c artifacts/epher-${{ matrix.target }}.deb)
               grep -q "guide/en.md" <(rpm -qlp artifacts/epher-${{ matrix.target }}.rpm)
               # ADR-0058: the deb/rpm must also carry the script
-              # collection under /usr/lib/epher/scripts — the guide's
+              # collection under /usr/lib/epher/scripts, the guide's
               # terminal examples name those installed paths. (The
               # resources-map line was once lost between rounds and a
               # release shipped installers without the scripts.)
@@ -271,7 +271,7 @@ jobs:
               # Ad-hoc signing (ADR-0058 amendment): a downloaded DMG
               # arrives with the com.apple.quarantine flag, and
               # Gatekeeper's check of a quarantined UNSIGNED bundle fails
-              # hard — macOS reports the app as "damaged" with no
+              # hard, macOS reports the app as "damaged" with no
               # override. An ad-hoc signature is a valid signature: the
               # check passes and first launch shows the ordinary
               # right-click → Open warning the guide documents.
@@ -279,8 +279,8 @@ jobs:
               test -d "$APP"
               codesign --force --deep --sign - "$APP"
               codesign --verify --deep --strict "$APP"
-              # The DMG: volume epher, the app, the Applications symlink
-              # — what the tauri dmg bundler lays out, rebuilt here from
+              # The DMG: volume epher, the app, the Applications symlink,
+              # what the tauri dmg bundler lays out, rebuilt here from
               # the SIGNED bundle.
               STAGE="$(mktemp -d)"
               cp -R "$APP" "$STAGE/"
@@ -620,14 +620,14 @@ jobs:
 
   eclipse-extension:
     # The Eclipse IDE plugin (ADR-0066): an LSP4E connection provider
-    # that launches epher-lsp from PATH (the emacs/vim/neovim contract —
+    # that launches epher-lsp from PATH (the emacs/vim/neovim contract,
     # the plugin never downloads), plus declarative plugin.xml wiring:
     # the .epher content type, the LSP4E server + contentTypeMapping, and
     # the shared TextMate grammar via TM4E for baseline highlighting.
     # One small Java class is compiled against the LSP4E bundle from the
     # project's own p2 release repo (lsp4e is not on Maven Central) and
     # org.eclipse.equinox.common from Maven Central (IAdaptable lives
-    # there). The jar is a dropins bundle — users copy it into
+    # there). The jar is a dropins bundle, users copy it into
     # <eclipse>/dropins/, the classic analog of VS Code's "Install from
     # VSIX"; no p2 update site, no marketplace (ADR-0068).
     name: eclipse extension

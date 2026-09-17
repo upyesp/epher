@@ -8,12 +8,12 @@ import { wasmServerOptions } from "./wasmServer";
 
 // The web entry (ADR-0066 amendment): the same server build as the
 // desktop entry, compiled to wasm32-wasip1-threads and shipped inside
-// the vsix. No download, no spawn — the browser cannot do either.
+// the vsix. No download, no spawn; the browser cannot do either.
 // ms-vscode.wasm-wasi-core runs the module in its own workers and
 // @vscode/wasm-wasi-lsp bridges the WASI pipes to LSP
 // MessageTransports, which the browser client accepts from an async
 // ServerOptions factory. If any of that fails, editing degrades to
-// the TextMate baseline — the same contract as desktop.
+// the TextMate baseline, the same contract as desktop.
 let client: LanguageClient | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {

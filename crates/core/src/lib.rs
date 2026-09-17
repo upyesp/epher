@@ -1,4 +1,4 @@
-//! epher-core — the single source of truth for epher's logic.
+//! epher-core, the single source of truth for epher's logic.
 //!
 //! Compiles to both `wasm32-unknown-unknown` (web/PWA/desktop) and native targets
 //! (CLI/TUI). Stays pure: no I/O, no threads; the one platform read is the
@@ -22,11 +22,11 @@ use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 /// The shared session snapshot persisted in the store (ADR-0010
-/// amendment): the environment's variable bindings — user assignments
-/// and `ans` — saved by whichever interactive frontend ran last.
+/// amendment): the environment's variable bindings, user assignments
+/// and `ans`, saved by whichever interactive frontend ran last.
 pub type ValueBindings = HashMap<String, Value>;
 
-/// The result of evaluating an Expression — the project's single number
+/// The result of evaluating an Expression, the project's single number
 /// representation (ADR-0005). `Float` is the default fast path; the other
 /// variants are opt-in exactness layers.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -37,7 +37,7 @@ pub enum Value {
     Big(BigDecimal),
     Complex(Complex<f64>),
     Bool(bool),
-    /// A list of numbers — a data column (ADR-0044): `{1, 2, 3}`.
+    /// A list of numbers, a data column (ADR-0044): `{1, 2, 3}`.
     /// Elements are floats; complex values are rejected with a type
     /// error at list construction.
     List(Vec<Value>),
@@ -58,7 +58,7 @@ pub enum Value {
         dims: Dims,
         unit: Option<(String, f64)>,
     },
-    /// A display string — produced by the base-conversion builtins
+    /// A display string, produced by the base-conversion builtins
     /// (`bin`, `oct`, `hex`; ADR-0022), the solve statement, the
     /// regression and test/interval functions (ADR-0044), the stats
     /// builtins, and now written directly: string literals, `+`
@@ -98,7 +98,7 @@ impl std::fmt::Display for Value {
                     .join(", ")
             ),
             // A quantity displays its SI value in its display unit
-            // (ADR-0046) — `3.2 AU`, `96.56064 km/hr`, `15 N`.
+            // (ADR-0046), `3.2 AU`, `96.56064 km/hr`, `15 N`.
             Value::Quantity { value, dims, unit } => {
                 write!(f, "{}", quantity_display(*value, *dims, unit.clone()))
             }
@@ -158,13 +158,13 @@ pub struct Env {
     constants: HashMap<String, Value>,
     functions: HashMap<String, Function>,
     /// The seeded generator state (ADR-0045): an `Rc` so child
-    /// environments (user-function bodies) share the counter — draws
+    /// environments (user-function bodies) share the counter, draws
     /// inside a function advance the session's sequence. `Env::default()`
     /// pins one seed so `evaluate()` and the tests are deterministic;
     /// interactive sessions re-seed from the clock in `Session::new`.
     rng: Rc<Cell<u64>>,
     /// The bitwise word size in bits (ADR-0047): 8, 16, 32, or 64,
-    /// shared through child envs like the generator — `bits(8)` in a
+    /// shared through child envs like the generator, `bits(8)` in a
     /// script stays in force for its function calls.
     word_bits: Rc<Cell<u32>>,
 }
@@ -201,7 +201,7 @@ impl Env {
     }
 
     /// Drop a name's binding (a scoped construct restoring the state it
-    /// found — a `for` loop's variable leaves nothing behind).
+    /// found; a `for` loop's variable leaves nothing behind).
     pub fn remove(&mut self, name: &str) {
         self.bindings.remove(name);
     }
@@ -271,7 +271,7 @@ impl Env {
     }
 }
 
-/// A parsed piece of mathematics that can be evaluated to a [`Value`] — a domain
+/// A parsed piece of mathematics that can be evaluated to a [`Value`], a domain
 /// noun (see `CONTEXT.md`). Public so it can be produced by multiple input
 /// forms (plain text, LaTeX) and consumed by both [`eval`] and the graphing
 /// Sampler; treated opaquely by tests.
@@ -287,16 +287,16 @@ pub enum Expression {
     Div(Box<Expression>, Box<Expression>),
     Pow(Box<Expression>, Box<Expression>),
     Factorial(Box<Expression>),
-    /// A list literal (ADR-0044): `{1, 2, 3}` — the elements are
+    /// A list literal (ADR-0044): `{1, 2, 3}`; the elements are
     /// expressions, evaluated when the list is.
     List(Vec<Expression>),
-    /// A matrix literal (ADR-0049): `[[1, 2], [3, 4]]` — rows of
+    /// A matrix literal (ADR-0049): `[[1, 2], [3, 4]]`, rows of
     /// expressions, evaluated when the matrix is.
     Matrix(Vec<Vec<Expression>>),
     /// A postfix element access (ADR-0044): `d[2]` is the second
     /// element, 1-based; the index is any expression.
     Index(Box<Expression>, Box<Expression>),
-    /// A unit suffix (ADR-0046): `5 m`, `60 mile/hr`, `2 m^2` — the
+    /// A unit suffix (ADR-0046): `5 m`, `60 mile/hr`, `2 m^2`, the
     /// inner expression times the SI factor, carrying the dimensions
     /// and the typed display unit.
     Unit(Box<Expression>, f64, Dims, String),
@@ -305,7 +305,7 @@ pub enum Expression {
     /// display unit.
     In(Box<Expression>, f64, Dims, String),
     Compare(CmpOp, Box<Expression>, Box<Expression>),
-    /// Bitwise operations (ADR-0047): `&`, `|`, `xor`, `<<`, `>>` —
+    /// Bitwise operations (ADR-0047): `&`, `|`, `xor`, `<<`, `>>`,
     /// integer-only, results are exact `Big` whole numbers masked to
     /// the session's word size.
     BitAnd(Box<Expression>, Box<Expression>),
@@ -335,7 +335,7 @@ pub enum CmpOp {
     Ne,
 }
 
-/// One statement of a [`Script`] — the unit of the script seam (CONTEXT.md).
+/// One statement of a [`Script`], the unit of the script seam (CONTEXT.md).
 /// Assignment mutates the [`Env`]; a constant definition binds an immutable
 /// name (ADR-0012); plain expressions just evaluate.
 #[derive(Debug, Clone)]
@@ -369,14 +369,14 @@ pub enum Statement {
     Break,
     /// `continue` (ADR-0064): skip to the loop's next pass.
     Continue,
-    /// `{a, b} = expr` (ADR-0064): bind several names from one list —
+    /// `{a, b} = expr` (ADR-0064): bind several names from one list:
     /// the written form of returning several answers. `_` skips a
     /// position.
     Destructure(Vec<String>, Expression),
 }
 
 /// The body of a user-defined function (ADR-0064): a single expression
-/// after `=` — the original, unchanged form — or a `do ... end` block of
+/// after `=`, the original, unchanged form, or a `do ... end` block of
 /// statements whose last value is the answer.
 #[derive(Debug, Clone)]
 pub enum FunctionBody {
@@ -397,7 +397,7 @@ pub enum ForIterable {
 }
 
 /// A user-defined function: parameter names and a body (an expression
-/// after `=`, or a `do ... end` block — ADR-0064).
+/// after `=`, or a `do ... end` block, ADR-0064).
 #[derive(Debug, Clone)]
 pub struct Function {
     params: Vec<String>,
@@ -570,7 +570,7 @@ pub fn parse(text: &str) -> Result<Expression, EpherError> {
     Ok(expr)
 }
 
-/// Parse LaTeX math into an [`Expression`] — the LaTeX input form (Q5). A
+/// Parse LaTeX math into an [`Expression`], the LaTeX input form (Q5). A
 /// translation layer rewrites LaTeX constructs into plain epher text, then the
 /// same grammar parses it: one grammar, two input forms.
 pub fn parse_latex(text: &str) -> Result<Expression, EpherError> {
@@ -605,7 +605,7 @@ fn translate_latex(text: &str) -> Result<String, EpherError> {
                 "div" => out.push('/'),
                 "pi" => out.push_str("pi"),
                 "left" | "right" => {
-                    // \( \left( ... \right) \) — keep the delimiter char
+                    // \( \left( ... \right) \): keep the delimiter char
                     if let Some(&c2) = chars.peek() {
                         out.push(c2);
                         chars.next();
@@ -945,7 +945,7 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                             break;
                         }
                         // Escape sequences (ADR-0064): the five the
-                        // calculator needs — newline, tab, carriage
+                        // calculator needs, newline, tab, carriage
                         // return, the backslash itself, and the quote.
                         // Anything else is named as a mistake, so a
                         // typo like `\d` cannot silently mean `d`.
@@ -990,7 +990,7 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
             ) =>
             {
                 // Based literals (ADR-0022): 0b/0o/0x with the digits the
-                // community expects — 0b101, 0o17, 0xFF. The value is the
+                // community expects, 0b101, 0o17, 0xFF. The value is the
                 // plain number; a base prefix changes the spelling, never
                 // the result. Like decimal literals, the token is an f64
                 // (exact up to 2^53), so `0xFF` and `255` are the same.
@@ -1223,7 +1223,7 @@ impl Parser {
             // The statement form of `if` (ADR-0064): it chooses between
             // statements, so `then break` and `then continue` read the
             // way they sound. Without `else`, a false condition produces
-            // no value — which is how a for loop filters.
+            // no value, which is how a for loop filters.
             self.next(); // consume 'if'
             let cond = self.parse_expression()?;
             self.expect_keyword("then")?;
@@ -1315,8 +1315,8 @@ impl Parser {
             } else {
                 self.next(); // zero-parameter function
             }
-            // Two body forms (ADR-0064): `= expr` — the original
-            // one-expression body — or `do stmt ... end`, a block of
+            // Two body forms (ADR-0064): `= expr`, the original
+            // one-expression body, or `do stmt ... end`, a block of
             // statements whose last value is the answer.
             if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "do") {
                 self.next(); // consume 'do'
@@ -1392,7 +1392,7 @@ impl Parser {
         }
     }
 
-    /// A destructuring pattern's names (ADR-0064): `{a, b, _}` — plain
+    /// A destructuring pattern's names (ADR-0064): `{a, b, _}`, plain
     /// names, with `_` marking a position to skip.
     fn parse_name_pattern(&mut self) -> Result<Vec<String>, EpherError> {
         self.next(); // consume '{'
@@ -1628,7 +1628,7 @@ impl Parser {
     }
 
     /// The unit path of a conversion (ADR-0046): `km/hr`, `m^2`,
-    /// `km/hr^2` — unit idents with optional whole-number powers joined
+    /// `km/hr^2`: unit idents with optional whole-number powers joined
     /// by `/`. Returns the folded (SI factor, dims, display spelling).
     fn parse_unit_path(&mut self) -> Result<(f64, Dims, String), EpherError> {
         let mut factor = 1.0;
@@ -1889,7 +1889,7 @@ impl Parser {
             Some(Token::Str(s)) => Ok(Expression::StrLit(s)),
             Some(Token::Ident(name)) => {
                 if matches!(self.peek(), Some(Token::LParen)) {
-                    self.next(); // consume '(' — call syntax
+                    self.next(); // consume '(', call syntax
                     let mut args = Vec::new();
                     if matches!(self.peek(), Some(Token::RParen)) {
                         self.next(); // zero-argument call
@@ -1947,7 +1947,7 @@ impl Parser {
             }
             // A matrix literal (ADR-0049): an expression-start `[`
             // begins the row-of-rows spelling `[[1, 2], [3, 4]]`.
-            // Postfix `[` stays the index operator — the two positions
+            // Postfix `[` stays the index operator; the two positions
             // never collide.
             Some(Token::LBracket) => {
                 // (the match already consumed the opening '[')
@@ -1996,8 +1996,8 @@ impl Parser {
             }
             Some(Token::LBrace) => {
                 // A list literal (ADR-0044): `{1, 2, 3}`, `{}`, elements
-                // are expressions. A trailing comma is allowed (`{1, 2,}`
-                // — the comma is a separator, not a terminator).
+                // are expressions. A trailing comma is allowed (`{1, 2,}`;
+                // the comma is a separator, not a terminator).
                 let mut items = Vec::new();
                 if matches!(self.peek(), Some(Token::RBrace)) {
                     self.next();
@@ -2834,7 +2834,7 @@ fn adaptive_step(
     )
 }
 
-/// Evaluate source text as an expression with an empty environment — the CLI
+/// Evaluate source text as an expression with an empty environment, the CLI
 /// one-shot convenience (composition of `parse` + `eval`, not a seam).
 pub fn evaluate(text: &str) -> Result<Value, EpherError> {
     let env = Env::default();
@@ -2944,7 +2944,7 @@ pub fn sample_polar(
 /// single letter, and hours are spelled `hr`.
 /// The seven SI base dimensions (ADR-0046): length, mass, time,
 /// electric current, thermodynamic temperature, amount of substance,
-/// and luminous intensity — the exponent of each in a quantity.
+/// and luminous intensity, the exponent of each in a quantity.
 pub type Dims = [i8; 7];
 
 pub const DIMS_L: Dims = [1, 0, 0, 0, 0, 0, 0];
@@ -2960,7 +2960,7 @@ pub struct UnitDef {
 
 /// The unit table (ADR-0037, extended by ADR-0046): exact token →
 /// (SI factor, dimensions). Angle units are dimensionless; `h` is
-/// absent (Planck's constant keeps its name — hours are `hr`), and so
+/// absent (Planck's constant keeps its name, hours are `hr`), and so
 /// is `in` (the conversion operator; inches are `inch`).
 fn unit_def(token: &str) -> Option<UnitDef> {
     let d = |f: f64, dims: Dims| Some(UnitDef { factor: f, dims });
@@ -3155,7 +3155,7 @@ pub fn is_unit_token(token: &str) -> bool {
 }
 
 /// The old unit_suffix spelling: keep `unit_factor` for the handful of
-/// callers that only need the SI factor (none today — see ADR-0046).
+/// callers that only need the SI factor (none today: see ADR-0046).
 #[allow(dead_code)]
 fn unit_factor(token: &str) -> Option<f64> {
     unit_def_with_prefix(token).map(|u| u.factor)
@@ -3363,7 +3363,7 @@ fn builtin_const(name: &str) -> Option<Value> {
 }
 
 /// The group a builtin constant belongs to, mirroring the guide's
-/// tables — what the constants browsers (ADR-0045) use to organize
+/// tables, what the constants browsers (ADR-0045) use to organize
 /// their lists.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConstGroup {
@@ -3842,14 +3842,14 @@ fn regularized_gamma_q(a: f64, x: f64) -> f64 {
     puruspe::gammq(a, x)
 }
 
-/// Lanczos ln(gamma) — puruspe's double-precision implementation
+/// Lanczos ln(gamma), puruspe's double-precision implementation
 /// (Fukushima-class, ~eps relative).
 fn ln_gamma(x: f64) -> f64 {
     puruspe::ln_gamma(x)
 }
 
-/// The regularized incomplete beta I_x(a, b) — puruspe's NR-style
-/// `betai` — for a, b > 0 and x clamped into [0, 1] (the crate's
+/// The regularized incomplete beta I_x(a, b), puruspe's NR-style
+/// `betai`: for a, b > 0 and x clamped into [0, 1] (the crate's
 /// betai asserts on its domain, so the clamp lives here).
 fn regularized_beta(a: f64, b: f64, x: f64) -> f64 {
     if x <= 0.0 {
@@ -4000,7 +4000,7 @@ fn t_survivor(t: f64, df: f64) -> f64 {
     }
 }
 
-/// The chi-squared CDF, the lower probability P(X <= x) — the
+/// The chi-squared CDF, the lower probability P(X <= x), the
 /// regularized incomplete gamma P(df/2, x/2); `invchi2` inverts by
 /// Newton with the PDF as the derivative.
 fn chi2_cdf(x: f64, df: f64) -> f64 {
@@ -4148,7 +4148,7 @@ fn prob_arg(name: &str, v: f64) -> Result<f64, EpherError> {
     Ok(v)
 }
 
-/// A data list as floats, with its length — the tests and intervals
+/// A data list as floats, with its length; the tests and intervals
 /// take a named column.
 fn data_list(name: &str, args: &[Value], arg: usize) -> Result<Vec<f64>, EpherError> {
     let v = args.get(arg).ok_or_else(|| {
@@ -4176,7 +4176,7 @@ fn data_list(name: &str, args: &[Value], arg: usize) -> Result<Vec<f64>, EpherEr
     Ok(out)
 }
 
-/// The sample mean and the sample (n-1) standard deviation — the
+/// The sample mean and the sample (n-1) standard deviation, the
 /// building blocks of the tests and intervals.
 fn sample_mean_std(data: &[f64]) -> (f64, f64) {
     let n = data.len();
@@ -5650,7 +5650,7 @@ fn value_to_bigint(name: &str, v: &Value) -> Result<num_bigint::BigInt, EpherErr
             if !n.is_finite() || n.fract() != 0.0 {
                 return Err(bad());
             }
-            // An integral f64 formats exactly — the shortest round-trip
+            // An integral f64 formats exactly, the shortest round-trip
             // representation of an integral float is its exact integer.
             num_bigint::BigInt::parse_bytes(format!("{n:.0}").as_bytes(), 10).ok_or_else(bad)
         }
@@ -5897,7 +5897,7 @@ impl Default for DisplayPrefs {
 
 /// The Auto-mode float spelling (ADR-0051): the shortest round-trip
 /// decimal, rounded to twelve significant digits when that shortens
-/// it — the reference-calculator convention that turns the float
+/// it; the reference-calculator convention that turns the float
 /// 0.30000000000000004 into "0.3". Exact integers never round: their
 /// rounded spelling is no shorter, so the guard keeps the original.
 /// The rounding works on the decimal spelling, not the float: scaling
@@ -6002,7 +6002,7 @@ fn significant_digits(s: &str) -> usize {
     count
 }
 
-/// Whether the reduced fraction has a finite decimal expansion — the
+/// Whether the reduced fraction has a finite decimal expansion; the
 /// denominator holds only the factors 2 and 5. Reconstructed
 /// denominators are at most 1000, so the divisibility loop is short.
 /// A terminating fraction displays as a decimal (0.3, 0.125); only a
@@ -7070,7 +7070,7 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
         "deg" => Ok(Value::Float(one_float(name, &args)?.to_degrees())),
         "rad" => Ok(Value::Float(one_float(name, &args)?.to_radians())),
         // Base conversion (ADR-0022): one integer in, a prefixed string
-        // out — `bin(10)` is `0b1010`, `oct(10)` is `0o12`, `hex(255)` is
+        // out, `bin(10)` is `0b1010`, `oct(10)` is `0o12`, `hex(255)` is
         // `0xff`. Prefixes match the literal syntax, so the answer can be
         // fed straight back in. Only whole numbers convert; negatives keep
         // their sign on the prefix (`-0b101`), like Python's bin().
@@ -7562,7 +7562,7 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
         )),
         // The string library (ADR-0064): case, trimming, slicing,
         // splitting, joining, searching, replacing, and fixed-decimal
-        // spelling — the pieces report-writing scripts reach for.
+        // spelling; the pieces report-writing scripts reach for.
         "upper" | "lower" | "trim" => {
             let s = one_string(name, &args)?;
             match name {
@@ -7571,7 +7571,7 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                 _ => Ok(Value::Str(s.trim().to_string())),
             }
         }
-        // substr(s, start[, len]) — 1-based like every index in epher.
+        // substr(s, start[, len]), 1-based like every index in epher.
         // Without a length the rest of the string; a start past the end
         // is an empty string; a length that runs past the end clamps.
         "substr" => match args.as_slice() {
@@ -7670,7 +7670,7 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             }
             Ok(Value::Str(s.replace(old.as_str(), new.as_str())))
         }
-        // fixed(x, digits) — the value as text with exactly that many
+        // fixed(x, digits), the value as text with exactly that many
         // decimal places, the way a report wants 3.10 to keep its zero.
         "fixed" => match args.as_slice() {
             [x, Value::Float(digits)] => {
@@ -7927,7 +7927,7 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
         }
         // Hypothesis tests and confidence intervals (ADR-0044): data
         // lists in, display strings out.
-        // Matrices (ADR-0049): the NumWorks floor — det, inv, transpose,
+        // Matrices (ADR-0049): the NumWorks floor, det, inv, transpose,
         // trace, dim, ref, rref.
         "det" => {
             let (n, data) = square_matrix(name, one_arg(name, &args)?)?;
@@ -8087,7 +8087,7 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
             let (mean, sd) = sample_mean_std(&data);
             let t = (mean - mu0) / (sd / n.sqrt());
             let p = if sd == 0.0 {
-                // a degenerate sample: every value equal — the statistic
+                // a degenerate sample: every value equal; the statistic
                 // is 0 (when mu0 matches) or infinite
                 if mean == mu0 {
                     1.0
@@ -8312,7 +8312,7 @@ pub fn run(script: &[Statement], env: &mut Env) -> Result<Option<Value>, EpherEr
     run_inner(script, env, &mut steps)
 }
 
-/// Run a script and collect every statement's value — the one-shot CLI's
+/// Run a script and collect every statement's value, the one-shot CLI's
 /// view of a script (each result prints on its own line, like piped mode
 /// without the `=` prefix). `run` returns only the last value; interactive
 /// surfaces keep that display.
@@ -8329,7 +8329,7 @@ pub fn run_all(script: &[Statement], env: &mut Env) -> Result<Vec<Value>, EpherE
     Ok(values)
 }
 
-/// Maximum statement executions per `run` — protects against runaway loops.
+/// Maximum statement executions per `run`, protects against runaway loops.
 const STEP_LIMIT: u64 = 100_000;
 
 /// One statement's fate in an evaluation trace (ADR-0066): where it sat
@@ -8409,7 +8409,7 @@ fn consume_step(steps: &mut u64) -> Result<(), EpherError> {
 
 /// How a statement's execution ended (ADR-0064). `Normal` carries the
 /// statement's value, if it produced one; the other three are the
-/// control-flow jumps a body can request — leave the loop, next pass,
+/// control-flow jumps a body can request, leave the loop, next pass,
 /// and leave the function with this value.
 enum Flow {
     Normal(Option<Value>),
@@ -8436,7 +8436,7 @@ fn stmt_value(
 
 /// Execute one statement, following the control-flow jumps a body can
 /// request. Every value-producing statement records its result as the
-/// variable `ans` — the previous answer, like a pocket calculator's
+/// variable `ans`, the previous answer, like a pocket calculator's
 /// `Ans` (the keypads carry an `ans` key). Statements that produce no
 /// value (definitions, `while`) leave `ans` untouched, and so do errors.
 /// `ans` is an ordinary variable: it lives in the session's environment
@@ -8517,8 +8517,8 @@ fn stmt_flow(stmt: &Statement, env: &mut Env, steps: &mut u64) -> Result<Flow, E
 }
 
 /// Run a `do ... end` block's statements in order (ADR-0064); the block's
-/// value is its last statement's. A jump — `break`, `continue`,
-/// `return` — ends the block and propagates to whatever can honor it.
+/// value is its last statement's. A jump, `break`, `continue`,
+/// `return`: ends the block and propagates to whatever can honor it.
 fn run_block(stmts: &[Statement], env: &mut Env, steps: &mut u64) -> Result<Flow, EpherError> {
     let mut last = Flow::Normal(None);
     for stmt in stmts {
@@ -8561,7 +8561,7 @@ fn assign(env: &mut Env, name: &str, expr: &Expression) -> Result<Value, EpherEr
     Ok(value)
 }
 
-/// Define a constant, refusing to take a variable's name — a name is
+/// Define a constant, refusing to take a variable's name; a name is
 /// either a variable or a constant, never both (ADR-0012). Re-declaring
 /// an existing constant is an error only when the value changes:
 /// examples with `const` lines get pasted and re-pasted, and the
@@ -8717,7 +8717,7 @@ fn run_for(
     Ok(Flow::Normal(Some(Value::List(collected))))
 }
 
-/// An interactive session: a persistent [`Env`] plus history — the shared
+/// An interactive session: a persistent [`Env`] plus history, the shared
 /// "submit a line" logic for the CLI REPL, TUI, and web frontends, so it
 /// exists once. Also records the source of each `def` and `const` line so
 /// frontends can save user-defined functions and constants.
@@ -8759,7 +8759,7 @@ impl Session {
         self.display = prefs;
     }
 
-    /// Read the session's result display preferences — the exact-fraction
+    /// Read the session's result display preferences, the exact-fraction
     /// toggle, notation, and separators (the table's exact cells follow
     /// the same preference, ADR-0044).
     pub fn display(&self) -> DisplayPrefs {
@@ -8823,7 +8823,7 @@ impl Session {
     }
 
     /// Submit a script line and return every answer it produced, in
-    /// order, one per line (`= 10\n= 15\n= 25`) — a script's whole
+    /// order, one per line (`= 10\n= 15\n= 25`), a script's whole
     /// transcript, not only its final value (ADR-0052). The line is
     /// recorded in history exactly like [`Session::submit`] (the line
     /// with its last answer appended). Statements that produce no value
@@ -8896,7 +8896,7 @@ impl Session {
         &self.env
     }
 
-    /// Redefine a constant's value and its source text in one step — the
+    /// Redefine a constant's value and its source text in one step, the
     /// slider seam (ADR-0014): a UI control adjusts `const a = 2` to a new
     /// number, and the updated source is what `save a` persists.
     pub fn set_constant(&mut self, name: impl Into<String>, value: Value, source: String) {
@@ -8940,7 +8940,7 @@ impl Session {
         }
     }
 
-    /// The environment, mutable — for frontends evaluating statements
+    /// The environment, mutable, for frontends evaluating statements
     /// directly against a shared session (the CLI one-shot path).
     pub fn env_mut(&mut self) -> &mut Env {
         &mut self.env
@@ -8982,16 +8982,16 @@ fn const_name(line: &str) -> Option<String> {
 }
 
 /// The expression part of a recorded history entry (ADR-0031).
-/// Evaluations are recorded as `"{line}  {output}"` — the line the user
+/// Evaluations are recorded as `"{line}  {output}"`, the line the user
 /// entered, then the answer (`= …`) or the failure (`error: …` /
 /// `warning: …`). A history pick loads everything before the last such
 /// suffix, so the user can edit the expression and re-run it (amending
 /// ADR-0027's verbatim picks: the `  ` separator makes the suffix
 /// structurally unambiguous, not a heuristic). Entries without an answer
-/// suffix — graph commands, definitions — return unchanged.
+/// suffix, graph commands, definitions, return unchanged.
 pub fn history_expression(entry: &str) -> &str {
     // Multi-line script entries (ADR-0027 amendment) are recorded
-    // verbatim — no answer suffix — and the suffix scan must not fire
+    // verbatim; no answer suffix, and the suffix scan must not fire
     // inside one: an assignment line like `x = 2 + 2` contains the
     // marker and would be cut short.
     if entry.contains('\n') {
@@ -9308,7 +9308,7 @@ fn as_quantity(v: Value) -> Result<(f64, Dims, Option<(String, f64)>), EpherErro
 
 /// Dimension-aware arithmetic (ADR-0046): `+`/`-` need matching dims
 /// (a dimensionless side folds into the other), `*`/`/` compose them,
-/// and a power raises the value and scales the dims — a non-whole
+/// and a power raises the value and scales the dims; a non-whole
 /// exponent on a dimensioned quantity is an error. Dimensionless
 /// results collapse back to plain floats.
 fn quantity_binop(lhs: Value, rhs: Value, op: BinOp) -> Result<Value, EpherError> {
@@ -9431,7 +9431,7 @@ fn dimension_error(msg: &str) -> EpherError {
 }
 
 /// The plain display of a quantity: the value in its display unit (or
-/// the SI composition), without the result-formatting preferences —
+/// the SI composition), without the result-formatting preferences,
 /// used in dimension errors.
 fn quantity_display(value: f64, dims: Dims, unit: Option<(String, f64)>) -> String {
     if dims == [0; 7] {

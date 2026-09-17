@@ -84,7 +84,7 @@ The reference example turns those facts into a house style:
    and what the file demonstrates. Comment text starts at the left
    margin: the lines inside a block comment are not indented under the
    `/*`, so a copied script reads and edits like any other text
-   (structure inside a comment — a numbered list, an aligned table —
+   (structure inside a comment, a numbered list, an aligned table,
    keeps its own relative indentation).
 2. **Knobs at the top.** Every value a user might change is one `const`
    in a clearly marked block right after the header. Nothing to edit

@@ -4,7 +4,7 @@
 # staged explicitly. CI builds this for amd64 and arm64 (the release
 # workflow's snap job) and publishes to the stable channel when the
 # SNAPCRAFT_STORE_CREDENTIALS secret exists. The workflow seds the
-# release version into `version:` before building — override-pull needs
+# release version into `version:` before building: override-pull needs
 # it for the deb URL, before any craftctl could set it.
 name: epher
 base: core22
@@ -13,7 +13,7 @@ summary: A programmable, scriptable calculator
 description: |
   One binary, every frontend: a one-shot CLI, an interactive REPL,
   piped scripts, a full-screen terminal UI, and a desktop app with
-  keypad, history, 2D/3D graphing, tables, and a script collection —
+  keypad, history, 2D/3D graphing, tables, and a script collection,
   in eight languages, fully offline.
 grade: stable
 confinement: strict
@@ -52,7 +52,7 @@ parts:
       craftctl default
     stage-packages:
       # The deb Declares these as Depends; inside the snap they must be
-      # staged. The gnome extension covers GTK/themes — webkit is the
+      # staged. The gnome extension covers GTK/themes, webkit is the
       # one heavyweight the snap must carry itself. (core22 = Ubuntu
       # 22.04 package names: no t64 suffix.)
       - libwebkit2gtk-4.1-0

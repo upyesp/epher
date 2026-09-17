@@ -1,9 +1,9 @@
 # epher architecture
 
 One math engine, every interface. This document describes the runtime
-architecture of epher — a programmable calculator whose engine is a
+architecture of epher, a programmable calculator whose engine is a
 single Rust crate, compiled to native code for the terminal frontends
-and to WebAssembly for the browser-based frontends — the desktop GUI's
+and to WebAssembly for the browser-based frontends, the desktop GUI's
 interface is that same WebAssembly build, not a separate native UI. All user-facing
 text lives in externalized Fluent locale files covering 8 languages.
 
@@ -13,7 +13,7 @@ text lives in externalized Fluent locale files covering 8 languages.
 
 ```mermaid
 flowchart TB
-    subgraph engine["Single math engine — crate epher-core (Rust)"]
+    subgraph engine["Single math engine, crate epher-core (Rust)"]
         direction LR
         LEX["tokenizer"] --> PARSE["parser / statements"]
         PARSE --> EVAL["evaluator<br/>Env: constants, functions,<br/>number bases, ans"]
@@ -29,16 +29,16 @@ flowchart TB
     end
 
     subgraph ui["User interfaces (the UI layer is externalized)"]
-        CLI["CLI — epher-cli<br/>one-shot / piped / script"]
-        REPL["REPL — interactive<br/>(same crate as CLI)"]
-        TUI["TUI — epher-tui (ratatui)<br/>keypad, menus, history, plots"]
-        WEBAPP["Yew frontend — epher-web<br/>the one graphical UI,<br/>Rust compiled to WebAssembly"]
-        GUI["Desktop GUI — epher-gui<br/>native Tauri shell (window, webview,<br/>native bridge); hosts the Yew frontend"]
-        PWA["PWA — the same Yew frontend<br/>served at epher.org<br/>(service worker + manifest)"]
-        LSP["Language server — epher-lsp<br/>LSP over stdio for IDE extensions<br/>(ADR-0066)"]
+        CLI["CLI, epher-cli<br/>one-shot / piped / script"]
+        REPL["REPL, interactive<br/>(same crate as CLI)"]
+        TUI["TUI, epher-tui (ratatui)<br/>keypad, menus, history, plots"]
+        WEBAPP["Yew frontend, epher-web<br/>the one graphical UI,<br/>Rust compiled to WebAssembly"]
+        GUI["Desktop GUI, epher-gui<br/>native Tauri shell (window, webview,<br/>native bridge); hosts the Yew frontend"]
+        PWA["PWA, the same Yew frontend<br/>served at epher.org<br/>(service worker + manifest)"]
+        LSP["Language server, epher-lsp<br/>LSP over stdio for IDE extensions<br/>(ADR-0066)"]
     end
 
-    subgraph lang["Languages — 8 externalized locales (.ftl)"]
+    subgraph lang["Languages, 8 externalized locales (.ftl)"]
         L8["ar · de · en · es · fr · hi · pt · zh-CN<br/>scripting language itself is never localized"]
     end
 
@@ -78,11 +78,11 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    CORE["engine crates — core, shell, store, i18n<br/>(pure Rust, no platform code)"]
-    NAT["native build — cargo"]
-    BIN["epher-gui binary — native code:<br/>CLI · REPL · TUI · Tauri shell<br/>(window, webview, native bridge —<br/>no UI of its own; it hosts the wasm bundle)"]
-    WASM["WebAssembly build — trunk compiles the<br/>Yew app (epher-web) and the engine crates"]
-    WEB["web bundle — JS glue + wasm:<br/>the Yew interface"]
+    CORE["engine crates, core, shell, store, i18n<br/>(pure Rust, no platform code)"]
+    NAT["native build, cargo"]
+    BIN["epher-gui binary, native code:<br/>CLI · REPL · TUI · Tauri shell<br/>(window, webview, native bridge,<br/>no UI of its own; it hosts the wasm bundle)"]
+    WASM["WebAssembly build, trunk compiles the<br/>Yew app (epher-web) and the engine crates"]
+    WEB["web bundle, JS glue + wasm:<br/>the Yew interface"]
     DESK["Tauri webview asset<br/>(web/dist, embedded at build time)"]
     PWA["PWA asset on epher.org"]
     CORE --> NAT --> BIN
@@ -97,7 +97,7 @@ flowchart LR
 **The engine.** `epher-core` holds the tokenizer, parser, evaluator, and
 both graphers (2D curve sampling with points-of-interest analysis, 3D
 surface sampling), plus the deterministic SVG renderer. It has no UI
-code and, since ADR-0037, exactly one platform read (`now()`'s clock) —
+code and, since ADR-0037, exactly one platform read (`now()`'s clock),
 every frontend calls the same functions, so
 `2 + 2` and `graph x ^ 2` mean the same thing in every interface.
 
@@ -108,7 +108,7 @@ plot assembly). `epher-store` persists documents (`DocStore<FsStore>`
 the PWA). `epher-i18n` is a Fluent `Localizer` over externalized `.ftl`
 files. `epher-guide` is the user guide's renderers (markdown → HTML for
 the web/desktop overlay, markdown → plain text for the TUI pager); the
-markdown itself is not compiled into any binary — the web app fetches
+markdown itself is not compiled into any binary, the web app fetches
 `guide/<locale>.md` from its static files, and the TUI reads the
 installed files when the guide opens (ADR-0053).
 
@@ -125,13 +125,13 @@ hover from the catalog's signatures and descriptions, completion, and
 semantic tokens, all from one run of the open document per edit.
 
 **Browser frontends (WebAssembly).** `epher-web` is the Yew
-single-page app — the one and only graphical interface. Trunk compiles
+single-page app, the one and only graphical interface. Trunk compiles
 it, together with the engine, shell, store, and i18n crates, to
 WebAssembly and bundles the result with the UI glue and a service
 worker: that bundle *is* the PWA at epher.org **and** the desktop GUI.
 The **desktop GUI** (`epher-gui`, the Tauri app) has no native UI of
-its own: it contributes only a shell — window, system webview, and a
-thin bridge of native commands (save dialogs, filesystem store) — and
+its own: it contributes only a shell, window, system webview, and a
+thin bridge of native commands (save dialogs, filesystem store), and
 embeds the same wasm bundle as its content (`frontendDist: web/dist`,
 built by `trunk build --release`). The desktop calculator and the PWA
 are two ways to serve one Yew codebase.
@@ -150,6 +150,6 @@ and a `Terminal=false` desktop entry. The PWA runs anywhere a modern
 browser does.
 
 **Languages.** Every string the interfaces show comes from one of the
-8 externalized Fluent locales (ar, de, en, es, fr, hi, pt, zh-CN) —
+8 externalized Fluent locales (ar, de, en, es, fr, hi, pt, zh-CN),
 the UI is translated, the scripting language is deliberately never
 localized, and diagnostics stay byte-identical across locales.

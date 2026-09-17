@@ -14,7 +14,7 @@ computes in core and only renders per frontend.
 
 Graphing is divided into compute and render. `epher-core` owns a `Sampler` that
 turns an Expression and a domain into plottable data (sampling, domain and
-discontinuity handling); each frontend renders that data its own way — vector
+discontinuity handling); each frontend renders that data its own way, vector
 for the GUI and PWA, ASCII/blocks for the TUI, none for the CLI.
 
 This seam protects "logic exists once": the sampling math is shared across every

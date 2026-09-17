@@ -1,7 +1,7 @@
 # Animation and 3D graphing in competitive graphing calculators
 
-**Goal:** establish best practice for two epher roadmap items — animated graphs
-(parameter playback) and 3D surface graphing — from primary sources, to inform
+**Goal:** establish best practice for two epher roadmap items, animated graphs
+(parameter playback) and 3D surface graphing, from primary sources, to inform
 an implementation in epher. epher today (ADR-0014): 2D multi-curve graphing with
 parametric/polar samplers, points-of-interest analysis, trace, sliders over
 session constants (web/desktop only), and tables, all projected through
@@ -13,7 +13,7 @@ converged model rather than invent one.
 **Method (all claims verified, not assumed):** consulted only first-party
 documentation and read every cited page in full before quoting or paraphrasing
 it. *Desmos:* help-center article bodies fetched through the help center's own
-Zendesk API (`help.desmos.com/api/v2/help_center/en-us/articles/<id>.json`) —
+Zendesk API (`help.desmos.com/api/v2/help_center/en-us/articles/<id>.json`),
 the HTML pages serve a Cloudflare interstitial to scripts, but the API returns
 the same published article bodies, including the current versions of the pages
 cited in `docs/research/graphing-features.md` ([3] sliders, [27] 3D). The
@@ -28,7 +28,7 @@ in the prior survey. *Wolfram:* reference.wolfram.com Animate, Manipulate, and
 Plot3D pages read in full, including complete options tables. *TI:* the TI-84
 Plus guidebook PDF (text-extracted) and the TI-Nspire™ Technology eGuide
 webhelp at education.ti.com (the computer-software manual; the TI-Nspire CX II
-*handheld* guidebook contains no 3D chapter — 3D Graphing lives in the CX
+*handheld* guidebook contains no 3D chapter, 3D Graphing lives in the CX
 Premium Teacher Software). *NumWorks:* manual at numworks.com. All pages were
 accessed and all claims extracted on **2026-08-17**.
 
@@ -75,7 +75,7 @@ sliders [9]. In audio-trace mode, playback speed has keyboard control
 "Adjust Playback Speed (1 = slowest, 5 = fastest)" on Alt+1–0 (Option+1–0 on
 Mac), and `A` announces active slider animations [9].
 
-Beyond sliders, Desmos documents an event/repetition layer: **Actions** —
+Beyond sliders, Desmos documents an event/repetition layer: **Actions**:
 update rules written with `→` ("To increase a by 1: enter a → a + 1") that run
 on click (clickable objects) or on a timer: "When you enable actions, you can
 specify an action that will run repeatedly at a specified interval using the
@@ -94,24 +94,24 @@ to select Animation On in the Context Menu of that number, angle or point. In
 order to stop the animation, you need to un-check Animation On in the same
 context menu" [11]. Once any object is animating, "an animation button appears
 in the lower left corner of the Graphics View. It allows you to either pause or
-continue an animation" [11] — a global pause/continue control.
+continue an animation" [11], a global pause/continue control.
 
 The animation behavior is configured "in the Properties Dialog on tab Slider":
-**Speed** — "A speed of 1 means that the animation takes about 10 seconds to
-run once through the interval of the slider" — and the **cycle repetition
+**Speed**: "A speed of 1 means that the animation takes about 10 seconds to
+run once through the interval of the slider", and the **cycle repetition
 modes** [11]:
 
-- ⇔ **Oscillating** — "alternates between Decreasing and Increasing"
-- ⇒ **Increasing** — "always increasing. After reaching the maximum value of
+- ⇔ **Oscillating**, "alternates between Decreasing and Increasing"
+- ⇒ **Increasing**, "always increasing. After reaching the maximum value of
   the slider, it jumps back to the minimum value and continues the animation"
-- ⇐ **Decreasing** — the mirror: always decreasing, jumps back to maximum
-- ⇒ **Increasing (Once)** — "always increasing. After reaching the maximum
+- ⇐ **Decreasing**, the mirror: always decreasing, jumps back to maximum
+- ⇒ **Increasing (Once)**, "always increasing. After reaching the maximum
   value of the slider, it stops at this value and ends the animation"
 
-Unlike the others, "once" is terminal — it stops by itself at the end [11].
+Unlike the others, "once" is terminal; it stops by itself at the end [11].
 GeoGebra documents that "while an automatic animation is activated, GeoGebra
 remains fully functional. This allows you to make changes to your construction
-while the animation is playing" [11] — animation does not block editing.
+while the animation is playing" [11], animation does not block editing.
 
 **Manual animation:** with the Move tool, click a free number/angle/point and
 "press either the + or – key or the arrow keys on your keyboard. Keeping one of
@@ -147,25 +147,25 @@ control, `{u,{u1,u2,…}}` → setter bar/popup menu [19].
 
 Timing and direction, from the Animate options table [18]:
 
-- `AnimationDirection` — Forward (default); example shows `Forward`,
+- `AnimationDirection`, Forward (default); example shows `Forward`,
   `Backward`, `ForwardBackward`
-- `AnimationRate` — "the rate at which to take variables to vary"; explicit
+- `AnimationRate`, "the rate at which to take variables to vary"; explicit
   rate overrides duration
-- `AnimationRepetitions` — "how many times to run before stopping", default
+- `AnimationRepetitions`, "how many times to run before stopping", default
   `Infinity`
-- `AnimationRunning` — default `True`: "By default Animate starts running when
+- `AnimationRunning`, default `True`: "By default Animate starts running when
   evaluated"; `AnimationRunning -> False` starts paused
-- `DefaultDuration` — 5. (seconds): "When umax is finite, u is taken to vary at
+- `DefaultDuration`, 5. (seconds): "When umax is finite, u is taken to vary at
   such a rate as to make the animation last for the time given by the setting
   for DefaultDuration"
-- `RefreshRate` — "the default number of times per second to refresh"; the
+- `RefreshRate`, "the default number of times per second to refresh"; the
   default step `du` "is determined by the setting for the RefreshRate option,
   and is negative if umin is larger than umax"
-- `DisplayAllSteps` — force every discrete step to be displayed
+- `DisplayAllSteps`, force every discrete step to be displayed
 
 Default control elements: "The following elements are included by default:
 'ProgressSlider', 'PlayPauseButton', 'FasterSlowerButtons',
-'DirectionButton'" [18] — i.e. a progress slider plus play/pause, speed, and
+'DirectionButton'" [18], i.e. a progress slider plus play/pause, speed, and
 direction buttons; additional elements (`StepLeftButton`, `StepRightButton`,
 `ResetButton`, `ResetPlayButton`, etc.) are opt-in via `AppearanceElements`
 [18]. Unbounded ranges: `Animate[expr,{u,umin,Infinity}]` "makes an infinite
@@ -175,14 +175,14 @@ Manipulate object containing an Animator" [18].
 
 Manipulate adds **autorun** over multiple variables: "By choosing Autorun from
 the Manipulate menu, each variable is automatically run through" [19].
-`AutorunSequencing` controls order and per-variable durations — "Specify a
+`AutorunSequencing` controls order and per-variable durations, "Specify a
 different duration for each variable (default 5)";
 `AutorunSequencing -> All` runs "through all variables simultaneously" [19].
 `ContinuousAction` controls update granularity (continuous vs on-release vs
 explicit Update button) [19]. Two practical notes from Animate's "Possible
 Issues" are directly relevant to any implementation: "Fix PlotRange to stop
 animations from jiggling" and "Use ImagePadding to make sure different labels
-do not make the image size change" [18] — stabilize the viewport and the frame
+do not make the image size change" [18], stabilize the viewport and the frame
 across frames. Manipulate's Scope explicitly documents parameter-driven **3D**
 animation: "You can interactively rotate 3D graphics while changing parameters:
 Manipulate[Plot3D[Sin[x y + a], …], {a, 0, 1}]" [19].
@@ -191,9 +191,9 @@ Manipulate[Plot3D[Sin[x y + a], …], {a, 0, 1}]" [19].
 
 **TI-84 Plus** has no slider playback, but two adjacent mechanisms [21]:
 
-1. **Animate/path graph styles.** The graph-style table defines `ë` Path — "A
-   circular cursor traces the leading edge of the graph and draws a path" —
-   and `ì` Animate — "A circular cursor traces the leading edge of the graph
+1. **Animate/path graph styles.** The graph-style table defines `ë` Path, "A
+   circular cursor traces the leading edge of the graph and draws a path",
+   and `ì` Animate, "A circular cursor traces the leading edge of the graph
    without drawing a path" [21]. These are draw-time animations of the
    sampling sweep, and parametric mode makes them temporal: the ballistics
    example says "To simulate the ball flying through the air, set graph style
@@ -237,11 +237,11 @@ animation smoothness" [30].
 
 **NumWorks** documents neither: the Grapher manual page covers functions,
 curves, conics, inequalities, polar and parametric curves, tables, and
-points-of-interest — with no slider, animation, or playback feature anywhere
+points-of-interest, with no slider, animation, or playback feature anywhere
 on the page [33], and the manual's application list contains no 3D
 application [34].
 
-### 1.5 Best practice synthesis — animation
+### 1.5 Best practice synthesis: animation
 
 (All of §1.5 and §2.5 are analysis, not source claims; sources are the
 enumerated primary pages.)
@@ -265,11 +265,11 @@ enumerated primary pages.)
   default cycle duration (5 s) [18]. TI-Nspire: unidirectional/alternating +
   signed speed [32]. Recommended epher surface: direction ∈ {forward,
   backward, oscillate}, loop ∈ {repeat, once}, speed as cycle duration or
-  multiplier — that is the intersection of all four models.
+  multiplier, that is the intersection of all four models.
 - **Playback must default to stopped and be pausable (WCAG 2.2.2).** Click-to-
   play is the norm (Desmos [1], Nspire context-menu Animate [30]); Wolfram
   inverts it by default (`AnimationRunning -> True`) but documents the paused
-  start `AnimationRunning -> False` [18] — epher should adopt the paused
+  start `AnimationRunning -> False` [18], epher should adopt the paused
   default. GeoGebra's pause/continue button [11] and Nspire's global
   Pause/Play/Reset [32] show a global transport control alongside per-slider
   play. WCAG 2.2.2 (pause, stop, hide) applies to any moving/blinking/
@@ -279,13 +279,13 @@ enumerated primary pages.)
   `+`/`−` and arrows with modifier multipliers (GeoGebra [11]); Tab focus +
   arrows (Nspire [31]); **Space as the universal play/stop key** (GeoGebra
   [16]). Desmos's Slider Trace mode (`S` to enter, arrows to drive, Tab/K/I
-  between sliders) [9] is the strongest model — epher's TUI maps to it nearly
+  between sliders) [9] is the strongest model, epher's TUI maps to it nearly
   verbatim.
 - **Reduced motion (WCAG 2.3.3):** none of the five vendors' documentation
   read here mentions `prefers-reduced-motion` or a reduced-motion setting.
   This is a gap epher must close itself: honor
   `prefers-reduced-motion` (web) / a motion setting (TUI) by replacing smooth
-  playback with manual stepping (the GeoGebra manual-animation model [11]) —
+  playback with manual stepping (the GeoGebra manual-animation model [11]),
   every animation above has an equivalent stepwise form, which is why the
   feature degrades gracefully.
 - **Performance: re-sample per parameter value; stabilize everything else.**
@@ -304,7 +304,7 @@ enumerated primary pages.)
 - **Beyond sliders**, the two documented extras worth knowing: ticker/event
   actions (Desmos Actions + ticker, ms intervals [2]) and multi-variable
   autorun sequencing with per-variable durations (Wolfram AutorunSequencing
-  [19]). Both are deferrals for epher — sliders over session constants cover
+  [19]). Both are deferrals for epher, sliders over session constants cover
   the teaching use cases (Desmos's "dancing curves" [1]).
 
 ---
@@ -329,7 +329,7 @@ surface forms. Points take `(x,y,z)` triples [3,5]. Inequalities with a
 z-component plot as surfaces; curly-bracket restrictions limit which parts of
 a surface render, including **slices**: "restricting x²+y² to the domain
 {z=3} will graph the slice of the surface where z=3" [3], and the user guide
-shows a slice driven by a slider variable a — sliders animate z-slices, a
+shows a slice driven by a slider variable a, sliders animate z-slices, a
 documented 3D animation idiom [4].
 
 **Parametric curves and surfaces.** Curves: "create a point where at least one
@@ -352,7 +352,7 @@ graph a circle with radius of 2. To view the cylinder, check the Extend to
 **Orbit/rotate interaction.** Pointer: "You can click and drag to rotate the
 cube. If you click, drag, and then release the cube while your cursor is still
 in motion, the graph will continue to rotate. To stop the rotation, click
-anywhere on the screen" [3] — drag with inertia. Keyboard: "press Ctrl+Alt+P
+anywhere on the screen" [3]: drag with inertia. Keyboard: "press Ctrl+Alt+P
 (Windows) or Ctrl+Cmd+P (Mac) to focus the cube. Press an arrow key once to
 rotate or tilt the cube in that direction. Hold down an arrow key to increase
 the speed of rotation and set the cube in motion. To stop the rotation, press
@@ -381,13 +381,13 @@ slider all the way to the right" [6].
 **Appearance.** Per-item color and style via the item's style menu [4].
 Surfaces can be made **translucent**: "Select Translucent surfaces to view
 inside your surfaces and visualize the intersection of different surfaces more
-easily" [6] — the documented answer to seeing surface intersections. Lighting
+easily" [6], the documented answer to seeing surface intersections. Lighting
 is built-in and can be disabled: "Select Disable lighting to remove the built-
 in light source and reflections. This option creates a flatter image and gives
 you precise control over color" [6]. Coordinate-based **color maps** define
-colors as functions of (x,y,z) — "define a color using the function
+colors as functions of (x,y,z), "define a color using the function
 C = hsv(250z, 1, 1). Applying that color to a surface will create a gradient
-hue based on the z-values of that surface" — height/heatmap encoding; they
+hue based on the z-values of that surface", height/heatmap encoding; they
 "don't yet work for points or curves" [8].
 
 **Points of interest / trace in 3D:** none of the Desmos 3D pages read
@@ -400,7 +400,7 @@ pages read; not a verified negative.)
 tools, except for the 3D Calculator, include a setting to enlarge the display"
 [10]. Reverse contrast does exist in 3D but "inverts the colors of the
 background, expression list, and buttons while maintaining the color of
-points, lines, and surfaces" [10] — surface colors are deliberately
+points, lines, and surfaces" [10], surface colors are deliberately
 preserved. Braille mode (Nemeth and UEB) is available in all tools except the
 Matrix calculator, and the 3D settings page lists Braille mode among 3D
 settings [10,6]. Keyboard navigation of the cube (arrows, focus shortcut) is
@@ -434,7 +434,7 @@ wheel [13]. A "View in front of" tool re-orients the camera to face a
 selected object [13]. Keyboard: Page Up / Page Down move a selected object up
 and down in 3D [13], and the shortcuts catalogue documents arrow keys moving
 selected points in 3D (up/right/left/down), with X / End changing the
-z-coordinate [17] — object movement is keyboard-driven, but view rotation
+z-coordinate [17], object movement is keyboard-driven, but view rotation
 itself is pointer-driven (right-drag or the Rotate tool) [13,15]; GeoGebra
 documents no arrow-key orbit.
 
@@ -452,7 +452,7 @@ creation, view manipulation, and styling. (Absence per the pages read.)
 **Accessibility in 3D.** The manual's accessibility page documents a
 screen-reader hook specifically for the 3D view: "If you make a text object in
 GeoGebra called altText, altText2, altText3D then it will be attached to
-Graphics View 1, Graphics View 2, Graphics View 3D respectively" — an
+Graphics View 1, Graphics View 2, Graphics View 3D respectively", an
 author-provided alt-text convention for the 3D scene [16]. The same page's
 general guidance applies to 3D work: dark-on-white, thick lines, avoid pure
 red/green, and dash in addition to color for differentiation [16].
@@ -483,27 +483,27 @@ each surface"; `Mesh -> All` "draws mesh lines to show all subdivisions it
 makes" (visible adaptive-refinement grid) [20]. Mesh lines are the
 documented way to reveal surface geometry independent of color, and surface
 themes exist specifically for it ("DarkMesh", "GrayMesh", "LightMesh",
-"ZMesh" — "vertically distributed mesh lines") [20].
+"ZMesh", "vertically distributed mesh lines") [20].
 
-**Viewpoint options.** From the options table: `ViewPoint` — "viewing
-position", default `{1.3,-2.4,2.}`; `ViewVertical` — "direction to make
-vertical", default `{0,0,1}`; `ViewAngle` — "angle of the field of view";
-`Boxed` — "whether to draw the bounding box", default True; `BoxRatios` —
-"bounding 3D box ratios", default `{1,1,0.4}`; `SphericalRegion` — "whether to
-make the circumscribing sphere fit in the final display area"; `RotationAction`
-— "how to render after interactive rotation", default `"Fit"` [20]. 3D
+**Viewpoint options.** From the options table: `ViewPoint`, "viewing
+position", default `{1.3,-2.4,2.}`; `ViewVertical`, "direction to make
+vertical", default `{0,0,1}`; `ViewAngle`, "angle of the field of view";
+`Boxed`, "whether to draw the bounding box", default True; `BoxRatios`,
+"bounding 3D box ratios", default `{1,1,0.4}`; `SphericalRegion`, "whether to
+make the circumscribing sphere fit in the final display area"; `RotationAction`,
+"how to render after interactive rotation", default `"Fit"` [20]. 3D
 graphics rotate interactively in notebooks, and Manipulate explicitly
 documents combining parameter animation with interactive 3D rotation [19].
 
 **Depth and transparency.** A telling detail: "PlotStyle->None draws no
-surface, so effectively does not eliminate hidden surfaces" [20] — hidden-
+surface, so effectively does not eliminate hidden surfaces" [20], hidden-
 surface elimination is a rendering concern distinct from what is drawn.
 `Filling` fills below a surface with `FillingStyle` default `Opacity[0.5]`
 [20]. `ColorFunction` colors by height (e.g. `ColorFunction -> Function[{x, y,
 z}, Hue[z]]`) [20]. Lighting is a Graphics3D option (default lighting, per
 the options list's reference to Graphics3D options) [20].
 
-**Output form.** "Plot3D returns Graphics3D[GraphicsComplex[data]]" [20] — the
+**Output form.** "Plot3D returns Graphics3D[GraphicsComplex[data]]" [20]; the
 surface is a graphics complex of the sampled grid, which is the Wolfram way of
 saying the core emits geometry, not pixels.
 
@@ -524,7 +524,7 @@ key. Press A. The Auto Rotation icon appears, and the graph rotates" [26].
 Orientation presets: "Press Z, Y, or X to view along the z, y, or x axis.
 Press letter O to view from the default orientation" [26]. The camera model is
 exposed numerically in Range Settings: eye θ¡ (default 35), eye φ¡ (default
-160), and eye distance (default 11) — a spherical viewpoint parameterization
+160), and eye distance (default 11), a spherical viewpoint parameterization
 with documented defaults [29].
 
 **Grid/axes/box.** View elements (3D box, axes, box end values, legend) can be
@@ -534,19 +534,19 @@ Aspect Ratio (default 1) and range settings [29].
 
 **Projection.** Orthographic is the **default**, with perspective as an
 option: "From the View menu, click Orthographic Projection or Perspective
-View" [29] — the opposite default order from Desmos [6].
+View" [29], the opposite default order from Desmos [6].
 
 **Appearance.** Per-graph attributes: "format: surface+wire, surface only, or
 wire only"; "x resolution (enter a value in range 2-200*, default=21)"; "y
 resolution … default=21"; "transparency (enter a value in range 0-100,
-default=30)" [28] — the wireframe/solid format and resolution knobs are
+default=30)" [28]; the wireframe/solid format and resolution knobs are
 first-class settings, and default transparency 30 makes overlapping surfaces
 readable. Colors: separate line and fill colors, plus Custom Plot Color with
-"Top/bottom color, Vary color by height, or Vary color by steepness" [28] —
+"Top/bottom color, Vary color by height, or Vary color by steepness" [28],
 height and slope color encodings are documented features, alongside the
 color-independent wire format [28].
 
-**Trace in 3D:** Nspire documents a 3D trace of its own kind — **z Trace**
+**Trace in 3D:** Nspire documents a 3D trace of its own kind, **z Trace**
 draws a trace plane at a z-value: "The z Trace icon and the trace plane
 appear, along with a text line showing the current 'z=' trace value … hold
 down Shift and press the up or down arrow key" to move it [27]. That is a
@@ -560,20 +560,20 @@ combining "manual or auto rotation with the slider animation", with the
 explicit advice to "Experiment with the x and y resolution to balance curve
 definition against animation smoothness" [30].
 
-**NumWorks:** no 3D graphing — the manual's application list has no 3D
+**NumWorks:** no 3D graphing; the manual's application list has no 3D
 application [34], and the Grapher page's entire feature set is 2D [33].
 (Absence per the pages read.)
 
-### 2.5 Best practice synthesis — 3D
+### 2.5 Best practice synthesis: 3D
 
 - **Surface-as-mesh with resolution control is the universal rendering model.**
-  Wolfram states it outright — evaluate on a grid, "connects the points
+  Wolfram states it outright, evaluate on a grid, "connects the points
   {x,y,f[x,y]} to form a surface", with PlotPoints + adaptive MaxRecursion
   refinement [20]; Nspire exposes the grid size directly (x/y resolution
   2–200, default 21) alongside wire vs surface format and default
   transparency 30 [28]; Desmos's surfaces are the point sets of their
   expressions with per-item styling [4,5]. Non-finite values must leave gaps
-  and discontinuities must break the surface, not bridge it (Wolfram [20]) —
+  and discontinuities must break the surface, not bridge it (Wolfram [20]),
   the 3D analog of epher's existing no-false-asymptotes rule (ADR-0014).
   Adaptive refinement is a later optimization; a fixed grid with a
   user-facing resolution knob is the minimal viable mesh.
@@ -590,20 +590,20 @@ application [34], and the Grapher page's entire feature set is 2D [33].
   rendering-layer responsibility. For a mesh surface, sorting mesh quads by
   depth and drawing back-to-front (painter's algorithm) is the standard
   cheap answer; translucent surfaces are how Desmos [3,6] and Nspire (default
-  transparency 30) [28] make intersecting surfaces legible — depth cues that
+  transparency 30) [28] make intersecting surfaces legible, depth cues that
   do not rely on color alone.
 - **Orbit controls + keyboard equivalents converge on the same recipe.**
   Drag to orbit (Desmos [3], GeoGebra right-drag [13], Nspire drag [23]);
   inertia/spin as an optional continuation (Desmos release-in-motion [3],
   GeoGebra Start/Stop Rotating [13], Nspire A auto-rotate [26]); arrow keys
-  rotate when the view is focused (Desmos [4,9], Nspire R+arrows [26]) —
+  rotate when the view is focused (Desmos [4,9], Nspire R+arrows [26]),
   GeoGebra is the outlier: pointer-only orbit, keyboard reserved for object
-  movement [13,15,17]; named orientation presets — default
+  movement [13,15,17]; named orientation presets, default
   orientation, axis-aligned views, XY-plane view (Desmos [3,4], Nspire
   Z/Y/X/O [26], GeoGebra Back to Default View [13]); zoom via wheel/buttons/
-  shortcuts in all three [4,13,26 — and 29's Range Settings]; and a numeric
+  shortcuts in all three [4,13,26, and 29's Range Settings]; and a numeric
   viewpoint parameterization is proven by Nspire's eye θ/φ/distance defaults
-  [29] — which is exactly what epher-core would need to store a view state.
+  [29], which is exactly what epher-core would need to store a view state.
 - **Axis reference and bounds:** a cube with visible edges (Desmos "3D cube"
   [3,4], Nspire "3D box" [22,28], Wolfram Boxed→True with BoxRatios [20]);
   default axis spans ±5 (Desmos [6], Nspire [29]); equalization control
@@ -617,7 +617,7 @@ application [34], and the Grapher page's entire feature set is 2D [33].
   (Desmos [10]). For epher: pair each surface with a mesh/wire mode and
   transparency, and treat z-height coloring as an enhancement, not the
   primary cue.
-- **Accessibility is thinner in 3D than 2D everywhere — expect to close gaps
+- **Accessibility is thinner in 3D than 2D everywhere, expect to close gaps
   yourself.** Desmos excludes 3D from display enlargement [10]; neither
   Desmos's nor GeoGebra's 3D docs document trace or points of interest (only
   Nspire has the z-trace plane [27]); GeoGebra's altText3D convention [16] is
@@ -643,13 +643,13 @@ application [34], and the Grapher page's entire feature set is 2D [33].
 
 ---
 
-## 3. Implementation guidance for epher (analysis only — not source claims)
+## 3. Implementation guidance for epher (analysis only: not source claims)
 
 Given epher's seams (core computes, frontends render thin; SVG in web/desktop,
 ASCII in TUI; WCAG 2.2 AA), the competitive evidence above supports these
 recommendations.
 
-**Grammar — 3D surfaces as a sibling of `graph`, in core.** The competitors
+**Grammar, 3D surfaces as a sibling of `graph`, in core.** The competitors
 converge on explicit surfaces as the minimal form: `z(x,y)` functions (Nspire
 [23]), `f(x,y)=…` (GeoGebra [13]), `Plot3D[f,{x,…},{y,…}]` (Wolfram [20]),
 `z = …` (Desmos [4]). Consistent with epher's `graph`/`table` grammar
@@ -670,7 +670,7 @@ graph3d <expr(x,y)> [from a to b in x] [from c to d in y] [points n]
   grid, applies the view transform (orbit + projection), and emits **2D
   polylines of the visible mesh** (one polyline per mesh line, sorted
   back-to-front). Both renderers then reuse their existing line drawing
-  unchanged — this is exactly how the 2D pipeline already projects parametric/
+  unchanged; this is exactly how the 2D pipeline already projects parametric/
   polar curves to samples. Painter's algorithm in core: sort mesh quads/lines
   by depth before emitting. This keeps the ASCII renderer viable: a coarse
   mesh (points 8–12) plots as a recognizable ASCII wireframe, and the TUI
@@ -678,7 +678,7 @@ graph3d <expr(x,y)> [from a to b in x] [from c to d in y] [points n]
 - Grammar variant for the slice idiom (the documented 3D+animation
   intersection [3,4,30]): a `graph3d … slice z = <value>` (or a free constant
   in the expression, which epher's sliders already animate) plots the
-  intersection curve — defer the general case; a constant-driven slice is
+  intersection curve, defer the general case; a constant-driven slice is
   just the surface with a z-domain restriction.
 - Parametric surfaces (u,v) are a deferral [4,5,24]; spherical/cylindrical
   coordinates a deferral [7]; solids a deferral [13].
@@ -686,19 +686,19 @@ graph3d <expr(x,y)> [from a to b in x] [from c to d in y] [points n]
 **Orbit interaction.** Store a view state in core: azimuth, elevation,
 distance (Nspire's eye θ/φ/distance model [29] is the cleanest parameterization
 found), plus projection mode (perspective default like Desmos [6], with
-orthographic toggle — or orthographic default like Nspire [29]; either is
+orthographic toggle, or orthographic default like Nspire [29]; either is
 defensible, the requirement is that both exist). Web/desktop: drag to orbit,
 wheel/Alt± to zoom, arrow keys to orbit when the plot is focused (Desmos's
 focus-then-arrows [4,9] and Nspire's R-then-arrows [26] are the same pattern),
 and `0`/`o`-style presets for default/axis views [25,3]. TUI: numeric view
-commands (`view <az> <el> <dist>`) plus preset keywords — the TUI substitutes
+commands (`view <az> <el> <dist>`) plus preset keywords, the TUI substitutes
 typed view state for gestures, exactly as it substitutes stepping for slider
 drag.
 
 **Slider playback (animation).** No new language features: playback reuses
 epher's existing session constants and the ADR-0014 slider UI. In core (or the
 shell layer), a small transport model: per-slider play state, direction
-(forward/backward/oscillate — the intersection of Desmos's loop modes [1],
+(forward/backward/oscillate, the intersection of Desmos's loop modes [1],
 GeoGebra's [11], and Wolfram's AnimationDirection [18]), repeat/once, and
 speed as cycle duration (GeoGebra's "speed 1 ≈ 10 s per sweep" [11] and
 Wolfram's DefaultDuration 5 [18] both define speed as duration; recommend a
@@ -706,15 +706,15 @@ default ~5 s). Playback starts **stopped** by default (Wolfram's
 AnimationRunning->False pattern [18]; Desmos's click-to-play [1]) and a single
 Pause/Stop control is always visible (WCAG 2.2.2; GeoGebra [11] and Nspire
 [32] both ship global pause controls). Keyboard: arrow keys step (with
-PageUp/Down coarse, Home/End bounds — Desmos [9]), Space plays/pauses
+PageUp/Down coarse, Home/End bounds, Desmos [9]), Space plays/pauses
 (GeoGebra [16]); the TUI gets a transport input (`play <name>`, `pause`,
 `step`, `speed <s>`) on the same model. Each tick re-samples and re-analyzes
 via the existing path (ADR-0014 sliders already do this per change) with the
 viewport and legend **fixed** across frames (Wolfram's jiggle caution [18]).
 **Reduced motion:** honor `prefers-reduced-motion` (web) and a TUI motion
-setting by degrading playback to stepping — no vendor documents this, so epher
+setting by degrading playback to stepping, no vendor documents this, so epher
 sets its own bar (WCAG 2.3.3). No ticker/actions (Desmos [2]) and no
-multi-variable autorun (Wolfram [19]) — deferrals.
+multi-variable autorun (Wolfram [19]), deferrals.
 
 **Deferrals, explicitly:**
 
@@ -726,13 +726,13 @@ multi-variable autorun (Wolfram [19]) — deferrals.
    [8,6], Nspire [28], Wolfram ColorFunction [20]).
 5. 3D points of interest and curve-following trace; at most the z-slice
    cross-section (Nspire z Trace [27]) later.
-6. Adaptive mesh refinement (Wolfram MaxRecursion [20]) — fixed grid first.
-7. Translucent-surface compositing as a first-class feature — approximated by
+6. Adaptive mesh refinement (Wolfram MaxRecursion [20]), fixed grid first.
+7. Translucent-surface compositing as a first-class feature, approximated by
    the wireframe mode (Nspire wire format [28]); true translucency (Desmos
    [6], Nspire transparency [28]) is renderer work.
-8. Auto-rotation/inertia spin (Desmos [3], GeoGebra [13], Nspire A [26]) —
+8. Auto-rotation/inertia spin (Desmos [3], GeoGebra [13], Nspire A [26]),
    nice-to-have; manual orbit and presets first.
-9. TUI orbit is typed (view commands), not modal arrow keys — a modal 3D
+9. TUI orbit is typed (view commands), not modal arrow keys; a modal 3D
    navigation mode is the same class of deferred TUI work as TUI trace
    (ADR-0014).
 
@@ -742,7 +742,7 @@ multi-variable autorun (Wolfram [19]) — deferrals.
 
 All sources accessed 2026-08-17. Desmos article bodies were fetched through
 the help center's Zendesk API (`help.desmos.com/api/v2/help_center/en-us/
-articles/<id>.json`) — the human-readable pages are the same articles at
+articles/<id>.json`); the human-readable pages are the same articles at
 help.desmos.com (see Method). GeoGebra pages are manual pages at
 geogebra.github.io/docs/manual/en/ (official mirror of the manual, source repo
 github.com/geogebra/manual). Wolfram pages are at reference.wolfram.com. TI
@@ -752,49 +752,49 @@ are at numworks.com.
 
 **Desmos**
 
-1. *Sliders and Movable Points in a Graph* — https://help.desmos.com/hc/en-us/articles/202529069-Sliders-and-Movable-Points-in-a-Graph
-2. *Actions* — https://help.desmos.com/hc/en-us/articles/4407725009165-Actions
-3. *Getting Started: Desmos 3D* — https://help.desmos.com/hc/en-us/articles/19796006153997-Getting-Started-Desmos-3D
-4. *Desmos 3D User Guide* — https://help.desmos.com/hc/en-us/articles/25042283517069-Desmos-3D-User-Guide (article body links to the guide Google Doc: https://docs.google.com/document/d/1jDJC0Zw7cB82SNEc04m5HGQHaXYaJK62iZM88ojNYwI/preview)
-5. *Extending from 2D to 3D* — https://help.desmos.com/hc/en-us/articles/19736835727885-Extending-from-2D-to-3D
-6. *3D Graph Settings* — https://help.desmos.com/hc/en-us/articles/20301369699981-3D-Graph-Settings
-7. *Cylindrical and Spherical Coordinates* — https://help.desmos.com/hc/en-us/articles/15824510769805-Cylindrical-and-Spherical-Coordinates
-8. *Coordinate-Based 3D Color Maps* — https://help.desmos.com/hc/en-us/articles/40475048737421-Coordinate-Based-3D-Color-Maps
-9. *Keyboard Shortcuts — 3D Calculator* — https://www.desmos.com/3dshortcuts (client-rendered; shortcut table extracted from the page's own published JS bundle)
-10. *Introduction to Accessibility Features* — https://help.desmos.com/hc/en-us/articles/4404860698253-Introduction-to-Accessibility-Features
+1. *Sliders and Movable Points in a Graph*, https://help.desmos.com/hc/en-us/articles/202529069-Sliders-and-Movable-Points-in-a-Graph
+2. *Actions*, https://help.desmos.com/hc/en-us/articles/4407725009165-Actions
+3. *Getting Started: Desmos 3D*, https://help.desmos.com/hc/en-us/articles/19796006153997-Getting-Started-Desmos-3D
+4. *Desmos 3D User Guide*, https://help.desmos.com/hc/en-us/articles/25042283517069-Desmos-3D-User-Guide (article body links to the guide Google Doc: https://docs.google.com/document/d/1jDJC0Zw7cB82SNEc04m5HGQHaXYaJK62iZM88ojNYwI/preview)
+5. *Extending from 2D to 3D*, https://help.desmos.com/hc/en-us/articles/19736835727885-Extending-from-2D-to-3D
+6. *3D Graph Settings*, https://help.desmos.com/hc/en-us/articles/20301369699981-3D-Graph-Settings
+7. *Cylindrical and Spherical Coordinates*, https://help.desmos.com/hc/en-us/articles/15824510769805-Cylindrical-and-Spherical-Coordinates
+8. *Coordinate-Based 3D Color Maps*, https://help.desmos.com/hc/en-us/articles/40475048737421-Coordinate-Based-3D-Color-Maps
+9. *Keyboard Shortcuts, 3D Calculator*, https://www.desmos.com/3dshortcuts (client-rendered; shortcut table extracted from the page's own published JS bundle)
+10. *Introduction to Accessibility Features*, https://help.desmos.com/hc/en-us/articles/4404860698253-Introduction-to-Accessibility-Features
 
 **GeoGebra**
 
-11. *Animation* — https://geogebra.github.io/docs/manual/en/Animation/
-12. *Views* — https://geogebra.github.io/docs/manual/en/Views/
-13. *3D Graphics View* — https://geogebra.github.io/docs/manual/en/3D_Graphics_View/
-14. *Slider Tool* — https://geogebra.github.io/docs/manual/en/tools/Slider/
-15. *Rotate 3D Graphics View Tool* — https://geogebra.github.io/docs/manual/en/tools/Rotate_3D_Graphics_View/
-16. *Accessibility* — https://geogebra.github.io/docs/manual/en/Accessibility/
-17. *Keyboard Shortcuts* — https://geogebra.github.io/docs/manual/en/Keyboard_Shortcuts/
+11. *Animation*, https://geogebra.github.io/docs/manual/en/Animation/
+12. *Views*, https://geogebra.github.io/docs/manual/en/Views/
+13. *3D Graphics View*, https://geogebra.github.io/docs/manual/en/3D_Graphics_View/
+14. *Slider Tool*, https://geogebra.github.io/docs/manual/en/tools/Slider/
+15. *Rotate 3D Graphics View Tool*, https://geogebra.github.io/docs/manual/en/tools/Rotate_3D_Graphics_View/
+16. *Accessibility*, https://geogebra.github.io/docs/manual/en/Accessibility/
+17. *Keyboard Shortcuts*, https://geogebra.github.io/docs/manual/en/Keyboard_Shortcuts/
 
 **Wolfram**
 
-18. *Animate — Wolfram Language Documentation* — https://reference.wolfram.com/language/ref/Animate.html
-19. *Manipulate — Wolfram Language Documentation* — https://reference.wolfram.com/language/ref/Manipulate.html
-20. *Plot3D — Wolfram Language Documentation* — https://reference.wolfram.com/language/ref/Plot3D.html
+18. *Animate, Wolfram Language Documentation*, https://reference.wolfram.com/language/ref/Animate.html
+19. *Manipulate, Wolfram Language Documentation*, https://reference.wolfram.com/language/ref/Manipulate.html
+20. *Plot3D, Wolfram Language Documentation*, https://reference.wolfram.com/language/ref/Plot3D.html
 
 **Texas Instruments**
 
-21. *TI-84 Plus Guidebook* (PDF; graph styles, pausing a graph, graphing a family of curves, parametric graphing) — https://education.ti.com/html/eguides/graphing/84Plus/PDFs/TI-84-Plus-guidebook_EN.pdf
-22. *TI-Nspire™ CX II Handhelds Guidebook* (PDF; Scratchpad: assigning a variable to a slider) — https://education.ti.com/-/media/files/download-center/guidebooks/ti-nspire/5,-d-,4/gb_ti-nspire_cxii_handhelds/ti-nspire_cxii-hh_guidebook_en.aspx
-23. *TI-Nspire™ Technology eGuide — 3D Graphs* — https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/m_graphs3d.HTML
-24. *TI-Nspire™ Technology eGuide — Graphing 3D Functions* — https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_graphing_3d_functions.HTML
-25. *TI-Nspire™ Technology eGuide — Graphing 3D Parametric Equations* — https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_graphing_3d_parametric.HTML
-26. *TI-Nspire™ Technology eGuide — Zooming and Rotating the 3D View* — https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_zoom_rotate_3d_view.HTML
-27. *TI-Nspire™ Technology eGuide — Tracing in the 3D View* — https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_tracing_in_3d_view.HTML
-28. *TI-Nspire™ Technology eGuide — Changing the Appearance of a 3D Graph* — https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_changing_appearance_3d_graph.HTML
-29. *TI-Nspire™ Technology eGuide — Customizing the 3D Environment* — https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_customizing_3d_environment.HTML
-30. *TI-Nspire™ Technology eGuide — Example: Creating an Animated 3D Graph* — https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_example_animated_3d_graph.HTML
-31. *TI-Nspire™ Technology eGuide — Adjusting Variable Values with a Slider* — https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs/gra_adjusting_variable_values_with_slider.HTML
-32. *TI-Nspire™ Technology eGuide — Animating Points on Objects* — https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs/gra_animation.HTML
+21. *TI-84 Plus Guidebook* (PDF; graph styles, pausing a graph, graphing a family of curves, parametric graphing), https://education.ti.com/html/eguides/graphing/84Plus/PDFs/TI-84-Plus-guidebook_EN.pdf
+22. *TI-Nspire™ CX II Handhelds Guidebook* (PDF; Scratchpad: assigning a variable to a slider), https://education.ti.com/-/media/files/download-center/guidebooks/ti-nspire/5,-d-,4/gb_ti-nspire_cxii_handhelds/ti-nspire_cxii-hh_guidebook_en.aspx
+23. *TI-Nspire™ Technology eGuide, 3D Graphs*, https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/m_graphs3d.HTML
+24. *TI-Nspire™ Technology eGuide, Graphing 3D Functions*, https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_graphing_3d_functions.HTML
+25. *TI-Nspire™ Technology eGuide, Graphing 3D Parametric Equations*, https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_graphing_3d_parametric.HTML
+26. *TI-Nspire™ Technology eGuide, Zooming and Rotating the 3D View*, https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_zoom_rotate_3d_view.HTML
+27. *TI-Nspire™ Technology eGuide, Tracing in the 3D View*, https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_tracing_in_3d_view.HTML
+28. *TI-Nspire™ Technology eGuide, Changing the Appearance of a 3D Graph*, https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_changing_appearance_3d_graph.HTML
+29. *TI-Nspire™ Technology eGuide, Customizing the 3D Environment*, https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_customizing_3d_environment.HTML
+30. *TI-Nspire™ Technology eGuide, Example: Creating an Animated 3D Graph*, https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs3d/g3d_example_animated_3d_graph.HTML
+31. *TI-Nspire™ Technology eGuide, Adjusting Variable Values with a Slider*, https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs/gra_adjusting_variable_values_with_slider.HTML
+32. *TI-Nspire™ Technology eGuide, Animating Points on Objects*, https://education.ti.com/html/webhelp/EG_TINspire/EN/content/m_graphs/gra_animation.HTML
 
 **NumWorks**
 
-33. *Manual — Grapher* — https://www.numworks.com/manual/grapher/
-34. *NumWorks User Manual* (root page, application list) — https://www.numworks.com/manual/
+33. *Manual, Grapher*, https://www.numworks.com/manual/grapher/
+34. *NumWorks User Manual* (root page, application list), https://www.numworks.com/manual/

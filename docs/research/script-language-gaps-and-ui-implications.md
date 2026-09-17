@@ -12,7 +12,7 @@ v0.5.37), re-verified by probe against the current staging binary
 ## Why this note
 
 The third gap analysis left exactly one partial matrix row that is a
-language row — **programming surface** (5 of 9 apps offer one) — plus a
+language row, **programming surface** (5 of 9 apps offer one), plus a
 handful of language-adjacent findings. This note spells out what the
 remaining gaps are, what the comparison apps put on the other side of
 each gap, and what closing each gap would cost in each of epher's five
@@ -36,7 +36,7 @@ seeded randomness, a 100,000-step runaway guard, and store persistence
 
 ## The gaps, each against the apps that have it
 
-### 1. No input — the user cannot feed a running script
+### 1. No input: the user cannot feed a running script
 
 `input()` is an unknown name (verified). TI-Basic has `Input`/`Prompt`,
 NumWorks Python `input()`, HP Prime PPL `INPUT`, Octave `input`. The
@@ -47,12 +47,12 @@ row partial.
 
 No `open`, no read/write (verified). PPL, Octave, and NumWorks Python
 all read and write files. Note epher's twist: `save`/`load` already
-persist named definitions in the shared store — what is missing is
+persist named definitions in the shared store, what is missing is
 data I/O (tables, datasets, results) and path-based files.
 
 ### 3. Functions are single expressions
 
-`def f(x) = expr` — the body is one expression (verified: a body with
+`def f(x) = expr`; the body is one expression (verified: a body with
 two statements is a parse error; there is no `return`, no `do…end`
 bodies, no early exit). TI-Basic, PPL, Python, and Octave all have
 statement bodies with explicit return. epher compensates with
@@ -63,7 +63,7 @@ conditional or split into two defs.
 ### 4. One value per function; no destructuring
 
 Returning a list is the house idiom (`def stats(xs) = {mean, sd}`
-works, verified), but `{a, b} = f(x)` does not parse — callers index
+works, verified), but `{a, b} = f(x)` does not parse, callers index
 `v[1]`, `v[2]` (verified). The baseline's T3.4 named multiple return
 values; the loop-body "pack state in a list" style is the same
 limitation felt inside control flow.
@@ -74,9 +74,9 @@ Verified: no escape sequences at all (`\` is "unexpected character";
 a string cannot contain `"` or a newline); arithmetic beyond `+` is
 refused with "strings only support + (concatenation)"; no ordering
 comparison (`"a" < "b"` is a type error); no `upper`/`lower`/
-`substr`/`split`/`join`/`find`/`replace`/`format` — none exist. What
+`substr`/`split`/`join`/`find`/`replace`/`format`; none exist. What
 exists: literals, `+`, `==`/`!=`, `len`, indexing, `str()`. The third
-pass calls the string library "a product decision" — the smallest
+pass calls the string library "a product decision"; the smallest
 useful core is escapes + split/join + a formatted-number function,
 because scripts that print reports (finance schedules, astronomy
 tables) currently round through arithmetic instead of formatting.
@@ -95,7 +95,7 @@ a `while` with a sentinel because `break` does not exist.
 Post-ADR-0063 the *loop* variable is scoped, but `i = 5` persists in
 the shared store, and afterwards `3+4i` answers `23` (verified today;
 the third pass documented the cross-session version of this on the
-installed machine store). `pi` cannot be shadowed; `i` can — the
+installed machine store). `pi` cannot be shadowed; `i` can; the
 guide's "works exactly like `pi`" is not true for assignment. This is
 the one gap that is a footgun rather than a missing feature, and the
 store makes it cross-frontend and cross-restart.
@@ -104,7 +104,7 @@ store makes it cross-frontend and cross-restart.
 
 CAS/symbolic algebra (4/9 apps): `expand`/`factor`/`simplify` are
 unknown names, `derivative` is numeric, `solve x^2 == 2` answers
-decimals — ADR-0004's boundary, re-affirmed by the third pass.
+decimals, ADR-0004's boundary, re-affirmed by the third pass.
 Step-by-step solutions, natural-language input, curated/live data:
 absent by decision; the first needs the symbolic groundwork, the other
 two are product/network boundaries. Exam mode, spreadsheet view,
@@ -112,7 +112,7 @@ geometry: surfaces, not language.
 
 ## What each gap costs, per frontend
 
-epher's five frontends — desktop (Tauri), PWA/web, TUI, CLI, REPL —
+epher's five frontends, desktop (Tauri), PWA/web, TUI, CLI, REPL,
 share one engine, one store, one guide (×8 locales), one keypad
 language (banks, in PWA and TUI), and one scripts collection with
 transcript-checked examples (433). Any language addition lands in all
@@ -122,7 +122,7 @@ reaches the feature*.
 | Gap | Desktop (Tauri) | PWA/web | TUI | CLI | REPL |
 |---|---|---|---|---|---|
 | 1. input | modal dialog + async suspend of the evaluator; biggest lift | same as desktop, through WASM boundary; blocks the synchronous eval loop | prompt on the entry line; must pause a paste-as-one-paste block mid-run (ADR-0059) | defined EOF behavior needed: checker runs scripts with stdin closed; piped mode reads stdin naturally | natural fit: prompt on the same entry line |
-| 2. file I/O | Tauri FS is capability-scoped; OS permission prompts | no arbitrary FS — OPFS at best; path-based I/O forks behavior from the other four | native FS, mechanical | native FS, mechanical; scripts in installers can't hardcode paths (ADR-0058) | native FS, mechanical |
+| 2. file I/O | Tauri FS is capability-scoped; OS permission prompts | no arbitrary FS, OPFS at best; path-based I/O forks behavior from the other four | native FS, mechanical | native FS, mechanical; scripts in installers can't hardcode paths (ADR-0058) | native FS, mechanical |
 | 3. statement bodies / return | engine only; result pane unchanged | engine only | engine only; paste blocks get longer, unchanged mechanics | engine only; transcripts re-verify | engine only |
 | 4. multiple returns / destructuring | engine + parser only | same | same | same; scripts stop indexing `v[1]`/`v[2]` | same |
 | 5. string library + escapes | engine; result pane already renders `print` lines | engine; keypad needs a home for new functions (bank extension, ADR-0055) | engine; same keypad banks (ADR-0060) | engine; checker verifies new string scripts' transcripts | engine; autocomplete/F1 lists grow in all five entry lines |
@@ -131,14 +131,14 @@ reaches the feature*.
 
 Cross-cutting, for every gap regardless of frontend: the guide grows in
 all eight locales; every new function needs a key in the keypad banks
-(every guide function is on a key — the PWA and TUI keypads are the two
+(every guide function is on a key; the PWA and TUI keypads are the two
 places keys live); autocomplete descriptions and F1 help in all five
 entry lines; any new example scripts join the transcript checker and
 need round printed floats for cross-platform determinism.
 
 ## Reading the table
 
-- Gaps 3, 4, 6 are pure engine work — they touch all frontends only in
+- Gaps 3, 4, 6 are pure engine work; they touch all frontends only in
   the trivial sense that the grammar grows. No frontend has an
   architectural stake. These are the cheap removes.
 - Gap 5 is engine work plus one product decision (where string
@@ -155,7 +155,7 @@ need round printed floats for cross-platform determinism.
   Both gaps have an epher-shaped alternative worth considering before
   any work: store-scoped named datasets (read/write tables in the
   shared store, the way `save`/`load` carry definitions) instead of
-  `input()` and file paths — that keeps one grammar, one store, five
+  `input()` and file paths, that keeps one grammar, one store, five
   identical frontends, and the checker guarantee intact.
 - If the goal is only to move the programming row from partial to full
   in the matrix's terms, input and I/O are precisely what TI-Basic,

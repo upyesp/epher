@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Date: 2026-09-02
-- Roadmap: feature-gap analysis round 7 (T2.10 implicit relations —
+- Roadmap: feature-gap analysis round 7 (T2.10 implicit relations,
   `x^2 + y^2 == 1` plotted as a curve, five of the nine apps)
 
 ## Context
@@ -10,7 +10,7 @@
 Desmos, GeoGebra, the Nspire relations, HP's Advanced Graphing, and
 NumWorks conics all plot equations in two unknowns directly. epher's
 graph family only plots `y = f(x)` (plus parametric and polar forms),
-so `graph x^2 + y^2 == 1` currently draws nothing — the expression
+so `graph x^2 + y^2 == 1` currently draws nothing, the expression
 evaluates to a boolean per x, which the sampler drops. The report
 scopes the feature to marching squares on the existing sampler; the
 legend, zoom, export, and slider machinery should come for free.
@@ -32,8 +32,8 @@ legend, zoom, export, and slider machinery should come for free.
   cell-center average. The resulting segments chain into contour
   branches.
 - The branches leave the sampler as ordinary `Sample`s separated by
-  non-finite "pen-up" markers — the same gap mechanism vertical
-  asymptotes already use — so the renderers (web SVG, TUI ASCII, SVG
+  non-finite "pen-up" markers, the same gap mechanism vertical
+  asymptotes already use, so the renderers (web SVG, TUI ASCII, SVG
   export, PNG export) and the view fitting split and draw them for
   free, exactly like `segments()` splits `1 / x`.
 - Points of interest do not apply (the existing `cartesian_expr`
@@ -43,7 +43,7 @@ legend, zoom, export, and slider machinery should come for free.
 ## Consequences
 
 - `graph x^2 + y^2 == 1` plots a circle, `graph y == x^2` a parabola,
-  `graph x == 2` a vertical line — every relation renders with the
+  `graph x == 2` a vertical line, every relation renders with the
   existing legend, zoom, pan, export, and slider behavior.
 - Relations are sampled, never solved: sparse or near-singular
   regions may look blocky at the default grid, exactly like the

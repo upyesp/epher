@@ -268,7 +268,7 @@ ans * 2
 10
 ```
 
-Una lista puede llenar varios nombres a la vez — `{a, b} = list` desarma
+Una lista puede llenar varios nombres a la vez, `{a, b} = list` desarma
 una lista de izquierda a derecha (la sección 1.11 muestra funciones que
 devuelven así más de una respuesta):
 
@@ -387,7 +387,7 @@ true
 
 Una barra invertida dentro de una cadena inicia una **secuencia de
 escape**: `\n` es una línea nueva, `\t` una tabulación, y `\\` y `\"`
-son la barra invertida y la comilla en sí — así una cadena puede
+son la barra invertida y la comilla en sí, así una cadena puede
 contener comillas dobles:
 
 ```epher
@@ -418,7 +418,7 @@ los extremos, **substr** toma un trozo (desde 1, como cualquier
 **replace** cambia cada copia de un texto por otra, **split** rompe un
 texto en una lista en un separador, **join** pega una lista en un solo
 texto, y **fixed** escribe un número con exactamente los decimales que
-pidas — el cero que un informe quiere, conservado:
+pidas, el cero que un informe quiere, conservado:
 
 ```epher
 upper("hello")
@@ -615,7 +615,7 @@ El nombre intermedio `c` vive dentro de la llamada; no es visible desde
 fuera, y dos llamadas no ven el `c` de la otra.
 
 **return: respuesta ahora.** `return value` responde de inmediato y se
-salta el resto del cuerpo — la forma natural para una elección con
+salta el resto del cuerpo, la forma natural para una elección con
 salida anticipada:
 
 ```epher
@@ -651,12 +651,12 @@ firstsq({3, 5, 9, 11}); firstsq({3, 5, 7})
 ```
 
 Una regla mantiene los bloques legibles: el `end` siempre cierra el do
-de la función — un `if`, un `for` o un `while` no lleva `end`. Un
+de la función, un `if`, un `for` o un `while` no lleva `end`. Un
 cuerpo que termina sin respuesta (digamos, que todos los caminos
 devolvieron nada) es un error, no un silencio: epher lo dice y nombra
 la función.
 
-> **¿Más de una respuesta?** Devuelve una lista — y ponle nombre de un
+> **¿Más de una respuesta?** Devuelve una lista, y ponle nombre de un
 > solo golpe con la desestructuración de la sección 1.5:
 > `{mean, sd} = {4, 1.6}`.
 
@@ -741,7 +741,7 @@ Normalmente epher calcula con números decimales como una
 calculadora de bolsillo, y los resultados se redondean a doce cifras
 significativas como los muestra una calculadora: `0.1 + 0.2` es
 `0.3`, nunca `0.30000000000000004`. Las fracciones exactas están
-activadas por defecto — un resultado con una buena fracción de
+activadas por defecto, un resultado con una buena fracción de
 denominador pequeño cuyo decimal se repite se muestra como tal.
 `1 / 3` se muestra como `1/3` sin pedirlo:
 
@@ -777,7 +777,7 @@ frac(1, 3) * 3
 ```
 
 **dec(x)** crea un decimal exacto. `0.1 + 0.2` muestra `0.3` en ambos
-casos — la diferencia es aritmética:
+casos, la diferencia es aritmética:
 
 ```epher
 0.1 * 3 - 0.3
@@ -1249,7 +1249,7 @@ Dos listas deben tener la misma longitud para `+ - * / ^`. `==` y `!=`
 comparan listas completas; las comparaciones de orden las rechazan.
 
 Las funciones estadísticas aceptan una lista como único argumento (la
-forma con varios argumentos se mantiene — `mean(1, 2, 3)` sigue
+forma con varios argumentos se mantiene, `mean(1, 2, 3)` sigue
 funcionando): `sum product mean median mode variance stdev min max
 range`. Las nuevas funciones de forma son `len(lista)`, `sort(lista)`
 (copia ascendente), `mode(lista)` (valor más frecuente, el menor en
@@ -1291,7 +1291,7 @@ El r de un ajuste transformado es la correlación del par linealizado: el mismo 
 
 Las funciones de probabilidad cubren la normal estándar, la t de
 Student, la chi-cuadrado, la binomial y la de Poisson. La familia
-normal admite uno o tres argumentos — un solo argumento es la normal
+normal admite uno o tres argumentos, un solo argumento es la normal
 estándar:
 
 ```epher
@@ -1359,7 +1359,7 @@ t = -0.7559, p = 0.5286
 
 La familia de gráficos también acepta listas: un diagrama de
 dispersión, un histograma y un diagrama de caja. Un gráfico de datos
-ocupa el panel solo, como un sistema solar — el comando más reciente
+ocupa el panel solo, como un sistema solar, el comando más reciente
 gana, y `graph clear` lo vacía.
 
 ```epher
@@ -1382,8 +1382,8 @@ mínimos cuadrados, con la leyenda `y = a*x + b (r = …)`.
 número de clases es opcional (regla de Sturges por defecto) y debe ser
 un entero entre 1 y 50. **boxplot(datos)** dibuja el diagrama de caja:
 mínimo, Q1, mediana, Q3, máximo, con bigotes hasta los extremos. La
-ventana se abre ajustada a los datos — las palabras clave `from a to
-b` siguen sin aplicarse — y una vez dibujada, la imagen se acerca igual
+ventana se abre ajustada a los datos, las palabras clave `from a to
+b` siguen sin aplicarse, y una vez dibujada, la imagen se acerca igual
 que un gráfico de curvas: la rueda del ratón, el pellizco y el
 deslizador de zoom funcionan, y la exportación guarda lo que muestra el
 panel.
@@ -1393,7 +1393,7 @@ Una tercera palabra opcional elige el modelo: `graph scatter(xs, ys, quadreg)` (
 
 `random()` sortea un número uniforme en `[0, 1)`, `random(a, b)` uno en
 `[a, b)`, y `randint(a, b)` un número entero del intervalo cerrado
-`[a, b]` — una tirada de dados:
+`[a, b]`, una tirada de dados:
 
 ```epher
 randseed(7)
@@ -1445,7 +1445,7 @@ individuales.
 ```
 
 Los prefijos del SI escalan cualquiera de ellas: `k M G T m µ n p` son
-kilo, mega, giga, tera, mili, micro, nano, pico — `5 km`, `3 MPa`,
+kilo, mega, giga, tera, mili, micro, nano, pico, `5 km`, `3 MPa`,
 `1 GHz` funcionan, y `2 kg` es el propio kilogramo.
 
 Las dimensiones se comprueban: sumar o comparar cantidades con
@@ -1463,7 +1463,7 @@ La aritmética compone las dimensiones: `5 m * 3 m` es `15 m^2`,
 `(3 m)^2` es `9 m^2`, `sqrt(4 m^2)` es `2 m`, y una expresión completa
 cuyas dimensiones se cancelan vuelve a ser un número ordinario
 (`5 m / 5 m` es `1`). Los resultados prefieren el nombre derivado
-exacto cuando las dimensiones coinciden con uno — `5 kg * 3 m / 1 s^2`
+exacto cuando las dimensiones coinciden con uno, `5 kg * 3 m / 1 s^2`
 responde `15 N`.
 
 **Conversión.** `expr in unidad` (o `expr -> unidad`) muestra una
@@ -1487,8 +1487,8 @@ km` convierte la suma entera:
 20000 cm^2
 ```
 
-Las escalas de temperatura (Celsius, Fahrenheit) no son unidades aquí
-— los kelvins sí, y `K` funciona como cualquier otra.
+Las escalas de temperatura (Celsius, Fahrenheit) no son unidades aquí,
+los kelvins sí, y `K` funciona como cualquier otra.
 
 
 ### 1.26 Operaciones bit a bit
@@ -1561,7 +1561,7 @@ Una matriz es una rejilla de números, escrita como filas de listas:
 (con formas que coinciden), `*` es el producto matricial, un número
 escala elemento a elemento, y `^` es la potencia matricial entera
 (`A ^ 0` es la identidad, así que las potencias necesitan matrices
-cuadradas). `M[2][1]` es el elemento de la fila 2, columna 1 — las
+cuadradas). `M[2][1]` es el elemento de la fila 2, columna 1, las
 filas se indexan como listas, desde 1.
 
 ```epher
@@ -1586,7 +1586,7 @@ rref([[2, 1, 5], [1, -1, 1]])
 [[1, 0, 2], [0, 1, 1]]
 ```
 
-Las filas leen `x = 2`, `y = 1` — la última columna de la matriz
+Las filas leen `x = 2`, `y = 1`, la última columna de la matriz
 aumentada reducida. Las fracciones exactas se muestran dentro de las
 matrices como en las listas, así que `inv([[1, 2], [3, 4]])` muestra
 `[[-2, 1], [3/2, -1/2]]`.
@@ -2015,7 +2015,7 @@ planetas a lo largo de unos 5000 años alrededor del presente.
 epher habla de dinero tan bien como de astronomía: un solucionador de
 valor del dinero en el tiempo, amortización de préstamos, interés y
 análisis de flujos de caja, todo sin conexión. Todo en esta sección
-devuelve números sencillos —no cadenas de divisa—, así que las
+devuelve números sencillos, no cadenas de divisa, así que las
 respuestas no dependen de la moneda y vuelven directo a la
 aritmética. Las tasas son siempre por periodo y en forma de fracción:
 `0.08/12` es una tasa anual del 8% cobrada mensualmente, y `0.01` es
@@ -2131,8 +2131,8 @@ tvm_pv(240, 0.05/12, 1500, 0)
 ```
 
 La respuesta es negativa porque comprar el fondo es dinero que sale
-hoy. La otra dirección —cuánto apartar cada mes para llegar a una
-meta— se pregunta a `tvm_pmt` con la meta como `fv`: 50,000 en diez
+hoy. La otra dirección, cuánto apartar cada mes para llegar a una
+meta, se pregunta a `tvm_pmt` con la meta como `fv`: 50,000 en diez
 años al 5% cuestan 322 al mes:
 
 ```epher
@@ -2163,7 +2163,7 @@ un patrón de signos que nunca cuadra) reporta un error de dominio que
 dice qué intentó.
 
 **Amortización.** `amort(p, r, n, k)` es el saldo pendiente tras k
-pagos de un préstamo de p a la tasa r a n plazos — con 0 periodos es
+pagos de un préstamo de p a la tasa r a n plazos, con 0 periodos es
 el principal, con los n es cero:
 
 ```epher
@@ -2187,7 +2187,7 @@ for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
 ```
 
 **Interés.** `simple_interest(p, r, t)` es `p*r*t` y
-`compound_interest(p, r, n)` es `p*(1+r)^n - p` — ambos responden con
+`compound_interest(p, r, n)` es `p*(1+r)^n - p`, ambos responden con
 el interés ganado, no con el saldo:
 
 ```epher
@@ -2300,8 +2300,8 @@ visualización de fracción exacta otra vez; `dec(5/102)` da
 ```
 
 La colección de scripts trae 42 scripts de finanzas listos para usar
-sobre estas diez funciones —cuatro carpetas: interés, inversión,
-préstamos y ahorro—, cada uno con una transcripción verificada contra
+sobre estas diez funciones (cuatro carpetas: interés, inversión,
+préstamos y ahorro), cada uno con una transcripción verificada contra
 el motor (scripts.html los lista con resúmenes de una línea).
 
 ## 2. La aplicación web (PWA)
@@ -2460,7 +2460,7 @@ table x ^ 2 from -2 to 2 points 5 derivative x ^ 2
 
 Las celdas de la tabla siguen los ajustes de resultados: con las
 fracciones exactas activadas (por defecto), un valor que es una
-fracción simple se muestra como tal — `table x / 3 from 0 to 1
+fracción simple se muestra como tal, `table x / 3 from 0 to 1
 points 4` lista `1/3` en lugar de `0.333`.
 ```epher
 table x ^ 2 from -2 to 2 points 5

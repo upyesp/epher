@@ -1,8 +1,8 @@
 # One-time Snap Store bootstrapping (ADR-0061): the login runs HERE (the
-# runner has snapd) via snapcraft's device flow — the human authorizes in
+# runner has snapd) via snapcraft's device flow: the human authorizes in
 # their own browser with the printed URL + code. A bare runner has no
 # Secret Service keyring, so login/register/export run inside a D-Bus
-# session with an unlocked (empty-password) gnome-keyring — all three in
+# session with an unlocked (empty-password) gnome-keyring: all three in
 # ONE session, since credentials live in that keyring. The provision
 # wizard (provision-linux-stores.sh) dispatches this, lifts the URL and
 # code out of the run log, downloads the exported credentials, sets
@@ -36,7 +36,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y gnome-keyring dbus
 
-      - name: Log in, register, and export CI credentials (device flow — watch this log for the URL and code)
+      - name: Log in, register, and export CI credentials (device flow, watch this log for the URL and code)
         run: |
           dbus-run-session -- bash -c '
             set -euo pipefail
@@ -47,7 +47,7 @@ jobs:
             if snapcraft register "${{ inputs.snap_name }}"; then
               echo "registered ${{ inputs.snap_name }}"
             else
-              echo "::notice::register failed — the name may be taken or reserved; pick another and update packaging/snap/snapcraft.yaml."
+              echo "::notice::register failed; the name may be taken or reserved; pick another and update packaging/snap/snapcraft.yaml."
             fi
             snapcraft export-login --snaps="${{ inputs.snap_name }}" snap-store-credentials
           '

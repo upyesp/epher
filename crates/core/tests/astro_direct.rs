@@ -1,7 +1,7 @@
 //! The direct single-body ephemeris path against the full sky snapshot
 //! (ADR-0037's facade): for the Sun and Moon, the accessors compute the
 //! place directly from the crate's public modules, mirroring the
-//! crate's private `topocentric_sky_at_time` — so every value the
+//! crate's private `topocentric_sky_at_time`, so every value the
 //! accessors return must equal, bit for bit, what the snapshot's JSON
 //! carries for the same body (after the same string quantization).
 //! These tests pin that identity: if a `solar-ephemeris` upgrade
@@ -36,7 +36,7 @@ fn snapshot_field(jd: f64, lat: f64, lon: f64, name: &str, key: &str) -> f64 {
         .unwrap_or_else(|| panic!("no {key} for {name}"))
 }
 
-/// (body number, crate body name, jd, lat, lon) — the great lights
+/// (body number, crate body name, jd, lat, lon), the great lights
 /// across seasons, distances, and hemispheres.
 const CASES: &[(i64, &str, f64, f64, f64)] = &[
     (10, "Sun", 2451544.5, 0.0, 0.0),
@@ -77,7 +77,7 @@ fn direct_ra_dec_dist_alt_az_and_diam_match_the_snapshot() {
 #[test]
 fn direct_path_stays_exact_over_a_bisect_like_sweep() {
     // A bisect-like sweep: 25 consecutive instants, one body. Every
-    // accessor value must equal the snapshot's — the scripts that scan
+    // accessor value must equal the snapshot's, the scripts that scan
     // transit hundreds of such steps, and their transcripts print the
     // values at full precision.
     let jd0 = 2460845.0;

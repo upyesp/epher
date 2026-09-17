@@ -6,7 +6,7 @@ import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
 
 /**
  * Launches the shared {@code epher-lsp} server over stdio, found on
- * PATH — the same bring-your-own-binary contract as the emacs, vim,
+ * PATH; the same bring-your-own-binary contract as the emacs, vim,
  * and neovim clients (ADR-0066): the user installs the binary from
  * the release page once; the plugin never downloads anything.
  *

@@ -1,23 +1,23 @@
-# Confirm epher on Apple silicon (aarch64) — the hardware the macOS dmg
+# Confirm epher on Apple silicon (aarch64): the hardware the macOS dmg
 # ships for (ADR-0025 dropped the Intel build). This is a test floor, not
 # a release: it publishes nothing.
 #
 # Four frontends, driven black-box on the arm64 runner:
 #   - the workspace test suite (engine numerics, CLI dispatch, TUI App
-#     seam, store, i18n, guide) — `cargo test --workspace`;
+#     seam, store, i18n, guide): `cargo test --workspace`;
 #   - the CLI: version, arithmetic, bases, 2D/3D graph exports with the
 #     transparent-export contract (ADR-0055), piped stdin both ways,
 #     a repository script end to end, the missing-path error
 #     (ADR-0058), and the embedded web build hash;
 #   - every repository script replaying its expected transcript
 #     through the unified release binary (catches any arm64 drift in
-#     evaluation or number formatting — and on PRs it is the promotion
+#     evaluation or number formatting, and on PRs it is the promotion
 #     gate, so main only ever merges a staging tree whose transcripts
 #     replay on arm64);
 #   - the REPL: one piped session covering definitions, `ans`, saved
 #     scripts, `load` by name and by path, and graph export;
 #   - the TUI: driven through a real pty with a terminal emulator
-#     replaying the output (scripts/tui-smoke.py) — typing, bracketed
+#     replaying the output (scripts/tui-smoke.py): typing, bracketed
 #     paste of a whole script (ADR-0059), history, and a clean quit;
 #   - the desktop app: bundled as a .app, inspected (scripts and guide
 #     resources, ADR-0053/0058), ad-hoc signed, launched on the
@@ -26,7 +26,7 @@ name: macOS Apple silicon
 
 # Runs on every main push (live = release-only, ADR-0062), on every
 # staging push (the staged batch's test floor), and on pull requests
-# into main — the latter is the promotion gate: main's branch
+# into main; the latter is the promotion gate: main's branch
 # protection requires this check to pass before a staging→main PR can
 # merge.
 on:
@@ -207,4 +207,4 @@ jobs:
 
       - name: Result
         if: always()
-        run: echo "Apple silicon — suite, CLI, 333 scripts, REPL, TUI, desktop app."
+        run: echo "Apple silicon, suite, CLI, 333 scripts, REPL, TUI, desktop app."

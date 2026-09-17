@@ -3,7 +3,7 @@
 // Navigation requests are network-first (so new deploys reach users) with a
 // cache fallback when offline. Same-origin asset requests are runtime-cached
 // (cache-first after the first load), so the app is fully usable offline
-// once it has been loaded online — the shell (index.html + the hashed wasm
+// once it has been loaded online, the shell (index.html + the hashed wasm
 // and js) is what the fetch handler sees on the first visit.
 //
 // Bump CACHE when the precache set or the caching strategy changes; the

@@ -11,9 +11,9 @@ claim carries its source URL inline. Two observations about the live services
 
 Whether our VS Code extension (clients/vscode, `main: ./out/extension.js`,
 engines ^1.85.0, declarative language contributions plus a download-and-spawn
-native Rust LSP server) can run in the browser versions of VS Code —
+native Rust LSP server) can run in the browser versions of VS Code,
 vscode.dev, github.dev (the editor behind the "." key on GitHub), and the
-Codespaces-lite web configurations — and what exactly that would require.
+Codespaces-lite web configurations, and what exactly that would require.
 
 ## 1. What web VS Code is
 
@@ -23,7 +23,7 @@ for browsing local files, GitHub repos (`vscode.dev/github/<org>/<repo>`), and
 Azure Repos ([vscode-web doc](https://code.visualstudio.com/docs/remote/vscode-web)).
 [github.dev](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor)
 is GitHub's own web editor; you reach it by pressing `.` (the period key) on a
-repository or Pull Request — the VS Code web-extensions guide describes exactly
+repository or Pull Request, the VS Code web-extensions guide describes exactly
 this ("the `github.dev` user interface reached by pressing `.` (the period key)
 when browsing a repository or Pull Request in GitHub",
 [web extensions guide](https://code.visualstudio.com/api/extension-guides/web-extensions);
@@ -42,16 +42,16 @@ VS Code for the Web "runs entirely in your web browser's sandbox and offers a
 very limited execution environment"; the terminal and debugger are not
 available because you cannot compile, run, and debug a Rust or Go application
 inside the browser sandbox ([vscode-web doc](https://code.visualstudio.com/docs/remote/vscode-web)).
-GitHub's doc is equally blunt about github.dev: compute — "There is no
+GitHub's doc is equally blunt about github.dev: compute, "There is no
 associated compute, so you won't be able to build and run your code or use the
-integrated terminal"; terminal access — "None"
+integrated terminal"; terminal access, "None"
 ([docs.github.com](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor)).
 
 Two observed facts about the live services (not doc claims, checked 2026-09-12
 with `curl`): `https://vscode.dev` serves
 `cross-origin-opener-policy: same-origin` and
 `cross-origin-embedder-policy: require-corp` (the page is cross-origin
-isolated — this matters for WASM threads, below), and `https://github.dev`
+isolated; this matters for WASM threads, below), and `https://github.dev`
 currently answers with a `302` redirect to `https://vscode.dev/github/`.
 
 ## 2. What makes an extension a "web extension"
@@ -118,10 +118,10 @@ saved in the browser's local storage and can sync via Settings Sync
 in the browser. You can use the Extensions view to install extensions in the
 web, and extensions that cannot be installed will have a warning icon and
 Learn Why link" ([vscode-web doc](https://code.visualstudio.com/docs/remote/vscode-web)).
-github.dev is narrower still — "The github.dev editor supports VS Code
+github.dev is narrower still, "The github.dev editor supports VS Code
 extensions that have been specifically created or updated to run in the web.
 These extensions are known as 'web extensions'... Extensions that can run in
-github.dev will appear in the Extensions View and can be installed" — and,
+github.dev will appear in the Extensions View and can be installed", and,
 contrasted with Codespaces: "Only a subset of extensions that can run in the
 web will appear in the Extensions View and can be installed. With GitHub
 Codespaces, you can use most extensions from the Visual Studio Code
@@ -161,14 +161,14 @@ The guide's list of limitations for the browser entry file
   can polyfill some.
 - The workspace is a virtual file system: "Access to workspace files needs to
   go through the VS Code file system API accessible at `vscode.workspace.fs`."
-- Extension context locations — `extensionUri`, `storageUri`,
-  **`globalStorageUri`** — are also on a virtual file system and need to go
+- Extension context locations, `extensionUri`, `storageUri`,
+  **`globalStorageUri`**: are also on a virtual file system and need to go
   through `vscode.workspace.fs`. So yes, a web extension can read and write
   its global storage, but only through `vscode.workspace.fs`, never Node `fs`.
 - "For accessing web resources, the Fetch API must be used. Accessed resources
   need to support Cross-Origin Resource Sharing (CORS)."
 - "Creating child processes or running executables is not possible. However,
-  web workers can be created through the Worker API" — which is exactly how
+  web workers can be created through the Worker API", which is exactly how
   language servers run in the web (next section).
 - The runtime "only supports the execution of JavaScript and WebAssembly";
   libraries in other languages must be cross-compiled (the guide cites C/C++
@@ -183,9 +183,9 @@ github.dev's comparison table says the same: no associated compute, no
 terminal, and it warns "If you try to access the Run and Debug View or the
 Terminal, you'll be notified that they are not available in github.dev"
 ([docs.github.com](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor)).
-The virtual-workspaces guide — the same restrictions apply because "VS Code
+The virtual-workspaces guide, the same restrictions apply because "VS Code
 for the Web runs entirely inside a browser and workspaces are virtual due to
-the browser sandbox" — adds that if you "run executables and tasks from
+the browser sandbox", adds that if you "run executables and tasks from
 commands, check whether these commands make sense in a virtual workspace"
 ([virtual workspaces guide](https://code.visualstudio.com/api/extension-guides/virtual-workspaces)).
 The guide does not list the authentication API as restricted; I found no
@@ -227,7 +227,7 @@ bridged with `BrowserMessageReader`/`BrowserMessageWriter` from
 is the reference architecture. Its package.json declares
 `"browser": "./client/dist/browserClientMain"`, activation
 `"onLanguage:plaintext"`, engines `^1.100.0`, and webpack builds (no `main` at
-all — it is web-only). The client entry imports `LanguageClient` from
+all; it is web-only). The client entry imports `LanguageClient` from
 `vscode-languageclient/browser` and constructs it with a worker:
 
 ```ts
@@ -240,7 +240,7 @@ The server entry imports `createConnection, BrowserMessageReader,
 BrowserMessageWriter` from `vscode-languageserver/browser` and connects over
 `self` (the worker global); everything after the connection is runtime-neutral
 code that "could be shared with a regular extension." The webpack config
-builds **two** bundles with `target: 'webworker'` — client and server — with
+builds **two** bundles with `target: 'webworker'`, client and server, with
 `vscode` as external and `path-browserify` as a node-polyfill fallback. Both
 sample sources:
 [client/src/browserClientMain.ts](https://github.com/microsoft/vscode-extension-samples/blob/main/lsp-web-extension-sample/client/src/browserClientMain.ts),
@@ -275,8 +275,8 @@ inside the WASM sandbox)
 
 **Does our shape of server fit? Microsoft built a testbed that is exactly our
 shape.** [testbeds/lsp-rust](https://github.com/microsoft/vscode-wasm/tree/main/testbeds/lsp-rust)
-is a plain `lsp-server`-crate stdio server — `use lsp_server::{Connection, ...}`,
-`Connection::stdio()` — the same crate (0.7.6) our crates/lsp uses, compiled
+is a plain `lsp-server`-crate stdio server, `use lsp_server::{Connection, ...}`,
+`Connection::stdio()`, the same crate (0.7.6) our crates/lsp uses, compiled
 with `cargo rustc --release --target wasm32-wasi-preview1-threads`. The client
 wraps it in a normal `LanguageClient` whose async `ServerOptions` compiles
 `server.wasm` from the extension directory, creates the process with
@@ -286,24 +286,24 @@ and shared memory `{ initial: 160, maximum: 160, shared: true }`, then returns
 [server Cargo.toml](https://github.com/microsoft/vscode-wasm/blob/main/testbeds/lsp-rust/server/Cargo.toml),
 [server/package.json](https://github.com/microsoft/vscode-wasm/blob/main/testbeds/lsp-rust/server/package.json)).
 Note the testbed's own client still imports `vscode-languageclient/node` and
-has no `browser` entry — it demonstrates the desktop case; the pieces are the
+has no `browser` entry; it demonstrates the desktop case; the pieces are the
 same but the browser wiring (worker + browser client import) is the
 lsp-web-extension-sample's job.
 
-**Threads — the question our server actually turns on.** Our server uses
+**Threads; the question our server actually turns on.** Our server uses
 `std::thread::spawn` + `sleep` for debounce and crossbeam channels. Three
 verified facts: (1) vscode-wasm explicitly supports wasi-threads
 ([wasm-wasi-core README](https://github.com/microsoft/vscode-wasm/blob/main/wasm-wasi-core/README.md));
 (2) Microsoft's own [testbeds/rust-threads](https://github.com/microsoft/vscode-wasm/tree/main/testbeds/rust-threads)
-is `std::thread::spawn` with `thread::sleep(Duration::from_millis(...))` —
-literally our debounce pattern — built to `wasm32-wasi-preview1-threads` and
+is `std::thread::spawn` with `thread::sleep(Duration::from_millis(...))`,
+literally our debounce pattern, built to `wasm32-wasi-preview1-threads` and
 run with shared memory (`{ initial: 17, maximum: 17, shared: true }`)
 ([extension.ts](https://github.com/microsoft/vscode-wasm/blob/main/testbeds/rust-threads/extension.ts),
 [src/main.rs](https://github.com/microsoft/vscode-wasm/blob/main/testbeds/rust-threads/src/main.rs));
 (3) in the browser, threads require shared memory, and "To use shared memory
 your document must be in a secure context and cross-origin isolated"
 ([MDN SharedArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer)).
-vscode.dev serves the cross-origin-isolation headers (COOP/COEP — *observed*,
+vscode.dev serves the cross-origin-isolation headers (COOP/COEP, *observed*,
 2026-09-12), so wasi-threads is at least plausible there; the vscode-wasm docs
 themselves don't spell out per-surface thread guarantees, so this needs a
 hands-on test before we rely on it. The safe planning assumption is that the
@@ -314,16 +314,16 @@ they misbehave.
 **Alternatives when the server can't run**, all from Microsoft docs: run the
 server logic in-process in the extension worker (the browser client's
 `ServerOptions` accepts a factory returning `MessageTransports`, so the
-transport need not be a worker at all —
+transport need not be a worker at all,
 [client/src/browser/main.ts](https://github.com/microsoft/vscode-languageserver-node/blob/main/client/src/browser/main.ts));
 compile the engine to WebAssembly and drive it in-process like vscode-anycode
 does with tree-sitter
 ([web extensions guide](https://code.visualstudio.com/api/extension-guides/web-extensions));
 or degrade to declarative-only support. The virtual-workspaces guide defines
-the expected tiers for languages in the web — **A. Basic** (TextMate
+the expected tiers for languages in the web, **A. Basic** (TextMate
 tokenization, editing support, snippets), **B. Single-file** (symbols,
 completions, hovers, formatting, same-file validation), **C. Cross-file,
-workspace-aware** — and says rich extensions may legitimately ship only Basic
+workspace-aware**, and says rich extensions may legitimately ship only Basic
 or Single-file in the web. It also documents the split-extension pattern used
 by the built-in JSON support: a basic extension (grammar, configuration,
 snippets, `"virtualWorkspaces": true`) plus a rich extension (the `main`
@@ -332,17 +332,17 @@ file, `"virtualWorkspaces": false`, `extensionDependencies` on the basic one)
 
 ## 5. Packaging and publishing
 
-**One VSIX, both runtimes — yes.** Documented directly: "Extensions can have
+**One VSIX, both runtimes, yes.** Documented directly: "Extensions can have
 both `browser` and `main` entry points in order to run in browser and in
 Node.js runtimes" ([web extensions guide](https://code.visualstudio.com/api/extension-guides/web-extensions)).
 vsce operationalizes it: extension-kind deduction treats `main`+`browser` as
 `['workspace', 'web']`, and packaging validates that **both** entry files are
-actually in the VSIX — a missing one fails with "Extension entrypoint(s)
+actually in the VSIX, a missing one fails with "Extension entrypoint(s)
 missing... Make sure these files exist and aren't ignored by '.vscodeignore'"
 ([vsce package.ts](https://github.com/microsoft/vscode-vsce/blob/main/src/package.ts)).
 So the `.vscodeignore` must keep the browser bundle (and the server/worker
 bundle and any `.wasm` assets) while excluding sources, tsconfig, and
-node_modules — the lsp-web-extension-sample's
+node_modules, the lsp-web-extension-sample's
 [.vscodeignore](https://github.com/microsoft/vscode-extension-samples/blob/main/lsp-web-extension-sample/.vscodeignore)
 excludes exactly those.
 
@@ -370,7 +370,7 @@ Standard Marketplace publishing otherwise applies
 **Open VSX.** For Microsoft's web editors it does not matter: vscode.dev and
 github.dev install from the Visual Studio Marketplace (github.dev: "web
 extensions" from the Marketplace; Codespaces: "most extensions from the Visual
-Studio Code Marketplace" —
+Studio Code Marketplace",
 [docs.github.com](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor)),
 and web extensions are "hosted on the Marketplace along with other extensions"
 ([web extensions guide](https://code.visualstudio.com/api/extension-guides/web-extensions)).
@@ -378,7 +378,7 @@ Open VSX is "a vendor-neutral open-source alternative to the Visual Studio
 Marketplace" run by the Eclipse Foundation
 ([eclipse-openvsx/openvsx README](https://github.com/eclipse-openvsx/openvsx),
 [about page](https://open-vsx.org/)); it exists because other VS Code-like
-environments may not use Microsoft's registry — VSCodium "uses open-vsx.org"
+environments may not use Microsoft's registry, VSCodium "uses open-vsx.org"
 citing the Marketplace ToU ("you may only install and use Marketplace
 Offerings with Visual Studio Products and Services")
 ([VSCodium README](https://github.com/VSCodium/vscodium)), and code-server
@@ -386,7 +386,7 @@ documents installing extensions from OpenVSX
 ([code-server FAQ](https://raw.githubusercontent.com/coder/code-server/main/docs/FAQ.md)).
 VSCodium ships no official web build, so Open VSX matters for our website-page
 distribution story only if we care about VSCodium *desktop* or code-server
-users — a separate decision.
+users, a separate decision.
 
 ## Facts worth keeping
 

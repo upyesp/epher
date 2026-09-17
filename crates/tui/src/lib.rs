@@ -1,8 +1,8 @@
-//! epher-tui — native full-screen terminal frontend (ADR-0001).
+//! epher-tui, native full-screen terminal frontend (ADR-0001).
 //!
 //! The testable seam is [`App`] (input/result + the shared [`Session`]) plus
 //! the pure [`render_ascii`] plot renderer (ADR-0006: the TUI renders ASCII).
-//! [`run`] is the ratatui event loop — a thin shell over both — exposed as a
+//! [`run`] is the ratatui event loop, a thin shell over both, exposed as a
 //! library function so the unified `epher` binary can host it (`epher tui`).
 
 use epher_core::astro::SolarScene;
@@ -53,8 +53,8 @@ impl Theme {
 }
 
 /// What the file prompt under the menu bar is asking for (ADR-0017).
-/// History files are gone — the share icon moves history between
-/// devices (ADR-0027 amendment) — so only scripts prompt.
+/// History files are gone, the share icon moves history between
+/// devices (ADR-0027 amendment), so only scripts prompt.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PromptKind {
     OpenScript,
@@ -117,7 +117,7 @@ pub struct Play {
     pub step: f64,
 }
 
-/// The TUI's application state — the testable seam. Rendering is thin.
+/// The TUI's application state, the testable seam. Rendering is thin.
 #[derive(Default)]
 pub struct App {
     input: String,
@@ -135,7 +135,7 @@ pub struct App {
     /// curve sibling of the surface set.
     curve3d: Vec<SpaceCurve>,
     /// The data plot (ADR-0044): a scatter, histogram, or boxplot owns
-    /// the pane like the solar scene does — the newest command wins.
+    /// the pane like the solar scene does, the newest command wins.
     data: Option<DataPlot>,
     /// The solar system scene (`solar3d`, ADR-0037) and the source of
     /// its time expression, for playback resampling.
@@ -143,13 +143,13 @@ pub struct App {
     solar_source: Option<String>,
     view: View3D,
     /// The 3D fine-control offsets (ADR-0031): horizontal rotation,
-    /// vertical rotation, zoom — each −1..1, step 0.1, 0 = the orbit
+    /// vertical rotation, zoom; each −1..1, step 0.1, 0 = the orbit
     /// pose unchanged.
     view_h: f64,
     view_v: f64,
     view_z: f64,
     /// The 2D graph's viewport override (ADR-0034): mouse drags pan,
-    /// the wheel zooms — `None` is the auto-fit around the samples.
+    /// the wheel zooms, `None` is the auto-fit around the samples.
     view2d: Option<(f64, f64, f64, f64)>,
     play: Option<Play>,
     /// Keypad focus mode (ADR-0016): Tab opens the button grid and
@@ -157,7 +157,7 @@ pub struct App {
     /// the token, Esc closes.
     keypad: bool,
     /// The keypad's docked-away state (ADR-0060): true has slid the
-    /// keypad out of view — the strip row where its top border sat
+    /// keypad out of view; the strip row where its top border sat
     /// remains as the grab area, and the history list grows into the
     /// freed space. Inverted so `App::default()` (the derived one)
     /// starts with the keypad shown. Session state; never persisted.
@@ -169,7 +169,7 @@ pub struct App {
     /// selectable. Enter inserts the name into the input line.
     constants: Option<usize>,
     /// The browser's rows, snapshot at open: (name, value, hint) in
-    /// the guide's group order — Math, Astronomy, Physics, Chemistry.
+    /// the guide's group order, Math, Astronomy, Physics, Chemistry.
     constants_rows: Vec<(String, Option<f64>, String)>,
     kp_bank: usize,
     kp_row: usize,
@@ -188,11 +188,11 @@ pub struct App {
     prompt: Option<(PromptKind, String)>,
     /// The prompt's caret (a byte offset into the path buffer, ADR-0017
     /// amendment): arrows move it, Backspace deletes before it, typed
-    /// characters insert at it — the path prefill edits like any text.
+    /// characters insert at it, the path prefill edits like any text.
     prompt_cursor: usize,
     /// History focus mode (ADR-0027): Tab reaches the history list, the
     /// arrows move the selection, and Enter loads the selected line into
-    /// the input — the terminal spelling of the web's clickable history.
+    /// the input, the terminal spelling of the web's clickable history.
     /// `hist_sel` indexes the DISPLAYED list (0 = newest line on top).
     /// `hist_rows` maps each displayed ROW of the last frame to the
     /// displayed entry that owns it (ADR-0027 amendment: multi-line
@@ -268,16 +268,16 @@ pub struct Areas {
 }
 
 /// The TUI keypad (ADR-0016): a condensed grid of the most-used
-/// tokens — the full set lives on the web keypad; the terminal stays
+/// tokens, the full set lives on the web keypad; the terminal stays
 /// compact. (display, insert-at-end). The digits bank is a mirror of the
-/// web keypad's `123` tab — same keys, same 5×5 arrangement — and its
+/// web keypad's `123` tab, same keys, same 5×5 arrangement, and its
 /// three action keys (C, ⌫, =) are spelled by an empty insert string;
 /// [`App::keypad_insert`] performs them (the "=" submit runs through
 /// the entry's submit path in the caller, which owns the store).
 /// The keypad's banks (ADR-0016): every function, constant, and command
 /// the language supports, mirroring the web keypad's tabs in the same
 /// order (digits first, like the web). Labels are the language tokens
-/// themselves (ADR-0007 — the language is never localized). Rows may be
+/// themselves (ADR-0007; the language is never localized). Rows may be
 /// ragged; the widest row fixes the grid width.
 const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
     (
@@ -1090,8 +1090,8 @@ impl App {
     }
 
     /// Toggle the docked state (ADR-0060): the grab drag, the strip
-    /// click, and Ctrl+K all land here. Hiding also drops keypad focus
-    /// — a focused grid the user cannot see is a focus trap.
+    /// click, and Ctrl+K all land here. Hiding also drops keypad focus;
+    /// a focused grid the user cannot see is a focus trap.
     pub fn keypad_toggle(&mut self) {
         self.keypad_docked = !self.keypad_docked;
         if self.keypad_docked {
@@ -1136,7 +1136,7 @@ impl App {
     /// Apply the highlighted key: tokens insert at the cursor (the
     /// terminal cursor sits wherever the caret is); the digits bank's
     /// action keys clear ("C") and backspace ("⌫") at the caret. The
-    /// "=" key only marks the highlight — [`Self::keypad_is_submit`] tells
+    /// "=" key only marks the highlight, [`Self::keypad_is_submit`] tells
     /// the caller to run the entry's submit path instead.
     pub fn keypad_insert(&mut self) {
         let row = &BANKS[self.kp_bank].1[self.kp_row];
@@ -1236,7 +1236,7 @@ impl App {
         self.menu = None;
     }
 
-    /// Open the menu bar if closed, close it if open — the shared body of
+    /// Open the menu bar if closed, close it if open, the shared body of
     /// the menu-toggle chord (ADR-0017 amendment).
     pub fn menu_toggle(&mut self) {
         if self.menu.is_some() {
@@ -1428,7 +1428,7 @@ impl App {
         self.guide
     }
 
-    /// Empty the graph pane: curves, points of interest, 3D surfaces —
+    /// Empty the graph pane: curves, points of interest, 3D surfaces,
     /// the menu spelling of `graph clear` + `graph3d clear` (ADR-0018).
     pub fn clear_graph(&mut self) {
         self.graph.clear();
@@ -1450,7 +1450,7 @@ impl App {
 
     /// Start a file prompt. Save prompts pre-fill the default file name
     /// (`epher-script.epher`, ADR-0027) so Enter saves to the current
-    /// directory; the buffer stays fully editable — any extension the
+    /// directory; the buffer stays fully editable, any extension the
     /// user types wins. Open prompts start empty.
     pub fn prompt_start(&mut self, kind: PromptKind) {
         let default = match kind {
@@ -1496,14 +1496,14 @@ impl App {
     }
 
     /// Load the selected line into the input (replacing whatever is
-    /// there — it is not run) and leave history focus. `None` when the
+    /// there; it is not run) and leave history focus. `None` when the
     /// history is empty.
     pub fn history_pick(&mut self) -> Option<String> {
         self.history_pick_display(self.hist_sel)
     }
 
     /// Load the entry shown at `display_idx` (0 = newest on top) into the
-    /// input — the mouse spelling of the web's clickable history
+    /// input, the mouse spelling of the web's clickable history
     /// (ADR-0034).
     pub fn history_pick_display(&mut self, display_idx: usize) -> Option<String> {
         let len = self.session.history().len();
@@ -1513,7 +1513,7 @@ impl App {
         }
         let sel = display_idx;
         let entry = self.session.history()[len - 1 - sel].clone();
-        // ADR-0031: the pick loads the expression — the recorded answer
+        // ADR-0031: the pick loads the expression, the recorded answer
         // suffix (`  = …`, `  error: …`, `  warning: …`) stays out of the
         // input so the user can edit and re-run it. Multi-line script
         // entries (ADR-0027 amendment) come back as one `; `-joined
@@ -1673,7 +1673,7 @@ impl App {
         self.session.bindings()
     }
 
-    /// The shared session (constants, history) — public so tests can read
+    /// The shared session (constants, history), public so tests can read
     /// animation state.
     pub fn session(&self) -> &Session {
         &self.session
@@ -1699,7 +1699,7 @@ impl App {
     }
 
     /// Pan the 2D viewport by a mouse-drag delta in cells (ADR-0034):
-    /// the plot follows the pointer — dragging right moves the window
+    /// the plot follows the pointer, dragging right moves the window
     /// left through the data, dragging down moves it up.
     pub fn graph2d_pan(&mut self, dx_cells: f64, dy_cells: f64, width: usize, height: usize) {
         let Some((x_min, x_max, y_min, y_max)) = self.graph2d_effective() else {
@@ -1730,13 +1730,13 @@ impl App {
         self.view2d = Some((cx - hx, cx + hx, cy - hy, cy + hy));
     }
 
-    /// Drop the 2D viewport override — the plot re-fits its samples.
+    /// Drop the 2D viewport override, the plot re-fits its samples.
     pub fn graph2d_reset(&mut self) {
         self.view2d = None;
     }
 
     /// Reset the 3D camera to the default pose (mouse double-click,
-    /// ADR-0034). The fine-control offsets are untouched — they belong
+    /// ADR-0034). The fine-control offsets are untouched; they belong
     /// to the sliders.
     pub fn view_reset_pose(&mut self) {
         self.view = View3D::default();
@@ -1769,7 +1769,7 @@ impl App {
     }
 
     /// Insert a whole token (a constant name from the browser,
-    /// ADR-0045) at the cursor, moving past it — the multi-character
+    /// ADR-0045) at the cursor, moving past it, the multi-character
     /// counterpart of [`push_char`].
     pub fn insert_text(&mut self, text: &str) {
         let at = self.cursor();
@@ -1782,7 +1782,7 @@ impl App {
     /// and the next Enter runs it exactly like the desktop and web
     /// entries run theirs. Line endings normalize to `\n` (Windows
     /// clipboards carry `\r\n`). Unlike typing, no `ans` is injected
-    /// for a leading operator — pasted text is verbatim.
+    /// for a leading operator, pasted text is verbatim.
     pub fn paste_text(&mut self, text: &str) {
         let text = text.replace("\r\n", "\n").replace('\r', "\n");
         self.insert_text(&text);
@@ -1925,7 +1925,7 @@ impl App {
     }
 
     /// Place the cursor at the byte offset for the given (line, column)
-    /// in character columns — the mouse's spelling of a caret move
+    /// in character columns; the mouse's spelling of a caret move
     /// (ADR-0035 amendment, TUI).
     pub fn cursor_to(&mut self, line: usize, col: usize) {
         let mut start = 0;
@@ -1961,12 +1961,12 @@ impl App {
 
     /// Handle one submitted line the way the event loop does: shell commands
     /// dispatch through the shared kernel (epher-shell), `graph ` samples,
-    /// `graph3d ` samples a surface, anything else evaluates — and history
+    /// `graph3d ` samples a surface, anything else evaluates: and history
     /// persists. A line may join several statements with `;` or newlines
-    /// (the same separator, ADR-0001 — Shift+Enter composes them in the
+    /// (the same separator, ADR-0001, Shift+Enter composes them in the
     /// entry, ADR-0035 amendment): each statement dispatches in order,
     /// exactly as if typed one by one, but the history keeps the script
-    /// the way the user entered it — one entry per line, newlines and
+    /// the way the user entered it, one entry per line, newlines and
     /// semicolons intact, with the last answer appended when the final
     /// statement is an evaluation. Returns the new language preference
     /// when a `language` command changed it, so the caller can re-resolve
@@ -2133,7 +2133,7 @@ impl App {
             self.result = plain(handled.message);
             // A table is a computation: the command joins the session
             // history like every other submitted line (the graph
-            // precedent, ADR-0027) — picking it loads the command, and
+            // precedent, ADR-0027), picking it loads the command, and
             // re-running it regenerates the table. The other shell
             // commands persist their effect and leave no entry.
             if matches!(cmd, epher_shell::Command::Table { .. }) && !quiet {
@@ -2170,7 +2170,7 @@ impl App {
     /// string on failure; points of interest are recomputed for the whole
     /// set.
     /// Write the current 2D plot as the same self-contained SVG the web
-    /// app's copy button yields (ADR-0020) — from the same renderer, so
+    /// app's copy button yields (ADR-0020), from the same renderer, so
     /// the bytes match. The result line carries the localized outcome.
     pub fn save_graph_svg(&self, path: &str, localizer: &Localizer) -> String {
         let plots = match self.data.as_ref() {
@@ -2454,7 +2454,7 @@ impl App {
 
     /// Start or stop the parameter animation. Playing animates the first
     /// constant referenced by any plotted surface (or curve) within its
-    /// current value ±2, stepping 0.1 per tick and wrapping around — the
+    /// current value ±2, stepping 0.1 per tick and wrapping around, the
     /// TUI's counterpart of the web sliders' play button (ADR-0015).
     pub fn toggle_play(&mut self) -> bool {
         if self.play.is_some() {
@@ -2479,7 +2479,7 @@ impl App {
     }
 
     /// The first constant referenced by a plotted surface, else a plotted
-    /// curve — the parameter animation steps it.
+    /// curve, the parameter animation steps it.
     fn animated_constant(&self) -> Option<String> {
         let mut names = std::collections::BTreeSet::new();
         for s in &self.surface {
@@ -2508,7 +2508,7 @@ impl App {
         self.curve_animated_constant()
     }
 
-    /// The first constant referenced by a plotted CURVE — the "space
+    /// The first constant referenced by a plotted CURVE; the "space
     /// animates" hint shows only while one exists (ADR-0035 amendment),
     /// because the play button's web counterpart only appears next to a
     /// constant a curve uses.
@@ -2608,8 +2608,8 @@ fn source_references_any_constant(source: &str, env: &epher_core::Env) -> bool {
 }
 
 /// Render the projected 3D mesh as an ASCII wireframe (ADR-0015): depth-
-/// shaded Bresenham lines on a uniform grid — near segments `*`, middle
-/// `+`, far `.` — with the ground square and axes (`o`) drawn on top. The
+/// shaded Bresenham lines on a uniform grid, near segments `*`, middle
+/// `+`, far `.`: with the ground square and axes (`o`) drawn on top. The
 /// painter-sorted segments overpaint in draw order, so nearer mesh lines
 /// stay visible over farther ones.
 pub fn render_ascii3d(surfaces: &[Surface], view: &View3D, width: usize, height: usize) -> String {
@@ -2894,7 +2894,7 @@ pub fn render_solar_ascii(
         .join("\n")
 }
 
-/// Render the plotted curves as an ASCII plot — the TUI's renderer
+/// Render the plotted curves as an ASCII plot, the TUI's renderer
 /// (ADR-0006/0014). The x and y ranges are scaled to the grid; each curve
 /// plots with its own glyph (`o`, `x`, `+`, `*`); region fills shade with
 /// `.`; axes draw as `|`/`-` when zero lies strictly inside the range
@@ -3116,7 +3116,7 @@ pub fn render_ascii_data(data: &DataPlot, width: usize, height: usize) -> String
 /// the web legend uses).
 /// The menu-bar chord (ADR-0017 amendment): F9, the cross-platform TUI
 /// convention (Midnight Commander and friends). It replaced F10 on
-/// 2026-09-06 — same media-key caveat on Apple keyboards (fn+F9), but
+/// 2026-09-06, same media-key caveat on Apple keyboards (fn+F9), but
 /// one key on every OS instead of a per-platform chord.
 pub fn is_menu_toggle_key(
     code: crossterm::event::KeyCode,
@@ -3216,7 +3216,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
         }
         app.set_display_prefs(prefs);
     }
-    // One step per 120 ms while playing — the same rate as the web
+    // One step per 120 ms while playing, the same rate as the web
     // sliders' play button (ADR-0015). The poll below wakes at 50 ms so
     // key presses stay responsive; the step itself is paced here.
     let mut last_tick = std::time::Instant::now();
@@ -3235,8 +3235,8 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
             Err(e) => return Err(e),
         };
         // Another frontend wrote to the shared store (ADR-0010
-        // amendment): reload the session — history, functions,
-        // constants, scripts, and the bindings snapshot — keeping the
+        // amendment): reload the session, history, functions,
+        // constants, scripts, and the bindings snapshot, keeping the
         // in-flight entry text and the plot state untouched. Definitions
         // the user created in THIS session but has not `save`d yet are
         // replayed over the store's state, so a foreign write (or our
@@ -3291,7 +3291,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                     // The user guide view (ADR-0018) is modal: only scrolling
                     // and closing keys act; nothing reaches the calculator.
                     // Number keys jump the table of contents (ADR-0018
-                    // amendment) — the keyboard spelling of the ToC clicks.
+                    // amendment), the keyboard spelling of the ToC clicks.
                     if app.guide_active() {
                         // While a search is being typed (the ADR-0038
                         // amendment), the keys feed the query and Enter
@@ -3381,8 +3381,8 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         }
                         continue;
                     }
-                    // With bracketed paste off — the terminal does not
-                    // support it, or a frontend sends keys directly — a
+                    // With bracketed paste off; the terminal does not
+                    // support it, or a frontend sends keys directly, a
                     // pasted newline arrives as LF, which crossterm parses
                     // as Ctrl+J (the terminal convention for line feed).
                     // Treat it as Enter so the paste still submits, line
@@ -3392,7 +3392,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         || (key.code == KeyCode::Char('j')
                             && key.modifiers.contains(KeyModifiers::CONTROL));
                     match key.code {
-                        // Guarded arms must precede the generic `Char` arm — the
+                        // Guarded arms must precede the generic `Char` arm; the
                         // catch-all would swallow Ctrl+C and type a 'c' instead.
                         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                             return Ok(());
@@ -3407,7 +3407,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         }
                         // The path caret (ADR-0017 amendment): arrows and
                         // Home/End move it, Delete removes the character
-                        // under it — the prefill edits like any text.
+                        // under it, the prefill edits like any text.
                         KeyCode::Left if app.prompt_active().is_some() => {
                             app.prompt_nudge(-1);
                         }
@@ -3450,7 +3450,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         KeyCode::Down if app.menu_active().is_some() => app.menu_move(0, 1),
                         KeyCode::Esc if app.menu_active().is_some() => app.menu_close(),
                         // The keypad's docked state (ADR-0060): Ctrl+K
-                        // slides the keypad away and back — the keyboard
+                        // slides the keypad away and back, the keyboard
                         // spelling of the grab bar's drag. Works while
                         // the keypad has focus too (hiding drops the
                         // focus, so the grid is never an invisible trap).
@@ -3466,7 +3466,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                             return Ok(());
                         }
                         // The key-help overlay (ADR-0039): ? opens it when
-                        // nothing else owns the key — the entry is empty
+                        // nothing else owns the key; the entry is empty
                         // (the same spelling rule as `q`) or the keypad has
                         // focus, where ? types nothing. The Help menu opens
                         // it too, for discovery.
@@ -3592,7 +3592,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                             app.toggle_play();
                         }
                         // Any typed character leaves keypad/history focus
-                        // first — typing is the other spelling of the same
+                        // first, typing is the other spelling of the same
                         // input.
                         KeyCode::Char(c) if !is_enter => {
                             app.keypad_close();
@@ -3626,7 +3626,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         _ => {}
                     }
                     // Shift+Enter is handled above (it inserts a newline);
-                    // every other Enter press — including pasted Ctrl+J —
+                    // every other Enter press, including pasted Ctrl+J,
                     // runs the submit chain below.
                     let shift_enter =
                         key.code == KeyCode::Enter && key.modifiers.contains(KeyModifiers::SHIFT);
@@ -3668,7 +3668,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         }
                     } else if is_enter && !shift_enter && app.history_focused() {
                         // Pick the highlighted history line into the input
-                        // (ADR-0027) — the user edits and re-runs it.
+                        // (ADR-0027), the user edits and re-runs it.
                         if let Some(line) = app.history_pick() {
                             app.set_input(&line);
                         }
@@ -3682,8 +3682,8 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         if let Some(code) = app.submit_line(&line, &store, &localizer) {
                             localizer = Localizer::resolve(Some(&code), &[]);
                         }
-                        // Every submit empties the line — including graph
-                        // commands, whose path doesn't clear it itself — so a
+                        // Every submit empties the line, including graph
+                        // commands, whose path doesn't clear it itself, so a
                         // multi-line paste leaves a clean slate for the next
                         // line instead of appending to the leftover.
                         app.clear_input();
@@ -3694,8 +3694,8 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
             }
             Some(Event::Paste(text)) => {
                 // Bracketed paste (ADR-0059): the clipboard arrives as
-                // one event. Land it in the entry as one unit — newlines
-                // and all — so a script pasted from the website runs on
+                // one event. Land it in the entry as one unit, newlines
+                // and all, so a script pasted from the website runs on
                 // the next Enter, exactly like the desktop and web
                 // entries. The old keystroke-by-keystroke delivery
                 // submitted each line on its own, and a script's opening
@@ -3723,7 +3723,7 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
     }
 }
 
-/// Apply a menu action — Enter on the highlighted row, or a mouse click
+/// Apply a menu action: Enter on the highlighted row, or a mouse click
 /// on it (ADR-0034). Returns true when the action quits the TUI.
 fn perform_menu_action(
     app: &mut App,
@@ -3825,7 +3825,7 @@ enum MouseDrag {
     Pan2D,
     Rotate3D,
     /// A grab-area drag (ADR-0060): the pointer went down on the
-    /// keypad's top border (or the docked strip row) — drag down two
+    /// keypad's top border (or the docked strip row): drag down two
     /// rows to dock the keypad away, up two rows to restore, release
     /// on the bar without crossing either threshold to toggle.
     Keypad {
@@ -3898,7 +3898,7 @@ fn handle_mouse(
         MouseEventKind::Down(crossterm::event::MouseButton::Left) => {
             let (col, row) = (event.column, event.row);
             // 0. The user guide pager (ADR-0018) covers the screen: only
-            // the table-of-contents rows act (ADR-0018 amendment) —
+            // the table-of-contents rows act (ADR-0018 amendment),
             // everything else scrolls by wheel and is inert to clicks.
             if areas.guide {
                 for i in 0..areas.guide_toc_len {
@@ -3942,12 +3942,12 @@ fn handle_mouse(
                 }
             }
             // 3. Panels. (Clicking outside the menu bar with a menu
-            //    open is already handled above — menus were closed.)
+            //    open is already handled above, menus were closed.)
             if inside(areas.input, col, row) {
                 app.keypad_close();
                 app.history_close();
                 // A click inside the entry moves the caret to the
-                // clicked (line, column) — the mouse spelling of the
+                // clicked (line, column), the mouse spelling of the
                 // Left/Right keys (ADR-0035 amendment). The click row is
                 // mapped through the pane's scroll to the text line, and
                 // the column through the pane's left border.
@@ -4012,7 +4012,7 @@ fn handle_mouse(
                     return false;
                 }
                 // The grid rows: move the highlight there and apply
-                // the key — the mouse spelling of the web's buttons.
+                // the key, the mouse spelling of the web's buttons.
                 // "=" submits like the entry's Enter; every other cell
                 // inserts its token.
                 let grid_row = row.saturating_sub(areas.keypad.y.saturating_add(2)) as usize;
@@ -4083,14 +4083,14 @@ fn handle_mouse(
                 // not from the last event, so the drag position itself
                 // is never updated. Two rows down docks the keypad away,
                 // two rows up restores; the drag ends on the toggle so
-                // continuing the motion never toggles twice — the
+                // continuing the motion never toggles twice, the
                 // release arm owns the click case.
                 MouseDrag::Keypad {
                     start_row,
                     shown_at_start,
                 } => {
                     let dy = event.row as i32 - start_row as i32;
-                    // Still in the state the gesture started from — a
+                    // Still in the state the gesture started from; a
                     // finished (already-toggled) drag is inert. The
                     // return skips the shared tail that re-arms the
                     // drag with the new position: a grab drag measures
@@ -4118,7 +4118,7 @@ fn handle_mouse(
         }
         MouseEventKind::Up(crossterm::event::MouseButton::Left) => {
             // Releasing a grab drag back on the grab row (no threshold
-            // crossed) is a click: toggle (ADR-0060) — the mouse
+            // crossed) is a click: toggle (ADR-0060), the mouse
             // spelling of the web bar's tap.
             if let Some((
                 _,
@@ -4148,8 +4148,8 @@ enum PopupRow {
 }
 
 /// The open menu's rows: plain items plus labeled section rules.
-/// Settings marks its subsections — Theme, Language, and the 3D View
-/// controls — with dim "─ Label ────" dividers; the highlight and the
+/// Settings marks its subsections, Theme, Language, and the 3D View
+/// controls, with dim "─ Label ────" dividers; the highlight and the
 /// activation index stay in item space, so the rules never intercept
 /// arrow movement, Enter, or a mouse click (ADR-0034 resolves clicks
 /// through the same list).
@@ -4344,7 +4344,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         ])
         .split(frame.area());
         let title = format!(
-            " {} — {} ",
+            " {}, {} ",
             localizer.lookup("menu-key-help"),
             app.keypad_bank()
         );
@@ -4716,18 +4716,18 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // LAST, over every panel, with a Clear underneath: ratatui paints
     // widgets into one shared buffer in call order, so a menu rendered
     // before the history/graph would be painted over wherever those
-    // panels overlap it — its items would vanish behind the screen's
+    // panels overlap it, its items would vanish behind the screen's
     // existing text.
     // Wide terminals get the desktop layout (ADR-0017): the calculator
     // column on the left, the graph panel in its own section on the
     // right, and the key hints spanning the full width underneath both
-    // (ADR-0019) — the panel used to run down over the hints row and
+    // (ADR-0019), the panel used to run down over the hints row and
     // clip the key guide at the column edge. Below 72 columns only, the
-    // vertical stack from ADR-0016 remains — one split, no overlapping
+    // vertical stack from ADR-0016 remains, one split, no overlapping
     // regions. The threshold moved from 104 to 72 (ADR-0025) so a
     // standard 80×24 terminal gets the same layout every platform does:
     // history below the answer, graph on the right.
-    // The keypad is always part of the screen now (ADR-0033) — it used
+    // The keypad is always part of the screen now (ADR-0033); it used
     // to appear only while focused, which read as "lost". Tab just
     // moves the highlight onto it. The hint strip wraps to as many rows
     // as its text needs (two on a standard 80-column terminal) so the
@@ -4738,7 +4738,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // The hint strip is composed from parts (ADR-0035 amendment): the
     // arrow-key hint only names rotation while a 3D surface is displayed
     // and the space hint only names animation while an animatable 2D
-    // graph is displayed — a hint must not advertise an affordance the
+    // graph is displayed; a hint must not advertise an affordance the
     // current plot does not offer.
     let has_surface = !app.surfaces().is_empty();
     let animatable_2d = !app.graph().is_empty() && app.curve_animated_constant().is_some();
@@ -4772,8 +4772,8 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     let input_rows = input_lines.min(4);
     let input_h = 2 + input_rows as u16;
     // The answer line keeps only what reads well on one line (ADR-0056):
-    // a short single answer. Anything longer — a script's transcript, a
-    // table, a long number — renders in the result pane, one answer per
+    // a short single answer. Anything longer, a script's transcript, a
+    // table, a long number, renders in the result pane, one answer per
     // line, by the same rule the web app routes with. The answer area
     // keeps one row while its text is away in the pane, so the layout
     // does not jump when a long answer arrives; the pane now carries
@@ -4787,8 +4787,8 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     let result_h = result_rows as u16;
     // The keypad's docked state (ADR-0060): shown, the panel is the
     // bank row plus the digits bank's five key rows; docked away, one
-    // grab strip remains where its top border sat, and the history —
-    // the Min(0) sibling — grows into the freed rows.
+    // grab strip remains where its top border sat, and the history,
+    // the Min(0) sibling, grows into the freed rows.
     let keypad_h = if app.keypad_shown() { 8 } else { 1 };
     let (input_area, result_area, history_area, graph_area, keypad_area, hints_area) = if wide {
         let split =
@@ -4796,7 +4796,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         let (content, hints) = (split[0], split[1]);
         let split = Layout::horizontal([Constraint::Length(46), Constraint::Min(0)]).split(content);
         let (calc_col, graph_col) = (split[0], split[1]);
-        // Input, answer, history, then the keypad — the calculator
+        // Input, answer, history, then the keypad, the calculator
         // column reads top to bottom exactly like the app and the PWA
         // (entry, result, history, keypad).
         let calc_rows = Layout::vertical([
@@ -4860,7 +4860,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         .block(block(input_title));
     frame.render_widget(input, input_area);
 
-    // A long answer empties the answer line — its transcript renders in
+    // A long answer empties the answer line; its transcript renders in
     // the result pane instead (ADR-0056).
     let answer_line = if long_answer {
         String::new()
@@ -4871,7 +4871,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     frame.render_widget(result, result_area);
 
     // History (ADR-0027): entries render newest first, one row per line
-    // of the entry, with a full-width rule between entries — the visible
+    // of the entry, with a full-width rule between entries; the visible
     // boundary that marks where one item ends and the next begins
     // (ADR-0027 amendment: a multi-line script is one item occupying
     // several rows between two rules). `hist_rows` maps each displayed
@@ -4900,7 +4900,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     }
     app.hist_rows = hist_rows;
     // Keep the selection in view while the history has focus: the
-    // paragraph scrolls (in rows) so the selected entry is visible — its
+    // paragraph scrolls (in rows) so the selected entry is visible; its
     // last row sits at the bottom edge when it fits, its first row at
     // the top when it is taller than the viewport.
     let history_scroll = if app.history_focused() {
@@ -4942,12 +4942,12 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         .block(block(history_title));
     frame.render_widget(history, history_area);
 
-    // The keypad grid (ADR-0016): bank tabs on the first row — Tab
-    // cycles them — and the highlighted cell inserts its token.
+    // The keypad grid (ADR-0016): bank tabs on the first row, Tab
+    // cycles them, and the highlighted cell inserts its token.
     if let Some(kp_area) = keypad_area {
         if !app.keypad_shown() {
             // Docked away (ADR-0060): the strip row is the whole grab
-            // area — the same three bold dots the shown border carries,
+            // area, the same three bold dots the shown border carries,
             // at the same columns, so the handle never shifts.
             let buf = frame.buffer_mut();
             let (cy, cx) = (kp_area.y, kp_area.x + kp_area.width / 2);
@@ -5033,7 +5033,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                 }));
             frame.render_widget(keypad, kp_area);
             // The grab area (ADR-0060): three bold dots replacing the top
-            // border at the panel's center — the handle the mouse drags
+            // border at the panel's center, the handle the mouse drags
             // down to dock the keypad away. Same glyph the docked strip
             // shows, so the affordance reads as the same thing.
             let buf = frame.buffer_mut();
@@ -5057,7 +5057,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     frame.render_widget(hints, hints_area);
 
     // A long answer renders in the result pane (ADR-0056), one answer
-    // per line, above any curves — the pane gives the transcript the
+    // per line, above any curves; the pane gives the transcript the
     // room the answer line cannot.
     let mut graph_text = String::new();
     let mut transcript_rows = 0u16;
@@ -5148,7 +5148,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         }
     }
     // The plot pane shares the web app's pane name (ADR-0056): the
-    // localized "Result" — graphs and long answers live in the same
+    // localized "Result", graphs and long answers live in the same
     // pane there, and the terminal calls it the same thing.
     let graph = Paragraph::new(graph_text)
         .style(Style::default().fg(fg))
@@ -5162,7 +5162,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         let rows = menu_rows(app, localizer);
         let x = 11 * menu as u16 + 1;
         // +5: two for the border, two for the Settings check mark, one
-        // spare — the fine-control rows' labels and values (ADR-0031)
+        // spare; the fine-control rows' labels and values (ADR-0031)
         // must never clip at the right border.
         let w = 26u16.max(
             rows.iter()
@@ -5230,9 +5230,9 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     }
     app.areas = areas;
 
-    // Focus visible: the terminal cursor sits at the caret — the
+    // Focus visible: the terminal cursor sits at the caret, the
     // insertion point (ADR-0035 amendment), which arrow keys and mouse
-    // clicks move — inside the visible (scrolled) part of the entry.
+    // clicks move, inside the visible (scrolled) part of the entry.
     // In prompt mode the caret belongs to the path buffer instead
     // (ADR-0017 amendment): a single line, so the caret column is the
     // width of the path up to the caret.
@@ -5258,11 +5258,11 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
 }
 
 /// The ASCII plot size: the graph panel's own dimensions (the renderer
-/// scales to them) — wide, narrow, and keypad variants all share it.
+/// scales to them), wide, narrow, and keypad variants all share it.
 /// True when the answer line keeps a result (ADR-0056): exactly one
 /// answer, no line breaks, and short enough to read without scrolling.
-/// Anything longer — a pasted script's transcript, a table, a long
-/// number — renders in the result pane instead, one answer per line.
+/// Anything longer, a pasted script's transcript, a table, a long
+/// number, renders in the result pane instead, one answer per line.
 /// The terminal routes by the same rule as the web; the TUI joins a
 /// script's answers with newlines (the web joins with a private
 /// separator), so the newline test covers both multi-answer
@@ -5320,7 +5320,7 @@ fn view_axis_of(item: usize) -> ViewAxis {
     }
 }
 
-/// The name of a language in itself — the TUI menu lists languages the
+/// The name of a language in itself; the TUI menu lists languages the
 /// way their speakers write them, independent of the UI language.
 fn native_language_name(code: &str) -> &str {
     match code {
@@ -5374,7 +5374,7 @@ fn base64(bytes: &[u8]) -> String {
     out
 }
 
-/// The base64 payload for an OSC 52 copy (ADR-0017) — public for tests.
+/// The base64 payload for an OSC 52 copy (ADR-0017), public for tests.
 pub fn base64_for_osc52(bytes: &[u8]) -> String {
     base64(bytes)
 }
@@ -5386,8 +5386,8 @@ mod draw_tests {
     use ratatui::layout::Rect;
     use ratatui::Terminal;
 
-    /// ADR-0056 (amended): a long answer — one line, but over the
-    /// answer line's calm cap — renders in the result pane on the
+    /// ADR-0056 (amended): a long answer, one line, but over the
+    /// answer line's calm cap, renders in the result pane on the
     /// right, and the answer line under the entry empties. Exactly the
     /// web app's routing.
     #[test]
@@ -5432,7 +5432,7 @@ mod draw_tests {
     }
 
     /// ADR-0056: a short single answer stays where it has always been,
-    /// in the answer line under the entry — and out of the result pane.
+    /// in the answer line under the entry, and out of the result pane.
     #[test]
     fn a_short_answer_stays_on_the_answer_line() {
         let mut app = App::default();
@@ -5512,7 +5512,7 @@ mod draw_tests {
         );
     }
 
-    /// ADR-0056: answers and plots share the pane without ceremony — a
+    /// ADR-0056: answers and plots share the pane without ceremony, a
     /// transcript renders above any curves.
     #[test]
     fn a_transcript_renders_above_the_curves() {
@@ -5554,7 +5554,7 @@ mod draw_tests {
 
     /// The menu popup must paint over the screen's existing content, not
     /// behind it: ratatui renders into one buffer in call order, and the
-    /// popup used to be drawn before the history panel — wherever the two
+    /// popup used to be drawn before the history panel, wherever the two
     /// overlapped, history lines bled through and hid the menu items.
     #[test]
     fn open_menu_covers_existing_history_text() {
@@ -5602,7 +5602,7 @@ mod draw_tests {
     }
 
     /// ADR-0025: a standard 80×24 terminal gets the same two-column layout
-    /// as any wider one — history below the answer, graph pane on the
+    /// as any wider one, history below the answer, graph pane on the
     /// right. The old 104-column threshold (and the stacked layout's fixed
     /// 20-row graph) hid the history section entirely at this size.
     #[test]
@@ -5751,7 +5751,7 @@ mod keypad_dock_tests {
         assert_eq!(
             app.areas.keypad.y,
             keypad_y + 7,
-            "the strip pins to the pane's bottom edge — the row the keypad's bottom border held"
+            "the strip pins to the pane's bottom edge, the row the keypad's bottom border held"
         );
         assert_eq!(
             app.areas.history.height,
@@ -5903,7 +5903,7 @@ mod keypad_dock_tests {
         let kp = app.areas.keypad;
         let col = kp.x + kp.width / 2;
         // Down one row (under the threshold) and release off the bar:
-        // not a click, not a dock — nothing changes.
+        // not a click, not a dock; nothing changes.
         handle_mouse(
             &mut app,
             &mut localizer,

@@ -5,7 +5,7 @@
 use std::path::{Path, PathBuf};
 
 /// The install plan: (link, target). `Some` only when `exe` is a macOS app
-/// bundle executable (`…/epher.app/Contents/MacOS/epher`) — dev runs and
+/// bundle executable (`…/epher.app/Contents/MacOS/epher`), dev runs and
 /// other platforms get `None` and the UI never offers the action.
 ///
 /// `/usr/local/bin` is on every default macOS PATH and survives reboots,

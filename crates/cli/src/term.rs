@@ -1,5 +1,5 @@
 //! Terminal output policy (ADR-0013, clig.dev): results on stdout,
-//! diagnostics on stderr, and color only where it helps — anstream
+//! diagnostics on stderr, and color only where it helps, anstream
 //! detects the terminal and honors NO_COLOR, TERM=dumb, and
 //! CLICOLOR_FORCE per stream automatically.
 

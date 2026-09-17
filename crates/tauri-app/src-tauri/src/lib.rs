@@ -1,7 +1,7 @@
-//! app_lib — the Tauri desktop shell (ADR-0001, ADR-0010).
+//! app_lib, the Tauri desktop shell (ADR-0001, ADR-0010).
 //!
 //! The native process owns the Native Store: a `DocStore<FsStore>` rooted
-//! at `default_store_dir()` (`EPHER_STORE_DIR` override, `~/.epher` default) —
+//! at `default_store_dir()` (`EPHER_STORE_DIR` override, `~/.epher` default),
 //! the same files the CLI and TUI use. The webview bridges to it through
 //! five IPC commands, all thin wrappers over epher-store's persist helpers;
 //! evaluation itself stays in the webview on the wasm core.
@@ -18,7 +18,7 @@ use tauri::{Emitter, Manager, State};
 /// The script file the OS handed this launch (a double-clicked `.epher`
 /// file: the Linux desktop entry's `gui %f`, the Windows file
 /// association, `epher gui plan.epher`). The webview consumes it through
-/// [`take_open_file`] once it has mounted — file-open events can arrive
+/// [`take_open_file`] once it has mounted, file-open events can arrive
 /// before the page is ready, so the shell holds the path until then.
 pub struct PendingOpen(pub Mutex<Option<PathBuf>>);
 
@@ -116,8 +116,8 @@ pub struct InitState {
 #[tauri::command]
 fn init(state: State<DesktopStore>, window: tauri::WebviewWindow) -> Result<InitState, String> {
     // Windows launches hidden (ADR-0032): the frontend calls init after
-    // its first mount — the shell has painted its dark first frame by
-    // then — so this is the first-paint signal. Show the window here and
+    // its first mount, the shell has painted its dark first frame by
+    // then, so this is the first-paint signal. Show the window here and
     // the user's first visible frame is the dark app, never a white one.
     // (The boot-fallback script calls init too, so a failed wasm boot
     // shows its dark fallback window instead of nothing.)
@@ -163,7 +163,7 @@ fn save_session(
     // The webview ships the bindings inside a struct (SessionArgs), the
     // same shape as every other save command: serde_wasm_bindgen renders
     // HashMap as a JS Map, which the Linux webkitgtk IPC cannot
-    // transport — the save silently never arrived, so the desktop app
+    // transport; the save silently never arrived, so the desktop app
     // never wrote setting/session.json.
     // The webview ships the bindings inside a struct (SessionArgs, field
     // `bindings`), the same shape as every other save command: the raw
@@ -225,8 +225,8 @@ fn quit(app: tauri::AppHandle) {
 }
 
 /// Open a URL in the system browser (the brand link: the epher mark →
-/// epher.org). The webview must not navigate away from the app — the
-/// calculator would be gone with no way back — so external links ride
+/// epher.org). The webview must not navigate away from the app, the
+/// calculator would be gone with no way back, so external links ride
 /// the OS opener instead of the webview's own navigation.
 #[tauri::command]
 fn open_url(url: String) -> Result<(), String> {
@@ -240,7 +240,7 @@ fn write_file(path: &std::path::Path, content: &str) -> Result<(), String> {
 }
 
 /// File → Save script (ADR-0024): the operating system's save
-/// dialog — the user picks the directory and the file name, then the
+/// dialog, the user picks the directory and the file name, then the
 /// file is written there. `Ok(None)` means the user cancelled: the UI
 /// stays silent, as native apps do. `Ok(Some(path))` is the written
 /// path, shown in the status line.
@@ -248,7 +248,7 @@ fn write_file(path: &std::path::Path, content: &str) -> Result<(), String> {
 /// The command is **async** and the dialog runs inside
 /// `spawn_blocking`: a synchronous Tauri command executes on the main
 /// thread, and a modal OS dialog parked there freezes the whole
-/// webview for as long as it is open — on Linux Mint the dialog could
+/// webview for as long as it is open, on Linux Mint the dialog could
 /// end up behind the window, looking like a hard lock (ADR-0027). Off
 /// the main thread the app stays live regardless of what the dialog
 /// backend does.
@@ -312,7 +312,7 @@ async fn save_png_dialog(
 }
 
 /// Can this shell install the `epher` terminal command? (macOS app bundle
-/// only — see cli_install.) The webview asks at startup to decide whether
+/// only: see cli_install.) The webview asks at startup to decide whether
 /// to show the button.
 #[tauri::command]
 fn cli_install_supported() -> bool {
@@ -373,8 +373,8 @@ fn run_desktop(pending_script: Option<PathBuf>) {
             // amendment): the desktop writes every state change to the
             // store immediately (the webview's save_* commands), and a
             // watcher thread delivers a `store-changed` event whenever
-            // another frontend — the TUI, the REPL, a one-shot CLI run
-            // — writes the store, so the open app refreshes live.
+            // another frontend, the TUI, the REPL, a one-shot CLI run
+            //, writes the store, so the open app refreshes live.
             // The watcher re-reads the store itself (the managed
             // DesktopStore is not Send, and this thread is long-lived);
             // FsStore is just a directory, so a second reader is
@@ -400,7 +400,7 @@ fn run_desktop(pending_script: Option<PathBuf>) {
                 .ok();
             // Version in the title bar: every release ships an installer
             // with the same filename, and stale downloads are a recurring
-            // support issue — a glance at the title settles which build is
+            // support issue; a glance at the title settles which build is
             // running. The version lives in one place (Cargo.toml, which
             // tauri.conf.json mirrors for the bundle).
             if let Some(window) = app.get_webview_window("main") {
@@ -413,10 +413,10 @@ fn run_desktop(pending_script: Option<PathBuf>) {
             // frame or two; hidden-until-loaded shows the already-dark
             // page as the very first frame, and the corrected
             // --default-background-color=FF141416 browser argument
-            // (AARRGGBB — the bare six digits v0.4.19 passed are not a
+            // (AARRGGBB, the bare six digits v0.4.19 passed are not a
             // valid color and were ignored) darkens the webview itself.
             // The show happens in the `init` command (the frontend calls
-            // it right after its first mount — the first-paint signal);
+            // it right after its first mount, the first-paint signal);
             // the boot-fallback script invokes it too.
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -461,7 +461,7 @@ fn run_desktop(pending_script: Option<PathBuf>) {
 }
 
 /// The unified-binary entry point (ADR-0011): parse arguments with
-/// [`dispatch`], then run the chosen frontend — every mode is a thin call
+/// [`dispatch`], then run the chosen frontend; every mode is a thin call
 /// into the frontend's own library entry point, so behavior is defined
 /// once (CLI/REPL/stdin: epher-cli; TUI: epher-tui; GUI: this crate).
 /// Errors print to stderr (red on a terminal) and exit 1; usage errors
@@ -515,14 +515,14 @@ where
 /// The console `epher` binary is a *console* application (so `epher "2 + 2"`
 /// can print and pipe from CMD/PowerShell). On Windows the GUI therefore
 /// runs in the GUI-subsystem sibling `epher-gui.exe` (ADR-0011): the
-/// console process spawns it detached — no console window, ever — and
+/// console process spawns it detached, no console window, ever, and
 /// exits immediately, so a double-click never lingers on a terminal and a
 /// terminal prompt returns right away while the window appears. The
 /// GUI-subsystem build itself (`epher-gui.exe`, the double-click target)
 /// and the env-marked child have no console to shed, so they run the
 /// window in-process. The spawn prefers the sibling `epher-gui.exe` (same
 /// directory, then one level up); if none exists it falls back to
-/// re-spawning itself with `EPHER_GUI_CHILD` set — the guard (and the
+/// re-spawning itself with `EPHER_GUI_CHILD` set, the guard (and the
 /// `DETACHED_PROCESS` child having no console to begin with) stops the
 /// chain after one hop. On macOS/Linux the GUI runs in-process in the
 /// foreground, like any GUI binary run from a terminal.
@@ -633,7 +633,7 @@ mod tests {
     #[test]
     fn the_cli_loads_what_the_desktop_saved() {
         // The whole point (ADR-0010): the same files. The CLI's own startup
-        // path must see the desktop's writes — function *and* variables set
+        // path must see the desktop's writes, function *and* variables set
         // by a saved script.
         let dir = tempfile::tempdir().unwrap();
         let desktop = DesktopStore::with_dir(dir.path());

@@ -3,7 +3,7 @@ name = "epher-core"
 version = "0.5.41"
 edition = "2021"
 license = "MIT"
-description = "The single source of truth for epher's logic — pure, compiles to wasm and native."
+description = "The single source of truth for epher's logic, pure, compiles to wasm and native."
 
 [dependencies]
 num-traits = { workspace = true }

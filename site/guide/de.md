@@ -269,7 +269,7 @@ ans * 2
 10
 ```
 
-Eine Liste kann auf einmal mehrere Namen füllen — `{a, b} = list` nimmt
+Eine Liste kann auf einmal mehrere Namen füllen, `{a, b} = list` nimmt
 eine Liste auseinander, von links nach rechts (Abschnitt 1.11 zeigt
 Funktionen, die so mehr als eine Antwort zurückgeben):
 
@@ -388,7 +388,7 @@ true
 
 Ein Backslash in einer Zeichenkette beginnt eine **Escape-Folge**: `\n`
 ist eine neue Zeile, `\t` ein Tabulator, und `\\` und `\"` sind der
-Backslash und das Anführungszeichen selbst — so kann eine Zeichenkette
+Backslash und das Anführungszeichen selbst, so kann eine Zeichenkette
 ein doppeltes Anführungszeichen enthalten:
 
 ```epher
@@ -421,7 +421,7 @@ wenn er fehlt), **replace** tauscht jedes Vorkommen eines Texts gegen
 einen anderen, **split** zerbricht einen Text an einem Trennzeichen in
 eine Liste, **join** klebt eine Liste zu einem Text zusammen, und
 **fixed** schreibt eine Zahl mit genau so vielen Dezimalstellen, wie du
-verlangst — die Null, die ein Bericht will, bleibt erhalten:
+verlangst, die Null, die ein Bericht will, bleibt erhalten:
 
 ```epher
 upper("hello")
@@ -555,7 +555,7 @@ Zählen: die gesammelte Liste der for-Zeile ist die laufende Summe - 1,
 dann 4, dann 9 - und die geraden Durchläufe wurden übersprungen, also
 trugen sie nichts bei. Das abschließende `total`, 9, ist die Summe der
 ungeraden Werte. Ein `if` ohne `else` trägt nichts bei, wenn seine
-Bedingung falsch ist — so behält die erste Schleife nur die ungeraden
+Bedingung falsch ist, so behält die erste Schleife nur die ungeraden
 Werte, und so kann eine Schleife eine Liste *filtern* wie auch
 umformen.
 
@@ -620,7 +620,7 @@ Der Zwischenname `c` lebt innerhalb des Aufrufs; er ist nach außen
 nicht sichtbar, und zwei Aufrufe sehen gegenseitig ihr `c` nicht.
 
 **return: Antwort sofort.** `return value` antwortet sofort und
-überspringt den Rest des Körpers — die natürliche Form für eine Wahl
+überspringt den Rest des Körpers, die natürliche Form für eine Wahl
 mit frühzeitigem Ausstieg:
 
 ```epher
@@ -656,11 +656,11 @@ firstsq({3, 5, 9, 11}); firstsq({3, 5, 7})
 ```
 
 Eine Regel hält die Blöcke lesbar: das `end` schließt immer das do der
-Funktion — ein `if`, `for` oder `while` bekommt kein `end`. Ein Körper,
+Funktion, ein `if`, `for` oder `while` bekommt kein `end`. Ein Körper,
 der ohne Antwort endet (etwa weil jeder Pfad nichts zurückgab), ist ein
 Fehler, keine Stille: epher sagt es und nennt die Funktion.
 
-> **Mehr als eine Antwort?** Gib eine Liste zurück — und benenne sie in
+> **Mehr als eine Antwort?** Gib eine Liste zurück, und benenne sie in
 > einem Zug mit dem Destrukturieren aus Abschnitt 1.5:
 > `{mean, sd} = {4, 1.6}`.
 
@@ -748,7 +748,7 @@ Normalerweise rechnet epher mit Dezimalzahlen wie ein
 Taschenrechner, und Ergebnisse werden wie auf einem Taschenrechner
 auf zwölf signifikante Stellen gerundet: `0.1 + 0.2` ist `0.3`, nie
 `0.30000000000000004`. Exakte Brüche sind standardmäßig
-eingeschaltet — ein Ergebnis mit einem guten Bruch mit kleinem
+eingeschaltet, ein Ergebnis mit einem guten Bruch mit kleinem
 Nenner, dessen Dezimaldarstellung sich wiederholt, wird als solcher
 angezeigt. `1 / 3` zeigt sich ohne Nachfrage als `1/3`:
 
@@ -783,7 +783,7 @@ frac(1, 3) * 3
 ```
 
 **dec(x)** erzeugt eine exakte Dezimalzahl. `0.1 + 0.2` zeigt in
-beiden Fällen `0.3` — der Unterschied liegt in der Arithmetik:
+beiden Fällen `0.3`, der Unterschied liegt in der Arithmetik:
 
 ```epher
 0.1 * 3 - 0.3
@@ -1257,7 +1257,7 @@ Zwei Listen müssen für `+ - * / ^` gleich lang sein. `==` und `!=`
 vergleichen ganze Listen; Ordnungsvergleiche lehnen Listen ab.
 
 Die Statistikfunktionen nehmen eine Liste als einziges Argument (die
-Mehrfachargument-Form bleibt — `mean(1, 2, 3)` funktioniert weiter):
+Mehrfachargument-Form bleibt, `mean(1, 2, 3)` funktioniert weiter):
 `sum product mean median mode variance stdev min max range`. Die
 neuen Formfunktionen sind `len(liste)`, `sort(liste)` (aufsteigende
 Kopie), `mode(liste)` (häufigster Wert, bei Gleichstand der kleinste),
@@ -1298,7 +1298,7 @@ Das r eines transformierten Fits ist die Korrelation des linearisierten Paares: 
 
 Die Wahrscheinlichkeitsfunktionen decken die Standardnormal-, die
 t-, die Chi-Quadrat-, die Binomial- und die Poisson-Verteilung ab. Die
-Normal-Familie nimmt ein oder drei Argumente — ein Argument ist die
+Normal-Familie nimmt ein oder drei Argumente, ein Argument ist die
 Standardnormalverteilung:
 
 ```epher
@@ -1366,7 +1366,7 @@ t = -0.7559, p = 0.5286
 
 Die Graph-Familie nimmt auch Listen: ein Streudiagramm, ein
 Histogramm und ein Kastendiagramm. Ein Datenplot gehört wie ein
-Sonnensystem allein zum Feld — der neueste Befehl gewinnt, und
+Sonnensystem allein zum Feld, der neueste Befehl gewinnt, und
 `graph clear` leert es.
 
 ```epher
@@ -1389,14 +1389,14 @@ Legende. **histogram(daten[, bins])** zeichnet ein
 Häufigkeitshistogramm; die Klassenzahl ist optional (standardmäßig
 nach Sturgess Regel) und muss eine ganze Zahl zwischen 1 und 50 sein.
 **boxplot(daten)** zeichnet das Kastendiagramm: Minimum, Q1, Median,
-Q3, Maximum, mit Antennen bis zu den Extremen. Das Fenster öffnet sich passend zu den Daten — die `from a to b`-Schlüsselwörter gelten weiterhin nicht — und sobald der Plot gezeichnet ist, zoomt er genau wie ein Kurven-Plot: das Mausrad, eine Pinch-Geste und der Zoom-Regler funktionieren, und der Export speichert, was das Panel zeigt.
+Q3, Maximum, mit Antennen bis zu den Extremen. Das Fenster öffnet sich passend zu den Daten, die `from a to b`-Schlüsselwörter gelten weiterhin nicht, und sobald der Plot gezeichnet ist, zoomt er genau wie ein Kurven-Plot: das Mausrad, eine Pinch-Geste und der Zoom-Regler funktionieren, und der Export speichert, was das Panel zeigt.
 
 Ein drittes, optionales Wort wählt das Modell: `graph scatter(xs, ys, quadreg)` (oder expreg, powreg, logreg) zeichnet diesen Fit statt der Geraden.
 ### 1.24 Zufallszahlen
 
 `random()` zieht eine gleichverteilte Zahl aus `[0, 1)`, `random(a, b)`
 eine aus `[a, b)`, und `randint(a, b)` eine ganze Zahl aus dem
-geschlossenen Bereich `[a, b]` — ein Würfelwurf:
+geschlossenen Bereich `[a, b]`, ein Würfelwurf:
 
 ```epher
 randseed(7)
@@ -1447,7 +1447,7 @@ verkettet: `60 mile/hr` und `5 m/s^2` sind einzelne Einheiten.
 ```
 
 Die SI-Vorsätze skalieren jede davon: `k M G T m µ n p` sind Kilo,
-Mega, Giga, Tera, Milli, Mikro, Nano, Piko — `5 km`, `3 MPa`, `1 GHz`
+Mega, Giga, Tera, Milli, Mikro, Nano, Piko, `5 km`, `3 MPa`, `1 GHz`
 funktionieren alle, und `2 kg` ist das Kilogramm selbst.
 
 Die Dimensionen werden geprüft: Addition oder Vergleich von Größen mit
@@ -1466,7 +1466,7 @@ Die Arithmetik setzt die Dimensionen zusammen: `5 m * 3 m` ist
 `15 m^2`, `(3 m)^2` ist `9 m^2`, `sqrt(4 m^2)` ist `2 m`, und ein
 ganzer Ausdruck, dessen Dimensionen sich wegheben, ist wieder eine
 gewöhnliche Zahl (`5 m / 5 m` ist `1`). Ergebnisse bevorzugen den
-exakten abgeleiteten Namen, wenn die Dimensionen passen —
+exakten abgeleiteten Namen, wenn die Dimensionen passen,
 `5 kg * 3 m / 1 s^2` antwortet `15 N`.
 
 **Umrechnung.** `expr in Einheit` (oder `expr -> Einheit`) zeigt eine
@@ -1490,7 +1490,7 @@ Größe in der genannten Einheit; die Dimensionen müssen übereinstimmen.
 20000 cm^2
 ```
 
-Temperaturskalen (Celsius, Fahrenheit) sind hier keine Einheiten —
+Temperaturskalen (Celsius, Fahrenheit) sind hier keine Einheiten,
 Kelvin schon, und `K` funktioniert wie jede andere.
 
 
@@ -1540,7 +1540,7 @@ die Bit-Schreibweisen.
 
 ### 1.27 Implizite Beziehungen
 
-Eine Gleichung mit zwei Unbekannten wird als Kurve gezeichnet: die Graph-Familie tastet die Beziehung mit Marching Squares ab und zeichnet ihre Null-Kontur. Kreis, Parabel und senkrechte Gerade — je ein Befehl:
+Eine Gleichung mit zwei Unbekannten wird als Kurve gezeichnet: die Graph-Familie tastet die Beziehung mit Marching Squares ab und zeichnet ihre Null-Kontur. Kreis, Parabel und senkrechte Gerade, je ein Befehl:
 
 ```epher
 graph x^2 + y^2 == 1
@@ -1564,7 +1564,7 @@ Eine Matrix ist ein Zahlenraster, geschrieben als Zeilen aus Listen:
 (gleiche Formen), `*` ist das Matrixprodukt, eine Zahl skaliert
 elementweise, und `^` ist die ganzzahlige Matrixpotenz (`A ^ 0` ist
 die Einheitsmatrix, Potenzen brauchen also quadratische Matrizen).
-`M[2][1]` ist das Element in Zeile 2, Spalte 1 — Zeilen indizieren wie
+`M[2][1]` ist das Element in Zeile 2, Spalte 1, Zeilen indizieren wie
 Listen, ab 1.
 
 ```epher
@@ -1590,7 +1590,7 @@ rref([[2, 1, 5], [1, -1, 1]])
 [[1, 0, 2], [0, 1, 1]]
 ```
 
-Die Zeilen lesen `x = 2`, `y = 1` — die letzte Spalte der reduzierten
+Die Zeilen lesen `x = 2`, `y = 1`, die letzte Spalte der reduzierten
 erweiterten Matrix. Exakte Brüche erscheinen in Matrizen wie in
 Listen, also zeigt `inv([[1, 2], [3, 4]])` `[[-2, 1], [3/2, -1/2]]`.
 
@@ -2018,8 +2018,8 @@ Planeten über etwa 5000 Jahre um die Gegenwart.
 
 epher spricht Geld genauso wie Astronomie: ein Zeitwert-Löser, eine
 Darlehensabrechnung, Zinsen und Cashflow-Analyse, alles offline. Alles
-in diesem Abschnitt liefert schlichte Zahlen — keine
-Währungszeichenketten —, die Antworten sind währungsneutral und
+in diesem Abschnitt liefert schlichte Zahlen, keine
+Währungszeichenketten: die Antworten sind währungsneutral und
 fließen direkt in die weitere Rechnung zurück. Zinssätze sind stets
 pro Periode als Bruchteil: `0.08/12` ist ein Jahreszins von 8 %,
 monatlich verrechnet, und `0.01` ist 1 % (das %-Nachzeichen aus 1.2
@@ -2131,8 +2131,8 @@ tvm_pv(240, 0.05/12, 1500, 0)
 ```
 
 Die Antwort ist negativ, weil der Kauf des Fonds heute ausgehendes
-Geld ist. Die andere Richtung — wie viel im Monat beiseitelegen für
-ein Ziel — fragt `tvm_pmt` mit dem Ziel als `fv`: 50,000 in zehn
+Geld ist. Die andere Richtung, wie viel im Monat beiseitelegen für
+ein Ziel, fragt `tvm_pmt` mit dem Ziel als `fv`: 50,000 in zehn
 Jahren bei 5 % kosten 322 im Monat:
 
 ```epher
@@ -2145,7 +2145,7 @@ tvm_pmt(120, 0.05/12, 0, -50000)
 
 Jede der fünf nimmt ein optionales letztes Argument `begin`: 0
 bedeutet Zahlungen am Periodenende (Standard), 1 am Periodenanfang
-(vorschüssig — Miete, die meisten Gehälter). Zahlungen am
+(vorschüssig, Miete, die meisten Gehälter). Zahlungen am
 Periodenanfang tragen eine Periode länger Zinsen, die Hypothekenrate
 fällt daher ein wenig:
 
@@ -2163,7 +2163,7 @@ Vorzeichenlage, die nie auf geht) melden einen Domänenfehler, der
 nennt, was versucht wurde.
 
 **Amortisation.** `amort(p, r, n, k)` ist der Restsaldo nach k
-Zahlungen eines n-Perioden-Darlehens von p zum Satz r — bei 0
+Zahlungen eines n-Perioden-Darlehens von p zum Satz r, bei 0
 Perioden die Summe, bei allen n null:
 
 ```epher
@@ -2187,7 +2187,7 @@ for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
 ```
 
 **Zinsen.** `simple_interest(p, r, t)` ist `p*r*t` und
-`compound_interest(p, r, n)` ist `p*(1+r)^n - p` — beide antworten
+`compound_interest(p, r, n)` ist `p*(1+r)^n - p`, beide antworten
 mit den verdienten Zinsen, nicht mit dem Saldo:
 
 ```epher
@@ -2206,7 +2206,7 @@ compound_interest(1000, 0.05, 2)
 102.5
 ```
 
-Der Saldo selbst ist schlichte Arithmetik — genau das ist der Sinn
+Der Saldo selbst ist schlichte Arithmetik, genau das ist der Sinn
 schlichter Zahlen:
 
 ```epher
@@ -2263,7 +2263,7 @@ Die Anlage erwirtschaftet 13,07 %. (`500/121` ist ephers exakte
 Bruchanzeige, 1.14: der Wert, dessen Dezimalzahl sich wiederholt;
 `dec(500/121)` schreibt 4.13223140496.) Die Entscheidungsregel:
 Nimm das Projekt, wenn `npv` zu deiner Mindestverzinsung positiv
-ist — das heißt, wenn `irr` die Mindestverzinsung schlägt. Bei 15 %
+ist, das heißt, wenn `irr` die Mindestverzinsung schlägt. Bei 15 %
 scheitert dieses hier:
 
 ```epher
@@ -2299,8 +2299,8 @@ in fünf Jahren von 1,000 auf 2,400 ging, und die reale Rendite von
 ```
 
 Die Skriptsammlung liefert 42 fertige Finanzskripte auf diesen zehn
-Funktionen mit — vier Ordner: Zinsen (interest), Investieren,
-Darlehen und Sparen —, jedes mit einem gegen die Engine geprüften
+Funktionen mit, vier Ordner: Zinsen (interest), Investieren,
+Darlehen und Sparen, jedes mit einem gegen die Engine geprüften
 Transkript (scripts.html listet sie mit Einzeiler-Zusammenfassungen auf).
 
 ## 2. Die Web-App (PWA)
@@ -2462,7 +2462,7 @@ table x ^ 2 from -2 to 2 points 5 derivative x ^ 2
 
 Die Tabellenzellen folgen den Ergebniseinstellungen: bei
 eingeschalteten exakten Brüchen (Standard) zeigt sich ein Wert, der
-ein einfacher Bruch ist, als solcher — `table x / 3 from 0 to 1
+ein einfacher Bruch ist, als solcher, `table x / 3 from 0 to 1
 points 4` listet `1/3` statt `0.333`.
 ```epher
 table x ^ 2 from -2 to 2 points 5
@@ -2619,7 +2619,7 @@ chmod +x epher-linux-x86_64.AppImage
 ./epher-linux-x86_64.AppImage
 ```
 
-**Oder aus einem Repository oder Store installieren** — Updates kommen
+**Oder aus einem Repository oder Store installieren**: Updates kommen
 dann mit deinem Paketmanager. Unter Debian/Ubuntu:
 
 ```sh

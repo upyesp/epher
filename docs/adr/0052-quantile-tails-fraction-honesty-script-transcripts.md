@@ -12,25 +12,25 @@ The calculator parity sweep (docs/research/calculator-parity-report.md)
 ran all 125 builtins and 45 constants against independent references.
 Four findings needed fixing:
 
-- **`invt`/`invchi2` tails** — `invert_cdf` stopped on a 1e-12 CDF
+- **`invt`/`invchi2` tails**: `invert_cdf` stopped on a 1e-12 CDF
   residual (far too loose where the PDF is flat) and clamped to the
   caller's bracket: `invt(0.999999, 3)` returned 100 (true 103.3),
   `invt(0.9999, 1)` returned 100 (true 3183.1), and ordinary tail
   quantiles were wrong at the 10th-12th digit.
-- **`invnorm` far tails** — the single Newton polish ran against
+- **`invnorm` far tails**: the single Newton polish ran against
   `norm_cdf(x) = 1 - 0.5*q`, which loses the tail's digits once the
   CDF saturates toward 1; extreme quantiles stalled at 1e-8 relative
   error.
-- **Fraction display** — the 1e-9 relative reconstruction tolerance
+- **Fraction display**: the 1e-9 relative reconstruction tolerance
   scaled with the value, so large decimals with a *coincidental*
   convergent displayed as surprising fractions: `123456.789` became
   `13456790/109` (whose decimal differs at the 9th digit), and the TVM
   payment displayed `327259/446` although the true root is
   733.764573879376...
-- **Quantity display** — the value inside a `Value::Quantity` was
+- **Quantity display**: the value inside a `Value::Quantity` was
   spelled raw: `30 deg in rad` showed 16 digits where `rad(30)` shows
   twelve.
-- **Script transcripts** — a submitted multi-line or semicolon script
+- **Script transcripts**: a submitted multi-line or semicolon script
   displayed only its last answer; the guide's multi-line examples
   silently dropped the intermediate results (some fences showed them,
   others did not).
@@ -49,7 +49,7 @@ Four findings needed fixing:
 - **`invnorm` polishes in tail space.** The Newton solves
   `0.5*q(0.5, x^2/2) == min(p, 1-p)` (the survivor is even, so one
   formula covers both signs; the derivative is -sign(x)*pdf(x)).
-  Measured: 1e-15 relative at every tail — the exact quantile of the
+  Measured: 1e-15 relative at every tail, the exact quantile of the
   stored p, which is the most any f64 calculator can do (the residual
   "error" vs 60-digit references at p ~ 1-1e-12 is the input's own
   f64 rounding: `1 - 1e-12` is not representable).
@@ -61,7 +61,7 @@ Four findings needed fixing:
   convergents do not. This supersedes ADR-0051's 1e-9 figure, and
   `exact()` now returns the terminating decimal's own fraction
   (`exact(123456.789)` is `123456789/1000`, not `13456790/109`).
-- **Quantity values round like every other result** — the number
+- **Quantity values round like every other result**: the number
   inside `Value::Quantity` goes through `auto_float` before the unit
   text; the length guard keeps exact integers intact.
 - **A script's every answer displays, in order, one per line.**

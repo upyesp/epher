@@ -1,7 +1,7 @@
-; nsis-check.nsi — compile-only harness for nsis-hooks.nsh (ADR-0011).
+; nsis-check.nsi, compile-only harness for nsis-hooks.nsh (ADR-0011).
 ;
 ; Verified with `makensis nsis-check.nsi` (Linux ships makensis; no wine
-; needed — this checks syntax, macros, labels, and includes). The string
+; needed; this checks syntax, macros, labels, and includes). The string
 ; logic itself is hand-traced in the hooks file; keep this harness in sync
 ; so the hook file always compiles against the same NSIS feature set the
 ; Tauri installer uses (LogicLib, no plugins).
@@ -10,7 +10,7 @@
 ;   - the template `!include`s the hooks file whole at the top (line ~35),
 ;   - NSIS_HOOK_POSTINSTALL is inserted inside `Section` (installer ctx),
 ;   - NSIS_HOOK_POSTUNINSTALL is inserted inside `Section Uninstall`
-;     (uninstaller ctx — where only `un.` functions may be Called).
+;     (uninstaller ctx, where only `un.` functions may be Called).
 ; Expanding both macros in their real contexts is what catches the
 ; installer/uninstaller function-context mismatch.
 ;

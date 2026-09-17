@@ -43,7 +43,7 @@ SECT23 = {
     "zh-CN": """### 1.23 随机数
 
 `random()` 抽取 `[0, 1)` 中的均匀随机数，`random(a, b)` 抽取 `[a, b)` 中的一个，
-`randint(a, b)` 抽取闭区间 `[a, b]` 中的一个整数——掷骰子：
+`randint(a, b)` 抽取闭区间 `[a, b]` 中的一个整数：掷骰子：
 
 ```epher
 randseed(7)
@@ -61,7 +61,7 @@ randint(1, 6)
     "hi": """### 1.23 यादृच्छिक संख्याएँ
 
 `random()` एक समान यादृच्छिक संख्या निकालता है `[0, 1)` में, `random(a, b)` एक
-`[a, b)` में, और `randint(a, b)` बंद परास `[a, b]` से एक पूर्णांक — पासा फेंकना:
+`[a, b)` में, और `randint(a, b)` बंद परास `[a, b]` से एक पूर्णांक, पासा फेंकना:
 
 ```epher
 randseed(7)
@@ -80,7 +80,7 @@ randint(1, 6)
 
 `random()` sortea un número uniforme en `[0, 1)`, `random(a, b)` uno en
 `[a, b)`, y `randint(a, b)` un número entero del intervalo cerrado
-`[a, b]` — una tirada de dados:
+`[a, b]`, una tirada de dados:
 
 ```epher
 randseed(7)
@@ -99,7 +99,7 @@ sesión y en cada interfaz.
     "fr": """### 1.23 Nombres aléatoires
 
 `random()` tire un nombre uniforme dans `[0, 1)`, `random(a, b)` un dans
-`[a, b)`, et `randint(a, b)` un entier de l'intervalle fermé `[a, b]` —
+`[a, b)`, et `randint(a, b)` un entier de l'intervalle fermé `[a, b]`,
 un lancer de dé :
 
 ```epher
@@ -119,7 +119,7 @@ dans chaque session et chaque interface.
     "ar": """### 1.23 أعداد عشوائية
 
 `random()` يسحب عددًا منتظمًا في `[0, 1)`، و`random(a, b)` واحدًا في `[a, b)`،
-و`randint(a, b)` عددًا صحيحًا من الفترة المغلقة `[a, b]` — رمية نرد:
+و`randint(a, b)` عددًا صحيحًا من الفترة المغلقة `[a, b]`، رمية نرد:
 
 ```epher
 randseed(7)
@@ -138,7 +138,7 @@ randint(1, 6)
 
 `random()` zieht eine gleichverteilte Zahl aus `[0, 1)`, `random(a, b)`
 eine aus `[a, b)`, und `randint(a, b)` eine ganze Zahl aus dem
-geschlossenen Bereich `[a, b]` — ein Würfelwurf:
+geschlossenen Bereich `[a, b]`, ein Würfelwurf:
 
 ```epher
 randseed(7)
@@ -157,7 +157,7 @@ Oberfläche dieselben Ziehungen wiederholt.
     "pt": """### 1.23 Números aleatórios
 
 `random()` sorteia um número uniforme em `[0, 1)`, `random(a, b)` um em
-`[a, b)`, e `randint(a, b)` um inteiro do intervalo fechado `[a, b]` —
+`[a, b)`, e `randint(a, b)` um inteiro do intervalo fechado `[a, b]`,
 um lançamento de dados:
 
 ```epher

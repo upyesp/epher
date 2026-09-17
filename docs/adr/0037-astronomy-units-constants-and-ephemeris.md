@@ -200,7 +200,7 @@ grade, and the events keep the crate's conventions.
 ## Amendment (2026-09-06): Julian Dates read back as calendar dates
 
 `jd()` and `mjd()` turn dates into Julian Dates, but nothing read them
-back — astronomy scripts that answered in bare JDs left the user to do
+back, astronomy scripts that answered in bare JDs left the user to do
 Meeus chapter 7 by hand. Three built-ins complete the loop, named for
 the three forms the community actually reads: **`date(jd)`** returns
 the Gregorian calendar date as `{year, month, day}` (the inverse of

@@ -1,6 +1,6 @@
-//! epher-store — the Storage capability and persisted schema (ADR-0002,
+//! epher-store, the Storage capability and persisted schema (ADR-0002,
 //! ADR-0003). One logical schema as JSON documents; physical backends differ
-//! per target — native filesystem (CLI/TUI/desktop), browser storage
+//! per target, native filesystem (CLI/TUI/desktop), browser storage
 //! (web/PWA), and the File System Access bridge for the desktop PWA.
 //!
 //! Writes are atomic and last-write-wins across co-running frontends.

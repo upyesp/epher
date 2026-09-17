@@ -14,7 +14,7 @@ the exact capture consulted). Two live-access notes: `willmannbell.com` and
 `uscibooks.com` currently serve other companies' pages (the WB store was in
 maintenance; University Science Books was acquired by MIT Press effective 2025-07-01,
 per https://www.uscibooks.com/urban.htm as served on 2026-09-07), and
-`hpcalc.org`/`hpmuseum.org` returned anti-bot responses to direct fetches — all
+`hpcalc.org`/`hpmuseum.org` returned anti-bot responses to direct fetches; all
 resolved via the Internet Archive.
 
 ---
@@ -34,7 +34,7 @@ resolved via the Internet Archive.
   appendices (same URL). For reference, the **1st edition (1991) has 56 chapters**
   (ends at ch. 56 "Calculation of a Planar Sundial"); scanned copy with readable
   TOC: https://archive.org/details/astronomicalalgorithmsjeanmeeus1991
-- **Full TOC of the 2nd edition** (same Willmann-Bell page) — every chapter is a
+- **Full TOC of the 2nd edition** (same Willmann-Bell page); every chapter is a
   self-contained, calculator-sized algorithm; this is the single richest source of
   candidate scripts:
 
@@ -71,7 +71,7 @@ resolved via the Internet Archive.
   "a general source of algorithms for performing a wide variety of celestial
   calculations … Chapter 15 covers the computation of times of rise, set, and
   transit. This book also contains algorithms for low-precision ephemerides of
-  major celestial bodies." — https://aa.usno.navy.mil/faq/rs_algor
+  major celestial bodies.", https://aa.usno.navy.mil/faq/rs_algor
 
 ### 1.2 Peter Duffett-Smith & Jonathan Zwart, *Practical Astronomy with your Calculator or Spreadsheet* (4th ed.)
 
@@ -80,7 +80,7 @@ resolved via the Internet Archive.
   https://openlibrary.org/books/OL25023016M).
 - **Real TOC** (Google Books record
   https://books.google.com/books/about/Practical_Astronomy_with_your_Calculator.html?id=MTGYxQyW998C)
-  — organized as five chapter-topics, each with many numbered section-level
+, organized as five chapter-topics, each with many numbered section-level
   calculations. Section-level items (one line each) are directly script-sized:
 
   *Time:* Calendars · The date of Easter · Converting the date to the day number ·
@@ -133,7 +133,7 @@ resolved via the Internet Archive.
 - **Sequels:** *More Mathematical Astronomy Morsels* (2002), *Morsels III*, *IV*,
   *V* are all listed on the Willmann-Bell computational-astronomy index page:
   http://web.archive.org/web/20200513223125/https://www.willbell.com/math/index.htm
-- **Real TOC of Morsels I** (same mc16.htm URL) — 62 essays grouped in sections;
+- **Real TOC of Morsels I** (same mc16.htm URL), 62 essays grouped in sections;
   unlike the two books above it is a collection of *investigations*, but each
   essay suggests a checkable calculation: **The Moon:** the instantaneous lunar
   orbit · extreme Earth–Moon distances · distribution of perigee/apogee distances ·
@@ -188,121 +188,121 @@ time scales, precession/nutation, rise/set/transit, eclipses, physical ephemerid
 
 ## 2. Calculator script communities: what people actually share
 
-### 2.1 hpcalc.org — HP Prime (science category, Wayback capture 2022-12-09; live: https://www.hpcalc.org/prime/science/)
+### 2.1 hpcalc.org: HP Prime (science category, Wayback capture 2022-12-09; live: https://www.hpcalc.org/prime/science/)
 
 Astronomy entries with names + what each computes (detail URLs are
 `https://www.hpcalc.org/details/<id>`):
 
-- **Astro Lab 4** (7593) — "Astronomy program with many built-in features".
-- **Effemeridi** (7617) — "ephemeris for Sun, Moon and planets, transit, sidereal
+- **Astro Lab 4** (7593), "Astronomy program with many built-in features".
+- **Effemeridi** (7617), "ephemeris for Sun, Moon and planets, transit, sidereal
   time, nutation and obliquity, Julian date, ascendant and many others data".
-- **Eclipses of Moon and Sun 1.0** (8792) — for a given date, finds next full/new
+- **Eclipses of Moon and Sun 1.0** (8792), for a given date, finds next full/new
   moon and checks for lunar/solar eclipse incl. kind, magnitude and shadow size.
-- **Moon Date** (8984) — next start date of a chosen lunar phase for a month/year.
-- **Moon Phase** (7975) / **Moon Phase 1.0** (7508) — phase percent/graphic for a date.
-- **Predicting Phases of the Moon** (9389) — date and UTC time of each lunar phase
+- **Moon Date** (8984), next start date of a chosen lunar phase for a month/year.
+- **Moon Phase** (7975) / **Moon Phase 1.0** (7508), phase percent/graphic for a date.
+- **Predicting Phases of the Moon** (9389), date and UTC time of each lunar phase
   in a month.
-- **Planetary Positions** (8834) — "positions of the planets, plus one dwarf planet".
-- **EQT** (7618) — equation of time approximation.
-- **Angular Distance Between Stars** (7934) — great-circle separation from two
+- **Planetary Positions** (8834), "positions of the planets, plus one dwarf planet".
+- **EQT** (7618), equation of time approximation.
+- **Angular Distance Between Stars** (7934), great-circle separation from two
   RA/Dec pairs (J2000).
-- **Basic Planetary Data** (7763) — planet physical/orbital data lookup.
-- **Distance from the Sun & Orbital Speed** (7632) — heliocentric distance and
+- **Basic Planetary Data** (7763), planet physical/orbital data lookup.
+- **Distance from the Sun & Orbital Speed** (7632), heliocentric distance and
   speed days from perihelion (Kepler ellipse).
-- **Solar Irradiance** (7622) — incidence angle/irradiance on a tilted panel.
-- **Z Astronomical Routines** (7788) — planet temperature estimate, spacecraft
+- **Solar Irradiance** (7622), incidence angle/irradiance on a tilted panel.
+- **Z Astronomical Routines** (7788), planet temperature estimate, spacecraft
   drag, magnitudes.
-- **Programs for Astronomy and Orbital Mechanics** (9388) — routines + source.
-- **Real Time Ephemeris** (9113) — real-time ephemeris (Indonesian).
-- **Lunar Astronomy 1.0** (9046) — Moon/Earth orbit illustration.
-- **MSSTARS 1.0** (9167) — main-sequence star model from mass.
-- **Observatories** (7787) — parses Minor Planet Center observatory file, maps sites.
+- **Programs for Astronomy and Orbital Mechanics** (9388), routines + source.
+- **Real Time Ephemeris** (9113), real-time ephemeris (Indonesian).
+- **Lunar Astronomy 1.0** (9046), Moon/Earth orbit illustration.
+- **MSSTARS 1.0** (9167), main-sequence star model from mass.
+- **Observatories** (7787), parses Minor Planet Center observatory file, maps sites.
 
-### 2.2 hpcalc.org — HP 48 astronomy category (55 entries; Wayback capture 2015-12-30)
+### 2.2 hpcalc.org: HP 48 astronomy category (55 entries; Wayback capture 2015-12-30)
 
 Full listing at
 http://web.archive.org/web/20151230225549/http://www.hpcalc.org:80/hp48/science/astronomy/
 (detail URLs `https://www.hpcalc.org/details/<id>`). Highlights:
 
-- **AST48 1.01** (5279) — astronomical library: ephemeris of Sun, Moon, planets,
+- **AST48 1.01** (5279), astronomical library: ephemeris of Sun, Moon, planets,
   comets, asteroids; mean/apparent/geocentric/topocentric coordinates; accurate
   precession and nutation; mean elements of major bodies.
-- **ASTRO2012 1.0** (7365) — Sun/Moon/9 planets+Xena via **VSOP87B + TOP2010A +
+- **ASTRO2012 1.0** (7365), Sun/Moon/9 planets+Xena via **VSOP87B + TOP2010A +
   corrections from DE422**; date of Easter; positions of the main satellites of
   Jupiter, Saturn, Uranus; comet orbits (parabolic/hyperbolic/elliptic).
-- **EPHE 2.13** (1941) — ephemeris of sun, planets, moon, stars, Messier objects,
+- **EPHE 2.13** (1941), ephemeris of sun, planets, moon, stars, Messier objects,
   comets, asteroids; distance, magnitude, apparent diameter, phase and
   rising/transit/setting.
-- **JPLEPH 1.0** (7370) — JPL DE421/422/423/424/406/408 barycentric/heliocentric/
+- **JPLEPH 1.0** (7370), JPL DE421/422/423/424/406/408 barycentric/heliocentric/
   geocentric coordinates of Sun and planets.
-- **JMOON 2.0** (1942) — positions of Jupiter's moons (Io, Europa, Ganymede,
+- **JMOON 2.0** (1942), positions of Jupiter's moons (Io, Europa, Ganymede,
   Callisto), past/present/future.
-- **Urania/48 2.00.01** (1965) — "an almost complete and expandable implementation
+- **Urania/48 2.00.01** (1965), "an almost complete and expandable implementation
   of the book *Astronomical Algorithms* written by … Jean Meeus."
-- **QVSOP 1.01** (1954) — faster planet positions for **1998–2025** (i.e., the
+- **QVSOP 1.01** (1954), faster planet positions for **1998–2025** (i.e., the
   Meeus 2nd-edition Appendix-IV polynomials' window).
-- **MASTRO** (1944) — position, rise, culmination, set for sun, moon, planets;
+- **MASTRO** (1944), position, rise, culmination, set for sun, moon, planets;
   moon phases; calendar, holy days, Julian day; all coordinate and time conversions.
-- **Celestial Navigation 4.2** (1937) — position fix from observed altitudes of
+- **Celestial Navigation 4.2** (1937), position fix from observed altitudes of
   multiple bodies by least squares, with dip/refraction corrections; **Sparcom
   Celestial Navigation Pac** (7082) commercial pack; **Almanac** (6678) celestial
   navigation fix program; **Celestial and DR Navigation** (6714).
-- **SunCalc** (1961) / **Suncalc 1.0** (4192) / **Sunrise/Sunset** (1962) —
+- **SunCalc** (1961) / **Suncalc 1.0** (4192) / **Sunrise/Sunset** (1962),
   sunrise/sunset times from position, timezone, date.
-- **Analemma** (1933) — Sun's position vs "where it is supposed to be" (declination
+- **Analemma** (1933), Sun's position vs "where it is supposed to be" (declination
   and right-ascension offset).
-- **Eclipse 1.1** (1940) — calculates and animates solar and lunar eclipses.
-- **Moon 2.0/3.0**, **Moon Phase**, **Phase Of Moon 1.0** — lunar phase date/time
+- **Eclipse 1.1** (1940), calculates and animates solar and lunar eclipses.
+- **Moon 2.0/3.0**, **Moon Phase**, **Phase Of Moon 1.0**, lunar phase date/time
   (Moon 3.0 valid "from 1582-10-15 to the future").
-- **HPlanétarium 3.08** (4897) — planetarium with equatorial/azimuthal coordinates,
+- **HPlanétarium 3.08** (4897), planetarium with equatorial/azimuthal coordinates,
   rise/transit/set times, elongation, magnitude.
-- **Digital Setting Circles 2.0** (1939) — telescope pointing without polar
-  alignment; **Starplotter**, **StarMaHP**, **Sky**, **Ciel 1.5** — star maps and
+- **Digital Setting Circles 2.0** (1939), telescope pointing without polar
+  alignment; **Starplotter**, **StarMaHP**, **Sky**, **Ciel 1.5**, star maps and
   observation helpers.
-- **Tyko 3.1** (1964) / **Plasy** (1953) — solar-system object data sheets.
-- **Orbit Determination 1.0** (7577) — Gauss-Herrick-Gibbs / Herget orbit
+- **Tyko 3.1** (1964) / **Plasy** (1953), solar-system object data sheets.
+- **Orbit Determination 1.0** (7577), Gauss-Herrick-Gibbs / Herget orbit
   determination from observations.
-- **XTime 1.1** (6044) — extended time/date/calendar/astronomical routines,
+- **XTime 1.1** (6044), extended time/date/calendar/astronomical routines,
   partially ported from HP-41C CALENDARS solutions.
-- **SALAT 1.2G** (4905) — Muslim prayer times (hour-angle-based solar computation).
+- **SALAT 1.2G** (4905), Muslim prayer times (hour-angle-based solar computation).
 
-### 2.3 ticalc.org — TI-83/84 Plus BASIC astronomy archive (live)
+### 2.3 ticalc.org: TI-83/84 Plus BASIC astronomy archive (live)
 
-Category: https://www.ticalc.org/pub/83plus/basic/science/astronomy/ — five
+Category: https://www.ticalc.org/pub/83plus/basic/science/astronomy/, five
 programs, each with description:
 
-- **Celestia V3.41** (`celestia.zip`) — "Converts celestial co-ords for Messier,
+- **Celestia V3.41** (`celestia.zip`), "Converts celestial co-ords for Messier,
   NGC, Named Stars, and planets to horizon co-ords. Planet positions are
   dynamically calculated."
   https://www.ticalc.org/archives/files/fileinfo/446/44686.html
-- **Julian Date Converter** (`juliandateconv.zip`) — date ↔ Julian Date.
+- **Julian Date Converter** (`juliandateconv.zip`), date ↔ Julian Date.
   https://www.ticalc.org/archives/files/fileinfo/475/47521.html
-- **Lunar Eclipses** (`moonecl.zip`) — "for any given year and month, the times of
+- **Lunar Eclipses** (`moonecl.zip`), "for any given year and month, the times of
   the possible lunar eclipse."
   https://www.ticalc.org/archives/files/fileinfo/276/27615.html
-- **Phases of the Moon** (`moonph.zip`) — "for any given year and month, the
+- **Phases of the Moon** (`moonph.zip`), "for any given year and month, the
   instant of the selected Moon phase."
   https://www.ticalc.org/archives/files/fileinfo/269/26939.html
-- **Sunθ84+ v2.5** (`suntheta84.zip`) — "calculates solar position given UTC time
+- **Sunθ84+ v2.5** (`suntheta84.zip`), "calculates solar position given UTC time
   and location."
   https://www.ticalc.org/archives/files/fileinfo/450/45056.html
 
 (The TI-84 Plus CE Python archive has no astronomy entries:
-https://www.ticalc.org/pub/84plusce/python/ — checked 2026-09-07.)
+https://www.ticalc.org/pub/84plusce/python/, checked 2026-09-07.)
 
-### 2.4 HP Museum (hpmuseum.org) — HP-41 software library
+### 2.4 HP Museum (hpmuseum.org): HP-41 software library
 
 The live site blocks scripted access (403 "Just a moment…" on 2026-09-07); Wayback
 captures used. Jean-Marc Baillard's astronomy programs:
 
 - **Astronomical Ephemeris for the HP-41**
   (http://web.archive.org/web/20160116094313/http://www.hpmuseum.org:80/software/41/41asteph.htm)
-  — solves Kepler's equation, adds periodic corrections; ephemeris over **1000–3000**
+, solves Kepler's equation, adds periodic corrections; ephemeris over **1000–3000**
   with ~**0.01°** heliocentric-longitude accuracy (Pluto 1880–2110 only); Venus/Mars
   geocentric longitude error up to ~1 arcmin near closest approach.
 - **Astronomical Refraction for the HP-41**
   (http://web.archive.org/web/20160405104923/http://www.hpmuseum.org/software/41/41astror.htm)
-  — apparent↔true altitude refraction, short routine with errors < 0.34″ over
+, apparent↔true altitude refraction, short routine with errors < 0.34″ over
   0°–90°, multi-parameter program reproducing Pulkovo refraction tables to ~1–2″.
   Also in the library: Easter date (`41easter.htm`), lunar-landing games, tides
   (`41tides.htm`), new-moon and planet series (`41td/newmoon.htm`, `41td/planet.htm`),
@@ -312,30 +312,30 @@ captures used. Jean-Marc Baillard's astronomy programs:
 
 The old `workshop.numworks.com` gallery has been folded into
 `https://my.numworks.com/python` (a JS-filtered public library; its English
-"Examples" category currently holds only a dozen sample scripts, none astronomy —
+"Examples" category currently holds only a dozen sample scripts, none astronomy,
 checked 2026-09-07). Astronomy scripts are still directly indexable; a concrete
 cluster by user **steveg1cmz** (https://my.numworks.com/python/steveg1cmz):
 
-- **aeclipse.py** — "Astronomy: Eclipse … Algorithms are based on Jean Meeus.
+- **aeclipse.py**: "Astronomy: Eclipse … Algorithms are based on Jean Meeus.
   Calculates eclipses (lunar eclipse and solar eclipse)" with `DTm(JDE)` and
   `eclipse(year,koff)` (koff = 0 solar, ±0.5 lunar).
   https://my.numworks.com/python/steveg1cmz/aeclipse
-- **alunareclipse.py** — lunar eclipse + JDE/date conversion routines (Meeus-based)
+- **alunareclipse.py**: lunar eclipse + JDE/date conversion routines (Meeus-based)
   plus a one-year calendar. https://my.numworks.com/python/steveg1cmz/alunareclipse
-- **asolardistancelo.py** — "solar distance (centre Sun–centre Earth) given a JDE.
+- **asolardistancelo.py**: "solar distance (centre Sun–centre Earth) given a JDE.
   Based on low-precision Jean Meeus algorithm (precision maybe 1000's of km)".
   https://my.numworks.com/python/steveg1cmz/asolardistancelo
-- **al0_1.py** — lunar orbital characteristics (simplified circular) with Turtle
+- **al0_1.py**: lunar orbital characteristics (simplified circular) with Turtle
   animation. https://my.numworks.com/python/steveg1cmz/al0_1
 
 (Casio: planet-casio.com program search for "astronomie" surfaced no astronomy
-programs in the listing fetched on 2026-09-07 — no claim made.)
+programs in the listing fetched on 2026-09-07; no claim made.)
 
 ### 2.6 TI-Basic Developer (tibasicdev.wikidot.com)
 
 The site's own Program Archives page states it is no longer maintained: "its forum,
 archives, and even hosting service … have been decaying for years … head over to
-Cemetech" — http://tibasicdev.wikidot.com/archives (checked 2026-09-07). Its site
+Cemetech", http://tibasicdev.wikidot.com/archives (checked 2026-09-07). Its site
 search returns no astronomy program pages. Conclusion: treat tibasicdev as
 documentation, not a program source; the TI community now lives on
 ticalc.org/Cemetech.
@@ -344,7 +344,7 @@ ticalc.org/Cemetech.
 (moon phase & next-phase dates, eclipses, sun position & sunrise/sunset, planet
 positions, JD conversion, ephemeris bundles, celestial navigation, moon libraries of
 Jupiter/Saturn), and the respected "big" programs are explicitly Meeus implementations
-(Urania/48) or VSOP87-based (ASTRO2012) — evidence that the book-derived topics
+(Urania/48) or VSOP87-based (ASTRO2012), evidence that the book-derived topics
 already carry user demand.
 
 ---
@@ -353,24 +353,24 @@ already carry user demand.
 
 | Model | What it is | Accuracy | Valid range (as stated by source) | Typical use | Feasibility as short calculator script |
 |---|---|---|---|---|---|
-| **VSOP87** (Bretagnon & Francou, Bureau des Longitudes; CDS catalog VI/81) | Semi-analytic planetary series; fitted to JPL **DE200**; distributed as versions: VSOP87 (elliptic elements), **A** (heliocentric rect., J2000), **B** (heliocentric spherical, J2000), **C** (rect., equinox/ecliptic of date), **D** (spherical, of date), **E** (barycentric rect., J2000) | **1″ for Mercury, Venus, Earth–Moon barycenter, Mars over ±4000 yr** around J2000; same precision for Jupiter/Saturn over ±2000 yr and Uranus/Neptune over ±6000 yr (notice §PRECISION, with per-body relative precision table p₀) | As above (thousands of years) | The standard compact planetary theory used by almanac-grade amateur software (e.g., hpcalc ASTRO2012 uses VSOP87B; Meeus chs. 32/47 follow this school) | **Feasible as a script only in truncated form**: the series are large — per-body files run from ~1,700 to ~15,000 records depending on version (ReadMe File Summary: e.g. VSOP87D.nep = 1,946 records, VSOP87D.mar = 5,501, VSOP87.sat = 12,375); keeping only the largest terms is the classic "compact VSOP87" approach. The D-version (spherical, of-date) avoids frame math |
+| **VSOP87** (Bretagnon & Francou, Bureau des Longitudes; CDS catalog VI/81) | Semi-analytic planetary series; fitted to JPL **DE200**; distributed as versions: VSOP87 (elliptic elements), **A** (heliocentric rect., J2000), **B** (heliocentric spherical, J2000), **C** (rect., equinox/ecliptic of date), **D** (spherical, of date), **E** (barycentric rect., J2000) | **1″ for Mercury, Venus, Earth–Moon barycenter, Mars over ±4000 yr** around J2000; same precision for Jupiter/Saturn over ±2000 yr and Uranus/Neptune over ±6000 yr (notice §PRECISION, with per-body relative precision table p₀) | As above (thousands of years) | The standard compact planetary theory used by almanac-grade amateur software (e.g., hpcalc ASTRO2012 uses VSOP87B; Meeus chs. 32/47 follow this school) | **Feasible as a script only in truncated form**: the series are large, per-body files run from ~1,700 to ~15,000 records depending on version (ReadMe File Summary: e.g. VSOP87D.nep = 1,946 records, VSOP87D.mar = 5,501, VSOP87.sat = 12,375); keeping only the largest terms is the classic "compact VSOP87" approach. The D-version (spherical, of-date) avoids frame math |
 | **ELP2000-82 / ELP 2000-85** (Chapront-Touzé & Chapront; CDS catalog VI/79) | Semi-analytic **lunar** theory: trigonometric + Poisson series for longitude/latitude (arcsec) and distance (km); constants fitted to **DE200/LE200**; files cover main problem plus Earth-figure, planetary, tidal, Moon-figure perturbations | CDS: "All this set allows to compute a high precision lunar ephemeris" (VI/79 ReadMe); the 1988 paper is titled "ELP 2000-85: a semi-analytical lunar ephemeris **adequate for historical times**" | Historical times (paper title); series include t and t² terms | High-precision lunar ephemerides; basis of Meeus ch. 47's abridged theory | **Full form: no; abridged form: yes** (Meeus ch. 47 is precisely the abridged ELP; Moshier's aa uses a modified Chapront theory, see below) |
-| **Moshier ephemeris (DE404 fits)** (Stephen Moshier's `plan404` series + modified Chapront lunar theory, in `aa-56.zip`) | Trigonometric expansions for Earth and planets "adjusted to match JPL's DE404 Long Ephemeris (1995)"; Moon via "a modified version of the lunar theory of Chapront-Touzé and Chapront" | Planets: "precision ranging from about **0.1″ for the Earth to 1″ for Pluto**"; Moon: "**0.5 arc second relative to DE404** for all dates between 1369 B.C. and 3000 A.D."; librations series (`selenog.zip`) 0.05″ from −1369 to +2950 | 3000 B.C.–3000 A.D. for outer planets; inner planets strictly valid 1350 B.C.–3000 A.D. (may be used to 3000 B.C. with loss) | Self-contained almanac-grade ephemeris **with no tabulated data files** — the classic choice for embeddable calculators (the Debian `aa` package) | **Very feasible**: it exists precisely to be a closed-form, data-free ephemeris for small programs |
-| **Paul Schlyter, "How to compute planetary positions"** | Tutorial at **https://stjarnhimlen.se/comp/ppcomp.html** — step-by-step: orbital elements, Sun, sidereal time, Moon & planets, position in space, precession, Moon perturbations, Jupiter/Saturn/Uranus perturbations, geocentric/equatorial/azimuthal coords, Moon topocentric correction, Pluto, elongation & physical ephemerides, asteroids, comets (parabolic/near-parabolic/hyperbolic), rise/set times, element validity; with numerical test cases | His own statement: "a **fraction of an arc minute** for the Sun and the inner planets, about **one arc minute** for the outer planets, and **1–2 arc minutes** for the Moon"; based on simplifying van Flandern & Pulkkinen, "Low precision formulae for planetary positions" (ApJ Suppl. 40, 405, 1980); "first implemented on a HP-41C" in <2 KB RAM | §22: the Sun/Moon/major-planet elements given are "valid for a long time period"; comet/asteroid elements only for limited spans | The canonical low-precision walkthrough; ideal spec for a first ephemeris script family | **Maximally feasible**: closed-form, few dozen lines per body |
-| **JPL Horizons** (Solar System Dynamics Group) | Online service: "flexible production of **highly accurate ephemerides** for solar system objects (asteroids, comets, planetary satellites, planets, the Sun, L1, L2, select spacecraft, and system barycenters)" via web, command-line, email, and API | The reference standard (JPL DE integrations; DE430/431-class) | All of history per ephemeris version | Ground truth for testing scripts; not embeddable | **Not a script** — needs network + big data; use to *validate* scripts |
+| **Moshier ephemeris (DE404 fits)** (Stephen Moshier's `plan404` series + modified Chapront lunar theory, in `aa-56.zip`) | Trigonometric expansions for Earth and planets "adjusted to match JPL's DE404 Long Ephemeris (1995)"; Moon via "a modified version of the lunar theory of Chapront-Touzé and Chapront" | Planets: "precision ranging from about **0.1″ for the Earth to 1″ for Pluto**"; Moon: "**0.5 arc second relative to DE404** for all dates between 1369 B.C. and 3000 A.D."; librations series (`selenog.zip`) 0.05″ from −1369 to +2950 | 3000 B.C.–3000 A.D. for outer planets; inner planets strictly valid 1350 B.C.–3000 A.D. (may be used to 3000 B.C. with loss) | Self-contained almanac-grade ephemeris **with no tabulated data files**, the classic choice for embeddable calculators (the Debian `aa` package) | **Very feasible**: it exists precisely to be a closed-form, data-free ephemeris for small programs |
+| **Paul Schlyter, "How to compute planetary positions"** | Tutorial at **https://stjarnhimlen.se/comp/ppcomp.html**, step-by-step: orbital elements, Sun, sidereal time, Moon & planets, position in space, precession, Moon perturbations, Jupiter/Saturn/Uranus perturbations, geocentric/equatorial/azimuthal coords, Moon topocentric correction, Pluto, elongation & physical ephemerides, asteroids, comets (parabolic/near-parabolic/hyperbolic), rise/set times, element validity; with numerical test cases | His own statement: "a **fraction of an arc minute** for the Sun and the inner planets, about **one arc minute** for the outer planets, and **1–2 arc minutes** for the Moon"; based on simplifying van Flandern & Pulkkinen, "Low precision formulae for planetary positions" (ApJ Suppl. 40, 405, 1980); "first implemented on a HP-41C" in <2 KB RAM | §22: the Sun/Moon/major-planet elements given are "valid for a long time period"; comet/asteroid elements only for limited spans | The canonical low-precision walkthrough; ideal spec for a first ephemeris script family | **Maximally feasible**: closed-form, few dozen lines per body |
+| **JPL Horizons** (Solar System Dynamics Group) | Online service: "flexible production of **highly accurate ephemerides** for solar system objects (asteroids, comets, planetary satellites, planets, the Sun, L1, L2, select spacecraft, and system barycenters)" via web, command-line, email, and API | The reference standard (JPL DE integrations; DE430/431-class) | All of history per ephemeris version | Ground truth for testing scripts; not embeddable | **Not a script**, needs network + big data; use to *validate* scripts |
 | **Astronomical Almanac / Nautical Almanac data (USNO + HM Nautical Almanac Office)** | Annual printed/online almanacs: "The Astronomical Almanac, The Nautical Almanac, The Air Almanac, Astronomical Phenomena, and The Astronomical Almanac Online … for use in navigation, surveying, scientific research, litigation…" (https://aa.usno.navy.mil/publications); USNO also publishes FAQ "computational notes" (Julian-date formula, approximate solar coordinates, altitude & azimuth, approximate sidereal time, equation of time, Moon illumination %) under https://aa.usno.navy.mil/faq/ (nav visible on e.g. https://aa.usno.navy.mil/faq/rs_algor) | Almanac-grade (arcsecond-class positions) | Annual tabulations | Navigation, surveying, almanac users; USNO's rise/set/twilight data services | USNO's **formulas** are script-feasible; its **tables** are not |
 | **USNO rise/set/transit formulas** | USNO's live guidance for computing rise/set/twilight: points to Explanatory Supplement 3rd ed. **ch. 12** and Meeus **ch. 15** as the canonical algorithm sources; the standard hour-angle method with h₀ = −0.833° for sunrise/sunset (refraction + solar semidiameter) is also laid out by NOAA (below) and the Wikipedia *Sunrise equation* article (https://en.wikipedia.org/wiki/Sunrise_equation, citing Meeus p. 98) | Matches almanac tabulations to ~1 min under standard atmosphere | Any epoch with valid ephemerides | Sunrise/sunset/twilight/moonrise/moonset calculators everywhere | **Feasible**: ~30 lines once you have solar/lunar RA/Dec |
 | **NOAA solar calculator equations** | NOAA GML's Solar Calculator: "based on equations from *Astronomical Algorithms*, by Jean Meeus"; the companion PDF "General Solar Position Calculations" gives the closed forms: fractional year γ → equation of time & declination → true solar time → hour angle → zenith/azimuth; sunrise/sunset via zenith 90.833° | "sunrise and sunset results are theoretically accurate to **within a minute** for locations between ±72° latitude, and **within 10 minutes** outside those latitudes" (page notes it is no longer maintained) | Modern epoch | The de-facto public solar-position reference (solar energy, surveying) | **Feasible**: single small script, no tables |
 
-Primary-source URLs for the table: VSOP87 —
+Primary-source URLs for the table: VSOP87,
 https://cdsarc.cds.unistra.fr/ftp/VI/81/ReadMe and
-https://cdsarc.cds.unistra.fr/ftp/VI/81/vsop87.txt; ELP —
-https://cdsarc.cds.unistra.fr/ftp/VI/79/ReadMe; Moshier —
-https://www.moshier.net/aadoc.html and https://www.moshier.net/; Schlyter —
-https://stjarnhimlen.se/comp/ppcomp.html; Horizons —
-https://ssd.jpl.nasa.gov/horizons/; NOAA —
+https://cdsarc.cds.unistra.fr/ftp/VI/81/vsop87.txt; ELP,
+https://cdsarc.cds.unistra.fr/ftp/VI/79/ReadMe; Moshier,
+https://www.moshier.net/aadoc.html and https://www.moshier.net/; Schlyter,
+https://stjarnhimlen.se/comp/ppcomp.html; Horizons,
+https://ssd.jpl.nasa.gov/horizons/; NOAA,
 https://gml.noaa.gov/grad/solcalc/calcdetails.html and
-https://gml.noaa.gov/grad/solcalc/solareqns.PDF; USNO —
+https://gml.noaa.gov/grad/solcalc/solareqns.PDF; USNO,
 https://aa.usno.navy.mil/publications and https://aa.usno.navy.mil/faq/rs_algor.
 
 **Ephemeris → takeaway for an "ephemeris" script topic family:**
@@ -380,7 +380,7 @@ https://aa.usno.navy.mil/publications and https://aa.usno.navy.mil/faq/rs_algor.
   equations, USNO rise/set hour-angle method, truncated VSOP87 (top-N waves),
   Meeus-abridged ELP (ch. 47).
 - **Need tabulated data / network (not scripts):** full VSOP87/ELP2000-82B series,
-  JPL DE files via Horizons or aa200 — these are what you *validate against*, not
+  JPL DE files via Horizons or aa200; these are what you *validate against*, not
   what you embed.
 
 ---
@@ -393,26 +393,26 @@ https://github.com/Stellarium/stellarium/releases/download/v26.2/stellarium_user
 The **Astronomical Calculations window (AstroCalc)** is literally a checklist of
 practitioner-computed quantities (§4.6 of the guide):
 
-- **Positions tab** — equatorial J2000 or horizontal positions, magnitudes, surface
+- **Positions tab**: equatorial J2000 or horizontal positions, magnitudes, surface
   brightness/separation filters for what's above the horizon now; "Major planets"
   subtab with heliocentric ecliptic positions and polar plot.
-- **Ephemeris tab** — positions and magnitudes over a time range, including
+- **Ephemeris tab**: positions and magnitudes over a time range, including
   **horizontal-coordinate traces (analemma of the Sun)** and twilight-constrained
   visibility (e.g., Venus at civil twilight, Saturn opposition points over decades).
-- **RTS tab** — "meridian transits and rising and setting times of selected
+- **RTS tab**: "meridian transits and rising and setting times of selected
   celestial object … for a specific date range".
-- **Phenomena tab** — "conjunctions, oppositions, occultations and eclipses …
+- **Phenomena tab**: "conjunctions, oppositions, occultations and eclipses …
   greatest elongations for the inner planets and stationary points for all planets,
   and … perihelia and aphelia"; output columns include **solar elongation, lunar
   elongation, magnitudes**.
-- **Graphs tab** — altitude vs. time with civil/nautical/astronomical twilight lines
+- **Graphs tab**: altitude vs. time with civil/nautical/astronomical twilight lines
   and Moon altitude overlay; lunar elongation graphs.
-- **WUT tab** — "What's Up Tonight" above-horizon planner.
-- **Planetary Calculator tab** — relations between two solar-system bodies:
+- **WUT tab**: "What's Up Tonight" above-horizon planner.
+- **Planetary Calculator tab**: relations between two solar-system bodies:
   linear and angular distances, orbital resonances, orbital velocities.
 - **Eclipses tab** and **Almanac tab** (solar/lunar eclipse lists; almanac data).
 
-### 4.2 Skyfield (Python) — "Almanac Computation" documentation
+### 4.2 Skyfield (Python): "Almanac Computation" documentation
 (https://rhodesmill.org/skyfield/almanac.html)
 
 One page enumerates the almanac quantities users ask of it: risings and settings ·
@@ -422,7 +422,7 @@ rise/set of an RA/Dec · **the seasons (equinoxes/solstices)** · phases of the 
 **lunar nodes** · **opposition and conjunction** · meridian transits · **twilight** ·
 solar terms · lunar eclipses.
 
-### 4.3 PyEphem — Quick Reference (https://rhodesmill.org/pyephem/quick.html)
+### 4.3 PyEphem: Quick Reference (https://rhodesmill.org/pyephem/quick.html)
 
 `body.compute()` produces the quantities an ephem-style calculator exposes:
 astrometric RA/Dec (`a_ra`,`a_dec`), apparent geocentric RA/Dec (`g_ra`,`ra`),
@@ -431,15 +431,15 @@ astrometric RA/Dec (`a_ra`,`a_dec`), apparent geocentric RA/Dec (`g_ra`,`ra`),
 **sun_distance, earth_distance, phase (% illuminated)**; plus coordinate conversion,
 transit/rising/setting, equinoxes & solstices, Moon phases, angular separation.
 
-### 4.4 Cartes du Ciel (SkyChart) — https://www.ap-i.net/skychart/en/start
+### 4.4 Cartes du Ciel (SkyChart): https://www.ap-i.net/skychart/en/start
 
 "Draw sky charts, making use of the data in many catalogs of stars and nebulae. In
 addition the **position of planets, asteroids and comets** are shown … a large number
 of parameters … the display of labels and coordinate grids, the superposition of
-pictures, **the condition of visibility**…" — i.e., catalog charting plus
+pictures, **the condition of visibility**…", i.e., catalog charting plus
 solar-system positions and visibility conditions.
 
-### 4.5 Heavens-Above — https://www.heavens-above.com/
+### 4.5 Heavens-Above: https://www.heavens-above.com/
 
 Site sections (nav text, 2026-09-07): **satellites** (10-day ISS predictions,
 daily predictions for brighter satellites, Starlink launches/passes, amateur-radio
@@ -452,7 +452,7 @@ Live site is bot-walled; Wayback captures cited.
 
 - **Sun page** for a city (columns of the monthly table):
   http://web.archive.org/web/20250101073259/https://www.timeanddate.com/sun/usa/new-york
-  — "2025 Sunrise/Sunset · Daylength · Astronomical Twilight · Nautical Twilight ·
+, "2025 Sunrise/Sunset · Daylength · Astronomical Twilight · Nautical Twilight ·
   Civil Twilight · Solar Noon" with per-day **sunrise/sunset azimuths (°), day
   length, day-to-day difference, twilight start/end, solar-noon time and Sun
   distance**; the summary panel shows Sun direction, altitude, distance, next
@@ -461,13 +461,13 @@ Live site is bot-walled; Wayback captures cited.
   (http://web.archive.org/web/20241231234417/https://www.timeanddate.com/sun/).
 - **Moon page** for a city:
   http://web.archive.org/web/20241220230834/https://www.timeanddate.com/moon/usa/new-york
-  — per-day **Moonrise/Moonset (with azimuths) · Meridian passing (time, altitude) ·
+, per-day **Moonrise/Moonset (with azimuths) · Meridian passing (time, altitude) ·
   Moon distance (mi) · Illumination (%)**; summary panel: current phase %, direction,
   altitude, distance, next new/full moon.
 
 ### 4.7 Wikipedia "Astronomical coordinate systems" (category + article)
 
-- Article structure — coordinate systems and their conversions, each a
+- Article structure, coordinate systems and their conversions, each a
   calculator-suitable formula cluster:
   https://en.wikipedia.org/wiki/Astronomical_coordinate_systems (horizontal ·
   equatorial · ecliptic · galactic · supergalactic systems; conversions: hour angle

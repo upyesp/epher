@@ -14,7 +14,7 @@
       piped scripts, a full-screen terminal UI, and a desktop app with
       keypad, history, 2D and 3D graphing, value tables, statistics,
       units, and a script collection of hundreds of ready-to-run
-      examples — in eight languages, fully offline.
+      examples, in eight languages, fully offline.
     </p>
   </description>
   <launchable type="desktop-id">com.epher.Desktop.desktop</launchable>

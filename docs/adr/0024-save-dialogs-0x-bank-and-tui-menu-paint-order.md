@@ -11,23 +11,23 @@ Four reports arrived together:
 1. **The keypad looked incomplete against the guide.** The exactness and
    base conversions (`frac`, `dec`, `big`, `bin`, `oct`, `hex`) were
    buried at the end of the number-theory bank, and the factorial
-   postfix `!` — the one operator without a key — had none. Users
+   postfix `!`, the one operator without a key, had none. Users
    comparing the keypad to the guide's function tables concluded buttons
    were missing.
 2. **The status line under the entry was slightly too large.**
-3. **Save history / Save script used browser downloads** — the file
+3. **Save history / Save script used browser downloads**: the file
    landed in the default Downloads folder under a fixed name, with no
    way to choose a location or name. Not how desktop apps behave.
 4. **The TUI's menus rendered under screen content.** When history or
    graph text already occupied the area a menu drops into, items were
-   hidden — ratatui paints widgets into one shared buffer in call
+   hidden, ratatui paints widgets into one shared buffer in call
    order, and the menu was drawn before the panels that overlapped it.
 
 ## Decision
 
 - **A dedicated 0x bank (web and TUI).** `frac`, `dec`, `big`, `bin`,
   `oct`, `hex`, and the `!` postfix move into their own bank, labelled
-  `0x` — the language's own base notation, unlocalized like every other
+  `0x`, the language's own base notation, unlocalized like every other
   language token (ADR-0007). The web keypad's tab carries a localized
   aria-label (`keypad-tab-conv`, all eight locales); the TUI's bank row
   shows the literal `0x` like its sibling banks. The number-theory bank
@@ -48,7 +48,7 @@ Four reports arrived together:
   Access API `showSaveFilePicker`, Chromium) with the same suggested
   name and type; where the API is absent (Firefox, Safari) the app
   falls back to the previous download behavior and says so. Cancel is
-  silent in every path — native apps do not announce a cancelled
+  silent in every path, native apps do not announce a cancelled
   dialog. Save script with an empty entry now says "nothing to save"
   instead of closing silently. Capability: `dialog:allow-save`.
 
@@ -56,7 +56,7 @@ Four reports arrived together:
 
 - **The TUI draws its menu popup last, over every panel.** A `Clear`
   widget first blanks the popup's rectangle, then the menu renders into
-  it — after history, keypad, graph, and hints, so nothing can paint
+  it, after history, keypad, graph, and hints, so nothing can paint
   over the menu again. A regression test fills the history and asserts
   the open File menu contains its items and no history text; it fails
   on the old draw order and passes on the new one.
@@ -69,7 +69,7 @@ Four reports arrived together:
   navigation model does not match the APG menubar behavior (arrow-key
   wrapping, menu switching, Escape, item activation) that epher's menus
   already implement and test. The reported defect was a draw-order bug,
-  not a missing menu abstraction — moving the render fixed it.
+  not a missing menu abstraction, moving the render fixed it.
 - **PWA-only picker without a fallback.** Rejected; Firefox and Safari
   users would lose the feature entirely. The download remains the
   fallback and keeps the honest "saved to your downloads" message.

@@ -9,15 +9,15 @@
 Four related usability asks:
 
 1. On the mobile PWA, the v0.4.17 auto-slide to the graph pane (ADR-0029)
-   left the expression entry focused — the virtual keyboard stays open and
+   left the expression entry focused; the virtual keyboard stays open and
    covers the freshly drawn plot. The pane should be ready for touch
    rotation instead.
 2. A script entered as one line with `;` separators was recorded in the
-   history as one entry *per statement* — the script the user typed
+   history as one entry *per statement*, the script the user typed
    disappeared as a script.
 3. The website called epher "four ways" / "four frontends" everywhere and
    folded the REPL into the CLI row of the guide, while the product has
-   five frontends (CLI, REPL, TUI, desktop GUI, web app) — the same five
+   five frontends (CLI, REPL, TUI, desktop GUI, web app), the same five
    named by ADR-0011.
 4. The website hero showed a static 2D curve; the project's signature
    visual is the 3D saddle `graph3d x ^ 2 - y ^ 2`.
@@ -26,13 +26,13 @@ Four related usability asks:
 
 - **Blur:** the auto-slide already had the entry's node ref in scope; a
   `blur()` on the same condition as the slide (mobile layout, successful
-  draw) closes the mobile keyboard. Touch rotation needs no focus — the
+  draw) closes the mobile keyboard. Touch rotation needs no focus, the
   surface's pointer handlers listen on the SVG itself.
 - **History:** the web submit loop and the TUI `submit_line` split on `;`
   and recorded per piece. `Session` gained `set_last_line`; a
-  multi-statement line now records exactly one entry — the line as typed,
+  multi-statement line now records exactly one entry, the line as typed,
   with the last answer appended exactly as single statements record theirs
-  (when the final statement is an evaluation) — and `save script` persists
+  (when the final statement is an evaluation), and `save script` persists
   the whole line.
 - **Five ways:** the site i18n (all eight locales), the guide (all eight
   locales), the man page DESCRIPTION, and the CLI `--help` long text now
@@ -41,7 +41,7 @@ Four related usability asks:
   (the build-time renderer emits ~10KB per frame) would bloat the site. The
   site's `app.js` instead ports the app's 3D projection (yaw/pitch/camera
   30, perspective divide, painter's-order mesh with depth-cued opacity,
-  frame from `surface_frame`) — a small runtime renderer that updates one
+  frame from `surface_frame`), a small runtime renderer that updates one
   constant set of SVG elements per frame (no node churn). Line thickness is
   the width slider at 0.1 (mesh 1.2×, frame 1.4×). The view box is
   constant-size and centered per frame on the content, so the mesh rotates

@@ -59,7 +59,7 @@ puts it to work.
 - Polynomial equations (built from `+ - * ^` with non-negative integer
   exponents, constants, and the builtin/user constants, up to degree
   12) get all roots, real and complex, via Durand-Kerner iteration on
-  the coefficient vector — numeric root-finding with no CAS (ADR-0004
+  the coefficient vector, numeric root-finding with no CAS (ADR-0004
   spirit preserved). `solve x^2 == -1` prints `x = i, x = -i`.
 - Anything else is scanned numerically over -100..100 (2000 samples,
   sign-change brackets, bisection safeguard then Newton polish); poles
@@ -71,7 +71,7 @@ puts it to work.
 ### Numeric calculus (T2.1)
 
 - Two special-form builtins whose first argument is a raw expression,
-  not an evaluated value — the first lazy arguments in the language:
+  not an evaluated value, the first lazy arguments in the language:
   - `derivative(expr, p)` differentiates `expr` numerically at `p`
     (5-point central stencil, step 1e-4 * (1+|p|)). The variable is
     `x` when it appears (symbolic, like solve - a stored `x` does not
@@ -112,7 +112,7 @@ puts it to work.
   `1 234 567.89`). All three return display strings.
 - The interactive frontends gain a "Results" settings group: the exact
   toggle above, a format choice (Auto / Scientific / Engineering), and
-  a thousands-separators toggle (default OFF — results stay
+  a thousands-separators toggle (default OFF, results stay
   copy-pasteable). The choice lives in the shared store settings
   (`format`, `exact`, `separators`) and in localStorage for the plain
   browser session, mirroring theme/language.
@@ -123,7 +123,7 @@ puts it to work.
 ## Consequences
 
 - `sqrt(-1)` and `ln(-1)` change from domain errors to complex results:
-  a deliberate, documented behavior change — the headline of T1.2.
+  a deliberate, documented behavior change, the headline of T1.2.
 - The lazy first arguments of `derivative`/`integral` are a new
   mechanism; user functions with those names still shadow them, and
   free-variable detection ignores constants (pi, e, the catalog, user
@@ -134,4 +134,4 @@ puts it to work.
 - Durand-Kerner and adaptive Simpson are pure f64 arithmetic: no new
   dependencies, wasm-safe, deterministic.
 - The settings group adds three store keys with the existing key-value
-  settings mechanism — no schema migration.
+  settings mechanism, no schema migration.

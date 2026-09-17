@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::{Storage, StoreError, StoreResult};
 
-/// Filesystem-backed [`Storage`] for native frontends (CLI/TUI/desktop) — one
+/// Filesystem-backed [`Storage`] for native frontends (CLI/TUI/desktop), one
 /// human-readable JSON file per key under `dir` (ADR-0002). Writes are atomic
 /// (temp file + rename), so concurrent writers don't tear documents.
 #[derive(Debug, Clone)]
@@ -17,7 +17,7 @@ impl FsStore {
     }
 
     fn path_for(&self, key: &str) -> StoreResult<PathBuf> {
-        // keys are "kind/name" — map to a relative path with sanitized segments
+        // keys are "kind/name", map to a relative path with sanitized segments
         let mut path = self.dir.clone();
         for segment in key.split('/') {
             let sanitized: String = segment

@@ -10,11 +10,11 @@ Brave) the PWA uses the File System Access API to ask the user once to grant the
 Native Store folder, persists that grant, and thereafter reads and writes the same
 files as the CLI, TUI, and desktop app.
 
-We rejected silent host access (impossible — browsers don't expose fixed host
+We rejected silent host access (impossible, browsers don't expose fixed host
 paths to web origins) and a local sync daemon (needs the native app running;
 fragile; adds a security surface). Firefox and Safari don't ship the File System
 Access API, so on those the PWA stays on its isolated Web Store. Mobile and
 other-browser PWAs always stay isolated. Sharing the same files across processes
-requires atomic writes and reload-on-change — accepted as a downstream design
+requires atomic writes and reload-on-change, accepted as a downstream design
 constraint because the shared data (preferences, scripts, functions) is small and
 rarely written.

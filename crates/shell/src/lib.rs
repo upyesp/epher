@@ -1,9 +1,9 @@
-//! epher-shell — the interactive-shell kernel shared by the CLI, TUI, and web
+//! epher-shell, the interactive-shell kernel shared by the CLI, TUI, and web
 //! frontends (ADR-0010).
 //!
 //! One policy for shell commands: [`classify`] recognizes `save`,
 //! `save script`, and `language` lines; [`prepare`] resolves them against
-//! the session (validation and source lookups — `save name` finds functions
+//! the session (validation and source lookups, `save name` finds functions
 //! and constants); [`run_command`] additionally persists through the store
 //! for native shells. The webview reuses classify/prepare and persists
 //! through its IPC bridge instead.
@@ -18,7 +18,7 @@ use epher_store::{DocStore, Storage};
 /// A shell command recognized in an input line.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Command {
-    /// `save name` — save the named function or constant.
+    /// `save name`: save the named function or constant.
     Save {
         name: String,
     },
@@ -28,11 +28,11 @@ pub enum Command {
     Language {
         code: String,
     },
-    /// `theme light|dark|night` — the UI theme (ADR-0017).
+    /// `theme light|dark|night`: the UI theme (ADR-0017).
     Theme {
         name: String,
     },
-    /// `table <expr> [from a to b] [points n]` — a table of values (ADR-0014).
+    /// `table <expr> [from a to b] [points n]`: a table of values (ADR-0014).
     Table {
         source: String,
     },
@@ -127,7 +127,7 @@ pub fn split_statements(text: &str) -> Vec<&str> {
             }
             i += 1;
         } else if c == b'=' {
-            // `def name(...) = expr` — an expression body, no `end`.
+            // `def name(...) = expr`, an expression body, no `end`.
             pending_def = false;
             i += 1;
         } else if c.is_ascii_alphabetic() || c == b'_' {
@@ -175,7 +175,7 @@ fn push_piece<'a>(pieces: &mut Vec<&'a str>, text: &'a str, from: usize, to: usi
 }
 
 /// Recognize a shell command in an input line. Anything else (including
-/// `save` or `language` without an argument) is `None` — the caller
+/// `save` or `language` without an argument) is `None`: the caller
 /// evaluates it, exactly as the CLI always has.
 pub fn classify(line: &str) -> Option<Command> {
     let line = line.trim();
@@ -386,7 +386,7 @@ fn format_table(rows: &[(f64, Option<f64>, Option<f64>)], exact: bool) -> String
                 }
                 fmt(v)
             }
-            None => "—".to_string(),
+            None => "n/a".to_string(),
         }
     };
     for (x, y, d) in rows {
@@ -439,7 +439,7 @@ pub fn plain(message: String) -> String {
 
 /// The outcome of handling a command: the message to show, plus the new
 /// language preference when it changed (shells re-resolve their Localizer).
-/// `error` marks the message as a diagnostic — the CLI prints those to
+/// `error` marks the message as a diagnostic: the CLI prints those to
 /// stderr (ADR-0013), while successful messages stay on stdout.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Handled {
@@ -491,7 +491,7 @@ pub fn run_command<S: Storage>(
         Prepared::SaveScript { name, source } => persist::save_script(store, name, source),
         Prepared::Language { code } => persist::save_language(store, code),
         Prepared::Theme { name } => persist::save_theme(store, name),
-        // A table is pure computation — nothing to persist.
+        // A table is pure computation; nothing to persist.
         Prepared::Table { .. } => Ok(()),
     };
     match result {

@@ -2,7 +2,7 @@
 //!
 //! One definition, used by every binary: the unified `epher` executable
 //! and the epher-cli dev binary parse identically. This module owns only
-//! the *decision* — parsing arguments into an [`Action`]; side effects
+//! the *decision*, parsing arguments into an [`Action`]; side effects
 //! live with the frontends. Help copy follows clig.dev: concise `-h`
 //! that leads with examples, full `--help`, and a `help` subcommand that
 //! pages the installed man page when there is one.
@@ -10,7 +10,7 @@
 use clap::{Parser, Subcommand};
 
 /// The `epher` short help leads with examples (clig.dev: users reach for
-/// examples first), then lists the commands — jq-style. The full text
+/// examples first), then lists the commands, jq-style. The full text
 /// lives behind `--help`.
 /// The full `--help` description: the five ways to use epher (ADR-0011),
 /// named so every frontend is discoverable from the terminal. The man page
@@ -53,8 +53,8 @@ pub struct Args {
     /// A script to evaluate; each statement's result prints on its own
     /// line.
     ///
-    /// Anything from the language works — `2 + 3 * 4`, `if 3 > 2 then 1
-    /// else 0`, a leading minus — and statements join with `;` or
+    /// Anything from the language works, `2 + 3 * 4`, `if 3 > 2 then 1
+    /// else 0`, a leading minus, and statements join with `;` or
     /// newlines: `epher "x = 10; x + 5"` prints `10` then `15`. Use `-`
     /// to read a script from standard input, line by line, instead.
     /// `graph`/`graph3d` statements plot too; `graph save file.svg`
@@ -89,7 +89,7 @@ pub enum Command {
 
     /// Start the desktop app.
     ///
-    /// The windowed application — the same thing a bare `epher` with no
+    /// The windowed application; the same thing a bare `epher` with no
     /// arguments starts. A script path stages it in the entry box, the
     /// same contents a history pick loads; that is how the desktop
     /// file's double-click association opens a `.epher` file
@@ -134,7 +134,7 @@ pub enum Action {
     Gui(Option<std::path::PathBuf>),
     /// Show the manual: `man epher` when installed, else the long help.
     HelpManual,
-    /// Show help for one subcommand (may turn out to be an unknown name —
+    /// Show help for one subcommand (may turn out to be an unknown name,
     /// [`crate::help`] reports that).
     HelpTopic(String),
 }
@@ -177,7 +177,7 @@ pub fn action_from(args: &Args) -> Action {
 }
 
 /// The tail of `--help` (and of the `epher help` fallback): where the
-/// documentation lives and where to report bugs — the support path
+/// documentation lives and where to report bugs, the support path
 /// clig.dev asks for. (Examples lead the page via the shared template.)
 const HELP_TAIL: &str = "\
 Saved functions, constants, scripts, and history live in ~/.epher;

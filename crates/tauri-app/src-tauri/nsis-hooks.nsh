@@ -1,7 +1,7 @@
-; nsis-hooks.nsh — PATH management for the unified epher installer (ADR-0011).
+; nsis-hooks.nsh, PATH management for the unified epher installer (ADR-0011).
 ;
 ; What this does: adds the install directory (which contains epher.exe) to
-; the *user* PATH (HKCU "Environment\Path" — no administrator needed, which
+; the *user* PATH (HKCU "Environment\Path", no administrator needed, which
 ; matches Tauri's default currentUser install mode). After install, `epher`
 ; works from CMD, PowerShell, and Windows Terminal; already-open terminals
 ; must be restarted to inherit the change. On uninstall the entry is
@@ -10,13 +10,13 @@
 ; Implementation notes: written in plain NSIS + LogicLib only. Tauri's NSIS
 ; bundle ships no environment plugins (no EnVar), so PATH membership and
 ; entry removal are hand-rolled below and verified with makensis in
-; nsis-check.nsi (compile check) — keep them dependency-free.
+; nsis-check.nsi (compile check): keep them dependency-free.
 ;
 ; How Tauri consumes this file: the template `!include`s it whole at the
 ; top of installer.nsi, then inserts each `NSIS_HOOK_*` macro body at its
 ; marked point. `NSIS_HOOK_POSTUNINSTALL` lands inside `Section Uninstall`,
 ; and NSIS forbids an uninstall Section from Calling installer-context
-; functions — the uninstaller needs `un.`-prefixed copies. Hence each
+; functions; the uninstaller needs `un.`-prefixed copies. Hence each
 ; helper is written once as a macro, parameterized by prefix, and
 ; instantiated twice. Label names can stay identical across the copies
 ; because NSIS labels are scoped to their function.
@@ -30,8 +30,8 @@
 ; binary (ADR-0011, W2). Tauri writes installer.nsi to
 ; target/<triple>/release/nsis/<arch> and compiles it there; the windows
 ; overlay's beforeBundleCommand copies cargo's console build into the
-; PARENT (target/release/nsis/epher.exe) right before bundling — the NSIS
-; bundler wipes nsis/<arch> itself when it starts, the parent survives —
+; PARENT (target/release/nsis/epher.exe) right before bundling, the NSIS
+; bundler wipes nsis/<arch> itself when it starts, the parent survives,
 ; and `..\epher.exe` reaches it under either NSIS path-resolution
 ; semantic. The nsis-check harness overrides this define with a
 ; repo-relative path (and the CI check drops a dummy file there).
@@ -51,7 +51,7 @@
 !macroend
 
 !macro NSIS_HOOK_PREUNINSTALL
-  ; Tauri's uninstaller deletes the main binary and RMDir's $INSTDIR —
+  ; Tauri's uninstaller deletes the main binary and RMDir's $INSTDIR,
   ; remove our extra file first so the directory can be removed.
   Delete "$INSTDIR\epher.exe"
 !macroend
@@ -94,7 +94,7 @@
 ; Helpers (installer context: plain; uninstaller context: `un.` prefix)
 ; ---------------------------------------------------------------------------
 
-; epher_path_contains — stack in: [haystack, needle] → out: 1 if needle
+; epher_path_contains, stack in: [haystack, needle] → out: 1 if needle
 ; occurs anywhere in haystack, else 0 (substring match; the install dir is
 ; specific enough that substring granularity is safe here).
 !macro epher_path_contains_body prefix
@@ -141,7 +141,7 @@ FunctionEnd
 !insertmacro epher_path_contains_body ""
 !insertmacro epher_path_contains_body "un."
 
-; epher_remove_from_path — stack in: [path, entry] → out: path rebuilt
+; epher_remove_from_path, stack in: [path, entry] → out: path rebuilt
 ; without any ;-delimited entry equal to `entry` (case-insensitive, the
 ; StrCmp default). Empty entries (from `;;` or leading/trailing `;`) are
 ; dropped, normalizing the result.

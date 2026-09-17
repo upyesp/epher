@@ -9,7 +9,7 @@
 Three reports after v0.4.15:
 
 1. File → Open history / Open script showed the OS file explorer
-   filtered to `.epher` and `.txt` — the user wants every file type
+   filtered to `.epher` and `.txt`, the user wants every file type
    visible.
 2. The line-width slider's minimum of 0 was surprising: at 0 the curve
    lines vanish (a literal SVG stroke-width of 0), which reads as
@@ -26,7 +26,7 @@ Three reports after v0.4.15:
 - **Open filter.** The web frontend's hidden file pickers carried
   `accept=".epher,.txt,text/plain"`, which the webview's native file
   explorer turns into a visible type filter. The open flow reads any
-  text file regardless — the filter only restricts what the user can
+  text file regardless; the filter only restricts what the user can
   *see*.
 - **Slider floor.** ADR-0027 set `min="0"` per the then-requested
   range; the zero-stroke rendering it enables was confusing in
@@ -37,7 +37,7 @@ Three reports after v0.4.15:
   permanently off the table (ADR-0026: `SetCtlColors` subclasses
   controls, and double-subclassing MUI-managed windows made v0.4.13
   installers vanish controls and lock up). Light pages therefore
-  "have to be light", as the user put it — so the whole wizard goes
+  "have to be light", as the user put it, so the whole wizard goes
   light: one consistent classic look instead of a dark/light mix.
   The logo: MUI2's default header layout (no `MUI_HEADERIMAGE_RIGHT`)
   draws the header bitmap in the **top-left corner of every page**,
@@ -50,7 +50,7 @@ Three reports after v0.4.15:
   attribute; the OS file explorer lists all file types, matching the
   desktop save dialogs (unfiltered since ADR-0027).
 - **Slider:** `min="0.1" max="4" step="0.1"`.
-- **Installer/uninstaller theme:** light, uniform, and logo-bearing —
+- **Installer/uninstaller theme:** light, uniform, and logo-bearing,
   `MUI_BGCOLOR F0F0F0` (classic dialog gray, so MUI-painted pages
   match the nsDialogs page and native controls exactly),
   `MUI_TEXTCOLOR 000000`, `MUI_INSTFILESPAGE_COLORS "FFFFFF 000000"`.

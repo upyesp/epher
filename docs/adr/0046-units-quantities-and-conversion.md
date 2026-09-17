@@ -1,4 +1,4 @@
-# ADR-0046: units with conversion — quantities, prefixes, and dimension checking
+# ADR-0046: units with conversion: quantities, prefixes, and dimension checking
 
 - Status: accepted
 - Date: 2026-09-02
@@ -12,7 +12,7 @@ mobile scientifics users actually carry (HiPER, SpeedCrunch) do. The
 expectation shape is precise: quantities (`5 m`, `60 mile/hr`), a
 conversion operator (`in` or `->`), SI prefixes, and dimension
 checking (`5 m + 3 s` is an error). epher already owns the grammar
-mechanism — the ADR-0037 unit suffixes multiply a number by an SI
+mechanism, the ADR-0037 unit suffixes multiply a number by an SI
 factor at parse time and produce a plain float, so `3.2 AU` evaluates
 to `478713186240`. Generalizing means the suffix must carry its
 *dimensions*, and the result becomes a quantity, not a bare number.
@@ -24,7 +24,7 @@ to `478713186240`. Generalizing means the suffix must carry its
 - New `Value::Quantity { value: f64, dims: Dims, unit: Option<(String, f64)> }`
   (ADR-0005 stays: f64 arithmetic; the dims are the seven SI base
   dimensions `[L, M, T, I, Θ, N, J]` as i8 exponents, and `unit` is an
-  optional display unit — the typed spelling plus its SI factor, so
+  optional display unit, the typed spelling plus its SI factor, so
   the display can convert back). A quantity stores its SI value; the
   display unit, when present, only rescales the *display*.
 - Every existing suffix becomes a quantity: `3.2 AU` is
@@ -56,7 +56,7 @@ to `478713186240`. Generalizing means the suffix must carry its
   mismatch. `sqrt` and `root` halve/divide the dims when they divide
   evenly (`sqrt(4 m^2)` is `2 m`), else error.
 - The transcendental and special functions (trig, log, exp, stats,
-  distributions, …) consume the SI value and return a plain number —
+  distributions, …) consume the SI value and return a plain number,
   SpeedCrunch's model; only arithmetic and comparisons check
   dimensions.
 - Lists stay floats-only (ADR-0044); a quantity in a list literal is

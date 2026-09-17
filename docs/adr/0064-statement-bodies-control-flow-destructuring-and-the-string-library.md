@@ -45,13 +45,13 @@ and one question stays open.
 2. **`return`, `break`, `continue`, and the statement `if`.**
    `return value` leaves the function now; `break` leaves the loop;
    `continue` starts the next pass. They are statements, so they sit
-   behind an `if` — and `if` therefore exists as a statement beside
+   behind an `if`, and `if` therefore exists as a statement beside
    the expression form: `if c then stmt [else stmt]` chooses between
    statements, and with no `else` taken it produces no value, which is
    how a `for` loop filters. `for` keeps collecting: values so far are
    the loop's answer after a `break`. At the top level the three jumps
    are structure errors ("break outside a loop") that name the
-   mistake. Loop bodies stay one statement — a `do` body with a loop
+   mistake. Loop bodies stay one statement, a `do` body with a loop
    inside it, or a `return` behind the body's `if`, covers the rest.
 
 3. **Destructuring.** `{a, b} = list` binds several names from one
@@ -62,14 +62,14 @@ and one question stays open.
    `{mean, sd}` and the caller names them in one move.
 
 4. **Strings grow up.** Escapes (`\n`, `\t`, `\r`, `\\`, `\"`) join
-   the tokenizer — any other backslash is a named parse error — and
+   the tokenizer, any other backslash is a named parse error, and
    ordering comparisons read dictionary order. List literals hold
    strings beside numbers (a `for` collect always could). Nine
    builtins cover report writing: `upper`, `lower`, `trim`,
    `substr(s, start[, len])` (1-based, clamping), `split(s, sep)`,
    `join(list, sep)` (spelling elements the way `print` does),
    `find(s, sub)` (1-based, 0 when absent), `replace(s, old, new)`,
-   and `fixed(x, digits)` — a number as text with exactly that many
+   and `fixed(x, digits)`, a number as text with exactly that many
    decimals, the trailing zero a report wants kept. All nine sit on
    the data keypad bank in the PWA and the TUI, in the autocomplete
    catalog, and in the ×8 key-hint tables.
@@ -90,11 +90,11 @@ between a sandboxed PWA and four native frontends and cannot survive
 the installers' portable scripts (ADR-0058). The calculator stays a
 closed program: expressions in, answers out, state in the shared
 store. Should data ever need to move, the epher-shaped seam is
-store-scoped named datasets, not file paths — decided when a real need
+store-scoped named datasets, not file paths, decided when a real need
 arrives.
 
 **Open:** the shadowable `i` (the one residue the third pass called a
-footgun rather than a feature — a bare `i = 5` persists in the shared
+footgun rather than a feature; a bare `i = 5` persists in the shared
 store and turns `3+4i` into `23` everywhere). ADR-0063 scoped the loop
 variable; whether bare assignment should follow is deferred to its own
 decision with the user.
@@ -102,7 +102,7 @@ decision with the user.
 ## Consequences
 
 - The programming-surface row's honest residue narrows to input and
-  I/O — exactly the two rows this ADR declares out of scope, so the
+  I/O, exactly the two rows this ADR declares out of scope, so the
   row's framing changes from "not yet" to "by decision".
 - Scripts stop packing: the collection's packed whiles convert where a
   known range, a `return`-scan, or a destructure reads better
@@ -112,6 +112,6 @@ decision with the user.
   quick reference, in all eight languages; code and output blocks stay
   locale-independent (ADR-0007).
 - Deep recursion remains bounded by the host stack, not the step
-  limit — pre-existing (the step budget counts statement
+  limit, pre-existing (the step budget counts statement
   executions), unchanged here, and worth its own note if scripts ever
   grow recursive scanners beyond a few hundred frames.

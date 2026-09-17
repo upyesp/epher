@@ -75,7 +75,7 @@ a semantic-tokens setting.
 ## Amendment (2026-09-12): Emacs joins as a config family
 
 The page names ten editor families now. Emacs ships as
-`epher-emacs.zip` — a ready-made `epher.el` (a derived major mode
+`epher-emacs.zip`, a ready-made `epher.el` (a derived major mode
 with the conservative font-lock view of the grammar, filetype
 detection, and the LSP wiring) speaking to the shared server through
 eglot, which Emacs 29 ships built in, with an lsp-mode registration
@@ -85,12 +85,12 @@ The stable-name list above grows by one: `epher-emacs.zip`.
 
 ## Amendment (2026-09-13): Eclipse joins as a dropins family
 
-Eleven families now. Eclipse ships as `epher-eclipse.jar` — a
+Eleven families now. Eclipse ships as `epher-eclipse.jar`, a
 dropins bundle, the classic analog of VS Code's "Install from
 VSIX": the user copies the jar into `<eclipse>/dropins/` and
 restarts. Inside is the smallest thing LSP4E accepts: one Java
 connection-provider class that launches `epher-lsp` from PATH (the
-emacs/vim/neovim bring-your-own-binary contract — the plugin never
+emacs/vim/neovim bring-your-own-binary contract; the plugin never
 downloads), and everything else declared in plugin.xml: the `.epher`
 content type, the LSP4E server definition and contentTypeMapping,
 and the shared TextMate grammar registered with TM4E with a

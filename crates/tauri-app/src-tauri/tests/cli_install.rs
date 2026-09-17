@@ -1,5 +1,5 @@
 //! The macOS "install the epher command" seam (ADR-0011): the symlink plan
-//! is pure path logic, and the osascript/shell escaping must be exact —
+//! is pure path logic, and the osascript/shell escaping must be exact,
 //! both testable on any platform. The install itself runs only on macOS.
 
 use app_lib::cli_install::{

@@ -271,7 +271,7 @@ ans * 2
 10
 ```
 
-Une liste peut remplir plusieurs noms d'un coup — `{a, b} = list` prend
+Une liste peut remplir plusieurs noms d'un coup, `{a, b} = list` prend
 une liste à part, de gauche à droite (la section 1.11 montre des
 fonctions qui rendent ainsi plus d'une réponse) :
 
@@ -390,7 +390,7 @@ true
 
 Une barre oblique inverse dans une chaîne commence une **séquence
 d'échappement** : `\n` est une nouvelle ligne, `\t` une tabulation, et
-`\\` et `\"` sont la barre oblique inverse et le guillemet eux-mêmes —
+`\\` et `\"` sont la barre oblique inverse et le guillemet eux-mêmes,
 une chaîne peut ainsi contenir un guillemet double :
 
 ```epher
@@ -421,7 +421,7 @@ indice), **find** signale où un texte apparaît (0 quand il est absent),
 **replace** remplace chaque copie d'un texte par une autre, **split**
 casse un texte en une liste à un séparateur, **join** colle une liste
 en un seul texte, et **fixed** écrit un nombre avec exactement autant
-de décimales que vous le demandez — le zéro qu'un rapport veut,
+de décimales que vous le demandez, le zéro qu'un rapport veut,
 conservé :
 
 ```epher
@@ -625,7 +625,7 @@ visible de l'extérieur, et deux appels ne voient pas le `c` l'un de
 l'autre.
 
 **return : réponse tout de suite.** `return value` répond
-immédiatement et saute le reste du corps — la forme naturelle pour un
+immédiatement et saute le reste du corps, la forme naturelle pour un
 choix avec une sortie anticipée :
 
 ```epher
@@ -661,12 +661,12 @@ firstsq({3, 5, 9, 11}); firstsq({3, 5, 7})
 ```
 
 Une règle garde les blocs lisibles : le `end` ferme toujours le do de
-la fonction — un `if`, un `for` ou un `while` ne prend pas de `end`.
+la fonction, un `if`, un `for` ou un `while` ne prend pas de `end`.
 Un corps qui se termine sans réponse (disons, que tous les chemins
 n'ont rien rendu) est une erreur, pas un silence : epher le dit et
 nomme la fonction.
 
-> **Plus d'une réponse ?** Rendez une liste — et nommez-la d'un seul
+> **Plus d'une réponse ?** Rendez une liste, et nommez-la d'un seul
 > mouvement avec la déstructuration de la section 1.5 :
 > `{mean, sd} = {4, 1.6}`.
 
@@ -753,7 +753,7 @@ Normalement epher calcule avec des nombres décimaux comme une
 calculatrice de poche, et les résultats arrondissent à douze chiffres
 significatifs comme le fait une calculatrice : `0.1 + 0.2` donne
 `0.3`, jamais `0.30000000000000004`. Les fractions exactes sont
-activées par défaut — un résultat ayant une bonne fraction à petit
+activées par défaut, un résultat ayant une bonne fraction à petit
 dénominateur dont le développement décimal se répète s'affiche comme
 tel. `1 / 3` s'affiche `1/3` sans le demander :
 
@@ -789,7 +789,7 @@ frac(1, 3) * 3
 ```
 
 **dec(x)** crée un nombre décimal exact. `0.1 + 0.2` affiche `0.3`
-dans les deux cas — la différence est arithmétique :
+dans les deux cas, la différence est arithmétique :
 
 ```epher
 0.1 * 3 - 0.3
@@ -1265,7 +1265,7 @@ Deux listes doivent avoir la même longueur pour `+ - * / ^`. `==` et
 refusent.
 
 Les fonctions statistiques prennent une liste pour seul argument (la
-forme à plusieurs arguments reste — `mean(1, 2, 3)` fonctionne
+forme à plusieurs arguments reste, `mean(1, 2, 3)` fonctionne
 toujours) : `sum product mean median mode variance stdev min max
 range`. Les nouvelles fonctions de forme sont `len(liste)`, `sort(liste)`
 (copie croissante), `mode(liste)` (valeur la plus fréquente, la plus
@@ -1307,7 +1307,7 @@ Le r d'un ajuster transformé est la corrélation de la paire linéarisée : le 
 
 Les fonctions de probabilité couvrent la normale centrée réduite, la
 loi de Student, le khi-deux, la loi binomiale et la loi de Poisson.
-La famille normale prend un ou trois arguments — un seul argument est
+La famille normale prend un ou trois arguments, un seul argument est
 la normale centrée réduite :
 
 ```epher
@@ -1375,7 +1375,7 @@ t = -0.7559, p = 0.5286
 
 La famille graphique accepte aussi des listes : un nuage de points,
 un histogramme et une boîte à moustaches. Un graphique de données
-occupe le panneau seul, comme un système solaire — la dernière
+occupe le panneau seul, comme un système solaire, la dernière
 commande gagne, et `graph clear` le vide.
 
 ```epher
@@ -1398,8 +1398,8 @@ droite des moindres carrés, légendée `y = a*x + b (r = …)`.
 le nombre de classes est facultatif (règle de Sturges par défaut) et
 doit être un entier entre 1 et 50. **boxplot(données)** trace la boîte
 à moustaches : minimum, Q1, médiane, Q3, maximum, moustaches jusqu'aux
-extrêmes. La fenêtre s'ouvre ajustée aux données — les mots-clés
-`from a to b` ne s'appliquent toujours pas — et une fois tracé, le
+extrêmes. La fenêtre s'ouvre ajustée aux données, les mots-clés
+`from a to b` ne s'appliquent toujours pas, et une fois tracé, le
 graphique se zoome exactement comme un tracé de courbes : la molette,
 un pincement et le curseur de zoom fonctionnent, et l'export enregistre
 ce que montre le panneau.
@@ -1408,7 +1408,7 @@ Un troisième mot facultatif choisit le modèle : `graph scatter(xs, ys, quadreg
 ### 1.24 Nombres aléatoires
 
 `random()` tire un nombre uniforme dans `[0, 1)`, `random(a, b)` un dans
-`[a, b)`, et `randint(a, b)` un entier de l'intervalle fermé `[a, b]` —
+`[a, b)`, et `randint(a, b)` un entier de l'intervalle fermé `[a, b]`,
 un lancer de dé :
 
 ```epher
@@ -1460,7 +1460,7 @@ s'enchaînent : `60 mile/hr` et `5 m/s^2` sont des unités simples.
 ```
 
 Les préfixes SI les modifient toutes : `k M G T m µ n p` sont kilo,
-méga, giga, téra, milli, micro, nano, pico — `5 km`, `3 MPa`, `1 GHz`
+méga, giga, téra, milli, micro, nano, pico, `5 km`, `3 MPa`, `1 GHz`
 fonctionnent, et `2 kg` est le kilogramme lui-même.
 
 Les dimensions sont vérifiées : additionner ou comparer des grandeurs
@@ -1479,7 +1479,7 @@ L'arithmétique compose les dimensions : `5 m * 3 m` vaut `15 m^2`,
 `(3 m)^2` vaut `9 m^2`, `sqrt(4 m^2)` vaut `2 m`, et une expression
 entière dont les dimensions s'annulent redevient un nombre ordinaire
 (`5 m / 5 m` vaut `1`). Les résultats préfèrent le nom dérivé exact
-quand les dimensions correspondent — `5 kg * 3 m / 1 s^2` répond
+quand les dimensions correspondent, `5 kg * 3 m / 1 s^2` répond
 `15 N`.
 
 **Conversion.** `expr in unité` (ou `expr -> unité`) affiche une
@@ -1504,7 +1504,7 @@ convertit toute la somme :
 ```
 
 Les échelles de température (Celsius, Fahrenheit) ne sont pas des
-unités ici — les kelvins le sont, et `K` fonctionne comme n'importe
+unités ici, les kelvins le sont, et `K` fonctionne comme n'importe
 quelle autre.
 
 
@@ -1578,7 +1578,7 @@ listes : `[[1, 2], [3, 4]]` est la matrice 2×2. `+` et `-` sont terme à
 terme (formes égales), `*` est le produit matriciel, un nombre met à
 l'échelle terme à terme, et `^` est la puissance matricielle entière
 (`A ^ 0` est l'identité, donc les puissances demandent des matrices
-carrées). `M[2][1]` est l'élément de la ligne 2, colonne 1 — les
+carrées). `M[2][1]` est l'élément de la ligne 2, colonne 1, les
 lignes s'indexent comme des listes, à partir de 1.
 
 ```epher
@@ -1603,7 +1603,7 @@ rref([[2, 1, 5], [1, -1, 1]])
 [[1, 0, 2], [0, 1, 1]]
 ```
 
-Les lignes se lisent `x = 2`, `y = 1` — la dernière colonne de la
+Les lignes se lisent `x = 2`, `y = 1`, la dernière colonne de la
 matrice augmentée réduite. Les fractions exactes s'affichent dans les
 matrices comme dans les listes, donc `inv([[1, 2], [3, 4]])` montre
 `[[-2, 1], [3/2, -1/2]]`.
@@ -2033,7 +2033,7 @@ Lune et les planètes sur environ 5000 ans autour du présent.
 epher parle argent aussi bien qu'astronomie : un solveur de valeur
 temps de l'argent, l'amortissement des prêts, les intérêts et
 l'analyse de flux de trésorerie, tout hors ligne. Tout ce qui suit
-rend des nombres simples — pas des chaînes de devise — : les
+rend des nombres simples, pas des chaînes de devise, : les
 réponses sont indépendantes de la monnaie et retournent directement
 dans l'arithmétique. Les taux sont toujours par période et en
 fraction : `0.08/12` est un taux annuel de 8 % facturé chaque mois,
@@ -2150,8 +2150,8 @@ tvm_pv(240, 0.05/12, 1500, 0)
 ```
 
 La réponse est négative car acheter le fonds est de l'argent qui
-sort aujourd'hui. Dans l'autre sens — combien mettre de côté chaque
-mois pour atteindre un objectif —, on interroge `tvm_pmt` avec
+sort aujourd'hui. Dans l'autre sens, combien mettre de côté chaque
+mois pour atteindre un objectif, on interroge `tvm_pmt` avec
 l'objectif en `fv` : 50 000 en dix ans à 5 % coûtent 322 par mois :
 
 ```epher
@@ -2164,7 +2164,7 @@ tvm_pmt(120, 0.05/12, 0, -50000)
 
 Chacune des cinq accepte un dernier argument facultatif `begin` : 0
 signifie des paiements en fin de période (par défaut), 1 au début
-(annuité due — un loyer, la plupart des salaires). Payées en début
+(annuité due, un loyer, la plupart des salaires). Payées en début
 de période, les mensualités portent intérêt une période de plus, et
 la mensualité du prêt baisse un peu :
 
@@ -2182,7 +2182,7 @@ portées (ou un jeu de signes qui ne s'équilibre jamais) renvoie une
 erreur de domaine qui dit ce qu'elle a tenté.
 
 **Amortissement.** `amort(p, r, n, k)` est le solde restant après k
-paiements d'un prêt de p au taux r sur n périodes — à 0 périodes le
+paiements d'un prêt de p au taux r sur n périodes, à 0 périodes le
 capital, au bout des n, zéro :
 
 ```epher
@@ -2206,7 +2206,7 @@ for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
 ```
 
 **Intérêts.** `simple_interest(p, r, t)` vaut `p*r*t` et
-`compound_interest(p, r, n)` vaut `p*(1+r)^n - p` — tous deux
+`compound_interest(p, r, n)` vaut `p*(1+r)^n - p`, tous deux
 répondent l'intérêt gagné, pas le solde :
 
 ```epher
@@ -2225,7 +2225,7 @@ compound_interest(1000, 0.05, 2)
 102.5
 ```
 
-Le solde lui-même est une arithmétique simple — c'est tout l'intérêt
+Le solde lui-même est une arithmétique simple, c'est tout l'intérêt
 des nombres simples :
 
 ```epher
@@ -2319,8 +2319,8 @@ l'affichage en fraction exacte ; `dec(5/102)` donne
 ```
 
 La collection de scripts livre 42 scripts de finance prêts à
-l'emploi bâtis sur ces dix fonctions — quatre dossiers : intérêts,
-investissement, prêts et épargne —, chacun avec une transcription
+l'emploi bâtis sur ces dix fonctions, quatre dossiers : intérêts,
+investissement, prêts et épargne, chacun avec une transcription
 vérifiée contre le moteur (scripts.html les liste avec des résumés d'une ligne).
 
 ## 2. L'application web (PWA)
@@ -2480,7 +2480,7 @@ table x ^ 2 from -2 to 2 points 5 derivative x ^ 2
 
 Les cellules du tableau suivent les réglages des résultats :
 avec les fractions exactes activées (par défaut), une valeur qui est
-une fraction simple s'affiche comme telle — `table x / 3 from 0 to 1
+une fraction simple s'affiche comme telle, `table x / 3 from 0 to 1
 points 4` liste `1/3` au lieu de `0.333`.
 ```epher
 table x ^ 2 from -2 to 2 points 5
@@ -2649,7 +2649,7 @@ chmod +x epher-linux-x86_64.AppImage
 ./epher-linux-x86_64.AppImage
 ```
 
-**Ou installez depuis un dépôt ou une boutique** — les mises à jour
+**Ou installez depuis un dépôt ou une boutique**: les mises à jour
 arrivent ensuite avec votre gestionnaire de paquets. Sur Debian/Ubuntu :
 
 ```sh

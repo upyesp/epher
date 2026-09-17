@@ -35,11 +35,11 @@ sources, four days after the rerun's re-verification.
   at hiperlabs.eu) is unchanged, and the rerun's HiPER correction (no
   data plots) re-verifies. Desmos and HP Prime could not be re-fetched
   this pass (help center bot-blocked; hpcalc.org serves malformed gzip
-  to automated clients) — their columns are carried from the 2026-09-02
+  to automated clients); their columns are carried from the 2026-09-02
   re-verification, not re-fetched.
 - **Two defects found by probing, not in the matrix:** the CLI cannot
   parse `graph3d param` space curves (web and TUI can), and a persisted
-  loop variable named `i` shadows the imaginary unit in later sessions —
+  loop variable named `i` shadows the imaginary unit in later sessions,
   on this machine the installed store answered `3+4i` with `23` until a
   clean store was used.
 
@@ -118,7 +118,7 @@ HiPER Scientific, Pr = HP Prime, Oc = MATLAB / GNU Octave.
 The of-9 counts are unchanged from the rerun for every row: no app gained
 or lost a feature between 2026-09-02 and 2026-09-06. (ADR-0054's
 consequence note phrased the two closings as "8/9 → 9/9" and "7/9 → 9/9";
-those numerators count epher's own coverage, not the nine apps — SpeedCrunch
+those numerators count epher's own coverage, not the nine apps, SpeedCrunch
 still has no regression or tests, so the app counts stay 8 and 7.)
 
 ## What changed since the rerun
@@ -127,8 +127,8 @@ Closed since 2026-09-02 (partial became full):
 
 - **Regression / curve fitting**: `quadreg`, `expreg`, `powreg`, `logreg`
   join `linreg` (ADR-0054), each reporting its model with the
-  linearized-pair correlation r — the same number TI and NumWorks
-  report — and each drawable over its scatter:
+  linearized-pair correlation r, the same number TI and NumWorks
+  report, and each drawable over its scatter:
   `graph scatter(xs, ys, quadreg)`.
 - **Hypothesis tests + CIs**: `anova(list1, list2, …)` (one-way F with
   p, unequal lengths welcome) and `ttestpaired(a, b)` join ztest, ttest,
@@ -137,10 +137,10 @@ Closed since 2026-09-02 (partial became full):
 
 Closed inside already-full rows:
 
-- **`randn(mu, sigma)`** — the normal draw the rerun's probe missed
+- **`randn(mu, sigma)`**: the normal draw the rerun's probe missed
   (Desmos randomNormal, TI randNorm), Box-Muller on the seeded stream,
   seed-reproducible like the uniform draws.
-- **Table extras** — `table f(x) ... derivative g(x)` third column,
+- **Table extras**: `table f(x) ... derivative g(x)` third column,
   `values <list>` data columns, `exact`/`approx` per-table display
   override (ADR-0054). The T2.11 scope from the baseline is fully in.
 
@@ -149,13 +149,13 @@ New language surface (changes the programming row's partial note):
 - **Strings and print** (§1.7): `"…"` literals, `+` concatenation,
   `==`/`!=`, `len`, 1-based indexing; `str(x)` spells a value the way
   the answer panel does; `print(a, b, …)` joins with spaces. No escape
-  sequences (a string cannot contain a double quote) — verified by probe.
+  sequences (a string cannot contain a double quote), verified by probe.
 - **`for` loops** (§1.10): `for i in a to b [step s] do body` and
   `for x in list do body`, collecting the body's values into a list
   (a comprehension by construction); the loop variable keeps its last
   value afterwards, like TI's For; 100,000-step runaway guard. Negative
   steps count down (probed: `{5, 4, 3, 2, 1}`).
-- **Comments** (§1.13): `//` and `#` to end of line, `/* … */` blocks —
+- **Comments** (§1.13): `//` and `#` to end of line, `/* … */` blocks,
   shipped with the scripts collection's needs.
 - Still missing for the row: input/file I/O beyond `print`, multiple
   return values, richer string operations. Hence the row stays partial:
@@ -165,7 +165,7 @@ New since the rerun outside the matrix (none of it matched by all of the
 nine; most of it matched by none):
 
 - **3D parametric space curves**: `graph3d param cos(t), sin(t), t` over
-  a t domain (ADR-0054) — the T3.9 niche gap closed on web/desktop/TUI.
+  a t domain (ADR-0054), the T3.9 niche gap closed on web/desktop/TUI.
   CLI caveat in the Notes below.
 - **The keypad banks and drawer** (ADR-0055, ADR-0060): the PWA's on-screen
   keypad covers the whole language in banks (123, trig, ƒ, nΣ, data, 0x,
@@ -183,7 +183,7 @@ nine; most of it matched by none):
   operating system, and the website's Scripts page browses the same
   collection.
 - **The astronomy scripts collection** (31 scripts: moon, planets, sky,
-  time — including full-moons.epher, a Meeus ch. 49 implementation that
+  time, including full-moons.epher, a Meeus ch. 49 implementation that
   runs end-to-end, probed): single-location under `epher scripts/astronomy/`,
   observing from Greenwich by default.
 - **Linux installs from apt/dnf/flathub/snap/aur** (ADR-0061) and
@@ -234,7 +234,7 @@ nine; most of it matched by none):
    this machine the installed store held `i = 5` from an earlier loop,
    so `epher '3+4i'` answered `23` and `im(3+4i)` answered `0` until a
    clean `EPHER_STORE_DIR` was used. `3+4i` in a clean store is the
-   complex literal. The guide says `i` works "exactly like `pi`" — but
+   complex literal. The guide says `i` works "exactly like `pi`", but
    `pi` cannot be shadowed by a bare assignment, so the honest note is:
    the imaginary unit is shadowable, `pi` is not, and a loop named `i`
    is a footgun that survives restarts.
@@ -252,22 +252,22 @@ nine; most of it matched by none):
 
 ## epher's unique strengths (re-checked, all hold)
 
-- **The offline solar system** — still the only orrery among the nine,
+- **The offline solar system**: still the only orrery among the nine,
   now surrounded by a 31-script astronomy collection that ships inside
   every installer and by reference scripts (full-moons.epher) that teach
   the Meeus algorithms in epher's own grammar.
-- **The scripts collection as a first-class artifact** — 333 scripts in
+- **The scripts collection as a first-class artifact**: 333 scripts in
   nine categories, browsed on the website, carried by every installer,
   with copy-paste commands that name their operating system. None of the
   nine ships its examples as runnable, categorized programs beside the
   binary.
 - **Script transcripts, seeded reproducible randomness across every
-  frontend, and the byte-identical 8-locale guide** — still unmatched.
+  frontend, and the byte-identical 8-locale guide**, still unmatched.
 - **A keypad that covers the whole language** in banks, in the PWA and
-  the TUI alike — the hardware-calculator keypad experience on a web
+  the TUI alike, the hardware-calculator keypad experience on a web
   app, without abandoning the one-grammar entry line.
 - **One binary, five frontends** (desktop, PWA, TUI, CLI, REPL) with one
-  shared live store — still beyond any of the nine, whose web, desktop,
+  shared live store, still beyond any of the nine, whose web, desktop,
   and hardware variants do not share sessions.
 
 ## Notes and corrections

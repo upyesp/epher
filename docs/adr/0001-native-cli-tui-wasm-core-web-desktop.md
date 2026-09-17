@@ -6,7 +6,7 @@
 We split compilation targets by where WASM's cost is justified. `epher-core`,
 the Yew web frontend, and the Tauri desktop frontend compile to
 `wasm32-unknown-unknown`; the CLI and TUI compile natively and link
-`epher-core`. App logic is not duplicated — every frontend links the same core
+`epher-core`. App logic is not duplicated, every frontend links the same core
 crate.
 
 We rejected compiling the CLI and TUI to WASM: it would force a bespoke WASI

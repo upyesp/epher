@@ -3,7 +3,7 @@
 **Goal:** establish research-backed guidance for the planned redesign of the
 epher marketing site (`site/index.html`, `site/styles.css`): a new accent
 color (not amber, not default blue, not purple), responsive desktop+mobile
-layout with a hamburger menu, and About and Privacy pages — under the project's
+layout with a hamburger menu, and About and Privacy pages, under the project's
 hard constraint of WCAG 2.2 AA (`docs/accessibility.md`). Every recommendation
 below traces to a primary source (W3C/WAI specs and Understanding docs, the
 ARIA Authoring Practices, MDN, web.dev, IBM Carbon's design system) or to an
@@ -33,7 +33,7 @@ approximation). All pages accessed **2026-08-20**.
 
 **Fluid type via clamp(), bounded by rem.** web.dev's typography course is
 explicit: viewport-relative `font-size` alone ("`html { font-size: 2.5vw; }`")
-is a don't — "If you do, the user won't be able to resize the text" — and the
+is a don't, "If you do, the user won't be able to resize the text", and the
 recommended pattern mixes a relative unit into the viewport term and clamps
 it: `html { font-size: clamp(1rem, 0.75rem + 1.5vw, 2rem); }`, where "the
 text size will never be smaller than 1rem or larger than 2rem" [22]. MDN
@@ -42,7 +42,7 @@ defined minimum bound and a maximum bound" (min, preferred, max), and shows
 the same heading idiom `clamp(1.8rem, 2.5vw, 2.8rem)` [19]. epher's current
 hero already uses this shape (`clamp(2.5rem, 9vw, 4.25rem)`); the fixable
 violation of the web.dev guidance is that its *middle* term is bare `9vw`
-with no rem component — it should be e.g. `clamp(2.5rem, 1.5rem + 5vw,
+with no rem component; it should be e.g. `clamp(2.5rem, 1.5rem + 5vw,
 4.25rem)` so user font-size scaling still participates (analysis applying
 [22] to the existing CSS).
 
@@ -51,11 +51,11 @@ quotes Bringhurst's *Elements of Typographic Style*: "Anything from 45 to 75
 characters is widely regarded as a satisfactory line length for a
 single-column page … The 66-character line (counting both letters and spaces)
 is widely regarded as ideal", and translates it to CSS: there is no
-line-length property, so cap the container — `article { max-inline-size:
-66ch; }` — and "Don't set your line-lengths with a fixed unit like px … Use a
+line-length property, so cap the container, `article { max-inline-size:
+66ch; }`, and "Don't set your line-lengths with a fixed unit like px … Use a
 relative unit like rem or ch" [22]. WCAG 1.4.8 Visual Presentation (AAA)
 gives the normative ceiling: "Width is no more than 80 characters or glyphs
-(40 if CJK)" [13] — relevant because epher ships a zh-CN locale.
+(40 if CJK)" [13], relevant because epher ships a zh-CN locale.
 
 **Line height: unitless, ~1.5–1.65 for 66ch.** MDN: "The recommended line
 height is around 1.5 – 2 … Use unitless values" [18-ref below; see MDN
@@ -81,13 +81,13 @@ source-aligned choice for a multilingual, no-wasm marketing page: keep it
 within product spaces") from "expressive" styles (marketing surfaces) and
 publishes a fixed scale from 0.75rem/12px to 5.75rem/92px, "built on a single
 equation" [31]. A landing page needs only a 5–6 step subset (e.g. 0.875, 1,
-1.25, 1.5, 2.25, clamp-scaled display) — analysis consistent with [31].
+1.25, 1.5, 2.25, clamp-scaled display), analysis consistent with [31].
 
 ### 1.2 Layout
 
 **Grids that adapt without breakpoints.** web.dev's card-grid idiom is
-`.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(15em, 1fr)); }`
-— "the cards themselves automatically take up the right amount of space"
+`.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(15em, 1fr)); }`,
+"the cards themselves automatically take up the right amount of space"
 instead of hand-maintained breakpoints [25]; the same pattern extends to a
 carousel-on-small/grid-on-large hybrid using flexbox + `overflow-x: auto` +
 `scroll-snap-type: inline mandatory` under 50em, grid above [23-ui-patterns].
@@ -100,7 +100,7 @@ first" [23].
 **Spacing on an 8px grid.** Carbon's 2x Grid: "The basic unit of 2x Grid
 geometry is the 8-pixel square mini unit … Margin and padding are always
 applied in fixed mini unit multiples" [35]. The companion spacing scale is
-tokenized at 2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 80, 96, 160px — "using
+tokenized at 2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 80, 96, 160px, "using
 multiples of two, four, and eight" [32]. epher's current CSS mixes 1rem
 steps and a few odd values (0.625rem/0.875rem paddings); aligning section
 rhythm to the 2/4/8 ladder is the source-backed convention (analysis
@@ -126,7 +126,7 @@ set `<meta name="theme-color">` per scheme with the `media` attribute [27],
 practices: "to prevent glowing and bleeding against the surrounding dark
 content, I choose a slightly darker white. Something like rgb(250, 250, 250)
 works well"; photographic/hero imagery should be dimmed or desaturated in
-dark mode [29]. WCAG adds no rule here — this is comfort, not conformance
+dark mode [29]. WCAG adds no rule here; this is comfort, not conformance
 (ratios in §5 use exact values regardless).
 
 **OKLCH for palette derivation.** MDN: `oklch()` "expresses a given color in
@@ -141,7 +141,7 @@ among evergreen engines (MDN compatibility table [21]).
 serves as the primary action color across all IBM products and experiences.
 Additional colors are used sparingly and purposefully" [34]. For epher: one
 accent for CTAs, links, focus rings, and key graph strokes; everything else
-neutral — matching the existing `--accent` discipline (analysis applying
+neutral, matching the existing `--accent` discipline (analysis applying
 [34]).
 
 ### 1.4 Surface treatment
@@ -150,14 +150,14 @@ neutral — matching the existing `--accent` discipline (analysis applying
 requires "visual information required to identify user interface components
 and states" to reach 3:1 against adjacent colors [1], [4]. The Understanding
 doc's canonical passing example is "a standard text input with a grey border
-(#767676) and white adjacent color" [4] — epher's `--border: #76767a` is
+(#767676) and white adjacent color" [4], epher's `--border: #76767a` is
 within 1/255 per channel of that example.
 
 **Layered surfaces.** Carbon distinguishes surfaces with layer tokens
 (`layer-01`, `layer-accent-01`, …) rather than relying on shadow alone
 [34]; epher's panel + border + `--shadow` stack is the same model. If text
 ever sits on a gradient or image: "make sure the text color meets contrast
-standards in all places it appears" [36] — i.e., validate contrast at the
+standards in all places it appears" [36], i.e., validate contrast at the
 worst point of the gradient, not the average.
 
 **When gradients read as dated.** No cited normative source rules on gradient
@@ -165,7 +165,7 @@ fashion. Field evidence (2026-08-20 fetches): Stripe still ships its angled
 gradient hero [42]; Linear and Vercel use restrained ambient glows [43],
 [44]; none of the developer-first pages (Node, Deno, Bun, Tailwind, Rust)
 uses a gradient hero at all [37–41]. web.dev endorses gradients only for a
-functional cue — the "gradient over the edge where content is truncated" in
+functional cue; the "gradient over the edge where content is truncated" in
 the nav overflow pattern [23]. Analysis: full-bleed purple-blue mesh
 gradients behind hero text carry the 2022–24 AI-landing-page cliché and age
 fastest; localized glows or flat tokens do not. This is judgment, flagged as
@@ -177,8 +177,8 @@ such.
 `duration-fast-01` 70ms ("micro-interactions such as button and toggle"),
 `fast-02` 110ms (fade), `moderate-01` 150ms, `moderate-02` 240ms
 (expansion/toast), `slow-01` 400ms, `slow-02` 700ms (background dimming),
-with "productive" motion for function and "expressive" reserved — "Reserve
-expressive motion for occasional, important moments" — and an evaluation
+with "productive" motion for function and "expressive" reserved, "Reserve
+expressive motion for occasional, important moments", and an evaluation
 checklist that starts "Is your motion purposeful? What problem is motion
 solving?" [33].
 
@@ -232,7 +232,7 @@ Convergent structure (analysis of the table; each row is a fetched source):
   disclosure-dropdown model on desktop (`aria-expanded` buttons +
   `aria-controls` panels) [43], [15].
 - **Footers are big, grouped, and carry the legal/about links.** 14–84 links,
-  always including About, License/Trademark/Legal, and Privacy [37–44] —
+  always including About, License/Trademark/Legal, and Privacy [37–44],
   the natural home for epher's planned About and Privacy pages.
 - **A "replaces/compares" matrix sells to technical audiences.** Bun's
   feature grid names what each component replaces ("replaces npm · yarn ·
@@ -250,10 +250,10 @@ or the Understanding doc recommends aiming at them.
 | SC | Level | Requirement (quoted) | What it means for the marketing site |
 |---|---|---|---|
 | 1.4.1 Use of Color | A | "Color is not used as the only visual means of conveying information, indicating an action, prompting a response, or distinguishing a visual element" [1] | Accent-colored links keep underlines; "current page" in nav gets more than color (e.g. `aria-current` + weight) [12] |
-| 1.4.3 Contrast (Minimum) | AA | text ≥ 4.5:1; large-scale text ≥ 3:1; logotypes exempt [1] | All body/CTA/link text incl. muted text and button labels — computed per §5. "Computed values should not be rounded (e.g., 4.499:1 would not meet the 4.5:1 threshold)" [2] |
+| 1.4.3 Contrast (Minimum) | AA | text ≥ 4.5:1; large-scale text ≥ 3:1; logotypes exempt [1] | All body/CTA/link text incl. muted text and button labels, computed per §5. "Computed values should not be rounded (e.g., 4.499:1 would not meet the 4.5:1 threshold)" [2] |
 | 1.4.6 Contrast (Enhanced) | AAA | text ≥ 7:1; large text ≥ 4.5:1 [1] | Not required at AA; the recommended palette happens to clear 7:1 for accent-on-dark (§5) at AAA margins |
 | 1.4.8 Visual Presentation | AAA | "Width is no more than 80 characters or glyphs (40 if CJK)"; leading ≥ 1.5; text resizable 200% [1], [13] | The normative ceiling behind the 66ch measure (§1.1); CJK clause applies to the zh-CN locale |
-| 1.4.11 Non-text Contrast | AA | "The visual presentation of the following have a contrast ratio of at least 3:1 against adjacent color(s)": UI components/states and graphical objects [1] | Input/card borders, focus rings, icon buttons, the hamburger's 3-line glyph, download-link borders. Canonical pass: grey #767676 border on white [4]. "For people with color vision deficiency … hue and saturation have minimal or no effect on legibility" — pick accent steps by luminance [2] |
+| 1.4.11 Non-text Contrast | AA | "The visual presentation of the following have a contrast ratio of at least 3:1 against adjacent color(s)": UI components/states and graphical objects [1] | Input/card borders, focus rings, icon buttons, the hamburger's 3-line glyph, download-link borders. Canonical pass: grey #767676 border on white [4]. "For people with color vision deficiency … hue and saturation have minimal or no effect on legibility": pick accent steps by luminance [2] |
 | 2.1.1 Keyboard | A | "All functionality of the content is operable through a keyboard interface without requiring specific timings" [1] | Hamburger opens/links/closes/dismisses fully from keyboard; theme toggle and language select keyboard-operable [9] |
 | 2.4.1 Bypass Blocks | A | (skip link) | Keep the existing skip link; the WAI menus tutorial lists it first among menu-page techniques [17] |
 | 2.4.7 Focus Visible | AA | "Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible" [1]; "must not be time limited" [5] | `:focus-visible` ring on every interactive element incl. hamburger and mobile nav links; ring must itself pass 1.4.11's 3:1 ("focus indicators … are also subject to Success Criterion 1.4.11" [5], [4]) |
@@ -261,11 +261,11 @@ or the Understanding doc recommends aiming at them.
 | 2.5.8 Target Size (Minimum) | AA | target ≥ "24 by 24 CSS pixels", exceptions: Spacing (24px-dia circles don't intersect), Equivalent, Inline, User Agent Control, Essential [1] | Minimum for every nav link, icon button, and footer link. Understanding: "As a best practice it is recommended to at least meet the minimum size requirement … For important links/controls, consider aiming for the stricter 2.5.5" [7] |
 | 2.5.5 Target Size (Enhanced) | AAA | ≥ "44 by 44 CSS pixels" (with equivalent/inline/UA/essential exceptions) [1] | epher's existing 44px buttons/selects already meet this best practice [8]; keep 44px for the hamburger and theme toggle |
 | 4.1.2 Name, Role, Value | A | name and role programmatically determinable; states programmatically settable/notifiable [1] | Native elements for links/selects/buttons; the hamburger `<button>` gets its name from a text label ("Menu") and exposes state via `aria-expanded`. "Standard HTML controls already meet this success criterion when used according to specification" [10] |
-| 2.3.3 Animation from Interactions | AAA | "Motion animation triggered by interaction can be disabled, unless the animation is essential" [1] | Not required at AA, but see §6: implement `prefers-reduced-motion` regardless — cheap and the right side of the intent ("Some users experience distraction or nausea from animated content" [11]) |
+| 2.3.3 Animation from Interactions | AAA | "Motion animation triggered by interaction can be disabled, unless the animation is essential" [1] | Not required at AA, but see §6: implement `prefers-reduced-motion` regardless, cheap and the right side of the intent ("Some users experience distraction or nausea from animated content" [11]) |
 
 Also binding, in the background: 3.1.1 (the existing `lang`/`dir` per locale
 must survive the redesign), 1.4.10 Reflow (single column at 320px), 1.4.4
-(200% zoom) — unchanged from `docs/accessibility.md`.
+(200% zoom), unchanged from `docs/accessibility.md`.
 
 ---
 
@@ -289,7 +289,7 @@ widget. Direct quotes from the pattern and its navigation examples:
 - **Keyboard.** Enter and Space toggle ("Enter: activates the disclosure
   control and toggles the visibility"; same for Space) [14]. Tab/Shift+Tab
   "move keyboard focus among top-level buttons, and if a dropdown is open,
-  into and through links in the dropdown" — the links are ordinary tab stops,
+  into and through links in the dropdown"; the links are ordinary tab stops,
   no focus trap [15]. **Escape:** "If a dropdown is open, closes it and sets
   focus on the button that controls that dropdown" [15]. Optional
   arrows/Home/End "supplement, but do not replace, tabbing among buttons and
@@ -299,12 +299,12 @@ widget. Direct quotes from the pattern and its navigation examples:
   of the navigation region also closes an open dropdown. Implementing this
   Esc behavior is necessary to meet the WCAG 2.1 1.4.13: Content on Hover or
   Focus criterion" [15]. This non-persistence is also what keeps 2.4.11
-  (Focus Not Obscured) satisfied — a dropdown that stayed open after focus
+  (Focus Not Obscured) satisfied; a dropdown that stayed open after focus
   left is the Understanding doc's named risk case [6], [15].
 - **Landmark + list structure.** "The list that contains them is wrapped in
   a navigation landmark named …" and "The semantics of the list structure
   communicates the hierarchy of the navigation system to assistive
-  technology users" — `<nav aria-label>` containing a `<ul>` [15]. The
+  technology users", `<nav aria-label>` containing a `<ul>` [15]. The
   variant with top-level links alongside disclosure buttons keeps the same
   structure [16].
 - **Visual state, styled off ARIA.** "CSS attribute selectors (e.g.
@@ -367,16 +367,16 @@ threshold 3:1):**
 |---|---|---|---|
 | `#2dd4bf` teal-400 | 0.514064 | **9.88:1** | yes |
 | `#5eead4` teal-300 | 0.659788 | **12.44:1** | yes |
-| `#22d3ee` cyan-400 | — | **10.18:1** | yes |
-| `#a3e635` lime-400 | — | **12.20:1** | yes |
-| `#34d399` emerald-400 | — | **9.57:1** | yes |
-| `#ff9f0a` amber (current, reference) | — | 8.95:1 | yes |
+| `#22d3ee` cyan-400 |, | **10.18:1** | yes |
+| `#a3e635` lime-400 |, | **12.20:1** | yes |
+| `#34d399` emerald-400 |, | **9.57:1** | yes |
+| `#ff9f0a` amber (current, reference) |, | 8.95:1 | yes |
 
-Every candidate clears 4.5:1 on near-black — with luminance this high the
+Every candidate clears 4.5:1 on near-black, with luminance this high the
 differentiator is identity and light-mode pairing, not dark-mode contrast.
 The same holds on the current `#1c1c1e` dark theme (teal-400 = 9.14:1,
 teal-300 = 11.50:1) and on panel surfaces `#1f1f23` (8.82:1 / 11.10:1) and
-`#2c2c2e` (7.49:1 / 9.42:1) — computed, so the accent survives any plausible
+`#2c2c2e` (7.49:1 / 9.42:1), computed, so the accent survives any plausible
 dark surface.
 
 **Light-mode counterparts on `#ffffff` (text threshold 4.5:1):**
@@ -394,25 +394,25 @@ light-mode text. Button text compounds this: white on `#0d9488` is only
 3.74:1 (fails), white on `#0f766e` is 5.47:1 (passes); dark `#141416` on
 `#2dd4bf` is 9.88:1 (passes) and on `#5eead4` is 12.44:1 (passes).
 
-**Recommendation — teal, one family, three working tokens:**
+**Recommendation, teal, one family, three working tokens:**
 
 - Dark theme: **accent `#2dd4bf`** (9.88:1 on `#141416`; 9.14:1 on current
   `#1c1c1e`), **hover `#5eead4`** (12.44:1). Button: fill `#2dd4bf`, label
   `#141416` (9.88:1). Focus ring `#2dd4bf`: 9.88:1 vs bg, 8.82:1 vs a
-  `#1f1f23` panel — far above the 3:1 of 1.4.11 [4].
+  `#1f1f23` panel, far above the 3:1 of 1.4.11 [4].
 - Light theme: **accent text/links `#0f766e`** (5.47:1 on white),
   **hover `#115e59`** (7.58:1). Button: fill `#0f766e`, label white
   (5.47:1).
 - Why teal over the passing alternatives: cyan-400 is numerically fine but
   the cyan/blue family is the default-blue-adjacent look the redesign is
   avoiding and is heavily used by AI products (field observation [42–44]);
-  lime and emerald are green-family — they collide with success/error
+  lime and emerald are green-family; they collide with success/error
   semantics and sit on the red-green confusion axes for protan/deutan users,
   which matters for epher's *product* UI (errors, graph curves) sharing the
   accent hue (analysis). Contrast-wise all four families comply; only teal
   avoids both clichés.
 - **Desaturation and color-blind pitfalls:** pick and verify steps by
-  *luminance*, not hue — "For people with color vision deficiency who are
+  *luminance*, not hue, "For people with color vision deficiency who are
   not able to distinguish certain shades of color, hue and saturation have
   minimal or no effect on legibility as assessed by reading performance"
   [2]; and never encode meaning by the accent alone (1.4.1 [1], [12]).
@@ -427,7 +427,7 @@ light-mode text. Button text compounds this: white on `#0d9488` is only
 - **WCAG 2.3.3 Animation from Interactions (AAA):** "Motion animation
   triggered by interaction can be disabled, unless the animation is
   essential to the functionality or the information being conveyed" [1].
-  epher commits to AA, so this is not strictly required — but the intent is
+  epher commits to AA, so this is not strictly required, but the intent is
   health, not compliance: "if scrolling a page causes elements to move
   (other than the essential movement associated with scrolling) it can
   trigger vestibular disorders. Vestibular (inner ear) disorder reactions
@@ -436,18 +436,18 @@ light-mode text. Button text compounds this: white on `#0d9488` is only
   animation, provide an off control, or "take advantage of the reduce motion
   feature in the user agent or operating system" [11]. The doc also draws
   the boundary with 2.2.2: interaction-triggered animation is 2.3.3's domain
-  while page-initiated (>5s) animation is 2.2.2's — a scroll reveal is
+  while page-initiated (>5s) animation is 2.2.2's; a scroll reveal is
   interaction-triggered [11].
-- **`prefers-reduced-motion` media query.** MDN documents the two values —
+- **`prefers-reduced-motion` media query.** MDN documents the two values,
   `no-preference` ("evaluates as false in the boolean context") and `reduce`
   ("interfaces should minimize movement or animation, preferably to the
-  point where all non-essential movement is removed") — and warns that
+  point where all non-essential movement is removed"), and warns that
   "Animations such as scaling or panning large objects can be vestibular
   motion triggers", while a "dissolve animation … is a more muted animation
   that is not a vestibular motion trigger" [18].
-- **The web.dev pattern.** Scope animations to the affirmative query —
+- **The web.dev pattern.** Scope animations to the affirmative query,
   animate only under `(prefers-reduced-motion: no-preference)`, so opted-out
-  users *and* browsers that don't support the query get the static version —
+  users *and* browsers that don't support the query get the static version,
   and optionally lazy-load the animation CSS with
   `<link rel="stylesheet" href="animations.css" media="(prefers-reduced-motion: no-preference)">`
   [28]. For JS-driven animation (e.g. IntersectionObserver reveals), listen
@@ -457,9 +457,9 @@ light-mode text. Button text compounds this: white on `#0d9488` is only
   animations" [28].
 - **Rules for the epher redesign:** (a) keep the existing global
   `@media (prefers-reduced-motion: reduce)` kill-switch in `styles.css`
-  (duration 0.01ms etc.) — it matches this guidance; (b) make scroll-reveal
+  (duration 0.01ms etc.); it matches this guidance; (b) make scroll-reveal
   content fully visible before/without JS (reveal is enhancement, not
-  content gating — consistent with web.dev's "don't hide" principle [23]);
+  content gating, consistent with web.dev's "don't hide" principle [23]);
   (c) animate only `opacity`/`transform`, never size-inducing properties;
   (d) keep `scroll-behavior: auto` as today; (e) micro-interactions in the
   70–240ms Carbon range need no gating beyond the global kill-switch [33];
@@ -467,7 +467,7 @@ light-mode text. Button text compounds this: white on `#0d9488` is only
 
 ---
 
-## 7. Synthesis — what the redesign should do
+## 7. Synthesis: what the redesign should do
 
 (Analysis; sources in brackets.)
 
@@ -484,7 +484,7 @@ light-mode text. Button text compounds this: white on `#0d9488` is only
 5. **Adopt the 8px mini-unit spacing ladder** (2/4/8/12/16/24/32/48/64/96)
    for section rhythm, replacing ad-hoc paddings [32], [35].
 6. **Nav:** desktop shows all top-level links (Guide, About, Privacy,
-   Source, theme, language) — only collapse behind a labeled "Menu"
+   Source, theme, language), only collapse behind a labeled "Menu"
    disclosure button when they stop fitting [23]; implement per §4 (native
    button, `aria-expanded`, Escape-closes-and-refocuses, focus-out closes,
    `aria-current="page"`, 44px targets) [14–16].
@@ -516,13 +516,13 @@ light-mode text. Button text compounds this: white on `#0d9488` is only
 | Card grid | `repeat(auto-fit, minmax(250px, 1fr))` | web.dev auto-fill/minmax idiom [25] |
 | Spacing scale | 8px mini unit; tokens 2,4,8,12,16,24,32,48,64,96 | Carbon 2x Grid + spacing tokens [32], [35] |
 | Dark bg | `#141416` (L = 0.007070) or keep `#1c1c1e` | computed §5 |
-| `--accent` (dark) | `#2dd4bf` teal-400 — **9.88:1** on `#141416` (9.14:1 on `#1c1c1e`) | computed §5; needs ≥4.5:1 [1], [2] |
-| `--accent` hover (dark) | `#5eead4` teal-300 — **12.44:1** | computed §5 |
-| Button dark | fill `#2dd4bf`, label `#141416` — **9.88:1** | computed §5 |
-| `--accent` (light text/links) | `#0f766e` teal-700 — **5.47:1** on white | computed §5 |
-| `--accent` hover (light) | `#115e59` teal-800 — **7.58:1** | computed §5 |
-| Button light | fill `#0f766e`, label white — **5.47:1** | computed §5 |
-| Focus ring | `#2dd4bf` — 9.88:1 vs bg, 8.82:1 vs `#1f1f23` panel (≥3:1 required) | computed §5; 1.4.11 + 2.4.7 [4], [5] |
+| `--accent` (dark) | `#2dd4bf` teal-400, **9.88:1** on `#141416` (9.14:1 on `#1c1c1e`) | computed §5; needs ≥4.5:1 [1], [2] |
+| `--accent` hover (dark) | `#5eead4` teal-300, **12.44:1** | computed §5 |
+| Button dark | fill `#2dd4bf`, label `#141416`, **9.88:1** | computed §5 |
+| `--accent` (light text/links) | `#0f766e` teal-700, **5.47:1** on white | computed §5 |
+| `--accent` hover (light) | `#115e59` teal-800, **7.58:1** | computed §5 |
+| Button light | fill `#0f766e`, label white, **5.47:1** | computed §5 |
+| Focus ring | `#2dd4bf`, 9.88:1 vs bg, 8.82:1 vs `#1f1f23` panel (≥3:1 required) | computed §5; 1.4.11 + 2.4.7 [4], [5] |
 | Border grey | keep `#76767a`-class (3:1+ on both themes) | Understanding 1.4.11 example #767676 [4]; house audit |
 | Nav pattern | desktop: visible links; mobile: labeled "Menu" `<button>`, `aria-expanded`, Escape closes + refocus, focus-out closes, `aria-current`, no menu role, no trap | APG disclosure + nav examples [14–16]; web.dev [23] |
 | Target sizes | ≥ 44×44 for nav/buttons/selects (24×24 AA floor) | 2.5.8 AA [1], [7]; 2.5.5 AAA best practice [1], [8] |
@@ -544,60 +544,60 @@ footer counts refer to the served HTML.
 
 **W3C / WAI (WCAG 2.2 + Understanding + APG + tutorial)**
 
-1. *Web Content Accessibility Guidelines (WCAG) 2.2* (W3C Recommendation; normative SC text) — https://www.w3.org/TR/WCAG22/
-2. *Understanding SC 1.4.3 Contrast (Minimum)* — https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
-3. *Understanding SC 1.4.6 Contrast (Enhanced)* — https://www.w3.org/WAI/WCAG22/Understanding/contrast-enhanced.html
-4. *Understanding SC 1.4.11 Non-text Contrast* — https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
-5. *Understanding SC 2.4.7 Focus Visible* — https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html
-6. *Understanding SC 2.4.11 Focus Not Obscured (Minimum)* — https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html
-7. *Understanding SC 2.5.8 Target Size (Minimum)* — https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
-8. *Understanding SC 2.5.5 Target Size (Enhanced)* — https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html
-9. *Understanding SC 2.1.1 Keyboard* — https://www.w3.org/WAI/WCAG22/Understanding/keyboard.html
-10. *Understanding SC 4.1.2 Name, Role, Value* — https://www.w3.org/WAI/WCAG22/Understanding/name-role-value.html
-11. *Understanding SC 2.3.3 Animation from Interactions* — https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html
-12. *Understanding SC 1.4.1 Use of Color* — https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html
-13. *Understanding SC 1.4.8 Visual Presentation* — https://www.w3.org/WAI/WCAG22/Understanding/visual-presentation.html
-14. *APG: Disclosure (Show/Hide) Pattern* — https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/
-15. *APG Example: Disclosure Navigation Menu* — https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/
-16. *APG Example: Disclosure Navigation Menu with Top-Level Links* — https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation-hybrid/
-17. *WAI Tutorial: Menus* — https://www.w3.org/WAI/tutorials/menus/
+1. *Web Content Accessibility Guidelines (WCAG) 2.2* (W3C Recommendation; normative SC text), https://www.w3.org/TR/WCAG22/
+2. *Understanding SC 1.4.3 Contrast (Minimum)*, https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
+3. *Understanding SC 1.4.6 Contrast (Enhanced)*, https://www.w3.org/WAI/WCAG22/Understanding/contrast-enhanced.html
+4. *Understanding SC 1.4.11 Non-text Contrast*, https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
+5. *Understanding SC 2.4.7 Focus Visible*, https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html
+6. *Understanding SC 2.4.11 Focus Not Obscured (Minimum)*, https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html
+7. *Understanding SC 2.5.8 Target Size (Minimum)*, https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
+8. *Understanding SC 2.5.5 Target Size (Enhanced)*, https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html
+9. *Understanding SC 2.1.1 Keyboard*, https://www.w3.org/WAI/WCAG22/Understanding/keyboard.html
+10. *Understanding SC 4.1.2 Name, Role, Value*, https://www.w3.org/WAI/WCAG22/Understanding/name-role-value.html
+11. *Understanding SC 2.3.3 Animation from Interactions*, https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html
+12. *Understanding SC 1.4.1 Use of Color*, https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html
+13. *Understanding SC 1.4.8 Visual Presentation*, https://www.w3.org/WAI/WCAG22/Understanding/visual-presentation.html
+14. *APG: Disclosure (Show/Hide) Pattern*, https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/
+15. *APG Example: Disclosure Navigation Menu*, https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/
+16. *APG Example: Disclosure Navigation Menu with Top-Level Links*, https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation-hybrid/
+17. *WAI Tutorial: Menus*, https://www.w3.org/WAI/tutorials/menus/
 
 **MDN**
 
-18. *prefers-reduced-motion* — https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion
-19. *clamp()* — https://developer.mozilla.org/en-US/docs/Web/CSS/clamp
-20. *font-family* (system-ui note) — https://developer.mozilla.org/en-US/docs/Web/CSS/font-family
-21. *oklch()* — https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/oklch
-23m. *CSS styling text fundamentals* (line-height 1.5–2) — https://developer.mozilla.org/en-US/docs/Learn/CSS/Styling_text/Fundamentals
+18. *prefers-reduced-motion*, https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion
+19. *clamp()*, https://developer.mozilla.org/en-US/docs/Web/CSS/clamp
+20. *font-family* (system-ui note), https://developer.mozilla.org/en-US/docs/Web/CSS/font-family
+21. *oklch()*, https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/oklch
+23m. *CSS styling text fundamentals* (line-height 1.5–2), https://developer.mozilla.org/en-US/docs/Learn/CSS/Styling_text/Fundamentals
 
 **web.dev**
 
-22. *Learn Responsive Design: Typography* — https://web.dev/learn/design/typography
-23. *Learn Responsive Design: User interface patterns* — https://web.dev/learn/design/ui-patterns
-24. *Learn Responsive Design: Interaction* — https://web.dev/learn/design/interaction
-25. *Learn Responsive Design: Macro layouts* — https://web.dev/learn/design/macro-layouts
-26. *Learn Responsive Design: Micro layouts* — https://web.dev/learn/design/micro-layouts
-27. *Learn Responsive Design: Theming* — https://web.dev/learn/design/theming
-28. *prefers-reduced-motion: Hello darkness, my old friend* — https://web.dev/articles/prefers-reduced-motion
-29. *prefers-color-scheme: Hello darkness, my old friend* — https://web.dev/articles/prefers-color-scheme
+22. *Learn Responsive Design: Typography*, https://web.dev/learn/design/typography
+23. *Learn Responsive Design: User interface patterns*, https://web.dev/learn/design/ui-patterns
+24. *Learn Responsive Design: Interaction*, https://web.dev/learn/design/interaction
+25. *Learn Responsive Design: Macro layouts*, https://web.dev/learn/design/macro-layouts
+26. *Learn Responsive Design: Micro layouts*, https://web.dev/learn/design/micro-layouts
+27. *Learn Responsive Design: Theming*, https://web.dev/learn/design/theming
+28. *prefers-reduced-motion: Hello darkness, my old friend*, https://web.dev/articles/prefers-reduced-motion
+29. *prefers-color-scheme: Hello darkness, my old friend*, https://web.dev/articles/prefers-color-scheme
 
 **IBM Carbon design system** (published pages; source markdown verified at
 github.com/carbon-design-system/carbon-website, `src/pages/elements/…`)
 
-31. *Typography overview* (type scale, productive/expressive) — https://carbondesignsystem.com/elements/typography/overview/
-32. *Spacing overview* (token ladder) — https://carbondesignsystem.com/elements/spacing/overview/
-33. *Motion overview* (duration tokens, productive/expressive) — https://carbondesignsystem.com/elements/motion/overview/
-34. *Color overview / usage* (one action family, layer tokens) — https://carbondesignsystem.com/elements/color/overview/
-35. *2x Grid overview* (8px mini unit) — https://carbondesignsystem.com/elements/2x-grid/overview/
-36. *Accessibility: color* (3:1 boundaries, color-blindness, gradient text) — https://carbondesignsystem.com/guidelines/accessibility/color/
+31. *Typography overview* (type scale, productive/expressive), https://carbondesignsystem.com/elements/typography/overview/
+32. *Spacing overview* (token ladder), https://carbondesignsystem.com/elements/spacing/overview/
+33. *Motion overview* (duration tokens, productive/expressive), https://carbondesignsystem.com/elements/motion/overview/
+34. *Color overview / usage* (one action family, layer tokens), https://carbondesignsystem.com/elements/color/overview/
+35. *2x Grid overview* (8px mini unit), https://carbondesignsystem.com/elements/2x-grid/overview/
+36. *Accessibility: color* (3:1 boundaries, color-blindness, gradient text), https://carbondesignsystem.com/guidelines/accessibility/color/
 
 **Field survey** (fetched live 2026-08-20; structure signals parsed from served HTML)
 
-37. Node.js — https://nodejs.org/en
-38. Deno — https://deno.com
-39. Bun — https://bun.sh
-40. Tailwind CSS — https://tailwindcss.com
-41. Rust — https://rust-lang.org
-42. Stripe — https://stripe.com
-43. Vercel — https://vercel.com
-44. Linear — https://linear.app
+37. Node.js, https://nodejs.org/en
+38. Deno, https://deno.com
+39. Bun, https://bun.sh
+40. Tailwind CSS, https://tailwindcss.com
+41. Rust, https://rust-lang.org
+42. Stripe, https://stripe.com
+43. Vercel, https://vercel.com
+44. Linear, https://linear.app

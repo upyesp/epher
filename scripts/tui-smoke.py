@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Drive the epher TUI through a real pty and assert what the screen shows.
 
-Black-box smoke test for the full-screen terminal UI — the one frontend
+Black-box smoke test for the full-screen terminal UI; the one frontend
 CI cannot click. The pty plays the user; pyte (a terminal emulator)
 plays the screen: every byte the TUI writes is replayed into a
 120x40 cell grid, and assertions read the final cell state rather than

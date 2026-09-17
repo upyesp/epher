@@ -113,26 +113,26 @@ TABLE_PARA["ar"] = """إضافة اختيارية `derivative <تعبير>` تض
 
 TABLE_CELLS["de"] = """Die Tabellenzellen folgen den Ergebniseinstellungen: bei
 eingeschalteten exakten Brüchen (Standard) zeigt sich ein Wert, der
-ein einfacher Bruch ist, als solcher — `table x / 3 from 0 to 1
+ein einfacher Bruch ist, als solcher, `table x / 3 from 0 to 1
 points 4` listet `1/3` statt `0.333`."""
 TABLE_CELLS["fr"] = """Les cellules du tableau suivent les réglages des résultats :
 avec les fractions exactes activées (par défaut), une valeur qui est
-une fraction simple s'affiche comme telle — `table x / 3 from 0 to 1
+une fraction simple s'affiche comme telle, `table x / 3 from 0 to 1
 points 4` liste `1/3` au lieu de `0.333`."""
 TABLE_CELLS["es"] = """Las celdas de la tabla siguen los ajustes de resultados: con las
 fracciones exactas activadas (por defecto), un valor que es una
-fracción simple se muestra como tal — `table x / 3 from 0 to 1
+fracción simple se muestra como tal, `table x / 3 from 0 to 1
 points 4` lista `1/3` en lugar de `0.333`."""
 TABLE_CELLS["pt"] = """As células da tabela seguem os ajustes de resultados: com as
 frações exatas ativadas (predefinição), um valor que é uma fração
-simples mostra-se como tal — `table x / 3 from 0 to 1 points 4`
+simples mostra-se como tal, `table x / 3 from 0 to 1 points 4`
 lista `1/3` em vez de `0.333`."""
 TABLE_CELLS["zh-CN"] = """表格单元格遵循结果设置：启用精确分数（默认）时，是简单分数的值
-会以分数显示——`table x / 3 from 0 to 1 points 4` 列出 `1/3` 而不是
+会以分数显示：`table x / 3 from 0 to 1 points 4` 列出 `1/3` 而不是
 `0.333`。"""
 TABLE_CELLS["hi"] = """तालिका कक्ष परिणाम सेटिंग का पालन करते हैं: सटीक भिन्न चालू होने
-पर (डिफ़ॉल्ट), साधारण भिन्न वाला मान भिन्न के रूप में दिखता है —
+पर (डिफ़ॉल्ट), साधारण भिन्न वाला मान भिन्न के रूप में दिखता है,
 `table x / 3 from 0 to 1 points 4` में `0.333` की जगह `1/3` आता है।"""
 TABLE_CELLS["ar"] = """تتبع خلايا الجدول إعدادات النتائج: مع تشغيل الكسور الدقيقة
-(الافتراضي)، تظهر القيمة التي هي كسر بسيط ككسر — يسرد `table x / 3
+(الافتراضي)، تظهر القيمة التي هي كسر بسيط ككسر، يسرد `table x / 3
 from 0 to 1 points 4` قيمة `1/3` بدلًا من `0.333`."""

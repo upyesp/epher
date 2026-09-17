@@ -2,8 +2,8 @@
 //! analyzer provide the data; this module turns multiple curves, points of
 //! interest, and the trace cursor into SVG. Pure math in [`geometry`],
 //! [`segments`], [`ticks`], and [`trace_nearest`] (unit-tested natively),
-//! then two renderers over it: [`graph_svg`] (string form — tests and the
-//! copy-to-clipboard button) and [`graph_html`] (Yew VNodes — the
+//! then two renderers over it: [`graph_svg`] (string form, tests and the
+//! copy-to-clipboard button) and [`graph_html`] (Yew VNodes, the
 //! production renderer, so the SVG lands in the proper namespace;
 //! innerHTML-parsed `<svg>` is HTML-namespaced and invisible in WebKit).
 //!
@@ -52,7 +52,7 @@ pub fn surface_svg(
     epher_core::graph_svg::surface_parts(surfaces, view, stroke_width)
 }
 
-/// The solar system scene as (view box, part markup) — the same live
+/// The solar system scene as (view box, part markup), the same live
 /// contract as [`surface_svg`], fed to the same `Graph3D` component.
 pub fn solar_svg(
     scene: &epher_core::astro::SolarScene,
@@ -62,7 +62,7 @@ pub fn solar_svg(
     epher_core::graph_svg::solar_parts(scene, view, stroke_width)
 }
 
-/// The solar system scene as a standalone SVG document — the clipboard
+/// The solar system scene as a standalone SVG document, the clipboard
 /// and export path.
 pub fn solar3d_doc(
     scene: &epher_core::astro::SolarScene,
@@ -72,14 +72,14 @@ pub fn solar3d_doc(
     epher_core::graph_svg::solar3d_svg(scene, view, stroke_width)
 }
 
-/// Render the same layers as Yew SVG VNodes — the production renderer.
+/// Render the same layers as Yew SVG VNodes, the production renderer.
 /// Yew creates SVG elements in the SVG namespace, so the plot actually
 /// paints in every engine (innerHTML-parsed SVG does not, in WebKit).
 /// Pointer/keyboard interaction uses native listeners (gloo-events) bound
-/// to the element through a NodeRef — Yew's synthetic event delegation
+/// to the element through a NodeRef, Yew's synthetic event delegation
 /// does not reach SVG children.
 /// Map an element-local pixel position to viewBox coordinates, accounting
-/// for the letterbox bands of `preserveAspectRatio="xMidYMid meet"` — the
+/// for the letterbox bands of `preserveAspectRatio="xMidYMid meet"`, the
 /// SVG now fits a fixed-size pane instead of owning its aspect ratio
 /// (ADR-0016), so edge pixels lie outside the plotted area.
 fn to_viewbox(el: &web_sys::Element, offset_x: f64, offset_y: f64) -> (f64, f64) {
@@ -177,7 +177,7 @@ pub fn graph_html(props: &GraphProps) -> Html {
                         let Some(me) = e.dyn_ref::<web_sys::PointerEvent>() else {
                             return;
                         };
-                        // offsetX/Y are relative to the event TARGET — a
+                        // offsetX/Y are relative to the event TARGET; a
                         // path or axis line when the pointer is over a
                         // curve, not the SVG. Use clientX/Y minus the
                         // SVG's rect: element-local regardless of target.
@@ -552,7 +552,7 @@ struct MeshElem {
 }
 
 /// Parse the mesh markup into its element list. A light hand-rolled scan
-/// (~32 KB per orbit frame) — no regex machinery needed for markup we
+/// (~32 KB per orbit frame), no regex machinery needed for markup we
 /// generate ourselves.
 fn parse_mesh(content: &str) -> Vec<MeshElem> {
     let bytes = content.as_bytes();
@@ -612,7 +612,7 @@ fn same_mesh_shape(old: &str, new: &str) -> bool {
 /// Apply a new frame's coordinates to the existing DOM elements. Only the
 /// attributes that can change between frames are written (points, depth
 /// opacity, stroke width for polylines; the four coordinates and width for
-/// frame lines) — `fill`/`stroke` are constants. Returns false when the
+/// frame lines), `fill`/`stroke` are constants. Returns false when the
 /// live DOM does not match the markup shape, so the caller rebuilds.
 fn patch_mesh(el: &web_sys::Element, content: &str) -> bool {
     let parsed = parse_mesh(content);
@@ -642,7 +642,7 @@ fn patch_mesh(el: &web_sys::Element, content: &str) -> bool {
 /// column with per-line depth shading (nearer lines more opaque), the
 /// ground square and axes of the first surface on top, all painter-sorted
 /// far to near. Built as a string (not diffed elements) so orbiting a
-/// thousand-line mesh stays cheap. Returns (viewBox, inner content) — the
+/// thousand-line mesh stays cheap. Returns (viewBox, inner content), the
 /// arrow keys rotate (ADR-0015, WCAG 2.1.1). The SVG content is raw HTML
 /// (innerHTML-style) so thousand-line meshes re-render without diffing.
 #[derive(Properties, PartialEq)]
@@ -655,7 +655,7 @@ pub struct Graph3DProps {
     /// mesh markup carries as its stroke-width attribute. Set as the
     /// svg's `--curve-width` so the shared `svg .curve` CSS rule (whose
     /// var() default is the 2D width) no longer pins every mesh line to
-    /// 1px — the bug that made the slider move the frame but not the
+    /// 1px; the bug that made the slider move the frame but not the
     /// surface.
     pub stroke_px: f64,
     /// (dyaw, dpitch) from a drag or arrow key.
@@ -681,13 +681,13 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
     // SVG renderer would never paint them (blank plot in every browser).
     //
     // ADR-0027: orbit frames keep the same element structure (one
-    // <polyline> per mesh line, one <line> per frame segment — only the
+    // <polyline> per mesh line, one <line> per frame segment, only the
     // coordinate/opacity values change), so a frame whose shape matches
     // the previous one is applied by writing attributes on the existing
     // elements instead of re-parsing and re-creating thousands of nodes.
     // Per-frame innerHTML churn garbage-collected ~3k elements per frame,
     // which stalled and flickered in WebView2 (Windows); patching is a
-    // few thousand attribute writes with zero node churn — 60fps in every
+    // few thousand attribute writes with zero node churn, 60fps in every
     // engine. Structure changes (different surfaces) still rebuild.
     let last_markup = use_state(|| std::rc::Rc::new(std::cell::RefCell::new(None::<String>)));
     {
@@ -774,7 +774,7 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
             }
             // Drags accumulate into `pending` and commit at most once per
             // animation frame (ADR-0026): re-rendering per pointer event
-            // re-injected the whole mesh SVG mid-drag — the plot flickered
+            // re-injected the whole mesh SVG mid-drag, the plot flickered
             // and, combined with the stale-handle orbit reads, "shivered"
             // instead of rotating. One commit per frame = smooth orbit.
             let pending = std::rc::Rc::new(std::cell::RefCell::new(None::<(f64, f64)>));
@@ -830,7 +830,7 @@ pub fn graph3d_html(props: &Graph3DProps) -> Html {
                             // Copy the start point out first: Option<(f64, f64)>
                             // is Copy, and holding the Ref across the body would
                             // make the borrow_mut below panic ("RefCell already
-                            // borrowed") — the drag never orbits.
+                            // borrowed"); the drag never orbits.
                             let start = *drag.borrow();
                             if let Some((lx, ly)) = start {
                                 let dx = pe.client_x() as f64 - lx;

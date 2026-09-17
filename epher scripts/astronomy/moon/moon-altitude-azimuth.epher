@@ -28,7 +28,7 @@ const day = 22
 const h1 = 19          // three sample times of the evening, hours UT
 const h2 = 20.5
 const h3 = 22
-const lat = 51.4779        // Greenwich — the Royal Observatory
+const lat = 51.4779        // Greenwich, the Royal Observatory
 const lon = 0
 
 /* ---- results ----------------------------------------------------------------

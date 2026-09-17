@@ -532,7 +532,7 @@ a:hover {
   display: block;
 }
 /* With the brand reduced to just "epher" the line takes the h1's full
-   size again — the old 0.8em existed to keep "epher... ephemeris" from
+   size again, the old 0.8em existed to keep "epher... ephemeris" from
    wrapping mid-word. */
 .hero-title-sub {
   font-size: 0.6em;

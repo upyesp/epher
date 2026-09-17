@@ -12,12 +12,12 @@ main` pull request + version tag) moves anything live.
 
 | Path | Content | Source |
 |---|---|---|
-| `/` | Landing page — hero, features, downloads | `site/index.html` (static HTML/CSS/JS, committed) |
+| `/` | Landing page, hero, features, downloads | `site/index.html` (static HTML/CSS/JS, committed) |
 | `/privacy.html` | Privacy (what stays on your device) | `site/privacy.html` |
 | `/guide/<lang>/` | User guide, eight languages | `site/guide/<lang>.md` → built |
 | `/examples.html` | Copyable examples (CLI, REPL, app) | `scripts/build-examples.mjs` → built |
 | `/scripts.html` | The scripts browser (the `epher scripts` repository) | `scripts/build-scripts.mjs` → built |
-| `/reference/` | The language reference — the formal, normative definition of epher (English only; the guide teaches, the reference specifies) | `site/reference.md` → `scripts/build-reference.mjs` → built |
+| `/reference/` | The language reference, the formal, normative definition of epher (English only; the guide teaches, the reference specifies) | `site/reference.md` → `scripts/build-reference.mjs` → built |
 | `/ide.html` | IDE Extensions: the editor story (ADR-0066), the shared language server, the VS Code pilot, and the release assets | `site/ide.html` (static HTML/CSS/JS, committed) |
 | `/pwa/` | The web app (PWA, offline-first) | `crates/web/dist` (built by trunk in CI) |
 | GitHub Releases | unified platform installers (ADR-0011) | built by `.github/workflows/release.yml` |
@@ -33,23 +33,23 @@ constant when the strategy changes.
 The PWA is dark-only and shares the marketing site's design tokens
 (2026 redesign: `--bg #141416`, `--panel #1d1f22`, `--accent #2dd4bf`,
 `--muted #9a9ba2`, the same border-strong, focus, and curve palette
-contrast numbers) — see `docs/research/modern-ui-accessibility.md` and the
+contrast numbers): see `docs/research/modern-ui-accessibility.md` and the
 contrast comments in `crates/web/index.html`.
 
 The user guide (ADR-0018) has one source: `site/guide/<lang>.md`. The
 website pages, the web/desktop overlay, and the TUI pager all render
-those files; nothing compiles them in — the apps fetch or read the
+those files; nothing compiles them in, the apps fetch or read the
 markdown when the user opens the guide (ADR-0053), so a guide edit
 reaches the website on the next pages build and the apps on the next
 one too, without a code change.
 
-The app layout is ADR-0016: a fixed-viewport scientific calculator —
+The app layout is ADR-0016: a fixed-viewport scientific calculator,
 input, answer panel, scrollable history, and a five-tab keypad covering
-every function the language supports — with the graph in a fixed pane
+every function the language supports, with the graph in a fixed pane
 beside the calculator on desktop (≥880px) and one horizontal swipe away
 on mobile (scroll-snap panes plus pane-switch buttons). ADR-0017 adds a
 menu bar (File/Edit/Settings) above the panes, three themes (light,
-dark, night — token sets selected by a `data-theme` attribute, with the
+dark, night, token sets selected by a `data-theme` attribute, with the
 same recorded-contrast discipline as the base palette), and file
 open/save; the TUI mirrors all of it (F9 menu bar, side-by-side graph
 from 72 columns, OSC 52 clipboard). ADR-0033 fits the whole TUI to a
@@ -74,7 +74,7 @@ links never need a version number.
 - **Themes**: light/dark via `[data-theme]`; defaults to
   `prefers-color-scheme`, toggle persists to `localStorage` (`epher-theme`).
   An inline script in `<head>` applies both theme and stored language before
-  first paint — no flash.
+  first paint, no flash.
 - **Catalogs**: the per-language string catalogs live in
   `site/i18n/<lang>.js` (plain scripts defining `window.EPHER_I18N`),
   loaded before `app.js` on the landing, examples, and Privacy pages.
@@ -83,7 +83,7 @@ links never need a version number.
   `en.js` harmlessly.
 - **Design (2026 redesign)**: teal accent (the amber read like every other
   developer site), fluid type via `clamp()`, sticky translucent header,
-  feature grid, and a disclosure (hamburger) nav below 880px — WAI-ARIA
+  feature grid, and a disclosure (hamburger) nav below 880px, WAI-ARIA
   APG pattern: `aria-expanded` on the button, `hidden` on the nav while
   collapsed (out of the tab order), Escape closes and restores focus, a
   click outside closes, and a `<noscript>` style shows the links stacked
@@ -96,7 +96,7 @@ links never need a version number.
   Escape and outside clicks close it, and the `<noscript>` style shows
   its links stacked.
 - **Pages**: `/` (landing: hero, features, downloads), `/privacy.html`,
-  `/examples.html`, `/scripts.html`, `/ide.html` — the same
+  `/examples.html`, `/scripts.html`, `/ide.html`, the same
   header/footer chrome, content strings under `privacy-*` / `ex-*` /
   `scripts-*` / `ide-*` keys. The
   guide pages share the header chrome via `scripts/build-guide.mjs`
@@ -122,7 +122,7 @@ links never need a version number.
   the copy button sits left of the file name. Run `npm run
   build:scripts` to regenerate.
 - **Hero animation**: the landing hero's graph card is the 3D saddle
-  `graph3d x ^ 2 - y ^ 2` rotating slowly — a runtime port in `site/app.js`
+  `graph3d x ^ 2 - y ^ 2` rotating slowly, a runtime port in `site/app.js`
   of the app's projection (ADR-0030): constant-size per-frame-centered view
   box, the width slider at 0.1 (mesh 1.2x, frame 1.4x), one static frame
   under reduced motion. The terminal card above it shows that exact
@@ -131,14 +131,14 @@ links never need a version number.
   App link to `/pwa/` in all eight locales.
 - **Icon**: the epher mark is the monogram "e" (from the epher.svg artwork)
   on a rounded tile. Three variants live in `site/` and `crates/web/public/`:
-  `icon.svg` (dark tile, white glyph — the default, the favicon, and the
-  desktop/app-icon source), `icon-light.svg` (light tile, dark glyph — used
+  `icon.svg` (dark tile, white glyph, the default, the favicon, and the
+  desktop/app-icon source), `icon-light.svg` (light tile, dark glyph, used
   in the dark theme), and `icon-plain.svg` (transparent, white glyph). The
   header brand icon swaps per theme (CSS `content:url` in `styles.css` plus
   a JS `src` sync for engines without img-content support); the favicon is
   always `icon.svg`. Desktop icons (`crates/tauri-app/src-tauri/icons/`) are
   regenerated with `cargo tauri icon site/icon.svg`.
-- **Accessibility**: WCAG 2.2 AA — see `docs/accessibility.md`. Contrast
+- **Accessibility**: WCAG 2.2 AA: see `docs/accessibility.md`. Contrast
   values for both themes are recorded in `site/styles.css`; keep them in
   spec when editing colors.
 - The English text in `index.html`, and `privacy.html` is the
@@ -158,7 +158,7 @@ links never need a version number.
 lexical rules, grammar, types, every operator and statement, all
 built-in constants and functions with their signatures, the unit
 table, display rules, error classes, and limits. It is English-only by
-design — it is the specification, while the localized user guide
+design; it is the specification, while the localized user guide
 teaches; the site's Docs menus list it last on every page. The build
 (`npm run build:reference`, run by `site-build.yml` alongside the
 other site builders) renders it through the same pipeline as the
@@ -183,7 +183,7 @@ Two rules keep it honest:
 `scripts/build-guide.mjs` (marked + a small template; heading ids, table of
 contents, RTL, themes, and the WCAG patterns come from the shared
 `styles.css`/`guide.css`). Output goes to `site/guide/<lang>/index.html`,
-which is gitignored and generated in CI — run `npm run build:guide`
+which is gitignored and generated in CI: run `npm run build:guide`
 locally to preview. The landing page links to `guide/<lang>/` and the link
 follows the visitor's active language. The in-app guide (web overlay and
 TUI pager, ADR-0018) opens with a table of contents of the top-level
@@ -193,14 +193,14 @@ pins the chapter list above the content and jumps on click or number key.
 Fenced code blocks have three kinds (keep the examples identical across
 translations, and add new ones in the same order so the kinds stay aligned):
 
-- ` ```epher ` / ` ```sh ` — what the reader types: rendered as a code block
+- ` ```epher ` / ` ```sh `, what the reader types: rendered as a code block
   with lightweight epher syntax highlighting and a copy-to-clipboard button
   (labels localized in `CHROME` in `build-guide.mjs`)
 
 The web app's graphing (ADR-0014/0015) is documented in guide section 2.4:
 curves, points of interest, sliders with play/pause animation, 3D surfaces
 (`graph3d`), and export.
-- ` ```text ` — what epher answers, REPL/TUI transcripts, URLs, paths: the
+- ` ```text `, what epher answers, REPL/TUI transcripts, URLs, paths: the
   plain box
 
 Adding a guide language: add `<lang>.md`, add chrome strings in
@@ -209,7 +209,7 @@ the option to the `lang-select` in `site/index.html`.
 
 ## Releases
 
-Public releases are the last act of a promotion (ADR-0062) — nothing
+Public releases are the last act of a promotion (ADR-0062); nothing
 publishes from a bare tag push anymore:
 
 1. Work accumulates on `staging`; every push rebuilds the preview site
@@ -218,7 +218,7 @@ publishes from a bare tag push anymore:
    (Actions → staging build → Run workflow): ~45 minutes later a hidden
    draft release holds the installers for every platform. Test them.
 3. The go-ahead: merge the `staging → main` pull request (the
-   Apple-silicon check must pass), then push the version tag — the
+   Apple-silicon check must pass), then push the version tag; the
    `release` workflow builds and attaches everything:
 
 ```
@@ -230,7 +230,7 @@ The draft is replaced by the real release; the apt/dnf repositories and
 the store bumps follow as before.
 
 One download per platform (ADR-0011): every installer carries the unified
-`epher` executable — one-shot CLI, REPL (`epher repl`), piped
+`epher` executable, one-shot CLI, REPL (`epher repl`), piped
 scripts (`epher -`), TUI (`epher tui`), and the desktop GUI (bare `epher` /
 `epher gui`). The command surface follows [clig.dev](https://clig.dev/)
 (ADR-0013): examples-first `-h`, full `--help`, `epher help` pages the
@@ -242,7 +242,7 @@ SVG export, and `table` commands; the one-shot CLI stays a pure
 expression evaluator.
 Windows installs two subsystem builds of the same program
 (console `epher.exe` on PATH; GUI-subsystem `epher-gui.exe` as the
-double-click target — no console flash); macOS and Linux install the one
+double-click target, no console flash); macOS and Linux install the one
 binary, with the `.app` bundle and the `Terminal=false` desktop entry
 deciding GUI vs terminal. The old per-frontend archives (v0.1.x–v0.2.x)
 are gone.
@@ -265,9 +265,9 @@ the unified CLI on the macOS and Linux jobs before packaging.
   light MUI2 color defines + epher header/sidebar bitmaps, ADR-0028;
   earlier releases tried a dark theme (ADR-0025) but MUI2 cannot darken
   custom pages or classic controls, so the wizard mixed dark and light
-  pages — the whole theme now uses the official MUI2 mechanism in
+  pages, the whole theme now uses the official MUI2 mechanism in
   classic light colors; the header bitmap puts the epher logo in the
-  top-left corner of every page — MUI2's default header layout — and
+  top-left corner of every page, MUI2's default header layout, and
   the welcome/finish sidebar carries a larger mark; the uninstaller
   shares the header bitmap; the per-control repaint that locked the
   destination page was removed in ADR-0026, and ADR-0027/0028 pin the
@@ -288,13 +288,13 @@ the unified CLI on the macOS and Linux jobs before packaging.
   and every other distro. The Linux leg builds on ubuntu-22.04 (glibc
   2.35) so the binary runs on Debian 12 and Ubuntu 22.04 or newer.
   `tauri.linux.conf.json` (and its macOS twin) set the window
-  `backgroundColor` so launches never flash white — kept out of the
+  `backgroundColor` so launches never flash white, kept out of the
   base config because it broke WebView2 painting on Windows.
 
 File → Save script pre-fills `epher-script.epher` in every frontend
-(TUI prompt, desktop dialog, PWA download) — the one extension an epher
+(TUI prompt, desktop dialog, PWA download), the one extension an epher
 script carries (ADR-0027 amendment); the name is an editable
-suggestion, no extension filter is applied (ADR-0027) — and the desktop
+suggestion, no extension filter is applied (ADR-0027), and the desktop
 dialog runs off the main thread so the window stays live while it is
 open. History has no file items anywhere: the share icon moves entries
 between devices (ADR-0027 amendment).
@@ -312,8 +312,8 @@ links need to change (e.g. a new platform), change the names here and in
    `gh api repos/upyesp/epher/pages -X PUT -f cname=epher.org`
 3. Re-enable "Enforce HTTPS" once the certificate state is `approved`
    (the setting resets when a domain is added).
-4. Push `main` — the `pages` workflow builds and deploys. (Under the
-staged model, main moves only by promoting a staging→main pull request —
+4. Push `main`; the `pages` workflow builds and deploys. (Under the
+staged model, main moves only by promoting a staging→main pull request:
 see "Releases" above and ADR-0062.)
 If the repository ever gets recreated, redo steps 1–3; the custom domain
 is repo Pages settings, not stored in the repo (no `CNAME` file is needed
@@ -332,6 +332,6 @@ To recreate it:
 3. Store the private half as the `EPHER_PREVIEW_KEY` secret on the main
    repo (Actions → secrets):
    `gh secret set EPHER_PREVIEW_KEY --repo upyesp/epher < key`
-4. Push the `staging` branch — the preview workflow builds and deploys.
+4. Push the `staging` branch; the preview workflow builds and deploys.
 If the preview repo is deleted, the `preview` workflow fails loudly at
 the push step (missing secret or unknown repo), never silently.

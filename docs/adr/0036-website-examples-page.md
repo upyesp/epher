@@ -1,4 +1,4 @@
-# ADR-0036: The website Examples page — copyable code for every frontend
+# ADR-0036: The website Examples page: copyable code for every frontend
 
 - **Status:** accepted
 - **Deciders:** epher maintainers
@@ -9,7 +9,7 @@
 The website teaches epher through the eight-language user guide, but a
 reader who just wants something to paste has to dig through prose. The
 user asked for a new top-level site section, **Examples**: one page of
-copyable epher code — commands, scripts, and graphs — grouped by
+copyable epher code, commands, scripts, and graphs, grouped by
 frontend, with a one-sentence explanation per example and the guide's
 copy-button treatment on every code block.
 
@@ -20,16 +20,16 @@ copy-button treatment on every code block.
   of the landing, about, privacy, and guide pages in all eight locales.
 - **Content.** Three sections, each with a one-to-two-sentence
   introduction:
-  - **The command line** — ten examples: plain calculations, piping a
+  - **The command line**: ten examples: plain calculations, piping a
     script into the `epher` command (stdin as script, `epher -`), piping
     epher's output into another command, `;`-joined statements,
     `def`-and-call, a recursive function inside a piped script, and 2D
     and 3D graphs saved as SVG image files (`graph save …` /
     `graph3d save …`).
-  - **The REPL** — a session built on the `ans` keyword, one block per
+  - **The REPL**: a session built on the `ans` keyword, one block per
     step; the introduction notes the blocks run in sequence in one
     session.
-  - **TUI, desktop app, and web app** — one section for the three
+  - **TUI, desktop app, and web app**: one section for the three
     frontends that share the entry field: a multi-line script, a 2D
     curve, a shaded 2D curve (`y <` fill), an animated 2D curve (`const`
     + the play button), a two-curve multi-line plot, and two 3D
@@ -76,7 +76,7 @@ On touch devices a tap anywhere on an example (outside its copy button)
 copies the code and opens the app with it **staged in the entry field,
 ready to run** (ADR-0035 amendment): the page stores the code under the
 `epher-example` localStorage key and navigates to `/pwa/`, and the app
-consumes the key at startup into its entry with the cursor at the end —
+consumes the key at startup into its entry with the cursor at the end,
 on mobile without summoning the device keyboard, the same rule as guide
 code loads. The copy button still only copies (it stops propagation).
 The page's note (catalog key `ex-tap`) explains the gesture; desktop
@@ -88,11 +88,11 @@ The previous amendment put the command line last, but the REPL's
 session-style blocks (`epher>` prompt, answers feeding `ans`) read best
 at the very end of the page. The section order is now **TUI, desktop
 app, and web app**, then **the command line**, then **the REPL** last.
-The catalog keys are unchanged — order lives in
+The catalog keys are unchanged, order lives in
 `scripts/build-examples.mjs` only.
 
 The app section gained one more example near the top, after the four
-moved calculations (key `ex-a12`): **arithmetic across number bases** —
+moved calculations (key `ex-a12`): **arithmetic across number bases**,
 `0xff + 0b1` mixes hex and binary in one expression, and `hex(ans)`
 spells the answer as hex (`0x100`). It shows the `0x`/`0b` prefixes and
 the `hex` conversion function (ADR-0022) in one two-line script, and

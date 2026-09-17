@@ -8,7 +8,7 @@
 #   - the apt/ and rpm/ repository trees are not included (the preview
 #     repo is a test site, not a package mirror),
 #   - the landing page's single root-absolute link (href="/pwa/") is
-#     rewritten to a relative one — the preview serves under
+#     rewritten to a relative one: the preview serves under
 #     /epher-preview/, not at the domain root, and
 #   - the staging-build draft's release assets are mirrored into
 #     artifacts/ and every releases/latest download link is rewritten
@@ -20,7 +20,7 @@
 #
 # The push uses a write-only deploy key on the preview repo
 # (secret EPHER_PREVIEW_KEY, added there via repo Settings → Deploy
-# keys; see docs/website.md). One squashed commit per build — the
+# keys; see docs/website.md). One squashed commit per build: the
 # preview repo is disposable; its history is not meaningful.
 name: preview
 
@@ -53,7 +53,7 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     # contents: write (not read) because draft releases are only listed
-    # to callers with push access — the mirror step below must see the
+    # to callers with push access; the mirror step below must see the
     # staging-build draft. The token is used for nothing else; the
     # publish push itself rides the deploy key secret.
     permissions:
@@ -102,7 +102,7 @@ jobs:
           DONE="$(ls preview-site/artifacts | wc -l)"
           echo "mirrored $DONE of $TOTAL draft assets"
           [ "$DONE" = "$TOTAL" ] || {
-            echo "::error::asset count mismatch — staging draft mid-refresh? rerun the preview workflow" >&2
+            echo "::error::asset count mismatch, staging draft mid-refresh? rerun the preview workflow" >&2
             exit 1
           }
 
@@ -197,7 +197,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "$PREVIEW_KEY" ]; then
-            echo "::error::EPHER_PREVIEW_KEY is not set (see docs/website.md — preview repo deploy key)."
+            echo "::error::EPHER_PREVIEW_KEY is not set (see docs/website.md, preview repo deploy key)."
             exit 1
           fi
           mkdir -p "$HOME/.ssh"

@@ -10,7 +10,7 @@ let client: LanguageClient | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   // { log: true }: vscode-languageclient 10 types the client's
-  // outputChannel as LogOutputChannel — the channel doubles as the
+  // outputChannel as LogOutputChannel, the channel doubles as the
   // client's structured log.
   const channel = vscode.window.createOutputChannel("Epher", { log: true });
   context.subscriptions.push(channel);

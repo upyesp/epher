@@ -13,7 +13,7 @@ ADR-0063 stopped `for` loops from leaking an `i` into the session.
 What remained was the deliberate bare assignment: `i = 5` bound in the
 session, persisted through the shared store (ADR-0010 amendment), and
 turned `3+4i` into `23` on every frontend until the binding was
-removed — the defect the third gap analysis caught on a real install.
+removed, the defect the third gap analysis caught on a real install.
 ADR-0064 left the question to the user rather than decide it.
 
 The user's decision, taken 2026-09-17: **reserve `i`**; **drop** any
@@ -34,13 +34,13 @@ in the same round as ADR-0064.
 - Scoped uses keep working, because they never persist: `for i in …`
   keeps `i` as the classic loop counter (ADR-0063's scoping), and a
   parameter named `i` lives only for the call. `def i(…)` remains
-  possible and harmless — a function name never shadows the constant
+  possible and harmless; a function name never shadows the constant
   in variable position.
 
 No other built-in changes: `pi`, `e`, `tau`, `phi`, and the astronomy
 constants stay shadowable exactly as before. The earlier reports'
-claim that `pi` could not be shadowed was wrong — probing during this
-round showed `pi = 5` succeeds — which makes reservation a genuine
+claim that `pi` could not be shadowed was wrong, probing during this
+round showed `pi = 5` succeeds, which makes reservation a genuine
 first rather than a catch-up, and the guide says precisely that.
 
 ## Consequences
@@ -50,6 +50,6 @@ first rather than a catch-up, and the guide says precisely that.
   literal spelling of `4 * i` (ADR-0043), now guaranteed to mean the
   same thing in every session.
 - A user who genuinely wanted `i` as a counter variable renames to
-  `k`, `n`, or `t` — the names the scripts collection already uses.
+  `k`, `n`, or `t`; the names the scripts collection already uses.
 - The guide's §1.5 names note and §1.18 carry the reservation, in all
   eight languages.

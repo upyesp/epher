@@ -1,7 +1,7 @@
 use epher_shell::split_statements;
 
 // ADR-0064: the statement splitter must not cut inside a `def ... do`
-// block body — its `;` and newlines belong to the block — and must keep
+// block body, its `;` and newlines belong to the block, and must keep
 // `\"` inside a string now that strings carry escapes.
 #[test]
 fn the_splitter_honors_blocks_and_escapes() {

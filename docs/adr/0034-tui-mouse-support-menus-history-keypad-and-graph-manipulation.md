@@ -1,4 +1,4 @@
-# ADR-0034: TUI Mouse Support — Menus, History, Keypad, and Graph Manipulation
+# ADR-0034: TUI Mouse Support: Menus, History, Keypad, and Graph Manipulation
 
 Date: 2026-08-25
 
@@ -10,13 +10,13 @@ The TUI was keyboard-only while the web and desktop apps are fully
 mouse-driven. Users asked for the pointer everywhere it has a natural
 spelling in a terminal:
 
-1. **Menus** — click the menu bar to open a menu, click a popup item to
+1. **Menus**: click the menu bar to open a menu, click a popup item to
    activate it.
-2. **History** — click a line to load it, like the web's clickable
+2. **History**: click a line to load it, like the web's clickable
    history (ADR-0027).
-3. **Keypad** — click the bank tabs and the cells; the web's keypad is a
+3. **Keypad**: click the bank tabs and the cells; the web's keypad is a
    grid of buttons, the TUI's should answer to the same clicks.
-4. **Graphs** — manipulate the plot: orbit the 3D surface, pan and zoom
+4. **Graphs**: manipulate the plot: orbit the 3D surface, pan and zoom
    the 2D plot, and a way back to the defaults.
 
 The terminal already speaks the mouse: every mainstream emulator reports
@@ -27,12 +27,12 @@ clicks, drags, and wheel scrolls, and crossterm parses both encodings
 
 - **Hit-testing needs real coordinates.** The draw pass computed every
   panel's rect locally and threw them away. Mouse handling must resolve
-  clicks against the *rendered* layout — including localized menu labels
+  clicks against the *rendered* layout, including localized menu labels
   and the keypad's per-bank cell geometry, which vary with locale and
   pane width.
 - **The 2D plot had no viewport.** The ASCII renderer always auto-fit the
   samples; there was nothing to pan or zoom. Worse, indexing the grid
-  with sample positions assumed every sample lands inside — the first
+  with sample positions assumed every sample lands inside, the first
   pan exposed an out-of-bounds panic in the renderer.
 - **3D manipulation already had a model.** The web's drag orbit
   (`yaw += dx·0.01`, `pitch += dy·0.01`, pitch clamped ±1.4) and the
@@ -40,7 +40,7 @@ clicks, drags, and wheel scrolls, and crossterm parses both encodings
   needed the same inputs.
 - **Menu activation code was inline in the key handler.** Mouse clicks
   on popup items need exactly the Enter arm's behavior, including the
-  language re-resolve and store persistence — it had to be shared, not
+  language re-resolve and store persistence; it had to be shared, not
   copied.
 - **Diff rendering constrains testing.** The pty smoke reconstructs
   frames from ratatui's changed-cells stream; the harness must keep a
@@ -57,15 +57,15 @@ the history scroll offset, and the open popup's menu index + rect. Mouse
 events resolve through this snapshot of the last frame.
 
 **Menus.** Clicking a menu label opens that menu (or closes it, when it
-is already open — and clicking outside a popup closes it without acting,
+is already open, and clicking outside a popup closes it without acting,
 the browser convention). Clicking a popup item sets the highlight and
 activates it through the same shared `perform_menu_action` the Enter key
 uses; section rules are not clickable. The popup's row list is built by
 one `menu_rows` function shared by draw and hit-testing, so a click
 always lands on the same row the user sees.
 
-**History.** A click on a displayed line picks it — the expression only,
-the same `  `-separated answer suffix stripped as ADR-0031 — with the
+**History.** A click on a displayed line picks it, the expression only,
+the same `  `-separated answer suffix stripped as ADR-0031, with the
 panel's scroll offset accounted for. The arrows/Enter path is unchanged.
 
 **Keypad.** Clicking a bank tab selects that bank; clicking a cell moves
@@ -74,7 +74,7 @@ the pointer is a second spelling of the same input, and typing after a
 click must keep working without an Escape.
 
 **Graphs.** The graph panel takes drags and the wheel:
-- 2D: a drag pans the viewport (the plot follows the pointer — the
+- 2D: a drag pans the viewport (the plot follows the pointer; the
   window moves through the data), the wheel zooms around the center
   (×0.8 in, ×1.25 out per step). A new `view2d` override in `App` holds
   the ranges; `None` means auto-fit, and plotting or clearing a graph
@@ -85,7 +85,7 @@ click must keep working without an Escape.
   floored at 0.5), and the fine-control sliders still compose on top.
 - A double-click (two left presses within 500 ms, within one cell) on
   the graph panel resets it: 2D re-fits the samples, 3D returns to the
-  default pose (offsets untouched — they belong to the sliders).
+  default pose (offsets untouched; they belong to the sliders).
 - The wheel also scrolls the guide pager.
 
 **Capture is scoped to the TUI's lifetime.** Mouse capture is enabled

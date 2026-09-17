@@ -1,6 +1,6 @@
 //! The plot state of a CLI run (ADR-0020): `graph`/`graph3d` lines
 //! accumulate curves and surfaces exactly as they do in the TUI's pane and
-//! the web app's graph — and `graph save <file>` / `graph3d save <file>`
+//! the web app's graph, and `graph save <file>` / `graph3d save <file>`
 //! write the same self-contained SVG the desktop and PWA copy to the
 //! clipboard, from the same renderer (`epher_core::graph_svg`). One
 //! grammar, one picture, every frontend.
@@ -22,7 +22,7 @@ use epher_core::Env;
 use epher_i18n::Localizer;
 
 /// What a `graph`/`graph3d` line did, with the message to print. `error`
-/// marks diagnostics (stderr, not data — ADR-0013).
+/// marks diagnostics (stderr, not data, ADR-0013).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PlotOutcome {
     pub message: String,
@@ -56,7 +56,7 @@ pub struct Plots {
     solar: Option<SolarScene>,
 }
 
-/// The localized kind label for a point of interest — the same fluent
+/// The localized kind label for a point of interest; the same fluent
 /// keys the web legend and the TUI list use.
 fn poi_label(kind: epher_core::graph::InterestKind, localizer: &Localizer) -> String {
     use epher_core::graph::InterestKind;
@@ -88,7 +88,7 @@ impl Plots {
         Plots::default()
     }
 
-    /// A plot state carrying a data plot a frontend already holds — for
+    /// A plot state carrying a data plot a frontend already holds, for
     /// saving without rebuilding.
     pub fn from_data(data: DataPlot) -> Self {
         Plots {
@@ -101,7 +101,7 @@ impl Plots {
     }
 
     /// A plot state carrying curves a frontend already holds (the TUI's
-    /// pane) — for saving without re-plotting.
+    /// pane), for saving without re-plotting.
     pub fn from_curves(curves: Vec<SampledCurve>) -> Self {
         Plots {
             curves,
@@ -181,7 +181,7 @@ impl Plots {
             return self.save_svg(path, true, env, localizer);
         }
         // Data plots (ADR-0044): a scatter, histogram, or boxplot owns
-        // the pane like a solar scene does — the newest command wins.
+        // the pane like a solar scene does, the newest command wins.
         if epher_core::graph::is_data_plot_source(source) {
             match sample_data_plot(source, env) {
                 Ok(plot) => {
@@ -322,7 +322,7 @@ impl Plots {
     }
 
     /// Write the current 2D plot as a self-contained SVG document.
-    /// `markers` decides whether the points of interest are drawn —
+    /// `markers` decides whether the points of interest are drawn:
     /// callers pass what their plot currently shows.
     pub fn save_svg(
         &self,

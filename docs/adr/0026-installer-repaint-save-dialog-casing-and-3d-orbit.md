@@ -1,4 +1,4 @@
-# ADR-0026: Three v0.4.13 regressions — NSIS repaint removed, save-dialog arg casing, 3D orbit accumulation
+# ADR-0026: Three v0.4.13 regressions: NSIS repaint removed, save-dialog arg casing, 3D orbit accumulation
 
 - **Status:** accepted
 - **Deciders:** epher maintainers
@@ -27,7 +27,7 @@ v0.4.13 shipped three regressions:
   `SetCtlColors` is not cosmetic: it *subclasses* the target control's
   window procedure. On the directory page that double-subclasses
   controls MUI itself subclasses (the destination edit field among
-  them) — the corrupted message path makes the controls vanish, and
+  them); the corrupted message path makes the controls vanish, and
   the first click into a corrupted proc spins the installer. The
   welcome page displayed fine because painting the simple statics
   there was harmless; the failure only surfaced one page in.
@@ -38,13 +38,13 @@ v0.4.13 shipped three regressions:
   command natively in Rust, and the browser test suite never noticed
   because its invoke stub never validated the serialized shape.
 - **3D orbit.** Two compounding defects. (a) `on_orbit` read
-  `*view` — a Yew state handle — per event. Handles deref to the last
+  `*view`, a Yew state handle, per event. Handles deref to the last
   *rendered* snapshot (the same rule that bit history persistence in
   ADR-0024), so a burst of drag/keyboard events each computed from the
   same base and overwrote each other: the graph "shivered" and arrows
   never accumulated. (b) Every pointer event re-rendered and
   re-injected the entire mesh SVG mid-drag, re-parsing thousands of
-  polyline nodes per event — the flicker. The coloured line was text
+  polyline nodes per event, the flicker. The coloured line was text
   selection: dragging from the left side of the plot selected the
   y-axis tick labels and painted the selection band down the pane's
   left edge.
@@ -66,7 +66,7 @@ v0.4.13 shipped three regressions:
 - **Orbit events accumulate in a live cell and commit once per
   frame.** `on_orbit` mutates a `Rc<RefCell<View3D>>` cell (the
   ADR-0023 live-cell pattern) and mirrors it into the state handle for
-  rendering — no refresh-from-state effect (that pattern re-introduced
+  rendering, no refresh-from-state effect (that pattern re-introduced
   the stale snapshot). The 3D drag handler accumulates pointer deltas
   into a pending slot and emits at most once per `requestAnimationFrame`,
   with a final commit on pointerup/leave/cancel, so the surface
@@ -77,7 +77,7 @@ v0.4.13 shipped three regressions:
 ## Consequences
 
 - The installer's regular pages are dark in the header and on the
-  welcome/finish/log pages with system-colored controls elsewhere —
+  welcome/finish/log pages with system-colored controls elsewhere,
   less uniformly dark than ADR-0025 aimed for, but it renders, its
   controls work, and it cannot hang. Functionality wins over
   uniformity for install/uninstall.
