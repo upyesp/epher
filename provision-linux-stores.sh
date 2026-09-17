@@ -232,13 +232,13 @@ stage "Snap Store (snap install epher)"
 if confirm "Configure the Snap Store secret now? (Enter/N skips if already done)"; then
   say "Two ways to finish this stage:"
   say ""
-  say "  A. RECOMMENDED, on another machine with snapcraft (Windows +"
-  say "     WSL2, Linux Mint, …): snapcraft login; snapcraft register epher;"
-  say "     snapcraft export-login --snaps=epher creds.txt; then paste the"
+  say "  A. Already exported credentials somewhere (another machine with"
+  say "     snapcraft: snapcraft login; snapcraft register epher;"
+  say "     snapcraft export-login --snaps=epher creds.txt)? Paste the"
   say "     file's content below when asked."
   say ""
-  say "  B. Dispatch the runner workflow here; the device URL prints in"
-  say "     its run log."
+  say "  B. Log in right here; the wizard drives snapcraft's own"
+  say "     craft-store library in a throwaway venv."
   if confirm "Already exported credentials on another machine? Paste them now"; then
     say "Paste the exported credentials file content, then press Ctrl-D:"
     CREDS=$(cat || true)
@@ -249,48 +249,82 @@ if confirm "Configure the Snap Store secret now? (Enter/N skips if already done)
       SKIPPED+=("Snap Store (nothing pasted)")
     fi
   else
-    say "Dispatching the snap-store-login workflow…"
-    gh workflow run snap-store-login.yml --repo "$REPO" -f snap_name=epher
-    sleep 6
-    WORK=$(mktemp -d)
-    RUN_ID=$(gh run list --repo "$REPO" --workflow snap-store-login.yml \
-      --limit 1 --json databaseId --jq '.[0].databaseId')
-    note "run: https://github.com/$REPO/actions/runs/$RUN_ID"
-    say "Waiting for the device URL…"
-    URL_SHOWN=false
-    STATUS=""
-    while :; do
-      STATUS=$(gh run view "$RUN_ID" --repo "$REPO" --json status,conclusion \
-        --jq '.status + " " + (.conclusion // "")')
-      if [[ "$URL_SHOWN" == false ]]; then
-        OUTPUT=$(gh run view "$RUN_ID" --repo "$REPO" --log 2>/dev/null \
-          | grep "Log in, register, and export" \
-          | sed -E 's/^[^\t]*\t[^\t]*\t[0-9TZ:.\-]+ //' \
-          | grep -vE "^##\[|^shell:|^env:|SNAPCRAFT_STORE_AUTH|command -v" || true)
-        if printf '%s' "$OUTPUT" | grep -qi "login.ubuntu.com\|code"; then
-          printf '%s\n' "$OUTPUT" | sed 's/^/  │ /'
-          URL_SHOWN=true
-          say "Open the login.ubuntu.com URL above on any device and enter the code."
-        fi
+    say "Local login on this machine (the runner workflow is gone:"
+    say "snapcraft 8's device flow rode the retired candid backend, and"
+    say "snapcraft 9's prompts need a terminal no runner can offer)."
+    say ""
+    say "This wizard runs the same library snapcraft uses (craft-store) in"
+    say "a throwaway venv; your email, password, and 2FA go only to"
+    say "login.ubuntu.com. The export lands at /tmp/snap-creds, scoped to"
+    say "the snap, the stable channel, and upload-only ACLs, then the"
+    say "secret is set and the file is removed."
+    if confirm "Log in now and set SNAPCRAFT_STORE_CREDENTIALS"; then
+      VENV="${TMPDIR:-/tmp}/snaplogin-venv"
+      python3 -m venv "$VENV"
+      "$VENV/bin/pip" install --quiet craft-store
+      "$VENV/bin/python" - <<'PYEOF'
+import getpass, os, stat, sys
+from craft_store import UbuntuOneStoreClient, endpoints
+from craft_store.errors import StoreServerError, UbuntuOneOtpRequiredError
+
+OUT = "/tmp/snap-creds"
+print("Snap Store login (Ubuntu One SSO, https://login.ubuntu.com).")
+email = input("Email: ").strip()
+password = getpass.getpass("Password: ")
+
+
+def client() -> UbuntuOneStoreClient:
+    return UbuntuOneStoreClient(
+        base_url="https://dashboard.snapcraft.io",
+        storage_base_url="https://storage.snapcraftcontent.com",
+        auth_url="https://login.ubuntu.com",
+        application_name="snapcraft",
+        user_agent="snapcraft/9.0.1 (epher provision)",
+        endpoints=endpoints.U1_SNAP_STORE,
+        ephemeral=True,
+    )
+
+
+otp = None
+while True:
+    try:
+        credentials = client().login(
+            ttl=365 * 24 * 3600,
+            permissions=["package_upload"],
+            description="epher release credential",
+            channels=["stable"],
+            packages=[endpoints.Package(package_name="epher", package_type="snap")],
+            email=email,
+            password=password,
+            otp=otp,
+        )
+        break
+    except UbuntuOneOtpRequiredError:
+        otp = input("Two-factor code: ").strip()
+    except StoreServerError as err:
+        codes = [e.get("code") for e in getattr(err, "error_list", [])]
+        if "twofactor-required" in codes:
+            otp = input("Two-factor code: ").strip()
+            continue
+        print(f"Store rejected the login: {err}", file=sys.stderr)
+        sys.exit(1)
+
+fd = os.open(OUT, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, stat.S_IRUSR)
+with os.fdopen(fd, "w") as f:
+    f.write(credentials)
+os.chmod(OUT, stat.S_IRUSR)
+print(f"OK: scoped export written to {OUT}.")
+PYEOF
+      if [[ -s /tmp/snap-creds ]] && confirm "Set SNAPCRAFT_STORE_CREDENTIALS from the export"; then
+        set_secret SNAPCRAFT_STORE_CREDENTIALS "$(cat /tmp/snap-creds)"
+        rm -f /tmp/snap-creds
+        note "credential file removed."
       fi
-      [[ "$STATUS" == completed* ]] && break
-      sleep 8
-    done
-    if [[ "$STATUS" != *success* ]]; then
-      warn "The login run did not succeed ($STATUS). Check:"
-      warn "  https://github.com/$REPO/actions/runs/$RUN_ID"
-      exit 1
+      rm -rf "$VENV"
+    else
+      warn "stage skipped; re-run me later."
+      SKIPPED+=("Snap Store (login declined)")
     fi
-    step "Downloading the exported CI credentials."
-    gh run download "$RUN_ID" --repo "$REPO" -n snap-store-credentials -D "$WORK"
-    if confirm "Set SNAPCRAFT_STORE_CREDENTIALS from the exported key?"; then
-      set_secret SNAPCRAFT_STORE_CREDENTIALS "$(cat "$WORK/snap-store-credentials")"
-    fi
-    rm -rf "$WORK"
-    ART_ID=$(gh api "repos/$REPO/actions/artifacts" \
-      --jq '.artifacts[] | select(.name=="snap-store-credentials") | .id' | head -1)
-    [[ -n "$ART_ID" ]] && gh api -X DELETE "repos/$REPO/actions/artifacts/$ART_ID" \
-      >/dev/null 2>&1 && note "credentials artifact deleted from the run."
   fi
 else
   note "Skipping, SNAPCRAFT_STORE_CREDENTIALS stays as it is."

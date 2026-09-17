@@ -338,6 +338,22 @@ run, so the 8.x pin is the pragmatic route. The login workflow already
 runs inside a D-Bus session with an unlocked gnome-keyring; that part stays
 valid.
 
+**Provisioning outcome (2026-09-17), which supersedes the pin above:** the
+8.x pin did not save the device flow, because the Candid backend itself is
+gone: the pinned 8.x login retried `api.jujucharms.com/identity` for twelve
+minutes and gave up ("maximum retries exceeded"). The runner can never
+host this login again: snapcraft 9's Ubuntu One flow is email, password,
+and 2FA prompts, and an Actions log is not a terminal. The credential was
+provisioned on the headless Debian box instead, with snapcraft's own
+library (`pip install craft-store`) driving the identical token request,
+Ubuntu One discharge, and export format in an interactive terminal; the
+resulting file went straight into `SNAPCRAFT_STORE_CREDENTIALS` and was
+deleted. The device-flow workflow was deleted (its only path cannot work)
+and the provisioning wizard's stage was rewritten around the local login.
+Registration of the name predates this and predates any store credential
+in CI (`snapcraft register` is a one-time, full-login act). Rotation is
+the same local procedure, one year out.
+
 ### CI publish, rotation, OIDC
 
 CI uses `snapcraft upload "$SNAP_FILE" --release=stable`
@@ -588,10 +604,10 @@ credentials):
 - `store-bumps`, gated on `FLATHUB_SSH_KEY`; clones
   `git@github.com:flathub/com.epher.Desktop.git` and runs
   `scripts/bump-stores.sh flathub …` (a **direct push to `master`**).
-- `.github/workflows/snap-store-login.yml`, the one-time device-flow
-  provisioning that exports `SNAPCRAFT_STORE_CREDENTIALS`; currently pins
-  nothing and sets `SNAPCRAFT_STORE_AUTH: candid`, which snapcraft 9
-  rejects.
+- the device-flow login workflow was deleted (2026-09-17): candid, its
+  backend, is retired, and snapcraft 9's prompt flow cannot run on a
+  runner. `SNAPCRAFT_STORE_CREDENTIALS` was provisioned locally instead
+  (see the snap section postscript) and now exists as a repo secret.
 
 Target state, per store:
 
@@ -611,10 +627,10 @@ Target state, per store:
 4. **Sublime**: decide whether a channel presence is worth a root-package
    repo; if yes, one PR to `sublimehq/package_control_channel`, then tags
    only.
-5. **Snap**: fix `snap-store-login.yml` to
-   `snap install snapcraft --classic --channel=8.x/stable`, export with
-   `--snaps=epher --channels=stable --acls=package_upload --expires=…`,
-   drop the exported file into the `stores` environment.
+5. **Snap**: done (2026-09-17) — the credential is provisioned
+   (`--snaps=epher --channels=stable --acls=package_upload`, one-year
+   default expiry). Rotate with the same local craft-store procedure
+   before 2027-09-17; the `whoami` `expires:` line is the canary hook.
 6. **Flathub**: human submission PR; enable `x-checker-data` in the
    manifest so Flathub's checker opens bump PRs; resolve the
    direct-push-vs-protected-`master` question before trusting
