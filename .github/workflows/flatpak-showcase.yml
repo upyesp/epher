@@ -17,6 +17,10 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y xvfb ffmpeg xdotool flatpak flatpak-builder
+          # the image ships an empty 'flathub' remote; replace it with the
+          # real one so dependency installs can fetch the runtimes
+          sudo flatpak remote-delete flathub 2>/dev/null || true
+          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: epher.flatpak
