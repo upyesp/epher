@@ -138,3 +138,38 @@ Revisiting this is a new decision: if Arch users ask for a
 package-manager install, the honest paths are Flathub/Snap first, and
 an out-of-tree community `epher-bin` (maintained by others under AUR
 policy) second.
+
+## Amendment (2026-09-17): the Flathub manifest is real and validated
+
+The submission draft in `packaging/flatpak/` was rewritten against what
+Flathub actually requires today, and a full local `flatpak-builder` run
+now produces a working build.
+
+- **Runtime**: GNOME 50 (the 46 of the original draft is end-of-life on
+  Flathub). The GNOME Sdk ships WebKitGTK 4.1 dev files, so the
+  shared-modules webkit build the draft planned is gone entirely: the
+  manifest is runtime + rust extension + app, nothing else.
+- **Rust**: the `org.freedesktop.Sdk.Extension.rust-stable` extension
+  carries the toolchain. The wasm32 standard library is NOT in the
+  extension, so it rides a pinned `static.rust-lang.org` archive matched
+  to the extension's rustc (bump both in one commit), and the frontend
+  build selects it through a `--sysroot` whose host rustlib symlinks back
+  to the extension. trunk and wasm-bindgen-cli are built in-sandbox from
+  their own vendored sources; binaryen (wasm-opt, version_132 per
+  Trunk.toml) is a pinned archive per architecture.
+- **Offline**: every crate comes from generated cargo source lists
+  (flatpak-cargo-generator.py over the committed lockfiles, including a
+  resolved lockfile for wasm-bindgen, which upstream does not commit).
+  `CARGO_NET_OFFLINE=true` everywhere; the build needs no network.
+- **Bumps**: Flathub protects the app repo's default branch (pull
+  requests only), so the planned direct-push job cannot work. The
+  manifest's `x-checker-data` on the release tag hands bumping to
+  Flathub's External Data Checker: it opens the version-bump PR within
+  hours of each GitHub release; merging it is the only human step. The
+  `store-bumps` job and the `FLATHUB_SSH_KEY` secret are retired.
+- **Screenshots**: the listing uses real desktop captures hosted on
+  epher.org (`site/img/flatpak/`, deployed with the site).
+- Validated locally with `flatpak-builder` on GNOME 50: the build
+  completes offline and the packaged `epher` reports 0.5.42 inside the
+  sandbox. `.github/workflows/flatpak-build.yml` re-proves the manifest
+  on every push that touches it.
