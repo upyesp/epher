@@ -18,10 +18,12 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
+      options: --privileged
     steps:
       - uses: actions/checkout@v4
-      - uses: flatpak/flatpak-github-action@master
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          manifest-path: packaging/flatpak/com.epher.Desktop.yml
-          flathub-repo: https://dl.flathub.org/repo/flathub.flatpakrepo
           bundle: epher.flatpak
+          manifest-path: packaging/flatpak/com.epher.Desktop.yml
