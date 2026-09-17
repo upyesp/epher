@@ -37,8 +37,13 @@ jobs:
           XVFB=$!
           sleep 2
           export DISPLAY=:99
-          flatpak run com.epher.Desktop &
+          flatpak run com.epher.Desktop > app.log 2>&1 &
           sleep 25
+          echo "--- app log so far ---"
+          cat app.log || true
+          echo "--- flatpak list ---"
+          flatpak list --user || true
+          echo "--- end ---"
           # wait for the app window (webkit cold start is slow)
           WIN=""
           for i in $(seq 1 30); do
