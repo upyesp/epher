@@ -16,7 +16,13 @@ jobs:
       - name: Install recording tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y xvfb ffmpeg xdotool
+          sudo apt-get install -y xvfb ffmpeg xdotool flatpak flatpak-builder
+      - name: Install the runtimes (system and user scopes)
+        run: |
+          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y --or-update flathub org.gnome.Platform//50 org.gnome.Sdk//50 org.freedesktop.Sdk.Extension.rust-stable//25.08
+          flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y --or-update flathub org.gnome.Platform//50 org.gnome.Sdk//50 org.freedesktop.Sdk.Extension.rust-stable//25.08
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: epher.flatpak
