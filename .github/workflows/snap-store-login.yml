@@ -53,7 +53,7 @@ jobs:
             else
               echo "::notice::register failed; the name may be taken or reserved; pick another and update packaging/snap/snapcraft.yaml."
             fi
-            snapcraft export-login --snaps="${{ inputs.snap_name }}" snap-store-credentials
+            snapcraft export-login --snaps="${{ inputs.snap_name }}" --channels=stable --acls=package_upload snap-store-credentials
           '
 
       - uses: actions/upload-artifact@v4
