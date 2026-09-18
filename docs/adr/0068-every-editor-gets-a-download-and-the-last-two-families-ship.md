@@ -100,3 +100,39 @@ release repo (it is not on Maven Central), packages the jar, and
 smoke-checks it; no p2 update site, no marketplace (the ADR-0068
 gate stands). The stable-name list above grows by one:
 `epher-eclipse.jar`.
+
+## Amendment (2026-09-18): the VS Code Marketplace ships, publication unparked for that store
+
+The user explicitly asked (2026-09-18), exercising the item 5 gate
+for the VS Code family. `upyesp.epher` v0.5.42 is published on the
+Visual Studio Marketplace; the release-train `epher-vscode.vsix`
+stays attached to releases as the sideload route (forks, offline,
+reproducibility), unchanged.
+
+- **Publisher**: `upyesp`, created once in the publisher management
+  portal. Publisher creation is the one step no API accepts (the
+  gallery rejects programmatic creation with a reCAPTCHA check and
+  vsce has removed `create-publisher`); everything after it is
+  automatable.
+- **Identity**: the Entra ID secure automated publishing route, not
+  a personal access token. Publishing runs
+  `vsce publish --azure-credential` (vsce 3.9.2), whose credential
+  chain takes an Entra token for the Azure DevOps resource from the
+  Azure CLI's device-code login on the provisioning machine. The
+  publisher's owner is the publishing identity; no secret is stored
+  anywhere.
+- **Listing**: the extension's own README, icon (`images/icon.png`,
+  256 px), `galleryBanner` dark theme, version and CI badges, and
+  the real captures under `clients/vscode/images/` (editor,
+  hover, completion, and the `demo.gif` animation). Nothing was
+  mocked: the captures come from a real VS Code session driving the
+  packaged extension.
+- **CI auto-publish stays out**: the release train does not publish
+  yet. The documented target is a federated identity the publisher
+  trusts (a managed identity or app registration with a workload
+  identity federation credential, added to the publisher as a
+  Contributor member), then the same `--azure-credential` flag in
+  CI with `AZURE_TENANT_ID`/`AZURE_CLIENT_ID` and OIDC. One-time
+  Azure-side setup; deferred until asked.
+- **Open VSX is untouched**: a separate registry with its own
+  account, still parked.

@@ -40,12 +40,17 @@ side panel, no print statements: the editor *is* the calculator.
 
 ## Quick start
 
-1. Get `epher-vscode.vsix` from the
-   [releases page](https://github.com/upyesp/epher/releases/latest).
-2. In VS Code: **Extensions** view → the `⋯` menu → **Install from
-   VSIX…**, and pick the file. (The wasm-wasi runtime it rides on
-   installs itself as a dependency.)
-3. Open any `.epher` file and start calculating.
+1. In VS Code: **Extensions** view → search for **Epher** →
+   **Install** (or run `ext install upyesp.epher`). The
+   [marketplace page](https://marketplace.visualstudio.com/items?itemName=upyesp.epher)
+   has the listing.
+2. Open any `.epher` file and start calculating.
+
+Prefer to sideload, or on a fork (Cursor, VSCodium)? Get
+`epher-vscode.vsix` from the
+[releases page](https://github.com/upyesp/epher/releases/latest),
+then **Extensions** view → the `⋯` menu → **Install from VSIX…**
+(the wasm-wasi runtime it rides on installs itself as a dependency).
 
 The language server ships **inside the extension**: a WebAssembly
 build of the same `epher-lsp` server the other editors use. Nothing is
@@ -107,8 +112,9 @@ wasm is never checked in):
     mkdir -p server
     cp ../../target/wasm32-wasip1-threads/release/epher-lsp.wasm server/
 
-Marketplace publication is deliberately out of scope until the
-extensions are proven (ADR-0068); the releases page is the
-distribution for now.
+Marketplace publication is live (ADR-0068 amendment, 2026-09-18):
+`upyesp.epher` publishes with the Entra ID secure automated route
+(`vsce publish --azure-credential`, no personal access token). The
+releases page keeps the vsix for sideloading.
 
 </details>
