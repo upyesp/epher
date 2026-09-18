@@ -162,7 +162,7 @@ function initDocs() {
   });
 }
 
-/* --- Linux downloads card: the six install tabs (ADR-0061) ------------
+/* --- Linux downloads card: the five install tabs (ADR-0061) -----------
  * A WAI-ARIA tabs pattern like the nav disclosure: click or arrow-key
  * selects; the selected tab shows its panel and hides the others (the
  * `hidden` attribute keeps them out of the tab order). No library, no
