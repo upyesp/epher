@@ -127,12 +127,23 @@ reproducibility), unchanged.
   hover, completion, and the `demo.gif` animation). Nothing was
   mocked: the captures come from a real VS Code session driving the
   packaged extension.
-- **CI auto-publish stays out**: the release train does not publish
-  yet. The documented target is a federated identity the publisher
-  trusts (a managed identity or app registration with a workload
-  identity federation credential, added to the publisher as a
-  Contributor member), then the same `--azure-credential` flag in
-  CI with `AZURE_TENANT_ID`/`AZURE_CLIENT_ID` and OIDC. One-time
-  Azure-side setup; deferred until asked.
+- **CI publishes the same way**: `vscode-publish.yml` (reusable, and
+  dispatchable on its own for tests) checks out, builds the same
+  wasm + vsix recipe, logs Azure in with the repository's GitHub OIDC
+  token (`az login --service-principal --federated-token`), and runs
+  the same `--azure-credential` flag; the release train calls it at
+  the tagged version. The trust is a workload identity federation
+  credential on the app whose subject names the repo's `stores`
+  environment in the immutable ID-bearing form
+  (`repo:upyesp@25488264/epher@1332818283:environment:stores`; the
+  repo postdates the July 2026 subject-format cutover). The app is a
+  publisher member with the Contributor role. CI holds two
+  identifiers (`AZURE_TENANT_ID`, `AZURE_CLIENT_ID`) and no secret
+  material; until they exist the job skips with a notice, the repo's
+  standard pattern.
+- **The website's IDE page links the marketplace**: the VS Code
+  section leads with the marketplace install, the
+  `epher-vscode.vsix` download stays beside it as the sideload
+  route, and all eight locale catalogs carry the change.
 - **Open VSX is untouched**: a separate registry with its own
   account, still parked.
