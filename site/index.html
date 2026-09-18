@@ -269,9 +269,9 @@
             <div class="tablist" role="tablist" aria-label="Linux install options">
               <button type="button" role="tab" id="tab-debian" aria-controls="panel-debian" aria-selected="true" data-i18n="linux-tab-debian">Debian/Ubuntu</button>
               <button type="button" role="tab" id="tab-fedora" aria-controls="panel-fedora" aria-selected="false" tabindex="-1" data-i18n="linux-tab-fedora">Fedora</button>
-              <button type="button" role="tab" id="tab-universal" aria-controls="panel-universal" aria-selected="false" tabindex="-1" data-i18n="linux-tab-universal">Any distro</button>
               <button type="button" role="tab" id="tab-flatpak" aria-controls="panel-flatpak" aria-selected="false" tabindex="-1" data-i18n="linux-tab-flatpak">Flatpak</button>
               <button type="button" role="tab" id="tab-snap" aria-controls="panel-snap" aria-selected="false" tabindex="-1" data-i18n="linux-tab-snap">Snap</button>
+              <button type="button" role="tab" id="tab-universal" aria-controls="panel-universal" aria-selected="false" tabindex="-1" data-i18n="linux-tab-universal">Any distro</button>
             </div>
             <div class="tabpanel" role="tabpanel" id="panel-debian" aria-labelledby="tab-debian">
               <ol class="repo-steps">
@@ -296,12 +296,6 @@ sudo dnf install epher</pre>
                 · <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-aarch64.rpm" data-i18n="linux-rpm-arm64">.rpm for ARM64</a>
               </p>
             </div>
-            <div class="tabpanel" role="tabpanel" id="panel-universal" aria-labelledby="tab-universal" hidden>
-              <p class="repo-alt">
-                <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-x86_64.AppImage" data-i18n="linux-appimage">Download the AppImage (any distro, incl. Arch)</a>
-                · <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-aarch64.AppImage" data-i18n="linux-appimage-arm64">AppImage for ARM64</a>
-              </p>
-            </div>
             <div class="tabpanel" role="tabpanel" id="panel-flatpak" aria-labelledby="tab-flatpak" hidden>
               <ol class="repo-steps">
                 <li><span data-i18n="linux-flatpak-lead">Download the bundle for your architecture, then install it:</span></li>
@@ -320,6 +314,12 @@ flatpak run org.epher.Desktop</pre>
               <pre class="repo-cmd">sudo snap install epher</pre>
               <p class="repo-alt">
                 <a href="https://snapcraft.io/epher" data-i18n="linux-snap-store">epher on the Snap Store</a>
+              </p>
+            </div>
+            <div class="tabpanel" role="tabpanel" id="panel-universal" aria-labelledby="tab-universal" hidden>
+              <p class="repo-alt">
+                <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-x86_64.AppImage" data-i18n="linux-appimage">Download the AppImage</a>
+                · <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-aarch64.AppImage" data-i18n="linux-appimage-arm64">AppImage for ARM64</a>
               </p>
             </div>
           </div>
