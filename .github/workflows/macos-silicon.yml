@@ -24,14 +24,26 @@
 #     runner's window server, and required to stay up.
 name: macOS Apple silicon
 
-# Runs on every main push (live = release-only, ADR-0062), on every
-# staging push (the staged batch's test floor), and on pull requests
-# into main; the latter is the promotion gate: main's branch
-# protection requires this check to pass before a staging→main PR can
-# merge.
+# Runs on staging/main pushes that can change what this build tests:
+# the workspace, the lockfiles, the script collection the transcripts
+# replay, the smoke/driver scripts, and the guide markdown (crates/guide
+# reads site/guide/*.md at test time and the desktop bundle carries it).
+# Website pages, docs, clients, grammars, and packaging do not affect
+# this build and skip it. pull_request stays unfiltered: it is the
+# promotion gate, so the required check must report on every
+# staging→main PR. workflow_dispatch stays for manual runs.
 on:
   push:
     branches: [main, staging]
+    paths:
+      - crates/**
+      - "epher scripts/**"
+      - scripts/check-scripts.mjs
+      - scripts/tui-smoke.py
+      - site/guide/**
+      - Cargo.toml
+      - Cargo.lock
+      - .github/workflows/macos-silicon.yml
   pull_request:
   workflow_dispatch:
 
