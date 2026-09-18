@@ -166,11 +166,13 @@ finish() {
 # ──────────────────────────────────────────────────────────────────────────
 # STAGES: ADR-0061's one-time human steps for the Linux store channels.
 # Secrets the release workflow reads (must match release.yml exactly):
-#   GPG_PRIVATE_KEY · SNAPCRAFT_STORE_CREDENTIALS · FLATHUB_SSH_KEY
+#   GPG_PRIVATE_KEY · SNAPCRAFT_STORE_CREDENTIALS
 #   (GPG_PASSPHRASE stays unset: the key has none.)
+# Flathub publication was dropped (ADR-0061 amendment, 2026-09-18):
+# no Flathub stages, no FLATHUB_SSH_KEY secret.
 # ──────────────────────────────────────────────────────────────────────────
 
-TOTAL_STAGES=5
+TOTAL_STAGES=3
 REPO="upyesp/epher"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -331,77 +333,5 @@ else
   SKIPPED+=("Snap Store (kept existing credentials)")
 fi
 pause "Press Enter to continue"
-
-# ── Stage 4: Flathub submission ─────────────────────────────────────────
-stage "Flathub submission (PR, human review, days)"
-say "The manifest rides a PR to flathub/flathub. New applications target"
-say "their 'new-pr' branch; a PR against master gets closed by their"
-say "bots (that is what happened to #10095). Their maintainers review,"
-say "then create github.com/flathub/com.epher.Desktop for you."
-step "Forking flathub/flathub (idempotent)."
-gh repo fork flathub/flathub --clone=false || true
-FORK=$(gh api "user" --jq .login)
-FLAT=$(mktemp -d)
-gh repo clone "$FORK/flathub" "$FLAT" -- --depth 1
-(
-  cd "$FLAT"
-  # Branch from upstream's new-pr, NOT master: flathub's new-pr branch
-  # shares no history with master, and a PR from a master-based branch
-  # is rejected ("no history in common").
-  git fetch --depth=1 upstream new-pr
-  git switch -C epher FETCH_HEAD
-  mkdir -p com.epher.Desktop
-  cp "$REPO_ROOT/packaging/flatpak/com.epher.Desktop.yml" com.epher.Desktop/
-  cp "$REPO_ROOT/packaging/flatpak/com.epher.Desktop.desktop" com.epher.Desktop/
-  cp "$REPO_ROOT/packaging/flatpak/com.epher.Desktop.metainfo.xml" com.epher.Desktop/
-  cp "$REPO_ROOT/site/icon.svg" com.epher.Desktop/com.epher.Desktop.svg
-  # The manifest references its siblings one directory up in this repo.
-  sed -i 's|path: packaging/flatpak/|path: |' com.epher.Desktop/com.epher.Desktop.yml
-  sed -i 's|path: site/icon.svg|path: com.epher.Desktop.svg|' com.epher.Desktop/com.epher.Desktop.yml
-  git add -A
-  git diff --cached --quiet || git commit -qm "epher: add com.epher.Desktop"
-  git push -f origin epher
-)
-EXISTING=$(gh pr list --repo flathub/flathub --head "$FORK:epher" \
-  --state open --json number --jq '.[0].number' 2>/dev/null || true)
-if [[ -n "$EXISTING" ]]; then
-  note "PR #$EXISTING already exists, not creating a duplicate."
-  PR_URL="https://github.com/flathub/flathub/pull/$EXISTING"
-else
-  step "Opening the submission PR against new-pr."
-  PR_URL=$(gh pr create --repo flathub/flathub \
-    --base new-pr \
-    --head "$FORK:epher" \
-    --title "epher: add com.epher.Desktop" \
-    --body "Initial submission for epher $RELEASE_NUM, a programmable, scriptable calculator (MIT). Manifest, desktop file, and AppStream metainfo included. Home: https://epher.org" 2>/dev/null \
-    || echo "https://github.com/flathub/flathub/pulls")
-fi
-open_url "$PR_URL"
-say "The review takes days. When accepted, Flathub creates"
-say "github.com/flathub/com.epher.Desktop and adds you as maintainer;"
-say "then come back and run Stage 5."
-pause "Press Enter to continue"
-
-# ── Stage 5: Flathub deploy key (after acceptance) ──────────────────────
-stage "Flathub deploy key (after acceptance)"
-if gh repo view flathub/com.epher.Desktop >/dev/null 2>&1; then
-  say "The Flathub repository exists, adding a read-write deploy key."
-  FLAT_KEY=$(mktemp)
-  ssh-keygen -t ed25519 -N "" -C "epher-flathub-ci" -f "$FLAT_KEY" -q
-  gh api -X POST "repos/flathub/com.epher.Desktop/keys" \
-    -f title="epher release bot" \
-    -f key="$(cat "$FLAT_KEY.pub")" \
-    -F read_only=false >/dev/null
-  if confirm "Set FLATHUB_SSH_KEY from the new private key?"; then
-    set_secret FLATHUB_SSH_KEY "$(cat "$FLAT_KEY")"
-  fi
-  rm -f "$FLAT_KEY" "$FLAT_KEY.pub"
-  note "From the next release on, store-bumps commits version bumps and"
-  note "Flathub's bot builds them, no human step left."
-else
-  warn "github.com/flathub/com.epher.Desktop does not exist yet."
-  warn "Come back after the submission PR is accepted, then re-run this"
-  warn "wizard (or just this stage) to finish."
-fi
 
 finish

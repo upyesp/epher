@@ -39,10 +39,12 @@
 # The repositories and stores (ADR-0061): the linux-repos job serves the
 # same debs/rpms from epher.org's apt and dnf repositories (GitHub Pages,
 # GPG-signed, container install-smoke before publish); the snap job
-# repacks the release deb for the Snap Store; the store-bumps job commits
-# version bumps to the Flathub manifest. Each of
-# those jobs skips with a notice when its credentials (GPG key, Snap
-# Store login, Flathub deploy key) are not yet configured.
+# repacks the release deb for the Snap Store; the flatpak job turns the
+# tagged release into a .flatpak bundle per architecture (Flathub
+# publication was dropped, ADR-0061 amendment 2026-09-18: the bundle
+# download is the Flatpak channel). Each of those jobs skips with a
+# notice when its credentials (GPG key, Snap Store login) are not yet
+# configured.
 #
 # The builds carry no developer identity: Windows is unsigned, macOS is
 # ad-hoc signed (a valid signature, so Gatekeeper's "damaged" check
@@ -74,9 +76,49 @@ jobs:
       ref: ${{ github.ref }}
       version: ${{ github.ref_name }}
 
+  flatpak:
+    # The Flatpak channel (ADR-0061): the in-repo manifest builds the
+    # tagged release into a .flatpak bundle per architecture, attached
+    # to the release like every other installer. The manifest pins a
+    # git tag; this job repins it at THIS tag before building, the same
+    # way the snap job pins the version. Flathub publication was
+    # dropped (ADR-0061 amendment, 2026-09-18); flatpak-build.yml keeps
+    # proving the manifest between releases.
+    name: flatpak (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pin the manifest at this release tag
+        run: |
+          set -e
+          sed -i "s/^        tag: v.*/        tag: ${GITHUB_REF_NAME}/" packaging/flatpak/org.epher.Desktop.yml
+          sed -i "s/^        commit: .*/        commit: ${GITHUB_SHA}/" packaging/flatpak/org.epher.Desktop.yml
+          grep -q "tag: ${GITHUB_REF_NAME}" packaging/flatpak/org.epher.Desktop.yml
+          grep -q "commit: ${GITHUB_SHA}" packaging/flatpak/org.epher.Desktop.yml
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: epher-linux-${{ matrix.arch }}.flatpak
+          manifest-path: packaging/flatpak/org.epher.Desktop.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-linux-${{ matrix.arch }}
+          path: epher-linux-${{ matrix.arch }}.flatpak
+
   release:
     name: Attach assets to the release
-    needs: [build]
+    needs: [build, flatpak]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -105,10 +147,9 @@ jobs:
             - **Linux**: Debian/Ubuntu → add the apt repo once
               (https://epher.org, Linux → Debian/Ubuntu tab), then
               `apt install epher`; Fedora → the dnf repo, then
-              `dnf install epher`; or grab `.deb` / `.rpm` / `.AppImage`
-              directly (x86_64 and ARM64). Flathub
-              (`com.epher.Desktop`) and Snap (`epher`)
-              carry the same app when the store packages are published.
+              `dnf install epher`; the Snap Store carries `epher`
+              (`sudo snap install epher`); or grab `.deb` / `.rpm` /
+              `.AppImage` / `.flatpak` directly (x86_64 and ARM64).
 
             - **Editors**: the IDE extensions ride this release too:
               `epher-vscode.vsix` for VS Code, `epher-jetbrains.zip`
@@ -326,11 +367,6 @@ jobs:
     # Publishes only when SNAPCRAFT_STORE_CREDENTIALS is set.
     name: snap (${{ matrix.arch }})
     needs: [release]
-    # Provisioning-dependent channel: a snapcraft/runner surprise must
-    # not red the release while the store account is still being set
-    # up. Once the snap ships routinely, remove this flag and let it
-    # gate like every other job.
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -373,11 +409,3 @@ jobs:
             exit 1
           fi
           snapcraft upload "$SNAP_FILE" --release=stable
-
-  # Flathub version bumps: ADR-0061 amendment (2026-09-17). Flathub
-  # protects the app repo's default branch (pull requests only), so the
-  # original direct-push job cannot work. The manifest carries
-  # x-checker-data on the release tag instead: Flathub's External Data
-  # Checker opens the bump PR itself within hours of each release, and
-  # merging that PR is the only human step. No FLATHUB_SSH_KEY secret,
-  # no job here.
