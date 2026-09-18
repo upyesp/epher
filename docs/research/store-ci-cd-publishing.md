@@ -73,6 +73,48 @@ pattern fundamentally needs a *delegated user token*, which GitHub OIDC
 cannot provide. The API is still useful to us: it returns `validTo` for each
 token, which is exactly what the canary monitor (below) needs.
 
+### Provisioning outcome (2026-09-18), which supersedes the PAT route above
+
+The user asked for publication and directed the Entra route. What
+actually worked, on the headless Debian box:
+
+- **Publisher**: created once in the publisher management portal by
+  the user. Both API shapes reject programmatic creation (the
+  gallery answers with `InvalidReCaptchaTokenException`, and vsce's
+  `create-publisher` command has been removed entirely), so this is
+  the one human browser step.
+- **Publish**: `az login --use-device-code` (device-code login is
+  SSH-friendly; the user opens login.microsoft.com/device on any
+  machine), then `vsce publish --azure-credential` from
+  `clients/vscode` with vsce 3.9.2. The AzureCliCredential branch of
+  vsce's chain supplied the Entra token for
+  `499b84ac-1321-427f-aa17-267ca6975798/.default`. `upyesp.epher`
+  v0.5.42 went live, public, in one call. No PAT was used or stored.
+- **Gotchas worth remembering**: the account is a personal Microsoft
+  account (gmail) bridged through the MSA tenant
+  `f8cdef31-a31e-4b4a-93e4-5f571e91255a`; az's default multi-tenant
+  login trips over security defaults in another directory it
+  discovers (`AADSTS530035`), so the login is pinned with
+  `--tenant f8cdef31-… --skip-subscription-discovery`. The Azure CLI's
+  device-flow poller on this box gives up after a few minutes, well
+  inside the code's 15-minute life; a raw OAuth device-code poller
+  (same public client id) is the reliable substitute when needed.
+- **PAT route, abandoned and partially cleaned up**: the PAT
+  Lifecycle Management API lives on `vssps.dev.azure.com`, not
+  `dev.azure.com`; it minted an org-scoped `vso.marketplace_manage`
+  token, but the gallery rejected that token for publishing
+  (`TF400813` not authorized) and for publisher creation
+  ("Invalid modern scope"), confirming that publisher-side
+  management wants interactive/Entra tokens, not org PATs. Revoking
+  via the API 405s regardless of host, verb shaping, or preview
+  version; the two stray records (a `vso.marketplace_manage` PAT and
+  an `app_token` created by a mis-aimed call) were revoked by hand
+  in the Azure DevOps portal, and the minted secret was deleted from
+  disk unused.
+- **CI**: unchanged from the target state below; the managed
+  identity plus federation setup is one Azure-portal session away
+  and needs an Azure subscription decision first.
+
 ### The new route: Entra identity + workload identity federation (the OIDC answer)
 
 The publishing docs now lead with a PAT-free path

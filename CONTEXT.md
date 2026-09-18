@@ -273,7 +273,10 @@ _Avoid_: trace (ambiguous with the plotting sense), execution log
   reply and had to be reversed in full).
 - Marketplace publication (VS Code Marketplace, Open VSX, JetBrains
   Marketplace, the Zed extension registry, and any other editor
-  store) is parked until the user explicitly asks for it. The
-  releases page stays the distribution; do not start account setup,
-  registry submissions, or publishing pipelines for any marketplace
+  store) was parked until the user explicitly asked for it. That
+  happened for the VS Code Marketplace on 2026-09-18: the extension
+  is published (`upyesp.epher`, publisher `upyesp`, via the Entra ID
+  secure automated publishing route, ADR-0068 amendment). Every
+  other marketplace remains parked: do not start account setup,
+  registry submissions, or publishing pipelines for any other store
   on general "keep going" instructions (user rule, 2026-09-17).

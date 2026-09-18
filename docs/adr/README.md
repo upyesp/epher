@@ -196,7 +196,9 @@ at the end of the chain.
   Visual Studio is named future work)** → **0068 (per-editor download
   links on the page, Cursor and VSCodium as first-class sections, the
   Visual Studio extension and the standalone tree-sitter grammar
-  ship, marketplaces parked until explicitly asked)**.
+  ship, marketplaces parked until explicitly asked; the VS Code
+  Marketplace shipped 2026-09-18 per the 0068 amendment, the rest
+  stay parked)**.
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.
