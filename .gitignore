@@ -30,3 +30,4 @@ crates/tauri-app/src-tauri/nsis-check.exe
 **/nsis-check.exe
 **/nsis-theme-check.exe
 site/scripts-data.json
+.env
