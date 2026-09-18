@@ -364,6 +364,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
+  vscode-marketplace:
+    # ADR-0068 amendment (2026-09-18): the marketplace channel rides the
+    # release train. Publishes upyesp.epher at the tagged version with the
+    # Entra secure automated route; skips with a notice until the
+    # AZURE_TENANT_ID and AZURE_CLIENT_ID secrets exist.
+    name: vscode marketplace
+    needs: [release]
+    uses: ./.github/workflows/vscode-publish.yml
+    with:
+      ref: ${{ github.ref }}
+      version: ${{ github.ref_name }}
+    secrets: inherit
+
   snap:
     # ADR-0061: the Snap Store channel. Repacks the release .deb (the
     # two artifacts cannot drift), strict confinement, amd64 + arm64.
