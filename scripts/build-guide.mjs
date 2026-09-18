@@ -16,18 +16,25 @@ const GUIDE = join(ROOT, "site", "guide");
 
 const LANGS = ["en", "zh-CN", "hi", "es", "fr", "ar", "de", "pt"];
 
+// The selector lists every language in its own name (the landing page's
+// select does the same); values are the guide/<lang>/ directory names.
+const LANG_NAMES = {
+  en: "English", "zh-CN": "中文", hi: "हिन्दी", es: "Español",
+  fr: "Français", ar: "العربية", de: "Deutsch", pt: "Português",
+};
+
 // Per-language chrome strings (mirror the landing page dictionaries in
 // site/app.js; the guide page itself is single-language so no runtime i18n).
 // copy/copied label the example-block copy button (and its announcement).
 const CHROME = {
-  en: { title: "epher: User guide", app: "App", back: "Back to home", contents: "Contents", themeDark: "Use dark theme", themeLight: "Use light theme", footer: "epher user guide", copy: "Copy", copied: "Copied", privacy: "Privacy", menu: "Menu", examples: "Examples", docs: "Docs", guide: "User guide", scripts: "Scripts", reference: "Language reference", features: "Features", ide: "IDE Extension", source: "Source code" },
-  "zh-CN": { title: "epher: 用户指南", app: "应用", back: "返回主页", contents: "目录", themeDark: "使用深色主题", themeLight: "使用浅色主题", footer: "epher 用户指南", copy: "复制", copied: "已复制", privacy: "隐私", menu: "菜单", examples: "示例", docs: "文档", guide: "用户指南", scripts: "脚本", reference: "语言参考", features: "功能", ide: "IDE 扩展", source: "源代码" },
-  hi: { title: "epher: उपयोगकर्ता गाइड", app: "ऐप", back: "मुख्य पृष्ठ पर वापस जाएँ", contents: "विषय-सूची", themeDark: "गहरी थीम का उपयोग करें", themeLight: "हल्की थीम का उपयोग करें", footer: "epher उपयोगकर्ता गाइड", copy: "कॉपी करें", copied: "कॉपी हो गया", privacy: "गोपनीयता", menu: "मेनू", examples: "उदाहरण", docs: "दस्तावेज़", guide: "उपयोगकर्ता गाइड", scripts: "स्क्रिप्ट", reference: "भाषा संदर्भ", features: "विशेषताएँ", ide: "IDE एक्सटेंशन", source: "स्रोत कोड" },
-  es: { title: "epher: Guía de usuario", app: "App", back: "Volver al inicio", contents: "Contenido", themeDark: "Usar tema oscuro", themeLight: "Usar tema claro", footer: "Guía de usuario de epher", copy: "Copiar", copied: "Copiado", privacy: "Privacidad", menu: "Menú", examples: "Ejemplos", docs: "Documentación", guide: "Guía de usuario", scripts: "Scripts", reference: "Referencia del lenguaje", features: "Funciones", ide: "Extensión IDE", source: "Código fuente" },
-  fr: { title: "epher: Guide de l'utilisateur", app: "App", back: "Retour à l'accueil", contents: "Sommaire", themeDark: "Utiliser le thème sombre", themeLight: "Utiliser le thème clair", footer: "Guide de l'utilisateur de epher", copy: "Copier", copied: "Copié", privacy: "Confidentialité", menu: "Menu", examples: "Exemples", docs: "Documentation", guide: "Guide de l'utilisateur", scripts: "Scripts", reference: "Référence du langage", features: "Fonctions", ide: "Extension IDE", source: "Code source" },
-  ar: { title: "epher: دليل المستخدم", app: "التطبيق", back: "العودة إلى الصفحة الرئيسية", contents: "المحتويات", themeDark: "استخدام المظهر الداكن", themeLight: "استخدام المظهر الفاتح", footer: "دليل مستخدم epher", copy: "نسخ", copied: "تم النسخ", privacy: "الخصوصية", menu: "القائمة", examples: "أمثلة", docs: "التوثيق", guide: "دليل المستخدم", scripts: "النصوص البرمجية", reference: "مرجع اللغة", features: "الميزات", ide: "إضافة IDE", source: "الكود المصدري" },
-  de: { title: "epher: Benutzerhandbuch", app: "App", back: "Zurück zur Startseite", contents: "Inhalt", themeDark: "Dunkles Design verwenden", themeLight: "Helles Design verwenden", footer: "epher-Benutzerhandbuch", copy: "Kopieren", copied: "Kopiert", privacy: "Datenschutz", menu: "Menü", examples: "Beispiele", docs: "Dokumentation", guide: "Benutzerhandbuch", scripts: "Skripte", reference: "Sprachreferenz", features: "Funktionen", ide: "IDE-Erweiterung", source: "Quellcode" },
-  pt: { title: "epher: Guia de utilizador", app: "App", back: "Voltar ao início", contents: "Índice", themeDark: "Usar tema escuro", themeLight: "Usar tema claro", footer: "Guia de utilizador do epher", copy: "Copiar", copied: "Copiado", privacy: "Privacidade", menu: "Menu", examples: "Exemplos", docs: "Documentação", guide: "Guia de utilizador", scripts: "Scripts", reference: "Referência da linguagem", features: "Funções", ide: "Extensão IDE", source: "Código-fonte" },
+  en: { title: "epher: User guide", app: "App", back: "Back to home", contents: "Contents", themeDark: "Use dark theme", themeLight: "Use light theme", footer: "epher user guide", copy: "Copy", copied: "Copied", privacy: "Privacy", menu: "Menu", examples: "Examples", docs: "Docs", guide: "User guide", scripts: "Scripts", reference: "Language reference", features: "Features", ide: "IDE Extension", source: "Source code", langLabel: "Language" },
+  "zh-CN": { title: "epher: 用户指南", app: "应用", back: "返回主页", contents: "目录", themeDark: "使用深色主题", themeLight: "使用浅色主题", footer: "epher 用户指南", copy: "复制", copied: "已复制", privacy: "隐私", menu: "菜单", examples: "示例", docs: "文档", guide: "用户指南", scripts: "脚本", reference: "语言参考", features: "功能", ide: "IDE 扩展", source: "源代码", langLabel: "语言" },
+  hi: { title: "epher: उपयोगकर्ता गाइड", app: "ऐप", back: "मुख्य पृष्ठ पर वापस जाएँ", contents: "विषय-सूची", themeDark: "गहरी थीम का उपयोग करें", themeLight: "हल्की थीम का उपयोग करें", footer: "epher उपयोगकर्ता गाइड", copy: "कॉपी करें", copied: "कॉपी हो गया", privacy: "गोपनीयता", menu: "मेनू", examples: "उदाहरण", docs: "दस्तावेज़", guide: "उपयोगकर्ता गाइड", scripts: "स्क्रिप्ट", reference: "भाषा संदर्भ", features: "विशेषताएँ", ide: "IDE एक्सटेंशन", source: "स्रोत कोड", langLabel: "भाषा" },
+  es: { title: "epher: Guía de usuario", app: "App", back: "Volver al inicio", contents: "Contenido", themeDark: "Usar tema oscuro", themeLight: "Usar tema claro", footer: "Guía de usuario de epher", copy: "Copiar", copied: "Copiado", privacy: "Privacidad", menu: "Menú", examples: "Ejemplos", docs: "Documentación", guide: "Guía de usuario", scripts: "Scripts", reference: "Referencia del lenguaje", features: "Funciones", ide: "Extensión IDE", source: "Código fuente", langLabel: "Idioma" },
+  fr: { title: "epher: Guide de l'utilisateur", app: "App", back: "Retour à l'accueil", contents: "Sommaire", themeDark: "Utiliser le thème sombre", themeLight: "Utiliser le thème clair", footer: "Guide de l'utilisateur de epher", copy: "Copier", copied: "Copié", privacy: "Confidentialité", menu: "Menu", examples: "Exemples", docs: "Documentation", guide: "Guide de l'utilisateur", scripts: "Scripts", reference: "Référence du langage", features: "Fonctions", ide: "Extension IDE", source: "Code source", langLabel: "Langue" },
+  ar: { title: "epher: دليل المستخدم", app: "التطبيق", back: "العودة إلى الصفحة الرئيسية", contents: "المحتويات", themeDark: "استخدام المظهر الداكن", themeLight: "استخدام المظهر الفاتح", footer: "دليل مستخدم epher", copy: "نسخ", copied: "تم النسخ", privacy: "الخصوصية", menu: "القائمة", examples: "أمثلة", docs: "التوثيق", guide: "دليل المستخدم", scripts: "النصوص البرمجية", reference: "مرجع اللغة", features: "الميزات", ide: "إضافة IDE", source: "الكود المصدري", langLabel: "اللغة" },
+  de: { title: "epher: Benutzerhandbuch", app: "App", back: "Zurück zur Startseite", contents: "Inhalt", themeDark: "Dunkles Design verwenden", themeLight: "Helles Design verwenden", footer: "epher-Benutzerhandbuch", copy: "Kopieren", copied: "Kopiert", privacy: "Datenschutz", menu: "Menü", examples: "Beispiele", docs: "Dokumentation", guide: "Benutzerhandbuch", scripts: "Skripte", reference: "Sprachreferenz", features: "Funktionen", ide: "IDE-Erweiterung", source: "Quellcode", langLabel: "Sprache" },
+  pt: { title: "epher: Guia de utilizador", app: "App", back: "Voltar ao início", contents: "Índice", themeDark: "Usar tema escuro", themeLight: "Usar tema claro", footer: "Guia de utilizador do epher", copy: "Copiar", copied: "Copiado", privacy: "Privacidade", menu: "Menu", examples: "Exemplos", docs: "Documentação", guide: "Guia de utilizador", scripts: "Scripts", reference: "Referência da linguagem", features: "Funções", ide: "Extensão IDE", source: "Código-fonte", langLabel: "Idioma" },
 };
 
 // --- example code blocks ------------------------------------------------
@@ -226,6 +233,10 @@ function page(lang, body, toc) {
         <svg class="icon-sun" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" /><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8" /></svg>
         <span class="visually-hidden">${c.themeDark}</span>
       </button>
+      <label class="visually-hidden" for="lang-select">${c.langLabel}</label>
+      <select id="lang-select">
+        ${LANGS.map((l) => `<option value="${l}"${l === lang ? " selected" : ""}>${LANG_NAMES[l]}</option>`).join("\n        ")}
+      </select>
     </div>
     <button type="button" id="menu-toggle" class="menu-toggle" aria-expanded="false" aria-controls="site-nav">
       <svg class="icon-burger" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
@@ -261,7 +272,8 @@ function page(lang, body, toc) {
   <p class="visually-hidden" id="copy-status" role="status"></p>
 
   <script>
-    // theme toggle (guide pages are single-language; no i18n needed here)
+    // theme toggle (guide pages are single-language; the selector in the
+    // header navigates between the per-language pages)
     (function () {
       var toggle = document.getElementById("theme-toggle");
       var labels = ${JSON.stringify({ dark: CHROME[lang].themeDark, light: CHROME[lang].themeLight })};
@@ -277,6 +289,17 @@ function page(lang, body, toc) {
       }
       toggle.addEventListener("click", function () {
         setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+      });
+      // language selector: every language is its own static page; the
+      // choice navigates there and is stored so the rest of the site
+      // (app.js) follows the same preference
+      var langSelect = document.getElementById("lang-select");
+      langSelect.addEventListener("change", function () {
+        var next = langSelect.value;
+        try { localStorage.setItem("epher-lang", next); } catch (e) {}
+        document.documentElement.lang = next;
+        document.documentElement.dir = next === "ar" ? "rtl" : "ltr";
+        location.href = "../../guide/" + next + "/";
       });
       // disclosure nav (mobile): same pattern as app.js on the site pages
       var menuBtn = document.getElementById("menu-toggle");
