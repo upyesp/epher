@@ -1,7 +1,10 @@
-# Proves the Flathub manifest builds on a real runner (ADR-0061). The
-# manifest is the same file Flathub's buildbot compiles; a green run here
-# means runtime bumps, rust-stable updates, or dependency drift get caught
-# in this repo instead of in the public submission PR.
+# Proves the Flatpak manifest builds on real runners (ADR-0061). The
+# manifest is a fully offline, fully from-source build recipe; a green
+# run here means runtime bumps, rust-stable updates, or dependency
+# drift get caught in this repo instead of at release time. Flathub
+# publication was dropped (ADR-0061 amendment, 2026-09-18); maintaining
+# this build is the whole Flatpak story now, and each run leaves the
+# bundles as artifacts for direct testing.
 name: flatpak build
 
 on:
@@ -17,7 +20,17 @@ permissions:
   contents: read
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: flatpak bundle (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
       options: --privileged
@@ -25,5 +38,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: epher.flatpak
+          bundle: epher-linux-${{ matrix.arch }}.flatpak
           manifest-path: packaging/flatpak/org.epher.Desktop.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-${{ matrix.arch }}
+          path: epher-linux-${{ matrix.arch }}.flatpak

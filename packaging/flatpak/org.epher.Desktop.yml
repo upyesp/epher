@@ -1,13 +1,19 @@
-# The Flathub manifest (ADR-0061, rewritten for the 2026 submission).
-# The build is fully offline and fully from source: every crate comes from
-# the generated cargo-sources.json files (flatpak-cargo-generator.py over
-# the committed lockfiles), the wasm32 standard library is a pinned archive
-# matched to the Sdk extension's rustc, and trunk plus wasm-bindgen-cli are
-# built in-sandbox from their own vendored sources. The GNOME Sdk ships
-# WebKitGTK 4.1, so no webkit shared module is needed. After acceptance
-# this file lives in github.com/flathub/org.epher.Desktop and Flathub's
-# External Data Checker opens the version-bump PRs (x-checker-data on the
-# git tag below); this in-repo copy is the source of truth.
+# The Flatpak manifest (ADR-0061): a fully offline, fully from-source
+# build of a tagged release into a .flatpak bundle. Flathub publication
+# was dropped (ADR-0061 amendment, 2026-09-18); this manifest stays the
+# maintained build recipe: flatpak-build.yml proves it on every push
+# that touches it (x86_64 and aarch64), and the release workflow turns
+# each tag into epher-linux-<arch>.flatpak release assets (it repins
+# the git source below at the tag being released, the same way the snap
+# job pins the version). The x-checker-data stays: it is what a future
+# Flathub submission would reuse.
+#
+# The build is fully offline: every crate comes from the generated
+# cargo-sources.json files (flatpak-cargo-generator.py over the
+# committed lockfiles), the wasm32 standard library is a pinned archive
+# matched to the Sdk extension's rustc, and trunk plus wasm-bindgen-cli
+# are built in-sandbox from their own vendored sources. The GNOME Sdk
+# ships WebKitGTK 4.1, so no webkit shared module is needed.
 app-id: org.epher.Desktop
 runtime: org.gnome.Platform
 runtime-version: "50"
