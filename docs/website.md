@@ -252,7 +252,7 @@ Stable asset names (the landing page depends on them):
 ```
 epher-windows-x86_64.exe
 epher-macos-aarch64.dmg
-epher-linux-x86_64.{deb,rpm,AppImage}
+epher-linux-x86_64.{deb,rpm,AppImage,flatpak}
 ```
 
 macOS is Apple Silicon only (ADR-0025); the Intel build and its

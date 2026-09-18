@@ -6,6 +6,9 @@ Status: Accepted (extends ADR-0058's installer story with repository and
 store channels; amends the website's Linux downloads card).
 Amended 2026-09-06: the AUR channel is removed before its first
 publish: see the Amendment at the end of this record.
+Amended 2026-09-18: Flathub publication is dropped, the Flatpak build
+stays as a maintained in-repo bundle channel: see the Amendment at the
+end of this record.
 
 ## Context
 
@@ -173,3 +176,36 @@ now produces a working build.
   completes offline and the packaged `epher` reports 0.5.42 inside the
   sandbox. `.github/workflows/flatpak-build.yml` re-proves the manifest
   on every push that touches it.
+
+## Amendment (2026-09-18): Flathub publication is dropped, the Flatpak bundle is the channel
+
+The Flathub submission never went out, and the budget it keeps asking
+for (a fork, a PR against `new-pr`, human review latency, then a
+per-release bump PR from Flathub's External Data Checker to merge in a
+Flathub-owned repository) no longer earns its place. Flathub is not a
+distribution surface of this project anymore. The Flatpak build itself
+stays, maintained in-repo:
+
+- `packaging/flatpak/` keeps the validated manifest (GNOME 50, fully
+  offline, arch-aware); `.github/workflows/flatpak-build.yml` re-proves
+  it on every push that touches it, now on x86_64 and aarch64, leaving
+  the bundles as run artifacts.
+- The release workflow builds the tagged release into a `.flatpak`
+  bundle per architecture and attaches it to the release:
+  `epher-linux-x86_64.flatpak`, `epher-linux-aarch64.flatpak` (it
+  repins the manifest's git source at the tag being released, the same
+  way the snap job pins the version).
+- The website's Linux downloads card gains the two store tabs the
+  original decision described: a Flatpak tab (bundle download plus
+  `flatpak install ./...`, `flatpak run org.epher.Desktop`) and a Snap
+  tab (`sudo snap install epher`, a link to the store listing).
+- The flatpak showcase recording workflow and its committed video are
+  retired with the submission; the metainfo screenshots stay (the
+  maintained bundle still carries the metainfo).
+- The Snap channel is unchanged and live: `sudo snap install epher`,
+  updates via `snap refresh`. A `snap refresh` workflow rebuilds the
+  current release's snaps without a release when the store's USN scans
+  ask for fresher archive packages.
+
+Revisiting Flathub is a new decision: the manifest and its
+x-checker-data are what a submission would reuse, nothing more.
