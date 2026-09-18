@@ -40,6 +40,9 @@ jobs:
         with:
           bundle: epher-linux-${{ matrix.arch }}.flatpak
           manifest-path: packaging/flatpak/org.epher.Desktop.yml
+          # the action's auto-upload mangles the arch into the name; the
+          # explicit upload below names the artifact cleanly
+          upload-artifact: false
       - uses: actions/upload-artifact@v4
         with:
           name: flatpak-${{ matrix.arch }}
