@@ -371,6 +371,13 @@ jobs:
     # AZURE_TENANT_ID and AZURE_CLIENT_ID secrets exist.
     name: vscode marketplace
     needs: [release]
+    # secrets: inherit passes the tenant/client identifiers, but it also
+    # clamps the nested workflow to THIS workflow's top-level permissions,
+    # which have no id-token; the federated Entra login needs the OIDC
+    # token, so the grant happens here, scoped to this job alone.
+    permissions:
+      id-token: write
+      contents: read
     uses: ./.github/workflows/vscode-publish.yml
     with:
       ref: ${{ github.ref }}
