@@ -136,9 +136,18 @@ jobs:
           cd clients/vscode
           if npx --yes @vscode/vsce@3.9.2 publish -i epher-vscode.vsix \
               --azure-credential 2>&1 | tee /tmp/vsce.log; then
+            if grep -qi "Access Denied" /tmp/vsce.log; then
+              # vsce can exit 0 after a gallery denial; the run must not
+              # pass on one. The 0.5.43 train caught this the hard way.
+              echo "::error::vsce exited 0 but the gallery denied the publish."
+              exit 1
+            fi
             echo "::notice::published upyesp.epher $VERSION to the marketplace."
-          elif grep -qiE "already exists|conflict|409" /tmp/vsce.log; then
-            echo "::notice::upyesp.epher $VERSION is already on the marketplace; the federated identity is authorized (expected on a re-run)."
+          elif grep -qi "already exists" /tmp/vsce.log; then
+            # Tolerate ONLY the exact version-conflict text; broader
+            # patterns once misclassified a real Access Denied as a
+            # harmless re-run.
+            echo "::notice::upyesp.epher $VERSION is already on the marketplace (expected on a re-run)."
           else
             echo "publish failed:"
             cat /tmp/vsce.log
