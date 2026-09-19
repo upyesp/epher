@@ -148,9 +148,18 @@ reproducibility), unchanged.
   DevOps organization to the tenant (Organization settings →
   Microsoft Entra) and adding the service principal as an
   organization user (Stakeholder). With that, the gallery accepts the
-  principal's Entra token as an authorized publisher identity, proven
-  by a publish attempt of the already-published version returning a
-  version conflict rather than an authorization failure.
+  principal's Entra token as far as reading the publisher's version
+  state — an attempt on an already-published version returns a
+  version conflict. **Corrrection, 2026-09-19:** that conflict is
+  not proof of publish rights. The first real publish attempt by the
+  train (v0.5.43) was denied: the principal lacks the publisher
+  permission ("Make changes to, share, or view certificate of an
+  existing extension"), and the manage portal's member picker offers
+  no way to grant it to a principal with no email address. Until
+  that grant exists, marketplace publishing rides on the owner's own
+  Entra identity from the build machine (`vsce publish
+  --azure-credential` as upyesp@gmail.com), which works; CI holds
+  the wiring and needs only the membership grant to go live.
 - **The website's IDE page links the marketplace**: the VS Code
   section leads with the marketplace install, the
   `epher-vscode.vsix` download stays beside it as the sideload
