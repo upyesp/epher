@@ -189,8 +189,11 @@ jobs:
           fi
           V="${VERSION#v}"
           cd crates/tauri-app/src-tauri
-          sed -i "s/^version = \".*\"/version = \"$V\"/" Cargo.toml
-          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$V\"/" tauri.conf.json
+          # -i.bak + rm: BSD sed (the macOS leg) needs a backup suffix,
+          # GNU sed accepts one; portable either way.
+          sed -i.bak "s/^version = \".*\"/version = \"$V\"/" Cargo.toml
+          sed -i.bak "s/\"version\": \"[^\"]*\"/\"version\": \"$V\"/" tauri.conf.json
+          rm -f Cargo.toml.bak tauri.conf.json.bak
           grep -q "^version = \"$V\"" Cargo.toml
           grep -q "\"version\": \"$V\"" tauri.conf.json
 

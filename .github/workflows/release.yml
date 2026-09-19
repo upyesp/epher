@@ -101,10 +101,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Pin the manifest at this release tag
+        # Scoped to the epher module: the manifest's other modules pin
+        # their own upstream tags and commits, and rewriting every
+        # commit: line desyncs them (the wasm-bindgen tag/commit
+        # mismatch that broke the first v0.5.43 train).
         run: |
           set -e
-          sed -i "s/^        tag: v.*/        tag: ${GITHUB_REF_NAME}/" packaging/flatpak/org.epher.Desktop.yml
-          sed -i "s/^        commit: .*/        commit: ${GITHUB_SHA}/" packaging/flatpak/org.epher.Desktop.yml
+          sed -i "/- name: epher/,/^        commit:/ { s/^        tag: .*/        tag: ${GITHUB_REF_NAME}/; s/^        commit: .*/        commit: ${GITHUB_SHA}/ }" packaging/flatpak/org.epher.Desktop.yml
           grep -q "tag: ${GITHUB_REF_NAME}" packaging/flatpak/org.epher.Desktop.yml
           grep -q "commit: ${GITHUB_SHA}" packaging/flatpak/org.epher.Desktop.yml
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
