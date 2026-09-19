@@ -173,6 +173,27 @@ jobs:
       - name: Install tauri-cli
         run: cargo install tauri-cli --version 2.11.4 --locked
 
+      - name: Pin the release version into the desktop app
+        # The title bar reads CARGO_PKG_VERSION (the tauri crate's own
+        # Cargo.toml) while the installer metadata reads tauri.conf.json;
+        # the 0.5.42 release shipped a title bar stuck at 0.5.18 because
+        # the version bump missed that one file. Stamp both from the
+        # train's version so they cannot diverge from it again.
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -e
+          if [ "$VERSION" = "auto" ]; then
+            VERSION="v$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          fi
+          V="${VERSION#v}"
+          cd crates/tauri-app/src-tauri
+          sed -i "s/^version = \".*\"/version = \"$V\"/" Cargo.toml
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$V\"/" tauri.conf.json
+          grep -q "^version = \"$V\"" Cargo.toml
+          grep -q "\"version\": \"$V\"" tauri.conf.json
+
       - name: Build desktop bundles
         run: cargo tauri build --bundles ${{ matrix.bundles }}
         working-directory: crates/tauri-app/src-tauri
