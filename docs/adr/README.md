@@ -198,7 +198,10 @@ at the end of the chain.
   Visual Studio extension and the standalone tree-sitter grammar
   ship, marketplaces parked until explicitly asked; the VS Code
   Marketplace shipped 2026-09-18 per the 0068 amendment, the rest
-  stay parked)**.
+  stay parked)** → **0069 (the language server runs scripts via a
+  custom request, VS Code gets the results pane with inline SVG
+  graphs, the text-first editors follow, DAP debugging named as its
+  own later release)**.
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.
