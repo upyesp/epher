@@ -60,6 +60,41 @@
         "path": "./snippets/epher.json"
       }
     ],
+    "debuggers": [
+      {
+        "type": "epher",
+        "label": "Epher",
+        "languages": [
+          "epher"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "The .epher script to run: a path, or the uri of an untitled document.",
+                "default": "${workspaceFolder}/script.epher"
+              }
+            }
+          }
+        },
+        "configurationSnippets": [
+          {
+            "label": "Epher: Run script",
+            "description": "Runs a .epher script. epher has nothing to pause or step: a debug start runs the whole script and prints the answers.",
+            "body": {
+              "type": "epher",
+              "request": "launch",
+              "name": "Run epher script",
+              "program": "^\"\\${workspaceFolder}/${1:script.epher}\""
+            }
+          }
+        ]
+      }
+    ],
     "commands": [
       {
         "command": "epher.runScript",

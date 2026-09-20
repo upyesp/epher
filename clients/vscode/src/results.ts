@@ -20,8 +20,9 @@ interface RunReport {
 
 // The only client surface the pane needs; both entries (desktop and
 // web) hand in their LanguageClient without this module importing
-// either host's constructor.
-interface RunClient {
+// either host's constructor. The run-only debug adapter (debug.ts)
+// shares the interface and the request.
+export interface RunClient {
   sendRequest(method: string, params: unknown): Thenable<RunReport>;
 }
 

@@ -216,6 +216,7 @@ window.EPHER_I18N["en"] = {
   "ide-clients-link": "All of this lives in the repository under clients/.",
   "ide-vscode-p1": "Install it from the marketplace: the Extensions view, search for Epher, Install. The server ships inside the extension, no download, no prerequisites, and it works offline on desktop and in the browser. Open a `.epher` file and the answers appear. Sideloading works too: the ⋯ menu, Install from VSIX.",
   "ide-vscode-p2": "The epher extension also works with the browser versions of VS Code, vscode.dev and github.dev: press `.` on any GitHub repository or pull request to launch VS Code directly in the browser.",
+  "ide-vscode-p3": "Running scripts: the Run script button on line one, Ctrl+Enter, or plain F5 — epher ships a run-only debug adapter, so a debug start runs the file and prints the answers in the Debug Console. The button and Ctrl+Enter open the results pane instead, which adds the run's graphs and links each row to its line.",
   "ide-vscode-marketplace": "Install from the VS Code Marketplace",
   "ide-vscode-link": "Download epher-vscode.vsix",
   "ide-cursor-title": "Cursor",

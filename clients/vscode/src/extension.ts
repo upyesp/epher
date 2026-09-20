@@ -4,6 +4,7 @@ import {
   LanguageClientOptions,
   ServerOptions,
 } from "vscode-languageclient/node";
+import { registerDebug } from "./debug";
 import { registerRun } from "./results";
 import { wasmServerOptions } from "./wasmServer";
 
@@ -31,6 +32,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     serverOptions,
     clientOptions,
   );
+  // Registered before the start attempt: the debug start exists even
+  // when the server fails, so F5 reports the dead server cleanly
+  // instead of regressing to the marketplace dialog.
+  registerDebug(context, () => client);
   try {
     await client.start();
     registerRun(context, () => client);
