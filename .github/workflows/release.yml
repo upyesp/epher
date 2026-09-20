@@ -111,11 +111,24 @@ jobs:
           grep -q "tag: ${GITHUB_REF_NAME}" packaging/flatpak/org.epher.Desktop.yml
           grep -q "commit: ${GITHUB_SHA}" packaging/flatpak/org.epher.Desktop.yml
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        id: build
+        # The arm runner's bwrap intermittently fails with "Exec format
+        # error" at the first module (2 of 4 runs one release week); the
+        # failure is transient and an immediate re-attempt passes. The
+        # first attempt is allowed to fail so the second can absorb it;
+        # the job's outcome is the second attempt's.
+        continue-on-error: true
         with:
           bundle: epher-linux-${{ matrix.arch }}.flatpak
           manifest-path: packaging/flatpak/org.epher.Desktop.yml
           # the action's auto-upload mangles the arch into the name; the
           # explicit upload below feeds the release job's asset merge
+          upload-artifact: false
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        if: always() && steps.build.outcome == 'failure'
+        with:
+          bundle: epher-linux-${{ matrix.arch }}.flatpak
+          manifest-path: packaging/flatpak/org.epher.Desktop.yml
           upload-artifact: false
       - uses: actions/upload-artifact@v4
         with:
