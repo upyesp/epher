@@ -59,6 +59,21 @@
         "language": "epher",
         "path": "./snippets/epher.json"
       }
+    ],
+    "commands": [
+      {
+        "command": "epher.runScript",
+        "title": "Epher: Run Script",
+        "icon": "$(play)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "epher.runScript",
+        "key": "ctrl+enter",
+        "mac": "cmd+enter",
+        "when": "editorTextFocus && editorLangId == epher"
+      }
     ]
   },
   "scripts": {

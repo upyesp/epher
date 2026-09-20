@@ -289,3 +289,97 @@ fn unit_suffixes_color_as_units() -> Result<(), Box<dyn Error>> {
     assert_eq!(types, vec![0, 6, 4, 1, 2, 4, 0, 4], "the m in 2 m is a unit");
     Ok(())
 }
+
+#[test]
+fn run_reports_lines_and_graphs() -> Result<(), Box<dyn Error>> {
+    let mut client = start()?;
+    // One value statement, one statement with no value, one plot: the
+    // run's report mirrors what the calculator would print, and the
+    // plot renders as an in-memory SVG document (ADR-0069).
+    let uri = open(
+        &mut client,
+        "memo://run.epher",
+        "x = 40 + 2\ndef double(n) = n * 2\ngraph sin(x) from 0 to 6\n",
+    );
+    let _ = client.diagnostics();
+    let id = client.request(
+        "epher/run",
+        json!({ "textDocument": { "uri": uri.to_string() } }),
+    );
+    let response = client.response(id);
+    assert!(response.error.is_none(), "run succeeds: {:?}", response.error);
+    let result = response.result.expect("run report");
+    let statements = result["statements"].as_array().expect("statements");
+    assert_eq!(statements.len(), 3, "one entry per statement");
+    assert_eq!(statements[0]["line"], json!(0));
+    assert!(
+        statements[0]["display"].as_str().unwrap_or("").contains("42"),
+        "the assignment's answer shows: {:?}",
+        statements[0]["display"]
+    );
+    assert_eq!(
+        statements[1]["display"], json!(null),
+        "a def produces no value"
+    );
+    assert!(!statements[2]["error"].as_bool().unwrap_or(true), "the graph line plots");
+    let svgs = result["svgs"].as_array().expect("svgs");
+    assert_eq!(svgs.len(), 1, "one 2D graph document");
+    assert!(svgs[0].as_str().unwrap().contains("<svg"), "an SVG document");
+    Ok(())
+}
+
+#[test]
+fn run_survives_a_failing_statement() -> Result<(), Box<dyn Error>> {
+    let mut client = start()?;
+    let uri = open(
+        &mut client,
+        "memo://run-error.epher",
+        "x = 40 + 2\nnope + 1\ny = 1 + 1\n",
+    );
+    let _ = client.diagnostics();
+    let id = client.request(
+        "epher/run",
+        json!({ "textDocument": { "uri": uri.to_string() } }),
+    );
+    let response = client.response(id);
+    assert!(response.error.is_none(), "the run itself succeeds");
+    let result = response.result.expect("run report");
+    let statements = result["statements"].as_array().expect("statements");
+    assert!(statements[1]["error"].as_bool().unwrap_or(false), "the bad statement is marked");
+    assert!(
+        statements[2]["display"].as_str().unwrap_or("").contains("2"),
+        "evaluation continues past the failure"
+    );
+    Ok(())
+}
+
+#[test]
+fn run_reflects_the_debounced_text() -> Result<(), Box<dyn Error>> {
+    let mut client = start()?;
+    let uri = open(&mut client, "memo://run-debounce.epher", "x = 1");
+    let _ = client.diagnostics_within(2000);
+    // An edit inside the quiet gap: the run must see the held text,
+    // not the stale analyzed one.
+    client.notify(
+        "textDocument/didChange",
+        json!({
+            "textDocument": { "uri": uri.to_string(), "version": 2 },
+            "contentChanges": [ { "text": "x = 40 + 2" } ]
+        }),
+    );
+    let id = client.request(
+        "epher/run",
+        json!({ "textDocument": { "uri": uri.to_string() } }),
+    );
+    let response = client.response(id);
+    let result = response.result.expect("run report");
+    assert!(
+        result["statements"][0]["display"]
+            .as_str()
+            .unwrap_or("")
+            .contains("42"),
+        "the held text runs: {:?}",
+        result["statements"][0]["display"]
+    );
+    Ok(())
+}

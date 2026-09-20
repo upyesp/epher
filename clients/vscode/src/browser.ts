@@ -4,6 +4,7 @@ import {
   LanguageClientOptions,
   ServerOptions,
 } from "vscode-languageclient/browser";
+import { registerRun } from "./results";
 import { wasmServerOptions } from "./wasmServer";
 
 // The web entry (ADR-0066 amendment): the same server build as the
@@ -33,6 +34,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
   try {
     await client.start();
+    registerRun(context, () => client);
   } catch (err) {
     // The server is the whole live feature set; without it the
     // declarative contributions still edit fine. Say so once.

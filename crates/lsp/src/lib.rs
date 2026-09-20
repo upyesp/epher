@@ -51,7 +51,11 @@ pub fn run(connection: Connection) -> Result<(), Box<dyn Error + Send + Sync>> {
                         if connection.handle_shutdown(&req)? {
                             return Ok(());
                         }
-                        let response = answer(&req, &documents);
+                        let response = if req.method == "epher/run" {
+                            run_request(&req, &documents, &pending)
+                        } else {
+                            answer(&req, &documents)
+                        };
                         connection.sender.send(Message::Response(response))?;
                     }
                     Message::Notification(notification) => {
@@ -78,6 +82,65 @@ pub fn run(connection: Connection) -> Result<(), Box<dyn Error + Send + Sync>> {
             }
         }
     }
+}
+
+/// The script run (ADR-0069): `epher/run` evaluates the document's
+/// newest text through the shell's script loop and answers with the
+/// per-statement lines and the run's plot SVGs. A document still inside
+/// the debounce runs from its held text, so Run always reflects the
+/// buffer the editor showed when the command fired. The run is
+/// hermetic (a fresh session), and the editor's locale names its
+/// messages.
+fn run_request(
+    req: &ServerRequest,
+    documents: &Documents,
+    pending: &HashMap<String, (String, i32)>,
+) -> Response {
+    let uri = req.params["textDocument"]["uri"]
+        .as_str()
+        .unwrap_or_default()
+        .to_string();
+    if uri.is_empty() {
+        return Response::new_err(
+            req.id.clone(),
+            -32602,
+            "epher/run needs a textDocument uri".to_string(),
+        );
+    }
+    // The held edit is the newest text: it wins over the analyzed
+    // document, which only reflects the last quiet gap.
+    let text = pending
+        .get(&uri)
+        .map(|(text, _)| text.clone())
+        .or_else(|| {
+            documents
+                .iter()
+                .find(|(key, _)| key.as_str() == uri)
+                .map(|(_, document)| document.text.clone())
+        });
+    let Some(text) = text else {
+        return Response::new_err(
+            req.id.clone(),
+            -32602,
+            "document not open".to_string(),
+        );
+    };
+    let localizer = epher_i18n::Localizer::resolve(None, &[]);
+    let run = epher_shell::run_script(&text, &localizer);
+    let result = serde_json::json!({
+        "statements": run
+            .lines
+            .iter()
+            .map(|line| serde_json::json!({
+                "line": line.line,
+                "source": line.source,
+                "display": line.display,
+                "error": line.error,
+            }))
+            .collect::<Vec<_>>(),
+        "svgs": run.svgs,
+    });
+    Response::new_ok(req.id.clone(), result)
 }
 
 /// One editor notification, three ways: an open applies at once (a

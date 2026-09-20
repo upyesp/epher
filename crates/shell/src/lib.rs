@@ -514,3 +514,105 @@ pub fn run_command<S: Storage>(
         Err(e) => Handled::err(e.to_string()),
     }
 }
+
+// ---------------------------------------------------------------------------
+// Script runs (ADR-0069): the language server's run request drives the
+// same statement loop the CLI's script-file run uses, and the run's
+// plots render to in-memory SVG documents instead of files. One
+// grammar, one evaluator, a second consumer of the loop.
+
+/// One statement's result in a script run. `display` is the
+/// calculator's own rendering (None: the statement produced no value,
+/// like a `def`); `error` marks the failing statement, whose message
+/// arrives without the CLI's `error: ` voice (the pane styles it).
+/// `line` is the 0-based source line the statement starts on.
+pub struct ScriptLine {
+    pub line: u32,
+    pub source: String,
+    pub display: Option<String>,
+    pub error: bool,
+}
+
+/// A finished script run (ADR-0069): the per-statement lines plus the
+/// run's plots, rendered as in-memory SVG documents. The run is
+/// hermetic: a fresh session evaluates the text, so machine state (the
+/// saved store) never leaks into an editor's results.
+pub struct ScriptRun {
+    pub lines: Vec<ScriptLine>,
+    pub svgs: Vec<String>,
+}
+
+/// Run `text` as a script (ADR-0069): one live session across the
+/// statements, a function defined early is available later,
+/// `graph`/`graph3d`/`solar3d` lines plot into the run's plot state,
+/// and errors do not stop the pass — the same loop
+/// `epher file.es` uses, with the output captured instead of printed.
+/// Store-backed shell commands (`save`, `language`, `theme`) are inert
+/// here: the run is hermetic, so they are skipped rather than faked.
+pub fn run_script(text: &str, localizer: &Localizer) -> ScriptRun {
+    let mut session = Session::default();
+    let mut plots = plots::Plots::new();
+    let mut lines = Vec::new();
+    let mut cursor = 0usize;
+    for piece in split_statements(text) {
+        let piece = piece.trim();
+        if piece.is_empty() {
+            continue;
+        }
+        // The 0-based line the statement starts on: statements come in
+        // order, so the piece is found from the running cursor.
+        let offset = text[cursor..]
+            .find(piece)
+            .map(|at| cursor + at)
+            .unwrap_or(cursor);
+        cursor = offset + piece.len();
+        let line = text[..offset].matches('\n').count() as u32;
+
+        // The plot grammar dispatches on the line prefix, exactly as
+        // the CLI's entries do.
+        let plot = if let Some(source) = piece.strip_prefix("graph ") {
+            Some(plots.submit_graph(source, session.env(), localizer))
+        } else if let Some(source) = piece.strip_prefix("graph3d ") {
+            Some(plots.submit_surface(source, session.env(), localizer))
+        } else if let Some(source) = piece.strip_prefix("solar3d ") {
+            Some(plots.submit_solar3d(source, session.env(), localizer))
+        } else {
+            None
+        };
+        if let Some(out) = plot {
+            lines.push(ScriptLine {
+                line,
+                source: piece.to_string(),
+                display: Some(out.message),
+                error: out.error,
+            });
+            continue;
+        }
+        // Store-backed shell commands are inert in a hermetic run.
+        if classify(piece).is_some() {
+            lines.push(ScriptLine {
+                line,
+                source: piece.to_string(),
+                display: None,
+                error: false,
+            });
+            continue;
+        }
+        let out = session.submit_all(piece);
+        let error = out.starts_with("error: ");
+        lines.push(ScriptLine {
+            line,
+            source: piece.to_string(),
+            display: if out.is_empty() {
+                None
+            } else {
+                Some(out.strip_prefix("error: ").unwrap_or(&out).to_string())
+            },
+            error,
+        });
+    }
+    ScriptRun {
+        lines,
+        svgs: plots.svg_documents(true, session.env(), localizer),
+    }
+}
