@@ -25,7 +25,7 @@ window.EPHER_I18N["pt"] = {
   "theme-dark": "Usar tema escuro",
   "lang-label": "Idioma",
   "tagline": "Uma calculadora gráfica com scripts",
-  "lede": "Um motor de cálculo, cinco formas de o usar: linha de comandos, REPL interativo, interface TUI completa, aplicação de ambiente de trabalho e aplicação web offline. Escreva expressões, guarde funções e scripts, represente resultados em 2D ou 3D e mantenha o histórico entre sessões e interfaces. Sem conta, sem nuvem: o seu trabalho fica no seu dispositivo. Disponível como aplicação nativa para Windows, macOS, Linux e no navegador.",
+  "lede": "Um motor de cálculo, sete formas de o usar: linha de comandos, REPL interativo, interface TUI completa, aplicação de ambiente de trabalho, aplicação web, aplicação web em vista móvel e dentro do seu IDE através da extensão de IDE (disponível para VS Code, suite JetBrains, Zed, Microsoft Visual Studio, Sublime, Open VSX (para Cursor e VSCodium), Neovim e Vim). Escreva expressões, guarde funções e scripts, represente resultados em 2D ou 3D e mantenha o histórico entre sessões e interfaces. Sem conta, sem nuvem: o seu trabalho fica no seu dispositivo. Disponível como aplicação nativa para Windows, macOS, Linux e no navegador.",
   "cta-download": "Obter o epher",
   "try-this": "Experimentar",
   "features-title": "Funções",
