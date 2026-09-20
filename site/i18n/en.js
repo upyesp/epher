@@ -25,7 +25,7 @@ window.EPHER_I18N["en"] = {
   "theme-dark": "Use dark theme",
   "lang-label": "Language",
   "tagline": "a scriptable, graphing calculator",
-  "lede": "One calculation engine, five ways to use it: command line, interactive REPL, full TUI interface, desktop GUI app, and an offline web app. Type expressions, save functions and scripts, graph results in 2D or 3D, and keep history between sessions and user interfaces. No account, no cloud: your work stays on your device. Available as native apps for Windows, macOS, Linux, and in the browser.",
+  "lede": "One calculation engine, seven ways to use it: command line, interactive REPL, full TUI interface, desktop app, web app, mobile-view web app, and inside your IDE by using the IDE extension (available for VS Code, JetBrains suite, Zed, Microsoft Visual Studio, Sublime, Open VSX (For Cursor & VSCodium), Neovim and Vim). Type expressions, save functions and scripts, graph results in 2D or 3D, and keep history between sessions and user interfaces. No account, no cloud: your work stays on your device. Available as native apps for Windows, macOS, Linux, and in the browser.",
   "cta-download": "Get epher",
   "try-this": "try this",
   "features-title": "Features",
