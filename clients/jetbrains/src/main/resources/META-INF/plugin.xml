@@ -27,7 +27,12 @@
          grammar machinery. There is no LSP module at 242: the LSP
          extension point lives in the IDE product itself. -->
     <depends>com.intellij.modules.lang</depends>
-    <depends>org.intellij.plugins.textmate</depends>
+    <!-- The bundled TextMate plugin's id: org.jetbrains.plugins, not
+         the org.intellij.plugins of the pre-2020 TextMate plugin this
+         one replaced. Depending on the old id fails every install with
+         "requires another plugin to be installed" even though TextMate
+         Bundles is right there in the IDE. -->
+    <depends>org.jetbrains.plugins.textmate</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- The platform's built-in LSP client (commercial IDEs only). -->

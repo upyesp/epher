@@ -15,8 +15,10 @@ import java.io.File
 //   - at 242 there is no com.intellij.modules.lsp module to depend on;
 //     the extension point com.intellij.platform.lsp.serverSupportProvider
 //     lives in the IDE product itself,
-//   - the TextMate plugin (org.intellij.plugins.textmate) is bundled
-//     everywhere and exposes com.intellij.textmate.bundleProvider.
+//   - the TextMate plugin (org.jetbrains.plugins.textmate; the old
+//     org.intellij.plugins.textmate id belongs to the pre-2020 plugin
+//     it replaced) is bundled everywhere and exposes
+//     com.intellij.textmate.bundleProvider.
 
 plugins {
     id("java")
