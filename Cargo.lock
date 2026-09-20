@@ -1166,6 +1166,8 @@ version = "0.5.43"
 dependencies = [
  "crossbeam-channel",
  "epher-core",
+ "epher-i18n",
+ "epher-shell",
  "lsp-server",
  "lsp-types",
  "serde_json",

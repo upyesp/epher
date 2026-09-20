@@ -4,6 +4,7 @@ import {
   LanguageClientOptions,
   ServerOptions,
 } from "vscode-languageclient/node";
+import { registerRun } from "./results";
 import { wasmServerOptions } from "./wasmServer";
 
 let client: LanguageClient | undefined;
@@ -32,6 +33,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
   try {
     await client.start();
+    registerRun(context, () => client);
   } catch (err) {
     client = undefined;
     const message = err instanceof Error ? err.message : String(err);

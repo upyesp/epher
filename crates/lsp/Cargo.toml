@@ -7,6 +7,8 @@ description = "The epher language server: one synchronous binary every IDE exten
 
 [dependencies]
 epher-core = { path = "../core" }
+epher-shell = { path = "../shell" }
+epher-i18n = { path = "../i18n" }
 lsp-server = "0.7"
 lsp-types = "0.97"
 serde_json = "1.0"

@@ -371,6 +371,45 @@ impl Plots {
             None => PlotOutcome::err(localizer.lookup("graph-empty")),
         }
     }
+
+    /// The run's plots as in-memory SVG documents (ADR-0069): one per
+    /// populated kind, in the pane's priority order — data plot, 2D
+    /// curves, 3D surfaces, 3D curves, solar system. The same renderers
+    /// the `graph save` files write, captured instead of written.
+    pub fn svg_documents(&self, markers: bool, env: &Env, localizer: &Localizer) -> Vec<String> {
+        let mut docs = Vec::new();
+        if let Some(data) = &self.data {
+            docs.push(data_svg(data, DEFAULT_STROKE_WIDTH));
+        } else if !self.curves.is_empty() {
+            let pois = labeled_pois(&analyze(&self.curves, env), localizer);
+            docs.push(graph_svg(
+                &self.curves,
+                &pois,
+                None,
+                markers,
+                DEFAULT_STROKE_WIDTH,
+            ));
+        }
+        if !self.surfaces.is_empty() {
+            if let Some(doc) = graph3d_svg(&self.surfaces, &View3D::default(), THREE_D_DEFAULT_WIDTH)
+            {
+                docs.push(doc);
+            }
+        }
+        if !self.curve3d.is_empty() {
+            if let Some(doc) =
+                graph3d_curve_svg(&self.curve3d, &View3D::default(), THREE_D_DEFAULT_WIDTH)
+            {
+                docs.push(doc);
+            }
+        }
+        if let Some(scene) = &self.solar {
+            if let Some(doc) = solar3d_svg(scene, &View3D::default(), THREE_D_DEFAULT_WIDTH) {
+                docs.push(doc);
+            }
+        }
+        docs
+    }
 }
 
 fn write_document(path: &str, doc: String, localizer: &Localizer) -> PlotOutcome {
