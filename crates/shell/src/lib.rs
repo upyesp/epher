@@ -588,14 +588,34 @@ pub fn run_script(text: &str, localizer: &Localizer) -> ScriptRun {
             });
             continue;
         }
-        // Store-backed shell commands are inert in a hermetic run.
-        if classify(piece).is_some() {
-            lines.push(ScriptLine {
-                line,
-                source: piece.to_string(),
-                display: None,
-                error: false,
-            });
+        // Store-backed shell commands (`save`, `language`, `theme`) are
+        // inert in a hermetic run. The table is pure computation: its
+        // multi-line rendering is the result (ADR-0054), so it runs and
+        // the pane shows it with its newlines preserved.
+        if let Some(cmd) = classify(piece) {
+            if matches!(cmd, Command::Table { .. }) {
+                match prepare(&cmd, &session, localizer) {
+                    Ok(prepared) => lines.push(ScriptLine {
+                        line,
+                        source: piece.to_string(),
+                        display: Some(message(&prepared, localizer)),
+                        error: false,
+                    }),
+                    Err(msg) => lines.push(ScriptLine {
+                        line,
+                        source: piece.to_string(),
+                        display: Some(msg),
+                        error: true,
+                    }),
+                }
+            } else {
+                lines.push(ScriptLine {
+                    line,
+                    source: piece.to_string(),
+                    display: None,
+                    error: false,
+                });
+            }
             continue;
         }
         let out = session.submit_all(piece);

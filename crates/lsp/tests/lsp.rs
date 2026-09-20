@@ -383,3 +383,29 @@ fn run_reflects_the_debounced_text() -> Result<(), Box<dyn Error>> {
     );
     Ok(())
 }
+
+#[test]
+fn run_shows_tables_multiline() -> Result<(), Box<dyn Error>> {
+    let mut client = start()?;
+    // The table is the long, multi-line answer the results pane exists
+    // for: its rendering keeps its newlines (ADR-0069).
+    let uri = open(
+        &mut client,
+        "memo://table.epher",
+        "table sin(x) from 0 to 3",
+    );
+    let _ = client.diagnostics();
+    let id = client.request(
+        "epher/run",
+        json!({ "textDocument": { "uri": uri.to_string() } }),
+    );
+    let response = client.response(id);
+    assert!(response.error.is_none(), "run succeeds: {:?}", response.error);
+    let result = response.result.expect("run report");
+    let statements = result["statements"].as_array().expect("statements");
+    assert_eq!(statements.len(), 1);
+    let display = statements[0]["display"].as_str().expect("table rendered");
+    assert!(display.contains('\n'), "the table keeps its newlines: {display:?}");
+    assert!(!statements[0]["error"].as_bool().unwrap_or(true));
+    Ok(())
+}
