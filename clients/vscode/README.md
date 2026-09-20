@@ -7,6 +7,10 @@
 that convert, and every statement's answer appears inline, right next
 to the line that produced it.
 
+Download the [epher calculator](https://epher.org), and a large
+selection of [ready-made scripts](https://epher.org/scripts.html) from
+epher.org.
+
 ![A script computing Earth's circumference, the discriminant of a quadratic, and a speed converted from miles to kilometers per hour, each line's answer shown inline](https://github.com/upyesp/epher/raw/HEAD/clients/vscode/images/editor.png)
 
 ![The demo script typed live, each line's answer appearing as it completes](https://github.com/upyesp/epher/raw/HEAD/clients/vscode/images/demo.gif)
