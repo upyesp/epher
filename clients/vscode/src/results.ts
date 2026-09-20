@@ -74,6 +74,7 @@ function reportHtml(report: RunReport, nonce: string): string {
   tr.statement:hover td { background: var(--vscode-list-hoverBackground); }
   td { padding: 2px 8px; vertical-align: top; }
   td.source { width: 55%; }
+  td.result, td.source code { white-space: pre-wrap; }
   code { font-size: 1em; }
   .answer { color: var(--vscode-symbolIcon-functionForeground, #c8c8c8); }
   .error { color: var(--vscode-errorForeground); }
