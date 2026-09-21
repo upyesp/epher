@@ -62,23 +62,20 @@ downloaded on first use, and it works offline.
 
 ## Running a script
 
-Three ways to run the whole file:
+One behaviour, however you start it: the **Run script** CodeLens at
+the top of the editor (the play icon), **Ctrl+Enter** /
+<kbd>Cmd+Enter</kbd>, **F5**, <kbd>Ctrl+F5</kbd>, or the command
+palette. The whole file runs, the answers print in the Debug Console,
+and the **results pane** opens beside the editor with the same
+transcript, clickable back to its lines, plus every graph the run
+produced as inline SVG.
 
-- the **Run script** CodeLens at the top of the editor (the play
-  icon),
-- **Ctrl+Enter** / <kbd>Cmd+Enter</kbd>,
-- **F5** or <kbd>Ctrl+F5</kbd>. epher ships a run-only debug adapter,
-  so a debug start runs the script and prints the answers in the
-  Debug Console instead of sending you to the marketplace.
-
-epher has nothing to pause or step through — statements evaluate in
-order and the answers are the whole transcript — so the debugger has
-no breakpoints: F5 simply means "run". The CodeLens and Ctrl+Enter
-open the **results pane** beside the editor: the same transcript,
-clickable back to its lines, plus every graph the run produced as
-inline SVG. The Debug Console is text-only. A `launch.json` entry
-works too (`type: "epher"`, `request: "launch"`, `program: path to
-script`); the Add Configuration menu offers the snippet.
+epher has nothing to pause or step through: statements evaluate in
+order and the answers are the whole transcript, so the run rides a
+run-only debug adapter with no breakpoints and F5 simply means "run".
+A `launch.json` entry works too (`type: "epher"`, `request: "launch"`,
+`program: path to script`); the Add Configuration menu offers the
+snippet.
 
 ## Works in the browser too
 

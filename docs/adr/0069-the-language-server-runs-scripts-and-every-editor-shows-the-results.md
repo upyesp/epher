@@ -69,3 +69,25 @@ language server's build:
 - Phasing: milestone 1 — the LSP run request plus the VS Code results
   pane; milestone 2 — the text-first editors; milestone 3 — DAP
   debugging.
+
+## Amendment (2026-09-21): every start is the same start
+
+The VS Code client grew two run roads: the play CodeLens ran
+`epher/run` itself and opened the results pane, while F5 and Ctrl+F5
+went through the run-only debug adapter (added after this ADR, no
+amendment until now) and printed the transcript in the Debug Console,
+opening the pane only when the run produced graphs. Two roads meant
+two experiences for one command, and a text-only run on F5 left the
+pane closed; VSCodium installs carrying the older build also showed
+the adapter's earliest shape, which echoed statement source instead
+of answers.
+
+The amendment collapses the roads into one: every start (the CodeLens,
+Ctrl+Enter, the command palette, F5, Ctrl+F5) launches the same
+run-only debug session. The adapter sends `epher/run`, streams the
+transcript to the Debug Console, and always opens the results pane
+beside the editor, graphs or no graphs. The pane registers before the
+language server starts, so a run never races its creation, and the
+adapter's old "run the play command instead" fallback message is gone.
+Other editors are unchanged: this is the VS Code family's client-side
+plumbing, not the server contract.

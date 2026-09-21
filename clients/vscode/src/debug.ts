@@ -2,14 +2,18 @@ import * as vscode from "vscode";
 
 // The run-only debug adapter: what F5 and Ctrl+F5 do on a .epher file.
 //
-// epher has nothing to debug — statements evaluate eagerly, in order,
-// and the answers are the whole transcript — so a debug start is
-// answered with the same whole-file run the results pane uses
-// (ADR-0069): the language server's `epher/run`, streamed as DAP
-// output events. The alternative VS Code offers without a debugger
-// contribution ("find a debugging extension in the marketplace") sent
-// users to a store that has no such extension, so the adapter exists
-// to make the honest reading of F5 — "run it" — just work.
+// epher has nothing to debug: statements evaluate eagerly, in order,
+// and the answers are the whole transcript. A debug start is answered
+// with the same whole-file run the results pane uses (ADR-0069): the
+// language server's `epher/run`, streamed as DAP output events, with
+// the results pane opened beside the editor at the end. Every start
+// (play button, Ctrl+Enter, F5, Ctrl+F5) takes this one road, so the
+// user sees one behaviour: the transcript in the Debug Console and
+// the full results, graphs included, in the pane. The alternative VS
+// Code offers without a debugger contribution ("find a debugging
+// extension in the marketplace") sent users to a store that has no
+// such extension, so the adapter exists to make the honest reading
+// of F5, "run it", just work.
 //
 // The adapter is inline (no child process, no new dependencies) and
 // identical on desktop and web, where the language server is the wasm
@@ -166,22 +170,28 @@ class EpherRunSession implements vscode.DebugAdapter {
           "console",
         );
       }
-      if (report.svgs.length) {
-        const pane = this.getPane();
-        if (pane) {
-          pane.show(target, report);
+      // The pane opens on every run, text answers and graphs alike:
+      // the run is over, the transcript above is its Debug Console
+      // copy, and the pane is the clickable one beside the editor.
+      const pane = this.getPane();
+      if (pane) {
+        pane.show(target, report);
+        if (report.svgs.length) {
+          const graphs = report.svgs.length;
           this.output(
-            `${report.svgs.length} graph${report.svgs.length === 1 ? "" : "s"} produced`
-              + " \u2014 opened the results pane beside the editor.\n",
-            "console",
-          );
-        } else {
-          this.output(
-            `${report.svgs.length} graph${report.svgs.length === 1 ? "" : "s"} produced`
-              + " \u2014 \u2018Epher: Run Script\u2019 renders them beside the editor.\n",
+            `${graphs} graph${graphs === 1 ? "" : "s"} rendered`
+              + " in the results pane beside the editor.\n",
             "console",
           );
         }
+      } else {
+        // Only reachable while activation is still in flight (the
+        // pane registers before the server starts); never a prompt
+        // to go find the play command by hand.
+        this.output(
+          "The results pane was not ready; run again to open it.\n",
+          "console",
+        );
       }
     } catch (err) {
       this.output(`Epher run failed: ${err instanceof Error ? err.message : String(err)}\n`, "stderr");

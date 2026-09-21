@@ -20,8 +20,8 @@ export interface RunReport {
 }
 
 /** The pane surface the run-only debug adapter (debug.ts) shares:
- *  after an F5 run produced graphs, they land in the same pane the
- *  play button uses, so both starts render identically. */
+ *  every run lands here, whichever way it started, so the pane is
+ *  the one place results and graphs render. */
 export interface RunPane {
   show(uri: vscode.Uri, report: RunReport): void;
 }
@@ -105,7 +105,6 @@ ${graphSection}
 
 export function registerRun(
   context: vscode.ExtensionContext,
-  getClient: () => RunClient | undefined,
 ): RunPane {
   const panels = new Map<string, vscode.WebviewPanel>();
 
@@ -153,36 +152,26 @@ export function registerRun(
     },
   };
 
-  const run = async (uri: vscode.Uri): Promise<void> => {
-    const client = getClient();
-    if (!client) {
-      void vscode.window.showErrorMessage(
-        "The Epher language server is not running; the script run needs it.",
-      );
-      return;
-    }
-    try {
-      const report = await client.sendRequest("epher/run", {
-        textDocument: { uri: uri.toString() },
-      });
-      pane.show(uri, report);
-    } catch (err) {
-      void vscode.window.showErrorMessage(
-        `Epher run failed: ${err instanceof Error ? err.message : String(err)}`,
-      );
-    }
-  };
-
   context.subscriptions.push(
     vscode.commands.registerCommand("epher.runScript", async (uri?: vscode.Uri) => {
       // The CodeLens hands in the document's uri; the command palette
       // path falls back to the active editor. Untitled epher documents
-      // run too: the server tracks them by uri string.
+      // run too: the server tracks them by uri string. Every start
+      // takes the same road from here: the run-only debug session,
+      // whose adapter sends `epher/run`, prints the transcript in the
+      // Debug Console, and opens this pane beside the editor (see
+      // debug.ts). Play button, Ctrl+Enter, F5, and Ctrl+F5 are then
+      // one behaviour, not two.
       const target = uri ?? vscode.window.activeTextEditor?.document.uri;
       if (!target) {
         return;
       }
-      await run(target);
+      await vscode.debug.startDebugging(undefined, {
+        type: "epher",
+        request: "launch",
+        name: "Run epher script",
+        program: target.toString(true),
+      });
     }),
     vscode.languages.registerCodeLensProvider({ language: "epher" }, {
       provideCodeLenses(document) {
