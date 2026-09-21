@@ -1,6 +1,9 @@
 # Double-clicking a `.epher` file opens the desktop app and stages it
 
-Date: 2026-09-17
+Date: 2026-09-17. Renumbered from 0069 to 0070 on 2026-09-21: that
+number was double-allocated, and the run-and-results decision (the
+language server runs scripts) keeps the lower number because the code
+cites it.
 
 ## Context
 

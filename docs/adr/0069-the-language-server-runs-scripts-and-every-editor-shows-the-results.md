@@ -91,3 +91,42 @@ language server starts, so a run never races its creation, and the
 adapter's old "run the play command instead" fallback message is gone.
 Other editors are unchanged: this is the VS Code family's client-side
 plumbing, not the server contract.
+
+## Amendment (2026-09-21): milestone two — the editors beyond VS Code run
+
+Milestone two is shipped, editor by editor, within each platform's
+real limits:
+
+- **JetBrains** takes the VS Code shape. "Run Epher Script" lives in
+  the Tools menu and the editor's context menu; a results tool window
+  beside the editor renders the same report the VS Code pane does —
+  answers and errors anchored to lines, every 2D/3D graph inline —
+  through the platform's JCEF browser, with a text-only Swing
+  fallback where JCEF is unavailable. The platform's built-in LSP
+  client exposes no raw server handle, so a run speaks to its own
+  short-lived `epher-lsp` session (initialize, didOpen, `epher/run`,
+  shutdown) beside the inline-hints session; the binary is the one
+  the plugin already downloads and caches.
+- **Visual Studio** gets a Tools-menu command backed by a minimal
+  VSPackage and .vsct. The report opens in the IDE's internal browser
+  as a tab in the editor well — dockable like any document — carrying
+  the same HTML; errors echo to an "epher" Output pane. The same
+  one-shot server session drives the run; StreamJsonRpc frames it.
+  A true dockable tool window is the named follow-up.
+- **Neovim** is text-first, exactly as decision 3 prescribed:
+  `:EpherRun` sends the same request through the native LSP client
+  and opens a results window beside the script (a float with
+  `pane = "float"`); graphs are written under the cache directory as
+  SVG and opened with the system viewer; `<CR>` on a result row jumps
+  to its statement, and on a graph row reopens the file. Rerunning
+  from the results window re-runs the script it belongs to.
+- **Zed** stays within its extension API's limits, recorded in its
+  README: no commands, no panels, no webviews, so there is no pane to
+  fill and no action to register. The live inline answers and
+  `epher run script.epher` in Zed's terminal are the honest
+  substitute until the API grows a surface. The extension's version
+  lock (it downloads tag v<its own version>) is now guarded in CI,
+  after riding six releases stale.
+- **Vim, Emacs, Sublime, and Eclipse** keep the decision-3 floor for
+  now — configuration-level clients whose run story follows in a
+  later release; nothing about them regressed.

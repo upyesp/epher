@@ -91,6 +91,10 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0064 | Statement bodies, control flow, destructuring, and the string library | 2026-09-17 | accepted |
 | 0065 | The imaginary unit is reserved | 2026-09-17 | accepted |
 | 0066 | IDE extensions speak one LSP server | 2026-09-17 | accepted |
+| 0067 | Stage five brings the editors beyond VS Code | 2026-09-17 | accepted |
+| 0068 | Every editor gets a download, and the last two families ship | 2026-09-18 | accepted |
+| 0069 | The language server runs scripts, and every editor shows the results (amended 2026-09-21: every VS Code start is the same start; amended 2026-09-21: milestone two — JetBrains, Visual Studio, and Neovim run scripts, Zed documented to its limits) | 2026-09-19 | accepted |
+| 0070 | Double-clicking a `.epher` file opens the desktop app and stages it (renumbered from 0069, which was double-allocated) | 2026-09-17 | accepted |
 
 ## Decision chains
 
@@ -201,7 +205,12 @@ at the end of the chain.
   stay parked)** → **0069 (the language server runs scripts via a
   custom request, VS Code gets the results pane with inline SVG
   graphs, the text-first editors follow, DAP debugging named as its
-  own later release)**.
+  own later release)** → **0069 amendment, milestone two (JetBrains
+  gains a Run Epher Script action with a results tool window, Visual
+  Studio a Tools-menu command whose results open beside the script,
+  Neovim `:EpherRun` with a results window and system-viewer graphs;
+  Zed's API has no pane to fill, documented in its README; Vim,
+  Emacs, Sublime, and Eclipse follow)**.
 - **Script files** - 0013 (`epher -` pipes) → **0040 (`epher file.es`
   runs a script file; the REPL's `load` runs a file or a saved script;
   `save script name` still stores one)**.
