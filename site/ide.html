@@ -192,6 +192,12 @@
         newer. On first use it downloads the server for your
         platform; after that, everything is local.
       </p>
+      <p data-i18n="ide-jetbrains-p2">
+        Run Epher Script lives in the Tools menu and the
+        editor's context menu. The results open in a pane
+        beside your script: every answer, every error, and
+        every 2D or 3D graph, rendered on the spot.
+      </p>
       <p>
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-jetbrains.zip" data-i18n="ide-jetbrains-link">Download epher-jetbrains.zip</a>
       </p>
@@ -202,6 +208,11 @@
         the vsix, or Extensions, Manage Extensions, Install from
         file. Works in Visual Studio 2022. On first use it downloads
         the server for Windows; after that, everything is local.
+      </p>
+      <p data-i18n="ide-vs-p2">
+        Run Epher Script in the Tools menu evaluates the whole
+        script; the results open as a tab beside your script —
+        text answers, errors, and every 2D or 3D graph.
       </p>
       <p>
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-visualstudio.vsix" data-i18n="ide-vs-link">Download epher-visualstudio.vsix</a>
@@ -224,6 +235,12 @@
         Rust. Publication there is planned; until it lands, the
         dev-extension route above is the way in.
       </p>
+      <p data-i18n="ide-zed-p3">
+        Zed's extension API has no room for a results pane, so
+        whole-script runs happen in the terminal (`epher run
+        script.epher`); the inline answers beside every
+        statement stay live as you type.
+      </p>
       <p class="prereq" data-i18n="ide-zed-prereq">
         Prerequisite: the `epher-lsp` server binary, installed once and on your PATH: see Any LSP client below.
       </p>
@@ -237,6 +254,13 @@
         LSP wiring around the same release binary. Point your
         runtimepath at the folder and call `require("epher").setup()`
         on Neovim 0.11 or newer.
+      </p>
+      <p data-i18n="ide-nvim-vim-p2">
+        On Neovim, `:EpherRun` runs the script and opens a
+        results window beside it; every graph is written as
+        an SVG and opened with the system viewer. Vim keeps
+        the syntax and LSP wiring, and its run support
+        follows.
       </p>
       <p class="prereq" data-i18n="ide-nvim-vim-prereq">
         Prerequisite: the `epher-lsp` server binary, installed once and on your PATH: see Any LSP client below.

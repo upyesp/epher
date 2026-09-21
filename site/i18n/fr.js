@@ -225,10 +225,12 @@ window.EPHER_I18N["fr"] = {
   "ide-vscodium-p1": "VSCodium est VS Code sans le marketplace de Microsoft, et l'installation depuis un VSIX fonctionne exactement pareil : vue Extensions, menu ⋯, Installer depuis un VSIX. Même serveur, mêmes fonctions, même comportement purement local.",
   "ide-vscodium-link": "Télécharger epher-vscode.vsix",
   "ide-jetbrains-p1": "Installez-le depuis le disque : Settings, Plugins, le menu engrenage, Install Plugin from Disk. Fonctionne dans IntelliJ IDEA, PyCharm, WebStorm, GoLand et toute la famille, à partir de 2024.2. Au premier usage, il télécharge le serveur pour votre plateforme ; ensuite, tout est local.",
+  "ide-jetbrains-p2": "Run Epher Script se trouve dans le menu Tools et dans le menu contextuel de l'éditeur. Les résultats s'ouvrent dans un volet à côté de votre script : chaque réponse, chaque erreur et chaque graphique 2D ou 3D, rendus sur place.",
   "ide-jetbrains-link": "Télécharger epher-jetbrains.zip",
   "ide-zed-p1": "Installez-le comme extension de développement : dans Zed, lancez la commande `zed: install dev extension` et choisissez le dossier `epher-zed` décompressé. Zed compile lui-même l'extension, ce qui demande Rust installé. Une grammaire tree-sitter est fournie : la coloration de base et le plan fonctionnent sans réglage ; pour la coloration exacte des unités par le serveur, un seul réglage : `languages.epher.semantic_tokens = full`.",
   "ide-zed-link": "Télécharger epher-zed.zip",
   "ide-nvim-vim-p1": "Des fichiers de configuration prêts à l'emploi : détection de fichier, syntaxe, et le branchement LSP autour du même binaire de version. Ajoutez le dossier à votre runtimepath et appelez `require(\"epher\").setup()` sous Neovim 0.11 ou plus récent.",
+  "ide-nvim-vim-p2": "Dans Neovim, `:EpherRun` exécute le script et ouvre une fenêtre de résultats à côté ; chaque graphique est écrit en SVG et ouvert avec la visionneuse du système. Vim garde la syntaxe et le câblage LSP ; sa prise en charge de l'exécution suivra.",
   "ide-nvim-link": "Télécharger epher-nvim.zip",
   "ide-vim-link": "Télécharger epher-vim.zip",
   "ide-sublime-p1": "Un dossier de paquet : la grammaire partagée dans le format propre à Sublime, plus la définition du client pour le paquet LSP très répandu.",
@@ -245,6 +247,8 @@ window.EPHER_I18N["fr"] = {
   "ide-emacs-prereq": "Prérequis : le binaire du serveur `epher-lsp`, installé une fois et présent dans votre PATH ; voir « N'importe quel client LSP » ci-dessous.",
   "ide-eclipse-prereq": "Prérequis : le binaire du serveur `epher-lsp`, installé une fois et présent dans votre PATH ; voir « N'importe quel client LSP » ci-dessous.",
   "ide-vs-p1": "Installez-le comme n'importe quelle extension Visual Studio : double-clic sur le vsix, ou Extensions, Manage Extensions, Install from file. Fonctionne dans Visual Studio 2022. Au premier usage, il télécharge le serveur pour Windows ; ensuite, tout est local.",
+  "ide-vs-p2": "Run Epher Script, dans le menu Tools, évalue tout le script ; les résultats s'ouvrent dans un onglet à côté de votre script — réponses en texte, erreurs et chaque graphique 2D ou 3D.",
   "ide-vs-link": "Télécharger epher-visualstudio.vsix",
-  "ide-zed-p2": "L'étape Rust appartient aux extensions de développement, pas à epher : les extensions publiées dans le registre d'extensions de Zed sont compilées par Zed lui-même et s'installent en un clic, sans Rust. La publication y est prévue ; d'ici là, la voie de l'extension de développement ci-dessus reste l'entrée."
+  "ide-zed-p2": "L'étape Rust appartient aux extensions de développement, pas à epher : les extensions publiées dans le registre d'extensions de Zed sont compilées par Zed lui-même et s'installent en un clic, sans Rust. La publication y est prévue ; d'ici là, la voie de l'extension de développement ci-dessus reste l'entrée.",
+  "ide-zed-p3": "L'API d'extensions de Zed n'a pas de place pour un volet de résultats ; les scripts entiers s'exécutent donc dans le terminal (`epher run script.epher`) ; les réponses en ligne à côté de chaque instruction restent vivantes pendant la saisie."
 };

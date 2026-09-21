@@ -229,10 +229,12 @@ window.EPHER_I18N["en"] = {
   "ide-vscodium-p1": "VSCodium is VS Code without Microsoft's marketplace, and install-from-VSIX works exactly the same: Extensions view, ⋯ menu, Install from VSIX. Same server, same features, same local-only behavior.",
   "ide-vscodium-link": "Download epher-vscode.vsix",
   "ide-jetbrains-p1": "Install it from disk: Settings, Plugins, the gear menu, Install Plugin from Disk. Works in IntelliJ IDEA, PyCharm, WebStorm, GoLand, and the rest of the family, 2024.2 or newer. On first use it downloads the server for your platform; after that, everything is local.",
+  "ide-jetbrains-p2": "Run Epher Script lives in the Tools menu and the editor's context menu. The results open in a pane beside your script: every answer, every error, and every 2D or 3D graph, rendered on the spot.",
   "ide-jetbrains-link": "Download epher-jetbrains.zip",
   "ide-zed-p1": "Install it as a dev extension: in Zed, run the `zed: install dev extension` command and pick the unzipped `epher-zed` folder. Zed compiles the extension itself, which needs Rust installed. A tree-sitter grammar ships with it, so baseline highlighting and outline work out of the box; for the server's exact unit coloring, flip one setting: `languages.epher.semantic_tokens = full`.",
   "ide-zed-link": "Download epher-zed.zip",
   "ide-nvim-vim-p1": "Ready-made config files: filetype detection, syntax, and the LSP wiring around the same release binary. Point your runtimepath at the folder and call `require(\"epher\").setup()` on Neovim 0.11 or newer.",
+  "ide-nvim-vim-p2": "On Neovim, `:EpherRun` runs the script and opens a results window beside it; every graph is written as an SVG and opened with the system viewer. Vim keeps the syntax and LSP wiring, and its run support follows.",
   "ide-nvim-link": "Download epher-nvim.zip",
   "ide-vim-link": "Download epher-vim.zip",
   "ide-sublime-p1": "A package folder: the shared grammar in Sublime's own form, plus the client definition for the popular LSP package.",
@@ -249,6 +251,8 @@ window.EPHER_I18N["en"] = {
   "ide-emacs-prereq": "Prerequisite: the `epher-lsp` server binary, installed once and on your PATH: see Any LSP client below.",
   "ide-eclipse-prereq": "Prerequisite: the `epher-lsp` server binary, installed once and on your PATH: see Any LSP client below.",
   "ide-vs-p1": "Install it like any Visual Studio extension: double-click the vsix, or Extensions, Manage Extensions, Install from file. Works in Visual Studio 2022. On first use it downloads the server for Windows; after that, everything is local.",
+  "ide-vs-p2": "Run Epher Script in the Tools menu evaluates the whole script; the results open as a tab beside your script — text answers, errors, and every 2D or 3D graph.",
   "ide-vs-link": "Download epher-visualstudio.vsix",
-  "ide-zed-p2": "The Rust step belongs to dev extensions, not to epher: extensions published to Zed's extension registry are compiled by Zed itself and install in one click, with no Rust. Publication there is planned; until it lands, the dev-extension route above is the way in."
+  "ide-zed-p2": "The Rust step belongs to dev extensions, not to epher: extensions published to Zed's extension registry are compiled by Zed itself and install in one click, with no Rust. Publication there is planned; until it lands, the dev-extension route above is the way in.",
+  "ide-zed-p3": "Zed's extension API has no room for a results pane, so whole-script runs happen in the terminal (`epher run script.epher`); the inline answers beside every statement stay live as you type."
 };

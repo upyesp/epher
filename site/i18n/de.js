@@ -225,10 +225,12 @@ window.EPHER_I18N["de"] = {
   "ide-vscodium-p1": "VSCodium ist VS Code ohne Microsofts Marketplace, und Install from VSIX funktioniert genau gleich: Extensions-Ansicht, Menü ⋯, Install from VSIX. Derselbe Server, dieselben Funktionen, dasselbe rein lokale Verhalten.",
   "ide-vscodium-link": "epher-vscode.vsix herunterladen",
   "ide-jetbrains-p1": "Installieren Sie es von der Festplatte: Settings, Plugins, das Zahnrad-Menü, Install Plugin from Disk. Funktioniert in IntelliJ IDEA, PyCharm, WebStorm, GoLand und der ganzen Familie ab 2024.2. Beim ersten Einsatz lädt es den Server für Ihre Plattform; danach ist alles lokal.",
+  "ide-jetbrains-p2": "Run Epher Script finden Sie im Tools-Menü und im Kontextmenü des Editors. Die Ergebnisse öffnen sich in einem Bereich neben Ihrem Skript: jede Antwort, jeder Fehler und jeder 2D- oder 3D-Graph, sofort gerendert.",
   "ide-jetbrains-link": "epher-jetbrains.zip herunterladen",
   "ide-zed-p1": "Installieren Sie es als Dev-Extension: Führen Sie in Zed den Befehl `zed: install dev extension` aus und wählen Sie den entpackten Ordner `epher-zed`. Zed kompiliert die Extension selbst, dafür muss Rust installiert sein. Eine Tree-sitter-Grammatik liegt bei, sodass Basis-Hervorhebung und Gliederung ohne Setup funktionieren; für die exakte Einheiten-Färbung des Servers genügt eine Einstellung: `languages.epher.semantic_tokens = full`.",
   "ide-zed-link": "epher-zed.zip herunterladen",
   "ide-nvim-vim-p1": "Fertige Konfigurationsdateien: Dateierkennung, Syntax und die LSP-Anbindung rund um dasselbe Release-Binary. Hängen Sie den Ordner in die Runtimepath und rufen Sie `require(\"epher\").setup()` unter Neovim 0.11 oder neuer auf.",
+  "ide-nvim-vim-p2": "In Neovim führt `:EpherRun` das Skript aus und öffnet ein Ergebnisfenster daneben; jeder Graph wird als SVG geschrieben und mit dem Systembetrachter geöffnet. Vim behält Syntax und LSP-Anbindung; seine Ausführungsunterstützung folgt.",
   "ide-nvim-link": "epher-nvim.zip herunterladen",
   "ide-vim-link": "epher-vim.zip herunterladen",
   "ide-sublime-p1": "Ein Paketordner: die gemeinsame Grammatik in Sublimes eigener Form, dazu die Client-Definition für das verbreitete LSP-Paket.",
@@ -245,6 +247,8 @@ window.EPHER_I18N["de"] = {
   "ide-emacs-prereq": "Voraussetzung: die Server-Binärdatei `epher-lsp`, einmalig installiert und im PATH; siehe „Beliebiger LSP-Client“ unten.",
   "ide-eclipse-prereq": "Voraussetzung: die Server-Binärdatei `epher-lsp`, einmalig installiert und im PATH; siehe „Beliebiger LSP-Client“ unten.",
   "ide-vs-p1": "Installieren Sie es wie jede Visual-Studio-Erweiterung: Doppelklick auf das VSIX, oder Extensions, Manage Extensions, Install from file. Funktioniert in Visual Studio 2022. Beim ersten Einsatz lädt es den Server für Windows; danach ist alles lokal.",
+  "ide-vs-p2": "Run Epher Script im Tools-Menü wertet das ganze Skript aus; die Ergebnisse öffnen sich als Tab neben Ihrem Skript — Textantworten, Fehler und jeder 2D- oder 3D-Graph.",
   "ide-vs-link": "epher-visualstudio.vsix herunterladen",
-  "ide-zed-p2": "Der Rust-Schritt gehört zu Dev-Extensions, nicht zu epher: Extensions im Extension-Registry von Zed werden von Zed selbst kompiliert und lassen sich mit einem Klick ohne Rust installieren. Die Veröffentlichung dort ist geplant; bis dahin ist der Dev-Extension-Weg von oben der Einstieg."
+  "ide-zed-p2": "Der Rust-Schritt gehört zu Dev-Extensions, nicht zu epher: Extensions im Extension-Registry von Zed werden von Zed selbst kompiliert und lassen sich mit einem Klick ohne Rust installieren. Die Veröffentlichung dort ist geplant; bis dahin ist der Dev-Extension-Weg von oben der Einstieg.",
+  "ide-zed-p3": "Zeds Extension-API bietet keinen Platz für einen Ergebnisbereich; ganze Skripte laufen im Terminal (`epher run script.epher`); die Inline-Antworten neben jeder Anweisung bleiben beim Tippen live."
 };

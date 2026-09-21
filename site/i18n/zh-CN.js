@@ -225,10 +225,12 @@ window.EPHER_I18N["zh-CN"] = {
   "ide-vscodium-p1": "VSCodium 是不含微软商店的 VS Code，“从 VSIX 安装”的方式完全一样：“扩展”视图、“⋯”菜单、“从 VSIX 安装”。同样的服务器、同样的功能、同样仅在本地的行为。",
   "ide-vscodium-link": "下载 epher-vscode.vsix",
   "ide-jetbrains-p1": "从磁盘安装：Settings、Plugins、齿轮菜单、Install Plugin from Disk。适用于 IntelliJ IDEA、PyCharm、WebStorm、GoLand 等全系列，2024.2 及以上。首次使用会为您的平台下载服务器；之后一切都在本地。",
+  "ide-jetbrains-p2": "Run Epher Script 在 Tools 菜单和编辑器右键菜单里。结果会显示在脚本旁边的一个面板中：每一条答案、每一个错误，以及每一幅 2D 或 3D 图形，即时渲染。",
   "ide-jetbrains-link": "下载 epher-jetbrains.zip",
   "ide-zed-p1": "作为开发版扩展安装：在 Zed 中运行 `zed: install dev extension` 命令，并选择解压后的 `epher-zed` 文件夹。Zed 会自行编译该扩展，需要安装 Rust。扩展自带 tree-sitter 语法，基线着色和大纲开箱即用；若要服务器精确的单位着色，只需一个设置：`languages.epher.semantic_tokens = full`。",
   "ide-zed-link": "下载 epher-zed.zip",
   "ide-nvim-vim-p1": "现成的配置文件：文件类型检测、语法，以及围绕同一发布二进制文件的 LSP 接线。把文件夹加入 runtimepath，并在 Neovim 0.11 或更高版本中调用 `require(\"epher\").setup()`。",
+  "ide-nvim-vim-p2": "在 Neovim 中，`:EpherRun` 运行脚本并在旁边打开结果窗口；每幅图形都会写成 SVG 文件并用系统查看器打开。Vim 保留语法与 LSP 接线，其运行支持随后而来。",
   "ide-nvim-link": "下载 epher-nvim.zip",
   "ide-vim-link": "下载 epher-vim.zip",
   "ide-sublime-p1": "一个包文件夹：以 Sublime 自身格式提供的共享语法，加上流行 LSP 插件的客户端定义。",
@@ -245,6 +247,8 @@ window.EPHER_I18N["zh-CN"] = {
   "ide-emacs-prereq": "前提条件：`epher-lsp` 服务器二进制文件，安装一次并加入 PATH：请参阅下方的「任意 LSP 客户端」。",
   "ide-eclipse-prereq": "前提条件：`epher-lsp` 服务器二进制文件，安装一次并加入 PATH：请参阅下方的「任意 LSP 客户端」。",
   "ide-vs-p1": "像安装任何 Visual Studio 扩展一样安装：双击 vsix，或通过 Extensions、Manage Extensions、Install from file。适用于 Visual Studio 2022。首次使用会下载 Windows 服务器；之后一切都在本地。",
+  "ide-vs-p2": "Tools 菜单中的 Run Epher Script 会运行整个脚本；结果以标签页的形式打开在脚本旁边——文本答案、错误，以及每一幅 2D 或 3D 图形。",
   "ide-vs-link": "下载 epher-visualstudio.vsix",
-  "ide-zed-p2": "Rust 这一步属于开发版扩展，而不属于 epher：上架 Zed 扩展注册中心的扩展由 Zed 自己编译，安装只需一次点击，无需 Rust。在那里发布已在计划中；在那之前，上面的开发版扩展方式是目前的入口。"
+  "ide-zed-p2": "Rust 这一步属于开发版扩展，而不属于 epher：上架 Zed 扩展注册中心的扩展由 Zed 自己编译，安装只需一次点击，无需 Rust。在那里发布已在计划中；在那之前，上面的开发版扩展方式是目前的入口。",
+  "ide-zed-p3": "Zed 的扩展 API 没有结果面板的位置，因此整个脚本的运行要在终端里进行（`epher run script.epher`）；每条语句旁边的内联答案会随着输入实时更新。"
 };
