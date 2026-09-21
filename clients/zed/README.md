@@ -65,6 +65,22 @@ written from the same source as this extension
 whole shipped `epher scripts` corpus - all 433 scripts - without
 errors.
 
+## Running scripts, honestly
+
+Running a whole script and a results pane (ADR-0069) is the one thing
+this extension cannot bring to Zed: Zed's extension API has no
+commands, no panels, and no webviews, so there is nowhere to put a
+pane and nothing to hang a run action on. What Zed users have instead:
+
+- the inline answers stay live beside every statement as you type, so
+  short scripts show their answers without any run step at all;
+- whole-script runs happen in Zed's integrated terminal with the
+  calculator: `epher run my-script.epher` prints the same transcript
+  and writes `graph save` plots exactly as everywhere else.
+
+If Zed's extension API grows a surface for commands or panels, the
+extension picks up `epher/run` like every other editor did.
+
 ## Verifying by hand
 
 ```
