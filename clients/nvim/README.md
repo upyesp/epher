@@ -59,7 +59,14 @@ locally after that.
 - hover signatures for catalog names, current values for your own
   constants;
 - completion with the shared snippets;
-- vim `<C-]>`-style definition jumps for names defined in the file.
+- vim `<C-]>`-style definition jumps for names defined in the file;
+- `:EpherRun` (ADR-0069): runs the whole script through the same
+  `epher/run` request the VS Code results pane uses, shows every
+  answer and error in a results window beside the script (a floating
+  window with `setup({ pane = "float" })`), and writes every 2D/3D
+  graph to SVG files that open with the system viewer. `<CR>` on a
+  result row jumps to its statement; `<CR>` on a graph row reopens
+  the file; rerunning from the results window re-runs the script.
 
 Neovim's syntax engine does not consume LSP semantic tokens today,
 so highlighting comes from the shared regex syntax in `clients/vim/`
