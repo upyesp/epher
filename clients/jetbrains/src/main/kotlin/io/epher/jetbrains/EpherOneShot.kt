@@ -168,15 +168,18 @@ object EpherOneShot {
                     val why = readFailure?.let { "; $it" } ?: "the process ended before answering $what"
                     throw IOException("epher-lsp died mid-run$why")
                 }
-                val messageId = message.get("id")
+                // get(String) lives on JsonObject, not JsonElement; the
+                // isJsonObject gate above is what makes this cast safe.
+                val body = message.asJsonObject
+                val messageId = body.get("id")
                 // No id, or not ours: a notification or a stranger; keep reading.
                 if (messageId == null || !messageId.isJsonPrimitive || messageId.asInt != id) continue
-                message.get("error")?.takeIf { !it.isJsonNull }?.let { error ->
+                body.get("error")?.takeIf { !it.isJsonNull }?.let { error ->
                     val detail = (error as? JsonObject)?.get("message")
                         ?.takeIf { it.isJsonPrimitive }?.asString ?: "no detail given"
                     throw IOException("epher-lsp failed $what: $detail")
                 }
-                return message.get("result") ?: JsonNull.INSTANCE
+                return body.get("result") ?: JsonNull.INSTANCE
             }
         }
 
@@ -264,9 +267,9 @@ object EpherOneShot {
             }
     }
 
-    private companion object {
-        const val INITIALIZE_ID = 1
-        const val RUN_ID = 2
-        const val SHUTDOWN_ID = 3
-    }
+    // Request ids live at object level: a companion object cannot nest
+    // inside a standalone object.
+    private const val INITIALIZE_ID = 1
+    private const val RUN_ID = 2
+    private const val SHUTDOWN_ID = 3
 }

@@ -141,7 +141,10 @@ namespace Epher.VisualStudio
                 return null;
             }
 
-            buffer.GetFileName(out path);
+            // GetFileName is declared on IVsTextBuffer; the interop
+            // assemblies are embedded types, so the inherited member is
+            // only reachable through the declaring interface.
+            ((IVsTextBuffer)buffer).GetFileName(out path);
             if (string.IsNullOrEmpty(path) || !path.EndsWith(".epher", StringComparison.OrdinalIgnoreCase))
             {
                 path = null;

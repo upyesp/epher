@@ -98,6 +98,10 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <!-- OleMenuCommandService inherits MenuCommandService from
+         System.Design; without the reference the compiler cannot see
+         AddCommand (CS0012/CS1061). -->
+    <Reference Include="System.Design" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />

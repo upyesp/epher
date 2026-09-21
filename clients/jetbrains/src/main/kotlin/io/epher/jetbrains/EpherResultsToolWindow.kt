@@ -9,9 +9,10 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.jcef.JBCefApp
 import com.intellij.ui.jcef.JBCefBrowser
-import com.intellij.util.BrowserUtil
 import java.awt.BorderLayout
+import java.awt.Desktop
 import java.io.File
 import javax.swing.JEditorPane
 import javax.swing.JPanel
@@ -71,11 +72,11 @@ class EpherResultsToolWindowFactory : ToolWindowFactory {
  */
 internal class EpherResultsPanel : JPanel(BorderLayout()), Disposable {
 
-    // createIfSupported() answers null where JCEF is unavailable, and a
-    // platform hardening change may throw instead; both roads fall back
-    // to Swing rather than break the run.
+    // JBCefApp.isSupported() is the canonical availability probe; a
+    // platform hardening change may still throw on construction, and
+    // both roads fall back to Swing rather than break the run.
     private val browser: JBCefBrowser? = try {
-        JBCefBrowser.createIfSupported()
+        if (JBCefApp.isSupported()) JBCefBrowser() else null
     } catch (broken: Throwable) {
         null
     }
@@ -109,7 +110,16 @@ internal class EpherResultsPanel : JPanel(BorderLayout()), Disposable {
         isEditable = false
         addHyperlinkListener { event ->
             if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-                event.url?.let { BrowserUtil.browse(it.toURI()) }
+                event.url?.let { url ->
+                    // The JDK's own opener: zero platform-API surface, so
+                    // this fallback compiles and works on every build.
+                    try {
+                        Desktop.getDesktop().browse(url.toURI())
+                    } catch (broken: Exception) {
+                        // No desktop integration: leave the path visible in
+                        // the pane for the user to open by hand.
+                    }
+                }
             }
         }
     }
