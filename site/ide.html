@@ -331,8 +331,16 @@
           </tr>
         </tbody>
       </table>
+      <p data-i18n="ide-manual-p3">To put the server on your PATH, run these from the folder you downloaded to:</p>
+      <p data-i18n="ide-manual-posix">macOS and Linux:</p>
+      <pre class="path-cmd">gunzip epher-lsp-*.gz
+sudo mkdir -p /usr/local/bin
+sudo install -m 0755 epher-lsp-* /usr/local/bin/epher-lsp</pre>
+      <p data-i18n="ide-manual-windows">Windows (PowerShell):</p>
+      <pre class="path-cmd">Expand-Archive epher-lsp-windows-x86_64.zip -DestinationPath .
+Move-Item .\epher-lsp.exe "$env:LOCALAPPDATA\Microsoft\WindowsApps\epher-lsp.exe"</pre>
       <p data-i18n="ide-manual-p2">
-        Check the install with `epher-lsp --version`.
+        Check the install with `epher-lsp --version` (in a new terminal).
       </p>
       <p>
         <a href="https://github.com/upyesp/epher/releases/latest" data-i18n="ide-download">Everything is on the releases page.</a>

@@ -813,7 +813,8 @@ a:hover {
   margin-inline-start: 1.1rem;
 }
 
-.linux-tabs .repo-cmd {
+.linux-tabs .repo-cmd,
+.path-cmd {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
