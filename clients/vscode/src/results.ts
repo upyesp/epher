@@ -1,21 +1,29 @@
 import * as vscode from "vscode";
 
 // The results pane (ADR-0069): the language server's `epher/run`
-// evaluates the whole script and the pane shows what the calculator
-// would print, per statement, plus every plot the run produced as
-// inline SVG. Errors link back to their line; shell commands that
-// cannot run hermetically show as skipped.
+// evaluates the whole script and the pane shows the output — every
+// answer and every error, nothing else — plus every plot the run
+// produced as inline SVG. Statements that print nothing are not rows:
+// the pane is the script's output, not a re-reading of the script.
+// Every row links back to its line.
 
-interface RunLine {
+export interface RunLine {
   line: number;
   source: string;
   display: string | null;
   error: boolean;
 }
 
-interface RunReport {
+export interface RunReport {
   statements: RunLine[];
   svgs: string[];
+}
+
+/** The pane surface the run-only debug adapter (debug.ts) shares:
+ *  after an F5 run produced graphs, they land in the same pane the
+ *  play button uses, so both starts render identically. */
+export interface RunPane {
+  show(uri: vscode.Uri, report: RunReport): void;
 }
 
 // The only client surface the pane needs; both entries (desktop and
@@ -36,18 +44,16 @@ function escapeHtml(text: string): string {
 
 // The SVG documents the engine renders are self-contained and
 // generated (never user input); inline them and let CSS size them to
-// the pane.
+// the pane. Only statements with output are rows: answers and errors,
+// not the script re-read.
 function reportHtml(report: RunReport, nonce: string): string {
   const rows = report.statements
+    .filter((statement) => statement.display !== null)
     .map((statement) => {
       const answer = statement.error
         ? `<span class="error">${escapeHtml(statement.display ?? "error")}</span>`
-        : statement.display !== null
-          ? `<span class="answer">${escapeHtml(statement.display)}</span>`
-          : `<span class="skipped">skipped</span>`;
-      return `<tr class="statement" data-line="${statement.line}"><td class="source"><code>${escapeHtml(
-        statement.source,
-      )}</code></td><td class="result">${answer}</td></tr>`;
+        : `<span class="answer">${escapeHtml(statement.display ?? "")}</span>`;
+      return `<div class="output" data-line="${statement.line}">${answer}</div>`;
     })
     .join("\n");
   const graphs = report.svgs
@@ -70,16 +76,10 @@ function reportHtml(report: RunReport, nonce: string): string {
     padding: 8px 14px;
   }
   h2 { font-size: 1.05em; margin: 14px 0 6px; }
-  table { border-collapse: collapse; width: 100%; }
-  tr.statement { cursor: pointer; }
-  tr.statement:hover td { background: var(--vscode-list-hoverBackground); }
-  td { padding: 2px 8px; vertical-align: top; }
-  td.source { width: 55%; }
-  td.result, td.source code { white-space: pre-wrap; }
-  code { font-size: 1em; }
+  .output { cursor: pointer; padding: 2px 8px; white-space: pre-wrap; }
+  .output:hover { background: var(--vscode-list-hoverBackground); }
   .answer { color: var(--vscode-symbolIcon-functionForeground, #c8c8c8); }
   .error { color: var(--vscode-errorForeground); }
-  .skipped { color: var(--vscode-descriptionForeground); font-style: italic; }
   .graph { margin: 10px 0; }
   .graph svg { width: 100%; height: auto; background: #ffffff; border-radius: 4px; }
   .empty { color: var(--vscode-descriptionForeground); font-style: italic; }
@@ -87,15 +87,15 @@ function reportHtml(report: RunReport, nonce: string): string {
 </head>
 <body>
 ${
-  report.statements.length
-    ? `<table>\n${rows}\n</table>`
-    : `<p class="empty">Nothing to run.</p>`
+  rows || report.svgs.length
+    ? rows
+    : `<p class="empty">No output.</p>`
 }
 ${graphSection}
 <script nonce="${nonce}">
   const vscode = acquireVsCodeApi();
   document.addEventListener("click", (event) => {
-    const row = event.target.closest("tr.statement");
+    const row = event.target.closest(".output");
     if (row) { vscode.postMessage({ kind: "reveal", line: Number(row.dataset.line) }); }
   });
 </script>
@@ -106,7 +106,7 @@ ${graphSection}
 export function registerRun(
   context: vscode.ExtensionContext,
   getClient: () => RunClient | undefined,
-): void {
+): RunPane {
   const panels = new Map<string, vscode.WebviewPanel>();
 
   const panelFor = (uri: vscode.Uri, documentName: string): vscode.WebviewPanel => {
@@ -145,6 +145,14 @@ export function registerRun(
     return panel;
   };
 
+  const pane: RunPane = {
+    show(uri: vscode.Uri, report: RunReport): void {
+      const panel = panelFor(uri, uri.path.split("/").pop() ?? "script");
+      const nonce = String(Math.random()).slice(2);
+      panel.webview.html = reportHtml(report, nonce);
+    },
+  };
+
   const run = async (uri: vscode.Uri): Promise<void> => {
     const client = getClient();
     if (!client) {
@@ -157,9 +165,7 @@ export function registerRun(
       const report = await client.sendRequest("epher/run", {
         textDocument: { uri: uri.toString() },
       });
-      const panel = panelFor(uri, uri.path.split("/").pop() ?? "script");
-      const nonce = String(Math.random()).slice(2);
-      panel.webview.html = reportHtml(report, nonce);
+      pane.show(uri, report);
     } catch (err) {
       void vscode.window.showErrorMessage(
         `Epher run failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -191,4 +197,5 @@ export function registerRun(
       },
     }),
   );
+  return pane;
 }

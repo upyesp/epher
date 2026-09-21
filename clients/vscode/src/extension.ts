@@ -5,7 +5,7 @@ import {
   ServerOptions,
 } from "vscode-languageclient/node";
 import { registerDebug } from "./debug";
-import { registerRun } from "./results";
+import { registerRun, RunPane } from "./results";
 import { wasmServerOptions } from "./wasmServer";
 
 let client: LanguageClient | undefined;
@@ -34,11 +34,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
   // Registered before the start attempt: the debug start exists even
   // when the server fails, so F5 reports the dead server cleanly
-  // instead of regressing to the marketplace dialog.
-  registerDebug(context, () => client);
+  // instead of regressing to the marketplace dialog. The results pane
+  // handle lands once registerRun runs; until then F5 runs fine and
+  // only points at the play command for graphs.
+  let pane: RunPane | undefined;
+  registerDebug(context, () => client, () => pane);
   try {
     await client.start();
-    registerRun(context, () => client);
+    pane = registerRun(context, () => client);
   } catch (err) {
     client = undefined;
     const message = err instanceof Error ? err.message : String(err);

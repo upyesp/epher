@@ -19,7 +19,7 @@ import * as vscode from "vscode";
 
 // The one client surface the adapter needs, same as the results pane
 // (results.ts owns the `epher/run` request and exports the type).
-import type { RunClient } from "./results";
+import type { RunClient, RunPane } from "./results";
 
 /** A DAP message, typed loosely: the inline transport passes plain
  *  objects, and the run-only adapter touches a small, stable subset. */
@@ -49,7 +49,10 @@ class EpherRunSession implements vscode.DebugAdapter {
   /** Set when the session ends before the run does; late output dies. */
   private ended = false;
 
-  constructor(private readonly getClient: () => RunClient | undefined) {}
+  constructor(
+    private readonly getClient: () => RunClient | undefined,
+    private readonly getPane: () => RunPane | undefined,
+  ) {}
 
   handleMessage(message: vscode.DebugProtocolMessage): void {
     const msg = message as DapMessage;
@@ -129,26 +132,27 @@ class EpherRunSession implements vscode.DebugAdapter {
       this.event("terminated");
       return;
     }
-    if (!this.program) {
+    const target = await this.resolveTarget();
+    if (!target) {
       this.output("No program to run: the launch configuration needs a \u2018program\u2019.\n", "stderr");
       this.event("terminated");
       return;
     }
-    this.output(`Running ${this.program}\n`, "console");
+    this.output(`Running ${target.toString(true)}\n`, "console");
     try {
       const report = await client.sendRequest("epher/run", {
-        textDocument: { uri: toUriString(this.program) },
+        textDocument: { uri: target.toString() },
       });
       let errors = 0;
       for (const statement of report.statements) {
-        this.output(`${statement.source}\n`);
+        if (statement.display === null) {
+          continue;
+        }
         if (statement.error) {
           errors += 1;
           this.output(`${statement.display ?? "error"}\n`, "stderr");
-        } else if (statement.display !== null) {
-          this.output(`= ${statement.display}\n`);
         } else {
-          this.output("skipped\n", "console");
+          this.output(`${statement.display}\n`);
         }
       }
       const total = report.statements.length;
@@ -163,11 +167,21 @@ class EpherRunSession implements vscode.DebugAdapter {
         );
       }
       if (report.svgs.length) {
-        this.output(
-          `${report.svgs.length} graph${report.svgs.length === 1 ? "" : "s"} produced`
-            + " \u2014 \u2018Epher: Run Script\u2019 renders them beside the editor.\n",
-          "console",
-        );
+        const pane = this.getPane();
+        if (pane) {
+          pane.show(target, report);
+          this.output(
+            `${report.svgs.length} graph${report.svgs.length === 1 ? "" : "s"} produced`
+              + " \u2014 opened the results pane beside the editor.\n",
+            "console",
+          );
+        } else {
+          this.output(
+            `${report.svgs.length} graph${report.svgs.length === 1 ? "" : "s"} produced`
+              + " \u2014 \u2018Epher: Run Script\u2019 renders them beside the editor.\n",
+            "console",
+          );
+        }
       }
     } catch (err) {
       this.output(`Epher run failed: ${err instanceof Error ? err.message : String(err)}\n`, "stderr");
@@ -218,16 +232,38 @@ class EpherRunSession implements vscode.DebugAdapter {
       this.event("output", { category, output: text });
     }
   }
-}
 
-/** A program argument arrives either as a filesystem path (a
- *  hand-written launch.json) or as a uri string (the synthesized
- *  configurations below); the server tracks documents by uri string. */
-function toUriString(program: string): string {
-  if (/^[a-z][a-z0-9+.-]*:/i.test(program)) {
-    return program;
+  /** The run needs the uri the server knows the document by. The debug
+   *  layer normalizes the program string it hands over (Windows drive
+   *  letters lowercased, the colon unescaped), which no longer matches
+   *  the uri the open editor registered with didOpen — the server
+   *  then answers "document not open". Resolve the program against the
+   *  open documents and use the document's own canonical uri; a
+   *  program that is not open (a hand-written launch.json) is opened
+   *  first, which delivers the didOpen before the run request on the
+   *  same ordered channel. */
+  private async resolveTarget(): Promise<vscode.Uri | undefined> {
+    if (!this.program) {
+      return undefined;
+    }
+    const parsed = /^[a-z][a-z0-9+.-]*:/i.test(this.program)
+      ? vscode.Uri.parse(this.program)
+      : vscode.Uri.file(this.program);
+    const documents = vscode.workspace.textDocuments;
+    const open = documents.find((d) => d.uri.toString() === parsed.toString())
+      ?? documents.find((d) => d.uri.fsPath === parsed.fsPath)
+      ?? documents.find((d) => d.uri.fsPath.toLowerCase() === parsed.fsPath.toLowerCase());
+    if (open) {
+      return open.uri;
+    }
+    try {
+      const document = await vscode.workspace.openTextDocument(parsed);
+      await vscode.window.showTextDocument(document, { preview: true, preserveFocus: true });
+      return document.uri;
+    } catch {
+      return parsed;
+    }
   }
-  return vscode.Uri.file(program).toString();
 }
 
 /** Wires the debugger in. Both host entries call this next to
@@ -242,11 +278,12 @@ function toUriString(program: string): string {
 export function registerDebug(
   context: vscode.ExtensionContext,
   getClient: () => RunClient | undefined,
+  getPane: () => RunPane | undefined,
 ): void {
   context.subscriptions.push(
     vscode.debug.registerDebugAdapterDescriptorFactory("epher", {
       createDebugAdapterDescriptor: () =>
-        new vscode.DebugAdapterInlineImplementation(new EpherRunSession(getClient)),
+        new vscode.DebugAdapterInlineImplementation(new EpherRunSession(getClient, getPane)),
     }),
     vscode.debug.registerDebugConfigurationProvider("epher", {
       resolveDebugConfiguration(_folder, config) {
