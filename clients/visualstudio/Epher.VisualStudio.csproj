@@ -20,7 +20,15 @@
     <AssemblyName>Epher.VisualStudio</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <!-- The package's own registration (EpherPackage.cs: the Packages
+         and Menus entries) is generated from its attributes at build
+         time; the hand-authored Epher.pkgdef below stays for the
+         grammar and language configuration, and both merge at install. -->
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <!-- GeneratePkgDef writes a CodeBase value pointing at the assembly
+         in the package folder: the long-standing way a VSIX-packaged
+         package class loads. -->
+    <RegisterWithCodebase>true</RegisterWithCodebase>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
@@ -53,7 +61,16 @@
   <ItemGroup>
     <Compile Include="EpherContentType.cs" />
     <Compile Include="EpherLanguageClient.cs" />
+    <Compile Include="EpherPackage.cs" />
+    <Compile Include="EpherRun.cs" />
     <Compile Include="ServerDownload.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The command table for the run command (compiled to a .cto and
+         merged into the assembly's resources by the VsSDK targets). -->
+    <VSCTCompile Include="Epher.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+    </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
     <!-- The pkgdef and the language configuration ride the vsix as
@@ -97,6 +114,19 @@
          editor content type attributes and AsyncEventHandler; the
          assemblies themselves are not packed, VS provides them. -->
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.14.60" />
+    <!-- The shell surfaces the run command needs (Package,
+         OleMenuCommand, the text-manager and web-browsing interop
+         types). Reference assemblies only: ExcludeAssets=runtime keeps
+         every Visual Studio assembly out of the vsix — the IDE provides
+         them, and the VsSDK targets suppress their names from the
+         container anyway. -->
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.14.40265" ExcludeAssets="runtime" />
+    <!-- The JSON-RPC transport for the run session (ADR-0069). The
+         assemblies themselves are not packed: VS 2022 ships
+         StreamJsonRpc and Newtonsoft.Json in the box, and the VsSDK
+         build suppresses exactly those names from the vsix container. -->
+    <PackageReference Include="StreamJsonRpc" Version="2.25.29" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   <!-- The extension learns its own version at runtime from the
        assembly's file version (the download resolves

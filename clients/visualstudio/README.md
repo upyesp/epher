@@ -67,6 +67,30 @@ server's semantic tokens do not color a `.epher` file here the way
 they do in VS Code, Zed, and JetBrains. The TextMate grammar is the
 whole visual story in Visual Studio for now.
 
+## Run a script and see the results
+
+The **Tools > Run Epher Script** command (also on the right-click menu
+inside a `.epher` editor) evaluates the whole script and opens the
+results as a tab in the editor well — the internal Visual Studio
+browser frame, dockable like any document.
+
+- Text answers and errors are anchored to their statements: every row
+  carries the line it came from, and error rows render as errors.
+- Every 2D and 3D graph the run produced renders inline in a Graphs
+  section, as the SVGs the language server captures in memory.
+- The run uses its own short-lived epher-lsp session beside the
+  language-client session the editing features ride on, so a run never
+  disturbs inline answers, diagnostics, or completion. The buffer text
+  is sent to the run exactly as the editor shows it, saved or not.
+- A run that fails (a server that cannot start, for example) reports on
+  the status bar and echoes the full message to the **epher** pane of
+  the Output window; statement errors also echo there as a plain-text
+  transcript.
+
+The report is written to `%TEMP%\epher\<script>.results.html` and
+overwritten per run, so the file can be kept or attached after the
+fact.
+
 ## The shared assets
 
 Everything the extension knows about epher is generated from the

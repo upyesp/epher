@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The command table (ADR-0069): one command set with one button,
+  "Run Epher Script", placed in the Tools menu and in the code-window
+  context menu. The command set and package GUIDs must match the
+  consts in EpherPackage.cs; the button is text-only (no bitmap), which
+  keeps the table free of image-catalog coupling.
+-->
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!-- The shell command/menu ids: guidSHLMainMenu and the two parent
+       menus below both come from vsshlids.h. -->
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+
+  <Commands package="guidEpherPackage">
+    <Groups>
+      <!-- The group the button belongs to on the Tools menu... -->
+      <Group guid="guidEpherCommandSet" id="ToolsMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
+      <!-- ...and the second group in the code-window context menu; a
+           command may parent to only one group, so the extra placement
+           is wired in CommandPlacements below. -->
+      <Group guid="guidEpherCommandSet" id="EditorContextMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
+      </Group>
+    </Groups>
+    <Buttons>
+      <Button guid="guidEpherCommandSet" id="cmdidRunEpherScript" priority="0x0100" type="Button">
+        <Parent guid="guidEpherCommandSet" id="ToolsMenuGroup"/>
+        <Strings>
+          <ButtonText>Run Epher Script</ButtonText>
+          <ToolTipText>Evaluate the whole script and show the results beside the editor</ToolTipText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <CommandPlacements>
+    <!-- The same button into the editor context menu (see above). -->
+    <CommandPlacement guid="guidEpherCommandSet" id="cmdidRunEpherScript" priority="0x0100">
+      <Parent guid="guidEpherCommandSet" id="EditorContextMenuGroup"/>
+    </CommandPlacement>
+  </CommandPlacements>
+
+  <Symbols>
+    <GuidSymbol name="guidEpherPackage" value="{672BDABC-CE2C-4E12-A10C-107148209915}"/>
+    <GuidSymbol name="guidEpherCommandSet" value="{2F8AD3D6-EC4C-4A64-8984-68F686E0F058}">
+      <IDSymbol name="ToolsMenuGroup" value="0x1000"/>
+      <IDSymbol name="EditorContextMenuGroup" value="0x1001"/>
+      <IDSymbol name="cmdidRunEpherScript" value="0x0100"/>
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

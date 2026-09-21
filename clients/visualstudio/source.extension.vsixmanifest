@@ -21,6 +21,10 @@
   <Assets>
     <!-- The MEF parts: the content type wiring and the language client. -->
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+    <!-- The command package (EpherPackage.cs, same assembly): its
+         Packages and Menus registry entries are generated at build
+         time from the package attributes. -->
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
     <!-- The registry entries the grammar and language configuration
          need (Epher.pkgdef, merged at install time). -->
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="File" Path="Epher.pkgdef" />
