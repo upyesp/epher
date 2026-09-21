@@ -13,13 +13,6 @@
     statement, the answer rendered inline next to every statement that
     produces one, hover with canonical signatures, completion for the
     catalog and your own names, and the shared snippets.</p>
-    <p>The plugin is a thin shell (ADR-0066): all understanding lives in
-    the shared epher-lsp language server, which the plugin downloads on
-    first use and caches. Works in the commercial JetBrains IDEs
-    (IntelliJ IDEA Ultimate, PyCharm Professional, WebStorm, GoLand, and
-    the rest) from 2024.2 on; the platform's LSP client does not ship in
-    Community builds. Marketplace publication comes later: install this
-    build from disk.</p>
     ]]></description>
 
     <!-- modules.lang covers the live-templates extension point and
