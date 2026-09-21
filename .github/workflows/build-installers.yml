@@ -98,6 +98,37 @@ jobs:
           makensis crates/tauri-app/src-tauri/nsis-check.nsi
           makensis crates/tauri-app/src-tauri/nsis-theme-check.nsi
 
+  client-version-lock:
+    # The extensions that resolve epher-lsp by their own version must
+    # not drift from the release they will ride (ADR-0066): the Zed
+    # extension downloads tag v<its version>, and the JetBrains
+    # downloader's fallback constant must name the same train. A
+    # forgotten bump ships users an old server with a new release —
+    # this fails the build instead. The version inputs that CI always
+    # stamps (the vscode package.json, the gradle/csproj defaults) are
+    # deliberately not guarded: they are not runtime contracts.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Compare the version locks
+        run: |
+          set -e
+          cli_version="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          zed_manifest="$(grep -m1 '^version = ' clients/zed/extension.toml | cut -d'"' -f2)"
+          zed_crate="$(grep -m1 '^version = ' clients/zed/Cargo.toml | cut -d'"' -f2)"
+          jetbrains_fallback="$(grep -m1 'DEFAULT_VERSION = ' clients/jetbrains/src/main/kotlin/io/epher/jetbrains/EpherServerDownloader.kt | sed 's/.*"\(.*\)".*/\1/')"
+          status=0
+          for pair in "zed/extension.toml:$zed_manifest" "zed/Cargo.toml:$zed_crate" "jetbrains fallback:$jetbrains_fallback"; do
+            name="${pair%%:*}"; found="${pair#*:}"
+            if [ "$found" != "$cli_version" ]; then
+              echo "version lock broken: $name is $found, the release is $cli_version"
+              status=1
+            fi
+          done
+          exit $status
+
   desktop:
     name: desktop (${{ matrix.target }})
     strategy:
