@@ -66,6 +66,30 @@ restarting the IDE) retries.
 - **Snippets**: the shared snippets ship as native live templates
   (type `def`, `for`, `solve`, and friends, then Tab).
 
+## Run a script and the results pane
+
+Tools ▸ Run Epher Script (also in the editor's context menu, enabled
+for `.epher` files) runs the whole file and opens the **epher
+results** tool window on the right (ADR-0069): every statement's
+answer or error as a row anchored to its source line, and every 2D or
+3D graph the run produced inlined below them. Statements that print
+nothing are not rows — the pane is the script's output, not a
+re-reading of the script.
+
+A run does not reuse the inline-hints session: the platform's built-in
+LSP client exposes no raw server handle, so each run starts its own
+short-lived `epher-lsp` process, hands it the buffer's current text,
+asks for the run, and shuts it down again. The binary is the one
+already downloaded and cached for first use; nothing new is fetched.
+
+The pane renders with the platform's embedded browser (JCEF). Where a
+runtime has no JCEF, the pane degrades to a plain Swing text pane: the
+same rows, and each graph written to a temporary SVG file whose path
+is listed as a clickable line, opened with the system viewer.
+
+Clicking a row to reveal the statement in the editor is a planned
+follow-up; the VS Code pane has it, the JetBrains pane not yet.
+
 ## The shared assets
 
 Everything the plugin knows about epher is a copy of the shared

@@ -35,5 +35,24 @@
         <!-- The shared snippets, as native live templates (the TextMate
              snippet path is internal at 242, so the bundle ships none). -->
         <defaultLiveTemplates file="liveTemplates/epher.xml"/>
+        <!-- The results pane (ADR-0069): where every run's answers,
+             errors, and graphs land. One reusable panel inside. -->
+        <toolWindow id="epher results" anchor="right" factoryClass="io.epher.jetbrains.EpherResultsToolWindowFactory"
+                    icon="AllIcons.Toolwindows.ToolWindowMessages" canCloseContents="false"/>
+        <!-- Run failures reach the user as a balloon, not a silent log. -->
+        <notificationGroup id="epher" displayType="BALLOON"/>
     </extensions>
+
+    <!-- The run action (ADR-0069): runs the whole script through a
+         one-shot epher-lsp session and opens the results pane. -->
+    <actions>
+        <action id="io.epher.jetbrains.runEpher"
+                class="io.epher.jetbrains.EpherRunAction"
+                text="Run Epher Script"
+                description="Run the whole script through epher-lsp and show the results in the epher results tool window"
+                icon="AllIcons.Actions.Execute">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+    </actions>
 </idea-plugin>
