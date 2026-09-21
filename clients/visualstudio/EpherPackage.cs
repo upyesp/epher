@@ -141,10 +141,14 @@ namespace Epher.VisualStudio
                 return null;
             }
 
-            // GetFileName is declared on IVsTextBuffer; the interop
-            // assemblies are embedded types, so the inherited member is
-            // only reachable through the declaring interface.
-            ((IVsTextBuffer)buffer).GetFileName(out path);
+            // The buffer's file name comes from its persistence
+            // interface, GetCurFile: the merged 17.x interop carries no
+            // GetFileName on the text interfaces at all (verified
+            // against the assembly, not the stale docs). Untitled
+            // buffers answer an empty name, which the .epher gate
+            // below rejects.
+            uint formatIndex;
+            ((IPersistFileFormat)buffer).GetCurFile(out path, out formatIndex);
             if (string.IsNullOrEmpty(path) || !path.EndsWith(".epher", StringComparison.OrdinalIgnoreCase))
             {
                 path = null;
