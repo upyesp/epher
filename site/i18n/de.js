@@ -25,7 +25,7 @@ window.EPHER_I18N["de"] = {
   "theme-dark": "Dunkles Design verwenden",
   "lang-label": "Sprache",
   "tagline": "Ein skriptfähiger Grafikrechner",
-  "lede": "Eine Rechen-Engine, sieben Arten, sie zu nutzen: Befehlszeile, interaktives REPL, vollständige TUI-Oberfläche, Desktop-App, Web-App, Web-App in der mobilen Ansicht und in Ihrer IDE durch die IDE-Erweiterung (verfügbar für VS Code, die JetBrains-Suite, Zed, Microsoft Visual Studio, Sublime, Open VSX (für Cursor und VSCodium), Neovim und Vim). Tippen Sie Ausdrücke, speichern Sie Funktionen und Skripte, stellen Sie Ergebnisse in 2D oder 3D dar und behalten Sie den Verlauf über Sitzungen und Oberflächen hinweg. Kein Konto, keine Cloud: Ihre Arbeit bleibt auf Ihrem Gerät. Verfügbar als native Apps für Windows, macOS, Linux und im Browser.",
+  "lede": "Eine Rechen-Engine, sieben Arten, sie zu nutzen: Befehlszeile, interaktives REPL, vollständige TUI-Oberfläche, Desktop-App, Web-App, Web-App in der mobilen Ansicht und in Ihrer IDE durch die IDE-Erweiterung verfügbar für VS Code, die JetBrains-Suite, Zed, Microsoft Visual Studio, Sublime, Open VSX (für Cursor und VSCodium), Neovim und Vim. Tippen Sie Ausdrücke, speichern Sie Funktionen und Skripte, stellen Sie Ergebnisse in 2D oder 3D dar und behalten Sie den Verlauf über Sitzungen und Oberflächen hinweg. Kein Konto, keine Cloud: Ihre Arbeit bleibt auf Ihrem Gerät. Verfügbar als native Apps für Windows, macOS, Linux und im Browser.",
   "cta-download": "epher holen",
   "try-this": "Ausprobieren",
   "features-title": "Funktionen",

@@ -25,7 +25,7 @@ window.EPHER_I18N["zh-CN"] = {
   "theme-dark": "使用深色主题",
   "lang-label": "语言",
   "tagline": "一个可编写脚本的图形计算器",
-  "lede": "一个计算引擎，七种使用方式：命令行、交互式 REPL、完整的 TUI 界面、桌面应用、网页应用、移动视图网页应用，以及在 IDE 中通过 IDE 扩展使用（支持 VS Code、JetBrains 套件、Zed、Microsoft Visual Studio、Sublime、Open VSX（用于 Cursor 与 VSCodium）、Neovim 和 Vim）。输入表达式，保存函数和脚本，以 2D 或 3D 绘制结果，并在会话和界面之间保留历史记录。无需账户，无需云端：你的工作只留在你的设备上。提供 Windows、macOS、Linux 的原生应用，也可在浏览器中使用。",
+  "lede": "一个计算引擎，七种使用方式：命令行、交互式 REPL、完整的 TUI 界面、桌面应用、网页应用、移动视图网页应用，以及在 IDE 中通过 IDE 扩展使用，支持 VS Code、JetBrains 套件、Zed、Microsoft Visual Studio、Sublime、Open VSX（用于 Cursor 与 VSCodium）、Neovim 和 Vim。输入表达式，保存函数和脚本，以 2D 或 3D 绘制结果，并在会话和界面之间保留历史记录。无需账户，无需云端：你的工作只留在你的设备上。提供 Windows、macOS、Linux 的原生应用，也可在浏览器中使用。",
   "cta-download": "获取 epher",
   "try-this": "试一试",
   "features-title": "功能",
