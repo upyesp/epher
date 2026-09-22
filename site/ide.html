@@ -219,13 +219,13 @@
       </p>
 
       <h2><img class="ide-logo" src="ide-logos/zed.png" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-zed-title">Zed</span></h2>
-      <p data-i18n="ide-zed-p1">
+            <p data-i18n="ide-zed-p1">
         Install it as a dev extension: in Zed, run the `zed: install
         dev extension` command and pick the unzipped `epher-zed`
         folder. Zed compiles the extension itself, which needs Rust
-        installed. A tree-sitter grammar ships with it, so baseline
-        highlighting and outline work out of the box; for the
-        server's exact unit coloring, flip one setting:
+        installed. No grammar build is part of the install; the
+        coloring comes from the language server's semantic tokens —
+        for the exact unit coloring, flip one setting:
         `languages.epher.semantic_tokens = full`.
       </p>
       <p data-i18n="ide-zed-p2">

@@ -227,7 +227,7 @@ window.EPHER_I18N["zh-CN"] = {
   "ide-jetbrains-p1": "从磁盘安装：Settings、Plugins、齿轮菜单、Install Plugin from Disk。适用于 IntelliJ IDEA、PyCharm、WebStorm、GoLand 等全系列，2024.2 及以上。首次使用会为您的平台下载服务器；之后一切都在本地。",
   "ide-jetbrains-p2": "Run Epher Script 在 Tools 菜单和编辑器右键菜单里。结果会显示在脚本旁边的一个面板中：每一条答案、每一个错误，以及每一幅 2D 或 3D 图形，即时渲染。",
   "ide-jetbrains-link": "下载 epher-jetbrains.zip",
-  "ide-zed-p1": "作为开发版扩展安装：在 Zed 中运行 `zed: install dev extension` 命令，并选择解压后的 `epher-zed` 文件夹。Zed 会自行编译该扩展，需要安装 Rust。扩展自带 tree-sitter 语法，基线着色和大纲开箱即用；若要服务器精确的单位着色，只需一个设置：`languages.epher.semantic_tokens = full`。",
+  "ide-zed-p1": "将其作为开发版扩展安装：在 Zed 中运行 `zed: install dev extension` 命令，选择解压后的 `epher-zed` 文件夹。Zed 会自行编译扩展，这需要安装 Rust。安装过程不包含任何语法构建；着色来自语言服务器的语义标记——要获得精确的单位着色，只需一个设置：`languages.epher.semantic_tokens = full`。",
   "ide-zed-link": "下载 epher-zed.zip",
   "ide-nvim-vim-p1": "现成的配置文件：文件类型检测、语法，以及围绕同一发布二进制文件的 LSP 接线。把文件夹加入 runtimepath，并在 Neovim 0.11 或更高版本中调用 `require(\"epher\").setup()`。",
   "ide-nvim-vim-p2": "在 Neovim 中，`:EpherRun` 运行脚本并在旁边打开结果窗口；每幅图形都会写成 SVG 文件并用系统查看器打开。Vim 保留语法与 LSP 接线，其运行支持随后而来。",
