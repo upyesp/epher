@@ -57,13 +57,17 @@ dependencies {
     // classpath: app.jar plus a few platform jars. The run-configuration
     // surface (com.intellij.execution.ConsoleView, RunProfileState,
     // DefaultRunExecutor) and the PSI/UI types live in the split
-    // product modules under lib/modules, which are not included — so
-    // the compile classpath carries them explicitly, exactly like the
-    // textmate jar above. Same IDE, so there is no version skew. The
-    // jars are enumerated through a provider so the listing happens
-    // after the copy task, not at configuration time.
-    compileOnly(files(layout.buildDirectory.dir("ide-jars").map { dir ->
-        dir.asFileTree.matching { include("*.jar") }.files
+    // product modules under lib/modules, which are not included. This
+    // dependency rides the same artifact resolution as the IDE itself
+    // (it triggers the download exactly like the textmate task does)
+    // and maps straight onto every jar under lib and lib/modules — no
+    // copies, no ordering. Same IDE, so there is no version skew.
+    compileOnly(files(configurations.getByName("intellijPlatformDependency").incoming.artifacts.artifactFiles.map { files ->
+        files.filter { it.isDirectory }.flatMap { dir ->
+            sequenceOf(File(dir, "lib"), File(dir, "lib/modules")).flatMap { section ->
+                section.listFiles { f -> f.extension == "jar" }?.toList() ?: emptyList()
+            }
+        }
     }))
     // The IDE ships the stdlib at runtime (see gradle.properties), the
     // compile classpath still needs it spelled out.
@@ -86,29 +90,6 @@ val prepareTextmateJar = tasks.register("prepareTextmateJar") {
         val target = out.get().asFile
         target.parentFile.mkdirs()
         jar.copyTo(target, overwrite = true)
-    }
-}
-
-// The split product modules for the compile classpath (see the
-// compileOnly fileTree above): every jar under lib and lib/modules of
-// the extracted IDE, copied once per build.
-val prepareIdeJars = tasks.register("prepareIdeJars") {
-    val out = layout.buildDirectory.dir("ide-jars")
-    outputs.dir(out)
-    doLast {
-        val target = out.get().asFile
-        target.mkdirs()
-        val artifactFiles = configurations.getByName("intellijPlatformDependency").incoming.artifacts.artifactFiles
-        val dir = artifactFiles.files
-            .filter { it.isDirectory }
-            .firstOrNull() ?: error("the IntelliJ Platform did not resolve to an extracted IDE directory")
-        copy {
-            from(File(dir, "lib")) { include("*.jar") }
-            from(File(dir, "lib/modules")) { include("*.jar") }
-            into(target)
-        }
-        val jarCount = target.listFiles { f -> f.extension == "jar" }?.size ?: 0
-        println("prepareIdeJars: $jarCount jars copied")
     }
 }
 
@@ -142,9 +123,9 @@ intellijPlatform {
 
 tasks {
     compileKotlin {
-        dependsOn(prepareTextmateJar, prepareIdeJars)
+        dependsOn(prepareTextmateJar)
     }
     compileJava {
-        dependsOn(prepareTextmateJar, prepareIdeJars)
+        dependsOn(prepareTextmateJar)
     }
 }
