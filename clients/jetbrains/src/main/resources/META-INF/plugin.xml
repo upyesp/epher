@@ -41,6 +41,13 @@
                     icon="AllIcons.Toolwindows.ToolWindowMessages" canCloseContents="false"/>
         <!-- Run failures reach the user as a balloon, not a silent log. -->
         <notificationGroup id="epher" displayType="BALLOON"/>
+        <!-- Native run configurations (ADR-0069): with these three,
+             the play icon, the Run menu, and Ctrl+Shift+F10 offer to
+             run a .epher file, and the transcript lands in a run tab.
+             The Tools action and the results pane stay as they are. -->
+        <configurationType implementation="io.epher.jetbrains.EpherRunConfigurationType"/>
+        <runConfigurationProducer implementation="io.epher.jetbrains.EpherRunConfigurationProducer"/>
+        <programRunner implementation="io.epher.jetbrains.EpherProgramRunner"/>
     </extensions>
 
     <!-- The run action (ADR-0069): runs the whole script through a
