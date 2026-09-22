@@ -61,14 +61,21 @@ dependencies {
     // dependency rides the same artifact resolution as the IDE itself
     // (it triggers the download exactly like the textmate task does)
     // and maps straight onto every jar under lib and lib/modules — no
-    // copies, no ordering. Same IDE, so there is no version skew.
-    compileOnly(files(configurations.getByName("intellijPlatformDependency").incoming.artifacts.artifactFiles.map { files ->
-        files.filter { it.isDirectory }.flatMap { dir ->
-            sequenceOf(File(dir, "lib"), File(dir, "lib/modules")).flatMap { section ->
-                section.listFiles { f -> f.extension == "jar" }?.toList() ?: emptyList()
+    // copies, no ordering. Same IDE, so there is no version skew. The
+    // mapping is lazy: the elements provider resolves when the compile
+    // classpath does, after the IDE is extracted.
+    val ideJars = files(
+        configurations.getByName("intellijPlatformDependency").incoming.artifacts.artifactFiles.elements.map { locations ->
+            val dirs: List<File> = locations.map { it.asFile }.filter { it.isDirectory }
+            dirs.flatMap { dir ->
+                val sections: List<File> = listOf(File(dir, "lib"), File(dir, "lib/modules"))
+                sections.flatMap { section ->
+                    section.listFiles { f: File -> f.extension == "jar" }?.toList() ?: emptyList()
+                }
             }
         }
-    }))
+    )
+    compileOnly(ideJars)
     // The IDE ships the stdlib at runtime (see gradle.properties), the
     // compile classpath still needs it spelled out.
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
