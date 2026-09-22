@@ -1,11 +1,11 @@
 package io.epher.jetbrains
 
-import com.intellij.execution.ConsoleView
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.DefaultExecutionResult
-import com.intellij.execution.ExecutionEnvironment
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
-import com.intellij.execution.RunProfileState
+import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.LocatableConfiguration
 import com.intellij.execution.configurations.RunConfiguration
@@ -23,7 +23,7 @@ import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.ui.LabeledComponent
+import com.intellij.openapi.ui.LabeledComponent
 import org.jdom.Element
 import java.awt.BorderLayout
 import java.io.File

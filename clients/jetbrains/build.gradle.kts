@@ -53,29 +53,6 @@ dependencies {
     // the extracted IDE below, and at runtime the declared plugin
     // dependency in plugin.xml provides it.
     compileOnly(files(layout.buildDirectory.file("textmate/textmate.jar")))
-    // IPG 2.x puts only part of the extracted IDE on the compile
-    // classpath: app.jar plus a few platform jars. The run-configuration
-    // surface (com.intellij.execution.ConsoleView, RunProfileState,
-    // DefaultRunExecutor) and the PSI/UI types live in the split
-    // product modules under lib/modules, which are not included. This
-    // dependency rides the same artifact resolution as the IDE itself
-    // (it triggers the download exactly like the textmate task does)
-    // and maps straight onto every jar under lib and lib/modules — no
-    // copies, no ordering. Same IDE, so there is no version skew. The
-    // mapping is lazy: the elements provider resolves when the compile
-    // classpath does, after the IDE is extracted.
-    val ideJars = files(
-        configurations.getByName("intellijPlatformDependency").incoming.artifacts.artifactFiles.elements.map { locations ->
-            val dirs: List<File> = locations.map { it.asFile }.filter { it.isDirectory }
-            dirs.flatMap { dir ->
-                val sections: List<File> = listOf(File(dir, "lib"), File(dir, "lib/modules"))
-                sections.flatMap { section ->
-                    section.listFiles { f: File -> f.extension == "jar" }?.toList() ?: emptyList()
-                }
-            }
-        }
-    )
-    compileOnly(ideJars)
     // The IDE ships the stdlib at runtime (see gradle.properties), the
     // compile classpath still needs it spelled out.
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")

@@ -1,6 +1,6 @@
 package io.epher.jetbrains
 
-import com.intellij.execution.DefaultRunExecutor
+import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.runners.DefaultProgramRunner
 
