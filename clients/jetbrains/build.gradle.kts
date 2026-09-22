@@ -107,7 +107,8 @@ val prepareIdeJars = tasks.register("prepareIdeJars") {
             from(File(dir, "lib/modules")) { include("*.jar") }
             into(target)
         }
-        println("prepareIdeJars: ${target.listFiles { f -> f.extension == \"jar\" }?.size ?: 0} jars copied")
+        val jarCount = target.listFiles { f -> f.extension == "jar" }?.size ?: 0
+        println("prepareIdeJars: $jarCount jars copied")
     }
 }
 
