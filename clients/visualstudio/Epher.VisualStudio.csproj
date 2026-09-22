@@ -89,6 +89,13 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <!-- The extension logo: named by <Icon> in the vsix manifest so
+         the Extensions manager shows it in the logo area (the 0.5.47
+         review). Same artwork as the VS Code extension's icon. -->
+    <Content Include="icon.png">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">

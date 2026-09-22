@@ -64,15 +64,20 @@ namespace Epher.VisualStudio
             commandService.AddCommand(runCommand);
         }
 
-        // Enabled only over a .epher document. The package loads lazily,
-        // so VS serves the .ctmenu's static (enabled) state until the
-        // first invocation loads the package; from then on this runs and
-        // greys the command out over other file types.
+        // Enabled only over a .epher document — and Visible, not merely
+        // enabled: the F5/Ctrl+F5 key bindings resolve against visible
+        // commands, so hiding the command over other files lets those
+        // keys fall through to the shell's Start Debugging. The package
+        // loads lazily, so VS serves the .ctmenu's static (visible)
+        // state until the first invocation loads the package; from then
+        // on this runs.
         private void OnBeforeQueryStatus(object sender, EventArgs e)
         {
             var command = (OleMenuCommand)sender;
             string path;
-            command.Enabled = ActiveEpherBuffer(out path) != null;
+            bool overEpher = ActiveEpherBuffer(out path) != null;
+            command.Visible = overEpher;
+            command.Enabled = overEpher;
         }
 
         private void RunActiveScript(object sender, EventArgs e)

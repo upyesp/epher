@@ -4,7 +4,10 @@
     <!-- The version is stamped from the EpherVersion msbuild property
          at build time; both move together with the release train. -->
     <Identity Language="en-US" Id="Epher.VisualStudio" Version="0.5.40" Publisher="upyesp" />
-    <DisplayName>Epher</DisplayName>
+    <DisplayName>epher</DisplayName>
+    <!-- The icon rides the vsix as content and is named here so the
+         Extensions manager's logo area shows it (the 0.5.47 review). -->
+    <Icon d:Source="File" Include="icon.png" />
     <Description xml:space="preserve">The epher calculator language in Visual Studio: syntax highlighting, a diagnostic for every broken statement, the answer rendered inline next to every statement that produces one, hover with canonical signatures, and completion for the catalog, your own names, and the shared snippets, via the shared epher-lsp server.</Description>
     <Tags>epher, calculator, units, language</Tags>
     <Categories>Programming Languages</Categories>
