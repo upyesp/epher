@@ -53,6 +53,16 @@ dependencies {
     // the extracted IDE below, and at runtime the declared plugin
     // dependency in plugin.xml provides it.
     compileOnly(files(layout.buildDirectory.file("textmate/textmate.jar")))
+    // IPG 2.x puts only part of the extracted IDE on the compile
+    // classpath: app.jar plus a few platform jars. The run-configuration
+    // surface (com.intellij.execution.ConsoleView, RunProfileState,
+    // DefaultRunExecutor) and the PSI/UI types live in the split
+    // product modules under lib/modules, which are not included — so
+    // the compile classpath carries them explicitly, exactly like the
+    // textmate jar above. Same IDE, so there is no version skew.
+    compileOnly(fileTree(layout.buildDirectory.dir("ide-jars")) {
+        include("*.jar")
+    })
     // The IDE ships the stdlib at runtime (see gradle.properties), the
     // compile classpath still needs it spelled out.
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
@@ -74,6 +84,27 @@ val prepareTextmateJar = tasks.register("prepareTextmateJar") {
         val target = out.get().asFile
         target.parentFile.mkdirs()
         jar.copyTo(target, overwrite = true)
+    }
+}
+
+// The split product modules for the compile classpath (see the
+// compileOnly fileTree above): every jar under lib and lib/modules of
+// the extracted IDE, copied once per build.
+val prepareIdeJars = tasks.register("prepareIdeJars") {
+    val out = layout.buildDirectory.dir("ide-jars")
+    outputs.dir(out)
+    doLast {
+        val target = out.get().asFile
+        target.mkdirs()
+        val artifactFiles = configurations.getByName("intellijPlatformDependency").incoming.artifacts.artifactFiles
+        val dir = artifactFiles.files
+            .filter { it.isDirectory }
+            .firstOrNull() ?: error("the IntelliJ Platform did not resolve to an extracted IDE directory")
+        copy {
+            from(File(dir, "lib")) { include("*.jar") }
+            from(File(dir, "lib/modules")) { include("*.jar") }
+            into(target)
+        }
     }
 }
 
@@ -107,9 +138,9 @@ intellijPlatform {
 
 tasks {
     compileKotlin {
-        dependsOn(prepareTextmateJar)
+        dependsOn(prepareTextmateJar, prepareIdeJars)
     }
     compileJava {
-        dependsOn(prepareTextmateJar)
+        dependsOn(prepareTextmateJar, prepareIdeJars)
     }
 }
