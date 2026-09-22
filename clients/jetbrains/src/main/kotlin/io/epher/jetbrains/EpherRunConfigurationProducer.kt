@@ -20,7 +20,7 @@ class EpherRunConfigurationProducer :
     override fun setupConfigurationFromContext(
         configuration: EpherRunConfiguration,
         context: ConfigurationContext,
-        sourceElement: Ref<PsiElement>?,
+        sourceElement: Ref<PsiElement>,
     ): Boolean {
         val file = context.location?.virtualFile ?: return false
         if (!file.name.endsWith(".epher")) return false

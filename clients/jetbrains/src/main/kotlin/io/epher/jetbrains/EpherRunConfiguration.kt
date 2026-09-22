@@ -62,13 +62,11 @@ class EpherRunConfiguration(project: Project, factory: ConfigurationFactory, nam
         if (!File(scriptPath).isFile) throw RuntimeConfigurationError("no such file: $scriptPath")
     }
 
-    // LocatableConfiguration: the platform renames an auto-created
-    // configuration to the suggested name after it first runs, and a
-    // hand-renamed one stops counting as generated.
-    override fun getSuggestedName(): String =
-        File(scriptPath).nameWithoutExtension.ifEmpty { "epher" }
-
-    override fun isGeneratedName(): Boolean = name == getSuggestedName()
+    // LocatableConfiguration at 242 declares only isGeneratedName: a
+    // generated configuration is one whose name is still the script's
+    // own (what the producer assigns).
+    override fun isGeneratedName(): Boolean =
+        name == File(scriptPath).nameWithoutExtension.ifEmpty { "epher" }
 
     override fun writeExternal(element: Element) {
         super.writeExternal(element)
