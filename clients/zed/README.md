@@ -19,12 +19,14 @@ extension's work directory, and starts it over stdio.
 - semantic-token coloring: numbers, variables, functions, keywords,
   operators, strings, and unit suffixes colored by meaning.
 
-## Baseline highlighting ships; one setting makes it exact
+## Highlighting: one setting, exact
 
-The extension pins the [tree-sitter-epher](https://github.com/upyesp/tree-sitter-epher)
-grammar, so baseline highlighting, bracket matching, and outline work
-out of the box. For the server's exact coloring (unit suffixes versus
-a variable named m), turn on semantic tokens in your settings:
+There is no tree-sitter grammar in the extension: Zed builds grammar C
+with a downloaded wasi-sdk toolchain at install time, and that step
+fails in real environments (the Flatpak sandbox among them) with a
+bare ENOENT that blocks the whole install. The language server's
+semantic tokens are the coloring instead — exact, not a baseline
+approximation. Turn them on in your settings:
 
 ```json
 {
@@ -56,14 +58,17 @@ Platforms: linux x86_64 and ARM64, macOS Apple silicon, Windows
 x86_64. Intel macOS and Windows ARM64 join when ADR-0066's second
 platform wave lands.
 
-## The grammar
+## The grammar, and why it is not here
 
-The tree-sitter grammar lives in its own repository (the Zed registry
-pins a revision): [upyesp/tree-sitter-epher](https://github.com/upyesp/tree-sitter-epher),
-written from the same source as this extension
-(`grammars/tree-sitter-epher` in the epher repository). It parses the
+The [tree-sitter-epher](https://github.com/upyesp/tree-sitter-epher)
+grammar (written from the same source as this extension,
+`grammars/tree-sitter-epher` in the epher repository; it parses the
 whole shipped `epher scripts` corpus - all 433 scripts - without
-errors.
+errors) still exists for tooling, but it does not ride in the
+extension: the install-time grammar build is the one step an epher
+user cannot fix when Zed's toolchain fails, so the extension installs
+without it and semantic tokens do the coloring. If a future Zed makes
+grammar builds hermetic, the grammar comes back.
 
 ## Running scripts, honestly
 
@@ -94,5 +99,4 @@ The extension compiles for `wasm32-wasip1`, the target Zed loads.
 The version here (`extension.toml` and `Cargo.toml`, kept in
 lockstep) is the release the extension resolves: tag `v<version>`.
 It rides epher's 0.5.x train, so bumping epher bumps this in the
-same batch. When the grammar moves, bump its `rev` in
-`extension.toml` in the same commit.
+same batch; a CI job fails the build when the locks drift.

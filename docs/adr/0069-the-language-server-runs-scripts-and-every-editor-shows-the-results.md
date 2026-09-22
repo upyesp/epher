@@ -126,7 +126,12 @@ real limits:
   `epher run script.epher` in Zed's terminal are the honest
   substitute until the API grows a surface. The extension's version
   lock (it downloads tag v<its own version>) is now guarded in CI,
-  after riding six releases stale.
+  after riding six releases stale. After the 0.5.47 field reports,
+  the optional tree-sitter grammar left the extension too: Zed's
+  install-time grammar build (a downloaded wasi-sdk toolchain) fails
+  in real environments — the Flatpak sandbox among them — with a bare
+  ENOENT that blocks the whole install, and the server's semantic
+  tokens carry the coloring instead.
 - **Vim, Emacs, Sublime, and Eclipse** keep the decision-3 floor for
   now — configuration-level clients whose run story follows in a
   later release; nothing about them regressed.

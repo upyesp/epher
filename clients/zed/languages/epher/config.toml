@@ -1,14 +1,11 @@
-# The epher language for Zed. The tree-sitter grammar (pinned in
-# extension.toml) gives baseline highlighting, outline, and bracket
-# matching over the syntax tree; the language server's semantic tokens
-# refine the coloring live. Users who want the server's exact unit
-# coloring (including `m` versus a variable named m) enable it once:
+# The epher language for Zed. There is no tree-sitter grammar (see
+# extension.toml): the language server's semantic tokens are the
+# coloring, exact rather than approximate, once enabled:
 #
 #   "languages": { "epher": { "semantic_tokens": "full" } }
 #
 # semantic_token_rules.json styles the custom `unit` token type.
 name = "epher"
-grammar = "epher"
 path_suffixes = ["epher"]
 line_comments = ["# ", "// "]
 block_comment = [
