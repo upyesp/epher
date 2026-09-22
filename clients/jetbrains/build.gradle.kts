@@ -59,10 +59,12 @@ dependencies {
     // DefaultRunExecutor) and the PSI/UI types live in the split
     // product modules under lib/modules, which are not included — so
     // the compile classpath carries them explicitly, exactly like the
-    // textmate jar above. Same IDE, so there is no version skew.
-    compileOnly(fileTree(layout.buildDirectory.dir("ide-jars")) {
-        include("*.jar")
-    })
+    // textmate jar above. Same IDE, so there is no version skew. The
+    // jars are enumerated through a provider so the listing happens
+    // after the copy task, not at configuration time.
+    compileOnly(files(layout.buildDirectory.dir("ide-jars").map { dir ->
+        dir.asFileTree.matching { include("*.jar") }.files
+    }))
     // The IDE ships the stdlib at runtime (see gradle.properties), the
     // compile classpath still needs it spelled out.
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
@@ -105,6 +107,7 @@ val prepareIdeJars = tasks.register("prepareIdeJars") {
             from(File(dir, "lib/modules")) { include("*.jar") }
             into(target)
         }
+        println("prepareIdeJars: ${target.listFiles { f -> f.extension == \"jar\" }?.size ?: 0} jars copied")
     }
 }
 

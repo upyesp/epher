@@ -8,11 +8,6 @@
     <Description xml:space="preserve">The epher calculator language in Visual Studio: syntax highlighting, a diagnostic for every broken statement, the answer rendered inline next to every statement that produces one, hover with canonical signatures, and completion for the catalog, your own names, and the shared snippets, via the shared epher-lsp server. Tools ▸ Run Epher Script (or F5 over a script) evaluates the whole file and shows the transcript and graphs beside the editor.</Description>
     <Tags>epher, calculator, units, language</Tags>
     <Categories>Programming Languages</Categories>
-    <!-- The icon rides the vsix as content; the manifest names it so
-         the Extensions manager's logo area shows it (the 0.5.47
-         review). The schema orders Metadata children strictly: Icon
-         after Description, before Tags. -->
-    <Icon d:Source="File" Include="icon.png" />
   </Metadata>
   <Installation>
     <!-- VS 2022 only (17.x); the 64-bit IDE. -->
@@ -24,6 +19,10 @@
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,)" DisplayName="Visual Studio core editor" />
   </Prerequisites>
   <Assets>
+    <!-- The icon rides the vsix as content; the VsIcon asset is how
+         the Extensions manager finds it for the logo area (the 0.5.47
+         review) — the v2 manifest has no <Icon> element. -->
+    <Asset Type="Microsoft.VisualStudio.VsIcon" d:Source="File" Path="icon.png" />
     <!-- The MEF parts: the content type wiring and the language client. -->
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
     <!-- The command package (EpherPackage.cs, same assembly): its
