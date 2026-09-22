@@ -69,12 +69,14 @@ class EpherRunConfiguration(project: Project, factory: ConfigurationFactory, nam
         name == File(scriptPath).nameWithoutExtension.ifEmpty { "epher" }
 
     override fun writeExternal(element: Element) {
-        super.writeExternal(element)
+        // LocatableConfiguration carries default persistence methods
+        // too; the class's own is the one to chain up to.
+        super<RunConfigurationBase>.writeExternal(element)
         if (scriptPath.isNotBlank()) element.setAttribute(SCRIPT_PATH_ATTRIBUTE, scriptPath)
     }
 
     override fun readExternal(element: Element) {
-        super.readExternal(element)
+        super<RunConfigurationBase>.readExternal(element)
         scriptPath = element.getAttributeValue(SCRIPT_PATH_ATTRIBUTE) ?: ""
     }
 
