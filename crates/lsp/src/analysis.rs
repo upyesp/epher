@@ -129,14 +129,19 @@ impl Document {
         hints
     }
 
-    /// Hover: what the name under the cursor means. User-defined names
-    /// answer first, then the builtin catalogs.
+    /// Hover: what the name under the cursor means. Keywords and
+    /// statement-command words answer first, then user-defined names,
+    /// then the builtin catalogs — every reserved spelling gets an
+    /// answer, so hover is consistent across the editors (ADR-0069).
     pub fn hover(&self, position: lsp_types::Position) -> Option<String> {
         let offset = self.offset_of(position)?;
         let token = self
             .tokens
             .iter()
             .find(|t| t.span.start <= offset && offset <= t.span.end)?;
+        if token.class == TokenClass::Keyword {
+            return keyword_hover(&token.text);
+        }
         if token.class != TokenClass::Name {
             return None;
         }
@@ -401,6 +406,40 @@ pub fn server_capabilities() -> lsp_types::ServerCapabilities {
         inlay_hint_provider: Some(OneOf::Left(true)),
         ..Default::default()
     }
+}
+
+/// One-line hover per keyword and statement-command word: what the
+/// construct does, in the calculator's own terms. The same word gets
+/// the same answer in every editor (ADR-0069), and a spelling that is
+/// not reserved falls through (a name's hover still wins downstream).
+fn keyword_hover(word: &str) -> Option<String> {
+    let text = match word {
+        "and" => "joins two conditions: both must hold",
+        "or" => "joins two conditions: either may hold",
+        "xor" => "joins two conditions: exactly one may hold",
+        "not" => "negates a condition",
+        "break" => "leaves the enclosing `for` or `while` loop now",
+        "continue" => "skips ahead to the next pass of the enclosing loop",
+        "return" => "ends the function body now, yielding its answer",
+        "const" => "`const name = value` fixes a named value for this document",
+        "def" => "`def name(args) do ... end` (or `def name(args) = expression`) defines a reusable function",
+        "do" => "opens a body: a function's, or a `for`/`while`/`if`",
+        "end" => "closes the body opened by `do`",
+        "else" => "the other branch of `if condition then ...`",
+        "for" => "`for i in a to b do ... end` runs the body once per value of `i`",
+        "if" => "`if condition then ... else ...` picks a branch",
+        "in" => "binds the loop variable in `for i in a to b`",
+        "step" => "sets the stride of a written range (`a to b step s`)",
+        "solve" => "`solve equation for x` finds the values that satisfy an equation",
+        "then" => "separates an `if` condition from its branch",
+        "to" => "ends a written range (`from a to b`, `for i in a to b`)",
+        "while" => "`while condition do ... end` repeats while the condition holds",
+        "graph" => "`graph <expression> from a to b` plots a curve; the results pane renders it",
+        "save" => "`save name` (or `save script name`) stores a definition for later sessions",
+        "table" => "`table <expression> from a to b [points n]` prints a table of values",
+        _ => return None,
+    };
+    Some(format!("**{word}** - a word of the epher language: {text}"))
 }
 
 /// The document store, keyed by URI text.

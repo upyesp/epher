@@ -554,6 +554,27 @@ pub fn token_classes(text: &str) -> Result<Vec<SpannedToken>, SpannedError> {
             classified[i].0.class = TokenClass::Unit;
         }
     }
+    // Statement-command words (`graph`, `save`, `table`): not grammar
+    // keywords — the spellings stay usable mid-statement — but a line
+    // that opens with one is a shell-level statement, so the editor
+    // colors and hovers it like a keyword (ADR-0069: consistent hover
+    // across the editors). Statement start: nothing but whitespace
+    // since the previous newline or semicolon.
+    const STATEMENT_COMMANDS: &[&str] = &["graph", "save", "table"];
+    let opens_statement = |start: usize| -> bool {
+        match text[..start].rfind(|c| c == '\n' || c == ';') {
+            Some(i) => text[i + 1..start].trim().is_empty(),
+            None => true,
+        }
+    };
+    for token in classified.iter_mut() {
+        if token.0.class == TokenClass::Name
+            && STATEMENT_COMMANDS.contains(&token.0.text.as_str())
+            && opens_statement(token.0.span.start)
+        {
+            token.0.class = TokenClass::Keyword;
+        }
+    }
     Ok(classified
         .into_iter()
         .filter_map(|(token, separator)| if separator { None } else { Some(token) })
