@@ -53,8 +53,11 @@ namespace Epher.VisualStudio
     // alive before the first F5: auto-load in both solution states
     // (together they cover every shell state). Load is cheap — the
     // Initialize registers two command surfaces and nothing else.
-    [ProvideAutoLoad(VSConstants.UICONTEXT_SolutionExists_string)]
-    [ProvideAutoLoad(VSConstants.UICONTEXT_NoSolution_string)]
+    // Literal GUIDs, because attributes need constants: the typed
+    // VSConstants members are structs, and these two come straight
+    // from the SDK header vsshlids.h (UICONTEXT_*).
+    [ProvideAutoLoad("F1536EF8-92EC-443C-9ED7-FDADF150DA82")]
+    [ProvideAutoLoad("ADFC4E64-0397-11D1-9F4E-00A0C911004F")]
     public sealed class EpherPackage : Package
     {
         // The registration cookie of the F5/Ctrl+F5 key target; 0 means
