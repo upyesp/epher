@@ -1,1 +1,4 @@
 target/
+# Zed writes the compiled extension into this directory when the dev
+# extension is installed (extension_builder compiles in place).
+extension.wasm

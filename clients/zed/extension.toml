@@ -15,15 +15,24 @@ authors = ["upyesp"]
 description = "epher in Zed: live diagnostics, inline answers, hover signatures, completion, and unit-aware coloring from the shared epher language server."
 repository = "https://github.com/upyesp/epher"
 
-# No tree-sitter grammar ships here, on purpose. Zed builds grammar
-# C with its wasi-sdk toolchain at install time, and that step fails
-# in real environments (the Flatpak sandbox among them) with a bare
-# ENOENT that blocks the whole extension. The language server's
-# semantic tokens are the coloring instead — exact, not approximate —
-# once "languages.epher.semantic_tokens" is set to "full" in the
-# user's settings (the README and the website page both say so).
-# Revisit only if Zed's grammar builds stop needing a downloaded
-# toolchain.
+# No tree-sitter grammar ships here, on purpose. Checked against
+# zed's source (crates/extension/src/extension_builder.rs): any
+# [grammars.*] entry makes a dev-extension install resolve the
+# wasi-sdk toolchain (download or WASI_SDK_PATH) BEFORE it ever
+# looks at a prebuilt grammars/<name>.wasm, so in sandboxed
+# environments (Flatpak, stripped Windows PATHs) the whole install
+# fails with ENOENT — the 0.5.47 field report. A grammar absent
+# from the manifest is never loaded, so there is no prebuilt-only
+# path for dev extensions. The grammar returns only with
+# marketplace publication: registry installs download a finished
+# package (no toolchain on the user's machine), and the packaging
+# CLI takes grammars/<name>.wasm straight from this directory —
+# an epher CI job can compile it once from upyesp/tree-sitter-epher
+# at the pinned rev. Until then the coloring rides the language
+# server's semantic tokens, which Zed ships DISABLED by default
+# ("semantic_tokens" defaults to "off"), so turning them on is
+# part of installing — the README steps and the website card both
+# carry the setting.
 
 [language_servers.epher-lsp]
 name = "epher"

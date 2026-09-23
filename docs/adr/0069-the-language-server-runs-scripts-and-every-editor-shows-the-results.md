@@ -130,8 +130,12 @@ real limits:
   the optional tree-sitter grammar left the extension too: Zed's
   install-time grammar build (a downloaded wasi-sdk toolchain) fails
   in real environments — the Flatpak sandbox among them — with a bare
-  ENOENT that blocks the whole install, and the server's semantic
-  tokens carry the coloring instead.
+  ENOENT that blocks the whole install. The server's semantic tokens
+  carry the coloring instead — but Zed ships them disabled by default
+  (`semantic_tokens` defaults to "off"), so enabling them in settings
+  (`"languages": { "epher": { "semantic_tokens": "full" } }`) is part
+  of installing, not an optional refinement; the 0.5.48 field report
+  was a fresh install with no colors at all, exactly as Zed defaults.
 - **Vim, Emacs, Sublime, and Eclipse** keep the decision-3 floor for
   now — configuration-level clients whose run story follows in a
   later release; nothing about them regressed.

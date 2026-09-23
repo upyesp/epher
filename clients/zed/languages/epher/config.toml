@@ -1,6 +1,8 @@
 # The epher language for Zed. There is no tree-sitter grammar (see
-# extension.toml): the language server's semantic tokens are the
-# coloring, exact rather than approximate, once enabled:
+# extension.toml), and Zed ships semantic tokens disabled by default
+# ("semantic_tokens" defaults to "off"): a fresh install colors
+# nothing until the user turns them on — for any coloring, not just
+# units:
 #
 #   "languages": { "epher": { "semantic_tokens": "full" } }
 #

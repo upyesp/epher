@@ -219,14 +219,16 @@
       </p>
 
       <h2><img class="ide-logo" src="ide-logos/zed.png" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-zed-title">Zed</span></h2>
-            <p data-i18n="ide-zed-p1">
+      <p data-i18n="ide-zed-p1">
         Install it as a dev extension: in Zed, run the `zed: install
         dev extension` command and pick the unzipped `epher-zed`
         folder. Zed compiles the extension itself, which needs Rust
-        installed. No grammar build is part of the install; the
-        coloring comes from the language server's semantic tokens —
-        for the exact unit coloring, flip one setting:
-        `languages.epher.semantic_tokens = full`.
+        installed. No grammar build is part of the install. Coloring
+        stays off until you flip one setting — Zed ships semantic
+        tokens disabled, and with no grammar there is no other
+        colorer — so add
+        `"languages": { "epher": { "semantic_tokens": "full" } }`
+        to your settings as part of installing.
       </p>
       <p data-i18n="ide-zed-p2">
         The Rust step belongs to dev extensions, not to epher:
@@ -242,7 +244,7 @@
         statement stay live as you type.
       </p>
       <p class="prereq" data-i18n="ide-zed-prereq">
-        Prerequisite: the `epher-lsp` server binary, installed once and on your PATH: see Any LSP client below.
+        The extension downloads the `epher-lsp` server itself on first use — nothing to put on your PATH. For `epher run` in Zed's terminal, install the `epher` CLI from the GitHub releases.
       </p>
       <p>
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-zed.zip" data-i18n="ide-zed-link">Download epher-zed.zip</a>
