@@ -45,16 +45,17 @@
   </CommandPlacements>
 
   <!-- F5 and Ctrl+F5 run the script, the same keys the VS Code
-       extension answers (ADR-0069: one run story per editor). The
-       binding is scoped to the text editor, and the command hides
-       itself over non-epher files (BeforeQueryStatus sets Visible, not
-       Enabled): an invisible command is skipped in key resolution, so
-       over every other file F5 still reaches the shell's Start
-       Debugging. A disabled command would swallow the key instead. -->
-  <KeyBindings>
-    <KeyBinding guid="guidEpherCommandSet" id="cmdidRunEpherScript" key1="F5" editor="guidTextEditor"/>
-    <KeyBinding guid="guidEpherCommandSet" id="cmdidRunEpherScript" mod1="Control" key1="F5" editor="guidTextEditor"/>
-  </KeyBindings>
+       extension answers (ADR-0069: one run story per editor). No
+       <KeyBinding> of ours: the keystrokes resolve to the shell's own
+       Debug.Start / Debug.StartWithoutDebugging commands, and the
+       package's EpherKeyTarget — a priority command target at the
+       front of the command chain — answers those two over a .epher
+       document and passes everything else straight through, so Start
+       Debugging keeps working everywhere else. A binding here would
+       double-handle once the target works, and the 0.5.49 attempt
+       only ever fell through: VS honors a key binding only after it
+       has queried the command, which a lazily loaded package's
+       command waits for. -->
 
   <Symbols>
     <GuidSymbol name="guidEpherPackage" value="{672BDABC-CE2C-4E12-A10C-107148209915}"/>
@@ -63,8 +64,5 @@
       <IDSymbol name="EditorContextMenuGroup" value="0x1001"/>
       <IDSymbol name="cmdidRunEpherScript" value="0x0100"/>
     </GuidSymbol>
-    <!-- The text editor command set: the scope that keeps the F5
-         bindings out of every other window. -->
-    <GuidSymbol name="guidTextEditor" value="{8B382828-6202-11d1-8870-0000F87579D2}"/>
   </Symbols>
 </CommandTable>

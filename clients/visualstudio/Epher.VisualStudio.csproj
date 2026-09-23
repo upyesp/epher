@@ -60,6 +60,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="EpherContentType.cs" />
+    <Compile Include="EpherKeyTarget.cs" />
     <Compile Include="EpherLanguageClient.cs" />
     <Compile Include="EpherPackage.cs" />
     <Compile Include="EpherRun.cs" />
