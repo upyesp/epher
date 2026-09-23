@@ -439,7 +439,7 @@ fn keyword_hover(word: &str) -> Option<String> {
         "table" => "`table <expression> from a to b [points n]` prints a table of values",
         _ => return None,
     };
-    Some(format!("**{word}** - a word of the epher language: {text}"))
+    Some(format!("**{word}** {text}"))
 }
 
 /// The document store, keyed by URI text.
