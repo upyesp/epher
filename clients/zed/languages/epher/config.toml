@@ -7,12 +7,18 @@
 #   "languages": { "epher": { "semantic_tokens": "full" } }
 #
 # semantic_token_rules.json styles the custom `unit` token type.
+#
+# block_comment must be ONE table ({ start = …, prefix = …, end = …,
+# tab_size = … }) or the old two-string form ([start, end]) — never a
+# list of tables. Zed's BlockCommentConfig has no list variant on any
+# version (checked 0.204.2 through 1.21.0), and one bad line here
+# makes the whole extension vanish at index time: the language and
+# the extension itself silently fail to register (a log-only TOML
+# parse error is the only trace).
 name = "epher"
 path_suffixes = ["epher"]
 line_comments = ["# ", "// "]
-block_comment = [
-  { start = "/*", prefix = "", end = "*/", tab_size = 0 },
-]
+block_comment = { start = "/*", prefix = "", end = "*/", tab_size = 0 }
 autoclose_before = "}])\"'"
 word_characters = ["_"]
 

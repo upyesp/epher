@@ -95,6 +95,13 @@ impl EpherExtension {
         // One directory per release version, so an update never mixes
         // binaries; the extension's work directory is the root.
         let version_dir = format!("epher-lsp-{}", env!("CARGO_PKG_VERSION"));
+        // Zed's download_file does not create intermediate directories
+        // (it only preopens the extension work dir), so the per-version
+        // directory has to exist before the binary is downloaded into
+        // it; otherwise the download fails with ENOENT (checked against
+        // Zed 0.204.2 and 1.21.0).
+        std::fs::create_dir_all(&version_dir)
+            .map_err(|error| format!("failed to create {version_dir}: {error}"))?;
         let binary_path = Path::new(&version_dir).join(binary_name);
         let binary_path = binary_path
             .to_str()

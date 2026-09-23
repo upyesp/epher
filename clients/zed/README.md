@@ -70,6 +70,20 @@ runs the build against the `wasm32-wasip2` target and adds it
 through rustup when it is missing. First use needs the network once,
 to fetch the server binary; after that everything is local.
 
+### Compatible Zed versions
+
+The extension builds against `zed_extension_api = "0.6.0"` (see the
+comment in Cargo.toml for the full rationale), which loads on every
+Zed from **0.192** (mid-June 2025, the first release train shipping
+the 0.6.0 extension API — per the compatibility table in Zed's
+`crates/extension_api/README.md`) through current stable (verified
+end to end on 0.204.2 and 1.21.0: install, language registration,
+server download, server start). Do not bump the pin casually: 0.7.0
+of the API was excluded from stable Zed's supported range until
+2025-09-19 (zed#38529), so anything built against it silently fails
+to install or load on every Zed before that. Nothing in this
+extension uses anything past 0.6.0.
+
 Platforms: linux x86_64 and ARM64, macOS Apple silicon, Windows
 x86_64. Intel macOS and Windows ARM64 join when ADR-0066's second
 platform wave lands.
@@ -123,22 +137,47 @@ is missing.
 ## If it does not work
 
 A failed install shows an error card in Zed ("Failed to install dev
-extension"). When the install succeeds but the extension seems dead,
-the reasons live in Zed's log:
+extension"). But the nastier failure mode is the quiet one: the
+install finishes, and the extension still never appears in the
+Installed list, and `epher` underlines with "No language with this
+name is installed". Load and index failures are LOG-ONLY in Zed —
+they never surface in the UI (checked against 0.204.2 and 1.21.0
+source: `log::error!` and nothing else). So the log is where every
+real answer lives. When filing an issue, paste these lines verbatim:
 
 - Windows: `%LOCALAPPDATA%\Zed\logs\Zed.log`
 - macOS: `~/Library/Logs/Zed/Zed.log`
 - Linux: `~/.local/share/zed/logs/Zed.log`
   (Flatpak: `~/.var/app/dev.zed.Zed/data/zed/logs/Zed.log`)
 
-Open it and search for `epher`. The lines that matter:
+Open it and search for `epher` and for `extension_host`. The lines
+that matter, ranked by how often they are the culprit:
 
-- `compiling Rust extension` / `finished compiling extension` —
-  the install itself;
-- `Failed to load extension` — the install finished but Zed refused
-  the compiled extension (version skew; file an issue with the line);
-- `epher-lsp` — the server download and start, which happens the
-  first time a `.epher` file opens.
+1. `[extension_host] TOML parse error …` naming a line in
+   `languages/epher/config.toml` — a language-manifest field Zed's
+   schema rejects. This is the one that produces exactly the quiet
+   failure above: the index rebuild `?`-aborts on the bad line and
+   drops the whole extension, so epher is not in the Installed list,
+   the language never registers, and no error card appears. Known
+   trap, hit in 0.5.49: `block_comment` written as a LIST of tables
+   is invalid on every Zed (0.204.2 through 1.21.0 checked) — it
+   must be the single-table form shipped here. If your log shows
+   this for a different field, send the line.
+2. `Failed to load extension: epher, …` (plus `failed to
+   instantiate wasm extension`) — the compiled wasm loaded but Zed
+   refused it, almost always extension-API skew: the wasm embeds a
+   `zed:api-version` the running Zed does not accept. Fixed by the
+   0.6.0 pin above; if you see it, say which Zed version you run
+   (Zed → about) and send the line.
+3. Install-time compile errors — `compiling Rust extension` /
+   `finished compiling extension` bracket the build; a missing
+   `wasm32-wasip2` target or rustup fails here. (The 0.5.47 field
+   reports of `wasi-sdk … ENOENT` were this stage too, caused by the
+   then-declared grammar; the extension ships no grammar now.)
+4. `epher-lsp` lines — the server download and start, which happen
+   the first time a `.epher` file opens (a 0.5.49 regression there —
+   downloads into the per-version directory — is fixed by creating
+   the directory in the extension first).
 
 The installed extension also sits on disk as a link named
 `extensions/installed/epher` under Zed's data directory
