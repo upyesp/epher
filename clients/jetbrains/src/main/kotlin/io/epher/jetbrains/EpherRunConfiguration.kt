@@ -122,7 +122,7 @@ private class EpherSettingsEditor : SettingsEditor<EpherRunConfiguration>() {
  * The run itself (ADR-0069). The console transcript is attached to a
  * placeholder process handler so the platform shows a proper run tab,
  * while the blocking epher-lsp conversation happens on a pooled thread
- * — EpherOneShot enforces its own 30-second deadline — and each report
+ * — EpherOneShot enforces its own deadline — and each report
  * line lands in the console as it is produced. A failure prints in red
  * and the tab ends with a non-zero exit code.
  */

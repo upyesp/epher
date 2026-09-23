@@ -46,7 +46,18 @@ data class RunReport(val statements: List<RunLine>, val svgs: List<String>)
  */
 object EpherOneShot {
 
-    private const val TIMEOUT_SECONDS = 30L
+    // One deadline for the whole conversation: the run must finish
+    // inside it or the process is torn down. Ten minutes, measured
+    // against the script collection itself: the server is synchronous,
+    // so this deadline covers BOTH full evaluations of the document —
+    // the didOpen analysis pass (didOpen is answered only after the
+    // whole file has run) and the epher/run evaluation — and real
+    // astronomy scripts need up to about two minutes for the two
+    // together on a mid-range machine (mercury-transits.epher measured
+    // 57 s analysis + 56 s run). VS Code, which shares this protocol,
+    // waits without a timeout; the cap here exists only to reap a
+    // wedged or crashed session, not to police the engine's compute.
+    private const val TIMEOUT_SECONDS = 600L
 
     // Diagnostics for the field's "died mid-run" reports: the INFO line
     // here is the only record of what was sent, and the stderr tail the
@@ -76,8 +87,7 @@ object EpherOneShot {
         private val rootUri: String,
         private val text: String,
     ) {
-        // One deadline for the whole conversation: the run must finish
-        // inside it or the process is torn down.
+        // The one deadline for the whole conversation, set once here.
         private val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS)
 
         // Incoming frames; JsonNull marks end of stream. A poll that

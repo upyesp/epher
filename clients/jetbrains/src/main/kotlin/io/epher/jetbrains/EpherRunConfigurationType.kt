@@ -19,6 +19,16 @@ class EpherRunConfigurationType : ConfigurationType {
     private val factory = object : ConfigurationFactory(this) {
         override fun createTemplateConfiguration(project: Project): RunConfiguration =
             EpherRunConfiguration(project, this)
+
+        // The factory id rides the run manager's serialization key, so
+        // it must be a stable, non-localized literal — the platform
+        // deprecates the default, which delegates to getName (the type's
+        // display name, localization bait). The value is "epher", the
+        // exact string the default has always produced here
+        // (type displayName = "epher"): already-shipped configurations
+        // keep resolving, and there is no collision with the type id —
+        // factory ids live inside their type's namespace.
+        override fun getId(): String = FACTORY_ID
     }
 
     override fun getDisplayName(): String = "epher"
@@ -33,5 +43,6 @@ class EpherRunConfigurationType : ConfigurationType {
 
     companion object {
         const val TYPE_ID = "epher"
+        const val FACTORY_ID = "epher"
     }
 }
