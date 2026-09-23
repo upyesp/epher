@@ -112,6 +112,10 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
+    <!-- JavaScriptSerializer (EpherRun.cs) lives here; System.Web.Extensions
+         is a GAC assembly in every .NET Framework 4.7.2 install, so it
+         never rides the vsix. -->
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
     <!-- Reference assemblies for net472 where a targeting pack is not
@@ -132,12 +136,15 @@
          them, and the VsSDK targets suppress their names from the
          container anyway. -->
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.14.40265" ExcludeAssets="runtime" />
-    <!-- The JSON-RPC transport for the run session (ADR-0069). The
-         assemblies themselves are not packed: VS 2022 ships
-         StreamJsonRpc and Newtonsoft.Json in the box, and the VsSDK
-         build suppresses exactly those names from the vsix container. -->
-    <PackageReference Include="StreamJsonRpc" Version="2.25.29" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- No JSON stack of our own: the run session (EpherRun.cs) speaks
+         LSP by hand over stdio and parses with JavaScriptSerializer from
+         System.Web.Extensions (a framework reference above). Bundling
+         StreamJsonRpc's net472 dependency chain into the vsix is exactly
+         what failed to load in the field (0.5.48); the constraint now is
+         zero NuGet assemblies deployed into the VS process. StreamJsonRpc
+         still flows in transitively through the LanguageServer.Client
+         package for the editor session, compile-only, and VS provides it
+         at runtime there. -->
   </ItemGroup>
   <!-- The extension learns its own version at runtime from the
        assembly's file version (the download resolves
