@@ -73,8 +73,12 @@ class EpherRunAction : AnAction() {
         ReadAction.compute<RunTarget?, RuntimeException> {
             val document = FileDocumentManager.getInstance().getDocument(file) ?: return@compute null
             RunTarget(
-                documentUri = file.url,
-                rootUri = file.parent?.url ?: file.url,
+                // EpherUris, not file.url: the IDE's url shape carries
+                // raw Windows paths (and the drive glued after
+                // file://), which the server's strict URI reader
+                // rejects — see EpherUris.
+                documentUri = EpherUris.documentUri(file),
+                rootUri = EpherUris.rootUri(file),
                 text = document.text,
                 fileName = file.name,
             )

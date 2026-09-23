@@ -10,6 +10,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -47,6 +48,14 @@ object EpherServerDownloader {
     private const val MARKER_NAME = "server-version"
     private const val USER_AGENT = "epher-jetbrains"
 
+    /** The release binaries are megabytes; rubble is far smaller. */
+    private const val MIN_BINARY_BYTES = 1L * 1024 * 1024
+    private const val MAGIC_BYTES = 4
+
+    private val MACH_O_MAGICS = setOf(
+        "cffaedfe", "feedfacf", "cefaedfe", "feedface", "cafebabe", "bebafeca",
+    )
+
     /** The download for each requested version, started at most once. */
     private val downloads = ConcurrentHashMap<String, CompletableFuture<Path>>()
 
@@ -68,8 +77,17 @@ object EpherServerDownloader {
         val exe = binDir.resolve(if (SystemInfo.isWindows) EXE_NAME_WINDOWS else EXE_NAME)
         val marker = binDir.resolve(MARKER_NAME)
         if (Files.isRegularFile(exe) && Files.isRegularFile(marker) && Files.readString(marker).trim() == version) {
-            LOG.info("epher-lsp $version already cached: $exe")
-            return exe
+            // A marker only promises which version was downloaded, not
+            // that the file still is one: a half-written download from
+            // an older plugin, or an antivirus quarantine that swapped
+            // the bytes, leaves a marker over rubble. The magic-and-size
+            // check costs one read; rubble falls through to a re-fetch.
+            val broken = checkBinary(exe)
+            if (broken == null) {
+                LOG.info("epher-lsp $version already cached: $exe")
+                return exe
+            }
+            LOG.warn("the cached epher-lsp at $exe is not a runnable binary ($broken); re-downloading")
         }
 
         val asset = assetName()
@@ -77,18 +95,89 @@ object EpherServerDownloader {
         LOG.info("downloading $url")
         val archive = download(url)
         Files.createDirectories(binDir)
-        if (asset.endsWith(".gz")) {
-            GZIPInputStream(archive.inputStream()).use { gunzipped ->
-                Files.copy(gunzipped, exe, StandardCopyOption.REPLACE_EXISTING)
+        // The exe is built under a staging name in the same directory
+        // and moved into place only once it checks out: a process or
+        // power loss mid-write must never leave a half exe at the real
+        // path (which the old write-in-place could, and on Windows an
+        // antivirus scanning a half-written exe can even lock the
+        // rename for everyone else).
+        val staging = Files.createTempFile(binDir, EXE_NAME, ".staging")
+        try {
+            if (asset.endsWith(".gz")) {
+                GZIPInputStream(archive.inputStream()).use { gunzipped ->
+                    Files.copy(gunzipped, staging, StandardCopyOption.REPLACE_EXISTING)
+                }
+            } else {
+                unzipRootEntry(archive, staging, EXE_NAME_WINDOWS)
             }
-        } else {
-            unzipRootEntry(archive, exe, EXE_NAME_WINDOWS)
+            val broken = checkBinary(staging)
+            if (broken != null) {
+                throw IOException(
+                    "the epher-lsp downloaded from $url is not a runnable binary ($broken); " +
+                        "check the release asset, then delete the cache directory $binDir " +
+                        "and reopen a .epher file to try again"
+                )
+            }
+            makeExecutable(staging)
+            replaceBinary(staging, exe)
+        } finally {
+            Files.deleteIfExists(staging)
         }
-        makeExecutable(exe)
         // The marker goes down last: its presence means the exe is whole.
         Files.writeString(marker, version)
         LOG.info("epher-lsp $version ready: $exe")
         return exe
+    }
+
+    /**
+     * Moves the checked staging file over the cached exe. Atomic where
+     * the filesystem offers it; the plain replace is the fallback for
+     * the filesystems that do not, and a locked target (an exe still
+     * running from a previous session) fails here with the path in the
+     * message instead of corrupting the cache.
+     */
+    private fun replaceBinary(staging: Path, exe: Path) {
+        try {
+            Files.move(staging, exe, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+        } catch (noAtomicHere: AtomicMoveNotSupportedException) {
+            Files.move(staging, exe, StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
+
+    /**
+     * Null when the file at hand looks like a runnable epher-lsp;
+     * otherwise why it does not. The size floor and the platform's
+     * executable magic catch the two ways the cache rots: a truncated
+     * download and a text (or HTML) body saved as the exe.
+     */
+    private fun checkBinary(exe: Path): String? {
+        val size = try {
+            Files.size(exe)
+        } catch (e: IOException) {
+            return "unreadable: ${e.message}"
+        }
+        if (size < MIN_BINARY_BYTES) return "only $size bytes"
+        val head = ByteArray(MAGIC_BYTES)
+        Files.newInputStream(exe).use { input ->
+            val read = input.read(head)
+            if (read < head.size) return "only $read header bytes readable"
+        }
+        if (!hasExecutableMagic(head)) {
+            return "its header is ${head.joinToString("") { "%02x".format(it) }}, not an executable"
+        }
+        return null
+    }
+
+    /** The first bytes of the executable formats epher-lsp ships as. */
+    private fun hasExecutableMagic(head: ByteArray): Boolean {
+        // Windows PE.
+        if (head[0] == 'M'.code.toByte() && head[1] == 'Z'.code.toByte()) return true
+        // Linux ELF.
+        if (head[0] == 0x7f.toByte() && head[1] == 'E'.code.toByte() &&
+            head[2] == 'L'.code.toByte() && head[3] == 'F'.code.toByte()
+        ) return true
+        // macOS Mach-O (thin 64/32, both byte orders) and fat binaries.
+        return head.joinToString("") { "%02x".format(it) } in MACH_O_MAGICS
     }
 
     /**

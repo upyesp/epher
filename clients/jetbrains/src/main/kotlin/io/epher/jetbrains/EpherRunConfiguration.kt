@@ -171,7 +171,10 @@ private class EpherRunProfileState(
         } catch (e: Exception) {
             throw IOException("the epher language server is not available: ${rootMessage(e)}", e)
         }
-        val report = EpherOneShot.run(binary, file.url, file.parent?.url ?: file.url, text)
+        // EpherUris, not file.url: the IDE's url shape carries raw
+        // Windows paths (and the drive glued after file://), which the
+        // server's strict URI reader rejects — see EpherUris.
+        val report = EpherOneShot.run(binary, EpherUris.documentUri(file), EpherUris.rootUri(file), text)
         for (statement in report.statements) {
             val display = statement.display ?: continue
             val kind = if (statement.error) "error" else "answer"

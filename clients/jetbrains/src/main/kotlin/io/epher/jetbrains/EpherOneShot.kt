@@ -5,8 +5,10 @@ import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
+import com.intellij.openapi.diagnostic.Logger
 import java.io.IOException
 import java.io.InputStream
+import java.io.InputStreamReader
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -46,6 +48,13 @@ object EpherOneShot {
 
     private const val TIMEOUT_SECONDS = 30L
 
+    // Diagnostics for the field's "died mid-run" reports: the INFO line
+    // here is the only record of what was sent, and the stderr tail the
+    // only record of what the server said back. The IDE is launched
+    // from a GUI, so the server's stderr has no console to land on —
+    // without this capture the explanation dies with the process.
+    private val LOG = Logger.getInstance("epher")
+
     /**
      * Runs the script to completion on the calling thread; call from a
      * background thread only. Every failure comes back as an IOException
@@ -80,18 +89,34 @@ object EpherOneShot {
         @Volatile
         private var readFailure: String? = null
 
+        // Set by converse before any expect: the process and the
+        // stderr tail the failure messages are built from.
+        private var process: Process? = null
+        private var tail: StderrTail = StderrTail()
+
         fun converse(): RunReport {
+            // The exact conversation inputs, logged before anything
+            // starts: a "died mid-run" report is only diagnosable with
+            // the command line and the two URIs that went over the wire
+            // (bad URI shapes have been the actual killer — EpherUris).
+            LOG.info("epher one-shot run: command \"$binary\" documentUri=$documentUri rootUri=$rootUri")
+            val tail = StderrTail()
             val process = try {
                 ProcessBuilder(binary.toString())
-                    // Server logs (the "ready" line) go to stderr; inherit
-                    // so they land in the IDE's own log instead of filling
-                    // a pipe nobody drains.
-                    .redirectError(ProcessBuilder.Redirect.INHERIT)
+                    // Server logs (the "ready" line) and death notes go
+                    // to stderr. INHERIT would fill a pipe nobody drains
+                    // — or worse, a GUI-launched IDE has no console at
+                    // all — so the pipe is drained on a daemon thread
+                    // and kept in memory for the failure message.
+                    .redirectError(ProcessBuilder.Redirect.PIPE)
                     .start()
             } catch (e: IOException) {
                 throw IOException("could not start epher-lsp ($binary): ${e.message}", e)
             }
+            this.process = process
+            this.tail = tail
             startReader(process)
+            startStderrDrain(process, tail)
             try {
                 send(process.outputStream, request(INITIALIZE_ID, "initialize", JsonObject().apply {
                     add("processId", JsonNull.INSTANCE)
@@ -165,8 +190,9 @@ object EpherOneShot {
                 if (remaining <= 0) throw timedOut(what)
                 val message = inbox.poll(remaining, TimeUnit.NANOSECONDS) ?: throw timedOut(what)
                 if (!message.isJsonObject) {
-                    val why = readFailure?.let { "; $it" } ?: "the process ended before answering $what"
-                    throw IOException("epher-lsp died mid-run$why")
+                    val why = readFailure?.let { "a read failed: $it" }
+                        ?: "the process ended before answering $what"
+                    throw died(why)
                 }
                 // get(String) lives on JsonObject, not JsonElement; the
                 // isJsonObject gate above is what makes this cast safe.
@@ -183,8 +209,31 @@ object EpherOneShot {
             }
         }
 
-        private fun timedOut(what: String): IOException =
-            IOException("timed out after $TIMEOUT_SECONDS seconds waiting for $what from epher-lsp")
+        /** The failure a dead server produces: its exit state plus its last words. */
+        private fun died(why: String): IOException {
+            val running = process
+            val state = when {
+                running == null -> ""
+                running.isAlive -> "the process is still running"
+                else -> "exit code ${running.exitValue()}"
+            }
+            val lastWords = tail.snapshot().trim()
+            val message = "epher-lsp died mid-run; $why" +
+                (if (state.isEmpty()) "" else " ($state)") +
+                (if (lastWords.isEmpty()) ""
+                 else "; it said: ${lastWords.take(MESSAGE_TAIL_CHARS)}")
+            LOG.warn("$message [command=\"$binary\" documentUri=$documentUri rootUri=$rootUri]")
+            return IOException(message)
+        }
+
+        private fun timedOut(what: String): IOException {
+            val lastWords = tail.snapshot().trim()
+            val message = "timed out after $TIMEOUT_SECONDS seconds waiting for $what from epher-lsp" +
+                (if (lastWords.isEmpty()) ""
+                 else "; it said: ${lastWords.take(MESSAGE_TAIL_CHARS)}")
+            LOG.warn("$message [command=\"$binary\" documentUri=$documentUri rootUri=$rootUri]")
+            return IOException(message)
+        }
 
         /** One framed JSON message, or JsonNull at end of stream. */
         private fun readFrame(input: InputStream): JsonElement {
@@ -267,9 +316,56 @@ object EpherOneShot {
             }
     }
 
+    /**
+     * The server's last words: stderr is drained on a daemon thread
+     * into this bounded buffer, because a GUI-launched IDE has no
+     * console for the pipe to inherit and a wedged reader would stall
+     * the server's own writes. Bounded so a chatty server cannot grow
+     * the heap; only the tail is ever shown.
+     */
+    private class StderrTail(private val limit: Int = DEFAULT_LIMIT) {
+        private val lock = Any()
+        private var text = StringBuilder()
+
+        fun append(chunk: CharArray, count: Int) {
+            synchronized(lock) {
+                text.append(chunk, 0, count)
+                if (text.length > limit) text.delete(0, text.length - limit)
+            }
+        }
+
+        fun snapshot(): String = synchronized(lock) { text.toString() }
+
+        private companion object {
+            const val DEFAULT_LIMIT = 8 * 1024
+        }
+    }
+
+    /** Drains the server's stderr into the tail buffer until it closes. */
+    private fun startStderrDrain(process: Process, tail: StderrTail) {
+        val drain = Thread({
+            val stream = InputStreamReader(process.errorStream, StandardCharsets.UTF_8)
+            val chunk = CharArray(2048)
+            while (true) {
+                val count = try {
+                    stream.read(chunk)
+                } catch (broken: IOException) {
+                    break
+                }
+                if (count < 0) break
+                if (count > 0) tail.append(chunk, count)
+            }
+        }, "epher one-shot stderr drain")
+        drain.isDaemon = true
+        drain.start()
+    }
+
     // Request ids live at object level: a companion object cannot nest
     // inside a standalone object.
     private const val INITIALIZE_ID = 1
     private const val RUN_ID = 2
     private const val SHUTDOWN_ID = 3
+
+    /** How much of the server's stderr fits in a user-facing message. */
+    private const val MESSAGE_TAIL_CHARS = 600
 }
