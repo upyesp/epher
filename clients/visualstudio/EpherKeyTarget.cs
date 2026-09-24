@@ -68,9 +68,15 @@ namespace Epher.VisualStudio
         // goes straight to Exec.
         public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
-            if (pguidCmdGroup == StandardCommandSet97 && cCmds == 1 && prgCmds != null && prgCmds.Length > 0)
+            if (pguidCmdGroup == StandardCommandSet97 && cCmds == 1 && prgCmds != null && prgCmds.Length > 0 && IsEpherKey(prgCmds[0].cmdID))
             {
-                if (IsEpherKey(prgCmds[0].cmdID) && EpherPackage.OverEpherScript())
+                // Only the two debug commands land here; every other
+                // query takes the NotSupported exit below untouched.
+                var overEpher = EpherPackage.OverEpherScript();
+                this.package.LogKeyPath(
+                    "the shell asked the epher key target about F5/Ctrl+F5 (command " + prgCmds[0].cmdID + "): "
+                    + (overEpher ? "over a .epher document — claimed" : "not over a .epher document — passed"));
+                if (overEpher)
                 {
                     prgCmds[0].cmdf = SupportedAndEnabled;
                     return VSConstants.S_OK;
@@ -87,6 +93,7 @@ namespace Epher.VisualStudio
                 // the same JoinableTask door the Tools-menu command
                 // uses (EpherPackage.RunActiveScript — one run path,
                 // no duplicated run logic).
+                this.package.LogKeyPath("F5/Ctrl+F5 (command " + nCmdID + ") reached the epher key target over a .epher document — running the script");
                 this.package.RunActiveScript();
                 return VSConstants.S_OK;
             }

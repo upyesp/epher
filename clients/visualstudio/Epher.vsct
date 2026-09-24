@@ -44,20 +44,37 @@
     </CommandPlacement>
   </CommandPlacements>
 
-  <!-- F5 and Ctrl+F5 run the script, the same keys the VS Code
-       extension answers (ADR-0069: one run story per editor). No
-       <KeyBinding> of ours: the keystrokes resolve to the shell's own
-       Debug.Start / Debug.StartWithoutDebugging commands, and the
-       package's EpherKeyTarget — a priority command target at the
-       front of the command chain — answers those two over a .epher
-       document and passes everything else straight through, so Start
-       Debugging keeps working everywhere else. A binding here would
-       double-handle once the target works, and the 0.5.49 attempt
-       only ever fell through: VS honors a key binding only after it
-       has queried the command, which a lazily loaded package's
-       command waits for. -->
+  <!-- F5 and Ctrl+F5 run the script over a .epher document, the same
+       keys the VS Code extension answers (ADR-0069: one run story per
+       editor). The bindings are scoped to the text editor, and the
+       command only answers enabled over a .epher file (the package's
+       BeforeQueryStatus), so over every other file type the shell
+       falls through to the next binding on the chord — the shell's own
+       Debug.Start / Debug.StartWithoutDebugging — and debugging keeps
+       working everywhere else.
+
+       History, because it explains the pair of mechanisms: the 0.5.49
+       bindings-only attempt fell through (a lazily loaded package's
+       command cannot answer the binding's QueryStatus on the first
+       press), 0.5.50 answered with the EpherKeyTarget priority command
+       target plus the auto-load, and the field still saw nothing — the
+       0.5.51 field report. The auto-load closes the lazy-load hole
+       this attempt died of, so the bindings ride again, next to the
+       priority target, which stays for focus outside the editor (the
+       bindings do not apply there and the two cannot double-run: the
+       binding executes our command directly, so Debug.Start is never
+       dispatched). -->
+  <KeyBindings>
+    <KeyBinding guid="guidEpherCommandSet" id="cmdidRunEpherScript" key1="F5" editor="guidTextEditor"/>
+    <KeyBinding guid="guidEpherCommandSet" id="cmdidRunEpherScript" mod1="Control" key1="F5" editor="guidTextEditor"/>
+  </KeyBindings>
 
   <Symbols>
+    <!-- The text editor's command scope: the KeyBindings' editor
+         attribute. The shell's own guid (vsshlids.h knows it as
+         GUID_TextEditorFactory); declared here because the extern
+         headers carry no guidTextEditor symbol for the vsct. -->
+    <GuidSymbol name="guidTextEditor" value="{8B382828-6202-11D1-8870-0000F87579D2}"/>
     <GuidSymbol name="guidEpherPackage" value="{672BDABC-CE2C-4E12-A10C-107148209915}"/>
     <GuidSymbol name="guidEpherCommandSet" value="{2F8AD3D6-EC4C-4A64-8984-68F686E0F058}">
       <IDSymbol name="ToolsMenuGroup" value="0x1000"/>
