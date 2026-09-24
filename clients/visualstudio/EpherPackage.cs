@@ -58,6 +58,11 @@ namespace Epher.VisualStudio
     // from the SDK header vsshlids.h (UICONTEXT_*).
     [ProvideAutoLoad("F1536EF8-92EC-443C-9ED7-FDADF150DA82")]
     [ProvideAutoLoad("ADFC4E64-0397-11D1-9F4E-00A0C911004F")]
+    // The F5/Ctrl+F5 bindings live in Epher.vsct (<KeyBindings>, scoped
+    // to the text editor); this attribute is the registration that
+    // makes the shell merge and consult them (table = our command set,
+    // id = the run command they are bound to).
+    [ProvideKeyBindingTable(GuidList.CommandSetGuidString, CommandIds.RunScript)]
     public sealed class EpherPackage : Package
     {
         // The registration cookie of the F5/Ctrl+F5 key target; 0 means
@@ -69,6 +74,9 @@ namespace Epher.VisualStudio
             base.Initialize();
 
             RegisterKeyTarget();
+            LogKeyPath(this.keyTargetCookie != 0
+                ? "epher package initialized; the F5/Ctrl+F5 priority command target registered (cookie " + this.keyTargetCookie + ")"
+                : "epher package initialized; the priority command target did NOT register (the registrar service was missing or refused) — the keys rely on the KeyBindings alone");
 
             var commandService = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (commandService == null)
@@ -283,6 +291,41 @@ namespace Epher.VisualStudio
             // No internal browser service (unusual shell flavors): the
             // system browser is the fallback.
             Process.Start(resultsPath);
+        }
+
+        // A failed run is a user-facing event: the status bar for the
+        // glance, the Output pane for the full message.
+        // Diagnostics for the key path (the 0.5.50 field report: the
+        // menu ran, F5 did nothing). Every decision the key path makes
+        // lands in the ActivityLog and the epher Output pane, so a
+        // field test can be read, not guessed: whether the package came
+        // up, whether the priority target registered, and which way
+        // each F5/Ctrl+F5 over a script went.
+        internal void LogKeyPath(string message)
+        {
+            try
+            {
+                var log = GetService(typeof(SVsActivityLog)) as IVsActivityLog;
+                log?.LogEntry(
+                    (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION,
+                    "epher",
+                    message);
+            }
+            catch
+            {
+                // The activity log failing is never worth breaking a
+                // keystroke over.
+            }
+
+            try
+            {
+                GetOutputPane(new Guid(GuidList.OutputPaneGuidString), "epher")
+                    .OutputString(message + Environment.NewLine);
+            }
+            catch
+            {
+                // Same best-effort story as the status-bar paths.
+            }
         }
 
         // A failed run is a user-facing event: the status bar for the
