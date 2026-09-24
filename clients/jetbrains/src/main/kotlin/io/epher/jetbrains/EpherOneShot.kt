@@ -5,6 +5,8 @@ import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
+import com.intellij.execution.ExecutionException
+import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.diagnostic.Logger
 import java.io.IOException
 import java.io.InputStream
@@ -112,14 +114,25 @@ object EpherOneShot {
             LOG.info("epher one-shot run: command \"$binary\" documentUri=$documentUri rootUri=$rootUri")
             val tail = StderrTail()
             val process = try {
-                ProcessBuilder(binary.toString())
-                    // Server logs (the "ready" line) and death notes go
-                    // to stderr. INHERIT would fill a pipe nobody drains
-                    // — or worse, a GUI-launched IDE has no console at
-                    // all — so the pipe is drained on a daemon thread
-                    // and kept in memory for the failure message.
-                    .redirectError(ProcessBuilder.Redirect.PIPE)
-                    .start()
+                // Spawn through the platform's GeneralCommandLine —
+                // never a raw ProcessBuilder. The CONSOLE parent
+                // environment rebuilds the child's environment from
+                // the login shell, the shape every mature LSP plugin
+                // spawns with (huggingface/llm-intellij, oxc) and the
+                // same machinery the long-lived session uses — whose
+                // server answers fine, where a raw-spawned one wedged
+                // on a Flatpak IDE (0.5.50 field report: the server
+                // consumed the whole conversation and never answered;
+                // the identical conversation from python, inside the
+                // same sandbox, answered instantly). stderr stays its
+                // own pipe: the drain below needs it for failure
+                // messages, as before.
+                GeneralCommandLine(binary.toString())
+                    .withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
+                    .withCharset(StandardCharsets.UTF_8)
+                    .createProcess()
+            } catch (e: ExecutionException) {
+                throw IOException("could not start epher-lsp ($binary): ${e.message}", e)
             } catch (e: IOException) {
                 throw IOException("could not start epher-lsp ($binary): ${e.message}", e)
             }
@@ -144,6 +157,18 @@ object EpherOneShot {
                         addProperty("languageId", "epher")
                         addProperty("version", 1)
                         addProperty("text", text)
+                    })
+                }))
+
+                // The run request itself. Its absence was the field bug:
+                // the loop below waited for a response to a request that
+                // was never sent, so every run — one line or a thousand —
+                // sat until the deadline on every platform. Found by
+                // stracing the IDE during a live hang: initialize,
+                // initialized and didOpen go out, then silence.
+                send(process.outputStream, request(RUN_ID, "epher/run", JsonObject().apply {
+                    add("textDocument", JsonObject().apply {
+                        addProperty("uri", documentUri)
                     })
                 }))
 
