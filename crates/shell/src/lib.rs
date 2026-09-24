@@ -554,19 +554,24 @@ pub fn run_script(text: &str, localizer: &Localizer) -> ScriptRun {
     let mut plots = plots::Plots::new();
     let mut lines = Vec::new();
     let mut cursor = 0usize;
+    let mut lines_seen = 0u32;
     for piece in split_statements(text) {
         let piece = piece.trim();
         if piece.is_empty() {
             continue;
         }
         // The 0-based line the statement starts on: statements come in
-        // order, so the piece is found from the running cursor.
+        // order, so the piece is found from the running cursor. The
+        // newline count is carried forward incrementally: recounting
+        // from the top of the text per statement made large scripts
+        // quadratic (minutes of pure compute for megabytes of code).
         let offset = text[cursor..]
             .find(piece)
             .map(|at| cursor + at)
             .unwrap_or(cursor);
+        lines_seen += text[cursor..offset].matches('\n').count() as u32;
         cursor = offset + piece.len();
-        let line = text[..offset].matches('\n').count() as u32;
+        let line = lines_seen;
 
         // The plot grammar dispatches on the line prefix, exactly as
         // the CLI's entries do.
