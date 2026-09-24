@@ -11,7 +11,8 @@ extension's work directory, and starts it over stdio.
 - live diagnostics: parse errors point at the exact token; evaluation
   errors carry the same message the calculator shows;
 - inline answers: every statement's result renders next to its line
-  (`x = 40 + 2` shows `= 42`);
+  (`x = 40 + 2` shows `= 42`), once inlay hints are enabled (next
+  section);
 - hover signatures: canonical signature and description for catalog
   names, current values for your own constants;
 - completion: catalog names, your own definitions, keywords, and the
@@ -21,21 +22,26 @@ extension's work directory, and starts it over stdio.
   suffixes colored by meaning. Without that one settings change, Zed
   colors nothing here.
 
-## Highlighting: no colors until one setting is on
+## Highlighting and inline answers: two settings to flip
 
 A freshly installed extension recognizes `.epher` files (comments,
 brackets, completion, the language server all work), but it colors
-nothing. That is Zed's default, not a broken install: Zed ships its
-`semantic_tokens` setting as "off", and this extension carries no
-tree-sitter grammar to fall back on (why is the next section). All
-coloring comes from the language server's semantic tokens, so turn
-them on — this is step four of installing, not an optional
-refinement:
+nothing and shows no answers. That is Zed's default, not a broken
+install: Zed ships its `semantic_tokens` setting as "off", and this
+extension carries no tree-sitter grammar to fall back on (why is the
+next section). All coloring comes from the language server's semantic
+tokens. Zed also ships inlay hints off, and the inline answers are
+inlay hints: one `= 42` at the end of every statement that produces a
+value. Both belong in your settings; this is step four of installing,
+not an optional refinement:
 
 ```json
 {
   "languages": {
-    "epher": { "semantic_tokens": "full" }
+    "epher": {
+      "semantic_tokens": "full",
+      "inlay_hints": { "enabled": true }
+    }
   }
 }
 ```
@@ -55,12 +61,16 @@ Distribution is by dev extension until the extension is proven
 2. in Zed, open the command palette and run `zed: install dev
    extension`;
 3. select this directory (`clients/zed`);
-4. turn semantic tokens on, or nothing will ever be colored:
+4. turn semantic tokens and inlay hints on, or nothing will ever be
+   colored and no answers will appear:
 
 ```json
 {
   "languages": {
-    "epher": { "semantic_tokens": "full" }
+    "epher": {
+      "semantic_tokens": "full",
+      "inlay_hints": { "enabled": true }
+    }
   }
 }
 ```
