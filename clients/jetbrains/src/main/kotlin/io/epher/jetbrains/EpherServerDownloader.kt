@@ -41,7 +41,7 @@ object EpherServerDownloader {
     const val PLUGIN_ID = "io.epher.jetbrains"
 
     /** Fallback when the descriptor lookup fails; must equal the build default. */
-    private const val DEFAULT_VERSION = "0.5.50"
+    private const val DEFAULT_VERSION = "0.5.51"
 
     private const val EXE_NAME = "epher-lsp"
     private const val EXE_NAME_WINDOWS = "epher-lsp.exe"
@@ -72,7 +72,24 @@ object EpherServerDownloader {
         }
     }
 
-    private fun ensureDownloaded(version: String): Path {
+    private fun ensureDownloaded(version: String): Path =
+        try {
+            downloadForVersion(version)
+        } catch (e: IOException) {
+            // A pre-release plugin build (say 0.5.51-test3) only has a
+            // matching release if one was published for the test —
+            // language-server assets otherwise ride promoted versions.
+            // A 404 on a pre-release version falls back to the build's
+            // default, which the build keeps at the last promoted one.
+            if ('-' in version && e.message?.contains("404") == true) {
+                LOG.info("no server asset for $version; falling back to $DEFAULT_VERSION")
+                downloadForVersion(DEFAULT_VERSION)
+            } else {
+                throw e
+            }
+        }
+
+    private fun downloadForVersion(version: String): Path {
         val binDir = Path.of(PathManager.getSystemPath(), "epher", "bin")
         val exe = binDir.resolve(if (SystemInfo.isWindows) EXE_NAME_WINDOWS else EXE_NAME)
         val marker = binDir.resolve(MARKER_NAME)
