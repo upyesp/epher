@@ -185,13 +185,15 @@ private class EpherRunProfileState(
             }
             console.print("line ${statement.line + 1} — $kind: $display\n", type)
         }
+        // The results pane mirrors every run — statements and graphs —
+        // the same surface the Tools action fills (ADR-0069 decision 3:
+        // the pane is the output, the run tab is the transcript).
+        EpherResultsToolWindowFactory.show(environment.project, file.name, report)
         if (report.svgs.isNotEmpty()) {
-            // The console draws no graphs: point at the pane that does,
-            // where the unchanged Tools action still shows them.
+            // The console draws no graphs: name the pane that now has them.
             val count = report.svgs.size
             console.print(
-                "\n$count graph${if (count == 1) "" else "s"} rendered — " +
-                    "Tools ▸ Run Epher Script shows them in the epher results pane\n",
+                "\n$count graph${if (count == 1) "" else "s"} rendered — shown in the epher results pane\n",
                 ConsoleViewContentType.SYSTEM_OUTPUT,
             )
         } else if (report.statements.none { it.display != null }) {

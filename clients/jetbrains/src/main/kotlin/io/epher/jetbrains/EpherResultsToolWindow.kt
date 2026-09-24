@@ -11,12 +11,25 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.jcef.JBCefApp
 import com.intellij.ui.jcef.JBCefBrowser
+import com.kitfox.svg.SVGDiagram
+import com.kitfox.svg.SVGUniverse
 import java.awt.BorderLayout
-import java.awt.Desktop
+import java.awt.Component
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.Font
+import java.awt.Graphics2D
+import java.awt.RenderingHints
+import java.awt.image.BufferedImage
 import java.io.File
-import javax.swing.JEditorPane
+import java.io.StringReader
+import javax.swing.BorderFactory
+import javax.swing.BoxLayout
+import javax.swing.ImageIcon
+import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.event.HyperlinkEvent
+import javax.swing.JScrollPane
+import javax.swing.SwingConstants
 
 /**
  * The results pane (ADR-0069, decision 3): the JetBrains shape of the
@@ -81,14 +94,20 @@ internal class EpherResultsPanel : JPanel(BorderLayout()), Disposable {
         null
     }
 
-    private val fallback: JEditorPane? = if (browser == null) createFallbackPane() else null
+    // The Swing fallback: a vertical stack of rows and inline graph
+    // images, rebuilt for each run. Graphs are rasterized with
+    // svgSalamander — the sandbox makes the old temp-file links both
+    // invisible and unopenable.
+    private val fallbackStack = JPanel().apply {
+        layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    }
 
     init {
         val browser = this.browser
         if (browser != null) {
             add(browser.component, BorderLayout.CENTER)
         } else {
-            fallback?.let { add(JBScrollPane(it), BorderLayout.CENTER) }
+            add(JBScrollPane(fallbackStack), BorderLayout.CENTER)
         }
     }
 
@@ -97,7 +116,7 @@ internal class EpherResultsPanel : JPanel(BorderLayout()), Disposable {
         if (browser != null) {
             browser.loadHTML(reportHtml(report))
         } else {
-            fallback?.text = fallbackHtml(report)
+            rebuildFallback(report)
         }
     }
 
@@ -105,66 +124,86 @@ internal class EpherResultsPanel : JPanel(BorderLayout()), Disposable {
         browser?.dispose()
     }
 
-    /** The text-only pane: rows as text, graphs as clickable temp files. */
-    private fun createFallbackPane(): JEditorPane = JEditorPane("text/html", "").apply {
-        isEditable = false
-        addHyperlinkListener { event ->
-            if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-                event.url?.let { url ->
-                    // The JDK's own opener: zero platform-API surface, so
-                    // this fallback compiles and works on every build.
-                    try {
-                        Desktop.getDesktop().browse(url.toURI())
-                    } catch (broken: Exception) {
-                        // No desktop integration: leave the path visible in
-                        // the pane for the user to open by hand.
-                    }
+    private fun rebuildFallback(report: RunReport) {
+        fallbackStack.removeAll()
+        val c = palette()
+        val color: (String) -> Color = { Color.decode(it) }
+        val outputs = report.statements.filter { it.display != null }
+        if (outputs.isEmpty() && report.svgs.isEmpty()) {
+            fallbackStack.add(paneLabel("No output.", color(c.muted), italic = true))
+        }
+        for (statement in outputs) {
+            fallbackStack.add(
+                paneLabel(
+                    statement.display ?: "",
+                    color(if (statement.error) c.error else c.answer),
+                )
+            )
+        }
+        if (report.svgs.isNotEmpty()) {
+            fallbackStack.add(paneLabel("Graphs", color(c.foreground), bold = true))
+            report.svgs.forEachIndexed { index, svg ->
+                val image = runCatching { rasterize(svg, fallbackWidth()) }.getOrNull()
+                if (image != null) {
+                    val graph = JLabel(ImageIcon(image))
+                    graph.alignmentX = Component.CENTER_ALIGNMENT
+                    graph.border = BorderFactory.createEmptyBorder(6, 8, 6, 8)
+                    fallbackStack.add(graph)
+                } else {
+                    val file = runCatching { writeSvg(index, svg) }.getOrNull()
+                    fallbackStack.add(
+                        paneLabel(
+                            file?.path ?: "graph ${index + 1} — could not render",
+                            color(c.muted),
+                        )
+                    )
                 }
             }
         }
+        fallbackStack.revalidate()
+        fallbackStack.repaint()
     }
 
-    private fun fallbackHtml(report: RunReport): String {
-        val c = palette()
-        val rows = report.statements
-            .filter { it.display != null }
-            .joinToString("\n") { statement ->
-                val cls = if (statement.error) "error" else "answer"
-                "<div class=\"output\"><span class=\"$cls\">${escapeHtml(statement.display ?: "")}</span></div>"
-            }
-        val graphs = report.svgs.mapIndexed { index, svg ->
-            // Swing cannot render SVG: write each plot to a temporary
-            // file and let the system viewer open it, the same road the
-            // text-first editors take.
-            val file = runCatching { writeSvg(index, svg) }.getOrNull()
-            if (file != null) {
-                "<p><a href=\"${file.toURI()}\">graph ${index + 1} — ${escapeHtml(file.path)}</a></p>"
-            } else {
-                "<p>graph ${index + 1} — could not write a temporary file</p>"
-            }
-        }.joinToString("\n")
-        val body = if (rows.isEmpty() && report.svgs.isEmpty()) "<p class=\"empty\">No output.</p>" else rows
-        val graphSection = if (report.svgs.isNotEmpty()) "<h2>Graphs</h2>\n$graphs" else ""
-        return """
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <meta charset="utf-8" />
-            <style>
-              body { font-family: monospace; color: ${c.foreground}; background: ${c.background}; padding: 8px 14px; }
-              h2 { font-size: 1.05em; margin: 14px 0 6px; }
-              .output { padding: 2px 8px; white-space: pre-wrap; }
-              .answer { color: ${c.answer}; }
-              .error { color: ${c.error}; }
-              .empty { color: ${c.muted}; font-style: italic; }
-            </style>
-            </head>
-            <body>
-            $body
-            $graphSection
-            </body>
-            </html>
-            """.trimIndent()
+    /** The pane's usable width: wide enough to read, capped for huge windows. */
+    private fun fallbackWidth(): Int = size.width.takeIf { it > 200 } ?: 720
+
+    /** Render the engine's own generated SVG into a plain image. */
+    private fun rasterize(svg: String, targetWidth: Int): java.awt.Image {
+        val universe = SVGUniverse()
+        val uri = universe.loadSVG(StringReader(svg), "graph")
+        val diagram: SVGDiagram = universe.getDiagram(uri)
+            ?: error("the SVG did not parse")
+        val naturalWidth = diagram.width.toDouble()
+        val naturalHeight = diagram.height.toDouble()
+        val width = if (naturalWidth > 0) naturalWidth else 800.0
+        val height = if (naturalHeight > 0) naturalHeight else 600.0
+        val scale = targetWidth / width
+        val image = BufferedImage(
+            targetWidth,
+            (height * scale).toInt().coerceAtLeast(1),
+            BufferedImage.TYPE_INT_ARGB,
+        )
+        val g: Graphics2D = image.createGraphics()
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+        g.scale(scale, scale)
+        diagram.render(g)
+        g.dispose()
+        return image
+    }
+
+    private fun paneLabel(text: String, color: Color, bold: Boolean = false, italic: Boolean = false): JLabel {
+        val style = when {
+            bold -> Font.BOLD
+            italic -> Font.ITALIC
+            else -> Font.PLAIN
+        }
+        return JLabel(text).apply {
+            font = Font(Font.MONOSPACED, style, 13)
+            foreground = color
+            alignmentX = Component.LEFT_ALIGNMENT
+            border = BorderFactory.createEmptyBorder(2, 14, 2, 8)
+        }
     }
 
     private fun writeSvg(index: Int, svg: String): File =

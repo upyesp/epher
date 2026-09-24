@@ -56,6 +56,10 @@ dependencies {
     // The IDE ships the stdlib at runtime (see gradle.properties), the
     // compile classpath still needs it spelled out.
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
+    // SVG rasterizer for the results pane's Swing fallback (when the
+    // IDE lacks JCEF): renders the engine's own generated plots into
+    // plain images, no native code, ~260 KB. MIT.
+    implementation("com.weblookandfeel:svg-salamander:1.1.2.2")
 }
 
 // Extract the bundled TextMate plugin's jar from the resolved IDE into
