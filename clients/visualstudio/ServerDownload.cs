@@ -26,6 +26,16 @@ namespace Epher.VisualStudio
         private const string Target = "windows-x86_64";
         private const string ExeName = "epher-lsp.exe";
 
+        // Last promoted release: a test-built extension version (for
+        // example 0.5.51.1) has no matching release yet, so the download
+        // falls back to the promoted server — the same exact-then-
+        // fallback rule the JetBrains downloader follows
+        // (clients/jetbrains/EpherServerDownloader.kt). Bump with every
+        // promotion. Never rewrite a promoted asset in place: the
+        // release-asset CDN serves stale bytes for minutes after a
+        // clobber.
+        private const string FallbackVersion = "0.5.51";
+
         /// <summary>
         /// Return the cached server, downloading it on first run.
         /// </summary>
@@ -51,12 +61,27 @@ namespace Epher.VisualStudio
             }
 
             var asset = "epher-lsp-" + Target + ".zip";
-            var url = "https://github.com/" + Repo + "/releases/download/v" + version + "/" + asset;
-            var archive = await DownloadAsync(url);
+            // The extension's own release first; a pre-release version
+            // has none and rides the last promoted server (see
+            // FallbackVersion) instead of failing first use.
+            var archive = await TryDownloadAsync(DownloadUrl(version, asset))
+                ?? await TryDownloadAsync(DownloadUrl(FallbackVersion, asset))
+                ?? throw new InvalidOperationException(
+                    "no " + asset + " on the v" + version + " or v" + FallbackVersion
+                    + " releases; language-server assets ride the promoted releases");
             Directory.CreateDirectory(binDir);
             ExtractServerExe(archive, exePath);
+            // The marker keys the cache to this extension version (not
+            // to the server actually cached), so the next extension
+            // update re-downloads even when the server came from the
+            // fallback release.
             File.WriteAllText(markerPath, version);
             return exePath;
+        }
+
+        private static string DownloadUrl(string version, string asset)
+        {
+            return "https://github.com/" + Repo + "/releases/download/v" + version + "/" + asset;
         }
 
         // The extension's own version (stamped into the assembly from
@@ -68,23 +93,25 @@ namespace Epher.VisualStudio
             return FileVersionInfo.GetVersionInfo(typeof(ServerDownload).Assembly.Location).FileVersion;
         }
 
-        // GET with redirect following: HttpClient's handler follows
-        // GitHub's 302s to the actual asset by default
-        // (HttpClientHandler.AllowAutoRedirect defaults to true).
-        private static async Task<byte[]> DownloadAsync(string url)
+        // GET, or null on 404 (no such release or asset — the caller
+        // falls back). Any other status is an error worth stopping for;
+        // HttpClient's handler follows GitHub's 302s to the actual
+        // asset by default (HttpClientHandler.AllowAutoRedirect defaults
+        // to true).
+        private static async Task<byte[]> TryDownloadAsync(string url)
         {
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.UserAgent.ParseAdd("epher-visualstudio");
                 using (var response = await client.GetAsync(url))
                 {
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return null;
+                    }
                     if (!response.IsSuccessStatusCode)
                     {
-                        var status = (int)response.StatusCode;
-                        var hint = response.StatusCode == HttpStatusCode.NotFound
-                            ? " (the release has no such asset yet; language-server assets ride the promoted releases)"
-                            : "";
-                        throw new InvalidOperationException(url + " answered " + status + hint);
+                        throw new InvalidOperationException(url + " answered " + (int)response.StatusCode);
                     }
                     return await response.Content.ReadAsByteArrayAsync();
                 }
