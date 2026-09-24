@@ -15,12 +15,10 @@ pub mod analysis;
 
 use std::collections::HashMap;
 use std::error::Error;
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use analysis::{server_capabilities, Document, Documents};
-use crossbeam_channel::select;
+use crossbeam_channel::{RecvTimeoutError, SendTimeoutError};
 use lsp_types::notification::{Notification, PublishDiagnostics};
 use lsp_types::request::{Completion, HoverRequest, InlayHintRequest, SemanticTokensFullRequest, Request as LspRequest};
 use lsp_server::{Connection, Message, Notification as ServerNotification, Request as ServerRequest, Response};
@@ -29,6 +27,24 @@ use lsp_server::{Connection, Message, Notification as ServerNotification, Reques
 /// debounce").
 const DEBOUNCE: Duration = Duration::from_millis(200);
 
+/// How often the main loop re-checks its channels even when idle. The
+/// stdio transport's channels are rendezvous channels (capacity zero):
+/// every message is a thread-to-thread handoff, and on one field
+/// machine (Flatpak IDE, kernel 6.x) such a handoff was observed to
+/// lose its wakeup — the main loop slept in futex, the writer slept in
+/// its receive, and a finished run's response sat undelivered forever.
+/// Polling on a timeout turns any such loss into at most POLL_DELAY of
+/// added latency instead of a permanent wedge.
+const POLL_DELAY: Duration = Duration::from_millis(100);
+
+/// An edit held for the debounce: the newest text, the version it came
+/// with, and when it was seen.
+struct HeldEdit {
+    text: String,
+    version: i32,
+    seen: Instant,
+}
+
 /// Serve until shutdown. `Connection::memory()` pairs with this for
 /// tests: one end drives, the other asserts.
 pub fn run(connection: Connection) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -36,50 +52,47 @@ pub fn run(connection: Connection) -> Result<(), Box<dyn Error + Send + Sync>> {
     eprintln!("epher-lsp: ready");
     let mut documents = Documents::new();
     // Edits seen but not yet analyzed: the debounce holds the newest
-    // text per document until the quiet gap ends.
-    let mut pending: HashMap<String, (String, i32)> = HashMap::new();
-    // Bumped on every held edit; a timer fires only if no newer edit
-    // replaced it meanwhile.
-    let generation = Arc::new(AtomicU64::new(0));
-    let (tick_tx, tick_rx) = crossbeam_channel::unbounded::<()>();
+    // text per document until the quiet gap ends. Each hold carries
+    // the instant it was seen, so the timed poll below can apply it
+    // once the gap has passed.
+    let mut pending: HashMap<String, HeldEdit> = HashMap::new();
     loop {
-        select! {
-            recv(&connection.receiver) -> msg => {
-                let Ok(msg) = msg else { return Ok(()) };
-                match msg {
-                    Message::Request(req) => {
-                        if connection.handle_shutdown(&req)? {
-                            return Ok(());
-                        }
-                        let response = if req.method == "epher/run" {
-                            run_request(&req, &documents, &pending)
-                        } else {
-                            answer(&req, &documents)
-                        };
-                        connection.sender.send(Message::Response(response))?;
-                    }
-                    Message::Notification(notification) => {
-                        hold_or_apply(
-                            &notification,
-                            &mut documents,
-                            &mut pending,
-                            &generation,
-                            &tick_tx,
-                            &connection,
-                        )?;
-                    }
-                    Message::Response(_) => {}
-                }
+        // Held edits whose quiet gap has ended: apply and publish.
+        let now = Instant::now();
+        let ready: Vec<String> = pending
+            .iter()
+            .filter(|(_, held)| now.duration_since(held.seen) >= DEBOUNCE)
+            .map(|(key, _)| key.clone())
+            .collect();
+        for key in ready {
+            if let Some(held) = pending.remove(&key) {
+                let document = Document::new(held.text, held.version);
+                let uri: lsp_types::Uri = key.parse().map_err(|e| format!("{e}"))?;
+                publish(&connection, &uri, &document)?;
+                documents.insert(key, document);
             }
-            recv(tick_rx) -> _ => {
-                // The quiet gap ended behind at least one held edit.
-                for (key, (text, version)) in std::mem::take(&mut pending) {
-                    let document = Document::new(text, version);
-                    let uri: lsp_types::Uri = key.parse().map_err(|e| format!("{e}"))?;
-                    publish(&connection, &uri, &document)?;
-                    documents.insert(key, document);
+        }
+        let message = match connection.receiver.recv_timeout(POLL_DELAY) {
+            Ok(message) => message,
+            Err(RecvTimeoutError::Timeout) => continue,
+            Err(RecvTimeoutError::Disconnected) => return Ok(()),
+        };
+        match message {
+            Message::Request(req) => {
+                if connection.handle_shutdown(&req)? {
+                    return Ok(());
                 }
+                let response = if req.method == "epher/run" {
+                    run_request(&req, &documents, &pending)
+                } else {
+                    answer(&req, &documents)
+                };
+                send_message(&connection, Message::Response(response))?;
             }
+            Message::Notification(notification) => {
+                hold_or_apply(&notification, &mut documents, &mut pending, &connection)?;
+            }
+            Message::Response(_) => {}
         }
     }
 }
@@ -94,7 +107,7 @@ pub fn run(connection: Connection) -> Result<(), Box<dyn Error + Send + Sync>> {
 fn run_request(
     req: &ServerRequest,
     documents: &Documents,
-    pending: &HashMap<String, (String, i32)>,
+    pending: &HashMap<String, HeldEdit>,
 ) -> Response {
     let uri = req.params["textDocument"]["uri"]
         .as_str()
@@ -111,7 +124,7 @@ fn run_request(
     // document, which only reflects the last quiet gap.
     let text = pending
         .get(&uri)
-        .map(|(text, _)| text.clone())
+        .map(|held| held.text.clone())
         .or_else(|| {
             documents
                 .iter()
@@ -149,9 +162,7 @@ fn run_request(
 fn hold_or_apply(
     notification: &ServerNotification,
     documents: &mut Documents,
-    pending: &mut HashMap<String, (String, i32)>,
-    generation: &Arc<AtomicU64>,
-    tick_tx: &crossbeam_channel::Sender<()>,
+    pending: &mut HashMap<String, HeldEdit>,
     connection: &Connection,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     match notification.method.as_str() {
@@ -172,8 +183,14 @@ fn hold_or_apply(
             let uri = params.text_document.uri;
             if let Some(change) = params.content_changes.last() {
                 let key = uri.to_string();
-                pending.insert(key, (change.text.clone(), params.text_document.version));
-                schedule(&generation, tick_tx.clone());
+                pending.insert(
+                    key,
+                    HeldEdit {
+                        text: change.text.clone(),
+                        version: params.text_document.version,
+                        seen: Instant::now(),
+                    },
+                );
             }
         }
         "textDocument/didClose" => {
@@ -188,18 +205,35 @@ fn hold_or_apply(
     Ok(())
 }
 
-/// Arm the quiet gap: sleep for [`DEBOUNCE`], then tick if no newer
-/// edit replaced this one meanwhile. One sleeping thread per held edit
-/// is cheap; only the last one fires.
-fn schedule(generation: &Arc<AtomicU64>, tick_tx: crossbeam_channel::Sender<()>) {
-    let armed = generation.fetch_add(1, Ordering::SeqCst) + 1;
-    let generation = Arc::clone(generation);
-    std::thread::spawn(move || {
-        std::thread::sleep(DEBOUNCE);
-        if generation.load(Ordering::SeqCst) == armed {
-            let _ = tick_tx.send(());
+/// Send through the connection's writer channel, retrying on timeout.
+/// The channel is a rendezvous (capacity zero): a plain send parks
+/// until the writer thread comes to collect, and a lost wakeup there
+/// would park the whole server (observed in the field: both the main
+/// loop and LspServerWriter asleep in futex, a finished response
+/// never written). A timed send that retries re-arms the handoff; the
+/// writer is parked in its receive, so the retry meets it at once.
+fn send_message(
+    connection: &Connection,
+    mut message: Message,
+) -> Result<(), Box<dyn Error + Send + Sync>> {
+    for _ in 0..120 {
+        match connection.sender.send_timeout(message, Duration::from_secs(1)) {
+            Ok(()) => return Ok(()),
+            Err(SendTimeoutError::Timeout(again)) => message = again,
+            Err(SendTimeoutError::Disconnected(lost)) => {
+                let note = if matches!(lost, Message::Response(_)) {
+                    "a response"
+                } else {
+                    "a message"
+                };
+                return Err(format!(
+                    "the LSP writer channel is gone; dropped {note}"
+                )
+                .into());
+            }
         }
-    });
+    }
+    Err("the LSP writer never collected a message in two minutes".into())
 }
 
 fn publish(
@@ -212,13 +246,13 @@ fn publish(
         diagnostics: document.diagnostics(),
         version: Some(document.version),
     };
-    connection
-        .sender
-        .send(Message::Notification(ServerNotification::new(
+    send_message(
+        connection,
+        Message::Notification(ServerNotification::new(
             PublishDiagnostics::METHOD.to_string(),
             params,
-        )))?;
-    Ok(())
+        )),
+    )
 }
 
 /// The requests the server answers; anything else gets `null`.
