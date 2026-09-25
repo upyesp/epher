@@ -560,7 +560,9 @@ pub fn token_classes(text: &str) -> Result<Vec<SpannedToken>, SpannedError> {
     // colors and hovers it like a keyword (ADR-0069: consistent hover
     // across the editors). Statement start: nothing but whitespace
     // since the previous newline or semicolon.
-    const STATEMENT_COMMANDS: &[&str] = &["graph", "save", "table"];
+    const STATEMENT_COMMANDS: &[&str] = &[
+        "graph", "graph3d", "solar3d", "save", "table",
+    ];
     let opens_statement = |start: usize| -> bool {
         match text[..start].rfind(|c| c == '\n' || c == ';') {
             Some(i) => text[i + 1..start].trim().is_empty(),

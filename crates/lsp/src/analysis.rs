@@ -236,6 +236,23 @@ impl Document {
                 ..Default::default()
             });
         }
+        // The statement-command words complete too, with the same
+        // one-line hint hover gives (ADR-0069: every editor answers
+        // with the same words).
+        for (word, hint) in [
+            ("graph", "plot a curve: graph <expression> from a to b"),
+            ("graph3d", "plot a surface: graph3d <expression>"),
+            ("solar3d", "plot the solar system state"),
+            ("save", "store a definition for later sessions: save name"),
+            ("table", "print values: table <expression> from a to b"),
+        ] {
+            items.push(lsp_types::CompletionItem {
+                label: word.to_string(),
+                kind: Some(K::KEYWORD),
+                detail: Some(hint.to_string()),
+                ..Default::default()
+            });
+        }
         items.sort_by(|a, b| a.label.cmp(&b.label));
         items.dedup_by(|a, b| a.label == b.label);
         items
@@ -435,6 +452,8 @@ fn keyword_hover(word: &str) -> Option<String> {
         "to" => "ends a written range (`from a to b`, `for i in a to b`)",
         "while" => "`while condition do ... end` repeats while the condition holds",
         "graph" => "`graph <expression> from a to b` plots a curve; the results pane renders it",
+        "graph3d" => "`graph3d <expression>` plots a surface (or `param`-prefixed space curve); the results pane renders it",
+        "solar3d" => "`solar3d` plots the solar system state; the results pane renders it",
         "save" => "`save name` (or `save script name`) stores a definition for later sessions",
         "table" => "`table <expression> from a to b [points n]` prints a table of values",
         _ => return None,
