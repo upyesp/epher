@@ -129,6 +129,14 @@
          is a GAC assembly in every .NET Framework 4.7.2 install, so it
          never rides the vsix. -->
     <Reference Include="System.Web.Extensions" />
+    <!-- WPF: the key processor receives System.Windows.Input events and
+         the answer tagger renders System.Windows.Controls adornments;
+         a classic (non-SDK) library project lists these by name and
+         msbuild resolves them from the targeting pack. -->
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System.Xaml" />
     <!-- JToken (EpherDocumentObserver.cs, the client's middle layer);
          the VSSDK LSP framework's message shape is Newtonsoft. VS
          provides the assembly in-process; compile-only like the rest
