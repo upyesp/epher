@@ -8,23 +8,19 @@ catalog, your own names, and the shared snippets, and the snippets
 themselves through completion.
 
 The extension is a thin shell (ADR-0066). All understanding lives in
-`epher-lsp`, the shared language server, which the extension downloads
-on first use and caches, exactly like the VS Code and JetBrains
-clients:
+`epher-lsp`, the shared language server — and the server ships inside
+the extension: the vsix carries `server\epher-lsp.exe`, the
+windows-x86_64 build from the same release the extension rides
+(the ADR-0066 amendment that retired the downloader for Visual
+Studio). No first-use network step, no cache, no version marker: an
+extension update carries its matching server by construction, the
+coupling the old download's version lock existed to enforce, made
+physical.
 
-- URL: `https://github.com/upyesp/epher/releases/download/v<extension
-  version>/epher-lsp-windows-x86_64.zip`; an extension update re-fetches
-  a matching server.
-- Visual Studio runs on Windows, so this client ships only the Windows
-  zip (the exe sits at the archive's root); the linux and macos builds
-  of the server stay irrelevant here.
-- Cache: `%LocalAppData%\epher\bin`, with a `server-version` marker, so
-  the download happens once.
-
-First activation needs the network once. If the download fails, the
-error is reported in an InfoBar and editing still works through the
-TextMate baseline; only the live features are missing. Reopening the
-file (or restarting Visual Studio) retries.
+If the bundled binary is somehow missing, the error is reported in an
+InfoBar and editing still works through the TextMate baseline; only
+the live features are missing. Reinstalling the extension restores
+them.
 
 ## Supported versions
 
@@ -118,9 +114,10 @@ the VsSDK tooling from the `Microsoft.VSSDK.BuildTools` package):
     msbuild -restore -p:Configuration=Release clients/visualstudio/Epher.VisualStudio.csproj
 
 The vsix lands in `bin/Release/Epher.VisualStudio.vsix`. The version
-(default 0.5.40) and with it the server release the extension resolves
-comes from the `EpherVersion` msbuild property, which also stamps the
-vsix manifest:
+(default 0.5.52) comes from the `EpherVersion` msbuild property, which
+also stamps the vsix manifest; drop the matching
+`epher-lsp-windows-x86_64` binary at `server/epher-lsp.exe` before
+packing (CI fetches it from the release):
 
     msbuild -restore -p:Configuration=Release -p:EpherVersion=0.5.41 ...
 
