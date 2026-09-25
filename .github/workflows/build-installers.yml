@@ -547,12 +547,14 @@ jobs:
 
   visualstudio:
     # The Visual Studio 2022 extension (ADR-0066, stage six), packaged
-    # for the release and the staging draft. Like the vsix and the
-    # plugin above, it resolves releases/download/v<its own version>/
-    # for the server, so the packaged version must equal what the CLI
-    # reports; EpherVersion stamps both the manifest and the assembly.
-    # Marketplace publication stays out of scope: the website page
-    # links the vsix and the IDE installs it from disk.
+    # for the release and the staging draft. The vsix carries its
+    # server: server\epher-lsp.exe is built from this same checkout and
+    # the extension spawns it from its own folder (the ADR-0066
+    # amendment that retired the downloader for Visual Studio), so the
+    # job builds the windows server first. EpherVersion stamps the
+    # manifest and the assembly. Marketplace publication stays out of
+    # scope: the website page links the vsix and the IDE installs it
+    # from disk.
     #
     # No local build exists for this one (the extension needs Windows
     # and msbuild), so CI is the only verifier; the VsSDK tooling comes
@@ -565,6 +567,17 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
       - uses: microsoft/setup-msbuild@v2
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build the bundled server
+        # The vsix carries server\epher-lsp.exe; building it here keeps
+        # the extension and its server one commit by construction (the
+        # wasm rides the same coupling in the VS Code family).
+        shell: bash
+        run: |
+          set -e
+          cargo build --release -p epher-lsp
+          mkdir -p clients/visualstudio/server
+          cp target/release/epher-lsp.exe clients/visualstudio/server/epher-lsp.exe
       - name: Resolve the release version
         shell: bash
         env:
@@ -614,6 +627,7 @@ jobs:
           if ($names -notcontains "Epher.pkgdef") { throw "no Epher.pkgdef in the vsix" }
           if (-not ($names | Where-Object { $_ -eq "Grammars/epher.tmLanguage" })) { throw "no TextMate grammar in the vsix" }
           if ($names -notcontains "epher-language-configuration.json") { throw "no language configuration in the vsix" }
+          if ($names -notcontains "server/epher-lsp.exe") { throw "no bundled language server in the vsix" }
           # The docs' contract: VS provides the LSP client assemblies
           # from its install directory, the vsix must not carry them.
           if ($names | Where-Object { $_ -eq "Microsoft.VisualStudio.LanguageServer.Client.dll" }) { throw "the vsix packed the LSP client assembly; VS provides it" }
