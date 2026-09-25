@@ -31,6 +31,13 @@ syntax match epherNumber "\v<\d+(\.\d+)?([eE][-+]?\d+)?i>"
 " Keywords (crates/core KEYWORDS, verbatim).
 syntax keyword epherKeyword and break const continue def do else end for if in not or return solve step then to while xor
 
+" Statement commands (graph, graph3d, solar3d, save, table): not
+" grammar keywords, but a line opening with one is a shell-level
+" statement, so it colors like one. The language server's
+" statement-start rule is the exact one; line start is this
+" grammar's approximation.
+syntax match epherCommand "\v^\s*<(graph3d|solar3d|graph|save|table)>"
+
 " Units: an identifier immediately after a number (the whitespace
 " run between them is what the parser's adjacency rule allows),
 " never a call (no `(` follows), and never containing digits (the
@@ -51,6 +58,7 @@ hi def link epherString String
 hi def link epherStringEscape SpecialChar
 hi def link epherNumber Number
 hi def link epherKeyword Keyword
+hi def link epherCommand Keyword
 hi def link epherUnit Type
 hi def link epherOperator Operator
 hi def link epherCall Function

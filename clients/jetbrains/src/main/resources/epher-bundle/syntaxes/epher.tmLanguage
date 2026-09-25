@@ -135,6 +135,14 @@
 						<key>match</key>
 						<string>\b(solve)\b</string>
 					</dict>
+					<dict>
+						<key>comment</key>
+						<string>statement commands (graph, graph3d, solar3d, save, table): not grammar keywords, but a line opening with one is a shell-level statement, so the conservative grammar colors it like a keyword. The language server's statement-start rule is the exact one; line start is the grammar's approximation.</string>
+						<key>name</key>
+						<string>keyword.other.epher</string>
+						<key>match</key>
+						<string>^[ \t]*(graph3d|solar3d|graph|save|table)\b</string>
+					</dict>
 				</array>
 			</dict>
 			<key>number-unit</key>

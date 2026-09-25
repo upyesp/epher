@@ -43,7 +43,12 @@
         },
         { "name": "keyword.declaration.epher", "match": "\\b(def|const)\\b" },
         { "name": "keyword.operator.word.epher", "match": "\\b(and|or|not|xor)\\b" },
-        { "name": "keyword.other.epher", "match": "\\b(solve)\\b" }
+        { "name": "keyword.other.epher", "match": "\\b(solve)\\b" },
+        {
+          "comment": "statement commands (graph, graph3d, solar3d, save, table): not grammar keywords, but a line opening with one is a shell-level statement, so the conservative grammar colors it like a keyword. The language server's statement-start rule is the exact one; line start is the grammar's approximation.",
+          "name": "keyword.other.epher",
+          "match": "^[ \\t]*(graph3d|solar3d|graph|save|table)\\b"
+        }
       ]
     },
     "number-unit": {
