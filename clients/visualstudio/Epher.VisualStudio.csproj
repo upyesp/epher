@@ -39,7 +39,7 @@
          download resolves (releases/download/v<version>/..., ADR-0066).
          CI overrides it with /p:EpherVersion=...; the vsix manifest and
          the assembly's file version are stamped from it at build time. -->
-    <EpherVersion Condition="'$(EpherVersion)' == ''">0.5.52</EpherVersion>
+    <EpherVersion Condition="'$(EpherVersion)' == ''">0.5.53</EpherVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

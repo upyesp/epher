@@ -9,7 +9,7 @@
 # together. Bump this file and Cargo.toml in the same commit.
 id = "epher"
 name = "epher"
-version = "0.5.52"
+version = "0.5.53"
 schema_version = 1
 authors = ["upyesp"]
 description = "epher in Zed: live diagnostics, inline answers, hover signatures, completion, and unit-aware coloring from the shared epher language server."
