@@ -41,7 +41,7 @@ object EpherServerDownloader {
     const val PLUGIN_ID = "io.epher.jetbrains"
 
     /** Fallback when the descriptor lookup fails; must equal the build default. */
-    private const val DEFAULT_VERSION = "0.5.51"
+    private const val DEFAULT_VERSION = "0.5.52"
 
     private const val EXE_NAME = "epher-lsp"
     private const val EXE_NAME_WINDOWS = "epher-lsp.exe"
