@@ -60,23 +60,22 @@ namespace Epher.VisualStudio
         // didOpen with the buffer's exact text so the run reflects what
         // the editor showed, then `epher/run` — followed by the
         // shutdown and exit that close a well-behaved LSP session.
-        public static Task<RunReport> RunAsync(string scriptPath, string scriptText)
+        // The server is the one bundled with the extension
+        // (server\epher-lsp.exe), the same binary the editing session
+        // speaks; a fresh process per run keeps the run hermetic (its
+        // own shell state) and keeps it off the long-lived session the
+        // editor's inline features ride on.
+        public static Task<RunReport> RunAsync(
+            string serverPath, string scriptPath, string scriptText)
         {
             // The hand-rolled session blocks on its reads and writes:
             // keep that work off the thread the command starts on (the
             // UI thread), exactly as the async transport did.
-            return Task.Run(() => Run(scriptPath, scriptText));
+            return Task.Run(() => Run(serverPath, scriptPath, scriptText));
         }
 
-        private static RunReport Run(string scriptPath, string scriptText)
+        private static RunReport Run(string serverPath, string scriptPath, string scriptText)
         {
-            // First use shares the language client's download cache: the
-            // same matching server for this extension version
-            // (ServerDownload, ADR-0066). A blocking wait is safe here:
-            // this runs on a thread-pool thread, with no context for
-            // the download's own awaits to need back.
-            var serverPath = ServerDownload.EnsureServerAsync().GetAwaiter().GetResult();
-
             var start = new ProcessStartInfo
             {
                 FileName = serverPath,

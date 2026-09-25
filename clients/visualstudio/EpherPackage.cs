@@ -1,24 +1,19 @@
-// The command surface (ADR-0069): a minimal VSPackage that owns the
-// "Run Epher Script" button, the F5/Ctrl+F5 key target (EpherKeyTarget,
-// registered at init to sit at the front of the command chain), and the
-// shell plumbing around the run — status bar, the "epher" Output pane,
-// and the internal browser the results report opens in. A plain
-// Package, not an AsyncPackage: the handler only reads the active
-// view and hands the server round trip
-// to a background task, so nothing here needs the async initialization
-// contract, and plain Package is the oldest, most documented surface.
-//
-// The package itself stays dormant: CreatePkgDef turns the attributes
-// below into the Packages and Menus registry entries at build time
-// (GeneratePkgDefFile, and the VsPackage asset in the vsix manifest),
-// while the hand-authored Epher.pkgdef keeps carrying the grammar
-// entries. VS loads the package the first time the command runs; from
-// that load on, the key target sits in the command chain.
+// The command surface (ADR-0069): the "Run Epher Script" button,
+// placed in the Tools menu and the code-window context menu, plus the
+// shell plumbing around the run — the results report in the IDE's
+// internal browser and the full transcript echo in the "epher" Output
+// pane. An AsyncPackage, per the platform's load-time guidance, and a
+// lazily loaded one: nothing here registers auto-load. The standard
+// F5/Ctrl+F5/play-button path does not live in the package at all —
+// it is the view command filter (EpherViewFilter.cs), a MEF piece the
+// editor loads with the first .epher view — so the package only ever
+// loads when a human picks the menu item.
 
 using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -35,8 +30,9 @@ namespace Epher.VisualStudio
         public const string PackageGuidString = "672BDABC-CE2C-4E12-A10C-107148209915";
         public const string CommandSetGuidString = "2F8AD3D6-EC4C-4A64-8984-68F686E0F058";
 
-        // The Output window pane run output echoes to; fixed so every
-        // run reuses the same pane instead of growing new ones.
+        // The Output window pane the transcript echoes to; fixed so
+        // every run reuses the same pane instead of growing new ones
+        // (EpherLog carries the same guid for the MEF-side writers).
         public const string OutputPaneGuidString = "0F420F6C-EB1B-4A0D-99AB-A37CE1DF6A19";
     }
 
@@ -46,39 +42,21 @@ namespace Epher.VisualStudio
         public const int RunScript = 0x0100;
     }
 
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(GuidList.PackageGuidString)]
-    // The key target lives in this package, so the package must be
-    // alive before the first F5: auto-load in both solution states
-    // (together they cover every shell state). Load is cheap — the
-    // Initialize registers two command surfaces and nothing else.
-    // Literal GUIDs, because attributes need constants: the typed
-    // VSConstants members are structs, and these two come straight
-    // from the SDK header vsshlids.h (UICONTEXT_*).
-    [ProvideAutoLoad("F1536EF8-92EC-443C-9ED7-FDADF150DA82")]
-    [ProvideAutoLoad("ADFC4E64-0397-11D1-9F4E-00A0C911004F")]
-    // The F5/Ctrl+F5 bindings live in Epher.vsct (<KeyBindings>, scoped
-    // to the text editor); this attribute is the registration that
-    // makes the shell merge and consult them (table = our command set,
-    // id = the run command they are bound to).
-    [ProvideKeyBindingTable(GuidList.CommandSetGuidString, CommandIds.RunScript)]
-    public sealed class EpherPackage : Package
+    public sealed class EpherPackage : AsyncPackage
     {
-        // The registration cookie of the F5/Ctrl+F5 key target; 0 means
-        // nothing was registered (the service was missing or refused).
-        private uint keyTargetCookie;
-
-        protected override void Initialize()
+        protected override async Task InitializeAsync(
+            CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
+            await base.InitializeAsync(cancellationToken, progress);
 
-            RegisterKeyTarget();
-            LogKeyPath(this.keyTargetCookie != 0
-                ? "epher package initialized; the F5/Ctrl+F5 priority command target registered (cookie " + this.keyTargetCookie + ")"
-                : "epher package initialized; the priority command target did NOT register (the registrar service was missing or refused) — the keys rely on the KeyBindings alone");
+            // Menu commands join the UI thread: the OleMenuCommandService
+            // is a UI-thread service.
+            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var commandService = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            var commandService = await this.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (commandService == null)
             {
                 return;
@@ -90,60 +68,15 @@ namespace Epher.VisualStudio
             commandService.AddCommand(runCommand);
         }
 
-        // F5 and Ctrl+F5 come through EpherKeyTarget, a command target
-        // registered at the front of the shell's chain (see there). The
-        // registration interface carries no priority argument — each
-        // registered target simply sits ahead of the ones registered
-        // before it — so there is nothing to tune; the reserved first
-        // argument must be 0 (signatures verified against the merged
-        // interop assembly). The target joins the chain when the
-        // package loads and leaves it in Dispose.
-        private void RegisterKeyTarget()
-        {
-            var registrar = GetService(typeof(SVsRegisterPriorityCommandTarget)) as IVsRegisterPriorityCommandTarget;
-            if (registrar == null)
-            {
-                return;
-            }
-
-            uint cookie;
-            if (registrar.RegisterPriorityCommandTarget(0, new EpherKeyTarget(this), out cookie) == VSConstants.S_OK)
-            {
-                this.keyTargetCookie = cookie;
-            }
-        }
-
-        // The key target rides on this package's lifetime: remove it
-        // from the chain when the package goes away, so VS never calls
-        // into a disposed package.
         protected override void Dispose(bool disposing)
         {
-            if (disposing && this.keyTargetCookie != 0)
-            {
-                var registrar = GetService(typeof(SVsRegisterPriorityCommandTarget)) as IVsRegisterPriorityCommandTarget;
-                if (registrar != null)
-                {
-                    try
-                    {
-                        registrar.UnregisterPriorityCommandTarget(this.keyTargetCookie);
-                    }
-                    catch
-                    {
-                        // Shutdown can race the shell; an already-gone
-                        // registrar is nothing to crash on.
-                    }
-                }
-                this.keyTargetCookie = 0;
-            }
             base.Dispose(disposing);
         }
 
         // Enabled (and visible) only over a .epher document: this drives
-        // the Tools-menu and code-window context-menu items, exactly as
-        // the field reports describe them. The F5/Ctrl+F5 keys do not
-        // ride on this command any more — they answer through
-        // EpherKeyTarget, the priority command target registered in
-        // Initialize.
+        // the Tools-menu and code-window context-menu items. The
+        // standard F5/Ctrl+F5/play path does not ride on this command;
+        // it is the view command filter's QueryStatus (EpherViewFilter).
         private void OnBeforeQueryStatus(object sender, EventArgs e)
         {
             var command = (OleMenuCommand)sender;
@@ -158,18 +91,17 @@ namespace Epher.VisualStudio
             RunActiveScript();
         }
 
-        // The one run path: the Tools-menu command and the F5/Ctrl+F5
-        // priority target (EpherKeyTarget.Exec) both come through here.
-        // The caller runs on the UI thread; RunAsync hands the work to
-        // a JoinableTask, whose awaits resume on the main thread — so
-        // the shell calls after the server round trip stay on the
-        // thread they need.
-        internal void RunActiveScript()
+        // The one run path: the menu command and the view command
+        // filter both come through here. The caller runs on the UI
+        // thread; RunAsync hands the work to a JoinableTask, whose
+        // awaits resume on the main thread — so the shell calls after
+        // the server round trip stay on the thread they need.
+        internal static void RunActiveScript()
         {
             ThreadHelper.JoinableTaskFactory.RunAsync(RunActiveScriptAsync);
         }
 
-        private async Task RunActiveScriptAsync()
+        private static async Task RunActiveScriptAsync()
         {
             try
             {
@@ -188,8 +120,9 @@ namespace Epher.VisualStudio
                 string text;
                 buffer.GetLineText(0, 0, lastLine, lastColumn, out text);
 
-                var report = await EpherRun.RunAsync(path, text);
-                EchoStatementErrors(report);
+                var report = await EpherRun.RunAsync(
+                    EpherLanguageClient.BundledServerPath(), path, text);
+                EchoTranscript(report);
                 var resultsPath = EpherRun.WriteResultsHtml(path, report);
                 NavigateToResults(resultsPath);
             }
@@ -204,7 +137,7 @@ namespace Epher.VisualStudio
         // and its text. Untitled buffers have no file name, and a run
         // needs a path to anchor the results report to. Returns null for
         // anything that is not a .epher file.
-        private static IVsTextLines ActiveEpherBuffer(out string path)
+        internal static IVsTextLines ActiveEpherBuffer(out string path)
         {
             path = null;
 
@@ -243,20 +176,18 @@ namespace Epher.VisualStudio
             return buffer;
         }
 
-        // The .epher gate the key target consults before claiming F5 or
-        // Ctrl+F5 — the same ActiveEpherBuffer check the menu item's
-        // BeforeQueryStatus makes, kept in one place so both callers
-        // agree on what counts as an epher script.
+        // The gate every run claim shares — the menu item's
+        // BeforeQueryStatus, the view filter's QueryStatus and Exec.
         internal static bool OverEpherScript()
         {
             string path;
             return ActiveEpherBuffer(out path) != null;
         }
 
-        // Statement errors echo to the Output pane: the results tab
-        // shows the output with the errors inline, and the pane keeps a
-        // plain-text transcript of what broke.
-        private void EchoStatementErrors(RunReport report)
+        // The whole transcript echoes to the "epher" Output pane, not
+        // only the errors: the pane is the plain-text home of the run
+        // beside the results report.
+        private static void EchoTranscript(RunReport report)
         {
             if (report == null || report.Statements == null)
             {
@@ -265,17 +196,20 @@ namespace Epher.VisualStudio
 
             foreach (var statement in report.Statements)
             {
-                if (!statement.Error)
+                if (statement.Display == null)
                 {
                     continue;
                 }
-                GetOutputPane(new Guid(GuidList.OutputPaneGuidString), "epher")
-                    .OutputString("line " + statement.Line + ": " + (statement.Display ?? "error") + Environment.NewLine);
+                EpherLog.Write(
+                    "line " + statement.Line + ": "
+                    + (statement.Error ? "error: " : "") + statement.Display);
             }
         }
 
         // The results open in the shell's internal browser, which lands
-        // them as a dockable tab in the editor well like any document.
+        // them as a dockable tab in the editor well like any document
+        // (ADR-0069's Visual Studio shape; a true tool window remains
+        // the named follow-up).
         private static void NavigateToResults(string resultsPath)
         {
             var browsingService = ServiceProvider.GlobalProvider.GetService(typeof(SVsWebBrowsingService)) as IVsWebBrowsingService;
@@ -295,42 +229,7 @@ namespace Epher.VisualStudio
 
         // A failed run is a user-facing event: the status bar for the
         // glance, the Output pane for the full message.
-        // Diagnostics for the key path (the 0.5.50 field report: the
-        // menu ran, F5 did nothing). Every decision the key path makes
-        // lands in the ActivityLog and the epher Output pane, so a
-        // field test can be read, not guessed: whether the package came
-        // up, whether the priority target registered, and which way
-        // each F5/Ctrl+F5 over a script went.
-        internal void LogKeyPath(string message)
-        {
-            try
-            {
-                var log = GetService(typeof(SVsActivityLog)) as IVsActivityLog;
-                log?.LogEntry(
-                    (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION,
-                    "epher",
-                    message);
-            }
-            catch
-            {
-                // The activity log failing is never worth breaking a
-                // keystroke over.
-            }
-
-            try
-            {
-                GetOutputPane(new Guid(GuidList.OutputPaneGuidString), "epher")
-                    .OutputString(message + Environment.NewLine);
-            }
-            catch
-            {
-                // Same best-effort story as the status-bar paths.
-            }
-        }
-
-        // A failed run is a user-facing event: the status bar for the
-        // glance, the Output pane for the full message.
-        private void ShowRunError(Exception ex)
+        private static void ShowRunError(Exception ex)
         {
             try
             {
@@ -346,17 +245,8 @@ namespace Epher.VisualStudio
                 // command; the pane below still tries.
             }
 
-            try
-            {
-                var pane = GetOutputPane(new Guid(GuidList.OutputPaneGuidString), "epher");
-                pane.Activate();
-                pane.OutputString("the run failed: " + ex.Message + Environment.NewLine);
-                pane.OutputString(ex.ToString() + Environment.NewLine + Environment.NewLine);
-            }
-            catch
-            {
-                // Same story: shell reporting is best effort.
-            }
+            EpherLog.Write("the run failed: " + ex.Message);
+            EpherLog.Write(ex.ToString());
         }
     }
 }

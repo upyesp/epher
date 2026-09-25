@@ -39,7 +39,7 @@
          download resolves (releases/download/v<version>/..., ADR-0066).
          CI overrides it with /p:EpherVersion=...; the vsix manifest and
          the assembly's file version are stamped from it at build time. -->
-    <EpherVersion Condition="'$(EpherVersion)' == ''">0.5.51</EpherVersion>
+    <EpherVersion Condition="'$(EpherVersion)' == ''">0.5.52</EpherVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -60,11 +60,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="EpherContentType.cs" />
-    <Compile Include="EpherKeyTarget.cs" />
+    <Compile Include="EpherDocumentObserver.cs" />
+    <Compile Include="EpherInlayHints.cs" />
+    <Compile Include="EpherKeyProcessor.cs" />
     <Compile Include="EpherLanguageClient.cs" />
+    <Compile Include="EpherLog.cs" />
     <Compile Include="EpherPackage.cs" />
     <Compile Include="EpherRun.cs" />
-    <Compile Include="ServerDownload.cs" />
+    <Compile Include="EpherViewFilter.cs" />
   </ItemGroup>
   <ItemGroup>
     <!-- The command table for the run command (compiled to a .cto and
@@ -83,6 +86,15 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="epher-language-configuration.json">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <!-- The language server itself, bundled (the ADR-0066 amendment:
+         the first-use download retired for Visual Studio). CI fetches
+         the windows-x86_64 asset of the release being built against
+         and drops it here before packing; the local build does the
+         same by hand. -->
+    <Content Include="server\epher-lsp.exe">
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -117,6 +129,11 @@
          is a GAC assembly in every .NET Framework 4.7.2 install, so it
          never rides the vsix. -->
     <Reference Include="System.Web.Extensions" />
+    <!-- JToken (EpherDocumentObserver.cs, the client's middle layer);
+         the VSSDK LSP framework's message shape is Newtonsoft. VS
+         provides the assembly in-process; compile-only like the rest
+         of the LSP surface. -->
+    <Reference Include="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
     <!-- Reference assemblies for net472 where a targeting pack is not
