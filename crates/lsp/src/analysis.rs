@@ -35,7 +35,19 @@ impl Document {
     pub fn new(text: String, version: i32) -> Self {
         let line_starts = line_starts(&text);
         let mut session = Session::default();
-        let outcomes = evaluation_trace(&mut session, &text);
+        // The shells dispatch the plot prefixes and the store commands
+        // before the evaluator ever sees them - the parser has no
+        // statement for `graph3d sin(x)*cos(y)`, so analyzing the raw
+        // text squiggled every plot line with "expected ';' or a
+        // newline" on the parameters after the keyword. Mask the
+        // dispatched pieces out (equal length, so every span stays
+        // aligned) and analyze the rest; epher_shell owns the list.
+        let mut masked = text.clone();
+        for range in epher_shell::dispatched_piece_ranges(&text) {
+            let blank = " ".repeat(range.len());
+            masked.replace_range(range, &blank);
+        }
+        let outcomes = evaluation_trace(&mut session, &masked);
         let tokens = token_classes(&text).unwrap_or_default();
         Document {
             text,

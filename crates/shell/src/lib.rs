@@ -549,6 +549,38 @@ pub struct ScriptRun {
 /// `epher file.es` uses, with the output captured instead of printed.
 /// Store-backed shell commands (`save`, `language`, `theme`) are inert
 /// here: the run is hermetic, so they are skipped rather than faked.
+/// True when the shells dispatch this statement piece themselves and
+/// the evaluator never sees it: a plot prefix (`graph ` with a source,
+/// `graph3d ` with a source, `solar3d` with or without one) or a
+/// store-backed command (`save`, `language`, `theme`), which a hermetic
+/// run skips rather than fakes.
+pub fn is_dispatched_piece(piece: &str) -> bool {
+    let piece = piece.trim();
+    piece.starts_with("graph ")
+        || piece.starts_with("graph3d ")
+        || piece == "solar3d"
+        || piece.starts_with("solar3d ")
+        || classify(piece).is_some()
+}
+
+/// Byte ranges of the pieces [`is_dispatched_piece`] accepts, in
+/// document order. An analyzer masks these before parsing: the parser
+/// has no statement for `graph3d sin(x)*cos(y)`, so without the mask
+/// every plot line squiggles as "expected ';' or a newline" with the
+/// span sitting on the parameters after the keyword - on lines the run
+/// itself executes happily.
+pub fn dispatched_piece_ranges(text: &str) -> Vec<std::ops::Range<usize>> {
+    let base = text.as_ptr() as usize;
+    split_statements(text)
+        .into_iter()
+        .filter(|piece| is_dispatched_piece(piece))
+        .map(|piece| {
+            let start = piece.as_ptr() as usize - base;
+            start..start + piece.len()
+        })
+        .collect()
+}
+
 pub fn run_script(text: &str, localizer: &Localizer) -> ScriptRun {
     let mut session = Session::default();
     let mut plots = plots::Plots::new();
@@ -581,6 +613,11 @@ pub fn run_script(text: &str, localizer: &Localizer) -> ScriptRun {
             Some(plots.submit_surface(source, session.env(), localizer))
         } else if let Some(source) = piece.strip_prefix("solar3d ") {
             Some(plots.submit_solar3d(source, session.env(), localizer))
+        } else if piece == "solar3d" {
+            // Bare `solar3d` plots the solar system as of now: the
+            // hover hint promises exactly that, and `now()` is the
+            // catalog's current-Julian-Date builtin.
+            Some(plots.submit_solar3d("now()", session.env(), localizer))
         } else {
             None
         };
