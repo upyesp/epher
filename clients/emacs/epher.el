@@ -1,6 +1,6 @@
 ;;; epher.el --- The epher calculator language in Emacs -*- lexical-binding: t; -*-
 
-;; Version: 0.5.54
+;; Version: 0.5.55
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: languages
 ;; URL: https://github.com/upyesp/epher
