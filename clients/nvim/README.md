@@ -2,9 +2,11 @@
 
 The native-LSP glue for the shared `epher-lsp` server (ADR-0066
 ships Neovim as a ready-made config, not a plugin). Requires
-Neovim 0.11 or newer (that is where `vim.lsp.config` and
-`vim.lsp.enable` landed). The filetype detection and syntax files
-come from the shared runtime in `clients/vim/`.
+Neovim 0.9 or newer: 0.9 and 0.10 (the version apt ships on current
+distributions) attach through `vim.lsp.start`, 0.11+ uses
+`vim.lsp.config` and `vim.lsp.enable`; the glue picks the right one.
+The filetype detection and syntax files come from the shared runtime
+in `clients/vim/`.
 
 ## Install
 
@@ -55,7 +57,9 @@ locally after that.
 ## What you get
 
 - live diagnostics from spans (parse and evaluation errors);
-- inline answers on the statement that produced them (inlay hints);
+- inline answers on the statement that produced them (inlay hints;
+  rendered by nvim's own inlay hint engine, so 0.11+ only — older
+  versions show the answers in the results pane instead);
 - hover signatures for catalog names, current values for your own
   constants;
 - completion with the shared snippets;
