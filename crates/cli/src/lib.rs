@@ -126,6 +126,12 @@ fn graph_line(
         let out = plots.submit_solar3d(source, env, localizer);
         return Some(step_from(out));
     }
+    if line.trim() == "solar3d" {
+        // Bare `solar3d` plots the solar system as of now, matching
+        // the script runner and the hover hint.
+        let out = plots.submit_solar3d("now()", env, localizer);
+        return Some(step_from(out));
+    }
     None
 }
 
