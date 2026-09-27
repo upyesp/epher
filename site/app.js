@@ -489,3 +489,60 @@ function initHero3d() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
+
+// Copy buttons on the install-command blocks (ide.html): one click
+// copies the whole block, and the button flips to a check mark for a
+// moment - no dialog, no selection, no i18n strings (icon only, with
+// an aria-label).
+function enhanceCommandBlocks() {
+  const COPY_ICON =
+    '<svg class="copy-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">' +
+    '<rect x="5.5" y="5.5" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/>' +
+    '<path d="M3.5 10.5h-1A1.5 1.5 0 0 1 1 9V2.5A1.5 1.5 0 0 1 2.5 1H9a1.5 1.5 0 0 1 1.5 1.5v1" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
+  const CHECK_ICON =
+    '<svg class="copy-check" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">' +
+    '<path d="M2.5 8.5 6.5 12.5 13.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  async function writeClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    // file:// and old browsers: the selection fallback.
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    try {
+      document.execCommand("copy");
+    } finally {
+      area.remove();
+    }
+  }
+
+  document.querySelectorAll("pre.path-cmd").forEach((pre) => {
+    if (pre.querySelector(".copy-btn")) return;
+    const commands = pre.textContent;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "copy-btn";
+    button.setAttribute("aria-label", "Copy commands");
+    button.setAttribute("title", "Copy");
+    button.innerHTML = COPY_ICON + CHECK_ICON;
+    button.addEventListener("click", async () => {
+      try {
+        await writeClipboard(commands);
+        pre.classList.add("copied");
+        setTimeout(() => pre.classList.remove("copied"), 1600);
+      } catch (e) {
+        /* clipboard unavailable (permissions): leave the block as-is */
+      }
+    });
+    pre.appendChild(button);
+  });
+}
+
+enhanceCommandBlocks();

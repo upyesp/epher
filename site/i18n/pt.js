@@ -206,7 +206,7 @@ window.EPHER_I18N["pt"] = {
   "ide-th-platform": "Plataforma",
   "ide-th-asset": "Ficheiro da versão",
   "ide-th-binary": "Depois de extrair",
-  "ide-manual-p2": "Verifique a instalação com `epher-lsp --version`.",
+  "ide-manual-p2": "O Windows aplica a mudança de PATH apenas em novos terminais: abra um novo terminal e execute `epher-lsp --version` para confirmar.",
   "ide-download": "Tudo está na página de versões.",
   "ide-jetbrains-title": "IDEs JetBrains",
   "ide-zed-title": "Zed",

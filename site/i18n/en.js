@@ -209,7 +209,7 @@ window.EPHER_I18N["en"] = {
   "ide-manual-p3": "These commands put the server on your PATH; the paths assume the file is in your Downloads folder:",
   "ide-manual-posix": "macOS and Linux:",
   "ide-manual-windows": "Windows (PowerShell):",
-  "ide-manual-p2": "Check the install with `epher-lsp --version` (in a new terminal).",
+  "ide-manual-p2": "Windows applies the PATH change to new terminals only: open a fresh terminal and run `epher-lsp --version` to confirm.",
   "ide-download": "Everything is on the releases page.",
   "ide-jetbrains-title": "JetBrains IDEs",
   "ide-zed-title": "Zed",

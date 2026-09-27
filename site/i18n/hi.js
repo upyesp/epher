@@ -206,7 +206,7 @@ window.EPHER_I18N["hi"] = {
   "ide-th-platform": "प्लेटफ़ॉर्म",
   "ide-th-asset": "रिलीज़ फ़ाइल",
   "ide-th-binary": "निकालने के बाद",
-  "ide-manual-p2": "इंस्टॉल की जाँच करें: `epher-lsp --version`।",
+  "ide-manual-p2": "Windows PATH बदलाव केवल नए टर्मिनल पर लागू होता है: एक नया टर्मिनल खोलें और पुष्टि करने के लिए `epher-lsp --version` चलाएँ।",
   "ide-download": "सब कुछ रिलीज़ पृष्ठ पर है।",
   "ide-jetbrains-title": "JetBrains IDE",
   "ide-zed-title": "Zed",

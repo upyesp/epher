@@ -361,13 +361,15 @@
       <p data-i18n="ide-manual-posix">macOS and Linux:</p>
       <pre class="path-cmd">gunzip ~/Downloads/epher-lsp-*.gz
 sudo mkdir -p /usr/local/bin
-sudo install -m 0755 ~/Downloads/epher-lsp-* /usr/local/bin/epher-lsp</pre>
+sudo install -m 0755 ~/Downloads/epher-lsp-* /usr/local/bin/epher-lsp
+epher-lsp --version</pre>
       <p data-i18n="ide-manual-windows">Windows (PowerShell):</p>
       <pre class="path-cmd">Expand-Archive $HOME\Downloads\epher-lsp-windows-x86_64.zip -DestinationPath $HOME\Downloads
-Move-Item "$HOME\Downloads\epher-lsp.exe" "$env:LOCALAPPDATA\Microsoft\WindowsApps\epher-lsp.exe"</pre>
-      <p data-i18n="ide-manual-p2">
-        Check the install with `epher-lsp --version` (in a new terminal).
-      </p>
+New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\Programs\epher" | Out-Null
+Move-Item "$HOME\Downloads\epher-lsp.exe" "$env:LOCALAPPDATA\Programs\epher\epher-lsp.exe" -Force
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:LOCALAPPDATA\Programs\epher", "User")
+& "$env:LOCALAPPDATA\Programs\epher\epher-lsp.exe" --version</pre>
+      <p data-i18n="ide-manual-p2">Windows applies the PATH change to new terminals only: open a fresh terminal and run `epher-lsp --version` to confirm.</p>
 
       <h2 data-i18n="ide-how-title">One language server, used by every IDE</h2>
       <p data-i18n="ide-how-p">
