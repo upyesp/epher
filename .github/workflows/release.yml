@@ -400,6 +400,19 @@ jobs:
       version: ${{ github.ref_name }}
     secrets: inherit
 
+  openvsx:
+    # The Open VSX Registry channel (open-vsx.org): the gallery VSCodium
+    # and the other forks actually search. Same vsix, token-based publish
+    # (no federation there); skips with a notice until the OVSX_PAT
+    # secret exists in the stores environment.
+    name: open vsx
+    needs: [release]
+    uses: ./.github/workflows/openvsx-publish.yml
+    with:
+      ref: ${{ github.ref }}
+      version: ${{ github.ref_name }}
+    secrets: inherit
+
   snap:
     # ADR-0061: the Snap Store channel. Repacks the release .deb (the
     # two artifacts cannot drift), strict confinement, amd64 + arm64.
