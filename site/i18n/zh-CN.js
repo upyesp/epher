@@ -206,7 +206,7 @@ window.EPHER_I18N["zh-CN"] = {
   "ide-th-platform": "平台",
   "ide-th-asset": "发布文件",
   "ide-th-binary": "解压后",
-  "ide-manual-p2": "用 `epher-lsp --version` 检查安装。",
+  "ide-manual-p2": "Windows 只对新的终端应用 PATH 更改：请打开一个新终端并运行 `epher-lsp --version` 进行确认。",
   "ide-download": "一切都可以在发布页获取。",
   "ide-jetbrains-title": "JetBrains 系列 IDE",
   "ide-zed-title": "Zed",

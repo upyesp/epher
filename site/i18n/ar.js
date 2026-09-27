@@ -206,7 +206,7 @@ window.EPHER_I18N["ar"] = {
   "ide-th-platform": "المنصة",
   "ide-th-asset": "ملف الإصدار",
   "ide-th-binary": "بعد الاستخراج",
-  "ide-manual-p2": "تحقق من التثبيت بالأمر `epher-lsp --version`.",
+  "ide-manual-p2": "ينطبق تغيير PATH على الطرفيات الجديدة فقط: افتح طرفية جديدة وشغّل `epher-lsp --version` للتأكيد.",
   "ide-download": "كل شيء في صفحة الإصدارات.",
   "ide-jetbrains-title": "IDE JetBrains",
   "ide-zed-title": "Zed",

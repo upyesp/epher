@@ -1274,3 +1274,47 @@ a:hover {
   text-align: center;
   min-width: 2.2rem;
 }
+
+/* Copy buttons on the install-command blocks (ide.html). */
+.path-cmd {
+  position: relative;
+}
+
+.path-cmd .copy-btn {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.path-cmd .copy-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.path-cmd .copy-btn .copy-check {
+  display: none;
+}
+
+.path-cmd.copied .copy-btn .copy-icon {
+  display: none;
+}
+
+.path-cmd.copied .copy-btn .copy-check {
+  display: block;
+  color: #2e9e5b;
+}
+
+.path-cmd.copied .copy-btn {
+  border-color: #2e9e5b;
+}

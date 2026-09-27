@@ -206,7 +206,7 @@ window.EPHER_I18N["de"] = {
   "ide-th-platform": "Plattform",
   "ide-th-asset": "Release-Datei",
   "ide-th-binary": "Nach dem Entpacken",
-  "ide-manual-p2": "Prüfen Sie die Installation mit `epher-lsp --version`.",
+  "ide-manual-p2": "Windows übernimmt die PATH-Änderung nur in neuen Terminals: Öffnen Sie ein neues Terminal und führen Sie `epher-lsp --version` aus, um die Installation zu bestätigen.",
   "ide-download": "Alles finden Sie auf der Releases-Seite.",
   "ide-jetbrains-title": "JetBrains-IDEs",
   "ide-zed-title": "Zed",
