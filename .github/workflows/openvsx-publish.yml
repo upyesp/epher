@@ -1,0 +1,120 @@
+name: openvsx publish
+
+# The Open VSX Registry channel (open-vsx.org, the gallery VSCodium,
+# code-server, and the other forks actually search). Publishes the same
+# vsix the Microsoft marketplace job builds, with a personal access
+# token: Open VSX has no federated-credential route. The token lives in
+# the `stores` environment secret OVSX_PAT; the job skips with a notice
+# until it exists. Open VSX refuses to re-publish a version, so the
+# extension version rides the release train like every other client.
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "git ref to publish from (defaults to the caller's ref)"
+        type: string
+        default: ""
+      version:
+        description: "extension version without the leading v (auto = read from crates/cli/Cargo.toml)"
+        type: string
+        default: "auto"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "git ref to publish from (defaults to the default branch)"
+        type: string
+        default: ""
+
+jobs:
+  openvsx:
+    name: publish upyesp.epher to open-vsx.org
+    environment: stores
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Secrets check
+        id: secrets
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -n "$OVSX_PAT" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::open vsx publish skipped: set the OVSX_PAT secret in the stores environment (see docs/research/openvsx-publishing.md)."
+          fi
+
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.secrets.outputs.skip == 'false'
+        with:
+          targets: wasm32-wasip1-threads
+
+      - name: Resolve the release version
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
+        run: |
+          set -e
+          VERSION="$VERSION_INPUT"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "auto" ]; then
+            VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          fi
+          echo "VERSION=${VERSION#v}" >> "$GITHUB_ENV"
+
+      - name: Build the wasm server
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          set -e
+          cargo build -p epher-lsp --target wasm32-wasip1-threads --release
+          mkdir -p clients/vscode/server
+          cp target/wasm32-wasip1-threads/release/epher-lsp.wasm \
+            clients/vscode/server/epher-lsp.wasm
+
+      - name: Build and package the vsix
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          set -e
+          cd clients/vscode
+          npm ci --no-audit --no-fund
+          # --allow-same-version: a dispatch test runs against the current
+          # release number, where the bump is a no-op
+          npm version --no-git-tag-version --allow-same-version "$VERSION"
+          npm run compile
+          npx --yes @vscode/vsce@3.9.2 package --allow-missing-repository \
+            --no-dependencies \
+            --out epher-vscode.vsix
+
+      - name: Ensure the namespace exists
+        # create-namespace is idempotent for the owner and fails for
+        # everyone else; either way the publish below is the truth.
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          npx --yes ovsx@latest create-namespace upyesp \
+            -p "$OVSX_PAT" || true
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+      - name: Publish to Open VSX
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          set -e -o pipefail
+          cd clients/vscode
+          if npx --yes ovsx@latest publish -i epher-vscode.vsix \
+              -p "$OVSX_PAT" 2>&1 | tee /tmp/ovsx.log; then
+            echo "::notice::published upyesp.epher $VERSION to open-vsx.org."
+          elif grep -qi "already exists" /tmp/ovsx.log; then
+            echo "::notice::upyesp.epher $VERSION is already on open-vsx.org (expected on a re-run)."
+          else
+            echo "publish failed:"
+            cat /tmp/ovsx.log
+            exit 1
+          fi
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
