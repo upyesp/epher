@@ -3,8 +3,6 @@
 A package folder that teaches Sublime Text the epher syntax and
 wires the shared `epher-lsp` language server through the popular
 [LSP](https://packagecontrol.io/packages/LSP) package (sublimelsp).
-ADR-0066 ships Sublime as configuration and documentation, not a
-plugin; this folder is that configuration.
 
 ## What each file does
 
@@ -13,20 +11,35 @@ plugin; this folder is that configuration.
   `clients/shared/epher.tmLanguage.json` by `sync-assets.py`; edit
   the shared file, never this copy.
 - `LSP-epher.sublime-settings`: the LSP-package client definition.
-- `sync-assets.py`: the generator (needs only Python 3).
+- `epher.py`: the run command (`lsp_epher_run`, the chord
+  ctrl+c ctrl+c, or "epher: run this script" in the command
+  palette). Sends the same `epher/run` request the VS Code results
+  pane uses (ADR-0069) and shows every answer and error in a
+  results view; graphs are written as SVG files under Sublime's
+  cache folder (`epher/runs/`) and opened with the system viewer.
+- `LSP-epher.sublime-commands`: the palette entry for the run
+  command.
+- `Default (<platform>).sublime-keymap`: the run chord, ctrl+c
+  ctrl+c on Windows and Linux, super+c super+c on macOS, bound only
+  in epher views.
+- `sync-assets.py`: the grammar generator (needs only Python 3).
 
 ## Install
 
-1. copy (or symlink) this directory into your `Packages/User` folder
-   under the name `epher`:
-   - linux: `~/.config/sublime-text/Packages/User/epher`
-   - macOS: `~/Library/Application Support/Sublime Text/Packages/User/epher`
-   - windows: `%APPDATA%\Sublime Text\Packages\User\epher`
+1. copy (or symlink) this directory into your `Packages` folder
+   under the name `LSP-epher` (a direct child of `Packages`, not
+   inside `User`). The `LSP-` prefix is required: the LSP package
+   resolves the client configuration at
+   `Packages/LSP-epher/LSP-epher.sublime-settings`, so the folder
+   and file names must match exactly:
+   - linux: `~/.config/sublime-text/Packages/LSP-epher`
+   - macOS: `~/Library/Application Support/Sublime Text/Packages/LSP-epher`
+   - windows: `%APPDATA%\Sublime Text\Packages\LSP-epher`
 2. install the `LSP` package from Package Control;
-3. copy `LSP-epher.sublime-settings` into `Packages/User/` (that is
-   the file name the LSP package looks for);
-4. open any `.epher` file. Sublime applies the syntax automatically;
-   set it once by hand via the syntax menu if it was already open.
+3. open any `.epher` file. Sublime applies the syntax automatically
+   (the grammar carries `fileTypes`); the LSP package reads
+   `LSP-epher.sublime-settings` and starts `epher-lsp` for epher
+   views.
 
 ## Getting the binary
 
@@ -53,4 +66,10 @@ Everything runs on your machine after that one download.
 - live diagnostics, inline answers, hover signatures, completion
   with the shared snippets, and semantic-token coloring, from the
   server (LSP package >= 1.16 renders semantic tokens on top of the
-  grammar).
+  grammar);
+- running scripts: ctrl+c ctrl+c (or the palette entry) sends the
+  same `epher/run` request the other clients use and opens the
+  results view beside the script; `<CR>`-style jumps are not part
+  of the Sublime pane, but every graph row carries the SVG path it
+  was written to, and each graph opens with the system viewer as
+  the run completes.

@@ -18,10 +18,18 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 SOURCE = ROOT / "clients" / "shared" / "epher.tmLanguage.json"
 TARGET = ROOT / "clients" / "sublime" / "epher.tmLanguage"
 
-with SOURCE.open(encoding="utf-8") as f:
-    grammar = json.load(f)
 
-with TARGET.open("wb") as f:
-    plistlib.dump(grammar, f)
+def main() -> None:
+    with SOURCE.open(encoding="utf-8") as f:
+        grammar = json.load(f)
 
-print(f"wrote {TARGET.relative_to(ROOT)} from {SOURCE.relative_to(ROOT)}")
+    with TARGET.open("wb") as f:
+        plistlib.dump(grammar, f)
+
+    print(f"wrote {TARGET.relative_to(ROOT)} from {SOURCE.relative_to(ROOT)}")
+
+
+if __name__ == "__main__":
+    # Sublime Text imports every top-level module of an installed
+    # package as a plugin; this file must stay import-safe there.
+    main()
