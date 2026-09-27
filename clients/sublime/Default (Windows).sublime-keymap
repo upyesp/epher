@@ -1,0 +1,7 @@
+[
+  {
+    "keys": ["ctrl+c", "ctrl+c"],
+    "command": "lsp_epher_run",
+    "context": [{ "key": "selector", "operand": "source.epher" }]
+  }
+]
