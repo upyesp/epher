@@ -32,7 +32,7 @@
             class="io.github.upyesp.epher.eclipse.EpherConnectionProvider"
             singleton="true"/>
       <contentTypeMapping
-            id="io.github.upyesp.epher.server.mapping"
+            id="io.github.upyesp.epher.server"
             contentType="io.github.upyesp.epher"
             languageId="epher"/>
    </extension>
