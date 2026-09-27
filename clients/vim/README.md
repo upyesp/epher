@@ -38,18 +38,16 @@ vim.opt.rtp:append("/path/to/epher/clients/vim")
 
 ## Wiring the language server (Vim)
 
-Vim ships an LSP client since 9.1 through the built-in `lsp` plugin
-channel; for today's widest compatibility the `vim-lsp` plugin is
-the documented path. With `vim-lsp` and `async.vim` installed and
-`epher-lsp` on your PATH:
+Vim has no built-in LSP client, so the documented path is the
+`vim-lsp` plugin (with its `async.vim` dependency). With both
+installed and `epher-lsp` on your PATH:
 
 ```vim
 if executable('epher-lsp')
   au User lsp_setup call lsp#register_server({
         \ 'name': 'epher',
         \ 'cmd': {server_info -> ['epher-lsp']},
-        \ 'allow_capabilities': [],
-        \ 'whitelist': ['epher'],
+        \ 'allowlist': ['epher'],
         \ })
 endif
 ```
@@ -58,6 +56,17 @@ Getting the binary: download `epher-lsp-<target>` for your platform
 from the releases page (`https://github.com/upyesp/epher/releases`),
 uncompress it, and put it on your PATH or name the path in the
 `cmd` line above.
+
+## Running scripts
+
+With `vim-lsp` installed, `:EpherRun` runs the whole script through
+the same `epher/run` request the VS Code results pane uses (ADR-0069)
+and opens a results pane beside the script: every answer and error,
+a row per statement. `<CR>` on a row jumps to its statement, `<CR>`
+on a graph row reopens its SVG (written under
+`~/.cache/epher/runs` and opened with the system viewer), and `r`
+re-runs. Without `vim-lsp` the command says exactly what is missing;
+the syntax layer above works either way.
 
 ## The conservative rule
 
