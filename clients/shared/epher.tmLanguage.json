@@ -1,6 +1,7 @@
 {
   "name": "Epher",
   "scopeName": "source.epher",
+  "fileTypes": ["epher"],
   "patterns": [
     { "include": "#comments" },
     { "include": "#strings" },
