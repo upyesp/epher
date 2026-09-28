@@ -102,11 +102,15 @@ jobs:
         env:
           PAT: ${{ secrets.VS_MARKETPLACE_PAT }}
         run: |
-          $publisher = Join-Path ${env:VSINSTALLDIR} "VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe"
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsroot = & $vswhere -latest -products * -property installationPath
+          if (-not $vsroot) { Write-Error "no Visual Studio installation found by vswhere"; exit 1 }
+          $publisher = Join-Path $vsroot "VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe"
           if (-not (Test-Path $publisher)) {
-            $publisher = (Get-ChildItem "C:\Program Files\Microsoft Visual Studio" -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+            $publisher = (Get-ChildItem $vsroot -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
           }
-          if (-not $publisher) { Write-Error "VsixPublisher.exe not found on this runner"; exit 1 }
+          if (-not $publisher) { Write-Error "VsixPublisher.exe not found under $vsroot"; exit 1 }
+          Write-Host "using $publisher"
           & $publisher login -personalAccessToken $env:PAT -publisherName upyesp
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & $publisher publish -payload $env:VSIX -publishManifest vs-publish.json -ignoreWarnings -personalAccessToken $env:PAT
