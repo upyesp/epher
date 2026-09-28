@@ -65,7 +65,6 @@ jobs:
           TAG: ${{ inputs.version }}
         shell: pwsh
         run: |
-          set -e
           if (-not $env:TAG) { $env:TAG = "latest" }
           gh release download $env:TAG --pattern $env:VSIX --clobber
           if (-not (Test-Path $env:VSIX)) { Write-Error "the release asset $env:VSIX did not download"; exit 1 }
