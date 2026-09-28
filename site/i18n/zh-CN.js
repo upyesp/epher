@@ -222,7 +222,7 @@ window.EPHER_I18N["zh-CN"] = {
   "ide-cursor-title": "Cursor",
   "ide-vscodium-openvsx": "Open VSX 注册表中的 Epher",
   "ide-cursor-openvsx": "Open VSX 注册表中的 Epher",
-  "ide-cursor-p1": "Cursor 通过其自有的、经审核的应用市场搜索 Open VSX 注册表，Epher 已在其中列出：打开扩展视图，搜索 Epher，点击安装。内置服务器和所有功能的表现完全一致。",
+  "ide-cursor-p1": "Cursor 通过其自有的、经审核的应用市场搜索 Open VSX 注册表，Epher 已在其中列出：打开扩展视图，搜索 Epher，点击安装。内置服务器和所有功能的表现完全一致，并且发布者在 Cursor 应用市场中已通过认证。",
   "ide-vscodium-title": "VSCodium",
   "ide-vscodium-p1": "VSCodium 是没有微软应用市场的 VS Code：它改为搜索 Open VSX 注册表，Epher 已在其中列出。打开扩展视图，搜索 Epher，点击安装。同样的服务器、同样的功能、同样的纯本地行为。",
   "ide-jetbrains-p1": "从磁盘安装：Settings、Plugins、齿轮菜单、Install Plugin from Disk。适用于 IntelliJ IDEA、PyCharm、WebStorm、GoLand 等全系列，2024.2 及以上。首次使用会为您的平台下载服务器；之后一切都在本地。",

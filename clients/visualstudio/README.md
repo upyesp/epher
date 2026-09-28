@@ -28,17 +28,16 @@ Visual Studio 2022 (17.x), Community, Professional, and Enterprise.
 Older Visual Studio versions are not supported: the extension targets
 the 64-bit 17.0 editor.
 
-## Install from disk
+## Install
 
-1. Download `epher-visualstudio.vsix` from the epher release page.
-2. Double-click the file: the VSIX Installer opens and installs the
-   extension (this is the documented way to install a `.vsix` that is
-   not on a marketplace; the Extensions > Manage Extensions dialog then
-   shows the installed extension and can update or uninstall it).
+1. From the marketplace: Extensions > Manage Extensions, search for
+   **epher**, Install. Or the web listing:
+   https://marketplace.visualstudio.com/items?itemName=upyesp.Epher.VisualStudio
+2. From disk instead: download `epher-visualstudio.vsix` from the epher
+   release page and double-click the file; the VSIX Installer opens and
+   installs the extension, and the Extensions > Manage Extensions
+   dialog can update or uninstall it later.
 3. Open or create a `.epher` file.
-
-Visual Studio Marketplace publication comes later; the website page
-and the release assets are the distribution until then.
 
 ## The features
 
@@ -126,9 +125,10 @@ copies the vsix to the stable asset name `epher-visualstudio.vsix`.
 
 ## Status
 
-Stage six of the ADR-0066 plan, after the JetBrains, Zed, Neovim, Vim,
-and Sublime clients. Versions are locked to the epher 0.5.x train:
-extension 0.5.40 downloads the server from the v0.5.40 release.
-Marketplace publication is deliberately out of scope until the
-extensions are proven; the website page is the distribution until
-then.
+Published on the Visual Studio Marketplace
+(https://marketplace.visualstudio.com/items?itemName=upyesp.Epher.VisualStudio):
+the CI train publishes every release via the SDK's VsixPublisher and an
+Azure DevOps PAT with the Marketplace: Manage scope. The release assets
+keep the same vsix for install-from-disk. Versions are locked to the
+epher 0.5.x train: the extension and the server inside it always come
+from the same release.

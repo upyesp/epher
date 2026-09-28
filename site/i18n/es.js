@@ -222,7 +222,7 @@ window.EPHER_I18N["es"] = {
   "ide-cursor-title": "Cursor",
   "ide-vscodium-openvsx": "Epher en el registro Open VSX",
   "ide-cursor-openvsx": "Epher en el registro Open VSX",
-  "ide-cursor-p1": "Cursor busca en el registro de Open VSX a través de su propio mercado revisado, y Epher está listado: la vista de Extensiones, busca Epher, Install. El servidor integrado y todas las funciones se comportan igual.",
+  "ide-cursor-p1": "Cursor busca en el registro de Open VSX a través de su propio mercado revisado, y Epher está listado: la vista de Extensiones, busca Epher, Install. El servidor integrado y todas las funciones se comportan igual, y el publicador está verificado en el mercado de Cursor.",
   "ide-vscodium-title": "VSCodium",
   "ide-vscodium-p1": "VSCodium es VS Code sin el marketplace de Microsoft: busca en el registro de Open VSX, donde Epher está listado. La vista de Extensiones, busca Epher, Install. Mismo servidor, mismas funciones, mismo comportamiento local.",
   "ide-jetbrains-p1": "Instálalo desde disco: Settings, Plugins, el menú del engranaje, Install Plugin from Disk. Funciona en IntelliJ IDEA, PyCharm, WebStorm, GoLand y el resto de la familia, 2024.2 o más nuevo. En el primer uso descarga el servidor para tu plataforma; después, todo es local.",

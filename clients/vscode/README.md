@@ -1,7 +1,6 @@
 # Epher for Visual Studio Code, VSCodium, and Cursor
 
 [![latest release](https://img.shields.io/github/v/release/upyesp/epher?label=release&sort=semver)](https://github.com/upyesp/epher/releases/latest)
-[![release build](https://github.com/upyesp/epher/actions/workflows/release.yml/badge.svg)](https://github.com/upyesp/epher/actions/workflows/release.yml)
 
 **epher** is a calculator language: you write ordinary math, with units
 that convert, and every statement's answer appears inline, right next

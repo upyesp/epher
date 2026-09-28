@@ -1,10 +1,12 @@
 # Listing description for the Visual Studio Marketplace (overview.md)
 
-The portal's "overview" field is required at upload and is markdown;
-the VSIX's own README is not picked up. Top-listing style is
-text-first: a one-sentence lead, a feature list, a requirements line.
-The commented image block goes live once the captures exist (see
-CAPTURE-GUIDE.md); absolute URLs only, the gallery does not host them.
+Everything below the `---` separator is the listing body, word for
+word: the CI publish job copies it to overview.md verbatim, and a
+manual portal upload pastes the same text. The images ride the repo at
+their raw.githubusercontent.com URLs (the gallery does not host
+screenshots); they are the four Visual Studio captures in this folder.
+Top-listing style: one-sentence lead, feature bullets, requirements
+line, then the images.
 
 ---
 
@@ -13,6 +15,8 @@ CAPTURE-GUIDE.md); absolute URLs only, the gallery does not host them.
 Write ordinary math, with units that convert, and every statement's answer
 appears inline, right next to the line that produced it. Hover any name for
 its canonical signature, and every broken statement is flagged while you type.
+
+![answers inline](https://raw.githubusercontent.com/upyesp/epher/main/clients/visualstudio/listing/editor.png)
 
 **Features**
 
@@ -31,17 +35,15 @@ its canonical signature, and every broken statement is flagged while you type.
   every answer, every error, and every 2D or 3D graph opens in the results
   pane, echoed to the epher Output pane.
 
+![hover signature](https://raw.githubusercontent.com/upyesp/epher/main/clients/visualstudio/listing/hover.png)
+
+![completion](https://raw.githubusercontent.com/upyesp/epher/main/clients/visualstudio/listing/completion.png)
+
+![results pane](https://raw.githubusercontent.com/upyesp/epher/main/clients/visualstudio/listing/results.png)
+
 **Everything is local.** The language server ships inside the extension (a
 Windows x64 build of epher-lsp): no first-use download, no account, no cloud.
 Install it, open a `.epher` file, and start calculating.
 
 **Requirements**: Visual Studio 2022 (17.x) - Community, Professional, or
 Enterprise; 64-bit. Source: https://github.com/upyesp/epher
-
-<!-- Once the captures exist, put this block right under the lead paragraph:
-
-![answers inline](https://raw.githubusercontent.com/upyesp/epher/main/clients/visualstudio/listing/editor.png)
-![hover signature](https://raw.githubusercontent.com/upyesp/epher/main/clients/visualstudio/listing/hover.png)
-![completion](https://raw.githubusercontent.com/upyesp/epher/main/clients/visualstudio/listing/completion.png)
-![results pane](https://raw.githubusercontent.com/upyesp/epher/main/clients/visualstudio/listing/results.png)
--->

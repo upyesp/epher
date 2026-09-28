@@ -1,0 +1,109 @@
+name: visualstudio publish
+
+# The Visual Studio Marketplace channel for the VS IDE extension
+# (marketplace.visualstudio.com, target Visual Studio 2022). Publishes
+# the epher-visualstudio.vsix the release job builds with the SDK's
+# VsixPublisher CLI and an Azure DevOps personal access token with the
+# Marketplace: Manage scope (a different mechanism from the Entra
+# federated credential the VS Code gallery route needs). The token
+# lives in the `stores` environment secret VS_MARKETPLACE_PAT; the job
+# skips with a notice until it exists. VsixPublisher overwrites a
+# same-version extension, so a failed run can simply be rerun.
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "git ref to publish from (defaults to the caller's ref)"
+        type: string
+        default: ""
+      version:
+        description: "release tag to pull the vsix from (v-prefixed)"
+        type: string
+        default: ""
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "git ref to publish from (defaults to the default branch)"
+        type: string
+        default: ""
+      version:
+        description: "release tag to pull the vsix from (v-prefixed)"
+        type: string
+        default: ""
+
+jobs:
+  visualstudio:
+    name: publish upyesp.Epher.VisualStudio
+    environment: stores
+    permissions:
+      contents: read
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      VSIX: epher-visualstudio.vsix
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Skip with a notice until VS_MARKETPLACE_PAT exists
+        if: env.VS_MARKETPLACE_PAT == ''
+        run: |
+          Write-Host "::notice::VS_MARKETPLACE_PAT is not set in the stores environment; the Visual Studio Marketplace publish is skipped. Create an Azure DevOps PAT with the Marketplace: Manage scope and add it as the secret to enable this channel."
+
+      - name: Download the release vsix
+        if: env.VS_MARKETPLACE_PAT != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.version }}
+        shell: pwsh
+        run: |
+          set -e
+          if (-not $env:TAG) { $env:TAG = "latest" }
+          gh release download $env:TAG --pattern $env:VSIX --clobber
+          if (-not (Test-Path $env:VSIX)) { Write-Error "the release asset $env:VSIX did not download"; exit 1 }
+
+      - name: Generate overview.md from the listing description
+        if: env.VS_MARKETPLACE_PAT != ''
+        shell: pwsh
+        run: |
+          # DESCRIPTION.md carries maintainer notes above a --- separator;
+          # everything after it is the listing body.
+          $lines = Get-Content clients/visualstudio/listing/DESCRIPTION.md
+          $cut = ($lines | Select-String -Pattern '^---$' | Select-Object -First 1).LineNumber
+          if (-not $cut) { Write-Error "DESCRIPTION.md has no --- separator"; exit 1 }
+          $lines[$cut..($lines.Count - 1)] -join "`n" | Set-Content overview.md -Encoding utf8NoBOM
+
+      - name: Write vs-publish.json
+        if: env.VS_MARKETPLACE_PAT != ''
+        shell: pwsh
+        run: |
+          @{
+            "`$schema"    = "http://json.schemastore.org/vsix-publish"
+            "categories"  = @("coding", "programming languages")
+            "identity"    = @{ internalName = "Epher.VisualStudio" }
+            "overview"    = "overview.md"
+            "priceCategory" = "free"
+            "publisher"   = "upyesp"
+            "private"     = $false
+            "qna"         = $true
+            "repo"        = "https://github.com/upyesp/epher"
+          } | ConvertTo-Json | Set-Content vs-publish.json -Encoding utf8NoBOM
+
+      - name: Publish with VsixPublisher
+        if: env.VS_MARKETPLACE_PAT != ''
+        shell: pwsh
+        env:
+          PAT: ${{ secrets.VS_MARKETPLACE_PAT }}
+        run: |
+          $publisher = Join-Path ${env:VSINSTALLDIR} "VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe"
+          if (-not (Test-Path $publisher)) {
+            $publisher = (Get-ChildItem "C:\Program Files\Microsoft Visual Studio" -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+          }
+          if (-not $publisher) { Write-Error "VsixPublisher.exe not found on this runner"; exit 1 }
+          & $publisher login -personalAccessToken $env:PAT -publisherName upyesp
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $publisher publish -payload $env:VSIX -publishManifest vs-publish.json -ignoreWarnings -personalAccessToken $env:PAT
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Write-Host "::notice::published upyesp.Epher.VisualStudio to marketplace.visualstudio.com"
