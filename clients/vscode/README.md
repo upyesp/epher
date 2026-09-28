@@ -1,4 +1,4 @@
-# Epher for Visual Studio Code and VSCodium
+# Epher for Visual Studio Code, VSCodium, and Cursor
 
 [![latest release](https://img.shields.io/github/v/release/upyesp/epher?label=release&sort=semver)](https://github.com/upyesp/epher/releases/latest)
 [![release build](https://github.com/upyesp/epher/actions/workflows/release.yml/badge.svg)](https://github.com/upyesp/epher/actions/workflows/release.yml)
@@ -51,9 +51,12 @@ side panel, no print statements: the editor *is* the calculator.
 2. In **VSCodium**: **Extensions** view → search for **Epher** →
    **Install**. VSCodium searches [Open VSX](https://open-vsx.org/extension/upyesp.epher)
    by default, which carries the same extension.
-3. Open any `.epher` file and start calculating.
+3. In **Cursor**: **Extensions** view → search for **Epher** →
+   **Install**. Cursor searches Open VSX through its own reviewed
+   marketplace proxy, and the same extension is served there.
+4. Open any `.epher` file and start calculating.
 
-On another fork (Cursor and friends), or prefer to sideload? Get
+On another fork, or prefer to sideload? Get
 `epher-vscode.vsix` from the
 [releases page](https://github.com/upyesp/epher/releases/latest),
 then **Extensions** view → the `⋯` menu → **Install from VSIX…**
