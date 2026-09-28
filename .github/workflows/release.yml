@@ -413,6 +413,20 @@ jobs:
       version: ${{ github.ref_name }}
     secrets: inherit
 
+  visualstudio:
+    # The Visual Studio Marketplace channel for the VS IDE extension:
+    # VsixPublisher (ships with the VSSDK on the windows runner) plus an
+    # Azure DevOps PAT with the Marketplace: Manage scope, a different
+    # mechanism from the Entra credential the VS Code route needs.
+    # Skips with a notice until VS_MARKETPLACE_PAT exists in stores.
+    name: visualstudio marketplace
+    needs: [release]
+    uses: ./.github/workflows/visualstudio-publish.yml
+    with:
+      ref: ${{ github.ref }}
+      version: ${{ github.ref_name }}
+    secrets: inherit
+
   snap:
     # ADR-0061: the Snap Store channel. Repacks the release .deb (the
     # two artifacts cannot drift), strict confinement, amd64 + arm64.

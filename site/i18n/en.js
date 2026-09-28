@@ -222,7 +222,7 @@ window.EPHER_I18N["en"] = {
   "ide-vscode-p3": "Running scripts: the Run script button on line one, Ctrl+Enter, or plain F5 — epher ships a run-only debug adapter, so a debug start runs the file and prints the answers in the Debug Console. The button and Ctrl+Enter open the results pane instead, which adds the run's graphs and links each row to its line.",
   "ide-vscode-marketplace": "Install from the VS Code Marketplace",
   "ide-cursor-title": "Cursor",
-  "ide-cursor-p1": "Cursor searches the Open VSX registry through its own reviewed marketplace, and Epher is listed: the Extensions view, search for Epher, Install. The bundled server and every feature behave identically.",
+  "ide-cursor-p1": "Cursor searches the Open VSX registry through its own reviewed marketplace, and Epher is listed: the Extensions view, search for Epher, Install. The bundled server and every feature behave identically, and the publisher is verified in Cursor's marketplace.",
   "ide-cursor-openvsx": "Epher on the Open VSX Registry",
   "ide-vscodium-title": "VSCodium",
   "ide-vscodium-p1": "VSCodium is VS Code without Microsoft's marketplace: it searches the Open VSX registry instead, where Epher is listed. The Extensions view, search for Epher, Install. Same server, same features, same local-only behavior.",

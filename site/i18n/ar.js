@@ -222,7 +222,7 @@ window.EPHER_I18N["ar"] = {
   "ide-cursor-title": "Cursor",
   "ide-vscodium-openvsx": "Epher على سجل Open VSX",
   "ide-cursor-openvsx": "Epher على سجل Open VSX",
-  "ide-cursor-p1": "يبحث Cursor في سجل Open VSX من خلال متجره الخاص الخاضع للمراجعة، وEpher مُدرج هناك: من عرض الإضافات، ابحث عن Epher واضغط Install. الخادم المدمج وكل الميزات تعمل بالشكل ذاته.",
+  "ide-cursor-p1": "يبحث Cursor في سجل Open VSX من خلال متجره الخاص الخاضع للمراجعة، وEpher مُدرج هناك: من عرض الإضافات، ابحث عن Epher واضغط Install. الخادم المدمج وكل الميزات تعمل بالشكل ذاته، والناشر موثّق في متجر Cursor.",
   "ide-vscodium-title": "VSCodium",
   "ide-vscodium-p1": "‏VSCodium هو VS Code دون متجر مايكروسوفت: يبحث بدلاً من ذلك في سجل Open VSX، حيث Epher مُدرج. من عرض الإضافات، ابحث عن Epher واضغط Install. الخادم نفسه، والميزات نفسها، والسلوك المحلي الصرف نفسه.",
   "ide-jetbrains-p1": "ثبّته من القرص: Settings ثم Plugins ثم قائمة الترس ثم Install Plugin from Disk. يعمل في IntelliJ IDEA وPyCharm وWebStorm وGoLand وبقية العائلة، إصدار 2024.2 أو أحدث. عند أول استخدام ينزّل الخادم لمنصتك؛ وبعد ذلك كل شيء محلي.",
