@@ -7,6 +7,10 @@
     <DisplayName>epher</DisplayName>
     <Author>upyesp.org</Author>
     <Description xml:space="preserve">The epher calculator language in Visual Studio 2022: answers appear inline next to every statement, units convert, hover shows signatures, and F5 runs the script into a results pane with 2D and 3D graphs. The server ships inside; no cloud.</Description>
+    <!-- The icon the marketplace gallery and Extension Manager show.
+         The VsIcon asset below serves the in-IDE manager; this element
+         is what turns into the gallery's Icons.Default asset. -->
+    <Icon>icon.png</Icon>
     <Tags>epher;calculator;units;language</Tags>
     <Categories>Programming Languages</Categories>
   </Metadata>
@@ -22,7 +26,7 @@
   <Assets>
     <!-- The icon rides the vsix as content; the VsIcon asset is how
          the Extensions manager finds it for the logo area (the 0.5.47
-         review) — the v2 manifest has no <Icon> element. -->
+         review). -->
     <Asset Type="Microsoft.VisualStudio.VsIcon" d:Source="File" Path="icon.png" />
     <!-- The MEF parts: the content type wiring and the language client. -->
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
