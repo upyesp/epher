@@ -48,12 +48,18 @@ jobs:
           ref: ${{ inputs.ref || github.ref }}
 
       - name: Skip with a notice until VS_MARKETPLACE_PAT exists
-        if: env.VS_MARKETPLACE_PAT == ''
+        id: gate
+        env:
+          VS_MARKETPLACE_PAT: ${{ secrets.VS_MARKETPLACE_PAT }}
+        shell: pwsh
         run: |
-          Write-Host "::notice::VS_MARKETPLACE_PAT is not set in the stores environment; the Visual Studio Marketplace publish is skipped. Create an Azure DevOps PAT with the Marketplace: Manage scope and add it as the secret to enable this channel."
+          if (-not $env:VS_MARKETPLACE_PAT) {
+            Write-Host "::notice::VS_MARKETPLACE_PAT is not set in the stores environment; the Visual Studio Marketplace publish is skipped. Create an Azure DevOps PAT with the Marketplace: Manage scope and add it as the secret to enable this channel."
+            "skip=true" >> $env:GITHUB_OUTPUT
+          }
 
       - name: Download the release vsix
-        if: env.VS_MARKETPLACE_PAT != ''
+        if: steps.gate.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.version }}
@@ -65,7 +71,7 @@ jobs:
           if (-not (Test-Path $env:VSIX)) { Write-Error "the release asset $env:VSIX did not download"; exit 1 }
 
       - name: Generate overview.md from the listing description
-        if: env.VS_MARKETPLACE_PAT != ''
+        if: steps.gate.outputs.skip != 'true'
         shell: pwsh
         run: |
           # DESCRIPTION.md carries maintainer notes above a --- separator;
@@ -76,7 +82,7 @@ jobs:
           $lines[$cut..($lines.Count - 1)] -join "`n" | Set-Content overview.md -Encoding utf8NoBOM
 
       - name: Write vs-publish.json
-        if: env.VS_MARKETPLACE_PAT != ''
+        if: steps.gate.outputs.skip != 'true'
         shell: pwsh
         run: |
           @{
@@ -92,7 +98,7 @@ jobs:
           } | ConvertTo-Json | Set-Content vs-publish.json -Encoding utf8NoBOM
 
       - name: Publish with VsixPublisher
-        if: env.VS_MARKETPLACE_PAT != ''
+        if: steps.gate.outputs.skip != 'true'
         shell: pwsh
         env:
           PAT: ${{ secrets.VS_MARKETPLACE_PAT }}
