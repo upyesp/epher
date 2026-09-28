@@ -32,7 +32,7 @@ the 64-bit 17.0 editor.
 
 1. From the marketplace: Extensions > Manage Extensions, search for
    **epher**, Install. Or the web listing:
-   https://marketplace.visualstudio.com/items?itemName=upyesp.Epher.VisualStudio
+   https://marketplace.visualstudio.com/items?itemName=upyesp.EpherVisualStudio
 2. From disk instead: download `epher-visualstudio.vsix` from the epher
    release page and double-click the file; the VSIX Installer opens and
    installs the extension, and the Extensions > Manage Extensions
@@ -126,7 +126,7 @@ copies the vsix to the stable asset name `epher-visualstudio.vsix`.
 ## Status
 
 Published on the Visual Studio Marketplace
-(https://marketplace.visualstudio.com/items?itemName=upyesp.Epher.VisualStudio):
+(https://marketplace.visualstudio.com/items?itemName=upyesp.EpherVisualStudio):
 the CI train publishes every release via the SDK's VsixPublisher and an
 Azure DevOps PAT with the Marketplace: Manage scope. The release assets
 keep the same vsix for install-from-disk. Versions are locked to the
