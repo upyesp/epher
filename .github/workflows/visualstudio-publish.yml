@@ -7,8 +7,9 @@ name: visualstudio publish
 # token with the Marketplace: Manage scope (a different mechanism from
 # the Entra federated credential the VS Code gallery route needed).
 # The token lives in the `stores` environment secret VS_MARKETPLACE_PAT;
-# the job skips with a notice until it exists. VsixPublisher overwrites
-# a same-version extension, so a failed run can simply be rerun.
+# the job skips with a notice until it exists. The marketplace rejects
+# a same-version upload, so an icon or readme fix rides the next
+# version like every other gallery.
 
 on:
   workflow_call:
@@ -112,7 +113,7 @@ jobs:
           $zip = [System.IO.Compression.ZipFile]::OpenRead($vsix)
           $names = $zip.Entries | ForEach-Object { $_.FullName -replace '\\', '/' }
           $zip.Dispose()
-          foreach ($required in @("extension.vsixmanifest", "Epher.VisualStudio.dll", "Epher.pkgdef", "server/epher-lsp.exe")) {
+          foreach ($required in @("extension.vsixmanifest", "Epher.VisualStudio.dll", "Epher.pkgdef", "server/epher-lsp.exe", "icon.png")) {
             if ($names -notcontains $required) { throw "the vsix is missing $required" }
           }
           Write-Host "vsix ok:" $names.Count "files"
