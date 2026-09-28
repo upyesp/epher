@@ -424,6 +424,21 @@ jobs:
       version: ${{ github.ref_name }}
     secrets: inherit
 
+  jetbrains:
+    # The JetBrains Marketplace channel for the IntelliJ-based plugin:
+    # the platform gradle plugin's publishPlugin task with a
+    # Marketplace personal access token, signed when the certificate
+    # secrets exist. Skips with a notice until JB_MARKETPLACE_TOKEN
+    # exists in stores. The first publication is always manual on the
+    # marketplace portal; see clients/jetbrains/listing/.
+    name: jetbrains marketplace
+    needs: [release]
+    uses: ./.github/workflows/jetbrains-publish.yml
+    with:
+      ref: ${{ github.ref }}
+      version: ${{ github.ref_name }}
+    secrets: inherit
+
   snap:
     # ADR-0061: the Snap Store channel. Repacks the release .deb (the
     # two artifacts cannot drift), strict confinement, amd64 + arm64.

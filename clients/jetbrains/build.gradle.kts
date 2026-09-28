@@ -107,6 +107,28 @@ intellijPlatform {
             untilBuild = provider { null }
         }
     }
+
+    // JetBrains Marketplace publication (CI drives publishPlugin after
+    // the first manual upload; the marketplace rejects same-version
+    // uploads, so gallery fixes ride the next version like every other
+    // channel). The token comes from the stores environment as a
+    // gradle property; see .github/workflows/jetbrains-publish.yml.
+    publishing {
+        token = providers.gradleProperty("jetbrainsMarketplaceToken")
+    }
+
+    // Plugin signing keeps the IDE from showing the unsigned-plugin
+    // warning on install; the marketplace re-signs the distribution
+    // with its own certificate after verifying ours. The key material
+    // lives in the stores environment and reaches the signPlugin task
+    // through environment variables, so nothing lands in the repo. If
+    // the variables are absent the task skips and the plugin publishes
+    // unsigned.
+    signing {
+        certificateChain = providers.environmentVariable("JB_CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("JB_PRIVATE_KEY")
+        password = providers.environmentVariable("JB_PRIVATE_KEY_PASSWORD")
+    }
 }
 
 tasks {
