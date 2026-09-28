@@ -1,14 +1,14 @@
 name: visualstudio publish
 
 # The Visual Studio Marketplace channel for the VS IDE extension
-# (marketplace.visualstudio.com, target Visual Studio 2022). Publishes
-# the epher-visualstudio.vsix the release job builds with the SDK's
-# VsixPublisher CLI and an Azure DevOps personal access token with the
-# Marketplace: Manage scope (a different mechanism from the Entra
-# federated credential the VS Code gallery route needs). The token
-# lives in the `stores` environment secret VS_MARKETPLACE_PAT; the job
-# skips with a notice until it exists. VsixPublisher overwrites a
-# same-version extension, so a failed run can simply be rerun.
+# (marketplace.visualstudio.com, target Visual Studio 2022). Builds the
+# vsix from this checkout (the server rides inside it) and publishes
+# with the SDK's VsixPublisher CLI and an Azure DevOps personal access
+# token with the Marketplace: Manage scope (a different mechanism from
+# the Entra federated credential the VS Code gallery route needed).
+# The token lives in the `stores` environment secret VS_MARKETPLACE_PAT;
+# the job skips with a notice until it exists. VsixPublisher overwrites
+# a same-version extension, so a failed run can simply be rerun.
 
 on:
   workflow_call:
@@ -18,9 +18,9 @@ on:
         type: string
         default: ""
       version:
-        description: "release tag to pull the vsix from (v-prefixed)"
+        description: "extension version without the leading v (auto = read from crates/cli/Cargo.toml)"
         type: string
-        default: ""
+        default: "auto"
   workflow_dispatch:
     inputs:
       ref:
@@ -28,9 +28,9 @@ on:
         type: string
         default: ""
       version:
-        description: "release tag to pull the vsix from (v-prefixed)"
+        description: "extension version without the leading v (auto = read from crates/cli/Cargo.toml)"
         type: string
-        default: ""
+        default: "auto"
 
 jobs:
   visualstudio:
@@ -39,9 +39,9 @@ jobs:
     permissions:
       contents: read
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
-      VSIX: epher-visualstudio.vsix
+      VSIX: clients/visualstudio/bin/Release/Epher.VisualStudio.vsix
     steps:
       - uses: actions/checkout@v4
         with:
@@ -58,18 +58,66 @@ jobs:
             "skip=true" >> $env:GITHUB_OUTPUT
           }
 
-      - name: Download the release vsix
+      - uses: microsoft/setup-msbuild@v2
+        if: steps.gate.outputs.skip != 'true'
+
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.gate.outputs.skip != 'true'
+
+      - name: Resolve the extension version
         if: steps.gate.outputs.skip != 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.version }}
+          VERSION_INPUT: ${{ inputs.version }}
+        shell: bash
+        run: |
+          VERSION="$VERSION_INPUT"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "auto" ]; then
+            VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          fi
+          echo "VERSION=${VERSION#v}" >> "$GITHUB_ENV"
+
+      - name: Build the bundled server
+        if: steps.gate.outputs.skip != 'true'
+        shell: bash
+        run: |
+          cargo build --release -p epher-lsp
+          mkdir -p clients/visualstudio/server
+          cp target/release/epher-lsp.exe clients/visualstudio/server/epher-lsp.exe
+
+      - name: Build the vsix
+        if: steps.gate.outputs.skip != 'true'
+        shell: bash
+        run: |
+          if command -v msbuild >/dev/null 2>&1; then
+            MSBUILD="msbuild"
+          else
+            MSBUILD="$(vswhere.exe -latest -products '*' -requires Microsoft.Component.MSBuild -find 'MSBuild\\**\\Bin\\MSBuild.exe' | head -1)"
+          fi
+          if [ -z "$MSBUILD" ]; then
+            echo "::error::msbuild not found"
+            exit 1
+          fi
+          "$MSBUILD" -restore -nologo \
+            -p:Configuration=Release \
+            -p:EpherVersion="$VERSION" \
+            clients/visualstudio/Epher.VisualStudio.csproj
+
+      - name: Smoke-test the vsix
+        if: steps.gate.outputs.skip != 'true'
         shell: pwsh
         run: |
-          if (-not $env:TAG) { $env:TAG = "latest" }
-          gh release download $env:TAG --pattern $env:VSIX --clobber
-          if (-not (Test-Path $env:VSIX)) { Write-Error "the release asset $env:VSIX did not download"; exit 1 }
+          $vsix = "clients/visualstudio/bin/Release/Epher.VisualStudio.vsix"
+          if (-not (Test-Path $vsix)) { throw "vsix not found at $vsix" }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [System.IO.Compression.ZipFile]::OpenRead($vsix)
+          $names = $zip.Entries | ForEach-Object { $_.FullName -replace '\\', '/' }
+          $zip.Dispose()
+          foreach ($required in @("extension.vsixmanifest", "Epher.VisualStudio.dll", "Epher.pkgdef", "server/epher-lsp.exe")) {
+            if ($names -notcontains $required) { throw "the vsix is missing $required" }
+          }
+          Write-Host "vsix ok:" $names.Count "files"
 
-      - name: Generate overview.md from the listing description
+      - name: Write overview.md from the listing description
         if: steps.gate.outputs.skip != 'true'
         shell: pwsh
         run: |
@@ -115,4 +163,4 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & $publisher publish -payload $env:VSIX -publishManifest vs-publish.json -personalAccessToken $env:PAT
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Write-Host "::notice::published upyesp.Epher.VisualStudio to marketplace.visualstudio.com"
+          Write-Host "::notice::published upyesp.Epher.VisualStudio $VERSION to marketplace.visualstudio.com"
