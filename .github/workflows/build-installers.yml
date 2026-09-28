@@ -462,8 +462,9 @@ jobs:
   jetbrains:
     # The JetBrains plugin (ADR-0066, stage five), packaged for the
     # release and the staging draft alongside the VS Code pilot.
-    # Marketplace publication stays out of scope: the website page
-    # links the zip and the IDE installs it from disk. Like the vsix,
+    # Marketplace publication lives in jetbrains-publish.yml (CI-driven
+    # after the first manual upload); this job only builds the zip that
+    # the website links and the IDE installs from disk. Like the vsix,
     # the plugin resolves releases/download/v<its own version>/ for the
     # server, so the packaged version must equal what the CLI reports.
     #
