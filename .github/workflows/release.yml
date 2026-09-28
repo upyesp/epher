@@ -381,18 +381,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
   vscode-marketplace:
-    # ADR-0068 amendment (2026-09-18): the marketplace channel rides the
-    # release train. Publishes upyesp.epher at the tagged version with the
-    # Entra secure automated route; skips with a notice until the
-    # AZURE_TENANT_ID and AZURE_CLIENT_ID secrets exist.
+    # ADR-0068 amendment, amended 2026-09-28: the marketplace channel
+    # rides the release train. The federated Entra route never completed
+    # a gallery write, so the channel publishes with the
+    # VS_MARKETPLACE_PAT secret now (Azure DevOps PAT, Marketplace:
+    # Manage scope, shared with the VS IDE channel); skips with a
+    # notice until the secret exists.
     name: vscode marketplace
     needs: [release]
-    # secrets: inherit passes the tenant/client identifiers, but it also
-    # clamps the nested workflow to THIS workflow's top-level permissions,
-    # which have no id-token; the federated Entra login needs the OIDC
-    # token, so the grant happens here, scoped to this job alone.
     permissions:
-      id-token: write
       contents: read
     uses: ./.github/workflows/vscode-publish.yml
     with:
