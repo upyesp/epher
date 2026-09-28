@@ -245,9 +245,9 @@ window.EPHER_I18N["de"] = {
   "ide-sublime-prereq": "Voraussetzung: die Server-Binärdatei `epher-lsp`, einmalig installiert und im PATH; siehe „Beliebiger LSP-Client“ unten.",
   "ide-emacs-prereq": "Voraussetzung: die Server-Binärdatei `epher-lsp`, einmalig installiert und im PATH; siehe „Beliebiger LSP-Client“ unten.",
   "ide-eclipse-prereq": "Voraussetzung: die Server-Binärdatei `epher-lsp`, einmalig installiert und im PATH; siehe „Beliebiger LSP-Client“ unten.",
-  "ide-vs-p1": "Installieren Sie es wie jede Visual-Studio-Erweiterung: Doppelklick auf das VSIX, oder Extensions, Manage Extensions, Install from file. Funktioniert in Visual Studio 2022. Beim ersten Einsatz lädt es den Server für Windows; danach ist alles lokal.",
-  "ide-vs-p2": "Run Epher Script im Tools-Menü wertet das ganze Skript aus; die Ergebnisse öffnen sich als Tab neben Ihrem Skript — Textantworten, Fehler und jeder 2D- oder 3D-Graph.",
-  "ide-vs-link": "epher-visualstudio.vsix herunterladen",
+  "ide-vs-p1": "Installieren Sie es aus dem Visual Studio Marketplace: Extensions, Manage Extensions, nach „epher“ suchen. Funktioniert in Visual Studio 2022. Der Server steckt in der Erweiterung; keine Downloads, alles bleibt lokal.",
+  "ide-vs-p2": "Run Epher Script im Tools-Menü wertet das ganze Skript aus; die Ergebnisse öffnen sich als Tab neben Ihrem Skript: Textantworten, Fehler und jeder 2D- oder 3D-Graph.",
+  "ide-vs-link": "epher im Visual Studio Marketplace",
   "ide-zed-p2": "Der Rust-Schritt gehört zu Dev-Extensions, nicht zu epher: Extensions im Extension-Registry von Zed werden von Zed selbst kompiliert und lassen sich mit einem Klick ohne Rust installieren. Die Veröffentlichung dort ist geplant; bis dahin ist der Dev-Extension-Weg von oben der Einstieg.",
   "ide-zed-p3": "Zeds Extension-API bietet keinen Platz für einen Ergebnisbereich; ganze Skripte laufen im Terminal (`epher run script.epher`); die Inline-Antworten neben jeder Anweisung bleiben beim Tippen live."
 };

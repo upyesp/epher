@@ -245,9 +245,9 @@ window.EPHER_I18N["es"] = {
   "ide-sublime-prereq": "Requisito previo: el binario del servidor `epher-lsp`, instalado una vez y en tu PATH, consulta «Cualquier cliente LSP» más abajo.",
   "ide-emacs-prereq": "Requisito previo: el binario del servidor `epher-lsp`, instalado una vez y en tu PATH, consulta «Cualquier cliente LSP» más abajo.",
   "ide-eclipse-prereq": "Requisito previo: el binario del servidor `epher-lsp`, instalado una vez y en tu PATH, consulta «Cualquier cliente LSP» más abajo.",
-  "ide-vs-p1": "Instálalo como cualquier extensión de Visual Studio: doble clic en el vsix, o Extensions, Manage Extensions, Install from file. Funciona en Visual Studio 2022. En el primer uso descarga el servidor para Windows; después, todo es local.",
+  "ide-vs-p1": "Instálalo desde Visual Studio Marketplace: Extensions, Manage Extensions, busca epher. Funciona en Visual Studio 2022. El servidor va dentro de la extensión; sin descargas, todo permanece local.",
   "ide-vs-p2": "Run Epher Script, en el menú Tools, evalúa el script completo; los resultados se abren en una pestaña junto a tu script: respuestas en texto, errores y cada gráfica 2D o 3D.",
-  "ide-vs-link": "Descargar epher-visualstudio.vsix",
+  "ide-vs-link": "epher en Visual Studio Marketplace",
   "ide-zed-p2": "El paso de Rust pertenece a las extensiones de desarrollo, no a epher: las extensiones publicadas en el registro de extensiones de Zed las compila el propio Zed y se instalan con un clic, sin Rust. La publicación allí está planeada; hasta entonces, la ruta de la extensión de desarrollo de arriba es la entrada.",
   "ide-zed-p3": "La API de extensiones de Zed no tiene sitio para un panel de resultados, así que ejecutar un script completo ocurre en el terminal (`epher run script.epher`); las respuestas en línea junto a cada instrucción siguen vivas mientras escribes."
 };

@@ -245,9 +245,9 @@ window.EPHER_I18N["fr"] = {
   "ide-sublime-prereq": "Prérequis : le binaire du serveur `epher-lsp`, installé une fois et présent dans votre PATH ; voir « N'importe quel client LSP » ci-dessous.",
   "ide-emacs-prereq": "Prérequis : le binaire du serveur `epher-lsp`, installé une fois et présent dans votre PATH ; voir « N'importe quel client LSP » ci-dessous.",
   "ide-eclipse-prereq": "Prérequis : le binaire du serveur `epher-lsp`, installé une fois et présent dans votre PATH ; voir « N'importe quel client LSP » ci-dessous.",
-  "ide-vs-p1": "Installez-le comme n'importe quelle extension Visual Studio : double-clic sur le vsix, ou Extensions, Manage Extensions, Install from file. Fonctionne dans Visual Studio 2022. Au premier usage, il télécharge le serveur pour Windows ; ensuite, tout est local.",
-  "ide-vs-p2": "Run Epher Script, dans le menu Tools, évalue tout le script ; les résultats s'ouvrent dans un onglet à côté de votre script — réponses en texte, erreurs et chaque graphique 2D ou 3D.",
-  "ide-vs-link": "Télécharger epher-visualstudio.vsix",
+  "ide-vs-p1": "Installez-le depuis le Visual Studio Marketplace : Extensions, Manage Extensions, cherchez epher. Fonctionne dans Visual Studio 2022. Le serveur est embarqué dans l'extension ; aucun téléchargement, tout reste local.",
+  "ide-vs-p2": "Run Epher Script, dans le menu Tools, évalue tout le script ; les résultats s'ouvrent dans un onglet à côté de votre script : réponses en texte, erreurs et chaque graphique 2D ou 3D.",
+  "ide-vs-link": "epher dans le Visual Studio Marketplace",
   "ide-zed-p2": "L'étape Rust appartient aux extensions de développement, pas à epher : les extensions publiées dans le registre d'extensions de Zed sont compilées par Zed lui-même et s'installent en un clic, sans Rust. La publication y est prévue ; d'ici là, la voie de l'extension de développement ci-dessus reste l'entrée.",
   "ide-zed-p3": "L'API d'extensions de Zed n'a pas de place pour un volet de résultats ; les scripts entiers s'exécutent donc dans le terminal (`epher run script.epher`) ; les réponses en ligne à côté de chaque instruction restent vivantes pendant la saisie."
 };

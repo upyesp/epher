@@ -245,9 +245,9 @@ window.EPHER_I18N["zh-CN"] = {
   "ide-sublime-prereq": "前提条件：`epher-lsp` 服务器二进制文件，安装一次并加入 PATH：请参阅下方的「任意 LSP 客户端」。",
   "ide-emacs-prereq": "前提条件：`epher-lsp` 服务器二进制文件，安装一次并加入 PATH：请参阅下方的「任意 LSP 客户端」。",
   "ide-eclipse-prereq": "前提条件：`epher-lsp` 服务器二进制文件，安装一次并加入 PATH：请参阅下方的「任意 LSP 客户端」。",
-  "ide-vs-p1": "像安装任何 Visual Studio 扩展一样安装：双击 vsix，或通过 Extensions、Manage Extensions、Install from file。适用于 Visual Studio 2022。首次使用会下载 Windows 服务器；之后一切都在本地。",
-  "ide-vs-p2": "Tools 菜单中的 Run Epher Script 会运行整个脚本；结果以标签页的形式打开在脚本旁边——文本答案、错误，以及每一幅 2D 或 3D 图形。",
-  "ide-vs-link": "下载 epher-visualstudio.vsix",
+  "ide-vs-p1": "从 Visual Studio Marketplace 安装：Extensions、Manage Extensions，搜索 epher。适用于 Visual Studio 2022。服务器内置于扩展中；无需下载，一切都在本地。",
+  "ide-vs-p2": "Tools 菜单中的 Run Epher Script 会运行整个脚本；结果以标签页的形式打开在脚本旁边：文本答案、错误，以及每一幅 2D 或 3D 图形。",
+  "ide-vs-link": "Visual Studio Marketplace 中的 epher",
   "ide-zed-p2": "Rust 这一步属于开发版扩展，而不属于 epher：上架 Zed 扩展注册中心的扩展由 Zed 自己编译，安装只需一次点击，无需 Rust。在那里发布已在计划中；在那之前，上面的开发版扩展方式是目前的入口。",
   "ide-zed-p3": "Zed 的扩展 API 没有结果面板的位置，因此整个脚本的运行要在终端里进行（`epher run script.epher`）；每条语句旁边的内联答案会随着输入实时更新。"
 };
