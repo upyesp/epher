@@ -4,8 +4,8 @@
     <!-- The version is stamped from the EpherVersion msbuild property
          at build time; both move together with the release train. -->
     <Identity Language="en-US" Id="Epher.VisualStudio" Version="0.5.40" Publisher="upyesp" />
-    <Author>upyesp.org</Author>
     <DisplayName>epher</DisplayName>
+    <Author>upyesp.org</Author>
     <Description xml:space="preserve">The epher calculator language in Visual Studio 2022: answers appear inline next to every statement, units convert, hover shows signatures, and F5 runs the script into a results pane with 2D and 3D graphs. The server ships inside; no cloud.</Description>
     <Tags>epher;calculator;units;language</Tags>
     <Categories>Programming Languages</Categories>
