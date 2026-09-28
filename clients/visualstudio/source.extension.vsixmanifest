@@ -6,7 +6,7 @@
     <Identity Language="en-US" Id="Epher.VisualStudio" Version="0.5.40" Publisher="upyesp" />
     <DisplayName>epher</DisplayName>
     <Description xml:space="preserve">The epher calculator language in Visual Studio, on the shared epher-lsp server bundled with the extension: syntax highlighting, a diagnostic for every broken statement, the answer rendered inline after every statement that produces one, and hover with canonical signatures. Run a script with the standard commands — F5, Ctrl+F5, the Debug menu, or the toolbar play button (or Tools / right-click > Run Epher Script) — and the transcript with every 2D and 3D graph opens in the results pane, with the text echoed to the epher Output pane.</Description>
-    <Tags>epher, calculator, units, language</Tags>
+    <Tags>epher;calculator;units;language</Tags>
     <Categories>Programming Languages</Categories>
   </Metadata>
   <Installation>
