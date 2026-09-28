@@ -140,8 +140,7 @@
         Install it from the marketplace: the Extensions view, search for
         Epher, Install. The server ships inside the extension, no download,
         no prerequisites, and it works offline on desktop and in the browser.
-        Open a `.epher` file and the answers appear. Sideloading works too:
-        the ⋯ menu, Install from VSIX.
+        Open a `.epher` file and the answers appear.
       </p>
       <p data-i18n="ide-vscode-p2">
         The epher extension also works with the browser versions of
@@ -159,36 +158,28 @@
       </p>
       <p>
         <a href="https://marketplace.visualstudio.com/items?itemName=upyesp.epher" data-i18n="ide-vscode-marketplace">Install from the VS Code Marketplace</a>
-        ·
-        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vscode.vsix" data-i18n="ide-vscode-link">Download epher-vscode.vsix</a>
       </p>
 
       <h2><img class="ide-logo ide-logo-invert" src="ide-logos/cursor.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-cursor-title">Cursor</span></h2>
       <p data-i18n="ide-cursor-p1">
         Cursor searches the Open VSX registry through its own reviewed
         marketplace, and Epher is listed: the Extensions view, search for
-        Epher, Install. Sideloading works the same as everywhere else if
-        you prefer it: the ⋯ menu, Install from VSIX. The bundled server
-        and every feature behave identically.
+        Epher, Install. The bundled server and every feature behave
+        identically.
       </p>
       <p>
-        <a href="https://open-vsx.org/extension/upyesp.epher" data-i18n="ide-cursor-openvsx">Epher on the Open VSX Registry</a>
-        ·
-        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vscode.vsix" data-i18n="ide-cursor-link">Download epher-vscode.vsix</a>
+        <a href="https://open-vsx.org/extension/upyesp/epher" data-i18n="ide-cursor-openvsx">Epher on the Open VSX Registry</a>
       </p>
 
       <h2><img class="ide-logo" src="ide-logos/vscodium.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vscodium-title">VSCodium</span></h2>
       <p data-i18n="ide-vscodium-p1">
         VSCodium is VS Code without Microsoft's marketplace: it searches
         the Open VSX registry instead, where Epher is listed. The
-        Extensions view, search for Epher, Install. Install-from-VSIX
-        works exactly the same too: ⋯ menu, Install from VSIX. Same
-        server, same features, same local-only behavior.
+        Extensions view, search for Epher, Install. Same server, same
+        features, same local-only behavior.
       </p>
       <p>
-        <a href="https://open-vsx.org/extension/upyesp.epher" data-i18n="ide-vscodium-openvsx">Epher on the Open VSX Registry</a>
-        ·
-        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vscode.vsix" data-i18n="ide-vscodium-link">Download epher-vscode.vsix</a>
+        <a href="https://open-vsx.org/extension/upyesp/epher" data-i18n="ide-vscodium-openvsx">Epher on the Open VSX Registry</a>
       </p>
 
       <h2><img class="ide-logo" src="ide-logos/jetbrains.png" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-jetbrains-title">JetBrains IDEs</span></h2>
@@ -364,29 +355,26 @@
       <p>
         <a href="https://github.com/upyesp/epher/releases/latest" data-i18n="ide-download">Everything is on the releases page.</a>
       </p>
-      <p data-i18n="ide-manual-p3">These commands put the server on your PATH; the paths assume the file is in your Downloads folder:</p>
+      <p data-i18n="ide-manual-p3">These commands download the server from the releases page and put it on your PATH:</p>
       <p data-i18n="ide-manual-posix">macOS and Linux:</p>
-      <pre class="path-cmd">gunzip ~/Downloads/epher-lsp-*.gz
-sudo mkdir -p /usr/local/bin
-sudo install -m 0755 ~/Downloads/epher-lsp-* /usr/local/bin/epher-lsp
+      <pre class="path-cmd">mkdir -p ~/Downloads &amp;&amp; cd ~/Downloads
+case "$(uname -sm)" in
+  "Darwin arm64") f=epher-lsp-macos-aarch64 ;;
+  "Linux aarch64") f=epher-lsp-linux-aarch64 ;;
+  *) f=epher-lsp-linux-x86_64 ;;
+esac
+curl -fLO "https://github.com/upyesp/epher/releases/latest/download/$f.gz"
+gunzip "$f.gz"
+sudo install -m 0755 "$f" /usr/local/bin/epher-lsp
 epher-lsp --version</pre>
       <p data-i18n="ide-manual-windows">Windows (PowerShell):</p>
-      <pre class="path-cmd">Expand-Archive $HOME\Downloads\epher-lsp-windows-x86_64.zip -DestinationPath $HOME\Downloads
+      <pre class="path-cmd">Invoke-WebRequest "https://github.com/upyesp/epher/releases/latest/download/epher-lsp-windows-x86_64.zip" -OutFile "$HOME\Downloads\epher-lsp-windows-x86_64.zip"
+Expand-Archive $HOME\Downloads\epher-lsp-windows-x86_64.zip -DestinationPath $HOME\Downloads
 New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\Programs\epher" | Out-Null
 Move-Item "$HOME\Downloads\epher-lsp.exe" "$env:LOCALAPPDATA\Programs\epher\epher-lsp.exe" -Force
 [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:LOCALAPPDATA\Programs\epher", "User")
 & "$env:LOCALAPPDATA\Programs\epher\epher-lsp.exe" --version</pre>
       <p data-i18n="ide-manual-p2">Windows applies the PATH change to new terminals only: open a fresh terminal and run `epher-lsp --version` to confirm.</p>
-
-      <h2 data-i18n="ide-how-title">One language server, used by every IDE</h2>
-      <p data-i18n="ide-how-p">
-        Every extension shares one program, epher-lsp: a small language server
-        (LSP) with the whole epher engine compiled in. The extension is a thin
-        shell: VS Code carries its server inside the extension; JetBrains and
-        Visual Studio download it on first use and cache it; the rest point at
-        an `epher-lsp` on your PATH. Everything runs on your machine; nothing is
-        sent anywhere.
-      </p>
     </article>
   </main>
 
