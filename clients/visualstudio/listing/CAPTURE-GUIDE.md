@@ -15,9 +15,9 @@ and the menus must be unmistakably Visual Studio.
    look like a fresh install), editor zoom 100%, default Consolas font.
 4. Close every tool window (Solution Explorer, Error List, Output, Team
    Explorer) and dismiss any notification badges on the title bar.
-5. Open `demo.epher` from this folder: File > Open > File. It is the
-   same script the other listings use, extended with a `sq` line for
-   the completion shot.
+5. Open `demo.epher` from this folder: File > Open > File. Every
+   statement in it is real epher syntax, verified against the 0.5.56
+   engine: the answers the shots need appear inline.
 
 Optional: `setup.ps1` sizes the Visual Studio window to exactly
 1244x900 at the top-left of the screen, to match the other listings'
@@ -39,15 +39,18 @@ Name files exactly like the VS Code listing: `editor.png`,
 2. **hover.png**: the mouse over `legs` on the triangle line, with the
    hover signature (`legs: 3 m`) visible. Keep the tooltip fully inside
    the window.
-3. **completion.png**: the `sq` line: select `sq`, press Ctrl+Space,
-   and capture with the completion list showing `sqrt` highlighted and
-   its signature in the doc pane beside the list.
+3. **completion.png**: on the empty line at the end of the file, type
+   `sq` and press Ctrl+Space, capturing with the completion list
+   showing `sqrt` highlighted and its signature in the doc pane beside
+   the list. (Delete the typed text after the shot, or undo it.)
 4. **results.png**: after running (Debug > Start Debugging, or F5, or
    Tools > Run Epher Script): the results pane with the transcript and
    the 2D sine graph, plus the editor beside it. The graph must be
    fully visible.
 5. **demo.gif** (the animation): in a copy of the file with only the
-   comment line, type the three earth lines slowly, pausing a beat
+   comment line, type the three earth statements slowly (`const radius
+   = 6371 km`, `const diameter = 2 * radius`, `circumference = pi *
+   diameter`), pausing a beat
    after each so the inline answer appears, then press F5 and let the
    results pane open with the graph. Roughly ten seconds. ScreenToGif
    (free, portable) or ShareX both work: capture the window, 10 to 15
