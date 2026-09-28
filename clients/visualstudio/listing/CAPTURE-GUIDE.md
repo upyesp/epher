@@ -26,8 +26,11 @@ gives the same result without the helper.
 
 ## The five shots (PNG) and one animation (GIF)
 
-Name files exactly like the VS Code listing: `editor.png`,
-`hover.png`, `completion.png`, `results.png`, `demo.gif`.
+The listing went with the four static images only: the animated GIF
+was dropped, which matches the marketplace's norms (most top listings
+ship no images at all, and none of the top five carries a GIF in the
+listing body). Name files exactly like the VS Code listing:
+`editor.png`, `hover.png`, `completion.png`, `results.png`.
 
 1. **editor.png** (the hero): the whole Visual Studio window with
    `demo.epher` open. Every statement must show its inline answer
@@ -47,15 +50,6 @@ Name files exactly like the VS Code listing: `editor.png`,
    Tools > Run Epher Script): the results pane with the transcript and
    the 2D sine graph, plus the editor beside it. The graph must be
    fully visible.
-5. **demo.gif** (the animation): in a copy of the file with only the
-   comment line, type the three earth statements slowly (`const radius
-   = 6371 km`, `const diameter = 2 * radius`, `circumference = pi *
-   diameter`), pausing a beat
-   after each so the inline answer appears, then press F5 and let the
-   results pane open with the graph. Roughly ten seconds. ScreenToGif
-   (free, portable) or ShareX both work: capture the window, 10 to 15
-   frames per second, export at 800 pixels wide, keep it under 4 MB.
-
 ## Delivering them
 
 The marketplace portal upload (the publish step) takes the images
