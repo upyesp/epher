@@ -113,6 +113,6 @@ jobs:
           Write-Host "using $publisher"
           & $publisher login -personalAccessToken $env:PAT -publisherName upyesp
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & $publisher publish -payload $env:VSIX -publishManifest vs-publish.json -ignoreWarnings -personalAccessToken $env:PAT
+          & $publisher publish -payload $env:VSIX -publishManifest vs-publish.json -personalAccessToken $env:PAT
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Write-Host "::notice::published upyesp.Epher.VisualStudio to marketplace.visualstudio.com"
