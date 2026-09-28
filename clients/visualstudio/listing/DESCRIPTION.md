@@ -17,9 +17,10 @@ its canonical signature, and every broken statement is flagged while you type.
 **Features**
 
 - **Inline answers** - every statement that produces a value shows it inline:
-  `radius: 6371 km` answers `= 6371 km` on the same line.
-- **Units that convert** - `6371 km + 3959 mi` just works: length, mass, time,
-  temperature, data, and more, with exact conversion factors.
+  `const radius = 6371 km` answers `= 6371 km` on the same line.
+- **Units that convert** - `6371 km + 3959 mile` just works: length, mass,
+  time, temperature, data, and more, with exact conversion factors
+  (`circumference in mile` spells any value in the unit you want).
 - **Live diagnostics** - a squiggle and an Error List entry for every broken
   statement, with the reason.
 - **Hover signatures** - canonical signatures for the built-in catalog and for
