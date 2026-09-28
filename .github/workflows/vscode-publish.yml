@@ -1,12 +1,14 @@
 name: vscode publish
 
-# ADR-0068 amendment (2026-09-18): the marketplace channel publishes with
-# the Entra ID secure automated route (`vsce publish --azure-credential`),
-# never a personal access token. The federated credential on the Azure app
-# trusts THIS repository's `stores` environment, so the job must name it:
-# the GitHub OIDC subject is
-#   repo:upyesp@25488264/epher@1332818283:environment:stores
-# (the immutable ID-bearing form; the repo was created after 2026-07-15).
+# Publishes upyesp.epher to marketplace.visualstudio.com with a personal
+# access token (`vsce publish -p`), the classic route. Amendment of the
+# ADR-0068 amendment (2026-09-28): the Entra federated route this file
+# used before never completed a publish - every run died in the gallery
+# grant (Access Denied), and the manual upload stepped in each train.
+# The PAT carries the Marketplace: Manage scope on the publisher's
+# Azure DevOps identity and lives in the `stores` environment secret
+# VS_MARKETPLACE_PAT (shared with the VS IDE channel's VsixPublisher
+# job); the job skips with a notice until it exists.
 
 on:
   workflow_call:
@@ -32,7 +34,6 @@ jobs:
     environment: stores
     permissions:
       contents: read
-      id-token: write
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -43,14 +44,13 @@ jobs:
       - name: Secrets check
         id: secrets
         env:
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          VS_MARKETPLACE_PAT: ${{ secrets.VS_MARKETPLACE_PAT }}
         run: |
-          if [ -n "$AZURE_TENANT_ID" ] && [ -n "$AZURE_CLIENT_ID" ]; then
+          if [ -n "$VS_MARKETPLACE_PAT" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
           else
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::marketplace publish skipped: set the AZURE_TENANT_ID and AZURE_CLIENT_ID secrets (see ADR-0068)."
+            echo "::notice::marketplace publish skipped: set the VS_MARKETPLACE_PAT secret (an Azure DevOps PAT with the Marketplace: Manage scope) to enable this channel."
           fi
 
       - uses: dtolnay/rust-toolchain@stable
@@ -93,63 +93,22 @@ jobs:
             --no-dependencies \
             --out epher-vscode.vsix
 
-      - name: Print the OIDC subject
-        # The subject is not secret and is the one thing a federated
-        # credential can silently miss: if the Azure login below fails,
-        # compare this line with the credential's subject identifier.
-        if: steps.secrets.outputs.skip == 'false'
-        run: |
-          set -e
-          curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=api://AzureADTokenExchange" > /tmp/oidc.json
-          python3 - <<'PY'
-          import base64, json
-          tok = json.load(open("/tmp/oidc.json"))["value"]
-          payload = tok.split(".")[1]
-          payload += "=" * (-len(payload) % 4)
-          claims = json.loads(base64.urlsafe_b64decode(payload))
-          print("issuer: ", claims.get("iss"))
-          print("subject:", claims.get("sub"))
-          PY
-          rm /tmp/oidc.json
-
-      - name: Azure login (workload identity federation)
-        if: steps.secrets.outputs.skip == 'false'
-        env:
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        run: |
-          set -e -o pipefail
-          OIDC=$(curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=api://AzureADTokenExchange" \
-            | python3 -c "import sys,json;print(json.load(sys.stdin)['value'])")
-          az login --service-principal \
-            --tenant "$AZURE_TENANT_ID" \
-            --username "$AZURE_CLIENT_ID" \
-            --federated-token "$OIDC" \
-            --allow-no-subscriptions --output none
-
       - name: Publish to the marketplace
         if: steps.secrets.outputs.skip == 'false'
+        env:
+          VS_MARKETPLACE_PAT: ${{ secrets.VS_MARKETPLACE_PAT }}
         run: |
           set -e -o pipefail
           cd clients/vscode
           if npx --yes @vscode/vsce@3.9.2 publish -i epher-vscode.vsix \
-              --azure-credential 2>&1 | tee /tmp/vsce.log; then
+              -p "$VS_MARKETPLACE_PAT" 2>&1 | tee /tmp/vsce.log; then
             if grep -qi "Access Denied" /tmp/vsce.log; then
               # vsce can exit 0 after a gallery denial; the run must not
-              # pass on one. The 0.5.43 train caught this the hard way.
-              echo "::error::vsce exited 0 but the gallery denied the publish."
+              # look green when nothing was published
+              echo "::error::the marketplace denied the publish (Access Denied)"
               exit 1
             fi
-            echo "::notice::published upyesp.epher $VERSION to the marketplace."
-          elif grep -qi "already exists" /tmp/vsce.log; then
-            # Tolerate ONLY the exact version-conflict text; broader
-            # patterns once misclassified a real Access Denied as a
-            # harmless re-run.
-            echo "::notice::upyesp.epher $VERSION is already on the marketplace (expected on a re-run)."
           else
-            echo "publish failed:"
-            cat /tmp/vsce.log
             exit 1
           fi
+          echo "::notice::published upyesp.epher $VERSION to marketplace.visualstudio.com"
