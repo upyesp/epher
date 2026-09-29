@@ -1,0 +1,90 @@
+# The zed-industries/extensions PR payload for the extension id `epher`.
+#
+# Zed's registry does not accept uploads or tokens: first publication is
+# the PR to zed-industries/extensions described in SUBMISSION.md, and
+# after that the registry update workflow (gated on
+# ZED_EXTENSIONS_TOKEN) opens update PRs on each release train. Zed's
+# own CI packages and publishes on merge to main.
+#
+# This file is a staging document, not a file to copy wholesale into
+# one location. It has two parts, plus the submodule setup that is a
+# command rather than a file.
+#
+# ============================================================
+# PART 1: the submodule (command, not TOML)
+# ============================================================
+#
+# From a fork of zed-industries/extensions, with the fork on a branch:
+#
+#     git submodule add https://github.com/upyesp/epher.git extensions/epher
+#
+# The submodule path must be extensions/<extension-id> and the name must
+# equal the id; the URL must be HTTPS, the repository public, and the
+# pinned commit reachable from a branch (no detached commits). Zed's
+# validation checks all of it.
+#
+# git writes this into .gitmodules:
+#
+#     [submodule "extensions/epher"]
+#     	path = extensions/epher
+#     	url = https://github.com/upyesp/epher.git
+#
+# ============================================================
+# PART 2: the extensions.toml fragment
+# ============================================================
+#
+# Add this table to the fork's extensions.toml in sorted position, then
+# run `pnpm sort-extensions` (CI enforces the sort of both files). The
+# `path` field is relative to the submodule root, which is how a
+# monorepo extension is a first-class case. `version` must be strict
+# semver with no leading v and must match clients/zed/extension.toml at
+# the pinned submodule commit.
+
+[epher]
+submodule = "extensions/epher"
+path = "clients/zed"
+version = "0.5.57"
+
+# ============================================================
+# PART 3: the grammar pin, BLOCKED on a repository that does not exist
+# ============================================================
+#
+# LOUD DEPENDENCY: this part cannot ship until
+# https://github.com/upyesp/tree-sitter-epher exists and has a pinned
+# revision. Zed's packaging pipeline clones the declared grammar
+# repository and compiles it with its own wasi-sdk on Zed's CI, so a
+# pin to a missing repository fails the merge-to-main packaging for the
+# whole registry.
+#
+# Zed's prerequisites make a grammar declaration effectively mandatory
+# for a language extension ("define a grammar in `extension.toml` for
+# every language you provide"), so completing this pin is part of the
+# first-publication checklist, not an optional extra.
+#
+# The pin goes into clients/zed/extension.toml in THIS repository (the
+# file at the pinned submodule commit), NOT into the registry's
+# extensions.toml. It must be added before the PR, in the same commit
+# history that the submodule pins, because Zed's builder reads
+# extension.toml from the checked-out submodule.
+#
+# When upyesp/tree-sitter-epher exists:
+#
+#   1. push the grammar, get the commit sha of the release revision;
+#   2. add to clients/zed/extension.toml:
+#
+#          [grammars.epher]
+#          repository = "https://github.com/upyesp/tree-sitter-epher"
+#          rev = "<commit sha>"
+#
+#   3. point the submodule at that new commit (git submodule update
+#      --remote extensions/epher) and bump version here to match;
+#   4. note in clients/zed/README.md that the grammar absence is a
+#      dev-extension-only limitation from now on: registry installs
+#      download a finished package, so the wasi-sdk resolution that
+#      forced the grammar out of the manifest no longer applies to
+#      them.
+#
+# Until then, coloring in the registry package would ride the language
+# server's semantic tokens alone (off by default in Zed), which does
+# not meet the registry's language-extension expectations. Do NOT open
+# the first-publication PR before the grammar pin is real.
