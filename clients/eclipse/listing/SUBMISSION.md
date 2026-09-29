@@ -7,6 +7,18 @@ updates flow through p2 and the listing itself does not change. epher
 is MIT, which satisfies the policy that MPC only returns listings with
 an open source license (`docs/research/eclipse-marketplace-publishing.md`).
 
+## Status
+
+- 2026-09-29: the p2 update site went live at
+  `https://epher.org/eclipse/updates/` (0.5.57) and a director install
+  from that URL resolved LSP4E and TM4E on its own.
+- 2026-09-29: the listing was submitted from a Foundation account and
+  is in moderation, which takes about 24 business hours. The search
+  API still reports `count="0"` for `epher`, as a listing under
+  moderation is not public. The listing URL goes here, and into the
+  site's Eclipse card, once it is up (`epher.org/ide.html` links the
+  dropins `.jar` until then).
+
 ## What exists in this repo today
 
 - **The LSP4E bundle** at
