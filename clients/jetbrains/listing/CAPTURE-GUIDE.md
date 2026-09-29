@@ -4,7 +4,16 @@ Four screenshots, all of the demo project that `setup.sh` prepares.
 There is no animated GIF: the listing uses four static shots, matching
 the pattern of .ignore (3 gallery images) and IdeaVim (text-only). The
 JetBrains Marketplace stores these in the plugin's **Media** section,
-where they are zoomable, so a generous size is good.
+where their listing docs put the minimum recommended size at
+**1200 x 760** (1280 x 800 ideal).
+
+**Size the window to clear that floor natively.** Raise the VM display
+before shooting (for example 1600 x 1000 or larger) and maximize the
+IDE, so the captured window is at least 1200 x 760 by itself. The
+captures that shipped in 2026-09 were 901 x 568, below the floor, and
+`make-media.sh` scales that set up to 1280 wide as a documented
+fallback: it satisfies the marketplace, but a native capture is
+crisper, and scaling is what the note here exists to avoid next time.
 
 **Make every shot at the same IDE window size**, and capture the IDE
 window only (no desktop, no other windows). Uniformity matters more
