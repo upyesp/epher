@@ -24,9 +24,9 @@ on:
         default: ""
       include_repos:
         description: >-
-          Also serve the apt/ and rpm/ trees from this repo's gh-pages
-          branch (ADR-0061). Live site only; the preview repo has no
-          repositories behind it.
+          Also serve the apt/, rpm/, and eclipse/ trees from this repo's
+          gh-pages branch (ADR-0061 and the Eclipse p2 update site). Live
+          site only; the preview repo has no repositories behind it.
         type: boolean
         default: false
 
@@ -74,7 +74,7 @@ jobs:
         if: inputs.include_repos
         run: |
           git fetch --depth=1 origin gh-pages
-          git archive FETCH_HEAD apt rpm | tar -x -C _site
+          git archive FETCH_HEAD apt rpm eclipse | tar -x -C _site
 
       - uses: actions/upload-artifact@v4
         with:

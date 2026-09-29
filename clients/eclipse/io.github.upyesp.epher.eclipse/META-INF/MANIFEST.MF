@@ -3,6 +3,10 @@ Bundle-ManifestVersion: 2
 Bundle-Name: epher language server
 Bundle-SymbolicName: io.github.upyesp.epher.eclipse;singleton:=true
 Bundle-Version: 0.0.0
-Bundle-Vendor: epher
+Bundle-Vendor: upyesp
 Bundle-RequiredExecutionEnvironment: JavaSE-21
-Require-Bundle: org.eclipse.lsp4e
+Require-Bundle: org.eclipse.core.contenttype,
+ org.eclipse.core.runtime,
+ org.eclipse.lsp4e,
+ org.eclipse.tm4e.languageconfiguration,
+ org.eclipse.tm4e.registry

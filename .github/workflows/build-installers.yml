@@ -699,7 +699,10 @@ jobs:
     # org.eclipse.equinox.common from Maven Central (IAdaptable lives
     # there). The jar is a dropins bundle, users copy it into
     # <eclipse>/dropins/, the classic analog of VS Code's "Install from
-    # VSIX"; no p2 update site, no marketplace (ADR-0068).
+    # VSIX". The p2 update site and the Marketplace listing are the
+    # other half of the channel now (ADR-0068 amendment 2026-09-29,
+    # .github/workflows/eclipse-publish.yml); this jar stays for users
+    # and scripts that already install it by hand.
     name: eclipse extension
     runs-on: ubuntu-latest
     steps:

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The p2 update site: `mvn verify` writes target/repository/, the
+     tree that is published at https://epher.org/eclipse/updates/. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>io.github.upyesp.epher</groupId>
+    <artifactId>io.github.upyesp.epher.eclipse.parent</artifactId>
+    <version>0.0.0</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>io.github.upyesp.epher.eclipse.updatesite</artifactId>
+  <version>0.0.0</version>
+  <packaging>eclipse-repository</packaging>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-p2-repository-plugin</artifactId>
+        <configuration>
+          <!-- metadata only, no per-artifact .pack.gz; the site serves
+               plain jars over https, which is what the Marketplace
+               pointer and the p2 director consume. -->
+          <includeAllDependencies>false</includeAllDependencies>
+          <compress>true</compress>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

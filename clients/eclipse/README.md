@@ -30,8 +30,14 @@ chmod +x ~/.local/bin/epher-lsp
 # windows (powershell): epher-lsp-windows-x86_64.zip -> epher-lsp.exe
 ```
 
-**2. The plugin.** Drop `epher-eclipse.jar` into the `dropins`
-folder of your Eclipse install and (re)start Eclipse:
+**2. The plugin.** From the Eclipse Marketplace (Help → Eclipse
+Marketplace, search for epher) or from the update site directly
+(Help → Install New Software → `https://epher.org/eclipse/updates/`).
+Eclipse resolves LSP4E and TM4E with it, so there is nothing to
+install first.
+
+The manual route works too: drop `epher-eclipse.jar` into the
+`dropins` folder of your Eclipse install and (re)start Eclipse:
 
 ```sh
 mv ~/Downloads/epher-eclipse.jar /opt/eclipse/dropins/
