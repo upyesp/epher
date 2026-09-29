@@ -48,10 +48,12 @@ gh secret set SUBLIME_PACKAGE_TOKEN --env stores -R upyesp/epher
    ```
 
    The script regenerates `epher.tmLanguage` from the shared grammar
-   and copies exactly the package files: `epher.py`,
-   `LSP-epher.sublime-settings`, `LSP-epher.sublime-commands`, the
-   three `Default (<platform>).sublime-keymap` files,
+   and copies exactly the package files: `plugin.py`,
+   `LSP-epher.sublime-settings`, `LSP-epher.sublime-commands`,
    `epher.tmLanguage`, `README.md`, `LICENSE`, and `.python-version`.
+   No keymap ships: the LSP team's review of 2026-09-29 asked for it
+   (a package should not bind keys, and the earlier binding shadowed
+   Copy), so the suggested binding is documented in the README.
    The last one is load-bearing: without it the plugin loads on Sublime
    Text's legacy python 3.3 host and the import fails (see
    `listing/NOTES.md`).

@@ -42,13 +42,17 @@ side panel, no print statements: the editor *is* the calculator.
 - **Highlighting**: the shared TextMate grammar colors the epher
   syntax before the server even attaches: comments, strings, numbers,
   the keywords, and the conservative unit rule. Semantic-token
-  coloring from the server needs LSP 1.16 or newer.
-- **Running scripts**: ctrl+c ctrl+c on Windows and Linux, super+c
-  super+c on macOS, or "epher: run this script" in the command
-  palette. The results view beside the script lists one row per
-  statement, error rows in red; every graph the run produced is
-  written as an SVG file under Sublime's cache folder and opened with
-  the system viewer.
+  coloring from the server is off by default and needs the two steps
+  under Settings; custom color schemes need one extra rule.
+- **Running scripts**: **LSP-epher: Run Script** in the command
+  palette (there is no keybinding out of the box: see the suggested
+  one under Settings). The results view beside the script lists one
+  row per statement, error rows in red; every graph the run produced
+  is written as an SVG file under Sublime's cache folder and opened
+  with the system viewer.
+- **Unsaved tabs**: a buffer that has never been saved works like a
+  file, diagnostics, answers, completion and the run command
+  included, as long as its syntax is epher.
 
 ![The results view after a run, with the per-statement transcript and the graph path](https://github.com/upyesp/epher/raw/HEAD/clients/sublime/images/results.png)
 
@@ -58,8 +62,11 @@ From Package Control, once the package is listed:
 
 1. Open the command palette and run **Package Control: Install
    Package**.
-2. Search for **LSP-epher** and install it. The LSP package dependency
-   resolves automatically.
+2. Search for **LSP** and install it. This is a real manual step:
+   Package Control has no way for one package to install another
+   (dependencies there are Python libraries, not packages), so LSP is
+   never pulled in for you.
+3. Search for **LSP-epher** and install it.
 
 From this repository, today: copy or symlink this directory into your
 `Packages` folder under the name `LSP-epher` (a direct child of
@@ -105,12 +112,56 @@ If the answers still do not appear, run **LSP: Toggle Inlay Hints**
 once from the command palette in that window. The per-window flag is
 what drives the phantom set in current LSP builds.
 
+### Semantic highlighting
+
+Semantic-token coloring is also off by default. In the same file, add:
+
+```json
+{ "semantic_highlighting": true }
+```
+
+LSP adds the rule that semantic tokens need to the built-in color
+schemes itself. With a custom color scheme, add it to that scheme
+(**UI: Customize Color Scheme**) or the tokens render with the
+background they already have:
+
+```json
+{
+  "rules": [
+    { "scope": "meta.semantic-token", "background": "#00000101" }
+  ]
+}
+```
+
+Two known LSP limitations apply: with `highlight_line` enabled there
+are visible artifacts on highlighted lines, and bold or italic font
+styles do not apply to semantic regions.
+
+### Suggested keybinding
+
+This package deliberately ships no keybinding, so nothing of yours
+gets shadowed (a run binding on ctrl+c ctrl+c, as earlier drafts of
+this client had, swallows Copy). `ctrl+alt+r` is unbound in Sublime
+Text 4's default keymaps on Linux, macOS and Windows; add to
+`Packages/User/Default (<your platform>).sublime-keymap`:
+
+```json
+[
+  {
+    "keys": ["ctrl+alt+r"],
+    "command": "lsp_epher_run",
+    "context": [{ "key": "selector", "operand": "source.epher" }]
+  }
+]
+```
+
 ## Requirements
 
 - Sublime Text 4 (build 4132 or newer, the floor the LSP package
   sets).
-- The LSP package from Package Control; 1.16 or newer for
-  semantic-token coloring.
+- The LSP package from Package Control, installed separately (see
+  Install), version 2.11 or newer: the client uses LSP's `LspPlugin`
+  API, introduced in that release.
 - The `epher-lsp` binary for your platform, on PATH or named in
   `LSP-epher.sublime-settings`.
 
@@ -132,14 +183,17 @@ listing copy; the sync copies just that part to the repository's
 `README.md`. The package root is assembled from this folder and must
 stay flat:
 
-- `epher.py`, `LSP-epher.sublime-settings`,
+- `plugin.py`, `LSP-epher.sublime-settings`,
   `LSP-epher.sublime-commands`
-- `Default (Linux|OSX|Windows).sublime-keymap`
 - `epher.tmLanguage` (regenerated from `clients/shared` by
   `sync-assets.py`)
 - `README.md` (the listing copy above) and `LICENSE`
 - `.python-version` containing `3.8`, so the plugin loads on the
   modern host like the other LSP-* packages
+
+No keymap ships, on the LSP team's review: a package should not bind
+keys, and the earlier ctrl+c ctrl+c binding shadowed Copy. The
+suggested binding lives in the README instead.
 
 The Package Control entry lives in `sublimelsp/repository`, with
 `"tags": true`, so each `v<version>` train tag becomes a release

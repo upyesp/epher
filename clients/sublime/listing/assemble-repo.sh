@@ -22,12 +22,9 @@
 # research doc prescribes, verified against clients/sublime and the
 # capture notes in clients/sublime/listing/NOTES.md:
 #
-#   epher.py
+#   plugin.py
 #   LSP-epher.sublime-settings
 #   LSP-epher.sublime-commands
-#   Default (Linux).sublime-keymap
-#   Default (OSX).sublime-keymap
-#   Default (Windows).sublime-keymap
 #   epher.tmLanguage
 #   README.md          (the listing copy from clients/sublime/README.md)
 #   LICENSE
@@ -80,12 +77,9 @@ mkdir -p "$TARGET"
 # assembled repository can never carry a stale copy.
 python3 "$SRC/sync-assets.py"
 
-cp "$SRC/epher.py" "$TARGET/epher.py"
+cp "$SRC/plugin.py" "$TARGET/plugin.py"
 cp "$SRC/LSP-epher.sublime-settings" "$TARGET/LSP-epher.sublime-settings"
 cp "$SRC/LSP-epher.sublime-commands" "$TARGET/LSP-epher.sublime-commands"
-cp "$SRC/Default (Linux).sublime-keymap" "$TARGET/Default (Linux).sublime-keymap"
-cp "$SRC/Default (OSX).sublime-keymap" "$TARGET/Default (OSX).sublime-keymap"
-cp "$SRC/Default (Windows).sublime-keymap" "$TARGET/Default (Windows).sublime-keymap"
 cp "$SRC/epher.tmLanguage" "$TARGET/epher.tmLanguage"
 cp "$SRC/.python-version" "$TARGET/.python-version"
 cp "$ROOT/LICENSE" "$TARGET/LICENSE"
@@ -105,13 +99,15 @@ awk '
   }
 ' "$SRC/README.md" > "$TARGET/README.md"
 
+# A stray __pycache__ (say, from a local syntax check) must never ship:
+# Package Control's reviewer flags compiled files, and the archive is
+# built with git-archive from this tree.
+find "$TARGET" -type d -name __pycache__ -prune -exec rm -rf {} +
+
 EXPECTED=(
-  epher.py
+  plugin.py
   LSP-epher.sublime-settings
   LSP-epher.sublime-commands
-  "Default (Linux).sublime-keymap"
-  "Default (OSX).sublime-keymap"
-  "Default (Windows).sublime-keymap"
   epher.tmLanguage
   README.md
   LICENSE

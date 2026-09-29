@@ -58,9 +58,9 @@ tag's zipball and Package Control's libraries were fetched by hand:
 
 - Command palette entry: **"epher: run this script"**
   (`LSP-epher.sublime-commands`), backed by the
-  `lsp_epher_run` text command in epher.py (ADR-0069 `epher/run`).
+  `lsp_epher_run` text command in plugin.py (ADR-0069 `epher/run`).
 - Key chord ctrl+c ctrl+c (Linux/Windows) from
-  `Default (Linux).sublime-keymap`.
+  the keymap the review then removed (see the review section).
 - The results view ("epher run results", scratch, plain text) lists
   one row per statement (`L2 = 6371 km` ...) plus a Graphs section;
   the sin(x) graph was written to
@@ -123,3 +123,40 @@ tag's zipball and Package Control's libraries were fetched by hand:
   retyped live (radius -> diameter -> circumference -> in mile ->
   def disc -> disc(1, -5, 6)) with a frame after each, last frame
   with all inline answers.
+
+## Review round (2026-09-29): what the LSP team's review changed
+
+rchl, the LSP for Sublime Text maintainer, reviewed the channel PR
+and asked for six things; all are in, and the package repo carries
+them as `v0.5.58`:
+
+- **`LspPlugin`, not `AbstractPlugin`**: `plugin.py` (renamed from
+  `epher.py`, matching the peer packages) subclasses `LSP.plugin.
+  LspPlugin` and registers with `EpherPlugin.register()/.unregister()`.
+  The session name and the settings file now both come from the
+  package name, so the explicit `name()` and `session_name = "epher"`
+  are gone. The command overrides `is_enabled()` so the palette entry
+  stays usable from the results view, which has no session.
+- **No keymap**: the three `Default (<platform>).sublime-keymap` files
+  are deleted. The bindings were ctrl+c ctrl+c (super+c super+c on
+  macOS), which shadowed Copy. The README suggests `ctrl+alt+r`
+  instead, verified unbound in ST 4215's default keymaps for Linux,
+  macOS and Windows.
+- **Settings shape**: the `"comment"` key became `//` comments,
+  `priority_selector` (only meaningful with several servers on one
+  view) is gone, and `schemes` gained `buffer`: epher-lsp keys its
+  documents by URI and never reads a file path, so unsaved tabs are
+  fully served.
+- **Command naming**: the palette entry is `LSP-epher: Run Script`,
+  naming the package like every other LSP helper package.
+- **README truth pass**: the LSP package is documented as a manual
+  install (Package Control cannot install one package from another;
+  its dependencies are Python libraries), and semantic highlighting is
+  documented with its real requirements: `"semantic_highlighting":
+  true`, the color scheme rule for custom schemes, and the known LSP
+  limitations.
+- **Version**: `v0.5.57` was the pre-review revision and stays
+  untouched; the reviewed revision is tagged `v0.5.58`, because
+  Package Control reads tags and a listed release must be reviewed
+  code. The next epher train re-syncs the package through
+  `.github/workflows/sublime-publish.yml` as usual.

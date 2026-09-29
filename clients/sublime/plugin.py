@@ -1,12 +1,18 @@
-# The epher run command for Sublime Text (ADR-0069: the text-first
-# editors run the same `epher/run` request the VS Code results pane
-# uses). Everything else -- starting the server, hover, completion,
-# diagnostics -- stays the LSP package's job; this module only adds
-# the command, the results view, and the graph hand-off.
+# The epher integration for Sublime Text: the LspPlugin registration,
+# the run command, the results view, and the graph hand-off.
 #
-# The syntax and the client configuration come from the other files
-# in this folder (epher.tmLanguage, LSP-epher.sublime-settings); see
-# README.md for the install steps.
+# Everything else -- starting the server, hover, completion,
+# diagnostics, inlay hints -- is the LSP package's job, driven by
+# LSP-epher.sublime-settings next to this file. The run command sends
+# the same `epher/run` request the VS Code results pane uses (ADR-0069).
+#
+# The session name comes from the package name (`LSP-epher`), which is
+# also where LSP looks for the settings file, so neither is configured
+# here (LspPlugin API, LSP 2.11+).
+#
+# The syntax comes from epher.tmLanguage in this folder; see README.md
+# for the install steps, including the LSP package itself, which
+# Package Control does not install automatically.
 
 import os
 import subprocess
@@ -14,26 +20,26 @@ import time
 
 import sublime
 
-from LSP.plugin import AbstractPlugin
-from LSP.plugin import register_plugin
-from LSP.plugin import unregister_plugin
-from LSP.plugin.core.protocol import Request
-from LSP.plugin.core.registry import LspTextCommand
-from LSP.plugin.core.views import uri_from_view
+from LSP.plugin import LspPlugin
+from LSP.plugin import LspTextCommand
+from LSP.plugin import Request
+from LSP.plugin import uri_from_view
 
 
-class EpherPlugin(AbstractPlugin):
-    @classmethod
-    def name(cls) -> str:
-        return "epher"
+class EpherPlugin(LspPlugin):
+    """The epher language server (epher-lsp, found on PATH).
+
+    Nothing to override: the name, the settings file, and the server
+    command all come from the package name and LSP-epher.sublime-settings.
+    """
 
 
 def plugin_loaded() -> None:
-    register_plugin(EpherPlugin)
+    EpherPlugin.register()
 
 
 def plugin_unloaded() -> None:
-    unregister_plugin(EpherPlugin)
+    EpherPlugin.unregister()
 
 
 # The view of the last run, so running again from the results view
@@ -55,7 +61,7 @@ def _open_path(path: str) -> None:
         else:
             subprocess.Popen(["xdg-open", path])
     except OSError as err:
-        print("epher: could not open {}: {}".format(path, err))
+        print("LSP-epher: could not open {}: {}".format(path, err))
 
 
 class LspEpherRunCommand(LspTextCommand):
@@ -66,7 +72,14 @@ class LspEpherRunCommand(LspTextCommand):
     editor's cache folder and opened with the system viewer.
     """
 
-    session_name = "epher"
+    def is_enabled(self, event=None, point=None) -> bool:
+        # The command is also useful from the results view, which has
+        # no session of its own: there, a valid last script view takes
+        # its place. The base class check would grey the palette entry
+        # out in exactly that case.
+        if self.session_by_name():
+            return True
+        return _last_script_view is not None and _last_script_view.is_valid()
 
     def run(self, edit) -> None:
         global _last_script_view
@@ -77,12 +90,12 @@ class LspEpherRunCommand(LspTextCommand):
             if _last_script_view is not None and _last_script_view.is_valid():
                 view = _last_script_view
             else:
-                sublime.status_message("epher: the current view is not an epher script")
+                sublime.status_message("LSP-epher: the current view is not an epher script")
                 return
         _last_script_view = view
-        session = self.session_by_name(self.session_name)
+        session = self.session_by_name()
         if session is None:
-            sublime.status_message("epher: the language server is not running")
+            sublime.status_message("LSP-epher: the language server is not running")
             return
         params = {"textDocument": {"uri": uri_from_view(view)}}
         # Callbacks run on the worker thread; the view work below
@@ -95,7 +108,7 @@ class LspEpherRunCommand(LspTextCommand):
 
     def _on_error(self, error) -> None:
         message = error.get("message", "unknown error") if isinstance(error, dict) else str(error)
-        sublime.error_message("epher run failed: {}".format(message))
+        sublime.error_message("LSP-epher run failed: {}".format(message))
 
     def _on_result(self, result) -> None:
         result = result or {}
@@ -125,7 +138,7 @@ class LspEpherRunCommand(LspTextCommand):
                     with open(path, "w", encoding="utf-8") as file:
                         file.write(svg)
                 except OSError as err:
-                    print("epher: could not write {}: {}".format(path, err))
+                    print("LSP-epher: could not write {}: {}".format(path, err))
                     continue
                 rows.append("  " + path)
                 graphs[len(rows)] = path
