@@ -9,7 +9,7 @@
     }
   ],
   "metadata": {
-    "version": "0.5.40",
+    "version": "0.5.57",
     "license": "MIT",
     "description": "epher grammar for tree-sitter: the calculator language's statements, expressions, units, and comments",
     "authors": [
