@@ -5,13 +5,13 @@ pattern as clients/visualstudio/listing/.
 
 - `demo.epher` — the script the captures show (real epher syntax,
   verified against the 0.5.57 CLI).
-- `CAPTURE-GUIDE.md` — how to take the four screenshots and the
-  animated GIF on a machine with a desktop (the marketplace listing
-  needs authentic shots of a commercial JetBrains IDE, which no CI or
-  headless box can run: the IDE requires an account login).
-- `setup.ps1` — prepares a Windows machine for the captures: installs
-  IntelliJ IDEA Ultimate 2024.2.4 (free 30-day trial, no purchase),
-  installs the plugin from disk, and creates the demo project.
+- `CAPTURE-GUIDE.md` — how to take the four screenshots on a desktop
+  machine (the marketplace listing needs authentic shots of a
+  commercial JetBrains IDE, which no CI or headless box can run: the
+  IDE requires an account login).
+- `setup.sh` — prepares a Linux desktop (the Mint VM) for the
+  captures: installs IntelliJ IDEA Ultimate 2024.2.4 (free 30-day
+  trial), installs the plugin, and creates the demo project.
 
 ## Where each piece of the listing lives
 
@@ -21,7 +21,7 @@ pattern as clients/visualstudio/listing/.
 | Description | plugin.xml `<description>` (the body below the `---`) | every build |
 | Change notes | plugin.xml `<change-notes>` | every build |
 | Icon | `META-INF/pluginIcon.svg` (+ `_dark`) | every build |
-| Screenshots + GIF | the **Media** section of the plugin's admin page | uploaded once, manually |
+| Screenshots | the **Media** section of the plugin's admin page | uploaded once, manually |
 | Tags | chosen during the first upload | editable in the admin panel |
 | Compatible products | computed from the zip; fix in General Information (drop IDEA Community and Android Studio) | admin panel |
 | License | EULA chosen at first upload (GPL-3.0-with-classpath-exception style per repo LICENSE) | admin panel |
