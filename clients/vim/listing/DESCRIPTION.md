@@ -62,8 +62,8 @@ syntax automatically, and :EpherRun runs the script once the language
 server is attached.
 
 What it looks like: the repository has terminal captures of the inline
-answers, hover, completion, and the run results in Neovim at
-https://github.com/upyesp/epher/tree/main/clients/nvim/images
+answers, hover, completion, and the run results at
+https://github.com/upyesp/epher/tree/main/clients/vim/images
 
 epher.org has the standalone calculator and a library of ready-made
 scripts: https://epher.org

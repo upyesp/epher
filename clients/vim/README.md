@@ -68,6 +68,18 @@ on a graph row reopens its SVG (written under
 re-runs. Without `vim-lsp` the command says exactly what is missing;
 the syntax layer above works either way.
 
+## What it looks like
+
+![A script computing Earth's circumference, the discriminant of a quadratic, and a speed converted from miles to kilometers per hour, each line's answer shown inline](https://github.com/upyesp/epher/raw/HEAD/clients/vim/images/editor.png)
+
+![The demo script typed live, each line's answer appearing as it completes](https://github.com/upyesp/epher/raw/HEAD/clients/vim/images/demo.gif)
+
+![Hovering a defined name shows its signature and current value](https://github.com/upyesp/epher/raw/HEAD/clients/vim/images/hover.png)
+
+![Completion offers a catalog name with its documentation](https://github.com/upyesp/epher/raw/HEAD/clients/vim/images/completion.png)
+
+![The results pane after :EpherRun, with the transcript and the graph row](https://github.com/upyesp/epher/raw/HEAD/clients/vim/images/results.png)
+
 ## The conservative rule
 
 The vim syntax file is a static approximation: the exact unit
