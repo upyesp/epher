@@ -88,3 +88,16 @@ sleep, then `import -window <id> frameNN.png`.
   tmLanguage). LSP installs headless as an LSP.sublime-package from
   the sublimelsp/LSP GitHub releases into the ST Installed Packages
   dir. Results surface: epher.py's run command writes a results view.
+- **Eclipse**: Committers 2026-09 tarball (buildId
+  4.41.0.20260903-0719) at /tmp/eclipse-captures/eclipse; LSP4E 0.19
+  and TM4E 0.18 already ship in the package, so the dropins jar
+  (compiled with Temurin 21 against plugins/*, Bundle-Version 0.5.57)
+  is all that is added. Runs on :97 with
+  PATH=<repo>/target/release so LSP4E finds epher-lsp. Dark trim on
+  Xvfb additionally needs a dark XSettings (`xsettingsd` with
+  `Net/ThemeName "Adwaita-dark"` + `Gtk/ApplicationPreferDarkTheme
+  "true"`; GTK_THEME alone does not reach SWT). `pkill -x eclipse`
+  only kills the launcher - the IDE is a `java` child holding the
+  workspace lock. No run surface exists; results.png is the Content
+  Types page (epher script, *.epher) plus the Language Servers view
+  with the running server. Full detail: clients/eclipse/listing/NOTES.md.
