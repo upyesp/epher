@@ -1,11 +1,10 @@
 # Eclipse Marketplace listing body for epher
 
 The listing copy for the Solutions Listing on marketplace.eclipse.org.
-The Install button the body describes requires the p2 update site that
-`SUBMISSION.md` next to this file documents as the one open build task;
-the copy can be pasted into the listing form before the site exists,
-but the listing is not complete, or installable from MPC, until the
-site is live.
+The p2 update site the Install button needs is live now, built and
+published by `.github/workflows/eclipse-publish.yml`, and
+the same `SUBMISSION.md` next to this file has the form values and the
+one-time human steps. `https://epher.org/eclipse/updates/` serves it.
 
 Copy source: `clients/vscode/README.md`, adapted for Eclipse (the p2
 and PATH install story from `clients/eclipse/README.md`; no VS Code
