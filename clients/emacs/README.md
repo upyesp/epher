@@ -1,13 +1,72 @@
 # epher for Emacs
 
-The LSP client glue for the shared `epher-lsp` server (ADR-0066
-ships Emacs as a ready-made config, not a package.el plugin).
-Requires Emacs 29 or newer, that is where eglot ships built in.
-With lsp-mode installed instead, the client is registered there too.
+**epher** is a calculator language: you write ordinary math, with units
+that convert, and every statement's answer appears inline, right next
+to the line that produced it. This is the client glue for the shared
+`epher-lsp` server: `epher-mode` for `.epher` files and eglot for the
+language features. Requires Emacs 29 or newer, where eglot ships built
+in. With lsp-mode installed instead, the client is registered there
+too.
+
+Download the [epher calculator](https://epher.org), and a large
+selection of [ready-made scripts](https://epher.org/scripts.html) from
+epher.org.
+
+![A script computing Earth's circumference, the discriminant of a quadratic, and a speed converted from miles to kilometers per hour, each line's answer shown inline](https://github.com/upyesp/epher/raw/HEAD/clients/emacs/images/editor.png)
+
+![The demo script typed live, each line's answer appearing as it completes](https://github.com/upyesp/epher/raw/HEAD/clients/emacs/images/demo.gif)
+
+Type a formula and the answer is already there. No runnable repl in a
+side panel, no print statements: the editor *is* the calculator.
+
+## What you get
+
+- **Answers inline**: each statement's result renders next to its
+  line: `x = 40 + 2` shows `= 42`, as inlay hints.
+- **Units that convert**: `6371 km`, `55 mile/hr`, `30 deg` are
+  quantities, not comments. `speed in km/hr` converts; the answer
+  carries the right unit.
+- **Live diagnostics**: syntax errors point at the exact token, and
+  evaluation errors carry the same message the epher calculator shows,
+  in the standard eglot flymake integration.
+- **Hover signatures**: hover any name for its canonical signature in
+  eldoc; your own functions show their definitions, catalog functions
+  show their docs.
+
+![Hovering a defined name shows its signature and current value](https://github.com/upyesp/epher/raw/HEAD/clients/emacs/images/hover.png)
+
+- **Completion**: the whole catalog (math, astronomy, statistics),
+  your own definitions, keywords, and snippets for the common
+  statement shapes.
+
+![Completion offers a catalog name with its documentation](https://github.com/upyesp/epher/raw/HEAD/clients/emacs/images/completion.png)
+
+- **Definition jumps**: `xref` jumps for names defined in the file.
+- **Run the script**: `C-c C-c` sends the same `epher/run` request the
+  VS Code results pane uses. The per-statement transcript lands in the
+  `*epher run*` buffer, and every graph the script produced is saved
+  as an SVG file and opened with the system viewer. `g` in the results
+  buffer re-runs the script, `q` closes it.
+
+![The epher run buffer with the per-statement transcript and the graph paths](https://github.com/upyesp/epher/raw/HEAD/clients/emacs/images/results.png)
+
+- **Highlighting**: `epher-mode` is the conservative view of the
+  grammar: comments, strings, numbers, the twenty keywords, and
+  number-adjacent units. The language server's semantic tokens are the
+  exact rule; eglot does not consume them today, so the font-lock
+  layer is what you see.
 
 ## Install
 
-Put `epher.el` on your `load-path` and load it. With use-package:
+From MELPA, once the package is published: add MELPA to
+`package-archives` if it is not there yet, then
+
+```
+M-x package-install RET epher RET
+```
+
+From this repository, today: put `epher.el` on your `load-path` and
+load it. With use-package:
 
 ```elisp
 (use-package epher
@@ -21,23 +80,23 @@ Or plain:
 (require 'epher)
 ```
 
-Opening a `.epher` file turns on `epher-mode`. When the server
-binary is on your `exec-path`, eglot starts by itself; point it
-elsewhere by customizing the command:
+Opening a `.epher` file turns on `epher-mode`. When the server binary
+is on your `exec-path`, eglot starts by itself; point it elsewhere by
+customizing the command:
 
 ```elisp
 (setq epher-server-program '("/path/to/epher-lsp"))
 ```
 
-Set `epher-lsp-autostart` to nil if you start the server yourself
-or run it through lsp-mode (the client is registered there as
+Set `epher-lsp-autostart` to nil if you start the server yourself or
+run it through lsp-mode (the client is registered there as
 `epher-lsp`, so `lsp` in an `epher-mode` buffer just works).
 
-## Getting the binary
+## Getting the server binary
 
-Download the asset for your platform from the releases page
-(`https://github.com/upyesp/epher/releases`), uncompress it, and
-mark it executable:
+Download the asset for your platform from the
+[releases page](https://github.com/upyesp/epher/releases/latest),
+uncompress it, and mark it executable:
 
 ```sh
 # linux x86_64 (arm64 and macos-aarch64 analogous)
@@ -51,26 +110,17 @@ chmod +x ~/.local/bin/epher-lsp
 First download needs the network once; the server runs entirely
 locally after that.
 
-## What you get
+## Requirements
 
-- live diagnostics from spans (parse and evaluation errors), in the
-  standard eglot flymake integration;
-- inline answers on the statement that produced them (inlay hints);
-- hover signatures for catalog names, current values for your own
-  constants (eldoc);
-- completion with the shared snippets;
-- `xref` definition jumps for names defined in the file.
+- Emacs 29.1 or newer, for the built-in eglot. lsp-mode is optional
+  and registered as an alternative.
+- The `epher-lsp` binary for your platform, on `exec-path` or named
+  in `epher-server-program`.
 
-Baseline highlighting in `epher-mode` is the conservative view of
-the grammar, comments, strings, numbers, the twenty keywords, and
-number-adjacent units. The language server's semantic tokens are
-the exact rule; eglot does not consume them today, so the font-lock
-layer is what you see.
+## Data and telemetry
 
-## Verify by hand
+None. Everything evaluates on your machine.
 
-```elisp
-M-x eglot RET          ;; in an epher-mode buffer
-M-x eglot-events-buffer RET
-M-x eglot-reconnect RET
-```
+## License
+
+[MIT](https://github.com/upyesp/epher/blob/main/LICENSE)

@@ -1,5 +1,9 @@
 ;;; epher.el --- The epher calculator language in Emacs -*- lexical-binding: t; -*-
 
+;; Author: upyesp
+;; SPDX-License-Identifier: MIT
+;; This file is distributed under the MIT License. The full text is in
+;; the LICENSE file at the root of this repository.
 ;; Version: 0.5.57
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: languages
@@ -7,17 +11,24 @@
 
 ;;; Commentary:
 
-;; Ready-made glue for the shared epher language server (ADR-0066
-;; ships Emacs as a ready-made config, not a package.el plugin).
+;; epher is a calculator language: you write ordinary math, with units
+;; that convert, and every statement's answer appears inline, right next
+;; to the line that produced it.
 ;;
-;; - `epher-mode': baseline font-lock highlighting (the conservative
-;;   view of the grammar -- comments, strings, numbers, the twenty
-;;   keywords, and number-adjacent units), `#' comments, and filetype
-;;   detection for .epher files.
-;; - LSP through eglot (built into Emacs 29): diagnostics from spans,
-;;   inline answers as inlay hints, hover signatures, completion.
-;;   lsp-mode is registered as well; set `epher-lsp-autostart' to nil
-;;   if you would rather start the server yourself.
+;; `epher-mode' gives you:
+;;
+;; - baseline font-lock highlighting for .epher files: comments,
+;;   strings, numbers, the twenty keywords, and number-adjacent units.
+;;   The language server's semantic tokens are the exact rule; eglot
+;;   does not consume them today.
+;; - LSP through eglot (built into Emacs 29): live diagnostics, inline
+;;   answers as inlay hints, hover signatures, completion with the
+;;   shared snippets, and definition jumps via xref. lsp-mode is
+;;   registered as well.
+;; - `C-c C-c' runs the whole script: the per-statement transcript
+;;   lands in the `*epher run*' buffer, and every graph the script
+;;   produced is saved as an SVG file and opened with the system
+;;   viewer. `g' in the results buffer re-runs, `q' closes it.
 ;;
 ;; The server binary (`epher-lsp') is a separate download from the
 ;; releases page; the README has the lines per platform.
