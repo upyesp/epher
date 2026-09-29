@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The aggregator for the Eclipse channel: the LSP4E bundle, the feature
+  that wraps it, and the p2 update site the Eclipse Marketplace pointer
+  installs from (docs/research/eclipse-marketplace-publishing.md,
+  listing/SUBMISSION.md).
+
+  Versions are placeholders: 0.0.0 in every pom, the MANIFEST, and
+  feature.xml, exactly like the dropins jar's Bundle-Version. The build
+  stamps the release train's version with
+  `mvn -f clients/eclipse/pom.xml tycho-versions:set-version
+   -DnewVersion=<version>` before `verify`, so the repository metadata
+  carries the same 0.5.x as every other client.
+
+  The target platform is the pinned Eclipse release repository, which
+  also carries LSP4E and TM4E (checked: 18 LSP4E and 28 TM4E entries in
+  its artifacts metadata). One pinned repository keeps the compile
+  classpath stable; the bundle only touches APIs that exist there, and
+  its Require-Bundle entries are what p2 resolves at install time.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.github.upyesp.epher</groupId>
+  <artifactId>io.github.upyesp.epher.eclipse.parent</artifactId>
+  <version>0.0.0</version>
+  <packaging>pom</packaging>
+  <name>epher for the Eclipse IDE</name>
+
+  <modules>
+    <module>io.github.upyesp.epher.eclipse</module>
+    <module>io.github.upyesp.epher.eclipse.feature</module>
+    <module>io.github.upyesp.epher.eclipse.updatesite</module>
+  </modules>
+
+  <properties>
+    <tycho.version>4.0.13</tycho.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>eclipse-release</id>
+      <layout>p2</layout>
+      <url>https://download.eclipse.org/releases/2024-09</url>
+    </repository>
+  </repositories>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-maven-plugin</artifactId>
+        <version>${tycho.version}</version>
+        <extensions>true</extensions>
+      </plugin>
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>target-platform-configuration</artifactId>
+        <version>${tycho.version}</version>
+        <configuration>
+          <!-- The bundle's Bundle-RequiredExecutionEnvironment: JavaSE-21,
+               mapped to the JDK the build runs on. -->
+          <executionEnvironment>JavaSE-21</executionEnvironment>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

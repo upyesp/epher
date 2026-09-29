@@ -166,3 +166,43 @@ reproducibility), unchanged.
   route, and all eight locale catalogs carry the change.
 - **Open VSX is untouched**: a separate registry with its own
   account, still parked.
+
+## Amendment (2026-09-29): the Eclipse Marketplace ships via a p2 update site
+
+The user asked for the Eclipse channel to complete (2026-09-29),
+exercising the item 5 gate for that family. The dropins jar stays as
+the manual route; beside it the repository now carries a real p2 update
+site, which is the only install path the Eclipse Marketplace Client
+accepts.
+
+- **Tycho layout**: `clients/eclipse/pom.xml` aggregates the existing
+  LSP4E bundle with a new feature
+  (`io.github.upyesp.epher.eclipse.feature`) and a
+  `eclipse-repository` module whose `category.xml` registers the
+  feature under the category `epher`. `mvn clean verify` writes the
+  publishable tree to the updatesite module's `target/repository/`:
+  `content.jar`, `artifacts.jar`, `p2.index`, `features/`, `plugins/`.
+- **Versions are stamped, not committed**: every version surface stays
+  a `0.0.0` placeholder in the repository, and the build runs
+  `tycho-versions:set-version` with the train version first, so the
+  site metadata carries the same `0.5.x` as every other client. One
+  command covers all of them; a set of seds misses `category.xml`.
+- **Dependencies resolve by themselves**: the bundle's MANIFEST now
+  names the bundles whose extension points `plugin.xml` uses
+  (`org.eclipse.core.contenttype`, `org.eclipse.core.runtime`,
+  `org.eclipse.lsp4e`, `org.eclipse.tm4e.languageconfiguration`,
+  `org.eclipse.tm4e.registry`). Verified with the p2 director against a
+  fresh destination: installing the feature pulls LSP4E and TM4E from
+  the standard Eclipse release repository without the user installing
+  anything first.
+- **Hosting**: `eclipse-publish.yml` publishes the repository to
+  gh-pages under `eclipse/updates/`, and the site build archives it
+  beside `apt/` and `rpm/`, so the stable URL is
+  `https://epher.org/eclipse/updates/`. It rides the release train
+  (called from `release.yml`), is dispatchable by hand for the first
+  publication, and needs no secret: the Marketplace is a browser-only
+  web form with a read-only public API.
+- **The listing remains human work**: a Foundation account, the
+  Solutions Listing form (Update Site URL plus the Feature ID), and
+  moderation. The field values, the logo, and the gallery live in
+  `clients/eclipse/listing/`.

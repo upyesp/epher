@@ -31,12 +31,31 @@ an open source license (`docs/research/eclipse-marketplace-publishing.md`).
   screenshots gallery. The body embeds no images; the top listings
   keep visuals in the gallery only.
 
-## The one open build task: the p2 update site and feature
+## The p2 update site and feature (implemented 2026-09-29)
 
 MPC cannot install a dropins jar. The listing's Install button needs a
-p2 update site carrying a feature that wraps the existing bundle. This
-is the only build work left for the channel, and it is deliberately
-not implemented yet. The plan below is complete enough to execute.
+p2 update site carrying a feature that wraps the existing bundle. That
+build is implemented now:
+
+- `clients/eclipse/pom.xml` aggregates the bundle with
+  `io.github.upyesp.epher.eclipse.feature` and the
+  `eclipse-repository` module; `mvn -f clients/eclipse/pom.xml clean
+  verify` writes the publishable tree to the updatesite module's
+  `target/repository/` (`content.jar`, `artifacts.jar`, `p2.index`,
+  `features/`, `plugins/`).
+- Versions stay `0.0.0` placeholders in the repository; the build runs
+  `tycho-versions:set-version` with the train version first, then the
+  repository metadata carries the same `0.5.x` as every other client.
+- `clients/eclipse/sync-assets.py` keeps the bundle's copies of the
+  shared grammar and language configuration in lockstep with
+  `clients/shared` and `clients/vscode`; the build checks for drift, so
+  edit the shared sources, never the copies.
+- The MANIFEST names every bundle whose extension points `plugin.xml`
+  uses, so p2 resolves LSP4E and TM4E at install time from the user's
+  own Eclipse release repository, verified with a p2 director install
+  into a fresh destination.
+- `.github/workflows/eclipse-publish.yml` builds and publishes it, and
+  `release.yml` calls it for every tag.
 
 ### Tycho layout
 
@@ -164,21 +183,35 @@ resolves in the Marketplace's own validation at listing time).
 
 ### Publishing the update site
 
-1. Publish `target/repository/` to the gh-pages branch under
-   `eclipse/updates/`, mirroring the apt/rpm publish already in
-   `release.yml` (it clones gh-pages, rsyncs the trees, commits, and
-   pushes with the repo `GITHUB_TOKEN`; no new secret).
-2. Add `eclipse` to the `git archive FETCH_HEAD apt rpm` step in
-   `site-build.yml`, so the deployed site serves it at the stable URL
+`.github/workflows/eclipse-publish.yml` is the whole pipeline: it
+stamps the train version, builds with Tycho, smoke-tests the
+repository metadata, publishes it to gh-pages under `eclipse/updates/`,
+attaches the update-site zip to the release, and asks the site workflow
+to redeploy. It needs no secret. `release.yml` calls it per tag, and
+`workflow_dispatch` runs it by hand (its `publish` input unchecks for a
+dry run), which is how the first publication and any re-publish happen.
+
+What the workflow covers, and what it cannot:
+
+1. The repository lands on gh-pages verbatim, and `site-build.yml`
+   archives `eclipse/` beside `apt/` and `rpm/`, so the stable URL is
    `https://epher.org/eclipse/updates/`. That URL is what the listing
-   points at, so it must not move between trains. A sibling Pages
-   repository (the Subclipse pattern) is the alternative; then the URL
-   is that repository's Pages URL instead.
-3. Smoke-test every train before the listing trusts it:
-   - `curl -fsS https://epher.org/eclipse/updates/content.jar -o /dev/null`
-   - a headless director install against the published URL:
-     `eclipse -nosplash -application org.eclipse.equinox.p2.director -repository https://epher.org/eclipse/updates/ -installIU io.github.upyesp.epher.eclipse.feature.feature.group -destination /tmp/epher-p2-smoke -profile SDKProfile`
-   - attach the update-site zip to the GitHub release as well.
+   points at, so it must not move between trains.
+2. CI smoke-tests the metadata (`content.jar`, `artifacts.jar`, the
+   feature IU, the bundle jar with its class and grammar). A sibling
+   Pages repository (the Subclipse pattern) remains the alternative if
+   the site ever stops serving it; then the URL is that repository's.
+3. The p2 director install is the real acceptance test and needs an
+   Eclipse + JDK, so it runs outside CI, after a publish, against the
+   live URL:
+
+   ```sh
+   curl -fsS https://epher.org/eclipse/updates/content.jar -o /dev/null
+   eclipse -nosplash -application org.eclipse.equinox.p2.director \
+     -repository https://epher.org/eclipse/updates/,https://download.eclipse.org/releases/2024-09 \
+     -installIU io.github.upyesp.epher.eclipse.feature.feature.group \
+     -destination /tmp/epher-p2-smoke -profile SDKProfile
+   ```
 4. The marketplace needs no notice when the feature version advances;
    p2 delivers the update. The existing `epher-eclipse.jar` dropins
    artifact stays for users and scripts that already use it.

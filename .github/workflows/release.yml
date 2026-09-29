@@ -439,6 +439,20 @@ jobs:
       version: ${{ github.ref_name }}
     secrets: inherit
 
+  eclipse-updatesite:
+    # ADR-0068 amendment, amended 2026-09-29: the Eclipse Marketplace
+    # channel rides the release train. The listing is a browser-only web
+    # form (read-only API), so the automatable half is the p2 update
+    # site: built with Tycho, published to gh-pages under eclipse/
+    # updates/ and served at https://epher.org/eclipse/updates/, which is
+    # the Update Site URL the listing points at. It needs no secret.
+    name: eclipse update site
+    needs: [release]
+    uses: ./.github/workflows/eclipse-publish.yml
+    with:
+      ref: ${{ github.ref }}
+      version: ${{ github.ref_name }}
+
   snap:
     # ADR-0061: the Snap Store channel. Repacks the release .deb (the
     # two artifacts cannot drift), strict confinement, amd64 + arm64.

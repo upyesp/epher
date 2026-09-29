@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="io.github.upyesp.epher.eclipse.feature"
+      label="epher"
+      version="0.0.0"
+      provider-name="upyesp">
+
+   <description>
+      epher language support for the Eclipse IDE: live diagnostics,
+      hover, completion, and the inline answers of every statement
+      through the shared epher-lsp language server, plus the epher
+      grammar through TM4E for baseline highlighting.
+   </description>
+
+   <license url="https://github.com/upyesp/epher/blob/main/LICENSE">
+      MIT
+   </license>
+
+   <plugin
+         id="io.github.upyesp.epher.eclipse"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+</feature>
