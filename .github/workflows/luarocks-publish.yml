@@ -1,0 +1,81 @@
+name: luarocks publish
+
+# The LuaRocks channel for the Neovim client (clients/nvim), the registry
+# rocks.nvim installs from with `:Rocks install epher`. This workflow is
+# intentionally NOT called by release.yml: it triggers on the v* tag
+# itself, because the tag is the whole input. lumen-oss/luarocks-tag-release
+# fetches the GitHub archive of the pushed tag, generates the rockspec from
+# clients/nvim/epher-scm-1.rockspec, tests a local install of it, uploads
+# the rock, then tests the installed-from-server rock. Wiring it into
+# release.yml would run it twice.
+#
+# The gated secret is a luarocks.org API key. Mint a fresh one at
+# https://luarocks.org/settings/api-keys: the September 2026 security
+# incident revoked every key on the server (and ended every session), so
+# any key dated before 2026-09-26 is dead. Store it as LUAROCKS_API_KEY in
+# the stores environment; the job prints a notice and skips while the
+# secret is absent (the same gate pattern as jetbrains-publish.yml).
+# Channel mechanics: docs/research/neovim-publishing.md.
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  luarocks:
+    name: publish the epher rock
+    environment: stores
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the runtime copies are in sync with clients/vim
+        # The rock ships the copies in clients/nvim, not clients/vim, so
+        # stale copies would ship silently. Run even when the upload is
+        # skipped: drift is a defect at tag time either way.
+        run: python3 clients/nvim/sync-runtime.py --check
+
+      - name: Skip with a notice until LUAROCKS_API_KEY exists
+        id: gate
+        env:
+          LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
+        run: |
+          if [ -z "$LUAROCKS_API_KEY" ]; then
+            echo "::notice::LUAROCKS_API_KEY is not set in the stores environment; the LuaRocks upload is skipped. Create a fresh key at https://luarocks.org/settings/api-keys (keys minted before 2026-09-26 were revoked by the September 2026 security incident) and add it as the secret."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload the rock
+        if: steps.gate.outputs.skip != 'true'
+        uses: lumen-oss/luarocks-tag-release@v7
+        with:
+          # The monorepo subdirectory is not the action's generated default;
+          # the template's source.dir points the build at clients/nvim.
+          template: clients/nvim/epher-scm-1.rockspec
+          # Explicit labels (the action would otherwise take the repo's
+          # GitHub topics, and the neovim topic is not set yet). The
+          # neovim label is what lists the rock on luarocks.org/labels/neovim.
+          labels: |
+            neovim
+            lsp
+            syntax
+          summary: A calculator language with inline answers for every statement
+          # Plain text on the rock page (no markdown renderer), adapted from
+          # clients/vscode/README.md. No social media links, per the house rule.
+          detailed_description: |
+            epher is a calculator language: you write ordinary math, with units
+            that convert, and every statement's answer appears inline right next
+            to the line that produced it.
+
+            The rock ships the runtime files and the Lua module that wire the
+            shared epher language server into Neovim: live diagnostics, inline
+            answers as inlay hints, hover signatures, completion, definition
+            jumps, and the EpherRun results window.
+
+            The epher-lsp binary is a separate download from the GitHub
+            releases page; after that everything runs locally.
+        env:
+          LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
