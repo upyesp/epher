@@ -1,0 +1,98 @@
+name: sublime publish
+
+# The Sublime Text channel (clients/sublime) ships from its own repository,
+# upyesp/LSP-epher: Package Control requires one package per git repository
+# with the package root at the repository root
+# (docs/research/sublime-packagecontrol-publishing.md,
+# clients/sublime/listing/SUBMISSION.md).
+#
+# This workflow is intentionally NOT called by release.yml: it triggers on
+# the v* tag itself, because the tag is the whole input. It reassembles the
+# package tree with clients/sublime/listing/assemble-repo.sh, pushes it to
+# upyesp/LSP-epher, and pushes the matching v<version> tag. Every new tag
+# is a release: sublimelsp/repository lists the package with "tags": true,
+# and its crawler picks the tag up within about an hour, with no PR.
+#
+# The gated secret is a fine-grained GitHub PAT with contents: read/write
+# on upyesp/LSP-epher only, stored as SUBLIME_PACKAGE_TOKEN in the stores
+# environment; the job prints a notice and skips while it is absent (the
+# same gate pattern as jetbrains-publish.yml). Nothing about the first
+# channel publication waits on it.
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  sublime:
+    name: sync upyesp/LSP-epher
+    environment: stores
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secrets check
+        id: secrets
+        env:
+          SUBLIME_PACKAGE_TOKEN: ${{ secrets.SUBLIME_PACKAGE_TOKEN }}
+        run: |
+          if [ -n "$SUBLIME_PACKAGE_TOKEN" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::sublime publish skipped: set the SUBLIME_PACKAGE_TOKEN secret in the stores environment (see clients/sublime/listing/SUBMISSION.md)."
+          fi
+
+      - name: Check the tag matches the release version
+        # Runs even when the sync is skipped: a tag that does not match the
+        # release train is a defect at tag time either way.
+        run: |
+          set -e
+          version="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "tag ${GITHUB_REF_NAME} does not match the release version v${version}" >&2
+            exit 1
+          fi
+
+      - name: Assemble the package tree
+        if: steps.secrets.outputs.skip == 'false'
+        run: clients/sublime/listing/assemble-repo.sh "$RUNNER_TEMP/LSP-epher"
+
+      - name: Push the tree and the tag to upyesp/LSP-epher
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          SUBLIME_PACKAGE_TOKEN: ${{ secrets.SUBLIME_PACKAGE_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          remote="https://x-access-token:${SUBLIME_PACKAGE_TOKEN}@github.com/upyesp/LSP-epher.git"
+          git clone -q "$remote" repo
+          cd repo
+          git config user.name upyesp
+          git config user.email upyesp@users.noreply.github.com
+
+          # A version publishes once: a tag that already exists upstream is
+          # never re-pointed (SUBMISSION.md, the channel's release rules).
+          if git rev-parse -q --verify "refs/tags/v${version}" >/dev/null; then
+            echo "upyesp/LSP-epher already carries v${version}; nothing to do" >&2
+            exit 1
+          fi
+
+          # Replace the tracked content with the assembled tree, keeping the
+          # repository history linear. cp -a carries .python-version, which
+          # is load-bearing.
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$RUNNER_TEMP/LSP-epher/." .
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "::notice::upyesp/LSP-epher already matches the assembled tree; pushing the tag only"
+          else
+            git commit -q -m "LSP-epher ${version}: sync from epher ${GITHUB_REF_NAME}"
+            git push -q origin main
+          fi
+          git tag "v${version}"
+          git push -q origin "v${version}"
