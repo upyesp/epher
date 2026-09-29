@@ -1,37 +1,45 @@
-# Capture guide: the JetBrains Marketplace screenshots and GIF
+# Capture guide: the JetBrains Marketplace screenshots (Linux Mint VM)
 
-Five captures, all of the demo project this folder's `setup.ps1`
-prepares. Sizes follow the VS IDE captures: **2055 x 1370** for the
-four screenshots (uniform, no browser chrome), and the GIF at the same
-crop. The JetBrains Marketplace recommends images 600-800 px wide in
-the description text; ours go in the **Media** gallery instead, where
-larger images are fine and zoomable.
+Four screenshots, all of the demo project that `setup.sh` prepares.
+There is no animated GIF: the listing uses four static shots, matching
+the pattern of .ignore (3 gallery images) and IdeaVim (text-only). The
+JetBrains Marketplace stores these in the plugin's **Media** section,
+where they are zoomable, so a generous size is good.
+
+**Make every shot at the same IDE window size**, and capture the IDE
+window only (no desktop, no other windows). Uniformity matters more
+than any particular size; the four files must share identical
+dimensions.
 
 Take them in this order; each builds on the previous state.
 
 ## 0. Prepare
 
-Run `setup.ps1` (see that file), then launch IntelliJ IDEA with the
-demo project it created. Wait for the blue progress line at the bottom
-to finish. The first time `demo.epher` opens, the plugin downloads the
-language server (a few MB, a one-time pause); the inline answers
-appear once it attaches. Do not start capturing until every statement
-in `demo.epher` shows its inline answer.
+    ./setup.sh                      # once; downloads the IDE (~1.4 GB)
+    "$HOME/ideaIU-captures/bin/idea.sh" "$HOME/epher-captures" &
 
-Dark theme ("Dark" / the default), editor font size 14 or larger
-(Settings, Editor, Font, Size), and the project tree visible on the
-left: the JetBrains look should be unmistakable.
+Sign in (or start the free trial) when asked. Open `demo.epher` and
+wait: the first open downloads the language server (a few MB, one
+time), and then every statement shows its inline answer. Do not start
+capturing until every line of `demo.epher` has its answer.
+
+Dark theme (the default), editor font size 14 or larger (File,
+Settings, Editor, Font), and the Project tree visible on the left: the
+JetBrains look should be unmistakable.
+
+Capture the window with Mint's Screenshot tool (choose "the window
+that is under the cursor"), or:
+
+    gnome-screenshot -w editor.png      # captures the focused window
+    scrot -u editor.png                 # same, the current window
 
 ## 1. editor.png — the hero
 
 What: `demo.epher` fully open, every line's answer inline, the
 `circumference in mile` line showing `= 24,902.8 mile`.
 
-- Open `demo.epher`, click into the editor, then press Ctrl+Shift+F12
-  if you want more editor room (but keep the project tree visible).
-- Make sure no tooltip, popup, or notification banner is showing.
-- Capture the whole IDE window (Alt+PrtScn captures the focused
-  window, or use Snipping Tool with a window snip).
+- Click into the editor so it has focus, make sure no tooltip, popup,
+  or notification banner is showing, and capture the IDE window.
 
 ## 2. hover.png — the signature
 
@@ -42,9 +50,9 @@ What: the mouse hovering `disc` on its `def` line (or the
 
 ## 3. completion.png — the catalog
 
-What: the completion popup open in `demo.epher`, rooted at a fresh
-line reading `sq`, with `sqrt` highlighted and its documentation pane
-showing the catalog entry.
+What: the completion popup open at the end of `demo.epher`, rooted at
+a fresh line reading `sq`, with `sqrt` highlighted and its
+documentation pane showing the catalog entry.
 
 - Click at the end of the last line, press Enter, type `sq`, wait a
   beat for the popup (Ctrl+Space forces it), capture with the popup
@@ -57,34 +65,16 @@ What: the results tool window on the right with the transcript and the
 `sin(x)` plot, after Tools, Run Epher Script.
 
 - Run it once via Tools, Run Epher Script so the tool window exists.
-- Capture the whole window with the results pane open and the plot
-  fully scrolled into view.
-
-## 5. demo.gif — typing, live
-
-What: a fresh line at the bottom of `demo.epher` being typed, the
-inline answer appearing the moment the statement completes.
-
-- Script (about 8-10 seconds at normal typing speed):
-  1. Click at the end of the file, press Enter twice.
-  2. Type: `60 mile/hr in m/s` — pause half a second after the `/`,
-     pause again after `m/s`, and hold one full second after pressing
-     Enter so the viewer sees the converted answer land.
-- Record with the Xbox Game Bar (Win+G, capture the window) or
-  OBS at 2055x1370, then export as GIF (15 fps is plenty; ezyzip.com,
-  gifski, or ffmpeg: `ffmpeg -i in.mp4 -vf "fps=15,scale=1400:-1" out.gif`).
-  Aim for under 8 MB.
-- Press Ctrl+Z enough times to remove the typed line afterwards.
+- Capture the whole IDE window with the results pane open and the
+  plot fully scrolled into view.
 
 ## Naming and hand-off
 
-Save the four PNGs and the GIF into this folder as
-`editor.png`, `hover.png`, `completion.png`, `results.png`,
-`demo.gif`, then scp them to the build box:
+Save the four PNGs as `editor.png`, `hover.png`, `completion.png`,
+`results.png` in one folder, then copy them to the build box:
 
-    scp pete@192.168.10.114:/home/pete/code/epher/clients/jetbrains/listing/*.png .
-    scp pete@192.168.10.114:/home/pete/code/epher/clients/jetbrains/listing/demo.gif .
+    scp editor.png hover.png completion.png results.png \
+        pete@192.168.10.114:/home/pete/code/epher/clients/jetbrains/listing/
 
-(or copy them the other way from the Windows side). They get uploaded
-to the plugin's Media section on plugins.jetbrains.com once the
-listing exists.
+They get uploaded to the plugin's Media section on
+plugins.jetbrains.com once the listing exists.

@@ -88,10 +88,11 @@ Information (the admin panel allows it; the docs recommend it).
 The IDE refuses to run without an account login (verified live: both
 the 2026.3 EAP and the 2024.2.4 stable gate on "Log in to JetBrains
 Account"; there is no headless or no-login path), so the screenshots
-and the GIF are taken on a desktop machine. `listing/setup.ps1`
-prepares a Windows box (IDE + plugin + demo project); `listing/CAPTURE-GUIDE.md`
-specifies the five shots (editor, hover, completion, results,
-demo.gif) at the VS listing's 2055x1370 size.
+are taken on a desktop machine - the Linux Mint VM. `listing/setup.sh`
+prepares it (IDE + plugin + demo project); `listing/CAPTURE-GUIDE.md`
+specifies the four shots (editor, hover, completion, results). No
+animated GIF: the listing uses static shots only, like the top
+listings it mirrors.
 
 ## Version notes
 
