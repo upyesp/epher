@@ -3,7 +3,7 @@
 ; The unit suffix is its own node (src/scanner.c), so it colors by
 ; meaning exactly where the real parser sees one.
 
-(comment) @comment
+[(line_comment) (block_comment)] @comment
 
 (string) @string
 (escape_sequence) @string.escape
@@ -14,9 +14,12 @@
   unit: (unit) @type)
 
 [
-  "and" "break" "const" "continue" "def" "do" "else" "end" "for" "if"
+  "and" "const" "def" "do" "else" "end" "for" "if"
   "in" "not" "or" "return" "solve" "step" "then" "to" "while" "xor"
 ] @keyword
+
+(break_statement) @keyword
+(continue_statement) @keyword
 
 (call_expression
   function: (identifier) @function.call)
@@ -31,8 +34,7 @@
   name: (identifier) @function)
 
 (function_definition
-  (parameters
-    (identifier) @variable.parameter))
+  parameters: (identifier) @variable.parameter)
 
 (destructuring
   name: (identifier) @variable)
@@ -44,7 +46,7 @@
 ] @operator
 
 [
-  "(" ")" "[" "]" "{" "}" "[[" "]]"
+  "(" ")" "[" "]" "{" "}"
 ] @punctuation.bracket
 
 "," @punctuation.delimiter
