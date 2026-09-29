@@ -67,14 +67,26 @@ jobs:
           cp -r site/* _site/
           cp -r crates/web/dist/* _site/pwa/
 
-      - name: Add the apt and dnf repositories (live site only)
-        # The apt and dnf repositories (ADR-0061) live on the gh-pages
-        # branch, the release workflow commits them there. Serve them
-        # from the same origin so epher.org/apt and /rpm resolve.
+      - name: Add the apt, dnf and eclipse repositories (live site only)
+        # The apt, dnf and p2 repositories (ADR-0061, ADR-0068) live on
+        # the gh-pages branch, the release and eclipse-publish
+        # workflows commit them there. Serve them from the same origin
+        # so epher.org/apt, /rpm and /eclipse/updates resolve.
+        #
+        # GitHub Pages serves no directory listing and the repositories
+        # ship no index file of their own, so without the pages below
+        # the bare URLs 404 while the files inside them resolve fine.
+        # No client ever reads index.html (apt fetches dists/, dnf
+        # repodata/, p2 the jars); a person who clicks the repository
+        # URL gets a page saying what the directory is and how to use it.
         if: inputs.include_repos
         run: |
           git fetch --depth=1 origin gh-pages
           git archive FETCH_HEAD apt rpm eclipse | tar -x -C _site
+          cp packaging/repo-pages/apt.html             _site/apt/index.html
+          cp packaging/repo-pages/rpm.html             _site/rpm/index.html
+          cp packaging/repo-pages/eclipse.html         _site/eclipse/index.html
+          cp packaging/repo-pages/eclipse-updates.html _site/eclipse/updates/index.html
 
       - uses: actions/upload-artifact@v4
         with:

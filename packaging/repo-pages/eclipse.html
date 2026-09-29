@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>epher for Eclipse</title>
+<style>
+  :root { --bg:#ffffff; --fg:#1b1c1f; --muted:#5c5d63; --accent:#0f766e; --rule:#e3e4e8; --code:#f4f5f6; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#141416; --fg:#ecedef; --muted:#9a9ba2; --accent:#2dd4bf; --rule:#2a2b2f; --code:#1c1d20; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+         font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         line-height:1.6; }
+  main { max-width:42rem; margin:0 auto; padding:4rem 1.25rem 5rem; }
+  h1 { font-size:1.5rem; margin:0 0 .35rem; }
+  p { margin:.6rem 0; }
+  .lede { color:var(--muted); }
+  pre { background:var(--code); border:1px solid var(--rule); border-radius:.5rem;
+        padding:.85rem 1rem; overflow-x:auto; font-size:.85rem; line-height:1.5; }
+  code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.9em; }
+  a { color:var(--accent); }
+  footer { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--rule);
+           color:var(--muted); font-size:.875rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>epher for Eclipse</h1>
+  <p class="lede">This directory holds the Eclipse plugin for epher. The plugin itself
+  comes from the p2 update site one level down.</p>
+
+  <p>In Eclipse, open <strong>Help &gt; Install New Software</strong>, click
+  <strong>Add</strong>, and use this address:</p>
+  <pre><code>https://epher.org/eclipse/updates/</code></pre>
+  <p>Then tick the <strong>epher</strong> entry. The update site itself is at
+  <a href="updates/">epher.org/eclipse/updates/</a>.</p>
+
+  <footer>
+    <a href="https://epher.org/">epher.org</a> ·
+    <a href="https://epher.org/ide.html">epher in your editor</a> ·
+    <a href="https://epher.org/guide/en/">User guide</a>
+  </footer>
+</main>
+</body>
+</html>

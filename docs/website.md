@@ -19,8 +19,21 @@ main` pull request + version tag) moves anything live.
 | `/scripts.html` | The scripts browser (the `epher scripts` repository) | `scripts/build-scripts.mjs` → built |
 | `/reference/` | The language reference, the formal, normative definition of epher (English only; the guide teaches, the reference specifies) | `site/reference.md` → `scripts/build-reference.mjs` → built |
 | `/ide.html` | IDE Extensions: the editor story (ADR-0066), the shared language server, the VS Code pilot, and the release assets | `site/ide.html` (static HTML/CSS/JS, committed) |
+| `/apt/`, `/rpm/` | The deb and dnf repositories (ADR-0061) | `gh-pages` branch (archived in), `packaging/repo-pages/` (index pages) |
+| `/eclipse/`, `/eclipse/updates/` | The Eclipse p2 update site (ADR-0068) | `gh-pages` branch (archived in), `packaging/repo-pages/` (index pages) |
 | `/pwa/` | The web app (PWA, offline-first) | `crates/web/dist` (built by trunk in CI) |
 | GitHub Releases | unified platform installers (ADR-0011) | built by `.github/workflows/release.yml` |
+
+The deb, dnf and p2 repositories live on the `gh-pages` branch (the
+release workflow commits the first two, the eclipse-publish workflow
+the third) and the site build archives them into the deployed tree.
+GitHub Pages serves no directory listing and the repositories ship no
+index file of their own, so the build also copies a browser-facing
+`index.html` from `packaging/repo-pages/` into `/apt/`, `/rpm/`,
+`/eclipse/` and `/eclipse/updates/`. No client reads those (apt fetches
+`dists/`, dnf `repodata/`, p2 the jars), but every listing and document
+points at the bare URL, which used to 404 while the files next to it
+resolved fine.
 
 The PWA dist is laid out by `crates/web/index.html`: `copy-file` puts the
 manifest/sw/icon at the dist root (a `copy-dir` would bury them in
