@@ -1,0 +1,95 @@
+==================
+The canonical demo script
+==================
+
+const radius = 6371 km
+const diameter = 2 * radius
+circumference = pi * diameter
+
+// the same numbers in miles
+circumference in mile
+
+// a right triangle
+const legs = 3 m
+const hypotenuse = 5 m
+height = sqrt(hypotenuse^2 - legs^2)
+
+// the discriminant
+def disc(a, b, c) = b^2 - 4*a*c
+disc(1, -5, 6)
+
+graph sin(x)
+
+---
+
+(source
+  (constant_definition
+    name: (identifier)
+    value: (quantity
+      number: (number)
+      unit: (unit)))
+  (constant_definition
+    name: (identifier)
+    value: (multiplicative_expression
+      left: (number)
+      right: (identifier)))
+  (assignment
+    name: (identifier)
+    value: (multiplicative_expression
+      left: (identifier)
+      right: (identifier)))
+  (line_comment)
+  (expression_statement
+    (conversion_expression
+      value: (identifier)
+      unit: (unit)))
+  (line_comment)
+  (constant_definition
+    name: (identifier)
+    value: (quantity
+      number: (number)
+      unit: (unit)))
+  (constant_definition
+    name: (identifier)
+    value: (quantity
+      number: (number)
+      unit: (unit)))
+  (assignment
+    name: (identifier)
+    value: (call_expression
+      function: (identifier)
+      arguments: (additive_expression
+        left: (power_expression
+          left: (identifier)
+          right: (number))
+        right: (power_expression
+          left: (identifier)
+          right: (number)))))
+  (line_comment)
+  (function_definition
+    name: (identifier)
+    parameters: (identifier)
+    parameters: (identifier)
+    parameters: (identifier)
+    body: (additive_expression
+      left: (power_expression
+        left: (identifier)
+        right: (number))
+      right: (multiplicative_expression
+        left: (multiplicative_expression
+          left: (number)
+          right: (identifier))
+        right: (identifier))))
+  (expression_statement
+    (call_expression
+      function: (identifier)
+      arguments: (number)
+      arguments: (unary_expression
+        operand: (number))
+      arguments: (number)))
+  (expression_statement
+    (identifier))
+  (expression_statement
+    (call_expression
+      function: (identifier)
+      arguments: (identifier))))

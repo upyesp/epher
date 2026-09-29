@@ -15,24 +15,19 @@ authors = ["upyesp"]
 description = "epher in Zed: live diagnostics, inline answers, hover signatures, completion, and unit-aware coloring from the shared epher language server."
 repository = "https://github.com/upyesp/epher"
 
-# No tree-sitter grammar ships here, on purpose. Checked against
-# zed's source (crates/extension/src/extension_builder.rs): any
-# [grammars.*] entry makes a dev-extension install resolve the
-# wasi-sdk toolchain (download or WASI_SDK_PATH) BEFORE it ever
-# looks at a prebuilt grammars/<name>.wasm, so in sandboxed
-# environments (Flatpak, stripped Windows PATHs) the whole install
-# fails with ENOENT — the 0.5.47 field report. A grammar absent
-# from the manifest is never loaded, so there is no prebuilt-only
-# path for dev extensions. The grammar returns only with
-# marketplace publication: registry installs download a finished
-# package (no toolchain on the user's machine), and the packaging
-# CLI takes grammars/<name>.wasm straight from this directory —
-# an epher CI job can compile it once from upyesp/tree-sitter-epher
-# at the pinned rev. Until then the coloring rides the language
-# server's semantic tokens, which Zed ships DISABLED by default
-# ("semantic_tokens" defaults to "off"), so turning them on is
-# part of installing — the README steps and the website card both
-# carry the setting.
+# The shared tree-sitter grammar, declared for the marketplace. Zed's
+# packaging CI compiles it from the pinned revision with its own
+# wasi-sdk toolchain (crates/extension/src/extension_builder.rs), so a
+# registry install ships a finished package and needs no toolchain on
+# the user's machine. The cost: a DEV-extension install now resolves
+# wasi-sdk locally before anything else (download or WASI_SDK_PATH),
+# which is the 0.5.47 field report - dev installs in sandboxed
+# environments (Flatpak, stripped Windows PATHs) fail with ENOENT.
+# The marketplace listing is worth that trade; marketplace installs
+# are unaffected. The grammar itself lives at upyesp/tree-sitter-epher.
+[grammars.epher]
+repository = "https://github.com/upyesp/tree-sitter-epher"
+rev = "be8433c35d7eab04b99fa55f997f5c1dab1c9adc"
 
 [language_servers.epher-lsp]
 name = "epher"

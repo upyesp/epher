@@ -36,11 +36,10 @@ side panel, no print statements: the editor *is* the calculator.
 
 ![Completion offers a catalog name with its documentation](https://github.com/upyesp/epher/raw/HEAD/clients/zed/images/completion.png)
 
-- **Unit-aware coloring**: semantic tokens color unit suffixes by
-  meaning: the `m` in `2 m` is a unit, not a variable. The dev
-  extension ships no tree-sitter grammar, so the server's semantic
-  tokens are the only color source; that is why the settings below are
-  part of installing, not an optional refinement.
+- **Unit-aware coloring**: the shared tree-sitter grammar colors the
+  language, and the server's semantic tokens refine it live: the `m`
+  in `2 m` is a unit, not a variable. Turn semantic tokens on for the
+  refinement (the settings below).
 
 ## Quick start
 
@@ -72,8 +71,8 @@ be colored and no answers will appear:
 }
 ```
 
-`full` makes the server's tokens the only source of coloring, which is
-the right mode for a grammar-less language. The extension ships
+`full` lets the server's tokens refine the tree-sitter coloring, with
+the unit suffix styled by meaning. The extension ships
 `semantic_token_rules.json` for the custom `unit` token type; the
 standard token types use Zed's built-in rules.
 
@@ -100,8 +99,9 @@ exactly as everywhere else.
 - Linux x86_64 and ARM64, macOS Apple silicon, or Windows x86_64.
 - The dev-extension install compiles the extension with Zed itself,
   which needs Rust and the `wasm32-wasip2` target (Zed adds the target
-  through rustup when it is missing). Gallery installs are prebuilt and
-  need no toolchain.
+  through rustup when it is missing) and resolves a wasi-sdk toolchain
+  for the declared grammar. Gallery installs are prebuilt and need no
+  toolchain.
 - First use needs the network once, to fetch the server binary for
   your platform. After that everything is local.
 
@@ -134,16 +134,14 @@ None. Everything evaluates on your machine.
 <details>
 <summary><strong>Building and contributing (extension developers)</strong></summary>
 
-The current dev extension deliberately ships no `[grammars.*]` entry.
-In Zed's installer, any declared grammar makes the install resolve a
-wasi-sdk toolchain before it looks at a prebuilt
-`grammars/<name>.wasm`, and a grammar absent from the manifest is never
-loaded, so a dev extension cannot carry the parser reliably (the
-0.5.47 field reports of `wasi-sdk ... ENOENT` were this stage). The
-shared grammar lives at
-[tree-sitter-epher](https://github.com/upyesp/tree-sitter-epher);
-dev-extension coloring stays on the server's semantic tokens until
-the registry package carries the compiled parser.
+The extension declares the shared grammar for the registry
+(`[grammars.epher]`, pinned by revision to
+[tree-sitter-epher](https://github.com/upyesp/tree-sitter-epher)):
+Zed's packaging CI compiles it with its own wasi-sdk toolchain, so a
+gallery install ships a finished package. A dev-extension install pays
+that cost locally instead: Zed resolves wasi-sdk before anything else
+(the 0.5.47 field reports of `wasi-sdk ... ENOENT` were that stage),
+so a dev install needs the toolchain reachable or it fails.
 
 Verify a build by hand:
 

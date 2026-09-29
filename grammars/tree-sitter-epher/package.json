@@ -1,6 +1,6 @@
 {
   "name": "tree-sitter-epher",
-  "version": "0.5.40",
+  "version": "0.5.57",
   "description": "epher grammar for tree-sitter: the calculator language's statements, expressions, units, and comments",
   "license": "MIT",
   "main": "bindings/node",
