@@ -17,14 +17,27 @@ Artifacts in this directory:
 
 ## Secrets
 
-The PR itself needs no secret: the identity is the GitHub account.
+The publication PR itself needs no secret: the identity is the GitHub
+account. The per-train sync has one, only because the package must live
+in its own repository.
 
-Later CI has one optional secret, and only because the package must
-live in its own repository: a fine-grained GitHub PAT with
-`contents: read/write` on `upyesp/LSP-epher`, stored as
-`SUBLIME_PACKAGE_TOKEN` in the `stores` environment. That PAT is for
-the sync workflow sketched in the research doc, which does not exist in
-this repo yet. Nothing in the first publication waits on it.
+**`SUBLIME_PACKAGE_TOKEN`** in the `stores` environment, read by
+`.github/workflows/sublime-publish.yml`. A fine-grained GitHub PAT:
+
+- name `epher sublime package sync`, created 2026-09-29 with a 90 day
+  expiry, so it lapses around **2026-12-28** (the token page shows the
+  exact date). Renew before it does: an expired token fails the release
+  sync at the clone with a 403.
+- resource owner `upyesp`; repository access "Only select
+  repositories" with just `upyesp/LSP-epher`;
+- permission **Contents: read and write** (Metadata: read-only turns
+  itself on). Nothing else.
+
+To rotate, mint the replacement the same way and overwrite the secret:
+
+```sh
+gh secret set SUBLIME_PACKAGE_TOKEN --env stores -R upyesp/epher
+```
 
 ## Step 1: assemble and create upyesp/LSP-epher (human, one time)
 
