@@ -567,3 +567,44 @@ upload effort anyway.
 9. **(later, optional)** Decide on: submission REST API automation (needs an
    Entra app + stored secret; no OIDC route), winget-pkgs community manifest
    for the NSIS channel, additional listing languages (§1.5, §1.8, §3).
+
+## Status
+
+2026-09-30, the account and identity steps are done, and the MSIX leg
+is in CI:
+
+- Developer account: enrolled, individual, free (the new onboarding at
+  storedeveloper.microsoft.com). No payout/tax steps, the app is free.
+- Name reserved; Partner Center Product identity, copied verbatim into
+  packaging/msix/AppxManifest.xml: Identity Name `upyesp.epher`,
+  Publisher `CN=B286A718-5628-4B88-8D87-6AE265D62164`,
+  PublisherDisplayName `upyesp`, PFN `upyesp.epher_qmt5ym29gwpzm`,
+  Store ID `9NWXQ035T8TB` (the winget-msstore id and the
+  apps.microsoft.com/detail/9NWXQ035T8TB listing URL). The bare name
+  "epher" was not available; the identity carries the qualifier and
+  the listing Store name stays "epher" per policy 10.1.1.
+- packaging/msix/: AppxManifest.xml (identity, GUI + console
+  applications with execution aliases, eight resource languages,
+  runFullTrust) and store-logo-300.png (the 300x300 listing tile,
+  generated from the 512 icon). The MSIX leg lives in the
+  build-installers.yml Windows case: the payload mirrors the NSIS
+  install (epher-gui.exe, epher.exe, guide/, scripts/, tile icons),
+  packed with MakeAppx from the runner's Windows SDK, unsigned
+  (Store-accepted; the Store re-signs), smoke-checked with 7z.
+- The five desktop screenshots: captured on the user's Windows PC at
+  2565x1875 and composed at 1920x1080 (chrome-less rounded windows on
+  the dark canvas; the title bar carried the previous version
+  0.5.56, cropped away per the first-party listings' chrome-less
+  convention). Files out-of-repo: /home/pete/winstore-shots/composed/
+  *-1920x1080-final.png.
+
+Next, in order: a staging build produces epher-windows-x86_64.msix for
+the first submission; the user uploads it in Partner Center with the
+listing fields file (/home/pete/epher-store-listing-fields.txt, from
+microsoft-store-listing-draft.md), the five screenshots, the store
+tile, the IARC questionnaire (all no), free, all markets; certification
+is up to three business days. The submission REST API (Entra app,
+Manager role, tenant/client/secret into the stores environment) comes
+after the first submission, and CI ships every version from the second
+on. The winget-pkgs community manifest for the NSIS channel stays
+optional and separate.
