@@ -59,12 +59,24 @@ Remaining human checks before the PR:
    the package name (`epher`), not `recipe`; `recipe` here is only the
    staged copy. No `epher-pkg.el` is created by hand; MELPA generates
    it from the package headers.
-3. Test locally, per CONTRIBUTING.org:
-   - `make recipes/epher` builds the package into `packages/`;
-   - `MELPA_CHANNEL=stable make recipes/epher` checks that the
-     `v0.5.57` tag parses through the default `:version-regexp`;
-   - `make sandbox INSTALL=epher` gives a sandboxed Emacs with the new
-     package installable.
+3. Test locally, per CONTRIBUTING.org. All three were run on
+   2026-09-30 and passed:
+   - `make recipes/epher` builds the package into `packages/`:
+     `epher-20260930.1116.tar` from main, the `:files` spec mapping
+     `clients/emacs/epher.el` to `epher.el`, and the generated
+     `epher-readme.txt` is the Commentary verbatim;
+   - `make CHANNEL=stable recipes/epher` checks that the `v0.5.57`
+     tag parses through the default `:version-regexp`: it produced
+     `epher-0.5.57.tar` in `packages-stable/`. (CONTRIBUTING.org's
+     `MELPA_CHANNEL=` spelling is stale: the Makefile reads `CHANNEL`,
+     and the old spelling silently builds the unstable channel.)
+   - `make sandbox INSTALL=epher` gives a sandboxed Emacs with the
+     new package installable: under Emacs 30.2 the sandbox installed
+     and byte-compiled `epher-20260930.1116` cleanly. Under Emacs
+     28.2 the same command fails with `Package 'emacs-29.1' is
+     unavailable`, which is the declared floor doing its job:
+     package.el enforces `Package-Requires: ((emacs "29.1"))` at
+     install time.
 4. Commit and open the PR with the title **"Add recipe for epher"**
    (the template's own instruction). Fill the template: brief summary,
    a direct link to `https://github.com/upyesp/epher`, your
