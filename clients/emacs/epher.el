@@ -1,4 +1,4 @@
-;;; epher.el --- The epher calculator language in Emacs -*- lexical-binding: t; -*-
+;;; epher.el --- Calculator language with inline answers and unit conversion -*- lexical-binding: t; -*-
 
 ;; Author: upyesp
 ;; SPDX-License-Identifier: MIT
@@ -23,12 +23,12 @@
 ;;   does not consume them today.
 ;; - LSP through eglot (built into Emacs 29): live diagnostics, inline
 ;;   answers as inlay hints, hover signatures, completion with the
-;;   shared snippets, and definition jumps via xref. lsp-mode is
+;;   shared snippets, and definition jumps via xref.  lsp-mode is
 ;;   registered as well.
 ;; - `C-c C-c' runs the whole script: the per-statement transcript
 ;;   lands in the `*epher run*' buffer, and every graph the script
 ;;   produced is saved as an SVG file and opened with the system
-;;   viewer. `g' in the results buffer re-runs, `q' closes it.
+;;   viewer.  `g' in the results buffer re-runs, `q' closes it.
 ;;
 ;; The server binary (`epher-lsp') is a separate download from the
 ;; releases page; the README has the lines per platform.
@@ -36,6 +36,9 @@
 ;;; Code:
 
 (require 'prog-mode)
+;; eglot ships with Emacs 29.1, this package's floor: the require is
+;; unconditional and `eglot-server-programs' is registered at load.
+(require 'eglot)
 
 (defgroup epher nil
   "The epher calculator language."
@@ -44,14 +47,14 @@
 
 (defcustom epher-server-program '("epher-lsp")
   "Command that starts the epher language server.
-A list of strings, argv style. The binary comes from the epher
+A list of strings, argv style.  The binary comes from the epher
 releases page; see the README."
   :type '(repeat string)
   :group 'epher)
 
 (defcustom epher-lsp-autostart t
   "Start eglot automatically in `epher-mode' buffers.
-Only when the server program is found on `exec-path'. Set to nil
+Only when the server program is found in the variable `exec-path'.  Set to nil
 if you run the server through lsp-mode or start it yourself."
   :type 'boolean
   :group 'epher)
@@ -147,16 +150,21 @@ answers as inlay hints, hover, and completion."
 
 (add-hook 'epher-mode-hook #'epher--maybe-start-lsp)
 
-;; eglot (Emacs 29+ ships it): the contact is read at activation, so
-;; customizing `epher-server-program' is enough. Emacs 29's eglot
+;; The eglot server registration. The contact is read at activation,
+;; so customizing `epher-server-program' is enough. Emacs 29's eglot
 ;; calls the contact with its `interactive' argument; Emacs 30 asks
 ;; the arity first. An optional argument satisfies both.
-(with-eval-after-load 'eglot
-  (add-to-list 'eglot-server-programs
-               `(epher-mode . ,(lambda (&optional _interactive)
-                                 epher-server-program))))
+(add-to-list 'eglot-server-programs
+             `(epher-mode . ,(lambda (&optional _interactive)
+                               epher-server-program)))
 
-;; lsp-mode, for those who run it instead of eglot.
+;; lsp-mode, for those who run it instead of eglot. lsp-mode is
+;; third-party and optional, so it cannot be required: the
+;; registration waits for it to load, and these declarations keep a
+;; byte-compile without lsp-mode quiet.
+(declare-function lsp-register-client "lsp-mode")
+(declare-function make-lsp-client "lsp-mode")
+(declare-function lsp-stdio-connection "lsp-mode")
 (with-eval-after-load 'lsp-mode
   (lsp-register-client
    (make-lsp-client
@@ -186,12 +194,26 @@ answers as inlay hints, hover, and completion."
   "The transcript of an `epher-run'.
 `g' re-runs the script, `q' closes the pane.")
 
+;; browse-url is built in and autoloaded; the declaration keeps a
+;; byte-compile quiet, not the runtime.
+(declare-function browse-url-file-url "browse-url")
+
+(defun epher--path-to-uri (path)
+  "Return the LSP URI of PATH through the running eglot.
+eglot 1.16 renamed the helper and Emacs 30 ships that rename;
+Emacs 29.1's built-in eglot predates it and Emacs 30 keeps the old
+name only as an obsolete alias, so this calls whichever exists."
+  (if (fboundp 'eglot-path-to-uri)
+      (eglot-path-to-uri path)
+    (with-suppressed-warnings ((obsolete eglot--path-to-uri))
+      (eglot--path-to-uri path))))
+
 (defun epher-run--rerun ()
-  "Re-run the script whose results this buffer shows."
+  "Re-run the script that produced these results."
   (interactive)
   (if (buffer-live-p epher-run--script-buffer)
       (with-current-buffer epher-run--script-buffer (epher-run))
-    (user-error "the script buffer is gone")))
+    (user-error "The script buffer is gone")))
 
 (defun epher-run ()
   "Run the current script through the language server.
@@ -199,10 +221,10 @@ Puts the per-statement transcript in the `*epher run*' buffer
 and opens each plot the script produced with the system viewer."
   (interactive)
   (unless (derived-mode-p 'epher-mode)
-    (user-error "epher-run runs in an epher-mode buffer"))
+    (user-error "This command runs in an epher-mode buffer"))
   (let ((server (eglot-current-server)))
     (unless server
-      (user-error "the language server is not attached yet; try again in a moment"))
+      (user-error "The language server is not attached yet; try again in a moment"))
     ;; The method goes as a keyword: Emacs 29.3's jsonrpc nulls a
     ;; string method on the wire (fixed in 30), and the server would
     ;; never answer. The reply decodes as a plist with keyword keys
@@ -210,7 +232,7 @@ and opens each plot the script produced with the system viewer."
     (let* ((script-buffer (current-buffer))
            (report (jsonrpc-request server :epher/run
                                     (list :textDocument
-                                          (list :uri (eglot--path-to-uri
+                                          (list :uri (epher--path-to-uri
                                                       buffer-file-name)))))
            (statements (append (plist-get report :statements) nil))
            (svgs (append (plist-get report :svgs) nil))
