@@ -51,6 +51,20 @@ Remaining human checks before the PR:
   and that no `epher-pkg.el`, README, or changelog ships inside the
   package (`:files` ships exactly one file, so this holds).
 
+## Status
+
+- 2026-09-30: `epher.el` passes package-lint (one deliberate
+  `with-eval-after-load` warning for the optional lsp-mode
+  registration), checkdoc, and a warning-free byte-compile, and
+  carries the `Assisted-by` header the template asks for
+  (`GLM (Z.ai)`, what this repo actually runs).
+- 2026-09-30: the recipe PR is open as
+  https://github.com/melpa/melpa/pull/10256; MELPA's CI built it
+  green in 39 seconds. Awaiting maintainer review, typically a week
+  to several. After merge everything is automatic: unstable rides
+  commits touching `clients/emacs/epher.el`, stable rides the
+  `v0.5.x` tags.
+
 ## The one-time PR
 
 1. Fork `melpa/melpa` and create a branch, for example
@@ -77,8 +91,15 @@ Remaining human checks before the PR:
      unavailable`, which is the declared floor doing its job:
      package.el enforces `Package-Requires: ((emacs "29.1"))` at
      install time.
-4. Commit and open the PR with the title **"Add recipe for epher"**
-   (the template's own instruction). Fill the template: brief summary,
+4. Commit and open the PR. Opened 2026-09-30 as
+   https://github.com/melpa/melpa/pull/10256 from the fork branch
+   `add-recipe-epher`, titled "request to add recipe for 'epher'" per
+   the maintainer's choice (the template's suggested wording is "Add
+   recipe for <NAME>"; the title is not validated). The body answers
+   the template: summary, repo link, maintainer association, none
+   needed for upstream communications, the checklist below, and the
+   monorepo justification from step 5 pre-emptively. Fill the
+   template: brief summary,
    a direct link to `https://github.com/upyesp/epher`, your
    association (maintainer), "Relevant communications with the
    upstream package maintainer" as *None needed*, and the checklist
