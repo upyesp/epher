@@ -400,7 +400,10 @@ jobs:
                  crates/tauri-app/src-tauri/icons/Square150x150Logo.png msix-layout/assets/
               sed "s/@MSIX_VERSION@/$V.0/" packaging/msix/AppxManifest.xml > msix-layout/AppxManifest.xml
               grep -q "Version=\"$V.0\"" msix-layout/AppxManifest.xml
-              "$MAKEAPPX" pack /o /nv /d msix-layout /p artifacts/epher-windows-x86_64.msix
+              # MSYS_NO_PATHCONV: git-bash would otherwise rewrite the
+              # windows-style flags (/o, /d, /p) into drive paths.
+              MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*" \
+                "$MAKEAPPX" pack /o /nv /d msix-layout /p artifacts/epher-windows-x86_64.msix
               7z l artifacts/epher-windows-x86_64.msix | grep -q "AppxManifest"
               7z l artifacts/epher-windows-x86_64.msix | grep -q "epher-gui"
               7z l artifacts/epher-windows-x86_64.msix | grep -q "epher.exe"
