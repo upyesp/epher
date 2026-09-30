@@ -1,6 +1,7 @@
 ;;; epher.el --- Calculator language with inline answers and unit conversion -*- lexical-binding: t; -*-
 
 ;; Author: upyesp
+;; Assisted-by: GLM (Z.ai)
 ;; SPDX-License-Identifier: MIT
 ;; This file is distributed under the MIT License. The full text is in
 ;; the LICENSE file at the root of this repository.
