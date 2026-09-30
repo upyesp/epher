@@ -50,6 +50,8 @@ stale copy of a `clients/vim` edit cannot ship inside a rock.
    `https://luarocks.org/`. GitHub login works; the account name is
    the uploader shown on the rock page
    (`https://luarocks.org/modules/<account>/epher`).
+   Done 2026-09-30: the account is `upyesp`, verified live
+   (`https://luarocks.org/modules/upyesp` returns 200).
 
 2. **Generate a fresh API key** at
    `https://luarocks.org/settings/api-keys` (Settings, API keys,
@@ -57,9 +59,16 @@ stale copy of a `clients/vim` edit cannot ship inside a rock.
    every API key on the server and ended every session, so the key
    must be minted after 2026-09-26; any older key is dead. There is no
    other way to get a working key.
+   Done 2026-09-30: a fresh key was minted and stored.
 
 3. **Store the key as `LUAROCKS_API_KEY`** in the `stores`
    environment secret. Nothing else in the channel uses a token.
+   Done 2026-09-30: `gh secret set LUAROCKS_API_KEY --env stores`
+   (the environment lists it alongside OVSX_PAT and the others).
+   The first upload fires on the next `v*` tag, which is the 0.5.59
+   train; the rock series therefore starts at 0.5.59-1, since the
+   workflow did not exist at the `v0.5.57` tag and tags are never
+   re-pointed.
 
    Timing matters, because the tag is the trigger: the workflow was
    designed to run on every `v*` tag, and while the secret is absent
@@ -71,6 +80,13 @@ stale copy of a `clients/vim` edit cannot ship inside a rock.
    exists, and the action no-ops duplicates by default.
 
 ## The awesome-neovim PR (human, one time)
+
+Opened 2026-09-30 as https://github.com/rockerBOO/awesome-neovim/pull/2532
+from the fork branch `add-epher`, titled "Add `upyesp/epher`" with the
+template checklist ticked; the entry sits at the end of the main
+Programming Languages Support list and all five repository CI checks
+(terminology, typos, title, formatting, awesome linter) are green.
+Awaiting maintainer merge; static thereafter.
 
 1. Fork `rockerBOO/awesome-neovim` and add one line to the
    **Programming Languages Support** section:
