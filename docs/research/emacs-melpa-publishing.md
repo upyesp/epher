@@ -138,8 +138,8 @@ No images, no markdown, no GIFs, no icon anywhere on the page.
    version number *by construction*). Expect a reviewer question; answer
    with the ADR.
 3. **Test the recipe before the PR**, exactly as documented: `make
-   recipes/epher` builds the package into `packages/`; `MELPA_CHANNEL=stable
-   make recipes/epher` checks which version the tag machinery picks (this
+   recipes/epher` builds the package into `packages/`; `make
+   CHANNEL=stable recipes/epher` checks which version the tag machinery picks (this
    validates that our `v0.5.57` tag parses via the default
    `:version-regexp`, which matches `v4.3.5`-style tags); `make sandbox
    INSTALL=epher` gives a sandboxed Emacs with the new package installable
@@ -173,7 +173,9 @@ generated for your package simply tag the SCM repository using a naming
 compatible with the `version-to-list` function" [2] — our per-train
 `v0.5.x` tags already do exactly that, so stable tracks `0.5.57`, `0.5.58`,
 … automatically. One recipe feeds both archives; there is no separate
-stable recipe format, only `MELPA_CHANNEL=stable` for local testing [2].
+stable recipe format, only `make CHANNEL=stable` for local testing
+(the Makefile reads `CHANNEL`; CONTRIBUTING.org's `MELPA_CHANNEL`
+spelling is stale and silently builds the unstable channel) [2].
 The maintainers themselves note they "do not use MELPA Stable themselves,
 and do not particularly recommend its use" [1] — we submit the one recipe
 and let stable ride the tags for free. Recipe edits are needed only if the
@@ -306,8 +308,7 @@ To add or change:
 2. **`Assisted-by:` line** if applicable, under `Author:` (PR checklist
    item) [3].
 3. **Run package-lint + checkdoc + byte-compile** and fix findings before
-   the PR; `make recipes/epher` and `MELPA_CHANNEL=stable make
-   recipes/epher` locally [2].
+   the PR; `make recipes/epher` and `make CHANNEL=stable recipes/epher` locally [2].
 4. **Rewrite the Commentary** as the listing copy: adapted from
    `clients/vscode/README.md`, no ADR numbers, lead with what the user
    gets (inline answers, diagnostics, hover, completion), mention the
