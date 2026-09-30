@@ -379,8 +379,12 @@ jobs:
               # package carries no resources.pri: the resource languages
               # live in the manifest, listing text lives in Partner
               # Center.
-              MAKEAPPX="$(ls "/c/Program Files (x86)/Windows Kits/10/bin/"*/*/x64/makeappx.exe 2>/dev/null | sort | tail -1)"
-              test -n "$MAKEAPPX"
+              MAKEAPPX="$(find "/c/Program Files (x86)/Windows Kits/10/bin" "/c/Program Files/Windows Kits/10/bin" -name makeappx.exe 2>/dev/null | grep x64 | sort | tail -1)"
+              if [ -z "$MAKEAPPX" ]; then
+                echo "::error::makeappx.exe not found under the Windows Kits directories"
+                ls "/c/Program Files (x86)/Windows Kits" "/c/Program Files/Windows Kits" 2>/dev/null || true
+                exit 1
+              fi
               V="$(grep -m1 '"version"' crates/tauri-app/src-tauri/tauri.conf.json | cut -d'"' -f4)"
               test -n "$V"
               mkdir -p msix-layout/assets msix-layout/guide
