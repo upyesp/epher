@@ -369,6 +369,34 @@ jobs:
               # root, the layout the VS Code downloader's Expand-Archive
               # step expects.
               powershell.exe -NoProfile -Command "Compress-Archive -Path 'target/release/epher-lsp.exe' -DestinationPath 'artifacts/epher-lsp-windows-x86_64.zip' -Force"
+              # The Microsoft Store package (docs/research/
+              # microsoft-store-publishing.md): an MSIX mirroring the NSIS
+              # payload - both executables plus the guide and scripts the
+              # app resolves relative to its exe - with the package
+              # identity from the reserved Partner Center name
+              # (upyesp.epher). Unsigned is Store-accepted: the Store
+              # re-signs every MSIX during publishing. /nv because the
+              # package carries no resources.pri: the resource languages
+              # live in the manifest, listing text lives in Partner
+              # Center.
+              MAKEAPPX="$(ls "/c/Program Files (x86)/Windows Kits/10/bin/"*/*/x64/makeappx.exe 2>/dev/null | sort | tail -1)"
+              test -n "$MAKEAPPX"
+              V="$(grep -m1 '"version"' crates/tauri-app/src-tauri/tauri.conf.json | cut -d'"' -f4)"
+              test -n "$V"
+              mkdir -p msix-layout/assets msix-layout/guide
+              cp target/release/epher.exe target/release/epher-gui.exe msix-layout/
+              cp -r "epher scripts" msix-layout/scripts
+              cp site/guide/*.md msix-layout/guide/
+              cp crates/tauri-app/src-tauri/icons/StoreLogo.png \
+                 crates/tauri-app/src-tauri/icons/Square44x44Logo.png \
+                 crates/tauri-app/src-tauri/icons/Square150x150Logo.png msix-layout/assets/
+              sed "s/@MSIX_VERSION@/$V.0/" packaging/msix/AppxManifest.xml > msix-layout/AppxManifest.xml
+              grep -q "Version=\"$V.0\"" msix-layout/AppxManifest.xml
+              "$MAKEAPPX" pack /o /nv /d msix-layout /p artifacts/epher-windows-x86_64.msix
+              7z l artifacts/epher-windows-x86_64.msix | grep -q "AppxManifest"
+              7z l artifacts/epher-windows-x86_64.msix | grep -q "epher-gui"
+              7z l artifacts/epher-windows-x86_64.msix | grep -q "epher.exe"
+              7z l artifacts/epher-windows-x86_64.msix | grep -q "README.md"
               ;;
           esac
 

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Microsoft Store package manifest for the epher desktop app.
+     docs/research/microsoft-store-publishing.md holds the verified
+     ground for every choice here. The identity values are copied
+     verbatim from Partner Center's Product identity page (reserved
+     name upyesp.epher, Store ID 9NWXQ035T8TB): the schema compares
+     them case- and punctuation-sensitively. CI substitutes
+     @MSIX_VERSION@ with the train version plus the Store-reserved
+     fourth section (.0). The payload layout the workflow builds beside
+     this file mirrors the NSIS install: epher-gui.exe (the
+     Start-menu target), epher.exe (the console build), guide/ and
+     scripts/ the app resolves relative to its exe, and the tile icons. -->
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+         xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+         xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
+         xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities">
+  <Identity Name="upyesp.epher"
+            Publisher="CN=B286A718-5628-4B88-8D87-6AE265D62164"
+            Version="@MSIX_VERSION@"
+            ProcessorArchitecture="x64"/>
+  <Properties>
+    <DisplayName>epher</DisplayName>
+    <PublisherDisplayName>upyesp</PublisherDisplayName>
+    <Logo>assets\StoreLogo.png</Logo>
+  </Properties>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0"/>
+  </Dependencies>
+  <Resources>
+    <Resource Language="en"/>
+    <Resource Language="de"/>
+    <Resource Language="es"/>
+    <Resource Language="fr"/>
+    <Resource Language="pt"/>
+    <Resource Language="ar"/>
+    <Resource Language="hi"/>
+    <Resource Language="zh-CN"/>
+  </Resources>
+  <Applications>
+    <Application Id="EpherGui"
+                Executable="epher-gui.exe"
+                EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="epher"
+                          Description="scriptable graphing calculator"
+                          BackgroundColor="transparent"
+                          Square150x150Logo="assets\Square150x150Logo.png"
+                          Square44x44Logo="assets\Square44x44Logo.png"/>
+      <Extensions>
+        <uap5:Extension Category="windows.appExecutionAlias">
+          <uap5:AppExecutionAlias uap10:Subsystem="windows">
+            <uap5:ExecutionAlias Alias="epher-gui.exe"/>
+          </uap5:AppExecutionAlias>
+        </uap5:Extension>
+      </Extensions>
+    </Application>
+    <Application Id="EpherCli"
+                Executable="epher.exe"
+                EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="epher console"
+                          Description="the epher command line"
+                          BackgroundColor="transparent"
+                          Square150x150Logo="assets\Square150x150Logo.png"
+                          Square44x44Logo="assets\Square44x44Logo.png"
+                          AppListEntry="none"/>
+      <Extensions>
+        <uap5:Extension Category="windows.appExecutionAlias">
+          <uap5:AppExecutionAlias uap10:Subsystem="console">
+            <uap5:ExecutionAlias Alias="epher.exe"/>
+          </uap5:AppExecutionAlias>
+        </uap5:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust"/>
+  </Capabilities>
+</Package>
