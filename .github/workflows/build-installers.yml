@@ -379,12 +379,16 @@ jobs:
               # package carries no resources.pri: the resource languages
               # live in the manifest, listing text lives in Partner
               # Center.
-              MAKEAPPX="$(find "/c/Program Files (x86)/Windows Kits/10/bin" "/c/Program Files/Windows Kits/10/bin" -name makeappx.exe 2>/dev/null | grep x64 | sort | tail -1)"
-              if [ -z "$MAKEAPPX" ]; then
-                echo "::error::makeappx.exe not found under the Windows Kits directories"
-                ls "/c/Program Files (x86)/Windows Kits" "/c/Program Files/Windows Kits" 2>/dev/null || true
-                exit 1
-              fi
+              # The runner image ships no Windows SDK tools under the
+              # Windows Kits roots any more (both searches came up
+              # empty), so pull makeappx.exe from the
+              # Microsoft.Windows.SDK.BuildTools nuget package - the
+              # same binary Microsoft's own MSIX pipelines drive.
+              curl -sL -o sdktools.zip https://www.nuget.org/api/v2/package/Microsoft.Windows.SDK.BuildTools
+              SDKTOOLS="$(mktemp -d)"
+              7z x -o"$SDKTOOLS" sdktools.zip -y > /dev/null
+              MAKEAPPX="$(find "$SDKTOOLS" -name makeappx.exe | grep x64 | head -1)"
+              test -n "$MAKEAPPX"
               V="$(grep -m1 '"version"' crates/tauri-app/src-tauri/tauri.conf.json | cut -d'"' -f4)"
               test -n "$V"
               mkdir -p msix-layout/assets msix-layout/guide
