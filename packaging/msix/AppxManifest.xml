@@ -57,7 +57,7 @@
     <Application Id="EpherCli"
                 Executable="epher.exe"
                 EntryPoint="Windows.FullTrustApplication"
-                SupportsMultipleInstances="true">
+                uap10:SupportsMultipleInstances="true">
       <uap:VisualElements DisplayName="epher console"
                           Description="the epher command line"
                           BackgroundColor="transparent"
