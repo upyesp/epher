@@ -38,19 +38,22 @@
     <Resource Language="zh-CN"/>
   </Resources>
   <Applications>
-    <!-- One visible application carries both execution aliases. The
-         Store rejects packages that declare AppListEntry="none" - it
-         treats a hidden app entry as a headless app, which needs the
-         HeadlessAppBypass waiver - so the console build is reached
-         only through its epher.exe alias, exactly like the NSIS
-         install. The console alias must name Executable="epher.exe"
-         explicitly: the attribute otherwise defaults to the
-         application's epher-gui.exe and typing `epher` would open
-         the window. SupportsMultipleInstances is required for a
-         console-subsystem alias and lets several epher windows or
-         one-shot runs live side by side. -->
-    <Application Id="EpherGui"
-                Executable="epher-gui.exe"
+    <!-- One visible application, the console build, serves every
+         surface. Bare `epher` routes to the GUI (Action::Gui, ADR-0011:
+         it spawns the detached epher-gui.exe sibling that ships beside
+         it in the package), so the Start icon opens the window exactly
+         like the NSIS entry, and the epher.exe execution alias carries
+         the full CLI. The Store rejects packages that declare
+         AppListEntry="none" - a hidden app entry counts as a headless
+         app needing the HeadlessAppBypass waiver - and an alias can
+         only launch its own Application's Executable, so a second
+         hidden console application is not an option. The console
+         alias requires SupportsMultipleInstances. Launching the icon
+         shows conhost for the split second the console build takes to
+         spawn the window; the Store's own python package behaves the
+         same way. -->
+    <Application Id="EpherApp"
+                Executable="epher.exe"
                 EntryPoint="Windows.FullTrustApplication"
                 uap10:SupportsMultipleInstances="true">
       <uap:VisualElements DisplayName="epher"
@@ -60,13 +63,8 @@
                           Square44x44Logo="assets\Square44x44Logo.png"/>
       <Extensions>
         <uap5:Extension Category="windows.appExecutionAlias">
-          <uap5:AppExecutionAlias uap10:Subsystem="windows">
-            <uap5:ExecutionAlias Alias="epher-gui.exe"/>
-          </uap5:AppExecutionAlias>
-        </uap5:Extension>
-        <uap5:Extension Category="windows.appExecutionAlias">
           <uap5:AppExecutionAlias uap10:Subsystem="console">
-            <uap5:ExecutionAlias Alias="epher.exe" Executable="epher.exe"/>
+            <uap5:ExecutionAlias Alias="epher.exe"/>
           </uap5:AppExecutionAlias>
         </uap5:Extension>
       </Extensions>
