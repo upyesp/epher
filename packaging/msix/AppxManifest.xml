@@ -38,9 +38,21 @@
     <Resource Language="zh-CN"/>
   </Resources>
   <Applications>
+    <!-- One visible application carries both execution aliases. The
+         Store rejects packages that declare AppListEntry="none" - it
+         treats a hidden app entry as a headless app, which needs the
+         HeadlessAppBypass waiver - so the console build is reached
+         only through its epher.exe alias, exactly like the NSIS
+         install. The console alias must name Executable="epher.exe"
+         explicitly: the attribute otherwise defaults to the
+         application's epher-gui.exe and typing `epher` would open
+         the window. SupportsMultipleInstances is required for a
+         console-subsystem alias and lets several epher windows or
+         one-shot runs live side by side. -->
     <Application Id="EpherGui"
                 Executable="epher-gui.exe"
-                EntryPoint="Windows.FullTrustApplication">
+                EntryPoint="Windows.FullTrustApplication"
+                uap10:SupportsMultipleInstances="true">
       <uap:VisualElements DisplayName="epher"
                           Description="scriptable graphing calculator"
                           BackgroundColor="transparent"
@@ -52,22 +64,9 @@
             <uap5:ExecutionAlias Alias="epher-gui.exe"/>
           </uap5:AppExecutionAlias>
         </uap5:Extension>
-      </Extensions>
-    </Application>
-    <Application Id="EpherCli"
-                Executable="epher.exe"
-                EntryPoint="Windows.FullTrustApplication"
-                uap10:SupportsMultipleInstances="true">
-      <uap:VisualElements DisplayName="epher console"
-                          Description="the epher command line"
-                          BackgroundColor="transparent"
-                          Square150x150Logo="assets\Square150x150Logo.png"
-                          Square44x44Logo="assets\Square44x44Logo.png"
-                          AppListEntry="none"/>
-      <Extensions>
         <uap5:Extension Category="windows.appExecutionAlias">
           <uap5:AppExecutionAlias uap10:Subsystem="console">
-            <uap5:ExecutionAlias Alias="epher.exe"/>
+            <uap5:ExecutionAlias Alias="epher.exe" Executable="epher.exe"/>
           </uap5:AppExecutionAlias>
         </uap5:Extension>
       </Extensions>
