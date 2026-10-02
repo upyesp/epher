@@ -583,14 +583,18 @@ is in CI:
   apps.microsoft.com/detail/9NWXQ035T8TB listing URL). The bare name
   "epher" was not available; the identity carries the qualifier and
   the listing Store name stays "epher" per policy 10.1.1.
-- packaging/msix/: AppxManifest.xml (identity, GUI + console
-  applications with execution aliases, eight resource languages,
-  runFullTrust) and store-logo-300.png (the 300x300 listing tile,
-  generated from the 512 icon). The MSIX leg lives in the
+- packaging/msix/: AppxManifest.xml (identity, ONE visible
+  application — the console build, whose bare invocation opens the GUI
+  through the ADR-0011 sibling spawn — carrying the epher.exe execution
+  alias, eight resource languages, runFullTrust,
+  uap10:SupportsMultipleInstances) and store-logo-300.png (the 300x300
+  listing tile, generated from the 512 icon). The MSIX leg lives in the
   build-installers.yml Windows case: the payload mirrors the NSIS
   install (epher-gui.exe, epher.exe, guide/, scripts/, tile icons),
-  packed with MakeAppx from the runner's Windows SDK, unsigned
-  (Store-accepted; the Store re-signs), smoke-checked with 7z.
+  packed with MakeAppx pulled from the Microsoft.Windows.SDK.BuildTools
+  nuget package (the runner image ships no Windows SDK), invoked with
+  MSYS_NO_PATHCONV=1 (git-bash rewrites /o into a drive path),
+  unsigned (Store-accepted; the Store re-signs), smoke-checked with 7z.
 - The five desktop screenshots: captured on the user's Windows PC at
   2565x1875 and composed at 1920x1080 (chrome-less rounded windows on
   the dark canvas; the title bar carried the previous version
@@ -598,13 +602,22 @@ is in CI:
   convention). Files out-of-repo: /home/pete/winstore-shots/composed/
   *-1920x1080-final.png.
 
-Next, in order: a staging build produces epher-windows-x86_64.msix for
-the first submission; the user uploads it in Partner Center with the
-listing fields file (/home/pete/epher-store-listing-fields.txt, from
-microsoft-store-listing-draft.md), the five screenshots, the store
-tile, the IARC questionnaire (all no), free, all markets; certification
-is up to three business days. The submission REST API (Entra app,
-Manager role, tenant/client/secret into the stores environment) comes
-after the first submission, and CI ships every version from the second
-on. The winget-pkgs community manifest for the NSIS channel stays
-optional and separate.
+**PUBLISHED 2026-10-02.** The first submission was accepted within a
+  day: https://apps.microsoft.com/detail/9NWXQ035T8TB (verified live
+  through the displaycatalog API: title epher, publisher upyesp, PFN
+  upyesp.epher_qmt5ym29gwpzm, the 300 tile). The winget msstore source
+  indexes the same record. Path to acceptance: the first package was
+  rejected as a headless app — any Application with
+  AppListEntry="none" needs the HeadlessAppBypass waiver — and an
+  execution alias can only launch its own Application's Executable, so
+  the waiver-free shape is the single visible console application now
+  in the manifest; certification notes justify runFullTrust (classic
+  Win32, real stdio, sibling spawn). Local testing used
+  Add-AppxPackage -Register of the extracted layout (unsigned packages
+  cannot install as files; 0x800B010A). Known accepted exception: the
+  Start icon launches the console build, so a console shows for the
+  moment the sibling spawn takes; the waiver ticket or a bare-behavior
+  change (ADR-0011 amendment) may remove it. Still pending: the Entra
+  triple for the submission REST API so CI ships every version from
+  the second on. The winget-pkgs community manifest for the NSIS
+  channel stays optional and separate.
