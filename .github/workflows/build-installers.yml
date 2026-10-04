@@ -700,13 +700,20 @@ jobs:
           mkdir -p artifacts
           for client in zed nvim vim sublime emacs; do
             stage="epher-$client"
-            rm -rf "$stage"
-            mkdir -p "$stage"
             # Each zip carries the client's files under a top folder
-            # named after the client.
-            (cd "clients/$client" && tar --exclude=./target --exclude=./*.wasm -cf - .) | tar -xf - -C "$stage"
+            # named after the client, except Sublime: its folder must
+            # be the package name LSP-epher, because the LSP package
+            # resolves the client configuration by folder name, and an
+            # offline install must need no rename.
+            top="$stage"
+            if [ "$client" = "sublime" ]; then
+              top="LSP-epher"
+            fi
+            rm -rf "$stage" "$top"
+            mkdir -p "$top"
+            (cd "clients/$client" && tar --exclude=./target --exclude=./*.wasm -cf - .) | tar -xf - -C "$top"
             rm -f "artifacts/$stage.zip"
-            zip -qr "artifacts/$stage.zip" "$stage"
+            zip -qr "artifacts/$stage.zip" "$top"
           done
       - name: Smoke-test the packages
         shell: bash
@@ -715,7 +722,7 @@ jobs:
           unzip -l artifacts/epher-zed.zip | grep -q "epher-zed/extension.toml"
           unzip -l artifacts/epher-nvim.zip | grep -q "epher-nvim/lua/epher.lua"
           unzip -l artifacts/epher-vim.zip | grep -q "epher-vim/syntax/epher.vim"
-          unzip -l artifacts/epher-sublime.zip | grep -q "epher-sublime/epher.tmLanguage"
+          unzip -l artifacts/epher-sublime.zip | grep -q "LSP-epher/epher.tmLanguage"
           unzip -l artifacts/epher-emacs.zip | grep -q "epher-emacs/epher.el"
           for z in artifacts/epher-zed.zip artifacts/epher-nvim.zip artifacts/epher-vim.zip artifacts/epher-sublime.zip artifacts/epher-emacs.zip; do
             unzip -l "$z" | grep -q "README.md"
