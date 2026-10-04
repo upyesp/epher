@@ -99,7 +99,7 @@ class LspEpherRunCommand(LspTextCommand):
     def run(self, edit) -> None:
         global _last_script_view
         view = self.view
-        if view.syntax() and view.syntax().scope != "source.epher":
+        if (syntax := view.syntax()) and syntax.scope != "source.epher":
             # Running from the results view (where a run leaves the
             # focus) re-runs the script the view belongs to.
             if _last_script_view is not None and _last_script_view.is_valid():
