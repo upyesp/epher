@@ -1,9 +1,6 @@
 {
 	// The client configuration for the epher language server
 	// (epher-lsp, found on PATH; the README has the download lines).
-	// This package ships as LSP-epher, which is also the session name
-	// and the name LSP looks up here.
-	"enabled": true,
 	"command": ["epher-lsp"],
 	"selector": "source.epher",
 	// "buffer" lets the server serve unsaved tabs of epher syntax;

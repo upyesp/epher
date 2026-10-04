@@ -140,10 +140,8 @@ styles do not apply to semantic regions.
 ### Suggested keybinding
 
 This package deliberately ships no keybinding, so nothing of yours
-gets shadowed (a run binding on ctrl+c ctrl+c, as earlier drafts of
-this client had, swallows Copy). `ctrl+alt+r` is unbound in Sublime
-Text 4's default keymaps on Linux, macOS and Windows; add to
-`Packages/User/Default (<your platform>).sublime-keymap`:
+gets shadowed. To run a script from the keyboard, open
+**Preferences: Key Bindings** from the Command Palette and add:
 
 ```json
 [
@@ -154,6 +152,9 @@ Text 4's default keymaps on Linux, macOS and Windows; add to
   }
 ]
 ```
+
+`ctrl+alt+r` is unbound in Sublime Text 4's default keymaps on Linux,
+macOS and Windows.
 
 ## Requirements
 
