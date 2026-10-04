@@ -12,6 +12,7 @@
      scripts/ the app resolves relative to its exe, and the tile icons. -->
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
          xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+         xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
          xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
          xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
          xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities">
@@ -38,26 +39,50 @@
     <Resource Language="zh-CN"/>
   </Resources>
   <Applications>
-    <!-- One visible application, the console build, serves every
-         surface. Bare `epher` routes to the GUI (Action::Gui, ADR-0011:
-         it spawns the detached epher-gui.exe sibling that ships beside
-         it in the package), so the Start icon opens the window exactly
-         like the NSIS entry, and the epher.exe execution alias carries
-         the full CLI. The Store rejects packages that declare
-         AppListEntry="none" - a hidden app entry counts as a headless
-         app needing the HeadlessAppBypass waiver - and an alias can
-         only launch its own Application's Executable, so a second
-         hidden console application is not an option. The console
-         alias requires SupportsMultipleInstances. Launching the icon
-         shows conhost for the split second the console build takes to
-         spawn the window; the Store's own python package behaves the
-         same way. -->
-    <Application Id="EpherApp"
-                Executable="epher.exe"
+    <!-- Two visible applications, mirroring what the NSIS install puts
+         on disk (ADR-0011, ADR-0071). The store rejects hidden entries
+         (AppListEntry="none" reads as a headless app needing the
+         HeadlessAppBypass waiver) and an execution alias or a file type
+         association can only launch its own Application's Executable,
+         so the window and the CLI each need their own visible entry.
+         EpherGuiApp is the desktop app: the Start tile launches
+         epher-gui.exe directly, with no console flash, and the .epher
+         file type association routes double-clicks to it, which stages
+         the script in the entry box instead of evaluating it
+         (ADR-0070). EpherApp is the console build: its epher.exe
+         execution alias carries the full CLI in any terminal - the
+         alias resolves through %LOCALAPPDATA%\Microsoft\WindowsApps,
+         which is on the user PATH by default, because an MSIX cannot
+         edit PATH itself - and bare `epher` routes to the GUI
+         (Action::Gui, ADR-0011). The console alias requires
+         SupportsMultipleInstances. -->
+    <Application Id="EpherGuiApp"
+                Executable="epher-gui.exe"
                 EntryPoint="Windows.FullTrustApplication"
                 uap10:SupportsMultipleInstances="true">
       <uap:VisualElements DisplayName="epher"
                           Description="scriptable graphing calculator"
+                          BackgroundColor="transparent"
+                          Square150x150Logo="assets\Square150x150Logo.png"
+                          Square44x44Logo="assets\Square44x44Logo.png"/>
+      <Extensions>
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap3:FileTypeAssociation Name="epher.script">
+            <uap:DisplayName>epher calculation script</uap:DisplayName>
+            <uap:Logo>assets\Square44x44Logo.png</uap:Logo>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.epher</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap3:FileTypeAssociation>
+        </uap:Extension>
+      </Extensions>
+    </Application>
+    <Application Id="EpherApp"
+                Executable="epher.exe"
+                EntryPoint="Windows.FullTrustApplication"
+                uap10:SupportsMultipleInstances="true">
+      <uap:VisualElements DisplayName="epher CLI"
+                          Description="epher command line"
                           BackgroundColor="transparent"
                           Square150x150Logo="assets\Square150x150Logo.png"
                           Square44x44Logo="assets\Square44x44Logo.png"/>
