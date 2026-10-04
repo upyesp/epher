@@ -400,6 +400,10 @@ jobs:
                  crates/tauri-app/src-tauri/icons/Square150x150Logo.png msix-layout/assets/
               sed "s/@MSIX_VERSION@/$V.0/" packaging/msix/AppxManifest.xml > msix-layout/AppxManifest.xml
               grep -q "Version=\"$V.0\"" msix-layout/AppxManifest.xml
+              # the two-application shape: the gui tile with the .epher
+              # association, the cli tile with the alias (ADR-0071)
+              grep -q "EpherGuiApp" msix-layout/AppxManifest.xml
+              grep -q "windows.fileTypeAssociation" msix-layout/AppxManifest.xml
               # MSYS_NO_PATHCONV: git-bash would otherwise rewrite the
               # windows-style flags (/o, /d, /p) into drive paths.
               MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*" \
@@ -723,8 +727,6 @@ jobs:
           unzip -l artifacts/epher-nvim.zip | grep -q "epher-nvim/lua/epher.lua"
           unzip -l artifacts/epher-vim.zip | grep -q "epher-vim/syntax/epher.vim"
           unzip -l artifacts/epher-sublime.zip | grep -q "LSP-epher/epher.tmLanguage"
-          grep -q "windows.fileTypeAssociation" msix-layout/AppxManifest.xml
-          grep -q "EpherGuiApp" msix-layout/AppxManifest.xml
           unzip -l artifacts/epher-emacs.zip | grep -q "epher-emacs/epher.el"
           for z in artifacts/epher-zed.zip artifacts/epher-nvim.zip artifacts/epher-vim.zip artifacts/epher-sublime.zip artifacts/epher-emacs.zip; do
             unzip -l "$z" | grep -q "README.md"

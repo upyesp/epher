@@ -622,7 +622,7 @@ is in CI:
   the second on. The winget-pkgs community manifest for the NSIS
   channel stays optional and separate.
 
-2026-10-04, the manifest is revised for the 0.5.61 train
+2026-10-04, the manifest is revised for the 0.5.62 train
 (ADR-0071): two visible applications now, EpherGuiApp (epher-gui.exe,
 the `epher` tile, the `.epher` file type association - a double-click
 opens the desktop app and stages the script, matching ADR-0070) and
