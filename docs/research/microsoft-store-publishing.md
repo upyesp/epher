@@ -621,3 +621,16 @@ is in CI:
   triple for the submission REST API so CI ships every version from
   the second on. The winget-pkgs community manifest for the NSIS
   channel stays optional and separate.
+
+2026-10-04, the manifest is revised for the 0.5.61 train
+(ADR-0071): two visible applications now, EpherGuiApp (epher-gui.exe,
+the `epher` tile, the `.epher` file type association - a double-click
+opens the desktop app and stages the script, matching ADR-0070) and
+EpherApp (epher.exe, the `epher CLI` tile, the epher.exe execution
+alias). The Start tile opens the window directly, so the console-flash
+exception above is gone and the waiver ticket is moot; the PATH
+question needs no installer work - the alias resolves through
+%LOCALAPPDATA%\Microsoft\WindowsApps, which is on the user PATH by
+default, and an MSIX cannot edit PATH itself (the NSIS channel manages
+PATH with its own hooks). The next Store update submission ships the
+revised package.
