@@ -80,6 +80,7 @@ python3 "$SRC/sync-assets.py"
 cp "$SRC/plugin.py" "$TARGET/plugin.py"
 cp "$SRC/LSP-epher.sublime-settings" "$TARGET/LSP-epher.sublime-settings"
 cp "$SRC/LSP-epher.sublime-commands" "$TARGET/LSP-epher.sublime-commands"
+cp "$SRC/Main.sublime-menu" "$TARGET/Main.sublime-menu"
 cp "$SRC/epher.tmLanguage" "$TARGET/epher.tmLanguage"
 cp "$SRC/.python-version" "$TARGET/.python-version"
 cp "$ROOT/LICENSE" "$TARGET/LICENSE"
@@ -108,6 +109,7 @@ EXPECTED=(
   plugin.py
   LSP-epher.sublime-settings
   LSP-epher.sublime-commands
+  Main.sublime-menu
   epher.tmLanguage
   README.md
   LICENSE

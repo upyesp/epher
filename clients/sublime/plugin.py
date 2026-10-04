@@ -55,13 +55,28 @@ def _results_dir() -> str:
 def _open_path(path: str) -> None:
     try:
         if sublime.platform() == "osx":
-            subprocess.Popen(["open", path])
+            _popen(["open", path])
         elif sublime.platform() == "windows":
             os.startfile(path)  # type: ignore[attr-defined]  # noqa: S9
         else:
-            subprocess.Popen(["xdg-open", path])
+            _popen(["xdg-open", path])
     except OSError as err:
         print("LSP-epher: could not open {}: {}".format(path, err))
+
+
+def _popen(args: "list[str]") -> None:
+    """Popen with the Windows hidden-window handling the ST package
+    reviewer asks for: without STARTF_USESHOWWINDOW the spawned
+    opener would flash a console. The flag only exists on Windows,
+    so it is built under the platform check; the branches above are
+    osx/linux, but the reviewer reads the package, not the runtime.
+    """
+    startupinfo = None
+    if sublime.platform() == "windows":
+        startupinfo = subprocess.STARTUPINFO()  # type: ignore[attr-defined]
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore[attr-defined]  # noqa: SIM
+        startupinfo.wShowWindow = subprocess.SW_HIDE  # type: ignore[attr-defined]
+    subprocess.Popen(args, startupinfo=startupinfo)
 
 
 class LspEpherRunCommand(LspTextCommand):
