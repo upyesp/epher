@@ -47,11 +47,11 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-        # full history: the release notes diff against the previous tag;
-        # dispatch runs may check out a different ref for catch-up uploads
+        # full history: the release notes diff against the previous tag.
+        # always stays on the ref carrying this workflow (the script lives
+        # here); catch-up content comes in via git archive in the zip step.
         with:
           fetch-depth: 0
-          ref: ${{ inputs.ref || github.ref }}
 
       - name: Skip with a notice until the vim.org credentials exist
         id: gate
