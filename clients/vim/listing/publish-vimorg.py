@@ -349,12 +349,24 @@ def main():
              f"landed on {final_url}. If this persists with valid "
              "credentials, the site may have changed; see "
              "docs/research/vim-org-publishing.md.")
+    if dry_run:
+        # dump the raw upload form (anchored on the file input, since the
+        # page header carries its own search form)
+        idx = page.find("script_file")
+        if idx >= 0:
+            start = page.rfind("<form", 0, idx)
+            end = page.find("</form>", idx)
+            print("--- raw upload form ---")
+            print(page[start:end + 7] if start >= 0 and end >= 0 else "(bounds not found)")
+            print("--- end raw form ---")
+        else:
+            print("--- no script_file anywhere on the page ---")
     form = find_upload_form(parse_forms(page))
     fields, file_field, overrides, notes_done = plan_upload(
         form, cfg["zip"], cfg["version"], cfg["vim_version"], cfg["notes"])
 
     print(f"upload form: action={form.action or '(self)'} method={form.method}")
-    echoed = [i["name"] for i in form.inputs
+    echoed = [f"{i['name']}={i['value']!r}" for i in form.inputs
               if i["type"] in ("hidden", "submit", "button") and i["name"]]
     print(f"echoing fields: {', '.join(echoed) if echoed else '(none)'}")
     print("planned fields:")
