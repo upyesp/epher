@@ -18,6 +18,12 @@ name: vim.org publish
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "version string for the dry run (parses the form, uploads nothing)"
+        required: true
+        type: string
 
 jobs:
   vimorg:
@@ -63,8 +69,9 @@ jobs:
           VIMORG_SCRIPT_ID: "6195"
           ZIP: /tmp/epher-vim.zip
           VIM_VERSION: "9.0"
+          VERSION_INPUT: ${{ inputs.version }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="${VERSION_INPUT:-${GITHUB_REF_NAME#v}}"
           export VERSION
           # Release notes: this train's clients/vim commit subjects; fall
           # back to a plain line when the train touched nothing in the client.
@@ -75,4 +82,9 @@ jobs:
           fi
           [ -n "$notes" ] || notes="Maintenance release, tracking the epher ${VERSION} train."
           export RELEASE_NOTES="$notes"
-          python3 clients/vim/listing/publish-vimorg.py
+          if [ -n "$VERSION_INPUT" ]; then
+            echo "workflow_dispatch run: dry run only, nothing will be uploaded"
+            python3 clients/vim/listing/publish-vimorg.py --dry-run
+          else
+            python3 clients/vim/listing/publish-vimorg.py
+          fi
