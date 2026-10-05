@@ -225,8 +225,10 @@ def plan_upload(form, zip_path, version, vim_version, release_notes):
                           "application/zip")
             overrides.append((name, "(file)", f"{zip_path} ({len(content)} bytes)"))
         elif typ in ("submit", "button"):
-            if name:
-                fields.append((name, i["value"]))
+            # handled below: browsers send only the clicked button, and
+            # sites with several same-named submits (upload/cancel) take
+            # the last value, so echoing them all would cancel the upload
+            pass
         elif typ == "hidden":
             fields.append((name, i["value"]))
         elif typ in ("checkbox", "radio"):
@@ -249,6 +251,18 @@ def plan_upload(form, zip_path, version, vim_version, release_notes):
         else:  # unknown types: pass the default through
             if name:
                 fields.append((name, i["value"]))
+    # send exactly one submit: the first that does not look like a cancel
+    submits = [i for i in form.inputs
+               if i["type"] in ("submit", "button") and i["name"]]
+    primary = next((i for i in submits
+                    if i["value"].lower() not in ("cancel", "back", "reset")),
+                   None)
+    if primary is not None:
+        fields.append((primary["name"], primary["value"]))
+        others = [i["value"] for i in submits if i is not primary]
+        overrides.append((primary["name"],
+                          f"(submit; not sent: {others})" if others else "(submit)",
+                          primary["value"]))
     for name, options in form.selects.items():
         if "vim" in name.lower():
             chosen = pick_vim_version(options, vim_version)
