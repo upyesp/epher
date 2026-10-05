@@ -37,10 +37,13 @@ Exit codes: 0 success or already-published, 1 failure, 2 configuration
 error. The password and session cookie are never printed.
 """
 
+import html
 import html.parser
 import http.cookiejar
 import os
+import re
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -137,9 +140,11 @@ class Browser:
         with self.opener.open(url, timeout=TIMEOUT) as r:
             return r.geturl(), r.read().decode("utf-8", "replace")
 
-    def post(self, url, data, content_type):
+    def post(self, url, data, content_type, referer=None):
         req = urllib.request.Request(url, data=data, method="POST")
         req.add_header("Content-Type", content_type)
+        if referer:
+            req.add_header("Referer", referer)
         with self.opener.open(req, timeout=TIMEOUT) as r:
             return r.geturl(), r.read().decode("utf-8", "replace")
 
@@ -269,6 +274,16 @@ def plan_upload(form, zip_path, version, vim_version, release_notes):
     return fields, file_field, overrides, notes_done
 
 
+def page_summary(page, limit=400):
+    """Title and a stripped-text excerpt, for failure diagnostics."""
+    m = re.search(r"<title>(.*?)</title>", page, re.S)
+    title = html.unescape(m.group(1)).strip() if m else "(no title)"
+    text = re.sub(r"<script.*?</script>|<style.*?</style>", " ", page, flags=re.S)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return title, text[:limit]
+
+
 def multipart_body(fields, file_field, boundary):
     out = bytearray()
     for name, value in fields:
@@ -339,6 +354,9 @@ def main():
         form, cfg["zip"], cfg["version"], cfg["vim_version"], cfg["notes"])
 
     print(f"upload form: action={form.action or '(self)'} method={form.method}")
+    echoed = [i["name"] for i in form.inputs
+              if i["type"] in ("hidden", "submit", "button") and i["name"]]
+    print(f"echoing fields: {', '.join(echoed) if echoed else '(none)'}")
     print("planned fields:")
     for name, old, new in overrides:
         shown = new if len(new) <= 60 else new[:57] + "..."
@@ -356,22 +374,33 @@ def main():
     body = multipart_body(fields, file_field, boundary)
     action = urllib.parse.urljoin(version_url, form.action or version_url)
     print(f"posting {len(body)} bytes to {action}")
-    _, response = browser.post(action, body,
-                               f"multipart/form-data; boundary={boundary}")
+    resp_url, response = browser.post(action, body,
+                                      f"multipart/form-data; boundary={boundary}",
+                                      referer=version_url)
+    print(f"response: {resp_url}")
+    print("response page:", " | ".join(page_summary(response)))
     if find_upload_form(parse_forms(response)) is not None:
         fail("vim.org re-rendered the upload form; the upload was not saved",
              "The site rejects oversized packages silently, exactly this "
-             "way. Check the zip size, or inspect the response manually.")
+             "way. Check the zip size, or inspect the response above.")
 
-    _, script_page = browser.get(script_url)
-    if cfg["version"] in script_page:
-        print(f"verified: version {cfg['version']} now appears on "
-              f"{script_url}")
-    else:
-        fail("the POST did not error, but the script page does not show "
-             f"version {cfg['version']}",
-             "Check the page manually before re-running; a second upload "
-             "of the same version would duplicate a row.")
+    # the versions table is db-driven; give it a short window before
+    # declaring failure
+    for attempt in range(4):
+        _, script_page = browser.get(script_url)
+        if cfg["version"] in script_page:
+            print(f"verified: version {cfg['version']} now appears on "
+                  f"{script_url}")
+            return
+        if attempt < 3:
+            print(f"version not visible yet (attempt {attempt + 1}/4); "
+                  "waiting 15s")
+            time.sleep(15)
+    fail("the POST did not error, but the script page does not show "
+         f"version {cfg['version']}",
+         "The response page above shows what vim.org sent back; check it "
+         "before re-running, since a second upload of the same version "
+         "could duplicate a row.")
 
 
 if __name__ == "__main__":
