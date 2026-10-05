@@ -21,9 +21,21 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "version string for the dry run (parses the form, uploads nothing)"
+        description: "version string for the upload, e.g. 0.5.59"
         required: true
         type: string
+      ref:
+        description: "git ref to build the lean zip from (catch-up uploads: the tag)"
+        required: false
+        type: string
+      mode:
+        description: "dry parses the form only; upload publishes for real"
+        required: false
+        type: choice
+        default: dry
+        options:
+          - dry
+          - upload
 
 jobs:
   vimorg:
@@ -35,9 +47,11 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-        # full history: the release notes diff against the previous tag
+        # full history: the release notes diff against the previous tag;
+        # dispatch runs may check out a different ref for catch-up uploads
         with:
           fetch-depth: 0
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Skip with a notice until the vim.org credentials exist
         id: gate
@@ -70,6 +84,7 @@ jobs:
           ZIP: /tmp/epher-vim.zip
           VIM_VERSION: "9.0"
           VERSION_INPUT: ${{ inputs.version }}
+          MODE: ${{ inputs.mode }}
         run: |
           VERSION="${VERSION_INPUT:-${GITHUB_REF_NAME#v}}"
           export VERSION
@@ -82,9 +97,10 @@ jobs:
           fi
           [ -n "$notes" ] || notes="Maintenance release, tracking the epher ${VERSION} train."
           export RELEASE_NOTES="$notes"
-          if [ -n "$VERSION_INPUT" ]; then
-            echo "workflow_dispatch run: dry run only, nothing will be uploaded"
+          if [ "$MODE" = "dry" ]; then
+            echo "dry run only, nothing will be uploaded"
             python3 clients/vim/listing/publish-vimorg.py --dry-run
           else
+            # tag pushes land here (MODE empty): the real upload
             python3 clients/vim/listing/publish-vimorg.py
           fi
