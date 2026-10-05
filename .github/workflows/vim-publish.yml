@@ -64,14 +64,24 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build the lean zip from the tag
+      - name: Build the lean zip from the ref
         # The full epher-vim.zip carries images and listing copy (352K) and
         # trips vim.org's silent upload cap; vim.org gets the lean package.
+        # Catch-up uploads build from inputs.ref (a tag) via git archive, so
+        # the checkout itself stays on the ref that carries this workflow
+        # and the uploader script.
         if: steps.gate.outputs.skip != 'true'
+        env:
+          INPUT_REF: ${{ inputs.ref }}
         run: |
+          base=clients/vim
+          if [ -n "$INPUT_REF" ]; then
+            rm -rf /tmp/vsrc && mkdir -p /tmp/vsrc
+            git archive --format=tar "$INPUT_REF" clients/vim | tar -x -C /tmp/vsrc
+            base=/tmp/vsrc/clients/vim
+          fi
           stage=epher-vim; rm -rf "$stage"; mkdir -p "$stage"
-          cp -r clients/vim/ftdetect clients/vim/syntax clients/vim/ftplugin \
-             clients/vim/README.md "$stage/"
+          cp -r "$base/ftdetect" "$base/syntax" "$base/ftplugin" "$base/README.md" "$stage/"
           zip -qr /tmp/epher-vim.zip "$stage"; rm -rf "$stage"
           ls -l /tmp/epher-vim.zip
 
@@ -85,15 +95,17 @@ jobs:
           VIM_VERSION: "9.0"
           VERSION_INPUT: ${{ inputs.version }}
           MODE: ${{ inputs.mode }}
+          INPUT_REF: ${{ inputs.ref }}
         run: |
           VERSION="${VERSION_INPUT:-${GITHUB_REF_NAME#v}}"
           export VERSION
           # Release notes: this train's clients/vim commit subjects; fall
           # back to a plain line when the train touched nothing in the client.
-          prev=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+          ref="${INPUT_REF:-$GITHUB_REF_NAME}"
+          prev=$(git describe --tags --abbrev=0 "${ref}^" 2>/dev/null || true)
           notes=""
           if [ -n "$prev" ]; then
-            notes=$(git log --format='- %s' "$prev..$GITHUB_REF_NAME" -- clients/vim | head -20)
+            notes=$(git log --format='- %s' "$prev..$ref" -- clients/vim | head -20)
           fi
           [ -n "$notes" ] || notes="Maintenance release, tracking the epher ${VERSION} train."
           export RELEASE_NOTES="$notes"
