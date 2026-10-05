@@ -212,3 +212,34 @@ All fetched 2026-09-29 unless marked as repo files.
 8. Search sorted by downloads: https://www.vim.org/scripts/script_search_results.php?order_by=downloads&direction=descending
 9. No API: https://www.vim.org/api.php and https://www.vim.org/scripts/api.php (both 404)
 10. htmldjango omnicomplete page (HTML `<br>` in description; screenshot as a bare linked URL, no images): https://www.vim.org/scripts/script.php?script_id=4027; ctrlp.vim for comparison: https://www.vim.org/scripts/script.php?script_id=3736
+
+## Addendum 2026-10-05: the per-train upload is CI-driven now
+
+The verdict above ("every step is a human at a browser", "CI secrets:
+none possible") described the channel as it advertises itself: no API,
+no tokens. It held until the requirement changed: with an explicit ask
+to automate the version upload, credentials held as CI secrets, the
+plain PHP forms turn out to be drivable end to end without a browser:
+
+- Login is a plain POST to `/login.php` (`authenticate=true`,
+  `userName`, `password`); success is visible as a session cookie,
+  while a failed login re-renders the form and sets no cookie. No CSRF
+  token, no captcha on login — the registration page's human check is
+  registration-only (probed 2026-10-05 with a bogus-credentials POST:
+  HTTP 200, no Set-Cookie, form re-rendered).
+- The version-upload form (`add_script_version.php?script_id=<id>`) is
+  a stock multipart form, reachable only with a session.
+
+What remains genuinely true, and is the honest cost of this automation:
+this is form-driving, not an API. It can break whenever the site
+changes its forms (the uploader therefore parses the form at runtime
+and echoes its fields back, overriding only the release version, the
+Vim version, the release notes, and the package file); and the CI
+secret is a full account password, a weaker credential than every
+other channel's scoped token. vim.org offers nothing stronger.
+
+Implementation: `clients/vim/listing/publish-vimorg.py` (stdlib only:
+login, form echo, multipart POST, versions-table verification,
+`--dry-run`) called by `.github/workflows/vim-publish.yml` on `v*`
+tags; credentials live in the stores environment as
+`VIMORG_USERNAME` / `VIMORG_PASSWORD`.

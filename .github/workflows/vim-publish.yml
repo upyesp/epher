@@ -1,0 +1,106 @@
+name: vim.org publish
+
+# The vim.org channel for the Vim client (clients/vim): script_id 6195 at
+# www.vim.org/scripts. vim.org has no API and no tokens, so this workflow
+# drives the same web forms a human would fill in, with the account
+# credentials held as GitHub secrets — never in the repo, never echoed.
+# Channel research: docs/research/vim-org-publishing.md. Upload mechanics,
+# the lean-zip recipe, and the silent size cap:
+# clients/vim/listing/SUBMISSION.md and the publish-vimorg.py docstring.
+#
+# Tag-triggered like luarocks-publish.yml (not called by release.yml), so
+# the upload fires on exactly the event that publishes the other
+# marketplaces. The gate skips with a notice until the secrets exist, the
+# same pattern as jetbrains-publish.yml:
+#   VIMORG_USERNAME, VIMORG_PASSWORD  in the stores environment.
+# script_id 6195 is public page data, so it is not a secret.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "version string for the upload, e.g. 0.5.59"
+        required: true
+        type: string
+      ref:
+        description: "git ref to build the lean zip from (catch-up uploads: the tag)"
+        required: false
+        type: string
+      mode:
+        description: "dry parses the form only; upload publishes for real"
+        required: false
+        type: choice
+        default: dry
+        options:
+          - dry
+          - upload
+
+jobs:
+  vimorg:
+    name: upload the lean zip to vim.org
+    environment: stores
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        # full history: the release notes diff against the previous tag;
+        # dispatch runs may check out a different ref for catch-up uploads
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Skip with a notice until the vim.org credentials exist
+        id: gate
+        env:
+          VIMORG_USERNAME: ${{ secrets.VIMORG_USERNAME }}
+          VIMORG_PASSWORD: ${{ secrets.VIMORG_PASSWORD }}
+        run: |
+          if [ -z "$VIMORG_USERNAME" ] || [ -z "$VIMORG_PASSWORD" ]; then
+            echo "::notice::VIMORG_USERNAME / VIMORG_PASSWORD are not set in the stores environment; the vim.org upload is skipped. Add the vim.org account credentials as environment secrets to enable it."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the lean zip from the tag
+        # The full epher-vim.zip carries images and listing copy (352K) and
+        # trips vim.org's silent upload cap; vim.org gets the lean package.
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          stage=epher-vim; rm -rf "$stage"; mkdir -p "$stage"
+          cp -r clients/vim/ftdetect clients/vim/syntax clients/vim/ftplugin \
+             clients/vim/README.md "$stage/"
+          zip -qr /tmp/epher-vim.zip "$stage"; rm -rf "$stage"
+          ls -l /tmp/epher-vim.zip
+
+      - name: Upload to vim.org and verify the script page
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          VIMORG_USERNAME: ${{ secrets.VIMORG_USERNAME }}
+          VIMORG_PASSWORD: ${{ secrets.VIMORG_PASSWORD }}
+          VIMORG_SCRIPT_ID: "6195"
+          ZIP: /tmp/epher-vim.zip
+          VIM_VERSION: "9.0"
+          VERSION_INPUT: ${{ inputs.version }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          VERSION="${VERSION_INPUT:-${GITHUB_REF_NAME#v}}"
+          export VERSION
+          # Release notes: this train's clients/vim commit subjects; fall
+          # back to a plain line when the train touched nothing in the client.
+          prev=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+          notes=""
+          if [ -n "$prev" ]; then
+            notes=$(git log --format='- %s' "$prev..$GITHUB_REF_NAME" -- clients/vim | head -20)
+          fi
+          [ -n "$notes" ] || notes="Maintenance release, tracking the epher ${VERSION} train."
+          export RELEASE_NOTES="$notes"
+          if [ "$MODE" = "dry" ]; then
+            echo "dry run only, nothing will be uploaded"
+            python3 clients/vim/listing/publish-vimorg.py --dry-run
+          else
+            # tag pushes land here (MODE empty): the real upload
+            python3 clients/vim/listing/publish-vimorg.py
+          fi
