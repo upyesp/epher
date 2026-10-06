@@ -148,3 +148,58 @@ luarocks search epher            # the published versions
 
 The rock installs the module and the runtime files; `setup({ cmd = ... })`
 remains the user's call, as `clients/nvim/README.md` documents.
+
+## The upyesp/epher.nvim mirror
+
+Plugin discovery in the Neovim ecosystem points at one dedicated
+repository per plugin, whose root holds the plugin and whose landing
+page names Neovim. The first awesome-neovim PR (#2532, 2026-09-30) was
+rejected for exactly this: it linked the monorepo root, and the
+monorepo README never mentions Neovim
+(`docs/research/neovim-publishing.md`, the addendum). The channel
+therefore has a mirror repository, on the LSP-epher precedent:
+
+- `clients/nvim/listing/assemble-repo.sh` assembles the tree:
+  `ftdetect/ ftplugin/ syntax/ lua/ doc/ images/`, the listing copy of
+  the README (cut at the `## Maintainer note` divider), and LICENSE.
+- `.github/workflows/epher-nvim-publish.yml` runs on every `v*` tag,
+  reassembles, pushes the tree to `upyesp/epher.nvim`, and pushes the
+  matching `v<version>` tag. The mirror's tags mirror the monorepo's;
+  a version publishes once, and an existing upstream tag is never
+  re-pointed.
+- The gate is `NVIM_PACKAGE_TOKEN` in the `stores` environment: a
+  fine-grained GitHub PAT with contents read/write on
+  `upyesp/epher.nvim` only. While it is absent the job prints a notice
+  and skips, like every other gated channel.
+- rocks.nvim users are unaffected either way: the rock is cut from
+  `clients/nvim` by `luarocks-publish.yml`, not from the mirror.
+
+### Human-only steps for the mirror (one time)
+
+1. **Create the repository.** Done 2026-10-06: `upyesp/epher.nvim` is
+   public, created empty; the first content push landed the same day
+   from the merged monorepo main.
+2. **Mint the token.** github.com, Settings, Developer settings,
+   Personal access tokens, Fine-grained tokens: repository access
+   limited to `upyesp/epher.nvim`, permission Contents: Read and
+   write. Store it as `NVIM_PACKAGE_TOKEN` in the `stores`
+   environment (`gh secret set NVIM_PACKAGE_TOKEN --env stores`).
+
+## Re-submitting to awesome-neovim (held until the mirror is retested)
+
+The first PR (#2532) is closed; etiquette is a fresh
+PR, not a reopen, and the maintainer's 1-week dispute window has
+passed. The fresh PR, once the mirror is approved for submission:
+
+- Title: `Add \`upyesp/epher.nvim\`` (one plugin per PR).
+- Section: Languages, next to the other language-support entries.
+- Entry line, same compliant wording as before:
+
+  - [upyesp/epher.nvim](https://github.com/upyesp/epher.nvim) - Calculator language with answers inline, LSP server glue, and syntax for `.epher` scripts.
+
+- The reviewer clicks through: the mirror's landing page says Neovim
+  in line 1, carries installer snippets (lazy.nvim, rocks.nvim),
+  screenshots, and the license. Every acceptance criterion in
+  `MAINTAINERS.md` is visible from the first screen.
+- The repo must be at least a week old at merge time; expect the
+  `pending-merge` label, approval first, merge after the week.

@@ -413,3 +413,97 @@ All fetched 2026-09-29 unless noted.
 29. Listing-copy source and sync precedent: `clients/vscode/README.md` ("the grammar and snippets are copies of clients/shared … edit there, never the copies")
 30. ADR-0066 (ready-made configs, version-locked clients, not shipped plugins): `docs/adr/0066-ide-extensions-speak-one-lsp-server.md`
 31. GitHub social preview check: https://github.com/upyesp/epher (og:image = auto-generated `opengraph.githubassets.com` card, no custom preview set)
+
+---
+
+## Addendum (2026-10-06): the first awesome-neovim rejection, and the mirror decision
+
+### What happened
+
+PR [rockerBOO/awesome-neovim#2532](https://github.com/rockerBOO/awesome-neovim/pull/2532)
+("Add \`upyesp/epher\`", opened 2026-09-30) added epher to the
+Programming Languages Support section with a fully checklist-compliant
+line, and was closed the same day by maintainer DrKJeff16:
+
+> The repository does not state Neovim support anywhere, rejecting.
+
+The objection is factually correct: the PR linked the monorepo root
+(`github.com/upyesp/epher`), and the root README contained no mention
+of Neovim, nvim, or Vim (the Neovim client lives at `clients/nvim`,
+one level down, invisible from the landing page). Every neighboring
+entry in the section (`redpierrot/ballerina.nvim`,
+`simonwinther/cppman.nvim`, `jgonmor16/hdlsnip.nvim`) links a
+dedicated plugin repository named `*.nvim` whose landing page is a
+Neovim plugin page. The list line itself passed every template lint;
+the failure was the link target.
+
+The PR was closed outright (not "changes requested"), so the
+maintainers' one-week dispute window has no foothold: the etiquette
+here is a fresh PR once the target repository is right.
+
+### What the reviewers actually require (MAINTAINERS.md, acceptance criteria)
+
+- Must be Neovim-specific (compatible and usable in Neovim).
+- Must be functional and usable (proven-broken plugins are excluded).
+- Must carry an open-source license (MIT or Apache 2.0 recommended
+  where missing).
+- Should have a quality README with sufficiently detailed
+  installation/usage instructions.
+- Should be actively maintained (recent commits).
+- Should be at least a week old; younger plugins get the
+  `pending-merge` label: approval now, merge after the week.
+
+Etiquette (CONTRIBUTING.md + the PR template): title
+`Add \`username/repo\``, one plugin per PR, no "plugin"/"Neovim" in
+the description line, no emojis, `Neovim`/`Vim`/`Lua`/`Tree-sitter`
+capitalized, acronyms uppercase, lines end with a period.
+
+### How the five most popular plugins are built, and why they pass
+
+| plugin | stars (2026-10-06) | list section | structure |
+| --- | --- | --- | --- |
+| folke/lazy.nvim | 21,630 | Plugin Manager | `lua/lazy/`, `doc/lazy.nvim.txt`, `lua/lazy/health.lua`, LuaRocks, own site |
+| nvim-telescope/telescope.nvim | 19,814 | Fuzzy Finder | `lua/telescope/`, `plugin/telescope.lua`, `doc/telescope.txt`, health, LuaRocks |
+| nvim-treesitter/nvim-treesitter | 14,439 | Syntax | `lua/nvim-treesitter/`, three `plugin/*.lua`, `doc/nvim-treesitter.txt`, health |
+| neovim/nvim-lspconfig | 13,968 | LSP | `lua/lspconfig/`, `plugin/lspconfig.lua`, three doc files, health |
+| mason-org/mason.nvim | 10,502 | LSP | `lua/mason/`, `doc/mason.txt`, health |
+
+The common pattern is structural, not stylistic: one dedicated
+Neovim-branded repository per plugin, Neovim named on the first
+screen, installer snippets, vimdoc under `doc/`, a `:checkhealth`
+module, a license, and a one-line list entry. None link a monorepo
+subdirectory.
+
+### The decision: a dedicated mirror repository
+
+`clients/nvim` already has the exact runtime layout Neovim's own
+`lua-plugin.txt` prescribes (`ftdetect/ ftplugin/ syntax/ lua/`), a
+license, an active train, and a published LuaRocks rock. What it could
+not satisfy was presentational: a landing page of its own. So the
+channel gains `upyesp/epher.nvim`, a synced mirror repository on the
+LSP-epher precedent (a registry mirror, not a separately versioned
+product; ADR-0066's version-locking is preserved and the mirror's tags
+mirror the monorepo's `v*` tags):
+
+- `clients/nvim/listing/assemble-repo.sh` assembles the tree (runtime
+  directories, `lua/`, `doc/epher.txt`, `images/`, the listing copy of
+  the README cut at the `## Maintainer note` divider, LICENSE).
+- `.github/workflows/epher-nvim-publish.yml` syncs the tree and the
+  matching tag on every `v*` push, gated on `NVIM_PACKAGE_TOKEN` in
+  the `stores` environment.
+- `clients/nvim/lua/epher/health.lua` and `clients/nvim/doc/epher.txt`
+  were added to the client itself, so the mirror, the zip, and the
+  rock all carry them.
+
+The fresh awesome-neovim PR (title `Add \`upyesp/epher.nvim\``, same
+compliant entry line, Languages section) is deliberately held until
+the mirror has been retested by hand; the repo's one-week age
+requirement starts at creation, so opening the PR later costs nothing.
+
+### Monorepo-root visibility (fixed for every channel)
+
+The root README now carries an "IDE extensions" section: an
+editor-to-install-source table naming Neovim (the mirror, plus the
+rock), Vim (vim.org), Sublime (LSP-epher), and the rest. This is the
+literal rejection reason, fixed at the surface every reviewer, every
+directory crawler, and every store listing lands on.
