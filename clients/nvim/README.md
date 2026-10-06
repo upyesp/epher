@@ -108,7 +108,10 @@ entry does the rtp part for you:
 
 ## Getting the server binary
 
-Download the asset for your platform from the
+Required prerequisite: epher-lsp. Without it, Neovim only highlights
+.epher files — the inline answers, diagnostics, hover, and the results
+window all come from the server. Download the asset for your operating
+system from the
 [releases page](https://github.com/upyesp/epher/releases/latest),
 uncompress it, and mark it executable:
 

@@ -252,3 +252,16 @@ login, form echo, multipart POST, versions-table verification,
 `--dry-run`) called by `.github/workflows/vim-publish.yml` on `v*`
 tags; credentials live in the stores environment as
 `VIMORG_USERNAME` / `VIMORG_PASSWORD`.
+
+### Version history and deletion (2026-10-05)
+
+Keeping every version is the site's norm: the top-rated scripts expose
+20–45 downloadable versions in their tables (taglist 20, The NERD tree
+45, snipMate 23, rails.vim 39, vimwiki 45, ctrlp 9; counted from the
+download_script.php links on each page). Deletion is self-serve for
+the owner: logged in, each row of the script's versions table carries
+a delete icon pointing at `del_script_version.php?script_source_id=<id>`
+(owner view only — anonymous pages show no such links). The site help
+(huh.php) documents upload and update but not deletion. epher keeps
+its rows: the 0.5.57 package is the runtime matching epher 0.5.57, and
+history is what the channel is for. No pruning is automated.

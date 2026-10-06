@@ -386,6 +386,21 @@ def main():
                     seen.add(stripped)
                     print(stripped)
         print("--- end versions table lines ---")
+        # what does the edit-details form look like?
+        _, edit_page = browser.get(f"{BASE}/scripts/edit_script.php"
+                                   f"?script_id={cfg['script_id']}")
+        anchor = edit_page.find("description")
+        if anchor < 0:
+            anchor = edit_page.find("<textarea")
+        if anchor >= 0:
+            start = edit_page.rfind("<form", 0, anchor)
+            end = edit_page.find("</form>", anchor)
+            print("--- raw edit-details form ---")
+            print(edit_page[start:end + 7] if start >= 0 and end >= 0
+                  else "(bounds not found)")
+            print("--- end raw edit-details form ---")
+        else:
+            print("--- edit_details form not reachable/recognizable ---")
     form = find_upload_form(parse_forms(page))
     fields, file_field, overrides, notes_done = plan_upload(
         form, cfg["zip"], cfg["version"], cfg["vim_version"], cfg["notes"])

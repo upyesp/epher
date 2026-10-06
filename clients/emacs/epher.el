@@ -5,7 +5,7 @@
 ;; SPDX-License-Identifier: MIT
 ;; This file is distributed under the MIT License. The full text is in
 ;; the LICENSE file at the root of this repository.
-;; Version: 0.5.62
+;; Version: 0.5.64
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: languages
 ;; URL: https://github.com/upyesp/epher
@@ -31,8 +31,13 @@
 ;;   produced is saved as an SVG file and opened with the system
 ;;   viewer.  `g' in the results buffer re-runs, `q' closes it.
 ;;
-;; The server binary (`epher-lsp') is a separate download from the
-;; releases page; the README has the lines per platform.
+;; Required prerequisite: the `epher-lsp' server binary. Without it,
+;; epher files only get highlighting; the inline answers, diagnostics,
+;; and script runs all come from the server. Download the build for
+;; your operating system from the releases page; per-platform
+;; instructions are in the README and on the epher website, in the Any
+;; LSP client section of the IDE Extensions page:
+;; <https://epher.org/ide.html#any-ide>
 
 ;;; Code:
 
@@ -48,8 +53,10 @@
 
 (defcustom epher-server-program '("epher-lsp")
   "Command that starts the epher language server.
-A list of strings, argv style.  The binary comes from the epher
-releases page; see the README."
+A list of strings, argv style.  Required prerequisite for everything
+beyond highlighting: download the binary for your operating system
+from the epher releases page; see the README and the epher website's
+IDE Extensions page (Any LSP client section)."
   :type '(repeat string)
   :group 'epher)
 

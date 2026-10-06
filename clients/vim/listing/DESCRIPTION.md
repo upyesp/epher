@@ -44,8 +44,18 @@ is set and Vim runs as Vim9 with virtual text. Neovim has its native
 glue in the repository's clients/nvim directory; its README has the
 setup lines.
 
-The server binary is a separate download from the releases page:
+Required prerequisite: the epher-lsp language server. Without it,
+.epher files get highlighting only — the inline answers, diagnostics,
+hover, completion, and script runs all come from the server. Download
+the build for your operating system from the releases page and put it
+on your PATH:
+
 https://github.com/upyesp/epher/releases
+
+Per-platform server-install instructions are on the epher website, in
+the Any LSP client section of the IDE Extensions page:
+
+https://epher.org/ide.html#any-ide
 
 Install:
 - copy the ftdetect, syntax, and ftplugin directories into ~/.vim/
