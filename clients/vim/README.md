@@ -52,10 +52,16 @@ if executable('epher-lsp')
 endif
 ```
 
-Getting the binary: download `epher-lsp-<target>` for your platform
-from the releases page (`https://github.com/upyesp/epher/releases`),
-uncompress it, and put it on your PATH or name the path in the
-`cmd` line above.
+Required prerequisite: the `epher-lsp` language server. Without it,
+.epher files get highlighting only — the inline answers, diagnostics,
+hover, and `:EpherRun` all come from the server. Download the build
+for your operating system from the
+[releases page](https://github.com/upyesp/epher/releases), uncompress
+it, and put it on your PATH or name the path in the `cmd` line above.
+
+Per-platform server-install instructions live on the epher website, in
+the [Any LSP client section](https://epher.org/ide.html#any-ide) of
+the IDE Extensions page.
 
 ## Running scripts
 
