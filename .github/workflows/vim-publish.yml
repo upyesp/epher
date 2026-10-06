@@ -29,13 +29,14 @@ on:
         required: false
         type: string
       mode:
-        description: "dry parses the form only; upload publishes for real"
+        description: "dry parses only; upload publishes a version; details rewrites the listing text"
         required: false
         type: choice
         default: dry
         options:
           - dry
           - upload
+          - details
 
 jobs:
   vimorg:
@@ -69,8 +70,8 @@ jobs:
         # trips vim.org's silent upload cap; vim.org gets the lean package.
         # Catch-up uploads build from inputs.ref (a tag) via git archive, so
         # the checkout itself stays on the ref that carries this workflow
-        # and the uploader script.
-        if: steps.gate.outputs.skip != 'true'
+        # and the uploader script. Details mode ships no package.
+        if: steps.gate.outputs.skip != 'true' && inputs.mode != 'details'
         env:
           INPUT_REF: ${{ inputs.ref }}
         run: |
@@ -112,6 +113,10 @@ jobs:
           if [ "$MODE" = "dry" ]; then
             echo "dry run only, nothing will be uploaded"
             python3 clients/vim/listing/publish-vimorg.py --dry-run
+          elif [ "$MODE" = "details" ]; then
+            echo "details mode: rewriting the listing text from DESCRIPTION.md"
+            python3 clients/vim/listing/publish-vimorg.py \
+              --details clients/vim/listing/DESCRIPTION.md
           else
             # tag pushes land here (MODE empty): the real upload
             python3 clients/vim/listing/publish-vimorg.py
