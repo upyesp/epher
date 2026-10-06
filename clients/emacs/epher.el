@@ -37,7 +37,7 @@
 ;; your operating system from the releases page; per-platform
 ;; instructions are in the README and on the epher website, in the Any
 ;; LSP client section of the IDE Extensions page:
-;; <https://epher.org/ide.html#any-ide>
+;; <https://epher.org/ide.html#any-lsp>
 
 ;;; Code:
 
