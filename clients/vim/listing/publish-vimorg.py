@@ -375,6 +375,17 @@ def main():
             print("--- end raw form ---")
         else:
             print("--- no script_file anywhere on the page ---")
+        # what does the logged-in script page expose per version?
+        _, own_page = browser.get(script_url)
+        print("--- logged-in versions table lines ---")
+        seen = set()
+        for line in own_page.splitlines():
+            if re.search(r"download_script\.php|delete|add_script_version|edit_", line, re.I):
+                stripped = line.strip()[:250]
+                if stripped and stripped not in seen:
+                    seen.add(stripped)
+                    print(stripped)
+        print("--- end versions table lines ---")
     form = find_upload_form(parse_forms(page))
     fields, file_field, overrides, notes_done = plan_upload(
         form, cfg["zip"], cfg["version"], cfg["vim_version"], cfg["notes"])
