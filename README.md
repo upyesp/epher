@@ -62,6 +62,27 @@ epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/full-moo
 
 ---
 
+## IDE extensions
+
+epher ships ready-made clients for the common editors. The `epher-lsp`
+language server is one download for all of them; per-platform install
+instructions are on [epher.org/ide](https://epher.org/ide.html#any-lsp).
+
+| editor | install from |
+| --- | --- |
+| VS Code | [the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=upyesp.epher) |
+| Cursor, VSCodium | [the Open VSX Registry](https://open-vsx.org/extension/upyesp/epher) |
+| JetBrains IDEs | [the JetBrains Marketplace](https://plugins.jetbrains.com/plugin/34631-epher) |
+| Visual Studio 2022 | [the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=upyesp.EpherVisualStudio) |
+| Zed | [the dev-extension source](https://github.com/upyesp/epher/tree/main/clients/zed) |
+| Neovim | [upyesp/epher.nvim](https://github.com/upyesp/epher.nvim), or `:Rocks install epher` from [luarocks.org](https://luarocks.org/modules/upyesp/epher) |
+| Vim | [vim.org](https://www.vim.org/scripts/script.php?script_id=6195) |
+| Sublime Text | [upyesp/LSP-epher](https://github.com/upyesp/LSP-epher) |
+| Emacs | [`epher-emacs.zip`](https://github.com/upyesp/epher/releases/latest/download/epher-emacs.zip) from the releases page |
+| Eclipse | [`epher-eclipse.jar`](https://github.com/upyesp/epher/releases/latest/download/epher-eclipse.jar) from the releases page |
+
+---
+
 ## More Information
 
 - **[User guide](https://epher.org/guide/en/)**: the language, the frontends, and your data, in eight languages

@@ -250,27 +250,43 @@
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-zed.zip" data-i18n="ide-zed-link">Download epher-zed.zip</a>
       </p>
 
-      <h2><img class="ide-logo" src="ide-logos/neovim.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-nvim-vim-title">Neovim and Vim</span></h2>
-      <p data-i18n="ide-nvim-vim-p1">
+      <h2><img class="ide-logo" src="ide-logos/neovim.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-nvim-title">Neovim</span></h2>
+      <p data-i18n="ide-nvim-p1">
         Ready-made config files: filetype detection, syntax, and the
         LSP wiring around the same release binary. Point your
         runtimepath at the folder and call `require("epher").setup()`
         on Neovim 0.11 or newer.
       </p>
-      <p data-i18n="ide-nvim-vim-p2">
-        On Neovim, `:EpherRun` runs the script and opens a
-        results window beside it; every graph is written as
-        an SVG and opened with the system viewer. Vim keeps
-        the syntax and LSP wiring, and its run support
-        follows.
+      <p data-i18n="ide-nvim-p2">
+        `:EpherRun` runs the script and opens a results window
+        beside it; every graph is written as an SVG and opened
+        with the system viewer.
       </p>
-      <p class="prereq" data-i18n="ide-nvim-vim-prereq">
+      <p class="prereq" data-i18n="ide-nvim-prereq">
         Prerequisite: the `epher-lsp` server binary, installed once and on your PATH: see Any LSP client below.
       </p>
       <p>
         <a href="https://github.com/upyesp/epher/releases/latest/download/epher-nvim.zip" data-i18n="ide-nvim-link">Download epher-nvim.zip</a>
-        ·
-        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-vim.zip" data-i18n="ide-vim-link">Download epher-vim.zip</a>
+      </p>
+
+      <h2><img class="ide-logo" src="ide-logos/vim.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vim-title">Vim</span></h2>
+      <p data-i18n="ide-vim-p1">
+        Ready-made config files: filetype detection, syntax, and the
+        LSP wiring around the same release binary, through the
+        vim-lsp plugin (with its async.vim dependency). Register the
+        server once in your vimrc: diagnostics, hover, completion,
+        and the `:EpherRun` results pane follow.
+      </p>
+      <p data-i18n="ide-vim-p2">
+        The inline answers appear as inlay hints when vim-lsp renders
+        them: set `g:lsp_inlay_hints_enabled` and run Vim 9 with
+        virtual text.
+      </p>
+      <p class="prereq" data-i18n="ide-vim-prereq">
+        Prerequisite: the `epher-lsp` server binary, installed once and on your PATH: see Any LSP client below.
+      </p>
+      <p>
+        <a href="https://www.vim.org/scripts/script.php?script_id=6195" data-i18n="ide-vim-link">epher on vim.org</a>
       </p>
 
       <h2><img class="ide-logo" src="ide-logos/sublime.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-sublime-title">Sublime Text</span></h2>

@@ -1,0 +1,99 @@
+name: epher.nvim publish
+
+# The Neovim listing channel (clients/nvim) ships from its own
+# repository, upyesp/epher.nvim: plugin discovery in the Neovim
+# ecosystem points at one dedicated repository per plugin whose root
+# holds the plugin and whose landing page names Neovim
+# (docs/research/neovim-publishing.md; the awesome-neovim rejection of
+# PR #2532 was the monorepo root without a Neovim mention).
+#
+# This workflow is intentionally NOT called by release.yml: it triggers
+# on the v* tag itself, because the tag is the whole input. It
+# reassembles the plugin tree with clients/nvim/listing/assemble-repo.sh,
+# pushes it to upyesp/epher.nvim, and pushes the matching v<version>
+# tag. The mirror's tags mirror the monorepo's; rocks.nvim users
+# install the LuaRocks rock instead, which luarocks-publish.yml cuts
+# from the same clients/nvim tree.
+#
+# The gated secret is a fine-grained GitHub PAT with contents: read/write
+# on upyesp/epher.nvim only, stored as NVIM_PACKAGE_TOKEN in the stores
+# environment; the job prints a notice and skips while it is absent (the
+# same gate pattern as sublime-publish.yml). Nothing about the channel
+# waits on it.
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  epher-nvim:
+    name: sync upyesp/epher.nvim
+    environment: stores
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secrets check
+        id: secrets
+        env:
+          NVIM_PACKAGE_TOKEN: ${{ secrets.NVIM_PACKAGE_TOKEN }}
+        run: |
+          if [ -n "$NVIM_PACKAGE_TOKEN" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::epher.nvim publish skipped: set the NVIM_PACKAGE_TOKEN secret in the stores environment (see clients/nvim/listing/SUBMISSION.md)."
+          fi
+
+      - name: Check the tag matches the release version
+        # Runs even when the sync is skipped: a tag that does not match the
+        # release train is a defect at tag time either way.
+        run: |
+          set -e
+          version="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "tag ${GITHUB_REF_NAME} does not match the release version v${version}" >&2
+            exit 1
+          fi
+
+      - name: Assemble the plugin tree
+        if: steps.secrets.outputs.skip == 'false'
+        run: clients/nvim/listing/assemble-repo.sh "$RUNNER_TEMP/epher.nvim"
+
+      - name: Push the tree and the tag to upyesp/epher.nvim
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          NVIM_PACKAGE_TOKEN: ${{ secrets.NVIM_PACKAGE_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          remote="https://x-access-token:${NVIM_PACKAGE_TOKEN}@github.com/upyesp/epher.nvim.git"
+          git clone -q "$remote" repo
+          cd repo
+          git config user.name upyesp
+          git config user.email upyesp@users.noreply.github.com
+
+          # A version publishes once: a tag that already exists upstream is
+          # never re-pointed (SUBMISSION.md, the channel's release rules).
+          if git rev-parse -q --verify "refs/tags/v${version}" >/dev/null; then
+            echo "upyesp/epher.nvim already carries v${version}; nothing to do" >&2
+            exit 1
+          fi
+
+          # Replace the tracked content with the assembled tree, keeping the
+          # repository history linear.
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$RUNNER_TEMP/epher.nvim/." .
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "::notice::upyesp/epher.nvim already matches the assembled tree; pushing the tag only"
+          else
+            git commit -q -m "epher.nvim ${version}: sync from epher ${GITHUB_REF_NAME}"
+            git push -q origin main
+          fi
+          git tag "v${version}"
+          git push -q origin "v${version}"

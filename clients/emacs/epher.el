@@ -5,7 +5,7 @@
 ;; SPDX-License-Identifier: MIT
 ;; This file is distributed under the MIT License. The full text is in
 ;; the LICENSE file at the root of this repository.
-;; Version: 0.5.64
+;; Version: 0.5.65
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: languages
 ;; URL: https://github.com/upyesp/epher

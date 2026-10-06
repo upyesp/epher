@@ -13,6 +13,7 @@ the supported editors.
 | jetbrains.png | GitHub org avatar (github.com/JetBrains) |
 | zed.png | Wikimedia Commons, "Zed Editor Logo" |
 | neovim.svg | devicon (RawGNX neovim icon), raw.githubusercontent.com/devicons/devicon/master/icons/neovim/neovim-original.svg, square mark without wordmark |
+| vim.svg | simple-icons, cdn.simpleicons.org/vim, square mark without wordmark |
 | sublime.svg | simple-icons, cdn.simpleicons.org/sublimetext, square mark without wordmark |
 | emacs.svg | Wikimedia Commons, "EmacsIcon" |
 | visualstudio.svg | visualstudio.microsoft.com product icon |

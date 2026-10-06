@@ -11,9 +11,9 @@ Download the [epher calculator](https://epher.org), and a large
 selection of [ready-made scripts](https://epher.org/scripts.html) from
 epher.org.
 
-![A script computing Earth's circumference, the discriminant of a quadratic, and a speed converted from miles to kilometers per hour, each line's answer shown inline](https://github.com/upyesp/epher/raw/HEAD/clients/nvim/images/editor.png)
+![A script computing Earth's circumference, the discriminant of a quadratic, and a speed converted from miles to kilometers per hour, each line's answer shown inline](images/editor.png)
 
-![The demo script typed live, each line's answer appearing as it completes](https://github.com/upyesp/epher/raw/HEAD/clients/nvim/images/demo.gif)
+![The demo script typed live, each line's answer appearing as it completes](images/demo.gif)
 
 Type a formula and the answer is already there. No runnable repl in a
 side panel, no print statements: the editor *is* the calculator.
@@ -33,13 +33,13 @@ side panel, no print statements: the editor *is* the calculator.
   your own functions show their definitions, catalog functions show
   their docs.
 
-![Hovering a defined name shows its signature and current value](https://github.com/upyesp/epher/raw/HEAD/clients/nvim/images/hover.png)
+![Hovering a defined name shows its signature and current value](images/hover.png)
 
 - **Completion**: the whole catalog (math, astronomy, statistics),
   your own definitions, keywords, and snippets for the common
   statement shapes.
 
-![Completion offers a catalog name with its documentation](https://github.com/upyesp/epher/raw/HEAD/clients/nvim/images/completion.png)
+![Completion offers a catalog name with its documentation](images/completion.png)
 
 - **Definition jumps**: `<C-]>`-style jumps for names defined in the
   file.
@@ -51,7 +51,7 @@ side panel, no print statements: the editor *is* the calculator.
   })` puts the results in a floating window instead of a vertical
   split.
 
-![The results window after :EpherRun, with the transcript and the graph path](https://github.com/upyesp/epher/raw/HEAD/clients/nvim/images/results.png)
+![The results window after :EpherRun, with the transcript and the graph path](images/results.png)
 
 - **Highlighting**: Neovim's syntax engine does not consume LSP
   semantic tokens today, so coloring comes from the shared regex
@@ -60,7 +60,18 @@ side panel, no print statements: the editor *is* the calculator.
 
 ## Install
 
-From luarocks.org with rocks.nvim, once the rock is published:
+With [lazy.nvim](https://github.com/folke/lazy.nvim):
+
+```lua
+{
+  "upyesp/epher.nvim",
+  config = function()
+    require("epher").setup({ cmd = { "epher-lsp" } })
+  end,
+}
+```
+
+From luarocks.org with rocks.nvim:
 
 ```vim
 :Rocks install epher
@@ -78,7 +89,7 @@ The rock packages this directory plus the shared runtime files, so
 rocks.nvim's runtimepath handling finds the ftdetect, ftplugin, and
 syntax directories. rocks.nvim requires Neovim 0.10 or newer.
 
-From this repository, today:
+From an epher checkout, the same files live at `clients/nvim`:
 
 ```lua
 -- anywhere in your config, after lazy-loading is fine
@@ -92,19 +103,6 @@ require("epher").setup({
 `clients/nvim` carries the synced runtime files itself, so appending
 only `clients/nvim` is enough; appending `clients/vim` as well (the
 original two-path setup) keeps working unchanged.
-
-With [lazy.nvim](https://github.com/folke/lazy.nvim), a local plugin
-entry does the rtp part for you:
-
-```lua
-{
-  dir = "~/code/epher/clients/nvim",
-  config = function()
-    vim.opt.rtp:append(vim.fn.expand("~/code/epher/clients/vim"))
-    require("epher").setup({ cmd = { vim.fn.expand("~/bin/epher-lsp") } })
-  end,
-}
-```
 
 ## Getting the server binary
 
@@ -145,3 +143,11 @@ None. Everything evaluates on your machine.
 ## License
 
 [MIT](https://github.com/upyesp/epher/blob/main/LICENSE)
+
+## Maintainer note
+
+This repository is a synced mirror of `clients/nvim` in
+[upyesp/epher](https://github.com/upyesp/epher), assembled by
+`clients/nvim/listing/assemble-repo.sh` on every epher release train;
+its tags mirror the monorepo's `v*` tags. Do not edit here: changes
+land in the monorepo first.
