@@ -252,17 +252,10 @@ def plan_upload(form, zip_path, version, vim_version, release_notes):
             if name:
                 fields.append((name, i["value"]))
     # send exactly one submit: the first that does not look like a cancel
-    submits = [i for i in form.inputs
-               if i["type"] in ("submit", "button") and i["name"]]
-    primary = next((i for i in submits
-                    if i["value"].lower() not in ("cancel", "back", "reset")),
-                   None)
+    primary = pick_primary_submit(form)
     if primary is not None:
         fields.append((primary["name"], primary["value"]))
-        others = [i["value"] for i in submits if i is not primary]
-        overrides.append((primary["name"],
-                          f"(submit; not sent: {others})" if others else "(submit)",
-                          primary["value"]))
+        overrides.append((primary["name"], "(submit)", primary["value"]))
     for name, options in form.selects.items():
         if "vim" in name.lower():
             chosen = pick_vim_version(options, vim_version)
@@ -298,18 +291,94 @@ def page_summary(page, limit=400):
     return title, text[:limit]
 
 
+def find_details_form(forms):
+    for form in forms:
+        if "description" in form.textareas:
+            return form
+    return None
+
+
+def pick_primary_submit(form):
+    """The one submit a browser would send: the first that does not look
+    like a cancel."""
+    submits = [i for i in form.inputs
+               if i["type"] in ("submit", "button") and i["name"]]
+    return next((i for i in submits
+                 if i["value"].lower() not in ("cancel", "back", "reset")),
+                None)
+
+
+def split_listing(md_text):
+    """Split listing/DESCRIPTION.md into (description, install_details):
+    everything below the '---' separator, with the Install block moved
+    to install details."""
+    lines = md_text.splitlines()
+    for i, l in enumerate(lines):
+        if l.strip() == "---":
+            lines = lines[i + 1:]
+            break
+    body, install, in_install = [], [], False
+    for l in lines:
+        if not in_install and l.strip() == "Install:":
+            in_install = True
+            install.append(l)
+        elif in_install and re.match(r"^[A-Za-z]", l):
+            in_install = False
+            body.append(l)
+        elif in_install:
+            install.append(l)
+        else:
+            body.append(l)
+    return "\n".join(body).strip(), "\n".join(install).strip()
+
+
+def plan_details(form, new_desc, new_install):
+    fields = []
+    overrides = []
+    for i in form.inputs:
+        name, typ = i["name"], i["type"]
+        if typ in ("submit", "button"):
+            continue
+        elif typ == "hidden":
+            fields.append((name, i["value"]))
+        elif typ == "text":
+            fields.append((name, i["value"]))
+        elif typ in ("checkbox", "radio"):
+            if i["checked"] and name:
+                fields.append((name, i["value"]))
+        elif name:
+            fields.append((name, i["value"]))
+    for name, content in form.textareas.items():
+        if name == "description":
+            fields.append((name, new_desc))
+            overrides.append((name, f"(was {len(content)} chars)",
+                              f"{len(new_desc)} chars"))
+        elif "install" in name.lower():
+            fields.append((name, new_install))
+            overrides.append((name, f"(was {len(content)} chars)",
+                              f"{len(new_install)} chars"))
+        else:
+            fields.append((name, content))
+    primary = pick_primary_submit(form)
+    if primary is not None:
+        fields.append((primary["name"], primary["value"]))
+        overrides.append((primary["name"], "(submit)", primary["value"]))
+    return fields, overrides
+
+
 def multipart_body(fields, file_field, boundary):
     out = bytearray()
     for name, value in fields:
         out += (f"--{boundary}\r\n"
                 f'Content-Disposition: form-data; name="{name}"\r\n\r\n'
                 f"{value}\r\n").encode("utf-8")
-    name, filename, content, ctype = file_field
-    out += (f"--{boundary}\r\n"
-            f'Content-Disposition: form-data; name="{name}"; '
-            f'filename="{filename}"\r\n'
-            f"Content-Type: {ctype}\r\n\r\n").encode("utf-8")
-    out += content + b"\r\n"
+    if file_field is not None:
+        name, filename, content, ctype = file_field
+        out += (f"--{boundary}\r\n"
+                f'Content-Disposition: form-data; name="{name}"; '
+                f'filename="{filename}"\r\n'
+                f"Content-Type: {ctype}\r\n\r\n").encode("utf-8")
+        out += content + b"\r\n"
     out += f"--{boundary}--\r\n".encode("utf-8")
     return bytes(out)
 
@@ -317,6 +386,13 @@ def multipart_body(fields, file_field, boundary):
 def main():
     args = sys.argv[1:]
     dry_run = "--dry-run" in args
+    details_file = None
+    if "--details" in args:
+        i = args.index("--details")
+        details_file = args[i + 1] if i + 1 < len(args) else None
+        if not details_file:
+            print("error: --details needs the listing DESCRIPTION.md path")
+            sys.exit(2)
     cfg = {
         "username": os.environ.get("VIMORG_USERNAME", ""),
         "password": os.environ.get("VIMORG_PASSWORD", ""),
@@ -326,21 +402,29 @@ def main():
         "vim_version": os.environ.get("VIM_VERSION", VIM_VERSION_DEFAULT),
         "notes": os.environ.get("RELEASE_NOTES", ""),
     }
-    missing = [k for k in ("username", "password", "zip", "version")
-               if not cfg[k]]
-    if missing:
-        print("error: missing environment: " + ", ".join(missing))
-        print("set VIMORG_USERNAME, VIMORG_PASSWORD, ZIP, VERSION "
-              "(VIM_VERSION, VIMORG_SCRIPT_ID, RELEASE_NOTES optional)")
+    if not cfg["username"] or not cfg["password"]:
+        print("error: missing environment: VIMORG_USERNAME, VIMORG_PASSWORD")
         sys.exit(2)
-    if not os.path.isfile(cfg["zip"]):
-        print(f"error: ZIP not found: {cfg['zip']}")
-        sys.exit(2)
-    size = os.path.getsize(cfg["zip"])
-    if size > ZIP_WARN_BYTES:
-        print(f"warning: the zip is {size} bytes; vim.org silently rejects "
-              "packages over its upload cap (largest hosted today ~163K). "
-              "Ship the lean zip, not the full release artifact.")
+    if details_file:
+        if not os.path.isfile(details_file):
+            print(f"error: details file not found: {details_file}")
+            sys.exit(2)
+    else:
+        missing = [k for k in ("zip", "version") if not cfg[k]]
+        if missing:
+            print("error: missing environment: " + ", ".join(missing))
+            print("set ZIP and VERSION (VIM_VERSION, VIMORG_SCRIPT_ID, "
+                  "RELEASE_NOTES optional)")
+            sys.exit(2)
+        if not os.path.isfile(cfg["zip"]):
+            print(f"error: ZIP not found: {cfg['zip']}")
+            sys.exit(2)
+        size = os.path.getsize(cfg["zip"])
+        if size > ZIP_WARN_BYTES:
+            print(f"warning: the zip is {size} bytes; vim.org silently "
+                  "rejects packages over its upload cap (largest hosted "
+                  "today ~163K). Ship the lean zip, not the full release "
+                  "artifact.")
 
     script_url = f"{BASE}/scripts/script.php?script_id={cfg['script_id']}"
     browser = Browser()
@@ -348,6 +432,48 @@ def main():
     print(f"logging in to vim.org as {cfg['username']}")
     login(browser, cfg["username"], cfg["password"])
     print("login ok (session cookie received)")
+
+    if details_file:
+        with open(details_file) as f:
+            new_desc, new_install = split_listing(f.read())
+        edit_url = (f"{BASE}/scripts/edit_script.php"
+                    f"?script_id={cfg['script_id']}")
+        _, page = browser.get(edit_url)
+        form = find_details_form(parse_forms(page))
+        if form is None:
+            fail("the edit-details form is not reachable with this session",
+                 "The page has no description textarea; the site may have "
+                 "changed.")
+        fields, overrides = plan_details(form, new_desc, new_install)
+        print("edit-details form, planned fields:")
+        for name, old, new in overrides:
+            shown = new if len(new) <= 60 else new[:57] + "..."
+            print(f"  {name}: {old!r} -> {shown!r}")
+        if dry_run:
+            print("dry run: details planned; nothing saved")
+            return
+        boundary = "----epher" + uuid.uuid4().hex
+        body = multipart_body(fields, None, boundary)
+        action = urllib.parse.urljoin(edit_url, form.action or edit_url)
+        print(f"posting {len(body)} bytes to {action}")
+        _, response = browser.post(action, body,
+                                   f"multipart/form-data; boundary={boundary}",
+                                   referer=edit_url)
+        print("response page:", " | ".join(page_summary(response)))
+        if find_details_form(parse_forms(response)) is not None:
+            fail("vim.org re-rendered the edit form; the update was not "
+                 "saved", "Inspect the response above.")
+        _, page2 = browser.get(edit_url)
+        form2 = find_details_form(parse_forms(page2))
+        got = form2.textareas if form2 else {}
+        if (got.get("description", "").strip() == new_desc
+                and got.get("install_details", "").strip() == new_install):
+            print("verified: the description and install details now "
+                  "carry the new listing text")
+            return
+        fail("the details update did not round-trip",
+             "The re-fetched form fields do not match what was sent; "
+             "check the response above before re-running.")
 
     _, script_page = browser.get(script_url)
     if cfg["version"] in script_page:
