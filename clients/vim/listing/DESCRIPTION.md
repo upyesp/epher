@@ -45,17 +45,14 @@ glue in the repository's clients/nvim directory; its README has the
 setup lines.
 
 Required prerequisite: the epher-lsp language server. Without it,
-.epher files get highlighting only — the inline answers, diagnostics,
+.epher files get highlighting only.  The inline answers, diagnostics,
 hover, completion, and script runs all come from the server. Download
-the build for your operating system from the releases page and put it
-on your PATH:
-
-https://github.com/upyesp/epher/releases
-
-Per-platform server-install instructions are on the epher website, in
-the Any LSP client section of the IDE Extensions page:
-
-https://epher.org/ide.html#any-ide
+the build for your operating system from the releases page at
+https://github.com/upyesp/epher/releases and put it on your PATH.
+Per-platform install instructions are on the epher website, in the
+Any LSP client section of the IDE Extensions page:
+https://epher.org/ide.html#any-lsp where the PATH setup for every
+operating system is shown.
 
 Install:
 - copy the ftdetect, syntax, and ftplugin directories into ~/.vim/
@@ -73,7 +70,7 @@ server is attached.
 
 What it looks like: the repository has terminal captures of the inline
 answers, hover, completion, and the run results at
-https://github.com/upyesp/epher/tree/main/clients/vim/images
+https://github.com/upyesp/epher/tree/main/clients/vim/images on GitHub.
 
 epher.org has the standalone calculator and a library of ready-made
 scripts: https://epher.org
