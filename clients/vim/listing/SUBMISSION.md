@@ -50,9 +50,10 @@ credentials that own script_id 6195 to the repo's `stores` environment
 as `VIMORG_USERNAME` and `VIMORG_PASSWORD`. Nothing else is secret —
 the script id is public page data.
 
-The pending manual 0.5.59 upload became unnecessary: CI publishes the
-next tag's version directly (the versions table will simply not have a
-0.5.59–0.5.63 row unless one final manual upload fills it).
+The pending manual 0.5.59 upload landed on 2026-10-05 via the catch-up
+dispatch (mode=upload, ref=v0.5.59); the versions table shows 0.5.57,
+0.5.59, then whatever the next train publishes — the skipped 0.5.60–
+0.5.63 rows carried no vim-runtime changes, so there is nothing to fill.
 
 Manual fallback if CI is red: "upload new version" on the script page
 (`add_script_version.php?script_id=6195`), lean zip rebuilt per the

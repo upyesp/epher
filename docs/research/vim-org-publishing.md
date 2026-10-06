@@ -238,6 +238,15 @@ Vim version, the release notes, and the package file); and the CI
 secret is a full account password, a weaker credential than every
 other channel's scoped token. vim.org offers nothing stronger.
 
+The form-driving bit back once, instructively: the version form carries
+two same-named submit buttons (`add_script=upload`,
+`add_script=cancel`); echoing every field sent `cancel` last, and
+PHP's last-value-wins made every POST cancel itself — the server
+greeted each attempt with a friendly redirect and saved nothing. The
+uploader now sends exactly one submit, the way a browser's clicked
+button does. The catch-up upload of the pending 0.5.59 lean zip landed
+on 2026-10-05 (run 37377102581, verified in the versions table).
+
 Implementation: `clients/vim/listing/publish-vimorg.py` (stdlib only:
 login, form echo, multipart POST, versions-table verification,
 `--dry-run`) called by `.github/workflows/vim-publish.yml` on `v*`
