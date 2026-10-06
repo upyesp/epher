@@ -36,9 +36,13 @@ jobs:
           ABODY=$(printf '%s' "$APPS" | sed '$d')
           echo "applications call: HTTP ${ACODE}"
           printf '%s' "$ABODY" > /tmp/apps.json
+          echo "raw body (no secrets): $(printf '%s' "$ABODY" | head -c 600)"
           python3 - <<'PY'
           import json
           d = json.load(open('/tmp/apps.json'))
+          if 'error' in d or 'code' in d:
+              print('API error code:', d.get('code') or d.get('error', {}).get('code'))
+              print('API message:', str(d.get('message') or d.get('error', {}).get('message'))[:300])
           if 'error' in d:
               print('API error:', d['error'].get('code'))
               print('detail:', str(d['error'].get('message'))[:300])
