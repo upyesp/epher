@@ -1,0 +1,50 @@
+name: store api test
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    environment: stores
+    steps:
+      - name: token, then applications
+        env:
+          TENANT: ${{ secrets.MSSTORE_TENANT_ID }}
+          CLIENT: ${{ secrets.MSSTORE_CLIENT_ID }}
+          SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: |
+          set -e
+          RESP=$(curl -s -w "\n%{http_code}" -X POST \
+            "https://login.microsoftonline.com/${TENANT}/oauth2/v2.0/token" \
+            -d grant_type=client_credentials \
+            -d "client_id=${CLIENT}" \
+            -d "client_secret=${SECRET}" \
+            -d "scope=https://manage.devcenter.microsoft.com/.default")
+          CODE=$(printf '%s' "$RESP" | tail -1)
+          BODY=$(printf '%s' "$RESP" | sed '$d')
+          echo "token call: HTTP ${CODE}"
+          if [ "${CODE}" != "200" ]; then
+            printf '%s' "$BODY" | python3 -c "import sys,json;d=json.load(sys.stdin);print('error:',d.get('error'));print('detail:',str(d.get('error_description'))[:200])" || true
+            exit 1
+          fi
+          TOKEN=$(printf '%s' "$BODY" | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+          echo "token received: ${#TOKEN} chars (value not shown)"
+          APPS=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            "https://manage.devcenter.microsoft.com/v1.0/my/applications")
+          ACODE=$(printf '%s' "$APPS" | tail -1)
+          ABODY=$(printf '%s' "$APPS" | sed '$d')
+          echo "applications call: HTTP ${ACODE}"
+          printf '%s' "$ABODY" > /tmp/apps.json
+          python3 - <<'PY'
+          import json
+          d = json.load(open('/tmp/apps.json'))
+          if 'error' in d:
+              print('API error:', d['error'].get('code'))
+              print('detail:', str(d['error'].get('message'))[:300])
+          else:
+              apps = d.get('value', [])
+              print(f'applications visible to this app: {len(apps)}')
+              for a in apps:
+                  print(' -', a.get('id'), '|', a.get('primaryName'))
+          PY
