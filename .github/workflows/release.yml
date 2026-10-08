@@ -84,7 +84,16 @@ jobs:
     # way the snap job pins the version. Flathub publication was
     # dropped (ADR-0061 amendment, 2026-09-18); flatpak-build.yml keeps
     # proving the manifest between releases.
+    #
+    # The arm leg is continue-on-error for now: the release train's
+    # arm builds died on bwrap "Exec format error" on every train from
+    # 0.5.66 to 0.5.69 (two mitigations tried: retries, then cache off),
+    # while the same manifest builds green on the arm runner in
+    # flatpak-build.yml and every other arm channel ships (deb, rpm,
+    # appimage, snap). A failed arm flatpak must not skip the release
+    # attach; when the runner heals the bundle returns automatically.
     name: flatpak (${{ matrix.arch }})
+    continue-on-error: ${{ matrix.arch == 'aarch64' }}
     strategy:
       fail-fast: false
       matrix:
