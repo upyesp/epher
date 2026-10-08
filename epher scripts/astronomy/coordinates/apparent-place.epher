@@ -32,7 +32,7 @@ const ara = 279.23473479      // Vega J2000, degrees
 const ade = 38.78368896
 const pma = 0.201             // arcsec/yr (Hipparcos)
 const pmd = 0.286
-const t = jd(2026, 9, 10, 0)
+const tm = jd(2026, 9, 10, 0)
 
 // ---- helpers ------------------------------------------------------------------------------
 def wrap(x) = x - 360 * floor(x / 360)
@@ -47,12 +47,12 @@ def deps(j) = (9.20 * cos(rad(om(j))) + 0.57 * cos(rad(2 * ls(j))) + 0.10 * cos(
 def sunlon(j) = wrap(280.46646 + 36000.76983 * T(j) + 0.0003032 * T(j) ^ 2 + (1.914602 - 0.004817 * T(j)) * sin(rad(357.52911 + 35999.05029 * T(j) - 0.0001537 * T(j) ^ 2)) + 0.019993 * sin(rad(2 * (357.52911 + 35999.05029 * T(j) - 0.0001537 * T(j) ^ 2))))
 
 // ---- step 1: proper motion and precession J2000 -> mean equinox of date -------------------
-dy = (t - 2451545) / 365.25
+dy = (tm - 2451545) / 365.25
 r0 = ara + pma * dy / 3600 / cos(rad(ade))
 d0 = ade + pmd * dy / 3600
-zc = rad(2306.2181 * T(t) / 3600 + 0.30188 * T(t) ^ 2 / 3600 + 0.017998 * T(t) ^ 3 / 3600)
-z2 = rad(2306.2181 * T(t) / 3600 + 1.09468 * T(t) ^ 2 / 3600 + 0.018203 * T(t) ^ 3 / 3600)
-th = rad(2004.3109 * T(t) / 3600 - 0.42665 * T(t) ^ 2 / 3600 - 0.041833 * T(t) ^ 3 / 3600)
+zc = rad(2306.2181 * T(tm) / 3600 + 0.30188 * T(tm) ^ 2 / 3600 + 0.017998 * T(tm) ^ 3 / 3600)
+z2 = rad(2306.2181 * T(tm) / 3600 + 1.09468 * T(tm) ^ 2 / 3600 + 0.018203 * T(tm) ^ 3 / 3600)
+th = rad(2004.3109 * T(tm) / 3600 - 0.42665 * T(tm) ^ 2 / 3600 - 0.041833 * T(tm) ^ 3 / 3600)
 aa = cos(rad(d0)) * sin(rad(r0) + zc)
 bb = cos(th) * cos(rad(d0)) * cos(rad(r0) + zc) - sin(th) * sin(rad(d0))
 cc = sin(th) * cos(rad(d0)) * cos(rad(r0) + zc) + cos(th) * sin(rad(d0))
@@ -60,8 +60,8 @@ r1 = wrap(deg(atan2(aa, bb)) + deg(z2))
 d1 = deg(asin(cc))
 
 // ---- step 2: nutation (short series) ---------------------------------------------------------
-r2 = r1 + dpsi(t) * (cos(rad(eps0(t))) + sin(rad(eps0(t))) * sin(rad(r1)) * tan(rad(d1))) - deps(t) * cos(rad(r1)) * tan(rad(d1))
-d2 = d1 + dpsi(t) * sin(rad(eps0(t))) * cos(rad(r1)) + deps(t) * sin(rad(r1))
+r2 = r1 + dpsi(tm) * (cos(rad(eps0(tm))) + sin(rad(eps0(tm))) * sin(rad(r1)) * tan(rad(d1))) - deps(tm) * cos(rad(r1)) * tan(rad(d1))
+d2 = d1 + dpsi(tm) * sin(rad(eps0(tm))) * cos(rad(r1)) + deps(tm) * sin(rad(r1))
 
 // ---- step 3: annual aberration toward the apex ------------------------------------------------
 def apexra(j) = deg(atan2(sin(rad(sunlon(j) - 90)) * cos(rad(eps0(j))), cos(rad(sunlon(j) - 90))))
@@ -69,9 +69,9 @@ def apexde(j) = deg(asin(sin(rad(sunlon(j) - 90)) * sin(rad(eps0(j)))))
 sx = cos(rad(d2)) * cos(rad(r2))
 sy = cos(rad(d2)) * sin(rad(r2))
 sz = sin(rad(d2))
-ax = cos(rad(apexde(t))) * cos(rad(apexra(t)))
-ay = cos(rad(apexde(t))) * sin(rad(apexra(t)))
-az = sin(rad(apexde(t)))
+ax = cos(rad(apexde(tm))) * cos(rad(apexra(tm)))
+ay = cos(rad(apexde(tm))) * sin(rad(apexra(tm)))
+az = sin(rad(apexde(tm)))
 kx = sx + 20.49552 / 206265 * ax
 ky = sy + 20.49552 / 206265 * ay
 kz = sz + 20.49552 / 206265 * az
@@ -79,7 +79,7 @@ r3 = wrap(deg(atan2(ky, kx)))
 d3 = deg(atan2(kz, sqrt(kx ^ 2 + ky ^ 2)))
 
 // ---- results ------------------------------------------------------------------------------------
-print("Vega, apparent place at", iso(t))
+print("Vega, apparent place at", iso(tm))
 print("catalog J2000 (with proper motion): ra", deg2hms(r0), " dec", deg2dms(d0))
 print("precessed to date:                 ra", deg2hms(r1), " dec", deg2dms(d1))
 print("nutated:                           ra", deg2hms(r2), " dec", deg2dms(d2))

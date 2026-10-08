@@ -1,7 +1,7 @@
 /* ============================================================================
 z-scores.epher -- how many standard deviations a value sits from the mean
 
-The z-score of one exam score and of every score in `d`: z = (x - mean)
+The z-score of one exam score and of every score in `data`: z = (x - mean)
 / stdev, the distance from the mean in standard-deviation units. The
 list form uses epher's elementwise arithmetic (guide 1.20), so one
 expression standardizes the whole list. A z-score of 0.39 says the 85
@@ -16,21 +16,21 @@ In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 Everything also works line by line in the TUI.
 
-The one knob to edit is `d` below. Everything above the results section
+The one knob to edit is `data` below. Everything above the results section
 is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
-const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
+const data = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
 
 // ---- helpers: z of one value and of the whole list -------------------------------
-def z(x) = (x - mean(d)) / stdev(d) // z-score of score x against the class
+def z(x) = (x - mean(data)) / stdev(data) // z-score of score x against the class
 
 // ---- z of a single score ---------------------------------------------------------
 z(85)                       // 85 sits 0.39 sd above the mean of 81.3
 
-// ---- z of the whole list: elementwise (d - mean(d)) / stdev(d) -------------------
-(d - mean(d)) / stdev(d)    // the standardized scores; they average 0 with sd 1
+// ---- z of the whole list: elementwise (data - mean(data)) / stdev(data) -------------------
+(data - mean(data)) / stdev(data)    // the standardized scores; they average 0 with sd 1
 
 /* ---- expected output ----
 = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}

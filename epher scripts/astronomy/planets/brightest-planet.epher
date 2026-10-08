@@ -17,11 +17,11 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/brightest-planet.epher
 In the REPL:             load one of the paths above
 
-Knob: the date t.
+Knob: the date tm.
 ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
-const t = jd(2026, 6, 1)     // 0h UT
+const tm = jd(2026, 6, 1)     // 0h UT
 
 // ---- helpers ----------------------------------------------------------------
 // The eight target bodies, and a name for each body number.
@@ -31,7 +31,7 @@ def name(b) = if b == 1 then "Mercury" else if b == 2 then "Venus" else if b == 
 // ---- results ----------------------------------------------------------------
 // The unrolled magnitudes, one per body in the same order: the search
 // below must agree with what the eye reads off this list.
-m = {mag(1, t), mag(2, t), mag(4, t), mag(5, t), mag(6, t), mag(7, t), mag(8, t), mag(9, t)}
+m = {mag(1, tm), mag(2, tm), mag(4, tm), mag(5, tm), mag(6, tm), mag(7, tm), mag(8, tm), mag(9, tm)}
 
 /* Search: s = {next index, best magnitude so far, best body number}.
 Each step compares one magnitude against the best so far and keeps

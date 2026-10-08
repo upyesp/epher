@@ -1,7 +1,7 @@
 /* ============================================================================
 population-stdev.epher -- standard deviation of the ten scores, dividing by n
 
-The population standard deviation of the exam scores in `d`, from the
+The population standard deviation of the exam scores in `step`, from the
 builtin stdev and cross-checked as the square root of the population
 variance. epher's stdev is the POPULATION version: variance divides by
 the count n, and stdev is its square root (guide 1.20). When the data
@@ -15,17 +15,17 @@ In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 Everything also works line by line in the TUI.
 
-The one knob to edit is `d` below. Everything above the results section
+The one knob to edit is `step` below. Everything above the results section
 is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
-const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
+const step = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
 
 // ---- population standard deviation: sqrt of the population variance -------------
-stdev(d)                        // builtin stdev, population version (n)
-sqrt(variance(d))               // sqrt of the builtin variance, agrees
-variance(d)                     // the variance it comes from
+stdev(step)                        // builtin stdev, population version (n)
+sqrt(variance(step))               // sqrt of the builtin variance, agrees
+variance(step)                     // the variance it comes from
 
 /* ---- expected output ----
 = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}

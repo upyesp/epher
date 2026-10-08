@@ -5,7 +5,7 @@ down payment
 The buyer puts a down payment on the price and finances the rest with a
 fixed-rate loan: the financed amount is price*(1 - down), and the monthly
 payment over n months at rate r comes from the finance builtin tvm_pmt,
-the annuity formula pmt = P*i/(1 - (1+i)^-n). Source: standard
+the annuity formula pmt = P*r/(1 - (1+r)^-n). Source: standard
 amortization formulas; see Kellison, The Theory of Interest, chapter 3.
 
 Sign convention: principal negative, payment positive, as in the builtin

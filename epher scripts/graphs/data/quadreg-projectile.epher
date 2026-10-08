@@ -1,0 +1,57 @@
+/* ============================================================================
+quadreg-projectile.epher -- fitting the parabola of a thrown ball
+
+A ball thrown at 20 m/s from 1.8 m height rides y = 1.8 + x*(20*cos(40 deg))/... in
+the usual no-drag model y = h + t*v*sin(th) - g*t^2/2. Nine samples of
+its height, taken at 0.25 s steps and jittered once with
+randseed(12) (sigma 0.3, frozen), are fitted with a quadratic. The
+fit recovers the flight numbers within the noise (least squares
+again; TI-style quadreg, Stewart, "Precalculus", ch. 2.7 on
+modelling with quadratic functions). The script graphs the points
+with the fitted parabola and prints the vertex the model implies.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/data/quadreg-projectile.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\data\quadreg-projectile.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/data/quadreg-projectile.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the model -----------------------------------------------------------------
+const v0 = 20       // launch speed, m/s
+const th = 40       // launch angle, degrees
+const h = 1.8       // release height, m
+def ty(t) = h + t * v0 * sin(rad(th)) - 4.905 * t ^ 2
+
+// ---- the data ------------------------------------------------------------------
+ts = {0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2}
+noise = {0.291164844291, 0.422145022342, -0.0464449403208, 0.00196629019192, 0.289739771157, -0.0488004201598, 0.264718486232, 0.120942636075, -0.0972088430788}
+ys = ty(ts) + noise
+
+// ---- results -------------------------------------------------------------------
+print("true flight time to the ground:")
+solve h + t * v0 * sin(rad(40)) - 4.905 * t ^ 2 == 0
+print("true vertex time, v*sin(th)/g:", v0 * sin(rad(th)) / 9.81)
+print("the fitted quadratic and its r:")
+quadreg(ts, ys)
+
+// ---- the picture ---------------------------------------------------------------
+graph scatter(ts, ys, quadreg)
+
+/* ---- expected output ----
+= 20
+= 40
+= 1.8
+= {0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2}
+= {0.291164844291, 0.422145022342, -0.0464449403208, 0.00196629019192, 0.289739771157, -0.0488004201598, 0.264718486232, 0.120942636075, -0.0972088430788}
+= {2.09116484429, 5.12952057077, 6.95518115654, 8.68471793549, 10.0404919649, 10.156827322, 10.3120967768, 9.3969464751, 7.79429554438}
+= true flight time to the ground:
+= x = -0.13324152617505275, x = 2.7541899856512577
+= true vertex time, v*sin(th)/g: 1.31047422974
+= the fitted quadratic and its r:
+= y = -4.8619*x^2 + 12.6439*x + 2.084 (r = 0.9981)
+graph: scatter(ts, ys, quadreg)
+*/

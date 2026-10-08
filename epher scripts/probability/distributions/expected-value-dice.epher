@@ -33,7 +33,7 @@ print("as a fraction: 21/6 =", 21 / 6)
 print("the arithmetic-mean formula (1 + 6) / 2:", (1 + 6) / 2)
 
 // Two dice, from the definition over the 36 ordered pairs (a, b): the
-// i-th pair has faces ceil(i / 6) and mod(i - 1, 6) + 1.
+// the k-th pair has faces ceil(k / 6) and mod(k - 1, 6) + 1.
 w = {1, 0}
 while w[1] <= 36 do w = {w[1] + 1, w[2] + (ceil(w[1] / 6) + mod(w[1] - 1, 6) + 1) / 36}
 print("E[sum of two dice] from the definition:", w[2])

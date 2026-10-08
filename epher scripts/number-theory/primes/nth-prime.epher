@@ -1,14 +1,14 @@
 /* ============================================================================
-nth-prime.epher -- the n-th prime number
+nth-prime.epher -- the num-th prime number
 
-Counts primes until the counter reaches n, with a packed while loop
+Counts primes until the counter reaches num, with a packed while loop
 (guide 1.30). The state holds {candidate, primes counted}; each pass
 checks the next candidate and moves on, and the loop stops the moment
-the n-th prime has been counted. Checks: the 10th prime is 29, the
+the num-th prime has been counted. Checks: the 10th prime is 29, the
 25th is 97, and the 100th is 541 (Hardy and Wright, ch. 1, tables).
 
 Source: standard number theory; the count is exact because isprime is
-exact. The loop runs about n log n steps, so keep n below a few
+exact. The loop runs about num log num steps, so keep num below a few
 thousand for an instant run.
 
 Run it from a terminal:
@@ -18,21 +18,21 @@ Run it from a terminal:
 In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
-The one knob to edit is `n` below.
+The one knob to edit is `num` below.
 ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
-const n = 25
+const num = 25
 
-// ---- count up to the n-th prime -------------------------------------------------
+// ---- count up to the num-th prime -------------------------------------------------
 // v = {candidate, primes counted}; the pass checks candidate + 1, so when
-// the count reaches n the loop leaves v[1] on the prime that did it.
+// the count reaches num the loop leaves v[1] on the prime that did it.
 v = {1, 0}
-while v[2] < n do v = {v[1] + 1, v[2] + (if isprime(v[1] + 1) then 1 else 0)}
-print("the " + str(n) + "th prime:", v[1])
+while v[2] < num do v = {v[1] + 1, v[2] + (if isprime(v[1] + 1) then 1 else 0)}
+print("the " + str(num) + "th prime:", v[1])
 
 // ---- the classic checks ----------------------------------------------------------
-// The same loop shape against the table values for n = 10 and n = 100.
+// The same loop shape against the table values for num = 10 and num = 100.
 v = {1, 0}
 while v[2] < 10 do v = {v[1] + 1, v[2] + (if isprime(v[1] + 1) then 1 else 0)}
 print("the 10th prime:", v[1])

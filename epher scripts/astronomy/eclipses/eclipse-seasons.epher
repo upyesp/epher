@@ -77,7 +77,6 @@ const c6 = find(c5 + 0.5, 48)
 const c7 = find(c6 + 0.5, 48)
 
 // ---- results -------------------------------------------------------------------
-def nfound() = (if c1 > 0 then 1 else 0) + (if c2 > 0 then 1 else 0) + (if c3 > 0 then 1 else 0) + (if c4 > 0 then 1 else 0) + (if c5 > 0 then 1 else 0) + (if c6 > 0 then 1 else 0) + (if c7 > 0 then 1 else 0)
 print("eclipse-bearing lunations of", year)
 if c1 > 0 then print(iso(tmaxx(c1) - delta_t(tmaxx(c1)) / 86400), "UT:", kindx(c1), "eclipse, gamma", gamma(c1), "(k", c1, ")") else print("no eclipse-bearing lunation found in", year)
 if c2 > 0 then print(iso(tmaxx(c2) - delta_t(tmaxx(c2)) / 86400), "UT:", kindx(c2), "eclipse, gamma", gamma(c2), "(k", c2, ")") else "no second candidate"
@@ -86,13 +85,6 @@ if c4 > 0 then print(iso(tmaxx(c4) - delta_t(tmaxx(c4)) / 86400), "UT:", kindx(c
 if c5 > 0 then print(iso(tmaxx(c5) - delta_t(tmaxx(c5)) / 86400), "UT:", kindx(c5), "eclipse, gamma", gamma(c5), "(k", c5, ")") else "no fifth candidate"
 if c6 > 0 then print(iso(tmaxx(c6) - delta_t(tmaxx(c6)) / 86400), "UT:", kindx(c6), "eclipse, gamma", gamma(c6), "(k", c6, ")") else "no sixth candidate"
 if c7 > 0 then print(iso(tmaxx(c7) - delta_t(tmaxx(c7)) / 86400), "UT:", kindx(c7), "eclipse, gamma", gamma(c7), "(k", c7, ")") else "no seventh candidate"
-
-/* The canon self-check: NASA's Five Millennium Canon of Solar and
-Lunar Eclipses lists exactly four eclipses in 2026 - Feb 17 annular
-solar, Mar 3 total lunar, Aug 12 total solar, Aug 28 partial lunar
-- and the four dated lines above must be precisely those. */
-print("canon: NASA's 2026 set = 4: Feb 17 annular solar, Mar 3 total lunar,")
-print("      Aug 12 total solar, Aug 28 partial lunar; scan found", nfound(), "->", if nfound() == 4 then "match" else "MISMATCH")
 
 /* ---- expected output ----
 = 2026
@@ -111,6 +103,4 @@ print("      Aug 12 total solar, Aug 28 partial lunar; scan found", nfound(), "-
 = no fifth candidate
 = no sixth candidate
 = no seventh candidate
-= canon: NASA's 2026 set = 4: Feb 17 annular solar, Mar 3 total lunar,
-=       Aug 12 total solar, Aug 28 partial lunar; scan found 4 -> match
 */

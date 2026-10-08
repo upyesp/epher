@@ -30,13 +30,13 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-by-hand.epher
 In the REPL:             load one of the paths above
 
-Knobs: the instant `t`. This file carries Jupiter's element row; swap in
+Knobs: the instant `tm`. This file carries Jupiter's element row; swap in
 another row from planet-elements-table.epher to change planet.
 ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const planet = 5                // Jupiter (its element row is carried below)
-const t = jd(2026, 10, 1, 12)   // 2026-10-01 12:00 UT
+const tm = jd(2026, 10, 1, 12)   // 2026-10-01 12:00 UT
 
 // ---- ch. 31: mean elements at the date (T in centuries from J2000.0) ---------
 def T(j) = (j - jd(2000, 1, 1, 12)) / 36525
@@ -83,8 +83,8 @@ def glat(j) = deg(asin(gz(j) / gdist(j)))
 
 // ---- light time (ch. 33): two passes to the emission instant ----------------
 def lt(j) = gdist(j) / 173.144632674     // AU / (AU per day) = days
-def j1() = t - lt(t)
-def j2() = t - lt(j1())
+def j1() = tm - lt(tm)
+def j2() = tm - lt(j1())
 
 // ---- to equatorial of date: obliquity rotation, then precession (ch. 13/24) -
 def rotz(a, v) = {v[1] * cos(rad(a)) - v[2] * sin(rad(a)), v[1] * sin(rad(a)) + v[2] * cos(rad(a)), v[3]}
@@ -99,12 +99,12 @@ def rah(j) = if deg(atan2(vd(j)[2], vd(j)[1])) < 0 then deg(atan2(vd(j)[2], vd(j
 def dch(j) = deg(asin(vd(j)[3] / sqrt(vd(j)[1] ^ 2 + vd(j)[2] ^ 2 + vd(j)[3] ^ 2)))
 
 // ---- results ------------------------------------------------------------------
-print("Jupiter by hand from mean elements at", iso(t), "UT")
+print("Jupiter by hand from mean elements at", iso(tm), "UT")
 print("geocentric: longitude", wrap360(glon(j2())), "deg, latitude", glat(j2()), "deg, distance", gdist(j2()), "AU")
 print("light-time to Earth:", lt(j1()) * 1440, "minutes")
 print("geocentric ra/dec by hand:", deg2hms(rah(j2())), deg2dms(dch(j2())))
-print("engine ra/dec:            ", deg2hms(ra(planet, t)), deg2dms(decl(planet, t)))
-print("mismatch: ", 60 * (rah(j2()) - ra(planet, t)) * cos(rad(decl(planet, t))), "arcmin in ra (x cos dec),", 60 * (dch(j2()) - decl(planet, t)), "arcmin in dec")
+print("engine ra/dec:            ", deg2hms(ra(planet, tm)), deg2dms(decl(planet, tm)))
+print("mismatch: ", 60 * (rah(j2()) - ra(planet, tm)) * cos(rad(decl(planet, tm))), "arcmin in ra (x cos dec),", 60 * (dch(j2()) - decl(planet, tm)), "arcmin in dec")
 
 /* ---- expected output ----
 = 5

@@ -33,11 +33,11 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/mars-physical.epher
 In the REPL:             load one of the paths above
 
-The one knob is the instant `t` (UT).
+The one knob is the instant `tm` (UT).
 ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
-const t = jd(2026, 6, 1)        // 2026-06-01 00:00 UT
+const tm = jd(2026, 6, 1)        // 2026-06-01 00:00 UT
 
 // ---- time scales and precession (Meeus ch. 24; pole constants are J2000) -----
 def T(j) = (j - jd(2000, 1, 1, 12)) / 36525
@@ -69,9 +69,9 @@ def todate(j, v) = rotz(zeta(j), roty(-theta(j), rotz(zang(j), v)))   // J2000 -
 // Central meridian: the west planetographic longitude of the sub-Earth
 // point from its body-fixed coordinates (0.01 deg-class agreement with
 // JPL Horizons' sub-observer longitude on 2026 checks).
-const cm = wrap360(180 - deg(atan2(dot(ue(t), cross(pole_mars(t), xhat(pole_mars(t), t))), dot(ue(t), xhat(pole_mars(t), t)))))
+const cm = wrap360(180 - deg(atan2(dot(ue(tm), cross(pole_mars(tm), xhat(pole_mars(tm), tm))), dot(ue(tm), xhat(pole_mars(tm), tm)))))
 // Sub-Earth latitude (planetocentric), the almanac's De.
-const de = deg(asin(-dot(ue(t), pole_mars(t))))
+const de = deg(asin(-dot(ue(tm), pole_mars(tm))))
 // Position angle of the axis: the pole's tangent-plane direction at the
 // planet's disk center, measured from celestial north through east.
 def north(j) = {-sin(rad(decl(4, j))) * cos(rad(ra(4, j))), -sin(rad(decl(4, j))) * sin(rad(ra(4, j))), cos(rad(decl(4, j)))}
@@ -81,11 +81,11 @@ def pv(j) = sub(todate(j, pole_mars(j)), {uod(j)[1] * dot(todate(j, pole_mars(j)
 def pa(j) = deg(atan2(dot(pv(j), east(j)), dot(pv(j), north(j))))
 
 // ---- results ------------------------------------------------------------------
-print("Mars physical ephemeris at", iso(t), "UT")
+print("Mars physical ephemeris at", iso(tm), "UT")
 print("central meridian:", cm, "deg (planetographic west) =", deg2dms(cm))
 print("sub-Earth latitude:", de, "deg (planetocentric, De)")
-print("position angle of the axis:", pa(t), "deg")
-print("Mars distance:", dist(4, t), "AU; light-time", dist(4, t) / 173.144632674 * 1440, "minutes (removed from the rotation)")
+print("position angle of the axis:", pa(tm), "deg")
+print("Mars distance:", dist(4, tm), "AU; light-time", dist(4, tm) / 173.144632674 * 1440, "minutes (removed from the rotation)")
 print("cross-check, default instant (JPL Horizons 2026-06-01 00:00): central meridian 142.527, sub-Earth latitude -17.619 (planetographic)")
 
 /* ---- expected output ----

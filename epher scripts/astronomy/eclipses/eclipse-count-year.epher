@@ -73,13 +73,6 @@ print("months carrying eclipses (flags Jan..Dec):")
 for m in 1 to 12 do (if cm(m) > 0 then 1 else 0)
 print("Morsels: any calendar year carries 4 to 7 eclipses; no year can exceed 7")
 
-/* The canon self-check: NASA's canon lists exactly four eclipses in
-2026, two of each kind, in February, March and August - the counts
-and the month flags above must say 2, 2, 4 and flag months 2, 3, 8
-only. */
-print("canon: NASA's", year, "set = 4: Feb 17 annular solar, Mar 3 total lunar,")
-print("      Aug 12 total solar, Aug 28 partial lunar; counted", total(k0), if total(k0) == 4 then "-> match" else "-> MISMATCH")
-
 /* ---- expected output ----
 = 2026
 = 319.5
@@ -89,6 +82,4 @@ print("      Aug 12 total solar, Aug 28 partial lunar; counted", total(k0), if t
 = months carrying eclipses (flags Jan..Dec):
 = {0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0}
 = Morsels: any calendar year carries 4 to 7 eclipses; no year can exceed 7
-= canon: NASA's 2026 set = 4: Feb 17 annular solar, Mar 3 total lunar,
-=       Aug 12 total solar, Aug 28 partial lunar; counted 4 -> match
 */

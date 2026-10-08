@@ -23,23 +23,23 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/schlyter-crosscheck.epher
 In the REPL:             load one of the paths above
 
-Knob: the instant t below.
+Knob: the instant tm below.
 ============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------------
-const t = jd(2026, 9, 10, 0)
+const tm = jd(2026, 9, 10, 0)
 
-// ---- Schlyter's elements: d = days since 2000 Jan 0.0 ---------------------------------
-const d = t - 2451543.5
+// ---- Schlyter's elements: ds = days since 2000 Jan 0.0 ---------------------------------
+const ds = tm - 2451543.5
 
 // ---- Kepler's equation by Newton's method, recursion in radians ------------------------
 def kep(M, e, E) = if abs(E - e * sin(E) - M) < 1e-12 then E else kep(M, e, E - (E - e * sin(E) - M) / (1 - e * cos(E)))
 def Eof(Mdeg, e) = kep(rad(Mdeg), e, rad(Mdeg) + e * sin(rad(Mdeg)))
 
 // ---- the Sun (Schlyter's own constants) ---------------------------------------------------
-ws = 282.9404 + 4.70935e-5 * d
-es = 0.016709 - 1.151e-9 * d
-Ms = 356.0470 + 0.9856002585 * d
+ws = 282.9404 + 4.70935e-5 * ds
+es = 0.016709 - 1.151e-9 * ds
+Ms = 356.0470 + 0.9856002585 * ds
 Es = Eof(Ms, es)
 xvs = cos(Es) - es
 yvs = sqrt(1 - es ^ 2) * sin(Es)
@@ -50,12 +50,12 @@ lsun = vs + ws                          // his geocentric ecliptic longitude of 
 // ---- Mars (his elements; no perturbation terms in his set for Mars) -----------------------
 def wrap(x) = x - 360 * floor(x / 360)
 def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
-Nm = 49.5574 + 2.11081e-5 * d
-im = 1.8497 - 1.78e-8 * d
-wm = 286.5016 + 2.92961e-5 * d
+Nm = 49.5574 + 2.11081e-5 * ds
+im = 1.8497 - 1.78e-8 * ds
+wm = 286.5016 + 2.92961e-5 * ds
 am = 1.523688
-em = 0.0934005 - 2.516e-9 * d
-Mm = 18.6021 + 0.5240207766 * d
+em = 0.0934005 - 2.516e-9 * ds
+Mm = 18.6021 + 0.5240207766 * ds
 Em = Eof(Mm, em)
 xvm = am * (cos(Em) - em)
 yvm = am * sqrt(1 - em ^ 2) * sin(Em)
@@ -71,22 +71,22 @@ ygm = yhm + rs * sin(rad(lsun))
 zgm = zhm
 lonm = deg(atan2(ygm, xgm))
 latm = deg(atan2(zgm, sqrt(xgm ^ 2 + ygm ^ 2)))
-// equatorial with the obliquity (Schlyter: 23.4393 - 3.563e-7 * d)
-eps = 23.4393 - 3.563e-7 * d
+// equatorial with the obliquity (Schlyter: 23.4393 - 3.563e-7 * ds)
+eps = 23.4393 - 3.563e-7 * ds
 ram = deg(atan2(sin(rad(lonm)) * cos(rad(eps)) - tan(rad(latm)) * sin(rad(eps)), cos(rad(lonm))))
 decm = deg(asin(sin(rad(latm)) * cos(rad(eps)) + cos(rad(latm)) * sin(rad(eps)) * sin(rad(lonm))))
 
 // ---- the engine's side: Sun and Mars ra/dec, and the Sun's ecliptic longitude ---------------
-mra = ra(4, t)
-mde = decl(4, t)
-sra = ra(10, t)
-sde = decl(10, t)
+mra = ra(4, tm)
+mde = decl(4, tm)
+sra = ra(10, tm)
+sde = decl(10, tm)
 // engine Sun ecliptic longitude (conversion with the same eps formula)
-seps = 23.4393 - 3.563e-7 * d
+seps = 23.4393 - 3.563e-7 * ds
 slon = deg(atan2(sin(rad(sra)) * cos(rad(seps)) + tan(rad(sde)) * sin(rad(seps)), cos(rad(sra))))
 
 // ---- results -----------------------------------------------------------------------------
-print("Schlyter vs engine at", iso(t))
+print("Schlyter vs engine at", iso(tm))
 print("Sun:   Schlyter lon", lsun, "  engine lon", slon, "  |diff|", abs(spread(lsun - slon)) * 60, "arcmin")
 print("Mars ra  Schlyter", ram, "  engine", mra, "  |diff|", abs(spread(ram - mra)) * 60, "arcmin")
 print("Mars dec Schlyter", decm, "  engine", mde, "  |diff|", abs(decm - mde) * 60, "arcmin")

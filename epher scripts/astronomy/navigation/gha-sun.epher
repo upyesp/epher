@@ -23,20 +23,20 @@ Knob: the instant below.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------------
-const t = jd(2026, 9, 10, 12)
+const tm = jd(2026, 9, 10, 12)
 
 // ---- the almanac pair -------------------------------------------------------------------
-gha = 15 * lst(t, 0) - ra(10, t)
+gha = 15 * lst(tm, 0) - ra(10, tm)
 def wrap(x) = x - 360 * floor(x / 360)
 ghaw = wrap(gha)
-print("at", iso(t))
+print("at", iso(tm))
 print("GHA:", deg2dms(ghaw), "(", ghaw, "deg )")
-print("Dec:", deg2dms(decl(10, t)))
+print("Dec:", deg2dms(decl(10, tm)))
 
 /* Self-check: the Sun's GHA grows by about 15.041 degrees per
 hour, and at Greenwich apparent noon it reads near zero (within
 the equation of time). */
-print("GHA one hour later minus now:", wrap(15 * lst(t + 1 / 24, 0) - ra(10, t + 1 / 24)) - ghaw, "deg")
+print("GHA one hour later minus now:", wrap(15 * lst(tm + 1 / 24, 0) - ra(10, tm + 1 / 24)) - ghaw, "deg")
 
 /* ---- expected output ----
 = 2461294

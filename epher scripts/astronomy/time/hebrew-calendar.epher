@@ -27,9 +27,9 @@ Knobs: the date below.
 ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------------
-const y = 2026
+const yr = 2026
 const m = 9
-const d = 7
+const dcal = 7
 
 // ---- molad arithmetic (integer; weekday 0 = Monday) ----------------------------------
 def leapv(yy) = mod(7 * yy + 1, 19) < 7
@@ -50,14 +50,14 @@ def acc(k, yy) = if k == 1 then 0 else acc(k - 1, yy) + lens(yy)[k - 1]
 def findm(k, yy, dy) = if dy < acc(k, yy) + lens(yy)[k] then k else findm(k + 1, yy, dy)
 
 // ---- the conversion -----------------------------------------------------------------------
-const jdn = floor(jd(y, m, d) + 0.5)
+const jdn = floor(jd(yr, m, dcal) + 0.5)
 def findy(yy, j) = if j >= tishri(yy) + 347998 then yy else findy(yy - 1, j)
-yh = findy(y + 3762, jdn)
+yh = findy(yr + 3762, jdn)
 dyv = jdn - tishri(yh) - 347998
 km = findm(1, yh, dyv)
 dm = dyv - acc(km, yh) + 1
 
-print("Gregorian", y, "-", m, "-", d, "is Hebrew", dm, mn(km, yh), yh)
+print("Gregorian", yr, "-", m, "-", dcal, "is Hebrew", dm, mn(km, yh), yh)
 print("1 Tishri", yh, "falls on JDN", tishri(yh) + 347998, "and the year has", L(yh), "days")
 
 /* Self-checks against the reference converter (Hebcal): 1 Tishri

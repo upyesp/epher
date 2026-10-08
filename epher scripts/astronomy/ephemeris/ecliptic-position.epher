@@ -25,27 +25,27 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/ecliptic-position.epher
 In the REPL:             load one of the paths above
 
-Knobs: the body (guide 1.29 numbering) and the instant t below.
+Knobs: the body (guide 1.29 numbering) and the instant tm below.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const body = 4                 // Mars
-const t = jd(2026, 9, 10, 2)
+const tm = jd(2026, 9, 10, 2)
 
 // ---- mean obliquity of the ecliptic in degrees (Meeus eq. 22.2) ------------------
 def epsdeg(j) = 23.4392911 - 46.8150 * ((j - 2451545) / 36525) / 3600 - 0.00059 * ((j - 2451545) / 36525) ^ 2 / 3600 + 0.001813 * ((j - 2451545) / 36525) ^ 3 / 3600
 
 // ---- the rotation (Meeus ch. 13), on precomputed ra/dec pairs ---------------------
-def eclon(ar, dr) = deg(atan2(sin(rad(ar)) * cos(rad(epsdeg(t))) + tan(rad(dr)) * sin(rad(epsdeg(t))), cos(rad(ar))))
-def eclat(ar, dr) = deg(asin(sin(rad(dr)) * cos(rad(epsdeg(t))) - cos(rad(dr)) * sin(rad(epsdeg(t))) * sin(rad(ar))))
+def eclon(ar, dr) = deg(atan2(sin(rad(ar)) * cos(rad(epsdeg(tm))) + tan(rad(dr)) * sin(rad(epsdeg(tm))), cos(rad(ar))))
+def eclat(ar, dr) = deg(asin(sin(rad(dr)) * cos(rad(epsdeg(tm))) - cos(rad(dr)) * sin(rad(epsdeg(tm))) * sin(rad(ar))))
 
-mra = ra(body, t)
-mde = decl(body, t)
-sra = ra(10, t)
-sde = decl(10, t)
+mra = ra(body, tm)
+mde = decl(body, tm)
+sra = ra(10, tm)
+sde = decl(10, tm)
 
 // ---- results --------------------------------------------------------------------
-print("at", iso(t))
+print("at", iso(tm))
 print("Mars   ecliptic lon", eclon(mra, mde), "  lat", eclat(mra, mde))
 print("Sun    ecliptic lon", eclon(sra, sde), "  lat", eclat(sra, sde))
 

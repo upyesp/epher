@@ -1,0 +1,41 @@
+/* ============================================================================
+ripple-tank.epher -- circular waves from a point source
+
+A stone in still water sends out rings whose height falls off as they
+spread: z = sin(k*r) / (1 + r) oscillates with wavenumber k and
+decays like 1/r, sharing its energy over the growing circumference
+(the Huygens construction; Crawford, "Waves", Berkeley Physics
+ch. 8, on circular waves). With k = 3 the crests sit where 3*r is an
+odd multiple of pi/2, one every 2*pi/3 along a radius. The script
+graphs the surface and prints the ring spacing.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/surfaces/ripple-tank.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\surfaces\ripple-tank.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/surfaces/ripple-tank.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the 3D pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph3d:" lines.
+============================================================================ */
+
+// ---- the model -----------------------------------------------------------------
+const k = 3    // wavenumber: crests every 2*pi/k of radius
+
+// ---- results -------------------------------------------------------------------
+print("the source stays calm in this model, sin(0) = 0:", sin(0) == 0)
+print("first crest on the x-axis at r = pi/(2*k):", pi / (2 * k))
+print("ring spacing, 2*pi/k:", 2 * pi / k)
+print("decay from r = 1 to r = 4:", (1 / (1 + 1)) / (1 / (1 + 4)))
+
+// ---- the picture ---------------------------------------------------------------
+graph3d sin(3 * sqrt(x ^ 2 + y ^ 2)) / (1 + sqrt(x ^ 2 + y ^ 2)) from -6.3 to 6.3
+
+/* ---- expected output ----
+= 3
+= the source stays calm in this model, sin(0) = 0: true
+= first crest on the x-axis at r = pi/(2*k): 0.523598775598
+= ring spacing, 2*pi/k: 2.09439510239
+= decay from r = 1 to r = 4: 2.5
+graph3d: sin(3 * sqrt(x ^ 2 + y ^ 2)) / (1 + sqrt(x ^ 2 + y ^ 2)) from -6.3 to 6.3
+*/

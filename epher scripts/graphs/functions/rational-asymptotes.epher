@@ -1,0 +1,48 @@
+/* ============================================================================
+rational-asymptotes.epher -- vertical and horizontal asymptotes of a ratio
+
+The rational function f(x) = (2*x^2 + 3) / (x^2 - 1) dies at x = +-1,
+where its denominator vanishes but its numerator does not: two vertical
+asymptotes. For large |x| the x^2 terms dominate both floors, so the
+curve flattens toward y = 2, the ratio of leading coefficients
+(standard asymptote analysis, Stewart, "Calculus", ch. 2.6 and 3.4).
+The script graphs the curve and prints the asymptotes and the
+approach to the horizontal one.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/functions/rational-asymptotes.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\functions\rational-asymptotes.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/functions/rational-asymptotes.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def f(x) = (2 * x ^ 2 + 3) / (x ^ 2 - 1)
+
+// ---- results -------------------------------------------------------------------
+print("denominator zeros, the vertical asymptotes:")
+solve x ^ 2 - 1 == 0
+print("horizontal asymptote y = leading ratio:", 2 / 1)
+print("f(10):", f(10))
+print("f(100):", f(100))
+print("f(1000):", f(1000))
+print("f just right of x = 1 (f(1.001)):", f(1.001))
+
+// ---- the picture ---------------------------------------------------------------
+graph (2 * x ^ 2 + 3) / (x ^ 2 - 1) from -5 to 5
+graph 2 from -5 to 5
+
+/* ---- expected output ----
+= denominator zeros, the vertical asymptotes:
+= x = -1, x = 1
+= horizontal asymptote y = leading ratio: 2
+= f(10): 203/99
+= f(100): 2.00050005001
+= f(1000): 2.00000500001
+= f just right of x = 1 (f(1.001)): 2500.75062469
+graph: (2 * x ^ 2 + 3) / (x ^ 2 - 1) from -5 to 5
+graph: 2 from -5 to 5
+*/

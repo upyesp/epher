@@ -22,18 +22,18 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/rise-set-azimuth.epher
 In the REPL:             load one of the paths above
 
-Knobs: the body (guide 1.29 numbering), the day t and the place below.
+Knobs: the body (guide 1.29 numbering), the day tm and the place below.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const body = 11                 // Moon
-const t = jd(2026, 9, 10, 0)    // the local day
+const tm = jd(2026, 9, 10, 0)    // the local day
 const lat = 51.4779             // Greenwich
 const lon = 0
 
 // ---- the events and their compass bearings --------------------------------------
-tr = rise(body, t, lat, lon)
-ts = set(body, t, lat, lon)
+tr = rise(body, tm, lat, lon)
+ts = set(body, tm, lat, lon)
 azr = az(body, tr, lat, lon)
 azs = az(body, ts, lat, lon)
 

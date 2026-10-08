@@ -1,9 +1,9 @@
 /* ============================================================================
 simple-harmonic-motion.epher -- position, velocity and acceleration
 
-A mass on a spring obeys x(t) = A cos(omega t) with angular frequency
-omega = 2 pi / T for period T. Differentiating: v = -A omega sin(omega t)
-and a = -A omega^2 cos(omega t) = -omega^2 x, which is Hooke's law
+A mass on a spring obeys x(tm) = A cos(omega tm) with angular frequency
+omega = 2 pi / T for period T. Differentiating: v = -A omega sin(omega tm)
+and a = -A omega^2 cos(omega tm) = -omega^2 x, which is Hooke's law
 written as an acceleration. The script evaluates all three at a chosen
 instant, with the units kept through the arithmetic: A in meters and
 omega in 1/s (displayed as Hz) give x in m, v in m/s and a in m/s^2.
@@ -24,34 +24,34 @@ Printed values carry about 12 significant digits.
 // ---- the knobs ---------------------------------------------------------------
 const A = 0.05 m    // amplitude of the motion
 const T = 2 s       // period
-const t = 0.25 s    // instant to sample (one eighth of the period)
+const tm = 0.25 s    // instant to sample (one eighth of the period)
 
 // ---- helpers ----------------------------------------------------------------
 def omega(T) = 2 * pi / T                     // angular frequency, 1/s
-def xof(t) = A * cos(omega(T) * t)            // position
-def vof(t) = -A * omega(T) * sin(omega(T) * t)   // velocity
-def aof(t) = -A * (omega(T) ^ 2) * cos(omega(T) * t)   // acceleration
+def xof(tm) = A * cos(omega(T) * tm)            // position
+def vof(tm) = -A * omega(T) * sin(omega(T) * tm)   // velocity
+def aof(tm) = -A * (omega(T) ^ 2) * cos(omega(T) * tm)   // acceleration
 
 // ---- results -----------------------------------------------------------------
 // The angular frequency: omega = 2 pi / 2 s = pi /s (1/s displays as Hz).
 print("omega = 2 pi / T =", omega(T))
 
-/* Position, velocity and acceleration at t = 0.25 s = T/8. With omega t =
+/* Position, velocity and acceleration at tm = 0.25 s = T/8. With omega tm =
 pi/4, x = A cos(pi/4) ~ 0.03536 m, v = -A omega sin(pi/4) ~ -0.1111 m/s
 and a = -omega^2 x ~ -0.3489 m/s^2. The mass is on its way back through
 the middle of the swing, so v is large and a points toward the origin. */
-print("x(0.25 s) =", xof(t))
-print("v(0.25 s) =", vof(t))
-print("a(0.25 s) =", aof(t))
+print("x(0.25 s) =", xof(tm))
+print("v(0.25 s) =", vof(tm))
+print("a(0.25 s) =", aof(tm))
 
 /* The two invariants: acceleration tracks position with the minus sign of
 a restoring force, and position plus velocity energy stay at A^2. Both
 checks divide by one unit of the quantity first, because abs() takes
 plain numbers, not quantities. */
-print("a = -omega^2 x:", abs((aof(t) + (omega(T) ^ 2) * xof(t)) / (1 m/s^2)) < 1e-12)
-print("x^2 + (v/omega)^2 = A^2:", abs(((xof(t) ^ 2) + ((vof(t) / omega(T)) ^ 2) - (A ^ 2)) / (1 m^2)) < 1e-15)
+print("a = -omega^2 x:", abs((aof(tm) + (omega(T) ^ 2) * xof(tm)) / (1 m/s^2)) < 1e-12)
+print("x^2 + (v/omega)^2 = A^2:", abs(((xof(tm) ^ 2) + ((vof(tm) / omega(T)) ^ 2) - (A ^ 2)) / (1 m^2)) < 1e-15)
 
-// The extremes at t = 0: the mass sits at rest at +A (velocity exactly 0,
+// The extremes at tm = 0: the mass sits at rest at +A (velocity exactly 0,
 // since sin(0) = 0) and the acceleration is -omega^2 A at its most
 // negative.
 print("x(0) =", xof(0 s))

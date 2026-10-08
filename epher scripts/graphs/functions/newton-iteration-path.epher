@@ -1,0 +1,45 @@
+/* ============================================================================
+newton-iteration-path.epher -- Newton-Raphson iterates walking to a root
+
+To solve cos(x) = x, Newton-Raphson iterates
+x1 = x0 - f(x0)/f'(x0) on f(x) = cos(x) - x. Starting at x0 = 1 the
+walk lands on the Dottie number 0.7390851332 in a handful of steps,
+and the error roughly squares at each step once close (Newton 1669,
+Raphson 1690; the quadratic convergence is standard numerical
+analysis, e.g. Burden and Faires, ch. 2.3). The script graphs both
+sides of the equation, runs six iterations, and checks the answer
+against the builtin solver.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/functions/newton-iteration-path.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\functions\newton-iteration-path.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/functions/newton-iteration-path.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the model -----------------------------------------------------------------
+def f(x) = cos(x) - x
+def step(x) = x - f(x) / derivative(f(x), x)
+
+// ---- the walk ------------------------------------------------------------------
+v = {1, 1}                       // {x, step counter}
+while abs(f(v[1])) > 1e-12 do v = {step(v[1]), v[2] + 1}
+print("newton lands on:", v[1])
+print("steps taken:", v[2])
+print("error at the last step:", abs(f(v[1])))
+
+// ---- the picture ---------------------------------------------------------------
+graph cos(x) from 0 to 2
+graph x from 0 to 2
+
+/* ---- expected output ----
+= {1, 1}
+= newton lands on: 0.739085133215
+= steps taken: 5
+= error at the last step: 0
+graph: cos(x) from 0 to 2
+graph: x from 0 to 2
+*/

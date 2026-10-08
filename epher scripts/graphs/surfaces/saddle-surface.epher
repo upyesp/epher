@@ -1,0 +1,42 @@
+/* ============================================================================
+saddle-surface.epher -- the hyperbolic paraboloid z = x^2 - y^2
+
+The saddle rises along the x-axis and falls along the y-axis, so the
+origin is simultaneously a minimum and a maximum: the classic saddle
+point (Thomas, "Thomas' Calculus", ch. 13.7; do Carmo, "Differential
+Geometry of Curves and Surfaces", ch. 3). Slicing by y = 0 gives the
+upward parabola z = x^2; slicing by x = 0 gives the downward one
+z = -y^2. Pringles are the food version. The script graphs the
+surface and prints the slice values that exhibit the two parabolas.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/surfaces/saddle-surface.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\surfaces\saddle-surface.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/surfaces/saddle-surface.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the 3D pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph3d:" lines.
+============================================================================ */
+
+// ---- the surface ---------------------------------------------------------------
+def z(x, y) = x ^ 2 - y ^ 2
+
+// ---- results -------------------------------------------------------------------
+print("slice along the x-axis (y = 0), z(1, 0):", z(1, 0))
+print("slice along the y-axis (x = 0), z(0, 1):", z(0, 1))
+print("at the origin both slices meet:", z(0, 0))
+print("on the diagonal x = y, z(2, 2):", z(2, 2))
+print("a level curve z = 1 is the hyperbola x^2 - y^2 = 1")
+
+// ---- the picture ---------------------------------------------------------------
+graph3d x ^ 2 - y ^ 2 from -2.5 to 2.5
+
+/* ---- expected output ----
+= slice along the x-axis (y = 0), z(1, 0): 1
+= slice along the y-axis (x = 0), z(0, 1): -1
+= at the origin both slices meet: 0
+= on the diagonal x = y, z(2, 2): 0
+= a level curve z = 1 is the hyperbola x^2 - y^2 = 1
+graph3d: x ^ 2 - y ^ 2 from -2.5 to 2.5
+*/

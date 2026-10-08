@@ -41,7 +41,7 @@ const month = 6
 // ---- the scan geometry ----------------------------------------------------------
 const j0 = jd(year, month, 1)         // 1st of the month, 0h UT
 const d0 = j0 - 2                     // samples start two days early
-const n = 18                          // samples, one every 2 days (17 brackets)
+const num = 18                          // samples, one every 2 days (17 brackets)
 
 // ---- ecliptic latitude of the Moon (mean obliquity; ch. 13 rotation) -------------
 def w360(x) = x - 360 * floor(x / 360)
@@ -50,9 +50,9 @@ def eps(j) = 23.4392911 - 46.8150 * T(j) / 3600 - 0.00059 * T(j) ^ 2 / 3600 + 0.
 def betaAt(j) = deg(asin(sin(rad(decl(11, j))) * cos(rad(eps(j))) - cos(rad(decl(11, j))) * sin(rad(eps(j))) * sin(rad(ra(11, j)))))   // ecliptic latitude, deg
 
 // ---- the sign scan and the bisection ----------------------------------------------
-def bsign(i) = betaAt(d0 + 2 * i)                       // beta at sample i
-def nxt(i) = if i >= n - 1 then -1 else if bsign(i) * bsign(i + 1) < 0 then i else nxt(i + 1)   // first sign-change bracket at/after i, or -1
-def hai(i) = (d0 + 2 * i - j0) * 24                     // sample i as hours after j0
+def bsign(q) = betaAt(d0 + 2 * q)                       // beta at sample q
+def nxt(q) = if q >= num - 1 then -1 else if bsign(q) * bsign(q + 1) < 0 then q else nxt(q + 1)   // first sign-change bracket at/after q, or -1
+def hai(q) = (d0 + 2 * q - j0) * 24                     // sample q as hours after j0
 def bis(a, b, k) = if k == 0 then {a, b} else if betaAt(j0 + (a + b) / 2 / 24) * betaAt(j0 + a / 24) < 0 then bis(a, (a + b) / 2, k - 1) else bis((a + b) / 2, b, k - 1)   // halve the bracket k times, hours after j0
 
 // ---- results ----------------------------------------------------------------------

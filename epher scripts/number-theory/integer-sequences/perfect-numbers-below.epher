@@ -41,9 +41,9 @@ print("496 = 2^4 * 31:", 2 ^ 4 * 31)
 print("8128 = 2^6 * 127:", 2 ^ 6 * 127)
 
 // ---- definitional check: proper divisor sums ------------------------------------------------
-// pairdiv(n, i) adds each divisor of n with its partner n / i (a square
+// pairdiv(n, k) adds each divisor of n with its partner n / k (a square
 // adds its root once), so pairdiv(n, 1) is sigma(n); ps subtracts n.
-def pairdiv(n, i) = if i * i > n then 0 else if mod(n, i) == 0 then (if i * i == n then i + pairdiv(n, i + 1) else i + n / i + pairdiv(n, i + 1)) else pairdiv(n, i + 1)
+def pairdiv(n, k) = if k * k > n then 0 else if mod(n, k) == 0 then (if k * k == n then k + pairdiv(n, k + 1) else k + n / k + pairdiv(n, k + 1)) else pairdiv(n, k + 1)
 def sigma(n) = pairdiv(n, 1)
 def ps(n) = sigma(n) - n
 for x in {6, 28, 496} do ps(x) == x                 // proper sum equals n

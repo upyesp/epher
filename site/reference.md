@@ -205,7 +205,7 @@ Casio add-on reading (`220`) is deliberately not a grammar rule.
 
 ### 6.4 Indexing
 
-`expr[i]` indexes a list or string, **1-based**; the index is any
+`expr[k]` indexes a list or string, **1-based**; the index is any
 expression. A matrix indexed with one expression gives one whole row
 as a list: `m[2]` is the second row.
 

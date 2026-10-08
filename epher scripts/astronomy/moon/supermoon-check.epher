@@ -79,11 +79,11 @@ def fullmoon(k) = base(k) + corr_a(k) + corr_b(k) + corr_c(k) + corr_d(k)
 def kfirst(jd0) = ceil((jd0 - 2451550.09766) / 29.530588861 - 0.5) + 0.5  // first full moon on/after Jan 1
 const k0 = kfirst(jd(year, 1, 1))                 // first lunation of the year (its value echoes below)
 def mon(k) = date(fullmoon(k))[2]                 // calendar month of the lunation's full moon
-def nfull(i, c) = if i >= 13 then c else if fullmoon(k0 + i) < jd(year + 1, 1, 1) then nfull(i + 1, c + 1) else c   // full moons of the year
-def dkm(i) = dist(11, fullmoon(k0 + i)) * au / 1000   // the lunation's full-moon distance, km (au is in metres)
-def findm(n, i, m) = if i >= n then -1 else if mon(k0 + i) == m then i else findm(n, i + 1, m)   // first full moon of month m
-def scan(n, i, lo, hi, sm, ilo, ihi) = if i >= n then {lo, hi, sm, ilo, ihi} else if dkm(i) < lo then scan(n, i + 1, dkm(i), hi, sm + dkm(i), i, ihi) else if dkm(i) > hi then scan(n, i + 1, lo, dkm(i), sm + dkm(i), ilo, i) else scan(n, i + 1, lo, hi, sm + dkm(i), ilo, ihi)  // {min, max, sum, argmin, argmax} in km
-def ncloser(n, i, c, d) = if i >= n then c else if dkm(i) < d then ncloser(n, i + 1, c + 1, d) else ncloser(n, i + 1, c, d)   // how many full moons are closer than d km
+def nfull(q, c) = if q >= 13 then c else if fullmoon(k0 + q) < jd(year + 1, 1, 1) then nfull(q + 1, c + 1) else c   // full moons of the year
+def dkm(q) = dist(11, fullmoon(k0 + q)) * au / 1000   // the lunation's full-moon distance, km (au is in metres)
+def findm(n, q, m) = if q >= n then -1 else if mon(k0 + q) == m then q else findm(n, q + 1, m)   // first full moon of month m
+def scan(n, q, lo, hi, sm, ilo, ihi) = if q >= n then {lo, hi, sm, ilo, ihi} else if dkm(q) < lo then scan(n, q + 1, dkm(q), hi, sm + dkm(q), q, ihi) else if dkm(q) > hi then scan(n, q + 1, lo, dkm(q), sm + dkm(q), ilo, q) else scan(n, q + 1, lo, hi, sm + dkm(q), ilo, ihi)  // {min, max, sum, argmin, argmax} in km
+def ncloser(n, q, c, d) = if q >= n then c else if dkm(q) < d then ncloser(n, q + 1, c + 1, d) else ncloser(n, q + 1, c, d)   // how many full moons are closer than d km
 
 // ---- results ------------------------------------------------------------------
 count = nfull(0, 0)

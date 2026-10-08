@@ -1,7 +1,7 @@
 /* ============================================================================
 iqr-outlier-fences.epher -- the 1.5 IQR rule for spotting outliers
 
-The interquartile range of the scores in `d` (one of them is a 20, a
+The interquartile range of the scores in `data` (one of them is a 20, a
 score far below the rest), and the outlier fences of the standard rule:
 values below Q1 - 1.5 IQR or above Q3 + 1.5 IQR count as outliers
 (Tukey's boxplot rule). Each score is then classified by counting, one
@@ -15,28 +15,28 @@ In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 Everything also works line by line in the TUI.
 
-The one knob to edit is `d` below. Everything above the results section
+The one knob to edit is `data` below. Everything above the results section
 is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
-const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 20}   // exam scores; the 20 looks wrong
+const data = {72, 85, 91, 64, 88, 79, 83, 95, 70, 20}   // exam scores; the 20 looks wrong
 
 // ---- helpers: count values below or above a cut, one index at a time ------------
-def below(xs, cut, i) = if i > len(xs) then 0 else (if xs[i] < cut then 1 else 0) + below(xs, cut, i + 1) // how many xs[i..] fall under cut
-def above(xs, cut, i) = if i > len(xs) then 0 else (if xs[i] > cut then 1 else 0) + above(xs, cut, i + 1) // how many xs[i..] exceed cut
-def iqr() = quartile(d, 3) - quartile(d, 1) // the interquartile range of d
+def below(xs, cut, k) = if k > len(xs) then 0 else (if xs[k] < cut then 1 else 0) + below(xs, cut, k + 1) // how many xs[k..] fall under cut
+def above(xs, cut, k) = if k > len(xs) then 0 else (if xs[k] > cut then 1 else 0) + above(xs, cut, k + 1) // how many xs[k..] exceed cut
+def iqr() = quartile(data, 3) - quartile(data, 1) // the interquartile range of data
 
 // ---- quartiles and the fences (Tukey's 1.5 IQR rule) -----------------------------
-print("Q1:", quartile(d, 1))
-print("Q3:", quartile(d, 3))
+print("Q1:", quartile(data, 1))
+print("Q3:", quartile(data, 3))
 print("IQR:", iqr())
-print("lower fence Q1 - 1.5 IQR:", quartile(d, 1) - 1.5 * iqr())
-print("upper fence Q3 + 1.5 IQR:", quartile(d, 3) + 1.5 * iqr())
+print("lower fence Q1 - 1.5 IQR:", quartile(data, 1) - 1.5 * iqr())
+print("upper fence Q3 + 1.5 IQR:", quartile(data, 3) + 1.5 * iqr())
 
 // ---- the verdict: 64 up to 95 lie inside the fences, the 20 does not -------------
-print("scores below the lower fence:", below(d, quartile(d, 1) - 1.5 * iqr(), 1))
-print("scores above the upper fence:", above(d, quartile(d, 3) + 1.5 * iqr(), 1))
+print("scores below the lower fence:", below(data, quartile(data, 1) - 1.5 * iqr(), 1))
+print("scores above the upper fence:", above(data, quartile(data, 3) + 1.5 * iqr(), 1))
 
 /* ---- expected output ----
 = {72, 85, 91, 64, 88, 79, 83, 95, 70, 20}

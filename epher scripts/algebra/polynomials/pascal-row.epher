@@ -1,9 +1,9 @@
 /* ============================================================================
-pascal-row.epher -- the n-th row of Pascal's triangle
+pascal-row.epher -- the num-th row of Pascal's triangle
 
-The n-th row of Pascal's triangle (Blaise Pascal, 1653; known to earlier
-mathematicians) holds the binomial coefficients ncr(n, 0) .. ncr(n, n), and
-the row sums to 2^n because it expands (1 + 1)^n. A for loop collects the
+The num-th row of Pascal's triangle (Blaise Pascal, 1653; known to earlier
+mathematicians) holds the binomial coefficients ncr(num, 0) .. ncr(num, num), and
+the row sums to 2^num because it expands (1 + 1)^num. A for loop collects the
 nine entries of row 8 into one list; a quiet while loop adds the same
 coefficients to check the sum. Everything is exact.
 
@@ -12,24 +12,24 @@ Run it from a terminal:
   Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\pascal-row.epher"
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/pascal-row.epher
 
-The knob to edit is n below.
+The knob to edit is num below.
 ============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
-const n = 8
+const num = 8
 
 // ---- results -----------------------------------------------------------------
-// row n of Pascal's triangle, k = 0..n
-for k in 0 to n do ncr(n, k)
+// row num of Pascal's triangle, k = 0..num
+for k in 0 to num do ncr(num, k)
 // row sum, added quietly (a for loop would echo all nine partial sums)
 s = {0, 0}
-while s[1] <= n do s = {s[1] + 1, s[2] + ncr(n, s[1])}
+while s[1] <= num do s = {s[1] + 1, s[2] + ncr(num, s[1])}
 print("row sums to:", s[2])
-print("row sum equals 2^n:", s[2] == 2 ^ n)
+print("row sum equals 2^num:", s[2] == 2 ^ num)
 /* ---- expected output ----
 = 8
 = {1, 8, 28, 56, 70, 56, 28, 8, 1}
 = {0, 0}
 = row sums to: 256
-= row sum equals 2^n: true
+= row sum equals 2^num: true
 */

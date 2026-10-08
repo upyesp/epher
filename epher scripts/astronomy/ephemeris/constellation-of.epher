@@ -19,28 +19,28 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/constellation-of.epher
 In the REPL:             load one of the paths above
 
-Knobs: the body (guide 1.29 numbering) and the instant t below.
+Knobs: the body (guide 1.29 numbering) and the instant tm below.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const body = 5                 // Jupiter
-const t = jd(2026, 9, 10, 2)
+const tm = jd(2026, 9, 10, 2)
 
 // ---- helpers ----------------------------------------------------------------------
 def wrap(x) = x - 360 * floor(x / 360)
 def epsdeg(j) = 23.4392911 - 46.8150 * ((j - 2451545) / 36525) / 3600 - 0.00059 * ((j - 2451545) / 36525) ^ 2 / 3600 + 0.001813 * ((j - 2451545) / 36525) ^ 3 / 3600
-def eclon(ar, dr) = deg(atan2(sin(rad(ar)) * cos(rad(epsdeg(t))) + tan(rad(dr)) * sin(rad(epsdeg(t))), cos(rad(ar))))
+def eclon(ar, dr) = deg(atan2(sin(rad(ar)) * cos(rad(epsdeg(tm))) + tan(rad(dr)) * sin(rad(epsdeg(tm))), cos(rad(ar))))
 def cons(l) = if l < 29 then "Pisces" else if l < 53 then "Aries" else if l < 90 then "Taurus" else if l < 118 then "Gemini" else if l < 138 then "Cancer" else if l < 174 then "Leo" else if l < 218 then "Virgo" else if l < 241 then "Libra" else if l < 248 then "Scorpius" else if l < 266 then "Ophiuchus" else if l < 300 then "Sagittarius" else if l < 328 then "Capricornus" else if l < 352 then "Aquarius" else "Pisces"
 
 // ---- results ----------------------------------------------------------------------
-bra = ra(body, t)
-bde = decl(body, t)
-sra = ra(10, t)
-sde = decl(10, t)
+bra = ra(body, tm)
+bde = decl(body, tm)
+sra = ra(10, tm)
+sde = decl(10, tm)
 bl = eclon(bra, bde)
 sl = eclon(sra, sde)
 
-print("at", iso(t))
+print("at", iso(tm))
 print("Jupiter ecliptic lon", bl, " ->", cons(bl))
 print("Sun     ecliptic lon", sl, " ->", cons(sl))
 

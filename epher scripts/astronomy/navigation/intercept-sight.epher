@@ -26,27 +26,27 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/navigation/intercept-sight.epher
 In the REPL:             load one of the paths above
 
-Knobs: the observed (corrected) altitude Ho, the sight time t and
+Knobs: the observed (corrected) altitude Ho, the sight time tm and
 the assumed position below.
 ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------------
 const ho = 39.6              // observed (corrected) altitude, degrees
-const t = jd(2026, 9, 10, 14)
+const tm = jd(2026, 9, 10, 14)
 const alat = 50.0            // assumed latitude, degrees
 const alon = -4.0            // assumed longitude, degrees east
 
 // ---- the reduction -------------------------------------------------------------------
 def wrap(x) = x - 360 * floor(x / 360)
 def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
-sra = ra(10, t)
-sde = decl(10, t)
-lha = spread(15 * lst(t, alon) - sra)
+sra = ra(10, tm)
+sde = decl(10, tm)
+lha = spread(15 * lst(tm, alon) - sra)
 hc = deg(asin(sin(rad(alat)) * sin(rad(sde)) + cos(rad(alat)) * cos(rad(sde)) * cos(rad(lha))))
-zn = az(10, t, alat, alon)
+zn = az(10, tm, alat, alon)
 icpt = (ho - hc) * 60
 
-print("at", iso(t), "from assumed", alat, ",", alon)
+print("at", iso(tm), "from assumed", alat, ",", alon)
 print("Sun GHA-derived LHA:", lha, "deg")
 print("computed altitude Hc:", hc, "deg")
 print("azimuth Zn:", zn, "deg")
@@ -54,7 +54,7 @@ print("intercept:", icpt, "nautical miles", (if icpt > 0 then "toward" else "awa
 
 /* Self-check: Hc is the same geometric altitude the engine's own
 topocentric alt gives, to a few thousandths of a degree. */
-print("Hc vs engine altitude:", hc, "vs", alt(10, t, alat, alon))
+print("Hc vs engine altitude:", hc, "vs", alt(10, tm, alat, alon))
 
 /* ---- expected output ----
 = 39.6

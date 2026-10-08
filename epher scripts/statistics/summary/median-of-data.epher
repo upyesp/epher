@@ -13,17 +13,17 @@ In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 Everything also works line by line in the TUI.
 
-The one knob to edit is `d` below. Everything above the results section
+The one knob to edit is `step` below. Everything above the results section
 is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
-const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students (even count)
+const step = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students (even count)
 const od = {64, 70, 72, 79, 83}                      // a five-score set (odd count)
 
 // ---- median of the even count: the mean of the two middle values ---------------
-median(d)                   // builtin median
-s = sort(d)                 // the sorted list; the two middle entries straddle
+median(step)                   // builtin median
+s = sort(step)                 // the sorted list; the two middle entries straddle
 (s[5] + s[6]) / 2           // the 5th and 6th sorted scores, averaged by hand
 
 // ---- median of the odd count: the middle value itself ---------------------------

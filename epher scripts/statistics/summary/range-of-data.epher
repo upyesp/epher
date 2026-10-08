@@ -1,8 +1,8 @@
 /* ============================================================================
 range-of-data.epher -- the spread from smallest to largest value
 
-The range of the ten exam scores in `d`: the builtin range (guide 1.20),
-cross-checked as max(d) - min(d), with the two endpoints shown. The
+The range of the ten exam scores in `step`: the builtin range (guide 1.20),
+cross-checked as max(step) - min(step), with the two endpoints shown. The
 range is the crudest spread measure: it uses only the two extremes.
 
 Run it from a terminal:
@@ -13,18 +13,18 @@ In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 Everything also works line by line in the TUI.
 
-The one knob to edit is `d` below. Everything above the results section
+The one knob to edit is `step` below. Everything above the results section
 is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
-const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
+const step = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
 
 // ---- the range and its definition -----------------------------------------------
-range(d)                    // builtin range: largest minus smallest
-max(d) - min(d)             // the textbook formula, max(d) - min(d), agrees
-min(d)                      // the smallest score
-max(d)                      // the largest score
+range(step)                    // builtin range: largest minus smallest
+max(step) - min(step)             // the textbook formula, max(step) - min(step), agrees
+min(step)                      // the smallest score
+max(step)                      // the largest score
 
 /* ---- expected output ----
 = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}

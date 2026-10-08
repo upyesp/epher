@@ -15,24 +15,24 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-distances.epher
 In the REPL:             load one of the paths above
 
-Knob: the date t.
+Knob: the date tm.
 ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
-const t = jd(2026, 6, 1)     // 0h UT
+const tm = jd(2026, 6, 1)     // 0h UT
 
 /* ---- results ----------------------------------------------------------------
 One AU per planet, in body-number order (Mercury, Venus, Mars, Jupiter,
 Saturn, Uranus, Neptune, Pluto). The spread of the list is the scale
 of the solar system: Mercury at 1.1 AU, Neptune at 30.3 AU, Pluto at
 34.9 AU. A for loop over a list (guide 1.30) collects these values. */
-for b in {1, 2, 4, 5, 6, 7, 8, 9} do dist(b, t)
+for b in {1, 2, 4, 5, 6, 7, 8, 9} do dist(b, tm)
 
 // Two of the eight in kilometres. Mars is on the far side of its orbit
 // (2.18 AU, near its February 2027 opposition it will be near 0.65 AU);
 // Neptune is 30 AU out, some 4.5 billion km away.
-print("Mars, km:", (dist(4, t) * (1 AU)) in km)
-print("Neptune, km:", (dist(8, t) * (1 AU)) in km)
+print("Mars, km:", (dist(4, tm) * (1 AU)) in km)
+print("Neptune, km:", (dist(8, tm) * (1 AU)) in km)
 
 /* Sanity by eye: every entry of the list above sits inside its orbit's
 possible range - Mercury 0.3-1.7 AU, Venus 0.3-1.7, Mars 0.4-2.7,
@@ -40,7 +40,7 @@ Jupiter 4.0-6.5, Saturn 8.0-11.1, Uranus 18-21, Neptune 29-31,
 Pluto 29-49 - so all eight are ordinary, unremarkable distances.
 Light travel time to Neptune: au and c are plain numbers in m and
 m/s, so dist * au / c is seconds. */
-print("Neptune light travel:", dist(8, t) * au / c / 3600, "hr")
+print("Neptune light travel:", dist(8, tm) * au / c / 3600, "hr")
 
 /* ---- expected output ----
 = 2461192.5

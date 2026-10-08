@@ -1,0 +1,42 @@
+/* ============================================================================
+gaussian-bell-areas.epher -- the normal bell and the 68-95-99.7 rule
+
+The standard bell y = e^(-x^2/2) / sqrt(2*pi) carries total area 1.
+The classroom 68-95-99.7 rule says the area within 1, 2 and 3 standard
+deviations of the mean is about 68, 95 and 99.7 percent (any
+statistics text, e.g. Moore and McCabe; the exact values come from
+the error function). The script graphs the bell and computes the
+areas by numeric integration, so the rule can be checked, not just
+quoted.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/functions/gaussian-bell-areas.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\functions\gaussian-bell-areas.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/functions/gaussian-bell-areas.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def bell(x) = e^(0 - x ^ 2 / 2) / sqrt(2 * pi)
+
+// ---- results -------------------------------------------------------------------
+print("total area -6 to 6:", integral(bell(x), -6, 6))
+print("within one sigma:", integral(bell(x), -1, 1))
+print("within two sigma:", integral(bell(x), -2, 2))
+print("within three sigma:", integral(bell(x), -3, 3))
+print("peak height bell(0):", bell(0))
+
+// ---- the picture ---------------------------------------------------------------
+graph e^(0 - x ^ 2 / 2) / sqrt(2 * pi) from -3.5 to 3.5
+
+/* ---- expected output ----
+= total area -6 to 6: 0.99999999803
+= within one sigma: 0.682689492137
+= within two sigma: 0.954499736104
+= within three sigma: 0.997300203925
+= peak height bell(0): 0.398942280401
+graph: e^(0 - x ^ 2 / 2) / sqrt(2 * pi) from -3.5 to 3.5
+*/

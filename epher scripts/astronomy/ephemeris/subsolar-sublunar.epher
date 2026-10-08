@@ -22,24 +22,24 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/subsolar-sublunar.epher
 In the REPL:             load one of the paths above
 
-Knobs: the instant t below.
+Knobs: the instant tm below.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
-const t = jd(2026, 9, 10, 22)
+const tm = jd(2026, 9, 10, 22)
 
 // ---- helpers ----------------------------------------------------------------------
 def wrap(x) = x - 360 * floor(x / 360)
-def lonof(ar) = if wrap(ar - 15 * lst(t, 0)) > 180 then wrap(ar - 15 * lst(t, 0)) - 360 else wrap(ar - 15 * lst(t, 0))  // east positive
+def lonof(ar) = if wrap(ar - 15 * lst(tm, 0)) > 180 then wrap(ar - 15 * lst(tm, 0)) - 360 else wrap(ar - 15 * lst(tm, 0))  // east positive
 def sep(a1, d1, a2, d2) = deg(acos(sin(rad(d1)) * sin(rad(d2)) + cos(rad(d1)) * cos(rad(d2)) * cos(rad(a1 - a2))))
 
 // ---- the two points ----------------------------------------------------------------
-sunra = ra(10, t)
-sunde = decl(10, t)
-moonra = ra(11, t)
-moonde = decl(11, t)
+sunra = ra(10, tm)
+sunde = decl(10, tm)
+moonra = ra(11, tm)
+moonde = decl(11, tm)
 
-print("at", iso(t))
+print("at", iso(tm))
 print("subsolar point:  lat", sunde, " lon", lonof(sunra), "(east positive)")
 print("sublunar point:  lat", moonde, " lon", lonof(moonra), "(east positive)")
 print("separation:", sep(lonof(sunra), sunde, lonof(moonra), moonde), "deg on the sphere")
@@ -50,7 +50,7 @@ Sun is overhead only where its hour angle vanishes, so the subsolar
 point's local sidereal time equals the Sun's right ascension - the
 construction above guarantees that by definition. The printed
 sanity line is the sublunar point's LST vs the Moon's ra. */
-print("sublunar LST:", lst(t, lonof(moonra)), "h  vs Moon ra:", moonra / 15, "h")
+print("sublunar LST:", lst(tm, lonof(moonra)), "h  vs Moon ra:", moonra / 15, "h")
 
 /* ---- expected output ----
 = 29535533/12

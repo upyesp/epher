@@ -1,0 +1,46 @@
+/* ============================================================================
+exp-vs-logistic.epher -- unbounded growth against a saturating curve
+
+Unrestricted growth e^t and the logistic curve L(t) = 1 / (1 + e^(-t))
+agree in spirit at the start and disagree in fate: the exponential
+runs away, the logistic saturates at its carrying capacity 1. The
+logistic inflects at L = 1/2, where its slope peaks at k/4 for growth
+rate k (the standard model of population growth with a cap, e.g.
+Murray, "Mathematical Biology", ch. 1). The script graphs the curve
+with its slope, and prints the landmark values.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/functions/exp-vs-logistic.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\functions\exp-vs-logistic.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/functions/exp-vs-logistic.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the model -----------------------------------------------------------------
+const k = 1          // growth rate
+def L(x) = 1 / (1 + e^(0 - k * x))   // the logistic curve
+
+// ---- results -------------------------------------------------------------------
+print("L(0), the inflection height:", L(0))
+print("slope at the inflection, k/4:", derivative(L(x), 0))
+print("early value L(-4):", L(-4))
+print("late value L(4):", L(4))
+print("saturation check L(20):", L(20))
+
+// ---- the picture ---------------------------------------------------------------
+graph 1 / (1 + e^(0 - x)) from -6 to 6
+graph derivative(1 / (1 + e^(0 - x)), x) from -6 to 6
+
+/* ---- expected output ----
+= 1
+= L(0), the inflection height: 0.5
+= slope at the inflection, k/4: 0.25
+= early value L(-4): 0.0179862099621
+= late value L(4): 0.982013790038
+= saturation check L(20): 0.999999997939
+graph: 1 / (1 + e^(0 - x)) from -6 to 6
+graph: derivative(1 / (1 + e^(0 - x)), x) from -6 to 6
+*/

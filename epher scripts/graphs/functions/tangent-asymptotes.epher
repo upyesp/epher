@@ -1,0 +1,42 @@
+/* ============================================================================
+tangent-asymptotes.epher -- the tangent's vertical walls and period
+
+The tangent y = tan(x) repeats every pi, rises from 0 through 1 at
+pi/4, and runs off each vertical asymptote x = pi/2 + n*pi to +-oo
+(any precalculus text, e.g. Stewart, "Precalculus", ch. 5.4; Euler's
+1748 intro analyses the periodicity). Near an asymptote the values
+explode arithmetically while the curve stays one smooth branch. The
+script graphs two branches and prints the sampled landmarks.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/functions/tangent-asymptotes.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\functions\tangent-asymptotes.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/functions/tangent-asymptotes.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the model -----------------------------------------------------------------
+const p = pi   // the period of the tangent
+
+// ---- results -------------------------------------------------------------------
+print("tan(0):", tan(0))
+print("tan(pi/4):", tan(pi / 4))
+print("tan(3*pi/4):", tan(3 * pi / 4))
+print("period check, tan(pi + 0.3) vs tan(0.3):", abs(tan(pi + 0.3) - tan(0.3)) < 1e-15)
+print("a step from the wall, tan(1.57):", tan(1.57))
+
+// ---- the picture ---------------------------------------------------------------
+graph tan(x) from -4.4 to 4.4
+
+/* ---- expected output ----
+= 3.14159265359
+= tan(0): 0
+= tan(pi/4): 1
+= tan(3*pi/4): -1
+= period check, tan(pi + 0.3) vs tan(0.3): true
+= a step from the wall, tan(1.57): 1255.7655915
+graph: tan(x) from -4.4 to 4.4
+*/

@@ -1,0 +1,43 @@
+/* ============================================================================
+brachistochrone-arc.epher -- the cycloid beats the straight ramp
+
+Of all curves from A down to a lower B, the cycloid is the fastest
+ride (Johann Bernoulli's challenge of 1696, solved 1697 by Newton,
+Leibniz, l'Hopital and the Bernoullis; Stewart, "Calculus", ch. 10.2,
+project). Sliding frictionless, speed is sqrt(2*g*y), so the descent
+time is the integral of ds / sqrt(2*g*y). On the cycloid
+(t - sin(t), 1 - cos(t)) to the arch's half-way point (pi, 2) the
+integrand collapses to the constant sqrt(2); on the straight ramp of
+length L the time is L/sqrt(g). The script graphs both routes and
+times them; the cycloid wins by about 16 percent.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/parametric/brachistochrone-arc.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\parametric\brachistochrone-arc.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/parametric/brachistochrone-arc.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the model -----------------------------------------------------------------
+const g = 9.80665   // standard gravity, m/s^2
+
+// ---- results -------------------------------------------------------------------
+print("cycloid time, exact pi/sqrt(g):", pi / sqrt(g))
+print("straight-ramp time, L/sqrt(g):", sqrt(pi ^ 2 + 4) / sqrt(g))
+print("the cycloid's advantage:", 1 - (pi / sqrt(g)) / (sqrt(pi ^ 2 + 4) / sqrt(g)))
+
+// ---- the picture ---------------------------------------------------------------
+graph param t - sin(t), 1 - cos(t) from 0 to 3.14159
+graph param t, 2 * t / pi from 0 to 3.14159
+
+/* ---- expected output ----
+= 9.80665
+= cycloid time, exact pi/sqrt(g): 1.00320464629
+= straight-ramp time, L/sqrt(g): 1.18924599959
+= the cycloid's advantage: 0.156436391931
+graph: param t - sin(t), 1 - cos(t) from 0 to 3.14159
+graph: param t, 2 * t / pi from 0 to 3.14159
+*/

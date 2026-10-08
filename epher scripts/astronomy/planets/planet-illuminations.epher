@@ -19,11 +19,11 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-illuminations.epher
 In the REPL:             load one of the paths above
 
-Knob: the date t.
+Knob: the date tm.
 ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
-const t = jd(2026, 6, 1)     // 0h UT
+const tm = jd(2026, 6, 1)     // 0h UT
 
 // ---- model ------------------------------------------------------------------
 // The lit fraction from the phase angle, radians trig (guide 1.13).
@@ -36,17 +36,17 @@ disk heading toward the thin crescent of its October 2026 inferior
 conjunction (see venus-illumination-cycle.epher). Mars, 2.18 AU out
 near the far side of its orbit, shows 0.965. Jupiter and Saturn, seen
 nearly Sun-on, are effectively full. */
-for b in {2, 4, 5, 6} do illum(b, t)
-for b in {2, 4, 5, 6} do phase(b, t)
+for b in {2, 4, 5, 6} do illum(b, tm)
+for b in {2, 4, 5, 6} do phase(b, tm)
 
 /* Rebuild illum from phase and compare. Jupiter and Saturn agree to the
 printed 4 decimals; the 1e-4 wobble everywhere is rounding (illum to
 4 decimals, phase to 2). Venus is the one planet whose phase swings
 widely over a year - the crescent-to-gibbous cycle of an inferior
 planet, the same geometry that gives the Moon its phases. */
-print("Jupiter rebuilt:", lit(phase(5, t)), "vs", illum(5, t))
-print("Saturn rebuilt:", lit(phase(6, t)), "vs", illum(6, t))
-print("Venus rebuilt:", lit(phase(2, t)), "vs", illum(2, t))
+print("Jupiter rebuilt:", lit(phase(5, tm)), "vs", illum(5, tm))
+print("Saturn rebuilt:", lit(phase(6, tm)), "vs", illum(6, tm))
+print("Venus rebuilt:", lit(phase(2, tm)), "vs", illum(2, tm))
 
 /* ---- expected output ----
 = 2461192.5

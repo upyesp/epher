@@ -3,7 +3,7 @@ dollar-cost-averaging.epher -- 500 a month into an index fund versus the
 same money invested as a lump sum at the start
 
 Dollar-cost averaging feeds a fixed amount into the market every month.
-Its balance after n months at monthly rate i is the annuity future value
+Its balance after n months at monthly rate r is the annuity future value
 (finance builtin tvm_fv). The comparison invests the same total money,
 all of it, at the start and lets it compound for the whole term. Source:
 standard annuity and compound formulas, Kellison, The Theory of Interest,

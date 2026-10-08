@@ -45,7 +45,7 @@ def longest(seed) do
   randseed(seed)
   run = 0
   best = 0
-  for i in 1 to coins do {run, best} = grow(run, best, randint(0, 1))
+  for k in 1 to coins do {run, best} = grow(run, best, randint(0, 1))
   best
 end
 

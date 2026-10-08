@@ -35,7 +35,7 @@ of points, the if behind it does the counting, and the block hands
 back the hits. */
 def thrower(n) do
   hits = 0
-  for i in 1 to n do if random() ^ 2 + random() ^ 2 <= 1 then hits = hits + 1
+  for k in 1 to n do if random() ^ 2 + random() ^ 2 <= 1 then hits = hits + 1
   hits
 end
 randseed(7)

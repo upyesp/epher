@@ -29,7 +29,7 @@ def ok(a, b) = abs(sin(a + b) - (sin(a) * cos(b) + cos(a) * sin(b))) < 1e-12
 
 // ---- results -----------------------------------------------------------------
 // The check at every knob pair.
-for i in 1 to 4 do ok(rad(as[i]), rad(bs[i]))
+for k in 1 to 4 do ok(rad(as[k]), rad(bs[k]))
 
 // The numbers behind the booleans for the pair (30, 45): both sides are
 // sin(75 deg) ~ 0.9659258.

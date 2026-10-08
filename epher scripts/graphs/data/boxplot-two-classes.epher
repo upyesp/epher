@@ -1,0 +1,43 @@
+/* ============================================================================
+boxplot-two-classes.epher -- two class tests, side by side in boxes
+
+The box-and-whisker plot (Tukey, 1977) shows a distribution in five
+numbers - min, Q1, median, Q3, max - and makes two classes comparable
+at a glance: same median, different spread, one stray top score. The
+class scores below are small enough to check by hand; the quartiles
+are TI-style, the median of each half (quartile(d, k), e.g. Moore
+and McCabe, "Introduction to the Practice of Statistics", ch. 1).
+The script graphs one boxplot and prints both classes' five numbers.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/data/boxplot-two-classes.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\data\boxplot-two-classes.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/data/boxplot-two-classes.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the data ------------------------------------------------------------------
+classA = {62, 67, 71, 74, 76, 79, 81, 84, 87, 91}
+classB = {55, 58, 64, 70, 73, 75, 78, 82, 88, 96}
+
+// ---- results -------------------------------------------------------------------
+print("class A median and quartiles:", median(classA), quartile(classA, 1), quartile(classA, 3))
+print("class B median and quartiles:", median(classB), quartile(classB, 1), quartile(classB, 3))
+print("means, A", mean(classA), "vs B", mean(classB))
+print("spread, A", range(classA), "vs B", range(classB))
+
+// ---- the picture ---------------------------------------------------------------
+graph boxplot(classA)
+
+/* ---- expected output ----
+= {62, 67, 71, 74, 76, 79, 81, 84, 87, 91}
+= {55, 58, 64, 70, 73, 75, 78, 82, 88, 96}
+= class A median and quartiles: 77.5 71 84
+= class B median and quartiles: 74 64 82
+= means, A 77.2 vs B 73.9
+= spread, A 29 vs B 41
+graph: boxplot(classA)
+*/

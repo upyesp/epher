@@ -27,7 +27,7 @@ Knobs: the catalog J2000 position (Vega below) and the date.
 // ---- the knobs ---------------------------------------------------------------------------
 const ara = 279.23473479       // Vega, J2000 degrees
 const ade = 38.78368896
-const t = jd(2026, 9, 10, 0)
+const tm = jd(2026, 9, 10, 0)
 
 // ---- helpers ------------------------------------------------------------------------------
 def wrap(x) = x - 360 * floor(x / 360)
@@ -45,9 +45,9 @@ def wrapang(x) = x - 360 * floor(x / 360)
 sx = cos(rad(ade)) * cos(rad(ara))
 sy = cos(rad(ade)) * sin(rad(ara))
 sz = sin(rad(ade))
-ax = cos(rad(apexde(t))) * cos(rad(apexra(t)))
-ay = cos(rad(apexde(t))) * sin(rad(apexra(t)))
-az = sin(rad(apexde(t)))
+ax = cos(rad(apexde(tm))) * cos(rad(apexra(tm)))
+ay = cos(rad(apexde(tm))) * sin(rad(apexra(tm)))
+az = sin(rad(apexde(tm)))
 kx = sx + 20.49552 / 206265 * ax
 ky = sy + 20.49552 / 206265 * ay
 kz = sz + 20.49552 / 206265 * az
@@ -55,18 +55,18 @@ ara2 = wrapang(deg(atan2(ky, kx)))
 ade2 = deg(atan2(kz, sqrt(kx ^ 2 + ky ^ 2)))
 
 // ---- results ------------------------------------------------------------------------------
-print("Vega at", iso(t))
+print("Vega at", iso(tm))
 print("catalog:  ra", deg2hms(ara), " dec", deg2dms(ade))
 print("shifted:  ra", deg2hms(ara2), " dec", deg2dms(ade2))
 print("shift in ra * cos(dec):", spread(ara2 - ara) * cos(rad(ade)) * 3600, "arcsec")
 print("shift in dec:          ", (ade2 - ade) * 3600, "arcsec")
-print("apex at ra", deg2hms(apexra(t)), " dec", deg2dms(apexde(t)))
+print("apex at ra", deg2hms(apexra(tm)), " dec", deg2dms(apexde(tm)))
 
 /* Self-check: a star exactly at the apex cannot shift at all - the
 aberration displacement is toward the apex. Re-run the machinery
 with the apex itself as the star: the shift must vanish. */
 ax2 = wrapang(deg(atan2(ay + 20.49552 / 206265 * ay, ax + 20.49552 / 206265 * ax)))
-print("star at apex shifts < 1e-6 arcsec:", abs(spread(ax2 - apexra(t)) * cos(rad(apexde(t))) * 3600) < 1e-6)
+print("star at apex shifts < 1e-6 arcsec:", abs(spread(ax2 - apexra(tm)) * cos(rad(apexde(tm))) * 3600) < 1e-6)
 
 /* ---- expected output ----
 = 279.23473479
