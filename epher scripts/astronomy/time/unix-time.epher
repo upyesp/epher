@@ -24,21 +24,21 @@ Knobs: the instant below.
 ============================================================================ */
 
 // ---- the knobs -------------------------------------------------------------------------
-const t = jd(2026, 9, 10, 12.5824)   // 12:34:56.64 UT
+const tm = jd(2026, 9, 10, 12.5824)   // 12:34:56.64 UT
 
 // ---- the conversions ----------------------------------------------------------------------
-ux = (t - 2440587.5) * 86400
+ux = (tm - 2440587.5) * 86400
 t2 = 2440587.5 + ux / 86400
 
-print("instant:", iso(t))
+print("instant:", iso(tm))
 print("unix seconds:", ux)
 print("back-converted unix seconds:", (t2 - 2440587.5) * 86400)
-print("round-trip JD difference:", t2 - t, "d")
+print("round-trip JD difference:", t2 - tm, "d")
 
 /* Self-checks: the epoch identity and a full round trip must both
 be exact. */
 print("epoch JD is 2440587.5:", jd(1970, 1, 1) == 2440587.5)
-print("round trip exact:", t2 == t)
+print("round trip exact:", t2 == tm)
 print("unix seconds of the epoch:", (jd(1970, 1, 1) - 2440587.5) * 86400)
 
 /* ---- expected output ----

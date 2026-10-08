@@ -1,10 +1,10 @@
 /* ============================================================================
 chord-length.epher -- chord of a circle from radius and central angle
 
-A chord spans the central angle t; the radius to either endpoint and
+A chord spans the central angle ang; the radius to either endpoint and
 the chord form an isosceles triangle, so the chord is
-L = 2 r sin(t / 2) (standard formula; drop the perpendicular from the
-center, which bisects the chord). Angles go in radians, so t is
+L = 2 r sin(ang / 2) (standard formula; drop the perpendicular from the
+center, which bisects the chord). Angles go in radians, so ang is
 converted with rad() before halving. A 60 degree chord of radius 5 is
 10 sin(30 deg) = 5, and 180 degrees spans the full diameter.
 
@@ -15,19 +15,19 @@ Run it from a terminal:
 In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
-The knobs to edit are `r` (radius) and `t` (central angle in degrees).
+The knobs to edit are `r` (radius) and `ang` (central angle in degrees).
 Everything above the results section is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const r = 5
-const t = 60
+const ang = 60
 
 // ---- the model ----------------------------------------------------------------
-def chord(r, t) = 2 * r * sin(rad(t / 2))   // L = 2 r sin(t/2), t in degrees
+def chord(r, ang) = 2 * r * sin(rad(ang / 2))   // L = 2 r sin(ang/2), ang in degrees
 
 // ---- results ------------------------------------------------------------------
-print("chord of 60 degrees:", chord(r, t))
+print("chord of 60 degrees:", chord(r, ang))
 print("chord of 90 degrees:", chord(5, 90))
 print("180 degrees spans the diameter:", chord(5, 180))
 print("diameter check:", abs(chord(5, 180) - 2 * r) < 1e-9)

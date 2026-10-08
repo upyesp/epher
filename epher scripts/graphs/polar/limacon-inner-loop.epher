@@ -1,0 +1,40 @@
+/* ============================================================================
+limacon-inner-loop.epher -- the snail with the inner loop
+
+The limacon r = 1 + 2*cos(theta) (the name, "snail", is Roberval's)
+crosses into itself when b > a: between theta = 2*pi/3 and 4*pi/3 the
+radius is negative, which plots the small inner loop through the
+origin (Stewart, "Calculus", ch. 10.3, "limacons with inner loops";
+Lockwood, "A Book of Curves", ch. 10). The script graphs it, prints
+the radial landmarks, and checks where the curve passes through the
+pole.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/polar/limacon-inner-loop.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\polar\limacon-inner-loop.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/polar/limacon-inner-loop.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def r(t) = 1 + 2 * cos(t)
+
+// ---- results -------------------------------------------------------------------
+print("the far lip, r at 0:", r(0))
+print("through the pole at 2*pi/3:", abs(r(2 * pi / 3)) < 1e-15)
+print("inner loop tip, r at pi:", r(pi))
+print("symmetry about the x-axis, r(pi/3) vs r(-pi/3):", r(pi / 3) == r(0 - pi / 3))
+
+// ---- the picture ---------------------------------------------------------------
+graph polar 1 + 2 * cos(theta)
+
+/* ---- expected output ----
+= the far lip, r at 0: 3
+= through the pole at 2*pi/3: true
+= inner loop tip, r at pi: -1
+= symmetry about the x-axis, r(pi/3) vs r(-pi/3): true
+graph: polar 1 + 2 * cos(theta)
+*/

@@ -26,14 +26,14 @@ Knobs: the date below.
 ============================================================================ */
 
 // ---- the knobs -------------------------------------------------------------------------
-const t = jd(2026, 9, 10, 0)
+const tm = jd(2026, 9, 10, 0)
 
 // ---- the conversions ---------------------------------------------------------------------
-b = 1900 + (t - 2415020.31352) / 365.242198781
+b = 1900 + (tm - 2415020.31352) / 365.242198781
 tb = 2415020.31352 + 365.242198781 * (b - 1900)
 
-print("JD", t, "is Besselian year", b)
-print("back to JD:", tb, " (difference", tb - t, "d)")
+print("JD", tm, "is Besselian year", b)
+print("back to JD:", tb, " (difference", tb - tm, "d)")
 
 /* Self-checks: the B1950.0 anchor sits at JD 2433282.4235, and
 J2000.0 (the Julian epoch, JD 2451545.0) reads Besselian

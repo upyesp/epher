@@ -2,7 +2,7 @@
 polygon-area-shoelace.epher -- area of a polygon, shoelace formula
 
 For vertices taken in order around a polygon, twice the area is the
-absolute value of the alternating sum x_i y_(i+1) - y_i x_(i+1) over
+absolute value of the alternating sum x_p y_q - y_p x_q over
 consecutive pairs, with the last vertex paired back to the first
 (the shoelace, or surveyor's, formula; Gauss, 1794; standard
 formula). The helper pair(p, q) is one shoelace term, and the helper

@@ -26,7 +26,7 @@ const rate = 5%             // annual rate
 const years = 20            // years invested
 
 /* ---- results -----------------------------------------------------------------
-The builtin tvm_fv(n, i, pv, pmt) with no periodic payments: the principal
+The builtin tvm_fv(n, r, pv, pmt) with no periodic payments: the principal
 is entered negative (money out today), the future value comes back
 positive. With pmt = 0 the builtin is exactly the compound formula. */
 print("future value, builtin tvm_fv:", tvm_fv(years, rate, -principal, 0))

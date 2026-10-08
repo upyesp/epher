@@ -25,12 +25,12 @@ There is no knob: the sample expressions are the point of the script.
 bin(264)                      // 264 spelled in binary: 0b100001000
 oct(264)                      // 264 spelled in octal: 0o410
 hex(264)                      // 264 spelled in hex: 0x108
-print("0x108 == 264:", 0x108 == 264)          // the spelling reads back
+print("the literal 0x108 reads back as:", 0x108)          // the spelling reads back
 
 // ---- a product across bases ----------------------------------------------------------------
 0b1010 * 0o12                 // 10 * 10 = 100
 hex(100)                      // 100 spelled in hex: 0x64
-print("0x64 == 100:", 0x64 == 100)
+print("the literal 0x64 reads back as:", 0x64)
 
 // ---- subtraction and powers -----------------------------------------------------------------
 0x100 - 0b1                   // 256 - 1 = 255
@@ -40,10 +40,10 @@ print("0x64 == 100:", 0x64 == 100)
 = 0b100001000
 = 0o410
 = 0x108
-= 0x108 == 264: true
+= the literal 0x108 reads back as: 264
 = 100
 = 0x64
-= 0x64 == 100: true
+= the literal 0x64 reads back as: 100
 = 255
 = 256
 */

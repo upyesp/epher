@@ -22,33 +22,33 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/body-almanac.epher
 In the REPL:             load one of the paths above
 
-Knobs: body (guide 1.29 numbering), instant `t`, and the observer's
+Knobs: body (guide 1.29 numbering), instant `tm`, and the observer's
 `lat` and `lon` (degrees, east positive). All four sit below.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const body = 4                 // Mars
-const t = jd(2026, 6, 1, 3)    // 03:00 UT
+const tm = jd(2026, 6, 1, 3)    // 03:00 UT
 const lat = 51.4779            // Greenwich
 const lon = 0
 
 // ---- panel --------------------------------------------------------------------
-print("almanac for", iso(t), "at lat", lat, "lon", lon)
-print("ra:", deg2hms(ra(body, t)), " dec:", deg2dms(decl(body, t)))
-print("distance:", dist(body, t), "AU")
-print("magnitude:", mag(body, t))
-print("phase angle:", phase(body, t), "deg, illuminated:", illum(body, t))
-print("angular diameter:", diam(body, t) * 3600, "arcsec")
-print("rises:", iso(rise(body, t, lat, lon)))
-print("transits:", iso(transit(body, t, lat, lon)))
-print("sets:", iso(set(body, t, lat, lon)))
-print("at the instant: alt", alt(body, t, lat, lon), "az", az(body, t, lat, lon))
+print("almanac for", iso(tm), "at lat", lat, "lon", lon)
+print("ra:", deg2hms(ra(body, tm)), " dec:", deg2dms(decl(body, tm)))
+print("distance:", dist(body, tm), "AU")
+print("magnitude:", mag(body, tm))
+print("phase angle:", phase(body, tm), "deg, illuminated:", illum(body, tm))
+print("angular diameter:", diam(body, tm) * 3600, "arcsec")
+print("rises:", iso(rise(body, tm, lat, lon)))
+print("transits:", iso(transit(body, tm, lat, lon)))
+print("sets:", iso(set(body, tm, lat, lon)))
+print("at the instant: alt", alt(body, tm, lat, lon), "az", az(body, tm, lat, lon))
 
 /* Self-check: at its transit a body stands on the observer's
 meridian, so its altitude must equal 90 degrees minus the span
 between observer and body declination (the topocentric one, which
 for Mars differs from geocentric by well under an arcminute). */
-tt = transit(body, t, lat, lon)
+tt = transit(body, tm, lat, lon)
 print("alt at transit:", alt(body, tt, lat, lon), "vs 90 - |lat - dec|:", 90 - abs(lat - decl(body, tt)))
 
 /* ---- expected output ----

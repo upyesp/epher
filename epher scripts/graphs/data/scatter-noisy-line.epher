@@ -1,0 +1,49 @@
+/* ============================================================================
+scatter-noisy-line.epher -- a straight line hiding in noisy data
+
+Eleven measurements of a process that is really y = 2*x + 1, with
+gaussian noise of sigma 0.5 drawn once with randseed(11) and frozen
+into the script so every run tells the same story. The least-squares
+line recovers the truth within the noise (Legendre 1805, Gauss 1809;
+the r of the fit is Pearson's correlation). The script graphs the
+scatter with its fit line, prints the regression, and recomputes the
+slope by hand from the sums.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/data/scatter-noisy-line.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\data\scatter-noisy-line.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/data/scatter-noisy-line.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the data ------------------------------------------------------------------
+xs = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+noise = {-0.0588857558298, -0.473800101491, -0.898776089747, 0.200714033531, 0.707618171068, -0.0252481877562, 0.211464687557, 0.0043486472411, 0.420960188964, 0.0966378599707, 0.362996093333}
+ys = 2 * xs + 1 + noise
+
+// ---- results -------------------------------------------------------------------
+print("the fitted line and its r:")
+linreg(xs, ys)
+mx = mean(xs)
+my = mean(ys)
+print("slope by hand, true 2:", sum((xs - mx) * (ys - my)) / sum((xs - mx) ^ 2))
+print("intercept by hand, true 1:", my - sum((xs - mx) * (ys - my)) / sum((xs - mx) ^ 2) * mx)
+
+// ---- the picture ---------------------------------------------------------------
+graph scatter(xs, ys)
+
+/* ---- expected output ----
+= {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+= {-0.0588857558298, -0.473800101491, -0.898776089747, 0.200714033531, 0.707618171068, -0.0252481877562, 0.211464687557, 0.0043486472411, 0.420960188964, 0.0966378599707, 0.362996093333}
+= {0.94111424417, 2.52619989851, 4.10122391025, 7.20071403353, 9.70761817107, 10.9747518122, 13.2114646876, 15.0043486472, 17.420960189, 19.09663786, 21.3629960933}
+= the fitted line and its r:
+= y = 2.0678*x + 0.7107 (r = 0.9985)
+= 5
+= 11.0498208679
+= slope by hand, true 2: 2.06783168792
+= intercept by hand, true 1: 0.710662428272
+graph: scatter(xs, ys)
+*/

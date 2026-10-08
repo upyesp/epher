@@ -31,9 +31,9 @@ def diff(h, m) = abs(sweep_h(h, m) - sweep_m(m))  // raw separation, <= 360
 def hand_angle(h, m) = min(diff(h, m), 360 - diff(h, m))   // the smaller angle
 
 // ---- results -----------------------------------------------------------------
-// Hand angles for 3:00, 6:00, 12:30, 9:15, 2:47 and 1:05 (hs[i] with ms[i]).
+// Hand angles for 3:00, 6:00, 12:30, 9:15, 2:47 and 1:05 (hs[k] with ms[k]).
 // 12:30 is 165 deg, not 195: the smaller angle is the answer.
-for i in 1 to 6 do hand_angle(hs[i], ms[i])
+for k in 1 to 6 do hand_angle(hs[k], ms[k])
 
 // The classic checks, labelled: 3:00 and 6:00 are quarter and half turns.
 print("hands at 3:00:", hand_angle(3, 0), "deg")

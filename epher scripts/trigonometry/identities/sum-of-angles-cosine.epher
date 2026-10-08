@@ -30,7 +30,7 @@ def ok(a, b) = abs(cos(a + b) - (cos(a) * cos(b) - sin(a) * sin(b))) < 1e-12
 
 // ---- results -----------------------------------------------------------------
 // The check at every knob pair.
-for i in 1 to 4 do ok(rad(as[i]), rad(bs[i]))
+for k in 1 to 4 do ok(rad(as[k]), rad(bs[k]))
 
 // The numbers behind the booleans for the pair (30, 45): both sides are
 // cos(75 deg) ~ 0.2588190.
@@ -38,16 +38,16 @@ print("cos(30 deg + 45 deg) =", cos(rad(30) + rad(45)))
 print("cos(30) cos(45) - sin(30) sin(45) =", cos(rad(30)) * cos(rad(45)) - sin(rad(30)) * sin(rad(45)))
 
 // The pair (80, 10) sums to exactly 90 deg, where cosine is 0: the two
-// products of about 0.17 and 0.98 cancel, and the check confirms the
-// cancellation is real to twelve digits.
-print("cos(80 deg + 10 deg) = 0:", abs(cos(rad(80) + rad(10))) < 1e-12)
-print("cos(80) cos(10) - sin(80) sin(10) = 0:", abs(cos(rad(80)) * cos(rad(10)) - sin(rad(80)) * sin(rad(10))) < 1e-12)
+// products of about 0.17 and 0.98 cancel, and the residuals below are
+// zero to within 1e-16.
+print("cos(80 deg + 10 deg):", cos(rad(80) + rad(10)))
+print("cos(80) cos(10) - sin(80) sin(10):", cos(rad(80)) * cos(rad(10)) - sin(rad(80)) * sin(rad(10)))
 /* ---- expected output
 = {30, 15, 37, 80}
 = {45, 60, 22, 10}
 = {true, true, true, true}
 = cos(30 deg + 45 deg) = 0.258819045103
 = cos(30) cos(45) - sin(30) sin(45) = 0.258819045103
-= cos(80 deg + 10 deg) = 0: true
-= cos(80) cos(10) - sin(80) sin(10) = 0: true
+= cos(80 deg + 10 deg): 0.0000000000000000612323399574
+= cos(80) cos(10) - sin(80) sin(10): 0.0000000000000000832667268469
 */

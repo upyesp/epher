@@ -30,7 +30,7 @@ refraction and dip), the UT instant and the assumed longitude.
 
 // ---- the knobs ---------------------------------------------------------------------
 const ho = 51.28            // observed altitude, degrees
-const t = jd(2026, 9, 10, 22)
+const tm = jd(2026, 9, 10, 22)
 const lon = -5              // assumed longitude, degrees east
 
 // ---- Polaris at the date ------------------------------------------------------------
@@ -41,12 +41,12 @@ def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
 dy = (jd(2026, 9, 10, 0) - 2451545) / 365.25
 pdec = pde + 15 / 3600 * dy      // the ~15 arcsec/yr increase
 pd = (90 - pdec)                  // polar distance, degrees
-h = spread(15 * lst(t, lon) - pra)
+h = spread(15 * lst(tm, lon) - pra)
 
 // ---- the sight ------------------------------------------------------------------------
 sv = sin(rad(ho)) / sqrt(cos(rad(pd)) ^ 2 + (sin(rad(pd)) * cos(rad(h))) ^ 2)
 lat = deg(asin(sv)) - deg(atan2(sin(rad(pd)) * cos(rad(h)), cos(rad(pd))))
-print("at", iso(t), "lon", lon)
+print("at", iso(tm), "lon", lon)
 print("polar distance of Polaris:", pd * 60, "arcmin")
 print("LHA of Polaris:", h, "deg")
 print("latitude from the sight:", lat, "deg")

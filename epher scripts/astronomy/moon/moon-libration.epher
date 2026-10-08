@@ -12,7 +12,7 @@ of Meeus ch. 53 adds only ~0.02-0.04 deg of physical libration, which
 is omitted).
 
 The frame: the lunar equator is taken as the ecliptic tilted by
-i = 1.5424 deg about the mean node line; the prime meridian points at
+the inclination incl = 1.5424 deg about the mean node line; the prime meridian points at
 the Moon's mean longitude L' (Meeus ch. 47 series), and the node
 comes from the mean elements (Meeus ch. 49). Inputs at the chosen
 instant: the Moon's and the Sun's geocentric ra and decl (the
@@ -21,9 +21,9 @@ ecliptic with the mean obliquity (the ch. 13 rotation of
 moon-ecliptic-position.epher). With lambda/beta the ecliptic
 coordinates, Lbar the mean lunar longitude and O the node:
 
-  sin b  = sin i cos beta cos(O + lambda) - cos i sin beta
-  tan l  = (cos beta cos i sin(lambda - Lbar)
-            - sin beta sin i sin(O + Lbar)) / (cos beta cos(lambda - Lbar))
+  sin b  = sin incl cos beta cos(O + lambda) - cos incl sin beta
+  tan l  = (cos beta cos incl sin(lambda - Lbar)
+            - sin beta sin incl sin(O + Lbar)) / (cos beta cos(lambda - Lbar))
   l_sun  = the same rotation applied to the Sun's direction
            (its longitude comes out near 0 at full moon, 180 at new)
   morning terminator at l_sun - 90, evening at l_sun + 90
@@ -31,12 +31,12 @@ coordinates, Lbar the mean lunar longitude and O the node:
 Conventions printed below: l > 0 means the sub-Earth point lies east
 of the mean meridian (a little of the Moon's east limb is visible);
 b > 0 means the Earth is north of the lunar equator (the north polar
-region tips into view). The small projection terms of order i times
-beta (up to 0.15 deg) are kept in l; terms of order i squared are
+region tips into view). The small projection terms of order incl times
+beta (up to 0.15 deg) are kept in l; terms of order incl squared are
 dropped.
 
 Accuracy: the librations come out to a few tenths of a degree (the
-dropped i-squared and physical terms together are under 0.05 deg, and
+dropped incl-squared and physical terms together are under 0.05 deg, and
 the engine's positions are arcsecond-class). The self-check below is
 the geometry's own bound: the libration in latitude cannot leave the
 +/-7 deg band (5.15 deg of orbital tilt plus 1.54 deg of equator
@@ -76,7 +76,7 @@ def elat(j, b) = deg(asin(sin(rad(decl(b, j))) * cos(rad(eps(j))) - cos(rad(decl
 /* b_E and l_E are the Earth's selenographic latitude and longitude (the
 optical librations); l_s is the Sun's selenographic longitude; all
 from the vector frame described above. The small frame-tilt terms of
-order i are kept in l. */
+order incl are kept in l. */
 def bsub(j, lb, be) = deg(asin(sin(rad(incl)) * cos(rad(be)) * cos(rad(node(j) + lb)) - cos(rad(incl)) * sin(rad(be))))
 def lsub(j, lb, be) = deg(atan2(cos(rad(be)) * cos(rad(incl)) * sin(rad(lb - Lbar(j))) - sin(rad(be)) * sin(rad(incl)) * sin(rad(node(j) + Lbar(j))), cos(rad(be)) * cos(rad(lb - Lbar(j)))))
 

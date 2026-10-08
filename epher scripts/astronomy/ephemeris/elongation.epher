@@ -30,23 +30,23 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/elongation.epher
 In the REPL:             load one of the paths above
 
-Knobs: the instant `t` below (jd of 2026-06-01 12:00 UT).
+Knobs: the instant `tm` below (jd of 2026-06-01 12:00 UT).
 ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
-const t = jd(2026, 6, 1, 12)
+const tm = jd(2026, 6, 1, 12)
 
 // ---- ecliptic longitude of a body, Meeus eq. 13.3 (degrees, 0..360) -----------
 def centuries(j) = (j - jd(2000, 1, 1, 12)) / 36525
 def obliquity(j) = 23.4392911 - 0.0130042 * centuries(j)   // mean, degrees
-def eclon(b) = deg(atan2(sin(rad(ra(b, t))) * cos(rad(obliquity(t))) + tan(rad(decl(b, t))) * sin(rad(obliquity(t))), cos(rad(ra(b, t)))))
+def eclon(b) = deg(atan2(sin(rad(ra(b, tm))) * cos(rad(obliquity(tm))) + tan(rad(decl(b, tm))) * sin(rad(obliquity(tm))), cos(rad(ra(b, tm)))))
 
 // ---- signed elongation: longitude difference wrapped to -180..180 -------------
 def wrap180(x) = x - 360 * floor((x + 180) / 360)
 def elong(b) = wrap180(eclon(b) - eclon(10))
 
 // ---- results ------------------------------------------------------------------
-print("solar elongation, degrees, at", iso(t))
+print("solar elongation, degrees, at", iso(tm))
 print("Moon:", elong(11))
 print("Mercury:", elong(1))
 print("Venus:", elong(2))
@@ -65,7 +65,7 @@ bodies ride the ecliptic, while the Moon runs up to 5 degrees off it
 (the same reason a full moon's illum tops out at 0.9986, see
 full-moons.epher). */
 print("Sun elongation (must be 0):", elong(10))
-print("Moon illum from elongation:", (1 - cos(rad(abs(elong(11))))) / 2, "vs built-in illum:", illum(11, t))
+print("Moon illum from elongation:", (1 - cos(rad(abs(elong(11))))) / 2, "vs built-in illum:", illum(11, tm))
 
 /* ---- expected output ----
 = 2461193

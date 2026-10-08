@@ -29,32 +29,32 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/bright-limb-pa.epher
 In the REPL:             load one of the paths above
 
-Knobs: the body (11 = Moon) and the instant t below.
+Knobs: the body (11 = Moon) and the instant tm below.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const body = 11                // Moon
-const t = jd(2026, 9, 13, 19)  // an evening crescent test
+const tm = jd(2026, 9, 13, 19)  // an evening crescent test
 
 // ---- Meeus ch. 48: bright-limb position angle, from precomputed ra/dec ------------
 def pa(sra, sde, bra, bde) = deg(atan2(sin(rad(sra - bra)) * cos(rad(sde)), cos(rad(bde)) * sin(rad(sde)) - sin(rad(bde)) * cos(rad(sde)) * cos(rad(sra - bra))))
 
-sra = ra(10, t)
-sde = decl(10, t)
-bra = ra(body, t)
-bde = decl(body, t)
+sra = ra(10, tm)
+sde = decl(10, tm)
+bra = ra(body, tm)
+bde = decl(body, tm)
 
 // ---- results ----------------------------------------------------------------------
-print("at", iso(t))
+print("at", iso(tm))
 print("bright-limb PA (north through east):", pa(sra, sde, bra, bde), "deg")
-print("illuminated fraction:", illum(body, t))
+print("illuminated fraction:", illum(body, tm))
 
 /* Self-check: the phase picture must be consistent - this is a
 young crescent, so the Sun (which the lit side faces) is below the
 horizon for Greenwich at the instant, and its azimuth tells which
 way the crescent points. */
-print("Sun altitude at the instant:", alt(10, t, 51.4779, 0), "deg")
-print("Sun azimuth at the instant: ", az(10, t, 51.4779, 0), "deg")
+print("Sun altitude at the instant:", alt(10, tm, 51.4779, 0), "deg")
+print("Sun azimuth at the instant: ", az(10, tm, 51.4779, 0), "deg")
 
 /* ---- expected output ----
 = 11

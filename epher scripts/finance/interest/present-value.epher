@@ -28,7 +28,7 @@ const years = 15            // years until the sum arrives
 // ---- results -----------------------------------------------------------------
 // The bare classroom formula, fv/(1+r)^n.
 print("present value, formula fv/(1+r)^n:", goal / (1 + rate) ^ years)
-// The builtin tvm_pv(n, i, pmt, fv) with no payments in between: same
+// The builtin tvm_pv(n, r, pmt, fv) with no payments in between: same
 // number, negative because buying that future 50000 means paying today.
 print("present value, builtin tvm_pv:", tvm_pv(years, rate, 0, goal))
 // Round trip: invest the present value at 6% and the goal comes back.

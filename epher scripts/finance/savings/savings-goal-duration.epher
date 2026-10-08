@@ -3,8 +3,8 @@ savings-goal-duration.epher -- how long different monthly deposits take
 to reach a vacation fund
 
 The finance builtin tvm_n solves the annuity equation for the term:
-tvm_n(i, 0, -deposit, goal) returns the months of deposit needed to grow
-an empty account to the goal at monthly rate i. Source: standard annuity
+tvm_n(r, 0, -deposit, goal) returns the months of deposit needed to grow
+an empty account to the goal at monthly rate r. Source: standard annuity
 formulas; see Kellison, The Theory of Interest, chapter 3.
 
 Sign convention: deposit negative, goal positive.

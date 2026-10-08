@@ -73,10 +73,10 @@ def fullmoon(k) = base(k) + corr_a(k) + corr_b(k) + corr_c(k) + corr_d(k)
 def kfirst(jd0) = ceil((jd0 - 2451550.09766) / 29.530588861 - 0.5) + 0.5  // first full moon on/after Jan 1
 def mname(m) = if m == 1 then "January" else if m == 2 then "February" else if m == 3 then "March" else if m == 4 then "April" else if m == 5 then "May" else if m == 6 then "June" else if m == 7 then "July" else if m == 8 then "August" else if m == 9 then "September" else if m == 10 then "October" else if m == 11 then "November" else "December"
 def mon(k) = date(fullmoon(k))[2]                          // calendar month of the lunation's full moon
-def nfull(k0, i, c) = if i >= 13 then c else if fullmoon(k0 + i) < jd(year + 1, 1, 1) then nfull(k0, i + 1, c + 1) else c   // full moons of the year
-def findb(k0, n, i) = if i >= n - 1 then -1 else if mon(k0 + i + 1) == mon(k0 + i) then i else findb(k0, n, i + 1)  // first doubled month's index
-def restb(k0, n, i) = if i >= n - 1 then "" else if mon(k0 + i + 1) == mon(k0 + i) then ", " + mname(mon(k0 + i)) + restb(k0, n, i + 1) else restb(k0, n, i + 1)  // later doubled months
-def allb(k0, n, i) = if i >= n - 1 then "" else if mon(k0 + i + 1) == mon(k0 + i) then mname(mon(k0 + i)) + restb(k0, n, i + 1) else allb(k0, n, i + 1)  // all doubled months, comma-joined
+def nfull(k0, q, c) = if q >= 13 then c else if fullmoon(k0 + q) < jd(year + 1, 1, 1) then nfull(k0, q + 1, c + 1) else c   // full moons of the year
+def findb(k0, n, q) = if q >= n - 1 then -1 else if mon(k0 + q + 1) == mon(k0 + q) then q else findb(k0, n, q + 1)  // first doubled month's index
+def restb(k0, n, q) = if q >= n - 1 then "" else if mon(k0 + q + 1) == mon(k0 + q) then ", " + mname(mon(k0 + q)) + restb(k0, n, q + 1) else restb(k0, n, q + 1)  // later doubled months
+def allb(k0, n, q) = if q >= n - 1 then "" else if mon(k0 + q + 1) == mon(k0 + q) then mname(mon(k0 + q)) + restb(k0, n, q + 1) else allb(k0, n, q + 1)  // all doubled months, comma-joined
 
 // ---- results ------------------------------------------------------------------
 k0 = kfirst(jd(year, 1, 1))

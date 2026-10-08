@@ -1,0 +1,41 @@
+/* ============================================================================
+cassini-ovals.epher -- equal-distance product to two foci, two ovals
+
+Giovanni Cassini believed the planets ride these (1680): the locus
+whose product of distances to the foci (+-1, 0) is the constant
+b^4. For b > sqrt(2)*... for b^4 near 1 the locus is one peanut; for
+smaller b it splits into two egg-shaped ovals around the foci, and at
+exactly b = 1 it is Bernoulli's lemniscate (MathWorld, "Cassini
+Ovals"). The script graphs the split case b^4 = 0.81 and prints the
+test values that show the origin is outside both ovals.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/implicit/cassini-ovals.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\implicit\cassini-ovals.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/implicit/cassini-ovals.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the model -----------------------------------------------------------------
+const b4 = 0.81   // the constant product b^4; lemniscate at 1
+
+// ---- results -------------------------------------------------------------------
+print("product of distances at the origin:", sqrt(1) * sqrt(1))
+print("origin outside the ovals, product > b^4:", 1 > b4)
+print("product at the focus (1, 0):", 0 * 2)
+print("focus inside its oval, product < b^4:", 0 < b4)
+
+// ---- the picture ---------------------------------------------------------------
+graph ((x - 1) ^ 2 + y ^ 2) * ((x + 1) ^ 2 + y ^ 2) == 0.81 from -2.2 to 2.2
+
+/* ---- expected output ----
+= 0.81
+= product of distances at the origin: 1
+= origin outside the ovals, product > b^4: true
+= product at the focus (1, 0): 0
+= focus inside its oval, product < b^4: true
+graph: ((x - 1) ^ 2 + y ^ 2) * ((x + 1) ^ 2 + y ^ 2) == 0.81 from -2.2 to 2.2
+*/

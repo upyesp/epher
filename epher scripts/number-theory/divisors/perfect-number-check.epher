@@ -24,7 +24,7 @@ There is no knob: the sample numbers are the point of the script.
 ============================================================================ */
 
 // ---- the proper-divisor-sum def ------------------------------------------------------
-def pairdiv(n, i) = if i * i > n then 0 else if mod(n, i) == 0 then (if i * i == n then i + pairdiv(n, i + 1) else i + n / i + pairdiv(n, i + 1)) else pairdiv(n, i + 1)
+def pairdiv(n, k) = if k * k > n then 0 else if mod(n, k) == 0 then (if k * k == n then k + pairdiv(n, k + 1) else k + n / k + pairdiv(n, k + 1)) else pairdiv(n, k + 1)
 def sigma(n) = pairdiv(n, 1)
 def ps(n) = sigma(n) - n
 

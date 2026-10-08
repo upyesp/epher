@@ -3,7 +3,7 @@ arithmetic-means.epher -- insert k arithmetic means between two numbers
 
 The arithmetic means between a and b are the k equally spaced values that
 make a, m1, ..., mk, b an arithmetic sequence, so the step is
-d = (b - a) / (k + 1) and mean i is a + i d (any algebra text, e.g.
+d = (b - a) / (k + 1) and the j-th mean is a + j d (any algebra text, e.g.
 Stewart, Redlin and Watson, "College Algebra", 7th ed., sec. 9.1). With
 a = 2, b = 32 and k = 5 the step is 5 and the means are 7, 12, 17, 22,
 27. A for loop collects them into one list. All values are exact.

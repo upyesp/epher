@@ -49,12 +49,12 @@ One row per eyepiece, shortest to longest. The 4 mm row magnifies the
 the useful ceiling - while the 20 and 32 mm eyepieces deliver the
 2-4 mm exit pupils that suit nebulae and clusters. */
 print("telescope", aperture, "mm f/", fr, "; eyepieces, Plossl-type, afov", afov, "deg")
-print("4 mm: 500x; exit pupil 0.4 mm; true field 0.1 deg; role:", role(4))
-print("5 mm: 400x; exit pupil 0.5 mm; true field 0.125 deg; role:", role(5))
-print("8 mm: 250x; exit pupil 0.8 mm; true field 0.2 deg; role:", role(8))
-print("12.5 mm: 160x; exit pupil 1.25 mm; true field 0.3125 deg; role:", role(12.5))
-print("20 mm: 100x; exit pupil 2 mm; true field 0.5 deg; role:", role(20))
-print("32 mm: 62.5x; exit pupil 3.2 mm; true field 0.8 deg; role:", role(32))
+print("4 mm:", mag(4), "x; exit pupil", xp(4), "mm; true field", tf(4), "deg; role:", role(4))
+print("5 mm:", mag(5), "x; exit pupil", xp(5), "mm; true field", tf(5), "deg; role:", role(5))
+print("8 mm:", mag(8), "x; exit pupil", xp(8), "mm; true field", tf(8), "deg; role:", role(8))
+print("12.5 mm:", mag(12.5), "x; exit pupil", xp(12.5), "mm; true field", tf(12.5), "deg; role:", role(12.5))
+print("20 mm:", mag(20), "x; exit pupil", xp(20), "mm; true field", tf(20), "deg; role:", role(20))
+print("32 mm:", mag(32), "x; exit pupil", xp(32), "mm; true field", tf(32), "deg; role:", role(32))
 
 /* The useful ceiling: about 2x per mm of aperture (the seeing-limited
 rule that pairs with the Dawes limit in telescope-resolution.epher).
@@ -74,12 +74,12 @@ print("longest eyepiece that uses all the light: f/", fr, "* 7 mm =", fr * 7, "m
 = {4, 5, 8, 12.5, 20, 32}
 = 2000
 = telescope 200 mm f/ 10 ; eyepieces, Plossl-type, afov 50 deg
-= 4 mm: 500x; exit pupil 0.4 mm; true field 0.1 deg; role: over
-= 5 mm: 400x; exit pupil 0.5 mm; true field 0.125 deg; role: planets
-= 8 mm: 250x; exit pupil 0.8 mm; true field 0.2 deg; role: planets
-= 12.5 mm: 160x; exit pupil 1.25 mm; true field 0.3125 deg; role: high-power
-= 20 mm: 100x; exit pupil 2 mm; true field 0.5 deg; role: deep-sky
-= 32 mm: 62.5x; exit pupil 3.2 mm; true field 0.8 deg; role: deep-sky
+= 4 mm: 500 x; exit pupil 0.4 mm; true field 0.1 deg; role: over
+= 5 mm: 400 x; exit pupil 0.5 mm; true field 0.125 deg; role: planets
+= 8 mm: 250 x; exit pupil 0.8 mm; true field 0.2 deg; role: planets
+= 12.5 mm: 160 x; exit pupil 1.25 mm; true field 0.3125 deg; role: high-power
+= 20 mm: 100 x; exit pupil 2 mm; true field 0.5 deg; role: deep-sky
+= 32 mm: 62.5 x; exit pupil 3.2 mm; true field 0.8 deg; role: deep-sky
 = useful ceiling 2x per mm: 400 x - the 4 mm row exceeds it
 = check: aperture / mag vs exit pupil on the 20 mm row: 2 mm = 2 mm
 = longest eyepiece that uses all the light: f/ 10 * 7 mm = 70 mm

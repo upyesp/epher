@@ -15,11 +15,11 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-magnitudes.epher
 In the REPL:             load one of the paths above
 
-Knob: the date t.
+Knob: the date tm.
 ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
-const t = jd(2026, 6, 1)     // 0h UT
+const tm = jd(2026, 6, 1)     // 0h UT
 
 /* ---- results ----------------------------------------------------------------
 Magnitudes in body-number order (Mercury, Venus, Mars, Jupiter,
@@ -30,11 +30,11 @@ Jupiter both outshine every star in the sky, while Uranus (5.81) and
 Neptune (7.91) need binoculars and Pluto (14.47) a large telescope.
 (Mercury at -0.55 is an evening object low in the west; Mars at 1.27
 is faint because it is 2.18 AU away near the far side of its orbit.) */
-for b in {1, 2, 4, 5, 6, 7, 8, 9} do mag(b, t)
+for b in {1, 2, 4, 5, 6, 7, 8, 9} do mag(b, tm)
 
 // The two brightest, labelled, with the Sirius anchor for scale.
-print("Venus:", mag(2, t), "(brighter than Sirius at -1.46)")
-print("Jupiter:", mag(5, t))
+print("Venus:", mag(2, tm), "(brighter than Sirius at -1.46)")
+print("Jupiter:", mag(5, tm))
 
 /* ---- expected output ----
 = 2461192.5

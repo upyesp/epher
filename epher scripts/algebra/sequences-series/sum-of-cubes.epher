@@ -1,9 +1,9 @@
 /* ============================================================================
-sum-of-cubes.epher -- 1^3 + ... + n^3, formula and loop cross-check
+sum-of-cubes.epher -- 1^3 + ... + num^3, formula and loop cross-check
 
-The sum of the first n cubes is the square of the triangular number:
-1^3 + ... + n^3 = (n(n + 1)/2)^2 (the identity behind the story of
-Nicomachus, c. 100 AD; any algebra text). For n = 10 it is 55^2 = 3025,
+The sum of the first num cubes is the square of the triangular number:
+1^3 + ... + num^3 = (num(num + 1)/2)^2 (the identity behind the story of
+Nicomachus, c. 100 AD; any algebra text). For num = 10 it is 55^2 = 3025,
 cross-checked below by adding the cubes one by one in a quiet while loop.
 All values are exact.
 
@@ -12,28 +12,28 @@ Run it from a terminal:
   Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\sum-of-cubes.epher"
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/sum-of-cubes.epher
 
-The knob to edit is n below.
+The knob to edit is num below.
 ============================================================================ */
 
 // ---- the knob ----------------------------------------------------------------
-const n = 10
+const num = 10
 
 // ---- helpers -----------------------------------------------------------------
-def cb(n) = (n * (n + 1) / 2) ^ 2             // 1^3 + ... + n^3
+def cb(num) = (num * (num + 1) / 2) ^ 2             // 1^3 + ... + num^3
 
 // ---- results -----------------------------------------------------------------
-print("formula:", cb(n))
-// add the cubes one by one (a for loop would echo all n partial sums)
+print("formula:", cb(num))
+// add the cubes one by one (a for loop would echo all num partial sums)
 acc = {0, 0}
-while acc[1] < n do acc = {acc[1] + 1, acc[2] + (acc[1] + 1) ^ 3}
+while acc[1] < num do acc = {acc[1] + 1, acc[2] + (acc[1] + 1) ^ 3}
 print("by adding:", acc[2])
-print("they agree:", cb(n) == acc[2])
-print("also the square of 1 + ... + n:", cb(n) == (n * (n + 1) / 2) ^ 2)
+print("they agree:", cb(num) == acc[2])
+print("also the square of 1 + ... + num:", cb(num) == (num * (num + 1) / 2) ^ 2)
 /* ---- expected output ----
 = 10
 = formula: 3025
 = {0, 0}
 = by adding: 3025
 = they agree: true
-= also the square of 1 + ... + n: true
+= also the square of 1 + ... + num: true
 */

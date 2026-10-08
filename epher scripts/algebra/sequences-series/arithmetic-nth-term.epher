@@ -1,10 +1,10 @@
 /* ============================================================================
-arithmetic-nth-term.epher -- the n-th term of an arithmetic sequence
+arithmetic-nth-term.epher -- the num-th term of an arithmetic sequence
 
-An arithmetic sequence starts at a and adds the common difference d each
-step, so the n-th term is t_n = a + (n - 1) d (any algebra text, e.g.
+An arithmetic sequence starts at a and adds the common difference diff each
+step, so the num-th term is t_n = a + (num - 1) diff (any algebra text, e.g.
 Stewart, Redlin and Watson, "College Algebra", 7th ed., sec. 9.1). With
-a = 3, d = 4 the sequence is 3, 7, 11, 15, ... and t_25 = 99. All values
+a = 3, diff = 4 the sequence is 3, 7, 11, 15, ... and t_25 = 99. All values
 are exact.
 
 Run it from a terminal:
@@ -12,22 +12,22 @@ Run it from a terminal:
   Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\arithmetic-nth-term.epher"
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/arithmetic-nth-term.epher
 
-The knobs to edit are a, d and n below.
+The knobs to edit are a, diff and num below.
 ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 3                      // first term
-const d = 4                      // common difference
-const n = 25                     // term to find
+const diff = 4                      // common difference
+const num = 25                     // term to find
 
 // ---- helpers -----------------------------------------------------------------
-def tn(a, d, n) = a + (n - 1) * d     // the n-th term
+def tn(a, diff, num) = a + (num - 1) * diff     // the num-th term
 
 // ---- results -----------------------------------------------------------------
-print("t1:", tn(a, d, 1))
-print("t25:", tn(a, d, n))
-print("t25 - t24:", tn(a, d, n) - tn(a, d, n - 1))
-print("that difference is d:", tn(a, d, n) - tn(a, d, n - 1) == d)
+print("t1:", tn(a, diff, 1))
+print("t25:", tn(a, diff, num))
+print("t25 - t24:", tn(a, diff, num) - tn(a, diff, num - 1))
+print("that difference is diff:", tn(a, diff, num) - tn(a, diff, num - 1) == diff)
 /* ---- expected output ----
 = 3
 = 4
@@ -35,5 +35,5 @@ print("that difference is d:", tn(a, d, n) - tn(a, d, n - 1) == d)
 = t1: 3
 = t25: 99
 = t25 - t24: 4
-= that difference is d: true
+= that difference is diff: true
 */

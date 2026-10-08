@@ -30,7 +30,7 @@ Knobs: the place, the instant, and the star list below.
 // ---- the knobs ----------------------------------------------------------------
 const lat = 51.4779            // Greenwich
 const lon = 0
-const t = jd(2026, 6, 21, 22)  // 22:00 UT in the summer evening
+const tm = jd(2026, 6, 21, 22)  // 22:00 UT in the summer evening
 
 // ---- J2000 catalogue positions (SIMBAD), degrees ------------------------------
 const vega_ra = hms2deg(18, 36, 56.34)
@@ -62,16 +62,16 @@ def mod24(x) = x - 24 * floor(x / 24)
 def trans(ra, dec, j) = j + mod24(ra_of(ra, dec, j) / 15 - lst(j, lon)) / 1.002737909 / 24
 
 // ---- results ------------------------------------------------------------------
-print("tonight at", iso(t), "lat", lat, "lon", lon)
-print("Vega: alt", alt_of(vega_ra, vega_dec, t), "az", az_of(vega_ra, vega_dec, t), "transits", iso(trans(vega_ra, vega_dec, t)))
-print("Arcturus: alt", alt_of(arc_ra, arc_dec, t), "az", az_of(arc_ra, arc_dec, t), "transits", iso(trans(arc_ra, arc_dec, t)))
-print("Polaris: alt", alt_of(pol_ra, pol_dec, t), "az", az_of(pol_ra, pol_dec, t))
+print("tonight at", iso(tm), "lat", lat, "lon", lon)
+print("Vega: alt", alt_of(vega_ra, vega_dec, tm), "az", az_of(vega_ra, vega_dec, tm), "transits", iso(trans(vega_ra, vega_dec, tm)))
+print("Arcturus: alt", alt_of(arc_ra, arc_dec, tm), "az", az_of(arc_ra, arc_dec, tm), "transits", iso(trans(arc_ra, arc_dec, tm)))
+print("Polaris: alt", alt_of(pol_ra, pol_dec, tm), "az", az_of(pol_ra, pol_dec, tm))
 
 /* Self-check: Polaris stands within a degree of the observer's
 latitude (it circles the pole 0.7 degrees out), and Arcturus, the
 bright star of the summer evening, must already be west of the
 meridian at 22:00 UT in late June. */
-print("Polaris altitude minus latitude:", alt_of(pol_ra, pol_dec, t) - lat, "deg")
+print("Polaris altitude minus latitude:", alt_of(pol_ra, pol_dec, tm) - lat, "deg")
 
 /* ---- expected output ----
 = 51.4779

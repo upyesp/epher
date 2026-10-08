@@ -24,9 +24,9 @@ Knobs: the date below (default: a modern date).
 ============================================================================ */
 
 // ---- the knobs --------------------------------------------------------------------
-const y = 2026
+const yr = 2026
 const m = 9
-const d = 7
+const dcal = 7
 
 // ---- helper: day number -> Julian-calendar date (reverse of the B = 0 formulas) -----
 def rday(j) = j + 32082 - floor(1461 * floor((4 * (j + 32082) + 3) / 1461) / 4) - floor((153 * floor((5 * (j + 32082 - floor(1461 * floor((4 * (j + 32082) + 3) / 1461) / 4)) + 2) / 153) + 2) / 5) + 1
@@ -34,8 +34,8 @@ def rmon(j) = floor((5 * (j + 32082 - floor(1461 * floor((4 * (j + 32082) + 3) /
 def ryer(j) = floor((4 * (j + 32082) + 3) / 1461) - 4800 + floor(floor((5 * (j + 32082 - floor(1461 * floor((4 * (j + 32082) + 3) / 1461) / 4)) + 2) / 153) / 10)
 
 // ---- the reading ----------------------------------------------------------------------
-jdn = floor(jd(y, m, d) + 0.5)
-print("Gregorian", y, "-", m, "-", d, " is the same day as Julian", ryer(jdn), "-", rmon(jdn), "-", rday(jdn))
+jdn = floor(jd(yr, m, dcal) + 0.5)
+print("Gregorian", yr, "-", m, "-", dcal, " is the same day as Julian", ryer(jdn), "-", rmon(jdn), "-", rday(jdn))
 
 // ---- the reform --------------------------------------------------------------------------
 jr = floor(jd(1582, 10, 15) + 0.5)

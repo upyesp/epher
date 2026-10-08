@@ -1,0 +1,44 @@
+/* ============================================================================
+witch-of-agnesi.epher -- Maria Agnesi's bell-shaped curve
+
+Named (in mistranslation) after Maria Gaetana Agnesi, who treated it
+in 1748: take the circle x^2 + (y - 1)^2 = 1, draw a line from the
+origin to a point of the circle, and mark where it meets the
+horizontal through that point. The traced curve is x = 2*tan(t),
+y = 2*cos(t)^2, bell-shaped with peak 2 and the x-axis as asymptote
+(Lockwood, "A Book of Curves", ch. 4; MathWorld, "Witch of Agnesi").
+The total area under it is 4*pi. The script graphs the bell, prints
+landmarks, and checks the area numerically.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/parametric/witch-of-agnesi.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\parametric\witch-of-agnesi.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/parametric/witch-of-agnesi.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def wx(t) = 2 * tan(t)
+def wy(t) = 2 * cos(t) ^ 2
+
+// ---- results -------------------------------------------------------------------
+print("peak at t = 0:", wx(0), wy(0))
+print("near the asymptote, t = 1.4:", wx(1.4), wy(1.4))
+print("area under the bell to +-60:", integral(2 / (1 + x ^ 2 / 4), -60, 60))
+print("full area, exact 4*pi:", 4 * pi)
+
+// ---- the picture ---------------------------------------------------------------
+graph param 2 * tan(t), 2 * cos(t) ^ 2 from -1.5 to 1.5
+graph 8 / (x ^ 2 + 4) from -6 to 6
+
+/* ---- expected output ----
+= peak at t = 0: 0 2
+= near the asymptote, t = 1.4: 11.595767431 0.0577776593313
+= area under the bell to +-60: 12.2998026473
+= full area, exact 4*pi: 12.5663706144
+graph: param 2 * tan(t), 2 * cos(t) ^ 2 from -1.5 to 1.5
+graph: 8 / (x ^ 2 + 4) from -6 to 6
+*/

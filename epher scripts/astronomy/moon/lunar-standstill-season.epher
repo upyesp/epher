@@ -8,7 +8,7 @@ next around 2025 - and when the node crosses 180 deg they shrink to
 about +/-18.3 deg - a minor standstill, last around 2015. This script
 lists the standstill seasons that follow a knob year, from the mean
 node's regression (Meeus ch. 49 elements: node 124.7746 - 1.56375588
-per lunation, i.e. one full turn every 18.60 years), and sizes the
+per lunation, q.e. one full turn every 18.60 years), and sizes the
 next major standstill for one place. Meeus discusses the cycle in
 "Mathematical Astronomy Morsels" (the extreme declinations of the
 Moon); the engine's own ephemeris (ELP-MPP02, JPL-validated; guide
@@ -74,8 +74,8 @@ print("  about", 90 - lat - eps(jm(mm)) - 5.145, "to", 90 - lat + eps(jm(mm)) + 
 largest |declination| it meets - the mean-element amplitude above,
 checked against the engine's own Moon. */
 const w0 = jm(mm) - 42        // scan window: 42 days before the crossing
-def dv(i) = abs(decl(11, w0 + 3 * i))
-def dmax(v, iv, i) = if i >= 29 then {v, iv} else if dv(i) > v then dmax(dv(i), i, i + 1) else dmax(v, iv, i + 1)
+def dv(q) = abs(decl(11, w0 + 3 * q))
+def dmax(v, iv, q) = if q >= 29 then {v, iv} else if dv(q) > v then dmax(dv(q), q, q + 1) else dmax(v, iv, q + 1)
 r = dmax(dv(0), 0, 1)
 print("engine sample: max |declination|", r[1], "deg on", iso(w0 + 3 * r[2]), "UT")
 print("grade: mean-element seasons/amplitudes (+/-0.2 deg); engine sample")

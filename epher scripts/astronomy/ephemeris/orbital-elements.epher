@@ -27,11 +27,11 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/orbital-elements.epher
 In the REPL:             load one of the paths above
 
-Knob: the date t below (as a JD from jd(...)).
+Knob: the date tm below (as a JD from jd(...)).
 ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------------
-const t = jd(2026, 9, 10, 0)
+const tm = jd(2026, 9, 10, 0)
 
 // ---- table 31.A: {a, e, i, L, long.peri, node} at J2000 and per century -------------
 // a in AU; angles in degrees; the Mercury..Neptune rows are Meeus's as printed.
@@ -42,7 +42,7 @@ const r = {1.523710340, 0.09339410, 1.84969142, -4.55343205, -23.94362959, 49.55
 const j = {5.202887000, 0.04838624, 1.30439695, 34.39644051, 14.72847983, 100.47390909}
 const s = {9.536675940, 0.05386179, 2.48599187, 49.95424423, 92.59887831, 113.66242448}
 const u = {19.189164640, 0.04725744, 0.77263783, 313.23810451, 170.95427630, 74.01692503}
-const n = {30.069922760, 0.00859048, 1.77004347, -55.12002969, 44.96476227, 131.78422574}
+const nep = {30.069922760, 0.00859048, 1.77004347, -55.12002969, 44.96476227, 131.78422574}
 // per-century rates: {a, e, i, L, long.peri, node}
 const mr = {0, 0.00001906, -0.00594749, 149472.67411175, 0.16047689, -0.12534081}
 const vr = {0, -0.00004107, -0.00083405, 58517.81560260, 0.00268329, -0.27769418}
@@ -56,17 +56,17 @@ const nr = {0, 0.00005105, 0.00035372, 218.45945325, -0.32241464, -0.00508664}
 // ---- helpers -------------------------------------------------------------------------
 def wrap(x) = x - 360 * floor(x / 360)
 def T(j) = (j - 2451545) / 36525
-def ev(el, rate) = el + rate * T(t)     // elementwise: value at the knob date
+def ev(el, rate) = el + rate * T(tm)     // elementwise: value at the knob date
 
 // ---- the table: two lines per planet ---------------------------------------------------
-print("mean orbital elements at", iso(t), "(J2000 values + table 31.A rates)")
+print("mean orbital elements at", iso(tm), "(J2000 values + table 31.A rates)")
 print("a in AU; e dimensionless; angles in degrees")
 print("Mercury  a", ev(m, mr)[1], " e", ev(m, mr)[2], " i", ev(m, mr)[3])
 print("         L", wrap(ev(m, mr)[4]), " peri", wrap(ev(m, mr)[5]), " node", wrap(ev(m, mr)[6]))
 print("Venus    a", ev(v, vr)[1], " e", ev(v, vr)[2], " i", ev(v, vr)[3])
 print("         L", wrap(ev(v, vr)[4]), " peri", wrap(ev(v, vr)[5]), " node", wrap(ev(v, vr)[6]))
 print("Earth    a", ev(e, er)[1], " e", ev(e, er)[2], " i", ev(e, er)[3])
-print("         L", wrap(e[4] + er[4] * T(t) / 3600), " peri", wrap(ev(e, er)[5]), " node", wrap(ev(e, er)[6]))
+print("         L", wrap(e[4] + er[4] * T(tm) / 3600), " peri", wrap(ev(e, er)[5]), " node", wrap(ev(e, er)[6]))
 print("Mars     a", ev(r, rr)[1], " e", ev(r, rr)[2], " i", ev(r, rr)[3])
 print("         L", wrap(ev(r, rr)[4]), " peri", wrap(ev(r, rr)[5]), " node", wrap(ev(r, rr)[6]))
 print("Jupiter  a", ev(j, jr)[1], " e", ev(j, jr)[2], " i", ev(j, jr)[3])
@@ -75,8 +75,8 @@ print("Saturn   a", ev(s, sr)[1], " e", ev(s, sr)[2], " i", ev(s, sr)[3])
 print("         L", wrap(ev(s, sr)[4]), " peri", wrap(ev(s, sr)[5]), " node", wrap(ev(s, sr)[6]))
 print("Uranus   a", ev(u, ur)[1], " e", ev(u, ur)[2], " i", ev(u, ur)[3])
 print("         L", wrap(ev(u, ur)[4]), " peri", wrap(ev(u, ur)[5]), " node", wrap(ev(u, ur)[6]))
-print("Neptune  a", ev(n, nr)[1], " e", ev(n, nr)[2], " i", ev(n, nr)[3])
-print("         L", wrap(ev(n, nr)[4]), " peri", wrap(ev(n, nr)[5]), " node", wrap(ev(n, nr)[6]))
+print("Neptune  a", ev(nep, nr)[1], " e", ev(nep, nr)[2], " i", ev(nep, nr)[3])
+print("         L", wrap(ev(nep, nr)[4]), " peri", wrap(ev(nep, nr)[5]), " node", wrap(ev(nep, nr)[6]))
 
 /* Self-checks. The Earth row must reproduce the well-known J2000
 values (a ~ 1.000000 AU, e ~ 0.01671, L near 100.5 deg, peri near

@@ -4,7 +4,7 @@ maturity
 
 A balloon loan amortizes only part of the principal: the finance builtin
 tvm_pmt takes the future value argument fv, the balance still owed at the
-end, so tvm_pmt(n, i, -P, balloon) is the payment that leaves exactly the
+end, so tvm_pmt(n, r, -P, balloon) is the payment that leaves exactly the
 balloon unpaid after n months. Source: standard TVM formulas; see
 Kellison, The Theory of Interest, chapter 3.
 

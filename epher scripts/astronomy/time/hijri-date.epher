@@ -6,7 +6,7 @@ month and day. The calendar is purely lunar: 12 months of 29 or 30
 days, with 11 leap years (355 days) in each 30-year cycle. The
 script uses the arithmetic "tabular" calendar - the fixed civil
 variant whose epoch is 1 Muharram 1 AH = 19 July 622 (Julian), day
-number 1948440, with the classic leap test (11 y + 14) mod 30 < 11
+number 1948440, with the classic leap test (11 yr + 14) mod 30 < 11
 (the calendar of Meeus ch. 9 and the "Kuwaiti algorithm" of the
 Calendar FAQ). The tabular calendar agrees with the crescent-based
 calendars and with the Umm al-Qura calendar of Saudi Arabia to
@@ -25,9 +25,9 @@ Knobs: the date below.
 ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------------
-const y = 2026
+const yr = 2026
 const m = 9
-const d = 7
+const dcal = 7
 
 // ---- the Kuwaiti tabular algorithm (integer arithmetic on the day number) ------------
 def mname(k) = if k == 1 then "Muharram" else if k == 2 then "Safar" else if k == 3 then "Rabi al-awwal" else if k == 4 then "Rabi al-thani" else if k == 5 then "Jumada al-ula" else if k == 6 then "Jumada al-akhirah" else if k == 7 then "Rajab" else if k == 8 then "Shaban" else if k == 9 then "Ramadan" else if k == 10 then "Shawwal" else if k == 11 then "Dhu al-Qidah" else "Dhu al-Hijjah"
@@ -42,7 +42,7 @@ def ayv(j) = 30 * anv(j) + ajv(j) - 30
 
 print("Hijri year leap test of the epoch: 1 Muharram 1 AH = JDN 1948440:", floor(jd(622, 7, 16) + 0.5) == 1948440)
 
-print("Gregorian", y, "-", m, "-", d, "is Hijri", adv(floor(jd(y, m, d) + 0.5)), mname(amv(floor(jd(y, m, d) + 0.5))), ayv(floor(jd(y, m, d) + 0.5)), "AH")
+print("Gregorian", yr, "-", m, "-", dcal, "is Hijri", adv(floor(jd(yr, m, dcal) + 0.5)), mname(amv(floor(jd(yr, m, dcal) + 0.5))), ayv(floor(jd(yr, m, dcal) + 0.5)), "AH")
 print("2026-06-26 is tabular Hijri", adv(floor(jd(2026, 6, 26) + 0.5)), mname(amv(floor(jd(2026, 6, 26) + 0.5))), ayv(floor(jd(2026, 6, 26) + 0.5)), "(Umm al-Qura: 11 Muharram 1448 - the 1-day spread)")
 /* ---- expected output ----
 = 2026

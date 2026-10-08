@@ -28,11 +28,11 @@ const xs = {1, 2, 3, 4, 5, 6, 7, 8}   // hours since the culture was started
 const ys = {2.5, 3.6, 5.4, 8.1, 12.2, 18.3, 27.5, 41.3}   // size, thousands
 
 // ---- helpers: Pearson r of x against ln(y), textbook formula ----------------------
-def lny(i) = ln(ys[i]) // natural log of the i-th size
-def sumlny(i) = if i > len(ys) then 0 else lny(i) + sumlny(i + 1) // sum of the logs
+def lny(k) = ln(ys[k]) // natural log of the k-th size
+def sumlny(k) = if k > len(ys) then 0 else lny(k) + sumlny(k + 1) // sum of the logs
 def mlog() = sumlny(1) / len(ys) // mean of ln(y)
-def slx(i) = if i > len(ys) then 0 else (xs[i] - mean(xs)) * (lny(i) - mlog()) + slx(i + 1)
-def sll(i) = if i > len(ys) then 0 else (lny(i) - mlog()) ^ 2 + sll(i + 1)
+def slx(k) = if k > len(ys) then 0 else (xs[k] - mean(xs)) * (lny(k) - mlog()) + slx(k + 1)
+def sll(k) = if k > len(ys) then 0 else (lny(k) - mlog()) ^ 2 + sll(k + 1)
 def rlog() = slx(1) / sqrt(sum((xs - mean(xs)) ^ 2) * sll(1)) // r of x vs ln(y)
 
 // ---- the four candidate models on the same data -------------------------------------

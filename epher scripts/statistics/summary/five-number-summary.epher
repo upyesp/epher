@@ -1,9 +1,9 @@
 /* ============================================================================
 five-number-summary.epher -- min, Q1, median, Q3, max of a dataset
 
-The five-number summary of the ten exam scores in `d`: the minimum, the
+The five-number summary of the ten exam scores in `data`: the minimum, the
 first quartile, the median, the third quartile and the maximum. Quartiles
-come from the builtin quartile(d, k), which follows the TI-83/84
+come from the builtin quartile(data, k), which follows the TI-83/84
 convention: the median of the lower half for Q1, of the upper half for
 Q3, and on an even count the median is the mean of the two middle values.
 
@@ -15,19 +15,19 @@ In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 Everything also works line by line in the TUI.
 
-The one knob to edit is `d` below. Everything above the results section
+The one knob to edit is `data` below. Everything above the results section
 is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
-const d = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
+const data = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
 
 // ---- the five numbers -----------------------------------------------------------
-print("min:", min(d))              // smallest score
-print("Q1:", quartile(d, 1))       // median of the lower half
-print("median:", quartile(d, 2))   // the middle value (builtin median agrees)
-print("Q3:", quartile(d, 3))       // median of the upper half
-print("max:", max(d))              // largest score
+print("min:", min(data))              // smallest score
+print("Q1:", quartile(data, 1))       // median of the lower half
+print("median:", quartile(data, 2))   // the middle value (builtin median agrees)
+print("Q3:", quartile(data, 3))       // median of the upper half
+print("max:", max(data))              // largest score
 
 /* ---- expected output ----
 = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}

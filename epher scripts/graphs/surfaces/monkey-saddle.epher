@@ -1,0 +1,40 @@
+/* ============================================================================
+monkey-saddle.epher -- z = x^3 - 3*x*y^2, a saddle for three legs
+
+A horse needs two depressions for its legs; a monkey needs a third
+for its tail. The polynomial z = x^3 - 3*x*y^2 = r^3*cos(3*theta)
+in polar form supplies three symmetric valleys running down toward
+theta = pi/3, pi and 5*pi/3, with three ridges between (Courant and
+John, "Introduction to Calculus and Analysis", ch. 5; do Carmo,
+ch. 3). The script graphs the surface and prints the height at the
+six compass directions where the cosine decides.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/surfaces/monkey-saddle.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\surfaces\monkey-saddle.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/surfaces/monkey-saddle.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the 3D pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph3d:" lines.
+============================================================================ */
+
+// ---- the surface ---------------------------------------------------------------
+def z(x, y) = x ^ 3 - 3 * x * y ^ 2
+
+// ---- results -------------------------------------------------------------------
+print("along theta = 0 (a ridge), z(1, 0):", z(1, 0))
+print("along theta = pi/3 (a valley), z(0.5, 0.866):", z(0.5, sqrt(3) / 2))
+print("along theta = 2*pi/3 (a ridge), z(-0.5, 0.866):", z(-0.5, sqrt(3) / 2))
+print("polar form r^3*cos(3*theta) at r = 1, theta = pi:", cos(3 * pi))
+
+// ---- the picture ---------------------------------------------------------------
+graph3d x ^ 3 - 3 * x * y ^ 2 from -1.8 to 1.8
+
+/* ---- expected output ----
+= along theta = 0 (a ridge), z(1, 0): 1
+= along theta = pi/3 (a valley), z(0.5, 0.866): -1
+= along theta = 2*pi/3 (a ridge), z(-0.5, 0.866): 1
+= polar form r^3*cos(3*theta) at r = 1, theta = pi: -1
+graph3d: x ^ 3 - 3 * x * y ^ 2 from -1.8 to 1.8
+*/

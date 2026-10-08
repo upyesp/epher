@@ -2,7 +2,7 @@
 weighted-mean.epher -- a grade average where credits set the weights
 
 The weighted mean of the grades in `g`, weighted by the course credits
-in `w`: sum(w[i] * g[i]) / sum(w). A three-credit course counts three
+in `w`: sum(w[k] * g[k]) / sum(w). A three-credit course counts three
 times as much as a one-credit course, so the weighted mean 87.5 sits
 above the plain mean 86.8, pulled up by the top grade in the heaviest
 course.

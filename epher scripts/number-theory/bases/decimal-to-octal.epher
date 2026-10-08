@@ -31,7 +31,7 @@ for x in {0, 1, 7, 8, 42, 64, 511} do oct(x)
 // ---- the spelling reads back -------------------------------------------------------------
 0o52                          // the literal form of oct(42): same value
 0o100                         // 64, the third power of 8
-print("0o52 == 42:", 0o52 == 42)
+print("the literal 0o52 reads back as:", 0o52)
 /* ---- expected output ----
 = 0o52
 = 0o100
@@ -39,5 +39,5 @@ print("0o52 == 42:", 0o52 == 42)
 = {0o0, 0o1, 0o7, 0o10, 0o52, 0o100, 0o777}
 = 42
 = 64
-= 0o52 == 42: true
+= the literal 0o52 reads back as: 42
 */

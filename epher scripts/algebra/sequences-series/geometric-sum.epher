@@ -1,9 +1,9 @@
 /* ============================================================================
-geometric-sum.epher -- sum of the first n terms of a geometric sequence
+geometric-sum.epher -- sum of the first num terms of a geometric sequence
 
-The sum of the first n terms of a geometric sequence is
-S_n = a (1 - r^n) / (1 - r), since the pairing trick subtracts the tail
-a r^n from the shifted sum (any algebra text, e.g. Stewart, Redlin and
+The sum of the first num terms of a geometric sequence is
+S_n = a (1 - r^num) / (1 - r), since the pairing trick subtracts the tail
+a r^num from the shifted sum (any algebra text, e.g. Stewart, Redlin and
 Watson, "College Algebra", 7th ed., sec. 9.2). With a = 3, r = 2 the first
 10 terms sum to 3 (2^10 - 1) = 3069, cross-checked by adding the terms
 one by one in a quiet while loop. All values are exact.
@@ -13,25 +13,25 @@ Run it from a terminal:
   Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\geometric-sum.epher"
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/geometric-sum.epher
 
-The knobs to edit are a, r and n below.
+The knobs to edit are a, r and num below.
 ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
 const a = 3                      // first term
 const r = 2                      // common ratio
-const n = 10                     // number of terms to add
+const num = 10                     // number of terms to add
 
 // ---- helpers -----------------------------------------------------------------
-def gn(a, r, n) = a * r ^ (n - 1)                  // the n-th term
-def gs(a, r, n) = a * (1 - r ^ n) / (1 - r)        // sum of the first n terms
+def gn(a, r, num) = a * r ^ (num - 1)                  // the num-th term
+def gs(a, r, num) = a * (1 - r ^ num) / (1 - r)        // sum of the first num terms
 
 // ---- results -----------------------------------------------------------------
-print("S10 by formula:", gs(a, r, n))
+print("S10 by formula:", gs(a, r, num))
 // add the terms one by one (a for loop would echo all 10 partial sums)
 acc = {0, 0}
-while acc[1] < n do acc = {acc[1] + 1, acc[2] + gn(a, r, acc[1] + 1)}
+while acc[1] < num do acc = {acc[1] + 1, acc[2] + gn(a, r, acc[1] + 1)}
 print("S10 by adding:", acc[2])
-print("formula equals the sum:", gs(a, r, n) == acc[2])
+print("formula equals the sum:", gs(a, r, num) == acc[2])
 /* ---- expected output ----
 = 3
 = 2

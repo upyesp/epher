@@ -22,11 +22,11 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/nutation-obliquity.epher
 In the REPL:             load one of the paths above
 
-Knob: the date t below (the Meeus ch. 22 worked example date).
+Knob: the date tm below (the Meeus ch. 22 worked example date).
 ============================================================================ */
 
 // ---- the knob ------------------------------------------------------------------------
-const t = jd(1987, 4, 10, 0)   // Meeus's ch. 22 example: dpsi -3.788, deps +9.380
+const tm = jd(1987, 4, 10, 0)   // Meeus's ch. 22 example: dpsi -3.788, deps +9.380
 
 // ---- mean elements (Meeus ch. 22/25/47), T in Julian centuries ---------------------------
 def wrap(x) = x - 360 * floor(x / 360)
@@ -39,15 +39,15 @@ def deps(j) = 9.20 * cos(rad(om(j))) + 0.57 * cos(rad(2 * ls(j))) + 0.10 * cos(r
 def eps0(j) = 23.4392911 - 46.8150 * T(j) / 3600 - 0.00059 * T(j) ^ 2 / 3600 + 0.001813 * T(j) ^ 3 / 3600
 
 // ---- results ----------------------------------------------------------------------------
-print("at", iso(t))
-print("Delta psi (nutation in longitude):", dpsi(t), "arcsec")
-print("Delta eps (nutation in obliquity):", deps(t), "arcsec")
-print("mean obliquity:", eps0(t), "deg   true obliquity:", eps0(t) + deps(t) / 3600, "deg")
+print("at", iso(tm))
+print("Delta psi (nutation in longitude):", dpsi(tm), "arcsec")
+print("Delta eps (nutation in obliquity):", deps(tm), "arcsec")
+print("mean obliquity:", eps0(tm), "deg   true obliquity:", eps0(tm) + deps(tm) / 3600, "deg")
 
 /* Self-check: Meeus ch. 22 works this very date with the full
 series: dpsi = -3.788 arcsec, deps = +9.380 arcsec; the short
 series must sit within an arcsecond of those. */
-print("Meeus example within 1.0 arcsec:", abs(dpsi(t) - -3.788) < 1.0 and abs(deps(t) - 9.380) < 1.0)
+print("Meeus example within 1.0 arcsec:", abs(dpsi(tm) - -3.788) < 1.0 and abs(deps(tm) - 9.380) < 1.0)
 
 /* ---- expected output ----
 = 2446895.5

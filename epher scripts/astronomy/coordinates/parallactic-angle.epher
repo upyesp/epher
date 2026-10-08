@@ -27,7 +27,7 @@ Knobs: the body, the instant and the place below.
 
 // ---- the knobs ----------------------------------------------------------------------
 const body = 4              // Mars
-const t = jd(2026, 9, 10, 21)
+const tm = jd(2026, 9, 10, 21)
 const lat = 51.4779         // Greenwich
 const lon = 0
 
@@ -37,12 +37,12 @@ def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
 def qa(H, phi, de) = deg(atan2(sin(rad(H)), tan(rad(phi)) * cos(rad(de)) - sin(rad(de)) * cos(rad(H))))
 
 // ---- the angle ---------------------------------------------------------------------------
-bra = ra(body, t)
-bde = decl(body, t)
-h = spread(15 * lst(t, lon) - bra)
+bra = ra(body, tm)
+bde = decl(body, tm)
+h = spread(15 * lst(tm, lon) - bra)
 q = qa(h, lat, bde)
 
-print("at", iso(t), "lat", lat, "lon", lon)
+print("at", iso(tm), "lat", lat, "lon", lon)
 print("body hour angle:", h, "deg")
 print("parallactic angle:", q, "deg")
 

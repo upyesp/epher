@@ -1,9 +1,9 @@
 /* ============================================================================
 divisor-sum.epher -- the sum of the divisors of n, sigma(n)
 
-Sums all positive divisors of n. The def pairdiv(n, i) walks the trial
+Sums all positive divisors of n. The def pairdiv(n, k) walks the trial
 divisors up to the square root and adds each divisor and its partner
-n / i together (a square adds its root once), which is the classroom
+n / k together (a square adds its root once), which is the classroom
 method; epher has no divisor-sum builtin (ndivisors counts, factors
 only displays). The classic check: the divisors of 12 are 1, 2, 3, 4,
 6 and 12, and they add to 28.
@@ -24,9 +24,9 @@ There is no knob: the sample numbers are the point of the script.
 ============================================================================ */
 
 // ---- the divisor-sum def ----------------------------------------------------------
-// pairdiv(n, i) adds i and n / i when i divides n, walking i = 1, 2, ...
-// until i * i > n; a perfect square adds its root i exactly once.
-def pairdiv(n, i) = if i * i > n then 0 else if mod(n, i) == 0 then (if i * i == n then i + pairdiv(n, i + 1) else i + n / i + pairdiv(n, i + 1)) else pairdiv(n, i + 1)
+// pairdiv(n, k) adds k and n / k when k divides n, walking k = 1, 2, ...
+// until k * k > n; a perfect square adds its root k exactly once.
+def pairdiv(n, k) = if k * k > n then 0 else if mod(n, k) == 0 then (if k * k == n then k + pairdiv(n, k + 1) else k + n / k + pairdiv(n, k + 1)) else pairdiv(n, k + 1)
 def sigma(n) = pairdiv(n, 1)
 
 // ---- the checks ---------------------------------------------------------------------

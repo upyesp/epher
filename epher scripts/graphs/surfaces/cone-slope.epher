@@ -1,0 +1,37 @@
+/* ============================================================================
+cone-slope.epher -- the 45-degree cone z = sqrt(x^2 + y^2)
+
+Spinning the line z = x about the z-axis sweeps the right circular
+cone with walls at 45 deg: every horizontal slice is a circle, every
+vertical slice through the axis is a V (Apollonius again - slice it
+with a plane at the right angle and the conics all fall out; Thomas,
+"Thomas' Calculus", ch. 13.6). The script graphs the cone and prints
+the slope and slice relations.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/surfaces/cone-slope.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\surfaces\cone-slope.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/surfaces/cone-slope.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the 3D pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph3d:" lines.
+============================================================================ */
+
+// ---- the surface ---------------------------------------------------------------
+def z(x, y) = sqrt(x ^ 2 + y ^ 2)
+
+// ---- results -------------------------------------------------------------------
+print("wall slope along the x-axis:", derivative(sqrt(x ^ 2), 1))
+print("z(3, 4), three-four-five on the wall:", z(3, 4))
+print("slice z = 2 is the circle r = 2:", z(2, 0) == 2 and z(sqrt(2), sqrt(2)) == 2)
+
+// ---- the picture ---------------------------------------------------------------
+graph3d sqrt(x ^ 2 + y ^ 2) from -2.5 to 2.5
+
+/* ---- expected output ----
+= wall slope along the x-axis: 1
+= z(3, 4), three-four-five on the wall: 5
+= slice z = 2 is the circle r = 2: true
+graph3d: sqrt(x ^ 2 + y ^ 2) from -2.5 to 2.5
+*/

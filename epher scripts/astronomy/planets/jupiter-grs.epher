@@ -31,30 +31,30 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/jupiter-grs.epher
 In the REPL:             load one of the paths above
 
-Knobs: the instant `t` (UT) and the spot's System II longitude `grs`.
+Knobs: the instant `tm` (UT) and the spot's System II longitude `grs`.
 ============================================================================ */
 
 // ---- the knobs ---------------------------------------------------------------
-const t = jd(2026, 10, 15, 22)  // 2026-10-15 22:00 UT
+const tm = jd(2026, 10, 15, 22)  // 2026-10-15 22:00 UT
 const grs = 255                 // Great Red Spot longitude, System II (drifts)
 
 // ---- System II (Meeus ch. 43; d in days from J2000.0, dynamical time) --------
 def wrap360(x) = x - 360 * floor(x / 360)
 def cm2(j) = wrap360(181.62 + 870.1869140 * (j + delta_t(j) / 86400 - jd(2000, 1, 1, 12)))
-const cm = cm2(t)
+const cm = cm2(tm)
 // The spot crosses the central meridian when cm2 = grs; solve for the
-// first crossing at or after t and step by one full turn.
+// first crossing at or after tm and step by one full turn.
 const dt1 = wrap360(grs - cm) / 870.1869140
-const tr1 = t + dt1
+const tr1 = tm + dt1
 const turn = 360 / 870.1869140
 
 // ---- results ------------------------------------------------------------------
-print("Jupiter System II central meridian at", iso(t), "UT:", cm, "deg")
+print("Jupiter System II central meridian at", iso(tm), "UT:", cm, "deg")
 print("next GRS transits (spot longitude", grs, "deg System II):")
 print("  1:", iso(tr1), "UT")
 print("  2:", iso(tr1 + turn), "UT")
 print("  3:", iso(tr1 + 2 * turn), "UT")
-print("Jupiter magnitude", mag(5, t), "; diameter", diam(5, t) * 3600, "arcsec")
+print("Jupiter magnitude", mag(5, tm), "; diameter", diam(5, tm) * 3600, "arcsec")
 
 /* ---- expected output ----
 = 29535953/12

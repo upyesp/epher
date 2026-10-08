@@ -1,0 +1,40 @@
+/* ============================================================================
+conic-ellipse-axes.epher -- the ellipse x^2/4 + y^2 = 1, foci and area
+
+The ellipse with semi-axes a = 2 and b = 1 has focal distance
+c = sqrt(a^2 - b^2) = sqrt(3) and eccentricity e = c/a = sqrt(3)/2:
+a squashed circle that Kepler's Mars orbit made famous (Apollonius
+named the conics; Stewart, "Precalculus", ch. 9.2). Its area is
+pi*a*b = 2*pi. The script graphs it, prints foci and eccentricity,
+and checks the area numerically from the top-half formula.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/implicit/conic-ellipse-axes.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\implicit\conic-ellipse-axes.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/implicit/conic-ellipse-axes.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the ellipse ----------------------------------------------------------------
+const a = 2    // semi-major axis
+const b = 1    // semi-minor axis
+
+// ---- results -------------------------------------------------------------------
+print("focal distance c = sqrt(a^2 - b^2):", sqrt(a ^ 2 - b ^ 2))
+print("eccentricity e = c/a:", sqrt(a ^ 2 - b ^ 2) / a)
+print("area, exact 2*pi:", integral(2 * sqrt(1 - x ^ 2 / a ^ 2), -a, a))
+
+// ---- the picture ---------------------------------------------------------------
+graph x ^ 2 / 4 + y ^ 2 == 1 from -2.5 to 2.5
+
+/* ---- expected output ----
+= 2
+= 1
+= focal distance c = sqrt(a^2 - b^2): 1.73205080757
+= eccentricity e = c/a: 0.866025403784
+= area, exact 2*pi: 6.28318530691
+graph: x ^ 2 / 4 + y ^ 2 == 1 from -2.5 to 2.5
+*/

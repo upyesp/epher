@@ -6,7 +6,7 @@ The finance builtin tvm_fv takes an optional last argument, the payment
 timing: 0 (the default) means the payment lands at the END of each
 period, 1 means the BEGINNING (an annuity due). A deposit made at the
 start of the month earns that month's interest, so the annuity-due
-balance is the end-of-period balance times (1+i). Source: standard
+balance is the end-of-period balance times (1+r). Source: standard
 annuity formulas; see Kellison, The Theory of Interest, chapter 3.
 
 Sign convention: deposit negative, balance positive.

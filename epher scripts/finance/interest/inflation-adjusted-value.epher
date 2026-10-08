@@ -2,10 +2,11 @@
 inflation-adjusted-value.epher -- translating sums of money across years
 at a steady inflation rate
 
-At yearly inflation i, prices multiply by (1+i)^n over n years. So a sum
-of money today buys, n years from now, what (1+i)^n times as many dollars
-buy today; and a sum quoted in n-year dollars is worth only 1/(1+i)^n as
-much in today's dollars. This script prints both directions for one sum.
+At the yearly inflation rate, prices multiply by (1 + inflation)^years
+over the years. So a sum of money today buys, years from now, what
+(1 + inflation)^years times as many dollars buy today; and a sum quoted
+in future dollars is worth only 1/(1 + inflation)^years as much in
+today's dollars. This script prints both directions for one sum.
 Source: standard finance formulas; the same deflation appears in
 Kellison, The Theory of Interest, chapter 1.
 
@@ -28,8 +29,8 @@ const inflation = 3%        // yearly inflation rate
 const years = 10            // how many years the money moves
 
 // ---- helpers ----------------------------------------------------------------
-def inflate(a, i, n) = a * (1 + i) ^ n      // a today, in n-year dollars
-def deflate(a, i, n) = a / (1 + i) ^ n      // a in n years, in today's dollars
+def inflate(a, r, n) = a * (1 + r) ^ n      // a today, in n-year dollars
+def deflate(a, r, n) = a / (1 + r) ^ n      // a in n years, in today's dollars
 
 // ---- results -----------------------------------------------------------------
 // 1000 today keeps its buying power as 1343.92 of ten-years-from-now money:

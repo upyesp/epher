@@ -31,11 +31,11 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/parallax-demo.epher
 In the REPL:             load one of the paths above
 
-Knobs: the instant t and the observer's lat/lon below.
+Knobs: the instant tm and the observer's lat/lon below.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
-const t = jd(2026, 9, 10, 12)  // the Moon rides high at noon here
+const tm = jd(2026, 9, 10, 12)  // the Moon rides high at noon here
 const lat = 51.4779            // Greenwich
 const lon = 0
 
@@ -44,15 +44,15 @@ def wrap(x) = x - 360 * floor(x / 360)
 def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
 
 // ---- the two altitudes and the parallax --------------------------------------------
-mra = ra(11, t)
-mde = decl(11, t)
-mdist = dist(11, t)
-h = spread(15 * lst(t, lon) - mra)          // local hour angle, degrees
+mra = ra(11, tm)
+mde = decl(11, tm)
+mdist = dist(11, tm)
+h = spread(15 * lst(tm, lon) - mra)          // local hour angle, degrees
 ageo = deg(asin(sin(rad(lat)) * sin(rad(mde)) + cos(rad(lat)) * cos(rad(mde)) * cos(rad(h))))
-atopo = alt(11, t, lat, lon)
+atopo = alt(11, tm, lat, lon)
 hp = deg(asin(r_earth / (mdist * au)))      // horizontal parallax, r_earth and au in km
 
-print("at", iso(t), "lat", lat, "lon", lon)
+print("at", iso(tm), "lat", lat, "lon", lon)
 print("geocentric altitude: ", ageo, "deg")
 print("topocentric altitude:", atopo, "deg")
 print("horizontal parallax: ", hp, "deg")

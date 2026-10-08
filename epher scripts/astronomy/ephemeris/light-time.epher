@@ -26,20 +26,20 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/light-time.epher
 In the REPL:             load one of the paths above
 
-Knobs: the instant `t` below (jd of 2026-06-01 12:00 UT).
+Knobs: the instant `tm` below (jd of 2026-06-01 12:00 UT).
 ============================================================================ */
 
 // ---- the knob -----------------------------------------------------------------
-const t = jd(2026, 6, 1, 12)
+const tm = jd(2026, 6, 1, 12)
 
 // ---- light time in minutes: distance in AU -> metres -> / c -> / 60 -----------
 // au and c are the constants (guide 1.29); dist is AU and c is m/s.
-def lt(b) = dist(b, t) * au / c / 60 in min
+def lt(b) = dist(b, tm) * au / c / 60 in min
 
 // ---- results ------------------------------------------------------------------
-print("light-time one way, Earth at", iso(t))
+print("light-time one way, Earth at", iso(tm))
 print("Sun:", lt(10))
-print("Moon:", dist(11, t) * au / c in s)
+print("Moon:", dist(11, tm) * au / c in s)
 print("Mercury:", lt(1))
 print("Venus:", lt(2))
 print("Mars:", lt(4))
@@ -53,7 +53,7 @@ print("Pluto:", lt(9))
 second of the ephemeris), and the Moon's distance must come out near
 60 Earth radii - about 1.3 light seconds. Both lines below. */
 print("1 AU in light seconds:", au / c in s)
-print("Moon in light seconds:", dist(11, t) * au / c, "s =", dist(11, t) * au / r_earth, "Earth radii")
+print("Moon in light seconds:", dist(11, tm) * au / c, "s =", dist(11, tm) * au / r_earth, "Earth radii")
 
 /* ---- expected output ----
 = 2461193

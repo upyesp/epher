@@ -1,11 +1,11 @@
 /* ============================================================================
-regular-polygon-area.epher -- area of a regular n-gon from its side
+regular-polygon-area.epher -- area of a regular num-gon from its side
 
-A regular n-gon of side s is n congruent isosceles triangles with apex
-angle 2 pi / n at the center, each of area s^2 / (4 tan(pi / n)), so
-A = n s^2 / (4 tan(pi / n)) (standard formula; tangent in radians).
-The n = 6 case is six equilateral triangles: 6 * 2^2 * sqrt(3) / 4,
-about 10.392. The square case recovers side times side, and the n = 3
+A regular num-gon of side s is num congruent isosceles triangles with apex
+angle 2 pi / num at the center, each of area s^2 / (4 tan(pi / num)), so
+A = num s^2 / (4 tan(pi / num)) (standard formula; tangent in radians).
+The num = 6 case is six equilateral triangles: 6 * 2^2 * sqrt(3) / 4,
+about 10.392. The square case recovers side times side, and the num = 3
 case matches the equilateral formula s^2 sqrt(3) / 4.
 
 Run it from a terminal:
@@ -15,19 +15,19 @@ Run it from a terminal:
 In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
-The knobs to edit are `n` (number of sides) and `s` (side length).
+The knobs to edit are `num` (number of sides) and `s` (side length).
 Everything above the results section is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
-const n = 6
+const num = 6
 const s = 2
 
 // ---- the model ----------------------------------------------------------------
-def area(n, s) = n * s ^ 2 / (4 * tan(pi / n))   // A = n s^2 / (4 tan(pi / n))
+def area(num, s) = num * s ^ 2 / (4 * tan(pi / num))   // A = num s^2 / (4 tan(pi / num))
 
 // ---- results ------------------------------------------------------------------
-print("hexagon, side 2:", area(n, s))
+print("hexagon, side 2:", area(num, s))
 print("square, side 4:", area(4, 4))
 print("triangle, side 6:", area(3, 6))
 print("the square is exactly 16:", abs(area(4, 4) - 16) < 1e-9)

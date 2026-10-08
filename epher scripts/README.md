@@ -15,6 +15,7 @@ epher scripts/
   calculus/           limits, derivatives, integrals, models
   finance/            interest, loans, savings, investing
   geometry/           triangles, circles, polygons, solids, coordinates
+  graphs/             functions, parametric, polar, implicit, surfaces, space-curves, data
   number-theory/      primes, divisors, integer-sequences, bases
   probability/        counting, distributions, simulations, games
   statistics/         summary, regression, tests, distributions

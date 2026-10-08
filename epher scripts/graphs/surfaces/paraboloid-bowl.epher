@@ -1,0 +1,40 @@
+/* ============================================================================
+paraboloid-bowl.epher -- the bowl z = x^2 + y^2
+
+Rotating the parabola z = r^2 about its axis sweeps the elliptic
+paraboloid, the shape of every satellite dish and radio telescope:
+parallel rays falling on it reflect through one focus (Thomas,
+"Thomas' Calculus", ch. 13.7, on quadratic surfaces; the reflection
+law is in any optics text). Horizontal slices are circles of radius
+sqrt(z), vertical slices are parabolas. The script graphs the bowl
+and prints the slice relations.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/surfaces/paraboloid-bowl.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\surfaces\paraboloid-bowl.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/surfaces/paraboloid-bowl.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the 3D pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph3d:" lines.
+============================================================================ */
+
+// ---- the surface ---------------------------------------------------------------
+def z(x, y) = x ^ 2 + y ^ 2
+
+// ---- results -------------------------------------------------------------------
+print("the bottom of the bowl:", z(0, 0))
+print("radius of the z = 4 slice:", sqrt(4))
+print("slice circle relation, z equals r^2:", z(2, 0) == 4 and abs(z(sqrt(2), sqrt(2)) - 4) < 1e-12)
+print("height at the rim sample (1, 1):", z(1, 1))
+
+// ---- the picture ---------------------------------------------------------------
+graph3d x ^ 2 + y ^ 2 from -2.5 to 2.5
+
+/* ---- expected output ----
+= the bottom of the bowl: 0
+= radius of the z = 4 slice: 2
+= slice circle relation, z equals r^2: true
+= height at the rim sample (1, 1): 2
+graph3d: x ^ 2 + y ^ 2 from -2.5 to 2.5
+*/

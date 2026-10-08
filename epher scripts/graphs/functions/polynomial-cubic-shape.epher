@@ -1,0 +1,49 @@
+/* ============================================================================
+polynomial-cubic-shape.epher -- a cubic's shape from its critical points
+
+The cubic f(x) = x^3 - 3*x has two critical points where the slope
+vanishes: f'(x) = 3*x^2 - 3 = 0 at x = -1 (local maximum) and x = 1
+(local minimum). Between them the curve bends down, outside it bends
+up, and the three real roots x = -sqrt(3), 0 and sqrt(3) sit one in
+each monotone run (standard cubic analysis of any calculus text, e.g.
+Stewart, "Calculus", ch. 3.1 and 4.1). The script graphs the curve and
+its derivative, and prints the shape numbers a sketch needs.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/functions/polynomial-cubic-shape.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\functions\polynomial-cubic-shape.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/functions/polynomial-cubic-shape.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def f(x) = x ^ 3 - 3 * x
+def fp(x) = 3 * x ^ 2 - 3   // the slope
+
+// ---- results -------------------------------------------------------------------
+print("critical points where f'(x) = 0:")
+solve 3 * x ^ 2 - 3 == 0
+print("roots of f:")
+solve x ^ 3 - 3 * x == 0
+print("local max f(-1):", f(-1))
+print("local min f(1):", f(1))
+print("slope at the inflection x = 0:", fp(0))
+
+// ---- the picture ---------------------------------------------------------------
+graph x ^ 3 - 3 * x from -2.5 to 2.5
+graph 3 * x ^ 2 - 3 from -2.5 to 2.5
+
+/* ---- expected output ----
+= critical points where f'(x) = 0:
+= x = -1, x = 1
+= roots of f:
+= x = -1.7320508075688772, x = 0, x = 1.7320508075688774
+= local max f(-1): 2
+= local min f(1): -2
+= slope at the inflection x = 0: -3
+graph: x ^ 3 - 3 * x from -2.5 to 2.5
+graph: 3 * x ^ 2 - 3 from -2.5 to 2.5
+*/

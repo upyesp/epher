@@ -1,0 +1,38 @@
+/* ============================================================================
+cardioid-polar-area.epher -- the cardioid's area by the polar formula
+
+The cardioid r = 1 + cos(theta) is a circle of radius 1/2 rolling
+around an equal circle, heart first: a cusp at the origin, a dimple
+facing left. The polar area formula, A = 1/2 * integral of r^2 over
+the angle, gives exactly 3*pi/2 for the full sweep 0 to 2*pi (Stewart,
+"Calculus", ch. 10.4, where this curve is the worked example). The
+script graphs it and checks the area numerically, along with the
+radial landmarks.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/polar/cardioid-polar-area.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\polar\cardioid-polar-area.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/polar/cardioid-polar-area.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def r(t) = 1 + cos(t)
+
+// ---- results -------------------------------------------------------------------
+print("the cusp, r at pi:", r(pi))
+print("the far lobe, r at 0:", r(0))
+print("area, exact 3*pi/2:", integral(r(x) ^ 2 / 2, 0, 2 * pi))
+
+// ---- the picture ---------------------------------------------------------------
+graph polar 1 + cos(theta)
+
+/* ---- expected output ----
+= the cusp, r at pi: 0
+= the far lobe, r at 0: 2
+= area, exact 3*pi/2: 4.18879020479
+graph: polar 1 + cos(theta)
+*/

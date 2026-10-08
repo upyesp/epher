@@ -1,9 +1,9 @@
 /* ============================================================================
 sector-area.epher -- area of a circular sector
 
-A sector of radius r and central angle t (degrees) holds the fraction
-t / 360 of the disk, so its area is A = t / 360 * pi r^2. Written with
-the angle in radians, theta = rad(t), this is the standard form
+A sector of radius r and central angle ang (degrees) holds the fraction
+ang / 360 of the disk, so its area is A = ang / 360 * pi r^2. Written with
+the angle in radians, theta = rad(ang), this is the standard form
 A = theta r^2 / 2 (two lines cancel: pi r^2 * theta / (2 pi)). The
 results compute both forms and check they agree.
 
@@ -14,25 +14,25 @@ Run it from a terminal:
 In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
-The knobs to edit are `r` (radius) and `t` (central angle in degrees).
+The knobs to edit are `r` (radius) and `ang` (central angle in degrees).
 Everything above the results section is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
 const r = 6
-const t = 60
+const ang = 60
 
 // ---- the model ----------------------------------------------------------------
-def sector(r, t) = rad(t) * r ^ 2 / 2   // A = theta r^2 / 2, theta in radians
+def sector(r, ang) = rad(ang) * r ^ 2 / 2   // A = theta r^2 / 2, theta in radians
 
 // ---- results ------------------------------------------------------------------
-print("sector area:", sector(r, t))
-print("t / 360 form agrees:", abs(sector(r, t) - t / 360 * pi * r ^ 2) < 1e-9)
+print("sector area:", sector(r, ang))
+print("ang / 360 form agrees:", abs(sector(r, ang) - ang / 360 * pi * r ^ 2) < 1e-9)
 print("quarter circle, radius 4:", sector(4, 90))
 /* ---- expected output ----
 = 6
 = 60
 = sector area: 18.8495559215
-= t / 360 form agrees: true
+= ang / 360 form agrees: true
 = quarter circle, radius 4: 12.5663706144
 */

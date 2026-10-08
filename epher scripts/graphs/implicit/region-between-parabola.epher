@@ -1,0 +1,44 @@
+/* ============================================================================
+region-between-parabola.epher -- the area between y = x^2 and y = 4
+
+The parabola y = x^2 and the line y = 4 meet at x = +-2, and the
+region between them is the classroom first area: the integral of
+4 - x^2 from -2 to 2, exactly 32/3 (Stewart, "Calculus", ch. 5.1,
+where a region between a line and a parabola is the opening example). epher shades the
+region with an inequality graph and overlays the two boundary
+curves; the script prints the intersections and the area.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/implicit/region-between-parabola.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\implicit\region-between-parabola.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/implicit/region-between-parabola.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the region ----------------------------------------------------------------
+def top(x) = 4
+def bottom(x) = x ^ 2
+
+// ---- results -------------------------------------------------------------------
+print("the corners:")
+solve x ^ 2 == 4
+print("area between, exact 32/3:", integral(4 - x ^ 2, -2, 2))
+print("vertical gap at x = 1:", top(1) - bottom(1))
+
+// ---- the picture ---------------------------------------------------------------
+graph y < 4 - 0 * x from -3 to 3
+graph x ^ 2 from -3 to 3
+graph 4 from -3 to 3
+
+/* ---- expected output ----
+= the corners:
+= x = -2, x = 2
+= area between, exact 32/3: 32/3
+= vertical gap at x = 1: 3
+graph: y < 4 - 0 * x from -3 to 3
+graph: x ^ 2 from -3 to 3
+graph: 4 from -3 to 3
+*/

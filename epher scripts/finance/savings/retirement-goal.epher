@@ -3,7 +3,7 @@ retirement-goal.epher -- how long monthly deposits take to reach a
 million, at 6%
 
 The finance builtin tvm_n solves the annuity equation for the number of
-periods: tvm_n(i, pv, pmt, fv) returns the months of deposit pmt (money
+periods: tvm_n(r, pv, pmt, fv) returns the months of deposit pmt (money
 out, negative) that grow an empty account to the goal fv. Source:
 standard annuity formulas; see Kellison, The Theory of Interest,
 chapter 3.

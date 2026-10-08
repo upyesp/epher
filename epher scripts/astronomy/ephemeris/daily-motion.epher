@@ -19,27 +19,27 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/daily-motion.epher
 In the REPL:             load one of the paths above
 
-Knobs: the instant t below; the Moon and the Sun are always shown.
+Knobs: the instant tm below; the Moon and the Sun are always shown.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
-const t = jd(2026, 9, 10, 0)
+const tm = jd(2026, 9, 10, 0)
 
 // ---- helpers: wrap an angle to (-180, 180] --------------------------------------
 def wrap(x) = x - 360 * floor(x / 360)
 def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
 
 // ---- the drift, one day apart, Moon and Sun --------------------------------------
-mra1 = ra(11, t)
-mra2 = ra(11, t + 1)
-mde1 = decl(11, t)
-mde2 = decl(11, t + 1)
-sra1 = ra(10, t)
-sra2 = ra(10, t + 1)
-sde1 = decl(10, t)
-sde2 = decl(10, t + 1)
+mra1 = ra(11, tm)
+mra2 = ra(11, tm + 1)
+mde1 = decl(11, tm)
+mde2 = decl(11, tm + 1)
+sra1 = ra(10, tm)
+sra2 = ra(10, tm + 1)
+sde1 = decl(10, tm)
+sde2 = decl(10, tm + 1)
 
-print("per-day drift at", iso(t))
+print("per-day drift at", iso(tm))
 print("Moon:  dRA", spread(mra2 - mra1) * 4, "min of time   dDec", (mde2 - mde1) * 60, "arcmin")
 print("Sun:   dRA", spread(sra2 - sra1) * 4, "min of time   dDec", (sde2 - sde1) * 60, "arcmin")
 

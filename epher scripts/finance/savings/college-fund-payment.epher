@@ -4,7 +4,7 @@ fund over 18 years
 
 Saving for a child born today means a monthly deposit for 18 years (216
 months) that must reach the goal by then. The finance builtin tvm_pmt
-solves the deposit: tvm_pmt(n, i, 0, goal), present value 0, the goal as
+solves the deposit: tvm_pmt(n, r, 0, goal), present value 0, the goal as
 the future value. Source: standard annuity formulas; see Kellison, The
 Theory of Interest, chapter 3.
 

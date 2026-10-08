@@ -1,0 +1,38 @@
+/* ============================================================================
+rose-four-petals.epher -- the four-petaled rose r = cos(2*theta)
+
+The rhodonea or rose r = a*cos(k*theta) opens k petals when k is odd
+and 2k petals when k is even (Guido Grandi, who called the curves
+"roses", 1723; Stewart, "Calculus", ch. 10.4). With k = 2 the rose
+has four petals, tips at radius 1 on the axes, pinching to zero
+between petals every 45 deg, and the total area is exactly pi/2 - one
+quarter of the circumscribing circle. The script graphs the rose, samples the petal
+tips, and checks the area with the polar formula.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/polar/rose-four-petals.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\polar\rose-four-petals.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/polar/rose-four-petals.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def r(t) = cos(2 * t)
+
+// ---- results -------------------------------------------------------------------
+print("petal tips at theta = 0, pi/2, pi:", r(0), r(pi / 2), r(pi))
+print("between petals, theta = pi/4:", r(pi / 4))
+print("area, exact pi/2:", integral(cos(2 * x) ^ 2 / 2, 0, 2 * pi))
+
+// ---- the picture ---------------------------------------------------------------
+graph polar cos(2 * theta)
+
+/* ---- expected output ----
+= petal tips at theta = 0, pi/2, pi: 1 -1 1
+= between petals, theta = pi/4: 0.0000000000000000612323399574
+= area, exact pi/2: 3.14159265359
+graph: polar cos(2 * theta)
+*/

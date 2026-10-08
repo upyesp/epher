@@ -3,7 +3,7 @@ one-proportion-z-test.epher -- support for a change, against 25 percent
 
 Tests whether the share of supporters differs from the claimed 25
 percent when 42 of 200 people back a change, with the textbook one-
-proportion z test: z = (phat - p0) / sqrt(p0 * (1 - p0) / n) and a
+proportion z test: z = (phat - p0) / sqrt(p0 * (1 - p0) / num) and a
 two-sided p-value from the normal tail, 2 * normcdf(z) for the
 negative z below. There is no builtin proportion test, so the formula
 is written out.
@@ -16,19 +16,19 @@ In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 Everything also works line by line in the TUI.
 
-The knobs to edit are `x`, `n` and `p0` below. Everything above the
+The knobs to edit are `succ`, `num` and `p0` below. Everything above the
 results section is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
-const x = 42    // supporters of the change in the sample
-const n = 200   // people polled
+const succ = 42    // supporters of the change in the sample
+const num = 200   // people polled
 const p0 = 0.25 // the claimed population proportion
 
 // ---- the pieces of the statistic -----------------------------------------------------
-print("sample proportion:", x / n)
-print("standard error under p0:", sqrt(p0 * (1 - p0) / n))
-def zstat() = (x / n - p0) / sqrt(p0 * (1 - p0) / n) // the z statistic
+print("sample proportion:", succ / num)
+print("standard error under p0:", sqrt(p0 * (1 - p0) / num))
+def zstat() = (succ / num - p0) / sqrt(p0 * (1 - p0) / num) // the z statistic
 print("z:", zstat())
 
 // ---- the two-sided p-value from the normal tail ---------------------------------------

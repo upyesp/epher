@@ -28,24 +28,24 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/separation.epher
 In the REPL:             load one of the paths above
 
-Knobs: the instant `t` and the body pair below (Moon 11 and Venus 2).
+Knobs: the instant `tm` and the body pair below (Moon 11 and Venus 2).
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
-const t = jd(2026, 6, 19, 21)
+const tm = jd(2026, 6, 19, 21)
 const b1 = 11
 const b2 = 2
 
 // ---- Meeus eq. 17.1: great-circle separation in degrees ------------------------
-def sep(p, q) = deg(acos(sin(rad(decl(p, t))) * sin(rad(decl(q, t))) + cos(rad(decl(p, t))) * cos(rad(decl(q, t))) * cos(rad(ra(p, t) - ra(q, t)))))
+def sep(p, q) = deg(acos(sin(rad(decl(p, tm))) * sin(rad(decl(q, tm))) + cos(rad(decl(p, tm))) * cos(rad(decl(q, tm))) * cos(rad(ra(p, tm) - ra(q, tm)))))
 
 // ---- results ------------------------------------------------------------------
-print("the two bodies:", iso(t))
+print("the two bodies:", iso(tm))
 print("Moon-Venus separation:", sep(b1, b2), "deg")
 print("               in dms:", deg2dms(sep(b1, b2)))
 print("where they are:")
-print("Moon  ra", deg2hms(ra(b1, t)), " dec", deg2dms(decl(b1, t)))
-print("Venus ra", deg2hms(ra(b2, t)), " dec", deg2dms(decl(b2, t)))
+print("Moon  ra", deg2hms(ra(b1, tm)), " dec", deg2dms(decl(b1, tm)))
+print("Venus ra", deg2hms(ra(b2, tm)), " dec", deg2dms(decl(b2, tm)))
 
 /* Self-checks. The formula is symmetric, and the Moon-Sun distance
 tells the phase story from the geometry side: the Moon was new on
@@ -53,7 +53,7 @@ tells the phase story from the geometry side: the Moon was new on
 phase law k = (1 - cos 65) / 2 gives 0.289 lit - the built-in illum
 reads 0.2901 from the real phase angle. */
 print("symmetry check (must be equal):", sep(b1, b2) == sep(b2, b1))
-print("Moon-Sun separation:", sep(11, 10), "deg, Moon illum:", illum(11, t))
+print("Moon-Sun separation:", sep(11, 10), "deg, Moon illum:", illum(11, tm))
 
 /* ---- expected output ----
 = 2461211.375

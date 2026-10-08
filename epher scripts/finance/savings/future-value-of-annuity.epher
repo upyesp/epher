@@ -3,8 +3,8 @@ future-value-of-annuity.epher -- retirement balance of regular monthly
 deposits at the end of each month
 
 Depositing the same amount at the end of every month for n months at
-monthly rate i builds the annuity future value
-  fv = pmt * ((1+i)^n - 1) / i
+monthly rate r builds the annuity future value
+  fv = pmt * ((1+r)^n - 1) / r
 computed here by the finance builtin tvm_fv (see the finance builtins in
 "epher scripts/README.md"). Source: standard annuity formulas; see
 Kellison, The Theory of Interest, chapter 3.
@@ -31,7 +31,7 @@ const rate = 7%             // annual rate of return
 const years = 30            // years of saving
 
 // ---- results -----------------------------------------------------------------
-// tvm_fv(n, i, pv, pmt): 360 monthly deposits at 7%/12, nothing saved yet.
+// tvm_fv(n, r, pv, pmt): 360 monthly deposits at 7%/12, nothing saved yet.
 print("balance after 30 years:", tvm_fv(years * 12, rate / 12, 0, -deposit))
 print("total deposited out of pocket:", deposit * (years * 12))
 print("interest earned:", tvm_fv(years * 12, rate / 12, 0, -deposit) - deposit * (years * 12))

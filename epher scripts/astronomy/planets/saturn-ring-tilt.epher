@@ -27,11 +27,11 @@ Run it from a terminal:
   macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/saturn-ring-tilt.epher
 In the REPL:             load one of the paths above
 
-The one knob is the instant `t` (UT).
+The one knob is the instant `tm` (UT).
 ============================================================================ */
 
 // ---- the knob ---------------------------------------------------------------
-const t = jd(2026, 6, 1)        // 2026-06-01 00:00 UT
+const tm = jd(2026, 6, 1)        // 2026-06-01 00:00 UT
 
 // ---- precession (Meeus ch. 24): the IAU pole is J2000, the engine of date ---
 def T(j) = (j - jd(2000, 1, 1, 12)) / 36525
@@ -51,8 +51,8 @@ def bangle(j) = deg(asin(-dot(todate(j, pole_sat(j)), usat(j))))   // + = north 
 def face(b) = if b > 1 then "north face of the rings presented" else if b < -1 then "south face of the rings presented" else "rings effectively edge-on"
 
 // ---- results ------------------------------------------------------------------
-print("Saturn ring-plane tilt B at", iso(t), "UT:", bangle(t), "deg")
-print(face(bangle(t)) + ";", "opening angle |B| =", abs(bangle(t)), "deg")
+print("Saturn ring-plane tilt B at", iso(tm), "UT:", bangle(tm), "deg")
+print(face(bangle(tm)) + ";", "opening angle |B| =", abs(bangle(tm)), "deg")
 print("cross-check at the known ring-plane crossings:")
 print("  2025-03-23 (Earth crossing): B =", bangle(jd(2025, 3, 23)), "deg")
 print("  2009-09-04 (Earth crossing): B =", bangle(jd(2009, 9, 4)), "deg")

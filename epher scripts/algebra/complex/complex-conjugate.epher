@@ -1,11 +1,11 @@
 /* ============================================================================
-complex-conjugate.epher -- conj(z), and z conj(z) = |z|^2
+complex-conjugate.epher -- conj(zc), and zc conj(zc) = |zc|^2
 
 The conjugate of a + bi is a - bi, the reflection across the real axis;
-multiplying z by its conjugate clears the imaginary part:
-(a + bi)(a - bi) = a^2 + b^2 = |z|^2 (Churchill and Brown, "Complex
+multiplying zc by its conjugate clears the imaginary part:
+(a + bi)(a - bi) = a^2 + b^2 = |zc|^2 (Churchill and Brown, "Complex
 Variables and Applications", sec. 5). The product comes out as the exact
-real numbers 25 and 2 below, and the identity is checked against |z|^2.
+real numbers 25 and 2 below, and the identity is checked against |zc|^2.
 All values are exact.
 
 Run it from a terminal:
@@ -17,23 +17,23 @@ No knobs to edit; the values below are fixed examples.
 ============================================================================ */
 
 // ---- the examples -----------------------------------------------------------
-const z = 3 + 4i
+const zc = 3 + 4i
 const w = 1 - i
 
 // ---- results -----------------------------------------------------------------
-print("conjugate:", conj(z))
-print("z conj(z):", z * conj(z))
-print("|z|^2:", abs(z) ^ 2)
-print("z conj(z) = |z|^2:", abs(z * conj(z) - abs(z) ^ 2) < 1e-12)
+print("conjugate:", conj(zc))
+print("zc conj(zc):", zc * conj(zc))
+print("|zc|^2:", abs(zc) ^ 2)
+print("zc conj(zc) = |zc|^2:", abs(zc * conj(zc) - abs(zc) ^ 2) < 1e-12)
 print("conjugate of 1 - i:", conj(w))
 print("(1 - i)(1 + i):", w * conj(w))
 /* ---- expected output ----
 = 3+4i
 = 1-i
 = conjugate: 3-4i
-= z conj(z): 25
-= |z|^2: 25
-= z conj(z) = |z|^2: true
+= zc conj(zc): 25
+= |zc|^2: 25
+= zc conj(zc) = |zc|^2: true
 = conjugate of 1 - i: 1+i
 = (1 - i)(1 + i): 2
 */

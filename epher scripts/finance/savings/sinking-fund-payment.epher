@@ -3,7 +3,7 @@ sinking-fund-payment.epher -- monthly deposit that grows to a target sum
 
 A sinking fund is the saver's mirror of a loan: regular deposits that
 accumulate to a known target at the end. The finance builtin tvm_pmt
-solves the deposit: tvm_pmt(n, i, 0, target) with present value 0 and the
+solves the deposit: tvm_pmt(n, r, 0, target) with present value 0 and the
 target as the future value. Source: standard annuity formulas; see
 Kellison, The Theory of Interest, chapter 3.
 

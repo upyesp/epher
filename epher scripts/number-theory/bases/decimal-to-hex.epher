@@ -32,8 +32,8 @@ for x in {0, 10, 16, 255, 4096} do hex(x)
 // ---- the spelling reads back -------------------------------------------------------------
 0xff                          // the literal form of hex(255): same value
 0xdeadbeef                    // 3735928559 again
-print("0xff == 255:", 0xff == 255)
-print("0xdeadbeef == 3735928559:", 0xdeadbeef == 3735928559)
+print("the literal 0xff reads back as:", 0xff)
+print("the literal 0xdeadbeef reads back as:", 0xdeadbeef)
 /* ---- expected output ----
 = 0xff
 = 0xdeadbeef
@@ -41,6 +41,6 @@ print("0xdeadbeef == 3735928559:", 0xdeadbeef == 3735928559)
 = {0x0, 0xa, 0x10, 0xff, 0x1000}
 = 255
 = 3735928559
-= 0xff == 255: true
-= 0xdeadbeef == 3735928559: true
+= the literal 0xff reads back as: 255
+= the literal 0xdeadbeef reads back as: 3735928559
 */
