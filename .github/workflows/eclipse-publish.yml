@@ -59,6 +59,15 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: 3.9.9
+        # The runner image's Maven moves under us (the 20261004 image
+        # ships one Tycho 4.0.13 cannot provision its p2 resolver
+        # under: "No implementation for MavenTargetLocationFactory was
+        # bound"), so the p2 update site pins the Maven it builds with
+        # the same way the pom pins Tycho.
+
       - name: Check the bundle's shared copies are in sync
         # The Tycho bundle carries copies of the shared grammar and
         # language configuration. Drift is a defect at build time either
