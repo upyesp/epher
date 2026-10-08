@@ -492,9 +492,9 @@ A loop can also be left on purpose: the next section adds `break` and
 `for` repeats a statement once per value, collecting the body's values into a list: over a range `start to end` (inclusive) with an optional `step`, or over the elements of a list:
 
 ```epher
-for i in 1 to 5 do i^2
+for k in 1 to 5 do k^2
 for x in {2, 3, 4} do 10*x
-for i in 0 to 1 step 0.5 do i
+for k in 0 to 1 step 0.5 do k
 ```
 
 ```text
@@ -503,10 +503,12 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-The loop variable is scoped to the loop: afterwards the name means what it meant before (so a loop over `i` never disturbs the imaginary unit), while assignments to other names inside the body persist. With print, a loop writes readable lines:
+The loop variable is scoped to the loop: afterwards the name means
+what it meant before, while assignments to other names inside the
+body persist. With print, a loop writes readable lines:
 
 ```epher
-for i in 1 to 3 do print("line", i)
+for k in 1 to 3 do print("line", k)
 ```
 
 ```text
@@ -1032,12 +1034,12 @@ not know, so you can fix your expression.
 | Decision | `if c then a else b` | `if x > 0 then 1 else -1` |
 | Choose statements | `if c then stmt [else stmt]` | `if k == 4 then break` |
 | Loop | `while c do statement` | `while x < 5 do x = x + 1` |
-| For loop | `for i in a to b step s do stmt` | `for i in 1 to 5 do i^2` |
+| For loop | `for k in a to b step s do stmt` | `for k in 1 to 5 do k^2` |
 | Leave / skip a loop | `break`, `continue` | `if k == 4 then break` |
 | Function | `def name(params) = expr` or `do … end` | `def f(x) = x ^ 2` |
 | Answer now | `return value` | `if ok then return x` |
 | Several names | `{a, b} = list` (`_` skips) | `{m, sd} = stats(d)` |
-| Strings | `"..."`, `+` joins, `s[i]`, `==`, `<` | `"a" + "b"` |
+| Strings | `"..."`, `+` joins, `s[k]`, `==`, `<` | `"a" + "b"` |
 | String library | `upper` `lower` `trim` `substr` `split` `join` `find` `replace` `fixed` | `split("a,b", ",")` |
 | Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Script | statements joined with `;` or newlines | `x = 1; x + 1` |
@@ -1055,7 +1057,7 @@ not know, so you can fix your expression.
 | Base spelling | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 | Primes | `isprime(n)`, `factors(n)`, … | `factors(360)` |
 | List literal | `{…}` | `{1, 2, 3}` |
-| List element | `list[i]` (1-based) | `{5, 6}[2]` |
+| List element | `list[k]` (1-based) | `{5, 6}[2]` |
 | List statistics | `mean(list)`, `median(list)`, … | `stdev(d)` |
 | List shape | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
 | Linear regression | `linreg(xs, ys)` | `linreg(x, y)` |
@@ -1253,7 +1255,7 @@ len(d)
 8
 ```
 
-`list[i]` is the i-th element, 1-based like a calculator expects; an
+`list[k]` is the k-th element, 1-based like a calculator expects; an
 out-of-range index is an error. The bracket binds tighter than `^`, so
 `d[2]^2` is `(d[2])^2`.
 
@@ -2076,25 +2078,38 @@ collect is positive. A consistent set of five fields makes the balance
 zero:
 
 ```text
-pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0
+pv*(1+r)^n + pmt*(1+r*begin)*((1+r)^n - 1)/r + fv = 0
 ```
 
 Mixing the signs up (both the loan and the payments negative) reads as
 "the money never balances", and the solver answers with a domain error
 rather than a nonsense number.
 
-**The time-value-of-money solver.** Five functions solve for one field
-given the other four. `n` is the number of periods, `i` the per-period
-rate, `pv` the present value, `pmt` the payment, `fv` the value at the
-end:
+**The five fields in plain words.** The letters come from the
+calculator tradition, so they are worth spelling out once. A period
+is one step of the problem: a month for a monthly loan, a year for a
+yearly one. The rate is written `r` throughout this guide, never
+`i` - `i` is the imaginary unit (1.18):
+
+| Field | Plain words |
+|---|---|
+| `n` | the number of periods: how many payments or compounding steps there are. A 30-year loan billed monthly runs n = 360. |
+| `r` | the interest rate per period, as a fraction (0.01 is 1%). An 8% annual rate billed monthly is r = 0.08/12. |
+| `pv` | the present value: what the loan or lump is worth today - the amount borrowed, or the price paid now. |
+| `pmt` | the payment: the fixed amount that changes hands every period. |
+| `fv` | the future value: the balance when the last period is done. 0 for a loan paid off; the savings goal for a plan. |
+| `begin` | 0 when payments fall at the end of each period (the default), 1 at the beginning (rent, most salaries). |
+
+**The time-value-of-money solver.** Five functions answer one field
+with the other four given. Each name says which field it answers:
 
 | Function | Answers |
 |---|---|
-| `tvm_pmt(n, i, pv, fv)` | the payment |
-| `tvm_n(i, pv, pmt, fv)` | the number of periods |
-| `tvm_i(n, pv, pmt, fv)` | the per-period rate |
-| `tvm_pv(n, i, pmt, fv)` | the present value |
-| `tvm_fv(n, i, pv, pmt)` | the future value |
+| `tvm_pmt(n, r, pv, fv)` | the payment |
+| `tvm_n(r, pv, pmt, fv)` | the number of periods |
+| `tvm_i(n, pv, pmt, fv)` | the per-period rate (the one name keeping the old letter; the rate itself is always `r`) |
+| `tvm_pv(n, r, pmt, fv)` | the present value |
+| `tvm_fv(n, r, pv, pmt)` | the future value |
 
 The classic 8% mortgage: 360 monthly payments of 733.76 against a
 100,000 loan:
@@ -2205,9 +2220,11 @@ The rate search caps at 100% per period and the term search at ten
 million periods; a problem outside those ranges (or a sign pattern
 that never balances) reports a domain error naming what it tried.
 
-**Amortization.** `amort(p, r, n, k)` is the remaining balance after k
-payments of an n-period loan of p at rate r, 0 periods in is the
-principal, all n is zero:
+**Amortization.** `amort(p, r, n, k)` is the remaining balance once k
+of a loan's payments have been made: `p` is the principal (the amount
+borrowed), `r` the per-period rate, `n` the loan's full number of
+payments, `k` how many are done. A fresh loan (k = 0) shows the
+principal, a paid-off one (k = n) zero:
 
 ```epher
 amort(100000, 0.08/12, 360, 120)
@@ -2229,8 +2246,10 @@ for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
 ```
 
 **Interest.** `simple_interest(p, r, t)` is `p*r*t` and
-`compound_interest(p, r, n)` is `p*(1+r)^n - p`; both answer the
-interest earned, not the balance:
+`compound_interest(p, r, n)` is `p*(1+r)^n - p`; `p` is the
+principal, `r` the rate (a year's rate in the first, a per-period
+rate in the second), `t` the years and `n` the periods. Both answer
+the interest earned, not the balance:
 
 ```epher
 simple_interest(1000, 0.05, 2)
@@ -2280,9 +2299,10 @@ time at 6%:
 ```
 
 **Cash-flow analysis.** `npv(r, flows)` discounts a cash-flow list at
-rate r: `flows[1]` is the outlay today, the rest arrive one period
-apart. `irr(flows)` finds the rate where the net present value is
-zero. Pay 100 today, receive 60 in each of the next two years:
+the rate `r` per period: `flows[1]` is the outlay today, the rest
+arrive one period apart. `irr(flows)` finds the rate where the net
+present value is zero. Pay 100 today, receive 60 in each of the next
+two years:
 
 ```epher
 npv(0.1, {-100, 60, 60})

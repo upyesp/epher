@@ -506,9 +506,9 @@ ajoute `break` et `continue`, et une fonction ajoute `return`
 `for` répète une instruction une fois par valeur et rassemble les valeurs du corps dans une liste : sur un intervalle `start to end` (inclus) avec un `step` facultatif, ou sur les éléments d'une liste :
 
 ```epher
-for i in 1 to 5 do i^2
+for k in 1 to 5 do k^2
 for x in {2, 3, 4} do 10*x
-for i in 0 to 1 step 0.5 do i
+for k in 0 to 1 step 0.5 do k
 ```
 
 ```text
@@ -517,10 +517,10 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-La variable de boucle est limitée à la boucle : ensuite, le nom retrouve sa signification d'avant (une boucle sur `i` ne touche pas l'unité imaginaire), tandis que les affectations d'autres noms dans le corps persistent. Avec print, une boucle écrit des lignes lisibles :
+La variable de boucle est limitée à la boucle : ensuite, le nom retrouve sa signification d'avant, tandis que les affectations d'autres noms dans le corps persistent. Avec print, une boucle écrit des lignes lisibles :
 
 ```epher
-for i in 1 to 3 do print("line", i)
+for k in 1 to 3 do print("line", k)
 ```
 
 ```text
@@ -1056,12 +1056,12 @@ connaît pas, pour que vous puissiez corriger votre expression.
 | Décision | `if c then a else b` | `if x > 0 then 1 else -1` |
 | Choisir des instructions | `if c then instruction [else instruction]` | `if k == 4 then break` |
 | Boucle | `while c do statement` | `while x < 5 do x = x + 1` |
-| Boucle for | `for i in a to b step s do instruction` | `for i in 1 to 5 do i^2` |
+| Boucle for | `for k in a to b step s do instruction` | `for k in 1 to 5 do k^2` |
 | Quitter / sauter une boucle | `break`, `continue` | `if k == 4 then break` |
 | Fonction | `def name(params) = expr` ou `do … end` | `def f(x) = x ^ 2` |
 | Réponse immédiate | `return value` | `if ok then return x` |
 | Plusieurs noms | `{a, b} = list` (`_` saute) | `{m, sd} = stats(d)` |
-| Chaînes | `"..."`, `+` joint, `s[i]`, `==`, `<` | `"a" + "b"` |
+| Chaînes | `"..."`, `+` joint, `s[k]`, `==`, `<` | `"a" + "b"` |
 | Bibliothèque de chaînes | `upper` `lower` `trim` `substr` `split` `join` `find` `replace` `fixed` | `split("a,b", ",")` |
 | Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Script | instructions reliées par `;` ou des retours à la ligne | `x = 1; x + 1` |
@@ -1079,7 +1079,7 @@ connaît pas, pour que vous puissiez corriger votre expression.
 | Orthographe en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 | Premiers | `isprime(n)`, `factors(n)`, … | `factors(360)` |
 | Littéral de liste | `{…}` | `{1, 2, 3}` |
-| Élément de liste | `list[i]` (à partir de 1) | `{5, 6}[2]` |
+| Élément de liste | `list[k]` (à partir de 1) | `{5, 6}[2]` |
 | Statistiques de liste | `mean(liste)`, `median(liste)`, … | `stdev(d)` |
 | Forme de liste | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
 | Régression linéaire | `linreg(xs, ys)` | `linreg(x, y)` |
@@ -1248,7 +1248,7 @@ d[2]
 len(d)
 ```
 
-`list[i]` est le i-ème élément, indexé à partir de 1 comme sur une
+`list[k]` est le k-ème élément, indexé à partir de 1 comme sur une
 calculatrice ; un index hors de la liste est une erreur. Le crochet
 lie plus fort que `^`, donc `d[2]^2` vaut `(d[2])^2`.
 
@@ -2048,25 +2048,39 @@ dépôts sont négatifs et le capital récolté positif. Cinq champs
 cohérents annulent le solde :
 
 ```text
-pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0
+pv*(1+r)^n + pmt*(1+r*begin)*((1+r)^n - 1)/r + fv = 0
 ```
 
 Des signes mélangés (prêt et mensualités négatifs tous les deux) se
 lisent « l'argent ne s'équilibre jamais », et le solveur répond par
 une erreur de domaine plutôt que par un nombre absurde.
 
-**Le solveur de valeur temps de l'argent.** Cinq fonctions résolvent
-un champ quand les quatre autres sont donnés. `n` est le nombre de
-périodes, `i` le taux par période, `pv` la valeur actuelle, `pmt` la
-mensualité, `fv` la valeur finale :
+**Les cinq champs en clair.** Les lettres viennent de la tradition
+des calculatrices ; elles méritent d'être expliquées une fois. Une
+période est un pas du problème : un mois pour un prêt mensuel, un an
+pour un prêt annuel. Le taux s'écrit `r` dans tout ce guide, jamais
+`i` - `i` est l'unité imaginaire (1.18) :
+
+| Champ | En clair |
+|---|---|
+| `n` | le nombre de périodes : combien de paiements ou d'étapes de capitalisation. Un prêt de 30 ans facturé mensuellement court n = 360 périodes. |
+| `r` | le taux d'intérêt par période, en fraction (0.01 vaut 1 %). Un taux annuel de 8 % facturé mensuellement donne r = 0.08/12. |
+| `pv` | la valeur actuelle : ce que vaut aujourd'hui le prêt ou la somme - le montant emprunté, ou le prix payé maintenant. |
+| `pmt` | la mensualité : le montant fixe qui change de main à chaque période. |
+| `fv` | la valeur finale : le solde quand la dernière période est terminée. 0 pour un prêt remboursé ; l'objectif d'épargne pour un plan. |
+| `begin` | 0 quand les paiements tombent en fin de période (par défaut), 1 en début (loyer, la plupart des salaires). |
+
+**Le solveur de valeur temps de l'argent.** Cinq fonctions répondent
+un champ quand les quatre autres sont donnés. Chaque nom dit quel
+champ il répond :
 
 | Fonction | Répond |
 |---|---|
-| `tvm_pmt(n, i, pv, fv)` | la mensualité |
-| `tvm_n(i, pv, pmt, fv)` | le nombre de périodes |
-| `tvm_i(n, pv, pmt, fv)` | le taux par période |
-| `tvm_pv(n, i, pmt, fv)` | la valeur actuelle |
-| `tvm_fv(n, i, pv, pmt)` | la valeur finale |
+| `tvm_pmt(n, r, pv, fv)` | la mensualité |
+| `tvm_n(r, pv, pmt, fv)` | le nombre de périodes |
+| `tvm_i(n, pv, pmt, fv)` | le taux par période (le seul nom qui garde l'ancienne lettre ; le taux lui-même s'écrit toujours `r`) |
+| `tvm_pv(n, r, pmt, fv)` | la valeur actuelle |
+| `tvm_fv(n, r, pv, pmt)` | la valeur finale |
 
 Le prêt hypothécaire classique à 8 % : 360 mensualités de 733,76
 pour un prêt de 100 000 :
@@ -2181,9 +2195,11 @@ durée jusqu'à dix millions de périodes ; un problème hors de ces
 portées (ou un jeu de signes qui ne s'équilibre jamais) renvoie une
 erreur de domaine qui dit ce qu'elle a tenté.
 
-**Amortissement.** `amort(p, r, n, k)` est le solde restant après k
-paiements d'un prêt de p au taux r sur n périodes, à 0 périodes le
-capital, au bout des n, zéro :
+**Amortissement.** `amort(p, r, n, k)` est le solde restant une fois
+k paiements du prêt effectués : `p` est le capital (le montant
+emprunté), `r` le taux par période, `n` le nombre total de paiements
+du prêt, `k` combien sont faits. Un prêt neuf (k = 0) montre le
+capital, un prêt remboursé (k = n) zéro :
 
 ```epher
 amort(100000, 0.08/12, 360, 120)
@@ -2206,8 +2222,10 @@ for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
 ```
 
 **Intérêts.** `simple_interest(p, r, t)` vaut `p*r*t` et
-`compound_interest(p, r, n)` vaut `p*(1+r)^n - p`, tous deux
-répondent l'intérêt gagné, pas le solde :
+`compound_interest(p, r, n)` vaut `p*(1+r)^n - p` ; `p` est le
+capital, `r` le taux (annuel dans le premier, par période dans le
+second), `t` les années et `n` les périodes. Tous deux répondent
+l'intérêt gagné, pas le solde :
 
 ```epher
 simple_interest(1000, 0.05, 2)
@@ -2257,7 +2275,7 @@ doublement de la règle des 72 à 6 % :
 ```
 
 **Analyse de flux de trésorerie.** `npv(r, flows)` actualise une
-liste de flux au taux r : `flows[1]` est le décaissement d'aujourd'hui,
+liste de flux au taux `r` par période : `flows[1]` est le décaissement d'aujourd'hui,
 le reste arrive à un période d'écart. `irr(flows)` trouve le taux où
 la valeur actuelle nette s'annule. Payer 100 aujourd'hui et recevoir
 60 pendant chacune des deux années suivantes :

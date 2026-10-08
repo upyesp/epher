@@ -500,9 +500,9 @@ acrescenta `break` e `continue`, e uma função acrescenta `return`
 `for` repete uma instrução uma vez por valor e reúne os valores do corpo numa lista: sobre um intervalo `start to end` (inclusive) com um `step` opcional, ou sobre os elementos de uma lista:
 
 ```epher
-for i in 1 to 5 do i^2
+for k in 1 to 5 do k^2
 for x in {2, 3, 4} do 10*x
-for i in 0 to 1 step 0.5 do i
+for k in 0 to 1 step 0.5 do k
 ```
 
 ```text
@@ -511,10 +511,10 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-A variável do loop tem âmbito próprio do loop: depois, o nome volta a significar o que significava antes (um loop sobre `i` não afeta a unidade imaginária), enquanto atribuições a outros nomes no corpo persistem. Com print, um loop escreve linhas legíveis:
+A variável do loop tem âmbito próprio do loop: depois, o nome volta a significar o que significava antes, enquanto atribuições a outros nomes no corpo persistem. Com print, um loop escreve linhas legíveis:
 
 ```epher
-for i in 1 to 3 do print("line", i)
+for k in 1 to 3 do print("line", k)
 ```
 
 ```text
@@ -1039,12 +1039,12 @@ conhece, para poder corrigir a sua expressão.
 | Decisão | `if c then a else b` | `if x > 0 then 1 else -1` |
 | Escolher instruções | `if c then instrução [else instrução]` | `if k == 4 then break` |
 | Ciclo | `while c do statement` | `while x < 5 do x = x + 1` |
-| Ciclo for | `for i in a to b step s do instrução` | `for i in 1 to 5 do i^2` |
+| Ciclo for | `for k in a to b step s do instrução` | `for k in 1 to 5 do k^2` |
 | Sair / saltar um ciclo | `break`, `continue` | `if k == 4 then break` |
 | Função | `def name(params) = expr` ou `do … end` | `def f(x) = x ^ 2` |
 | Resposta já | `return value` | `if ok then return x` |
 | Vários nomes | `{a, b} = list` (`_` salta) | `{m, sd} = stats(d)` |
-| Strings | `"..."`, `+` une, `s[i]`, `==`, `<` | `"a" + "b"` |
+| Strings | `"..."`, `+` une, `s[k]`, `==`, `<` | `"a" + "b"` |
 | Biblioteca de strings | `upper` `lower` `trim` `substr` `split` `join` `find` `replace` `fixed` | `split("a,b", ",")` |
 | Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Script | instruções unidas por `;` ou quebras de linha | `x = 1; x + 1` |
@@ -1062,7 +1062,7 @@ conhece, para poder corrigir a sua expressão.
 | Grafia em base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 | Primos | `isprime(n)`, `factors(n)`, … | `factors(360)` |
 | Literal de lista | `{…}` | `{1, 2, 3}` |
-| Elemento de lista | `list[i]` (base 1) | `{5, 6}[2]` |
+| Elemento de lista | `list[k]` (base 1) | `{5, 6}[2]` |
 | Estatística de lista | `mean(lista)`, `median(lista)`, … | `stdev(d)` |
 | Forma de lista | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
 | Regressão linear | `linreg(xs, ys)` | `linreg(x, y)` |
@@ -1231,7 +1231,7 @@ d[2]
 len(d)
 ```
 
-`list[i]` é o i-ésimo elemento, com base 1 como numa calculadora; um
+`list[k]` é o k-ésimo elemento, com base 1 como numa calculadora; um
 índice fora da lista é um erro. O parêntese reto liga mais forte que
 `^`, por isso `d[2]^2` é `(d[2])^2`.
 
@@ -2022,25 +2022,39 @@ negativos e o pecúlio que recolhe é positivo. Um conjunto coerente de
 cinco campos zera o saldo:
 
 ```text
-pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0
+pv*(1+r)^n + pmt*(1+r*begin)*((1+r)^n - 1)/r + fv = 0
 ```
 
 Sinais trocados (empréstimo e prestações ambos negativos) lêem-se
 como «o dinheiro nunca fecha», e o resolutor responde com um erro de
 domínio em vez de um número sem sentido.
 
+**Os cinco campos em palavras simples.** As letras vêm da tradição
+das calculadoras; vale explicá-las uma vez. Um período é um passo do
+problema: um mês num empréstimo mensal, um ano num anual. A taxa
+escreve-se `r` em todo este guia, nunca `i` - `i` é a unidade
+imaginária (1.18):
+
+| Campo | Palavras simples |
+|---|---|
+| `n` | o número de períodos: quantos pagamentos ou passos de capitalização há. Um empréstimo de 30 anos cobrado mensalmente corre n = 360 períodos. |
+| `r` | a taxa de juros por período, como fração (0.01 é 1 %). Uma taxa anual de 8 % cobrada mensalmente é r = 0.08/12. |
+| `pv` | o valor presente: o que o empréstimo ou a soma vale hoje - o montante recebido, ou o preço pago agora. |
+| `pmt` | a prestação: a quantidade fixa que muda de mãos a cada período. |
+| `fv` | o valor final: o saldo quando o último período termina. 0 num empréstimo pago; a meta de poupança num plano. |
+| `begin` | 0 quando os pagamentos caem no fim de cada período (o padrão), 1 no início (renda, a maioria dos salários). |
+
 **O resolutor do valor do dinheiro no tempo.** Cinco funções
-resolvem um campo dados os outros quatro. `n` é o número de
-períodos, `i` a taxa por período, `pv` o valor presente, `pmt` a
-prestação, `fv` o valor final:
+respondem um campo dados os outros quatro. Cada nome diz que campo
+responde:
 
 | Função | Responde |
 |---|---|
-| `tvm_pmt(n, i, pv, fv)` | a prestação |
-| `tvm_n(i, pv, pmt, fv)` | o número de períodos |
-| `tvm_i(n, pv, pmt, fv)` | a taxa por período |
-| `tvm_pv(n, i, pmt, fv)` | o valor presente |
-| `tvm_fv(n, i, pv, pmt)` | o valor final |
+| `tvm_pmt(n, r, pv, fv)` | a prestação |
+| `tvm_n(r, pv, pmt, fv)` | o número de períodos |
+| `tvm_i(n, pv, pmt, fv)` | a taxa por período (o único nome que mantém a letra antiga; a taxa em si é sempre `r`) |
+| `tvm_pv(n, r, pmt, fv)` | o valor presente |
+| `tvm_fv(n, r, pv, pmt)` | o valor final |
 
 A hipoteca clássica de 8%: 360 prestações mensais de 733.76 sobre um
 empréstimo de 100,000:
@@ -2155,9 +2169,11 @@ milhões de períodos; um problema fora desses intervalos (ou um padrão
 de sinais que nunca fecha) reporta um erro de domínio que diz o que
 tentou.
 
-**Amortização.** `amort(p, r, n, k)` é o saldo remanescente após k
-pagamentos de um empréstimo de p à taxa r em n períodos, com 0
-períodos é o principal, com todos os n é zero:
+**Amortização.** `amort(p, r, n, k)` é o saldo remanescente depois de
+feitos k pagamentos do empréstimo: `p` é o principal (o montante
+recebido), `r` a taxa por período, `n` o número total de pagamentos
+do empréstimo, `k` quantos estão feitos. Um empréstimo novo (k = 0)
+mostra o principal, um pago (k = n) zero:
 
 ```epher
 amort(100000, 0.08/12, 360, 120)
@@ -2180,8 +2196,10 @@ for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
 ```
 
 **Juros.** `simple_interest(p, r, t)` é `p*r*t` e
-`compound_interest(p, r, n)` é `p*(1+r)^n - p`, ambos respondem com
-os juros ganhos, não com o saldo:
+`compound_interest(p, r, n)` é `p*(1+r)^n - p`; `p` é o principal,
+`r` a taxa (a anual no primeiro, a por período no segundo), `t` os
+anos e `n` os períodos. Ambos respondem com os juros ganhos, não com
+o saldo:
 
 ```epher
 simple_interest(1000, 0.05, 2)
@@ -2231,7 +2249,7 @@ de duplicação da regra dos 72 a 6%:
 ```
 
 **Análise de fluxo de caixa.** `npv(r, flows)` desconta uma lista de
-fluxos de caixa à taxa r: `flows[1]` é o desembolso de hoje e o
+fluxos de caixa à taxa `r` por período: `flows[1]` é o desembolso de hoje e o
 resto chega separado por um período. `irr(flows)` encontra a taxa em
 que o valor atual líquido é zero. Pagar 100 hoje e receber 60 em
 cada um dos próximos dois anos:

@@ -500,9 +500,9 @@ Un bucle también se puede dejar a propósito: la sección siguiente añade
 `for` repite una sentencia una vez por valor y reúne los valores del cuerpo en una lista: sobre un rango `start to end` (inclusive) con un `step` opcional, o sobre los elementos de una lista:
 
 ```epher
-for i in 1 to 5 do i^2
+for k in 1 to 5 do k^2
 for x in {2, 3, 4} do 10*x
-for i in 0 to 1 step 0.5 do i
+for k in 0 to 1 step 0.5 do k
 ```
 
 ```text
@@ -511,10 +511,10 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-La variable del bucle tiene ámbito de bucle: después, el nombre vuelve a significar lo que significaba antes (un bucle sobre `i` no toca la unidad imaginaria), mientras que las asignaciones a otros nombres dentro del cuerpo persisten. Con print, un bucle escribe líneas legibles:
+La variable del bucle tiene ámbito de bucle: después, el nombre vuelve a significar lo que significaba antes, mientras que las asignaciones a otros nombres dentro del cuerpo persisten. Con print, un bucle escribe líneas legibles:
 
 ```epher
-for i in 1 to 3 do print("line", i)
+for k in 1 to 3 do print("line", k)
 ```
 
 ```text
@@ -1041,12 +1041,12 @@ conoce, para que puedas arreglar tu expresión.
 | Decisión | `if c then a else b` | `if x > 0 then 1 else -1` |
 | Elegir sentencias | `if c then sentencia [else sentencia]` | `if k == 4 then break` |
 | Bucle | `while c do statement` | `while x < 5 do x = x + 1` |
-| Bucle for | `for i in a to b step s do sentencia` | `for i in 1 to 5 do i^2` |
+| Bucle for | `for k in a to b step s do sentencia` | `for k in 1 to 5 do k^2` |
 | Salir / saltar un bucle | `break`, `continue` | `if k == 4 then break` |
 | Función | `def name(params) = expr` o `do … end` | `def f(x) = x ^ 2` |
 | Respuesta ahora | `return value` | `if ok then return x` |
 | Varios nombres | `{a, b} = list` (`_` se salta) | `{m, sd} = stats(d)` |
-| Cadenas | `"..."`, `+` une, `s[i]`, `==`, `<` | `"a" + "b"` |
+| Cadenas | `"..."`, `+` une, `s[k]`, `==`, `<` | `"a" + "b"` |
 | Biblioteca de cadenas | `upper` `lower` `trim` `substr` `split` `join` `find` `replace` `fixed` | `split("a,b", ",")` |
 | Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Script | instrucciones unidas con `;` o saltos de línea | `x = 1; x + 1` |
@@ -1064,7 +1064,7 @@ conoce, para que puedas arreglar tu expresión.
 | Escritura en base | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 | Primos | `isprime(n)`, `factors(n)`, … | `factors(360)` |
 | Literal de lista | `{…}` | `{1, 2, 3}` |
-| Elemento de lista | `list[i]` (base 1) | `{5, 6}[2]` |
+| Elemento de lista | `list[k]` (base 1) | `{5, 6}[2]` |
 | Estadística de lista | `mean(lista)`, `median(lista)`, … | `stdev(d)` |
 | Forma de lista | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
 | Regresión lineal | `linreg(xs, ys)` | `linreg(x, y)` |
@@ -1233,7 +1233,7 @@ d[2]
 len(d)
 ```
 
-`list[i]` es el elemento i-ésimo, con base 1 como en una calculadora;
+`list[k]` es el elemento k-ésimo, con base 1 como en una calculadora;
 un índice fuera de la lista es un error. El corchete une más fuerte
 que `^`, así que `d[2]^2` es `(d[2])^2`.
 
@@ -2029,25 +2029,39 @@ negativos y el ahorro que recolectas es positivo. Un conjunto
 coherente de cinco campos hace cero el saldo:
 
 ```text
-pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0
+pv*(1+r)^n + pmt*(1+r*begin)*((1+r)^n - 1)/r + fv = 0
 ```
 
 Cambiar los signos (préstamo y cuotas ambos negativos) se lee como
 «el dinero nunca cuadra», y el solucionador responde con un error de
 dominio en lugar de un número sin sentido.
 
+**Los cinco campos en palabras llanas.** Las letras vienen de la
+tradición de las calculadoras; conviene explicarlas una vez. Un
+periodo es un paso del problema: un mes en un préstamo mensual, un
+año en uno anual. La tasa se escribe `r` en toda esta guía, nunca
+`i` - `i` es la unidad imaginaria (1.18):
+
+| Campo | Palabras llanas |
+|---|---|
+| `n` | el número de periodos: cuántos pagos o pasos de capitalización hay. Un préstamo de 30 años con cobro mensual dura n = 360 periodos. |
+| `r` | la tasa de interés por periodo, como fracción (0.01 es 1 %). Una tasa anual del 8 % cobrada mensualmente es r = 0.08/12. |
+| `pv` | el valor presente: lo que vale hoy el préstamo o la suma - el importe recibido, o el precio pagado ahora. |
+| `pmt` | el pago: la cantidad fija que cambia de manos en cada periodo. |
+| `fv` | el valor final: el saldo cuando termina el último periodo. 0 en un préstamo pagado; la meta de ahorro en un plan. |
+| `begin` | 0 cuando los pagos caen al final de cada periodo (lo normal), 1 al principio (alquiler, la mayoría de los sueldos). |
+
 **El solucionador de valor del dinero en el tiempo.** Cinco
-funciones resuelven un campo dados los otros cuatro. `n` es el número
-de periodos, `i` la tasa por periodo, `pv` el valor presente, `pmt` el
-pago, `fv` el valor final:
+funciones responden un campo dados los otros cuatro. Cada nombre dice
+qué campo responde:
 
 | Función | Responde |
 |---|---|
-| `tvm_pmt(n, i, pv, fv)` | el pago |
-| `tvm_n(i, pv, pmt, fv)` | el número de periodos |
-| `tvm_i(n, pv, pmt, fv)` | la tasa por periodo |
-| `tvm_pv(n, i, pmt, fv)` | el valor presente |
-| `tvm_fv(n, i, pv, pmt)` | el valor final |
+| `tvm_pmt(n, r, pv, fv)` | el pago |
+| `tvm_n(r, pv, pmt, fv)` | el número de periodos |
+| `tvm_i(n, pv, pmt, fv)` | la tasa por periodo (el único nombre que conserva la letra antigua; la tasa misma siempre es `r`) |
+| `tvm_pv(n, r, pmt, fv)` | el valor presente |
+| `tvm_fv(n, r, pv, pmt)` | el valor final |
 
 La hipoteca clásica del 8%: 360 pagos mensuales de 733.76 contra un
 préstamo de 100,000:
@@ -2162,9 +2176,11 @@ hasta diez millones de periodos; un problema fuera de esos rangos (o
 un patrón de signos que nunca cuadra) reporta un error de dominio que
 dice qué intentó.
 
-**Amortización.** `amort(p, r, n, k)` es el saldo pendiente tras k
-pagos de un préstamo de p a la tasa r a n plazos, con 0 periodos es
-el principal, con los n es cero:
+**Amortización.** `amort(p, r, n, k)` es el saldo pendiente una vez
+hechos k pagos del préstamo: `p` es el principal (el importe debido),
+`r` la tasa por periodo, `n` el número total de pagos del préstamo,
+`k` cuántos están hechos. Un préstamo nuevo (k = 0) muestra el
+principal, uno pagado (k = n) cero:
 
 ```epher
 amort(100000, 0.08/12, 360, 120)
@@ -2187,8 +2203,10 @@ for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
 ```
 
 **Interés.** `simple_interest(p, r, t)` es `p*r*t` y
-`compound_interest(p, r, n)` es `p*(1+r)^n - p`, ambos responden con
-el interés ganado, no con el saldo:
+`compound_interest(p, r, n)` es `p*(1+r)^n - p`; `p` es el
+principal, `r` la tasa (la anual en el primero, la por periodo en el
+segundo), `t` los años y `n` los periodos. Ambos responden con el
+interés ganado, no con el saldo:
 
 ```epher
 simple_interest(1000, 0.05, 2)
@@ -2238,7 +2256,7 @@ la regla del 72 al 6%:
 ```
 
 **Análisis de flujos de caja.** `npv(r, flows)` descuenta una lista
-de flujos de caja a la tasa r: `flows[1]` es el desembolso de hoy y
+de flujos de caja a la tasa `r` por periodo: `flows[1]` es el desembolso de hoy y
 el resto llega con un periodo de separación. `irr(flows)` encuentra
 la tasa donde el valor actual neto es cero. Pagar 100 hoy y recibir
 60 en cada uno de los próximos dos años:

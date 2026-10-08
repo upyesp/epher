@@ -503,9 +503,9 @@ Abschnitt führt `break` und `continue` ein, und eine Funktion `return`
 `for` wiederholt eine Anweisung einmal pro Wert und sammelt die Werte des Körpers in einer Liste: über einen Bereich `start to end` (einschließlich) mit optionalem `step` oder über die Elemente einer Liste:
 
 ```epher
-for i in 1 to 5 do i^2
+for k in 1 to 5 do k^2
 for x in {2, 3, 4} do 10*x
-for i in 0 to 1 step 0.5 do i
+for k in 0 to 1 step 0.5 do k
 ```
 
 ```text
@@ -514,10 +514,10 @@ for i in 0 to 1 step 0.5 do i
 {0, 0.5, 1}
 ```
 
-Die Schleifenvariable gilt nur innerhalb der Schleife: Danach bedeutet der Name wieder wie zuvor (eine Schleife über `i` berührt die imaginäre Einheit nicht), während Zuweisungen an andere Namen im Schleifenkörper erhalten bleiben. Mit print schreibt eine Schleife lesbare Zeilen:
+Die Schleifenvariable gilt nur innerhalb der Schleife: Danach bedeutet der Name wieder wie zuvor, während Zuweisungen an andere Namen im Schleifenkörper erhalten bleiben. Mit print schreibt eine Schleife lesbare Zeilen:
 
 ```epher
-for i in 1 to 3 do print("line", i)
+for k in 1 to 3 do print("line", k)
 ```
 
 ```text
@@ -1049,12 +1049,12 @@ nicht kennt, damit du deinen Ausdruck korrigieren kannst.
 | Entscheidung | `if c then a else b` | `if x > 0 then 1 else -1` |
 | Anweisungen wählen | `if c then Anweisung [else Anweisung]` | `if k == 4 then break` |
 | Schleife | `while c do statement` | `while x < 5 do x = x + 1` |
-| for-Schleife | `for i in a to b step s do Anweisung` | `for i in 1 to 5 do i^2` |
+| for-Schleife | `for k in a to b step s do Anweisung` | `for k in 1 to 5 do k^2` |
 | Schleife verlassen / überspringen | `break`, `continue` | `if k == 4 then break` |
 | Funktion | `def name(params) = expr` oder `do … end` | `def f(x) = x ^ 2` |
 | Antwort sofort | `return value` | `if ok then return x` |
 | Mehrere Namen | `{a, b} = list` (`_` überspringt) | `{m, sd} = stats(d)` |
-| Zeichenketten | `"..."`, `+` fügt zusammen, `s[i]`, `==`, `<` | `"a" + "b"` |
+| Zeichenketten | `"..."`, `+` fügt zusammen, `s[k]`, `==`, `<` | `"a" + "b"` |
 | Zeichenketten-Bibliothek | `upper` `lower` `trim` `substr` `split` `join` `find` `replace` `fixed` | `split("a,b", ",")` |
 | Print | `print(a, b, ...)` | `print("x =", 42)` |
 | Skript | Anweisungen, verbunden mit `;` oder Zeilenumbrüchen | `x = 1; x + 1` |
@@ -1072,7 +1072,7 @@ nicht kennt, damit du deinen Ausdruck korrigieren kannst.
 | Basisschreibweise | `bin(x)`, `oct(x)`, `hex(x)` | `hex(255)` |
 | Primzahlen | `isprime(n)`, `factors(n)`, … | `factors(360)` |
 | Listenliteral | `{…}` | `{1, 2, 3}` |
-| Listenelement | `list[i]` (ab 1) | `{5, 6}[2]` |
+| Listenelement | `list[k]` (ab 1) | `{5, 6}[2]` |
 | Listenstatistik | `mean(liste)`, `median(liste)`, … | `stdev(d)` |
 | Listenform | `len(s)`, `sort(s)`, `mode(s)`, `range(s)`, `quartile(s, k)` | `quartile(d, 1)` |
 | Lineare Regression | `linreg(xs, ys)` | `linreg(x, y)` |
@@ -1241,7 +1241,7 @@ d[2]
 len(d)
 ```
 
-`list[i]` ist das i-te Element, 1-basiert wie ein Taschenrechner es
+`list[k]` ist das k-te Element, 1-basiert wie ein Taschenrechner es
 erwartet; ein Index außerhalb der Liste ist ein Fehler. Die Klammer
 bindet enger als `^`, also ist `d[2]^2` gleich `(d[2])^2`.
 
@@ -2033,24 +2033,38 @@ sind die Einzahlungen negativ und das gesammelte Guthaben positiv.
 Ein stimmiger Satz aus fünf Feldern bringt den Saldo auf null:
 
 ```text
-pv*(1+i)^n + pmt*(1+i*begin)*((1+i)^n - 1)/i + fv = 0
+pv*(1+r)^n + pmt*(1+r*begin)*((1+r)^n - 1)/r + fv = 0
 ```
 
 Verdrehte Vorzeichen (Darlehen und Zahlungen beide negativ) lesen
 sich als „das Geld geht nie auf“, und der Löser antwortet mit einem
 Domänenfehler statt einer unsinnigen Zahl.
 
-**Der Zeitwert-Löser.** Fünf Funktionen lösen je ein Feld, wenn die
-anderen vier gegeben sind. `n` ist die Periodenzahl, `i` der Zinssatz
-pro Periode, `pv` der Barwert, `pmt` die Zahlung, `fv` der Endwert:
+**Die fünf Felder in klaren Worten.** Die Buchstaben stammen aus der
+Taschenrechner-Tradition; einmal erklärt, sind sie leicht. Eine
+Periode ist ein Schritt des Problems: ein Monat bei einem monatlichen
+Darlehen, ein Jahr bei einem jährlichen. Der Satz heißt in diesem
+Leitfaden stets `r`, nie `i` - `i` ist die imaginäre Einheit (1.18):
+
+| Feld | Klare Worte |
+|---|---|
+| `n` | die Periodenzahl: wie viele Zahlungen oder Zinsschritte es gibt. Ein monatlich abgerechnetes 30-Jahre-Darlehen läuft n = 360 Perioden. |
+| `r` | der Zinssatz pro Periode als Bruchteil (0.01 ist 1 %). Ein Jahreszins von 8 %, monatlich abgerechnet, ist r = 0.08/12. |
+| `pv` | der Barwert: was das Darlehen oder die Summe heute wert ist - der geliehene Betrag oder der heute gezahlte Preis. |
+| `pmt` | die Zahlung: der feste Betrag, der jede Periode den Besitzer wechselt. |
+| `fv` | der Endwert: der Saldo, wenn die letzte Periode abgeschlossen ist. 0 bei einem getilgten Darlehen; das Sparziel bei einem Plan. |
+| `begin` | 0, wenn Zahlungen am Ende jeder Periode fallen (Standard), 1 am Anfang (Miete, die meisten Gehälter). |
+
+**Der Zeitwert-Löser.** Fünf Funktionen beantworten ein Feld, wenn die
+anderen vier gegeben sind. Jeder Name sagt, welches Feld er beantwortet:
 
 | Funktion | Beantwortet |
 |---|---|
-| `tvm_pmt(n, i, pv, fv)` | die Zahlung |
-| `tvm_n(i, pv, pmt, fv)` | die Periodenzahl |
-| `tvm_i(n, pv, pmt, fv)` | den Zinssatz pro Periode |
-| `tvm_pv(n, i, pmt, fv)` | den Barwert |
-| `tvm_fv(n, i, pv, pmt)` | den Endwert |
+| `tvm_pmt(n, r, pv, fv)` | die Zahlung |
+| `tvm_n(r, pv, pmt, fv)` | die Periodenzahl |
+| `tvm_i(n, pv, pmt, fv)` | den Zinssatz pro Periode (der einzige Name mit dem alten Buchstaben; der Satz selbst heißt hier immer `r`) |
+| `tvm_pv(n, r, pmt, fv)` | den Barwert |
+| `tvm_fv(n, r, pv, pmt)` | den Endwert |
 
 Die klassische 8-%-Hypothek: 360 monatliche Zahlungen von 733.76 auf
 ein Darlehen von 100,000:
@@ -2162,9 +2176,11 @@ Millionen Perioden; Probleme außerhalb dieser Bereiche (oder eine
 Vorzeichenlage, die nie auf geht) melden einen Domänenfehler, der
 nennt, was versucht wurde.
 
-**Amortisation.** `amort(p, r, n, k)` ist der Restsaldo nach k
-Zahlungen eines n-Perioden-Darlehens von p zum Satz r, bei 0
-Perioden die Summe, bei allen n null:
+**Amortisation.** `amort(p, r, n, k)` ist der Restsaldo, sobald k
+Zahlungen eines Darlehens geleistet sind: `p` ist die Summe (der
+geliehene Betrag), `r` der Zinssatz pro Periode, `n` die volle Zahl
+der Zahlungen des Darlehens, `k` wie viele davon erledigt sind. Ein
+neues Darlehen (k = 0) zeigt die Summe, ein getilgtes (k = n) null:
 
 ```epher
 amort(100000, 0.08/12, 360, 120)
@@ -2187,8 +2203,10 @@ for k in 0 to 360 step 60 do amort(100000, 0.08/12, 360, k)
 ```
 
 **Zinsen.** `simple_interest(p, r, t)` ist `p*r*t` und
-`compound_interest(p, r, n)` ist `p*(1+r)^n - p`, beide antworten
-mit den verdienten Zinsen, nicht mit dem Saldo:
+`compound_interest(p, r, n)` ist `p*(1+r)^n - p`; `p` ist die Summe,
+`r` der Satz (im ersten Fall der Jahressatz, im zweiten der Satz pro
+Periode), `t` die Jahre und `n` die Perioden. Beide antworten mit den
+verdienten Zinsen, nicht mit dem Saldo:
 
 ```epher
 simple_interest(1000, 0.05, 2)
@@ -2238,7 +2256,7 @@ Verdoppelungszeit der 72er-Regel bei 6 %:
 ```
 
 **Cashflow-Analyse.** `npv(r, flows)` diskontiert eine
-Cashflow-Liste zum Satz r: `flows[1]` ist die Ausgabe heute, der
+Cashflow-Liste zum Satz `r` pro Periode: `flows[1]` ist die Ausgabe heute, der
 Rest trifft im Abstand einer Periode ein. `irr(flows)` findet den
 Satz, bei dem der Kapitalwert null ist. Heute 100 zahlen, in den
 nächsten beiden Jahren je 60 erhalten:
