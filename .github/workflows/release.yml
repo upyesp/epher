@@ -112,32 +112,18 @@ jobs:
           grep -q "commit: ${GITHUB_SHA}" packaging/flatpak/org.epher.Desktop.yml
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         id: build
-        # The arm runner's bwrap intermittently fails with "Exec format
-        # error" at the first module (2 of 4 runs one release week; both
-        # attempts on the 0.5.66 and 0.5.67 trains). The failure is
-        # transient and an immediate re-attempt passes. The first two
-        # attempts are allowed to fail so the third can absorb them; the
-        # job's outcome is the last attempt's.
-        continue-on-error: true
+        # The arm runner's bwrap fails with "Exec format error" at the
+        # epher module when flatpak-builder's cache restores another
+        # run's wrong-arch trunk and binaryen (the 0.5.66 through 0.5.68
+        # trains; three retries all died the same way). Releases build
+        # clean-room: the cache is off, so every module builds from
+        # source at its pinned version.
         with:
           bundle: epher-linux-${{ matrix.arch }}.flatpak
           manifest-path: packaging/flatpak/org.epher.Desktop.yml
+          cache: false
           # the action's auto-upload mangles the arch into the name; the
           # explicit upload below feeds the release job's asset merge
-          upload-artifact: false
-      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
-        id: build2
-        if: always() && steps.build.outcome == 'failure'
-        continue-on-error: true
-        with:
-          bundle: epher-linux-${{ matrix.arch }}.flatpak
-          manifest-path: packaging/flatpak/org.epher.Desktop.yml
-          upload-artifact: false
-      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
-        if: always() && steps.build2.outcome == 'failure'
-        with:
-          bundle: epher-linux-${{ matrix.arch }}.flatpak
-          manifest-path: packaging/flatpak/org.epher.Desktop.yml
           upload-artifact: false
       - uses: actions/upload-artifact@v4
         with:
