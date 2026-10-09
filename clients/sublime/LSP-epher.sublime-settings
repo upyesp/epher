@@ -1,8 +1,9 @@
 {
-	// The client configuration for the epher language server
-	// (epher-lsp, found on PATH; the README has the download lines).
+	// The client configuration for the epher language server. On first
+	// start the package downloads epher-lsp for this platform into its
+	// Package Storage and points this command at it; set `command` here
+	// to manage the binary yourself (the README has the manual lines).
 	"command": ["epher-lsp"],
-	"selector": "source.epher",
 	// "buffer" lets the server serve unsaved tabs of epher syntax;
 	// epher-lsp keys its documents by URI and never reads the file
 	// path, so buffers are fully supported.

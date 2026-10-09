@@ -17,11 +17,16 @@
 								"children": [
 									{
 										"caption": "LSP-epher",
-										"command": "edit_settings",
-										"args": {
-											"base_file": "${packages}/LSP-epher/LSP-epher.sublime-settings",
-											"default": "// Settings in here override those in \"LSP-epher/LSP-epher.sublime-settings\"\n\n{\n\t$0\n}\n"
-										}
+										"children": [
+											{
+												"caption": "Settings",
+												"command": "edit_settings",
+												"args": {
+													"base_file": "${packages}/LSP-epher/LSP-epher.sublime-settings",
+													"default": "// Settings in here override those in \"LSP-epher/LSP-epher.sublime-settings\"\n\n{\n\t$0\n}\n"
+												}
+											}
+										]
 									}
 								]
 							}

@@ -48,7 +48,7 @@ side panel, no print statements: the editor *is* the calculator.
   palette (there is no keybinding out of the box: see the suggested
   one under Settings). The results view beside the script lists one
   row per statement, error rows in red; every graph the run produced
-  is written as an SVG file under Sublime's cache folder and opened
+  is written as an SVG file under the package storage and opened
   with the system viewer.
 - **Unsaved tabs**: a buffer that has never been saved works like a
   file, diagnostics, answers, completion and the run command
@@ -68,6 +68,11 @@ From Package Control, once the package is listed:
    never pulled in for you.
 3. Search for **LSP-epher** and install it.
 
+On first use the package fetches the **epher-lsp** server for your
+platform into its Package Storage and starts it for epher views;
+there is nothing else to install. See "The server binary" below for
+the manual route, should you prefer to manage it yourself.
+
 From this repository, today: copy or symlink this directory into your
 `Packages` folder under the name `LSP-epher` (a direct child of
 `Packages`, not inside `User`):
@@ -79,14 +84,29 @@ From this repository, today: copy or symlink this directory into your
 Then install the **LSP** package from Package Control. Open any
 `.epher` file: Sublime applies the syntax automatically (the grammar
 carries `fileTypes`), and the LSP package reads
-`LSP-epher.sublime-settings` and starts `epher-lsp` for epher views.
+`LSP-epher.sublime-settings`, downloads the server on first start,
+and attaches it to epher views.
 
-## Getting the server binary
+## The server binary
 
-Download the asset for your platform from the
-[releases page](https://github.com/upyesp/epher/releases/latest),
-uncompress it, and put it on your PATH (or write the full path into
-the `command` array in `LSP-epher.sublime-settings`):
+By default the package manages the binary itself: on the first server
+start it downloads `epher-lsp` for your platform from the matching
+[epher release](https://github.com/upyesp/epher/releases/latest) into
+its Package Storage, unpacks it, and points the client at that copy.
+When the package updates, the next start fetches the matching server.
+The download is made by the plugin, not a browser, so it carries no
+quarantine mark and macOS opens it without asking; this is the whole
+reason the default route exists.
+
+To manage the binary yourself instead, set `command` in
+`LSP-epher.sublime-settings` (Packages/User or the package file): the
+package then never downloads anything and starts what you configured.
+
+```json
+{ "command": ["/usr/local/bin/epher-lsp"] }
+```
+
+The manual route, for a PATH install:
 
 ```sh
 # linux x86_64 (arm64 and macos-aarch64 analogous)
@@ -96,6 +116,18 @@ chmod +x ~/.local/bin/epher-lsp
 
 # windows (powershell): epher-lsp-windows-x86_64.zip -> epher-lsp.exe
 ```
+
+A file saved by `curl` runs anywhere; the same file saved by a
+**browser** on macOS carries a quarantine mark that Gatekeeper
+enforces, and an unsigned binary is refused with "Apple could not
+verify". If that happened, unblock the file once:
+
+```sh
+xattr -d com.apple.quarantine ~/.local/bin/epher-lsp
+```
+
+or use System Settings, Privacy & Security, "Allow Anyway". The
+package's own download never hits this.
 
 Everything runs on your machine after that one download.
 
@@ -163,8 +195,8 @@ macOS and Windows.
 - The LSP package from Package Control, installed separately (see
   Install), version 2.11 or newer: the client uses LSP's `LspPlugin`
   API, introduced in that release.
-- The `epher-lsp` binary for your platform, on PATH or named in
-  `LSP-epher.sublime-settings`.
+- Nothing else: the server binary downloads itself on first start.
+  Managing it by hand is optional (see "The server binary").
 
 ## Data and telemetry
 
@@ -195,6 +227,20 @@ stay flat:
 No keymap ships, on the LSP team's review: a package should not bind
 keys, and the earlier ctrl+c ctrl+c binding shadowed Copy. The
 suggested binding lives in the README instead.
+
+The server download is keyed to the client's version (ADR-0066, the
+extension version keys the server URL): `_SERVER_VERSION` in
+`plugin.py` is the train version, and `listing/assemble-repo.sh`
+rewrites it from `SUBLIME_SERVER_VERSION` (set by
+`.github/workflows/sublime-publish.yml` from the v-tag) when the
+package repository is assembled. Local assemblies keep the in-tree
+value; the plugin's latest-release fallback covers an assembly tested
+ahead of its tag.
+
+The `Main.sublime-menu` entry nests `Settings` under the `LSP-epher`
+node, which is what the package reviewer's settings-menu check wants:
+the package node, then the entry inside it, not the entry as the node
+itself.
 
 The Package Control entry lives in `sublimelsp/repository`, with
 `"tags": true`, so each `v<version>` train tag becomes a release

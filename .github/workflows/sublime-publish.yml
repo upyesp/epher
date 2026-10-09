@@ -59,6 +59,10 @@ jobs:
 
       - name: Assemble the package tree
         if: steps.secrets.outputs.skip == 'false'
+        env:
+          # The managed server download is keyed to the release the
+          # package ships as (plugin.py's _SERVER_VERSION line).
+          SUBLIME_SERVER_VERSION: ${GITHUB_REF_NAME#v}
         run: clients/sublime/listing/assemble-repo.sh "$RUNNER_TEMP/LSP-epher"
 
       - name: Push the tree and the tag to upyesp/LSP-epher
