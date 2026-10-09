@@ -64,20 +64,20 @@ print("dist_mod check, Sirius:", dist_mod(sir_m - dabsm(sir_m, sir_d)), "pc")
 print("note: visual band; bolometric adds the IR and UV")
 
 /* ---- expected output
-== 4.83
-== -1.46
-== 2.637
-== 0.03
-== 7.68
-== 0.5
-== 168
-== 11.13
-== 1.301
-== Sirius A: M 1.43444935103 L 22.814988783 Lsun
-== Vega: M 0.603193899842 L 49.0594234527 Lsun
-== Betelgeuse: M -5.62654640863 L 15227.1478099 Lsun
-== Proxima: M 15.5586135172 L 0.000051115733019 Lsun
-== Sirius in watts: 8733577706116784000000000000 W
-== dist_mod check, Sirius: 2.637 pc
-== note: visual band; bolometric adds the IR and UV
+= 4.83
+= -1.46
+= 2.637
+= 0.03
+= 7.68
+= 0.5
+= 168
+= 11.13
+= 1.301
+= Sirius A: M 1.43444935103 L 22.814988783 Lsun
+= Vega: M 0.603193899842 L 49.0594234527 Lsun
+= Betelgeuse: M -5.62654640863 L 15227.1478099 Lsun
+= Proxima: M 15.5586135172 L 0.000051115733019 Lsun
+= Sirius in watts: 8733577706116784000000000000 W
+= dist_mod check, Sirius: 2.637 pc
+= note: visual band; bolometric adds the IR and UV
 */

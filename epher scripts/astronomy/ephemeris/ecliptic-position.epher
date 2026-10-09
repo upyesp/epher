@@ -50,13 +50,13 @@ print("Mars   ecliptic lon", eclon(mra, mde), "  lat", eclat(mra, mde))
 print("Sun    ecliptic lon", eclon(sra, sde), "  lat", eclat(sra, sde))
 
 /* ---- expected output ----
-== 4
-== 29535523/12
-== 110.773499465
-== 22.74523044
-== 168.410710614
-== 4.977535832
-== at 2026-09-10T02:00:00
-== Mars   ecliptic lon 109.093783646   lat 0.67567275331
-== Sun    ecliptic lon 167.40045609   lat 0.000497719747027
+= 4
+= 29535523/12
+= 110.773499465
+= 22.74523044
+= 168.410710614
+= 4.977535832
+= at 2026-09-10T02:00:00
+= Mars   ecliptic lon 109.093783646   lat 0.67567275331
+= Sun    ecliptic lon 167.40045609   lat 0.000497719747027
 */

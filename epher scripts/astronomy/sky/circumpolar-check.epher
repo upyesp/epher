@@ -69,23 +69,23 @@ print("  classified:", cls(d, latp))
 print("engine check: altitudes at 00:00 and 12:00 UT:", a0, "and", a12, "deg")
 print("  both above the horizon:", a0 > 0 and a12 > 0)
 /* ---- expected output ----
-== 51.4779
-== 78.2
-== 15.6
-== 0.108816008157
-== circumpolar check at lat 51.4779:
-==   declination +46 deg: circumpolar: never sets
-==   declination +20 deg: rises and sets daily
-==   declination -50 deg: never rises
-== share that never sets: (1 - cos(90 - |lat|)) / 2 = 0.108816008157
-== share that never rises: the same by symmetry = 0.108816008157
-== share that rises and sets daily: 0.782367983687
-==   the three shares sum to: 1
-== 23.437516214
-== 12.0180793
-== 34.779948
-== Sun at Svalbard on 2026-06-21, declination 23.437516214 deg
-==   classified: circumpolar: never sets
-== engine check: altitudes at 00:00 and 12:00 UT: 12.0180793 and 34.779948 deg
-==   both above the horizon: true
+= 51.4779
+= 78.2
+= 15.6
+= 0.108816008157
+= circumpolar check at lat 51.4779:
+=   declination +46 deg: circumpolar: never sets
+=   declination +20 deg: rises and sets daily
+=   declination -50 deg: never rises
+= share that never sets: (1 - cos(90 - |lat|)) / 2 = 0.108816008157
+= share that never rises: the same by symmetry = 0.108816008157
+= share that rises and sets daily: 0.782367983687
+=   the three shares sum to: 1
+= 23.437516214
+= 12.0180793
+= 34.779948
+= Sun at Svalbard on 2026-06-21, declination 23.437516214 deg
+=   classified: circumpolar: never sets
+= engine check: altitudes at 00:00 and 12:00 UT: 12.0180793 and 34.779948 deg
+=   both above the horizon: true
 */

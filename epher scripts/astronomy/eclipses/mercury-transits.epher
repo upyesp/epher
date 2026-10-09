@@ -113,15 +113,15 @@ found (there is none: Mercury's latitude at other conjunctions runs
 to 7 deg, far outside the disk). */
 
 /* ---- expected output ----
-== {2026, 1, 1}
-== 2052
-== 2463549.90346
-== 2466099.82349
-== 2469569.05535
-== 1312021664/531
-== next Mercury transits after 2026-01-01T00:00:00 up to 2052
-== transit 1: 2032-11-13T09:40:59 UT; Mercury ecliptic lat 0.170236411119 deg
-== transit 2: 2039-11-07T07:45:50 UT; Mercury ecliptic lat -0.240967721676 deg
-== transit 3: 2049-05-07T13:19:42 UT; Mercury ecliptic lat 0.152145542016 deg
-== transit 4: 2052-11-09T02:11:32 UT; Mercury ecliptic lat -0.0902645382988 deg
+= {2026, 1, 1}
+= 2052
+= 2463549.90346
+= 2466099.82349
+= 2469569.05535
+= 1312021664/531
+= next Mercury transits after 2026-01-01T00:00:00 up to 2052
+= transit 1: 2032-11-13T09:40:59 UT; Mercury ecliptic lat 0.170236411119 deg
+= transit 2: 2039-11-07T07:45:50 UT; Mercury ecliptic lat -0.240967721676 deg
+= transit 3: 2049-05-07T13:19:42 UT; Mercury ecliptic lat 0.152145542016 deg
+= transit 4: 2052-11-09T02:11:32 UT; Mercury ecliptic lat -0.0902645382988 deg
 */

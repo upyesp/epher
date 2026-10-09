@@ -72,20 +72,20 @@ print("alpha (Moon/Sun semidiameter ratio):", a)
 print("verdict:", if a < 1 then "Moon smaller: annular geometry" else "Moon large enough: totality possible")
 
 /* ---- expected output ----
-== {2026, 2, 17}
-== 2461089
-== geocentric semidiameters at 2026-02-17T12:00:00 UT
-== Sun:  970.6805 arcsec = 16.1780083333 arcmin
-== Moon: 932.04285 arcsec = 15.5340475 arcmin
-== Mercury: 3.36019094535 arcsec (radius 2439.7 km)
-== Venus:   4.97042758463 arcsec (radius 6051.8 km)
-== Mars:    1.98638348459 arcsec (radius 3396.2 km)
-== Jupiter: 22.0883584715 arcsec (radius 71492 km)
-== Saturn:  8.04329944502 arcsec (radius 60268 km)
-== Uranus:  1.80917029667 arcsec (radius 25559 km)
-== Neptune: 1.11152699295 arcsec (radius 24764 km)
-== Sun cross-check: radius formula 970.677850414 vs engine 970.6805 arcsec
-== 0.960195295981
-== alpha (Moon/Sun semidiameter ratio): 0.960195295981
-== verdict: Moon smaller: annular geometry
+= {2026, 2, 17}
+= 2461089
+= geocentric semidiameters at 2026-02-17T12:00:00 UT
+= Sun:  970.6805 arcsec = 16.1780083333 arcmin
+= Moon: 932.04285 arcsec = 15.5340475 arcmin
+= Mercury: 3.36019094535 arcsec (radius 2439.7 km)
+= Venus:   4.97042758463 arcsec (radius 6051.8 km)
+= Mars:    1.98638348459 arcsec (radius 3396.2 km)
+= Jupiter: 22.0883584715 arcsec (radius 71492 km)
+= Saturn:  8.04329944502 arcsec (radius 60268 km)
+= Uranus:  1.80917029667 arcsec (radius 25559 km)
+= Neptune: 1.11152699295 arcsec (radius 24764 km)
+= Sun cross-check: radius formula 970.677850414 vs engine 970.6805 arcsec
+= 0.960195295981
+= alpha (Moon/Sun semidiameter ratio): 0.960195295981
+= verdict: Moon smaller: annular geometry
 */

@@ -188,54 +188,54 @@ print("carry +/-1-3 days (Saturn a few more); the elongations are the")
 print("engine's own and are good to arcminutes.")
 
 /* ---- expected output ----
-== 2461294
-== 23.435820109
-== 168.785085376
-== 4.81958061
-== 167.805529208
-== 2461234
-== 2461350
-== 11.8878721324
-== Mercury: sidereal 87.9691 d; mean synodic 115.88 d
-==   last inferior conjunction: 2026-07-13T00:38:44 UT; next: 2026-11-04T13:39:32 UT; cycle 51.32 % through
-==   elongation now: 11.89 deg; east, evening sky
-== 2460758
-== 2461339
-== 42.2997769446
-== Venus: sidereal 224.701 d; mean synodic 583.92 d
-==   last inferior conjunction: 2025-03-23T16:02:59 UT; next: 2026-10-24T20:39:32 UT; cycle 91.76 % through
-==   elongation now: 42.3 deg; east, evening sky
-== 2460690
-== 2461456
-== -58.4533835271
-== Mars: sidereal 686.98 d; mean synodic 779.93 d
-==   last opposition: 2025-01-15T10:21:10 UT; next: 2027-02-18T22:00:28 UT; cycle 77.32 % through
-==   elongation now: -58.45 deg; west, morning sky
-== 2461050
-== 2461448
-== -32.1434752899
-== Jupiter: sidereal 4332.589 d; mean synodic 398.88 d
-==   last opposition: 2026-01-09T23:27:37 UT; next: 2027-02-10T15:30:12 UT; cycle 61.05 % through
-==   elongation now: -32.14 deg; west, morning sky
-== 2460939
-== 2461318
-== -154.711157233
-== Saturn: sidereal 10759.22 d; mean synodic 378.09 d
-==   last opposition: 2025-09-20T22:12:22 UT; next: 2026-10-04T04:17:25 UT; cycle 93.78 % through
-==   elongation now: -154.71 deg; west, morning sky
-== 2461000
-== 2461371
-== -102.108413898
-== Uranus: sidereal 30688.5 d; mean synodic 369.66 d
-==   last opposition: 2025-11-21T03:21:39 UT; next: 2026-11-25T13:08:16 UT; cycle 79.36 % through
-==   elongation now: -102.11 deg; west, morning sky
-== 2460941
-== 2461310
-== -164.381499951
-== Neptune: sidereal 60182 d; mean synodic 367.49 d
-==   last opposition: 2025-09-23T04:05:35 UT; next: 2026-09-25T16:26:35 UT; cycle 95.88 % through
-==   elongation now: -164.38 deg; west, morning sky
-== Model event dates rest on mean elements (Meeus ch. 25, 32/33) and
-== carry +/-1-3 days (Saturn a few more); the elongations are the
-== engine's own and are good to arcminutes.
+= 2461294
+= 23.435820109
+= 168.785085376
+= 4.81958061
+= 167.805529208
+= 2461234
+= 2461350
+= 11.8878721324
+= Mercury: sidereal 87.9691 d; mean synodic 115.88 d
+=   last inferior conjunction: 2026-07-13T00:38:44 UT; next: 2026-11-04T13:39:32 UT; cycle 51.32 % through
+=   elongation now: 11.89 deg; east, evening sky
+= 2460758
+= 2461339
+= 42.2997769446
+= Venus: sidereal 224.701 d; mean synodic 583.92 d
+=   last inferior conjunction: 2025-03-23T16:02:59 UT; next: 2026-10-24T20:39:32 UT; cycle 91.76 % through
+=   elongation now: 42.3 deg; east, evening sky
+= 2460690
+= 2461456
+= -58.4533835271
+= Mars: sidereal 686.98 d; mean synodic 779.93 d
+=   last opposition: 2025-01-15T10:21:10 UT; next: 2027-02-18T22:00:28 UT; cycle 77.32 % through
+=   elongation now: -58.45 deg; west, morning sky
+= 2461050
+= 2461448
+= -32.1434752899
+= Jupiter: sidereal 4332.589 d; mean synodic 398.88 d
+=   last opposition: 2026-01-09T23:27:37 UT; next: 2027-02-10T15:30:12 UT; cycle 61.05 % through
+=   elongation now: -32.14 deg; west, morning sky
+= 2460939
+= 2461318
+= -154.711157233
+= Saturn: sidereal 10759.22 d; mean synodic 378.09 d
+=   last opposition: 2025-09-20T22:12:22 UT; next: 2026-10-04T04:17:25 UT; cycle 93.78 % through
+=   elongation now: -154.71 deg; west, morning sky
+= 2461000
+= 2461371
+= -102.108413898
+= Uranus: sidereal 30688.5 d; mean synodic 369.66 d
+=   last opposition: 2025-11-21T03:21:39 UT; next: 2026-11-25T13:08:16 UT; cycle 79.36 % through
+=   elongation now: -102.11 deg; west, morning sky
+= 2460941
+= 2461310
+= -164.381499951
+= Neptune: sidereal 60182 d; mean synodic 367.49 d
+=   last opposition: 2025-09-23T04:05:35 UT; next: 2026-09-25T16:26:35 UT; cycle 95.88 % through
+=   elongation now: -164.38 deg; west, morning sky
+= Model event dates rest on mean elements (Meeus ch. 25, 32/33) and
+= carry +/-1-3 days (Saturn a few more); the elongations are the
+= engine's own and are good to arcminutes.
 */

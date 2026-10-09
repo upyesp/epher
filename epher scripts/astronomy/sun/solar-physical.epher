@@ -89,13 +89,13 @@ je = dyn(jd(1992, 10, 13))
 print("example, 1992-10-13 0h TD: P", p(je), "B0", b0(je), "L0", l0(je))
 
 /* ---- expected output ----
-== {2026, 6, 21}
-== 7.25
-== 2461212.5008
-== solar physical ephemeris at 2026-06-21T00:00:00 0h TD
-== P  (axis position angle): -7.19552175864 deg
-== B0 (disk-center latitude): 1.69262509614 deg
-== L0 (disk-center longitude): 202.782037871 deg
-== 1795049931/733
-== example, 1992-10-13 0h TD: P 26.2739814267 B0 5.98784870686 L0 238.636752275
+= {2026, 6, 21}
+= 7.25
+= 2461212.5008
+= solar physical ephemeris at 2026-06-21T00:00:00 0h TD
+= P  (axis position angle): -7.19552175864 deg
+= B0 (disk-center latitude): 1.69262509614 deg
+= L0 (disk-center longitude): 202.782037871 deg
+= 1795049931/733
+= example, 1992-10-13 0h TD: P 26.2739814267 B0 5.98784870686 L0 238.636752275
 */
