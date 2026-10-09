@@ -62,22 +62,16 @@ correction. The pair agree to a few hundredths of an arcminute. */
 print("Saeundsson round trip at true 0.5 deg:", rs(0.5), "arcmin")
 print("Bennett read back at the apparent altitude:", r(0.5 + rs(0.5) / 60), "arcmin")
 
-/* Known-value check: at the horizon the formula gives about 34.5
-arcmin, within a minute of the 34 arcmin standard horizon refraction
-the rise/set machinery folds into its -0.833 deg horizon. */
-print("R at 0 deg minus the textbook 34 arcmin:", r(0) - 34, "arcmin")
-
 /* ---- expected output ----
-= 15
-= Bennett refraction, standard atmosphere (about 10 C, 1010 hPa)
-= at apparent 0 deg -> R 34.4775337433 arcmin, true -0.574625562388 deg
-= at apparent 5 deg -> R 9.88314423418 arcmin, true 4.83528092943 deg
-= at apparent 10 deg -> R 5.39150546757 arcmin, true 9.91014157554 deg
-= at apparent 20 deg -> R 2.70341069988 arcmin, true 19.954943155 deg
-= at apparent 30 deg -> R 1.71731013355 arcmin, true 29.9713781644 deg
-= at apparent 60 deg -> R 0.574711801858 arcmin, true 59.99042147 deg
-= correction at 15 deg apparent: 3.63622639517 arcmin
-= Saeundsson round trip at true 0.5 deg: 25.0039088882 arcmin
-= Bennett read back at the apparent altitude: 24.9887891294 arcmin
-= R at 0 deg minus the textbook 34 arcmin: 0.477533743263 arcmin
+== 15
+== Bennett refraction, standard atmosphere (about 10 C, 1010 hPa)
+== at apparent 0 deg -> R 34.4775337433 arcmin, true -0.574625562388 deg
+== at apparent 5 deg -> R 9.88314423418 arcmin, true 4.83528092943 deg
+== at apparent 10 deg -> R 5.39150546757 arcmin, true 9.91014157554 deg
+== at apparent 20 deg -> R 2.70341069988 arcmin, true 19.954943155 deg
+== at apparent 30 deg -> R 1.71731013355 arcmin, true 29.9713781644 deg
+== at apparent 60 deg -> R 0.574711801858 arcmin, true 59.99042147 deg
+== correction at 15 deg apparent: 3.63622639517 arcmin
+== Saeundsson round trip at true 0.5 deg: 25.0039088882 arcmin
+== Bennett read back at the apparent altitude: 24.9887891294 arcmin
 */

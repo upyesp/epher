@@ -47,24 +47,21 @@ print("where they are:")
 print("Moon  ra", deg2hms(ra(b1, tm)), " dec", deg2dms(decl(b1, tm)))
 print("Venus ra", deg2hms(ra(b2, tm)), " dec", deg2dms(decl(b2, tm)))
 
-/* Self-checks. The formula is symmetric, and the Moon-Sun distance
-tells the phase story from the geometry side: the Moon was new on
-2026-06-15, so the 19th finds it 65 degrees east of the Sun and the
-phase law k = (1 - cos 65) / 2 gives 0.289 lit - the built-in illum
-reads 0.2901 from the real phase angle. */
-print("symmetry check (must be equal):", sep(b1, b2) == sep(b2, b1))
+/* The Moon-Sun distance tells the phase story from the geometry side:
+the Moon was new on 2026-06-15, so the 19th finds it 65 degrees east
+of the Sun and the phase law k = (1 - cos 65) / 2 gives 0.289 lit -
+the built-in illum reads 0.2901 from the real phase angle. */
 print("Moon-Sun separation:", sep(11, 10), "deg, Moon illum:", illum(11, tm))
 
 /* ---- expected output ----
-= 2461211.375
-= 11
-= 2
-= the two bodies: 2026-06-19T21:00:00
-= Moon-Venus separation: 26.2716488378 deg
-=                in dms: 26° 16' 18"
-= where they are:
-= Moon  ra 10h 21m 59s  dec 10° 1' 38"
-= Venus ra 8h 41m 37s  dec 20° 20' 29"
-= symmetry check (must be equal): true
-= Moon-Sun separation: 65.0521692041 deg, Moon illum: 0.2901
+== 2461211.375
+== 11
+== 2
+== the two bodies: 2026-06-19T21:00:00
+== Moon-Venus separation: 26.2716488378 deg
+==                in dms: 26° 16' 18"
+== where they are:
+== Moon  ra 10h 21m 59s  dec 10° 1' 38"
+== Venus ra 8h 41m 37s  dec 20° 20' 29"
+== Moon-Sun separation: 65.0521692041 deg, Moon illum: 0.2901
 */

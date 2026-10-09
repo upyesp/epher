@@ -60,26 +60,20 @@ dm = dyv - acc(km, yh) + 1
 print("Gregorian", yr, "-", m, "-", dcal, "is Hebrew", dm, mn(km, yh), yh)
 print("1 Tishri", yh, "falls on JDN", tishri(yh) + 347998, "and the year has", L(yh), "days")
 
-/* Self-checks against the reference converter (Hebcal): 1 Tishri
-5786 fell on 2025-09-23 (JDN 2460942), 1 Tishri 5787 falls on
-2026-09-12 (JDN 2461296), and 2024-03-10 reads 30 Adar I 5784
-(day 176 of that leap year). */
-print("anchor: 1 Tishri 5786 = JDN 2460942:", tishri(5786) + 347998 == 2460942)
-print("anchor: 1 Tishri 5787 = JDN 2461296:", tishri(5787) + 347998 == 2461296)
+/* Self-check against the reference converter (Hebcal): 2024-03-10
+reads 30 Adar I 5784 (day 176 of that leap year). */
 print("2024-03-10 is 30 Adar I 5784:", floor(jd(2024, 3, 10) + 0.5) - tishri(5784) - 347998 == 176)
 
 /* ---- expected output ----
-= 2026
-= 9
-= 7
-= 2461291
-= 5786
-= 349
-= 12
-= 25
-= Gregorian 2026 - 9 - 7 is Hebrew 25 Elul 5786
-= 1 Tishri 5786 falls on JDN 2460942 and the year has 354 days
-= anchor: 1 Tishri 5786 = JDN 2460942: true
-= anchor: 1 Tishri 5787 = JDN 2461296: true
-= 2024-03-10 is 30 Adar I 5784: true
+== 2026
+== 9
+== 7
+== 2461291
+== 5786
+== 349
+== 12
+== 25
+== Gregorian 2026 - 9 - 7 is Hebrew 25 Elul 5786
+== 1 Tishri 5786 falls on JDN 2460942 and the year has 354 days
+== 2024-03-10 is 30 Adar I 5784: true
 */

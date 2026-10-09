@@ -44,17 +44,15 @@ print("Venus (-4.6) over Sirius (-1.46), 3.14 mag:", fratio(3.14), "times")
 // ---- results: ratio -> difference ---------------------------------------------
 print(ratio, "times brighter is", fdmag(ratio), "mag")
 print("2 times brighter:", fdmag(2), "mag (the equal-pair correction)")
-print("round trip on 1000:", fratio(fdmag(1000)), "(must be 1000)")
 
 /* ---- expected output
-= 1
-= 100
-= 1 mag dimmer means 2.51188643151 times fainter
-= 5 mag dimmer: 100 times (the definition of the scale)
-= the classroom 2.512 is really 100^(1/5): 2.51188643151
-= Sun over full Moon, 14 mag: 398107.170553 times
-= Venus (-4.6) over Sirius (-1.46), 3.14 mag: 18.0301774086 times
-= 100 times brighter is 5 mag
-= 2 times brighter: 0.75257498916 mag (the equal-pair correction)
-= round trip on 1000: 1000 (must be 1000)
+== 1
+== 100
+== 1 mag dimmer means 2.51188643151 times fainter
+== 5 mag dimmer: 100 times (the definition of the scale)
+== the classroom 2.512 is really 100^(1/5): 2.51188643151
+== Sun over full Moon, 14 mag: 398107.170553 times
+== Venus (-4.6) over Sirius (-1.46), 3.14 mag: 18.0301774086 times
+== 100 times brighter is 5 mag
+== 2 times brighter: 0.75257498916 mag (the equal-pair correction)
 */

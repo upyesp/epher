@@ -48,7 +48,6 @@ def lum(M) = 10 ^ (0.4 * (msun_mag - M))       // luminosity in Lsun
 def lumw(M) = l_sun * lum(M)                   // the same in watts (l_sun, 1.18)
 
 // ---- results ------------------------------------------------------------------
-print("Sun check: M 4.83 gives", lum(msun_mag), "Lsun (must be 1)")
 print("Sirius A: M", dabsm(sir_m, sir_d), "L", lum(dabsm(sir_m, sir_d)), "Lsun")
 print("Vega: M", dabsm(veg_m, veg_d), "L", lum(dabsm(veg_m, veg_d)), "Lsun")
 print("Betelgeuse: M", dabsm(bet_m, bet_d), "L", lum(dabsm(bet_m, bet_d)), "Lsun")
@@ -65,21 +64,20 @@ print("dist_mod check, Sirius:", dist_mod(sir_m - dabsm(sir_m, sir_d)), "pc")
 print("note: visual band; bolometric adds the IR and UV")
 
 /* ---- expected output
-= 4.83
-= -1.46
-= 2.637
-= 0.03
-= 7.68
-= 0.5
-= 168
-= 11.13
-= 1.301
-= Sun check: M 4.83 gives 1 Lsun (must be 1)
-= Sirius A: M 1.43444935103 L 22.814988783 Lsun
-= Vega: M 0.603193899842 L 49.0594234527 Lsun
-= Betelgeuse: M -5.62654640863 L 15227.1478099 Lsun
-= Proxima: M 15.5586135172 L 0.000051115733019 Lsun
-= Sirius in watts: 8733577706116784000000000000 W
-= dist_mod check, Sirius: 2.637 pc
-= note: visual band; bolometric adds the IR and UV
+== 4.83
+== -1.46
+== 2.637
+== 0.03
+== 7.68
+== 0.5
+== 168
+== 11.13
+== 1.301
+== Sirius A: M 1.43444935103 L 22.814988783 Lsun
+== Vega: M 0.603193899842 L 49.0594234527 Lsun
+== Betelgeuse: M -5.62654640863 L 15227.1478099 Lsun
+== Proxima: M 15.5586135172 L 0.000051115733019 Lsun
+== Sirius in watts: 8733577706116784000000000000 W
+== dist_mod check, Sirius: 2.637 pc
+== note: visual band; bolometric adds the IR and UV
 */

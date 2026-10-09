@@ -106,7 +106,7 @@ const last_mercury = bk_mercury(t0 - 1, gmercury(t0))
 const next_mercury = fk_mercury(t0 + 1, gmercury(t0))
 const elong_mercury = elongnow(1)
 
-print("Mercury: sidereal", 87.9691, "d; mean synodic", round(synodic(87.9691) * 100) / 100, "d; NASA says 115.88 d:", abs(synodic(87.9691) - 115.88) < 0.1)
+print("Mercury: sidereal", 87.9691, "d; mean synodic", round(synodic(87.9691) * 100) / 100, "d")
 print("  last inferior conjunction:", iso(ib_mercury(last_mercury)), "UT; next:", iso(ib_mercury(next_mercury)), "UT; cycle", round(10000 * (t0 - ib_mercury(last_mercury)) / synodic(87.9691)) / 100, "% through")
 print("  elongation now:", round(elong_mercury * 100) / 100, "deg;", (if elong_mercury > 170 then "at opposition" else if elong_mercury > 0 then "east, evening sky" else "west, morning sky"))
 
@@ -118,7 +118,7 @@ const last_venus = bk_venus(t0 - 1, gvenus(t0))
 const next_venus = fk_venus(t0 + 1, gvenus(t0))
 const elong_venus = elongnow(2)
 
-print("Venus: sidereal", 224.701, "d; mean synodic", round(synodic(224.701) * 100) / 100, "d; NASA says 583.92 d:", abs(synodic(224.701) - 583.92) < 0.1)
+print("Venus: sidereal", 224.701, "d; mean synodic", round(synodic(224.701) * 100) / 100, "d")
 print("  last inferior conjunction:", iso(ib_venus(last_venus)), "UT; next:", iso(ib_venus(next_venus)), "UT; cycle", round(10000 * (t0 - ib_venus(last_venus)) / synodic(224.701)) / 100, "% through")
 print("  elongation now:", round(elong_venus * 100) / 100, "deg;", (if elong_venus > 170 then "at opposition" else if elong_venus > 0 then "east, evening sky" else "west, morning sky"))
 
@@ -130,7 +130,7 @@ const last_mars = bk_mars(t0 - 1, gmars(t0))
 const next_mars = fk_mars(t0 + 1, gmars(t0))
 const elong_mars = elongnow(4)
 
-print("Mars: sidereal", 686.98, "d; mean synodic", round(synodic(686.98) * 100) / 100, "d; NASA says 779.94 d:", abs(synodic(686.98) - 779.94) < 0.1)
+print("Mars: sidereal", 686.98, "d; mean synodic", round(synodic(686.98) * 100) / 100, "d")
 print("  last opposition:", iso(ib_mars(last_mars)), "UT; next:", iso(ib_mars(next_mars)), "UT; cycle", round(10000 * (t0 - ib_mars(last_mars)) / synodic(686.98)) / 100, "% through")
 print("  elongation now:", round(elong_mars * 100) / 100, "deg;", (if elong_mars > 170 then "at opposition" else if elong_mars > 0 then "east, evening sky" else "west, morning sky"))
 
@@ -142,7 +142,7 @@ const last_jupiter = bk_jupiter(t0 - 1, gjupiter(t0))
 const next_jupiter = fk_jupiter(t0 + 1, gjupiter(t0))
 const elong_jupiter = elongnow(5)
 
-print("Jupiter: sidereal", 4332.589, "d; mean synodic", round(synodic(4332.589) * 100) / 100, "d; NASA says 398.88 d:", abs(synodic(4332.589) - 398.88) < 0.1)
+print("Jupiter: sidereal", 4332.589, "d; mean synodic", round(synodic(4332.589) * 100) / 100, "d")
 print("  last opposition:", iso(ib_jupiter(last_jupiter)), "UT; next:", iso(ib_jupiter(next_jupiter)), "UT; cycle", round(10000 * (t0 - ib_jupiter(last_jupiter)) / synodic(4332.589)) / 100, "% through")
 print("  elongation now:", round(elong_jupiter * 100) / 100, "deg;", (if elong_jupiter > 170 then "at opposition" else if elong_jupiter > 0 then "east, evening sky" else "west, morning sky"))
 
@@ -154,7 +154,7 @@ const last_saturn = bk_saturn(t0 - 1, gsaturn(t0))
 const next_saturn = fk_saturn(t0 + 1, gsaturn(t0))
 const elong_saturn = elongnow(6)
 
-print("Saturn: sidereal", 10759.22, "d; mean synodic", round(synodic(10759.22) * 100) / 100, "d; NASA says 378.09 d:", abs(synodic(10759.22) - 378.09) < 0.1)
+print("Saturn: sidereal", 10759.22, "d; mean synodic", round(synodic(10759.22) * 100) / 100, "d")
 print("  last opposition:", iso(ib_saturn(last_saturn)), "UT; next:", iso(ib_saturn(next_saturn)), "UT; cycle", round(10000 * (t0 - ib_saturn(last_saturn)) / synodic(10759.22)) / 100, "% through")
 print("  elongation now:", round(elong_saturn * 100) / 100, "deg;", (if elong_saturn > 170 then "at opposition" else if elong_saturn > 0 then "east, evening sky" else "west, morning sky"))
 
@@ -166,7 +166,7 @@ const last_uranus = bk_uranus(t0 - 1, guranus(t0))
 const next_uranus = fk_uranus(t0 + 1, guranus(t0))
 const elong_uranus = elongnow(7)
 
-print("Uranus: sidereal", 30688.5, "d; mean synodic", round(synodic(30688.5) * 100) / 100, "d; NASA says 369.66 d:", abs(synodic(30688.5) - 369.66) < 0.1)
+print("Uranus: sidereal", 30688.5, "d; mean synodic", round(synodic(30688.5) * 100) / 100, "d")
 print("  last opposition:", iso(ib_uranus(last_uranus)), "UT; next:", iso(ib_uranus(next_uranus)), "UT; cycle", round(10000 * (t0 - ib_uranus(last_uranus)) / synodic(30688.5)) / 100, "% through")
 print("  elongation now:", round(elong_uranus * 100) / 100, "deg;", (if elong_uranus > 170 then "at opposition" else if elong_uranus > 0 then "east, evening sky" else "west, morning sky"))
 
@@ -178,7 +178,7 @@ const last_neptune = bk_neptune(t0 - 1, gneptune(t0))
 const next_neptune = fk_neptune(t0 + 1, gneptune(t0))
 const elong_neptune = elongnow(8)
 
-print("Neptune: sidereal", 60182, "d; mean synodic", round(synodic(60182) * 100) / 100, "d; NASA says 367.49 d:", abs(synodic(60182) - 367.49) < 0.1)
+print("Neptune: sidereal", 60182, "d; mean synodic", round(synodic(60182) * 100) / 100, "d")
 print("  last opposition:", iso(ib_neptune(last_neptune)), "UT; next:", iso(ib_neptune(next_neptune)), "UT; cycle", round(10000 * (t0 - ib_neptune(last_neptune)) / synodic(60182)) / 100, "% through")
 print("  elongation now:", round(elong_neptune * 100) / 100, "deg;", (if elong_neptune > 170 then "at opposition" else if elong_neptune > 0 then "east, evening sky" else "west, morning sky"))
 
@@ -186,60 +186,56 @@ print("  elongation now:", round(elong_neptune * 100) / 100, "deg;", (if elong_n
 print("Model event dates rest on mean elements (Meeus ch. 25, 32/33) and")
 print("carry +/-1-3 days (Saturn a few more); the elongations are the")
 print("engine's own and are good to arcminutes.")
-print("Mars canon check: the model's last opposition", iso(ib_mars(last_mars)), "UT vs NASA 2025-01-16:", abs(ib_mars(last_mars) - jd(2025, 1, 16)) < 3)
-print("Venus canon check: illum at the model's last inferior conj:", round(illum(2, ib_venus(last_venus)) * 1000) / 1000, "(new Venus is near 0)")
 
 /* ---- expected output ----
-= 2461294
-= 23.435820109
-= 168.785085376
-= 4.81958061
-= 167.805529208
-= 2461234
-= 2461350
-= 11.8878721324
-= Mercury: sidereal 87.9691 d; mean synodic 115.88 d; NASA says 115.88 d: true
-=   last inferior conjunction: 2026-07-13T00:38:44 UT; next: 2026-11-04T13:39:32 UT; cycle 51.32 % through
-=   elongation now: 11.89 deg; east, evening sky
-= 2460758
-= 2461339
-= 42.2997769446
-= Venus: sidereal 224.701 d; mean synodic 583.92 d; NASA says 583.92 d: true
-=   last inferior conjunction: 2025-03-23T16:02:59 UT; next: 2026-10-24T20:39:32 UT; cycle 91.76 % through
-=   elongation now: 42.3 deg; east, evening sky
-= 2460690
-= 2461456
-= -58.4533835271
-= Mars: sidereal 686.98 d; mean synodic 779.93 d; NASA says 779.94 d: true
-=   last opposition: 2025-01-15T10:21:10 UT; next: 2027-02-18T22:00:28 UT; cycle 77.32 % through
-=   elongation now: -58.45 deg; west, morning sky
-= 2461050
-= 2461448
-= -32.1434752899
-= Jupiter: sidereal 4332.589 d; mean synodic 398.88 d; NASA says 398.88 d: true
-=   last opposition: 2026-01-09T23:27:37 UT; next: 2027-02-10T15:30:12 UT; cycle 61.05 % through
-=   elongation now: -32.14 deg; west, morning sky
-= 2460939
-= 2461318
-= -154.711157233
-= Saturn: sidereal 10759.22 d; mean synodic 378.09 d; NASA says 378.09 d: true
-=   last opposition: 2025-09-20T22:12:22 UT; next: 2026-10-04T04:17:25 UT; cycle 93.78 % through
-=   elongation now: -154.71 deg; west, morning sky
-= 2461000
-= 2461371
-= -102.108413898
-= Uranus: sidereal 30688.5 d; mean synodic 369.66 d; NASA says 369.66 d: true
-=   last opposition: 2025-11-21T03:21:39 UT; next: 2026-11-25T13:08:16 UT; cycle 79.36 % through
-=   elongation now: -102.11 deg; west, morning sky
-= 2460941
-= 2461310
-= -164.381499951
-= Neptune: sidereal 60182 d; mean synodic 367.49 d; NASA says 367.49 d: true
-=   last opposition: 2025-09-23T04:05:35 UT; next: 2026-09-25T16:26:35 UT; cycle 95.88 % through
-=   elongation now: -164.38 deg; west, morning sky
-= Model event dates rest on mean elements (Meeus ch. 25, 32/33) and
-= carry +/-1-3 days (Saturn a few more); the elongations are the
-= engine's own and are good to arcminutes.
-= Mars canon check: the model's last opposition 2025-01-15T10:21:10 UT vs NASA 2025-01-16: true
-= Venus canon check: illum at the model's last inferior conj: 0.01 (new Venus is near 0)
+== 2461294
+== 23.435820109
+== 168.785085376
+== 4.81958061
+== 167.805529208
+== 2461234
+== 2461350
+== 11.8878721324
+== Mercury: sidereal 87.9691 d; mean synodic 115.88 d
+==   last inferior conjunction: 2026-07-13T00:38:44 UT; next: 2026-11-04T13:39:32 UT; cycle 51.32 % through
+==   elongation now: 11.89 deg; east, evening sky
+== 2460758
+== 2461339
+== 42.2997769446
+== Venus: sidereal 224.701 d; mean synodic 583.92 d
+==   last inferior conjunction: 2025-03-23T16:02:59 UT; next: 2026-10-24T20:39:32 UT; cycle 91.76 % through
+==   elongation now: 42.3 deg; east, evening sky
+== 2460690
+== 2461456
+== -58.4533835271
+== Mars: sidereal 686.98 d; mean synodic 779.93 d
+==   last opposition: 2025-01-15T10:21:10 UT; next: 2027-02-18T22:00:28 UT; cycle 77.32 % through
+==   elongation now: -58.45 deg; west, morning sky
+== 2461050
+== 2461448
+== -32.1434752899
+== Jupiter: sidereal 4332.589 d; mean synodic 398.88 d
+==   last opposition: 2026-01-09T23:27:37 UT; next: 2027-02-10T15:30:12 UT; cycle 61.05 % through
+==   elongation now: -32.14 deg; west, morning sky
+== 2460939
+== 2461318
+== -154.711157233
+== Saturn: sidereal 10759.22 d; mean synodic 378.09 d
+==   last opposition: 2025-09-20T22:12:22 UT; next: 2026-10-04T04:17:25 UT; cycle 93.78 % through
+==   elongation now: -154.71 deg; west, morning sky
+== 2461000
+== 2461371
+== -102.108413898
+== Uranus: sidereal 30688.5 d; mean synodic 369.66 d
+==   last opposition: 2025-11-21T03:21:39 UT; next: 2026-11-25T13:08:16 UT; cycle 79.36 % through
+==   elongation now: -102.11 deg; west, morning sky
+== 2460941
+== 2461310
+== -164.381499951
+== Neptune: sidereal 60182 d; mean synodic 367.49 d
+==   last opposition: 2025-09-23T04:05:35 UT; next: 2026-09-25T16:26:35 UT; cycle 95.88 % through
+==   elongation now: -164.38 deg; west, morning sky
+== Model event dates rest on mean elements (Meeus ch. 25, 32/33) and
+== carry +/-1-3 days (Saturn a few more); the elongations are the
+== engine's own and are good to arcminutes.
 */

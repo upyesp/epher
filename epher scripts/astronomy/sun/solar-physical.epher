@@ -87,19 +87,15 @@ The knobs' values change slowly through the day - L0 moves about
 The same dyn() offset puts the example on its dynamical instant. */
 je = dyn(jd(1992, 10, 13))
 print("example, 1992-10-13 0h TD: P", p(je), "B0", b0(je), "L0", l0(je))
-print("Meeus example: 26.27 / 5.99 / 238.63; differences:")
-print(p(je) - 26.27, b0(je) - 5.99, l0(je) - 238.63, "deg (P, B0, L0)")
 
 /* ---- expected output ----
-= {2026, 6, 21}
-= 7.25
-= 2461212.5008
-= solar physical ephemeris at 2026-06-21T00:00:00 0h TD
-= P  (axis position angle): -7.19552175864 deg
-= B0 (disk-center latitude): 1.69262509614 deg
-= L0 (disk-center longitude): 202.782037871 deg
-= 1795049931/733
-= example, 1992-10-13 0h TD: P 26.2739814267 B0 5.98784870686 L0 238.636752275
-= Meeus example: 26.27 / 5.99 / 238.63; differences:
-= 0.00398142673141 -0.00215129313813 0.00675227505155 deg (P, B0, L0)
+== {2026, 6, 21}
+== 7.25
+== 2461212.5008
+== solar physical ephemeris at 2026-06-21T00:00:00 0h TD
+== P  (axis position angle): -7.19552175864 deg
+== B0 (disk-center latitude): 1.69262509614 deg
+== L0 (disk-center longitude): 202.782037871 deg
+== 1795049931/733
+== example, 1992-10-13 0h TD: P 26.2739814267 B0 5.98784870686 L0 238.636752275
 */

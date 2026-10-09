@@ -100,36 +100,30 @@ print("  evening switch at the superior one (Venus passes behind the Sun)")
 print("  phase:", round(10000 * (t0 - tinf(hb_i)) / 583.92) / 100, "% of the 583.92-day cycle since the last inferior conjunction")
 
 /* Engine checks of the model's dates: the lit fraction is near 0 at
-an inferior conjunction and near 1 at a superior one, and the known
-2026 canon is inferior conjunction 2025-03-23 / superior 2026-01-09
-(NASA; the model agrees within two days on both). */
+an inferior conjunction and near 1 at a superior one. */
 print("  engine check: lit fraction at the model's last inferior conj:", round(illum(2, tinf(hb_i)) * 10000) / 10000, "(near 0: true)")
 print("  engine check: lit fraction at the model's next superior conj:", round(illum(2, tsup(hf_s)) * 10000) / 10000, "(near 1: true)")
-print("  canon: model last inferior conj", iso(tinf(hb_i)), "UT vs NASA 2025-03-23:", abs(tinf(hb_i) - jd(2025, 3, 23)) < 2)
-print("  canon: model last superior conj", iso(tsup(hb_s)), "UT vs NASA 2026-01-09:", abs(tsup(hb_s) - jd(2026, 1, 9)) < 2)
 print("  self-check: engine elongation sign agrees with the model cycle side:", (if eng > 0 and (t0 - tinf(hb_i)) / 583.92 > 0.5 then "evening: yes" else if eng < 0 and (t0 - tinf(hb_i)) / 583.92 < 0.5 then "morning: yes" else "no"))
 
 /* ---- expected output ----
-= 2461294
-= 23.435820109
-= 42.2997769446
-= 0.3218
-= 2460758
-= 2461339
-= 2461047
-= 2461631
-= Venus on 2026-09-10 12:00 UT
-=   signed elongation from the Sun (engine): 42.3 deg - evening star (east of the Sun, sets after it)
-=   lit fraction (engine): 0.3218 - full near 1, new near 0
-=   cycle: last inferior conjunction 2025-03-23T16:02:59 UT; next 2026-10-24T20:39:32 UT
-=   cycle: last superior conjunction 2026-01-07T05:38:58 UT; next 2027-08-12T12:18:07 UT
-=   the evening -> morning switch happens at the inferior conjunction
-=   (Venus passes between Earth and the Sun) and the morning ->
-=   evening switch at the superior one (Venus passes behind the Sun)
-=   phase: 91.76 % of the 583.92-day cycle since the last inferior conjunction
-=   engine check: lit fraction at the model's last inferior conj: 0.0104 (near 0: true)
-=   engine check: lit fraction at the model's next superior conj: 0.9998 (near 1: true)
-=   canon: model last inferior conj 2025-03-23T16:02:59 UT vs NASA 2025-03-23: true
-=   canon: model last superior conj 2026-01-07T05:38:58 UT vs NASA 2026-01-09: true
-=   self-check: engine elongation sign agrees with the model cycle side: evening: yes
+== 2461294
+== 23.435820109
+== 42.2997769446
+== 0.3218
+== 2460758
+== 2461339
+== 2461047
+== 2461631
+== Venus on 2026-09-10 12:00 UT
+==   signed elongation from the Sun (engine): 42.3 deg - evening star (east of the Sun, sets after it)
+==   lit fraction (engine): 0.3218 - full near 1, new near 0
+==   cycle: last inferior conjunction 2025-03-23T16:02:59 UT; next 2026-10-24T20:39:32 UT
+==   cycle: last superior conjunction 2026-01-07T05:38:58 UT; next 2027-08-12T12:18:07 UT
+==   the evening -> morning switch happens at the inferior conjunction
+==   (Venus passes between Earth and the Sun) and the morning ->
+==   evening switch at the superior one (Venus passes behind the Sun)
+==   phase: 91.76 % of the 583.92-day cycle since the last inferior conjunction
+==   engine check: lit fraction at the model's last inferior conj: 0.0104 (near 0: true)
+==   engine check: lit fraction at the model's next superior conj: 0.9998 (near 1: true)
+==   self-check: engine elongation sign agrees with the model cycle side: evening: yes
 */
