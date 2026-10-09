@@ -66,7 +66,6 @@ window.EPHER_I18N["zh-CN"] = {
   "linux-tab-snap": "Snap",
   "linux-flatpak-lead": "下载适合您系统架构的软件包，然后安装：",
   "linux-flatpak": "下载 Flatpak 包（x86_64）",
-  "linux-flatpak-arm64": "ARM64 版 Flatpak 包",
   "linux-snap-lead": "从 Snap 商店安装：",
   "linux-snap-store": "Snap 商店中的 epher",
   "linux-deb": "下载 Debian/Ubuntu 版（.deb）",

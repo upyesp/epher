@@ -184,6 +184,14 @@ therefore has a mirror repository, on the LSP-epher precedent:
    limited to `upyesp/epher.nvim`, permission Contents: Read and
    write. Store it as `NVIM_PACKAGE_TOKEN` in the `stores`
    environment (`gh secret set NVIM_PACKAGE_TOKEN --env stores`).
+   Done 2026-10-06, except the repository access missed
+   `upyesp/epher.nvim`: the workflow's push died with 403 on every
+   train from 0.5.67 to 0.5.71 while hand-pushed mirror tags masked
+   the gap at the wrong tree (the 0.5.65 content). Fixed 2026-10-08:
+   the token gained the repository, the stale v0.5.67 through
+   v0.5.70 tags were deleted, and v0.5.71 was re-driven from the
+   train by workflow_dispatch, which assembled the true tree, pushed
+   main and re-created the tag.
 
 ## Re-submitting to awesome-neovim (held until the mirror is retested)
 

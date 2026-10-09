@@ -66,7 +66,6 @@ window.EPHER_I18N["de"] = {
   "linux-tab-snap": "Snap",
   "linux-flatpak-lead": "Lade das Paket für deine Architektur herunter und installiere es:",
   "linux-flatpak": "Flatpak-Paket herunterladen (x86_64)",
-  "linux-flatpak-arm64": "Flatpak-Paket für ARM64",
   "linux-snap-lead": "Aus dem Snap Store installieren:",
   "linux-snap-store": "epher im Snap Store",
   "linux-deb": "Für Debian/Ubuntu herunterladen (.deb)",
