@@ -78,6 +78,31 @@ mkdir -p "$TARGET"
 python3 "$SRC/sync-assets.py"
 
 cp "$SRC/plugin.py" "$TARGET/plugin.py"
+
+# Stamp the managed-download version: the release this assembly is
+# published as (SUBLIME_SERVER_VERSION, set by sublime-publish.yml
+# from the v-tag). Local assemblies keep the version in plugin.py,
+# which points at the current train; the plugin's latest-release
+# fallback covers an assembly tested ahead of its tag.
+if [ -n "${SUBLIME_SERVER_VERSION:-}" ]; then
+    python3 - "$TARGET/plugin.py" "$SUBLIME_SERVER_VERSION" <<'PY'
+import pathlib
+import re
+import sys
+
+path = pathlib.Path(sys.argv[1])
+source = path.read_text(encoding="utf-8")
+stamped, count = re.subn(
+    r'(?m)^(_SERVER_VERSION = ")[^"]+(")$',
+    r'\g<1>' + sys.argv[2].replace("\\", "\\\\") + r'\g<2>',
+    source,
+    count=1,
+)
+if count != 1:
+    sys.exit("plugin.py carries no _SERVER_VERSION line to stamp")
+path.write_text(stamped, encoding="utf-8")
+PY
+fi
 cp "$SRC/LSP-epher.sublime-settings" "$TARGET/LSP-epher.sublime-settings"
 cp "$SRC/LSP-epher.sublime-commands" "$TARGET/LSP-epher.sublime-commands"
 cp "$SRC/Main.sublime-menu" "$TARGET/Main.sublime-menu"
