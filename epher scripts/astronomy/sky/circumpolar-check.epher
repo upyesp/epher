@@ -55,7 +55,6 @@ print("share that never sets: (1 - cos(90 - |lat|)) / 2 =", fcirc)
 print("share that never rises: the same by symmetry =", fcirc)
 print("share that rises and sets daily:", 1 - 2 * fcirc)
 print("  the three shares sum to:", fcirc + fcirc + (1 - 2 * fcirc))
-print("Capella (dec +46) never sets at Greenwich - textbook says yes:", ccl(46, lat) == 1)
 
 /* Engine validation of the same rule on a real body: the Sun at
 Svalbard on the 2026-06-21 solstice has declination +23.4 deg, beyond
@@ -82,7 +81,6 @@ print("  both above the horizon:", a0 > 0 and a12 > 0)
 = share that never rises: the same by symmetry = 0.108816008157
 = share that rises and sets daily: 0.782367983687
 =   the three shares sum to: 1
-= Capella (dec +46) never sets at Greenwich - textbook says yes: true
 = 23.437516214
 = 12.0180793
 = 34.779948

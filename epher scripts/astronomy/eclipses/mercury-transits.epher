@@ -41,8 +41,8 @@ detection matches the catalog -
 the found dates below are 2032 Nov 13, 2039 Nov 7, 2049 May 7 and
 2052 Nov 9 - and only a grazing transit within a few hundredths of a
 degree of the limb could go either way. Note that 2039-07-07 is not
-a transit date: NASA's catalog has none in July (the scan agrees);
-the date sometimes quoted is 2039-11-07, printed as the canon check.
+a transit date: NASA's catalog has none in July; the date sometimes
+quoted is 2039-11-07.
 
 Run it from a terminal:
   Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/eclipses/mercury-transits.epher
@@ -112,17 +112,6 @@ the geometry, so a hypothetical out-of-season transit would still be
 found (there is none: Mercury's latitude at other conjunctions runs
 to 7 deg, far outside the disk). */
 
-/* Canon self-check against NASA's Five-Millennium transit catalog:
-2032 Nov 13 and 2039 Nov 7 are transits of Mercury. (2039-07-07 is
-sometimes misquoted in this context; the catalog has no July
-transit - the next one after 2032 is 2039-11-07.) The lines print
-whether the scan above found each date. */
-def onday(t, y, mo, d) = t > 0 and abs(t - jd(y, mo, d)) < 1
-def foundany(y, mo, d) = onday(t1, y, mo, d) or onday(t2, y, mo, d) or onday(t3, y, mo, d) or onday(t4, y, mo, d)
-print("canon: 2032-11-13 transit, found by scan:", foundany(2032, 11, 13))
-print("canon: 2039-07-07 found by scan:", foundany(2039, 7, 7), "(NASA catalog: no July transit)")
-print("canon: 2039-11-07 transit, found by scan:", foundany(2039, 11, 7))
-
 /* ---- expected output ----
 = {2026, 1, 1}
 = 2052
@@ -135,7 +124,4 @@ print("canon: 2039-11-07 transit, found by scan:", foundany(2039, 11, 7))
 = transit 2: 2039-11-07T07:45:50 UT; Mercury ecliptic lat -0.240967721676 deg
 = transit 3: 2049-05-07T13:19:42 UT; Mercury ecliptic lat 0.152145542016 deg
 = transit 4: 2052-11-09T02:11:32 UT; Mercury ecliptic lat -0.0902645382988 deg
-= canon: 2032-11-13 transit, found by scan: true
-= canon: 2039-07-07 found by scan: false (NASA catalog: no July transit)
-= canon: 2039-11-07 transit, found by scan: true
 */

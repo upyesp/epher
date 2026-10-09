@@ -66,10 +66,10 @@ print("Sun cross-check: radius formula", 206265 * r_sun / (dist(10, j) * au), "v
 /* The eclipse geometry ratio: alpha = Moon semidiameter / Sun
 semidiameter. Under 1 the Moon's disk is smaller than the Sun's and
 a central eclipse is annular; over 1 totality fits. On 2026-02-17
-the canon eclipse was annular, which the printed alpha predicts. */
+the eclipse was annular, which the printed alpha predicts. */
 a = (diam(11, j) / 2) / (diam(10, j) / 2)
 print("alpha (Moon/Sun semidiameter ratio):", a)
-print("verdict:", if a < 1 then "Moon smaller: annular geometry (canon 2026-02-17 was annular)" else "Moon large enough: totality possible")
+print("verdict:", if a < 1 then "Moon smaller: annular geometry" else "Moon large enough: totality possible")
 
 /* ---- expected output ----
 = {2026, 2, 17}
@@ -87,5 +87,5 @@ print("verdict:", if a < 1 then "Moon smaller: annular geometry (canon 2026-02-1
 = Sun cross-check: radius formula 970.677850414 vs engine 970.6805 arcsec
 = 0.960195295981
 = alpha (Moon/Sun semidiameter ratio): 0.960195295981
-= verdict: Moon smaller: annular geometry (canon 2026-02-17 was annular)
+= verdict: Moon smaller: annular geometry
 */

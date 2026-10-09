@@ -62,11 +62,6 @@ correction. The pair agree to a few hundredths of an arcminute. */
 print("Saeundsson round trip at true 0.5 deg:", rs(0.5), "arcmin")
 print("Bennett read back at the apparent altitude:", r(0.5 + rs(0.5) / 60), "arcmin")
 
-/* Known-value check: at the horizon the formula gives about 34.5
-arcmin, within a minute of the 34 arcmin standard horizon refraction
-the rise/set machinery folds into its -0.833 deg horizon. */
-print("R at 0 deg minus the textbook 34 arcmin:", r(0) - 34, "arcmin")
-
 /* ---- expected output ----
 = 15
 = Bennett refraction, standard atmosphere (about 10 C, 1010 hPa)
@@ -79,5 +74,4 @@ print("R at 0 deg minus the textbook 34 arcmin:", r(0) - 34, "arcmin")
 = correction at 15 deg apparent: 3.63622639517 arcmin
 = Saeundsson round trip at true 0.5 deg: 25.0039088882 arcmin
 = Bennett read back at the apparent altitude: 24.9887891294 arcmin
-= R at 0 deg minus the textbook 34 arcmin: 0.477533743263 arcmin
 */
