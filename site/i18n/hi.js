@@ -48,7 +48,6 @@ window.EPHER_I18N["hi"] = {
   "linux-tab-snap": "Snap",
   "linux-flatpak-lead": "अपने सिस्टम की आर्किटेक्चर के लिए बंडल डाउनलोड करें, फिर इसे इंस्टॉल करें:",
   "linux-flatpak": "Flatpak बंडल डाउनलोड करें (x86_64)",
-  "linux-flatpak-arm64": "ARM64 के लिए Flatpak बंडल",
   "linux-snap-lead": "Snap स्टोर से इंस्टॉल करें:",
   "linux-snap-store": "Snap स्टोर पर epher",
   "linux-deb": "Debian/Ubuntu के लिए डाउनलोड करें (.deb)",

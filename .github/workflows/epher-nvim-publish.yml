@@ -24,6 +24,17 @@ name: epher.nvim publish
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    # Re-drive a publish the channel missed (a secret that arrived
+    # late, a tag pushed by hand at the wrong tree): name the monorepo
+    # ref to assemble, usually the v* tag itself.
+    inputs:
+      ref:
+        description: the monorepo ref to assemble (a v* tag)
+        required: true
+      version:
+        description: the version to publish, v-prefixed (defaults to the ref)
+        required: false
 
 jobs:
   epher-nvim:
@@ -35,6 +46,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          fetch-depth: 0
 
       - name: Secrets check
         id: secrets
@@ -51,11 +65,13 @@ jobs:
       - name: Check the tag matches the release version
         # Runs even when the sync is skipped: a tag that does not match the
         # release train is a defect at tag time either way.
+        env:
+          REQUESTED: ${{ inputs.version || inputs.ref || github.ref_name }}
         run: |
           set -e
           version="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
-          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
-            echo "tag ${GITHUB_REF_NAME} does not match the release version v${version}" >&2
+          if [ "${REQUESTED#v}" != "$version" ]; then
+            echo "$REQUESTED does not match the release version v$version" >&2
             exit 1
           fi
 
@@ -67,9 +83,10 @@ jobs:
         if: steps.secrets.outputs.skip == 'false'
         env:
           NVIM_PACKAGE_TOKEN: ${{ secrets.NVIM_PACKAGE_TOKEN }}
+          REQUESTED: ${{ inputs.version || inputs.ref || github.ref_name }}
         run: |
           set -euo pipefail
-          version="${GITHUB_REF_NAME#v}"
+          version="${REQUESTED#v}"
           remote="https://x-access-token:${NVIM_PACKAGE_TOKEN}@github.com/upyesp/epher.nvim.git"
           git clone -q "$remote" repo
           cd repo
@@ -92,7 +109,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "::notice::upyesp/epher.nvim already matches the assembled tree; pushing the tag only"
           else
-            git commit -q -m "epher.nvim ${version}: sync from epher ${GITHUB_REF_NAME}"
+            git commit -q -m "epher.nvim ${version}: sync from epher v${version}"
             git push -q origin main
           fi
           git tag "v${version}"

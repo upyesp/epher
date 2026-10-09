@@ -209,3 +209,31 @@ stays, maintained in-repo:
 
 Revisiting Flathub is a new decision: the manifest and its
 x-checker-data are what a submission would reuse, nothing more.
+
+## Amendment (2026-10-08): the release train stops building the arm Flatpak bundle
+
+The release workflow's aarch64 Flatpak leg never completed. From the
+v0.5.66 train through the v0.5.71 train its flatpak-builder sandbox
+died at a module build command with `bwrap: execvp /bin/sh: Exec
+format error` on GitHub's arm runner, while the same manifest built
+green on the same runner class in `.github/workflows/flatpak-build.yml`
+and every other arm channel shipped on every train. Two mitigations
+were tried and did not hold: more retries (the flake outlived three
+attempts), and a clean-room cacheless build (it died in the first
+module, `rust-std-wasm32`). Because the release-attach job needs the
+flatpak jobs, each failure skipped attaching every release asset, and
+five trains burned while the diagnosis narrowed.
+
+Decision: the release train builds one Flatpak bundle,
+`epher-linux-x86_64.flatpak`, and the aarch64 leg is removed.
+
+- Arm users install the deb, rpm, AppImage or snap like every other
+  arm channel; nothing else about the arm story changes.
+- `packaging/flatpak/` stays arch-aware: `flatpak-build.yml` keeps
+  proving the manifest on x86_64 and aarch64, so returning the arm
+  bundle is a matrix line, not a project.
+- The website's Linux downloads card drops the arm64 Flatpak bundle
+  link (it pointed at an asset no train ever attached).
+- Returning the bundle is a new decision, taken when the arm runner's
+  bwrap heals: re-add the aarch64 matrix leg to the release workflow's
+  flatpak job.

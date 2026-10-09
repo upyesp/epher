@@ -78,30 +78,26 @@ jobs:
 
   flatpak:
     # The Flatpak channel (ADR-0061): the in-repo manifest builds the
-    # tagged release into a .flatpak bundle per architecture, attached
-    # to the release like every other installer. The manifest pins a
-    # git tag; this job repins it at THIS tag before building, the same
-    # way the snap job pins the version. Flathub publication was
-    # dropped (ADR-0061 amendment, 2026-09-18); flatpak-build.yml keeps
-    # proving the manifest between releases.
+    # tagged release into a .flatpak bundle for x86_64, attached to the
+    # release like every other installer. The manifest pins a git tag;
+    # this job repins it at THIS tag before building, the same way the
+    # snap job pins the version. Flathub publication was dropped
+    # (ADR-0061 amendment, 2026-09-18); flatpak-build.yml keeps proving
+    # the manifest between releases, on x86_64 and aarch64.
     #
-    # The arm leg is continue-on-error for now: the release train's
-    # arm builds died on bwrap "Exec format error" on every train from
-    # 0.5.66 to 0.5.69 (two mitigations tried: retries, then cache off),
-    # while the same manifest builds green on the arm runner in
-    # flatpak-build.yml and every other arm channel ships (deb, rpm,
-    # appimage, snap). A failed arm flatpak must not skip the release
-    # attach; when the runner heals the bundle returns automatically.
-    name: flatpak (${{ matrix.arch }})
-    continue-on-error: ${{ matrix.arch == 'aarch64' }}
+    # The arm bundle is not built (ADR-0061 amendment, 2026-10-08): the
+    # release train's arm builds died on bwrap "Exec format error" on
+    # every train from 0.5.66 to 0.5.71, through retries and a
+    # clean-room cacheless build, and a failing arm leg kept skipping
+    # the release attach. Arm users install the deb, rpm, AppImage or
+    # snap like every other arm channel.
+    name: flatpak (x86_64)
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             arch: x86_64
-          - os: ubuntu-24.04-arm
-            arch: aarch64
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     container:
@@ -121,12 +117,9 @@ jobs:
           grep -q "commit: ${GITHUB_SHA}" packaging/flatpak/org.epher.Desktop.yml
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         id: build
-        # The arm runner's bwrap fails with "Exec format error" at the
-        # epher module when flatpak-builder's cache restores another
-        # run's wrong-arch trunk and binaryen (the 0.5.66 through 0.5.68
-        # trains; three retries all died the same way). Releases build
-        # clean-room: the cache is off, so every module builds from
-        # source at its pinned version.
+        # Releases build clean-room: the cache is off, so every module
+        # builds from source at its pinned version and the bundle can
+        # never inherit another run's stale toolchain.
         with:
           bundle: epher-linux-${{ matrix.arch }}.flatpak
           manifest-path: packaging/flatpak/org.epher.Desktop.yml

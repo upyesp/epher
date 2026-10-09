@@ -3,9 +3,10 @@
 # was dropped (ADR-0061 amendment, 2026-09-18); this manifest stays the
 # maintained build recipe: flatpak-build.yml proves it on every push
 # that touches it (x86_64 and aarch64), and the release workflow turns
-# each tag into epher-linux-<arch>.flatpak release assets (it repins
+# each tag into an epher-linux-x86_64.flatpak release asset (it repins
 # the git source below at the tag being released, the same way the snap
-# job pins the version). The x-checker-data stays: it is what a future
+# job pins the version; the arm bundle is not built, ADR-0061 amendment
+# 2026-10-08). The x-checker-data stays: it is what a future
 # Flathub submission would reuse.
 #
 # The build is fully offline: every crate comes from the generated
