@@ -252,17 +252,16 @@
         <article class="card">
           <h3 data-i18n="mac-name">macOS</h3>
           <p data-i18n="mac-desc">
-            One app. Drag it to Applications; a button inside installs the
-            `epher` terminal command for you. First launch: right-click the
-            app and choose Open.
+            One app, one command: Homebrew puts it in Applications, links
+            the `epher` terminal command, and keeps it current with
+            brew upgrade. First launch: right-click the app and choose Open.
           </p>
-          <p class="dl-title" data-i18n="downloads">Downloads</p>
-          <ul class="dl-list">
-            <li>
-              <a class="btn" href="https://github.com/upyesp/epher/releases/latest/download/epher-macos-aarch64.dmg"
-                data-i18n="mac-download">Download for macOS (Apple Silicon)</a>
-            </li>
-          </ul>
+          <p class="dl-title" data-i18n="mac-brew-title">Install with Homebrew (Apple Silicon):</p>
+          <pre class="path-cmd" aria-label="Homebrew install command (copy button beside it)">brew install --cask upyesp/tap/epher</pre>
+          <p class="repo-alt">
+            <a href="https://github.com/upyesp/epher/releases/latest/download/epher-macos-aarch64.dmg"
+              data-i18n="mac-download">or download the disk image instead</a>
+          </p>
         </article>
 
         <article class="card">
