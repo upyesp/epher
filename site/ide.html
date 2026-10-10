@@ -252,21 +252,23 @@
 
       <h2><img class="ide-logo" src="ide-logos/neovim.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-nvim-title">Neovim</span></h2>
       <p data-i18n="ide-nvim-p1">
-        Ready-made config files: filetype detection, syntax, and the
-        LSP wiring around the same release binary. Point your
-        runtimepath at the folder and call `require("epher").setup()`
+        Install the rock with `:Rocks install epher` (rocks.nvim), or
+        track the upyesp/epher.nvim repository with your plugin
+        manager: filetype detection, syntax, and the LSP wiring around
+        the same release binary. Then call `require("epher").setup()`
         on Neovim 0.11 or newer.
       </p>
       <p data-i18n="ide-nvim-p2">
         `:EpherRun` runs the script and opens a results window
         beside it; every graph is written as an SVG and opened
-        with the system viewer.
+        with the system viewer. Running from a results window
+        re-runs the script that window belongs to.
       </p>
       <p class="prereq" data-i18n="ide-nvim-prereq">
         Prerequisite: the `epher-lsp` server binary, installed once and on your PATH: see Any LSP client below.
       </p>
       <p>
-        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-nvim.zip" data-i18n="ide-nvim-link">Download epher-nvim.zip</a>
+        <a href="https://github.com/upyesp/epher/releases/latest/download/epher-nvim.zip" data-i18n="ide-nvim-link">Manual install: download epher-nvim.zip</a>
       </p>
 
       <h2><img class="ide-logo" src="ide-logos/vim.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-vim-title">Vim</span></h2>
@@ -291,13 +293,13 @@
 
       <h2><img class="ide-logo" src="ide-logos/sublime.svg" alt="" width="24" height="24" loading="lazy" /><span data-i18n="ide-sublime-title">Sublime Text</span></h2>
       <p data-i18n="ide-sublime-p1">
-        Install it from Package Control, once the package is listed:
-        install the LSP package first (a separate manual step), then
-        search for LSP-epher. The package carries the shared grammar
-        in Sublime's own form and the client definition for LSP.
-      </p>
-      <p class="prereq" data-i18n="ide-sublime-prereq">
-        Prerequisite: the `epher-lsp` server binary, installed once and on your PATH: see Any LSP client below.
+        Listed on Package Control: `Package Control: Install Package`,
+        then search for LSP-epher (the LSP package is a prerequisite;
+        install it the same way). The package carries the shared
+        grammar in Sublime's own form and the client definition for
+        LSP, and the server manages itself: on first start it
+        downloads the `epher-lsp` binary for your platform into the
+        package storage, so there is nothing to put on your PATH.
       </p>
       <p data-i18n="ide-sublime-offline">
         Offline, today: download the zip and unzip the LSP-epher folder
