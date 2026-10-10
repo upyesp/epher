@@ -101,10 +101,20 @@ def _binary_name() -> str:
     return "epher-lsp"
 
 
-def _asset_name() -> str:
+# Sublime's arch names differ from the release asset names: the
+# banner's "linux x64" is our linux-x86_64, and its "arm64" is aarch64.
+_ARCHES = {"x64": "x86_64", "arm64": "aarch64"}
+
+
+def _asset_name() -> "str | None":
+    """The release asset for this platform, or None where no build
+    exists yet (Intel macOS and Windows ARM64 join later, ADR-0066)."""
+    arch = _ARCHES.get(sublime.arch())
+    if arch is None:
+        return None
     platform = {"osx": "macos", "linux": "linux", "windows": "windows"}[sublime.platform()]
     extension = ".zip" if sublime.platform() == "windows" else ".gz"
-    return "epher-lsp-{}-{}{}".format(platform, sublime.arch(), extension)
+    return "epher-lsp-{}-{}{}".format(platform, arch, extension)
 
 
 def _release_asset_url(asset: str) -> str:
@@ -144,6 +154,9 @@ def _download_server() -> "tuple[Path | None, str | None]":
     """
     directory = EpherPlugin.plugin_storage_path
     asset = _asset_name()
+    if asset is None:
+        return None, "no epher-lsp build exists for {} {}".format(
+            sublime.platform(), sublime.arch())
     try:
         data = _fetch(_release_asset_url(asset))
     except OSError as err:
