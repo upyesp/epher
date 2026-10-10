@@ -237,10 +237,12 @@ package repository is assembled. Local assemblies keep the in-tree
 value; the plugin's latest-release fallback covers an assembly tested
 ahead of its tag.
 
-The `Main.sublime-menu` entry nests `Settings` under the `LSP-epher`
-node, which is what the package reviewer's settings-menu check wants:
-the package node, then the entry inside it, not the entry as the node
-itself.
+The `Main.sublime-menu` entry sits flat, the way every sibling LSP
+package does it: the `LSP-epher` entry opens `edit_settings` directly,
+with no submenu of its own. The package reviewer's settings-menu check
+prefers a `Settings` entry nested inside the package node and will keep
+warning about the flat shape; the maintainer's note and the sibling
+convention win, and the warning is warn-only.
 
 The Package Control entry lives in `sublimelsp/repository`, with
 `"tags": true`, so each `v<version>` train tag becomes a release
