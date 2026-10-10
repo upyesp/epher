@@ -1,0 +1,24 @@
+[tool.pyright]
+pythonVersion = "3.8"
+reportIncompatibleMethodOverride = "none"
+reportMissingImports = "none"
+reportMissingModuleSource = "none"
+typeCheckingMode = "standard"
+
+[tool.ruff]
+line-length = 120
+target-version = "py38"
+
+[tool.ruff.lint]
+# Enable preview rules.
+preview = true
+select = ["F401", "I"]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+known-first-party = ["LSP"]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.per-file-ignores]
+# Development script that is not part of the package.
+"sync-assets.py" = ["I"]
