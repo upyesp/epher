@@ -28,6 +28,7 @@ from __future__ import annotations
 import gzip
 import io
 import os
+import shutil
 import subprocess
 import time
 import urllib.request
@@ -39,6 +40,7 @@ import sublime
 from LSP.plugin import LspPlugin
 from LSP.plugin import LspTextCommand
 from LSP.plugin import OnPreStartContext
+from LSP.plugin import PluginStartError
 from LSP.plugin import Request
 from LSP.plugin import uri_from_view
 
@@ -72,9 +74,17 @@ class EpherPlugin(LspPlugin):
             return
         managed = _managed_server()
         if managed is None:
-            managed = _download_server()
+            managed, failure = _download_server()
         if managed is not None:
             context.configuration.command = [str(managed)]
+        elif shutil.which("epher-lsp") is None:
+            # Nothing can start: say so through LSP's own start failure,
+            # which carries the message, instead of a bare "no such file".
+            raise PluginStartError(
+                "the epher-lsp server could not be downloaded ({}) and no "
+                "epher-lsp was found on PATH; check the network and reload "
+                "the window, or install the binary manually (the README "
+                "has the steps)".format(failure))
 
 
 def plugin_loaded() -> None:
@@ -125,12 +135,12 @@ def _fetch(url: str) -> bytes:
         return response.read()
 
 
-def _download_server() -> Path | None:
+def _download_server() -> "tuple[Path | None, str | None]":
     """Fetch, unpack, and stamp the server binary for this platform.
 
-    Returns None (with a console note) on any failure; the client then
-    starts the configured command unchanged, so a machine with
-    epher-lsp on PATH keeps working offline.
+    Returns (None, reason) on failure; the caller then either falls
+    back to the configured command or reports the reason, so a machine
+    with epher-lsp on PATH keeps working offline.
     """
     directory = EpherPlugin.plugin_storage_path
     asset = _asset_name()
@@ -144,9 +154,7 @@ def _download_server() -> Path | None:
         try:
             data = _fetch(_latest_asset_url(asset))
         except OSError as err:
-            print("LSP-epher: could not download the epher-lsp server ({}); "
-                  "the configured command stays as it is".format(err))
-            return None
+            return None, str(err)
     try:
         directory.mkdir(parents=True, exist_ok=True)
         binary = directory / _binary_name()
@@ -160,11 +168,10 @@ def _download_server() -> Path | None:
             binary.chmod(0o755)
         (directory / "{}.version".format(binary.name)).write_text(
             _SERVER_VERSION, encoding="utf-8")
-        return binary
+        print("LSP-epher: installed epher-lsp {} ({})".format(_SERVER_VERSION, asset))
+        return binary, None
     except (OSError, EOFError, zipfile.BadZipFile, IndexError) as err:
-        print("LSP-epher: could not unpack the epher-lsp server ({}); "
-              "the configured command stays as it is".format(err))
-        return None
+        return None, str(err)
 
 
 # The results view carries the id of the view it describes
