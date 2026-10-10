@@ -85,6 +85,9 @@ cp "$SRC/plugin.py" "$TARGET/plugin.py"
 # which points at the current train; the plugin's latest-release
 # fallback covers an assembly tested ahead of its tag.
 if [ -n "${SUBLIME_SERVER_VERSION:-}" ]; then
+    # Accept either v0.5.75 or 0.5.75; the stamp carries the bare train
+    # version, which is what the release assets are named after.
+    SUBLIME_SERVER_VERSION="${SUBLIME_SERVER_VERSION#v}"
     python3 - "$TARGET/plugin.py" "$SUBLIME_SERVER_VERSION" <<'PY'
 import pathlib
 import re
