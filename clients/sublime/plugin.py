@@ -51,7 +51,7 @@ from LSP.plugin import uri_from_view
 # is the current train, so a symlinked test folder resolves to today's
 # release, with the latest-release fallback covering assemblies that
 # run ahead of their tag.
-_SERVER_VERSION = "0.5.72"
+_SERVER_VERSION = "0.5.76"
 
 # The client command this package ships. Anything else found in the
 # resolved configuration at start time means the user manages the
