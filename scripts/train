@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+"""Move the train to a new version: rewrite VERSION and every file that
+carries a copy (ADR-0073). The rewrite list and scripts/check-version-lock
+must agree; the check is what CI runs, so a miss here surfaces there.
+
+Usage: scripts/train 0.5.80   (a leading v is accepted and stripped)
+"""
+
+import pathlib
+import re
+import sys
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        print(__doc__, file=sys.stderr)
+        return 2
+    new = sys.argv[1].lstrip("v")
+    if not re.fullmatch(r"\d+\.\d+\.\d+", new):
+        print(f"error: {sys.argv[1]!r} is not an x.y.z version", file=sys.stderr)
+        return 2
+
+    root = pathlib.Path(__file__).resolve().parent.parent
+    version_file = root / "VERSION"
+    if not version_file.exists():
+        print("error: VERSION file is missing; cannot read the current train",
+              file=sys.stderr)
+        return 1
+    old = version_file.read_text().strip()
+    if old == new:
+        print(f"already at {new}; nothing to do")
+        return 0
+
+    # (path, pattern anchored to the current version, replacement template)
+    edits = [
+        ("clients/vscode/package.json", r'"version": "%s"' % re.escape(old),
+         '"version": "%s"', 1),
+        ("clients/zed/Cargo.toml", r'^version = "%s"' % re.escape(old),
+         'version = "%s"', 1),
+        ("clients/zed/extension.toml", r'^version = "%s"' % re.escape(old),
+         'version = "%s"', 1),
+        ("crates/cli/Cargo.toml", r'^version = "%s"' % re.escape(old),
+         'version = "%s"', 1),
+        ("crates/lsp/Cargo.toml", r'^version = "%s"' % re.escape(old),
+         'version = "%s"', 1),
+        ("clients/jetbrains/src/main/kotlin/io/epher/jetbrains/EpherServerDownloader.kt",
+         'DEFAULT_VERSION = "%s"' % re.escape(old),
+         'DEFAULT_VERSION = "%s"', 1),
+        ("clients/sublime/plugin.py", r'_SERVER_VERSION = "%s"' % re.escape(old),
+         '_SERVER_VERSION = "%s"', 1),
+        ("Cargo.lock", r'(name = "epher-cli"\nversion = ")%s(")' % re.escape(old),
+         r'\g<1>%s\g<2>', 1),
+        ("Cargo.lock", r'(name = "epher-lsp"\nversion = ")%s(")' % re.escape(old),
+         r'\g<1>%s\g<2>', 1),
+    ]
+
+    failures = 0
+    for rel, pattern, template, expected in edits:
+        path = root / rel
+        if not path.exists():
+            print(f"error: {rel} is missing", file=sys.stderr)
+            failures += 1
+            continue
+        src = path.read_text()
+        out, n = re.subn(pattern, template % new, src, flags=re.M if "^" in pattern else 0)
+        if n != expected:
+            print(f"error: {rel}: expected {expected} match(es) for the "
+                  f"{old} pattern, found {n}", file=sys.stderr)
+            failures += 1
+            continue
+        if out != src:
+            path.write_text(out)
+        print(f"{rel}: moved {old} -> {new}")
+
+    version_file.write_text(new + "\n")
+    print(f"VERSION: {old} -> {new}")
+    if failures:
+        print(f"{failures} location(s) failed; fix and re-run", file=sys.stderr)
+        return 1
+    print("run scripts/check-version-lock to confirm the lock, and "
+          "`cargo metadata --offline` for the workspace")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

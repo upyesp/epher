@@ -18,8 +18,15 @@ name: luarocks publish
 # Channel mechanics: docs/research/neovim-publishing.md.
 
 on:
-  push:
-    tags: ["v*"]
+  workflow_dispatch:
+    # ADR-0073: the release dispatches this channel after it cuts the
+    # tag and publishes the release; a tag push carries no workflow
+    # events when the pusher is the release run's own token.
+    inputs:
+      version:
+        description: the train to publish, e.g. 0.5.80 (a leading v is accepted)
+        required: true
+        type: string
 
 jobs:
   luarocks:
@@ -30,7 +37,45 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Resolve the version and the tag
+        id: v
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          version="${INPUT_VERSION#v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the release to be published
+        # ADR-0073: the channel follows the release. The tag fires this
+        # workflow; if no published release exists for it after ten
+        # minutes, the tag raced a failed release and nothing ships.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.v.outputs.tag }}
+        run: |
+          set -euo pipefail
+          TAG="v${TAG#v}"
+          last=""
+          for i in $(seq 1 20); do
+            if last="$(gh release view "$TAG" --repo upyesp/epher --json isDraft --jq .isDraft 2>&1)"; then
+              if [ "$last" = "false" ]; then
+                echo "release $TAG is published"
+                exit 0
+              fi
+              echo "attempt $i: release $TAG exists but isDraft=$last"
+            else
+              echo "attempt $i: release $TAG not visible: $last"
+            fi
+            sleep 30
+          done
+          echo "::error::no published release for $TAG after 10 minutes (last: $last); the channel follows the release (ADR-0073)"
+          exit 1
+
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.v.outputs.tag }}
 
       - name: Check the runtime copies are in sync with clients/vim
         # The rock ships the copies in clients/nvim, not clients/vim, so
@@ -52,6 +97,9 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         uses: lumen-oss/luarocks-tag-release@v7
         with:
+          # Explicit version: the action would otherwise parse the git
+          # ref, and a dispatch run's ref is the branch, not the tag.
+          version: ${{ steps.v.outputs.version }}
           # The monorepo subdirectory is not the action's generated default;
           # the template's source.dir points the build at clients/nvim.
           template: clients/nvim/epher-scm-1.rockspec

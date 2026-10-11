@@ -2390,7 +2390,7 @@ graph3d sin(a * (x ^ 2 + y ^ 2)) from -3 to 3
 从 epher 网站为你的系统下载一个安装程序：
 
 - **Windows：** 运行 `epher-windows-x86_64.exe`。安装程序会把 `epher` 加入你的 PATH。打开一个新的 CMD 或 PowerShell 窗口，`epher "2 + 2"` 即可使用。由于构建未签名，首次启动请选择*更多信息* → *仍要运行*。
-- **macOS：** 打开 `epher-macos-aarch64.dmg` 并把 epher 拖入应用程序文件夹。由于构建未签名，首次启动需要右键 → **打开**。
+- **macOS：** 打开 `epher-macos-aarch64.dmg` 并把 epher 拖入应用程序文件夹。由于构建未签名，macOS 可能会阻止首次启动：请在「系统设置」→「隐私与安全性」中点按*仍要打开*以允许它。
 - **Linux（Debian/Ubuntu）：** `.deb` 包
 
 ```sh

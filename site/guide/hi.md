@@ -2443,7 +2443,7 @@ graph3d sin(a * (x ^ 2 + y ^ 2)) from -3 to 3
 epher वेबसाइट से अपने सिस्टम के लिए एक इंस्टॉलर डाउनलोड करें:
 
 - **Windows:** `epher-windows-x86_64.exe` चलाएँ। इंस्टॉलर `epher` को आपके PATH पर रखता है। नई CMD या PowerShell विंडो खोलें और `epher "2 + 2"` चल जाता है। चूँकि बिल्ड हस्ताक्षरित नहीं है, पहली बार *More info* → *Run anyway* चुनें।
-- **macOS:** `epher-macos-aarch64.dmg` खोलें और epher को Applications में खींचें। चूँकि बिल्ड हस्ताक्षरित नहीं है, पहली बार खोलने के लिए राइट-क्लिक → **Open** करें।
+- **macOS:** `epher-macos-aarch64.dmg` खोलें और epher को Applications में खींचें। चूँकि बिल्ड हस्ताक्षरित नहीं है, macOS पहली बार ऐप को रोक सकता है: System Settings → Privacy & Security में *Open Anyway* से इसे अनुमति दें।
 - **Linux (Debian/Ubuntu):** `.deb` पैकेज
 
 ```sh

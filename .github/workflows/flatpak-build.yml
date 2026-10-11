@@ -18,6 +18,10 @@ on:
       - site/icon.svg
 permissions:
   contents: read
+concurrency:
+  group: flatpak-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: flatpak bundle (${{ matrix.arch }})

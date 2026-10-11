@@ -20,8 +20,15 @@ name: sublime publish
 # channel publication waits on it.
 
 on:
-  push:
-    tags: ["v*"]
+  workflow_dispatch:
+    # ADR-0073: the release dispatches this channel after it cuts the
+    # tag and publishes the release; a tag push carries no workflow
+    # events when the pusher is the release run's own token.
+    inputs:
+      version:
+        description: the train to publish, e.g. 0.5.80 (a leading v is accepted)
+        required: true
+        type: string
 
 jobs:
   sublime:
@@ -32,7 +39,45 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Resolve the version and the tag
+        id: v
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          version="${INPUT_VERSION#v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the release to be published
+        # ADR-0073: the channel follows the release. The tag fires this
+        # workflow; if no published release exists for it after ten
+        # minutes, the tag raced a failed release and nothing ships.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.v.outputs.tag }}
+        run: |
+          set -euo pipefail
+          TAG="v${TAG#v}"
+          last=""
+          for i in $(seq 1 20); do
+            if last="$(gh release view "$TAG" --repo upyesp/epher --json isDraft --jq .isDraft 2>&1)"; then
+              if [ "$last" = "false" ]; then
+                echo "release $TAG is published"
+                exit 0
+              fi
+              echo "attempt $i: release $TAG exists but isDraft=$last"
+            else
+              echo "attempt $i: release $TAG not visible: $last"
+            fi
+            sleep 30
+          done
+          echo "::error::no published release for $TAG after 10 minutes (last: $last); the channel follows the release (ADR-0073)"
+          exit 1
+
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.v.outputs.tag }}
 
       - name: Secrets check
         id: secrets
@@ -49,11 +94,13 @@ jobs:
       - name: Check the tag matches the release version
         # Runs even when the sync is skipped: a tag that does not match the
         # release train is a defect at tag time either way.
+        env:
+          TAG: ${{ steps.v.outputs.tag }}
         run: |
           set -e
           version="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
-          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
-            echo "tag ${GITHUB_REF_NAME} does not match the release version v${version}" >&2
+          if [ "${TAG}" != "v${version}" ]; then
+            echo "the requested tag ${TAG} does not match the release version v${version}" >&2
             exit 1
           fi
 
@@ -65,7 +112,7 @@ jobs:
           # expands ${{ }} here; shell-style expansion inside an env
           # value is left literal, which stamped the literal into the
           # plugin on the 0.5.73 and 0.5.74 mirror tags (both burned).
-          SUBLIME_SERVER_VERSION: ${{ github.ref_name }}
+          SUBLIME_SERVER_VERSION: ${{ steps.v.outputs.tag }}
         run: clients/sublime/listing/assemble-repo.sh "$RUNNER_TEMP/LSP-epher"
 
       - name: Push the tree and the tag to upyesp/LSP-epher
@@ -74,7 +121,7 @@ jobs:
           SUBLIME_PACKAGE_TOKEN: ${{ secrets.SUBLIME_PACKAGE_TOKEN }}
         run: |
           set -euo pipefail
-          version="${GITHUB_REF_NAME#v}"
+          version="${{ steps.v.outputs.version }}"
           remote="https://x-access-token:${SUBLIME_PACKAGE_TOKEN}@github.com/upyesp/LSP-epher.git"
           git clone -q "$remote" repo
           cd repo
