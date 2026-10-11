@@ -39,6 +39,7 @@ check "epher-cli Cargo.toml"       crates/cli/Cargo.toml "^version = \"$VERSION\
 check "epher-lsp Cargo.toml"       crates/lsp/Cargo.toml "^version = \"$VERSION\""
 check "jetbrains fallback"         clients/jetbrains/src/main/kotlin/io/epher/jetbrains/EpherServerDownloader.kt "DEFAULT_VERSION = \"$VERSION\""
 check "sublime placeholder"        clients/sublime/plugin.py "_SERVER_VERSION = \"$VERSION\""
+check "emacs client Version"       clients/emacs/epher.el "^;; Version: $VERSION\$"
 # The workspace lock: one check per crate entry (grep -A1 pairs the
 # name line with the version line beneath it).
 lock_entry() {

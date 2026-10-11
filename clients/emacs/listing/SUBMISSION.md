@@ -58,6 +58,24 @@ Remaining human checks before the PR:
   registration), checkdoc, and a warning-free byte-compile, and
   carries the `Assisted-by` header the template asks for
   (`GLM (Z.ai)`, what this repo actually runs).
+- 2026-10-11: riscy's first review on the PR raised three points, and
+  a full melpazoid run a fourth. All are fixed on this branch:
+  the `with-eval-after-load` lsp-mode registration is gone (it was
+  the init.el pattern from lsp-mode's docs, not a package pattern;
+  the reviewer called that), and the Commentary plus the client
+  README now carry the registration snippet, including the
+  `lsp-language-id-configuration` entry the old block was missing;
+  the top-level `add-hook` is gone (the autostart call sits at the
+  end of the `epher-mode` body); the `Author:` line carries an
+  address (`upyesp <upyesp@gmail.com>`) so `lm-authors` parses it;
+  and the `with-suppressed-warnings` around eglot 1.16's renamed
+  `path-to-uri` helper is gone (both names resolve through
+  `symbol-function`). The `Assisted-by` line follows the
+  CONTRIBUTING.org `AGENT_NAME:MODEL_VERSION` shape now
+  (`z.ai:GLM5.3`). A bundled lsp-mode client is upstream at
+  emacs-lsp/lsp-mode#5129, which retires the snippet once it ships.
+  The `Version:` header rejoined the train (0.5.81), and the version
+  lock plus `scripts/train` now cover the emacs client.
 - 2026-09-30: the recipe PR is open as
   https://github.com/melpa/melpa/pull/10256; MELPA's CI built it
   green in 39 seconds. Awaiting maintainer review, typically a week
