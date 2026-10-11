@@ -311,6 +311,21 @@ jobs:
             > ad-hoc signed, first launch: right-click epher → **Open**,
             > or System Settings → Privacy & Security → *Open Anyway*.
 
+      - name: Dispatch the channel workflows
+        # ADR-0073: a tag pushed by this run's own token fires no
+        # workflow events, so the channels are dispatched here, after
+        # the tag exists and the release is published. Each channel
+        # still waits for the published release before it writes.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V_VERSION: ${{ needs.train.outputs.v_version }}
+        run: |
+          set -euo pipefail
+          for wf in sublime-publish epher-nvim-publish luarocks-publish vim-publish; do
+            gh workflow run "$wf.yml" --ref main -f version="$V_VERSION"
+            echo "$wf dispatched for $V_VERSION"
+          done
+
   linux-repos:
     # ADR-0061: serve the Linux packages from epher.org's apt and dnf
     # repositories. Publishes to the gh-pages branch (the site build
