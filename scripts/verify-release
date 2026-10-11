@@ -34,13 +34,31 @@ for name in \
   fi
 done
 
-echo "== channel workflows for $V_VERSION =="
+echo "== channel workflows dispatched by this release =="
+# ADR-0073: the channels are dispatched by the release run (a tag push
+# by the run's own token fires no events), so their runs are dispatch
+# runs created after this run started. Find each workflow's newest run
+# in that window and require it to conclude success.
+epoch_since="$(date -d "$(gh run view "$GITHUB_RUN_ID" --repo "$REPO" --json createdAt --jq .createdAt)" +%s)"
 for wf in sublime-publish epher-nvim-publish luarocks-publish vim-publish; do
+  run_id=""
+  for i in $(seq 1 20); do
+    run_id="$(gh run list --workflow "$wf.yml" --limit 10 --json databaseId,createdAt \
+      --jq '.[] | [.databaseId, .createdAt] | @tsv' 2>/dev/null \
+      | while IFS="$(printf '\t')" read -r id created; do
+          [ "$(date -d "$created" +%s)" -ge "$epoch_since" ] && echo "$id" && break
+        done | head -1)"
+    [ -n "$run_id" ] && break
+    sleep 30
+  done
+  if [ -z "$run_id" ]; then
+    echo "::error::$wf was never dispatched by this release"
+    status=1
+    continue
+  fi
   conclusion=""
   for i in $(seq 1 20); do
-    conclusion="$(gh run list --workflow "$wf.yml" --branch "$V_VERSION" --limit 1 \
-      --json status,conclusion \
-      --jq 'if (.[0] // null) == null then "" else (.[0].status + "/" + (.[0].conclusion // "pending")) end' 2>/dev/null || echo "")"
+    conclusion="$(gh run view "$run_id" --repo "$REPO" --json status,conclusion --jq '.status + "/" + (.conclusion // "pending")' 2>/dev/null || echo "")"
     case "$conclusion" in
       completed/success) break ;;
       completed/*) break ;;
@@ -48,10 +66,10 @@ for wf in sublime-publish epher-nvim-publish luarocks-publish vim-publish; do
     sleep 30
   done
   if [ "$conclusion" != "completed/success" ]; then
-    echo "::error::$wf did not conclude success (last state: ${conclusion:-no run})"
+    echo "::error::$wf run $run_id did not conclude success (last state: ${conclusion:-unknown})"
     status=1
   else
-    echo "$wf: success"
+    echo "$wf: success (run $run_id)"
   fi
 done
 
