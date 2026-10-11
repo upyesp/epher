@@ -25,6 +25,10 @@ on:
         description: "version to stamp, without the leading v (auto = read from crates/cli/Cargo.toml)"
         type: string
         default: "auto"
+      publish:
+        description: "push the built update site to gh-pages (false for a dry run)"
+        type: boolean
+        default: true
   workflow_dispatch:
     inputs:
       ref:
@@ -122,7 +126,12 @@ jobs:
           echo "the real install test (p2 director) runs against the published URL; see listing/SUBMISSION.md"
 
       - name: Publish to gh-pages
-        if: github.event_name != 'workflow_dispatch' || inputs.publish
+        # `publish` is a workflow_call input too, so the gate reads the
+        # same under both events. It must NOT read github.event_name: a
+        # workflow_call inherits the caller's event, and release.yml is
+        # itself dispatched, so this step silently skipped on the 0.5.80
+        # and 0.5.81 trains (the update site rode along at 0.5.79).
+        if: inputs.publish != false
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -155,7 +164,7 @@ jobs:
       - name: Redeploy the site with the new update site
         # epher.org serves apt/, rpm/ and eclipse/ out of gh-pages; the
         # site build only re-archives them on a deploy.
-        if: github.event_name != 'workflow_dispatch' || inputs.publish
+        if: inputs.publish != false
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages --ref main
