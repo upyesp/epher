@@ -1,11 +1,11 @@
 ;;; epher.el --- Calculator language with inline answers and unit conversion -*- lexical-binding: t; -*-
 
-;; Author: upyesp
-;; Assisted-by: GLM (Z.ai)
+;; Author: upyesp <upyesp@gmail.com>
+;; Assisted-by: z.ai:GLM5.3
 ;; SPDX-License-Identifier: MIT
 ;; This file is distributed under the MIT License. The full text is in
 ;; the LICENSE file at the root of this repository.
-;; Version: 0.5.65
+;; Version: 0.5.81
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: languages
 ;; URL: https://github.com/upyesp/epher
@@ -38,6 +38,20 @@
 ;; instructions are in the README and on the epher website, in the Any
 ;; LSP client section of the IDE Extensions page:
 ;; <https://epher.org/ide.html#any-lsp>
+;;
+;; lsp-mode instead of eglot: lsp-mode is third-party and optional, so
+;; epher never loads it.  With lsp-mode loaded, register the client
+;; from your init file:
+;;
+;;   (with-eval-after-load 'lsp-mode
+;;     (add-to-list 'lsp-language-id-configuration '(epher-mode . "epher"))
+;;     (lsp-register-client
+;;      (make-lsp-client
+;;       :new-connection (lsp-stdio-connection (lambda () epher-server-program))
+;;       :activation-fn (lsp-activate-on "epher")
+;;       :server-id 'epher-lsp)))
+;;
+;; and set `epher-lsp-autostart' to nil so eglot does not start too.
 
 ;;; Code:
 
@@ -129,6 +143,12 @@ entry (Emacs 30 added the missing declaration)."
   "Conservative highlighting for `epher-mode'.
 The language server's semantic tokens are the exact rule.")
 
+(defun epher--maybe-start-lsp ()
+  "Start eglot in an `epher-mode' buffer when wanted and possible."
+  (when (and epher-lsp-autostart
+             (executable-find (car epher-server-program)))
+    (eglot-ensure)))
+
 (defvar epher-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'epher-run)
@@ -145,18 +165,11 @@ answers as inlay hints, hover, and completion."
   (setq-local comment-start "# ")
   (setq-local comment-end "")
   (setq-local comment-start-skip "#+\\s-*")
-  (setq-local font-lock-defaults '(epher-font-lock-keywords)))
+  (setq-local font-lock-defaults '(epher-font-lock-keywords))
+  (epher--maybe-start-lsp))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.epher\\'" . epher-mode))
-
-(defun epher--maybe-start-lsp ()
-  "Start eglot in an `epher-mode' buffer when wanted and possible."
-  (when (and epher-lsp-autostart
-             (executable-find (car epher-server-program)))
-    (eglot-ensure)))
-
-(add-hook 'epher-mode-hook #'epher--maybe-start-lsp)
 
 ;; The eglot server registration. The contact is read at activation,
 ;; so customizing `epher-server-program' is enough. Emacs 29's eglot
@@ -165,21 +178,6 @@ answers as inlay hints, hover, and completion."
 (add-to-list 'eglot-server-programs
              `(epher-mode . ,(lambda (&optional _interactive)
                                epher-server-program)))
-
-;; lsp-mode, for those who run it instead of eglot. lsp-mode is
-;; third-party and optional, so it cannot be required: the
-;; registration waits for it to load, and these declarations keep a
-;; byte-compile without lsp-mode quiet.
-(declare-function lsp-register-client "lsp-mode")
-(declare-function make-lsp-client "lsp-mode")
-(declare-function lsp-stdio-connection "lsp-mode")
-(with-eval-after-load 'lsp-mode
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection
-                     (lambda () epher-server-program))
-    :major-modes '(epher-mode)
-    :server-id 'epher-lsp)))
 
 ;; The run (ADR-0069, decision 3: the text-first editors send the same
 ;; `epher/run' request the graphical clients use): the per-statement
@@ -212,9 +210,8 @@ eglot 1.16 renamed the helper and Emacs 30 ships that rename;
 Emacs 29.1's built-in eglot predates it and Emacs 30 keeps the old
 name only as an obsolete alias, so this calls whichever exists."
   (if (fboundp 'eglot-path-to-uri)
-      (eglot-path-to-uri path)
-    (with-suppressed-warnings ((obsolete eglot--path-to-uri))
-      (eglot--path-to-uri path))))
+      (funcall (symbol-function 'eglot-path-to-uri) path)
+    (funcall (symbol-function 'eglot--path-to-uri) path)))
 
 (defun epher-run--rerun ()
   "Re-run the script that produced these results."
