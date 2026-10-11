@@ -141,3 +141,11 @@ was disabled outright), and main's `required_linear_history` dropped
 (it forbids merge commits whatever the repository allows). Everything
 else in main's protection is untouched: the required Apple-silicon
 check, enforce-admins, the force-push and deletion guards.
+
+## Amendment 2026-10-11: flatpak builds from the cut tag
+
+The dry-run validation caught an ordering regression: the flatpak
+manifest pins the release's tag and commit, so the bundle cannot build
+before the tag exists. The flatpak job is a channel publisher like the
+marketplace jobs now: it runs after the release job, builds from the
+cut tag, and attaches the bundle itself. The verify job waits for it.
