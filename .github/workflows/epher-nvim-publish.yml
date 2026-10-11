@@ -22,19 +22,15 @@ name: epher.nvim publish
 # waits on it.
 
 on:
-  push:
-    tags: ["v*"]
   workflow_dispatch:
-    # Re-drive a publish the channel missed (a secret that arrived
-    # late, a tag pushed by hand at the wrong tree): name the monorepo
-    # ref to assemble, usually the v* tag itself.
+    # ADR-0073: the release dispatches this channel after it cuts the
+    # tag and publishes the release; a tag push carries no workflow
+    # events when the pusher is the release run's own token.
     inputs:
-      ref:
-        description: the monorepo ref to assemble (a v* tag)
-        required: true
       version:
-        description: the version to publish, v-prefixed (defaults to the ref)
-        required: false
+        description: the train to publish, e.g. 0.5.80 (a leading v is accepted)
+        required: true
+        type: string
 
 jobs:
   epher-nvim:
@@ -45,13 +41,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Resolve the version and the tag
+        id: v
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          version="${INPUT_VERSION#v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
       - name: Wait for the release to be published
         # ADR-0073: the channel follows the release. The tag fires this
         # workflow; if no published release exists for it after ten
         # minutes, the tag raced a failed release and nothing ships.
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.version || inputs.ref || github.ref_name }}
+          TAG: ${{ steps.v.outputs.tag }}
         run: |
           set -euo pipefail
           TAG="v${TAG#v}"
@@ -67,7 +73,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref || github.ref }}
+          ref: ${{ steps.v.outputs.tag }}
           fetch-depth: 0
 
       - name: Secrets check
@@ -86,7 +92,7 @@ jobs:
         # Runs even when the sync is skipped: a tag that does not match the
         # release train is a defect at tag time either way.
         env:
-          REQUESTED: ${{ inputs.version || inputs.ref || github.ref_name }}
+          REQUESTED: ${{ steps.v.outputs.tag }}
         run: |
           set -e
           version="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
@@ -103,7 +109,7 @@ jobs:
         if: steps.secrets.outputs.skip == 'false'
         env:
           NVIM_PACKAGE_TOKEN: ${{ secrets.NVIM_PACKAGE_TOKEN }}
-          REQUESTED: ${{ inputs.version || inputs.ref || github.ref_name }}
+          REQUESTED: ${{ steps.v.outputs.tag }}
         run: |
           set -euo pipefail
           version="${REQUESTED#v}"
