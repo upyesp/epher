@@ -2645,8 +2645,9 @@ Téléchargez un installateur pour votre système depuis le site web de epher :
   choisissez *Plus d'informations* → *Exécuter quand même* au premier
   lancement.
 - **macOS :** ouvrez `epher-macos-aarch64.dmg` et glissez epher dans
-  Applications. Comme la compilation n'est pas signée, le premier lancement
-  nécessite un clic droit → **Ouvrir**.
+  Applications. Comme la compilation n'est pas signée, macOS peut bloquer
+  le premier lancement : autorisez l'app via *Ouvrir quand même* dans
+  Réglages → *Confidentialité et sécurité*.
 - **Linux (Debian/Ubuntu) :** le paquet `.deb`
 
 ```sh

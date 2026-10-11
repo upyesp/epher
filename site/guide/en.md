@@ -2679,8 +2679,8 @@ Download one installer for your system from the epher website:
   Because the build is not signed, choose *More info* → *Run anyway* on the
   first launch.
 - **macOS:** open `epher-macos-aarch64.dmg` and drag epher into Applications.
-  Because the build is not signed, the first launch needs a right-click →
-  **Open**.
+  Because the build is not signed, macOS may block the first launch: allow
+  the app via *Open Anyway* in System Settings → *Privacy & Security*.
 - **Linux (Debian/Ubuntu):** the `.deb` package
 
 ```sh

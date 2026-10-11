@@ -51,7 +51,7 @@ window.EPHER_I18N["zh-CN"] = {
   "win-download": "在 Microsoft Store 获取 epher",
   "win-winget-title": "或使用 winget：",
   "mac-name": "macOS",
-  "mac-desc": "一个应用，一条命令：Homebrew 会把它装进「应用程序」文件夹，链接 epher 终端命令，并用 brew upgrade 保持最新。首次启动：右键点按该应用并选择「打开」。",
+  "mac-desc": "一个应用，一条命令：Homebrew 会把它装进「应用程序」文件夹，链接 epher 终端命令，并用 brew upgrade 保持最新。首次启动：如果 macOS 阻止该应用，请在「系统设置」→「隐私与安全性」中允许它。",
   "mac-brew-title": "用 Homebrew 安装（Apple 芯片）：",
   "mac-download": "或下载磁盘映像",
   "linux-name": "Linux",

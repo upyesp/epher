@@ -51,7 +51,7 @@ window.EPHER_I18N["en"] = {
   "win-download": "Get epher from the Microsoft Store",
   "win-winget-title": "or with winget:",
   "mac-name": "macOS",
-  "mac-desc": "One app, one command: Homebrew puts it in Applications, links the epher terminal command, and keeps it current with brew upgrade. First launch: right-click the app and choose Open.",
+  "mac-desc": "One app, one command: Homebrew puts it in Applications, links the epher terminal command, and keeps it current with brew upgrade. First launch: if macOS blocks the app, allow it in System Settings → Privacy & Security.",
   "mac-brew-title": "Install with Homebrew (Apple Silicon):",
   "mac-download": "or download the disk image instead",
   "linux-name": "Linux",

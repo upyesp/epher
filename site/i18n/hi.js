@@ -33,7 +33,7 @@ window.EPHER_I18N["hi"] = {
   "win-download": "Microsoft Store से epher लें",
   "win-winget-title": "या winget से:",
   "mac-name": "macOS",
-  "mac-desc": "एक ऐप, एक कमांड: Homebrew इसे Applications में रखता है, epher टर्मिनल कमांड जोड़ता है, और brew upgrade से इसे अद्यतन रखता है। पहली बार खोलने पर: ऐप पर राइट-क्लिक करें और Open चुनें।",
+  "mac-desc": "एक ऐप, एक कमांड: Homebrew इसे Applications में रखता है, epher टर्मिनल कमांड जोड़ता है, और brew upgrade से इसे अद्यतन रखता है। पहली बार खोलने पर: अगर macOS ऐप को रोके, तो System Settings → Privacy & Security में इसे अनुमति दें।",
   "mac-brew-title": "Homebrew से इंस्टॉल करें (Apple Silicon):",
   "mac-download": "या डिस्क इमेज डाउनलोड करें",
   "linux-name": "Linux",
