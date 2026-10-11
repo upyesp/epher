@@ -245,6 +245,8 @@ jobs:
           SHA: ${{ needs.train.outputs.sha }}
         run: |
           set -euo pipefail
+          git config user.name "epher train bot"
+          git config user.email "train@epher.org"
           if git ls-remote --tags origin "refs/tags/$V_VERSION" | grep -q "refs/tags/$V_VERSION"; then
             echo "tag $V_VERSION already exists (re-drive); leaving it in place"
             exit 0
