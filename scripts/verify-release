@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# The post-release gauntlet (ADR-0073): the same list a human walks
+# after every train, as a job. Fails the release run on the first
+# missing piece. Requires GH_TOKEN, VERSION (0.5.79) and V_VERSION
+# (v0.5.79) in the environment.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+REPO="${GITHUB_REPOSITORY:-upyesp/epher}"
+status=0
+
+echo "== release $V_VERSION is published =="
+if ! gh release view "$V_VERSION" --repo "$REPO" --json isDraft --jq '! .isDraft' >/dev/null 2>&1; then
+  echo "::error::release $V_VERSION is missing or still a draft"
+  status=1
+fi
+
+echo "== stable assets =="
+assets="$(gh release view "$V_VERSION" --repo "$REPO" --json assets --jq '.assets[].name' || true)"
+for name in \
+  epher-windows-x86_64.exe \
+  epher-macos-aarch64.dmg \
+  epher-linux-x86_64.deb epher-linux-x86_64.rpm epher-linux-x86_64.AppImage \
+  epher-linux-aarch64.deb epher-linux-aarch64.rpm epher-linux-aarch64.AppImage \
+  epher-linux-x86_64.flatpak \
+  epher-lsp-linux-x86_64.gz epher-lsp-linux-aarch64.gz \
+  epher-lsp-macos-aarch64.gz epher-lsp-windows-x86_64.zip \
+  epher-vscode.vsix epher-jetbrains.zip epher-visualstudio.vsix \
+  epher-zed.zip epher-nvim.zip epher-vim.zip epher-sublime.zip \
+  epher-emacs.zip epher-eclipse.jar; do
+  if ! grep -qxF "$name" <<<"$assets"; then
+    echo "::error::asset missing from the release: $name"
+    status=1
+  fi
+done
+
+echo "== channel workflows for $V_VERSION =="
+for wf in sublime-publish epher-nvim-publish luarocks-publish vim-publish; do
+  conclusion=""
+  for i in $(seq 1 20); do
+    conclusion="$(gh run list --workflow "$wf.yml" --branch "$V_VERSION" --limit 1 \
+      --json status,conclusion \
+      --jq 'if (.[0] // null) == null then "" else (.[0].status + "/" + (.[0].conclusion // "pending")) end' 2>/dev/null || echo "")"
+    case "$conclusion" in
+      completed/success) break ;;
+      completed/*) break ;;
+    esac
+    sleep 30
+  done
+  if [ "$conclusion" != "completed/success" ]; then
+    echo "::error::$wf did not conclude success (last state: ${conclusion:-no run})"
+    status=1
+  else
+    echo "$wf: success"
+  fi
+done
+
+echo "== mirror stamps =="
+# The mirrors sync within a minute of the tag; allow up to five.
+mirror_ok() {
+  local repo="$1" file="$2" pattern="$3"
+  for i in $(seq 1 10); do
+    if gh api "repos/upyesp/$repo/contents/$file" --jq .content 2>/dev/null \
+        | base64 -d 2>/dev/null | grep -q "$pattern"; then
+      return 0
+    fi
+    sleep 30
+  done
+  return 1
+}
+if mirror_ok LSP-epher plugin.py "_SERVER_VERSION = \"$VERSION\""; then
+  echo "LSP-epher: stamped $VERSION"
+else
+  echo "::error::LSP-epher plugin.py is not stamped $VERSION"
+  status=1
+fi
+if mirror_ok epher.nvim lua/epher.lua "epher_src_bufnr"; then
+  echo "epher.nvim: sync commit found"
+else
+  echo "::error::epher.nvim main does not carry the expected sync"
+  status=1
+fi
+nvim_msg="$(gh api repos/upyesp/epher.nvim/commits/main --jq '.commit.message' 2>/dev/null | head -1 || true)"
+if [ "${nvim_msg#*0.5.}" != "$nvim_msg" ] && [ "${nvim_msg#*"$VERSION"}" != "$nvim_msg" ]; then
+  echo "epher.nvim: $nvim_msg"
+else
+  echo "::error::epher.nvim main commit does not name $VERSION ($nvim_msg)"
+  status=1
+fi
+
+if [ "$status" -ne 0 ]; then
+  echo "::error::the release is incomplete; see the errors above"
+fi
+exit "$status"
