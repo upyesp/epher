@@ -263,6 +263,22 @@ _Avoid_: trace (ambiguous with the plotting sense), execution log
 
 ## Delivery
 
+- Releases are dispatched, never tagged by hand (ADR-0073,
+  2026-10-10): the release is `gh workflow run release.yml -f version=X`
+  on main, and CI verifies the tree, builds from the pinned sha, and
+  cuts the tag itself at the end. A local `git tag` + push publishes
+  nothing and is how v0.5.78 got burned. Failed releases re-drive by
+  re-running the run or dispatching the same version again.
+- Version bumps are one command: `scripts/train <version>` rewrites
+  VERSION and every copy (eight locations, ADR-0073);
+  `scripts/check-version-lock` is also a required-shaped CI check on
+  PRs, so a missed file fails the PR, not the train. The hand-built
+  bump sweep (the grep list that missed the jetbrains fallback and
+  burned v0.5.73 to v0.5.75) is retired.
+- Promotions merge with a merge commit (`gh pr merge --merge`), never
+  squash: squashed promotions put the same version-line edits on main
+  under a different ancestry and forced a merge conflict every train
+  (#121, #129, #131). Feature PRs keep squashing (ADR-0073).
 - Promotion (staging to live) happens only on a go-ahead the user has
   explicitly confirmed. When a user message reads as a promotion
   instruction, stop and ask for confirmation first: post the exact
