@@ -167,7 +167,8 @@ jobs:
     # the release attach. Arm users install the deb, rpm, AppImage or
     # snap like every other arm channel.
     name: flatpak (x86_64)
-    needs: [train]
+    needs: [train, release]
+    if: inputs.dry_run != true
     strategy:
       fail-fast: false
       matrix:
@@ -212,6 +213,17 @@ jobs:
         with:
           name: flatpak-linux-${{ matrix.arch }}
           path: epher-linux-${{ matrix.arch }}.flatpak
+
+      - name: Attach the bundle to the release
+        # The flatpak manifest pins the release's tag and commit, so
+        # this job runs after the tag is cut (ADR-0073): it is a
+        # channel publisher like the marketplace jobs, not a build
+        # gate. The dry run skips it; flatpak-build.yml proves the
+        # manifest between releases.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.train.outputs.v_version }}
+        run: gh release upload "$TAG" "epher-linux-${{ matrix.arch }}.flatpak" --repo "$GITHUB_REPOSITORY" --clobber
 
   release:
     name: Attach assets to the release
@@ -625,7 +637,7 @@ jobs:
     # walk, which is the only reason the jetbrains gap of the burned
     # v0.5.73 to v0.5.75 trains was found at all.
     name: verify the release end to end
-    needs: [train, release, linux-repos, vscode-marketplace, openvsx, visualstudio, jetbrains, eclipse-updatesite, snap]
+    needs: [train, release, linux-repos, flatpak, vscode-marketplace, openvsx, visualstudio, jetbrains, eclipse-updatesite, snap]
     if: inputs.dry_run != true
     runs-on: ubuntu-latest
     timeout-minutes: 30
