@@ -73,6 +73,7 @@ class EpherPlugin(LspPlugin):
         if context.configuration.command != _DEFAULT_COMMAND:
             return
         managed = _managed_server()
+        failure = None
         if managed is None:
             managed, failure = _download_server()
         if managed is not None:
