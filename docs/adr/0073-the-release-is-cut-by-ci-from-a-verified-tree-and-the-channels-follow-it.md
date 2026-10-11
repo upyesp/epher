@@ -132,3 +132,12 @@ and never carry a channel whose build failed.
 - v0.5.73 through v0.5.78 stay burned exactly as they are; this ADR
   changes how the next train goes out, not how the old ones are
   remembered.
+
+## Amendment 2026-10-10, same day: enabling changes
+
+Merge-commit promotions needed two settings flipped on the repository
+and its main branch: `allow_merge_commit` at the repository level (it
+was disabled outright), and main's `required_linear_history` dropped
+(it forbids merge commits whatever the repository allows). Everything
+else in main's protection is untouched: the required Apple-silicon
+check, enforce-admins, the force-push and deletion guards.
