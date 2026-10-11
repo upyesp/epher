@@ -99,3 +99,12 @@ must exist on `main`. After that commit, main obeys the promotion rule.
   public page. Promotion replaces the draft with the real release.
 - The old muscle memory (`git push origin main` publishes) is now an
   error message instead of a deployment, which is the point.
+
+## Amendment 2026-10-10
+
+The public release is no longer triggered by pushing a tag: release.yml
+is a dispatch that verifies the tree, builds from a pinned sha, and
+cuts the tag itself at the end (ADR-0073). The staged delivery flow is
+unchanged in every other respect: the batch is still built, previewed,
+and tested as the hidden draft before the release dispatch happens, and
+the dispatch is the promotion's last act instead of the tag push.

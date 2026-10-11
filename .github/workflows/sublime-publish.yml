@@ -32,6 +32,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Wait for the release to be published
+        # ADR-0073: the channel follows the release. The tag fires this
+        # workflow; if no published release exists for it after ten
+        # minutes, the tag raced a failed release and nothing ships.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          TAG="v${TAG#v}"
+          for i in $(seq 1 20); do
+            if gh release view "$TAG" --repo upyesp/epher --json isDraft --jq '! .isDraft' >/dev/null 2>&1; then
+              echo "release $TAG is published"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::error::no published release for $TAG after 10 minutes; the channel follows the release (ADR-0073)"
+          exit 1
+
       - uses: actions/checkout@v4
 
       - name: Secrets check
