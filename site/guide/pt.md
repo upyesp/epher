@@ -2606,8 +2606,9 @@ Descarregue um instalador para o seu sistema a partir do site do epher:
   `epher "2 + 2"` funciona. Como a compilação não está assinada, escolha
   *Mais informações* → *Executar mesmo assim* no primeiro arranque.
 - **macOS:** abra `epher-macos-aarch64.dmg` e arraste o epher para
-  Aplicações. Como a compilação não está assinada, o primeiro arranque
-  requer um clique com o botão direito → **Abrir**.
+  Aplicações. Como a compilação não está assinada, o macOS pode bloquear o
+  primeiro arranque: permita a aplicação através de *Abrir mesmo assim* em
+  Definições → *Privacidade e Segurança*.
 - **Linux (Debian/Ubuntu):** o pacote `.deb`
 
 ```sh

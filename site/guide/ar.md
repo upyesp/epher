@@ -2419,7 +2419,7 @@ graph3d sin(a * (x ^ 2 + y ^ 2)) from -3 to 3
 نزّل مثبِّتاً واحداً لنظامك من موقع epher:
 
 - **Windows:** شغّل `epher-windows-x86_64.exe`. يضع المثبِّت `epher` في PATH. افتح نافذة CMD أو PowerShell جديدة و`epher "2 + 2"` يعمل. لأن البناء غير موقَّع، اختر *More info* ← *Run anyway* عند أول تشغيل.
-- **macOS:** افتح ملف `epher-macos-aarch64.dmg` واسحب epher إلى Applications. لأن البناء غير موقَّع، يحتاج أول تشغيل إلى النقر بالزر الأيمن ← **Open**.
+- **macOS:** افتح ملف `epher-macos-aarch64.dmg` واسحب epher إلى Applications. لأن البناء غير موقَّع، قد يمنع macOS أول تشغيل: اسمح بالتطبيق عبر *Open Anyway* في إعدادات النظام ← الخصوصية والأمان.
 - **Linux (Debian/Ubuntu):** حزمة `.deb`
 
 ```sh

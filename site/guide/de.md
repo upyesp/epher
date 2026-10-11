@@ -2615,8 +2615,9 @@ Lade von der epher-Website einen Installer für dein System herunter:
   und `epher "2 + 2"` funktioniert. Da der Build nicht signiert ist, wähle
   beim ersten Start *Weitere Informationen* → *Trotzdem ausführen*.
 - **macOS:** öffne `epher-macos-aarch64.dmg` und ziehe epher in Programme.
-  Da der Build nicht signiert ist, braucht der erste Start einen
-  Rechtsklick → **Öffnen**.
+  Da der Build nicht signiert ist, blockiert macOS den ersten Start
+  eventuell: erlaube die App über *Trotzdem öffnen* in den
+  Systemeinstellungen → *Datenschutz & Sicherheit*.
 - **Linux (Debian/Ubuntu):** das Paket `.deb`
 
 ```sh

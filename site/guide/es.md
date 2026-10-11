@@ -2617,8 +2617,9 @@ Descarga un instalador para tu sistema desde el sitio web de epher:
   funciona. Como la compilación no está firmada, elige *Más información* →
   *Ejecutar de todas formas* en el primer arranque.
 - **macOS:** abre `epher-macos-aarch64.dmg` y arrastra epher a Aplicaciones.
-  Como la compilación no está firmada, el primer arranque necesita clic
-  derecho → **Abrir**.
+  Como la compilación no está firmada, macOS puede bloquear el primer
+  arranque: permite la app mediante *Abrir igualmente* en Ajustes →
+  *Privacidad y seguridad*.
 - **Linux (Debian/Ubuntu):** el paquete `.deb`
 
 ```sh
