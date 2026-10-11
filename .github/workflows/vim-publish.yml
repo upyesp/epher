@@ -58,14 +58,20 @@ jobs:
         run: |
           set -euo pipefail
           TAG="v${TAG#v}"
+          last=""
           for i in $(seq 1 20); do
-            if gh release view "$TAG" --repo upyesp/epher --json isDraft --jq '! .isDraft' >/dev/null 2>&1; then
-              echo "release $TAG is published"
-              exit 0
+            if last="$(gh release view "$TAG" --repo upyesp/epher --json isDraft --jq .isDraft 2>&1)"; then
+              if [ "$last" = "false" ]; then
+                echo "release $TAG is published"
+                exit 0
+              fi
+              echo "attempt $i: release $TAG exists but isDraft=$last"
+            else
+              echo "attempt $i: release $TAG not visible: $last"
             fi
             sleep 30
           done
-          echo "::error::no published release for $TAG after 10 minutes; the channel follows the release (ADR-0073)"
+          echo "::error::no published release for $TAG after 10 minutes (last: $last); the channel follows the release (ADR-0073)"
           exit 1
 
       - uses: actions/checkout@v4
