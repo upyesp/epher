@@ -270,7 +270,7 @@ _Avoid_: trace (ambiguous with the plotting sense), execution log
   nothing and is how v0.5.78 got burned. Failed releases re-drive by
   re-running the run or dispatching the same version again.
 - Version bumps are one command: `scripts/train <version>` rewrites
-  VERSION and every copy (eight locations, ADR-0073);
+  VERSION and every copy (nine locations, ADR-0073);
   `scripts/check-version-lock` is also a required-shaped CI check on
   PRs, so a missed file fails the PR, not the train. The hand-built
   bump sweep (the grep list that missed the jetbrains fallback and

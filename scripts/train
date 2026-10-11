@@ -48,6 +48,8 @@ def main() -> int:
          'DEFAULT_VERSION = "%s"', 1),
         ("clients/sublime/plugin.py", r'_SERVER_VERSION = "%s"' % re.escape(old),
          '_SERVER_VERSION = "%s"', 1),
+        ("clients/emacs/epher.el", r'^;; Version: %s' % re.escape(old),
+         ';; Version: %s', 1),
         ("Cargo.lock", r'(name = "epher-cli"\nversion = ")%s(")' % re.escape(old),
          r'\g<1>%s\g<2>', 1),
         ("Cargo.lock", r'(name = "epher-lsp"\nversion = ")%s(")' % re.escape(old),

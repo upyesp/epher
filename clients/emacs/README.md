@@ -5,8 +5,7 @@ that convert, and every statement's answer appears inline, right next
 to the line that produced it. This is the client glue for the shared
 `epher-lsp` server: `epher-mode` for `.epher` files and eglot for the
 language features. Requires Emacs 29 or newer, where eglot ships built
-in. With lsp-mode installed instead, the client is registered there
-too.
+in. lsp-mode works too; see [Using lsp-mode](#using-lsp-mode).
 
 Download the [epher calculator](https://epher.org), and a large
 selection of [ready-made scripts](https://epher.org/scripts.html) from
@@ -89,8 +88,28 @@ customizing the command:
 ```
 
 Set `epher-lsp-autostart` to nil if you start the server yourself or
-run it through lsp-mode (the client is registered there as
-`epher-lsp`, so `lsp` in an `epher-mode` buffer just works).
+run it through lsp-mode.
+
+## Using lsp-mode
+
+lsp-mode is third-party and optional, so epher never loads it. With
+lsp-mode loaded, register the client from your init file:
+
+```elisp
+(with-eval-after-load 'lsp-mode
+  (add-to-list 'lsp-language-id-configuration '(epher-mode . "epher"))
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection (lambda () epher-server-program))
+    :activation-fn (lsp-activate-on "epher")
+    :server-id 'epher-lsp)))
+```
+
+Set `epher-lsp-autostart` to nil so eglot does not start too. A
+built-in lsp-mode client is on its way upstream
+([emacs-lsp/lsp-mode#5129](https://github.com/emacs-lsp/lsp-mode/pull/5129));
+once your lsp-mode ships it, `lsp` in an `epher-mode` buffer just
+works and this snippet is unnecessary.
 
 ## Getting the server binary
 
@@ -112,8 +131,8 @@ locally after that.
 
 ## Requirements
 
-- Emacs 29.1 or newer, for the built-in eglot. lsp-mode is optional
-  and registered as an alternative.
+- Emacs 29.1 or newer, for the built-in eglot. lsp-mode is optional;
+  see [Using lsp-mode](#using-lsp-mode).
 - The `epher-lsp` binary for your platform, on `exec-path` or named
   in `epher-server-program`.
 
