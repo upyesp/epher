@@ -10,8 +10,12 @@ REPO="${GITHUB_REPOSITORY:-upyesp/epher}"
 status=0
 
 echo "== release $V_VERSION is published =="
-if ! gh release view "$V_VERSION" --repo "$REPO" --json isDraft --jq '! .isDraft' >/dev/null 2>&1; then
-  echo "::error::release $V_VERSION is missing or still a draft"
+# gh's jq has no prefix-! operator ('! .isDraft' is a syntax error, and
+# the 0.5.80 gauntlet died on it): pipe to not, capture and compare.
+draft="$(gh release view "$V_VERSION" --repo "$REPO" --json isDraft --jq '.isDraft | not' 2>&1)" \
+  || { echo "::error::release $V_VERSION is missing ($draft)"; exit 1; }
+if [ "$draft" != "true" ]; then
+  echo "::error::release $V_VERSION is a draft"
   status=1
 fi
 
@@ -39,7 +43,12 @@ echo "== channel workflows dispatched by this release =="
 # by the run's own token fires no events), so their runs are dispatch
 # runs created after this run started. Find each workflow's newest run
 # in that window and require it to conclude success.
-epoch_since="$(date -d "$(gh run view "$GITHUB_RUN_ID" --repo "$REPO" --json createdAt --jq .createdAt)" +%s)"
+if [ -n "${GITHUB_RUN_ID:-}" ]; then
+  epoch_since="$(date -d "$(gh run view "$GITHUB_RUN_ID" --repo "$REPO" --json createdAt --jq .createdAt)" +%s)"
+else
+  # Local runs have no run id: no window, take the newest run.
+  epoch_since=0
+fi
 for wf in sublime-publish epher-nvim-publish luarocks-publish vim-publish; do
   run_id=""
   for i in $(seq 1 20); do
@@ -75,11 +84,14 @@ done
 
 echo "== mirror stamps =="
 # The mirrors sync within a minute of the tag; allow up to five.
+# grep -q on the pipeline SIGPIPEs the producer on its first match and
+# pipefail turns that into a failure (the release.yml listing comment
+# documents the same bite): capture first, match after.
 mirror_ok() {
-  local repo="$1" file="$2" pattern="$3"
+  local repo="$1" file="$2" pattern="$3" content=""
   for i in $(seq 1 10); do
-    if gh api "repos/upyesp/$repo/contents/$file" --jq .content 2>/dev/null \
-        | base64 -d 2>/dev/null | grep -q "$pattern"; then
+    content="$(gh api "repos/upyesp/$repo/contents/$file" --jq .content 2>/dev/null | base64 -d 2>/dev/null || true)"
+    if grep -q "$pattern" <<<"$content"; then
       return 0
     fi
     sleep 30
@@ -98,11 +110,12 @@ else
   echo "::error::epher.nvim main does not carry the expected sync"
   status=1
 fi
-nvim_msg="$(gh api repos/upyesp/epher.nvim/commits/main --jq '.commit.message' 2>/dev/null | head -1 || true)"
-if [ "${nvim_msg#*0.5.}" != "$nvim_msg" ] && [ "${nvim_msg#*"$VERSION"}" != "$nvim_msg" ]; then
-  echo "epher.nvim: $nvim_msg"
+# The mirror's main commit only moves when the content moves: a train
+# whose nvim tree is unchanged is a tag-only push, and that is success.
+if gh api "repos/upyesp/epher.nvim/git/ref/tags/v$VERSION" --jq .object.sha >/dev/null 2>&1; then
+  echo "epher.nvim: tag v$VERSION present"
 else
-  echo "::error::epher.nvim main commit does not name $VERSION ($nvim_msg)"
+  echo "::error::epher.nvim has no v$VERSION tag"
   status=1
 fi
 

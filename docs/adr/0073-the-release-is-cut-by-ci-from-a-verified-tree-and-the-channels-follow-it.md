@@ -149,3 +149,12 @@ manifest pins the release's tag and commit, so the bundle cannot build
 before the tag exists. The flatpak job is a channel publisher like the
 marketplace jobs now: it runs after the release job, builds from the
 cut tag, and attaches the bundle itself. The verify job waits for it.
+
+## Amendment 2026-10-11: the channels are dispatch-driven
+
+The 0.5.80 train's verify job caught the last structural gap: a tag
+pushed by the release run's own GITHUB_TOKEN fires no workflow events,
+so tag-triggered channel workflows never ran. The four channels are
+workflow_dispatch with a version input now (their tag-push triggers
+are gone); the release job dispatches them after publishing, and the
+verify job finds their runs in the dispatch window.
