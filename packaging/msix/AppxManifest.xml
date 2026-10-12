@@ -53,8 +53,9 @@
          execution alias carries the full CLI in any terminal - the
          alias resolves through %LOCALAPPDATA%\Microsoft\WindowsApps,
          which is on the user PATH by default, because an MSIX cannot
-         edit PATH itself - and bare `epher` routes to the GUI
-         (Action::Gui, ADR-0011). The console alias requires
+         edit PATH itself - and bare `epher` on the console build
+         explains itself and quits until the HeadlessAppBypass waiver
+         lands (ADR-0011, ADR-0074). The console alias requires
          SupportsMultipleInstances. -->
     <Application Id="EpherGuiApp"
                 Executable="epher-gui.exe"

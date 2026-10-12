@@ -58,3 +58,8 @@ tauri-plugin-dialog = "2"
 
 [dev-dependencies]
 tempfile = "3"
+
+# The bare-run banner on the Windows console build (ADR-0074): console
+# mode calls so one keypress (Enter not required) ends the run.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_System_Console"] }
