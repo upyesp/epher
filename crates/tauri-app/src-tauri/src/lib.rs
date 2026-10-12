@@ -472,6 +472,15 @@ where
     I::Item: Into<std::ffi::OsString> + Clone,
 {
     let parsed = dispatch::Args::try_parse_from(args).unwrap_or_else(|e| e.exit());
+    // Windows, console build, nothing passed (ADR-0074): the bare run
+    // explains itself in the console and ends after one keypress. The
+    // GUI-subsystem build (epher-gui.exe, the double-click target) and
+    // every other platform keep the bare-run GUI. Temporary until
+    // Microsoft grants the HeadlessAppBypass waiver; removal rides the
+    // waiver's follow-up.
+    if cfg!(windows) && dispatch::is_bare_run(&parsed) && !is_gui_subsystem_binary() {
+        explain_bare_windows_run();
+    }
     let result = match dispatch::action_from(&parsed) {
         dispatch::Action::OneShot(expr) => epher_cli::run_one_shot(&expr),
         dispatch::Action::Stdin => epher_cli::run_stdin_and_exit(),
