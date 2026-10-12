@@ -146,6 +146,7 @@ dependencies = [
  "epher-core",
  "epher-store",
  "epher-tui",
+ "libc",
  "log",
  "notify",
  "open",

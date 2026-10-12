@@ -63,3 +63,9 @@ tempfile = "3"
 # mode calls so one keypress (Enter not required) ends the run.
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.59", features = ["Win32_System_Console"] }
+
+# The Linux GUI startup holds stderr aside while the driver stack probes
+# (the libEGL/DRI warning wall on machines without 3D acceleration): dup
+# and dup2 move the descriptor to /dev/null and back.
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
