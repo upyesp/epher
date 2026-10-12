@@ -4,4 +4,4 @@
 //! parsed arguments to an [`Action`]; the frontends then run in thin
 //! wrappers over their own entry points.
 
-pub use epher_cli::dispatch::{action_from, Action, Args, Command};
+pub use epher_cli::dispatch::{action_from, is_bare_run, Action, Args, Command};

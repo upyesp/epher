@@ -176,6 +176,15 @@ pub fn action_from(args: &Args) -> Action {
     }
 }
 
+/// Did this invocation pass nothing at all: no subcommand, no
+/// expression? The bare run. What it *means* belongs to the frontends
+/// (the desktop binary opens the GUI; the Windows console build
+/// explains itself and quits until the headless waiver, ADR-0074);
+/// this module only names the shape.
+pub fn is_bare_run(args: &Args) -> bool {
+    args.command.is_none() && args.expression.is_none()
+}
+
 /// The tail of `--help` (and of the `epher help` fallback): where the
 /// documentation lives and where to report bugs, the support path
 /// clig.dev asks for. (Examples lead the page via the shared template.)

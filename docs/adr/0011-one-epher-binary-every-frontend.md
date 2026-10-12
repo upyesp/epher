@@ -102,3 +102,10 @@ lives in the dispatcher:
   is the same one tests use.
 - Bare `epher` changing from REPL (v0.2.0 CLI) to GUI is a breaking UX
   change → version 0.3.0.
+
+## Amendments
+
+- 2026-10-11 (ADR-0074): on the Windows console build, a bare run
+  explains itself and ends after one keypress until Microsoft grants
+  the HeadlessAppBypass waiver for the Store listing; `epher gui` and
+  every other platform keep the rules above.
