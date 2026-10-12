@@ -591,6 +591,81 @@ fn gui_launch_candidates(current_exe: &std::path::Path) -> Vec<std::path::PathBu
     candidates
 }
 
+/// What the Windows console build prints for a bare run (ADR-0074), the
+/// product wording: examples first, then the keypress line, so a
+/// double-clicked console window stays open long enough to read.
+#[cfg_attr(not(windows), allow(dead_code))]
+const BARE_RUN_BANNER: &str = r#"It looks like you have run the terminal command `epher` without including any arguments. Here are some examples of how to use epher in the terminal:
+
+epher "2 + 3"            # simple addition
+epher "2 + 3 * 4"        # operator precedence
+epher "solve x^2 == 9"   # solve an equation
+epher repl               # start the interactive REPL in the terminal
+epher tui                # start the full-screen terminal interface
+epher gui                # start the desktop app
+epher help               # print help
+
+epher is about to quit, press any key to continue..."#;
+
+/// The bare Windows run (ADR-0074): print the examples, wait for one
+/// key, end with 0. When stdout is not a console (a Start tile, a
+/// pipe) the printout has no reader, so the run ends quietly, as it
+/// did before this banner existed.
+#[cfg(windows)]
+fn explain_bare_windows_run() -> ! {
+    use std::io::Write;
+    if !stdout_is_a_console() {
+        std::process::exit(0);
+    }
+    let mut out = std::io::stdout();
+    let _ = out.write_all(BARE_RUN_BANNER.as_bytes());
+    let _ = out.write_all(b"\n\n");
+    let _ = out.flush();
+    wait_for_any_key();
+    std::process::exit(0);
+}
+
+/// The non-Windows body never runs: the call site is gated on
+/// `cfg!(windows)`, and this fn exists only so the whole call site
+/// type-checks on every host (the console calls stay Windows-only).
+#[cfg(not(windows))]
+fn explain_bare_windows_run() -> ! {
+    unreachable!("the bare-run explanation only runs on the Windows console build")
+}
+
+/// Does stdout belong to a console a user can read (not a pipe, a
+/// file, or a console-less launch)?
+#[cfg(windows)]
+fn stdout_is_a_console() -> bool {
+    use windows_sys::Win32::System::Console::{GetConsoleMode, GetStdHandle, STD_OUTPUT_HANDLE};
+    unsafe {
+        let mut mode = 0u32;
+        GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &mut mode) != 0
+    }
+}
+
+/// Block until one key: line input and echo are switched off for the
+/// wait, so any key works and none is printed back (Enter is not
+/// required). A redirected or absent stdin has no console mode to
+/// change, and its reads end immediately, so the wait cannot hang.
+#[cfg(windows)]
+fn wait_for_any_key() {
+    use std::io::Read;
+    use windows_sys::Win32::System::Console::{
+        GetConsoleMode, GetStdHandle, SetConsoleMode, ENABLE_ECHO_INPUT, ENABLE_LINE_INPUT,
+        STD_INPUT_HANDLE,
+    };
+    unsafe {
+        let input = GetStdHandle(STD_INPUT_HANDLE);
+        let mut mode = 0u32;
+        if GetConsoleMode(input, &mut mode) != 0 {
+            SetConsoleMode(input, mode & !(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
+        }
+    }
+    let mut byte = [0u8; 1];
+    let _ = std::io::stdin().read(&mut byte);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

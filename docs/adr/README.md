@@ -96,6 +96,9 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0069 | The language server runs scripts, and every editor shows the results (amended 2026-09-21: every VS Code start is the same start; amended 2026-09-21: milestone two — JetBrains, Visual Studio, and Neovim run scripts, Zed documented to its limits) | 2026-09-19 | accepted |
 | 0070 | Double-clicking a `.epher` file opens the desktop app and stages it (renumbered from 0069, which was double-allocated) | 2026-09-17 | accepted |
 | 0071 | The store manifest ships two visible applications | 2026-10-04 | accepted |
+| 0072 | macOS installs come from Homebrew | 2026-10-10 | accepted |
+| 0073 | The release is cut by CI from a verified tree and the channels follow it | 2026-10-10 | accepted |
+| 0074 | The Windows CLI explains a bare run until the headless waiver | 2026-10-11 | accepted |
 
 ## Decision chains
 

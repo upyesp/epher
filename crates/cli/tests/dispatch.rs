@@ -6,7 +6,7 @@
 use clap::error::ErrorKind;
 use clap::Parser;
 
-use epher_cli::dispatch::{action_from, Action, Args};
+use epher_cli::dispatch::{action_from, is_bare_run, Action, Args};
 use epher_cli::help;
 
 fn parse(args: &[&str]) -> Action {
@@ -18,6 +18,15 @@ fn parse(args: &[&str]) -> Action {
 #[test]
 fn bare_epher_opens_the_gui() {
     assert_eq!(parse(&[]), Action::Gui(None));
+}
+
+#[test]
+fn is_bare_run_names_the_empty_invocation_only() {
+    assert!(is_bare_run(&Args::parse_from(["epher"])));
+    assert!(!is_bare_run(&Args::parse_from(["epher", "2 + 3"])));
+    assert!(!is_bare_run(&Args::parse_from(["epher", "-"])));
+    assert!(!is_bare_run(&Args::parse_from(["epher", "repl"])));
+    assert!(!is_bare_run(&Args::parse_from(["epher", "gui"])));
 }
 
 #[test]
