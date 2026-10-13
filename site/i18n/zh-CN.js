@@ -237,7 +237,7 @@ window.EPHER_I18N["zh-CN"] = {
   "ide-vim-p2": "当 vim-lsp 渲染内联答案时，它们会以 inlay hint 的形式出现：设置 `g:lsp_inlay_hints_enabled` 并以虚拟文本运行 Vim 9。",
   "ide-nvim-luarocks": "在 LuaRocks 包管理器中查找 epher",
   "ide-nvim-link": "手动安装：下载 epher-nvim.zip",
-  "ide-vim-link": "vim.org 上的 epher",
+  "ide-vim-link": "在 vim.org 中查找 epher",
   "ide-sublime-p1": "已上架 Package Control：`Package Control: Install Package`，然后搜索 LSP-epher（需先以同样方式安装 LSP 包）。软件包以 Sublime 原生格式带来共享语法，以及 LSP 的客户端定义；服务器自行管理：首次启动时会把对应平台的 epher-lsp 二进制下载到包存储中。",
   "ide-sublime-packagecontrol": "在 Package Control 包管理器中查找 epher",
   "ide-sublime-link": "下载 epher-sublime.zip",
