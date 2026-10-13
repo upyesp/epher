@@ -80,10 +80,14 @@ top, a failed release produces zero channel writes by construction.
 ### Verification is a job, not a ritual
 
 `scripts/verify-release`, run as the release run's final `verify` job:
-the release is published, the stable asset names are all attached, the
-four channel workflows concluded success for the tag, and both mirror
-repositories carry the new version's stamp. Red here means the train
-is not out, whatever the earlier green jobs said.
+the release is published, the stable asset names are all attached
+(including the versioned eclipse update-site zip, attached again since
+the dispatch flow broke its `github.ref_type` gate), the four channel
+workflows concluded success for the tag, the live p2 update site at
+epher.org serves the train version (it once rode along at 0.5.79 while
+every job stayed green), and both mirror repositories carry the new
+version's stamp. Red here means the train is not out, whatever the
+earlier green jobs said.
 
 ### Promotions merge instead of squashing
 

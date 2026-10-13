@@ -29,6 +29,10 @@ on:
         description: "push the built update site to gh-pages (false for a dry run)"
         type: boolean
         default: true
+      tag:
+        description: "release tag to attach the update-site zip to (empty = do not attach)"
+        type: string
+        default: ""
   workflow_dispatch:
     inputs:
       ref:
@@ -43,6 +47,10 @@ on:
         description: "push the built update site to gh-pages (uncheck for a dry run)"
         type: boolean
         default: true
+      tag:
+        description: "release tag to attach the update-site zip to (empty = do not attach)"
+        type: string
+        default: ""
 
 permissions:
   contents: write # the gh-pages push and the release asset upload
@@ -153,13 +161,19 @@ jobs:
           fi
 
       - name: Attach the update-site zip to the release
-        if: github.ref_type == 'tag'
+        # The gate cannot be github.ref_type == 'tag': release.yml calls
+        # this workflow on the pinned sha, so the ref is main and the
+        # gate never fired (the zip vanished from releases at 0.5.79,
+        # issue #152). The caller passes the tag instead; an empty tag
+        # keeps the hand-dispatch dry path attach-free.
+        if: inputs.tag != ''
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
           set -euo pipefail
           zip="clients/eclipse/io.github.upyesp.epher.eclipse.updatesite/target/io.github.upyesp.epher.eclipse.updatesite-$VERSION.zip"
-          gh release upload "$GITHUB_REF_NAME" "$zip" --clobber
+          gh release upload "$RELEASE_TAG" "$zip" --clobber
 
       - name: Redeploy the site with the new update site
         # epher.org serves apt/, rpm/ and eclipse/ out of gh-pages; the
