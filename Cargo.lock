@@ -146,6 +146,7 @@ dependencies = [
  "epher-core",
  "epher-store",
  "epher-tui",
+ "libc",
  "log",
  "notify",
  "open",
@@ -1115,7 +1116,7 @@ dependencies = [
 
 [[package]]
 name = "epher-cli"
-version = "0.5.85"
+version = "0.5.86"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1163,7 +1164,7 @@ dependencies = [
 
 [[package]]
 name = "epher-lsp"
-version = "0.5.85"
+version = "0.5.86"
 dependencies = [
  "crossbeam-channel",
  "epher-core",

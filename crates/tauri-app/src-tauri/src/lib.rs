@@ -344,6 +344,18 @@ pub fn run() {
 /// `.epher` file association): it lands in [`PendingOpen`] for the
 /// webview to pick up.
 fn run_desktop(pending_script: Option<PathBuf>) {
+    // The driver stack's probing noise: launching the GUI from a terminal
+    // on a machine without working 3D acceleration prints a wall of libEGL
+    // and driver warnings (DRI3, DRI2, VMware svga) that reads as if epher
+    // were failing, though the window opens fine on the software fallback.
+    // None of it is epher's or actionable for the user, so on Linux the
+    // GUI startup holds stderr on /dev/null until the window is up (first
+    // focus) or the app exits, whichever comes first; anything printed
+    // afterwards still reaches the terminal. A startup failure restores
+    // stderr before the error prints (the guard drops when run_desktop
+    // returns). Linux only: the warning wall is a Linux/Mesa shape.
+    #[cfg(target_os = "linux")]
+    let startup_stderr = StartupStderr::suppress();
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(DesktopStore::with_dir(persist::default_store_dir()))
@@ -368,6 +380,16 @@ fn run_desktop(pending_script: Option<PathBuf>) {
             quit,
             open_url
         ])
+        .on_window_event(move |_window, _event| {
+            // The driver probing is over once the window is up and
+            // interactive: stderr goes back to the terminal at the first
+            // focus (or at app exit, when the guard drops), so anything
+            // printed afterwards still reaches the user.
+            #[cfg(target_os = "linux")]
+            if matches!(_event, tauri::WindowEvent::Focused(_)) {
+                startup_stderr.restore();
+            }
+        })
         .setup(|app| {
             // Publish/subscribe for the shared store (ADR-0010
             // amendment): the desktop writes every state change to the
@@ -519,6 +541,66 @@ where
     }
 }
 
+/// The GUI startup's stderr hold (Linux only): [`Self::suppress`] points
+/// fd 2 at /dev/null and keeps the original on the side;
+/// [`Self::restore`] puts it back. Restore runs once (the flag wins the
+/// race between the first focus event and the drop at app exit), and a
+/// suppress that could not redirect leaves nothing to restore, so a
+/// hostile or unusual environment degrades to today's behavior: the
+/// driver noise prints as it always did.
+#[cfg(target_os = "linux")]
+struct StartupStderr {
+    saved: Option<i32>,
+    restored: std::sync::atomic::AtomicBool,
+}
+
+#[cfg(target_os = "linux")]
+impl StartupStderr {
+    fn suppress() -> Self {
+        use std::os::unix::io::AsRawFd;
+        let saved = unsafe { libc::dup(2) };
+        if saved < 0 {
+            return Self {
+                saved: None,
+                restored: std::sync::atomic::AtomicBool::new(true),
+            };
+        }
+        let redirected = std::fs::File::create("/dev/null").ok()
+            .is_some_and(|devnull| unsafe { libc::dup2(devnull.as_raw_fd(), 2) != -1 });
+        if !redirected {
+            unsafe { libc::close(saved) };
+            return Self {
+                saved: None,
+                restored: std::sync::atomic::AtomicBool::new(true),
+            };
+        }
+        Self {
+            saved: Some(saved),
+            restored: std::sync::atomic::AtomicBool::new(false),
+        }
+    }
+
+    fn restore(&self) {
+        use std::sync::atomic::Ordering;
+        if self.restored.swap(true, Ordering::SeqCst) {
+            return;
+        }
+        if let Some(fd) = self.saved {
+            unsafe {
+                libc::dup2(fd, 2);
+                libc::close(fd);
+            }
+        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+impl Drop for StartupStderr {
+    fn drop(&mut self) {
+        self.restore();
+    }
+}
+
 /// Launch the desktop GUI.
 ///
 /// The console `epher` binary is a *console* application (so `epher "2 + 2"`
@@ -655,8 +737,12 @@ fn stdout_is_a_console() -> bool {
 
 /// Block until one key: line input and echo are switched off for the
 /// wait, so any key works and none is printed back (Enter is not
-/// required). A redirected or absent stdin has no console mode to
-/// change, and its reads end immediately, so the wait cannot hang.
+/// required). The switch is undone before the process ends: the console
+/// mode belongs to the console, not to this process, so every later
+/// program in the same terminal inherits it, and a no-echo raw console
+/// makes the next `epher repl` look dead (typed letters never appear).
+/// A redirected or absent stdin has no console mode to change, and its
+/// reads end immediately, so the wait cannot hang.
 #[cfg(windows)]
 fn wait_for_any_key() {
     use std::io::Read;
@@ -664,15 +750,22 @@ fn wait_for_any_key() {
         GetConsoleMode, GetStdHandle, SetConsoleMode, ENABLE_ECHO_INPUT, ENABLE_LINE_INPUT,
         STD_INPUT_HANDLE,
     };
+    let input = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
+    let mut mode = 0u32;
+    let mut switched = false;
     unsafe {
-        let input = GetStdHandle(STD_INPUT_HANDLE);
-        let mut mode = 0u32;
         if GetConsoleMode(input, &mut mode) != 0 {
-            SetConsoleMode(input, mode & !(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
+            switched =
+                SetConsoleMode(input, mode & !(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT)) != 0;
         }
     }
     let mut byte = [0u8; 1];
     let _ = std::io::stdin().read(&mut byte);
+    if switched {
+        unsafe {
+            SetConsoleMode(input, mode);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -686,6 +779,34 @@ mod tests {
         let target = dir.path().join("chosen-name.epher");
         write_file(&target, "2 + 3  = 5\n").unwrap();
         assert_eq!(std::fs::read_to_string(&target).unwrap(), "2 + 3  = 5\n");
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn startup_stderr_hold_swallows_during_and_returns_after() {
+        use std::io::{Read, Write};
+        use std::os::unix::io::AsRawFd;
+        let (mut probe_rx, probe_tx) = std::os::unix::net::UnixStream::pair().unwrap();
+        let real_stderr = unsafe { libc::dup(2) };
+        // fd 2 now points at the probe stream: everything written to
+        // stderr lands in probe_rx, so the test sees what a terminal
+        // would see.
+        assert_ne!(unsafe { libc::dup2(probe_tx.as_raw_fd(), 2) }, -1);
+        writeln!(std::io::stderr(), "epher-probe before").unwrap();
+        let guard = StartupStderr::suppress();
+        writeln!(std::io::stderr(), "epher-probe during").unwrap();
+        guard.restore();
+        writeln!(std::io::stderr(), "epher-probe after").unwrap();
+        // put the harness stderr back, then close the probe so the read
+        // below sees end of stream
+        assert_ne!(unsafe { libc::dup2(real_stderr, 2) }, -1);
+        unsafe { libc::close(real_stderr) };
+        drop(probe_tx);
+        let mut seen = String::new();
+        probe_rx.read_to_string(&mut seen).unwrap();
+        assert!(seen.contains("epher-probe before"), "seen: {seen}");
+        assert!(!seen.contains("epher-probe during"), "seen: {seen}");
+        assert!(seen.contains("epher-probe after"), "seen: {seen}");
     }
 
     #[test]

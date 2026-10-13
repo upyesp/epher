@@ -51,4 +51,7 @@ waiver removes the banner.
 - The wait reads one byte with console line input disabled
   (windows-sys `Win32_System_Console`); a redirected or absent stdin
   cannot hang the run, because it has no console mode to change and its
-  reads end immediately.
+  reads end immediately. The mode switch is undone after the keypress:
+  the console mode belongs to the console, not the process, so a
+  restored mode keeps the next program in that terminal (typically
+  `epher repl`) reading lines with echo as before.
