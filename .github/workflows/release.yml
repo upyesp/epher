@@ -590,6 +590,7 @@ jobs:
     with:
       ref: ${{ needs.train.outputs.sha }}
       version: ${{ needs.train.outputs.v_version }}
+      tag: ${{ needs.train.outputs.v_version }}
 
   snap:
     # ADR-0061: the Snap Store channel. Repacks the release .deb (the
