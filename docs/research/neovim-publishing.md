@@ -507,3 +507,24 @@ editor-to-install-source table naming Neovim (the mirror, plus the
 rock), Vim (vim.org), Sublime (LSP-epher), and the rest. This is the
 literal rejection reason, fixed at the surface every reviewer, every
 directory crawler, and every store listing lands on.
+
+---
+
+## Addendum (2026-10-13): the listing merged; the channel is closed
+
+The held PR went in the day the addendum above was written:
+[#2548](https://github.com/rockerBOO/awesome-neovim/pull/2548)
+("Add \`upyesp/epher.nvim\`", 2026-10-06), entry line pointing at the
+mirror, in the Programming Languages Support section. Penaz91 approved
+it 2026-10-07 under the `pending-merge` label; rockerBOO merged it
+2026-10-13 (d280d5b) once the mirror crossed the one-week age
+requirement. The live entry:
+
+  - [upyesp/epher.nvim](https://github.com/upyesp/epher.nvim) - Calculator language with answers inline, LSP server glue, and syntax for `.epher` scripts.
+
+The rejection's lesson held to the letter: identical wording, the only
+change the link target, and it merged. The channel now needs nobody:
+LuaRocks publishes the rock and `epher-nvim-publish.yml` refreshes the
+mirror on every `v*` tag (0.5.85 rode through untouched on
+2026-10-12), and the list entry is static text that neovimcraft
+scrapes.

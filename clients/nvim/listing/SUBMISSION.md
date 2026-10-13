@@ -81,18 +81,20 @@ stale copy of a `clients/vim` edit cannot ship inside a rock.
 
 ## The awesome-neovim PR (human, one time)
 
-Opened 2026-09-30 as https://github.com/rockerBOO/awesome-neovim/pull/2532
-from the fork branch `add-epher`, titled "Add `upyesp/epher`" with the
-template checklist ticked; the entry sits at the end of the main
-Programming Languages Support list and all five repository CI checks
-(terminology, typos, title, formatting, awesome linter) are green.
-Awaiting maintainer merge; static thereafter.
+The first attempt (#2532, 2026-09-30, "Add `upyesp/epher`" from the
+fork branch `add-epher`) was rejected the same day for linking the
+monorepo root (see the research doc's addendum). The attempt that
+stands: #2548, "Add `upyesp/epher.nvim`", opened 2026-10-06 pointing
+at the mirror, approved 2026-10-07 (Penaz91) under the `pending-merge`
+label, and merged 2026-10-13 (rockerBOO, d280d5b) once the mirror
+crossed its first week. The entry sits in the Programming Languages
+Support list and is static thereafter.
 
 1. Fork `rockerBOO/awesome-neovim` and add one line to the
    **Programming Languages Support** section:
 
    ```
-   - [upyesp/epher](https://github.com/upyesp/epher) - Calculator language with answers inline, LSP server glue, and syntax for `.epher` scripts.
+   - [upyesp/epher.nvim](https://github.com/upyesp/epher.nvim) - Calculator language with answers inline, LSP server glue, and syntax for `.epher` scripts.
    ```
 
    The description ends with a period, uses no emojis, and contains
@@ -100,7 +102,7 @@ Awaiting maintainer merge; static thereafter.
 
 2. PR rules: the title must match
    `` Add|Update|Remove `username/repo` `` with the backticks, so
-   ``Add `upyesp/epher` ``; one plugin per PR; use the PR template
+   ``Add `upyesp/epher.nvim` ``; one plugin per PR; use the PR template
    checklist (licensed, line ends with a period, acronyms
    capitalized). Run `./scripts/readme-check.sh` locally before
    pushing.
@@ -193,21 +195,18 @@ therefore has a mirror repository, on the LSP-epher precedent:
    train by workflow_dispatch, which assembled the true tree, pushed
    main and re-created the tag.
 
-## Re-submitting to awesome-neovim (held until the mirror is retested)
+## The listing, closed (2026-10-13)
 
-The first PR (#2532) is closed; etiquette is a fresh
-PR, not a reopen, and the maintainer's 1-week dispute window has
-passed. The fresh PR, once the mirror is approved for submission:
-
-- Title: `Add \`upyesp/epher.nvim\`` (one plugin per PR).
-- Section: Languages, next to the other language-support entries.
-- Entry line, same compliant wording as before:
+The resubmission went in as
+[#2548](https://github.com/rockerBOO/awesome-neovim/pull/2548)
+("Add `upyesp/epher.nvim`", 2026-10-06), with the same compliant entry
+line pointing at the mirror. Penaz91 approved it 2026-10-07 under the
+`pending-merge` label, and rockerBOO merged it 2026-10-13 (d280d5b)
+when the mirror crossed its first week. The live entry in the
+Programming Languages Support section:
 
   - [upyesp/epher.nvim](https://github.com/upyesp/epher.nvim) - Calculator language with answers inline, LSP server glue, and syntax for `.epher` scripts.
 
-- The reviewer clicks through: the mirror's landing page says Neovim
-  in line 1, carries installer snippets (lazy.nvim, rocks.nvim),
-  screenshots, and the license. Every acceptance criterion in
-  `MAINTAINERS.md` is visible from the first screen.
-- The repo must be at least a week old at merge time; expect the
-  `pending-merge` label, approval first, merge after the week.
+Nothing is pending on the channel: the entry is static text,
+neovimcraft scrapes the list on its own, and every future train
+publishes the rock and refreshes the mirror from the `v*` tag.
