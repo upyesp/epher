@@ -1,6 +1,6 @@
 # The epher language reference
 
-*Version 0.5.41 (staging). This page is the formal, normative definition
+*This page is the formal, normative definition
 of the epher language: its lexical rules, grammar, types, operators,
 statements, built-in constants and functions, units, display rules,
 errors, and limits. Every name and every signature here is extracted
@@ -69,11 +69,11 @@ definition, a destructuring, `if`, `while`, `for`, `solve`, `return`,
   and an optional decimal-exponent suffix (`2e3`, `1.5E-3`, `2e+2`).
   The exponent needs at least one digit, so `2e` and `2eggs` tokenize
   as the number `2` followed by a name.
-- Based integers (ADR-0022): `0b` binary, `0o` octal, `0x`
+- Based integers: `0b` binary, `0o` octal, `0x`
   hexadecimal, `0b101`, `0o17`, `0xFF`. Digits after the prefix must
   suit the base. A base prefix changes the spelling, never the value:
   `0xFF` *is* `255`.
-- Imaginary suffix (ADR-0043): a number directly followed by `i`, with
+- Imaginary suffix: a number directly followed by `i`, with
   no letter or `_` after the `i`, is one imaginary literal: `4i`,
   `2.5i`, `0xFFi`. `3 + 4i` is a sum of two literals. `4it` is
   *not* imaginary; it is the number `4` followed by the name `it`,
@@ -85,7 +85,7 @@ definition, a destructuring, `if`, `while`, `for`, `solve`, `return`,
 ### 3.2 Strings
 
 A string literal is double quotes around any run of characters. Five
-escapes exist (ADR-0064): `\n` newline, `\t` tab, `\r` carriage
+escapes exist: `\n` newline, `\t` tab, `\r` carriage
 return, `\\` backslash, `\"` quote. Any other escape is a parse error
 that names the mistake, and a string cannot end on a lone backslash.
 
@@ -245,7 +245,7 @@ examples get pasted twice; a different value is a
 `constant already defined` error. Naming an existing variable is a
 `cannot define constant x: the name is already a variable` error.
 
-### 7.3 Destructuring: `{a, b} = expr` (ADR-0064)
+### 7.3 Destructuring: `{a, b} = expr`
 
 The expression must be a list whose length equals the number of
 pattern names; each name binds to its position's element. `_` skips a
@@ -265,7 +265,7 @@ value is a named error. Recursion works in both forms. A call carries
 its own 100,000-step budget. Parameters shadow session values only
 inside the call.
 
-### 7.5 `return`, `break`, `continue` (ADR-0064)
+### 7.5 `return`, `break`, `continue`
 
 `return expr` leaves the enclosing function now, with the value;
 `return` at top level (outside any function) is a named error.
@@ -286,7 +286,7 @@ Evaluates the condition (which must be a boolean) and runs the
 one-statement body until it is false, `break` fires, or the step
 budget runs out. A `while` loop produces no value.
 
-### 7.8 `for name in iterable do stmt` (ADR-0054, scoped per ADR-0063)
+### 7.8 `for name in iterable do stmt`
 
 Two iterable forms: a range `start to end` (optionally `step s`), or
 any expression evaluating to a list. The variable is bound per pass
@@ -294,7 +294,7 @@ and **removed afterwards**: the loop never leaves its variable in the
 session, and a binding that existed before the loop is restored after
 it. The loop's value is the list of the body's per-pass values.
 
-### 7.9 `solve lhs == rhs` (ADR-0043)
+### 7.9 `solve lhs == rhs`
 
 Numeric equation solving, no CAS. The equation must use `==`. The
 unknown is `x` when `x` appears, otherwise the single other name;
@@ -627,7 +627,7 @@ latitude and longitude in degrees.
 
 ## 11. Units
 
-A number directly followed by a unit name is a **quantity** (ADR-0046):
+A number directly followed by a unit name is a **quantity**:
 the number times the unit's SI factor, carrying its dimensions.
 `2 m` stores 2 with length dimensions; `60 mile/hr` stores
 26.8224 m/s. Units may carry a whole-number power (`2 m^2`, powers to
@@ -717,7 +717,7 @@ or the exact derived name when the dimensions match one: `N`, `W`,
 
 ## 12. Number display
 
-The answer panel's automatic spelling (ADR-0051):
+The answer panel's automatic spelling:
 
 - A float prints with up to **12 significant digits**, exact integers
   keeping every digit.
@@ -858,7 +858,7 @@ this reference defines, identically on every frontend.
 
 ---
 
-*This reference corresponds to epher 0.5.41 (staging). The function
+*The function
 and constant tables are extracted from `epher-core`'s dispatch and
 catalog; a core test keeps them from drifting: renaming or removing a
 builtin without updating this page fails the build.*
