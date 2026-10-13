@@ -237,7 +237,7 @@ window.EPHER_I18N["fr"] = {
   "ide-vim-p2": "Les réponses en ligne apparaissent comme inlay hints quand vim-lsp les affiche : définissez `g:lsp_inlay_hints_enabled` et exécutez Vim 9 avec le texte virtuel.",
   "ide-nvim-luarocks": "trouvez epher sur le gestionnaire de paquets LuaRocks",
   "ide-nvim-link": "Installation manuelle : télécharger epher-nvim.zip",
-  "ide-vim-link": "epher sur vim.org",
+  "ide-vim-link": "trouvez epher sur vim.org",
   "ide-sublime-p1": "Référencé sur Package Control : `Package Control: Install Package`, puis cherchez LSP-epher (le paquet LSP est un prérequis ; installez-le de la même façon). Le paquet embarque la grammaire partagée dans le format propre de Sublime et la définition de client pour LSP, et le serveur se gère tout seul : au premier démarrage il télécharge le binaire epher-lsp de votre plateforme dans le stockage du paquet.",
   "ide-sublime-packagecontrol": "trouvez epher sur le gestionnaire de paquets Package Control",
   "ide-sublime-link": "Télécharger epher-sublime.zip",

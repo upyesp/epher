@@ -237,7 +237,7 @@ window.EPHER_I18N["hi"] = {
   "ide-vim-p2": "इनलाइन उत्तर इनले हिंट के रूप में दिखते हैं जब vim-lsp उन्हें रेंडर करता है: `g:lsp_inlay_hints_enabled` सेट करें और Vim 9 को वर्चुअल टेक्स्ट के साथ चलाएँ।",
   "ide-nvim-luarocks": "LuaRocks पैकेज मैनेजर पर epher खोजें",
   "ide-nvim-link": "मैनुअल इंस्टॉल: epher-nvim.zip डाउनलोड करें",
-  "ide-vim-link": "vim.org पर epher",
+  "ide-vim-link": "vim.org पर epher खोजें",
   "ide-sublime-p1": "Package Control पर सूचीबद्ध: `Package Control: Install Package`, फिर LSP-epher खोजें (LSP पैकेज पूर्वापेक्षा है; उसी तरह इंस्टॉल करें)। पैकेज Sublime के अपने रूप में साझा ग्रामर और LSP के लिए क्लाइंट परिभाषा लेकर आता है, और सर्वर अपना प्रबंधन स्वयं करता है: पहली बार शुरू होने पर यह आपके प्लेटफ़ॉर्म की epher-lsp बाइनरी पैकेज स्टोरेज में डाउनलोड कर लेता है।",
   "ide-sublime-packagecontrol": "Package Control पैकेज मैनेजर पर epher खोजें",
   "ide-sublime-link": "epher-sublime.zip डाउनलोड करें",

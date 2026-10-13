@@ -237,7 +237,7 @@ window.EPHER_I18N["ar"] = {
   "ide-vim-p2": "تظهر الإجابات المضمّنة كتلميحات inlay عندما يعرضها vim-lsp: اضبط `g:lsp_inlay_hints_enabled` وشغّل Vim 9 مع النص الافتراضي.",
   "ide-nvim-luarocks": "ابحث عن epher في مدير حزم LuaRocks",
   "ide-nvim-link": "تثبيت يدوي: نزّل epher-nvim.zip",
-  "ide-vim-link": "epher على vim.org",
+  "ide-vim-link": "ابحث عن epher على vim.org",
   "ide-sublime-p1": "مُدرَج في Package Control: `Package Control: Install Package` ثم ابحث عن LSP-epher (حزمة LSP متطلب سابق؛ ثبّتها بالطريقة نفسها). تجلب الحزمة القواعد المشتركة بصيغة Sublime الأصلية وتعريف العميل لـ LSP، والخادم يدير نفسه بنفسه: عند أول تشغيل ينزّل ملف epher-lsp التنفيذي لمنصتك إلى تخزين الحزمة.",
   "ide-sublime-packagecontrol": "ابحث عن epher في مدير حزم Package Control",
   "ide-sublime-link": "نزّل epher-sublime.zip",
