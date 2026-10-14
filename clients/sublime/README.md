@@ -249,3 +249,30 @@ The Package Control entry lives in `sublimelsp/repository`, with
 within about an hour. See
 `docs/research/sublime-packagecontrol-publishing.md` for the full
 picture.
+
+## Lint and type checks
+
+The plugin is type-checked and linted on change by
+`.github/workflows/sublime-lint.yml` (ruff + pyright, driven by
+`pyproject.toml` here), so a breakage like the one #126 fixed is
+caught in this repo before the next train ships it to the channel.
+The pins in that workflow are exact and moved by hand: the `sublime`
+stubs are a published beta and a third-party release should never
+break the build by surprise.
+
+To run both checks locally, install the same three packages into any
+Python 3.8+ environment and run from this directory (`pyproject.toml`
+carries the tool configuration):
+
+    pip install ruff==0.17.0 pyright==1.1.414 sublime-text-stubs==1.4200.0b2
+    ruff check .
+    pyright
+
+The `sublime-text-stubs` wheel (SublimeText/sublime-text-stubs) is
+what makes pyright worth running: without it, `reportMissingImports =
+"none"` (there to tolerate the `LSP` imports, which have no published
+stubs) also dismisses the `sublime` imports, and a call to a
+nonexistent API symbol passes. With the stubs installed, every
+`sublime.*` use is genuinely checked. When the stubs publish a new
+version, bump the pin in the workflow and here together, after both
+checks pass.

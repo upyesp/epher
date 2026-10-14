@@ -224,7 +224,7 @@ def _open_path(path: str) -> None:
         if sublime.platform() == "osx":
             _popen(["open", path])
         elif sublime.platform() == "windows":
-            os.startfile(path)  # type: ignore[attr-defined]  # noqa: S9
+            os.startfile(path)  # type: ignore[attr-defined]
         else:
             _popen(["xdg-open", path])
     except OSError as err:
@@ -241,7 +241,7 @@ def _popen(args: "list[str]") -> None:
     startupinfo = None
     if sublime.platform() == "windows":
         startupinfo = subprocess.STARTUPINFO()  # type: ignore[attr-defined]
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore[attr-defined]  # noqa: SIM
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore[attr-defined]
         startupinfo.wShowWindow = subprocess.SW_HIDE  # type: ignore[attr-defined]
     subprocess.Popen(args, startupinfo=startupinfo)
 
