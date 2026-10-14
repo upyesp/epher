@@ -1,0 +1,72 @@
+# Lint and type-check the Sublime Text client (clients/sublime).
+#
+# The plugin is authored here and ships by copy (sublime-publish.yml
+# assembles the tree into upyesp/LSP-epher), so a breakage in plugin.py
+# surfaces only after it has already reached the channel. PR #126 made
+# the plugin pass pyright and added clients/sublime/pyproject.toml;
+# this workflow is what actually runs the check on change (#149).
+#
+# The type story (the same note from rchl on #126 spawned #149):
+#   - `sublime`/`sublime_plugin`/`sublime_types` come from the published
+#     sublime-text-stubs wheel (SublimeText/sublime-text-stubs). Without
+#     it pyright is blind to the whole Sublime API: with
+#     reportMissingImports = "none" a call to a nonexistent
+#     sublime.symbol() still passes (verified), so installing the stubs
+#     is the load-bearing step, not decoration.
+#   - `LSP` (sublimelsp) has no published stubs; reportMissingImports =
+#     "none" in clients/sublime/pyproject.toml keeps those imports
+#     resolvable-by-dismissal. Revisit when LSP stubs publish.
+#
+# The toolchain is pinned exactly on purpose: the stubs are a beta and
+# ruff/pyright releases move, so a third-party release must never break
+# this build by surprise. Bump a pin deliberately, after running both
+# tools locally against clients/sublime (see clients/sublime/README.md).
+name: sublime lint
+
+on:
+  push:
+    branches: [main, staging]
+    paths:
+      - "clients/sublime/**"
+      - ".github/workflows/sublime-lint.yml"
+  pull_request:
+    paths:
+      - "clients/sublime/**"
+      - ".github/workflows/sublime-lint.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: ruff + pyright
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install the pinned toolchain
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          # One environment holds the tools and the stubs: the pip
+          # pyright wrapper resolves imports against the interpreter
+          # it is installed into, which puts the stubs on the search
+          # path with no extra configuration.
+          python -m pip install \
+            "ruff==0.17.0" \
+            "pyright==1.1.414" \
+            "sublime-text-stubs==1.4200.0b2"
+
+      - name: ruff check
+        working-directory: clients/sublime
+        run: ruff check .
+
+      - name: pyright
+        working-directory: clients/sublime
+        run: pyright
