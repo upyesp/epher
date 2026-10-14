@@ -32,8 +32,6 @@ window.EPHER_I18N["de"] = {
   "cta-download": "epher holen",
   "try-this": "Ausprobieren",
   "features-title": "Funktionen",
-  "f1-title": "Ein Download, fünf Oberflächen",
-  "f1-desc": "Dasselbe epher-Programm läuft als Einmal-Befehl, als REPL, als bildschirmfüllende Terminal-Oberfläche und als Desktop-App. Dieselbe Oberfläche läuft im Browser als Offline-Web-App. Lerne es einmal, nutze es überall.",
   "f2-title": "Eine echte Sprache",
   "f2-desc": "Variablen, Funktionen mit Rekursion, Schleifen und Skripte, die Sie speichern oder laden können. Zeilenumbrüche und `;` trennen Anweisungen; beide bedeuten dasselbe.",
   "f3-title": "Exakt, wenn es darauf ankommt",
