@@ -32,8 +32,6 @@ window.EPHER_I18N["es"] = {
   "cta-download": "Obtén epher",
   "try-this": "Pruébalo",
   "features-title": "Funciones",
-  "f1-title": "Una descarga, cinco interfaces",
-  "f1-desc": "El mismo programa epher se ejecuta como un comando de un solo uso, un REPL, una interfaz de terminal a pantalla completa y una aplicación de escritorio, y la misma interfaz se ejecuta en el navegador como aplicación web sin conexión. Apréndelo una vez, úsalo en todas partes.",
   "f2-title": "Un lenguaje de verdad",
   "f2-desc": "Variables, funciones con recursión, bucles y scripts que puedes guardar o cargar. Los saltos de línea y `;` separan instrucciones; ambos significan lo mismo.",
   "f3-title": "Exacto cuando importa",

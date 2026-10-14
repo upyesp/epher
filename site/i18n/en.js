@@ -32,8 +32,6 @@ window.EPHER_I18N["en"] = {
   "cta-download": "Get epher",
   "try-this": "try this",
   "features-title": "Features",
-  "f1-title": "One download, five frontends",
-  "f1-desc": "The same epher program runs as a one-shot command, a REPL, a full-screen terminal UI, and a desktop app. The same interface runs in your browser as an offline web app. Learn it once, use it anywhere.",
   "f2-title": "A real language",
   "f2-desc": "Variables, functions with recursion, loops, and scripts you can save or load. Newlines and `;` separate statements; both mean the same thing.",
   "f3-title": "Exact when it matters",
