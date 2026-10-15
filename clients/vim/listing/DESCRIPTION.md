@@ -13,6 +13,9 @@ epher is a calculator language: you write ordinary math, with units
 that convert, and every statement's answer appears inline, right next
 to the line that produced it.
 
+Download the epher calculator from https://epher.org, and a large
+selection of ready-made scripts from https://epher.org/scripts.html.
+
 This package teaches Vim the language. It adds filetype detection for
 .epher files, syntax highlighting for comments, strings, every number
 form (decimal, scientific, 0b, 0o, 0x, imaginary i), the twenty

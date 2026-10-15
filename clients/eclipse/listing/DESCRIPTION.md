@@ -29,6 +29,10 @@ math, with units that convert (<code>6371 km</code>,
 next to the line that produced it. No REPL in a side panel, no print
 statements: the editor is the calculator.</p>
 
+<p>Download the <a href="https://epher.org">epher calculator</a>, and a
+large selection of <a href="https://epher.org/scripts.html">ready-made
+scripts</a> from epher.org.</p>
+
 <h2>What you get</h2>
 <ul>
   <li><strong>Answers inline</strong>: each statement's result renders

@@ -36,6 +36,10 @@ A calculator language with the answers inline: write ordinary math,
 with units that convert, and every statement's answer appears next to
 the line that produced it, right in your JetBrains IDE.
 
+Download the <a href="https://epher.org">epher calculator</a>, and a
+large selection of <a href="https://epher.org/scripts.html">ready-made
+scripts</a> from epher.org.
+
 Type a formula and the answer is already there. No REPL in a side
 panel, no print statements: the editor <em>is</em> the calculator.
 

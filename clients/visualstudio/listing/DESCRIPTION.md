@@ -16,6 +16,9 @@ Write ordinary math, with units that convert, and every statement's answer
 appears inline, right next to the line that produced it. Hover any name for
 its canonical signature, and every broken statement is flagged while you type.
 
+Download the [epher calculator](https://epher.org), and a large selection of
+[ready-made scripts](https://epher.org/scripts.html) from epher.org.
+
 ![answers inline](https://raw.githubusercontent.com/upyesp/epher/main/clients/visualstudio/listing/editor.png)
 
 **Features**

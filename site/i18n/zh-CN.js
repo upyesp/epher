@@ -16,6 +16,7 @@ window.EPHER_I18N["zh-CN"] = {
   "scripts-title": "脚本",
   "scripts-lede": "epher 计算器的现成脚本，按领域和主题整理。打开文件夹浏览，点击脚本阅读，一键复制到剪贴板。",
   "scripts-search": "搜索脚本（名称和内容）",
+  "scripts-filetype-note": "脚本是文本文件，文件类型为 .epher，例如 'triangle.epher'。",
   "scripts-ide-note": "您还可以在喜爱的 IDE 中编辑脚本，借助 epher 官方的",
   "scripts-ide-link": "IDE 扩展。",
   "scripts-no-results": "没有匹配的脚本",
@@ -188,6 +189,7 @@ window.EPHER_I18N["zh-CN"] = {
 
   "nav-ide": "IDE 扩展",
   "ide-title": "IDE 扩展",
+  "ide-filetype-note": "脚本是文本文件，文件类型为 .epher，例如 'triangle.epher'。",
   "ide-lede": "您可以使用 IDE（例如 VS Code 等）来编写 epher 脚本。请下载并安装适用于您的 IDE 的官方 epher 扩展。该扩展实现了完整的 epher 语言服务器，符合语言服务器协议（LSP），可在编辑代码时提供多项辅助功能。",
   "ide-features-title": "编辑器能获得什么",
   "ide-f1-title": "实时诊断",

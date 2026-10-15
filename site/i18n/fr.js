@@ -16,6 +16,7 @@ window.EPHER_I18N["fr"] = {
   "scripts-title": "Scripts",
   "scripts-lede": "Des scripts prêts à l'emploi pour la calculatrice epher, classés par domaine et par thème. Ouvrez un dossier pour parcourir, cliquez sur un script pour le lire et copiez n'importe quel script dans le presse-papiers.",
   "scripts-search": "Rechercher des scripts (noms et contenu)",
+  "scripts-filetype-note": "Les scripts sont des fichiers texte dont le type de fichier est .epher, comme 'triangle.epher'.",
   "scripts-ide-note": "Vous pouvez aussi éditer des scripts dans votre IDE favori avec l'aide de l'",
   "scripts-ide-link": "extension IDE officielle d'epher.",
   "scripts-no-results": "Aucun script ne correspond à votre recherche",
@@ -188,6 +189,7 @@ window.EPHER_I18N["fr"] = {
 
   "nav-ide": "Extension IDE",
   "ide-title": "Extension IDE",
+  "ide-filetype-note": "Les scripts sont des fichiers texte dont le type de fichier est .epher, comme 'triangle.epher'.",
   "ide-lede": "Vous pouvez utiliser un IDE, tel que VS Code (ou d'autres), pour écrire des scripts epher. Téléchargez et installez l'extension epher officielle pour votre IDE. L'extension implémente un serveur de langage epher complet. Elle est conforme au Language Server Protocol (LSP) et ajoute un certain nombre de fonctionnalités d'assistance pendant l'édition du code.",
   "ide-features-title": "Ce que gagne l'éditeur",
   "ide-f1-title": "Diagnostics en direct",

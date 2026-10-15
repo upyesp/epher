@@ -16,6 +16,7 @@ window.EPHER_I18N["de"] = {
   "scripts-title": "Skripte",
   "scripts-lede": "Fertige Skripte für den epher-Rechner, nach Fachgebiet und Thema geordnet. Öffnen Sie einen Ordner zum Stöbern, klicken Sie ein Skript zum Lesen an und kopieren Sie jedes Skript in die Zwischenablage.",
   "scripts-search": "Skripte suchen (Namen und Inhalt)",
+  "scripts-filetype-note": "Skripte sind Textdateien mit dem Dateityp .epher, wie 'triangle.epher'.",
   "scripts-ide-note": "Sie können Skripte auch in Ihrer bevorzugten IDE bearbeiten – mit Unterstützung der",
   "scripts-ide-link": "offiziellen epher-IDE-Erweiterung.",
   "scripts-no-results": "Keine Skripte entsprechen Ihrer Suche",
@@ -188,6 +189,7 @@ window.EPHER_I18N["de"] = {
 
   "nav-ide": "IDE-Erweiterung",
   "ide-title": "IDE-Erweiterung",
+  "ide-filetype-note": "Skripte sind Textdateien mit dem Dateityp .epher, wie 'triangle.epher'.",
   "ide-lede": "Sie können eine IDE wie VS Code (oder andere) verwenden, um epher-Skripte zu schreiben. Laden Sie die offizielle epher-Erweiterung für Ihre IDE herunter und installieren Sie sie. Die Erweiterung implementiert einen vollständigen epher-Language-Server. Sie ist konform mit dem Language Server Protocol (LSP) und stellt beim Bearbeiten von Code eine Reihe von Hilfsfunktionen bereit.",
   "ide-features-title": "Was der Editor bekommt",
   "ide-f1-title": "Live-Diagnose",
