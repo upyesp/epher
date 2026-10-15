@@ -6,6 +6,8 @@ to the line that produced it. The package is called `LSP-epher`
 because the LSP package resolves its client configuration by that
 name.
 
+Edit text files with an extension of type '.epher', such as 'triangle.epher'.
+
 Download the [epher calculator](https://epher.org), and a large
 selection of [ready-made scripts](https://epher.org/scripts.html) from
 epher.org.

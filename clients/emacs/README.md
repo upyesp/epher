@@ -7,6 +7,8 @@ to the line that produced it. This is the client glue for the shared
 language features. Requires Emacs 29 or newer, where eglot ships built
 in. lsp-mode works too; see [Using lsp-mode](#using-lsp-mode).
 
+Edit text files with an extension of type '.epher', such as 'triangle.epher'.
+
 Download the [epher calculator](https://epher.org), and a large
 selection of [ready-made scripts](https://epher.org/scripts.html) from
 epher.org.

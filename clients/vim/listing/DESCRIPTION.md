@@ -13,6 +13,9 @@ epher is a calculator language: you write ordinary math, with units
 that convert, and every statement's answer appears inline, right next
 to the line that produced it.
 
+Edit text files with an extension of type '.epher', such as
+'triangle.epher'.
+
 Download the epher calculator from https://epher.org, and a large
 selection of ready-made scripts from https://epher.org/scripts.html.
 

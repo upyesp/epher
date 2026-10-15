@@ -11,6 +11,8 @@
     <p>A calculator language with the answers inline: write ordinary
     math, with units that convert, and every statement's answer appears
     next to the line that produced it, right in your JetBrains IDE.</p>
+    <p>Edit text files with an extension of type '.epher', such as
+    'triangle.epher'.</p>
     <p>Download the <a href="https://epher.org">epher calculator</a>, and
     a large selection of <a href="https://epher.org/scripts.html">ready-made
     scripts</a> from epher.org.</p>

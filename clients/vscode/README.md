@@ -6,6 +6,8 @@
 that convert, and every statement's answer appears inline, right next
 to the line that produced it.
 
+Edit text files with an extension of type '.epher', such as 'triangle.epher'.
+
 Download the [epher calculator](https://epher.org), and a large
 selection of [ready-made scripts](https://epher.org/scripts.html) from
 epher.org.
