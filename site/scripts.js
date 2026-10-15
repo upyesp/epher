@@ -8,6 +8,10 @@
  * Localized strings come from the same catalogs as the rest of the site
  * (window.EPHER_I18N, applied by app.js); the current language is read
  * from document.documentElement.lang, which app.js keeps current.
+ *
+ * Script names display with the .epher extension appended: the suffix is
+ * presentational only, so the data, the hash routes, the search, and the
+ * copied script text all keep the bare name.
  */
 "use strict";
 
@@ -208,7 +212,7 @@
     for (const script of area.scripts) {
       const row = el("li", "script-row");
       row.appendChild(copyButton(script));
-      const link = el("a", "script-link", script.name);
+      const link = el("a", "script-link", script.name + ".epher");
       link.href = `#/${state.field}/${state.area}/${script.name}`;
       row.appendChild(link);
       if (script.title) row.appendChild(el("span", "script-title", script.title));
@@ -248,7 +252,7 @@
     const panel = el("div", "script-view");
     const head = el("div", "script-view-head");
     head.appendChild(copyButton(script));
-    head.appendChild(el("h2", "", script.name));
+    head.appendChild(el("h2", "", script.name + ".epher"));
     panel.appendChild(head);
     const pre = el("pre", "script-text");
     pre.tabIndex = 0;
@@ -285,7 +289,7 @@
     for (const s of hits.slice(0, 200)) {
       const row = el("li", "script-row");
       row.appendChild(copyButton(s));
-      const link = el("a", "script-link", s.name);
+      const link = el("a", "script-link", s.name + ".epher");
       link.href = `#/${s.field}/${s.area}/${s.name}`;
       row.appendChild(link);
       row.appendChild(el("span", "script-path", `${s.field}/${s.area}`));
