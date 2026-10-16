@@ -1,0 +1,19 @@
+{
+  "name": "epher",
+  "short_name": "epher",
+  "description": "A programmable, scriptable calculator",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#141416",
+  "theme_color": "#141416",
+  "icons": [
+    {
+      "src": "icon.svg?v=3",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

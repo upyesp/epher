@@ -1,0 +1,18 @@
+// the earth, measured
+const radius = 6371 km
+const diameter = 2 * radius
+circumference = pi * diameter
+
+// the same numbers in miles
+circumference in mile
+
+// a right triangle
+const legs = 3 m
+const hypotenuse = 5 m
+height = sqrt(hypotenuse^2 - legs^2)
+
+// the discriminant
+def disc(a, b, c) = b^2 - 4*a*c
+disc(1, -5, 6)
+
+graph sin(x)

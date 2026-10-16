@@ -1,0 +1,65 @@
+/* ============================================================================
+combined-magnitude.epher -- the magnitude two or more stars add up to
+
+Two stars close together (a visual double, or a pair seen as one) show
+the combined flux of both, and fluxes add while magnitudes do not: the
+combined magnitude of m1 and m2 is -2.5 log10(10^(-0.4 m1) +
+10^(-0.4 m2)), and an n-component list works the same way with the
+sum over all components (the Pogson law of Meeus ch. 56, "Double
+stars"). The builtin dist_mod or mag2jy do not do this one, so the
+script defines the two-line law itself.
+
+Accuracy: exact arithmetic on whatever magnitudes you feed it.
+Telescopic component magnitudes carry visual-estimate scatter of a
+few tenths, which is why the eps Lyrae values below are labelled
+approximate.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/combined-magnitude.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\combined-magnitude.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/combined-magnitude.epher
+In the REPL:             load one of the paths above
+
+Knobs: the pair magnitudes below (Mizar and Alcor, then the four
+components of the Double-Double, eps Lyrae, approximate).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const mizar = 2.2    // Mizar, mag (SIMBAD visual)
+const alcor = 4.0    // Alcor, the naked-eye companion, mag
+const eps1a = 5.2    // epsilon Lyrae 1 A, mag (approximate)
+const eps1b = 5.5    // epsilon Lyrae 1 B, mag (approximate)
+const eps2a = 5.1    // epsilon Lyrae 2 A, mag (approximate)
+const eps2b = 5.4    // epsilon Lyrae 2 B, mag (approximate)
+
+// ---- Meeus ch. 56: fluxes add, magnitudes compress ----------------------------
+def flux(m) = 10 ^ (-0.4 * m)                    // linear flux, m = 0 star as unit
+def comb2(m1, m2) = -2.5 * log(flux(m1) + flux(m2))
+def combn(ms) = -2.5 * log(sum(flux(ms)))        // any number of components
+
+// ---- results ------------------------------------------------------------------
+print("Mizar + Alcor:", comb2(mizar, alcor))
+print("eps Lyr 1 pair:", comb2(eps1a, eps1b))
+print("eps Lyr 2 pair:", comb2(eps2a, eps2b))
+print("all four eps Lyr stars together:", combn({eps1a, eps1b, eps2a, eps2b}))
+
+/* Self-check: two equal stars must gain exactly 2.5 log10(2) =
+0.752575 magnitudes over either one (Meeus's own check case), so the
+last lines pair the m = 4 + 4 combination against that number. */
+print("two m-4 stars together:", comb2(4, 4))
+print("their gain over m 4:", 4 - comb2(4, 4), "mag (2.5 log10 2)")
+
+/* ---- expected output
+= 2.2
+= 4
+= 5.2
+= 5.5
+= 5.1
+= 5.4
+= Mizar + Alcor: 2.01063448397
+= eps Lyr 1 pair: 4.58709617291
+= eps Lyr 2 pair: 4.48709617291
+= all four eps Lyr stars together: 3.78337029791
+= two m-4 stars together: 3.24742501084
+= their gain over m 4: 0.75257498916 mag (2.5 log10 2)
+*/

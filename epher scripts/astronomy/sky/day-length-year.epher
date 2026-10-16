@@ -1,0 +1,121 @@
+/* ============================================================================
+day-length-year.epher -- how daylight grows and shrinks through a year
+
+The length of daylight through the year at one latitude: twelve rows,
+the 21st of each month with the equinoxes standing in for the 21sts
+that bracket them (Mar 20 and Sep 23 in 2026; Jun 21 and Dec 21 are
+the solstices themselves). Each row recomputes the day length from the
+hour-angle formula at the standard sunrise horizon
+
+  cos(H) = (sin(h0) - sin(lat) sin(dec)) / (cos(lat) cos(dec)),
+  h0 = -0.833 deg (upper limb plus refraction), day length = 2H,
+  time = 4 minutes per degree of hour angle
+
+with the Sun's declination at 12:00 UT read from the built-in
+accessor - the same machinery as twilight-times.epher and
+sunrise-sunset.epher, good to about a minute. The row on the June
+solstice is marked longest and the December one shortest (of the
+sampled days; the true extremes fall within a day of the solstices).
+
+The script assumes the Sun rises and sets daily at the place: within
+the polar circles the machinery would find no H, and midnight-sun.epher
+is the right tool there.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/day-length-year.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\day-length-year.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/day-length-year.epher
+In the REPL:             load one of the paths above
+
+Knobs: the year and the latitude and longitude (Greenwich below).
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const year = 2026
+const lat = 51.4779         // Greenwich
+const lon = 0
+
+// ---- model: day length from the Sun's declination at 12:00 UT ----------------
+def cx(h0, dec, phi) = (sin(rad(h0)) - sin(rad(phi)) * sin(rad(dec))) / (cos(rad(phi)) * cos(rad(dec)))
+def hours(dec) = deg(acos(cx(-0.833, dec, lat))) / 7.5   // H deg, 4 min per deg, both halves: 2H*4/60 = H/7.5 h
+def dld(y, m, d) = if abs(cx(-0.833, decl(10, jd(y, m, d, 12)), lat)) > 1 then -1 else hours(decl(10, jd(y, m, d, 12)))
+def tag(v, mx, mn) = if v == mx then "(longest)" else if v == mn then "(shortest)" else ""
+
+// ---- the twelve rows, each one declination reading ----------------------------
+const djan = dld(year, 1, 21)
+const dfeb = dld(year, 2, 21)
+const dmar = dld(year, 3, 20)
+const dapr = dld(year, 4, 21)
+const dmay = dld(year, 5, 21)
+const djun = dld(year, 6, 21)
+const djul = dld(year, 7, 21)
+const daug = dld(year, 8, 21)
+const dsep = dld(year, 9, 23)
+const doct = dld(year, 10, 21)
+const dnov = dld(year, 11, 21)
+const ddec = dld(year, 12, 21)
+
+/* ---- results ------------------------------------------------------------------
+The year's swing at Greenwich: 16.6 hours of daylight at the June
+solstice against 7.8 at the December one, with the equinox rows near
+12.2 (not 12: the -0.833 horizon adds the upper limb and refraction).
+The longest and shortest marks fall on the two solstice rows. */
+mx = max({djan, dfeb, dmar, dapr, dmay, djun, djul, daug, dsep, doct, dnov, ddec})
+mn = min({djan, dfeb, dmar, dapr, dmay, djun, djul, daug, dsep, doct, dnov, ddec})
+
+print("day length through", year, "at lat", lat, "lon", lon, "(h0 = -0.833 deg)")
+print("Jan 21:", if djan < 0 then "polar: no sunrise" else djan in hr, tag(djan, mx, mn))
+print("Feb 21:", if dfeb < 0 then "polar: no sunrise" else dfeb in hr, tag(dfeb, mx, mn))
+print("Mar 20 (equinox):", if dmar < 0 then "polar: no sunrise" else dmar in hr, tag(dmar, mx, mn))
+print("Apr 21:", if dapr < 0 then "polar: no sunrise" else dapr in hr, tag(dapr, mx, mn))
+print("May 21:", if dmay < 0 then "polar: no sunrise" else dmay in hr, tag(dmay, mx, mn))
+print("Jun 21 (solstice):", if djun < 0 then "polar: no sunrise" else djun in hr, tag(djun, mx, mn))
+print("Jul 21:", if djul < 0 then "polar: no sunrise" else djul in hr, tag(djul, mx, mn))
+print("Aug 21:", if daug < 0 then "polar: no sunrise" else daug in hr, tag(daug, mx, mn))
+print("Sep 23 (equinox):", if dsep < 0 then "polar: no sunrise" else dsep in hr, tag(dsep, mx, mn))
+print("Oct 21:", if doct < 0 then "polar: no sunrise" else doct in hr, tag(doct, mx, mn))
+print("Nov 21:", if dnov < 0 then "polar: no sunrise" else dnov in hr, tag(dnov, mx, mn))
+print("Dec 21 (solstice):", if ddec < 0 then "polar: no sunrise" else ddec in hr, tag(ddec, mx, mn))
+
+/* Self-check against the engine's own rise/set events (upper limb,
+same -0.833 horizon, but the events iterate the true geometry while
+the rows freeze the declination at noon): the June 21 span below
+should match the row within a minute or two. */
+es = (set(10, jd(year, 6, 21), lat, lon) - rise(10, jd(year, 6, 21), lat, lon)) * 24
+print("self-check: engine rise/set span 2026-06-21:", es in hr)
+print("  vs the formula row:", djun in hr)
+/* ---- expected output ----
+= 2026
+= 51.4779
+= 0
+= 8.61861756848
+= 10.3992119049
+= 12.170706945
+= 14.2472960702
+= 15.8962603087
+= 16.6335832338
+= 15.9319249971
+= 14.2561815313
+= 12.1459917739
+= 10.3376060179
+= 8.58963943771
+= 7.83026100458
+= 16.6335832338
+= 7.83026100458
+= day length through 2026 at lat 51.4779 lon 0 (h0 = -0.833 deg)
+= Jan 21: 8.61861756848 hr 
+= Feb 21: 10.3992119049 hr 
+= Mar 20 (equinox): 12.170706945 hr 
+= Apr 21: 14.2472960702 hr 
+= May 21: 15.8962603087 hr 
+= Jun 21 (solstice): 16.6335832338 hr (longest)
+= Jul 21: 15.9319249971 hr 
+= Aug 21: 14.2561815313 hr 
+= Sep 23 (equinox): 12.1459917739 hr 
+= Oct 21: 10.3376060179 hr 
+= Nov 21: 8.58963943771 hr 
+= Dec 21 (solstice): 7.83026100458 hr (shortest)
+= 16.6341501698
+= self-check: engine rise/set span 2026-06-21: 16.6341501698 hr
+=   vs the formula row: 16.6335832338 hr
+*/

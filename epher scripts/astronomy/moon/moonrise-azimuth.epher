@@ -1,0 +1,68 @@
+/* ============================================================================
+moonrise-azimuth.epher -- where the Moon rises and sets: azimuths
+
+The azimuths of moonrise and moonset for one place and date, from the
+built-in event accessors rise and set (the solar-ephemeris crate,
+JPL-validated; guide 1.16): each returns the instant of the event of
+the local solar day that starts at the Julian Date you pass, and the
+engine's event instant IS the horizon crossing, so the azimuth right
+then - az(body, event, lat, lon) - is the rise or set bearing. Azimuth
+is degrees from north through east (90 east, 180 south, 270 west);
+the compass name beside it is an 8-wind rounding of the same angle.
+
+The engine finds the crossing of the standard -0.833-degree horizon
+(the limb's centre, refraction and semidiameter included), so the
+Moon's altitude at the reported instant reads about -0.83 deg - the
+printed self-check. Rise and set can be absent on a given day (the
+Moon is up all day, or down all day); both exist on the 2026-06-22
+chosen below - the near-first-quarter Moon rises at 12:55 UT and sets
+at 23:57 UT at Greenwich (see moonrise-moonset.epher) - and the Moon
+is north of the celestial equator that day, so it rises and sets
+north of the east and west points.
+
+Accuracy: engine-grade event instants (about a minute); the azimuth
+comes from the same engine at that instant.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moonrise-azimuth.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moonrise-azimuth.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moonrise-azimuth.epher
+In the REPL:             load one of the paths above
+
+Knobs: the place (Greenwich below) and the date (2026-06-22 carries
+both events at that latitude; many dates do not - the Moon's events
+drift about 50 minutes later each day).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const lat = 51.4779        // Greenwich - the Royal Observatory
+const lon = 0
+const date = {2026, 6, 22}   // a date with both a moonrise and a moonset
+
+// ---- helpers ----------------------------------------------------------------
+def tr(lat, lon, j0) = rise(11, j0, lat, lon)    // moonrise of the local day
+def ts(lat, lon, j0) = set(11, j0, lat, lon)     // moonset of the local day
+def comp(a) = if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 0 then "north" else if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 1 then "northeast" else if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 2 then "east" else if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 3 then "southeast" else if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 4 then "south" else if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 5 then "southwest" else if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 6 then "west" else "northwest"
+
+// ---- results ------------------------------------------------------------------
+print("moon events at lat", lat, "lon", lon, "on", date[3], "/", date[2], "/", date[1], "UT:")
+print("moonrise:", iso(tr(lat, lon, jd(date[1], date[2], date[3]))), "at azimuth", az(11, tr(lat, lon, jd(date[1], date[2], date[3])), lat, lon), "deg -", comp(az(11, tr(lat, lon, jd(date[1], date[2], date[3])), lat, lon)))
+print("moonset:", iso(ts(lat, lon, jd(date[1], date[2], date[3]))), "at azimuth", az(11, ts(lat, lon, jd(date[1], date[2], date[3])), lat, lon), "deg -", comp(az(11, ts(lat, lon, jd(date[1], date[2], date[3])), lat, lon)))
+
+/* Self-check: the altitude the engine reports at the instant it found
+for the event - the rise/set convention crosses the -0.833 deg horizon
+(limb centre at the refracted horizon), so the printed altitude should
+read about -0.83 deg at both events. */
+print("altitude at moonrise:", alt(11, tr(lat, lon, jd(date[1], date[2], date[3])), lat, lon), "deg")
+print("altitude at moonset:", alt(11, ts(lat, lon, jd(date[1], date[2], date[3])), lat, lon), "deg")
+
+/* ---- expected output ----
+= 51.4779
+= 0
+= {2026, 6, 22}
+= moon events at lat 51.4779 lon 0 on 22 / 6 / 2026 UT:
+= moonrise: 2026-06-22T12:55:13 at azimuth 100.0353115 deg - east
+= moonset: 2026-06-22T23:56:53 at azimuth 255.699662 deg - west
+= altitude at moonrise: -0.8207621 deg
+= altitude at moonset: -0.819297 deg
+*/

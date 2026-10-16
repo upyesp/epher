@@ -1,0 +1,46 @@
+/* ============================================================================
+square-wave-harmonics.epher -- a square wave from sine partials
+
+A square wave of amplitude 1 is the sine series
+4/pi * (sin(x) + sin(3*x)/3 + sin(5*x)/5 + ...), odd harmonics only,
+falling off as 1/n (Fourier, "Theorie analytique de la chaleur", 1822).
+Partial sums ring near the jumps: the Gibbs overshoot stays near 9
+percent of the jump no matter how many terms are taken (Wilbraham
+1848, Gibbs 1899). The script graphs the five-term sum against its
+envelope and prints the sum at the flat top and mid-jump.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/functions/square-wave-harmonics.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\functions\square-wave-harmonics.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/functions/square-wave-harmonics.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the model -----------------------------------------------------------------
+def s(x) = 4 / pi * (sin(x) + sin(3 * x) / 3 + sin(5 * x) / 5 + sin(7 * x) / 7 + sin(9 * x) / 9)
+
+// ---- results -------------------------------------------------------------------
+print("amplitude scale 4/pi:", 4 / pi)
+print("mid flat top s(pi/2):", s(pi / 2))
+print("mid jump s(0):", s(0))
+print("peak of the ring s(0.35):", s(0.35))
+print("five terms only reach:", s(pi / 2) - 1, "above 1")
+
+// ---- the picture ---------------------------------------------------------------
+graph 4 / pi * (sin(x) + sin(3 * x) / 3 + sin(5 * x) / 5 + sin(7 * x) / 7 + sin(9 * x) / 9) from -0.5 to 6.6
+graph 1 from -0.5 to 6.6
+graph -1 from -0.5 to 6.6
+
+/* ---- expected output ----
+= amplitude scale 4/pi: 1.27323954474
+= mid flat top s(pi/2): 1.0630539691
+= mid jump s(0): 0
+= peak of the ring s(0.35): 1.17012137209
+= five terms only reach: 0.0630539690963 above 1
+graph: 4 / pi * (sin(x) + sin(3 * x) / 3 + sin(5 * x) / 5 + sin(7 * x) / 7 + sin(9 * x) / 9) from -0.5 to 6.6
+graph: 1 from -0.5 to 6.6
+graph: -1 from -0.5 to 6.6
+*/

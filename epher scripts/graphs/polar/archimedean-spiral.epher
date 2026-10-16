@@ -1,0 +1,37 @@
+/* ============================================================================
+archimedean-spiral.epher -- r grows in lockstep with the angle
+
+The spiral r = theta winds outward one fixed band per turn: successive
+turns cut any ray exactly 2*pi apart, the property Archimedes proved
+in "On Spirals" (c. 225 BC) when he squared the circle's motion. The
+uniform spacing is what distinguishes it from the logarithmic spiral,
+whose bands grow geometrically. The script graphs two turns and
+checks the spacing and a radius along the axis.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/polar/archimedean-spiral.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\polar\archimedean-spiral.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/polar/archimedean-spiral.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def r(t) = t
+
+// ---- results -------------------------------------------------------------------
+print("radius after one turn, 2*pi:", r(2 * pi))
+print("radius after two turns, 4*pi:", r(4 * pi))
+print("band spacing per turn, exact 2*pi:", r(4 * pi) - r(2 * pi))
+
+// ---- the picture ---------------------------------------------------------------
+graph polar theta from 0 to 12.566
+
+/* ---- expected output ----
+= radius after one turn, 2*pi: 6.28318530718
+= radius after two turns, 4*pi: 12.5663706144
+= band spacing per turn, exact 2*pi: 6.28318530718
+graph: polar theta from 0 to 12.566
+*/

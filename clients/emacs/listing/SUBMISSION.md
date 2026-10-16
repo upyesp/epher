@@ -1,0 +1,175 @@
+# Submitting epher.el to MELPA
+
+The recipe text is in `recipe` next to this file. It is the exact
+recipe from `docs/research/emacs-melpa-publishing.md`:
+
+```elisp
+(epher
+ :fetcher github
+ :repo "upyesp/epher"
+ :files ("clients/emacs/epher.el"))
+```
+
+`:fetcher github` and `:repo "upyesp/epher"` are the dedicated forge
+fetcher the MELPA README prefers; `:files` paths are relative to the
+repository root, and the file lands as `epher.el` in the built package.
+
+## Secrets
+
+There are none. MELPA has no channel account to create, no API key,
+no token, and no CI job. The GitHub account that opens the PR is the
+only credential involved. Nothing belongs in the `stores` environment
+for it, and no `.github/workflows` file exists or is needed: the whole
+channel is a GitHub pull request and a review conversation.
+Everything below is human.
+
+## Before the PR (human, one time, in this repo)
+
+The recipe can be submitted as soon as `clients/emacs/epher.el`
+passes the MELPA requirements. The repo-side preparation is already
+done in this tree:
+
+1. `epher.el` carries an `Author:` header and the MIT license notice
+   above `;;; Commentary:` (the MELPA package page exposes authors,
+   and CONTRIBUTING.org asks for the boilerplate in the header). Add
+   an `Assisted-by:` line under `Author:` if LLMs generated some of
+   the code.
+2. The Commentary is rewritten as the listing copy: plain text, no ADR
+   numbers, adapted from `clients/vscode/README.md`. MELPA renders the
+   Commentary as preformatted text (`epher-readme.txt`); markdown,
+   links, and images never render, so the screenshots live in
+   `clients/emacs/images/` and `clients/emacs/README.md` instead.
+3. Keep `Version:` in lockstep with the train; it is `0.5.57` today.
+4. The package must have lived in a public repo for one month or
+   more; `upyesp/epher` already clears this.
+
+Remaining human checks before the PR:
+
+- run `package-lint`, `checkdoc`, and a byte-compile on `epher.el`
+  and fix what they flag (the research doc's one open item);
+- confirm the repository has been public for at least a month (yes)
+  and that no `epher-pkg.el`, README, or changelog ships inside the
+  package (`:files` ships exactly one file, so this holds).
+
+## Status
+
+- 2026-09-30: `epher.el` passes package-lint (one deliberate
+  `with-eval-after-load` warning for the optional lsp-mode
+  registration), checkdoc, and a warning-free byte-compile, and
+  carries the `Assisted-by` header the template asks for
+  (`GLM (Z.ai)`, what this repo actually runs).
+- 2026-10-11: riscy's first review on the PR raised three points, and
+  a full melpazoid run a fourth. All are fixed on this branch:
+  the `with-eval-after-load` lsp-mode registration is gone (it was
+  the init.el pattern from lsp-mode's docs, not a package pattern;
+  the reviewer called that), and the Commentary plus the client
+  README now carry the registration snippet, including the
+  `lsp-language-id-configuration` entry the old block was missing;
+  the top-level `add-hook` is gone (the autostart call sits at the
+  end of the `epher-mode` body); the `Author:` line carries an
+  address (`upyesp <upyesp@gmail.com>`) so `lm-authors` parses it;
+  and the `with-suppressed-warnings` around eglot 1.16's renamed
+  `path-to-uri` helper is gone (both names resolve through
+  `symbol-function`). The `Assisted-by` line follows the
+  CONTRIBUTING.org `AGENT_NAME:MODEL_VERSION` shape now
+  (`z.ai:GLM5.3`). A bundled lsp-mode client is upstream at
+  emacs-lsp/lsp-mode#5129, which retires the snippet once it ships.
+  The `Version:` header rejoined the train (0.5.81), and the version
+  lock plus `scripts/train` now cover the emacs client.
+- 2026-09-30: the recipe PR is open as
+  https://github.com/melpa/melpa/pull/10256; MELPA's CI built it
+  green in 39 seconds. Awaiting maintainer review, typically a week
+  to several. After merge everything is automatic: unstable rides
+  commits touching `clients/emacs/epher.el`, stable rides the
+  `v0.5.x` tags.
+
+## The one-time PR
+
+1. Fork `melpa/melpa` and create a branch, for example
+   `add-recipe-epher`.
+2. Add the recipe at exactly `recipes/epher`. The file name must equal
+   the package name (`epher`), not `recipe`; `recipe` here is only the
+   staged copy. No `epher-pkg.el` is created by hand; MELPA generates
+   it from the package headers.
+3. Test locally, per CONTRIBUTING.org. All three were run on
+   2026-09-30 and passed:
+   - `make recipes/epher` builds the package into `packages/`:
+     `epher-20260930.1116.tar` from main, the `:files` spec mapping
+     `clients/emacs/epher.el` to `epher.el`, and the generated
+     `epher-readme.txt` is the Commentary verbatim;
+   - `make CHANNEL=stable recipes/epher` checks that the `v0.5.57`
+     tag parses through the default `:version-regexp`: it produced
+     `epher-0.5.57.tar` in `packages-stable/`. (CONTRIBUTING.org's
+     `MELPA_CHANNEL=` spelling is stale: the Makefile reads `CHANNEL`,
+     and the old spelling silently builds the unstable channel.)
+   - `make sandbox INSTALL=epher` gives a sandboxed Emacs with the
+     new package installable: under Emacs 30.2 the sandbox installed
+     and byte-compiled `epher-20260930.1116` cleanly. Under Emacs
+     28.2 the same command fails with `Package 'emacs-29.1' is
+     unavailable`, which is the declared floor doing its job:
+     package.el enforces `Package-Requires: ((emacs "29.1"))` at
+     install time.
+4. Commit and open the PR. Opened 2026-09-30 as
+   https://github.com/melpa/melpa/pull/10256 from the fork branch
+   `add-recipe-epher`, titled "request to add recipe for 'epher'" per
+   the maintainer's choice (the template's suggested wording is "Add
+   recipe for <NAME>"; the title is not validated). The body answers
+   the template: summary, repo link, maintainer association, none
+   needed for upstream communications, the checklist below, and the
+   monorepo justification from step 5 pre-emptively. Fill the
+   template: brief summary,
+   a direct link to `https://github.com/upyesp/epher`, your
+   association (maintainer), "Relevant communications with the
+   upstream package maintainer" as *None needed*, and the checklist
+   (GPL-compatible license, package-lint clean, byte-compiles,
+   checkdoc clean, built and installed, repo public for at least a
+   month).
+5. One reviewer question is expected: CONTRIBUTING.org asks for a
+   dedicated SCM repository per package. epher is a version-locked
+   monorepo by ADR-0066; the `:files` spec works, and the shared
+   `v0.5.x` tags keep every client on the same version by
+   construction. Answer with the ADR; the guideline is explicitly
+   evaluated case by case.
+6. MELPA CI runs on the PR itself and builds the changed recipe; fix
+   anything it reports. A maintainer then reviews, typically a week or
+   several.
+
+## After the merge (automatic, forever)
+
+- MELPA's build server checks out the recipe's repo, builds
+  `epher-<date>.el`, generates `epher-readme.txt` from the Commentary,
+  and updates `archive.json` and the download counter, at intervals
+  through the day.
+- Unstable MELPA, the default archive, versions by the date of the
+  last commit that touched `clients/emacs/epher.el`, so every commit
+  on main becomes a new package build within a day.
+- MELPA Stable versions from the repo's tags, and the per-train
+  `v0.5.x` tags already parse, so stable follows `0.5.57`, `0.5.58`,
+  and so on with no action from us.
+- There is no per-release action on MELPA, ever. The recipe changes
+  only if the file path changes.
+
+## NonGNU ELPA (the optional second queue)
+
+NonGNU ELPA is worth one email after MELPA settles: it is the only
+channel that puts epher into `M-x list-packages` with no user
+configuration (the default archive since Emacs 28.1), and unlike GNU
+ELPA it requires no FSF copyright assignment. It is submitted by
+email, not by PR:
+
+1. Subscribe to `emacs-devel@gnu.org` first (an unsubscribed address
+   needs manual approval).
+2. Send a short message to the list: what the package is, a link to
+   the public git repository, and whether GNU ELPA or NonGNU ELPA is
+   preferred (state NonGNU).
+3. Mention that the Lisp file is not at the repository root (it is at
+   `clients/emacs/epher.el`); the submission guidance asks for exactly
+   that.
+4. The description comes from `README.org` if one exists, but Markdown
+   is excluded by policy, so the `;;; Commentary:` serves here too.
+   The same rewritten Commentary from the MELPA work is the listing
+   copy.
+5. Volunteers review on the mailing list; the queue is measured in
+   emails, not CI minutes. Do not block the MELPA PR on this.
+
+Neither archive asks for a credential of any kind.

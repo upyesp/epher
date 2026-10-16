@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# The train's version lives in VERSION (ADR-0073); these are the places
+# that carry a copy. The check fails loudly on the first mismatch, on a
+# PR (version-lock.yml) instead of at release time, which is where the
+# jetbrains fallback's three burned trains (v0.5.73 to v0.5.75) were
+# actually discovered.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+if [ ! -f VERSION ]; then
+  echo "::error::VERSION file is missing"
+  exit 1
+fi
+VERSION="$(tr -d '[:space:]' < VERSION)"
+if [ -z "$VERSION" ]; then
+  echo "::error::VERSION file is empty"
+  exit 1
+fi
+
+status=0
+check() {
+  # check <label> <file> <grep-pattern>
+  local label="$1" file="$2" pattern="$3"
+  if [ ! -f "$file" ]; then
+    echo "version lock broken: $label: $file is missing"
+    status=1
+    return
+  fi
+  if ! grep -Eq "$pattern" "$file"; then
+    echo "version lock broken: $label does not carry $VERSION ($(basename "$file"))"
+    status=1
+  fi
+}
+
+check "vscode package.json"        clients/vscode/package.json "\"version\": \"$VERSION\""
+check "zed Cargo.toml"             clients/zed/Cargo.toml "^version = \"$VERSION\""
+check "zed extension.toml"         clients/zed/extension.toml "^version = \"$VERSION\""
+check "epher-cli Cargo.toml"       crates/cli/Cargo.toml "^version = \"$VERSION\""
+check "epher-lsp Cargo.toml"       crates/lsp/Cargo.toml "^version = \"$VERSION\""
+check "jetbrains fallback"         clients/jetbrains/src/main/kotlin/io/epher/jetbrains/EpherServerDownloader.kt "DEFAULT_VERSION = \"$VERSION\""
+check "sublime placeholder"        clients/sublime/plugin.py "_SERVER_VERSION = \"$VERSION\""
+check "emacs client Version"       clients/emacs/epher.el "^;; Version: $VERSION\$"
+# The workspace lock: one check per crate entry (grep -A1 pairs the
+# name line with the version line beneath it).
+lock_entry() {
+  local crate="$1"
+  if ! grep -A1 "^name = \"$crate\"$" Cargo.lock | grep -q "^version = \"$VERSION\"$"; then
+    echo "version lock broken: Cargo.lock $crate does not carry $VERSION"
+    status=1
+  fi
+}
+lock_entry epher-cli
+lock_entry epher-lsp
+
+if [ "$status" -ne 0 ]; then
+  echo "fix with: scripts/train <the version> (ADR-0073)"
+fi
+exit "$status"

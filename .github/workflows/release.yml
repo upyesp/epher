@@ -1,0 +1,671 @@
+# Build the unified epher installers for every platform and attach them to
+# a GitHub Release. Dispatched, never tag-driven (ADR-0073): a locally cut
+# tag burned two trains (v0.5.74 aborted mid-flight, v0.5.78 spent the
+# whole desktop matrix on a stale tree), so this dispatch is the only
+# door: name the version, the train job verifies the tree carries it and
+# preflights the server binary, everything builds from that pinned sha,
+# and the tag is cut here only once the installers exist. Nothing else
+# pushes v* tags; main is protected against everything but the promotion
+# pull request.
+#
+# Re-driving a failed release: re-run the failed run (gh run rerun), or
+# dispatch again with the same version; the train job accepts an existing
+# tag when it points at the pinned sha, and refuses otherwise.
+#
+# One download per platform (ADR-0011): each installer carries the unified
+# `epher` executable: one-shot CLI, REPL (`epher repl`), piped scripts
+# (`epher -`), TUI (`epher tui`), and the desktop GUI (bare `epher` /
+# `epher gui`). Windows installs two subsystem builds of the same program
+# (console `epher.exe` on PATH; GUI-subsystem `epher-gui.exe` as the
+# double-click target: no console flash); macOS/Linux install the single
+# binary. On Windows the NSIS installer adds the install directory to the
+# user PATH (nsis-hooks.nsh), and a hook Files the console build next to
+# the GUI main binary: `bundle.resources` cannot (tauri-build copies
+# resources during cargo build, before the sibling binary exists).
+#
+# Asset names (stable: the landing page links to these):
+#   epher-windows-x86_64.exe        Windows installer (NSIS)
+#   epher-macos-aarch64.dmg         macOS disk image (Apple Silicon only: 
+#                                   ADR-0025 dropped the Intel build)
+#   epher-linux-x86_64.deb          Debian/Ubuntu and derivatives
+#   epher-linux-x86_64.rpm          Fedora/RHEL and derivatives
+#   epher-linux-x86_64.AppImage     everything else, incl. Arch: runs as-is
+#   epher-linux-aarch64.*           the same three, ARM64 (ADR-0061)
+#
+# The language server rides the same release (ADR-0066): the shared
+# epher-lsp binary per platform, the assets the IDE extensions resolve
+# on first run:
+#   epher-lsp-linux-x86_64.gz
+#   epher-lsp-linux-aarch64.gz
+#   epher-lsp-macos-aarch64.gz
+#   epher-lsp-windows-x86_64.zip
+#
+# The repositories and stores (ADR-0061): the linux-repos job serves the
+# same debs/rpms from epher.org's apt and dnf repositories (GitHub Pages,
+# GPG-signed, container install-smoke before publish); the snap job
+# repacks the release deb for the Snap Store; the flatpak job turns the
+# tagged release into a .flatpak bundle per architecture (Flathub
+# publication was dropped, ADR-0061 amendment 2026-09-18: the bundle
+# download is the Flatpak channel). Each of those jobs skips with a
+# notice when its credentials (GPG key, Snap Store login) are not yet
+# configured.
+#
+# The builds carry no developer identity: Windows is unsigned, macOS is
+# ad-hoc signed (a valid signature, so Gatekeeper's "damaged" check
+# passes): first launch shows the ordinary overridable warning, and the
+# guide documents the right-click → Open path for each OS.
+#
+# The Linux legs pin ubuntu-22.04 and ubuntu-22.04-arm (glibc 2.35) so
+# the shipped binaries run on Debian 12, Ubuntu 22.04+, and every newer
+# distro: both architectures support the same set (ADR-0061); building
+# on ubuntu-latest would require glibc 2.39 and break those systems.
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: the train to release, e.g. 0.5.80 (a leading v is accepted)
+        required: true
+        type: string
+      dry_run:
+        description: build and preflight only; cut no tag, publish nothing
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  # ADR-0073: the gate. Verifies the tree carries the requested train,
+  # preflights the server binary (a tree that cannot produce the right
+  # one fails here in minutes instead of after 25-minute desktop
+  # builds), and pins the sha every later job builds from.
+  train:
+    name: verify the train, pin the tree
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      sha: ${{ steps.pin.outputs.sha }}
+      version: ${{ steps.pin.outputs.version }}
+      v_version: ${{ steps.pin.outputs.v_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: pin
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          version="${INPUT_VERSION#v}"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "v_version=v$version" >> "$GITHUB_OUTPUT"
+      - name: Verify the tree carries this train
+        env:
+          VERSION: ${{ steps.pin.outputs.version }}
+        run: |
+          set -euo pipefail
+          [ "$(cat VERSION)" = "$VERSION" ] || {
+            echo "::error::VERSION file is '$(cat VERSION)', the dispatch asked for $VERSION; run scripts/train first"
+            exit 1
+          }
+          scripts/check-version-lock
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Preflight the server binary
+        env:
+          VERSION: ${{ steps.pin.outputs.version }}
+        run: |
+          set -euo pipefail
+          cargo build --release -p epher-lsp
+          ./target/release/epher-lsp --version | grep -q "$VERSION"
+      - name: Check the tag is free (or points here, for a re-drive)
+        env:
+          V_VERSION: ${{ steps.pin.outputs.v_version }}
+          SHA: ${{ steps.pin.outputs.sha }}
+        run: |
+          set -euo pipefail
+          remote="$(git ls-remote --tags origin "refs/tags/$V_VERSION")" || remote=""
+          [ -z "$remote" ] && exit 0
+          # Annotated tags list twice (the tag ref and its peeled ^{});
+          # the peeled line carries the commit the tag points at.
+          peeled="$(echo "$remote" | grep '\^{}' | cut -f1)"
+          if [ -n "$peeled" ] && [ "${peeled%%	*}" = "$SHA" ]; then
+            echo "::notice::tag $V_VERSION already exists at the pinned sha; re-drive"
+            exit 0
+          fi
+          echo "::error::tag $V_VERSION already exists and does not point at the pinned tree ($SHA); versions are never re-pointed, move the train"
+          exit 1
+
+  # The installer build itself lives in the reusable build-installers.yml,
+  # shared with the staging draft builds (ADR-0062): a staging dispatch
+  # runs this exact build recipe, so the public release's bytes were
+  # already tested as the hidden draft.
+  build:
+    needs: [train]
+    uses: ./.github/workflows/build-installers.yml
+    with:
+      ref: ${{ needs.train.outputs.sha }}
+      version: ${{ needs.train.outputs.v_version }}
+
+  flatpak:
+    # The Flatpak channel (ADR-0061): the in-repo manifest builds the
+    # tagged release into a .flatpak bundle for x86_64, attached to the
+    # release like every other installer. The manifest pins a git tag;
+    # this job repins it at THIS tag before building, the same way the
+    # snap job pins the version. Flathub publication was dropped
+    # (ADR-0061 amendment, 2026-09-18); flatpak-build.yml keeps proving
+    # the manifest between releases, on x86_64 and aarch64.
+    #
+    # The arm bundle is not built (ADR-0061 amendment, 2026-10-08): the
+    # release train's arm builds died on bwrap "Exec format error" on
+    # every train from 0.5.66 to 0.5.71, through retries and a
+    # clean-room cacheless build, and a failing arm leg kept skipping
+    # the release attach. Arm users install the deb, rpm, AppImage or
+    # snap like every other arm channel.
+    name: flatpak (x86_64)
+    needs: [train, release]
+    if: inputs.dry_run != true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x86_64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.train.outputs.sha }}
+      - name: Pin the manifest at this release tag
+        # Scoped to the epher module: the manifest's other modules pin
+        # their own upstream tags and commits, and rewriting every
+        # commit: line desyncs them (the wasm-bindgen tag/commit
+        # mismatch that broke the first v0.5.43 train).
+        env:
+          TAG: ${{ needs.train.outputs.v_version }}
+          SHA: ${{ needs.train.outputs.sha }}
+        run: |
+          set -e
+          sed -i "/- name: epher/,/^        commit:/ { s/^        tag: .*/        tag: ${TAG}/; s/^        commit: .*/        commit: ${SHA}/ }" packaging/flatpak/org.epher.Desktop.yml
+          grep -q "tag: ${TAG}" packaging/flatpak/org.epher.Desktop.yml
+          grep -q "commit: ${SHA}" packaging/flatpak/org.epher.Desktop.yml
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        id: build
+        # Releases build clean-room: the cache is off, so every module
+        # builds from source at its pinned version and the bundle can
+        # never inherit another run's stale toolchain.
+        with:
+          bundle: epher-linux-${{ matrix.arch }}.flatpak
+          manifest-path: packaging/flatpak/org.epher.Desktop.yml
+          cache: false
+          # the action's auto-upload mangles the arch into the name; the
+          # explicit upload below feeds the release job's asset merge
+          upload-artifact: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-linux-${{ matrix.arch }}
+          path: epher-linux-${{ matrix.arch }}.flatpak
+
+      - name: Attach the bundle to the release
+        # The flatpak manifest pins the release's tag and commit, so
+        # this job runs after the tag is cut (ADR-0073): it is a
+        # channel publisher like the marketplace jobs, not a build
+        # gate. The dry run skips it; flatpak-build.yml proves the
+        # manifest between releases.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.train.outputs.v_version }}
+        run: gh release upload "$TAG" "epher-linux-${{ matrix.arch }}.flatpak" --repo "$GITHUB_REPOSITORY" --clobber
+
+  release:
+    name: Attach assets to the release
+    needs: [train, build]
+    if: inputs.dry_run != true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.train.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Cut the release tag
+        # ADR-0073: the tag lands here, only after the installers exist.
+        # The channel workflows fire on this push; they wait for this
+        # release to be published before they write anything.
+        env:
+          V_VERSION: ${{ needs.train.outputs.v_version }}
+          SHA: ${{ needs.train.outputs.sha }}
+        run: |
+          set -euo pipefail
+          git config user.name "epher train bot"
+          git config user.email "train@epher.org"
+          if git ls-remote --tags origin "refs/tags/$V_VERSION" | grep -q "refs/tags/$V_VERSION"; then
+            echo "tag $V_VERSION already exists (re-drive); leaving it in place"
+            exit 0
+          fi
+          git tag -a "$V_VERSION" "$SHA" -m "epher $V_VERSION, cut by ci from $SHA (ADR-0073)"
+          git push origin "$V_VERSION"
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "*"
+          merge-multiple: true
+          path: assets
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.train.outputs.v_version }}
+          files: assets/*
+          generate_release_notes: true
+          body: |
+            epher ${{ needs.train.outputs.version }}, one install, every frontend.
+
+            Each platform ships a single download: the one-shot CLI, the
+            REPL (`epher repl`), piped scripts (`epher -`), the terminal UI
+            (`epher tui`), and the desktop app (bare `epher` / `epher gui`).
+
+            - **Windows**: run `epher-windows-x86_64.exe`, the installer puts
+              `epher` on your PATH (open a new terminal, then `epher "2 + 2"`).
+              Desktop launches open the window with no console flash.
+            - **macOS**: open `epher-macos-aarch64.dmg` (Apple Silicon) and
+              drag epher to Applications. In the app, "Install the epher
+              command" puts `epher` on your terminal PATH.
+            - **Linux**: Debian/Ubuntu → add the apt repo once
+              (https://epher.org, Linux → Debian/Ubuntu tab), then
+              `apt install epher`; Fedora → the dnf repo, then
+              `dnf install epher`; the Snap Store carries `epher`
+              (`sudo snap install epher`); or grab `.deb` / `.rpm` /
+              `.AppImage` / `.flatpak` directly (x86_64 and ARM64).
+
+            - **Editors**: the IDE extensions ride this release too:
+              `epher-vscode.vsix` for VS Code, `epher-jetbrains.zip`
+              for the JetBrains IDEs (2024.2+; IDEA Community is not
+              supported, the platform's LSP client ships only in the
+              commercial IDEs), `epher-visualstudio.vsix` for Visual
+              Studio 2022, and the ready-made editor configurations
+              `epher-zed.zip` (Zed), `epher-nvim.zip` (Neovim),
+              `epher-vim.zip` (Vim), `epher-sublime.zip` (Sublime
+              Text), `epher-emacs.zip` (Emacs), and `epher-eclipse.jar`
+              (Eclipse dropins). All are thin shells (ADR-0066): the VS Code vsix
+              also serves Cursor and VSCodium and carries its server
+              inside, the same wasm module, no download; JetBrains
+              and Visual Studio download the shared language server on
+              first run; Zed, Neovim, Vim, Sublime, Emacs, and Eclipse
+              point an existing `epher-lsp` on your PATH. The
+              `epher-lsp-<target>.gz` binaries (Windows `.zip`) are
+              attached to this release.
+
+            - **Web app (PWA)**: https://epher.org/pwa/, works
+              fully offline.
+
+            > Note: the builds carry no developer identity. Windows is
+            > unsigned (choose *More info* → *Run anyway*). macOS is
+            > ad-hoc signed, first launch: right-click epher → **Open**,
+            > or System Settings → Privacy & Security → *Open Anyway*.
+
+      - name: Dispatch the channel workflows
+        # ADR-0073: a tag pushed by this run's own token fires no
+        # workflow events, so the channels are dispatched here, after
+        # the tag exists and the release is published. Each channel
+        # still waits for the published release before it writes.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V_VERSION: ${{ needs.train.outputs.v_version }}
+        run: |
+          set -euo pipefail
+          for wf in sublime-publish epher-nvim-publish luarocks-publish vim-publish; do
+            gh workflow run "$wf.yml" --ref main -f version="$V_VERSION"
+            echo "$wf dispatched for $V_VERSION"
+          done
+
+  linux-repos:
+    # ADR-0061: serve the Linux packages from epher.org's apt and dnf
+    # repositories. Publishes to the gh-pages branch (the site build
+    # checks apt/ and rpm/ out of it into the deployment) after the
+    # repositories pass a container install-smoke test. Skips with a
+    # notice until the GPG_PRIVATE_KEY secret exists.
+    name: linux repositories (apt + dnf)
+    needs: [train, build]
+    if: inputs.dry_run != true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.train.outputs.sha }}
+
+      - name: Secrets check
+        id: secrets
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          if [ -n "$GPG_PRIVATE_KEY" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::apt/dnf repositories not published: set the GPG_PRIVATE_KEY secret (see ADR-0061)."
+          fi
+
+      - uses: actions/download-artifact@v4
+        if: steps.secrets.outputs.skip == 'false'
+        with:
+          pattern: desktop-linux-*
+          merge-multiple: true
+          path: assets
+
+      - name: Install repo tooling
+        if: steps.secrets.outputs.skip == 'false'
+        run: sudo apt-get update && sudo apt-get install -y apt-utils createrepo-c
+
+      - name: Import the signing key
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          set -e
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          if [ -n "$GPG_PASSPHRASE" ]; then
+            echo "GPG_OPTS=--batch --yes --pinentry-mode loopback --passphrase $GPG_PASSPHRASE" >> "$GITHUB_ENV"
+          fi
+          gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print "KEYID=" $10; exit}' >> "$GITHUB_ENV"
+
+      - name: Build the apt repository
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          VERSION: ${{ needs.train.outputs.v_version }}
+        run: |
+          set -euo pipefail
+          GPG_OPTS="${GPG_OPTS:-}"   # unset when the key has no passphrase
+          VERSION_NUM="${VERSION#v}"
+          mkdir -p apt/pool/main/e/epher
+          # Latest only (ADR-0061): the repo carries exactly the
+          # current release under its canonical pool name. (Before the
+          # loop, inside it, the arm64 pass deletes the amd64 copy.)
+          rm -f apt/pool/main/e/epher/*.deb
+          for arch in amd64 arm64; do
+            # Release artifacts use the Rust target name; the apt pool
+            # uses the Debian architecture name.
+            case "$arch" in
+              amd64) src="assets/epher-linux-x86_64.deb" ;;
+              arm64) src="assets/epher-linux-aarch64.deb" ;;
+            esac
+            cp "$src" "apt/pool/main/e/epher/epher_${VERSION_NUM}_${arch}.deb"
+          done
+          mkdir -p apt/dists/stable/main/binary-amd64 apt/dists/stable/main/binary-arm64
+          (
+            cd apt
+            # Index each deb directly, that pins the Filename field to
+            # the pool path and keeps each suite's Packages file to its
+            # own architecture (apt-ftparchive has no --arch filter).
+            for arch in amd64 arm64; do
+              apt-ftparchive packages "pool/main/e/epher/epher_${VERSION_NUM}_${arch}.deb" \
+                > "dists/stable/main/binary-$arch/Packages"
+              gzip -k -f "dists/stable/main/binary-$arch/Packages"
+            done
+            apt-ftparchive \
+              -o APT::FTPArchive::Release::Origin=epher \
+              -o APT::FTPArchive::Release::Label=epher \
+              -o APT::FTPArchive::Release::Suite=stable \
+              -o APT::FTPArchive::Release::Codename=stable \
+              -o 'APT::FTPArchive::Release::Architectures=amd64 arm64' \
+              -o APT::FTPArchive::Release::Components=main \
+              -o APT::FTPArchive::Release::Description="epher, a programmable, scriptable calculator" \
+              release dists/stable > dists/stable/Release
+            gpg $GPG_OPTS --armor --detach-sign --local-user "$KEYID" \
+              -o dists/stable/Release.gpg dists/stable/Release
+            gpg $GPG_OPTS --clearsign --local-user "$KEYID" \
+              -o dists/stable/InRelease dists/stable/Release
+          )
+          # Binary keyring, not armored: apt's signed-by on Debian 12
+          # (apt 2.6) cannot verify an armored key; it fails with
+          # NO_PUBKEY. dnf accepts either format.
+          gpg --batch --export "$KEYID" > apt/KEY.gpg
+
+      - name: Build the dnf repository
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          VERSION: ${{ needs.train.outputs.v_version }}
+        run: |
+          set -euo pipefail
+          GPG_OPTS="${GPG_OPTS:-}"   # unset when the key has no passphrase
+          mkdir -p rpm/x86_64 rpm/aarch64
+          cp assets/epher-linux-x86_64.rpm rpm/x86_64/
+          cp assets/epher-linux-aarch64.rpm rpm/aarch64/
+          # Latest only (ADR-0061): each publish replaces the tree.
+          # Tree layout: rpm/<arch>, epher.repo's baseurl is
+          # https://epher.org/rpm/$basearch, so repodata must live at
+          # rpm/<arch>/repodata (the smoke container checks exactly
+          # that path).
+          (
+            cd rpm
+            printf '%s\n' "%_gpg_name $KEYID" > "$HOME/.rpmmacros"
+            find . -name '*.rpm' -exec rpmsign --addsign {} \;
+            for arch in x86_64 aarch64; do
+              createrepo_c "$arch"
+            done
+            gpg $GPG_OPTS --armor --detach-sign --local-user "$KEYID" \
+              x86_64/repodata/repomd.xml
+            gpg $GPG_OPTS --armor --detach-sign --local-user "$KEYID" \
+              aarch64/repodata/repomd.xml
+          )
+
+      - name: Container install-smoke (Debian 12 + Fedora)
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8088 --directory . >/dev/null 2>&1 &
+          SERVER=$!
+          sleep 1
+          docker run --rm --network host -v "$PWD/apt:/mnt/apt:ro" debian:12 bash -ec '
+            apt-get update -qq
+            apt-get install -y -qq ca-certificates gnupg >/dev/null
+            mkdir -p /etc/apt/keyrings
+            cp /mnt/apt/KEY.gpg /etc/apt/keyrings/epher.gpg
+            printf "Types: deb\nURIs: http://localhost:8088/apt\nSuites: stable\nComponents: main\nSigned-By: /etc/apt/keyrings/epher.gpg\n" \
+              > /etc/apt/sources.list.d/epher.sources
+            apt-get update -qq
+            apt-get install -y -qq epher >/dev/null
+            [ "$(epher '"'"'2 + 2'"'"')" = "4" ]'
+          echo "debian:12 apt smoke ok"
+          docker run --rm --network host -v "$PWD:/mnt:ro" fedora:41 bash -ec '
+            printf "[epher]\nname=epher\nbaseurl=http://localhost:8088/rpm/\$basearch\ngpgcheck=1\ngpgkey=file:///mnt/apt/KEY.gpg\nenabled=1\n" \
+              > /etc/yum.repos.d/epher.repo
+            dnf install -y epher >/dev/null
+            [ "$(epher '"'"'2 + 2'"'"')" = "4" ]'
+          echo "fedora:41 dnf smoke ok"
+          kill $SERVER
+
+      - name: Publish to gh-pages
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          VERSION: ${{ needs.train.outputs.v_version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh auth setup-git   # the https clone/push below need the token
+          git clone --depth 1 --branch gh-pages "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" publish 2>/dev/null \
+            || { git init publish && cd publish && git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" && git switch --orphan gh-pages && cd ..; }
+          cd publish
+          git config user.name "epher release"
+          git config user.email "release@epher.org"
+          mkdir -p apt rpm
+          rsync -a --delete ../apt/ apt/
+          rsync -a --delete ../rpm/ rpm/
+          git add -A apt rpm
+          if git diff --cached --quiet; then
+            echo "repositories unchanged"
+          else
+            git commit -m "linux repositories for $VERSION"
+            git push origin gh-pages
+          fi
+
+      - name: Redeploy the site with the new repositories
+        if: steps.secrets.outputs.skip == 'false'
+        run: gh workflow run pages --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  vscode-marketplace:
+    # ADR-0068 amendment, amended 2026-09-28: the marketplace channel
+    # rides the release train. The federated Entra route never completed
+    # a gallery write, so the channel publishes with the
+    # VS_MARKETPLACE_PAT secret now (Azure DevOps PAT, Marketplace:
+    # Manage scope, shared with the VS IDE channel); skips with a
+    # notice until the secret exists.
+    name: vscode marketplace
+    needs: [train, release]
+    if: inputs.dry_run != true
+    permissions:
+      contents: read
+    uses: ./.github/workflows/vscode-publish.yml
+    with:
+      ref: ${{ needs.train.outputs.sha }}
+      version: ${{ needs.train.outputs.v_version }}
+    secrets: inherit
+
+  openvsx:
+    # The Open VSX Registry channel (open-vsx.org): the gallery VSCodium
+    # and the other forks actually search. Same vsix, token-based publish
+    # (no federation there); skips with a notice until the OVSX_PAT
+    # secret exists in the stores environment.
+    name: open vsx
+    needs: [train, release]
+    if: inputs.dry_run != true
+    uses: ./.github/workflows/openvsx-publish.yml
+    with:
+      ref: ${{ needs.train.outputs.sha }}
+      version: ${{ needs.train.outputs.v_version }}
+    secrets: inherit
+
+  visualstudio:
+    # The Visual Studio Marketplace channel for the VS IDE extension:
+    # VsixPublisher (ships with the VSSDK on the windows runner) plus an
+    # Azure DevOps PAT with the Marketplace: Manage scope, a different
+    # mechanism from the Entra credential the VS Code route needs.
+    # Skips with a notice until VS_MARKETPLACE_PAT exists in stores.
+    name: visualstudio marketplace
+    needs: [train, release]
+    if: inputs.dry_run != true
+    uses: ./.github/workflows/visualstudio-publish.yml
+    with:
+      ref: ${{ needs.train.outputs.sha }}
+      version: ${{ needs.train.outputs.v_version }}
+    secrets: inherit
+
+  jetbrains:
+    # The JetBrains Marketplace channel for the IntelliJ-based plugin:
+    # the platform gradle plugin's publishPlugin task with a
+    # Marketplace personal access token, signed when the certificate
+    # secrets exist. Skips with a notice until JB_MARKETPLACE_TOKEN
+    # exists in stores. The first publication is always manual on the
+    # marketplace portal; see clients/jetbrains/listing/.
+    name: jetbrains marketplace
+    needs: [train, release]
+    if: inputs.dry_run != true
+    uses: ./.github/workflows/jetbrains-publish.yml
+    with:
+      ref: ${{ needs.train.outputs.sha }}
+      version: ${{ needs.train.outputs.v_version }}
+    secrets: inherit
+
+  eclipse-updatesite:
+    # ADR-0068 amendment, amended 2026-09-29: the Eclipse Marketplace
+    # channel rides the release train. The listing is a browser-only web
+    # form (read-only API), so the automatable half is the p2 update
+    # site: built with Tycho, published to gh-pages under eclipse/
+    # updates/ and served at https://epher.org/eclipse/updates/, which is
+    # the Update Site URL the listing points at. It needs no secret.
+    name: eclipse update site
+    needs: [train, release]
+    if: inputs.dry_run != true
+    uses: ./.github/workflows/eclipse-publish.yml
+    with:
+      ref: ${{ needs.train.outputs.sha }}
+      version: ${{ needs.train.outputs.v_version }}
+      tag: ${{ needs.train.outputs.v_version }}
+
+  snap:
+    # ADR-0061: the Snap Store channel. Repacks the release .deb (the
+    # two artifacts cannot drift), strict confinement, amd64 + arm64.
+    # Publishes only when SNAPCRAFT_STORE_CREDENTIALS is set.
+    name: snap (${{ matrix.arch }})
+    needs: [train, release]
+    if: inputs.dry_run != true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            arch: amd64
+          - os: ubuntu-22.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.train.outputs.sha }}
+      - name: Pin the release version into the manifest
+        # override-pull fetches the release .deb by versioned URL, so
+        # the version must be in the yaml BEFORE snapcraft runs (a
+        # craftctl set-version only happens later, during build).
+        env:
+          VERSION: ${{ needs.train.outputs.version }}
+        run: |
+          set -e
+          sed -i "s/^version: .*/version: \"${VERSION}\"/" packaging/snap/snapcraft.yaml
+          grep -q "version: \"${VERSION}\"" packaging/snap/snapcraft.yaml
+
+      - name: Build the snap
+        uses: snapcore/action-build@v1
+        with:
+          path: packaging/snap
+      - name: Publish to the Snap Store
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          VERSION: ${{ needs.train.outputs.v_version }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          if [ -z "$SNAPCRAFT_STORE_CREDENTIALS" ]; then
+            echo "::notice::snap not published: set the SNAPCRAFT_STORE_CREDENTIALS secret (see ADR-0061)."
+            exit 0
+          fi
+          # action-build leaves the .snap beside the manifest, not in the
+          # repo root, find it wherever it landed.
+          SNAP_FILE=$(find . -name "epher_${VERSION#v}_${ARCH}.snap" | head -1)
+          if [ -z "$SNAP_FILE" ]; then
+            echo "::error::built snap not found: epher_${VERSION#v}_${ARCH}.snap"
+            exit 1
+          fi
+          snapcraft upload "$SNAP_FILE" --release=stable
+
+  verify:
+    # ADR-0073: the post-release gauntlet as a job instead of a human
+    # ritual. Fails the release run when any channel is missing: the
+    # release itself, the stable asset names, the four tag-triggered
+    # channel workflows for this tag, and the two mirror repositories'
+    # stamps. scripts/verify-release is the same list a human would
+    # walk, which is the only reason the jetbrains gap of the burned
+    # v0.5.73 to v0.5.75 trains was found at all.
+    name: verify the release end to end
+    needs: [train, release, linux-repos, flatpak, vscode-marketplace, openvsx, visualstudio, jetbrains, eclipse-updatesite, snap]
+    if: inputs.dry_run != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.train.outputs.sha }}
+      - name: Run the gauntlet
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.train.outputs.version }}
+          V_VERSION: ${{ needs.train.outputs.v_version }}
+        run: scripts/verify-release

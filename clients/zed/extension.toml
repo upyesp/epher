@@ -1,0 +1,34 @@
+# The Zed extension manifest. The language directory (languages/epher)
+# registers the epher language; this table binds the shared language
+# server to it. The languages list matches the `name` field in
+# languages/epher/config.toml, not the directory name.
+#
+# The version is locked to epher's 0.5.x train (ADR-0066): the Rust
+# crate reads its own version at compile time and downloads the
+# matching epher-lsp release, so these two versions must move
+# together. Bump this file and Cargo.toml in the same commit.
+id = "epher"
+name = "epher"
+version = "0.5.89"
+schema_version = 1
+authors = ["upyesp"]
+description = "epher in Zed: live diagnostics, inline answers, hover signatures, completion, and unit-aware coloring from the shared epher language server."
+repository = "https://github.com/upyesp/epher"
+
+# The shared tree-sitter grammar, declared for the marketplace. Zed's
+# packaging CI compiles it from the pinned revision with its own
+# wasi-sdk toolchain (crates/extension/src/extension_builder.rs), so a
+# registry install ships a finished package and needs no toolchain on
+# the user's machine. The cost: a DEV-extension install now resolves
+# wasi-sdk locally before anything else (download or WASI_SDK_PATH),
+# which is the 0.5.47 field report - dev installs in sandboxed
+# environments (Flatpak, stripped Windows PATHs) fail with ENOENT.
+# The marketplace listing is worth that trade; marketplace installs
+# are unaffected. The grammar itself lives at upyesp/tree-sitter-epher.
+[grammars.epher]
+repository = "https://github.com/upyesp/tree-sitter-epher"
+rev = "be8433c35d7eab04b99fa55f997f5c1dab1c9adc"
+
+[language_servers.epher-lsp]
+name = "epher"
+languages = ["epher"]

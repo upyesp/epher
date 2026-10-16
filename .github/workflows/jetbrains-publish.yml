@@ -1,0 +1,98 @@
+name: jetbrains publish
+
+# The JetBrains Marketplace channel (plugins.jetbrains.com) for the
+# JetBrains plugin. Builds the plugin from this checkout with the
+# platform gradle plugin's publishPlugin task (which runs signPlugin
+# first when the certificate secrets exist) and publishes with a
+# Marketplace personal access token from the stores environment
+# (JB_MARKETPLACE_TOKEN). The first publication of a plugin is always
+# manual on the marketplace portal; this job takes over from the second
+# version on. The marketplace rejects a same-version upload, so gallery
+# fixes ride the next version like every other channel.
+#
+# Optional secrets, both only needed for signing (the plugin publishes
+# unsigned, with an install-time warning, if they are absent):
+#   JB_CERTIFICATE_CHAIN        the PEM certificate chain
+#   JB_PRIVATE_KEY              the PEM private key
+#   JB_PRIVATE_KEY_PASSWORD     the key's passphrase
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "git ref to publish from (defaults to the caller's ref)"
+        type: string
+        default: ""
+      version:
+        description: "plugin version without the leading v (auto = read from crates/cli/Cargo.toml)"
+        type: string
+        default: "auto"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "git ref to publish from (defaults to the default branch)"
+        type: string
+        default: ""
+      version:
+        description: "plugin version without the leading v (auto = read from crates/cli/Cargo.toml)"
+        type: string
+        default: "auto"
+
+jobs:
+  jetbrains:
+    name: publish io.epher.jetbrains
+    environment: stores
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Skip with a notice until JB_MARKETPLACE_TOKEN exists
+        id: gate
+        env:
+          JB_MARKETPLACE_TOKEN: ${{ secrets.JB_MARKETPLACE_TOKEN }}
+        run: |
+          if [ -z "$JB_MARKETPLACE_TOKEN" ]; then
+            echo "::notice::JB_MARKETPLACE_TOKEN is not set in the stores environment; the JetBrains Marketplace publish is skipped. Create a token under My Tokens on plugins.jetbrains.com and add it as the secret to enable this channel."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-java@v4
+        if: steps.gate.outputs.skip != 'true'
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.gate.outputs.skip != 'true'
+        with:
+          gradle-version: "9.0.0"
+
+      - name: Resolve the plugin version
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
+        run: |
+          set -e
+          VERSION="$VERSION_INPUT"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "auto" ]; then
+            VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          fi
+          echo "VERSION=${VERSION#v}" >> "$GITHUB_ENV"
+
+      - name: Publish with publishPlugin
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          JB_MARKETPLACE_TOKEN: ${{ secrets.JB_MARKETPLACE_TOKEN }}
+          JB_CERTIFICATE_CHAIN: ${{ secrets.JB_CERTIFICATE_CHAIN }}
+          JB_PRIVATE_KEY: ${{ secrets.JB_PRIVATE_KEY }}
+          JB_PRIVATE_KEY_PASSWORD: ${{ secrets.JB_PRIVATE_KEY_PASSWORD }}
+        run: |
+          set -e
+          cd clients/jetbrains
+          gradle publishPlugin -PpluginVersion="$VERSION" -PjetbrainsMarketplaceToken="$JB_MARKETPLACE_TOKEN"
+          echo "::notice::published io.epher.jetbrains $VERSION to plugins.jetbrains.com"

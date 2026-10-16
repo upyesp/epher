@@ -1,0 +1,86 @@
+/* ============================================================================
+binary-orbit.epher -- a visual binary's position angle and separation
+from its orbital elements
+
+Projects a circular-element double-star orbit onto the sky (Meeus
+ch. 57, "Binary stars"; Duffett-Smith, "Practical Astronomy", the
+chapter on binary-star orbits): the mean anomaly M = 360 (t - T) / P
+drives Kepler's equation (the builtin kepler(M, e), degrees in and
+out), the true anomaly follows from tan(v/2) = sqrt((1+e)/(1-e))
+tan(E/2), the radius from r = (1 - e cos E) / (1 - e^2) in units of
+the semimajor axis, and the sky-plane projection of Meeus eq. 57.1
+gives the apparent separation rho and position angle theta from the
+elements a, e, i, Omega, omega.
+
+The worked pair is Sirius A and B with the elements of the WDS Sixth
+Catalog orbit of Benest and Duvent (A&A 299, 101, 1995) as commonly
+tabulated: P = 50.128 yr, periastron 1894.6, a = 7.50 arcsec,
+e = 0.5923, i = 136.53 deg, Omega = 44.57 deg, omega = 146.33 deg
+(digits vary slightly between catalogues; demonstration grade).
+
+Accuracy: the projection is exact for the given elements. The check
+that needs no external data: the separation at periastron must not
+exceed a(1 - e) - equality only if periastron lies in the sky plane -
+and the pair must be widest near apastron around 2019-2020, as
+observed (~11 arcsec).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/binary-orbit.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\binary-orbit.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/binary-orbit.epher
+In the REPL:             load one of the paths above
+
+Knobs: the orbital elements and the four epochs below.
+============================================================================ */
+
+// ---- the knobs: elements of the Sirius A-B orbit (Benest & Duvent 1995) --------
+const orbp = 50.128        // period, years
+const orbt = 1894.6        // epoch of periastron, year
+const orbe = 0.5923        // eccentricity
+const orba = 7.5           // semimajor axis, arcsec
+const orbi = 136.53        // inclination, deg
+const orbo = 44.57         // position angle of the node, deg
+const orbw = 146.33        // longitude of periastron, deg
+const y0 = 2026.5          // the epoch to compute
+
+// ---- Meeus ch. 57: the anomaly chain -------------------------------------------
+def mod360(x) = x - 360 * floor(x / 360)
+def nanom(y) = mod360(360 * (y - orbt) / orbp)          // mean anomaly, deg
+def eanom(y) = kepler(nanom(y), orbe)                   // eccentric anomaly, deg
+def tanom(y) = 2 * deg(atan2(sqrt(1 + orbe) * sin(rad(eanom(y) / 2)), sqrt(1 - orbe) * cos(rad(eanom(y) / 2))))
+def rnorm(y) = 1 - orbe * cos(rad(eanom(y)))            // r / a
+
+// ---- the sky-plane projection: x, then rho and theta ---------------------------
+def xp(y) = rnorm(y) * cos(rad(tanom(y) + orbw))
+def yp(y) = rnorm(y) * sin(rad(tanom(y) + orbw)) * cos(rad(orbi))
+def sep(y) = orba * sqrt(xp(y) ^ 2 + yp(y) ^ 2)         // apparent separation
+def pa(y) = mod360(deg(atan2(yp(y), xp(y))) + orbo)     // position angle, deg
+
+// ---- results ------------------------------------------------------------------
+print("Sirius B at", y0, ": PA", pa(y0), "deg, separation", sep(y0), "arcsec")
+print("periastron 1894.6: PA", pa(1894.6), "deg, separation", sep(1894.6), "arcsec")
+print("apastron 2019.9: PA", pa(2019.9), "deg, separation", sep(2019.9), "arcsec")
+print("one period on, 2076.6: PA", pa(2076.6), "deg, separation", sep(2076.6), "arcsec")
+
+/* Self-checks: the periastron separation must be at most a(1 - e)
+(equality only if periastron lies in the sky plane), and one full
+period later the pair must return to the same place on the sky. */
+print("periastron vs a(1-e) =", orba * (1 - orbe), "arcsec (must be >=)")
+print("repeat after one period:", sep(y0 + orbp) - sep(y0), "arcsec (must be ~0)")
+
+/* ---- expected output
+= 50.128
+= 1894.6
+= 0.5923
+= 7.5
+= 136.53
+= 44.57
+= 146.33
+= 2026.5
+= Sirius B at 2026.5 : PA 57.9342883939 deg, separation 11.0769344215 arcsec
+= periastron 1894.6: PA 250.371726288 deg, separation 2.82659080413 arcsec
+= apastron 2019.9: PA 70.4104993118 deg, separation 11.0371884471 arcsec
+= one period on, 2076.6: PA 57.9881779747 deg, separation 11.0799751269 arcsec
+= periastron vs a(1-e) = 3.05775 arcsec (must be >=)
+= repeat after one period: -0.000000000000017763568394 arcsec (must be ~0)
+*/

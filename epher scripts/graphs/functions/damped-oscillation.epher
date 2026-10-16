@@ -1,0 +1,47 @@
+/* ============================================================================
+damped-oscillation.epher -- a decaying sine and its exponential envelope
+
+A damped oscillation y = e^(-x/3) * sin(2*x) swings between the two
+exponential envelopes +-e^(-x/3), touching them where the sine peaks.
+The zeros sit at x = n*pi/2, one every quarter period, and the ratio
+of successive peaks is e^(-period/3), the logarithmic decrement of the
+damping (standard second-order dynamics, e.g. Rayleigh, "The Theory
+of Sound", ch. 4a). The script graphs the curve with its envelopes
+and prints the landmarks.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/functions/damped-oscillation.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\functions\damped-oscillation.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/functions/damped-oscillation.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the model -----------------------------------------------------------------
+def f(x) = e^(0 - x / 3) * sin(2 * x)
+def env(x) = e^(0 - x / 3)
+
+// ---- results -------------------------------------------------------------------
+print("envelope touch at pi/4:", f(pi / 4))
+print("envelope there:", env(pi / 4))
+print("envelope touch at 5*pi/4:", f(5 * pi / 4))
+print("peak ratio per period, e^(-pi*2/3):", env(5 * pi / 4) / env(pi / 4))
+print("first zero at pi/2:", f(pi / 2))
+
+// ---- the picture ---------------------------------------------------------------
+graph e^(0 - x / 3) * sin(2 * x) from 0 to 12
+graph e^(0 - x / 3) from 0 to 12
+graph 0 - e^(0 - x / 3) from 0 to 12
+
+/* ---- expected output ----
+= envelope touch at pi/4: 0.769665412493
+= envelope there: 0.769665412493
+= envelope touch at 5*pi/4: 0.270090838144
+= peak ratio per period, e^(-pi*2/3): 0.350919807178
+= first zero at pi/2: 0.0000000000000000725462206973
+graph: e^(0 - x / 3) * sin(2 * x) from 0 to 12
+graph: e^(0 - x / 3) from 0 to 12
+graph: 0 - e^(0 - x / 3) from 0 to 12
+*/

@@ -1,0 +1,79 @@
+/* ============================================================================
+moon-ecliptic-position.epher -- the Moon's ecliptic longitude and latitude
+
+Converts the Moon's geocentric equatorial position (the built-in ra and
+decl accessors; the solar-ephemeris crate, JPL-validated; guide 1.16)
+into geocentric ecliptic longitude and latitude for one instant, with
+the rotation of chapter 13 of Jean Meeus, "Astronomical Algorithms"
+(2nd ed., Willmann-Bell, 1998):
+
+  sin beta  = sin delta cos eps - cos delta sin eps sin alpha
+  tan lambda = (sin alpha cos eps + tan delta sin eps) / cos alpha
+
+using the mean obliquity of date (Meeus ch. 22):
+  eps = 23.4392911 - 46.8150 T / 3600 - 0.00059 T^2 / 3600
+        + 0.001813 T^3 / 3600 deg,  T in Julian centuries from J2000.
+
+The ecliptic is the frame the classic lunar tables (and the eclipses
+chapter's node geometry) work in, and it is what a planisphere's
+zodiacal scale reads. The Sun's position goes through the same
+rotation as the self-check: its ecliptic latitude must come out near
+zero, because the Sun sits in the ecliptic by definition - the engine
+reads a few hundredths of a degree of slack from the difference
+between the mean obliquity used here and the apparent equator the
+engine's ra and decl refer to (nutation swings the true obliquity by
+up to about 9 arcseconds).
+
+Accuracy: the conversion itself is exact given eps; the engine's
+positions are arcsecond-class, so the result is honest to a few
+arcseconds plus the ~10 arcsec mean-obliquity slack.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-ecliptic-position.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-ecliptic-position.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-ecliptic-position.epher
+In the REPL:             load one of the paths above
+
+Knobs: the instant (below: 2026-03-25 19:18 UT, that month's first
+quarter - the Sun-Moon longitude gap then reads about 90 deg).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const year = 2026
+const month = 3
+const day = 25
+const hr = 19.3       // hours UT (first quarter 2026-03-25T19:18:52, phases-of-the-month.epher)
+
+// ---- mean obliquity and the ch. 13 rotation (angles in degrees) ---------------
+def T(j) = (j - 2451545) / 36525                      // Julian centuries from J2000
+def eps(j) = 23.4392911 - 46.8150 * T(j) / 3600 - 0.00059 * T(j) ^ 2 / 3600 + 0.001813 * T(j) ^ 3 / 3600   // mean obliquity of date, deg
+def w360(x) = x - 360 * floor(x / 360)
+def elon(j, b) = w360(deg(atan2(sin(rad(ra(b, j))) * cos(rad(eps(j))) + tan(rad(decl(b, j))) * sin(rad(eps(j))), cos(rad(ra(b, j))))))   // ecliptic longitude of body b, deg
+def elat(j, b) = deg(asin(sin(rad(decl(b, j))) * cos(rad(eps(j))) - cos(rad(decl(b, j))) * sin(rad(eps(j))) * sin(rad(ra(b, j)))))   // ecliptic latitude of body b, deg
+
+// ---- results ------------------------------------------------------------------
+t = jd(year, month, day, hr)
+print("at", iso(t), "UT:")
+print("mean obliquity of date:", eps(t), "deg")
+print("Moon: ra", ra(11, t), "deg, declination", decl(11, t), "deg")
+print("Moon's ecliptic longitude:", elon(t, 11), "deg")
+print("Moon's ecliptic latitude:", elat(t, 11), "deg")
+print("Sun: ecliptic longitude", elon(t, 10), "deg")
+print("Sun's ecliptic latitude", elat(t, 10), "deg (self-check: near 0)")
+print("Sun-Moon longitude gap:", w360(elon(t, 11) - elon(t, 10)), "deg (90 at first quarter)")
+
+/* ---- expected output ----
+= 2026
+= 3
+= 25
+= 19.3
+= 590670073/240
+= at 2026-03-25T19:18:00 UT:
+= mean obliquity of date: 23.4358801773 deg
+= Moon: ra 95.819056257 deg, declination 28.020648976 deg
+= Moon's ecliptic longitude: 95.1522705654 deg
+= Moon's ecliptic latitude: 4.68876913967 deg
+= Sun: ecliptic longitude 5.14935635639 deg
+= Sun's ecliptic latitude 0.00036572884576 deg (self-check: near 0)
+= Sun-Moon longitude gap: 90.002914209 deg (90 at first quarter)
+*/

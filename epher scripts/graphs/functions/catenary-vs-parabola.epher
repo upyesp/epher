@@ -1,0 +1,45 @@
+/* ============================================================================
+catenary-vs-parabola.epher -- the hanging chain is not a parabola
+
+A uniform chain hangs in a catenary, y = cosh(x) - 1 after scaling;
+a parabola y = x^2/2 matches it in height and slope at the vertex.
+Galileo guessed the parabola; Jacques Bernoulli derived the catenary
+in 1691 (see Lockwood, "A Book of Curves", ch. 6). The two agree to
+within a few percent out to x = 1 and then part company: the catenary
+grows like e^x/2, the parabola like x^2/2. The script graphs both
+together and prints the comparison numbers.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/functions/catenary-vs-parabola.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\functions\catenary-vs-parabola.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/functions/catenary-vs-parabola.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the two curves ------------------------------------------------------------
+def cat(x) = cosh(x) - 1
+def par(x) = x ^ 2 / 2
+
+// ---- results -------------------------------------------------------------------
+print("height at x = 1: catenary", cat(1), "parabola", par(1))
+print("height at x = 2: catenary", cat(2), "parabola", par(2))
+print("height at x = 3: catenary", cat(3), "parabola", par(3))
+print("slope at x = 1: catenary", sinh(1), "parabola", 1)
+print("both slope 0 at the vertex:", sinh(0) == 0)
+
+// ---- the picture ---------------------------------------------------------------
+graph cosh(x) - 1 from -2 to 2
+graph x ^ 2 / 2 from -2 to 2
+
+/* ---- expected output ----
+= height at x = 1: catenary 0.543080634815 parabola 0.5
+= height at x = 2: catenary 2.76219569108 parabola 2
+= height at x = 3: catenary 9.06766199578 parabola 4.5
+= slope at x = 1: catenary 1.17520119364 parabola 1
+= both slope 0 at the vertex: true
+graph: cosh(x) - 1 from -2 to 2
+graph: x ^ 2 / 2 from -2 to 2
+*/

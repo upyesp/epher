@@ -1,0 +1,41 @@
+/* ============================================================================
+lissajous-3-2.epher -- the 3:2 Lissajous figure
+
+Driving x with one sine and y with another produces the Lissajous
+figures a oscilloscope shows when two pure tones feed its inputs
+(Lissajous, 1857; the classic treatment is Rayleigh, "The Theory of
+Sound", ch. 3). The figure closes exactly when the frequency ratio is
+rational; a ratio of 3:2 gives a woven curve with 3 lobes one way and
+2 the other, traversed in one period 2*pi. The script graphs the
+curve, samples landmarks, and checks the closure numerically.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/parametric/lissajous-3-2.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\parametric\lissajous-3-2.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/parametric/lissajous-3-2.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def px(t) = sin(3 * t)
+def py(t) = sin(2 * t)
+
+// ---- results -------------------------------------------------------------------
+print("start point (t = 0):", px(0), py(0))
+print("at t = pi/2:", px(pi / 2), py(pi / 2))
+print("closure, P(2*pi) vs P(0):", abs(px(2 * pi) - px(0)) < 1e-12 and abs(py(2 * pi) - py(0)) < 1e-12)
+print("frequency ratio, a closed figure needs rational:", 3 / 2)
+
+// ---- the picture ---------------------------------------------------------------
+graph param sin(3 * t), sin(2 * t) from 0 to 6.28318
+
+/* ---- expected output ----
+= start point (t = 0): 0 0
+= at t = pi/2: -1 0.000000000000000122464679915
+= closure, P(2*pi) vs P(0): true
+= frequency ratio, a closed figure needs rational: 1.5
+graph: param sin(3 * t), sin(2 * t) from 0 to 6.28318
+*/

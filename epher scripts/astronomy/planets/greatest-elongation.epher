@@ -1,0 +1,75 @@
+/* ============================================================================
+greatest-elongation.epher -- the next greatest elongations of Mercury or Venus
+
+Finds the next greatest eastern and western elongations of Mercury or
+Venus from a start date: the instants when the planet stands at its
+widest angular separation from the Sun in the evening sky (east) or the
+morning sky (west). The scan uses the phase angle (the Sun-planet-Earth
+angle at the planet, Meeus ch. 48), which crosses 90 degrees exactly at
+a greatest elongation: the line of sight is then tangent to the planet's
+orbit. The built-in phase accessor is cheap, so the whole cycle can be
+scanned day by day and each 90-degree crossing refined by bisection to
+about a minute; the elongation itself is then measured from the engine's
+ra/decl via the ecliptic-longitude rotation of Meeus ch. 13.
+
+Accuracy: the event instants are good to about a quarter of an hour
+(the engine publishes the phase angle to 0.01 deg, and the phase changes
+about a degree a day near dichotomy); the elongation printed at each
+event is good to a few hundredths of a degree. The default run shows Venus at its greatest eastern elongation
+of August 2026 and its greatest western elongation of January 2027.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/greatest-elongation.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\greatest-elongation.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/greatest-elongation.epher
+In the REPL:             load one of the paths above
+
+Knobs: the planet (1 Mercury, 2 Venus) and the start date `day`.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const planet = 2                // Venus (1 = Mercury)
+const day = {2026, 1, 1}        // search from here
+const jd0 = jd(day[1], day[2], day[3])
+const span = if planet == 1 then 260 else 600     // days to scan (one synodic cycle or two)
+
+// ---- helpers -----------------------------------------------------------------
+def p90(j) = phase(planet, j) - 90    // crosses zero at a greatest elongation
+// First grid cell (two days wide) where the phase angle crosses 90 rising
+// (eastern elongation) or falling (western); -1 if none in the window.
+def scan_r(k, prev) = if k * 2 > span then -1 else if prev < 0 and p90(jd0 + k * 2) > 0 then k else scan_r(k + 1, p90(jd0 + k * 2))
+def scan_f(k, prev) = if k * 2 > span then -1 else if prev > 0 and p90(jd0 + k * 2) < 0 then k else scan_f(k + 1, p90(jd0 + k * 2))
+// Bisection on the phase angle over a straddling cell, 13 halvings of a
+// two-day cell reach about half a minute.
+def bis(a, b, sa, n) = if n == 0 then (a + b) / 2 else if p90((a + b) / 2) * sa > 0 then bis((a + b) / 2, b, sa, n - 1) else bis(a, (a + b) / 2, sa, n - 1)
+// Signed solar elongation in longitude (Meeus ch. 13 rotation), deg.
+def centuries(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def obliquity(j) = 23.4392911 - 0.0130042 * centuries(j)
+def eclon(b, j) = deg(atan2(sin(rad(ra(b, j))) * cos(rad(obliquity(j))) + tan(rad(decl(b, j))) * sin(rad(obliquity(j))), cos(rad(ra(b, j)))))
+def wrap180(x) = x - 360 * floor((x + 180) / 360)
+def elong(j) = wrap180(eclon(planet, j) - eclon(10, j))
+
+// ---- the search ---------------------------------------------------------------
+const ke = scan_r(1, p90(jd0))     // rising crossing cell, or -1
+const kf = scan_f(1, p90(jd0))     // falling crossing cell, or -1
+const te = if ke < 0 then jd0 else bis(jd0 + (ke - 1) * 2, jd0 + ke * 2, p90(jd0 + (ke - 1) * 2), 13)
+const tf = if kf < 0 then jd0 else bis(jd0 + (kf - 1) * 2, jd0 + kf * 2, p90(jd0 + (kf - 1) * 2), 13)
+
+// ---- results ------------------------------------------------------------------
+print("greatest elongations of planet", planet, "from", iso(jd0))
+print("eastern (evening sky):", iso(te), "UT; phase", phase(planet, te), "deg; elongation", elong(te), "deg; magnitude", mag(planet, te))
+print("western (morning sky):", iso(tf), "UT; phase", phase(planet, tf), "deg; elongation", elong(tf), "deg; magnitude", mag(planet, tf))
+
+/* ---- expected output ----
+= 2
+= {2026, 1, 1}
+= 2461041.5
+= 600
+= 112
+= 184
+= 1041115226/423
+= 1435001350/583
+= greatest elongations of planet 2 from 2026-01-01T00:00:00
+= eastern (evening sky): 2026-08-12T19:25:57 UT; phase 89.99 deg; elongation 45.860261679 deg; magnitude -4.31
+= western (morning sky): 2027-01-03T08:00:25 UT; phase 90.01 deg; elongation -46.8558653818 deg; magnitude -4.44
+*/

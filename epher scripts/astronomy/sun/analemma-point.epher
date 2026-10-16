@@ -1,0 +1,85 @@
+/* ============================================================================
+analemma-point.epher -- where the true Sun sits versus mean solar time
+
+Computes the analemma's data for one place: at a fixed mean-clock
+noon through the year, how far the true Sun runs fast or slow (the
+equation of time, the horizontal axis of the figure 8) and how high
+it climbs (its declination, the vertical axis). Both axes come from
+the closed-form solar theory of Jean Meeus, "Astronomical
+Algorithms" 2nd ed.: the equation of time as in ch. 28 (the same
+recipe equation-of-time.epher carries) and the declination from the
+apparent longitude and the obliquity (ch. 25). The pair of dates in
+May and July is the figure-8's signature: nearly the same
+declination, six minutes of time apart.
+
+The community ancestor is the HP-48 program "Analemma" (hpcalc.org
+1933), which drew this figure on a 48's screen.
+
+Accuracy: about +/- 0.1 minute on the time axis; the declination is
+the low-precision solar theory, good to about 0.01 degree, which the
+built-in decl confirms at the solstice below.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sun/analemma-point.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sun\analemma-point.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sun/analemma-point.epher
+In the REPL:             load one of the paths above
+
+Knobs: the sample dates below (2026).
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const d_feb = {2026, 2, 12}
+const d_may = {2026, 5, 14}
+const d_jun = {2026, 6, 21}
+const d_jul = {2026, 7, 26}
+const d_nov = {2026, 11, 3}
+
+// ---- Meeus ch. 28: mean elements in T (Julian centuries from J2000, TD) -------
+def mod360(x) = x - 360 * floor(x / 360)
+def cent(j) = (j + delta_t(j) / 86400 - jd(2000, 1, 1, 12)) / 36525
+def l0(t) = mod360(280.46061837 + 36000.77005360 * t + 0.000387933 * t ^ 2 - t ^ 3 / 38710000)
+def m(t) = mod360(357.5291092 + 35999.0502909 * t - 0.0001536 * t ^ 2)
+def omega(t) = mod360(125.04 - 1934.136 * t)
+def eps(t) = 23.4392911 - 0.0130042 * t - 0.000000164 * t ^ 2 + 0.000000504 * t ^ 3
+def cen(t) = (1.914602 - 0.004817 * t - 0.000014 * t ^ 2) * sin(rad(m(t))) + (0.019993 - 0.000101 * t) * sin(rad(2 * m(t))) + 0.000289 * sin(rad(3 * m(t)))
+def applon(t) = l0(t) + cen(t) - 0.0057183 - 0.0047833 * sin(rad(omega(t)))
+def psi(t) = (-17.20 * sin(rad(omega(t))) - 1.32 * sin(rad(2 * l0(t))) + 0.21 * sin(rad(2 * omega(t)))) / 3600
+def signed360(x) = if x > 180 then x - 360 else x
+def eot(j) = signed360(l0(cent(j)) - 0.0057183 - alpha(cent(j)) + psi(cent(j)) * cos(rad(eps(cent(j))))) * 4
+def alpha(t) = deg(atan2(cos(rad(eps(t))) * sin(rad(applon(t))), cos(rad(applon(t)))))
+def dec(t) = deg(asin(sin(rad(eps(t))) * sin(rad(applon(t)))))
+
+// ---- results: the analemma's two axes, sampled --------------------------------
+print("analemma at mean noon: minutes fast (+) vs declination")
+print("2026-02-12:", eot(jd(d_feb[1], d_feb[2], d_feb[3])), "min, dec", dec(cent(jd(d_feb[1], d_feb[2], d_feb[3]))), "deg")
+print("2026-05-14:", eot(jd(d_may[1], d_may[2], d_may[3])), "min, dec", dec(cent(jd(d_may[1], d_may[2], d_may[3]))), "deg")
+print("2026-06-21:", eot(jd(d_jun[1], d_jun[2], d_jun[3])), "min, dec", dec(cent(jd(d_jun[1], d_jun[2], d_jun[3]))), "deg")
+print("2026-07-26:", eot(jd(d_jul[1], d_jul[2], d_jul[3])), "min, dec", dec(cent(jd(d_jul[1], d_jul[2], d_jul[3]))), "deg")
+print("2026-11-03:", eot(jd(d_nov[1], d_nov[2], d_nov[3])), "min, dec", dec(cent(jd(d_nov[1], d_nov[2], d_nov[3]))), "deg")
+
+/* The figure-8 signature, read off the pair above: May 14 and
+July 26 straddle the June solstice within a degree of the same
+declination - the Sun climbs the same height twice - while the
+equation of time swings from +3.6 to -6.6 minutes. That swing is
+the loop's width; the two real loops of the 8 come from the two
+such pairs in a year. */
+
+/* Self-check: the built-in decl (guide 1.29) at the June solstice
+against the script's closed-form value. */
+print("solstice decl, script:", dec(cent(jd(2026, 6, 21))), "vs built-in:", decl(10, jd(2026, 6, 21)))
+
+/* ---- expected output ----
+= {2026, 2, 12}
+= {2026, 5, 14}
+= {2026, 6, 21}
+= {2026, 7, 26}
+= {2026, 11, 3}
+= analemma at mean noon: minutes fast (+) vs declination
+= 2026-02-12: -14.1935995278 min, dec -13.7599607635 deg
+= 2026-05-14: 3.64145106631 min, dec 18.5778458092 deg
+= 2026-06-21: -1.71739350749 min, dec 23.4354199958 deg
+= 2026-07-26: -6.56279707087 min, dec 19.4733502814 deg
+= 2026-11-03: 16.4392227149 min, dec -14.9924590918 deg
+= solstice decl, script: 23.4354199958 vs built-in: 23.437516214
+*/

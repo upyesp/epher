@@ -1,0 +1,39 @@
+/* ============================================================================
+astroid-hypocycloid.epher -- the four-cusped hypocycloid
+
+A circle of radius 1 rolling inside one of radius 4 traces the astroid
+x = cos(t)^3, y = sin(t)^3: four cusps on the axes, tangent line
+intercepts always exactly 2 apart (Leibniz 1715; MathWorld, "Astroid";
+Stewart, "Calculus", ch. 10.1). Its area is 3*pi/8, three eighths of
+the circumscribing circle, and its perimeter is 6. The script graphs
+it and checks both numbers numerically: the area follows from
+Green's theorem as the integral of x*y'(t).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/parametric/astroid-hypocycloid.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\parametric\astroid-hypocycloid.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/parametric/astroid-hypocycloid.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def ax(t) = cos(t) ^ 3
+def ay(t) = sin(t) ^ 3
+
+// ---- results -------------------------------------------------------------------
+print("cusp on the x-axis (t = 0):", ax(0), ay(0))
+print("area, exact 3*pi/8:", integral(cos(x) ^ 3 * 3 * sin(x) ^ 2 * cos(x), 0, pi / 2) * 4)
+print("perimeter, exact 6:", integral(sqrt((0 - 3 * cos(x) ^ 2 * sin(x)) ^ 2 + (3 * sin(x) ^ 2 * cos(x)) ^ 2), 0, pi / 2) * 4)
+
+// ---- the picture ---------------------------------------------------------------
+graph param cos(t) ^ 3, sin(t) ^ 3 from 0 to 6.28318
+
+/* ---- expected output ----
+= cusp on the x-axis (t = 0): 1 0
+= area, exact 3*pi/8: 1.1780972451
+= perimeter, exact 6: 6
+graph: param cos(t) ^ 3, sin(t) ^ 3 from 0 to 6.28318
+*/

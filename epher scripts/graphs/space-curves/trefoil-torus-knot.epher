@@ -1,0 +1,41 @@
+/* ============================================================================
+trefoil-torus-knot.epher -- the (2,3) torus knot, the simplest knot
+
+Wrap a string around a torus twice the long way and three times the
+short way and it closes on itself as the trefoil: the only knot with
+three crossings (Rolfsen, "Knots and Links", ch. 2; every knot table
+starts with it). The parametrisation
+x = (2 + cos(3*t))*cos(2*t), y = (2 + cos(3*t))*sin(2*t),
+z = sin(3*t), scaled here by one half, rides on the torus of tube 1/2
+around the ring of radius 1. The script graphs the knot and checks
+closure and the torus membership.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/space-curves/trefoil-torus-knot.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\space-curves\trefoil-torus-knot.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/space-curves/trefoil-torus-knot.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the 3D pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph3d:" lines.
+============================================================================ */
+
+// ---- the curve (half scale) ------------------------------------------------------
+def tx(t) = (2 + cos(3 * t)) * cos(2 * t) / 2
+def ty(t) = (2 + cos(3 * t)) * sin(2 * t) / 2
+def tz(t) = sin(3 * t) / 2
+
+// ---- results -------------------------------------------------------------------
+print("closes after one lap, P(0) vs P(2*pi):", abs(tx(2 * pi) - tx(0)) < 1e-12 and abs(ty(2 * pi) - ty(0)) < 1e-12)
+print("rides the torus: ring distance at t = 1.3:", sqrt(tx(1.3) ^ 2 + ty(1.3) ^ 2))
+print("z stays inside the tube, max |z| = 1/2:", abs(tz(3 * pi / 2)))
+
+// ---- the picture ---------------------------------------------------------------
+graph3d param (2 + cos(3 * t)) * cos(2 * t) / 2, (2 + cos(3 * t)) * sin(2 * t) / 2, sin(3 * t) / 2 from 0 to 6.28318
+
+/* ---- expected output ----
+= closes after one lap, P(0) vs P(2*pi): true
+= rides the torus: ring distance at t = 1.3: 0.6370338479
+= z stays inside the tube, max |z| = 1/2: 0.5
+graph3d: param (2 + cos(3 * t)) * cos(2 * t) / 2, (2 + cos(3 * t)) * sin(2 * t) / 2, sin(3 * t) / 2 from 0 to 6.28318
+*/

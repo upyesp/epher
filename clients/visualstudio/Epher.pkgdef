@@ -1,0 +1,21 @@
+; epher for Visual Studio (ADR-0066): registry entries that wire the
+; .epher grammar and its editing behavior into the editor.
+;
+; The grammar directory: every TextMate grammar in it becomes a
+; candidate for files whose extension the grammar declares (the
+; generated epher.tmLanguage carries fileTypes: ["epher"]).
+
+[$RootKey$\TextMate\Repositories]
+"epher"="$PackageFolder$\Grammars"
+
+; The language configuration file (comment toggling, bracket matching,
+; autoclosing, surrounding): keyed by the grammar's scopeName...
+
+[$RootKey$\TextMate\LanguageConfiguration\GrammarMapping]
+"source.epher"="$PackageFolder$\epher-language-configuration.json"
+
+; ...and by the editor content type the language client serves, so the
+; configuration also applies while the LSP features are live.
+
+[$RootKey$\TextMate\LanguageConfiguration\ContentTypeMapping]
+"epher"="$PackageFolder$\epher-language-configuration.json"

@@ -1,0 +1,68 @@
+/* ============================================================================
+geodetic-geocentric.epher -- the observer's true place on the globe
+
+Converts a WGS84 geodetic position (the latitude of maps, and of
+the engine's lat arguments) into the geocentric latitude and
+radius an ephemeris actually needs - Meeus, "Astronomical
+Algorithms" 2nd ed. ch. 11 (The Earth's globe). For a point at
+geodetic latitude phi and height h above the WGS84 ellipsoid
+(flattening f = 1/298.257223563, equatorial radius a = 6378.137
+km):
+
+  e2 = f (2 - f)             N = a / sqrt(1 - e2 sin^2 phi)
+  x = (N + h) cos(phi)       z = (N (1 - e2) + h) sin(phi)
+  psi = atan2(z, x)          rho = sqrt(x^2 + y^2)   (y = 0)
+
+The geocentric latitude falls short of the geodetic by up to
+0.1924 degrees at 45 degrees latitude - the difference matters at
+the arcminute level of the Moon scripts.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/geodetic-geocentric.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\geodetic-geocentric.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/geodetic-geocentric.epher
+In the REPL:             load one of the paths above
+
+Knobs: the geodetic latitude, longitude and height below.
+============================================================================ */
+
+// ---- the knobs -----------------------------------------------------------------------------
+const lat = 51.4779          // Greenwich, geodetic degrees
+const lon = 0
+const h = 0.046              // km (46 m)
+
+// ---- WGS84 --------------------------------------------------------------------------------
+const f = 1 / 298.257223563
+const a = 6378.137           // km
+def e2v() = f * (2 - f)
+def N(ph) = a / sqrt(1 - e2v() * sin(rad(ph)) ^ 2)
+def xc(ph) = (N(ph) + h) * cos(rad(ph))
+def zc(ph) = (N(ph) * (1 - e2v()) + h) * sin(rad(ph))
+def ps(ph) = deg(atan2(zc(ph), xc(ph)))
+def rh(ph) = sqrt(xc(ph) ^ 2 + zc(ph) ^ 2)
+
+// ---- results ---------------------------------------------------------------------------------
+print("geodetic lat", lat, " lon", lon, " height", h, "km")
+print("geocentric lat", ps(lat), " deg (difference", lat - ps(lat), "deg)")
+print("geocentric radius", rh(lat), "km")
+print("prime vertical N:", N(lat), "km")
+print("at 45 deg the difference is:", 45 - ps(45), "deg")
+
+/* Self-check: the difference peaks at 45 degrees at about 0.1924
+deg (11.5 arcmin) for sea level - the height here is 46 m, so the
+printed value must sit within 0.001 of that classic number. */
+print("45-degree difference within 0.001 of 0.1924:", abs((45 - ps(45)) - 0.1924) < 0.001)
+
+/* ---- expected output ----
+= 51.4779
+= 0
+= 0.046
+= 0.00335281066475
+= 6378.137
+= geodetic lat 51.4779  lon 0  height 0.046 km
+= geocentric lat 51.2902352593  deg (difference 0.187664740725 deg)
+= geocentric radius 6365.1361131 km
+= prime vertical N: 6391.24491281 km
+= at 45 deg the difference is: 0.192421825891 deg
+= 45-degree difference within 0.001 of 0.1924: true
+*/

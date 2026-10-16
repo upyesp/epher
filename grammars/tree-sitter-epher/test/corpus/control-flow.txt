@@ -1,0 +1,103 @@
+================================================================================
+If, while, for, solve
+================================================================================
+
+if x > 40 then
+  x
+end
+
+if x > 40 then 1 else 2
+
+while i < 10 do
+  i = i + 1
+end
+
+for k in 1 to 5 step 2 do
+  k * k
+end
+
+for name in {"a", "b"} do
+  name
+end
+
+solve x ^ 2 == 9
+
+---
+
+(source
+  (if_statement
+    (comparison_expression
+      (identifier)
+      (number))
+    (expression_statement
+      (identifier)))
+  (expression_statement
+    (identifier))
+  (expression_statement
+    (comparison_expression
+      (identifier)
+      (number))
+    (number)
+    (number))
+  (while_statement
+    (comparison_expression
+      (identifier)
+      (number))
+    (assignment
+      (identifier)
+      (additive_expression
+        (identifier)
+        (number))))
+  (expression_statement
+    (identifier))
+  (for_statement
+    (identifier)
+    (range_expression
+      (number)
+      (number)
+      (number))
+    (expression_statement
+      (multiplicative_expression
+        (identifier)
+        (identifier))))
+  (expression_statement
+    (identifier))
+  (for_statement
+    (identifier)
+    (list
+      (string)
+      (string))
+    (expression_statement
+      (identifier)))
+  (expression_statement
+    (identifier))
+  (solve_statement
+    (comparison_expression
+      (power_expression
+        (identifier)
+        (number))
+      (number))))
+
+================================================================================
+The conditionals inside expressions
+================================================================================
+
+y = if c then 1 else 2
+
+z = 3 * (if big then 10 else 20)
+
+---
+
+(source
+  (assignment
+    (identifier)
+    (identifier)
+    (number)
+    (number))
+  (assignment
+    (identifier)
+    (multiplicative_expression
+      (number)
+      (identifier)
+      (number)
+      (number))))

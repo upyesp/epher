@@ -1,0 +1,131 @@
+/* ============================================================================
+planet-elements-table.epher -- mean Keplerian elements of the planets on a date
+
+The six mean Keplerian elements (semi-major axis a in AU, eccentricity e,
+inclination i, mean longitude L, longitude of perihelion and longitude of
+the ascending node in degrees) for the seven planets from Mercury to
+Neptune, evaluated at a chosen date, each with its per-century rate.
+
+The elements are the approximate Keplerian elements of Standish &
+Williams (1992), mean ecliptic and equinox of J2000, valid 1800-2050;
+Jean Meeus prints the same table as table 31.A of "Astronomical
+Algorithms" (2nd ed., Willmann-Bell, 1998), chapter 31 ("the elements
+of the planetary orbits"), and NASA JPL publishes it on its
+approximate-positions page. Earth is not listed: the elements are
+heliocentric, so Earth's orbit is the frame's reference plane only.
+
+Accuracy: a display table of mean elements, exact to the digits
+printed; the elements themselves reproduce the planets' heliocentric
+positions to roughly 0.01 deg over 1800-2050 (Jupiter and Saturn need
+the small periodic corrections of the same source for that grade; see
+planet-by-hand.epher, which carries them).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-elements-table.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-elements-table.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-elements-table.epher
+In the REPL:             load one of the paths above
+
+The one knob to edit is `year` below (the table is evaluated at
+January 1.5 of that year, the conventional epoch).
+============================================================================ */
+
+// ---- the knob -----------------------------------------------------------------
+const year = 2026
+
+// ---- table 31.A constants: value + per-century rate (T centuries from J2000) -
+def T(j) = (j - jd(2000, 1, 1, 12)) / 36525
+def tc(y) = (jd(y, 1, 1, 12) - jd(2000, 1, 1, 12)) / 36525
+def wrap360(x) = x - 360 * floor(x / 360)
+
+// ---- rows: (a, da, e, de, i, di, L, dL, peri, dperi, node, dnode) -------------
+// Each row holds the printed table exactly: Mercury, Venus, Mars, Jupiter,
+// Saturn, Uranus, Neptune (EM Bary, Earth's row, sits between Venus and
+// Mars in the original; it is omitted here - see the header).
+const me = {0.38709927, 0.00000037, 0.20563593, 0.00001906, 7.00497902, -0.00594749, 252.25032350, 149472.67411175, 77.45779628, 0.16047689, 48.33076593, -0.12534081}
+const ve = {0.72333566, 0.00000390, 0.00677672, -0.00004107, 3.39467605, -0.00078890, 181.97909950, 58517.81538729, 131.60246718, 0.00268329, 76.67984255, -0.27769418}
+const ma = {1.52371034, 0.00001847, 0.09339410, 0.00007882, 1.84969142, -0.00813131, -4.55343205, 19140.30268499, -23.94362959, 0.44441088, 49.55953891, -0.29257343}
+const ju = {5.20288700, -0.00011607, 0.04838624, -0.00013253, 1.30439695, -0.00183714, 34.39644051, 3034.74612775, 14.72847983, 0.21252668, 100.47390909, 0.20469106}
+const sa = {9.53667594, -0.00125060, 0.05386179, -0.00050991, 2.48599187, 0.00193609, 49.95424423, 1222.49362201, 92.59887831, -0.41897216, 113.66242448, -0.28867794}
+const ur = {19.18916464, -0.00196176, 0.04725744, -0.00004397, 0.77263783, -0.00242939, 313.23810451, 428.48202785, 170.95427630, 0.40805281, 74.01692503, 0.04240589}
+const ne = {30.06992276, 0.00026291, 0.00859048, 0.00005105, 1.77004347, 0.00035372, -55.12002969, 218.45945325, 44.96476227, -0.32241464, 131.78422574, -0.00508664}
+
+// ---- helpers: value of element k of row r at the date ------------------------
+def val(r, k) = r[k] + r[k + 1] * tc(year)     // element + rate * T
+
+// ---- results: one row per planet, two lines of values and two of rates ------
+tt = tc(year)
+print("mean Keplerian elements at", iso(jd(year, 1, 1, 12)))
+print("T =", tt, "centuries from J2000.0; frame: mean ecliptic, equinox of J2000")
+print("Mercury: a", val(me, 1), "AU  e", val(me, 3), "  i", val(me, 5), "deg")
+print("         L", wrap360(val(me, 7)), "  peri", val(me, 9), "  node", val(me, 11), "deg")
+print("Venus:   a", val(ve, 1), "AU  e", val(ve, 3), "  i", val(ve, 5), "deg")
+print("         L", wrap360(val(ve, 7)), "  peri", val(ve, 9), "  node", val(ve, 11), "deg")
+print("Mars:    a", val(ma, 1), "AU  e", val(ma, 3), "  i", val(ma, 5), "deg")
+print("         L", wrap360(val(ma, 7)), "  peri", wrap360(val(ma, 9)), "  node", val(ma, 11), "deg")
+print("Jupiter: a", val(ju, 1), "AU  e", val(ju, 3), "  i", val(ju, 5), "deg")
+print("         L", wrap360(val(ju, 7)), "  peri", val(ju, 9), "  node", val(ju, 11), "deg")
+print("Saturn:  a", val(sa, 1), "AU  e", val(sa, 3), "  i", val(sa, 5), "deg")
+print("         L", wrap360(val(sa, 7)), "  peri", val(sa, 9), "  node", val(sa, 11), "deg")
+print("Uranus:  a", val(ur, 1), "AU  e", val(ur, 3), "  i", val(ur, 5), "deg")
+print("         L", wrap360(val(ur, 7)), "  peri", val(ur, 9), "  node", val(ur, 11), "deg")
+print("Neptune: a", val(ne, 1), "AU  e", val(ne, 3), "  i", val(ne, 5), "deg")
+print("         L", wrap360(val(ne, 7)), "  peri", wrap360(val(ne, 9)), "  node", val(ne, 11), "deg")
+print("per-century rates (a in AU per century, the rest in deg per century):")
+print("Mercury: da", me[2], "  de", me[4], "  di", me[6])
+print("         dL", me[8], "  dperi", me[10], "  dnode", me[12])
+print("Venus:   da", ve[2], "  de", ve[4], "  di", ve[6])
+print("         dL", ve[8], "  dperi", ve[10], "  dnode", ve[12])
+print("Mars:    da", ma[2], "  de", ma[4], "  di", ma[6])
+print("         dL", ma[8], "  dperi", ma[10], "  dnode", ma[12])
+print("Jupiter: da", ju[2], "  de", ju[4], "  di", ju[6])
+print("         dL", ju[8], "  dperi", ju[10], "  dnode", ju[12])
+print("Saturn:  da", sa[2], "  de", sa[4], "  di", sa[6])
+print("         dL", sa[8], "  dperi", sa[10], "  dnode", sa[12])
+print("Uranus:  da", ur[2], "  de", ur[4], "  di", ur[6])
+print("         dL", ur[8], "  dperi", ur[10], "  dnode", ur[12])
+print("Neptune: da", ne[2], "  de", ne[4], "  di", ne[6])
+print("         dL", ne[8], "  dperi", ne[10], "  dnode", ne[12])
+
+/* ---- expected output ----
+= 2026
+= {0.38709927, 0.00000037, 0.20563593, 0.00001906, 7.00497902, -0.00594749, 252.2503235, 149472.674112, 77.45779628, 0.16047689, 48.33076593, -0.12534081}
+= {0.72333566, 0.0000039, 0.00677672, -0.00004107, 3.39467605, -0.0007889, 181.9790995, 58517.8153873, 131.60246718, 0.00268329, 76.67984255, -0.27769418}
+= {1.52371034, 0.00001847, 0.0933941, 0.00007882, 1.84969142, -0.00813131, -4.55343205, 19140.302685, -23.94362959, 0.44441088, 49.55953891, -0.29257343}
+= {5.202887, -0.00011607, 0.04838624, -0.00013253, 1.30439695, -0.00183714, 34.39644051, 3034.74612775, 14.72847983, 0.21252668, 100.47390909, 0.20469106}
+= {9.53667594, -0.0012506, 0.05386179, -0.00050991, 2.48599187, 0.00193609, 49.95424423, 1222.49362201, 92.59887831, -0.41897216, 113.66242448, -0.28867794}
+= {19.18916464, -0.00196176, 0.04725744, -0.00004397, 0.77263783, -0.00242939, 313.23810451, 428.48202785, 170.9542763, 0.40805281, 74.01692503, 0.04240589}
+= {30.06992276, 0.00026291, 0.00859048, 0.00005105, 1.77004347, 0.00035372, -55.12002969, 218.45945325, 44.96476227, -0.32241464, 131.78422574, -0.00508664}
+= 0.260013689254
+= mean Keplerian elements at 2026-01-01T12:00:00
+= T = 0.260013689254 centuries from J2000.0; frame: mean ecliptic, equinox of J2000
+= Mercury: a 0.387099366205 AU  e 0.205640885861   i 7.00343259118 deg
+=          L 237.191761947   peri 77.4995224682   node 48.2981756036 deg
+= Venus:   a 0.723336674053 AU  e 0.00676604123778   i 3.3944709252 deg
+=          L 277.41216543   peri 131.603164872   node 76.6076382618 deg
+= Mars:    a 1.52371514245 AU  e 0.093414594279   i 1.84757716809 deg
+=          L 292.187282511   peri 336.171923322   node 49.4834658131 deg
+= Jupiter: a 5.20285682021 AU  e 0.0483517803858   i 1.30391926845 deg
+=          L 103.471977135   peri 14.7837396761   node 100.527131568 deg
+= Saturn:  a 9.53635076688 AU  e 0.0537292064197   i 2.4864952799 deg
+=          L 7.81932097823   peri 92.489939813   node 113.587364264 deg
+= Uranus:  a 19.1886545555 AU  e 0.0472460071981   i 0.772006155343 deg
+=          L 64.6492973503   peri 171.060375617   node 74.0279511419 deg
+= Neptune: a 30.0699911202 AU  e 0.00860375369884   i 1.77013544204 deg
+=          L 1.68241870193   peri 44.88093005   node 131.782903144 deg
+= per-century rates (a in AU per century, the rest in deg per century):
+= Mercury: da 0.00000037   de 0.00001906   di -0.00594749
+=          dL 149472.674112   dperi 0.16047689   dnode -0.12534081
+= Venus:   da 0.0000039   de -0.00004107   di -0.0007889
+=          dL 58517.8153873   dperi 0.00268329   dnode -0.27769418
+= Mars:    da 0.00001847   de 0.00007882   di -0.00813131
+=          dL 19140.302685   dperi 0.44441088   dnode -0.29257343
+= Jupiter: da -0.00011607   de -0.00013253   di -0.00183714
+=          dL 3034.74612775   dperi 0.21252668   dnode 0.20469106
+= Saturn:  da -0.0012506   de -0.00050991   di 0.00193609
+=          dL 1222.49362201   dperi -0.41897216   dnode -0.28867794
+= Uranus:  da -0.00196176   de -0.00004397   di -0.00242939
+=          dL 428.48202785   dperi 0.40805281   dnode 0.04240589
+= Neptune: da 0.00026291   de 0.00005105   di 0.00035372
+=          dL 218.45945325   dperi -0.32241464   dnode -0.00508664
+*/

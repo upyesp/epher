@@ -1,0 +1,50 @@
+/* ============================================================================
+expreg-culture-growth.epher -- exponential growth from a culture count
+
+A bacterial culture multiplies by the same factor each hour, so its
+counts N = 100*e^(0.35*t) lie on an exponential; the fit is done on
+log counts, which is what expreg reports (the standard growth model,
+e.g. Murray, "Mathematical Biology", ch. 1; the TI-style expreg
+matches any calculator). Eight hourly counts with small frozen noise
+(sigma 0.35, randseed(14)) are fitted; the doubling time follows as
+ln(2)/0.35 hours. The script graphs the points with the fitted
+exponential and prints the doubling time twice over.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/data/expreg-culture-growth.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\data\expreg-culture-growth.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/data/expreg-culture-growth.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the model -----------------------------------------------------------------
+const r = 0.35    // growth rate per hour
+
+// ---- the data ------------------------------------------------------------------
+ts = {1, 2, 3, 4, 5, 6, 7, 8}
+noise = {0.417428189714, -0.542802197271, -0.0783123440943, 0.387685831055, -0.0789349992734, 0.0327153409827, -0.673316592615, 0.175714392028}
+ns = 100 * e^(r * ts) + noise
+
+// ---- results -------------------------------------------------------------------
+print("doubling time, ln(2)/r:", ln(2) / r)
+print("counts at hour 1 and 8:", ns[1], ns[8])
+print("the fitted exponential and its r:")
+expreg(ts, ns)
+
+// ---- the picture ---------------------------------------------------------------
+graph scatter(ts, ns, expreg)
+
+/* ---- expected output ----
+= 0.35
+= {1, 2, 3, 4, 5, 6, 7, 8}
+= {0.417428189714, -0.542802197271, -0.0783123440943, 0.387685831055, -0.0789349992734, 0.0327153409827, -0.673316592615, 0.175714392028}
+= {142.324183049, 200.83246855, 285.686799462, 405.907682516, 575.381332601, 816.649706598, 1158.16135533, 1644.6403915}
+= doubling time, ln(2)/r: 1.98042051589
+= counts at hour 1 and 8: 142.324183049 1644.6403915
+= the fitted exponential and its r:
+= y = 100.0546*e^(0.3499*x) (r = 1)
+graph: scatter(ts, ns, expreg)
+*/
