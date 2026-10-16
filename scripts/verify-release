@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+# The post-release gauntlet (ADR-0073): the same list a human walks
+# after every train, as a job. Fails the release run on the first
+# missing piece. Requires GH_TOKEN, VERSION (0.5.79) and V_VERSION
+# (v0.5.79) in the environment.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+REPO="${GITHUB_REPOSITORY:-upyesp/epher}"
+status=0
+
+echo "== release $V_VERSION is published =="
+# gh's jq has no prefix-! operator ('! .isDraft' is a syntax error, and
+# the 0.5.80 gauntlet died on it): pipe to not, capture and compare.
+draft="$(gh release view "$V_VERSION" --repo "$REPO" --json isDraft --jq '.isDraft | not' 2>&1)" \
+  || { echo "::error::release $V_VERSION is missing ($draft)"; exit 1; }
+if [ "$draft" != "true" ]; then
+  echo "::error::release $V_VERSION is a draft"
+  status=1
+fi
+
+echo "== stable assets =="
+assets="$(gh release view "$V_VERSION" --repo "$REPO" --json assets --jq '.assets[].name' || true)"
+for name in \
+  epher-windows-x86_64.exe \
+  epher-macos-aarch64.dmg \
+  epher-linux-x86_64.deb epher-linux-x86_64.rpm epher-linux-x86_64.AppImage \
+  epher-linux-aarch64.deb epher-linux-aarch64.rpm epher-linux-aarch64.AppImage \
+  epher-linux-x86_64.flatpak \
+  epher-lsp-linux-x86_64.gz epher-lsp-linux-aarch64.gz \
+  epher-lsp-macos-aarch64.gz epher-lsp-windows-x86_64.zip \
+  epher-vscode.vsix epher-jetbrains.zip epher-visualstudio.vsix \
+  epher-zed.zip epher-nvim.zip epher-vim.zip epher-sublime.zip \
+  epher-emacs.zip epher-eclipse.jar; do
+  if ! grep -qxF "$name" <<<"$assets"; then
+    echo "::error::asset missing from the release: $name"
+    status=1
+  fi
+done
+# The update-site zip carries the version in its name, so it cannot
+# ride the fixed-name list (issue #152: absent from every release
+# since 0.5.79 because the attach gate read github.ref_type, which is
+# never 'tag' under the dispatch flow; eclipse-publish now takes the
+# tag through its inputs).
+if ! grep -qxF "io.github.upyesp.epher.eclipse.updatesite-$VERSION.zip" <<<"$assets"; then
+  echo "::error::asset missing from the release: io.github.upyesp.epher.eclipse.updatesite-$VERSION.zip"
+  status=1
+fi
+
+echo "== channel workflows dispatched by this release =="
+# ADR-0073: the channels are dispatched by the release run (a tag push
+# by the run's own token fires no events), so their runs are dispatch
+# runs created after this run started. Find each workflow's newest run
+# in that window and require it to conclude success.
+if [ -n "${GITHUB_RUN_ID:-}" ]; then
+  epoch_since="$(date -d "$(gh run view "$GITHUB_RUN_ID" --repo "$REPO" --json createdAt --jq .createdAt)" +%s)"
+else
+  # Local runs have no run id: no window, take the newest run.
+  epoch_since=0
+fi
+for wf in sublime-publish epher-nvim-publish luarocks-publish vim-publish; do
+  run_id=""
+  for i in $(seq 1 20); do
+    run_id="$(gh run list --workflow "$wf.yml" --limit 10 --json databaseId,createdAt \
+      --jq '.[] | [.databaseId, .createdAt] | @tsv' 2>/dev/null \
+      | while IFS="$(printf '\t')" read -r id created; do
+          [ "$(date -d "$created" +%s)" -ge "$epoch_since" ] && echo "$id" && break
+        done | head -1)"
+    [ -n "$run_id" ] && break
+    sleep 30
+  done
+  if [ -z "$run_id" ]; then
+    echo "::error::$wf was never dispatched by this release"
+    status=1
+    continue
+  fi
+  conclusion=""
+  for i in $(seq 1 20); do
+    conclusion="$(gh run view "$run_id" --repo "$REPO" --json status,conclusion --jq '.status + "/" + (.conclusion // "pending")' 2>/dev/null || echo "")"
+    case "$conclusion" in
+      completed/success) break ;;
+      completed/*) break ;;
+    esac
+    sleep 30
+  done
+  if [ "$conclusion" != "completed/success" ]; then
+    echo "::error::$wf run $run_id did not conclude success (last state: ${conclusion:-unknown})"
+    status=1
+  else
+    echo "$wf: success (run $run_id)"
+  fi
+done
+
+echo "== the live eclipse update site =="
+# The p2 site publishes to gh-pages and the pages deploy it triggers
+# takes a few minutes, so poll until both the bundle and the feature
+# read the train version (issue #152: the site once rode along at
+# 0.5.79 while every job stayed green). Same capture-then-match
+# discipline as mirror_ok: no grep on the curl pipeline (pipefail turns
+# SIGPIPE into failure).
+eclipse_site_ok() {
+  local content=""
+  for i in $(seq 1 16); do
+    content="$(curl -fsSL https://epher.org/eclipse/updates/artifacts.xml.xz 2>/dev/null \
+      | python3 -c 'import lzma,sys;sys.stdout.write(lzma.decompress(sys.stdin.buffer.read()).decode())' 2>/dev/null \
+      || true)"
+    if grep -q "id='io.github.upyesp.epher.eclipse' version='$VERSION'" <<<"$content" \
+      && grep -q "id='io.github.upyesp.epher.eclipse.feature' version='$VERSION'" <<<"$content"; then
+      return 0
+    fi
+    sleep 30
+  done
+  return 1
+}
+if eclipse_site_ok; then
+  echo "eclipse update site: stamped $VERSION"
+else
+  echo "::error::https://epher.org/eclipse/updates/ does not serve $VERSION"
+  status=1
+fi
+
+echo "== mirror stamps =="
+# The mirrors sync within a minute of the tag; allow up to five.
+# grep -q on the pipeline SIGPIPEs the producer on its first match and
+# pipefail turns that into a failure (the release.yml listing comment
+# documents the same bite): capture first, match after.
+mirror_ok() {
+  local repo="$1" file="$2" pattern="$3" content=""
+  for i in $(seq 1 10); do
+    content="$(gh api "repos/upyesp/$repo/contents/$file" --jq .content 2>/dev/null | base64 -d 2>/dev/null || true)"
+    if grep -q "$pattern" <<<"$content"; then
+      return 0
+    fi
+    sleep 30
+  done
+  return 1
+}
+if mirror_ok LSP-epher plugin.py "_SERVER_VERSION = \"$VERSION\""; then
+  echo "LSP-epher: stamped $VERSION"
+else
+  echo "::error::LSP-epher plugin.py is not stamped $VERSION"
+  status=1
+fi
+if mirror_ok epher.nvim lua/epher.lua "epher_src_bufnr"; then
+  echo "epher.nvim: sync commit found"
+else
+  echo "::error::epher.nvim main does not carry the expected sync"
+  status=1
+fi
+# The mirror's main commit only moves when the content moves: a train
+# whose nvim tree is unchanged is a tag-only push, and that is success.
+if gh api "repos/upyesp/epher.nvim/git/ref/tags/v$VERSION" --jq .object.sha >/dev/null 2>&1; then
+  echo "epher.nvim: tag v$VERSION present"
+else
+  echo "::error::epher.nvim has no v$VERSION tag"
+  status=1
+fi
+
+if [ "$status" -ne 0 ]; then
+  echo "::error::the release is incomplete; see the errors above"
+fi
+exit "$status"

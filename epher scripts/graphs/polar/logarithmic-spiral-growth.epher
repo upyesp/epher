@@ -1,0 +1,42 @@
+/* ============================================================================
+logarithmic-spiral-growth.epher -- the spira mirabilis grows by equal ratios
+
+The logarithmic spiral r = e^(a*theta) doubles, or grows by any fixed
+ratio, in a fixed angle: every turn scales the last by e^(2*pi*a).
+The angle between the curve and the radius is the same everywhere,
+which is why a moth flying at constant bearing to a lamp traces one
+(Jakob Bernoulli, 1692, who called it the spira mirabilis and asked
+it engraved on his tomb; Cooke, "The History of the Spiral"). With
+a = 0.2 the per-turn growth is e^(0.4*pi), about 3.5. The script
+graphs three turns and checks the growth ratio.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/polar/logarithmic-spiral-growth.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\polar\logarithmic-spiral-growth.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/polar/logarithmic-spiral-growth.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the model -----------------------------------------------------------------
+const a = 0.2    // the tightness of the wind
+
+// ---- results -------------------------------------------------------------------
+print("radius at theta = 0:", e^(0.2 * 0))
+print("radius after one turn, e^(0.4*pi):", e^(0.2 * 2 * pi))
+print("after two turns, e^(0.8*pi):", e^(0.2 * 4 * pi))
+print("growth ratio per turn is constant:", e^(0.2 * 4 * pi) / e^(0.2 * 2 * pi) == e^(0.2 * 2 * pi) / e^(0.2 * 0))
+
+// ---- the picture ---------------------------------------------------------------
+graph polar e^(0.2 * theta) from 0 to 12.566
+
+/* ---- expected output ----
+= 0.2
+= radius at theta = 0: 1
+= radius after one turn, e^(0.4*pi): 3.51358562429
+= after two turns, e^(0.8*pi): 12.3452839392
+= growth ratio per turn is constant: true
+graph: polar e^(0.2 * theta) from 0 to 12.566
+*/

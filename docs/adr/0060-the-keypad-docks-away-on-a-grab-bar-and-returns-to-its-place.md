@@ -1,0 +1,148 @@
+# ADR-0060: The keypad docks away on a grab bar, and returns to its place
+
+Date: 2026-09-08
+
+Status: Accepted
+
+## Context
+
+The keypad is always visible. On a phone the digits bank takes a third
+of the screen (ADR-0016 docked it at the bottom so the entry, the
+answer, and the history stack above it); in the desktop column and the
+TUI's calc column it is a fixed block the history list can never grow
+into. A user reading a long transcript or hunting an old history item
+has no way to hand the keypad's space to the history, only the mobile
+pane switch (calc ↔ graph, ADR-0016) hides it, and that replaces the
+calc view entirely instead of expanding the history in place.
+
+What the user asked for is the bottom-sheet gesture every phone
+carries: a bar along the keypad's top with a grab area in the middle;
+drag it down (or flick it) and the keypad slides out of view, the
+history list growing to fill the space; drag the bar up, or tap it,
+and the keypad slides back to exactly its previous place. The gesture
+must work with a mouse (desktop PWA, desktop app) and a finger (mobile
+PWA), the motion must be smooth, the bar must advertise itself, and
+keyboard users need an equivalent the pointer does not gate.
+
+The TUI already has all the plumbing this needs: mouse capture with
+per-panel hit rects (ADR-0034), a keypad panel in the layout, and a
+hints line for key discovery. What the terminal cannot do is animate:
+a TUI repaints whole character cells on an event loop, with no
+compositor to interpolate between frames.
+
+## Decision
+
+**Web (one implementation serving the mobile PWA, the desktop PWA, and
+the desktop app).** The keypad section is wrapped in a drawer: a grab
+bar, then a clipping wrapper around the keypad. The grab bar is a real
+`<button>`, focusable, `aria-expanded`, `aria-controls` the keypad
+panel, localized label, carrying a centered pill (44×4 px, accent on
+hover/focus) as the visible affordance, on a 24 px strip (WCAG 2.5.8
+target floor). `touch-action: none` on the bar so a finger drag drags
+the drawer instead of scrolling or swiping the pane deck.
+
+Pointer interactions (Pointer Events cover mouse, touch, and pen):
+
+- **Drag**: pointerdown freezes the current height and measures the
+  keypad's natural height; pointermove sets the wrapper's height in px
+  (transition off), so the history list grows under the finger in real
+  time; pointerup snaps.
+- **Flick or half**: release collapses when the bar moved down past
+  half the keypad's height or the last 80 ms velocity exceeds 0.5 px/ms
+  downward; otherwise it springs back open. (`keypad_snap` is a pure
+  function, unit-tested.)
+- **Tap/click** (no drag): toggles, exactly like the keyboard path.
+- **Keyboard**: Enter/Space on the button toggles; the same
+  freeze-measure-animate path runs so keyboard users get the same
+  motion.
+
+Snapping animates the wrapper's height over 280 ms with an
+ease-out-composite cubic-bezier, then the inline height is cleared and
+the resting state is pure CSS (`[data-open="false"]` → height 0), so a
+tab change or hints toggle at rest reflows naturally.
+`prefers-reduced-motion: reduce` removes the transition (the pane
+jumps, per that media query's contract).
+
+The docked-away state is session state, not a stored setting: every
+start shows the keypad, and "previous position" means the keypad's own
+place, same tab, same scroll, which nothing else moves.
+
+**TUI.** The keypad panel gains a docked state (`Ctrl+K` toggles; the
+hints line carries the key). Shown, the panel draws as before with the
+grab area drawn into its top border, three middle dots replacing the
+border at the panel's center, bold so they read as a handle. Hidden,
+one strip row remains where the keypad's top border was, the same
+three dots centered. Mouse (ADR-0034): press on the strip (shown:
+border row; hidden: the strip row), drag down two rows to dock away,
+up two rows to restore, or release without moving to toggle, the
+same grammar as the web bar. The transition is instant: the terminal
+has no compositor, and redrawing partial rows to fake motion would
+flicker on the event loop. Everything else about the gesture, the
+bar, the grab dots, drag directions, keyboard parity, matches the
+GUIs.
+
+## Consequences
+
+- The history list absorbs the keypad's space in all four frontends;
+  `.history-box` (web) and the `Min(0)` history constraint (TUI)
+  needed no change; they were already the flexible sibling.
+- The web drawer animates height, not transform: the point is to give
+  the space to the history live under the finger, which a translate
+  (sliding over the history) cannot do. Height animation on a
+  fixed-height keypad grid is cheap; the pane's flex layout reflows.
+- The docked state is not persisted: a missing keypad on startup would
+  read as a bug, and the gesture to bring it back is the same one that
+  put it away. If frequent dockers ask, an amendment can store it.
+- New localized strings: the grab button's show/hide labels in the
+  eight guide locales, and the TUI hints line grew the Ctrl+K entry.
+
+## Amendment (2026-09-06): the drawer shows its content both ways, tracks per frame, and snaps at the flick's speed
+
+Users found the drawer slow, glitchy, and one-sided: dragging the bar
+up from the docked state raised a blank void that only filled in when
+the finger lifted, while the drag down showed the keypad the whole
+way. The blank side was a stylesheet ordering bug, the docked rule
+(`[data-open="false"]`) and the dragging rule tie on specificity, and
+the docked rule sat later, so `visibility: hidden` won while the
+keypad was being dragged back into view. The dragging rule now sits
+last and wins: **the keypad is visible during every part of the
+gesture, up and down alike.**
+
+The motion itself is reworked for smoothness. Pointer samples no
+longer write the clip's height per event, a 1000 Hz mouse wrote a
+hundred styles a frame, they land in the drag cell and one armed
+animation frame applies the newest sample: one height write per
+display frame, tracked exactly to the pointer. The release snap now
+matches its duration to the flick (distance over the smoothed
+frame-to-frame velocity, clamped to 110–240 ms; taps and the keyboard
+toggle keep the stylesheet's 240 ms), and the inline transition is
+cleared when the snap settles so the next drag's `transition: none`
+applies. The drag decision (`keypad_snap`) is unchanged; so is the
+contract that the history grows into the freed space live.
+
+## Amendment (2026-09-12): the bar drags only: the tap/click and keyboard toggles are gone
+
+The tap path earned its keep when the bar was new, but in practice a
+plain click toggling the whole keypad read as an accident waiting to
+happen: the bar sits where thumbs and cursors travel, and the user
+asked for the toggle to go. **The web grab bar now answers to a drag
+alone.** Releasing without meaningful movement runs the same snap as
+any other release, since the height barely moved, the drawer springs
+back to wherever it was resting, and the synthesized click that
+follows pointerup has nothing to trigger, so the gesture-echo
+timestamp (`keypad_last_gesture`) and the click handler are deleted
+with it.
+
+The bar stops being a `<button>` and becomes a plain `div`: there is
+no activation to advertise, so `aria-expanded`, `aria-controls`, the
+show/hide labels, and the Enter/Space path all go, and with them the
+`keypad-grab-hide` / `keypad-grab-show` strings in every locale. The
+keyboard and screen-reader toggle this decision removes was real
+accessibility; the trade is deliberate; the bar is a pointer-only
+affordance, and the docked state is one drag away for every pointer
+user. The pill keeps its hover highlight and `cursor: grab` so the
+bar still reads as draggable.
+
+The TUI is untouched: releasing without moving still toggles there,
+and `Ctrl+K` remains the keyboard path, the two frontends no longer
+share the tap grammar, but each keeps the gesture its medium affords.

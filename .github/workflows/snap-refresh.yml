@@ -1,0 +1,89 @@
+# Rebuild and republish the snap for the CURRENT release, without a new
+# release. The snap repacks the release .deb, but its staged Ubuntu
+# archive packages (the gnome extension's runtime pieces: bubblewrap,
+# libsoup, gstreamer) age: the Snap Store scans published revisions and
+# emails when their USNs land. Dispatching this workflow rebuilds both
+# architectures against today's archive and uploads them to the stable
+# channel: same version, fresh security fixes (ADR-0061).
+name: snap refresh
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to rebuild (default: the latest release)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: snap-refresh
+  cancel-in-progress: false
+
+jobs:
+  snap:
+    name: snap (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            arch: amd64
+          - os: ubuntu-22.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve the release tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -e
+          if [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"
+          else
+            TAG="$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName)"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "rebuilding the snap from $TAG"
+
+      - name: Pin the release version into the manifest
+        # override-pull fetches the release .deb by versioned URL, so
+        # the version must be in the yaml BEFORE snapcraft runs (a
+        # craftctl set-version only happens later, during build).
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -e
+          sed -i "s/^version: .*/version: \"${TAG#v}\"/" packaging/snap/snapcraft.yaml
+          grep -q "version: \"${TAG#v}\"" packaging/snap/snapcraft.yaml
+
+      - name: Build the snap
+        uses: snapcore/action-build@v1
+        with:
+          path: packaging/snap
+
+      - name: Publish to the Snap Store
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          set -e
+          if [ -z "$SNAPCRAFT_STORE_CREDENTIALS" ]; then
+            echo "::error::set the SNAPCRAFT_STORE_CREDENTIALS secret (see ADR-0061)."
+            exit 1
+          fi
+          # action-build leaves the .snap beside the manifest, not in the
+          # repo root, find it wherever it landed.
+          SNAP_FILE=$(find . -name "epher_${TAG#v}_${ARCH}.snap" | head -1)
+          if [ -z "$SNAP_FILE" ]; then
+            echo "::error::built snap not found: epher_${TAG#v}_${ARCH}.snap"
+            exit 1
+          fi
+          snapcraft upload "$SNAP_FILE" --release=stable

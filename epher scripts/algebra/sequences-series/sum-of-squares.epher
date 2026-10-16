@@ -1,0 +1,37 @@
+/* ============================================================================
+sum-of-squares.epher -- 1^2 + ... + num^2, formula and loop cross-check
+
+The sum of the first num squares is num(num + 1)(2n + 1)/6, proved by induction
+in any algebra text (e.g. Stewart, Redlin and Watson, "College Algebra",
+7th ed., sec. 9.1, exercises). For num = 10 it is 10 * 11 * 21 / 6 = 385,
+cross-checked below by adding the squares one by one in a quiet while
+loop. All values are exact.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/sum-of-squares.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\sum-of-squares.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/sum-of-squares.epher
+
+The knob to edit is num below.
+============================================================================ */
+
+// ---- the knob ----------------------------------------------------------------
+const num = 10
+
+// ---- helpers -----------------------------------------------------------------
+def sq(num) = num * (num + 1) * (2 * num + 1) / 6      // 1^2 + ... + num^2
+
+// ---- results -----------------------------------------------------------------
+print("formula:", sq(num))
+// add the squares one by one (a for loop would echo all num partial sums)
+acc = {0, 0}
+while acc[1] < num do acc = {acc[1] + 1, acc[2] + (acc[1] + 1) ^ 2}
+print("by adding:", acc[2])
+print("they agree:", sq(num) == acc[2])
+/* ---- expected output ----
+= 10
+= formula: 385
+= {0, 0}
+= by adding: 385
+= they agree: true
+*/

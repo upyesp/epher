@@ -1,0 +1,43 @@
+/* ============================================================================
+ellipse-foci-sum.epher -- the gardener's ellipse: two distances, one sum
+
+An ellipse is the set where the distances to the two foci add to a
+constant 2a - the property a gardener uses to draw one with two pegs
+and a loop of string (Apollonius defined the conics; Stewart,
+"Precalculus", ch. 9.2). Here a = 3 and the foci sit at (+-2, 0),
+so b = sqrt(9 - 4). The script graphs the ellipse and checks the
+string property numerically at points along and across the axes.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/implicit/ellipse-foci-sum.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\implicit\ellipse-foci-sum.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/implicit/ellipse-foci-sum.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the model -----------------------------------------------------------------
+const a = 3    // half the string length
+const c = 2    // half the focus separation
+def fy(x) = sqrt(5 - 5 * x ^ 2 / 9)   // the ellipse's upper half (b^2 = 5)
+
+// ---- results -------------------------------------------------------------------
+print("string length 2*a:", 2 * a)
+print("sum at the end (3, 0):", hypot(3 - c, 0) + hypot(3 + c, 0))
+print("sum at the top (0, sqrt(5)):", hypot(0 - c, fy(0)) + hypot(0 + c, fy(0)))
+print("the top half height sqrt(5):", fy(0))
+
+// ---- the picture ---------------------------------------------------------------
+graph x ^ 2 / 9 + y ^ 2 / 5 == 1 from -3.5 to 3.5
+
+/* ---- expected output ----
+= 3
+= 2
+= string length 2*a: 6
+= sum at the end (3, 0): 6
+= sum at the top (0, sqrt(5)): 6
+= the top half height sqrt(5): 2.2360679775
+graph: x ^ 2 / 9 + y ^ 2 / 5 == 1 from -3.5 to 3.5
+*/

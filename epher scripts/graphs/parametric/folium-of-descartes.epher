@@ -1,0 +1,44 @@
+/* ============================================================================
+folium-of-descartes.epher -- the leaf with the loop and the slant asymptote
+
+The folium x^3 + y^3 = 3*x*y (Descartes, 1638, in his letters to
+Fermat) unfurls a loop in the first quadrant and two wings that close
+on the slant asymptote x + y + 1 = 0. The rational parametrisation
+x = 3*t / (1 + t^3), y = 3*t^2 / (1 + t^3) walks the whole curve with
+one parameter t; the node sits at the origin and the loop's far
+corner at t = 1 (Lockwood, "A Book of Curves", ch. 8). The script
+graphs the loop and the wings separately - t = -1 is a pole - and
+prints the landmarks.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/parametric/folium-of-descartes.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\parametric\folium-of-descartes.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/parametric/folium-of-descartes.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def fx(t) = 3 * t / (1 + t ^ 3)
+def fy(t) = 3 * t ^ 2 / (1 + t ^ 3)
+
+// ---- results -------------------------------------------------------------------
+print("the node at t = 0:", fx(0), fy(0))
+print("loop corner at t = 1:", fx(1), fy(1))
+print("wings approach x + y = -1; at t = -1.5, x + y =", fx(-1.5) + fy(-1.5))
+print("the curve meets its equation, at (1.5, 1.5):", 1.5 ^ 3 + 1.5 ^ 3 == 3 * 1.5 * 1.5)
+
+// ---- the picture ---------------------------------------------------------------
+graph param 3 * t / (1 + t ^ 3), 3 * t ^ 2 / (1 + t ^ 3) from -0.9 to 8
+graph param 3 * t / (1 + t ^ 3), 3 * t ^ 2 / (1 + t ^ 3) from -8 to -1.3
+
+/* ---- expected output ----
+= the node at t = 0: 0 0
+= loop corner at t = 1: 1.5 1.5
+= wings approach x + y = -1; at t = -1.5, x + y = -18/19
+= the curve meets its equation, at (1.5, 1.5): true
+graph: param 3 * t / (1 + t ^ 3), 3 * t ^ 2 / (1 + t ^ 3) from -0.9 to 8
+graph: param 3 * t / (1 + t ^ 3), 3 * t ^ 2 / (1 + t ^ 3) from -8 to -1.3
+*/

@@ -1,0 +1,114 @@
+name: vscode publish
+
+# Publishes upyesp.epher to marketplace.visualstudio.com with a personal
+# access token (`vsce publish -p`), the classic route. Amendment of the
+# ADR-0068 amendment (2026-09-28): the Entra federated route this file
+# used before never completed a publish - every run died in the gallery
+# grant (Access Denied), and the manual upload stepped in each train.
+# The PAT carries the Marketplace: Manage scope on the publisher's
+# Azure DevOps identity and lives in the `stores` environment secret
+# VS_MARKETPLACE_PAT (shared with the VS IDE channel's VsixPublisher
+# job); the job skips with a notice until it exists.
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "git ref to publish from (defaults to the caller's ref)"
+        type: string
+        default: ""
+      version:
+        description: "extension version without the leading v (auto = read from crates/cli/Cargo.toml)"
+        type: string
+        default: "auto"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "git ref to publish from (defaults to the default branch)"
+        type: string
+        default: ""
+
+jobs:
+  marketplace:
+    name: publish upyesp.epher
+    environment: stores
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Secrets check
+        id: secrets
+        env:
+          VS_MARKETPLACE_PAT: ${{ secrets.VS_MARKETPLACE_PAT }}
+        run: |
+          if [ -n "$VS_MARKETPLACE_PAT" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::marketplace publish skipped: set the VS_MARKETPLACE_PAT secret (an Azure DevOps PAT with the Marketplace: Manage scope) to enable this channel."
+          fi
+
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.secrets.outputs.skip == 'false'
+        with:
+          targets: wasm32-wasip1-threads
+
+      - name: Resolve the release version
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
+        run: |
+          set -e
+          VERSION="$VERSION_INPUT"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "auto" ]; then
+            VERSION="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
+          fi
+          echo "VERSION=${VERSION#v}" >> "$GITHUB_ENV"
+
+      - name: Build the wasm server
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          set -e
+          cargo build -p epher-lsp --target wasm32-wasip1-threads --release
+          mkdir -p clients/vscode/server
+          cp target/wasm32-wasip1-threads/release/epher-lsp.wasm \
+            clients/vscode/server/epher-lsp.wasm
+
+      - name: Build and package the vsix
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          set -e
+          cd clients/vscode
+          npm ci --no-audit --no-fund
+          # --allow-same-version: a dispatch test runs against the current
+          # release number, where the bump is a no-op
+          npm version --no-git-tag-version --allow-same-version "$VERSION"
+          npm run compile
+          npx --yes @vscode/vsce@3.9.2 package --allow-missing-repository \
+            --no-dependencies \
+            --out epher-vscode.vsix
+
+      - name: Publish to the marketplace
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          VS_MARKETPLACE_PAT: ${{ secrets.VS_MARKETPLACE_PAT }}
+        run: |
+          set -e -o pipefail
+          cd clients/vscode
+          if npx --yes @vscode/vsce@3.9.2 publish -i epher-vscode.vsix \
+              -p "$VS_MARKETPLACE_PAT" 2>&1 | tee /tmp/vsce.log; then
+            if grep -qi "Access Denied" /tmp/vsce.log; then
+              # vsce can exit 0 after a gallery denial; the run must not
+              # look green when nothing was published
+              echo "::error::the marketplace denied the publish (Access Denied)"
+              exit 1
+            fi
+          else
+            exit 1
+          fi
+          echo "::notice::published upyesp.epher $VERSION to marketplace.visualstudio.com"

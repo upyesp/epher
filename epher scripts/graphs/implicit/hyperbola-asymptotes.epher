@@ -1,0 +1,45 @@
+/* ============================================================================
+hyperbola-asymptotes.epher -- x^2 - y^2 = 1 rides its two asymptotes
+
+The rectangular hyperbola x^2 - y^2 = 1 opens left and right, its
+branches forever closing on the lines y = x and y = -x without ever
+touching them: the asymptote slope is b/a = 1, and the eccentricity
+is sqrt(2) for any a = b (the "rectangular" case, Apollonius again;
+Stewart, "Precalculus", ch. 9.3). The script graphs the branches
+with both asymptotes overlaid and prints the landmarks.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/implicit/hyperbola-asymptotes.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\implicit\hyperbola-asymptotes.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/implicit/hyperbola-asymptotes.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the hyperbola -------------------------------------------------------------
+def h(x) = sqrt(x ^ 2 - 1)   // the upper branch
+
+// ---- results -------------------------------------------------------------------
+print("vertices at x = +-1:", h(1) == 0)
+print("asymptote slope, b/a:", 1)
+print("upper branch at x = 2:", h(2))
+print("asymptote there, y = x:", 2)
+print("eccentricity, sqrt(2):", sqrt(2))
+
+// ---- the picture ---------------------------------------------------------------
+graph x ^ 2 - y ^ 2 == 1 from -4 to 4
+graph x from -4 to 4
+graph 0 - x from -4 to 4
+
+/* ---- expected output ----
+= vertices at x = +-1: true
+= asymptote slope, b/a: 1
+= upper branch at x = 2: 1.73205080757
+= asymptote there, y = x: 2
+= eccentricity, sqrt(2): 1.41421356237
+graph: x ^ 2 - y ^ 2 == 1 from -4 to 4
+graph: x from -4 to 4
+graph: 0 - x from -4 to 4
+*/

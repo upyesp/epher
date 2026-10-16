@@ -1,0 +1,39 @@
+/* ============================================================================
+cardioid-epicycloid.epher -- the cardioid as a circle rolling on a circle
+
+A circle of radius 1 rolling around an equal fixed circle carries a
+marked rim point on an epicycloid with one cusp: the cardioid
+x = 2*cos(t) - cos(2*t), y = 2*sin(t) - sin(2*t) (de la Hire 1708;
+MathWorld, "Epicycloid"; Stewart, "Calculus", ch. 10.1, example 7).
+Its perimeter is 16 and its area 6*pi, both exactly, for the unit
+rolling circle. The script graphs the curve and checks perimeter and
+area numerically from the speed integral and the polar area formula.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/parametric/cardioid-epicycloid.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\parametric\cardioid-epicycloid.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/parametric/cardioid-epicycloid.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def cx(t) = 2 * cos(t) - cos(2 * t)
+def cy(t) = 2 * sin(t) - sin(2 * t)
+
+// ---- results -------------------------------------------------------------------
+print("the cusp sits at (1, 0):", cx(0), cy(0))
+print("perimeter, exact 16:", integral(sqrt((0 - 2 * sin(x) + 2 * sin(2 * x)) ^ 2 + (2 * cos(x) - 2 * cos(2 * x)) ^ 2), 0, 2 * pi))
+print("area, exact 6*pi:", integral((2 + 2 * cos(x)) ^ 2 / 2, 0, 2 * pi))
+
+// ---- the picture ---------------------------------------------------------------
+graph param 2 * cos(t) - cos(2 * t), 2 * sin(t) - sin(2 * t) from 0 to 6.28318
+
+/* ---- expected output ----
+= the cusp sits at (1, 0): 1 0
+= perimeter, exact 16: 16
+= area, exact 6*pi: 16.7551608191
+graph: param 2 * cos(t) - cos(2 * t), 2 * sin(t) - sin(2 * t) from 0 to 6.28318
+*/

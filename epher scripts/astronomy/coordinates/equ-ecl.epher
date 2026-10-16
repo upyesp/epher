@@ -1,0 +1,64 @@
+/* ============================================================================
+equ-ecl.epher -- equatorial to ecliptic and back
+
+Converts a position between the equatorial frame (right ascension,
+declination) and the ecliptic frame (longitude, latitude) - the
+rotation about the obliquity of the ecliptic, Meeus, "Astronomical
+Algorithms" 2nd ed. ch. 13 (eq. 13.3-13.4 and their inverses):
+
+  sin(beta) = sin(delta) cos(eps) - cos(delta) sin(eps) sin(alpha)
+  tan(lambda) = (sin(alpha) cos(eps) + tan(delta) sin(eps)) / cos(alpha)
+
+The conversion works for catalog positions of the same equinox; the
+obliquity below is the mean value for the knob year (Meeus eq.
+22.2). The worked example is the star Vega (alpha Lyr), J2000.
+
+Accuracy: the spherical rotation is exact; only the obliquity's
+year matters (a 0.01 deg change of eps moves a position by up to
+0.01 deg - quoted frame limitations).
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/equ-ecl.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\equ-ecl.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/equ-ecl.epher
+In the REPL:             load one of the paths above
+
+Knobs: the catalog position (Vega J2000 below) and the year whose
+mean obliquity is used.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------------
+const ara = 279.23473479       // Vega alpha J2000, degrees (18h 36m 56.3s)
+const ade = 38.78368896        // Vega delta J2000, degrees (+38 47 1.3)
+const year = 2000              // equinox of the obliquity
+
+// ---- helpers --------------------------------------------------------------------------
+def eps(y) = 23.4392911 - 46.8150 * ((jd(y, 7, 1) - 2451545) / 36525) / 3600 - 0.00059 * ((jd(y, 7, 1) - 2451545) / 36525) ^ 2 / 3600
+def wrap(x) = x - 360 * floor(x / 360)
+def eclon(ar, dr) = wrap(deg(atan2(sin(rad(ar)) * cos(rad(eps(year))) + tan(rad(dr)) * sin(rad(eps(year))), cos(rad(ar)))))
+def eclat(ar, dr) = deg(asin(sin(rad(dr)) * cos(rad(eps(year))) - cos(rad(dr)) * sin(rad(eps(year))) * sin(rad(ar))))
+def eqra(lo, la) = wrap(deg(atan2(sin(rad(lo)) * cos(rad(eps(year))) - tan(rad(la)) * sin(rad(eps(year))), cos(rad(lo)))))
+def eqde(lo, la) = deg(asin(sin(rad(la)) * cos(rad(eps(year))) + cos(rad(la)) * sin(rad(eps(year))) * sin(rad(lo))))
+
+// ---- the round trip ---------------------------------------------------------------------
+lo = eclon(ara, ade)
+la = eclat(ara, ade)
+print("Vega J2000:  ra", deg2hms(ara), " dec", deg2dms(ade))
+print("ecliptic lon", lo, " lat", la, " (equinox 2000, mean obliquity", eps(year), "deg)")
+print("back:        ra", deg2hms(eqra(lo, la)), " dec", deg2dms(eqde(lo, la)))
+
+/* Self-check: the round trip must return the catalog position to
+machine precision. */
+print("round-trip error < 1e-9 deg:", abs(eqra(lo, la) - ara) < 1e-9 and abs(eqde(lo, la) - ade) < 1e-9)
+
+/* ---- expected output ----
+= 279.23473479
+= 38.78368896
+= 2000
+= 285.316356041
+= 61.732802335
+= Vega J2000:  ra 18h 36m 56s  dec 38° 47' 1"
+= ecliptic lon 285.316356041  lat 61.732802335  (equinox 2000, mean obliquity 23.4392264797 deg)
+= back:        ra 18h 36m 56s  dec 38° 47' 1"
+= round-trip error < 1e-9 deg: true
+*/

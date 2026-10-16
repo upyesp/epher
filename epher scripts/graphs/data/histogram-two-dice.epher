@@ -1,0 +1,42 @@
+/* ============================================================================
+histogram-two-dice.epher -- sixty throws of a pair of dice
+
+Two dice summed give 2 to 12, with 7 the likeliest: six of the
+thirty-six combinations. The sixty sums here were drawn once with
+randseed(3) from the real randint generator and frozen, so the
+transcript is stable; the empirical mean should sit near 7 and the
+standard deviation near sqrt(35/6) = 2.415 (the variance of one die
+is 35/12, and variances add - any probability text, e.g. Blitzstein
+and Hwang, "Introduction to Probability", ch. 2). The script graphs
+the histogram and prints the comparison.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/data/histogram-two-dice.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\data\histogram-two-dice.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/data/histogram-two-dice.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the data (60 real throws, frozen) -----------------------------------------
+sums = {6, 5, 6, 7, 9, 10, 6, 10, 3, 6, 11, 7, 10, 3, 10, 10, 8, 5, 8, 6, 5, 11, 6, 7, 5, 10, 8, 6, 6, 7, 5, 9, 7, 10, 8, 3, 7, 3, 6, 8, 7, 4, 11, 7, 5, 12, 8, 7, 9, 9, 5, 8, 5, 8, 8, 6, 6, 6, 4, 8}
+
+// ---- results -------------------------------------------------------------------
+print("throws:", len(sums))
+print("mean, theory 7:", mean(sums))
+print("stdev, theory sqrt(35/6) =", sqrt(35 / 6), ":", stdev(sums))
+print("lowest and highest seen:", min(sums), max(sums))
+
+// ---- the picture ---------------------------------------------------------------
+graph histogram(sums, 11)
+
+/* ---- expected output ----
+= {6, 5, 6, 7, 9, 10, 6, 10, 3, 6, 11, 7, 10, 3, 10, 10, 8, 5, 8, 6, 5, 11, 6, 7, 5, 10, 8, 6, 6, 7, 5, 9, 7, 10, 8, 3, 7, 3, 6, 8, 7, 4, 11, 7, 5, 12, 8, 7, 9, 9, 5, 8, 5, 8, 8, 6, 6, 6, 4, 8}
+= throws: 60
+= mean, theory 7: 7.1
+= stdev, theory sqrt(35/6) = 2.4152294577 : 2.18860686282
+= lowest and highest seen: 3 12
+graph: histogram(sums, 11)
+*/

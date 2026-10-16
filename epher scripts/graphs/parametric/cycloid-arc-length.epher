@@ -1,0 +1,39 @@
+/* ============================================================================
+cycloid-arc-length.epher -- one arch of the cycloid and its length 8
+
+A point on the rim of a rolling wheel of radius 1 traces
+x = t - sin(t), y = 1 - cos(t). One arch runs from cusp to cusp,
+t = 0 to 2*pi, peaking at height 2. Its arc length is exactly 8a
+(found geometrically by Christopher Wren in 1658; Stewart, "Calculus",
+ch. 10.2 computes it as an integral). The script graphs the arch,
+prints the landmarks, and checks Wren's 8 numerically: the speed is
+sqrt(2 - 2*cos(t)), so the length is one integral.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/parametric/cycloid-arc-length.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\parametric\cycloid-arc-length.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/parametric/cycloid-arc-length.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def cx(t) = t - sin(t)
+def cy(t) = 1 - cos(t)
+
+// ---- results -------------------------------------------------------------------
+print("arch height at the crown t = pi:", cy(pi))
+print("arch width, cusp to cusp:", cx(2 * pi) - cx(0))
+print("arc length one arch, Wren's 8:", integral(sqrt(2 - 2 * cos(x)), 0, 2 * pi))
+
+// ---- the picture ---------------------------------------------------------------
+graph param t - sin(t), 1 - cos(t) from 0 to 6.28318
+
+/* ---- expected output ----
+= arch height at the crown t = pi: 2
+= arch width, cusp to cusp: 6.28318530718
+= arc length one arch, Wren's 8: 8
+graph: param t - sin(t), 1 - cos(t) from 0 to 6.28318
+*/

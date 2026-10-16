@@ -1,0 +1,55 @@
+/* ============================================================================
+weekly-track.epher -- a body's weekly almanac track
+
+Prints six weekly rows of right ascension, declination, distance and
+magnitude for one solar-system body - the almanac-table layout that
+timeanddate's ephemeris tables and the yearbook pages use. Every
+number is a built-in accessor readout (solar-ephemeris crate, VSOP2013
+planets, JPL-Horizons-validated; guide 1.29); the script only lays the
+table.
+
+Accuracy: the engine's own - about an arcsecond of position and 1e-5 AU
+of distance; magnitudes are the standard model magnitudes, good to a
+few hundredths.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/weekly-track.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\weekly-track.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/weekly-track.epher
+In the REPL:             load one of the paths above
+
+Knobs: the body (guide 1.29 numbering), the starting instant t0 and
+the week step below.
+============================================================================ */
+
+// ---- the knobs ----------------------------------------------------------------
+const body = 5                 // Jupiter
+const t0 = jd(2026, 9, 10, 0)  // first row, 00:00 UT
+
+// ---- the track: one print per row -----------------------------------------------
+print("Jupiter, weekly track from", iso(t0))
+print("week  date                 ra            dec           dist (AU)  mag")
+print(0, iso(t0), deg2hms(ra(body, t0)), deg2dms(decl(body, t0)), dist(body, t0), mag(body, t0))
+print(1, iso(t0 + 7), deg2hms(ra(body, t0 + 7)), deg2dms(decl(body, t0 + 7)), dist(body, t0 + 7), mag(body, t0 + 7))
+print(2, iso(t0 + 14), deg2hms(ra(body, t0 + 14)), deg2dms(decl(body, t0 + 14)), dist(body, t0 + 14), mag(body, t0 + 14))
+print(3, iso(t0 + 21), deg2hms(ra(body, t0 + 21)), deg2dms(decl(body, t0 + 21)), dist(body, t0 + 21), mag(body, t0 + 21))
+print(4, iso(t0 + 28), deg2hms(ra(body, t0 + 28)), deg2dms(decl(body, t0 + 28)), dist(body, t0 + 28), mag(body, t0 + 28))
+print(5, iso(t0 + 35), deg2hms(ra(body, t0 + 35)), deg2dms(decl(body, t0 + 35)), dist(body, t0 + 35), mag(body, t0 + 35))
+
+/* Self-check: after its June 2026 station Jupiter is in direct
+motion, so right ascension must increase week over week. */
+print("ra advancing week over week:", ra(body, t0 + 7) > ra(body, t0) and ra(body, t0 + 14) > ra(body, t0 + 7))
+
+/* ---- expected output ----
+= 5
+= 2461293.5
+= Jupiter, weekly track from 2026-09-10T00:00:00
+= week  date                 ra            dec           dist (AU)  mag
+= 0 2026-09-10T00:00:00 9h 12m 46s 16° 41' 35" 6.12978019676 -1.81
+= 1 2026-09-17T00:00:00 9h 18m 21s 16° 17' 19" 6.06837526653 -1.83
+= 2 2026-09-24T00:00:00 9h 23m 42s 15° 53' 33" 5.9985358869 -1.85
+= 3 2026-10-01T00:00:00 9h 28m 48s 15° 30' 31" 5.92083511095 -1.87
+= 4 2026-10-08T00:00:00 9h 33m 37s 15° 8' 27" 5.83581722345 -1.9
+= 5 2026-10-15T00:00:00 9h 38m 7s 14° 47' 36" 5.74416128873 -1.93
+= ra advancing week over week: true
+*/

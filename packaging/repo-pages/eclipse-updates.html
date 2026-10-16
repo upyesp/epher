@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>epher Eclipse update site</title>
+<style>
+  :root { --bg:#ffffff; --fg:#1b1c1f; --muted:#5c5d63; --accent:#0f766e; --rule:#e3e4e8; --code:#f4f5f6; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#141416; --fg:#ecedef; --muted:#9a9ba2; --accent:#2dd4bf; --rule:#2a2b2f; --code:#1c1d20; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+         font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         line-height:1.6; }
+  main { max-width:42rem; margin:0 auto; padding:4rem 1.25rem 5rem; }
+  h1 { font-size:1.5rem; margin:0 0 .35rem; }
+  h2 { font-size:1.05rem; margin:2.25rem 0 .5rem; }
+  p { margin:.6rem 0; }
+  .lede { color:var(--muted); }
+  ol { padding-left:1.25rem; }
+  li { margin:.5rem 0; }
+  pre { background:var(--code); border:1px solid var(--rule); border-radius:.5rem;
+        padding:.85rem 1rem; overflow-x:auto; font-size:.85rem; line-height:1.5; }
+  code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.9em; }
+  a { color:var(--accent); }
+  footer { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--rule);
+           color:var(--muted); font-size:.875rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>epher Eclipse update site</h1>
+  <p class="lede">This is the Eclipse p2 update site for the epher plugin. Eclipse reads
+  it; a browser has nothing to list here. The repository metadata is in
+  <a href="content.jar">content.jar</a> and <a href="artifacts.jar">artifacts.jar</a>.</p>
+
+  <h2>Install</h2>
+  <ol>
+    <li>In Eclipse, open <strong>Help &gt; Install New Software</strong> and click
+        <strong>Add</strong>.</li>
+    <li>Paste this address as the location:
+        <pre><code>https://epher.org/eclipse/updates/</code></pre></li>
+    <li>Tick the <strong>epher</strong> entry and finish the wizard.</li>
+  </ol>
+  <p>The plugin uses LSP4E and TM4E, which Eclipse resolves along with it, so there is
+  nothing to install first. The language server itself is a separate binary: put
+  <code>epher-lsp</code> on your <code>PATH</code> once and every <code>.epher</code>
+  file you open gets diagnostics, hover, completion and the inline answers.</p>
+
+  <footer>
+    <a href="https://epher.org/">epher.org</a> ·
+    <a href="https://epher.org/ide.html">epher in your editor</a> ·
+    <a href="https://epher.org/guide/en/">User guide</a>
+  </footer>
+</main>
+</body>
+</html>

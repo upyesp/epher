@@ -1,0 +1,99 @@
+/* ============================================================================
+prayer-times.epher -- the five daily prayer windows from the Sun
+
+The daylight prayer times for a place and date, from the Sun's hour
+angle: Fajr and Isha at a fixed solar depression (the Muslim World
+League convention, 18 degrees below the horizon - the astronomical
+twilight depth), Maghrib at sunset, and Asr when a vertical object's
+shadow reaches its own length plus the noon shadow (shadow factor 1,
+the majority/Shafi'i rule; the Hanafi school uses factor 2). The Asr
+altitude follows from cot(alt) = tan|lat - dec| + factor, and every
+event time comes from the standard hour-angle formula
+
+  cos(H) = (sin(h0) - sin(lat) sin(dec)) / (cos(lat) cos(dec)),
+  time = transit -/+ 4 minutes per degree of hour angle,
+
+with the Sun's declination at the day's transit read from the built-in
+accessor - the same machinery as twilight-times.epher, good to about a
+minute. The conventions vary by region and school (Fajr/Isha angles of
+17 to 19.5 degrees, shadow factors 1 or 2), so every angle is a knob;
+this script states its convention rather than claiming a religious
+authority.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/prayer-times.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\prayer-times.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/prayer-times.epher
+In the REPL:             load one of the paths above
+
+Knobs: the place (Mecca below), the date, the Fajr/Isha depression
+angle and the Asr shadow factor.
+============================================================================ */
+
+// ---- the knobs ---------------------------------------------------------------
+const lat = 21.42           // Mecca
+const lon = 39.83
+const day = {2026, 6, 21}   // near the June solstice
+const fajr_ang = 18         // Fajr and Isha: Sun this far below the horizon, deg
+const asr_f = 1             // Asr shadow factor (1 majority rule, 2 Hanafi)
+
+// ---- model ------------------------------------------------------------------
+def cx(h0, dec, phi) = (sin(rad(h0)) - sin(rad(phi)) * sin(rad(dec))) / (cos(rad(phi)) * cos(rad(dec)))
+def evm(h0, dec, tt, phi) = if abs(cx(h0, dec, phi)) > 1 then "does not occur (sky never that dark)" else iso(tt - 4 * deg(acos(cx(h0, dec, phi))) / 1440)
+def eve(h0, dec, tt, phi) = if abs(cx(h0, dec, phi)) > 1 then "does not occur (sky never that dark)" else iso(tt + 4 * deg(acos(cx(h0, dec, phi))) / 1440)
+def asr_alt(dec, phi) = deg(atan(1 / (asr_f + tan(rad(abs(phi - dec))))))   // Sun's altitude at Asr
+def evasr(dec, tt, phi) = if abs(cx(asr_alt(dec, phi), dec, phi)) > 1 then "does not occur (sun too low all day)" else iso(tt + 4 * deg(acos(cx(asr_alt(dec, phi), dec, phi))) / 1440)
+
+// ---- the day's transit and declination ----------------------------------------
+t0 = transit(10, jd(day[1], day[2], day[3]), lat, lon)
+d0 = decl(10, t0)
+
+/* ---- results ------------------------------------------------------------------
+The five times in chronological order (the Dhuhr window opens at the
+solar transit itself). Times are UT; Mecca local time is UT + 3 h.
+Plausibility: Fajr leads sunrise by about 1.4 h at this latitude in
+June - the expected 1-1.5 h for an 18-degree depression - and Asr
+falls late in the afternoon as the shadow stretches to factor 1. */
+print("prayer times 2026-06-21 at Mecca, lat 21.42 lon 39.83 (times UT)")
+print("  convention: Fajr/Isha at", fajr_ang, "deg depression (MWL)")
+print("  Maghrib at sunset; Asr at shadow factor", asr_f, "(Hanafi schools use 2)")
+print("Fajr:", evm(-fajr_ang, d0, t0, lat))
+print("Sunrise:", evm(-0.833, d0, t0, lat))
+print("Dhuhr (solar transit):", iso(t0))
+print("Asr:", evasr(d0, t0, lat), "(Sun at", asr_alt(d0, lat), "deg)")
+print("Maghrib:", eve(-0.833, d0, t0, lat))
+print("Isha:", eve(-fajr_ang, d0, t0, lat))
+print("  local time is UT + 3 h at Mecca; angles are knobs above, and")
+print("  conventions (17-19.5 deg, Hanafi factor 2) shift the times")
+
+/* Plausibility check: the Fajr-to-sunrise gap is the signature of the
+18-degree convention - about 1-1.5 h at mid-latitudes. The gap below
+is computed between the two hour-angle events above. */
+tsr = t0 - 4 * deg(acos(cx(-0.833, d0, lat))) / 1440
+tfajr = t0 - 4 * deg(acos(cx(-fajr_ang, d0, lat))) / 1440
+print("plausibility: Fajr leads sunrise by", (tsr - tfajr) * 24 in hr)
+print("  (about 1-1.5 h is the mid-latitude span for an 18 deg depression)")
+/* ---- expected output ----
+= 21.42
+= 39.83
+= {2026, 6, 21}
+= 18
+= 1
+= 2461212.89042
+= 23.437923859
+= prayer times 2026-06-21 at Mecca, lat 21.42 lon 39.83 (times UT)
+=   convention: Fajr/Isha at 18 deg depression (MWL)
+=   Maghrib at sunset; Asr at shadow factor 1 (Hanafi schools use 2)
+= Fajr: 2026-06-21T01:13:41
+= Sunrise: 2026-06-21T02:39:04
+= Dhuhr (solar transit): 2026-06-21T09:22:12
+= Asr: 2026-06-21T12:42:02 (Sun at 44.0081941458 deg)
+= Maghrib: 2026-06-21T16:05:20
+= Isha: 2026-06-21T17:30:44
+=   local time is UT + 3 h at Mecca; angles are knobs above, and
+=   conventions (17-19.5 deg, Hanafi factor 2) shift the times
+= 423328569/172
+= 1058321397/430
+= plausibility: Fajr leads sunrise by 1.42323792726 hr
+=   (about 1-1.5 h is the mid-latitude span for an 18 deg depression)
+*/

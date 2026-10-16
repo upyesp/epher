@@ -1,0 +1,21 @@
+# The train's version lock (ADR-0073): the release-time guard that
+# burned v0.5.73 through v0.5.75 (the jetbrains fallback carried 0.5.72
+# through three trains) moved left, to the pull request. A mismatch here
+# fails the PR instead of the tag.
+name: version-lock
+
+on:
+  pull_request:
+    branches: [staging, main]
+
+permissions:
+  contents: read
+
+jobs:
+  lock:
+    name: version lock
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/check-version-lock

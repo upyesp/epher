@@ -1,0 +1,38 @@
+/* ============================================================================
+lemniscate-area.epher -- the figure-eight r^2 = cos(2*theta)
+
+Jakob Bernoulli's lemniscate (1694) is the locus where the product of
+distances to the two foci (+-1/sqrt(2), 0) stays at 1/2: a stretched
+figure eight. In polar form r^2 = a^2*cos(2*theta), each loop spans
+45 deg on either side of the x-axis, and the area of ONE loop is
+1/2 * integral of r^2 = 1/2 for a = 1 - so the whole curve encloses
+exactly 1 (Stewart, "Calculus", ch. 10.4, example; MathWorld,
+"Lemniscate"). The script graphs the eight and checks the total area.
+
+Run it from a terminal:
+  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/polar/lemniscate-area.epher
+  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\polar\lemniscate-area.epher"
+  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/polar/lemniscate-area.epher
+In the REPL:             load one of the paths above
+Web/desktop:             paste the whole file into the entry, press Enter
+The graph lines open the plot pane in the desktop, web and TUI apps;
+the CLI transcript records them as "graph:" lines.
+============================================================================ */
+
+// ---- the curve -----------------------------------------------------------------
+def r(t) = sqrt(cos(2 * t))
+
+// ---- results -------------------------------------------------------------------
+print("r on the axis, theta = 0:", r(0))
+print("the loop pinches where cos(2*theta) = 0, at pi/4:", abs(cos(pi / 2)) < 1e-15)
+print("both loops area, exact 1:", integral(cos(2 * x) / 2, -pi / 4, pi / 4) * 2)
+
+// ---- the picture ---------------------------------------------------------------
+graph polar sqrt(cos(2 * theta))
+
+/* ---- expected output ----
+= r on the axis, theta = 0: 1
+= the loop pinches where cos(2*theta) = 0, at pi/4: true
+= both loops area, exact 1: 1
+graph: polar sqrt(cos(2 * theta))
+*/
