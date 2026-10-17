@@ -21,10 +21,6 @@ Accuracy: each value below is exact at the displayed precision; the
 endpoints are the standard Stewart, "Calculus", 8th ed., ch. 5
 examples.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/definite-integral-demo.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\definite-integral-demo.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/definite-integral-demo.epher
 No knobs: the five integrals are the demonstration.
 ============================================================================ */
 

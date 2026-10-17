@@ -12,12 +12,6 @@ check. The lunar day is about 24 h 50 min, so transit comes about
 declination). Near new moon the Moon transits with the Sun around
 noon; near full moon, around midnight. Hours are UT.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-transit-time.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-transit-time.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-transit-time.epher
-In the REPL:             load one of the paths above
-
 Knobs: year, month, latitude and longitude (Greenwich below).
 ============================================================================ */
 

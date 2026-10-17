@@ -15,12 +15,6 @@ September 23 and December 21 in 2026, and the year's four seasons
 are not equal in length: the Sun runs fastest near perihelion in
 early January, so northern winter is the shortest season.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/season-boundaries.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\season-boundaries.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/season-boundaries.epher
-In the REPL:             load one of the paths above
-
 Knob: the year.
 ============================================================================ */
 

@@ -13,12 +13,6 @@ spread is the point: Greenwich's sunrise swings from 3.71 hr UT on
 the June solstice to 8.05 hr on the December solstice, more than
 four hours.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/sunrise-sunset.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\sunrise-sunset.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/sunrise-sunset.epher
-In the REPL:             load one of the paths above
-
 Knobs: latitude and longitude (Greenwich below); the three dates below.
 ============================================================================ */
 

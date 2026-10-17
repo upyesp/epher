@@ -15,12 +15,6 @@ offset.
 Accuracy: exact arithmetic; the zone offsets below are the standard
 legal ones (no daylight saving - state that when quoting).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/local-mean-time.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\local-mean-time.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/local-mean-time.epher
-In the REPL:             load one of the paths above
-
 Knobs: the longitude and zone below (default: Greenwich).
 ============================================================================ */
 

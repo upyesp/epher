@@ -22,12 +22,6 @@ motion Jupiter perturbs), which is stated where it matters; the
 elongation printed in each row comes straight from the engine and
 is ephemeris-grade.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/synodic-table.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\synodic-table.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/synodic-table.epher
-In the REPL:             load one of the paths above
-
 Knob: the instant `t0` below (jd of 2026-09-10 12:00 UT). The
 engine accessors cost about half a second each, so the script makes
 about twenty calls and runs in some ten seconds.

@@ -20,12 +20,6 @@ minimum is good to a few minutes of time and a few arcseconds of
 separation. The default month holds a fine pass: the Moon slides 0.85
 degrees south of Jupiter on 2026-11-01.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/conjunction-planet-moon.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\conjunction-planet-moon.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/conjunction-planet-moon.epher
-In the REPL:             load one of the paths above
-
 Knobs: the planet (body number), the year and the month to search.
 ============================================================================ */
 

@@ -29,12 +29,6 @@ Accuracy: the geometry is exact for an ideal wall and a point gnomon;
 real dials add gnomon thickness, wall tilt and refraction at the
 1-2 arcmin level and above, which are not modeled.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sun/sundial-lines.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sun\sundial-lines.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sun/sundial-lines.epher
-In the REPL:             load one of the paths above
-
 Knobs: the latitude and the wall's declination (orientation).
 ============================================================================ */
 

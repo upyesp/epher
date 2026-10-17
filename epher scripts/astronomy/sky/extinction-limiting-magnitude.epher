@@ -20,12 +20,6 @@ the limit drops by the extinction k * airmass(h). Honest grade: about
 0.5 magnitude either way - the law ignores seeing, optics quality,
 magnification and sky brightness, and extinction varies with the night.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/extinction-limiting-magnitude.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\extinction-limiting-magnitude.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/extinction-limiting-magnitude.epher
-In the REPL:             load one of the paths above
-
 Knobs: the extinction k per airmass, the aperture D (mm), the naked-eye
 limit NELM at the zenith and the eye-pupil diameter d_eye (mm).
 ============================================================================ */

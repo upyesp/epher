@@ -15,10 +15,6 @@ x = (1/2) sinh(u), is [ x sqrt(1 + 4x^2)/2 + asinh(2x)/4 ] from 0 to
 Accuracy: the builtin value and the closed form agree to about
 5e-12; both are checked at 1e-9.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/arc-length-of-parabola.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\arc-length-of-parabola.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/arc-length-of-parabola.epher
 No knobs: the arc from x = 0 to x = 1 is the demonstration.
 ============================================================================ */
 

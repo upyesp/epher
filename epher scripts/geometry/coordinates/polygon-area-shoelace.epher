@@ -10,11 +10,6 @@ sums the terms around the polygon. The pentagon example has area 9
 and the rectangle cross-check, 12, matches width times height; the
 signed sum before halving is also exact.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/coordinates/polygon-area-shoelace.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\coordinates\polygon-area-shoelace.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/coordinates/polygon-area-shoelace.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
 The vertices to try are in the results section below; edit them

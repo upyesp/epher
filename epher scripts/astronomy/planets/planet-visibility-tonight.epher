@@ -22,12 +22,6 @@ Accuracy: event times and altitudes follow the engine's conventions
 to about a minute; twilight uses the mean geometric -18 degree Sun
 altitude, the standard astronomical definition.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-visibility-tonight.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-visibility-tonight.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-visibility-tonight.epher
-In the REPL:             load one of the paths above
-
 Knobs: the night (the date `day` starts the local evening), the
 observer's `lat` and `lon` (east positive). Times print in UT.
 ============================================================================ */

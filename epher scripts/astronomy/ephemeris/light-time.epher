@@ -20,12 +20,6 @@ the engine to microns of an AU here), so the light time is honest to
 well under a second. Pluto rides approximate elements, so its
 minutes are good to a few seconds only.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/light-time.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\light-time.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/light-time.epher
-In the REPL:             load one of the paths above
-
 Knobs: the instant `tm` below (jd of 2026-06-01 12:00 UT).
 ============================================================================ */
 

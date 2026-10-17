@@ -30,12 +30,6 @@ heliacal risings and settings, computes it per star) - a flat
 -6 degrees is the classical average, and brighter stars appear a few
 nights earlier than fainter ones.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/heliacal-rising.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\heliacal-rising.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/heliacal-rising.epher
-In the REPL:             load one of the paths above
-
 Knobs: the place, the year, the star, and the Sun's depression
 below. (The scan needs the Sun to reach `dep` degrees - latitude
 roughly 60 and below, and not the midnight-sun season.)

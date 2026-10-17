@@ -13,12 +13,6 @@ shows the wane from 0.9993 in January to the 0.0372 sliver on
 October 15 - days before the inferior conjunction of late October -
 and the start of the waxing half in November.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/venus-illumination-cycle.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\venus-illumination-cycle.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/venus-illumination-cycle.epher
-In the REPL:             load one of the paths above
-
 Knob: the year.
 ============================================================================ */
 

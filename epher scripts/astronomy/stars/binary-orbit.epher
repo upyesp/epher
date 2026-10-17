@@ -24,12 +24,6 @@ exceed a(1 - e) - equality only if periastron lies in the sky plane -
 and the pair must be widest near apastron around 2019-2020, as
 observed (~11 arcsec).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/binary-orbit.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\binary-orbit.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/binary-orbit.epher
-In the REPL:             load one of the paths above
-
 Knobs: the orbital elements and the four epochs below.
 ============================================================================ */
 

@@ -21,12 +21,6 @@ Accuracy: the linear elements reproduce the true positions to
 about an arcminute over the table's validity range; the table is
 quoted as printed.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/orbital-elements.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\orbital-elements.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/orbital-elements.epher
-In the REPL:             load one of the paths above
-
 Knob: the date tm below (as a JD from jd(...)).
 ============================================================================ */
 

@@ -24,12 +24,6 @@ to be of the order of an arcminute or two - the point of the exercise is
 exactly to show how far a pencil-and-ephemeris calculation gets against
 an arcsecond ephemeris.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-by-hand.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-by-hand.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-by-hand.epher
-In the REPL:             load one of the paths above
-
 Knobs: the instant `tm`. This file carries Jupiter's element row; swap in
 another row from planet-elements-table.epher to change planet.
 ============================================================================ */

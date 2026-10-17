@@ -22,12 +22,6 @@ ephemeris models).
 Accuracy: a few hundredths of a degree (ephemeris-grade positions,
 formula exact).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/separation.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\separation.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/separation.epher
-In the REPL:             load one of the paths above
-
 Knobs: the instant `tm` and the body pair below (Moon 11 and Venus 2).
 ============================================================================ */
 

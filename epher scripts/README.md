@@ -34,33 +34,16 @@ Its expected-output block shows the output of a run, and that block is checked m
 ## Running a script
 
 From a terminal (the CLI runs every statement in order and prints each
-statement's value). Every installer ships this whole folder, so on an
-installed epher the path is the installed one - per operating system:
-
-```sh
-# Debian, Ubuntu, Fedora (deb, rpm)
-epher /usr/lib/epher/scripts/astronomy/moon/full-moons.epher
-
-# Windows (PowerShell)
-epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\full-moons.epher"
-
-# macOS
-epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/full-moons.epher
-```
-
-From a source checkout (contributors running from the repository root
--- an installed epher has no `epher scripts` folder), the path carries
-the folder name:
+statement's value). Copy a script from the website's Scripts page and
+paste it into the terminal, or run it from a file. From a source
+checkout (contributors running from the repository root - an installed
+epher has no `epher scripts` folder), the path carries the folder name:
 
 ```sh
 epher "epher scripts/astronomy/moon/full-moons.epher"
 ```
 
-In the REPL, `load` takes a file path or a script saved with `save script`:
-
-```text
-epher> load /usr/lib/epher/scripts/astronomy/moon/full-moons.epher
-```
+In the REPL, `load` takes a file path or a script saved with `save script`.
 
 In the web, desktop ot TUI app, paste the whole file into the entry and press
 Enter (Shift+Enter for new lines). Everything also works line by line in
@@ -81,7 +64,7 @@ The reference example turns those facts into a house style:
 1. **Header comment first.** A `/* === ... === */` banner block, then
    `name.epher -- one line saying what it does`, the algorithm and its
    published source, an honest accuracy statement, how to run the
-   script (the three installed commands, one per operating system),
+   script (paste it into the web or desktop entry, or name a file),
    and what the file demonstrates. Comment text starts at the left
    margin: the lines inside a block comment are not indented under the
    `/*`, so a copied script reads and edits like any other text

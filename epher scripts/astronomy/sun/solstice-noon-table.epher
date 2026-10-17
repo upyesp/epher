@@ -25,12 +25,6 @@ event's meridian can differ from the table by up to about 0.2 deg on
 equinox days; near the solstices the declination is stationary and
 the table is good to 0.01 deg.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sun/solstice-noon-table.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sun\solstice-noon-table.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sun/solstice-noon-table.epher
-In the REPL:             load one of the paths above
-
 Knobs: the year and the ladder of latitudes.
 ============================================================================ */
 

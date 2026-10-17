@@ -9,11 +9,6 @@ arctan(4/3) = 0.927295218002 radians = 53.1301023542 degrees. Rebuilding
 the rectangle from r and t reproduces zc, checked to 1e-9; the trig values
 are floats accurate to about 12 digits.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-polar-form.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-polar-form.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-polar-form.epher
-
 The knob to edit is zc below.
 ============================================================================ */
 

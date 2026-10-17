@@ -12,12 +12,6 @@ Accuracy: the engine's own - about an arcsecond of position and 1e-5 AU
 of distance; magnitudes are the standard model magnitudes, good to a
 few hundredths.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/weekly-track.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\weekly-track.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/weekly-track.epher
-In the REPL:             load one of the paths above
-
 Knobs: the body (guide 1.29 numbering), the starting instant t0 and
 the week step below.
 ============================================================================ */

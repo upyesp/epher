@@ -21,12 +21,6 @@ The script assumes the Sun rises and sets daily at the place: within
 the polar circles the machinery would find no H, and midnight-sun.epher
 is the right tool there.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/day-length-year.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\day-length-year.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/day-length-year.epher
-In the REPL:             load one of the paths above
-
 Knobs: the year and the latitude and longitude (Greenwich below).
 ============================================================================ */
 

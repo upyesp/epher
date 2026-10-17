@@ -20,12 +20,6 @@ within about a minute of the canon, gamma within about 0.002. The
 2026 eclipses below sit within 20 seconds of NASA's Five Millennium
 Canon times (17:47:06 TD on Aug 12) and 0.0012 in gamma.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/eclipses/next-solar-eclipse.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\eclipses\next-solar-eclipse.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/eclipses/next-solar-eclipse.epher
-In the REPL:             load one of the paths above
-
 Knobs: the start date (the search begins at the new moon before or
 on it) and how many lunations to allow.
 ============================================================================ */

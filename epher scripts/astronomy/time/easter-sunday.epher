@@ -11,12 +11,6 @@ between March 22 and April 25; 2038 (April 25) is the latest it can
 be. The dates were checked against python's datetime (each one is a
 Sunday), and the expected output records them.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/easter-sunday.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\easter-sunday.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/easter-sunday.epher
-In the REPL:             load one of the paths above
-
 Knob: the list of years below.
 ============================================================================ */
 

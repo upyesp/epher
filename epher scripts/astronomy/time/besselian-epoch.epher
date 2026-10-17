@@ -16,12 +16,6 @@ year, 0.001278 years (about 11 hours) shorter than the Julian year
 the modern epochs count - mix the two epoch types up and old and
 new catalogues disagree by the precession of that span.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/besselian-epoch.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\besselian-epoch.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/besselian-epoch.epher
-In the REPL:             load one of the paths above
-
 Knobs: the date below.
 ============================================================================ */
 

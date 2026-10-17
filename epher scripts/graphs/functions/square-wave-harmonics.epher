@@ -9,11 +9,6 @@ percent of the jump no matter how many terms are taken (Wilbraham
 1848, Gibbs 1899). The script graphs the five-term sum against its
 envelope and prints the sum at the flat top and mid-jump.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/functions/square-wave-harmonics.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\functions\square-wave-harmonics.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/functions/square-wave-harmonics.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 The graph lines open the plot pane in the desktop, web and TUI apps;
 the CLI transcript records them as "graph:" lines.

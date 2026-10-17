@@ -27,12 +27,6 @@ instant.
 Accuracy: about ten seconds on every instant printed, and the window
 length inherits that.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-free-tonight.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-free-tonight.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-free-tonight.epher
-In the REPL:             load one of the paths above
-
 Knobs: the place and the date whose night is planned (below: Greenwich,
 the night of 2026-02-05 - a waning gibbous Moon rises at 21:40 UT,
 2h50m after full darkness falls). The consts A, B, R, S below echo the

@@ -30,12 +30,6 @@ southern extremes) the finer one wins the reported value. There is
 no independent builtin to cross-check against: the engine is its
 own source here.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-max-declination.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-max-declination.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-max-declination.epher
-In the REPL:             load one of the paths above
-
 Knobs: `year` and `month` (below: June 2026, whose Moon reaches
 +27.99 deg on the 15th and -27.99 deg on the 1st - the month carries
 a second southern extreme, -27.99 deg again near the 29th, and the

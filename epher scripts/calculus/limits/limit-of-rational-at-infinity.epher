@@ -14,10 +14,6 @@ epher shows the repeating decimals as fractions: 319/105 and 1313/435
 Accuracy: exact rational values at small n; values at large n round
 at about the 12th digit (2e-9 from the limit at n = 1e9).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/limits/limit-of-rational-at-infinity.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\limits\limit-of-rational-at-infinity.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/limits/limit-of-rational-at-infinity.epher
 The knobs to edit are `ns` and `big` below.
 ============================================================================ */
 

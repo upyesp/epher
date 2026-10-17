@@ -19,12 +19,6 @@ the weakly determined quantity: against the canon the parabolic
 instant is good to about half an hour at the perihelion and a few
 hours at the aphelion, while the DISTANCE is good to 1e-7 AU.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/earth-perihelion.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\earth-perihelion.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/earth-perihelion.epher
-In the REPL:             load one of the paths above
-
 Knob: the year below.
 ============================================================================ */
 

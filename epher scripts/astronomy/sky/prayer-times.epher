@@ -20,12 +20,6 @@ minute. The conventions vary by region and school (Fajr/Isha angles of
 this script states its convention rather than claiming a religious
 authority.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/prayer-times.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\prayer-times.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/prayer-times.epher
-In the REPL:             load one of the paths above
-
 Knobs: the place (Mecca below), the date, the Fajr/Isha depression
 angle and the Asr shadow factor.
 ============================================================================ */

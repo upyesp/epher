@@ -7,11 +7,6 @@ and the quadratic formula (-b +/- sqrt(b^2 - 4ac)) / (2a) works unchanged
 roots are conjugate pairs; evaluating the polynomial at each root gives an
 exact zero. The built-in solve agrees (its answer is a display string).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/quadratic-complex-roots.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\quadratic-complex-roots.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/quadratic-complex-roots.epher
-
 The knobs to edit are a, b and c below.
 ============================================================================ */
 

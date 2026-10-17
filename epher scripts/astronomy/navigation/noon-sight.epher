@@ -24,12 +24,6 @@ kilometre (0.3 arcminutes) with a steady hand and a clear horizon;
 the worked sight below was taken from a boat at 40.000 N and the
 script recovers it.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/navigation/noon-sight.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\navigation\noon-sight.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/navigation/noon-sight.epher
-In the REPL:             load one of the paths above
-
 Knobs: the date, the dead-reckoning position, the sextant altitude
 Hs (degrees, Sun's lower limb), the index correction ic (arcminutes,
 on-the-arc negative) and the eye height eye (metres).

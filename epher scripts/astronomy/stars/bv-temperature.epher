@@ -20,12 +20,6 @@ stars (the Sun lands at 5778 K against the accepted 5772 K). It runs
 hot for cool M dwarfs and it is a colour-mean: variable and dust-
 reddened stars like Betelgeuse scatter about the fit.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/bv-temperature.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\bv-temperature.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/bv-temperature.epher
-In the REPL:             load one of the paths above
-
 Knobs: the B-V values below (SIMBAD, mostly Johnson et al. photometry).
 ============================================================================ */
 

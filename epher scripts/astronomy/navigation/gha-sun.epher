@@ -13,12 +13,6 @@ prints in the almanac's degrees-and-minutes form (the engine gives
 positions about an arcsecond from JPL Horizons; the GHA is good to
 a fraction of an arcminute of the almanac pages).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/navigation/gha-sun.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\navigation\gha-sun.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/navigation/gha-sun.epher
-In the REPL:             load one of the paths above
-
 Knob: the instant below.
 ============================================================================ */
 

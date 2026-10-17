@@ -13,11 +13,6 @@ Sign convention: deposit negative, goal positive.
 Accuracy: 12 displayed digits. The answer is fractional (359.25 months);
 in practice the last month's deposit is smaller.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/savings/retirement-goal.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\savings\retirement-goal.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/savings/retirement-goal.epher
-
 The knobs to edit are in the knob section; everything after it is
 machinery you can leave alone.
 ============================================================================ */

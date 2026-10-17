@@ -10,11 +10,6 @@ corner at t = 1 (Lockwood, "A Book of Curves", ch. 8). The script
 graphs the loop and the wings separately - t = -1 is a pole - and
 prints the landmarks.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/parametric/folium-of-descartes.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\parametric\folium-of-descartes.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/parametric/folium-of-descartes.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 The graph lines open the plot pane in the desktop, web and TUI apps;
 the CLI transcript records them as "graph:" lines.

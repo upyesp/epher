@@ -9,11 +9,6 @@ are TI-style, the median of each half (quartile(d, k), e.g. Moore
 and McCabe, "Introduction to the Practice of Statistics", ch. 1).
 The script graphs one boxplot and prints both classes' five numbers.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/data/boxplot-two-classes.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\data\boxplot-two-classes.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/data/boxplot-two-classes.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 The graph lines open the plot pane in the desktop, web and TUI apps;
 the CLI transcript records them as "graph:" lines.

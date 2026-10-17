@@ -16,12 +16,6 @@ Modeled on the community pair: "Predicting Phases of the Moon"
 same job on a TI-84. A month can hold five phases; when it does, the
 fifth one sits at the edge and this panel shows it.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/phases-of-the-month.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\phases-of-the-month.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/phases-of-the-month.epher
-In the REPL:             load one of the paths above
-
 Knobs: `year` and `month` below.
 ============================================================================ */
 

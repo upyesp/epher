@@ -15,12 +15,6 @@ Accuracy: the engine's own (Espenak-Meeus; a few seconds in the
 modern era, growing for the extrapolated 2200/2500 rows, stated in
 the polynomial notes).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/delta-t-history.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\delta-t-history.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/delta-t-history.epher
-In the REPL:             load one of the paths above
-
 Knob: none - the table is fixed.
 ============================================================================ */
 

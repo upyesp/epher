@@ -19,11 +19,6 @@ one another nearly every night. Distances are good to a few arcseconds
 against JPL Horizons; treat event times from the scan below as good to
 about ten minutes.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/galilean-moons.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\galilean-moons.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/galilean-moons.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
 The one knob to edit is `when` below: the instant you want the table

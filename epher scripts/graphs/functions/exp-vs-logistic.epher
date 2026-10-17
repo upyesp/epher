@@ -9,11 +9,6 @@ rate k (the standard model of population growth with a cap, e.g.
 Murray, "Mathematical Biology", ch. 1). The script graphs the curve
 with its slope, and prints the landmark values.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/functions/exp-vs-logistic.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\functions\exp-vs-logistic.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/functions/exp-vs-logistic.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 The graph lines open the plot pane in the desktop, web and TUI apps;
 the CLI transcript records them as "graph:" lines.

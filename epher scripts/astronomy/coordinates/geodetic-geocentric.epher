@@ -17,12 +17,6 @@ The geocentric latitude falls short of the geodetic by up to
 0.1924 degrees at 45 degrees latitude - the difference matters at
 the arcminute level of the Moon scripts.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/geodetic-geocentric.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\geodetic-geocentric.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/geodetic-geocentric.epher
-In the REPL:             load one of the paths above
-
 Knobs: the geodetic latitude, longitude and height below.
 ============================================================================ */
 

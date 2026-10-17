@@ -13,10 +13,6 @@ as a cross-check.
 Accuracy: samples print at about the 12th digit; the deficit at
 xv = 1e-8 is an artifact of rounding 1 + xv, not of the limit.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/limits/limit-of-ln1plusx-over-xv.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\limits\limit-of-ln1plusx-over-xv.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/limits/limit-of-ln1plusx-over-xv.epher
 The knob to edit is `xv` below.
 ============================================================================ */
 

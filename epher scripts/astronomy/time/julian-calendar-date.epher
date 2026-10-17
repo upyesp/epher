@@ -14,12 +14,6 @@ are consecutive days.
 Accuracy: exact for all dates. The two calendars differ by 10 days
 at the reform and gain 3 more days per 400 years (13 today).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/julian-calendar-date.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\julian-calendar-date.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/julian-calendar-date.epher
-In the REPL:             load one of the paths above
-
 Knobs: the date below (default: a modern date).
 ============================================================================ */
 

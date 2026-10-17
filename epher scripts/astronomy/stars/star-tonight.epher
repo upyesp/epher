@@ -18,12 +18,6 @@ pointing a telescope by hand. Polaris doubles as the sanity anchor:
 its altitude at any instant must sit within a degree of the
 observer's latitude.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/star-tonight.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\star-tonight.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/star-tonight.epher
-In the REPL:             load one of the paths above
-
 Knobs: the place, the instant, and the star list below.
 ============================================================================ */
 

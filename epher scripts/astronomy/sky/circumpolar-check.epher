@@ -21,12 +21,6 @@ At Greenwich (51.48 N) that is about 10.9 percent of the sky that
 never sets - Capella, declination +46, is inside it - and the equal
 cap opposite that never rises.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/circumpolar-check.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\circumpolar-check.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/circumpolar-check.epher
-In the REPL:             load one of the paths above
-
 Knobs: the latitude (Greenwich below) and the high-latitude place used
 for the engine validation of the same geometry.
 ============================================================================ */

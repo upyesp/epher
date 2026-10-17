@@ -14,12 +14,6 @@ Telescopic component magnitudes carry visual-estimate scatter of a
 few tenths, which is why the eps Lyrae values below are labelled
 approximate.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/combined-magnitude.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\combined-magnitude.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/combined-magnitude.epher
-In the REPL:             load one of the paths above
-
 Knobs: the pair magnitudes below (Mizar and Alcor, then the four
 components of the Double-Double, eps Lyrae, approximate).
 ============================================================================ */

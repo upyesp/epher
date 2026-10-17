@@ -15,12 +15,6 @@ stars), so treat the peaks as model peaks: honest to a few per cent
 for the Sun, rougher for the M dwarf, whose "peak" sits in the TiO
 band forest.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/wien-peak.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\wien-peak.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/wien-peak.epher
-In the REPL:             load one of the paths above
-
 Knobs: the temperature `temp` below, in kelvin; edit it for your own
 radiator. The named stars keep their accepted temperatures.
 ============================================================================ */

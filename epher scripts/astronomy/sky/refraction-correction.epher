@@ -23,12 +23,6 @@ for a round-trip check. See Duffett-Smith, "Practical Astronomy",
 chapter on refraction, for the same pair. No engine calls: the
 formulas are the point.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/refraction-correction.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\refraction-correction.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/refraction-correction.epher
-In the REPL:             load one of the paths above
-
 Knob: the altitude at which the single correction below is printed.
 ============================================================================ */
 

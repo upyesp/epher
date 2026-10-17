@@ -11,11 +11,6 @@ Accuracy: t is irrational and prints to 12 digits; the compounding check
 lands on 2 to floating-point precision (the printed 2 is exact to all
 twelve displayed digits).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/doubling-time.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\doubling-time.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/doubling-time.epher
-
 There are no knobs: the three rates below are the demonstration.
 ============================================================================ */
 

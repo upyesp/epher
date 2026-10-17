@@ -22,12 +22,6 @@ solareqns.PDF): 2026-02-12 -14.25 vs -14.2 here, 2026-11-03 +16.34
 vs +16.4 - agreement to a few tenths of a minute, which is what the
 Fourier series itself guarantees.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/equation-of-time.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\equation-of-time.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/equation-of-time.epher
-In the REPL:             load one of the paths above
-
 Knobs: the four dates below (any 2026 date can be swapped in).
 ============================================================================ */
 

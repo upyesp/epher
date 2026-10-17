@@ -17,12 +17,6 @@ Accuracy: the spherical rotation is exact; only the obliquity's
 year matters (a 0.01 deg change of eps moves a position by up to
 0.01 deg - quoted frame limitations).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/equ-ecl.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\equ-ecl.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/equ-ecl.epher
-In the REPL:             load one of the paths above
-
 Knobs: the catalog position (Vega J2000 below) and the year whose
 mean obliquity is used.
 ============================================================================ */

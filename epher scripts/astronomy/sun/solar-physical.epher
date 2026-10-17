@@ -31,12 +31,6 @@ differences - a few hundredths of a degree, dominated by nutation
 handling at the 0.005 deg level. Almanac tables agree within their
 0.01-deg rounding.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sun/solar-physical.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sun\solar-physical.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sun/solar-physical.epher
-In the REPL:             load one of the paths above
-
 Knob: the sample date (the instant is 0h UT of that date).
 ============================================================================ */
 

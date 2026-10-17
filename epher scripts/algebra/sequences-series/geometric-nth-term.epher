@@ -7,11 +7,6 @@ Redlin and Watson, "College Algebra", 7th ed., sec. 9.2). With a = 3,
 r = 2 the sequence is 3, 6, 12, 24, ... and t_10 = 1536. All values are
 exact.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/geometric-nth-term.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\geometric-nth-term.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/geometric-nth-term.epher
-
 The knobs to edit are a, r and num below.
 ============================================================================ */
 

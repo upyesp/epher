@@ -25,12 +25,6 @@ This is the mean-element approximation the mission statement asks
 for; moon-max-declination.epher shows the engine's exact monthly
 values instead.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/lunar-standstill-season.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\lunar-standstill-season.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/lunar-standstill-season.epher
-In the REPL:             load one of the paths above
-
 Knobs: `after` (list the seasons that follow this year) and the
 latitude of the place; the list covers four seasons (two major, two
 minor) plus the next major standstill's amplitude and the engine

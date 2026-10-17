@@ -25,12 +25,6 @@ The vintage of each value, stated honestly:
                              to 6.5 mas, so the distance here is
                              uncertain by roughly half its value.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/parallax-distance.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\parallax-distance.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/parallax-distance.epher
-In the REPL:             load one of the paths above
-
 Knobs: the three parallaxes below, in arcseconds.
 ============================================================================ */
 

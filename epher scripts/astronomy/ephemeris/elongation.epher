@@ -24,12 +24,6 @@ Accuracy: ephemeris-grade - JPL Horizons matches the engine's
 positions to about an arcsecond here, so the elongations are honest
 to a few hundredths of a degree.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/elongation.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\elongation.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/elongation.epher
-In the REPL:             load one of the paths above
-
 Knobs: the instant `tm` below (jd of 2026-06-01 12:00 UT).
 ============================================================================ */
 

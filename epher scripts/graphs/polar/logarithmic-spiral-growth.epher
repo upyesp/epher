@@ -10,11 +10,6 @@ it engraved on his tomb; Cooke, "The History of the Spiral"). With
 a = 0.2 the per-turn growth is e^(0.4*pi), about 3.5. The script
 graphs three turns and checks the growth ratio.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/polar/logarithmic-spiral-growth.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\polar\logarithmic-spiral-growth.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/polar/logarithmic-spiral-growth.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 The graph lines open the plot pane in the desktop, web and TUI apps;
 the CLI transcript records them as "graph:" lines.

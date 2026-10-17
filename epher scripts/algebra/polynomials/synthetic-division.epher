@@ -9,11 +9,6 @@ remaining quotient coefficients (-1 and 6, so q(x) = x^2 - x + 6) and the
 last is the remainder 24. The remainder theorem says 24 = p(5), checked
 at the end along with the identity p = (x - 5) q + 24. All exact.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/polynomials/synthetic-division.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\polynomials\synthetic-division.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/polynomials/synthetic-division.epher
-
 The knobs to edit are cs and r below.
 ============================================================================ */
 

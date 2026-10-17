@@ -25,12 +25,6 @@ formula's own precision); transit times printed here are good to a few
 minutes for a current spot longitude and degrade as the spot drifts
 (roughly a degree a month at its present rate).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/jupiter-grs.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\jupiter-grs.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/jupiter-grs.epher
-In the REPL:             load one of the paths above
-
 Knobs: the instant `tm` (UT) and the spot's System II longitude `grs`.
 ============================================================================ */
 

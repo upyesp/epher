@@ -1181,39 +1181,6 @@ a:hover {
   margin: 0;
 }
 
-.script-run {
-  margin: 1.25rem 0 0.75rem;
-  display: grid;
-  gap: 0.4rem;
-}
-
-.run-line {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.run-os {
-  flex: 0 0 auto;
-  min-width: 8.75rem;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
-.script-run code {
-  flex: 0 1 auto;
-  width: fit-content;
-  padding: 0.35rem 0.6rem;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-family: var(--mono, ui-monospace, monospace);
-  font-size: 0.88rem;
-  overflow-x: auto;
-  max-width: 100%;
-}
-
 .script-text {
   max-height: 70vh;
   overflow: auto;

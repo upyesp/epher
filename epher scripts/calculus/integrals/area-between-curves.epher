@@ -15,10 +15,6 @@ integral(x, 0, 1) - integral(x^2, 0, 1).
 
 Accuracy: exact at the displayed precision.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/area-between-curves.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\area-between-curves.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/area-between-curves.epher
 No knobs: the interval [0, 1] is the demonstration.
 ============================================================================ */
 

@@ -9,12 +9,6 @@ Earth-Sun distance, 149597870.7 km. Two distances are also converted
 to kilometres with the (1 AU) quantity; light itself takes 8.3 min to
 cross 1 AU and about 4.2 h to reach Neptune, which is 30 AU away.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-distances.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-distances.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-distances.epher
-In the REPL:             load one of the paths above
-
 Knob: the date tm.
 ============================================================================ */
 

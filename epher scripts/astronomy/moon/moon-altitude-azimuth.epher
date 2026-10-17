@@ -12,12 +12,6 @@ is descending in the south, so the altitude falls while the azimuth
 swings from south toward southwest; it sets at 23:57 UT
 (moonrise-moonset.epher).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-altitude-azimuth.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-altitude-azimuth.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-altitude-azimuth.epher
-In the REPL:             load one of the paths above
-
 Knobs: date, the three clock hours (UT), latitude and longitude.
 ============================================================================ */
 

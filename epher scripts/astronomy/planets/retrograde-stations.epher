@@ -23,12 +23,6 @@ opposition by construction. The default run finds Jupiter's stations of
 the 2026-27 apparition (retrograde December 2026 - April 2027, the
 opposition falling mid-February 2027).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/retrograde-stations.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\retrograde-stations.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/retrograde-stations.epher
-In the REPL:             load one of the paths above
-
 Knobs: the planet (4 Mars .. 9 Neptune), the start date `day` (choose
 one a few months before the apparition's retrograde arc), and the number
 of days to scan ahead.

@@ -19,12 +19,6 @@ Accuracy: engine positions are arcsecond-grade; using the MEAN
 obliquity (nutation omitted) costs up to about 9 arcsec of
 longitude. Latitude is unaffected at the same grade.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/ecliptic-position.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\ecliptic-position.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/ecliptic-position.epher
-In the REPL:             load one of the paths above
-
 Knobs: the body (guide 1.29 numbering) and the instant tm below.
 ============================================================================ */
 

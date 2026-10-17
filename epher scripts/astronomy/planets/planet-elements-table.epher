@@ -20,12 +20,6 @@ positions to roughly 0.01 deg over 1800-2050 (Jupiter and Saturn need
 the small periodic corrections of the same source for that grade; see
 planet-by-hand.epher, which carries them).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-elements-table.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-elements-table.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-elements-table.epher
-In the REPL:             load one of the paths above
-
 The one knob to edit is `year` below (the table is evaluated at
 January 1.5 of that year, the conventional epoch).
 ============================================================================ */

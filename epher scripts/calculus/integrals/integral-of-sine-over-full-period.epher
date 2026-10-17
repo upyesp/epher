@@ -14,10 +14,6 @@ Accuracy: sin(x) integrates to about 1.7e-17 and sin(x)*cos(x) to
 about 3.2e-16 (both checked at 1e-9); sin(x)^2 prints as pi to the
 displayed digits.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/integrals/integral-of-sine-over-full-period.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\integrals\integral-of-sine-over-full-period.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/integrals/integral-of-sine-over-full-period.epher
 No knobs: one full period is the demonstration.
 ============================================================================ */
 

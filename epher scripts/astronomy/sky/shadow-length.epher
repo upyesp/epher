@@ -23,12 +23,6 @@ engine's arcsecond-class solar position, and no refraction is applied,
 so the printed length fits the geometric Sun. The usual caveat: a real
 shadow's edge is softened by the solar disc (about half a degree).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/shadow-length.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\shadow-length.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/shadow-length.epher
-In the REPL:             load one of the paths above
-
 Knobs: gnomon height (m), the place, the sample date and hour (UT), and
 the night date used to show the Sun-down guard.
 ============================================================================ */

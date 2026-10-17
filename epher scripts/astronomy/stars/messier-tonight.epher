@@ -23,12 +23,6 @@ exact horizon arithmetic, about an arcsecond of omitted aberration;
 twilight instants good to a couple of minutes (refraction
 approximated).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/messier-tonight.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\messier-tonight.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/messier-tonight.epher
-In the REPL:             load one of the paths above
-
 Knobs: the place, the observing night, and the eight objects below.
 ============================================================================ */
 

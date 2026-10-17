@@ -27,12 +27,6 @@ planetographic (geodetic) value on Mars's oblate figure. The position
 angle of the axis follows the same geometry and is good to a few
 hundredths of a degree.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/mars-physical.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\mars-physical.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/mars-physical.epher
-In the REPL:             load one of the paths above
-
 The one knob is the instant `tm` (UT).
 ============================================================================ */
 

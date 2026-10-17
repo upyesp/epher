@@ -203,3 +203,35 @@ each operating system, are unchanged; the new channels wrap or serve
 the same artifacts. ADR-0061 records the repository and store
 decisions. (2026-09-06: the AUR package was removed before its first
 publish, ADR-0061's amendment has the details.)
+
+## Amendment (2026-10-17): the per-script run commands leave the headers, the format standard, and the Scripts page
+
+The three installed-path commands under "Run it from a terminal" that
+every script header carried (Linux, Windows, macOS), the REPL pointer
+line beneath them, the matching per-OS block in the scripts' README,
+and the run box the Scripts page rendered under each script are gone.
+
+The commands were only ever true for one Windows channel. The headers
+named the NSIS install (%LOCALAPPDATA%\epher\scripts), but the
+Microsoft Store and winget installs are the same MSIX package, whose
+payload lives under C:\Program Files\WindowsApps in a folder name that
+embeds the version and changes on every update. No printed path can
+survive that, so the collection cannot have one honest Windows command
+across channels: a copied line that works on one install and fails on
+the others is the exact defect this ADR's first round set out to fix
+(a command whose failure names the reader's situation, not the
+product), now at the channel level instead of the checkout level.
+
+The script text itself is the honest unit of transfer, and it was
+already first-class: the Scripts page keeps its copy-the-whole-file
+button, the web and desktop entries take a pasted program, and the
+guide's CLI chapter still teaches the installed paths for readers who
+want to run a script by file from an install. The scripts' README now
+teaches copy-and-paste and the source-checkout path; the format
+standard's header list drops the three-command block; the installers
+still carry the collection (decision 1 stands), so those guide paths
+stay true. Only the per-script command strings are withdrawn, on every
+surface at once, so no surface names a path another contradicts.
+
+(The collection is 477 scripts at the time of the amendment; the
+count above records the size when the run commands were added.)

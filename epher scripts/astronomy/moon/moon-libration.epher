@@ -43,12 +43,6 @@ the geometry's own bound: the libration in latitude cannot leave the
 tilt), and the sub-solar longitude must read near 0 at the full
 moon chosen.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-libration.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-libration.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-libration.epher
-In the REPL:             load one of the paths above
-
 Knobs: the instant (below: the full moon of 2026-05-31 08:46 UT, from
 full-moons.epher - the sub-solar longitude must then read near 0).
 ============================================================================ */
