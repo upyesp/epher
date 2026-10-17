@@ -44,9 +44,8 @@ degree of the limb could go either way. Note that 2039-07-07 is not
 a transit date: NASA's catalog has none in July; the date sometimes
 quoted is 2039-11-07.
 
-Knobs: the date to search from and the horizon year. The engine
-stage is call-frugal (about a hundred ephemeris calls); allow half
-a minute.
+Knobs: the date to search from and the horizon year. The whole
+script runs in a fraction of a second.
 ============================================================================ */
 
 // ---- the knobs ----------------------------------------------------------------
