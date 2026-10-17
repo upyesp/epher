@@ -11,11 +11,6 @@ Kellison, The Theory of Interest, chapters 1-2.
 Accuracy: the builtin arithmetic on the exact knob values is exact; the
 trajectory rows are exact too (each is P*(1+r)^y for a whole y).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/compound-interest.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\compound-interest.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/compound-interest.epher
-
 The knobs to edit are in the knob section; everything after it is
 machinery you can leave alone.
 ============================================================================ */

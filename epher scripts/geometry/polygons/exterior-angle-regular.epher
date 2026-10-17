@@ -6,11 +6,6 @@ the exterior angles of any convex polygon sum to 360 degrees (standard
 formula; walk once around the polygon and you turn a full circle). The
 last result checks that six hexagon corners indeed sum to 360.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/exterior-angle-regular.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\exterior-angle-regular.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/exterior-angle-regular.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
 The values of n to try are in the results section below; edit them

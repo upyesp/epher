@@ -25,12 +25,6 @@ the ~0.7 degree topocentric correction terms omitted), good to
 about a tenth of the parallax itself - which is the point: the
 printed gap is of order one degree for the Moon.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/parallax-demo.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\parallax-demo.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/parallax-demo.epher
-In the REPL:             load one of the paths above
-
 Knobs: the instant tm and the observer's lat/lon below.
 ============================================================================ */
 

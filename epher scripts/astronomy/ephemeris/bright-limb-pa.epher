@@ -23,12 +23,6 @@ Accuracy: arcsecond-grade positions make the angle good to a few
 thousandths of a degree; the printed illumination is the engine's
 model value.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/bright-limb-pa.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\bright-limb-pa.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/bright-limb-pa.epher
-In the REPL:             load one of the paths above
-
 Knobs: the body (11 = Moon) and the instant tm below.
 ============================================================================ */
 

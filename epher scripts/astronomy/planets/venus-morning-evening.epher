@@ -29,12 +29,6 @@ morning-star half of the cycle and the superior conjunction the
 evening-star half (the greatest elongations sit at 12% and 88% of
 the cycle, the tangent points of Venus' orbit as seen from Earth).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/venus-morning-evening.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\venus-morning-evening.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/venus-morning-evening.epher
-In the REPL:             load one of the paths above
-
 Knob: the instant `t0` below (jd of 2026-09-10 12:00 UT). The engine
 accessors cost about half a second each: the script makes a dozen
 calls and runs in a few seconds.

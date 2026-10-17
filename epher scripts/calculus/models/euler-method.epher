@@ -18,10 +18,6 @@ Accuracy: the h = 0.1 result is exact to the printed digits; its
 error against e is 0.124539368359, about (e/2) h as the theory of
 the method predicts.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/calculus/models/euler-method.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\calculus\models\euler-method.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/calculus/models/euler-method.epher
 The knobs to edit are `h` and `steps` below.
 ============================================================================ */
 

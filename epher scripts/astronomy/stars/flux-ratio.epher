@@ -13,12 +13,6 @@ Accuracy: exact arithmetic. One honesty note: the classroom factor
 the script uses the exact 10^(0.4 m) throughout, so 5 magnitudes give
 a clean factor of 100 (2.512^5 would give 100.0226).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/flux-ratio.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\flux-ratio.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/flux-ratio.epher
-In the REPL:             load one of the paths above
-
 Knobs: the magnitude difference `dm` and the flux ratio `ratio`.
 ============================================================================ */
 

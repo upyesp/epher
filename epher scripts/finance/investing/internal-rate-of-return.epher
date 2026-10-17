@@ -14,11 +14,6 @@ Accuracy: 12 displayed digits. At the printed rate the npv is about
 -2.9e-11 in floating point, i.e. zero to float precision (verified
 against the builtin npv in the sibling scripts).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/investing/internal-rate-of-return.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\investing\internal-rate-of-return.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/investing/internal-rate-of-return.epher
-
 The flows knob below is the only value to edit.
 ============================================================================ */
 

@@ -16,12 +16,6 @@ in position and 1e-5 AU in distance (checked for this very panel);
 rise and set follow the engine's event convention (upper limb on the
 geometric horizon).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/body-almanac.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\body-almanac.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/body-almanac.epher
-In the REPL:             load one of the paths above
-
 Knobs: body (guide 1.29 numbering), instant `tm`, and the observer's
 `lat` and `lon` (degrees, east positive). All four sit below.
 ============================================================================ */

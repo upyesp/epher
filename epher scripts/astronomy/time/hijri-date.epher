@@ -15,12 +15,6 @@ the several Islamic calendars, not an error.
 
 Accuracy: exact arithmetic for the tabular calendar.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/hijri-date.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\hijri-date.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/hijri-date.epher
-In the REPL:             load one of the paths above
-
 Knobs: the date below.
 ============================================================================ */
 

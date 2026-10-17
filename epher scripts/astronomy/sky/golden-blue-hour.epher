@@ -24,12 +24,6 @@ cannot form - the Sun never climbs to +6 deg in a high-latitude winter,
 or never drops below it in summer - the script says so rather than
 printing an event.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/golden-blue-hour.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\golden-blue-hour.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/golden-blue-hour.epher
-In the REPL:             load one of the paths above
-
 Knobs: the place (lat, lon), the polar-test place (latp, lonp) and the
 three dates below.
 ============================================================================ */

@@ -10,11 +10,6 @@ y = 2*cos(t)^2, bell-shaped with peak 2 and the x-axis as asymptote
 The total area under it is 4*pi. The script graphs the bell, prints
 landmarks, and checks the area numerically.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/parametric/witch-of-agnesi.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\parametric\witch-of-agnesi.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/parametric/witch-of-agnesi.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 The graph lines open the plot pane in the desktop, web and TUI apps;
 the CLI transcript records them as "graph:" lines.

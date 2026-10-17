@@ -13,12 +13,6 @@ Accuracy: engine positions agree with JPL Horizons to about an
 arcsecond, so a one-day difference is good to a couple of arcseconds
 of position - far finer than the printed minutes.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/daily-motion.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\daily-motion.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/daily-motion.epher
-In the REPL:             load one of the paths above
-
 Knobs: the instant tm below; the Moon and the Sun are always shown.
 ============================================================================ */
 

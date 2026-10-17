@@ -13,12 +13,6 @@ and sunset are taken at the moment the Sun's upper limb touches the
 horizon and refraction lifts it, so daylight outlasts the geometric
 half-day by some minutes.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/day-length.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\day-length.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/day-length.epher
-In the REPL:             load one of the paths above
-
 Knobs: latitude and longitude (Greenwich below); the three dates below.
 ============================================================================ */
 

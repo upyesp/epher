@@ -18,12 +18,6 @@ Accuracy: the geometry is exact - the residuals are the
 observation's own (refraction and dip corrections assumed
 already applied) plus the rate-model's share, under an arcminute.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/navigation/polaris-sight.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\navigation\polaris-sight.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/navigation/polaris-sight.epher
-In the REPL:             load one of the paths above
-
 Knobs: the observed altitude (Ho, degrees, corrected for
 refraction and dip), the UT instant and the assumed longitude.
 ============================================================================ */

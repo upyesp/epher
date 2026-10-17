@@ -15,12 +15,6 @@ Accuracy: spherical-Earth (R = 6371 km) results are within about
 0.3 percent of the WGS84 geodesic - the classic transatlantic
 example prints near 5570 km against the geodesic 5586.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/navigation/great-circle.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\navigation\great-circle.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/navigation/great-circle.epher
-In the REPL:             load one of the paths above
-
 Knobs: the two places below (default: London to New York).
 ============================================================================ */
 

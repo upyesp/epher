@@ -33,12 +33,6 @@ assigned to the neighbouring rotation by tables that use the
 corrected or observed (sunspot-based) boundaries, and the historical
 rotation count itself carries an uncertainty of the same size.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sun/carrington-number.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sun\carrington-number.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sun/carrington-number.epher
-In the REPL:             load one of the paths above
-
 Knob: the date. No ephemeris accessors are used - pure calendar
 arithmetic (jd and iso), as the mean convention deserves.
 ============================================================================ */

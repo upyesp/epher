@@ -17,12 +17,6 @@ frame to a few arcsec. Self-checks below use two known anchors: the
 north celestial pole itself and the galactic center (l ~ 359.94,
 b ~ -0.05).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/equ-galactic.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\equ-galactic.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/equ-galactic.epher
-In the REPL:             load one of the paths above
-
 Knob: the J2000 position below (default: the galactic center).
 ============================================================================ */
 

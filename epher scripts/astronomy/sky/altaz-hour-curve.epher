@@ -21,12 +21,6 @@ case below (the Sun at Svalbard in December) the script prints a note
 instead of rows - the engine's rise/set calls would have no event to
 return there.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/altaz-hour-curve.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\altaz-hour-curve.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/altaz-hour-curve.epher
-In the REPL:             load one of the paths above
-
 Knobs: the body (guide 1.29 numbering), the night (the date whose dusk
 opens it), the place, and the polar-night case used for the guard.
 ============================================================================ */

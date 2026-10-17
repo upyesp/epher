@@ -16,12 +16,6 @@ Accuracy: the IAU-1976 precession only. Polaris's proper motion
 centuries bridged here it moves the computed positions by a few
 arcminutes at the edge, which is the honest error at 1900 and 2150.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/polaris-drift.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\polaris-drift.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/polaris-drift.epher
-In the REPL:             load one of the paths above
-
 Knobs: the J2000 anchor position below; the era list is in the
 results but the scan range is in the model section.
 ============================================================================ */

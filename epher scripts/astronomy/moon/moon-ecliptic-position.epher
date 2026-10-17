@@ -28,12 +28,6 @@ Accuracy: the conversion itself is exact given eps; the engine's
 positions are arcsecond-class, so the result is honest to a few
 arcseconds plus the ~10 arcsec mean-obliquity slack.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-ecliptic-position.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-ecliptic-position.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-ecliptic-position.epher
-In the REPL:             load one of the paths above
-
 Knobs: the instant (below: 2026-03-25 19:18 UT, that month's first
 quarter - the Sun-Moon longitude gap then reads about 90 deg).
 ============================================================================ */

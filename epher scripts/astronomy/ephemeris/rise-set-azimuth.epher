@@ -16,12 +16,6 @@ apparent altitude: the altitude at the event reads about -0.83 deg
 for the Moon (-34 arcmin of standard refraction minus the Moon's
 semidiameter) and about -0.57 deg for the Sun.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/rise-set-azimuth.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\rise-set-azimuth.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/rise-set-azimuth.epher
-In the REPL:             load one of the paths above
-
 Knobs: the body (guide 1.29 numbering), the day tm and the place below.
 ============================================================================ */
 

@@ -11,11 +11,6 @@ Accuracy: the two routes agree to all twelve displayed digits. The builtin
 signs its answer negative (money out today, in the builtin's sign
 convention); the sum itself is 20863.25.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/present-value.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\present-value.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/present-value.epher
-
 The knobs to edit are in the knob section; everything after it is
 machinery you can leave alone.
 ============================================================================ */

@@ -22,12 +22,6 @@ scripts - candidate times within about a minute of the canon and
 counts exact for the years 2000-2100 (Meeus grades the test that
 far).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/eclipses/eclipse-count-year.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\eclipses\eclipse-count-year.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/eclipses/eclipse-count-year.epher
-In the REPL:             load one of the paths above
-
 Knob: the year.
 ============================================================================ */
 

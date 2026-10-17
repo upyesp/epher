@@ -44,12 +44,6 @@ degree of the limb could go either way. Note that 2039-07-07 is not
 a transit date: NASA's catalog has none in July; the date sometimes
 quoted is 2039-11-07.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/eclipses/mercury-transits.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\eclipses\mercury-transits.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/eclipses/mercury-transits.epher
-In the REPL:             load one of the paths above
-
 Knobs: the date to search from and the horizon year. The engine
 stage is call-frugal (about a hundred ephemeris calls); allow half
 a minute.

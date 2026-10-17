@@ -16,12 +16,6 @@ longitude and Lm the Moon's mean longitude - all Meeus mean
 elements. The 4-term series is good to about half an arcsecond
 against the full series.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/nutation-obliquity.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\nutation-obliquity.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/nutation-obliquity.epher
-In the REPL:             load one of the paths above
-
 Knob: the date tm below (the Meeus ch. 22 worked example date).
 ============================================================================ */
 

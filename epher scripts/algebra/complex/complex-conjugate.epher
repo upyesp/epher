@@ -8,11 +8,6 @@ Variables and Applications", sec. 5). The product comes out as the exact
 real numbers 25 and 2 below, and the identity is checked against |zc|^2.
 All values are exact.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/complex/complex-conjugate.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\complex\complex-conjugate.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/complex/complex-conjugate.epher
-
 No knobs to edit; the values below are fixed examples.
 ============================================================================ */
 

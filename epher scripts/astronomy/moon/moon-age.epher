@@ -15,12 +15,6 @@ Accuracy: about a minute on the new-moon instant for 2000-2100, so
 the age is honest to a few ten-thousandths of a day (a couple of
 minutes of Moon).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-age.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-age.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-age.epher
-In the REPL:             load one of the paths above
-
 Knobs: the two instants `t1` (mid-January, waxing) and `t2` (early
 February, waning) below, in UT.
 ============================================================================ */

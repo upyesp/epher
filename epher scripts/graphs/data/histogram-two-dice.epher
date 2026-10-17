@@ -10,11 +10,6 @@ is 35/12, and variances add - any probability text, e.g. Blitzstein
 and Hwang, "Introduction to Probability", ch. 2). The script graphs
 the histogram and prints the comparison.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/data/histogram-two-dice.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\data\histogram-two-dice.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/data/histogram-two-dice.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 The graph lines open the plot pane in the desktop, web and TUI apps;
 the CLI transcript records them as "graph:" lines.

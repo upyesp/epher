@@ -7,11 +7,6 @@ quadratic formula of every college-algebra text (Stewart, Redlin and Watson,
 positive here, so both roots are real. Whole-number coefficients make every
 printed value exact; the roots are checked by evaluating the polynomial.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/equations/quadratic-formula.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\equations\quadratic-formula.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/equations/quadratic-formula.epher
-
 The knobs to edit are a, b and c below.
 ============================================================================ */
 

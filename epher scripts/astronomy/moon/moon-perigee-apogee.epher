@@ -22,12 +22,6 @@ those samples recovers the true instant to a few minutes (the
 distance curve is very nearly parabolic near an extremum; the
 residual asymmetry shifts the vertex by minutes at most).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-perigee-apogee.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-perigee-apogee.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-perigee-apogee.epher
-In the REPL:             load one of the paths above
-
 Knobs: `year` and `month` (below: March 2026, whose perigee falls on
 the 22nd at 366857 km and apogee on the 10th at 404384 km - a 38 Mm
 swing, the eccentric orbit at work).

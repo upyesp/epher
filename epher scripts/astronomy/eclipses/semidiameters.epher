@@ -28,12 +28,6 @@ semidiameters carry about 0.1-0.5 percent (Venus's disk, for
 instance, is a few hundredths of an arcsecond larger or smaller
 with the radius's last digit).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/eclipses/semidiameters.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\eclipses\semidiameters.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/eclipses/semidiameters.epher
-In the REPL:             load one of the paths above
-
 Knob: the date (the instant is 12:00 UT of it).
 ============================================================================ */
 

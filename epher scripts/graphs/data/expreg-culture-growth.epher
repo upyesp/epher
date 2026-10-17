@@ -10,11 +10,6 @@ matches any calculator). Eight hourly counts with small frozen noise
 ln(2)/0.35 hours. The script graphs the points with the fitted
 exponential and prints the doubling time twice over.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/data/expreg-culture-growth.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\data\expreg-culture-growth.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/data/expreg-culture-growth.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 The graph lines open the plot pane in the desktop, web and TUI apps;
 the CLI transcript records them as "graph:" lines.

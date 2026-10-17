@@ -22,12 +22,6 @@ time of each eclipse within about a minute of the canon, gamma
 within about 0.002 (see the two next-eclipse scripts for the
 worked comparisons).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/eclipses/eclipse-seasons.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\eclipses\eclipse-seasons.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/eclipses/eclipse-seasons.epher
-In the REPL:             load one of the paths above
-
 Knob: the year. The scan holds seven candidate slots, the most any
 year can show.
 ============================================================================ */

@@ -17,12 +17,6 @@ mismatch column below is the honest test of that claim against the
 arcsecond-grade engine. Kepler's equation is solved by the same
 Newton iteration the classic programs used, written as a recursion.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/schlyter-crosscheck.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\schlyter-crosscheck.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/schlyter-crosscheck.epher
-In the REPL:             load one of the paths above
-
 Knob: the instant tm below.
 ============================================================================ */
 

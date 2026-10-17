@@ -31,12 +31,6 @@ The day's optimal fixed tilt follows the installer rule of thumb
 latitude plus 15 in the winter half, about latitude at the equinoxes.
 The panel below is set near the summer optimum, facing due south.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/solar-irradiance.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\solar-irradiance.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/solar-irradiance.epher
-In the REPL:             load one of the paths above
-
 Knobs: the place, date and hour (UT), the panel tilt (deg from
 horizontal) and azimuth (deg from north) - 180 is due south in the
 northern hemisphere.

@@ -26,12 +26,6 @@ Sources: Newton's inverse-cube tidal law (Principia, Book III), as
 worked through in Jean Meeus, "Mathematical Astronomy Morsels" (the
 spring/neap cycle essays).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/spring-neap-tides.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\spring-neap-tides.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/spring-neap-tides.epher
-In the REPL:             load one of the paths above
-
 Knobs: the start date (the lunation is followed from there) and how
 many days of window the scans may use.
 ============================================================================ */

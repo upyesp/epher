@@ -16,12 +16,6 @@ the mean Sun by up to about 16 min over the year (the orbit is
 elliptical and the ecliptic is tilted), so the actual noon wanders
 around the mean transit.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/solar-noon-time.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\solar-noon-time.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/solar-noon-time.epher
-In the REPL:             load one of the paths above
-
 Knobs: latitude and longitude (Greenwich below); the three dates below.
 ============================================================================ */
 

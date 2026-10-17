@@ -20,12 +20,6 @@ Accuracy: about a minute. Against NOAA's independent calculator,
 Greenwich 2026-06-21 civil band 02:55-21:08 UT and 2026-02-12
 astronomical band 05:26-19:02 agree within a minute.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/twilight-times.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\twilight-times.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/twilight-times.epher
-In the REPL:             load one of the paths above
-
 Knobs: the place and the two dates below.
 ============================================================================ */
 

@@ -19,12 +19,6 @@ mag), but Betelgeuse radiates most of its power in the infrared (its
 true bolometric output is several times the number below) and M
 dwarfs similarly; hot stars lose ultraviolet flux to the V band too.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/stars/star-luminosity.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\stars\star-luminosity.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/stars/star-luminosity.epher
-In the REPL:             load one of the paths above
-
 Knobs: the Sun's absolute magnitude and each star's apparent
 magnitude and distance (parsecs) below. Sirius/Vega/Proxima
 distances are Hipparcos; Betelgeuse's distance and magnitude are

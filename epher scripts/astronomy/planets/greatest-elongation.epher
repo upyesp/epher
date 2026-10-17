@@ -18,12 +18,6 @@ about a degree a day near dichotomy); the elongation printed at each
 event is good to a few hundredths of a degree. The default run shows Venus at its greatest eastern elongation
 of August 2026 and its greatest western elongation of January 2027.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/greatest-elongation.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\greatest-elongation.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/greatest-elongation.epher
-In the REPL:             load one of the paths above
-
 Knobs: the planet (1 Mercury, 2 Venus) and the start date `day`.
 ============================================================================ */
 

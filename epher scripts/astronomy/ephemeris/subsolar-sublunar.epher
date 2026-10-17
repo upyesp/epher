@@ -16,12 +16,6 @@ topocentric shift of up to ~1 degree) dominates - the points are
 good to about a degree, fine for the "who is overhead right now"
 question the weather-satellite apps answer for the Sun.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/subsolar-sublunar.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\subsolar-sublunar.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/subsolar-sublunar.epher
-In the REPL:             load one of the paths above
-
 Knobs: the instant tm below.
 ============================================================================ */
 

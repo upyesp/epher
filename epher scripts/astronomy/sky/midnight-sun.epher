@@ -26,12 +26,6 @@ arcsecond-class value; the transition day is found to about a day (the
 Sun moves up to 0.4 deg per day, and the scan steps two days before
 refining).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/midnight-sun.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\midnight-sun.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/midnight-sun.epher
-In the REPL:             load one of the paths above
-
 Knobs: the polar place (lat, lon - Longyearbyen below), the two dates
 tested there, and the mid-latitude place used to show the normal case.
 ============================================================================ */

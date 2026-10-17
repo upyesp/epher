@@ -7,11 +7,6 @@ in any algebra text (e.g. Stewart, Redlin and Watson, "College Algebra",
 cross-checked below by adding the squares one by one in a quiet while
 loop. All values are exact.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/sum-of-squares.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\sum-of-squares.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/sum-of-squares.epher
-
 The knob to edit is num below.
 ============================================================================ */
 

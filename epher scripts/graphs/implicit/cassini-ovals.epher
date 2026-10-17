@@ -9,11 +9,6 @@ exactly b = 1 it is Bernoulli's lemniscate (MathWorld, "Cassini
 Ovals"). The script graphs the split case b^4 = 0.81 and prints the
 test values that show the origin is outside both ovals.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/implicit/cassini-ovals.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\implicit\cassini-ovals.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/implicit/cassini-ovals.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 The graph lines open the plot pane in the desktop, web and TUI apps;
 the CLI transcript records them as "graph:" lines.

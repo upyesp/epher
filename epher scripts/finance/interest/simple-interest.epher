@@ -12,11 +12,6 @@ Kellison, The Theory of Interest, chapter 1.
 Accuracy: the builtin multiplies the exact knob values, so the numbers
 printed below are exact.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/finance/interest/simple-interest.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\finance\interest\simple-interest.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/finance/interest/simple-interest.epher
-
 The knobs to edit are in the knob section; everything after it is
 machinery you can leave alone.
 ============================================================================ */

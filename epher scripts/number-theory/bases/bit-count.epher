@@ -13,11 +13,6 @@ Source: standard computer arithmetic; the popcount underlies Hamming
 weight and error-correcting codes. All values here are small, so the
 counts are exact.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/bases/bit-count.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\bases\bit-count.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/bases/bit-count.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
 There is no knob: the sample values are the point of the script.

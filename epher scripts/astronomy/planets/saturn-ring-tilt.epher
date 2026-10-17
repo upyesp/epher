@@ -21,12 +21,6 @@ edge-on events), and the computed B is within 0.05 deg of zero on both
 dates. On the default date, 2026-06-01, the rings present their south
 face, open 8.3 degrees, still narrow after the 2025 edge-on.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/saturn-ring-tilt.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\saturn-ring-tilt.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/saturn-ring-tilt.epher
-In the REPL:             load one of the paths above
-
 The one knob is the instant `tm` (UT).
 ============================================================================ */
 

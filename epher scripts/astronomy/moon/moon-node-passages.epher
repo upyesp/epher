@@ -24,12 +24,6 @@ minute, limited only by the ephemeris. Months usually carry two
 crossings; a month can hold one (or, rarely, three) when a crossing
 sits near an edge - the scan reports what it finds inside the month.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-node-passages.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-node-passages.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-node-passages.epher
-In the REPL:             load one of the paths above
-
 Knobs: `year` and `month` (below: June 2026 - the Moon crosses the
 ascending node on the 8th and the descending node on the 20th).
 ============================================================================ */

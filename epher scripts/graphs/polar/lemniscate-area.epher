@@ -9,11 +9,6 @@ figure eight. In polar form r^2 = a^2*cos(2*theta), each loop spans
 exactly 1 (Stewart, "Calculus", ch. 10.4, example; MathWorld,
 "Lemniscate"). The script graphs the eight and checks the total area.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/polar/lemniscate-area.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\polar\lemniscate-area.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/polar/lemniscate-area.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 The graph lines open the plot pane in the desktop, web and TUI apps;
 the CLI transcript records them as "graph:" lines.

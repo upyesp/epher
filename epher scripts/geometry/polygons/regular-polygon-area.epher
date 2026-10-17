@@ -8,11 +8,6 @@ The num = 6 case is six equilateral triangles: 6 * 2^2 * sqrt(3) / 4,
 about 10.392. The square case recovers side times side, and the num = 3
 case matches the equilateral formula s^2 sqrt(3) / 4.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/geometry/polygons/regular-polygon-area.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\geometry\polygons\regular-polygon-area.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/geometry/polygons/regular-polygon-area.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
 The knobs to edit are `num` (number of sides) and `s` (side length).

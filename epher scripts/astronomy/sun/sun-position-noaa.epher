@@ -30,12 +30,6 @@ against the full theory, and refraction (omitted here, though
 NOAA's calculator display adds it) is the largest near-horizon
 term - the engine remains the fuller model.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sun/sun-position-noaa.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sun\sun-position-noaa.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sun/sun-position-noaa.epher
-In the REPL:             load one of the paths above
-
 Knobs: the instant (date plus hours UT) and the place.
 ============================================================================ */
 

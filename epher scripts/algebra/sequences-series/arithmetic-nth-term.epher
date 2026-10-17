@@ -7,11 +7,6 @@ Stewart, Redlin and Watson, "College Algebra", 7th ed., sec. 9.1). With
 a = 3, diff = 4 the sequence is 3, 7, 11, 15, ... and t_25 = 99. All values
 are exact.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/arithmetic-nth-term.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\arithmetic-nth-term.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/arithmetic-nth-term.epher
-
 The knobs to edit are a, diff and num below.
 ============================================================================ */
 

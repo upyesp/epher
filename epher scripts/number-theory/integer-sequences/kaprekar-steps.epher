@@ -13,11 +13,6 @@ Source: D. R. Kaprekar, "An Interesting Property of the Number 6174",
 Scripta Mathematica 15 (1949); see also Martin Gardner, "The Magic of
 6174", in "Penrose Tiles to Trapdoor Ciphers". Results are exact.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/integer-sequences/kaprekar-steps.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\integer-sequences\kaprekar-steps.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/integer-sequences/kaprekar-steps.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
 The one knob to edit is `num` below: a four-digit number with at least

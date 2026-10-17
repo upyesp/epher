@@ -70,10 +70,9 @@
 
   /** A copy button: icon-only with a localized accessible name; swaps to
    *  the check mark for a moment after a successful copy. The source is
-   *  a script object (copy the whole file) or a string (copy that text,
-   *  as the per-OS run commands do). */
-  function copyButton(source) {
-    const text = typeof source === "string" ? source : source.text;
+   *  a script object: the button copies the whole file. */
+  function copyButton(script) {
+    const text = script.text;
     const btn = el("button", "copy-btn");
     btn.type = "button";
     btn.title = t("copy", "Copy");
@@ -221,30 +220,6 @@
     browser.appendChild(list);
   }
 
-  /** The per-script run box: the installed path, one command per
-   *  operating system (the installers ship the collection beside the
-   *  program), each copyable on its own. */
-  function runBox(script) {
-    const rel = script.rel || script.path.replace(/^epher scripts\//, "");
-    const win = rel.split("/").join("\\");
-    const box = el("div", "script-run");
-    const commands = [
-      ["Linux (deb, rpm)", `epher /usr/lib/epher/scripts/${rel}`],
-      ["Windows", `epher "$env:LOCALAPPDATA\\epher\\scripts\\${win}"`],
-      ["macOS", `epher /Applications/epher.app/Contents/Resources/scripts/${rel}`],
-    ];
-    for (const [osName, cmd] of commands) {
-      const line = el("div", "run-line");
-      // The copy button leads the row, before the operating-system name
-      // it copies for: label, command, icon read as one line.
-      line.appendChild(copyButton(cmd));
-      line.appendChild(el("span", "run-os", osName));
-      line.appendChild(el("code", "", cmd));
-      box.appendChild(line);
-    }
-    return box;
-  }
-
   function renderScript(state) {
     browser.textContent = "";
     const script = scriptOf(state.field, state.area, state.script);
@@ -258,10 +233,6 @@
     pre.tabIndex = 0;
     pre.textContent = script.text;
     panel.appendChild(pre);
-    // The run commands sit under the script: the reader sees the code
-    // first, then how to run it (each command carries its own copy
-    // button, at the left of the operating-system name it applies to).
-    panel.appendChild(runBox(script));
     browser.appendChild(panel);
   }
 

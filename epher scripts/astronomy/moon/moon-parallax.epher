@@ -27,12 +27,6 @@ sine terms).
 Accuracy: engine-grade throughout; the altitude shift is good to
 about 0.01 deg.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moon-parallax.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moon-parallax.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moon-parallax.epher
-In the REPL:             load one of the paths above
-
 Knobs: the place and the instant (below: Greenwich, 2026-06-22 22:00
 UT - the Moon sits 15.4 deg up in the southwest, where the parallax
 still shifts it nearly a full degree).

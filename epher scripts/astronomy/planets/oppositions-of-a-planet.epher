@@ -22,12 +22,6 @@ Sanity anchor: the default run finds the Mars opposition of
 2027-02-19 (the best Mars opposition of the decade's late years,
 widely publicized).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/oppositions-of-a-planet.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\oppositions-of-a-planet.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/oppositions-of-a-planet.epher
-In the REPL:             load one of the paths above
-
 Knobs: the planet (body number of an outer planet), the start date
 `day`, and how many days to search ahead.
 ============================================================================ */

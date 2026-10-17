@@ -15,12 +15,6 @@ Accuracy: the Sun longitude series is good to ~0.01 deg, so the
 apex direction and the correction are good to a few thousandths of
 an arcsecond; the classical maximum shift is kappa itself.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/aberration-fix.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\aberration-fix.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/aberration-fix.epher
-In the REPL:             load one of the paths above
-
 Knobs: the catalog J2000 position (Vega below) and the date.
 ============================================================================ */
 

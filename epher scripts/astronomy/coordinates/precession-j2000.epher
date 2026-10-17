@@ -22,12 +22,6 @@ Independence check: PyEphem's epoch converter gives -12d04m29.9s
 for theta Hydrae at the same date, agreeing with this script to a
 tenth of an arcsecond; Polaris 2026 matches to 0.2 arcseconds.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/precession-j2000.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\precession-j2000.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/precession-j2000.epher
-In the REPL:             load one of the paths above
-
 Knobs: the two J2000 positions and the target date below.
 ============================================================================ */
 

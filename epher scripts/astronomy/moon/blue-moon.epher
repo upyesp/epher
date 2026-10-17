@@ -21,12 +21,6 @@ Accuracy: the series fixes each full moon to about a minute for
 2000-2100; only a full moon within a minute of a month boundary could
 move to the neighbouring month, and none does in 2026.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/blue-moon.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\blue-moon.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/blue-moon.epher
-In the REPL:             load one of the paths above
-
 Knobs: `year` below (2026 has its doubled month in May).
 ============================================================================ */
 

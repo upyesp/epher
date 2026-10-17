@@ -13,12 +13,6 @@ ISO 8601 date-time (YYYY-MM-DDTHH:MM:SS), the notation the JPL
 Horizons tables print. Every bare date below is checked by a round
 trip back through jd(), which prints true when the pair agrees.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/date-from-julian-day.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\date-from-julian-day.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/date-from-julian-day.epher
-In the REPL:             load one of the paths above
-
 Knob: none - the dates below are fixed, famous ones, plus one
 fractional instant that shows the clock half of the conversion.
 ============================================================================ */

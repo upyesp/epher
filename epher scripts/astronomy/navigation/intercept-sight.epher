@@ -20,12 +20,6 @@ altitude - they agree to a few thousandths of a degree). The
 result's worth is the observation's: Ho must be corrected for
 index error, dip and refraction before it goes in.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/navigation/intercept-sight.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\navigation\intercept-sight.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/navigation/intercept-sight.epher
-In the REPL:             load one of the paths above
-
 Knobs: the observed (corrected) altitude Ho, the sight time tm and
 the assumed position below.
 ============================================================================ */

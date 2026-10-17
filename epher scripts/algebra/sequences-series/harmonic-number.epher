@@ -8,11 +8,6 @@ error after num terms is about 1/(2n). A packed while loop adds the 1000
 terms quietly (a for loop would echo 1000 partial sums). The floats are
 accurate to about 12 digits.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/algebra/sequences-series/harmonic-number.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\algebra\sequences-series\harmonic-number.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/algebra/sequences-series/harmonic-number.epher
-
 The knob to edit is num below.
 ============================================================================ */
 

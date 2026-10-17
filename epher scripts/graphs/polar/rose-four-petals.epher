@@ -9,11 +9,6 @@ between petals every 45 deg, and the total area is exactly pi/2 - one
 quarter of the circumscribing circle. The script graphs the rose, samples the petal
 tips, and checks the area with the polar formula.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/polar/rose-four-petals.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\polar\rose-four-petals.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/polar/rose-four-petals.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 The graph lines open the plot pane in the desktop, web and TUI apps;
 the CLI transcript records them as "graph:" lines.

@@ -20,11 +20,6 @@ south of the rings again. Distances are good to a few arcseconds for
 Titan and a few tenths of a Saturn radius for the inner moons against
 JPL Horizons; treat event times from the scan below as approximate.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/saturn-satellites.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\saturn-satellites.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/saturn-satellites.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
 The one knob to edit is `when` below: the instant you want the table

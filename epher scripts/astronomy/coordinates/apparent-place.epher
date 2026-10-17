@@ -17,12 +17,6 @@ about half an arcsecond and the aberration is applied in full, so
 the result is good to ~1 arcsec against a full apparent-place
 reduction - enough to point a telescope.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/coordinates/apparent-place.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\coordinates\apparent-place.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/coordinates/apparent-place.epher
-In the REPL:             load one of the paths above
-
 Knobs: the catalog position, proper motion (arcsec per year, 0 to
 hold the star fixed), and the date below.
 ============================================================================ */

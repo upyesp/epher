@@ -23,12 +23,6 @@ north of the east and west points.
 Accuracy: engine-grade event instants (about a minute); the azimuth
 comes from the same engine at that instant.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/moonrise-azimuth.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\moonrise-azimuth.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/moonrise-azimuth.epher
-In the REPL:             load one of the paths above
-
 Knobs: the place (Greenwich below) and the date (2026-06-22 carries
 both events at that latitude; many dates do not - the Moon's events
 drift about 50 minutes later each day).

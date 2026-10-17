@@ -16,12 +16,6 @@ measured and the formula agree to about 0.003 deg on each date: that
 residual is the Sun's parallax, a few arcseconds, and the altitudes
 are geometric (no refraction).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/sun-altitude-at-noon.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\sun-altitude-at-noon.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/sun-altitude-at-noon.epher
-In the REPL:             load one of the paths above
-
 Knobs: latitude and longitude (Greenwich below), the noon hour, dates.
 ============================================================================ */
 

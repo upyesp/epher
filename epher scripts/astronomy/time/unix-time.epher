@@ -14,12 +14,6 @@ accepts fractional hours, so the round trip below goes through
 Accuracy: exact for any instant (pure arithmetic on the engine's
 JD); before 1970 the seconds simply read negative.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/unix-time.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\unix-time.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/unix-time.epher
-In the REPL:             load one of the paths above
-
 Knobs: the instant below.
 ============================================================================ */
 

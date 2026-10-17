@@ -17,12 +17,6 @@ Accuracy: this is the fixed arithmetic calendar, exact by
 construction; the printed anchors match the reference converter
 Hebcal for 1 Tishri of 5781-5787.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/time/hebrew-calendar.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\time\hebrew-calendar.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/time/hebrew-calendar.epher
-In the REPL:             load one of the paths above
-
 Knobs: the date below.
 ============================================================================ */
 

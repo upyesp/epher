@@ -8,11 +8,6 @@ and a loop of string (Apollonius defined the conics; Stewart,
 so b = sqrt(9 - 4). The script graphs the ellipse and checks the
 string property numerically at points along and across the axes.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/graphs/implicit/ellipse-foci-sum.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\graphs\implicit\ellipse-foci-sum.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/graphs/implicit/ellipse-foci-sum.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 The graph lines open the plot pane in the desktop, web and TUI apps;
 the CLI transcript records them as "graph:" lines.

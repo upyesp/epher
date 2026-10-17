@@ -19,12 +19,6 @@ empty, over-magnified image. Complements telescope-resolution.epher,
 which answers how fine the same scope can split detail; this file
 stays with the eyepiece side and prints no Dawes values.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sky/eyepiece-planner.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sky\eyepiece-planner.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sky/eyepiece-planner.epher
-In the REPL:             load one of the paths above
-
 Knobs: aperture (mm) and focal ratio of the telescope, the apparent
 field of the eyepieces (a 50-degree Plossl below) and the list of
 eyepiece focal lengths in mm.

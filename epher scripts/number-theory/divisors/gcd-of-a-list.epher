@@ -10,11 +10,6 @@ share the factor 12, and 14, 21 and 28 share 7.
 Source: Hardy and Wright, "An Introduction to the Theory of Numbers",
 ch. 1 (the gcd, and its associativity). gcd is exact.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/divisors/gcd-of-a-list.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\divisors\gcd-of-a-list.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/divisors/gcd-of-a-list.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
 There is no knob: the sample lists are the point of the script.

@@ -23,12 +23,6 @@ within about 15 seconds of the canon's TD, umbral magnitude within
 0.005 (canon: 1.1507 on Mar 03, 0.9299 on Aug 28), semi-durations
 within a couple of minutes.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/eclipses/next-lunar-eclipse.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\eclipses\next-lunar-eclipse.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/eclipses/next-lunar-eclipse.epher
-In the REPL:             load one of the paths above
-
 Knobs: the start date (the search begins at the full moon after it)
 and how many lunations to allow.
 ============================================================================ */

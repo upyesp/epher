@@ -11,11 +11,6 @@ Source: standard number theory; the count is exact because isprime is
 exact. The loop runs about num log num steps, so keep num below a few
 thousand for an instant run.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/number-theory/primes/nth-prime.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\number-theory\primes\nth-prime.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/number-theory/primes/nth-prime.epher
-In the REPL:             load one of the paths above
 Web/desktop:             paste the whole file into the entry, press Enter
 
 The one knob to edit is `num` below.

@@ -13,12 +13,6 @@ Accuracy: bounds ~0.5 deg of longitude; engine positions ~1 arcsec -
 the constellation is certain except for a body sitting within a
 few tenths of a degree of a boundary at the instant.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/ephemeris/constellation-of.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\ephemeris\constellation-of.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/ephemeris/constellation-of.epher
-In the REPL:             load one of the paths above
-
 Knobs: the body (guide 1.29 numbering) and the instant tm below.
 ============================================================================ */
 

@@ -9,12 +9,6 @@ Sirius, the brightest star in the night sky, is -1.46. The magnitude
 of a planet depends on its distance from Earth and from the Sun, and
 on its phase.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/planets/planet-magnitudes.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\planets\planet-magnitudes.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/planets/planet-magnitudes.epher
-In the REPL:             load one of the paths above
-
 Knob: the date tm.
 ============================================================================ */
 

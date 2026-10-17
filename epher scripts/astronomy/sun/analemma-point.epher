@@ -19,12 +19,6 @@ Accuracy: about +/- 0.1 minute on the time axis; the declination is
 the low-precision solar theory, good to about 0.01 degree, which the
 built-in decl confirms at the solstice below.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/sun/analemma-point.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\sun\analemma-point.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/sun/analemma-point.epher
-In the REPL:             load one of the paths above
-
 Knobs: the sample dates below (2026).
 ============================================================================ */
 

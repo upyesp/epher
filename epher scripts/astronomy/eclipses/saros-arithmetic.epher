@@ -23,12 +23,6 @@ Accuracy: the member times and gammas carry the chapter 54 mean
 series grade - about a minute and 0.002 (next-solar-eclipse.epher
 works the comparison against NASA's canon).
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/eclipses/saros-arithmetic.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\eclipses\saros-arithmetic.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/eclipses/saros-arithmetic.epher
-In the REPL:             load one of the paths above
-
 Knobs: the start date and the search span.
 ============================================================================ */
 

@@ -24,12 +24,6 @@ Accuracy: the instants are good to a minute (the series' grade for
 rankings below are trustworthy to their last printed kilometre; the
 supermoon call itself depends on the convention, stated above.
 
-Run it from a terminal:
-  Linux (deb, rpm):  epher /usr/lib/epher/scripts/astronomy/moon/supermoon-check.epher
-  Windows:           epher "$env:LOCALAPPDATA\epher\scripts\astronomy\moon\supermoon-check.epher"
-  macOS:             epher /Applications/epher.app/Contents/Resources/scripts/astronomy/moon/supermoon-check.epher
-In the REPL:             load one of the paths above
-
 Knobs: `year` and the `month` whose full moon is under test (2026's
 December full moon, 2026-12-24, is the year's closest: a supermoon;
 every month of the year must hold one full moon).
