@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# The performance sweep behind the perf-budget workflow: time a short,
+# representative set of scripts, print the timings, and (with --check)
+# fail any that exceed their budget. The budgets are generous absolute
+# ceilings in seconds, sized for a two-core GitHub runner with headroom
+# for load noise; they exist to catch order-of-magnitude backslides
+# (the snapshot-per-accessor days), not percent-level drift.
+#
+# Usage: scripts/perf-sweep <path-to-epher-cli> [--check]
+set -euo pipefail
+
+CLI=${1:?usage: perf-sweep <epher-cli> [--check]}
+MODE=${2:-}
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ASTRO="$ROOT/epher scripts/astronomy"
+
+# script (relative to epher scripts/astronomy): budget in seconds
+SWEEP=(
+  "eclipses/mercury-transits.epher:6"
+  "planets/synodic-table.epher:6"
+  "planets/venus-morning-evening.epher:6"
+  "planets/saturn-satellites.epher:6"
+  "sky/altaz-hour-curve.epher:6"
+  "sky/day-length.epher:6"
+  "sky/sunrise-sunset.epher:6"
+  "eclipses/eclipse-count-year.epher:6"
+  "time/hebrew-calendar.epher:6"
+  "stars/heliacal-rising.epher:6"
+)
+
+fail=0
+printf '%-38s %8s %8s\n' script seconds budget
+for entry in "${SWEEP[@]}"; do
+  rel=${entry%%:*}
+  budget=${entry##*:}
+  file="$ASTRO/$rel"
+  start=$(date +%s%N)
+  "$CLI" "$file" > /dev/null
+  end=$(date +%s%N)
+  secs=$(( (end - start) / 1000000 ))
+  printf '%-38s %8s %8s\n' "$rel" "$(( secs / 1000 )).$(( secs % 1000 ))" "$budget"
+  if [ "$secs" -gt $(( budget * 1000 )) ]; then
+    fail=1
+    printf '  OVER BUDGET: %s took %sms, budget %ss\n' "$rel" "$secs" "$budget"
+  fi
+done
+
+if [ "$MODE" = "--check" ]; then
+  if [ "$fail" -ne 0 ]; then
+    echo "perf-budget: at least one script exceeded its budget"
+    exit 1
+  fi
+  echo "perf-budget: all scripts within budget"
+fi

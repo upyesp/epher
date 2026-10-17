@@ -19,9 +19,13 @@ use std::time::{Duration, Instant};
 
 use analysis::{server_capabilities, Document, Documents};
 use crossbeam_channel::{RecvTimeoutError, SendTimeoutError};
+use lsp_server::{
+    Connection, Message, Notification as ServerNotification, Request as ServerRequest, Response,
+};
 use lsp_types::notification::{Notification, PublishDiagnostics};
-use lsp_types::request::{Completion, HoverRequest, InlayHintRequest, SemanticTokensFullRequest, Request as LspRequest};
-use lsp_server::{Connection, Message, Notification as ServerNotification, Request as ServerRequest, Response};
+use lsp_types::request::{
+    Completion, HoverRequest, InlayHintRequest, Request as LspRequest, SemanticTokensFullRequest,
+};
 
 /// How long typing must pause before the pass runs (ADR-0066: "a short
 /// debounce").
@@ -122,22 +126,43 @@ fn run_request(
     }
     // The held edit is the newest text: it wins over the analyzed
     // document, which only reflects the last quiet gap.
-    let text = pending
-        .get(&uri)
-        .map(|held| held.text.clone())
-        .or_else(|| {
-            documents
-                .iter()
-                .find(|(key, _)| key.as_str() == uri)
-                .map(|(_, document)| document.text.clone())
-        });
+    let text = pending.get(&uri).map(|held| held.text.clone()).or_else(|| {
+        documents
+            .iter()
+            .find(|(key, _)| key.as_str() == uri)
+            .map(|(_, document)| document.text.clone())
+    });
     let Some(text) = text else {
-        return Response::new_err(
-            req.id.clone(),
-            -32602,
-            "document not open".to_string(),
-        );
+        return Response::new_err(req.id.clone(), -32602, "document not open".to_string());
     };
+    // The analyzed document already evaluated this text once: rebuild
+    // the run from its trace instead of running the statements again.
+    // Text inside the debounce (or anything the reconstruction cannot
+    // mirror exactly - plots, tables, failed passes) takes the direct
+    // path below.
+    if let Some(document) = documents
+        .iter()
+        .find(|(key, _)| key.as_str() == uri)
+        .map(|(_, document)| document)
+    {
+        if document.text == text {
+            if let Some(lines) = analysis::reconstruct_run(&text, &document.outcomes) {
+                let result = serde_json::json!({
+                    "statements": lines
+                        .iter()
+                        .map(|line| serde_json::json!({
+                            "line": line.line,
+                            "source": line.source,
+                            "display": line.display,
+                            "error": line.error,
+                        }))
+                        .collect::<Vec<_>>(),
+                    "svgs": serde_json::Value::Array(Vec::new()),
+                });
+                return Response::new_ok(req.id.clone(), result);
+            }
+        }
+    }
     let localizer = epher_i18n::Localizer::resolve(None, &[]);
     let run = epher_shell::run_script(&text, &localizer);
     let result = serde_json::json!({
@@ -172,8 +197,7 @@ fn hold_or_apply(
             let uri = params.text_document.uri;
             let key = uri.to_string();
             pending.remove(&key);
-            let document =
-                Document::new(params.text_document.text, params.text_document.version);
+            let document = Document::new(params.text_document.text, params.text_document.version);
             publish(connection, &uri, &document)?;
             documents.insert(key, document);
         }
@@ -217,7 +241,10 @@ fn send_message(
     mut message: Message,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     for _ in 0..120 {
-        match connection.sender.send_timeout(message, Duration::from_secs(1)) {
+        match connection
+            .sender
+            .send_timeout(message, Duration::from_secs(1))
+        {
             Ok(()) => return Ok(()),
             Err(SendTimeoutError::Timeout(again)) => message = again,
             Err(SendTimeoutError::Disconnected(lost)) => {
@@ -226,10 +253,7 @@ fn send_message(
                 } else {
                     "a message"
                 };
-                return Err(format!(
-                    "the LSP writer channel is gone; dropped {note}"
-                )
-                .into());
+                return Err(format!("the LSP writer channel is gone; dropped {note}").into());
             }
         }
     }
@@ -261,8 +285,9 @@ fn answer(req: &ServerRequest, documents: &Documents) -> Response {
     let result: Result<Option<serde_json::Value>, String> = match req.method.as_str() {
         <InlayHintRequest as LspRequest>::METHOD => inlay_hint(req, documents)
             .map(|o| o.map(|v| serde_json::to_value(v).expect("serializes"))),
-        <HoverRequest as LspRequest>::METHOD => hover(req, documents)
-            .map(|o| o.map(|v| serde_json::to_value(v).expect("serializes"))),
+        <HoverRequest as LspRequest>::METHOD => {
+            hover(req, documents).map(|o| o.map(|v| serde_json::to_value(v).expect("serializes")))
+        }
         <Completion as LspRequest>::METHOD => completion(req, documents)
             .map(|o| o.map(|v| serde_json::to_value(v).expect("serializes"))),
         <SemanticTokensFullRequest as LspRequest>::METHOD => semantic_tokens(req, documents)

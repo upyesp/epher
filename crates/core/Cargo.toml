@@ -15,10 +15,12 @@ bigdecimal = { workspace = true }
 serde = { workspace = true }
 serde_json = "1"
 thiserror = { workspace = true }
-# Exact-pinned per ADR-0037 (vendoring is the escape hatch). The
-# astronomy facade rests on this crate's validated ephemeris; thank you
-# to its author: github.com/Protonmatter/sol (MIT OR Apache-2.0).
-solar-ephemeris = "=0.2.0"
+# Exact-pinned per ADR-0037; the vendored copy under vendor/ is the
+# crates.io 0.2.0 source with two visibility-only lines opened (see
+# vendor/solar-ephemeris/README.md) so the facade can reach the VSOP2013
+# table handle and compute each planet's place directly. Thank you to
+# the crate's author: github.com/Protonmatter/sol (MIT OR Apache-2.0).
+solar-ephemeris = { path = "../../vendor/solar-ephemeris", version = "=0.2.0" }
 puruspe = { workspace = true }
 
 [dev-dependencies]

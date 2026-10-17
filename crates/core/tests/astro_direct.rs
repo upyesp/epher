@@ -1,15 +1,15 @@
 //! The direct single-body ephemeris path against the full sky snapshot
-//! (ADR-0037's facade): for the Sun and Moon, the accessors compute the
-//! place directly from the crate's public modules, mirroring the
-//! crate's private `topocentric_sky_at_time`, so every value the
+//! (ADR-0037's facade): for every body the crate carries, the accessors
+//! compute the place directly from the crate's public modules, mirroring
+//! the crate's private `topocentric_sky_at_time`, so every value the
 //! accessors return must equal, bit for bit, what the snapshot's JSON
-//! carries for the same body (after the same string quantization).
-//! These tests pin that identity: if a `solar-ephemeris` upgrade
+//! carries for the same body (after the same string quantization), and
+//! the event accessors must equal the snapshot's rise/transit/set
+//! block. These tests pin that identity: if a `solar-ephemeris` upgrade
 //! changes the private path and the mirror drifts, they fail loudly
 //! here instead of letting the scripts' transcripts drift silently.
-//! (The planets still ride the full snapshot: the crate's
-//! `planet_apparent_ecliptic` needs a VSOP2013 table handle it keeps
-//! private, so there is nothing to mirror yet.)
+//! (The planets ride the vendored crate's opened VSOP2013 table handle;
+//! see vendor/solar-ephemeris/README.md.)
 
 use epher_core::evaluate;
 
@@ -22,9 +22,30 @@ fn float_at(text: &str) -> f64 {
 }
 
 /// One field of one body's entry in a freshly built sky snapshot.
+/// Snapshots are memoized per (jd, lat, lon): each build costs the
+/// crate's full-sky place-plus-events pass, and the tests ask several
+/// fields of the same build.
 fn snapshot_field(jd: f64, lat: f64, lon: f64, name: &str, key: &str) -> f64 {
-    let json = solar_ephemeris::sky_snapshot_json(jd, lat, lon, 0.0);
-    let parsed: serde_json::Value = serde_json::from_str(&json).expect("snapshot parses");
+    use std::cell::RefCell;
+    use std::collections::HashMap;
+    thread_local! {
+        static SNAPS: RefCell<HashMap<(u64, [u8; 8], [u8; 8]), serde_json::Value>> =
+            RefCell::new(HashMap::new());
+    }
+    let ck = (
+        jd.to_bits(),
+        lat.to_bits().to_le_bytes(),
+        lon.to_bits().to_le_bytes(),
+    );
+    let parsed = SNAPS.with(|cell| {
+        let mut map = cell.borrow_mut();
+        map.entry(ck)
+            .or_insert_with(|| {
+                let json = solar_ephemeris::sky_snapshot_json(jd, lat, lon, 0.0);
+                serde_json::from_str(&json).expect("snapshot parses")
+            })
+            .clone()
+    });
     parsed["bodies"]
         .as_array()
         .expect("bodies array")
@@ -36,9 +57,18 @@ fn snapshot_field(jd: f64, lat: f64, lon: f64, name: &str, key: &str) -> f64 {
         .unwrap_or_else(|| panic!("no {key} for {name}"))
 }
 
-/// (body number, crate body name, jd, lat, lon), the great lights
-/// across seasons, distances, and hemispheres.
+/// (body number, crate body name, jd, lat, lon), the great lights and
+/// every planet across seasons, distances, and hemispheres.
 const CASES: &[(i64, &str, f64, f64, f64)] = &[
+    (1, "Mercury", 2461000.75, 51.5, 0.0),
+    (1, "Mercury", 2459200.5, -33.9, 151.2),
+    (2, "Venus", 2460500.5, 40.4, -79.9),
+    (2, "Venus", 2458849.5, -54.8, -68.3),
+    (4, "Mars", 2460676.5, 64.1, -21.9),
+    (5, "Jupiter", 2460800.5, 28.6, 77.2),
+    (6, "Saturn", 2459350.5, 52.5, 13.4),
+    (7, "Uranus", 2461000.75, 0.0, 0.0),
+    (8, "Neptune", 2459600.5, -22.9, -43.2),
     (10, "Sun", 2451544.5, 0.0, 0.0),
     (10, "Sun", 2461000.75, 64.1, -21.9),
     (10, "Sun", 2458849.5, -33.9, 151.2),
@@ -76,7 +106,7 @@ fn direct_ra_dec_dist_alt_az_and_diam_match_the_snapshot() {
 
 #[test]
 fn direct_path_stays_exact_over_a_bisect_like_sweep() {
-    // A bisect-like sweep: 25 consecutive instants, one body. Every
+    // A bisect-like sweep: 25 consecutive instants, two bodies. Every
     // accessor value must equal the snapshot's, the scripts that scan
     // transit hundreds of such steps, and their transcripts print the
     // values at full precision.
@@ -86,5 +116,48 @@ fn direct_path_stays_exact_over_a_bisect_like_sweep() {
         let alt = float_at(&format!("alt(11, {jd}, 52.5, 13.4)"));
         let want = snapshot_field(jd, 52.5, 13.4, "Moon", "alt_deg");
         assert_eq!(alt, want, "moon alt at step {k} (jd {jd})");
+        let ra = float_at(&format!("ra(1, {jd})"));
+        let want = snapshot_field(jd, 0.0, 0.0, "Mercury", "geocentric_apparent_ra_deg");
+        assert_eq!(ra, want, "mercury ra at step {k} (jd {jd})");
+    }
+}
+
+#[test]
+fn direct_events_match_the_snapshot() {
+    // The event accessors must equal the snapshot's event block: the
+    // scan and bisection run on unquantized places, then quantize to
+    // the crate's `jnum` precision ({:.8}), so the printed JDs have to
+    // agree digit for digit. A case whose body never rises that local
+    // day must error on both paths identically.
+    const EVENT_CASES: &[(i64, &str, f64, f64, f64)] = &[
+        (10, "Sun", 2460845.5, 52.5, 13.4),
+        (10, "Sun", 2460500.5, -33.9, 151.2),
+        (11, "Moon", 2461000.75, 40.4, -79.9),
+        (1, "Mercury", 2460845.5, 51.5, 0.0),
+        (2, "Venus", 2460500.5, 28.6, 77.2),
+        (4, "Mars", 2460676.5, -22.9, -43.2),
+        (5, "Jupiter", 2460800.5, 64.1, -21.9),
+        (6, "Saturn", 2459350.5, -54.8, -68.3),
+        (7, "Uranus", 2460200.5, 0.0, 0.0),
+        (8, "Neptune", 2459600.5, 52.5, 13.4),
+    ];
+    for (number, name, jd, lat, lon) in EVENT_CASES {
+        for (key, accessor) in [
+            ("rise_jd", "rise"),
+            ("transit_jd", "transit"),
+            ("set_jd", "set"),
+        ] {
+            let got = evaluate(&format!("{accessor}({number}, {jd}, {lat}, {lon})"));
+            let want = snapshot_field(*jd, *lat, *lon, name, key);
+            match (got, want.is_finite()) {
+                (Ok(epher_core::Value::Float(t)), true) => {
+                    assert_eq!(t, want, "{accessor} of {name} at {jd} ({lat}, {lon})")
+                }
+                (Err(_), false) => {}
+                (other, finite) => panic!(
+                    "{accessor} of {name} at {jd}: got {other:?}, snapshot event finite = {finite}"
+                ),
+            }
+        }
     }
 }

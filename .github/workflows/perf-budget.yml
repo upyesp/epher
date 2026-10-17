@@ -1,0 +1,38 @@
+# The performance budget: the class of regression that made the
+# astronomy scripts crawl (a full sky snapshot built per accessor call,
+# a whole-function-table clone per interpreted call) cannot be allowed
+# back through an innocent-looking refactor. A short representative
+# sweep runs on every PR that touches the core or the shell, against
+# generous absolute budgets: loose enough to ride runner noise, tight
+# enough to fail any order-of-magnitude backslide (the snapshot-path
+# days put mercury-transits at ~50 s; the direct path runs it in well
+# under a second).
+name: perf-budget
+
+on:
+  pull_request:
+    branches: [staging, main]
+    paths:
+      - "crates/**"
+      - "vendor/**"
+      - ".github/workflows/perf-budget.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sweep:
+    name: script timing sweep
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build the CLI (release)
+        run: cargo build --release -p epher-cli
+      - name: Time the representative scripts
+        run: scripts/perf-sweep target/release/epher-cli
+      - name: Check the budgets
+        run: scripts/perf-sweep target/release/epher-cli --check
