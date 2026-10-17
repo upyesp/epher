@@ -423,12 +423,12 @@ fn jy2mag(name: &str, args: &[Value]) -> Result<Value, EpherError> {
 // (1800-2050, arcminute grade, honestly documented).
 
 use solar_ephemeris::coords::AU_KM;
+use solar_ephemeris::coords::{alt_az, ecl_to_equ, observer_rho, topocentric};
 use solar_ephemeris::earth_orientation::corrected_observer_geodetic;
 use solar_ephemeris::elpmpp02::moon_apparent_ecliptic;
 use solar_ephemeris::planets::sun_apparent_ecliptic;
-use solar_ephemeris::timescales::AstroTime;
 use solar_ephemeris::time::{centuries, gast_deg, mean_obliquity_deg, nutation_deg};
-use solar_ephemeris::coords::{alt_az, ecl_to_equ, observer_rho, topocentric};
+use solar_ephemeris::timescales::AstroTime;
 
 /// One solar-system body: its DSL number, the crate's name for it (the
 /// JSON contract's key and the magnitude table's key), and its radius
@@ -531,34 +531,12 @@ fn body_arg(name: &str, args: &[Value]) -> Result<(&'static BodyDef, f64), Epher
     Ok((body, jd))
 }
 
-/// The crate's sky snapshot (its `ephemeris-snapshot.v2` contract) as
-/// parsed JSON: apparent places, distances, angular sizes, and the
-/// rise/transit/set events for the observer's local mean-solar day.
-/// The full snapshot carries every body's event scan, so one build
-/// costs tens of milliseconds; a one-entry memo makes the common shape
-/// (several accessors at the same instant, the solar3d scene per
-/// playback tick) pay it once.
-fn sky_snapshot(jd: f64, lat: f64, lon: f64) -> Result<serde_json::Value, EpherError> {
-    thread_local! {
-        static SKY: std::cell::RefCell<Option<((f64, f64, f64), serde_json::Value)>> =
-            const { std::cell::RefCell::new(None) };
-    }
-    if let Some(((j, la, lo), cached)) = SKY.with(|cell| cell.borrow().clone()) {
-        if j == jd && la == lat && lo == lon {
-            return Ok(cached);
-        }
-    }
-    let json = solar_ephemeris::sky_snapshot_json(jd, lat, lon, 0.0);
-    let parsed: serde_json::Value = serde_json::from_str(&json)
-        .map_err(|e| EpherError::Domain(format!("ephemeris snapshot unreadable: {e}")))?;
-    SKY.with(|cell| *cell.borrow_mut() = Some(((jd, lat, lon), parsed.clone())));
-    Ok(parsed)
-}
-
 /// The crate's system snapshot (`system-snapshot.v1`): heliocentric
 /// ecliptic-J2000 positions (AU), magnitudes, phases, and osculating
 /// elements for the eight planets plus the Moon. One-entry memo, same
-/// rationale as [`sky_snapshot`].
+/// rationale as the sky snapshot had before the direct path replaced
+/// it: heliocentric scenes and magnitudes read several bodies at one
+/// instant, so one build serves them all.
 pub(crate) fn system_snapshot(jd: f64) -> Result<serde_json::Value, EpherError> {
     thread_local! {
         static SYSTEM: std::cell::RefCell<Option<(f64, serde_json::Value)>> =
@@ -582,27 +560,34 @@ pub(crate) fn json_f64(obj: &serde_json::Value, key: &str) -> Result<f64, EpherE
         .ok_or_else(|| EpherError::Domain(format!("ephemeris snapshot missing {key}")))
 }
 
-// --- the direct single-body path (Sun and Moon) ---
+// --- the direct single-body path (every crate body) ---
 //
 // A full sky snapshot (every body's apparent place PLUS its
 // rise/transit/set event scan) costs ~0.5 s. The scan/bisect accessors
 // behind the astronomy scripts need one body's place at hundreds of
-// instants, so a snapshot per step means minutes per script. The Sun
-// and Moon have complete PUBLIC paths in the crate (its planets do
-// not: `planet_apparent_ecliptic` needs a VSOP2013 table handle the
-// crate keeps private), so for those two the facade computes the place
-// directly, mirroring the crate's private `topocentric_sky_at_time`
-// expression-for-expression (same functions, same order, same f64
-// ops): results are bit-identical to the snapshot's, and each value is
-// put through the same string quantization the snapshot's JSON
-// formatting applies ({:.9} for RA/Dec, {:.3} for km, {:.7} for
-// alt/az, {:.4} for arcseconds), because the snapshot path parsed
-// those printed strings. The `astro_direct` test suite pins the
-// identity; if a crate upgrade changes the private path, it fails
-// loudly there instead of letting transcripts drift silently. When a
-// future crate exposes per-body places for the planets, the direct
-// path extends to them and the planet scripts speed up by the same
-// three orders of magnitude.
+// instants, so a snapshot per step means minutes per script. The
+// facade therefore computes each body's place directly, mirroring the
+// crate's private `topocentric_sky_at_time` expression-for-expression
+// (same functions, same order, same f64 ops): results are
+// bit-identical to the snapshot's, and each value is put through the
+// same string quantization the snapshot's JSON formatting applies
+// ({:.9} for RA/Dec, {:.3} for km, {:.7} for alt/az, {:.4} for
+// arcseconds), because the snapshot path parsed those printed
+// strings. The `astro_direct` test suite pins the identity; if a
+// crate upgrade changes the private path, it fails loudly there
+// instead of letting transcripts drift silently.
+//
+// The Sun and Moon always had complete public paths. The planets need
+// `planets::planet_apparent_ecliptic`, which is public, plus the
+// VSOP2013 table handle its `&Planet` argument asks for; the vendored
+// copy under `vendor/solar-ephemeris` (see its README) opens that one
+// handle's visibility and nothing else, so the same mirror covers
+// every crate body. Rise/transit/set come from the same mirror of the
+// crate's own 144-sample scan and 24-step bisection, evaluated on the
+// direct (unquantized) places, then quantized exactly as the crate's
+// JSON prints them ({:.8} via `jnum`): the events stay bit-identical
+// too, and a same-day cache makes a script that reads two or three
+// events of one body's day pay the scan once.
 
 /// The crate's `Body` for a facade body number (Pluto is not the
 /// crate's: the crate stops at Neptune, and the facade reduces Pluto
@@ -629,22 +614,20 @@ fn quant(value: f64, places: usize) -> f64 {
     format!("{:.*}", places, value).parse().unwrap_or(value)
 }
 
-/// One body's apparent place, computed directly (see the block comment
-/// above). Geocentric RA/Dec quantized to the snapshot's 9 places,
-/// distance to its 3, alt/az to its 7, angular size to its 4.
-#[derive(Clone, Copy, Debug, PartialEq)]
-struct DirectSky {
+/// One body's apparent place, unquantized: everything the place
+/// accessors and the event scan need, exactly as the crate's private
+/// `topocentric_sky_at_time` computes it (same functions, same order,
+/// same f64 ops - the `astro_direct` tests pin the identity).
+struct DirectPlace {
     ra: f64,
     dec: f64,
-    dist_au: f64,
+    dist_km: f64,
     alt: f64,
     az: f64,
-    angular_size_arcsec: f64,
 }
 
-fn direct_sky(body: &BodyDef, jd: f64, lat: f64, lon: f64) -> DirectSky {
+fn direct_place(crate_body: solar_ephemeris::Body, jd: f64, lat: f64, lon: f64) -> DirectPlace {
     use solar_ephemeris::Body;
-    let crate_body = crate_body(body.number).expect("direct path is Sun/Moon only");
     let astro = AstroTime::from_jd_utc(jd);
     let t = centuries(astro.jd_tt);
     let (dpsi, deps) = nutation_deg(t);
@@ -655,7 +638,14 @@ fn direct_sky(body: &BodyDef, jd: f64, lat: f64, lon: f64) -> DirectSky {
             (l, b, dist_au * AU_KM)
         }
         Body::Moon => moon_apparent_ecliptic(astro.jd_tt, dpsi),
-        _ => unreachable!("the direct path is Sun/Moon only"),
+        _ => {
+            let el = crate_body
+                .elements()
+                .expect("crate bodies past the Moon carry VSOP2013 tables");
+            let (l, b, dist_au) =
+                solar_ephemeris::planets::planet_apparent_ecliptic(el, astro.jd_tt, dpsi);
+            (l, b, dist_au * AU_KM)
+        }
     };
     let (ra, dec) = ecl_to_equ(lambda, beta, eps_true);
     let (observer_lat, observer_lon) =
@@ -664,17 +654,130 @@ fn direct_sky(body: &BodyDef, jd: f64, lat: f64, lon: f64) -> DirectSky {
     let (rho_sin, rho_cos) = observer_rho(observer_lat, 0.0);
     let (ra_t, dec_t) = topocentric(ra, dec, dist_km, lst, rho_sin, rho_cos);
     let (alt, az) = alt_az(ra_t, dec_t, lst, observer_lat);
-    // the snapshot assembles angular size from the UNQUANTIZED distance
-    let angular_size =
-        2.0 * (body.radius_km / dist_km).asin() * (180.0 / std::f64::consts::PI) * 3600.0;
-    DirectSky {
-        ra: quant(ra, 9),
-        dec: quant(dec, 9),
-        dist_au: quant(dist_km, 3) / AU_KM,
-        alt: quant(alt, 7),
-        az: quant(az, 7),
-        angular_size_arcsec: quant(angular_size, 4),
+    DirectPlace {
+        ra,
+        dec,
+        dist_km,
+        alt,
+        az,
     }
+}
+
+/// The crate's standard rise/set crossing altitude for one body (the
+/// geometric topocentric altitude of the centre): atmospheric
+/// refraction plus, for the Sun and Moon, the instantaneous apparent
+/// semidiameter, all negative. Topocentric parallax is already in the
+/// place. Mirrors the crate's `standard_altitude_deg` (the radius
+/// constants are the facade's own, identical to the crate's).
+fn standard_altitude_deg(crate_body: solar_ephemeris::Body, radius_km: f64, dist_km: f64) -> f64 {
+    use solar_ephemeris::Body;
+    match crate_body {
+        Body::Sun | Body::Moon => {
+            let semidiameter = (radius_km / dist_km).clamp(-1.0, 1.0).asin().to_degrees();
+            -(34.0 / 60.0 + semidiameter)
+        }
+        _ => -(34.0 / 60.0),
+    }
+}
+
+/// One bisection step pair of the crate's `bisect_cross`, op for op.
+fn direct_bisect(f: &dyn Fn(f64) -> f64, mut a: f64, mut b: f64) -> f64 {
+    let mut fa = f(a);
+    for _ in 0..24 {
+        let m = 0.5 * (a + b);
+        let fm = f(m);
+        if (fa < 0.0) == (fm < 0.0) {
+            a = m;
+            fa = fm;
+        } else {
+            b = m;
+        }
+    }
+    0.5 * (a + b)
+}
+
+/// The crate's `events` for one body, evaluated on the direct places:
+/// the same 144-sample day scan, the same bisection, and the same
+/// parabolic culmination refinement, op for op, on unquantized
+/// altitudes, so the results are bit-identical to the snapshot's event
+/// block (which the `astro_direct` suite pins). Returns
+/// (rise, transit, set); NaN when the event does not happen that local
+/// day. The three events of one body's day share the scan: a script
+/// that reads rise with set, or transit with rise, pays it once - the
+/// small same-day cache keeps the second and third reads free.
+fn direct_events(
+    crate_body: solar_ephemeris::Body,
+    radius_km: f64,
+    jd: f64,
+    lat: f64,
+    lon: f64,
+) -> (f64, f64, f64) {
+    type DayEvents = ((u8, f64, f64, f64), (f64, f64, f64));
+    thread_local! {
+        static EVENTS: std::cell::RefCell<Vec<DayEvents>> =
+            const { std::cell::RefCell::new(Vec::new()) };
+    }
+    // The start of the observer's local mean-solar day (the crate's
+    // `local_solar_day_start`), part of the cache key together with the
+    // body and the observer: an event call at any instant of the day
+    // reuses the day's scan.
+    let offset = lon / 360.0;
+    let day_start = ((jd - 0.5 + offset).floor() + 0.5) - offset;
+    let key = (crate_body as u8, day_start, lat, lon);
+    if let Some((_, hit)) =
+        EVENTS.with(|cell| cell.borrow().iter().find(|(k, _)| *k == key).cloned())
+    {
+        return hit;
+    }
+    let sample_at = |t: f64| {
+        let p = direct_place(crate_body, t, lat, lon);
+        (
+            p.alt - standard_altitude_deg(crate_body, radius_km, p.dist_km),
+            p.alt,
+        )
+    };
+    let steps = 144; // 10-minute sampling over one local mean-solar day
+    let mut prev_t = day_start;
+    let (mut prev_margin, initial_alt) = sample_at(prev_t);
+    let mut rise = f64::NAN;
+    let mut set = f64::NAN;
+    let mut transit = prev_t;
+    let mut transit_alt = initial_alt;
+    for i in 1..=steps {
+        let t = day_start + (i as f64) / (steps as f64);
+        let (margin, alt) = sample_at(t);
+        if alt > transit_alt {
+            transit_alt = alt;
+            transit = t;
+        }
+        if prev_margin < 0.0 && margin >= 0.0 && rise.is_nan() {
+            rise = direct_bisect(&|t| sample_at(t).0, prev_t, t);
+        }
+        if prev_margin >= 0.0 && margin < 0.0 && set.is_nan() {
+            set = direct_bisect(&|t| sample_at(t).0, prev_t, t);
+        }
+        prev_t = t;
+        prev_margin = margin;
+    }
+    // three-point parabolic fit around the best sample (the crate's
+    // culmination refinement)
+    let h = 1.0 / (steps as f64);
+    let a_m = sample_at(transit - h).1;
+    let a_p = sample_at(transit + h).1;
+    let denom = a_m - 2.0 * transit_alt + a_p;
+    if denom < 0.0 {
+        let dx = 0.5 * (a_m - a_p) / denom;
+        transit += dx * h;
+    }
+    let out = (rise, transit, set);
+    EVENTS.with(|cell| {
+        let mut cache = cell.borrow_mut();
+        if cache.len() >= 256 {
+            cache.clear();
+        }
+        cache.push((key, out));
+    });
+    out
 }
 
 /// One body's place as the accessors see it: geocentric RA/Dec and
@@ -692,26 +795,25 @@ struct SkyPlace {
 }
 
 fn sky_place(body: &BodyDef, jd: f64, lat: f64, lon: f64) -> Result<SkyPlace, EpherError> {
-    if matches!(body.name, "Sun" | "Moon") {
-        let s = direct_sky(body, jd, lat, lon);
-        return Ok(SkyPlace {
-            ra: s.ra,
-            dec: s.dec,
-            dist_au: s.dist_au,
-            alt: s.alt,
-            az: s.az,
-            diam_deg: s.angular_size_arcsec / 3600.0,
-        });
-    }
-    let snapshot = sky_snapshot(jd, lat, lon)?;
-    let entry = snapshot_body(&snapshot, body.name)?;
+    // Every body that reaches this function is a crate body: Pluto's
+    // accessors answer from the facade's own elements before calling
+    // here, and Earth is rejected in `body_arg`. The direct path
+    // replaced the crate's sky snapshot (ADR-0037); quantization below
+    // matches the snapshot's JSON field by field, which the
+    // `astro_direct` suite keeps pinned.
+    let crate_body = crate_body(body.number)
+        .expect("sky_place serves crate bodies only; Pluto answers upstream");
+    let s = direct_place(crate_body, jd, lat, lon);
     Ok(SkyPlace {
-        ra: json_f64(entry, "geocentric_apparent_ra_deg")?,
-        dec: json_f64(entry, "geocentric_apparent_dec_deg")?,
-        dist_au: json_f64(entry, "distance_km")? / AU_KM,
-        alt: json_f64(entry, "alt_deg")?,
-        az: json_f64(entry, "az_deg")?,
-        diam_deg: json_f64(entry, "angular_size_arcsec")? / 3600.0,
+        ra: quant(s.ra, 9),
+        dec: quant(s.dec, 9),
+        dist_au: quant(s.dist_km, 3) / AU_KM,
+        alt: quant(s.alt, 7),
+        az: quant(s.az, 7),
+        diam_deg: quant(
+            2.0 * (body.radius_km / s.dist_km).asin() * (180.0 / std::f64::consts::PI) * 3600.0,
+            4,
+        ) / 3600.0,
     })
 }
 
@@ -813,14 +915,14 @@ fn observer_args(
     }
 }
 
-/// Rise / transit / set from the sky snapshot's event block (JDs within
-/// the observer's local mean-solar day of `jd`; a body that never rises
+/// Rise / transit / set from the direct event scan (JDs within the
+/// observer's local mean-solar day of `jd`; a body that never rises
 /// or sets that day is a domain error, not a NaN).
 fn event_fn(name: &str, args: &[Value], key: &str) -> Result<Value, EpherError> {
     let ((lat, lon), body, jd) = observer_args(name, args)?;
-    // Pluto is not in the sky snapshot; its events come from the same
-    // elements and the same horizon convention as everything else.
-    if body.name == "Pluto" {
+    // Pluto is not a crate body; its events come from the same elements
+    // and the same horizon convention as everything else.
+    if body.number == 9 {
         let t = pluto_event(jd, lat, lon, key)?;
         return match t.is_finite() {
             true => Ok(Value::Float(t)),
@@ -831,14 +933,16 @@ fn event_fn(name: &str, args: &[Value], key: &str) -> Result<Value, EpherError> 
             ))),
         };
     }
-    let snapshot = sky_snapshot(jd, lat, lon)?;
-    let entry = snapshot_body(&snapshot, body.name)?;
-    let value = entry
-        .get(key)
-        .ok_or_else(|| EpherError::Domain(format!("ephemeris snapshot missing {key}")))?;
-    match value.as_f64() {
-        Some(x) if x.is_finite() => Ok(Value::Float(x)),
-        _ => Err(domain_error(format!(
+    let crate_body = crate_body(body.number).expect("Pluto was handled above");
+    let (rise, transit, set) = direct_events(crate_body, body.radius_km, jd, lat, lon);
+    let t = match key {
+        "rise_jd" => rise,
+        "set_jd" => set,
+        _ => transit,
+    };
+    match t.is_finite() {
+        true => Ok(Value::Float(quant(t, 8))),
+        false => Err(domain_error(format!(
             "{} never {}s on that local day at that latitude",
             body.name,
             key.strip_suffix("_jd").unwrap_or(key)
