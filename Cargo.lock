@@ -4621,8 +4621,6 @@ dependencies = [
 [[package]]
 name = "solar-ephemeris"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e79c0de4395668b73b645aa3d654d1cefe846ea5e2876b6d69e2aff13b5d317"
 
 [[package]]
 name = "soup3"
