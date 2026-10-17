@@ -155,8 +155,16 @@ fn complex_display(c: Complex<f64>) -> String {
 #[derive(Debug, Clone)]
 pub struct Env {
     bindings: HashMap<String, Value>,
-    constants: HashMap<String, Value>,
-    functions: HashMap<String, Function>,
+    /// User constants and functions, shared copy-on-write: a function
+    /// call forks the environment (`new_child`), and the tables are
+    /// read-only in the call, so children share one map instead of
+    /// deep-cloning every function body per call (a scan step used to
+    /// clone the whole function table per nested call). `Rc::make_mut`
+    /// keeps definition sites exclusive: a `def` or `const` writes
+    /// through a private copy, exactly the visibility a fresh clone
+    /// had.
+    constants: Rc<HashMap<String, Value>>,
+    functions: Rc<HashMap<String, Function>>,
     /// The seeded generator state (ADR-0045): an `Rc` so child
     /// environments (user-function bodies) share the counter, draws
     /// inside a function advance the session's sequence. `Env::default()`
@@ -173,8 +181,8 @@ impl Default for Env {
     fn default() -> Self {
         Self {
             bindings: HashMap::new(),
-            constants: HashMap::new(),
-            functions: HashMap::new(),
+            constants: Rc::new(HashMap::new()),
+            functions: Rc::new(HashMap::new()),
             rng: Rc::new(Cell::new(0x9E37_79B9_7F4A_7C15)),
             word_bits: Rc::new(Cell::new(64)),
         }
@@ -221,7 +229,7 @@ impl Env {
     /// Define a user-defined constant. The guards (no redefinition, no
     /// taking a variable's name) live in the script runner, not here.
     pub fn set_constant(&mut self, name: impl Into<String>, value: Value) {
-        self.constants.insert(name.into(), value);
+        Rc::make_mut(&mut self.constants).insert(name.into(), value);
     }
 
     /// Look up a user-defined function.
@@ -243,9 +251,9 @@ impl Env {
 
     /// A user-defined function's signature as spelled: `gem(a)`.
     pub fn function_signature(&self, name: &str) -> Option<String> {
-        self.functions.get(name).map(|f| {
-            format!("{}({})", name, f.params.join(", "))
-        })
+        self.functions
+            .get(name)
+            .map(|f| format!("{}({})", name, f.params.join(", ")))
     }
 
     pub fn function(&self, name: &str) -> Option<&Function> {
@@ -254,7 +262,7 @@ impl Env {
 
     /// Define a user-defined function.
     pub fn set_function(&mut self, name: impl Into<String>, function: Function) {
-        self.functions.insert(name.into(), function);
+        Rc::make_mut(&mut self.functions).insert(name.into(), function);
     }
 
     /// A child environment for a function call: the function table and the
@@ -263,8 +271,8 @@ impl Env {
     fn new_child(&self) -> Env {
         Env {
             bindings: HashMap::new(),
-            constants: self.constants.clone(),
-            functions: self.functions.clone(),
+            constants: Rc::clone(&self.constants),
+            functions: Rc::clone(&self.functions),
             rng: self.rng.clone(),
             word_bits: self.word_bits.clone(),
         }
@@ -500,9 +508,8 @@ pub struct SpannedToken {
 /// identifiers to the lexer; the parser reads them by spelling, and
 /// anything not on this list is a name.
 pub const KEYWORDS: &[&str] = &[
-    "and", "break", "const", "continue", "def", "do", "else", "end",
-    "for", "if", "in", "not", "or", "return", "solve", "step", "then",
-    "to", "while", "xor",
+    "and", "break", "const", "continue", "def", "do", "else", "end", "for", "if", "in", "not",
+    "or", "return", "solve", "step", "then", "to", "while", "xor",
 ];
 
 pub fn is_keyword(name: &str) -> bool {
@@ -521,7 +528,9 @@ pub fn token_classes(text: &str) -> Result<Vec<SpannedToken>, SpannedError> {
         .into_iter()
         .map(|(token, span)| {
             let (class, text, separator) = match token {
-                Token::Number(_) | Token::Imaginary(_) => (TokenClass::Number, String::new(), false),
+                Token::Number(_) | Token::Imaginary(_) => {
+                    (TokenClass::Number, String::new(), false)
+                }
                 Token::Str(_) => (TokenClass::String, String::new(), false),
                 Token::Ident(name) => {
                     let class = if is_keyword(&name) {
@@ -560,9 +569,7 @@ pub fn token_classes(text: &str) -> Result<Vec<SpannedToken>, SpannedError> {
     // colors and hovers it like a keyword (ADR-0069: consistent hover
     // across the editors). Statement start: nothing but whitespace
     // since the previous newline or semicolon.
-    const STATEMENT_COMMANDS: &[&str] = &[
-        "graph", "graph3d", "solar3d", "save", "table",
-    ];
+    const STATEMENT_COMMANDS: &[&str] = &["graph", "graph3d", "solar3d", "save", "table"];
     let opens_statement = |start: usize| -> bool {
         match text[..start].rfind(|c| c == '\n' || c == ';') {
             Some(i) => text[i + 1..start].trim().is_empty(),
@@ -796,7 +803,13 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                 // newlines are consumed by the comment itself).
                 adv!();
                 if c == '\n' || c == '\r' {
-                    tokens.push((Token::Semicolon, Span { start: tok_start, end: offset }));
+                    tokens.push((
+                        Token::Semicolon,
+                        Span {
+                            start: tok_start,
+                            end: offset,
+                        },
+                    ));
                 }
             }
             '#' => {
@@ -828,9 +841,13 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                                 }
                                 Some(consumed) => offset += consumed.len_utf8(),
                                 None => {
-                                    return Err(spanned(EpherError::Parse(
+                                    return Err(spanned(
+                                        EpherError::Parse(
                                             "unterminated block comment: expected */".into(),
-                                        ), tok_start, offset));
+                                        ),
+                                        tok_start,
+                                        offset,
+                                    ));
                                 }
                             }
                         }
@@ -846,114 +863,276 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                             adv!();
                         }
                     }
-                    _ => tokens.push((Token::Slash, Span { start: tok_start, end: offset })),
+                    _ => tokens.push((
+                        Token::Slash,
+                        Span {
+                            start: tok_start,
+                            end: offset,
+                        },
+                    )),
                 }
             }
             '+' => {
                 adv!();
-                tokens.push((Token::Plus, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::Plus,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '-' => {
                 adv!();
-                tokens.push((Token::Minus, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::Minus,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '*' => {
                 adv!();
-                tokens.push((Token::Star, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::Star,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '^' => {
                 adv!();
-                tokens.push((Token::Caret, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::Caret,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             ',' => {
                 adv!();
-                tokens.push((Token::Comma, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::Comma,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '>' => {
                 adv!();
                 if matches!(chars.peek(), Some('>')) {
                     adv!();
-                    tokens.push((Token::ShiftRight, Span { start: tok_start, end: offset }));
+                    tokens.push((
+                        Token::ShiftRight,
+                        Span {
+                            start: tok_start,
+                            end: offset,
+                        },
+                    ));
                 } else if matches!(chars.peek(), Some('=')) {
                     adv!();
-                    tokens.push((Token::GreaterEqual, Span { start: tok_start, end: offset }));
+                    tokens.push((
+                        Token::GreaterEqual,
+                        Span {
+                            start: tok_start,
+                            end: offset,
+                        },
+                    ));
                 } else {
-                    tokens.push((Token::GreaterThan, Span { start: tok_start, end: offset }));
+                    tokens.push((
+                        Token::GreaterThan,
+                        Span {
+                            start: tok_start,
+                            end: offset,
+                        },
+                    ));
                 }
             }
             '<' => {
                 adv!();
                 if matches!(chars.peek(), Some('<')) {
                     adv!();
-                    tokens.push((Token::ShiftLeft, Span { start: tok_start, end: offset }));
+                    tokens.push((
+                        Token::ShiftLeft,
+                        Span {
+                            start: tok_start,
+                            end: offset,
+                        },
+                    ));
                 } else if matches!(chars.peek(), Some('=')) {
                     adv!();
-                    tokens.push((Token::LessEqual, Span { start: tok_start, end: offset }));
+                    tokens.push((
+                        Token::LessEqual,
+                        Span {
+                            start: tok_start,
+                            end: offset,
+                        },
+                    ));
                 } else {
-                    tokens.push((Token::LessThan, Span { start: tok_start, end: offset }));
+                    tokens.push((
+                        Token::LessThan,
+                        Span {
+                            start: tok_start,
+                            end: offset,
+                        },
+                    ));
                 }
             }
             '&' => {
                 adv!();
-                tokens.push((Token::Amp, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::Amp,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '|' => {
                 adv!();
-                tokens.push((Token::Pipe, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::Pipe,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '~' => {
                 adv!();
-                tokens.push((Token::Tilde, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::Tilde,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '=' => {
                 adv!();
                 if matches!(chars.peek(), Some('=')) {
                     adv!();
-                    tokens.push((Token::EqualEqual, Span { start: tok_start, end: offset }));
+                    tokens.push((
+                        Token::EqualEqual,
+                        Span {
+                            start: tok_start,
+                            end: offset,
+                        },
+                    ));
                 } else {
-                    tokens.push((Token::Equals, Span { start: tok_start, end: offset }));
+                    tokens.push((
+                        Token::Equals,
+                        Span {
+                            start: tok_start,
+                            end: offset,
+                        },
+                    ));
                 }
             }
             '!' => {
                 adv!();
                 if matches!(chars.peek(), Some('=')) {
                     adv!();
-                    tokens.push((Token::NotEqual, Span { start: tok_start, end: offset }));
+                    tokens.push((
+                        Token::NotEqual,
+                        Span {
+                            start: tok_start,
+                            end: offset,
+                        },
+                    ));
                 } else {
-                    tokens.push((Token::Bang, Span { start: tok_start, end: offset }));
+                    tokens.push((
+                        Token::Bang,
+                        Span {
+                            start: tok_start,
+                            end: offset,
+                        },
+                    ));
                 }
             }
             '%' => {
                 adv!();
-                tokens.push((Token::Percent, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::Percent,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             ';' => {
                 adv!();
-                tokens.push((Token::Semicolon, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::Semicolon,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '(' => {
                 adv!();
-                tokens.push((Token::LParen, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::LParen,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             ')' => {
                 adv!();
-                tokens.push((Token::RParen, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::RParen,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '{' => {
                 adv!();
-                tokens.push((Token::LBrace, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::LBrace,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '}' => {
                 adv!();
-                tokens.push((Token::RBrace, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::RBrace,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '[' => {
                 adv!();
-                tokens.push((Token::LBracket, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::LBracket,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             ']' => {
                 adv!();
-                tokens.push((Token::RBracket, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::RBracket,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '"' => {
                 // A string literal (ADR-0054): read to the closing
@@ -987,9 +1166,13 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                                         )), tok_start, offset));
                                 }
                                 None => {
-                                    return Err(spanned(EpherError::Parse(
+                                    return Err(spanned(
+                                        EpherError::Parse(
                                             "a string ends on a lone backslash".to_string(),
-                                        ), tok_start, offset));
+                                        ),
+                                        tok_start,
+                                        offset,
+                                    ));
                                 }
                             }
                         }
@@ -998,14 +1181,24 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                             offset += c2.len_utf8();
                         }
                         None => {
-                            return Err(spanned(EpherError::Parse(
+                            return Err(spanned(
+                                EpherError::Parse(
                                     "unterminated string: a literal needs its closing quote"
                                         .to_string(),
-                                ), tok_start, offset));
+                                ),
+                                tok_start,
+                                offset,
+                            ));
                         }
                     }
                 }
-                tokens.push((Token::Str(s), Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::Str(s),
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             '0' if matches!(
                 chars.clone().nth(1),
@@ -1043,12 +1236,18 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                 if digits.is_empty() {
                     if let Some(ch) = chars.peek().copied() {
                         if ch.is_ascii_alphanumeric() {
-                            return Err(spanned(EpherError::Parse(format!(
-                                    "invalid digit {ch} after 0{marker}"
-                                )), tok_start, offset));
+                            return Err(spanned(
+                                EpherError::Parse(format!("invalid digit {ch} after 0{marker}")),
+                                tok_start,
+                                offset,
+                            ));
                         }
                     }
-                    return Err(spanned(EpherError::Parse(format!("expected digits after 0{marker}")), tok_start, offset));
+                    return Err(spanned(
+                        EpherError::Parse(format!("expected digits after 0{marker}")),
+                        tok_start,
+                        offset,
+                    ));
                 }
                 let big = num_bigint::BigInt::parse_bytes(digits.as_bytes(), radix)
                     .expect("only valid digits were collected");
@@ -1063,7 +1262,13 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                     }
                 };
                 let token = imaginary_or_number(n, &mut chars, &mut offset);
-                tokens.push((token, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    token,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             c if c.is_ascii_digit() || c == '.' => {
                 let mut num = String::new();
@@ -1115,7 +1320,13 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                     }
                 };
                 let token = imaginary_or_number(n, &mut chars, &mut offset);
-                tokens.push((token, Span { start: tok_start, end: offset }));
+                tokens.push((
+                    token,
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             c if c.is_alphabetic() || c == '_' => {
                 let mut ident = String::new();
@@ -1131,7 +1342,13 @@ fn tokenize(text: &str) -> Result<Vec<(Token, Span)>, SpannedError> {
                         break;
                     }
                 }
-                tokens.push((Token::Ident(ident), Span { start: tok_start, end: offset }));
+                tokens.push((
+                    Token::Ident(ident),
+                    Span {
+                        start: tok_start,
+                        end: offset,
+                    },
+                ));
             }
             other => {
                 return Err(spanned(
@@ -1344,11 +1561,19 @@ impl Parser {
             if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "do") {
                 self.next(); // consume 'do'
                 let stmts = self.parse_block()?;
-                return Ok(Statement::FunctionDef(name, params, FunctionBody::Block(stmts)));
+                return Ok(Statement::FunctionDef(
+                    name,
+                    params,
+                    FunctionBody::Block(stmts),
+                ));
             }
             self.expect_token(Token::Equals, "'=' or 'do'")?;
             let body = self.parse_expression()?;
-            return Ok(Statement::FunctionDef(name, params, FunctionBody::Expr(body)));
+            return Ok(Statement::FunctionDef(
+                name,
+                params,
+                FunctionBody::Expr(body),
+            ));
         }
         // `{a, b} = expr` (ADR-0064): a list pattern of names before an
         // `=` is a destructure. The pattern grammar is tried first and
@@ -1762,7 +1987,10 @@ impl Parser {
                     if let Expression::Unit(inner, f, d, u) = &left {
                         if let Some(Token::Ident(unit)) = self.peek().cloned() {
                             if let Some(UnitDef { factor, dims }) = unit_def_with_prefix(&unit) {
-                                if !matches!(self.tokens.get(self.pos + 1), Some((Token::LParen, _))) {
+                                if !matches!(
+                                    self.tokens.get(self.pos + 1),
+                                    Some((Token::LParen, _))
+                                ) {
                                     self.next();
                                     let mut u2 = unit;
                                     let mut f2 = factor;
@@ -1947,8 +2175,10 @@ impl Parser {
                             if let Some(Token::Ident(unit)) = self.peek().cloned() {
                                 if let Some(UnitDef { factor, dims }) = unit_def_with_prefix(&unit)
                                 {
-                                    if !matches!(self.tokens.get(self.pos + 1), Some((Token::LParen, _)))
-                                    {
+                                    if !matches!(
+                                        self.tokens.get(self.pos + 1),
+                                        Some((Token::LParen, _))
+                                    ) {
                                         self.next();
                                         return self.apply_unit_suffix(expr, factor, dims, unit);
                                     }
@@ -2452,9 +2682,7 @@ pub fn eval(expr: &Expression, env: &Env) -> Result<Value, EpherError> {
                                  expression or a return"
                             ))),
                             Flow::Return(v) => Ok(v),
-                            Flow::Break => {
-                                Err(EpherError::Type("break outside a loop".into()))
-                            }
+                            Flow::Break => Err(EpherError::Type("break outside a loop".into())),
                             Flow::Continue => {
                                 Err(EpherError::Type("continue outside a loop".into()))
                             }
@@ -5556,7 +5784,6 @@ pub fn supplementary_catalog() -> &'static [CatalogEntry] {
     SUPPLEMENTARY_CATALOG
 }
 
-
 /// The sorted builtin catalog: every function and constant the language
 /// ships, for autocomplete and F1 help (ADR-0042).
 pub fn catalog() -> &'static [CatalogEntry] {
@@ -7703,10 +7930,7 @@ fn call_builtin(name: &str, args: Vec<Value>) -> Result<Value, EpherError> {
                         "fixed expects a whole number of digits from 0 to 15, got {digits}"
                     )));
                 }
-                Ok(Value::Str(format!(
-                    "{value:.*}",
-                    *digits as usize
-                )))
+                Ok(Value::Str(format!("{value:.*}", *digits as usize)))
             }
             other => Err(EpherError::Type(format!(
                 "fixed expects a number and a number of digits, got {} argument(s)",
@@ -8406,14 +8630,16 @@ pub fn evaluation_trace(session: &mut Session, text: &str) -> Vec<StatementOutco
         // the same bookkeeping `submit` does for interactive lines.
         match &stmt.node {
             Statement::FunctionDef(name, _, _) => {
-                session
-                    .defs
-                    .insert(name.clone(), text[stmt.span.start..stmt.span.end].to_string());
+                session.defs.insert(
+                    name.clone(),
+                    text[stmt.span.start..stmt.span.end].to_string(),
+                );
             }
             Statement::Const(name, _) => {
-                session
-                    .consts
-                    .insert(name.clone(), text[stmt.span.start..stmt.span.end].to_string());
+                session.consts.insert(
+                    name.clone(),
+                    text[stmt.span.start..stmt.span.end].to_string(),
+                );
             }
             _ => {}
         }
