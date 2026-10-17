@@ -14,6 +14,7 @@ use epher_core::{
     catalog, evaluation_trace, format_value, supplementary_catalog, token_classes, CatalogKind,
     DisplayPrefs, Session, Span, SpannedToken, StatementOutcome, TokenClass, Value,
 };
+use epher_shell::ScriptLine;
 
 /// One open document, current as of `version`.
 pub struct Document {
@@ -184,7 +185,11 @@ impl Document {
             if entry.name != name {
                 continue;
             }
-            let kind_word = if entry.is_constant() { "constant" } else { "function" };
+            let kind_word = if entry.is_constant() {
+                "constant"
+            } else {
+                "function"
+            };
             let value_line = match builtin_value(entry.name, entry.kind) {
                 Some(v) => format!("\n\n= {}", format_value(&v, &DisplayPrefs::default())),
                 None => String::new(),
@@ -206,7 +211,11 @@ impl Document {
         for entry in catalog().iter().chain(supplementary_catalog()) {
             items.push(lsp_types::CompletionItem {
                 label: entry.name.to_string(),
-                kind: Some(if entry.is_constant() { K::CONSTANT } else { K::FUNCTION }),
+                kind: Some(if entry.is_constant() {
+                    K::CONSTANT
+                } else {
+                    K::FUNCTION
+                }),
                 detail: Some(format!("{}: {}", entry.signature, entry.description)),
                 ..Default::default()
             });
@@ -387,6 +396,105 @@ fn diagnostic(range: lsp_types::Range, message: &str) -> lsp_types::Diagnostic {
     }
 }
 
+/// The run payload rebuilt from a finished analysis pass, without
+/// evaluating again (ADR-0069). A document's first open analyzes the
+/// whole file; the editor's Run command then asks for the same text's
+/// per-statement report, and re-evaluating meant paying the same
+/// computation twice, which on the long astronomy scripts is the
+/// better part of a minute.
+///
+/// The reconstruction is exact only when the analysis pass saw the
+/// whole run's work: no dispatched pieces (`graph`/`graph3d`/`solar3d`
+/// lines, shell commands like `table` - the analysis masks those out,
+/// and the run renders plots and multi-line tables the trace never
+/// sees), and no evaluation error (the trace is fail-fast, so outcomes
+/// after the first error do not exist, while the run carries on). When
+/// either fails, or the piece walk does not line up with the trace,
+/// this returns `None` and the caller runs the script the direct way.
+/// The line shape matches `epher_shell::run_script` field for field:
+/// same line numbers (each statement's starting line), same source
+/// text, same `= value` displays, same error messages.
+pub fn reconstruct_run(text: &str, outcomes: &[StatementOutcome]) -> Option<Vec<ScriptLine>> {
+    // A failed pass is fail-fast: it saw only a prefix of the
+    // statements, while the run carries on past errors.
+    if outcomes.iter().any(|o| o.error.is_some()) {
+        return None;
+    }
+    if !epher_shell::dispatched_piece_ranges(text).is_empty() {
+        return None;
+    }
+    let mut lines = Vec::new();
+    let mut used = 0usize; // outcomes consumed so far
+                           // Line numbering mirrors `run_script` exactly: newlines count only
+                           // in the gaps between pieces, so a multiline `def` block reports
+                           // its first line and the next piece continues one line down.
+    let mut cursor = 0usize;
+    let mut lines_seen = 0u32;
+    for piece in epher_shell::split_statements(text) {
+        let trimmed = piece.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        let offset = text[cursor..]
+            .find(trimmed)
+            .map(|at| cursor + at)
+            .unwrap_or(cursor);
+        lines_seen += text[cursor..offset].matches('\n').count() as u32;
+        cursor = offset + trimmed.len();
+        let line_no = lines_seen;
+        let start = offset;
+        let end = offset + trimmed.len();
+        // The statements this piece spans; a comment or blank piece
+        // spans none, and `run_script` still lists it with no value.
+        let first = used;
+        while used < outcomes.len()
+            && outcomes[used].span.start >= start
+            && outcomes[used].span.start < end
+        {
+            used += 1;
+        }
+        let spanned = &outcomes[first..used];
+        if spanned.is_empty() {
+            lines.push(ScriptLine {
+                line: line_no,
+                source: trimmed.to_string(),
+                display: None,
+                error: false,
+            });
+            continue;
+        }
+        // The run joins a piece's values as the calculator prints
+        // them (`= 3\n= 4`); the trace stores the same rendering
+        // without the `= ` prefix.
+        let mut parts: Vec<String> = Vec::with_capacity(spanned.len());
+        let mut errored = false;
+        for outcome in spanned {
+            if let Some(error) = &outcome.error {
+                errored = true;
+                parts.push(error.to_string());
+            } else if let Some(display) = &outcome.display {
+                parts.push(format!("= {display}"));
+            }
+        }
+        lines.push(ScriptLine {
+            line: line_no,
+            source: trimmed.to_string(),
+            display: if parts.is_empty() {
+                None
+            } else {
+                Some(parts.join("\n"))
+            },
+            error: errored,
+        });
+    }
+    // Every outcome must have landed in some piece; anything else
+    // means the walk misunderstood the document, so refuse.
+    if used != outcomes.len() {
+        return None;
+    }
+    Some(lines)
+}
+
 /// The live value of a builtin constant, for hover (functions are not
 /// values).
 fn builtin_value(name: &str, kind: CatalogKind) -> Option<Value> {
@@ -409,14 +517,12 @@ fn line_starts(text: &str) -> Vec<usize> {
 /// The server's advertised capabilities, exactly what it answers.
 pub fn server_capabilities() -> lsp_types::ServerCapabilities {
     use lsp_types::{
-        CompletionOptions, HoverProviderCapability, OneOf,
-        SemanticTokensFullOptions, SemanticTokensLegend, SemanticTokensOptions,
-        ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind,
+        CompletionOptions, HoverProviderCapability, OneOf, SemanticTokensFullOptions,
+        SemanticTokensLegend, SemanticTokensOptions, ServerCapabilities,
+        TextDocumentSyncCapability, TextDocumentSyncKind,
     };
     ServerCapabilities {
-        text_document_sync: Some(TextDocumentSyncCapability::Kind(
-            TextDocumentSyncKind::FULL,
-        )),
+        text_document_sync: Some(TextDocumentSyncCapability::Kind(TextDocumentSyncKind::FULL)),
         hover_provider: Some(HoverProviderCapability::Simple(true)),
         completion_provider: Some(CompletionOptions::default()),
         semantic_tokens_provider: Some(
