@@ -17,6 +17,9 @@
 /crates/web/dist
 site/guide/*/index.html
 node_modules/
+
+# codebase-memory MCP local store (graph DB mirror stays machine-local)
+.codebase-memory/
 # VS Code pilot build output
 clients/vscode/out/
 clients/vscode/dist/
