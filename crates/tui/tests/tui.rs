@@ -755,6 +755,47 @@ fn keypad_covers_every_function_that_was_missing() {
     }
 }
 
+/// The keypad and the core catalog must agree on what is a function
+/// (ADR-0016 amendment, the `now` bug): a key that inserts a bare
+/// catalog function name - `deg`, `now`, `bin` - hands the parser an
+/// unbound name, never a call, so such a key must insert `name(`
+/// instead. The reverse guards typos: a token ending in `(` must name
+/// a real catalog function, or the key inserts a dead token.
+#[test]
+fn keypad_function_keys_match_the_core_catalog() {
+    let functions: std::collections::HashSet<&str> = epher_core::catalog()
+        .iter()
+        .chain(epher_core::supplementary_catalog().iter())
+        .filter(|e| e.kind == epher_core::CatalogKind::Function)
+        .map(|e| e.name)
+        .collect();
+    for bank in epher_tui::banks() {
+        for row in bank.1 {
+            for &(display, token) in *row {
+                assert!(
+                    !functions.contains(token),
+                    "bank {}: key {display} inserts the bare function \
+                     {token}; it must insert {token}( so the entry parses \
+                     as a call",
+                    bank.0
+                );
+                if let Some(name) = token.strip_suffix('(') {
+                    if !name.is_empty()
+                        && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+                    {
+                        assert!(
+                            functions.contains(name),
+                            "bank {}: key {display} calls {name}, which the \
+                             catalog does not declare",
+                            bank.0
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
 // ===== menus, themes, and file prompts (ADR-0017) =====
 
 #[test]

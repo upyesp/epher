@@ -538,7 +538,12 @@ static TABS: &[TabDef] = &[
             key("split", KeyAction::Call("split"), "fn", "key-hint-split"),
             key("join", KeyAction::Call("join"), "fn", "key-hint-join"),
             key("find", KeyAction::Call("find"), "fn", "key-hint-find"),
-            key("replace", KeyAction::Call("replace"), "fn", "key-hint-replace"),
+            key(
+                "replace",
+                KeyAction::Call("replace"),
+                "fn",
+                "key-hint-replace",
+            ),
             key("fixed", KeyAction::Call("fixed"), "fn", "key-hint-fixed"),
         ],
     },
@@ -731,7 +736,7 @@ static TABS: &[TabDef] = &[
             key("date", KeyAction::Call("date"), "fn", "key-hint-date"),
             key("time", KeyAction::Call("time"), "fn", "key-hint-time"),
             key("iso", KeyAction::Call("iso"), "fn", "key-hint-iso"),
-            key("now", KeyAction::Text("now"), "fn", "key-hint-now"),
+            key("now", KeyAction::Call("now"), "fn", "key-hint-now"),
             key(
                 "delta_t",
                 KeyAction::Call("delta_t"),
@@ -8174,6 +8179,48 @@ mod tests {
                     } else {
                         assert_ne!(l.lookup(k.hint), k.hint, "hint {} missing", k.hint);
                     }
+                }
+            }
+        }
+    }
+
+    /// The keypad and the core catalog must agree on what is a function
+    /// (ADR-0016 amendment, the `now` bug): a `Text` key that spells a
+    /// catalog function name bare hands the parser an unbound name,
+    /// never a call, so function keys are `Call`. The reverse guards
+    /// typos: a `Call` must name a real catalog function, or the key
+    /// inserts a dead token.
+    #[test]
+    fn keypad_keys_match_the_core_catalog() {
+        use crate::KeyAction;
+        let functions: std::collections::HashSet<&str> = epher_core::catalog()
+            .iter()
+            .chain(epher_core::supplementary_catalog().iter())
+            .filter(|e| e.kind == epher_core::CatalogKind::Function)
+            .map(|e| e.name)
+            .collect();
+        for tab in TABS {
+            for k in tab.keys {
+                match k.act {
+                    KeyAction::Text(t) => {
+                        assert!(
+                            !functions.contains(t),
+                            "tab {}: key {} inserts the bare function {t}; it \
+                             must be KeyAction::Call so the entry parses as a call",
+                            tab.id,
+                            k.label
+                        );
+                    }
+                    KeyAction::Call(name) => {
+                        assert!(
+                            functions.contains(name),
+                            "tab {}: key {} calls {name}, which the catalog \
+                             does not declare",
+                            tab.id,
+                            k.label
+                        );
+                    }
+                    _ => {}
                 }
             }
         }
