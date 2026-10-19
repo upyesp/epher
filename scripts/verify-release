@@ -9,6 +9,12 @@ cd "$(dirname "$0")/.."
 REPO="${GITHUB_REPOSITORY:-upyesp/epher}"
 status=0
 
+# gh timestamps are ISO 8601 with a Z suffix; GNU date -d is unavailable
+# on macOS, so convert via python3 on every platform the gauntlet runs on.
+iso_epoch() {
+  python3 -c 'import sys, datetime; print(int(datetime.datetime.fromisoformat(sys.argv[1].replace("Z", "+00:00")).timestamp()))' "$1"
+}
+
 echo "== release $V_VERSION is published =="
 # gh's jq has no prefix-! operator ('! .isDraft' is a syntax error, and
 # the 0.5.80 gauntlet died on it): pipe to not, capture and compare.
@@ -53,7 +59,7 @@ echo "== channel workflows dispatched by this release =="
 # runs created after this run started. Find each workflow's newest run
 # in that window and require it to conclude success.
 if [ -n "${GITHUB_RUN_ID:-}" ]; then
-  epoch_since="$(date -d "$(gh run view "$GITHUB_RUN_ID" --repo "$REPO" --json createdAt --jq .createdAt)" +%s)"
+  epoch_since="$(iso_epoch "$(gh run view "$GITHUB_RUN_ID" --repo "$REPO" --json createdAt --jq .createdAt)")"
 else
   # Local runs have no run id: no window, take the newest run.
   epoch_since=0
@@ -64,7 +70,7 @@ for wf in sublime-publish epher-nvim-publish luarocks-publish vim-publish; do
     run_id="$(gh run list --workflow "$wf.yml" --limit 10 --json databaseId,createdAt \
       --jq '.[] | [.databaseId, .createdAt] | @tsv' 2>/dev/null \
       | while IFS="$(printf '\t')" read -r id created; do
-          [ "$(date -d "$created" +%s)" -ge "$epoch_since" ] && echo "$id" && break
+          [ "$(iso_epoch "$created")" -ge "$epoch_since" ] && echo "$id" && break
         done | head -1)"
     [ -n "$run_id" ] && break
     sleep 30
