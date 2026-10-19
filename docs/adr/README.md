@@ -99,6 +99,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0072 | macOS installs come from Homebrew | 2026-10-10 | accepted |
 | 0073 | The release is cut by CI from a verified tree and the channels follow it | 2026-10-10 | accepted |
 | 0074 | The Windows CLI explains a bare run until the headless waiver | 2026-10-11 | accepted |
+| 0075 | The Apple-silicon gate reports without running when a pull request cannot change what it tests | 2026-10-19 | proposed |
 
 ## Decision chains
 
