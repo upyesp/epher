@@ -6,6 +6,12 @@ Status: Accepted (extends ADR-0072's Homebrew decision with two more
 macOS paths; the formula and the site card go live with the train that
 first builds the new tarball).
 
+Amendment 2026-10-20, same day: the landing-page card advertises two
+of the three paths (install.sh and the cask) — the formula line was
+dropped from the card as one option too many for a first impression.
+The formula itself stays in the tap, self-updating and documented
+there; the card's macOS story is script, cask, disk image.
+
 ## Context
 
 ADR-0072 made Homebrew the macOS channel, and the release ships an
