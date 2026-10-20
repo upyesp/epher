@@ -15,6 +15,8 @@
 #   epher-windows-x86_64.exe        Windows installer (NSIS)
 #   epher-macos-aarch64.dmg         macOS disk image (Apple Silicon only:
 #                                   ADR-0025 dropped the Intel build)
+#   epher-macos-aarch64.tar.gz      the unified binary for the Homebrew
+#                                   formula (ADR-0076)
 #   epher-linux-x86_64.deb          Debian/Ubuntu and derivatives
 #   epher-linux-x86_64.rpm          Fedora/RHEL and derivatives
 #   epher-linux-x86_64.AppImage     everything else, incl. Arch: runs as-is
@@ -358,6 +360,17 @@ jobs:
               codesign --force --sign - target/release/epher-lsp
               codesign --verify target/release/epher-lsp
               gzip -9 -n -c target/release/epher-lsp > artifacts/epher-lsp-${{ matrix.target }}.gz
+              # The Homebrew formula (ADR-0076): the unified binary as a
+              # tarball, the artifact the formula's `binary` stanza
+              # installs onto the PATH. The DMG is already built above,
+              # so stripping this copy cannot affect the bundle. Ad-hoc
+              # signed like the lsp binary: a valid signature keeps any
+              # future Gatekeeper check overridable.
+              strip target/release/epher
+              codesign --force --sign - target/release/epher
+              codesign --verify target/release/epher
+              tar -C target/release -czf artifacts/epher-${{ matrix.target }}.tar.gz epher
+              tar -tzf artifacts/epher-${{ matrix.target }}.tar.gz | grep -qx 'epher'
               ;;
             Windows)
               cp "$BUNDLE"/nsis/*-setup.exe artifacts/epher-windows-x86_64.exe

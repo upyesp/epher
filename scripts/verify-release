@@ -30,6 +30,7 @@ assets="$(gh release view "$V_VERSION" --repo "$REPO" --json assets --jq '.asset
 for name in \
   epher-windows-x86_64.exe \
   epher-macos-aarch64.dmg \
+  epher-macos-aarch64.tar.gz \
   epher-linux-x86_64.deb epher-linux-x86_64.rpm epher-linux-x86_64.AppImage \
   epher-linux-aarch64.deb epher-linux-aarch64.rpm epher-linux-aarch64.AppImage \
   epher-linux-x86_64.flatpak \
