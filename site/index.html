@@ -243,13 +243,17 @@
         <article class="card">
           <h3 data-i18n="mac-name">macOS</h3>
           <p data-i18n="mac-desc">
-            One app, one command: Homebrew puts it in Applications, links
-            the `epher` terminal command, and keeps it current with
-            brew upgrade. First launch: if macOS blocks the app, allow it
-            in System Settings → Privacy & Security.
+            Three ways in, all Apple Silicon. The first needs only a
+            terminal window: one line installs the app and the epher
+            terminal command, with nothing to approve. Homebrew users can
+            pick the app, the command, or both.
           </p>
-          <p class="dl-title" data-i18n="mac-brew-title">Install with Homebrew (Apple Silicon):</p>
-          <pre class="path-cmd" aria-label="Homebrew install command (copy button beside it)">brew install --cask upyesp/tap/epher</pre>
+          <p class="dl-title" data-i18n="mac-script-title">One line, no Homebrew (app + terminal command):</p>
+          <pre class="path-cmd" aria-label="epher install script command (copy button beside it)">curl -fsSL https://raw.githubusercontent.com/upyesp/epher/main/install.sh | sh</pre>
+          <p class="dl-title" data-i18n="mac-brew-title">Or with Homebrew — the app:</p>
+          <pre class="path-cmd" aria-label="Homebrew cask install command (copy button beside it)">brew install --cask upyesp/tap/epher</pre>
+          <p class="dl-title" data-i18n="mac-cli-title">…or just the terminal command:</p>
+          <pre class="path-cmd" aria-label="Homebrew formula install command (copy button beside it)">brew install upyesp/tap/epher</pre>
           <p class="repo-alt">
             <a href="https://github.com/upyesp/epher/releases/latest/download/epher-macos-aarch64.dmg"
               data-i18n="mac-download">or download the disk image instead</a>

@@ -34,7 +34,17 @@
 
 ## Quick Start
 
-Grab an installer from the badges above, or run straight from source:
+Grab an installer from the badges above, or run straight from source.
+On a Mac there are three ways in (ADR-0076): one line with no Homebrew —
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/upyesp/epher/main/install.sh | sh
+```
+
+— or Homebrew, for the desktop app (`brew install --cask upyesp/tap/epher`)
+or just the terminal command (`brew install upyesp/tap/epher`).
+
+From source:
 
 ```bash
 git clone https://github.com/upyesp/epher.git
