@@ -27,6 +27,8 @@
 #   epher-windows-x86_64.exe        Windows installer (NSIS)
 #   epher-macos-aarch64.dmg         macOS disk image (Apple Silicon only: 
 #                                   ADR-0025 dropped the Intel build)
+#   epher-macos-aarch64.tar.gz      the unified binary for the Homebrew
+#                                   formula and install.sh (ADR-0076)
 #   epher-linux-x86_64.deb          Debian/Ubuntu and derivatives
 #   epher-linux-x86_64.rpm          Fedora/RHEL and derivatives
 #   epher-linux-x86_64.AppImage     everything else, incl. Arch: runs as-is

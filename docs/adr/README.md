@@ -100,6 +100,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0073 | The release is cut by CI from a verified tree and the channels follow it | 2026-10-10 | accepted |
 | 0074 | The Windows CLI explains a bare run until the headless waiver | 2026-10-11 | accepted |
 | 0075 | The Apple-silicon gate reports without running when a pull request cannot change what it tests | 2026-10-19 | proposed |
+| 0076 | macOS offers three install paths, and none of them needs an approval | 2026-10-20 | accepted |
 
 ## Decision chains
 
