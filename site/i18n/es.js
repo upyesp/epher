@@ -52,7 +52,7 @@ window.EPHER_I18N["es"] = {
   "mac-name": "macOS",
   "mac-desc": "Dos caminos, ambos para Apple Silicon. El primero solo necesita una ventana de terminal: una línea instala la app y el comando epher, sin nada que aprobar. Con Homebrew instalas la app y la mantienes al día con brew upgrade.",
   "mac-script-title": "Una línea, sin Homebrew (app + comando de terminal):",
-  "mac-brew-title": "O con Homebrew — la app:",
+  "mac-brew-title": "O con Homebrew:",
   "mac-download": "o descarga la imagen de disco",
   "linux-name": "Linux",
   "linux-desc": "Una aplicación, todos los métodos de instalación: los repositorios apt y dnf, Snap, Flatpak o una descarga directa (.deb, .rpm o AppImage).",

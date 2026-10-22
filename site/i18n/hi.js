@@ -36,7 +36,7 @@ window.EPHER_I18N["hi"] = {
   "mac-name": "macOS",
   "mac-desc": "दो तरीके, दोनों Apple Silicon के लिए। पहले के लिए बस एक टर्मिनल विंडो चाहिए: एक लाइन ऐप और epher टर्मिनल कमांड दोनों इंस्टॉल करती है, बिना किसी अनुमति के। Homebrew उपयोगकर्ता ऐप इंस्टॉल करते हैं और brew upgrade से उसे अद्यतन रखते हैं।",
   "mac-script-title": "एक लाइन, बिना Homebrew (ऐप + टर्मिनल कमांड):",
-  "mac-brew-title": "या Homebrew से — ऐप:",
+  "mac-brew-title": "या Homebrew से:",
   "mac-download": "या डिस्क इमेज डाउनलोड करें",
   "linux-name": "Linux",
   "linux-desc": "एक ऐप, इंस्टॉल के हर तरीके के साथ: apt और dnf रिपॉज़िटरी, Snap, Flatpak, या सीधा .deb, .rpm, या AppImage डाउनलोड।",

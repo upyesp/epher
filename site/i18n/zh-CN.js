@@ -52,7 +52,7 @@ window.EPHER_I18N["zh-CN"] = {
   "mac-name": "macOS",
   "mac-desc": "两种安装方式，均支持 Apple 芯片。第一种只需一个终端窗口：一行命令即可装好应用和 epher 终端命令，全程无需任何批准。Homebrew 用户安装应用，并用 brew upgrade 保持最新。",
   "mac-script-title": "一行命令，无需 Homebrew（应用 + 终端命令）：",
-  "mac-brew-title": "或用 Homebrew —— 安装应用：",
+  "mac-brew-title": "或用 Homebrew：",
   "mac-download": "或下载磁盘映像",
   "linux-name": "Linux",
   "linux-desc": "一个应用，多种安装途径：apt 和 dnf 软件源、Snap、Flatpak，或直接下载 .deb、.rpm 或 AppImage。",
