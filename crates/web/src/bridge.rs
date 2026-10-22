@@ -310,6 +310,18 @@ impl Bridge {
         serde_wasm_bindgen::from_value(value).map_err(|e| e.to_string())
     }
 
+    /// Does a working `epher` command already exist, whatever put it
+    /// there (the install.sh script, Homebrew, or this app's own
+    /// button)? The UI asks at startup to keep the install offer
+    /// genuinely conditional.
+    pub async fn cli_command_installed(self) -> Result<bool, String> {
+        let value = self
+            .invoke("cli_command_installed", &JsValue::UNDEFINED)
+            .await
+            .map_err(js_err)?;
+        serde_wasm_bindgen::from_value(value).map_err(|e| e.to_string())
+    }
+
     /// Install the `epher` terminal command. Ok carries a Fluent key;
     /// Err carries readable instructions to show.
     pub async fn install_cli(self) -> Result<String, String> {

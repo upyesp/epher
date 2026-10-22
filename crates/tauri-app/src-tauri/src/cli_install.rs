@@ -57,6 +57,34 @@ pub fn manual_instructions(target: &Path, link: &Path) -> String {
     )
 }
 
+/// Every location an `epher` command may already live at, whatever put it
+/// there: this button's own /usr/local/bin link, the install.sh script's
+/// ~/.local/bin link (ADR-0076), and Homebrew's link from the cask's
+/// `binary` stanza or the formula — both land in /opt/homebrew/bin
+/// (arm64 only, ADR-0025, so that is the one prefix). The install offer
+/// is shown only when none of these holds a working command.
+pub fn command_link_candidates(home: &Path) -> Vec<PathBuf> {
+    vec![
+        PathBuf::from("/usr/local/bin/epher"),
+        home.join(".local/bin/epher"),
+        PathBuf::from("/opt/homebrew/bin/epher"),
+    ]
+}
+
+/// Does `link` resolve to a real file? A dangling symlink — the app it
+/// pointed at was moved to the Trash or deleted — counts as absent, so
+/// the offer comes back.
+pub fn link_works(link: &Path) -> bool {
+    std::fs::metadata(link)
+        .map(|m| m.is_file())
+        .unwrap_or(false)
+}
+
+/// True when any candidate location holds a working `epher` command.
+pub fn command_is_installed(links: &[PathBuf]) -> bool {
+    links.iter().any(|link| link_works(link))
+}
+
 /// The side-effectful install, shared by the Tauri command. Returns a
 /// Fluent key on success (`install-cli-ok` / `install-cli-already`); a
 /// human-readable fallback string on failure.
@@ -100,5 +128,48 @@ pub fn install() -> Result<String, String> {
         } else {
             Err(manual_instructions(&target, &link))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn candidates_cover_every_installer() {
+        let home = Path::new("/home/sam");
+        assert_eq!(
+            command_link_candidates(home),
+            vec![
+                PathBuf::from("/usr/local/bin/epher"),
+                PathBuf::from("/home/sam/.local/bin/epher"),
+                PathBuf::from("/opt/homebrew/bin/epher"),
+            ]
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_live_symlink_counts_as_installed() {
+        let tmp = tempfile::tempdir().unwrap();
+        let real = tmp.path().join("epher-real");
+        std::fs::write(&real, b"#!/bin/sh\n").unwrap();
+        let link = tmp.path().join("epher");
+        std::os::unix::fs::symlink(&real, &link).unwrap();
+        assert!(link_works(&link));
+        assert!(command_is_installed(&[link]));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_dangling_link_or_an_absent_path_does_not() {
+        let tmp = tempfile::tempdir().unwrap();
+        let link = tmp.path().join("epher");
+        std::os::unix::fs::symlink(tmp.path().join("gone"), &link).unwrap();
+        assert!(!link_works(&link));
+        assert!(!command_is_installed(&[
+            link,
+            tmp.path().join("missing")
+        ]));
     }
 }
