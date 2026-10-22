@@ -345,7 +345,21 @@ jobs:
               hdiutil create -volname epher -srcfolder "$STAGE" -ov -format UDZO \
                 artifacts/epher-${{ matrix.target }}.dmg
               # The shipped DMG itself must verify: the Gatekeeper gate.
-              hdiutil attach -nobrowse -readonly artifacts/epher-${{ matrix.target }}.dmg
+              # hdiutil attach transiently fails with "Resource
+              # temporarily unavailable" on CI runners right after a DMG
+              # is written (observed on the 0.5.94 train, 2026-10-22: the
+              # attach died, the whole release followed). Retry with
+              # backoff; a corrupt DMG fails all three tries anyway.
+              ATTACH_OK=false
+              for ATTACH_TRY in 1 2 3 4 5; do
+                if hdiutil attach -nobrowse -readonly artifacts/epher-${{ matrix.target }}.dmg; then
+                  ATTACH_OK=true
+                  break
+                fi
+                echo "hdiutil attach try $ATTACH_TRY failed; retrying in 10s"
+                sleep 10
+              done
+              $ATTACH_OK || { echo "hdiutil attach kept failing"; exit 1; }
               VOL="$(ls -d /Volumes/epher* | head -1)"
               codesign --verify --deep --strict "$VOL/epher.app"
               # ADR-0058: the app bundle carries the scripts at
