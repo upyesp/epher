@@ -3178,14 +3178,22 @@ fn epher_app() -> Html {
     }
 
     // macOS desktop builds offer to install the `epher` terminal command
-    // (ADR-0011): a one-click symlink into /usr/local/bin.
+    // (ADR-0011): a one-click symlink into /usr/local/bin. The offer is
+    // genuinely conditional: hidden whenever a working command already
+    // exists, no matter which installer put it there — the script's
+    // ~/.local/bin link, Homebrew's /opt/homebrew/bin link (the cask's
+    // `binary` stanza or the formula), or this button's own
+    // /usr/local/bin link.
     {
         let show_install_cli = show_install_cli.clone();
         use_effect_with((), move |_| {
             if bridge == Bridge::Tauri {
                 spawn_local(async move {
                     if let Ok(true) = bridge.cli_install_supported().await {
-                        show_install_cli.set(true);
+                        let installed = bridge.cli_command_installed().await.unwrap_or(false);
+                        if !installed {
+                            show_install_cli.set(true);
+                        }
                     }
                 });
             }
@@ -3196,13 +3204,20 @@ fn epher_app() -> Html {
     let on_install_cli = {
         let result = result.clone();
         let localizer = localizer.clone();
+        let show_install_cli = show_install_cli.clone();
         Callback::from(move |_| {
             let result = result.clone();
             let localizer = localizer.clone();
+            let show_install_cli = show_install_cli.clone();
             spawn_local(async move {
                 let outcome = bridge.install_cli().await;
                 let message = match outcome {
-                    Ok(key) => localizer.lookup(&key),
+                    Ok(key) => {
+                        // The command exists now (or already did): the
+                        // offer has done its job and goes away.
+                        show_install_cli.set(false);
+                        localizer.lookup(&key)
+                    }
                     Err(detail) => {
                         format!("{} {detail}", localizer.lookup("install-cli-failed"))
                     }

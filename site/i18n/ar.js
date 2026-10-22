@@ -52,7 +52,7 @@ window.EPHER_I18N["ar"] = {
   "mac-name": "macOS",
   "mac-desc": "طريقتان، وكلتاهما لأجهزة Apple Silicon. الأولى تحتاج نافذة طرفية فقط: سطر واحد يثبّت التطبيق وأمر epher في الطرفية، دون أي موافقة. ومستخدمو Homebrew يمكنهم تثبيت التطبيق وإبقائه محدَّثًا عبر brew upgrade.",
   "mac-script-title": "سطر واحد، دون Homebrew (التطبيق + أمر الطرفية):",
-  "mac-brew-title": "أو مع Homebrew — التطبيق:",
+  "mac-brew-title": "أو مع Homebrew:",
   "mac-download": "أو نزّل صورة القرص",
   "linux-name": "Linux",
   "linux-desc": "تطبيق واحد وكل طرق التثبيت: مستودعا apt و dnf وSnap وFlatpak أو تنزيل مباشر بصيغة .deb أو .rpm أو AppImage.",

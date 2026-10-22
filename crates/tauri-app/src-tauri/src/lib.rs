@@ -319,6 +319,19 @@ fn cli_install_supported() -> bool {
     cfg!(target_os = "macos")
 }
 
+/// Does a working `epher` command already exist, whatever put it there —
+/// this app's own button, the install.sh script's ~/.local/bin link, or
+/// Homebrew's /opt/homebrew/bin link (the cask's `binary` stanza or the
+/// formula)? The webview asks at startup so the install button only
+/// appears when the command is genuinely missing.
+#[tauri::command]
+fn cli_command_installed() -> bool {
+    let home = std::env::var_os("HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("/"));
+    cli_install::command_is_installed(&cli_install::command_link_candidates(&home))
+}
+
 /// Install the `epher` command (macOS): symlink `/usr/local/bin/epher` to
 /// the app bundle's executable, with an osascript administrator-privilege
 /// fallback. Ok carries a Fluent key; Err carries readable instructions.
@@ -373,6 +386,7 @@ fn run_desktop(pending_script: Option<PathBuf>) {
             save_format,
             save_separators,
             cli_install_supported,
+            cli_command_installed,
             install_cli,
             save_file_dialog,
             save_png_dialog,
