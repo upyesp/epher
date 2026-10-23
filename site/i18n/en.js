@@ -193,7 +193,7 @@ window.EPHER_I18N["en"] = {
   "nav-ide": "IDE Extension",
   "ide-title": "IDE Extension",
   "ide-filetype-note": "Scripts are text files with a file type of .epher, like 'triangle.epher'.",
-  "ide-scripts-note": "A collection of ready-made scripts is waiting on the",
+  "ide-scripts-note": "A collection of ready-made scripts is available on the",
   "ide-scripts-note-link": "Scripts page",
   "ide-scripts-note-tail": ".",
   "ide-lede": "You can use an IDE, such as VS Code (or others), to write epher scripts. Download and install the official epher extension for your IDE. The extension implements a full epher language server. It is compliant with the Language Server Protocol (LSP), adding a number of assistive features while editing code.",
