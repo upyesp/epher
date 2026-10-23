@@ -248,7 +248,7 @@
           </p>
           <p class="dl-title" data-i18n="mac-brew-title">Homebrew installation:</p>
           <pre class="path-cmd" aria-label="Homebrew cask install command (copy button beside it)">brew install --cask upyesp/tap/epher</pre>
-          <p class="dl-title" data-i18n="mac-script-title">Or download and install from the GitHub repo:</p>
+          <p class="dl-title" data-i18n="mac-script-title">Download from GitHub releases via a script:</p>
           <pre class="path-cmd" aria-label="epher install script command (copy button beside it)">curl -fsSL https://raw.githubusercontent.com/upyesp/epher/main/install.sh | sh</pre>
           <p data-i18n="mac-dmg-hint">
             Or download the disk image: open it, drag epher to
@@ -282,6 +282,10 @@
               <pre class="repo-cmd">curl -fsSL https://epher.org/apt/KEY.gpg | sudo tee /etc/apt/keyrings/epher.gpg >/dev/null
 curl -fsSL https://epher.org/epher.sources | sudo tee /etc/apt/sources.list.d/epher.sources >/dev/null
 sudo apt update &amp;&amp; sudo apt install epher</pre>
+              <p data-i18n="linux-deb-hint">
+                Or skip the repository: download the .deb below and open
+                it — your software installer handles the rest.
+              </p>
               <p class="repo-alt">
                 <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-x86_64.deb" data-i18n="linux-deb">Download for Debian/Ubuntu (.deb)</a>
                 · <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-aarch64.deb" data-i18n="linux-deb-arm64">.deb for ARM64</a>

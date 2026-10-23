@@ -1243,11 +1243,13 @@ a:hover {
 }
 
 /* Copy buttons on the install-command blocks (ide.html). */
-.path-cmd {
+.path-cmd,
+.repo-cmd {
   position: relative;
 }
 
-.path-cmd .copy-btn {
+.path-cmd .copy-btn,
+.repo-cmd .copy-btn {
   position: absolute;
   top: 0.45rem;
   right: 0.45rem;
