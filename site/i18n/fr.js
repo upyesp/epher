@@ -193,7 +193,7 @@ window.EPHER_I18N["fr"] = {
   "nav-ide": "Extension IDE",
   "ide-title": "Extension IDE",
   "ide-filetype-note": "Les scripts sont des fichiers texte dont le type de fichier est .epher, comme 'triangle.epher'.",
-  "ide-scripts-note": "Une collection de scripts prêts à l'emploi vous attend sur la",
+  "ide-scripts-note": "Une collection de scripts prêts à l'emploi est disponible sur la",
   "ide-scripts-note-link": "page Scripts",
   "ide-scripts-note-tail": ".",
   "ide-lede": "Vous pouvez utiliser un IDE, tel que VS Code (ou d'autres), pour écrire des scripts epher. Téléchargez et installez l'extension epher officielle pour votre IDE. L'extension implémente un serveur de langage epher complet. Elle est conforme au Language Server Protocol (LSP) et ajoute un certain nombre de fonctionnalités d'assistance pendant l'édition du code.",
