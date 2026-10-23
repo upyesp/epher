@@ -523,7 +523,7 @@ function enhanceCommandBlocks() {
     }
   }
 
-  document.querySelectorAll("pre.path-cmd").forEach((pre) => {
+  document.querySelectorAll("pre.path-cmd, pre.repo-cmd").forEach((pre) => {
     if (pre.querySelector(".copy-btn")) return;
     const commands = pre.textContent;
     const button = document.createElement("button");
