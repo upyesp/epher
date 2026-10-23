@@ -172,6 +172,12 @@ pub struct App {
     /// the guide's group order, Math, Astronomy, Physics, Chemistry.
     constants_rows: Vec<(String, Option<f64>, String)>,
     kp_bank: usize,
+    /// The keypad grid's scroll offset (ADR-0016 amendment): tall banks
+    /// (astronomy has twelve rows) scroll inside the panel's fixed five
+    /// key rows, the way the web keypad's grid scrolls. Reset when the
+    /// bank changes; the draw clamps it to the bank and follows the
+    /// highlight.
+    kp_scroll: usize,
     kp_row: usize,
     kp_col: usize,
     /// The color theme (ADR-0017).
@@ -225,7 +231,7 @@ pub struct App {
 }
 
 /// The mouse-relevant screen regions of the last drawn frame (ADR-0034).
-/// The menu bar's five label rects and the keypad's six bank-label rects
+/// The menu bar's five label rects and the keypad's ten bank-label rects
 /// are stored rather than recomputed from label widths, so localized
 /// labels stay clickable wherever their characters land.
 #[derive(Debug, Clone, Copy, Default)]
@@ -241,6 +247,10 @@ pub struct Areas {
     /// so clicks can map columns to cells with the same math as the draw.
     pub kp_cell_w: u16,
     pub kp_cols: usize,
+    /// The keypad grid's scroll offset at draw time (ADR-0016
+    /// amendment): a click's visible row maps to the bank row through
+    /// it, the same math as the history panel's scroll.
+    pub kp_scroll: u16,
     pub hints: ratatui::layout::Rect,
     /// The open menu popup: its menu index and the rect including border.
     pub popup: Option<(usize, ratatui::layout::Rect)>,
@@ -267,9 +277,12 @@ pub struct Areas {
     pub constants: bool,
 }
 
-/// The TUI keypad (ADR-0016): a condensed grid of the most-used
-/// tokens, the full set lives on the web keypad; the terminal stays
-/// compact. (display, insert-at-end). The digits bank is a mirror of the
+/// The TUI keypad (ADR-0016): the web keypad's banks, one panel. Every
+/// bank mirrors its web tab (the 2026-09-06 amendment withdrew the
+/// condensed exemption), and like the web grid — five rows tall with an
+/// overflow scrollbar — a bank taller than the panel's five key rows
+/// scrolls instead of hiding its lower rows (display, insert-at-end).
+/// The digits bank is a mirror of the
 /// web keypad's `123` tab, same keys, same 5×5 arrangement, and its
 /// three action keys (C, ⌫, =) are spelled by an empty insert string;
 /// [`App::keypad_insert`] performs them (the "=" submit runs through
@@ -584,6 +597,11 @@ const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
         ],
     ),
 ];
+
+/// The keypad panel's visible key rows: the fixed eight-row panel (the
+/// bank tab, five key rows, two border rows) that every bank scrolls
+/// or fills (ADR-0016, ADR-0016 amendment).
+const KEYPAD_VISIBLE_ROWS: usize = 5;
 
 /// The keypad banks, for tests and callers that need the grid.
 pub fn banks() -> &'static [(
@@ -922,6 +940,7 @@ impl App {
             kp_row: 0,
             kp_col: 0,
             kp_bank: 0,
+            kp_scroll: 0,
             theme: Theme::default(),
             poi_list: true,
             display: epher_core::DisplayPrefs::default(),
@@ -959,6 +978,7 @@ impl App {
         self.kp_bank = 0;
         self.kp_row = 0;
         self.kp_col = 0;
+        self.kp_scroll = 0;
         self.menu = None;
     }
 
@@ -1115,6 +1135,7 @@ impl App {
         self.kp_bank = (self.kp_bank as isize + dir).rem_euclid(banks) as usize;
         self.kp_row = 0;
         self.kp_col = 0;
+        self.kp_scroll = 0;
     }
 
     /// Move the highlight, wrapping around the grid edges. Rows may be
@@ -1131,6 +1152,15 @@ impl App {
         self.kp_col = (self.kp_col as isize + dc).rem_euclid(cols) as usize;
         let len = BANKS[self.kp_bank].1[self.kp_row].len();
         self.kp_col = self.kp_col.min(len.saturating_sub(1));
+        // The view follows the highlight (ADR-0016 amendment): arrow
+        // travel into the bank's hidden rows scrolls them into view,
+        // the browser's scroll-into-view for the moving highlight.
+        let visible = KEYPAD_VISIBLE_ROWS;
+        if self.kp_row < self.kp_scroll {
+            self.kp_scroll = self.kp_row;
+        } else if self.kp_row >= self.kp_scroll + visible {
+            self.kp_scroll = self.kp_row + 1 - visible;
+        }
     }
 
     /// Apply the highlighted key: tokens insert at the cursor (the
@@ -1165,6 +1195,7 @@ impl App {
         self.kp_bank = bank.min(BANKS.len() - 1);
         self.kp_row = 0;
         self.kp_col = 0;
+        self.kp_scroll = 0;
     }
 
     /// Move the highlight to an absolute cell (mouse click, ADR-0034),
@@ -1174,6 +1205,20 @@ impl App {
         self.kp_row = row.min(bank.len().saturating_sub(1));
         let len = bank[self.kp_row].len();
         self.kp_col = col.min(len.saturating_sub(1));
+    }
+
+    /// Wheel-scroll the keypad's grid (ADR-0016 amendment): a bank
+    /// taller than the panel's five key rows scrolls inside the panel,
+    /// the way the web keypad's grid scrolls its long astronomy tab.
+    /// The draw clamps the offset to the bank and follows the highlight.
+    pub fn keypad_scroll(&mut self, delta: isize) {
+        self.kp_scroll = self.kp_scroll.saturating_add_signed(delta);
+    }
+
+    /// The raw scroll offset; the draw-time clamped value is what
+    /// renders and what click mapping reads.
+    pub fn keypad_scroll_offset(&self) -> usize {
+        self.kp_scroll
     }
 
     // --- theme, menu bar, and file prompts (ADR-0017) ---
@@ -3877,6 +3922,15 @@ fn handle_mouse(
                 } else {
                     3
                 });
+            } else if inside(areas.keypad, event.column, event.row) && app.keypad_shown() {
+                // The keypad grid scrolls its tall banks (ADR-0016
+                // amendment), one key row per notch, the web grid's
+                // native scrollbar pace.
+                app.keypad_scroll(if matches!(event.kind, MouseEventKind::ScrollUp) {
+                    -1
+                } else {
+                    1
+                });
             } else if inside(areas.graph, event.column, event.row) && !app.surfaces().is_empty() {
                 let factor = if matches!(event.kind, MouseEventKind::ScrollUp) {
                     0.9
@@ -4014,13 +4068,16 @@ fn handle_mouse(
                 // The grid rows: move the highlight there and apply
                 // the key, the mouse spelling of the web's buttons.
                 // "=" submits like the entry's Enter; every other cell
-                // inserts its token.
+                // inserts its token. The clicked row maps through the
+                // draw-time scroll offset (ADR-0016 amendment): tall
+                // banks scroll, so visible row 2 may be bank row 9.
                 let grid_row = row.saturating_sub(areas.keypad.y.saturating_add(2)) as usize;
-                if grid_row < 5 {
+                let bank_row = grid_row + areas.kp_scroll as usize;
+                if bank_row < BANKS[app.keypad_bank_index()].1.len() {
                     let cell_col = (col.saturating_sub(areas.keypad.x.saturating_add(1))
                         / areas.kp_cell_w.max(1)) as usize;
                     if cell_col < areas.kp_cols {
-                        app.keypad_set(grid_row, cell_col);
+                        app.keypad_set(bank_row, cell_col);
                         if app.keypad_is_submit() {
                             let line = app.input().trim().to_string();
                             if let Some(code) = app.submit_line(&line, store, localizer) {
@@ -4963,6 +5020,19 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         } else {
             let bank = &BANKS[app.keypad_bank_index()].1;
             let cols = bank.iter().map(|r| r.len()).max().unwrap_or(1);
+            let rows_n = bank.len();
+            // Visible key rows: the panel's height minus its two border
+            // rows and the bank-tab row — five at the panel's fixed
+            // eight-row height.
+            let visible = kp_area.height.saturating_sub(3) as usize;
+            // Tall banks scroll inside the fixed five rows (ADR-0016
+            // amendment), the way the web keypad's grid scrolls its
+            // astronomy tab: the wheel moves the offset, and arrow-key
+            // travel scrolls the highlight into view (keypad_move).
+            let scroll = app
+                .keypad_scroll_offset()
+                .min(rows_n.saturating_sub(visible));
+            areas.kp_scroll = scroll as u16;
             // Cell width from the keypad's actual pane width: in the 46-wide
             // calc pane 5 columns → 8-wide cells, 4 columns → 11 (enough for
             // `variance`); narrower terminals shrink cells down to 6 so the
@@ -5002,7 +5072,10 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             let rows: Vec<Line> = bank
                 .iter()
                 .enumerate()
+                .skip(scroll)
+                .take(visible)
                 .map(|(r, row)| {
+                    let r = r + scroll;
                     let cells: Vec<Span> = row
                         .iter()
                         .enumerate()
@@ -5032,6 +5105,31 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                     localizer.lookup("tui-keypad")
                 }));
             frame.render_widget(keypad, kp_area);
+            // The scroll indicator (ADR-0016 amendment): when the bank is
+            // taller than the panel, a thumb rides the right border,
+            // sized and placed like a real scrollbar — the terminal
+            // spelling of the web grid's native scrollbar.
+            if rows_n > visible && kp_area.width > 2 {
+                let track = kp_area.height.saturating_sub(2) as usize;
+                let thumb_len = (track * visible / rows_n).clamp(1, track);
+                let travel = track.saturating_sub(thumb_len);
+                let thumb_top = if rows_n > visible {
+                    scroll * travel / (rows_n - visible)
+                } else {
+                    0
+                };
+                let buf = frame.buffer_mut();
+                let col = kp_area.x + kp_area.width - 1;
+                for i in 0..thumb_len {
+                    let y = kp_area.y + 1 + (thumb_top + i) as u16;
+                    if y < kp_area.y + kp_area.height - 1 {
+                        if let Some(cell) = buf.cell_mut((col, y)) {
+                            cell.set_char('\u{2590}')
+                                .set_style(Style::default().fg(border_fg));
+                        }
+                    }
+                }
+            }
             // The grab area (ADR-0060): three bold dots replacing the top
             // border at the panel's center, the handle the mouse drags
             // down to dock the keypad away. Same glyph the docked strip
@@ -5929,5 +6027,210 @@ mod keypad_dock_tests {
             &mut last_click,
         );
         assert!(app.keypad_shown(), "an unfinished drag changes nothing");
+    }
+}
+
+/// The keypad grid's scroll (ADR-0016 amendment): tall banks (astronomy
+/// has twelve rows) scroll inside the panel's fixed five key rows, the
+/// way the web keypad's grid scrolls its long tabs — the wheel moves
+/// the rows, arrow travel scrolls the highlight into view, a click
+/// maps through the offset, and a thumb rides the right border.
+#[cfg(test)]
+mod keypad_scroll_tests {
+    use super::*;
+    use crossterm::event::{KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
+    use ratatui::backend::TestBackend;
+    use ratatui::Terminal;
+
+    fn tui_store() -> DocStore<FsStore> {
+        let dir = std::env::temp_dir().join(format!("epher-tui-kps-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&dir);
+        DocStore::new(FsStore::new(dir))
+    }
+
+    fn draw_once(app: &mut App, localizer: &Localizer, w: u16, h: u16) -> ratatui::buffer::Buffer {
+        let backend = TestBackend::new(w, h);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal.draw(|frame| draw(frame, app, localizer)).unwrap();
+        terminal.backend().buffer().clone()
+    }
+
+    fn mouse(kind: MouseEventKind, col: u16, row: u16) -> MouseEvent {
+        MouseEvent {
+            kind,
+            column: col,
+            row,
+            modifiers: KeyModifiers::empty(),
+        }
+    }
+
+    /// The keypad panel's own text, rows joined with spaces so wrapped
+    /// words still read as one string.
+    fn panel_text(buffer: &ratatui::buffer::Buffer, kp: ratatui::layout::Rect) -> String {
+        let mut text = String::new();
+        for y in kp.y..kp.y + kp.height {
+            for x in kp.x..kp.x + kp.width {
+                text.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            text.push(' ');
+        }
+        text
+    }
+
+    #[test]
+    fn the_tallest_bank_scrolls_so_every_key_is_reachable() {
+        let mut app = App::default();
+        let localizer = Localizer::resolve(None, &[]);
+        app.keypad_select_bank(9); // astro, twelve rows
+        let buffer = draw_once(&mut app, &localizer, 80, 24);
+        let kp = app.areas.keypad;
+        assert_eq!(app.areas.kp_scroll, 0, "the bank opens at its top");
+        let text = panel_text(&buffer, kp);
+        assert!(text.contains("jd"), "the first row shows");
+        assert!(!text.contains("l_sun"), "the ninth row stays hidden");
+
+        // Arrow travel down to the last row scrolls it into view.
+        for _ in 0..11 {
+            app.keypad_move(1, 0);
+        }
+        assert_eq!(app.keypad_row(), 11);
+        let buffer = draw_once(&mut app, &localizer, 80, 24);
+        assert_eq!(app.areas.kp_scroll, 7, "the view followed the highlight");
+        let text = panel_text(&buffer, kp);
+        assert!(text.contains("l_sun"), "row nine scrolled into view");
+        assert!(text.contains("Jy"), "the last row scrolled into view");
+        assert!(!text.contains("mjd"), "the first row scrolled away");
+
+        // The thumb rides the right border, sized to the visible share:
+        // track 6, thumb 2, travel 4 — at scroll 7 of 7 it sits at the
+        // bottom of the track.
+        let thumb_col = kp.x + kp.width - 1;
+        assert_eq!(
+            buffer.cell((thumb_col, kp.y + 1)).unwrap().symbol(),
+            "│",
+            "the thumb has scrolled down the track"
+        );
+        assert_eq!(
+            buffer.cell((thumb_col, kp.y + 5)).unwrap().symbol(),
+            "\u{2590}",
+            "the thumb rides the border's lower half at scroll 7"
+        );
+    }
+
+    #[test]
+    fn a_short_bank_draws_no_scrollbar() {
+        let mut app = App::default();
+        let localizer = Localizer::resolve(None, &[]);
+        app.keypad_select_bank(1); // trig, three rows
+        let buffer = draw_once(&mut app, &localizer, 80, 24);
+        let kp = app.areas.keypad;
+        let thumb_col = kp.x + kp.width - 1;
+        assert_eq!(
+            buffer.cell((thumb_col, kp.y + 1)).unwrap().symbol(),
+            "│",
+            "no thumb when the bank fits the panel"
+        );
+    }
+
+    #[test]
+    fn the_wheel_scrolls_the_keypad_rows() {
+        let mut app = App::default();
+        let mut localizer = Localizer::resolve(None, &[]);
+        let store = tui_store();
+        let mut drag: Option<(u16, u16, MouseDrag)> = None;
+        let mut last_click: Option<(std::time::Instant, u16, u16)> = None;
+        app.keypad_select_bank(9); // astro
+        draw_once(&mut app, &localizer, 80, 24);
+        let kp = app.areas.keypad;
+        let col = kp.x + kp.width / 2;
+        let row = kp.y + 3;
+
+        for _ in 0..2 {
+            handle_mouse(
+                &mut app,
+                &mut localizer,
+                &store,
+                mouse(MouseEventKind::ScrollDown, col, row),
+                &mut drag,
+                &mut last_click,
+            );
+        }
+        assert_eq!(app.keypad_scroll_offset(), 2);
+        let buffer = draw_once(&mut app, &localizer, 80, 24);
+        assert_eq!(app.areas.kp_scroll, 2, "the wheel's offset survives a draw");
+        assert!(panel_text(&buffer, kp).contains("airmass"), "row six shows");
+
+        // Scrolling past the top clamps instead of panicking.
+        for _ in 0..5 {
+            handle_mouse(
+                &mut app,
+                &mut localizer,
+                &store,
+                mouse(MouseEventKind::ScrollUp, col, row),
+                &mut drag,
+                &mut last_click,
+            );
+        }
+        assert_eq!(app.keypad_scroll_offset(), 0);
+        let buffer = draw_once(&mut app, &localizer, 80, 24);
+        assert!(
+            panel_text(&buffer, kp).contains("jd"),
+            "the top row is back"
+        );
+    }
+
+    #[test]
+    fn a_click_maps_through_the_scroll_offset() {
+        let mut app = App::default();
+        let mut localizer = Localizer::resolve(None, &[]);
+        let store = tui_store();
+        let mut drag: Option<(u16, u16, MouseDrag)> = None;
+        let mut last_click: Option<(std::time::Instant, u16, u16)> = None;
+        app.keypad_select_bank(9); // astro
+        draw_once(&mut app, &localizer, 80, 24);
+        let kp = app.areas.keypad;
+        for _ in 0..2 {
+            handle_mouse(
+                &mut app,
+                &mut localizer,
+                &store,
+                mouse(MouseEventKind::ScrollDown, kp.x + kp.width / 2, kp.y + 3),
+                &mut drag,
+                &mut last_click,
+            );
+        }
+        draw_once(&mut app, &localizer, 80, 24);
+
+        // A click on the second visible grid row is bank row three:
+        // the astro bank's dist( key.
+        handle_mouse(
+            &mut app,
+            &mut localizer,
+            &store,
+            mouse(MouseEventKind::Down(MouseButton::Left), kp.x + 2, kp.y + 3),
+            &mut drag,
+            &mut last_click,
+        );
+        assert_eq!(app.input(), "dist(", "the click hit the scrolled row");
+    }
+
+    #[test]
+    fn the_footer_hints_name_f9_not_f10() {
+        // ADR-0017 amendment: the menu chord moved to F9 on 2026-09-06;
+        // the hint strip must tell the truth in the default locale.
+        let mut app = App::default();
+        let localizer = Localizer::resolve(None, &[]);
+        draw_once(&mut app, &localizer, 80, 24);
+        let hints = app.areas.hints;
+        let buffer = draw_once(&mut app, &localizer, 80, 24);
+        let mut text = String::new();
+        for y in hints.y..hints.y + hints.height {
+            for x in hints.x..hints.x + hints.width {
+                text.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            text.push(' ');
+        }
+        assert!(text.contains("F9"), "the hint names the real chord: {text}");
+        assert!(!text.contains("F10"), "the F10 label is gone: {text}");
     }
 }

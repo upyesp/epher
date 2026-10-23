@@ -103,7 +103,7 @@ tune-rot-h = 水平旋转速度
 tune-rot-v = 垂直旋转速度
 tune-zoom = 缩放速度
 
-tui-hint-base-a = Enter 求值 · Tab 键盘/历史 · F10 菜单 · ? 按键帮助 · Esc 清除
+tui-hint-base-a = Enter 求值 · Tab 键盘/历史 · F9 菜单 · ? 按键帮助 · Esc 清除
 tui-hint-rotate =  · 方向键旋转
 tui-hint-play =  · 空格动画
 tui-hint-base-b =  · Ctrl+K 键盘 · Ctrl+L 清空历史 · Ctrl+C 退出 · q 退出

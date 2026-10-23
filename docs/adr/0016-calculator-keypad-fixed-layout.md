@@ -188,3 +188,25 @@ Two smaller corrections rode along with the same report:
   Esc closes", even for banks short enough not to scroll, which made
   the arrows half a lie. The scroll half now appears only when the
   list actually overflows.
+
+## Amendment (2026-10-23): the TUI keypad scrolls its tall banks like the web
+
+The 2026-09-06 amendment gave the TUI the web's ten banks in order, but
+the panel kept its fixed eight rows (bank tab plus five key rows), and a
+plain paragraph renders only what fits: the `fn` bank's sixth row
+(`conj`, `derivative`, `integral`) and seven of the astronomy bank's
+twelve rows — thirty-nine keys, the physics constants and unit suffixes
+among them — drew nowhere. The GUI's grid scrolls inside its fixed
+five-row window (ADR-0039); the TUI now does the same, so the banks are
+not merely present but every key is reachable:
+
+- The wheel over the keypad scrolls the grid a row per notch, the web
+  scrollbar's pace.
+- Arrow travel scrolls the highlight into view (the browser's
+  scroll-into-view); the offset resets when the bank changes.
+- A click maps its visible row through the draw-time scroll offset.
+- A thumb rides the panel's right border, sized and placed like a real
+  scrollbar, so the hidden rows are discoverable.
+
+(Reported from use on Windows, macOS, and Linux: the TUI read as
+missing keypads the GUI had.)

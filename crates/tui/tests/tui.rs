@@ -713,6 +713,47 @@ fn keypad_close_clears_focus_state() {
 }
 
 #[test]
+fn keypad_scrolls_follow_the_highlight_and_reset_with_the_bank() {
+    // ADR-0016 amendment: tall banks scroll inside the panel's five key
+    // rows; arrow travel scrolls the highlight into view, and the
+    // offset resets when the bank changes.
+    let mut app = App::default();
+    app.keypad_select_bank(9); // astro, twelve rows
+    for _ in 0..6 {
+        app.keypad_move(1, 0);
+    }
+    assert_eq!(app.keypad_row(), 6);
+    assert_eq!(
+        app.keypad_scroll_offset(),
+        2,
+        "row six needs the view scrolled two rows down"
+    );
+    app.keypad_move(-1, 0);
+    assert_eq!(app.keypad_scroll_offset(), 2, "up inside the view holds");
+    app.keypad_move(-1, 0);
+    assert_eq!(app.keypad_scroll_offset(), 2);
+    app.keypad_move(-1, 0);
+    assert_eq!(app.keypad_scroll_offset(), 2);
+    app.keypad_move(-1, 0);
+    assert_eq!(app.keypad_scroll_offset(), 2, "row two is still in view");
+    app.keypad_move(-1, 0);
+    assert_eq!(
+        app.keypad_scroll_offset(),
+        1,
+        "crossing the top edge scrolls the view up"
+    );
+    // A bank change starts that bank from its top.
+    app.keypad_cycle(1); // astro wraps to 123
+    assert_eq!(app.keypad_scroll_offset(), 0);
+    // The wheel clamps at the top instead of going negative.
+    app.keypad_select_bank(9);
+    app.keypad_scroll(-3);
+    assert_eq!(app.keypad_scroll_offset(), 0, "saturating at the top");
+    app.keypad_scroll(2);
+    assert_eq!(app.keypad_scroll_offset(), 2);
+}
+
+#[test]
 fn keypad_has_the_graph_commands() {
     let mut app = App::default();
     app.keypad_open();

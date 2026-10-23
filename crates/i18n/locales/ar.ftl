@@ -103,7 +103,7 @@ tune-rot-h = سرعة الدوران الأفقي
 tune-rot-v = سرعة الدوران الرأسي
 tune-zoom = سرعة التقريب
 
-tui-hint-base-a = Enter يحسب · Tab لوحة/السجل · F10 القائمة · ? مساعدة المفاتيح · Esc يمسح
+tui-hint-base-a = Enter يحسب · Tab لوحة/السجل · F9 القائمة · ? مساعدة المفاتيح · Esc يمسح
 tui-hint-rotate =  · الأسهم تدوير
 tui-hint-play =  · مسافة تحريك
 tui-hint-base-b =  · Ctrl+K لوحة المفاتيح · Ctrl+L مسح السجلّ · Ctrl+C خروج · q خروج
