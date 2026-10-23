@@ -60,7 +60,7 @@ The web/desktop menu bar follows the WAI-ARIA menubar pattern
 (`role="menubar"`, top-level `role="menuitem"` buttons with
 `aria-haspopup="menu"`, dropdowns as `role="menu"` with
 `menuitem`/`menuitemradio` items, Escape closes, focus rings stay).
-The TUI draws the same three menus (F10 opens, arrows move, Enter
+The TUI draws the same three menus (F9 opens, arrows move, Enter
 activates, Escape closes) with the same items and radio semantics for
 the current theme and language. Language names are always written in
 the language itself (native names), independent of the UI language.
@@ -139,3 +139,11 @@ byte-aware machinery the entry has): Left/Right move it, Home/End jump,
 Backspace deletes before it, Delete removes under it, typed characters
 insert at it, a click in the input row places it, and the terminal
 cursor renders it. Enter still submits, Esc still cancels.
+
+## Amendment (2026-10-23): the hint strip catches up with the F9 chord
+
+The 2026-09-06 amendment moved the menu chord to F9 and the handler
+followed, but the footer hint strip's `tui-hint-base-a` string kept
+saying "F10 menu" in all eight locales — the one place a user reads
+the chord still advertised the dead key. The strings now say F9.
+(Reported from use on Windows, macOS, and Linux.)

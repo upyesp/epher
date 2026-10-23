@@ -103,7 +103,7 @@ tune-rot-h = Velocidade de rotação horizontal
 tune-rot-v = Velocidade de rotação vertical
 tune-zoom = Velocidade de zoom
 
-tui-hint-base-a = Enter avalia · Tab teclado/histórico · F10 menu · ? ajuda de teclas · Esc limpa
+tui-hint-base-a = Enter avalia · Tab teclado/histórico · F9 menu · ? ajuda de teclas · Esc limpa
 tui-hint-rotate =  · setas rodar
 tui-hint-play =  · espaço animar
 tui-hint-base-b =  · Ctrl+K teclado · Ctrl+L limpar histórico · Ctrl+C sair · q sair
