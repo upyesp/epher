@@ -193,12 +193,14 @@ Two smaller corrections rode along with the same report:
 
 The 2026-09-06 amendment gave the TUI the web's ten banks in order, but
 the panel kept its fixed eight rows (bank tab plus five key rows), and a
-plain paragraph renders only what fits: the `fn` bank's sixth row
-(`conj`, `derivative`, `integral`) and seven of the astronomy bank's
-twelve rows — thirty-nine keys, the physics constants and unit suffixes
-among them — drew nowhere. The GUI's grid scrolls inside its fixed
-five-row window (ADR-0039); the TUI now does the same, so the banks are
-not merely present but every key is reachable:
+plain paragraph renders only what fits: seven of the astronomy bank's
+twelve rows — thirty-four keys, the physics constants and unit suffixes
+among them — drew nowhere. The bank was present and its keys answered
+to arrow travel (blind: the highlight moved into rows the screen never
+showed), so the TUI read as missing keypads on Windows, macOS, and
+Linux. The GUI's grid scrolls inside its fixed
+five-row window (ADR-0039); the TUI now does the same, so every key is
+visible and reachable:
 
 - The wheel over the keypad scrolls the grid a row per notch, the web
   scrollbar's pace.
