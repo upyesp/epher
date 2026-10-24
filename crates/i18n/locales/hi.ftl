@@ -47,7 +47,7 @@ evaluate = मूल्यांकन करें
 clear-entry = प्रविष्टि साफ़ करें
 delete-entry = हटाएँ
 tui-keypad = कीपैड
-tui-keypad-active = कीपैड · Enter जोड़ता है · ? = कुंजी सहायता · Esc बंद
+tui-keypad-active = कीपैड · ↑ बैंक टैब · Enter · Esc बंद
 tui-settings-theme = थीम
 tui-settings-language = भाषा
 tui-settings-view = दृश्य
@@ -103,7 +103,7 @@ tune-rot-h = क्षैतिज घूर्णन गति
 tune-rot-v = ऊर्ध्वाधर घूर्णन गति
 tune-zoom = ज़ूम गति
 
-tui-hint-base-a = Enter मूल्यांकन · Tab कीपैड/इतिहास · F9 मेनू · ? कुंजी सहायता · Esc साफ़
+tui-hint-base-a = Enter मूल्यांकन · Tab इतिहास/कीपैड · F9 मेनू · ? कुंजी सहायता · Esc साफ़
 tui-hint-rotate =  · तीर घुमाएँ
 tui-hint-play =  · स्पेस एनिमेट
 tui-hint-base-b =  · Ctrl+K कीपैड · Ctrl+L इतिहास साफ़ करें · Ctrl+C बाहर निकलें · q बाहर निकलें

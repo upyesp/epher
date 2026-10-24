@@ -46,7 +46,7 @@ evaluate = Evaluate
 clear-entry = Clear entry
 delete-entry = Delete
 tui-keypad = Keypad
-tui-keypad-active = Keypad · Enter inserts · ? = key help · Esc closes
+tui-keypad-active = Keypad · ↑ bank tabs · Enter · Esc closes
 tui-settings-theme = Theme
 tui-settings-language = Language
 tui-settings-view = View
@@ -103,7 +103,7 @@ tune-rot-h = Horizontal rotation speed
 tune-rot-v = Vertical rotation speed
 tune-zoom = Zoom speed
 
-tui-hint-base-a = Enter evaluate · Tab keypad/history · F9 menu · ? key help · Esc clear
+tui-hint-base-a = Enter evaluate · Tab history/keypad · F9 menu · ? key help · Esc clear
 tui-hint-rotate =  · arrows rotate
 tui-hint-play =  · space animate
 tui-hint-base-b =  · Ctrl+K keypad · Ctrl+L clear history · Ctrl+C quit · q quit

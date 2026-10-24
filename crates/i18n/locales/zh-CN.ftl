@@ -46,7 +46,7 @@ evaluate = 计算
 clear-entry = 清除输入
 delete-entry = 删除
 tui-keypad = 键盘
-tui-keypad-active = 键盘 · Enter 插入 · ? = 按键帮助 · Esc 关闭
+tui-keypad-active = 键盘 · ↑ 分组标签 · Enter · Esc 关闭
 tui-settings-theme = 主题
 tui-settings-language = 语言
 tui-settings-view = 视图
@@ -103,7 +103,7 @@ tune-rot-h = 水平旋转速度
 tune-rot-v = 垂直旋转速度
 tune-zoom = 缩放速度
 
-tui-hint-base-a = Enter 求值 · Tab 键盘/历史 · F9 菜单 · ? 按键帮助 · Esc 清除
+tui-hint-base-a = Enter 求值 · Tab 历史/键盘 · F9 菜单 · ? 按键帮助 · Esc 清除
 tui-hint-rotate =  · 方向键旋转
 tui-hint-play =  · 空格动画
 tui-hint-base-b =  · Ctrl+K 键盘 · Ctrl+L 清空历史 · Ctrl+C 退出 · q 退出

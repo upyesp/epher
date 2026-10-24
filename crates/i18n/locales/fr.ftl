@@ -47,7 +47,7 @@ evaluate = Évaluer
 clear-entry = Effacer la saisie
 delete-entry = Supprimer
 tui-keypad = Clavier
-tui-keypad-active = Pavé · Enter insère · ? = aide des touches · Esc ferme
+tui-keypad-active = Pavé · ↑ onglets de banques · Enter · Esc ferme
 tui-settings-theme = Thème
 tui-settings-language = Langue
 tui-settings-view = Vue
@@ -103,7 +103,7 @@ tune-rot-h = Vitesse de rotation horizontale
 tune-rot-v = Vitesse de rotation verticale
 tune-zoom = Vitesse de zoom
 
-tui-hint-base-a = Enter évalue · Tab pavé/historique · F9 menu · ? aide des touches · Esc efface
+tui-hint-base-a = Enter évalue · Tab historique/pavé · F9 menu · ? aide des touches · Esc efface
 tui-hint-rotate =  · flèches pivoter
 tui-hint-play =  · espace animer
 tui-hint-base-b =  · Ctrl+K clavier · Ctrl+L effacer l'historique · Ctrl+C quitter · q quitter

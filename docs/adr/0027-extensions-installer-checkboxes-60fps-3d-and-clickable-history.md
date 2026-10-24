@@ -79,7 +79,9 @@ Eight reports after v0.4.14:
   the axes remain.
 - **Clickable history:** web history lines are full-width buttons that
   load their text into the entry and focus it; the TUI gains a history
-  focus mode in the Tab cycle (input → keypad → history): arrows move
+  focus mode in the Tab cycle (input → keypad → history; re-ordered to
+  input → history → keypad by the ADR-0033 amendment of 2026-10-24,
+  which also lets the keypad's Esc serve the drop-back-to-input role): arrows move
   the selection (highlighted in the theme's selection colors, scrolled
   into view), Enter loads the line into the input without running it.
   The picked text is the displayed line verbatim, evaluation lines

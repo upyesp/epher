@@ -46,7 +46,7 @@ evaluate = Evaluar
 clear-entry = Borrar entrada
 delete-entry = Eliminar
 tui-keypad = Teclado
-tui-keypad-active = Teclado · Enter inserta · ? = ayuda de teclas · Esc cierra
+tui-keypad-active = Teclado · ↑ pestañas de bancos · Enter · Esc cierra
 tui-settings-theme = Tema
 tui-settings-language = Idioma
 tui-settings-view = Vista
@@ -103,7 +103,7 @@ tune-rot-h = Velocidad de giro horizontal
 tune-rot-v = Velocidad de giro vertical
 tune-zoom = Velocidad de zoom
 
-tui-hint-base-a = Enter evalúa · Tab teclado/historial · F9 menú · ? ayuda de teclas · Esc borra
+tui-hint-base-a = Enter evalúa · Tab historial/teclado · F9 menú · ? ayuda de teclas · Esc borra
 tui-hint-rotate =  · flechas girar
 tui-hint-play =  · espacio animar
 tui-hint-base-b =  · Ctrl+K teclado · Ctrl+L borrar historial · Ctrl+C salir · q salir
