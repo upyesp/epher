@@ -135,6 +135,13 @@ main {
   outline-offset: 2px;
 }
 
+/* the skip-link target: programmatic focus after activation must be
+   visible too (WCAG 2.4.7), or keyboard users land with no cue */
+#main:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: -3px;
+}
+
 /* accent-filled surfaces get an inset ring in their text color: an outer
    ring would sit on the page background, and an outline of the accent
    color is invisible against the accent surface itself */
@@ -736,6 +743,10 @@ a:hover {
 .card {
   display: flex;
   flex-direction: column;
+  /* a grid item's automatic minimum size is its min-content width: a long
+     unbreakable code line would widen the whole track and overflow the
+     page at 200% zoom (WCAG 1.4.4); let the pre scroll inside instead */
+  min-width: 0;
   background: var(--panel);
   border: 1px solid var(--border-strong);
   border-radius: 14px;

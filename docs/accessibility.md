@@ -137,4 +137,18 @@ automated axe scan runs in the `a11y` Playwright suite (ADR-0009).
    freedom — and records result announcements as info (Chromium on
    macOS does not deliver aria-live to VoiceOver in any form; Safari
    does — the live-region mechanism itself is asserted by the AX
-   layer). Baseline 2026-10-25: 99 checks, zero failures.
+   layer). The website has its own leg,
+   `node scripts/a11y/site-audit.mjs` (the landing, features,
+   examples, scripts, guide, reference, IDE and privacy pages): the
+   same axe scan plus the two AA perspectives — a blind screen-reader
+   user (landmarks, one h1, named controls, the skip link as the
+   first tab stop that really moves focus to #main, unique page
+   titles, identical link text never going to different
+   destinations, no silent keyboard stops) and a low-vision user
+   (axe contrast with symbol glyphs self-computed, visible focus
+   indicators on real keyboard stops, reflow at 320px, no uncontained
+   overflow at 200% zoom, every zoom-scrollable region
+   keyboard-reachable). Both suites gate every deploy in CI (the
+   `a11y` job of the shared site build, which preview and pages
+   publish jobs require). Baseline 2026-10-25: PWA 99 checks, website
+   132 checks, zero failures.

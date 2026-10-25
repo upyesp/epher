@@ -50,7 +50,7 @@ jobs:
       ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
 
   publish:
-    needs: [build]
+    needs: [build, a11y]
     runs-on: ubuntu-latest
     # contents: write (not read) because draft releases are only listed
     # to callers with push access; the mirror step below must see the

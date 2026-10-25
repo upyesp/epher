@@ -19,36 +19,17 @@
 // axe cannot resolve (symbol-glyph buttons — we compute those
 // ourselves — and plot-SVG text, covered by the token audit) and
 // elements behind an open overlay (the baseline scans cover them).
-import { existsSync, readdirSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import puppeteer from 'puppeteer';
 import axePkg from 'axe-core';
 import { startPwaServer } from './serve.mjs';
+import { findChrome } from './chrome.mjs';
 
 const PORT = Number(process.env.A11Y_PORT ?? 8741);
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 // ---- chrome from the shared puppeteer cache (no downloads) ----------------
-function findChrome() {
-  if (process.env.CHROME_BIN && existsSync(process.env.CHROME_BIN)) return process.env.CHROME_BIN;
-  const root = join(homedir(), '.cache', 'puppeteer', 'chrome');
-  for (const platform of readdirSync(root).sort().reverse()) {
-    for (const mid of readdirSync(join(root, platform)).sort().reverse()) {
-      for (const base of [join(root, platform, mid), join(root, platform)]) {
-        for (const rel of [
-          ['chrome-mac-arm64', 'Google Chrome for Testing.app', 'Contents', 'MacOS', 'Google Chrome for Testing'],
-          ['chrome-mac-x64', 'Google Chrome for Testing.app', 'Contents', 'MacOS', 'Google Chrome for Testing'],
-          ['chrome-linux64', 'chrome'], ['chrome-win64', 'chrome.exe'],
-        ]) {
-          const p = join(base, ...rel);
-          if (existsSync(p)) return p;
-        }
-      }
-    }
-  }
-  throw new Error('no Chrome for Testing in ~/.cache/puppeteer — run `npx puppeteer browsers install chrome`');
-}
 
 const browser = await puppeteer.launch({
   headless: 'new', executablePath: findChrome(), args: ['--no-sandbox', '--force-prefers-reduced-motion'],

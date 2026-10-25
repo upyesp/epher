@@ -37,7 +37,7 @@ jobs:
       include_repos: true
 
   deploy:
-    needs: [build]
+    needs: [build, a11y]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4

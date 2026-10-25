@@ -21,6 +21,7 @@ const c = {
   title: "epher: Language reference",
   app: "App",
   back: "Back to home",
+  skip: "Skip to content",
   contents: "Contents",
   themeDark: "Use dark theme",
   themeLight: "Use light theme",
@@ -81,7 +82,7 @@ const out = `<!DOCTYPE html>
     </noscript>
 </head>
 <body>
-  <a class="skip-link" href="#main">${c.back}</a>
+  <a class="skip-link" href="#main">${c.skip}</a>
   <header class="site-header guide-header">
     <a class="brand" href="../">
       <img class="brand-icon" id="brand-icon" src="../icon.svg?v=3" alt="" width="32" height="32" />
@@ -116,7 +117,7 @@ const out = `<!DOCTYPE html>
     </button>
   </header>
 
-  <main id="main" class="guide">
+  <main id="main" tabindex="-1" class="guide">
     <nav class="toc" aria-label="${c.contents}" tabindex="0">
       <h2 class="toc-title">${c.contents}</h2>
       <ul>${toc.join("")}</ul>
