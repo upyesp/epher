@@ -130,7 +130,7 @@ const page = template
     "<!--\n  epher landing page (served at epher.org, see docs/website.md).",
     "<!--\n  epher Examples page. Built by scripts/build-examples.mjs from the\n  index.html chrome: header, disclosure nav, theme, i18n catalogs + app.js.\n  The prose is data-i18n keys (ex-*, nav-examples); the epher code blocks\n  are never localized (ADR-0007) and carry the guide's copy buttons; on\n  touch devices a tap on an example opens the app with it staged\n  (ADR-0035 amendment).\n  -->\n<!--"
   )
-  .replace('<title>epher: a programmable, scriptable calculator</title>', '<title>Examples: epher</title>')
+  .replace('<title>epher... ephemeris: a scriptable, graphing calculator</title>', '<title>Examples: epher</title>')
   .replace('<link rel="stylesheet" href="styles.css" />', '<link rel="stylesheet" href="styles.css" />\n  <link rel="stylesheet" href="guide.css" />')
   .replace(
     '<meta name="description" content="A programmable, scriptable calculator: command line, terminal UI, desktop app, and offline web app. Graphs in 2D and 3D, exact numerics, eight languages, no accounts." />',

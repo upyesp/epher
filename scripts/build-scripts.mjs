@@ -76,7 +76,7 @@ const page = template
     "<!--\n  epher landing page (served at epher.org, see docs/website.md).",
     "<!--\n  epher Scripts page. Built by scripts/build-scripts.mjs from the\n  index.html chrome: header, docs nav, theme, i18n catalogs + app.js.\n  The browser (scripts.js) fetches scripts-data.json, which the same\n  builder writes from the `epher scripts` folder of the repository.\n  -->\n<!--"
   )
-  .replace('<title>epher: a programmable, scriptable calculator</title>', '<title>Scripts: epher</title>')
+  .replace('<title>epher... ephemeris: a scriptable, graphing calculator</title>', '<title>Scripts: epher</title>')
   .replace(
     '<meta name="description" content="A programmable, scriptable calculator: command line, terminal UI, desktop app, and offline web app. Graphs in 2D and 3D, exact numerics, eight languages, no accounts." />',
     '<meta name="description" content="Browse and copy the epher scripts repository: hundreds of ready-to-run scripts for astronomy, finance, trigonometry, statistics, and every field of mathematics." />'
