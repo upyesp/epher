@@ -1255,15 +1255,27 @@ a:hover {
 
 /* Copy buttons on the install-command blocks (ide.html). */
 .path-cmd,
-.repo-cmd {
+/* the copy button's wrapper: the button sits OUTSIDE the scrolling pre
+   (which keeps its own border/background), so long lines scroll beneath
+   it instead of under it, and multi-line blocks never hide code text */
+.cmd-wrap {
   position: relative;
 }
 
-.path-cmd .copy-btn,
-.repo-cmd .copy-btn {
+/* reserve the button's corner inside the pre: lines lay out short of the
+   right edge, so the button never sits on top of code (the scroll area
+   reveals the rest). Specificity matches .linux-tabs .repo-cmd so this
+   wins over the base padding. */
+.cmd-wrap pre.path-cmd,
+.cmd-wrap pre.repo-cmd {
+  padding-right: 3.4rem;
+}
+
+.cmd-wrap .copy-btn {
   position: absolute;
   top: 0.45rem;
   right: 0.45rem;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1277,24 +1289,24 @@ a:hover {
   cursor: pointer;
 }
 
-.path-cmd .copy-btn:hover {
+.cmd-wrap .copy-btn:hover {
   color: var(--accent);
   border-color: var(--accent);
 }
 
-.path-cmd .copy-btn .copy-check {
+.cmd-wrap .copy-btn .copy-check {
   display: none;
 }
 
-.path-cmd.copied .copy-btn .copy-icon {
+.cmd-wrap.copied .copy-btn .copy-icon {
   display: none;
 }
 
-.path-cmd.copied .copy-btn .copy-check {
+.cmd-wrap.copied .copy-btn .copy-check {
   display: block;
   color: #2e9e5b;
 }
 
-.path-cmd.copied .copy-btn {
+.cmd-wrap.copied .copy-btn {
   border-color: #2e9e5b;
 }

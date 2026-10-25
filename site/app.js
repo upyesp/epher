@@ -54,9 +54,13 @@ function applyLang(lang) {
     const key = el.getAttribute("data-i18n-aria");
     if (dict[key]) el.setAttribute("aria-label", dict[key]);
   });
-  // links whose target depends on the active locale (the user guide)
+  // links whose target depends on the active locale (the user guide).
+  // Swap ONLY the locale segment, keeping the original depth prefix:
+  // the authored hrefs are correct per page ("guide/en/" at the root,
+  // "../../guide/en/" on nested pages), and a blanket relative reset
+  // broke every nested page after navigating.
   document.querySelectorAll("[data-i18n-href]").forEach((el) => {
-    el.href = `guide/${lang}/`;
+    el.href = el.getAttribute("href").replace(/guide\/[A-Za-z-]+\//, `guide/${lang}/`);
   });
   // WCAG 3.1.1: lang (and dir for Arabic) must track the active locale.
   document.documentElement.lang = lang;
@@ -524,8 +528,20 @@ function enhanceCommandBlocks() {
   }
 
   document.querySelectorAll("pre.path-cmd, pre.repo-cmd").forEach((pre) => {
-    if (pre.querySelector(".copy-btn")) return;
+    if (pre.querySelector(".copy-btn") || pre.parentElement.classList.contains("cmd-wrap")) return;
     const commands = pre.textContent;
+    // The button lives on a wrapper OUTSIDE the scrolling pre: it stays
+    // put while long lines scroll underneath, and never covers code text
+    // on the multi-line blocks (the Linux repo commands). Same look and
+    // behavior for every block - the macOS ones and these.
+    const wrap = document.createElement("div");
+    wrap.className = "cmd-wrap";
+    pre.replaceWith(wrap);
+    wrap.appendChild(pre);
+    // the pre scrolls horizontally: with the button no longer inside it,
+    // the region needs its own keyboard access (WCAG 2.1.1, axe
+    // scrollable-region-focusable)
+    pre.setAttribute("tabindex", "0");
     const button = document.createElement("button");
     button.type = "button";
     button.className = "copy-btn";
@@ -535,13 +551,13 @@ function enhanceCommandBlocks() {
     button.addEventListener("click", async () => {
       try {
         await writeClipboard(commands);
-        pre.classList.add("copied");
-        setTimeout(() => pre.classList.remove("copied"), 1600);
+        wrap.classList.add("copied");
+        setTimeout(() => wrap.classList.remove("copied"), 1600);
       } catch (e) {
         /* clipboard unavailable (permissions): leave the block as-is */
       }
     });
-    pre.appendChild(button);
+    wrap.appendChild(button);
   });
 }
 
