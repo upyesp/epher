@@ -713,6 +713,29 @@ fn keypad_close_clears_focus_state() {
 }
 
 #[test]
+fn bank_tabs_reach_every_bank_without_the_old_cycle_key() {
+    // The ADR-0033 amendment: the bank tabs wrap over two rows of five,
+    // the arrows climb into them and Enter selects, so Shift+Tab is
+    // free to walk the area focus in reverse. Astro is reachable by
+    // arrows alone: Right wraps the half, Down swaps it.
+    let mut app = App::default();
+    app.keypad_navigate(-1, 0);
+    assert!(app.keypad_tab_active());
+    app.keypad_tab_select(); // tab (0, 0) = 123
+    assert_eq!(app.keypad_bank(), "123");
+    app.keypad_navigate(-1, 0); // climb again at 123's tab
+    app.keypad_navigate(1, 0); // lower half
+    for _ in 0..4 {
+        app.keypad_navigate(0, 1);
+    }
+    assert_eq!(app.keypad_tab_pos(), (1, 4));
+    app.keypad_tab_select();
+    assert_eq!(app.keypad_bank(), "astro");
+    assert_eq!(app.keypad_scroll_offset(), 0);
+    assert!(!app.keypad_tab_active());
+}
+
+#[test]
 fn keypad_scrolls_follow_the_highlight_and_reset_with_the_bank() {
     // ADR-0016 amendment: tall banks scroll inside the panel's five key
     // rows; arrow travel scrolls the highlight into view, and the

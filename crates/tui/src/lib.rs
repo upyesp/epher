@@ -180,6 +180,11 @@ pub struct App {
     kp_scroll: usize,
     kp_row: usize,
     kp_col: usize,
+    /// The arrows are on the bank-tab row, not the keys (ADR-0033
+    /// amendment): Up from the keys' top row climbs into the tabs.
+    kp_tab_active: bool,
+    kp_tab_row: usize,
+    kp_tab_col: usize,
     /// The color theme (ADR-0017).
     theme: Theme,
     /// Whether the graph panel lists the points of interest (ADR-0019).
@@ -602,6 +607,11 @@ const BANKS: &[(&str, &[&[(&str, &str)]])] = &[
 /// bank tab, five key rows, two border rows) that every bank scrolls
 /// or fills (ADR-0016, ADR-0016 amendment).
 const KEYPAD_VISIBLE_ROWS: usize = 5;
+/// The bank tabs wrap over two rows of five (ADR-0033 amendment): ten
+/// labels do not fit the calculator pane's 44 usable columns on one
+/// row, and the clipped tail hid the astronomy bank.
+const KEYPAD_TAB_ROWS: usize = 2;
+const KEYPAD_TAB_COLS: usize = 5;
 
 /// The keypad banks, for tests and callers that need the grid.
 pub fn banks() -> &'static [(
@@ -941,6 +951,9 @@ impl App {
             kp_col: 0,
             kp_bank: 0,
             kp_scroll: 0,
+            kp_tab_active: false,
+            kp_tab_row: 0,
+            kp_tab_col: 0,
             theme: Theme::default(),
             poi_list: true,
             display: epher_core::DisplayPrefs::default(),
@@ -979,6 +992,7 @@ impl App {
         self.kp_row = 0;
         self.kp_col = 0;
         self.kp_scroll = 0;
+        self.kp_tab_active = false;
         self.menu = None;
     }
 
@@ -1101,6 +1115,7 @@ impl App {
 
     pub fn keypad_close(&mut self) {
         self.keypad = false;
+        self.kp_tab_active = false;
     }
 
     /// The keypad's docked state (ADR-0060): false while the keypad
@@ -1129,7 +1144,10 @@ impl App {
         self.kp_bank
     }
 
-    /// Switch to the next (or previous) bank, wrapping.
+    /// Switch to the next (or previous) bank, wrapping. No key binds
+    /// this anymore (ADR-0033 amendment withdrew the Shift+Tab bank
+    /// cycle); it remains as setup for tests and the mouse path's
+    /// absolute jumps share `keypad_select_bank`.
     pub fn keypad_cycle(&mut self, dir: isize) {
         let banks = BANKS.len() as isize;
         self.kp_bank = (self.kp_bank as isize + dir).rem_euclid(banks) as usize;
@@ -1189,22 +1207,68 @@ impl App {
         row[self.kp_col.min(row.len() - 1)].0 == "="
     }
 
-    /// Jump to an absolute bank (mouse click on a bank label, ADR-0034),
-    /// resetting the highlight like [`Self::keypad_cycle`] does.
+    /// Jump to an absolute bank (a bank-tab click or Enter, ADR-0034
+    /// and the ADR-0033 amendment), resetting the highlight and
+    /// returning the arrows to the keys.
     pub fn keypad_select_bank(&mut self, bank: usize) {
         self.kp_bank = bank.min(BANKS.len() - 1);
         self.kp_row = 0;
         self.kp_col = 0;
         self.kp_scroll = 0;
+        self.kp_tab_active = false;
+    }
+
+    /// Whether the arrows are on the bank-tab row (ADR-0033 amendment).
+    pub fn keypad_tab_active(&self) -> bool {
+        self.kp_tab_active
+    }
+
+    /// The focused bank tab as (row, column) within the two-row map.
+    pub fn keypad_tab_pos(&self) -> (usize, usize) {
+        (self.kp_tab_row, self.kp_tab_col)
+    }
+
+    /// Navigate with the arrows wherever they sit (ADR-0033 amendment).
+    /// On the keys, Up from the top row climbs to the bank-tab row at
+    /// the current bank's tab. On the tabs, Left/Right walk that half's
+    /// five labels, Up swaps halves, and Down on the lower half
+    /// descends to the keys' first row.
+    pub fn keypad_navigate(&mut self, dr: isize, dc: isize) {
+        if self.kp_tab_active {
+            if dr > 0 && self.kp_tab_row + 1 >= KEYPAD_TAB_ROWS {
+                self.kp_tab_active = false;
+                self.kp_row = 0;
+                return;
+            }
+            self.kp_tab_row =
+                (self.kp_tab_row as isize + dr).rem_euclid(KEYPAD_TAB_ROWS as isize) as usize;
+            self.kp_tab_col =
+                (self.kp_tab_col as isize + dc).rem_euclid(KEYPAD_TAB_COLS as isize) as usize;
+        } else if dr < 0 && self.kp_row == 0 {
+            self.kp_tab_active = true;
+            self.kp_tab_row = self.kp_bank / KEYPAD_TAB_COLS;
+            self.kp_tab_col = self.kp_bank % KEYPAD_TAB_COLS;
+        } else {
+            self.keypad_move(dr, dc);
+        }
+    }
+
+    /// Enter on the bank-tab row: select the highlighted bank and drop
+    /// back to the keys, the mouse click's semantics.
+    pub fn keypad_tab_select(&mut self) {
+        let bank = self.kp_tab_row * KEYPAD_TAB_COLS + self.kp_tab_col;
+        self.keypad_select_bank(bank);
     }
 
     /// Move the highlight to an absolute cell (mouse click, ADR-0034),
-    /// clamping to the clicked bank's grid instead of wrapping.
+    /// clamping to the clicked bank's grid instead of wrapping. A click
+    /// means the keys: the arrows leave the bank-tab row.
     pub fn keypad_set(&mut self, row: usize, col: usize) {
         let bank = &BANKS[self.kp_bank].1;
         self.kp_row = row.min(bank.len().saturating_sub(1));
         let len = bank[self.kp_row].len();
         self.kp_col = col.min(len.saturating_sub(1));
+        self.kp_tab_active = false;
     }
 
     /// Wheel-scroll the keypad's grid (ADR-0016 amendment): a bank
@@ -1505,6 +1569,7 @@ impl App {
         self.prompt_cursor = default.len();
         self.prompt = Some((kind, default));
         self.keypad = false;
+        self.kp_tab_active = false;
         self.menu = None;
         self.hist_focus = false;
     }
@@ -1531,7 +1596,8 @@ impl App {
         self.hist_focus = false;
     }
 
-    /// Move the selection up (+1 = older) or down, wrapping.
+    /// Move the selection toward older (+1) or newer (-1), wrapping.
+    /// The display renders newest on top, so +1 steps down the screen.
     pub fn history_move(&mut self, dir: isize) {
         let len = self.session.history().len() as isize;
         if len == 0 {
@@ -3522,13 +3588,21 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         {
                             app.key_help_open();
                         }
-                        // Keypad mode (ADR-0016): Tab opens the button grid
-                        // and cycles its banks (Shift+Tab cycles back);
-                        // inside it, arrows move, Enter inserts, Esc closes.
+                        // Keypad mode (ADR-0016): the area focus walks
+                        // Expression → History → Keypad → Expression (the
+                        // ADR-0033 amendment; the old keypad→history stop
+                        // is gone), BackTab walks it in reverse.
                         KeyCode::Tab => {
-                            // Focus cycle: input → keypad → history → input
-                            // (ADR-0027: the history list is the last stop so
-                            // a picked line drops you back on the input).
+                            if app.keypad_focused() {
+                                app.keypad_close();
+                            } else if app.history_focused() {
+                                app.history_close();
+                                app.keypad_open();
+                            } else {
+                                app.history_open();
+                            }
+                        }
+                        KeyCode::BackTab => {
                             if app.keypad_focused() {
                                 app.keypad_close();
                                 app.history_open();
@@ -3538,23 +3612,21 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                                 app.keypad_open();
                             }
                         }
-                        KeyCode::BackTab => {
-                            if app.keypad_focused() {
-                                app.keypad_cycle(-1);
-                            } else if app.history_focused() {
-                                app.history_close();
-                                app.keypad_open();
-                            }
-                        }
-                        KeyCode::Left if app.keypad_focused() => app.keypad_move(0, -1),
-                        KeyCode::Right if app.keypad_focused() => app.keypad_move(0, 1),
-                        KeyCode::Up if app.keypad_focused() => app.keypad_move(-1, 0),
-                        KeyCode::Down if app.keypad_focused() => app.keypad_move(1, 0),
+                        // Inside the keypad the arrows serve two zones (the
+                        // ADR-0033 amendment): the keys, and — reached with
+                        // Up from the top key row — the bank-tab rows.
+                        KeyCode::Left if app.keypad_focused() => app.keypad_navigate(0, -1),
+                        KeyCode::Right if app.keypad_focused() => app.keypad_navigate(0, 1),
+                        KeyCode::Up if app.keypad_focused() => app.keypad_navigate(-1, 0),
+                        KeyCode::Down if app.keypad_focused() => app.keypad_navigate(1, 0),
                         KeyCode::Esc if app.keypad_focused() => app.keypad_close(),
-                        // History focus (ADR-0027): arrows move the selection
-                        // (up = older), Esc steps back to the input.
-                        KeyCode::Up if app.history_focused() => app.history_move(1),
-                        KeyCode::Down if app.history_focused() => app.history_move(-1),
+                        // History focus (ADR-0027): the arrows follow the
+                        // screen — up is newer (the newest entry renders on
+                        // top), down is older. The old "up = older" order
+                        // read upside-down against the visible list (the
+                        // ADR-0033 amendment).
+                        KeyCode::Up if app.history_focused() => app.history_move(-1),
+                        KeyCode::Down if app.history_focused() => app.history_move(1),
                         KeyCode::Esc if app.history_focused() => app.history_close(),
                         // The entry owns the arrow keys while it holds text
                         // (ADR-0035 amendment): Left/Right move the caret,
@@ -3717,6 +3789,15 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         if let Some(line) = app.history_pick() {
                             app.set_input(&line);
                         }
+                    } else if is_enter
+                        && !shift_enter
+                        && app.keypad_focused()
+                        && app.keypad_tab_active()
+                    {
+                        // Enter on the bank-tab row selects the highlighted
+                        // bank and returns the arrows to the keys (the
+                        // ADR-0033 amendment).
+                        app.keypad_tab_select();
                     } else if is_enter
                         && !shift_enter
                         && (!app.keypad_focused() || app.keypad_is_submit())
@@ -4054,8 +4135,11 @@ fn handle_mouse(
                     ));
                     return false;
                 }
-                // The bank label row.
-                if row == areas.keypad.y.saturating_add(1) {
+                // The bank-tab rows (the ADR-0033 amendment wrapped
+                // them): two rows of five labels under the top border.
+                if row == areas.keypad.y.saturating_add(1)
+                    || row == areas.keypad.y.saturating_add(2)
+                {
                     if let Some(b) = areas
                         .kp_bank_labels
                         .iter()
@@ -4071,7 +4155,7 @@ fn handle_mouse(
                 // inserts its token. The clicked row maps through the
                 // draw-time scroll offset (ADR-0016 amendment): tall
                 // banks scroll, so visible row 2 may be bank row 9.
-                let grid_row = row.saturating_sub(areas.keypad.y.saturating_add(2)) as usize;
+                let grid_row = row.saturating_sub(areas.keypad.y.saturating_add(3)) as usize;
                 let bank_row = grid_row + areas.kp_scroll as usize;
                 if bank_row < BANKS[app.keypad_bank_index()].1.len() {
                     let cell_col = (col.saturating_sub(areas.keypad.x.saturating_add(1))
@@ -4333,41 +4417,52 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // near-black. Contrasts: night text #ffb3a8 on #0d0000 = 12.1:1,
     // hints #d98878 = 7.6:1, selection 7.2:1; light black on white
     // 15.9:1, result #006e3c 5.9:1, selection white on #006e6e 4.9:1.
-    let (screen_bg, fg, result_style, hints_style, sel_bg, sel_fg, border_fg) = match app.theme() {
-        Theme::Light => (
-            Some(Color::White),
-            Color::Black,
-            Style::default()
-                .fg(Color::Rgb(0, 110, 60))
-                .add_modifier(Modifier::BOLD),
-            Style::default().fg(Color::DarkGray),
-            Color::Rgb(0, 110, 110),
-            Color::White,
-            Color::Black,
-        ),
-        Theme::Night => (
-            Some(Color::Rgb(13, 0, 0)),
-            Color::Rgb(255, 179, 168),
-            Style::default()
-                .fg(Color::Rgb(255, 110, 96))
-                .add_modifier(Modifier::BOLD),
-            Style::default().fg(Color::Rgb(217, 136, 120)),
-            Color::Rgb(255, 107, 90),
-            Color::Rgb(26, 0, 0),
-            Color::Rgb(170, 64, 51),
-        ),
-        Theme::Dark => (
-            None,
-            Color::Reset,
-            Style::default()
-                .fg(Color::Green)
-                .add_modifier(Modifier::BOLD),
-            Style::default().fg(Color::DarkGray),
-            Color::Cyan,
-            Color::Black,
-            Color::Reset,
-        ),
-    };
+    // `accent` paints a focused panel's border (the ADR-0033 amendment);
+    // `popup_bg` repaints the menu popup's canvas after Clear, whose
+    // reset style let the terminal's own background through (invisible
+    // light-theme menu items).
+    let (screen_bg, fg, result_style, hints_style, sel_bg, sel_fg, border_fg, accent, popup_bg) =
+        match app.theme() {
+            Theme::Light => (
+                Some(Color::White),
+                Color::Black,
+                Style::default()
+                    .fg(Color::Rgb(0, 110, 60))
+                    .add_modifier(Modifier::BOLD),
+                Style::default().fg(Color::DarkGray),
+                Color::Rgb(0, 110, 110),
+                Color::White,
+                Color::Black,
+                Color::Rgb(14, 128, 116),
+                Some(Color::White),
+            ),
+            Theme::Night => (
+                Some(Color::Rgb(13, 0, 0)),
+                Color::Rgb(255, 179, 168),
+                Style::default()
+                    .fg(Color::Rgb(255, 110, 96))
+                    .add_modifier(Modifier::BOLD),
+                Style::default().fg(Color::Rgb(217, 136, 120)),
+                Color::Rgb(255, 107, 90),
+                Color::Rgb(26, 0, 0),
+                Color::Rgb(170, 64, 51),
+                Color::Rgb(255, 107, 90),
+                Some(Color::Rgb(13, 0, 0)),
+            ),
+            Theme::Dark => (
+                None,
+                Color::Reset,
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+                Style::default().fg(Color::DarkGray),
+                Color::Cyan,
+                Color::Black,
+                Color::Reset,
+                Color::Cyan,
+                None,
+            ),
+        };
     if let Some(bg) = screen_bg {
         frame.render_widget(
             Block::default().style(Style::default().bg(bg)),
@@ -4375,11 +4470,19 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         );
     }
     let border_style = Style::default().fg(border_fg);
-    let block = |title: String| {
+    // A focused panel's border wears the theme's accent (the ADR-0033
+    // amendment): the Expression, History, and Keypad boxes answer the
+    // question "where am I?" at a glance.
+    let block = |title: String, focused: bool| {
+        let style = if focused {
+            Style::default().fg(accent).add_modifier(Modifier::BOLD)
+        } else {
+            border_style
+        };
         Block::default()
             .borders(Borders::ALL)
-            .border_style(border_style)
-            .title_style(border_style)
+            .border_style(style)
+            .title_style(style)
             .title(title)
     };
 
@@ -4843,10 +4946,11 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     };
     let result_h = result_rows as u16;
     // The keypad's docked state (ADR-0060): shown, the panel is the
-    // bank row plus the digits bank's five key rows; docked away, one
-    // grab strip remains where its top border sat, and the history,
-    // the Min(0) sibling, grows into the freed rows.
-    let keypad_h = if app.keypad_shown() { 8 } else { 1 };
+    // two bank-tab rows plus the digits bank's five key rows (the
+    // ADR-0033 amendment wraps the tabs so all ten show); docked away,
+    // one grab strip remains where its top border sat, and the
+    // history, the Min(0) sibling, grows into the freed rows.
+    let keypad_h = if app.keypad_shown() { 9 } else { 1 };
     let (input_area, result_area, history_area, graph_area, keypad_area, hints_area) = if wide {
         let split =
             Layout::vertical([Constraint::Min(0), Constraint::Length(hint_rows)]).split(body);
@@ -4914,7 +5018,10 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     let input = Paragraph::new(input_text.clone())
         .style(Style::default().fg(fg))
         .scroll((input_scroll, 0))
-        .block(block(input_title));
+        .block(block(
+            input_title,
+            !app.keypad_focused() && !app.history_focused(),
+        ));
     frame.render_widget(input, input_area);
 
     // A long answer empties the answer line; its transcript renders in
@@ -4963,10 +5070,13 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     let history_scroll = if app.history_focused() {
         let visible = history_area.height.saturating_sub(2) as usize;
         let total_rows = app.hist_rows.len();
+        // The selected entry's first row in the displayed list. (An
+        // earlier scan stopped at the first rule, so any selection past
+        // the newest entry read as row zero and the view never followed
+        // — the ADR-0033 amendment's "history stops answering" report.)
         let sel_top = app
             .hist_rows
             .iter()
-            .take_while(|&&i| i != usize::MAX)
             .position(|&i| i == app.history_sel())
             .unwrap_or(0);
         let sel_height = app
@@ -4996,7 +5106,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     let history = Paragraph::new(history_lines)
         .style(Style::default().fg(fg))
         .scroll((history_scroll, 0))
-        .block(block(history_title));
+        .block(block(history_title, app.history_focused()));
     frame.render_widget(history, history_area);
 
     // The keypad grid (ADR-0016): bank tabs on the first row, Tab
@@ -5022,9 +5132,9 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             let cols = bank.iter().map(|r| r.len()).max().unwrap_or(1);
             let rows_n = bank.len();
             // Visible key rows: the panel's height minus its two border
-            // rows and the bank-tab row — five at the panel's fixed
-            // eight-row height.
-            let visible = kp_area.height.saturating_sub(3) as usize;
+            // rows and the two bank-tab rows — five at the panel's
+            // nine-row height (the ADR-0033 amendment wrapped the tabs).
+            let visible = kp_area.height.saturating_sub(4) as usize;
             // Tall banks scroll inside the fixed five rows (ADR-0016
             // amendment), the way the web keypad's grid scrolls its
             // astronomy tab: the wheel moves the offset, and arrow-key
@@ -5040,35 +5150,44 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             let cell = ((kp_area.width.saturating_sub(2)) as usize / cols).clamp(6, 11);
             areas.kp_cell_w = cell as u16;
             areas.kp_cols = cols;
-            let mut bx = kp_area.x + 1;
-            for (b, (label, _)) in BANKS.iter().enumerate() {
-                let text = format!(" {label} ");
-                areas.kp_bank_labels[b] = Rect {
-                    x: bx,
-                    y: kp_area.y + 1,
-                    width: text.chars().count() as u16,
-                    height: 1,
-                };
-                bx += text.chars().count() as u16;
+            // The bank tabs wrap over two rows of five (ADR-0033
+            // amendment); when the arrows are up here, the focused tab
+            // carries the selection style and the current bank's tab
+            // steps aside, so the menu cursor is always the one thing
+            // lit.
+            let tab_focus = app.keypad_tab_active();
+            let (tab_row, tab_col) = app.keypad_tab_pos();
+            let mut tabs: Vec<Line> = Vec::with_capacity(KEYPAD_TAB_ROWS);
+            for r in 0..KEYPAD_TAB_ROWS {
+                let mut spans: Vec<Span> = Vec::with_capacity(KEYPAD_TAB_COLS);
+                let mut bx = kp_area.x + 1;
+                for c in 0..KEYPAD_TAB_COLS {
+                    let b = r * KEYPAD_TAB_COLS + c;
+                    let text = format!(" {} ", BANKS[b].0);
+                    areas.kp_bank_labels[b] = Rect {
+                        x: bx,
+                        y: kp_area.y + 1 + r as u16,
+                        width: text.chars().count() as u16,
+                        height: 1,
+                    };
+                    bx += text.chars().count() as u16;
+                    let selected = if tab_focus {
+                        tab_row == r && tab_col == c
+                    } else {
+                        b == app.keypad_bank_index()
+                    };
+                    let style = if selected {
+                        Style::default()
+                            .bg(sel_bg)
+                            .fg(sel_fg)
+                            .add_modifier(Modifier::BOLD)
+                    } else {
+                        Style::default().fg(fg)
+                    };
+                    spans.push(Span::styled(text, style));
+                }
+                tabs.push(Line::from(spans));
             }
-            let bank_line = Line::from(
-                BANKS
-                    .iter()
-                    .enumerate()
-                    .map(|(b, (label, _))| {
-                        let selected = b == app.keypad_bank_index();
-                        let style = if selected {
-                            Style::default()
-                                .bg(sel_bg)
-                                .fg(sel_fg)
-                                .add_modifier(Modifier::BOLD)
-                        } else {
-                            Style::default().fg(fg)
-                        };
-                        Span::styled(format!(" {label} "), style)
-                    })
-                    .collect::<Vec<Span>>(),
-            );
             let rows: Vec<Line> = bank
                 .iter()
                 .enumerate()
@@ -5095,15 +5214,18 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
                     Line::from(cells)
                 })
                 .collect();
-            let mut grid = vec![bank_line];
+            let mut grid = tabs;
             grid.extend(rows);
             let keypad = Paragraph::new(Text::from(grid))
                 .style(Style::default().fg(fg))
-                .block(block(if app.keypad_focused() {
-                    localizer.lookup("tui-keypad-active")
-                } else {
-                    localizer.lookup("tui-keypad")
-                }));
+                .block(block(
+                    if app.keypad_focused() {
+                        localizer.lookup("tui-keypad-active")
+                    } else {
+                        localizer.lookup("tui-keypad")
+                    },
+                    app.keypad_focused(),
+                ));
             frame.render_widget(keypad, kp_area);
             // The scroll indicator (ADR-0016 amendment): when the bank is
             // taller than the panel, a thumb rides the right border,
@@ -5133,17 +5255,28 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             // The grab area (ADR-0060): three bold dots replacing the top
             // border at the panel's center, the handle the mouse drags
             // down to dock the keypad away. Same glyph the docked strip
-            // shows, so the affordance reads as the same thing.
+            // shows, so the affordance reads as the same thing. A dot
+            // yields to a title character: the ADR-0033 amendment's
+            // focused title reaches the center, and words beat dots.
+            let title_len = if app.keypad_focused() {
+                localizer.lookup("tui-keypad-active").chars().count() as i16
+            } else {
+                localizer.lookup("tui-keypad").chars().count() as i16
+            };
             let buf = frame.buffer_mut();
             let cy = kp_area.y;
             let cx = kp_area.x + kp_area.width / 2;
             for dx in [-2i16, -1, 0] {
                 let col = cx as i16 + dx;
-                if col > kp_area.x as i16 && col < (kp_area.x + kp_area.width - 1) as i16 {
-                    if let Some(cell) = buf.cell_mut((col as u16, cy)) {
-                        cell.set_char('·')
-                            .set_style(Style::default().fg(border_fg).add_modifier(Modifier::BOLD));
-                    }
+                if col <= kp_area.x as i16 || col >= (kp_area.x + kp_area.width - 1) as i16 {
+                    continue;
+                }
+                if col - (kp_area.x as i16 + 1) < title_len {
+                    continue;
+                }
+                if let Some(cell) = buf.cell_mut((col as u16, cy)) {
+                    cell.set_char('·')
+                        .set_style(Style::default().fg(border_fg).add_modifier(Modifier::BOLD));
                 }
             }
         }
@@ -5250,7 +5383,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // pane there, and the terminal calls it the same thing.
     let graph = Paragraph::new(graph_text)
         .style(Style::default().fg(fg))
-        .block(block(localizer.lookup("result-pane")));
+        .block(block(localizer.lookup("result-pane"), false));
     frame.render_widget(graph, graph_area);
 
     // The open menu popup goes on top of everything else: draw it last,
@@ -5314,12 +5447,23 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             height: h.min(frame.area().bottom().saturating_sub(menu_area.y + 1)),
         };
         frame.render_widget(Clear, popup);
+        // Clear resets the cells to the terminal's own colors, which
+        // erased the theme canvas: with the light theme the unselected
+        // items were black text on whatever the terminal's background
+        // was — invisible until focused (the ADR-0033 amendment). The
+        // popup paints the theme's background explicitly now.
+        let mut popup_block = Block::default()
+            .borders(Borders::ALL)
+            .border_style(border_style);
+        if let Some(bg) = popup_bg {
+            popup_block = popup_block.style(Style::default().bg(bg));
+        }
+        let popup_base = match popup_bg {
+            Some(bg) => Style::default().bg(bg),
+            None => Style::default(),
+        };
         frame.render_widget(
-            Paragraph::new(lines).block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_style(border_style),
-            ),
+            Paragraph::new(lines).style(popup_base).block(popup_block),
             popup,
         );
         // The mouse map (ADR-0034): clicks inside the popup resolve
@@ -5840,7 +5984,7 @@ mod keypad_dock_tests {
         draw_once(&mut app, &localizer, 80, 24);
         let shown_h = app.areas.history.height;
         let keypad_y = app.areas.keypad.y;
-        assert!(app.areas.keypad.height >= 8, "the keypad panel shows");
+        assert!(app.areas.keypad.height >= 9, "the keypad panel shows");
 
         app.keypad_toggle();
         assert!(!app.keypad_shown());
@@ -5848,13 +5992,13 @@ mod keypad_dock_tests {
         assert_eq!(app.areas.keypad.height, 1, "the grab strip remains");
         assert_eq!(
             app.areas.keypad.y,
-            keypad_y + 7,
+            keypad_y + 8,
             "the strip pins to the pane's bottom edge, the row the keypad's bottom border held"
         );
         assert_eq!(
             app.areas.history.height,
-            shown_h + 7,
-            "history grows by the seven rows the keypad gave up"
+            shown_h + 8,
+            "history grows by the eight rows the keypad gave up"
         );
 
         app.keypad_toggle();
@@ -6040,6 +6184,7 @@ mod keypad_scroll_tests {
     use super::*;
     use crossterm::event::{KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
     use ratatui::backend::TestBackend;
+    use ratatui::style::Color;
     use ratatui::Terminal;
 
     fn tui_store() -> DocStore<FsStore> {
@@ -6102,7 +6247,7 @@ mod keypad_scroll_tests {
         assert!(!text.contains("mjd"), "the first row scrolled away");
 
         // The thumb rides the right border, sized to the visible share:
-        // track 6, thumb 2, travel 4 — at scroll 7 of 7 it sits at the
+        // track 7, thumb 2, travel 5 — at scroll 7 of 7 it sits at the
         // bottom of the track.
         let thumb_col = kp.x + kp.width - 1;
         assert_eq!(
@@ -6111,7 +6256,7 @@ mod keypad_scroll_tests {
             "the thumb has scrolled down the track"
         );
         assert_eq!(
-            buffer.cell((thumb_col, kp.y + 5)).unwrap().symbol(),
+            buffer.cell((thumb_col, kp.y + 6)).unwrap().symbol(),
             "\u{2590}",
             "the thumb rides the border's lower half at scroll 7"
         );
@@ -6202,12 +6347,13 @@ mod keypad_scroll_tests {
         draw_once(&mut app, &localizer, 80, 24);
 
         // A click on the second visible grid row is bank row three:
-        // the astro bank's dist( key.
+        // the astro bank's dist( key. The grid starts under the two
+        // bank-tab rows (the ADR-0033 amendment).
         handle_mouse(
             &mut app,
             &mut localizer,
             &store,
-            mouse(MouseEventKind::Down(MouseButton::Left), kp.x + 2, kp.y + 3),
+            mouse(MouseEventKind::Down(MouseButton::Left), kp.x + 2, kp.y + 4),
             &mut drag,
             &mut last_click,
         );
@@ -6232,5 +6378,176 @@ mod keypad_scroll_tests {
         }
         assert!(text.contains("F9"), "the hint names the real chord: {text}");
         assert!(!text.contains("F10"), "the F10 label is gone: {text}");
+    }
+
+    #[test]
+    fn the_bank_tabs_wrap_over_two_rows_and_all_ten_show() {
+        // ADR-0033 amendment: ten labels never fit the calc pane's 44
+        // usable columns on one row — the clipped tail was the astronomy
+        // bank. Two rows of five show every tab at 80×24.
+        let mut app = App::default();
+        let localizer = Localizer::resolve(None, &[]);
+        let buffer = draw_once(&mut app, &localizer, 80, 24);
+        let kp = app.areas.keypad;
+        assert_eq!(kp.height, 9, "the second tab row joined the panel");
+        let text = panel_text(&buffer, kp);
+        for label in [
+            "123", "trig", "fn", "num", "data", "dist", "fin", "0x", "var", "astro",
+        ] {
+            assert!(text.contains(label), "the {label} tab shows: {text}");
+        }
+        assert_eq!(app.areas.kp_bank_labels[0].y, kp.y + 1);
+        assert_eq!(
+            app.areas.kp_bank_labels[4].y,
+            kp.y + 1,
+            "five tabs on the first row"
+        );
+        assert_eq!(
+            app.areas.kp_bank_labels[5].y,
+            kp.y + 2,
+            "dist opens the second row"
+        );
+        assert_eq!(app.areas.kp_bank_labels[9].y, kp.y + 2);
+        assert_eq!(
+            app.areas.kp_bank_labels[5].x, app.areas.kp_bank_labels[0].x,
+            "each half starts at the pane's left edge"
+        );
+    }
+
+    #[test]
+    fn arrows_climb_to_the_bank_tabs_and_enter_selects() {
+        let mut app = App::default();
+        // Up from the keys' top row climbs to the current bank's tab.
+        app.keypad_navigate(-1, 0);
+        assert!(app.keypad_tab_active());
+        assert_eq!(app.keypad_tab_pos(), (0, 0));
+        // Left/Right walk the half (wrapping), Up swaps halves, and
+        // Down on the lower half descends to the keys' first row.
+        app.keypad_navigate(0, -1);
+        assert_eq!(app.keypad_tab_pos(), (0, 4), "the half wraps");
+        app.keypad_navigate(1, 0);
+        assert!(
+            app.keypad_tab_active(),
+            "Down on the upper half stays in the tabs"
+        );
+        assert_eq!(app.keypad_tab_pos(), (1, 4));
+        app.keypad_navigate(1, 0);
+        assert!(
+            !app.keypad_tab_active(),
+            "Down past the lower half returns to the keys"
+        );
+        assert_eq!(app.keypad_row(), 0);
+        // Back up: tab (1, 4) is the astronomy bank; Enter selects it
+        // and hands the arrows back to the keys. The climb re-enters at
+        // the current bank's tab, so the walk resumes from dist (1, 0).
+        app.keypad_navigate(-1, 0);
+        app.keypad_navigate(0, -1);
+        app.keypad_navigate(1, 0);
+        assert_eq!(app.keypad_tab_pos(), (1, 4));
+        app.keypad_tab_select();
+        assert_eq!(app.keypad_bank(), "astro");
+        assert!(!app.keypad_tab_active());
+        assert_eq!(app.keypad_row(), 0);
+        assert_eq!(app.keypad_scroll_offset(), 0);
+    }
+
+    #[test]
+    fn leaving_the_keypad_clears_the_tab_zone() {
+        let mut app = App::default();
+        app.keypad_navigate(-1, 0);
+        assert!(app.keypad_tab_active());
+        app.keypad_close();
+        assert!(!app.keypad_tab_active(), "the zone resets with the focus");
+        app.keypad_open();
+        assert!(!app.keypad_tab_active());
+        app.keypad_navigate(-1, 0);
+        app.keypad_select_bank(3);
+        assert!(
+            !app.keypad_tab_active(),
+            "an absolute bank jump lands on the keys"
+        );
+    }
+
+    #[test]
+    fn the_focused_border_wears_the_accent_color() {
+        // ADR-0033 amendment: the focused area's box takes the theme's
+        // accent, so "where am I?" is a color, not a title alone.
+        let mut app = App::default();
+        let localizer = Localizer::resolve(None, &[]);
+        let buffer = draw_once(&mut app, &localizer, 80, 24);
+        let input = app.areas.input;
+        assert_eq!(
+            buffer.cell((input.x, input.y)).unwrap().style().fg,
+            Some(Color::Cyan),
+            "the Expression holds focus at rest: its box wears the accent"
+        );
+        app.keypad_open();
+        let buffer = draw_once(&mut app, &localizer, 80, 24);
+        let kp = app.areas.keypad;
+        assert_eq!(
+            buffer.cell((kp.x, kp.y)).unwrap().style().fg,
+            Some(Color::Cyan),
+            "dark's accent is the selection cyan"
+        );
+        assert_eq!(
+            buffer.cell((input.x, input.y)).unwrap().style().fg,
+            Some(Color::Reset),
+            "the Expression box gives the accent back"
+        );
+        app.set_theme(Theme::Light);
+        let buffer = draw_once(&mut app, &localizer, 80, 24);
+        assert_eq!(
+            buffer.cell((kp.x, kp.y)).unwrap().style().fg,
+            Some(Color::Rgb(14, 128, 116)),
+            "light's accent is the theme teal"
+        );
+    }
+
+    #[test]
+    fn the_history_view_follows_the_selection() {
+        // The ADR-0033 amendment: the scroll kept pinning to the top
+        // once the selection left the newest entry, so the arrows moved
+        // a highlight the screen never showed — the history seemed to
+        // stop answering.
+        let history: Vec<String> = (0..8).map(|i| format!("{i}  = {i}")).collect();
+        let mut app = App::with_session(Session::with_history(history));
+        let localizer = Localizer::resolve(None, &[]);
+        app.history_open();
+        draw_once(&mut app, &localizer, 80, 24);
+        assert_eq!(
+            app.areas.history_scroll, 0,
+            "the newest entry needs no scroll"
+        );
+        app.history_move(1); // one older, still in view
+        draw_once(&mut app, &localizer, 80, 24);
+        assert_eq!(app.areas.history_scroll, 0);
+        app.history_move(1);
+        app.history_move(1); // past the fold
+        draw_once(&mut app, &localizer, 80, 24);
+        assert!(
+            app.areas.history_scroll > 0,
+            "the view follows the selection down"
+        );
+        app.history_move(-2); // back toward the top
+        draw_once(&mut app, &localizer, 80, 24);
+        assert_eq!(app.areas.history_scroll, 0, "and back up");
+    }
+
+    #[test]
+    fn the_light_menu_popup_paints_its_own_canvas() {
+        // The popup's Clear reset the cells to the terminal's own
+        // colors, so with the light theme the unselected items were
+        // black on that background — invisible until focused (the
+        // ADR-0033 amendment). The popup paints the theme canvas.
+        let mut app = App::default();
+        app.set_theme(Theme::Light);
+        app.menu_open(0);
+        let localizer = Localizer::resolve(None, &[]);
+        let buffer = draw_once(&mut app, &localizer, 80, 30);
+        // The File menu's second item is unselected: black on the
+        // theme's white canvas, readable with the focus anywhere.
+        let cell = buffer.cell((3, 3)).unwrap();
+        assert_eq!(cell.style().fg, Some(Color::Black));
+        assert_eq!(cell.style().bg, Some(Color::White));
     }
 }

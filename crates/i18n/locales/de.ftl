@@ -47,7 +47,7 @@ evaluate = Auswerten
 clear-entry = Eingabe leeren
 delete-entry = Löschen
 tui-keypad = Tastenfeld
-tui-keypad-active = Keypad · Enter fügt ein · ? = Tastenhilfe · Esc schließt
+tui-keypad-active = Keypad · ↑ Gruppen · Enter · Esc schließt
 tui-settings-theme = Design
 tui-settings-language = Sprache
 tui-settings-view = Ansicht
@@ -103,7 +103,7 @@ tune-rot-h = Horizontale Drehgeschwindigkeit
 tune-rot-v = Vertikale Drehgeschwindigkeit
 tune-zoom = Zoomgeschwindigkeit
 
-tui-hint-base-a = Enter auswerten · Tab Keypad/Verlauf · F9 Menü · ? Tastenhilfe · Esc leeren
+tui-hint-base-a = Enter auswerten · Tab Verlauf/Keypad · F9 Menü · ? Tastenhilfe · Esc leeren
 tui-hint-rotate =  · Pfeile drehen
 tui-hint-play =  · Leertaste animieren
 tui-hint-base-b =  · Ctrl+K Tastenfeld · Ctrl+L Verlauf leeren · Ctrl+C beenden · q beenden

@@ -100,3 +100,64 @@ answer 1, history ~4, graph ~4, keypad 7, hints 3.
 - The layout still degrades gracefully below 24 rows (history shrinks
   first, then nothing is dropped until the terminal is shorter than the
   fixed 13-row column).
+
+## Amendment (2026-10-24): two bank-tab rows, accent focus borders, Expression → History → Keypad, and arrows that reach the tabs
+
+Ten bank labels do not fit the calculator pane's 44 usable columns on
+one row — the row clipped, and its hidden tail was the astronomy
+bank, the very bank users went looking for (the ADR-0016 amendment
+of 2026-10-23 made its keys reachable; the tab that chooses it was
+still cut off). Four changes from use on Windows, macOS, and Linux:
+
+- **The bank tabs wrap over two rows of five.** The keypad panel
+  grows one row (eight → nine: two border rows, two tab rows, five
+  key rows), and the History — the `Min(0)` sibling — gives up the
+  row: the 80×24 budget becomes input 3, answer 1, keypad 9,
+  history 8. The mouse's bank-label rects (ADR-0034) are now the
+  two-row map, five per row, and a grid click starts below both
+  rows.
+- **Focus gets a color.** The Expression, History, and Keypad panels
+  draw their borders in the theme's accent (light `#0e8074`, night
+  `#ff6b5a`, dark the selection cyan) while they hold focus, so the
+  focused area answers "where am I?" at a glance, not only by its
+  title. The Expression wears the accent at rest, when neither
+  other area holds it.
+- **The tab order is Expression → History → Keypad → Expression.**
+  Tab from the keypad wraps to the Expression; Shift+Tab walks the
+  sequence in reverse. This supersedes ADR-0027's input → keypad →
+  history ordering (whose rationale — a picked line drops you back
+  on the input — the keypad serves just as well: Esc closes to the
+  Expression) and withdraws ADR-0019's Tab-cycles-banks binding:
+  no key chord cycles banks anymore, `keypad_cycle` remains only as
+  a test helper beside the mouse's absolute jumps.
+- **The arrows climb into the bank tabs.** With focus on the keys,
+  Up from the first key row puts the arrows on the current bank's
+  tab; Left/Right walk that half's five labels (wrapping), Up swaps
+  halves, and Down on the lower half descends to the keys' first
+  row. Enter selects the highlighted bank and hands the arrows back
+  to the keys. The focused tab carries the selection colors while
+  the arrows are up there; the current bank's tab steps aside, so
+  the menu cursor is always the one thing lit. Wheel, click, and
+  scroll behavior are unchanged.
+
+Also fixed under this amendment: the menu popup's `Clear` reset its
+cells to the terminal's own colors, erasing the theme canvas — with
+the light theme active, the unselected items were black text on
+whatever the terminal's background was, invisible until focused.
+The popup now paints the theme's background explicitly (light
+white, night near-black), so every item is legible with the focus
+anywhere. The keypad's focused title sheds the key-help segment
+(`? = key help`) for the new truth (`↑ bank tabs`) and stays inside
+the pane's 44 columns; the hint strip reads Tab history/keypad, in
+the new order, in all eight locales. One small ADR-0060 refinement
+rode along: where the focused title reaches the border's center, a
+grab dot yields — a dot replaces border, not words.
+
+Two history-focus fixes completed the amendment after testing: the
+arrows now follow the screen — up is newer, down is older (the
+newest entry renders on top; the old "up = older" order read
+upside-down, wrapping to the bottom at the first Down) — and the
+panel's scroll-into-view actually follows the selection, whose scan
+had stopped at the first rule row and read every deeper selection as
+row zero, leaving the highlight below the fold while the keys kept
+moving it: the history seemed to stop answering.
