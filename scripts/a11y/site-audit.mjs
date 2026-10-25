@@ -48,6 +48,9 @@ const browser = await puppeteer.launch({
 
 try {
   const page = await browser.newPage();
+  // the desktop baseline: without this the default 800x600 sits below the
+  // 880px breakpoint and every page renders with the collapsed hamburger
+  await page.setViewport({ width: 1280, height: 800 });
   const titles = [];
   const linkTargets = new Map(); // name -> set of hrefs (cross-page)
 
@@ -267,6 +270,63 @@ try {
       zoomed.unkeyed.length === 0,
       zoomed.unkeyed.length === 0 ? 'all regions have tabindex=0' : `no tabindex: ${zoomed.unkeyed.join(', ')}`);
     await page.evaluate(() => { document.documentElement.style.zoom = ''; });
+
+    // ---- the Docs menu must survive a real click-through -----------------
+    // Reading hrefs is not enough: a covering element makes the tap land on
+    // whatever is underneath (the brand link at the same corner goes to the
+    // front page), and a rewritten href can point anywhere. Open the
+    // dropdown, prove every item owns its hit target and resolves to a real
+    // destination, then follow Examples like a user would.
+    // Three real attempts: a click can miss while the viewport/zoom
+    // restore from the checks above is still settling, and that must not
+    // read as a broken menu — but a menu no click can open is exactly the
+    // failure class this check exists for, so it fails after the retries.
+    let docsProbe = [];
+    for (let attempt = 0; attempt < 3 && !(docsProbe.length && !docsProbe[0].diag); attempt++) {
+      await sleep(250);
+      await page.click('#docs-toggle');
+      await sleep(250);
+      docsProbe = await page.evaluate(() => {
+      const out = [];
+      const t = document.getElementById('docs-toggle');
+      if (document.getElementById('docs-menu').hidden) {
+        const r = t.getBoundingClientRect();
+        const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return [{ diag: `menu closed after ${attempt + 1} click(s): aria=${t.getAttribute('aria-expanded')} toggleRect=${Math.round(r.left)},${Math.round(r.top)} ${Math.round(r.width)}x${Math.round(r.height)} topAt=${at ? at.tagName + '.' + (at.className || at.id) : 'null'} scrollY=${Math.round(scrollY)} iw=${innerWidth} zoom=${document.documentElement.style.zoom || 'none'}` }];
+      }
+      for (const a of document.querySelectorAll('#docs-menu a')) {
+        const r = a.getBoundingClientRect();
+        const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        out.push({
+          name: a.textContent.trim(),
+          resolved: new URL(a.getAttribute('href'), location.href).pathname,
+          hitSelf: at === a,
+          menuOpen: !document.getElementById('docs-menu').hidden,
+        });
+      }
+      return out;
+      });
+    }
+    const docsClass = (p) => p.endsWith('/examples.html') ? 'examples'
+      : p.endsWith('/scripts.html') ? 'scripts'
+      : /\/guide\/[A-Za-z-]+\/$/.test(p) ? 'guide'
+      : p.endsWith('/reference/') ? 'reference' : null;
+    const menuStuck = docsProbe.length === 1 && !!docsProbe[0].diag;
+    const docsBad = docsProbe.filter((d) => !d.diag && (docsClass(d.resolved) === null || !d.hitSelf || !d.menuOpen));
+    check(`[${label}] docs menu: every item resolves and owns its hit target`,
+      !menuStuck && docsProbe.length >= 4 && docsBad.length === 0,
+      menuStuck ? docsProbe[0].diag
+        : docsProbe.length < 4 ? `only ${docsProbe.length} items in #docs-menu`
+        : docsBad.length === 0 ? docsProbe.map((d) => `${docsClass(d.resolved)}→${d.resolved}`).join(', ')
+        : docsBad.map((d) => `"${d.name}" resolved=${d.resolved} hitTarget=${d.hitSelf ? 'self' : 'covered'} menuOpen=${d.menuOpen}`).join(', '));
+    if (!menuStuck && docsProbe.some((d) => docsClass(d.resolved) === 'examples')) {
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }),
+        page.click('#docs-menu a[href$="examples.html"]'),
+      ]);
+      check(`[${label}] docs menu: clicking Examples lands on /examples.html`,
+        new URL(page.url()).pathname === '/examples.html', page.url());
+    }
   }
 
   // ---- site-wide: unique titles; link text ambiguity --------------------
@@ -277,6 +337,41 @@ try {
     .map(([name, dests]) => `"${name}" -> ${[...dests.keys()].join(' , ')}`);
   check('site-wide: identical link text never goes to different destinations',
     ambiguous.length === 0, ambiguous.length === 0 ? `${linkTargets.size} distinct link names, destinations unambiguous` : ambiguous.join(' | '));
+
+  // ---- mobile hamburger click-through -----------------------------------
+  // The desktop dropdown and the collapsed hamburger are the same links but
+  // different interactions; this walks the real path (menu-toggle →
+  // docs-toggle → item) at phone width on three representative depths.
+  await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  for (const [path, label] of [['', 'landing'], ['guide/en/', 'guide'], ['reference/', 'reference']]) {
+    await page.goto(`${base}${path}`, { waitUntil: 'networkidle0', timeout: 30000 });
+    await page.tap('#menu-toggle');
+    await sleep(120);
+    await page.tap('#docs-toggle');
+    await sleep(120);
+    const open = await page.evaluate(() => ({
+      nav: !document.getElementById('site-nav').hidden,
+      docs: !document.getElementById('docs-menu').hidden,
+      hitSelf: (() => {
+        const a = document.querySelector('#docs-menu a[href$="scripts.html"]');
+        if (!a) return false;
+        const r = a.getBoundingClientRect();
+        return document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === a;
+      })(),
+    }));
+    check(`[${label} mobile] hamburger opens nav and docs menu, Scripts tap-target clear`,
+      open.nav && open.docs && open.hitSelf, `nav=${open.nav} docs=${open.docs} hitSelf=${open.hitSelf}`);
+    if (open.nav && open.docs && open.hitSelf) {
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }),
+        page.tap('#docs-menu a[href$="scripts.html"]'),
+      ]);
+      check(`[${label} mobile] tapping Docs → Scripts lands on /scripts.html`,
+        new URL(page.url()).pathname === '/scripts.html', page.url());
+    } else {
+      check(`[${label} mobile] tapping Docs → Scripts lands on /scripts.html`, false, 'menu did not open or tap target covered');
+    }
+  }
 } catch (e) {
   check('site audit harness completed', false, String(e).slice(0, 300));
 } finally {
