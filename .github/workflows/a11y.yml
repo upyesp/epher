@@ -1,0 +1,59 @@
+# WCAG 2.2 AA gate for the website and the PWA (ADR-0009).
+#
+# Runs both a11y suites against the `site` artifact that
+# site-build.yml assembled earlier in the same run — the PWA suite
+# over _site/pwa (axe + the Chromium accessibility tree + computed
+# token contrast) and the website suite over the whole _site (the two
+# AA perspectives: a blind screen-reader user and a low-vision user).
+# Chrome comes from puppeteer's own download; the runners carry the
+# system libraries.
+#
+# Reusable: preview.yml and pages.yml each call it with `needs:
+# [build]` and make their publish job depend on it, so an AA
+# regression blocks the deploy instead of shipping. (The audit cannot
+# live inside site-build.yml: a caller cannot `needs:` an internal job
+# of a called workflow.)
+name: a11y (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Ref to audit (empty = the triggering commit)
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Accessibility audit (WCAG 2.2 AA)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: _site
+
+      - name: Install the audit tooling
+        run: npm ci
+
+      - name: Install Chrome for Testing
+        run: npx puppeteer browsers install chrome
+
+      - name: Audit the PWA (axe + AX tree + contrast)
+        run: node scripts/a11y/audit.mjs
+        env:
+          A11Y_DIST: _site/pwa
+
+      - name: Audit the website (SR + low-vision perspectives)
+        run: node scripts/a11y/site-audit.mjs _site
+
+      - name: Summarize
+        if: always()
+        run: echo "Accessibility audit — see the step logs above. Policy (ADR-0009): zero violations; both suites must pass." >> "$GITHUB_STEP_SUMMARY"

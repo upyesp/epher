@@ -36,6 +36,10 @@ jobs:
     with:
       include_repos: true
 
+  a11y:
+    needs: [build]
+    uses: ./.github/workflows/a11y.yml
+
   deploy:
     needs: [build, a11y]
     runs-on: ubuntu-latest

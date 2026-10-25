@@ -49,6 +49,12 @@ jobs:
       # github.sha in site-build.yml); dispatches build the chosen ref.
       ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
 
+  a11y:
+    needs: [build]
+    uses: ./.github/workflows/a11y.yml
+    with:
+      ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
+
   publish:
     needs: [build, a11y]
     runs-on: ubuntu-latest
