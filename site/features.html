@@ -110,7 +110,7 @@
     </button>
   </header>
 
-  <main id="main">
+  <main id="main" tabindex="-1">
     <article class="prose">
       <h1 data-i18n="features-title">Features</h1>
       <p data-i18n="features-p1">
@@ -125,7 +125,7 @@
         feature by feature; the nine columns were checked against each
         product's official documentation.
       </p>
-      <div class="table-scroll">
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Feature comparison table (scrolls horizontally)">
         <table class="compare">
           <thead>
             <tr>

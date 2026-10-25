@@ -36,8 +36,12 @@ jobs:
     with:
       include_repos: true
 
-  deploy:
+  a11y:
     needs: [build]
+    uses: ./.github/workflows/a11y.yml
+
+  deploy:
+    needs: [build, a11y]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4

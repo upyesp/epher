@@ -23,7 +23,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>epher... ephemeris: a scriptable, graphing calculator</title>
+  <title>Scripts: epher</title>
   <meta
     name="description"
     content="epher... ephemeris: a scriptable, graphing calculator. Command line, terminal UI, desktop app, and offline web app. Graphs in 2D and 3D, exact numerics, eight languages, no accounts."
@@ -131,24 +131,229 @@
     </button>
   </header>
 
-  <main id="main">
-    <article class="prose scripts-page">
-      <h1 data-i18n="scripts-title">Scripts</h1>
-      <p class="lede" data-i18n="scripts-lede">Ready-to-run scripts for the epher calculator, organized by field and topic. Open a folder to browse, click a script to read it, and copy any script to the clipboard.</p>
-      <p data-i18n="scripts-filetype-note">Scripts are text files with a file type of .epher, like 'triangle.epher'.</p>
-      <p class="scripts-ide-note"><span data-i18n="scripts-ide-note">Also, edit scripts in your favourite IDE with the assistance of the official epher</span> <a href="ide.html" data-i18n="scripts-ide-link">IDE extension.</a></p>
-      <div class="scripts-toolbar">
-        <label for="scripts-search" data-i18n="scripts-search">Search scripts (names and content)</label>
-        <input id="scripts-search" type="search" autocomplete="off" spellcheck="false" />
+  <main id="main" tabindex="-1">
+    <section class="hero" aria-labelledby="tagline">
+      <div class="hero-copy">
+        <h1 id="tagline" class="hero-title">
+          <span class="hero-title-brand">epher</span>
+          <span class="hero-title-sub" data-i18n="tagline">a scriptable, graphing calculator</span>
+        </h1>
+        <p class="lede">
+          <span data-i18n="lede-a">One calculation engine, seven ways to use it: command line,
+          interactive REPL, full TUI interface, desktop app, web app,
+          mobile-view web app, and inside your IDE by using the</span>
+          <a href="ide.html" data-i18n="lede-link">IDE extension</a><span data-i18n="lede-b">.</span>
+        </p>
+        <p class="lede" data-i18n="lede-c">
+          Type expressions, save functions and scripts, graph results in
+          2D or 3D, and keep history between sessions and user interfaces.
+          No account, no cloud: your work stays on your device. Available
+          as native apps for Windows, macOS, Linux, and in the browser.
+        </p>
+        <p class="hero-cta">
+          <a class="btn btn-primary" href="#downloads" data-i18n="cta-download">Get epher</a>
+        </p>
       </div>
-      <nav id="scripts-crumbs" class="scripts-crumbs" aria-label="Path"></nav>
-      <div id="scripts-browser" class="scripts-browser"></div>
-      <noscript>
-        <p class="note">The scripts browser needs JavaScript. The same
-        scripts live in the repository folder
-        <code>epher scripts/</code> on GitHub.</p>
-      </noscript>
-    </article>
+      <div class="hero-visual">
+        <div class="terminal-card">
+          <p class="terminal-prompt">graph3d x ^ 2 - y ^ 2</p>
+          <!-- "try this" stages the command in the PWA's entry via the
+               same ?expr= share URL the app's history list produces -->
+          <a class="terminal-try" href="pwa/?expr=graph3d%20x%20%5E%202%20-%20y%20%5E%202" data-i18n="try-this">try this</a>
+        </div>
+        <div class="graph-card">
+          <svg id="hero3d" class="hero3d-svg" viewBox="0 0 10 10" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+            <g id="hero3d-mesh"></g>
+            <g id="hero3d-frame"></g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="features" aria-labelledby="features-title">
+      <h2 id="features-title" data-i18n="features-title">Why epher</h2>
+      <ul class="feature-grid">
+        <li class="feature-card">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 4c0 2-4 3-4 8s3 8 3 8M16 4c0 2 4 3 4 8s-3 8-3 8M12 6v12"/></svg>
+          <h3 data-i18n="f2-title">A real language</h3>
+          <p data-i18n="f2-desc">
+            Variables, functions with recursion, loops, and scripts you can
+            save or load. Newlines and `;` separate statements; both mean
+            the same thing.
+          </p>
+        </li>
+        <li class="feature-card">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>
+          <h3 data-i18n="f3-title">Exact when it matters</h3>
+          <p data-i18n="f3-desc">
+            Binary floats by default, with exact layers one call away:
+            frac(1, 3), dec(0.1) + dec(0.2), and big(10 ^ 20).
+          </p>
+        </li>
+        <li class="feature-card">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 17c3-6 5 4 8-2s4 2 7-6"/><path d="M4 20h16M4 20V8l8-5 8 5v12" opacity="0"/></svg>
+          <h3 data-i18n="f4-title">Graphs in 2D and 3D</h3>
+          <p data-i18n="f4-desc">
+            Plot curves and surfaces, trace points, animate any constant
+            with a play button, and orbit 3D views with touch or keyboard.
+          </p>
+        </li>
+        <li class="feature-card">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+          <h3 data-i18n="f5-title">Private by design</h3>
+          <p data-i18n="f5-desc">
+            No accounts, no telemetry, no cloud. Everything is computed and
+            stored on your device. The web app executes on your own device,
+            fully offline.
+          </p>
+        </li>
+        <li class="feature-card">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18-3-4-3-14.5 0-18z"/></svg>
+          <h3 data-i18n="f6-title">Multi-language support</h3>
+          <p data-i18n="f6-desc">
+            The interface ships in eight languages: English, Chinese,
+            Hindi, Spanish, French, German, Portuguese and Arabic, with
+            right-to-left support.
+          </p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="builds" id="downloads" aria-labelledby="builds-title">
+      <h2 id="builds-title" data-i18n="builds">Get epher</h2>
+      <div class="cards">
+        <p class="one-install" data-i18n="one-install">
+          One download, every way to use epher: the command line, a REPL,
+          terminal UI app, a desktop app and an isolated offline web app.
+        </p>
+
+        <article class="card">
+          <h3 data-i18n="win-name">Windows</h3>
+          <p data-i18n="win-desc">
+            Install from the Microsoft Store, or with one winget
+            command. Use epher from CMD, PowerShell or the graphical
+            desktop app.
+          </p>
+          <p class="dl-title" data-i18n="downloads">Downloads</p>
+          <ul class="dl-list">
+            <li>
+              <a class="btn" href="https://apps.microsoft.com/detail/9NWXQ035T8TB"
+                data-i18n="win-download">Get epher from the Microsoft Store</a>
+            </li>
+          </ul>
+          <p class="dl-title" data-i18n="win-winget-title">or with winget:</p>
+          <pre class="path-cmd">winget install epher</pre>
+        </article>
+
+        <article class="card">
+          <h3 data-i18n="mac-name">macOS</h3>
+          <p data-i18n="mac-desc">
+            Homebrew users can install the app and keep it current with
+            brew upgrade.
+          </p>
+          <p class="dl-title" data-i18n="mac-brew-title">Homebrew installation:</p>
+          <pre class="path-cmd">brew install --cask upyesp/tap/epher</pre>
+          <p class="dl-title" data-i18n="mac-script-title">Or download from GitHub releases via a script:</p>
+          <pre class="path-cmd">curl -fsSL https://raw.githubusercontent.com/upyesp/epher/main/install.sh | sh</pre>
+          <p data-i18n="mac-dmg-hint">
+            Or download the disk image: open it, drag epher to
+            Applications, and on first launch right-click the app and
+            choose Open to clear macOS's security warning.
+          </p>
+          <p class="repo-alt">
+            <a href="https://github.com/upyesp/epher/releases/latest/download/epher-macos-aarch64.dmg"
+              data-i18n="mac-download">download the disk image</a>
+          </p>
+        </article>
+
+        <article class="card">
+          <h3 data-i18n="linux-name">Linux</h3>
+          <p data-i18n="linux-desc">
+            One app, every install path: the apt and dnf repositories, Snap,
+            Flatpak, or a direct .deb, .rpm, or AppImage download.
+          </p>
+          <div class="linux-tabs">
+            <div class="tablist" role="tablist" aria-label="Linux install options">
+              <button type="button" role="tab" id="tab-debian" aria-controls="panel-debian" aria-selected="true" data-i18n="linux-tab-debian">Debian/Ubuntu</button>
+              <button type="button" role="tab" id="tab-fedora" aria-controls="panel-fedora" aria-selected="false" tabindex="-1" data-i18n="linux-tab-fedora">Fedora</button>
+              <button type="button" role="tab" id="tab-flatpak" aria-controls="panel-flatpak" aria-selected="false" tabindex="-1" data-i18n="linux-tab-flatpak">Flatpak</button>
+              <button type="button" role="tab" id="tab-snap" aria-controls="panel-snap" aria-selected="false" tabindex="-1" data-i18n="linux-tab-snap">Snap</button>
+              <button type="button" role="tab" id="tab-universal" aria-controls="panel-universal" aria-selected="false" tabindex="-1" data-i18n="linux-tab-universal">Any distro</button>
+            </div>
+            <div class="tabpanel" role="tabpanel" id="panel-debian" aria-labelledby="tab-debian">
+              <ol class="repo-steps">
+                <li><span data-i18n="linux-repo-add">Add our repository, then install:</span></li>
+              </ol>
+              <pre class="repo-cmd">curl -fsSL https://epher.org/apt/KEY.gpg | sudo tee /etc/apt/keyrings/epher.gpg >/dev/null
+curl -fsSL https://epher.org/epher.sources | sudo tee /etc/apt/sources.list.d/epher.sources >/dev/null
+sudo apt update &amp;&amp; sudo apt install epher</pre>
+              <p data-i18n="linux-deb-hint">
+                Or skip the repository: download the .deb below and open
+                it — your software installer handles the rest.
+              </p>
+              <p class="repo-alt">
+                <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-x86_64.deb" data-i18n="linux-deb">Download for Debian/Ubuntu (.deb)</a>
+                · <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-aarch64.deb" data-i18n="linux-deb-arm64">.deb for ARM64</a>
+              </p>
+            </div>
+            <div class="tabpanel" role="tabpanel" id="panel-fedora" aria-labelledby="tab-fedora" hidden>
+              <ol class="repo-steps">
+                <li><span data-i18n="linux-repo-add">Add our repository, then install:</span></li>
+              </ol>
+              <pre class="repo-cmd">curl -fsSL https://epher.org/epher.repo | sudo tee /etc/yum.repos.d/epher.repo >/dev/null
+sudo dnf install epher</pre>
+              <p class="repo-alt">
+                <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-x86_64.rpm" data-i18n="linux-rpm">Download for Fedora/RHEL (.rpm)</a>
+                · <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-aarch64.rpm" data-i18n="linux-rpm-arm64">.rpm for ARM64</a>
+              </p>
+            </div>
+            <div class="tabpanel" role="tabpanel" id="panel-flatpak" aria-labelledby="tab-flatpak" hidden>
+              <ol class="repo-steps">
+                <li><span data-i18n="linux-flatpak-lead">Download the bundle for your architecture, then install it:</span></li>
+              </ol>
+              <pre class="repo-cmd">flatpak install ./epher-linux-x86_64.flatpak
+flatpak run org.epher.Desktop</pre>
+              <p class="repo-alt">
+                <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-x86_64.flatpak" data-i18n="linux-flatpak">Download the Flatpak bundle (x86_64)</a>
+              </p>
+            </div>
+            <div class="tabpanel" role="tabpanel" id="panel-snap" aria-labelledby="tab-snap" hidden>
+              <ol class="repo-steps">
+                <li><span data-i18n="linux-snap-lead">Install from the Snap Store:</span></li>
+              </ol>
+              <pre class="repo-cmd">sudo snap install epher</pre>
+              <p class="repo-alt">
+                <a href="https://snapcraft.io/epher" data-i18n="linux-snap-store">epher on the Snap Store</a>
+              </p>
+            </div>
+            <div class="tabpanel" role="tabpanel" id="panel-universal" aria-labelledby="tab-universal" hidden>
+              <p class="repo-alt">
+                <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-x86_64.AppImage" data-i18n="linux-appimage">Download the AppImage</a>
+                · <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-aarch64.AppImage" data-i18n="linux-appimage-arm64">AppImage for ARM64</a>
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3 data-i18n="pwa-name">Web app</h3>
+          <p data-i18n="pwa-desc">
+            Runs in your browser, is installable, and works fully offline
+            after the first visit.
+          </p>
+          <p class="dl-title" data-i18n="get">Get it</p>
+          <ul class="dl-list">
+            <li>
+              <a class="btn" href="pwa/" data-i18n="pwa-launch">Launch the web app</a>
+            </li>
+          </ul>
+          <p class="note" data-i18n="offline-note">
+            Works fully offline once loaded. Install it from your browser's
+            menu.
+          </p>
+        </article>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
