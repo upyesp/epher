@@ -29,12 +29,19 @@ Consequences for the architecture:
   Localizer-resolved locale (ADR-0008) and `dir="rtl"` when Arabic is active;
   labels and placeholder text move to Fluent catalogs at the same time as
   locale detection lands in the web app.
-- **Verification.** The axe-core scan in the Playwright suite is the
-  automated leg: the `a11y` suite scans the wcag2a/2aa/21a/21aa/22aa
-  rule tags across the app's states, desktop dark/light/night, the
+- **Verification.** The axe-core scan in the headless-Chrome suite
+  (`scripts/a11y/audit.mjs`, puppeteer + axe-core, the trains
+  project's harness ported) is the automated leg: it scans the
+  wcag2a/2aa/21a/21aa/22aa rule tags across the app's states, desktop
+  dark/light/night switched through the app's own Theme menu, the
   graph pane with 2D and 3D plots drawn, the guide overlay open, and
   the mobile layout (baseline, hamburger open, and after the
-  auto-slide). The policy is zero violations; axe's only allowed
+  auto-slide) — alongside a Chromium-accessibility-tree layer that
+  asserts what macOS screen readers consume, and a computed-contrast
+  layer over the theme tokens. The real-screen-reader leg
+  (`scripts/a11y/voiceover-audit.mjs --vo`, GuidePup driving
+  VoiceOver, run under Terminal) asserts what VoiceOver speaks to a
+  keyboard user. The policy is zero violations; axe's only allowed
   "incomplete" results are color-contrast on targets it cannot resolve
   (symbol-glyph buttons, whose contrast the suite computes itself from
   the WCAG relative-luminance formula and asserts >= 4.5:1; plot-SVG
@@ -42,4 +49,6 @@ Consequences for the architecture:
   open overlay, which the uncovered baseline scans cover). The hand
   audit in `docs/accessibility.md`, contrast math per theme,
   keyboard and screen-reader walkthroughs, remains the human leg
-  that catches what static rules cannot.
+  that catches what static rules cannot. (Amendment 2026-10-25: the
+  suite was first recorded as a Playwright suite; it ships as the
+  puppeteer harness the project actually runs.)

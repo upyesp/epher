@@ -15,7 +15,7 @@ checks use 4.5:1, non-text (UI component boundaries, focus indicators) 3:1.
 
 | Criterion | Status | Evidence / notes |
 |---|---|---|
-| 1.1.1 Non-text content | PASS | Icon is a favicon (no alt needed). Button has text content plus `aria-label="Evaluate"` (2.4.6). The graph SVG is `role="img"` with a `title` and an `aria-label` naming the plotted expression, and a visible caption (`y = <source>`) sits above it, the TUI pattern, ported (ADR-0009). The exported/SVG document keeps the same `role`, `title`, and `aria-label`, so a saved file is accessible outside the app too (ADR-0020). |
+| 1.1.1 Non-text content | PASS | Icon is a favicon (no alt needed). The entry is a native `textarea` (`aria-label="expression"`, ADR-0039's hints give every keypad key an accessible name: the `=` key announces ": Calculate the result"); the form submits on Enter. The graph SVG is `role="img"` with a `title` and an `aria-label` naming the plotted expression, and a visible caption (`y = <source>`) sits above it, the TUI pattern, ported (ADR-0009). The exported/SVG document keeps the same `role`, `title`, and `aria-label`, so a saved file is accessible outside the app too (ADR-0020). |
 | 1.3.1 Info & relationships | PASS | Native `form`/`input`/`button`, `ul` history, `h1` (visually hidden: the app name). Keypad tabs are an APG tablist (`role="tab"`/`tabpanel`, `aria-selected`, `aria-controls`); each button's accessible name is its token label. The menu bar (ADR-0017/0032) follows the APG menubar pattern: a vertical `role="menubar"` rail (`aria-orientation="vertical"`) of top-level `role="menuitem"` icon buttons with the menu name as `aria-label` and tooltip, `aria-haspopup="menu"`/`aria-expanded`, dropdowns as `role="menu"` with `menuitem`/`menuitemradio` items (`aria-checked` marks the active theme and language, with a non-color ✓ marker). The mobile hamburger panel is one `role="menu"` with File/Edit/Theme/Language/Help group labels; the graph pane's options row (ADR-0020) holds the display toggles as real labelled `input[type="checkbox"]` form controls and the plot's adjustment sliders (ADR-0041's tuning strip) as `input[type="range"]` controls, focusable, keyboard-adjustable (arrows), each named by an `aria-label` whose words also appear in the tooltip, with `focus-visible` rings; the guide overlay (ADR-0018) is a `role="dialog"` with `aria-modal`, a labelled heading, an imperatively focused Close button, and a keyboard-scrollable body (`tabindex="0"`). The macOS-only "install the epher command" button (ADR-0011) is a native `button` after the status region; its outcome reports through the existing `role="status"` live region. |
 | 1.3.2 Meaningful sequence | PASS | One fixed screen (ADR-0016): top bar (menus) → input → answer → history → keypad, top to bottom; the graph pane follows in DOM order. |
 | 1.4.1 Use of color | PASS | No color-only information (result is text; errors are text). The graph's curve palette pairs each color with a visible caption at the curve's end (saved SVG) and the legend naming every expression (live pane), and the slider/checkbox row carries text labels (ADR-0020, ADR-0023). |
@@ -36,7 +36,7 @@ checks use 4.5:1, non-text (UI component boundaries, focus indicators) 3:1.
 | 2.4.2 Page titled | PASS | `<title>epher</title>`. |
 | 2.4.3 Focus order | PASS | Document order: menu rail → input → answer → history → keypad → graph pane; on mobile the pane switch buttons follow the menus in the same top bar. |
 | 2.4.4 Link purpose | N/A | No links. |
-| 2.4.6 Headings & labels | **FIXED** | Input has `aria-label`; button's bare `=` name replaced with `aria-label="Evaluate"`. |
+| 2.4.6 Headings & labels | **FIXED** | Entry has `aria-label`; the keypad's bare `=` key is named by its hint: ": Calculate the result" (ADR-0039). |
 | 2.4.7 Focus visible | **FIXED** | Was: no styles (browser-default ring on a dark theme, inconsistent). Now: `:focus-visible` accent outline (9.9:1 vs `--bg`, 8.9:1 vs `--panel`); the accent button gets an inset dark-teal ring (10.0:1 on the accent surface; an outer ring would not contrast). |
 | 2.4.11 Focus not obscured | PASS | No sticky/overlay content (AA; 2.4.12 AAA not targeted). |
 | 2.5.8 Target size (AA) | PASS | Keypad buttons ≥44×44px in a 5-column grid (64px with captions on, ADR-0041); tab buttons ≥44px wide and ≥34px tall, the hints toggle ≥40×34px; the history trash is a standard 44×44px icon button beside the heading (ADR-0041); menu bar buttons ≥44px and menu items ≥40px tall; guide example buttons are ≥44px tall and the graph toolbar's icon buttons (Clear, Copy SVG) ≥44px; the tuning strip's sliders (ADR-0041) sit on ≥32px rows with wide 7.5rem tracks; legend checkboxes ≥32px tall, the graph options ≥40px tall; the install-cli button is ≥48px tall (padding `0.5rem 1rem` on `0.95rem` text, ~48px). |
@@ -115,10 +115,26 @@ automated axe scan runs in the `a11y` Playwright suite (ADR-0009).
    `aria-invalid` flips on errors.
 4. **TUI**: cursor is visible in the input field; hints line shown; `graph`
    shows the caption; all keys work with a screen reader's pass-through.
-5. **Automated**: the `a11y` Playwright suite (axe-core, the wcag2a/2aa/21a/
-   21aa/22aa rule tags) scans every state, desktop dark/light/night, the
-   graph pane with 2D and 3D plots, the guide overlay, and the mobile
-   layout (baseline, hamburger open, post-auto-slide). Zero violations are
-   required; axe's unresolved color-contrast targets are either computed in
-   the suite (glyph buttons, >= 4.5:1) or covered by this audit (plot-SVG
-   text) and the uncovered baseline scans.
+5. **Automated** (`scripts/a11y/`, ported from the trains project's
+   harness): `node scripts/a11y/audit.mjs` is the headless leg — an
+   axe-core scan (the wcag2a/2aa/21a/21aa/22aa rule tags, zero
+   violations required) of every state — desktop dark/light/night
+   switched through the app's own Theme menu, the graph pane with 2D
+   and 3D plots drawn, the guide overlay open, and the mobile layout
+   (baseline, hamburger open, post-auto-slide) — plus a
+   Chromium-accessibility-tree layer that asserts what a screen reader
+   consumes (named controls, the keypad tablist, the live status region
+   announcing the answer, named tab stops) and a computed-contrast
+   layer that recomputes every theme token (text 4.5:1, non-text 3:1)
+   and the symbol-glyph buttons axe cannot resolve (>= 4.5:1).
+   axe's unresolved color-contrast targets are either computed in the
+   suite (glyph buttons) or covered by this audit (plot-SVG text) and
+   the uncovered baseline scans. `node scripts/a11y/voiceover-audit.mjs
+   --vo` is the real-screen-reader leg (GuidePup driving VoiceOver;
+   run under Terminal via `~/.epher-vo-audit.command`): it asserts what
+   VoiceOver speaks while a keyboard user tabs in — page structure,
+   the expression field's label, the keypad keys' purposes, silent-stop
+   freedom — and records result announcements as info (Chromium on
+   macOS does not deliver aria-live to VoiceOver in any form; Safari
+   does — the live-region mechanism itself is asserted by the AX
+   layer). Baseline 2026-10-25: 99 checks, zero failures.
