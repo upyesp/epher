@@ -56,4 +56,5 @@ jobs:
 
       - name: Summarize
         if: always()
-        run: echo "Accessibility audit — see the step logs above. Policy (ADR-0009): zero violations; both suites must pass." >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo "Accessibility audit — see the step logs above. Policy (ADR-0009): zero violations; both suites must pass." >> "$GITHUB_STEP_SUMMARY"
