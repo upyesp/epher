@@ -30,6 +30,9 @@ const c = {
   copied: "Copied",
   privacy: "Privacy",
   menu: "Menu",
+  features: "Features",
+  ide: "IDE Extension",
+  source: "Source code",
   examples: "Examples",
   docs: "Docs",
   guide: "User guide",
@@ -102,7 +105,10 @@ const out = `<!DOCTYPE html>
           <a href="../reference/" aria-current="page">${c.reference}</a>
         </div>
       </div>
+      <a href="../features.html">${c.features}</a>
+      <a href="../ide.html">${c.ide}</a>
       <a href="../privacy.html">${c.privacy}</a>
+      <a class="gh-link" href="https://github.com/upyesp/epher">${c.source}</a>
     </nav>
     <div class="header-controls">
       <button type="button" id="theme-toggle" class="icon-btn" aria-pressed="false" aria-label="${c.themeDark}">
