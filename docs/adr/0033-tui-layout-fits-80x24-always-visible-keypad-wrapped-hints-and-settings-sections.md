@@ -152,3 +152,12 @@ the pane's 44 columns; the hint strip reads Tab history/keypad, in
 the new order, in all eight locales. One small ADR-0060 refinement
 rode along: where the focused title reaches the border's center, a
 grab dot yields — a dot replaces border, not words.
+
+Two history-focus fixes completed the amendment after testing: the
+arrows now follow the screen — up is newer, down is older (the
+newest entry renders on top; the old "up = older" order read
+upside-down, wrapping to the bottom at the first Down) — and the
+panel's scroll-into-view actually follows the selection, whose scan
+had stopped at the first rule row and read every deeper selection as
+row zero, leaving the highlight below the fold while the keys kept
+moving it: the history seemed to stop answering.

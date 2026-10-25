@@ -1596,7 +1596,8 @@ impl App {
         self.hist_focus = false;
     }
 
-    /// Move the selection up (+1 = older) or down, wrapping.
+    /// Move the selection toward older (+1) or newer (-1), wrapping.
+    /// The display renders newest on top, so +1 steps down the screen.
     pub fn history_move(&mut self, dir: isize) {
         let len = self.session.history().len() as isize;
         if len == 0 {
@@ -3619,10 +3620,13 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         KeyCode::Up if app.keypad_focused() => app.keypad_navigate(-1, 0),
                         KeyCode::Down if app.keypad_focused() => app.keypad_navigate(1, 0),
                         KeyCode::Esc if app.keypad_focused() => app.keypad_close(),
-                        // History focus (ADR-0027): arrows move the selection
-                        // (up = older), Esc steps back to the input.
-                        KeyCode::Up if app.history_focused() => app.history_move(1),
-                        KeyCode::Down if app.history_focused() => app.history_move(-1),
+                        // History focus (ADR-0027): the arrows follow the
+                        // screen — up is newer (the newest entry renders on
+                        // top), down is older. The old "up = older" order
+                        // read upside-down against the visible list (the
+                        // ADR-0033 amendment).
+                        KeyCode::Up if app.history_focused() => app.history_move(-1),
+                        KeyCode::Down if app.history_focused() => app.history_move(1),
                         KeyCode::Esc if app.history_focused() => app.history_close(),
                         // The entry owns the arrow keys while it holds text
                         // (ADR-0035 amendment): Left/Right move the caret,
@@ -5066,10 +5070,13 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     let history_scroll = if app.history_focused() {
         let visible = history_area.height.saturating_sub(2) as usize;
         let total_rows = app.hist_rows.len();
+        // The selected entry's first row in the displayed list. (An
+        // earlier scan stopped at the first rule, so any selection past
+        // the newest entry read as row zero and the view never followed
+        // — the ADR-0033 amendment's "history stops answering" report.)
         let sel_top = app
             .hist_rows
             .iter()
-            .take_while(|&&i| i != usize::MAX)
             .position(|&i| i == app.history_sel())
             .unwrap_or(0);
         let sel_height = app
@@ -6494,6 +6501,36 @@ mod keypad_scroll_tests {
             Some(Color::Rgb(14, 128, 116)),
             "light's accent is the theme teal"
         );
+    }
+
+    #[test]
+    fn the_history_view_follows_the_selection() {
+        // The ADR-0033 amendment: the scroll kept pinning to the top
+        // once the selection left the newest entry, so the arrows moved
+        // a highlight the screen never showed — the history seemed to
+        // stop answering.
+        let history: Vec<String> = (0..8).map(|i| format!("{i}  = {i}")).collect();
+        let mut app = App::with_session(Session::with_history(history));
+        let localizer = Localizer::resolve(None, &[]);
+        app.history_open();
+        draw_once(&mut app, &localizer, 80, 24);
+        assert_eq!(
+            app.areas.history_scroll, 0,
+            "the newest entry needs no scroll"
+        );
+        app.history_move(1); // one older, still in view
+        draw_once(&mut app, &localizer, 80, 24);
+        assert_eq!(app.areas.history_scroll, 0);
+        app.history_move(1);
+        app.history_move(1); // past the fold
+        draw_once(&mut app, &localizer, 80, 24);
+        assert!(
+            app.areas.history_scroll > 0,
+            "the view follows the selection down"
+        );
+        app.history_move(-2); // back toward the top
+        draw_once(&mut app, &localizer, 80, 24);
+        assert_eq!(app.areas.history_scroll, 0, "and back up");
     }
 
     #[test]
