@@ -81,6 +81,16 @@ jobs:
                       return json.load(r)
               except urllib.error.HTTPError as e:
                   detail = e.read().decode('utf-8', 'replace')[:400]
+                  if e.code in (401, 403) or 'Unauthorized' in detail:
+                      raise SystemExit(
+                          f'HTTP {e.code} from {url.split("?")[0]}: {detail}\n'
+                          'The Entra token is valid but Partner Center rejects it: the '
+                          'application is not associated with the account or lacks the '
+                          'Manager role. Fix in Partner Center (portal, human-only): '
+                          'Account settings, User management, add the Entra application '
+                          'by its client id (MSSTORE_CLIENT_ID) with the Manager role, '
+                          'then re-run. store-api-test prints the same signature but '
+                          'exits 0, so do not trust its green check.')
                   raise SystemExit(f'HTTP {e.code} from {url.split("?")[0]}: {detail}')
 
           def fetch_all(path):
