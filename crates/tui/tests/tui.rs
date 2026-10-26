@@ -902,18 +902,23 @@ fn menu_navigation_and_actions() {
     let mut app = App::with_session(epher_core::Session::new());
     app.menu_open(0);
     assert_eq!(app.menu_active(), Some((0, 0)));
-    assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::OpenScript));
+    // File leads with the examples browser (ADR-0077).
+    assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::BrowseExamples));
     app.menu_open(0);
     app.menu_move(0, 1);
+    assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::OpenScript));
+    app.menu_open(0);
+    app.menu_move(0, 2);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::SaveScript));
     assert_eq!(app.menu_active(), None);
 
-    // File ends with Quit (ADR-0023, ADR-0025): three items now: open
-    // script, save script, quit. History has no file items: the share
-    // icon moves it between devices (ADR-0027 amendment).
-    assert_eq!(app.menu_len(0), 3);
+    // File ends with Quit (ADR-0023, ADR-0025): four items now: example
+    // scripts, open script, save script, quit. History has no file
+    // items: the share icon moves it between devices (ADR-0027
+    // amendment).
+    assert_eq!(app.menu_len(0), 4);
     app.menu_open(0);
-    app.menu_move(0, 2);
+    app.menu_move(0, 3);
     assert_eq!(app.menu_activate(), Some(epher_tui::MenuAction::Quit));
     assert_eq!(app.menu_active(), None);
 
@@ -1745,6 +1750,51 @@ fn help_menu_lists_guide_and_key_help() {
     );
     app.key_help_open();
     assert!(app.key_help_active());
+}
+
+// --- the examples browser (ADR-0077) ---
+
+#[test]
+fn examples_browser_opens_selects_and_loads() {
+    let mut app = App::default();
+    assert!(!app.examples_active());
+    app.examples_open();
+    assert!(app.examples_active());
+    // The whole fleet is listed, in catalog order.
+    assert_eq!(app.examples_rows_len(), epher_scripts_catalog::count());
+    // The first group is algebra/complex, so the first row is the
+    // alphabetically first script there.
+    assert_eq!(
+        app.examples_row_path(0),
+        Some("algebra/complex/complex-argument.epher")
+    );
+    // Selection moves over the rows and clamps.
+    app.examples_select(-5);
+    assert_eq!(app.examples_selection(), Some(0));
+    app.examples_select(1);
+    assert_eq!(app.examples_selection(), Some(1));
+    // Enter replaces the input with the script's text (the Load-script
+    // semantics) and closes the browser.
+    app.examples_load();
+    assert!(!app.examples_active(), "loading closes the browser");
+    assert!(
+        app.input().starts_with("/* ===="),
+        "the script's text lands in the entry"
+    );
+}
+
+#[test]
+fn file_menu_leads_with_the_examples_browser() {
+    let mut app = App::default();
+    assert_eq!(app.menu_len(0), 4, "File: examples, load, save, quit");
+    app.menu_open(0);
+    assert_eq!(
+        app.menu_activate(),
+        Some(epher_tui::MenuAction::BrowseExamples)
+    );
+    // Activation returns the action; performing it opens the browser.
+    app.examples_open();
+    assert!(app.examples_active(), "activation opens the browser");
 }
 
 // --- the constants browser (ADR-0045) ---

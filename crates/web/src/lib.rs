@@ -2803,6 +2803,51 @@ fn epher_app() -> Html {
         let constants_open = constants_open.clone();
         Callback::from(move |_: web_sys::MouseEvent| constants_open.set(false))
     };
+    // The examples browser (ADR-0077): File menu -> Example scripts, the
+    // bundled catalog in a searchable dialog; picking one loads the
+    // script into the entry field.
+    let examples_shown = use_state(|| false);
+    let examples_query = use_state(String::new);
+    let examples_close_ref = use_node_ref();
+    {
+        // Focus the close button whenever the browser opens, like the
+        // constants browser, so Escape works from the first keypress.
+        let examples_shown = examples_shown.clone();
+        let examples_close_ref = examples_close_ref.clone();
+        use_effect_with(examples_shown, move |shown| {
+            if **shown {
+                if let Some(el) = examples_close_ref.cast::<web_sys::HtmlElement>() {
+                    let _ = el.focus();
+                }
+            }
+            || {}
+        });
+    }
+    let on_close_examples = {
+        let examples_shown = examples_shown.clone();
+        Callback::from(move |_: web_sys::MouseEvent| examples_shown.set(false))
+    };
+    // Load an example: the script's text stages into the entry field
+    // (the Load-script semantics, ADR-0059 paste rules included), the
+    // status line says so, and the browser closes.
+    let on_pick_example = {
+        let input = input.clone();
+        let cursor_cell = cursor_cell.clone();
+        let input_ref = input_ref.clone();
+        let result = result.clone();
+        let localizer = localizer.clone();
+        let examples_shown = examples_shown.clone();
+        Callback::from(move |path: &'static str| {
+            if let Some(entry) = epher_scripts_catalog::ENTRIES
+                .iter()
+                .find(|e| e.path == path)
+            {
+                stage_in_entry(&input, &cursor_cell, &input_ref, entry.content.to_string());
+                result.set(localizer.lookup("menu-loaded"));
+            }
+            examples_shown.set(false);
+        })
+    };
     // Insert a constant name at the entry's cursor; the same splice a
     // keypad press does (ADR-0045): selection-replacing, cursor after
     // the name, and the browser stays open for the next pick.
@@ -6237,6 +6282,15 @@ fn epher_app() -> Html {
                                         <button type="button" role="menuitem" class="menu-item"
                                             onclick={Callback::from({
                                                 let menu_open = menu_open.clone();
+                                                let examples_shown = examples_shown.clone();
+                                                move |_| { menu_open.set(None); examples_shown.set(true); }
+                                            })}
+                                        >
+                                            { localizer.lookup("menu-example-scripts") }
+                                        </button>
+                                        <button type="button" role="menuitem" class="menu-item"
+                                            onclick={Callback::from({
+                                                let menu_open = menu_open.clone();
                                                 let on_open_script = on_open_script.clone();
                                                 move |_| { menu_open.set(None); on_open_script.emit(()); }
                                             })}
@@ -6552,6 +6606,12 @@ fn epher_app() -> Html {
                             >
                                 <p class="menu-group" aria-hidden="true">{ localizer.lookup("menu-file") }</p>
                                 <button type="button" role="menuitem" class="menu-item" onclick={mobile_item(Callback::from({
+                                    let examples_shown = examples_shown.clone();
+                                    move |_: web_sys::MouseEvent| examples_shown.set(true)
+                                }))}>
+                                    { localizer.lookup("menu-example-scripts") }
+                                </button>
+                                <button type="button" role="menuitem" class="menu-item" onclick={mobile_item(Callback::from({
                                     let on_open_script = on_open_script.clone();
                                     move |_: web_sys::MouseEvent| on_open_script.emit(())
                                 }))}>
@@ -6812,6 +6872,22 @@ fn epher_app() -> Html {
                             }
                         }
                     </form>
+                    {
+                        // A fresh session carries the examples hint
+                        // (ADR-0077): the fleet is installed, this line is
+                        // how a new user learns it. The count comes from
+                        // the compile-time catalog, so it never drifts.
+                        if input.is_empty() && result.is_empty() {
+                            let n = epher_scripts_catalog::count().to_string();
+                            html! {
+                                <p class="examples-hint" role="note">
+                                    { localizer.lookup_args("web-examples-hint", &[("n", n.as_str())]) }
+                                </p>
+                            }
+                        } else {
+                            html! {}
+                        }
+                    }
                     <div class="answer">
                         <span class="visually-hidden" id="answer-label">
                             { localizer.lookup("answer") }
@@ -7999,6 +8075,129 @@ fn epher_app() -> Html {
                                                                                 html! { <span class="constants-hint">{ hint }</span> }
                                                                             }
                                                                         }
+                                                                    </button>
+                                                                }
+                                                            }) }
+                                                        </>
+                                                    }
+                                                }) }
+                                            </>
+                                        }
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }
+                } else {
+                    html! {}
+                }
+            }
+            // The examples browser (ADR-0077): the bundled scripts in a
+            // searchable dialog; the same dialog shape as the constants
+            // browser, one row per script with its purpose.
+            {
+                if *examples_shown {
+                    let q = (*examples_query).trim().to_lowercase();
+                    // Groups in catalog order: (field, area) pairs, each
+                    // with the rows that match the query. Three area names
+                    // repeat across fields, so the label can be
+                    // field-qualified (the catalog decides).
+                    let mut groups: Vec<(String, Vec<&epher_scripts_catalog::Entry>)> = Vec::new();
+                    for entry in epher_scripts_catalog::ENTRIES {
+                        if !q.is_empty()
+                            && !entry.title.to_lowercase().contains(&q)
+                            && !entry.path.to_lowercase().contains(&q)
+                        {
+                            continue;
+                        }
+                        match groups.last_mut() {
+                            Some((label, rows))
+                                if *label
+                                    == epher_scripts_catalog::area_label(entry.field, entry.area) =>
+                            {
+                                rows.push(entry);
+                            }
+                            _ => groups.push((
+                                epher_scripts_catalog::area_label(entry.field, entry.area),
+                                vec![entry],
+                            )),
+                        }
+                    }
+                    html! {
+                        <div
+                            class="guide-overlay"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-label={localizer.lookup("menu-example-scripts")}
+                            onkeydown={{
+                                let examples_shown = examples_shown.clone();
+                                Callback::from(move |e: web_sys::KeyboardEvent| {
+                                    if e.key() == "Escape" {
+                                        examples_shown.set(false);
+                                    }
+                                })
+                            }}
+                        >
+                            <div class="guide-head">
+                                <h2>{ localizer.lookup("menu-example-scripts") }</h2>
+                                <button type="button" class="guide-close-btn" ref={examples_close_ref.clone()} onclick={on_close_examples.clone()}>
+                                    { localizer.lookup("guide-close") }
+                                </button>
+                            </div>
+                            <p class="guide-insert-hint">{ localizer.lookup("examples-load-hint") }</p>
+                            <div class="guide-search">
+                                <input
+                                    type="search"
+                                    aria-label={localizer.lookup("examples-search")}
+                                    placeholder={localizer.lookup("examples-search")}
+                                    value={(*examples_query).clone()}
+                                    oninput={Callback::from({
+                                        let examples_query = examples_query.clone();
+                                        move |e: InputEvent| {
+                                            let v = e
+                                                .target()
+                                                .and_then(|t| t.dyn_into::<web_sys::HtmlInputElement>().ok())
+                                                .map(|el| el.value())
+                                                .unwrap_or_default();
+                                            examples_query.set(v);
+                                        }
+                                    })}
+                                />
+                            </div>
+                            <div class="constants-list" role="list">
+                                {
+                                    if groups.is_empty() {
+                                        html! { <p class="guide-no-results" role="status">{ localizer.lookup("examples-no-results") }</p> }
+                                    } else {
+                                        html! {
+                                            <>
+                                                { for groups.into_iter().map(|(label, rows)| {
+                                                    let heading = label.clone();
+                                                    html! {
+                                                        <>
+                                                            <h3 class="constants-group">{ heading }</h3>
+                                                            { for rows.into_iter().map(|entry| {
+                                                                let file = entry
+                                                                    .path
+                                                                    .rsplit('/')
+                                                                    .next()
+                                                                    .unwrap_or(entry.path)
+                                                                    .to_string();
+                                                                let aria = format!("{}, {}", entry.title, label);
+                                                                let path = entry.path;
+                                                                html! {
+                                                                    <button
+                                                                        type="button"
+                                                                        class="constants-row"
+                                                                        role="listitem"
+                                                                        aria-label={aria}
+                                                                        onclick={{
+                                                                            let on_pick_example = on_pick_example.clone();
+                                                                            move |_: web_sys::MouseEvent| on_pick_example.emit(path)
+                                                                        }}
+                                                                    >
+                                                                        <span class="constants-name">{ file }</span>
+                                                                        <span class="examples-desc">{ entry.title }</span>
                                                                     </button>
                                                                 }
                                                             }) }

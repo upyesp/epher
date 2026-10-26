@@ -4,6 +4,7 @@ members = [
     "crates/core",
     "crates/store",
     "crates/i18n",
+    "crates/scripts-catalog",
     "crates/shell",
     "crates/guide",
     "crates/cli",

@@ -1,5 +1,5 @@
 /* ============================================================================
-limit-of-ln1plusx-over-xv.epher -- ln(1 + xv)/xv tends to 1 at xv = 0
+limit-of-ln1plusx-over-x.epher -- ln(1 + xv)/xv tends to 1 at xv = 0
 
 The standard limit ln(1 + xv)/xv -> 1 as xv -> 0 (Stewart, "Calculus",
 8th ed., sec. 3.8 exercises): it is the derivative of ln xv at xv = 1.

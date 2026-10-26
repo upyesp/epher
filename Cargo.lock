@@ -1116,7 +1116,7 @@ dependencies = [
 
 [[package]]
 name = "epher-cli"
-version = "0.5.97"
+version = "0.5.98"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1164,7 +1164,7 @@ dependencies = [
 
 [[package]]
 name = "epher-lsp"
-version = "0.5.97"
+version = "0.5.98"
 dependencies = [
  "crossbeam-channel",
  "epher-core",
@@ -1174,6 +1174,10 @@ dependencies = [
  "lsp-types",
  "serde_json",
 ]
+
+[[package]]
+name = "epher-scripts-catalog"
+version = "0.5.50"
 
 [[package]]
 name = "epher-shell"
@@ -1204,6 +1208,7 @@ dependencies = [
  "epher-core",
  "epher-guide",
  "epher-i18n",
+ "epher-scripts-catalog",
  "epher-shell",
  "epher-store",
  "ratatui",
@@ -1220,6 +1225,7 @@ dependencies = [
  "epher-core",
  "epher-guide",
  "epher-i18n",
+ "epher-scripts-catalog",
  "epher-shell",
  "epher-store",
  "gloo-events 0.2.0",

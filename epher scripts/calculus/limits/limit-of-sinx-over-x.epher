@@ -1,5 +1,5 @@
 /* ============================================================================
-limit-of-sinx-over-xv.epher -- sin(xv)/xv at tiny xv rounds to 1
+limit-of-sinx-over-x.epher -- sin(xv)/xv at tiny xv rounds to 1
 
 The classic squeeze-theorem limit sin(xv)/xv -> 1 as xv -> 0 (Stewart,
 "Calculus", 8th ed., sec. 2.6) probed numerically at xv = 1e-8, both
