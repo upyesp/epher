@@ -2,7 +2,7 @@
 chi-square-goodness-of-fit.epher -- is the die fair?
 
 Tests whether the sixty rolls in `obs` fit the fair-die expectations
-in `exp` (ten of each face) with the builtin chi-square goodness-of-fit
+in `expected` (ten of each face) with the builtin chi-square goodness-of-fit
 test chisq_gof(observed, expected) (guide 1.20), which prints the chi2
 statistic and its p-value as a display string. The statistic is the
 sum of (observed - expected)^2 / expected over the six faces; the
@@ -12,21 +12,21 @@ freedom.
 Web/desktop:             paste the whole file into the entry, press Enter
 Everything also works line by line in the TUI.
 
-The knobs to edit are `obs` and `exp` below. Everything above the
+The knobs to edit are `obs` and `expected` below. Everything above the
 results section is machinery you can leave alone.
 ============================================================================ */
 
 // ---- the knobs -----------------------------------------------------------------
 const obs = {8, 12, 9, 11, 10, 10}   // how often each face came up in 60 rolls
-const exp = {10, 10, 10, 10, 10, 10} // the fair-die expectation per face
+const expected = {10, 10, 10, 10, 10, 10} // the fair-die expectation per face
 
 // ---- the pieces of the statistic ---------------------------------------------------
 print("total rolls:", sum(obs))
-print("chi2 statistic:", sum((obs - exp) ^ 2 / exp))
+print("chi2 statistic:", sum((obs - expected) ^ 2 / expected))
 print("degrees of freedom:", len(obs) - 1)
 
 // ---- the test ------------------------------------------------------------------------
-chisq_gof(obs, exp)     // chi2 = 1, p = 0.9626: a chi2 this small (or
+chisq_gof(obs, expected)     // chi2 = 1, p = 0.9626: a chi2 this small (or
                         // smaller) happens 96% of the time with a fair
                         // die, so nothing here suggests unfairness
 

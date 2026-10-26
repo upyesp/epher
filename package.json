@@ -9,6 +9,7 @@
     "build:scripts": "node scripts/build-scripts.mjs",
     "build:reference": "node scripts/build-reference.mjs",
     "audit:a11y": "node scripts/a11y/audit.mjs",
+    "lint:scripts": "node scripts/lint-scripts.mjs",
     "audit:vo": "node scripts/a11y/voiceover-audit.mjs --vo",
     "build:pwa": "cd crates/web && trunk build"
   },

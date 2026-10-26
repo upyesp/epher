@@ -47,12 +47,12 @@ def gamma(k) = (pang(k) * cos(rad(f1(k))) + qang(k) * sin(rad(f1(k)))) * (1 - 0.
 def uval(k) = 0.0059 + 0.0046 * e3(k / 1236.85) * cos(rad(ms(k))) - 0.0182 * cos(rad(mp(k))) + 0.0004 * cos(rad(2 * mp(k))) - 0.0005 * cos(rad(ms(k) + mp(k)))
 def kind(k) = (if abs(gamma(k)) < 0.9972 then (if uval(k) < 0 then "total" else if uval(k) > 0.0047 then "annular" else "hybrid") else "partial")
 def is_eclipse(k) = abs(sin(rad(mf(k)))) <= 0.36 and abs(gamma(k)) <= 1.5433 + uval(k)
-def find(k, n) = if n == 0 then -1 else if is_eclipse(k) then k else find(k + 1, n - 1)
+def next_hit(k, n) = if n == 0 then -1 else if is_eclipse(k) then k else next_hit(k + 1, n - 1)
 
 // ---- the anchor eclipse and its Saros siblings ---------------------------------
 const saros = 223 * 29.530588861   // the Saros in days: 223 lunations = 6585.3213 d
 const saros_k = 223                // ... or 223 in lunation count (same step)
-const kanchor = find(ceil(kb(jd(day[1], day[2], day[3]))), maxscan)
+const kanchor = next_hit(ceil(kb(jd(day[1], day[2], day[3]))), maxscan)
 def member(n) = kanchor + n * saros_k
 def mdate(n) = iso(tmax(member(n)) - delta_t(tmax(member(n))) / 86400)
 def mkind(n) = kind(member(n))

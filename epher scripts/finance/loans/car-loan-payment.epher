@@ -27,10 +27,10 @@ const years = 5             // loan term in years
 // ---- results -----------------------------------------------------------------
 print("down payment:", price * down)
 print("amount financed:", price * (1 - down))
-payment = tvm_pmt(years * 12, rate / 12, -(price * (1 - down)), 0)   // monthly payment, USD
-print("monthly payment:", payment)
-print("total of 60 payments:", payment * (years * 12))
-print("interest over the term:", payment * (years * 12) - price * (1 - down))
+const car_payment = tvm_pmt(years * 12, rate / 12, -(price * (1 - down)), 0)   // monthly payment, USD
+print("monthly payment:", car_payment)
+print("total of 60 payments:", car_payment * (years * 12))
+print("interest over the term:", car_payment * (years * 12) - price * (1 - down))
 /* ---- expected output ----
 = 32000
 = 0.15

@@ -65,10 +65,10 @@ sy = cos(rad(d2)) * sin(rad(r2))
 sz = sin(rad(d2))
 ax = cos(rad(apexde(tm))) * cos(rad(apexra(tm)))
 ay = cos(rad(apexde(tm))) * sin(rad(apexra(tm)))
-az = sin(rad(apexde(tm)))
+apexz = sin(rad(apexde(tm)))
 kx = sx + 20.49552 / 206265 * ax
 ky = sy + 20.49552 / 206265 * ay
-kz = sz + 20.49552 / 206265 * az
+kz = sz + 20.49552 / 206265 * apexz
 r3 = wrap(deg(atan2(ky, kx)))
 d3 = deg(atan2(kz, sqrt(kx ^ 2 + ky ^ 2)))
 

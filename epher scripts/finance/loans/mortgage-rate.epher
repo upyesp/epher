@@ -17,11 +17,11 @@ machinery you can leave alone.
 
 // ---- knobs ------------------------------------------------------------------
 const principal = 200000    // loan amount at closing, USD
-const payment = 1500        // monthly payment offered, USD
+const offered_payment = 1500 // monthly payment offered, USD
 const years = 30            // term in years
 
 // ---- results -----------------------------------------------------------------
-r = tvm_i(years * 12, -principal, payment, 0)   // monthly rate the payment implies (r, not i: i is reserved, guide 1.18)
+r = tvm_i(years * 12, -principal, offered_payment, 0)   // monthly rate the payment implies (r, not i: i is reserved, guide 1.18)
 print("monthly rate:", r)
 print("nominal annual rate (APR, 12 x monthly):", 12 * r)
 print("effective annual rate (1+r)^12 - 1:", (1 + r) ^ 12 - 1)

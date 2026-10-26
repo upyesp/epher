@@ -26,15 +26,15 @@ const thalf = 5730                  // half-life of carbon-14, years
 const lam = ln(2)/thalf             // lambda = ln(2)/T, per year
 
 // ---- helpers ----------------------------------------------------------------
-def frac(t) = e^(-lam*t)            // fraction of nuclei left after t years
+def frac_left(t) = e^(-lam*t)            // fraction of nuclei left after t years
 
 // ---- one and two half-lives: 1/2 and 1/4 remain -----------------------------
-print("fraction after one half-life:", frac(thalf))
-print("fraction after two half-lives:", frac(2*thalf))
-abs(frac(thalf) - 1/2) < 1e-9
+print("fraction after one half-life:", frac_left(thalf))
+print("fraction after two half-lives:", frac_left(2*thalf))
+abs(frac_left(thalf) - 1/2) < 1e-9
 
 // ---- after 10000 years ------------------------------------------------------
-print("fraction after 10000 years:", frac(10000))
+print("fraction after 10000 years:", frac_left(10000))
 
 // ---- the half-life recovered from the decay constant ------------------------
 print("half-life from lambda, years:", ln(2)/lam)

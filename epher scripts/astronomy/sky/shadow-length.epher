@@ -38,7 +38,7 @@ const hr2 = 0               // 00:00 UT: the Sun is far below
 
 // ---- model ------------------------------------------------------------------
 def wb(a) = a + 180 - 360 * floor((a + 180) / 360)   // shadow bearing, 0-360 deg from north
-def len(a) = hgt / tan(rad(a))                        // shadow length for solar altitude a
+def shadow_len(a) = hgt / tan(rad(a))                        // shadow length for solar altitude a
 
 // ---- the sample instant -----------------------------------------------------
 a1 = alt(10, jd(day[1], day[2], day[3], hr), lat, lon)
@@ -51,7 +51,7 @@ height - the Sun at 45.9 deg makes tan(45.9) near 1 - and a one-metre
 stick throws a shadow of about 0.97 m. */
 print("gnomon height", hgt, "m at lat", lat, "lon", lon)
 print("2026-06-21 15:00 UT: Sun alt", a1, "deg, az", z1, "deg")
-print("  shadow length:", len(a1), "m; shadow bearing:", wb(z1), "deg from north")
+print("  shadow length:", shadow_len(a1), "m; shadow bearing:", wb(z1), "deg from north")
 
 // ---- the noon cross-check ----------------------------------------------------
 t0 = transit(10, jd(day[1], day[2], day[3]), lat, lon)
@@ -59,7 +59,7 @@ a0 = alt(10, t0, lat, lon)
 z0 = az(10, t0, lat, lon)
 d0 = decl(10, t0)
 print("at solar noon", iso(t0), ": Sun alt", a0, "deg, az", z0, "deg")
-print("  shortest shadow:", len(a0), "m; bearing", wb(z0), "deg (north)")
+print("  shortest shadow:", shadow_len(a0), "m; bearing", wb(z0), "deg (north)")
 
 /* Self-check: at the transit instant the measured altitude and the
 meridian formula 90 - |lat - decl| meet (they differ by the Sun's
@@ -71,7 +71,7 @@ print("azimuth at transit: due south reads 180 deg - measured", z0, "deg")
 // ---- the Sun-down guard ------------------------------------------------------
 a2 = alt(10, jd(day2[1], day2[2], day2[3], hr2), lat, lon)
 z2 = az(10, jd(day2[1], day2[2], day2[3], hr2), lat, lon)
-if a2 <= 0 then print("2026-12-21 00:00 UT: the Sun is down (alt", a2, "deg): no shadow") else print("2026-12-21 00:00 UT: shadow length", len(a2), "m, bearing", wb(z2), "deg")
+if a2 <= 0 then print("2026-12-21 00:00 UT: the Sun is down (alt", a2, "deg): no shadow") else print("2026-12-21 00:00 UT: shadow length", shadow_len(a2), "m, bearing", wb(z2), "deg")
 
 /* ---- expected output ----
 = 1

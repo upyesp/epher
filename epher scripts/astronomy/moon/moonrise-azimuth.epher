@@ -31,7 +31,7 @@ drift about 50 minutes later each day).
 // ---- the knobs ----------------------------------------------------------------
 const lat = 51.4779        // Greenwich - the Royal Observatory
 const lon = 0
-const date = {2026, 6, 22}   // a date with both a moonrise and a moonset
+const obs_date = {2026, 6, 22}   // a date with both a moonrise and a moonset
 
 // ---- helpers ----------------------------------------------------------------
 def tr(lat, lon, j0) = rise(11, j0, lat, lon)    // moonrise of the local day
@@ -39,16 +39,16 @@ def ts(lat, lon, j0) = set(11, j0, lat, lon)     // moonset of the local day
 def comp(a) = if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 0 then "north" else if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 1 then "northeast" else if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 2 then "east" else if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 3 then "southeast" else if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 4 then "south" else if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 5 then "southwest" else if floor((a - 360 * floor(a / 360) + 22.5) / 45) == 6 then "west" else "northwest"
 
 // ---- results ------------------------------------------------------------------
-print("moon events at lat", lat, "lon", lon, "on", date[3], "/", date[2], "/", date[1], "UT:")
-print("moonrise:", iso(tr(lat, lon, jd(date[1], date[2], date[3]))), "at azimuth", az(11, tr(lat, lon, jd(date[1], date[2], date[3])), lat, lon), "deg -", comp(az(11, tr(lat, lon, jd(date[1], date[2], date[3])), lat, lon)))
-print("moonset:", iso(ts(lat, lon, jd(date[1], date[2], date[3]))), "at azimuth", az(11, ts(lat, lon, jd(date[1], date[2], date[3])), lat, lon), "deg -", comp(az(11, ts(lat, lon, jd(date[1], date[2], date[3])), lat, lon)))
+print("moon events at lat", lat, "lon", lon, "on", obs_date[3], "/", obs_date[2], "/", obs_date[1], "UT:")
+print("moonrise:", iso(tr(lat, lon, jd(obs_date[1], obs_date[2], obs_date[3]))), "at azimuth", az(11, tr(lat, lon, jd(obs_date[1], obs_date[2], obs_date[3])), lat, lon), "deg -", comp(az(11, tr(lat, lon, jd(obs_date[1], obs_date[2], obs_date[3])), lat, lon)))
+print("moonset:", iso(ts(lat, lon, jd(obs_date[1], obs_date[2], obs_date[3]))), "at azimuth", az(11, ts(lat, lon, jd(obs_date[1], obs_date[2], obs_date[3])), lat, lon), "deg -", comp(az(11, ts(lat, lon, jd(obs_date[1], obs_date[2], obs_date[3])), lat, lon)))
 
 /* Self-check: the altitude the engine reports at the instant it found
 for the event - the rise/set convention crosses the -0.833 deg horizon
 (limb centre at the refracted horizon), so the printed altitude should
 read about -0.83 deg at both events. */
-print("altitude at moonrise:", alt(11, tr(lat, lon, jd(date[1], date[2], date[3])), lat, lon), "deg")
-print("altitude at moonset:", alt(11, ts(lat, lon, jd(date[1], date[2], date[3])), lat, lon), "deg")
+print("altitude at moonrise:", alt(11, tr(lat, lon, jd(obs_date[1], obs_date[2], obs_date[3])), lat, lon), "deg")
+print("altitude at moonset:", alt(11, ts(lat, lon, jd(obs_date[1], obs_date[2], obs_date[3])), lat, lon), "deg")
 
 /* ---- expected output ----
 = 51.4779

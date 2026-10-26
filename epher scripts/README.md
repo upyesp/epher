@@ -88,6 +88,13 @@ The reference example turns those facts into a house style:
    formula states that it is the classroom formula and why the builtin
    is not used (the builtin is a display string, or the method itself is
    the point); when a builtin can do the job, the builtin does the job.
+   Never bind a builtin's name as a variable, constant or helper
+   (`time = ...`, `def len(...)`, `const exp = ...`): the session
+   persists between runs, so a shadowing name outlives the script and
+   changes what the builtin means later. Give shared knobs a
+   script-specific spelling (`loan_payment`, not `payment`).
+   `scripts/lint-scripts.mjs` enforces the builtin rule and warns on
+   unit-name spellings.
 7. **Units in the code.** Write `30 deg`, `1 AU`, `24 hr`, convert with
    `in`, and say the unit in the note when a number is a count.
 8. **Results last, labelled.** `print("label:", value)` (guide 1.29)
