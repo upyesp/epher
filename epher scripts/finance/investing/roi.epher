@@ -21,8 +21,8 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const invested = 25000      // money put into the venture, USD
-const flows = {8000, 12000, 15000}   // net cash flows returned, years 1 to 3, USD
+const invested = 25000      // money put into the venture
+const flows = {8000, 12000, 15000}   // net cash flows returned, years 1 to 3
 
 // ---- results -----------------------------------------------------------------
 print("total returned over the three years:", sum(flows))

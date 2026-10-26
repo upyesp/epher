@@ -16,17 +16,17 @@ is machinery you can leave alone.
 const step = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students, out of 100
 
 // ---- mean by the builtin and by its definition (sum over count) ---------------
-mean(step)                     // builtin arithmetic mean
-sum(step) / len(step)             // the textbook formula, sum(step) / len(step), agrees
+print("builtin arithmetic mean:", mean(step))
+print("the textbook formula, sum(step) / len(step):", sum(step) / len(step))
 
 // ---- the pieces of the formula ------------------------------------------------
-sum(step)                      // total of all scores
-len(step)                      // number of scores
+print("total of all scores:", sum(step))
+print("number of scores:", len(step))
 
 /* ---- expected output ----
 = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-= 81.3
-= 81.3
-= 813
-= 10
+= builtin arithmetic mean: 81.3
+= the textbook formula, sum(step) / len(step): 81.3
+= total of all scores: 813
+= number of scores: 10
 */

@@ -22,8 +22,7 @@ Web/desktop:             paste the file into the entry, press Enter
 
 // ---- results ----
 // All possible tickets.
-ncr(49, 6)
-print("possible tickets:", ncr(49, 6))
+print("equally likely tickets in the draw:", ncr(49, 6))
 
 // Matching all six drawn numbers: your one combination out of the lot.
 print("P(6 of 6):", 1 / ncr(49, 6))
@@ -44,10 +43,9 @@ ncr(6, k) * ncr(43, 6 - k) over k = 0..6 counts all ncr(49, 6) draws
 by splitting each draw into matches and non-matches of the ticket. */
 v = {0, 0}
 while v[1] < 7 do v = {v[1] + 1, v[2] + ncr(6, v[1]) * ncr(43, 6 - v[1])}
-v[2] == ncr(49, 6)
+print("Vandermonde: the seven match counts sum to all draws:", v[2] == ncr(49, 6))
 /* ---- expected output ----
-= 13983816
-= possible tickets: 13983816
+= equally likely tickets in the draw: 13983816
 = P(6 of 6): 0.0000000715112384202
 = jackpot odds: 1 in 13983816
 = P(3 of 6): 0.0176504038669
@@ -56,5 +54,5 @@ v[2] == ncr(49, 6)
 = P(4 of 6): 0.000968619724401
 = P(5 of 6): 0.0000184498995124
 = {0, 0}
-= true
+= Vandermonde: the seven match counts sum to all draws: true
 */

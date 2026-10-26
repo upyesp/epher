@@ -1,0 +1,9 @@
+[package]
+name = "epher-scripts-catalog"
+version = "0.5.50"
+edition = "2021"
+description = "Compile-time catalog of the bundled example scripts"
+license = "MIT"
+
+[lib]
+doctest = false

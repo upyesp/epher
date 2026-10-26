@@ -20,18 +20,18 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 50000     // amount borrowed, USD
+const principal = 50000     // amount borrowed
 const rate = 5.4%           // quoted annual rate
 const years = 5             // term in years
-const balloon = 20000       // balance still owed at maturity, USD
+const balloon = 20000       // balance still owed at maturity
 
 // ---- results -----------------------------------------------------------------
-payment = tvm_pmt(years * 12, rate / 12, -principal, balloon)   // monthly payment, USD
-print("monthly payment with the 20000 balloon:", payment)
+const balloon_payment = tvm_pmt(years * 12, rate / 12, -principal, balloon)   // monthly payment
+print("monthly payment with the 20000 balloon:", balloon_payment)
 print("payment to amortize the whole principal:", tvm_pmt(years * 12, rate / 12, -principal, 0))
-print("monthly saving vs full amortization:", tvm_pmt(years * 12, rate / 12, -principal, 0) - payment)
-print("total paid with the balloon (payments plus balloon):", payment * (years * 12) + balloon)
-print("interest paid with the balloon:", payment * (years * 12) + balloon - principal)
+print("monthly saving vs full amortization:", tvm_pmt(years * 12, rate / 12, -principal, 0) - balloon_payment)
+print("total paid with the balloon (payments plus balloon):", balloon_payment * (years * 12) + balloon)
+print("interest paid with the balloon:", balloon_payment * (years * 12) + balloon - principal)
 // The lower payment buys a cheaper month but a dearer loan: interest runs
 // about 9699.07 with the balloon versus 7165.12 on a fully amortized note.
 /* ---- expected output ----

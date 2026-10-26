@@ -19,10 +19,10 @@ const nmax = 12
 
 // ---- results ----
 // Two spellings of the same builtin: fact(n) and the postfix n!.
-fact(nmax)
-nmax!
-fact(10)
-10!
+print("nmax! via the fact builtin:", fact(nmax))
+print("nmax! via the ! operator:", nmax!)
+print("ten factorial via fact():", fact(10))
+print("ten factorial, written with the ! operator:", 10!)
 
 // A for loop (guide 1.30) collects one value per step into a list:
 // this prints 5! through 12! in one line, all exact integers.
@@ -38,10 +38,10 @@ print("10! seconds:", fact(10) / 86400, "days")
 print("12! seconds: about", round(fact(12) / 86400 / 365), "years")
 /* ---- expected output ----
 = 12
-= 479001600
-= 479001600
-= 3628800
-= 3628800
+= nmax! via the fact builtin: 479001600
+= nmax! via the ! operator: 479001600
+= ten factorial via fact(): 3628800
+= ten factorial, written with the ! operator: 3628800
 = {120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600}
 = ratios 12!/11! and 12!/10!: 12 132
 = 10! seconds: 42 days

@@ -1,5 +1,5 @@
 /* ============================================================================
-limit-of-sinx-over-xv.epher -- sin(xv)/xv at tiny xv rounds to 1
+limit-of-sinx-over-x.epher -- sin(xv)/xv at tiny xv rounds to 1
 
 The classic squeeze-theorem limit sin(xv)/xv -> 1 as xv -> 0 (Stewart,
 "Calculus", 8th ed., sec. 2.6) probed numerically at xv = 1e-8, both
@@ -20,9 +20,9 @@ The knob to edit is `xv` below.
 const xv = 1e-8
 
 // ---- sin(xv)/xv at xv = 1e-8 and -1e-8: both print the limit, 1 ----------------
-sin(xv)/xv
-sin(-xv)/(-xv)
-abs(sin(xv)/xv - 1) < 1e-12
+print("at +xv:", sin(xv)/xv)
+print("at -xv:", sin(-xv)/(-xv))
+print("within 1e-12 of the limit:", abs(sin(xv)/xv - 1) < 1e-12)
 
 // ---- at xv = 1e-4 and 1e-6 the xv^2/6 deficit is (partly) visible -------------
 for t in {1e-4, 1e-6} do sin(t)/t
@@ -30,13 +30,13 @@ for t in {1e-4, 1e-6} do sin(t)/t
 // ---- cross-check: derivative of sin at 0, on a fresh variable t -----------
 // (xv is bound by the knob above, so a bound xv would make the expression
 // constant; t is free).
-derivative(sin(t), 0)
+print("the same limit, as a derivative:", derivative(sin(t), 0))
 
 /* ---- expected output ---------------------------------------------------------
 = 0.00000001
-= 1
-= 1
-= true
+= at +xv: 1
+= at -xv: 1
+= within 1e-12 of the limit: true
 = {0.999999998333, 1}
-= 1
+= the same limit, as a derivative: 1
 */

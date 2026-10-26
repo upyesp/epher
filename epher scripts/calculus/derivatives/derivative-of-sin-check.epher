@@ -19,36 +19,36 @@ No knobs: the four points are the demonstration.
 ============================================================================ */
 
 // ---- at p = 0.3 -------------------------------------------------------------
-derivative(sin(x), 0.3)
-cos(0.3)
-abs(derivative(sin(x), 0.3) - cos(0.3)) < 1e-9
+print("from the builtin:", derivative(sin(x), 0.3))
+print("cos of the same point:", cos(0.3))
+print("they agree:", abs(derivative(sin(x), 0.3) - cos(0.3)) < 1e-9)
 
 // ---- at p = 1 ---------------------------------------------------------------
-derivative(sin(x), 1)
-cos(1)
-abs(derivative(sin(x), 1) - cos(1)) < 1e-9
+print("from the builtin:", derivative(sin(x), 1))
+print("cos of the same point:", cos(1))
+print("they agree:", abs(derivative(sin(x), 1) - cos(1)) < 1e-9)
 
 // ---- at p = 2 ---------------------------------------------------------------
-derivative(sin(x), 2)
-cos(2)
-abs(derivative(sin(x), 2) - cos(2)) < 1e-9
+print("from the builtin:", derivative(sin(x), 2))
+print("cos of the same point:", cos(2))
+print("they agree:", abs(derivative(sin(x), 2) - cos(2)) < 1e-9)
 
 // ---- at p = pi/2, where the exact slope is 0 --------------------------------
-derivative(sin(x), pi/2)
-cos(pi/2)
-abs(derivative(sin(x), pi/2) - cos(pi/2)) < 1e-9
+print("from the builtin:", derivative(sin(x), pi/2))
+print("cos of the same point:", cos(pi/2))
+print("they agree:", abs(derivative(sin(x), pi/2) - cos(pi/2)) < 1e-9)
 
 /* ---- expected output ---------------------------------------------------------
-= 0.955336489126
-= 0.955336489126
-= true
-= 0.540302305868
-= 0.540302305868
-= true
-= -0.416146836547
-= -0.416146836547
-= true
-= -0.0000000000000719765968398
-= 0.0000000000000000612323399574
-= true
+= from the builtin: 0.955336489126
+= cos of the same point: 0.955336489126
+= they agree: true
+= from the builtin: 0.540302305868
+= cos of the same point: 0.540302305868
+= they agree: true
+= from the builtin: -0.416146836547
+= cos of the same point: -0.416146836547
+= they agree: true
+= from the builtin: -0.0000000000000719765968398
+= cos of the same point: 0.0000000000000000612323399574
+= they agree: true
 */

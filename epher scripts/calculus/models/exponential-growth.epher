@@ -29,7 +29,7 @@ for t in ts do grow(t)
 // ---- doubling time ln(2)/r, and the population there ------------------------
 print("doubling time, years:", ln(2)/r)
 print("population at the doubling time:", grow(ln(2)/r))
-abs(grow(ln(2)/r) - 2*n0) < 1e-6
+print("exactly doubled there:", abs(grow(ln(2)/r) - 2*n0) < 1e-6)
 
 /* ---- expected output ---------------------------------------------------------
 = 1000
@@ -38,5 +38,5 @@ abs(grow(ln(2)/r) - 2*n0) < 1e-6
 = {1000, 1221.40275816, 1648.7212707, 2718.28182846}
 = doubling time, years: 34.657359028
 = population at the doubling time: 2000
-= true
+= exactly doubled there: true
 */

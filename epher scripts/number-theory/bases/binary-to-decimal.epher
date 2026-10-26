@@ -19,18 +19,18 @@ There is no knob: the sample literals are the point of the script.
 // ---- the place values -----------------------------------------------------------------
 // 0b101010 has ones in the 32, 8 and 2 places, so it is 42.
 print("32 + 8 + 2:", 32 + 8 + 2)
-0b101010                      // reads as 42
-0b11111111                    // eight bits set: 128 + 64 + ... + 1 = 255
-0b10000000000                 // 2^10 = 1024
-0b1111                        // the largest four-bit value: 15
+print("reads as 42:", 0b101010)
+print("eight bits set, 128 + 64 + ... + 1 = 255:", 0b11111111)
+print("2^10 = 1024:", 0b10000000000)
+print("the largest four-bit value, 15:", 0b1111)
 
 // ---- a list at a glance ---------------------------------------------------------------
 for x in {0b1, 0b10, 0b101, 0b1111, 0b101010, 0b11111111} do x
 /* ---- expected output ----
 = 32 + 8 + 2: 42
-= 42
-= 255
-= 1024
-= 15
+= reads as 42: 42
+= eight bits set, 128 + 64 + ... + 1 = 255: 255
+= 2^10 = 1024: 1024
+= the largest four-bit value, 15: 15
 = {1, 2, 5, 15, 42, 255}
 */

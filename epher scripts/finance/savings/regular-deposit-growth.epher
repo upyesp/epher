@@ -19,7 +19,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const deposit = 250         // monthly deposit, USD
+const deposit = 250         // monthly deposit
 const rate = 6%             // annual rate of return
 const years = 10            // years of the plan
 

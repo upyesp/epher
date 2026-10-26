@@ -15,11 +15,11 @@ const A = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 const B = [[9, 8, 7], [6, 5, 4], [3, 2, 1]]
 
 // ---- results -----------------------------------------------------------------
-A + B                             // A + B, entry by entry (echoes the sum)
+print("A + B, entry by entry:", A + B)
 print("(A + B) - B brings back A:", (A + B) - B == A)
 /* ---- expected output ----
 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 = [[9, 8, 7], [6, 5, 4], [3, 2, 1]]
-= [[10, 10, 10], [10, 10, 10], [10, 10, 10]]
+= A + B, entry by entry: [[10, 10, 10], [10, 10, 10], [10, 10, 10]]
 = (A + B) - B brings back A: true
 */

@@ -16,19 +16,19 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 250000    // loan amount at closing, USD
+const principal = 250000    // loan amount at closing
 const rate = 6.5%           // quoted annual rate
 const years = 30            // term in years
 
 // ---- results -----------------------------------------------------------------
-payment = tvm_pmt(years * 12, rate / 12, -principal, 0)   // monthly payment, USD
-print("monthly payment:", payment)
+const mbal_payment = tvm_pmt(years * 12, rate / 12, -principal, 0)   // monthly payment
+print("monthly payment:", mbal_payment)
 // Balances after 60 and 120 payments of the 360-month loan.
 print("balance after 5 years:", amort(principal, rate / 12, years * 12, 5 * 12))
 print("balance after 10 years:", amort(principal, rate / 12, years * 12, 10 * 12))
 print("principal paid off in the first 5 years:", principal - amort(principal, rate / 12, years * 12, 5 * 12))
 print("principal paid off in the first 10 years:", principal - amort(principal, rate / 12, years * 12, 10 * 12))
-print("payments made in the first 10 years:", payment * (10 * 12))
+print("payments made in the first 10 years:", mbal_payment * (10 * 12))
 // After 10 years the borrower has paid 189620.41 but only about 38059.68 of
 // it (one fifth) has reduced the debt; the other four fifths went to
 // interest. The balance is what a refinance would have to cover.

@@ -19,7 +19,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const salary = 60000        // yearly salary, USD
+const salary = 60000        // yearly salary
 const own_share = 5%        // share of salary the saver deposits
 const match_share = 5%      // share of salary the employer matches (100% match)
 const rate = 7%             // annual rate of return

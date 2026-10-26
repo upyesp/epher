@@ -35,8 +35,8 @@ print("local maximum f(-1):", f(-1))
 print("local minimum f(1):", f(1))
 
 // ---- confirm: the numeric slope is 0 at both critical points ----------------
-abs(derivative(f(x), -1)) < 1e-9
-abs(derivative(f(x), 1)) < 1e-9
+print("slope is 0 at the maximum:", abs(derivative(f(x), -1)) < 1e-9)
+print("slope is 0 at the minimum:", abs(derivative(f(x), 1)) < 1e-9)
 
 /* ---- expected output ---------------------------------------------------------
 = x = -1, x = 1
@@ -44,6 +44,6 @@ abs(derivative(f(x), 1)) < 1e-9
 = f'' at 1: 6 positive, so a local minimum
 = local maximum f(-1): 2
 = local minimum f(1): -2
-= true
-= true
+= slope is 0 at the maximum: true
+= slope is 0 at the minimum: true
 */

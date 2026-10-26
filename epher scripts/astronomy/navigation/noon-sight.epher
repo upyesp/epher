@@ -39,7 +39,7 @@ const eye = 3                  // height of eye, metres
 
 // ---- the sight, step by step --------------------------------------------------
 lan = transit(10, jd(day[1], day[2], day[3]), drlat, lon)
-dec = decl(10, lan)
+sun_dec = decl(10, lan)
 sd = diam(10, lan) / 2
 
 // ---- corrections: dip and refraction in arcminutes ----------------------------
@@ -50,12 +50,12 @@ def refr(h) = 0.97127 / tan(rad(h + 7.31 / (h + 4.4)))
 ha = hs + ic / 60 - dip(eye) / 60
 ho = ha - refr(ha) / 60 + sd + 8.79 * cos(rad(ha)) / 3600
 z = 90 - ho
-lat = dec + z
+lat = sun_dec + z
 
 // ---- results ------------------------------------------------------------------
 print("local apparent noon:", iso(lan))
 print("Ho (true central altitude):", ho, "deg")
-print("zenith distance:", z, "deg, declination:", dec, "deg")
+print("zenith distance:", z, "deg, declination:", sun_dec, "deg")
 print("latitude from the noon sight:", lat, "N")
 
 /* Self-check: the sight was taken from a boat whose DR latitude is

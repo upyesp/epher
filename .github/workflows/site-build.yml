@@ -58,6 +58,9 @@ jobs:
       - name: Install site tooling
         run: npm ci
 
+      - name: Lint the scripts fleet
+        run: node scripts/lint-scripts.mjs
+
       - name: Build the user guide
         run: npm run build:guide && npm run build:examples && npm run build:scripts && npm run build:reference
 

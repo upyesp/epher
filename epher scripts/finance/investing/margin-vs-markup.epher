@@ -16,8 +16,8 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const cost = 80             // what the seller pays, USD
-const price = 100           // what the buyer pays, USD
+const cost = 80             // what the seller pays
+const price = 100           // what the buyer pays
 
 // ---- helpers ----------------------------------------------------------------
 def margin(c, p) = (p - c) / p        // profit as a share of the selling price

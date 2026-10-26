@@ -21,28 +21,28 @@ def f(x) = x^2*sin(x)
 def fp(x) = 2*x*sin(x) + x^2*cos(x)   // product rule: f' = u'v + uv'
 
 // ---- at p = 0.7 -------------------------------------------------------------
-derivative(f(x), 0.7)
-fp(0.7)
-abs(derivative(f(x), 0.7) - fp(0.7)) < 1e-9
+print("from the builtin:", derivative(f(x), 0.7))
+print("by hand:", fp(0.7))
+print("they agree:", abs(derivative(f(x), 0.7) - fp(0.7)) < 1e-9)
 
 // ---- at p = 1.5 -------------------------------------------------------------
-derivative(f(x), 1.5)
-fp(1.5)
-abs(derivative(f(x), 1.5) - fp(1.5)) < 1e-9
+print("from the builtin:", derivative(f(x), 1.5))
+print("by hand:", fp(1.5))
+print("they agree:", abs(derivative(f(x), 1.5) - fp(1.5)) < 1e-9)
 
 // ---- at p = 2.5 -------------------------------------------------------------
-derivative(f(x), 2.5)
-fp(2.5)
-abs(derivative(f(x), 2.5) - fp(2.5)) < 1e-9
+print("from the builtin:", derivative(f(x), 2.5))
+print("by hand:", fp(2.5))
+print("they agree:", abs(derivative(f(x), 2.5) - fp(2.5)) < 1e-9)
 
 /* ---- expected output ---------------------------------------------------------
-= 1.2766774339
-= 1.2766774339
-= true
-= 3.15164366357
-= 3.15164366356
-= true
-= -2.01478687665
-= -2.01478687665
-= true
+= from the builtin: 1.2766774339
+= by hand: 1.2766774339
+= they agree: true
+= from the builtin: 3.15164366357
+= by hand: 3.15164366356
+= they agree: true
+= from the builtin: -2.01478687665
+= by hand: -2.01478687665
+= they agree: true
 */

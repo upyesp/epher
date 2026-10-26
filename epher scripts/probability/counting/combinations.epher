@@ -28,14 +28,14 @@ const group = 10
 // same choice as naming the 7 people left out.
 print("committees of 3 from", group, "people:", ncr(group, 3))
 print("the same choice as 7 left out:", ncr(group, 7))
-ncr(group, 3) == ncr(group, 7)
+print("symmetry: choosing the 3 members equals leaving out 7:", ncr(group, 3) == ncr(group, 7))
 
 // The formula link to permutations: every 3-person committee appears in
 // 3! = 6 orders among the npr(10, 3) ordered lists.
-ncr(group, 3) == npr(group, 3) / fact(3)
+print("formula: committees counted 3! times among ordered lists:", ncr(group, 3) == npr(group, 3) / fact(3))
 
 // Hockey-stick identity, with exact integers.
-ncr(9, 2) + ncr(9, 3) == ncr(10, 3)
+print("hockey-stick identity:", ncr(9, 2) + ncr(9, 3) == ncr(10, 3))
 
 // Two famous counts that reuse combinations.
 print("5-card hands from a 52-card deck:", ncr(52, 5))
@@ -48,18 +48,18 @@ v = {0, 0}
 while v[1] < 6 do v = {v[1] + 1, v[2] + ncr(5, v[1])}
 print("row 5 of Pascal's triangle sums to:", v[2])
 print("and 2^5 =", 2 ^ 5)
-v[2] == 2 ^ 5
+print("the row sum equals 2^5:", v[2] == 2 ^ 5)
 /* ---- expected output ----
 = 10
 = committees of 3 from 10 people: 120
 = the same choice as 7 left out: 120
-= true
-= true
-= true
+= symmetry: choosing the 3 members equals leaving out 7: true
+= formula: committees counted 3! times among ordered lists: true
+= hockey-stick identity: true
 = 5-card hands from a 52-card deck: 2598960
 = lottery tickets, 6 of 49 numbers: 13983816
 = {0, 0}
 = row 5 of Pascal's triangle sums to: 32
 = and 2^5 = 32
-= true
+= the row sum equals 2^5: true
 */

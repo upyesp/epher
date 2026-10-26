@@ -21,14 +21,14 @@ const xs = {0.5, 0.8, 1.1, 1.4, 1.7}   // pendulum length, meters
 const ys = {1.39, 1.82, 2.08, 2.41, 2.59}   // swing period, seconds
 
 // ---- the fitted power curve --------------------------------------------------------------
-powreg(xs, ys)      // least-squares power fit, printed with its r
+print("least-squares power fit, with its r:", powreg(xs, ys))
 
 // ---- the physics it recovers --------------------------------------------------------------
-2 * pi / sqrt(g)    // the theoretical coefficient 2 * pi / sqrt(g), about 2.0064
+print("the theoretical coefficient 2 * pi / sqrt(g):", 2 * pi / sqrt(g))
 
 /* ---- expected output ----
 = {0.5, 0.8, 1.1, 1.4, 1.7}
 = {1.39, 1.82, 2.08, 2.41, 2.59}
-= y = 2.001*x^0.5105 (r = 0.9981)
-= 2.00640929259
+= least-squares power fit, with its r: y = 2.001*x^0.5105 (r = 0.9981)
+= the theoretical coefficient 2 * pi / sqrt(g): 2.00640929259
 */

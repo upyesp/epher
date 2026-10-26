@@ -16,7 +16,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const goal = 50000          // the future sum, USD
+const goal = 50000          // the future sum
 const rate = 6%             // annual discount rate
 const years = 15            // years until the sum arrives
 

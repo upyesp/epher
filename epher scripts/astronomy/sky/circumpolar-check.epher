@@ -31,9 +31,9 @@ const latp = 78.2           // Longyearbyen, Svalbard - the engine check
 const lonp = 15.6
 
 // ---- model ------------------------------------------------------------------
-def cosh(dec, phi) = -tan(rad(phi)) * tan(rad(dec))   // cos of the hour angle at the horizon
-def cls(dec, phi) = if cosh(dec, phi) < -1 then "circumpolar: never sets" else if cosh(dec, phi) > 1 then "never rises" else "rises and sets daily"
-def ccl(dec, phi) = if cosh(dec, phi) < -1 then 1 else if cosh(dec, phi) > 1 then -1 else 0
+def cosH(dec, phi) = -tan(rad(phi)) * tan(rad(dec))   // cos of the hour angle at the horizon
+def cls(dec, phi) = if cosH(dec, phi) < -1 then "circumpolar: never sets" else if cosH(dec, phi) > 1 then "never rises" else "rises and sets daily"
+def ccl(dec, phi) = if cosH(dec, phi) < -1 then 1 else if cosH(dec, phi) > 1 then -1 else 0
 const fcirc = (1 - cos(rad(90 - abs(lat)))) / 2   // share of the sky in each polar cap
 
 /* ---- results ------------------------------------------------------------------

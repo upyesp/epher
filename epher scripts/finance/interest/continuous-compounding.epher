@@ -19,7 +19,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 1000      // starting sum, USD
+const principal = 1000      // starting sum
 const rate = 5%             // nominal annual rate
 const years = 10            // term in years
 

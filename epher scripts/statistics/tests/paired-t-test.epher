@@ -28,9 +28,9 @@ print("mean difference:", mean(before - after))
 print("sample stdev of the differences:", sdd())
 
 // ---- the test ---------------------------------------------------------------------------
-ttestpaired(before, after)  // t = 2.4495, p = 0.0498: the drop is just
-                            // significant at the 5% level, so the program
-                            // measurably lowered systolic pressure here
+print("paired t test of before against after (t and p):", ttestpaired(before, after))
+// the drop is just significant at the 5% level, so the program
+// measurably lowered systolic pressure here
 
 /* ---- expected output ----
 = {147, 140, 154, 140, 147, 147, 140}
@@ -38,5 +38,5 @@ ttestpaired(before, after)  // t = 2.4495, p = 0.0498: the drop is just
 = differences, before minus after: {5, 1, 4, 0, 3, 2, -1}
 = mean difference: 2
 = sample stdev of the differences: 2.16024689947
-= t = 2.4495, p = 0.0498
+= paired t test of before against after (t and p): t = 2.4495, p = 0.0498
 */

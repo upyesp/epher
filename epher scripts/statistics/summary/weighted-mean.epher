@@ -22,16 +22,16 @@ const w = {3, 4, 2, 3, 2}        // course credits: 3, 4, 2, 3 and 2 credit hour
 def wmean(xs, ws) = sum(xs * ws) / sum(ws) // sum of value times weight, over total weight
 
 // ---- the grade point average by credits -------------------------------------------
-wmean(g, w)                 // weighted mean: sum(g * w) / sum(w)
-sum(g * w)                  // the weighted grade total
-sum(w)                      // the total credits
-mean(g)                     // the plain mean for contrast, every course equal
+print("weighted mean, sum(g * w) / sum(w):", wmean(g, w))
+print("the weighted grade total:", sum(g * w))
+print("the total credits:", sum(w))
+print("the plain mean for contrast, every course equal:", mean(g))
 
 /* ---- expected output ----
 = {85, 92, 78, 88, 91}
 = {3, 4, 2, 3, 2}
-= 87.5
-= 1225
-= 14
-= 86.8
+= weighted mean, sum(g * w) / sum(w): 87.5
+= the weighted grade total: 1225
+= the total credits: 14
+= the plain mean for contrast, every course equal: 86.8
 */

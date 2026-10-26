@@ -19,7 +19,7 @@ machinery you can leave alone.
 // ---- knobs ------------------------------------------------------------------
 const hurdle_low = 8%       // a lenient required return
 const hurdle_high = 20%     // a demanding required return
-const flows = {-100000, 30000, 40000, 40000, 30000}   // the project's cash flows, USD
+const flows = {-100000, 30000, 40000, 40000, 30000}   // the project's cash flows
 
 // ---- results -----------------------------------------------------------------
 r = irr(flows)              // the project's internal rate of return

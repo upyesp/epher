@@ -27,44 +27,44 @@ def fp_ln(x) = 1/x
 def fp_ex(x) = e^x
 
 // ---- power rule: d/dx x^2 at x = 3 is 2x = 6 --------------------------------
-derivative(x^2, 3)
-fp_sq(3)
-abs(derivative(x^2, 3) - fp_sq(3)) < 1e-9
+print("from the builtin:", derivative(x^2, 3))
+print("by hand:", fp_sq(3))
+print("they agree:", abs(derivative(x^2, 3) - fp_sq(3)) < 1e-9)
 
 // ---- power rule: d/dx x^3 at x = 2 is 3x^2 = 12 -----------------------------
-derivative(x^3, 2)
-fp_cb(2)
-abs(derivative(x^3, 2) - fp_cb(2)) < 1e-9
+print("from the builtin:", derivative(x^3, 2))
+print("by hand:", fp_cb(2))
+print("they agree:", abs(derivative(x^3, 2) - fp_cb(2)) < 1e-9)
 
 // ---- root rule: d/dx sqrt(x) at x = 4 is 1/(2 sqrt(4)) = 1/4 ----------------
-derivative(sqrt(x), 4)
-fp_rt(4)
-abs(derivative(sqrt(x), 4) - fp_rt(4)) < 1e-9
+print("from the builtin:", derivative(sqrt(x), 4))
+print("by hand:", fp_rt(4))
+print("they agree:", abs(derivative(sqrt(x), 4) - fp_rt(4)) < 1e-9)
 
 // ---- log rule: d/dx ln(x) at x = 5 is 1/5 -----------------------------------
-derivative(ln(x), 5)
-fp_ln(5)
-abs(derivative(ln(x), 5) - fp_ln(5)) < 1e-9
+print("from the builtin:", derivative(ln(x), 5))
+print("by hand:", fp_ln(5))
+print("they agree:", abs(derivative(ln(x), 5) - fp_ln(5)) < 1e-9)
 
 // ---- exponential rule: d/dx e^x at x = 1 is e -------------------------------
-derivative(e^x, 1)
-fp_ex(1)
-abs(derivative(e^x, 1) - fp_ex(1)) < 1e-9
+print("from the builtin:", derivative(e^x, 1))
+print("by hand:", fp_ex(1))
+print("they agree:", abs(derivative(e^x, 1) - fp_ex(1)) < 1e-9)
 
 /* ---- expected output ---------------------------------------------------------
-= 6
-= 6
-= true
-= 12
-= 12
-= true
-= 0.25
-= 0.25
-= true
-= 0.2
-= 0.2
-= true
-= 2.71828182846
-= 2.71828182846
-= true
+= from the builtin: 6
+= by hand: 6
+= they agree: true
+= from the builtin: 12
+= by hand: 12
+= they agree: true
+= from the builtin: 0.25
+= by hand: 0.25
+= they agree: true
+= from the builtin: 0.2
+= by hand: 0.2
+= they agree: true
+= from the builtin: 2.71828182846
+= by hand: 2.71828182846
+= they agree: true
 */

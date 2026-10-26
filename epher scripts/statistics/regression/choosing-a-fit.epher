@@ -31,11 +31,11 @@ def sll(k) = if k > len(ys) then 0 else (lny(k) - mlog()) ^ 2 + sll(k + 1)
 def rlog() = slx(1) / sqrt(sum((xs - mean(xs)) ^ 2) * sll(1)) // r of x vs ln(y)
 
 // ---- the four candidate models on the same data -------------------------------------
-linreg(xs, ys)      // straight line: r = 0.9312, the worst of the four
-quadreg(xs, ys)     // parabola: r = 0.9963, good but not best
-expreg(xs, ys)      // exponential: r = 0.9999, the clear winner
-powreg(xs, ys)      // power curve: r = 0.9552, and it must pass through zero
-logreg(xs, ys)      // logarithmic: r = 0.8051, badly bent the wrong way
+print("straight line, the worst of the four:", linreg(xs, ys))
+print("parabola, good but not best:", quadreg(xs, ys))
+print("exponential, the clear winner:", expreg(xs, ys))
+print("power curve, which must pass through zero:", powreg(xs, ys))
+print("logarithmic, badly bent the wrong way:", logreg(xs, ys))
 
 // ---- the r^2 remark from the manual Pearson r -----------------------------------------
 print("Pearson r of x against ln(y):", rlog())
@@ -44,11 +44,11 @@ print("and its square, r^2:", rlog() ^ 2)
 /* ---- expected output ----
 = {1, 2, 3, 4, 5, 6, 7, 8}
 = {2.5, 3.6, 5.4, 8.1, 12.2, 18.3, 27.5, 41.3}
-= y = 5.1655*x + -8.3821 (r = 0.9312)
-= y = 0.9827*x^2 + -3.6792*x + 6.3589 (r = 0.9963)
-= y = 1.6289*e^(0.4032*x) (r = 0.9999)
-= y = 1.6892*x^1.3414 (r = 0.9552)
-= y = -5.7535 + 15.5525*ln(x) (r = 0.8051)
+= straight line, the worst of the four: y = 5.1655*x + -8.3821 (r = 0.9312)
+= parabola, good but not best: y = 0.9827*x^2 + -3.6792*x + 6.3589 (r = 0.9963)
+= exponential, the clear winner: y = 1.6289*e^(0.4032*x) (r = 0.9999)
+= power curve, which must pass through zero: y = 1.6892*x^1.3414 (r = 0.9552)
+= logarithmic, badly bent the wrong way: y = -5.7535 + 15.5525*ln(x) (r = 0.8051)
 = Pearson r of x against ln(y): 0.999920198771
 = and its square, r^2: 0.99984040391
 */

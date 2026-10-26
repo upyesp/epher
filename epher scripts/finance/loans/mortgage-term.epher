@@ -18,12 +18,12 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 250000    // loan amount at closing, USD
+const principal = 250000    // loan amount at closing
 const rate = 6.5%           // quoted annual rate
-const payment = 2000        // fixed monthly payment the borrower can afford, USD
+const term_payment = 2000   // fixed monthly payment the borrower can afford
 
 // ---- results -----------------------------------------------------------------
-months = tvm_n(rate / 12, -principal, payment, 0)   // months to pay off, from the builtin
+months = tvm_n(rate / 12, -principal, term_payment, 0)   // months to pay off, from the builtin
 print("paying 2000 per month clears the loan in:", months, "months")
 print("that is", months / 12, "years")
 /* The minimum payment on this loan is 1580.17 (see mortgage-payment.epher),

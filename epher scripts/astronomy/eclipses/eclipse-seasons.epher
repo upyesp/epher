@@ -57,18 +57,18 @@ def lkind(k) = if ummag(k) >= 1 then "total" else if ummag(k) > 0 then "partial"
 def tmaxx(k) = if k - floor(k) == 0 then tmaxn(k) else tmaxl(k)   // integer k: new moon; k + 0.5: full moon
 def inyear(j) = j >= jd(year, 1, 1) and j < jd(year + 1, 1, 1)
 def isec(k) = if k - floor(k) == 0 then (inyear(tmaxn(k)) and abs(sin(rad(mf(k)))) <= 0.36 and abs(gamma(k)) <= 1.5433 + uval(k)) else (inyear(tmaxl(k)) and abs(sin(rad(mf(k)))) <= 0.36 and abs(gamma(k)) <= 1.5433 + uval(k) and penmag(k) > 0)
-def find(k, n) = if n == 0 then -1 else if isec(k) then k else find(k + 0.5, n - 1)
+def next_hit(k, n) = if n == 0 then -1 else if isec(k) then k else next_hit(k + 0.5, n - 1)
 def kindx(k) = if k - floor(k) == 0 then skind(k) + " solar" else lkind(k) + " lunar"
 def kstart(j) = ceil((kb(j) - 2) * 2) / 2   // first half-lunation grid point before the year
 
 // ---- the candidate slots (consts so the print helpers can read them) -----------
-const c1 = find(kstart(jd(year, 1, 1)), 48)
-const c2 = find(c1 + 0.5, 48)
-const c3 = find(c2 + 0.5, 48)
-const c4 = find(c3 + 0.5, 48)
-const c5 = find(c4 + 0.5, 48)
-const c6 = find(c5 + 0.5, 48)
-const c7 = find(c6 + 0.5, 48)
+const c1 = next_hit(kstart(jd(year, 1, 1)), 48)
+const c2 = next_hit(c1 + 0.5, 48)
+const c3 = next_hit(c2 + 0.5, 48)
+const c4 = next_hit(c3 + 0.5, 48)
+const c5 = next_hit(c4 + 0.5, 48)
+const c6 = next_hit(c5 + 0.5, 48)
+const c7 = next_hit(c6 + 0.5, 48)
 
 // ---- results -------------------------------------------------------------------
 print("eclipse-bearing lunations of", year)

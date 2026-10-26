@@ -18,7 +18,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const target = 50000        // the sum needed at the end, USD
+const target = 50000        // the sum needed at the end
 const rate = 4%             // annual rate of return
 const years = 5             // years to save
 

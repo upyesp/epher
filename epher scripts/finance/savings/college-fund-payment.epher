@@ -19,7 +19,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const goal = 80000          // college fund needed in 18 years, USD
+const goal = 80000          // college fund needed in 18 years
 const rate = 5%             // annual rate of return
 const years = 18            // years until college starts
 

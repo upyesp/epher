@@ -75,6 +75,9 @@ pub enum ViewAxis {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MenuAction {
     OpenScript,
+    /// Browse the bundled example scripts (ADR-0077): a picker over
+    /// the compile-time catalog; Enter loads the script into the entry.
+    BrowseExamples,
     SaveScript,
     Quit,
     Cut,
@@ -171,6 +174,13 @@ pub struct App {
     /// The browser's rows, snapshot at open: (name, value, hint) in
     /// the guide's group order, Math, Astronomy, Physics, Chemistry.
     constants_rows: Vec<(String, Option<f64>, String)>,
+    /// The examples browser's selected row while open (ADR-0077):
+    /// counts script rows only; group headings are not selectable.
+    /// Enter replaces the input with the script's text.
+    examples: Option<usize>,
+    /// The examples browser's rows, snapshot at open: (path, title,
+    /// group label) in catalog order, fields and areas adjacent.
+    examples_rows: Vec<(&'static str, String, String)>,
     kp_bank: usize,
     /// The keypad grid's scroll offset (ADR-0016 amendment): tall banks
     /// (astronomy has twelve rows) scroll inside the panel's fixed five
@@ -280,6 +290,9 @@ pub struct Areas {
     /// The constants browser covers the screen (ADR-0045): wheel scrolls
     /// the selection.
     pub constants: bool,
+    /// The examples browser covers the screen (ADR-0077): wheel scrolls
+    /// the selection.
+    pub examples: bool,
 }
 
 /// The TUI keypad (ADR-0016): the web keypad's banks, one panel. Every
@@ -947,6 +960,8 @@ impl App {
             key_help: None,
             constants: None,
             constants_rows: Vec::new(),
+            examples: None,
+            examples_rows: Vec::new(),
             kp_row: 0,
             kp_col: 0,
             kp_bank: 0,
@@ -1096,7 +1111,7 @@ impl App {
         *sel = if delta < 0 {
             sel.saturating_sub(delta.unsigned_abs())
         } else {
-            (*sel + delta as usize).min(count - 1)
+            sel.saturating_add(delta as usize).min(count - 1)
         };
     }
 
@@ -1116,6 +1131,90 @@ impl App {
     pub fn keypad_close(&mut self) {
         self.keypad = false;
         self.kp_tab_active = false;
+    }
+
+    // --- the examples browser (ADR-0077) ---
+
+    /// Open the examples browser: File -> Example scripts, a grouped
+    /// list of the bundled scripts from the compile-time catalog
+    /// ([`epher_scripts_catalog`]); Enter loads the selected script
+    /// into the input line, Escape closes.
+    pub fn examples_open(&mut self) {
+        self.examples_rows = epher_scripts_catalog::ENTRIES
+            .iter()
+            .map(|e| {
+                (
+                    e.path,
+                    e.title.to_string(),
+                    epher_scripts_catalog::area_label(e.field, e.area),
+                )
+            })
+            .collect();
+        self.examples = Some(0);
+        self.menu = None;
+        self.keypad = false;
+        self.kp_tab_active = false;
+    }
+
+    pub fn examples_close(&mut self) {
+        self.examples = None;
+    }
+
+    pub fn examples_active(&self) -> bool {
+        self.examples.is_some()
+    }
+
+    /// The browser's selected row index (tests and the renderer).
+    pub fn examples_selection(&self) -> Option<usize> {
+        self.examples
+    }
+
+    /// The script path of the row at `index` (tests).
+    pub fn examples_row_path(&self, index: usize) -> Option<&'static str> {
+        self.examples_rows.get(index).map(|(p, _, _)| *p)
+    }
+
+    /// How many script rows the browser lists (tests).
+    pub fn examples_rows_len(&self) -> usize {
+        self.examples_rows.len()
+    }
+
+    /// Move the selection over the script rows (headings are not
+    /// selectable); clamps at both ends.
+    pub fn examples_select(&mut self, delta: isize) {
+        let Some(sel) = &mut self.examples else {
+            return;
+        };
+        let count = self.examples_rows.len();
+        if count == 0 {
+            *sel = 0;
+            return;
+        }
+        *sel = if delta < 0 {
+            sel.saturating_sub(delta.unsigned_abs())
+        } else {
+            sel.saturating_add(delta as usize).min(count - 1)
+        };
+    }
+
+    /// Load the selected example: its text replaces the input (the
+    /// Load-script semantics), the transcript clears, the browser
+    /// closes.
+    pub fn examples_load(&mut self) {
+        let Some(sel) = self.examples else {
+            return;
+        };
+        let path = self.examples_rows.get(sel).map(|(p, _, _)| *p);
+        if let Some(path) = path {
+            if let Some(entry) = epher_scripts_catalog::ENTRIES
+                .iter()
+                .find(|e| e.path == path)
+            {
+                self.set_input(entry.content);
+                self.result = String::new();
+            }
+        }
+        self.examples = None;
     }
 
     /// The keypad's docked state (ADR-0060): false while the keypad
@@ -1317,7 +1416,7 @@ impl App {
     /// fine-control rows while 3D surfaces are displayed (ADR-0031).
     pub fn menu_len(&self, menu: usize) -> usize {
         match menu {
-            0 => 3, // File: open script, save script, quit (ADR-0027 amendment)
+            0 => 4, // File: examples, open script, save script, quit (ADR-0077)
             1 => 3, // Edit: cut, copy, paste
             2 => 2, // Graph: clear graph, copy points of interest
             3 => 3, // Help: the in-app guide, the keypad key help, constants
@@ -1378,8 +1477,9 @@ impl App {
         let (menu, item) = self.menu?;
         let action = match menu {
             0 => match item {
-                0 => MenuAction::OpenScript,
-                1 => MenuAction::SaveScript,
+                0 => MenuAction::BrowseExamples,
+                1 => MenuAction::OpenScript,
+                2 => MenuAction::SaveScript,
                 _ => MenuAction::Quit,
             },
             1 => match item {
@@ -3492,6 +3592,32 @@ fn run_loop(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                         }
                         continue;
                     }
+                    // The examples browser (ADR-0077) is modal like the
+                    // constants browser: arrows move the selection, Enter
+                    // loads the script into the input, Escape closes.
+                    if app.examples_active() {
+                        match key.code {
+                            KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                                return Ok(());
+                            }
+                            KeyCode::Esc | KeyCode::Char('q') => {
+                                app.examples_close()
+                            }
+                            KeyCode::Up => app.examples_select(-1),
+                            KeyCode::Down => app.examples_select(1),
+                            KeyCode::PageUp => app.examples_select(-12),
+                            KeyCode::PageDown => app.examples_select(12),
+                            KeyCode::Home => {
+                                app.examples = Some(0);
+                            }
+                            KeyCode::End => {
+                                app.examples = Some(app.examples_rows.len().saturating_sub(1));
+                            }
+                            KeyCode::Enter => app.examples_load(),
+                            _ => {}
+                        }
+                        continue;
+                    }
                     // With bracketed paste off; the terminal does not
                     // support it, or a frontend sends keys directly, a
                     // pasted newline arrives as LF, which crossterm parses
@@ -3858,6 +3984,7 @@ fn perform_menu_action(
     action: MenuAction,
 ) -> bool {
     match action {
+        MenuAction::BrowseExamples => app.examples_open(),
         MenuAction::OpenScript => app.prompt_start(PromptKind::OpenScript),
         MenuAction::SaveScript => app.prompt_start(PromptKind::SaveScript),
         MenuAction::Quit => return true,
@@ -3999,6 +4126,12 @@ fn handle_mouse(
                 });
             } else if areas.constants {
                 app.constants_select(if matches!(event.kind, MouseEventKind::ScrollUp) {
+                    -3
+                } else {
+                    3
+                });
+            } else if areas.examples {
+                app.examples_select(if matches!(event.kind, MouseEventKind::ScrollUp) {
                     -3
                 } else {
                     3
@@ -4300,6 +4433,7 @@ fn menu_rows(app: &App, localizer: &Localizer) -> Vec<PopupRow> {
     match menu {
         0 => {
             for (i, label) in [
+                localizer.lookup("menu-example-scripts"),
                 localizer.lookup("menu-open-script"),
                 localizer.lookup("menu-save-script"),
                 localizer.lookup("menu-quit"),
@@ -4670,6 +4804,87 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             rows[2],
         );
         areas.constants = true;
+        app.areas = areas;
+        return;
+    }
+
+    // The examples browser (ADR-0077): File -> Example scripts. Grouped
+    // rows (field/area heading, title); the selection highlights and
+    // Enter loads the script into the input. Same full-screen shape as
+    // the constants browser.
+    if app.examples_active() {
+        let rows = Layout::vertical([
+            Constraint::Length(1), // title
+            Constraint::Min(0),    // the script rows
+            Constraint::Length(1), // scroll hint
+        ])
+        .split(frame.area());
+        frame.render_widget(
+            Paragraph::new(Line::from(Span::styled(
+                format!(" {} ", localizer.lookup("menu-example-scripts")),
+                Style::default()
+                    .bg(sel_bg)
+                    .fg(sel_fg)
+                    .add_modifier(Modifier::BOLD),
+            ))),
+            rows[0],
+        );
+        let content_rows = rows[1].height as usize;
+        let mut lines: Vec<(Line<'static>, bool)> = Vec::new();
+        let mut row_index = 0usize;
+        let mut sel_line = 0usize;
+        let mut last_group = String::new();
+        for (path, title, group) in &app.examples_rows {
+            if *group != last_group {
+                lines.push((
+                    Line::from(Span::styled(
+                        format!(" {group}"),
+                        Style::default().fg(fg).add_modifier(Modifier::BOLD),
+                    )),
+                    false,
+                ));
+                last_group = group.clone();
+            }
+            let is_sel = app.examples == Some(row_index);
+            if is_sel {
+                sel_line = lines.len();
+            }
+            row_index += 1;
+            let file = path.rsplit('/').next().unwrap_or(path);
+            let style = if is_sel {
+                Style::default().bg(sel_bg).fg(sel_fg)
+            } else {
+                Style::default().fg(fg)
+            };
+            lines.push((
+                Line::from(Span::styled(format!(" {title}  ({file})"), style)),
+                true,
+            ));
+        }
+        // Clamp the scroll so the selection stays visible.
+        let offset = {
+            let max = lines.len().saturating_sub(content_rows);
+            let want = sel_line.saturating_sub(content_rows / 2);
+            want.min(max)
+        };
+        let mut text = Text::default();
+        for (line, _) in lines.iter().skip(offset) {
+            text.push_line(line.clone());
+        }
+        frame.render_widget(
+            Paragraph::new(text)
+                .style(Style::default().fg(fg))
+                .scroll((0, 0)),
+            rows[1],
+        );
+        frame.render_widget(
+            Paragraph::new(Line::from(Span::styled(
+                localizer.lookup("tui-examples-hint"),
+                hints_style,
+            ))),
+            rows[2],
+        );
+        areas.examples = true;
         app.areas = areas;
         return;
     }
@@ -5381,6 +5596,17 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // The plot pane shares the web app's pane name (ADR-0056): the
     // localized "Result", graphs and long answers live in the same
     // pane there, and the terminal calls it the same thing.
+    // A fresh session has nothing to show yet: the pane carries the
+    // welcome hint instead of blank space (ADR-0077). The count comes
+    // from the compile-time catalog, so it can never drift from what
+    // actually ships.
+    if graph_text.trim().is_empty() && app.result().trim().is_empty() {
+        graph_text.push_str(&localizer.lookup_args(
+            "tui-examples-welcome",
+            &[("n", &epher_scripts_catalog::count().to_string())],
+        ));
+        graph_text.push('\n');
+    }
     let graph = Paragraph::new(graph_text)
         .style(Style::default().fg(fg))
         .block(block(localizer.lookup("result-pane"), false));
@@ -5715,6 +5941,56 @@ mod draw_tests {
 
     /// ADR-0056: a multi-answer transcript renders in the result pane,
     /// one answer per line, never joined on the answer line.
+    /// ADR-0077: a fresh session carries the examples hint in the pane,
+    /// with the fleet count computed from the compile-time catalog.
+    #[test]
+    fn a_fresh_session_names_the_bundled_examples() {
+        let mut app = App::default();
+        let localizer = Localizer::resolve(Some("en"), &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let mut screen = String::new();
+        for y in 0..24 {
+            for x in 0..80 {
+                screen.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            screen.push('\n');
+        }
+        let want = format!(
+            "{} example scripts",
+            epher_scripts_catalog::count()
+        );
+        assert!(
+            screen.contains(&want),
+            "the welcome names the fleet: {want}"
+        );
+        // Once something has been computed, the pane shows the work.
+        app.set_result("= 111");
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+        let mut screen = String::new();
+        for y in 0..24 {
+            for x in 0..80 {
+                screen.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            screen.push('\n');
+        }
+        assert!(
+            !screen.contains(&want),
+            "the welcome stands down once there is an answer"
+        );
+    }
+
     #[test]
     fn a_transcript_renders_in_the_pane_one_answer_per_line() {
         let mut app = App::default();

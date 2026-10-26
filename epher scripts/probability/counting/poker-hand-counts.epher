@@ -18,15 +18,15 @@ Web/desktop:             paste the file into the entry, press Enter
 
 // ---- results ----
 // The total number of five-card hands: 52 choose 5.
-ncr(52, 5)
+print("total five-card hands, 52 choose 5:", ncr(52, 5))
 
 // Flushes: pick the suit (4 ways), then 5 of its 13 ranks.
-4 * ncr(13, 5)
+print("flushes, pick the suit then 5 of its 13 ranks:", 4 * ncr(13, 5))
 print("hands:", ncr(52, 5), "of which", 4 * ncr(13, 5), "are flushes")
 
 // The flush probability, with the exact fraction 33/16660.
 print("P(flush):", 4 * ncr(13, 5) / ncr(52, 5))
-4 * ncr(13, 5) / ncr(52, 5) == 33 / 16660
+print("the exact fraction check, 33/16660:", 4 * ncr(13, 5) / ncr(52, 5) == 33 / 16660)
 print("hands per flush, about:", round(ncr(52, 5) / (4 * ncr(13, 5))))
 
 // Two rarer families inside the flush count: 40 straight flushes (10
@@ -44,11 +44,11 @@ print("full houses:", 13 * ncr(4, 3) * 12 * ncr(4, 2))
 // total only together with the hands left over; the flush probability
 // itself is the anchor: 5148 / 2598960 = 33/16660 exactly.
 /* ---- expected output ----
-= 2598960
-= 5148
+= total five-card hands, 52 choose 5: 2598960
+= flushes, pick the suit then 5 of its 13 ranks: 5148
 = hands: 2598960 of which 5148 are flushes
 = P(flush): 0.00198079231693
-= true
+= the exact fraction check, 33/16660: true
 = hands per flush, about: 505
 = straight flushes: 40
 = royal flushes: 4

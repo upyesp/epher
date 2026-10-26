@@ -41,10 +41,10 @@ sy = cos(rad(ade)) * sin(rad(ara))
 sz = sin(rad(ade))
 ax = cos(rad(apexde(tm))) * cos(rad(apexra(tm)))
 ay = cos(rad(apexde(tm))) * sin(rad(apexra(tm)))
-az = sin(rad(apexde(tm)))
+apexz = sin(rad(apexde(tm)))
 kx = sx + 20.49552 / 206265 * ax
 ky = sy + 20.49552 / 206265 * ay
-kz = sz + 20.49552 / 206265 * az
+kz = sz + 20.49552 / 206265 * apexz
 ara2 = wrapang(deg(atan2(ky, kx)))
 ade2 = deg(atan2(kz, sqrt(kx ^ 2 + ky ^ 2)))
 

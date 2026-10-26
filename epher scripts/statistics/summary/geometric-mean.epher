@@ -22,15 +22,15 @@ const r = {1.05, 1.08, 1.03, 1.06, 1.02}   // yearly growth factors: 1 + return
 def gmean(xs) = product(xs) ^ (1 / len(xs)) // nth root of the product
 
 // ---- the average yearly growth ------------------------------------------------------
-gmean(r)                        // geometric mean of the five factors
-product(r)                      // total growth over the five years
-mean(r)                         // arithmetic mean for contrast
-(gmean(r) - 1) * 100            // as an average yearly return, percent
+print("geometric mean of the five factors:", gmean(r))
+print("total growth over the five years:", product(r))
+print("arithmetic mean for contrast:", mean(r))
+print("as an average yearly return, percent:", (gmean(r) - 1) * 100)
 
 /* ---- expected output ----
 = {1.05, 1.08, 1.03, 1.06, 1.02}
-= 1.0477827959
-= 1.262863224
-= 1.048
-= 4.77827958955
+= geometric mean of the five factors: 1.0477827959
+= total growth over the five years: 1.262863224
+= arithmetic mean for contrast: 1.048
+= as an average yearly return, percent: 4.77827958955
 */

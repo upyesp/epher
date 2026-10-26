@@ -14,22 +14,22 @@ No knobs: the three cut points below are the demonstration.
 ============================================================================ */
 
 // ---- P(Z < 1.5): most of the curve sits below 1.5 -------------------------------
-normcdf(1.5)                    // about 0.9332: the lower tail at 1.5
+print("the lower tail at 1.5:", normcdf(1.5))
 
 // ---- P(Z > -0.8): the upper tail at -0.8, by symmetry the lower tail at 0.8 -------
-1 - normcdf(-0.8)               // about 0.7881, or equally normcdf(0.8)
+print("the upper tail at -0.8, or equally normcdf(0.8):", 1 - normcdf(-0.8))
 
 // ---- P(0.5 < Z < 1.5): between two cut points, subtract the lower tails ------------
-normcdf(1.5) - normcdf(0.5)     // about 0.2417
+print("between 0.5 and 1.5:", normcdf(1.5) - normcdf(0.5))
 
 // ---- the two cut points for the last area, for the record ----------------------------
 print("normcdf(1.5):", normcdf(1.5))
 print("normcdf(0.5):", normcdf(0.5))
 
 /* ---- expected output ----
-= 0.933192798731
-= 0.788144601417
-= 0.241730337457
+= the lower tail at 1.5: 0.933192798731
+= the upper tail at -0.8, or equally normcdf(0.8): 0.788144601417
+= between 0.5 and 1.5: 0.241730337457
 = normcdf(1.5): 0.933192798731
 = normcdf(0.5): 0.691462461274
 */

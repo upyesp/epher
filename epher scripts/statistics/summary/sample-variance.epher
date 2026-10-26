@@ -20,13 +20,13 @@ is machinery you can leave alone.
 const data = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
 
 // ---- sample variance: sum of squared deviations over n - 1 -----------------------
-variance(data) * len(data) / (len(data) - 1)   // population variance rescaled by n / (n - 1)
-sum((data - mean(data)) ^ 2) / (len(data) - 1) // the formula directly, same 2947/30
-variance(data)                           // the population version for contrast, 88.41
+print("population variance rescaled by n / (n - 1):", variance(data) * len(data) / (len(data) - 1))
+print("the formula directly:", sum((data - mean(data)) ^ 2) / (len(data) - 1))
+print("the population version for contrast:", variance(data))
 
 /* ---- expected output ----
 = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-= 2947/30
-= 2947/30
-= 88.41
+= population variance rescaled by n / (n - 1): 2947/30
+= the formula directly: 2947/30
+= the population version for contrast: 88.41
 */

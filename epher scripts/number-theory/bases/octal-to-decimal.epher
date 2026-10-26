@@ -19,18 +19,18 @@ There is no knob: the sample literals are the point of the script.
 // ---- the place values -----------------------------------------------------------------
 // 0o777 has 7 in the 64, 8 and 1 places, so it is 7 * 64 + 7 * 8 + 7.
 print("7 * 64 + 7 * 8 + 7:", 7 * 64 + 7 * 8 + 7)
-0o17                          // one eight and seven ones: 15
-0o777                         // the largest three-digit octal: 511
-0o1000                        // 8^3 = 512
-0o52                          // five eights and two ones: 42
+print("one eight and seven ones, 15:", 0o17)
+print("the largest three-digit octal, 511:", 0o777)
+print("8^3 = 512:", 0o1000)
+print("five eights and two ones, 42:", 0o52)
 
 // ---- a list at a glance ---------------------------------------------------------------
 for x in {0o1, 0o7, 0o10, 0o17, 0o52, 0o100, 0o777} do x
 /* ---- expected output ----
 = 7 * 64 + 7 * 8 + 7: 511
-= 15
-= 511
-= 512
-= 42
+= one eight and seven ones, 15: 15
+= the largest three-digit octal, 511: 511
+= 8^3 = 512: 512
+= five eights and two ones, 42: 42
 = {1, 7, 8, 15, 42, 64, 511}
 */

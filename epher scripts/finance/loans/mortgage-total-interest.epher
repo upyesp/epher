@@ -19,7 +19,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 250000    // loan amount at closing, USD
+const principal = 250000    // loan amount at closing
 const rate = 6.5%           // quoted annual rate
 const years = 30            // term in years
 
@@ -27,10 +27,10 @@ const years = 30            // term in years
 def cents(x) = floor(x * 100 + 0.5) / 100   // rounds to the cent, for display
 
 // ---- results -----------------------------------------------------------------
-payment = tvm_pmt(years * 12, rate / 12, -principal, 0)   // monthly payment, USD
-print("monthly payment:", payment)
-print("total paid over the term:", cents(payment * (years * 12)))
-print("total interest over the term:", cents(payment * (years * 12) - principal))
+const ti_payment = tvm_pmt(years * 12, rate / 12, -principal, 0)   // monthly payment
+print("monthly payment:", ti_payment)
+print("total paid over the term:", cents(ti_payment * (years * 12)))
+print("total interest over the term:", cents(ti_payment * (years * 12) - principal))
 /* The totals round the 360 full-precision payments to the cent, the way real
 mortgages are paid; the unrounded total is 568861.2211436688. Interest
 dominates early: the first month's interest alone is principal*rate/12 =

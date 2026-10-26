@@ -20,10 +20,10 @@ const xs = {1, 2, 4, 8, 16, 32}   // dose, milligrams, doubling each step
 const ys = {1.2, 1.7, 2.6, 3.1, 4.0, 4.5}   // response score, 0 to 5
 
 // ---- the fitted logarithmic curve ---------------------------------------------------------
-logreg(xs, ys)      // least-squares log fit, printed with its r
+print("least-squares log fit, with its r:", logreg(xs, ys))
 
 /* ---- expected output ----
 = {1, 2, 4, 8, 16, 32}
 = {1.2, 1.7, 2.6, 3.1, 4, 4.5}
-= y = 1.1429 + 0.9852*ln(x) (r = 0.9967)
+= least-squares log fit, with its r: y = 1.1429 + 0.9852*ln(x) (r = 0.9967)
 */

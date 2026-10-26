@@ -19,13 +19,13 @@ const b = 4
 const c = -5
 
 // ---- the model ----------------------------------------------------------------
-def dist(a, b, c, p) = abs(a * p[1] + b * p[2] + c) / sqrt(a ^ 2 + b ^ 2)
+def line_dist(a, b, c, p) = abs(a * p[1] + b * p[2] + c) / sqrt(a ^ 2 + b ^ 2)
 
 // ---- results ------------------------------------------------------------------
-print("origin to the line:", dist(a, b, c, {0, 0}))
-print("(1, 2) to the line:", dist(a, b, c, {1, 2}))
-print("(-1, 1) to the line:", dist(a, b, c, {-1, 1}))
-print("a point on the line:", dist(a, b, c, {1, 0.5}))
+print("origin to the line:", line_dist(a, b, c, {0, 0}))
+print("(1, 2) to the line:", line_dist(a, b, c, {1, 2}))
+print("(-1, 1) to the line:", line_dist(a, b, c, {-1, 1}))
+print("a point on the line:", line_dist(a, b, c, {1, 0.5}))
 /* ---- expected output ----
 = 3
 = 4

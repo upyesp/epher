@@ -31,7 +31,7 @@ def slope(t, y) = y            // the equation: y' = y
 // ---- one Euler run from t = 0 to t = 1, state {t, y, step} ------------------
 v = {0, 1, 0}
 while v[3] < steps do v = {v[1] + h, v[2] + h*slope(v[1], v[2]), v[3] + 1}
-v
+print("the state after the run:", v)
 print("y(1) by Euler with h = 0.1:", v[2])
 print("true value e:", e)
 print("error:", e - v[2])
@@ -47,7 +47,7 @@ print("halving h halves the error:", e - w[2] < (e - v[2])/1.9)
 = 0.1
 = 10
 = {0, 1, 0}
-= {1, 2.5937424601, 10}
+= the state after the run: {1, 2.5937424601, 10}
 = y(1) by Euler with h = 0.1: 2.5937424601
 = true value e: 2.71828182846
 = error: 0.124539368359

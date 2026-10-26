@@ -62,12 +62,12 @@ def corr_d(k) = 0.000325 * sin(rad(a1(k))) + 0.000165 * sin(rad(a2(k))) + 0.0001
 
 // ---- the instant of a phase: dispatch on the fraction of k --------------------
 def fr(x) = x - floor(x)
-def phase(k) = base(k) + corr_d(k) + (if fr(k) == 0 then corr_nf(k, -0.40720, 0.17241) else if fr(k) == 0.5 then corr_nf(k, -0.40614, 0.17302) else corr_q(k) + (if fr(k) == 0.25 then w(k) else -w(k)))
+def phase_jd(k) = base(k) + corr_d(k) + (if fr(k) == 0 then corr_nf(k, -0.40720, 0.17241) else if fr(k) == 0.5 then corr_nf(k, -0.40614, 0.17302) else corr_q(k) + (if fr(k) == 0.25 then w(k) else -w(k)))
 
 // ---- the phase of fraction f nearest the start of the window, bumped forward --
 def kb(j) = (j - 2451550.09766) / 29.530588861
-def kf(j, f) = if phase(round(kb(j)) + f) < j then round(kb(j)) + 1 + f else round(kb(j)) + f
-def fmt(j0, j1, f) = if phase(kf(j0, f)) < j1 then iso(phase(kf(j0, f))) else "none this month"
+def kf(j, f) = if phase_jd(round(kb(j)) + f) < j then round(kb(j)) + 1 + f else round(kb(j)) + f
+def fmt(j0, j1, f) = if phase_jd(kf(j0, f)) < j1 then iso(phase_jd(kf(j0, f))) else "none this month"
 
 // ---- results ------------------------------------------------------------------
 j0 = jd(year, month, 1)
@@ -84,8 +84,8 @@ computed full moon must be at the maximum, and at the computed new
 moon at the minimum. March 2026's full moon sits mid total lunar
  eclipse, where illum prints a flat 1; a non-eclipse month shows
 the familiar 0.9986 ceiling (see full-moons.epher for why). */
-print("illum at that full moon:", illum(11, phase(kf(j0, 0.5))))
-print("illum at that new moon:", illum(11, phase(kf(j0, 0))))
+print("illum at that full moon:", illum(11, phase_jd(kf(j0, 0.5))))
+print("illum at that new moon:", illum(11, phase_jd(kf(j0, 0))))
 
 /* ---- expected output ----
 = 2026

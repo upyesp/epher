@@ -24,19 +24,19 @@ def avg_sin(a, b) = integral(sin(x), a, b)/(b - a)
 print("average of x^2 on [0, 3]:", avg_sq(0, 3))
 print("point c with f(c) = average:", sqrt(3))
 print("f(sqrt(3)):", (sqrt(3))^2)
-abs((sqrt(3))^2 - avg_sq(0, 3)) < 1e-9
+print("f(c) equals the average:", abs((sqrt(3))^2 - avg_sq(0, 3)) < 1e-9)
 
 // ---- sin on [0, pi]: average 2/pi -------------------------------------------
 print("average of sin on [0, pi]:", avg_sin(0, pi))
 print("2/pi for comparison:", 2/pi)
-abs(avg_sin(0, pi) - 2/pi) < 1e-9
+print("they agree:", abs(avg_sin(0, pi) - 2/pi) < 1e-9)
 
 /* ---- expected output ---------------------------------------------------------
 = average of x^2 on [0, 3]: 3
 = point c with f(c) = average: 1.73205080757
 = f(sqrt(3)): 3
-= true
+= f(c) equals the average: true
 = average of sin on [0, pi]: 0.636619772368
 = 2/pi for comparison: 0.636619772368
-= true
+= they agree: true
 */

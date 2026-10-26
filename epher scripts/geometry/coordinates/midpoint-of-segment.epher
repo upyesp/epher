@@ -14,8 +14,8 @@ there.
 
 // ---- the model ----------------------------------------------------------------
 def mid(p, q) = {(p[1] + q[1]) / 2, (p[2] + q[2]) / 2}
-def dist(p, q) = sqrt((p[1] - q[1]) ^ 2 + (p[2] - q[2]) ^ 2)   // for the check
-def same(p, q) = dist(p, mid(p, q)) == dist(q, mid(p, q))
+def dist2d(p, q) = sqrt((p[1] - q[1]) ^ 2 + (p[2] - q[2]) ^ 2)   // for the check
+def same(p, q) = dist2d(p, mid(p, q)) == dist2d(q, mid(p, q))
 
 // ---- results ------------------------------------------------------------------
 print("midpoint of (1, 3)-(5, 7):", mid({1, 3}, {5, 7}))

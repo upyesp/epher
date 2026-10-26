@@ -19,9 +19,9 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const invested = 100000     // the project's cost today, USD
+const invested = 100000     // the project's cost today
 const rate = 8%             // the cost of capital (discount rate)
-const yearly = {30000, 40000, 40000, 30000}   // inflows at the end of years 1 to 4, USD
+const yearly = {30000, 40000, 40000, 30000}   // inflows at the end of years 1 to 4
 
 // ---- helpers ----------------------------------------------------------------
 def dflow(k) = yearly[k] / (1 + rate) ^ k                                    // year k inflow, discounted to today

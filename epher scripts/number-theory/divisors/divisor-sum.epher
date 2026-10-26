@@ -28,7 +28,7 @@ def sigma(n) = pairdiv(n, 1)
 for x in {6, 12, 24, 36, 100} do sigma(x)
 // 12 = 2^2 * 3, and the multiplicative formula reads
 // sigma(12) = (1 + 2 + 4) * (1 + 3) = 7 * 4 = 28 (Hardy and Wright, 16.7).
-(1 + 2 + 4) * (1 + 3)
+print("sigma(12) by the multiplicative formula:", (1 + 2 + 4) * (1 + 3))
 
 // ---- cross-check by direct addition -------------------------------------------------
 // Sum the divisors of 12 one by one with a packed while loop; it must
@@ -40,7 +40,7 @@ print("sigma(12):", sigma(12))
 print("sigma(360):", sigma(360))            // 15 * 13 * 6 = 1170
 /* ---- expected output ----
 = {12, 28, 60, 91, 217}
-= 28
+= sigma(12) by the multiplicative formula: 28
 = {1, 0}
 = divisors of 12 add to: 28
 = sigma(12): 28

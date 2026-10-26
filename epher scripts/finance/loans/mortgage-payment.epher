@@ -21,7 +21,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 250000    // loan amount at closing, USD
+const principal = 250000    // loan amount at closing
 const rate = 6.5%           // quoted annual rate (APR-style, monthly compounding)
 const years = 30            // term in years
 

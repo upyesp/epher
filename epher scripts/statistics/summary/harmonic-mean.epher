@@ -21,13 +21,13 @@ const s = {60, 40}   // km/h on the outward and return legs of a trip
 def hmean(xs) = len(xs) / sum(1 / xs) // count over the sum of reciprocals
 
 // ---- the average speed over the whole trip ------------------------------------------
-hmean(s)                    // harmonic mean: 2 / (1/60 + 1/40) = 48 km/h
-mean(s)                     // arithmetic mean, the wrong average here
-2 / (1 / 60 + 1 / 40)       // the textbook formula written out
+print("harmonic mean, km/h:", hmean(s))
+print("arithmetic mean, the wrong average here:", mean(s))
+print("the textbook formula written out:", 2 / (1 / 60 + 1 / 40))
 
 /* ---- expected output ----
 = {60, 40}
-= 48
-= 50
-= 48
+= harmonic mean, km/h: 48
+= arithmetic mean, the wrong average here: 50
+= the textbook formula written out: 48
 */

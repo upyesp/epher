@@ -45,7 +45,7 @@ lsun = vs + ws                          // his geocentric ecliptic longitude of 
 def wrap(x) = x - 360 * floor(x / 360)
 def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
 Nm = 49.5574 + 2.11081e-5 * ds
-im = 1.8497 - 1.78e-8 * ds
+incl = 1.8497 - 1.78e-8 * ds
 wm = 286.5016 + 2.92961e-5 * ds
 am = 1.523688
 em = 0.0934005 - 2.516e-9 * ds
@@ -56,9 +56,9 @@ yvm = am * sqrt(1 - em ^ 2) * sin(Em)
 vm = deg(atan2(yvm, xvm))
 rm = sqrt(xvm ^ 2 + yvm ^ 2)
 // heliocentric ecliptic rectangular coordinates
-xhm = rm * (cos(rad(Nm)) * cos(rad(vm + wm)) - sin(rad(Nm)) * sin(rad(vm + wm)) * cos(rad(im)))
-yhm = rm * (sin(rad(Nm)) * cos(rad(vm + wm)) + cos(rad(Nm)) * sin(rad(vm + wm)) * cos(rad(im)))
-zhm = rm * sin(rad(vm + wm)) * sin(rad(im))
+xhm = rm * (cos(rad(Nm)) * cos(rad(vm + wm)) - sin(rad(Nm)) * sin(rad(vm + wm)) * cos(rad(incl)))
+yhm = rm * (sin(rad(Nm)) * cos(rad(vm + wm)) + cos(rad(Nm)) * sin(rad(vm + wm)) * cos(rad(incl)))
+zhm = rm * sin(rad(vm + wm)) * sin(rad(incl))
 // geocentric: add the Sun's rectangular position
 xgm = xhm + rs * cos(rad(lsun))
 ygm = yhm + rs * sin(rad(lsun))

@@ -26,8 +26,7 @@ ns = 100 * e^(r * ts) + noise
 // ---- results -------------------------------------------------------------------
 print("doubling time, ln(2)/r:", ln(2) / r)
 print("counts at hour 1 and 8:", ns[1], ns[8])
-print("the fitted exponential and its r:")
-expreg(ts, ns)
+print("the fitted exponential and its r:", expreg(ts, ns))
 
 // ---- the picture ---------------------------------------------------------------
 graph scatter(ts, ns, expreg)
@@ -39,7 +38,6 @@ graph scatter(ts, ns, expreg)
 = {142.324183049, 200.83246855, 285.686799462, 405.907682516, 575.381332601, 816.649706598, 1158.16135533, 1644.6403915}
 = doubling time, ln(2)/r: 1.98042051589
 = counts at hour 1 and 8: 142.324183049 1644.6403915
-= the fitted exponential and its r:
-= y = 100.0546*e^(0.3499*x) (r = 1)
+= the fitted exponential and its r: y = 100.0546*e^(0.3499*x) (r = 1)
 graph: scatter(ts, ns, expreg)
 */

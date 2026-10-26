@@ -24,14 +24,14 @@ print("sample mean:", mean(step))
 print("sample stdev (n - 1):", sqrt(variance(step) * len(step) / (len(step) - 1)))
 
 // ---- the interval at the chosen level, and a wider one for contrast --------------------
-tinterval(step, level)         // (74.2099, 88.3901): the 95% interval for the mean
-tinterval(step, 0.99)          // the 99% interval is wider: (71.1143, 91.4857)
+print("95% t interval for the mean:", tinterval(step, level))
+print("the wider 99% t interval:", tinterval(step, 0.99))
 
 /* ---- expected output ----
 = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
 = 0.95
 = sample mean: 81.3
 = sample stdev (n - 1): 9.91127304302
-= (74.2099, 88.3901)
-= (71.1143, 91.4857)
+= 95% t interval for the mean: (74.2099, 88.3901)
+= the wider 99% t interval: (71.1143, 91.4857)
 */

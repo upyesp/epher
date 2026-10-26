@@ -10,7 +10,10 @@
 // still accepted. The checker treats that block as the oracle.
 //
 // Run: cargo build -p epher-cli && node scripts/check-scripts.mjs
-import { readFileSync, readdirSync, statSync } from "node:fs";
+//      node scripts/check-scripts.mjs --update   (rewrite expected blocks
+//      from fresh runs — review the diff afterwards; --update blesses
+//      whatever the run prints, including regressions)
+import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -30,31 +33,27 @@ function walk(dir, out = []) {
   return out;
 }
 
+/** The file's lines plus the index of the marker line and whether it is a
+ *  block or // footer. */
+function expectedMarker(path) {
+  const lines = readFileSync(path, "utf8").split("\n");
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].startsWith("/* ---- expected output")) return { lines, start: i, block: true };
+    if (lines[i].startsWith("// ---- expected output")) return { lines, start: i, block: false };
+  }
+  return null;
+}
+
 /** Expected transcript from the footer block, or null when the file has
  *  no expected-output section. */
 function expectedTranscript(path) {
-  const text = readFileSync(path, "utf8");
-  const lines = text.split("\n");
-  let start = -1;
-  let block = true;
-  for (let i = lines.length - 1; i >= 0; i--) {
-    if (lines[i].startsWith("/* ---- expected output")) {
-      start = i;
-      block = true;
-      break;
-    }
-    if (lines[i].startsWith("// ---- expected output")) {
-      start = i;
-      block = false;
-      break;
-    }
-  }
-  if (start < 0) return null;
+  const m = expectedMarker(path);
+  if (!m) return null;
   const out = [];
-  for (let i = start + 1; i < lines.length; i++) {
-    const line = lines[i];
+  for (let i = m.start + 1; i < m.lines.length; i++) {
+    const line = m.lines[i];
     if (line.trim() === "") continue;
-    if (block) {
+    if (m.block) {
       if (line.trim() === "*/") break; // the block closes at the end
       out.push(line);
     } else {
@@ -65,6 +64,8 @@ function expectedTranscript(path) {
   return out;
 }
 
+const UPDATE = process.argv.includes("--update");
+let updatedCount = 0;
 const files = walk(SCRIPTS).sort();
 const store = mkdtempSync(join(tmpdir(), "epher-scripts-"));
 let passed = 0;
@@ -98,6 +99,19 @@ for (const file of files) {
   }
   if (ok) {
     passed++;
+  } else if (
+    UPDATE &&
+    run.status === 0 &&
+    err === "" &&
+    transcript.length > 0
+  ) {
+    // Splice the fresh transcript over the expected block and move on; the
+    // caller reviews the diff. Block style: marker line, transcript, */.
+    const m = expectedMarker(file);
+    const body = transcript.map((l) => (m.block ? l : `// ${l}`));
+    if (m.block) body.push("*/");
+    writeFileSync(file, [...m.lines.slice(0, m.start + 1), ...body].join("\n"));
+    updatedCount++;
   } else {
     failed++;
     problems.push(
@@ -117,6 +131,9 @@ for (const file of files) {
   }
 }
 
-console.log(`scripts: ${files.length} files, ${passed} passed, ${failed} failed, ${missing} missing expected-output blocks`);
+console.log(
+  `scripts: ${files.length} files, ${passed} passed, ${failed} failed, ${missing} missing expected-output blocks` +
+    (UPDATE ? `, ${updatedCount} updated` : "")
+);
 for (const p of problems) console.log(p);
 process.exit(failed + missing > 0 ? 1 : 0);

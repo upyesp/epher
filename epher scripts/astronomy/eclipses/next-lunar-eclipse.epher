@@ -57,10 +57,10 @@ def kind(k) = if ummag(k) >= 1 then "total" else if ummag(k) > 0 then "partial" 
 
 // ---- the search over full moons (lunations at k + 0.5) -------------------------
 def is_eclipse(k) = abs(sin(rad(mf(k)))) <= 0.36 and abs(gamma(k)) <= 1.5433 + uval(k) and penmag(k) > 0
-def find(k, n) = if n == 0 then -1 else if is_eclipse(k) then k else find(k + 1, n - 1)
+def next_hit(k, n) = if n == 0 then -1 else if is_eclipse(k) then k else next_hit(k + 1, n - 1)
 
 k0 = ceil(kb(jd(day[1], day[2], day[3])) - 0.5) + 0.5
-k = find(k0, maxscan)
+k = next_hit(k0, maxscan)
 
 // ---- results ------------------------------------------------------------------
 print("searching from", iso(jd(day[1], day[2], day[3])))

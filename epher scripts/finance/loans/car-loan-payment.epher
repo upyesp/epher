@@ -19,7 +19,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const price = 32000         // the car's price, USD
+const price = 32000         // the car's price
 const down = 15%            // down payment as a share of the price
 const rate = 6.9%           // quoted annual rate on the loan
 const years = 5             // loan term in years
@@ -27,10 +27,10 @@ const years = 5             // loan term in years
 // ---- results -----------------------------------------------------------------
 print("down payment:", price * down)
 print("amount financed:", price * (1 - down))
-payment = tvm_pmt(years * 12, rate / 12, -(price * (1 - down)), 0)   // monthly payment, USD
-print("monthly payment:", payment)
-print("total of 60 payments:", payment * (years * 12))
-print("interest over the term:", payment * (years * 12) - price * (1 - down))
+const car_payment = tvm_pmt(years * 12, rate / 12, -(price * (1 - down)), 0)   // monthly payment
+print("monthly payment:", car_payment)
+print("total of 60 payments:", car_payment * (years * 12))
+print("interest over the term:", car_payment * (years * 12) - price * (1 - down))
 /* ---- expected output ----
 = 32000
 = 0.15

@@ -19,14 +19,14 @@ No knobs: the arc from x = 0 to x = 1 is the demonstration.
 ============================================================================ */
 
 // ---- the arc length by the builtin integral ---------------------------------
-integral(sqrt(1 + (2*x)^2), 0, 1)
+print("arc length by the builtin:", integral(sqrt(1 + (2*x)^2), 0, 1))
 
 // ---- the closed form sqrt(5)/2 + asinh(2)/4, for comparison -----------------
-sqrt(5)/2 + asinh(2)/4
-abs(integral(sqrt(1 + (2*x)^2), 0, 1) - (sqrt(5)/2 + asinh(2)/4)) < 1e-9
+print("closed form:", sqrt(5)/2 + asinh(2)/4)
+print("they agree:", abs(integral(sqrt(1 + (2*x)^2), 0, 1) - (sqrt(5)/2 + asinh(2)/4)) < 1e-9)
 
 /* ---- expected output ---------------------------------------------------------
-= 1.47894285754
-= 1.47894285754
-= true
+= arc length by the builtin: 1.47894285754
+= closed form: 1.47894285754
+= they agree: true
 */

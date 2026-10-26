@@ -35,17 +35,17 @@ def eday(y) = mod(eh(y) + el(y) - 7 * em(y) + 114, 31) + 1
 
 // ---- display ----------------------------------------------------------------
 def pad2(n) = if n < 10 then "0" + str(n) else str(n)
-def iso(y, m, d) = str(y) + "-" + pad2(m) + "-" + pad2(d)
+def iso_date(y, m, d) = str(y) + "-" + pad2(m) + "-" + pad2(d)
 
 // ---- results ----------------------------------------------------------------
 // Easter 2026 is April 5 (the anchor of this script); 2038 lands on
 // April 25, the latest possible date, and 2024 on March 31.
-print("Easter 2000:", iso(2000, emonth(2000), eday(2000)))
-print("Easter 2024:", iso(2024, emonth(2024), eday(2024)))
-print("Easter 2025:", iso(2025, emonth(2025), eday(2025)))
-print("Easter 2026:", iso(2026, emonth(2026), eday(2026)))
-print("Easter 2027:", iso(2027, emonth(2027), eday(2027)))
-print("Easter 2038:", iso(2038, emonth(2038), eday(2038)))
+print("Easter 2000:", iso_date(2000, emonth(2000), eday(2000)))
+print("Easter 2024:", iso_date(2024, emonth(2024), eday(2024)))
+print("Easter 2025:", iso_date(2025, emonth(2025), eday(2025)))
+print("Easter 2026:", iso_date(2026, emonth(2026), eday(2026)))
+print("Easter 2027:", iso_date(2027, emonth(2027), eday(2027)))
+print("Easter 2038:", iso_date(2038, emonth(2038), eday(2038)))
 
 // A check that needs no calendar table: every computed Easter must be
 // a Sunday, i.e. weekday number 0 in the 0 = Sunday convention of

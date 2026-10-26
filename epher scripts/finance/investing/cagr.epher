@@ -17,8 +17,8 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const start = 10000         // value at the beginning, USD
-const end = 35000           // value n years later, USD
+const start = 10000         // value at the beginning
+const end = 35000           // value n years later
 const years = 8             // years between the two values
 
 // ---- helpers ----------------------------------------------------------------

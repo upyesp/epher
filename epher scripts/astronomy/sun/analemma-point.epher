@@ -42,15 +42,15 @@ def psi(t) = (-17.20 * sin(rad(omega(t))) - 1.32 * sin(rad(2 * l0(t))) + 0.21 * 
 def signed360(x) = if x > 180 then x - 360 else x
 def eot(j) = signed360(l0(cent(j)) - 0.0057183 - alpha(cent(j)) + psi(cent(j)) * cos(rad(eps(cent(j))))) * 4
 def alpha(t) = deg(atan2(cos(rad(eps(t))) * sin(rad(applon(t))), cos(rad(applon(t)))))
-def dec(t) = deg(asin(sin(rad(eps(t))) * sin(rad(applon(t)))))
+def sun_dec(t) = deg(asin(sin(rad(eps(t))) * sin(rad(applon(t)))))
 
 // ---- results: the analemma's two axes, sampled --------------------------------
 print("analemma at mean noon: minutes fast (+) vs declination")
-print("2026-02-12:", eot(jd(d_feb[1], d_feb[2], d_feb[3])), "min, dec", dec(cent(jd(d_feb[1], d_feb[2], d_feb[3]))), "deg")
-print("2026-05-14:", eot(jd(d_may[1], d_may[2], d_may[3])), "min, dec", dec(cent(jd(d_may[1], d_may[2], d_may[3]))), "deg")
-print("2026-06-21:", eot(jd(d_jun[1], d_jun[2], d_jun[3])), "min, dec", dec(cent(jd(d_jun[1], d_jun[2], d_jun[3]))), "deg")
-print("2026-07-26:", eot(jd(d_jul[1], d_jul[2], d_jul[3])), "min, dec", dec(cent(jd(d_jul[1], d_jul[2], d_jul[3]))), "deg")
-print("2026-11-03:", eot(jd(d_nov[1], d_nov[2], d_nov[3])), "min, dec", dec(cent(jd(d_nov[1], d_nov[2], d_nov[3]))), "deg")
+print("2026-02-12:", eot(jd(d_feb[1], d_feb[2], d_feb[3])), "min, dec", sun_dec(cent(jd(d_feb[1], d_feb[2], d_feb[3]))), "deg")
+print("2026-05-14:", eot(jd(d_may[1], d_may[2], d_may[3])), "min, dec", sun_dec(cent(jd(d_may[1], d_may[2], d_may[3]))), "deg")
+print("2026-06-21:", eot(jd(d_jun[1], d_jun[2], d_jun[3])), "min, dec", sun_dec(cent(jd(d_jun[1], d_jun[2], d_jun[3]))), "deg")
+print("2026-07-26:", eot(jd(d_jul[1], d_jul[2], d_jul[3])), "min, dec", sun_dec(cent(jd(d_jul[1], d_jul[2], d_jul[3]))), "deg")
+print("2026-11-03:", eot(jd(d_nov[1], d_nov[2], d_nov[3])), "min, dec", sun_dec(cent(jd(d_nov[1], d_nov[2], d_nov[3]))), "deg")
 
 /* The figure-8 signature, read off the pair above: May 14 and
 July 26 straddle the June solstice within a degree of the same
@@ -61,7 +61,7 @@ such pairs in a year. */
 
 /* Self-check: the built-in decl (guide 1.29) at the June solstice
 against the script's closed-form value. */
-print("solstice decl, script:", dec(cent(jd(2026, 6, 21))), "vs built-in:", decl(10, jd(2026, 6, 21)))
+print("solstice decl, script:", sun_dec(cent(jd(2026, 6, 21))), "vs built-in:", decl(10, jd(2026, 6, 21)))
 
 /* ---- expected output ----
 = {2026, 2, 12}

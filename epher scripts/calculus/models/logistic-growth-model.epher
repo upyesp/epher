@@ -34,10 +34,10 @@ for t in ts do pop(t)
 
 // ---- toward the carrying capacity, and the half-capacity time ---------------
 print("gap to K after 100 years:", K - pop(100))
-abs(K - pop(100)) < 0.5
+print("settled on the capacity:", abs(K - pop(100)) < 0.5)
 print("half-capacity time ln(A)/r, years:", ln(A)/r)
 print("population there:", pop(ln(A)/r))
-abs(pop(ln(A)/r) - K/2) < 1e-6
+print("half the capacity there:", abs(pop(ln(A)/r) - K/2) < 1e-6)
 
 /* ---- expected output ---------------------------------------------------------
 = 1000
@@ -47,8 +47,8 @@ abs(pop(ln(A)/r) - K/2) < 1e-6
 = 9
 = {100, 450.853060379, 942.825618574, 999.591567517}
 = gap to K after 100 years: 0.408432482608
-= true
+= settled on the capacity: true
 = half-capacity time ln(A)/r, years: 21.9722457734
 = population there: 500
-= true
+= half the capacity there: true
 */
