@@ -86,8 +86,8 @@ const page = template
     '      <a href="scripts.html" aria-current="page" data-i18n="nav-scripts">Scripts</a>'
   )
   .replace(
-    /<main id="main">[\s\S]*?<\/main>/,
-    `<main id="main">
+    /<main id="main"[^>]*>[\s\S]*?<\/main>/,
+    `<main id="main" tabindex="-1">
     <article class="prose scripts-page">
       <h1 data-i18n="scripts-title">Scripts</h1>
       <p class="lede" data-i18n="scripts-lede">Ready-to-run scripts for the epher calculator, organized by field and topic. Open a folder to browse, click a script to read it, and copy any script to the clipboard.</p>
@@ -114,6 +114,13 @@ const page = template
 </body>
 </html>`
   );
+
+// A silent no-op replace once shipped the homepage's main content inside
+// scripts.html (the <main> tag grew an attribute and the pattern stopped
+// matching). Fail the build instead of writing a page without its content.
+if (!page.includes('id="scripts-browser"') || page.includes('class="hero"')) {
+  throw new Error("build-scripts: the main-content replace did not apply to index.html — refusing to write scripts.html without the scripts browser");
+}
 
 writeFileSync(join(SITE, "scripts.html"), page);
 console.log("built site/scripts.html");

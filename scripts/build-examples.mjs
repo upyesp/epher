@@ -95,7 +95,7 @@ function exampleBlock(code, kind) {
   const cls = kind === "text" ? "language-text" : `language-${kind}`;
   const body =
     kind === "text" ? escapeHtml(code) : highlightEpher(code);
-  return `<div class="example">
+  return `<div class="example" tabindex="0">
 <pre tabindex="0"><code class="${cls}">${body}</code></pre>
 <div class="example-bar">
 <button type="button" class="copy-btn">
@@ -143,8 +143,8 @@ const page = template
     '          <a href="examples.html" aria-current="page" data-i18n="nav-examples">Examples</a>'
   )
   .replace(
-    /<main id="main">[\s\S]*?<\/main>/,
-    `<main id="main">
+    /<main id="main"[^>]*>[\s\S]*?<\/main>/,
+    `<main id="main" tabindex="-1">
     <article class="prose">
       <h1 data-i18n="examples-title">Examples</h1>
       <p class="lede" data-i18n="examples-intro">Copyable examples for every version of epher. Paste them into a terminal, a REPL session, or the app's entry field. The user guide explains the language in detail; this page is for quick copying and pasting.</p>
@@ -237,6 +237,13 @@ ${body}
 </body>
 </html>`
   );
+
+// A silent no-op replace once shipped the homepage's main content inside
+// examples.html (the <main> tag grew an attribute and the pattern stopped
+// matching). Fail the build instead of writing a page without its content.
+if (!page.includes('ex-section') || page.includes('class="hero"')) {
+  throw new Error("build-examples: the main-content replace did not apply to index.html — refusing to write examples.html without the examples");
+}
 
 writeFileSync(join(SITE, "examples.html"), page);
 console.log("built site/examples.html");
