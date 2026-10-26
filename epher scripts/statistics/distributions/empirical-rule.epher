@@ -15,18 +15,18 @@ No knobs: the rule is the demonstration.
 ============================================================================ */
 
 // ---- the three bands, as probabilities and as percents ---------------------------------
-normcdf(1) - normcdf(-1)    // P(mu - sigma < X < mu + sigma), about 0.6827
-normcdf(2) - normcdf(-2)    // two standard deviations, about 0.9545
-normcdf(3) - normcdf(-3)    // three standard deviations, about 0.9973
+print("P(mu - sigma < X < mu + sigma):", normcdf(1) - normcdf(-1))
+print("within two standard deviations:", normcdf(2) - normcdf(-2))
+print("within three standard deviations:", normcdf(3) - normcdf(-3))
 
 print("within 1 sd:", (normcdf(1) - normcdf(-1)) * 100, "percent")
 print("within 2 sd:", (normcdf(2) - normcdf(-2)) * 100, "percent")
 print("within 3 sd:", (normcdf(3) - normcdf(-3)) * 100, "percent")
 
 /* ---- expected output ----
-= 0.682689492137
-= 0.954499736104
-= 0.997300203937
+= P(mu - sigma < X < mu + sigma): 0.682689492137
+= within two standard deviations: 0.954499736104
+= within three standard deviations: 0.997300203937
 = within 1 sd: 68.2689492137 percent
 = within 2 sd: 95.4499736104 percent
 = within 3 sd: 99.7300203937 percent

@@ -17,10 +17,10 @@ There is no knob: the sample literals are the point of the script.
 ============================================================================ */
 
 // ---- named values --------------------------------------------------------------------
-0xF                           // fifteen: the largest single digit
-0xFF                          // 15 * 16 + 15 = 255
-0x10                          // sixteen: 0x10, not ten
-0xdeadbeef                    // the classic: 3735928559
+print("fifteen, the largest single digit:", 0xF)
+print("15 * 16 + 15 = 255:", 0xFF)
+print("sixteen, 0x10, not ten:", 0x10)
+print("the classic, 3735928559:", 0xdeadbeef)
 // ---- a list at a glance ---------------------------------------------------------------
 for x in {0x1, 0x9, 0xA, 0xF, 0x10, 0xFF, 0x100} do x
 // ---- the place values -----------------------------------------------------------------
@@ -28,10 +28,10 @@ print("15 * 16 + 15:", 15 * 16 + 15)              // how 0xff reads
 print("0xFF is 255:", 0xFF == 255)
 print("0xA is 10:", 0xA == 10)
 /* ---- expected output ----
-= 15
-= 255
-= 16
-= 3735928559
+= fifteen, the largest single digit: 15
+= 15 * 16 + 15 = 255: 255
+= sixteen, 0x10, not ten: 16
+= the classic, 3735928559: 3735928559
 = {1, 9, 10, 15, 16, 255, 256}
 = 15 * 16 + 15: 255
 = 0xFF is 255: true

@@ -27,8 +27,8 @@ print("sample mean:", mean(step))
 print("standard error sigma / sqrt(n):", sigma / sqrt(len(step)))
 
 // ---- the interval at the chosen level, and a wider one for contrast --------------------
-zinterval(step, sigma, level)      // (75.7218, 86.8782): the 95% z interval
-zinterval(step, sigma, 0.99)       // the 99% z interval is wider
+print("95% z interval for the mean:", zinterval(step, sigma, level))
+print("the wider 99% z interval:", zinterval(step, sigma, 0.99))
 
 /* ---- expected output ----
 = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
@@ -36,6 +36,6 @@ zinterval(step, sigma, 0.99)       // the 99% z interval is wider
 = 0.95
 = sample mean: 81.3
 = standard error sigma / sqrt(n): 2.84604989415
-= (75.7218, 86.8782)
-= (73.9691, 88.6309)
+= 95% z interval for the mean: (75.7218, 86.8782)
+= the wider 99% z interval: (73.9691, 88.6309)
 */

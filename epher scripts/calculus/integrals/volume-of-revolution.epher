@@ -22,16 +22,16 @@ const a = 0
 const b = 2
 
 // ---- volume by the disc method: pi times the integral of the radius^2 ------
-pi * integral(x^4, a, b)
+print("volume by the disc method:", pi * integral(x^4, a, b))
 
 // ---- the exact value 32 pi / 5, for comparison ------------------------------
-32*pi/5
-abs(pi*integral(x^4, a, b) - 32*pi/5) < 1e-9
+print("exact:", 32*pi/5)
+print("they agree:", abs(pi*integral(x^4, a, b) - 32*pi/5) < 1e-9)
 
 /* ---- expected output ---------------------------------------------------------
 = 0
 = 2
-= 20.106192983
-= 20.106192983
-= true
+= volume by the disc method: 20.106192983
+= exact: 20.106192983
+= they agree: true
 */

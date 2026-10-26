@@ -28,7 +28,7 @@ print("single round robin,", teams, "teams:", ncr(teams, 2))
 print("home and away:", 2 * ncr(teams, 2))
 
 // The ordered view: n * (n - 1) fixtures with a designated home side.
-2 * ncr(teams, 2) == npr(teams, 2)
+print("home and away equals the ordered count:", 2 * ncr(teams, 2) == npr(teams, 2))
 print("ordered fixtures npr(8, 2):", npr(teams, 2))
 
 // Other league sizes for the same formulas.
@@ -48,7 +48,7 @@ print("diagonals of an", teams, "-sided polygon:", ncr(teams, 2) - teams)
 = 8
 = single round robin, 8 teams: 28
 = home and away: 56
-= true
+= home and away equals the ordered count: true
 = ordered fixtures npr(8, 2): 56
 = 10 teams: 45 games, 90 with home and away
 = 12 teams: 66 games, 132 with home and away

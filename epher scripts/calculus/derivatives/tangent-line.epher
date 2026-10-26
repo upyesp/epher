@@ -25,22 +25,22 @@ def tangent(x) = f(a) + fp(a)*(x - a)   // tangent line at x = a
 
 // ---- the slope at x = 2, from the builtin derivative and by hand ------------
 print("slope at x = 2:", derivative(x^2, a), "by the power rule:", fp(a))
-abs(derivative(x^2, a) - fp(a)) < 1e-9
+print("they agree:", abs(derivative(x^2, a) - fp(a)) < 1e-9)
 
 // ---- the line y = 4x - 4, evaluated at x = 2 and x = 2.5 --------------------
 print("tangent at x = 2:", tangent(a), "parabola there:", f(a))
 print("tangent at x = 2.5:", tangent(2.5), "line formula:", 4*2.5 - 4)
 print("parabola at x = 2.5:", f(2.5))
 print("gap f - tangent at 2.5:", f(2.5) - tangent(2.5))
-abs(tangent(a) - f(a)) < 1e-12
+print("tangent and curve meet at the point of tangency:", abs(tangent(a) - f(a)) < 1e-12)
 
 /* ---- expected output ---------------------------------------------------------
 = 2
 = slope at x = 2: 4 by the power rule: 4
-= true
+= they agree: true
 = tangent at x = 2: 4 parabola there: 4
 = tangent at x = 2.5: 6 line formula: 6
 = parabola at x = 2.5: 6.25
 = gap f - tangent at 2.5: 0.25
-= true
+= tangent and curve meet at the point of tangency: true
 */

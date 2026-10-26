@@ -18,21 +18,21 @@ There is no knob: the sample values are the point of the script.
 ============================================================================ */
 
 // ---- named spellings ---------------------------------------------------------------
-oct(42)                       // 42 = 5 * 8 + 2 = 0o52
-oct(64)                       // 8^2: 0o100
-oct(511)                      // 7 * 64 + 7 * 8 + 7 = 0o777
+print("42 = 5 * 8 + 2 = 0o52:", oct(42))
+print("8^2, 0o100:", oct(64))
+print("7 * 64 + 7 * 8 + 7 = 0o777:", oct(511))
 // ---- a list at a glance ---------------------------------------------------------------
 for x in {0, 1, 7, 8, 42, 64, 511} do oct(x)
 // ---- the spelling reads back -------------------------------------------------------------
-0o52                          // the literal form of oct(42): same value
-0o100                         // 64, the third power of 8
+print("the literal form of oct(42), same value:", 0o52)
+print("64, the third power of 8:", 0o100)
 print("the literal 0o52 reads back as:", 0o52)
 /* ---- expected output ----
-= 0o52
-= 0o100
-= 0o777
+= 42 = 5 * 8 + 2 = 0o52: 0o52
+= 8^2, 0o100: 0o100
+= 7 * 64 + 7 * 8 + 7 = 0o777: 0o777
 = {0o0, 0o1, 0o7, 0o10, 0o52, 0o100, 0o777}
-= 42
-= 64
+= the literal form of oct(42), same value: 42
+= 64, the third power of 8: 64
 = the literal 0o52 reads back as: 42
 */

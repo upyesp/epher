@@ -22,12 +22,12 @@ const ns = {10, 100, 1000, 100000}
 for n in ns do (1 + 1/n)^n
 
 // ---- e for comparison, and how far the last term still is from it -----------
-e
-abs((1 + 1/100000)^100000 - e) < 1e-3
+print("the limit, e:", e)
+print("the last term is within 1e-3 of it:", abs((1 + 1/100000)^100000 - e) < 1e-3)
 
 /* ---- expected output ---------------------------------------------------------
 = {10, 100, 1000, 100000}
 = {2.5937424601, 2.70481382942, 2.71692393224, 2.71826823719}
-= 2.71828182846
-= true
+= the limit, e: 2.71828182846
+= the last term is within 1e-3 of it: true
 */

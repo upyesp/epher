@@ -33,12 +33,12 @@ print("4-digit codes from 10 distinct digits:", npr(10, 4))
 print("3-letter words from 5 distinct letters:", npr(5, 3))
 
 // The standard formula npr(n, r) = n! / (n - r)!: an exact equality.
-npr(runners, 3) == fact(runners) / fact(runners - 3)
-npr(10, 4) == fact(10) / fact(6)
+print("the standard formula, npr equals n! over (n - r)!:", npr(runners, 3) == fact(runners) / fact(runners - 3))
+print("the formula again, on npr(10, 4):", npr(10, 4) == fact(10) / fact(6))
 
 // Seat-by-seat building: 10 choices for gold, then npr(9, 2) for the
 // next two seats, and the product is the same count.
-10 * npr(9, 2) == npr(10, 3)
+print("seat by seat, 10 gold choices times npr(9, 2):", 10 * npr(9, 2) == npr(10, 3))
 
 // The same race with more finishers.
 print("with 12 runners, 3 medals:", npr(12, 3))
@@ -49,8 +49,8 @@ print("with 12 runners, 3 medals:", npr(12, 3))
 = 3 distinct offices among 8 members: 336
 = 4-digit codes from 10 distinct digits: 5040
 = 3-letter words from 5 distinct letters: 60
-= true
-= true
-= true
+= the standard formula, npr equals n! over (n - r)!: true
+= the formula again, on npr(10, 4): true
+= seat by seat, 10 gold choices times npr(9, 2): true
 = with 12 runners, 3 medals: 1320
 */

@@ -16,15 +16,15 @@ is machinery you can leave alone.
 const step = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
 
 // ---- the range and its definition -----------------------------------------------
-range(step)                    // builtin range: largest minus smallest
-max(step) - min(step)             // the textbook formula, max(step) - min(step), agrees
-min(step)                      // the smallest score
-max(step)                      // the largest score
+print("builtin range, largest minus smallest:", range(step))
+print("the textbook formula, max(step) - min(step):", max(step) - min(step))
+print("the smallest score:", min(step))
+print("the largest score:", max(step))
 
 /* ---- expected output ----
 = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-= 31
-= 31
-= 64
-= 95
+= builtin range, largest minus smallest: 31
+= the textbook formula, max(step) - min(step): 31
+= the smallest score: 64
+= the largest score: 95
 */

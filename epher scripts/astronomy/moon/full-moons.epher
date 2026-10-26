@@ -113,10 +113,10 @@ so the instant of full illumination in longitude is not quite the
 instant of maximum light, and the phase angle (the Sun-Moon-Earth
 angle at the Moon) is 4.27 degrees, not 0. illum reports the fraction
 to four decimals. */
-illum(11, fullmoon(k))
-illum(11, fullmoon(k) - 0.5)
-illum(11, fullmoon(k) + 0.5)
-phase(11, fullmoon(k))
+print("lit fraction at the full-moon instant:", illum(11, fullmoon(k)))
+print("lit fraction half a day before:", illum(11, fullmoon(k) - 0.5))
+print("lit fraction half a day after:", illum(11, fullmoon(k) + 0.5))
+print("phase angle at the instant, degrees:", phase(11, fullmoon(k)))
 /* ---- expected output ----
 = 2026
 = 321.5
@@ -126,8 +126,8 @@ phase(11, fullmoon(k))
 = the instant as a date-time: 2026-01-03T10:04:05 UT
 = 13 full moons this year: one month holds two (a blue moon)
 = Moon distance: 56.8693048187 Earth radii = 0.00242192177806 AU
-= 0.9986
-= 0.9948
-= 0.9953
-= 4.27
+= lit fraction at the full-moon instant: 0.9986
+= lit fraction half a day before: 0.9948
+= lit fraction half a day after: 0.9953
+= phase angle at the instant, degrees: 4.27
 */

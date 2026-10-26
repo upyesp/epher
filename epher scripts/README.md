@@ -97,12 +97,16 @@ The reference example turns those facts into a house style:
    unit-name spellings.
 7. **Units in the code.** Write `30 deg`, `1 AU`, `24 hr`, convert with
    `in`, and say the unit in the note when a number is a count.
-8. **Results last, labelled.** `print("label:", value)` (guide 1.29)
-   puts a readable label on the same line as its value; when a result
-   speaks for itself, leave it bare so it keeps epher's native display.
-   Order outputs the way a reader wants them; one line, one answer.
-   Values that are display strings (solve, linreg, the tests) print as
-   they are. Keep printed lines short enough not to wrap at 80 columns.
+8. **Results last, labelled.** `print("label:", value, " unit")`
+   (guide 1.29) puts context on the same line as its value, and every
+   value a script shows carries one: a bare echo like `mean(step)` or a
+   bare `true` tells a reader nothing a transcript scroll cannot.
+   Reuse the section's own wording for the label ("the geometric mean
+   of the five factors:", "they agree:"). Order outputs the way a
+   reader wants them; one line, one answer. Values that are display
+   strings (solve, linreg, the tests) print after a label that names
+   the fit or the test. Keep printed lines short enough not to wrap at
+   80 columns; tables may keep a header row instead of per-row labels.
 9. **Show the expected output.** End with a `/* ---- expected output
    ---- ... */` block holding the shipped default's transcript, one line
    per output line, so anyone can check their build and their edit.

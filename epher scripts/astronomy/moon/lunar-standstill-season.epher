@@ -51,10 +51,10 @@ print("standstill seasons after", after, ": node 0 deg major, 180 deg minor")
 
 // The four seasons that follow the knob year (lines k = 0..3 below).
 def sline(k) = (if isev(mf - k) then "major standstill" else "minor standstill") + " " + str(yr(mf - k)) + ": node " + str(w360(180 * (mf - k))) + " deg on " + iso(jm(mf - k)) + " UT"
-sline(0)
-sline(1)
-sline(2)
-sline(3)
+print("first season:", sline(0))
+print("second season:", sline(1))
+print("third season:", sline(2))
+print("fourth season:", sline(3))
 
 /* The next major standstill's size, at the knob latitude: the Moon's
 declination extremes of about +/-(eps + 5.145) deg, so its meridian
@@ -80,10 +80,10 @@ print("grade: mean-element seasons/amplitudes (+/-0.2 deg); engine sample")
 = 0
 = 0
 = standstill seasons after 2000 : node 0 deg major, 180 deg minor
-= major standstill 2006: node 0 deg on 2006-06-19T21:22:54 UT
-= minor standstill 2015: node 180 deg on 2015-10-10T01:58:56 UT
-= major standstill 2025: node 0 deg on 2025-01-29T06:34:58 UT
-= minor standstill 2034: node 180 deg on 2034-05-21T11:11:00 UT
+= first season: major standstill 2006: node 0 deg on 2006-06-19T21:22:54 UT
+= second season: minor standstill 2015: node 180 deg on 2015-10-10T01:58:56 UT
+= third season: major standstill 2025: node 0 deg on 2025-01-29T06:34:58 UT
+= fourth season: minor standstill 2034: node 180 deg on 2034-05-21T11:11:00 UT
 = next major standstill 2006 : declination extremes about +/- 28.5834503624 deg
 = at lat 51.4779 the Moon's transit altitude band at the standstill:
 =   about 9.9386496376 to 67.1055503624 deg

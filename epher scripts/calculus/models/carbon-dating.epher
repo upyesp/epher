@@ -36,21 +36,21 @@ def leftover(t) = e^(-ln(2)*t/thalf)     // fraction left after t years
 for f in fs do age(f)
 
 // ---- the anchors: 50% left is 5730 years, 25% left is 11460 years -----------
-abs(age(0.5) - 5730) < 1e-6
-abs(age(0.25) - 2*thalf) < 1e-6
+print("anchor, half left:", abs(age(0.5) - 5730) < 1e-6)
+print("anchor, a quarter left:", abs(age(0.25) - 2*thalf) < 1e-6)
 
 // ---- round trip: 10000 years of decay, then back to 10000 years -------------
 print("fraction left after 10000 years:", leftover(10000))
 print("age of that fraction, years:", age(leftover(10000)))
-abs(age(leftover(10000)) - 10000) < 1e-6
+print("the round trip closes:", abs(age(leftover(10000)) - 10000) < 1e-6)
 
 /* ---- expected output ---------------------------------------------------------
 = 5730
 = {0.5, 0.25, 0.9}
 = {5730, 11460, 870.97772544}
-= true
-= true
+= anchor, half left: true
+= anchor, a quarter left: true
 = fraction left after 10000 years: 0.298292436424
 = age of that fraction, years: 10000
-= true
+= the round trip closes: true
 */

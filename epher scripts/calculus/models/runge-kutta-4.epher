@@ -42,21 +42,21 @@ def rk4step(y, h) = y + h/6*(k1(y, h) + 2*k2(y, h) + 2*k3(y, h) + k4(y, h))
 // ---- one RK4 run from t = 0 to t = 1, state {t, y, step} --------------------
 v = {0, 1, 0}
 while v[3] < steps do v = {v[1] + h, rk4step(v[2], h), v[3] + 1}
-v
+print("the state after the run:", v)
 print("y(1) by RK4 with h = 0.1:", v[2])
 print("true value e:", e)
 print("error:", e - v[2])
-abs(v[2] - e) < 1e-5
+print("within 1e-5 of e:", abs(v[2] - e) < 1e-5)
 print("Euler's error at the same h for contrast:", 0.124539368359)
 
 /* ---- expected output ---------------------------------------------------------
 = 0.1
 = 10
 = {0, 1, 0}
-= {1, 2.71827974414, 10}
+= the state after the run: {1, 2.71827974414, 10}
 = y(1) by RK4 with h = 0.1: 2.71827974414
 = true value e: 2.71828182846
 = error: 0.00000208432387927
-= true
+= within 1e-5 of e: true
 = Euler's error at the same h for contrast: 0.124539368359
 */

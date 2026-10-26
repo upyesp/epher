@@ -35,7 +35,7 @@ print("intercept b0:", b0())
 
 // ---- prediction at a new x -------------------------------------------------------------
 print("predicted score at 6 hours:", b0() + b1() * 6)
-linreg(xs, ys)      // cross-check: the builtin reports the same line
+print("cross-check, the builtin reports the same line:", linreg(xs, ys))
 
 /* ---- expected output ----
 = {1, 2, 3, 4, 5}
@@ -45,5 +45,5 @@ linreg(xs, ys)      // cross-check: the builtin reports the same line
 = slope b1: 2.03
 = intercept b0: -0.07
 = predicted score at 6 hours: 12.11
-= y = 2.03*x + -0.07 (r = 0.9988)
+= cross-check, the builtin reports the same line: y = 2.03*x + -0.07 (r = 0.9988)
 */

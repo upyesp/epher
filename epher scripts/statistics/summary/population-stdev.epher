@@ -18,13 +18,13 @@ is machinery you can leave alone.
 const step = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 students
 
 // ---- population standard deviation: sqrt of the population variance -------------
-stdev(step)                        // builtin stdev, population version (n)
-sqrt(variance(step))               // sqrt of the builtin variance, agrees
-variance(step)                     // the variance it comes from
+print("builtin stdev, population version (n):", stdev(step))
+print("sqrt of the builtin variance:", sqrt(variance(step)))
+print("the variance it comes from:", variance(step))
 
 /* ---- expected output ----
 = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-= 9.40265919833
-= 9.40265919833
-= 88.41
+= builtin stdev, population version (n): 9.40265919833
+= sqrt of the builtin variance: 9.40265919833
+= the variance it comes from: 88.41
 */

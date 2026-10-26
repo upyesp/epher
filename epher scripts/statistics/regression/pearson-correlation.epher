@@ -32,7 +32,7 @@ print("sxy:", sxy())
 print("sxx:", sxx())
 print("syy:", syy())
 print("Pearson r:", r())
-linreg(xs, ys)      // cross-check: its display string reports the same r
+print("cross-check, its display string reports the same r:", linreg(xs, ys))
 
 /* ---- expected output ----
 = {1, 2, 3, 4, 5, 6, 7}
@@ -41,5 +41,5 @@ linreg(xs, ys)      // cross-check: its display string reports the same r
 = sxx: 28
 = syy: 6424/7
 = Pearson r: 0.998130257012
-= y = 5.7143*x + 50.5714 (r = 0.9981)
+= cross-check, its display string reports the same r: y = 5.7143*x + 50.5714 (r = 0.9981)
 */

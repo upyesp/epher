@@ -26,9 +26,9 @@ print("chi2 statistic:", sum((obs - expected) ^ 2 / expected))
 print("degrees of freedom:", len(obs) - 1)
 
 // ---- the test ------------------------------------------------------------------------
-chisq_gof(obs, expected)     // chi2 = 1, p = 0.9626: a chi2 this small (or
-                        // smaller) happens 96% of the time with a fair
-                        // die, so nothing here suggests unfairness
+print("chi-square goodness-of-fit of the rolls against the fair-die expectation (chi2 and p):", chisq_gof(obs, expected))
+// a chi2 this small (or smaller) happens 96% of the time with a fair
+// die, so nothing here suggests unfairness
 
 /* ---- expected output ----
 = {8, 12, 9, 11, 10, 10}
@@ -36,5 +36,5 @@ chisq_gof(obs, expected)     // chi2 = 1, p = 0.9626: a chi2 this small (or
 = total rolls: 60
 = chi2 statistic: 1
 = degrees of freedom: 5
-= chi2 = 1, p = 0.9626
+= chi-square goodness-of-fit of the rolls against the fair-die expectation (chi2 and p): chi2 = 1, p = 0.9626
 */

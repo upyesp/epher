@@ -30,8 +30,7 @@ ys = ty(ts) + noise
 print("true flight time to the ground:")
 solve h + t * v0 * sin(rad(40)) - 4.905 * t ^ 2 == 0
 print("true vertex time, v*sin(th)/g:", v0 * sin(rad(th)) / 9.81)
-print("the fitted quadratic and its r:")
-quadreg(ts, ys)
+print("the fitted quadratic and its r:", quadreg(ts, ys))
 
 // ---- the picture ---------------------------------------------------------------
 graph scatter(ts, ys, quadreg)
@@ -46,7 +45,6 @@ graph scatter(ts, ys, quadreg)
 = true flight time to the ground:
 = x = -0.13324152617505275, x = 2.7541899856512577
 = true vertex time, v*sin(th)/g: 1.31047422974
-= the fitted quadratic and its r:
-= y = -4.8619*x^2 + 12.6439*x + 2.084 (r = 0.9981)
+= the fitted quadratic and its r: y = -4.8619*x^2 + 12.6439*x + 2.084 (r = 0.9981)
 graph: scatter(ts, ys, quadreg)
 */

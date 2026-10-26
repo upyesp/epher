@@ -19,14 +19,14 @@ No knobs: the interval [0, 1] is the demonstration.
 ============================================================================ */
 
 // ---- the area as one integral of top minus bottom ---------------------------
-integral(x - x^2, 0, 1)
-abs(integral(x - x^2, 0, 1) - 1/6) < 1e-12
+print("area as one integral:", integral(x - x^2, 0, 1))
+print("exactly 1/6:", abs(integral(x - x^2, 0, 1) - 1/6) < 1e-12)
 
 // ---- the same area as two integrals, 1/2 - 1/3 ------------------------------
-integral(x, 0, 1) - integral(x^2, 0, 1)
+print("the same area as two integrals:", integral(x, 0, 1) - integral(x^2, 0, 1))
 
 /* ---- expected output ---------------------------------------------------------
-= 1/6
-= true
-= 1/6
+= area as one integral: 1/6
+= exactly 1/6: true
+= the same area as two integrals: 1/6
 */

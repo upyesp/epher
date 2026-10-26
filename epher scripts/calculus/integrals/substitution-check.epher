@@ -19,16 +19,16 @@ No knobs: the interval [0, 1] is the demonstration.
 ============================================================================ */
 
 // ---- the original integral: integrand 2x exp(x^2) on [0, 1] -----------------
-integral(2*x*exp(x^2), 0, 1)
+print("the original integral:", integral(2*x*exp(x^2), 0, 1))
 
 // ---- after u = x^2 the same integral is integral(e^x, 0, 1) = e - 1 ---------
-integral(e^x, 0, 1)
-e - 1
-abs(integral(2*x*exp(x^2), 0, 1) - (e - 1)) < 1e-6
+print("after the substitution:", integral(e^x, 0, 1))
+print("the closed form:", e - 1)
+print("they agree:", abs(integral(2*x*exp(x^2), 0, 1) - (e - 1)) < 1e-6)
 
 /* ---- expected output ---------------------------------------------------------
-= 1.71828182846
-= 1.71828182846
-= 1.71828182846
-= true
+= the original integral: 1.71828182846
+= after the substitution: 1.71828182846
+= the closed form: 1.71828182846
+= they agree: true
 */

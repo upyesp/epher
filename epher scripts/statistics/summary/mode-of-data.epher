@@ -18,14 +18,14 @@ const data = {72, 85, 91, 85, 88, 79, 83, 95, 70, 86}   // exam scores; 85 appea
 const ties = {2, 2, 3, 3, 4}                            // 2 and 3 tie for most frequent
 
 // ---- the mode of the scores ------------------------------------------------------
-mode(data)                     // 85 occurs twice, every other score once
+print("the mode of the scores:", mode(data))
 
 // ---- the tie rule: smallest wins -------------------------------------------------
-mode(ties)                     // 2 and 3 both occur twice; mode reports 2
+print("the tie rule, smallest wins:", mode(ties))
 
 /* ---- expected output ----
 = {72, 85, 91, 85, 88, 79, 83, 95, 70, 86}
 = {2, 2, 3, 3, 4}
-= 85
-= 2
+= the mode of the scores: 85
+= the tie rule, smallest wins: 2
 */

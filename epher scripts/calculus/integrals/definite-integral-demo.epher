@@ -25,20 +25,20 @@ No knobs: the five integrals are the demonstration.
 ============================================================================ */
 
 // ---- polynomial integrands: exact by the power rule -------------------------
-integral(x^2, 0, 3)
-integral(x^3, 0, 2)
-integral(x^2, 1, 2)
+print("integral of x^2 on [0, 3]:", integral(x^2, 0, 3))
+print("integral of x^3 on [0, 2]:", integral(x^3, 0, 2))
+print("integral of x^2 on [1, 2]:", integral(x^2, 1, 2))
 
 // ---- trigonometric integrand: one arch of sine ------------------------------
-integral(sin(x), 0, pi)
+print("one arch of sine:", integral(sin(x), 0, pi))
 
 // ---- reversed limits change the sign ----------------------------------------
-integral(x^2, 3, 0)
+print("reversed limits:", integral(x^2, 3, 0))
 
 /* ---- expected output ---------------------------------------------------------
-= 9
-= 4
-= 7/3
-= 2
-= -9
+= integral of x^2 on [0, 3]: 9
+= integral of x^3 on [0, 2]: 4
+= integral of x^2 on [1, 2]: 7/3
+= one arch of sine: 2
+= reversed limits: -9
 */

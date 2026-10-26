@@ -22,13 +22,13 @@ const data = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}   // exam scores, 10 stude
 def z(x) = (x - mean(data)) / stdev(data) // z-score of score x against the class
 
 // ---- z of a single score ---------------------------------------------------------
-z(85)                       // 85 sits 0.39 sd above the mean of 81.3
+print("z of the score 85:", z(85))
 
 // ---- z of the whole list: elementwise (data - mean(data)) / stdev(data) -------------------
-(data - mean(data)) / stdev(data)    // the standardized scores; they average 0 with sd 1
+print("the standardized scores, average 0 with sd 1:", (data - mean(data)) / stdev(data))
 
 /* ---- expected output ----
 = {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-= 0.393505701095
-= {-0.989081897348, 0.393505701095, 1.03162305422, -1.83990503485, 0.712564377659, -0.244611652032, 0.180799916719, 1.45703462297, -1.20178768172, 0.499858593283}
+= z of the score 85: 0.393505701095
+= the standardized scores, average 0 with sd 1: {-0.989081897348, 0.393505701095, 1.03162305422, -1.83990503485, 0.712564377659, -0.244611652032, 0.180799916719, 1.45703462297, -1.20178768172, 0.499858593283}
 */
