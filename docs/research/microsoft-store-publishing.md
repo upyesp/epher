@@ -545,6 +545,17 @@ schedule lands on the 5th and the window ends yesterday. Totals are written
 to the run summary; a manual dispatch can pass `since` (default 2026-10-02,
 first publish) to count from any date.
 
+One observed failure mode (2026-10-26, first live run): the token call
+succeeds but both analytics calls return
+`Unauthorized — The user is not authorized to access this resource`, and
+`store-api-test.yml` shows the same on `/v1.0/my/applications` — the Entra
+application authenticates but Partner Center does not associate it with the
+account (or it lacks the Manager role). That is fixed in the portal, under
+Account settings → User management: add the Entra application by its client
+id with the Manager role. `store-api-test` exits 0 while printing this, so
+its green check means nothing; `store-analytics` treats the signature as
+fatal and prints the fix in its log.
+
 ---
 
 ## Draft next steps
