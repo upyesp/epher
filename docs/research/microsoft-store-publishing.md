@@ -527,6 +527,24 @@ stored secret + manual-first-submission constraint); manual upload per release
 is a reasonable steady state given the three-day review window dwarfs the
 upload effort anyway.
 
+**Reading the numbers back** is its own job: `store-analytics.yml`
+(workflow_dispatch, plus a monthly cron on the 5th) pulls what Partner Center
+keeps behind login, because none of the public surfaces carry install counts —
+the storefront shows ratings only, and displaycatalog's UsageData is
+ratings-and-transactions (`PurchaseCount` stays 0 for free apps; even Windows
+Calculator's shows 0 there). It authenticates with the same Entra
+client-credentials as `store-api-test.yml` and reads two analytics endpoints
+on manage.devcenter.microsoft.com:
+[appacquisitions](https://learn.microsoft.com/en-us/windows/uwp/monetize/get-app-acquisitions)
+(`acquisitionQuantity` per day — the data behind the Acquisitions page) and
+[usagedaily](https://learn.microsoft.com/en-us/windows/uwp/monetize/get-app-usage-daily)
+(`dailyNewUsers`, `dailyActiveDevices`, `dailySessionCount`,
+`engagementDurationMinutes`, `monthlyActiveDevices`). Both paginate through
+`@nextLink` and take M/D/YYYY windows; the numbers lag a few days, so the
+schedule lands on the 5th and the window ends yesterday. Totals are written
+to the run summary; a manual dispatch can pass `since` (default 2026-10-02,
+first publish) to count from any date.
+
 ---
 
 ## Draft next steps
