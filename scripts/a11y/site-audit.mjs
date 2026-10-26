@@ -271,6 +271,21 @@ try {
       zoomed.unkeyed.length === 0 ? 'all regions have tabindex=0' : `no tabindex: ${zoomed.unkeyed.join(', ')}`);
     await page.evaluate(() => { document.documentElement.style.zoom = ''; });
 
+    // ---- generated pages must carry their own content ---------------------
+    // The generators replace index.html's main; a silent no-op replace once
+    // shipped the homepage's main inside examples/scripts wearing the right
+    // <title> — the "Docs menu goes to the front page" report.
+    if (label === 'examples' || label === 'scripts') {
+      const own = await page.evaluate((l) => ({
+        marker: !!document.querySelector(l === 'examples' ? '.ex-section' : '#scripts-browser'),
+        hero: !!document.querySelector('main .hero'),
+      }), label);
+      check(`[${label}] generated page carries its own content, not the homepage's`,
+        own.marker && !own.hero,
+        own.marker && !own.hero ? 'own content present, no homepage main'
+          : `own content=${own.marker}, homepage hero in main=${own.hero}`);
+    }
+
     // ---- the Docs menu must survive a real click-through -----------------
     // Reading hrefs is not enough: a covering element makes the tap land on
     // whatever is underneath (the brand link at the same corner goes to the
