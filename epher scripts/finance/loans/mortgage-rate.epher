@@ -16,8 +16,8 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 200000    // loan amount at closing, USD
-const offered_payment = 1500 // monthly payment offered, USD
+const principal = 200000    // loan amount at closing
+const offered_payment = 1500 // monthly payment offered
 const years = 30            // term in years
 
 // ---- results -----------------------------------------------------------------

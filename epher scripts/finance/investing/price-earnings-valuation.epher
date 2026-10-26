@@ -3,7 +3,7 @@ price-earnings-valuation.epher -- fair price of a share from earnings
 per share and a target P/E, with an over/under-valued verdict
 
 The P/E approach prices a share as eps * target_pe: what the market
-typically pays per dollar of earnings for comparable firms. Comparing the
+typically pays per unit of earnings for comparable firms. Comparing the
 fair price with the market price gives the verdict (an if/else prints it)
 and the gap in percent. Source: standard equity-valuation practice; see
 Brealey and Myers, Principles of Corporate Finance, chapter 4.
@@ -19,12 +19,12 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const eps_a = 2.40          // earnings per share, scenario A, USD
+const eps_a = 2.40          // earnings per share, scenario A
 const pe_a = 18             // target P/E, scenario A
-const market_a = 40         // market price, scenario A, USD
-const eps_b = 3.10          // earnings per share, scenario B, USD
+const market_a = 40         // market price, scenario A
+const eps_b = 3.10          // earnings per share, scenario B
 const pe_b = 15             // target P/E, scenario B
-const market_b = 50         // market price, scenario B, USD
+const market_b = 50         // market price, scenario B
 
 // ---- helpers ----------------------------------------------------------------
 def fair(eps, pe) = eps * pe   // fair price = earnings per share times target P/E

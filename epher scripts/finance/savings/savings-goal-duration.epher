@@ -16,7 +16,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const goal = 20000          // the vacation fund target, USD
+const goal = 20000          // the vacation fund target
 const rate = 4%             // annual rate of return
 
 /* ---- results -----------------------------------------------------------------

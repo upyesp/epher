@@ -21,7 +21,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const income = 90000        // gross yearly income, USD
+const income = 90000        // gross yearly income
 const share = 28%           // the 28% rule: housing budget share of income
 const rate = 6.5%           // quoted annual rate
 const years = 30            // term in years

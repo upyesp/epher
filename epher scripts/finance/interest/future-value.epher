@@ -16,7 +16,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 10000     // the lump sum, USD
+const principal = 10000     // the lump sum
 const rate = 5%             // annual rate
 const years = 20            // years invested
 

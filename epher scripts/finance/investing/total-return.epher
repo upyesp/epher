@@ -22,9 +22,9 @@ machinery you can leave alone.
 
 // ---- knobs ------------------------------------------------------------------
 const shares = 100          // shares bought
-const buy = 45              // price paid per share, USD
-const sell = 61.20          // price per share at the sale, USD
-const dividends = 3.60      // dividends collected per share over the holding period, USD
+const buy = 45              // price paid per share
+const sell = 61.20          // price per share at the sale
+const dividends = 3.60      // dividends collected per share over the holding period
 
 // ---- results -----------------------------------------------------------------
 print("cost of the position:", shares * buy)

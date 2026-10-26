@@ -20,8 +20,8 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const lump = 500000         // the lump sum offered today, USD
-const monthly = 3000        // the annuity's monthly payment, USD
+const lump = 500000         // the lump sum offered today
+const monthly = 3000        // the annuity's monthly payment
 const years = 30            // years the annuity pays
 const rate = 5%             // the rate of return assumed available
 

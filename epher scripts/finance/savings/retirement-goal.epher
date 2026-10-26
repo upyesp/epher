@@ -18,8 +18,8 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const goal = 1000000        // the retirement target, USD
-const deposit = 1000        // monthly deposit, USD
+const goal = 1000000        // the retirement target
+const deposit = 1000        // monthly deposit
 const rate = 6%             // annual rate of return
 
 // ---- results -----------------------------------------------------------------

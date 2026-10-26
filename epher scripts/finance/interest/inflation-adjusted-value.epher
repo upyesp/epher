@@ -4,9 +4,9 @@ at a steady inflation rate
 
 At the yearly inflation rate, prices multiply by (1 + inflation)^years
 over the years. So a sum of money today buys, years from now, what
-(1 + inflation)^years times as many dollars buy today; and a sum quoted
-in future dollars is worth only 1/(1 + inflation)^years as much in
-today's dollars. This script prints both directions for one sum.
+1/(1 + inflation)^years of it buys today; and a sum quoted in future
+money is worth only 1/(1 + inflation)^years as much in today's money.
+This script prints both directions for one sum.
 Source: standard finance formulas; the same deflation appears in
 Kellison, The Theory of Interest, chapter 1.
 
@@ -19,27 +19,28 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const amount = 1000         // the sum of money, USD
+const amount = 1000         // the sum of money
 const inflation = 3%        // yearly inflation rate
 const years = 10            // how many years the money moves
 
 // ---- helpers ----------------------------------------------------------------
-def inflate(a, r, n) = a * (1 + r) ^ n      // a today, in n-year dollars
-def deflate(a, r, n) = a / (1 + r) ^ n      // a in n years, in today's dollars
+def inflate(a, r, n) = a * (1 + r) ^ n      // today's a, grown n years
+
+def deflate(a, r, n) = a / (1 + r) ^ n      // a in n years, valued in today's money
 
 // ---- results -----------------------------------------------------------------
 // 1000 today keeps its buying power as 1343.92 of ten-years-from-now money:
 // the price level rises 34.4% over the decade.
-print("1000 today, in 10-year dollars:", inflate(amount, inflation, years))
+print("1000 today, after 10 years of inflation:", inflate(amount, inflation, years))
 // 1000 promised in 10 years is only 744.09 in today's money: divide by
 // 1.03^10 (equivalently, multiply by 1.03^-10).
-print("1000 in 10 years, in today's dollars:", deflate(amount, inflation, years))
+print("1000 in 10 years, in today's money:", deflate(amount, inflation, years))
 print("price level multiplier:", (1 + inflation) ^ years)
 /* ---- expected output ----
 = 1000
 = 0.03
 = 10
-= 1000 today, in 10-year dollars: 1343.91637934
-= 1000 in 10 years, in today's dollars: 744.093914897
+= 1000 today, after 10 years of inflation: 1343.91637934
+= 1000 in 10 years, in today's money: 744.093914897
 = price level multiplier: 1.34391637934
 */

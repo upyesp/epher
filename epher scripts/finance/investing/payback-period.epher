@@ -19,8 +19,8 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const invested = 100000     // the project's cost today, USD
-const yearly = {30000, 40000, 40000, 30000}   // inflows at the end of years 1 to 4, USD
+const invested = 100000     // the project's cost today
+const yearly = {30000, 40000, 40000, 30000}   // inflows at the end of years 1 to 4
 
 // ---- helpers ----------------------------------------------------------------
 def cum(k) = if k == 1 then yearly[1] - invested else cum(k - 1) + yearly[k]  // cumulative cash flow through year k

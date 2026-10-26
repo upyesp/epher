@@ -19,7 +19,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 250000    // loan amount at closing, USD
+const principal = 250000    // loan amount at closing
 const rate = 6.5%           // quoted annual rate
 const years = 30            // term in years
 
@@ -27,7 +27,7 @@ const years = 30            // term in years
 def cents(x) = floor(x * 100 + 0.5) / 100   // rounds to the cent, for display
 
 // ---- results -----------------------------------------------------------------
-const ti_payment = tvm_pmt(years * 12, rate / 12, -principal, 0)   // monthly payment, USD
+const ti_payment = tvm_pmt(years * 12, rate / 12, -principal, 0)   // monthly payment
 print("monthly payment:", ti_payment)
 print("total paid over the term:", cents(ti_payment * (years * 12)))
 print("total interest over the term:", cents(ti_payment * (years * 12) - principal))

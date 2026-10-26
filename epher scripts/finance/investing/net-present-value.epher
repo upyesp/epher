@@ -21,7 +21,7 @@ machinery you can leave alone.
 
 // ---- knobs ------------------------------------------------------------------
 const rate = 8%             // the cost of capital (hurdle rate)
-const flows = {-100000, 30000, 40000, 40000, 30000}   // year 0 outflow, then four yearly inflows, USD
+const flows = {-100000, 30000, 40000, 40000, 30000}   // year 0 outflow, then four yearly inflows
 
 // ---- results -----------------------------------------------------------------
 print("net present value at 8%:", npv(rate, flows))

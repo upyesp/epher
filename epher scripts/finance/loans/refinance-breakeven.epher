@@ -21,11 +21,11 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 300000    // loan amount at closing, USD
+const principal = 300000    // loan amount at closing
 const rate_old = 7%         // rate of the current loan
 const rate_new = 5.5%       // rate offered by the refinance
 const years = 30            // term in years, restarted at the new rate
-const costs = 6000          // closing costs paid up front, USD
+const costs = 6000          // closing costs paid up front
 
 // ---- results -----------------------------------------------------------------
 print("current payment at 7%:", tvm_pmt(years * 12, rate_old / 12, -principal, 0))

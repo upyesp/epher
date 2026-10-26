@@ -18,7 +18,7 @@ The flows knob below is the only value to edit.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const flows = {-100000, 30000, 40000, 40000, 30000}   // year 0 outflow, then four yearly inflows, USD
+const flows = {-100000, 30000, 40000, 40000, 30000}   // year 0 outflow, then four yearly inflows
 
 // ---- results -----------------------------------------------------------------
 print("internal rate of return:", irr(flows))

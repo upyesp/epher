@@ -21,10 +21,10 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 1000      // amount borrowed, USD
+const principal = 1000      // amount borrowed
 const mrate = 1%            // rate per month (a 12% nominal annual rate)
 const months = 12           // term in months
-const sched_payment = tvm_pmt(months, mrate, -principal, 0)   // constant monthly payment, USD
+const sched_payment = tvm_pmt(months, mrate, -principal, 0)   // constant monthly payment
 
 // ---- helpers ----------------------------------------------------------------
 def bal(k) = amort(principal, mrate, months, k)   // balance after k payments, from the finance builtin amort

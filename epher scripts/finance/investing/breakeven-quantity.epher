@@ -21,9 +21,9 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const fixed_cost = 12000    // monthly fixed costs, USD
-const price = 8             // selling price per unit, USD
-const variable = 5          // variable cost per unit, USD
+const fixed_cost = 12000    // monthly fixed costs
+const price = 8             // selling price per unit
+const variable = 5          // variable cost per unit
 const planned = 6000        // units the seller plans to sell in a month
 
 // ---- results -----------------------------------------------------------------
@@ -34,7 +34,7 @@ print("profit at 6000 units:", planned * (price - variable) - fixed_cost)
 print("contribution margin ratio:", (price - variable) / price)
 /* Selling 4000 units breaks even at 32000 of revenue; every unit beyond
 4000 adds 3 of profit, so 6000 units profit 6000. The contribution
-margin ratio 0.375 says each dollar of revenue leaves 37.5 cents toward
+margin ratio 0.375 says each unit of revenue leaves 0.375 toward
 fixed costs and profit. */
 /* ---- expected output ----
 = 12000

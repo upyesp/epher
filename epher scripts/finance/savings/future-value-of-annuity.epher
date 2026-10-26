@@ -21,7 +21,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const deposit = 300         // monthly deposit, USD
+const deposit = 300         // monthly deposit
 const rate = 7%             // annual rate of return
 const years = 30            // years of saving
 

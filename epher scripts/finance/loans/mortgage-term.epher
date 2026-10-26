@@ -18,9 +18,9 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 250000    // loan amount at closing, USD
+const principal = 250000    // loan amount at closing
 const rate = 6.5%           // quoted annual rate
-const term_payment = 2000   // fixed monthly payment the borrower can afford, USD
+const term_payment = 2000   // fixed monthly payment the borrower can afford
 
 // ---- results -----------------------------------------------------------------
 months = tvm_n(rate / 12, -principal, term_payment, 0)   // months to pay off, from the builtin

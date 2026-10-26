@@ -20,13 +20,13 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 50000     // amount borrowed, USD
+const principal = 50000     // amount borrowed
 const rate = 5.4%           // quoted annual rate
 const years = 5             // term in years
-const balloon = 20000       // balance still owed at maturity, USD
+const balloon = 20000       // balance still owed at maturity
 
 // ---- results -----------------------------------------------------------------
-const balloon_payment = tvm_pmt(years * 12, rate / 12, -principal, balloon)   // monthly payment, USD
+const balloon_payment = tvm_pmt(years * 12, rate / 12, -principal, balloon)   // monthly payment
 print("monthly payment with the 20000 balloon:", balloon_payment)
 print("payment to amortize the whole principal:", tvm_pmt(years * 12, rate / 12, -principal, 0))
 print("monthly saving vs full amortization:", tvm_pmt(years * 12, rate / 12, -principal, 0) - balloon_payment)

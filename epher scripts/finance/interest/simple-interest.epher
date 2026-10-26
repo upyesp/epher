@@ -17,7 +17,7 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 5000      // amount lent or deposited, USD
+const principal = 5000      // amount lent or deposited
 const rate = 4%             // annual simple rate, 4% is 0.04
 const years = 6             // term in years
 

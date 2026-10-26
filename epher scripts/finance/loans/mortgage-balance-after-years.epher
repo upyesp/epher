@@ -16,12 +16,12 @@ machinery you can leave alone.
 ============================================================================ */
 
 // ---- knobs ------------------------------------------------------------------
-const principal = 250000    // loan amount at closing, USD
+const principal = 250000    // loan amount at closing
 const rate = 6.5%           // quoted annual rate
 const years = 30            // term in years
 
 // ---- results -----------------------------------------------------------------
-const mbal_payment = tvm_pmt(years * 12, rate / 12, -principal, 0)   // monthly payment, USD
+const mbal_payment = tvm_pmt(years * 12, rate / 12, -principal, 0)   // monthly payment
 print("monthly payment:", mbal_payment)
 // Balances after 60 and 120 payments of the 360-month loan.
 print("balance after 5 years:", amort(principal, rate / 12, years * 12, 5 * 12))
