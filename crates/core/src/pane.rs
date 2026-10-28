@@ -101,18 +101,32 @@ pub fn display_lines(result: &str, sep: Option<char>) -> Vec<String> {
 }
 
 /// The display line that carries the transcript's answer (ADR-0078
-/// R4): the last labeled line. Scripts end with checks and side
-/// notes, so "the last line" is unreliable; "the last `label: value`
-/// line" is right for 475 of the 477 bundled scripts, and `None`
-/// (no emphasis) for a transcript of bare echoes.
+/// R4, amended): the **last line**, unless that line is a bare verdict
+/// (`…: true`), in which case the last labeled line above it.
+///
+/// The first version emphasized the last *labeled* line, which suited
+/// the corpus's `print("label:", value)` convention but skipped the 32
+/// scripts whose closing line is a sentence-result without a colon
+/// (`= that is 17.4 years`, `= no seventh candidate`) — exactly the
+/// lines a reader wants emphasized. Scripts are written results-last;
+/// a trailing `: true` check is the one shape that is not an answer,
+/// and ADR-0079 already keeps failures out. `None` (no emphasis) only
+/// for an empty or entirely failed transcript.
 pub fn final_labeled_index(lines: &[String]) -> Option<usize> {
-    let mut last = None;
-    for (i, line) in lines.iter().enumerate() {
-        if line_kind(line) == LineKind::Labeled {
-            last = Some(i);
-        }
+    let last_content = lines
+        .iter()
+        .enumerate()
+        .filter(|(_, l)| line_kind(l) != LineKind::Error)
+        .map(|(i, _)| i)
+        .next_back()?;
+    let is_verdict = verdict(&lines[last_content]).is_some();
+    if !is_verdict {
+        return Some(last_content);
     }
-    last
+    // A trailing check: emphasize the answer it verifies.
+    (0..last_content)
+        .rev()
+        .find(|&i| line_kind(&lines[i]) == LineKind::Labeled)
 }
 
 /// One aligned grid: a line's `[[…]]` or `{{…}}` matrix (ADR-0078
@@ -622,15 +636,32 @@ mod tests {
         assert_eq!(display_lines("= 1\n= 2", None), vec!["= 1", "= 2"]);
     }
 
+    /// ADR-0078 R4 (amended): results are written last, so the last
+    /// line is the answer — except a trailing verdict, which is a check
+    /// on the answer above it.
     #[test]
-    fn the_final_labeled_line_is_the_answer() {
-        let lines: Vec<String> = ["= 1000", "= payment: 88.84", "= check: true"]
+    fn the_last_line_is_the_answer_unless_it_is_a_check() {
+        let with_check: Vec<String> = ["= 1000", "= payment: 88.84", "= check: true"]
             .iter()
             .map(|s| s.to_string())
             .collect();
-        assert_eq!(final_labeled_index(&lines), Some(2));
-        let bare: Vec<String> = ["= 1", "= 2"].iter().map(|s| s.to_string()).collect();
-        assert_eq!(final_labeled_index(&bare), None);
+        assert_eq!(final_labeled_index(&with_check), Some(1));
+
+        // A sentence-result without a colon is still the answer.
+        let sentence: Vec<String> = ["= principal: 1000", "= that is 17.4 years"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        assert_eq!(final_labeled_index(&sentence), Some(1));
+
+        // A list or matrix ending is the answer too.
+        let data: Vec<String> = ["= {1, 2, 5, 15, 42, 255}"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        assert_eq!(final_labeled_index(&data), Some(0));
+
+        assert_eq!(final_labeled_index(&[]), None);
     }
 
     #[test]

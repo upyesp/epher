@@ -28,12 +28,12 @@ print("100 is a power of two:", 100 > 0 and (100 & 99) == 0)
 print("0 and the guard:", 0 > 0 and (0 & -1) == 0)
 
 // ---- a list at a glance ---------------------------------------------------------------
-for x in {1, 2, 3, 4, 16, 100, 255, 256, 1000, 1024} do x > 0 and (x & (x - 1)) == 0
+for x in {1, 2, 3, 4, 16, 100, 255, 256, 1000, 1024} do print("is " + str(x) + " a power of two:", x > 0 and (x & (x - 1)) == 0)
 /* ---- expected output ----
 = 1024 is a power of two: true
 = 1000 is a power of two: false
 = 256 is a power of two: true
 = 100 is a power of two: false
 = 0 and the guard: false
-= {true, true, false, true, true, false, false, true, false, true}
+= {is 1 a power of two: true, is 2 a power of two: true, is 3 a power of two: false, is 4 a power of two: true, is 16 a power of two: true, is 100 a power of two: false, is 255 a power of two: false, is 256 a power of two: true, is 1000 a power of two: false, is 1024 a power of two: true}
 */

@@ -26,6 +26,7 @@ const years = 10            // years of the plan
 // ---- results -----------------------------------------------------------------
 // Rows are {year, balance at its end}; each row is tvm_fv(12*y, 6%/12, 0,
 // -250), the balance after y years of deposits.
+print("columns: year, balance")
 for y in 1 to years do {y, tvm_fv(y * 12, rate / 12, 0, -deposit)}
 print("10-year balance, direct tvm_fv call:", tvm_fv(years * 12, rate / 12, 0, -deposit))
 print("deposited out of pocket:", deposit * (years * 12))
@@ -33,6 +34,7 @@ print("interest earned:", tvm_fv(years * 12, rate / 12, 0, -deposit) - deposit *
 // Row 10 of the table equals the direct call above: 40969.84, of which
 // 30000 was deposited and 10969.84 was interest.
 /* ---- expected output ----
+= columns: year, balance
 = {{1, 3083.89059322}, {2, 6357.98881027}, {3, 9834.02624117}, {4, 13524.4580548}, {5, 17442.5076275}, {6, 21602.2139246}, {7, 26018.4818041}, {8, 30707.135423}, {9, 35684.9749378}, {10, 40969.8367016}}
 = 10-year balance, direct tvm_fv call: 40969.8367016
 = deposited out of pocket: 30000

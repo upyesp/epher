@@ -25,9 +25,9 @@ print("interest earned:", compound_interest(principal, rate, years))
 print("balance after 5 years:", principal + compound_interest(principal, rate, years))
 // The same growth year by year: row y of the list below is the balance after
 // y years, P*(1+r)^y. Its last row must equal the balance printed above.
-for y in 1 to years do principal * (1 + rate) ^ y
+for y in 1 to years do print("balance after year " + str(y) + ":", principal * (1 + rate) ^ y)
 /* ---- expected output ----
 = interest earned: 676.4511552
 = balance after 5 years: 2676.4511552
-= {2120, 2247.2, 2382.032, 2524.95392, 2676.4511552}
+= {balance after year 1: 2120, balance after year 2: 2247.2, balance after year 3: 2382.032, balance after year 4: 2524.95392, balance after year 5: 2676.4511552}
 */

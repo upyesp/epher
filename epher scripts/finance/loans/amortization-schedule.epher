@@ -36,10 +36,12 @@ def row(k) = {k, cents(interest(k)), cents(sched_payment - interest(k)), cents(b
 The payment is the same every month; each row below is
 {month, interest, principal, balance}, rounded to the cent. Notice the
 interest column shrinking while the principal column grows. */
+print("columns: month, interest, principal, balance")
 for k in 1 to months do row(k)
 print("balance after the full term (must be 0):", amort(principal, mrate, months, months))
 print("total interest over the year, rounded:", cents(sched_payment * months - principal))
 /* ---- expected output ----
+= columns: month, interest, principal, balance
 = {{1, 10, 78.85, 921.15}, {2, 9.21, 79.64, 841.51}, {3, 8.42, 80.43, 761.08}, {4, 7.61, 81.24, 679.84}, {5, 6.8, 82.05, 597.79}, {6, 5.98, 82.87, 514.92}, {7, 5.15, 83.7, 431.22}, {8, 4.31, 84.54, 346.68}, {9, 3.47, 85.38, 261.3}, {10, 2.61, 86.24, 175.07}, {11, 1.75, 87.1, 87.97}, {12, 0.88, 87.97, 0}}
 = balance after the full term (must be 0): 0
 = total interest over the year, rounded: 66.19

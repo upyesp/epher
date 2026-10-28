@@ -182,3 +182,57 @@ Apply opportunistically during the §2 sweep, not as its own batch.
    one-line pane scroll amendment.
 Every batch validates with `node scripts/check-scripts.mjs` (fresh runs
 vs expected blocks) plus the existing core/TUI suites.
+
+---
+
+## Shipped (2026-10-28): what each batch became
+
+**Batch A** shipped as ADR-0079, not as script fixes: the "26 broken
+scripts" were a measurement artifact (see §0), and the real defect was
+a failure line dressed as a result. Failures now have their own pane
+tier, the collision message names the remedy, and the scripts were left
+untouched.
+
+**Batch B** shipped as ADR-0080: `const` defines silently. 345 scripts'
+expected blocks lost their knob column (1,058 lines); the guide's §1.6,
+§7.2 and the scripts README describe the change. A new
+`scripts/check-guide.mjs` replays all 128 guide transcript blocks
+against the engine in CI, because a language change that edits no
+documentation can otherwise leave the guide describing an output the
+app no longer prints — it caught exactly that drift here.
+
+**Batch C** shipped as the label sweep, with one design change: the
+pane's answer-emphasis rule (ADR-0078 R4) was amended rather than
+forcing 32 scripts to invent colons. The rule is now "the last line is
+the answer, unless it is a trailing `: true` check" — scripts are
+written results-last, and 24 of those closing lines are sentence-results
+(`= that is 17.4 years`) that read better than any colon form. What the
+sweep did instead:
+
+- the 12 fully-unlabelled scripts now label every value they print
+  (the seven trig identities print one labelled verdict per angle;
+  `is-prime-check` names each number; `savings-goal-duration` and the
+  eight matrix scripts gained a `columns: …` line, since matrix cells
+  are numbers and cannot carry a header row);
+- five closing loops that printed bare data (compound interest by
+  year, binary/octal literals, powers of two, twin primes) label each
+  element;
+- `ecliptic-position` computes its four intermediates as `const`s;
+- the reference example (`astronomy/moon/full-moons.epher`) now shows
+  the standard end to end: silent computed `const`, one labelled line
+  per full moon with the readable ISO instant, the Julian Date shown
+  once, the answer last;
+- `epher scripts/README.md` codified the standard: silent `const` for
+  knobs *and* computed-once values, "the last line you print is the
+  answer", the `columns:` line before a matrix, the loop-body rule, and
+  a new section describing what the pane does with each shape.
+
+Corpus after all three batches: **0 scripts are wholly unlabelled**
+(was 12), labelled lines 2,335 → 2,391 while the total fell (1,058 knob
+lines removed), and the unlabelled share 44% → 24%. The remainder is
+Astronomy's per-row tables (sundial hour lines, prayer times) printed
+row by row, plus 209 sentence-results that read as prose; a future batch
+could give the row tables column keys in the same way.
+
+**Deferred, as planned:** `printtable`, in-script rounding, and
+splitting compound stat strings.

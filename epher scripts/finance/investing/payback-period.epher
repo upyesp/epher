@@ -32,6 +32,7 @@ for k in 1 to 4 do {k, cum(k)}
 // Count the full years: the loop state is {year, cumulative cash flow} and
 // runs until the cumulative total turns positive.
 v = {0, 0 - invested}
+print("columns: year, cumulative cash flow")
 while v[2] < 0 do v = {v[1] + 1, v[2] + yearly[v[1] + 1]}
 // The payback is the last full year plus the fraction of the next year
 // needed to cover the shortfall: 2 + 30000/40000 = 2.75 years.
@@ -39,5 +40,6 @@ print("payback period:", (v[1] - 1) + (yearly[v[1]] - v[2]) / yearly[v[1]], "yea
 /* ---- expected output ----
 = {{1, -70000}, {2, -30000}, {3, 10000}, {4, 40000}}
 = {0, -100000}
+= columns: year, cumulative cash flow
 = payback period: 2.75 years
 */

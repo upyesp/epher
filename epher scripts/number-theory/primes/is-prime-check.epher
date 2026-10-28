@@ -19,7 +19,7 @@ There is no knob: the sample list is the point of the script.
 // ---- the sample ---------------------------------------------------------------
 // A list to try: the for loop (guide 1.30) applies isprime to each entry
 // and collects one boolean per entry, and the loop itself prints the list.
-for x in {0, 1, 2, 3, 4, 9, 15, 21, 29, 97, 100, 101} do isprime(x)
+for x in {0, 1, 2, 3, 4, 9, 15, 21, 29, 97, 100, 101} do print("isprime(", x, "):", isprime(x))
 
 /* ---- what the line shows ------------------------------------------------------
 0 is not prime (a prime is a positive integer with exactly two divisors).
@@ -27,8 +27,8 @@ for x in {0, 1, 2, 3, 4, 9, 15, 21, 29, 97, 100, 101} do isprime(x)
 2 is prime, and it is the only even prime; 3, 5, 7, ... handle the odds.
 4, 9, 15, 21 and 100 are composite: 2^2, 3^2, 3 * 5, 3 * 7 and 10^2.
 29, 97 and 101 are prime; 97 and 101 are consecutive primes (next script). */
-for x in {2, 29, 97, 101} do isprime(x)
+for x in {2, 29, 97, 101} do print("each prime of the sample passes:", x, isprime(x))
 /* ---- expected output ----
-= {false, false, true, true, false, false, false, false, true, true, false, true}
-= {true, true, true, true}
+= {isprime( 0 ): false, isprime( 1 ): false, isprime( 2 ): true, isprime( 3 ): true, isprime( 4 ): false, isprime( 9 ): false, isprime( 15 ): false, isprime( 21 ): false, isprime( 29 ): true, isprime( 97 ): true, isprime( 100 ): false, isprime( 101 ): true}
+= {each prime of the sample passes: 2 true, each prime of the sample passes: 29 true, each prime of the sample passes: 97 true, each prime of the sample passes: 101 true}
 */
