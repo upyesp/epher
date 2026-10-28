@@ -44,8 +44,6 @@ print("Mars   ecliptic lon", eclon(mra, mde), "  lat", eclat(mra, mde))
 print("Sun    ecliptic lon", eclon(sra, sde), "  lat", eclat(sra, sde))
 
 /* ---- expected output ----
-= 4
-= 29535523/12
 = 110.773499465
 = 22.74523044
 = 168.410710614

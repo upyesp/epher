@@ -54,17 +54,6 @@ print("perihelion vertex is a minimum:", pdv < p1 and pdv < p3)
 print("aphelion vertex is a maximum:", adv > a1 and adv > a3)
 
 /* ---- expected output ----
-= 2026
-= 0.983327401357
-= 0.983320159904
-= 0.983468225641
-= 2461044.23313
-= 0.983302916009
-= 1.01657943493
-= 1.01664380714
-= 1.01660046
-= 2461227.98796
-= 1.01664482194
 = Earth, 2026
 = perihelion: 2026-01-03T17:35:43  at 0.983302916009 AU
 = aphelion:   2026-07-06T11:42:40  at 1.01664482194 AU

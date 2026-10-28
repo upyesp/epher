@@ -55,9 +55,6 @@ Betelgeuse line cannot be checked that way - its distance is the
 disputed one - hence the uncertainty carried in the header. */
 
 /* ---- expected output
-= 0.7687
-= 0.379
-= 0.005
 = Proxima Centauri: 1.30089761936 pc = 4.2429605531 ly
 = Sirius A: 1000/379 pc = 8.60570917458 ly
 = Betelgeuse (uncertain): 200 pc = 652.312755433 ly

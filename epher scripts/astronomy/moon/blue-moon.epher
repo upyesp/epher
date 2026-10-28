@@ -88,7 +88,6 @@ print("the pair:", iso(fullmoon(k0 + j)), "and", iso(fullmoon(k0 + j + 1)), "UT"
 print("self-check, illum at them:", illum(11, fullmoon(k0 + j)), "and", illum(11, fullmoon(k0 + j + 1)))
 
 /* ---- expected output ----
-= 2026
 = 321.5
 = 13
 = 4

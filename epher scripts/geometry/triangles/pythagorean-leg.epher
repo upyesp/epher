@@ -26,8 +26,6 @@ print("3-4-5 check: the missing leg is", leg(5, 4))
 print("7-24-25 check: the missing leg is", leg(25, 7))
 print("exact integer result:", leg(c, b) == 12)
 /* ---- expected output ----
-= 13
-= 5
 = leg of the 5-12-13 triangle: 12
 = 3-4-5 check: the missing leg is 3
 = 7-24-25 check: the missing leg is 24

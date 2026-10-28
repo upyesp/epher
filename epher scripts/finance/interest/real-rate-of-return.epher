@@ -28,8 +28,6 @@ print("exact real rate (Fisher):", (1 + nominal) / (1 + inflation) - 1)
 // where the exact answer is 4.3902%; the gap grows with the rates.
 print("approximation, nominal - inflation:", nominal - inflation)
 /* ---- expected output ----
-= 0.07
-= 0.025
 = exact real rate (Fisher): 9/205
 = approximation, nominal - inflation: 0.045
 */

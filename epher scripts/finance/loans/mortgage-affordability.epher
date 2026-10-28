@@ -34,10 +34,6 @@ print("largest loan at 6.5% for 30 years:", tvm_pv(years * 12, rate / 12, -(inco
 // With the usual 20% down payment the loan covers 80% of the price.
 print("largest home price with 20% down:", tvm_pv(years * 12, rate / 12, -(income / 12 * share), 0) / 80%)
 /* ---- expected output ----
-= 90000
-= 0.28
-= 0.065
-= 30
 = monthly budget at the 28% rule: 2100
 = largest loan at 6.5% for 30 years: 332242.721028
 = largest home price with 20% down: 415303.401285

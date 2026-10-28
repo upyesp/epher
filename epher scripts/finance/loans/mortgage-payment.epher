@@ -31,9 +31,6 @@ const years = 30            // term in years
 print("monthly payment:", tvm_pmt(years * 12, rate / 12, -principal, 0))
 print("annual total (12 payments):", 12 * tvm_pmt(years * 12, rate / 12, -principal, 0))
 /* ---- expected output ----
-= 250000
-= 0.065
-= 30
 = monthly payment: 1580.17005873
 = annual total (12 payments): 18962.0407048
 */

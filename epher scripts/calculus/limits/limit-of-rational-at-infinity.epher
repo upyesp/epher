@@ -28,7 +28,6 @@ print("within 1e-6 of the limit:", abs((3*ns[4]^2 + 2*ns[4] - 1)/(ns[4]^2 + 5) -
 print("the limit:", 3)
 
 /* ---- expected output ---------------------------------------------------------
-= {10, 100, 10000, 1000000000}
 = {319/105, 1313/435, 3.00019983999, 3.000000002}
 = within 1e-6 of the limit: true
 = the limit: 3

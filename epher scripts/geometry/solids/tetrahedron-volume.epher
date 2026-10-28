@@ -24,7 +24,6 @@ print("volume:", vol(a))
 print("other textbook form agrees:", abs(vol(a) - a ^ 3 * sqrt(2) / 12) < 1e-9)
 print("edge 2:", vol(2))
 /* ---- expected output ----
-= 6
 = volume: 25.4558441227
 = other textbook form agrees: true
 = edge 2: 0.942809041582

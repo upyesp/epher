@@ -29,7 +29,6 @@ for x in degs do ok(rad(x))
 print("sin(2 x 30 deg) =", sin(60 deg))
 print("2 sin(30 deg) cos(30 deg) =", 2 * sin(30 deg) * cos(30 deg))
 /* ---- expected output
-= {10, 30, 45, 60, 80}
 = {true, true, true, true, true}
 = sin(2 x 30 deg) = 0.866025403784
 = 2 sin(30 deg) cos(30 deg) = 0.866025403784

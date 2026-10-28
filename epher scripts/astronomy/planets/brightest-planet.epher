@@ -41,8 +41,6 @@ print("best mag equals min(m):", s[2] == min(m))
 print("best body index:", s[3])
 
 /* ---- expected output ----
-= 2461192.5
-= {1, 2, 4, 5, 6, 7, 8, 9}
 = {-0.55, -3.98, 1.27, -1.88, 0.65, 5.81, 7.91, 14.4693840929}
 = {1, -0.55, 1}
 = brightest planet: Venus at mag -3.98

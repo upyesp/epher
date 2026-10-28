@@ -44,11 +44,6 @@ print("y(0.005 s) =", sig(t2))
 // The period that paces it: 1/f = 0.02 s.
 print("period:", 1 / f)
 /* ---- expected output
-= 2.5 m
-= 50 Hz
-= 30
-= 0.01 s
-= 0.005 s
 = phase shift: 30 deg = 0.523598775598 rad
 = y(0) = 1.25 m
 = y(0.01 s) = -1.25 m

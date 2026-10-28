@@ -22,7 +22,6 @@ while s[1] <= num do s = {s[1] + 1, s[2] + ncr(num, s[1])}
 print("row sums to:", s[2])
 print("row sum equals 2^num:", s[2] == 2 ^ num)
 /* ---- expected output ----
-= 8
 = {1, 8, 28, 56, 70, 56, 28, 8, 1}
 = {0, 0}
 = row sums to: 256

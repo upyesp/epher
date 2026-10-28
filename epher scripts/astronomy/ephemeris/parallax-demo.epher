@@ -54,9 +54,6 @@ print("gap (topo - geo):    ", atopo - ageo, "deg")
 print("exact model:         ", -deg(asin(sin(rad(hp)) * cos(rad(ageo)))), "deg")
 
 /* ---- expected output ----
-= 2461294
-= 51.4779
-= 0
 = 160.772074563
 = 7.165253087
 = 0.00250209746468

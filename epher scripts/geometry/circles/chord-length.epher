@@ -27,8 +27,6 @@ print("chord of 90 degrees:", chord(5, 90))
 print("180 degrees spans the diameter:", chord(5, 180))
 print("diameter check:", abs(chord(5, 180) - 2 * r) < 1e-9)
 /* ---- expected output ----
-= 5
-= 60
 = chord of 60 degrees: 5
 = chord of 90 degrees: 7.07106781187
 = 180 degrees spans the diameter: 10

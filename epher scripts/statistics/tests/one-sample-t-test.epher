@@ -35,8 +35,6 @@ print("one-sample t test of the scores against mu0 (t and p):", ttest(step, mu0)
 // of 75, though the sample mean of 81.3 sits 6.3 points above it
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-= 75
 = sample mean: 81.3
 = sample size: 10
 = sample stdev (n - 1): 9.91127304302

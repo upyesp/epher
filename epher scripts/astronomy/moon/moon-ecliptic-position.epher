@@ -57,10 +57,6 @@ print("Sun's ecliptic latitude", elat(t, 10), "deg (self-check: near 0)")
 print("Sun-Moon longitude gap:", w360(elon(t, 11) - elon(t, 10)), "deg (90 at first quarter)")
 
 /* ---- expected output ----
-= 2026
-= 3
-= 25
-= 19.3
 = 590670073/240
 = at 2026-03-25T19:18:00 UT:
 = mean obliquity of date: 23.4358801773 deg

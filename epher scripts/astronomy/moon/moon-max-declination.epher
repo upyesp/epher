@@ -68,11 +68,6 @@ print("monthly swing:", dcld(tx) - dcld(tn), "deg (the standstill-cycle amplitud
 print("grade: values engine-grade (vertex reading <0.01 deg); times a few minutes")
 
 /* ---- expected output ----
-= 2026
-= 6
-= 2461192.5
-= 2461189.5
-= 18
 = {-27.934162624, 27.339509068, 2, 9}
 = 2461193.5
 = 2461207.5

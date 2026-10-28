@@ -41,8 +41,6 @@ print("half-life from lambda, years:", ln(2)/lam)
 print("it matches the knob:", abs(ln(2)/lam - thalf) < 1e-6)
 
 /* ---- expected output ---------------------------------------------------------
-= 5730
-= 0.000120968094339
 = fraction after one half-life: 0.5
 = fraction after two half-lives: 0.25
 = one half-life checks out: true

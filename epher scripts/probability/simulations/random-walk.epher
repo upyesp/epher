@@ -50,7 +50,6 @@ print("record distance from 0:", peak(v[2]))
 print("sqrt(steps):", sqrt(steps))
 print("final position within 3 * sqrt(steps):", abs(pos(v[2])) < 3 * sqrt(steps))
 /* ---- expected output ----
-= 1000
 = 29
 = {0, 8192000}
 = steps: 1000

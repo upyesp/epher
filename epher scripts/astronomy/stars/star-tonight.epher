@@ -68,15 +68,6 @@ meridian at 22:00 UT in late June. */
 print("Polaris altitude minus latitude:", alt_of(pol_ra, pol_dec, tm) - lat, "deg")
 
 /* ---- expected output ----
-= 51.4779
-= 0
-= 29534561/12
-= 279.23475
-= 38.7836944444
-= 213.915291667
-= 19.1824166667
-= 37.9545416667
-= 89.2641111111
 = tonight at 2026-06-21T22:00:00 lat 51.4779 lon 0
 = Vega: alt 59.9563012032 az 99.328540057 transits 2026-06-22T00:36:57
 = Arcturus: alt 51.729810024 az 221.77736537 transits 2026-06-22T20:12:48

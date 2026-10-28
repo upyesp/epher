@@ -27,7 +27,6 @@ print("focus inside its oval, product < b^4:", 0 < b4)
 graph ((x - 1) ^ 2 + y ^ 2) * ((x + 1) ^ 2 + y ^ 2) == 0.81 from -2.2 to 2.2
 
 /* ---- expected output ----
-= 0.81
 = product of distances at the origin: 1
 = origin outside the ovals, product > b^4: true
 = product at the focus (1, 0): 0

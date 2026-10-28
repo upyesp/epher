@@ -34,7 +34,6 @@ print("scores below the lower fence:", below(data, quartile(data, 1) - 1.5 * iqr
 print("scores above the upper fence:", above(data, quartile(data, 3) + 1.5 * iqr(), 1))
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 20}
 = Q1: 70
 = Q3: 88
 = IQR: 18

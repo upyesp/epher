@@ -86,8 +86,6 @@ print("Mars ra  Schlyter", ram, "  engine", mra, "  |diff|", abs(spread(ram - mr
 print("Mars dec Schlyter", decm, "  engine", mde, "  |diff|", abs(decm - mde) * 60, "arcmin")
 
 /* ---- expected output ----
-= 2461293.5
-= 9750
 = 283.399561625
 = 0.01669777775
 = 9965.64952038

@@ -26,9 +26,6 @@ print("product form at x = 4:", (4 - r1) * (4 - r2) * (4 - r3))
 print("expanded form at x = 4:", 4 ^ 3 + cs[2] * 4 ^ 2 + cs[3] * 4 + cs[4])
 print("both forms agree:", (4 - r1) * (4 - r2) * (4 - r3) == 4 ^ 3 + cs[2] * 4 ^ 2 + cs[3] * 4 + cs[4])
 /* ---- expected output ----
-= 1
-= 2
-= 3
 = 6
 = 11
 = 6

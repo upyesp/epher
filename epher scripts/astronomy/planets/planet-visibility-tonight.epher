@@ -63,14 +63,6 @@ print("their next rises:", hms(r2(1)), hms(r2(2)))
 print("Saturn rises", hms(r1(6)), "and sets", hms(s2(6)), "the next morning")
 
 /* ---- expected output ----
-= {2026, 10, 15}
-= 51.4779
-= 0
-= 2461329
-= 2461330
-= 243671570/99
-= 1695855881/689
-= 1503872441/611
 = night of 2026-10-15T12:00:00 at lat 51.4779 lon 0
 = dark window: dusk 18h 58m 0s to dawn 4h 34m 34s UT ( 9.60945014656 hours)
 = Mercury: not visible in the dark window

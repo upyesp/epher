@@ -44,12 +44,6 @@ print("two m-4 stars together:", comb2(4, 4))
 print("their gain over m 4:", 4 - comb2(4, 4), "mag (2.5 log10 2)")
 
 /* ---- expected output
-= 2.2
-= 4
-= 5.2
-= 5.5
-= 5.1
-= 5.4
 = Mizar + Alcor: 2.01063448397
 = eps Lyr 1 pair: 4.58709617291
 = eps Lyr 2 pair: 4.48709617291

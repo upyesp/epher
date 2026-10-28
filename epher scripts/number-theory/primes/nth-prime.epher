@@ -35,7 +35,6 @@ v = {1, 0}
 while v[2] < 100 do v = {v[1] + 1, v[2] + (if isprime(v[1] + 1) then 1 else 0)}
 print("the 100th prime:", v[1])
 /* ---- expected output ----
-= 25
 = {1, 0}
 = the 25th prime: 97
 = {1, 0}

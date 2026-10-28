@@ -42,10 +42,6 @@ print("side c of 3-4-5:", sidec(3 m, 4 m, C90))
 print("angle C back out:", angc(a, b, sidec(a, b, C)), "deg")
 print("round trip:", abs(angc(a, b, sidec(a, b, C)) - C) < 1e-9)
 /* ---- expected output
-= 5 m
-= 7 m
-= 43
-= 90
 = side c at C = 43 deg: 4.77548331446 m
 = side c at C = 90 deg: 8.60232526704 m
 = side c of 3-4-5: 5 m

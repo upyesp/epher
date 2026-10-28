@@ -25,8 +25,6 @@ print("the 5th and 6th sorted scores, averaged by hand:", (s[5] + s[6]) / 2)
 print("builtin median of the five scores:", median(od))
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-= {64, 70, 72, 79, 83}
 = builtin median: 84
 = {64, 70, 72, 79, 83, 85, 86, 88, 91, 95}
 = the 5th and 6th sorted scores, averaged by hand: 84

@@ -52,9 +52,6 @@ print("range at 30 deg:", rng(v0, th2))
 print("max height at 30 deg:", hmax(v0, th2))
 print("flight time at 30 deg:", tfly(v0, th2))
 /* ---- expected output
-= 20 m/s
-= 45
-= 30
 = range at 45 deg: 40.7886485191 m
 = max height at 45 deg: 10.1971621298 m
 = flight time at 45 deg: 2.88419299633 s

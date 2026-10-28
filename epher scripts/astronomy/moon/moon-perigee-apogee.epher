@@ -60,12 +60,6 @@ print("swing:", dkm(ta) - dkm(tp), "km (mean distance 384400 km)")
 print("grade: distances engine-grade; times a few minutes (6-h parabolic refine)")
 
 /* ---- expected output ----
-= 2026
-= 3
-= 2461100.5
-= 2461131.5
-= 2461097.5
-= 18
 = {366979.206, 404173.494, 12, 6}
 = 2461121.5
 = 2461109.5

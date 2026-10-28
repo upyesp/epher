@@ -35,11 +35,6 @@ print("interest paid with the balloon:", balloon_payment * (years * 12) + balloo
 // The lower payment buys a cheaper month but a dearer loan: interest runs
 // about 9699.07 with the balloon versus 7165.12 on a fully amortized note.
 /* ---- expected output ----
-= 50000
-= 0.054
-= 5
-= 20000
-= 661.651184744
 = monthly payment with the 20000 balloon: 661.651184744
 = payment to amortize the whole principal: 952.751974573
 = monthly saving vs full amortization: 291.100789829

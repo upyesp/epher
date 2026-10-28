@@ -35,8 +35,6 @@ print("margin implied by a 25% markup:", markup(cost, price) / (1 + markup(cost,
 // never reach 100% (that would need a free product); markups can exceed
 // it freely. Pricing from cost at a 25% markup: 80*(1 + 25%) = 100.
 /* ---- expected output ----
-= 80
-= 100
 = profit: 20
 = margin (profit / price): 0.2
 = markup (profit / cost): 0.25

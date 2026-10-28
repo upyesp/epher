@@ -33,7 +33,6 @@ the equation of time). */
 print("GHA one hour later minus now:", wrap(15 * lst(tm + 1 / 24, 0) - ra(10, tm + 1 / 24)) - ghaw, "deg")
 
 /* ---- expected output ----
-= 2461294
 = 0.75420171633
 = 0.75420171633
 = at 2026-09-10T12:00:00

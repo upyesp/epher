@@ -62,7 +62,6 @@ print("Sun elongation (must be 0):", elong(10))
 print("Moon illum from elongation:", (1 - cos(rad(abs(elong(11))))) / 2, "vs built-in illum:", illum(11, tm))
 
 /* ---- expected output ----
-= 2461193
 = solar elongation, degrees, at 2026-06-01T12:00:00
 = Moon: -167.603103654
 = Mercury: 18.9875091925

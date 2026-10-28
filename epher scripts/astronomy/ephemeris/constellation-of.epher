@@ -47,8 +47,6 @@ eqde = decl(10, eq)
 print("Sun at the equinox (", iso(eq), "):", cons(eclon(eqra, eqde)))
 
 /* ---- expected output ----
-= 5
-= 29535523/12
 = 138.207853769
 = 16.688116193
 = 168.410710614

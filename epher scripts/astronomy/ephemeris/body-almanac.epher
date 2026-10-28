@@ -46,10 +46,6 @@ tt = transit(body, tm, lat, lon)
 print("alt at transit:", alt(body, tt, lat, lon), "vs 90 - |lat - dec|:", 90 - abs(lat - decl(body, tt)))
 
 /* ---- expected output ----
-= 4
-= 2461192.625
-= 51.4779
-= 0
 = almanac for 2026-06-01T03:00:00 at lat 51.4779 lon 0
 = ra: 2h 30m 36s  dec: 14° 10' 26"
 = distance: 2.1837735787 AU

@@ -101,8 +101,6 @@ print("engine ra/dec:            ", deg2hms(ra(planet, tm)), deg2dms(decl(planet
 print("mismatch: ", 60 * (rah(j2()) - ra(planet, tm)) * cos(rad(decl(planet, tm))), "arcmin in ra (x cos dec),", 60 * (dch(j2()) - decl(planet, tm)), "arcmin in dec")
 
 /* ---- expected output ----
-= 5
-= 2461315
 = Jupiter by hand from mean elements at 2026-10-01T12:00:00 UT
 = geocentric: longitude 139.323298712 deg, latitude 0.59646700564 deg, distance 5.91339052718 AU
 = light-time to Earth: 49.1801691378 minutes

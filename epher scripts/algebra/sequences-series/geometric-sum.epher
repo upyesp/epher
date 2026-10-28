@@ -28,9 +28,6 @@ while acc[1] < num do acc = {acc[1] + 1, acc[2] + gn(a, r, acc[1] + 1)}
 print("S10 by adding:", acc[2])
 print("formula equals the sum:", gs(a, r, num) == acc[2])
 /* ---- expected output ----
-= 3
-= 2
-= 10
 = S10 by formula: 3069
 = {0, 0}
 = S10 by adding: 3069

@@ -29,9 +29,6 @@ print("difference:", binomcdf(k, num, p) - poissoncdf(k, num * p))
 print("rate lambda = num * p:", num * p)
 
 /* ---- expected output ----
-= 1000
-= 0.002
-= 3
 = exact binomial P(X <= 3): 0.857304238915
 = Poisson approximation: 0.857123460509
 = difference: 0.000180778405915

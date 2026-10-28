@@ -36,7 +36,6 @@ print("sin(45 deg) / cos(45 deg) =", sin(45 deg) / cos(45 deg))
 print("tan(60 deg) =", tan(60 deg))
 print("sin(60 deg) / cos(60 deg) =", sin(60 deg) / cos(60 deg))
 /* ---- expected output
-= {15, 30, 45, 60, 75}
 = {true, true, true, true, true}
 = tan(45 deg) = 1
 = sin(45 deg) / cos(45 deg) = 1

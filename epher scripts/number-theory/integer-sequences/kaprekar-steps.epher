@@ -44,7 +44,6 @@ print("6174 reached in", v[2], "steps")             // 3 for 3524
 // 6174 sorts to 7641 and 1467, and 7641 - 1467 is 6174 again.
 print("7641 - 1467:", desc4(6174) - asc4(6174))
 /* ---- expected output ----
-= 3524
 = 3524 sorted: 2345 and 5432
 = 5432 - 2345: 3087
 = {3524, 0}

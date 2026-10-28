@@ -29,8 +29,6 @@ print("the square is exactly 16:", abs(area(4, 4) - 16) < 1e-9)
 // the side-6 triangle, 15.5884572681 above, matches the equilateral
 // formula s^2 sqrt(3) / 4 used in equilateral-area-height.epher.
 /* ---- expected output ----
-= 6
-= 2
 = hexagon, side 2: 10.3923048454
 = square, side 4: 16
 = triangle, side 6: 15.5884572681

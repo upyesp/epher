@@ -48,10 +48,6 @@ if ev < 0 then "not fair, the ticket returns 0.12 per 2 spent" else "fair or bet
 print("expected loss per ticket:", -ev)
 print("the fair entry price would be", jackpot / 1e7 + second / 1e5 + third / 1e3)
 /* ---- expected output ----
-= 2
-= 1000000
-= 1000
-= 10
 = jackpot contribution: 0.1
 = second prize contribution: 0.01
 = third prize contribution: 0.01

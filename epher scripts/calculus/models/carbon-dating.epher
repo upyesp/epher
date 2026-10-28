@@ -45,8 +45,6 @@ print("age of that fraction, years:", age(leftover(10000)))
 print("the round trip closes:", abs(age(leftover(10000)) - 10000) < 1e-6)
 
 /* ---- expected output ---------------------------------------------------------
-= 5730
-= {0.5, 0.25, 0.9}
 = {5730, 11460, 870.97772544}
 = anchor, half left: true
 = anchor, a quarter left: true

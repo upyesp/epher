@@ -52,12 +52,6 @@ of these temperatures into a peak wavelength. */
 print("domain: the fit claims 3700-50000 K; cool M dwarfs read hot")
 
 /* ---- expected output
-= 0
-= 0.42
-= 0.65
-= 1.23
-= 1.57
-= 1.85
 = Sirius A: B-V 0 -> 5336000/527 K
 = Procyon: B-V 0.42 -> 6775.50181903 K
 = Sun: B-V 0.65 -> 5778.42373107 K

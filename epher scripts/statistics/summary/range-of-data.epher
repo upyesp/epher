@@ -22,7 +22,6 @@ print("the smallest score:", min(step))
 print("the largest score:", max(step))
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
 = builtin range, largest minus smallest: 31
 = the textbook formula, max(step) - min(step): 31
 = the smallest score: 64

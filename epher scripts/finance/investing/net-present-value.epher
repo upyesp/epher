@@ -30,8 +30,6 @@ print("decision:", if npv(rate, flows) > 0 then "accept: the project earns more 
 // after paying for the capital it uses. The sibling script
 // internal-rate-of-return.epher asks the same question as a rate.
 /* ---- expected output ----
-= 0.08
-= {-100000, 30000, 40000, 40000, 30000}
 = net present value at 8%: 15875.5158145
 = decision: accept: the project earns more than the 8% cost of capital
 */

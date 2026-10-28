@@ -37,7 +37,6 @@ print("cos(30 deg) =", cos(30 deg))
 print("tan(-30 deg) =", tan(-30 deg))
 print("-tan(30 deg) =", -tan(30 deg))
 /* ---- expected output
-= {15, 30, 45, 60, 75}
 = {true, true, true, true, true}
 = {true, true, true, true, true}
 = {true, true, true, true, true}

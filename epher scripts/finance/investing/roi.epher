@@ -32,8 +32,6 @@ print("roi in percent:", (sum(flows) - invested) / invested * 100)
 // 40000 came back on 25000 put in: a 40% roi over the life of the venture,
 // which averages to about 13% a year before timing is considered.
 /* ---- expected output ----
-= 25000
-= {8000, 12000, 15000}
 = total returned over the three years: 35000
 = net profit: 10000
 = roi: 0.4

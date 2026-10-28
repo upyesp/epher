@@ -78,8 +78,6 @@ eclipse must read the Moon fully inside the umbra. */
 print("built-in illum of the Moon at greatest eclipse:", illum(11, ttd))
 
 /* ---- expected output ----
-= {2026, 1, 1}
-= 25
 = 321.5
 = 323.5
 = searching from 2026-01-01T00:00:00

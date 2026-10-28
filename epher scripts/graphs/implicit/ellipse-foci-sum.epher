@@ -28,8 +28,6 @@ print("the top half height sqrt(5):", fy(0))
 graph x ^ 2 / 9 + y ^ 2 / 5 == 1 from -3.5 to 3.5
 
 /* ---- expected output ----
-= 3
-= 2
 = string length 2*a: 6
 = sum at the end (3, 0): 6
 = sum at the top (0, sqrt(5)): 6

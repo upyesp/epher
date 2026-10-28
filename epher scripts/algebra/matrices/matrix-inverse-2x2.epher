@@ -26,7 +26,6 @@ print("inverse by formula:", invf(A))
 print("A times its inverse:", A * invf(A))
 print("builtin inv agrees:", same2(invf(A), inv(A)) < 1e-9)
 /* ---- expected output ----
-= [[4, 7], [2, 6]]
 = det: 10
 = inverse by formula: [[0.6, -0.7], [-0.2, 0.4]]
 = A times its inverse: [[1, 0], [0, 1]]

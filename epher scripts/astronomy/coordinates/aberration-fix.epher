@@ -63,9 +63,6 @@ ax2 = wrapang(deg(atan2(ay + 20.49552 / 206265 * ay, ax + 20.49552 / 206265 * ax
 print("star at apex shifts < 1e-6 arcsec:", abs(spread(ax2 - apexra(tm)) * cos(rad(apexde(tm))) * 3600) < 1e-6)
 
 /* ---- expected output ----
-= 279.23473479
-= 38.78368896
-= 2461293.5
 = 0.125096463633
 = -0.769413127869
 = 0.626381922991

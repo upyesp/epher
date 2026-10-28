@@ -68,11 +68,6 @@ tfajr = t0 - 4 * deg(acos(cx(-fajr_ang, d0, lat))) / 1440
 print("plausibility: Fajr leads sunrise by", (tsr - tfajr) * 24 in hr)
 print("  (about 1-1.5 h is the mid-latitude span for an 18 deg depression)")
 /* ---- expected output ----
-= 21.42
-= 39.83
-= {2026, 6, 21}
-= 18
-= 1
 = 2461212.89042
 = 23.437923859
 = prayer times 2026-06-21 at Mecca, lat 21.42 lon 39.83 (times UT)

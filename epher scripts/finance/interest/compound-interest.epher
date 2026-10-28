@@ -27,9 +27,6 @@ print("balance after 5 years:", principal + compound_interest(principal, rate, y
 // y years, P*(1+r)^y. Its last row must equal the balance printed above.
 for y in 1 to years do principal * (1 + rate) ^ y
 /* ---- expected output ----
-= 2000
-= 0.06
-= 5
 = interest earned: 676.4511552
 = balance after 5 years: 2676.4511552
 = {2120, 2247.2, 2382.032, 2524.95392, 2676.4511552}

@@ -65,7 +65,6 @@ print("exact P(exactly 3):", ncr(6, 3) * ncr(43, 3) / ncr(49, 6))
 print("expected exactly-3 draws:", ncr(6, 3) * ncr(43, 3) / ncr(49, 6) * (2 * pass))
 print("P(a draw matches all 6):", 1 / ncr(49, 6))
 /* ---- expected output ----
-= 50000
 = 23
 = {0, 0}
 = {0, 0}

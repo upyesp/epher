@@ -32,7 +32,6 @@ print("cos(2 x 60 deg) =", cos(120 deg))
 print("cos^2(60 deg) - sin^2(60 deg) =", cos(60 deg) ^ 2 - sin(60 deg) ^ 2)
 print("2 cos^2(60 deg) - 1 =", 2 * cos(60 deg) ^ 2 - 1)
 /* ---- expected output
-= {10, 30, 45, 60, 80}
 = {true, true, true, true, true}
 = {true, true, true, true, true}
 = cos(2 x 60 deg) = -0.5

@@ -41,12 +41,6 @@ against a 40 market price, an 8% upside if the target P/E is right.
 Scenario B: 3.10 at a P/E of 15 prices it at 46.50 against a 50 market
 price, 7% downside. Same method, opposite verdicts. */
 /* ---- expected output ----
-= 2.4
-= 18
-= 40
-= 3.1
-= 15
-= 50
 = fair value A: 43.2
 = verdict A: undervalued: fair value sits above the market price
 = gap A in percent: 8

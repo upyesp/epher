@@ -24,7 +24,6 @@ print("radius of the 10 pi circle:", radius(circ))
 print("radius of a circumference-100 circle:", radius(100))
 print("round trip:", abs(2 * pi * radius(100) - 100) < 1e-9)
 /* ---- expected output ----
-= 31.4159265359
 = radius of the 10 pi circle: 5
 = radius of a circumference-100 circle: 15.9154943092
 = round trip: true

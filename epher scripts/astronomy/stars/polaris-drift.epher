@@ -59,10 +59,6 @@ the pointing correction for Polaris shrinks from 1950 on and is
 smallest right around 2100. */
 
 /* ---- expected output
-= 37.9545416667
-= 89.2641111111
-= 2050
-= 2150
 = {2050, 2050, 0.545378816109}
 = {2100, 2102, 0.4592454087}
 = 1900: dec 88° 46' 25" polar dist 73.5822402283 arcmin

@@ -48,11 +48,6 @@ printed value must sit within 0.001 of that classic number. */
 print("45-degree difference within 0.001 of 0.1924:", abs((45 - ps(45)) - 0.1924) < 0.001)
 
 /* ---- expected output ----
-= 51.4779
-= 0
-= 0.046
-= 0.00335281066475
-= 6378.137
 = geodetic lat 51.4779  lon 0  height 0.046 km
 = geocentric lat 51.2902352593  deg (difference 0.187664740725 deg)
 = geocentric radius 6365.1361131 km

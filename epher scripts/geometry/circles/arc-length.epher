@@ -25,8 +25,6 @@ print("arc length:", arc(r, ang))
 print("ang / 360 form agrees:", abs(arc(r, ang) - ang / 360 * 2 * pi * r) < 1e-9)
 print("semicircle of radius 5:", arc(5, 180))
 /* ---- expected output ----
-= 5
-= 60
 = arc length: 5.23598775598
 = ang / 360 form agrees: true
 = semicircle of radius 5: 15.7079632679

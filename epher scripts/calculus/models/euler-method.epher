@@ -44,8 +44,6 @@ print("error:", e - w[2])
 print("halving h halves the error:", e - w[2] < (e - v[2])/1.9)
 
 /* ---- expected output ---------------------------------------------------------
-= 0.1
-= 10
 = {0, 1, 0}
 = the state after the run: {1, 2.5937424601, 10}
 = y(1) by Euler with h = 0.1: 2.5937424601

@@ -301,10 +301,7 @@ das eingebaute `pi`, aber von dir gewählt. Definiere eine mit `const`:
 ```epher
 const tax = 0.2
 ```
-
-```text
-0.2
-```
+Das Definieren einer Konstante gibt nichts aus – eine Konstante ist eine Einstellung wie ein `def`, keine Antwort; die Bindung besteht dennoch.
 
 Verwende sie überall dort, wo eine Zahl stehen kann:
 
@@ -341,10 +338,6 @@ Hinsicht: Wie `pi` funktionieren sie innerhalb deiner eigenen Funktionen.
 
 ```epher
 const g = 9.81
-```
-
-```text
-9.81
 ```
 
 ```epher
@@ -1191,7 +1184,6 @@ solve k*x == 12
 ```
 
 ```text
-3
 x = 4
 ```
 
@@ -2897,7 +2889,6 @@ Konstanten speichern sich genauso. `save` auf den Namen der Konstante:
 
 ```text
 epher> const tax = 0.2
-= 0.2
 epher> save tax
 saved tax
 ```

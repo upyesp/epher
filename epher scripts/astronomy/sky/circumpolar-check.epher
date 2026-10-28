@@ -63,10 +63,6 @@ print("  classified:", cls(d, latp))
 print("engine check: altitudes at 00:00 and 12:00 UT:", a0, "and", a12, "deg")
 print("  both above the horizon:", a0 > 0 and a12 > 0)
 /* ---- expected output ----
-= 51.4779
-= 78.2
-= 15.6
-= 0.108816008157
 = circumpolar check at lat 51.4779:
 =   declination +46 deg: circumpolar: never sets
 =   declination +20 deg: rises and sets daily

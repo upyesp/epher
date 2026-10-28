@@ -47,10 +47,6 @@ print("y:", vy(mag2, t2))
 print("magnitude back:", vmag(vx(mag2, t2), vy(mag2, t2)))
 print("direction back:", vdir(vx(mag2, t2), vy(mag2, t2)), "deg")
 /* ---- expected output
-= 12.5 m
-= 210
-= 8 m
-= 45
 = x: -10.8253175473 m
 = y: -6.25 m
 = magnitude back: 12.5 m

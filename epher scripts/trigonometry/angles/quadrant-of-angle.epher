@@ -35,7 +35,6 @@ print(angs[8], "deg ->", quad(angs[8]))
 print(angs[9], "deg ->", quad(angs[9]))
 print(angs[10], "deg ->", quad(angs[10]))
 /* ---- expected output
-= {45, 135, 225, 315, 0, 90, 180, 270, -90, 390}
 = 45 deg -> quadrant I
 = 135 deg -> quadrant II
 = 225 deg -> quadrant III

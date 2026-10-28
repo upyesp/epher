@@ -34,9 +34,6 @@ for a project whose cash flows change sign once. The 20% line prints as
 the exact fraction -259375/27 because its decimal -9606.48148148...
 repeats (epher keeps the fraction when the decimal repeats). */
 /* ---- expected output ----
-= 0.08
-= 0.2
-= {-100000, 30000, 40000, 40000, 30000}
 = 0.148950281274
 = project irr: 0.148950281274
 = at an 8% hurdle: accept: the irr beats the required return

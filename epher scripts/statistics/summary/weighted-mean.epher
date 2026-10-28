@@ -28,8 +28,6 @@ print("the total credits:", sum(w))
 print("the plain mean for contrast, every course equal:", mean(g))
 
 /* ---- expected output ----
-= {85, 92, 78, 88, 91}
-= {3, 4, 2, 3, 2}
 = weighted mean, sum(g * w) / sum(w): 87.5
 = the weighted grade total: 1225
 = the total credits: 14

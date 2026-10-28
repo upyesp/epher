@@ -24,7 +24,6 @@ print("radius of the 25 pi circle:", radius(area))
 print("radius of an area-100 circle:", radius(100))
 print("round trip:", abs(pi * radius(100) ^ 2 - 100) < 1e-9)
 /* ---- expected output ----
-= 78.5398163397
 = radius of the 25 pi circle: 5
 = radius of an area-100 circle: 5.64189583548
 = round trip: true

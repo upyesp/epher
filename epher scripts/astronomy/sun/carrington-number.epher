@@ -77,9 +77,6 @@ about one day of a printed boundary can belong to the neighbouring
 rotation in tables built on observed boundaries. */
 
 /* ---- expected output ----
-= {2026, 6, 21}
-= 2398167
-= 27.2753
 = 2312
 = Carrington rotation number of 2026-06-21T00:00:00 : 2312
 = rotation 2312 start (mean grid): 2026-06-08T17:14:21

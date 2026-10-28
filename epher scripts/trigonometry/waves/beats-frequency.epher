@@ -35,9 +35,6 @@ print("beat(440 Hz, 443.5 Hz):", beat(f_a, f_sharp))
 // ear locks onto.
 print("beat(440 Hz, 440 Hz):", beat(f_a, f_a))
 /* ---- expected output
-= 440 Hz
-= 437 Hz
-= 443.5 Hz
 = beat(440 Hz, 437 Hz): 3 Hz
 = beat(440 Hz, 443.5 Hz): 3.5 Hz
 = beat(440 Hz, 440 Hz): 0 Hz

@@ -25,7 +25,6 @@ print("area:", area(r))
 print("radius 1 area is pi:", area(1))
 print("A = C^2 / (4 pi) agrees:", abs(area(r) - circ(r) ^ 2 / (4 * pi)) < 1e-9)
 /* ---- expected output ----
-= 5
 = area: 78.5398163397
 = radius 1 area is pi: 3.14159265359
 = A = C^2 / (4 pi) agrees: true

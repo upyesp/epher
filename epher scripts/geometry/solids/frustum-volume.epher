@@ -34,9 +34,6 @@ print("frustum volume:", vol(R, r, h))
 print("R = r is a cylinder:", abs(vol(2, 2, 6) - pi * 2 ^ 2 * 6) < 1e-9)
 print("cone minus tip:", abs(vol(R, r, h) - (fullcone(R) - tipcone(r))) < 1e-9)
 /* ---- expected output ----
-= 4
-= 2
-= 6
 = frustum volume: 175.929188601
 = R = r is a cylinder: true
 = cone minus tip: true

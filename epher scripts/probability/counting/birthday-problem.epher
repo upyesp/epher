@@ -45,8 +45,6 @@ w = {1, 1}
 while w[1] < 30 do w = {w[1] + 1, w[2] * (1 - w[1] / days)}
 print("P(shared birthday among 30):", 1 - w[2])
 /* ---- expected output ----
-= 365
-= 0.5
 = {1, 1}
 = smallest n with P(shared) >= 1/2: 23
 = P(no shared birthday among 23 ): 0.492702765676

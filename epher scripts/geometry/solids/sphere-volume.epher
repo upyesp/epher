@@ -26,7 +26,6 @@ print("volume:", vol(r))
 print("unit sphere:", vol(1))
 print("V = r S / 3 holds:", abs(vol(r) - r * surf(r) / 3) < 1e-9)
 /* ---- expected output ----
-= 3
 = volume: 113.097335529
 = unit sphere: 4.18879020479
 = V = r S / 3 holds: true

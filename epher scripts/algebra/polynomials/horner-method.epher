@@ -26,8 +26,6 @@ while s[1] < len(cs) do s = {s[1] + 1, s[2] + cs[len(cs) - s[1]] * xv ^ s[1]}
 print("direct sum:", s[2])
 print("they agree:", acc[2] == s[2])
 /* ---- expected output ----
-= {1, -6, 11, -6}
-= 2.5
 = {1, 1}
 = Horner: -0.375
 = {0, 0}

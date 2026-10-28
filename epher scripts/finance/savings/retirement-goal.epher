@@ -31,9 +31,6 @@ print("interest earned:", goal - months * deposit)
 // supplies the other 640752.97, about 64% of the goal. At 8% the same
 // deposits reach the goal in about 306 months instead of 359.
 /* ---- expected output ----
-= 1000000
-= 1000
-= 0.06
 = 359.247028874
 = reaching 1,000,000 takes: 359.247028874 months, or 29.9372524062 years
 = deposited out of pocket in that time: 359247.028874

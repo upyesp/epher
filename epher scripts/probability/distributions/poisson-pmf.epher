@@ -40,7 +40,6 @@ print("poissonpdf(3, 2):", poissonpdf(3, rate))
 print("P(X = 0) = e^-2:", exp(-2))
 print("poissonpdf(0, 2):", poissonpdf(0, rate))
 /* ---- expected output ----
-= 2
 = {0.135335283237, 0.270670566476, 0.270670566477}
 = {0.180447044318, 0.0902235221593, 0.0360894088637}
 = formula e^-2 * 2^3 / 3!: 0.180447044315

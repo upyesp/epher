@@ -27,9 +27,6 @@ const years = 6             // term in years
 print("interest earned:", simple_interest(principal, rate, years))
 print("total at maturity:", principal + simple_interest(principal, rate, years))
 /* ---- expected output ----
-= 5000
-= 0.04
-= 6
 = interest earned: 1200
 = total at maturity: 6200
 */

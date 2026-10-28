@@ -62,12 +62,6 @@ print("shift (topocentric minus geocentric):", alt(11, t, lat, lon) - altg(t, la
 print("shift predicted, -HP cos(alt):", -hp(t) * cos(rad(altg(t, lat, lon))), "deg")
 
 /* ---- expected output ----
-= 51.4779
-= 0
-= 2026
-= 6
-= 22
-= 22
 = 29534573/12
 = at 2026-06-22T22:00:00 UT, from lat 51.4779 lon 0
 = Moon distance: 0.00263138917792 AU

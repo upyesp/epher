@@ -43,7 +43,6 @@ print("Saturn rebuilt:", lit(phase(6, tm)), "vs", illum(6, tm))
 print("Venus rebuilt:", lit(phase(2, tm)), "vs", illum(2, tm))
 
 /* ---- expected output ----
-= 2461192.5
 = {0.7953, 0.965, 0.9956, 0.9979}
 = {53.8, 21.56, 7.62, 5.23}
 = Jupiter rebuilt: 0.995584656837 vs 0.9956

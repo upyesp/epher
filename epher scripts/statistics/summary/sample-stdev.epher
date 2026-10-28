@@ -23,7 +23,6 @@ print("the formula directly:", sqrt(sum((data - mean(data)) ^ 2) / (len(data) - 
 print("the population version for contrast:", stdev(data))
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
 = the n - 1 version of stdev: 9.91127304302
 = the formula directly: 9.91127304302
 = the population version for contrast: 9.40265919833

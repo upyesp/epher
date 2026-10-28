@@ -29,7 +29,6 @@ print("normcdf(invnorm(0.975)):", normcdf(invnorm(0.975)))
 print("normcdf(invnorm(0.99)):", normcdf(invnorm(0.99)))
 
 /* ---- expected output ----
-= 0.9
 = the p = 0.90 percentile: 1.28155156554
 = the p = 0.975 percentile: 1.95996398454
 = the p = 0.99 percentile: 2.32634787404

@@ -26,9 +26,6 @@ acc = {1, cs[1]}
 while acc[1] < len(cs) do acc = {acc[1] + 1, acc[2] * x2 + cs[acc[1] + 1]}
 print("p(3):", acc[2])
 /* ---- expected output ----
-= {1, -6, 11, -6}
-= 2.5
-= 3
 = {1, 1}
 = p(2.5): -0.375
 = {1, 1}

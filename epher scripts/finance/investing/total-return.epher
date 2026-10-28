@@ -38,10 +38,6 @@ print("total return in percent:", (shares * (sell - buy) + shares * dividends) /
 // 44% over the holding period. A quote of "the stock returned 44%" counts
 // the dividends; a quote of "36%" counts only the price.
 /* ---- expected output ----
-= 100
-= 45
-= 61.2
-= 3.6
 = cost of the position: 4500
 = price gain: 1620
 = dividends collected: 360

@@ -83,8 +83,6 @@ je = dyn(jd(1992, 10, 13))
 print("example, 1992-10-13 0h TD: P", p(je), "B0", b0(je), "L0", l0(je))
 
 /* ---- expected output ----
-= {2026, 6, 21}
-= 7.25
 = 2461212.5008
 = solar physical ephemeris at 2026-06-21T00:00:00 0h TD
 = P  (axis position angle): -7.19552175864 deg

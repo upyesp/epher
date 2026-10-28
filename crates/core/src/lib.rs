@@ -8698,7 +8698,14 @@ fn stmt_flow(stmt: &Statement, env: &mut Env, steps: &mut u64) -> Result<Flow, E
     let flow = match stmt {
         Statement::Expr(expr) => Flow::Normal(Some(eval(expr, env)?)),
         Statement::Assign(name, expr) => Flow::Normal(Some(assign(env, name, expr)?)),
-        Statement::Const(name, expr) => Flow::Normal(Some(define_constant(env, name, expr)?)),
+        // Defining a constant is machinery, like `def` (ADR-0080): the
+        // binding is made and the transcript stays silent, so a script's
+        // knobs do not echo as answers. `ans` is untouched (a knob is
+        // not a result); reading the name still yields its value.
+        Statement::Const(name, expr) => {
+            define_constant(env, name, expr)?;
+            Flow::Normal(None)
+        }
         Statement::FunctionDef(name, params, body) => {
             env.set_function(
                 name.clone(),

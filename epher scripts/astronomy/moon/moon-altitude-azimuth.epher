@@ -41,14 +41,6 @@ positive, so the Moon is above the horizon through the whole sample. */
 print("Moon still up at", h3, "hr:", alt(11, jd(year, month, day, h3), lat, lon) > 0)
 
 /* ---- expected output ----
-= 2026
-= 6
-= 22
-= 19
-= 20.5
-= 22
-= 51.4779
-= 0
 = at 19 hr UT: alt 29.8480081 deg; az 187.5518308 deg
 = at 20.5 hr UT: alt 24.8969995 deg; az 211.5385071 deg
 = at 22 hr UT: alt 15.4187962 deg; az 232.4553314 deg

@@ -75,8 +75,6 @@ print("illuminated fraction at the new moon above:", illum(11, t2))
 print("illuminated fraction at the full moon above:", illum(11, t4))
 
 /* ---- expected output ----
-= {2026, 6, 1}
-= 37
 = 2461192.5
 = 2461229.5
 = 1.92011165835

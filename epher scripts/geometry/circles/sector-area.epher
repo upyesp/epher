@@ -25,8 +25,6 @@ print("sector area:", sector(r, ang))
 print("ang / 360 form agrees:", abs(sector(r, ang) - ang / 360 * pi * r ^ 2) < 1e-9)
 print("quarter circle, radius 4:", sector(4, 90))
 /* ---- expected output ----
-= 6
-= 60
 = sector area: 18.8495559215
 = ang / 360 form agrees: true
 = quarter circle, radius 4: 12.5663706144

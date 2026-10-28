@@ -34,7 +34,8 @@ Its expected-output block shows the output of a run, and that block is checked m
 ## Running a script
 
 From a terminal (the CLI runs every statement in order and prints each
-statement's value). Copy a script from the website's Scripts page and
+statement's value, except the silent ones: `def` and `const` define
+machinery and print nothing — ADR-0080). Copy a script from the website's Scripts page and
 paste it into the terminal, or run it from a file. From a source
 checkout (contributors running from the repository root - an installed
 epher has no `epher scripts` folder), the path carries the folder name:

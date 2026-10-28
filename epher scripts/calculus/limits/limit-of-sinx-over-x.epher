@@ -33,7 +33,6 @@ for t in {1e-4, 1e-6} do sin(t)/t
 print("the same limit, as a derivative:", derivative(sin(t), 0))
 
 /* ---- expected output ---------------------------------------------------------
-= 0.00000001
 = at +xv: 1
 = at -xv: 1
 = within 1e-12 of the limit: true

@@ -68,8 +68,6 @@ for m in 1 to 12 do (if cm(m) > 0 then 1 else 0)
 print("Morsels: any calendar year carries 4 to 7 eclipses; no year can exceed 7")
 
 /* ---- expected output ----
-= 2026
-= 319.5
 = solar eclipses in 2026 : 2
 = lunar eclipses in 2026 : 2
 = total eclipses in 2026 : 4

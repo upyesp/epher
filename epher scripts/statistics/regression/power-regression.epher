@@ -27,8 +27,6 @@ print("least-squares power fit, with its r:", powreg(xs, ys))
 print("the theoretical coefficient 2 * pi / sqrt(g):", 2 * pi / sqrt(g))
 
 /* ---- expected output ----
-= {0.5, 0.8, 1.1, 1.4, 1.7}
-= {1.39, 1.82, 2.08, 2.41, 2.59}
 = least-squares power fit, with its r: y = 2.001*x^0.5105 (r = 0.9981)
 = the theoretical coefficient 2 * pi / sqrt(g): 2.00640929259
 */

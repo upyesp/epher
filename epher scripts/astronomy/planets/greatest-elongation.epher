@@ -55,14 +55,6 @@ print("eastern (evening sky):", iso(te), "UT; phase", phase(planet, te), "deg; e
 print("western (morning sky):", iso(tf), "UT; phase", phase(planet, tf), "deg; elongation", elong(tf), "deg; magnitude", mag(planet, tf))
 
 /* ---- expected output ----
-= 2
-= {2026, 1, 1}
-= 2461041.5
-= 600
-= 112
-= 184
-= 1041115226/423
-= 1435001350/583
 = greatest elongations of planet 2 from 2026-01-01T00:00:00
 = eastern (evening sky): 2026-08-12T19:25:57 UT; phase 89.99 deg; elongation 45.860261679 deg; magnitude -4.31
 = western (morning sky): 2027-01-03T08:00:25 UT; phase 90.01 deg; elongation -46.8558653818 deg; magnitude -4.44

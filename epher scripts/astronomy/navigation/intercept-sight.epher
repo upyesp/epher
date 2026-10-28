@@ -51,10 +51,6 @@ topocentric alt gives, to a few thousandths of a degree. */
 print("Hc vs engine altitude:", hc, "vs", alt(10, tm, alat, alon))
 
 /* ---- expected output ----
-= 39.6
-= 29535529/12
-= 50
-= -4
 = 168.859948907
 = 4.787960708
 = 26.7614735961

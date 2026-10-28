@@ -298,9 +298,8 @@ A *constant* is a name for a value that never changes, like the built-in
 const tax = 0.2
 ```
 
-```text
-0.2
-```
+Defining a constant prints nothing - a knob is machinery, like a `def`,
+not an answer. The binding is real all the same.
 
 Use it anywhere a number can go:
 
@@ -337,10 +336,6 @@ work inside your own functions.
 
 ```epher
 const g = 9.81
-```
-
-```text
-9.81
 ```
 
 ```epher
@@ -1189,7 +1184,6 @@ solve k*x == 12
 ```
 
 ```text
-3
 x = 4
 ```
 
@@ -2950,7 +2944,6 @@ Constants save the same way. `save` on the constant's name:
 
 ```text
 epher> const tax = 0.2
-= 0.2
 epher> save tax
 saved tax
 ```

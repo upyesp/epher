@@ -34,9 +34,6 @@ while the monthly deposits earn less and less. Dollar-cost averaging does
 not raise the expected return; it smooths the risk of buying at one
 unlucky moment, and it is the only option for money that arrives monthly. */
 /* ---- expected output ----
-= 500
-= 0.08
-= 20
 = balance after 20 years of monthly deposits: 294510.207811
 = lump sum equal to all the deposits, invested at the start: 591216.332497
 = difference: 296706.124686

@@ -81,14 +81,6 @@ if c6 > 0 then print(iso(tmaxx(c6) - delta_t(tmaxx(c6)) / 86400), "UT:", kindx(c
 if c7 > 0 then print(iso(tmaxx(c7) - delta_t(tmaxx(c7)) / 86400), "UT:", kindx(c7), "eclipse, gamma", gamma(c7), "(k", c7, ")") else "no seventh candidate"
 
 /* ---- expected output ----
-= 2026
-= 323
-= 323.5
-= 329
-= 329.5
-= -1
-= -1
-= -1
 = eclipse-bearing lunations of 2026
 = 2026-02-17T12:12:48 UT: annular solar eclipse, gamma -0.973790137956 (k 323 )
 = 2026-03-03T11:34:20 UT: total lunar eclipse, gamma -0.377342593068 (k 323.5 )

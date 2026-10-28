@@ -661,8 +661,19 @@ fn run_script(src: &str) -> Result<Value, epher_core::EpherError> {
 }
 
 #[test]
-fn constant_defines_and_evaluates_to_its_value() {
-    assert_eq!(run_script("const tax = 0.2").unwrap(), Value::float(0.2));
+fn a_constant_binds_silently_and_evaluates_to_its_value() {
+    // ADR-0080: the definition is machinery — no answer line for a
+    // knob, and `run` has no script value to report ...
+    assert!(run_script_text("const tax = 0.2").is_empty());
+    assert!(run_script("const tax = 0.2").is_err());
+    // ... but the binding is real.
+    let mut env = Env::default();
+    let script = parse_script("const tax = 0.2; 100 * (1 + tax)").unwrap();
+    assert_eq!(
+        run(&script, &mut env).unwrap(),
+        Some(Value::float(120.0)),
+        "the constant is readable after its silent definition"
+    );
 }
 
 #[test]

@@ -66,7 +66,6 @@ print("alpha (Moon/Sun semidiameter ratio):", a)
 print("verdict:", if a < 1 then "Moon smaller: annular geometry" else "Moon large enough: totality possible")
 
 /* ---- expected output ----
-= {2026, 2, 17}
 = 2461089
 = geocentric semidiameters at 2026-02-17T12:00:00 UT
 = Sun:  970.6805 arcsec = 16.1780083333 arcmin

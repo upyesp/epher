@@ -31,7 +31,6 @@ print("Jupiter:", diam(5, tm), "deg =", diam(5, tm) * 3600, "arcsec")
 print("Saturn:", diam(6, tm), "deg =", diam(6, tm) * 3600, "arcsec")
 
 /* ---- expected output ----
-= 2461192.5
 = {6.1047, 13.2847, 4.2796, 32.377, 16.1143, 3.4174, 2.243, 0.0937926530789}
 = Jupiter: 0.00899361111111 deg = 32.377 arcsec
 = Saturn: 0.00447619444444 deg = 16.1143 arcsec

@@ -28,8 +28,6 @@ print("angle opposite the side of length", b, ":", angle_b(a, b), "degrees")
 print("sum is 90:", abs(angle_a(a, b) + angle_b(a, b) - 90) < 1e-9)
 print("asin cross-check:", abs(deg(asin(a / cside(a, b))) - angle_a(a, b)) < 1e-9)
 /* ---- expected output ----
-= 3
-= 4
 = angle opposite the side of length 3 : 36.8698976458 degrees
 = angle opposite the side of length 4 : 53.1301023542 degrees
 = sum is 90: true

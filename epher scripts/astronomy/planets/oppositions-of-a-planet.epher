@@ -66,16 +66,6 @@ print("solar elongation in longitude at event 1:", e1, "deg")
 print("solar elongation in longitude at event 2:", e2, "deg")
 
 /* ---- expected output ----
-= 4
-= {2026, 1, 1}
-= 480
-= 2461041.5
-= 1
-= 2461049.98877
-= 11
-= 2461456.16064
-= -0.00060317331598
-= 179.999311978
 = searching from 2026-01-01T00:00:00 for planet 4 over 480 days
 = event 1: 2026-01-09T11:43:50 conjunction
 = event 2: 2027-02-19T15:51:20 opposition

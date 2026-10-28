@@ -31,9 +31,6 @@ print("day 22:", diam(11, jd(year, month, 22)), "deg =", diam(11, jd(year, month
 print("day 29:", diam(11, jd(year, month, 29)), "deg =", diam(11, jd(year, month, 29)) * 60, "arcmin")
 
 /* ---- expected output ----
-= 2026
-= 6
-= {1, 8, 15, 22, 29}
 = day 1: 0.4899475 deg = 29.39685 arcmin
 = day 8: 0.513164611111 deg = 30.7898766667 arcmin
 = day 15: 0.557373111111 deg = 33.4423866667 arcmin

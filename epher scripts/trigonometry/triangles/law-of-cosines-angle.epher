@@ -47,12 +47,6 @@ print("5-7-9: angle opposite 9 m:", angc(t2a, t2b, t2c), "deg")
 print("5-7-9 angles:", anga(t2a, t2b, t2c), "deg", angb(t2a, t2b, t2c), "deg", angc(t2a, t2b, t2c), "deg")
 print("5-7-9 sum:", anga(t2a, t2b, t2c) + angb(t2a, t2b, t2c) + angc(t2a, t2b, t2c), "deg")
 /* ---- expected output
-= 3
-= 4
-= 5
-= 5
-= 7
-= 9
 = 3-4-5: angle opposite 5 m: 90 deg
 = 3-4-5 angles: 36.8698976458 deg 53.1301023542 deg 90 deg
 = 3-4-5 sum: 180 deg

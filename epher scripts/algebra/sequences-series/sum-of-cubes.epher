@@ -25,7 +25,6 @@ print("by adding:", acc[2])
 print("they agree:", cb(num) == acc[2])
 print("also the square of 1 + ... + num:", cb(num) == (num * (num + 1) / 2) ^ 2)
 /* ---- expected output ----
-= 10
 = formula: 3025
 = {0, 0}
 = by adding: 3025

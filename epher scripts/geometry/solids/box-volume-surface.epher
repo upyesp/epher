@@ -27,9 +27,6 @@ print("volume:", vol(l, w, h))
 print("surface area:", surf(l, w, h))
 print("unfolded net:", surf(l, w, h) == 2 * (6 * 4 + 6 * 3 + 4 * 3))
 /* ---- expected output ----
-= 6
-= 4
-= 3
 = volume: 72
 = surface area: 108
 = unfolded net: true

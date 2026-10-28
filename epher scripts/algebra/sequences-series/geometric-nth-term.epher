@@ -24,9 +24,6 @@ print("t10:", gn(a, r, num))
 print("t10 / t9:", gn(a, r, num) / gn(a, r, num - 1))
 print("that ratio is r:", gn(a, r, num) / gn(a, r, num - 1) == r)
 /* ---- expected output ----
-= 3
-= 2
-= 10
 = t1: 3
 = t10: 1536
 = t10 / t9: 2

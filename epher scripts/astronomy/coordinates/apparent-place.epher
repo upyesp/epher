@@ -87,11 +87,6 @@ prints the aberration component alone. */
 print("aberration component:", sqrt((spread(r3 - r2) * cos(rad(d2)) * 3600) ^ 2 + ((d3 - d2) * 3600) ^ 2), "arcsec (must be < 20.5)")
 
 /* ---- expected output ----
-= 279.23473479
-= 38.78368896
-= 0.201
-= 0.286
-= 2461293.5
 = 12998/487
 = 279.236646473
 = 38.7858093273

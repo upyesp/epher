@@ -282,10 +282,7 @@ ans * 2
 ```epher
 const tax = 0.2
 ```
-
-```text
-0.2
-```
+تعريف الثابت لا يطبع شيئًا — الثابت إعداد، مثل `def`، وليس إجابة؛ لكن الارتباط فعلي.
 
 استخدمه في أي مكان يصح فيه رقم:
 
@@ -322,10 +319,6 @@ error: constant already defined: tax
 
 ```epher
 const g = 9.81
-```
-
-```text
-9.81
 ```
 
 ```epher
@@ -1123,7 +1116,6 @@ solve k*x == 12
 ```
 
 ```text
-3
 x = 4
 ```
 
@@ -2648,7 +2640,6 @@ epher> fib(10)
 
 ```text
 epher> const tax = 0.2
-= 0.2
 epher> save tax
 saved tax
 ```

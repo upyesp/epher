@@ -38,9 +38,6 @@ print("day 29:", dist(11, jd(year, month, 29)) * au / r_earth, "Earth radii;", (
 print("day 1, raw AU:", dist(11, jd(year, month, 1)))
 
 /* ---- expected output ----
-= 2026
-= 6
-= {1, 8, 15, 22, 29}
 = day 1: 63.7817755454 Earth radii; 406353.692 km
 = day 8: 60.8961169361 Earth radii; 387969.161 km
 = day 15: 56.066125412 Earth radii; 357197.285 km

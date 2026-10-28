@@ -25,8 +25,6 @@ print("area:", area(d1, d2))
 print("two triangles of area d1 d2 / 4 each:", 2 * (d1 / 2 * d2 / 2))
 print("matches d1 d2 / 2:", area(d1, d2) == 6 * 4 / 2)
 /* ---- expected output ----
-= 6
-= 4
 = area: 12
 = two triangles of area d1 d2 / 4 each: 12
 = matches d1 d2 / 2: true

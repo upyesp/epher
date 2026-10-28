@@ -23,8 +23,6 @@ print("zc conj(zc) = |zc|^2:", abs(zc * conj(zc) - abs(zc) ^ 2) < 1e-12)
 print("conjugate of 1 - i:", conj(w))
 print("(1 - i)(1 + i):", w * conj(w))
 /* ---- expected output ----
-= 3+4i
-= 1-i
 = conjugate: 3-4i
 = zc conj(zc): 25
 = |zc|^2: 25

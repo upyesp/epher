@@ -57,7 +57,6 @@ print("Saeundsson round trip at true 0.5 deg:", rs(0.5), "arcmin")
 print("Bennett read back at the apparent altitude:", r(0.5 + rs(0.5) / 60), "arcmin")
 
 /* ---- expected output ----
-= 15
 = Bennett refraction, standard atmosphere (about 10 C, 1010 hPa)
 = at apparent 0 deg -> R 34.4775337433 arcmin, true -0.574625562388 deg
 = at apparent 5 deg -> R 9.88314423418 arcmin, true 4.83528092943 deg

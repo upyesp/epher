@@ -63,14 +63,6 @@ print("periastron vs a(1-e) =", orba * (1 - orbe), "arcsec (must be >=)")
 print("repeat after one period:", sep(y0 + orbp) - sep(y0), "arcsec (must be ~0)")
 
 /* ---- expected output
-= 50.128
-= 1894.6
-= 0.5923
-= 7.5
-= 136.53
-= 44.57
-= 146.33
-= 2026.5
 = Sirius B at 2026.5 : PA 57.9342883939 deg, separation 11.0769344215 arcsec
 = periastron 1894.6: PA 250.371726288 deg, separation 2.82659080413 arcsec
 = apastron 2019.9: PA 70.4104993118 deg, separation 11.0371884471 arcsec

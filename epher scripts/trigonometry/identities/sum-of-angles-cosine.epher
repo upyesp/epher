@@ -38,8 +38,6 @@ print("cos(30) cos(45) - sin(30) sin(45) =", cos(rad(30)) * cos(rad(45)) - sin(r
 print("cos(80 deg + 10 deg):", cos(rad(80) + rad(10)))
 print("cos(80) cos(10) - sin(80) sin(10):", cos(rad(80)) * cos(rad(10)) - sin(rad(80)) * sin(rad(10)))
 /* ---- expected output
-= {30, 15, 37, 80}
-= {45, 60, 22, 10}
 = {true, true, true, true}
 = cos(30 deg + 45 deg) = 0.258819045103
 = cos(30) cos(45) - sin(30) sin(45) = 0.258819045103

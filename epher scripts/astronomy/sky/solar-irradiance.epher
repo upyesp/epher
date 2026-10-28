@@ -78,12 +78,6 @@ t0 = transit(10, jd(day[1], day[2], day[3]), lat, lon)
 print("alt at solar transit", iso(t0), ":", alt(10, t0, lat, lon), "deg")
 print("  meridian formula 90 - |lat - dec|:", 90 - abs(lat - decl(10, t0)), "deg")
 /* ---- expected output ----
-= 51.4779
-= 0
-= {2026, 6, 21}
-= 12
-= 35
-= 180
 = 61.9566445
 = 179.114422
 = clear-sky direct beam, 2026-06-21T12:00:00 at lat 51.4779 lon 0

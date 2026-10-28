@@ -62,11 +62,6 @@ light: the eye's dark-adapted pupil cannot open wider than that. */
 print("longest eyepiece that uses all the light: f/", fr, "* 7 mm =", fr * 7, "mm")
 
 /* ---- expected output ----
-= 200
-= 10
-= 50
-= {4, 5, 8, 12.5, 20, 32}
-= 2000
 = telescope 200 mm f/ 10 ; eyepieces, Plossl-type, afov 50 deg
 = 4 mm: 500 x; exit pupil 0.4 mm; true field 0.1 deg; role: over
 = 5 mm: 400 x; exit pupil 0.5 mm; true field 0.125 deg; role: planets

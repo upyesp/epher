@@ -37,7 +37,6 @@ print("most lit of the monthly samples:", illum(2, jd(year, 1, 15)))
 print("least lit of the monthly samples:", illum(2, jd(year, 10, 15)))
 
 /* ---- expected output ----
-= 2026
 = {0.9993, 0.9872, 0.9616, 0.9136, 0.8446, 0.7494, 0.635, 0.4884, 0.2875, 0.0372, 0.134, 0.3835}
 = most lit of the monthly samples: 0.9993
 = least lit of the monthly samples: 0.0372

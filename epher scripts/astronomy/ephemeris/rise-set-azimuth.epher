@@ -40,10 +40,6 @@ print("sets  ", iso(ts), "at azimuth", azs)
 print("altitude at rise (about -0.83 for the Moon):", alt(body, tr, lat, lon))
 
 /* ---- expected output ----
-= 11
-= 2461293.5
-= 51.4779
-= 0
 = 435648982/177
 = 1228185832/499
 = 75.3570601

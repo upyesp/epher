@@ -64,11 +64,6 @@ against the script's closed-form value. */
 print("solstice decl, script:", sun_dec(cent(jd(2026, 6, 21))), "vs built-in:", decl(10, jd(2026, 6, 21)))
 
 /* ---- expected output ----
-= {2026, 2, 12}
-= {2026, 5, 14}
-= {2026, 6, 21}
-= {2026, 7, 26}
-= {2026, 11, 3}
 = analemma at mean noon: minutes fast (+) vs declination
 = 2026-02-12: -14.1935995278 min, dec -13.7599607635 deg
 = 2026-05-14: 3.64145106631 min, dec 18.5778458092 deg

@@ -42,7 +42,6 @@ print("coprime pairs a < b <= " + str(num) + ":", v[3])
 // coprime to b, so the two counts must agree.
 print("sum of totients 2 to " + str(num) + ":", totient(2) + totient(3) + totient(4) + totient(5) + totient(6) + totient(7) + totient(8) + totient(9) + totient(10))
 /* ---- expected output ----
-= 10
 = gcd(14, 15): 1
 = gcd(17, 19): 1
 = gcd(21, 22): 1

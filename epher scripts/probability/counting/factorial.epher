@@ -37,7 +37,6 @@ print("ratios 12!/11! and 12!/10!:", fact(12) / fact(11), fact(12) / fact(10))
 print("10! seconds:", fact(10) / 86400, "days")
 print("12! seconds: about", round(fact(12) / 86400 / 365), "years")
 /* ---- expected output ----
-= 12
 = nmax! via the fact builtin: 479001600
 = nmax! via the ! operator: 479001600
 = ten factorial via fact(): 3628800

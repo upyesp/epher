@@ -74,13 +74,6 @@ z2 = az(10, jd(day2[1], day2[2], day2[3], hr2), lat, lon)
 if a2 <= 0 then print("2026-12-21 00:00 UT: the Sun is down (alt", a2, "deg): no shadow") else print("2026-12-21 00:00 UT: shadow length", shadow_len(a2), "m, bearing", wb(z2), "deg")
 
 /* ---- expected output ----
-= 1
-= 51.4779
-= 0
-= {2026, 6, 21}
-= 15
-= {2026, 12, 21}
-= 0
 = 45.9278503
 = 247.7014893
 = gnomon height 1 m at lat 51.4779 lon 0

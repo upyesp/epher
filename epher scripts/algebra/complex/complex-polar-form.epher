@@ -24,7 +24,6 @@ print("re(zc):", re(zc))
 print("im(zc):", im(zc))
 print("round trip within 1e-9:", abs(r * (cos(t) + i * sin(t)) - zc) < 1e-9)
 /* ---- expected output ----
-= 3+4i
 = 5
 = 0.927295218002
 = r: 5

@@ -39,7 +39,6 @@ print("tan(60 deg) =", tan(60 deg))
 // Round trips land back on the knob values (within 1e-12 degree).
 for x in degs do abs(deg(rad(x)) - x) < 1e-12
 /* ---- expected output
-= {30, 45, 60, 90, 180}
 = {0.523598775598, 0.785398163397, 1.0471975512, 1.57079632679, 3.14159265359}
 = {30, 45, 60, 90, 180}
 = 1 rad = 57.2957795131 deg

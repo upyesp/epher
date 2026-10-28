@@ -37,8 +37,6 @@ while v[2] < 0 do v = {v[1] + 1, v[2] + yearly[v[1] + 1]}
 // needed to cover the shortfall: 2 + 30000/40000 = 2.75 years.
 print("payback period:", (v[1] - 1) + (yearly[v[1]] - v[2]) / yearly[v[1]], "years")
 /* ---- expected output ----
-= 100000
-= {30000, 40000, 40000, 30000}
 = {{1, -70000}, {2, -30000}, {3, 10000}, {4, 40000}}
 = {0, -100000}
 = payback period: 2.75 years

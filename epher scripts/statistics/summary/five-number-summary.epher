@@ -25,7 +25,6 @@ print("Q3:", quartile(data, 3))       // median of the upper half
 print("max:", max(data))              // largest score
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
 = min: 64
 = Q1: 72
 = median: 84

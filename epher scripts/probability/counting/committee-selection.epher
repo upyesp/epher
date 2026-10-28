@@ -50,7 +50,6 @@ print("3 of", group, "including at least one of two named:", ncr(group, 3) - ncr
 // over ncr(8, 3), an exact fraction.
 print("P(neither named person chosen):", ncr(6, 3) / ncr(8, 3))
 /* ---- expected output ----
-= 8
 = committees of 3 from 8 : 56
 = with a chair: 168
 = the same as 3 * ncr(8, 3): true

@@ -35,7 +35,6 @@ print("gap f - tangent at 2.5:", f(2.5) - tangent(2.5))
 print("tangent and curve meet at the point of tangency:", abs(tangent(a) - f(a)) < 1e-12)
 
 /* ---- expected output ---------------------------------------------------------
-= 2
 = slope at x = 2: 4 by the power rule: 4
 = they agree: true
 = tangent at x = 2: 4 parabola there: 4

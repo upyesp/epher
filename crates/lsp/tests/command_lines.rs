@@ -46,16 +46,18 @@ fn command_lines_do_not_swallow_the_neighbouring_answers() {
             _ => "",
         })
         .collect();
+    // ADR-0080: the `const radius` knob stays silent (its binding is
+    // real — the circumference line reads it), exactly like the plot
+    // and store commands; the value lines answer.
     assert_eq!(
         labels,
         vec![
-            "= 6371 km",
             "= 40030.173592 km",
             "= 25",
             "= 55 mile/hr",
             "= 88.51392 km/hr",
         ],
-        "the plot and store lines stay silent; the value lines answer"
+        "the knob, plot and store lines stay silent; the value lines answer"
     );
 }
 

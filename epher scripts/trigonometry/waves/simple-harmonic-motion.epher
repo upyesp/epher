@@ -52,9 +52,6 @@ print("x^2 + (v/omega)^2 = A^2:", abs(((xof(tm) ^ 2) + ((vof(tm) / omega(T)) ^ 2
 print("x(0) =", xof(0 s))
 print("a(0) =", aof(0 s))
 /* ---- expected output
-= 0.05 m
-= 2 s
-= 0.25 s
 = omega = 2 pi / T = 3.14159265359 Hz
 = x(0.25 s) = 0.0353553390593 m
 = v(0.25 s) = -0.111072073454 m/s

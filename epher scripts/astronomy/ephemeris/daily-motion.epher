@@ -43,7 +43,6 @@ September value must sit between 3.0 and 4.3. */
 print("Sun drift sane (3.0 to 4.3):", spread(sra2 - sra1) * 4 > 3.0 and spread(sra2 - sra1) * 4 < 4.3)
 
 /* ---- expected output ----
-= 2461293.5
 = 154.451364924
 = 166.950942783
 = 10.319259641

@@ -44,7 +44,6 @@ series must sit within an arcsecond of those. */
 print("Meeus example within 1.0 arcsec:", abs(dpsi(tm) - -3.788) < 1.0 and abs(deps(tm) - 9.380) < 1.0)
 
 /* ---- expected output ----
-= 2446895.5
 = at 1987-04-10T00:00:00
 = Delta psi (nutation in longitude): -3.86276567138 arcsec
 = Delta eps (nutation in obliquity): 9.46798399833 arcsec

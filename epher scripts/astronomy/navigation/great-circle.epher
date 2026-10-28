@@ -44,10 +44,6 @@ print("reverse distance equal:", 6371 * 2 * atan2(sqrt(hav(rad(la1 - la2)) + cos
 print("London-New York in the classic 5570 km band:", dkm > 5500 and dkm < 5650)
 
 /* ---- expected output ----
-= 51.5074
-= -0.1278
-= 40.7128
-= -74.006
 = 0.179236433527
 = 0.874308927914
 = 5570.22217974

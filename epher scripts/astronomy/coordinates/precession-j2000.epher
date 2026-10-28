@@ -58,11 +58,6 @@ the re-projection must land on the starting point. */
 print("round trip dec:", pdec(pra(ra0, dec0, jd(2000, 1, 1, 12), jtarget), pdec(ra0, dec0, jd(2000, 1, 1, 12), jtarget), jtarget, jd(2000, 1, 1, 12)) - dec0, "deg (must be ~0)")
 
 /* ---- expected output ----
-= 137.6825
-= -7171/600
-= 37.9545416667
-= 89.2641111111
-= 2462453.54
 = theta Hya, of date 2029-11-13: ra 9h 12m 10s  dec -12° 4' 30"
 = as decimal degrees: 138.041448723 , -12.0749600603
 = Polaris, of date 2026-01-01: ra 3h 5m 51s  dec 89° 22' 18"

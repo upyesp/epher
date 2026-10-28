@@ -118,7 +118,6 @@ print("lit fraction half a day before:", illum(11, fullmoon(k) - 0.5))
 print("lit fraction half a day after:", illum(11, fullmoon(k) + 0.5))
 print("phase angle at the instant, degrees:", phase(11, fullmoon(k)))
 /* ---- expected output ----
-= 2026
 = 321.5
 = {2461043.91951, 2461073.42393, 2374964381/965, 1769554334/719, 2315953654/941, 1208445206/491, 2461221.49853, 2461251.10895, 2461280.68033, 1599851631/650, 2461339.67568, 1420209983/577, 2220181503/902}
 = first full moon: 2.41950742295 days into 2026

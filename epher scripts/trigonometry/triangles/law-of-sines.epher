@@ -44,10 +44,6 @@ print("b / sin B =", side_b(a_side, A, B) / sin(rad(B)))
 print("ASA: side a:", side_a_asa(c_side, A, B))
 print("ASA: side b:", side_b_asa(c_side, A, B))
 /* ---- expected output
-= 40
-= 60
-= 10 m
-= 100 m
 = angle C: 80 deg
 = AAS: side b: 13.4729635533 m
 = AAS: side c: 15.3208888624 m

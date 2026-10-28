@@ -24,7 +24,6 @@ while acc[1] < num do acc = {acc[1] + 1, acc[2] + (acc[1] + 1) ^ 2}
 print("by adding:", acc[2])
 print("they agree:", sq(num) == acc[2])
 /* ---- expected output ----
-= 10
 = formula: 385
 = {0, 0}
 = by adding: 385

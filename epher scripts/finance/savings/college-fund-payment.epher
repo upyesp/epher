@@ -31,9 +31,6 @@ print("growth supplies:", goal - (0 - tvm_pmt(years * 12, rate / 12, 0, goal)) *
 // 216 deposits of about 229.09 put in 49484.25; the remaining 30515.75 of
 // the goal (38%) comes from growth.
 /* ---- expected output ----
-= 80000
-= 0.05
-= 18
 = monthly deposit needed: 229.093748265
 = round trip: the deposits grow to: 80000
 = total deposited out of pocket: 49484.2496252

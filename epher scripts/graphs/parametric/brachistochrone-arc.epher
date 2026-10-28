@@ -29,7 +29,6 @@ graph param t - sin(t), 1 - cos(t) from 0 to 3.14159
 graph param t, 2 * t / pi from 0 to 3.14159
 
 /* ---- expected output ----
-= 9.80665
 = cycloid time, exact pi/sqrt(g): 1.00320464629
 = straight-ramp time, L/sqrt(g): 1.18924599959
 = the cycloid's advantage: 0.156436391931

@@ -40,7 +40,6 @@ print("100 gon =", todeg(100), "deg")
 print("90 deg = 100 gon:", togon(90) == 100)
 print("pi rad = 200 gon:", abs(fromrad(pi) - 200) < 1e-12)
 /* ---- expected output
-= {27, 90, 180, 360}
 = {30, 100, 200, 400}
 = pi/2 rad = 100 gon
 = pi rad = 200 gon

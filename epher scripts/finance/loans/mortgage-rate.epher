@@ -29,9 +29,6 @@ print("effective annual rate (1+r)^12 - 1:", (1 + r) ^ 12 - 1)
 // every month earns interest itself. The quoted APR is the nominal 8.232%;
 // the effective rate is what a year of that compounding truly costs.
 /* ---- expected output ----
-= 200000
-= 1500
-= 30
 = 0.00685998148446
 = monthly rate: 0.00685998148446
 = nominal annual rate (APR, 12 x monthly): 0.0823197778135

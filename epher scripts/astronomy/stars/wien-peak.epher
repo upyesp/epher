@@ -43,10 +43,6 @@ infrared value usually quoted; Sirius, hotter, peaks in the
 ultraviolet at 291 nm - which is why it sparkles blue-white. */
 
 /* ---- expected output
-= 5772
-= 9940
-= 3400
-= 3042
 = Wien's constant built in: 0.002897771955 m K
 = a 5772 K radiator peaks at 502.039493243 nm
 = Sun, 5772 K: 502.039493243 nm

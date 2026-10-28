@@ -23,7 +23,6 @@ print("det:", det(M))
 print("inverse by builtin inv:", inv(M))
 print("M inv(M) within 1e-9 of identity:", ierr3(M * inv(M)) < 1e-9)
 /* ---- expected output ----
-= [[1, 2, 3], [0, 1, 4], [5, 6, 0]]
 = det: 1
 = inverse by builtin inv: [[-24, 18, 5], [20, -15, -4], [-5, 4, 1]]
 = M inv(M) within 1e-9 of identity: true

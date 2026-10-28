@@ -59,7 +59,6 @@ print("seed 100, longest head run:", longest(100))
 // of the six is 6.5.
 print("log2(100), the expected scale:", log(100) / log(2))
 /* ---- expected output ----
-= 100
 = seed 17, longest head run: 5
 = seed 96, longest head run: 8
 = seed 97, longest head run: 5

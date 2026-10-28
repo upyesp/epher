@@ -90,10 +90,6 @@ print("cross-check: NOAA altitude", altv(j), "deg vs engine", alt(10, j, lat, lo
 print("cross-check: NOAA azimuth", aznoaa(j), "deg vs engine", az(10, j, lat, lon), "deg")
 
 /* ---- expected output ----
-= {2026, 6, 21}
-= 12.5
-= 51.4779
-= 0
 = 118138225/48
 = NOAA solar position for 2026-06-21T12:30:00 UT at lat 51.4779 lon 0
 = step 1  Julian centuries n: 0.264695984486

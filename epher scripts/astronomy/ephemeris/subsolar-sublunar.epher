@@ -47,7 +47,6 @@ sanity line is the sublunar point's LST vs the Moon's ra. */
 print("sublunar LST:", lst(tm, lonof(moonra)), "h  vs Moon ra:", moonra / 15, "h")
 
 /* ---- expected output ----
-= 29535533/12
 = 169.159366232
 = 4.661386822
 = 165.929578333

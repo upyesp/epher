@@ -44,14 +44,6 @@ about 49138.41 of interest. tvm_n's fractional term on the boosted payment is
 294.46 months on the same numbers, consistent with 295 full payments and a
 smaller last one. */
 /* ---- expected output ----
-= 200000
-= 0.06
-= 30
-= 100
-= 1199.10105031
-= 1299.10105031
-= 295
-= 602.261007745
 = minimum payment: 1199.10105031
 = months to pay off with the extra 100: 295
 = true last payment (smaller): 602.261007745

@@ -33,10 +33,6 @@ print("payments made in the first 10 years:", mbal_payment * (10 * 12))
 // it (one fifth) has reduced the debt; the other four fifths went to
 // interest. The balance is what a refinance would have to cover.
 /* ---- expected output ----
-= 250000
-= 0.065
-= 30
-= 1580.17005873
 = monthly payment: 1580.17005873
 = balance after 5 years: 234027.443604
 = balance after 10 years: 211940.315908

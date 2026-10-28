@@ -31,9 +31,6 @@ print("mean num * p:", num * p)
 print("stdev sqrt(num * p * (1 - p)):", sqrt(num * p * (1 - p)))
 
 /* ---- expected output ----
-= 100
-= 0.5
-= 55
 = exact binomial P(X <= 55): 0.864373487962
 = normal approximation with correction: 0.864333939054
 = difference: 0.0000395489088035

@@ -54,10 +54,6 @@ print("separation 6 h before:", sep(tmin - 0.25), "deg;  6 h after:", sep(tmin +
 print("Moon illuminated:", illum(11, tmin), "; planet magnitude:", mag(planet, tmin))
 
 /* ---- expected output ----
-= 5
-= 2026
-= 11
-= 2461345.5
 = 1
 = 2461346.5
 = 2461348.5

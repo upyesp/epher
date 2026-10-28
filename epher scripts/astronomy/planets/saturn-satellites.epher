@@ -70,7 +70,6 @@ next_phenomenon(6, 6, "Titan", when)
 spans about 4 degrees at Iapetus when the rings are wide open. */
 print("Saturn distance:", round(dist(6, when) * 100) / 100, "AU")
 /* ---- expected output ----
-= 2461300.5
 = Saturn's moons at 2026-09-17T00:00:00 UT
 = (separation from Saturn's centre, in arcseconds; W/E = which side)
 = Mimas: 22 arcsec E - visible

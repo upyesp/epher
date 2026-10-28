@@ -76,11 +76,6 @@ print("self-check: beta at the first crossing:", betaAt(j0 + tc1 / 24), "deg")
 print("self-check: beta at the second crossing:", betaAt(j0 + tc2 / 24), "deg")
 
 /* ---- expected output ----
-= 2026
-= 6
-= 2461192.5
-= 2461190.5
-= 18
 = 4
 = 10
 = node crossings of 6 / 2026 :

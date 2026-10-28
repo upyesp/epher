@@ -38,8 +38,6 @@ print("hands at 9:15:", hand_angle(9, 15), "deg")
 print("hands at 2:47:", hand_angle(2, 47), "deg")
 print("hands at 1:05:", hand_angle(1, 5), "deg")
 /* ---- expected output
-= {3, 6, 12, 9, 2, 1}
-= {0, 0, 30, 15, 47, 5}
 = {90, 180, 165, 172.5, 161.5, 2.5}
 = hands at 3:00: 90 deg
 = hands at 6:00: 180 deg

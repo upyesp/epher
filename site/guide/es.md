@@ -300,10 +300,7 @@ integrado, pero elegido por ti. Define una con `const`:
 ```epher
 const tax = 0.2
 ```
-
-```text
-0.2
-```
+Definir una constante no imprime nada: una constante es un ajuste, como un `def`, no una respuesta; la vinculación es real igualmente.
 
 Úsala donde pueda ir un número:
 
@@ -340,10 +337,6 @@ funcionan dentro de tus propias funciones.
 
 ```epher
 const g = 9.81
-```
-
-```text
-9.81
 ```
 
 ```epher
@@ -1183,7 +1176,6 @@ solve k*x == 12
 ```
 
 ```text
-3
 x = 4
 ```
 
@@ -2896,7 +2888,6 @@ Las constantes se guardan igual: `save` con el nombre de la constante:
 
 ```text
 epher> const tax = 0.2
-= 0.2
 epher> save tax
 saved tax
 ```

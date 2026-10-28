@@ -51,8 +51,6 @@ print("Sun altitude at the instant:", alt(10, tm, 51.4779, 0), "deg")
 print("Sun azimuth at the instant: ", az(10, tm, 51.4779, 0), "deg")
 
 /* ---- expected output ----
-= 11
-= 59071135/24
 = 171.739748292
 = 3.563921946
 = 200.354919245

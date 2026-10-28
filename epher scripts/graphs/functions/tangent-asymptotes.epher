@@ -27,7 +27,6 @@ print("a step from the wall, tan(1.57):", tan(1.57))
 graph tan(x) from -4.4 to 4.4
 
 /* ---- expected output ----
-= 3.14159265359
 = tan(0): 0
 = tan(pi/4): 1
 = tan(3*pi/4): -1

@@ -27,8 +27,6 @@ print("p(2):", p(cs, 2))
 print("remainder equals p(r):", rem == p(cs, 2))
 print("p = (x - r) q + rem holds at x = 1:", p(cs, 1) == (1 - r) * (cs[1] + q2 + q3) + rem)
 /* ---- expected output ----
-= {2, -1, 3, -5}
-= 2
 = 3
 = 9
 = 13

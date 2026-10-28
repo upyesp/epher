@@ -28,8 +28,6 @@ print("equation: y =", mof(P, Q), "x +", bof(P, Q))
 print("P lies on the line:", mof(P, Q) * P[1] + bof(P, Q) == P[2])
 print("Q lies on the line:", mof(P, Q) * Q[1] + bof(P, Q) == Q[2])
 /* ---- expected output ----
-= {0, 2}
-= {3, 4}
 = slope: 2/3
 = intercept: 2
 = equation: y = 2/3 x + 2

@@ -26,8 +26,6 @@ print("hypotenuse of the 3-4-5 triangle:", hyp(a, b))
 print("hypotenuse of a 5-12-13 triangle:", hyp(5, 12))
 print("the builtin hypot agrees:", hyp(a, b) == hypot(a, b))
 /* ---- expected output ----
-= 3
-= 4
 = hypotenuse of the 3-4-5 triangle: 5
 = hypotenuse of a 5-12-13 triangle: 13
 = the builtin hypot agrees: true

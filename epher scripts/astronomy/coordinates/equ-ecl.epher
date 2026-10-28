@@ -46,9 +46,6 @@ machine precision. */
 print("round-trip error < 1e-9 deg:", abs(eqra(lo, la) - ara) < 1e-9 and abs(eqde(lo, la) - ade) < 1e-9)
 
 /* ---- expected output ----
-= 279.23473479
-= 38.78368896
-= 2000
 = 285.316356041
 = 61.732802335
 = Vega J2000:  ra 18h 36m 56s  dec 38° 47' 1"

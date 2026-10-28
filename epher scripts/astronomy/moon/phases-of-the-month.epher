@@ -88,8 +88,6 @@ print("illum at that full moon:", illum(11, phase_jd(kf(j0, 0.5))))
 print("illum at that new moon:", illum(11, phase_jd(kf(j0, 0))))
 
 /* ---- expected output ----
-= 2026
-= 3
 = 2461100.5
 = 2461131.5
 = principal phases of 3 / 2026 UT:

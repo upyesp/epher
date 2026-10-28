@@ -42,7 +42,6 @@ print("sin^2(30 deg) + cos^2(30 deg) =", sin(rad(30)) ^ 2 + cos(rad(30)) ^ 2)
 print("1 + tan^2(30 deg) =", 1 + tan(rad(30)) ^ 2)
 print("sec^2(30 deg) =", 1 / cos(rad(30)) ^ 2)
 /* ---- expected output
-= {15, 30, 45, 60, 75}
 = {true, true, true, true, true}
 = {true, true, true, true, true}
 = {true, true, true, true, true}

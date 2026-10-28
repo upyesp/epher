@@ -72,8 +72,6 @@ at maximum: well under a degree for a central eclipse. */
 print("Moon-Sun separation at maximum:", mssep(ttd), "deg")
 
 /* ---- expected output ----
-= {2026, 1, 1}
-= 25
 = 322
 = 323
 = searching from 2026-01-01T00:00:00

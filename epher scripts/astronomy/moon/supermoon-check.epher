@@ -109,9 +109,6 @@ instant (both geocentric). */
 print("self-check: diam from dist:", 2 * deg(asin((r_moon / 1000) / dkm(i0))), "deg vs engine", diam(11, fullmoon(k0 + i0)), "deg")
 
 /* ---- expected output ----
-= 2026
-= 12
-= 321.5
 = 13
 = 12
 = 1

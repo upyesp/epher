@@ -32,13 +32,8 @@ print("monthly payment:", car_payment)
 print("total of 60 payments:", car_payment * (years * 12))
 print("interest over the term:", car_payment * (years * 12) - price * (1 - down))
 /* ---- expected output ----
-= 32000
-= 0.15
-= 0.069
-= 5
 = down payment: 4800
 = amount financed: 27200
-= 537.310224456
 = monthly payment: 537.310224456
 = total of 60 payments: 32238.6134674
 = interest over the term: 5038.61346738

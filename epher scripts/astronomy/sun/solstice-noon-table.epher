@@ -75,12 +75,6 @@ j = transit(10, jd(year, 6, 21), 51.48, 0)
 print("self-check, lat 51.48: formula", 90 - abs(51.48 - decl(10, j)), "vs engine", alt(10, j, 51.48, 0), "deg (transit)")
 
 /* ---- expected output ----
-= 2026
-= {0, 23.44, 40, 51.48, 66.56, 70}
-= 1129654133/459
-= 2461212.8509
-= 2252095451/915
-= 1951887320/793
 = noon altitude of the Sun (deg, geometric) at the season instants of 2026
 = lat | spring 03-20 | summer 06-21 | autumn 09-23 | winter 12-21
 = lat 0 : 89.999901617 66.562069598 89.999960714 66.56252625

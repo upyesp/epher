@@ -36,9 +36,6 @@ print("near new moon (day 15):", illum(11, jd(year, month, 15)))
 print("full instant (day 29, 23.97 hr UT):", illum(11, jd(year, month, 29, 23.97)))
 
 /* ---- expected output ----
-= 2026
-= 6
-= {1, 8, 15, 22, 29}
 = {0.9946, 0.5447, 0.0019, 0.5102, 0.9894}
 = near new moon (day 15): 0.0019
 = full instant (day 29, 23.97 hr UT): 0.9988

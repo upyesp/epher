@@ -75,12 +75,6 @@ polar night lifting around Feb 16 (their -0.833-deg sunrise horizon
 leads the geometric crossing by up to two days, as the header says). */
 print("known case check (timeanddate): 2026-06-21 polar day at Longyearbyen:", rgh(j0, lat) == 1)
 /* ---- expected output ----
-= 78.2
-= 15.6
-= {2026, 6, 21}
-= {2026, 12, 21}
-= 51.4779
-= 0
 = 2461212.5
 = 2461395.5
 = 63

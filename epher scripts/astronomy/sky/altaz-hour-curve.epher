@@ -89,30 +89,10 @@ cx2 = (sin(rad(-0.833)) - sin(rad(latp)) * sin(rad(d2))) / (cos(rad(latp)) * cos
 if abs(cx2) > 1 then print("polar night at Svalbard (lat 78.2), 2026-12-21: the Sun never rises") else print("2026-12-21 at lat 78.2: the Sun does rise")
 print("  solar declination at the day's transit:", d2, "deg")
 /* ---- expected output ----
-= 6
-= {2026, 9, 21}
-= 51.4779
-= 0
-= 78.2
-= 15.6
-= {2026, 12, 21}
 = 2461304.5
 = 2436692219/990
 = 1252804648/509
 = 2461305.53174
-= 3.9150281
-= 13.1956692
-= 22.0146995
-= 29.8631851
-= 36.0929823
-= 39.9481638
-= 40.7899105
-= 38.4555898
-= 33.3742617
-= 26.2827502
-= 17.8995293
-= 8.8026656
-= 40.7899105
 = Saturn, night of 2026-09-21 at lat 51.4779 lon 0
 =   above the horizon 2026-09-21T18:31:16 to 2026-09-22T07:00:07
 =   transits about 2026-09-22T00:45:43

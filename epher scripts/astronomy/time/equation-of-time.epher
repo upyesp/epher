@@ -65,10 +65,6 @@ fall near April 15, June 13, September 1 and December 25. */
 print("year's spread (Nov max minus Feb min):", eot(jd(d_nov[1], d_nov[2], d_nov[3])) - eot(jd(d_feb[1], d_feb[2], d_feb[3])), "min")
 
 /* ---- expected output ----
-= {2026, 2, 12}
-= {2026, 4, 15}
-= {2026, 6, 21}
-= {2026, 11, 3}
 = equation of time, minutes (sundial fast +):
 = 2026-02-12: -14.1935995278
 = 2026-04-15: -0.158945038735

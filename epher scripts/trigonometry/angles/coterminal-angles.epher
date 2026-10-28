@@ -36,7 +36,6 @@ for x in angs do (cot(x) >= 0 and cot(x) < 360)
 print("coterminal with 750 deg:", cot(750), "deg")
 print("coterminal with -45 deg:", cot(-45), "deg")
 /* ---- expected output
-= {750, 930, -45, 1440, -720, 3620}
 = {30, 210, 315, 0, 0, 20}
 = {2, 2, -1, 4, -2, 10}
 = {true, true, true, true, true, true}

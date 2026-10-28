@@ -23,7 +23,6 @@ print("x:", lnx(rhs))
 print("2^x:", 2 ^ lnx(rhs))
 print("2^x = 12 within 1e-9:", abs(2 ^ lnx(rhs) - rhs) < 1e-9)
 /* ---- expected output ----
-= 12
 = x: 3.58496250072
 = 2^x: 12
 = 2^x = 12 within 1e-9: true

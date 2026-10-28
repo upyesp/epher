@@ -30,9 +30,6 @@ q3 = cs[3] + r1 * q2             // echoes 2
 rem = cs[4] + r1 * q3            // echoes 0
 print("division identity holds at x = 5:", p(cs, 5) == (5 - r1) * (5 ^ 2 - 3 * 5 + 2) + rem)
 /* ---- expected output ----
-= {1, -6, 11, -6}
-= 3
-= 4
 = p(3): 0
 = p(4): 6
 = does p(3) = 0, so (x - 3) is a factor? true

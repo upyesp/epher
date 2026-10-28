@@ -28,8 +28,6 @@ print("30-60-90 triangle:", third(30, 60), "degrees")
 print("70-70 isosceles:", third(70, 70), "degrees")
 print("a right triangle needs", third(90, 47), "degrees more")
 /* ---- expected output ----
-= 35
-= 65
 = third angle: 80 degrees
 = the three sum to 180: true
 = 30-60-90 triangle: 90 degrees

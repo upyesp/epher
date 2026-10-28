@@ -29,9 +29,6 @@ print("S25 by adding:", acc[2])
 print("formula equals the sum:", sn(a, step, num) == acc[2])
 print("Gauss pairing num (t1 + t25) / 2:", num * (tn(a, step, 1) + tn(a, step, num)) / 2)
 /* ---- expected output ----
-= 3
-= 4
-= 25
 = S25 by formula: 1275
 = {0, 0}
 = S25 by adding: 1275

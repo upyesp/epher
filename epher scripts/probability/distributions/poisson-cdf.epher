@@ -42,7 +42,6 @@ print("P(X <= 8):", poissoncdf(8, rate))
 print("mean and variance:", rate)
 print("standard deviation:", sqrt(rate))
 /* ---- expected output ----
-= 2
 = poissoncdf(2, 2): 0.67667641619
 = hand sum 5 * e^-2: 0.676676416183
 = P(X >= 3): 0.32332358381

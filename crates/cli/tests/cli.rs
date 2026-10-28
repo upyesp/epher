@@ -656,10 +656,9 @@ fn script_files_whole_parse_spanning_block_comments() {
         String::from_utf8_lossy(&out.stderr)
     );
     assert!(out.stderr.is_empty());
-    assert_eq!(
-        String::from_utf8_lossy(&out.stdout),
-        "= 6\n= n squared: 36\n"
-    );
+    // ADR-0080: the `const n = 6` knob defines a constant and prints
+    // nothing; only the labeled result reaches the transcript.
+    assert_eq!(String::from_utf8_lossy(&out.stdout), "= n squared: 36\n");
 }
 
 #[test]
@@ -716,6 +715,7 @@ fn repl_load_runs_whole_files_with_spanning_comments() {
     let input = format!("load {}\nquit\n", file.display());
     let (stdout, stderr) = repl_session(dir.path().to_str().unwrap(), &input);
     assert!(stderr.is_empty(), "stderr: {stderr}");
-    assert!(stdout.contains("= 21"), "out was: {stdout}");
+    // ADR-0080: the loaded constant prints nothing; the result does.
+    assert!(!stdout.contains("= 21\n"), "out was: {stdout}");
     assert!(stdout.contains("= double: 42"), "out was: {stdout}");
 }

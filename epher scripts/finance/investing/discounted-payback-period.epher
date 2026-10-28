@@ -45,9 +45,6 @@ because the 40000 inflows of years 3 and 4 are worth only 31753.29 and
 22050.90 once discounted. Raise the discount rate far enough and the
 project never pays back at all (its npv turns negative). */
 /* ---- expected output ----
-= 100000
-= 0.08
-= {30000, 40000, 40000, 30000}
 = {{1, -650000/9}, {2, -27650000/729}, {3, -6175.37976934}, {4, 15875.5158145}}
 = npv (the row 4 total), builtin check: 15875.5158145
 = {0, -100000}

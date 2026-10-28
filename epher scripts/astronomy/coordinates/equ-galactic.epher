@@ -42,11 +42,6 @@ print("NCP b within 0.01 of +27.12825:", abs(glat(0, 90) - 27.12825) < 0.01)
 print("NCP l within 0.01 of 122.93192:", abs(glon(0, 90) - 122.93192) < 0.01)
 
 /* ---- expected output ----
-= 266.4168
-= -29.0078
-= 192.85948
-= 27.12825
-= 122.93192
 = galactic center:  l 359.94424321  b -0.0461317156453
 = north c. pole:    l 122.93192  b 27.12825
 = NCP b within 0.01 of +27.12825: true

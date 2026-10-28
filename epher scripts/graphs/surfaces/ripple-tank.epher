@@ -27,7 +27,6 @@ print("decay from r = 1 to r = 4:", (1 / (1 + 1)) / (1 / (1 + 4)))
 graph3d sin(3 * sqrt(x ^ 2 + y ^ 2)) / (1 + sqrt(x ^ 2 + y ^ 2)) from -6.3 to 6.3
 
 /* ---- expected output ----
-= 3
 = the source stays calm in this model, sin(0) = 0: true
 = first crest on the x-axis at r = pi/(2*k): 0.523598775598
 = ring spacing, 2*pi/k: 2.09439510239

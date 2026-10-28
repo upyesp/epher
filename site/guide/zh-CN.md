@@ -281,10 +281,7 @@ ans * 2
 ```epher
 const tax = 0.2
 ```
-
-```text
-0.2
-```
+定义常量不会打印任何内容——常量是设置，和 `def` 一样，不是答案；但绑定确实生效。
 
 在任何可以使用数字的地方都可以使用它：
 
@@ -320,10 +317,6 @@ error: constant already defined: tax
 
 ```epher
 const g = 9.81
-```
-
-```text
-9.81
 ```
 
 ```epher
@@ -1123,7 +1116,6 @@ solve k*x == 12
 ```
 
 ```text
-3
 x = 4
 ```
 
@@ -2617,7 +2609,6 @@ epher> fib(10)
 
 ```text
 epher> const tax = 0.2
-= 0.2
 epher> save tax
 saved tax
 ```

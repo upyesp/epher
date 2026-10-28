@@ -48,10 +48,6 @@ the pole and the zenith lie north of the object - so q must read
 print("q on the meridian (expect 0, south transit):", qa(0, lat, bde), "deg")
 
 /* ---- expected output ----
-= 4
-= 2461294.375
-= 51.4779
-= 0
 = 111.301826937
 = 22.6874052
 = -166.392931663

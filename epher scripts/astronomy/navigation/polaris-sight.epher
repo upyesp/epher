@@ -51,11 +51,6 @@ latz = deg(asin(sin(rad(ho)) / sqrt(cos(rad(pd)) ^ 2 + (sin(rad(pd))) ^ 2))) - d
 print("H = 0 gives Ho - pd:", latz, "vs", ho - pd, "(equal:", latz == ho - pd, ")")
 
 /* ---- expected output ----
-= 51.28
-= 29535533/12
-= -5
-= 37.9554
-= 89.2642
 = 12998/487
 = 89.3754080767
 = 0.62459192334

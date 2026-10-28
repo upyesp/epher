@@ -31,9 +31,6 @@ which runs the full 360 months. The extra 419.83 per month shortens the
 term by about 150.75 months (12.6 years) and saves roughly 150,000 of
 interest. */
 /* ---- expected output ----
-= 250000
-= 0.065
-= 2000
 = 209.246700004
 = paying 2000 per month clears the loan in: 209.246700004 months
 = that is 17.4372250004 years
