@@ -32,9 +32,6 @@ print("wavelength at 220 Hz:", wavelength(vsnd, f2), "=", wavelength(vsnd, f2) i
 // The relation inverts cleanly: lambda times f is the speed again.
 print("lambda x f = v:", abs((wavelength(vsnd, f1) * f1) / vsnd - 1) < 1e-12)
 /* ---- expected output
-= 343 m/s
-= 440 Hz
-= 220 Hz
 = wavelength at 440 Hz: 0.779545454545 m = 77.9545454545 cm
 = wavelength at 220 Hz: 1.55909090909 m = 155.909090909 cm
 = lambda x f = v: true

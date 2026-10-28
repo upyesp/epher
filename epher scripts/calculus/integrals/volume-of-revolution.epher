@@ -29,8 +29,6 @@ print("exact:", 32*pi/5)
 print("they agree:", abs(pi*integral(x^4, a, b) - 32*pi/5) < 1e-9)
 
 /* ---- expected output ---------------------------------------------------------
-= 0
-= 2
 = volume by the disc method: 20.106192983
 = exact: 20.106192983
 = they agree: true

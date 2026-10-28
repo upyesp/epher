@@ -42,10 +42,6 @@ the annuity wins; invested at 5% the lump runs dry after 285.14 months
 effective) the lump sum overtakes the annuity: then investing it yourself
 is the better deal. */
 /* ---- expected output ----
-= 500000
-= 3000
-= 30
-= 0.05
 = annuity present value at 5%: 558844.85
 = the stream beats the lump sum by: 58844.85
 = better deal at 5%: the 3000/month annuity (worth more today)

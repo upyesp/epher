@@ -51,14 +51,14 @@ def is_eclipse(k) = abs(sin(rad(mf(k)))) <= 0.36 and abs(gamma(k)) <= 1.5433 + u
 def next_hit(k, n) = if n == 0 then -1 else if is_eclipse(k) then k else next_hit(k + 1, n - 1)
 def mssep(j) = deg(acos(sin(rad(decl(11, j))) * sin(rad(decl(10, j))) + cos(rad(decl(11, j))) * cos(rad(decl(10, j))) * cos(rad(ra(11, j) - ra(10, j)))))
 
-k0 = ceil(kb(jd(day[1], day[2], day[3])))
-k = next_hit(k0, maxscan)
+const k0 = ceil(kb(jd(day[1], day[2], day[3])))
+const k = next_hit(k0, maxscan)
 
 // ---- results ------------------------------------------------------------------
 print("searching from", iso(jd(day[1], day[2], day[3])))
 print("next solar eclipse (lunation k):", k)
 print("kind:", kind(k), ", gamma:", gamma(k))
-ttd = tmax(k)
+const ttd = tmax(k)
 print("maximum eclipse:", iso(ttd - delta_t(ttd) / 86400), "UT")
 
 /* Self-check, canon-style: NASA's Five Millennium Canon lists the
@@ -72,14 +72,9 @@ at maximum: well under a degree for a central eclipse. */
 print("Moon-Sun separation at maximum:", mssep(ttd), "deg")
 
 /* ---- expected output ----
-= {2026, 1, 1}
-= 25
-= 322
-= 323
 = searching from 2026-01-01T00:00:00
 = next solar eclipse (lunation k): 323
 = kind: annular , gamma: -0.973790137956
-= 2461089.00969
 = maximum eclipse: 2026-02-17T12:12:48 UT
 = Moon-Sun separation at maximum: 0.923871600674 deg
 */

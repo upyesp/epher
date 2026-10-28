@@ -49,7 +49,6 @@ print("derangements of 4 objects:", der(4))
 print("share that are derangements, for large n:", 1 / exp(1))
 print("share for n = 8:", der(8) / fact(8))
 /* ---- expected output ----
-= 8
 = {8.82910658811, 44.1455329406, 264.873197643, 1854.1123835, 14832.899068}
 = {9, 44, 265, 1854, 14833}
 = {true, true, true, true, true}

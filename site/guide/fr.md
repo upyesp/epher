@@ -303,10 +303,7 @@ intégré, mais choisi par vous. Définissez-en une avec `const` :
 ```epher
 const tax = 0.2
 ```
-
-```text
-0.2
-```
+Définir une constante n'affiche rien : une constante est un réglage, comme un `def`, pas une réponse ; la liaison est bien réelle.
 
 Utilisez-la partout où un nombre peut aller :
 
@@ -343,10 +340,6 @@ elles fonctionnent à l'intérieur de vos propres fonctions.
 
 ```epher
 const g = 9.81
-```
-
-```text
-9.81
 ```
 
 ```epher
@@ -1198,7 +1191,6 @@ solve k*x == 12
 ```
 
 ```text
-3
 x = 4
 ```
 
@@ -2371,7 +2363,7 @@ Une réponse courte et unique reste sur cette ligne. Une réponse plus
 longue - la sortie d'un script avec plusieurs réponses, un tableau, un
 long nombre - apparaît dans le volet de résultats, le volet qui montre
 aussi les graphiques, avec une réponse par ligne ; sur un téléphone le
-volet s'amène tout seul à l'écran. Une icône de copie se trouve juste à gauche de la réponse : appuyez-y et les valeurs de la réponse arrivent dans le presse-papiers, une par ligne ; les longues réponses du volet de résultats se copient de la même façon.
+volet s'amène tout seul à l'écran. Une icône de copie se trouve juste à gauche de la réponse : appuyez-y et les valeurs de la réponse arrivent dans le presse-papiers, une par ligne ; les longues réponses du volet de résultats se copient de la même façon. Le volet lui-même se lit bien : les échos de préparation d'un script s'affichent en grisé sous les résultats étiquetés, la dernière ligne étiquetée porte la réponse, les matrices deviennent des grilles alignées, les verdicts portent une coche, et le bouton Nombres courts affiche les valeurs à six chiffres significatifs (la valeur complète au survol) — la copie envoie toujours les valeurs telles quelles.
 
 Pendant que vous tapez un nom, une liste de suggestions apparaît sous le champ : les flèches déplacent la sélection, **Entrée** ou **Tab** accepte, **Échap** referme, et un clic accepte sans quitter le clavier. Chaque suggestion porte une courte description de la fonction ou de la constante. **F1** affiche la même description pour le mot sous le curseur dans la barre d'aide au-dessus du clavier. Si le premier caractère saisi dans un champ vide est un opérateur (`+ - * / ^ % !`), epher insère `ans` pour vous : la ligne continue depuis le résultat précédent.
 
@@ -2926,7 +2918,6 @@ Les constantes s'enregistrent pareil : `save` sur le nom de la constante :
 
 ```text
 epher> const tax = 0.2
-= 0.2
 epher> save tax
 saved tax
 ```

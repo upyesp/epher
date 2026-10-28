@@ -31,7 +31,6 @@ print("closes in on 1/2:", abs((1 - cos(1e-4))/(1e-4)^2 - 1/2) < 1e-8)
 print("the stable double-angle form:", 2*sin(xv/2)^2/xv^2)
 
 /* ---- expected output ---------------------------------------------------------
-= 0.00000001
 = the direct form: 0
 = {0.499995833347, 0.499999958326, 0.499999996961}
 = closes in on 1/2: true

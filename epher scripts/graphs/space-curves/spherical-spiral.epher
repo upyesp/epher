@@ -3,7 +3,7 @@ spherical-spiral.epher -- a Clelia: longitude in lockstep with latitude
 
 Let the latitude run steadily from pole to pole while the longitude
 turns k times: x = cos(t/2)*cos(4*t), y = cos(t/2)*sin(4*t),
-z = sin(t/2). The curve never leaves the unit sphere - it is a
+const z = sin(t/2). The curve never leaves the unit sphere - it is a
 "Clelia", named for Grandi's Contessa Clelia Borromeo (Guido Grandi,
 1728; MathWorld, "Spherical Spiral") - the seam pattern of a tennis
 ball is its cousin. The script graphs it and checks the sphere

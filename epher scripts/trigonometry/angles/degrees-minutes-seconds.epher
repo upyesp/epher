@@ -41,7 +41,6 @@ print("dms2deg(37, 46, 30):", dms2deg(37, 46, 30))
 // A half minute more: 122 deg 32' 30", and deg2dms rounds to whole seconds.
 print("deg2dms(122.541666666667):", deg2dms(122.541666666667))
 /* ---- expected output
-= 122.5375
 = deg2dms(122.5375): 122° 32' 15"
 = dms2deg(122, 32, 15): 122.5375
 = by hand: 122 deg 32 min 15 sec

@@ -35,8 +35,6 @@ motion, so right ascension must increase week over week. */
 print("ra advancing week over week:", ra(body, t0 + 7) > ra(body, t0) and ra(body, t0 + 14) > ra(body, t0 + 7))
 
 /* ---- expected output ----
-= 5
-= 2461293.5
 = Jupiter, weekly track from 2026-09-10T00:00:00
 = week  date                 ra            dec           dist (AU)  mag
 = 0 2026-09-10T00:00:00 9h 12m 46s 16° 41' 35" 6.12978019676 -1.81

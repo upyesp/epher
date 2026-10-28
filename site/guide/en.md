@@ -298,9 +298,8 @@ A *constant* is a name for a value that never changes, like the built-in
 const tax = 0.2
 ```
 
-```text
-0.2
-```
+Defining a constant prints nothing - a knob is machinery, like a `def`,
+not an answer. The binding is real all the same.
 
 Use it anywhere a number can go:
 
@@ -337,10 +336,6 @@ work inside your own functions.
 
 ```epher
 const g = 9.81
-```
-
-```text
-9.81
 ```
 
 ```epher
@@ -1189,7 +1184,6 @@ solve k*x == 12
 ```
 
 ```text
-3
 x = 4
 ```
 
@@ -2394,7 +2388,7 @@ works here, including variables, functions, and scripts. A short single
 answer stays on that line. A longer answer - a script's transcript with
 several answers, a table, a long number - appears in the result pane, the
 pane that also shows graphs, with one answer per line; on a phone the
-pane slides into view on its own. A copy icon sits just left of the answer: press it and the answer's values land on the clipboard, one per line; the result pane's long answers copy the same way.
+pane slides into view on its own. A copy icon sits just left of the answer: press it and the answer's values land on the clipboard, one per line; the result pane's long answers copy the same way. The pane itself reads well too: a script's setup echoes sit dimmed beneath the labeled results, the final labeled line carries the answer's weight, matrices render as aligned grids, verdicts wear a check, and a Short numbers toggle shows values at six significant digits with the full value on hover - copying always sends the values verbatim.
 
 While you type a name, a suggestion list appears beneath the field: the
 arrows move the highlight, **Enter** or **Tab** accepts, **Esc** closes,
@@ -2950,7 +2944,6 @@ Constants save the same way. `save` on the constant's name:
 
 ```text
 epher> const tax = 0.2
-= 0.2
 epher> save tax
 saved tax
 ```

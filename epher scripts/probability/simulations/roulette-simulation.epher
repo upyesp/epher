@@ -42,7 +42,6 @@ print("simulated value per spin:", (4 * v[2] - 2 * spins) / spins)
 print("theoretical value per spin:", -2/37)
 print("expected loss over", spins, "spins:", -2 * spins / 37)
 /* ---- expected output ----
-= 10000
 = 31
 = {0, 0}
 = spins: 10000

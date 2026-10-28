@@ -25,12 +25,22 @@ print("2^10 = 1024:", 0b10000000000)
 print("the largest four-bit value, 15:", 0b1111)
 
 // ---- a list at a glance ---------------------------------------------------------------
-for x in {0b1, 0b10, 0b101, 0b1111, 0b101010, 0b11111111} do x
+print("0b1 reads as:", 0b1)
+print("0b10 reads as:", 0b10)
+print("0b101 reads as:", 0b101)
+print("0b1111 reads as:", 0b1111)
+print("0b101010 reads as:", 0b101010)
+print("0b11111111 reads as:", 0b11111111)
 /* ---- expected output ----
 = 32 + 8 + 2: 42
 = reads as 42: 42
 = eight bits set, 128 + 64 + ... + 1 = 255: 255
 = 2^10 = 1024: 1024
 = the largest four-bit value, 15: 15
-= {1, 2, 5, 15, 42, 255}
+= 0b1 reads as: 1
+= 0b10 reads as: 2
+= 0b101 reads as: 5
+= 0b1111 reads as: 15
+= 0b101010 reads as: 42
+= 0b11111111 reads as: 255
 */

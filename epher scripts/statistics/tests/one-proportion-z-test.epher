@@ -31,9 +31,6 @@ print("two-sided p:", 2 * normcdf(zstat()))   // p = 0.191: 42 of 200 (21%) does
                                         // not differ significantly from 25%
 
 /* ---- expected output ----
-= 42
-= 200
-= 0.25
 = sample proportion: 0.21
 = standard error under p0: 0.0306186217848
 = z: -1.30639452948

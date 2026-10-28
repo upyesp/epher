@@ -36,10 +36,6 @@ mortgages are paid; the unrounded total is 568861.2211436688. Interest
 dominates early: the first month's interest alone is principal*rate/12 =
 1354.17 of the 1580.17 payment, about 86%. */
 /* ---- expected output ----
-= 250000
-= 0.065
-= 30
-= 1580.17005873
 = monthly payment: 1580.17005873
 = total paid over the term: 568861.22
 = total interest over the term: 318861.22

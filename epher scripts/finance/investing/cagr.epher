@@ -31,9 +31,6 @@ print("compounding check, start*(1+cagr)^8:", start * (1 + cagr(start, end, year
 // The 10000 grew to 35000 in 8 years: a smooth 16.952% a year, even if the
 // year-by-year returns actually swung around that average.
 /* ---- expected output ----
-= 10000
-= 35000
-= 8
 = cagr: 0.169522295584
 = cagr in percent: 16.9522295584
 = compounding check, start*(1+cagr)^8: 35000

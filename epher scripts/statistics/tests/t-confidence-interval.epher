@@ -28,8 +28,6 @@ print("95% t interval for the mean:", tinterval(step, level))
 print("the wider 99% t interval:", tinterval(step, 0.99))
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-= 0.95
 = sample mean: 81.3
 = sample stdev (n - 1): 9.91127304302
 = 95% t interval for the mean: (74.2099, 88.3901)

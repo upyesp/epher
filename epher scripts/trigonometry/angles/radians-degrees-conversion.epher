@@ -19,10 +19,10 @@ const degs = {30, 45, 60, 90, 180}   // sample angles, in degrees
 
 // ---- results -----------------------------------------------------------------
 // Degrees to radians: each entry of degs through the builtin rad().
-for x in degs do rad(x)
+for x in degs do print("radians for", x, "deg:", rad(x))
 
 // Radians back to degrees: deg() is the inverse of rad().
-for x in degs do deg(rad(x))
+for x in degs do print("back to degrees from rad(", x, "):", deg(rad(x)))
 
 // Three landmark radians in degrees. deg(pi) is a good check: the pi in
 // pi * 180 / pi cancels and the answer is 180 to double precision.
@@ -37,16 +37,15 @@ print("cos(45 deg) =", cos(45 deg))
 print("tan(60 deg) =", tan(60 deg))
 
 // Round trips land back on the knob values (within 1e-12 degree).
-for x in degs do abs(deg(rad(x)) - x) < 1e-12
+for x in degs do print("round trip at", x, "deg is exact:", abs(deg(rad(x)) - x) < 1e-12)
 /* ---- expected output
-= {30, 45, 60, 90, 180}
-= {0.523598775598, 0.785398163397, 1.0471975512, 1.57079632679, 3.14159265359}
-= {30, 45, 60, 90, 180}
+= {radians for 30 deg: 0.523598775598, radians for 45 deg: 0.785398163397, radians for 60 deg: 1.0471975512, radians for 90 deg: 1.57079632679, radians for 180 deg: 3.14159265359}
+= {back to degrees from rad( 30 ): 30, back to degrees from rad( 45 ): 45, back to degrees from rad( 60 ): 60, back to degrees from rad( 90 ): 90, back to degrees from rad( 180 ): 180}
 = 1 rad = 57.2957795131 deg
 = pi rad = 180 deg
 = tau rad = 360 deg
 = sin(30 deg) = 0.5
 = cos(45 deg) = 0.707106781187
 = tan(60 deg) = 1.73205080757
-= {true, true, true, true, true}
+= {round trip at 30 deg is exact: true, round trip at 45 deg is exact: true, round trip at 60 deg is exact: true, round trip at 90 deg is exact: true, round trip at 180 deg is exact: true}
 */

@@ -33,24 +33,18 @@ def epsdeg(j) = 23.4392911 - 46.8150 * ((j - 2451545) / 36525) / 3600 - 0.00059 
 def eclon(ar, dr) = deg(atan2(sin(rad(ar)) * cos(rad(epsdeg(tm))) + tan(rad(dr)) * sin(rad(epsdeg(tm))), cos(rad(ar))))
 def eclat(ar, dr) = deg(asin(sin(rad(dr)) * cos(rad(epsdeg(tm))) - cos(rad(dr)) * sin(rad(epsdeg(tm))) * sin(rad(ar))))
 
-mra = ra(body, tm)
-mde = decl(body, tm)
-sra = ra(10, tm)
-sde = decl(10, tm)
+const mra = ra(body, tm)      // Mars right ascension, computed once
+const mde = decl(body, tm)    // Mars declination
+const sra = ra(10, tm)        // the Sun's right ascension
+const sde = decl(10, tm)      // the Sun's declination
 
 // ---- results --------------------------------------------------------------------
 print("at", iso(tm))
-print("Mars   ecliptic lon", eclon(mra, mde), "  lat", eclat(mra, mde))
-print("Sun    ecliptic lon", eclon(sra, sde), "  lat", eclat(sra, sde))
+print("Mars   ecliptic lon:", eclon(mra, mde), " lat:", eclat(mra, mde))
+print("Sun    ecliptic lon:", eclon(sra, sde), " lat:", eclat(sra, sde))
 
 /* ---- expected output ----
-= 4
-= 29535523/12
-= 110.773499465
-= 22.74523044
-= 168.410710614
-= 4.977535832
 = at 2026-09-10T02:00:00
-= Mars   ecliptic lon 109.093783646   lat 0.67567275331
-= Sun    ecliptic lon 167.40045609   lat 0.000497719747027
+= Mars   ecliptic lon: 109.093783646  lat: 0.67567275331
+= Sun    ecliptic lon: 167.40045609  lat: 0.000497719747027
 */

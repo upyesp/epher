@@ -22,10 +22,6 @@ print("P Q (2x2 times 2x2):", P * Q)
 print("R S (2x3 times 3x2):", R * S)
 print("entry (P Q)[2][1] by hand:", P[2][1] * Q[1][1] + P[2][2] * Q[2][1])
 /* ---- expected output ----
-= [[1, 2], [3, 4]]
-= [[5, 6], [7, 8]]
-= [[1, 2, 3], [4, 5, 6]]
-= [[7, 8], [9, 10], [11, 12]]
 = P Q (2x2 times 2x2): [[19, 22], [43, 50]]
 = R S (2x3 times 3x2): [[58, 64], [139, 154]]
 = entry (P Q)[2][1] by hand: 43

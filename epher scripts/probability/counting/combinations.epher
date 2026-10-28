@@ -50,7 +50,6 @@ print("row 5 of Pascal's triangle sums to:", v[2])
 print("and 2^5 =", 2 ^ 5)
 print("the row sum equals 2^5:", v[2] == 2 ^ 5)
 /* ---- expected output ----
-= 10
 = committees of 3 from 10 people: 120
 = the same choice as 7 left out: 120
 = symmetry: choosing the 3 members equals leaving out 7: true

@@ -31,7 +31,6 @@ print("Venus:", mag(2, tm), "(brighter than Sirius at -1.46)")
 print("Jupiter:", mag(5, tm))
 
 /* ---- expected output ----
-= 2461192.5
 = {-0.55, -3.98, 1.27, -1.88, 0.65, 5.81, 7.91, 14.4693840929}
 = Venus: -3.98 (brighter than Sirius at -1.46)
 = Jupiter: -1.88

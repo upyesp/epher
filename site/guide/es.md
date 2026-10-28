@@ -300,10 +300,7 @@ integrado, pero elegido por ti. Define una con `const`:
 ```epher
 const tax = 0.2
 ```
-
-```text
-0.2
-```
+Definir una constante no imprime nada: una constante es un ajuste, como un `def`, no una respuesta; la vinculación es real igualmente.
 
 Úsala donde pueda ir un número:
 
@@ -340,10 +337,6 @@ funcionan dentro de tus propias funciones.
 
 ```epher
 const g = 9.81
-```
-
-```text
-9.81
 ```
 
 ```epher
@@ -1183,7 +1176,6 @@ solve k*x == 12
 ```
 
 ```text
-3
 x = 4
 ```
 
@@ -2352,7 +2344,7 @@ Una respuesta corta y única se queda en esa línea. Una respuesta más
 larga - la salida de un script con varias respuestas, una tabla, un
 número largo - aparece en el panel de resultados, el panel que también
 muestra gráficas, con una respuesta por línea; en el teléfono el panel
-se desliza a la vista por sí solo. A la izquierda de la respuesta hay un icono de copiar: al pulsarlo, los valores de la respuesta quedan en el portapapeles, uno por línea; las respuestas largas del panel de resultados se copian igual.
+se desliza a la vista por sí solo. A la izquierda de la respuesta hay un icono de copiar: al pulsarlo, los valores de la respuesta quedan en el portapapeles, uno por línea; las respuestas largas del panel de resultados se copian igual. El propio panel también se lee bien: los ecos de configuración de un script aparecen atenuados bajo los resultados etiquetados, la última línea etiquetada lleva el peso de la respuesta, las matrices se muestran como cuadrículas alineadas, los veredictos llevan una marca de verificación y el interruptor de números cortos muestra los valores con seis cifras significativas (el valor completo al pasar el cursor): copiar siempre envía los valores tal cual.
 
 Mientras escribes un nombre, aparece una lista de sugerencias debajo del campo: las flechas mueven el resaltado, **Intro** o **Tab** acepta, **Esc** cierra, y un clic acepta sin salir del teclado. Cada sugerencia lleva una descripción breve de la función o constante. **F1** muestra la misma descripción de la palabra bajo el cursor en la barra de pistas sobre el teclado. Si lo primero que escribes en un campo vacío es un operador (`+ - * / ^ % !`), epher inserta `ans` por ti, y la línea continúa desde la respuesta anterior.
 
@@ -2896,7 +2888,6 @@ Las constantes se guardan igual: `save` con el nombre de la constante:
 
 ```text
 epher> const tax = 0.2
-= 0.2
 epher> save tax
 saved tax
 ```

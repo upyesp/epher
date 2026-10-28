@@ -44,9 +44,6 @@ print("day 22 rebuilt:", lit(phase(11, jd(year, month, 22))), "vs", illum(11, jd
 print("day 29 rebuilt:", lit(phase(11, jd(year, month, 29))), "vs", illum(11, jd(year, month, 29)))
 
 /* ---- expected output ----
-= 2026
-= 6
-= {1, 8, 15, 22, 29}
 = {8.43, 84.88, 174.94, 88.84, 11.81}
 = {0.9946, 0.5447, 0.0019, 0.5102, 0.9894}
 = day 1  rebuilt: 0.994597854232 vs 0.9946

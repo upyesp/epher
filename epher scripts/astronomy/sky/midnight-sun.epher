@@ -51,10 +51,10 @@ polar day, the December one inside the polar night. The scans then
 count the days to the spell's end - the declination falling back below
 90 - 78.2 = 11.8 deg in late August, and climbing back above -11.8 deg
 in mid-February. */
-j0 = jd(day1[1], day1[2], day1[3])
-j2 = jd(day2[1], day2[2], day2[3])
-n1 = nxt(j0 + 2, j0, lat, rgh(j0, lat))
-n2 = nxt(j2 + 2, j2, lat, rgh(j2, lat))
+const j0 = jd(day1[1], day1[2], day1[3])
+const j2 = jd(day2[1], day2[2], day2[3])
+const n1 = nxt(j0 + 2, j0, lat, rgh(j0, lat))
+const n2 = nxt(j2 + 2, j2, lat, rgh(j2, lat))
 
 print("polar day/night test, lat", lat, "lon", lon, ": threshold |decl| >", 90 - abs(lat), "deg")
 print("2026-06-21:", cl(j0, lat), "(declination", decl(10, j0), "deg)")
@@ -75,16 +75,6 @@ polar night lifting around Feb 16 (their -0.833-deg sunrise horizon
 leads the geometric crossing by up to two days, as the header says). */
 print("known case check (timeanddate): 2026-06-21 polar day at Longyearbyen:", rgh(j0, lat) == 1)
 /* ---- expected output ----
-= 78.2
-= 15.6
-= {2026, 6, 21}
-= {2026, 12, 21}
-= 51.4779
-= 0
-= 2461212.5
-= 2461395.5
-= 63
-= 59
 = polar day/night test, lat 78.2 lon 15.6 : threshold |decl| > 11.8 deg
 = 2026-06-21: polar day: the Sun never sets (declination 23.437516214 deg)
 =   next transition in about 63 days: normal cycle returns

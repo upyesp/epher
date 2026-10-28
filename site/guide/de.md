@@ -301,10 +301,7 @@ das eingebaute `pi`, aber von dir gewählt. Definiere eine mit `const`:
 ```epher
 const tax = 0.2
 ```
-
-```text
-0.2
-```
+Das Definieren einer Konstante gibt nichts aus – eine Konstante ist eine Einstellung wie ein `def`, keine Antwort; die Bindung besteht dennoch.
 
 Verwende sie überall dort, wo eine Zahl stehen kann:
 
@@ -341,10 +338,6 @@ Hinsicht: Wie `pi` funktionieren sie innerhalb deiner eigenen Funktionen.
 
 ```epher
 const g = 9.81
-```
-
-```text
-9.81
 ```
 
 ```epher
@@ -1191,7 +1184,6 @@ solve k*x == 12
 ```
 
 ```text
-3
 x = 4
 ```
 
@@ -2351,7 +2343,7 @@ Skripten. Eine kurze einzelne Antwort bleibt in dieser Zeile. Eine
 längere Antwort - das Protokoll eines Skripts mit mehreren Antworten,
 eine Tabelle, eine lange Zahl - erscheint im Ergebnisbereich, dem
 Bereich, der auch Graphen zeigt, mit je einer Antwort pro Zeile; auf
-dem Telefon schiebt sich der Bereich von selbst ins Blickfeld. Links der Antwort sitzt ein Kopiersymbol: Ein Druck legt die Werte der Antwort in die Zwischenablage, je einer pro Zeile; lange Antworten im Ergebnisbereich kopieren genauso.
+dem Telefon schiebt sich der Bereich von selbst ins Blickfeld. Links der Antwort sitzt ein Kopiersymbol: Ein Druck legt die Werte der Antwort in die Zwischenablage, je einer pro Zeile; lange Antworten im Ergebnisbereich kopieren genauso. Auch der Bereich selbst liest sich gut: die Setup-Echos eines Skripts stehen gedimmt unter den beschrifteten Ergebnissen, die letzte beschriftete Zeile trägt das Antwortgewicht, Matrizen erscheinen als ausgerichtete Gitter, Prüfzeilen bekommen ein Häkchen, und der Kurze-Zahlen-Schalter zeigt Werte mit sechs signifikanten Stellen (der volle Wert beim Hover) — Kopieren sendet immer die Werte unverändert.
 
 Während du einen Namen tippst, erscheint unter dem Feld eine Vorschlagsliste: die Pfeile bewegen die Markierung, **Enter** oder **Tab** übernimmt, **Esc** schließt, und ein Klick übernimmt, ohne die Tastatur zu verlassen. Jeder Vorschlag trägt eine kurze Beschreibung der Funktion oder Konstante. **F1** zeigt dieselbe Beschreibung für das Wort unter dem Cursor in der Hinweisleiste über dem Tastenfeld. Beginnt eine leere Eingabe mit einem Operator (`+ - * / ^ % !`), fügt epher `ans` ein, und die Zeile macht mit dem letzten Ergebnis weiter.
 
@@ -2897,7 +2889,6 @@ Konstanten speichern sich genauso. `save` auf den Namen der Konstante:
 
 ```text
 epher> const tax = 0.2
-= 0.2
 epher> save tax
 saved tax
 ```

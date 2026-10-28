@@ -30,7 +30,6 @@ graph 1 / (1 + e^(0 - x)) from -6 to 6
 graph derivative(1 / (1 + e^(0 - x)), x) from -6 to 6
 
 /* ---- expected output ----
-= 1
 = L(0), the inflection height: 0.5
 = slope at the inflection, k/4: 0.25
 = early value L(-4): 0.0179862099621

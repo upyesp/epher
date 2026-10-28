@@ -2,7 +2,7 @@
 vector-components.epher -- magnitude and direction into x/y, and back
 
 A vector of magnitude m at angle t to the x-axis has components
-x = m cos t and y = m sin t; the builtin atan2(y, x) inverts the pair:
+const x = m cos t and y = m sin t; the builtin atan2(y, x) inverts the pair:
 its argument is the direction the vector came from, and atan2 keeps the
 signs straight, which the single-argument atan cannot do (t = 210 deg
 below would look like 30 deg to atan). Rebuilding the magnitude with
@@ -47,10 +47,6 @@ print("y:", vy(mag2, t2))
 print("magnitude back:", vmag(vx(mag2, t2), vy(mag2, t2)))
 print("direction back:", vdir(vx(mag2, t2), vy(mag2, t2)), "deg")
 /* ---- expected output
-= 12.5 m
-= 210
-= 8 m
-= 45
 = x: -10.8253175473 m
 = y: -6.25 m
 = magnitude back: 12.5 m

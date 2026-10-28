@@ -33,8 +33,6 @@ print("paired t test of before against after (t and p):", ttestpaired(before, af
 // measurably lowered systolic pressure here
 
 /* ---- expected output ----
-= {147, 140, 154, 140, 147, 147, 140}
-= {142, 139, 150, 140, 144, 145, 141}
 = differences, before minus after: {5, 1, 4, 0, 3, 2, -1}
 = mean difference: 2
 = sample stdev of the differences: 2.16024689947

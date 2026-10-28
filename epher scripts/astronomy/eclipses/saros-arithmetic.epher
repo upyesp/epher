@@ -80,12 +80,6 @@ Saros family lives roughly 70-80 members, 1226-1550 years. */
 print("gamma drift per Saros member:", (mgamma(members) - mgamma(-members)) / (2 * members))
 
 /* ---- expected output ----
-= {2026, 1, 1}
-= 25
-= 3
-= 6585.321316
-= 223
-= 323
 = one Saros = 6585.321316 days = 18 y 10.3 d (11.3 over leap years)
 = anchor: next solar eclipse after 2026-01-01T00:00:00 is lunation 323
 = member -3 : 1972-01-16T11:02:46 UT, annular , gamma -0.936764996047

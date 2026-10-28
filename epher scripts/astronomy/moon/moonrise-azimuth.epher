@@ -51,9 +51,6 @@ print("altitude at moonrise:", alt(11, tr(lat, lon, jd(obs_date[1], obs_date[2],
 print("altitude at moonset:", alt(11, ts(lat, lon, jd(obs_date[1], obs_date[2], obs_date[3])), lat, lon), "deg")
 
 /* ---- expected output ----
-= 51.4779
-= 0
-= {2026, 6, 22}
 = moon events at lat 51.4779 lon 0 on 22 / 6 / 2026 UT:
 = moonrise: 2026-06-22T12:55:13 at azimuth 100.0353115 deg - east
 = moonset: 2026-06-22T23:56:53 at azimuth 255.699662 deg - west

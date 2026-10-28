@@ -54,12 +54,6 @@ print("culmination 2026-06-21:", culm(d_jun, lat, lon), "deg; formula:", mer(lat
 print("culmination 2026-12-21:", culm(d_dec, lat, lon), "deg; formula:", mer(lat, cdec(d_dec, lat, lon)), "deg")
 
 /* ---- expected output ----
-= 51.4779
-= 0
-= 12
-= {2026, 3, 20}
-= {2026, 6, 21}
-= {2026, 12, 21}
 = alt at 12:00 UT, 2026-03-20: 38.450645 deg
 = alt at 12:00 UT, 2026-06-21: 61.9566445 deg
 = alt at 12:00 UT, 2026-12-21: 15.0815426 deg

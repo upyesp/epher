@@ -44,9 +44,9 @@ def xt(j) = (j - 1) + (90 - p(j - 1)) / (p(j) - p(j - 1))   // quarter instant b
 def xa(j) = j + 0.5 * (p(j - 1) - p(j + 1)) / (p(j - 1) - 2 * p(j) + p(j + 1))  // extremum by parabola
 
 // ---- the ratio at the knob date -------------------------------------------------
-j0 = jd(day[1], day[2], day[3])
-jend = j0 + window
-r = (m_moon / m_sun) * (dist(10, j0) / dist(11, j0)) ^ 3
+const j0 = jd(day[1], day[2], day[3])
+const jend = j0 + window
+const r = (m_moon / m_sun) * (dist(10, j0) / dist(11, j0)) ^ 3
 print("Moon:Sun tidal-force ratio at", iso(j0), ":", r)
 print("  (mean ratio about 2.2; the Sun's tide is", 1 / r, "of the Moon's)")
 
@@ -55,14 +55,14 @@ The lunation's four events in order: last quarter (a neap, the phase
 angle crossing 90 deg upward), new moon (a spring, the maximum), first
 quarter (a neap, crossing downward), full moon (a spring, the
 minimum). Each line carries the event's role. */
-c1 = fu(j0 + 1, jend, p(j0), p(j0 + 1))
-m1 = fmax(c1 + 1, jend, p(c1), p(c1 + 1), p(c1 + 2))
-c2 = fd(m1 + 1, jend, p(m1), p(m1 + 1))
-m2 = fmin(c2 + 1, jend, p(c2), p(c2 + 1), p(c2 + 2))
-t1 = xt(c1)
-t2 = xa(m1)
-t3 = xt(c2)
-t4 = xa(m2)
+const c1 = fu(j0 + 1, jend, p(j0), p(j0 + 1))
+const m1 = fmax(c1 + 1, jend, p(c1), p(c1 + 1), p(c1 + 2))
+const c2 = fd(m1 + 1, jend, p(m1), p(m1 + 1))
+const m2 = fmin(c2 + 1, jend, p(c2), p(c2 + 1), p(c2 + 2))
+const t1 = xt(c1)
+const t2 = xa(m1)
+const t3 = xt(c2)
+const t4 = xa(m2)
 print("lunation events from", iso(j0), "(instants to about half a day):")
 print("  neap, last quarter:", iso(t1))
 print("  spring, new moon:", iso(t2))
@@ -75,21 +75,8 @@ print("illuminated fraction at the new moon above:", illum(11, t2))
 print("illuminated fraction at the full moon above:", illum(11, t4))
 
 /* ---- expected output ----
-= {2026, 6, 1}
-= 37
-= 2461192.5
-= 2461229.5
-= 1.92011165835
 = Moon:Sun tidal-force ratio at 2026-06-01T00:00:00 : 1.92011165835
 =   (mean ratio about 2.2; the Sun's tide is 0.520803045828 of the Moon's)
-= 2461200.5
-= 2461206.5
-= 2461213.5
-= 2461221.5
-= 1481642355/602
-= 1917279934/779
-= 1513646243/615
-= 2461221.51118
 = lunation events from 2026-06-01T00:00:00 (instants to about half a day):
 =   neap, last quarter: 2026-06-08T10:12:22
 =   spring, new moon: 2026-06-15T02:10:19

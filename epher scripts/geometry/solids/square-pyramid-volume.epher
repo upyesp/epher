@@ -25,8 +25,6 @@ print("volume:", vol(b, h))
 print("base 3, height 4:", vol(3, 4))
 print("third of the surrounding box:", vol(b, h) == 6 * 6 * 10 / 3)
 /* ---- expected output ----
-= 6
-= 10
 = volume: 120
 = base 3, height 4: 12
 = third of the surrounding box: true

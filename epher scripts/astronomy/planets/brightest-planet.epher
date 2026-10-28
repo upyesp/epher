@@ -25,7 +25,7 @@ def name(b) = if b == 1 then "Mercury" else if b == 2 then "Venus" else if b == 
 // ---- results ----------------------------------------------------------------
 // The unrolled magnitudes, one per body in the same order: the search
 // below must agree with what the eye reads off this list.
-m = {mag(1, tm), mag(2, tm), mag(4, tm), mag(5, tm), mag(6, tm), mag(7, tm), mag(8, tm), mag(9, tm)}
+const m = {mag(1, tm), mag(2, tm), mag(4, tm), mag(5, tm), mag(6, tm), mag(7, tm), mag(8, tm), mag(9, tm)}
 
 /* Search: s = {next index, best magnitude so far, best body number}.
 Each step compares one magnitude against the best so far and keeps
@@ -41,9 +41,6 @@ print("best mag equals min(m):", s[2] == min(m))
 print("best body index:", s[3])
 
 /* ---- expected output ----
-= 2461192.5
-= {1, 2, 4, 5, 6, 7, 8, 9}
-= {-0.55, -3.98, 1.27, -1.88, 0.65, 5.81, 7.91, 14.4693840929}
 = {1, -0.55, 1}
 = brightest planet: Venus at mag -3.98
 = best mag equals min(m): true

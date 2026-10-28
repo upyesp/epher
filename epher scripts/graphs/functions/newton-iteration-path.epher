@@ -2,7 +2,7 @@
 newton-iteration-path.epher -- Newton-Raphson iterates walking to a root
 
 To solve cos(x) = x, Newton-Raphson iterates
-x1 = x0 - f(x0)/f'(x0) on f(x) = cos(x) - x. Starting at x0 = 1 the
+const x1 = x0 - f(x0)/f'(x0) on f(x) = cos(x) - x. Starting at x0 = 1 the
 walk lands on the Dottie number 0.7390851332 in a handful of steps,
 and the error roughly squares at each step once close (Newton 1669,
 Raphson 1690; the quadratic convergence is standard numerical

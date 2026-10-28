@@ -50,8 +50,6 @@ print("within 1e-5 of e:", abs(v[2] - e) < 1e-5)
 print("Euler's error at the same h for contrast:", 0.124539368359)
 
 /* ---- expected output ---------------------------------------------------------
-= 0.1
-= 10
 = {0, 1, 0}
 = the state after the run: {1, 2.71827974414, 10}
 = y(1) by RK4 with h = 0.1: 2.71827974414

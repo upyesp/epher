@@ -25,7 +25,6 @@ print("the formula directly:", sum((data - mean(data)) ^ 2) / (len(data) - 1))
 print("the population version for contrast:", variance(data))
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
 = population variance rescaled by n / (n - 1): 2947/30
 = the formula directly: 2947/30
 = the population version for contrast: 88.41

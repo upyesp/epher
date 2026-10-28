@@ -240,10 +240,14 @@ is allowed; binding `i` is refused (see below).
 
 ### 7.2 Constant definition: `const name = expr`
 
-Binds an immutable name. Re-declaring with the *same* value succeeds,
-examples get pasted twice; a different value is a
+Binds an immutable name. A definition prints nothing: a constant is a
+knob, machinery like a `def`, so the transcript stays silent while the
+binding takes effect (ADR-0080). Re-declaring with the *same* value
+succeeds, examples get pasted twice; a different value is a
 `constant already defined` error. Naming an existing variable is a
-`cannot define constant x: the name is already a variable` error.
+`cannot define constant x: the name is already a variable` error — the
+session already bound that name, so Clear the session or rename the
+binding.
 
 ### 7.3 Destructuring: `{a, b} = expr`
 

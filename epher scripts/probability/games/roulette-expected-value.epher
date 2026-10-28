@@ -38,7 +38,6 @@ print("exact: -10/37 of the stake per spin")
 print("house edge as a fraction of the stake:", 1/37)
 print("house edge, percent of the stake:", 100 * (1/37))
 /* ---- expected output ----
-= 10
 = E[10 on red]: -10/37
 = E[10 on a single number]: -10/37
 = exact: -10/37 of the stake per spin

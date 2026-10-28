@@ -35,8 +35,8 @@ def eqra(lo, la) = wrap(deg(atan2(sin(rad(lo)) * cos(rad(eps(year))) - tan(rad(l
 def eqde(lo, la) = deg(asin(sin(rad(la)) * cos(rad(eps(year))) + cos(rad(la)) * sin(rad(eps(year))) * sin(rad(lo))))
 
 // ---- the round trip ---------------------------------------------------------------------
-lo = eclon(ara, ade)
-la = eclat(ara, ade)
+const lo = eclon(ara, ade)
+const la = eclat(ara, ade)
 print("Vega J2000:  ra", deg2hms(ara), " dec", deg2dms(ade))
 print("ecliptic lon", lo, " lat", la, " (equinox 2000, mean obliquity", eps(year), "deg)")
 print("back:        ra", deg2hms(eqra(lo, la)), " dec", deg2dms(eqde(lo, la)))
@@ -46,11 +46,6 @@ machine precision. */
 print("round-trip error < 1e-9 deg:", abs(eqra(lo, la) - ara) < 1e-9 and abs(eqde(lo, la) - ade) < 1e-9)
 
 /* ---- expected output ----
-= 279.23473479
-= 38.78368896
-= 2000
-= 285.316356041
-= 61.732802335
 = Vega J2000:  ra 18h 36m 56s  dec 38° 47' 1"
 = ecliptic lon 285.316356041  lat 61.732802335  (equinox 2000, mean obliquity 23.4392264797 deg)
 = back:        ra 18h 36m 56s  dec 38° 47' 1"

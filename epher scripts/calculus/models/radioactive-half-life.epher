@@ -6,7 +6,7 @@ e^(-lambda t), where lambda is the decay constant, and the half-life
 is T = ln(2)/lambda, the time after which half remains (Stewart,
 "Calculus", 8th ed., sec. 3.8; any nuclear physics text). Carbon-14
 has the well-known half-life of 5730 years, so its decay constant is
-lambda = ln(2)/5730 per year.
+const lambda = ln(2)/5730 per year.
 
 The script builds lambda from the half-life knob, checks that the
 fraction left after one and two half-lives is 1/2 and 1/4, computes
@@ -41,8 +41,6 @@ print("half-life from lambda, years:", ln(2)/lam)
 print("it matches the knob:", abs(ln(2)/lam - thalf) < 1e-6)
 
 /* ---- expected output ---------------------------------------------------------
-= 5730
-= 0.000120968094339
 = fraction after one half-life: 0.5
 = fraction after two half-lives: 0.25
 = one half-life checks out: true

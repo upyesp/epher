@@ -32,14 +32,14 @@ const pra = 37.9554         // RA J2000 (2h 31m 49.3s), degrees
 const pde = 89.2642         // Dec J2000 (+89 15' 51"), degrees
 def wrap(x) = x - 360 * floor(x / 360)
 def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
-dy = (jd(2026, 9, 10, 0) - 2451545) / 365.25
-pdec = pde + 15 / 3600 * dy      // the ~15 arcsec/yr increase
-pd = (90 - pdec)                  // polar distance, degrees
-h = spread(15 * lst(tm, lon) - pra)
+const dy = (jd(2026, 9, 10, 0) - 2451545) / 365.25
+const pdec = pde + 15 / 3600 * dy      // the ~15 arcsec/yr increase
+const pd = (90 - pdec)                  // polar distance, degrees
+const h = spread(15 * lst(tm, lon) - pra)
 
 // ---- the sight ------------------------------------------------------------------------
-sv = sin(rad(ho)) / sqrt(cos(rad(pd)) ^ 2 + (sin(rad(pd)) * cos(rad(h))) ^ 2)
-lat = deg(asin(sv)) - deg(atan2(sin(rad(pd)) * cos(rad(h)), cos(rad(pd))))
+const sv = sin(rad(ho)) / sqrt(cos(rad(pd)) ^ 2 + (sin(rad(pd)) * cos(rad(h))) ^ 2)
+const lat = deg(asin(sv)) - deg(atan2(sin(rad(pd)) * cos(rad(h)), cos(rad(pd))))
 print("at", iso(tm), "lon", lon)
 print("polar distance of Polaris:", pd * 60, "arcmin")
 print("LHA of Polaris:", h, "deg")
@@ -47,25 +47,13 @@ print("latitude from the sight:", lat, "deg")
 
 /* Self-check: on the meridian (H = 0) the correction must equal
 the polar distance exactly - lat(H=0) = Ho - pd. */
-latz = deg(asin(sin(rad(ho)) / sqrt(cos(rad(pd)) ^ 2 + (sin(rad(pd))) ^ 2))) - deg(atan2(sin(rad(pd)), cos(rad(pd))))
+const latz = deg(asin(sin(rad(ho)) / sqrt(cos(rad(pd)) ^ 2 + (sin(rad(pd))) ^ 2))) - deg(atan2(sin(rad(pd)), cos(rad(pd))))
 print("H = 0 gives Ho - pd:", latz, "vs", ho - pd, "(equal:", latz == ho - pd, ")")
 
 /* ---- expected output ----
-= 51.28
-= 29535533/12
-= -5
-= 37.9554
-= 89.2642
-= 12998/487
-= 89.3754080767
-= 0.62459192334
-= -83.0054371502
-= 0.780257782261
-= 51.2081210189
 = at 2026-09-10T22:00:00 lon -5
 = polar distance of Polaris: 37.4755154004 arcmin
 = LHA of Polaris: -83.0054371502 deg
 = latitude from the sight: 51.2081210189 deg
-= 50.6554080767
 = H = 0 gives Ho - pd: 50.6554080767 vs 50.6554080767 (equal: true )
 */

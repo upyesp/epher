@@ -31,8 +31,6 @@ print("chi-square goodness-of-fit of the rolls against the fair-die expectation 
 // die, so nothing here suggests unfairness
 
 /* ---- expected output ----
-= {8, 12, 9, 11, 10, 10}
-= {10, 10, 10, 10, 10, 10}
 = total rolls: 60
 = chi2 statistic: 1
 = degrees of freedom: 5

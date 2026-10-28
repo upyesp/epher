@@ -28,9 +28,6 @@ print("round trip: the deposits grow to:", tvm_fv(years * 12, rate / 12, 0, tvm_
 // Over 60 months the deposits themselves total 45249.57; the account's
 // interest supplies the remaining 4750.43 of the 50000 target.
 /* ---- expected output ----
-= 50000
-= 0.04
-= 5
 = monthly deposit needed: 754.159436097
 = round trip: the deposits grow to: 50000
 */

@@ -4,7 +4,7 @@ viviani-curve.epher -- the window curve: sphere cut by cylinder
 Viviani's curve (1692) is the intersection of a sphere of radius 2
 centred at the origin with the cylinder (x-1)^2 + y^2 = 1 that
 kisses the sphere's axis: x = 1 + cos(t), y = sin(t),
-z = 2*sin(t/2). It is a figure eight riding on the sphere, crossing
+const z = 2*sin(t/2). It is a figure eight riding on the sphere, crossing
 itself at the top, and it is the classic curve whose arc length can
 be found by elementary means (do Carmo, ch. 1, example 5; the
 seventeenth-century story is in Lockwood, "A Book of Curves", ch. 17).

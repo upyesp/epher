@@ -2,7 +2,7 @@
 cycloid-arc-length.epher -- one arch of the cycloid and its length 8
 
 A point on the rim of a rolling wheel of radius 1 traces
-x = t - sin(t), y = 1 - cos(t). One arch runs from cusp to cusp,
+const x = t - sin(t), y = 1 - cos(t). One arch runs from cusp to cusp,
 t = 0 to 2*pi, peaking at height 2. Its arc length is exactly 8a
 (found geometrically by Christopher Wren in 1658; Stewart, "Calculus",
 ch. 10.2 computes it as an integral). The script graphs the arch,

@@ -28,9 +28,6 @@ print("future value, builtin tvm_fv:", tvm_fv(years, rate, -principal, 0))
 print("future value, compound formula:", principal * (1 + rate) ^ years)
 print("compound_interest plus principal:", compound_interest(principal, rate, years) + principal)
 /* ---- expected output ----
-= 10000
-= 0.05
-= 20
 = future value, builtin tvm_fv: 26532.9770514
 = future value, compound formula: 26532.9770514
 = compound_interest plus principal: 26532.9770514

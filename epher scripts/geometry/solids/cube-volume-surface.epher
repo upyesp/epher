@@ -23,7 +23,6 @@ print("edge in cm:", a in cm)
 print("volume in cm^3:", (a ^ 3) in cm ^ 3)
 print("1 m^3 in cm^3:", (1 m ^ 3) in cm ^ 3)
 /* ---- expected output ----
-= 2 m
 = volume: 8 m^3
 = surface area: 24 m^2
 = edge in cm: 200 cm

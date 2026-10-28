@@ -26,21 +26,13 @@ def cy(a1, b1, k1, a2, b2, k2) = cdet(a1, k1, a2, k2) / cdet(a1, b1, a2, b2)
 
 // ---- results -----------------------------------------------------------------
 D = cdet(a1, b1, a2, b2)                    // the system determinant D (echoes -2)
-xv = cx(a1, b1, k1, a2, b2, k2)             // x = Dx / D (echoes 2)
-yv = cy(a1, b1, k1, a2, b2, k2)             // y = Dy / D (echoes -1)
+const xv = cx(a1, b1, k1, a2, b2, k2)             // x = Dx / D (echoes 2)
+const yv = cy(a1, b1, k1, a2, b2, k2)             // y = Dy / D (echoes -1)
 print("x + 2y = 0 holds:", a1 * xv + b1 * yv == k1)
 print("3x + 4y = 2 holds:", a2 * xv + b2 * yv == k2)
 print("D by the built-in det:", cdet(a1, b1, a2, b2) == det([[a1, b1], [a2, b2]]))
 /* ---- expected output ----
-= 1
-= 2
-= 0
-= 3
-= 4
-= 2
 = -2
-= 2
-= -1
 = x + 2y = 0 holds: true
 = 3x + 4y = 2 holds: true
 = D by the built-in det: true

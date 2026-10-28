@@ -24,9 +24,6 @@ print("t25:", tn(a, diff, num))
 print("t25 - t24:", tn(a, diff, num) - tn(a, diff, num - 1))
 print("that difference is diff:", tn(a, diff, num) - tn(a, diff, num - 1) == diff)
 /* ---- expected output ----
-= 3
-= 4
-= 25
 = t1: 3
 = t25: 99
 = t25 - t24: 4

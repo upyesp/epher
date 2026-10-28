@@ -5,8 +5,8 @@ Wrap a string around a torus twice the long way and three times the
 short way and it closes on itself as the trefoil: the only knot with
 three crossings (Rolfsen, "Knots and Links", ch. 2; every knot table
 starts with it). The parametrisation
-x = (2 + cos(3*t))*cos(2*t), y = (2 + cos(3*t))*sin(2*t),
-z = sin(3*t), scaled here by one half, rides on the torus of tube 1/2
+const x = (2 + cos(3*t))*cos(2*t), y = (2 + cos(3*t))*sin(2*t),
+const z = sin(3*t), scaled here by one half, rides on the torus of tube 1/2
 around the ring of radius 1. The script graphs the knot and checks
 closure and the torus membership.
 

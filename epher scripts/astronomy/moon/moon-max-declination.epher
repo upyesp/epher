@@ -55,11 +55,11 @@ def vtx(c, m) = c - 1 + 0.25 * m + 0.125 * (fv(m - 1, c) - fv(m + 1, c)) / (fv(m
 def dcld(t) = decl(11, j0 + t / 24)               // declination at t hours after the 1st, deg
 
 // ---- results ---------------------------------------------------------------------
-r = cscan(dv(0), dv(0), 0, 0, 1)
-cm = d0 + 2 * r[3]     // the coarse minimum day
-cM = d0 + 2 * r[4]     // the coarse maximum day
-tn = (vtx(cm, fmin(cm, fv(0, cm), 0, 1)) - j0) * 24   // minimum declination, hours after the 1st
-tx = (vtx(cM, fmax(cM, fv(0, cM), 0, 1)) - j0) * 24   // maximum declination, hours after the 1st
+const r = cscan(dv(0), dv(0), 0, 0, 1)
+const cm = d0 + 2 * r[3]     // the coarse minimum day
+const cM = d0 + 2 * r[4]     // the coarse maximum day
+const tn = (vtx(cm, fmin(cm, fv(0, cm), 0, 1)) - j0) * 24   // minimum declination, hours after the 1st
+const tx = (vtx(cM, fmax(cM, fv(0, cM), 0, 1)) - j0) * 24   // maximum declination, hours after the 1st
 print("minimum declination of", month, "/", year, ":", iso(j0 + tn / 24), "UT:", dcld(tn), "deg")
 print("  in degrees/minutes/seconds:", deg2dms(dcld(tn)))
 print("maximum declination of", month, "/", year, ":", iso(j0 + tx / 24), "UT:", dcld(tx), "deg")
@@ -68,16 +68,6 @@ print("monthly swing:", dcld(tx) - dcld(tn), "deg (the standstill-cycle amplitud
 print("grade: values engine-grade (vertex reading <0.01 deg); times a few minutes")
 
 /* ---- expected output ----
-= 2026
-= 6
-= 2461192.5
-= 2461189.5
-= 18
-= {-27.934162624, 27.339509068, 2, 9}
-= 2461193.5
-= 2461207.5
-= 16.7971925475
-= 341.293696582
 = minimum declination of 6 / 2026 : 2026-06-01T16:47:50 UT: -27.992830996 deg
 =   in degrees/minutes/seconds: -27° 59' 34"
 = maximum declination of 6 / 2026 : 2026-06-15T05:17:37 UT: 27.990237301 deg

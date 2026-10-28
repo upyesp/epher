@@ -45,7 +45,6 @@ print("4 groups of 4 (group stage):", 4 * ncr(4, 2), "matches")
 print("handshakes in a room of", teams, "people:", ncr(teams, 2))
 print("diagonals of an", teams, "-sided polygon:", ncr(teams, 2) - teams)
 /* ---- expected output ----
-= 8
 = single round robin, 8 teams: 28
 = home and away: 56
 = home and away equals the ordered count: true

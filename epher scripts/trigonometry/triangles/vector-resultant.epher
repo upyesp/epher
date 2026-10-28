@@ -44,10 +44,6 @@ print("law of cosines matches components:", abs((rmag(v1, t1, v2, t2) ^ 2) / ((r
 // 15 m vector dominates.
 print("resultant direction:", dirn(rx(v1, t1, v2, t2), ry(v1, t1, v2, t2)), "deg")
 /* ---- expected output
-= 10 m
-= 30
-= 15 m
-= 120
 = resultant magnitude: 18.0277563773 m
 = resultant components: 1.16025403784 m and 17.9903810568 m
 = magnitude from components: 18.0277563773 m

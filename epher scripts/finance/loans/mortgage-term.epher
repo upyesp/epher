@@ -23,7 +23,7 @@ const rate = 6.5%           // quoted annual rate
 const term_payment = 2000   // fixed monthly payment the borrower can afford
 
 // ---- results -----------------------------------------------------------------
-months = tvm_n(rate / 12, -principal, term_payment, 0)   // months to pay off, from the builtin
+const months = tvm_n(rate / 12, -principal, term_payment, 0)   // months to pay off, from the builtin
 print("paying 2000 per month clears the loan in:", months, "months")
 print("that is", months / 12, "years")
 /* The minimum payment on this loan is 1580.17 (see mortgage-payment.epher),
@@ -31,10 +31,6 @@ which runs the full 360 months. The extra 419.83 per month shortens the
 term by about 150.75 months (12.6 years) and saves roughly 150,000 of
 interest. */
 /* ---- expected output ----
-= 250000
-= 0.065
-= 2000
-= 209.246700004
 = paying 2000 per month clears the loan in: 209.246700004 months
 = that is 17.4372250004 years
 */

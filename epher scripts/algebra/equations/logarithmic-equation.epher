@@ -21,7 +21,6 @@ print("x:", ex(rhs))
 print("ln(x):", ln(ex(rhs)))
 print("ln(x) = 2.5 within 1e-12:", abs(ln(ex(rhs)) - rhs) < 1e-12)
 /* ---- expected output ----
-= 2.5
 = x: 12.1824939607
 = ln(x): 2.5
 = ln(x) = 2.5 within 1e-12: true

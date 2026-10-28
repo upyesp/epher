@@ -29,9 +29,6 @@ print("present value, builtin tvm_pv:", tvm_pv(years, rate, 0, goal))
 // Round trip: invest the present value at 6% and the goal comes back.
 print("compounding the pv forward returns:", tvm_fv(years, rate, tvm_pv(years, rate, 0, goal), 0))
 /* ---- expected output ----
-= 50000
-= 0.06
-= 15
 = present value, formula fv/(1+r)^n: 20863.2530368
 = present value, builtin tvm_pv: -20863.2530368
 = compounding the pv forward returns: 50000

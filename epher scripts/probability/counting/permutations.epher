@@ -43,7 +43,6 @@ print("seat by seat, 10 gold choices times npr(9, 2):", 10 * npr(9, 2) == npr(10
 // The same race with more finishers.
 print("with 12 runners, 3 medals:", npr(12, 3))
 /* ---- expected output ----
-= 10
 = medal orders for 10 runners: 720
 = podium top two in order: 90
 = 3 distinct offices among 8 members: 336

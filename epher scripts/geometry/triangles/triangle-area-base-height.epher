@@ -26,8 +26,6 @@ print("area of the 10 by 6 triangle:", area(b, h))
 print("area of a 7 by 4 triangle:", area(7, 4))
 print("half of the rectangle:", area(b, h) == 10 * 6 / 2)
 /* ---- expected output ----
-= 10
-= 6
 = area of the 10 by 6 triangle: 30
 = area of a 7 by 4 triangle: 14
 = half of the rectangle: true

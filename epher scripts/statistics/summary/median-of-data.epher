@@ -18,17 +18,14 @@ const od = {64, 70, 72, 79, 83}                      // a five-score set (odd co
 
 // ---- median of the even count: the mean of the two middle values ---------------
 print("builtin median:", median(step))
-s = sort(step)                 // the sorted list; the two middle entries straddle
+const s = sort(step)                 // the sorted list; the two middle entries straddle
 print("the 5th and 6th sorted scores, averaged by hand:", (s[5] + s[6]) / 2)
 
 // ---- median of the odd count: the middle value itself ---------------------------
 print("builtin median of the five scores:", median(od))
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-= {64, 70, 72, 79, 83}
 = builtin median: 84
-= {64, 70, 72, 79, 83, 85, 86, 88, 91, 95}
 = the 5th and 6th sorted scores, averaged by hand: 84
 = builtin median of the five scores: 72
 */

@@ -22,7 +22,6 @@ solve x ^ 2 + 2 * x + 5 == 0
 print("p(-1 + 2i):", p(cs, -1 + 2i))
 print("p(-1 - 2i):", p(cs, -1 - 2i))
 /* ---- expected output ----
-= {1, 2, 5}
 = x = -1-2i, x = -1+2i
 = p(-1 + 2i): 0
 = p(-1 - 2i): 0

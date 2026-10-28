@@ -26,9 +26,6 @@ print("k:", vy(a, b, c))
 print("p(h) equals k:", p(a, b, c, vx(a, b, c)) == vy(a, b, c))
 print("vertex form matches at x = 1:", p(a, b, c, 1) == a * (1 - vx(a, b, c)) ^ 2 + vy(a, b, c))
 /* ---- expected output ----
-= 2
-= 3
-= -5
 = h: -0.75
 = k: -6.125
 = p(h) equals k: true

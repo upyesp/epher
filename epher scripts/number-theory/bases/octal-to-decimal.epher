@@ -25,12 +25,24 @@ print("8^3 = 512:", 0o1000)
 print("five eights and two ones, 42:", 0o52)
 
 // ---- a list at a glance ---------------------------------------------------------------
-for x in {0o1, 0o7, 0o10, 0o17, 0o52, 0o100, 0o777} do x
+print("0o1 reads as:", 0o1)
+print("0o7 reads as:", 0o7)
+print("0o10 reads as:", 0o10)
+print("0o17 reads as:", 0o17)
+print("0o52 reads as:", 0o52)
+print("0o100 reads as:", 0o100)
+print("0o777 reads as:", 0o777)
 /* ---- expected output ----
 = 7 * 64 + 7 * 8 + 7: 511
 = one eight and seven ones, 15: 15
 = the largest three-digit octal, 511: 511
 = 8^3 = 512: 512
 = five eights and two ones, 42: 42
-= {1, 7, 8, 15, 42, 64, 511}
+= 0o1 reads as: 1
+= 0o7 reads as: 7
+= 0o10 reads as: 8
+= 0o17 reads as: 15
+= 0o52 reads as: 42
+= 0o100 reads as: 64
+= 0o777 reads as: 511
 */

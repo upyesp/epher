@@ -33,12 +33,12 @@ const alon = -4.0            // assumed longitude, degrees east
 // ---- the reduction -------------------------------------------------------------------
 def wrap(x) = x - 360 * floor(x / 360)
 def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
-sra = ra(10, tm)
-sde = decl(10, tm)
-lha = spread(15 * lst(tm, alon) - sra)
-hc = deg(asin(sin(rad(alat)) * sin(rad(sde)) + cos(rad(alat)) * cos(rad(sde)) * cos(rad(lha))))
-zn = az(10, tm, alat, alon)
-icpt = (ho - hc) * 60
+const sra = ra(10, tm)
+const sde = decl(10, tm)
+const lha = spread(15 * lst(tm, alon) - sra)
+const hc = deg(asin(sin(rad(alat)) * sin(rad(sde)) + cos(rad(alat)) * cos(rad(sde)) * cos(rad(lha))))
+const zn = az(10, tm, alat, alon)
+const icpt = (ho - hc) * 60
 
 print("at", iso(tm), "from assumed", alat, ",", alon)
 print("Sun GHA-derived LHA:", lha, "deg")
@@ -51,16 +51,6 @@ topocentric alt gives, to a few thousandths of a degree. */
 print("Hc vs engine altitude:", hc, "vs", alt(10, tm, alat, alon))
 
 /* ---- expected output ----
-= 39.6
-= 29535529/12
-= 50
-= -4
-= 168.859948907
-= 4.787960708
-= 26.7614735961
-= 39.4849560241
-= 215.5479187
-= 6.90263855521
 = at 2026-09-10T14:00:00 from assumed 50 , -4
 = Sun GHA-derived LHA: 26.7614735961 deg
 = computed altitude Hc: 39.4849560241 deg

@@ -8,7 +8,7 @@ declination of the body (the point where the body is at the zenith
 has geocentric latitude equal to the declination; the geodetic
 latitude differs by well under a degree). Longitude: the meridian
 whose local sidereal time equals the body's right ascension, i.e.
-lon = ra - 15 * GMST hours, wrapped to +/-180 degrees east.
+const lon = ra - 15 * GMST hours, wrapped to +/-180 degrees east.
 
 Accuracy: positions arcsecond-grade; the stated latitude
 simplification (geocentric vs geodetic, and for the Moon a
@@ -28,10 +28,10 @@ def lonof(ar) = if wrap(ar - 15 * lst(tm, 0)) > 180 then wrap(ar - 15 * lst(tm, 
 def sep(a1, d1, a2, d2) = deg(acos(sin(rad(d1)) * sin(rad(d2)) + cos(rad(d1)) * cos(rad(d2)) * cos(rad(a1 - a2))))
 
 // ---- the two points ----------------------------------------------------------------
-sunra = ra(10, tm)
-sunde = decl(10, tm)
-moonra = ra(11, tm)
-moonde = decl(11, tm)
+const sunra = ra(10, tm)
+const sunde = decl(10, tm)
+const moonra = ra(11, tm)
+const moonde = decl(11, tm)
 
 print("at", iso(tm))
 print("subsolar point:  lat", sunde, " lon", lonof(sunra), "(east positive)")
@@ -47,11 +47,6 @@ sanity line is the sublunar point's LST vs the Moon's ra. */
 print("sublunar LST:", lst(tm, lonof(moonra)), "h  vs Moon ra:", moonra / 15, "h")
 
 /* ---- expected output ----
-= 29535533/12
-= 169.159366232
-= 4.661386822
-= 165.929578333
-= 4.492071972
 = at 2026-09-10T22:00:00
 = subsolar point:  lat 4.661386822  lon -150.790596618 (east positive)
 = sublunar point:  lat 4.492071972  lon -154.020384517 (east positive)

@@ -42,8 +42,6 @@ print("Pearson r of x against ln(y):", rlog())
 print("and its square, r^2:", rlog() ^ 2)
 
 /* ---- expected output ----
-= {1, 2, 3, 4, 5, 6, 7, 8}
-= {2.5, 3.6, 5.4, 8.1, 12.2, 18.3, 27.5, 41.3}
 = straight line, the worst of the four: y = 5.1655*x + -8.3821 (r = 0.9312)
 = parabola, good but not best: y = 0.9827*x^2 + -3.6792*x + 6.3589 (r = 0.9963)
 = exponential, the clear winner: y = 1.6289*e^(0.4032*x) (r = 0.9999)

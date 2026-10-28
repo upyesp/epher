@@ -21,7 +21,6 @@ print("H1000:", h[2])
 print("H1000 - ln(1000) - gamma:", h[2] - ln(num) - gamma)  // gamma is built in
 print("within 1e-6 of 1/(2n):", abs(h[2] - ln(num) - gamma - 1 / (2 * num)) < 1e-6)
 /* ---- expected output ----
-= 1000
 = {1, 0}
 = H1000: 7.48547086055
 = H1000 - ln(1000) - gamma: 0.000499916666674

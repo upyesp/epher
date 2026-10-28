@@ -49,11 +49,6 @@ print("solar noon 2026-12-21:", nh(d_dec, lat, lon), "UT; clock", deg2hms(nd(d_d
 print("mean solar noon (12 - lon/15):", (12 - lon / 15) in hr)
 
 /* ---- expected output ----
-= 51.4779
-= 0
-= {2026, 3, 20}
-= {2026, 6, 21}
-= {2026, 12, 21}
 = solar noon 2026-03-20: 12.1291872002 hr UT; clock 12h 7m 45s
 = solar noon 2026-06-21: 12.0302131176 hr UT; clock 12h 1m 49s
 = solar noon 2026-12-21: 11.9676772803 hr UT; clock 11h 58m 4s

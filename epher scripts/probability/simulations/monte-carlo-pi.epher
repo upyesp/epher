@@ -43,7 +43,6 @@ print("estimate of pi:", 4 * hits / points)
 print("true pi:", pi)
 print("relative error:", (4 * hits / points - pi) / pi)
 /* ---- expected output ----
-= 10000
 = 7
 = 7895
 = hits inside the quarter circle: 7895

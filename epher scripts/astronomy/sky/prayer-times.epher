@@ -39,8 +39,8 @@ def asr_alt(dec, phi) = deg(atan(1 / (asr_f + tan(rad(abs(phi - dec))))))   // S
 def evasr(dec, tt, phi) = if abs(cx(asr_alt(dec, phi), dec, phi)) > 1 then "does not occur (sun too low all day)" else iso(tt + 4 * deg(acos(cx(asr_alt(dec, phi), dec, phi))) / 1440)
 
 // ---- the day's transit and declination ----------------------------------------
-t0 = transit(10, jd(day[1], day[2], day[3]), lat, lon)
-d0 = decl(10, t0)
+const t0 = transit(10, jd(day[1], day[2], day[3]), lat, lon)
+const d0 = decl(10, t0)
 
 /* ---- results ------------------------------------------------------------------
 The five times in chronological order (the Dhuhr window opens at the
@@ -63,18 +63,11 @@ print("  conventions (17-19.5 deg, Hanafi factor 2) shift the times")
 /* Plausibility check: the Fajr-to-sunrise gap is the signature of the
 18-degree convention - about 1-1.5 h at mid-latitudes. The gap below
 is computed between the two hour-angle events above. */
-tsr = t0 - 4 * deg(acos(cx(-0.833, d0, lat))) / 1440
-tfajr = t0 - 4 * deg(acos(cx(-fajr_ang, d0, lat))) / 1440
+const tsr = t0 - 4 * deg(acos(cx(-0.833, d0, lat))) / 1440
+const tfajr = t0 - 4 * deg(acos(cx(-fajr_ang, d0, lat))) / 1440
 print("plausibility: Fajr leads sunrise by", (tsr - tfajr) * 24 in hr)
 print("  (about 1-1.5 h is the mid-latitude span for an 18 deg depression)")
 /* ---- expected output ----
-= 21.42
-= 39.83
-= {2026, 6, 21}
-= 18
-= 1
-= 2461212.89042
-= 23.437923859
 = prayer times 2026-06-21 at Mecca, lat 21.42 lon 39.83 (times UT)
 =   convention: Fajr/Isha at 18 deg depression (MWL)
 =   Maghrib at sunset; Asr at shadow factor 1 (Hanafi schools use 2)
@@ -86,8 +79,6 @@ print("  (about 1-1.5 h is the mid-latitude span for an 18 deg depression)")
 = Isha: 2026-06-21T17:30:44
 =   local time is UT + 3 h at Mecca; angles are knobs above, and
 =   conventions (17-19.5 deg, Hanafi factor 2) shift the times
-= 423328569/172
-= 1058321397/430
 = plausibility: Fajr leads sunrise by 1.42323792726 hr
 =   (about 1-1.5 h is the mid-latitude span for an 18 deg depression)
 */

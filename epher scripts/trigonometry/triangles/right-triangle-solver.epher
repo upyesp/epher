@@ -44,10 +44,6 @@ print("other leg b:", leg(side_a2, angle_A2))
 print("angle B:", 90 - angle_A2, "deg")
 print("c^2 = a^2 + b^2:", pyth(side_a2, angle_A2))
 /* ---- expected output
-= 3 m
-= 36.8698976458
-= 2 m
-= 30
 = hypotenuse c: 5 m
 = other leg b: 4 m
 = angle B: 53.1301023542 deg

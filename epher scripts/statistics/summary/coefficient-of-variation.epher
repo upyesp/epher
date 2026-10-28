@@ -29,8 +29,6 @@ print("heights, mean:", mean(h))
 print("heights, stdev:", stdev(h))
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-= {170, 175, 168, 182, 177, 171, 169, 180}
 = exam scores, CV: 11.5653864678 percent
 = heights, CV: 2.84468245305 percent
 = exam scores, mean: 81.3

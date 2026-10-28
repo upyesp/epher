@@ -39,9 +39,6 @@ print("Hijri year leap test of the epoch: 1 Muharram 1 AH = JDN 1948440:", floor
 print("Gregorian", yr, "-", m, "-", dcal, "is Hijri", adv(floor(jd(yr, m, dcal) + 0.5)), mname(amv(floor(jd(yr, m, dcal) + 0.5))), ayv(floor(jd(yr, m, dcal) + 0.5)), "AH")
 print("2026-06-26 is tabular Hijri", adv(floor(jd(2026, 6, 26) + 0.5)), mname(amv(floor(jd(2026, 6, 26) + 0.5))), ayv(floor(jd(2026, 6, 26) + 0.5)), "(Umm al-Qura: 11 Muharram 1448 - the 1-day spread)")
 /* ---- expected output ----
-= 2026
-= 9
-= 7
 = Hijri year leap test of the epoch: 1 Muharram 1 AH = JDN 1948440: true
 = Gregorian 2026 - 9 - 7 is Hijri 24 Rabi al-awwal 1448 AH
 = 2026-06-26 is tabular Hijri 10 Muharram 1448 (Umm al-Qura: 11 Muharram 1448 - the 1-day spread)

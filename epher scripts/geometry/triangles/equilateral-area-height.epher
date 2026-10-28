@@ -25,7 +25,6 @@ print("height:", height(s))
 print("area:", area(s))
 print("area from base times height:", abs(area(s) - s * height(s) / 2) < 1e-9)
 /* ---- expected output ----
-= 6
 = height: 5.19615242271
 = area: 15.5884572681
 = area from base times height: true

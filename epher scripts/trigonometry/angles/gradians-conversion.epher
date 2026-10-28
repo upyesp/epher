@@ -5,7 +5,7 @@ Gradians divide the right angle into 100 parts, so a full circle is 400
 gon. Surveying instruments in Europe and artillery sights read gradians;
 the conversion is g = d * 200/180 = d * 10/9 from degrees, and
 g = r * 200/pi from radians. The same numbers backwards are
-d = g * 9/10. This is plain arithmetic over the builtin constants and
+const d = g * 9/10. This is plain arithmetic over the builtin constants and
 conversions (guide 1.13); nothing here is redefined.
 
 Web/desktop:             paste the whole file into the entry, press Enter
@@ -40,7 +40,6 @@ print("100 gon =", todeg(100), "deg")
 print("90 deg = 100 gon:", togon(90) == 100)
 print("pi rad = 200 gon:", abs(fromrad(pi) - 200) < 1e-12)
 /* ---- expected output
-= {27, 90, 180, 360}
 = {30, 100, 200, 400}
 = pi/2 rad = 100 gon
 = pi rad = 200 gon

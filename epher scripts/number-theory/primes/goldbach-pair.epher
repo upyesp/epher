@@ -35,7 +35,6 @@ print("for 50:", pair(50, 3), "+", 50 - pair(50, 3))
 print("for 98:", pair(98, 3), "+", 98 - pair(98, 3))
 print("for 1000:", pair(1000, 3), "+", 1000 - pair(1000, 3))
 /* ---- expected output ----
-= 100
 = smallest Goldbach pair for 100: 3 + 97
 = for 50: 3 + 47
 = for 98: 19 + 79

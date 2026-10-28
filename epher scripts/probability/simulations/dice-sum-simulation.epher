@@ -36,7 +36,6 @@ print("expected count, 6000 / 6:", rolls / 6)
 print("empirical frequency:", v[2] / rolls)
 print("theoretical frequency 1/6:", 1/6)
 /* ---- expected output ----
-= 6000
 = 11
 = {0, 0}
 = rolls: 6000

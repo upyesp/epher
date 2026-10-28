@@ -47,10 +47,6 @@ print("Sun RA at that instant:", ra(10, transit(10, jd(2026, 6, 21), lat, lon_b)
 print("gap:", (ra(10, transit(10, jd(2026, 6, 21), lat, lon_b)) - lst(transit(10, jd(2026, 6, 21), lat, lon_b), lon_b) * 15) * 3600, "arcsec")
 
 /* ---- expected output ----
-= 2461213
-= 13.405
-= 0
-= 52.52
 = LST at Greenwich: 5.98008964453 hr
 = LST at Berlin: 6.8737563112 hr
 = eastward gain: 0.893666666667 hr = lon / 15: 0.893666666667 hr

@@ -38,12 +38,12 @@ const day2 = {2026, 12, 21}    // December solstice: the short light
 const day3 = {2026, 12, 21}    // polar night at the polar-test place
 
 // ---- one transit and one declination per date ---------------------------------
-t1 = transit(10, jd(day1[1], day1[2], day1[3]), lat, lon)
-t2 = transit(10, jd(day2[1], day2[2], day2[3]), lat, lon)
-t3 = transit(10, jd(day3[1], day3[2], day3[3]), latp, lonp)
-d1 = decl(10, t1)
-d2 = decl(10, t2)
-d3 = decl(10, t3)
+const t1 = transit(10, jd(day1[1], day1[2], day1[3]), lat, lon)
+const t2 = transit(10, jd(day2[1], day2[2], day2[3]), lat, lon)
+const t3 = transit(10, jd(day3[1], day3[2], day3[3]), latp, lonp)
+const d1 = decl(10, t1)
+const d2 = decl(10, t2)
+const d3 = decl(10, t3)
 
 // ---- the hour-angle machinery at a custom horizon h0 --------------------------
 def cx(h0, dec, phi) = (sin(rad(h0)) - sin(rad(phi)) * sin(rad(dec))) / (cos(rad(phi)) * cos(rad(dec)))
@@ -76,19 +76,6 @@ print("polar test, 2026-12-21 at lat 78.2 lon 15.6:")
 if cx(-4, d3, latp) > 1 then print("  the Sun never reaches -4 deg: no golden/blue hour - polar night") else if cx(6, d3, latp) < -1 then print("  the Sun never drops below +6 deg: no golden/blue hour - midnight sun") else print("  morning:", evm(-4, d3, t3, latp), "to", evm(6, d3, t3, latp), "; evening:", eve(6, d3, t3, latp), "to", eve(-4, d3, t3, latp))
 print("  (highest the Sun gets:", 90 - abs(latp - d3), "deg)")
 /* ---- expected output ----
-= 51.4779
-= 0
-= 78.2
-= 15.6
-= {2026, 6, 21}
-= {2026, 12, 21}
-= {2026, 12, 21}
-= 1954203123/794
-= 1826355831/742
-= 1486683157/604
-= 23.437848058
-= -23.436941256
-= -23.436808724
 = golden/blue hour band: Sun between -4 deg and +6 deg
 = 2026-06-21 at lat 51.4779 lon 0:
 =   morning: 2026-06-21T03:14:34 to 2026-06-21T04:37:00

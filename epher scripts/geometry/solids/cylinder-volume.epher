@@ -24,8 +24,6 @@ print("volume:", vol(r, h))
 print("unit cylinder:", vol(1, 1))
 print("doubling the height doubles the volume:", vol(3, 10) == 2 * vol(3, 5))
 /* ---- expected output ----
-= 3
-= 5
 = volume: 141.371669412
 = unit cylinder: 3.14159265359
 = doubling the height doubles the volume: true

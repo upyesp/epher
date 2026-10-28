@@ -50,7 +50,6 @@ print("1 AU in light seconds:", au / c in s)
 print("Moon in light seconds:", dist(11, tm) * au / c, "s =", dist(11, tm) * au / r_earth, "Earth radii")
 
 /* ---- expected output ----
-= 2461193
 = light-time one way, Earth at 2026-06-01T12:00:00
 = Sun: 8.43287925086 min
 = Moon: 1.35537939717 s

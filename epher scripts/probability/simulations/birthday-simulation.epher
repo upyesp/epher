@@ -51,8 +51,6 @@ while w[1] < size do w = {w[1] + 1, w[2] * (1 - w[1] / 365)}
 print("theoretical rate:", 1 - w[2])
 print("difference:", v[2] / rooms - (1 - w[2]))
 /* ---- expected output ----
-= 5000
-= 23
 = 19
 = {0, 0}
 = rooms: 5000

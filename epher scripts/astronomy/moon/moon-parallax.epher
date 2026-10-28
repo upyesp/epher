@@ -46,7 +46,7 @@ def hp(j) = deg(asin(r_earth / (dist(11, j) * au)))      // horizontal parallax,
 def altg(j, lat, lon) = deg(asin(sin(rad(lat)) * sin(rad(decl(11, j))) + cos(rad(lat)) * cos(rad(decl(11, j))) * cos(rad(w360(lst(j, lon) * 15 - ra(11, j))))))   // geocentric altitude from the hour angle
 
 // ---- results ------------------------------------------------------------------
-t = jd(year, month, day, hr)
+const t = jd(year, month, day, hr)
 print("at", iso(t), "UT, from lat", lat, "lon", lon)
 print("Moon distance:", dist(11, t), "AU")
 print("horizontal parallax:", hp(t), "deg =", hp(t) * 60, "arcmin")
@@ -62,13 +62,6 @@ print("shift (topocentric minus geocentric):", alt(11, t, lat, lon) - altg(t, la
 print("shift predicted, -HP cos(alt):", -hp(t) * cos(rad(altg(t, lat, lon))), "deg")
 
 /* ---- expected output ----
-= 51.4779
-= 0
-= 2026
-= 6
-= 22
-= 22
-= 29534573/12
 = at 2026-06-22T22:00:00 UT, from lat 51.4779 lon 0
 = Moon distance: 0.00263138917792 AU
 = horizontal parallax: 0.927339379581 deg = 55.6403627749 arcmin

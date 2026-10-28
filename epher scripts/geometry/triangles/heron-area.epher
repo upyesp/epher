@@ -29,9 +29,6 @@ print("area of the 3-4-5 triangle:", heron(semi(3, 4, 5), 3, 4, 5))
 print("3-4-5 by base times height:", 3 * 4 / 2)
 print("Heron matches base-height:", heron(semi(3, 4, 5), 3, 4, 5) == 3 * 4 / 2)
 /* ---- expected output ----
-= 13
-= 14
-= 15
 = semiperimeter: 21
 = area of the 13-14-15 triangle: 84
 = area of the 3-4-5 triangle: 6

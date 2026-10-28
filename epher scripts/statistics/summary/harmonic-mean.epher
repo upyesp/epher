@@ -26,7 +26,6 @@ print("arithmetic mean, the wrong average here:", mean(s))
 print("the textbook formula written out:", 2 / (1 / 60 + 1 / 40))
 
 /* ---- expected output ----
-= {60, 40}
 = harmonic mean, km/h: 48
 = arithmetic mean, the wrong average here: 50
 = the textbook formula written out: 48

@@ -24,9 +24,9 @@ def ok_tan(x) = abs(tan(-x) + tan(x)) < 1e-12   // tan(-x) = -tan(x)
 
 // ---- results -----------------------------------------------------------------
 // All three checks at every knob angle.
-for x in degs do ok_sin(rad(x))
-for x in degs do ok_cos(rad(x))
-for x in degs do ok_tan(rad(x))
+for x in degs do print("sin(-x)=-sin(x) at", x, "deg:", ok_sin(rad(x)))
+for x in degs do print("cos(-x)=cos(x) at", x, "deg:", ok_cos(rad(x)))
+for x in degs do print("tan(-x)=-tan(x) at", x, "deg:", ok_tan(rad(x)))
 
 // The numbers behind the booleans at 30 deg: sine and tangent flip sign,
 // cosine does not.
@@ -37,10 +37,9 @@ print("cos(30 deg) =", cos(30 deg))
 print("tan(-30 deg) =", tan(-30 deg))
 print("-tan(30 deg) =", -tan(30 deg))
 /* ---- expected output
-= {15, 30, 45, 60, 75}
-= {true, true, true, true, true}
-= {true, true, true, true, true}
-= {true, true, true, true, true}
+= {sin(-x)=-sin(x) at 15 deg: true, sin(-x)=-sin(x) at 30 deg: true, sin(-x)=-sin(x) at 45 deg: true, sin(-x)=-sin(x) at 60 deg: true, sin(-x)=-sin(x) at 75 deg: true}
+= {cos(-x)=cos(x) at 15 deg: true, cos(-x)=cos(x) at 30 deg: true, cos(-x)=cos(x) at 45 deg: true, cos(-x)=cos(x) at 60 deg: true, cos(-x)=cos(x) at 75 deg: true}
+= {tan(-x)=-tan(x) at 15 deg: true, tan(-x)=-tan(x) at 30 deg: true, tan(-x)=-tan(x) at 45 deg: true, tan(-x)=-tan(x) at 60 deg: true, tan(-x)=-tan(x) at 75 deg: true}
 = sin(-30 deg) = -0.5
 = -sin(30 deg) = -0.5
 = cos(-30 deg) = 0.866025403784

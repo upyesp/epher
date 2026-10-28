@@ -35,9 +35,6 @@ print("compounded continuously:", principal * e ^ (rate * years))
 // e^(r*t). Even daily crediting lands only a whisker below it: 1648.6648
 // versus 1648.7213, a gap of about 0.0034% of the balance.
 /* ---- expected output ----
-= 1000
-= 0.05
-= 10
 = compounded yearly: 1628.89462678
 = compounded monthly: 1647.00949769
 = compounded daily: 1648.66481377

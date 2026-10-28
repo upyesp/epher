@@ -27,8 +27,6 @@ print("p(5):", p(cs, 5))
 print("remainder equals p(r):", car == p(cs, 5))
 print("identity holds at x = 2:", p(cs, 2) == (2 - r) * (2 ^ 2 - 2 + 6) + car)
 /* ---- expected output ----
-= {1, -6, 11, -6}
-= 5
 = 1
 = {-1, 6, 24}
 = remainder: 24

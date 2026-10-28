@@ -48,8 +48,6 @@ print("20 by 20 grid:", paths(20, 20))
 // paths(m, n - 1) (first step right or down).
 print("Pascal's rule: first step right or down:", paths(4, 4) == paths(3, 4) + paths(4, 3))
 /* ---- expected output ----
-= 4
-= 4
 = 2 by 2 grid: 6
 = 2 by 3 grid: 10
 = 3 by 3 grid: 20

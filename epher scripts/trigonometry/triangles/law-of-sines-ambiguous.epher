@@ -53,14 +53,6 @@ print("then C =", 180 - A - b1(a3), "deg or", 180 - A - b2(a3), "deg")
 print("a = 12 m:", verdict(a4), "with B =", b1(a4), "deg")
 print("a = 16 m:", verdict(a5), "with B =", b1(a5), "deg")
 /* ---- expected output
-= 30
-= 12 m
-= 4 m
-= 6 m
-= 8 m
-= 12 m
-= 16 m
-= 6 m
 = h = b sin A = 6 m
 = a = 4 m: no triangle (a < h)
 = a = 6 m: one right triangle (a = h)

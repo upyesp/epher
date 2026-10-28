@@ -23,7 +23,6 @@ print("the formula, sum of squared deviations over n:", sum((step - mean(step)) 
 print("the squared deviations in total:", sum((step - mean(step)) ^ 2))
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
 = builtin variance, population version (n): 88.41
 = the formula, sum of squared deviations over n: 88.41
 = the squared deviations in total: 884.1

@@ -24,7 +24,5 @@ const ys = {1.0, 2.2, 3.9, 8.1, 15.6, 30.4}   // yeast culture size, grams
 print("least-squares exponential, with its r:", expreg(xs, ys))
 
 /* ---- expected output ----
-= {0, 1, 2, 3, 4, 5}
-= {1, 2.2, 3.9, 8.1, 15.6, 30.4}
 = least-squares exponential, with its r: y = 1.0434*e^(0.6766*x) (r = 0.9995)
 */

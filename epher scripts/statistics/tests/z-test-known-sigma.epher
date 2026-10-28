@@ -31,9 +31,6 @@ print("z test of the scores against mu0 with sigma known (z and p):", ztest(step
 // 75, significant at the 5% level
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
-= 75
-= 9
 = sample mean: 81.3
 = standard error sigma / sqrt(n): 2.84604989415
 = z by hand: 2.21359436212

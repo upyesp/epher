@@ -21,8 +21,8 @@ Knobs: the instant below.
 const tm = jd(2026, 9, 10, 12.5824)   // 12:34:56.64 UT
 
 // ---- the conversions ----------------------------------------------------------------------
-ux = (tm - 2440587.5) * 86400
-t2 = 2440587.5 + ux / 86400
+const ux = (tm - 2440587.5) * 86400
+const t2 = 2440587.5 + ux / 86400
 
 print("instant:", iso(tm))
 print("unix seconds:", ux)
@@ -36,9 +36,6 @@ print("round trip exact:", t2 == tm)
 print("unix seconds of the epoch:", (jd(1970, 1, 1) - 2440587.5) * 86400)
 
 /* ---- expected output ----
-= 1927193221/783
-= 1789043696.64
-= 1927193221/783
 = instant: 2026-09-10T12:34:57
 = unix seconds: 1789043696.64
 = back-converted unix seconds: 1789043696.64

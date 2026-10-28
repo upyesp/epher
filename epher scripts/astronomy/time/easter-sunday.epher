@@ -55,7 +55,6 @@ print("computed Easter 2026 is a Sunday:", sunday(2026))
 print("computed Easter 2038 is a Sunday:", sunday(2038))
 
 /* ---- expected output ----
-= {2000, 2024, 2025, 2026, 2027, 2038}
 = Easter 2000: 2000-04-23
 = Easter 2024: 2024-03-31
 = Easter 2025: 2025-04-20

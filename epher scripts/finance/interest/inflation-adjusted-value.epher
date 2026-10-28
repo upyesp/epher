@@ -37,9 +37,6 @@ print("1000 today, after 10 years of inflation:", inflate(amount, inflation, yea
 print("1000 in 10 years, in today's money:", deflate(amount, inflation, years))
 print("price level multiplier:", (1 + inflation) ^ years)
 /* ---- expected output ----
-= 1000
-= 0.03
-= 10
 = 1000 today, after 10 years of inflation: 1343.91637934
 = 1000 in 10 years, in today's money: 744.093914897
 = price level multiplier: 1.34391637934

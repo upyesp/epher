@@ -50,10 +50,6 @@ at 23:32 UT on 30 May, so asking for May 31 would give a negative hour. */
 print("delay, 22nd to 23rd:", (trh(2026, 6, 23, lat, lon) - trh(2026, 6, 22, lat, lon)) in hr)
 
 /* ---- expected output ----
-= 2026
-= 6
-= 51.4779
-= 0
 = transit 2026-06-15: 12.416457843 hr UT; clock 12h 24m 59s
 = transit 2026-06-22: 18.4617175162 hr UT; clock 18h 27m 42s
 = transit 2026-06-29: 24.1119554378 hr UT; clock 0h 6m 43s

@@ -51,11 +51,6 @@ print("temperature there, by the model:", cool(treach(40)))
 print("the round trip lands on the target:", abs(cool(treach(40)) - 40) < 1e-6)
 
 /* ---- expected output ---------------------------------------------------------
-= 95
-= 20
-= 5
-= 70
-= 0.0810930216216
 = rate constant k, per minute: 0.0810930216216
 = temperature at 5 minutes: 70
 = the observation is reproduced: true

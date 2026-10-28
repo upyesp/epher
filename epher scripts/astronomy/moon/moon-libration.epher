@@ -75,11 +75,11 @@ def bsub(j, lb, be) = deg(asin(sin(rad(incl)) * cos(rad(be)) * cos(rad(node(j) +
 def lsub(j, lb, be) = deg(atan2(cos(rad(be)) * cos(rad(incl)) * sin(rad(lb - Lbar(j))) - sin(rad(be)) * sin(rad(incl)) * sin(rad(node(j) + Lbar(j))), cos(rad(be)) * cos(rad(lb - Lbar(j)))))
 
 // ---- results ---------------------------------------------------------------------
-t = jd(year, month, day, hr)
+const t = jd(year, month, day, hr)
 print("at", iso(t), "UT:")
-lm = elon(t, 11)
-bm = elat(t, 11)
-lsun = elon(t, 10)
+const lm = elon(t, 11)
+const bm = elat(t, 11)
+const lsun = elon(t, 10)
 print("Moon ecliptic lon/lat:", lm, "/", bm, "deg")
 print("Sun ecliptic lon:", lsun, "deg")
 print("mean lunar longitude L':", Lbar(t), "deg; mean node:", sym(node(t)), "deg")
@@ -100,16 +100,7 @@ print("morning terminator (sunrise) at longitude:", sym(lsub(t, lsun, 0) - 270),
 print("evening terminator (sunset) at longitude:", sym(lsub(t, lsun, 0) - 90), "deg")
 
 /* ---- expected output ----
-= 2026
-= 5
-= 31
-= 8.77
-= 1.5424
-= 1444719625/587
 = at 2026-05-31T08:46:12 UT:
-= 249.93757467
-= -4.96413066038
-= 69.9297100558
 = Moon ecliptic lon/lat: 249.93757467 / -4.96413066038 deg
 = Sun ecliptic lon: 69.9297100558 deg
 = mean lunar longitude L': 249.239804573 deg; mean node: -25.7933095683 deg

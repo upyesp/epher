@@ -75,6 +75,12 @@ const problems = [];
 
 for (const file of files) {
   const rel = relative(SCRIPTS, file);
+  const source = readFileSync(file, "utf8");
+  if (!source.endsWith("\n")) {
+    failed++;
+    problems.push(`missing trailing newline: ${rel}`);
+    continue;
+  }
   const expected = expectedTranscript(file);
   if (!expected) {
     missing++;
@@ -110,7 +116,11 @@ for (const file of files) {
     const m = expectedMarker(file);
     const body = transcript.map((l) => (m.block ? l : `// ${l}`));
     if (m.block) body.push("*/");
-    writeFileSync(file, [...m.lines.slice(0, m.start + 1), ...body].join("\n"));
+    // Every script file ends with a newline; the splice must keep it.
+    // (A batch once rewrote 345 files without one, which git reports as
+    // "\ No newline at end of file" on every diff.)
+    const rewritten = [...m.lines.slice(0, m.start + 1), ...body].join("\n");
+    writeFileSync(file, rewritten.endsWith("\n") ? rewritten : `${rewritten}\n`);
     updatedCount++;
   } else {
     failed++;

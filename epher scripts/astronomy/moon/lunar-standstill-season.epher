@@ -70,15 +70,11 @@ checked against the engine's own Moon. */
 const w0 = jm(mm) - 42        // scan window: 42 days before the crossing
 def dv(q) = abs(decl(11, w0 + 3 * q))
 def dmax(v, iv, q) = if q >= 29 then {v, iv} else if dv(q) > v then dmax(dv(q), q, q + 1) else dmax(v, iv, q + 1)
-r = dmax(dv(0), 0, 1)
+const r = dmax(dv(0), 0, 1)
 print("engine sample: max |declination|", r[1], "deg on", iso(w0 + 3 * r[2]), "UT")
 print("grade: mean-element seasons/amplitudes (+/-0.2 deg); engine sample")
 
 /* ---- expected output ----
-= 2000
-= 51.4779
-= 0
-= 0
 = standstill seasons after 2000 : node 0 deg major, 180 deg minor
 = first season: major standstill 2006: node 0 deg on 2006-06-19T21:22:54 UT
 = second season: minor standstill 2015: node 180 deg on 2015-10-10T01:58:56 UT
@@ -87,8 +83,6 @@ print("grade: mean-element seasons/amplitudes (+/-0.2 deg); engine sample")
 = next major standstill 2006 : declination extremes about +/- 28.5834503624 deg
 = at lat 51.4779 the Moon's transit altitude band at the standstill:
 =   about 9.9386496376 to 67.1055503624 deg
-= 2453864.3909
-= {28.452983014, 25}
 = engine sample: max |declination| 28.452983014 deg on 2006-07-22T21:22:54 UT
 = grade: mean-element seasons/amplitudes (+/-0.2 deg); engine sample
 */

@@ -39,6 +39,7 @@ on:
       - crates/**
       - "epher scripts/**"
       - scripts/check-scripts.mjs
+      - scripts/check-guide.mjs
       - scripts/tui-smoke.py
       - site/guide/**
       - Cargo.toml
@@ -146,6 +147,13 @@ jobs:
 
       - name: Every repository script replays its transcript
         run: node scripts/check-scripts.mjs
+        env:
+          EPHER_CLI: ${{ env.EPHER }}
+
+      - name: Every guide transcript matches the engine
+        # The guide documents output in prose-adjacent blocks; a language
+        # change that edits no file can still make them wrong (ADR-0080).
+        run: node scripts/check-guide.mjs --strict
         env:
           EPHER_CLI: ${{ env.EPHER }}
 

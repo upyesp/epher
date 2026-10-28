@@ -80,15 +80,15 @@ def scan(n, q, lo, hi, sm, ilo, ihi) = if q >= n then {lo, hi, sm, ilo, ihi} els
 def ncloser(n, q, c, d) = if q >= n then c else if dkm(q) < d then ncloser(n, q + 1, c + 1, d) else ncloser(n, q + 1, c, d)   // how many full moons are closer than d km
 
 // ---- results ------------------------------------------------------------------
-count = nfull(0, 0)
-i0 = findm(count, 0, month)
-rank = ncloser(count, 0, 0, dkm(i0)) + 1
+const count = nfull(0, 0)
+const i0 = findm(count, 0, month)
+const rank = ncloser(count, 0, 0, dkm(i0)) + 1
 print("the year's", count, "full moons are lunations", k0, "through", k0 + count - 1)
 
 /* One scan over the year's full moons collects the closest, the
 farthest and the summed distance (the echoed list {lo, hi, sum, index
 of lo, index of hi}); the mean follows by division. */
-stats = scan(count, 1, dkm(0), dkm(0), dkm(0), 0, 0)
+const stats = scan(count, 1, dkm(0), dkm(0), dkm(0), 0, 0)
 print("closest full moon:", iso(fullmoon(k0 + stats[4])), "UT,", stats[1], "km")
 print("farthest full moon:", iso(fullmoon(k0 + stats[5])), "UT,", stats[2], "km")
 print("mean full-moon distance:", stats[3] / count, "km")
@@ -109,14 +109,7 @@ instant (both geocentric). */
 print("self-check: diam from dist:", 2 * deg(asin((r_moon / 1000) / dkm(i0))), "deg vs engine", diam(11, fullmoon(k0 + i0)), "deg")
 
 /* ---- expected output ----
-= 2026
-= 12
-= 321.5
-= 13
-= 12
-= 1
 = the year's 13 full moons are lunations 321.5 through 333.5
-= {356737.601, 406135.642, 4979120.343, 12, 5}
 = closest full moon: 2026-12-24T01:29:24 UT, 356737.601 km
 = farthest full moon: 2026-05-31T08:46:26 UT, 406135.642 km
 = mean full-moon distance: 383009.257154 km

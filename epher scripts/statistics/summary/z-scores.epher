@@ -28,7 +28,6 @@ print("z of the score 85:", z(85))
 print("the standardized scores, average 0 with sd 1:", (data - mean(data)) / stdev(data))
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
 = z of the score 85: 0.393505701095
 = the standardized scores, average 0 with sd 1: {-0.989081897348, 0.393505701095, 1.03162305422, -1.83990503485, 0.712564377659, -0.244611652032, 0.180799916719, 1.45703462297, -1.20178768172, 0.499858593283}
 */

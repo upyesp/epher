@@ -26,9 +26,6 @@ while acc[1] <= num do acc = {acc[1] + 1, acc[2] + ncr(num, acc[1]) * a ^ (num -
 print("sum of the terms:", acc[2])
 print("equals (a + b)^num:", acc[2] == (a + b) ^ num)
 /* ---- expected output ----
-= 2
-= 3
-= 6
 = {1, 6, 15, 20, 15, 6, 1}
 = {64, 576, 2160, 4320, 4860, 2916, 729}
 = {0, 0}

@@ -26,8 +26,6 @@ print("area, exact 2*pi:", integral(2 * sqrt(1 - x ^ 2 / a ^ 2), -a, a))
 graph x ^ 2 / 4 + y ^ 2 == 1 from -2.5 to 2.5
 
 /* ---- expected output ----
-= 2
-= 1
 = focal distance c = sqrt(a^2 - b^2): 1.73205080757
 = eccentricity e = c/a: 0.866025403784
 = area, exact 2*pi: 6.28318530691

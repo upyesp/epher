@@ -46,9 +46,6 @@ print("A on the circle:", oncircle(A, A, B, C))
 print("B on the circle:", oncircle(B, A, B, C))
 print("C on the circle:", oncircle(C, A, B, C))
 /* ---- expected output ----
-= {0, 0}
-= {6, 0}
-= {3, 6}
 = center: {3, 2.25}
 = radius: 3.75
 = distance from A to the center: 3.75

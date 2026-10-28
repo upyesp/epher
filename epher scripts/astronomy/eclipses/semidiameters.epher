@@ -40,7 +40,7 @@ def sdarc(rkm, b, j) = 206265 * rkm * 1000 / (dist(b, j) * au)   // s = 206265 R
 def sdmoon(j) = diam(11, j) / 2 * 60                      // Moon semidiameter, arcmin (engine diam, deg)
 
 // ---- results ------------------------------------------------------------------
-j = jd(day[1], day[2], day[3], 12)
+const j = jd(day[1], day[2], day[3], 12)
 print("geocentric semidiameters at", iso(j), "UT")
 print("Sun: ", diam(10, j) / 2 * 3600, "arcsec =", diam(10, j) / 2 * 60, "arcmin")
 print("Moon:", diam(11, j) / 2 * 3600, "arcsec =", sdmoon(j), "arcmin")
@@ -61,13 +61,11 @@ print("Sun cross-check: radius formula", 206265 * r_sun / (dist(10, j) * au), "v
 semidiameter. Under 1 the Moon's disk is smaller than the Sun's and
 a central eclipse is annular; over 1 totality fits. On 2026-02-17
 the eclipse was annular, which the printed alpha predicts. */
-a = (diam(11, j) / 2) / (diam(10, j) / 2)
+const a = (diam(11, j) / 2) / (diam(10, j) / 2)
 print("alpha (Moon/Sun semidiameter ratio):", a)
 print("verdict:", if a < 1 then "Moon smaller: annular geometry" else "Moon large enough: totality possible")
 
 /* ---- expected output ----
-= {2026, 2, 17}
-= 2461089
 = geocentric semidiameters at 2026-02-17T12:00:00 UT
 = Sun:  970.6805 arcsec = 16.1780083333 arcmin
 = Moon: 932.04285 arcsec = 15.5340475 arcmin
@@ -79,7 +77,6 @@ print("verdict:", if a < 1 then "Moon smaller: annular geometry" else "Moon larg
 = Uranus:  1.80917029667 arcsec (radius 25559 km)
 = Neptune: 1.11152699295 arcsec (radius 24764 km)
 = Sun cross-check: radius formula 970.677850414 vs engine 970.6805 arcsec
-= 0.960195295981
 = alpha (Moon/Sun semidiameter ratio): 0.960195295981
 = verdict: Moon smaller: annular geometry
 */

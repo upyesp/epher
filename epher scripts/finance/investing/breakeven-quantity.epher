@@ -37,10 +37,6 @@ print("contribution margin ratio:", (price - variable) / price)
 margin ratio 0.375 says each unit of revenue leaves 0.375 toward
 fixed costs and profit. */
 /* ---- expected output ----
-= 12000
-= 8
-= 5
-= 6000
 = contribution per unit: 3
 = breakeven quantity: 4000
 = revenue at breakeven: 32000

@@ -23,7 +23,5 @@ const ys = {6.4, 13.2, 25.8, 37.4, 58.1}   // braking distance, meters
 print("least-squares quadratic, with its correlation r:", quadreg(xs, ys))
 
 /* ---- expected output ----
-= {20, 30, 40, 50, 60}
-= {6.4, 13.2, 25.8, 37.4, 58.1}
 = least-squares quadratic, with its correlation r: y = 0.0191*x^2 + -0.2554*x + 3.94 (r = 0.9985)
 */

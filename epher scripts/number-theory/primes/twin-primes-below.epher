@@ -27,9 +27,9 @@ print("twin-prime pairs below 100:", v[2])
 // ---- the pairs themselves -------------------------------------------------------
 // The first members of the eight pairs, checked the same way; the loop
 // collects one boolean per first member and prints them together.
-for x in {3, 5, 11, 17, 29, 41, 59, 71} do isprime(x) and isprime(x + 2)
+for x in {3, 5, 11, 17, 29, 41, 59, 71} do print("x and x+2 prime at x=" + str(x) + ":", isprime(x) and isprime(x + 2))
 /* ---- expected output ----
 = {3, 0}
 = twin-prime pairs below 100: 8
-= {true, true, true, true, true, true, true, true}
+= {x and x+2 prime at x=3: true, x and x+2 prime at x=5: true, x and x+2 prime at x=11: true, x and x+2 prime at x=17: true, x and x+2 prime at x=29: true, x and x+2 prime at x=41: true, x and x+2 prime at x=59: true, x and x+2 prime at x=71: true}
 */

@@ -51,12 +51,6 @@ print("  3:", iso(tr1 + 2 * turn), "UT")
 print("Jupiter magnitude", mag(5, tm), "; diameter", diam(5, tm) * 3600, "arcsec")
 
 /* ---- expected output ----
-= 29535953/12
-= 255
-= 93.6604048703
-= 0.185407976762
-= 2461329.60207
-= 0.413704221712
 = Jupiter System II central meridian at 2026-10-15T22:00:00 UT: 93.6604048703 deg
 = next GRS transits (spot longitude 255 deg System II):
 =   1: 2026-10-16T02:26:59 UT

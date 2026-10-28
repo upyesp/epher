@@ -24,7 +24,6 @@ print("total of all scores:", sum(step))
 print("number of scores:", len(step))
 
 /* ---- expected output ----
-= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}
 = builtin arithmetic mean: 81.3
 = the textbook formula, sum(step) / len(step): 81.3
 = total of all scores: 813

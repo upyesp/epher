@@ -71,7 +71,6 @@ day-of-year readings jump by a few hours each year. */
 print("June solstice to June solstice:", june_solstice(year + 1) - june_solstice(year), "days")
 
 /* ---- expected output ----
-= 2026
 = spring equinox: 78.6154679945 days into 2026
 = summer solstice: 171.350897795 days into 2026
 = autumn equinox: 265.00382519 days into 2026

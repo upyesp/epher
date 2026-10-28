@@ -65,7 +65,6 @@ system is 44 arcseconds per Io-orbit wide and every moon fits in one
 eyepiece field; near conjunction Jupiter is gone anyway. */
 print("Jupiter distance:", round(dist(5, when) * 100) / 100, "AU")
 /* ---- expected output ----
-= 2461300.5
 = The Galilean moons at 2026-09-17T00:00:00 UT
 = (separation from Jupiter's centre, in arcseconds; W/E = which side)
 = Io: 45 arcsec W - visible

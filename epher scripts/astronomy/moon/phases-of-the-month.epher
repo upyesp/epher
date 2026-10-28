@@ -70,8 +70,8 @@ def kf(j, f) = if phase_jd(round(kb(j)) + f) < j then round(kb(j)) + 1 + f else 
 def fmt(j0, j1, f) = if phase_jd(kf(j0, f)) < j1 then iso(phase_jd(kf(j0, f))) else "none this month"
 
 // ---- results ------------------------------------------------------------------
-j0 = jd(year, month, 1)
-j1 = (if month == 12 then jd(year + 1, 1, 1) else jd(year, month + 1, 1))
+const j0 = jd(year, month, 1)
+const j1 = (if month == 12 then jd(year + 1, 1, 1) else jd(year, month + 1, 1))
 print("principal phases of", month, "/", year, "UT:")
 print("new moon:", fmt(j0, j1, 0))
 print("first quarter:", fmt(j0, j1, 0.25))
@@ -88,10 +88,6 @@ print("illum at that full moon:", illum(11, phase_jd(kf(j0, 0.5))))
 print("illum at that new moon:", illum(11, phase_jd(kf(j0, 0))))
 
 /* ---- expected output ----
-= 2026
-= 3
-= 2461100.5
-= 2461131.5
 = principal phases of 3 / 2026 UT:
 = new moon: 2026-03-19T01:24:41
 = first quarter: 2026-03-25T19:18:52

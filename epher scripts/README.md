@@ -34,7 +34,8 @@ Its expected-output block shows the output of a run, and that block is checked m
 ## Running a script
 
 From a terminal (the CLI runs every statement in order and prints each
-statement's value). Copy a script from the website's Scripts page and
+statement's value, except the silent ones: `def` and `const` define
+machinery and print nothing — ADR-0080). Copy a script from the website's Scripts page and
 paste it into the terminal, or run it from a file. From a source
 checkout (contributors running from the repository root - an installed
 epher has no `epher scripts` folder), the path carries the folder name:
@@ -55,7 +56,9 @@ See the guide, chapter 4, for scripts, `save` and `load`.
 
 The language shapes the format: a script file runs **one statement per
 line** (`;` joins statements on a single line), and every statement's value
-shows as epher displays it, including fractions.
+shows as epher displays it, including fractions — except the two silent
+statements, `def` and `const`, which define machinery rather than results
+(ADR-0080). A constant still binds: the lines below read it.
 A script file is a
 whole program, so block comments may span lines in it.
 
@@ -72,7 +75,10 @@ The reference example turns those facts into a house style:
    keeps its own relative indentation).
 2. **Knobs at the top.** Every value a user might change is one `const`
    in a clearly marked block right after the header. Nothing to edit
-   below it.
+   below it. A `const` prints nothing (ADR-0080), so the knob block is
+   invisible in the transcript — the reader sees results, not settings.
+   Use `const` for any value computed once and never changed, not only
+   for knobs.
 3. **Cite your source.** Name the book, paper, or data source in the
    header and name each equation at its section divider.
 4. **Section dividers.** A `// ---- label ----` line between sections:
@@ -105,8 +111,20 @@ The reference example turns those facts into a house style:
    of the five factors:", "they agree:"). Order outputs the way a
    reader wants them; one line, one answer. Values that are display
    strings (solve, linreg, the tests) print after a label that names
-   the fit or the test. Keep printed lines short enough not to wrap at
-   80 columns; tables may keep a header row instead of per-row labels.
+   the fit or the test.
+
+   **The last line you print is the answer.** The result pane emphasizes
+   it and scrolls to it, so put the result a reader wants last, after
+   the checks — or accept that a closing `… : true` is the answer the
+   pane highlights. **A matrix carries no header** (matrix cells are
+   numbers), so print its columns first:
+   `print("columns: month, interest, principal, balance")`. A loop's
+   body decides what the transcript says: `for x in degs do ok(x)`
+   prints a bare list of booleans, while
+   `for x in degs do print("at " + str(x) + " deg:", ok(x))` prints one
+   labelled value per step. Keep lines short enough to read at 80
+   columns; the pane wraps long lists at value boundaries, but a
+   shorter line is easier to read.
 9. **Show the expected output.** End with a `/* ---- expected output
    ---- ... */` block holding the shipped default's transcript, one line
    per output line, so anyone can check their build and their edit.
@@ -119,6 +137,26 @@ The reference example turns those facts into a house style:
     script (like the ephemeris accessors), print the comparison.
 12. **Honesty about accuracy.** State what is omitted and when the error
     grows. Never oversell.
+
+## What the result pane does with your output
+
+The pane (the surface that shows a script's transcript, ADR-0078) reads
+each line by its shape, so the conventions above pay off twice:
+
+- a line with a `label: value` colon renders at full weight; a bare
+  echo renders dimmed;
+- the **last line** is emphasized as the answer (a trailing `: true`
+  check steps aside for the labelled line above it);
+- an `error:` line is styled as a failure and never as an answer;
+- a `{{…}}` or `[[…]]` matrix renders as a right-aligned grid, one row
+  per line — the reason for the `columns:` line;
+- a list of more than twenty values folds behind a "show more" control;
+- ISO 8601 timestamps (`iso(...)`) stay on one line, and a trailing
+  unit (`= 12 m`) is dimmed;
+- a whole transcript can be shown at six significant digits ("Short
+  numbers"), with the full values on hover and in every copy.
+
+Copy always carries the original, full-precision text.
 
 ## Language quick reference
 

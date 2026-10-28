@@ -4,7 +4,7 @@ folium-of-descartes.epher -- the leaf with the loop and the slant asymptote
 The folium x^3 + y^3 = 3*x*y (Descartes, 1638, in his letters to
 Fermat) unfurls a loop in the first quadrant and two wings that close
 on the slant asymptote x + y + 1 = 0. The rational parametrisation
-x = 3*t / (1 + t^3), y = 3*t^2 / (1 + t^3) walks the whole curve with
+const x = 3*t / (1 + t^3), y = 3*t^2 / (1 + t^3) walks the whole curve with
 one parameter t; the node sits at the origin and the loop's far
 corner at t = 1 (Lockwood, "A Book of Curves", ch. 8). The script
 graphs the loop and the wings separately - t = -1 is a pole - and

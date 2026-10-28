@@ -23,9 +23,9 @@ const rate = 4%             // annual rate of return
 Rows are {monthly deposit, months to reach 20000}. Doubling the deposit
 from 200 to 400 does not halve the time (86.45 to 46.32 months): the
 bigger plan leans less on the account's interest. */
+print("columns: monthly deposit, months to reach", goal)
 for deposit in {200, 300, 400} do {deposit, tvm_n(rate / 12, 0, -deposit, goal)}
 /* ---- expected output ----
-= 20000
-= 0.04
+= columns: monthly deposit, months to reach 20000
 = {{200, 86.448382993}, {300, 60.3014883372}, {400, 46.3222365397}}
 */

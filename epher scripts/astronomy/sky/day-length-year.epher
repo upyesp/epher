@@ -54,8 +54,8 @@ The year's swing at Greenwich: 16.6 hours of daylight at the June
 solstice against 7.8 at the December one, with the equinox rows near
 12.2 (not 12: the -0.833 horizon adds the upper limb and refraction).
 The longest and shortest marks fall on the two solstice rows. */
-mx = max({djan, dfeb, dmar, dapr, dmay, djun, djul, daug, dsep, doct, dnov, ddec})
-mn = min({djan, dfeb, dmar, dapr, dmay, djun, djul, daug, dsep, doct, dnov, ddec})
+const mx = max({djan, dfeb, dmar, dapr, dmay, djun, djul, daug, dsep, doct, dnov, ddec})
+const mn = min({djan, dfeb, dmar, dapr, dmay, djun, djul, daug, dsep, doct, dnov, ddec})
 
 print("day length through", year, "at lat", lat, "lon", lon, "(h0 = -0.833 deg)")
 print("Jan 21:", if djan < 0 then "polar: no sunrise" else djan in hr, tag(djan, mx, mn))
@@ -75,27 +75,10 @@ print("Dec 21 (solstice):", if ddec < 0 then "polar: no sunrise" else ddec in hr
 same -0.833 horizon, but the events iterate the true geometry while
 the rows freeze the declination at noon): the June 21 span below
 should match the row within a minute or two. */
-es = (set(10, jd(year, 6, 21), lat, lon) - rise(10, jd(year, 6, 21), lat, lon)) * 24
+const es = (set(10, jd(year, 6, 21), lat, lon) - rise(10, jd(year, 6, 21), lat, lon)) * 24
 print("self-check: engine rise/set span 2026-06-21:", es in hr)
 print("  vs the formula row:", djun in hr)
 /* ---- expected output ----
-= 2026
-= 51.4779
-= 0
-= 8.61861756848
-= 10.3992119049
-= 12.170706945
-= 14.2472960702
-= 15.8962603087
-= 16.6335832338
-= 15.9319249971
-= 14.2561815313
-= 12.1459917739
-= 10.3376060179
-= 8.58963943771
-= 7.83026100458
-= 16.6335832338
-= 7.83026100458
 = day length through 2026 at lat 51.4779 lon 0 (h0 = -0.833 deg)
 = Jan 21: 8.61861756848 hr 
 = Feb 21: 10.3992119049 hr 
@@ -109,7 +92,6 @@ print("  vs the formula row:", djun in hr)
 = Oct 21: 10.3376060179 hr 
 = Nov 21: 8.58963943771 hr 
 = Dec 21 (solstice): 7.83026100458 hr (shortest)
-= 16.6341501698
 = self-check: engine rise/set span 2026-06-21: 16.6341501698 hr
 =   vs the formula row: 16.6335832338 hr
 */

@@ -23,7 +23,6 @@ print("circumference:", circ(r))
 print("radius 1 is one tau:", circ(1))
 print("tau agrees:", abs(circ(1) - tau) < 1e-9)
 /* ---- expected output ----
-= 5
 = circumference: 31.4159265359
 = radius 1 is one tau: 6.28318530718
 = tau agrees: true

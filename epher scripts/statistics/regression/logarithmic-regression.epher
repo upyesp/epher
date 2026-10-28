@@ -23,7 +23,5 @@ const ys = {1.2, 1.7, 2.6, 3.1, 4.0, 4.5}   // response score, 0 to 5
 print("least-squares log fit, with its r:", logreg(xs, ys))
 
 /* ---- expected output ----
-= {1, 2, 4, 8, 16, 32}
-= {1.2, 1.7, 2.6, 3.1, 4, 4.5}
 = least-squares log fit, with its r: y = 1.1429 + 0.9852*ln(x) (r = 0.9967)
 */

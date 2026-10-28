@@ -29,7 +29,6 @@ print("within 1e-6 of 1:", abs(ln(1 + xv)/xv - 1) < 1e-6)
 print("the same limit, as a derivative:", derivative(ln(t), 1))
 
 /* ---- expected output ---------------------------------------------------------
-= 0.00000001
 = the ratio at the knob: 0.999999988923
 = {0.995033085317, 0.999950003333, 0.999999988923}
 = within 1e-6 of 1: true

@@ -84,15 +84,6 @@ engine's geometry from lst, ra and a noon declination alone). */
 if A == 0 then "self-check skipped (no astronomical night)" else "self-check: Sun altitude at that instant: " + str(alt(10, j0 + A / 24, lat, lon)) + " deg (target -18)"
 
 /* ---- expected output ----
-= 51.4779
-= 0
-= {2026, 2, 5}
-= 2461076.5
-= 2461077.5
-= 18.8512455784
-= 29.6034708805
-= 21.6759820841
-= 32.931574557
 = night of 2026-02-05T00:00:00 at lat 51.4779 lon 0
 = astronomical night: 2026-02-05T18:51:04 to 2026-02-06T05:36:12 UT
 = dark window: 2026-02-05T18:51:04 to 2026-02-05T21:40:34 UT (dusk to moonrise)

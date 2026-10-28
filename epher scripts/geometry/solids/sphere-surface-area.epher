@@ -25,7 +25,6 @@ print("surface area:", surf(r))
 print("unit sphere:", surf(1))
 print("V = r S / 3 holds:", abs(vol(r) - r * surf(r) / 3) < 1e-9)
 /* ---- expected output ----
-= 3
 = surface area: 113.097335529
 = unit sphere: 12.5663706144
 = V = r S / 3 holds: true

@@ -37,11 +37,6 @@ month after that saves 292.54. Two cautions: the term restarts at 30
 years, and if the loan is sold or refinanced again before the break-even,
 the costs are lost. */
 /* ---- expected output ----
-= 300000
-= 0.07
-= 0.055
-= 30
-= 6000
 = current payment at 7%: 1995.90748554
 = new payment at 5.5%: 1703.36700404
 = monthly saving: 292.540481497

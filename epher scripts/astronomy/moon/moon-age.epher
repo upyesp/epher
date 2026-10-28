@@ -73,8 +73,6 @@ print("illum from age at", "t1:", (1 - cos(rad(360 * age(t1) / 29.530588861))) /
 print("illum from age at", "t2:", (1 - cos(rad(360 * age(t2) / 29.530588861))) / 2, "vs built-in:", illum(11, t2))
 
 /* ---- expected output ----
-= 2461061.5
-= 2461081.5
 = at 2026-01-21T00:00:00 the Moon is 2.17134509422 days old - waxing crescent
 = at 2026-02-10T00:00:00 the Moon is 22.1713450942 days old - last quarter
 = illum from age at t1: 0.0524173237196 vs built-in: 0.0486

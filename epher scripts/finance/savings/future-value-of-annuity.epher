@@ -33,9 +33,6 @@ print("interest earned:", tvm_fv(years * 12, rate / 12, 0, -deposit) - deposit *
 // Of the 365991.30 balance, 108000 came from the deposits themselves and
 // 257991.30 (about 70%) from compounding.
 /* ---- expected output ----
-= 300
-= 0.07
-= 30
 = balance after 30 years: 365991.298733
 = total deposited out of pocket: 108000
 = interest earned: 257991.298733

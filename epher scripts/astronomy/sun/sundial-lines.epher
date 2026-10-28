@@ -74,8 +74,6 @@ print("check, due-south wall (D = 0), 1 pm line:", deg(atan(cos(rad(lat)) * tan(
 print("check, polar-dial limit (D = 90): lines parallel at", 90 - lat, "deg")
 
 /* ---- expected output ----
-= 51.4779
-= 25
 = vertical declining dial at lat 51.4779 facing 25 deg west of south
 = hour-line angle v from the vertical noon line (positive toward the east end):
 = 6:00  H -90 : line at -117.96309623 deg

@@ -25,6 +25,5 @@ print("internal rate of return:", irr(flows))
 // 14.895% against the 8% cost of capital: the project clears its hurdle
 // with room to spare, which is the same verdict the positive npv gave.
 /* ---- expected output ----
-= {-100000, 30000, 40000, 40000, 30000}
 = internal rate of return: 0.148950281274
 */

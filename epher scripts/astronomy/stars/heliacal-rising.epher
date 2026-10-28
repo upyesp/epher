@@ -106,13 +106,6 @@ flat -6 degrees, which is part of the few-days-to-few-weeks grade a
 knobbed depression carries. */
 
 /* ---- expected output
-= 30.044
-= 31.238
-= 2026
-= -6
-= 101.287083333
-= -16.7161111111
-= 2461041.5
 = {0, -13.7661111495}
 = {211, -48.8361343962}
 = Sun RA on Aug 1: 131.215397007 deg vs accessor 131.217382193

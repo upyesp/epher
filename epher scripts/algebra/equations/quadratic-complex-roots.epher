@@ -30,9 +30,6 @@ print("p(root 2):", p(a, b, c, rminus(a, b, c)))
 // the built-in solver finds the same conjugate pair
 solve x ^ 2 + 2 * x + 5 == 0
 /* ---- expected output ----
-= 1
-= 2
-= 5
 = discriminant: -16
 = root 1: -1+2i
 = root 2: -1-2i

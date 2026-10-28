@@ -23,7 +23,5 @@ const ys = {55, 63, 68, 74, 79, 85, 90}   // exam scores out of 100, same order
 print("least-squares line, with its correlation r:", linreg(xs, ys))
 
 /* ---- expected output ----
-= {1, 2, 3, 4, 5, 6, 7}
-= {55, 63, 68, 74, 79, 85, 90}
 = least-squares line, with its correlation r: y = 5.7143*x + 50.5714 (r = 0.9981)
 */

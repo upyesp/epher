@@ -55,7 +55,6 @@ print("maximum around 2032 and close again toward the next crossings,")
 print("expected in the late 2030s (the cycle repeats every ~15 years).")
 
 /* ---- expected output ----
-= 2461192.5
 = Saturn ring-plane tilt B at 2026-06-01T00:00:00 UT: -8.27226036509 deg
 = south face of the rings presented; opening angle |B| = 8.27226036509 deg
 = cross-check at the known ring-plane crossings:

@@ -26,8 +26,6 @@ print("volume:", vol(r, h))
 print("third of the cylinder:", abs(vol(r, h) - cyl(r, h) / 3) < 1e-9)
 print("cone of radius 1, height 3:", vol(1, 3))
 /* ---- expected output ----
-= 3
-= 5
 = volume: 47.1238898038
 = third of the cylinder: true
 = cone of radius 1, height 3: 3.14159265359

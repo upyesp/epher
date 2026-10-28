@@ -30,9 +30,6 @@ print("one-way anova of the three fertilizer groups (F and p):", anova(a, b, c))
 // at any usual level the group means differ, so the fertilizers are not equivalent
 
 /* ---- expected output ----
-= {12, 14, 15, 13, 16}
-= {10, 9, 12, 11, 8}
-= {15, 17, 14, 16, 13}
 = mean yields, A B C: 14 10 15
 = grand mean: 13
 = one-way anova of the three fertilizer groups (F and p): F = 14, p = 0.0007

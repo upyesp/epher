@@ -40,11 +40,6 @@ print("population there:", pop(ln(A)/r))
 print("half the capacity there:", abs(pop(ln(A)/r) - K/2) < 1e-6)
 
 /* ---- expected output ---------------------------------------------------------
-= 1000
-= 100
-= 0.1
-= {0, 20, 50, 100}
-= 9
 = {100, 450.853060379, 942.825618574, 999.591567517}
 = gap to K after 100 years: 0.408432482608
 = settled on the capacity: true

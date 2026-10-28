@@ -66,11 +66,6 @@ print("aperture gain 5 log(D / d_eye):", m0 - NELM, "mag")
 two agree by construction at every altitude (one row, at 60 deg). */
 print("check: airmass(60) vs 1/sin(60 deg):", X(60), 1 / sin(rad(60)))
 /* ---- expected output ----
-= 0.2
-= 200
-= 6
-= 7
-= 13.2796597782
 = extinction 0.2 mag per airmass; telescope 200 mm; naked-eye limit NELM 6
 = limiting magnitude at the zenith: 13.2796597782 mag
 = at 90 deg (zenith): airmass 1
