@@ -13,47 +13,52 @@ transcript to what the result pane receives), per-script captures
 measured programmatically; sources inspected for the failure pattern.
 Regenerate captures: run each script under `epher scripts/` with the CLI.
 
-## 0. Fix the 26 broken scripts first (correctness, not presentation)
+## 0. CORRECTED: the scripts are sound; a name collision is the real defect
 
-**26 of 477 scripts (5.5%) ship 51 `error:` lines in their transcripts** —
-and some ship *wrong numbers* behind those errors:
+An early draft of this doc claimed 26 scripts were broken. **That was a
+measurement artifact and the claim is withdrawn.** The capture loop ran
+one-shot `epher-cli <file>` per script without `EPHER_STORE_DIR`, and
+one-shot runs persist session variables between invocations (that is
+how `epher "x = 5"` then `epher "x * 2"` works). A leftover `r` from an
+earlier script therefore poisoned later `const r` scripts. With a fresh
+store per run — exactly what `scripts/check-scripts.mjs` does — **all
+477 scripts pass, zero error lines**, and `circle-area` prints its
+correct `area: 78.5398163397`.
+
+The underlying behaviour it exposed is real and user-facing, though:
 
 ```text
-geometry/circles/circle-area
-  error: cannot define constant r: the name is already a variable
-  = area: 0.000314159265359          ← WRONG: for r = 5 the area is 78.54
-  = A = C^2 / (4 pi) agrees: true    ← compares the wrong value with itself
+# a session where the user ran r = 3, then pastes circle-area:
+error: cannot define constant r: the name is already a variable
+= area: 28.2743338823        ← the knob's 5 was ignored; r = 3 was used
+= A = C^2 / (4 pi) agrees: true   ← the self-check cannot catch this
 ```
 
-**Mechanism:** a script binds a name as a plain variable (or a `def`
-parameter) and later declares `const <name>` — the const definition is
-rejected ("cannot define constant r: the name is already a variable"),
-the *stale* variable value flows into every later use, and downstream
-results are computed from wrong inputs. `statistics/summary/geometric-mean`
-prints "total growth over the five years: 0.01" (the growth-factor list
-became a scalar). The expected-output blocks were regenerated at some
-point with `check-scripts.mjs --update`, which blessed the errors as the
-oracle.
+- **Semantics (ADR-0012, deliberate):** a name is a variable or a
+  constant, never both. A pasted script's `const r` is rejected when the
+  session already bound `r`.
+- **In the pane:** `submit_all` is fail-fast, so the GUI shows only the
+  error line and discards the paste's results — safe, but cryptic.
+- **In the CLI file path:** errors print and evaluation continues,
+  computing the rest of the script from the stale variable — the
+  plausible-but-wrong numbers above, with a passing self-check.
 
-**The 26** (by error-line count): hebrew-calendar (8),
-logistic-growth-model (6), exponential-growth (4), julian-calendar-date
-(4), orbital-elements (4), geometric-mean (3), box-volume-surface (2),
-hijri-date (2), and 1 each in: remainder-theorem, synthetic-division,
-geometric-nth-term, geometric-sum, infinite-geometric-sum,
-expreg-culture-growth, and the seven geometry/circles + six
-geometry/solids scripts. Every one follows the same `const`/variable
-collision shape (`const r` vs a radius/growth `r`; `const m` vs a month
-`m`).
+**Fixes shipped in this batch (ADR-0079):**
 
-**Fix pattern:** rename the local binding (`r` → `rad`, `m` → `month`,
-`r` → `growth`), keep the `const` knob name (the knob is what users
-edit — the header says so), re-verify each script's numbers against its
-stated formula, then regenerate the expected block with
-`check-scripts.mjs --update` **and review the diff by hand** — the point
-is unblessing shipped errors, not re-blessing whatever prints.
+- `error:` / `warning:` lines are their own presentation tier: never
+  dimmed as setup, never eligible for the answer emphasis, and rendered
+  in a dedicated error style (web `--danger` token at AA on all three
+  themes; terminal warm red, bold; night keeps its long-wavelength
+  rule). An error whose own text contains `": "` no longer passes for a
+  labeled result.
+- The collision message now names the fix: "…this session already bound
+  it; Clear resets the session, or rename the binding".
+- The pane title's count is singular-safe (no "Result · 1 answers").
 
-**This batch can ship independently and immediately**; everything below
-is presentation polish on top of a corpus that actually runs clean.
+**Still recommended (script side, cheap):** the 10 scripts that bind a
+bare `r =` (e.g. `astronomy/sky/spring-neap-tides.epher`) could use a
+more specific name (`radius`, `earthRadius`), shrinking the collision
+surface for users who paste several scripts in one session.
 
 ## 1. Enabler: make knob bindings silent (language change, ADR required)
 

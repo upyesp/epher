@@ -1349,6 +1349,7 @@ enum PaneBodyView {
 struct PaneLineView {
     original: String,
     setup: bool,
+    failure: bool,
     final_line: bool,
     verdict: Option<bool>,
     body: PaneBodyView,
@@ -1539,6 +1540,9 @@ fn pane_answer_html(
     if view.setup {
         classes.push_str(" pane-answer-setup");
     }
+    if view.failure {
+        classes.push_str(" pane-answer-error");
+    }
     if view.final_line {
         classes.push_str(" pane-answer-final");
     }
@@ -1707,13 +1711,13 @@ fn pane_line_views(
         .into_iter()
         .enumerate()
         .map(|(i, line)| {
-            let setup =
-                epher_core::pane::line_kind(&line) == epher_core::pane::LineKind::Setup;
+            let kind = epher_core::pane::line_kind(&line);
             PaneLineView {
                 body: pane_body(&line, short, group),
                 verdict: epher_core::pane::verdict(&line),
                 final_line: final_idx == Some(i),
-                setup,
+                setup: kind == epher_core::pane::LineKind::Setup,
+                failure: kind == epher_core::pane::LineKind::Error,
                 original: line,
             }
         })

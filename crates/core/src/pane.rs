@@ -18,12 +18,19 @@ pub enum LineKind {
     Setup,
     /// A labeled line (`sample mean: 81.3`): full weight.
     Labeled,
+    /// A failure (`error: …`) or warning (ADR-0079): never the answer,
+    /// never dim — a failed paste is the one line the user must see,
+    /// and an error's own `error: detail: detail` colons must not let
+    /// it pass for a labeled result.
+    Error,
 }
 
 /// The line's tier. The `= ` answer voice is not part of the test.
 pub fn line_kind(line: &str) -> LineKind {
     let body = line.strip_prefix("= ").unwrap_or(line);
-    if body.contains(": ") {
+    if body.starts_with("error: ") || body.starts_with("warning: ") {
+        LineKind::Error
+    } else if body.contains(": ") {
         LineKind::Labeled
     } else {
         LineKind::Setup
@@ -559,6 +566,33 @@ mod tests {
             LineKind::Setup
         );
         assert_eq!(line_kind("= 0.01"), LineKind::Setup);
+    }
+
+    /// ADR-0079: a failure is neither dim machinery nor a labeled
+    /// result — its own colons must not let it pass for one.
+    #[test]
+    fn error_lines_are_their_own_tier() {
+        assert_eq!(
+            line_kind("error: cannot define constant r: the name is already a variable"),
+            LineKind::Error
+        );
+        assert_eq!(line_kind("error: parse error: expected ';'"), LineKind::Error);
+        assert_eq!(line_kind("warning: answer is approximate"), LineKind::Error);
+    }
+
+    /// A failed paste never dresses itself up as the answer.
+    #[test]
+    fn an_error_line_never_takes_the_answer_emphasis() {
+        let lines: Vec<String> = [
+            "= area: 78.5",
+            "error: cannot define constant r: the name is already a variable",
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+        assert_eq!(final_labeled_index(&lines), Some(0));
+        let only_error: Vec<String> = vec!["error: unknown name: pay".to_string()];
+        assert_eq!(final_labeled_index(&only_error), None);
     }
 
     #[test]

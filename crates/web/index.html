@@ -61,6 +61,8 @@
       --accent: #2dd4bf;
       /* history text: 6.6:1 vs --bg (WCAG 1.4.3) */
       --muted: #9a9ba2;
+      /* failures (ADR-0079): 6.2:1 vs --bg (WCAG 1.4.3) */
+      --danger: #ff7b72;
       /* text on accent-filled controls: 10.0:1 on --accent */
       --on-accent: #0b1512;
     }
@@ -71,6 +73,7 @@
       --text: #1b1d1f;   /* 15.9:1 vs --bg */
       --accent: #0e8074; /* 4.5:1 vs --bg, 4.8:1 vs --panel */
       --muted: #565d63;  /* 6.3:1 vs --bg */
+      --danger: #a3231a; /* 7.0:1 vs --bg */
       --on-accent: #ffffff; /* 4.8:1 on --accent */
     }
     /* Night: long-wavelength reds on near-black, for dark-adapted eyes.
@@ -82,6 +85,7 @@
       --text: #ffb3a8;   /* 12.1:1 vs --bg */
       --accent: #ff6b5a; /* 7.4:1 vs --bg, 7.1:1 vs --panel */
       --muted: #d98878;  /* 7.6:1 vs --bg */
+      --danger: #ffb3a8; /* 12.1:1 vs --bg, night keeps its warm red */
       --on-accent: #1a0000; /* 7.2:1 on --accent */
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -501,6 +505,11 @@
     .pane-answer-final {
       font-weight: 500;
       font-size: 1.2rem;
+    }
+    /* A failed paste is the one line the user must see (ADR-0079). */
+    .pane-answer-error {
+      color: var(--danger);
+      font-weight: 500;
     }
     .answer-body {
       flex: 1;

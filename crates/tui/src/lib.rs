@@ -4603,6 +4603,20 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
             frame.area(),
         );
     }
+    // A failure reads as a failure (ADR-0079): warm red, bold, AA
+    // contrast on every theme's canvas. Night keeps its long-wavelength
+    // rule — the error tone is a paler red than the body text.
+    let error_style = match app.theme() {
+        Theme::Light => Style::default()
+            .fg(Color::Rgb(150, 30, 30))
+            .add_modifier(Modifier::BOLD),
+        Theme::Night => Style::default()
+            .fg(Color::Rgb(255, 150, 130))
+            .add_modifier(Modifier::BOLD),
+        Theme::Dark => Style::default()
+            .fg(Color::LightRed)
+            .add_modifier(Modifier::BOLD),
+    };
     let border_style = Style::default().fg(border_fg);
     // A focused panel's border wears the theme's accent (the ADR-0033
     // amendment): the Expression, History, and Keypad boxes answer the
@@ -5515,7 +5529,8 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     let mut transcript_rows = 0u16;
     if long_answer {
         let width = (graph_area.width.saturating_sub(2) as usize).max(12);
-        let (lines, rows) = pane_transcript(app.result(), width, result_style, hints_style);
+        let (lines, rows) =
+            pane_transcript(app.result(), width, result_style, hints_style, error_style);
         pane_lines = lines;
         transcript_rows = rows as u16 + 1;
     }
@@ -5606,7 +5621,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // transcript names its size in the title (ADR-0078): "Result · 51
     // answers" tells the user what they are scrolling before they
     // scroll it.
-    let pane_title = if long_answer {
+    let pane_title = if long_answer && app.result().lines().count() > 1 {
         let n = app.result().lines().count().to_string();
         // Fluent wraps directional args in Unicode isolates; the
         // terminal's block titles render them as invisible cells, so
@@ -5776,6 +5791,7 @@ fn pane_transcript(
     width: usize,
     answer_style: ratatui::style::Style,
     dim_style: ratatui::style::Style,
+    error_style: ratatui::style::Style,
 ) -> (Vec<ratatui::text::Line<'static>>, usize) {
     use epher_core::pane as vp;
     let lines = vp::display_lines(result, None);
@@ -5803,12 +5819,13 @@ fn pane_transcript(
             rows.extend(vp::wrap_to_width(line, width, 2));
         }
         for row in rows {
-            let span = if Some(i) == final_idx {
-                ratatui::text::Span::styled(row, answer_style)
-            } else if vp::line_kind(line) == vp::LineKind::Setup {
-                ratatui::text::Span::styled(row, dim_style)
-            } else {
-                ratatui::text::Span::raw(row)
+            let span = match vp::line_kind(line) {
+                vp::LineKind::Error => ratatui::text::Span::styled(row, error_style),
+                _ if Some(i) == final_idx => {
+                    ratatui::text::Span::styled(row, answer_style)
+                }
+                vp::LineKind::Setup => ratatui::text::Span::styled(row, dim_style),
+                vp::LineKind::Labeled => ratatui::text::Span::raw(row),
             };
             out.push(ratatui::text::Line::from(vec![span]));
         }
@@ -6199,6 +6216,40 @@ mod draw_tests {
             fin.add_modifier.contains(Modifier::BOLD),
             "the answer carries the answer style's weight"
         );
+    }
+
+    /// ADR-0079: a failed paste renders in the error style — visible,
+    /// never dimmed, never wearing the answer's weight.
+    #[test]
+    fn a_failed_paste_renders_in_the_error_style() {
+        let mut app = App::default();
+        app.set_result("error: cannot define constant r: the name is already a variable");
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(120, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let mut style = None;
+        for y in 1..24 {
+            let mut row = String::new();
+            for x in 46..120 {
+                row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            if row.contains("cannot define constant r") {
+                style = Some(buffer.cell((47, y)).unwrap().style());
+            }
+        }
+        let style = style.expect("the failure must render in the pane");
+        assert_eq!(style.fg, Some(Color::LightRed));
+        assert!(
+            style.add_modifier.contains(Modifier::BOLD),
+            "a failure carries the error style's weight"
+        );
+        assert_ne!(style.fg, Some(Color::DarkGray), "never dimmed as setup");
     }
 
     /// ADR-0078: a line's matrix renders as a padded, right-aligned

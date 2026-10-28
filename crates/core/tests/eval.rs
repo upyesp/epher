@@ -698,7 +698,7 @@ fn constant_cannot_take_a_variables_name() {
     let err = run_script("x = 5; const x = 6").unwrap_err();
     assert_eq!(
         err.to_string(),
-        "cannot define constant x: the name is already a variable"
+        "cannot define constant x: the name is already a variable (this session already bound it; Clear resets the session, or rename the binding)"
     );
 }
 

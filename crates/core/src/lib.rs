@@ -436,7 +436,9 @@ pub enum EpherError {
     ImaginaryReserved,
     #[error("constant already defined: {0}")]
     ConstantAlreadyDefined(String),
-    #[error("cannot define constant {0}: the name is already a variable")]
+    #[error(
+        "cannot define constant {0}: the name is already a variable (this session already bound it; Clear resets the session, or rename the binding)"
+    )]
     ConstantNameTaken(String),
     #[error("io error: {0}")]
     Io(String),
