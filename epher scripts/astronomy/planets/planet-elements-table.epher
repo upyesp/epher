@@ -48,7 +48,7 @@ const ne = {30.06992276, 0.00026291, 0.00859048, 0.00005105, 1.77004347, 0.00035
 def val(r, k) = r[k] + r[k + 1] * tc(year)     // element + rate * T
 
 // ---- results: one row per planet, two lines of values and two of rates ------
-tt = tc(year)
+const tt = tc(year)
 print("mean Keplerian elements at", iso(jd(year, 1, 1, 12)))
 print("T =", tt, "centuries from J2000.0; frame: mean ecliptic, equinox of J2000")
 print("Mercury: a", val(me, 1), "AU  e", val(me, 3), "  i", val(me, 5), "deg")
@@ -82,7 +82,6 @@ print("Neptune: da", ne[2], "  de", ne[4], "  di", ne[6])
 print("         dL", ne[8], "  dperi", ne[10], "  dnode", ne[12])
 
 /* ---- expected output ----
-= 0.260013689254
 = mean Keplerian elements at 2026-01-01T12:00:00
 = T = 0.260013689254 centuries from J2000.0; frame: mean ecliptic, equinox of J2000
 = Mercury: a 0.387099366205 AU  e 0.205640885861   i 7.00343259118 deg

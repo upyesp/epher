@@ -2,7 +2,7 @@
 radius-from-circumference.epher -- radius from the circumference
 
 The circumference formula C = 2 pi r solved for the radius:
-r = C / (2 pi) (standard formula). The knob is a symbolic
+const r = C / (2 pi) (standard formula). The knob is a symbolic
 circumference, pi * 10, so the first result is exactly 5; the second
 example takes a plain circumference of 100. The round-trip check
 multiplies the radius back up and compares with the starting value.

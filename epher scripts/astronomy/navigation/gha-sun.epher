@@ -20,9 +20,9 @@ Knob: the instant below.
 const tm = jd(2026, 9, 10, 12)
 
 // ---- the almanac pair -------------------------------------------------------------------
-gha = 15 * lst(tm, 0) - ra(10, tm)
+const gha = 15 * lst(tm, 0) - ra(10, tm)
 def wrap(x) = x - 360 * floor(x / 360)
-ghaw = wrap(gha)
+const ghaw = wrap(gha)
 print("at", iso(tm))
 print("GHA:", deg2dms(ghaw), "(", ghaw, "deg )")
 print("Dec:", deg2dms(decl(10, tm)))
@@ -33,8 +33,6 @@ the equation of time). */
 print("GHA one hour later minus now:", wrap(15 * lst(tm + 1 / 24, 0) - ra(10, tm + 1 / 24)) - ghaw, "deg")
 
 /* ---- expected output ----
-= 0.75420171633
-= 0.75420171633
 = at 2026-09-10T12:00:00
 = GHA: 0° 45' 15" ( 0.75420171633 deg )
 = Dec: 4° 49' 10"

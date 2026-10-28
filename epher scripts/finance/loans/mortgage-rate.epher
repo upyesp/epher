@@ -21,7 +21,7 @@ const offered_payment = 1500 // monthly payment offered
 const years = 30            // term in years
 
 // ---- results -----------------------------------------------------------------
-r = tvm_i(years * 12, -principal, offered_payment, 0)   // monthly rate the payment implies (r, not i: i is reserved, guide 1.18)
+const r = tvm_i(years * 12, -principal, offered_payment, 0)   // monthly rate the payment implies (r, not i: i is reserved, guide 1.18)
 print("monthly rate:", r)
 print("nominal annual rate (APR, 12 x monthly):", 12 * r)
 print("effective annual rate (1+r)^12 - 1:", (1 + r) ^ 12 - 1)
@@ -29,7 +29,6 @@ print("effective annual rate (1+r)^12 - 1:", (1 + r) ^ 12 - 1)
 // every month earns interest itself. The quoted APR is the nominal 8.232%;
 // the effective rate is what a year of that compounding truly costs.
 /* ---- expected output ----
-= 0.00685998148446
 = monthly rate: 0.00685998148446
 = nominal annual rate (APR, 12 x monthly): 0.0823197778135
 = effective annual rate (1+r)^12 - 1: 0.0854978247676

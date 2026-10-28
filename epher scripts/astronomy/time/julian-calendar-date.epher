@@ -28,11 +28,11 @@ def rmon(j) = floor((5 * (j + 32082 - floor(1461 * floor((4 * (j + 32082) + 3) /
 def ryer(j) = floor((4 * (j + 32082) + 3) / 1461) - 4800 + floor(floor((5 * (j + 32082 - floor(1461 * floor((4 * (j + 32082) + 3) / 1461) / 4)) + 2) / 153) / 10)
 
 // ---- the reading ----------------------------------------------------------------------
-jdn = floor(jd(yr, m, dcal) + 0.5)
+const jdn = floor(jd(yr, m, dcal) + 0.5)
 print("Gregorian", yr, "-", m, "-", dcal, " is the same day as Julian", ryer(jdn), "-", rmon(jdn), "-", rday(jdn))
 
 // ---- the reform --------------------------------------------------------------------------
-jr = floor(jd(1582, 10, 15) + 0.5)
+const jr = floor(jd(1582, 10, 15) + 0.5)
 print("Gregorian 1582-10-15 was Julian", ryer(jr), "-", rmon(jr), "-", rday(jr), "(the reform skipped 1582-10-05..14)")
 
 /* Self-checks: the engine's jd() reads pre-reform dates as Julian
@@ -43,9 +43,7 @@ print("reform days are consecutive:", jd(1582, 10, 15) - jd(1582, 10, 4) == 1)
 print("2026-09-07 reads Julian 2026-08-25:", rday(jdn) == 25 and rmon(jdn) == 8 and ryer(jdn) == 2026)
 
 /* ---- expected output ----
-= 2461291
 = Gregorian 2026 - 9 - 7  is the same day as Julian 2026 - 8 - 25
-= 2299161
 = Gregorian 1582-10-15 was Julian 1582 - 10 - 5 (the reform skipped 1582-10-05..14)
 = engine reads 1582-10-04 as Julian: true
 = reform days are consecutive: true

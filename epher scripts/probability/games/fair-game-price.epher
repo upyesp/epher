@@ -25,7 +25,7 @@ print("P(other) pays 0:", 4/6)
 
 // The expected payout by the definition: sum of payout * probability,
 // the exact fraction 11/6 = 1.8333... in the payouts' own units.
-payout = 10 * (1/6) + 1 * (1/6) + 0 * (4/6)
+const payout = 10 * (1/6) + 1 * (1/6) + 0 * (4/6)
 print("expected payout:", payout)
 print("about 1.83 per roll on average")
 
@@ -37,7 +37,6 @@ print("player loss per roll at a fee of 2:", 2 - 11/6)
 = P(6) pays 10: 1/6
 = P(5) pays 1: 1/6
 = P(other) pays 0: 2/3
-= 11/6
 = expected payout: 11/6
 = about 1.83 per roll on average
 = fair entry fee: 11/6

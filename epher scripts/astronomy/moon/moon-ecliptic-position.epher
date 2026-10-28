@@ -46,7 +46,7 @@ def elon(j, b) = w360(deg(atan2(sin(rad(ra(b, j))) * cos(rad(eps(j))) + tan(rad(
 def elat(j, b) = deg(asin(sin(rad(decl(b, j))) * cos(rad(eps(j))) - cos(rad(decl(b, j))) * sin(rad(eps(j))) * sin(rad(ra(b, j)))))   // ecliptic latitude of body b, deg
 
 // ---- results ------------------------------------------------------------------
-t = jd(year, month, day, hr)
+const t = jd(year, month, day, hr)
 print("at", iso(t), "UT:")
 print("mean obliquity of date:", eps(t), "deg")
 print("Moon: ra", ra(11, t), "deg, declination", decl(11, t), "deg")
@@ -57,7 +57,6 @@ print("Sun's ecliptic latitude", elat(t, 10), "deg (self-check: near 0)")
 print("Sun-Moon longitude gap:", w360(elon(t, 11) - elon(t, 10)), "deg (90 at first quarter)")
 
 /* ---- expected output ----
-= 590670073/240
 = at 2026-03-25T19:18:00 UT:
 = mean obliquity of date: 23.4358801773 deg
 = Moon: ra 95.819056257 deg, declination 28.020648976 deg

@@ -36,17 +36,17 @@ def wrapang(x) = x - 360 * floor(x / 360)
 
 // ---- the displacement ----------------------------------------------------------------------
 // star unit vector, apex unit vector, shifted unit vector
-sx = cos(rad(ade)) * cos(rad(ara))
-sy = cos(rad(ade)) * sin(rad(ara))
-sz = sin(rad(ade))
-ax = cos(rad(apexde(tm))) * cos(rad(apexra(tm)))
-ay = cos(rad(apexde(tm))) * sin(rad(apexra(tm)))
-apexz = sin(rad(apexde(tm)))
-kx = sx + 20.49552 / 206265 * ax
-ky = sy + 20.49552 / 206265 * ay
-kz = sz + 20.49552 / 206265 * apexz
-ara2 = wrapang(deg(atan2(ky, kx)))
-ade2 = deg(atan2(kz, sqrt(kx ^ 2 + ky ^ 2)))
+const sx = cos(rad(ade)) * cos(rad(ara))
+const sy = cos(rad(ade)) * sin(rad(ara))
+const sz = sin(rad(ade))
+const ax = cos(rad(apexde(tm))) * cos(rad(apexra(tm)))
+const ay = cos(rad(apexde(tm))) * sin(rad(apexra(tm)))
+const apexz = sin(rad(apexde(tm)))
+const kx = sx + 20.49552 / 206265 * ax
+const ky = sy + 20.49552 / 206265 * ay
+const kz = sz + 20.49552 / 206265 * apexz
+const ara2 = wrapang(deg(atan2(ky, kx)))
+const ade2 = deg(atan2(kz, sqrt(kx ^ 2 + ky ^ 2)))
 
 // ---- results ------------------------------------------------------------------------------
 print("Vega at", iso(tm))
@@ -59,27 +59,15 @@ print("apex at ra", deg2hms(apexra(tm)), " dec", deg2dms(apexde(tm)))
 /* Self-check: a star exactly at the apex cannot shift at all - the
 aberration displacement is toward the apex. Re-run the machinery
 with the apex itself as the star: the shift must vanish. */
-ax2 = wrapang(deg(atan2(ay + 20.49552 / 206265 * ay, ax + 20.49552 / 206265 * ax)))
+const ax2 = wrapang(deg(atan2(ay + 20.49552 / 206265 * ay, ax + 20.49552 / 206265 * ax)))
 print("star at apex shifts < 1e-6 arcsec:", abs(spread(ax2 - apexra(tm)) * cos(rad(apexde(tm))) * 3600) < 1e-6)
 
 /* ---- expected output ----
-= 0.125096463633
-= -0.769413127869
-= 0.626381922991
-= 0.219476835595
-= 0.895111689364
-= 0.388078577353
-= 0.125118271947
-= -0.769324185103
-= 0.626420484415
-= 279.237366374
-= 38.788436491
 = Vega at 2026-09-10T00:00:00
 = catalog:  ra 18h 36m 56s  dec 38° 47' 1"
 = shifted:  ra 18h 36m 57s  dec 38° 47' 18"
 = shift in ra * cos(dec): 7.38490511387 arcsec
 = shift in dec:           17.091111499 arcsec
 = apex at ra 5h 4m 54s  dec 22° 50' 6"
-= 76.2231643101
 = star at apex shifts < 1e-6 arcsec: true
 */

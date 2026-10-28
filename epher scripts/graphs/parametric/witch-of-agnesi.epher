@@ -5,7 +5,7 @@ Named (in mistranslation) after Maria Gaetana Agnesi, who treated it
 in 1748: take the circle x^2 + (y - 1)^2 = 1, draw a line from the
 origin to a point of the circle, and mark where it meets the
 horizontal through that point. The traced curve is x = 2*tan(t),
-y = 2*cos(t)^2, bell-shaped with peak 2 and the x-axis as asymptote
+const y = 2*cos(t)^2, bell-shaped with peak 2 and the x-axis as asymptote
 (Lockwood, "A Book of Curves", ch. 4; MathWorld, "Witch of Agnesi").
 The total area under it is 4*pi. The script graphs the bell, prints
 landmarks, and checks the area numerically.

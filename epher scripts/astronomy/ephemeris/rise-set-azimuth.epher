@@ -26,10 +26,10 @@ const lat = 51.4779             // Greenwich
 const lon = 0
 
 // ---- the events and their compass bearings --------------------------------------
-tr = rise(body, tm, lat, lon)
-ts = set(body, tm, lat, lon)
-azr = az(body, tr, lat, lon)
-azs = az(body, ts, lat, lon)
+const tr = rise(body, tm, lat, lon)
+const ts = set(body, tm, lat, lon)
+const azr = az(body, tr, lat, lon)
+const azs = az(body, ts, lat, lon)
 
 print("rises", iso(tr), "at azimuth", azr)
 print("sets  ", iso(ts), "at azimuth", azs)
@@ -40,10 +40,6 @@ print("sets  ", iso(ts), "at azimuth", azs)
 print("altitude at rise (about -0.83 for the Moon):", alt(body, tr, lat, lon))
 
 /* ---- expected output ----
-= 435648982/177
-= 1228185832/499
-= 75.3570601
-= 278.7558128
 = rises 2026-09-10T04:24:24 at azimuth 75.3570601
 = sets   2026-09-10T18:03:36 at azimuth 278.7558128
 = altitude at rise (about -0.83 for the Moon): -0.8333433

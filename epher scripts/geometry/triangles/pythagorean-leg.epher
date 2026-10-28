@@ -2,7 +2,7 @@
 pythagorean-leg.epher -- a leg a from the hypotenuse c and the other leg b
 
 The Pythagorean theorem solved for a leg of a right triangle:
-a = sqrt(c^2 - b^2) (Euclid's Elements, book I, proposition 47). The
+const a = sqrt(c^2 - b^2) (Euclid's Elements, book I, proposition 47). The
 5-12-13 example lands exactly on 12: 13^2 - 5^2 = 169 - 25 = 144, a
 perfect square, so the results are exact.
 

@@ -5,7 +5,7 @@ The average value of f on [a, b] is integral(f, a, b)/(b - a)
 (Stewart, "Calculus", 8th ed., sec. 6.5). The mean value theorem then
 guarantees some c in (a, b) with f(c) equal to that average; for
 f(x) = x^2 on [0, 3] the average is 9/3 = 3 and the point is
-c = sqrt(3), where x^2 = 3 again.
+const c = sqrt(3), where x^2 = 3 again.
 
 A second check uses sin on [0, pi]: the average is 2/pi, about
 0.63662, since one arch of sine encloses area 2.

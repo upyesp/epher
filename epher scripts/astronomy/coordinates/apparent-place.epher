@@ -41,36 +41,36 @@ def deps(j) = (9.20 * cos(rad(om(j))) + 0.57 * cos(rad(2 * ls(j))) + 0.10 * cos(
 def sunlon(j) = wrap(280.46646 + 36000.76983 * T(j) + 0.0003032 * T(j) ^ 2 + (1.914602 - 0.004817 * T(j)) * sin(rad(357.52911 + 35999.05029 * T(j) - 0.0001537 * T(j) ^ 2)) + 0.019993 * sin(rad(2 * (357.52911 + 35999.05029 * T(j) - 0.0001537 * T(j) ^ 2))))
 
 // ---- step 1: proper motion and precession J2000 -> mean equinox of date -------------------
-dy = (tm - 2451545) / 365.25
-r0 = ara + pma * dy / 3600 / cos(rad(ade))
-d0 = ade + pmd * dy / 3600
-zc = rad(2306.2181 * T(tm) / 3600 + 0.30188 * T(tm) ^ 2 / 3600 + 0.017998 * T(tm) ^ 3 / 3600)
-z2 = rad(2306.2181 * T(tm) / 3600 + 1.09468 * T(tm) ^ 2 / 3600 + 0.018203 * T(tm) ^ 3 / 3600)
-th = rad(2004.3109 * T(tm) / 3600 - 0.42665 * T(tm) ^ 2 / 3600 - 0.041833 * T(tm) ^ 3 / 3600)
-aa = cos(rad(d0)) * sin(rad(r0) + zc)
-bb = cos(th) * cos(rad(d0)) * cos(rad(r0) + zc) - sin(th) * sin(rad(d0))
-cc = sin(th) * cos(rad(d0)) * cos(rad(r0) + zc) + cos(th) * sin(rad(d0))
-r1 = wrap(deg(atan2(aa, bb)) + deg(z2))
-d1 = deg(asin(cc))
+const dy = (tm - 2451545) / 365.25
+const r0 = ara + pma * dy / 3600 / cos(rad(ade))
+const d0 = ade + pmd * dy / 3600
+const zc = rad(2306.2181 * T(tm) / 3600 + 0.30188 * T(tm) ^ 2 / 3600 + 0.017998 * T(tm) ^ 3 / 3600)
+const z2 = rad(2306.2181 * T(tm) / 3600 + 1.09468 * T(tm) ^ 2 / 3600 + 0.018203 * T(tm) ^ 3 / 3600)
+const th = rad(2004.3109 * T(tm) / 3600 - 0.42665 * T(tm) ^ 2 / 3600 - 0.041833 * T(tm) ^ 3 / 3600)
+const aa = cos(rad(d0)) * sin(rad(r0) + zc)
+const bb = cos(th) * cos(rad(d0)) * cos(rad(r0) + zc) - sin(th) * sin(rad(d0))
+const cc = sin(th) * cos(rad(d0)) * cos(rad(r0) + zc) + cos(th) * sin(rad(d0))
+const r1 = wrap(deg(atan2(aa, bb)) + deg(z2))
+const d1 = deg(asin(cc))
 
 // ---- step 2: nutation (short series) ---------------------------------------------------------
-r2 = r1 + dpsi(tm) * (cos(rad(eps0(tm))) + sin(rad(eps0(tm))) * sin(rad(r1)) * tan(rad(d1))) - deps(tm) * cos(rad(r1)) * tan(rad(d1))
-d2 = d1 + dpsi(tm) * sin(rad(eps0(tm))) * cos(rad(r1)) + deps(tm) * sin(rad(r1))
+const r2 = r1 + dpsi(tm) * (cos(rad(eps0(tm))) + sin(rad(eps0(tm))) * sin(rad(r1)) * tan(rad(d1))) - deps(tm) * cos(rad(r1)) * tan(rad(d1))
+const d2 = d1 + dpsi(tm) * sin(rad(eps0(tm))) * cos(rad(r1)) + deps(tm) * sin(rad(r1))
 
 // ---- step 3: annual aberration toward the apex ------------------------------------------------
 def apexra(j) = deg(atan2(sin(rad(sunlon(j) - 90)) * cos(rad(eps0(j))), cos(rad(sunlon(j) - 90))))
 def apexde(j) = deg(asin(sin(rad(sunlon(j) - 90)) * sin(rad(eps0(j)))))
-sx = cos(rad(d2)) * cos(rad(r2))
-sy = cos(rad(d2)) * sin(rad(r2))
-sz = sin(rad(d2))
-ax = cos(rad(apexde(tm))) * cos(rad(apexra(tm)))
-ay = cos(rad(apexde(tm))) * sin(rad(apexra(tm)))
-apexz = sin(rad(apexde(tm)))
-kx = sx + 20.49552 / 206265 * ax
-ky = sy + 20.49552 / 206265 * ay
-kz = sz + 20.49552 / 206265 * apexz
-r3 = wrap(deg(atan2(ky, kx)))
-d3 = deg(atan2(kz, sqrt(kx ^ 2 + ky ^ 2)))
+const sx = cos(rad(d2)) * cos(rad(r2))
+const sy = cos(rad(d2)) * sin(rad(r2))
+const sz = sin(rad(d2))
+const ax = cos(rad(apexde(tm))) * cos(rad(apexra(tm)))
+const ay = cos(rad(apexde(tm))) * sin(rad(apexra(tm)))
+const apexz = sin(rad(apexde(tm)))
+const kx = sx + 20.49552 / 206265 * ax
+const ky = sy + 20.49552 / 206265 * ay
+const kz = sz + 20.49552 / 206265 * apexz
+const r3 = wrap(deg(atan2(ky, kx)))
+const d3 = deg(atan2(kz, sqrt(kx ^ 2 + ky ^ 2)))
 
 // ---- results ------------------------------------------------------------------------------------
 print("Vega, apparent place at", iso(tm))
@@ -87,30 +87,6 @@ prints the aberration component alone. */
 print("aberration component:", sqrt((spread(r3 - r2) * cos(rad(d2)) * 3600) ^ 2 + ((d3 - d2) * 3600) ^ 2), "arcsec (must be < 20.5)")
 
 /* ---- expected output ----
-= 12998/487
-= 279.236646473
-= 38.7858093273
-= 0.00298427079305
-= 0.00298454461208
-= 0.00259335640609
-= -0.769009260155
-= 0.125788977082
-= 0.626739093276
-= 279.46076191
-= 38.8099464211
-= 279.462027647
-= 38.8078147979
-= 0.128104368986
-= -0.768650582543
-= 0.626710102522
-= 0.21947794177
-= 0.89513502831
-= 0.388024115447
-= 0.12812617741
-= -0.768561637458
-= 0.626748658535
-= 279.464684726
-= 38.8125580461
 = Vega, apparent place at 2026-09-10T00:00:00
 = catalog J2000 (with proper motion): ra 18h 36m 57s  dec 38° 47' 9"
 = precessed to date:                 ra 18h 37m 51s  dec 38° 48' 36"

@@ -3,7 +3,7 @@ cardioid-epicycloid.epher -- the cardioid as a circle rolling on a circle
 
 A circle of radius 1 rolling around an equal fixed circle carries a
 marked rim point on an epicycloid with one cusp: the cardioid
-x = 2*cos(t) - cos(2*t), y = 2*sin(t) - sin(2*t) (de la Hire 1708;
+const x = 2*cos(t) - cos(2*t), y = 2*sin(t) - sin(2*t) (de la Hire 1708;
 MathWorld, "Epicycloid"; Stewart, "Calculus", ch. 10.1, example 7).
 Its perimeter is 16 and its area 6*pi, both exactly, for the unit
 rolling circle. The script graphs the curve and checks perimeter and

@@ -2801,8 +2801,11 @@ fn epher_app() -> Html {
         use_state(std::collections::HashSet::new);
     let line_copied = use_state(|| None::<usize>);
     // A long result opens on its answer, not on its setup echo: scroll
-    // the pane to the first labeled line, and drop any unfoldings from
-    // the previous transcript.
+    // the pane to the emphasized line (the transcript's answer, ADR-0078
+    // R4 as amended — the last line, or the labeled line above a trailing
+    // check), falling back to the first non-setup line when a transcript
+    // has no emphasis at all. Any unfoldings from the previous transcript
+    // are dropped.
     {
         let result = result.clone();
         let expanded_lines = expanded_lines.clone();
@@ -2810,9 +2813,15 @@ fn epher_app() -> Html {
             expanded_lines.set(std::collections::HashSet::new());
             if !r.is_empty() && !answer_fits(r) {
                 if let Some(doc) = web_sys::window().and_then(|w| w.document()) {
-                    if let Ok(Some(el)) =
-                        doc.query_selector("#graph-pane .pane-answer:not(.pane-answer-setup)")
-                    {
+                    let answer = doc.query_selector("#graph-pane .pane-answer-final");
+                    let target = match answer {
+                        Ok(Some(el)) => Some(el),
+                        _ => doc
+                            .query_selector("#graph-pane .pane-answer:not(.pane-answer-setup)")
+                            .ok()
+                            .flatten(),
+                    };
+                    if let Some(el) = target {
                         el.scroll_into_view();
                     }
                 }

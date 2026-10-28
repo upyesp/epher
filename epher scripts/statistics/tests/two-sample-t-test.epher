@@ -7,7 +7,7 @@ standard error pools the two sample variances divided by their own
 group sizes and the degrees of freedom come from the Satterthwaite
 formula. There is no builtin two-sample t test, so the textbook
 formulas are written out below; scipy's ttest_ind with
-equal_var = False reproduces these same numbers.
+const equal_var = False reproduces these same numbers.
 
 Web/desktop:             paste the whole file into the entry, press Enter
 Everything also works line by line in the TUI.

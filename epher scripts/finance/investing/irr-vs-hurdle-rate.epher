@@ -22,7 +22,7 @@ const hurdle_high = 20%     // a demanding required return
 const flows = {-100000, 30000, 40000, 40000, 30000}   // the project's cash flows
 
 // ---- results -----------------------------------------------------------------
-r = irr(flows)              // the project's internal rate of return
+const r = irr(flows)              // the project's internal rate of return
 print("project irr:", r)
 print("at an 8% hurdle:", if r > hurdle_low then "accept: the irr beats the required return" else "reject: the irr misses the required return")
 print("at a 20% hurdle:", if r > hurdle_high then "accept: the irr beats the required return" else "reject: the irr misses the required return")
@@ -34,7 +34,6 @@ for a project whose cash flows change sign once. The 20% line prints as
 the exact fraction -259375/27 because its decimal -9606.48148148...
 repeats (epher keeps the fraction when the decimal repeats). */
 /* ---- expected output ----
-= 0.148950281274
 = project irr: 0.148950281274
 = at an 8% hurdle: accept: the irr beats the required return
 = at a 20% hurdle: reject: the irr misses the required return

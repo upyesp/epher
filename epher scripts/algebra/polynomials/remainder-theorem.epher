@@ -20,16 +20,13 @@ def p(cs, x) = cs[1] * x ^ 3 + cs[2] * x ^ 2 + cs[3] * x + cs[4]
 
 // ---- results -----------------------------------------------------------------
 // synthetic division, unrolled one coefficient at a time
-q2 = cs[2] + r * cs[1]           // x-coefficient of the quotient (echoes 3)
-q3 = cs[3] + r * q2              // constant term of the quotient (echoes 9)
-rem = cs[4] + r * q3             // the remainder (echoes 13)
+const q2 = cs[2] + r * cs[1]           // x-coefficient of the quotient (echoes 3)
+const q3 = cs[3] + r * q2              // constant term of the quotient (echoes 9)
+const rem = cs[4] + r * q3             // the remainder (echoes 13)
 print("p(2):", p(cs, 2))
 print("remainder equals p(r):", rem == p(cs, 2))
 print("p = (x - r) q + rem holds at x = 1:", p(cs, 1) == (1 - r) * (cs[1] + q2 + q3) + rem)
 /* ---- expected output ----
-= 3
-= 9
-= 13
 = p(2): 13
 = remainder equals p(r): true
 = p = (x - r) q + rem holds at x = 1: true

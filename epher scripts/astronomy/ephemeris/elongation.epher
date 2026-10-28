@@ -52,7 +52,7 @@ print("Neptune:", elong(8))
 
 /* Self-checks. The Sun's own elongation is 0 by construction. The
 Moon's elongation must agree with its illuminated fraction k through
-k = (1 - cos(elong)) / 2, the phase law of Meeus ch. 48 - which the
+const k = (1 - cos(elong)) / 2, the phase law of Meeus ch. 48 - which the
 built-in illum reports independently. The two agree only to about
 half a percent, and the slack is real: the phase law assumes both
 bodies ride the ecliptic, while the Moon runs up to 5 degrees off it

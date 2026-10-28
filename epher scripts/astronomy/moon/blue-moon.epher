@@ -73,9 +73,9 @@ def restb(k0, n, q) = if q >= n - 1 then "" else if mon(k0 + q + 1) == mon(k0 + 
 def allb(k0, n, q) = if q >= n - 1 then "" else if mon(k0 + q + 1) == mon(k0 + q) then mname(mon(k0 + q)) + restb(k0, n, q + 1) else allb(k0, n, q + 1)  // all doubled months, comma-joined
 
 // ---- results ------------------------------------------------------------------
-k0 = kfirst(jd(year, 1, 1))
-count = nfull(k0, 0, 0)
-j = findb(k0, count, 0)
+const k0 = kfirst(jd(year, 1, 1))
+const count = nfull(k0, 0, 0)
+const j = findb(k0, count, 0)
 print("full moons in", year, ":", count)
 print(if allb(k0, count, 0) == "" then "no month holds two full moons" else "month(s) with two full moons: " + allb(k0, count, 0))
 
@@ -88,9 +88,6 @@ print("the pair:", iso(fullmoon(k0 + j)), "and", iso(fullmoon(k0 + j + 1)), "UT"
 print("self-check, illum at them:", illum(11, fullmoon(k0 + j)), "and", illum(11, fullmoon(k0 + j + 1)))
 
 /* ---- expected output ----
-= 321.5
-= 13
-= 4
 = full moons in 2026 : 13
 = month(s) with two full moons: May
 = the pair: 2026-05-01T17:24:25 and 2026-05-31T08:46:26 UT

@@ -42,7 +42,7 @@ print("at the instant: alt", alt(body, tm, lat, lon), "az", az(body, tm, lat, lo
 meridian, so its altitude must equal 90 degrees minus the span
 between observer and body declination (the topocentric one, which
 for Mars differs from geocentric by well under an arcminute). */
-tt = transit(body, tm, lat, lon)
+const tt = transit(body, tm, lat, lon)
 print("alt at transit:", alt(body, tt, lat, lon), "vs 90 - |lat - dec|:", 90 - abs(lat - decl(body, tt)))
 
 /* ---- expected output ----
@@ -56,6 +56,5 @@ print("alt at transit:", alt(body, tt, lat, lon), "vs 90 - |lat - dec|:", 90 - a
 = transits: 2026-06-01T09:51:59
 = sets: 2026-06-01T17:10:16
 = at the instant: alt 3.1756137 az 71.092283
-= 2461192.91109
 = alt at transit: 52.7646496 vs 90 - |lat - dec|: 52.765335104
 */

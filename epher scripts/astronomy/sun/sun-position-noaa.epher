@@ -61,7 +61,7 @@ def azv(j) = deg(acos((sin(rad(declin(j))) * cos(rad(lat)) - cos(rad(declin(j)))
 def aznoaa(j) = if ha(j) > 0 then 360 - azv(j) else azv(j)
 
 // ---- results: the NOAA chain, printed step by step -----------------------------
-j = jd(day[1], day[2], day[3], hr)
+const j = jd(day[1], day[2], day[3], hr)
 print("NOAA solar position for", iso(j), "UT at lat", lat, "lon", lon)
 print("step 1  Julian centuries n:", t(j))
 print("step 2  geometric mean longitude L0:", l0(j), "deg")
@@ -90,7 +90,6 @@ print("cross-check: NOAA altitude", altv(j), "deg vs engine", alt(10, j, lat, lo
 print("cross-check: NOAA azimuth", aznoaa(j), "deg vs engine", az(10, j, lat, lon), "deg")
 
 /* ---- expected output ----
-= 118138225/48
 = NOAA solar position for 2026-06-21T12:30:00 UT at lat 51.4779 lon 0
 = step 1  Julian centuries n: 0.264695984486
 = step 2  geometric mean longitude L0: 89.7256936317 deg

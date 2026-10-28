@@ -86,8 +86,8 @@ s2 = {s1[4] + 1, glonp(jd0 + (s1[4] + 1) * 2), wrap180(glonp(jd0 + (s1[4] + 1) *
 while s2[1] * 2 <= span and s2[4] < 0 do s2 = {s2[1] + 1, glonp(jd0 + s2[1] * 2), wrap180(glonp(jd0 + s2[1] * 2) - s2[2]), if s2[3] < 0 and wrap180(glonp(jd0 + s2[1] * 2) - s2[2]) > 0 then s2[1] else -1}
 
 // ---- refine each station with the engine's own longitude ----------------------
-t1 = gsx({jd0 + s1[4] * 2 - 6, jd0 + s1[4] * 2 + 6, jd0 + s1[4] * 2 - 6 + 0.381966011 * 12, jd0 + s1[4] * 2 - 6 + 0.618033989 * 12, glon(jd0 + s1[4] * 2 - 6 + 0.381966011 * 12), glon(jd0 + s1[4] * 2 - 6 + 0.618033989 * 12)})
-t2 = gsm({jd0 + s2[4] * 2 - 6, jd0 + s2[4] * 2 + 6, jd0 + s2[4] * 2 - 6 + 0.381966011 * 12, jd0 + s2[4] * 2 - 6 + 0.618033989 * 12, glon(jd0 + s2[4] * 2 - 6 + 0.381966011 * 12), glon(jd0 + s2[4] * 2 - 6 + 0.618033989 * 12)})
+const t1 = gsx({jd0 + s1[4] * 2 - 6, jd0 + s1[4] * 2 + 6, jd0 + s1[4] * 2 - 6 + 0.381966011 * 12, jd0 + s1[4] * 2 - 6 + 0.618033989 * 12, glon(jd0 + s1[4] * 2 - 6 + 0.381966011 * 12), glon(jd0 + s1[4] * 2 - 6 + 0.618033989 * 12)})
+const t2 = gsm({jd0 + s2[4] * 2 - 6, jd0 + s2[4] * 2 + 6, jd0 + s2[4] * 2 - 6 + 0.381966011 * 12, jd0 + s2[4] * 2 - 6 + 0.618033989 * 12, glon(jd0 + s2[4] * 2 - 6 + 0.381966011 * 12), glon(jd0 + s2[4] * 2 - 6 + 0.618033989 * 12)})
 
 // ---- results ------------------------------------------------------------------
 print("planet", planet, "searching from", iso(jd0), "(predictor + engine refinement)")
@@ -100,8 +100,6 @@ print("retrograde arc:", iso(t1), "to", iso(t2), "=", t2 - t1, "days")
 /* ---- expected output ----
 = {2, 114.090667567, 0.380083175473, -1}
 = {100, 146.637456913, -0.0258476908051, -1}
-= 396283395/161
-= 1252907873/509
 = planet 5 searching from 2026-06-01T00:00:00 (predictor + engine refinement)
 = station 1 (direct to retrograde): 2026-12-13T01:07:05 UT
 = ecliptic longitude there: 147.025031098 deg; drift 0.0130940144 deg/day 4 days before, -0.0131604836 deg/day 4 days after

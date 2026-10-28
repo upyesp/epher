@@ -2,7 +2,7 @@
 astroid-hypocycloid.epher -- the four-cusped hypocycloid
 
 A circle of radius 1 rolling inside one of radius 4 traces the astroid
-x = cos(t)^3, y = sin(t)^3: four cusps on the axes, tangent line
+const x = cos(t)^3, y = sin(t)^3: four cusps on the axes, tangent line
 intercepts always exactly 2 apart (Leibniz 1715; MathWorld, "Astroid";
 Stewart, "Calculus", ch. 10.1). Its area is 3*pi/8, three eighths of
 the circumscribing circle, and its perimeter is 6. The script graphs

@@ -39,7 +39,7 @@ print("third prize contribution:", third / 1e3)
 // The total expected return of a ticket, and the expected value after
 // paying the price: -1.88 exactly.
 print("expected return:", jackpot / 1e7 + second / 1e5 + third / 1e3)
-ev = jackpot / 1e7 + second / 1e5 + third / 1e3 - price
+const ev = jackpot / 1e7 + second / 1e5 + third / 1e3 - price
 print("expected value of a ticket at price 2:", ev)
 
 // The verdict: a fair game would charge exactly the expected return,
@@ -52,7 +52,6 @@ print("the fair entry price would be", jackpot / 1e7 + second / 1e5 + third / 1e
 = second prize contribution: 0.01
 = third prize contribution: 0.01
 = expected return: 0.12
-= -1.88
 = expected value of a ticket at price 2: -1.88
 = not fair, the ticket returns 0.12 per 2 spent
 = expected loss per ticket: 1.88

@@ -27,11 +27,11 @@ const lo2 = -74.0060
 // ---- helpers -------------------------------------------------------------------------
 def wrap(x) = x - 360 * floor(x / 360)
 def hav(a) = sin(a / 2) ^ 2
-a1 = hav(rad(la2 - la1)) + cos(rad(la1)) * cos(rad(la2)) * hav(rad(lo2 - lo1))
-c1 = 2 * atan2(sqrt(a1), sqrt(1 - a1))
-dkm = 6371 * c1
-brg = deg(atan2(sin(rad(wrap(lo2 - lo1))) * cos(rad(la2)), cos(rad(la1)) * sin(rad(la2)) - sin(rad(la1)) * cos(rad(la2)) * cos(rad(wrap(lo2 - lo1)))))
-brg2 = wrap(brg)
+const a1 = hav(rad(la2 - la1)) + cos(rad(la1)) * cos(rad(la2)) * hav(rad(lo2 - lo1))
+const c1 = 2 * atan2(sqrt(a1), sqrt(1 - a1))
+const dkm = 6371 * c1
+const brg = deg(atan2(sin(rad(wrap(lo2 - lo1))) * cos(rad(la2)), cos(rad(la1)) * sin(rad(la2)) - sin(rad(la1)) * cos(rad(la2)) * cos(rad(wrap(lo2 - lo1)))))
+const brg2 = wrap(brg)
 
 print("great circle from", la1, ",", lo1, "to", la2, ",", lo2)
 print("distance:", dkm, "km =", dkm / 1.852, "nautical miles")
@@ -44,11 +44,6 @@ print("reverse distance equal:", 6371 * 2 * atan2(sqrt(hav(rad(la1 - la2)) + cos
 print("London-New York in the classic 5570 km band:", dkm > 5500 and dkm < 5650)
 
 /* ---- expected output ----
-= 0.179236433527
-= 0.874308927914
-= 5570.22217974
-= -71.6702984064
-= 288.329701594
 = great circle from 51.5074 , -0.1278 to 40.7128 , -74.006
 = distance: 5570.22217974 km = 3007.67936271 nautical miles
 = initial bearing: 288.329701594 deg

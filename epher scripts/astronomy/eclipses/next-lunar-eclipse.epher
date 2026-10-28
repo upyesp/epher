@@ -59,15 +59,15 @@ def kind(k) = if ummag(k) >= 1 then "total" else if ummag(k) > 0 then "partial" 
 def is_eclipse(k) = abs(sin(rad(mf(k)))) <= 0.36 and abs(gamma(k)) <= 1.5433 + uval(k) and penmag(k) > 0
 def next_hit(k, n) = if n == 0 then -1 else if is_eclipse(k) then k else next_hit(k + 1, n - 1)
 
-k0 = ceil(kb(jd(day[1], day[2], day[3])) - 0.5) + 0.5
-k = next_hit(k0, maxscan)
+const k0 = ceil(kb(jd(day[1], day[2], day[3])) - 0.5) + 0.5
+const k = next_hit(k0, maxscan)
 
 // ---- results ------------------------------------------------------------------
 print("searching from", iso(jd(day[1], day[2], day[3])))
 print("next lunar eclipse (lunation k):", k)
 print("kind:", kind(k), ", gamma:", gamma(k))
 print("umbral magnitude:", ummag(k), ", penumbral magnitude:", penmag(k))
-ttd = tmax(k)
+const ttd = tmax(k)
 print("greatest eclipse:", iso(ttd - delta_t(ttd) / 86400), "UT")
 print("partial phase lasts", 2 * semi(1.0128 - uval(k), k) in min, "; totality", 2 * semi(0.4678 - uval(k), k) in min)
 
@@ -78,13 +78,10 @@ eclipse must read the Moon fully inside the umbra. */
 print("built-in illum of the Moon at greatest eclipse:", illum(11, ttd))
 
 /* ---- expected output ----
-= 321.5
-= 323.5
 = searching from 2026-01-01T00:00:00
 = next lunar eclipse (lunation k): 323.5
 = kind: total , gamma: -0.377342593068
 = umbral magnitude: 1.14867362669 , penumbral magnitude: 2.18236272902
-= 2168231728/881
 = greatest eclipse: 2026-03-03T11:34:20 UT
 = partial phase lasts 205.284519796 min ; totality 57.4581508869 min
 = built-in illum of the Moon at greatest eclipse: 1

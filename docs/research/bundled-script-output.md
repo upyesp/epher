@@ -236,3 +236,33 @@ could give the row tables column keys in the same way.
 
 **Deferred, as planned:** `printtable`, in-script rounding, and
 splitting compound stat strings.
+
+## Follow-ups closed (2026-10-28)
+
+- **The `--update` newline bug**: `check-scripts.mjs --update` spliced
+  the fresh transcript without the file's final newline, so every
+  regenerated script ended "No newline at end of file". The write path
+  now preserves it, and the checker reports `missing trailing newline`
+  as a failure — which immediately caught 53 files a hand repair had
+  missed and made `--update` idempotent (0 updated on a clean tree).
+- **The per-row tables are already labelled**: `sundial-lines`,
+  `prayer-times` and `solstice-noon-table` print a header line and one
+  labelled row each, so the `columns:` convention had nothing to add
+  there. The real remaining noise was the *assignment walls* above them
+  (`schlyter-crosscheck`: 37 bare lines, `apparent-place`: 24) —
+  computed-once bindings that were never constants. 99 scripts now use
+  `const` for those (326 bindings, 298 echo lines), which is the
+  README's own rule applied to the corpus.
+- **The pane scroll follows the amended answer rule**: the web pane
+  opens on the emphasized answer (the last line, or the labelled line
+  above a trailing check) rather than the first labelled line.
+
+Corpus now: 2,391 labelled lines, 455 bare echoes (44% → 16%), 0
+wholly-unlabelled scripts.
+
+**Still open, deliberately:** the TUI pane has no scroll of its own, so
+a transcript longer than the pane (three scripts exceed 18 lines; the
+longest is 31) shows its head and clips the tail — where the answer
+now sits. A pane scroll offset (the guide and keypad already have one)
+is the natural next step; auto-tailing would hide the early results,
+which is a product decision, not a bug fix.

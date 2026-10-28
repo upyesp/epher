@@ -15,8 +15,8 @@ the CLI transcript records them as "graph:" lines.
 ============================================================================ */
 
 // ---- the data ------------------------------------------------------------------
-classA = {62, 67, 71, 74, 76, 79, 81, 84, 87, 91}
-classB = {55, 58, 64, 70, 73, 75, 78, 82, 88, 96}
+const classA = {62, 67, 71, 74, 76, 79, 81, 84, 87, 91}
+const classB = {55, 58, 64, 70, 73, 75, 78, 82, 88, 96}
 
 // ---- results -------------------------------------------------------------------
 print("class A median and quartiles:", median(classA), quartile(classA, 1), quartile(classA, 3))
@@ -28,8 +28,6 @@ print("spread, A", range(classA), "vs B", range(classB))
 graph boxplot(classA)
 
 /* ---- expected output ----
-= {62, 67, 71, 74, 76, 79, 81, 84, 87, 91}
-= {55, 58, 64, 70, 73, 75, 78, 82, 88, 96}
 = class A median and quartiles: 77.5 71 84
 = class B median and quartiles: 74 64 82
 = means, A 77.2 vs B 73.9

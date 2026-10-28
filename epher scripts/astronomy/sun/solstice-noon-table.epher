@@ -71,7 +71,7 @@ print("midnight-sun line this year: 90 -", decl(10, jjun), "=", 90 - decl(10, jj
 altitude at the true transit, Greenwich, on the June solstice day
 (the day's transit declination, not the instant's, is the right
 comparison here - see the equinox-day caveat above). */
-j = transit(10, jd(year, 6, 21), 51.48, 0)
+const j = transit(10, jd(year, 6, 21), 51.48, 0)
 print("self-check, lat 51.48: formula", 90 - abs(51.48 - decl(10, j)), "vs engine", alt(10, j, 51.48, 0), "deg (transit)")
 
 /* ---- expected output ----
@@ -86,6 +86,5 @@ print("self-check, lat 51.48: formula", 90 - abs(51.48 - decl(10, j)), "vs engin
 = lat 70 : 20.000098383 43.437930402 (midnight sun) 19.999960714 -3.43747375
 = declinations: 0.000098383 23.437930402 -0.000039286 -23.43747375 deg
 = midnight-sun line this year: 90 - 23.437930402 = 66.562069598 deg
-= 1954203123/794
 = self-check, lat 51.48: formula 61.957848058 vs engine 61.9567272 deg (transit)
 */

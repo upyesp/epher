@@ -47,11 +47,11 @@ def vtx(c, m) = c - 1 + 0.25 * m + 0.125 * (fv(m - 1, c) - fv(m + 1, c)) / (fv(m
 def dkm(t) = dist(11, j0 + t / 24) * au / 1000    // distance at t hours after the 1st, km
 
 // ---- results ---------------------------------------------------------------------
-r = cscan(dv(0), dv(0), 0, 0, 1)
-cm = d0 + 2 * r[3]     // the coarse closest day
-cM = d0 + 2 * r[4]     // the coarse farthest day
-tp = (vtx(cm, fmin(cm, fv(0, cm), 0, 1)) - j0) * 24   // perigee, hours after the 1st
-ta = (vtx(cM, fmax(cM, fv(0, cM), 0, 1)) - j0) * 24   // apogee, hours after the 1st
+const r = cscan(dv(0), dv(0), 0, 0, 1)
+const cm = d0 + 2 * r[3]     // the coarse closest day
+const cM = d0 + 2 * r[4]     // the coarse farthest day
+const tp = (vtx(cm, fmin(cm, fv(0, cm), 0, 1)) - j0) * 24   // perigee, hours after the 1st
+const ta = (vtx(cM, fmax(cM, fv(0, cM), 0, 1)) - j0) * 24   // apogee, hours after the 1st
 print("perigee of", month, "/", year, ":", iso(j0 + tp / 24), "UT")
 print("  distance:", dkm(tp), "km =", dkm(tp) * 1000 / au, "AU")
 print("apogee of", month, "/", year, ":", iso(j0 + ta / 24), "UT")
@@ -60,11 +60,6 @@ print("swing:", dkm(ta) - dkm(tp), "km (mean distance 384400 km)")
 print("grade: distances engine-grade; times a few minutes (6-h parabolic refine)")
 
 /* ---- expected output ----
-= {366979.206, 404173.494, 12, 6}
-= 2461121.5
-= 2461109.5
-= 515.705450032
-= 229.710521456
 = perigee of 3 / 2026 : 2026-03-22T11:42:20 UT
 =   distance: 366857.172 km = 0.00245228872766 AU
 = apogee of 3 / 2026 : 2026-03-10T13:42:38 UT

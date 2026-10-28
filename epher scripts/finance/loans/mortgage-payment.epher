@@ -3,7 +3,7 @@ mortgage-payment.epher -- monthly payment of a 30-year fixed-rate mortgage
 
 A mortgage of P at annual rate r over n months is an annuity: each month
 the borrower pays the same amount, and the payment formula is
-pmt = P*r/(1 - (1+r)^-n) with r = rate/12, solved here by the finance
+const pmt = P*r/(1 - (1+r)^-n) with r = rate/12, solved here by the finance
 builtin tvm_pmt (see the finance builtins in "epher scripts/README.md").
 Source: standard amortization formulas; see Kellison, The Theory of
 Interest, chapter 3.

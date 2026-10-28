@@ -118,3 +118,47 @@ doc's statistics and taxonomy stand; its R2 wording over-stated the
 web case. The implementation carries both halves anyway: terminal
 boundary wrap (the fix that matters) and web wrap points as cheap
 insurance.
+
+## Amendment (2026-10-28): the answer is the last line
+
+R4 said "the last **labeled** line is the answer". That fit the
+`print("label:", value)` convention but misread 32 scripts whose closing
+line is a sentence-result with no colon (`= that is 17.4 years`,
+`= no seventh candidate`) and forfeited the emphasis on exactly the
+line a reader wants. Scripts are written results-last, so:
+
+- **the last line is the answer**, unless it is a trailing verdict
+  (`… : true`), in which case the labeled line above it — the one shape
+  that is not an answer;
+- an `error:` line never qualifies (ADR-0079), and a transcript of one
+  failure has no answer at all;
+- the web pane's arrival scroll now targets that emphasized line
+  (`.pane-answer-final`), falling back to the first non-setup line, so a
+  long transcript opens **on its answer** rather than on its earliest
+  intermediate.
+
+The scripts met the rule halfway: five closing loops that printed bare
+data now label each element (`balance after year 1: 2120`), while the
+sentence-results were left as written.
+
+## Amendment (2026-10-28): a computed-once binding is a constant
+
+ADR-0080 silenced `const`, which left the scripts' *assignments* as the
+remaining echo — 37 consecutive bare numbers at the top of
+`schlyter-crosscheck`, 24 in `apparent-place`. Those bindings are
+computed once and never changed, which is precisely what `const` now
+means (`epher scripts/README.md`: "Use `const` for any value computed
+once and never changed, not only for knobs"). 99 scripts converted 326
+such bindings; 298 bare transcript lines went with them, and no labeled
+line, loop-emitted value, or answer was removed (verified line by line
+against the regenerated expected blocks).
+
+A binding that is reassigned — including inside a one-line
+`while … do x = x + 1` body — stays a variable: `const` is immutable,
+and a mechanical conversion that missed those reassignments broke 44
+scripts on the first attempt. The corpus's transcripts are the test:
+`scripts/check-scripts.mjs` refuses any script whose run no longer
+matches its expected block.
+
+Corpus after both amendments: labelled lines unchanged at 2,391, bare
+echoes 1,854 → 455 (44% → 16% of all transcript lines).

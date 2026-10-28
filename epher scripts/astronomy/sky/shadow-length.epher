@@ -41,8 +41,8 @@ def wb(a) = a + 180 - 360 * floor((a + 180) / 360)   // shadow bearing, 0-360 de
 def shadow_len(a) = hgt / tan(rad(a))                        // shadow length for solar altitude a
 
 // ---- the sample instant -----------------------------------------------------
-a1 = alt(10, jd(day[1], day[2], day[3], hr), lat, lon)
-z1 = az(10, jd(day[1], day[2], day[3], hr), lat, lon)
+const a1 = alt(10, jd(day[1], day[2], day[3], hr), lat, lon)
+const z1 = az(10, jd(day[1], day[2], day[3], hr), lat, lon)
 
 /* ---- results ------------------------------------------------------------------
 The 15:00-UT sample: the Sun is past the meridian, in the south-west,
@@ -54,10 +54,10 @@ print("2026-06-21 15:00 UT: Sun alt", a1, "deg, az", z1, "deg")
 print("  shadow length:", shadow_len(a1), "m; shadow bearing:", wb(z1), "deg from north")
 
 // ---- the noon cross-check ----------------------------------------------------
-t0 = transit(10, jd(day[1], day[2], day[3]), lat, lon)
-a0 = alt(10, t0, lat, lon)
-z0 = az(10, t0, lat, lon)
-d0 = decl(10, t0)
+const t0 = transit(10, jd(day[1], day[2], day[3]), lat, lon)
+const a0 = alt(10, t0, lat, lon)
+const z0 = az(10, t0, lat, lon)
+const d0 = decl(10, t0)
 print("at solar noon", iso(t0), ": Sun alt", a0, "deg, az", z0, "deg")
 print("  shortest shadow:", shadow_len(a0), "m; bearing", wb(z0), "deg (north)")
 
@@ -69,25 +69,17 @@ print("alt at transit vs 90 - |lat - decl|:", a0, "vs", 90 - abs(lat - d0), "deg
 print("azimuth at transit: due south reads 180 deg - measured", z0, "deg")
 
 // ---- the Sun-down guard ------------------------------------------------------
-a2 = alt(10, jd(day2[1], day2[2], day2[3], hr2), lat, lon)
-z2 = az(10, jd(day2[1], day2[2], day2[3], hr2), lat, lon)
+const a2 = alt(10, jd(day2[1], day2[2], day2[3], hr2), lat, lon)
+const z2 = az(10, jd(day2[1], day2[2], day2[3], hr2), lat, lon)
 if a2 <= 0 then print("2026-12-21 00:00 UT: the Sun is down (alt", a2, "deg): no shadow") else print("2026-12-21 00:00 UT: shadow length", shadow_len(a2), "m, bearing", wb(z2), "deg")
 
 /* ---- expected output ----
-= 45.9278503
-= 247.7014893
 = gnomon height 1 m at lat 51.4779 lon 0
 = 2026-06-21 15:00 UT: Sun alt 45.9278503 deg, az 247.7014893 deg
 =   shadow length: 0.968125308321 m; shadow bearing: 67.7014893 deg from north
-= 1954203123/794
-= 61.9588272
-= 179.9987742
-= 23.437848058
 = at solar noon 2026-06-21T12:01:49 : Sun alt 61.9588272 deg, az 179.9987742 deg
 =   shortest shadow: 0.532631544272 m; bearing 359.9987742 deg (north)
 = alt at transit vs 90 - |lat - decl|: 61.9588272 vs 61.959948058 deg
 = azimuth at transit: due south reads 180 deg - measured 179.9987742 deg
-= -61.9546138
-= 1.065261
 = 2026-12-21 00:00 UT: the Sun is down (alt -61.9546138 deg): no shadow
 */

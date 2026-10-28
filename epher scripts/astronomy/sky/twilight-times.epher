@@ -30,12 +30,12 @@ const day1 = {2026, 6, 21}     // June solstice: the short night
 const day2 = {2026, 2, 12}     // a winter date with a full dark night
 
 // ---- one transit and one declination per date (each is real work) --------------
-j1 = jd(day1[1], day1[2], day1[3])
-j2 = jd(day2[1], day2[2], day2[3])
-t1 = transit(10, j1, lat, lon)
-t2 = transit(10, j2, lat, lon)
-d1 = decl(10, t1)
-d2 = decl(10, t2)
+const j1 = jd(day1[1], day1[2], day1[3])
+const j2 = jd(day2[1], day2[2], day2[3])
+const t1 = transit(10, j1, lat, lon)
+const t2 = transit(10, j2, lat, lon)
+const d1 = decl(10, t1)
+const d2 = decl(10, t2)
 
 // ---- hour-angle formula at a custom horizon h0, events as ISO date-times -------
 def cx(h0, dec) = (sin(rad(h0)) - sin(rad(lat)) * sin(rad(dec))) / (cos(rad(lat)) * cos(rad(dec)))
@@ -58,12 +58,6 @@ print("  nautical:", ev(-12, d2, t2), "/", ev2(-12, d2, t2))
 print("  astronomical:", ev(-18, d2, t2), "/", ev2(-18, d2, t2))
 
 /* ---- expected output ----
-= 2461212.5
-= 2461083.5
-= 1954203123/794
-= 1223158753/497
-= 23.437848058
-= -13.591859964
 = twilight at lat 51.4779 lon 0
 = night of 2026-06-21:
 =   sunrise / sunset: 2026-06-21T03:42:48 / 2026-06-21T20:20:49

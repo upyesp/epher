@@ -38,19 +38,19 @@ const ic = -1.0                // index correction, arcminutes
 const eye = 3                  // height of eye, metres
 
 // ---- the sight, step by step --------------------------------------------------
-lan = transit(10, jd(day[1], day[2], day[3]), drlat, lon)
-sun_dec = decl(10, lan)
-sd = diam(10, lan) / 2
+const lan = transit(10, jd(day[1], day[2], day[3]), drlat, lon)
+const sun_dec = decl(10, lan)
+const sd = diam(10, lan) / 2
 
 // ---- corrections: dip and refraction in arcminutes ----------------------------
 def dip(e) = 1.76 * sqrt(e)
 def refr(h) = 0.97127 / tan(rad(h + 7.31 / (h + 4.4)))
 
 // ---- observed altitude to true central altitude (Ho), then the latitude -------
-ha = hs + ic / 60 - dip(eye) / 60
-ho = ha - refr(ha) / 60 + sd + 8.79 * cos(rad(ha)) / 3600
+const ha = hs + ic / 60 - dip(eye) / 60
+const ho = ha - refr(ha) / 60 + sd + 8.79 * cos(rad(ha)) / 3600
 z = 90 - ho
-lat = sun_dec + z
+const lat = sun_dec + z
 
 // ---- results ------------------------------------------------------------------
 print("local apparent noon:", iso(lan))
@@ -64,13 +64,7 @@ the navigator's error bar for this sight. */
 print("recovered minus DR:", lat - drlat, "deg")
 
 /* ---- expected output ----
-= 1887750340/767
-= 23.437886495
-= 0.262204861111
-= 73.1789265096
-= 73.436973098
 = 16.563026902
-= 40.000913397
 = local apparent noon: 2026-06-21T11:01:48
 = Ho (true central altitude): 73.436973098 deg
 = zenith distance: 16.563026902 deg, declination: 23.437886495 deg

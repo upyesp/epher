@@ -41,10 +41,10 @@ def gs(s) = if s[2] - s[1] < 0.0008 then (s[1] + s[2]) / 2 else if s[5] < s[6] t
 
 // The month's coarsest minimum sits within a day of one of the scan days,
 // so the golden search starts one day either side of the best sample.
-d0 = scan(1, 0, sep(jd0))        // best two-day sample (day index)
-ta = jd0 + d0 * 2 - 1             // golden search over +-1 day of it
-tb = jd0 + d0 * 2 + 1
-tmin = gs({ta, tb, ta + 0.381966011 * (tb - ta), ta + 0.618033989 * (tb - ta), sep(ta + 0.381966011 * (tb - ta)), sep(ta + 0.618033989 * (tb - ta))})
+const d0 = scan(1, 0, sep(jd0))        // best two-day sample (day index)
+const ta = jd0 + d0 * 2 - 1             // golden search over +-1 day of it
+const tb = jd0 + d0 * 2 + 1
+const tmin = gs({ta, tb, ta + 0.381966011 * (tb - ta), ta + 0.618033989 * (tb - ta), sep(ta + 0.381966011 * (tb - ta)), sep(ta + 0.618033989 * (tb - ta))})
 
 // ---- results ------------------------------------------------------------------
 print("Moon and planet", planet, "in month", month, "/", year)
@@ -54,10 +54,6 @@ print("separation 6 h before:", sep(tmin - 0.25), "deg;  6 h after:", sep(tmin +
 print("Moon illuminated:", illum(11, tmin), "; planet magnitude:", mag(planet, tmin))
 
 /* ---- expected output ----
-= 1
-= 2461346.5
-= 2461348.5
-= 1656486833/673
 = Moon and planet 5 in month 11 / 2026
 = closest approach: 2026-11-02T22:46:11 UT
 = minimum separation: 0.484257927817 deg = 0° 29' 3"

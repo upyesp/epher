@@ -6,7 +6,7 @@ once one side and its opposite angle are known. Given angles A and B and
 side a (the AAS case), C = 180 - A - B follows from the angle sum and
 then b = a sin B / sin A and c = a sin C / sin A. Given the side c
 between A and B instead (the ASA case), the same C gives
-a = c sin A / sin C. Angles come in degrees through the knobs and are
+const a = c sin A / sin C. Angles come in degrees through the knobs and are
 converted with rad() for the builtin trig; the sides keep meters.
 
 Web/desktop:             paste the whole file into the entry, press Enter

@@ -31,53 +31,53 @@ def kep(M, e, E) = if abs(E - e * sin(E) - M) < 1e-12 then E else kep(M, e, E - 
 def Eof(Mdeg, e) = kep(rad(Mdeg), e, rad(Mdeg) + e * sin(rad(Mdeg)))
 
 // ---- the Sun (Schlyter's own constants) ---------------------------------------------------
-ws = 282.9404 + 4.70935e-5 * ds
-es = 0.016709 - 1.151e-9 * ds
+const ws = 282.9404 + 4.70935e-5 * ds
+const es = 0.016709 - 1.151e-9 * ds
 Ms = 356.0470 + 0.9856002585 * ds
 Es = Eof(Ms, es)
-xvs = cos(Es) - es
-yvs = sqrt(1 - es ^ 2) * sin(Es)
-vs = deg(atan2(yvs, xvs))
-rs = sqrt(xvs ^ 2 + yvs ^ 2)
-lsun = vs + ws                          // his geocentric ecliptic longitude of the Sun
+const xvs = cos(Es) - es
+const yvs = sqrt(1 - es ^ 2) * sin(Es)
+const vs = deg(atan2(yvs, xvs))
+const rs = sqrt(xvs ^ 2 + yvs ^ 2)
+const lsun = vs + ws                          // his geocentric ecliptic longitude of the Sun
 
 // ---- Mars (his elements; no perturbation terms in his set for Mars) -----------------------
 def wrap(x) = x - 360 * floor(x / 360)
 def spread(x) = if wrap(x) > 180 then wrap(x) - 360 else wrap(x)
 Nm = 49.5574 + 2.11081e-5 * ds
-incl = 1.8497 - 1.78e-8 * ds
-wm = 286.5016 + 2.92961e-5 * ds
-am = 1.523688
-em = 0.0934005 - 2.516e-9 * ds
+const incl = 1.8497 - 1.78e-8 * ds
+const wm = 286.5016 + 2.92961e-5 * ds
+const am = 1.523688
+const em = 0.0934005 - 2.516e-9 * ds
 Mm = 18.6021 + 0.5240207766 * ds
 Em = Eof(Mm, em)
-xvm = am * (cos(Em) - em)
-yvm = am * sqrt(1 - em ^ 2) * sin(Em)
-vm = deg(atan2(yvm, xvm))
-rm = sqrt(xvm ^ 2 + yvm ^ 2)
+const xvm = am * (cos(Em) - em)
+const yvm = am * sqrt(1 - em ^ 2) * sin(Em)
+const vm = deg(atan2(yvm, xvm))
+const rm = sqrt(xvm ^ 2 + yvm ^ 2)
 // heliocentric ecliptic rectangular coordinates
-xhm = rm * (cos(rad(Nm)) * cos(rad(vm + wm)) - sin(rad(Nm)) * sin(rad(vm + wm)) * cos(rad(incl)))
-yhm = rm * (sin(rad(Nm)) * cos(rad(vm + wm)) + cos(rad(Nm)) * sin(rad(vm + wm)) * cos(rad(incl)))
-zhm = rm * sin(rad(vm + wm)) * sin(rad(incl))
+const xhm = rm * (cos(rad(Nm)) * cos(rad(vm + wm)) - sin(rad(Nm)) * sin(rad(vm + wm)) * cos(rad(incl)))
+const yhm = rm * (sin(rad(Nm)) * cos(rad(vm + wm)) + cos(rad(Nm)) * sin(rad(vm + wm)) * cos(rad(incl)))
+const zhm = rm * sin(rad(vm + wm)) * sin(rad(incl))
 // geocentric: add the Sun's rectangular position
-xgm = xhm + rs * cos(rad(lsun))
-ygm = yhm + rs * sin(rad(lsun))
-zgm = zhm
-lonm = deg(atan2(ygm, xgm))
-latm = deg(atan2(zgm, sqrt(xgm ^ 2 + ygm ^ 2)))
+const xgm = xhm + rs * cos(rad(lsun))
+const ygm = yhm + rs * sin(rad(lsun))
+const zgm = zhm
+const lonm = deg(atan2(ygm, xgm))
+const latm = deg(atan2(zgm, sqrt(xgm ^ 2 + ygm ^ 2)))
 // equatorial with the obliquity (Schlyter: 23.4393 - 3.563e-7 * ds)
-eps = 23.4393 - 3.563e-7 * ds
-ram = deg(atan2(sin(rad(lonm)) * cos(rad(eps)) - tan(rad(latm)) * sin(rad(eps)), cos(rad(lonm))))
-decm = deg(asin(sin(rad(latm)) * cos(rad(eps)) + cos(rad(latm)) * sin(rad(eps)) * sin(rad(lonm))))
+const eps = 23.4393 - 3.563e-7 * ds
+const ram = deg(atan2(sin(rad(lonm)) * cos(rad(eps)) - tan(rad(latm)) * sin(rad(eps)), cos(rad(lonm))))
+const decm = deg(asin(sin(rad(latm)) * cos(rad(eps)) + cos(rad(latm)) * sin(rad(eps)) * sin(rad(lonm))))
 
 // ---- the engine's side: Sun and Mars ra/dec, and the Sun's ecliptic longitude ---------------
-mra = ra(4, tm)
-mde = decl(4, tm)
-sra = ra(10, tm)
-sde = decl(10, tm)
+const mra = ra(4, tm)
+const mde = decl(4, tm)
+const sra = ra(10, tm)
+const sde = decl(10, tm)
 // engine Sun ecliptic longitude (conversion with the same eps formula)
-seps = 23.4393 - 3.563e-7 * ds
-slon = deg(atan2(sin(rad(sra)) * cos(rad(seps)) + tan(rad(sde)) * sin(rad(seps)), cos(rad(sra))))
+const seps = 23.4393 - 3.563e-7 * ds
+const slon = deg(atan2(sin(rad(sra)) * cos(rad(seps)) + tan(rad(sde)) * sin(rad(seps)), cos(rad(sra))))
 
 // ---- results -----------------------------------------------------------------------------
 print("Schlyter vs engine at", iso(tm))
@@ -86,43 +86,11 @@ print("Mars ra  Schlyter", ram, "  engine", mra, "  |diff|", abs(spread(ram - mr
 print("Mars dec Schlyter", decm, "  engine", mde, "  |diff|", abs(decm - mde) * 60, "arcmin")
 
 /* ---- expected output ----
-= 283.399561625
-= 0.01669777775
 = 9965.64952038
 = 173.918289618
-= -0.442730118663
-= -0.904581801039
-= -116.078545727
-= 1.00711379334
-= 167.321015898
 = 49.763203975
-= 1.84952645
-= 286.787236975
-= 1.523688
-= 0.093375969
 = 5127.80467185
 = 89.5903101094
-= -0.225913940282
-= 1.51474366388
-= 98.4827570587
-= 1.53149778834
-= 0.395783594765
-= 1.47932268225
-= 0.0211003218064
-= -0.586771846724
-= 1.70037244393
-= 0.0211003218064
-= 109.038750897
-= 0.67207315774
-= 23.435826075
-= 110.713875401
-= 22.749424543
-= 110.717796062
-= 22.751229886
-= 168.335823973
-= 5.009097619
-= 23.435826075
-= 167.319451956
 = Schlyter vs engine at 2026-09-10T00:00:00
 = Sun:   Schlyter lon 167.321015898   engine lon 167.319451956   |diff| 0.0938364904704 arcmin
 = Mars ra  Schlyter 110.713875401   engine 110.717796062   |diff| 0.235239652319 arcmin

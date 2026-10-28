@@ -35,10 +35,10 @@ const lonp = 15.6
 const dpol = {2026, 12, 21} // December solstice: the Sun never rises there
 
 // ---- the night's brackets ----------------------------------------------------
-j0 = jd(day[1], day[2], day[3])
-r1 = rise(body, j0, lat, lon)
-s2 = set(body, j0 + 1, lat, lon)
-tt = transit(body, j0 + 1, lat, lon)
+const j0 = jd(day[1], day[2], day[3])
+const r1 = rise(body, j0, lat, lon)
+const s2 = set(body, j0 + 1, lat, lon)
+const tt = transit(body, j0 + 1, lat, lon)
 def inst(h) = j0 + h / 24   // hour h of the night: 19-23 on day 1, 24-30 = 00-06 next day
 
 // ---- the sampled altitudes (one engine call each) -----------------------------
@@ -83,16 +83,12 @@ print("all-night guard: above the horizon at some sampled hour:", mx > 0)
 rises at all - the hour-angle test on its noon declination says no
 -0.833-deg crossing exists, so no arc is charted and the engine's
 rise/set calls are never made. */
-t2 = transit(10, jd(dpol[1], dpol[2], dpol[3]), latp, lonp)
-d2 = decl(10, t2)
-cx2 = (sin(rad(-0.833)) - sin(rad(latp)) * sin(rad(d2))) / (cos(rad(latp)) * cos(rad(d2)))
+const t2 = transit(10, jd(dpol[1], dpol[2], dpol[3]), latp, lonp)
+const d2 = decl(10, t2)
+const cx2 = (sin(rad(-0.833)) - sin(rad(latp)) * sin(rad(d2))) / (cos(rad(latp)) * cos(rad(d2)))
 if abs(cx2) > 1 then print("polar night at Svalbard (lat 78.2), 2026-12-21: the Sun never rises") else print("2026-12-21 at lat 78.2: the Sun does rise")
 print("  solar declination at the day's transit:", d2, "deg")
 /* ---- expected output ----
-= 2461304.5
-= 2436692219/990
-= 1252804648/509
-= 2461305.53174
 = Saturn, night of 2026-09-21 at lat 51.4779 lon 0
 =   above the horizon 2026-09-21T18:31:16 to 2026-09-22T07:00:07
 =   transits about 2026-09-22T00:45:43
@@ -109,9 +105,6 @@ print("  solar declination at the day's transit:", d2, "deg")
 = 05:00 UT: alt 17.8995293 deg, az 250.3419856 deg 
 = 06:00 UT: alt 8.8026656 deg, az 262.656729 deg 
 = all-night guard: above the horizon at some sampled hour: true
-= 1486683157/604
-= -23.436808724
-= 1.99757029984
 = polar night at Svalbard (lat 78.2), 2026-12-21: the Sun never rises
 =   solar declination at the day's transit: -23.436808724 deg
 */

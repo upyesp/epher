@@ -3,7 +3,7 @@ linear-regression-prediction.epher -- least squares by hand, then predict
 
 Fits the least-squares line to the five (hours, score) pairs in `xs`
 and `ys` with the classroom formulas: the slope is
-b1 = sum((x - xbar)(y - ybar)) / sum((x - xbar)^2) and the intercept
+const b1 = sum((x - xbar)(y - ybar)) / sum((x - xbar)^2) and the intercept
 is b0 = ybar - b1 * xbar. epher's linreg fits the same line, so the
 print of linreg below is the cross-check. The line then predicts the
 score for six study hours, just past the data.
