@@ -5504,13 +5504,20 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
 
     // A long answer renders in the result pane (ADR-0056), one answer
     // per line, above any curves; the pane gives the transcript the
-    // room the answer line cannot.
+    // room the answer line cannot. The pane re-renders what it
+    // receives (ADR-0071): setup echoes dim, the final labeled line
+    // carries the answer's weight, a matrix becomes a padded grid, and
+    // every row wraps at value boundaries with a hanging indent — the
+    // terminal has no wrap of its own, so a transcript used to clip
+    // mid-number at the pane edge.
     let mut graph_text = String::new();
+    let mut pane_lines: Vec<Line<'static>> = Vec::new();
     let mut transcript_rows = 0u16;
     if long_answer {
-        graph_text.push_str(app.result());
-        graph_text.push('\n');
-        transcript_rows = app.result().lines().count() as u16 + 1;
+        let width = (graph_area.width.saturating_sub(2) as usize).max(12);
+        let (lines, rows) = pane_transcript(app.result(), width, result_style, hints_style);
+        pane_lines = lines;
+        transcript_rows = rows as u16 + 1;
     }
     // The plot shares the pane with the transcript: it draws below it,
     // sized to the rows the transcript leaves.
@@ -5595,7 +5602,24 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     }
     // The plot pane shares the web app's pane name (ADR-0056): the
     // localized "Result", graphs and long answers live in the same
-    // pane there, and the terminal calls it the same thing.
+    // pane there, and the terminal calls it the same thing. A long
+    // transcript names its size in the title (ADR-0071): "Result · 51
+    // answers" tells the user what they are scrolling before they
+    // scroll it.
+    let pane_title = if long_answer {
+        let n = app.result().lines().count().to_string();
+        // Fluent wraps directional args in Unicode isolates; the
+        // terminal's block titles render them as invisible cells, so
+        // strip them (the Paragraph path already drops them).
+        let count: String = localizer
+            .lookup_args("answers-count", &[("n", &n)])
+            .chars()
+            .filter(|c| !matches!(c, '\u{2066}'..='\u{2069}'))
+            .collect();
+        format!("{} · {}", localizer.lookup("result-pane"), count)
+    } else {
+        localizer.lookup("result-pane")
+    };
     // A fresh session has nothing to show yet: the pane carries the
     // welcome hint instead of blank space (ADR-0077). The count comes
     // from the compile-time catalog, so it can never drift from what
@@ -5607,9 +5631,13 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
         ));
         graph_text.push('\n');
     }
-    let graph = Paragraph::new(graph_text)
+    let mut pane_text: Vec<Line<'static>> = pane_lines;
+    for l in graph_text.lines() {
+        pane_text.push(Line::from(l.to_string()));
+    }
+    let graph = Paragraph::new(pane_text)
         .style(Style::default().fg(fg))
-        .block(block(localizer.lookup("result-pane"), false));
+        .block(block(pane_title, false));
     frame.render_widget(graph, graph_area);
 
     // The open menu popup goes on top of everything else: draw it last,
@@ -5735,6 +5763,60 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
 /// script's answers with newlines (the web joins with a private
 /// separator), so the newline test covers both multi-answer
 /// transcripts and multiline tables.
+/// The transcript as styled terminal lines (ADR-0071): setup echoes
+/// wear the hints' dim ink, the final labeled line wears the answer
+/// style, and a matrix renders as a padded right-aligned grid. Every
+/// row wraps at value boundaries with a hanging indent — the terminal
+/// has no wrap of its own, so a long list or table used to clip
+/// mid-number at the pane edge. Returns the lines and their count.
+/// Verdicts keep their text (the terminal styles, never decorates);
+/// the web pane carries the check glyph.
+fn pane_transcript(
+    result: &str,
+    width: usize,
+    answer_style: ratatui::style::Style,
+    dim_style: ratatui::style::Style,
+) -> (Vec<ratatui::text::Line<'static>>, usize) {
+    use epher_core::pane as vp;
+    let lines = vp::display_lines(result, None);
+    let final_idx = vp::final_labeled_index(&lines);
+    let mut out: Vec<ratatui::text::Line<'static>> = Vec::new();
+    for (i, line) in lines.iter().enumerate() {
+        // The rows this display line fills: a matrix as a padded grid
+        // (rows chunk hard at the pane edge; alignment columns must
+        // not collapse), everything else through the boundary wrap.
+        let mut rows: Vec<String> = Vec::new();
+        if let Some((prefix, grid, suffix)) = vp::matrix_grid(line) {
+            rows.extend(vp::wrap_to_width(&prefix, width, 2));
+            for row in vp::grid_rows(&grid) {
+                let len = row.chars().count();
+                if len <= width {
+                    rows.push(row);
+                } else {
+                    for chunk in row.chars().collect::<Vec<_>>().chunks(width) {
+                        rows.push(chunk.iter().collect());
+                    }
+                }
+            }
+            rows.extend(vp::wrap_to_width(&suffix, width, 2));
+        } else {
+            rows.extend(vp::wrap_to_width(line, width, 2));
+        }
+        for row in rows {
+            let span = if Some(i) == final_idx {
+                ratatui::text::Span::styled(row, answer_style)
+            } else if vp::line_kind(line) == vp::LineKind::Setup {
+                ratatui::text::Span::styled(row, dim_style)
+            } else {
+                ratatui::text::Span::raw(row)
+            };
+            out.push(ratatui::text::Line::from(vec![span]));
+        }
+    }
+    let count = out.len();
+    (out, count)
+}
+
 pub fn answer_fits(text: &str, wide: bool) -> bool {
     if text.is_empty() || text.contains('\n') {
         return false;
@@ -5852,6 +5934,7 @@ mod draw_tests {
     use super::*;
     use ratatui::backend::TestBackend;
     use ratatui::layout::Rect;
+    use ratatui::style::{Color, Modifier};
     use ratatui::Terminal;
 
     /// ADR-0056 (amended): a long answer, one line, but over the
@@ -6067,6 +6150,187 @@ mod draw_tests {
         assert!(
             marker_y < legend_y,
             "the transcript renders above the curves"
+        );
+    }
+
+    /// ADR-0071: the pane re-renders what it receives. A bare statement
+    /// echo wears the hints' dim ink; the transcript's last labeled
+    /// line — the answer — wears the answer style the result line has
+    /// always carried.
+    #[test]
+    fn a_setup_echo_dims_and_the_final_answer_carries_the_answer_style() {
+        let mut app = App::default();
+        app.set_result("= 1000\n= payment: 88.84");
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let (mut setup_style, mut final_style) = (None, None);
+        for y in 1..24 {
+            let mut pane_row = String::new();
+            for x in 46..80 {
+                pane_row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            if pane_row.contains("= 1000") {
+                setup_style = Some(buffer.cell((47, y)).unwrap().style());
+            }
+            if pane_row.contains("payment: 88.84") {
+                final_style = Some(buffer.cell((47, y)).unwrap().style());
+            }
+        }
+        let setup = setup_style.expect("the setup echo must render");
+        assert_eq!(
+            setup.fg,
+            Some(Color::DarkGray),
+            "the bare echo wears the hints' dim ink"
+        );
+        let fin = final_style.expect("the labeled answer must render");
+        assert_eq!(
+            fin.fg,
+            Some(Color::Green),
+            "the answer wears the result line's color"
+        );
+        assert!(
+            fin.add_modifier.contains(Modifier::BOLD),
+            "the answer carries the answer style's weight"
+        );
+    }
+
+    /// ADR-0071: a line's matrix renders as a padded, right-aligned
+    /// grid — rows on separate pane rows, cells whole — where the flat
+    /// wall used to wrap arbitrarily.
+    #[test]
+    fn a_matrix_renders_as_a_grid_one_row_per_line() {
+        let mut app = App::default();
+        app.set_result(
+            "= [[1, 10, 78.85, 921.15], [2, 9.21, 79.64, 841.51]]",
+        );
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let (mut first, mut second) = (None, None);
+        for y in 1..24 {
+            let mut pane_row = String::new();
+            for x in 46..80 {
+                pane_row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            if first.is_none() && pane_row.contains("921.15") {
+                first = Some(y);
+            }
+            if pane_row.contains("841.51") {
+                second = Some(y);
+            }
+        }
+        let (first, second) = (
+            first.expect("the first grid row must render"),
+            second.expect("the second grid row must render"),
+        );
+        assert!(
+            second > first,
+            "grid rows render one per pane row, in order"
+        );
+    }
+
+    /// ADR-0071: a long flat list wraps at element boundaries with a
+    /// hanging indent, and every number stays whole — the terminal has
+    /// no wrap of its own, so this used to clip mid-digit at the pane
+    /// edge.
+    #[test]
+    fn a_long_list_wraps_and_keeps_every_number_whole() {
+        let mut app = App::default();
+        app.set_result(
+            "= scores: {0.393505701095, 0.393505701095, 0.393505701095, 0.393505701095}",
+        );
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let mut joined = String::new();
+        for y in 1..24 {
+            let mut pane_row = String::new();
+            for x in 46..80 {
+                pane_row.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            joined.push_str(&pane_row);
+        }
+        assert_eq!(
+            joined.matches("0.393505701095").count(),
+            4,
+            "every score renders intact, never split across rows"
+        );
+    }
+
+    /// ADR-0071: an answer wider than the pane chunks so every digit
+    /// renders — the old flat line simply clipped at column 32.
+    #[test]
+    fn a_wide_answer_wraps_instead_of_clipping() {
+        let mut app = App::default();
+        let long = format!("= {}", "7".repeat(60));
+        app.set_result(&long);
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let mut seen = 0usize;
+        for y in 1..24 {
+            for x in 46..80 {
+                if buffer.cell((x, y)).unwrap().symbol() == "7" {
+                    seen += 1;
+                }
+            }
+        }
+        assert_eq!(
+            seen, 60,
+            "every digit of the wide answer renders in the pane"
+        );
+    }
+
+    /// ADR-0071: the pane's title names the transcript's size, so the
+    /// user knows what they are scrolling before they scroll it.
+    #[test]
+    fn the_pane_title_names_the_transcript_size() {
+        let mut app = App::default();
+        app.set_result("= 111\n= 222");
+        let localizer = Localizer::resolve(None, &[]);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| draw(frame, &mut app, &localizer))
+            .unwrap();
+        let buffer = terminal.backend().buffer().clone();
+
+        let mut screen = String::new();
+        for y in 0..24 {
+            for x in 0..80 {
+                screen.push_str(buffer.cell((x, y)).unwrap().symbol());
+            }
+            screen.push('\n');
+        }
+        assert!(
+            screen.contains("Result · 2 answers"),
+            "the title names the transcript: {screen}"
         );
     }
 

@@ -1287,6 +1287,439 @@ fn download_icon() -> yew::Html {
 /// render exactly as one item.
 const ANSWER_SEP: char = '\u{1f}';
 
+/// The result pane's presentation contract (ADR-0071). The pane
+/// receives the transcript verbatim and re-renders it: setup echoes
+/// dim, the final labeled line carries the answer's weight, grids
+/// become grids, and wrap points fall between values. Copy paths —
+/// the transcript button and every per-line button — always send the
+/// original text; these views only decide what the pane *shows*.
+
+/// Display-side significant digits for the short-numbers view
+/// (ADR-0071 R7): what a value collapses to when the toggle is on.
+const SHORT_DIGITS: usize = 6;
+
+/// A long flat list shows this many elements before the "n more"
+/// disclosure (ADR-0071 R3).
+const LIST_ELSIDE: usize = 20;
+
+/// One display span of a pane answer: text plus how to show it. `title`
+/// carries a shortened number's full value for the hover; `nowrap`
+/// keeps an ISO timestamp one token; `unit` dims a trailing measure.
+#[derive(Debug, Clone)]
+struct PaneSpanView {
+    text: String,
+    title: Option<String>,
+    nowrap: bool,
+    unit: bool,
+}
+
+impl PaneSpanView {
+    fn plain(text: impl Into<String>) -> Self {
+        Self {
+            text: text.into(),
+            title: None,
+            nowrap: false,
+            unit: false,
+        }
+    }
+}
+
+/// One display line's shaped body: plain text with soft wrap points,
+/// a matrix as a grid, or a long list for the elision path.
+enum PaneBodyView {
+    /// Segments joined with wrap points; each segment carries its own
+    /// spans.
+    Text { segments: Vec<Vec<PaneSpanView>> },
+    /// The line's matrix: prefix text, right-aligned rows, suffix.
+    Grid {
+        prefix: Vec<PaneSpanView>,
+        rows: Vec<Vec<Vec<PaneSpanView>>>,
+        widths: Vec<usize>,
+        suffix: String,
+    },
+    /// The line's long flat list, elements whole.
+    LongList {
+        prefix: Vec<PaneSpanView>,
+        elements: Vec<Vec<PaneSpanView>>,
+        suffix: String,
+    },
+}
+
+/// One display line of the transcript, shaped for the pane.
+struct PaneLineView {
+    original: String,
+    setup: bool,
+    final_line: bool,
+    verdict: Option<bool>,
+    body: PaneBodyView,
+}
+
+/// The display spans of a text chunk (ADR-0071 R6/R7): ISO timestamps
+/// stay one unbreakable token; numbers shorten at `Some(digits)` with
+/// the full value on hover, and group when the Results settings ask;
+/// `unit` dims as a trailing measure (`= 12 m`).
+fn pane_spans(
+    text: &str,
+    short_digits: Option<usize>,
+    group: bool,
+    unit: Option<&str>,
+) -> Vec<PaneSpanView> {
+    let mut out: Vec<PaneSpanView> = Vec::new();
+    let chars: Vec<char> = text.chars().collect();
+    let mut i = 0usize;
+    let mut prose = String::new();
+    let starts_timestamp = |c: &[char], i: usize| {
+        // \d{4}-\d{2}-\d{2}T
+        i + 10 < c.len()
+            && c[i].is_ascii_digit()
+            && c[i + 1].is_ascii_digit()
+            && c[i + 2].is_ascii_digit()
+            && c[i + 3].is_ascii_digit()
+            && c[i + 4] == '-'
+            && c[i + 5].is_ascii_digit()
+            && c[i + 6].is_ascii_digit()
+            && c[i + 7] == '-'
+            && c[i + 8].is_ascii_digit()
+            && c[i + 9].is_ascii_digit()
+            && c[i + 10] == 'T'
+    };
+    let starts_number = |c: &[char], i: usize| {
+        let d = |j: usize| c.get(j).map(|n| n.is_ascii_digit()).unwrap_or(false);
+        d(i) || ((c[i] == '-' || c[i] == '+' || c[i] == '.') && d(i + 1))
+    };
+    let flush_prose = |prose: &mut String, out: &mut Vec<PaneSpanView>| {
+        if !prose.is_empty() {
+            out.push(PaneSpanView::plain(std::mem::take(prose)));
+        }
+    };
+    while i < chars.len() {
+        if starts_timestamp(&chars, i) {
+            flush_prose(&mut prose, &mut out);
+            // The instant and its optional seconds/fraction/zone.
+            let mut j = i + 11;
+            while j < chars.len()
+                && (chars[j].is_ascii_digit()
+                    || matches!(chars[j], ':' | '.' | '+' | '-' | 'Z'))
+            {
+                j += 1;
+            }
+            let ts: String = chars[i..j].iter().collect();
+            out.push(PaneSpanView {
+                text: ts,
+                title: None,
+                nowrap: true,
+                unit: false,
+            });
+            i = j;
+        } else if starts_number(&chars, i) {
+            flush_prose(&mut prose, &mut out);
+            // [-+]?digits(.digits)?(e[+-]?digits)?
+            let mut j = i;
+            if matches!(chars[j], '-' | '+') {
+                j += 1;
+            }
+            while j < chars.len() && chars[j].is_ascii_digit() {
+                j += 1;
+            }
+            if j < chars.len() && chars[j] == '.' && j + 1 < chars.len() && chars[j + 1].is_ascii_digit()
+            {
+                j += 1;
+                while j < chars.len() && chars[j].is_ascii_digit() {
+                    j += 1;
+                }
+            }
+            if j < chars.len() && (chars[j] == 'e' || chars[j] == 'E') {
+                let mut k = j + 1;
+                if k < chars.len() && matches!(chars[k], '-' | '+') {
+                    k += 1;
+                }
+                if k < chars.len() && chars[k].is_ascii_digit() {
+                    j = k;
+                    while j < chars.len() && chars[j].is_ascii_digit() {
+                        j += 1;
+                    }
+                }
+            }
+            let token: String = chars[i..j].iter().collect();
+            if let Some(digits) = short_digits {
+                if let Some(short) = epher_core::pane::shorten_number(&token, digits) {
+                    out.push(PaneSpanView {
+                        text: short,
+                        title: Some(token),
+                        nowrap: false,
+                        unit: false,
+                    });
+                    i = j;
+                    continue;
+                }
+            }
+            let shown = if group {
+                epher_core::pane::group_digits(&token)
+            } else {
+                token
+            };
+            out.push(PaneSpanView::plain(shown));
+            i = j;
+        } else {
+            prose.push(chars[i]);
+            i += 1;
+        }
+    }
+    flush_prose(&mut prose, &mut out);
+    // A trailing measure dims: the pane_spans caller stripped nothing;
+    // split it off the final prose span here.
+    if let Some(u) = unit {
+        let suffix = format!(" {u}");
+        if let Some(last) = out.last_mut() {
+            if last.text.ends_with(&suffix) {
+                let split_at = last.text.len() - suffix.len();
+                let unit_span = PaneSpanView {
+                    unit: true,
+                    text: last.text.split_off(split_at),
+                    ..PaneSpanView::plain("")
+                };
+                out.push(unit_span);
+            }
+        }
+    }
+    out
+}
+
+/// One display line's shaped body (ADR-0071 R3): a matrix becomes a
+/// grid, a very long flat list becomes whole elements, and everything
+/// else stays text with the wrap points the core contract offers.
+fn pane_body(line: &str, short_digits: Option<usize>, group: bool) -> PaneBodyView {
+    let unit = epher_core::pane::terminal_unit(line);
+    let spans = |text: &str| pane_spans(text, short_digits, group, unit);
+    if let Some((prefix, grid, suffix)) = epher_core::pane::matrix_grid(line) {
+        let rows = grid
+            .rows
+            .iter()
+            .map(|row| row.iter().map(|cell| spans(cell)).collect())
+            .collect();
+        PaneBodyView::Grid {
+            prefix: spans(&prefix),
+            rows,
+            widths: grid.widths,
+            suffix,
+        }
+    } else if let Some((prefix, elements, suffix)) =
+        epher_core::pane::long_list(line, LIST_ELSIDE)
+    {
+        PaneBodyView::LongList {
+            prefix: spans(&prefix),
+            elements: elements.iter().map(|e| spans(e)).collect(),
+            suffix,
+        }
+    } else {
+        PaneBodyView::Text {
+            segments: epher_core::pane::wrap_segments(line)
+                .iter()
+                .map(|seg| spans(seg))
+                .collect(),
+        }
+    }
+}
+
+
+/// One pane answer line as HTML (ADR-0071): its tier class, verdict
+/// glyph, shaped body, and per-line copy. Display only — the button
+/// copies `original` verbatim.
+#[allow(clippy::too_many_arguments)]
+fn pane_answer_html(
+    view: &PaneLineView,
+    idx: usize,
+    copied: Option<usize>,
+    expanded: bool,
+    localizer: &Localizer,
+    copied_state: &UseStateHandle<Option<usize>>,
+    expanded_state: &UseStateHandle<std::collections::HashSet<usize>>,
+) -> Html {
+    let mut classes = String::from("pane-answer");
+    if view.setup {
+        classes.push_str(" pane-answer-setup");
+    }
+    if view.final_line {
+        classes.push_str(" pane-answer-final");
+    }
+    let spans_html = |spans: &[PaneSpanView]| -> Html {
+        html! {
+            { for spans.iter().map(|s| {
+                html! { <span
+                    class={if s.nowrap {
+                        "ts"
+                    } else if s.unit {
+                        "unit"
+                    } else {
+                        ""
+                    }}
+                    title={s.title.clone().unwrap_or_default()}
+                >
+                    { s.text.clone() }
+                </span> }
+            }) }
+        }
+    };
+    let body_html: Html = match &view.body {
+        PaneBodyView::Text { segments } => html! {
+            <span class="answer-body">
+                { for segments.iter().enumerate().map(|(si, seg)| html! {
+                    <>
+                        { if si > 0 { html! { <wbr/> } } else { html! {} } }
+                        { spans_html(seg) }
+                    </>
+                }) }
+            </span>
+        },
+        PaneBodyView::Grid { prefix, rows, widths, suffix } => html! {
+            <span class="answer-body">
+                { spans_html(prefix) }
+                <span class="matrix">
+                    { for rows.iter().map(|row| html! {
+                        <span class="matrix-row">
+                            { for row.iter().enumerate().map(|(c, cell)| html! {
+                                <span
+                                    class="matrix-cell"
+                                    style={format!(
+                                        "width: {}ch",
+                                        widths.get(c).copied().unwrap_or(0) + 2,
+                                    )}
+                                >
+                                    { spans_html(cell) }
+                                </span>
+                            }) }
+                        </span>
+                    }) }
+                </span>
+                { suffix.clone() }
+            </span>
+        },
+        PaneBodyView::LongList { prefix, elements, suffix } => {
+            let shown = if expanded { elements.len() } else { LIST_ELSIDE };
+            let hidden = elements.len().saturating_sub(shown);
+            html! {
+                <span class="answer-body">
+                    { spans_html(prefix) }
+                    { "{" }
+                    { for elements.iter().take(shown).enumerate().map(|(ei, el)| html! {
+                        <>
+                            { if ei > 0 {
+                                html! { <><span class="list-comma">{ ", " }</span><wbr/></> }
+                            } else {
+                                html! {}
+                            } }
+                            { spans_html(el) }
+                        </>
+                    }) }
+                    { if hidden > 0 {
+                        let expanded_state = expanded_state.clone();
+                        html! {
+                            <button
+                                type="button"
+                                class="more-btn"
+                                onclick={Callback::from(move |_| {
+                                    let mut s = (*expanded_state).clone();
+                                    s.insert(idx);
+                                    expanded_state.set(s);
+                                })}
+                            >
+                                { localizer.lookup_args("more-values", &[("n", &hidden.to_string())]) }
+                            </button>
+                        }
+                    } else {
+                        html! {}
+                    } }
+                    { "}" }
+                    { suffix.clone() }
+                </span>
+            }
+        }
+    };
+    html! {
+        <div class={classes}>
+            { if let Some(ok) = view.verdict {
+                html! {
+                    <span
+                        class={if ok { "v-glyph v-true" } else { "v-glyph v-false" }}
+                        aria-hidden="true"
+                    >
+                        { if ok { "\u{2713}" } else { "\u{2717}" } }
+                    </span>
+                }
+            } else {
+                html! {}
+            } }
+            { body_html }
+            <button
+                type="button"
+                class="icon-btn copy-line"
+                title={ if copied == Some(idx) {
+                    localizer.lookup("answer-copied")
+                } else {
+                    localizer.lookup("copy-line")
+                } }
+                aria-label={ if copied == Some(idx) {
+                    localizer.lookup("answer-copied")
+                } else {
+                    localizer.lookup("copy-line")
+                } }
+                onclick={
+                    let copied_state = copied_state.clone();
+                    let original = view.original.clone();
+                    Callback::from(move |_| {
+                        copied_state.set(Some(idx));
+                        if let Some(window) = web_sys::window() {
+                            let copied_state = copied_state.clone();
+                            let reset = Closure::once(move || copied_state.set(None));
+                            let _ = window
+                                .set_timeout_with_callback_and_timeout_and_arguments_0(
+                                    reset.as_ref().unchecked_ref(),
+                                    1600,
+                                );
+                            reset.forget();
+                        }
+                        let text = original.clone();
+                        spawn_local(async move {
+                            let _ = write_clipboard(&text, "").await;
+                        });
+                    })
+                }
+            >
+                { if copied == Some(idx) { check_icon() } else { copy_icon() } }
+            </button>
+        </div>
+    }
+}
+
+/// The whole transcript, shaped (ADR-0071): one view per display
+/// line, tiered by the core contract's classification, with the last
+/// labeled line marked as the answer.
+fn pane_line_views(
+    result: &str,
+    sep: char,
+    short_digits: bool,
+    group: bool,
+) -> Vec<PaneLineView> {
+    let lines = epher_core::pane::display_lines(result, Some(sep));
+    let final_idx = epher_core::pane::final_labeled_index(&lines);
+    let short = short_digits.then_some(SHORT_DIGITS);
+    lines
+        .into_iter()
+        .enumerate()
+        .map(|(i, line)| {
+            let setup =
+                epher_core::pane::line_kind(&line) == epher_core::pane::LineKind::Setup;
+            PaneLineView {
+                body: pane_body(&line, short, group),
+                verdict: epher_core::pane::verdict(&line),
+                final_line: final_idx == Some(i),
+                setup,
+                original: line,
+            }
+        })
+        .collect()
+}
+
 /// True when the answer line keeps a result (ADR-0056): exactly one
 /// answer, no line breaks, and short enough to read without scrolling.
 /// Anything longer - a pasted script's transcript, a table, a long
@@ -2355,6 +2788,34 @@ fn epher_app() -> Html {
     // (ADR-0057): the icon answers as a check and the label as
     // "Copied", then the timer resets both.
     let answer_copied = use_state(|| false);
+    // The pane's presentation toggles (ADR-0071): short-numbers view
+    // (values at six significant digits, full value on hover, copy
+    // unchanged), which long lists sit unfolded, and which line just
+    // answered a copy.
+    let short_digits = use_state(|| false);
+    let expanded_lines: UseStateHandle<std::collections::HashSet<usize>> =
+        use_state(std::collections::HashSet::new);
+    let line_copied = use_state(|| None::<usize>);
+    // A long result opens on its answer, not on its setup echo: scroll
+    // the pane to the first labeled line, and drop any unfoldings from
+    // the previous transcript.
+    {
+        let result = result.clone();
+        let expanded_lines = expanded_lines.clone();
+        use_effect_with(result.clone(), move |r| {
+            expanded_lines.set(std::collections::HashSet::new());
+            if !r.is_empty() && !answer_fits(r) {
+                if let Some(doc) = web_sys::window().and_then(|w| w.document()) {
+                    if let Ok(Some(el)) =
+                        doc.query_selector("#graph-pane .pane-answer:not(.pane-answer-setup)")
+                    {
+                        el.scroll_into_view();
+                    }
+                }
+            }
+            || {}
+        });
+    }
     // The answer on screen is part of the PWA's recent activity
     // (ADR-0057). An effect keyed on the result state persists it with
     // the fresh value: a submit closure's handle still derefs to the
@@ -5352,6 +5813,13 @@ fn epher_app() -> Html {
             });
         })
     };
+    // The pane's short-numbers toggle (ADR-0071 R7): display-only.
+    // Values at six significant digits with the full value on hover;
+    // every copy path still sends the transcript verbatim.
+    let on_toggle_short = {
+        let short_digits = short_digits.clone();
+        Callback::from(move |_| short_digits.set(!*short_digits))
+    };
 
     // Copy the points of interest (ADR-0038): the same lines the list
     // shows, one per line, onto the clipboard.
@@ -7195,7 +7663,24 @@ fn epher_app() -> Html {
                         // the pane can give it room. Short single answers
                         // stay on the answer line under the entry; graphs
                         // and curves share this pane as before.
+                        //
+                        // The pane re-renders what it receives (ADR-0071):
+                        // setup echoes dim, the final labeled line carries
+                        // the answer's weight, verdicts wear a check, a
+                        // matrix becomes a grid, and a long list folds
+                        // behind an "n more" disclosure. Copy always sends
+                        // the original text.
                         if !result.is_empty() && !answer_fits(&result) {
+                            let views = pane_line_views(
+                                &result,
+                                ANSWER_SEP,
+                                *short_digits,
+                                display_prefs.separators,
+                            );
+                            let answers = result
+                                .split(ANSWER_SEP)
+                                .filter(|p| !p.is_empty())
+                                .count();
                             html! {
                                 <section class="pane-result" role="status" aria-live="polite">
                                     <button
@@ -7207,11 +7692,32 @@ fn epher_app() -> Html {
                                     >
                                         { if *answer_copied { check_icon() } else { copy_icon() } }
                                     </button>
+                                    <div class="pane-content">
+                                    <div class="pane-meta">
+                                        <span class="answers-count">{ localizer.lookup_args("answers-count", &[("n", &answers.to_string())]) }</span>
+                                        <button
+                                            type="button"
+                                            class="toggle-short"
+                                            aria-pressed={(*short_digits).to_string()}
+                                            title={localizer.lookup("short-numbers")}
+                                            onclick={on_toggle_short.clone()}
+                                        >
+                                            { localizer.lookup("short-numbers") }
+                                        </button>
+                                    </div>
                                     <div class="pane-answers">
-                                        { for result
-                                            .split(ANSWER_SEP)
-                                            .filter(|p| !p.is_empty())
-                                            .map(|p| html! { <div class="pane-answer">{ p }</div> }) }
+                                        { for views.iter().enumerate().map(|(idx, view)| {
+                                                pane_answer_html(
+                                                    view,
+                                                    idx,
+                                                    *line_copied,
+                                                    expanded_lines.contains(&idx),
+                                                    &localizer,
+                                                    &line_copied,
+                                                    &expanded_lines,
+                                                )
+                                            }) }
+                                    </div>
                                     </div>
                                 </section>
                             }
