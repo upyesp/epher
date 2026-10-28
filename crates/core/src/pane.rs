@@ -1,4 +1,4 @@
-//! The result pane's presentation contract (ADR-0071).
+//! The result pane's presentation contract (ADR-0078).
 //!
 //! Pure string shaping shared by every frontend that renders a script
 //! transcript: which lines are setup echo, where a long line may wrap,
@@ -7,7 +7,7 @@
 //! how the pane *shows* what it received. The web pane and the
 //! terminal pane both call these, so the two always agree.
 
-/// Which visual tier a transcript line belongs to (ADR-0071 R1). A
+/// Which visual tier a transcript line belongs to (ADR-0078 R1). A
 /// script's `const` knobs and helper scratch echo as bare values; its
 /// `print` lines carry a `label: value` colon. The tier is the
 /// renderer's machinery-versus-answer signal, the same one every REPL
@@ -30,7 +30,7 @@ pub fn line_kind(line: &str) -> LineKind {
     }
 }
 
-/// A `… : true` / `… : false` verdict line's value (ADR-0071 R6).
+/// A `… : true` / `… : false` verdict line's value (ADR-0078 R6).
 /// Scripts end with checks; the pane colors them rather than leaving
 /// the verdict to blend into the numbers.
 pub fn verdict(line: &str) -> Option<bool> {
@@ -60,7 +60,7 @@ fn plain_number(text: &str) -> bool {
 }
 
 /// A bare quantity line's trailing unit (`= 12 m`), if the line is
-/// exactly `number unit` (ADR-0071 R6). Labels and lists never match:
+/// exactly `number unit` (ADR-0078 R6). Labels and lists never match:
 /// the unit must be the line's only other word, one to three
 /// alphabetic (or degree) characters.
 pub fn terminal_unit(line: &str) -> Option<&str> {
@@ -93,7 +93,7 @@ pub fn display_lines(result: &str, sep: Option<char>) -> Vec<String> {
         .collect()
 }
 
-/// The display line that carries the transcript's answer (ADR-0071
+/// The display line that carries the transcript's answer (ADR-0078
 /// R4): the last labeled line. Scripts end with checks and side
 /// notes, so "the last line" is unreliable; "the last `label: value`
 /// line" is right for 475 of the 477 bundled scripts, and `None`
@@ -108,7 +108,7 @@ pub fn final_labeled_index(lines: &[String]) -> Option<usize> {
     last
 }
 
-/// One aligned grid: a line's `[[…]]` or `{{…}}` matrix (ADR-0071
+/// One aligned grid: a line's `[[…]]` or `{{…}}` matrix (ADR-0078
 /// R3). `widths` is each column's widest cell, in characters, so a
 /// monospace renderer right-aligns by padding.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -211,7 +211,7 @@ pub fn matrix_grid(line: &str) -> Option<(String, Grid, String)> {
 }
 
 /// A line's long flat list, with the text before and after it
-/// (ADR-0071 R3's elision path). Only lists beyond `threshold`
+/// (ADR-0078 R3's elision path). Only lists beyond `threshold`
 /// elements qualify — shorter ones render as text. Elements split on
 /// top-level commas, so a nested `{…}` element stays whole.
 pub fn long_list(line: &str, threshold: usize) -> Option<(String, Vec<String>, String)> {
@@ -268,7 +268,7 @@ pub fn long_list(line: &str, threshold: usize) -> Option<(String, Vec<String>, S
     Some((prefix, elements, suffix))
 }
 
-/// The display line's wrap segments (ADR-0071 R2): the places a pane
+/// The display line's wrap segments (ADR-0078 R2): the places a pane
 /// may break a long line *besides* its spaces. A break after `", "` is
 /// offered unless the comma sits between digits — `1,000,000` must
 /// never split — and after a closing brace or bracket. Numbers,
@@ -306,7 +306,7 @@ pub fn wrap_segments(line: &str) -> Vec<String> {
     segments
 }
 
-/// The terminal's wrap (ADR-0071 R2): a line as monospace rows no
+/// The terminal's wrap (ADR-0078 R2): a line as monospace rows no
 /// wider than `width`, continuation rows indented `hang` spaces.
 /// Breaks fall on spaces and segment boundaries; a token wider than
 /// the whole pane (a 60-digit answer) chunks so nothing clips.
@@ -384,7 +384,7 @@ pub fn wrap_to_width(line: &str, width: usize, hang: usize) -> Vec<String> {
 }
 
 /// A grid as padded monospace rows: each cell right-padded to its
-/// column's width, columns joined with two spaces (ADR-0071 R3).
+/// column's width, columns joined with two spaces (ADR-0078 R3).
 pub fn grid_rows(grid: &Grid) -> Vec<String> {
     grid.rows
         .iter()
@@ -406,7 +406,7 @@ pub fn grid_rows(grid: &Grid) -> Vec<String> {
         .collect()
 }
 
-/// Display-side rounding (ADR-0071 R7): the same quantity at `digits`
+/// Display-side rounding (ADR-0078 R7): the same quantity at `digits`
 /// significant digits with an ellipsis, or `None` when the token is
 /// already that short. The full token travels beside it as the
 /// hover/copy text; this function never feeds a copy path.
@@ -508,7 +508,7 @@ pub fn shorten_number(text: &str, digits: usize) -> Option<String> {
     Some(out)
 }
 
-/// Display-side digit grouping (ADR-0071 R6): integer runs of five or
+/// Display-side digit grouping (ADR-0078 R6): integer runs of five or
 /// more digits group with commas (`359247.02` → `359,247.02`). Four
 /// digits stay bare — years, pages, ports — and already-grouped text
 /// passes through unchanged, so this is safe to apply twice.

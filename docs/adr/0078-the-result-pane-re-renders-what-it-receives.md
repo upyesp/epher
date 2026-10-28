@@ -1,4 +1,4 @@
-# ADR-0071: the result pane re-renders what it receives
+# ADR-0078: the result pane re-renders what it receives
 
 - **Status:** accepted
 - **Deciders:** epher maintainers

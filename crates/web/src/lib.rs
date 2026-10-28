@@ -1287,7 +1287,7 @@ fn download_icon() -> yew::Html {
 /// render exactly as one item.
 const ANSWER_SEP: char = '\u{1f}';
 
-/// The result pane's presentation contract (ADR-0071). The pane
+/// The result pane's presentation contract (ADR-0078). The pane
 /// receives the transcript verbatim and re-renders it: setup echoes
 /// dim, the final labeled line carries the answer's weight, grids
 /// become grids, and wrap points fall between values. Copy paths —
@@ -1295,11 +1295,11 @@ const ANSWER_SEP: char = '\u{1f}';
 /// original text; these views only decide what the pane *shows*.
 
 /// Display-side significant digits for the short-numbers view
-/// (ADR-0071 R7): what a value collapses to when the toggle is on.
+/// (ADR-0078 R7): what a value collapses to when the toggle is on.
 const SHORT_DIGITS: usize = 6;
 
 /// A long flat list shows this many elements before the "n more"
-/// disclosure (ADR-0071 R3).
+/// disclosure (ADR-0078 R3).
 const LIST_ELSIDE: usize = 20;
 
 /// One display span of a pane answer: text plus how to show it. `title`
@@ -1354,7 +1354,7 @@ struct PaneLineView {
     body: PaneBodyView,
 }
 
-/// The display spans of a text chunk (ADR-0071 R6/R7): ISO timestamps
+/// The display spans of a text chunk (ADR-0078 R6/R7): ISO timestamps
 /// stay one unbreakable token; numbers shorten at `Some(digits)` with
 /// the full value on hover, and group when the Results settings ask;
 /// `unit` dims as a trailing measure (`= 12 m`).
@@ -1485,7 +1485,7 @@ fn pane_spans(
     out
 }
 
-/// One display line's shaped body (ADR-0071 R3): a matrix becomes a
+/// One display line's shaped body (ADR-0078 R3): a matrix becomes a
 /// grid, a very long flat list becomes whole elements, and everything
 /// else stays text with the wrap points the core contract offers.
 fn pane_body(line: &str, short_digits: Option<usize>, group: bool) -> PaneBodyView {
@@ -1522,7 +1522,7 @@ fn pane_body(line: &str, short_digits: Option<usize>, group: bool) -> PaneBodyVi
 }
 
 
-/// One pane answer line as HTML (ADR-0071): its tier class, verdict
+/// One pane answer line as HTML (ADR-0078): its tier class, verdict
 /// glyph, shaped body, and per-line copy. Display only — the button
 /// copies `original` verbatim.
 #[allow(clippy::too_many_arguments)]
@@ -1691,7 +1691,7 @@ fn pane_answer_html(
     }
 }
 
-/// The whole transcript, shaped (ADR-0071): one view per display
+/// The whole transcript, shaped (ADR-0078): one view per display
 /// line, tiered by the core contract's classification, with the last
 /// labeled line marked as the answer.
 fn pane_line_views(
@@ -2788,7 +2788,7 @@ fn epher_app() -> Html {
     // (ADR-0057): the icon answers as a check and the label as
     // "Copied", then the timer resets both.
     let answer_copied = use_state(|| false);
-    // The pane's presentation toggles (ADR-0071): short-numbers view
+    // The pane's presentation toggles (ADR-0078): short-numbers view
     // (values at six significant digits, full value on hover, copy
     // unchanged), which long lists sit unfolded, and which line just
     // answered a copy.
@@ -5813,7 +5813,7 @@ fn epher_app() -> Html {
             });
         })
     };
-    // The pane's short-numbers toggle (ADR-0071 R7): display-only.
+    // The pane's short-numbers toggle (ADR-0078 R7): display-only.
     // Values at six significant digits with the full value on hover;
     // every copy path still sends the transcript verbatim.
     let on_toggle_short = {
@@ -7664,7 +7664,7 @@ fn epher_app() -> Html {
                         // stay on the answer line under the entry; graphs
                         // and curves share this pane as before.
                         //
-                        // The pane re-renders what it receives (ADR-0071):
+                        // The pane re-renders what it receives (ADR-0078):
                         // setup echoes dim, the final labeled line carries
                         // the answer's weight, verdicts wear a check, a
                         // matrix becomes a grid, and a long list folds

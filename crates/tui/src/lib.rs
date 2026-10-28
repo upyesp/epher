@@ -5505,7 +5505,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // A long answer renders in the result pane (ADR-0056), one answer
     // per line, above any curves; the pane gives the transcript the
     // room the answer line cannot. The pane re-renders what it
-    // receives (ADR-0071): setup echoes dim, the final labeled line
+    // receives (ADR-0078): setup echoes dim, the final labeled line
     // carries the answer's weight, a matrix becomes a padded grid, and
     // every row wraps at value boundaries with a hanging indent — the
     // terminal has no wrap of its own, so a transcript used to clip
@@ -5603,7 +5603,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
     // The plot pane shares the web app's pane name (ADR-0056): the
     // localized "Result", graphs and long answers live in the same
     // pane there, and the terminal calls it the same thing. A long
-    // transcript names its size in the title (ADR-0071): "Result · 51
+    // transcript names its size in the title (ADR-0078): "Result · 51
     // answers" tells the user what they are scrolling before they
     // scroll it.
     let pane_title = if long_answer {
@@ -5763,7 +5763,7 @@ fn draw(frame: &mut ratatui::Frame, app: &mut App, localizer: &Localizer) {
 /// script's answers with newlines (the web joins with a private
 /// separator), so the newline test covers both multi-answer
 /// transcripts and multiline tables.
-/// The transcript as styled terminal lines (ADR-0071): setup echoes
+/// The transcript as styled terminal lines (ADR-0078): setup echoes
 /// wear the hints' dim ink, the final labeled line wears the answer
 /// style, and a matrix renders as a padded right-aligned grid. Every
 /// row wraps at value boundaries with a hanging indent — the terminal
@@ -6153,7 +6153,7 @@ mod draw_tests {
         );
     }
 
-    /// ADR-0071: the pane re-renders what it receives. A bare statement
+    /// ADR-0078: the pane re-renders what it receives. A bare statement
     /// echo wears the hints' dim ink; the transcript's last labeled
     /// line — the answer — wears the answer style the result line has
     /// always carried.
@@ -6201,7 +6201,7 @@ mod draw_tests {
         );
     }
 
-    /// ADR-0071: a line's matrix renders as a padded, right-aligned
+    /// ADR-0078: a line's matrix renders as a padded, right-aligned
     /// grid — rows on separate pane rows, cells whole — where the flat
     /// wall used to wrap arbitrarily.
     #[test]
@@ -6242,7 +6242,7 @@ mod draw_tests {
         );
     }
 
-    /// ADR-0071: a long flat list wraps at element boundaries with a
+    /// ADR-0078: a long flat list wraps at element boundaries with a
     /// hanging indent, and every number stays whole — the terminal has
     /// no wrap of its own, so this used to clip mid-digit at the pane
     /// edge.
@@ -6276,7 +6276,7 @@ mod draw_tests {
         );
     }
 
-    /// ADR-0071: an answer wider than the pane chunks so every digit
+    /// ADR-0078: an answer wider than the pane chunks so every digit
     /// renders — the old flat line simply clipped at column 32.
     #[test]
     fn a_wide_answer_wraps_instead_of_clipping() {
@@ -6306,7 +6306,7 @@ mod draw_tests {
         );
     }
 
-    /// ADR-0071: the pane's title names the transcript's size, so the
+    /// ADR-0078: the pane's title names the transcript's size, so the
     /// user knows what they are scrolling before they scroll it.
     #[test]
     fn the_pane_title_names_the_transcript_size() {

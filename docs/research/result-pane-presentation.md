@@ -187,7 +187,7 @@ as the last resort for a single token wider than the pane; timestamps
 render as unbreakable tokens. Note (measured after the survey): the web's
 `pre-wrap` already broke at the spaces after commas, so the mid-digit
 harm was mostly a terminal problem — the original wording here
-over-stated the web case; see the amendment in ADR-0071.
+over-stated the web case; see the amendment in ADR-0078.
 
 **R3 — Render matrices and long lists as aligned blocks. (fixes S4/S5, the
 two longest lines in the corpus)** When a line's value is a `{{…}}` matrix,
