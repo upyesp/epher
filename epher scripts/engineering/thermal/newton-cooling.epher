@@ -1,0 +1,46 @@
+/* ============================================================================
+newton-cooling.epher -- a cup of coffee forgetting the room
+
+Newton's law of cooling: dT/dt = -h (T - T_env), solved by
+T(t) = T_env + (T0 - T_env) e^(-t/tau). With a coffee at 88 degrees in
+a 20 degree room and a 12 minute time constant, the loop prints the
+temperature every few minutes and the results recover the time
+constant from the halfway point (t_half = tau ln 2).
+
+Source: Incropera, DeWitt, Bergman and Lavine, Fundamentals of Heat and
+Mass Transfer, ch. 5 (transient conduction: the lumped-capacitance
+model and its exponential solution, valid when the Biot number is
+small -- a stirred cup qualifies).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const t_coffee = 88         // fresh pour, degrees C
+const t_room = 20           // the room, degrees C
+const tau = 12              // time constant, minutes
+
+// ---- model ------------------------------------------------------------------
+def cup(elapsed) = t_room + (t_coffee - t_room) * exp(-elapsed / tau)   // the curve, deg C
+for mark in {0, 5, 10, 15, 30, 60} do print("at " + str(mark) + " min:", cup(mark), "degrees C")
+
+// ---- results -----------------------------------------------------------------
+print("the gap halves every:", tau * ln(2), "minutes")
+print("drinkable (below 60) within:", tau * ln((t_coffee - t_room) / (60 - t_room)), "minutes")
+print("temperature after an hour:", cup(60), "degrees C")
+print("a full hour lands the cup at room temperature:", cup(60) == t_room)
+
+/* The exponential forgets in proportion: 8.3 minutes closes half the
+gap, half an hour leaves the cup near 32 degrees, and after an hour it
+sits within a fifth of a degree of the room -- asymptotically close,
+never equal, as the last check attests. The lumped model's honesty
+limit: it assumes the cup is stirred and the room infinite, both lies
+small enough to drink. */
+
+/* ---- expected output ----
+= {at 0 min: 88 degrees C, at 5 min: 64.8283628536 degrees C, at 10 min: 49.5526781785 degrees C, at 15 min: 39.4823261865 degrees C, at 30 min: 25.5817799064 degrees C, at 60 min: 20.4581803959 degrees C}
+= the gap halves every: 8.31776616672 minutes
+= drinkable (below 60) within: 6.36753901275 minutes
+= temperature after an hour: 20.4581803959 degrees C
+= a full hour lands the cup at room temperature: false
+*/

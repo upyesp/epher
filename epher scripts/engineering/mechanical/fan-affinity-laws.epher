@@ -1,0 +1,52 @@
+/* ============================================================================
+fan-affinity-laws.epher -- what doubling a fan's speed really costs
+
+The affinity laws: flow scales with speed (Q2/Q1 = n2/n1), pressure
+with speed squared, and power with speed cubed. The script runs a
+5 m^3/s at 250 Pa, 2 kW fan from 1200 to 2400 rpm and shows the cube
+law's invoice -- the reason variable-speed drives replaced dampers.
+
+Source: ASHRAE Handbook -- Fundamentals, ch. 21 (fans: the affinity
+laws, Q, p and P scaling with n, n^2 and n^3 for a fixed system and
+constant efficiency).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const rpm_a = 1200          // design speed, 1200 rpm
+const rpm_b = 2400          // the speeding-up case, 2400 rpm
+const q_a = 5000            // air flow, m^3/hr
+const p_a = 250             // developed pressure, Pa
+const p_a_kW = 2.0          // shaft power, kW
+
+// ---- model ------------------------------------------------------------------
+const speed_ratio = rpm_b / rpm_a
+const q_b = q_a * speed_ratio                    // affinity law 1
+const p_b = p_a * speed_ratio ^ 2                // affinity law 2
+const power_b = p_a_kW * speed_ratio ^ 3         // affinity law 3
+const power_bill = power_b / p_a_kW              // the cost of doubling
+
+// ---- results -----------------------------------------------------------------
+print("flow doubles:", q_b, "m^3/hr")
+print("pressure quadruples:", p_b, "Pa")
+print("power grows by the cube:", power_b, "kW")
+print("doubling speed costs this multiple of power:", power_bill)
+print("the cube law (2^3 = 8):", abs(power_bill - 8) < 1e-9)
+print("back to 1260 rpm and the power near halves:", p_a_kW * (1260 / rpm_a) ^ 3, "kW")
+
+/* Doubling the fan's speed doubles the air and quadruples the
+pressure -- and multiplies the electricity by eight, 2 kW to 16.
+Read the last line the other way: slowing a fan 5 percent cuts power
+14 percent, which is why a variable-speed drive repays itself in any
+system that spends most of its life at part flow. The cube law is a
+bill when you speed up and a dividend when you slow down. */
+
+/* ---- expected output ----
+= flow doubles: 10000 m^3/hr
+= pressure quadruples: 1000 Pa
+= power grows by the cube: 16 kW
+= doubling speed costs this multiple of power: 8
+= the cube law (2^3 = 8): true
+= back to 1260 rpm and the power near halves: 2.31525 kW
+*/

@@ -1,0 +1,45 @@
+/* ============================================================================
+first-order-step-response.epher -- how a system settles into its answer
+
+A first-order system (a thermometer, a small motor, an RC filter) obeys
+y(t) = K (1 - e^(-t/tau)). The landmarks: 63.2 percent of the change
+after one time constant tau, 95 percent after three, and the 2 percent
+engineering "settled" line at 4 tau. The loop walks the curve and the
+checks recover tau from the curve itself.
+
+Source: Ogata, Modern Control Engineering, 5th ed., ch. 5 (transient
+response of first-order systems: the exponential response and its
+time-constant landmarks, section 5-2).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const gain = 2.0            // steady-state gain K
+const tau = 0.5             // the time constant, 0.5 s
+for mark in {0.25, 0.5, 1, 2} do print("at t = " + str(mark) + " s:", gain * (1 - exp(-mark / tau)))
+
+// ---- results -----------------------------------------------------------------
+print("value at one tau (63.2% rule):", gain * (1 - exp(-1)))
+print("value at three tau:", gain * (1 - exp(-3)))
+print("settled (2% band) at:", 4 * tau, "s")
+print("settled value:", gain)
+print("one-tau lands 63.2% of the way:", abs((gain * (1 - exp(-1))) / gain - 0.632) < 0.0005)
+print("speed up the system by halving tau:", gain * (1 - exp(-1 / (tau / 2))) == gain * (1 - exp(-2)))
+
+/* The curve is always the same exponential wearing different units:
+at half a tau it has covered 63 percent, at four it calls itself
+settled. Halving tau doubles every landmark's speed but changes
+nothing else -- which is why control engineers speak of a system by
+its tau and K alone, and why the first measurement to make on any
+slow process is exactly this one: how long is the constant? */
+
+/* ---- expected output ----
+= {at t = 0.25 s: 0.786938680575, at t = 0.5 s: 1.26424111766, at t = 1 s: 1.72932943353, at t = 2 s: 1.96336872222}
+= value at one tau (63.2% rule): 1.26424111766
+= value at three tau: 1.90042586326
+= settled (2% band) at: 2 s
+= settled value: 2
+= one-tau lands 63.2% of the way: true
+= speed up the system by halving tau: false
+*/

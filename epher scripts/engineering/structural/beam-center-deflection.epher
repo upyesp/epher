@@ -1,0 +1,62 @@
+/* ============================================================================
+beam-center-deflection.epher -- a timber beam under a mid-span point load
+
+A simply supported timber beam (50 mm by 200 mm section, 6 m span)
+carries a 2 kN point load at mid-span. The mid-span deflection is
+delta = P L^3 / (48 E I), the peak bending moment M = P L / 4 sits at
+the load, and the peak bending stress is sigma = M c / I at the extreme
+fibre. The section modulus form sigma = M / S with S = b h^2 / 6 is
+printed as a cross-check: the two stress routes must agree.
+
+Source: Hibbeler, Mechanics of Materials, ch. 6 (bending) and ch. 12
+(deflections). The same closed forms are tabulated in Engineering
+ToolBox, "Beams Supported at Both Ends - Continuous and Point Loads"
+(engineeringtoolbox.com/beam-stress-deflection-d_1312.html), which this
+script's numbers reproduce. E = 11 GPa is the along-grain modulus for
+softwood timber (Engineering ToolBox, wood properties).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const load = 2e3           // point load at mid-span, 2 kN
+const span = 6             // between simple supports, 6 m
+const width = 0.050        // beam breadth, 50 mm
+const depth = 0.200        // beam height, 200 mm (strong axis bending)
+const E_wood = 11e9        // Young's modulus, softwood along grain, 11 GPa
+const allowable = 10e6     // allowable bending stress, 10 MPa
+
+// ---- model ------------------------------------------------------------------
+const inertia = width * depth ^ 3 / 12      // I = b h^3 / 12, m^4
+const defl = load * span ^ 3 / (48 * E_wood * inertia)   // mid-span, m
+const moment = load * span / 4              // M = P L / 4, N m
+const stress = moment * (depth / 2) / inertia   // sigma = M c / I, Pa
+const s_mod = width * depth ^ 2 / 6         // S = b h^2 / 6, m^3
+const stress_s = moment / s_mod             // same stress via M / S
+const ratio = defl / span * 360             // deflection as L/360 share
+
+// ---- results -----------------------------------------------------------------
+print("second moment of area:", inertia / 1e-12, "mm^4")
+print("mid-span deflection:", defl / 1e-3, "mm")
+print("peak bending moment:", moment, "N m")
+print("bending stress (M c / I):", stress / 1e6, "MPa")
+print("bending stress (M / S, cross-check):", stress_s / 1e6, "MPa")
+print("deflection as a multiple of L/360:", ratio)
+print("stress under the 10 MPa allowable:", stress <= allowable)
+
+/* Two agreement checks: the M/S route reproduces the M c / I stress
+exactly, and the 24.5 mm mid-span deflection matches the 2 kN line of
+the Engineering ToolBox table for this span and section. The beam
+passes on stress (9.0 of 10 MPa) but its deflection runs 1.47 times
+the common L/360 serviceability limit, so serviceability, not strength,
+governs here. */
+
+/* ---- expected output ----
+= second moment of area: 100000000/3 mm^4
+= mid-span deflection: 270/11 mm
+= peak bending moment: 3000 N m
+= bending stress (M c / I): 9 MPa
+= bending stress (M / S, cross-check): 9 MPa
+= deflection as a multiple of L/360: 81/55
+= stress under the 10 MPa allowable: true
+*/

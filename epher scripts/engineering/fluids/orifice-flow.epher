@@ -1,0 +1,55 @@
+/* ============================================================================
+orifice-flow.epher -- reading flow from a pressure difference
+
+A sharp-edged orifice in a pipe turns pressure into a measurable flow:
+Q = Cd A sqrt(2 dp / rho), with the discharge coefficient Cd near 0.61
+for a standard sharp edge. The script sizes a 50 mm orifice meter on a
+20 kPa drop and reports the velocity through the vena contracta.
+
+Source: White, Fluid Mechanics, ch. 6 and ch. 3 (thin-plate orifice
+discharge, Cd ~ 0.61 for D/d above 0.2, the standard ISO 5167
+thin-plate meter); the same formula with Crane Co., Technical Paper
+410 (flow through orifices), the plant engineer's pocket reference.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const dp = 20e3             // measured pressure drop, 20 kPa
+const d_hole = 0.050        // orifice bore, 50 mm
+const c_discharge = 0.61             // discharge coefficient, sharp edge
+const rho = 998             // water, kg/m^3
+
+// ---- model ------------------------------------------------------------------
+const area = pi / 4 * d_hole ^ 2                     // hole area, m^2
+const q = c_discharge * area * sqrt(2 * dp / rho)             // flow, m^3/s
+const jet_v = sqrt(2 * dp / rho)                     // ideal jet speed, m/s
+const jet_real = c_discharge * jet_v                          // with the coefficient
+const pipe_d = 0.1                                   // the meter's pipe, 100 mm
+const pipe_v = q / (pi / 4 * pipe_d ^ 2)             // pipe velocity, m/s
+const beta = d_hole / pipe_d                         // diameter ratio
+
+// ---- results -----------------------------------------------------------------
+print("orifice area:", area / 1e-6, "mm^2")
+print("ideal jet speed at 20 kPa:", jet_v, "m/s")
+print("actual flow:", q, "m^3/s")
+print("flow in litres a second:", q * 1000, "L/s")
+print("beta ratio hole-to-pipe:", beta)
+print("pipe velocity upstream:", pipe_v, "m/s")
+print("beta in the ISO 5167 band 0.2-0.75:", beta >= 0.2 and beta <= 0.75)
+
+/* Twenty kilopascals across a stamp-sized hole moves 7.6 litres a
+second -- 6.3 m/s of ideal jet, trimmed to 3.8 by the coefficient that
+accounts for the vena contracta's neck. At beta 0.5 the meter sits
+mid-band where ISO 5167 guarantees its Cd within a percent or two:
+cheap, no moving parts, and accurate enough to bill water by. */
+
+/* ---- expected output ----
+= orifice area: 1963.49540849 mm^2
+= ideal jet speed at 20 kPa: 6.33088937833 m/s
+= actual flow: 0.00758271005788 m^3/s
+= flow in litres a second: 7.58271005788 L/s
+= beta ratio hole-to-pipe: 0.5
+= pipe velocity upstream: 0.965460630195 m/s
+= beta in the ISO 5167 band 0.2-0.75: true
+*/

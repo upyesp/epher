@@ -1,0 +1,55 @@
+/* ============================================================================
+tolerance-stack.epher -- worst case against statistics in an assembly
+
+Four stacked parts of nominal 20, 15, 10 and 5 mm, each held to
++/- 0.1 mm: the gap varies by the sum, or does it? Worst case adds
+tolerances arithmetically (+/- 0.4); the root-sum-square treats them
+as independent and gets +/- 0.2, at a statistical cost. Both are
+printed, with the assembly gap they predict.
+
+Source: Shigley's Mechanical Engineering Design (Budynas and Nisbett),
+ch. 6 (statistics applied to design: dimensional tolerance stacks,
+worst-case versus root-sum-square methods); the RSS rationale is
+the same as Brown and Saxena or any GD&T text on stacks.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const parts = {20, 15, 10, 5}    // part nominal sizes, mm
+const tol = 0.1                  // each part held to +/- 0.1 mm
+
+// ---- model ------------------------------------------------------------------
+const nominal = sum(parts)                   // nominal gap, mm
+const n_parts = len(parts)
+const worst_case = tol * n_parts             // arithmetic stack, mm
+const rss = sqrt(n_parts) * tol              // statistical stack, mm
+const gap_worst_hi = nominal + worst_case
+const gap_worst_lo = nominal - worst_case
+const odds_rss = 1 - 0.6827                  // RSS keeps ~68% inside 1 sigma
+
+// ---- results -----------------------------------------------------------------
+print("nominal stack:", nominal, "mm")
+print("parts in the chain:", n_parts)
+print("worst-case tolerance:", worst_case, "mm")
+print("root-sum-square tolerance:", rss, "mm")
+print("worst-case gap runs from", gap_worst_lo, "to", gap_worst_hi, "mm")
+print("RSS halves the spread when parts are many:", rss < worst_case)
+print("worst case is the safe promise, RSS the gamble:", worst_case > rss)
+
+/* Worst case promises the assembly works even when every part leans
+the same way -- and charges 0.4 mm of spread for the promise. The RSS
+method notes that four independent errors all conspiring is rare and
+offers 0.2 mm, at the price of accepting a fractional chance of
+interference. High-volume assembly gambles on RSS; a one-off space
+probe pays worst case and sleeps. */
+
+/* ---- expected output ----
+= nominal stack: 50 mm
+= parts in the chain: 4
+= worst-case tolerance: 0.4 mm
+= root-sum-square tolerance: 0.2 mm
+= worst-case gap runs from 49.6 to 50.4 mm
+= RSS halves the spread when parts are many: true
+= worst case is the safe promise, RSS the gamble: true
+*/

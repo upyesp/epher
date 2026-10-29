@@ -1,0 +1,52 @@
+/* ============================================================================
+led-series-resistor.epher -- sizing the humble ballast for an LED
+
+A blue LED drops 3.2 V forward; off a 5 V rail the resistor must catch
+the remaining 1.8 V at the rated 20 mA: R = (Vs - Vf) / I. The ideal
+90 ohm is not a real part, so the script prices the nearest E24 value
+(91 ohm, IEC 60063 preferred values) and reports the current you
+actually get and the heat the resistor must shrug off.
+
+Source: Floyd, Electronic Devices, ch. 3 (diodes: the series resistor
+as ballast, R = (Vs - Vf) / I, and LED forward voltages).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const supply = 5 V          // rail voltage
+const v_forward = 3.2 V     // LED forward drop
+const i_target = 20 mA      // rated current
+const r_standard = 91      // nearest E24 preferred value, ohm (exact)
+
+// ---- model ------------------------------------------------------------------
+const head = (supply - v_forward) / (1 V)           // headroom, exact 1.8
+const i_ma = i_target / (1 mA)                      // rated current, mA
+const r_ideal = head / i_ma * 1e3                   // the textbook ballast, ohm
+const i_actual = head / r_standard                  // with the real part, A
+const p_resistor = i_actual ^ 2 * r_standard        // heat in the resistor, W
+const p_led = (v_forward / (1 V)) * i_actual        // light work, W
+
+// ---- results -----------------------------------------------------------------
+print("headroom the resistor must carry:", head, "V")
+print("ideal resistor:", r_ideal, "ohm")
+print("actual current through 91 ohm:", i_actual / 1e-3, "mA")
+print("error from the ideal current:", (i_actual / 1e-3 - i_ma) / i_ma * 100, "%")
+print("heat in the resistor:", p_resistor / 1e-3, "mW")
+print("power doing the lighting:", p_led / 1e-3, "mW")
+print("a quarter-watt part runs cool:", p_resistor < 0.25)
+
+/* The 91 ohm E24 neighbor lands within 1.1 percent of the 20 mA target --
+the LED will never know. The resistor burns 36 mW, an eighth of even a
+quarter-watt part, so the smallest 0603 package survives; the LED
+itself converts 64 mW to light and heat at its own 3.2 V toll. */
+
+/* ---- expected output ----
+= headroom the resistor must carry: 1.8 V
+= ideal resistor: 90 ohm
+= actual current through 91 ohm: 1800/91 mA
+= error from the ideal current: -100/91 %
+= heat in the resistor: 3240/91 mW
+= power doing the lighting: 5760/91 mW
+= a quarter-watt part runs cool: true
+*/

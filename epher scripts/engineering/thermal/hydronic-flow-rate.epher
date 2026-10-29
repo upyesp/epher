@@ -1,0 +1,57 @@
+/* ============================================================================
+hydronic-flow-rate.epher -- pumping heat through a radiator circuit
+
+A radiator panel delivers its rated output only if the circuit carries
+the water: m_dot = Q / (cp dT), with the design drop between flow and
+return (typically 70 to 60 degrees C, a 10 K spread). The script sizes
+the flow in kg/s, litres per minute, and the pipe velocity in a 15 mm
+tube -- the number the installer actually cares about.
+
+Source: ASHRAE Handbook -- Fundamentals, ch. 13 (hydronic heating
+systems: Q = m_dot cp dT and the design temperature spread); CIBSE
+Guide C (reference domestic flows: 15 mm tube carries about 0.05 kg/s
+at sensible velocity). Water cp = 4186 J/kg K, density 1000 kg/m^3.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const panel = 2000          // radiator output, 2 kW
+const t_flow = 70           // flow temperature, degrees C
+const t_return = 60         // return temperature, degrees C
+const cp_water = 4186       // specific heat, J/kg K
+const tube_bore = 0.0136    // 15 mm tube bore, 13.6 mm
+
+// ---- model ------------------------------------------------------------------
+const temp_rise = t_flow - t_return               // the design spread, K
+const m_dot = panel / (cp_water * temp_rise)      // kg/s
+const litres_min = m_dot / 1.0 * 60             // litres per minute
+const pipe_area = pi / 4 * tube_bore ^ 2        // m^2
+const velocity = m_dot / 1000 / pipe_area       // m/s in the tube
+const spread_check = panel / (m_dot * cp_water) // must return the spread
+
+// ---- results -----------------------------------------------------------------
+print("design temperature spread:", temp_rise, "K")
+print("water flow needed:", m_dot, "kg/s")
+print("flow in litres per minute:", litres_min, "L/min")
+print("tube cross-section:", pipe_area / 1e-6, "mm^2")
+print("velocity in a 15 mm tube:", velocity, "m/s")
+print("velocity inside the quiet 0.2-0.8 m/s band:", velocity >= 0.2 and velocity <= 0.8)
+print("the spread check returns 10 K:", spread_check)
+
+/* A 2 kW panel is 2.9 litres a minute -- a kettle's worth a minute,
+moving through 15 mm tube at 0.32 m/s, inside the band where flow stays
+quiet and the pump stays small. Halve the design spread to 5 K and the
+same panel demands double the flow: wide spreads trade pipe for
+radiator area, which is why systems pick their spread before their
+pump. */
+
+/* ---- expected output ----
+= design temperature spread: 10 K
+= water flow needed: 0.0477783086479 kg/s
+= flow in litres per minute: 2.86669851887 L/min
+= tube cross-section: 145.267244302 mm^2
+= velocity in a 15 mm tube: 0.328899394199 m/s
+= velocity inside the quiet 0.2-0.8 m/s band: true
+= the spread check returns 10 K: 10
+*/

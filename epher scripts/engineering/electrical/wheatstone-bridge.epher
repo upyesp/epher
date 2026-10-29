@@ -1,0 +1,55 @@
+/* ============================================================================
+wheatstone-bridge.epher -- measuring an unknown resistance by balance
+
+Three known arms (R1 = R3 = 1 kohm, R2 a 2.2 kohm potentiometer) and an
+unknown thermistor Rx. At balance -- bridge output exactly zero --
+Rx = R2 R3 / R1, independent of the supply. A five percent excursion of
+the thermistor then tips the bridge by about 52 mV, the signal a meter
+or an ADC actually reads.
+
+Source: Boylestad, Introductory Circuit Analysis, ch. 8 (the
+Wheatstone bridge: the balance condition Rx = R2 R3 / R1 and the
+off-balance output as the meter signal); bridge thermometry as in
+Hewlett-Packard / Fluke measurement-application notes.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const r1 = 1e3             // left fixed arm, 1 kohm
+const r2 = 2.2e3           // balance arm (the pot), 2.2 kohm
+const r3 = 1e3             // right fixed arm, 1 kohm
+const supply = 5.0         // excitation across the bridge, 5 V
+const excursion = 0.05     // the unknown moves five percent
+
+// ---- model ------------------------------------------------------------------
+const r_x = r2 * r3 / r1                    // the balanced unknown, ohm
+const r_x2 = r_x * (1 + excursion)          // the unknown after warming
+const v_left = supply * r_x2 / (r_x2 + r3)  // node A, V
+const v_right = supply * r2 / (r1 + r2)     // node B (still balanced), V
+const v_out = v_left - v_right              // the meter signal, V
+
+// ---- results -----------------------------------------------------------------
+print("unknown at balance:", r_x, "ohm")
+print("balance node equality:", supply * r_x / (r_x + r3) == supply * r2 / (r1 + r2))
+print("unknown after a five percent rise:", r_x2, "ohm")
+print("node A:", v_left, "V")
+print("node B:", v_right, "V")
+print("off-balance output:", v_out * 1e3, "mV")
+print("bridge sensitivity per volt of drive:", v_out / supply * 1e3, "mV/V")
+
+/* Balanced, the bridge reports the thermistor as 2.2 kohm -- the supply
+voltage cancels out of the balance algebra entirely, so drift on the
+excitation never biases the reading. Warm the thermistor five percent
+and the bridge leans 52 mV: small, but a meter gains it at 5 digits,
+and a 100x gain sends it to any ADC comfortably inside its rail. */
+
+/* ---- expected output ----
+= unknown at balance: 2200 ohm
+= balance node equality: true
+= unknown after a five percent rise: 2310 ohm
+= node A: 1155/331 V
+= node B: 3.4375 V
+= off-balance output: 34375/662 mV
+= bridge sensitivity per volt of drive: 6875/662 mV/V
+*/

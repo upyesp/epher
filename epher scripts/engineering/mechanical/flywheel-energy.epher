@@ -1,0 +1,53 @@
+/* ============================================================================
+flywheel-energy.epher -- a steel disc as a battery of spin
+
+A 300 mm by 20 mm solid steel disc spun at 3000 rpm stores
+E = 1/2 I omega^2, with I = 1/2 m r^2 for a solid disc of mass
+m = rho pi r^2 t. The script states the store at two speeds and the
+check confirms energy scales with the square of speed.
+
+Source: Shigley's Mechanical Engineering Design (Budynas and Nisbett),
+ch. 16 (flywheels: the energy of a rotating mass and the coefficient
+of fluctuation); disc inertia from any dynamics text (Hibbeler,
+Dynamics, mass moment of inertia of a cylinder).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const d_disc = 0.300        // disc diameter, 300 mm
+const thickness = 0.020     // disc thickness, 20 mm
+const rho_steel = 7850      // steel density, kg/m^3
+const rpm_a = 3000          // first speed, 3000 rpm
+const rpm_b = 6000          // second speed, 6000 rpm
+
+// ---- model ------------------------------------------------------------------
+const radius = d_disc / 2                       // m
+const mass = pi * radius ^ 2 * thickness * rho_steel   // kg
+const inertia = 0.5 * mass * radius ^ 2         // kg m^2
+def spin_energy(rpm) = 0.5 * inertia * (rpm * 2 * pi / 60) ^ 2   // J
+const e_a = spin_energy(rpm_a)
+const e_b = spin_energy(rpm_b)
+
+// ---- results -----------------------------------------------------------------
+print("disc mass:", mass, "kg")
+print("moment of inertia:", inertia, "kg m^2")
+print("energy at 3000 rpm:", e_a, "J")
+print("energy at 6000 rpm:", e_b / 1e3, "kJ")
+print("double speed quadruples energy:", e_b / e_a)
+print("the 6 kJ store lights a 60 W bulb for:", e_a / 60, "seconds")
+
+/* Eleven kilograms of disc spinning at 3000 rpm hold 6.2 kJ -- a
+60-watt bulb's hundred seconds, or the punch of a small recoil. The
+square law is the flywheel designer's whole game: doubling speed
+quadruples the store without adding a gram, up to the hoop stress the
+rim can take, which is where real flywheels quit. */
+
+/* ---- expected output ----
+= disc mass: 11.0976760488 kg
+= moment of inertia: 0.124848855549 kg m^2
+= energy at 3000 rpm: 6161.04407099 J
+= energy at 6000 rpm: 24.644176284 kJ
+= double speed quadruples energy: 4
+= the 6 kJ store lights a 60 W bulb for: 102.68406785 seconds
+*/

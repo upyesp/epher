@@ -1,0 +1,58 @@
+/* ============================================================================
+bolted-lap-joint.epher -- shear and bearing in a bolted splice
+
+A lap joint transfers 120 kN through six M16 bolts in single shear
+between 10 mm plates. Each bolt carries V = 120/6 = 20 kN; average
+shear stress is V over the shank area pi d^2 / 4, and bearing stress is
+V over the projected d t patch on the plate. Both are checked against
+typical A325-class strengths (400 MPa shear, 480 MPa bearing capacity
+on a 10 mm plate edge distance near twice the hole diameter).
+
+Source: Hibbeler, Mechanics of Materials, ch. 1 (average shear and
+bearing stress, the AISC-style Lap Joint discussion in section 1.6).
+Bolt shear strengths follow the AISC Steel Construction Manual, J3
+(bolts), via the common 0.48 Fu single-shear estimate for A325.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const joint_load = 120e3   // load through the joint, 120 kN
+const bolts = 6            // bolts sharing the load
+const shank = 0.016        // M16 shank diameter, 16 mm
+const plate_t = 0.010      // plate thickness, 10 mm
+const shear_cap = 400e6    // bolt shear strength, 400 MPa
+const bearing_cap = 480e6  // plate bearing strength, 480 MPa
+
+// ---- model ------------------------------------------------------------------
+const v_bolt = joint_load / bolts                  // per-bolt shear, N
+const shank_area = pi / 4 * shank ^ 2              // shank area, m^2
+const tau = v_bolt / shank_area                    // average shear, Pa
+const bearing = v_bolt / (shank * plate_t)         // projected bearing, Pa
+const fos_shear = shear_cap / tau                  // shear margin
+const fos_bearing = bearing_cap / bearing          // bearing margin
+
+// ---- results -----------------------------------------------------------------
+print("shear per bolt:", v_bolt / 1e3, "kN")
+print("shank area:", shank_area / 1e-6, "mm^2")
+print("average shear stress:", tau / 1e6, "MPa")
+print("bearing stress on the plate:", bearing / 1e6, "MPa")
+print("safety factor in shear:", fos_shear)
+print("safety factor in bearing:", fos_bearing)
+print("bearing governs the design:", fos_bearing < fos_shear)
+
+/* At 99 MPa the bolts sit at a 4.0 shear factor while the plate bears at
+125 MPa with a 3.8 factor -- bearing governs, which is the usual story
+for thick plates on modest bolts. If the splice ever gains a seventh
+bolt the numbers fall faster than they rise in the load: stress scales
+exactly with the share each bolt takes. */
+
+/* ---- expected output ----
+= shear per bolt: 20 kN
+= shank area: 201.06192983 mm^2
+= average shear stress: 99.4718394324 MPa
+= bearing stress on the plate: 125 MPa
+= safety factor in shear: 4.02123859659
+= safety factor in bearing: 3.84
+= bearing governs the design: true
+*/

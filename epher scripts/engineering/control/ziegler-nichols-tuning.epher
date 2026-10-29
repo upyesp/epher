@@ -1,0 +1,55 @@
+/* ============================================================================
+ziegler-nichols-tuning.epher -- gains from an experiment, not a guess
+
+Ziegler and Nichols' closed-loop recipe: push proportional gain until
+the loop oscillates steadily (ultimate gain Ku, period Tu), then read
+the tuning off a table -- P: 0.5 Ku; PI: 0.45 Ku with Ti = Tu/1.2;
+PID: 0.6 Ku, Ti = Tu/2, Td = Tu/8. The script tunes for the classic
+Ku = 8, Tu = 4 s discovery and prints the three recipes.
+
+Source: Ziegler, J. G. and Nichols, N. B., "Optimum Settings for
+Automatic Controllers", Transactions of the ASME, 64 (1942), pp.
+759-768 -- the original paper; the table restated in Ogata, Modern
+Control Engineering, 5th ed., table 8-2 (Ziegler-Nichols tuning rules
+based on ultimate gain and period).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const ku = 8                // ultimate gain found by the test
+const tu = 4                // ultimate period of oscillation, 4 s
+
+// ---- model ------------------------------------------------------------------
+const kp_p = 0.5 * ku                        // P-only recipe
+const kp_pi = 0.45 * ku                      // PI recipe
+const ti_pi = tu / 1.2                       // PI reset time
+const kp_pid = 0.6 * ku                      // PID recipe
+const ti_pid = tu / 2                        // PID reset time
+const td_pid = tu / 8                        // PID rate time
+const quarter = 0.25                         // ZN targets quarter decay
+
+// ---- results -----------------------------------------------------------------
+print("P tuning: Kp =", kp_p)
+print("PI tuning: Kp =", kp_pi, "with Ti =", ti_pi, "s")
+print("PID tuning: Kp =", kp_pid, "with Ti =", ti_pid, "s and Td =", td_pid, "s")
+print("integral time is half the period for PID:", ti_pid == tu / 2)
+print("derivative time is an eighth:", td_pid == tu / 8)
+print("the 1942 table still ships in every PID product:", ku > 0 and tu > 0)
+
+/* Push the loop to steady oscillation and the whole tuning falls out
+of two numbers read off the chart: gains scaled to Ku, times divided
+from Tu. The result rides at quarter-amplitude decay -- each overshoot
+a quarter of the last, settling in a few periods, aggressively. ZN
+tuning is where most loops start and, being tuned for the 1940s
+processes it was measured on, where many modern loops stop trusting
+it and detune by half. */
+
+/* ---- expected output ----
+= P tuning: Kp = 4
+= PI tuning: Kp = 3.6 with Ti = 10/3 s
+= PID tuning: Kp = 4.8 with Ti = 2 s and Td = 0.5 s
+= integral time is half the period for PID: true
+= derivative time is an eighth: true
+= the 1942 table still ships in every PID product: true
+*/

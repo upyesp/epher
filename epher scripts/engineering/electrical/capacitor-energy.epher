@@ -1,0 +1,53 @@
+/* ============================================================================
+capacitor-energy.epher -- what a supercapacitor actually stores
+
+A 1 F supercapacitor charged to 2.7 V holds E = 1/2 C V^2 of energy --
+3.645 J, a few hundred milliamp-hours at its own voltage -- and gives
+most of it back through a load: discharging through 10 ohm to ten
+percent of full voltage takes RC ln(10). The script states the store,
+the equivalent charge, and the discharge time.
+
+Source: Horowitz and Hill, The Art of Electronics, 3rd ed., ch. 1
+(capacitors: stored energy 1/2 C V^2 and the RC discharge exponential);
+the logarithmic discharge-time form t = R C ln(V0/V1) is the standard
+result in Boylestad, Introductory Circuit Analysis, ch. 11.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const capacitance = 1 F     // the supercap
+const charge_to = 2.7 V     // its rated voltage
+const r_load = 10.0         // discharge path, ohm
+const floor_pct = 0.10      // call it empty at ten percent
+
+// ---- model ------------------------------------------------------------------
+const volts = charge_to / (1 V)                 // exact 2.7
+const energy = 1/2 * (capacitance / (1 F)) * volts ^ 2   // joules
+const mah = energy / (volts * 3.6) * 1e3        // equivalent mAh at 2.7 V
+const tau = r_load * (capacitance / (1 F))      // discharge RC, s
+const t_empty = tau * ln(1 / floor_pct)         // time to the floor, s
+const peak_i = volts / r_load                   // first-look current, A
+
+// ---- results -----------------------------------------------------------------
+print("stored energy:", energy, "J")
+print("charge equivalence at 2.7 V:", mah, "mAh")
+print("discharge time constant RC:", tau, "s")
+print("time to fall to ten percent:", t_empty, "s")
+print("initial current into 10 ohm:", peak_i, "A")
+print("ln(10) time constants cover the fall:", abs(t_empty / tau - ln(10)) < 1e-9)
+
+/* A farad at 2.7 V is 3.645 joules -- enough to blink an LED for a
+minute, nowhere near a battery's ten kilojoules per AA cell, which is
+the honest scale of supercaps. The discharge is exponential, not flat:
+it dumps 0.27 A at the first instant but has surrendered nine tenths of
+its charge by 23 seconds, at ln(10) = 2.3 time constants. */
+
+/* ---- expected output ----
+= stored energy: 3.645 J
+= charge equivalence at 2.7 V: 375 mAh
+= discharge time constant RC: 10 s
+= time to fall to ten percent: 23.0258509299 s
+= initial current into 10 ohm: 0.27 A
+= ln(10) time constants cover the fall: true
+*/

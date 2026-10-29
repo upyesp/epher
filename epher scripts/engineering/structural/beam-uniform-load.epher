@@ -1,0 +1,61 @@
+/* ============================================================================
+beam-uniform-load.epher -- a floor joist under an even load
+
+A simply supported timber joist (63 by 225 mm section, 4.5 m span)
+carries a 2.0 kN/m uniformly distributed load (floor, finishes, self
+weight). Peak moment M = w L^2 / 8 at mid-span, peak stress sigma = M c / I,
+mid-span deflection delta = 5 w L^4 / (384 E I); both strength and the
+common L/360 serviceability limit are checked.
+
+Source: Hibbeler, Mechanics of Materials, ch. 6 (bending), ch. 7
+(design for allowable stress: the w L^2 / 8 form), ch. 12 (deflection
+tables, the 5 w L^4 / 384 E I case). Section and allowable follow North
+American joist practice: 63 x 225 mm (2x9 nominal) joists, E = 11 GPa,
+allowable bending 12 MPa -- softwood values on Engineering ToolBox's
+wood-properties pages.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const spread = 2.0e3       // distributed load, 2000 N/m
+const span = 4.5           // joist span, 4.5 m
+const width = 0.063        // joist breadth, 63 mm
+const depth = 0.225        // joist depth, 225 mm
+const E_wood = 11e9        // Young's modulus, softwood, 11 GPa
+const allowable = 12e6     // allowable bending stress, 12 MPa
+
+// ---- model ------------------------------------------------------------------
+const inertia = width * depth ^ 3 / 12         // I = b h^3 / 12, m^4
+const moment = spread * span ^ 2 / 8           // M = w L^2 / 8, N m
+const stress = moment * (depth / 2) / inertia  // sigma = M c / I, Pa
+const defl = 5 * spread * span ^ 4 / (384 * E_wood * inertia)  // m
+const defl_limit = span / 360                  // serviceability limit, m
+const load_cap = allowable * inertia * 8 / (span ^ 2 * (depth / 2))  // N/m
+
+// ---- results -----------------------------------------------------------------
+print("second moment of area:", inertia / 1e-12, "mm^4")
+print("peak bending moment:", moment, "N m")
+print("bending stress:", stress / 1e6, "MPa")
+print("mid-span deflection:", defl / 1e-3, "mm")
+print("L/360 limit for this span:", defl_limit / 1e-3, "mm")
+print("stress passes the 12 MPa allowable:", stress <= allowable)
+print("deflection passes L/360:", defl <= defl_limit)
+print("load the 12 MPa allowable would carry:", load_cap / 1e3, "kN/m")
+
+/* The joist bends to 9.5 MPa -- a quarter under its 12 MPa allowable --
+but sags 16.2 mm against a 12.5 mm L/360 allowance, so floor feel, not
+fibres, decides here. The last line prices the swap: the same section
+at full allowable bending would carry 2.52 kN/m, 26 percent more floor
+than the serviceability route permits. */
+
+/* ---- expected output ----
+= second moment of area: 59800781.25 mm^4
+= peak bending moment: 5062.5 N m
+= bending stress: 200/21 MPa
+= mid-span deflection: 1250/77 mm
+= L/360 limit for this span: 12.5 mm
+= stress passes the 12 MPa allowable: true
+= deflection passes L/360: false
+= load the 12 MPa allowable would carry: 2.52 kN/m
+*/

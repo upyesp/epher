@@ -1,0 +1,49 @@
+/* ============================================================================
+rc-charging-curve.epher -- a capacitor filling up through a resistor
+
+A 100 uF cap charges from a 12 V step through 10 kohm. The classic
+response v(t) = V (1 - e^(-t/RC)) reaches 63.2 percent after one time
+constant tau = R C and 99.3 percent after five. The loop walks the
+marks and prints the percent table; the checks recover tau from the
+63.2 percent crossing and confirm the five-tau settling figure.
+
+Source: Horowitz and Hill, The Art of Electronics, 3rd ed., ch. 1
+(time-domain response of RC circuits); the exponential charging table
+is the standard one of Boylestad, Introductory Circuit Analysis,
+ch. 11 (capacitors: transient behavior).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const supply = 12.0        // step voltage, 12 V
+const r = 10e3             // series resistor, 10 kohm
+const c = 100e-6           // capacitor, 100 uF
+
+// ---- model ------------------------------------------------------------------
+const tau = r * c                          // the time constant, s
+for k in {1, 2, 3, 5} do print("after " + str(k) + " tau:", supply * (1 - exp(-k)), "V")
+const t_half = -tau * ln(0.5)              // time to half-voltage, s
+const t_1pct = 5 * tau                     // the settling habit, s
+
+// ---- results -----------------------------------------------------------------
+print("time constant RC:", tau, "s")
+print("voltage at one tau (the 63.2% rule):", supply * (1 - exp(-1)), "V")
+print("time to half of supply:", t_half, "s")
+print("settled (99.3%) at five tau:", t_1pct, "s")
+print("one-tau voltage is 63.2% of supply:", abs(supply * (1 - exp(-1)) / supply - 0.6321) < 0.0005)
+
+/* Every mark on the curve is a fixed share of the supply -- 63.2, 86.5,
+95.0, 99.3 percent -- which is why techs time an RC with one number:
+the RC product itself. This one settles in five seconds flat, so the
+tenth-second sampling of a microcontroller pin catches all of the
+action; slow the cap tenfold and the same table stretches to a minute. */
+
+/* ---- expected output ----
+= {after 1 tau: 7.58544670594 V, after 2 tau: 10.3759766012 V, after 3 tau: 11.4025551796 V, after 5 tau: 11.919144636 V}
+= time constant RC: 1 s
+= voltage at one tau (the 63.2% rule): 7.58544670594 V
+= time to half of supply: 0.69314718056 s
+= settled (99.3%) at five tau: 5 s
+= one-tau voltage is 63.2% of supply: true
+*/

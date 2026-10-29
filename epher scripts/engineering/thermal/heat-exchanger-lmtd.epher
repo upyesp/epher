@@ -1,0 +1,66 @@
+/* ============================================================================
+heat-exchanger-lmtd.epher -- sizing a water-to-water exchanger with LMTD
+
+A counterflow exchanger cools 0.5 kg/s of water from 90 to 60 degrees
+using 0.75 kg/s of incoming water at 20 that leaves at 40. The
+log-mean temperature difference LMTD = (dT1 - dT2) / ln(dT1/dT2) turns
+the shrinking temperature gap along the exchanger into one number, and
+Q = U A LMTD sizes the product of area and conductance. The parallel-
+flow arrangement is priced for comparison.
+
+Source: Incropera, DeWitt, Bergman and Lavine, Fundamentals of Heat and
+Mass Transfer, ch. 11 (heat exchangers: the LMTD method, eq. 11.15,
+counterflow versus parallel flow). Water cp = 4186 J/kg K.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const m_hot = 0.5           // hot-side flow, kg/s
+const t_hot_in = 90         // hot in, degrees C
+const t_hot_out = 60        // hot out, degrees C
+const t_cold_in = 20        // cold in, degrees C
+const t_cold_out = 40       // cold out, degrees C
+const cp_water = 4186       // specific heat, J/kg K
+const ua = 1400             // the exchanger's U A product, W/K
+
+// ---- model ------------------------------------------------------------------
+const q = m_hot * cp_water * (t_hot_in - t_hot_out)   // duty, W
+const m_cold = q / (cp_water * (t_cold_out - t_cold_in))  // cold flow, kg/s
+const dT1 = t_hot_in - t_cold_out             // counterflow end gap, K
+const dT2 = t_hot_out - t_cold_in             // counterflow start gap, K
+const lmtd_counter = (dT1 - dT2) / ln(dT1 / dT2)
+const ua_needed = q / lmtd_counter            // W/K the duty asks for
+const dT1_par = t_hot_in - t_cold_in          // parallel-flow end gap, K
+const dT2_par = t_hot_out - t_cold_out        // parallel-flow exit gap, K
+const lmtd_parallel = (dT1_par - dT2_par) / ln(dT1_par / dT2_par)
+const q_delivered = ua * lmtd_counter         // what 1400 W/K actually moves, W
+
+// ---- results -----------------------------------------------------------------
+print("duty:", q, "W")
+print("cold-side flow needed:", m_cold, "kg/s")
+print("counterflow gaps (hot end, cold end):", dT1, dT2, "K")
+print("counterflow LMTD:", lmtd_counter, "K")
+print("U A the duty needs:", ua_needed, "W/K")
+print("parallel-flow LMTD for the same streams:", lmtd_parallel, "K")
+print("duty the 1400 W/K exchanger delivers:", q_delivered, "W")
+print("counterflow beats parallel here:", lmtd_counter > lmtd_parallel)
+
+/* The duty is 62.8 kW, and the counterflow arrangement moves it with a
+44.8 K log-mean gap -- asking 1401 W/K of area-conductance product.
+Run the same two streams side-by-side (parallel) and the average gap
+shrinks to 40.0 K, demanding ten percent more exchanger for the same
+job: counterflow is not just habit, it is geometry working for you,
+because the hottest hot meets the hottest cold where the gap is worth
+most. */
+
+/* ---- expected output ----
+= duty: 62790 W
+= cold-side flow needed: 0.75 kg/s
+= counterflow gaps (hot end, cold end): 50 40 K
+= counterflow LMTD: 44.8142011772 K
+= U A the duty needs: 1401.1183587 W/K
+= parallel-flow LMTD for the same streams: 39.9117800074 K
+= duty the 1400 W/K exchanger delivers: 62739.8816481 W
+= counterflow beats parallel here: true
+*/

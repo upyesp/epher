@@ -1,0 +1,52 @@
+/* ============================================================================
+water-hammer.epher -- the pressure spike when a valve slams
+
+Shut a valve fast and the moving column of water has nowhere to go:
+the Joukowsky equation dp = rho c dv converts the velocity change to a
+pressure wave, with the wave speed c = sqrt(K / rho) set by water's
+bulk stiffness. The script prices a slam at 2 m/s against a gentle
+0.5 m/s closure, and shows why slow-closing valves exist.
+
+Source: Wylie and Streeter, Fluid Transients in Systems (the Joukowsky
+equation dp = -rho c dv and rigid-pipe wave speed sqrt(K/rho)); bulk
+modulus of water K = 2.19 GPa per Munson, Fundamentals of Fluid
+Mechanics, Appendix (properties of common liquids).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const v_flow = 2.0          // water speed before the slam, 2 m/s
+const v_gentle = 0.5        // speed killed by a slow closure, 0.5 m/s
+const k_water = 2.19e9      // bulk modulus of water, 2.19 GPa
+const rho = 998             // water density, kg/m^3
+
+// ---- model ------------------------------------------------------------------
+const wave_speed = sqrt(k_water / rho)          // rigid pipe, m/s
+const dp_slam = rho * wave_speed * v_flow       // Joukowsky spike, Pa
+const dp_gentle = rho * wave_speed * v_gentle   // slow closure spike, Pa
+const slam_bar = dp_slam / 1e5                  // in bar, for plumbing talk
+
+// ---- results -----------------------------------------------------------------
+print("wave speed in water (rigid pipe):", wave_speed, "m/s")
+print("valve slams at 2 m/s, spike:", dp_slam / 1e6, "MPa")
+print("the same spike in bar:", slam_bar, "bar")
+print("gentle 0.5 m/s closure spike:", dp_gentle / 1e3, "kPa")
+print("slam pressure vs a 400 kPa main:", dp_slam / 4e5, "times main pressure")
+print("four times the velocity, four times the spike:", abs(dp_slam / dp_gentle - v_flow / v_gentle) < 1e-9)
+
+/* Killing 2 m/s of flow in an instant fires a 2.96 MPa pulse -- 29.6
+bar, seven times a household main's standing pressure -- up and down
+the pipe at 1481 m/s, banging elbows and bursting fittings on the way.
+The gentle closure that only kills half a metre per second raises
+739 kPa, survivable: the spike cares about velocity change, not about
+how important the valve was. */
+
+/* ---- expected output ----
+= wave speed in water (rigid pipe): 1481.34694706 m/s
+= valve slams at 2 m/s, spike: 2.95676850633 MPa
+= the same spike in bar: 29.5676850633 bar
+= gentle 0.5 m/s closure spike: 739.192126581 kPa
+= slam pressure vs a 400 kPa main: 7.39192126581 times main pressure
+= four times the velocity, four times the spike: true
+*/

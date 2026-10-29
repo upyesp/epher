@@ -1,0 +1,56 @@
+/* ============================================================================
+gear-train-ratio.epher -- a two-stage reduction, speed traded for torque
+
+A 1750 rpm motor drives a 20-tooth pinion into a 60-tooth gear, whose
+shaft carries a 15-tooth pinion into a 45-tooth gear. Each stage cuts
+speed by its tooth ratio and multiplies torque by the same factor;
+power passes through unchanged (an ideal train). The checks recover
+the power identity on both shafts.
+
+Source: Shigley's Mechanical Engineering Design (Budynas and Nisbett),
+ch. 13 (gears: the speed ratio as the inverse tooth ratio and torque
+through a train, eq. 13-1 to 13-4).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const rpm_in = 1750         // motor speed, 1750 rpm
+const teeth_in1 = 20        // first pinion
+const teeth_out1 = 60       // first gear
+const teeth_in2 = 15        // second pinion
+const teeth_out2 = 45       // second gear
+const torque_in = 10        // motor torque, 10 N m
+
+// ---- model ------------------------------------------------------------------
+const stage1 = teeth_in1 / teeth_out1             // speed factor, stage 1
+const stage2 = teeth_in2 / teeth_out2             // speed factor, stage 2
+const rpm_out = rpm_in * stage1 * stage2
+const torque_out = torque_in / (stage1 * stage2)  // ideal torque, N m
+const power_in = torque_in * rpm_in * 2 * pi / 60     // W
+const power_out = torque_out * rpm_out * 2 * pi / 60  // W, must match
+
+// ---- results -----------------------------------------------------------------
+print("stage ratios:", stage1, "and", stage2)
+print("total reduction:", 1 / (stage1 * stage2), "to 1")
+print("output speed:", rpm_out, "rpm")
+print("output torque:", torque_out, "N m")
+print("power in:", power_in, "W")
+print("power out:", power_out, "W")
+print("power survives the train:", abs(power_in - power_out) < 1e-9)
+
+/* Nine to one through two stages: 194 rpm at the output shaft with
+nine times the crank torque, and watts identical on both ends -- the
+gear train is a leverage device, not a power source. Real teeth shed
+one to two percent per mesh to friction, which is why one big 90:45
+pair loses less than two small ones but costs a gearbox-sized box. */
+
+/* ---- expected output ----
+= stage ratios: 1/3 and 1/3
+= total reduction: 9 to 1
+= output speed: 1750/9 rpm
+= output torque: 90 N m
+= power in: 1832.59571459 W
+= power out: 1832.59571459 W
+= power survives the train: true
+*/

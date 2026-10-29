@@ -1,0 +1,57 @@
+/* ============================================================================
+stefan-boltzmann-net.epher -- how a body radiates its heat away
+
+Every warm surface shines. Net radiated power between a body and its
+surroundings: P = epsilon sigma A (T_body^4 - T_env^4), with the
+Stefan-Boltzmann constant sigma and emissivity epsilon near 1 for skin
+and paint. The script prices a human body, a red-hot bolt head, and
+the check confirms the fourth-power law's cruelty: twice the absolute
+temperature, sixteen times the glow.
+
+Source: Incropera, DeWitt, Bergman and Lavine, Fundamentals of Heat and
+Mass Transfer, ch. 12 (radiation: blackbody emission and the net
+exchange form P = eps sigma A (T^4 - T_surr^4)). sigma is epher's
+builtin sigma_sb, the CODATA 2022 exact value (5.670374419e-8), same
+as the NIST table.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const t_skin_c = 34         // skin surface, degrees C
+const t_room_c = 20         // room surfaces, degrees C
+const emissivity = 0.97     // skin emissivity
+const area = 1.8            // body area, m^2
+
+// ---- model ------------------------------------------------------------------
+const t_skin = t_skin_c + 273.15                 // kelvin, always kelvin
+const t_room = t_room_c + 273.15
+const net = emissivity * sigma_sb * area * (t_skin ^ 4 - t_room ^ 4)   // W
+const bolt_head = emissivity * sigma_sb * 0.004 * ((300 + 273.15) ^ 4 - t_room ^ 4)  // a 500 C bolt, W
+const glow = emissivity * sigma_sb * area * t_skin ^ 4         // into 0 K
+const glow_double = emissivity * sigma_sb * area * (2 * t_skin) ^ 4
+const growth = glow_double / glow               // the fourth-power sting
+
+// ---- results -----------------------------------------------------------------
+print("body temperature in kelvin:", t_skin, "K")
+print("net radiated by a person:", net, "W")
+print("net radiated by a 500 C bolt head:", bolt_head, "W")
+print("emission into the cold (room at 0 K):", glow, "W")
+print("twice the kelvin temperature glows:", glow_double / glow, "times brighter")
+print("the fourth power is exact (2^4 = 16):", abs(growth - 16) < 1e-9)
+
+/* A person quietly radiates about 150 W -- a bright incandescent's
+worth -- which is why a full lecture hall warms as it fills. The small
+bolt head at 500 C throws more heat per square centimetre than the
+whole body, and doubling the absolute temperature would multiply the
+glow sixteen-fold: radiation is a fourth-power game, and kelvin, not
+degrees, is its currency. */
+
+/* ---- expected output ----
+= body temperature in kelvin: 307.15 K
+= net radiated by a person: 150.001359366 W
+= net radiated by a 500 C bolt head: 22.1171526167 W
+= emission into the cold (room at 0 K): 881.1666557 W
+= twice the kelvin temperature glows: 16 times brighter
+= the fourth power is exact (2^4 = 16): true
+*/

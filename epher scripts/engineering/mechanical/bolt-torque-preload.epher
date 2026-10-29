@@ -1,0 +1,53 @@
+/* ============================================================================
+bolt-torque-preload.epher -- torque in, clamp force out
+
+Tightening an M12 to 60 N m with the usual K = 0.2 (threads and
+friction under the head eat the rest) preloads the bolt with
+F = T / (K d) -- about 25 kN of clamp. The script also runs the check
+backwards: what torque stretches an 8.8 bolt to its 580 MPa proof
+stress, the ceiling a reusable joint should respect.
+
+Source: Shigley's Mechanical Engineering Design (Budynas and Nisbett),
+ch. 8 (screws and fasteners: the torque-preload relation T = K F_i d,
+table 8-1 for the K factor; metric mechanical-property classes, table
+8-9 -- class 8.8 proof stress 580 MPa).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const torque = 60           // wrench torque, 60 N m
+const d_bolt = 0.012        // M12 nominal diameter
+const k_factor = 0.2        // the standard K, oiled threads
+const stress_area = 84.3e-6 // M12 tensile stress area, m^2
+const proof_stress = 580e6  // class 8.8 proof, 580 MPa
+
+// ---- model ------------------------------------------------------------------
+const preload = torque / (k_factor * d_bolt)        // clamp force, N
+const bolt_stress = preload / stress_area           // average stress, Pa
+const fi_proof = proof_stress * stress_area         // proof-load clamp, N
+const torque_proof = k_factor * d_bolt * fi_proof   // the matching torque, N m
+const share = preload / fi_proof                    // how close 60 N m sits
+
+// ---- results -----------------------------------------------------------------
+print("preload from 60 N m:", preload / 1e3, "kN")
+print("average bolt stress:", bolt_stress / 1e6, "MPa")
+print("that is this share of the 580 MPa proof:", bolt_stress / proof_stress)
+print("clamp at full proof load:", fi_proof / 1e3, "kN")
+print("torque that reaches proof:", torque_proof, "N m")
+print("headroom in the wrench:", torque_proof / torque, "to 1")
+
+/* Sixty newton-metres clamps the joint with 25 kN -- 297 MPa of mean
+stress, just over half the class-8.8 proof load. The headroom line is
+the wrench discipline: 117 N m reaches proof, so an enthusiastic
+double-torque with a long bar snaps studs, and a rusty K = 0.3 steals
+a third of the clamp without changing the wrench at all. */
+
+/* ---- expected output ----
+= preload from 60 N m: 25 kN
+= average bolt stress: 250000/843 MPa
+= that is this share of the 580 MPa proof: 0.511310181208
+= clamp at full proof load: 48.894 kN
+= torque that reaches proof: 117.3456 N m
+= headroom in the wrench: 1.95576 to 1
+*/

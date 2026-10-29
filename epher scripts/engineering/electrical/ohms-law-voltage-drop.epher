@@ -1,0 +1,57 @@
+/* ============================================================================
+ohms-law-voltage-drop.epher -- a real cable run, current, drop and losses
+
+A 3 kW load sits 50 m from a 230 V single-phase supply, fed by 4 mm^2
+copper in a there-and-back run (100 m of conductor). Ohm's law sizes
+the current I = P / V, the wire resistance is rho (2 L) / A with copper
+at 20 degrees C, the drop is I R and the wasted heat is I^2 R. Wiring
+rules keep the drop near or under 3 percent of nominal.
+
+Source: Boylestad, Introductory Circuit Analysis, ch. 3 (resistance:
+rho (2L)/A for a two-conductor run) and ch. 4 (Ohm's law and power).
+Copper resistivity 1.724e-8 ohm m is the IACS value on Engineering
+ToolBox, "Resistivity and Conductivity - Temperature Coefficients for
+Common Materials" (engineeringtoolbox.com/resistivity-conductivity-
+d_418.html), which this script's wire line reproduces.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const supply = 230         // nominal voltage, 230 V
+const run = 50             // one-way cable length, 50 m
+const rho_cu = 1724 / 100000000000  // copper resistivity, ohm m (1.724e-8, exact)
+const area = 4e-6          // conductor cross-section, 4 mm^2
+const load = 3e3           // appliance power, 3 kW
+const drop_limit = 3       // allowed drop, percent of supply
+
+// ---- model ------------------------------------------------------------------
+const current = load / supply                    // I = P / V, A
+const r_wire = rho_cu * 2 * run / area           // two conductors, ohm
+const v_drop = current * r_wire                  // I R, V
+const drop_pct = v_drop / supply * 100
+const lost = current ^ 2 * r_wire                // I^2 R heat, W
+const delivered = load - lost                    // what reaches the load, W
+
+// ---- results -----------------------------------------------------------------
+print("load current:", current, "A")
+print("run resistance (100 m of 4 mm^2):", r_wire, "ohm")
+print("voltage drop at the load:", v_drop, "V")
+print("drop as share of 230 V:", drop_pct, "%")
+print("heat wasted in the cable:", lost, "W")
+print("under the 3% wiring-rule limit:", drop_pct <= drop_limit)
+
+/* The kettle draws 13 A; its cable eats 5.6 V of the 230 V, about 2.4
+percent, and quietly turns 73 W into warmth along the wall -- the
+kettle sees 2.93 kW, not 3.00. Halve the copper to 2 mm^2 and both the
+drop and the waste double: cable sizing is the cheapest efficiency
+decision in an installation. */
+
+/* ---- expected output ----
+= load current: 300/23 A
+= run resistance (100 m of 4 mm^2): 0.431 ohm
+= voltage drop at the load: 1293/230 V
+= drop as share of 230 V: 1293/529 %
+= heat wasted in the cable: 38790/529 W
+= under the 3% wiring-rule limit: true
+*/

@@ -1,0 +1,64 @@
+/* ============================================================================
+i-beam-section-properties.epher -- area, stiffness and radius of a built-up I
+
+A symmetric welded I-shape: 150 x 12 mm flanges on a 10 x 250 mm web,
+274 mm deep overall. The second moment about the strong axis comes from
+the parallel-axis theorem: each flange contributes b t^3 / 12 about its
+own centroid plus A d^2 transferred to the section centroid; the web
+contributes t h^3 / 12 about the shared centroid. From I the script
+gets the section modulus S = I / c, the radius of gyration r = sqrt(I/A),
+and a bending stress for a given moment.
+
+Source: Hibbeler, Mechanics of Materials, ch. 6 (geometric properties of
+compound sections, the parallel-axis theorem) and the appendix table of
+rolled-steel shapes, whose W-shapes this built-up section approximates.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const flange_b = 0.150     // flange width, 150 mm
+const flange_t = 0.012     // flange thickness, 12 mm
+const web_t = 0.010        // web thickness, 10 mm
+const web_h = 0.250        // web height between flanges, 250 mm
+const moment = 100e3       // applied strong-axis moment, 100 kN m
+
+// ---- model ------------------------------------------------------------------
+const depth = web_h + 2 * flange_t              // overall depth, m
+const flange_area = flange_b * flange_t         // one flange, m^2
+const arm = depth / 2 - flange_t / 2            // centroid offset, m
+const i_flanges = 2 * (flange_b * flange_t ^ 3 / 12 + flange_area * arm ^ 2)
+const i_web = web_t * web_h ^ 3 / 12
+const inertia = i_flanges + i_web               // strong axis, m^4
+const area = 2 * flange_area + web_t * web_h    // section area, m^2
+const s_mod = inertia / (depth / 2)             // section modulus, m^3
+const radius_g = sqrt(inertia / area) * 1e3     // radius of gyration, mm
+const stress = moment / s_mod                   // extreme-fibre stress, Pa
+
+// ---- results -----------------------------------------------------------------
+print("overall depth:", depth / 1e-3, "mm")
+print("section area:", area / 1e-6, "mm^2")
+print("flange contribution to I:", i_flanges / 1e-12, "mm^4")
+print("web contribution to I:", i_web / 1e-12, "mm^4")
+print("strong-axis inertia:", inertia / 1e-12, "mm^4")
+print("section modulus:", s_mod / 1e-9, "mm^3")
+print("radius of gyration:", radius_g, "mm")
+print("stress under a 100 kN m moment:", stress / 1e6, "MPa")
+
+/* The two flanges carry 61.8e6 of the 74.8e6 mm^4 -- five sixths of the
+strong-axis stiffness sits in the flanges, which is exactly why the I
+shape puts material there. The 100 kN m moment lands 183 MPa on the
+extreme fibre, about three quarters of a mild steel's 250 MPa yield:
+still elastic, but a section with less reserve than it looks, and the
+reason a W-shape catalogue matters when the moment grows. */
+
+/* ---- expected output ----
+= overall depth: 274 mm
+= section area: 6100 mm^2
+= flange contribution to I: 61822800 mm^4
+= web contribution to I: 39062500/3 mm^4
+= strong-axis inertia: 224530900/3 mm^4
+= section modulus: 224530900/411 mm^3
+= radius of gyration: 110.767540766 mm
+= stress under a 100 kN m moment: 183.048302038 MPa
+*/

@@ -1,0 +1,53 @@
+/* ============================================================================
+power-screw-torque.epher -- the torque to lift, and the self-locking test
+
+A square-thread screw of 22 mm mean diameter and 5 mm pitch raising a
+30 kN load: torque to raise follows from the thread-friction formula
+T = F dm/2 (l + pi f dm)/(pi dm - f l); torque to lower shows whether
+the screw holds itself (self-locking) or spins free (back-driving).
+
+Source: Shigley's Mechanical Engineering Design (Budynas and Nisbett),
+ch. 8 (power screws: torque to raise and lower, eq. 8-1 and 8-6, and
+the self-locking condition f tan lambda... thread friction f = 0.15
+for lubricated steel-on-bronze from table 8-3 discussion).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const load = 30e3           // the load the screw lifts, 30 kN
+const d_mean = 0.022        // mean thread diameter, 22 mm
+const pitch = 0.005         // thread pitch (lead, single start), 5 mm
+const mu_thread = 0.15      // thread friction, lubricated
+
+// ---- model ------------------------------------------------------------------
+const lead = pitch                                  // single start: lead = pitch
+const t_raise = load * d_mean / 2 * (lead + pi * mu_thread * d_mean) / (pi * d_mean - mu_thread * lead)
+const t_lower = load * d_mean / 2 * (pi * mu_thread * d_mean - lead) / (pi * d_mean + mu_thread * lead)
+const work_in = (t_raise) * pi * d_mean / lead      // input work per turn, J
+const work_out = load * lead                        // lift per turn, J
+const efficiency = work_out / work_in
+
+// ---- results -----------------------------------------------------------------
+print("torque to raise the 30 kN load:", t_raise, "N m")
+print("torque to lower it (back-drive):", t_lower, "N m")
+print("self-locking (holds without a brake):", t_lower > 0)
+print("work per turn at the handle:", work_in, "J")
+print("work per turn on the load:", work_out, "J")
+print("screw efficiency:", efficiency)
+
+/* Raising the tonnage costs 74 N m at the handle; lowering would need
+25 N m in reverse -- positive, so the screw locks itself and a crane
+hook stays put with the power off. The efficiency line is the screw's
+honesty: 53 percent of handle work becomes lift, the rest rubbing
+thread on thread, which is exactly what self-locking is made of --
+friction high enough to hold is friction high enough to waste. */
+
+/* ---- expected output ----
+= torque to raise the 30 kN load: 74.1781840544 N m
+= torque to lower it (back-drive): 25.3516557187 N m
+= self-locking (holds without a brake): true
+= work per turn at the handle: 1025.36560756 J
+= work per turn on the load: 150 J
+= screw efficiency: 0.146289283446
+*/

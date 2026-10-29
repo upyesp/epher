@@ -1,0 +1,52 @@
+/* ============================================================================
+bearing-l10-life.epher -- how long a bearing serves, statistically
+
+A rolling bearing's life is a scatter plot; the L10 life is the point
+90 percent of them outlive. L10 = (C/P)^a million revolutions, a = 3
+for ball bearings, with C the basic dynamic load rating and P the
+equivalent load. The script prices a 6205-class bearing at two loads
+and shows the cube law's bite.
+
+Source: Shigley's Mechanical Engineering Design (Budynas and Nisbett),
+ch. 11 (rolling-contact bearings: the L10 life model, eq. 11-6, a = 3
+for ball bearings, a = 10/3 for rollers); C = 14.0 kN is the 6205
+deep-groove rating from manufacturer tables (SKF/NSK 6205).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const rating = 14.0e3       // basic dynamic load rating C, 14 kN (6205)
+const load_heavy = 2.5e3    // equivalent radial load, 2.5 kN
+const load_light = 2.0e3    // a lighter duty cycle, 2 kN
+const rpm = 1450            // shaft speed, 1450 rpm
+
+// ---- model ------------------------------------------------------------------
+def l10_revs(p) = (rating / p) ^ 3          // L10 life, million revs
+def l10_hours(p) = l10_revs(p) * 1e6 / (rpm * 60)
+const life_heavy = l10_hours(load_heavy)
+const life_light = l10_hours(load_light)
+const ratio = life_light / life_heavy       // the cube law's reward
+
+// ---- results -----------------------------------------------------------------
+print("L10 life at 2.5 kN:", l10_revs(load_heavy), "million revs")
+print("hours at 1450 rpm:", life_heavy, "hr")
+print("L10 life at 2.0 kN:", l10_revs(load_light), "million revs")
+print("hours at 1450 rpm:", life_light, "hr")
+print("the 20% load cut bought this much life:", ratio, "times")
+print("cube law in action (1.25^3 = 1.95):", abs(ratio - (2.5 / 2.0) ^ 3) < 1e-9)
+
+/* At 2.5 kN the bearing is a 2000-hour part; ease the load to 2 kN and
+it serves 3900 hours -- 95 percent more life for 20 percent less load,
+the cube law compounding every saved newton. This is why shaft
+designers chase load alignment before bigger bearings: half a
+millimetre of misbalance can outvote a whole size step. */
+
+/* ---- expected output ----
+= L10 life at 2.5 kN: 175.616 million revs
+= hours at 1450 rpm: 175616/87 hr
+= L10 life at 2.0 kN: 343 million revs
+= hours at 1450 rpm: 343000/87 hr
+= the 20% load cut bought this much life: 1.953125 times
+= cube law in action (1.25^3 = 1.95): true
+*/

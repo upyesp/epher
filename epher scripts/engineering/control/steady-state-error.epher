@@ -1,0 +1,52 @@
+/* ============================================================================
+steady-state-error.epher -- what a loop still owes after settling
+
+Unity-feedback loops are judged by their steady-state error: a type-0
+system (position constant Kp) leaves a residual on a step,
+ess = 1/(1 + Kp), and never tracks a ramp; a type-1 system (velocity
+constant Kv) nails the step but trails a ramp by 1/Kv. The script
+prices a Kp = 99 type-0 loop against a Kv = 100 type-1 loop.
+
+Source: Ogata, Modern Control Engineering, 5th ed., ch. 5 (steady-
+state errors: system types, position/velocity constants Kp, Kv, and
+the error table for step and ramp inputs, section 5-9).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const kp_type0 = 99         // position constant of a type-0 loop
+const kv_type1 = 100        // velocity constant of a type-1 loop
+const step_ref = 1.0        // the step command, 1 unit
+const ramp_speed = 1.0      // the ramp's slope, 1 unit/s
+
+// ---- model ------------------------------------------------------------------
+const ess_step_type0 = step_ref / (1 + kp_type0)     // residual on a step
+const ess_step_type1 = 0 / kv_type1                  // zero: a type-1 nails steps
+const ess_ramp_type1 = ramp_speed / kv_type1         // constant lag, s of trail
+const output_type0 = step_ref - ess_step_type0       // where it finally sits
+
+// ---- results -----------------------------------------------------------------
+print("type-0 error on a step:", ess_step_type0)
+print("type-0 output on a 1-unit step:", output_type0)
+print("type-0 loop on a ramp: it never catches up")
+print("type-1 error on a step:", ess_step_type1)
+print("type-1 lag behind a 1 unit/s ramp:", ess_ramp_type1, "units")
+print("raising Kv from 100 to 400 cuts the lag:", ramp_speed / 400, "units")
+print("error quarters when Kv quadruples:", abs(ramp_speed / kv_type1 * 4 - ramp_speed / 400 * 4) < 1e-12)
+
+/* The type-0 loop ends a unit step at 0.99 -- one percent shy, forever,
+no matter how long you wait; the type-1 loop lands exactly and then
+trails any moving target by 1/Kv, a hundredth of a unit at Kv = 100.
+Integrators buy exactness: that is the whole table, and the reason
+every serious controller has one in the loop. */
+
+/* ---- expected output ----
+= type-0 error on a step: 0.01
+= type-0 output on a 1-unit step: 0.99
+= type-0 loop on a ramp: it never catches up
+= type-1 error on a step: 0
+= type-1 lag behind a 1 unit/s ramp: 0.01 units
+= raising Kv from 100 to 400 cuts the lag: 0.0025 units
+= error quarters when Kv quadruples: false
+*/

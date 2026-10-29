@@ -1,0 +1,51 @@
+/* ============================================================================
+thermal-stress-restrained-bar.epher -- a rail that may not expand
+
+A welded rail (as on continuous welded track) cannot grow on a hot day:
+restraining it turns thermal strain into stress, sigma = E alpha dT, the
+compression a fully restrained bar develops. The same numbers give the
+gap a freed rail would need: free expansion delta L = alpha L dT, which
+is what a jointed track must absorb in its gaps.
+
+Source: Hibbeler, Mechanics of Materials, ch. 4 (axial load: thermal
+stress, "restrained supports"). The steel expansion coefficient
+alpha = 12e-6 1/K is the structural-steel value on Engineering ToolBox,
+"Solids - Volume Temperature Expansion Coefficients" (12e-6 K^-1 for
+carbon steel).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const rail_len = 20        // rail length, 20 m
+const temp_rise = 35         // temperature rise, 35 K
+const alpha = 12e-6        // linear expansion, 1/K, carbon steel
+const E_steel = 200e9      // Young's modulus, 200 GPa
+const yield_stress = 250e6 // yield strength, 250 MPa
+
+// ---- model ------------------------------------------------------------------
+const free_growth = alpha * rail_len * temp_rise       // delta L, m
+const restrained_stress = E_steel * alpha * temp_rise  // sigma = E alpha dT, Pa
+const gap = free_growth / 2                          // gap at each rail end, m
+const fos = yield_stress / restrained_stress         // margin to yield
+
+// ---- results -----------------------------------------------------------------
+print("free growth over 20 m:", free_growth / 1e-3, "mm")
+print("gap each end would need:", gap / 1e-3, "mm")
+print("stress if fully restrained:", restrained_stress / 1e6, "MPa")
+print("margin to 250 MPa yield:", fos)
+print("restraint stays elastic:", restrained_stress < yield_stress)
+
+/* A 35 K summer rise wants 8.4 mm of growth from a 20 m rail: leave it
+free and each joint must swallow 4.2 mm, weld it continuous and the
+steel carries 84 MPa of compression instead -- a third of yield, which
+is why welded track stands a hot afternoon but must be checked against
+buckling, the compression's second-order effect. */
+
+/* ---- expected output ----
+= free growth over 20 m: 8.4 mm
+= gap each end would need: 4.2 mm
+= stress if fully restrained: 84 MPa
+= margin to 250 MPa yield: 125/42
+= restraint stays elastic: true
+*/

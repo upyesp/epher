@@ -1,0 +1,61 @@
+/* ============================================================================
+pipe-insulation-loss.epher -- heat leaking down a lagged steam pipe
+
+A 100 mm steam pipe at 180 degrees C carries 30 m of 50 mm fiberglass
+lagging. Cylindrical conduction resists with R per metre =
+ln(r_outer/r_inner) / (2 pi k) -- the logarithm is what distinguishes a
+pipe from a flat wall -- and the leak is q' = dT / R per metre.
+
+Source: Incropera, DeWitt, Bergman and Lavine, Fundamentals of Heat and
+Mass Transfer, ch. 3 (radial systems: the cylindrical thermal
+resistance, eq. 3.28). Fiberglass conductivity k = 0.07 W/m K at these
+temperatures per Engineering ToolBox, "Thermal Conductivity of common
+Materials".
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const t_steam = 180         // pipe surface, degrees C
+const t_air = 20            // ambient, degrees C
+const d_pipe = 0.100        // pipe outer diameter, 100 mm
+const t_lag = 0.050         // lagging thickness, 50 mm
+const k_lag = 0.07          // fiberglass conductivity, W/m K
+const length = 30           // run length, 30 m
+const price = 0.05          // steam heat, per kWh
+
+// ---- model ------------------------------------------------------------------
+const r_in = d_pipe / 2                       // inner radius, m
+const r_out = r_in + t_lag                    // outer radius, m
+const r_per_m = ln(r_out / r_in) / (2 * pi * k_lag)   // K m / W
+const q_per_m = (t_steam - t_air) / r_per_m   // W per metre
+const q_total = q_per_m * length              // the run's leak, W
+const kwh_year = q_total * 8760 / 1000        // a year of leak, kWh
+const cost_year = kwh_year * price
+const bare_q = q_per_m * 20                   // what 20 K of lagging saves, W
+
+// ---- results -----------------------------------------------------------------
+print("radius ratio r_out/r_in:", r_out / r_in)
+print("lagging resistance per metre:", r_per_m, "K m/W")
+print("leak per metre:", q_per_m, "W/m")
+print("leak over the 30 m run:", q_total, "W")
+print("a year of that leak:", kwh_year, "kWh")
+print("a year of that leak, in money:", cost_year)
+print("the log term ln(r_out/r_in):", ln(r_out / r_in))
+
+/* Fifty millimetres of wool holds the run to 5.2 kilowatts -- about 45.6
+megawatt-hours a year, 2280 in steam money, quietly. The logarithm is
+the pipe's lesson: doubling lagging thickness does not halve the leak
+(it moves r_out/r_in from 1.5 to 2, and ln doubles but the denominator
+is fixed), so insulation buys diminishing returns per added millimetre
+-- buy the first 50 mm, negotiate hard for the second. */
+
+/* ---- expected output ----
+= radius ratio r_out/r_in: 2
+= lagging resistance per metre: 1.57596857252 K m/W
+= leak per metre: 101.524867177 W/m
+= leak over the 30 m run: 3045.74601531 W
+= a year of that leak: 26680.7350941 kWh
+= a year of that leak, in money: 1334.0367547
+= the log term ln(r_out/r_in): 0.69314718056
+*/

@@ -1,0 +1,53 @@
+/* ============================================================================
+pump-power.epher -- the watts behind a litre a second
+
+A pump lifting 10 litres a second through 25 metres of head does
+hydraulic work P = rho g Q H; the motor pays more, divided by the
+efficiency. The script separates water-power from wire-power and
+prices a day of running, so the true cost of a leaky foot valve shows
+up in money.
+
+Source: Munson, Young and Okiishi, Fundamentals of Fluid Mechanics,
+ch. 5 (the energy equation applied to pumps: hydraulic power
+rho g Q H and pump efficiency eta); pump efficiencies 60-75 percent
+for this size class per Karassik et al., Pump Handbook, ch. 2.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const flow = 0.01           // 10 litres a second
+const head = 25             // total dynamic head, 25 m
+const efficiency = 0.65     // wire-to-water efficiency
+const hours = 8             // running hours a day
+
+// ---- model ------------------------------------------------------------------
+const hydraulic = 998 * 9.80665 * flow * head      // water power, W
+const electrical = hydraulic / efficiency          // motor draw, W
+const daily_kwh = electrical / 1000 * hours        // the day's bill, kWh
+const lost_to_heat = electrical - hydraulic        // what the motor warms, W
+const per_cubic = electrical / (flow * 1000)       // energy per litre, J/L
+const per_point = (hydraulic / 0.55 - hydraulic / 0.75) / 20   // W per efficiency point
+
+// ---- results -----------------------------------------------------------------
+print("hydraulic (water) power:", hydraulic, "W")
+print("electrical draw at 65% efficiency:", electrical, "W")
+print("heat the motor and pump shed:", lost_to_heat, "W")
+print("energy per litre lifted:", per_cubic, "J/L")
+print("a day of running:", daily_kwh, "kWh")
+print("each efficiency point is worth:", per_point, "W")
+
+/* Lifting water 25 metres at 10 L/s is 2.45 kW of honest water power;
+the meter reads 3.76, and 1.32 kW warms the pump house. At 30 kWh a
+day the electricity invoice dwarfs the hardware in a year, which is
+why a two-point efficiency gain on an always-on pump pays for itself
+faster than any fitting on the pipe. */
+
+/* ---- expected output ----
+= hydraulic (water) power: 2446.759175 W
+= electrical draw at 65% efficiency: 3764.24488462 W
+= heat the motor and pump shed: 1317.48570962 W
+= energy per litre lifted: 376.424488462 J/L
+= a day of running: 30.1139590769 kWh
+= each efficiency point is worth: 59.3153739394 W
+*/
