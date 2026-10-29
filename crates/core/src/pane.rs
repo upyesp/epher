@@ -83,6 +83,22 @@ pub fn terminal_unit(line: &str) -> Option<&str> {
     plain_number(num).then_some(unit)
 }
 
+/// The line as the pane shows it (ADR-0078 amendment): prose drops the
+/// engine's `= ` answer voice, values keep it. A transcript line reads
+/// `= <payload>`; when the payload begins with a letter the line is a
+/// sentence or a labeled result — showing `= ` before English is
+/// clutter, and the label's colon already says "result". A payload
+/// beginning with a digit, a sign, or an opening brace is a value
+/// (number, quantity, list, matrix): there the marker stays, the
+/// calculator's voice for exactly the shapes that read as values.
+/// Display only — copy paths send the original verbatim.
+pub fn display_text(line: &str) -> &str {
+    match line.strip_prefix("= ") {
+        Some(body) if body.starts_with(char::is_alphabetic) => body,
+        _ => line,
+    }
+}
+
 /// A transcript as the pane displays it: the web splits its private
 /// separator into answers first, then every answer may carry its own
 /// line breaks (a table, a matrix); the terminal's transcript is
@@ -566,6 +582,31 @@ pub fn group_digits(text: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn prose_drops_the_answer_marker_values_keep_it() {
+        // Prose: sentences, labeled results, word verdicts.
+        assert_eq!(
+            display_text("= that is 17.4 years"),
+            "that is 17.4 years"
+        );
+        assert_eq!(
+            display_text("= hypotenuse of the 3-4-5 triangle: 5"),
+            "hypotenuse of the 3-4-5 triangle: 5"
+        );
+        assert_eq!(display_text("= no seventh candidate"), "no seventh candidate");
+        // Values: numbers, quantities, lists, matrices keep the voice.
+        assert_eq!(display_text("= 1000"), "= 1000");
+        assert_eq!(display_text("= -3.5"), "= -3.5");
+        assert_eq!(display_text("= 12 m"), "= 12 m");
+        assert_eq!(
+            display_text("= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}"),
+            "= {72, 85, 91, 64, 88, 79, 83, 95, 70, 86}"
+        );
+        // Anything that is not a `= ` line passes through unchanged.
+        assert_eq!(display_text("error: name `x` is not defined"), "error: name `x` is not defined");
+        assert_eq!(display_text(""), "");
+    }
 
     #[test]
     fn labeled_lines_are_results_and_bare_echoes_are_setup() {
