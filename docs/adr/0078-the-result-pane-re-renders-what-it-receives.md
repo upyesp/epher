@@ -162,3 +162,20 @@ matches its expected block.
 
 Corpus after both amendments: labelled lines unchanged at 2,391, bare
 echoes 1,854 → 455 (44% → 16% of all transcript lines).
+
+## Amendment (2026-10-29): prose drops the `= ` voice
+
+Every transcript line the engine emits carries the answer voice `= `,
+and the pane carried it through. For values that voice is right — it
+is the calculator's "the result is", and `= 1000` reads as a result.
+For prose it is clutter: `= that is 17.4 years` prefixes English with
+a symbol, and a labeled line's colon already says "result".
+
+The pane now shows a line without the marker when the payload after
+`= ` begins with a letter (a sentence, a labeled result, a word
+verdict); payloads beginning with a digit, sign, or brace — numbers,
+quantities, lists, matrices — keep it (`epher_core::pane::display_text`,
+applied by both the web and terminal panes). The engine's transcript,
+the CLI, the REPL, the answer line above the pane, and every copy path
+are unchanged: copy still sends the original verbatim, per this ADR's
+first rule.

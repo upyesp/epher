@@ -1713,7 +1713,9 @@ fn pane_line_views(
         .map(|(i, line)| {
             let kind = epher_core::pane::line_kind(&line);
             PaneLineView {
-                body: pane_body(&line, short, group),
+                // Prose shows without the engine's `= ` voice (ADR-0078
+                // amendment); `original` keeps the line verbatim for copy.
+                body: pane_body(epher_core::pane::display_text(&line), short, group),
                 verdict: epher_core::pane::verdict(&line),
                 final_line: final_idx == Some(i),
                 setup: kind == epher_core::pane::LineKind::Setup,

@@ -153,6 +153,9 @@ each line by its shape, so the conventions above pay off twice:
 - a list of more than twenty values folds behind a "show more" control;
 - ISO 8601 timestamps (`iso(...)`) stay on one line, and a trailing
   unit (`= 12 m`) is dimmed;
+- a line whose text reads as prose — a sentence or a `label: value`
+  result — shows without the engine's `= ` prefix; numbers, lists and
+  matrices keep it, so values still read as values;
 - a whole transcript can be shown at six significant digits ("Short
   numbers"), with the full values on hover and in every copy.
 
@@ -164,9 +167,9 @@ The guide (chapter 1) is the full reference; this is the subset a script
 author needs every day.
 
 **Statements.** One per line; `;` joins them. `def f(x) = expr` defines
- a function (silent), `const name = expr` a knob (prints its value),
-`name = expr` assigns (prints its value), and a bare expression prints
-its value. Strings hold no escape sequences, so a `"` cannot appear
+ a function (silent), `const name = expr` a knob (silent too, ADR-0080:
+ the binding is made, nothing prints), `name = expr` assigns (prints
+its value), and a bare expression prints its value. Strings hold no escape sequences, so a `"` cannot appear
 inside a string. A `def` body sees its parameters, the builtins,
 `const` names, and other `def` names; it cannot read a variable set
 with `=` (use `const` for a value a helper needs), and it sees only the

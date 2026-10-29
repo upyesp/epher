@@ -5801,8 +5801,11 @@ fn pane_transcript(
         // The rows this display line fills: a matrix as a padded grid
         // (rows chunk hard at the pane edge; alignment columns must
         // not collapse), everything else through the boundary wrap.
+        // Prose shows without the engine's `= ` voice (ADR-0078
+        // amendment); values keep it.
+        let shown = vp::display_text(line);
         let mut rows: Vec<String> = Vec::new();
-        if let Some((prefix, grid, suffix)) = vp::matrix_grid(line) {
+        if let Some((prefix, grid, suffix)) = vp::matrix_grid(shown) {
             rows.extend(vp::wrap_to_width(&prefix, width, 2));
             for row in vp::grid_rows(&grid) {
                 let len = row.chars().count();
@@ -5816,7 +5819,7 @@ fn pane_transcript(
             }
             rows.extend(vp::wrap_to_width(&suffix, width, 2));
         } else {
-            rows.extend(vp::wrap_to_width(line, width, 2));
+            rows.extend(vp::wrap_to_width(shown, width, 2));
         }
         for row in rows {
             let span = match vp::line_kind(line) {
