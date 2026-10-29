@@ -1,0 +1,56 @@
+/* ============================================================================
+three-phase-power.epher -- real, reactive and apparent power on a motor feed
+
+A 400 V three-phase motor feed carries 15 A at power factor 0.85. The
+three-power triangle: real power P = sqrt(3) V I cos(phi) does the
+turning, reactive Q = sqrt(3) V I sin(phi) just sloshes, and apparent
+S = sqrt(3) V I bills the current. The script also sizes the capacitor
+bank that would lift the power factor to 0.95 and cut the current.
+
+Source: Boylestad, Introductory Circuit Analysis, ch. 20 (power and
+power factor in three-phase systems; the power-triangle relations and
+capacitive correction Q_c = P (tan(phi_1) - tan(phi_2))).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const v_line = 400         // line-to-line voltage, 400 V
+const i_line = 15          // line current, 15 A
+const pf = 0.85            // power factor of the motor
+const pf_target = 0.95     // after correction
+const freq = 50            // mains frequency, 50 Hz
+
+// ---- model ------------------------------------------------------------------
+const p = sqrt(3) * v_line * i_line * pf             // real power, W
+const s_va = sqrt(3) * v_line * i_line                  // apparent power, VA
+const q = sqrt(p ^ 2 * (1 / pf ^ 2 - 1))             // reactive, var
+const q_target = p * tan(acos(pf_target))            // reactive at 0.95, var
+const q_cap = q - q_target                           // the bank must give, var
+const c_total = q_cap / (2 * pi * freq * v_line ^ 2) // equivalent C, F
+const i_after = s_va * (pf / pf_target) / (sqrt(3) * v_line)  // corrected current, A
+
+// ---- results -----------------------------------------------------------------
+print("real power (turns the shaft):", p / 1e3, "kW")
+print("apparent power (bills the amps):", s_va / 1e3, "kVA")
+print("reactive power (sloshes):", q / 1e3, "kvar")
+print("capacitive correction needed:", q_cap / 1e3, "kvar")
+print("equivalent capacitance per phase:", c_total / 1e-6, "uF")
+print("line current after correction:", i_after, "A")
+print("power triangle closes:", abs(sqrt(p ^ 2 + q ^ 2) - s_va) < 1e-6)
+
+/* The motor eats 8.83 kW of real power but forces the supply to cart
+10.39 kVA -- 1.56 kvar of pure slosh rides along, heating cables that
+do no work. A 51 uF-per-phase bank lifts the factor to 0.95 and drops
+the line current to 13.4 A: same shaft output, 11 percent less copper
+heat, which is why utilities bill the kvar. */
+
+/* ---- expected output ----
+= real power (turns the shaft): 8.8334591186 kW
+= apparent power (bills the amps): 10.3923048454 kVA
+= reactive power (sloshes): 5.47448627727 kvar
+= capacitive correction needed: 2.57106867124 kvar
+= equivalent capacitance per phase: 51.149786007 uF
+= line current after correction: 255/19 A
+= power triangle closes: true
+*/

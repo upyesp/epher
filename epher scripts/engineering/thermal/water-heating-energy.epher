@@ -1,0 +1,57 @@
+/* ============================================================================
+water-heating-energy.epher -- the kilojoules in a kettle, a bath, a boiler
+
+Heating water is a staircase of energies: sensible heat
+Q = m cp dT climbing to the boil (cp = 4186 J/kg K), then the latent
+heat of vaporization (2257 kJ/kg at 100 degrees C) once it boils -- 5.4
+times the climb, per kilogram. The script walks the staircase for a
+1.5 litre kettle and times each step on a 2 kW element.
+
+Source: Cengel and Boles, Thermodynamics: An Engineering Approach,
+ch. 3 (properties of pure water: cp and h_fg at 100 degrees C from the
+saturated-water tables; h_fg = 2257 kJ/kg, cp_avg = 4.186 kJ/kg K).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const volume = 1.5           // kettle fill, 1.5 L
+const t_start = 15           // cold tap, degrees C
+const t_boil = 100           // the boil, degrees C
+const cp_water = 4186        // specific heat, J/kg K
+const h_fg = 2257e3          // latent heat at 100 C, J/kg
+const element = 2000         // the kettle element, 2 kW
+
+// ---- model ------------------------------------------------------------------
+const mass = volume * 1.0                     // litres to kilograms, 1:1
+const sensible = mass * cp_water * (t_boil - t_start)    // to the boil, J
+const latent = mass * h_fg                    // to full vaporization, J
+const boil_time = sensible / element          // minutes of kettle hum, s
+const vaporize_time = latent / element        // boiling dry, s
+const ratio = latent / sensible               // the staircase's steep step
+
+// ---- results -----------------------------------------------------------------
+print("water mass:", mass, "kg")
+print("sensible heat to the boil:", sensible / 1e3, "kJ")
+print("latent heat to vaporize it all:", latent / 1e3, "kJ")
+print("latent exceeds sensible by:", ratio, "to 1")
+print("time to the boil on 2 kW:", boil_time, "s")
+print("time to boil it dry entirely:", vaporize_time / 60, "minutes")
+print("a cup (0.25 kg) costs:", 0.25 * cp_water * 85 / 1e3, "kJ to the boil")
+
+/* Climbing 85 degrees costs 534 kJ -- 4.5 minutes on a 2 kW element,
+34 pence of electricity a hundred boils over. The staircase's steep
+step is latent heat: vaporizing the whole litre-and-a-half wants 3.39
+MJ, six times the climb, which is why a kettle boils in minutes but a
+stove-top reduction takes an afternoon -- phase change is where water
+banks its energy. */
+
+/* ---- expected output ----
+= water mass: 1.5 kg
+= sensible heat to the boil: 533.715 kJ
+= latent heat to vaporize it all: 3385.5 kJ
+= latent exceeds sensible by: 6.34327309519 to 1
+= time to the boil on 2 kW: 266.8575 s
+= time to boil it dry entirely: 28.2125 minutes
+= a cup (0.25 kg) costs: 88.9525 kJ to the boil
+*/

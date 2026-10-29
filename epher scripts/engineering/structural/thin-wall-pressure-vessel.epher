@@ -1,0 +1,55 @@
+/* ============================================================================
+thin-wall-pressure-vessel.epher -- hoop stress and wall thickness of a tank
+
+A cylindrical steel tank (1.2 m inner radius, 8 mm wall) holds 0.8 MPa
+gauge. Thin-wall theory (r/t > 10 here): hoop stress sigma_h = p r / t,
+twice the longitudinal stress p r / (2 t), which is why tanks split
+along their length. The script sizes the wall for a design hoop stress
+of 35 percent of the 350 MPa steel and reports the safety factor.
+
+Source: Hibbeler, Mechanics of Materials, ch. 8 (thin-walled pressure
+vessels); the r/t > 10 validity rule and both stress forms are eq. 8-1
+and 8-2 there. The 35 percent design factor follows common practice of
+keeping vessel membrane stress near ASME VIII, Div. 1 allowable levels.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const radius = 1.2         // inner radius, 1.2 m
+const wall = 0.008         // wall thickness, 8 mm
+const pressure = 0.8e6     // gauge pressure, 0.8 MPa
+const yield_stress = 350e6 // yield strength of the shell steel, 350 MPa
+const design_share = 0.35  // design stress as a share of yield
+
+// ---- model ------------------------------------------------------------------
+const r_over_t = radius / wall                       // thin-wall validity
+const hoop = pressure * radius / wall                // sigma_h = p r / t, Pa
+const longitudinal = hoop / 2                        // sigma_l = p r / 2t, Pa
+const design_stress = design_share * yield_stress    // allowable, Pa
+const wall_needed = pressure * radius / design_stress  // required t, m
+const fos = yield_stress / hoop                      // margin to yield
+
+// ---- results -----------------------------------------------------------------
+print("radius-to-thickness ratio r/t:", r_over_t)
+print("hoop stress:", hoop / 1e6, "MPa")
+print("longitudinal stress:", longitudinal / 1e6, "MPa")
+print("wall needed for the 122.5 MPa design stress:", wall_needed / 1e-3, "mm")
+print("safety factor of the 8 mm wall to yield:", fos)
+print("thin-wall theory applies (r/t above 10):", r_over_t > 10)
+
+/* The 8 mm wall runs 120 MPa hoop, double its 60 MPa longitudinal, and
+holds nearly 3 times margin to yield; the thin-wall assumption is
+comfortable at r/t = 150. Sizing to a third of yield asks for 7.84 mm,
+so the 8 mm plate is the smallest standard thickness that passes --
+that margin-of-yield answer is the number to remember when someone
+proposes thinning the shell. */
+
+/* ---- expected output ----
+= radius-to-thickness ratio r/t: 150
+= hoop stress: 120 MPa
+= longitudinal stress: 60 MPa
+= wall needed for the 122.5 MPa design stress: 384/49 mm
+= safety factor of the 8 mm wall to yield: 35/12
+= thin-wall theory applies (r/t above 10): true
+*/

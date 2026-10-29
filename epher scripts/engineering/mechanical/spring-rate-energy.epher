@@ -1,0 +1,57 @@
+/* ============================================================================
+spring-rate-energy.epher -- a coil spring from wire data to stored joules
+
+A helical compression spring of 4 mm wire on a 25 mm coil, 8 active
+turns, music-wire steel. The rate is k = G d^4 / (8 D^3 n); under a
+250 N load the script gives deflection, stored energy, and the Wahl-
+corrected shear stress the wire must survive.
+
+Source: Shigley's Mechanical Engineering Design (Budynas and Nisbett),
+ch. 10 (mechanical springs: spring rate eq. 10-9, the Wahl curvature
+factor eq. 10-5, G = 79.3 GPa for steel wire, table 10-14).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const d_wire = 0.004        // wire diameter, 4 mm
+const d_coil = 0.025        // coil mean diameter, 25 mm
+const n_active = 8          // active turns
+const g_mod = 79.3e9        // shear modulus of spring steel, 79.3 GPa
+const load = 250            // the working load, 250 N
+
+// ---- model ------------------------------------------------------------------
+const rate = g_mod * d_wire ^ 4 / (8 * d_coil ^ 3 * n_active)   // N/m
+const deflection = load / rate                    // m
+const energy = 0.5 * load * deflection            // stored, J
+const spring_index = d_coil / d_wire              // C = D/d
+const wahl = (4 * spring_index + 2) / (4 * spring_index - 3) + 3 / (4 * spring_index ^ 2)
+const tau = 8 * load * d_coil * wahl / (pi * d_wire ^ 3)   // Pa, inner fibre
+
+// ---- results -----------------------------------------------------------------
+print("spring rate:", rate, "N/m")
+print("spring rate in familiar units:", rate / 1e3, "N/mm")
+print("deflection under 250 N:", deflection / 1e-3, "mm")
+print("energy stored at that load:", energy, "J")
+print("spring index C = D/d:", spring_index)
+print("Wahl factor:", wahl)
+print("wire shear stress (Wahl-corrected):", tau / 1e6, "MPa")
+print("stress inside music-wire's 1000+ MPa strength:", tau < 1e9)
+
+/* Fourth-power wire, cubed coil: the rate formula's exponents say a
+spring designer's moves are thin wire for soft, big coil for soft,
+more turns for soft. This one squats 12.3 mm at 250 N, banking 1.54 J,
+while the inner fibre of the wire carries 310 MPa -- a third of
+music-wire strength, the margin that separates a spring from a set of
+permanently squashed coils. */
+
+/* ---- expected output ----
+= spring rate: 20300.8 N/m
+= spring rate in familiar units: 20.3008 N/mm
+= deflection under 250 N: 12.3147856242 mm
+= energy stored at that load: 1.53934820303 J
+= spring index C = D/d: 6.25
+= Wahl factor: 1.24647272727
+= wire shear stress (Wahl-corrected): 309.97233746 MPa
+= stress inside music-wire's 1000+ MPa strength: true
+*/

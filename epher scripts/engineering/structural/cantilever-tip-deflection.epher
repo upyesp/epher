@@ -1,0 +1,57 @@
+/* ============================================================================
+cantilever-tip-deflection.epher -- an aluminum tube under tip and spread loads
+
+A 1.2 m cantilever of 30 x 2 mm aluminum tube carries a 150 N point load
+at its tip (delta = P L^3 / 3 E I) and, separately, a 200 N/m spread
+load over the whole span (delta = w L^4 / 8 E I). The point-load case
+also reports the root bending stress sigma = P L c / I against the
+typical 6061-T6 yield of 240 MPa.
+
+Source: Hibbeler, Mechanics of Materials, ch. 6 (bending) and ch. 12
+(deflection tables for cantilevers). The same two load cases with the
+same closed forms are tabulated in Engineering ToolBox, "Cantilever
+Beams - Moments and Deflections" (engineeringtoolbox.com). E = 69 GPa
+and yield 240 MPa are the 6061-T6 aluminum values on the Engineering
+ToolBox "Young's Modulus" and aluminum-alloy pages.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const load = 150           // point load at the tip, 150 N
+const spread = 200         // uniform load over the span, 200 N/m
+const span = 1.2           // cantilever length, 1.2 m
+const outer = 0.030        // tube outer diameter, 30 mm
+const wall = 0.002         // tube wall, 2 mm
+const E_alu = 69e9         // Young's modulus, aluminum 6061-T6, 69 GPa
+const yield_alu = 240e6    // yield strength, 6061-T6, 240 MPa
+
+// ---- model ------------------------------------------------------------------
+const inner = outer - 2 * wall                    // bore, m
+const inertia = pi / 64 * (outer ^ 4 - inner ^ 4) // second moment, m^4
+const tip_point = load * span ^ 3 / (3 * E_alu * inertia)   // m
+const tip_spread = spread * span ^ 4 / (8 * E_alu * inertia) // m
+const root_stress = load * span * (outer / 2) / inertia     // Pa
+
+// ---- results -----------------------------------------------------------------
+print("second moment of area:", inertia / 1e-12, "mm^4")
+print("tip deflection, 150 N point load:", tip_point / 1e-3, "mm")
+print("tip deflection, 200 N/m spread:", tip_spread / 1e-3, "mm")
+print("root bending stress (point load):", root_stress / 1e6, "MPa")
+print("safety factor to 240 MPa yield:", yield_alu / root_stress)
+print("point-load deflection under a strict L/180 tip limit:", tip_point <= span / 180)
+
+/* The tube is deflection-governed, not stress-governed: the tip bends
+72 mm under the point load -- a tenth of the span, well past a strict
+L/180 tip limit -- while the root stress keeps a 1.54 factor to the
+240 MPa yield. A spread load bends it 43 mm: the same total load spread
+out moves the tip less, as the L^4 against L^3 forms predict. */
+
+/* ---- expected output ----
+= second moment of area: 17329.0250772 mm^4
+= tip deflection, 150 N point load: 72.2587628251 mm
+= tip deflection, 200 N/m spread: 43.3552576951 mm
+= root bending stress (point load): 155.807957342 MPa
+= safety factor to 240 MPa yield: 1.54035778464
+= point-load deflection under a strict L/180 tip limit: false
+*/

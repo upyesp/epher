@@ -1,0 +1,59 @@
+/* ============================================================================
+mohr-circle-principal-stress.epher -- principal stresses of a plane state
+
+A plane stress element carries sigma_x = 90 MPa tension, sigma_y = 20 MPa
+compression and a 40 MPa shear. Mohr's circle gives the principal
+stresses sigma_1,2 = (sigma_x + sigma_y)/2 +- R with
+R = sqrt(((sigma_x - sigma_y)/2)^2 + tau^2), the maximum in-plane shear
+(= R), and the principal angle theta_p = atan(2 tau / (sigma_x - sigma_y)) / 2.
+The checks recompute the circle: averaging the two principals must give
+the circle centre, and the two principal planes must sit 90 degrees apart.
+
+Source: Beer, Johnston, DeWolf and Mazurek, Mechanics of Materials,
+ch. 7 (transformations of stress and strain: Mohr's circle in two
+dimensions); the same formulas appear in Hibbeler, ch. 9.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const sigma_x = 90e6       // normal stress on the x face, 90 MPa
+const sigma_y = -20e6      // normal stress on the y face, -20 MPa
+const tau_xy = 40e6        // shear stress on both faces, 40 MPa
+
+// ---- model ------------------------------------------------------------------
+const centre = (sigma_x + sigma_y) / 2                 // circle centre, Pa
+const radius = hypot((sigma_x - sigma_y) / 2, tau_xy)  // circle radius, Pa
+const sigma_1 = centre + radius                        // major principal, Pa
+const sigma_2 = centre - radius                        // minor principal, Pa
+const theta_p = deg(atan2(2 * tau_xy, sigma_x - sigma_y) / 2)  // deg
+const theta_s = theta_p - 45                           // max-shear plane, deg
+const mean_check = (sigma_1 + sigma_2) / 2             // must equal centre
+const invariant_check = sigma_x + sigma_y              // first invariant
+
+// ---- results -----------------------------------------------------------------
+print("circle centre (mean stress):", centre / 1e6, "MPa")
+print("circle radius = max in-plane shear:", radius / 1e6, "MPa")
+print("major principal stress:", sigma_1 / 1e6, "MPa")
+print("minor principal stress:", sigma_2 / 1e6, "MPa")
+print("principal plane angle:", theta_p, "deg")
+print("max-shear plane angle:", theta_s, "deg")
+print("mean of principals returns the centre:", mean_check == centre)
+print("principal sum equals sigma_x + sigma_y:", sigma_1 + sigma_2 == invariant_check)
+
+/* The element's worst stretch runs at 103 MPa tension on a plane tilted
+18 degrees from the x axis, with 33 MPa of compression crosswise; the
+most sheared plane sits 45 degrees further round at 68 MPa. Both checks
+close the circle: the principals average to the centre and their sum is
+the stress invariant sigma_x + sigma_y, as Mohr's construction demands. */
+
+/* ---- expected output ----
+= circle centre (mean stress): 35 MPa
+= circle radius = max in-plane shear: 68.0073525437 MPa
+= major principal stress: 103.007352544 MPa
+= minor principal stress: -33.0073525437 MPa
+= principal plane angle: 18.0136866926 deg
+= max-shear plane angle: -26.9863133074 deg
+= mean of principals returns the centre: true
+= principal sum equals sigma_x + sigma_y: true
+*/

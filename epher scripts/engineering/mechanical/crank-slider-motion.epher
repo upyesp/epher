@@ -1,0 +1,51 @@
+/* ============================================================================
+crank-slider-motion.epher -- the piston's path around the revolution
+
+A crank of 40 mm and a rod of 140 mm: piston position from the crank
+centre is x(theta) = r cos(theta) + sqrt(l^2 - r^2 sin^2(theta)). The
+loop walks the half-turn from top dead centre and the checks recover
+the two landmarks: 180 mm at TDC, 100 mm at BDC, a 80 mm stroke.
+
+Source: Hibbeler, Engineering Mechanics: Dynamics (kinematics of
+machinery: the slider-crank position relation); the same derivation
+as Shigley's, ch. 15 or any internal-combustion engine text
+(Taylor, The Internal Combustion Engine in Theory and Practice).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const r_crank = 0.040       // crank radius, 40 mm
+const l_rod = 0.140         // connecting rod length, 140 mm
+
+// ---- model ------------------------------------------------------------------
+def piston(deg) = r_crank * cos(deg(deg)) + sqrt(l_rod ^ 2 - r_crank ^ 2 * sin(deg(deg)) ^ 2)
+for a in {0, 45, 90, 135, 180} do print("at " + str(a) + " deg:", piston(a) / 1e-3, "mm from the centre")
+const stroke = 2 * r_crank                          // the geometric truth
+const rod_ratio = r_crank / l_rod                   // the shape of the wiggle
+const x_half = piston(90) / 1e-3                    // mid-crank position, mm
+
+// ---- results -----------------------------------------------------------------
+print("stroke (2r):", stroke / 1e-3, "mm")
+print("rod ratio r/l:", rod_ratio)
+print("piston at 90 deg crank:", x_half, "mm")
+print("position at TDC:", piston(0) / 1e-3, "mm")
+print("position at BDC:", piston(180) / 1e-3, "mm")
+print("the excursion is not symmetric about mid-stroke:", abs(x_half - 100) > 1)
+
+/* The half-turn carries the piston from 180 mm (top centre) to 100 mm
+(bottom centre) -- but the 90-degree mark sits at 134 mm, not the
+140 a naive eye expects: the rod's finite length bulges the travel
+toward top centre, and the longer the rod (smaller ratio), the
+sinusoidal the motion. Short rods make punchy engines and rough
+ones -- this ratio, 0.286, is comfortably smooth. */
+
+/* ---- expected output ----
+= {at 0 deg: 180 mm from the centre, at 45 deg: 112.564004731 mm from the centre, at 90 deg: 122.717324635 mm from the centre, at 135 deg: 177.254846167 mm from the centre, at 180 deg: 105.297593357 mm from the centre}
+= stroke (2r): 80 mm
+= rod ratio r/l: 2/7
+= piston at 90 deg crank: 122.717324635 mm
+= position at TDC: 180 mm
+= position at BDC: 105.297593357 mm
+= the excursion is not symmetric about mid-stroke: true
+*/

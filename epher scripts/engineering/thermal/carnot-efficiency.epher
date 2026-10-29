@@ -1,0 +1,59 @@
+/* ============================================================================
+carnot-efficiency.epher -- the ceiling no heat engine beats
+
+A steam plant boils at 540 degrees C and rejects to a 28 degrees C
+river. Carnot's efficiency eta = 1 - T_cold / T_hot, in ABSOLUTE
+temperature, is the ceiling for any engine between those reservoirs;
+the real plant lands near 40 percent, and the script shows how close
+that is to physics' limit and what a hotter throttle would buy.
+
+Source: Cengel and Boles, Thermodynamics: An Engineering Approach,
+ch. 6 (the second law: Kelvin-Planck statement, the Carnot efficiency
+eta_C = 1 - T_L/T_H, and why T must be kelvin). Steam conditions follow
+the typical supercritical plant numbers of the same text's ch. 10.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const t_hot_c = 540         // steam throttle temperature, degrees C
+const t_cold_c = 28         // rejection temperature (river), degrees C
+const real_eff = 0.40       // the plant's measured efficiency
+const fuel_mj = 1000        // fuel energy in, MJ
+
+// ---- model ------------------------------------------------------------------
+const t_hot = t_hot_c + 273.15        // kelvin, always kelvin
+const t_cold = t_cold_c + 273.15
+const carnot = 1 - t_cold / t_hot     // the ceiling, fraction
+const real_out = real_eff * fuel_mj   // real work out, MJ
+const carnot_out = carnot * fuel_mj   // the same fuel at the ceiling, MJ
+const heat_rejected = fuel_mj - real_out  // to the river, MJ
+const t_hot_needed = t_cold / (1 - real_eff)  // T_H that makes Carnot = 40%
+
+// ---- results -----------------------------------------------------------------
+print("reservoirs in kelvin:", t_hot, "K and", t_cold, "K")
+print("Carnot ceiling for this plant:", carnot)
+print("real plant efficiency:", real_eff)
+print("real plant runs at this share of the ceiling:", real_eff / carnot)
+print("work from 1000 MJ of fuel (real):", real_out, "MJ")
+print("the same fuel at the ceiling:", carnot_out, "MJ")
+print("heat handed to the river:", heat_rejected, "MJ")
+print("throttle that would make Carnot 40%:", t_hot_needed - 273.15, "degrees C")
+
+/* Carnot's ratio says 64 percent, the plant delivers 40 -- about
+sixty percent of what the second law allows, which is close to
+engineering's practical edge of the line. The rest of the fuel leaves
+as 600 MJ of warm river. The last line is the stern one: to justify
+itself at 40 percent, Carnot only needs a 229 degrees C throttle --
+efficiency is bought with temperature, not with better pistons. */
+
+/* ---- expected output ----
+= reservoirs in kelvin: 813.15 K and 301.15 K
+= Carnot ceiling for this plant: 0.629650126053
+= real plant efficiency: 0.4
+= real plant runs at this share of the ceiling: 0.6352734375
+= work from 1000 MJ of fuel (real): 400 MJ
+= the same fuel at the ceiling: 629.650126053 MJ
+= heat handed to the river: 600 MJ
+= throttle that would make Carnot 40%: 6863/30 degrees C
+*/

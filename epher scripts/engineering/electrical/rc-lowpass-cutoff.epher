@@ -1,0 +1,54 @@
+/* ============================================================================
+rc-lowpass-cutoff.epher -- where a filter starts saying no
+
+A first-order RC low-pass (1.6 kohm, 100 nF) passes DC untouched and
+rolls off above its corner f_c = 1 / (2 pi R C), dropping 20 dB per
+decade. The script finds the corner, confirms the famous half-power
+point (0.707, -3.01 dB) sits at f_c, and evaluates gain and phase at
+twice the corner.
+
+Source: Horowitz and Hill, The Art of Electronics, 3rd ed., ch. 1
+(filters from pole frequency: f_c = 1/(2 pi R C), 3 dB point, phase
+lag); magnitude and phase forms as in Boylestad, Introductory Circuit
+Analysis, ch. 21 (decibels, filters, and Bode sketches).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const r = 1.6e3            // series resistor, 1.6 kohm
+const c = 100e-9           // shunt capacitor, 100 nF
+const f_test = 2e3         // a frequency to evaluate, 2 kHz
+
+// ---- model ------------------------------------------------------------------
+const f_c = 1 / (2 * pi * r * c)                // corner frequency, Hz
+const gain_at_corner = 1 / sqrt(1 + 1 ^ 2)      // |H| at f_c
+const x = f_test / f_c                          // normalized frequency
+const gain = 1 / sqrt(1 + x ^ 2)                // |H(f_test)|
+const db = 20 * log(gain) / log(10)             // in dB
+const phase_lag = -deg(atan(x))                     // output lags input, deg
+
+// ---- results -----------------------------------------------------------------
+print("corner frequency 1/(2 pi R C):", f_c, "Hz")
+print("gain at the corner:", gain_at_corner)
+print("gain at the corner in dB:", 20 * log(gain_at_corner) / log(10), "dB")
+print("gain at 2 kHz:", gain)
+print("gain at 2 kHz in dB:", db, "dB")
+print("phase lag at 2 kHz:", phase_lag, "deg")
+print("the corner is the half-power point:", abs(gain_at_corner - 1 / sqrt(2)) < 1e-12)
+
+/* The corner sits at 995 Hz, and the checks honor two textbook rituals:
+the gain there is exactly 1/sqrt(2) -- the half-power, -3.01 dB point --
+and twice the corner costs 7 dB, on the way to the first-order's 20 dB
+per decade slide. Signals that matter above 1 kHz leave this filter
+quadrupled in phase lag and half in muscle. */
+
+/* ---- expected output ----
+= corner frequency 1/(2 pi R C): 994.718394324 Hz
+= gain at the corner: 0.707106781187
+= gain at the corner in dB: -3.01029995664 dB
+= gain at 2 kHz: 0.445320996776
+= gain at 2 kHz in dB: -7.02653655016 dB
+= phase lag at 2 kHz: -63.5561221261 deg
+= the corner is the half-power point: true
+*/

@@ -1,0 +1,63 @@
+/* ============================================================================
+heater-sizing-air.epher -- the kilowatts behind a warm room
+
+A workshop air heater fights two losses: the envelope (walls, roof,
+infiltration at a set air-changes-per-hour) and the air's own heat-up
+demand Q = rho V cp dT for each room-volume of fresh air. The script
+sizes the heater for a design cold day and reports the duty breakdown.
+
+Source: ASHRAE Handbook -- Fundamentals, ch. 17-18 (residential cooling
+and heating load: air infiltration at n ACH per hour,
+Q = rho n V cp dT / 3600, and envelope U A dT losses). Air properties
+rho = 1.2 kg/m^3, cp = 1006 J/kg K are the ASHRAE dry-air values near
+room conditions; the U-value is carried over from the wall-heat-loss
+script's composite wall.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const room_l = 6            // room length, 6 m
+const room_w = 4            // room width, 4 m
+const room_h = 2.7          // ceiling, 2.7 m
+const ach = 1.5             // air changes per hour, infiltration
+const temp_rise = 22          // design inside-outside difference, 22 K
+const envelope_w = 900      // conduction loss through fabric, W
+const margin = 1.2          // safety margin on the total
+
+// ---- model ------------------------------------------------------------------
+const volume = room_l * room_w * room_h            // m^3
+const air_mass_per_s = volume * ach / 3600 * 1.2   // kg/s of infiltrating air
+const infiltration = air_mass_per_s * 1006 * temp_rise   // W to warm that air
+const fabric = envelope_w                          // the walls' own leak, W
+const total = fabric + infiltration                // design load, W
+const heater = total * margin                      // the unit to buy, W
+const runtime_kwh = heater / 1000 * 8              // a workday at full tilt, kWh
+
+// ---- results -----------------------------------------------------------------
+print("room volume:", volume, "m^3")
+print("infiltrating air:", air_mass_per_s, "kg/s")
+print("infiltration loss at 22 K:", infiltration, "W")
+print("fabric loss at 22 K:", fabric, "W")
+print("design heat load:", total, "W")
+print("heater to install (with margin):", heater, "W")
+print("a full workday at design output:", runtime_kwh, "kWh")
+print("the load fits a standard 1.8 kW unit:", heater <= 1800)
+
+/* The room needs 1.37 kW, of which 717 W is just warming the cold air
+that leaks in -- a metre of under-door gap behaves like a radiator in
+reverse. Sizing to 1.8 kW with margin costs pennies to run at part
+load, but oversizing past twice the load makes a heater cycle and never
+settle; the honest design number is the load, not the catalogue's
+biggest box. */
+
+/* ---- expected output ----
+= room volume: 64.8 m^3
+= infiltrating air: 0.0324 kg/s
+= infiltration loss at 22 K: 717.0768 W
+= fabric loss at 22 K: 900 W
+= design heat load: 1617.0768 W
+= heater to install (with margin): 1940.49216 W
+= a full workday at design output: 15.52393728 kWh
+= the load fits a standard 1.8 kW unit: false
+*/

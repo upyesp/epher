@@ -1,0 +1,55 @@
+/* ============================================================================
+pid-walkthrough.epher -- P, I and D acting on one error history
+
+A controller sees an error sequence -- 10, 8, 5, 2, 0 -- as a process
+settles. Proportional reacts to the now, integral sums the past (the
+steady droop killer), derivative damps the trend. The script walks the
+five steps with Kp = 2, Ki = 0.5, Kd = 0.1 and shows the three terms'
+parts shrink, build and vanish in turn.
+
+Source: Ogata, Modern Control Engineering, 5th ed., ch. 8 (PID
+controllers: u = Kp e + Ki integral e dt + Kd de/dt and each term's
+role); the digital sum-difference form per Franklin, Powell and
+Workman, Digital Control of Dynamic Systems, ch. 3.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const errors = {10, 8, 5, 2, 0}     // the error the controller sees
+const kp = 2                        // proportional gain
+const ki = 0.5                      // integral gain, per step
+const kd = 0.1                      // derivative gain, per step
+
+// ---- model ------------------------------------------------------------------
+const p_term = kp * errors[1]
+const p_last = kp * errors[5]
+const error_sum = sum(errors)                 // the I term's memory
+const i_contribution = ki * error_sum
+const d_first = kd * (errors[2] - errors[1]) // the trend, negative and calming
+
+// ---- results -----------------------------------------------------------------
+print("P term at the first (worst) error:", p_term)
+print("P term once the error is gone:", p_last)
+print("integral of the whole history:", error_sum)
+print("I term's contribution by the end:", i_contribution)
+print("D term on the first move (damping):", d_first)
+print("final output U at the last step:", kp * errors[5] + i_contribution + kd * (errors[5] - errors[4]))
+print("I holds when P forgets:", i_contribution > 0 and p_last == 0)
+
+/* Proportional does the heavy lifting and leaves: at zero error it
+outputs nothing, which is precisely the droop the integral exists to
+cure -- by the last step P is 0 and I is holding 12.5 of output, the
+memory of every past error. Derivative only speaks when the error is
+moving, braking the first lunge by 0.2. Tune Kp for speed, Ki for
+accuracy, Kd for manners. */
+
+/* ---- expected output ----
+= P term at the first (worst) error: 20
+= P term once the error is gone: 0
+= integral of the whole history: 25
+= I term's contribution by the end: 12.5
+= D term on the first move (damping): -0.2
+= final output U at the last step: 12.3
+= I holds when P forgets: true
+*/

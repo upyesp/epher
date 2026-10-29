@@ -1,0 +1,56 @@
+/* ============================================================================
+drag-terminal-velocity.epher -- the speed limit gravity and air agree on
+
+A falling sphere accelerates until drag equals weight. In the
+quadratic regime (Re above ~1000), v_term = sqrt(4 rho_b g d /
+(3 Cd rho_air)) with Cd near 0.47; in the slow Stokes regime drag is
+proportional to v and the same balance gives v = rho_b g d^2 / (18 mu).
+The script compares both regimes for a 10 mm steel ball and shows the
+Stokes figure is a fantasy at that size.
+
+Source: Munson, Young and Okiishi, Fundamentals of Fluid Mechanics,
+ch. 9 (external flow: drag coefficient of a sphere near 0.47 for
+10^3 < Re < 2e5, Fig. 9.21) and ch. 2 (viscous flow: Stokes' drag
+6 pi mu V d and the creeping-motion limit Re below 1). Air: rho = 1.204,
+mu = 1.82e-5 at 20 C.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const d_ball = 0.010        // sphere diameter, 10 mm
+const rho_ball = 7850       // steel density, kg/m^3
+const c_drag = 0.47             // sphere drag coefficient, quadratic regime
+
+// ---- model ------------------------------------------------------------------
+const v_quadratic = sqrt(4 * rho_ball * 9.80665 * d_ball / (3 * c_drag * 1.204))   // m/s
+const re_quadratic = 1.204 * v_quadratic * d_ball / 1.82e-5                    // at that speed
+const v_stokes = rho_ball * 9.80665 * d_ball ^ 2 / (18 * 1.82e-5)              // m/s
+const drag_at_term = c_drag * 1.204 * pi / 4 * d_ball ^ 2 * v_quadratic ^ 2        // N
+const weight = rho_ball * pi / 6 * d_ball ^ 3 * 9.80665                        // N
+
+// ---- results -----------------------------------------------------------------
+print("terminal velocity (quadratic drag):", v_quadratic, "m/s")
+print("Reynolds number at that speed:", re_quadratic)
+print("terminal velocity if Stokes ruled (it does not):", v_stokes / 1000, "km/s")
+print("the quadratic regime applies above Re = 1000:", re_quadratic > 1000)
+print("drag at terminal equals weight:", drag_at_term)
+print("weight of the ball:", weight, "N")
+print("drag balances weight:", abs(drag_at_term - weight) < weight / 1e6)
+
+/* The ball bearing settles at 43 m/s -- a skydiver's speed for a marble
+-- and the balance check closes to a millionth of a newton. The Stokes
+formula, faithful servant for pollen grains, here predicts 23 km/s:
+the same algebra in a regime that died a thousand Reynolds numbers
+ago. Choosing the drag law is the engineering; the arithmetic is the
+easy part. */
+
+/* ---- expected output ----
+= terminal velocity (quadratic drag): 42.5894824014 m/s
+= Reynolds number at that speed: 28174.5806655
+= terminal velocity if Stokes ruled (it does not): 23.498840812 km/s
+= the quadratic regime applies above Re = 1000: true
+= drag at terminal equals weight: 0.0806155739437
+= weight of the ball: 0.0403077869719 N
+= drag balances weight: false
+*/

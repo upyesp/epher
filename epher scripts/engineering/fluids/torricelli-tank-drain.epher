@@ -1,0 +1,55 @@
+/* ============================================================================
+torricelli-tank-drain.epher -- how long a tank takes to empty
+
+Torricelli's law: the jet leaves a hole at v = sqrt(2 g h), and as the
+level falls the jet slows with it. Draining time for a prismatic tank
+follows from integrating: T = (A_tank / A_hole) sqrt(2 h0 / g). The
+loop walks the level hour by hour and the closed form is checked
+against the level at that time.
+
+Source: Munson, Young and Okiishi, Fundamentals of Fluid Mechanics,
+ch. 3 (Bernoulli applications: Torricelli's theorem and the tank-drain
+integral, Example 3.10 in that text). Evelli's 1643 experiment is the
+historical anchor retold in every fluid text.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const tank_d = 1.2          // tank diameter, 1.2 m
+const depth = 2.0           // initial water depth, 2 m
+const hole_d = 0.010        // drain hole diameter, 10 mm
+
+// ---- model ------------------------------------------------------------------
+const a_tank = pi / 4 * tank_d ^ 2            // surface area, m^2
+const a_hole = pi / 4 * hole_d ^ 2            // orifice area, m^2
+const jet_start = sqrt(2 * 9.80665 * depth)   // initial jet speed, m/s
+const t_drain = a_tank / a_hole * sqrt(2 * depth / 9.80665)  // full drain, s
+def level(t) = (sqrt(depth) - t * a_hole / a_tank * sqrt(9.80665 / 2)) ^ 2
+for mark in {0, 1800, 3600, 7200, 9000} do print("level at " + str(mark) + " s:", level(mark), "m")
+
+// ---- results -----------------------------------------------------------------
+print("initial jet speed:", jet_start, "m/s")
+print("tank-to-hole area ratio:", a_tank / a_hole)
+print("total time to drain:", t_drain, "s")
+print("drain time in hours:", t_drain / 3600, "hr")
+print("level at the predicted finish:", level(t_drain), "m")
+print("the closed form lands exactly empty:", level(t_drain) < 0.001)
+
+/* A 1.13-square-metre surface squeezing through a stamp-sized hole
+takes 9197 seconds -- two and a half hours of dwindling trickle. The
+jet starts at 6.3 m/s, brisk enough to jump a gutter, and ends barely
+crawling: height drains with the square root of time remaining, and
+almost half the water leaves in the first quarter of the clock. Plug
+the hole with a thumb and the whole schedule divides by the same area
+ratio. */
+
+/* ---- expected output ----
+= {level at 0 s: 2 m, level at 1800 s: 1.29372517296 m, level at 3600 s: 0.740679252167 m, level at 7200 s: 0.094274129333 m, level at 9000 s: 0.000914927291288 m}
+= initial jet speed: 6.26311424133 m/s
+= tank-to-hole area ratio: 14400
+= total time to drain: 9196.70275529 s
+= drain time in hours: 2.55463965425 hr
+= level at the predicted finish: 0.000000000000000000000000000000197215226305 m
+= the closed form lands exactly empty: true
+*/

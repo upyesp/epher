@@ -1,0 +1,53 @@
+/* ============================================================================
+reynolds-number.epher -- whether a flow is calm or a storm
+
+The Reynolds number Re = rho V D / mu compares inertia to viscosity: a
+dimensionless verdict that sorts every flow into laminar (below ~2300
+in pipes), turbulent (above ~4000) or the transition between. The
+script computes it for water in a pipe and air over a wing chord, and
+labels each regime.
+
+Source: Munson, Young and Okiishi, Fundamentals of Fluid Mechanics,
+ch. 8 (pipe flow: the Reynolds number and its laminar-turbulent
+thresholds); the airfoil-chord case with standard air properties
+(rho = 1.204 kg/m^3, mu = 1.82e-5 Pa s) follows Anderson,
+Fundamentals of Aerodynamics. Water: rho = 998, mu = 1.002e-3 at 20 C
+(Engineering ToolBox, "Water - Dynamic and Kinematic Viscosity").
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const v_pipe = 2.0          // water speed in the pipe, 2 m/s
+const d_pipe = 0.050        // pipe bore, 50 mm
+const v_air = 30            // airspeed over the chord, 30 m/s
+const chord = 0.2           // wing chord, 200 mm
+
+// ---- model ------------------------------------------------------------------
+const re_pipe = 998 * v_pipe * d_pipe / 1.002e-3     // water at 20 C
+const re_air = 1.204 * v_air * chord / 1.82e-5       // air at 20 C
+def pipe_regime(re) = if re < 2300 then "laminar" else if re > 4000 then "turbulent" else "transition"
+
+// ---- results -----------------------------------------------------------------
+print("Reynolds number, water in the pipe:", re_pipe)
+print("pipe flow regime:", pipe_regime(re_pipe))
+print("Reynolds number, air over the chord:", re_air)
+print("a wing chord at 300000 is deep in turbulent:", re_air > 300000)
+print("the same water at pipe-walking speed 0.1 m/s:", 998 * 0.1 * d_pipe / 1.002e-3)
+print("that slower flow regime:", pipe_regime(998 * 0.1 * d_pipe / 1.002e-3))
+
+/* The water main runs a hundred thousand Re -- chaotic, mixing,
+friction that scales with speed squared -- while the wing chord rides
+at four hundred thousand, the regime every aerodynamic table assumes.
+Walk the same water at 0.1 m/s and Re drops to five thousand, nearly
+calm: the SAME pipe, the SAME fluid, a different universe of flow,
+decided by one dimensionless ratio. */
+
+/* ---- expected output ----
+= Reynolds number, water in the pipe: 49900000/501
+= pipe flow regime: turbulent
+= Reynolds number, air over the chord: 5160000/13
+= a wing chord at 300000 is deep in turbulent: true
+= the same water at pipe-walking speed 0.1 m/s: 2495000/501
+= that slower flow regime: turbulent
+*/

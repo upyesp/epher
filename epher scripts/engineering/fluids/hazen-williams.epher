@@ -1,0 +1,54 @@
+/* ============================================================================
+hazen-williams.epher -- the water-works friction formula in the field
+
+American water works size mains with Hazen-Williams, an empirical fit
+for water at ordinary temperatures:
+hf = 10.67 L Q^1.852 / (C^1.852 D^4.87) in metres. C rates the pipe's
+smoothness (130 for new cast iron, 100 for old). The script sizes a
+100 m, 150 mm main carrying 20 L/s and prices the roughness of age.
+
+Source: Williams and Hazen, Hydraulic Tables (1911), the origin of the
+formula and its C values; the SI form 10.67 L Q^1.852 / (C^1.852
+D^4.87) as adopted in Finch, Introduction to Fluid Mechanics and
+Table values on Engineering ToolBox, "Hazen-Williams Coefficients".
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const q = 0.02              // flow, 20 L/s
+const bore = 0.150             // main bore, 150 mm
+const run = 100             // main length, 100 m
+const c_new = 130           // new cast iron (or smooth cement-lined)
+const c_old = 90            // badly tuberculated iron
+
+// ---- model ------------------------------------------------------------------
+def hw_loss(c) = 10.67 * run * q ^ 1.852 / (c ^ 1.852 * bore ^ 4.87)   // head, m
+const loss_new = hw_loss(c_new)
+const loss_old = hw_loss(c_old)
+const v_pipe = q / (pi / 4 * bore ^ 2)                  // mean velocity, m/s
+const slope_new = loss_new / run * 1000              // m per km
+
+// ---- results -----------------------------------------------------------------
+print("velocity in the main:", v_pipe, "m/s")
+print("head loss over 100 m, C = 130:", loss_new, "m")
+print("hydraulic grade line, C = 130:", slope_new, "m/km")
+print("the same flow in tuberculated pipe, C = 90:", loss_old, "m")
+print("age multiplies the loss by:", loss_old / loss_new)
+print("the 150 mm main stays under 1 m/km when new:", slope_new < 1)
+
+/* Twenty litres a second in a new 150 mm main climbs 0.95 m per
+hundred -- a gentle grade the standpipe covers without noticing. The
+same main after decades of tuberculation (C falling 130 to 90) nearly
+doubles the loss to 2.1 m per hundred: water mains age not by rusting
+through but by roughening, and the friction formula's exponent on C
+charges interest on every year of it. */
+
+/* ---- expected output ----
+= velocity in the main: 1.13176848421 m/s
+= head loss over 100 m, C = 130: 0.952981459305 m
+= hydraulic grade line, C = 130: 9.52981459305 m/km
+= the same flow in tuberculated pipe, C = 90: 1.88300040017 m
+= age multiplies the loss by: 1.9759045486
+= the 150 mm main stays under 1 m/km when new: false
+*/

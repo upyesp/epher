@@ -1,0 +1,73 @@
+/* ============================================================================
+wall-heat-loss.epher -- what a winter wall really costs
+
+A 12 m by 2.6 m wall: brick facing, mineral wool cavity, plasterboard.
+Each layer's R-value adds in series (R = thickness / conductivity), the
+wall's U-value is 1/R_total, and steady heat loss is Q = U A dT. The
+script prices the season's loss against the same wall uninsulated and
+at an upgraded cavity, so the numbers argue for themselves.
+
+Source: Incropera, DeWitt, Bergman and Lavine, Fundamentals of Heat and
+Mass Transfer, ch. 3 (one-dimensional conduction: the thermal-resistance
+network for a composite wall). Material conductivities are the standard
+table values on Engineering ToolBox, "Thermal Conductivity of common
+Materials" (brick 0.7, mineral wool 0.04, plasterboard 0.16 W/m K).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const width = 12            // wall width, 12 m
+const height = 2.6          // wall height, 2.6 m
+const t_brick = 0.105       // brick leaf, 105 mm
+const t_wool = 0.100        // mineral wool cavity, 100 mm
+const t_plaster = 0.013     // plasterboard, 13 mm
+const k_brick = 0.7         // conductivity, W/m K
+const k_wool = 0.04         // conductivity, W/m K
+const k_plaster = 0.16      // conductivity, W/m K
+const temp_rise = 20          // inside minus outside, 20 K
+const hours = 2100          // heating season hours
+const price = 0.30          // heat, per kWh
+
+// ---- model ------------------------------------------------------------------
+const area = width * height                     // m^2
+const r_brick = t_brick / k_brick               // layer resistances, m^2 K / W
+const r_wool = t_wool / k_wool
+const r_plaster = t_plaster / k_plaster
+const r_total = r_brick + r_wool + r_plaster    // series network
+const u_value = 1 / r_total                     // U = 1 / R
+const q_flux = u_value * temp_rise                // W per m^2
+const q_wall = q_flux * area                    // watts through the wall
+const kwh_season = q_wall * hours / 1000        // season energy, kWh
+const cost_season = kwh_season * price
+const r_bare = t_brick / k_brick + t_plaster / k_plaster     // no cavity
+const q_bare = temp_rise / r_bare * area
+const cost_bare = q_bare * hours / 1000 * price
+const r_upgrade = t_brick / k_brick + 0.2 / k_wool + t_plaster / k_plaster
+const cost_upgrade = temp_rise / r_upgrade * area * hours / 1000 * price
+
+// ---- results -----------------------------------------------------------------
+print("layer R-values (brick, wool, plaster):", r_brick, r_wool, r_plaster, "m^2 K/W")
+print("total wall resistance:", r_total, "m^2 K/W")
+print("U-value:", u_value, "W/m^2 K")
+print("steady loss at 20 K inside-out:", q_wall, "W")
+print("season energy and cost:", kwh_season, "kWh,", cost_season)
+print("the same wall without the cavity:", cost_bare)
+print("with a 200 mm cavity:", cost_upgrade)
+
+/* The 100 mm cavity does the heavy lifting: 2.5 of the wall's 2.73
+m^2 K/W of resistance is wool, one sixteenth of the thickness. The
+insulated wall sheds 228 W and costs about 144 a season; bare, the same
+wall sheds nearly twelve times the heat at twelve times the bill -- and
+doubling the wool to 200 mm halves the loss again, at the price of a
+thicker sill detail. */
+
+/* ---- expected output ----
+= layer R-values (brick, wool, plaster): 0.15 2.5 0.08125 m^2 K/W
+= total wall resistance: 2.73125 m^2 K/W
+= U-value: 160/437 W/m^2 K
+= steady loss at 20 K inside-out: 99840/437 W
+= season energy and cost: 209664/437 kWh, 143.93409611
+= the same wall without the cavity: 314496/185
+= with a 200 mm cavity: 11648/155
+*/

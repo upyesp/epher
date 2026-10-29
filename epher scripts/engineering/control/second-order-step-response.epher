@@ -1,0 +1,52 @@
+/* ============================================================================
+second-order-step-response.epher -- overshoot, set by damping alone
+
+An underdamped second-order system (a mass on a spring with damping,
+a position servo) rises past its target and rings before settling.
+With natural frequency omega_n and damping ratio zeta, the overshoot
+is Mp = e^(-pi zeta / sqrt(1 - zeta^2)), the peak time pi/omega_d, and
+the 2 percent settling time about 4/(zeta omega_n) -- all three set by
+zeta and omega_n alone.
+
+Source: Ogata, Modern Control Engineering, 5th ed., ch. 5 (transient
+response of second-order systems: maximum overshoot eq. 5-21, peak
+time eq. 5-19, settling time eq. 5-23).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const omega_n = 10          // natural frequency, 10 rad/s
+const zeta = 0.3            // damping ratio, 0.3 (underdamped)
+const target = 1.0          // the step the system must reach
+
+// ---- model ------------------------------------------------------------------
+const omega_d = omega_n * sqrt(1 - zeta ^ 2)         // damped frequency
+const overshoot = exp(-pi * zeta / sqrt(1 - zeta ^ 2))   // fraction
+const peak_time = pi / omega_d                       // s
+const settle_time = 4 / (zeta * omega_n)             // 2 percent band, s
+const peak_value = target * (1 + overshoot)          // the first hump
+
+// ---- results -----------------------------------------------------------------
+print("damped frequency omega_d:", omega_d, "rad/s")
+print("overshoot Mp:", overshoot)
+print("peak value after a unit step:", peak_value)
+print("peak time:", peak_time, "s")
+print("2% settling time:", settle_time, "s")
+print("zeta = 0.7 would nearly kill the ring:", exp(-pi * 0.7 / sqrt(1 - 0.7 ^ 2)))
+
+/* At zeta = 0.3 the system leaps 37 percent past its target in a
+third of a second and takes a full 1.33 seconds to call itself done --
+fast but showy. Nudge zeta to 0.7 and overshoot collapses to 4.6
+percent, the classical "best of both" tuning. Damping buys calm at
+the price of rise time; the designer's job is deciding which the
+application is actually paying for. */
+
+/* ---- expected output ----
+= damped frequency omega_d: 9.53939201417 rad/s
+= overshoot Mp: 0.372326104927
+= peak value after a unit step: 1.37232610493
+= peak time: 0.329328394192 s
+= 2% settling time: 4/3 s
+= zeta = 0.7 would nearly kill the ring: 0.0459879102603
+*/

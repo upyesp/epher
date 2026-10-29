@@ -1,0 +1,55 @@
+/* ============================================================================
+transformer-turns-ratio.epher -- a 230 to 115 V isolation transformer
+
+An ideal transformer scales voltage by the turns ratio Np/Ns and scales
+current by its inverse: a 1000-turn primary on 230 V needs a 500-turn
+secondary for 115 V, and a 100 VA load draws twice the current on the
+low side but half of it from the primary. The check is conservation:
+power in must equal power out.
+
+Source: Boylestad, Introductory Circuit Analysis, ch. 23 (transformers:
+turns ratio, voltage and current relations, and the ideal transformer
+power balance).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const v_primary = 230      // mains side, 230 V
+const v_secondary = 115    // output side, 115 V
+const n_primary = 1000     // primary turns
+const load_va = 100        // the load seen by the secondary, 100 VA
+
+// ---- model ------------------------------------------------------------------
+const ratio = n_primary * v_secondary / v_primary   // secondary turns
+const i_sec = load_va / v_secondary                 // secondary current, A
+const i_pri = load_va / v_primary                   // primary current, A
+const power_out = v_secondary * i_sec               // VA delivered, W
+const power_in = v_primary * i_pri                  // VA drawn, W
+const z_seen = (n_primary / ratio) ^ 2 * (v_secondary ^ 2 / load_va)  // referred load, ohm
+
+// ---- results -----------------------------------------------------------------
+print("secondary turns for 115 V:", ratio)
+print("secondary current at 100 VA:", i_sec, "A")
+print("primary current at 100 VA:", i_pri, "A")
+print("power in:", power_in, "W")
+print("power out:", power_out, "W")
+print("the ideal balance holds:", abs(power_in - power_out) < 1e-9)
+print("load referred to the primary:", z_seen, "ohm")
+
+/* A 2:1 step-down doubles the current on the way through: 0.43 A in,
+0.87 A out, watts identical -- the transformer trades voltage for
+current, it never makes power. The referred impedance line is the quiet
+workhorse: to the 230 V mains, a 132 ohm secondary load looks four
+times bigger, which is how an audio output stage sees the speaker it
+wants to see. */
+
+/* ---- expected output ----
+= secondary turns for 115 V: 500
+= secondary current at 100 VA: 20/23 A
+= primary current at 100 VA: 10/23 A
+= power in: 100 W
+= power out: 100 W
+= the ideal balance holds: true
+= load referred to the primary: 529 ohm
+*/

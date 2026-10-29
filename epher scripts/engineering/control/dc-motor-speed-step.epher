@@ -1,0 +1,55 @@
+/* ============================================================================
+dc-motor-speed-step.epher -- a motor's spin-up, predicted from its nameplate
+
+A small DC motor obeys the first-order speed response
+omega(t) = omega_ss (1 - e^(-t/tau)) with the mechanical time constant
+tau = J R / (Kt Ke) -- rotor inertia times winding resistance over the
+motor-constant square -- and no-load speed omega_ss = V / Ke. The
+script predicts the spin-up for a 12 V step on a Kt = Ke = 0.05 motor.
+
+Source: Franklin, Powell and Emami-Naeini, Feedback Control of Dynamic
+Systems, ch. 2 (dynamic models: DC-motor transfer function, Kt, Ke,
+J and R combining into a first-order lag); the same model in Ogata,
+Modern Control Engineering, ch. 2.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const k_t = 0.05            // torque constant, N m / A
+const k_e = 0.05            // back-EMF constant, V s / rad
+const resistance = 1.0      // winding resistance, ohm
+const rotor_j = 2.0e-4      // rotor inertia, kg m^2
+const volts = 12            // the applied step, 12 V
+
+// ---- model ------------------------------------------------------------------
+const tau = rotor_j * resistance / (k_t * k_e)      // the motor's time constant, s
+const omega_ss = volts / k_e                        // no-load speed, rad/s
+def speed(t) = omega_ss * (1 - exp(-t / tau))       // the spin-up curve
+for mark in {0.08, 0.16, 0.32} do print("at " + str(mark) + " s:", speed(mark), "rad/s")
+const rpm_ss = omega_ss * 60 / (2 * pi)
+
+// ---- results -----------------------------------------------------------------
+print("time constant J R / (Kt Ke):", tau, "s")
+print("no-load speed at 12 V:", omega_ss, "rad/s")
+print("the same speed in rpm:", rpm_ss)
+print("63% of speed at one tau:", speed(tau) / omega_ss)
+print("settled (2% band) at:", 4 * tau, "s")
+print("stall current at the instant of the step:", volts / resistance, "A")
+
+/* The rotor reaches 63 percent of its 2291 rpm in 80 milliseconds and
+calls itself spun-up by a third of a second -- numbers a designer
+reads straight off four nameplate constants. The last line is the
+ugly truth of the step: at standstill the motor is a 1-ohm wire, and
+the controller must choke 12 amperes until the back-EMF builds.
+Speed control is easy; current inrush is the design problem. */
+
+/* ---- expected output ----
+= {at 0.08 s: 151.708934119 rad/s, at 0.16 s: 207.519532023 rad/s, at 0.32 s: 235.604246667 rad/s}
+= time constant J R / (Kt Ke): 0.08 s
+= no-load speed at 12 V: 240 rad/s
+= the same speed in rpm: 2291.83118052
+= 63% of speed at one tau: 0.632120558829
+= settled (2% band) at: 0.32 s
+= stall current at the instant of the step: 12 A
+*/

@@ -1,0 +1,53 @@
+/* ============================================================================
+darcy-weisbach-loss.epher -- the price a pipe charges for flow
+
+Water at 2 m/s in 50 m of 50 mm commercial-steel pipe pays for the
+trip: the Darcy-Weisbach head loss hf = f (L/D) V^2 / (2 g), with the
+friction factor f from Swamee-Jain's explicit form of the Colebrook
+equation. The script gets f from the Reynolds number and roughness,
+then reports head lost and pressure drop.
+
+Source: White, Fluid Mechanics, ch. 6 (Darcy-Weisbach with the
+Colebrook friction factor, and the Swamee-Jain explicit approximation,
+eq. 6.48; commercial steel roughness epsilon = 0.045 mm from Table 6.1).
+Water properties at 20 C per Engineering ToolBox viscosity tables.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const v_flow = 2.0               // mean velocity, 2 m/s
+const bore = 0.050             // pipe bore, 50 mm
+const run = 50              // pipe length, 50 m
+const roughness = 4.5e-5    // commercial steel, 0.045 mm
+const re = 99600            // from reynolds-number.epher, water at 2 m/s
+
+// ---- model ------------------------------------------------------------------
+const f = 0.25 / log(roughness / (3.7 * bore) + 5.74 / re ^ 0.9) ^ 2
+const head_loss = f * (run / bore) * v_flow ^ 2 / (2 * 9.80665)   // metres of water
+const pressure_drop = 998 * 9.80665 * head_loss           // Pa
+const velocity_head = v_flow ^ 2 / (2 * 9.80665)               // the V^2/2g yardstick
+
+// ---- results -----------------------------------------------------------------
+print("friction factor (Swamee-Jain):", f)
+print("velocity head V^2/2g:", velocity_head, "m")
+print("L/D for this run:", run / bore)
+print("head lost to friction:", head_loss, "m of water")
+print("pressure drop over 50 m:", pressure_drop / 1e3, "kPa")
+print("friction factor in the turbulent band 0.01-0.04:", f > 0.01 and f < 0.04)
+
+/* The pipe charges 4.5 metres of head for its 50 metres of travel --
+44 kPa, a third of the suction side of a typical circulator. Notice
+the L/D line: the loss formula is a velocity head multiplied by a
+thousand pipe-diameters of road, which is why long thin pipes, not
+pumps, decide most water systems. Doubling the speed quadruples the
+bill -- friction remembers everything. */
+
+/* ---- expected output ----
+= friction factor (Swamee-Jain): 0.0219975334867
+= velocity head V^2/2g: 0.203943242596 m
+= L/D for this run: 1000
+= head lost to friction: 4.48624830837 m of water
+= pressure drop over 50 m: 43.9070768394 kPa
+= friction factor in the turbulent band 0.01-0.04: true
+*/

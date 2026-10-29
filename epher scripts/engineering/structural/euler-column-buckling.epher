@@ -1,0 +1,54 @@
+/* ============================================================================
+euler-column-buckling.epher -- Euler critical load of a pinned steel pipe
+
+A 4 m steel pipe column (100 mm outer, 8 mm wall), pin-ended both ends,
+is loaded down its axis. Euler's formula predicts the critical load
+P_cr = pi^2 E I / (K L)^2 with K = 1 for pinned ends; the slenderness
+ratio lambda = L / r checks that the column is elastic (Euler applies
+only above the transition slenderness, about 100 for steel).
+
+Source: Hibbeler, Mechanics of Materials, ch. 17 (buckling of columns);
+Euler's formula with the K end-condition factor. Section properties of
+a circular tube: A = pi (r_o^2 - r_i^2), I = pi (r_o^4 - r_i^4) / 4.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+The knobs are the five consts below; the rest is machinery.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const outer = 0.100        // pipe outer diameter, 100 mm
+const wall = 0.008         // pipe wall thickness, 8 mm
+const height = 4           // column length, pin to pin, 4 m
+const E_steel = 200e9      // Young's modulus, 200 GPa
+const working = 120e3      // the load the column must carry, 120 kN
+
+// ---- model ------------------------------------------------------------------
+const inner = outer - 2 * wall                    // bore diameter, m
+const area = pi / 4 * (outer ^ 2 - inner ^ 2)     // annulus area, m^2
+const inertia = pi / 64 * (outer ^ 4 - inner ^ 4) // second moment, m^4
+const radius_g = sqrt(inertia / area) * 1e3       // radius of gyration, mm
+const slenderness = height * 1e3 / radius_g       // L / r
+const p_cr = pi ^ 2 * E_steel * inertia / height ^ 2   // Euler load, N
+const fos = p_cr / working                        // safety factor
+
+// ---- results -----------------------------------------------------------------
+print("column area:", area / 1e-6, "mm^2")
+print("second moment of area:", inertia / 1e-12, "mm^4")
+print("radius of gyration:", radius_g, "mm")
+print("slenderness ratio L/r:", slenderness)
+print("Euler critical load:", p_cr / 1e3, "kN")
+print("safety factor against buckling:", fos)
+
+/* At L/r near 123 the column is well into the elastic range (above about
+100 for steel), so Euler applies: it buckles near 304 kN, some 2.5 times
+the working load. Below the transition slenderness this formula
+overpredicts and a yield-shifted curve (Johnson) takes over. */
+
+/* ---- expected output ----
+= column area: 2312.21219304 mm^2
+= second moment of area: 1333466645/541 mm^4
+= radius of gyration: 32.6496554346 mm
+= slenderness ratio L/r: 122.512778366
+= Euler critical load: 304.084756659 kN
+= safety factor against buckling: 2.53403963883
+*/

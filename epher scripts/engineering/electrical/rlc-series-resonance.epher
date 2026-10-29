@@ -1,0 +1,55 @@
+/* ============================================================================
+rlc-series-resonance.epher -- where a series tank forgets resistance
+
+A 10 mH coil, a 1 uF cap and 10 ohms in series resonate at
+f0 = 1 / (2 pi sqrt(L C)), where the reactances cancel and impedance
+falls to R alone. The quality factor Q = (1/R) sqrt(L/C) sets the
+bandwidth f0 / Q and the voltage magnification V_L = Q V at resonance.
+
+Source: Boylestad, Introductory Circuit Analysis, ch. 20 (series
+resonance: f0, Q, bandwidth, and the magnification at resonance);
+the same development appears in Horowitz and Hill, The Art of
+Electronics, 3rd ed., ch. 1 (resonant circuits and Q).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const l = 10e-3            // inductance, 10 mH
+const c = 1e-6             // capacitance, 1 uF
+const r = 10.0             // winding + added resistance, 10 ohm
+const drive = 1.0          // source amplitude at resonance, 1 V
+
+// ---- model ------------------------------------------------------------------
+const f0 = 1 / (2 * pi * sqrt(l * c))         // resonant frequency, Hz
+const q = sqrt(l / c) / r                     // quality factor
+const bandwidth = f0 / q                      // -3 dB width, Hz
+const i_res = drive / r                       // current at resonance, A
+const v_l = q * drive                         // coil voltage magnifies, V
+const z_off = sqrt(r ^ 2 + (2 * pi * f0 * l - 1 / (2 * pi * f0 * c)) ^ 2)  // |Z| at f0
+
+// ---- results -----------------------------------------------------------------
+print("resonant frequency:", f0, "Hz")
+print("quality factor Q:", q)
+print("bandwidth:", bandwidth, "Hz")
+print("impedance at resonance (R alone):", z_off, "ohm")
+print("current at resonance:", i_res, "A")
+print("coil voltage at resonance:", v_l, "V")
+print("reactances cancel at resonance:", abs(z_off - r) < 1e-9)
+
+/* At 1591.5 Hz the coil's 100 ohm of inductive reactance and the cap's
+100 ohm of capacitive reactance cancel to the last ohm, so the circuit
+suddenly looks like a bare 10 ohm and the current jumps tenfold. Q = 10
+means the coil stands 10 V for a 1 V drive -- resonance is a voltage
+amplifier for its own reactances, and 159 Hz of bandwidth is the price
+of that selectivity. */
+
+/* ---- expected output ----
+= resonant frequency: 1591.54943092 Hz
+= quality factor Q: 10
+= bandwidth: 159.154943092 Hz
+= impedance at resonance (R alone): 10 ohm
+= current at resonance: 0.1 A
+= coil voltage at resonance: 10 V
+= reactances cancel at resonance: true
+*/

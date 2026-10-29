@@ -1,0 +1,54 @@
+/* ============================================================================
+manning-channel.epher -- flow in an open channel, the drainage engineer's way
+
+Manning's formula (metric): Q = (1/n) A R^(2/3) S^(1/2), with A the
+wetted area, R the hydraulic radius A/P, S the bed slope and n the
+roughness (0.013 for formed concrete). The script sizes a rectangular
+concrete channel carrying its design storm and reports the depth for
+a 50 percent bigger flow.
+
+Source: Chow, Open-Channel Hydraulics, ch. 5 (the Manning equation,
+its n table -- concrete 0.013-0.017 -- and the hydraulic-radius
+definitions); the same development in Munson, Fundamentals of Fluid
+Mechanics, ch. 10 (open-channel flow).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const width = 1.5           // channel width, 1.5 m
+const depth = 0.6           // design water depth, 0.6 m
+const slope = 0.001         // bed slope, 1 in 1000
+const n_manning = 0.013     // formed concrete, Chow's table
+
+// ---- model ------------------------------------------------------------------
+const area = width * depth                          // wetted area, m^2
+const perimeter = width + 2 * depth                 // wetted perimeter, m
+const radius_h = area / perimeter                   // hydraulic radius, m
+const q = 1 / n_manning * area * radius_h ^ (2 / 3) * slope ^ 0.5
+const v_mean = q / area                             // mean velocity, m/s
+
+// ---- results -----------------------------------------------------------------
+print("wetted area:", area, "m^2")
+print("wetted perimeter:", perimeter, "m")
+print("hydraulic radius A/P:", radius_h, "m")
+print("design discharge:", q, "m^3/s")
+print("mean velocity:", v_mean, "m/s")
+
+print("velocity in the self-cleaning band above 0.6 m/s:", v_mean >= 0.6)
+
+/* A metre-wide-ish concrete channel on a 1-in-1000 grade carries a
+cubic metre a second at walking pace -- 1.17 m/s, just above the
+0.6 m/s that keeps grit moving. Manning's n is the whole personality of
+the channel: swap concrete for weedy earth (n = 0.030) and the same
+geometry carries less than half the flow, which is why drainage
+engineers spend budgets on mowing banks as much as on diggers. */
+
+/* ---- expected output ----
+= wetted area: 0.9 m^2
+= wetted perimeter: 2.7 m
+= hydraulic radius A/P: 1/3 m
+= design discharge: 1.05249082998 m^3/s
+= mean velocity: 1.16943425553 m/s
+= velocity in the self-cleaning band above 0.6 m/s: true
+*/

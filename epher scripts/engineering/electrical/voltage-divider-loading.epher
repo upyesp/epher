@@ -1,0 +1,56 @@
+/* ============================================================================
+voltage-divider-loading.epher -- what a load does to a simple divider
+
+A 10 k / 4.7 k divider off a 9 V rail promises 2.88 V. Hang a real load
+across the bottom leg and the promise slips: the load parallels R2, so
+the divided voltage sags. The Art of Electronics rule of thumb keeps
+the divider current at ten times the load current (a "stiff" divider);
+the script checks the design against that rule.
+
+Source: Horowitz and Hill, The Art of Electronics, 3rd ed., ch. 1
+(voltage dividers and the x10 stiffness rule of thumb). The unloaded
+and loaded closed forms are the standard ones of Boylestad,
+Introductory Circuit Analysis, ch. 7 (network theorems: parallel
+combinations).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const rail = 9.0           // supply, 9 V
+const r1 = 10e3            // top leg, 10 kohm
+const r2 = 4.7e3           // bottom leg, 4.7 kohm
+const r_load = 47e3        // the load hanging on Vout, 47 kohm
+
+// ---- model ------------------------------------------------------------------
+const v_open = rail * r2 / (r1 + r2)               // unloaded divider, V
+const r2_par = r2 * r_load / (r2 + r_load)         // load parallels R2, ohm
+const v_load = rail * r2_par / (r1 + r2_par)       // loaded output, V
+const err = (v_load - v_open) / v_open * 100       // sag, percent
+const i_div = rail / (r1 + r2)                     // divider bleed, A
+const i_load = v_load / r_load                     // through the load, A
+const stiff = i_div / i_load                       // the x10 rule check
+
+// ---- results -----------------------------------------------------------------
+print("unloaded output:", v_open, "V")
+print("R2 with the load across it:", r2_par, "ohm")
+print("loaded output:", v_load, "V")
+print("sag from the unloaded promise:", err, "%")
+print("divider current vs load current:", stiff, "to 1")
+print("meets the x10 stiffness rule:", stiff >= 10)
+
+/* The 47 kohm meter drags the promised 2.88 V down to 2.69 V -- a 6.4
+percent lie, invisible on an analog meter and fatal to a sensor railed
+at that voltage. The divider bleeds ten times the load's current, so
+the x10 rule is just met: stiffen R1/R2 by a decade more only if the
+extra 0.6 mA of bleed is affordable, because every milliamp in the
+divider is a milliamp the battery never delivers to the load. */
+
+/* ---- expected output ----
+= unloaded output: 141/49 V
+= R2 with the load across it: 47000/11 ohm
+= loaded output: 423/157 V
+= sag from the unloaded promise: -1000/157 %
+= divider current vs load current: 1570/147 to 1
+= meets the x10 stiffness rule: true
+*/

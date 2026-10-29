@@ -1,0 +1,61 @@
+/* ============================================================================
+belt-length-and-tension.epher -- sizing an open belt drive
+
+An open flat belt spans a 200 mm driver and a 100 mm driven, centres
+400 mm apart. Belt length follows from the classic closed form
+L = 2C + pi (D + d)/2 + (D - d)^2/(4C); wrap angle on the small
+pulley and the tension ratio T1/T2 = e^(mu theta) decide how much
+power the belt can carry before it slips.
+
+Source: Machinery's Handbook (Oberg, Jones, Ryffel, McCauley and
+Heald), belt drive section: the open-belt length formula and wrap
+angles. The capstan tension relation T1/T2 = e^(mu theta) is developed
+in Shigley's, ch. 17 (flat-belt drives), with mu = 0.30 for leather on
+cast iron.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const d_driver = 0.200      // driving pulley, 200 mm
+const d_driven = 0.100      // driven pulley, 100 mm
+const centres = 0.400       // centre distance, 400 mm
+const mu = 0.30             // friction, belt on pulley
+const slack = 100           // slack-side tension, 100 N
+const rpm_small = 1750      // speed of the small pulley, rpm
+
+// ---- model ------------------------------------------------------------------
+const length = 2 * centres + pi * (d_driver + d_driven) / 2 + (d_driver - d_driven) ^ 2 / (4 * centres)
+const wrap = pi - 2 * asin((d_driver - d_driven) / (2 * centres))   // small pulley, rad
+const tension_ratio = exp(mu * wrap)                 // T1/T2 at slip edge
+const t_tight = slack * tension_ratio                // tight side at slip, N
+const belt_speed = pi * d_driven * rpm_small / 60    // m/s
+const power = (t_tight - slack) * belt_speed         // transmitted, W
+
+// ---- results -----------------------------------------------------------------
+print("belt length:", length / 1e-3, "mm")
+print("wrap angle on the small pulley:", wrap, "rad")
+print("wrap in degrees:", deg(wrap), "deg")
+print("tension ratio at slip T1/T2:", tension_ratio)
+print("tight-side tension for 100 N slack:", t_tight, "N")
+print("belt speed:", belt_speed, "m/s")
+print("power the grip carries (at slip edge):", power, "W")
+print("grip improves with wrap angle:", tension_ratio > 1)
+
+/* The belt is 1277 mm of leather doing two jobs: holding the centres
+and gripping the pulleys. The small pulley is the weak link -- only
+166 degrees of contact -- so its 2.38-to-1 tension ratio sets the
+floor: 100 N of slack must be bought with 238 N of tight side before
+the belt earns 1.26 kW. Double the wrap (a bigger driven pulley) and
+the same belt carries more, which is why idlers hug small pulleys. */
+
+/* ---- expected output ----
+= belt length: 1277.48889804 mm
+= wrap angle on the small pulley: 2.89093699125 rad
+= wrap in degrees: 165.638488437 deg
+= tension ratio at slip T1/T2: 2.38042988989
+= tight-side tension for 100 N slack: 238.042988989 N
+= belt speed: 9.16297857297 m/s
+= power the grip carries (at slip edge): 1264.88495025 W
+= grip improves with wrap angle: true
+*/

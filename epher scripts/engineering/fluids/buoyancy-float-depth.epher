@@ -1,0 +1,57 @@
+/* ============================================================================
+buoyancy-float-depth.epher -- how deep a hull rides and why icebergs lie
+
+Archimedes: a floating body displaces its own weight of fluid, so the
+draft of a prismatic block is its density ratio times its height, and
+the classic iceberg floats with 89.5 percent of itself hidden. The
+script walks a timber block and the iceberg, then checks the weight-
+balance that decides both.
+
+Source: Munson, Young and Okiishi, Fundamentals of Fluid Mechanics,
+ch. 2 (buoyancy and stability: the Archimedes force rho g V_displaced
+and float equilibrium); iceberg densities (917 sea ice, 1025 seawater)
+per standard oceanographic tables.
+
+Web/desktop: paste the whole file into the entry, press Enter.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const block_l = 2.0         // timber block length, 2 m
+const block_w = 0.100       // block width, 100 mm
+const block_h = 0.050       // block height, 50 mm
+const rho_wood = 600        // the timber, kg/m^3
+const rho_water = 998       // fresh water, kg/m^3
+const rho_ice = 917         // glacier ice, kg/m^3
+const rho_sea = 1025        // seawater, kg/m^3
+
+// ---- model ------------------------------------------------------------------
+const draft = rho_wood / rho_water * block_h        // how deep it rides, m
+const submerged_frac = draft / block_h              // hidden share
+const buoy_force = rho_water * 9.80665 * (block_l * block_w * draft)
+const block_weight = rho_wood * 9.80665 * block_l * block_w * block_h  // N
+const ice_hidden = rho_ice / rho_sea                // iceberg's share below
+
+// ---- results -----------------------------------------------------------------
+print("block draft (density ratio times height):", draft / 1e-3, "mm")
+print("fraction of the block below water:", submerged_frac)
+print("buoyancy at that draft:", buoy_force, "N")
+print("block weight:", block_weight, "N")
+print("float balance closes:", abs(buoy_force - block_weight) < block_weight / 1e9)
+print("an iceberg hides this fraction of itself:", ice_hidden)
+print("the visible tip of an iceberg:", 1 - ice_hidden, "of its height")
+
+/* The 600-kilogram-per-cubic-metre block rides with 60 percent of its
+50 mm swallowed -- 30 mm of freeboard, and the force balance closes
+to a part in a billion. The iceberg is the dramatic version: at 917
+against 1025, nearly nine tenths of the berg is underwater, which is why the phrase
+survives -- the visible eighth is the part charts cannot warn about. */
+
+/* ---- expected output ----
+= block draft (density ratio times height): 15000/499 mm
+= fraction of the block below water: 300/499
+= buoyancy at that draft: 58.8399 N
+= block weight: 58.8399 N
+= float balance closes: true
+= an iceberg hides this fraction of itself: 0.894634146341
+= the visible tip of an iceberg: 0.105365853659 of its height
+*/

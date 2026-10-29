@@ -1,0 +1,51 @@
+/* ============================================================================
+axial-stress-strain.epher -- stress, strain and stretch of a loaded steel rod
+
+A 25 mm steel rod carries an 80 kN axial pull. Average normal stress is
+the classroom formula sigma = P / A; Hooke's law gives the strain
+epsilon = sigma / E, and the elongation delta = P L / (A E). The rod is
+checked against a 250 MPa yield stress (structural steel, A36 class).
+
+Source: Hibbeler, Mechanics of Materials, ch. 1 (stress) and ch. 3
+(mechanical properties). Elastic modulus E = 200 GPa and yield 250 MPa
+match the steel values in Engineering ToolBox, "Young's Modulus of
+Elasticity for Metals and Alloys" (engineeringtoolbox.com).
+
+Web/desktop: paste the whole file into the entry, press Enter.
+The knobs are the four consts below; everything after the results
+section is machinery you can leave alone.
+============================================================================ */
+
+// ---- knobs ------------------------------------------------------------------
+const load = 80e3          // axial pull, 80 kN
+const dia = 0.025          // rod diameter, 25 mm
+const rod_len = 3              // free length, 3 m
+const E_steel = 200e9      // Young's modulus, 200 GPa
+const yield_stress = 250e6 // yield strength, 250 MPa
+
+// ---- model ------------------------------------------------------------------
+const area = pi / 4 * dia ^ 2           // circular cross-section, m^2
+const stress = load / area              // sigma = P / A, Pa
+const strain = stress / E_steel         // Hooke's law, dimensionless
+const stretch = strain * rod_len            // delta = eps * L, m
+const fos = yield_stress / stress       // factor of safety to yield
+
+// ---- results -----------------------------------------------------------------
+print("cross-section area:", area / 1e-6, "mm^2")
+print("average normal stress:", stress / 1e6, "MPa")
+print("axial strain:", strain)
+print("elongation:", stretch / 1e-3, "mm")
+print("safety factor against 250 MPa yield:", fos)
+
+/* The 80 kN pull stresses the rod to about 163 MPa -- roughly two thirds
+of a mild steel's yield -- so it stretches 2.44 mm over the 3 m length
+and keeps a safety factor near 1.53. Doubling the diameter cuts the
+stress four-fold, since area grows with the square. */
+
+/* ---- expected output ----
+= cross-section area: 490.873852123 mm^2
+= average normal stress: 162.974661726 MPa
+= axial strain: 0.000814873308631
+= elongation: 2.44461992589 mm
+= safety factor against 250 MPa yield: 1.53398078789
+*/
