@@ -703,6 +703,20 @@ x = 10; y = x + 5; x + y
 Mit Skripten baust du kleine Programme: Variablen einrichten, Schleifen
 laufen lassen und ein Endergebnis zeigen.
 
+Ein Skript ist auch **in sich abgeschlossen**: die Konstanten und
+Funktionen, die es definiert, sind seine eigenen und werden vergessen,
+wenn das Skript endet — seine Variablen und `ans` bleiben. Genau darum
+kannst du Beispiel um Beispiel laufen lassen: Ein Skript, das mit
+`const tax = 0.25` beginnt, läuft beim zehnten Mal genau so wie beim
+ersten, egal was frühere Skripte definiert haben. Soll eine Konstante
+oder Funktion eines Skripts in der Sitzung bleiben, ende mit `share`:
+
+```epher
+const tax = 0.2
+total = 100 * (1 + tax)
+share tax        # the session keeps tax; total stays with the script
+```
+
 Zeilenumbrüche und `;` sind dasselbe Trennzeichen, und du kannst sie frei
 mischen. Der Button **Kopieren** über einem mehrzeiligen Beispiel kopiert
 das ganze Skript, und du kannst es direkt in epher einfügen: das

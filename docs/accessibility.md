@@ -45,10 +45,10 @@ checks use 4.5:1, non-text (UI component boundaries, focus indicators) 3:1.
 
 | Criterion | Status | Evidence / notes |
 |---|---|---|
-| 3.1.1 Language of page | PASS* | `lang`/`dir` track the resolved locale (detection via `navigator.languages`, `dir="rtl"` for Arabic); the guide pages set both per locale at build time. *The landing page's static `html lang="en"` is updated at runtime from the stored preference; its initial paint is English until app.js runs. |
+| 3.1.1 Language of page | **FIXED** | The landing page's static `html lang="en"` was updated at runtime by app.js, but the PWA never touched `lang` or `dir` — a runtime language switch (or a stored non-English preference) left the document `lang="en"` and LTR, so screen readers kept the wrong voice and Arabic never mirrored. Now a `use_effect_with` keyed on the localizer's locale sets `lang` and `dir` (`rtl` for Arabic) at boot and on every switch (ADR-0008); verified per locale by the deep suite. The guide pages set both per locale at build time. |
 | 3.2.1/3.2.2 On focus/input | PASS | Focus lands in the field on load (intentional: it is the whole app); submit only updates the result region. |
 | 3.3.1 Error identification | **FIXED** | Errors already appear as text (announced); now also `aria-invalid="true"` + `aria-describedby="epher-result"` on the input while an error is showing. |
-| 3.3.2 Labels | PASS | `aria-label` on the input; placeholder is a hint only. |
+| 3.3.2 Labels | **FIXED** | The input always had an `aria-label`, but it (and the placeholder) were hardcoded English — a Spanish VoiceOver user heard "expression" mid-Spanish UI. Now localized via the `entry-label` / `entry-placeholder` Fluent keys (8 locales). Placeholder is a hint only. |
 | 3.3.3 Error suggestion | PASS | Core error strings are descriptive ("division by zero", "unknown name …"). |
 | 3.3.7 Redundant entry | N/A | Single step; history shows prior entries. |
 
@@ -93,7 +93,7 @@ truth); the design rationale and research live in
 | 2.4.1 Bypass blocks | PASS | Skip link on every page; single `main` landmark. |
 | 2.4.7 Focus visible | PASS | 3px `--ring` outline, offset 2px; accent-filled controls use an inset ring in their text color. |
 | 2.4.11 Focus not obscured | PASS | Sticky header is translucent; focus rings on header controls remain visible. |
-| 2.5.8 Target size (AA) | PASS | All interactive targets ≥ 44×44 CSS px (nav links, buttons, icon buttons, select, docs toggle, 2.5.5 best practice, not just the 24px AA floor). |
+| 2.5.8 Target size (AA) | **FIXED** | All interactive targets were ≥ 44×44 CSS px except the hero's `try this` link at ≈23.5px tall; its vertical padding raised it over the 24px AA floor (2026-10-31). Nav links, buttons, icon buttons, select, docs toggle all ≥ 44px (2.5.5 best practice, not just the AA floor). |
 | 2.3.3 Animation from interactions | PASS | Only 150 ms color transitions; all motion disabled under `prefers-reduced-motion` (the docs chevron rotates under the same rule). Smooth scrolling is also disabled under the preference. |
 | 4.1.2 Name, role, value | PASS | Menu button: native `button` + visually-hidden label + `aria-expanded` + `aria-controls`; nav is a labelled `nav` landmark. |
 | 3.1.1/3.1.2 Language | PASS | `lang`/`dir` track the active locale (RTL for Arabic) on all pages; guide pages bake both in at build time. |
@@ -148,7 +148,32 @@ automated axe scan runs in the `a11y` Playwright suite (ADR-0009).
    (axe contrast with symbol glyphs self-computed, visible focus
    indicators on real keyboard stops, reflow at 320px, no uncontained
    overflow at 200% zoom, every zoom-scrollable region
-   keyboard-reachable). Both suites gate every deploy in CI (the
+   keyboard-reachable). `node scripts/a11y/deep-audit.mjs` adds the
+   deep pass the standing suites don't cover: every guide LOCALE (the
+   site suite walks guide/en only — CJK and Devanagari reflow, RTL
+   baking), the PWA switched through all 8 locales the way a user does
+   (Settings menu → language item; `lang`/`dir` asserted per locale,
+   localized entry name intact), WCAG 2.5.8 target size (24px, no
+   inline-link exception for non-inline targets), 1.4.12 text-spacing
+   override without loss, 2.4.11 focus-not-obscured on a real Tab walk
+   (with a re-settle so a one-frame skip-link style swap doesn't read
+   as an overlay), and forced-colors (Windows High Contrast) field
+   boundaries. Both suites gate every deploy in CI (the
    `a11y` job of the shared site build, which preview and pages
-   publish jobs require). Baseline 2026-10-25: PWA 99 checks, website
-   132 checks, zero failures.
+   publish jobs require). The real-screen-reader leg's own harness
+   hardening (2026-10-31, first fully-clean run after the OS-session
+   VO state cleared on reboot): `--window-size` is clamped by this
+   Mac's small display work area (~800px), which silently flipped the
+   app into its mobile layout — the leg now emulates 1280×900 via CDP;
+   the Tab walk starts from the page's first stop (rewind to the rail
+   brand) so it never misses the field mid-page; menu items are
+   asserted through the real keyboard path (Tab to the menubutton,
+   Enter opens, Tab into the items — programmatic clicks move neither
+   focus nor the VO cursor, so nothing is spoken); a silent Tab stop
+   on an element that has an accessible name in the AX tree counts as
+   a poll-timing artifact (delivery is intermittent, not absent),
+   only an UNNAMED silent stop fails. Baseline 2026-10-31: PWA 0
+   failures, website 156 checks 0 failures, deep pass 101 checks 0
+   failures, real VoiceOver 6/6 (result announcement stays an info:
+   Chromium on macOS does not deliver aria-live to VoiceOver; Safari
+   does — engine gap, not markup).

@@ -2,6 +2,7 @@ app-name = epher
 prompt = epher>
 saved = 已保存 { $name }
 saved-script = 已保存脚本 { $name }
+reset-ok = 会话已重置（定义已清除，历史记录保留）
 nothing-to-save = 没有可保存的内容（前面没有脚本行）
 no-definition = 此会话中没有 { $name } 的定义
 language-set = 语言已设置为 { $code }
@@ -49,6 +50,10 @@ copy-line = 复制这个答案
 evaluate = 计算
 clear-entry = 清除输入
 delete-entry = 删除
+# The entry field: its accessible name and its visual placeholder.
+entry-label = 表达式
+entry-placeholder = 表达式或脚本
+
 tui-keypad = 键盘
 tui-keypad-active = 键盘 · ↑ 分组标签 · Enter · Esc 关闭
 tui-settings-theme = 主题

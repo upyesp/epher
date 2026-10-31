@@ -2,6 +2,7 @@ app-name = epher
 prompt = epher>
 saved = تم حفظ { $name }
 saved-script = تم حفظ النص البرمجي { $name }
+reset-ok = تمت إعادة تعيين الجلسة (نُسيت التعريفات واحُفظ السجل)
 nothing-to-save = لا شيء للحفظ (لا يوجد سطر نص برمجي سابق)
 no-definition = لا تعريف لـ { $name } في هذه الجلسة
 language-set = تم ضبط اللغة على { $code }
@@ -49,6 +50,10 @@ copy-line = انسخ هذه الإجابة
 evaluate = تقييم
 clear-entry = مسح الإدخال
 delete-entry = حذف
+# The entry field: its accessible name and its visual placeholder.
+entry-label = التعبير
+entry-placeholder = تعبير أو نص برمجي
+
 tui-keypad = لوحة المفاتيح
 tui-keypad-active = لوحة المفاتيح · ↑ تبويبات البنوك · Enter · Esc يغلق
 tui-settings-theme = السمة

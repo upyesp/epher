@@ -3698,6 +3698,23 @@ fn epher_app() -> Html {
         });
     }
 
+    // The document language tracks the UI locale, and the layout flips to
+    // RTL for Arabic (ADR-0008; ADR-0009 criterion 3.1.1): screen readers
+    // pick voice and pronunciation from `lang`, and `dir` mirrors the
+    // whole layout. Keyed on the locale so it follows the stored
+    // preference at boot as well as a runtime switch.
+    {
+        let locale = localizer.locale().to_string();
+        use_effect_with(locale, move |locale| {
+            let doc = web_sys::window().and_then(|w| w.document());
+            if let Some(el) = doc.as_ref().and_then(|d| d.document_element()) {
+                let _ = el.set_attribute("lang", locale.as_str());
+                let _ = el.set_attribute("dir", if locale == "ar" { "rtl" } else { "ltr" });
+            }
+            || {}
+        });
+    }
+
     // macOS desktop builds offer to install the `epher` terminal command
     // (ADR-0011): a one-click symlink into /usr/local/bin. The offer is
     // genuinely conditional: hidden whenever a working command already
@@ -4382,6 +4399,13 @@ fn epher_app() -> Html {
             // The output of the last evaluation, for the combined
             // history entry of a multi-statement script.
             let mut last_eval_output: Option<String> = None;
+            // A multi-piece submission is a script scope (ADR-0012
+            // amendment): its definitions are its own, so re-running a
+            // guide example never collides with what earlier scripts
+            // left behind; only `ans` and `share`d names cross back.
+            if !single || multiline {
+                s.begin_script();
+            }
             for piece in &pieces {
                 let piece = piece.trim();
                 last_eval_output = None;
@@ -4841,6 +4865,12 @@ fn epher_app() -> Html {
             // slider set follow from the final curves and session.
             let found = analyze(&curves, s.env());
             let labels = poi_labels(&found, &localizer);
+            // The scope closes before the session is published: what
+            // crossed back is what the next submission (and the store
+            // snapshot below) should carry.
+            if !single || multiline {
+                s.end_script();
+            }
             {
                 let mut l = (*live).borrow_mut();
                 l.curves = curves.clone();
@@ -7277,12 +7307,12 @@ fn epher_app() -> Html {
                         <textarea
                             ref={input_ref.clone()}
                             rows="1"
-                            placeholder={"expression or script"}
+                            placeholder={localizer.lookup("entry-placeholder")}
                             value={(*input).clone()}
                             oninput={on_input}
                             onkeydown={on_keydown}
                             autofocus={true}
-                            aria-label="expression"
+                            aria-label={localizer.lookup("entry-label")}
                             aria-invalid={if is_error { "true" } else { "false" }}
                             aria-describedby={if is_error { "epher-result" } else { "" }}
                             aria-controls={if autocomplete.is_some() { "epher-autocomplete" } else { "" }}

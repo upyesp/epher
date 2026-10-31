@@ -709,7 +709,7 @@ fn constant_cannot_take_a_variables_name() {
     let err = run_script("x = 5; const x = 6").unwrap_err();
     assert_eq!(
         err.to_string(),
-        "cannot define constant x: the name is already a variable (this session already bound it; Clear resets the session, or rename the binding)"
+        "cannot define constant x: the name is already a variable (this session already bound it; `reset` starts a fresh session, or rename the binding)"
     );
 }
 
@@ -3738,4 +3738,272 @@ fn a_stored_i_is_dropped_at_restore() {
         },
         "3+4i"
     );
+}
+
+// ---------------------------------------------------------------------------
+// Script scopes and `share` (ADR-0012 amendment): a multi-statement
+// submission is a scope. Names it defines are its own; only `ans` and
+// `share`d names cross back, and re-running an example cannot depend on
+// what a previous script left behind.
+
+/// Submit several lines the way a frontend does for a pasted script:
+/// one scope around statement-by-statement submissions.
+fn submit_script_lines(lines: &[&str]) -> Vec<String> {
+    let mut session = Session::default();
+    let mut out = Vec::new();
+    session.begin_script();
+    for line in lines {
+        out.push(session.submit_quiet(line));
+    }
+    session.end_script();
+    out
+}
+
+#[test]
+fn a_second_script_redefines_a_constant_the_first_left_behind() {
+    // the reported UX failure: each script is valid standalone, and now
+    // each also runs standalone, whatever ran before it
+    let first = submit_script_lines(&["const r = 2", "z = pi * r ^ 2", "share z"]);
+    let second = submit_script_lines(&["const r = 3", "z = pi * r ^ 2", "share z"]);
+    assert!(first.iter().all(|o| !o.starts_with("error: ")), "{first:?}");
+    assert!(second.iter().all(|o| !o.starts_with("error: ")), "{second:?}");
+}
+
+#[test]
+fn script_definitions_evaporate_unless_shared() {
+    let mut session = Session::default();
+    session.begin_script();
+    session.submit_quiet("const tax = 0.2");
+    session.submit_quiet("def double(x) = x * 2");
+    session.submit_quiet("total = 100 * (1 + tax)");
+    session.end_script();
+    // the scratchpad (bindings) merged back, definitions did not
+    assert_eq!(session.env().get("total"), Some(&Value::float(120.0)));
+    assert_eq!(session.env().constant("tax"), None);
+    assert_eq!(session.env().function("double"), None);
+    // and the next submission cannot see them either
+    assert_eq!(
+        session.submit("tax"),
+        "error: unknown name: tax".to_string()
+    );
+}
+
+#[test]
+fn share_promotes_a_constant_with_its_source() {
+    let mut session = Session::default();
+    session.begin_script();
+    session.submit_quiet("const tax = 0.2");
+    session.submit_quiet("share tax");
+    session.end_script();
+    assert_eq!(session.env().constant("tax"), Some(&Value::float(0.2)));
+    assert_eq!(
+        session.const_sources().get("tax").map(String::as_str),
+        Some("const tax = 0.2")
+    );
+}
+
+#[test]
+fn share_promotes_a_function_and_a_binding() {
+    let mut session = Session::default();
+    session.begin_script();
+    session.submit_quiet("def gem(a) = 9 * a");
+    session.submit_quiet("keep = 41 + 1");
+    session.submit_quiet("share gem, keep");
+    session.end_script();
+    assert!(session.env().function("gem").is_some());
+    assert_eq!(session.env().get("keep"), Some(&Value::float(42.0)));
+    assert_eq!(session.submit("gem(2)"), "= 18".to_string());
+}
+
+#[test]
+fn share_of_an_unknown_name_errors_and_names_the_name() {
+    let mut session = Session::default();
+    session.begin_script();
+    let out = session.submit_quiet("share nothing");
+    session.end_script();
+    assert_eq!(out, "error: unknown name: nothing".to_string());
+}
+
+#[test]
+fn share_over_a_session_variable_is_the_usual_constant_error() {
+    // the scope inherits the session's bindings, so the const line
+    // itself is the one that refuses (the share guard behind it is
+    // defense in depth)
+    let mut session = Session::default();
+    session.submit("x = 5");
+    session.begin_script();
+    let out = session.submit_quiet("const x = 6");
+    session.end_script();
+    assert_eq!(
+        out,
+        "error: cannot define constant x: the name is already a variable (this session already bound it; `reset` starts a fresh session, or rename the binding)".to_string()
+    );
+}
+
+#[test]
+fn script_reads_and_writes_the_interactive_scratchpad() {
+    let mut session = Session::default();
+    session.submit("r = 5");
+    session.begin_script();
+    let out = session.submit_quiet("area = pi * r ^ 2");
+    session.end_script();
+    assert!(!out.starts_with("error"), "{out}");
+    // the script's own assignment merged back with the scratchpad
+    assert_eq!(session.env().get("area"), Some(&Value::float(25.0 * std::f64::consts::PI)));
+}
+
+#[test]
+fn ans_crosses_the_script_boundary() {
+    let mut session = Session::default();
+    session.begin_script();
+    session.submit_quiet("2 + 3");
+    session.end_script();
+    assert_eq!(session.submit("ans * 2"), "= 10".to_string());
+}
+
+#[test]
+fn randseed_inside_a_script_stays_inside_it() {
+    // re-running the same script reproduces its draws exactly, whatever
+    // ran before it, and the session's sequence is untouched
+    let draws = || {
+        let mut session = Session::default();
+        session.submit("random()"); // advance the session's sequence
+        session.begin_script();
+        let a = session.submit_quiet("randseed(42); random()");
+        session.end_script();
+        let after = session.submit("random()");
+        (a, after)
+    };
+    let first = draws();
+    let second = draws();
+    assert_eq!(first, second, "script draws must be reproducible");
+}
+
+#[test]
+fn bits_inside_a_script_stays_inside_it() {
+    let mut session = Session::default();
+    session.begin_script();
+    session.submit_quiet("bits(8); 255 + 1");
+    session.end_script();
+    assert_eq!(session.submit("bits()"), "= 64".to_string());
+}
+
+#[test]
+fn a_single_statement_stays_interactive() {
+    // the calculator flow: one statement, no scope, full persistence
+    let mut session = Session::default();
+    session.submit_quiet("const tax = 0.2");
+    assert_eq!(session.env().constant("tax"), Some(&Value::float(0.2)));
+    // interactive immutability keeps its teeth
+    assert_eq!(
+        session.submit_quiet("const tax = 0.25"),
+        "error: constant already defined: tax".to_string()
+    );
+}
+
+#[test]
+fn submit_entry_scopes_multi_statement_lines_only() {
+    let mut session = Session::default();
+    session.submit_entry("const a = 1; total = a + 1");
+    assert_eq!(session.env().constant("a"), None, "scoped");
+    assert_eq!(session.env().get("total"), Some(&Value::float(2.0)));
+    session.submit_entry("const a = 2");
+    assert_eq!(session.env().constant("a"), Some(&Value::float(2.0)));
+    // and re-running the same script line no longer collides
+    assert_eq!(
+        session.submit_entry("const a = 3; total = a + 1"),
+        "= 4".to_string()
+    );
+}
+
+#[test]
+fn reset_forgets_definitions_but_keeps_history() {
+    let mut session = Session::default();
+    session.submit("const gravitas = 9.81");
+    session.submit("weight = 80 * gravitas");
+    session.reset();
+    assert_eq!(session.env().constant("gravitas"), None);
+    assert_eq!(session.env().get("weight"), None);
+    assert_eq!(session.history().len(), 2, "the transcript stays");
+    assert_eq!(
+        session.submit("gravitas"),
+        "error: unknown name: gravitas".to_string()
+    );
+}
+
+// ---------------------------------------------------------------------------
+// `def` joins the name-exclusivity rule (ADR-0012 amendment)
+
+#[test]
+fn redefining_a_function_with_a_different_body_is_an_error() {
+    let err = run_script("def f(x) = x + 1; def f(x) = x * 2").unwrap_err();
+    assert_eq!(err.to_string(), "function already defined: f");
+}
+
+#[test]
+fn redefining_a_function_identically_is_a_no_op() {
+    assert_eq!(
+        run_script("def f(x) = x + 1; def f(x) = x+1; f(41)").unwrap(),
+        Value::float(42.0)
+    );
+}
+
+#[test]
+fn a_function_cannot_take_a_variables_or_constants_name() {
+    let err = run_script("x = 5; def x(a) = a").unwrap_err();
+    assert_eq!(
+        err.to_string(),
+        "cannot define function x: the name is already a variable (this session already bound it; `reset` starts a fresh session, or rename the definition)"
+    );
+    let err = run_script("const c = 1; def c(a) = a").unwrap_err();
+    assert_eq!(
+        err.to_string(),
+        "cannot define function c: the name is already a constant (this session already bound it; `reset` starts a fresh session, or rename the definition)"
+    );
+}
+
+#[test]
+fn a_constant_cannot_take_a_functions_name() {
+    let err = run_script("def f(x) = x; const f = 3").unwrap_err();
+    assert_eq!(
+        err.to_string(),
+        "cannot define constant f: the name is already a function (this session already bound it; `reset` starts a fresh session, or rename the binding)"
+    );
+}
+
+#[test]
+fn an_assignment_cannot_take_a_functions_name() {
+    let err = run_script("def f(x) = x; f = 5").unwrap_err();
+    assert_eq!(err.to_string(), "cannot assign to function f");
+}
+
+#[test]
+fn a_script_shadows_an_inherited_constant_instead_of_erroring() {
+    // shared into the session by an earlier script, then shadowed by a
+    // later one for the run; the session keeps the shared value
+    let mut session = Session::default();
+    session.begin_script();
+    session.submit_quiet("const tax = 0.2");
+    session.submit_quiet("share tax");
+    session.end_script();
+    session.begin_script();
+    let out = session.submit_quiet("total = 100 * (1 + tax)");
+    session.end_script();
+    assert_eq!(out, "= 120".to_string(), "the shared constant reads through");
+    assert_eq!(session.env().constant("tax"), Some(&Value::float(0.2)));
+    assert_eq!(session.env().get("total"), Some(&Value::float(120.0)));
+}
+
+#[test]
+fn share_overwrites_the_sessions_same_kind_definition() {
+    // the explicit path: share is the script saying "make this the
+    // session's", the same in-place rewrite the slider does (ADR-0014)
+    let mut session = Session::default();
+    session.submit_quiet("const tax = 0.2");
+    session.begin_script();
+    session.submit_quiet("const tax = 0.25");
+    let out = session.submit_quiet("share tax");
+    session.end_script();
+    assert!(out.is_empty(), "{out}");
+    assert_eq!(session.env().constant("tax"), Some(&Value::float(0.25)));
 }

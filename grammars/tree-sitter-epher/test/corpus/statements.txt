@@ -118,3 +118,28 @@ end
     (continue_statement))
   (expression_statement
     (identifier)))
+
+================================================================================
+Share
+================================================================================
+
+const tax = 0.2
+total = 100 * (1 + tax)
+share tax, total
+
+---
+
+(source
+  (constant_definition
+    name: (identifier)
+    value: (number))
+  (assignment
+    name: (identifier)
+    value: (multiplicative_expression
+      left: (number)
+      right: (additive_expression
+        left: (number)
+        right: (identifier))))
+  (share_statement
+    name: (identifier)
+    name: (identifier)))

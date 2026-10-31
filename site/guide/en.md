@@ -688,6 +688,20 @@ x = 10; y = x + 5; x + y
 Scripts are how you build small programs: set up variables, loop, and show a
 final result.
 
+A script is also **self-contained**: the constants and functions it
+defines are its own, and they are forgotten when the script ends — its
+variables and `ans` stay. That is what lets you run example after
+example: a script that opens with `const tax = 0.25` runs the same way
+the tenth time as the first, whatever earlier scripts defined. If you
+want a script's constant or function to stay in the session, end with
+`share`:
+
+```epher
+const tax = 0.2
+total = 100 * (1 + tax)
+share tax        # the session keeps tax; total stays with the script
+```
+
 Newlines and `;` are the same separator, and you can mix them freely. The
 **Copy** button above a multi-line example copies the whole script, and you
 can paste it straight into epher: the entry field on the web app and the

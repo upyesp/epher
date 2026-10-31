@@ -92,7 +92,7 @@ const page = template
       <h1 data-i18n="scripts-title">Scripts</h1>
       <p class="lede" data-i18n="scripts-lede">Ready-to-run scripts for the epher calculator, organized by field and topic. Open a folder to browse, click a script to read it, and copy any script to the clipboard.</p>
       <p data-i18n="scripts-filetype-note">Scripts are text files with a file type of .epher, like 'triangle.epher'.</p>
-      <p class="scripts-ide-note"><span data-i18n="scripts-ide-note">Also, edit scripts in your favourite IDE with the assistance of the official epher</span> <a href="ide.html" data-i18n="scripts-ide-link">IDE extension.</a></p>
+      <p class="scripts-ide-note"><span data-i18n="scripts-ide-note">Edit and run scripts in your favourite IDE with the assistance of the official epher</span> <a href="ide.html" data-i18n="scripts-ide-link">IDE extension.</a></p>
       <div class="scripts-toolbar">
         <label for="scripts-search" data-i18n="scripts-search">Search scripts (names and content)</label>
         <input id="scripts-search" type="search" autocomplete="off" spellcheck="false" />

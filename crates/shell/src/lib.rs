@@ -36,6 +36,11 @@ pub enum Command {
     Table {
         source: String,
     },
+    /// `reset`: start the session over (ADR-0012 amendment). The
+    /// definitions, sources, and generator state are forgotten; the
+    /// history (the transcript) is kept. The escape hatch the
+    /// definition errors name.
+    Reset,
 }
 
 /// A command resolved against the session, ready to persist.
@@ -225,6 +230,9 @@ pub fn classify(line: &str) -> Option<Command> {
         }
         return None;
     }
+    if line == "reset" {
+        return Some(Command::Reset);
+    }
     None
 }
 
@@ -344,6 +352,11 @@ pub fn prepare(
                 text: format_table(&rows, exact),
             })
         }
+        // `reset` never reaches prepare: run_command handles it before
+        // the resolve/persist path, because it mutates the session (a
+        // `&mut` prepare does not have). This arm only keeps the match
+        // exhaustive.
+        Command::Reset => Err(localizer.lookup("reset-ok")),
     }
 }
 
@@ -481,6 +494,12 @@ pub fn run_command<S: Storage>(
     store: &DocStore<S>,
     localizer: &Localizer,
 ) -> Handled {
+    // `reset` is a session mutation, not a store write: handle it before
+    // the prepare/persist path (ADR-0012 amendment).
+    if matches!(cmd, Command::Reset) {
+        session.reset();
+        return Handled::ok(localizer.lookup("reset-ok"));
+    }
     let prepared = match prepare(cmd, session, localizer) {
         Ok(p) => p,
         Err(msg) => return Handled::err(msg),

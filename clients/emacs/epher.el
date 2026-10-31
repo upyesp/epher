@@ -19,7 +19,7 @@
 ;; `epher-mode' gives you:
 ;;
 ;; - baseline font-lock highlighting for .epher files: comments,
-;;   strings, numbers, the twenty keywords, and number-adjacent units.
+;;   strings, numbers, the twenty-one keywords, and number-adjacent units.
 ;;   The language server's semantic tokens are the exact rule; eglot
 ;;   does not consume them today.
 ;; - LSP through eglot (built into Emacs 29): live diagnostics, inline
@@ -81,11 +81,11 @@ if you run the server through lsp-mode or start it yourself."
   :type 'boolean
   :group 'epher)
 
-;; The twenty keywords of crates/core KEYWORDS, verbatim.
+;; The twenty-one keywords of crates/core KEYWORDS, verbatim.
 (defconst epher-keywords
   '("and" "break" "const" "continue" "def" "do" "else" "end" "for"
-    "if" "in" "not" "or" "return" "solve" "step" "then" "to" "while"
-    "xor"))
+    "if" "in" "not" "or" "return" "share" "solve" "step" "then" "to"
+    "while" "xor"))
 
 (defvar epher-mode-syntax-table
   (let ((table (make-syntax-table prog-mode-syntax-table)))

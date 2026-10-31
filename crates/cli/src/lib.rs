@@ -77,7 +77,7 @@ pub fn step(
             }
         };
     }
-    let out = session.submit_all(line);
+    let out = session.submit_entry(line);
     Step {
         error: is_engine_error(&out),
         output: if out.is_empty() { None } else { Some(out) },
@@ -164,9 +164,12 @@ pub fn run_one_shot(expr: &str) -> Result<(), EpherError> {
     // same body of saved work as the REPL, TUI, and desktop app.
     let (store, mut session, localizer) = open_store_with_session();
     let mut plots = epher_shell::plots::Plots::new();
-    // Statements split where the tokenizer sees separators: `;` inside a
-    // string literal or a comment is text, not a separator (a pasted
-    // print("a; b") used to fragment and error).
+    // One invocation is one script (ADR-0012 amendment): its definitions
+    // are the run's own, so a saved session's constants cannot break a
+    // later example. Statements split where the tokenizer sees
+    // separators: `;` inside a string literal or a comment is text, not
+    // a separator (a pasted print("a; b") used to fragment and error).
+    session.begin_script();
     for piece in epher_shell::split_statements(expr) {
         if let Some(out) = graph_line(piece, &mut plots, session.env(), &localizer) {
             if out.error {
@@ -184,6 +187,7 @@ pub fn run_one_shot(expr: &str) -> Result<(), EpherError> {
             );
         }
     }
+    session.end_script();
     // The command joins the shared history and its bindings (`ans` and
     // any assignments) join the shared session snapshot, best effort,
     // exactly like the REPL's per-line saves.
@@ -369,6 +373,10 @@ fn eval_whole_text(
     plots: &mut epher_shell::plots::Plots,
 ) -> Result<bool, EpherError> {
     let mut failed = false;
+    // One file is one script (ADR-0012 amendment): its definitions are
+    // the run's own, so re-running a file never collides with what an
+    // earlier run (or the interactive session) left behind.
+    session.begin_script();
     for piece in epher_shell::split_statements(text) {
         let piece = piece.trim();
         if piece.is_empty() {
@@ -381,6 +389,7 @@ fn eval_whole_text(
         failed |= out.error;
         print_step(&out);
     }
+    session.end_script();
     Ok(failed)
 }
 
@@ -397,6 +406,9 @@ fn eval_lines(
     plots: &mut epher_shell::plots::Plots,
 ) -> Result<bool, EpherError> {
     let mut failed = false;
+    // One piped input is one script (ADR-0012 amendment), the same
+    // scope a script file or a pasted submission gets.
+    session.begin_script();
     for line in lines {
         let line = line
             .map_err(|e| EpherError::Io(e.to_string()))?
@@ -412,6 +424,7 @@ fn eval_lines(
         failed |= out.error;
         print_step(&out);
     }
+    session.end_script();
     Ok(failed)
 }
 
