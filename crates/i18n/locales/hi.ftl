@@ -2,6 +2,7 @@ app-name = epher
 prompt = epher>
 saved = { $name } सहेजा गया
 saved-script = स्क्रिप्ट { $name } सहेजी गई
+reset-ok = सत्र रीसेट किया गया (परिभाषाएँ भूल गए, इतिहास सुरक्षित)
 nothing-to-save = सहेजने के लिए कुछ नहीं (पिछली कोई स्क्रिप्ट पंक्ति नहीं)
 no-definition = इस सत्र में { $name } की कोई परिभाषा नहीं
 language-set = भाषा { $code } पर सेट हो गई
@@ -50,6 +51,10 @@ copy-line = यह उत्तर कॉपी करें
 evaluate = मूल्यांकन करें
 clear-entry = प्रविष्टि साफ़ करें
 delete-entry = हटाएँ
+# The entry field: its accessible name and its visual placeholder.
+entry-label = व्यंजक
+entry-placeholder = व्यंजक या स्क्रिप्ट
+
 tui-keypad = कीपैड
 tui-keypad-active = कीपैड · ↑ बैंक टैब · Enter · Esc बंद
 tui-settings-theme = थीम

@@ -558,6 +558,7 @@ fn keyword_hover(word: &str) -> Option<String> {
         "return" => "ends the function body now, yielding its answer",
         "const" => "`const name = value` fixes a named value for this document",
         "def" => "`def name(args) do ... end` (or `def name(args) = expression`) defines a reusable function",
+        "share" => "`share name, name` promotes the script's definitions into the session",
         "do" => "opens a body: a function's, or a `for`/`while`/`if`",
         "end" => "closes the body opened by `do`",
         "else" => "the other branch of `if condition then ...`",

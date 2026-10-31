@@ -9,7 +9,7 @@ editors; Neovim adds its native LSP glue under `clients/nvim/`.
 ## What each file does
 
 - `ftdetect/epher.vim`: makes every `.epher` file an `epher` buffer.
-- `syntax/epher.vim`: the twenty keywords, all number forms
+- `syntax/epher.vim`: the twenty-one keywords, all number forms
   (decimal, scientific, `0b`/`0o`/`0x`, imaginary `i`), strings with
   the five escapes, the three comment forms, and a conservative
   unit-suffix rule that mirrors the parser's adjacency rule.

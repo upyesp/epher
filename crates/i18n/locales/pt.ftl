@@ -2,6 +2,7 @@ app-name = epher
 prompt = epher>
 saved = guardado { $name }
 saved-script = script guardado { $name }
+reset-ok = sessão reiniciada (definições esquecidas, histórico mantido)
 nothing-to-save = nada para guardar (sem linha de script anterior)
 no-definition = sem definição para { $name } nesta sessão
 language-set = idioma definido para { $code }
@@ -50,6 +51,10 @@ copy-line = Copiar esta resposta
 evaluate = Avaliar
 clear-entry = Limpar entrada
 delete-entry = Apagar
+# The entry field: its accessible name and its visual placeholder.
+entry-label = expressão
+entry-placeholder = expressão ou script
+
 tui-keypad = Teclado
 tui-keypad-active = Teclado · ↑ separadores de bancos · Enter · Esc fecha
 tui-settings-theme = Tema

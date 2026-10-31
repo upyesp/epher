@@ -695,6 +695,20 @@ x = 10; y = x + 5; x + y
 Os scripts são a forma de construir pequenos programas: defina variáveis,
 faça ciclos e mostre um resultado final.
 
+Um script também é **autocontido**: as constantes e funções que define
+são suas, e são esquecidas quando o script termina — as suas variáveis
+e `ans` permanecem. É isso que permite executar exemplo após exemplo:
+um script que começa com `const tax = 0.25` executa-se da mesma forma
+na décima vez como na primeira, seja o que for que os scripts anteriores
+tenham definido. Se quiser que uma constante ou função de um script
+permaneça na sessão, termine com `share`:
+
+```epher
+const tax = 0.2
+total = 100 * (1 + tax)
+share tax        # the session keeps tax; total stays with the script
+```
+
 As quebras de linha e o `;` são o mesmo separador, e pode misturá-los
 livremente. O botão **Copiar** por cima de um exemplo de várias linhas
 copia o script inteiro, e pode colá-lo diretamente no epher: o campo de

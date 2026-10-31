@@ -55,6 +55,7 @@ module.exports = grammar({
     _statement: $ => choice(
       $.assignment,
       $.constant_definition,
+      $.share_statement,
       $.destructuring,
       $.function_definition,
       $.return_statement,
@@ -78,6 +79,13 @@ module.exports = grammar({
       field('name', $.identifier),
       '=',
       field('value', $._expression),
+    ),
+
+    // `share name, name` (reference §7.3): promote the script's
+    // definitions into the session.
+    share_statement: $ => seq(
+      'share',
+      commaSep1(field('name', $.identifier)),
     ),
 
     // The reference recognizes the pattern only when the statement

@@ -113,7 +113,7 @@ is expected, and they are recognized by exact spelling:
 
 ```
 break   const   continue   def   do   else   end   for   if
-in      not     or         and   return   solve   step
+in      not     or         and   return   share   solve   step
 then    to      while      xor
 ```
 
@@ -246,10 +246,31 @@ binding takes effect (ADR-0080). Re-declaring with the *same* value
 succeeds, examples get pasted twice; a different value is a
 `constant already defined` error. Naming an existing variable is a
 `cannot define constant x: the name is already a variable` error — the
-session already bound that name, so Clear the session or rename the
+session already bound that name, so `reset` the session or rename the
 binding.
 
-### 7.3 Destructuring: `{a, b} = expr`
+### 7.3 Sharing a script's definitions: `share name, name`
+
+A multi-statement submission is a **script scope**: the constants and
+functions it defines are its own, and they vanish when the script ends
+(variables and `ans` always stay — see [§8](#8-names-scope-and-the-session-store)).
+`share` is the one way definitions cross the boundary on purpose: the
+named definitions join the session, with their source lines, so `save`
+and the next startup replay persist them.
+
+```
+const tax = 0.2
+total = 100 * (1 + tax)
+share tax        # the session keeps tax; total stays script-local
+```
+
+`share` of a name the script never made is an `unknown name` error;
+sharing over a session definition of a different kind (a constant over
+a variable, say) is the same error defining that name directly would
+give. `share` is a top-level script statement; evaluated anywhere else
+it does nothing.
+
+### 7.4 Destructuring: `{a, b} = expr`
 
 The expression must be a list whose length equals the number of
 pattern names; each name binds to its position's element. `_` skips a
@@ -259,7 +280,7 @@ is recognized only when the statement *begins* with `{names} =`; a
 `{1, 2}` at the start of a line stays the list expression it always
 was.
 
-### 7.4 Function definition: `def name(params) = expr` and `def name(params) do … end`
+### 7.5 Function definition: `def name(params) = expr` and `def name(params) do … end`
 
 Two body forms. `= expr` evaluates the expression in a child
 environment seeded with the arguments. `do … end` runs its statements
@@ -269,7 +290,14 @@ value is a named error. Recursion works in both forms. A call carries
 its own 100,000-step budget. Parameters shadow session values only
 inside the call.
 
-### 7.5 `return`, `break`, `continue`
+A name is one thing: a variable, a constant, **or** a function, never
+two (see [§8](#8-names-scope-and-the-session-store)). Re-defining a
+function the session already defined errors with `function already
+defined: f` unless the definition is the same; a `def` over a
+variable's or constant's name is refused, and so is `const` or an
+assignment over a function's name. `reset` starts the session over.
+
+### 7.6 `return`, `break`, `continue`
 
 `return expr` leaves the enclosing function now, with the value;
 `return` at top level (outside any function) is a named error.
@@ -278,19 +306,19 @@ skips to its next pass. Outside a loop both are named errors. In a
 `for` loop, a pass ended by `continue` contributes no value to the
 collected list.
 
-### 7.6 `if` as a statement: `if cond then stmt` / `if cond then stmt else stmt`
+### 7.7 `if` as a statement: `if cond then stmt` / `if cond then stmt else stmt`
 
 The condition must be a boolean. Without `else`, a false condition
 produces no value, which is how a `for` loop filters: a pass whose
 body produces no value adds nothing to the loop's list.
 
-### 7.7 `while cond do stmt`
+### 7.8 `while cond do stmt`
 
 Evaluates the condition (which must be a boolean) and runs the
 one-statement body until it is false, `break` fires, or the step
 budget runs out. A `while` loop produces no value.
 
-### 7.8 `for name in iterable do stmt`
+### 7.9 `for name in iterable do stmt`
 
 Two iterable forms: a range `start to end` (optionally `step s`), or
 any expression evaluating to a list. The variable is bound per pass
@@ -298,7 +326,7 @@ and **removed afterwards**: the loop never leaves its variable in the
 session, and a binding that existed before the loop is restored after
 it. The loop's value is the list of the body's per-pass values.
 
-### 7.9 `solve lhs == rhs`
+### 7.10 `solve lhs == rhs`
 
 Numeric equation solving, no CAS. The equation must use `==`. The
 unknown is `x` when `x` appears, otherwise the single other name;
@@ -306,7 +334,7 @@ constants (built-in and user) are parameters, never unknowns. Real
 roots in a wide search window are reported, as a display string:
 `solve x^2 == 9` answers `x = -3, x = 3`.
 
-### 7.10 Expression statements
+### 7.11 Expression statements
 
 Any expression, typically a call. Its value, when there is one,
 becomes the statement's value.
@@ -316,8 +344,21 @@ becomes the statement's value.
 Name resolution tries, in order: session variables, then session
 constants, then built-in constants, then built-in functions (a call),
 then the error `unknown name`. A user function or constant shadows a
-built-in of the same name.
+built-in of the same name. A call resolves the function table first, so
+a name that is somehow a value and a function at once stays
+unambiguous — which cannot happen: a name is one thing, a variable, a
+constant, or a function, never two (ADR-0012).
 
+- **A multi-statement submission is a script scope.** The constants
+  and functions a script defines are its own and vanish at its end;
+  its variables and `ans` stay. Definitions cross by `share` only
+  (§7.3). A script that defines a name the session library already
+  holds — a shared constant, a store replay — shadows it for the run
+  instead of erroring, the way a `for` loop shadows its variable:
+  re-running an example never depends on what ran before it.
+  `randseed` and `bits` inside a script are the script's own too: the
+  same script re-runs to the same draws. A single statement typed on
+  its own is interactive, against the session itself.
 - Session variables persist for the session and, in interactive
   frontends, across sessions and frontends of the same installation
   through the shared store (the `.epher` folder; the PWA keeps the
@@ -852,6 +893,7 @@ conveniences, not part of the language definition:
 |---|---|---|
 | `save name` | interactive frontends | persist a function or constant to the store |
 | `save script name` | interactive frontends | persist the session as a named script |
+| `reset` | interactive frontends | start the session over: definitions and generator state forgotten, the transcript kept |
 | `graph expr` | REPL, TUI, PWA, desktop | draw a 2D plot of `expr` over the session's window |
 | `graph3d expr` | REPL, TUI, PWA, desktop | draw a 3D surface |
 | `language` | interactive frontends | switch the interface language |

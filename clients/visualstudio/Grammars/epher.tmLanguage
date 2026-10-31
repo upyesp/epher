@@ -162,7 +162,7 @@
 			<key>comment</key>
 			<string>the m in 2 m, the h in 3.5h: a word after a number with only blanks between, never a keyword and never the imaginary i, and never across a newline. This is the baseline spelling; the language server's unit tokens are the exact rule.</string>
 			<key>match</key>
-			<string>\b(\d+(?:\.\d+)?(?:[eE][+-]?\d+)?i?|0[bBoOxX][0-9a-fA-F]+i?)[ \t]*(?!\b(?:and|or|not|xor|if|then|else|for|to|in|do|while|end|return|break|continue|def|const|solve|i)\b)([A-Za-z_]\w*)\b</string>
+			<string>\b(\d+(?:\.\d+)?(?:[eE][+-]?\d+)?i?|0[bBoOxX][0-9a-fA-F]+i?)[ \t]*(?!\b(?:and|or|not|xor|if|then|else|for|to|in|do|while|end|return|break|continue|def|const|share|solve|i)\b)([A-Za-z_]\w*)\b</string>
 		</dict>
 		<key>numbers</key>
 		<dict>

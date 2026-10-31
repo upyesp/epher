@@ -2165,7 +2165,8 @@ impl App {
     /// line's every answer shows, in order (ADR-0052): the session
     /// returns the whole transcript, newline-joined.
     pub fn submit(&mut self) {
-        self.result = self.session.submit_all(&self.input);
+        let input = self.input.clone();
+        self.result = self.session.submit_entry(&input);
         self.input.clear();
         self.cursor = 0;
     }
@@ -2199,6 +2200,13 @@ impl App {
             return None;
         }
         let single = pieces.len() == 1;
+        // A multi-statement submission is a script scope (ADR-0012
+        // amendment): its definitions are its own, so re-running an
+        // example never collides with what earlier scripts left behind;
+        // only `ans` and `share`d names cross back at the end.
+        if !single {
+            self.session.begin_script();
+        }
         // The output of the last evaluation, for the combined history
         // entry of a multi-statement script, and every evaluation's
         // output, for the result area (ADR-0052: a script shows its
@@ -2222,6 +2230,9 @@ impl App {
             }
         }
         if !single {
+            // The scope closes before the saves: what crossed back is
+            // what the store snapshot should carry.
+            self.session.end_script();
             // The result area shows every answer the script produced, in
             // order; a command or plot finishing the script keeps its own
             // message, exactly as before.

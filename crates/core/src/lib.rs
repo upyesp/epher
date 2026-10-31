@@ -11,7 +11,7 @@ pub mod pane;
 pub mod satellites;
 
 use std::cell::Cell;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 use bigdecimal::BigDecimal;
@@ -176,6 +176,14 @@ pub struct Env {
     /// shared through child envs like the generator, `bits(8)` in a
     /// script stays in force for its function calls.
     word_bits: Rc<Cell<u32>>,
+    /// The names THIS environment defined (constants and functions via
+    /// `set_constant`/`set_function`). The script-scope rule (ADR-0012
+    /// amendment): a definition only conflicts with what its own
+    /// environment defined; names inherited from the session library
+    /// (shared definitions, store replay) are shadowed silently, the
+    /// same way a `for` loop's variable shadows whatever it found
+    /// (ADR-0063). A fresh child owns nothing.
+    defined_here: HashSet<String>,
 }
 
 impl Default for Env {
@@ -186,6 +194,7 @@ impl Default for Env {
             functions: Rc::new(HashMap::new()),
             rng: Rc::new(Cell::new(0x9E37_79B9_7F4A_7C15)),
             word_bits: Rc::new(Cell::new(64)),
+            defined_here: HashSet::new(),
         }
     }
 }
@@ -230,7 +239,16 @@ impl Env {
     /// Define a user-defined constant. The guards (no redefinition, no
     /// taking a variable's name) live in the script runner, not here.
     pub fn set_constant(&mut self, name: impl Into<String>, value: Value) {
-        Rc::make_mut(&mut self.constants).insert(name.into(), value);
+        let name = name.into();
+        self.defined_here.insert(name.clone());
+        Rc::make_mut(&mut self.constants).insert(name, value);
+    }
+
+    /// Whether this environment defined the name itself (as opposed to
+    /// inheriting it from the session library): the script-scope rule's
+    /// conflict boundary (ADR-0012 amendment).
+    pub fn defines(&self, name: &str) -> bool {
+        self.defined_here.contains(name)
     }
 
     /// Look up a user-defined function.
@@ -263,7 +281,9 @@ impl Env {
 
     /// Define a user-defined function.
     pub fn set_function(&mut self, name: impl Into<String>, function: Function) {
-        Rc::make_mut(&mut self.functions).insert(name.into(), function);
+        let name = name.into();
+        self.defined_here.insert(name.clone());
+        Rc::make_mut(&mut self.functions).insert(name, function);
     }
 
     /// A child environment for a function call: the function table and the
@@ -276,7 +296,37 @@ impl Env {
             functions: Rc::clone(&self.functions),
             rng: self.rng.clone(),
             word_bits: self.word_bits.clone(),
+            defined_here: HashSet::new(),
         }
+    }
+
+    /// A child environment for a script run (ADR-0012 amendment): the
+    /// session's bindings come along as a copy (the interactive
+    /// scratchpad, `ans` included, is readable and writable by the
+    /// script and merges back when the scope ends), the constants and
+    /// functions are shared copy-on-write (the script shadows inherited
+    /// definitions without touching the session's tables), and the
+    /// generator and word size are fresh copies seeded with the
+    /// session's values, so `randseed` and `bits` inside a script are
+    /// the script's own: re-running the same script reproduces its
+    /// draws exactly, whatever ran before it.
+    fn script_child(&self) -> Env {
+        Env {
+            bindings: self.bindings.clone(),
+            constants: Rc::clone(&self.constants),
+            functions: Rc::clone(&self.functions),
+            rng: Rc::new(Cell::new(self.rng.get())),
+            word_bits: Rc::new(Cell::new(self.word_bits.get())),
+            defined_here: HashSet::new(),
+        }
+    }
+
+    /// Replace the whole bindings table: the script-scope merge at the
+    /// end of a run (ADR-0012 amendment). Variables, `ans` included,
+    /// are the calculator's scratchpad and cross the boundary
+    /// wholesale; definitions cross only by `share`.
+    fn set_bindings(&mut self, bindings: HashMap<String, Value>) {
+        self.bindings = bindings;
     }
 }
 
@@ -347,11 +397,16 @@ pub enum CmpOp {
 /// One statement of a [`Script`], the unit of the script seam (CONTEXT.md).
 /// Assignment mutates the [`Env`]; a constant definition binds an immutable
 /// name (ADR-0012); plain expressions just evaluate.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
     Assign(String, Expression),
     Const(String, Expression),
     FunctionDef(String, Vec<String>, FunctionBody),
+    /// `share name, name` (ADR-0012 amendment): promote the script's
+    /// definitions into the session, so a later script (or `save`, or
+    /// the completion lists) sees them. A top-level script statement;
+    /// evaluated anywhere else it does nothing.
+    Share(Vec<String>),
     While(Expression, Box<Statement>),
     /// `for name in iter do body` (ADR-0054): the iterable is either a
     /// range `start to end [step s]` or a list expression. Each body
@@ -387,7 +442,7 @@ pub enum Statement {
 /// The body of a user-defined function (ADR-0064): a single expression
 /// after `=`, the original, unchanged form, or a `do ... end` block of
 /// statements whose last value is the answer.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum FunctionBody {
     Expr(Expression),
     Block(Vec<Statement>),
@@ -395,7 +450,7 @@ pub enum FunctionBody {
 
 /// What a `for` loop iterates (ADR-0054): an inclusive numeric range
 /// with an optional step, or the elements of a list.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ForIterable {
     Range {
         start: Expression,
@@ -407,7 +462,7 @@ pub enum ForIterable {
 
 /// A user-defined function: parameter names and a body (an expression
 /// after `=`, or a `do ... end` block, ADR-0064).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Function {
     params: Vec<String>,
     body: FunctionBody,
@@ -432,14 +487,22 @@ pub enum EpherError {
     StepLimit,
     #[error("cannot assign to constant {0}")]
     AssignToConstant(String),
+    #[error("cannot assign to function {0}")]
+    AssignToFunction(String),
     #[error("cannot assign to i: that name is the imaginary unit")]
     ImaginaryReserved,
     #[error("constant already defined: {0}")]
     ConstantAlreadyDefined(String),
     #[error(
-        "cannot define constant {0}: the name is already a variable (this session already bound it; Clear resets the session, or rename the binding)"
+        "cannot define constant {0}: the name is already a {1} (this session already bound it; `reset` starts a fresh session, or rename the binding)"
     )]
-    ConstantNameTaken(String),
+    ConstantNameTaken(String, &'static str),
+    #[error("function already defined: {0}")]
+    FunctionAlreadyDefined(String),
+    #[error(
+        "cannot define function {0}: the name is already a {1} (this session already bound it; `reset` starts a fresh session, or rename the definition)"
+    )]
+    FunctionNameTaken(String, &'static str),
     #[error("io error: {0}")]
     Io(String),
 }
@@ -512,7 +575,7 @@ pub struct SpannedToken {
 /// anything not on this list is a name.
 pub const KEYWORDS: &[&str] = &[
     "and", "break", "const", "continue", "def", "do", "else", "end", "for", "if", "in", "not",
-    "or", "return", "solve", "step", "then", "to", "while", "xor",
+    "or", "return", "share", "solve", "step", "then", "to", "while", "xor",
 ];
 
 pub fn is_keyword(name: &str) -> bool {
@@ -1577,6 +1640,18 @@ impl Parser {
                 params,
                 FunctionBody::Expr(body),
             ));
+        }
+        if matches!(self.peek(), Some(Token::Ident(kw)) if kw == "share") {
+            // `share name, name` (ADR-0012 amendment): promote the
+            // script's definitions into the session. Names only — the
+            // values ride along from the script's own tables.
+            self.next(); // consume 'share'
+            let mut names = vec![self.expect_ident("name to share")?];
+            while matches!(self.peek(), Some(Token::Comma)) {
+                self.next(); // consume ','
+                names.push(self.expect_ident("name to share")?);
+            }
+            return Ok(Statement::Share(names));
         }
         // `{a, b} = expr` (ADR-0064): a list pattern of names before an
         // `=` is a destructure. The pattern grammar is tried first and
@@ -2793,6 +2868,7 @@ fn calculus_child(env: &Env, var: &str, value: f64) -> Env {
         functions: env.functions.clone(),
         rng: env.rng.clone(),
         word_bits: env.word_bits.clone(),
+        defined_here: HashSet::new(),
     };
     child.set(var.to_string(), Value::float(value));
     child
@@ -8707,16 +8783,14 @@ fn stmt_flow(stmt: &Statement, env: &mut Env, steps: &mut u64) -> Result<Flow, E
             Flow::Normal(None)
         }
         Statement::FunctionDef(name, params, body) => {
-            env.set_function(
-                name.clone(),
-                Function {
-                    params: params.clone(),
-                    body: body.clone(),
-                },
-            );
+            define_function(env, name, params, body)?;
             // a definition produces no value
             Flow::Normal(None)
         }
+        // `share` only means something to a script scope (the Session
+        // promotes the names when it sees the statement); against a bare
+        // environment it is a polite no-op.
+        Statement::Share(_) => Flow::Normal(None),
         Statement::While(cond, body) => run_while(cond, body, env, steps)?,
         Statement::For(var, iterable, body) => run_for(var, iterable, body, env, steps)?,
         Statement::Solve(equation) => Flow::Normal(Some(solve_statement(equation, env)?)),
@@ -8764,6 +8838,9 @@ fn stmt_flow(stmt: &Statement, env: &mut Env, steps: &mut u64) -> Result<Flow, E
                 if env.constant(name).is_some() {
                     return Err(EpherError::AssignToConstant(name.clone()));
                 }
+                if env.function(name).is_some() {
+                    return Err(EpherError::AssignToFunction(name.clone()));
+                }
                 env.set(name.clone(), item.clone());
             }
             Flow::Normal(Some(value))
@@ -8809,6 +8886,12 @@ fn assign(env: &mut Env, name: &str, expr: &Expression) -> Result<Value, EpherEr
     if env.constant(name).is_some() {
         return Err(EpherError::AssignToConstant(name.to_string()));
     }
+    // A name is one thing (ADR-0012 amendment): a variable, a constant,
+    // or a function, never two. Assigning over a function would leave
+    // `f` reading as a value while `f(x)` still calls.
+    if env.function(name).is_some() {
+        return Err(EpherError::AssignToFunction(name.to_string()));
+    }
     // The imaginary unit is the one reserved name (ADR-0065): a bare
     // `i = 5` once persisted through the shared store and turned
     // `3+4i` into `23` on every frontend.
@@ -8820,13 +8903,24 @@ fn assign(env: &mut Env, name: &str, expr: &Expression) -> Result<Value, EpherEr
     Ok(value)
 }
 
-/// Define a constant, refusing to take a variable's name; a name is
-/// either a variable or a constant, never both (ADR-0012). Re-declaring
-/// an existing constant is an error only when the value changes:
-/// examples with `const` lines get pasted and re-pasted, and the
-/// slider and animation paths rewrite constants the same way.
+/// Define a constant, refusing to take a variable's or a function's
+/// name; a name is either a variable, a constant, or a function, never
+/// two of those (ADR-0012). Re-declaring a constant THIS environment
+/// defined is an error only when the value changes: examples with
+/// `const` lines get pasted and re-pasted, and the slider and animation
+/// paths rewrite constants the same way. A constant inherited from the
+/// session library (a shared name, or store replay) is not this
+/// environment's own: a script shadows it for the run instead of
+/// erroring, the same courtesy a `for` loop's variable gets (ADR-0063)
+/// — re-running an example must not depend on what the session kept.
 fn define_constant(env: &mut Env, name: &str, expr: &Expression) -> Result<Value, EpherError> {
     if env.constant(name).is_some() {
+        if !env.defines(name) {
+            // inherited: shadow it locally for this run
+            let value = eval(expr, env)?;
+            env.set_constant(name.to_string(), value.clone());
+            return Ok(value);
+        }
         let value = eval(expr, env)?;
         if env.constant(name) == Some(&value) {
             return Ok(value);
@@ -8834,7 +8928,10 @@ fn define_constant(env: &mut Env, name: &str, expr: &Expression) -> Result<Value
         return Err(EpherError::ConstantAlreadyDefined(name.to_string()));
     }
     if env.get(name).is_some() {
-        return Err(EpherError::ConstantNameTaken(name.to_string()));
+        return Err(EpherError::ConstantNameTaken(name.to_string(), "variable"));
+    }
+    if env.function(name).is_some() {
+        return Err(EpherError::ConstantNameTaken(name.to_string(), "function"));
     }
     if name == "i" {
         return Err(EpherError::ImaginaryReserved);
@@ -8842,6 +8939,43 @@ fn define_constant(env: &mut Env, name: &str, expr: &Expression) -> Result<Value
     let value = eval(expr, env)?;
     env.set_constant(name.to_string(), value.clone());
     Ok(value)
+}
+
+/// Define a function under the same rules `define_constant` gives
+/// constants (ADR-0012 amendment): a name is one thing, re-defining a
+/// function this environment defined errors unless the definition is
+/// the same AST, and an inherited function is shadowed for the run
+/// instead of erroring. A definition produces no value, so the
+/// signature returns `()`.
+fn define_function(
+    env: &mut Env,
+    name: &str,
+    params: &[String],
+    body: &FunctionBody,
+) -> Result<(), EpherError> {
+    let function = Function {
+        params: params.to_vec(),
+        body: body.clone(),
+    };
+    if let Some(current) = env.function(name) {
+        if !env.defines(name) {
+            // inherited: shadow it locally for this run
+            env.set_function(name.to_string(), function);
+            return Ok(());
+        }
+        if *current == function {
+            return Ok(());
+        }
+        return Err(EpherError::FunctionAlreadyDefined(name.to_string()));
+    }
+    if env.get(name).is_some() {
+        return Err(EpherError::FunctionNameTaken(name.to_string(), "variable"));
+    }
+    if env.constant(name).is_some() {
+        return Err(EpherError::FunctionNameTaken(name.to_string(), "constant"));
+    }
+    env.set_function(name.to_string(), function);
+    Ok(())
 }
 
 /// Drive a while loop: evaluate the condition, run the body while it's
@@ -8987,10 +9121,26 @@ pub struct Session {
     defs: HashMap<String, String>,
     consts: HashMap<String, String>,
     last_line: Option<String>,
+    /// The open script scope, if any (ADR-0012 amendment): a
+    /// multi-statement submission runs against its own child of the
+    /// session environment, and only `ans` (bindings merge wholesale)
+    /// and `share`d names cross back. `None` between submissions.
+    script: Option<ScriptScope>,
     /// Result rendering (ADR-0043): exact fractions, notation, and
     /// separators. Interactive frontends set this from their settings;
     /// the CLI keeps the default.
     display: DisplayPrefs,
+}
+
+/// One open script scope: the child environment the script's statements
+/// run against, plus the source lines of the definitions the script
+/// made, so `share` can promote the source alongside the value (what
+/// `save` and the next startup replay persist).
+#[derive(Debug, Clone)]
+struct ScriptScope {
+    env: Env,
+    defs: HashMap<String, String>,
+    consts: HashMap<String, String>,
 }
 
 impl Session {
@@ -9035,11 +9185,14 @@ impl Session {
             return String::new();
         }
         let output = match parse_script(&line) {
-            Ok(script) => match run(&script, &mut self.env) {
-                Ok(Some(value)) => format!("= {}", format_value(&value, &self.display)),
-                Ok(None) => String::new(),
-                Err(e) => format!("error: {e}"),
-            },
+            Ok(script) => {
+                let out = match run(&script, self.env_active_mut()) {
+                    Ok(Some(value)) => format!("= {}", format_value(&value, &self.display)),
+                    Ok(None) => String::new(),
+                    Err(e) => format!("error: {e}"),
+                };
+                self.after_script_run(&script, &line, out)
+            }
             Err(e) => format!("error: {e}"),
         };
         if output.is_empty() {
@@ -9048,11 +9201,13 @@ impl Session {
             self.history.push(format!("{line}  {output}"));
         }
         self.last_line = Some(line.clone());
-        if let Some(name) = def_name(&line) {
-            self.defs.insert(name, line.clone());
-        }
-        if let Some(name) = const_name(&line) {
-            self.consts.insert(name, line);
+        if !self.in_script() {
+            if let Some(name) = def_name(&line) {
+                self.defs.insert(name, line.clone());
+            }
+            if let Some(name) = const_name(&line) {
+                self.consts.insert(name, line);
+            }
         }
         output
     }
@@ -9065,18 +9220,23 @@ impl Session {
             return String::new();
         }
         let output = match parse_script(&line) {
-            Ok(script) => match run(&script, &mut self.env) {
-                Ok(Some(value)) => format!("= {}", format_value(&value, &self.display)),
-                Ok(None) => String::new(),
-                Err(e) => format!("error: {e}"),
-            },
+            Ok(script) => {
+                let out = match run(&script, self.env_active_mut()) {
+                    Ok(Some(value)) => format!("= {}", format_value(&value, &self.display)),
+                    Ok(None) => String::new(),
+                    Err(e) => format!("error: {e}"),
+                };
+                self.after_script_run(&script, &line, out)
+            }
             Err(e) => format!("error: {e}"),
         };
-        if let Some(name) = def_name(&line) {
-            self.defs.insert(name, line.clone());
-        }
-        if let Some(name) = const_name(&line) {
-            self.consts.insert(name, line);
+        if !self.in_script() {
+            if let Some(name) = def_name(&line) {
+                self.defs.insert(name, line.clone());
+            }
+            if let Some(name) = const_name(&line) {
+                self.consts.insert(name, line);
+            }
         }
         output
     }
@@ -9093,31 +9253,36 @@ impl Session {
         if line.is_empty() {
             return String::new();
         }
-        let outputs = match parse_script(&line) {
-            Ok(script) => match run_all(&script, &mut self.env) {
-                Ok(values) => values
-                    .iter()
-                    .map(|v| format!("= {}", format_value(v, &self.display)))
-                    .collect::<Vec<_>>(),
-                Err(e) => vec![format!("error: {e}")],
-            },
-            Err(e) => vec![format!("error: {e}")],
+        let joined = match parse_script(&line) {
+            Ok(script) => {
+                let outputs = match run_all(&script, self.env_active_mut()) {
+                    Ok(values) => values
+                        .iter()
+                        .map(|v| format!("= {}", format_value(v, &self.display)))
+                        .collect::<Vec<_>>(),
+                    Err(e) => vec![format!("error: {e}")],
+                };
+                let joined = outputs.join("\n");
+                self.after_script_run(&script, &line, joined)
+            }
+            Err(e) => format!("error: {e}"),
         };
-        let joined = outputs.join("\n");
         if joined.is_empty() {
             self.history.push(line.clone());
         } else {
             self.history.push(format!(
                 "{line}  {}",
-                outputs.last().map(String::as_str).unwrap_or_default()
+                joined.lines().last().unwrap_or_default()
             ));
         }
         self.last_line = Some(line.clone());
-        if let Some(name) = def_name(&line) {
-            self.defs.insert(name, line.clone());
-        }
-        if let Some(name) = const_name(&line) {
-            self.consts.insert(name, line);
+        if !self.in_script() {
+            if let Some(name) = def_name(&line) {
+                self.defs.insert(name, line.clone());
+            }
+            if let Some(name) = const_name(&line) {
+                self.consts.insert(name, line);
+            }
         }
         joined
     }
@@ -9151,8 +9316,170 @@ impl Session {
     }
 
     /// The environment, for frontends that need it (e.g. graphing).
+    /// While a script scope is open this is the scope's environment, so
+    /// a `graph` piece inside a submitted script sees the script's own
+    /// definitions (ADR-0012 amendment).
     pub fn env(&self) -> &Env {
-        &self.env
+        self.env_active()
+    }
+
+    /// Open a script scope (ADR-0012 amendment): subsequent submissions
+    /// run against a child of the session environment, and when the
+    /// scope ends only `ans` and `share`d names cross back. A scope
+    /// left open is finished first, so nesting submits degrade to
+    /// sequential scripts instead of corrupting state.
+    pub fn begin_script(&mut self) {
+        if self.script.is_some() {
+            self.end_script();
+        }
+        self.script = Some(ScriptScope {
+            env: self.env.script_child(),
+            defs: HashMap::new(),
+            consts: HashMap::new(),
+        });
+    }
+
+    /// Close the script scope: the script's variable bindings (its own
+    /// writes to the scratchpad, `ans` included) merge back into the
+    /// session; its constants and functions evaporate unless a `share`
+    /// statement promoted them while it ran. The generator and word
+    /// size are the session's own again: what a script seeded or set
+    /// stays inside it.
+    pub fn end_script(&mut self) {
+        if let Some(scope) = self.script.take() {
+            let bindings = scope.env.bindings().clone();
+            self.env.set_bindings(bindings);
+        }
+    }
+
+    /// Whether a script scope is open.
+    pub fn in_script(&self) -> bool {
+        self.script.is_some()
+    }
+
+    /// The environment statements currently run against: the script
+    /// scope's when one is open, the session's otherwise.
+    fn env_active(&self) -> &Env {
+        match &self.script {
+            Some(scope) => &scope.env,
+            None => &self.env,
+        }
+    }
+
+    fn env_active_mut(&mut self) -> &mut Env {
+        match &mut self.script {
+            Some(scope) => &mut scope.env,
+            None => &mut self.env,
+        }
+    }
+
+    /// Bookkeeping after a run against the active environment: inside a
+    /// script scope, record definition sources for `share` promotion
+    /// and process the run's `share` statements; outside, nothing (the
+    /// callers keep their own session-level source recording).
+    fn after_script_run(&mut self, script: &[Statement], source: &str, output: String) -> String {
+        let Some(scope) = self.script.as_mut() else {
+            return output;
+        };
+        for stmt in script {
+            match stmt {
+                Statement::FunctionDef(name, _, _) => {
+                    scope.defs.insert(name.clone(), source.to_string());
+                }
+                Statement::Const(name, _) => {
+                    scope.consts.insert(name.clone(), source.to_string());
+                }
+                _ => {}
+            }
+        }
+        let mut promoted = output;
+        for stmt in script {
+            if let Statement::Share(names) = stmt {
+                for name in names {
+                    if let Err(e) = self.promote_from_script(name) {
+                        promoted = format!("error: {e}");
+                    }
+                }
+            }
+        }
+        promoted
+    }
+
+    /// Promote one name from the open script scope into the session
+    /// (the `share` statement's meaning, ADR-0012 amendment). The value
+    /// crosses in the kind it has; crossing over a session definition
+    /// of the same kind overwrites it (the slider path already rewrites
+    /// constants in place, ADR-0014), while crossing kinds is the same
+    /// error it would be to define the name directly.
+    fn promote_from_script(&mut self, name: &str) -> Result<(), EpherError> {
+        let Some(scope) = self.script.as_ref() else {
+            return Err(EpherError::UnknownName(name.to_string()));
+        };
+        if let Some(value) = scope.env.constant(name).cloned() {
+            if self.env.get(name).is_some() {
+                return Err(EpherError::ConstantNameTaken(name.to_string(), "variable"));
+            }
+            if self.env.function(name).is_some() {
+                return Err(EpherError::ConstantNameTaken(name.to_string(), "function"));
+            }
+            self.env.set_constant(name.to_string(), value);
+            if let Some(source) = scope.consts.get(name) {
+                self.consts.insert(name.to_string(), source.clone());
+            }
+            return Ok(());
+        }
+        if let Some(function) = scope.env.function(name).cloned() {
+            if self.env.get(name).is_some() {
+                return Err(EpherError::FunctionNameTaken(name.to_string(), "variable"));
+            }
+            if self.env.constant(name).is_some() {
+                return Err(EpherError::FunctionNameTaken(name.to_string(), "constant"));
+            }
+            self.env.set_function(name.to_string(), function);
+            if let Some(source) = scope.defs.get(name) {
+                self.defs.insert(name.to_string(), source.clone());
+            }
+            return Ok(());
+        }
+        if let Some(value) = scope.env.get(name).cloned() {
+            if self.env.constant(name).is_some() {
+                return Err(EpherError::AssignToConstant(name.to_string()));
+            }
+            if self.env.function(name).is_some() {
+                return Err(EpherError::AssignToFunction(name.to_string()));
+            }
+            self.env.set(name.to_string(), value);
+            return Ok(());
+        }
+        Err(EpherError::UnknownName(name.to_string()))
+    }
+
+    /// Submit a whole composed entry (an input box, a REPL line, a
+    /// piped line): when it holds more than one statement it is a
+    /// script and runs inside a scope (ADR-0012 amendment); a single
+    /// statement stays interactive, against the session itself.
+    pub fn submit_entry(&mut self, text: &str) -> String {
+        let multi = parse_script(text).map(|s| s.len() > 1).unwrap_or(false);
+        if multi {
+            self.begin_script();
+        }
+        let out = self.submit_all(text);
+        if multi {
+            self.end_script();
+        }
+        out
+    }
+
+    /// Start the session over: definitions, sources, and the generator
+    /// state are forgotten; the history (the transcript) is kept. The
+    /// escape hatch the definition errors name.
+    pub fn reset(&mut self) {
+        self.end_script();
+        self.env = Env::default();
+        let nanos = (astro::now_unix_seconds() * 1e9) as u64;
+        self.env.rng.set(nanos ^ 0x9E37_79B9_7F4A_7C15);
+        self.defs.clear();
+        self.consts.clear();
     }
 
     /// Redefine a constant's value and its source text in one step, the
@@ -9181,8 +9508,10 @@ impl Session {
 
     /// The session's variable bindings (user assignments plus `ans`), for
     /// the shared-store snapshot every interactive frontend persists.
+    /// While a script scope is open this is the scope's bindings, so a
+    /// mid-script store write sees the script's own scratchpad state.
     pub fn bindings(&self) -> &ValueBindings {
-        self.env.bindings()
+        self.env_active().bindings()
     }
 
     /// Restore bindings saved by another frontend of the same installation
@@ -9200,9 +9529,10 @@ impl Session {
     }
 
     /// The environment, mutable, for frontends evaluating statements
-    /// directly against a shared session (the CLI one-shot path).
+    /// directly against a shared session (the CLI one-shot path). The
+    /// active environment: a script scope's when one is open.
     pub fn env_mut(&mut self) -> &mut Env {
-        &mut self.env
+        self.env_active_mut()
     }
 }
 

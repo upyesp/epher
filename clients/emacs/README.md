@@ -52,7 +52,7 @@ side panel, no print statements: the editor *is* the calculator.
 ![The epher run buffer with the per-statement transcript and the graph paths](https://github.com/upyesp/epher/raw/HEAD/clients/emacs/images/results.png)
 
 - **Highlighting**: `epher-mode` is the conservative view of the
-  grammar: comments, strings, numbers, the twenty keywords, and
+  grammar: comments, strings, numbers, the twenty-one keywords, and
   number-adjacent units. The language server's semantic tokens are the
   exact rule; eglot does not consume them today, so the font-lock
   layer is what you see.

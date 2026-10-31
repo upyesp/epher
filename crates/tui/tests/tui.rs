@@ -1928,3 +1928,65 @@ fn menu_toggle_flips_the_menu_open_state() {
     app.menu_toggle();
     assert_eq!(app.menu_active(), None);
 }
+
+#[test]
+fn a_pasted_script_can_be_reworded_and_rerun_without_colliding() {
+    // the reported UX failure (ADR-0012 amendment): both scripts are
+    // valid standalone, and now both also run standalone
+    let (store, _keep) = scratch_store();
+    let en = Localizer::resolve(Some("en"), &[]);
+    let mut app = App::default();
+    app.submit_line("const tax = 0.2; total = 100 * (1 + tax); total", &store, &en);
+    assert!(app.result().contains("= 120"), "{}", app.result());
+    app.submit_line("const tax = 0.25; total = 100 * (1 + tax); total", &store, &en);
+    assert!(app.result().contains("= 125"), "{}", app.result());
+    // the script's constant did not leak into the session
+    app.submit_line("tax", &store, &en);
+    assert!(
+        app.result().starts_with("error: unknown name"),
+        "{}",
+        app.result()
+    );
+}
+
+#[test]
+fn share_promotes_a_scripts_constant_to_the_session() {
+    let (store, _keep) = scratch_store();
+    let en = Localizer::resolve(Some("en"), &[]);
+    let mut app = App::default();
+    app.submit_line(
+        "const tax = 0.2; total = 100 * (1 + tax); share tax; total",
+        &store,
+        &en,
+    );
+    assert!(app.result().contains("= 120"), "{}", app.result());
+    app.submit_line("tax", &store, &en);
+    assert_eq!(app.result(), "= 0.2");
+}
+
+#[test]
+fn reset_forgets_the_session_definitions() {
+    let (store, _keep) = scratch_store();
+    let en = Localizer::resolve(Some("en"), &[]);
+    let mut app = App::default();
+    app.submit_line("const tax = 0.2; share tax", &store, &en);
+    app.submit_line("reset", &store, &en);
+    assert_eq!(app.result(), "session reset (definitions forgotten, history kept)");
+    app.submit_line("tax", &store, &en);
+    assert!(
+        app.result().starts_with("error: unknown name"),
+        "{}",
+        app.result()
+    );
+}
+
+#[test]
+fn graph_sees_a_def_from_the_same_submitted_script() {
+    let (store, _keep) = scratch_store();
+    let en = Localizer::resolve(Some("en"), &[]);
+    let mut app = App::default();
+    app.submit_line("def h(x) = sin(x) + 0.1; graph h(x)", &store, &en);
+    // the plot sampled: the scope env was live while the graph piece ran
+    assert!(!app.result().starts_with("error"), "{}", app.result());
+    assert_eq!(app.graph().len(), 1, "{}", app.result());
+}
