@@ -255,16 +255,17 @@
             epher isn't notarized with Apple, so the first launch may
             show an "Apple could not verify" warning. Choose Done, then
             run xattr -rd com.apple.quarantine /Applications/epher.app
-            once to clear it. The warning returns after brew upgrade;
-            exporting HOMEBREW_CASK_OPTS="--no-quarantine" in your
-            shell profile stops it for good (for Homebrew apps).
+            once to clear it (it returns after each brew upgrade).
+            Alternatively, skip the terminal: after Done, open System
+            Settings → Privacy & Security and click Open Anyway.
           </p>
           <p class="dl-title" data-i18n="mac-script-title">Or download from GitHub releases via a script:</p>
           <pre class="path-cmd">curl -fsSL https://raw.githubusercontent.com/upyesp/epher/main/install.sh | sh</pre>
           <p data-i18n="mac-dmg-hint">
             Or download the disk image: open it, drag epher to
-            Applications, and on first launch right-click the app and
-            choose Open to clear macOS's security warning.
+            Applications, and on first launch choose Done in macOS's
+            warning, then open System Settings → Privacy & Security and
+            click Open Anyway to allow epher.
           </p>
           <p class="repo-alt">
             <a href="https://github.com/upyesp/epher/releases/latest/download/epher-macos-aarch64.dmg"
