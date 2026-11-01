@@ -251,6 +251,14 @@
           </p>
           <p class="dl-title" data-i18n="mac-brew-title">Homebrew installation:</p>
           <pre class="path-cmd">brew install --cask upyesp/tap/epher</pre>
+          <p data-i18n="mac-brew-hint">
+            epher isn't notarized with Apple, so the first launch may
+            show an "Apple could not verify" warning. Choose Done, then
+            run xattr -rd com.apple.quarantine /Applications/epher.app
+            once to clear it. The warning returns after brew upgrade;
+            exporting HOMEBREW_CASK_OPTS="--no-quarantine" in your
+            shell profile stops it for good (for Homebrew apps).
+          </p>
           <p class="dl-title" data-i18n="mac-script-title">Or download from GitHub releases via a script:</p>
           <pre class="path-cmd">curl -fsSL https://raw.githubusercontent.com/upyesp/epher/main/install.sh | sh</pre>
           <p data-i18n="mac-dmg-hint">

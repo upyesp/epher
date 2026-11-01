@@ -56,6 +56,7 @@ window.EPHER_I18N["de"] = {
   "mac-desc": "Homebrew-Nutzer installieren die App und halten sie mit brew upgrade aktuell.",
   "mac-script-title": "Oder per Skript aus den GitHub-Releases herunterladen und installieren:",
   "mac-brew-title": "Homebrew-Installation:",
+  "mac-brew-hint": "epher ist von Apple nicht notarisiert, daher kann beim ersten Start eine Warnung erscheinen. Schließen Sie den Dialog, ohne die App in den Papierkorb zu legen, und führen Sie einmalig xattr -rd com.apple.quarantine /Applications/epher.app aus, um sie zu entfernen. Nach brew upgrade erscheint die Warnung erneut; der Export HOMEBREW_CASK_OPTS=\"--no-quarantine\" in Ihrem Shell-Profil beendet sie endgültig (für Homebrew-Apps).",
   "mac-dmg-hint": "Oder das Disk-Image laden: öffnen, epher nach Programme ziehen und beim ersten Start rechtsklicken und „Öffnen“ wählen, um die Sicherheitswarnung von macOS zu überwinden.",
   "mac-download": "das Disk-Image herunterladen",
   "linux-name": "Linux",

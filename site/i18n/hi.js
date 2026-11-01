@@ -40,6 +40,7 @@ window.EPHER_I18N["hi"] = {
   "mac-desc": "Homebrew उपयोगकर्ता ऐप इंस्टॉल करते हैं और brew upgrade से उसे अद्यतन रखते हैं।",
   "mac-script-title": "या स्क्रिप्ट के ज़रिए GitHub releases से डाउनलोड और इंस्टॉल करें:",
   "mac-brew-title": "Homebrew इंस्टॉलेशन:",
+  "mac-brew-hint": "epher Apple द्वारा नोटराइज़ नहीं है, इसलिए पहली बार चलाने पर सुरक्षा चेतावनी दिख सकती है। ऐप को ट्रैश में भेजे बिना डायलॉग बंद करें, और एक बार xattr -rd com.apple.quarantine /Applications/epher.app चलाकर उसे हटाएँ। brew upgrade के बाद चेतावनी फिर आती है; अपने shell प्रोफ़ाइल में HOMEBREW_CASK_OPTS=\"--no-quarantine\" एक्सपोर्ट करने से यह हमेशा के लिए रुक जाती है (Homebrew ऐप्स के लिए)।",
   "mac-dmg-hint": "या डिस्क इमेज डाउनलोड करें: उसे खोलें, epher को Applications में खींचें, और पहली बार खोलते समय ऐप पर राइट-क्लिक करके Open चुनें — इससे macOS की सुरक्षा चेतावनी पार हो जाएगी।",
   "mac-download": "डिस्क इमेज डाउनलोड करें",
   "linux-name": "Linux",

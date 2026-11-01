@@ -56,6 +56,7 @@ window.EPHER_I18N["en"] = {
   "mac-desc": "Homebrew users can install the app and keep it current with brew upgrade.",
   "mac-script-title": "Or download from GitHub releases via a script:",
   "mac-brew-title": "Homebrew installation:",
+  "mac-brew-hint": "epher isn't notarized with Apple, so the first launch may show an \"Apple could not verify\" warning. Choose Done, then run xattr -rd com.apple.quarantine /Applications/epher.app once to clear it. The warning returns after brew upgrade; exporting HOMEBREW_CASK_OPTS=\"--no-quarantine\" in your shell profile stops it for good (for Homebrew apps).",
   "mac-dmg-hint": "Or download the disk image: open it, drag epher to Applications, and on first launch right-click the app and choose Open to clear macOS's security warning.",
   "mac-download": "download the disk image",
   "linux-name": "Linux",
