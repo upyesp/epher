@@ -61,6 +61,13 @@ jobs:
     name: build and publish the p2 update site
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    concurrency:
+      # gh-pages has multiple writers on one train: the apt/dnf
+      # repositories (release.yml's linux-repos job, same repo-wide
+      # group) and the p2 update site here. A plain push race loses as
+      # a non-fast-forward rejection and fails the train (0.9.3,
+      # 2026-10-31), so same-group jobs take turns.
+      group: gh-pages-publish
     steps:
       - uses: actions/checkout@v4
         with:

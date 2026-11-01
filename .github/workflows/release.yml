@@ -338,6 +338,14 @@ jobs:
     needs: [train, build]
     if: inputs.dry_run != true
     runs-on: ubuntu-latest
+    concurrency:
+      # gh-pages has multiple writers on one train: the apt/dnf
+      # repositories here and the Eclipse p2 update site (which pushes
+      # through eclipse-publish.yml's own job, same repo-wide group).
+      # A plain push race loses as a non-fast-forward rejection and
+      # fails the train (0.9.3, 2026-10-31), so same-group jobs take
+      # turns; the push below retries for writers outside the group.
+      group: gh-pages-publish
     steps:
       - uses: actions/checkout@v4
         with:
@@ -493,21 +501,37 @@ jobs:
         run: |
           set -euo pipefail
           gh auth setup-git   # the https clone/push below need the token
-          git clone --depth 1 --branch gh-pages "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" publish 2>/dev/null \
-            || { git init publish && cd publish && git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" && git switch --orphan gh-pages && cd ..; }
-          cd publish
-          git config user.name "epher release"
-          git config user.email "release@epher.org"
-          mkdir -p apt rpm
-          rsync -a --delete ../apt/ apt/
-          rsync -a --delete ../rpm/ rpm/
-          git add -A apt rpm
-          if git diff --cached --quiet; then
-            echo "repositories unchanged"
-          else
+          # Each attempt runs in a subshell (function body in parens) so
+          # a rejected push leaves the cwd clean for the next clone.
+          publish_once() (
+            rm -rf publish
+            git clone --depth 1 --branch gh-pages "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" publish 2>/dev/null \
+              || { git init publish && cd publish && git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" && git switch --orphan gh-pages && cd ..; }
+            cd publish
+            git config user.name "epher release"
+            git config user.email "release@epher.org"
+            mkdir -p apt rpm
+            rsync -a --delete ../apt/ apt/
+            rsync -a --delete ../rpm/ rpm/
+            git add -A apt rpm
+            if git diff --cached --quiet; then
+              echo "repositories unchanged"
+              exit 0
+            fi
             git commit -m "linux repositories for $VERSION"
             git push origin gh-pages
-          fi
+          )
+          # The concurrency group serializes the writers on this train;
+          # the retries cover writers outside it (a standalone
+          # eclipse-publish dispatch, say) that moved the ref between
+          # our clone and push.
+          ok=0
+          for attempt in 1 2 3; do
+            if publish_once; then ok=1; break; fi
+            echo "gh-pages push attempt $attempt failed (ref moved under us?); backing off"
+            sleep $((attempt * 20))
+          done
+          [ "$ok" = 1 ] || { echo "::error::gh-pages push kept losing races after 3 attempts"; exit 1; }
 
       - name: Redeploy the site with the new repositories
         if: steps.secrets.outputs.skip == 'false'
