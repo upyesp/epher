@@ -56,6 +56,7 @@ window.EPHER_I18N["ar"] = {
   "mac-desc": "ومستخدمو Homebrew يمكنهم تثبيت التطبيق وإبقائه محدّثًا عبر brew upgrade.",
   "mac-script-title": "أو نزّل وثبّت من إصدارات GitHub عبر سكربت:",
   "mac-brew-title": "التثبيت عبر Homebrew:",
+  "mac-brew-hint": "epher غير موقّع لدى Apple، لذلك قد يظهر تحذير أمني عند أول تشغيل. أغلق التحذير دون نقل التطبيق إلى المهملات، ثم نفّذ الأمر xattr -rd com.apple.quarantine /Applications/epher.app مرة واحدة لإزالته. يعود التحذير بعد brew upgrade؛ وتصدير HOMEBREW_CASK_OPTS=\"--no-quarantine\" في ملف تعريف shell يوقفه نهائيًا (لتطبيقات Homebrew).",
   "mac-dmg-hint": "أو نزّل صورة القرص: افتحها واسحب epher إلى Applications، وعند أول تشغيل انقر بالزر الأيمن على التطبيق واختر «فتح» لتجاوز تحذير الأمان في macOS.",
   "mac-download": "نزّل صورة القرص",
   "linux-name": "Linux",

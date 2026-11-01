@@ -56,6 +56,7 @@ window.EPHER_I18N["zh-CN"] = {
   "mac-desc": "Homebrew 用户安装应用，并用 brew upgrade 保持最新。",
   "mac-script-title": "或通过脚本从 GitHub 发布页下载并安装：",
   "mac-brew-title": "Homebrew 安装：",
+  "mac-brew-hint": "epher 未经 Apple 公证，首次启动时可能会显示安全警告。关闭对话框（不要把应用移到废纸篓），然后运行一次 xattr -rd com.apple.quarantine /Applications/epher.app 即可清除。brew upgrade 之后警告会再次出现；在 shell 配置文件中导出 HOMEBREW_CASK_OPTS=\"--no-quarantine\" 可将其一劳永逸地关闭（对 Homebrew 应用）。",
   "mac-dmg-hint": "或下载磁盘映像：打开后将 epher 拖入“应用程序”，首次启动时右键点按应用并选择“打开”，即可通过 macOS 的安全警告。",
   "mac-download": "下载磁盘映像",
   "linux-name": "Linux",
