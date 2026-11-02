@@ -1,13 +1,13 @@
-// Website accessibility audit — the site/ landing pages, from the two
+// Website accessibility audit; the site/ landing pages, from the two
 // perspectives ADR-0009 names for WCAG 2.2 AA:
 //
-//   blind screen-reader user  — the accessibility tree: landmarks (one
+//   blind screen-reader user ; the accessibility tree: landmarks (one
 //     banner/main/contentinfo), one h1 per page, every link and button
 //     named, the skip link is the FIRST focusable and lands on #main,
 //     unique page titles, unique names for links that go to different
 //     places, keyboard reachability of the footer with no silent stops
 //
-//   visually impaired user   — axe color-contrast across every page
+//   visually impaired user  ; axe color-contrast across every page
 //     (4.5:1 text / 3:1 large text and UI), focus-visible indicators on
 //     real keyboard focus, reflow at a 320px viewport (WCAG 1.4.10)
 //     and no horizontal overflow at 200% zoom (WCAG 1.4.4)
@@ -30,7 +30,7 @@ const siteDir = process.argv[2] ?? join(import.meta.dirname, '..', '..', 'site')
 const results = [];
 const check = (name, ok, detail = '') => {
   results.push({ name, ok });
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ` — ${detail}` : ''}`);
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? `; ${detail}` : ''}`);
 };
 const info = (m) => console.log(`  info: ${m}`);
 
@@ -78,14 +78,14 @@ try {
         axe.incomplete.length ? `incomplete: ${minor}` : 'clean');
     } else {
       check(`[${label}] axe: zero WCAG 2.2 A/AA violations`, false,
-        axe.violations.map((v) => `${v.id} x${v.nodes.length}: ${v.help} — e.g. ${v.nodes[0].target.join(' ')}`).join(' | '));
+        axe.violations.map((v) => `${v.id} x${v.nodes.length}: ${v.help}; e.g. ${v.nodes[0].target.join(' ')}`).join(' | '));
     }
     for (const inc of axe.incomplete) {
       if (inc.id !== 'color-contrast') {
         info(`[${label}] ${inc.id} incomplete x${inc.nodes.length}: ${inc.nodes.map((n) => n.target.join(' ') + ' ' + n.html.slice(0, 60)).join(' ; ')}`);
       }
     }
-    if (axe.incomplete.length) info(`[${label}] axe incomplete: ${axe.incomplete.map((i) => `${i.id}(${i.nodes.length})`).join(', ')}${axe.incomplete.some((i) => i.id === 'color-contrast') ? ' — glyph contrast self-computed below' : ''}`);
+    if (axe.incomplete.length) info(`[${label}] axe incomplete: ${axe.incomplete.map((i) => `${i.id}(${i.nodes.length})`).join(', ')}${axe.incomplete.some((i) => i.id === 'color-contrast') ? '; glyph contrast self-computed below' : ''}`);
 
     // ---- symbol glyphs axe cannot resolve: compute their contrast -------
     // The same policy as the PWA suite: axe marks text-presentation
@@ -233,7 +233,7 @@ try {
     await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
     await sleep(250);
     // Overflow inside a keyboard-accessible scroll region (overflow-x:
-    // auto with tabindex) is fine at 200% — nothing is clipped or lost;
+    // auto with tabindex) is fine at 200%; nothing is clipped or lost;
     // the page itself must not grow. Every region that scrolls must be
     // reachable by keyboard, or its content is lost to keyboard users.
     const zoomed = await page.evaluate(() => {
@@ -274,7 +274,7 @@ try {
     // ---- generated pages must carry their own content ---------------------
     // The generators replace index.html's main; a silent no-op replace once
     // shipped the homepage's main inside examples/scripts wearing the right
-    // <title> — the "Docs menu goes to the front page" report.
+    // <title>; the "Docs menu goes to the front page" report.
     if (label === 'examples' || label === 'scripts') {
       const own = await page.evaluate((l) => ({
         marker: !!document.querySelector(l === 'examples' ? '.ex-section' : '#scripts-browser'),
@@ -294,7 +294,7 @@ try {
     // destination, then follow Examples like a user would.
     // Three real attempts: a click can miss while the viewport/zoom
     // restore from the checks above is still settling, and that must not
-    // read as a broken menu — but a menu no click can open is exactly the
+    // read as a broken menu; but a menu no click can open is exactly the
     // failure class this check exists for, so it fails after the retries.
     let docsProbe = [];
     for (let attempt = 0; attempt < 3 && !(docsProbe.length && !docsProbe[0].diag); attempt++) {
@@ -354,19 +354,23 @@ try {
     ambiguous.length === 0, ambiguous.length === 0 ? `${linkTargets.size} distinct link names, destinations unambiguous` : ambiguous.join(' | '));
 
   // ---- site-wide: writing style, no em-dashes in site copy ----------------
-  // The project bans em-dashes everywhere (writing-style ADR). Hand-written
-  // pages and every translation value are checked here; site/guide and
-  // site/reference are generated from docs/ and out of this check's scope.
-  const { readFileSync } = await import('node:fs');
+  // The project bans em-dashes everywhere (ADR-0081). Everything served
+  // under site/ is scanned: hand-written pages, the generated guide and
+  // reference HTML, their markdown sources, and all translation catalogs.
+  const { readFileSync, readdirSync } = await import('node:fs');
+  const siteRoot = new URL('../../site/', import.meta.url).pathname;
   const dashFiles = [];
-  for (const f of ['index.html', 'features.html', 'ide.html', 'examples.html', 'scripts.html', 'privacy.html', 'accessibility.html']) {
-    if (readFileSync(new URL(`../../site/${f}`, import.meta.url), 'utf8').includes('\u2014')) dashFiles.push(f);
-  }
-  for (const lang of ['en', 'de', 'es', 'fr', 'pt', 'ar', 'hi', 'zh-CN']) {
-    if (readFileSync(new URL(`../../site/i18n/${lang}.js`, import.meta.url), 'utf8').includes('\u2014')) dashFiles.push(`i18n/${lang}.js`);
-  }
-  check('site-wide: no em-dashes in hand-written pages or translations',
-    dashFiles.length === 0, dashFiles.length === 0 ? 'all clean (guide/reference are generated from docs/ and out of scope)' : `em-dash found in: ${dashFiles.join(', ')}`);
+  const scanDir = (dir, rel) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.isDirectory()) { scanDir(`${dir}/${e.name}`, `${rel}${e.name}/`); continue; }
+      const isCatalog = rel === 'i18n/' && e.name.endsWith('.js');
+      if (!/\.(html|md)$/.test(e.name) && !isCatalog) continue;
+      if (readFileSync(`${dir}/${e.name}`, 'utf8').includes('\u2014')) dashFiles.push(`${rel}${e.name}`);
+    }
+  };
+  scanDir(siteRoot, '');
+  check('site-wide: no em-dashes anywhere on the site (pages, guide, reference, translations)',
+    dashFiles.length === 0, dashFiles.length === 0 ? 'every file under site/ is clean (ADR-0081)' : `em-dash found in: ${dashFiles.join(', ')}`);
 
   // ---- mobile hamburger click-through -----------------------------------
   // The desktop dropdown and the collapsed hamburger are the same links but
