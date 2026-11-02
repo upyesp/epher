@@ -48,7 +48,10 @@ function applyLang(lang) {
   const dict = MESSAGES[lang] || MESSAGES.en || {};
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.getAttribute("data-i18n");
-    if (dict[key]) el.textContent = dict[key];
+    // An empty-string value clears the element (a fragment that only
+    // exists in some locales, such as a link's surrounding words);
+    // a missing key keeps the element's static English text.
+    if (dict[key] !== undefined) el.textContent = dict[key];
   });
   document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
     const key = el.getAttribute("data-i18n-aria");
