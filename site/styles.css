@@ -546,7 +546,9 @@ a:hover {
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: 0;
-  max-width: 18ch;
+  /* wide enough for the full tagline to wrap as two calm lines, not
+     a narrow ragged column */
+  max-width: 24ch;
   margin-block-start: 0.3rem;
 }
 
@@ -588,8 +590,8 @@ a:hover {
   background: var(--terminal-bg);
   border: 1px solid var(--terminal-border);
   border-radius: 14px;
-  /* one prompt line plus the try-this link: tight padding and no stray
-     margin on the only children, so the text sits vertically centred
+  /* prompt lines plus their try-this links: tight padding and no stray
+     margin on the children, so the text sits vertically centred
      and the box is no taller than its content */
   padding: 0.55rem 1.15rem;
   display: flex;
@@ -604,6 +606,12 @@ a:hover {
 
 .terminal-prompt {
   margin: 0;
+}
+
+/* Each command row after the first gets breathing room above its
+   prompt, so the pairs read as separate examples. */
+.terminal-try + .terminal-prompt {
+  margin-block-start: 0.6rem;
 }
 
 /* The hero prompt's "try this" link: opens the PWA with the command
