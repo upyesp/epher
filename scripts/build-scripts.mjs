@@ -119,7 +119,7 @@ const page = template
 // scripts.html (the <main> tag grew an attribute and the pattern stopped
 // matching). Fail the build instead of writing a page without its content.
 if (!page.includes('id="scripts-browser"') || page.includes('class="hero"')) {
-  throw new Error("build-scripts: the main-content replace did not apply to index.html — refusing to write scripts.html without the scripts browser");
+  throw new Error("build-scripts: the main-content replace did not apply to index.html; refusing to write scripts.html without the scripts browser");
 }
 
 writeFileSync(join(SITE, "scripts.html"), page);

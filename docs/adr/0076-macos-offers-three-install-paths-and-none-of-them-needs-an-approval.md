@@ -7,7 +7,7 @@ macOS paths; the formula and the site card go live with the train that
 first builds the new tarball).
 
 Amendment 2026-10-20, same day: the landing-page card advertises two
-of the three paths (install.sh and the cask) — the formula line was
+of the three paths (install.sh and the cask); the formula line was
 dropped from the card as one option too many for a first impression.
 The formula itself stays in the tap, self-updating and documented
 there; the card's macOS story is script, cask, disk image.
@@ -26,7 +26,7 @@ every install:
   `HOMEBREW_NO_QUARANTINE`; Homebrew 7 removed the opt-out and now
   stamps quarantine on every cask download, unconditionally.
 - Worst of all, a quarantined ad-hoc binary executed from a terminal
-  does not show a dialog at all — the exec silently hangs while
+  does not show a dialog at all; the exec silently hangs while
   Gatekeeper waits for an approval that never comes (observed on
   macOS 27, 2026-10-20). A user who installs the cask and then types
   `epher` sees a frozen prompt.
@@ -48,19 +48,19 @@ made by a tool (curl, brew formula) carries no quarantine at all.
 The macOS card on epher.org offers three install paths, all
 Apple Silicon (ADR-0025):
 
-### 1. install.sh — one line, no Homebrew, nothing to approve
+### 1. install.sh; one line, no Homebrew, nothing to approve
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/upyesp/epher/main/install.sh | sh
 ```
 
 The script lives at the monorepo root and is served from the main
-branch, so it exists as soon as this ADR's train merges — it does not
+branch, so it exists as soon as this ADR's train merges; it does not
 wait for a release asset. It downloads the latest DMG, installs
 `epher.app` into /Applications (falling back to ~/Applications for
 non-admin users), links `epher` into ~/.local/bin with a PATH hint,
 prints the installed version, and opens the app. Because curl stamps
-no quarantine, Gatekeeper never appears — the same property rustup and
+no quarantine, Gatekeeper never appears; the same property rustup and
 Homebrew's own installer rely on. Guard rails: it refuses non-macOS
 and non-arm64 machines with clear messages, and if Homebrew already
 manages epher it says so and points at `brew upgrade --cask epher`
@@ -68,13 +68,13 @@ instead of writing over brew's install. `EPHER_APP_DIR` and
 `EPHER_BIN_DIR` override the destinations; the repo's own smoke test
 installs into a temp dir with them.
 
-### 2. The Homebrew cask — unchanged
+### 2. The Homebrew cask; unchanged
 
 `brew install --cask upyesp/tap/epher` stays as documented in
 ADR-0072, quarantine and all: brew users keep brew's bookkeeping, and
 first-launch approval remains a one-time cost of that channel.
 
-### 3. The Homebrew formula — just the terminal command
+### 3. The Homebrew formula; just the terminal command
 
 `brew install upyesp/tap/epher` installs the unified binary alone
 (CLI, REPL, TUI) from a new release asset, `epher-macos-aarch64.tar.gz`,
@@ -92,7 +92,7 @@ a train that forgets it fails the release.
 ## Consequences
 
 - A macOS user with zero patience for Gatekeeper has two
-  prompt-free paths (script, formula) that never show an approval —
+  prompt-free paths (script, formula) that never show an approval;
   and the script's last act is opening the app.
 - The browser-DMG path still shows the first-launch approval; only
   notarization can remove that. This ADR deliberately does not close
@@ -100,7 +100,7 @@ a train that forgets it fails the release.
   tickets outlive the membership) would stack on top of all three
   paths and remove the cask's approval too. Revisit when the project
   can justify the fee.
-- The script trusts TLS to GitHub and nothing else — no checksum step
+- The script trusts TLS to GitHub and nothing else; no checksum step
   in v1 (the cask pins the DMG digest; the formula pins the tarball's).
   A checksum file attached to each release would harden install.sh;
   deferred until wanted.
@@ -118,7 +118,7 @@ a train that forgets it fails the release.
   breaks silently on a future brew, and silently downgrades a security
   feature for users who chose brew.
 - **Free Apple certificates** (personal team): development-signed
-  builds are device-locked with 7-day profiles — not a distribution
+  builds are device-locked with 7-day profiles; not a distribution
   mechanism.
 - **The membership fee waiver**: nonprofit/education/government
   entities only; explicitly not individuals.

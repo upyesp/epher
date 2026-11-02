@@ -19,7 +19,7 @@ winget docs plus winget-cli source, and the Microsoft Store Policies. For
 listing anatomy, queried the first-party DisplayCatalog API
 (`https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=<ID>&market=US&languages=en-us&MS-CV=x`,
 no auth) for six popular apps whose product IDs were resolved from first-party
-pages (see §2 — three IDs from the research brief turned out to be wrong or
+pages (see §2; three IDs from the research brief turned out to be wrong or
 dead and are called out below). Every load-bearing claim carries its URL;
 where a number could not be verified, the text says so.
 
@@ -34,9 +34,9 @@ to know because it changed: **"With the new onboarding experience, there are no
 registration fees for either account type"**
 ([open a developer account](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/open-a-developer-account)).
 The FAQ on the same page answers "Do I need to pay the registration fee?" with
-"No — if you're using the new flow via the Store marketing page", and the only
+"No; if you're using the new flow via the Store marketing page", and the only
 supported entry point is
-[storedeveloper.microsoft.com](https://storedeveloper.microsoft.com) — starting
+[storedeveloper.microsoft.com](https://storedeveloper.microsoft.com); starting
 from Partner Center directly shows the legacy flow, whose fee ("$19 individual /
 $99 company" in older docs and countless posts) **could not be verified against
 any current primary source**; treat any fee as legacy-path only.
@@ -50,7 +50,7 @@ path the brief assumed:
 2. Sign in with the MSA (upyesp@gmail.com).
 3. **Identity verification with a government-issued ID and a selfie**, captured
    on mobile ("Begin identity verification with a government-issued ID and
-   selfie" — same page). This is the one human-identity step; no DUNS, no
+   selfie"; same page). This is the one human-identity step; no DUNS, no
    business documents, no tax forms.
 4. Complete profile → "Go to Partner Center dashboard" → the Apps & Games
    overview appears (can take ~5–30 min to light up).
@@ -58,7 +58,7 @@ path the brief assumed:
 Individual vs company: individual = publishing under your own name, not in
 relation to a business; company = legal business entity, verified via DUNS or
 documents, with manual review of 2–5 business days. "Changing a developer
-account from Individual to Company is not supported" (same page) — fine, epher
+account from Individual to Company is not supported" (same page); fine, epher
 stays individual.
 
 **Payout and tax are skippable for a free app**, explicitly:
@@ -86,17 +86,17 @@ forms and set up a payout account then"
 3. Manifest rules: `Identity@Name` is **case-sensitive**; `Publisher` must
    match the Partner Center string exactly ("Values in the manifest are
    case-sensitive. Spaces and other punctuation must also match"
-   — [app package requirements](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements));
+  ; [app package requirements](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements));
    `Version` is `major.minor.build.revision` with the **fourth section
    reserved for the Store and left as 0**, sections ≤ 65535, first ≠ 0
    ([Identity schema](https://learn.microsoft.com/en-us/uwp/schemas/appxpackage/uapmanifestschema/element-identity),
    [package version numbering](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements#package-version-numbering)).
    For Store submissions the identity is *not* the Tauri `identifier`
-   (`com.epher.desktop`); that value is irrelevant here — Partner Center
+   (`com.epher.desktop`); that value is irrelevant here; Partner Center
    assigns its own Name/Publisher pair, copied verbatim into the AppxManifest.
 
 Name choice note: the Store name must be unique Store-wide; "epher" is short
-enough that a collision is plausible — check availability before planning
+enough that a collision is plausible; check availability before planning
 around it (the same page covers what to do if the name is taken but unused).
 
 ### 1.3 Packaging: the Tauri reality, and the MSIX route chosen
@@ -132,13 +132,13 @@ offline, handle auto-updates and be code signed".
    be signed with a certificate rooted in a trusted certificate authority when
    submitting to the Microsoft Store. The Microsoft Store will automatically
    re-sign your MSIX/AppX packages with a Microsoft certificate during the
-   publishing process" — and, conversely, "If you are submitting an MSI or EXE
+   publishing process"; and, conversely, "If you are submitting an MSI or EXE
    installer to the Store, the Store does not re-sign those files. You must
    Authenticode-sign your MSI/EXE installer yourself"
    ([app package requirements](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements)).
    epher ships unsigned today; MSIX is the only Store route that accepts that.
 2. **Store-managed updates**: on the MSIX route the Store distributes and
-   updates the package — "Existing users will receive the update via the Store
+   updates the package; "Existing users will receive the update via the Store
    automatically"
    ([publish update](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/publish-update-to-your-app-on-store)),
    with optional gradual rollout and mandatory-update scheduling in Partner
@@ -146,18 +146,18 @@ offline, handle auto-updates and be code signed".
 3. **No NSIS-specific policy surface**: no silent-flag, no versioned-URL, no
    PE-signing obligations; the payload is just files in a package.
 
-Packaging routes for producing that MSIX (Tauri has no MSIX bundler — the
+Packaging routes for producing that MSIX (Tauri has no MSIX bundler; the
 bundler emits only `msi` and `nsis` on Windows, see the earlier research in
 [store-ci-cd-publishing.md](store-ci-cd-publishing.md) §7):
 
 | Route | Tool | CI-fit |
 |---|---|---|
-| Manual: hand-written `AppxManifest.xml` + payload, packed with **MakeAppx.exe** | Windows SDK (`MakeAppx.exe pack /d <dir> /p <out>.msix`), documented for exactly the no-Visual-Studio case: "If you don't use Visual Studio to create your package, you must create your package manifest manually" ([app package requirements](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements), [create-app-package-with-makeappx-tool](https://learn.microsoft.com/en-us/windows/msix/package/create-app-package-with-makeappx-tool), [package from the command line](https://learn.microsoft.com/en-us/windows/msix/package/manual-packaging-root)) | **best** — a GitHub Actions windows runner already builds the app; adding a manifest dir + one MakeAppx call is a small step; unsigned output is accepted |
-| **MSIX Packaging Tool** repack of the NSIS installer | interactive GUI; has a CLI (`MsixPackagingTool.exe create-package --template …`) that needs a clean conversion VM/remote machine ([command line](https://learn.microsoft.com/en-us/windows/msix/packaging-tool/package-conversion-command-line)) | poor — conversion-environment plumbing on a runner, and repackaging an installer is the wrong shape when we own the source |
-| **msix-packaging** (open source) | microsoft/msix-packaging — cross-platform lib/CLI for pack/unpack ([github.com/microsoft/msix-packaging](https://github.com/microsoft/msix-packaging)) | niche; MakeAppx on a Windows runner is simpler and is what the Store docs themselves assume |
+| Manual: hand-written `AppxManifest.xml` + payload, packed with **MakeAppx.exe** | Windows SDK (`MakeAppx.exe pack /d <dir> /p <out>.msix`), documented for exactly the no-Visual-Studio case: "If you don't use Visual Studio to create your package, you must create your package manifest manually" ([app package requirements](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements), [create-app-package-with-makeappx-tool](https://learn.microsoft.com/en-us/windows/msix/package/create-app-package-with-makeappx-tool), [package from the command line](https://learn.microsoft.com/en-us/windows/msix/package/manual-packaging-root)) | **best**; a GitHub Actions windows runner already builds the app; adding a manifest dir + one MakeAppx call is a small step; unsigned output is accepted |
+| **MSIX Packaging Tool** repack of the NSIS installer | interactive GUI; has a CLI (`MsixPackagingTool.exe create-package --template …`) that needs a clean conversion VM/remote machine ([command line](https://learn.microsoft.com/en-us/windows/msix/packaging-tool/package-conversion-command-line)) | poor; conversion-environment plumbing on a runner, and repackaging an installer is the wrong shape when we own the source |
+| **msix-packaging** (open source) | microsoft/msix-packaging; cross-platform lib/CLI for pack/unpack ([github.com/microsoft/msix-packaging](https://github.com/microsoft/msix-packaging)) | niche; MakeAppx on a Windows runner is simpler and is what the Store docs themselves assume |
 
 **Minimal working AppxManifest shape** for a Win32 `runFullTrust` package with
-two executables and PATH aliases (sketch — values from the Product identity
+two executables and PATH aliases (sketch; values from the Product identity
 page, verified attribute semantics from the schema pages
 [Identity](https://learn.microsoft.com/en-us/uwp/schemas/appxpackage/uapmanifestschema/element-identity),
 [uap5:AppExecutionAlias](https://learn.microsoft.com/en-us/uwp/schemas/appxpackage/uapmanifestschema/element-uap5-appexecutionalias),
@@ -218,14 +218,14 @@ page, verified attribute semantics from the schema pages
 ```
 
 Design notes for epher specifically: the AppExecutionAlias is what puts `epher`
-on PATH for Store installs — it lands in
+on PATH for Store installs; it lands in
 `%LOCALAPPDATA%\Microsoft\WindowsApps` and replaces the NSIS hook that edits
 the user PATH (each `Application` may carry up to 1000 aliases, per the
 `uap5:ExecutionAlias{0,1000}` range in the schema). `AppListEntry="none"` keeps
 the console build out of the Start menu. The NSIS layout already Files
 `epher.exe` next to `epher-gui.exe`, so the payload directory from
 `cargo tauri build` output carries both binaries unchanged. Run WACK (Windows
-App Certification Kit) on the packed MSIX before submitting — the docs ask for
+App Certification Kit) on the packed MSIX before submitting; the docs ask for
 it repeatedly ([app package requirements](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements),
 [avoid common certification failures](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/resolve-submission-errors)).
 
@@ -236,12 +236,12 @@ Package cap: 25 GB (irrelevant here, but the actual cap).
 
 ### 1.4 Visual assets: what the submission requires vs optional
 
-From [app screenshots, images, and trailers](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images) (page last updated 2025-06-06) — these are the numbers a human crops to:
+From [app screenshots, images, and trailers](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images) (page last updated 2025-06-06); these are the numbers a human crops to:
 
 | Asset | Required? | Exact size | Notes |
 |---|---|---|---|
-| Screenshot (Desktop) | **required — exactly one minimum** (any device family) | **1366 × 768 or larger**, landscape or portrait; 4K up to 3840 × 2160 supported | PNG, ≤ 50 MB each; **up to 10 desktop screenshots** (8 for other device families); Microsoft recommends **5–8** per device family; caption per screenshot **≤ 200 chars**; keep critical content in the top two-thirds (text overlays land on the bottom third); no logos/marketing text added |
-| Store logo — 1:1 app tile icon | strongly recommended; "If you don't provide this image, the Store will use the image from your app package" (and the uploaded one wins) | **300 × 300** | PNG; this is what epher should upload — the existing dark-tile mark scaled |
+| Screenshot (Desktop) | **required; exactly one minimum** (any device family) | **1366 × 768 or larger**, landscape or portrait; 4K up to 3840 × 2160 supported | PNG, ≤ 50 MB each; **up to 10 desktop screenshots** (8 for other device families); Microsoft recommends **5–8** per device family; caption per screenshot **≤ 200 chars**; keep critical content in the top two-thirds (text overlays land on the bottom third); no logos/marketing text added |
+| Store logo; 1:1 app tile icon | strongly recommended; "If you don't provide this image, the Store will use the image from your app package" (and the uploaded one wins) | **300 × 300** | PNG; this is what epher should upload; the existing dark-tile mark scaled |
 | 2:3 poster art | apps: optional (games: required) | **720 × 1080** or **1440 × 2160** | may include the app name |
 | 1:1 box art | apps: optional (games: main logo fallback) | **1080 × 1080** or **2160 × 2160** | |
 | 16:9 "Super hero" art | optional (required only to show trailers at the top) | **1920 × 1080** or **3840 × 2160** | no text in the image |
@@ -250,7 +250,7 @@ From [app screenshots, images, and trailers](https://learn.microsoft.com/en-us/w
 
 The in-package icon set (what `tauri icon` generates and the VisualElements
 entries reference) renders as 44/66/71/88/107/142/150/225/300/310/465/620 px
-tiles plus 310 × 150 / 620 × 300 wide — visible empirically in the
+tiles plus 310 × 150 / 620 × 300 wide; visible empirically in the
 DisplayCatalog Tile data of published apps (§2). Submission-side only the
 300 × 300 Store tile is new art; everything else exists in
 `crates/tauri-app/src-tauri/icons`.
@@ -273,17 +273,17 @@ Listing fields and limits
 | Description (required) | **10,000 characters**, plain text |
 | What's new in this version | 1,500 characters |
 | Product features (bulleted list) | up to **20** items, **≤ 200 chars** each |
-| Short description | 1,000 chars, but only the first **270** show — if absent, the first 500 chars of the description are used instead |
+| Short description | 1,000 chars, but only the first **270** show; if absent, the first 500 chars of the description are used instead |
 | Short title / sort title / voice title | 50 / 255 / 255 chars |
 | Screenshots + captions | see §1.4 (captions ≤ 200 chars) |
-| Search keywords | **≤ 7** unique terms — this is a *policy*, 10.1.3: "Not exceed seven unique terms or phrases. Be relevant … Not include pricing terms. Not use other product titles …" ([Store Policies](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies)) |
+| Search keywords | **≤ 7** unique terms; this is a *policy*, 10.1.3: "Not exceed seven unique terms or phrases. Be relevant … Not include pricing terms. Not use other product titles …" ([Store Policies](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies)) |
 | Copyright/trademark info, license terms | free-text (submission API fields `copyrightAndTrademarkInfo`, `licenseTerms`, [manage app submissions](https://learn.microsoft.com/en-us/windows/uwp/monetize/manage-app-submissions)) |
 
-Category for a calculator: **Utilities + tools** is the documented home —
+Category for a calculator: **Utilities + tools** is the documented home;
 its examples literally list "file manager, **calculators**, barcode scanner…"
 ([categories and subcategories](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/categories-and-subcategories)).
 No subcategory is required for non-game apps; an optional secondary category
-(Partner Center uses "Utilities & tools" / "Productivity" display names —
+(Partner Center uses "Utilities & tools" / "Productivity" display names;
 Windows Calculator's own listing carries Category `Utilities & tools`, §2).
 Categories can be changed later by a new submission (only Games locks in).
 
@@ -292,22 +292,22 @@ its answers carry to all subsequent updates
 ([age ratings](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/age-ratings)).
 For epher the answers are the boring ones: category "productivity/tools or
 education", no accounts, no user-generated content, no online interactivity,
-no purchases, no ads, no sharing of personal info — which generates the lowest
+no purchases, no ads, no sharing of personal info; which generates the lowest
 ratings in every market (the questionnaire's own category branch determines
 which questions even appear). Microsoft shares publisher display name + email
 with IARC; an appeal path exists via the rating certificate email.
 
 Pricing and markets ([price and availability](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/price-and-availability)):
 a base price is required and **Free** is one of the choices; the Store reaches
-"over 240 countries and regions" and defaults to all of them — leave that.
+"over 240 countries and regions" and defaults to all of them; leave that.
 Stop distribution with the "Stop acquisition" option under availability.
 
 Release options ([manage submission options](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/manage-submission-options)):
 default is publish-as-soon-as-certified; alternatives are "Don't publish this
 submission until I select Publish now" (manual) or a scheduled date ≥ 24 h
-out. The **Notes for certification** box is where a real tester reads context —
+out. The **Notes for certification** box is where a real tester reads context;
 for epher: "offline app, no login, run `epher` in a terminal or `epher-gui`
-from Start; the graphing calculator is the GUI, the CLI shares the engine" —
+from Start; the graphing calculator is the GUI, the CLI shares the engine";
 plus a privacy-policy URL if the listing references one (the common-failures
 list calls out privacy policy and offline behavior explicitly,
 [resolve submission errors / avoid common certification failures](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/resolve-submission-errors)).
@@ -319,9 +319,9 @@ list calls out privacy policy and offline behavior explicitly,
 - **Duration: "up to three business days"**, "though it can be quicker"; after
   publish, the listing is typically visible "within about 15 minutes".
 - Three test phases: **security** (the submitted packages are checked for
-  viruses/malware — for epher's MSIX route that means the MSIX payload, our
+  viruses/malware; for epher's MSIX route that means the MSIX payload, our
   binaries, get scanned; the docs point to the "Trust and Security Services
-  Scan"), **technical compliance** (the Windows App Certification Kit — "The
+  Scan"), **technical compliance** (the Windows App Certification Kit; "The
   Store installs and runs your app to verify it behaves as expected"), and
   **content compliance** (listing text, age rating, screenshots).
 - Publishing phase: Microsoft re-signs the MSIX; after that starts, the
@@ -332,15 +332,15 @@ list calls out privacy policy and offline behavior explicitly,
 Common desktop-app rejection reasons, from the
 [avoid common certification failures](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/resolve-submission-errors) list and the policies:
 submitting unfinished apps; crashing without network ("Ensure that your app
-doesn't crash without network connectivity" — epher is offline by design, but
+doesn't crash without network connectivity"; epher is offline by design, but
 the *checklist* means testers may pull the network); missing/wrong identity
-("The name found in the package is not one of your reserved app names" — the
+("The name found in the package is not one of your reserved app names"; the
 §1.2 manifest match); misleading metadata (policy 10.1); missing privacy
 policy when personal info is touched (epher: state no-telemetry plainly);
 declaring accessibility without engineering it; keyword padding (10.1.3);
 incomplete age-rating answers. Malware policy 10.2.3 ("must not contain or
 enable malware as defined by the Microsoft criteria for Unwanted and Malicious
-Software") is what the security scan enforces — for the NSIS route the same
+Software") is what the security scan enforces; for the NSIS route the same
 scan applies to the installer binary fetched from the developer URL, which is
 one more (minor) argument for MSIX where only the store-signed package
 matters.
@@ -361,21 +361,21 @@ the Store at all (verified against the docs source). The v1-era guidance to
 disable an in-app updater for Store builds **could not be verified in current
 Tauri docs**; the mechanical reason stands on its own: the Store already owns
 update distribution for the MSIX identity, and epher's NSIS channel has no
-updater today, so nothing to turn off — just never wire the Tauri updater
+updater today, so nothing to turn off; just never wire the Tauri updater
 plugin to the Store package.
 
 Parallel distribution is fine and needs no special dispensation: the Store
 install is identified by the Partner Center identity/PFN (a Store MSIX), while
 the NSIS installer writes to Program Files / user PATH with no package
-identity — two independent installs of independent mechanisms. The one rule:
-**never let them share an identity** — the NSIS build must not adopt the Store
+identity; two independent installs of independent mechanisms. The one rule:
+**never let them share an identity**; the NSIS build must not adopt the Store
 PFN (and Tauri's NSIS doesn't), or updates/uninstalls would collide (identity
 semantics: [package identity overview](https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/package-identity-overview); Store identity values: [view product identity details](https://learn.microsoft.com/en-us/windows/apps/publish/view-app-identity-details)). Mark as inference where it goes beyond citation: the docs never discuss side-by-side NSIS+MSIX directly; the independence follows from the identity model.
 
 ### 1.8 winget
 
 - The `msstore` source **is** the Store catalog: "WinGet specifies the
-  following three default sources … **msstore — The Microsoft Store catalog**",
+  following three default sources … **msstore; The Microsoft Store catalog**",
   endpoint `https://storeedgefd.dsx.mp.microsoft.com/v9.0`
   ([winget source](https://learn.microsoft.com/en-us/windows/package-manager/winget/source)).
   A published Store app appears there with no developer-side registration;
@@ -384,7 +384,7 @@ semantics: [package identity overview](https://learn.microsoft.com/en-us/windows
   end to end, e.g. [MSStore.cpp](https://github.com/microsoft/winget-cli/blob/master/src/AppInstallerCommonCore/MSStore.cpp)).
 - `winget search epher` hits msstore by display name (the docs' own example is
   `winget search "Visual Studio Code" -s msstore`
-  — [winget search](https://learn.microsoft.com/en-us/windows/package-manager/winget/search));
+ ; [winget search](https://learn.microsoft.com/en-us/windows/package-manager/winget/search));
   `winget install --source msstore <Product ID>` installs the Store package
   (free products) directly.
 - **Agreements prompt**: msstore installs prompt to accept license/source
@@ -397,10 +397,10 @@ semantics: [package identity overview](https://learn.microsoft.com/en-us/windows
   once per source/package.
 - So the Store listing itself is the entire winget-msstore integration: publish
   in Partner Center, then `winget search epher` resolves once ingestion has
-  propagated (no published SLA for catalog propagation — could not verify a
+  propagated (no published SLA for catalog propagation; could not verify a
   number).
 - **Parallel route, one paragraph**: the `winget` community source is a
-  different thing entirely — a manifest PR to
+  different thing entirely; a manifest PR to
   [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) covering
   the NSIS installer / zip, no Store account involved, updated by manifest PRs
   per release. Optional, complements (does not replace) the msstore presence;
@@ -421,13 +421,13 @@ on 2026-09-19. Product IDs verified from first-party sources:
 | Windows Notepad | `9MSMLRH6LZF3` | detail page + displaycatalog ("Microsoft Corporation") |
 | Windows Terminal | `9N0DX20HK701` | detail page + displaycatalog ("Microsoft Corporation") |
 | Windows Calculator | `9WZDNCRFHVN5` | microsoft/calculator README links `microsoft.com/store/apps/9WZDNCRFHVN5`; displaycatalog: "Windows Calculator" |
-| Microsoft PowerToys | `XP89DCGQ3K6VLD` | aka.ms/getPowertoys → `apps.microsoft.com/store/detail/microsoft-powertoys/XP89DCGQ3K6VLD`; detail page resolves ("Microsoft PowerToys"). displaycatalog `bigIds` returns **0 products** for XP-format IDs — API limitation, so no image/dimension row for it |
+| Microsoft PowerToys | `XP89DCGQ3K6VLD` | aka.ms/getPowertoys → `apps.microsoft.com/store/detail/microsoft-powertoys/XP89DCGQ3K6VLD`; detail page resolves ("Microsoft PowerToys"). displaycatalog `bigIds` returns **0 products** for XP-format IDs; API limitation, so no image/dimension row for it |
 
-**Wrong IDs caught and discarded** (worth recording — the brief's guesses were
+**Wrong IDs caught and discarded** (worth recording; the brief's guesses were
 stale): `9WZDNCRFHWH5` is *not* Windows Calculator (it resolves to a
 third-party app "智机市场-精品应用推荐"); `9WZDNCRFJ2TJ` is *not* Netflix (a
 game, "La chuuute by Oasis"); `9NCB6Z2P3KFX` (old Spotify) and `9N5NQ0S3BL7L`
-(old Zoom) return nothing/410 — those products were removed from the Store.
+(old Zoom) return nothing/410; those products were removed from the Store.
 Spotify/Netflix/Zoom current IDs could not be resolved from first-party pages
 in this session (Store search is client-rendered; DDG/Bing/Mojeek all blocked
 the scraper). Six verified apps stand.
@@ -446,29 +446,29 @@ the scraper). Six verified apps stand.
 **What the listings do, structurally:**
 
 1. **Titles are the app name, alone.** "WhatsApp", "Instagram", "Windows
-   Notepad", "Windows Terminal", "Windows Calculator" — no keyword strings.
+   Notepad", "Windows Terminal", "Windows Calculator"; no keyword strings.
    This is policy, not taste: "Your product title or name must be unique and
    must not contain marketing or descriptive text, including extraneous use of
    keywords" (10.1.1, [Store Policies](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies)).
-   epher: title "epher" (or "epher — graphing calculator" is *not* better; keep
+   epher: title "epher" (or "epher; graphing calculator" is *not* better; keep
    the keyword out of the title and in the keywords/description).
-2. **Descriptions are short**: 140–784 chars among these six — under 10 % of
+2. **Descriptions are short**: 140–784 chars among these six; under 10 % of
    the 10,000 budget. First line = the pitch ("A simple yet powerful
    calculator that includes standard, scientific, programmer, and graphing
-   calculator functions…" — Calculator; "WhatsApp from Meta is a 100% free
-   messaging app. It's used by over 2B people…" — WhatsApp, social proof in
+   calculator functions…"; Calculator; "WhatsApp from Meta is a 100% free
+   messaging app. It's used by over 2B people…"; WhatsApp, social proof in
    line one). WhatsApp/Instagram then run bolded feature mini-headers
-   ("Private messaging across the world") with short paragraphs — the
+   ("Private messaging across the world") with short paragraphs; the
    description's structure is H3-ish headers + 1–2 sentences, not prose.
 3. **Short description field**: displaycatalog serves none of these apps a
-   separate `ShortDescription` (all empty) — the first ≤ 500 chars of the
+   separate `ShortDescription` (all empty); the first ≤ 500 chars of the
    description doubles as the short text, which the listing docs say is the
    fallback. For epher: make the description's first paragraph do both jobs,
    or set an explicit short description with *different* text as the docs
    recommend.
 4. **Screenshot sets**: 3–7 images, all 16:9-ish landscape, resolutions from
    the documented 1366 × 768 floor (Notepad's lead image is exactly 1366 × 768)
-   to full 4K (Calculator, 7 × 3840 × 2160). Notepad/Catalog don't pad to 10 —
+   to full 4K (Calculator, 7 × 3840 × 2160). Notepad/Catalog don't pad to 10;
    five strong frames is a normal, complete-looking set. Whether individual
    shots carry caption bars/annotations can't be seen from displaycatalog
    metadata (it stores dimensions and URIs, not design); the guideline doc
@@ -476,7 +476,7 @@ the scraper). Six verified apps stand.
    bottom third for overlay text.
 5. **Store logo**: 300 × 300 1:1 present across the set (the tile icon),
    first-party apps additionally carry the full 15-size tile ladder and
-   50/75/100/300 px logo ladder — that ladder is generated from one source
+   50/75/100/300 px logo ladder; that ladder is generated from one source
    image by `tauri icon`, not drawn by hand.
 6. **Localization counts: could not verify.** displaycatalog served only the
    first requested language per call (`languages=de-de,fr-fr,…` truncated to
@@ -497,7 +497,7 @@ calculator, calculator language, units, unit conversion, plotting, math).
 
 ## 3. CI/CD
 
-There **is** a REST submission API — the "Microsoft Store submission API"
+There **is** a REST submission API; the "Microsoft Store submission API"
 (manage.devcenter.microsoft.com, a.k.a. ingestion API), authenticated with an
 Entra app associated in Partner Center (Manager role, tenant + client ID +
 secret, token via client-credentials, 60-minute validity), with the caveat
@@ -507,7 +507,7 @@ including the age-rating questionnaire before the API can manage the app
 [manage app submissions](https://learn.microsoft.com/en-us/windows/uwp/monetize/manage-app-submissions);
 full detail already researched in
 [store-ci-cd-publishing.md](store-ci-cd-publishing.md) §7). **No OIDC/federation
-route is documented for this API** — unlike the VS Code Marketplace's managed-
+route is documented for this API**; unlike the VS Code Marketplace's managed-
 identity + `vsce publish --azure-credential` path we built, CI here would hold
 a client secret; that's the honest asymmetry with the Entra-federated publish
 already in place for the Marketplace.
@@ -517,7 +517,7 @@ GitHub Actions `windows-latest` runner (`build-installers.yml` matrix leg,
 `cargo tauri build --bundles nsis`, after the pinned trunk + tauri-cli builds;
 see the workflow comments on the console/GUI double build), and release.yml
 attaches `epher-windows-x86_64.exe` plus the lsp zips to the release. The
-incremental CI work for the Store is exactly two steps: **(1)** an MSIX leg —
+incremental CI work for the Store is exactly two steps: **(1)** an MSIX leg;
 copy the built binaries + assets into a layout matching the AppxManifest and
 run `MakeAppx.exe pack` (Windows SDK is preinstalled on windows runners;
 unsigned output is Store-acceptable per §1.3), plus an optional WACK run;
@@ -529,14 +529,14 @@ upload effort anyway.
 
 **Reading the numbers back** is its own job: `store-analytics.yml`
 (workflow_dispatch, plus a monthly cron on the 5th) pulls what Partner Center
-keeps behind login, because none of the public surfaces carry install counts —
+keeps behind login, because none of the public surfaces carry install counts;
 the storefront shows ratings only, and displaycatalog's UsageData is
 ratings-and-transactions (`PurchaseCount` stays 0 for free apps; even Windows
 Calculator's shows 0 there). It authenticates with the same Entra
 client-credentials as `store-api-test.yml` and reads two analytics endpoints
 on manage.devcenter.microsoft.com:
 [appacquisitions](https://learn.microsoft.com/en-us/windows/uwp/monetize/get-app-acquisitions)
-(`acquisitionQuantity` per day — the data behind the Acquisitions page) and
+(`acquisitionQuantity` per day; the data behind the Acquisitions page) and
 [usagedaily](https://learn.microsoft.com/en-us/windows/uwp/monetize/get-app-usage-daily)
 (`dailyNewUsers`, `dailyActiveDevices`, `dailySessionCount`,
 `engagementDurationMinutes`, `monthlyActiveDevices`). Both paginate through
@@ -547,8 +547,8 @@ first publish) to count from any date.
 
 One observed failure mode (2026-10-26, first live run): the token call
 succeeds but both analytics calls return
-`Unauthorized — The user is not authorized to access this resource`, and
-`store-api-test.yml` shows the same on `/v1.0/my/applications` — the Entra
+`Unauthorized; The user is not authorized to access this resource`, and
+`store-api-test.yml` shows the same on `/v1.0/my/applications`; the Entra
 application authenticates but Partner Center does not associate it with the
 account (or it lacks the Manager role). That is fixed in the portal, under
 Account settings → User management: add the Entra application by its client
@@ -581,7 +581,7 @@ fatal and prints the fix in its log.
    artifacts; run WACK locally or on the runner once before first submission
    (§1.3, §3).
 6. **(user, portal)** First submission, manual: upload the .msix; paste the
-   listing text (parent session drafts it — §2 template: title "epher",
+   listing text (parent session drafts it; §2 template: title "epher",
    description ≤ 10,000 chars with a ≤ 500-char first paragraph, ≤ 7
    keywords, ≤ 20 feature bullets at ≤ 200 chars); crop 5 screenshots to
    ≥ 1366 × 768 PNG (1920 × 1080 recommended); upload the 300 × 300 store
@@ -613,8 +613,8 @@ is in CI:
   "epher" was not available; the identity carries the qualifier and
   the listing Store name stays "epher" per policy 10.1.1.
 - packaging/msix/: AppxManifest.xml (identity, ONE visible
-  application — the console build, whose bare invocation opens the GUI
-  through the ADR-0011 sibling spawn — carrying the epher.exe execution
+  application; the console build, whose bare invocation opens the GUI
+  through the ADR-0011 sibling spawn; carrying the epher.exe execution
   alias, eight resource languages, runFullTrust,
   uap10:SupportsMultipleInstances) and store-logo-300.png (the 300x300
   listing tile, generated from the 512 icon). The MSIX leg lives in the
@@ -636,8 +636,8 @@ is in CI:
   through the displaycatalog API: title epher, publisher upyesp, PFN
   upyesp.epher_qmt5ym29gwpzm, the 300 tile). The winget msstore source
   indexes the same record. Path to acceptance: the first package was
-  rejected as a headless app — any Application with
-  AppListEntry="none" needs the HeadlessAppBypass waiver — and an
+  rejected as a headless app; any Application with
+  AppListEntry="none" needs the HeadlessAppBypass waiver; and an
   execution alias can only launch its own Application's Executable, so
   the waiver-free shape is the single visible console application now
   in the manifest; certification notes justify runFullTrust (classic

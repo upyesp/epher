@@ -1,14 +1,14 @@
-// epher — ADR-0009 automated accessibility suite (axe-core WCAG 2.2
+// epher; ADR-0009 automated accessibility suite (axe-core WCAG 2.2
 // A/AA + Chromium accessibility-tree screen-reader layer + computed
 // contrast), ported from the trains project's audit harness.
 //
 //   node scripts/a11y/audit.mjs
 //
 // Serves the freshly built PWA (crates/web/dist) at /pwa/ from an
-// in-process static server, audits every state ADR-0009 names —
+// in-process static server, audits every state ADR-0009 names;
 // desktop dark/light/night, the graph pane with 2D and 3D plots
 // drawn, the guide overlay open, and the mobile layout (baseline,
-// hamburger open, after the auto-slide) — and asserts:
+// hamburger open, after the auto-slide); and asserts:
 //   • axe: zero violations under wcag2a/2aa/21a/21aa/22aa
 //   • AX tree: every interactive control exposes its role and name to
 //     the layer macOS screen readers consume; the result region is a
@@ -16,8 +16,8 @@
 //   • contrast: the theme tokens meet 4.5:1 (text) / 3:1 (non-text),
 //     recomputed per theme from the computed styles
 // Policy for axe "incomplete" (ADR-0009): color-contrast on targets
-// axe cannot resolve (symbol-glyph buttons — we compute those
-// ourselves — and plot-SVG text, covered by the token audit) and
+// axe cannot resolve (symbol-glyph buttons; we compute those
+// ourselves; and plot-SVG text, covered by the token audit) and
 // elements behind an open overlay (the baseline scans cover them).
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -39,7 +39,7 @@ const { server, base: BASE } = await startPwaServer({ port: PORT });
 const failures = [];
 const infos = [];
 const check = (state, name, ok, detail = '') => {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  [${state}] ${name}${detail ? ` — ${detail}` : ''}`);
+  console.log(`${ok ? 'PASS' : 'FAIL'}  [${state}] ${name}${detail ? `; ${detail}` : ''}`);
   if (!ok) failures.push({ state, name, detail });
 };
 
@@ -69,7 +69,7 @@ async function setTheme(page, theme) {
     await page.keyboard.press('Escape');
     await new Promise((r) => setTimeout(r, 150));
   }
-  infos.push(`theme ${theme}: no Theme menu found — falling back to the attribute`);
+  infos.push(`theme ${theme}: no Theme menu found; falling back to the attribute`);
   await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
   await new Promise((r) => setTimeout(r, 250));
   return true;
@@ -123,8 +123,8 @@ async function runAxe(page) {
 }
 
 // ADR-0009: axe's only allowed incompletes are color-contrast on targets
-// it cannot resolve — symbol-glyph buttons (whose content is only
-// non-text characters: ⌫ − ⏎ …) and plot/graphic content — and content
+// it cannot resolve; symbol-glyph buttons (whose content is only
+// non-text characters: ⌫ − ⏎ …) and plot/graphic content; and content
 // behind an open overlay (the baseline scans cover it). Symbol-glyph
 // targets are collected and their contrast computed manually (the
 // ADR's "the suite computes itself" leg).
@@ -188,7 +188,7 @@ async function auditState(name, page, { expectPlot = false, three = false } = {}
   const { violations, incomplete } = await runAxe(page);
   for (const v of violations) {
     for (const n of v.nodes) {
-      check(name, `axe ${v.id}`, false, `${n.target} — ${n.html} — ${n.summary}`);
+      check(name, `axe ${v.id}`, false, `${n.target}; ${n.html}; ${n.summary}`);
       if (v.id === 'color-contrast' && String(n.target).includes('ans-inline')) {
         const dbg = await page.evaluate(() => {
           const el = document.querySelector('.ans-inline');
@@ -238,7 +238,7 @@ async function auditState(name, page, { expectPlot = false, three = false } = {}
     violations.length === 0 ? undefined : `${violations.length} rule(s)`);
   const unallowed = [];
   for (const v of incomplete) {
-    for (const n of v.nodes) if (!INCOMPLETE_ALLOWED(name)(v, n)) unallowed.push(`${v.id}: ${n.target} — ${n.summary}`);
+    for (const n of v.nodes) if (!INCOMPLETE_ALLOWED(name)(v, n)) unallowed.push(`${v.id}: ${n.target}; ${n.summary}`);
   }
   if (unallowed.length) {
     for (const u of unallowed) check(name, 'axe incomplete (unallowed)', false, u);
@@ -283,7 +283,7 @@ async function srLayer(name, page) {
   const mobile = await page.evaluate(() => window.innerWidth < 720);
   if (mobile) {
     // ADR-0017: the menu rail folds into a hamburger whose panel is one
-    // role=menu — the rail itself only exists from 720px up.
+    // role=menu; the rail itself only exists from 720px up.
     const burger = nodes.find((n) => n.role === 'button' && /menu/i.test(n.name ?? ''));
     const panel = byRole('menu');
     check(name, 'SR: mobile hamburger names its menu', !!burger && !panel.length, burger?.name ?? 'no menu button');
@@ -498,6 +498,6 @@ server.close();
 
 console.log(`\n================ SUMMARY ================`);
 console.log(`${failures.length} failure(s)${infos.length ? `, ${infos.length} info` : ''}`);
-for (const f of failures) console.log(`  FAIL [${f.state}] ${f.name}${f.detail ? ` — ${f.detail.slice(0, 200)}` : ''}`);
+for (const f of failures) console.log(`  FAIL [${f.state}] ${f.name}${f.detail ? `; ${f.detail.slice(0, 200)}` : ''}`);
 for (const i of infos) console.log(`  info ${i}`);
 process.exit(failures.length ? 1 : 0);

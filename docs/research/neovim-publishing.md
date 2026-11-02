@@ -12,8 +12,8 @@ ready-made config, not a plugin).
 ## Goal
 
 Decide what it takes to make `epher` installable the way Neovim users
-actually install things — `:Rocks install epher` for the rocks.nvim crowd,
-an rtp path for everybody else — and get the client onto the discovery lists,
+actually install things; `:Rocks install epher` for the rocks.nvim crowd,
+an rtp path for everybody else; and get the client onto the discovery lists,
 with a listing whose text adapts from `clients/vscode/README.md`.
 
 ## Method (all claims verified)
@@ -60,8 +60,8 @@ manual says only: "You can find packages on the Internet in various places"
   hosting service for Lua modules. Anyone can join and upload" [10]), not
   something Neovim the project operates.
 - **awesome-neovim is the discovery list.** 21,426 stars, 1,484 entries,
-  PR-curated [21][22]. neovimcraft.com — where neovim.io's own **Get
-  Plugins** button on the homepage points [5] — is a search front-end whose
+  PR-curated [21][22]. neovimcraft.com; where neovim.io's own **Get
+  Plugins** button on the homepage points [5]; is a search front-end whose
   data is "scraped from github" off that list; it even shows the same
   categories (its "programming-languages-support" category, where epher
   belongs, holds 107 entries) [23][24]. Land on awesome-neovim and you are
@@ -73,7 +73,7 @@ manual says only: "You can find packages on the Internet in various places"
 Note for 0.9 users: rocks.nvim requires Neovim >= 0.10 [6], and 0.12 adds a
 built-in plugin manager (`vim.pack`) that installs from git URLs, not a
 registry [4]. So the rock reaches the 0.10/0.11 rocks.nvim crowd; the manual
-rtp path in `clients/nvim/README.md` stays the story for everyone else —
+rtp path in `clients/nvim/README.md` stays the story for everyone else;
 publishing a rock changes the channel, not the config.
 
 ## What a listing is on luarocks.org
@@ -85,12 +85,12 @@ The listing is the **rock page**, URL shape
 - the package name, Follow/Star links, and the `luarocks install <name>`
   command;
 - **`description.summary`** (one line, next to the name) and
-  **`description.detailed`** (a paragraph under it) — rendered as plain text
+  **`description.detailed`** (a paragraph under it); rendered as plain text
   with line breaks, not markdown: bullets show as literal `-` dashes, URLs
   as bare text [13]. The site source has no markdown renderer [11].
 - Uploader (with gravatar avatar), License (SPDX string from the rockspec),
   Homepage link, total Downloads;
-- the version list — every `<version>-<specrev>` ever uploaded, each with
+- the version list; every `<version>-<specrev>` ever uploaded, each with
   its own age and per-version download count [13];
 - Dependencies, "Dependency for" (reverse deps), Labels (free-form tags;
   the `neovim` label is how you land on the label page), Manifests [13].
@@ -100,7 +100,7 @@ The underlying files live at
 (the rockspec is public and fetchable [12]) and per-user manifests at
 `https://luarocks.org/manifests/<user>`; the root manifest is global and
 first-come first-served on package names [18]. **No README is shown, no
-images, no screenshots, no icon field** — the rockspec format has no such
+images, no screenshots, no icon field**; the rockspec format has no such
 fields at all [17]; the only picture on a rock page is the uploader's
 gravatar [13].
 
@@ -108,11 +108,11 @@ gravatar [13].
 
 ### Human-only steps (one-time)
 
-1. **Create a luarocks.org account** — register directly or via GitHub
+1. **Create a luarocks.org account**; register directly or via GitHub
    login [20].
 2. **Generate an API key** at `https://luarocks.org/settings/api-keys`
    (Settings → API keys → Generate New Key) [15][20]. Name the repository
-   secret `LUAROCKS_API_KEY` — that is the variable name the official
+   secret `LUAROCKS_API_KEY`; that is the variable name the official
    action reads [15].
    **Important, dated fact: luarocks.org had a security incident in
    September 2026** (RCE, exploited July–August 2026, disclosed 2026-09-25).
@@ -120,10 +120,10 @@ gravatar [13].
    report's instruction is literally "Create a new API key" [19]. So the key
    we store must be minted after 2026-09-26, and any key older than that is
    dead.
-3. **Decide the rock layout** (below) — this is a repo change, made once.
-4. **File the awesome-neovim PR** (below) — human-only, GitHub account
+3. **Decide the rock layout** (below); this is a repo change, made once.
+4. **File the awesome-neovim PR** (below); human-only, GitHub account
    suffices.
-5. **Set the GitHub social preview** (see Icon) — human-only, one-time.
+5. **Set the GitHub social preview** (see Icon); human-only, one-time.
 
 ### CI-automatable steps (per release)
 
@@ -152,7 +152,7 @@ gravatar [13].
    post-redirect org) [15]. It generates a rockspec from repository
    metadata (no rockspec committed per release), tests a local install
    from it, uploads, then tests the installed-from-server rock [15]. On
-   `pull_request` it runs the whole install test without uploading — free
+   `pull_request` it runs the whole install test without uploading; free
    CI for the packaging [15].
 
 7. **Tag → version mapping**: the action defaults `version` to
@@ -172,21 +172,21 @@ gravatar [13].
    job stays green.
 
 9. **Action inputs that matter for us** [15]:
-   - `name`: defaults to the repo name (`epher`) — correct already.
+   - `name`: defaults to the repo name (`epher`); correct already.
    - `copy_directories`: defaults to `{{ neovim.plugin.dirs }}`, which
-     expands to Neovim's runtimepath directories — autoload, colors,
+     expands to Neovim's runtimepath directories; autoload, colors,
      compiler, doc, filetype.lua, ftdetect, ftplugin, indent, keymap, lang,
-     lsp, menu.vim, parser, plugin, queries, query, rplugin, spell, syntax —
+     lsp, menu.vim, parser, plugin, queries, query, rplugin, spell, syntax;
      "only directories that exist will be copied" [15]. Our `ftdetect/`,
      `ftplugin/`, `syntax/` are all in the default set.
-   - `labels`: defaults to the repo's GitHub topics — make sure `neovim` is
+   - `labels`: defaults to the repo's GitHub topics; make sure `neovim` is
      a repo topic, or pass it explicitly; the label is what puts us on
      `luarocks.org/labels/neovim` [15][6].
    - `summary`/`detailed_description`: default to the GitHub repo about
      text; set them explicitly from the adapted listing copy.
    - `license`: fetched from GitHub's license detection (MIT → fine).
    - Limits, verbatim from its README: works only on **public** repos, and
-     it installs with lua 5.1 (fine — the client is pure Lua) [15].
+     it installs with lua 5.1 (fine; the client is pure Lua) [15].
 
 ### Can our layout ship as a rock? (concrete)
 
@@ -194,8 +194,8 @@ A rock installs into the luarocks tree
 (`…/lib/luarocks/rocks-5.1/<name>/<version>/`); `lua/` content lands on
 `package.path` via `share/lua/5.1`, and rocks.nvim adds the *rock prefix
 directory itself* to the runtimepath (`dynamic_rtp`, default on) so
-`copy_directories` content — `ftdetect/`, `ftplugin/`, `syntax/`, `doc/`,
-`plugin/` — just works, with `rtp.nvim` (a rocks.nvim dependency) sourcing
+`copy_directories` content; `ftdetect/`, `ftplugin/`, `syntax/`, `doc/`,
+`plugin/`; just works, with `rtp.nvim` (a rocks.nvim dependency) sourcing
 the ftdetect/plugin dirs [6][7][15]. That is the entire rocks.nvim plugin
 convention: a normal plugin layout, packaged by the action's defaults.
 
@@ -203,12 +203,12 @@ Our layout today: `clients/nvim/lua/epher.lua` (the module) plus the
 runtime files one level over in `clients/vim/{ftdetect,ftplugin,syntax}`
 [28]. The action's default template installs from the **repository root**;
 `copy_directories` takes flat directory names at the source root only
-[17]. So the default recipe would find no `lua/` and no runtime dirs — the
+[17]. So the default recipe would find no `lua/` and no runtime dirs; the
 monorepo is the one real obstacle. Three concrete shapes:
 
 1. **Sync the files into `clients/nvim/` (recommended).** Give
-   `clients/nvim/` the standard plugin layout — `lua/epher.lua`,
-   `ftdetect/epher.vim`, `ftplugin/epher.vim`, `syntax/epher.vim` — with the
+   `clients/nvim/` the standard plugin layout; `lua/epher.lua`,
+   `ftdetect/epher.vim`, `ftplugin/epher.vim`, `syntax/epher.vim`; with the
    three runtime copies sync'd from `clients/vim/` by the build, exactly the
    pattern the VS Code client already uses for `clients/shared` ("the
    grammar and snippets are copies … edit there, never the copies" [29]).
@@ -228,7 +228,7 @@ monorepo is the one real obstacle. Three concrete shapes:
    epher's 0.5.x train") [30]. Not on the table unless the user reopens it.
 
 Note one UX nicety either way: the rock delivers the module and the runtime
-files, but `require("epher").setup(...)` is still the user's call — a rock
+files, but `require("epher").setup(...)` is still the user's call; a rock
 does not run setup. If we ever want zero-config, a tiny `plugin/epher.lua`
 in the rock (in the default `copy_directories` set) could call setup with
 defaults, and a `lsp/epher.lua` file would serve 0.11+ `vim.lsp.enable`
@@ -238,9 +238,9 @@ That is a product decision, not a publishing one.
 ### awesome-neovim: the PR mechanics
 
 - Fork `rockerBOO/awesome-neovim`, add one line to the README section that
-  fits — for us **Programming Languages Support** (38 entries today;
+  fits; for us **Programming Languages Support** (38 entries today;
   epher is language support in exactly this list's sense) [21][22].
-- The entry format is `- [user/repo](URL) - Description.` — description
+- The entry format is `- [user/repo](URL) - Description.`; description
   ends with a period, no emojis, and **must not contain the words "plugin"
   or "Neovim"** ("it's obvious from the rest of the document"); spell
   Neovim/Vim/Lua/Tree-sitter capitalized when unavoidable [22][24].
@@ -250,7 +250,7 @@ That is a product decision, not a publishing one.
   [22][24].
 - Acceptance criteria (MAINTAINERS.md): must be Neovim-specific, functional,
   open-source licensed, quality README with install/usage, actively
-  maintained, and **at least a week old** — younger entries get the
+  maintained, and **at least a week old**; younger entries get the
   `pending-merge` label [24].
 - Run `./scripts/readme-check.sh` locally before pushing [22].
 - After merge: nothing. The entry is static text; it never needs updating on
@@ -271,7 +271,7 @@ the rules:
 | luarocks.org account | human, once | GitHub login suffices [20] |
 | API key `LUAROCKS_API_KEY` | human, once (post-incident minting) | repo secret; read only by the release job [15][19] |
 | rock upload per train | CI (tag push) | `luarocks-tag-release@v7` + the secret [15] |
-| rockspec/rockspec-template maintenance | human, when the layout changes | — |
+| rockspec/rockspec-template maintenance | human, when the layout changes |; |
 | awesome-neovim PR | human, once | GitHub account [22] |
 | neovimcraft | nothing | automatic scrape [23] |
 
@@ -286,11 +286,11 @@ themselves [12][13][26]:
 
 | rock | downloads | summary (chars) | detailed (chars) | license | labels | media on rock page |
 | --- | --- | --- | --- | --- | --- | --- |
-| plenary.nvim | 607,143 | 37 — "lua functions you don't want to write" | 106 | MIT/X11 | neovim | none |
-| rest.nvim | 308,599 | 40 — "A fast Neovim http client written in Lua" | 128 | GPL-3.0 | neovim, rest | none |
+| plenary.nvim | 607,143 | 37; "lua functions you don't want to write" | 106 | MIT/X11 | neovim | none |
+| rest.nvim | 308,599 | 40; "A fast Neovim http client written in Lua" | 128 | GPL-3.0 | neovim, rest | none |
 | fidget.nvim | 299,120 | 65 | 493 (plain-text bullet list) | MIT | neovim, vim | none |
-| nvim-web-devicons | 192,772 | 26 — "Nerd Font icons for neovim" | 104 (ends in a bare URL) | MIT | neovim | none |
-| telescope.nvim | 152,809 | 51 — "Find, Filter, Preview, Pick. All lua, all the time." | 173 | MIT | neovim | none |
+| nvim-web-devicons | 192,772 | 26; "Nerd Font icons for neovim" | 104 (ends in a bare URL) | MIT | neovim | none |
+| telescope.nvim | 152,809 | 51; "Find, Filter, Preview, Pick. All lua, all the time." | 173 | MIT | neovim | none |
 
 Reading across them, plus `nvim-lspconfig` (70,615 downloads, uploader
 `neovim` itself, labels `neovim, lsp`, summary is one 83-char sentence)
@@ -299,17 +299,17 @@ Reading across them, plus `nvim-lspconfig` (70,615 downloads, uploader
 - **Summaries are one short sentence** (26–83 chars), no version numbers, no
   badges. The detailed text is one short paragraph (100–500 chars), often
   just the repo README's intro re-pasted.
-- **Every one carries the `neovim` label** — that is what lists it on the
+- **Every one carries the `neovim` label**; that is what lists it on the
   label page; a rock without it is invisible there [6][12].
 - **The rock page carries no media at all**, so the READMEs do the selling:
   plenary 1 image, rest.nvim 6 images, fidget 3 images + 1 GIF, telescope
   3 images + 1 GIF, nvim-web-devicons 0 [26].
 - On the discovery-list side, the flagships (stars read off GitHub today)
   are lazy.nvim 21,609 / telescope.nvim 19,803 / nvim-treesitter 14,433 /
-  nvim-lspconfig 13,960 / mason.nvim 10,496 — all with screenshots or a demo
+  nvim-lspconfig 13,960 / mason.nvim 10,496; all with screenshots or a demo
   GIF embedded in the repo README (mason: 5 images; lazy: 1; telescope:
   3 + GIF; nvim-treesitter: 1) [25][26]. (nvim-treesitter itself is *not* on
-  luarocks — only satellite rocks like `nvim-treesitter-context`, published
+  luarocks; only satellite rocks like `nvim-treesitter-context`, published
   by the neorocks account; parsers ride rocks-treesitter/NURR instead [6].)
 
 The shared pattern: one-line summary, short plain-text detailed paragraph,
@@ -318,7 +318,7 @@ visuals the registry cannot.
 
 ## Media spec: where the captures must go
 
-The rock page renders only `summary` + `detailed` as text — no markdown, no
+The rock page renders only `summary` + `detailed` as text; no markdown, no
 images, ever [13][17]. So the captures are a **repo-README asset**, not a
 registry asset: they belong in `clients/nvim/README.md` (and shared repo
 images), where awesome-neovim reviewers, neovimcraft visitors and anyone
@@ -329,7 +329,7 @@ nvim channel opens, the captures we already produce for the other clients
 adapt: hero (inline answers), a run-pane capture for `:EpherRun`, absolute
 GitHub raw URLs like the vscode README uses. The `detailed_description` the
 action uploads should be the 2–4 adapted sentences from the VS Code listing
-intro, with no URL or emoji tricks — plain text is all it will ever be.
+intro, with no URL or emoji tricks; plain text is all it will ever be.
 
 ## Icon
 
@@ -338,7 +338,7 @@ icon field [17], the rock page shows only the uploader's gravatar [13], and
 the action has no input for one [15]. The epher monogram
 (`site/icon.svg`, plus the `icon-light.svg` / `icon-plain.svg` variants)
 stays the brand where it already works: the repo README, and the **GitHub
-social preview** — which today is GitHub's auto-generated opengraph card for
+social preview**; which today is GitHub's auto-generated opengraph card for
 upyesp/epher, not the monogram [31]. Setting the custom social preview
 (repo Settings → Social preview) is the one human step that puts the
 monogram on every awesome-neovim PR and rock-page Homepage link preview.
@@ -350,7 +350,7 @@ One version across all clients per train (ADR-0066) maps like this:
 - **Tag `v0.5.x`** (the existing release-train act) → the `luarocks-tag-release`
   job uploads rock `0.5.x-1`. Nothing else changes: same tag, same job that
   already builds `epher-lsp-*` assets. One new CI job, one secret.
-- **MELPA-equivalent "nothing to do"** does not exist here — luarocks is
+- **MELPA-equivalent "nothing to do"** does not exist here; luarocks is
   tag-pinned, unlike the Emacs channel; but the work is zero beyond having
   the workflow, because the version comes from the tag we already push.
 - **awesome-neovim/neovimcraft**: nothing, ever, after the merge.
@@ -368,10 +368,10 @@ One version across all clients per train (ADR-0066) maps like this:
    exist yet; add `luarocks-tag-release@v7` with `LUAROCKS_API_KEY`, labels
    including `neovim`, and explicit `summary`/`detailed_description` [15].
 3. **`neovim` topic** on the repo (the action derives labels from topics) [15].
-4. **No captures in `clients/nvim/README.md`** — the one channel where our
+4. **No captures in `clients/nvim/README.md`**; the one channel where our
    story (answers appearing inline as you type) is invisible without a GIF
    [28][29].
-5. **No awesome-neovim entry** — and the week-old acceptance criterion is
+5. **No awesome-neovim entry**; and the week-old acceptance criterion is
    already met (the repo is months old), so the PR can go any time [22][24].
 6. **Social preview** still the auto card; set the monogram [31].
 7. **Not a gap but a rule**: the listing text (summary, detailed,
@@ -388,7 +388,7 @@ All fetched 2026-09-29 unless noted.
 4. Neovim 0.12 news, "Built-in plugin manager: vim.pack": https://raw.githubusercontent.com/neovim/neovim/master/runtime/doc/news-0.12.txt
 5. neovim.io homepage, "Get Plugins" → https://neovimcraft.com/: https://neovim.io/
 6. rocks.nvim README (rocks.nvim 301-redirects to lumen-oss): https://github.com/lumen-oss/rocks.nvim (fetched via https://raw.githubusercontent.com/nvim-neorocks/rocks.nvim/main/README.md)
-7. rocks.nvim `:help rocks` — `dynamic_rtp`, rtp.nvim: https://raw.githubusercontent.com/lumen-oss/rocks.nvim/master/doc/rocks.txt
+7. rocks.nvim `:help rocks`; `dynamic_rtp`, rtp.nvim: https://raw.githubusercontent.com/lumen-oss/rocks.nvim/master/doc/rocks.txt
 8. Redirect check: https://github.com/nvim-neorocks/rocks.nvim → 301 https://github.com/lumen-oss/rocks.nvim; https://github.com/mrcjkb/luarocks-tag-release → 301 https://github.com/lumen-oss/luarocks-tag-release
 9. luarocks.org home ("Most Downloaded", label index): https://luarocks.org/
 10. luarocks.org about (community-run, manifests): https://luarocks.org/about

@@ -17,14 +17,14 @@ since VS 2017 15.8 ("Starting with Visual Studio 2017 version 15.8, support for
 the common Language Server Protocol is built into Visual Studio"); the preview
 Language Server Client VSIX was retired at that point
 (https://learn.microsoft.com/en-us/visualstudio/extensibility/adding-an-lsp-extension?view=vs-2022,
-`ms.date: 05/27/2026` — reviewed after the VS 17.14 era and still current). The
+`ms.date: 05/27/2026`; reviewed after the VS 17.14 era and still current). The
 client side ships as the
 [Microsoft.VisualStudio.LanguageServer.Client](https://www.nuget.org/packages/Microsoft.VisualStudio.LanguageServer.Client)
 NuGet package; its latest stable version is **17.14.60** (published 2025-05-14,
-following 17.13.33 / 2025-02-12 and 17.12.48 / 2024-11-12 — versions track the
+following 17.13.33 / 2025-02-12 and 17.12.48 / 2024-11-12; versions track the
 VS 17.x train). The page explicitly scopes the framework: it exists "to onboard
 language services that aren't part of Visual Studio product. It's not intended
-to extend existing language services (like C#)" — exactly the epher case. The
+to extend existing language services (like C#)"; exactly the epher case. The
 same page documents the allowed transports: standard input/output streams,
 named pipes, and TCP sockets.
 
@@ -86,7 +86,7 @@ Two caveats straight from the sources: the how-to says "The middle layer feature
 is still under development and not yet comprehensive", and the API reference
 marks the interface `[Obsolete("Will be removed in a future version.")]` in both
 the visualstudiosdk-2019 and visualstudiosdk-2022 reference views (verified on
-both pages) — while the current how-to still documents it as the interception
+both pages); while the current how-to still documents it as the interception
 mechanism. There is no documented replacement; treat middle layers as usable but
 at-risk API surface.
 
@@ -106,7 +106,7 @@ zero occurrences of "inlayhint".** Inlay hints are therefore left to the
 extension: a server may send them, but the extension must intercept the messages
 (via a middle layer or the custom-message channel) and render them itself; no
 inlay-hint UI is documented in the VSSDK LSP framework. (Note that
-`textDocument/semanticTokens` is likewise absent from the table — relevant to
+`textDocument/semanticTokens` is likewise absent from the table; relevant to
 roadmap decision #17, which already budgets for that.)
 
 Also documented on the how-to page, useful for epher-lsp: settings via
@@ -193,11 +193,11 @@ Chain/order rules, from primary sources:
   adapter's chain, i.e. at the document-window level of this routing.
 
 The command IDs themselves: `Debug.Start` and `Debug.StartWithoutDebugging` are
-in the standard VS 97 command set — `VSConstants.VSStd97CmdID.Start` = 295 and
+in the standard VS 97 command set; `VSConstants.VSStd97CmdID.Start` = 295 and
 `VSStd97CmdID.StartNoDebug` = 368
 (https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.vsconstants.vsstd97cmdid?view=visualstudiosdk-2022),
 with `GUID_VSStandardCommandSet97` = {5EFC7975-14BC-11CF-9B2B-00AA00573819}
-(https://learn.microsoft.com/en-us/visualstudio/extensibility/ide-guids?view=vs-2022 —
+(https://learn.microsoft.com/en-us/visualstudio/extensibility/ide-guids?view=vs-2022;
 docs page listing GUIDs; the GUID/ID lookup procedure is documented at
 https://learn.microsoft.com/en-us/visualstudio/extensibility/internals/guids-and-ids-of-visual-studio-commands?view=vs-2022,
 which points at the SDK's `SharedCmdDef.vsct` / `VsDbgCmdUsed.vsct`). No current
@@ -223,7 +223,7 @@ the AddCommandFilter remarks carry the needed rules.
   `[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]`,
   mark services `[ProvideService(..., IsAsyncQueryable = true)]`, override
   `InitializeAsync` (the sync `Initialize()` is sealed), and avoid RPCs
-  (including `GetService`) inside `InitializeAsync` — marshal with
+  (including `GetService`) inside `InitializeAsync`; marshal with
   `JoinableTaskFactory.SwitchToMainThreadAsync` instead
   (https://learn.microsoft.com/en-us/visualstudio/extensibility/how-to-use-asyncpackage-to-load-vspackages-in-the-background?view=vs-2022).
   If UI-context autoload is unavoidable, use
@@ -233,7 +233,7 @@ the AddCommandFilter remarks carry the needed rules.
   extensions have a negative impact on the performance of Visual Studio and
   should be converted to use asynchronous autoload instead. By default, Visual
   Studio 2019 blocks synchronously autoloaded packages from any extension and
-  notifies the user" — with a Performance Manager dialog and a group-policy
+  notifies the user"; with a Performance Manager dialog and a group-policy
   escape hatch
   (https://learn.microsoft.com/en-us/visualstudio/extensibility/synchronously-autoloaded-extensions?view=vs-2022).
   Microsoft's migration guide for authors is the AsyncPackageMigration sample:
@@ -262,7 +262,7 @@ the AddCommandFilter remarks carry the needed rules.
 
 ## 5. VSIX packaging (2026)
 
-- **Format**: a .vsix follows the Open Packaging Conventions (OPC) — a ZIP
+- **Format**: a .vsix follows the Open Packaging Conventions (OPC); a ZIP
   container holding the payload binaries/files, `extension.vsixmanifest`, and
   `[Content_Types].xml`; file names inside the package "must not include spaces,
   nor characters that are reserved in Uniform Resource Identifiers". Per-user
@@ -277,7 +277,7 @@ the AddCommandFilter remarks carry the needed rules.
   custom types are allowed, and each `<Asset>` carries a `Path` (plus optional
   `TargetVersion` for per-VS-version assets)
   (https://learn.microsoft.com/en-us/visualstudio/extensibility/vsix-extension-schema-2-0-reference?view=vs-2022).
-  **`Microsoft.VisualStudio.VsIcon` is not in that documented list** — a
+  **`Microsoft.VisualStudio.VsIcon` is not in that documented list**; a
   repo-wide search of MicrosoftDocs/visualstudio-docs (main, 2026-09-25) finds no
   current documentation of a VsIcon asset type; do not rely on it.
 - **`ExtensionType` and `ProductArchitecture`** (VS 2022+ schema features):
@@ -286,7 +286,7 @@ the AddCommandFilter remarks carry the needed rules.
   `InstallationTarget`) ∈ {`amd64`, `arm64`}; installation target e.g.
   `<InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,18.0)">`
   (schema reference above).
-- **Shipping a native exe inside the vsix is documented as supported** — as
+- **Shipping a native exe inside the vsix is documented as supported**; as
   plain content. The LSP how-to states: "the extensions created to support
   LSP-based language servers in Visual Studio don't contain the language servers
   themselves or the runtimes... Extension developers are responsible for
@@ -299,7 +299,7 @@ the AddCommandFilter remarks carry the needed rules.
   from a **`Server` subfolder** of the extension install directory:
   `Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
   "Server", @"MockLanguageServer.exe")` (sample code on the how-to page).
-  **No documented size limits or mandated folder layout exist** — the docs only
+  **No documented size limits or mandated folder layout exist**; the docs only
   show conventions ("Grammars" for TextMate files, `Server` in the sample);
   the only packaging constraint is the OPC/URI-safe file-name rule above.
 - **VSIX Installer version rules**: schema 2.0 requires VS 2012+; "You can
@@ -320,7 +320,7 @@ the AddCommandFilter remarks carry the needed rules.
 
 ## 6. TextMate grammars: still the supported baseline highlighting path
 
-Yes — documented as current on both the IDE and extensibility sides:
+Yes; documented as current on both the IDE and extensibility sides:
 
 - Visual Studio itself provides "syntax colorization and basic statement
   completion" for ~37 languages via TextMate grammars, and users can drop
@@ -355,7 +355,7 @@ Yes — documented as current on both the IDE and extensibility sides:
   (`CommonEditorConstants.TextMateRepositoryKey`,
   `CommonEditorConstants.TextMateLanguageConfigurationContentTypeMappingKey`,
   `TextMateConstants.RepositoryKey`;
-  https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.editor.commoneditorconstants?view=visualstudiosdk-2022 —
+  https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.editor.commoneditorconstants?view=visualstudiosdk-2022;
   note the API pages document the members but not their literal string values).
 - One correction to the premise in the question: no type named
   `IAssetTaggerProvider` appears anywhere in the current docs (zero hits in the
@@ -365,11 +365,11 @@ Yes — documented as current on both the IDE and extensibility sides:
 
 ## Unreachable / not documented (explicit)
 
-- https://learn.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2017/extensibility/internals/command-routing-in-vspackages?view=vs-2017 —
+- https://learn.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2017/extensibility/internals/command-routing-in-vspackages?view=vs-2017;
   served an anti-bot challenge, body unreadable on 2026-09-25. Superseded for
   current guidance by the command-routing-algorithm page and the
   AddCommandFilter API remarks (section 3).
-- `Microsoft.VisualStudio.VsIcon` as a VSIX asset type — not present in current
+- `Microsoft.VisualStudio.VsIcon` as a VSIX asset type; not present in current
   primary documentation (schema reference lists seven known types; repo-wide
   search negative).
 - No learn/NuGet page states a size limit for VSIX payloads, nor a required

@@ -36,7 +36,7 @@ Consequences for the architecture:
   dark/light/night switched through the app's own Theme menu, the
   graph pane with 2D and 3D plots drawn, the guide overlay open, and
   the mobile layout (baseline, hamburger open, and after the
-  auto-slide) — alongside a Chromium-accessibility-tree layer that
+  auto-slide); alongside a Chromium-accessibility-tree layer that
   asserts what macOS screen readers consume, and a computed-contrast
   layer over the theme tokens. The real-screen-reader leg
   (`scripts/a11y/voiceover-audit.mjs --vo`, GuidePup driving

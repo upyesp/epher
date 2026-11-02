@@ -1,7 +1,7 @@
 // Lint the scripts fleet for names that collide with the language.
 //
 // Fails when a script binds (name = / const name =) or defines (def name)
-// a built-in function's name from site/reference.md section 10 — with the
+// a built-in function's name from site/reference.md section 10; with the
 // session's persistence a shadowing variable survives the script and
 // changes what the builtin means in later runs (see
 // docs/scripts-audit-2026-10-26.md, the extra-payment-savings incident).
@@ -19,7 +19,7 @@ const SCRIPTS = join(ROOT, "epher scripts");
 const REFERENCE = readFileSync(join(ROOT, "site", "reference.md"), "utf8");
 const FAIL_ON_UNITS = process.argv.includes("--units");
 
-// Built-ins: the call-shaped names in section 10 tables' first cell only —
+// Built-ins: the call-shaped names in section 10 tables' first cell only;
 // answer cells can hold formulas like `p(1+r)^n - p` that are not callables.
 const sec10 = REFERENCE.split("## 10. Built-in functions")[1].split("## 11.")[0];
 const builtins = new Set();
@@ -60,8 +60,8 @@ for (const path of walk(SCRIPTS)) {
   );
   for (const { name, kind } of [...bindings, ...defs]) {
     const where = `${rel}: ${kind} ${name}`;
-    if (builtins.has(name)) failures.push(`${where} — shadows builtin ${name}()`);
-    else if (units.has(name)) warnings.push(`${where} — shares a unit name (${name})`);
+    if (builtins.has(name)) failures.push(`${where}; shadows builtin ${name}()`);
+    else if (units.has(name)) warnings.push(`${where}; shares a unit name (${name})`);
   }
 }
 

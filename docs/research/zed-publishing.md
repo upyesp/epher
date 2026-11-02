@@ -5,7 +5,7 @@ official marketplace at zed.dev/extensions, the gallery the in-editor
 Extension Gallery searches. Three questions: how an extension gets into the
 registry in the first place, what the listing page renders (and what it does
 not), and how our release train drives updates once the listing exists. The
-headline: the old "zed-extension-action publishes for you" world is gone —
+headline: the old "zed-extension-action publishes for you" world is gone;
 first publication and every update are now pull requests to
 `zed-industries/extensions`, and Zed's own CI does all packaging and
 publishing. Nobody outside Zed ever holds a publishing token.
@@ -39,8 +39,8 @@ posts:
 - **The live registry API** (`api.zed.dev`) for version histories and
   download counts, and the live listing pages on zed.dev for the top
   extensions [20][21].
-- **GitHub API checks** that `zed-industries/zed-extension-action` — the
-  action every older guide names — no longer exists (404) and that the
+- **GitHub API checks** that `zed-industries/zed-extension-action`; the
+  action every older guide names; no longer exists (404) and that the
   community action the docs now recommend is `huacnlee/zed-extension-action`
   [15][22][23].
 
@@ -50,7 +50,7 @@ The official channel is the **Zed Extension Registry**, browsed on the web
 at zed.dev/extensions and in-editor via the Extension Gallery
 (cmd-shift-x, or `zed: extensions`) [1][9]. Concretely:
 
-- **Listing URL shape**: `https://zed.dev/extensions/<id>` — for us
+- **Listing URL shape**: `https://zed.dev/extensions/<id>`; for us
   `https://zed.dev/extensions/epher` [21]. The "Install in Zed" button on
   the page is a deep link, `zed://extension/<id>` [21].
 - **Registry API**: `https://api.zed.dev/extensions/{id}` returns the
@@ -80,15 +80,15 @@ tooling [2][3][5][11]-[16]. What can be automated is called out at the end.
    (validated as `/^[a-z0-9-]+$/` with prefix/suffix exception lists, staff
    only) [3][14]; all user-facing text in English; for language extensions,
    **define a grammar in `extension.toml` for every language you provide**
-   — this is a hard prerequisite for language extensions and forces the
+  ; this is a hard prerequisite for language extensions and forces the
    tree-sitter decision below [2][8].
 2. **Add an accepted license inside the extension directory** [4]. As of
    2025-10-01 the PR fails CI without it. Accepted: Apache-2.0, BSD-2/3,
    CC-BY-4.0, GPLv3, LGPLv3, MIT, Unlicense, zlib. The file (any name with
    a `LICENSE`/`LICENCE` prefix) must live **in the extension's path**, not
-   merely at the repository root — a symlink of the root MIT file into
+   merely at the repository root; a symlink of the root MIT file into
    `clients/zed/` is explicitly allowed [4][14].
-3. **Fork `zed-industries/extensions`** — to a personal account if
+3. **Fork `zed-industries/extensions`**; to a personal account if
    possible, so Zed staff can push fixes to your PR [3].
 4. **Add the extension as a git submodule** at exactly
    `extensions/<extension-id>` (the name and path must match the id;
@@ -119,7 +119,7 @@ tooling [2][3][5][11]-[16]. What can be automated is called out at the end.
    feedback within a few weeks, some take one to two months [5]. The FAQ
    states plainly that updates are held to the same standards as new
    submissions [5].
-8. **After merge, Zed's CI publishes — not you.** On every push to main,
+8. **After merge, Zed's CI publishes; not you.** On every push to main,
    `package-extensions` runs: it compiles each extension whose version is
    not yet in the blob store with the pinned `zed-extension` CLI (Rust to
    `wasm32-wasip2`, plus grammar compilation) and uploads the package to
@@ -129,8 +129,8 @@ tooling [2][3][5][11]-[16]. What can be automated is called out at the end.
 
 **What cannot be automated:** the fork, the first PR, and the human review
 conversation (including the 3-week responsiveness rule). Everything before
-the PR — version lockstep, license file, grammar pinning, local test
-packaging with the CLI — is ordinary repo work CI can do.
+the PR; version lockstep, license file, grammar pinning, local test
+packaging with the CLI; is ordinary repo work CI can do.
 
 ## The grammar decision this forces
 
@@ -138,7 +138,7 @@ packaging with the CLI — is ordinary repo work CI can do.
 extensions resolve a wasi-sdk toolchain on the user's machine for any
 declared grammar (the 0.5.47 field reports). That reasoning **flips** for
 the marketplace: registry installs download a finished package, and the
-packaging pipeline compiles declared grammars **on Zed's CI** — the builder
+packaging pipeline compiles declared grammars **on Zed's CI**; the builder
 clones the grammar repository at the pinned rev and compiles it with
 wasip-sdk 34 in their build environment [17][19]. So marketplace
 publication means adding to `extension.toml`:
@@ -161,11 +161,11 @@ acceptance [2][8][17].
   account, via the PR [3][5].
 - **CI needs exactly one secret**: a GitHub personal access token with
   `repo` and `workflow` scopes, able to push to our fork of
-  `zed-industries/extensions` and open PRs against upstream — the
+  `zed-industries/extensions` and open PRs against upstream; the
   `COMMITTER_TOKEN` of the community update action [23]. Store it as
   `ZED_EXTENSIONS_TOKEN` in the `stores` environment (our convention, per
   `.github/workflows/openvsx-publish.yml`).
-- `zed-industries/zed-extension-action` is **gone** — the URL 404s
+- `zed-industries/zed-extension-action` is **gone**; the URL 404s
   (verified 2026-09-29). Any doc or workflow still naming it is stale [22].
 
 ## How the top five format their listings
@@ -191,7 +191,7 @@ Reading across them:
   support."), not sentences. The card and search preview render this string
   alone; nobody spends words on it.
 - **The listing page renders no README, no screenshots, no GIFs, no
-  icons** — checked the rendered HTML of all five pages: the only `<img>`
+  icons**; checked the rendered HTML of all five pages: the only `<img>`
   on each page is Zed's own chrome logo [21]. Below the header the page
   shows a "Details" section, metadata (authors, Version, Downloads,
   Provides badges, "Last updated on …"), the `zed://extension/…` install
@@ -200,7 +200,7 @@ Reading across them:
   equals the manifest description (git-firefly, catppuccin); a few
   Zed-maintained ones show a templated sentence instead (toml, java: "This
   X extension adds support and functionality directly within Zed."), which
-  matches nothing in their `extension.toml` history — it is stored on
+  matches nothing in their `extension.toml` history; it is stored on
   zed.dev's side [20][21]. The one string a submitter controls is
   `description` in `extension.toml`.
 - **Categories/tags do not exist** beyond the automatic Provides badges
@@ -214,14 +214,14 @@ Reading across them:
 ## Media spec
 
 There is none. The registry stores no images and the listing page renders
-no README, so there is nowhere to attach screenshots — not from the repo,
+no README, so there is nowhere to attach screenshots; not from the repo,
 not uploaded [18][21]. Extension discovery copy is the `description` string
 only. (Screenshots of epher in Zed stay where they are useful today: the
 website card and the repo README.)
 
 ## Icon spec
 
-None. The extension manifest has no icon field — the only `icon` in the
+None. The extension manifest has no icon field; the only `icon` in the
 schema is per-agent-server, for in-menu display of agent extensions [18].
 Gallery cards and listing pages are text-only. The epher monogram
 (`site/icon.svg` in the repo, with `icon-light.svg`/`icon-plain.svg`
@@ -234,11 +234,11 @@ org avatar, and the other channels' listings.
   prerelease suffixes (validated; the only grandfathered exception is
   staff-managed) [14]. Our `0.5.57` qualifies as is.
 - **A version publishes exactly once.** On main, the packager publishes
-  every `extensions.toml` version not already in the blob store — a
+  every `extensions.toml` version not already in the blob store; a
   same-version re-merge is a no-op, and there is no replace or delete
   mechanism exposed to authors [11][13]. If a package is broken, the fix is
   a new version (a new PR).
-- **The extension id is immutable** — CI rejects any PR that changes an id
+- **The extension id is immutable**; CI rejects any PR that changes an id
   [14]. The `version` must never decrease [14].
 - **Updates are PRs too**: bump the submodule to the new commit and the
   `version` in `extensions.toml` (`git submodule update --remote
@@ -258,7 +258,7 @@ org avatar, and the other channels' listings.
 
 Ready:
 
-- **id and name**: `epher` passes every id rule (kebab, unique on the day —
+- **id and name**: `epher` passes every id rule (kebab, unique on the day;
   no `[epher]` in `extensions.toml`, no `zed-`/`-zed`/`extension` strings);
   the name `epher` passes the name rules [12][14].
 - **version**: `0.5.57` in both `extension.toml` and `Cargo.toml`,
@@ -273,7 +273,7 @@ To change or add before the PR:
 1. **License inside the extension path**: `clients/zed/` has no LICENSE
    file; the MIT LICENSE sits at the repo root, which "will not work" per
    the license rules when the extension is a subdirectory. Symlink it in
-   (`LICENSE -> ../../LICENSE`) — explicitly allowed [4][14].
+   (`LICENSE -> ../../LICENSE`); explicitly allowed [4][14].
 2. **Add `[grammars.epher]`** pinned to `upyesp/tree-sitter-epher` at the
    release's grammar rev, and re-add the prebuilt-grammar note to the
    README (dev-extension installs still cannot carry a grammar; that
@@ -282,17 +282,17 @@ To change or add before the PR:
    submodule = `upyesp/epher`, `path = "clients/zed"`. The packaging script
    supports it [13]; `huacnlee/zed-extension-action` documents only an
    `extension-path` input whose semantics for monorepo submodules are
-   untested — verify on the first PR, and keep the manual
+   untested; verify on the first PR, and keep the manual
    `git submodule update --remote` + version-bump commands as the fallback
    [6][23].
 4. **README split**: the current README is dev-extension-first ("install as
    dev extension" is step 1). Listing text will be adapted from
-   `clients/vscode/README.md` instead — install-by-search first, the two
+   `clients/vscode/README.md` instead; install-by-search first, the two
    settings to flip (semantic tokens, inlay hints) prominent, no social
    media links anywhere (house rule; nothing to strip today, keep it that
    way).
 5. **No listing-side assets to prepare**: no screenshots, no icon, no
-   categories — do not spend time [18][21].
+   categories; do not spend time [18][21].
 
 ## Human steps vs. CI
 
@@ -322,7 +322,7 @@ name: zed publish
 # The Zed extension registry channel (zed.dev/extensions). First
 # publication is a human PR (docs/research/zed-publishing.md); this job
 # only drives UPDATE PRs after each train tag. Zed's own CI packages and
-# publishes after merge — no registry token exists or is needed. The one
+# publishes after merge; no registry token exists or is needed. The one
 # secret is a GitHub PAT (repo+workflow scopes) that can push to the
 # upyesp fork of zed-industries/extensions; the job skips with a notice
 # until it exists.

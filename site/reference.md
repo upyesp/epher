@@ -245,7 +245,7 @@ knob, machinery like a `def`, so the transcript stays silent while the
 binding takes effect (ADR-0080). Re-declaring with the *same* value
 succeeds, examples get pasted twice; a different value is a
 `constant already defined` error. Naming an existing variable is a
-`cannot define constant x: the name is already a variable` error — the
+`cannot define constant x: the name is already a variable` error; the
 session already bound that name, so `reset` the session or rename the
 binding.
 
@@ -253,7 +253,7 @@ binding.
 
 A multi-statement submission is a **script scope**: the constants and
 functions it defines are its own, and they vanish when the script ends
-(variables and `ans` always stay — see [§8](#8-names-scope-and-the-session-store)).
+(variables and `ans` always stay; see [§8](#8-names-scope-and-the-session-store)).
 `share` is the one way definitions cross the boundary on purpose: the
 named definitions join the session, with their source lines, so `save`
 and the next startup replay persist them.
@@ -346,14 +346,14 @@ constants, then built-in constants, then built-in functions (a call),
 then the error `unknown name`. A user function or constant shadows a
 built-in of the same name. A call resolves the function table first, so
 a name that is somehow a value and a function at once stays
-unambiguous — which cannot happen: a name is one thing, a variable, a
+unambiguous, which cannot happen: a name is one thing, a variable, a
 constant, or a function, never two (ADR-0012).
 
 - **A multi-statement submission is a script scope.** The constants
   and functions a script defines are its own and vanish at its end;
   its variables and `ans` stay. Definitions cross by `share` only
   (§7.3). A script that defines a name the session library already
-  holds — a shared constant, a store replay — shadows it for the run
+  holds (a shared constant, a store replay) shadows it for the run
   instead of erroring, the way a `for` loop shadows its variable:
   re-running an example never depends on what ran before it.
   `randseed` and `bits` inside a script are the script's own too: the

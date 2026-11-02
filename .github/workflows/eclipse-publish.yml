@@ -3,7 +3,7 @@ name: eclipse publish
 # The Eclipse channel's p2 update site (clients/eclipse): the feature
 # that wraps the LSP4E bundle, built with Tycho, published to gh-pages
 # under eclipse/updates/ and served at the stable URL
-# https://epher.org/eclipse/updates/ — the URL the Eclipse Marketplace
+# https://epher.org/eclipse/updates/; the URL the Eclipse Marketplace
 # listing points at, which is why it must never move
 # (docs/research/eclipse-marketplace-publishing.md,
 # clients/eclipse/listing/SUBMISSION.md).

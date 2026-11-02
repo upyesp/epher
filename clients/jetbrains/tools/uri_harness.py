@@ -81,7 +81,7 @@ def converse(binary, root_uri, doc_uri, timeout=10.0):
     reader = Reader(proc)
     reader.start()
 
-    # initialize — exactly EpherOneShot's shape (processId null, rootUri,
+    # initialize; exactly EpherOneShot's shape (processId null, rootUri,
     # empty capabilities), and waited for like it does.
     send(proc, {"jsonrpc": "2.0", "id": 1, "method": "initialize",
                 "params": {"processId": None, "rootUri": root_uri,
@@ -136,12 +136,12 @@ SHAPES = [
     ("file:///C:\\Users\\pete\\proj", "file:///C:\\Users\\pete\\proj\\eclipse.epher"),
     # Raw space in the path (directory with a space in its name).
     ("file:///C:/Users/pete my/proj", "file:///C:/Users/pete my/proj/eclipse.epher"),
-    # Percent-encoded space — the canonical shape java.nio's toUri (the
+    # Percent-encoded space; the canonical shape java.nio's toUri (the
     # fixed EpherUris) emits for that same directory.
     ("file:///C:/Users/pete%20my/proj", "file:///C:/Users/pete%20my/proj/eclipse.epher"),
     # Raw non-ASCII in the path.
     ("file:///C:/Users/José/proj", "file:///C:/Users/José/proj/eclipse.epher"),
-    # Percent-encoded non-ASCII — the canonical shape for that same name.
+    # Percent-encoded non-ASCII; the canonical shape for that same name.
     ("file:///C:/Users/Jos%C3%A9/proj", "file:///C:/Users/Jos%C3%A9/proj/eclipse.epher"),
 ]
 

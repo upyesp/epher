@@ -3,7 +3,7 @@ name: vim.org publish
 # The vim.org channel for the Vim client (clients/vim): script_id 6195 at
 # www.vim.org/scripts. vim.org has no API and no tokens, so this workflow
 # drives the same web forms a human would fill in, with the account
-# credentials held as GitHub secrets — never in the repo, never echoed.
+# credentials held as GitHub secrets; never in the repo, never echoed.
 # Channel research: docs/research/vim-org-publishing.md. Upload mechanics,
 # the lean-zip recipe, and the silent size cap:
 # clients/vim/listing/SUBMISSION.md and the publish-vimorg.py docstring.

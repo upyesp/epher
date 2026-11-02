@@ -9,9 +9,9 @@ hardcoding the number.
 
 ## Context
 
-The 477 scripts install with the app — flatpak copies them to
+The 477 scripts install with the app; flatpak copies them to
 `/app/usr/share/epher/scripts`, the MSIX and the Windows zip resolve
-`scripts/` beside the executable, macOS buries them in the bundle — and
+`scripts/` beside the executable, macOS buries them in the bundle; and
 no install path tells the user they exist. The only in-app surface was
 `Load script…`, which asks for a path: it presumes the user already
 knows files exist and where they are. The location varies by install
@@ -27,8 +27,8 @@ picker in both frontends.
 
 1. **The fleet is compile-time data.** A new crate,
    `epher-scripts-catalog`, walks `epher scripts/` in a `build.rs` and
-   generates the whole catalog — path, field, area, one-line purpose,
-   and full text (`include_str!`) — as static tables. The parse rules
+   generates the whole catalog; path, field, area, one-line purpose,
+   and full text (`include_str!`); as static tables. The parse rules
    match the website builder's, so the two catalogs cannot drift. The
    build fails on a missing or mis-headed script, keeping the header
    standard load-bearing. Both the TUI and the web app (and therefore
@@ -37,7 +37,7 @@ picker in both frontends.
    even where no `scripts/` folder exists, and the disk copies remain
    for `load`-by-path users and the website.
 2. **The count is computed, never written.** Every number that names
-   the collection — the welcome hints in both frontends — comes from
+   the collection; the welcome hints in both frontends; comes from
    `ENTRIES.len()` at compile time. Adding a script updates the count
    everywhere by construction.
 3. **File menu leads with "Example scripts…".** The TUI opens a
@@ -46,7 +46,7 @@ picker in both frontends.
    Escape; wheel scrolls it). The web app opens the same dialog as the
    constants browser: searchable, grouped, each row a button that
    loads the script. In both, Enter replaces the entry field with the
-   script's text — exactly the `Load script…` semantics — and the
+   script's text; exactly the `Load script…` semantics; and the
    transcript clears. `Load script…` stays, for paths beyond the
    bundle.
 4. **A fresh session names the collection.** While nothing has been
@@ -63,7 +63,7 @@ picker in both frontends.
   the desktop app is far larger, and the TUI buys install-layout
   independence for it.
 - Editing a script or adding one requires a rebuild of the apps to
-  reach their browsers — the same rebuild the packaging already does.
+  reach their browsers; the same rebuild the packaging already does.
 - Three area names repeat across fields (`coordinates`,
   `distributions`, `triangles`); the catalog qualifies them
   (`field / area`) so the groups stay unambiguous.

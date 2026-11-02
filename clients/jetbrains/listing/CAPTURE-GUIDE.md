@@ -42,7 +42,7 @@ that is under the cursor"), or:
     gnome-screenshot -w editor.png      # captures the focused window
     scrot -u editor.png                 # same, the current window
 
-## 1. editor.png — the hero
+## 1. editor.png; the hero
 
 What: `demo.epher` fully open, every line's answer inline, the
 `circumference in mile` line showing `= 24,902.8 mile`.
@@ -50,14 +50,14 @@ What: `demo.epher` fully open, every line's answer inline, the
 - Click into the editor so it has focus, make sure no tooltip, popup,
   or notification banner is showing, and capture the IDE window.
 
-## 2. hover.png — the signature
+## 2. hover.png; the signature
 
 What: the mouse hovering `disc` on its `def` line (or the
 `disc(1, -5, 6)` call), with the signature popup fully visible.
 
 - Hover the name, count two seconds, then capture without moving.
 
-## 3. completion.png — the catalog
+## 3. completion.png; the catalog
 
 What: the completion popup open at the end of `demo.epher`, rooted at
 a fresh line reading `sq`, with `sqrt` highlighted and its
@@ -68,7 +68,7 @@ documentation pane showing the catalog entry.
   and its documentation pane open.
 - Press Escape afterwards and delete the line.
 
-## 4. results.png — the run
+## 4. results.png; the run
 
 What: the results tool window on the right with the transcript and the
 `sin(x)` plot, after Tools, Run Epher Script.

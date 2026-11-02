@@ -217,16 +217,16 @@ the PATH (the rest).
 ## Amendment (2026-09-25): the Visual Studio extension ships its server
 
 The Visual Studio extension stops downloading. The first-use download
-served the version-lock goal — an extension and its server must move
-together — but on this client the machinery around the goal grew
+served the version-lock goal; an extension and its server must move
+together; but on this client the machinery around the goal grew
 heavier than the goal: a downloader whose failure modes needed their
 own fallback (exact version, then last promoted release), field
 reports about cache markers, and a run path that silently depended on
 a network round trip before the first run worked. The field reports
 that ended the 0.5.51 testing cycle closed the case.
 
-**Decision:** the vsix carries `server\epher-lsp.exe` — the
-windows-x86_64 build from the release the extension rides — and the
+**Decision:** the vsix carries `server\epher-lsp.exe`; the
+windows-x86_64 build from the release the extension rides; and the
 client spawns it from the extension folder. Extension and server move
 together by construction: one artifact, no marker file, no fallback
 constant, no network step before first use. The downloader code is
@@ -244,7 +244,7 @@ binaries; the release's native `epher-lsp` assets continue for them.
 - The vsix grows by the server (3.2 MB, ~1.6 MB in the container),
   replacing the download it makes unnecessary.
 - A server-only hotfix now means shipping a new extension version
-  rather than re-pointing a release asset — the coupling the version
+  rather than re-pointing a release asset; the coupling the version
   lock existed to enforce, made physical.
 - Windows ARM64 and any future Windows platform change rides a new
   vsix payload decision (the exe is single-arch); the download could

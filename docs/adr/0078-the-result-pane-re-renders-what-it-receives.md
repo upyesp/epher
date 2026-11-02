@@ -18,9 +18,9 @@ showed what that costs:
   result (worst: 40, `astronomy/ephemeris/schlyter-crosscheck`).
 - Scripts end with checks and side notes, so "the last line" is often
   not the answer.
-- Matrices print as one flat line (`{{1, 10, 78.85, 921.15}, …}`) —
+- Matrices print as one flat line (`{{1, 10, 78.85, 921.15}, …}`);
   the longest line in the corpus is a 12×4 amortization schedule at
-  305 characters — and long lists wrap without structure.
+  305 characters; and long lists wrap without structure.
 - The terminal pane had no wrap at all: a line wider than the pane
   clipped mid-number at the pane edge (the web's `pre-wrap` breaks at
   spaces, so the web mostly wrapped acceptably; the terminal did not).
@@ -36,7 +36,7 @@ discloses precision on demand. The pane does none of it today.
 ## Decision
 
 The result pane re-renders what it receives. The transcript text is
-unchanged — every statement's value stays exactly as the engine
+unchanged; every statement's value stays exactly as the engine
 produced it, and every copy path (the transcript button, the new
 per-line button, the CLI) sends the original text verbatim. What
 changes is presentation, decided by one pure contract in
@@ -48,7 +48,7 @@ changes is presentation, decided by one pure contract in
   dim). Optionally a "show every value" path restores parity with the
   CLI.
 - **The answer stands out.** The transcript's *last labeled line*
-  renders emphasized — the web bolder and larger, the terminal in the
+  renders emphasized; the web bolder and larger, the terminal in the
   result line's accent style.
 - **Structures render as structures.** A line whose value is a matrix
   (`[[…]]` or `{{…}}`, at least 2×2) renders as a right-aligned grid,
@@ -65,7 +65,7 @@ changes is presentation, decided by one pure contract in
   labeled line when a long transcript arrives, and copies per line on
   hover (always visible on touch).
 - **Typing.** `: true` / `: false` verdicts wear a check (✓ accent /
-  ✗ muted, the glyph `aria-hidden` — the text stays the truth); a
+  ✗ muted, the glyph `aria-hidden`; the text stays the truth); a
   trailing measure (`= 12 m`) dims; digit grouping on display follows
   the existing separators Results setting.
 - **Short numbers, opt-in.** A pane-header toggle renders numeric
@@ -75,7 +75,7 @@ changes is presentation, decided by one pure contract in
 `print` is a builtin that returns a string value, so the transcript
 carries no structural print marker; the tier test is the `": "` colon
 (correct for 475 of 477 bundled scripts). A later engine change may
-tag print-derived strings — the renderer would switch to it without
+tag print-derived strings; the renderer would switch to it without
 changing its presentation.
 
 R8 of the research doc (a script-side `printtable`) stays out of
@@ -87,7 +87,7 @@ scope here: that is the future script-authoring exercise.
   untouched: a staged installers byte-diff shows no transcript
   changes, only presentation. CLI output is byte-identical.
 - The pane-result section gains a meta row (count, short-numbers
-  toggle) and per-line buttons — all real buttons, keyboard operable;
+  toggle) and per-line buttons; all real buttons, keyboard operable;
   the section remains `role="status"`. Dimmed setup lines use each
   theme's muted ink at documented AA contrast (6.3:1–7.6:1); they are
   content, not decoration.
@@ -112,8 +112,8 @@ The research doc said the web breaks numbers mid-digit on long lists.
 Measuring the rendering path: `white-space: pre-wrap` already breaks
 at the spaces after commas, so the web's element-boundary wrapping was
 mostly correct before; mid-digit breaking happened only for a single
-token wider than the pane (rare in the corpus) and — the real
-offender — in the terminal, which had no wrap and hard-clipped. The
+token wider than the pane (rare in the corpus) and; the real
+offender; in the terminal, which had no wrap and hard-clipped. The
 doc's statistics and taxonomy stand; its R2 wording over-stated the
 web case. The implementation carries both halves anyway: terminal
 boundary wrap (the fix that matters) and web wrap points as cheap
@@ -128,7 +128,7 @@ line is a sentence-result with no colon (`= that is 17.4 years`,
 line a reader wants. Scripts are written results-last, so:
 
 - **the last line is the answer**, unless it is a trailing verdict
-  (`… : true`), in which case the labeled line above it — the one shape
+  (`… : true`), in which case the labeled line above it; the one shape
   that is not an answer;
 - an `error:` line never qualifies (ADR-0079), and a transcript of one
   failure has no answer at all;
@@ -144,7 +144,7 @@ sentence-results were left as written.
 ## Amendment (2026-10-28): a computed-once binding is a constant
 
 ADR-0080 silenced `const`, which left the scripts' *assignments* as the
-remaining echo — 37 consecutive bare numbers at the top of
+remaining echo; 37 consecutive bare numbers at the top of
 `schlyter-crosscheck`, 24 in `apparent-place`. Those bindings are
 computed once and never changed, which is precisely what `const` now
 means (`epher scripts/README.md`: "Use `const` for any value computed
@@ -153,8 +153,8 @@ such bindings; 298 bare transcript lines went with them, and no labeled
 line, loop-emitted value, or answer was removed (verified line by line
 against the regenerated expected blocks).
 
-A binding that is reassigned — including inside a one-line
-`while … do x = x + 1` body — stays a variable: `const` is immutable,
+A binding that is reassigned; including inside a one-line
+`while … do x = x + 1` body; stays a variable: `const` is immutable,
 and a mechanical conversion that missed those reassignments broke 44
 scripts on the first attempt. The corpus's transcripts are the test:
 `scripts/check-scripts.mjs` refuses any script whose run no longer
@@ -166,15 +166,15 @@ echoes 1,854 → 455 (44% → 16% of all transcript lines).
 ## Amendment (2026-10-29): prose drops the `= ` voice
 
 Every transcript line the engine emits carries the answer voice `= `,
-and the pane carried it through. For values that voice is right — it
+and the pane carried it through. For values that voice is right; it
 is the calculator's "the result is", and `= 1000` reads as a result.
 For prose it is clutter: `= that is 17.4 years` prefixes English with
 a symbol, and a labeled line's colon already says "result".
 
 The pane now shows a line without the marker when the payload after
 `= ` begins with a letter (a sentence, a labeled result, a word
-verdict); payloads beginning with a digit, sign, or brace — numbers,
-quantities, lists, matrices — keep it (`epher_core::pane::display_text`,
+verdict); payloads beginning with a digit, sign, or brace; numbers,
+quantities, lists, matrices; keep it (`epher_core::pane::display_text`,
 applied by both the web and terminal panes). The engine's transcript,
 the CLI, the REPL, the answer line above the pane, and every copy path
 are unchanged: copy still sends the original verbatim, per this ADR's

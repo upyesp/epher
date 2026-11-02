@@ -299,7 +299,7 @@ integrado, mas escolhido por si. Defina uma com `const`:
 ```epher
 const tax = 0.2
 ```
-Definir uma constante não imprime nada — uma constante é um ajuste, como um `def`, não uma resposta; a ligação é real mesmo assim.
+Definir uma constante não imprime nada; uma constante é um ajuste, como um `def`, não uma resposta; a ligação é real mesmo assim.
 
 Use-a em qualquer sítio onde possa estar um número:
 
@@ -696,7 +696,7 @@ Os scripts são a forma de construir pequenos programas: defina variáveis,
 faça ciclos e mostre um resultado final.
 
 Um script também é **autocontido**: as constantes e funções que define
-são suas, e são esquecidas quando o script termina — as suas variáveis
+são suas, e são esquecidas quando o script termina; as suas variáveis
 e `ans` permanecem. É isso que permite executar exemplo após exemplo:
 um script que começa com `const tax = 0.25` executa-se da mesma forma
 na décima vez como na primeira, seja o que for que os scripts anteriores
@@ -2349,7 +2349,7 @@ Uma resposta curta e única fica nessa linha. Uma resposta mais longa - a
 saída de um script com várias respostas, uma tabela, um número longo -
 aparece no painel de resultados, o painel que também mostra gráficos,
 com uma resposta por linha; no telefone o painel desliza para a vista
-por si próprio. À esquerda da resposta está um ícone de copiar: prima-o e os valores da resposta vão para a área de transferência, um por linha; as respostas longas do painel de resultados copiam-se da mesma forma. O próprio painel também se lê bem: os ecos de configuração de um script ficam esmaecidos sob os resultados rotulados, a última linha rotulada carrega o peso da resposta, matrizes viram grades alinhadas, veredictos recebem um visto, e o botão de números curtos mostra os valores com seis algarismos significativos (o valor completo ao passar o mouse) — copiar sempre envia os valores como estão.
+por si próprio. À esquerda da resposta está um ícone de copiar: prima-o e os valores da resposta vão para a área de transferência, um por linha; as respostas longas do painel de resultados copiam-se da mesma forma. O próprio painel também se lê bem: os ecos de configuração de um script ficam esmaecidos sob os resultados rotulados, a última linha rotulada carrega o peso da resposta, matrizes viram grades alinhadas, veredictos recebem um visto, e o botão de números curtos mostra os valores com seis algarismos significativos (o valor completo ao passar o mouse); copiar sempre envia os valores como estão.
 
 Enquanto escreve um nome, aparece uma lista de sugestões por baixo do campo: as setas movem o realce, **Enter** ou **Tab** aceita, **Esc** fecha, e um clique aceita sem sair do teclado. Cada sugestão traz uma breve descrição da função ou constante. **F1** mostra a mesma descrição da palavra sob o cursor, na barra de dicas acima do teclado. Se o primeiro que escreve num campo vazio for um operador (`+ - * / ^ % !`), o epher insere `ans` por si, e a linha continua a partir da resposta anterior.
 

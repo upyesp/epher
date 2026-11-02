@@ -11,11 +11,11 @@ The macOS Apple-silicon workflow (`.github/workflows/macos-silicon.yml`) is two 
 1. **The only arm64 test floor** (ADR-0025 dropped the Intel build): the workspace suite, the embedded web build, the unified binary, the CLI smoke, every repository script transcript, a REPL session, a pty-driven TUI smoke, and a bundled, launched, desktop app.
 2. **The promotion gate** (ADR-0073): branch protection requires the check `build and test on Apple silicon` on every staging→main PR.
 
-The two roles conflict at the trigger. A required check that does not run does not report, and a PR whose protection rule expects `build and test on Apple silicon` would sit on "Expected — waiting for status" forever if the workflow's `pull_request:` were path-filtered. So `pull_request:` is deliberately unfiltered, and every pull request — a landing-page copy edit (#178), an IDE listing sentence (#184) — runs the full Apple-silicon gauntlet, up to 60 minutes on the arm64 runner.
+The two roles conflict at the trigger. A required check that does not run does not report, and a PR whose protection rule expects `build and test on Apple silicon` would sit on "Expected; waiting for status" forever if the workflow's `pull_request:` were path-filtered. So `pull_request:` is deliberately unfiltered, and every pull request; a landing-page copy edit (#178), an IDE listing sentence (#184); runs the full Apple-silicon gauntlet, up to 60 minutes on the arm64 runner.
 
 The cost was measured before ADR-0073: 17 Apple-silicon runs (144 runner-minutes) in three days, many superseded or duplicate (P6 in `docs/research/ci-reliability-and-build-time-plan.md`), and merges BLOCKED while a second required run was in flight. ADR-0073 removed the waste (cancel-in-progress concurrency) and the conflict-re-run amplifier (merge-commit promotions), and kept the frequency, by design: the gate must always report.
 
-(The Actions run history was cleared after 2026-10-17 — zero runs and zero artifacts remain as of 2026-10-19, per both the authenticated and the public unauthenticated API — so the research document's ledger is the surviving record of these numbers.)
+(The Actions run history was cleared after 2026-10-17; zero runs and zero artifacts remain as of 2026-10-19, per both the authenticated and the public unauthenticated API; so the research document's ledger is the surviving record of these numbers.)
 
 What ADR-0073 could not fix is the shape of GitHub's required checks: a protection rule understands "did not run" and "passed", and only the workflow itself can choose which to report.
 
@@ -32,7 +32,7 @@ The workflow gains a `changes` job on `ubuntu-latest` that answers one question 
 - **code paths touched** (or the event is not a pull request) → the full Apple-silicon run, unchanged from today;
 - **otherwise** → a one-step ubuntu job under the same name that succeeds with a note ("no macOS-relevant changes; gate satisfied").
 
-Because the passthrough genuinely runs and succeeds, this relies on no GitHub heuristic about skipped checks — the protection rule simply sees its required check report success.
+Because the passthrough genuinely runs and succeeds, this relies on no GitHub heuristic about skipped checks; the protection rule simply sees its required check report success.
 
 ### The path list is single-sourced
 
@@ -40,7 +40,7 @@ The PR filter and `push.paths` must stay the same list, or the gate and the push
 
 ### The promotion gate is not weakened
 
-Every train bumps crate versions under `crates/**`, so staging→main promotion PRs always match the filter and always run the full suite. What stops running is the PR that cannot change the answer. The release-time guarantee of ADR-0073 — main only ever merges a staging tree whose transcripts replay on arm64 — is untouched.
+Every train bumps crate versions under `crates/**`, so staging→main promotion PRs always match the filter and always run the full suite. What stops running is the PR that cannot change the answer. The release-time guarantee of ADR-0073; main only ever merges a staging tree whose transcripts replay on arm64; is untouched.
 
 ### Rejected alternatives
 
@@ -61,4 +61,4 @@ Every train bumps crate versions under `crates/**`, so staging→main promotion 
 ## Deliberately deferred
 
 - The same split for the other check workflows: the Apple-silicon gate is the expensive one; revisit if another check's frequency becomes a ledger item.
-- A gate-list conformance check (asserting `push.paths` and the PR filter match) — worth adding when the filter next changes, not before.
+- A gate-list conformance check (asserting `push.paths` and the PR filter match); worth adding when the filter next changes, not before.

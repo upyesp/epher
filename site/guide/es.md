@@ -697,7 +697,7 @@ Los scripts son la forma de construir pequeños programas: prepara
 variables, haz bucles y muestra un resultado final.
 
 Un script también es **autocontenido**: las constantes y funciones que
-define son suyas, y se olvidan cuando el script termina — sus variables
+define son suyas, y se olvidan cuando el script termina; sus variables
 y `ans` permanecen. Eso es lo que te permite ejecutar ejemplo tras
 ejemplo: un script que empieza con `const tax = 0.25` se ejecuta igual
 la décima vez que la primera, sin importar lo que definieran los

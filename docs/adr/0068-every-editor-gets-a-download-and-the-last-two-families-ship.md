@@ -149,7 +149,7 @@ reproducibility), unchanged.
   Microsoft Entra) and adding the service principal as an
   organization user (Stakeholder). With that, the gallery accepts the
   principal's Entra token as far as reading the publisher's version
-  state — an attempt on an already-published version returns a
+  state; an attempt on an already-published version returns a
   version conflict. **Corrrection, 2026-09-19:** that conflict is
   not proof of publish rights. The first real publish attempt by the
   train (v0.5.43) was denied: the principal lacks the publisher

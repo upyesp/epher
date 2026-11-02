@@ -51,7 +51,7 @@ terminal width instead of being clipped at the calculator column.
 The TUI keypad mirrors the web keypad's coverage minus the digits
 bank (a terminal already has number keys): **trig**, **fn**, **num**,
 **var**. **Tab** opens the keypad and cycles its banks (Shift+Tab
-cycles back; withdrawn by the ADR-0033 amendment of 2026-10-24 —
+cycles back; withdrawn by the ADR-0033 amendment of 2026-10-24;
 Tab now walks the area focus Expression → History → Keypad, and the
 arrows climb into the bank-tab rows to change banks), arrows move the
 highlight with column clamping across

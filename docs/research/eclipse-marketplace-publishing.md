@@ -72,7 +72,7 @@ open-source door.
    accounts.eclipse.org/user/register (fetched live, 200) [5]. The
    marketplace does not have its own logins: its Log in link redirects to the
    Foundation's Keycloak at `auth.eclipse.org/realms/community` with client
-   `drupal_marketplace` — one Foundation account for everything [6]. (The
+   `drupal_marketplace`; one Foundation account for everything [6]. (The
    Quickstart still says "same accounts from Eclipse Bugzilla"; that is the
    same account system, unified since.) The Quickstart's advice stands: an
    account is needed for adding and editing listings [2].
@@ -100,7 +100,7 @@ open-source door.
 ### The fields a listing carries
 
 The form is login-gated, so the inventory below is read off the public
-listing data model — the same fields the API returns for every listing [9],
+listing data model; the same fields the API returns for every listing [9],
 displayed on every listing page [13]:
 
 - **Name** and **short description**: one paragraph, shown in MPC search
@@ -137,12 +137,12 @@ displayed on every listing page [13]:
 The marketplace's public API is the client API the MPC itself consumes. The
 client source enumerates it in one comment [12]:
 
-- `/api/p` — markets + categories (verified live) [8]
-- `/node/%/api/p` or `/content/%/api/p` — one listing's detail (verified
+- `/api/p`; markets + categories (verified live) [8]
+- `/node/%/api/p` or `/content/%/api/p`; one listing's detail (verified
   live) [9]
-- `/taxonomy/term/%/api/p` — category listings [12]
-- `/featured/api/p`, `/recent/api/p` — curated and recent results [12]
-- `/favorites/top/api/p` — most-favorited; `/popular/top/api/p` — most
+- `/taxonomy/term/%/api/p`; category listings [12]
+- `/featured/api/p`, `/recent/api/p`; curated and recent results [12]
+- `/favorites/top/api/p`; most-favorited; `/popular/top/api/p`; most
   active (both verified live) [10]
 - `/related/api/p`, `/news/api/p` [12]
 - search: `/api/p/search/apachesolr_search/<query>` [12]
@@ -161,15 +161,15 @@ session included.
 The listing is a pointer, not a distribution channel: "These listings are
 essentially pointers to external repositories" [3]. Once the listing carries
 an update-site URL and feature IDs, plugin updates flow through Eclipse's own
-p2 machinery — the marketplace listing does not need touching when only the
+p2 machinery; the marketplace listing does not need touching when only the
 feature version on the update site advances. What the listing itself shows
 (the version string, "Date Updated", Eclipse-versions compatibility,
 screenshots) changes only when a human edits the listing [2][9].
 
-Where the update site should live: any HTTPS host works — the top listings
+Where the update site should live: any HTTPS host works; the top listings
 point at `download.eclipse.org` (WindowBuilder), `dbeaver.io` (DBeaver),
 `pydev.org` (PyDev), and, closest to our situation, **`subclipse.github.io`
-— Subclipse serves its p2 update site from GitHub Pages**
+(Subclipse serves its p2 update site from GitHub Pages)**
 (`https://subclipse.github.io/updates/subclipse/4.3.x/`) [9]. GitHub Pages
 off the epher repo (or a sibling repo) is an established pattern for exactly
 this.
@@ -188,8 +188,8 @@ path needs:
 
 So the work items are: CI builds the p2 site each release train and publishes
 it to GitHub Pages; the listing points at it once. Until then a listing could
-still exist as a pointer, but with no Install button doing anything — the
-MPC's whole value — so the update site belongs in the same train as the
+still exist as a pointer, but with no Install button doing anything; the
+MPC's whole value; so the update site belongs in the same train as the
 listing, not after it.
 
 ## What the top five format their listings
@@ -211,11 +211,11 @@ Reading across them:
   Tools is the next generation of Spring Boot tooling...", "An Eclipse Team
   Provider plug-in providing support for Subversion...", "PyDev is a plugin
   that enables Eclipse to be used as a Python IDE..." [9].
-- **Short descriptions are one sentence, 169–190 characters** — the MPC card
+- **Short descriptions are one sentence, 169–190 characters**; the MPC card
   is small and they do not fight it [9].
 - **Bodies are short HTML**: 0.8–4K chars of paragraphs and lists, mostly
   links out (source repo, docs, support forum). **Nobody embeds `<img>` in
-  the body** — visuals live in the screenshots gallery only, and four of the
+  the body**; visuals live in the screenshots gallery only, and four of the
   five carry between zero and four screenshots. SonarQube (4) is the ceiling
   among the five; Spring Tools and Subclipse ship none [9][13].
 - **Categories are few** (1–5; IDE is the constant for these) and **tags run
@@ -224,8 +224,8 @@ Reading across them:
 - **Status is Production/Stable** (PyDev: Mature) and **licenses are the
   project licenses** (EPL, EPL 2.0, LGPL; DevStyle is Commercial - Free)
   [9].
-- **Eclipse Versions are wide** — PyDev lists 4.6 through 4.37 in one field,
-  Spring Tools narrows to 4.41/4.42 — a multi-select the maintainer updates
+- **Eclipse Versions are wide**; PyDev lists 4.6 through 4.37 in one field,
+  Spring Tools narrows to 4.41/4.42; a multi-select the maintainer updates
   by hand as releases are verified [9].
 - The install leaderboard `/popular/top/api/p` and the 30-day metrics page
   tell the same story with the same names (GitHub Copilot and TestNG riding
@@ -245,20 +245,20 @@ Observable from the live site (the form's own help text is login-gated):
   through its `badge_logo` image style at **80×80** in every listing header
   and card [9]. A square PNG in the 80px-plus range is the safe upload;
   RGBA PNG throughout.
-- **Screenshots**: PNG (animated GIF also accepted — WindowBuilder's lead
+- **Screenshots**: PNG (animated GIF also accepted; WindowBuilder's lead
   screenshot is a GIF) [13]. Uploaded originals can be large (SonarQube's is
   3456×2160); the site serves them scaled to its `resource_screenshot` style
   at **1200×750** with a lightbox gallery [13]. No hard count is documented
   publicly; four (SonarQube) is the most observed among the top listings
   [9][13]. Screenshots are a gallery field of their own, separate from the
   body HTML.
-- **Our brand**: the epher monogram — `site/icon.svg`, the rounded tile +
+- **Our brand**: the epher monogram; `site/icon.svg`, the rounded tile +
   monogram "e" (`#1c1c1e` tile, `#fcfcfc` glyph; `icon-light.svg` and
   `icon-plain.svg` variants). The listing logo is a PNG render of it (the
   tile already carries its own rounding, so a straight raster export at
   256×256 scales cleanly to the 80×80 badge). The same render serves the
   screenshots' framing and any feature artwork. No social media links
-  anywhere in the listing — repo, docs, and epher.org only.
+  anywhere in the listing; repo, docs, and epher.org only.
 
 ## Listing copy source
 
@@ -286,7 +286,7 @@ One version across all clients per train (extension 0.5.x speaks epher
   [2].
 - **Human (per train, small)**: edit the listing when the displayed version
   string, Eclipse Versions compatibility, or screenshots should advance.
-  Optional — updates keep flowing through p2 without it — but a listing
+  Optional; updates keep flowing through p2 without it; but a listing
   advertising 0.5.56 while p2 serves 0.5.57 erodes trust, so budget the
   two-minute edit into the release checklist.
 - **CI secrets**: none possible. No API token exists for listings [12].

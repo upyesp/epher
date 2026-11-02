@@ -398,13 +398,13 @@ knob, machinery like a <code>def</code>, so the transcript stays silent while th
 binding takes effect (ADR-0080). Re-declaring with the <em>same</em> value
 succeeds, examples get pasted twice; a different value is a
 <code>constant already defined</code> error. Naming an existing variable is a
-<code>cannot define constant x: the name is already a variable</code> error — the
+<code>cannot define constant x: the name is already a variable</code> error; the
 session already bound that name, so <code>reset</code> the session or rename the
 binding.</p>
 <h3 id="73-sharing-a-script39s-definitions-share-name-name">7.3 Sharing a script&#39;s definitions: <code>share name, name</code></h3>
 <p>A multi-statement submission is a <strong>script scope</strong>: the constants and
 functions it defines are its own, and they vanish when the script ends
-(variables and <code>ans</code> always stay — see <a href="#8-names-scope-and-the-session-store">§8</a>).
+(variables and <code>ans</code> always stay; see <a href="#8-names-scope-and-the-session-store">§8</a>).
 <code>share</code> is the one way definitions cross the boundary on purpose: the
 named definitions join the session, with their source lines, so <code>save</code>
 and the next startup replay persist them.</p>
@@ -473,14 +473,14 @@ constants, then built-in constants, then built-in functions (a call),
 then the error <code>unknown name</code>. A user function or constant shadows a
 built-in of the same name. A call resolves the function table first, so
 a name that is somehow a value and a function at once stays
-unambiguous — which cannot happen: a name is one thing, a variable, a
+unambiguous, which cannot happen: a name is one thing, a variable, a
 constant, or a function, never two (ADR-0012).</p>
 <ul>
 <li><strong>A multi-statement submission is a script scope.</strong> The constants
 and functions a script defines are its own and vanish at its end;
 its variables and <code>ans</code> stay. Definitions cross by <code>share</code> only
 (§7.3). A script that defines a name the session library already
-holds — a shared constant, a store replay — shadows it for the run
+holds (a shared constant, a store replay) shadows it for the run
 instead of erroring, the way a <code>for</code> loop shadows its variable:
 re-running an example never depends on what ran before it.
 <code>randseed</code> and <code>bits</code> inside a script are the script&#39;s own too: the

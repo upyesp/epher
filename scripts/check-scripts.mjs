@@ -11,7 +11,7 @@
 //
 // Run: cargo build -p epher-cli && node scripts/check-scripts.mjs
 //      node scripts/check-scripts.mjs --update   (rewrite expected blocks
-//      from fresh runs — review the diff afterwards; --update blesses
+//      from fresh runs; review the diff afterwards; --update blesses
 //      whatever the run prints, including regressions)
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, dirname, relative, resolve } from "node:path";

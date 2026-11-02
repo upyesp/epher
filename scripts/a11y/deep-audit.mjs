@@ -1,12 +1,12 @@
-// Deep accessibility pass — the WCAG 2.2 AA criteria the two standing
+// Deep accessibility pass; the WCAG 2.2 AA criteria the two standing
 // suites (audit.mjs for the PWA, site-audit.mjs for the website) do not
 // already cover, from the two ADR-0009 perspectives:
 //
-//   blind screen-reader user  — every guide LOCALE (the standing site
+//   blind screen-reader user ; every guide LOCALE (the standing site
 //     suite walks guide/en only), the PWA switched through every locale
 //     the way a user does (Language menu), `dir="rtl"` actually applied
 //     for Arabic, localized input/keypad names still present
-//   low-vision user           — WCAG 2.5.8 target size (24px, no
+//   low-vision user          ; WCAG 2.5.8 target size (24px, no
 //     inline-link exception for non-inline targets), 1.4.12 text-spacing
 //     override without loss of content or function, 2.4.11 focus not
 //     obscured on a real Tab walk, forced-colors (Windows High
@@ -28,7 +28,7 @@ const RTL = new Set(['ar']);
 const results = [];
 const check = (name, ok, detail = '') => {
   results.push({ name, ok });
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ` — ${detail.slice(0, 220)}` : ''}`);
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? `; ${detail.slice(0, 220)}` : ''}`);
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -142,7 +142,7 @@ async function focusNotObscured(page, maxStops = 60) {
     });
     if (!res.stop) break;
     if (res.covered) {
-      // 2.4.11 is about the element being hidden WHEN IT RECEIVES focus —
+      // 2.4.11 is about the element being hidden WHEN IT RECEIVES focus;
       // a persistent state. A one-frame :focus-visible style swap (e.g. the
       // skip link sliding off as the next stop takes focus) must not read
       // as a violation: re-settle and re-hit-test before reporting.
@@ -214,7 +214,7 @@ async function focusNotObscured(page, maxStops = 60) {
 
     // Forced colors: text stays visible and the field keeps a boundary.
     // (puppeteer's emulateMediaFeatures whitelist rejects 'forced-colors'
-    // on this version — send the CDP command directly.)
+    // on this version; send the CDP command directly.)
     const cdp = await page.createCDPSession();
     await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'forced-colors', value: 'active' }] });
     await sleep(150);

@@ -1,15 +1,15 @@
-# macOS Gatekeeper guidance in the wild: what cask vendors, Homebrew and Apple tell users about the "Apple could not verify" dialog — and what that means for our brew note
+# macOS Gatekeeper guidance in the wild: what cask vendors, Homebrew and Apple tell users about the "Apple could not verify" dialog; and what that means for our brew note
 
 Research of 2026-11-01 (branch `staging`, uncommitted), while the site carries a
 first-launch hint under the macOS card ("Choose Done, run `xattr -rd …`, export
 `HOMEBREW_CASK_OPTS=--no-quarantine`"). Three questions: what do the vendors
 behind well-known Homebrew casks actually tell their users about Gatekeeper,
 what do Homebrew and Apple themselves promise, and how does our note compare?
-The headline: **vendor guidance has all but vanished** — of 20 surveyed casks,
+The headline: **vendor guidance has all but vanished**; of 20 surveyed casks,
 only two publish anything Gatekeeper-shaped, and not one recommends a bypass;
 **Apple now documents exactly one remedy** (System Settings → Privacy & Security
 → "Open Anyway", the Control-click → Open bypass is gone from its page);
-**Homebrew reversed its old "at your own risk" stance in 5.0.0** — Gatekeeper
+**Homebrew reversed its old "at your own risk" stance in 5.0.0**; Gatekeeper
 checks are now a cask requirement, `--no-quarantine`/`--quarantine` were
 deprecated (Nov 2025) and the leftover code removed (Jul 2026), and Homebrew
 7.0.11 on this Mac **rejects the flag** while still quarantining downloads by
@@ -20,7 +20,7 @@ default (verified on our own epher dmg). Our `xattr` advice still works; our
 
 Decide whether the mac-brew-hint on epher.org still matches (a) what users are
 told elsewhere, (b) Apple's current first-launch flow on macOS 15 Sequoia and
-later, and (c) Homebrew's documented cask policy — and whether any part of it
+later, and (c) Homebrew's documented cask policy; and whether any part of it
 is now stale, unique, or worth revisiting. Observations only; nothing on the
 site was touched.
 
@@ -44,13 +44,13 @@ Everything below was fetched directly on 2026-11-01 unless marked UNVERIFIED:
   default), #20775 (2025, warning strengthened), #20929 (2025, deprecation);
   removal/inheritance commits [33]–[44]. Wayback snapshots of Acceptable-Casks
   (May 2025) for the pre-policy text [45].
-- **This Mac (primary evidence)**: Homebrew 7.0.11 — `man brew`, `brew install
+- **This Mac (primary evidence)**: Homebrew 7.0.11; `man brew`, `brew install
   --help`, a live `brew install --cask --no-quarantine` rejection, `brew fetch
   --cask` plus the quarantine xattr on the downloaded artifact (the epher dmg
   itself, from Pete's tap), and `brew info --cask` for all 20 surveyed casks.
 - **Apple**: support.apple.com/102445 (fetched in full), the developer
   notarization documentation (JSON API), and an attempt at discussions.apple.com
-  (blocked — see Community) [46][47][52].
+  (blocked; see Community) [46][47][52].
 - **Independent high-trust secondary**: four eclecticlight.co articles by
   Howard Oakley, including his controlled experiments on fresh macOS VMs [48]–[51].
 - Known fetch failures, honestly: inkscape.org and iina.io return 403 to curl
@@ -70,28 +70,28 @@ Privacy & Security → Open Anyway, (iii) xattr quarantine removal, (iv)
 
 | App (cask) | Notarized? | Site guidance | Remedy | Source |
 |---|---|---|---|---|
-| GIMP (`gimp` 3.2.6) | UNVERIFIED | (vi) — download page checks SHA256 + VirusTotal only; no Gatekeeper text | (vi) | [1] |
-| Inkscape (`inkscape` 1.4.4) | UNVERIFIED | (vi) — site 403s curl; 1.4 release page read via Wayback, no signing/Gatekeeper text | (vi) | [2] |
-| Krita (`krita` 5.3.4.1) | UNVERIFIED (DMG named `krita-5.3.4.1-signed.dmg`) | (vi) — download page and docs installation page have no Gatekeeper text | (vi) | [3][4] |
-| Kdenlive (`kdenlive` 26.08.2) | UNVERIFIED | (vi) — macOS section says only "Requires macOS 13 (Ventura) or newer" | (vi) | [5] |
-| HandBrake (`handbrake-app` 1.11.2) | UNVERIFIED | (vi) — docs and downloads.php push checksum verification, no Gatekeeper text | (vi) | [6][7] |
-| Arduino IDE (`arduino-ide` 2.3.10) | UNVERIFIED | (vi) — install doc: "To install the Arduino IDE 2 on a macOS computer, simply copy the downloaded file into your application folder."; Help-Center search for gatekeeper/malicious/quarantine returns nothing | (vi) | [8][9] |
-| UTM (`utm` 5.0.8) | UNVERIFIED | (vi) — product site and the entire docs source have zero Gatekeeper/quarantine mentions | (vi) | [10][11] |
-| IINA (`iina` 1.5.0) | UNVERIFIED | (vi) — iina.io 403s curl and its FAQ has no Wayback captures; GitHub releases page silent | (vi) | [12] |
-| OpenEmu (`openemu` 2.4.1) | UNVERIFIED | Mentions Gatekeeper as engineering notes, no user remedy: "Improved UX to mitigate game launch issues related to Gatekeeper. — Now prompts with requirement to move to your Applications folder on app launch." | anti-App-Translocation UX, not a quarantine remedy | [13][14] |
-| Mos (`mos` 4.2.1) | UNVERIFIED | (vi) — README/website silent for users; only a contributor note that changes touching "signing, notarization" carry higher risk | (vi) | [15][16] |
-| AltTab (`alt-tab` 11.10.1) | **Yes** — repo doc: "AltTab parks its stapled notarization ticket while it runs and puts it back when it quits." | (vi) — README has zero Gatekeeper mentions | (vi) | [17][18] |
-| Stats (`stats` 3.0.24) | UNVERIFIED | (vi) — README silent | (vi) | [19] |
-| LocalSend (`localsend` 1.18.2) | UNVERIFIED | (v)-shaped — README's macOS install row offers App Store and Homebrew; no Gatekeeper text | (v) by install-table placement | [20] |
-| Maccy (`maccy` 2.8.0) | UNVERIFIED | (vi) — README + maccy.app silent (their "malware" text warns about fake Maccy websites) | (vi) | [21][22] |
-| Ghostty (`ghostty` 1.4.0) | UNVERIFIED | (vi) — docs site is JS-rendered; the docs source repo and the author's announcement post have zero Gatekeeper/notarization mentions | (vi) | [23][24][25] |
-| iTerm2 (`iterm2` 3.7.6) | **Yes** — changelog: "It is also notarized so it will run on Catalina." | (vi) — states the fact, no user guidance | (vi) | [26] |
-| Rectangle (`rectangle` 2.0.4) | UNVERIFIED | (vi) — site and README silent | (vi) | [27] |
-| Raycast (`raycast` 2.10.1) | UNVERIFIED | (vi) — site silent (JS shell to curl) | (vi) | [28] |
-| VLC (`vlc` 3.0.24) | UNVERIFIED | (vi) — mac download page and news archive have no Gatekeeper/notarization text | (vi) | [29][30] |
-| OBS (`obs` 33.0.1) | UNVERIFIED | (vi) — releases pages (HTML, 100 releases checked via API page) contain no notarization text | (vi) | [31] |
+| GIMP (`gimp` 3.2.6) | UNVERIFIED | (vi); download page checks SHA256 + VirusTotal only; no Gatekeeper text | (vi) | [1] |
+| Inkscape (`inkscape` 1.4.4) | UNVERIFIED | (vi); site 403s curl; 1.4 release page read via Wayback, no signing/Gatekeeper text | (vi) | [2] |
+| Krita (`krita` 5.3.4.1) | UNVERIFIED (DMG named `krita-5.3.4.1-signed.dmg`) | (vi); download page and docs installation page have no Gatekeeper text | (vi) | [3][4] |
+| Kdenlive (`kdenlive` 26.08.2) | UNVERIFIED | (vi); macOS section says only "Requires macOS 13 (Ventura) or newer" | (vi) | [5] |
+| HandBrake (`handbrake-app` 1.11.2) | UNVERIFIED | (vi); docs and downloads.php push checksum verification, no Gatekeeper text | (vi) | [6][7] |
+| Arduino IDE (`arduino-ide` 2.3.10) | UNVERIFIED | (vi); install doc: "To install the Arduino IDE 2 on a macOS computer, simply copy the downloaded file into your application folder."; Help-Center search for gatekeeper/malicious/quarantine returns nothing | (vi) | [8][9] |
+| UTM (`utm` 5.0.8) | UNVERIFIED | (vi); product site and the entire docs source have zero Gatekeeper/quarantine mentions | (vi) | [10][11] |
+| IINA (`iina` 1.5.0) | UNVERIFIED | (vi); iina.io 403s curl and its FAQ has no Wayback captures; GitHub releases page silent | (vi) | [12] |
+| OpenEmu (`openemu` 2.4.1) | UNVERIFIED | Mentions Gatekeeper as engineering notes, no user remedy: "Improved UX to mitigate game launch issues related to Gatekeeper.; Now prompts with requirement to move to your Applications folder on app launch." | anti-App-Translocation UX, not a quarantine remedy | [13][14] |
+| Mos (`mos` 4.2.1) | UNVERIFIED | (vi); README/website silent for users; only a contributor note that changes touching "signing, notarization" carry higher risk | (vi) | [15][16] |
+| AltTab (`alt-tab` 11.10.1) | **Yes**; repo doc: "AltTab parks its stapled notarization ticket while it runs and puts it back when it quits." | (vi); README has zero Gatekeeper mentions | (vi) | [17][18] |
+| Stats (`stats` 3.0.24) | UNVERIFIED | (vi); README silent | (vi) | [19] |
+| LocalSend (`localsend` 1.18.2) | UNVERIFIED | (v)-shaped; README's macOS install row offers App Store and Homebrew; no Gatekeeper text | (v) by install-table placement | [20] |
+| Maccy (`maccy` 2.8.0) | UNVERIFIED | (vi); README + maccy.app silent (their "malware" text warns about fake Maccy websites) | (vi) | [21][22] |
+| Ghostty (`ghostty` 1.4.0) | UNVERIFIED | (vi); docs site is JS-rendered; the docs source repo and the author's announcement post have zero Gatekeeper/notarization mentions | (vi) | [23][24][25] |
+| iTerm2 (`iterm2` 3.7.6) | **Yes**; changelog: "It is also notarized so it will run on Catalina." | (vi); states the fact, no user guidance | (vi) | [26] |
+| Rectangle (`rectangle` 2.0.4) | UNVERIFIED | (vi); site and README silent | (vi) | [27] |
+| Raycast (`raycast` 2.10.1) | UNVERIFIED | (vi); site silent (JS shell to curl) | (vi) | [28] |
+| VLC (`vlc` 3.0.24) | UNVERIFIED | (vi); mac download page and news archive have no Gatekeeper/notarization text | (vi) | [29][30] |
+| OBS (`obs` 33.0.1) | UNVERIFIED | (vi); releases pages (HTML, 100 releases checked via API page) contain no notarization text | (vi) | [31] |
 
-(Surrounding checks: Keka — also silent [32]. Across all 20 casks, zero
+(Surrounding checks: Keka; also silent [32]. Across all 20 casks, zero
 instances of remedies (i)–(iv) in vendor guidance.)
 
 ## Homebrew's documented position: from "at your own risk" to a Gatekeeper requirement
@@ -107,9 +107,9 @@ disabled or bypassed Gatekeeper, no action will be taken on our part. When you
 disable security features, you do so at your own risk." Unsigned apps were only
 rejected at audit if they "fail with GateKeeper enabled on Homebrew supported
 macOS versions and platforms (e.g. unsigned apps will not launch on Apple
-Silicon Macs)" — all quoted from the Wayback capture of 2025-05-18 [45].
+Silicon Macs)"; all quoted from the Wayback capture of 2025-05-18 [45].
 
-**The reversal — Homebrew 5.0.0, 12 Nov 2025** [37]:
+**The reversal; Homebrew 5.0.0, 12 Nov 2025** [37]:
 
 > "Casks without codesigning are deprecated. We will disable all
 > Homebrew/homebrew-cask casks that fail Gatekeeper checks in September 2026."
@@ -135,13 +135,13 @@ security check?" with "Official macOS casks must pass Homebrew's Gatekeeper
 checks without requiring users to bypass them. A failure is not a malware
 verdict, but the cask may be deprecated, disabled and eventually removed until
 upstream provides artefacts that pass" [35]; and the Security and Supply-Chain
-page explains the asymmetry — casks are "prebuilt applications and installers
+page explains the asymmetry; casks are "prebuilt applications and installers
 supplied directly by the upstream developer" whose sha256 "does not prove who
 produced those bytes" [36].
 
 **Verified on this Mac (Homebrew 7.0.11, 2026-11-01)**:
 
-- `brew install --cask --no-quarantine <name>` errors out with a Usage message —
+- `brew install --cask --no-quarantine <name>` errors out with a Usage message;
   the flag is rejected outright.
 - `man brew` contains zero occurrences of quarantine, Gatekeeper or
   notarization; `HOMEBREW_CASK_OPTS` is still documented but only for `--*dir`
@@ -153,12 +153,12 @@ produced those bytes" [36].
   (`ba25213c81`) [44]; and a 2026-07-11 change ("Preserve cask quarantine
   approval") makes brew inherit a user's Gatekeeper approval across cask
   upgrades "only when the new app satisfies the old app's designated
-  requirement" [43] — relevant to epher, whose ad-hoc-signed app has no stable
+  requirement" [43]; relevant to epher, whose ad-hoc-signed app has no stable
   designated requirement to satisfy (see Implications).
 
 One scope note: our cask lives in Pete's third-party tap (`upyesp/tap`) [54],
 not official `homebrew/cask`, so the official-cask disable policy does not
-directly apply to it — but the flag removal and quarantine defaults apply to
+directly apply to it; but the flag removal and quarantine defaults apply to
 every brew user regardless of tap.
 
 ## Apple's current guidance, and the Sequoia change
@@ -184,8 +184,8 @@ and later "requires software to be notarized" by default.
 appears nowhere on the current page (zero occurrences in the fetched HTML);
 Apple's only documented bypass is Open Anyway. That matches Howard Oakley's
 controlled reporting from the Sequoia betas: in "Gatekeeper and notarization in
-Sequoia" (2024-08-10) he describes the old flow — "the user has to select the
-Open command from the Finder's contextual menu" — and the new one: "Gatekeeper
+Sequoia" (2024-08-10) he describes the old flow; "the user has to select the
+Open command from the Finder's contextual menu"; and the new one: "Gatekeeper
 will then refuse to run for the first time those apps that aren't notarized, if
 they're in quarantine. The only way that you'll then be able to launch an
 unnotarized app is by adding it to a list of exemptions using Privacy &
@@ -194,7 +194,7 @@ Security settings. That's performed on an individual basis, per app" [48]. In
 including the repeated warning and admin authentication, and shows why it
 exists: "The old Finder bypass for Gatekeeper was simple: use the contextual
 menu to Open the app, and there's a single dialog to get through. That's so
-simple that it has become widely used by malware" — illustrated with Atomic
+simple that it has become widely used by malware"; illustrated with Atomic
 Stealer's own right-click-Open instructions [49]. I found no Apple statement
 explicitly announcing removal of the contextual-menu bypass; per Apple's page
 and Oakley's testing it is absent from Sequoia's documented flow, and I mark
@@ -202,9 +202,9 @@ whether it still silently works on some builds as UNVERIFIED. Oakley's
 comment-thread testing adds a 15.1-era nuance directly relevant to epher:
 ad-hoc-signed apps still behave as before (Open Anyway works); it is a damaged
 or missing signature that breaks an app outright, so our ad-hoc signing is not
-itself the blocker — the missing notarization is [49].
+itself the blocker; the missing notarization is [49].
 
-**Where the defaults stand in 2026** — from Oakley's later experiments on fresh
+**Where the defaults stand in 2026**; from Oakley's later experiments on fresh
 macOS VMs: an unquarantined app "launched normally, without any warning dialog"
 even when not notarized ("If an app doesn't have a quarantine extended
 attribute … the app is allowed to run without any additional action" [48][51]);
@@ -217,7 +217,7 @@ your macOS software by submitting it to Apple for notarization" [47].
 ## Forum/community evidence (community/anecdotal, not Apple policy)
 
 Apple's own discussion forums are closed to curl (the search URL returns a
-"Security Verification" page), so no thread quotes could be verified — marked
+"Security Verification" page), so no thread quotes could be verified; marked
 UNVERIFIED [52]. The nearest verifiable substitute is the practitioner
 discussion under Oakley's articles [49]: developers report the pre-Sequoia
 burden ("Before Sequoia this wasn't too much of an issue, sure you had to tell
@@ -228,15 +228,15 @@ documents the open-source app OpenSCAD having just gone through signing and
 notarization "not without consternation"; and Oakley's own advice to users is
 against stripping quarantine ("You shouldn't remove the quarantine xattr
 anyway: if that code hasn't been run on that Mac before it does need to be
-checked"). Treat the tone of that thread — hobbyist vendors squeezed, users
-confused by the dialog's wording — as the community consensus, not Apple policy.
+checked"). Treat the tone of that thread; hobbyist vendors squeezed, users
+confused by the dialog's wording; as the community consensus, not Apple policy.
 
 ## What unsigned vendors typically say
 
 Almost nothing. Of 20 popular casks, 18 publish no Gatekeeper guidance at all
 (remedy (vi)), one steers to the App Store by install-table placement, and one
 mentions Gatekeeper only as an engineering note about App Translocation [1]–[32].
-Nobody recommends right-click → Open any more — the remedy most vendors used to
+Nobody recommends right-click → Open any more; the remedy most vendors used to
 give pre-Sequoia now exists mainly in malware instructions [49]. The two apps
 I could verify as notarized (iTerm2, AltTab) mention notarization as a release
 fact or an internal stapling detail, never as user guidance [18][26]. The
@@ -257,23 +257,23 @@ Our current hint (verbatim, `site/i18n/en.js`) [55]:
 
 1. **Our advice is now unique in the ecosystem.** No surveyed vendor publishes
    xattr or `--no-quarantine` guidance (0 of 20); we are the only voice telling
-   brew users what to do. That makes accuracy entirely our problem — and it
+   brew users what to do. That makes accuracy entirely our problem; and it
    makes the next point material.
 2. **The "durable fix" no longer works on current brew.** `--no-quarantine` was
    deprecated in Homebrew 5.0.0 (Nov 2025) [37], its leftover code removed in
    Jul 2026 [44], and brew 7.0.11 on this Mac rejects it at the CLI; the man
    page no longer lists it among supported `HOMEBREW_CASK_OPTS` [53]. Users who
    set the env var per our note will get no quarantine relief (CLI path
-   verified rejected; env-var path not end-to-end tested without installing —
+   verified rejected; env-var path not end-to-end tested without installing;
    UNVERIFIED but almost certainly inert). The sentence should eventually be
    removed or rewritten; leaving it teaches a habit Homebrew has deliberately
    closed off.
-3. **The xattr advice still works — and remains the only automatable path.**
+3. **The xattr advice still works; and remains the only automatable path.**
    Oakley's experiments confirm unquarantined apps run without prompts even
    unnotarized [48][51], and brew still quarantines every download by default
    (verified on our own dmg) [53]. But note the rhythm: quarantine returns on
    every `brew upgrade` (fresh download each time), so "run once" is really
-   "run after each upgrade" — which our hint already says. Homebrew's
+   "run after each upgrade"; which our hint already says. Homebrew's
    approval-inheritance change of 2026-07-11 only survives upgrades "when the
    new app satisfies the old app's designated requirement" [43]; an ad-hoc
    signature has no stable designated requirement, so (analysis, not
@@ -282,13 +282,13 @@ Our current hint (verbatim, `site/i18n/en.js`) [55]:
 4. **Apple's blessed alternative is absent from our note.** System Settings →
    Privacy & Security → "Open Anyway" is the only remedy Apple documents [46],
    it requires no shell command, and the exception persists for future
-   double-click launches. Vendors don't mention it either — but our hint's
+   double-click launches. Vendors don't mention it either; but our hint's
    Done-then-xattr flow could sit alongside an Open Anyway mention (after the
    first failed launch, which is what primes the button) without contradicting
    anything.
-5. **We never gave the stale remedy.** Right-click → Open — the guidance
+5. **We never gave the stale remedy.** Right-click → Open; the guidance
    everyone used to publish, and which post-Sequoia is both wrong and, per
-   Oakley, the malware playbook [49] — never appears in our copy. Our note
+   Oakley, the malware playbook [49]; never appears in our copy. Our note
    matched the dialog reality from the start: on Sequoia+ the alert only offers
    Done / Move to Trash, exactly as our "Choose Done" line assumes.
 6. **The dialog actively talks users out of us.** Apple's page tells people
@@ -299,7 +299,7 @@ Our current hint (verbatim, `site/i18n/en.js`) [55]:
    option besides Done is Move to Trash.
 7. **Homebrew's policy direction is a signal worth tracking.** Official casks
    that fail Gatekeeper checks face deprecation → disable [34][35][38]. Our
-   cask sits in a third-party tap, so enforcement doesn't reach it — but the
+   cask sits in a third-party tap, so enforcement doesn't reach it; but the
    ecosystem expectation (notarized artifacts, no-bypass defaults, quarantines
    you can no longer opt out of) is now uniform across Apple and Homebrew. The
    shelved notarization work remains the only path to a genuinely quiet
