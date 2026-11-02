@@ -353,6 +353,21 @@ try {
   check('site-wide: identical link text never goes to different destinations',
     ambiguous.length === 0, ambiguous.length === 0 ? `${linkTargets.size} distinct link names, destinations unambiguous` : ambiguous.join(' | '));
 
+  // ---- site-wide: writing style, no em-dashes in site copy ----------------
+  // The project bans em-dashes everywhere (writing-style ADR). Hand-written
+  // pages and every translation value are checked here; site/guide and
+  // site/reference are generated from docs/ and out of this check's scope.
+  const { readFileSync } = await import('node:fs');
+  const dashFiles = [];
+  for (const f of ['index.html', 'features.html', 'ide.html', 'examples.html', 'scripts.html', 'privacy.html', 'accessibility.html']) {
+    if (readFileSync(new URL(`../../site/${f}`, import.meta.url), 'utf8').includes('\u2014')) dashFiles.push(f);
+  }
+  for (const lang of ['en', 'de', 'es', 'fr', 'pt', 'ar', 'hi', 'zh-CN']) {
+    if (readFileSync(new URL(`../../site/i18n/${lang}.js`, import.meta.url), 'utf8').includes('\u2014')) dashFiles.push(`i18n/${lang}.js`);
+  }
+  check('site-wide: no em-dashes in hand-written pages or translations',
+    dashFiles.length === 0, dashFiles.length === 0 ? 'all clean (guide/reference are generated from docs/ and out of scope)' : `em-dash found in: ${dashFiles.join(', ')}`);
+
   // ---- mobile hamburger click-through -----------------------------------
   // The desktop dropdown and the collapsed hamburger are the same links but
   // different interactions; this walks the real path (menu-toggle →

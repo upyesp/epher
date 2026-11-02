@@ -21,7 +21,7 @@
   <title>epher... ephemeris: a scriptable, graphing calculator</title>
   <meta
     name="description"
-    content="epher... ephemeris: a scriptable, graphing calculator. Command line, terminal UI, desktop app, and offline web app. Graphs in 2D and 3D, exact numerics, eight languages, no accounts."
+    content="epher... ephemeris: a scriptable, graphing calculator. Built for blind astronomers, open to everyone. Command line, terminal UI, desktop app, and offline web app. Graphs in 2D and 3D, exact numerics, eight languages, no accounts."
   />
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141416" />
@@ -132,13 +132,13 @@
       <div class="hero-copy">
         <h1 id="tagline" class="hero-title">
           <span class="hero-title-brand">epher</span>
-          <span class="hero-title-sub" data-i18n="tagline">a scriptable, graphing calculator</span>
+          <span class="hero-title-sub" data-i18n="tagline">a scriptable, graphing calculator, built for blind astronomers and open to everyone</span>
         </h1>
         <p class="lede lede-intro" data-i18n="lede-a">epher is…</p>
         <ul class="lede lede-points">
-          <li data-i18n="lede-app">a calculator app for your device</li>
           <li><span data-i18n="lede-lang">a mathematical language you can write and execute in an</span>
           <a href="ide.html" data-i18n="lede-link">IDE</a><span data-i18n="lede-lang-tail"></span></li>
+          <li data-i18n="lede-app">a calculator app for your device</li>
         </ul>
         <p class="lede" data-i18n="lede-engine">
           One calculation engine, many ways to use it: command line,
@@ -157,10 +157,16 @@
       </div>
       <div class="hero-visual">
         <div class="terminal-card">
-          <p class="terminal-prompt">graph3d x ^ 2 - y ^ 2</p>
-          <!-- "try this" stages the command in the PWA's entry via the
-               same ?expr= share URL the app's history list produces -->
-          <a class="terminal-try" href="pwa/?expr=graph3d%20x%20%5E%202%20-%20y%20%5E%202" data-i18n="try-this">try this</a>
+          <p class="terminal-prompt" id="try-cmd-1">graph3d x ^ 2 - y ^ 2</p>
+          <!-- Each "try this" stages its command in the PWA's entry via the
+               same ?expr= share URL the app's history list produces
+               (ADR-0038). aria-labelledby names each link after its command,
+               so identical link text never becomes ambiguous. -->
+          <a class="terminal-try" href="pwa/?expr=graph3d%20x%20%5E%202%20-%20y%20%5E%202" aria-labelledby="try-cmd-1 try-link-1" id="try-link-1" data-i18n="try-this">try this</a>
+          <p class="terminal-prompt" id="try-cmd-2">2 + 3 * 4</p>
+          <a class="terminal-try" href="pwa/?expr=2%20%2B%203%20*%204" aria-labelledby="try-cmd-2 try-link-2" id="try-link-2" data-i18n="try-this">try this</a>
+          <p class="terminal-prompt" id="try-cmd-3">solve x^2 == 5*x + 6</p>
+          <a class="terminal-try" href="pwa/?expr=solve%20x%5E2%20%3D%3D%205*x%20%2B%206" aria-labelledby="try-cmd-3 try-link-3" id="try-link-3" data-i18n="try-this">try this</a>
         </div>
         <div class="graph-card">
           <svg id="hero3d" class="hero3d-svg" viewBox="0 0 10 10" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
@@ -297,7 +303,7 @@ curl -fsSL https://epher.org/epher.sources | sudo tee /etc/apt/sources.list.d/ep
 sudo apt update &amp;&amp; sudo apt install epher</pre>
               <p data-i18n="linux-deb-hint">
                 Or skip the repository: download the .deb below and open
-                it — your software installer handles the rest.
+                it; your software installer handles the rest.
               </p>
               <p class="repo-alt">
                 <a href="https://github.com/upyesp/epher/releases/latest/download/epher-linux-x86_64.deb" data-i18n="linux-deb">Download for Debian/Ubuntu (.deb)</a>
