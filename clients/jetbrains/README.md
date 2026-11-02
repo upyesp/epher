@@ -73,16 +73,16 @@ for `.epher` files) runs the whole file and opens the **epher
 results** tool window on the right (ADR-0069): every statement's
 answer or error as a row anchored to its source line, and every 2D or
 3D graph the run produced inlined below them. Statements that print
-nothing are not rows — the pane is the script's output, not a
+nothing are not rows; the pane is the script's output, not a
 re-reading of the script.
 
 The play icon in the editor's title bar and the Run menu are wired to
 the same road: the plugin registers an `epher` run configuration type,
 so a `.epher` file in the editor is natively runnable. Ctrl+Shift+F10
 over an open script (or the play icon, or Run ▸ Run) creates a run
-configuration named after the script and runs it; the transcript —
+configuration named after the script and runs it; the transcript;
 every statement's answer or error as a console line, then the count of
-graphs — lands in a run tab in the Run tool window. The Tools action
+graphs; lands in a run tab in the Run tool window. The Tools action
 and the results pane are unchanged and remain the way to see graphs;
 both roads speak the same one-shot `epher-lsp` session.
 

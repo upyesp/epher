@@ -45,10 +45,10 @@ checks use 4.5:1, non-text (UI component boundaries, focus indicators) 3:1.
 
 | Criterion | Status | Evidence / notes |
 |---|---|---|
-| 3.1.1 Language of page | **FIXED** | The landing page's static `html lang="en"` was updated at runtime by app.js, but the PWA never touched `lang` or `dir` — a runtime language switch (or a stored non-English preference) left the document `lang="en"` and LTR, so screen readers kept the wrong voice and Arabic never mirrored. Now a `use_effect_with` keyed on the localizer's locale sets `lang` and `dir` (`rtl` for Arabic) at boot and on every switch (ADR-0008); verified per locale by the deep suite. The guide pages set both per locale at build time. |
+| 3.1.1 Language of page | **FIXED** | The landing page's static `html lang="en"` was updated at runtime by app.js, but the PWA never touched `lang` or `dir`; a runtime language switch (or a stored non-English preference) left the document `lang="en"` and LTR, so screen readers kept the wrong voice and Arabic never mirrored. Now a `use_effect_with` keyed on the localizer's locale sets `lang` and `dir` (`rtl` for Arabic) at boot and on every switch (ADR-0008); verified per locale by the deep suite. The guide pages set both per locale at build time. |
 | 3.2.1/3.2.2 On focus/input | PASS | Focus lands in the field on load (intentional: it is the whole app); submit only updates the result region. |
 | 3.3.1 Error identification | **FIXED** | Errors already appear as text (announced); now also `aria-invalid="true"` + `aria-describedby="epher-result"` on the input while an error is showing. |
-| 3.3.2 Labels | **FIXED** | The input always had an `aria-label`, but it (and the placeholder) were hardcoded English — a Spanish VoiceOver user heard "expression" mid-Spanish UI. Now localized via the `entry-label` / `entry-placeholder` Fluent keys (8 locales). Placeholder is a hint only. |
+| 3.3.2 Labels | **FIXED** | The input always had an `aria-label`, but it (and the placeholder) were hardcoded English; a Spanish VoiceOver user heard "expression" mid-Spanish UI. Now localized via the `entry-label` / `entry-placeholder` Fluent keys (8 locales). Placeholder is a hint only. |
 | 3.3.3 Error suggestion | PASS | Core error strings are descriptive ("division by zero", "unknown name …"). |
 | 3.3.7 Redundant entry | N/A | Single step; history shows prior entries. |
 
@@ -116,12 +116,12 @@ automated axe scan runs in the `a11y` Playwright suite (ADR-0009).
 4. **TUI**: cursor is visible in the input field; hints line shown; `graph`
    shows the caption; all keys work with a screen reader's pass-through.
 5. **Automated** (`scripts/a11y/`, ported from the trains project's
-   harness): `node scripts/a11y/audit.mjs` is the headless leg — an
+   harness): `node scripts/a11y/audit.mjs` is the headless leg; an
    axe-core scan (the wcag2a/2aa/21a/21aa/22aa rule tags, zero
-   violations required) of every state — desktop dark/light/night
+   violations required) of every state; desktop dark/light/night
    switched through the app's own Theme menu, the graph pane with 2D
    and 3D plots drawn, the guide overlay open, and the mobile layout
-   (baseline, hamburger open, post-auto-slide) — plus a
+   (baseline, hamburger open, post-auto-slide); plus a
    Chromium-accessibility-tree layer that asserts what a screen reader
    consumes (named controls, the keypad tablist, the live status region
    announcing the answer, named tab stops) and a computed-contrast
@@ -132,15 +132,15 @@ automated axe scan runs in the `a11y` Playwright suite (ADR-0009).
    the uncovered baseline scans. `node scripts/a11y/voiceover-audit.mjs
    --vo` is the real-screen-reader leg (GuidePup driving VoiceOver;
    run under Terminal via `~/.epher-vo-audit.command`): it asserts what
-   VoiceOver speaks while a keyboard user tabs in — page structure,
+   VoiceOver speaks while a keyboard user tabs in; page structure,
    the expression field's label, the keypad keys' purposes, silent-stop
-   freedom — and records result announcements as info (Chromium on
+   freedom; and records result announcements as info (Chromium on
    macOS does not deliver aria-live to VoiceOver in any form; Safari
-   does — the live-region mechanism itself is asserted by the AX
+   does; the live-region mechanism itself is asserted by the AX
    layer). The website has its own leg,
    `node scripts/a11y/site-audit.mjs` (the landing, features,
    examples, scripts, guide, reference, IDE and privacy pages): the
-   same axe scan plus the two AA perspectives — a blind screen-reader
+   same axe scan plus the two AA perspectives; a blind screen-reader
    user (landmarks, one h1, named controls, the skip link as the
    first tab stop that really moves focus to #main, unique page
    titles, identical link text never going to different
@@ -150,7 +150,7 @@ automated axe scan runs in the `a11y` Playwright suite (ADR-0009).
    overflow at 200% zoom, every zoom-scrollable region
    keyboard-reachable). `node scripts/a11y/deep-audit.mjs` adds the
    deep pass the standing suites don't cover: every guide LOCALE (the
-   site suite walks guide/en only — CJK and Devanagari reflow, RTL
+   site suite walks guide/en only; CJK and Devanagari reflow, RTL
    baking), the PWA switched through all 8 locales the way a user does
    (Settings menu → language item; `lang`/`dir` asserted per locale,
    localized entry name intact), WCAG 2.5.8 target size (24px, no
@@ -164,11 +164,11 @@ automated axe scan runs in the `a11y` Playwright suite (ADR-0009).
    hardening (2026-10-31, first fully-clean run after the OS-session
    VO state cleared on reboot): `--window-size` is clamped by this
    Mac's small display work area (~800px), which silently flipped the
-   app into its mobile layout — the leg now emulates 1280×900 via CDP;
+   app into its mobile layout; the leg now emulates 1280×900 via CDP;
    the Tab walk starts from the page's first stop (rewind to the rail
    brand) so it never misses the field mid-page; menu items are
    asserted through the real keyboard path (Tab to the menubutton,
-   Enter opens, Tab into the items — programmatic clicks move neither
+   Enter opens, Tab into the items; programmatic clicks move neither
    focus nor the VO cursor, so nothing is spoken); a silent Tab stop
    on an element that has an accessible name in the AX tree counts as
    a poll-timing artifact (delivery is intermittent, not absent),
@@ -176,4 +176,4 @@ automated axe scan runs in the `a11y` Playwright suite (ADR-0009).
    failures, website 156 checks 0 failures, deep pass 101 checks 0
    failures, real VoiceOver 6/6 (result announcement stays an info:
    Chromium on macOS does not deliver aria-live to VoiceOver; Safari
-   does — engine gap, not markup).
+   does; engine gap, not markup).

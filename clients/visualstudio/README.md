@@ -8,7 +8,7 @@ catalog, your own names, and the shared snippets, and the snippets
 themselves through completion.
 
 The extension is a thin shell (ADR-0066). All understanding lives in
-`epher-lsp`, the shared language server — and the server ships inside
+`epher-lsp`, the shared language server; and the server ships inside
 the extension: the vsix carries `server\epher-lsp.exe`, the
 windows-x86_64 build from the same release the extension rides
 (the ADR-0066 amendment that retired the downloader for Visual
@@ -66,7 +66,7 @@ whole visual story in Visual Studio for now.
 
 The **Tools > Run Epher Script** command (also on the right-click menu
 inside a `.epher` editor) evaluates the whole script and opens the
-results as a tab in the editor well — the internal Visual Studio
+results as a tab in the editor well; the internal Visual Studio
 browser frame, dockable like any document.
 
 - Text answers and errors are anchored to their statements: every row

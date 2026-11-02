@@ -6,7 +6,7 @@ actually install from. Three questions: where a listing lives and how it is
 fed, the exact first-publication process for an LSP-package client like
 ours, and what a new release must do for the listing to follow. The
 headline: `LSP-*` helper packages are not submitted to the main Package
-Control channel at all — the LSP team's own repository
+Control channel at all; the LSP team's own repository
 (`sublimelsp/repository`) is included in the default channel, and once our
 entry is merged there, every semver tag we push becomes a release with no
 further PR, on about an hour's delay.
@@ -33,8 +33,8 @@ posts:
   docs.sublimetext.io/guide/package-control/submitting.html [5].
 - **The channel repositories on GitHub**: `sublimehq/package_control_channel`
   (the URL `wbond/package_control_channel` redirects there; verified via
-  the redirect) — its readme, AGENTS.md, `channel.json`,
-  `repository.json`, and PR template — and `sublimelsp/repository` — its
+  the redirect); its readme, AGENTS.md, `channel.json`,
+  `repository.json`, and PR template; and `sublimelsp/repository`; its
   readme, `repository.json` (all 83 entries parsed), release-auto-update
   script, and CI workflows [6][7][10]-[14].
 - **Cross-checks**: the `sublimelsp/LSP` GitHub repo description against
@@ -48,7 +48,7 @@ indexed, 25.53M unique users counted, ~10K installs/day, 29.1GB of channel
 JSON served in a day, per the live stats page [2]. Concretely:
 
 - **Listing URL shape**: `https://packagecontrol.io/packages/<name>`, name
-  URL-encoded (spaces become `%20`) — for us
+  URL-encoded (spaces become `%20`); for us
   `https://packagecontrol.io/packages/LSP-epher` [9].
 - **Where listings come from**: the channel sources on GitHub are crawled
   and compiled into a single `channel_v3.json` that Package Control clients
@@ -56,7 +56,7 @@ JSON served in a day, per the live stats page [2]. Concretely:
   (`channel.json` in `sublimehq/package_control_channel`) is a list of
   repository files; line 94 of the current one is
   `https://raw.githubusercontent.com/sublimelsp/repository/main/repository.json`
-  — the LSP team's repository, alongside `./repository.json` (the main
+ ; the LSP team's repository, alongside `./repository.json` (the main
   alphabetical per-letter files) and hundreds of third-party
   `packages.json` URLs [6][10].
 - **Popularity ordering exists here**: packagecontrol.io/browse/popular is
@@ -67,12 +67,12 @@ JSON served in a day, per the live stats page [2]. Concretely:
 ## Which channel takes epher: sublimelsp/repository, not the main channel
 
 Both the submission guide and the channel readme are explicit: "any
-language server protocol packages are managed via SublimeLSP" — LSP
+language server protocol packages are managed via SublimeLSP"; LSP
 framework plugins are submitted to https://github.com/sublimelsp/repository,
 "LSP helper packages... To add your plugin to Package Control, feel free to
 open a pull request" [5][7]. Our package is an LSP helper by construction:
 `epher.py` subclasses `LSP.plugin.AbstractPlugin`, and the `LSP-` prefix is
-technically required — the LSP package resolves the client configuration at
+technically required; the LSP package resolves the client configuration at
 `Packages/LSP-epher/LSP-epher.sublime-settings`, so the folder name and the
 listing name must both be `LSP-epher` (the client README already says this)
 [15]. The TextMate grammar rides along in the same package, as other
@@ -91,7 +91,7 @@ review tooling [5][6][7][10][11].
 1. **Stand up the package repository.** Package Control requires **one
    package per git repository, package root at repository root** [5].
    `clients/sublime` is a folder in the epher monorepo, so the listing
-   needs a dedicated repository — `upyesp/LSP-epher` — whose root holds
+   needs a dedicated repository; `upyesp/LSP-epher`; whose root holds
    exactly the package files: `epher.py`,
    `LSP-epher.sublime-settings`, `LSP-epher.sublime-commands`, the three
    `Default (<platform>).sublime-keymap` files, `epher.tmLanguage`,
@@ -102,7 +102,7 @@ review tooling [5][6][7][10][11].
    must be semantic version numbers; **branch-based releases are
    deprecated and not accepted for new packages** [5]. Our train already
    tags `v0.5.57`; the package repo carries the same tag.
-3. **Prepare the GitHub repo metadata — the listing is built from it.**
+3. **Prepare the GitHub repo metadata; the listing is built from it.**
    The crawler takes the listing's one-line description from the repo's
    GitHub `description` field (verified: the LSP package's listing line
    equals the `sublimelsp/LSP` repo description exactly) [9][12];
@@ -113,7 +113,7 @@ review tooling [5][6][7][10][11].
 4. **Clean the repository**: no `.pyc`, no `package-metadata.json`, no
    restricted filename characters; add `.gitattributes` with
    `export-ignore` for anything the package doesn't need (our
-   `sync-assets.py`, tests, images) — Package Control builds the install
+   `sync-assets.py`, tests, images); Package Control builds the install
    archive with git-archive, so this shrinks the download [5][11].
 5. **Fork `sublimelsp/repository`** and add one entry to its single
    `repository.json`, in alphabetical position. The 83 existing entries
@@ -136,8 +136,8 @@ review tooling [5][6][7][10][11].
    ```
 
    `tags: true` is the whole update mechanism: "every new tag is a
-   release". The `sublime_text` floor is a real decision — LSP itself
-   uses `">=4132"`, LSP-clangd and LSP-astro use `">=4070"` — pick the
+   release". The `sublime_text` floor is a real decision; LSP itself
+   uses `">=4132"`, LSP-clangd and LSP-astro use `">=4070"`; pick the
    floor from the LSP version our client needs (the README names LSP >=
    1.16 for semantic tokens), not from this doc.
 6. **Open the PR.** Title format "Add LSP-epher" per the channel's
@@ -145,8 +145,8 @@ review tooling [5][6][7][10][11].
    existing entries, don't provide information that duplicates the
    README) [10]. The main channel's PR template is the checklist of what
    reviewers check [11]; `sublimelsp/repository` runs the same ecosystem's
-   automated reviewers on every PR — `packagecontrol/st-schema-reviewer-action`
-   and `packagecontrol/st-package-reviewer-action` — before a human
+   automated reviewers on every PR; `packagecontrol/st-schema-reviewer-action`
+   and `packagecontrol/st-package-reviewer-action`; before a human
    looks [13].
 7. **Review and merge.** The template comment says "we usually need a few
    weeks"; the guide notes it is a community project reviewed in spare
@@ -169,7 +169,7 @@ is exactly what the checklist and AGENTS.md warn against [10][11].
   `upyesp/LSP-epher`) that lets the release job push the synced package
   files and the version tag. Call it `SUBLIME_PACKAGE_TOKEN` in the
   `stores` environment (our convention). Nothing is needed on the channel
-  side — updates after acceptance never touch a PR [12][5].
+  side; updates after acceptance never touch a PR [12][5].
 
 ## How the top five format their listings
 
@@ -188,8 +188,8 @@ order, fetched 2026-09-29 [3]. "Package Control" itself heads the list
 
 Reading across them:
 
-- **The listing description is one short sentence** — 32 to 68 characters
-  — and it is the GitHub repo description, not a channel field. The
+- **The listing description is one short sentence**; 32 to 68 characters
+ ; and it is the GitHub repo description, not a channel field. The
   README carries the actual pitch.
 - **READMEs are rendered on the package page**, fetched from the repo and
   shown under a "Readme" heading with a "Source: raw.githubusercontent.com"
@@ -200,7 +200,7 @@ Reading across them:
   screenshot; the crawler proxies every image to
   `/readmes/img/<sha>.<ext>` on packagecontrol.io, GIFs included
   (GitGutter's page serves two `.gif` files that way) [9].
-- **Labels are the only taxonomy** — lowercase free-text tags shown under
+- **Labels are the only taxonomy**; lowercase free-text tags shown under
   the description; the recommended set is in the guide ("language syntax"
   for syntax packages, and LSP-* packages lead with `lsp`) [5][12].
 - **The search preview is the description line**; package names, authors,
@@ -212,7 +212,7 @@ Reading across them:
 
 ## Media spec
 
-There are **no listing image fields** — no upload, no channel JSON key.
+There are **no listing image fields**; no upload, no channel JSON key.
 Screenshots and GIFs belong in the repository README (absolute URLs, the
 same raw-GitHub-URL pattern our VS Code README already uses); the crawler
 renders and proxies them onto the package page automatically [9]. The
@@ -223,7 +223,7 @@ as-is, so keep the GIF reasonable the way `clients/vscode` already does.
 
 ## Icon spec
 
-None. Package Control has no package icon concept — not in the channel
+None. Package Control has no package icon concept; not in the channel
 schema (the repository.json fields are name/details/releases/labels/
 author and nothing visual), not on package pages or browse cards [9][12].
 The epher monogram (`site/icon.svg`, with `icon-light.svg`/
@@ -234,17 +234,17 @@ brand on epher.org and the GitHub org avatar.
 
 - **The tag is the version.** With `"tags": true`, every new semver tag on
   the package repository becomes a release; the crawler re-reads the
-  channel sources about once an hour — the "Last Seen" stamp on each
+  channel sources about once an hour; the "Last Seen" stamp on each
   package page is that refresh time, so a pushed tag goes live within the
   hour with **no PR and no human step** [5][9].
 - **Same-version republish does not exist**: a tag is a git fact; Package
   Control lists versions as crawled. Re-pointing an existing tag is the
-  only way to "republish" and is a misuse — always bump, matching the
+  only way to "republish" and is a misuse; always bump, matching the
   release-train rule every other channel follows.
 - **Version constraints ride in the entry**: `sublime_text` ranges
   (e.g. `">=4000"`) and optional `platforms` (e.g. `["windows"]`) filter
   which installs see the release [5][12].
-- **For binary-bundling packages** there is an escape hatch —
+- **For binary-bundling packages** there is an escape hatch;
   `sublimelsp/repository`'s `auto-update-repository.py` converts GitHub
   release events into entry updates via a `repository_dispatch`
   (`lsp-add-or-update-package`), for packages that attach per-release
@@ -254,7 +254,7 @@ brand on epher.org and the GitHub org avatar.
 - **Flow into our release train**: one `v0.5.57` tag across all clients.
   The Sublime job syncs `clients/sublime/*` to `upyesp/LSP-epher`, tags
   `v0.5.57` there, and the listing follows within the hour. The package
-  itself carries no version number — the tag is the version.
+  itself carries no version number; the tag is the version.
 
 ## Gap analysis: `clients/sublime` today
 
@@ -265,12 +265,12 @@ Ready:
   copied verbatim to `upyesp/LSP-epher`; `epher.tmLanguage` is generated
   from `clients/shared/epher.tmLanguage.json` by `sync-assets.py`, so CI
   can regenerate it rather than copy it [15].
-- No context menu entries — the checklist's hard rule is satisfied [11].
-- No color scheme ships with the syntax — checklist satisfied [11].
+- No context menu entries; the checklist's hard rule is satisfied [11].
+- No color scheme ships with the syntax; checklist satisfied [11].
 - Key bindings exist but are scoped: the run chord is bound only in epher
   views via the syntax selector. The checklist discourages default
   keybindings ("There aren't enough keys for all packages"), with scoped
-  bindings and README documentation as the accepted mitigation — keep the
+  bindings and README documentation as the accepted mitigation; keep the
   scoping, and justify it explicitly in the PR description [11].
 
 To do before the PR:
@@ -279,7 +279,7 @@ To do before the PR:
    below its only writer.
 2. **Set the GitHub repo metadata deliberately**: `description` = the
    one-line listing text (adapted from `clients/vscode/README.md`'s
-   opening — "A calculator language where every statement's answer appears
+   opening; "A calculator language where every statement's answer appears
    inline, for Sublime Text via the LSP package"), homepage =
    `https://epher.org`, issues enabled. **No social media links anywhere**
    in the description or README (house rule).
@@ -313,7 +313,7 @@ CI, every release train:
 - regenerate `epher.tmLanguage` from `clients/shared`, sync all package
   files plus the adapted README to `upyesp/LSP-epher`, push and tag
   `v<version>`;
-- nothing else — the crawler picks the tag up within the hour.
+- nothing else; the crawler picks the tag up within the hour.
 
 ## CI workflow skeleton
 
@@ -324,7 +324,7 @@ name: sublime publish
 # The Package Control channel for LSP-* helper packages
 # (sublimelsp/repository, included in the default channel). First
 # publication is a human PR (docs/research/sublime-packagecontrol-publishing.md);
-# after acceptance, updates are just new semver tags on upyesp/LSP-epher —
+# after acceptance, updates are just new semver tags on upyesp/LSP-epher;
 # the crawler turns each tag into a release within ~1 hour, no PR. This
 # job syncs the package out of the monorepo and tags it. The one secret is
 # a fine-grained PAT with contents:read/write on upyesp/LSP-epher; the job

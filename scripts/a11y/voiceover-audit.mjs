@@ -8,7 +8,7 @@
 //
 // MUST run under Terminal (or another GUI-launched context): controlling
 // VoiceOver needs Automation/TCC grants a background daemon chain cannot
-// get on macOS 27 — launch via ~/.epher-vo-audit.command (see the repo
+// get on macOS 27; launch via ~/.epher-vo-audit.command (see the repo
 // README section below / the trains project's equivalent wrapper).
 //
 // Known engine limit (proven in the trains project's
@@ -25,7 +25,7 @@ import { startPwaServer } from './serve.mjs';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Pete: VO speech must be barely audible during automated runs — capture
+// Pete: VO speech must be barely audible during automated runs; capture
 // is text-based. VoiceOver exposes NO scriptable cursor volume, so clamp
 // the SYSTEM output volume instead (VO speech tracks it); restored at the
 // end. Override with VO_SYSTEM_VOLUME=n (0..100).
@@ -74,7 +74,7 @@ function findChrome() {
 const results = [];
 const check = (name, ok, detail = '') => {
   results.push({ name, ok });
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ` — ${detail}` : ''}`);
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? `; ${detail}` : ''}`);
 };
 const info = (m) => console.log(`  info: ${m}`);
 
@@ -142,7 +142,7 @@ try {
   // the walk must reach the expression field, the keypad, and the menu.
   // Budget 80: the full app is ~55–65 stops (menu rail, entry, result,
   // history, 10 keypad tabs, ~20 keypad cells, graph pane, install) and
-  // the old 45 ran out inside the keypad — `=` is the last cell, right
+  // the old 45 ran out inside the keypad; `=` is the last cell, right
   // after the `C` the walk did hear.
   // Start from the entry field: from the omnibox the Tab path crosses
   // Chrome's own UI and the browser→content transition drops one silent
@@ -152,7 +152,7 @@ try {
   await sleep(400);
   // Deterministic walk start: rewind to the page's FIRST stop (the
   // menu rail brand). The enter loop above ends wherever the cursor
-  // first spoke — mid-page — and a forward walk from there misses the
+  // first spoke; mid-page; and a forward walk from there misses the
   // field and only re-hears it after wrapping.
   let atTop = null;
   try {
@@ -184,7 +184,7 @@ try {
     const last = await voiceOver.lastSpokenPhrase().catch(() => '');
     transcript.push(last.trim());
     // Ground truth for every stop: what has focus, is it rendered, and
-    // which layout is live — the first silent stop (a hidden element
+    // which layout is live; the first silent stop (a hidden element
     // taking focus) is only diagnosable with this in hand.
     const where = await page.evaluate((spoken) => {
       const el = document.activeElement;
@@ -206,10 +206,10 @@ try {
       // Two-layer verdict (ADR-0009): the AX layer is mechanism truth.
       // A silently-skipped stop on an element that HAS an accessible
       // name is VO poll timing (announcement dropped between 380ms
-      // polls — delivery is intermittent, not absent), not a page
+      // polls; delivery is intermittent, not absent), not a page
       // defect. Only an UNNAMED silent stop is a real failure.
       if (where.named === true) {
-        info(`silent stop #${i + 1} = ${where.el} — named in the AX tree (poll-timing artifact), display=${where.display}`);
+        info(`silent stop #${i + 1} = ${where.el}; named in the AX tree (poll-timing artifact), display=${where.display}`);
       } else {
         silentStops.push(`#${i + 1} ${JSON.stringify(where)}`);
       }
@@ -242,14 +242,14 @@ try {
   await sleep(1500);
   const spoken = (await voiceOver.spokenPhraseLog()).slice(logBefore).join(' | ');
   const heardResult = /4/.test(spoken) && /(equals|=|result|= 4)/i.test(spoken);
-  info(`result announcement over real VoiceOver: ${heardResult ? `spoken "${spoken.trim().slice(0, 90)}"` : `not spoken (Chromium live-region engine gap) — spoken: ${spoken.trim().slice(0, 90) || 'nothing'}`}`);
+  info(`result announcement over real VoiceOver: ${heardResult ? `spoken "${spoken.trim().slice(0, 90)}"` : `not spoken (Chromium live-region engine gap); spoken: ${spoken.trim().slice(0, 90) || 'nothing'}`}`);
 
-  // The menu opens by keyboard and its items are announced — the REAL
+  // The menu opens by keyboard and its items are announced; the REAL
   // user path, cursor-synced throughout: Tab to the Settings
   // menubutton, press Enter (a native button fires click), then Tab
   // into the open dropdown (ADR-0017: items are ordinary tab stops).
   // Programmatic clicks open the dropdown but move neither focus nor
-  // the VO cursor, so nothing is spoken — that was the old probe's bug.
+  // the VO cursor, so nothing is spoken; that was the old probe's bug.
   let onSettings = null;
   await voiceOver.press('Tab'); // resync: cursor re-joins focus after the page.focus above
   await sleep(400);

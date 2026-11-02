@@ -4,7 +4,7 @@
 pane-side work: tiers, grids, boundary wrap, emphasis, disclosures). That
 batch deliberately left the scripts themselves untouched ("R8 … a future
 script-authoring exercise"). This doc recommends what to change in the
-bundled scripts — with one correction to the earlier plan: the sweep
+bundled scripts; with one correction to the earlier plan: the sweep
 must start with **correctness**, because the corpus-wide recapture found
 shipped errors and wrong numbers the pane work had hidden in plain sight.
 
@@ -21,7 +21,7 @@ one-shot `epher-cli <file>` per script without `EPHER_STORE_DIR`, and
 one-shot runs persist session variables between invocations (that is
 how `epher "x = 5"` then `epher "x * 2"` works). A leftover `r` from an
 earlier script therefore poisoned later `const r` scripts. With a fresh
-store per run — exactly what `scripts/check-scripts.mjs` does — **all
+store per run; exactly what `scripts/check-scripts.mjs` does; **all
 477 scripts pass, zero error lines**, and `circle-area` prints its
 correct `area: 78.5398163397`.
 
@@ -38,9 +38,9 @@ error: cannot define constant r: the name is already a variable
   constant, never both. A pasted script's `const r` is rejected when the
   session already bound `r`.
 - **In the pane:** `submit_all` is fail-fast, so the GUI shows only the
-  error line and discards the paste's results — safe, but cryptic.
+  error line and discards the paste's results; safe, but cryptic.
 - **In the CLI file path:** errors print and evaluation continues,
-  computing the rest of the script from the stale variable — the
+  computing the rest of the script from the stale variable; the
   plausible-but-wrong numbers above, with a passing self-check.
 
 **Fixes shipped in this batch (ADR-0079):**
@@ -80,7 +80,7 @@ most of them.
 
 - **Recommended: `const` definitions become silent.** Constants are the
   knob convention (345 scripts use them); a knob is machinery, not an
-  answer — exactly what `def` already is (defs contribute nothing today).
+  answer; exactly what `def` already is (defs contribute nothing today).
   Corpus-wide this removes roughly 1,200–1,400 lines with no information
   loss in the pane (values remain in the script text, and R1 already
   de-emphasized them), and the CLI transcript shrinks to results.
@@ -102,7 +102,7 @@ most of them.
 
 Three measured groups need labels, independent of §1:
 
-- **12 scripts are 100% unlabeled** — their transcripts are walls of
+- **12 scripts are 100% unlabeled**; their transcripts are walls of
   bare values: all seven trig `identities` scripts (`double-angle-sine`
   prints the test angles, a bare `{true, …}` verdict list, then bare
   identity lines), `quadrant-of-angle`,
@@ -110,10 +110,10 @@ Three measured groups need labels, independent of §1:
   `savings-goal-duration` (two knob echoes and an unlabeled
   goal/months matrix), `ecliptic-position`. The reader cannot tell
   which number is which.
-- **32 scripts end on an unlabeled line** — the last thing the user
+- **32 scripts end on an unlabeled line**; the last thing the user
   reads is a bare value; ADR-0078's R4 emphasizes the *last labeled*
   line, so these scripts forfeit the emphasis.
-- **216 scripts contain runs of ≥3 consecutive bare lines** — usually
+- **216 scripts contain runs of ≥3 consecutive bare lines**; usually
   loop-emitted data (month tables, per-step values) printed without
   labels; `day-length-year` (twelve bare day-length values, one per
   month), `synodic-table` and friends convert these to
@@ -133,7 +133,7 @@ row:
 = {{month, interest, principal, balance}, {1, 10, 78.85, 921.15}, …}
 ```
 
-The grid renderer treats it as one row — good enough at a glance, and
+The grid renderer treats it as one row; good enough at a glance, and
 `amortization-schedule` (the 305-character wall that motivated R3)
 becomes self-describing. Zero engine work.
 
@@ -144,7 +144,7 @@ scrolls to the first. Two follows-ons:
 
 - **Script convention:** close with the answer, not the check. Scripts
   move their `: true` verification lines *above* the final result line
-  (or accept the check below the emphasized answer — cosmetic either
+  (or accept the check below the emphasized answer; cosmetic either
   way, but "last labeled = the takeaway" should be written into
   `epher scripts/README.md` so new scripts keep it).
 - **Pane amendment (small):** scroll the pane to the *emphasized final
@@ -165,7 +165,7 @@ Apply opportunistically during the §2 sweep, not as its own batch.
 - **`printtable(...)` builtin:** the R3 grids plus §3 header rows cover
   every matrix-printing script in the corpus; a headed-table builtin
   stays deferred until a script genuinely needs one.
-- **Rounding inside scripts:** never — values must stay engine-precision
+- **Rounding inside scripts:** never; values must stay engine-precision
   (ADR-0051); shortening is the pane's opt-in R7 view, and copy must
   remain verbatim.
 - **Splitting compound stat strings** (`t = 2.0101, p = 0.0753`): they
@@ -173,7 +173,7 @@ Apply opportunistically during the §2 sweep, not as its own batch.
 
 ## Rollout
 
-1. **Batch A (now):** the 26 correctness fixes. Ship alone — they are
+1. **Batch A (now):** the 26 correctness fixes. Ship alone; they are
    bugs, verified per-script against each script's stated formula, with
    reviewed expected-block diffs.
 2. **Batch B:** the §1 ADR + silent `const`, expected blocks regenerated
@@ -199,12 +199,12 @@ expected blocks lost their knob column (1,058 lines); the guide's §1.6,
 `scripts/check-guide.mjs` replays all 128 guide transcript blocks
 against the engine in CI, because a language change that edits no
 documentation can otherwise leave the guide describing an output the
-app no longer prints — it caught exactly that drift here.
+app no longer prints; it caught exactly that drift here.
 
 **Batch C** shipped as the label sweep, with one design change: the
 pane's answer-emphasis rule (ADR-0078 R4) was amended rather than
 forcing 32 scripts to invent colons. The rule is now "the last line is
-the answer, unless it is a trailing `: true` check" — scripts are
+the answer, unless it is a trailing `: true` check"; scripts are
 written results-last, and 24 of those closing lines are sentence-results
 (`= that is 17.4 years`) that read better than any colon form. What the
 sweep did instead:
@@ -243,13 +243,13 @@ splitting compound stat strings.
   the fresh transcript without the file's final newline, so every
   regenerated script ended "No newline at end of file". The write path
   now preserves it, and the checker reports `missing trailing newline`
-  as a failure — which immediately caught 53 files a hand repair had
+  as a failure; which immediately caught 53 files a hand repair had
   missed and made `--update` idempotent (0 updated on a clean tree).
 - **The per-row tables are already labelled**: `sundial-lines`,
   `prayer-times` and `solstice-noon-table` print a header line and one
   labelled row each, so the `columns:` convention had nothing to add
   there. The real remaining noise was the *assignment walls* above them
-  (`schlyter-crosscheck`: 37 bare lines, `apparent-place`: 24) —
+  (`schlyter-crosscheck`: 37 bare lines, `apparent-place`: 24);
   computed-once bindings that were never constants. 99 scripts now use
   `const` for those (326 bindings, 298 echo lines), which is the
   README's own rule applied to the corpus.
@@ -262,7 +262,7 @@ wholly-unlabelled scripts.
 
 **Still open, deliberately:** the TUI pane has no scroll of its own, so
 a transcript longer than the pane (three scripts exceed 18 lines; the
-longest is 31) shows its head and clips the tail — where the answer
+longest is 31) shows its head and clips the tail; where the answer
 now sits. A pane scroll offset (the guide and keypad already have one)
 is the natural next step; auto-tailing would hide the early results,
 which is a product decision, not a bug fix.

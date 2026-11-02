@@ -10,9 +10,9 @@ name: store analytics
 # Endpoint contracts (learn.microsoft.com/en-us/windows/uwp/monetize/
 # get-app-acquisitions and get-app-usage-daily), both under
 # manage.devcenter.microsoft.com/v1.0/my/analytics with a bearer token:
-#   appacquisitions — rows of {date, acquisitionQuantity}; the window takes
+#   appacquisitions; rows of {date, acquisitionQuantity}; the window takes
 #                     M/D/YYYY dates and groupby=date keeps one row per day
-#   usagedaily      — rows of {date, dailyNewUsers, dailyActiveDevices,
+#   usagedaily     ; rows of {date, dailyNewUsers, dailyActiveDevices,
 #                     dailyActiveUsers, dailySessionCount,
 #                     engagementDurationMinutes, monthlyActiveDevices}
 # Both paginate with top/skip and hand back @nextLink. The numbers lag a few
@@ -128,9 +128,9 @@ jobs:
           mau = max((int(r.get('monthlyActiveDevices', 0)) for r in usage), default=0)
 
           lines = [
-              '## Microsoft Store — epher (9NWXQ035T8TB)',
+              '## Microsoft Store; epher (9NWXQ035T8TB)',
               '',
-              f'window {since} .. {yesterday} — Partner Center data lags a few days',
+              f'window {since} .. {yesterday}; Partner Center data lags a few days',
               '',
               '| metric | value |',
               '|---|---|',

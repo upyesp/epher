@@ -3,13 +3,13 @@
 This folder is the listing kit for plugins.jetbrains.com, the same
 pattern as clients/visualstudio/listing/.
 
-- `demo.epher` — the script the captures show (real epher syntax,
+- `demo.epher`; the script the captures show (real epher syntax,
   verified against the 0.5.57 CLI).
-- `CAPTURE-GUIDE.md` — how to take the four screenshots on a desktop
+- `CAPTURE-GUIDE.md`; how to take the four screenshots on a desktop
   machine (the marketplace listing needs authentic shots of a
   commercial JetBrains IDE, which no CI or headless box can run: the
   IDE requires an account login).
-- `setup.sh` — prepares a Linux desktop (the Mint VM) for the
+- `setup.sh`; prepares a Linux desktop (the Mint VM) for the
   captures: installs IntelliJ IDEA Ultimate 2024.2.4 (free 30-day
   trial), installs the plugin, and creates the demo project.
 

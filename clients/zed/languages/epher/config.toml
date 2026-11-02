@@ -9,7 +9,7 @@
 # semantic_token_rules.json styles the custom `unit` token type.
 #
 # block_comment must be ONE table ({ start = …, prefix = …, end = …,
-# tab_size = … }) or the old two-string form ([start, end]) — never a
+# tab_size = … }) or the old two-string form ([start, end]); never a
 # list of tables. Zed's BlockCommentConfig has no list variant on any
 # version (checked 0.204.2 through 1.21.0), and one bad line here
 # makes the whole extension vanish at index time: the language and

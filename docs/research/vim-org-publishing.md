@@ -1,7 +1,7 @@
 # Publishing epher for Vim on vim.org: the script page, the upload, and the human-only train
 
 Research of 2026-09-29, in preparation for publishing the Vim client
-(`clients/vim`: ftdetect, syntax, ftplugin — no LSP wiring in Vim itself) on
+(`clients/vim`: ftdetect, syntax, ftplugin; no LSP wiring in Vim itself) on
 the official Vim Scripts index: www.vim.org/scripts. Four questions: what the
 channel is and who still reads it, how a script is submitted and updated
 today, what the page carries (and what it cannot), and what the most-rated
@@ -12,7 +12,7 @@ scripts do that ours should.
 Decide what it takes to put epher on vim.org with a script page that matches
 what the top-rated scripts ship: the account work, the submission and
 version-upload flow, the description conventions, and the honest shape of a
-channel with no API, no icons, and no images — a text page, a file, and a
+channel with no API, no icons, and no images; a text page, a file, and a
 download counter.
 
 ## Method (all claims verified)
@@ -38,17 +38,17 @@ index on the Vim site itself ("vim online"). URL shapes:
 - Script page: `https://www.vim.org/scripts/script.php?script_id=<id>`
   (e.g. taglist is `script_id=273`) [4]
 - Per-release download:
-  `https://www.vim.org/scripts/download_script.php?src_id=<release id>` —
+  `https://www.vim.org/scripts/download_script.php?src_id=<release id>`;
   the src_id is per version, not per script [4]
 - Search/sort: `https://www.vim.org/scripts/script_search_results.php`
   with `query`, `script_type`, `order_by` (Rating | Downloads | Script
   Name | Creation Date), `direction` [7][8]
 
 The channel is old but not dead: the top script has 363,303 downloads,
-and the "Recent Script Updates" panel on the index shows a steady pulse —
+and the "Recent Script Updates" panel on the index shows a steady pulse;
 the newest seven uploads span 2026-08-29 to 2026-09-20 [1][4]. The
 audience is Vim (not Neovim)
-users who install by downloading a package onto their runtimepath — exactly
+users who install by downloading a package onto their runtimepath; exactly
 the install story `clients/vim/README.md` documents. Neovim users get the
 LSP wiring from `clients/nvim`; the vim.org listing covers the shared
 runtime and the vim-lsp path.
@@ -69,27 +69,27 @@ runtime and the vim-lsp path.
    (probed today) [5], so the form itself is visible only to an account holder.
    Its field inventory is the data model every script page displays [4]:
    - script **name**;
-   - **summary** — the one-liner shown in the recent-updates list
+   - **summary**; the one-liner shown in the recent-updates list
      (`name : summary`);
-   - **description** — the main text block (plain, preformatted text;
+   - **description**; the main text block (plain, preformatted text;
      below for what survives);
-   - **install details** — a second text block ("How to install", rendered
+   - **install details**; a second text block ("How to install", rendered
      after the description);
-   - **script type** — one of: color scheme, ftplugin, game, indent,
+   - **script type**; one of: color scheme, ftplugin, game, indent,
      syntax, utility, patch (the search facet's own list) [7]. For epher's
      client, `utility` (or `syntax` if we ship the syntax file alone);
    - the **first version**: package file upload, version string, Vim
      version compatibility, release notes [4].
 3. **No approval queue is documented.** Nothing on the submission path, the
-   registration page, or the site help mentions moderation or review — the
+   registration page, or the site help mentions moderation or review; the
    contrast with Eclipse Marketplace's explicit moderation queue is total
    [1][2][3]. New uploads surface in the index's Recent Script Updates with
    their upload dates, which is the publication event [1]. Treat
    "submit, then check the index next day" as the verification step.
 4. **No API exists.** `api.php` and `scripts/api.php` are 404 (probed
    today) [9]; the site is PHP web forms end to end, with no tokens, no
-   OAuth, nothing a CI secret could hold. **Every step — submission, version
-   upload, description edits — is a human at a browser.**
+   OAuth, nothing a CI secret could hold. **Every step; submission, version
+   upload, description edits; is a human at a browser.**
 
 ### What survives in a description
 
@@ -98,9 +98,9 @@ Evidence from the fetched pages:
 - Descriptions are **preformatted plain text**; whitespace is preserved and
   long lines are not wrapped (taglist's description keeps its hand-set URL
   indentation) [4].
-- **Bare URLs become links** — taglist's description shows
+- **Bare URLs become links**; taglist's description shows
   `https://github.com/yegappan/taglist` as a real `<a href>` [4].
-- **HTML tags pass through** — vim-htmldjango_omnicomplete's page carries
+- **HTML tags pass through**; vim-htmldjango_omnicomplete's page carries
   literal `<br>` tags in the description markup, and its screenshot links
   are bare URLs out to GitHub (`.../examples/block_eample.png`), not
   embedded images [10]. Among the top five, though, the style is plain
@@ -110,7 +110,7 @@ Evidence from the fetched pages:
   and in htmldjango omnicomplete. There is no screenshot field, no gallery,
   no file storage for media on script pages [4][10].
 - **Upload sizes are capped** by the site, tightly enough that maintainers
-  split archives around it — the hexpair release notes (index, fetched
+  split archives around it; the hexpair release notes (index, fetched
   today) describe shipping a `.minimal.tar.bz2` "because vim.org/scripts
   has strict limits for upload size" [1]. Keep `epher-vim.zip` tiny (three
   text files today) and this is never a problem.
@@ -119,7 +119,7 @@ Evidence from the fetched pages:
 
 From `script_search_results.php?order_by=rating&direction=descending`
 (the site's own ranking), then each script page [7][4]. The "rating" column
-is rating points, almost certainly on a 3-point-per-vote scale — the vote
+is rating points, almost certainly on a 3-point-per-vote scale; the vote
 buttons on every script page are Life Changing / Helpful / Unfulfilling,
 and the top scripts' averages land near 2.9, which only 3/2/1 produces
 (taglist: 14,532 points over 4,944 votes ≈ 2.94) [4]:
@@ -140,21 +140,21 @@ Reading across them:
   navigating the filesystem" [4][7].
 - **Descriptions are 800–3,300 characters of plain text**: what it does,
   where the repository and docs live (bare URLs), how to get help
-  (`:help taglist`). That is the whole format — no badges, no banners, no
+  (`:help taglist`). That is the whole format; no badges, no banners, no
   feature bullets with screenshots [4].
 - **Install details is its own block**, numbered steps, runtimepath
   (`$HOME/.vim`, `$HOME/vimfiles`, `$VIM/vimfiles`) plus `:helptags` when
   there is help [4].
 - **Every page ends in the versions table**: package | script version |
-  date | Vim version | user | release notes — the release notes are where
+  date | Vim version | user | release notes; the release notes are where
   changelogs live [4].
 - Sorted by downloads instead of rating, the same names lead (taglist,
-  NERD tree, then c.vim) — rating and downloads agree on what the canon is
+  NERD tree, then c.vim); rating and downloads agree on what the canon is
   [8].
 
 ## Media and icon spec
 
-- **There is no icon field, no logo, no avatar** on script pages — the page
+- **There is no icon field, no logo, no avatar** on script pages; the page
   is name, type, dates, description, install details, ratings, versions
   [4]. The epher monogram (`site/icon.svg`) has nowhere to go on vim.org;
   it stays the brand of the GitHub release artifacts and the website, and
@@ -164,8 +164,8 @@ Reading across them:
   show the inline-answers demo, the description links out to it
   (epher.org or the GitHub raw URL) rather than embedding.
 - **One file per release**, the package upload (zip expected; taglist ships
-  `taglist_46.zip`, NERD tree `NERD_tree.zip`) [4]. Our `epher-vim.zip` —
-  ftdetect, syntax, ftplugin — is exactly the expected shape: download,
+  `taglist_46.zip`, NERD tree `NERD_tree.zip`) [4]. Our `epher-vim.zip`;
+  ftdetect, syntax, ftplugin; is exactly the expected shape: download,
   extract onto the runtimepath.
 
 ## Listing copy source
@@ -184,7 +184,7 @@ epher.org, the releases page. **No social media links.**
 One version across all clients per train (extension 0.5.x speaks epher
 0.5.x).
 
-- **CI (automatable)**: build `epher-vim.zip` (already does — ftdetect,
+- **CI (automatable)**: build `epher-vim.zip` (already does; ftdetect,
   syntax, ftplugin from `clients/vim`) and attach it to the GitHub release
   with the stable name. The zip doubles as the vim.org package upload; the
   GitHub release carries everything else (`epher-lsp` binaries the
@@ -193,10 +193,10 @@ One version across all clients per train (extension 0.5.x speaks epher
   ready, per the site's own advice), submit the script through
   `add_script.php`.
 - **Human (per train, small)**: "upload new version" on the script page →
-  `add_script_version.php?script_id=<id>` [6] — new package file, version
+  `add_script_version.php?script_id=<id>` [6]; new package file, version
   string, Vim version, release notes [4]. There is no way for CI to do
   this; a release checklist line, like the Eclipse listing edit.
-- **CI secrets**: none possible — vim.org has no API and no tokens [9].
+- **CI secrets**: none possible; vim.org has no API and no tokens [9].
 
 ## Sources
 
@@ -224,7 +224,7 @@ plain PHP forms turn out to be drivable end to end without a browser:
 - Login is a plain POST to `/login.php` (`authenticate=true`,
   `userName`, `password`); success is visible as a session cookie,
   while a failed login re-renders the form and sets no cookie. No CSRF
-  token, no captcha on login — the registration page's human check is
+  token, no captcha on login; the registration page's human check is
   registration-only (probed 2026-10-05 with a bogus-credentials POST:
   HTTP 200, no Set-Cookie, form re-rendered).
 - The version-upload form (`add_script_version.php?script_id=<id>`) is
@@ -241,7 +241,7 @@ other channel's scoped token. vim.org offers nothing stronger.
 The form-driving bit back once, instructively: the version form carries
 two same-named submit buttons (`add_script=upload`,
 `add_script=cancel`); echoing every field sent `cancel` last, and
-PHP's last-value-wins made every POST cancel itself — the server
+PHP's last-value-wins made every POST cancel itself; the server
 greeted each attempt with a friendly redirect and saved nothing. The
 uploader now sends exactly one submit, the way a browser's clicked
 button does. The catch-up upload of the pending 0.5.59 lean zip landed
@@ -261,7 +261,7 @@ Keeping every version is the site's norm: the top-rated scripts expose
 download_script.php links on each page). Deletion is self-serve for
 the owner: logged in, each row of the script's versions table carries
 a delete icon pointing at `del_script_version.php?script_source_id=<id>`
-(owner view only — anonymous pages show no such links). The site help
+(owner view only; anonymous pages show no such links). The site help
 (huh.php) documents upload and update but not deletion. epher keeps
 its rows: the 0.5.57 package is the runtime matching epher 0.5.57, and
 history is what the channel is for. No pruning is automated.

@@ -1,7 +1,7 @@
 # WCAG 2.2 AA gate for the website and the PWA (ADR-0009).
 #
 # Runs both a11y suites against the `site` artifact that
-# site-build.yml assembled earlier in the same run — the PWA suite
+# site-build.yml assembled earlier in the same run; the PWA suite
 # over _site/pwa (axe + the Chromium accessibility tree + computed
 # token contrast) and the website suite over the whole _site (the two
 # AA perspectives: a blind screen-reader user and a low-vision user).
@@ -57,4 +57,4 @@ jobs:
       - name: Summarize
         if: always()
         run: |
-          echo "Accessibility audit — see the step logs above. Policy (ADR-0009): zero violations; both suites must pass." >> "$GITHUB_STEP_SUMMARY"
+          echo "Accessibility audit; see the step logs above. Policy (ADR-0009): zero violations; both suites must pass." >> "$GITHUB_STEP_SUMMARY"

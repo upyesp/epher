@@ -689,7 +689,7 @@ Scripts are how you build small programs: set up variables, loop, and show a
 final result.
 
 A script is also **self-contained**: the constants and functions it
-defines are its own, and they are forgotten when the script ends — its
+defines are its own, and they are forgotten when the script ends; its
 variables and `ans` stay. That is what lets you run example after
 example: a script that opens with `const tax = 0.25` runs the same way
 the tenth time as the first, whatever earlier scripts defined. If you

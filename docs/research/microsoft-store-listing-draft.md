@@ -10,9 +10,9 @@ docs/research/microsoft-store-publishing.md; wording is epher's site voice
 
     epher
 
-The title must be the bare app name: Store policy 10.1.1 — "Your product
+The title must be the bare app name: Store policy 10.1.1; "Your product
 title or name must be unique and must not contain marketing or descriptive
-text, including extraneous use of keywords" — and every top listing does
+text, including extraneous use of keywords"; and every top listing does
 exactly this ("WhatsApp", "Windows Calculator"). The descriptor lives in
 the keywords and the description's first line instead.
 
@@ -21,7 +21,7 @@ the keywords and the description's first line instead.
 Two versions. The tight one matches what the most-popular listings
 actually do (140-784 characters, pitch in line one); the extended one
 spends more of the budget so Store search indexes the feature breadth.
-Pick one — or tight + a trimmed extended.
+Pick one; or tight + a trimmed extended.
 
 ### Tight (recommended; ~830 characters)
 

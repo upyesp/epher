@@ -10,7 +10,7 @@ plugin APIs. Facts verified live against the docs pages themselves.
 
 ## The process
 
-1. **JetBrains Account** (account.jetbrains.com) — one account powers
+1. **JetBrains Account** (account.jetbrains.com); one account powers
    the marketplace portal, the IDE trial login, and the publish token.
 2. **First publication is always manual**: log in at
    plugins.jetbrains.com, account menu, "Upload plugin", accept the
@@ -100,7 +100,7 @@ listings it mirrors.
   (server fetch stays pinned to the existing v0.5.57 release, so the
   uploaded plugin works immediately).
 - Next train 0.5.59 publishes via CI (`publishPlugin` rejects 0.5.58
-  nowhere — 0.5.58 was burned only on the VS gallery; but the train
+  nowhere; 0.5.58 was burned only on the VS gallery; but the train
   convention is one version for every client, and 0.5.59 is the next
   free number across all galleries).
 - `signPlugin` runs automatically only when the certificate secrets

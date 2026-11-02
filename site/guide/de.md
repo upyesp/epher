@@ -705,7 +705,7 @@ laufen lassen und ein Endergebnis zeigen.
 
 Ein Skript ist auch **in sich abgeschlossen**: die Konstanten und
 Funktionen, die es definiert, sind seine eigenen und werden vergessen,
-wenn das Skript endet — seine Variablen und `ans` bleiben. Genau darum
+wenn das Skript endet; seine Variablen und `ans` bleiben. Genau darum
 kannst du Beispiel um Beispiel laufen lassen: Ein Skript, das mit
 `const tax = 0.25` beginnt, läuft beim zehnten Mal genau so wie beim
 ersten, egal was frühere Skripte definiert haben. Soll eine Konstante
@@ -2357,7 +2357,7 @@ Skripten. Eine kurze einzelne Antwort bleibt in dieser Zeile. Eine
 längere Antwort - das Protokoll eines Skripts mit mehreren Antworten,
 eine Tabelle, eine lange Zahl - erscheint im Ergebnisbereich, dem
 Bereich, der auch Graphen zeigt, mit je einer Antwort pro Zeile; auf
-dem Telefon schiebt sich der Bereich von selbst ins Blickfeld. Links der Antwort sitzt ein Kopiersymbol: Ein Druck legt die Werte der Antwort in die Zwischenablage, je einer pro Zeile; lange Antworten im Ergebnisbereich kopieren genauso. Auch der Bereich selbst liest sich gut: die Setup-Echos eines Skripts stehen gedimmt unter den beschrifteten Ergebnissen, die letzte beschriftete Zeile trägt das Antwortgewicht, Matrizen erscheinen als ausgerichtete Gitter, Prüfzeilen bekommen ein Häkchen, und der Kurze-Zahlen-Schalter zeigt Werte mit sechs signifikanten Stellen (der volle Wert beim Hover) — Kopieren sendet immer die Werte unverändert.
+dem Telefon schiebt sich der Bereich von selbst ins Blickfeld. Links der Antwort sitzt ein Kopiersymbol: Ein Druck legt die Werte der Antwort in die Zwischenablage, je einer pro Zeile; lange Antworten im Ergebnisbereich kopieren genauso. Auch der Bereich selbst liest sich gut: die Setup-Echos eines Skripts stehen gedimmt unter den beschrifteten Ergebnissen, die letzte beschriftete Zeile trägt das Antwortgewicht, Matrizen erscheinen als ausgerichtete Gitter, Prüfzeilen bekommen ein Häkchen, und der Kurze-Zahlen-Schalter zeigt Werte mit sechs signifikanten Stellen (der volle Wert beim Hover); Kopieren sendet immer die Werte unverändert.
 
 Während du einen Namen tippst, erscheint unter dem Feld eine Vorschlagsliste: die Pfeile bewegen die Markierung, **Enter** oder **Tab** übernimmt, **Esc** schließt, und ein Klick übernimmt, ohne die Tastatur zu verlassen. Jeder Vorschlag trägt eine kurze Beschreibung der Funktion oder Konstante. **F1** zeigt dieselbe Beschreibung für das Wort unter dem Cursor in der Hinweisleiste über dem Tastenfeld. Beginnt eine leere Eingabe mit einem Operator (`+ - * / ^ % !`), fügt epher `ans` ein, und die Zeile macht mit dem letzten Ergebnis weiter.
 

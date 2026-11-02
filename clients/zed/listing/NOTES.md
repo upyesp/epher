@@ -1,4 +1,4 @@
-# Zed listing captures — how they were taken (2026-09-29)
+# Zed listing captures; how they were taken (2026-09-29)
 
 All five deliverables in `clients/zed/images/` are exactly 1244x900, window-only
 captures of Zed stable rendering on the headless rig (display :99, Xvnc
@@ -21,7 +21,7 @@ except the GIF frames, which were already 1244x900.
   `~/.local/share/zed/extensions/work/epher/epher-lsp-0.5.57/epher-lsp`
   (the 0.5.49 per-version-dir fix confirmed working). Language server
   start is in Zed.log at `07:35:50`.
-- Settings actually required (in `~/.config/zed/settings.json`) — without
+- Settings actually required (in `~/.config/zed/settings.json`); without
   these the buffer colors nothing and shows no answers:
 
 ```json
@@ -46,16 +46,16 @@ you click through the trust dialog).
 
 ## The shots
 
-- `editor.png` — hero. Whole 1244x900 window, demo.epher open, all eight
+- `editor.png`; hero. Whole 1244x900 window, demo.epher open, all eight
   statement lines carrying live inline answers (`= 6371 km` … `= 1`),
   semantic-token coloring on, cursor parked at the end of
   `graph sin(x)`.
-- `hover.png` — mouse hovered over `height` (line 12); popup reads
+- `hover.png`; mouse hovered over `height` (line 12); popup reads
   "height: a variable in this document" plus the current value `= 4 m`.
-- `completion.png` — new line at end of buffer, typed `sq`, `ctrl+space`;
+- `completion.png`; new line at end of buffer, typed `sq`, `ctrl+space`;
   menu shows `sqrt`, `september_equinox`, `chisq_gof` from the catalog.
-- `results.png` — see below.
-- `demo.gif` — 9 frames (empty buffer → lines 1–7 typed one per frame →
+- `results.png`; see below.
+- `demo.gif`; 9 frames (empty buffer → lines 1–7 typed one per frame →
   settled last frame), typed live with `xdotool type --delay 40`, one
   frame captured after each line completes, answers appearing as inlay
   hints; assembled with `convert -delay 50 -loop 0`.
@@ -66,13 +66,13 @@ The extension exposes **no run surface**: Zed's extension API has no
 commands, panels, or webviews (ADR-0069; see clients/zed/README,
 "Running scripts, honestly"). So results.png shows the run surface Zed
 users actually have per the README: the **integrated terminal** running
-the calculator over the same file —
+the calculator over the same file;
 
 ```
 /home/pete/code/epher/target/release/epher-cli /home/pete/zed-demo/demo.epher
 ```
 
-— printing the same transcript the editor shows inline (`= 6371 km` …
+It prints the same transcript the editor shows inline (`= 6371 km` …
 `= 1`, `graph: sin(x)`), with the editor and its inline answers still
 visible above. It is a real terminal run, not a mock pane.
 
@@ -92,7 +92,7 @@ visible above. It is a real terminal run, not a mock pane.
    Same trick applies to editor.png: park the cursor on `graph sin(x)`,
    which produces no answer, so every answered line is visible.
 3. **Completion docs arrive as LSP `detail` strings** (see
-   crates/lsp/src/analysis.rs — `detail: signature + description`), so
+   crates/lsp/src/analysis.rs; `detail: signature + description`), so
    Zed renders them truncated in the menu rows and shows no separate docs
    pane. The popup in completion.png is exactly what a user gets; do not
    wait for a docs pane.

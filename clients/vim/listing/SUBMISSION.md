@@ -3,7 +3,7 @@
 The channel is the official Vim Scripts index at vim.org/scripts. It
 has no API and no tokens; the version upload is driven through the
 site's own web forms by CI (`vim-publish.yml` + `publish-vimorg.py`,
-since 2026-10-05 — see docs/research/vim-org-publishing.md for the
+since 2026-10-05; see docs/research/vim-org-publishing.md for the
 analysis). The GitHub release zip is the artifact side and stays
 automated.
 
@@ -47,12 +47,12 @@ tag is a no-op; without credentials the job posts a notice and skips.
 
 One-time setup (the only human step left): add the vim.org account
 credentials that own script_id 6195 to the repo's `stores` environment
-as `VIMORG_USERNAME` and `VIMORG_PASSWORD`. Nothing else is secret —
+as `VIMORG_USERNAME` and `VIMORG_PASSWORD`. Nothing else is secret;
 the script id is public page data.
 
 The pending manual 0.5.59 upload landed on 2026-10-05 via the catch-up
 dispatch (mode=upload, ref=v0.5.59); the versions table shows 0.5.57,
-0.5.59, then whatever the next train publishes — the skipped 0.5.60–
+0.5.59, then whatever the next train publishes; the skipped 0.5.60–
 0.5.63 rows carried no vim-runtime changes, so there is nothing to fill.
 
 Manual fallback if CI is red: "upload new version" on the script page

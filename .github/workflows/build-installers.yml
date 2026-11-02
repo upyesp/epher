@@ -105,7 +105,7 @@ jobs:
     # not drift from the release they will ride (ADR-0066): the Zed
     # extension downloads tag v<its version>, and the JetBrains
     # downloader's fallback constant must name the same train. A
-    # forgotten bump ships users an old server with a new release —
+    # forgotten bump ships users an old server with a new release;
     # this fails the build instead. The version inputs that CI always
     # stamps (the vscode package.json, the gradle/csproj defaults) are
     # deliberately not guarded: they are not runtime contracts.

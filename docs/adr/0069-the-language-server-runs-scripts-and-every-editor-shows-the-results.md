@@ -49,7 +49,7 @@ language server's build:
    than it ships today.
 4. **Debugging is a later phase, honestly named.** Real stepping
    (breakpoints, step over, inspect) needs a Debug Adapter Protocol
-   implementation and engine instrumentation for statement boundaries —
+   implementation and engine instrumentation for statement boundaries;
    a release of its own, with its own ADR. This ADR covers run plus
    results; nothing here blocks DAP later.
 5. **The marketplace listing names the download and the scripts.** The
@@ -66,8 +66,8 @@ language server's build:
   shared and already compiled into the wasm build.
 - The results pane is the IDE home for outputs the inline hints cannot
   hold: long tables, multi-line dumps, and every plot type.
-- Phasing: milestone 1 — the LSP run request plus the VS Code results
-  pane; milestone 2 — the text-first editors; milestone 3 — DAP
+- Phasing: milestone 1; the LSP run request plus the VS Code results
+  pane; milestone 2; the text-first editors; milestone 3; DAP
   debugging.
 
 ## Amendment (2026-09-21): every start is the same start
@@ -92,15 +92,15 @@ adapter's old "run the play command instead" fallback message is gone.
 Other editors are unchanged: this is the VS Code family's client-side
 plumbing, not the server contract.
 
-## Amendment (2026-09-21): milestone two — the editors beyond VS Code run
+## Amendment (2026-09-21): milestone two; the editors beyond VS Code run
 
 Milestone two is shipped, editor by editor, within each platform's
 real limits:
 
 - **JetBrains** takes the VS Code shape. "Run Epher Script" lives in
   the Tools menu and the editor's context menu; a results tool window
-  beside the editor renders the same report the VS Code pane does —
-  answers and errors anchored to lines, every 2D/3D graph inline —
+  beside the editor renders the same report the VS Code pane does;
+  answers and errors anchored to lines, every 2D/3D graph inline;
   through the platform's JCEF browser, with a text-only Swing
   fallback where JCEF is unavailable. The platform's built-in LSP
   client exposes no raw server handle, so a run speaks to its own
@@ -109,7 +109,7 @@ real limits:
   the plugin already downloads and caches.
 - **Visual Studio** gets a Tools-menu command backed by a minimal
   VSPackage and .vsct. The report opens in the IDE's internal browser
-  as a tab in the editor well — dockable like any document — carrying
+  as a tab in the editor well; dockable like any document; carrying
   the same HTML; errors echo to an "epher" Output pane. The same
   one-shot server session drives the run; StreamJsonRpc frames it.
   A true dockable tool window is the named follow-up.
@@ -129,13 +129,13 @@ real limits:
   after riding six releases stale. After the 0.5.47 field reports,
   the optional tree-sitter grammar left the extension too: Zed's
   install-time grammar build (a downloaded wasi-sdk toolchain) fails
-  in real environments — the Flatpak sandbox among them — with a bare
+  in real environments; the Flatpak sandbox among them; with a bare
   ENOENT that blocks the whole install. The server's semantic tokens
-  carry the coloring instead — but Zed ships them disabled by default
+  carry the coloring instead; but Zed ships them disabled by default
   (`semantic_tokens` defaults to "off"), so enabling them in settings
   (`"languages": { "epher": { "semantic_tokens": "full" } }`) is part
   of installing, not an optional refinement; the 0.5.48 field report
   was a fresh install with no colors at all, exactly as Zed defaults.
 - **Vim, Emacs, Sublime, and Eclipse** keep the decision-3 floor for
-  now — configuration-level clients whose run story follows in a
+  now; configuration-level clients whose run story follows in a
   later release; nothing about them regressed.

@@ -242,7 +242,7 @@ ${body}
 // examples.html (the <main> tag grew an attribute and the pattern stopped
 // matching). Fail the build instead of writing a page without its content.
 if (!page.includes('ex-section') || page.includes('class="hero"')) {
-  throw new Error("build-examples: the main-content replace did not apply to index.html — refusing to write examples.html without the examples");
+  throw new Error("build-examples: the main-content replace did not apply to index.html; refusing to write examples.html without the examples");
 }
 
 writeFileSync(join(SITE, "examples.html"), page);

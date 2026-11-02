@@ -10,7 +10,7 @@ Emacs 28 predates built-in eglot (that lands in 29), so this session
 uses the path the README names for older Emacsen: **eglot 1.24 from
 GNU ELPA** (it still declares `emacs (26 3)`) installed with
 `package.el` into `~/emacs-init/elpa`, plus **markdown-mode 2.8 from
-NonGNU ELPA** — without it eglot has no `gfm-view-mode` and renders
+NonGNU ELPA**; without it eglot has no `gfm-view-mode` and renders
 hover as raw markdown (`**height**: …`). `epher.el`'s declared
 `Package-Requires` floor (`emacs 29.1`) is enforced by package.el at
 install time, not at load time; nothing in the file needs 29 here.

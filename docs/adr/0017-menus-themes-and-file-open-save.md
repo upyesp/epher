@@ -144,6 +144,6 @@ cursor renders it. Enter still submits, Esc still cancels.
 
 The 2026-09-06 amendment moved the menu chord to F9 and the handler
 followed, but the footer hint strip's `tui-hint-base-a` string kept
-saying "F10 menu" in all eight locales — the one place a user reads
+saying "F10 menu" in all eight locales; the one place a user reads
 the chord still advertised the dead key. The strings now say F9.
 (Reported from use on Windows, macOS, and Linux.)
