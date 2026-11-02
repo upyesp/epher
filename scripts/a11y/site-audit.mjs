@@ -37,7 +37,7 @@ const info = (m) => console.log(`  info: ${m}`);
 const PAGES = [
   ['', 'landing'], ['features.html', 'features'], ['examples.html', 'examples'],
   ['scripts.html', 'scripts'], ['guide/en/', 'guide'], ['reference/', 'reference'],
-  ['ide.html', 'ide'], ['privacy.html', 'privacy'],
+  ['ide.html', 'ide'], ['accessibility.html', 'accessibility'], ['privacy.html', 'privacy'],
 ];
 
 const { server, base } = await startPwaServer({ root: siteDir, mount: '/' });
