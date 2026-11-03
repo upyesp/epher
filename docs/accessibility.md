@@ -77,6 +77,28 @@ screen-reader output; the app must stay usable through them.
 Plain text in, plain text out, no ANSI colors, no interaction beyond stdin.
 Theme-safe by construction; nothing to fix.
 
+## Native surfaces (scripted walkthroughs, ADR-0009 amendment 2026-11-03)
+
+"Run the accessibility tests" covers every app surface and always includes
+the real-screen-reader leg. The scripted harnesses:
+
+- `scripts/a11y/native-terminals.mjs` (plus `tui_pty_drive.py`) drives the
+  CLI and the TUI through a real pty: textual errors with real exit codes,
+  zero ANSI escapes, the TUI keyboard hints footer, the textual result, the
+  `y = <source>` graph caption above the ASCII plot, and no em-dash in any
+  user-visible string. The REPL ships only in the unified `epher` binary
+  (ADR-0011) on the same dispatch layer these checks cover.
+- `scripts/a11y/native-desktop-vo.mjs` walks the macOS Tauri desktop shell
+  (WKWebView, so WebKit's accessibility tree, which no other suite covers)
+  under real VoiceOver. Run under Terminal, where the Apple Events grants
+  live.
+
+A defect found on macOS is assumed present on Windows and Linux (one shared
+source tree); fixes land cross-platform in one change. First walkthrough
+finding (2026-11-03): the examples welcome line carried an em-dash in all
+eight Fluent catalogs (`tui-examples-welcome`, `web-examples-hint`); fixed
+to a colon join, matching ADR-0081.
+
 ## Marketing site (epher.org: landing, About, Privacy, guide pages)
 
 The 2026 redesign (teal accent replacing amber) keeps the same bar.
