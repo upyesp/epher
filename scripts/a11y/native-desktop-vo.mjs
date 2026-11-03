@@ -69,13 +69,29 @@ try {
     await sleep(450);
   }
 
-  // Type an evaluation and submit it, wherever focus sits after the walk
-  // (if focus reached the expression field this announces the result via
-  // the live region; the dump shows where focus actually landed).
+  // Walk BACK to the expression entry: typing into whatever focus landed
+  // on (a history button, say) would do nothing, and pressing Enter would
+  // just activate that control. Shift+Tab until the entry is announced.
+  let onEntry = false;
+  for (let i = 0; i < 24 && !onEntry; i++) {
+    await voiceOver.press('Shift+Tab');
+    await sleep(450);
+    const p = (await voiceOver.lastSpokenPhrase().catch(() => '')) || '';
+    if (/expression/i.test(p)) onEntry = true;
+  }
+  console.log(onEntry
+    ? '  info: focus is on the expression entry'
+    : '  warn: never heard the entry on the way back; typing anyway');
+
+  // Type the evaluation and submit it. The live-region announcement (the
+  // Answer status, role=status) must arrive AFTER Enter; phrases that
+  // mention "button" are history rows, not the live announcement.
+  const beforeType = captured.length;
   await voiceOver.type('2+3*4', { delay: 60 });
   await sleep(400);
+  const beforeEnter = captured.length;
   await voiceOver.press('Enter');
-  await sleep(2000);
+  await sleep(2500);
 
   // Escape clears; one more named stop for the dump.
   await voiceOver.press('Escape');
@@ -96,12 +112,21 @@ captured.forEach((p, i) => console.log(`${String(i + 1).padStart(3)}  ${p}`));
 const failures = [];
 if (captured.length === 0) failures.push('VoiceOver said nothing over the app');
 
+// The live-region check considers only phrases spoken after Enter, and
+// ignores anything that names a button (history rows) or echoes typed
+// characters.
+const afterEnter = captured.slice(beforeEnter).filter((p) => !/button/i.test(p));
+const liveAnnounced = afterEnter.some((p) => /=\s*14/.test(p));
 const resultAnnounced = captured.some((p) => /=\s*14/.test(p));
 const entrySeen = captured.some((p) => /expression|edit text|text field/i.test(p));
 const menuSeen = captured.some((p) => /\bmenu\b/i.test(p));
 
-if (resultAnnounced) console.log('PASS  the result was announced (live region carries "= 14")');
-else failures.push('no "= 14" announcement after typing the evaluation');
+if (resultAnnounced) console.log('PASS  "= 14" was spoken somewhere (live region or history row)');
+else failures.push('no "= 14" spoken at all after the evaluation');
+if (liveAnnounced) console.log('PASS  the result was live-announced after Enter (role=status)');
+else failures.push('no live-region announcement after Enter (phrases after Enter: ' + JSON.stringify(afterEnter) + ')');
+if (onEntry) console.log('PASS  the walk reached and focused the expression entry');
+else console.log('INFO  the entry was not confirmed on the walk back (see dump)');
 if (entrySeen) console.log('PASS  the expression entry is announced by name/type');
 else console.log('INFO  no expression-entry phrase captured; WebKit may name it differently');
 if (menuSeen) console.log('PASS  a menu control was announced');
