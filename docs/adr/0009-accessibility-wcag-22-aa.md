@@ -52,3 +52,26 @@ Consequences for the architecture:
   that catches what static rules cannot. (Amendment 2026-10-25: the
   suite was first recorded as a Playwright suite; it ships as the
   puppeteer harness the project actually runs.)
+
+## Amendment (2026-11-03): every app surface is in scope, the screen
+## reader leg always runs, and fixes are cross-platform
+
+When Pete asks for accessibility tests, the run always includes the
+real-screen-reader leg (VoiceOver); it is never skipped or deferred for
+convenience. The tested surfaces are the website, the PWA, and, on
+macOS, the Tauri desktop GUI, the TUI, the REPL, and the CLI.
+
+A defect found on macOS is assumed to exist in the Windows and Linux
+builds as well, because every surface ships from one shared source
+tree: the shell wraps the same page on all three desktop systems, and
+the TUI, REPL, and CLI are the same Rust crates everywhere. Fixes
+therefore land on every platform in the same change; a macOS-only
+patch is not acceptable. Where a platform genuinely cannot share a
+fix, the divergence must be recorded in the change that introduces
+it.
+
+The web harnesses (`scripts/a11y/audit.mjs`, `site-audit.mjs`,
+`voiceover-audit.mjs`) already cover the website and the PWA. The
+native-surface leg (desktop GUI, TUI, REPL, CLI under VoiceOver)
+starts as a scripted manual walkthrough recorded in
+`docs/accessibility.md` until a harness for it lands.
