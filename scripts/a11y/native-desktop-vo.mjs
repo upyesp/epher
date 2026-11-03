@@ -15,7 +15,7 @@
 // can be tightened against what WebKit actually exposes. Hard-fails only
 // on: VO silent over the app, or the result never announced.
 
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
@@ -47,12 +47,27 @@ async function appFrontmost() {
 // cold Tauri boot easily exceeds a fixed sleep, and every keystroke that
 // follows lands in whatever IS frontmost (usually Terminal) — which both
 // ruins the walk and executes stray text in a shell.
+// EPHER_APP is either an installed .app bundle (activate via Apple Events)
+// or a bare dev binary (spawn directly; focus via System Events, which the
+// agent session is already authorized to drive).
 async function bringAppToFront() {
-  await osaOut(`tell application "${APP}" to activate`);
+  if (APP.endsWith('.app')) {
+    await osaOut(`tell application "${APP}" to activate`);
+  } else {
+    let running = '';
+    try {
+      running = execFileSync('/usr/bin/pgrep', ['-x', 'epher'], { encoding: 'utf8' }).trim();
+    } catch { /* no match */ }
+    if (!running) {
+      const child = spawn(APP, [], { detached: true, stdio: 'ignore' });
+      child.unref();
+    }
+  }
   for (let i = 0; i < 20; i++) {
     await sleep(1000);
+    await osaOut('tell application "System Events" to set frontmost of process "epher" to true');
     if (await appFrontmost()) return true;
-    await osaOut(`tell application "${APP}" to activate`);
+    if (APP.endsWith('.app')) await osaOut(`tell application "${APP}" to activate`);
   }
   return false;
 }
@@ -80,11 +95,11 @@ try {
   await sleep(800);
 
   // VoiceOver starting can reshuffle the frontmost app; re-assert.
-  if (!(await appFrontmost())) await bringAppToFront();
-  await sleep(1500);
+  if (!(await appFrontmost())) {
+    await bringAppToFront();
+    await sleep(1500);
+  }
 
-  await new Promise((res) =>
-    execFile('/usr/bin/osascript', ['-e', `tell application "${APP}" to activate`], () => res()));
   await sleep(1500);
   if (!(await appFrontmost())) {
     await bringAppToFront();

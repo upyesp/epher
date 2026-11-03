@@ -7727,7 +7727,7 @@ fn epher_app() -> Html {
                                 .filter(|p| !p.is_empty())
                                 .count();
                             html! {
-                                <section class="pane-result" role="status" aria-live="polite">
+                                <section class="pane-result" role="status" aria-live="polite" aria-atomic="true">
                                     <button
                                         type="button"
                                         class="icon-btn copy-answer"
