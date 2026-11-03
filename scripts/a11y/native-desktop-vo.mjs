@@ -41,6 +41,8 @@ async function clampVolume() {
 const captured = [];
 const seen = new Set();
 let poller = null;
+let onEntry = false;
+let beforeEnter = 0;
 
 try {
   const { voiceOver } = await import('@guidepup/guidepup');
@@ -72,7 +74,7 @@ try {
   // Walk BACK to the expression entry: typing into whatever focus landed
   // on (a history button, say) would do nothing, and pressing Enter would
   // just activate that control. Shift+Tab until the entry is announced.
-  let onEntry = false;
+  onEntry = false;
   for (let i = 0; i < 24 && !onEntry; i++) {
     await voiceOver.press('Shift+Tab');
     await sleep(450);
@@ -86,12 +88,17 @@ try {
   // Type the evaluation and submit it. The live-region announcement (the
   // Answer status, role=status) must arrive AFTER Enter; phrases that
   // mention "button" are history rows, not the live announcement.
-  const beforeType = captured.length;
   await voiceOver.type('2+3*4', { delay: 60 });
   await sleep(400);
-  const beforeEnter = captured.length;
+  beforeEnter = captured.length;
   await voiceOver.press('Enter');
   await sleep(2500);
+
+  // Then navigate to the Answer status itself: if WebKit does not fire
+  // live announcements, the value may still be readable on arrival. Tab
+  // from the entry lands on the Answer status in DOM order.
+  await voiceOver.press('Tab');
+  await sleep(1200);
 
   // Escape clears; one more named stop for the dump.
   await voiceOver.press('Escape');
@@ -112,19 +119,27 @@ captured.forEach((p, i) => console.log(`${String(i + 1).padStart(3)}  ${p}`));
 const failures = [];
 if (captured.length === 0) failures.push('VoiceOver said nothing over the app');
 
-// The live-region check considers only phrases spoken after Enter, and
-// ignores anything that names a button (history rows) or echoes typed
-// characters.
+// The live-region check considers only phrases spoken after Enter and
+// before the deliberate navigation, ignoring anything that names a button
+// (history rows) or echoes typed characters. navigableAnnounced accepts
+// the phrase spoken when VO lands on the Answer status after the Tab.
 const afterEnter = captured.slice(beforeEnter).filter((p) => !/button/i.test(p));
-const liveAnnounced = afterEnter.some((p) => /=\s*14/.test(p));
+const livePhrases = afterEnter.slice(0, -1);
+const liveAnnounced = livePhrases.some((p) => /=\s*14/.test(p));
+const navigableAnnounced = afterEnter.some((p) => /=\s*14/.test(p));
 const resultAnnounced = captured.some((p) => /=\s*14/.test(p));
 const entrySeen = captured.some((p) => /expression|edit text|text field/i.test(p));
 const menuSeen = captured.some((p) => /\bmenu\b/i.test(p));
 
 if (resultAnnounced) console.log('PASS  "= 14" was spoken somewhere (live region or history row)');
 else failures.push('no "= 14" spoken at all after the evaluation');
-if (liveAnnounced) console.log('PASS  the result was live-announced after Enter (role=status)');
-else failures.push('no live-region announcement after Enter (phrases after Enter: ' + JSON.stringify(afterEnter) + ')');
+if (liveAnnounced) {
+  console.log('PASS  the result was live-announced after Enter (role=status, WCAG 4.1.3)');
+} else if (navigableAnnounced) {
+  failures.push('WKWebView did NOT announce the live result (WCAG 4.1.3); the value was only readable after navigating to the Answer status. Post-Enter phrases: ' + JSON.stringify(afterEnter));
+} else {
+  failures.push('no "= 14" in any phrase after Enter (post-Enter phrases: ' + JSON.stringify(afterEnter) + ')');
+}
 if (onEntry) console.log('PASS  the walk reached and focused the expression entry');
 else console.log('INFO  the entry was not confirmed on the walk back (see dump)');
 if (entrySeen) console.log('PASS  the expression entry is announced by name/type');
