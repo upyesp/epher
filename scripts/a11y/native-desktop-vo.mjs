@@ -31,9 +31,28 @@ function osaOut(script) {
 async function clampVolume() {
   const cur = Number(await osaOut('output volume of (get volume settings)'));
   if (cur > 25) {
-    await osaOut('set volume output volume 25');
+    await osaOut(`set volume output volume 25`);
     console.log(`  info: system volume ${cur} -> 25 for the run`);
     return true;
+  }
+  return false;
+}
+
+async function appFrontmost() {
+  const v = await osaOut('tell application "System Events" to tell process "epher" to get frontmost');
+  return v === 'true';
+}
+
+// Launch the desktop app and poll until it is genuinely frontmost. A
+// cold Tauri boot easily exceeds a fixed sleep, and every keystroke that
+// follows lands in whatever IS frontmost (usually Terminal) — which both
+// ruins the walk and executes stray text in a shell.
+async function bringAppToFront() {
+  await osaOut(`tell application "${APP}" to activate`);
+  for (let i = 0; i < 20; i++) {
+    await sleep(1000);
+    if (await appFrontmost()) return true;
+    await osaOut(`tell application "${APP}" to activate`);
   }
   return false;
 }
@@ -47,14 +66,30 @@ let beforeEnter = 0;
 try {
   const { voiceOver } = await import('@guidepup/guidepup');
 
+  // Frontmost first: launch the app and wait it out BEFORE VoiceOver is
+  // involved, so the boot race can never leak keystrokes elsewhere.
+  console.log(`bringing ${APP} to the front ...`);
+  if (!(await bringAppToFront())) {
+    console.log(`FAIL  could not bring ${APP} frontmost; aborting before any keystrokes`);
+    process.exit(1);
+  }
+
   console.log('starting VoiceOver (harness: native-desktop-vo) ...');
   await voiceOver.start();
   await clampVolume();
   await sleep(800);
 
+  // VoiceOver starting can reshuffle the frontmost app; re-assert.
+  if (!(await appFrontmost())) await bringAppToFront();
+  await sleep(1500);
+
   await new Promise((res) =>
     execFile('/usr/bin/osascript', ['-e', `tell application "${APP}" to activate`], () => res()));
-  await sleep(2500);
+  await sleep(1500);
+  if (!(await appFrontmost())) {
+    await bringAppToFront();
+    await sleep(1000);
+  }
 
   poller = setInterval(() => {
     voiceOver.lastSpokenPhrase().then((p) => {
@@ -88,6 +123,12 @@ try {
   // Type the evaluation and submit it. The live-region announcement (the
   // Answer status, role=status) must arrive AFTER Enter; phrases that
   // mention "button" are history rows, not the live announcement.
+  if (!(await appFrontmost())) {
+    console.log('FAIL  the desktop app lost frontmost focus before typing; aborting (no keystrokes sent)');
+    clearInterval(poller);
+    await voiceOver.stop();
+    process.exit(1);
+  }
   await voiceOver.type('2+3*4', { delay: 60 });
   await sleep(400);
   beforeEnter = captured.length;
