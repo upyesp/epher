@@ -146,6 +146,7 @@ machine locked itself eight minutes into an idle gap while waiting on CI:
 | Hot corners | all disabled | no `wvous-*` keys in `com.apple.dock` |
 | Auto logout | off | no `com.apple.autologout.AutoLogOutDelay` |
 | Auto login | on | `autoLoginUser` in `/Library/Preferences/com.apple.loginwindow`, so a reboot returns to a logged-in desktop |
+| Terminal window restoration | off | `defaults write com.apple.Terminal ApplePersistenceIgnoreState -bool YES` and `NSQuitAlwaysKeepsWindows -bool false`; without these, every launch restores the previous run's windows and the borrowed-window pile grows run after run |
 
 `session-lock.py` reads those keys back and reports when the configuration
 has changed, and `run-a11y.sh` surfaces that as a note, so a settings change
