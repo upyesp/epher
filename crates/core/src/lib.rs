@@ -4918,6 +4918,12 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         description: "the value with thin-space thousands grouping, as text",
     },
     CatalogEntry {
+        name: "h",
+        kind: CatalogKind::Constant,
+        signature: "h",
+        description: "Planck constant (J·s)",
+    },
+    CatalogEntry {
         name: "h_bar",
         kind: CatalogKind::Constant,
         signature: "h_bar",
@@ -5114,6 +5120,12 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Constant,
         signature: "m_e",
         description: "electron mass (kg)",
+    },
+    CatalogEntry {
+        name: "m_earth",
+        kind: CatalogKind::Constant,
+        signature: "m_earth",
+        description: "Earth mass (kg)",
     },
     CatalogEntry {
         name: "m_moon",
@@ -5324,6 +5336,12 @@ static BUILTIN_CATALOG: &[CatalogEntry] = &[
         kind: CatalogKind::Function,
         signature: "quartile(L, k)",
         description: "quartile `k` in `1..3`",
+    },
+    CatalogEntry {
+        name: "r_e",
+        kind: CatalogKind::Constant,
+        signature: "r_e",
+        description: "classical electron radius (m)",
     },
     CatalogEntry {
         name: "r_earth",

@@ -2716,7 +2716,10 @@ fn constant_groups_cover_every_builtin_and_resolve() {
         groups.iter().zip(sorted.iter()).all(|((n, _), s)| *n == *s),
         "groups are sorted by name"
     );
-    // and every catalog constant appears in the groups
+    // and the catalog's constants are exactly the groups: the LSP
+    // hover, completions, and man page draw from the catalog, so a
+    // constant the evaluator knows must be offered everywhere
+    let mut catalog_consts = std::collections::HashSet::new();
     for entry in epher_core::catalog() {
         if entry.kind == epher_core::CatalogKind::Constant {
             assert!(
@@ -2724,12 +2727,72 @@ fn constant_groups_cover_every_builtin_and_resolve() {
                 "{} missing from groups",
                 entry.name
             );
+            catalog_consts.insert(entry.name);
         }
+    }
+    for &(name, _) in groups {
+        assert!(
+            catalog_consts.contains(name),
+            "{name} is in the groups but missing from the catalog"
+        );
     }
     assert!(
         groups.len() >= 40,
         "the library is substantial: {}",
         groups.len()
+    );
+}
+
+/// The evaluator's `builtin_const` match and the public groups table
+/// must name the same set: a match arm without a groups entry would
+/// evaluate but appear nowhere (no constants browser, no reference, no
+/// completions), and a groups entry without an arm would advertise a
+/// name the engine refuses. The arms are read from the source text, so
+/// a new `builtin_const` line fails here until it joins
+/// `builtin_constant_groups`.
+#[test]
+fn builtin_const_arms_and_constant_groups_are_the_same_set() {
+    let src = include_str!("../src/lib.rs");
+    let start = src
+        .find("fn builtin_const(")
+        .expect("builtin_const lives in crates/core/src/lib.rs");
+    let end = start
+        + src[start..]
+            .find("fn builtin_constant_value")
+            .expect("builtin_constant_value follows builtin_const");
+    let body = &src[start..end];
+    let mut arms = std::collections::HashSet::new();
+    let mut idx = 0;
+    while let Some(open) = body[idx..].find('"') {
+        let open = idx + open;
+        let Some(close_rel) = body[open + 1..].find('"') else {
+            break;
+        };
+        let close = open + 1 + close_rel;
+        let name = &body[open + 1..close];
+        let after = body[close + 1..].trim_start();
+        if !name.is_empty()
+            && name != "_"
+            && name
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || c == '_')
+            && after.starts_with("=>")
+        {
+            arms.insert(name);
+        }
+        idx = close + 1;
+    }
+    let groups: std::collections::HashSet<&str> = epher_core::builtin_constant_groups()
+        .iter()
+        .map(|(n, _)| *n)
+        .collect();
+    let arms_only: Vec<_> = arms.difference(&groups).collect();
+    let groups_only: Vec<_> = groups.difference(&arms).collect();
+    assert!(
+        arms_only.is_empty() && groups_only.is_empty(),
+        "builtin_const arms and builtin_constant_groups disagree: \
+         arms without a groups entry {arms_only:?}, groups entries \
+         without an arm {groups_only:?}"
     );
 }
 
