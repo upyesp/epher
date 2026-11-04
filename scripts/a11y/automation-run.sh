@@ -72,6 +72,17 @@ else
 fi
 
 echo "" >> "$LOG"
+# No residual active sessions: close whatever the run left open.
+sleep 1
+osascript -e 'tell application "epher" to quit' >/dev/null 2>&1
+sleep 2
+killall epher 2>/dev/null
+if pgrep -x epher >/dev/null 2>&1; then
+  echo "WARN  an epher process survived the cleanup" >> "$LOG"
+else
+  echo "epher closed after the run" >> "$LOG"
+fi
+
 echo "══ summary ══" >> "$LOG"
 grep -h 'SUMMARY\|failures of\|failure(s)' "$LOG" >> "$LOG.summary" 2>/dev/null
 cat "$LOG.summary" >> "$LOG" 2>/dev/null
