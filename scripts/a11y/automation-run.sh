@@ -1,9 +1,12 @@
 #!/bin/bash
-# Full accessibility suite under the epher-a11y launcher app's own TCC
-# identity (com.upyesp.epher-a11y). The app bundle's executable is a thin,
-# never-changing shim into this script, so its code signature stays stable
-# and permissions granted once keep working. The agent session triggers
-# runs with `open /Applications/epher-a11y.app` and reads the log.
+# Full accessibility suite. Do not run this directly: start it with
+# scripts/a11y/run-a11y.sh, which hosts it inside Terminal.app because only
+# a Terminal-hosted run holds the Apple Events and Accessibility grants the
+# VoiceOver legs need (TCC exempts Apple-signed Terminal; see
+# docs/accessibility.md, "Automated runs"). That trigger needs no human and
+# no grant of its own, so the whole suite runs unattended.
+#
+# The log is /tmp/epher-a11y-latest.log.
 
 set -u
 export PATH="$HOME/.cargo/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
@@ -13,7 +16,7 @@ REPO=/Users/pete/Developer/code/epher
 mkdir -p "$(dirname "$LOG")"
 {
   echo "epher accessibility run started $(date '+%Y-%m-%d %H:%M:%S')"
-  echo "runner: com.upyesp.epher-a11y"
+  echo "runner: ${TERM_PROGRAM:-unknown} (responsible process for TCC)"
   echo
 } > "$LOG"
 
@@ -77,10 +80,17 @@ sleep 1
 osascript -e 'tell application "epher" to quit' >/dev/null 2>&1
 sleep 2
 killall epher 2>/dev/null
+osascript -e 'tell application "VoiceOver" to quit' >/dev/null 2>&1
+sleep 2
 if pgrep -x epher >/dev/null 2>&1; then
   echo "WARN  an epher process survived the cleanup" >> "$LOG"
 else
   echo "epher closed after the run" >> "$LOG"
+fi
+if pgrep -x VoiceOver >/dev/null 2>&1; then
+  echo "WARN  VoiceOver survived the cleanup" >> "$LOG"
+else
+  echo "VoiceOver closed after the run" >> "$LOG"
 fi
 
 echo "══ summary ══" >> "$LOG"
