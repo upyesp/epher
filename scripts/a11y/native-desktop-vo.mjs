@@ -88,6 +88,41 @@ const now = () => (Date.now() - t0) / 1000;
 // Timeline entries: { t, kind: 'phrase' | 'phase', text }. Phrases are
 // deduplicated only against the immediately previous one, so a phrase
 // heard again after Enter (navigation, live repeats) is captured anew.
+// AX ground-truth probe (A11Y_AX_DUMP=1): the timeline only says what
+// VoiceOver SPOKE. When a phrase is missing, the accessibility tree says
+// whether the app exposed the answer at all, and where focus went. Runs in
+// the same Terminal ancestry, so accessibility reads are authorised.
+const AX_DUMP_SCRIPT = `
+const se = Application('System Events');
+const out = { focused: null, staticTexts: [] };
+try {
+  const p = se.processes.byName('epher');
+  const safe = (fn) => { try { return fn(); } catch (e) { return null; } };
+  const f = p.attributes.byName('AXFocusedUIElement').value();
+  out.focused = {
+    role: safe(() => f.role()),
+    subrole: safe(() => f.subrole()),
+    description: safe(() => f.description()),
+    name: safe(() => f.name()),
+    value: safe(() => String(f.value()).slice(0, 200)),
+  };
+  const counts = {};
+  for (const el of p.windows[0].entireContents()) {
+    const role = safe(() => el.role());
+    if (!role) continue;
+    counts[role] = (counts[role] || 0) + 1;
+    if (role === 'AXStaticText') {
+      out.staticTexts.push(String(safe(() => el.value()) || '').slice(0, 100));
+    }
+  }
+  out.roleCounts = counts;
+  out.windowTitle = safe(() => p.windows[0].name());
+} catch (e) {
+  out.error = String(e);
+}
+JSON.stringify(out);
+`;
+
 const timeline = [];
 let lastSpoken = '';
 let poller = null;
@@ -180,6 +215,19 @@ try {
   mark('enter pressed');
   await voiceOver.press('Enter');
   await sleep(2500);
+
+  if (process.env.A11Y_AX_DUMP === '1') {
+    const dump = await new Promise((resolve) => {
+      execFile(
+        '/usr/bin/osascript',
+        ['-l', 'JavaScript', '-e', AX_DUMP_SCRIPT],
+        (err, stdout) => resolve(err ? `error: ${err.message}` : stdout.trim()),
+      );
+    });
+    console.log('── AX dump after Enter (ground truth, not speech) ──');
+    console.log(dump);
+    console.log('── end AX dump ──');
+  }
 
   // Then navigate to the Answer status itself: if WebKit does not fire
   // live announcements, the value may still be readable on arrival. Tab
