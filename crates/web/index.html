@@ -511,6 +511,14 @@
       color: var(--danger);
       font-weight: 500;
     }
+    /* The result row takes focus on WebKit after a submit (the shell
+       never announces live regions, so focus is the announcement);
+       programmatic focus needs a visible cue (WCAG 2.4.7). */
+    .pane-answer:focus-visible {
+      outline: 3px solid var(--ring);
+      outline-offset: -3px;
+      border-radius: 4px;
+    }
     .answer-body {
       flex: 1;
       min-width: 0;
