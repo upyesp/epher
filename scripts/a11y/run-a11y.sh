@@ -36,7 +36,7 @@ while [ $# -gt 0 ]; do
       ;;
     --wait-unlock=*) UNLOCK_WAIT_MIN="${1#*=}" ;;
     -h|--help)
-      sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'
+      awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"
       exit 0
       ;;
     *)
