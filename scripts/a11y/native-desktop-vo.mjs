@@ -15,7 +15,7 @@
 // can be tightened against what WebKit actually exposes. Hard-fails only
 // on: VO silent over the app, or the result never announced.
 
-import { execFile, spawn } from 'node:child_process';
+import { execFile, execFileSync, spawn } from 'node:child_process';
 
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
@@ -81,30 +81,27 @@ let beforeEnter = 0;
 try {
   const { voiceOver } = await import('@guidepup/guidepup');
 
-  // Frontmost first: launch the app and wait it out BEFORE VoiceOver is
-  // involved, so the boot race can never leak keystrokes elsewhere.
-  console.log(`bringing ${APP} to the front ...`);
-  if (!(await bringAppToFront())) {
-    console.log(`FAIL  could not bring ${APP} frontmost; aborting before any keystrokes`);
-    process.exit(1);
-  }
-
+  // VoiceOver FIRST, then launch the app: WKWebView builds its web
+  // accessibility tree only while an accessibility client is active at
+  // webview creation (wry does nothing to propagate it later), so an app
+  // launched before VoiceOver exposes nothing but its window shell.
   console.log('starting VoiceOver (harness: native-desktop-vo) ...');
   await voiceOver.start();
   await clampVolume();
   await sleep(800);
 
-  // VoiceOver starting can reshuffle the frontmost app; re-assert.
-  if (!(await appFrontmost())) {
-    await bringAppToFront();
-    await sleep(1500);
-  }
+  // A stale instance predates VoiceOver and keeps a shell-only tree.
+  try { execFileSync('/usr/bin/killall', ['epher']); } catch { /* not running */ }
+  await sleep(1000);
 
-  await sleep(1500);
-  if (!(await appFrontmost())) {
-    await bringAppToFront();
-    await sleep(1000);
+  console.log(`launching ${APP} with VoiceOver already running ...`);
+  if (!(await bringAppToFront())) {
+    console.log(`FAIL  could not bring ${APP} frontmost; aborting before any keystrokes`);
+    clearInterval(poller);
+    await voiceOver.stop();
+    process.exit(1);
   }
+  await sleep(1500);
 
   poller = setInterval(() => {
     voiceOver.lastSpokenPhrase().then((p) => {
@@ -131,9 +128,13 @@ try {
     const p = (await voiceOver.lastSpokenPhrase().catch(() => '')) || '';
     if (/expression/i.test(p)) onEntry = true;
   }
-  console.log(onEntry
-    ? '  info: focus is on the expression entry'
-    : '  warn: never heard the entry on the way back; typing anyway');
+  if (!onEntry) {
+    console.log('FAIL  the walk never confirmed the expression entry; aborting (no keystrokes sent)');
+    clearInterval(poller);
+    await voiceOver.stop();
+    process.exit(1);
+  }
+  console.log('  info: focus is on the expression entry');
 
   // Type the evaluation and submit it. The live-region announcement (the
   // Answer status, role=status) must arrive AFTER Enter; phrases that
