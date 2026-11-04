@@ -57,7 +57,7 @@ echo "══ leg 5/5: desktop GUI under VoiceOver (Tauri/WebKit) ══" >> "$LO
 # web dist, quit any installed instance (both processes are "epher"),
 # then hand the bundle to the harness.
 BUNDLE="$REPO/target/debug/bundle/macos/epher.app"
-if [ ! -d "$BUNDLE" ]; then
+if [ ! -d "$BUNDLE" ] || [ "$REPO/crates/web/dist" -nt "$BUNDLE" ]; then
   (cd crates/tauri-app/src-tauri && npx --yes @tauri-apps/cli build --debug --bundles app >> "$LOG" 2>&1)
 fi
 if [ ! -d "$BUNDLE" ]; then
