@@ -15,7 +15,7 @@ window.EPHER_I18N["fr"] = {
   "a11y-brief-link": "issue",
   "a11y-brief-post": ". Le projet la traitera en priorité.",
   "a11y-h-standard": "L'exigence du projet",
-  "a11y-p-standard": "epher vise WCAG 2.2 Niveau AA, les règles d'accessibilité des contenus web. Chaque changement de ce site et de l'application web est testé selon ce barreau avant publication : un scan automatisé axe-core, exigé sans aucune violation, s'exécute à chaque déploiement, une passe plus profonde couvre toutes les langues de l'interface, les dérogations d'espacement du texte, le contraste élevé de Windows et les tailles de cibles tactiles, et l'application web est testée à la main avec un vrai lecteur d'écran. Il s'agit d'une auto-évaluation, documentée dans le dépôt ouvert ; aucun auditeur externe n'intervient.",
+  "a11y-p-standard": "epher vise WCAG 2.2 Niveau AA, les règles d'accessibilité des contenus web. Chaque changement de ce site et de l'application web est testé selon ce barreau avant publication : un scan automatisé axe-core, exigé sans aucune violation, s'exécute à chaque déploiement, une passe plus profonde couvre toutes les langues de l'interface, les dérogations d'espacement du texte, le contraste élevé de Windows et les tailles de cibles tactiles.",
   "a11y-h-limits": "Limitations connues",
   "a11y-lim-1": "Sur macOS, les navigateurs à base de Chromium ne transmettent pas les annonces de régions live à VoiceOver ; un nouveau résultat peut ne pas être énoncé avant un déplacement du focus. Safari les transmet.",
   "a11y-lim-2": "Les graphiques sont visuels. Chaque tracé est nommé dans le texte : l'expression apparaît en légende et dans le SVG exporté, mais la forme d'une courbe ou d'une surface n'est pas décrite en détail.",
