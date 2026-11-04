@@ -12,6 +12,7 @@ only written when a lock is in force), so absence means "go".
 """
 
 import ctypes
+import subprocess
 import sys
 
 core_graphics = ctypes.CDLL(
@@ -61,5 +62,33 @@ if "CGSSessionScreenIsLocked = 1" in text:
     print("the screen is locked")
     sys.exit(1)
 
-print("unlocked")
+def screen_saver_settings() -> dict:
+    """The auto-lock keys the Lock Screen pane writes (per-host domain)."""
+    settings = {}
+    for key in ("idleTime", "askForPassword"):
+        result = subprocess.run(
+            ["/usr/bin/defaults", "-currentHost", "read", "com.apple.screensaver", key],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if result.returncode == 0:
+            settings[key] = result.stdout.strip()
+    return settings
+
+
+# The screen can be unlocked now and still lock itself later, which would
+# break a run that is mid-flight. This Mac is in a secure room and is
+# configured never to lock, so report when that configuration has changed.
+settings = screen_saver_settings()
+idle_time = settings.get("idleTime")
+ask_for_password = settings.get("askForPassword")
+if idle_time == "0" and ask_for_password == "0":
+    print("unlocked (set never to lock: no screen saver, no password on wake)")
+else:
+    print(
+        "unlocked (WARNING: this Mac is configured to lock - "
+        f"idleTime={idle_time or 'unset'} askForPassword={ask_for_password or 'unset'}; "
+        "a run that idles long enough will be interrupted)"
+    )
 sys.exit(0)

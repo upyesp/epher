@@ -134,6 +134,23 @@ machine awake with `caffeinate`; before reporting it quits the app, quits
 VoiceOver, and closes the Terminal window it borrowed. A run therefore
 leaves no active session behind. Log: `/tmp/epher-a11y-latest.log`.
 
+Auto-lock is off on this Mac (it stands in a secure room, so a lock screen
+buys nothing and silently breaks unattended runs). Set 2026-11-04 after the
+machine locked itself eight minutes into an idle gap while waiting on CI:
+
+| setting | value | how |
+| --- | --- | --- |
+| Screen saver idle start | never | `defaults -currentHost write com.apple.screensaver idleTime -int 0` |
+| Password after screen saver / display off | never | `... askForPassword -int 0` (and `askForPasswordDelay -int 0`) |
+| Display sleep, system sleep | off | `pmset displaysleep 0`, `pmset sleep 0` |
+| Hot corners | all disabled | no `wvous-*` keys in `com.apple.dock` |
+| Auto logout | off | no `com.apple.autologout.AutoLogOutDelay` |
+| Auto login | on | `autoLoginUser` in `/Library/Preferences/com.apple.loginwindow`, so a reboot returns to a logged-in desktop |
+
+`session-lock.py` reads those keys back and reports when the configuration
+has changed, and `run-a11y.sh` surfaces that as a note, so a settings change
+cannot quietly break the next scheduled run.
+
 The `epher-a11y` zsh alias and the `/Applications/epher-a11y.app` shim are
 superseded by the trigger (the shim could never be granted anything -
 unsigned senders are denied silently); the alias still works as a manual

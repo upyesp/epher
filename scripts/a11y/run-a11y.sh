@@ -72,6 +72,13 @@ while ! "$REPO/scripts/a11y/session-lock.py" >/tmp/epher-a11y-session.txt 2>&1; 
   waited=$((waited + 15))
 done
 
+# Surface a lock configuration that would interrupt a long run, without
+# refusing to start: the screen is unlocked right now, which is what this
+# run needs.
+if grep -q "WARNING" /tmp/epher-a11y-session.txt 2>/dev/null; then
+  echo "note: $(cat /tmp/epher-a11y-session.txt)" >&2
+fi
+
 # Terminal.app may already be open for other work; only close the app again
 # when this run is the one that started it.
 if pgrep -x Terminal >/dev/null 2>&1; then
