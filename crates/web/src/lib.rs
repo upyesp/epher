@@ -1071,19 +1071,35 @@ fn is_apple_platform() -> bool {
         .unwrap_or(false)
 }
 
-/// WebKit (Safari, and the WKWebView inside the Tauri shell) never fires
-/// live-region announcements through wry's accessibility bridge, so the
-/// result takes focus instead; Chromium and Firefox announce the live
-/// region natively and keep focus in the entry. The divergence is
-/// recorded in the introducing change (ADR-0009 amendment, 2026-11-03).
-fn is_webkit_engine() -> bool {
-    web_sys::window()
-        .and_then(|w| w.navigator().user_agent().ok())
-        .map(|ua| {
-            let ua = ua.to_ascii_lowercase();
-            ua.contains("safari") && !ua.contains("chrome") && !ua.contains("firefox")
-        })
+/// True inside the desktop app's Tauri shell, false in a browser. The shell
+/// origin is `tauri://localhost` on macOS and `http://tauri.localhost` on
+/// Windows; the injected IPC object covers builds that rewrite the origin.
+fn is_desktop_shell() -> bool {
+    let Some(win) = web_sys::window() else {
+        return false;
+    };
+    let shell_origin = win
+        .location()
+        .origin()
+        .map(|origin| origin.starts_with("tauri:") || origin.contains("tauri.localhost"))
+        .unwrap_or(false);
+    shell_origin
+        || js_sys::Reflect::has(
+            win.as_ref(),
+            &wasm_bindgen::JsValue::from_str("__TAURI_INTERNALS__"),
+        )
         .unwrap_or(false)
+}
+
+/// True where a live region is silent and focus has to carry the news: the
+/// macOS desktop shell, whose WKWebView receives no accessibility events
+/// through wry (verified against wry 0.55.1, which has no macOS AX code at
+/// all). Browsers announce live regions themselves - Safari and Chrome both
+/// do - and the Windows shell is Chromium, so none of them take this path.
+/// The divergence is recorded in the introducing change (ADR-0009
+/// amendment, 2026-11-03).
+fn live_region_is_silent() -> bool {
+    is_desktop_shell() && is_apple_platform()
 }
 
 /// A 24×24 stroke icon in the menu-icon style.
@@ -1739,6 +1755,81 @@ fn pane_line_views(
             }
         })
         .collect()
+}
+
+/// Hand the answer to the reader in the one way the macOS desktop shell
+/// delivers: focus. Its WKWebView receives no live-region announcements
+/// through wry, while focus changes are spoken reliably (verified over
+/// VoiceOver), so the answer takes focus for one beat and then gives it
+/// back, leaving the entry ready for the next expression. The give-back is
+/// skipped when the reader has already moved somewhere else.
+///
+/// Runs one tick late: Yew fires the result effect before the pane it
+/// describes is committed to the DOM.
+fn announce_answer_in_shell() {
+    let Some(doc) = web_sys::window().and_then(|w| w.document()) else {
+        return;
+    };
+    let empty = |el: &web_sys::Element| {
+        el.text_content()
+            .map(|text| text.trim().is_empty())
+            .unwrap_or(true)
+    };
+    // A short answer lives in the calc pane's status region; a long one
+    // moves to the result pane's emphasized line. Inside the status region
+    // the text itself is the focus target: VoiceOver reads a focused
+    // region's label ("Answer") but not its contents, while a focused text
+    // run is spoken in full.
+    let target = doc
+        .query_selector("#epher-result .ans-inline, #epher-result .ans-block")
+        .ok()
+        .flatten()
+        .or_else(|| doc.query_selector("#epher-result").ok().flatten())
+        .filter(|el| !empty(el))
+        .or_else(|| {
+            doc.query_selector("#graph-pane .pane-answer-final")
+                .ok()
+                .flatten()
+        })
+        .or_else(|| {
+            doc.query_selector("#graph-pane .pane-answer:not(.pane-answer-setup)")
+                .ok()
+                .flatten()
+        });
+    let Some(answer) = target else {
+        return;
+    };
+    // A span is only focusable with an explicit tab index; -1 keeps it out
+    // of the Tab order.
+    let _ = answer.set_attribute("tabindex", "-1");
+    if let Some(html_el) = answer.dyn_ref::<web_sys::HtmlElement>() {
+        html_el.focus();
+    }
+
+    gloo_timers::callback::Timeout::new(2_000, move || {
+        let Some(doc) = web_sys::window().and_then(|w| w.document()) else {
+            return;
+        };
+        let Some(active) = doc.active_element() else {
+            return;
+        };
+        let inside_answer = doc
+            .query_selector("#epher-result")
+            .ok()
+            .flatten()
+            .map(|region| region.contains(Some(&active)))
+            .unwrap_or(false)
+            || active.class_name().contains("pane-answer");
+        if !inside_answer {
+            return;
+        }
+        if let Some(entry) = doc.query_selector("textarea").ok().flatten() {
+            if let Some(html_el) = entry.dyn_ref::<web_sys::HtmlElement>() {
+                html_el.focus();
+            }
+        }
+    })
+    .forget();
 }
 
 /// True when the answer line keeps a result (ADR-0056): exactly one
@@ -2829,29 +2920,28 @@ fn epher_app() -> Html {
         use_effect_with(result.clone(), move |r| {
             expanded_lines.set(std::collections::HashSet::new());
             if !r.is_empty() {
+                // The macOS desktop shell never announces live regions, so
+                // the answer row takes focus instead: focus changes are what
+                // VoiceOver reliably speaks there. Deferred by one tick
+                // because Yew runs this effect before the pane it must
+                // focus is committed to the DOM. Browsers announce through
+                // the live region and keep focus in the entry.
+                if live_region_is_silent() {
+                    gloo_timers::callback::Timeout::new(0, announce_answer_in_shell).forget();
+                }
                 if let Some(doc) = web_sys::window().and_then(|w| w.document()) {
-                    let answer = doc.query_selector("#graph-pane .pane-answer-final");
-                    let target = match answer {
-                        Ok(Some(el)) => Some(el),
-                        _ => doc
-                            .query_selector("#graph-pane .pane-answer:not(.pane-answer-setup)")
-                            .ok()
-                            .flatten(),
-                    };
-                    if let Some(el) = target {
-                        // WebKit in the Tauri shell never announces live
-                        // regions, so the result takes focus instead:
-                        // focus changes are what VoiceOver reliably
-                        // speaks there. The answer row carries
-                        // tabindex="-1" - script-focusable, never in the
-                        // Tab order. Chromium announces through the live
-                        // region and keeps focus in the entry.
-                        if is_webkit_engine() {
-                            if let Some(html_el) = el.dyn_ref::<web_sys::HtmlElement>() {
-                                html_el.focus();
-                            }
-                        }
-                        if !answer_fits(r) {
+                    if !answer_fits(r) {
+                        let answer = doc.query_selector("#graph-pane .pane-answer-final");
+                        let target = match answer {
+                            Ok(Some(el)) => Some(el),
+                            _ => doc
+                                .query_selector(
+                                    "#graph-pane .pane-answer:not(.pane-answer-setup)",
+                                )
+                                .ok()
+                                .flatten(),
+                        };
+                        if let Some(el) = target {
                             el.scroll_into_view();
                         }
                     }

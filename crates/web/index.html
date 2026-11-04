@@ -443,6 +443,15 @@
       gap: 0.35rem;
       padding-inline: 0.4rem;
     }
+    /* The answer takes focus in the macOS desktop shell (its live region
+       is silent there, so focus is the announcement); programmatic focus
+       needs a visible cue for sighted keyboard users (WCAG 2.4.7). */
+    .result:focus-visible,
+    .result:focus-within {
+      outline: 3px solid var(--ring);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
     .answer-row .result {
       flex: 1;
       min-width: 0;
