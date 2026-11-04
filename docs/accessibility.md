@@ -89,7 +89,13 @@ the real-screen-reader leg. The scripted harnesses:
   user-visible string. The REPL ships only in the unified `epher` binary
   (ADR-0011) on the same dispatch layer these checks cover.
 - `scripts/a11y/native-desktop-vo.mjs` walks the macOS Tauri desktop shell
-  (WKWebView, so WebKit's accessibility tree, which no other suite covers)
+  (WKWebView, so WebKit's accessibility tree, which no other suite covers).
+  Recorded divergence (the introducing change, 2026-11-04): wry never
+  forwards live-region events, so role="status" is silent in the desktop
+  shell. On WebKit engines the app therefore moves focus to the answer row
+  after a submit (tabindex="-1", visible focus cue) - focus changes are the
+  one announcement VoiceOver reliably speaks there. Chromium and Firefox
+  announce the live region natively and keep focus in the entry.
   under real VoiceOver. Run under Terminal, where the Apple Events grants
   live.
 

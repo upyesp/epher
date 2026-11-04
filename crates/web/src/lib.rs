@@ -1071,6 +1071,21 @@ fn is_apple_platform() -> bool {
         .unwrap_or(false)
 }
 
+/// WebKit (Safari, and the WKWebView inside the Tauri shell) never fires
+/// live-region announcements through wry's accessibility bridge, so the
+/// result takes focus instead; Chromium and Firefox announce the live
+/// region natively and keep focus in the entry. The divergence is
+/// recorded in the introducing change (ADR-0009 amendment, 2026-11-03).
+fn is_webkit_engine() -> bool {
+    web_sys::window()
+        .and_then(|w| w.navigator().user_agent().ok())
+        .map(|ua| {
+            let ua = ua.to_ascii_lowercase();
+            ua.contains("safari") && !ua.contains("chrome") && !ua.contains("firefox")
+        })
+        .unwrap_or(false)
+}
+
 /// A 24×24 stroke icon in the menu-icon style.
 fn platform_icon(class: &'static str, inner: &'static str) -> yew::Html {
     yew::Html::from_html_unchecked(
@@ -1640,7 +1655,7 @@ fn pane_answer_html(
         }
     };
     html! {
-        <div class={classes}>
+        <div class={classes} tabindex="-1">
             { if let Some(ok) = view.verdict {
                 html! {
                     <span
@@ -2813,7 +2828,7 @@ fn epher_app() -> Html {
         let expanded_lines = expanded_lines.clone();
         use_effect_with(result.clone(), move |r| {
             expanded_lines.set(std::collections::HashSet::new());
-            if !r.is_empty() && !answer_fits(r) {
+            if !r.is_empty() {
                 if let Some(doc) = web_sys::window().and_then(|w| w.document()) {
                     let answer = doc.query_selector("#graph-pane .pane-answer-final");
                     let target = match answer {
@@ -2824,7 +2839,21 @@ fn epher_app() -> Html {
                             .flatten(),
                     };
                     if let Some(el) = target {
-                        el.scroll_into_view();
+                        // WebKit in the Tauri shell never announces live
+                        // regions, so the result takes focus instead:
+                        // focus changes are what VoiceOver reliably
+                        // speaks there. The answer row carries
+                        // tabindex="-1" - script-focusable, never in the
+                        // Tab order. Chromium announces through the live
+                        // region and keeps focus in the entry.
+                        if is_webkit_engine() {
+                            if let Some(html_el) = el.dyn_ref::<web_sys::HtmlElement>() {
+                                html_el.focus();
+                            }
+                        }
+                        if !answer_fits(r) {
+                            el.scroll_into_view();
+                        }
                     }
                 }
             }
