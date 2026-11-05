@@ -560,7 +560,8 @@ class LspEpherRunCommand(LspTextCommand):
         # builds skip the hover, the copy keeps working.
         results.settings().set("epher_src_view_id", view.id())
         results.settings().set("epher_src_lines",
-                              {r: rec["src_line"] for r, rec in enumerate(records, 1)})
+                              {str(r): rec["src_line"]
+                               for r, rec in enumerate(records, 1)})
         results.settings().set("epher_graphs", graphs)
         results.settings().set("epher_verbatim",
                               {str(r): rec["verbatim"] for r, rec in enumerate(records, 1)
@@ -582,11 +583,13 @@ class EpherCopyVerbatimCommand(sublime_plugin.TextCommand):
     (ADR-0078's first rule: copy never sees the shaped text)."""
 
     def run(self, edit) -> None:
-        verbatim = self.view.settings().get("epher_verbatim") or {}
+        verbatim = self.view.settings().get("epher_verbatim")
+        if not isinstance(verbatim, dict):
+            verbatim = {}
         for sel in self.view.sel():
             row = self.view.rowcol(sel.begin())[0] + 1
-            value = verbatim.get(str(row)) or verbatim.get(row)
-            if value:
+            value = verbatim.get(str(row))
+            if isinstance(value, str) and value:
                 sublime.set_clipboard(value)
                 sublime.status_message("LSP-epher: copied the verbatim output")
                 return
