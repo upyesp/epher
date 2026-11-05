@@ -350,6 +350,70 @@ fn run_survives_a_failing_statement() -> Result<(), Box<dyn Error>> {
         statements[2]["display"].as_str().unwrap_or("").contains("2"),
         "evaluation continues past the failure"
     );
+    // A failure is its own tier (ADR-0079): the pane presentation
+    // marks the failed statement's lines as errors, never answers.
+    let failed = &statements[1]["presentation"]["lines"];
+    assert_eq!(failed[0]["kind"], json!("error"), "the failure tier");
+    assert_eq!(statements[1]["presentation"]["answer"], json!(false));
+    Ok(())
+}
+
+#[test]
+fn run_carries_the_pane_presentation() -> Result<(), Box<dyn Error>> {
+    let mut client = start()?;
+    // One knob echo, one labeled answer, a data loop that grids, a
+    // long list that folds, and a trailing check: the run carries the
+    // result pane's presentation (ADR-0078) beside the verbatim
+    // display (ADR-0069 amendment). The silent const (ADR-0080)
+    // produces no display at all, so it cannot reach the pane.
+    let uri = open(
+        &mut client,
+        "memo://present.epher",
+        "const r = 5\nr\nprint(\"area:\", pi * r^2)\ndef row(k) = {k, 2 * k}\nfor k in 1 to 3 do row(k)\nbig = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24}\nbig\nprint(\"symmetric:\", 1 == 1)\n",
+    );
+    let _ = client.diagnostics();
+    let id = client.request(
+        "epher/run",
+        json!({ "textDocument": { "uri": uri.to_string() } }),
+    );
+    let response = client.response(id);
+    assert!(response.error.is_none(), "run succeeds: {:?}", response.error);
+    let result = response.result.expect("run report");
+    let statements = result["statements"].as_array().expect("statements");
+    assert_eq!(statements.len(), 8, "one entry per statement");
+
+    // The silent const binds without a display, and carries no
+    // presentation: nothing for a pane to draw.
+    assert_eq!(statements[0]["display"], json!(null));
+    assert!(statements[0].get("presentation").is_none());
+
+    // The knob echo is setup: dim, value voice, no answer.
+    assert_eq!(statements[1]["presentation"]["lines"][0]["kind"], json!("setup"));
+    assert_eq!(statements[1]["presentation"]["lines"][0]["text"], json!("= 5"));
+    assert_eq!(statements[1]["presentation"]["answer"], json!(false));
+
+    // The labeled result carries the answer (the trailing check
+    // points above itself), and the run names its source line.
+    assert_eq!(statements[2]["presentation"]["lines"][0]["kind"], json!("labeled"));
+    assert_eq!(statements[2]["presentation"]["answer"], json!(true));
+    assert_eq!(result["answerLine"], json!(2));
+
+    // The data loop's matrix grids: cells, column widths, `= ` prefix.
+    let grid = &statements[4]["presentation"]["lines"][0]["grid"];
+    assert_eq!(grid["cells"], json!([["1", "2"], ["2", "4"], ["3", "6"]]));
+    assert_eq!(grid["widths"], json!([1, 1]));
+    assert_eq!(grid["prefix"], json!("= "));
+
+    // The 24-element list folds at 20 shown, 4 hidden.
+    let list = &statements[6]["presentation"]["lines"][0]["list"];
+    assert_eq!(list["elements"].as_array().map(Vec::len), Some(24));
+    assert_eq!(list["hidden"], json!(4));
+
+    // The trailing check reads as a verdict, never the answer.
+    let check = &statements[7]["presentation"]["lines"][0];
+    assert_eq!(check["kind"], json!("labeled"));
+    assert_eq!(check["verdict"], json!(true));
+    assert_eq!(statements[7]["presentation"]["answer"], json!(false));
     Ok(())
 }
 

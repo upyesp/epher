@@ -27,11 +27,68 @@ using System.Web.Script.Serialization;
 
 namespace Epher.VisualStudio
 {
+    // One display line's shaped matrix (ADR-0078 R3, via the run
+    // payload): right-aligned cells with each column's widest width,
+    // plus the text around the matrix.
+    public sealed class PaneGridData
+    {
+        public string Prefix;
+
+        public List<List<string>> Cells;
+
+        public List<int> Widths;
+
+        public string Suffix;
+    }
+
+    // One display line's folded long list (ADR-0078 R3, via the run
+    // payload): every element whole, and how many sit past the fold.
+    public sealed class PaneListData
+    {
+        public string Prefix;
+
+        public List<string> Elements;
+
+        public int Hidden;
+
+        public string Suffix;
+    }
+
+    // One display line's pane presentation (ADR-0078, via the run
+    // payload): the display text (prose drops the "= " marker), the
+    // line's tier, and the optional verdict, unit, grid, and fold.
+    public sealed class PaneLineData
+    {
+        public string Text;
+
+        public string Kind;
+
+        public bool? Verdict;
+
+        public string Unit;
+
+        public PaneGridData Grid;
+
+        public PaneListData List;
+    }
+
+    // One statement's pane presentation: the display lines' shapes
+    // and whether this statement carries the run's answer.
+    public sealed class PanePresentation
+    {
+        public List<PaneLineData> Lines;
+
+        public bool Answer;
+    }
+
     // One statement's line of the transcript, verbatim field names from
     // the server's run_request (crates/lsp): line, source, display,
     // error — display carries the answer or the error text (the "= 2"
     // voice included), and is null when the statement prints nothing.
-    // The wire names are matched by hand in ParseReport; no serializer
+    // Presentation carries the result pane's shape of that display
+    // (ADR-0069 amendment); null from a server older than the
+    // amendment, and the report then falls back to plain rows. The
+    // wire names are matched by hand in ParseReport; no serializer
     // attributes.
     public sealed class RunLine
     {
@@ -42,15 +99,21 @@ namespace Epher.VisualStudio
         public string Display;
 
         public bool Error;
+
+        public PanePresentation Presentation;
     }
 
     // The `epher/run` result: the per-statement transcript plus every
     // plot the run produced as self-contained SVG documents.
+    // AnswerLine is the source line carrying the run's answer, for
+    // panes that scroll to it.
     public sealed class RunReport
     {
         public List<RunLine> Statements;
 
         public List<string> Svgs;
+
+        public int? AnswerLine;
     }
 
     internal static class EpherRun
@@ -447,6 +510,15 @@ namespace Epher.VisualStudio
                         {
                             line.Error = AsBool(fieldValue);
                         }
+                        object presentationValue;
+                        if (fields.TryGetValue("presentation", out presentationValue))
+                        {
+                            var presentationFields = presentationValue as Dictionary<string, object>;
+                            if (presentationFields != null)
+                            {
+                                line.Presentation = ParsePresentation(presentationFields);
+                            }
+                        }
                         statements.Add(line);
                     }
                 }
@@ -465,7 +537,138 @@ namespace Epher.VisualStudio
                     }
                 }
                 report.Svgs = svgs;
+
+                object answerValue;
+                if (result.TryGetValue("answerLine", out answerValue) && answerValue is int)
+                {
+                    report.AnswerLine = (int)answerValue;
+                }
                 return report;
+            }
+
+            // The optional per-statement presentation (ADR-0078, via
+            // the run payload). A missing or unreadable shape returns
+            // null and the pane falls back to plain rows.
+            private static PanePresentation ParsePresentation(Dictionary<string, object> fields)
+            {
+                var presentation = new PanePresentation();
+                var lines = new List<PaneLineData>();
+                object value;
+                if (fields.TryGetValue("lines", out value))
+                {
+                    foreach (var entry in AsList(value))
+                    {
+                        var paneFields = entry as Dictionary<string, object>;
+                        if (paneFields == null)
+                        {
+                            continue;
+                        }
+                        var pane = new PaneLineData();
+                        object fieldValue;
+                        if (paneFields.TryGetValue("text", out fieldValue))
+                        {
+                            pane.Text = fieldValue as string;
+                        }
+                        if (paneFields.TryGetValue("kind", out fieldValue))
+                        {
+                            pane.Kind = fieldValue as string;
+                        }
+                        if (paneFields.TryGetValue("verdict", out fieldValue) && fieldValue is bool)
+                        {
+                            pane.Verdict = (bool)fieldValue;
+                        }
+                        if (paneFields.TryGetValue("unit", out fieldValue))
+                        {
+                            pane.Unit = fieldValue as string;
+                        }
+                        object gridValue;
+                        if (paneFields.TryGetValue("grid", out gridValue))
+                        {
+                            var gridFields = gridValue as Dictionary<string, object>;
+                            if (gridFields != null)
+                            {
+                                var grid = new PaneGridData();
+                                object inner;
+                                if (gridFields.TryGetValue("prefix", out inner))
+                                {
+                                    grid.Prefix = inner as string;
+                                }
+                                if (gridFields.TryGetValue("suffix", out inner))
+                                {
+                                    grid.Suffix = inner as string;
+                                }
+                                grid.Cells = new List<List<string>>();
+                                if (gridFields.TryGetValue("cells", out inner))
+                                {
+                                    foreach (var rowEntry in AsList(inner))
+                                    {
+                                        var cells = new List<string>();
+                                        foreach (var cellEntry in AsList(rowEntry))
+                                        {
+                                            var cell = cellEntry as string;
+                                            if (cell != null)
+                                            {
+                                                cells.Add(cell);
+                                            }
+                                        }
+                                        grid.Cells.Add(cells);
+                                    }
+                                }
+                                grid.Widths = new List<int>();
+                                if (gridFields.TryGetValue("widths", out inner))
+                                {
+                                    foreach (var widthEntry in AsList(inner))
+                                    {
+                                        grid.Widths.Add(AsInt(widthEntry));
+                                    }
+                                }
+                                pane.Grid = grid;
+                            }
+                        }
+                        object listValue;
+                        if (paneFields.TryGetValue("list", out listValue))
+                        {
+                            var listFields = listValue as Dictionary<string, object>;
+                            if (listFields != null)
+                            {
+                                var list = new PaneListData();
+                                object inner;
+                                if (listFields.TryGetValue("prefix", out inner))
+                                {
+                                    list.Prefix = inner as string;
+                                }
+                                if (listFields.TryGetValue("suffix", out inner))
+                                {
+                                    list.Suffix = inner as string;
+                                }
+                                list.Elements = new List<string>();
+                                if (listFields.TryGetValue("elements", out inner))
+                                {
+                                    foreach (var elementEntry in AsList(inner))
+                                    {
+                                        var element = elementEntry as string;
+                                        if (element != null)
+                                        {
+                                            list.Elements.Add(element);
+                                        }
+                                    }
+                                }
+                                if (listFields.TryGetValue("hidden", out inner))
+                                {
+                                    list.Hidden = AsInt(inner);
+                                }
+                                pane.List = list;
+                            }
+                        }
+                        lines.Add(pane);
+                    }
+                }
+                presentation.Lines = lines;
+                if (fields.TryGetValue("answer", out value) && value is bool)
+                {
+                    presentation.Answer = (bool)value;
+                }
+                return presentation;
             }
 
             // JavaScriptSerializer decodes JSON arrays as object[]
@@ -544,6 +747,86 @@ namespace Epher.VisualStudio
                 .Replace("\"", "&quot;");
         }
 
+        // One display line's shaped body (ADR-0078): the verdict glyph,
+        // a grid as a right-aligned table, a folded list behind a
+        // button, a dimmed trailing unit, the display text otherwise.
+        private static string PaneLineHtml(PaneLineData pane)
+        {
+            var glyph = "";
+            if (pane.Verdict == true)
+            {
+                glyph = "<span class=\"v-glyph v-true\" aria-hidden=\"true\">✓</span>";
+            }
+            else if (pane.Verdict == false)
+            {
+                glyph = "<span class=\"v-glyph v-false\" aria-hidden=\"true\">✗</span>";
+            }
+            var kind = pane.Kind ?? "labeled";
+            string body;
+            if (pane.Grid != null)
+            {
+                var rowsHtml = new StringBuilder();
+                foreach (var row in pane.Grid.Cells ?? new List<List<string>>())
+                {
+                    rowsHtml.Append("<tr>");
+                    foreach (var cell in row)
+                    {
+                        rowsHtml.Append("<td>" + EscapeHtml(cell) + "</td>");
+                    }
+                    rowsHtml.Append("</tr>");
+                }
+                body = EscapeHtml(pane.Grid.Prefix)
+                    + "<table class=\"grid\">" + rowsHtml + "</table>"
+                    + EscapeHtml(pane.Grid.Suffix);
+            }
+            else if (pane.List != null)
+            {
+                var elements = pane.List.Elements ?? new List<string>();
+                var shown = pane.List.Hidden > 0
+                    ? elements.GetRange(0, elements.Count - pane.List.Hidden)
+                    : elements;
+                var shownHtml = new StringBuilder();
+                for (var i = 0; i < shown.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        shownHtml.Append(", ");
+                    }
+                    shownHtml.Append(EscapeHtml(shown[i]));
+                }
+                var more = "";
+                if (pane.List.Hidden > 0)
+                {
+                    var restHtml = new StringBuilder();
+                    var rest = elements.GetRange(elements.Count - pane.List.Hidden, pane.List.Hidden);
+                    for (var i = 0; i < rest.Count; i++)
+                    {
+                        restHtml.Append(EscapeHtml(rest[i]));
+                        if (i < rest.Count - 1)
+                        {
+                            restHtml.Append(", ");
+                        }
+                    }
+                    more = "<button type=\"button\" class=\"more\">+" + pane.List.Hidden
+                        + " more</button><span class=\"rest\" hidden>, " + restHtml + "</span>";
+                }
+                body = EscapeHtml(pane.List.Prefix) + "{ " + shownHtml + more + " }"
+                    + EscapeHtml(pane.List.Suffix);
+            }
+            else if (!string.IsNullOrEmpty(pane.Unit) && pane.Text != null
+                && pane.Text.EndsWith(" " + pane.Unit))
+            {
+                var stripped = pane.Text.Substring(0, pane.Text.Length - pane.Unit.Length - 1);
+                body = EscapeHtml(stripped) + "<span class=\"unit\"> " + EscapeHtml(pane.Unit) + "</span>";
+            }
+            else
+            {
+                body = EscapeHtml(pane.Text);
+            }
+            return "<div class=\"pline pline-" + kind + "\">" + glyph
+                + "<span class=\"line-body\">" + body + "</span></div>";
+        }
+
         private static string ReportHtml(string scriptName, RunReport report)
         {
             report = report ?? new RunReport();
@@ -551,7 +834,9 @@ namespace Epher.VisualStudio
             var svgs = report.Svgs ?? new List<string>();
 
             // The pane is the script's output, not a re-reading of the
-            // script: statements that print nothing are not rows.
+            // script: statements that print nothing are not rows. With
+            // a presentation the row carries the pane's shape (ADR-0078);
+            // without one the verbatim display stays.
             var rows = new List<string>();
             foreach (var statement in statements)
             {
@@ -559,10 +844,34 @@ namespace Epher.VisualStudio
                 {
                     continue;
                 }
-                var span = statement.Error
-                    ? "<span class=\"error\">" + EscapeHtml(statement.Display ?? "error") + "</span>"
-                    : "<span class=\"answer\">" + EscapeHtml(statement.Display) + "</span>";
-                rows.Add("<div class=\"output\" data-line=\"" + statement.Line + "\">" + span + "</div>");
+                var title = statement.Display == null
+                    ? ""
+                    : " title=\"" + EscapeHtml(statement.Display) + "\"";
+                string inner;
+                var classes = "output";
+                if (statement.Presentation != null)
+                {
+                    if (statement.Presentation.Answer)
+                    {
+                        classes += " final";
+                    }
+                    if (statement.Error)
+                    {
+                        classes += " error-row";
+                    }
+                    inner = "";
+                    foreach (var pane in statement.Presentation.Lines ?? new List<PaneLineData>())
+                    {
+                        inner += PaneLineHtml(pane);
+                    }
+                }
+                else
+                {
+                    inner = statement.Error
+                        ? "<span class=\"error\">" + EscapeHtml(statement.Display ?? "error") + "</span>"
+                        : "<span class=\"answer\">" + EscapeHtml(statement.Display) + "</span>";
+                }
+                rows.Add("<div class=\"" + classes + "\" data-line=\"" + statement.Line + "\"" + title + ">" + inner + "</div>");
             }
             var rowHtml = string.Join("\n", rows);
 
@@ -594,6 +903,18 @@ namespace Epher.VisualStudio
             html.AppendLine("  .output:hover { background: #f2f2f2; }");
             html.AppendLine("  .answer { color: #0b5cad; }");
             html.AppendLine("  .error { color: #a4262c; }");
+            html.AppendLine("  .pline-setup { color: #616161; }");
+            html.AppendLine("  .pline-error { color: #a4262c; font-weight: 500; }");
+            html.AppendLine("  .output.final { font-weight: 600; }");
+            html.AppendLine("  .output.final .line-body { font-size: 1.15em; }");
+            html.AppendLine("  .v-glyph { display: inline-block; width: 1.6ch; }");
+            html.AppendLine("  .v-true { color: #1a7f37; }");
+            html.AppendLine("  .v-false { color: #a4262c; }");
+            html.AppendLine("  .unit { color: #616161; }");
+            html.AppendLine("  table.grid { display: inline-table; border-collapse: collapse; }");
+            html.AppendLine("  table.grid td { text-align: right; padding: 0 10px 0 0; white-space: pre; }");
+            html.AppendLine("  button.more { background: none; border: none; color: #616161; cursor: pointer;");
+            html.AppendLine("    font: inherit; padding: 0 4px; text-decoration: underline; }");
             html.AppendLine("  .graph { margin: 10px 0; }");
             html.AppendLine("  .graph svg { width: 100%; height: auto; background: #ffffff; border-radius: 4px; }");
             html.AppendLine("  .empty { color: #616161; font-style: italic; }");
@@ -602,6 +923,12 @@ namespace Epher.VisualStudio
             html.AppendLine("    .output:hover { background: #2a2d2e; }");
             html.AppendLine("    .answer { color: #4fc1ff; }");
             html.AppendLine("    .error { color: #f48771; }");
+            html.AppendLine("    .pline-setup { color: #9d9d9d; }");
+            html.AppendLine("    .pline-error { color: #f48771; }");
+            html.AppendLine("    .v-true { color: #56d364; }");
+            html.AppendLine("    .v-false { color: #f48771; }");
+            html.AppendLine("    .unit { color: #9d9d9d; }");
+            html.AppendLine("    button.more { color: #9d9d9d; }");
             html.AppendLine("    .empty { color: #9d9d9d; }");
             html.AppendLine("    .graph svg { border: 1px solid #3c3c3c; }");
             html.AppendLine("  }");
@@ -610,6 +937,18 @@ namespace Epher.VisualStudio
             html.AppendLine("<body>");
             html.AppendLine(body);
             html.AppendLine(graphSection);
+            html.AppendLine("<script>");
+            html.AppendLine("  document.addEventListener('click', function (event) {");
+            html.AppendLine("    var more = event.target.closest ? event.target.closest('.more') : null;");
+            html.AppendLine("    if (more) {");
+            html.AppendLine("      var rest = more.nextElementSibling;");
+            html.AppendLine("      if (rest) { rest.hidden = false; }");
+            html.AppendLine("      more.remove();");
+            html.AppendLine("    }");
+            html.AppendLine("  });");
+            html.AppendLine("  var final = document.querySelector('.output.final');");
+            html.AppendLine("  if (final) { final.scrollIntoView({ block: 'center' }); }");
+            html.AppendLine("</script>");
             html.AppendLine("</body>");
             html.AppendLine("</html>");
             return html.ToString();

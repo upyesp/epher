@@ -579,6 +579,138 @@ pub fn group_digits(text: &str) -> String {
     out
 }
 
+/// How many elements of a flat list show before the fold (ADR-0078
+/// R3). The web pane and the wire presentation share the constant, so
+/// every surface folds at the same length.
+pub const ELIDE_THRESHOLD: usize = 20;
+
+/// One display line's tier, as wire data (ADR-0069 amendment).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum PaneTier {
+    /// Bare statement echo: render dim.
+    Setup,
+    /// A labeled line (`label: value`): full weight.
+    Labeled,
+    /// A failure or warning (ADR-0079): never dim, never the answer.
+    Error,
+}
+
+impl From<LineKind> for PaneTier {
+    fn from(kind: LineKind) -> Self {
+        match kind {
+            LineKind::Setup => PaneTier::Setup,
+            LineKind::Labeled => PaneTier::Labeled,
+            LineKind::Error => PaneTier::Error,
+        }
+    }
+}
+
+/// A matrix as a right-aligned grid (ADR-0078 R3), as wire data.
+/// `cells` are trimmed; `widths` is each column's widest cell in
+/// characters, so a table renderer right-aligns without padding and
+/// a monospace one pads to the widths. `prefix`/`suffix` are the
+/// text before and after the matrix (a `= ` voice, a label, usually
+/// empty); [`PaneLine::text`] carries the whole line verbatim for
+/// renderers that ignore grids.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct PaneGrid {
+    pub prefix: String,
+    pub cells: Vec<Vec<String>>,
+    pub widths: Vec<usize>,
+    pub suffix: String,
+}
+
+/// A long flat list (ADR-0078 R3), as wire data. `elements` carries
+/// every element whole; `hidden` is how many sit past the fold (0
+/// when the list only just cleared the threshold and the renderer
+/// chooses to show it whole). `prefix`/`suffix` are the text around
+/// the braces. Copy paths send the original verbatim.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct PaneList {
+    pub prefix: String,
+    pub elements: Vec<String>,
+    pub hidden: usize,
+    pub suffix: String,
+}
+
+/// One transcript display line's presentation, as wire data for
+/// renderers that receive the transcript over the wire (the language
+/// server's run report). `text` is the display text ([`display_text`]
+/// already applied); `prefix`/`suffix` are the text around a grid or
+/// a folded list (a `= ` voice, a label, usually empty). `segments`
+/// are the soft-break points ([`wrap_segments`]) for renderers that
+/// pack lines into a fixed width.
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+pub struct PaneLine {
+    pub text: String,
+    pub kind: PaneTier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub verdict: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unit: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub grid: Option<PaneGrid>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub list: Option<PaneList>,
+    pub segments: Vec<String>,
+}
+
+/// One display line shaped for the wire ([`PaneLine`]).
+pub fn present_line(line: &str) -> PaneLine {
+    let kind = PaneTier::from(line_kind(line));
+    let unit = terminal_unit(line);
+    let (grid, list) = if let Some((prefix, grid, suffix)) = matrix_grid(line) {
+        (
+            Some(PaneGrid {
+                prefix,
+                cells: grid.rows,
+                widths: grid.widths,
+                suffix,
+            }),
+            None,
+        )
+    } else if let Some((prefix, elements, suffix)) = long_list(line, ELIDE_THRESHOLD) {
+        let hidden = elements.len().saturating_sub(ELIDE_THRESHOLD);
+        (
+            None,
+            Some(PaneList {
+                prefix,
+                elements,
+                hidden,
+                suffix,
+            }),
+        )
+    } else {
+        (None, None)
+    };
+    PaneLine {
+        text: display_text(line).to_string(),
+        kind,
+        verdict: verdict(line),
+        unit: unit.map(str::to_string),
+        grid,
+        list,
+        segments: wrap_segments(line),
+    }
+}
+
+/// A whole transcript shaped for the wire (ADR-0069 amendment):
+/// every display line's [`PaneLine`], plus which line carries the
+/// answer ([`final_labeled_index`], the same rule every pane
+/// applies). Text-first renderers ignore this and print the
+/// transcript verbatim; graphical renderers draw these fields.
+pub fn present_transcript(lines: &[String]) -> Vec<PaneLine> {
+    lines.iter().map(|l| present_line(l)).collect()
+}
+
+/// Which of `lines` is the emphasized answer display line: the pane
+/// contract's rule ([`final_labeled_index`]), re-exported here so a
+/// wire renderer and the panes cannot drift.
+pub fn answer_index(lines: &[String]) -> Option<usize> {
+    final_labeled_index(lines)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -831,5 +963,82 @@ mod tests {
             group_digits("= reaching 1,000,000 takes: 359247.02"),
             "= reaching 1,000,000 takes: 359,247.02"
         );
+    }
+
+    #[test]
+    fn presentation_tiers_match_the_line_contract() {
+        let lines = vec![
+            "= 5".to_string(),                            // bare knob echo
+            "area: 78.53981633974483".to_string(),        // labeled result
+            "error: name `x` is not defined".to_string(), // failure (ADR-0079)
+        ];
+        let present = present_transcript(&lines);
+        assert_eq!(present[0].kind, PaneTier::Setup);
+        assert_eq!(present[1].kind, PaneTier::Labeled);
+        assert_eq!(present[2].kind, PaneTier::Error);
+        // Prose drops the marker in the display text; values keep it.
+        assert_eq!(present[1].text, "area: 78.53981633974483");
+        assert_eq!(present[0].text, "= 5");
+        assert_eq!(present[2].text, "error: name `x` is not defined");
+    }
+
+    #[test]
+    fn presentation_grids_a_matrix_and_attaches_verdicts_and_units() {
+        let matrix = present_line("= [[1, 22], [333, 4]]");
+        let grid = matrix.grid.as_ref().expect("the matrix grids");
+        assert_eq!(grid.cells, vec![vec!["1", "22"], vec!["333", "4"]]);
+        assert_eq!(grid.widths, vec![3, 2]);
+        assert_eq!(grid.prefix, "= ");
+        assert_eq!(grid.suffix, "");
+        assert_eq!(matrix.kind, PaneTier::Setup);
+
+        let check = present_line("symmetric: true");
+        assert_eq!(check.verdict, Some(true));
+        assert_eq!(check.kind, PaneTier::Labeled);
+
+        let unit = present_line("= 12.5 m");
+        assert_eq!(unit.unit.as_deref(), Some("m"));
+    }
+
+    #[test]
+    fn presentation_folds_a_long_list_past_the_threshold() {
+        let elements: Vec<String> = (1..=24).map(|n| n.to_string()).collect();
+        let joined = format!("= {{{}}}", elements.join(", "));
+        let line = present_line(&joined);
+        let list = line.list.as_ref().expect("a 24-element list folds");
+        assert_eq!(list.elements.len(), 24);
+        assert_eq!(list.hidden, 4, "24 shown at 20: 4 fold");
+        assert_eq!(list.prefix, "= ");
+        assert_eq!(list.suffix, "");
+        // At the threshold exactly, the list stays text.
+        let short = present_line(&format!("= {{{}}}", (1..=20).map(|n| n.to_string()).collect::<Vec<_>>().join(", ")));
+        assert!(short.list.is_none(), "20 elements stay text");
+    }
+
+    #[test]
+    fn presentation_answer_index_is_the_pane_rule() {
+        let lines = vec![
+            "= 5".to_string(),
+            "area: 78.5".to_string(),
+            "symmetric: true".to_string(),
+        ];
+        assert_eq!(answer_index(&lines), Some(1), "a trailing check points above itself");
+        let plain = vec!["= 5".to_string(), "that is 17.4 years".to_string()];
+        assert_eq!(answer_index(&plain), Some(1), "the last line is the answer");
+        let failed = vec!["error: nope".to_string()];
+        assert_eq!(answer_index(&failed), None, "a failure is never the answer");
+    }
+
+    #[test]
+    fn presentation_serializes_as_wire_json() {
+        let line = present_line("symmetric: true");
+        let json = serde_json::to_value(&line).unwrap();
+        assert_eq!(json["kind"], serde_json::json!("labeled"));
+        assert_eq!(json["verdict"], serde_json::json!(true));
+        assert_eq!(json["text"], serde_json::json!("symmetric: true"));
+        // Fields with nothing to say stay off the wire.
+        assert!(json.get("grid").is_none());
+        assert!(json.get("list").is_none());
+        assert!(json.get("unit").is_none());
     }
 }

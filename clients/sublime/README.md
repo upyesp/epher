@@ -49,9 +49,14 @@ side panel, no print statements: the editor *is* the calculator.
 - **Running scripts**: **LSP-epher: Run Script** in the command
   palette (there is no keybinding out of the box: see the suggested
   one under Settings). The results view beside the script lists one
-  row per statement, error rows in red; every graph the run produced
-  is written as an SVG file under the package storage and opened
-  with the system viewer.
+  row per statement, rendered with the result pane's presentation:
+  setup echo dim, failures red, verdict glyphs (✓/✗), matrices as
+  padded grids, long lists folded, and the run's answer green, with
+  the cursor on it; hovering a row whose shaped text hides it shows
+  the verbatim output, and **Epher: Copy Statement Verbatim** yanks
+  the row's verbatim output (copy never sees the shaped text). Every
+  graph the run produced is written as an SVG file under the package
+  storage and opened with the system viewer.
 - **Unsaved tabs**: a buffer that has never been saved works like a
   file, diagnostics, answers, completion and the run command
   included, as long as its syntax is epher.

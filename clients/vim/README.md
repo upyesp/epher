@@ -68,11 +68,15 @@ the IDE Extensions page.
 With `vim-lsp` installed, `:EpherRun` runs the whole script through
 the same `epher/run` request the VS Code results pane uses (ADR-0069)
 and opens a results pane beside the script: every answer and error,
-a row per statement. `<CR>` on a row jumps to its statement, `<CR>`
-on a graph row reopens its SVG (written under
-`~/.cache/epher/runs` and opened with the system viewer), and `r`
-re-runs. Without `vim-lsp` the command says exactly what is missing;
-the syntax layer above works either way.
+a row per statement, rendered with the result pane's presentation:
+setup echo dim, failures red, verdict glyphs (✓/✗), matrices as
+padded grids, long lists folded (open with `zo`), and the run's
+answer bold, with the cursor on it. `<CR>` on a row jumps to its
+statement, `<CR>` on a graph row reopens its SVG (written under
+`~/.cache/epher/runs` and opened with the system viewer), `y` yanks
+the row's verbatim output, waiting on a row shows the verbatim text
+the shaped text hides, and `r` re-runs. Without `vim-lsp` the command
+says exactly what is missing; the syntax layer above works either way.
 
 ## What it looks like
 

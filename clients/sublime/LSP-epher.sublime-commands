@@ -1,5 +1,6 @@
 [
   { "caption": "LSP-epher: Run Script", "command": "lsp_epher_run" },
+  { "caption": "Epher: Copy Statement Verbatim", "command": "epher_copy_verbatim" },
   {
     "caption": "Preferences: LSP-epher Settings",
     "command": "edit_settings",

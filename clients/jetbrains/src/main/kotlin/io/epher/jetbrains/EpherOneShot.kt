@@ -19,18 +19,74 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
 /**
+ * One display line's shaped matrix (ADR-0078 R3, via the run payload):
+ * right-aligned cells with each column's widest width, and the text
+ * around the matrix.
+ */
+data class PaneGridData(
+    val prefix: String,
+    val cells: List<List<String>>,
+    val widths: List<Int>,
+    val suffix: String,
+)
+
+/**
+ * One display line's folded long list (ADR-0078 R3, via the run
+ * payload): every element whole, and how many sit past the fold.
+ */
+data class PaneListData(
+    val prefix: String,
+    val elements: List<String>,
+    val hidden: Int,
+    val suffix: String,
+)
+
+/**
+ * One display line's pane presentation (ADR-0078, via the run
+ * payload): the display text (prose drops the `= ` marker), the
+ * line's tier, and the optional verdict, unit, grid, and fold.
+ */
+data class PaneLineData(
+    val text: String,
+    val kind: String,
+    val verdict: Boolean?,
+    val unit: String?,
+    val grid: PaneGridData?,
+    val list: PaneListData?,
+)
+
+/**
+ * One statement's pane presentation: the display lines' shapes and
+ * whether this statement carries the run's answer.
+ */
+data class PanePresentation(val lines: List<PaneLineData>, val answer: Boolean)
+
+/**
  * One statement result from `epher/run` (ADR-0069). [line] is the
  * 0-based source line the statement starts on, [source] the statement
  * text, [display] what the statement printed (null when it printed
- * nothing), and [error] marks a failed statement.
+ * nothing), [error] marks a failed statement, and [presentation] is
+ * the result pane's shape of the display (null from a server older
+ * than the amendment; the pane then falls back to plain rows).
  */
-data class RunLine(val line: Int, val source: String, val display: String?, val error: Boolean)
+data class RunLine(
+    val line: Int,
+    val source: String,
+    val display: String?,
+    val error: Boolean,
+    val presentation: PanePresentation? = null,
+)
 
 /**
  * A finished run: every statement's line plus the plots the run
- * produced, ready for the results pane.
+ * produced, ready for the results pane. [answerLine] is the source
+ * line carrying the run's answer, for panes that scroll to it.
  */
-data class RunReport(val statements: List<RunLine>, val svgs: List<String>)
+data class RunReport(
+    val statements: List<RunLine>,
+    val svgs: List<String>,
+    val answerLine: Int? = null,
+)
 
 /**
  * A one-shot script run over a short-lived epher-lsp session
@@ -337,6 +393,8 @@ object EpherOneShot {
                             source = o.get("source")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
                             display = o.get("display")?.takeIf { it.isJsonPrimitive }?.asString,
                             error = o.get("error")?.takeIf { it.isJsonPrimitive }?.asBoolean ?: false,
+                            presentation = o.get("presentation")?.takeIf { it.isJsonObject }
+                                ?.let { parsePresentation(it.asJsonObject) },
                         )
                     }
                     ?: emptyList()
@@ -345,10 +403,76 @@ object EpherOneShot {
                     ?.filter { it.isJsonPrimitive }
                     ?.map { it.asString }
                     ?: emptyList()
-                RunReport(statements, svgs)
+                RunReport(
+                    statements,
+                    svgs,
+                    answerLine = body.get("answerLine")?.takeIf { it.isJsonPrimitive }?.asInt,
+                )
             } catch (e: IllegalStateException) {
                 throw IOException("epher-lsp answered a run result this plugin cannot read: ${e.message}")
             }
+
+        /** The optional per-statement presentation (ADR-0078, via the
+         *  run payload). A missing or unreadable shape degrades the
+         *  pane to plain rows rather than breaking the run. */
+        private fun parsePresentation(o: com.google.gson.JsonObject): PanePresentation? = try {
+            val lines = o.get("lines")?.takeIf { it.isJsonArray }
+                ?.asJsonArray
+                ?.filter { it.isJsonObject }
+                ?.map { pane ->
+                    val p = pane.asJsonObject
+                    PaneLineData(
+                        text = p.get("text")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
+                        kind = p.get("kind")?.takeIf { it.isJsonPrimitive }?.asString ?: "labeled",
+                        verdict = p.get("verdict")?.takeIf { it.isJsonPrimitive }?.let { v ->
+                            when (v.asJsonPrimitive.asString) {
+                                "true" -> true
+                                "false" -> false
+                                else -> null
+                            }
+                        },
+                        unit = p.get("unit")?.takeIf { it.isJsonPrimitive }?.asString,
+                        grid = p.get("grid")?.takeIf { it.isJsonObject }?.let { g ->
+                            val go = g.asJsonObject
+                            PaneGridData(
+                                prefix = go.get("prefix")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
+                                cells = go.get("cells")?.takeIf { it.isJsonArray }
+                                    ?.asJsonArray
+                                    ?.map { row ->
+                                        row.asJsonArray.filter { it.isJsonPrimitive }.map { it.asString }
+                                    }
+                                    ?: emptyList(),
+                                widths = go.get("widths")?.takeIf { it.isJsonArray }
+                                    ?.asJsonArray
+                                    ?.filter { it.isJsonPrimitive }
+                                    ?.map { it.asInt }
+                                    ?: emptyList(),
+                                suffix = go.get("suffix")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
+                            )
+                        },
+                        list = p.get("list")?.takeIf { it.isJsonObject }?.let { l ->
+                            val lo = l.asJsonObject
+                            PaneListData(
+                                prefix = lo.get("prefix")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
+                                elements = lo.get("elements")?.takeIf { it.isJsonArray }
+                                    ?.asJsonArray
+                                    ?.filter { it.isJsonPrimitive }
+                                    ?.map { it.asString }
+                                    ?: emptyList(),
+                                hidden = lo.get("hidden")?.takeIf { it.isJsonPrimitive }?.asInt ?: 0,
+                                suffix = lo.get("suffix")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
+                            )
+                        },
+                    )
+                }
+                ?: emptyList()
+            PanePresentation(
+                lines = lines,
+                answer = o.get("answer")?.takeIf { it.isJsonPrimitive }?.asBoolean ?: false,
+            )
+        } catch (e: IllegalStateException) {
+            null
+        }
     }
 
     /**

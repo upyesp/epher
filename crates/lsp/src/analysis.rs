@@ -495,6 +495,88 @@ pub fn reconstruct_run(text: &str, outcomes: &[StatementOutcome]) -> Option<Vec<
     Some(lines)
 }
 
+/// The run's statements as wire data (ADR-0069 amendment): the
+/// verbatim fields every editor reads today, plus the result pane's
+/// presentation shaped by the core pane contract (ADR-0078) - each
+/// display line's tier, verdict, unit, grid, and folded list, and
+/// which statement carries the run's answer (the pane's
+/// last-line-is-the-answer rule). Returns the statement array and
+/// the source line number that carries the answer, for renderers
+/// that scroll to it. Text-first renderers ignore the presentation
+/// and print `display` verbatim; graphical ones (the VS Code
+/// webview, the JetBrains browser panel) draw it.
+pub fn statements_json(lines: &[ScriptLine]) -> (Vec<serde_json::Value>, Option<u32>) {
+    // The transcript as the panes see it: one display line per
+    // statement output line (`= 3\n= 4` joins a piece's values).
+    let transcript: Vec<String> = lines
+        .iter()
+        .filter_map(|line| line.display.as_ref())
+        .flat_map(|display| display.lines().map(str::to_string))
+        .collect();
+    // The answer rules judge only content lines, and a failure is
+    // never the answer (ADR-0079). The pane contract detects
+    // failures by their `error: ` text, which the run's display does
+    // not carry (the shells add the prefix when they print), so the
+    // error statements' lines stay out of the judgment here, and
+    // their tiers are forced below.
+    let mut judged: Vec<String> = Vec::new();
+    let mut judged_index: Vec<usize> = Vec::new();
+    let mut cursor = 0usize;
+    for line in lines {
+        if let Some(display) = &line.display {
+            for l in display.lines() {
+                if !line.error {
+                    judged.push(l.to_string());
+                    judged_index.push(cursor);
+                }
+                cursor += 1;
+            }
+        }
+    }
+    let present = epher_core::pane::present_transcript(&transcript);
+    let answer = epher_core::pane::answer_index(&judged)
+        .map(|local| judged_index[local]);
+    let mut out = Vec::with_capacity(lines.len());
+    let mut cursor = 0usize;
+    let mut answer_line = None;
+    for line in lines {
+        let mut entry = serde_json::json!({
+            "line": line.line,
+            "source": line.source,
+            "display": line.display,
+            "error": line.error,
+        });
+        if let Some(display) = &line.display {
+            let count = display.lines().count();
+            let slice = &present[cursor..cursor + count];
+            let carries = answer.is_some_and(|a| a >= cursor && a < cursor + count);
+            if carries {
+                answer_line = Some(line.line);
+            }
+            // A failed statement is its own tier (ADR-0079) even if
+            // its text ever failed to say "error: ".
+            let pane_lines: Vec<serde_json::Value> = slice
+                .iter()
+                .map(|pane| {
+                    let mut value =
+                        serde_json::to_value(pane).expect("presentation serializes");
+                    if line.error {
+                        value["kind"] = serde_json::json!("error");
+                    }
+                    value
+                })
+                .collect();
+            entry["presentation"] = serde_json::json!({
+                "lines": pane_lines,
+                "answer": carries,
+            });
+            cursor += count;
+        }
+        out.push(entry);
+    }
+    (out, answer_line)
+}
+
 /// The live value of a builtin constant, for hover (functions are not
 /// values).
 fn builtin_value(name: &str, kind: CatalogKind) -> Option<Value> {

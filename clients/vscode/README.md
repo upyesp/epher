@@ -75,7 +75,10 @@ the top of the editor (the play icon), **Ctrl+Enter** /
 palette. The whole file runs, the answers print in the Debug Console,
 and the **results pane** opens beside the editor with the same
 transcript, clickable back to its lines, plus every graph the run
-produced as inline SVG.
+produced as inline SVG. The pane renders the calculator's
+presentation (ADR-0078): setup echo dim, the answer emphasized,
+✓/✗ on checks, matrices as grids, long lists behind a "+n more"
+button; copy always sends the line verbatim.
 
 epher has nothing to pause or step through: statements evaluate in
 order and the answers are the whole transcript, so the run rides a
