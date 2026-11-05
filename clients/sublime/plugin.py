@@ -36,6 +36,7 @@ import zipfile
 from pathlib import Path
 
 import sublime
+import sublime_plugin
 
 from LSP.plugin import LspPlugin
 from LSP.plugin import LspTextCommand
@@ -52,6 +53,13 @@ from LSP.plugin import uri_from_view
 # release, with the latest-release fallback covering assemblies that
 # run ahead of their tag.
 _SERVER_VERSION = "0.9.5"
+
+# The results view's wrap (ADR-0078 R2): rows pre-broken at the
+# wire's soft-break segments to this width, continuation rows indented
+# the "L<line> " label's width, so a value never breaks mid-number
+# however narrow the pane. The view's own word_wrap stays untouched.
+_RESULTS_WIDTH = 100
+_RESULTS_HANG = 7
 
 # The client command this package ships. Anything else found in the
 # resolved configuration at start time means the user manages the
@@ -246,6 +254,133 @@ def _popen(args: "list[str]") -> None:
     subprocess.Popen(args, startupinfo=startupinfo)
 
 
+def _grid_body(grid: dict, hang: int) -> list:
+    """One matrix as padded grid rows (ADR-0078 R3): cells padded
+    to their column's width, columns joined with two spaces, the
+    wire prefix on the first row, the suffix on the last,
+    continuation rows indented hang spaces."""
+    cells = grid.get("cells") or []
+    widths = grid.get("widths") or []
+    prefix = grid.get("prefix", "")
+    suffix = grid.get("suffix", "")
+    out = []
+    last = len(cells)
+    for i, row in enumerate(cells, 1):
+        padded = []
+        for c, cell in enumerate(row):
+            w = widths[c] if c < len(widths) else len(cell)
+            padded.append(" " * max(0, w - len(cell)) + cell)
+        line = (prefix if i == 1 else " " * hang) + "  ".join(padded)
+        if i == last:
+            line += suffix
+        out.append(line)
+    if not out:
+        out = [prefix + suffix]
+    return out
+
+
+def _list_body(list_data: dict, width: int, hang: int) -> tuple:
+    """A long list folded at the threshold (ADR-0078 R3): shown
+    elements with a (+n more) note, the hidden tail on its own rows
+    wrapped on element boundaries to width. Returns (rows,
+    tail_rows), the tail rows sitting at the rows' end."""
+    elements = list_data.get("elements") or []
+    hidden = list_data.get("hidden", 0) or 0
+    shown_count = max(0, len(elements) - hidden)
+    shown = elements[:shown_count]
+    note = " (+{} more)".format(hidden) if hidden > 0 else ""
+    head = "{}{{ {} }}{}{}".format(
+        list_data.get("prefix", ""), ", ".join(shown), note,
+        list_data.get("suffix", ""))
+    rows = [head]
+    tail_rows = 0
+    if hidden > 0:
+        line = None
+        for i in range(shown_count, len(elements)):
+            piece = elements[i]
+            if line is None:
+                line = piece
+            elif len(line) + 2 + len(piece) <= width - hang:
+                line = line + ", " + piece
+            else:
+                rows.append(" " * hang + line)
+                tail_rows += 1
+                line = piece
+        if line is not None:
+            rows.append(" " * hang + line)
+            tail_rows += 1
+    return rows, tail_rows
+
+
+def _wrap_segments(segments, width: int, hang: int, plain_text: str) -> list:
+    """The terminal pane's wrap (ADR-0078 R2) over the wire's
+    soft-break segments: rows no wider than width, continuation
+    rows indented hang spaces, breaks never inside a number.
+    plain_text is the pane's display text, whose `= ` voice the
+    first segment may need to shed."""
+    width = max(width, 8)
+    indent = " " * min(hang, width)
+    segs = list(segments or [])
+    if segs and plain_text and not plain_text.startswith("= ") and segs[0].startswith("= "):
+        segs[0] = segs[0][2:]
+    rows = []
+    current = ""
+    has_content = False
+    continuation = False
+    for seg in segs:
+        for word in seg.split(" "):
+            if not word:
+                continue
+            rest = word
+            while rest:
+                if not has_content and continuation and not current:
+                    current = indent
+                fresh = width - len(indent) if (not has_content and continuation) else width
+                budget = width - len(current) - 1 if has_content else fresh
+                if budget < 1:
+                    budget = 1
+                length = len(rest)
+                if length <= budget:
+                    take = length
+                elif length <= fresh:
+                    take = 0
+                else:
+                    take = budget
+                if take <= 0:
+                    if has_content:
+                        rows.append(current)
+                        current = ""
+                        has_content = False
+                    continuation = True
+                else:
+                    tail = rest[take:] if length > take else ""
+                    if has_content:
+                        current += " "
+                    current += rest[:take]
+                    has_content = True
+                    rest = tail
+                    if rest:
+                        rows.append(current)
+                        current = ""
+                        has_content = False
+                        continuation = True
+    if has_content:
+        rows.append(current)
+    if not rows:
+        rows = [""]
+    return rows
+
+
+def _pane_rows(pane: dict, width: int, hang: int) -> tuple:
+    """One wire presentation line's display rows and how many rows
+    hide behind the fold (the hidden list tail)."""
+    if pane.get("grid"):
+        return _grid_body(pane["grid"], hang), 0
+    if pane.get("list"):
+        return _list_body(pane["list"], width, hang)
+    return _wrap_segments(pane.get("segments"), width, hang, pane.get("text", "")), 0
+
+
 class LspEpherRunCommand(LspTextCommand):
     """Runs the current epher script and shows the results pane.
 
@@ -292,26 +427,65 @@ class LspEpherRunCommand(LspTextCommand):
 
     def _on_result(self, result, view) -> None:
         result = result or {}
-        rows = []  # type: list
-        src_lines = {}  # row (1-based) -> source line, 0 when no jump
-        graphs = {}  # row (1-based) -> svg path
-        error_rows = []
+        # One record per display row: the shaped text, its tier, the
+        # verbatim output it came from, whether it carries the run's
+        # answer, and how many rows hide behind a fold that starts on
+        # it (the hidden list tail, ADR-0078 R3). Without a
+        # presentation (an older server) the verbatim display stands
+        # alone, as before.
+        records = []  # type: list
+        graphs = {}  # result row (1-based) -> svg path
         for statement in result.get("statements") or []:
             display = statement.get("display")
             if display is None:
                 continue
             # The wire carries 0-based lines; humans count from 1.
-            rows.append("L{:<5} {}".format(statement.get("line", 0) + 1, display))
-            src_lines[len(rows)] = statement.get("line", 0) + 1
-            graphs[len(rows)] = ""
-            if statement.get("error"):
-                error_rows.append(len(rows))
+            label = "L{:<5} ".format(statement.get("line", 0) + 1)
+            src_line = statement.get("line", 0) + 1
+            presentation = statement.get("presentation")
+            answer = bool(presentation and presentation.get("answer"))
+            lines = presentation.get("lines") if presentation else None
+            if lines:
+                for pane in lines:
+                    glyph = ""
+                    verdict = pane.get("verdict")
+                    if verdict is True:
+                        glyph = "✓ "
+                    elif verdict is False:
+                        glyph = "✗ "
+                    body, fold = _pane_rows(pane, _RESULTS_WIDTH, _RESULTS_HANG)
+                    tail_start = len(body) - fold
+                    for i, line in enumerate(body):
+                        records.append({
+                            "text": (label + glyph + line) if i == 0 else line,
+                            "kind": pane.get("kind", "labeled"),
+                            "verbatim": display,
+                            "src_line": src_line,
+                            "answer": answer,
+                            "fold": fold if (i == tail_start and fold > 0) else 0,
+                        })
+            else:
+                records.append({
+                    "text": label + display,
+                    "kind": "error" if statement.get("error") else "labeled",
+                    "verbatim": display,
+                    "src_line": src_line,
+                    "answer": False,
+                    "fold": 0,
+                })
         svgs = result.get("svgs") or []
         if svgs:
             directory = _results_dir()
             os.makedirs(directory, exist_ok=True)
-            rows.append("")
-            rows.append("Graphs ({}, each opened with the system viewer):".format(len(svgs)))
+            records.append({
+                "text": "", "kind": None, "verbatim": "",
+                "src_line": 0, "answer": False, "fold": 0,
+            })
+            records.append({
+                "text": "Graphs ({}, each opened with the system viewer):".format(len(svgs)),
+                "kind": None, "verbatim": "", "src_line": 0,
+                "answer": False, "fold": 0,
+            })
             for i, svg in enumerate(svgs, 1):
                 path = os.path.join(directory, "run-{}-{}.svg".format(int(time.time()), i))
                 try:
@@ -320,25 +494,100 @@ class LspEpherRunCommand(LspTextCommand):
                 except OSError as err:
                     print("LSP-epher: could not write {}: {}".format(path, err))
                     continue
-                rows.append("  " + path)
-                graphs[len(rows)] = path
+                records.append({
+                    "text": "  " + path, "kind": None, "verbatim": "",
+                    "src_line": 0, "answer": False, "fold": 0,
+                })
+                graphs[len(records)] = path
                 _open_path(path)
-        if not rows:
-            rows = ["No output."]
+        if not records:
+            records.append({
+                "text": "No output.", "kind": None, "verbatim": "",
+                "src_line": 0, "answer": False, "fold": 0,
+            })
 
         window = self.view.window() or sublime.active_window()
         results = window.new_file()
         results.set_scratch(True)
         results.set_name("epher run results")
         results.set_syntax_file("Packages/Text/Plain text.tmLanguage")
-        results.run_command("append", {"characters": "\n".join(rows) + "\n"})
+        results.run_command("append", {
+            "characters": "\n".join(record["text"] for record in records) + "\n"})
         results.set_read_only(True)
-        for row in error_rows:
-            line_start = results.text_point(row - 1, 0)
-            line_region = results.full_line(line_start)
-            results.add_regions(
-                "epher-error-{}".format(row), [line_region], "region.redish", "", sublime.DRAW_NO_FILL
-            )
+
+        def line_region(row: int) -> sublime.Region:
+            return results.full_line(results.text_point(row - 1, 0))
+
+        # The tiers (ADR-0078) and the answer emphasis (R4), as the
+        # color scheme's own scopes: setup dims to the comment color,
+        # a failure stays red (ADR-0079), the answer pops green.
+        setup_rows = [r for r, rec in enumerate(records, 1) if rec["kind"] == "setup"]
+        error_rows = [r for r, rec in enumerate(records, 1) if rec["kind"] == "error"]
+        answer_rows = [r for r, rec in enumerate(records, 1) if rec["answer"]]
+        flags = sublime.DRAW_NO_FILL | sublime.DRAW_NO_OUTLINE
+        if setup_rows:
+            results.add_regions("epher-setup", [line_region(r) for r in setup_rows],
+                                "comment", "", flags)
+        if error_rows:
+            results.add_regions("epher-error", [line_region(r) for r in error_rows],
+                                "region.redish", "", flags)
+        if answer_rows:
+            results.add_regions("epher-answer", [line_region(r) for r in answer_rows],
+                                "region.greenish", "", flags)
+
+        # The hidden list tails fold away (ADR-0078 R3), the view's
+        # own disclosure.
+        for r, rec in enumerate(records, 1):
+            if rec["fold"]:
+                beg = results.text_point(r - 1, 0)
+                end = results.text_point(r - 1 + rec["fold"], 0)
+                try:
+                    results.fold(sublime.Region(beg, end))
+                except Exception as err:
+                    print("LSP-epher: could not fold the hidden tail: {}".format(err))
+
+        # The run's answer carries the weight (ADR-0078 R4/R5): the
+        # cursor lands on it, so the view opens at what matters.
+        if answer_rows:
+            point = results.text_point(answer_rows[0] - 1, 0)
+            results.sel().clear()
+            results.sel().add(sublime.Region(point, point))
+            results.show(point)
+
+        # The verbatim output rides every row for copy, and on hover
+        # where the shaped text hides it (wrapped, gridded, folded).
+        # Region annotations are a Sublime 4107+ parameter; older
+        # builds skip the hover, the copy keeps working.
         results.settings().set("epher_src_view_id", view.id())
-        results.settings().set("epher_src_lines", src_lines)
+        results.settings().set("epher_src_lines",
+                              {r: rec["src_line"] for r, rec in enumerate(records, 1)})
         results.settings().set("epher_graphs", graphs)
+        results.settings().set("epher_verbatim",
+                              {str(r): rec["verbatim"] for r, rec in enumerate(records, 1)
+                               if rec["verbatim"]})
+        hover_rows = [r for r, rec in enumerate(records, 1)
+                      if rec["verbatim"] and rec["verbatim"] != rec["text"]]
+        if hover_rows:
+            try:
+                results.add_regions(
+                    "epher-verbatim", [line_region(r) for r in hover_rows],
+                    "comment", "", flags,
+                    [records[r - 1]["verbatim"] for r in hover_rows], "")
+            except TypeError:
+                pass
+
+
+class EpherCopyVerbatimCommand(sublime_plugin.TextCommand):
+    """Copies the row at the cursor's verbatim statement output
+    (ADR-0078's first rule: copy never sees the shaped text)."""
+
+    def run(self, edit) -> None:
+        verbatim = self.view.settings().get("epher_verbatim") or {}
+        for sel in self.view.sel():
+            row = self.view.rowcol(sel.begin())[0] + 1
+            value = verbatim.get(str(row)) or verbatim.get(row)
+            if value:
+                sublime.set_clipboard(value)
+                sublime.status_message("LSP-epher: copied the verbatim output")
+                return
+        sublime.status_message("LSP-epher: nothing verbatim on this row")

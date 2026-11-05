@@ -45,9 +45,12 @@ side panel, no print statements: the editor *is* the calculator.
 - **Definition jumps**: `xref` jumps for names defined in the file.
 - **Run the script**: `C-c C-c` sends the same `epher/run` request the
   VS Code results pane uses. The per-statement transcript lands in the
-  `*epher run*` buffer, and every graph the script produced is saved
-  as an SVG file and opened with the system viewer. `g` in the results
-  buffer re-runs the script, `q` closes it.
+  `*epher run*` buffer with the result pane's presentation applied:
+  setup echo dim, failures red, verdict glyphs, matrices as padded
+  grids, long lists folded (`t` unfolds), and the run's answer bold
+  under the point. Every graph the script produced is saved as an SVG
+  file and opened with the system viewer. `g` re-runs the script, `w`
+  copies the row's verbatim output, `q` closes the buffer.
 
 ![The epher run buffer with the per-statement transcript and the graph paths](https://github.com/upyesp/epher/raw/HEAD/clients/emacs/images/results.png)
 

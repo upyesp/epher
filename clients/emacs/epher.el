@@ -181,15 +181,30 @@ answers as inlay hints, hover, and completion."
 
 ;; The run (ADR-0069, decision 3: the text-first editors send the same
 ;; `epher/run' request the graphical clients use): the per-statement
-;; transcript lands in the `*epher run*' buffer, and each plot the
-;; script produced is written as an SVG file and opened with the
-;; system viewer, the nvim pattern. `C-c C-c' runs; `g' in the
-;; results buffer re-runs.
+;; transcript lands in the `*epher run*' buffer with the run's pane
+;; presentation (ADR-0078) applied with Emacs's own means: the setup
+;; echo dim, failures their own tier, verdict glyphs, matrix grids,
+;; folded list tails, the answer bold under the cursor. Every plot
+;; the script produced is written as an SVG file and opened with the
+;; system viewer, the nvim pattern. `C-c C-c' runs; `g' re-runs,
+;; `w' copies a row verbatim, `t' unfolds, `q' closes.
+
+(defface epher-run-setup-face
+  '((t :inherit shadow))
+  "The dim face of the result pane's setup echo (ADR-0078)."
+  :group 'epher)
+
+(defface epher-run-answer-face
+  '((t :inherit success :weight bold))
+  "The emphasized face of the result pane's answer (ADR-0078 R4)."
+  :group 'epher)
 
 (defvar epher-run-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "q" #'quit-window)
     (define-key map "g" #'epher-run--rerun)
+    (define-key map "w" #'epher-run--copy-verbatim)
+    (define-key map "t" #'epher-run--toggle-fold)
     map)
   "Keymap for `epher-run-mode'.")
 
@@ -198,7 +213,232 @@ answers as inlay hints, hover, and completion."
 
 (define-derived-mode epher-run-mode special-mode "epher-run"
   "The transcript of an `epher-run'.
-`g' re-runs the script, `q' closes the pane.")
+`g' re-runs the script, `w' copies a row verbatim, `t' unfolds,
+`q' closes the pane.")
+
+(defun epher-run--grid-body (grid hang)
+  "One matrix as padded grid rows (ADR-0078 R3): cells padded to
+their column's width, columns joined with two spaces, the wire
+prefix on the first row, the suffix on the last, continuation
+rows indented HANG spaces."
+  (let* ((rows (append (plist-get grid :cells) nil))
+         (widths (append (plist-get grid :widths) nil))
+         (prefix (or (plist-get grid :prefix) ""))
+         (suffix (or (plist-get grid :suffix) "")))
+    (if (null rows)
+        (list (concat prefix suffix))
+      (let ((out nil)
+            (last (length rows))
+            (i 1))
+        (dolist (row rows (nreverse out))
+          (let ((cells nil)
+                (j 0))
+            (dolist (cell (append row nil))
+              (let ((w (or (nth j widths) (length cell))))
+                (push (concat (make-string (max 0 (- w (length cell))) ?\s)
+                              cell)
+                      cells))
+              (setq j (1+ j)))
+            (push (concat (if (= i 1) prefix (make-string hang ?\s))
+                          (mapconcat #'identity (nreverse cells) "  ")
+                          (when (= i last) suffix))
+                  out))
+          (setq i (1+ i)))))))
+
+(defun epher-run--list-body (list width hang)
+  "A long list folded at the threshold (ADR-0078 R3): the shown
+elements with a (+n more) note, the hidden tail on its own rows,
+wrapped on element boundaries to WIDTH. Returns (ROWS .
+TAIL-ROWS)."
+  (let* ((elements (append (plist-get list :elements) nil))
+         (hidden (or (plist-get list :hidden) 0))
+         (shown-count (max 0 (- (length elements) hidden)))
+         (shown nil)
+         (i 0))
+    (while (< i shown-count)
+      (push (nth i elements) shown)
+      (setq i (1+ i)))
+    (let* ((note (if (> hidden 0) (format " (+%d more)" hidden) ""))
+           (head (concat (or (plist-get list :prefix) "")
+                         "{ " (mapconcat #'identity (nreverse shown) ", ") " }" note
+                         (or (plist-get list :suffix) "")))
+           (rows (list head))
+           (tail-rows 0)
+           (line nil))
+      (while (< i (length elements))
+        (let ((piece (nth i elements)))
+          (cond
+           ((null line)
+            (setq line piece))
+           ((<= (+ (length line) 2 (length piece)) (- width hang))
+            (setq line (concat line ", " piece)))
+           (t
+            (push (concat (make-string hang ?\s) line) rows)
+            (setq tail-rows (1+ tail-rows))
+            (setq line piece))))
+        (setq i (1+ i)))
+      (when line
+        (push (concat (make-string hang ?\s) line) rows)
+        (setq tail-rows (1+ tail-rows)))
+      (cons (nreverse rows) tail-rows))))
+
+(defun epher-run--wrap-segments (segments width hang plain-text)
+  "The terminal pane's wrap (ADR-0078 R2) over the wire's
+soft-break SEGMENTS: rows no wider than WIDTH, continuation rows
+indented HANG spaces, breaks never inside a number. PLAIN-TEXT is
+the pane's display text, whose `= ' voice the first segment may
+need to shed."
+  (let* ((width (max width 8))
+         (indent (make-string (min hang width) ?\s))
+         (segs (append segments nil)))
+    (when (and segs plain-text
+               (not (string-prefix-p "= " plain-text))
+               (string-prefix-p "= " (car segs)))
+      ;; Prose shed the `= ' voice in the pane text; the segments
+      ;; (from the verbatim display) keep it, so the first segment
+      ;; sheds it too when the text does not carry it.
+      (setcar segs (substring (car segs) 2)))
+    (let ((rows nil)
+          (current "")
+          (has-content nil)
+          (continuation nil))
+      (dolist (seg segs)
+        (dolist (word (split-string seg " " t))
+          (let ((rest word))
+            (while (> (length rest) 0)
+              (when (and (not has-content) continuation (= (length current) 0))
+                (setq current indent))
+              (let* ((fresh (if (and (not has-content) continuation)
+                                (- width (length indent))
+                              width))
+                     (budget (if has-content
+                                 (- width (length current) 1)
+                               fresh)))
+                (when (< budget 1)
+                  (setq budget 1))
+                (let* ((len (length rest))
+                       (take (cond ((<= len budget) len)
+                                   ((<= len fresh) 0)
+                                   (t budget))))
+                  (cond
+                   ((<= take 0)
+                    (when has-content
+                      (push current rows)
+                      (setq current "" has-content nil))
+                    (setq continuation t))
+                   (t
+                    (let ((tail (if (> len take) (substring rest take) "")))
+                      (when has-content
+                        (setq current (concat current " ")))
+                      (setq current (concat current (substring rest 0 take)))
+                      (setq has-content t)
+                      (setq rest tail)
+                      (when (> (length rest) 0)
+                        (push current rows)
+                        (setq current "" has-content nil)
+                        (setq continuation t)))))))))))
+      (when has-content
+        (push current rows))
+      (unless rows
+        (push "" rows))
+      (nreverse rows))))
+
+(defun epher-run--pane-line-rows (pane width verbatim)
+  "One wire presentation line's display rows, propertized. Faces
+ride the tier (ADR-0078): the setup echo dims, a failure stays an
+error (ADR-0079), a labeled result keeps the success color; the
+verdict wears its glyph; a matrix renders as padded grid rows, a
+long list folded with its hidden tail, a plain line wrapped at
+the wire's soft-break segments, never mid-number. VERBATIM rides
+every row for copy and hover. Returns (ROWS . FOLD-COUNT), where
+FOLD-COUNT is the hidden tail sitting behind the last rows."
+  (let* ((kind (plist-get pane :kind))
+         (face (cond ((string= kind "setup") 'epher-run-setup-face)
+                     ((string= kind "error") 'error)
+                     (t 'success)))
+         (verdict (plist-get pane :verdict))
+         (glyph (cond ((eq verdict t) "✓ ")
+                      ((eq verdict :json-false) "✗ ")
+                      (t "")))
+         (fold-count 0)
+         lines)
+    (cond
+     ((plist-get pane :grid)
+      (setq lines (epher-run--grid-body (plist-get pane :grid) 2)))
+     ((plist-get pane :list)
+      (let ((pair (epher-run--list-body (plist-get pane :list) width 2)))
+        (setq lines (car pair)
+              fold-count (cdr pair))))
+     (t
+      (setq lines (epher-run--wrap-segments
+                   (append (plist-get pane :segments) nil)
+                   width 2 (plist-get pane :text)))))
+    (let ((rows nil)
+          (i 0)
+          (tail-start (max 0 (- (length lines) fold-count))))
+      (dolist (line lines (cons (nreverse rows) fold-count))
+        (let* ((text (concat (when (= i 0) (concat "  " glyph)) line))
+               (props (list 'face face 'epher-verbatim verbatim)))
+          (unless (string= verbatim text)
+            (setq props (append props (list 'help-echo verbatim))))
+          (when (and (= i tail-start) (> fold-count 0))
+            (setq props (append props (list 'epher-fold-count fold-count))))
+          (push (apply #'propertize text props) rows))
+        (setq i (1+ i))))))
+
+(defun epher-run--statement-rows (statement width)
+  "One statement's display rows: the run's presentation applied
+when it carries one, the verbatim display alone otherwise (an
+older server). Returns (ROWS . ANSWER), ANSWER non-nil when the
+statement carries the run's answer (ADR-0078 R4)."
+  (let* ((display (plist-get statement :display))
+         (presentation (plist-get statement :presentation))
+         (err (eq (plist-get statement :error) t))
+         (answer (and presentation (eq (plist-get presentation :answer) t)))
+         (rows nil))
+    (cond
+     ;; The silent const (ADR-0080) binds without a display: no rows
+     ;; at all, exactly as the graphical panes draw nothing.
+     ((null display)
+      (setq answer nil))
+     ((and presentation (plist-get presentation :lines))
+      (dolist (pane (append (plist-get presentation :lines) nil))
+        (let ((pair (epher-run--pane-line-rows pane width display)))
+          (setq rows (append rows (car pair))))))
+     (t
+      ;; No presentation: the verbatim display, as before. A failed
+      ;; statement's text is its display (the run carries no `error: '
+      ;; prefix; the shells add it when they print), so the failure
+      ;; prints its message, its own tier (ADR-0079).
+      (let ((text (concat "  " display)))
+        (setq rows (list (propertize text
+                                     'face (if err 'error 'success)
+                                     'epher-verbatim display))))
+      (setq answer nil)))
+    (when (and answer rows)
+      (setq rows (mapcar (lambda (row)
+                           (propertize row 'epher-answer t))
+                         rows)))
+    (cons rows answer)))
+
+(defun epher-run--toggle-fold ()
+  "Show or hide the folded hidden list tails (ADR-0078 R3)."
+  (interactive)
+  (if (memq 'epher-run-fold buffer-invisibility-spec)
+      (setq-local buffer-invisibility-spec
+                  (delq 'epher-run-fold buffer-invisibility-spec))
+    (setq-local buffer-invisibility-spec
+                (append buffer-invisibility-spec '(epher-run-fold)))))
+
+(defun epher-run--copy-verbatim ()
+  "Copy the verbatim output of the row at point (ADR-0078's first
+rule: copy never sees the shaped text)."
+  (interactive)
+  (let ((verbatim (get-text-property (line-beginning-position)
+                                     'epher-verbatim)))
+    (when (and verbatim (> (length verbatim) 0))
+      (kill-new verbatim)
+      (message "epher: copied the verbatim output"))))
 
 ;; browse-url is built in and autoloaded; the declaration keeps a
 ;; byte-compile quiet, not the runtime.
@@ -257,34 +497,60 @@ and opens each plot the script produced with the system viewer."
                          (with-temp-file path (insert svg))
                          (push path paths)))))))
            (run-buffer (get-buffer-create "*epher run*")))
-      (with-current-buffer run-buffer
-        (let ((inhibit-read-only t))
+      ;; The window shows first: the rows wrap to the real pane width
+      ;; (ADR-0078 R2), which only an open window knows.
+      (pop-to-buffer run-buffer)
+      (let* ((run-window (get-buffer-window run-buffer t))
+             (width (or (and run-window (window-body-width run-window)) 78))
+             (inhibit-read-only t)
+             (fold-spans nil)
+             (answer-line nil))
+        (with-current-buffer run-buffer
           (erase-buffer)
           (insert (propertize (format "epher run: %s\n"
                                       (buffer-name script-buffer))
                               'face 'bold))
-          (dolist (stmt statements)
-            (let ((source (plist-get stmt :source))
-                  (display (plist-get stmt :display))
-                  (error-message (plist-get stmt :error)))
-              (when (eq error-message :json-false)
-                (setq error-message nil))
-              (insert source "\n")
-              (cond
-               (error-message
-                (insert (propertize (format "  %s\n" error-message)
-                                    'face 'error)))
-               (display
-                (insert (propertize (format "  %s\n" display)
-                                    'face 'success))))))
-          (when graph-paths
-            (insert (format "\nGraphs (%d, each opened with the system viewer):\n"
-                            (length graph-paths)))
-            (dolist (path graph-paths)
-              (insert "  " path "\n"))))
-        (epher-run-mode)
-        (setq epher-run--script-buffer script-buffer))
-      (pop-to-buffer run-buffer)
+          (let ((line 1))
+            (dolist (stmt statements)
+              (let* ((source (plist-get stmt :source))
+                     (pair (epher-run--statement-rows stmt width)))
+                (insert source "\n")
+                (setq line (1+ line))
+                (dolist (row (car pair))
+                  (setq line (1+ line))
+                  (insert row "\n")
+                  (let ((fold-count (get-text-property 0 'epher-fold-count row)))
+                    (when fold-count
+                      (push (cons (- line (1- fold-count)) fold-count)
+                            fold-spans)))
+                  (when (and (null answer-line)
+                             (get-text-property 0 'epher-answer row))
+                    (setq answer-line line)))))
+            (when graph-paths
+              (insert (format "\nGraphs (%d, each opened with the system viewer):\n"
+                              (length graph-paths)))
+              (dolist (path graph-paths)
+                (insert "  " path "\n"))))
+          (epher-run-mode)
+          (setq-local epher-run--script-buffer script-buffer)
+          ;; The hidden list tails hide behind an invisible overlay
+          ;; (ADR-0078 R3); `t' unfolds, the way every fold opens.
+          (dolist (span fold-spans)
+            (let* ((beg (progn (goto-char (point-min))
+                               (forward-line (1- (car span)))
+                               (point)))
+                   (end (progn (forward-line (1- (cdr span)))
+                               (end-of-line)
+                               (point)))
+                   (overlay (make-overlay beg end)))
+              (overlay-put overlay 'invisible 'epher-run-fold)))
+          (setq-local buffer-invisibility-spec
+                      (append buffer-invisibility-spec '(epher-run-fold)))
+          ;; The run's answer carries the weight (ADR-0078 R4/R5):
+          ;; the point lands on it, so the pane opens at what matters.
+          (when answer-line
+            (goto-char (point-min))
+            (forward-line (1- answer-line)))))
       (cond
        ((and graph-paths (display-graphic-p))
         (dolist (path graph-paths)

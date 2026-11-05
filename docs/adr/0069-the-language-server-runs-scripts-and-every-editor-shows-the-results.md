@@ -178,3 +178,53 @@ pane, the terminal pane, and the wire payload cannot drift.
 
 Copy still sends the transcript verbatim everywhere (ADR-0078's
 first rule); the shaped display never feeds a copy path.
+
+## Amendment (2026-11-05): the text-first editors render the wire
+## presentation
+
+The previous amendment put the result pane's presentation on the
+wire, but the graphical panes were still the only renderers of it:
+Neovim, Vim, Emacs, and Sublime printed the verbatim display as
+undifferentiated text, so their results surfaces stayed as they
+were before ADR-0078 ever shipped. Decision 3's floor ("no editor's
+extension ships worse results than it ships today") was met, but
+the toolkit's ceiling was nowhere near met.
+
+The four text-first editors that run scripts now render the wire
+presentation with each toolkit's own means, with no server change:
+- **Neovim** applies the tiers as extmark highlights (the setup
+  echo dims to Comment, failures stay ErrorMsg), the answer bold
+  with the cursor landing on it when the pane opens; matrices as
+  padded grid rows, long lists with their hidden tail behind a
+  manual fold, verdict glyphs in the text; `y` yanks the row's
+  verbatim output, and a CursorHold float shows the verbatim text
+  a wrapped, gridded, or folded row hides.
+- **Vim** does the same with window-local `matchaddpos` highlights
+  (EpherSetup links to Comment, EpherAnswer is bold), manual folds
+  over the hidden tails, and an 8.2 `popup_atcursor` hover.
+- **Emacs** faces the tiers (a dim face for setup, `error` for
+  failures, `success` for results, the answer bold over `success`),
+  hides the hidden tails behind an invisible overlay that `t`
+  unfolds, carries the verbatim output as text properties (`w`
+  copies it, `help-echo` hovers it), and moves the point to the
+  answer. The old bug that printed the error flag's `t` instead of
+  the failure text is gone with the rewrite.
+- **Sublime** colors the tiers as region scopes (comment dims,
+  region.redish fails, region.greenish answers), folds the hidden
+  tails with the view's own fold, puts the cursor on the answer,
+  and gains **Epher: Copy Statement Verbatim**; region annotations
+  (Sublime 4107 and newer) hover the verbatim text where the shaped
+  text hides it.
+
+All four wrap plain lines at the wire's soft-break segments to the
+pane's width, continuation rows indented under the text, so a long
+value never breaks mid-number (ADR-0078 R2); a matrix renders as
+the padded grid (R3); a folded list keeps its hidden tail reachable
+behind the toolkit's native fold (R3); the answer is emphasized and
+the pane opens scrolled to it (R4/R5). Units stay undimmed in the
+plain-text surfaces; a monospace row has no second weight for
+them. Zed stays where its extension API leaves it (no run surface,
+no pane); Eclipse takes this rendering when its run story lands.
+
+Copy still sends the transcript verbatim everywhere; the shaped
+display never feeds a copy path.
