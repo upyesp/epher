@@ -139,3 +139,42 @@ real limits:
 - **Vim, Emacs, Sublime, and Eclipse** keep the decision-3 floor for
   now; configuration-level clients whose run story follows in a
   later release; nothing about them regressed.
+
+## Amendment (2026-11-05): the run payload carries the result pane's presentation
+
+The result pane's presentation contract (ADR-0078) shipped for the
+calculator's two panes; every editor's results surface rendered the
+transcript as undifferentiated text, so the tiers, grids, folds,
+verdict glyphs, and the answer's emphasis stopped at the extensions'
+door. The IDE extensions looked nothing like the calculator they
+bundle.
+
+`epher/run` now returns, beside the verbatim `display` every editor
+reads today, each display line's pane presentation as wire data: the
+line's tier (`setup` / `labeled` / `error`), its display text (prose
+drops the `= ` marker per ADR-0078's amendment), its verdict and
+trailing unit, its matrix as cells plus column widths, its long list
+as elements plus the hidden count, and which statement carries the
+run's answer (`answerLine`, the pane's last-line-is-the-answer rule,
+judged only over content lines: the run's error displays carry no
+`error: ` prefix (the shells add it when they print), so failure
+lines stay out of the judgment and their tiers are forced on the
+wire). The shaping lives in the shared pane contract
+(`epher_core::pane::present_line` / `present_transcript`), so the web
+pane, the terminal pane, and the wire payload cannot drift.
+
+- **VS Code** renders the full presentation in its webview: dim
+  setup, the answer emphasized and scrolled into view on open, ✓/✗
+  glyphs, dimmed units, right-aligned grids, a "+n more" fold, and
+  per-row verbatim copy.
+- **JetBrains** renders the same shape in its JCEF browser and
+  applies the tiers, glyphs, padded grids, and folds in the Swing
+  fallback (the toolkit's floor, same as decision 3).
+- **Visual Studio** renders the same shape in its self-contained
+  results HTML.
+- The text-first editors (Neovim, Vim, Emacs, Sublime, Zed, Eclipse)
+  keep reading `display` verbatim; the new fields are additive and
+  they ignore them.
+
+Copy still sends the transcript verbatim everywhere (ADR-0078's
+first rule); the shaped display never feeds a copy path.

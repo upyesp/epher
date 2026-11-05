@@ -133,12 +133,34 @@ internal class EpherResultsPanel : JPanel(BorderLayout()), Disposable {
             fallbackStack.add(paneLabel("No output.", color(c.muted), italic = true))
         }
         for (statement in outputs) {
-            fallbackStack.add(
-                paneLabel(
-                    statement.display ?: "",
-                    color(if (statement.error) c.error else c.answer),
+            // The pane's tiers (ADR-0078): setup echo dims, the
+            // failure tier (ADR-0079) reads as a failure, the answer
+            // carries the weight. Without a presentation, the row
+            // keeps its plain answer/error coloring.
+            val presentation = statement.presentation
+            val bold = presentation?.answer == true
+            if (presentation == null) {
+                fallbackStack.add(
+                    paneLabel(
+                        statement.display ?: "",
+                        color(if (statement.error) c.error else c.answer),
+                    )
                 )
-            )
+                continue
+            }
+            for (pane in presentation.lines) {
+                val label = StringBuilder()
+                if (pane.verdict != null) {
+                    label.append(if (pane.verdict) "✓ " else "✗ ")
+                }
+                label.append(pane.grid?.let(::gridText) ?: listText(pane) ?: pane.text)
+                val tint = when (pane.kind) {
+                    "setup" -> c.muted
+                    "error" -> c.error
+                    else -> c.answer
+                }
+                fallbackStack.add(paneLabel(label.toString(), color(tint), bold = bold))
+            }
         }
         if (report.svgs.isNotEmpty()) {
             fallbackStack.add(paneLabel("Graphs", color(c.foreground), bold = true))
@@ -166,6 +188,28 @@ internal class EpherResultsPanel : JPanel(BorderLayout()), Disposable {
 
     /** The pane's usable width: wide enough to read, capped for huge windows. */
     private fun fallbackWidth(): Int = size.width.takeIf { it > 200 } ?: 720
+
+    /** A grid as padded monospace text: each cell right-padded to
+     *  its column's width, columns joined with two spaces (ADR-0078
+     *  R3, the same shape the terminal pane draws). */
+    private fun gridText(grid: PaneGridData): String {
+        val rows = grid.cells.joinToString("\n") { row ->
+            row.mapIndexed { column, cell ->
+                val width = grid.widths.getOrNull(column) ?: cell.length
+                cell.padStart(width)
+            }.joinToString("  ")
+        }
+        return grid.prefix + rows + grid.suffix
+    }
+
+    /** A long list folded at the threshold (ADR-0078 R3): the shown
+     *  elements and a note for the hidden tail. */
+    private fun listText(pane: PaneLineData): String? {
+        val list = pane.list ?: return null
+        val shown = if (list.hidden > 0) list.elements.dropLast(list.hidden) else list.elements
+        val fold = if (list.hidden > 0) " (+${list.hidden} more)" else ""
+        return list.prefix + shown.joinToString(", ", "{ ", " }") + fold + list.suffix
+    }
 
     /** Render the engine's own generated SVG into a plain image. */
     private fun rasterize(svg: String, targetWidth: Int): java.awt.Image {
@@ -209,22 +253,35 @@ internal class EpherResultsPanel : JPanel(BorderLayout()), Disposable {
     private fun writeSvg(index: Int, svg: String): File =
         File.createTempFile("epher-graph-${index + 1}-", ".svg").apply { writeText(svg) }
 
-    // A port of results.ts reportHtml(), minus the script: only
-    // statements with output are rows (the pane is the script's output,
-    // not a re-reading of it), then a Graphs section, then the empty
-    // state. The data-line attributes stay on the rows: click-to-reveal
-    // needs a JS bridge into the IDE, a planned follow-up (see README).
+    // A port of results.ts reportHtml(), minus the IDE bridge: only
+    // statements with output are rows (the pane is the script's
+    // output, not a re-reading of it), each row shaped by the run
+    // payload's pane presentation (ADR-0078) when the server sent
+    // one, then a Graphs section, then the empty state. The
+    // data-line attributes stay on the rows: click-to-reveal needs a
+    // JS bridge into the IDE, a planned follow-up (see README). The
+    // fold toggle and the scroll to the answer are plain JS, so they
+    // work here too.
     private fun reportHtml(report: RunReport): String {
         val c = palette()
         val rows = report.statements
             .filter { it.display != null }
             .joinToString("\n") { statement ->
-                val answer = if (statement.error) {
-                    "<span class=\"error\">${escapeHtml(statement.display ?: "error")}</span>"
-                } else {
-                    "<span class=\"answer\">${escapeHtml(statement.display ?: "")}</span>"
+                val presentation = statement.presentation
+                val title = statement.display?.let { " title=\"${escapeHtml(it)}\"" } ?: ""
+                if (presentation == null) {
+                    val answer = if (statement.error) {
+                        "<span class=\"error\">${escapeHtml(statement.display ?: "error")}</span>"
+                    } else {
+                        "<span class=\"answer\">${escapeHtml(statement.display ?: "")}</span>"
+                    }
+                    return@joinToString "<div class=\"output\" data-line=\"${statement.line}\"$title>$answer</div>"
                 }
-                "<div class=\"output\" data-line=\"${statement.line}\">$answer</div>"
+                val classes = mutableListOf("output")
+                if (presentation.answer) { classes.add("final") }
+                if (statement.error) { classes.add("error-row") }
+                val lines = presentation.lines.joinToString("") { pane -> paneHtml(pane) }
+                "<div class=\"${classes.joinToString(" ")}\" data-line=\"${statement.line}\"$title>$lines</div>"
             }
         // The SVG documents the engine renders are self-contained and
         // generated (never user input); inline them and let CSS size
@@ -244,6 +301,18 @@ internal class EpherResultsPanel : JPanel(BorderLayout()), Disposable {
               .output:hover { background: ${c.hover}; }
               .answer { color: ${c.answer}; }
               .error { color: ${c.error}; }
+              .pline-setup { color: ${c.muted}; }
+              .pline-error { color: ${c.error}; font-weight: 500; }
+              .output.final { font-weight: 600; }
+              .output.final .line-body { font-size: 1.15em; }
+              .v-glyph { display: inline-block; width: 1.6ch; }
+              .v-true { color: ${c.passed}; }
+              .v-false { color: ${c.error}; }
+              .unit { color: ${c.muted}; }
+              table.grid { display: inline-table; border-collapse: collapse; }
+              table.grid td { text-align: right; padding: 0 10px 0 0; white-space: pre; }
+              button.more { background: none; border: none; color: ${c.muted}; cursor: pointer;
+                font: inherit; padding: 0 4px; text-decoration: underline; }
               .graph { margin: 10px 0; }
               .graph svg { width: 100%; height: auto; background: #ffffff; border-radius: 4px; }
               .empty { color: ${c.muted}; font-style: italic; }
@@ -252,9 +321,61 @@ internal class EpherResultsPanel : JPanel(BorderLayout()), Disposable {
             <body>
             $body
             $graphSection
+            <script>
+              document.addEventListener("click", (event) => {
+                const more = event.target.closest(".more");
+                if (more) {
+                  const rest = more.nextElementSibling;
+                  if (rest) { rest.hidden = false; }
+                  more.remove();
+                }
+              });
+              const final = document.querySelector(".output.final");
+              if (final) { final.scrollIntoView({ block: "center" }); }
+            </script>
             </body>
             </html>
             """.trimIndent()
+    }
+
+    /** One display line's shaped body (ADR-0078): the verdict glyph,
+     *  a grid as a right-aligned table, a folded list behind a
+     *  button, a dimmed trailing unit, the display text otherwise. */
+    private fun paneHtml(pane: PaneLineData): String {
+        val glyph = when (pane.verdict) {
+            true -> "<span class=\"v-glyph v-true\" aria-hidden=\"true\">✓</span>"
+            false -> "<span class=\"v-glyph v-false\" aria-hidden=\"true\">✗</span>"
+            null -> ""
+        }
+        val body = when {
+            pane.grid != null -> {
+                val g = pane.grid
+                val rowsHtml = g.cells.joinToString("") { row ->
+                    "<tr>" + row.joinToString("") { cell -> "<td>${escapeHtml(cell)}</td>" } + "</tr>"
+                }
+                escapeHtml(g.prefix) + "<table class=\"grid\">$rowsHtml</table>" + escapeHtml(g.suffix)
+            }
+            pane.list != null -> {
+                val l = pane.list
+                val shown = if (l.hidden > 0) l.elements.dropLast(l.hidden) else l.elements
+                val opened = escapeHtml(l.prefix) + "{ " +
+                    shown.joinToString(", ") { escapeHtml(it) }
+                if (l.hidden > 0) {
+                    val more = "<button type=\"button\" class=\"more\">+${l.hidden} more</button>" +
+                        "<span class=\"rest\" hidden>, " +
+                        l.elements.takeLast(l.hidden).joinToString(", ") { escapeHtml(it) } +
+                        "</span>"
+                    opened + more + " }" + escapeHtml(l.suffix)
+                } else {
+                    opened + " }" + escapeHtml(l.suffix)
+                }
+            }
+            pane.unit != null && pane.text.endsWith(" ${pane.unit}") ->
+                escapeHtml(pane.text.substring(0, pane.text.length - pane.unit.length - 1)) +
+                    "<span class=\"unit\"> ${escapeHtml(pane.unit)}</span>"
+            else -> escapeHtml(pane.text)
+        }
+        return "<div class=\"pline pline-${pane.kind}\">$glyph<span class=\"line-body\">$body</span></div>"
     }
 
     private data class Palette(
@@ -264,6 +385,7 @@ internal class EpherResultsPanel : JPanel(BorderLayout()), Disposable {
         val error: String,
         val muted: String,
         val hover: String,
+        val passed: String,
     )
 
     // One palette per theme, inlined: JCEF knows nothing of the IDE's
@@ -271,9 +393,9 @@ internal class EpherResultsPanel : JPanel(BorderLayout()), Disposable {
     // baked into the HTML.
     private fun palette(): Palette =
         if (JBColor.isBright()) {
-            Palette("#ffffff", "#1e1e1e", "#0067c0", "#c00000", "#8a8a8a", "#eef2f7")
+            Palette("#ffffff", "#1e1e1e", "#0067c0", "#c00000", "#8a8a8a", "#eef2f7", "#1a7f37")
         } else {
-            Palette("#1e1f22", "#dfe1e5", "#c8c8c8", "#f75464", "#9d9d9d", "#37373d")
+            Palette("#1e1f22", "#dfe1e5", "#c8c8c8", "#f75464", "#9d9d9d", "#37373d", "#56d364")
         }
 
     private fun escapeHtml(text: String): String =

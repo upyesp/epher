@@ -147,17 +147,11 @@ fn run_request(
     {
         if document.text == text {
             if let Some(lines) = analysis::reconstruct_run(&text, &document.outcomes) {
+                let (statements, answer_line) = analysis::statements_json(&lines);
                 let result = serde_json::json!({
-                    "statements": lines
-                        .iter()
-                        .map(|line| serde_json::json!({
-                            "line": line.line,
-                            "source": line.source,
-                            "display": line.display,
-                            "error": line.error,
-                        }))
-                        .collect::<Vec<_>>(),
+                    "statements": statements,
                     "svgs": serde_json::Value::Array(Vec::new()),
+                    "answerLine": answer_line,
                 });
                 return Response::new_ok(req.id.clone(), result);
             }
@@ -165,18 +159,11 @@ fn run_request(
     }
     let localizer = epher_i18n::Localizer::resolve(None, &[]);
     let run = epher_shell::run_script(&text, &localizer);
+    let (statements, answer_line) = analysis::statements_json(&run.lines);
     let result = serde_json::json!({
-        "statements": run
-            .lines
-            .iter()
-            .map(|line| serde_json::json!({
-                "line": line.line,
-                "source": line.source,
-                "display": line.display,
-                "error": line.error,
-            }))
-            .collect::<Vec<_>>(),
+        "statements": statements,
         "svgs": run.svgs,
+        "answerLine": answer_line,
     });
     Response::new_ok(req.id.clone(), result)
 }

@@ -74,7 +74,11 @@ results** tool window on the right (ADR-0069): every statement's
 answer or error as a row anchored to its source line, and every 2D or
 3D graph the run produced inlined below them. Statements that print
 nothing are not rows; the pane is the script's output, not a
-re-reading of the script.
+re-reading of the script. Rows carry the result pane's presentation
+(ADR-0078): setup echo dim, the answer emphasized, ✓/✗ on checks,
+matrices as grids, long lists folded behind a button; where the IDE
+lacks the embedded browser, the same tiers render as plain Swing
+rows.
 
 The play icon in the editor's title bar and the Run menu are wired to
 the same road: the plugin registers an `epher` run configuration type,
