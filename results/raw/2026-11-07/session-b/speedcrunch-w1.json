@@ -1,0 +1,40 @@
+{
+ "task": "w1",
+ "label": "W1 scalar arithmetic",
+ "chunk_lines": 120,
+ "gate": {
+  "tolerance": "relative 1e-9 vs 60-digit decimal referee",
+  "checked": 10000,
+  "failed": 0
+ },
+ "retry": {
+  "chunk_retries": 0
+ },
+ "results": [
+  {
+   "track": "single",
+   "track_note": "W1/W2 fix the expressions; idiomatic and equivalent implementations coincide by construction (pilot README).",
+   "boundary": "GUI bulk ingest end-to-end: per-chunk span is Cmd+V posted -> all of the chunk's results present in the history accessibility value; chunk spans summed; clears and clipboard writes outside the span",
+   "warmups": 3,
+   "requested_samples": 7,
+   "bucket_rule": "warm-up pass 15.5 s -> 7 samples",
+   "units": "ms",
+   "samples": 7,
+   "min": 15550.675957999829,
+   "median": 15607.860167000354,
+   "mad": 29.394000000593223,
+   "p95": 15658.805040000516,
+   "max": 15677.129123000668,
+   "outlier_indices": [],
+   "raw_passes_ms": [
+    15550.675957999829,
+    15578.46616699976,
+    15592.607000000726,
+    15607.860167000354,
+    15621.218461999888,
+    15658.805040000516,
+    15677.129123000668
+   ]
+  }
+ ]
+}
