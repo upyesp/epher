@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <!--
   epher Features page: the comparison chart against nine
-  scientific calculators and math tools, from the third gap analysis
-  (docs/research/calculator-gap-analysis-3rd.md). Chrome and i18n like
+  scientific calculators and math tools, from the fourth gap analysis
+  (docs/research/calculator-gap-analysis-4th.md), plus the platform
+  and delivery matrix new in that pass. Chrome and i18n like
   privacy.html; the strings are features-* / feat-* catalog keys.
 -->
 <html lang="en">
@@ -121,9 +122,10 @@
       </p>
       <h2 data-i18n="features-h-chart">The comparison chart</h2>
       <p data-i18n="features-legend">
-        ✓ full support · ~ partial · – absent. epher v0.5.37 was probed
-        feature by feature; the nine columns were checked against each
-        product's official documentation.
+        ✓ full support · ~ partial · – absent. epher 0.9.6 was probed
+        feature by feature on 2026-11-07; the nine columns were pinned
+        to each product's latest release and checked against its
+        official documentation.
       </p>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Feature comparison table (scrolls horizontally)">
         <table class="compare">
@@ -555,6 +557,214 @@
         SpeedCrunch · HP HiPER Scientific · Pr HP Prime · Oc MATLAB /
         GNU Octave.
       </p>
+      <h2 data-i18n="features-h-platform">How epher ships</h2>
+      <p data-i18n="features-p-platform">
+        What a language can do is half the story; the other half is how
+        it reaches you. This second chart measures the delivery
+        surfaces, checked the same way: epher probed, the nine pinned
+        to their latest releases on 2026-11-07.
+      </p>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Platform and delivery table (scrolls horizontally)">
+        <table class="compare">
+          <thead>
+            <tr>
+              <th scope="col" data-i18n="features-col-feature">Feature</th>
+              <th scope="col" class="c">epher</th>
+              <th scope="col" class="c" abbr="NumWorks">NW</th>
+              <th scope="col" class="c" abbr="Desmos">DM</th>
+              <th scope="col" class="c" abbr="GeoGebra">GG</th>
+              <th scope="col" class="c" abbr="TI-84 Plus CE / TI-Nspire CX II">TI</th>
+              <th scope="col" class="c" abbr="WolframAlpha / Wolfram Language">WL</th>
+              <th scope="col" class="c" abbr="SpeedCrunch">SC</th>
+              <th scope="col" class="c" abbr="HiPER Scientific">HP</th>
+              <th scope="col" class="c" abbr="HP Prime">Pr</th>
+              <th scope="col" class="c" abbr="MATLAB / GNU Octave">Oc</th>
+            </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <th scope="row" data-i18n="feat-row-refdoc">Documented language reference</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-ide">First-party IDE extension</th>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-lsp">First-party LSP server</th>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-cli">CLI (one-shot / batch)</th>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-repl">Interactive REPL</th>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-tui">Full-screen terminal UI</th>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-gui">Desktop GUI app</th>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-web">Web app</th>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-mobile">Mobile app or mobile UI</th>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-linux">Runs on Linux</th>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-windows">Runs on Windows</th>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-macos">Runs on macOS</th>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">✓</td>
+            <td class="c">✓</td>
+          </tr>
+          <tr>
+            <th scope="row" data-i18n="feat-row-scriptlib">Large offline script collection</th>
+            <td class="c">✓</td>
+            <td class="c">~</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">~</td>
+            <td class="c">✓</td>
+            <td class="c">–</td>
+            <td class="c">–</td>
+            <td class="c">~</td>
+            <td class="c">~</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted" data-i18n="features-plat-note">
+        First-party means shipped by the vendor itself, not the
+        community. The offline collection row asks for a hundred or
+        more runnable, categorized scripts riding the installer.
+        epher's mobile mark is a mobile view of the web app, not a
+        store app; its Linux mark covers apt, dnf, Flathub, Snap, and
+        AUR; its extension row covers nine editor families on one
+        language server. SpeedCrunch's Linux build is the older 0.12
+        line; MATLAB's Windows and macOS marks are the desktop product,
+        its web mark MATLAB Online, and its mobile mark MATLAB Mobile.
+      </p>
       <h2 data-i18n="features-h-missing">Where epher is missing</h2>
       <p data-i18n="features-p-missing">
         No computer-algebra system (CAS), no exam mode, no step-by-step
@@ -564,9 +774,9 @@
         numbers, exactly, on your own machine.
       </p>
       <p data-i18n="features-p-programming">
-        The programming surface is partial: strings, for-loops and
-        print exist; keyboard input, file I/O and multiple return
-        values do not.
+        The programming surface is partial: strings with escapes, a
+        string library, if / while / for, def with return, recursion
+        and destructuring exist; keyboard input and file I/O do not.
       </p>
       <h2 data-i18n="features-h-unique">Where epher stands alone</h2>
       <ul>
@@ -596,9 +806,18 @@
           phases, magnitudes - and a 3D orrery you can animate. None of
           the nine has one.
         </li>
+        <li data-i18n="features-li-editors">
+          Nine editor families on one first-party language server: VS
+          Code, Visual Studio, JetBrains IDEs, Eclipse, Zed, Sublime
+          Text, Vim, Neovim and Emacs, with diagnostics, completions
+          and script runs that show each line's answer in the editor.
+          Only two of the nine reference tools ship their own language
+          server, and neither shows script results in the editor.
+        </li>
         <li data-i18n="features-li-scripts">
-          433 scripts ship inside every installer - moon phases,
-          matrices, finance, astronomy - each with a transcript that is
+          532 scripts ship inside every installer - moon phases,
+          matrices, finance, astronomy - in eleven categories, browsed
+          from an in-app examples menu, each with a transcript that is
           verified against the engine on every change.
         </li>
         <li data-i18n="features-li-guide">
@@ -608,11 +827,12 @@
       </ul>
       <h2 data-i18n="features-h-method">Method</h2>
       <p data-i18n="features-p-method">
-        The chart comes from a three-pass feature analysis (baseline,
-        rerun, and this one), re-probing epher and re-checking every
-        app column against primary sources - the full notes, with
-        sources and dates, are in the repository:
-        <a href="https://github.com/upyesp/epher/blob/main/docs/research/calculator-gap-analysis-3rd.md">calculator-gap-analysis-3rd.md</a>.
+        The charts come from a four-pass feature analysis (baseline,
+        rerun, third, and this one), re-probing epher and re-pinning
+        every app column to its latest release against primary sources
+        - the full notes, with sources and dates, are in the
+        repository:
+        <a href="https://github.com/upyesp/epher/blob/main/docs/research/calculator-gap-analysis-4th.md">calculator-gap-analysis-4th.md</a>.
       </p>
       <h2 data-i18n="features-h-contact">Questions</h2>
       <p data-i18n="features-p-questions">
