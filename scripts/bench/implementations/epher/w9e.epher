@@ -1,0 +1,14 @@
+s = 0
+for i in 1 to 12500 do if mod(i, 3) == 0 then s = s + i
+for i in 1 to 12500 do if mod(i, 3) != 0 and mod(i, 7) == 0 then s = s - i
+for i in 1 to 12500 do if mod(i, 3) != 0 and mod(i, 7) != 0 then s = s + 1
+for i in 12501 to 25000 do if mod(i, 3) == 0 then s = s + i
+for i in 12501 to 25000 do if mod(i, 3) != 0 and mod(i, 7) == 0 then s = s - i
+for i in 12501 to 25000 do if mod(i, 3) != 0 and mod(i, 7) != 0 then s = s + 1
+for i in 25001 to 37500 do if mod(i, 3) == 0 then s = s + i
+for i in 25001 to 37500 do if mod(i, 3) != 0 and mod(i, 7) == 0 then s = s - i
+for i in 25001 to 37500 do if mod(i, 3) != 0 and mod(i, 7) != 0 then s = s + 1
+for i in 37501 to 50000 do if mod(i, 3) == 0 then s = s + i
+for i in 37501 to 50000 do if mod(i, 3) != 0 and mod(i, 7) == 0 then s = s - i
+for i in 37501 to 50000 do if mod(i, 3) != 0 and mod(i, 7) != 0 then s = s + 1
+s

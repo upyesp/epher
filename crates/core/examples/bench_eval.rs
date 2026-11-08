@@ -17,7 +17,7 @@
 use std::io::{BufRead, Write};
 use std::time::Instant;
 
-use epher_core::{run, Env, Value};
+use epher_core::{run, Env, Statement, Value};
 
 fn to_f64(v: &Value) -> f64 {
     match v {
@@ -128,6 +128,58 @@ fn verify(lines_mode: bool, path: &str) {
     }
 }
 
+/// Stage 4: per-line verify that CONTINUES on a line error, printing
+/// `ERR: <msg>` for that line (used to discover unit coverage in W6).
+fn verify_cont(path: &str) {
+    let stdout = std::io::stdout();
+    let mut out = stdout.lock();
+    let lines = read_lines(path);
+    let mut env = Env::default();
+    for line in &lines {
+        let rendered = match expr_pass(std::slice::from_ref(line), &mut env) {
+            Ok(Some(Value::Quantity { value, unit, .. })) => match unit {
+                Some((name, factor)) => format!("QTY:{} {}", value / factor, name),
+                None => format!("QTY:{} {}", value, "(si)"),
+            },
+            Ok(Some(Value::Str(s))) => format!("STR:{}", s),
+            Ok(v) => match v.map(|v| to_f64(&v)) {
+                Some(f) if f.is_nan() => "NAN".to_string(),
+                Some(f) => format!("{f:.17e}"),
+                None => "NAN".to_string(),
+            },
+            Err(e) => format!("ERR: {}", e),
+        };
+        writeln!(out, "{rendered}").expect("write");
+    }
+}
+
+/// Stage 4: script verify that prints EVERY value-producing statement
+/// (assignments stay silent in epher, so bare expressions mark the gate
+/// outputs), continuing past statement errors with an `ERR:` line.
+fn verify_all(path: &str) {
+    let stdout = std::io::stdout();
+    let mut out = stdout.lock();
+    let text = std::fs::read_to_string(path).expect("read script");
+    let stmts = epher_core::parse_script(&text).expect("parse script");
+    let mut env = Env::default();
+    for stmt in &stmts {
+        let is_output = matches!(stmt, Statement::Expr(_));
+        let rendered = match run(std::slice::from_ref(stmt), &mut env) {
+            Ok(Some(v)) if is_output => {
+                if let Value::Str(s) = &v {
+                    format!("STR:{}", s.replace('\\', "\\\\").replace('\n', "\\n"))
+                } else {
+                    let f = to_f64(&v);
+                    if f.is_nan() { "NAN".to_string() } else { format!("{f:.17e}") }
+                }
+            }
+            Ok(_) => continue,
+            Err(e) => format!("ERR: {}", e),
+        };
+        writeln!(out, "{rendered}").expect("write");
+    }
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let usage = "usage: bench_eval <expr-batch|expr-verify|script-run|script-verify> <file> [warmups samples]";
@@ -138,6 +190,8 @@ fn main() {
             timed("expr-batch", |env| expr_pass(&lines, env), w, s, None);
         }
         Some("expr-verify") => verify(true, &args[2]),
+        Some("expr-verify-cont") => verify_cont(&args[2]),
+        Some("script-verify-all") => verify_all(&args[2]),
         Some("script-run") => {
             let (w, s) = counts(&args, usage);
             let text = std::fs::read_to_string(&args[2]).expect("read script");

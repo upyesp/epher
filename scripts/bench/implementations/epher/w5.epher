@@ -1,0 +1,18 @@
+i1 = integral(exp(-x^2), 0, 1)
+i2 = integral(sin(x) * exp(-x/3), 0, pi)
+i3 = integral(ln(x) / x, 1, 2)
+lo1 = 0
+hi1 = 1
+while hi1 - lo1 > 1e-13 do if (cos((lo1 + hi1) / 2) - (lo1 + hi1) / 2 < 0 and cos(hi1) - hi1 < 0) or (cos((lo1 + hi1) / 2) - (lo1 + hi1) / 2 >= 0 and cos(hi1) - hi1 >= 0) then hi1 = (lo1 + hi1) / 2 else lo1 = (lo1 + hi1) / 2
+(lo1 + hi1) / 2
+lo2 = 1
+hi2 = 2
+while hi2 - lo2 > 1e-13 do if (((lo2 + hi2) / 2)^3 - (lo2 + hi2) / 2 - 1 < 0 and hi2^3 - hi2 - 1 < 0) or (((lo2 + hi2) / 2)^3 - (lo2 + hi2) / 2 - 1 >= 0 and hi2^3 - hi2 - 1 >= 0) then hi2 = (lo2 + hi2) / 2 else lo2 = (lo2 + hi2) / 2
+(lo2 + hi2) / 2
+lo3 = 1
+hi3 = 2
+while hi3 - lo3 > 1e-13 do if (exp((lo3 + hi3) / 2) - 3 * (lo3 + hi3) / 2 < 0 and exp(hi3) - 3 * hi3 < 0) or (exp((lo3 + hi3) / 2) - 3 * (lo3 + hi3) / 2 >= 0 and exp(hi3) - 3 * hi3 >= 0) then hi3 = (lo3 + hi3) / 2 else lo3 = (lo3 + hi3) / 2
+(lo3 + hi3) / 2
+i1
+i2
+i3
