@@ -114,7 +114,7 @@ async function benchBatch(cdp, task, acceptance) {
     let chunkIdx = 0;
     for (const ch of chunks) {
       console.error(`[desmos] ${task}: gate chunk ${chunkIdx++}/${chunks.length}`);
-      const r = await evalJS(c, withRunner(`__bench(${JSON.stringify(ch.latex)}, 6000)`));
+      const r = await evalJS(c, withRunner(`__bench(${JSON.stringify(ch.latex)}, 6000)`), 120000);
       if (!r || !r.spans) { gate.failed += ch.wants.length; gate.checked += ch.wants.length; continue; }
       totalMs += r.spans.reduce((a, b) => a + b, 0);
       for (let k = 0; k < ch.wants.length; k++) {
@@ -143,7 +143,7 @@ async function benchBatch(cdp, task, acceptance) {
         await evalJS(pc, RUNNER);
         let total = 0;
         for (const ch of chunks) {
-          const r = await evalJS(pc, withRunner(`__bench(${JSON.stringify(ch.latex)}, 6000)`));
+          const r = await evalJS(pc, withRunner(`__bench(${JSON.stringify(ch.latex)}, 6000)`), 120000);
           if (!r || !r.spans) return null;
           total += r.spans.reduce((a, b) => a + b, 0);
           await evalJS(pc, withRunner(`__clear()`));
@@ -206,7 +206,7 @@ async function benchW4(cdp, acceptance) {
       const median = await read('\\median(D)');
       const p10 = await read('\\sort(D)[\\ceil(0.1*(\\size(D)-1)+1)] + (0.1*(\\size(D)-1)+1 - \\floor(0.1*(\\size(D)-1)+1))*(\\sort(D)[\\floor(0.1*(\\size(D)-1)+1)+1]-\\sort(D)[\\floor(0.1*(\\size(D)-1)+1)+0])');
       return { setMs, mean, sd, median, p10 };
-    })()`);
+    })()`, 120000);
     const gate = { tolerance: 'relative 1e-9 vs referee for mean/stdev/median (Type-7 percentiles and linreg not expressible in Desmos functions: not supported sub-parts, declared)', checked: 3, failed: 0 };
     for (const [got, want] of [[r.mean, acc.mean], [r.sd, acc.stdev], [r.median, acc.median]]) {
       if (typeof got !== 'number' || Number.isNaN(got) || !(Math.abs(got - want) / Math.abs(want) <= 1e-9)) gate.failed++;
@@ -239,7 +239,7 @@ async function benchW4(cdp, acceptance) {
         const b = await read('\\stdev(D)');
         const m = await read('\\median(D)');
         return performance.now() - t0;
-      })()`);
+      })()`, 120000);
       if (typeof t === 'number' && t > 0) samples.push(t);
     }
     result.results.push({
@@ -341,7 +341,7 @@ async function benchW10(cdp) {
         }
       }
       return -1;
-    })()`);
+    })()`, 120000);
     await c.close();
     if (ms >= 0) samples.push(ms);
     await sleep(300);

@@ -99,13 +99,24 @@ Tools and coverage declared up front (deviations recorded here, not silently):
   "answer present". The original answer-present definition produced no
   samples in two runs before the redefinition, so no numbers are being
   invalidated.
+- Desmos spans require an unthrottled renderer: helper-expression
+  updates ride the page's frame loop, so a backgrounded headless page
+  throttles to ~1 Hz and per-helper spans inflate 3-12x (measured
+  2026-11-09: 82 ms mean unthrottled vs ~1000 ms throttled). All
+  benchmark chromes now launch with background-timer-throttling
+  disabled; the desmos cells were re-measured after this fix, and the
+  pre-fix desmos numbers are not used.
 
 ## Sessions
 
-Session A: 2026-11-08, `results/raw/2026-11-08/session-a/` (this page's
-numbers land here). Session B: 2026-11-09, same command, separate day per
-the plan's stability rule. Stability bar: A-vs-B medians within 10% per
-cell; tools that only publish coverage (W6 partials) compare gate notes.
+Session A: 2026-11-08, `results/raw/2026-11-08/session-a/`. Session A
+spilled past midnight: the desmos W2/W4/W5 cells re-measured in the
+early hours of 2026-11-09 (the only tool whose cells were still
+failing at midnight) are recorded with their true timestamps and live
+in session A's directory. Session B: 2026-11-10, same command, a
+separate day from every session-A cell per the plan's stability rule.
+Stability bar: A-vs-B medians within 10% per cell; tools that only
+publish coverage (W6 partials) compare gate notes.
 
 ## Results
 

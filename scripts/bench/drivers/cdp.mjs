@@ -39,6 +39,12 @@ export class Cdp {
     this.chrome = spawn(findChrome(), [
       '--headless=new', `--remote-debugging-port=${this.port}`, '--no-first-run',
       `--user-data-dir=${this.effectiveProfile}`, '--window-size=1280,900', 'about:blank',
+      // desmos helper updates ride the renderer's frame loop; without
+      // these a backgrounded headless page throttles to ~1 Hz and spans
+      // inflate 3-7x (measured 2026-11-09: 150 ms vs 1000 ms per helper)
+      '--disable-background-timer-throttling',
+      '--disable-renderer-backgrounding',
+      '--disable-backgrounding-occluded-windows',
     ], { stdio: 'ignore' });
     const t0 = Date.now();
     while (Date.now() - t0 < 20000) {
@@ -58,7 +64,7 @@ export class Cdp {
       const m = JSON.parse(ev.data);
       if (m.id && this.pending.has(m.id)) { this.pending.get(m.id)(m); this.pending.delete(m.id); }
     };
-    const send = (method, params = {}) => new Promise((res) => {
+    const send = (method, params = {}, timeoutMs = 30000) => new Promise((res) => {
       const i = ++this.id;
       // a page that stops responding must not hang the driver forever
       // (desmos hung twice mid-gate on an unsettled Runtime.evaluate,
@@ -66,7 +72,7 @@ export class Cdp {
       const timer = setTimeout(() => {
         this.pending.delete(i);
         res({ result: { exceptionDetails: { text: `CDP timeout after 30s on ${method}` } } });
-      }, 30000);
+      }, timeoutMs);
       this.pending.set(i, (m) => { clearTimeout(timer); res(m); });
       ws.send(JSON.stringify({ id: i, method, params }));
     });
@@ -81,8 +87,8 @@ export class Cdp {
   }
 }
 
-export async function evalJS(conn, expr) {
-  const r = await conn.send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true });
+export async function evalJS(conn, expr, timeoutMs = 30000) {
+  const r = await conn.send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true }, timeoutMs);
   if (r.result?.exceptionDetails) return 'EXC: ' + String(r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text).slice(0, 300);
   return r.result?.result?.value;
 }
