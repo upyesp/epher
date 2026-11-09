@@ -22,7 +22,9 @@ export function version() {
 
 // bare function names in desmos latex parse as implicit multiplication
 // (s*i*n*(...)); call syntax must be converted to latex form
-const FN_TO_LATEX = (s) => s.replace(/\b(sin|cos|tan|asin|acos|atan|arcsin|arccos|arctan|sinh|cosh|tanh|ln|log|exp|sqrt|abs|floor|ceil|round|mod|sign)\(/g, "\\$1(");
+const FN_TO_LATEX = (s) => s
+  .replace(/sqrt\(([^()]*)\)/g, "\\sqrt{$1}")
+  .replace(/\b(sin|cos|tan|asin|acos|atan|arcsin|arccos|arctan|sinh|cosh|tanh|ln|log|exp|abs|floor|ceil|round|mod|sign)\(/g, "\\$1(");
 
 // every page call carries the runner: a context reload between evals
 // silently drops window.__bench (observed 2026-11-09: w2 chunks lost all
@@ -33,7 +35,13 @@ async function readyPage(cdp) {
   const c = await cdp.page(CALC);
   for (let i = 0; i < 60; i++) {
     const ok = await evalJS(c, `typeof window.Calc === 'object' && typeof Calc.setExpression === 'function'`);
-    if (ok === true) return c;
+    if (ok === true) {
+      // pin the tab visible: even with throttling flags a backgrounded
+      // headless tab still rAF-starves (w2 chunks measured 5s vs 79s,
+      // 2026-11-09), and helper updates ride the frame loop
+      await c.send('Page.bringToFront', {});
+      return c;
+    }
     await sleep(500);
   }
   // a broken tab (stale/overloaded chrome) must fail the cell, not
