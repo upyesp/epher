@@ -189,8 +189,16 @@ keystroke 2249 ms (trusted-click boundary). epher web: launch-to-staged
 
 ### Shipped-script sweep (epher only)
 
-532 scripts, one pass each: 486 parse and evaluate, 44 error out inside
-`bench_eval script-run` with parse errors (clustered in graphs/data:
-statistics and regression scripts whose multi-statement bodies hit
-harness parser gaps). Per-category medians are in `sweep.json`. This is
-a catalog-coverage finding for the language, not a performance claim.
+532 scripts, one pass each: 488 parse and evaluate, 44 error out
+inside `bench_eval script-run`. The 44 are every script under
+`graphs/`, and the cause is the harness path, not the scripts: `graph`,
+`table`, and `save` are shell-level statements dispatched by the
+frontends (ADR-0069), so the grammar-only `parse_script` entry rejects
+them. The same scripts run clean through the real CLI file path
+(`epher-cli <file>` exits 0, graph lines recorded into the plot state)
+and paste clean into the TUI and web apps. Consequence for the sweep:
+its timing table covers grammar-pure scripts only, so graphs scripts
+(the sampling-loop-heavy ones, likely the slowest) are missing from the
+medians. A follow-up should point the sweep at the CLI's whole-file
+evaluator; the LSP's `evaluation_trace` shares the grammar-only path
+and would flag graph lines the same way in editor diagnostics.
