@@ -1,0 +1,232 @@
+{
+ "tool": "geogebra",
+ "tier": "W",
+ "session": "a",
+ "machine_manifest_sha256": "4e88f46bd5fc77cbd86cf3d761af3901e1fc386eb305bcd969fd232a79cc543f",
+ "timestamp": "2026-11-08T09:56:50.743Z",
+ "wall_seconds": 1131,
+ "tasks": [
+  {
+   "task": "w1",
+   "label": "W1 (GeoGebra web)",
+   "track": "single",
+   "gate": {
+    "tolerance": "chunk checksums: relative 1e-9 vs the 60-digit decimal referee",
+    "checked": 10000,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "boundary": "Apps API ingest: sum of per-evalCommand latencies (in-page performance.now) over 500-command chunks; chunk total read via getValue only in the untimed gate pass; object deletion outside timed spans",
+     "warmups": 3,
+     "requested_samples": 7,
+     "bucket_rule": "warm-up pass 5238 ms -> 7 samples",
+     "units": "ms",
+     "samples": 7,
+     "min": 6583.400000009686,
+     "median": 8011.600000005215,
+     "mad": 966.2000000141561,
+     "p95": 10030.39999999851,
+     "max": 10030.39999999851,
+     "outlier_indices": [],
+     "raw_passes_ms": [
+      6583.400000009686,
+      7139.5,
+      7045.399999991059,
+      8591.400000002235,
+      8011.600000005215,
+      9485.300000000745,
+      10030.39999999851
+     ]
+    }
+   ]
+  },
+  {
+   "task": "w2",
+   "label": "W2 (GeoGebra web)",
+   "track": "single",
+   "gate": {
+    "tolerance": "chunk checksums: relative 1e-9 vs the 60-digit decimal referee",
+    "checked": 10000,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "boundary": "Apps API ingest: sum of per-evalCommand latencies (in-page performance.now) over 500-command chunks; chunk total read via getValue only in the untimed gate pass; object deletion outside timed spans",
+     "warmups": 3,
+     "requested_samples": 7,
+     "bucket_rule": "warm-up pass 3732 ms -> 7 samples",
+     "units": "ms",
+     "samples": 7,
+     "min": 5207.899999994785,
+     "median": 5893.89999999851,
+     "mad": 562.0999999977648,
+     "p95": 7760.39999999851,
+     "max": 7760.39999999851,
+     "outlier_indices": [],
+     "raw_passes_ms": [
+      5207.899999994785,
+      5331.800000000745,
+      5402.099999990314,
+      5893.89999999851,
+      6317.199999991804,
+      6601.89999999851,
+      7760.39999999851
+     ]
+    }
+   ]
+  },
+  {
+   "task": "w7",
+   "label": "W7 complex arithmetic (GeoGebra web)",
+   "track": "single",
+   "gate": {
+    "tolerance": "chunk checksums of re/im parts: absolute 1e-9 scaled by |sum| vs float64 referee",
+    "checked": 200,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "boundary": "Apps API: sum of per-evalCommand latencies; real()/imaginary() per expression; checksum gate via getValue in the untimed pass",
+     "warmups": 3,
+     "requested_samples": 30,
+     "bucket_rule": "warm-up pass 287 ms -> 30 samples",
+     "units": "ms",
+     "samples": 30,
+     "min": 227.90000000223517,
+     "median": 236.14999999850988,
+     "mad": 4.800000000745058,
+     "p95": 307.6000000014901,
+     "max": 322.69999999925494,
+     "outlier_indices": [],
+     "raw_passes_ms": [
+      230.10000000149012,
+      227.90000000223517,
+      232.90000000223517,
+      233.5,
+      253.20000000298023,
+      230.70000000298023,
+      231.30000000074506,
+      288.6000000014901,
+      322.69999999925494,
+      307.6000000014901,
+      303.4000000022352,
+      295.5999999977648,
+      306.80000000074506,
+      239,
+      235.80000000074506,
+      278.0999999977648,
+      236.39999999850988,
+      235,
+      242.20000000298023,
+      235.89999999850988,
+      233.69999999925494,
+      232.09999999776483,
+      241.30000000074506,
+      234.19999999925494,
+      232.69999999925494,
+      236.40000000223517,
+      235.70000000298023,
+      235.69999999925494,
+      247.10000000149012,
+      240.90000000223517
+     ]
+    }
+   ]
+  },
+  {
+   "task": "w9a",
+   "label": "W9a prime count (GeoGebra web)",
+   "track": "idiomatic",
+   "gate": {
+    "tolerance": "exact prime count vs referee",
+    "checked": 1,
+    "failed": 0,
+    "note": "count=1229"
+   },
+   "results": [
+    {
+     "track": "idiomatic",
+     "track_note": "Sum(Sequence(If(IsPrime(k),1,0),k,2,9999)) — GeoGebra native list programming; the flag-array sieve in a loop is not expressible in GeoGebra scripting",
+     "boundary": "Apps API: single evalCommand latency (in-page performance.now)",
+     "warmups": 3,
+     "requested_samples": 30,
+     "units": "ms",
+     "samples": 30,
+     "min": 42.79999999701977,
+     "median": 43.75,
+     "mad": 0.45000000298023224,
+     "p95": 53,
+     "max": 648.3000000007451,
+     "outlier_indices": [
+      13
+     ],
+     "raw_passes_ms": [
+      44.30000000074506,
+      44.100000001490116,
+      44.400000002235174,
+      44,
+      43.79999999701977,
+      43.69999999925494,
+      44.30000000074506,
+      43.69999999925494,
+      43.70000000298023,
+      44.399999998509884,
+      43.29999999701977,
+      43.5,
+      44,
+      648.3000000007451,
+      53,
+      45.80000000074506,
+      44.400000002235174,
+      44.600000001490116,
+      43.30000000074506,
+      43,
+      43.80000000074506,
+      42.79999999701977,
+      43,
+      43.600000001490116,
+      43.29999999701977,
+      42.80000000074506,
+      43.5,
+      44,
+      43.29999999701977,
+      43.20000000298023
+     ]
+    }
+   ]
+  },
+  {
+   "task": "w10",
+   "label": "W10 interactive latency (GeoGebra web)",
+   "track": "single",
+   "gate": {
+    "checked": 1,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "boundary": "launch-to-ready: page load -> applet API ready -> first evalCommand verified (in-page performance.now)",
+     "warmups": 0,
+     "requested_samples": 10,
+     "launch_to_ready_ms": {
+      "samples": 10,
+      "units": "ms",
+      "min": 114.10000000149012,
+      "median": 121.25,
+      "mad": 6.550000000745058,
+      "p95": 132.5,
+      "max": 132.5,
+      "outlier_indices": []
+     },
+     "launch_samples": 10,
+     "keystroke_to_answer": "not measurable on the Apps API embed (no focused text input in this embed configuration); dropped per the plan reliability caveat"
+    }
+   ]
+  }
+ ]
+}

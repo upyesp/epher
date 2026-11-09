@@ -115,8 +115,14 @@ class Session:
         self.refresh_refs()
 
     def refresh_refs(self):
-        self.win = ax_copy(self.axapp, kAXMainWindowAttribute)
-        areas = find_textareas(self.win)
+        # The app's AX tree lags its relaunch; an empty enumeration here
+        # killed the whole stage-4 pass at the W6 boundary (2026-11-09).
+        for _attempt in range(40):
+            self.win = ax_copy(self.axapp, kAXMainWindowAttribute)
+            areas = find_textareas(self.win)
+            if areas:
+                break
+            time.sleep(0.5)
         # The history display sits above the input line: identify by screen
         # y, not by value length (both are empty on a fresh launch).
         self.inp = max(areas, key=lambda t: t[2])[0]

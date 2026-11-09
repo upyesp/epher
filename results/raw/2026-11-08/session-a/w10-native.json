@@ -1,0 +1,68 @@
+{
+  "tool": "epher+octave cli",
+  "tier": "native",
+  "session": "a",
+  "timestamp": "2026-11-08T22:07:16.722Z",
+  "tasks": [
+    {
+      "task": "w10-native",
+      "label": "W10 interactive latency (native CLIs)",
+      "track": "single",
+      "gate": {
+        "checked": 1,
+        "failed": 0
+      },
+      "results": [
+        {
+          "track": "single",
+          "boundary": "epher launch-to-ready: process spawn -> first answer byte (wall clock, 6*7); epher REPL keystroke-to-answer: line write -> matching answer on stdout (persistent process); Octave CLI the same two legs; TUI dropped per the plan reliability caveat",
+          "warmups": 0,
+          "epher_one_shot_launch_ms": {
+            "samples": 30,
+            "units": "ms",
+            "min": 2.8318749999999966,
+            "median": 2.9501665000000017,
+            "mad": 0.06550000000000011,
+            "p95": 3.3949999999999996,
+            "max": 14.468584000000002,
+            "outlier_indices": []
+          },
+          "epher_one_shot_samples": 30,
+          "epher_repl_keystroke_ms": {
+            "samples": 30,
+            "units": "ms",
+            "min": 0.11399999999980537,
+            "median": 0.1585210000000643,
+            "mad": 0.005938000000128341,
+            "p95": 0.1937080000000151,
+            "max": 0.24441699999988487,
+            "outlier_indices": []
+          },
+          "epher_repl_samples": 30,
+          "octave_launch_ms": {
+            "samples": 20,
+            "units": "ms",
+            "min": 174.17954100000043,
+            "median": 174.88206249999985,
+            "mad": 0.2742915000001176,
+            "p95": 176.31433400000014,
+            "max": 178.2767919999999,
+            "outlier_indices": []
+          },
+          "octave_launch_samples": 20,
+          "octave_keystroke_ms": {
+            "samples": 20,
+            "units": "ms",
+            "min": 0.03395799999998417,
+            "median": 0.04235400000015943,
+            "mad": 0.004208500000004278,
+            "p95": 0.07549999999991996,
+            "max": 0.3384169999999358,
+            "outlier_indices": []
+          },
+          "octave_keystroke_samples": 20
+        }
+      ]
+    }
+  ]
+}

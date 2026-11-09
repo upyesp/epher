@@ -1,0 +1,156 @@
+{
+ "tool": "desmos",
+ "tier": "W",
+ "session": "a",
+ "machine_manifest_sha256": "a8df04b4eae2a387bbc292835f635f1f9ea7d135e87c2331b4398ce8b761a02d",
+ "timestamp": "2026-11-09T14:38:35.320Z",
+ "wall_seconds": 9230,
+ "tasks": [
+  {
+   "task": "w1",
+   "label": "W1 (Desmos web)",
+   "track": "single",
+   "gate": {
+    "tolerance": "per-expression HelperExpression value vs referee, relative 1e-9",
+    "checked": 10000,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "track_note": "idiomatic and equivalent coincide by construction (W1/W2 fix the expressions)",
+     "boundary": "per-expression span = setExpression -> HelperExpression numericValue arrival (in-page performance.now); 100-expression chunks, removals and page housekeeping outside the spans; spans summed",
+     "warmups": 3,
+     "requested_samples": 3,
+     "bucket_rule": "warm-up pass 590915 ms -> 3 samples",
+     "units": "ms",
+     "samples": 3,
+     "min": 500240.1999999583,
+     "median": 523902.79999998957,
+     "mad": 23662.600000031292,
+     "p95": 637729.1000000909,
+     "max": 637729.1000000909,
+     "outlier_indices": [],
+     "raw_passes_ms": [
+      500240.1999999583,
+      637729.1000000909,
+      523902.79999998957
+     ]
+    }
+   ]
+  },
+  {
+   "task": "w2",
+   "label": "W2 (Desmos web)",
+   "track": "single",
+   "gate": {
+    "tolerance": "per-expression HelperExpression value vs referee, relative 1e-9",
+    "checked": 10000,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "track_note": "idiomatic and equivalent coincide by construction (W1/W2 fix the expressions)",
+     "boundary": "per-expression span = setExpression -> HelperExpression numericValue arrival (in-page performance.now); 100-expression chunks, removals and page housekeeping outside the spans; spans summed",
+     "warmups": 3,
+     "requested_samples": 3,
+     "bucket_rule": "warm-up pass 579591 ms -> 3 samples",
+     "units": "ms",
+     "samples": 3,
+     "min": 519901.3000000492,
+     "median": 520463.0000001043,
+     "mad": 561.7000000551343,
+     "p95": 627914.4999999627,
+     "max": 627914.4999999627,
+     "outlier_indices": [],
+     "raw_passes_ms": [
+      519901.3000000492,
+      627914.4999999627,
+      520463.0000001043
+     ]
+    }
+   ]
+  },
+  {
+   "task": "w4",
+   "label": "W4 statistics (Desmos web)",
+   "track": "single",
+   "gate": {
+    "tolerance": "relative 1e-9 vs referee for mean/stdev/median (Type-7 percentiles and linreg not expressible in Desmos functions: not supported sub-parts, declared)",
+    "checked": 3,
+    "failed": 3
+   },
+   "results": [
+    {
+     "track": "single",
+     "verdict": "incorrect: no time published (plan rule 2)",
+     "note": "mean=null sd=null median=null"
+    }
+   ]
+  },
+  {
+   "task": "w5-integrals",
+   "label": "W5 integrals (Desmos web)",
+   "track": "single",
+   "gate": {
+    "tolerance": "relative 1e-9 vs the float64 adaptive-Simpson referee (root finds are not expressible in Desmos: not supported, declared)",
+    "checked": 3,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "boundary": "per-integral span = setExpression(integral) -> HelperExpression value arrival (in-page performance.now); three fixed integrals per pass; removals outside spans",
+     "warmups": 3,
+     "requested_samples": 10,
+     "units": "ms",
+     "samples": 10,
+     "min": 67.20000000298023,
+     "median": 116.34999999776483,
+     "mad": 26.05000000447035,
+     "p95": 189.10000000149012,
+     "max": 189.10000000149012,
+     "outlier_indices": [],
+     "raw_passes_ms": [
+      146.5,
+      160.29999999701977,
+      99.69999999552965,
+      67.20000000298023,
+      110.89999999850988,
+      121.79999999701977,
+      138.30000000447035,
+      189.10000000149012,
+      86.10000000149012,
+      109.29999999701977
+     ]
+    }
+   ]
+  },
+  {
+   "task": "w10",
+   "label": "W10 interactive latency (Desmos web)",
+   "track": "single",
+   "gate": {
+    "checked": 1,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "boundary": "launch-to-ready: page load -> Calc API -> first expression value (in-page performance.now); keystroke-to-answer dropped: the mathquill input could not be driven reliably in stage 2 spikes (plan caveat)",
+     "warmups": 0,
+     "requested_samples": 8,
+     "launch_to_ready_ms": {
+      "samples": 0,
+      "units": "ms",
+      "median": null,
+      "mad": null,
+      "outlier_indices": []
+     },
+     "launch_samples": 0
+    }
+   ]
+  }
+ ]
+}

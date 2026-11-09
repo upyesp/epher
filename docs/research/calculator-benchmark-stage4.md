@@ -120,4 +120,77 @@ publish coverage (W6 partials) compare gate notes.
 
 ## Results
 
-(filled after session B and the compare pass)
+### Status
+
+Session A (2026-11-08 into 2026-11-09) is complete for every cell that
+could be honestly measured, with two exceptions recorded below. Session
+B was **not run**: the stage-4 exit criterion (complete raw JSON for two
+sessions on separate days) is not met, the A-vs-B 10 percent stability
+bar is unassessed, and every number below is single-session. Pete
+stopped the effort on 2026-11-09 after the desmos driver work ran past
+its time budget.
+
+The exceptions: Desmos W4 statistics has a gate but no time (the
+mean/stdev/median helper readback never completed in three attempts;
+plan rule 2). SpeedCrunch has **no stage-4 payload at all**: its
+measured W1/W2/W4/W6/W7 data was computed twice (24 min per pass) but
+lost both times - once when the runner re-emitted a failure cell over
+the green payload after the python driver exited nonzero, once when the
+driver crashed at the W6 restart on an empty AX enumeration (retry
+added, untested at shutdown). The stage-3 pilot numbers (2026-11-07,
+committed) remain the only published SpeedCrunch measurements.
+
+### Coverage (measured cells per tool)
+
+| Tool | W1 | W2 | W3 | W4 | W5 | W6 | W7 | W8 | W9 | W10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| epher native (N) | x | x | 100+500 | x | x | 42/50 partial, no time | x | lunar+sunrise+JD | a+b+c+d+e | spawn+REPL (native) |
+| GNU Octave (N) | x | x | 100+500 both tracks | x | x | - | x | all three | a+b+c+d+e | - (native W10 file) |
+| SpeedCrunch (G) | lost | lost | - | lost | - | lost | lost | - | - | - |
+| epher web (W) | x | x | - | - | - | - | x | - | - | staged-entry boundary |
+| GeoGebra (W) | x | x | - | - | - | - | x | - | a | - |
+| Desmos (W) | x | x | - | gate failed, no time | integrals | - | not included | - | - | x |
+| NumWorks (W) | - | - | - | - | - | - | - | - | - | x |
+
+SpeedCrunch cells are W1, W2, W4, W6, W7 (W3/W5/W8/W9 not built this
+stage); "lost" marks cells measured but not published (see Status).
+Every green cell passed its referee gate before any timing was
+recorded (plan rule 2). NumWorks publishes W10 only (declared
+automation-cost deviation); Desmos W7 was excluded after re/im helper
+probes timed out (declared).
+
+### Session A medians (ms, single-session, gates green)
+
+| Cell | epher N | Octave N | SpeedCrunch G | epher web W | GeoGebra W | Desmos W |
+|---|---|---|---|---|---|---|
+| W1 arithmetic (10k) | 5.6 | 31.9 | - | 877.0 | 8011.6 | 523902.8 |
+| W2 transcendental (10k) | 2.6 | 27.0 | - | 807.2 | 5893.9 | 520463.0 |
+| W3 LU n=100 | 2.4 | 14.0 | - | - | - | - |
+| W3 LU n=500 | 108.8 | 248.7 | - | - | - | - |
+| W4 statistics | 195.7 | 14.4 | lost | - | - | no time |
+| W5 integrals | 0.185 | 7.3 | - | - | - | 116.3 (3 integrals) |
+| W7 complex (200) | 0.507 | 5.2 | - | 36.25 | - | - |
+| W8 lunar (100) | 26.6 | 40.1 | - | - | - | - |
+| W9a prime sieve | 1.34 | 6.0 | - | - | 43.75 | - |
+| W9e 10M loop | 18.6 | 56.4 | - | - | - | - |
+
+Cross-tier rows are not comparable (the plan's tier caveat): the W-tier
+numbers measure browser-input and helper-readback latency on an
+unthrottled page, not raw evaluation.
+
+### Interactive latency, W10 (native tier)
+
+epher CLI: spawn-to-first-answer 2.95 ms, piped REPL keystroke-to-answer
+0.16 ms. Octave CLI: 174.9 ms and 0.04 ms (its keystroke leg beats epher
+because Octave's REPL is already warmed per session; the spawn leg
+dominates for one-shot use). NumWorks emulator: launch 740.5 ms,
+keystroke 2249 ms (trusted-click boundary). epher web: launch-to-staged
+30.6 ms class, keystroke ~3 ms (staged-expression boundary, ADR-0038).
+
+### Shipped-script sweep (epher only)
+
+532 scripts, one pass each: 486 parse and evaluate, 44 error out inside
+`bench_eval script-run` with parse errors (clustered in graphs/data:
+statistics and regression scripts whose multi-statement bodies hit
+harness parser gaps). Per-category medians are in `sweep.json`. This is
+a catalog-coverage finding for the language, not a performance claim.

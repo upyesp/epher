@@ -1,0 +1,228 @@
+{
+ "tool": "epherweb",
+ "tier": "W",
+ "session": "a",
+ "machine_manifest_sha256": "5adf7d2ef04d33395f9551176580e716abf1904e23eb788bf9f548d7cf578f03",
+ "timestamp": "2026-11-08T22:06:37.828Z",
+ "wall_seconds": 292,
+ "tasks": [
+  {
+   "task": "w1",
+   "label": "W1 scalar arithmetic (web)",
+   "track": "single",
+   "gate": {
+    "tolerance": "chunk checksums: relative 1e-9 vs the 60-digit decimal referee (float64 sum order = dataset order, declared)",
+    "checked": 20,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "track_note": "idiomatic and equivalent coincide by construction (W1/W2 fix the expressions)",
+     "boundary": "GUI script ingest end-to-end: per-chunk span is Enter -> #epher-result present (in-page performance.now), chunk = 500 silent assignments + one checksum statement; chunk spans summed; page load excluded",
+     "warmups": 3,
+     "requested_samples": 30,
+     "bucket_rule": "warm-up pass 762 ms -> 30 samples",
+     "units": "ms",
+     "samples": 30,
+     "min": 749.4000000059605,
+     "median": 877.0000000074506,
+     "mad": 91.1000000089407,
+     "p95": 1207.7000000178814,
+     "max": 1214.8999999761581,
+     "outlier_indices": [],
+     "raw_passes_ms": [
+      864.5000000149012,
+      789.7000000029802,
+      761.3999999910593,
+      843.7999999970198,
+      786.8999999985099,
+      775.3999999985099,
+      778.8999999985099,
+      784.8999999985099,
+      781.2999999821186,
+      846.3000000119209,
+      749.4000000059605,
+      805.6000000014901,
+      795.5,
+      862.8999999761581,
+      939.7999999970198,
+      850.7000000029802,
+      889.5,
+      919.9999999850988,
+      911.0999999940395,
+      1015.8000000044703,
+      949.1000000089407,
+      1084.6000000014901,
+      1003.3000000268221,
+      949.5999999716878,
+      1207.7000000178814,
+      1155.2999999970198,
+      993.9000000208616,
+      1155.6999999955297,
+      1194.6000000163913,
+      1214.8999999761581
+     ]
+    }
+   ]
+  },
+  {
+   "task": "w2",
+   "label": "W2 transcendental microbench (web)",
+   "track": "single",
+   "gate": {
+    "tolerance": "chunk checksums: relative 1e-9 vs the 60-digit decimal referee (float64 sum order = dataset order, declared)",
+    "checked": 20,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "track_note": "idiomatic and equivalent coincide by construction (W1/W2 fix the expressions)",
+     "boundary": "GUI script ingest end-to-end: per-chunk span is Enter -> #epher-result present (in-page performance.now), chunk = 500 silent assignments + one checksum statement; chunk spans summed; page load excluded",
+     "warmups": 3,
+     "requested_samples": 30,
+     "bucket_rule": "warm-up pass 771 ms -> 30 samples",
+     "units": "ms",
+     "samples": 30,
+     "min": 705.7999999970198,
+     "median": 807.2000000104308,
+     "mad": 29.100000005215406,
+     "p95": 914.7999999895692,
+     "max": 954.2000000104308,
+     "outlier_indices": [],
+     "raw_passes_ms": [
+      787.3000000044703,
+      828.299999974668,
+      758.8999999985099,
+      779.4999999925494,
+      760.5,
+      705.7999999970198,
+      799.8999999985099,
+      744.099999986589,
+      788.7000000104308,
+      804.5000000149012,
+      782.7000000104308,
+      824.099999986589,
+      793.400000013411,
+      809.9000000059605,
+      815.400000013411,
+      858.8999999836087,
+      776.7000000178814,
+      819.6999999955297,
+      851.0999999940395,
+      858.6000000238419,
+      749.4999999925494,
+      914.7999999895692,
+      894.9000000283122,
+      770.3000000193715,
+      822.8000000119209,
+      913.8999999985099,
+      954.2000000104308,
+      911.0000000298023,
+      825,
+      803.9999999925494
+     ]
+    }
+   ]
+  },
+  {
+   "task": "w7",
+   "label": "W7 complex arithmetic (web)",
+   "track": "single",
+   "gate": {
+    "tolerance": "chunk checksums of re/im parts: absolute 1e-9 · |sum| vs float64 referee (complex arithmetic is float64 in both)",
+    "checked": 200,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "boundary": "GUI script ingest end-to-end, chunk = 500 complex expressions as re/im assignment pairs + two checksum statements; per-chunk span Enter -> result present; chunk spans summed",
+     "warmups": 3,
+     "requested_samples": 30,
+     "bucket_rule": "warm-up pass 38 ms -> 30 samples",
+     "units": "ms",
+     "samples": 30,
+     "min": 25.799999997019768,
+     "median": 36.25,
+     "mad": 6.75,
+     "p95": 51.79999999701977,
+     "max": 52.600000001490116,
+     "outlier_indices": [],
+     "raw_passes_ms": [
+      47.5,
+      29.600000001490116,
+      41.29999999701977,
+      43.899999998509884,
+      30.30000000447035,
+      51.79999999701977,
+      32.20000000298023,
+      41.30000000447035,
+      25.799999997019768,
+      35.5,
+      39.30000000447035,
+      35.600000001490116,
+      37.900000005960464,
+      30.100000001490116,
+      28.899999998509884,
+      28.100000001490116,
+      51.100000001490116,
+      30.600000001490116,
+      39.70000000298023,
+      29.399999998509884,
+      51.70000000298023,
+      52.600000001490116,
+      36.899999998509884,
+      49.100000001490116,
+      30.299999997019768,
+      46.20000000298023,
+      32.19999999552965,
+      27,
+      26,
+      44.30000000447035
+     ]
+    }
+   ]
+  },
+  {
+   "task": "w10",
+   "label": "W10 interactive latency (web)",
+   "track": "single",
+   "gate": {
+    "checked": 1,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "boundary": "launch-to-ready: fresh page ?expr=6*7 -> share-link expression staged in the entry textarea (ADR-0038: ?expr stages only, Enter is the user submit), in-page performance.now (page-load navigation cost excluded by in-page clock, declared); keystroke-to-answer: CDP real key events 6*7+Enter -> result 42, wall clock at 10 ms poll resolution",
+     "warmups": 0,
+     "requested_samples": 10,
+     "launch_to_ready_ms": {
+      "samples": 10,
+      "units": "ms",
+      "min": 29.600000001490116,
+      "median": 233,
+      "mad": 3.7000000029802322,
+      "p95": 237.10000000149012,
+      "max": 237.10000000149012,
+      "outlier_indices": []
+     },
+     "launch_samples": 10,
+     "keystroke_to_answer_ms": {
+      "samples": 20,
+      "units": "ms",
+      "min": 12,
+      "median": 14,
+      "mad": 1,
+      "p95": 20,
+      "max": 25,
+      "outlier_indices": []
+     },
+     "keystroke_samples": 20
+    }
+   ]
+  }
+ ]
+}
