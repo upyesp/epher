@@ -20,14 +20,26 @@ export function version() {
   return `Desmos web (public calculator page + window.Calc API; Chrome for Testing ${chromeVersion()})`;
 }
 
+// bare function names in desmos latex parse as implicit multiplication
+// (s*i*n*(...)); call syntax must be converted to latex form
+const FN_TO_LATEX = (s) => s.replace(/\b(sin|cos|tan|asin|acos|atan|arcsin|arccos|arctan|sinh|cosh|tanh|ln|log|exp|sqrt|abs|floor|ceil|round|mod|sign)\(/g, "\\$1(");
+
+// every page call carries the runner: a context reload between evals
+// silently drops window.__bench (observed 2026-11-09: w2 chunks lost all
+// spans while w5 on a fresh page worked)
+const withRunner = (expr) => RUNNER + "\n" + expr;
+
 async function readyPage(cdp) {
   const c = await cdp.page(CALC);
   for (let i = 0; i < 60; i++) {
     const ok = await evalJS(c, `typeof window.Calc === 'object' && typeof Calc.setExpression === 'function'`);
-    if (ok === true) break;
+    if (ok === true) return c;
     await sleep(500);
   }
-  return c;
+  // a broken tab (stale/overloaded chrome) must fail the cell, not
+  // benchmark nothing (observed 2026-11-09: w2 gate recorded 10000
+  // silent failures against a tab whose calculator app never booted)
+  throw new Error('desmos calculator app did not boot within 30s');
 }
 
 // in-page helper factory (string): chunked run with per-expression spans
@@ -63,16 +75,16 @@ window.__clear = (first, last) => {
 };
 `;
 
-export async function benchAll(acceptance, manifestHash, session) {
+export async function benchAll(acceptance, manifestHash, session, only) {
   const cdp = new Cdp(PORT, '/tmp/bench4/profile-desmos3');
   await cdp.start();
   const results = [];
   try {
-    results.push(await benchBatch(cdp, 'w1', acceptance));
-    results.push(await benchBatch(cdp, 'w2', acceptance));
-    results.push(await benchW4(cdp, acceptance));
-    results.push(await benchW5int(cdp, acceptance));
-    results.push(await benchW10(cdp));
+    if (!only || only.includes('w1')) results.push(await benchBatch(cdp, 'w1', acceptance));
+    if (!only || only.includes('w2')) results.push(await benchBatch(cdp, 'w2', acceptance));
+    if (!only || only.includes('w4')) results.push(await benchW4(cdp, acceptance));
+    if (!only || only.includes('w5-integrals')) results.push(await benchW5int(cdp, acceptance));
+    if (!only || only.includes('w10')) results.push(await benchW10(cdp));
   } finally {
     cdp.kill();
   }
@@ -90,7 +102,11 @@ async function benchBatch(cdp, task, acceptance) {
     const chunks = [];
     for (let i = 0; i < lines.length; i += CHUNK) {
       const slice = lines.slice(i, i + CHUNK);
-      const latex = slice.map((l) => `(${l})`);
+      // bare constant-only helpers (e.g. \sin(1.413)) never produce a
+      // numericValue in the current desmos API; wrapping any expression in
+      // \frac{...}{1} forces a full evaluation tree (probed 2026-11-08:
+      // bare sin/ln time out, \frac{\sin(1.413)}{1} returns the exact value)
+      const latex = slice.map((l) => `\\frac{(${FN_TO_LATEX(l)})}{1}`);
       const wants = slice.map((_, k) => ref[i + k]);
       chunks.push({ latex, wants, start: i });
     }
@@ -98,7 +114,7 @@ async function benchBatch(cdp, task, acceptance) {
     let chunkIdx = 0;
     for (const ch of chunks) {
       console.error(`[desmos] ${task}: gate chunk ${chunkIdx++}/${chunks.length}`);
-      const r = await evalJS(c, `__bench(${JSON.stringify(ch.latex)}, 6000)`);
+      const r = await evalJS(c, withRunner(`__bench(${JSON.stringify(ch.latex)}, 6000)`));
       if (!r || !r.spans) { gate.failed += ch.wants.length; gate.checked += ch.wants.length; continue; }
       totalMs += r.spans.reduce((a, b) => a + b, 0);
       for (let k = 0; k < ch.wants.length; k++) {
@@ -108,7 +124,7 @@ async function benchBatch(cdp, task, acceptance) {
         if (typeof got !== 'number' || Number.isNaN(got)) { gate.failed++; continue; }
         if (want === 0 ? Math.abs(got) > 1e-9 : !(Math.abs(got - want) / Math.abs(want) <= 1e-9)) gate.failed++;
       }
-      await evalJS(c, `__clear()`);
+      await evalJS(c, withRunner(`__clear()`));
       await sleep(150);
     }
     const result = { task, label: `${task.toUpperCase()} (Desmos web)`, track: 'single', gate, results: [] };
@@ -117,16 +133,26 @@ async function benchBatch(cdp, task, acceptance) {
       return result;
     }
     // timed passes: re-run all chunks fresh (clear between)
+    // a fresh page per pass: 10k setExpression+removal cycles degrade a
+    // long-lived calculator page (measured 726 s warm vs 2273 s on the
+    // second pass, 2026-11-08 - undo/state bloat). The reload cost sits
+    // outside the per-expression spans (same declared boundary).
     const passMs = async () => {
-      let total = 0;
-      for (const ch of chunks) {
-        const r = await evalJS(c, `__bench(${JSON.stringify(ch.latex)}, 6000)`);
-        if (!r || !r.spans) return null;
-        total += r.spans.reduce((a, b) => a + b, 0);
-        await evalJS(c, `__clear()`);
-        await sleep(120);
+      const pc = await readyPage(cdp);
+      try {
+        await evalJS(pc, RUNNER);
+        let total = 0;
+        for (const ch of chunks) {
+          const r = await evalJS(pc, withRunner(`__bench(${JSON.stringify(ch.latex)}, 6000)`));
+          if (!r || !r.spans) return null;
+          total += r.spans.reduce((a, b) => a + b, 0);
+          await evalJS(pc, withRunner(`__clear()`));
+          await sleep(120);
+        }
+        return total;
+      } finally {
+        await pc.close();
       }
-      return total;
     };
     const warm = await passMs();
     const bucket = bucketSamples(warm / 1000);
@@ -174,11 +200,11 @@ async function benchW4(cdp, acceptance) {
         h.observe('numericValue', f);
         setTimeout(() => res(NaN), 8000);
       });
-      await new Promise(r2 => setTimeout(r2, 500));
-      const mean = await read('mean(D)');
-      const sd = await read('stdev(D)');
-      const median = await read('median(D)');
-      const p10 = await read('sort(D)[ceil(0.1*(size(D)-1)+1)] + (0.1*(size(D)-1)+1 - floor(0.1*(size(D)-1)+1))*(sort(D)[floor(0.1*(size(D)-1)+1)+1]-sort(D)[floor(0.1*(size(D)-1)+1)+0])');
+      await new Promise(r2 => setTimeout(r2, 2000));
+      const mean = await read('\\mean(D)');
+      const sd = await read('\\stdev(D)');
+      const median = await read('\\median(D)');
+      const p10 = await read('\\sort(D)[\\ceil(0.1*(\\size(D)-1)+1)] + (0.1*(\\size(D)-1)+1 - \\floor(0.1*(\\size(D)-1)+1))*(\\sort(D)[\\floor(0.1*(\\size(D)-1)+1)+1]-\\sort(D)[\\floor(0.1*(\\size(D)-1)+1)+0])');
       return { setMs, mean, sd, median, p10 };
     })()`);
     const gate = { tolerance: 'relative 1e-9 vs referee for mean/stdev/median (Type-7 percentiles and linreg not expressible in Desmos functions: not supported sub-parts, declared)', checked: 3, failed: 0 };
@@ -193,11 +219,11 @@ async function benchW4(cdp, acceptance) {
     // timed pass: set list + three stat helper arrivals, repeated
     const samples = [];
     for (let i = 0; i < 3; i++) {
-      await evalJS(c, `__clear()`);
+      await evalJS(c, withRunner(`__clear()`));
       await sleep(200);
     }
     for (let i = 0; i < 10; i++) {
-      await evalJS(c, `__clear()`);
+      await evalJS(c, withRunner(`__clear()`));
       await sleep(200);
       const t = await evalJS(c, `(async () => {
         const t0 = performance.now();
@@ -209,9 +235,9 @@ async function benchW4(cdp, acceptance) {
           setTimeout(() => res(NaN), 8000);
         });
         await new Promise(r2 => setTimeout(r2, 400));
-        const a = await read('mean(D)');
-        const b = await read('stdev(D)');
-        const m = await read('median(D)');
+        const a = await read('\\mean(D)');
+        const b = await read('\\stdev(D)');
+        const m = await read('\\median(D)');
         return performance.now() - t0;
       })()`);
       if (typeof t === 'number' && t > 0) samples.push(t);
@@ -238,18 +264,18 @@ async function benchW5int(cdp, acceptance) {
     const I = acceptance.w5.integrals;
     const gate = { tolerance: 'relative 1e-9 vs the float64 adaptive-Simpson referee (root finds are not expressible in Desmos: not supported, declared)', checked: 3, failed: 0 };
     const latexes = [
-      'i1 = \\int_{0}^{1}{e^{x^{2}} \\cdot e^{-2x^{2}} dx}',
-      'w5i1 = \\int_{0}^{1}{e^{-x^{2}}dx}',
-      'w5i2 = \\int_{0}^{\\pi}{\\sin x \\cdot e^{-x/3}dx}',
-      'w5i3 = \\int_{1}^{2}{\\ln x / x \\; dx}',
+      '\\int_{0}^{1}{e^{x^{2}} \\cdot e^{-2x^{2}} dx}',
+      '\\int_{0}^{1}{e^{-x^{2}}dx}',
+      '\\int_{0}^{\\pi}{\\sin\\left(x\\right) \\cdot e^{-x/3} dx}',
+      '\\int_{1}^{2}{\\ln\\left(x\\right) / x dx}',
     ];
-    const read = (latex) => `__bench([${JSON.stringify(latex)}], 10000)`;
+    const read = (latex) => withRunner(`__bench([${JSON.stringify(latex)}], 10000)`);
     const vals = {};
     for (const [key, latex] of [['I1', latexes[1]], ['I2', latexes[2]], ['I3', latexes[3]]]) {
       const r = await evalJS(c, read(latex));
       vals[key] = r?.values?.[0];
       if (typeof vals[key] !== 'number' || Number.isNaN(vals[key]) || !(Math.abs(vals[key] - I[key]) / Math.abs(I[key]) <= 1e-9)) gate.failed++;
-      await evalJS(c, `__clear()`);
+      await evalJS(c, withRunner(`__clear()`));
       await sleep(150);
     }
     const result = { task: 'w5-integrals', label: 'W5 integrals (Desmos web)', track: 'single', gate, results: [] };
@@ -261,7 +287,7 @@ async function benchW5int(cdp, acceptance) {
     for (let i = 0; i < 3; i++) {
       for (const latex of [latexes[1], latexes[2], latexes[3]]) {
         await evalJS(c, read(latex));
-        await evalJS(c, `__clear()`);
+        await evalJS(c, withRunner(`__clear()`));
       }
     }
     for (let i = 0; i < 10; i++) {
@@ -272,7 +298,7 @@ async function benchW5int(cdp, acceptance) {
         const r = await evalJS(c, read(latex));
         if (!r?.spans) { ok = false; break; }
         total += r.spans[0];
-        await evalJS(c, `__clear()`);
+        await evalJS(c, withRunner(`__clear()`));
         await sleep(100);
       }
       if (ok) samples.push(total);

@@ -77,7 +77,7 @@ async function bootStable(c) {
   return false;
 }
 
-export async function benchAll(acceptance, manifestHash, session) {
+export async function benchAll(acceptance, manifestHash, session, only) {
   const cdp = new Cdp(PORT, '/tmp/bench4/profile-nw');
   await cdp.start();
   const result = { task: 'w10', label: 'W10 interactive latency (NumWorks web emulator)', track: 'single', gate: { checked: 1, failed: 0 }, results: [] };

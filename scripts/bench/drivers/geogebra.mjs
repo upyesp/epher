@@ -77,16 +77,16 @@ function groupSums(vars) {
   return { cmds, total };
 }
 
-export async function benchAll(acceptance, manifestHash, session) {
+export async function benchAll(acceptance, manifestHash, session, only) {
   const cdp = new Cdp(PORT, '/tmp/bench4/profile-ggb');
   await cdp.start();
   const results = [];
   try {
-    results.push(await benchBatch(cdp, 'w1', acceptance));
-    results.push(await benchBatch(cdp, 'w2', acceptance));
-    results.push(await benchW7(cdp, acceptance));
-    results.push(await benchW9a(cdp, acceptance));
-    results.push(await benchW10(cdp));
+    if (!only || only.includes('w1')) results.push(await benchBatch(cdp, 'w1', acceptance));
+    if (!only || only.includes('w2')) results.push(await benchBatch(cdp, 'w2', acceptance));
+    if (!only || only.includes('w7')) results.push(await benchW7(cdp, acceptance));
+    if (!only || only.includes('w9a')) results.push(await benchW9a(cdp, acceptance));
+    if (!only || only.includes('w10')) results.push(await benchW10(cdp));
   } finally {
     cdp.kill();
   }

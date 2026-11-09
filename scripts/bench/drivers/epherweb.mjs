@@ -49,7 +49,7 @@ function checksumOf(values) {
   return values.reduce((a, c) => a + c, 0);
 }
 
-export async function benchAll(acceptance, manifestHash, session) {
+export async function benchAll(acceptance, manifestHash, session, only) {
   const cdp = new Cdp(PORT, '/tmp/bench4/profile-epherweb');
   await cdp.start();
   const results = [];
@@ -58,16 +58,21 @@ export async function benchAll(acceptance, manifestHash, session) {
     // if it is already running, reuse it.
     await ensureServer();
     for (const task of ['w1', 'w2']) {
+      if (only && !only.includes(task)) continue;
       console.error(`[epherweb] ${task}: gate`);
       results.push(await benchBatch(cdp, task, acceptance));
       console.error(`[epherweb] ${task}: done`);
     }
-    console.error('[epherweb] w7: gate');
-    results.push(await benchW7(cdp, acceptance));
-    console.error('[epherweb] w7: done');
-    console.error('[epherweb] w10');
-    results.push(await benchW10(cdp));
-    console.error('[epherweb] w10: done');
+    if (!only || only.includes('w7')) {
+      console.error('[epherweb] w7: gate');
+      results.push(await benchW7(cdp, acceptance));
+      console.error('[epherweb] w7: done');
+    }
+    if (!only || only.includes('w10')) {
+      console.error('[epherweb] w10');
+      results.push(await benchW10(cdp));
+      console.error('[epherweb] w10: done');
+    }
   } finally {
     cdp.kill();
     await stopServer();
@@ -284,7 +289,10 @@ async function benchW10(cdp) {
     task: 'w10', label: 'W10 interactive latency (web)', track: 'single', gate: { checked: 1, failed: 0 },
     results: [],
   };
-  // launch-to-ready: fresh page with ?expr=6*7; ready = #epher-result has text
+  // launch-to-ready: fresh page with ?expr=6*7; ready = the share-link
+  // expression is STAGED in the entry (ADR-0038: ?expr stages, the user's
+  // Enter is the submit - so the answer never appears without a keystroke;
+  // polling for staged state is the honest launch-to-ready boundary)
   const samples = [];
   for (let i = 0; i < 10; i++) {
     const c = await cdp.page('http://127.0.0.1:8123/index.html?expr=6*7');
@@ -292,8 +300,8 @@ async function benchW10(cdp) {
       const t0 = performance.now();
       for (let k=0;k<6000;k++) {
         await new Promise(r=>setTimeout(r,10));
-        const live = document.querySelector('#epher-result');
-        if (live && live.textContent.trim()) return performance.now() - t0;
+        const ta = document.querySelector('textarea');
+        if (ta && ta.value.trim()) return performance.now() - t0;
       }
       return -1;
     })()`);
@@ -329,7 +337,7 @@ async function benchW10(cdp) {
   }
   result.results.push({
     track: 'single',
-    boundary: 'launch-to-ready: fresh page ?expr=6*7 -> #epher-result present, in-page performance.now (page-load navigation cost excluded by in-page clock, declared); keystroke-to-answer: CDP real key events 6*7+Enter -> result 42, wall clock at 10 ms poll resolution',
+    boundary: 'launch-to-ready: fresh page ?expr=6*7 -> share-link expression staged in the entry textarea (ADR-0038: ?expr stages only, Enter is the user submit), in-page performance.now (page-load navigation cost excluded by in-page clock, declared); keystroke-to-answer: CDP real key events 6*7+Enter -> result 42, wall clock at 10 ms poll resolution',
     warmups: 0,
     requested_samples: 10,
     launch_to_ready_ms: summarize(samples),

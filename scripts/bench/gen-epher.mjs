@@ -69,7 +69,7 @@ w3(500);
     `for i in 1 to n do sx = sx + (i - 5000.5)`,
     `slope = sxy / sxx`,
     `intercept = mu - slope * 5000.5`,
-    `syy = variance(D) * (n - 1)`,
+    `syy = variance(D) * n`, // sum((y-mean)^2): population variance * n
     `r = sxy / sqrt(sxx * syy)`,
     `mu`,
     `sd`,

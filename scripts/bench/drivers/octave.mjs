@@ -89,8 +89,8 @@ const W3 = (n) => ({
 });
 
 const GATES = {
-  "w1": { file: "w1", tracks: ["single"], values: 10000, gate: flatGate("w1", 1e-9) },
-  "w2": { file: "w2", tracks: ["single"], values: 10000, gate: flatGate("w2", 1e-9) },
+  "w1": { file: "w1-batch", verifyFile: "w1-verify", tracks: ["single"], values: 10000, gate: flatGate("w1", 1e-9) },
+  "w2": { file: "w2-batch", verifyFile: "w2-verify", tracks: ["single"], values: 10000, gate: flatGate("w2", 1e-9) },
   "w3-100": W3(100),
   "w3-500": W3(500),
   "w4": { file: "w4", tracks: ["native", "equivalent"], values: 8, gate: arrGate(8, (acc) => [acc.w4.mean, acc.w4.stdev, acc.w4.median, acc.w4.p10, acc.w4.p90, acc.w4.lin_slope, acc.w4.lin_intercept, acc.w4.lin_r]) },
@@ -121,7 +121,7 @@ const GATES = {
     return { checked: 1, failed: bad, note: `iters=${vals[1]} (informational; epher cannot count iterations in a single-statement loop body)` };
   } },
   "w9c": { file: "w9c", tracks: ["single"], special: "w9c" },
-  "w9d": { file: "w9d", tracks: ["single"], values: 100, gate: intGate("w9d", 100, 100.0) },
+  "w9d": { file: "w9d", refsFrom: "w8-lunar", tracks: ["single"], values: 100, gate: intGate("w8-lunar", 100, 100.0) },
   "w9e": { file: "w9e", tracks: ["single"], values: 1, gate: (vals, acc) => ({ checked: 1, failed: vals[0] !== acc.w9.w9e.s ? 1 : 0 }) },
 };
 
@@ -170,17 +170,31 @@ export async function bench(taskKey, variant, acceptance, octaveVersionCache) {
   const out = { task: taskKey, track: variant, results: [] };
 
   const gate = { tolerance: "per-task tolerances from acceptance2.json (declared before measurement)", checked: 0, failed: 0 };
-  if (spec.special === "w9a") {
+  if (spec.verifyFile) {
+    const verifyOut = `/tmp/bench-octave-verify-${taskKey}.txt`;
+    if (existsSync(verifyOut)) unlinkSync(verifyOut);
+    const res = runFile(join(implDir, `${spec.verifyFile}.m`), verifyOut);
+    if (!res.written || !existsSync(verifyOut)) {
+      gate.failed = 1;
+      gate.note = `verification run failed: ${res.stderr}`;
+    } else {
+      const vals = readFileSync(verifyOut, "utf8").trim().split("\n").map(Number);
+      Object.assign(gate, spec.gate(vals, acceptance));
+      gate.note = `values=${vals.length}`;
+    }
+  } else if (spec.special === "w9a") {
     const res = runFile(mFile);
     gate.checked = 1;
     if (res.count !== acceptance.w9a_count) gate.failed++;
     gate.note = `count=${res.count}, expected ${acceptance.w9a_count}`;
   } else if (spec.special === "w9c") {
     const verifyOut = `/tmp/bench-octave-verify-w9c.txt`;
+    if (existsSync(verifyOut)) unlinkSync(verifyOut);
+    if (existsSync("/tmp/bench-w9c-string.txt")) unlinkSync("/tmp/bench-w9c-string.txt");
     const res = runFile(mFile, verifyOut);
     const vals = existsSync(verifyOut) ? readFileSync(verifyOut, "utf8").trim().split("\n").map(Number) : [];
     const strOk = existsSync("/tmp/bench-w9c-string.txt")
-      ? readFileSync("/tmp/bench-w9c-string.txt", "utf8") === acceptance.w9.expected_string
+      ? readFileSync("/tmp/bench-w9c-string.txt", "utf8") === acceptance.w9.w9c.expected_string
       : false;
     gate.checked = 2;
     if (!strOk) gate.failed++;
@@ -188,6 +202,7 @@ export async function bench(taskKey, variant, acceptance, octaveVersionCache) {
     gate.note = `string ${strOk ? "exact" : "MISMATCH"}, bal=${vals[0]} vs ${acceptance.w9.w9c.balanced}`;
   } else {
     const verifyOut = `/tmp/bench-octave-verify-${taskKey}-${variant}.txt`;
+    if (existsSync(verifyOut)) unlinkSync(verifyOut);
     const res = runFile(mFile, verifyOut);
     if (!existsSync(verifyOut)) {
       gate.failed = 1;

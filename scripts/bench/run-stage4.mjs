@@ -7,8 +7,8 @@
 // Two sessions on separate days are the stage 4 exit requirement; the
 // within-day reproduction bar from stage 3 still applies to any same-day
 // re-run.
-import { spawnSync } from "node:child_process";
-import { writeFileSync, readFileSync } from "node:fs";
+import { spawnSync, execFileSync } from "node:child_process";
+import { writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as epher from "./drivers/epher-native.mjs";
@@ -63,6 +63,10 @@ for (const mod of ["epherweb", "geogebra", "desmos", "numworks", "speedcrunch"])
   }
 }
 
+// desmos helper-arrival latency (~76 ms/expr) makes a W1 pass ~13 min;
+// its full task set needs hours, so it gets a wider budget
+const TOOL_TIMEOUT_MS = { desmos: 300 * 60 * 1000 };
+
 function withTimeout(promise, ms, name) {
   let timer;
   return Promise.race([
@@ -74,7 +78,11 @@ function withTimeout(promise, ms, name) {
 async function runTool(name, fn) {
   console.log(`[stage4] ${name}: start ${new Date().toISOString()}`);
   const t0 = Date.now();
-  const results = await withTimeout(Promise.resolve().then(fn), 75 * 60 * 1000, name);
+  const results = await withTimeout(Promise.resolve().then(fn), TOOL_TIMEOUT_MS[name] ?? 75 * 60 * 1000, name);
+  if (!results || results.length === 0) {
+    console.error(`[stage4] ${name}: no results; existing file left untouched`);
+    return;
+  }
   const payload = {
     tool: name,
     tier: name.endsWith("web") || ["geogebra", "desmos", "numworks"].includes(name) ? "W" : "N",
@@ -85,7 +93,16 @@ async function runTool(name, fn) {
     tasks: results,
   };
   const file = join(outDir, `${name}.json`);
-  writeFileSync(file, JSON.stringify(payload, null, 1));
+  let tasks = results;
+  if (existsSync(file)) {
+    try {
+      const old = JSON.parse(readFileSync(file, "utf8"));
+      const oldTasks = Array.isArray(old.tasks) ? old.tasks : [];
+      const newKeys = new Set(results.map((x) => x.task));
+      tasks = [...results, ...oldTasks.filter((x) => !newKeys.has(x.task))];
+    } catch {}
+  }
+  writeFileSync(file, JSON.stringify({ ...payload, tasks }, null, 1));
   console.log(`[stage4] ${name}: wrote ${file} (${payload.wall_seconds}s)`);
 }
 
@@ -107,7 +124,7 @@ if (tools.has("epher")) {
   jobs.push(["cooldown", async () => cooldown(30)]);
 }
 if (tools.has("epher")) {
-  jobs.push(["epher-sweep", async () => runTool("epher-sweep", async () => [await epher.sweep()])]);
+  jobs.push(["sweep", async () => [await epher.sweep()]]);
   jobs.push(["cooldown", async () => cooldown(30)]);
 }
 if (tools.has("octave")) {
@@ -142,12 +159,26 @@ if (tools.has("speedcrunch")) {
   }]);
   jobs.push(["cooldown", async () => cooldown(30)]);
 }
-for (const { name, mod } of dynamic) {
-  jobs.push([name, async () => mod.benchAll(acceptance, manifestHash, session)]);
+// leftover test chromes from earlier runs hold the driver ports and
+  // serve broken tabs to the next session (observed 2026-11-09); a
+  // sequential runner owns all test chromes, so clear them per tool
+  if (dynamic.length > 0) {
+    try { execFileSync("pkill", ["-f", "Google Chrome for Testing"]); } catch {}
+    await new Promise((r) => setTimeout(r, 1500));
+  }
+  for (const { name, mod } of dynamic) {
+  jobs.push([name, async () => mod.benchAll(acceptance, manifestHash, session, only)]);
   jobs.push(["cooldown", async () => cooldown(30)]);
 }
 
-for (const [name, fn] of jobs) {
+// --only may name jobs (e.g. sweep) or tasks (e.g. w9c): if any value
+  // names a job, run only those jobs; otherwise run all jobs, each
+  // applying the task-level filter internally
+  const jobNames = jobs.map(([n]) => n);
+  const selectedJobs = only && only.some((o) => jobNames.includes(o))
+    ? jobs.filter(([n]) => only.includes(n))
+    : jobs;
+  for (const [name, fn] of selectedJobs) {
   if (name === "cooldown") {
     await fn();
     continue;

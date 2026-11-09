@@ -60,7 +60,14 @@ export class Cdp {
     };
     const send = (method, params = {}) => new Promise((res) => {
       const i = ++this.id;
-      this.pending.set(i, res);
+      // a page that stops responding must not hang the driver forever
+      // (desmos hung twice mid-gate on an unsettled Runtime.evaluate,
+      // 2026-11-08); convert the silence into a rejected send
+      const timer = setTimeout(() => {
+        this.pending.delete(i);
+        res({ result: { exceptionDetails: { text: `CDP timeout after 30s on ${method}` } } });
+      }, 30000);
+      this.pending.set(i, (m) => { clearTimeout(timer); res(m); });
       ws.send(JSON.stringify({ id: i, method, params }));
     });
     const close = () => fetch(`http://127.0.0.1:${this.port}/json/close/${tab.id}`).catch(() => {});

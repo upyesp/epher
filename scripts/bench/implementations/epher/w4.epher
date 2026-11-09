@@ -15,7 +15,7 @@ for i in 1 to n do sxy = sxy + (i - 5000.5) * (D[i] - mu)
 for i in 1 to n do sx = sx + (i - 5000.5)
 slope = sxy / sxx
 intercept = mu - slope * 5000.5
-syy = variance(D) * (n - 1)
+syy = variance(D) * n
 r = sxy / sqrt(sxx * syy)
 mu
 sd

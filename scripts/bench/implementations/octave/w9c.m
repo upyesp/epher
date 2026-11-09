@@ -1,6 +1,5 @@
 raw = fileread('/Users/pete/Developer/code/epher/scripts/bench/data/W9c-corpus.txt');
-raw = regexprep(raw, '
-$', '');
+raw = regexprep(raw, "\n$", "");
 lines = strsplit(raw, "\n");
 n = numel(lines);
 rev = cell(n, 1);

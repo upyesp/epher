@@ -90,7 +90,9 @@ function runBinary(args, opts = {}) {
   return execFileSync(benchEval, args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, ...opts });
 }
 function runJson(args, opts = {}) {
-  return JSON.parse(runBinary(args, opts));
+  // script-run emits literal NaN for non-numeric finals (not valid JSON)
+  const raw = runBinary(args, opts).replace(/\bNaN\b/g, "null");
+  return JSON.parse(raw);
 }
 
 export function version() {

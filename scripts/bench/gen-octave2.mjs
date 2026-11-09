@@ -457,7 +457,7 @@ end
 const corpus = readFileSync(join(DATA, 'W9c-corpus.txt'), 'utf8').trim();
 emit(`w9c.m`, `
 raw = fileread('${join(DATA, 'W9c-corpus.txt')}');
-raw = regexprep(raw, '\n$', '');
+raw = regexprep(raw, "\\n$", "");
 lines = strsplit(raw, "\\n");
 n = numel(lines);
 rev = cell(n, 1);
