@@ -24,33 +24,40 @@
 #     runner's window server, and required to stay up.
 name: macOS Apple silicon
 
-# Runs on staging/main pushes that can change what this build tests:
-# the workspace, the lockfiles, the script collection the transcripts
-# replay, the smoke/driver scripts, and the guide markdown (crates/guide
-# reads site/guide/*.md at test time and the desktop bundle carries it).
-# Website pages, docs, clients, grammars, and packaging do not affect
-# this build and skip it. pull_request stays unfiltered: it is the
-# promotion gate, so the required check must report on every
-# staging→main PR. workflow_dispatch stays for manual runs.
+# Trigger (ADR-0082): this workflow no longer runs on pushes or pull
+# requests. It is a reusable workflow, called wherever the Linux and
+# Windows installer legs run, so every platform ships from one trigger:
+#   - release.yml calls it on the pinned release sha and its release
+#     job waits for it: the tag is only cut after the tree passes on
+#     arm64 (ADR-0073's verified tree, now enforced at release time);
+#   - staging-build.yml calls it beside the installer build, so a
+#     staging draft (ADR-0062) is arm64-tested before promotion;
+#   - workflow_dispatch stays for manual runs on any ref.
+# The branch-protection check "build and test on Apple silicon" was
+# removed with ADR-0082; pull requests never run macOS jobs again.
 on:
-  push:
-    branches: [main, staging]
-    paths:
-      - crates/**
-      - "epher scripts/**"
-      - scripts/check-scripts.mjs
-      - scripts/check-guide.mjs
-      - scripts/tui-smoke.py
-      - site/guide/**
-      - Cargo.toml
-      - Cargo.lock
-      - .github/workflows/macos-silicon.yml
-  pull_request:
+  workflow_call:
+    inputs:
+      ref:
+        description: "Ref to check out and test (tag, branch, or commit); empty means the sha the caller ran on"
+        type: string
+        required: false
+        default: ""
   workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch or commit to test (default: the dispatched branch head)"
+        type: string
+        required: false
+        default: ""
 
 concurrency:
   group: macos-silicon-${{ github.ref }}
-  cancel-in-progress: true
+  # ADR-0082: cancel-in-progress earned its keep when every push ran
+  # the floor. Runs are deliberate events now (a release or a staging
+  # build), and cancelling a release's verification leg mid-run would
+  # fail a train; duplicate dispatches are rare enough to queue.
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -64,6 +71,8 @@ jobs:
       EPHER: ${{ github.workspace }}/target/release/epher
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - uses: dtolnay/rust-toolchain@stable
         with:

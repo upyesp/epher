@@ -1,6 +1,10 @@
 # ADR-0075: the Apple-silicon gate reports without running when a pull request cannot change what it tests
 
-- **Status:** proposed
+- **Status:** superseded by ADR-0082 (2026-11-10) before
+  implementation: the maintainer retired the per-PR gate outright
+  rather than making it cheap, and the Apple-silicon floor now shares
+  the release and staging-build triggers instead of running on every
+  pull request.
 - **Deciders:** epher maintainers
 - **Date:** 2026-10-19
 

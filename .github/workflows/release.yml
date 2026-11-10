@@ -153,6 +153,19 @@ jobs:
       ref: ${{ needs.train.outputs.sha }}
       version: ${{ needs.train.outputs.v_version }}
 
+  # The Apple-silicon floor (ADR-0082): the release ships a dmg for
+  # arm64 macOS (ADR-0025), so the tag is only cut after the tree has
+  # passed the suite, the transcripts, and the desktop launch on the
+  # hardware that runs it. Same trigger as the Linux and Windows legs:
+  # this reusable workflow is called by the release and the staging
+  # build, never on push or pull_request.
+  silicon:
+    name: build and test on Apple silicon
+    needs: [train]
+    uses: ./.github/workflows/macos-silicon.yml
+    with:
+      ref: ${{ needs.train.outputs.sha }}
+
   flatpak:
     # The Flatpak channel (ADR-0061): the in-repo manifest builds the
     # tagged release into a .flatpak bundle for x86_64, attached to the
@@ -229,7 +242,7 @@ jobs:
 
   release:
     name: Attach assets to the release
-    needs: [train, build]
+    needs: [train, build, silicon]
     if: inputs.dry_run != true
     runs-on: ubuntu-latest
     steps:

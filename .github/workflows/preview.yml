@@ -214,6 +214,57 @@ jobs:
           chmod 600 "$HOME/.ssh/preview_ed25519"
           ssh-keyscan -t ed25519 github.com >> "$HOME/.ssh/known_hosts" 2>/dev/null
           cd preview-site
+          # The tree carries its own deploy workflow: Actions-based Pages
+          # runs in the preview repo itself when this push lands (the
+          # legacy "deploy from a branch" builder errored on every push
+          # from 2026-11-07; GitHub is retiring legacy builds).
+          mkdir -p .github/workflows
+          cat > .github/workflows/deploy.yml <<'YAML'
+          name: deploy preview site
+
+          # The epher `preview` workflow force-pushes this tree to
+          # gh-pages (ADR-0062); this workflow serves the tree with
+          # Actions-based Pages. Written by the epher preview workflow:
+          # edit it there, not here.
+          on:
+            push:
+              branches: [gh-pages]
+            workflow_dispatch:
+
+          permissions:
+            contents: read
+            pages: write
+            id-token: write
+
+          concurrency:
+            group: preview-pages
+            cancel-in-progress: false
+
+          jobs:
+            deploy:
+              runs-on: ubuntu-latest
+              environment:
+                name: github-pages
+                # Static URL: GitHub substitutes brace-dollar expressions
+                # in run blocks before the shell sees them, so this file
+                # must not contain any.
+                url: https://upyesp.github.io/epher-preview/
+              steps:
+                - uses: actions/checkout@v4
+                - name: Stage the tree for serving
+                  # Drop .github (this workflow itself) from what the
+                  # site serves.
+                  run: |
+                    mkdir -p _site
+                    find . -mindepth 1 -maxdepth 1 ! -name .github ! -name _site \
+                      -exec cp -a {} _site/ \;
+                - uses: actions/configure-pages@v5
+                - uses: actions/upload-pages-artifact@v3
+                  with:
+                    path: _site
+                - id: deployment
+                  uses: actions/deploy-pages@v4
+          YAML
           git init -q
           git config user.name "epher preview"
           git config user.email "preview@epher.org"
@@ -223,16 +274,32 @@ jobs:
             git push -f git@github.com:upyesp/epher-preview.git HEAD:refs/heads/gh-pages
           echo "pushed preview-site (${GITHUB_RUN_ID})"
 
-      - name: Wait for the Pages build
+      - name: Wait for the Pages deploy
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          for i in $(seq 1 40); do
-            STATE="$(gh api repos/upyesp/epher-preview/pages/builds/latest -q .status 2>/dev/null || echo none)"
-            [ "$STATE" = "built" ] && break
-            sleep 6
+          SHA="$(git -C preview-site rev-parse HEAD)"
+          STATE="unknown"
+          # The deploy runs in epher-preview's own "deploy preview site"
+          # workflow. Poll until it completes; fail loudly (the old wait
+          # loop fell through after 4 minutes and reported green while
+          # the build was still building - or erroring forever).
+          for i in $(seq 1 60); do
+            sleep 10
+            READ="$(gh api "repos/upyesp/epher-preview/actions/runs?head_sha=$SHA" \
+              --jq '[.workflow_runs[]
+                    | select(.name == "deploy preview site")]
+                    | first | .status + ":" + (.conclusion // "")' 2>/dev/null || echo "")"
+            case "$READ" in
+              completed:success) STATE=success; break ;;
+              completed:*) STATE="$READ"; break ;;
+            esac
           done
-          echo "preview Pages build: ${STATE:-unknown}"
-          gh api repos/upyesp/epher-preview/pages -q '"https://" + .html_url' 2>/dev/null \
+          if [ "$STATE" != "success" ]; then
+            echo "::error::preview deploy did not succeed (state: $STATE) - see upyesp/epher-preview Actions" >&2
+            exit 1
+          fi
+          echo "preview deploy: success"
+          gh api repos/upyesp/epher-preview/pages --jq .html_url 2>/dev/null \
             || echo "https://upyesp.github.io/epher-preview/"

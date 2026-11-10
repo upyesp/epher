@@ -53,6 +53,17 @@ jobs:
       ref: ${{ inputs.ref }}
       version: auto
 
+  # The Apple-silicon floor (ADR-0082), beside the installer build:
+  # the same trigger the Linux and Windows legs get, so a staging
+  # draft is arm64-tested before promotion. It does not gate the
+  # draft: a red arm64 run must not hide the installers a human is
+  # about to hand-test; the failure is visible in the same run.
+  silicon:
+    name: build and test on Apple silicon
+    uses: ./.github/workflows/macos-silicon.yml
+    with:
+      ref: ${{ inputs.ref }}
+
   draft:
     name: Refresh the hidden draft release
     needs: [build]
