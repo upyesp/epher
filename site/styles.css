@@ -642,33 +642,17 @@ a:hover {
   color: #f2f4f6;
 }
 
-.graph-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 0.9rem;
-}
-
-.graph-card svg {
+/* The hero screenshot (ADR-0083): a real capture of all five surfaces
+   answering one equation. It is dark in both themes, like the terminal
+   card above it, so it keeps the dark-theme border and a shadow to sit
+   consistently on either palette. */
+.hero-shot {
   display: block;
   width: 100%;
   height: auto;
-}
-
-/* The rotating saddle (app.js initHero3d): the mesh and frame lines
-   carry stroke="currentColor", so the palette flips with the theme.
-   The lines use the accent green for consistency with the site's
-   accent-coloured elements (light #0f766e on --panel 5.1:1, dark
-   #2dd4bf on --panel 8.9:1; the 3:1 non-text bar is cleared in both). */
-.hero3d-svg {
-  color: var(--accent);
-}
-
-.hero3d-svg polyline,
-.hero3d-svg line {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  border: 1px solid var(--terminal-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
 }
 
 @media (max-width: 959px) {

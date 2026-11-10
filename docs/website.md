@@ -134,12 +134,12 @@ links never need a version number.
   overlapping sheets, sized to the surrounding font); on the view page
   the copy button sits left of the file name. Run `npm run
   build:scripts` to regenerate.
-- **Hero animation**: the landing hero's graph card is the 3D saddle
-  `graph3d x ^ 2 - y ^ 2` rotating slowly, a runtime port in `site/app.js`
-  of the app's projection (ADR-0030): constant-size per-frame-centered view
-  box, the width slider at 0.1 (mesh 1.2x, frame 1.4x), one static frame
-  under reduced motion. The terminal card above it shows that exact
-  command with no shell prompt, copy-pasteable into any frontend
+- **Hero screenshot**: the landing hero shows a real composite capture
+  (`site/img/hero.webp`, PNG fallback, ADR-0083) of all five surfaces
+  answering one equation: the CLI, the REPL, and the TUI stacked behind
+  the desktop app graphing that same quadratic, with the mobile web app
+  in front. The image is dark in both themes, like the terminal card
+  above it. The terminal card stages copy-pasteable example commands
   (ADR-0032); the header nav (landing, privacy, guide pages) carries an
   App link to `/pwa/` in all eight locales.
 - **Icon**: the epher mark is the monogram "e" (from the epher.svg artwork)

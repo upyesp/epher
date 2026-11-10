@@ -107,6 +107,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0080 | A constant definition is silent | 2026-10-28 | accepted |
 | 0081 | No em-dashes anywhere in the project | 2026-11-02 | accepted |
 | 0082 | The macOS build runs when the Linux and Windows builds run | 2026-11-10 | accepted (supersedes 0075) |
+| 0083 | The landing hero is a real capture of all five surfaces | 2026-11-10 | accepted (supersedes the ADR-0030 hero on this point) |
 
 ## Decision chains
 
