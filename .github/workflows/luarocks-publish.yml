@@ -27,6 +27,11 @@ on:
         description: the train to publish, e.g. 0.5.80 (a leading v is accepted)
         required: true
         type: string
+      force_delete:
+        description: delete the version on luarocks.org first (re-upload after a broken upload)
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   luarocks:
@@ -92,6 +97,30 @@ jobs:
             echo "::notice::LUAROCKS_API_KEY is not set in the stores environment; the LuaRocks upload is skipped. Create a fresh key at https://luarocks.org/settings/api-keys (keys minted before 2026-09-26 were revoked by the September 2026 security incident) and add it as the secret."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Delete the remote version (forced re-upload)
+        # A broken upload can leave a version half-published: the 0.9.7-1
+        # train registered the rockspec but the packed src.rock never
+        # landed (server API failure), and the action's duplicate guard
+        # then skips every re-drive. Deleting the version first makes
+        # the upload below a fresh, full one. The brief window with no
+        # version beats a permanently half-published one.
+        if: inputs.force_delete == true && steps.gate.outputs.skip != 'true'
+        env:
+          LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y --no-install-recommends luarocks >/dev/null
+          OUT="$(luarocks delete epher "$VERSION" --api-key="$LUAROCKS_API_KEY" 2>&1)" || {
+            if echo "$OUT" | grep -qiE "no results|not found|does not exist"; then
+              echo "::notice::epher $VERSION is not on the remote; nothing to delete"
+            else
+              echo "::error::luarocks delete failed: $OUT"
+              exit 1
+            fi
+          }
+          echo "epher $VERSION deleted (or absent); the upload below is a fresh, full one"
 
       - name: Upload the rock
         if: steps.gate.outputs.skip != 'true'
