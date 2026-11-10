@@ -1,0 +1,50 @@
+{
+ "tool": "numworks",
+ "tier": "W",
+ "session": "a",
+ "machine_manifest_sha256": "4e88f46bd5fc77cbd86cf3d761af3901e1fc386eb305bcd969fd232a79cc543f",
+ "timestamp": "2026-11-08T11:13:14.516Z",
+ "wall_seconds": 23,
+ "tasks": [
+  {
+   "task": "w10",
+   "label": "W10 interactive latency (NumWorks web emulator)",
+   "track": "single",
+   "gate": {
+    "checked": 1,
+    "failed": 0
+   },
+   "results": [
+    {
+     "track": "single",
+     "boundary": "launch-to-ready: page navigation -> boot complete (LCD hash stable across two 100 ms polls, wall clock); keystroke-to-answer: trusted CDP clicks on the vendor keypad (6 * 7 exe) -> first LCD pixel delta after exe, wall clock minus the fixed 220 ms key settle; answer value verified visually during the build run (2026-11-08)",
+     "warmups": 0,
+     "requested_samples": 6,
+     "launch_to_ready_ms": {
+      "samples": 6,
+      "units": "ms",
+      "min": 726,
+      "median": 740.5,
+      "mad": 4,
+      "p95": 1062,
+      "max": 1062,
+      "outlier_indices": []
+     },
+     "launch_samples": 6,
+     "keystroke_to_answer_ms": {
+      "samples": 6,
+      "units": "ms",
+      "min": 2169,
+      "median": 2249,
+      "mad": 36.5,
+      "p95": 2294,
+      "max": 2294,
+      "outlier_indices": []
+     },
+     "keystroke_samples": 6,
+     "note": "W9 script cells and batch tasks are a declared stage deviation (automation cost), not a not-supported claim"
+    }
+   ]
+  }
+ ]
+}

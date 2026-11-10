@@ -1,0 +1,33 @@
+{
+ "session": "b",
+ "timestamp": "2026-11-07T22:39:46.373Z",
+ "host": {
+  "model": "Mac18,5",
+  "cpu": "Apple M6",
+  "memory_bytes": "25769803776",
+  "macos": "27.2 (26B123)"
+ },
+ "power": "Now drawing from 'AC Power'",
+ "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+ "screen_lock": "unlocked (set never to lock: no screen saver, no password on wake)",
+ "top_cpu_processes": [
+  "18.4 node",
+  "12.1 /opt/homebrew/bin/node",
+  "1.3 /bin/bash",
+  "0.7 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer",
+  "0.4 sleep",
+  "0.3 /System/Library/CoreServices/Finder.app/Contents/MacOS/Finder",
+  "0.2 /Applications/SpeedCrunch.app/Contents/MacOS/SpeedCrunch",
+  "0.2 /Applications/iTerm.app/Contents/MacOS/iTerm2"
+ ],
+ "versions": {
+  "git": "a8567199d6146304148830c37f83e375da9d27b0",
+  "octave": "GNU Octave (aarch64-apple-darwin27.0.0) version 11.3.0",
+  "speedcrunch": "1.1",
+  "browser": "not used in the stage 3 pilot (N tier only)"
+ },
+ "notes": [
+  "quiet-machine checklist: no other heavy processes expected; top_cpu_processes recorded for audit",
+  "thermal state recorded at session start; re-record at session end"
+ ]
+}

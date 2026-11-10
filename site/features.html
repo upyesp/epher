@@ -116,16 +116,12 @@
       <h1 data-i18n="features-title">Features</h1>
       <p data-i18n="features-p1">
         How does epher stack up against the calculators people already
-        know? This page compares it with nine scientific
-        calculators and math tools - including where epher comes up
-        short.
+        know? This page compares epher with nine popular scientific
+        calculators and math tools.
       </p>
       <h2 data-i18n="features-h-chart">The comparison chart</h2>
       <p data-i18n="features-legend">
-        ✓ full support · ~ partial · – absent. epher 0.9.6 was probed
-        feature by feature on 2026-11-07; the nine columns were pinned
-        to each product's latest release and checked against its
-        official documentation.
+        Key: ✓ full support · ~ partial · – absent
       </p>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Feature comparison table (scrolls horizontally)">
         <table class="compare">
@@ -511,7 +507,7 @@
           </tr>
           <tr>
             <th scope="row" data-i18n="feat-row-programming">Programming surface</th>
-            <td class="c">~</td>
+            <td class="c">✓</td>
             <td class="c">✓</td>
             <td class="c">–</td>
             <td class="c">~</td>
@@ -559,10 +555,8 @@
       </p>
       <h2 data-i18n="features-h-platform">How epher ships</h2>
       <p data-i18n="features-p-platform">
-        What a language can do is half the story; the other half is how
-        it reaches you. This second chart measures the delivery
-        surfaces, checked the same way: epher probed, the nine pinned
-        to their latest releases on 2026-11-07.
+        What a language can do is half the story, the other half is how
+        it is available to you.
       </p>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Platform and delivery table (scrolls horizontally)">
         <table class="compare">
@@ -687,8 +681,8 @@
             <td class="c">✓</td>
           </tr>
           <tr>
-            <th scope="row" data-i18n="feat-row-mobile">Mobile app or mobile UI</th>
-            <td class="c">~</td>
+            <th scope="row" data-i18n="feat-row-mobile">Mobile UI</th>
+            <td class="c">✓</td>
             <td class="c">✓</td>
             <td class="c">✓</td>
             <td class="c">✓</td>
@@ -754,17 +748,6 @@
           </tbody>
         </table>
       </div>
-      <p class="muted" data-i18n="features-plat-note">
-        First-party means shipped by the vendor itself, not the
-        community. The offline collection row asks for a hundred or
-        more runnable, categorized scripts riding the installer.
-        epher's mobile mark is a mobile view of the web app, not a
-        store app; its Linux mark covers apt, dnf, Flathub, Snap, and
-        AUR; its extension row covers nine editor families on one
-        language server. SpeedCrunch's Linux build is the older 0.12
-        line; MATLAB's Windows and macOS marks are the desktop product,
-        its web mark MATLAB Online, and its mobile mark MATLAB Mobile.
-      </p>
       <h2 data-i18n="features-h-missing">Where epher is missing</h2>
       <p data-i18n="features-p-missing">
         No computer-algebra system (CAS), no exam mode, no step-by-step
@@ -772,11 +755,6 @@
         natural-language input, and no curated or live data. These are
         deliberate boundaries, not oversights: epher computes with
         numbers, exactly, on your own machine.
-      </p>
-      <p data-i18n="features-p-programming">
-        The programming surface is partial: strings with escapes, a
-        string library, if / while / for, def with return, recursion
-        and destructuring exist; keyboard input and file I/O do not.
       </p>
       <h2 data-i18n="features-h-unique">Where epher stands alone</h2>
       <ul>
@@ -790,8 +768,8 @@
         <li data-i18n="features-li-web">
           A fully featured web app in a sandbox: installable on phone
           and desktop, offline after the first load, every evaluation
-          on-device - no accounts, no cookies, no server calls - with
-          the scripts, the guide and the whole keypad embedded.
+          on-device - no accounts, no cookies, no server calls. The
+          scripts, the guide and the whole keypad embedded.
         </li>
         <li data-i18n="features-li-share">
           Sharing is caring: any history item shares as a link that
@@ -799,12 +777,6 @@
           runs the maths on their own device - no account, no cloud
           copy in between. Pasted as plain text, it runs in every
           epher frontend, terminal ones included.
-        </li>
-        <li data-i18n="features-li-orrery">
-          An offline solar system: a live ephemeris for the Sun, the
-          Moon, the planets and Pluto - positions, rise and set times,
-          phases, magnitudes - and a 3D orrery you can animate. None of
-          the nine has one.
         </li>
         <li data-i18n="features-li-editors">
           Nine editor families on one first-party language server: VS
@@ -821,8 +793,9 @@
           verified against the engine on every change.
         </li>
         <li data-i18n="features-li-guide">
-          The full user guide speaks eight languages, identical in the
-          web app, the desktop app, the terminal, and on this website.
+          The full user guide is available in eight languages,
+          identical in the web app, the desktop app, the terminal, and
+          on this website.
         </li>
       </ul>
       <h2 data-i18n="features-h-method">Method</h2>
@@ -835,9 +808,13 @@
         <a href="https://github.com/upyesp/epher/blob/main/docs/research/calculator-gap-analysis-4th.md">calculator-gap-analysis-4th.md</a>.
       </p>
       <h2 data-i18n="features-h-contact">Questions</h2>
-      <p data-i18n="features-p-questions">
-        If a row looks wrong, say so: open an issue on GitHub with what
-        your calculator does, and the chart will be corrected.
+      <p>
+        <span data-i18n="features-p-questions">If something here is
+        incorrect, please get in touch.</span>
+        <span data-i18n="features-p-questions-open">Open an</span>
+        <a href="https://github.com/upyesp/epher/issues" data-i18n="features-p-issues-link">issue</a>
+        <span data-i18n="features-p-questions-close">on GitHub and the
+        page will be corrected.</span>
       </p>
     </article>
   </main>

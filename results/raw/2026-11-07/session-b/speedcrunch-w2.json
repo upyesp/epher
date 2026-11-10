@@ -1,0 +1,40 @@
+{
+ "task": "w2",
+ "label": "W2 transcendental microbench",
+ "chunk_lines": 120,
+ "gate": {
+  "tolerance": "relative 1e-9 vs 60-digit decimal referee",
+  "checked": 10000,
+  "failed": 0
+ },
+ "retry": {
+  "chunk_retries": 0
+ },
+ "results": [
+  {
+   "track": "single",
+   "track_note": "W1/W2 fix the expressions; idiomatic and equivalent implementations coincide by construction (pilot README).",
+   "boundary": "GUI bulk ingest end-to-end: per-chunk span is Cmd+V posted -> all of the chunk's results present in the history accessibility value; chunk spans summed; clears and clipboard writes outside the span",
+   "warmups": 3,
+   "requested_samples": 7,
+   "bucket_rule": "warm-up pass 16.4 s -> 7 samples",
+   "units": "ms",
+   "samples": 7,
+   "min": 16432.827292000184,
+   "median": 16498.36641200011,
+   "mad": 36.36519800033784,
+   "p95": 16526.498536999952,
+   "max": 16566.768335000917,
+   "outlier_indices": [],
+   "raw_passes_ms": [
+    16432.827292000184,
+    16442.7219629996,
+    16462.00121399977,
+    16498.36641200011,
+    16520.976043000246,
+    16526.498536999952,
+    16566.768335000917
+   ]
+  }
+ ]
+}

@@ -1,0 +1,2815 @@
+{
+ "tool": "sweep",
+ "tier": "N",
+ "session": "a",
+ "machine_manifest_sha256": "121f2c24824982e50bd82499ca5c995b7f2c7a823dc5cee7ee24536a1c9cd60f",
+ "timestamp": "2026-11-08T22:07:10.047Z",
+ "wall_seconds": 2,
+ "tasks": [
+  {
+   "task": "sweep",
+   "label": "epher-only shipped-script sweep (532 scripts)",
+   "gate": {
+    "checked": 532,
+    "failed": 44,
+    "note": "44 scripts errored"
+   },
+   "results": [
+    {
+     "track": "single",
+     "boundary": "in-engine parse + eval per script, one pass each, in-process Instant in the harness binary; process spawn excluded (declared for all epher in-engine cells)",
+     "total_scripts": 488,
+     "errored": [
+      {
+       "path": "graphs/data/boxplot-two-classes.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/data/expreg-culture-growth.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/data/histogram-two-dice.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/data/quadreg-projectile.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/data/scatter-noisy-line.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/functions/catenary-vs-parabola.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/functions/damped-oscillation.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/functions/exp-vs-logistic.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/functions/gaussian-bell-areas.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/functions/newton-iteration-path.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/functions/polynomial-cubic-shape.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/functions/rational-asymptotes.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/functions/square-wave-harmonics.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/functions/tangent-asymptotes.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/implicit/cassini-ovals.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/implicit/conic-ellipse-axes.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/implicit/ellipse-foci-sum.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/implicit/hyperbola-asymptotes.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/implicit/region-between-parabola.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/parametric/astroid-hypocycloid.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/parametric/brachistochrone-arc.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/parametric/cardioid-epicycloid.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/parametric/cycloid-arc-length.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/parametric/folium-of-descartes.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/parametric/lissajous-3-2.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/parametric/witch-of-agnesi.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/polar/archimedean-spiral.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/polar/cardioid-polar-area.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/polar/lemniscate-area.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/polar/limacon-inner-loop.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/polar/logarithmic-spiral-growth.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/polar/rose-four-petals.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/space-curves/circular-helix-pitch.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/space-curves/conical-spiral.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/space-curves/spherical-spiral.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/space-curves/trefoil-torus-knot.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/space-curves/viviani-curve.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/surfaces/cone-slope.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/surfaces/egg-crate-lattice.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/surfaces/gaussian-bell-surface.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/surfaces/monkey-saddle.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/surfaces/paraboloid-bowl.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/surfaces/ripple-tank.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      },
+      {
+       "path": "graphs/surfaces/saddle-surface.epher",
+       "error": "Error: Command failed: /Users/pete/Developer/code/epher/target/release/examples/bench_eval script-run /Users/pete/Develo"
+      }
+     ],
+     "categories": [
+      {
+       "category": "algebra",
+       "scripts": 47,
+       "samples": 47,
+       "units": "ms",
+       "min": 0.028374999999999997,
+       "median": 0.039583,
+       "mad": 0.004707999999999997,
+       "p95": 0.067,
+       "max": 0.376583,
+       "outlier_indices": []
+      },
+      {
+       "category": "astronomy",
+       "scripts": 131,
+       "samples": 131,
+       "units": "ms",
+       "min": 0.038083,
+       "median": 0.763417,
+       "mad": 0.715375,
+       "p95": 26.602958,
+       "max": 100.373042,
+       "outlier_indices": [
+        8,
+        10,
+        15,
+        38,
+        46,
+        48,
+        54,
+        57,
+        59,
+        62,
+        69,
+        70,
+        71,
+        73,
+        74,
+        76,
+        78,
+        80,
+        81,
+        84,
+        87,
+        88,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        98,
+        104,
+        113,
+        129
+       ]
+      },
+      {
+       "category": "calculus",
+       "scripts": 25,
+       "samples": 25,
+       "units": "ms",
+       "min": 0.028584,
+       "median": 0.052083000000000004,
+       "mad": 0.017374,
+       "p95": 0.11745799999999999,
+       "max": 0.119917,
+       "outlier_indices": []
+      },
+      {
+       "category": "engineering",
+       "scripts": 55,
+       "samples": 55,
+       "units": "ms",
+       "min": 0.038667,
+       "median": 0.046916,
+       "mad": 0.0029990000000000017,
+       "p95": 0.06229200000000001,
+       "max": 0.06475,
+       "outlier_indices": []
+      },
+      {
+       "category": "finance",
+       "scripts": 42,
+       "samples": 42,
+       "units": "ms",
+       "min": 0.025083,
+       "median": 0.036667000000000005,
+       "mad": 0.0046044999999999975,
+       "p95": 0.05525,
+       "max": 0.0675,
+       "outlier_indices": []
+      },
+      {
+       "category": "geometry",
+       "scripts": 46,
+       "samples": 46,
+       "units": "ms",
+       "min": 0.02875,
+       "median": 0.0332085,
+       "mad": 0.0029380000000000014,
+       "p95": 0.049875,
+       "max": 0.13054200000000002,
+       "outlier_indices": []
+      },
+      {
+       "category": "number-theory",
+       "scripts": 40,
+       "samples": 40,
+       "units": "ms",
+       "min": 0.030417,
+       "median": 0.0603955,
+       "mad": 0.023250000000000003,
+       "p95": 1.639833,
+       "max": 12.104999999999999,
+       "outlier_indices": [
+        10,
+        21,
+        28,
+        29
+       ]
+      },
+      {
+       "category": "probability",
+       "scripts": 34,
+       "samples": 34,
+       "units": "ms",
+       "min": 0.029084000000000002,
+       "median": 0.046833,
+       "mad": 0.011853500000000003,
+       "p95": 22.018,
+       "max": 231.27624999999998,
+       "outlier_indices": [
+        26,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33
+       ]
+      },
+      {
+       "category": "statistics",
+       "scripts": 39,
+       "samples": 39,
+       "units": "ms",
+       "min": 0.022209,
+       "median": 0.036959000000000006,
+       "mad": 0.004709000000000005,
+       "p95": 0.076166,
+       "max": 0.194959,
+       "outlier_indices": []
+      },
+      {
+       "category": "trigonometry",
+       "scripts": 29,
+       "samples": 29,
+       "units": "ms",
+       "min": 0.031333,
+       "median": 0.058625000000000003,
+       "mad": 0.011250000000000003,
+       "p95": 0.073333,
+       "max": 0.078375,
+       "outlier_indices": []
+      }
+     ],
+     "all_entries": [
+      {
+       "path": "algebra/complex/complex-argument.epher",
+       "category": "algebra",
+       "ms": 0.058875000000000004
+      },
+      {
+       "path": "algebra/complex/complex-conjugate.epher",
+       "category": "algebra",
+       "ms": 0.039125
+      },
+      {
+       "path": "algebra/complex/complex-fraction-simplify.epher",
+       "category": "algebra",
+       "ms": 0.035457999999999996
+      },
+      {
+       "path": "algebra/complex/complex-modulus.epher",
+       "category": "algebra",
+       "ms": 0.043625000000000004
+      },
+      {
+       "path": "algebra/complex/complex-polar-form.epher",
+       "category": "algebra",
+       "ms": 0.037041
+      },
+      {
+       "path": "algebra/complex/complex-powers.epher",
+       "category": "algebra",
+       "ms": 0.041791
+      },
+      {
+       "path": "algebra/complex/complex-quadratic-roots.epher",
+       "category": "algebra",
+       "ms": 0.036333
+      },
+      {
+       "path": "algebra/complex/complex-roots-of-unity.epher",
+       "category": "algebra",
+       "ms": 0.042959
+      },
+      {
+       "path": "algebra/complex/euler-identity-check.epher",
+       "category": "algebra",
+       "ms": 0.030625
+      },
+      {
+       "path": "algebra/equations/cubic-roots.epher",
+       "category": "algebra",
+       "ms": 0.038834
+      },
+      {
+       "path": "algebra/equations/exponential-equation.epher",
+       "category": "algebra",
+       "ms": 0.034167
+      },
+      {
+       "path": "algebra/equations/linear-equation.epher",
+       "category": "algebra",
+       "ms": 0.036875000000000005
+      },
+      {
+       "path": "algebra/equations/logarithmic-equation.epher",
+       "category": "algebra",
+       "ms": 0.033541999999999995
+      },
+      {
+       "path": "algebra/equations/quadratic-complex-roots.epher",
+       "category": "algebra",
+       "ms": 0.058417
+      },
+      {
+       "path": "algebra/equations/quadratic-formula.epher",
+       "category": "algebra",
+       "ms": 0.067
+      },
+      {
+       "path": "algebra/equations/quadratic-vertex.epher",
+       "category": "algebra",
+       "ms": 0.04575
+      },
+      {
+       "path": "algebra/equations/three-linear-equations.epher",
+       "category": "algebra",
+       "ms": 0.032666999999999995
+      },
+      {
+       "path": "algebra/equations/two-linear-equations.epher",
+       "category": "algebra",
+       "ms": 0.044208000000000004
+      },
+      {
+       "path": "algebra/matrices/adjacency-matrix-walks.epher",
+       "category": "algebra",
+       "ms": 0.039583
+      },
+      {
+       "path": "algebra/matrices/determinant-2x2.epher",
+       "category": "algebra",
+       "ms": 0.046
+      },
+      {
+       "path": "algebra/matrices/determinant-3x3.epher",
+       "category": "algebra",
+       "ms": 0.043209
+      },
+      {
+       "path": "algebra/matrices/matrix-add.epher",
+       "category": "algebra",
+       "ms": 0.029583
+      },
+      {
+       "path": "algebra/matrices/matrix-inverse-2x2.epher",
+       "category": "algebra",
+       "ms": 0.058582999999999996
+      },
+      {
+       "path": "algebra/matrices/matrix-inverse-3x3.epher",
+       "category": "algebra",
+       "ms": 0.050124999999999996
+      },
+      {
+       "path": "algebra/matrices/matrix-multiply.epher",
+       "category": "algebra",
+       "ms": 0.035916
+      },
+      {
+       "path": "algebra/matrices/matrix-power.epher",
+       "category": "algebra",
+       "ms": 0.034875
+      },
+      {
+       "path": "algebra/matrices/solve-linear-system-rref.epher",
+       "category": "algebra",
+       "ms": 0.035334
+      },
+      {
+       "path": "algebra/matrices/transpose-matrix.epher",
+       "category": "algebra",
+       "ms": 0.030333
+      },
+      {
+       "path": "algebra/polynomials/binomial-expansion.epher",
+       "category": "algebra",
+       "ms": 0.04825
+      },
+      {
+       "path": "algebra/polynomials/evaluate-polynomial.epher",
+       "category": "algebra",
+       "ms": 0.0465
+      },
+      {
+       "path": "algebra/polynomials/factor-theorem-check.epher",
+       "category": "algebra",
+       "ms": 0.046959
+      },
+      {
+       "path": "algebra/polynomials/horner-method.epher",
+       "category": "algebra",
+       "ms": 0.04575
+      },
+      {
+       "path": "algebra/polynomials/pascal-row.epher",
+       "category": "algebra",
+       "ms": 0.037625
+      },
+      {
+       "path": "algebra/polynomials/polynomial-from-roots.epher",
+       "category": "algebra",
+       "ms": 0.037375
+      },
+      {
+       "path": "algebra/polynomials/remainder-theorem.epher",
+       "category": "algebra",
+       "ms": 0.041625
+      },
+      {
+       "path": "algebra/polynomials/synthetic-division.epher",
+       "category": "algebra",
+       "ms": 0.042666
+      },
+      {
+       "path": "algebra/sequences-series/arithmetic-means.epher",
+       "category": "algebra",
+       "ms": 0.028374999999999997
+      },
+      {
+       "path": "algebra/sequences-series/arithmetic-nth-term.epher",
+       "category": "algebra",
+       "ms": 0.038292
+      },
+      {
+       "path": "algebra/sequences-series/arithmetic-sum.epher",
+       "category": "algebra",
+       "ms": 0.06825
+      },
+      {
+       "path": "algebra/sequences-series/fibonacci-number.epher",
+       "category": "algebra",
+       "ms": 0.045916
+      },
+      {
+       "path": "algebra/sequences-series/geometric-nth-term.epher",
+       "category": "algebra",
+       "ms": 0.037375
+      },
+      {
+       "path": "algebra/sequences-series/geometric-sum.epher",
+       "category": "algebra",
+       "ms": 0.049291
+      },
+      {
+       "path": "algebra/sequences-series/harmonic-number.epher",
+       "category": "algebra",
+       "ms": 0.376583
+      },
+      {
+       "path": "algebra/sequences-series/infinite-geometric-sum.epher",
+       "category": "algebra",
+       "ms": 0.038041
+      },
+      {
+       "path": "algebra/sequences-series/recursive-sequence.epher",
+       "category": "algebra",
+       "ms": 0.032417
+      },
+      {
+       "path": "algebra/sequences-series/sum-of-cubes.epher",
+       "category": "algebra",
+       "ms": 0.042334
+      },
+      {
+       "path": "algebra/sequences-series/sum-of-squares.epher",
+       "category": "algebra",
+       "ms": 0.039459
+      },
+      {
+       "path": "astronomy/coordinates/aberration-fix.epher",
+       "category": "astronomy",
+       "ms": 0.131333
+      },
+      {
+       "path": "astronomy/coordinates/apparent-place.epher",
+       "category": "astronomy",
+       "ms": 0.156583
+      },
+      {
+       "path": "astronomy/coordinates/equ-ecl.epher",
+       "category": "astronomy",
+       "ms": 0.0795
+      },
+      {
+       "path": "astronomy/coordinates/equ-galactic.epher",
+       "category": "astronomy",
+       "ms": 0.058083
+      },
+      {
+       "path": "astronomy/coordinates/geodetic-geocentric.epher",
+       "category": "astronomy",
+       "ms": 0.0665
+      },
+      {
+       "path": "astronomy/coordinates/nutation-obliquity.epher",
+       "category": "astronomy",
+       "ms": 0.087
+      },
+      {
+       "path": "astronomy/coordinates/parallactic-angle.epher",
+       "category": "astronomy",
+       "ms": 0.326708
+      },
+      {
+       "path": "astronomy/coordinates/precession-j2000.epher",
+       "category": "astronomy",
+       "ms": 0.125917
+      },
+      {
+       "path": "astronomy/eclipses/eclipse-count-year.epher",
+       "category": "astronomy",
+       "ms": 10.328458000000001
+      },
+      {
+       "path": "astronomy/eclipses/eclipse-seasons.epher",
+       "category": "astronomy",
+       "ms": 2.553209
+      },
+      {
+       "path": "astronomy/eclipses/mercury-transits.epher",
+       "category": "astronomy",
+       "ms": 23.0135
+      },
+      {
+       "path": "astronomy/eclipses/next-lunar-eclipse.epher",
+       "category": "astronomy",
+       "ms": 0.6880000000000001
+      },
+      {
+       "path": "astronomy/eclipses/next-solar-eclipse.epher",
+       "category": "astronomy",
+       "ms": 0.531625
+      },
+      {
+       "path": "astronomy/eclipses/saros-arithmetic.epher",
+       "category": "astronomy",
+       "ms": 0.512292
+      },
+      {
+       "path": "astronomy/eclipses/semidiameters.epher",
+       "category": "astronomy",
+       "ms": 0.766583
+      },
+      {
+       "path": "astronomy/ephemeris/body-almanac.epher",
+       "category": "astronomy",
+       "ms": 9.050167
+      },
+      {
+       "path": "astronomy/ephemeris/bright-limb-pa.epher",
+       "category": "astronomy",
+       "ms": 0.763417
+      },
+      {
+       "path": "astronomy/ephemeris/constellation-of.epher",
+       "category": "astronomy",
+       "ms": 3.777459
+      },
+      {
+       "path": "astronomy/ephemeris/daily-motion.epher",
+       "category": "astronomy",
+       "ms": 0.549042
+      },
+      {
+       "path": "astronomy/ephemeris/earth-perihelion.epher",
+       "category": "astronomy",
+       "ms": 0.833792
+      },
+      {
+       "path": "astronomy/ephemeris/ecliptic-position.epher",
+       "category": "astronomy",
+       "ms": 0.358292
+      },
+      {
+       "path": "astronomy/ephemeris/elongation.epher",
+       "category": "astronomy",
+       "ms": 2.6844170000000003
+      },
+      {
+       "path": "astronomy/ephemeris/light-time.epher",
+       "category": "astronomy",
+       "ms": 0.746042
+      },
+      {
+       "path": "astronomy/ephemeris/orbital-elements.epher",
+       "category": "astronomy",
+       "ms": 0.163958
+      },
+      {
+       "path": "astronomy/ephemeris/parallax-demo.epher",
+       "category": "astronomy",
+       "ms": 0.22975
+      },
+      {
+       "path": "astronomy/ephemeris/rise-set-azimuth.epher",
+       "category": "astronomy",
+       "ms": 4.800625
+      },
+      {
+       "path": "astronomy/ephemeris/schlyter-crosscheck.epher",
+       "category": "astronomy",
+       "ms": 0.450708
+      },
+      {
+       "path": "astronomy/ephemeris/separation.epher",
+       "category": "astronomy",
+       "ms": 1.243708
+      },
+      {
+       "path": "astronomy/ephemeris/subsolar-sublunar.epher",
+       "category": "astronomy",
+       "ms": 0.35625
+      },
+      {
+       "path": "astronomy/ephemeris/weekly-track.epher",
+       "category": "astronomy",
+       "ms": 3.344666
+      },
+      {
+       "path": "astronomy/moon/blue-moon.epher",
+       "category": "astronomy",
+       "ms": 1.747208
+      },
+      {
+       "path": "astronomy/moon/full-moons.epher",
+       "category": "astronomy",
+       "ms": 1.58625
+      },
+      {
+       "path": "astronomy/moon/lunar-standstill-season.epher",
+       "category": "astronomy",
+       "ms": 1.652583
+      },
+      {
+       "path": "astronomy/moon/moon-age.epher",
+       "category": "astronomy",
+       "ms": 0.9375829999999999
+      },
+      {
+       "path": "astronomy/moon/moon-altitude-azimuth.epher",
+       "category": "astronomy",
+       "ms": 0.290833
+      },
+      {
+       "path": "astronomy/moon/moon-angular-diameter.epher",
+       "category": "astronomy",
+       "ms": 0.451167
+      },
+      {
+       "path": "astronomy/moon/moon-distance.epher",
+       "category": "astronomy",
+       "ms": 0.392416
+      },
+      {
+       "path": "astronomy/moon/moon-ecliptic-position.epher",
+       "category": "astronomy",
+       "ms": 0.891
+      },
+      {
+       "path": "astronomy/moon/moon-free-tonight.epher",
+       "category": "astronomy",
+       "ms": 11.103625000000001
+      },
+      {
+       "path": "astronomy/moon/moon-illumination.epher",
+       "category": "astronomy",
+       "ms": 1.884333
+      },
+      {
+       "path": "astronomy/moon/moon-libration.epher",
+       "category": "astronomy",
+       "ms": 0.542917
+      },
+      {
+       "path": "astronomy/moon/moon-max-declination.epher",
+       "category": "astronomy",
+       "ms": 3.020333
+      },
+      {
+       "path": "astronomy/moon/moon-node-passages.epher",
+       "category": "astronomy",
+       "ms": 5.120583
+      },
+      {
+       "path": "astronomy/moon/moon-parallax.epher",
+       "category": "astronomy",
+       "ms": 0.490708
+      },
+      {
+       "path": "astronomy/moon/moon-perigee-apogee.epher",
+       "category": "astronomy",
+       "ms": 3.170083
+      },
+      {
+       "path": "astronomy/moon/moon-phase-angle.epher",
+       "category": "astronomy",
+       "ms": 3.832
+      },
+      {
+       "path": "astronomy/moon/moon-transit-time.epher",
+       "category": "astronomy",
+       "ms": 18.567041999999997
+      },
+      {
+       "path": "astronomy/moon/moonrise-azimuth.epher",
+       "category": "astronomy",
+       "ms": 4.891833
+      },
+      {
+       "path": "astronomy/moon/moonrise-moonset.epher",
+       "category": "astronomy",
+       "ms": 13.500833
+      },
+      {
+       "path": "astronomy/moon/phases-of-the-month.epher",
+       "category": "astronomy",
+       "ms": 1.087709
+      },
+      {
+       "path": "astronomy/moon/supermoon-check.epher",
+       "category": "astronomy",
+       "ms": 3.513417
+      },
+      {
+       "path": "astronomy/navigation/gha-sun.epher",
+       "category": "astronomy",
+       "ms": 0.34912499999999996
+      },
+      {
+       "path": "astronomy/navigation/great-circle.epher",
+       "category": "astronomy",
+       "ms": 0.06945799999999999
+      },
+      {
+       "path": "astronomy/navigation/intercept-sight.epher",
+       "category": "astronomy",
+       "ms": 0.355375
+      },
+      {
+       "path": "astronomy/navigation/noon-sight.epher",
+       "category": "astronomy",
+       "ms": 8.378333
+      },
+      {
+       "path": "astronomy/navigation/polaris-sight.epher",
+       "category": "astronomy",
+       "ms": 0.066208
+      },
+      {
+       "path": "astronomy/planets/brightest-planet.epher",
+       "category": "astronomy",
+       "ms": 0.462
+      },
+      {
+       "path": "astronomy/planets/conjunction-planet-moon.epher",
+       "category": "astronomy",
+       "ms": 10.128333
+      },
+      {
+       "path": "astronomy/planets/galilean-moons.epher",
+       "category": "astronomy",
+       "ms": 6.581542
+      },
+      {
+       "path": "astronomy/planets/greatest-elongation.epher",
+       "category": "astronomy",
+       "ms": 81.299833
+      },
+      {
+       "path": "astronomy/planets/jupiter-grs.epher",
+       "category": "astronomy",
+       "ms": 0.541833
+      },
+      {
+       "path": "astronomy/planets/mars-physical.epher",
+       "category": "astronomy",
+       "ms": 4.072166999999999
+      },
+      {
+       "path": "astronomy/planets/oppositions-of-a-planet.epher",
+       "category": "astronomy",
+       "ms": 17.44
+      },
+      {
+       "path": "astronomy/planets/planet-angular-diameters.epher",
+       "category": "astronomy",
+       "ms": 1.020916
+      },
+      {
+       "path": "astronomy/planets/planet-by-hand.epher",
+       "category": "astronomy",
+       "ms": 2.48775
+      },
+      {
+       "path": "astronomy/planets/planet-distances.epher",
+       "category": "astronomy",
+       "ms": 0.775209
+      },
+      {
+       "path": "astronomy/planets/planet-elements-table.epher",
+       "category": "astronomy",
+       "ms": 0.18375
+      },
+      {
+       "path": "astronomy/planets/planet-illuminations.epher",
+       "category": "astronomy",
+       "ms": 0.393625
+      },
+      {
+       "path": "astronomy/planets/planet-magnitudes.epher",
+       "category": "astronomy",
+       "ms": 0.358709
+      },
+      {
+       "path": "astronomy/planets/planet-rise-set-transit.epher",
+       "category": "astronomy",
+       "ms": 8.325125
+      },
+      {
+       "path": "astronomy/planets/planet-visibility-tonight.epher",
+       "category": "astronomy",
+       "ms": 100.373042
+      },
+      {
+       "path": "astronomy/planets/retrograde-stations.epher",
+       "category": "astronomy",
+       "ms": 32.504709
+      },
+      {
+       "path": "astronomy/planets/saturn-ring-tilt.epher",
+       "category": "astronomy",
+       "ms": 1.688917
+      },
+      {
+       "path": "astronomy/planets/saturn-satellites.epher",
+       "category": "astronomy",
+       "ms": 58.264375
+      },
+      {
+       "path": "astronomy/planets/synodic-table.epher",
+       "category": "astronomy",
+       "ms": 34.141625000000005
+      },
+      {
+       "path": "astronomy/planets/venus-illumination-cycle.epher",
+       "category": "astronomy",
+       "ms": 3.9695
+      },
+      {
+       "path": "astronomy/planets/venus-morning-evening.epher",
+       "category": "astronomy",
+       "ms": 13.859833
+      },
+      {
+       "path": "astronomy/sky/airmass-table.epher",
+       "category": "astronomy",
+       "ms": 0.040333
+      },
+      {
+       "path": "astronomy/sky/altaz-hour-curve.epher",
+       "category": "astronomy",
+       "ms": 26.602958
+      },
+      {
+       "path": "astronomy/sky/circumpolar-check.epher",
+       "category": "astronomy",
+       "ms": 0.40508299999999997
+      },
+      {
+       "path": "astronomy/sky/day-length-year.epher",
+       "category": "astronomy",
+       "ms": 10.34325
+      },
+      {
+       "path": "astronomy/sky/day-length.epher",
+       "category": "astronomy",
+       "ms": 25.447208
+      },
+      {
+       "path": "astronomy/sky/extinction-limiting-magnitude.epher",
+       "category": "astronomy",
+       "ms": 0.086584
+      },
+      {
+       "path": "astronomy/sky/eyepiece-planner.epher",
+       "category": "astronomy",
+       "ms": 0.0795
+      },
+      {
+       "path": "astronomy/sky/golden-blue-hour.epher",
+       "category": "astronomy",
+       "ms": 23.172541000000002
+      },
+      {
+       "path": "astronomy/sky/kepler-equation.epher",
+       "category": "astronomy",
+       "ms": 0.055209
+      },
+      {
+       "path": "astronomy/sky/magnitude-flux-conversions.epher",
+       "category": "astronomy",
+       "ms": 0.047791
+      },
+      {
+       "path": "astronomy/sky/midnight-sun.epher",
+       "category": "astronomy",
+       "ms": 8.775540999999999
+      },
+      {
+       "path": "astronomy/sky/prayer-times.epher",
+       "category": "astronomy",
+       "ms": 8.384625
+      },
+      {
+       "path": "astronomy/sky/refraction-correction.epher",
+       "category": "astronomy",
+       "ms": 0.0725
+      },
+      {
+       "path": "astronomy/sky/season-boundaries.epher",
+       "category": "astronomy",
+       "ms": 48.239958
+      },
+      {
+       "path": "astronomy/sky/shadow-length.epher",
+       "category": "astronomy",
+       "ms": 8.8525
+      },
+      {
+       "path": "astronomy/sky/solar-irradiance.epher",
+       "category": "astronomy",
+       "ms": 8.349542
+      },
+      {
+       "path": "astronomy/sky/solar-noon-time.epher",
+       "category": "astronomy",
+       "ms": 25.181790999999997
+      },
+      {
+       "path": "astronomy/sky/spring-neap-tides.epher",
+       "category": "astronomy",
+       "ms": 12.363584000000001
+      },
+      {
+       "path": "astronomy/sky/sun-altitude-at-noon.epher",
+       "category": "astronomy",
+       "ms": 26.056833
+      },
+      {
+       "path": "astronomy/sky/sunrise-sunset.epher",
+       "category": "astronomy",
+       "ms": 25.324958000000002
+      },
+      {
+       "path": "astronomy/sky/telescope-resolution.epher",
+       "category": "astronomy",
+       "ms": 0.045916
+      },
+      {
+       "path": "astronomy/sky/twilight-times.epher",
+       "category": "astronomy",
+       "ms": 16.481792
+      },
+      {
+       "path": "astronomy/stars/binary-orbit.epher",
+       "category": "astronomy",
+       "ms": 0.128083
+      },
+      {
+       "path": "astronomy/stars/bv-temperature.epher",
+       "category": "astronomy",
+       "ms": 0.052875
+      },
+      {
+       "path": "astronomy/stars/combined-magnitude.epher",
+       "category": "astronomy",
+       "ms": 0.052250000000000005
+      },
+      {
+       "path": "astronomy/stars/flux-ratio.epher",
+       "category": "astronomy",
+       "ms": 0.0485
+      },
+      {
+       "path": "astronomy/stars/heliacal-rising.epher",
+       "category": "astronomy",
+       "ms": 4.461208
+      },
+      {
+       "path": "astronomy/stars/messier-tonight.epher",
+       "category": "astronomy",
+       "ms": 16.799541
+      },
+      {
+       "path": "astronomy/stars/parallax-distance.epher",
+       "category": "astronomy",
+       "ms": 0.051
+      },
+      {
+       "path": "astronomy/stars/polaris-drift.epher",
+       "category": "astronomy",
+       "ms": 1.160042
+      },
+      {
+       "path": "astronomy/stars/star-luminosity.epher",
+       "category": "astronomy",
+       "ms": 0.063916
+      },
+      {
+       "path": "astronomy/stars/star-tonight.epher",
+       "category": "astronomy",
+       "ms": 0.197917
+      },
+      {
+       "path": "astronomy/stars/wien-peak.epher",
+       "category": "astronomy",
+       "ms": 0.044791
+      },
+      {
+       "path": "astronomy/sun/analemma-point.epher",
+       "category": "astronomy",
+       "ms": 0.339709
+      },
+      {
+       "path": "astronomy/sun/carrington-number.epher",
+       "category": "astronomy",
+       "ms": 0.073459
+      },
+      {
+       "path": "astronomy/sun/solar-physical.epher",
+       "category": "astronomy",
+       "ms": 1.510541
+      },
+      {
+       "path": "astronomy/sun/solstice-noon-table.epher",
+       "category": "astronomy",
+       "ms": 21.990833000000002
+      },
+      {
+       "path": "astronomy/sun/sun-position-noaa.epher",
+       "category": "astronomy",
+       "ms": 0.477458
+      },
+      {
+       "path": "astronomy/sun/sundial-lines.epher",
+       "category": "astronomy",
+       "ms": 0.095292
+      },
+      {
+       "path": "astronomy/time/besselian-epoch.epher",
+       "category": "astronomy",
+       "ms": 0.038916
+      },
+      {
+       "path": "astronomy/time/date-from-julian-day.epher",
+       "category": "astronomy",
+       "ms": 0.078834
+      },
+      {
+       "path": "astronomy/time/day-of-week-from-date.epher",
+       "category": "astronomy",
+       "ms": 0.048042
+      },
+      {
+       "path": "astronomy/time/days-between-dates.epher",
+       "category": "astronomy",
+       "ms": 0.039125
+      },
+      {
+       "path": "astronomy/time/delta-t-history.epher",
+       "category": "astronomy",
+       "ms": 0.064875
+      },
+      {
+       "path": "astronomy/time/easter-sunday.epher",
+       "category": "astronomy",
+       "ms": 0.19716699999999998
+      },
+      {
+       "path": "astronomy/time/equation-of-time.epher",
+       "category": "astronomy",
+       "ms": 0.13425
+      },
+      {
+       "path": "astronomy/time/hebrew-calendar.epher",
+       "category": "astronomy",
+       "ms": 4.485625
+      },
+      {
+       "path": "astronomy/time/hijri-date.epher",
+       "category": "astronomy",
+       "ms": 0.128708
+      },
+      {
+       "path": "astronomy/time/julian-calendar-date.epher",
+       "category": "astronomy",
+       "ms": 0.072708
+      },
+      {
+       "path": "astronomy/time/julian-centuries-since-j2000.epher",
+       "category": "astronomy",
+       "ms": 0.041415999999999994
+      },
+      {
+       "path": "astronomy/time/julian-day-from-date.epher",
+       "category": "astronomy",
+       "ms": 0.055459
+      },
+      {
+       "path": "astronomy/time/local-mean-time.epher",
+       "category": "astronomy",
+       "ms": 0.038083
+      },
+      {
+       "path": "astronomy/time/local-sidereal-time.epher",
+       "category": "astronomy",
+       "ms": 8.126917
+      },
+      {
+       "path": "astronomy/time/unix-time.epher",
+       "category": "astronomy",
+       "ms": 0.042542
+      },
+      {
+       "path": "calculus/derivatives/chain-rule-check.epher",
+       "category": "calculus",
+       "ms": 0.095167
+      },
+      {
+       "path": "calculus/derivatives/derivative-of-sin-check.epher",
+       "category": "calculus",
+       "ms": 0.061541
+      },
+      {
+       "path": "calculus/derivatives/extrema-of-a-cubic.epher",
+       "category": "calculus",
+       "ms": 0.049625
+      },
+      {
+       "path": "calculus/derivatives/product-rule-check.epher",
+       "category": "calculus",
+       "ms": 0.059791
+      },
+      {
+       "path": "calculus/derivatives/slope-at-a-point.epher",
+       "category": "calculus",
+       "ms": 0.071416
+      },
+      {
+       "path": "calculus/derivatives/tangent-line.epher",
+       "category": "calculus",
+       "ms": 0.052083000000000004
+      },
+      {
+       "path": "calculus/integrals/arc-length-of-parabola.epher",
+       "category": "calculus",
+       "ms": 0.075167
+      },
+      {
+       "path": "calculus/integrals/area-between-curves.epher",
+       "category": "calculus",
+       "ms": 0.035250000000000004
+      },
+      {
+       "path": "calculus/integrals/average-value-of-function.epher",
+       "category": "calculus",
+       "ms": 0.119917
+      },
+      {
+       "path": "calculus/integrals/definite-integral-demo.epher",
+       "category": "calculus",
+       "ms": 0.073167
+      },
+      {
+       "path": "calculus/integrals/integral-of-sine-over-full-period.epher",
+       "category": "calculus",
+       "ms": 0.052833
+      },
+      {
+       "path": "calculus/integrals/substitution-check.epher",
+       "category": "calculus",
+       "ms": 0.11745799999999999
+      },
+      {
+       "path": "calculus/integrals/volume-of-revolution.epher",
+       "category": "calculus",
+       "ms": 0.08562499999999999
+      },
+      {
+       "path": "calculus/limits/limit-of-ln1plusx-over-x.epher",
+       "category": "calculus",
+       "ms": 0.035290999999999996
+      },
+      {
+       "path": "calculus/limits/limit-of-one-minus-cosx-over-x2.epher",
+       "category": "calculus",
+       "ms": 0.034709000000000004
+      },
+      {
+       "path": "calculus/limits/limit-of-one-plus-one-over-n.epher",
+       "category": "calculus",
+       "ms": 0.028584
+      },
+      {
+       "path": "calculus/limits/limit-of-rational-at-infinity.epher",
+       "category": "calculus",
+       "ms": 0.032541
+      },
+      {
+       "path": "calculus/limits/limit-of-sinx-over-x.epher",
+       "category": "calculus",
+       "ms": 0.032583
+      },
+      {
+       "path": "calculus/models/carbon-dating.epher",
+       "category": "calculus",
+       "ms": 0.049792
+      },
+      {
+       "path": "calculus/models/euler-method.epher",
+       "category": "calculus",
+       "ms": 0.072083
+      },
+      {
+       "path": "calculus/models/exponential-growth.epher",
+       "category": "calculus",
+       "ms": 0.039833
+      },
+      {
+       "path": "calculus/models/logistic-growth-model.epher",
+       "category": "calculus",
+       "ms": 0.047125
+      },
+      {
+       "path": "calculus/models/newton-law-of-cooling.epher",
+       "category": "calculus",
+       "ms": 0.051791
+      },
+      {
+       "path": "calculus/models/radioactive-half-life.epher",
+       "category": "calculus",
+       "ms": 0.041584
+      },
+      {
+       "path": "calculus/models/runge-kutta-4.epher",
+       "category": "calculus",
+       "ms": 0.092458
+      },
+      {
+       "path": "engineering/control/dc-motor-speed-step.epher",
+       "category": "engineering",
+       "ms": 0.058083
+      },
+      {
+       "path": "engineering/control/first-order-step-response.epher",
+       "category": "engineering",
+       "ms": 0.052459
+      },
+      {
+       "path": "engineering/control/pid-walkthrough.epher",
+       "category": "engineering",
+       "ms": 0.045000000000000005
+      },
+      {
+       "path": "engineering/control/second-order-step-response.epher",
+       "category": "engineering",
+       "ms": 0.04625
+      },
+      {
+       "path": "engineering/control/steady-state-error.epher",
+       "category": "engineering",
+       "ms": 0.041083
+      },
+      {
+       "path": "engineering/control/ziegler-nichols-tuning.epher",
+       "category": "engineering",
+       "ms": 0.0415
+      },
+      {
+       "path": "engineering/electrical/capacitor-energy.epher",
+       "category": "engineering",
+       "ms": 0.048667
+      },
+      {
+       "path": "engineering/electrical/led-series-resistor.epher",
+       "category": "engineering",
+       "ms": 0.047083
+      },
+      {
+       "path": "engineering/electrical/ohms-law-voltage-drop.epher",
+       "category": "engineering",
+       "ms": 0.046333
+      },
+      {
+       "path": "engineering/electrical/rc-charging-curve.epher",
+       "category": "engineering",
+       "ms": 0.052583
+      },
+      {
+       "path": "engineering/electrical/rc-lowpass-cutoff.epher",
+       "category": "engineering",
+       "ms": 0.050041999999999996
+      },
+      {
+       "path": "engineering/electrical/rlc-series-resonance.epher",
+       "category": "engineering",
+       "ms": 0.047583999999999994
+      },
+      {
+       "path": "engineering/electrical/three-phase-power.epher",
+       "category": "engineering",
+       "ms": 0.051625000000000004
+      },
+      {
+       "path": "engineering/electrical/transformer-turns-ratio.epher",
+       "category": "engineering",
+       "ms": 0.043125
+      },
+      {
+       "path": "engineering/electrical/voltage-divider-loading.epher",
+       "category": "engineering",
+       "ms": 0.042957999999999996
+      },
+      {
+       "path": "engineering/electrical/wheatstone-bridge.epher",
+       "category": "engineering",
+       "ms": 0.045084
+      },
+      {
+       "path": "engineering/fluids/buoyancy-float-depth.epher",
+       "category": "engineering",
+       "ms": 0.047167
+      },
+      {
+       "path": "engineering/fluids/darcy-weisbach-loss.epher",
+       "category": "engineering",
+       "ms": 0.04625
+      },
+      {
+       "path": "engineering/fluids/drag-terminal-velocity.epher",
+       "category": "engineering",
+       "ms": 0.047625
+      },
+      {
+       "path": "engineering/fluids/hazen-williams.epher",
+       "category": "engineering",
+       "ms": 0.044542
+      },
+      {
+       "path": "engineering/fluids/manning-channel.epher",
+       "category": "engineering",
+       "ms": 0.043166
+      },
+      {
+       "path": "engineering/fluids/orifice-flow.epher",
+       "category": "engineering",
+       "ms": 0.046583
+      },
+      {
+       "path": "engineering/fluids/pump-power.epher",
+       "category": "engineering",
+       "ms": 0.040916
+      },
+      {
+       "path": "engineering/fluids/reynolds-number.epher",
+       "category": "engineering",
+       "ms": 0.042874999999999996
+      },
+      {
+       "path": "engineering/fluids/torricelli-tank-drain.epher",
+       "category": "engineering",
+       "ms": 0.064458
+      },
+      {
+       "path": "engineering/fluids/water-hammer.epher",
+       "category": "engineering",
+       "ms": 0.041458999999999996
+      },
+      {
+       "path": "engineering/mechanical/bearing-l10-life.epher",
+       "category": "engineering",
+       "ms": 0.047542
+      },
+      {
+       "path": "engineering/mechanical/belt-length-and-tension.epher",
+       "category": "engineering",
+       "ms": 0.052791000000000005
+      },
+      {
+       "path": "engineering/mechanical/bolt-torque-preload.epher",
+       "category": "engineering",
+       "ms": 0.043917
+      },
+      {
+       "path": "engineering/mechanical/crank-slider-motion.epher",
+       "category": "engineering",
+       "ms": 0.06475
+      },
+      {
+       "path": "engineering/mechanical/fan-affinity-laws.epher",
+       "category": "engineering",
+       "ms": 0.040833
+      },
+      {
+       "path": "engineering/mechanical/flywheel-energy.epher",
+       "category": "engineering",
+       "ms": 0.047041
+      },
+      {
+       "path": "engineering/mechanical/gear-train-ratio.epher",
+       "category": "engineering",
+       "ms": 0.045792
+      },
+      {
+       "path": "engineering/mechanical/power-screw-torque.epher",
+       "category": "engineering",
+       "ms": 0.045625
+      },
+      {
+       "path": "engineering/mechanical/spring-rate-energy.epher",
+       "category": "engineering",
+       "ms": 0.051417
+      },
+      {
+       "path": "engineering/mechanical/tolerance-stack.epher",
+       "category": "engineering",
+       "ms": 0.043665999999999996
+      },
+      {
+       "path": "engineering/structural/axial-stress-strain.epher",
+       "category": "engineering",
+       "ms": 0.038667
+      },
+      {
+       "path": "engineering/structural/beam-center-deflection.epher",
+       "category": "engineering",
+       "ms": 0.048124999999999994
+      },
+      {
+       "path": "engineering/structural/beam-uniform-load.epher",
+       "category": "engineering",
+       "ms": 0.048041
+      },
+      {
+       "path": "engineering/structural/bolted-lap-joint.epher",
+       "category": "engineering",
+       "ms": 0.046917
+      },
+      {
+       "path": "engineering/structural/cantilever-tip-deflection.epher",
+       "category": "engineering",
+       "ms": 0.044625
+      },
+      {
+       "path": "engineering/structural/euler-column-buckling.epher",
+       "category": "engineering",
+       "ms": 0.04775
+      },
+      {
+       "path": "engineering/structural/i-beam-section-properties.epher",
+       "category": "engineering",
+       "ms": 0.053667
+      },
+      {
+       "path": "engineering/structural/mohr-circle-principal-stress.epher",
+       "category": "engineering",
+       "ms": 0.048291
+      },
+      {
+       "path": "engineering/structural/thermal-stress-restrained-bar.epher",
+       "category": "engineering",
+       "ms": 0.039334
+      },
+      {
+       "path": "engineering/structural/thin-wall-pressure-vessel.epher",
+       "category": "engineering",
+       "ms": 0.042041
+      },
+      {
+       "path": "engineering/thermal/carnot-efficiency.epher",
+       "category": "engineering",
+       "ms": 0.046916
+      },
+      {
+       "path": "engineering/thermal/heat-exchanger-lmtd.epher",
+       "category": "engineering",
+       "ms": 0.052834000000000006
+      },
+      {
+       "path": "engineering/thermal/heater-sizing-air.epher",
+       "category": "engineering",
+       "ms": 0.048667
+      },
+      {
+       "path": "engineering/thermal/hydronic-flow-rate.epher",
+       "category": "engineering",
+       "ms": 0.045834
+      },
+      {
+       "path": "engineering/thermal/newton-cooling.epher",
+       "category": "engineering",
+       "ms": 0.055375
+      },
+      {
+       "path": "engineering/thermal/pipe-insulation-loss.epher",
+       "category": "engineering",
+       "ms": 0.050667000000000004
+      },
+      {
+       "path": "engineering/thermal/stefan-boltzmann-net.epher",
+       "category": "engineering",
+       "ms": 0.046458
+      },
+      {
+       "path": "engineering/thermal/wall-heat-loss.epher",
+       "category": "engineering",
+       "ms": 0.06229200000000001
+      },
+      {
+       "path": "engineering/thermal/water-heating-energy.epher",
+       "category": "engineering",
+       "ms": 0.045833
+      },
+      {
+       "path": "finance/interest/apy-from-nominal-rate.epher",
+       "category": "finance",
+       "ms": 0.040166999999999994
+      },
+      {
+       "path": "finance/interest/compound-interest.epher",
+       "category": "finance",
+       "ms": 0.042624999999999996
+      },
+      {
+       "path": "finance/interest/continuous-compounding.epher",
+       "category": "finance",
+       "ms": 0.035125
+      },
+      {
+       "path": "finance/interest/doubling-time.epher",
+       "category": "finance",
+       "ms": 0.034292
+      },
+      {
+       "path": "finance/interest/future-value.epher",
+       "category": "finance",
+       "ms": 0.030000000000000002
+      },
+      {
+       "path": "finance/interest/inflation-adjusted-value.epher",
+       "category": "finance",
+       "ms": 0.034791
+      },
+      {
+       "path": "finance/interest/present-value.epher",
+       "category": "finance",
+       "ms": 0.032375
+      },
+      {
+       "path": "finance/interest/real-rate-of-return.epher",
+       "category": "finance",
+       "ms": 0.027708999999999998
+      },
+      {
+       "path": "finance/interest/rule-of-72.epher",
+       "category": "finance",
+       "ms": 0.037458
+      },
+      {
+       "path": "finance/interest/simple-interest.epher",
+       "category": "finance",
+       "ms": 0.027042
+      },
+      {
+       "path": "finance/investing/breakeven-quantity.epher",
+       "category": "finance",
+       "ms": 0.034167
+      },
+      {
+       "path": "finance/investing/cagr.epher",
+       "category": "finance",
+       "ms": 0.036792000000000005
+      },
+      {
+       "path": "finance/investing/discounted-payback-period.epher",
+       "category": "finance",
+       "ms": 0.061041
+      },
+      {
+       "path": "finance/investing/internal-rate-of-return.epher",
+       "category": "finance",
+       "ms": 0.025083
+      },
+      {
+       "path": "finance/investing/irr-vs-hurdle-rate.epher",
+       "category": "finance",
+       "ms": 0.041582999999999995
+      },
+      {
+       "path": "finance/investing/margin-vs-markup.epher",
+       "category": "finance",
+       "ms": 0.041291999999999995
+      },
+      {
+       "path": "finance/investing/net-present-value.epher",
+       "category": "finance",
+       "ms": 0.026917
+      },
+      {
+       "path": "finance/investing/payback-period.epher",
+       "category": "finance",
+       "ms": 0.050374999999999996
+      },
+      {
+       "path": "finance/investing/price-earnings-valuation.epher",
+       "category": "finance",
+       "ms": 0.046084
+      },
+      {
+       "path": "finance/investing/roi.epher",
+       "category": "finance",
+       "ms": 0.03125
+      },
+      {
+       "path": "finance/investing/total-return.epher",
+       "category": "finance",
+       "ms": 0.043125
+      },
+      {
+       "path": "finance/loans/amortization-schedule.epher",
+       "category": "finance",
+       "ms": 0.0675
+      },
+      {
+       "path": "finance/loans/balloon-loan.epher",
+       "category": "finance",
+       "ms": 0.039125
+      },
+      {
+       "path": "finance/loans/car-loan-payment.epher",
+       "category": "finance",
+       "ms": 0.037917000000000006
+      },
+      {
+       "path": "finance/loans/extra-payment-savings.epher",
+       "category": "finance",
+       "ms": 0.05525
+      },
+      {
+       "path": "finance/loans/mortgage-affordability.epher",
+       "category": "finance",
+       "ms": 0.036542
+      },
+      {
+       "path": "finance/loans/mortgage-balance-after-years.epher",
+       "category": "finance",
+       "ms": 0.041415999999999994
+      },
+      {
+       "path": "finance/loans/mortgage-payment.epher",
+       "category": "finance",
+       "ms": 0.027375
+      },
+      {
+       "path": "finance/loans/mortgage-rate.epher",
+       "category": "finance",
+       "ms": 0.035250000000000004
+      },
+      {
+       "path": "finance/loans/mortgage-term.epher",
+       "category": "finance",
+       "ms": 0.030750000000000003
+      },
+      {
+       "path": "finance/loans/mortgage-total-interest.epher",
+       "category": "finance",
+       "ms": 0.036917
+      },
+      {
+       "path": "finance/loans/refinance-breakeven.epher",
+       "category": "finance",
+       "ms": 0.038708
+      },
+      {
+       "path": "finance/savings/annuity-due-value.epher",
+       "category": "finance",
+       "ms": 0.033958
+      },
+      {
+       "path": "finance/savings/college-fund-payment.epher",
+       "category": "finance",
+       "ms": 0.038958
+      },
+      {
+       "path": "finance/savings/dollar-cost-averaging.epher",
+       "category": "finance",
+       "ms": 0.033667
+      },
+      {
+       "path": "finance/savings/employer-match-growth.epher",
+       "category": "finance",
+       "ms": 0.039834
+      },
+      {
+       "path": "finance/savings/future-value-of-annuity.epher",
+       "category": "finance",
+       "ms": 0.032083
+      },
+      {
+       "path": "finance/savings/lump-sum-vs-annuity.epher",
+       "category": "finance",
+       "ms": 0.054917
+      },
+      {
+       "path": "finance/savings/regular-deposit-growth.epher",
+       "category": "finance",
+       "ms": 0.044292000000000005
+      },
+      {
+       "path": "finance/savings/retirement-goal.epher",
+       "category": "finance",
+       "ms": 0.0335
+      },
+      {
+       "path": "finance/savings/savings-goal-duration.epher",
+       "category": "finance",
+       "ms": 0.036416
+      },
+      {
+       "path": "finance/savings/sinking-fund-payment.epher",
+       "category": "finance",
+       "ms": 0.030459
+      },
+      {
+       "path": "geometry/circles/annulus-area.epher",
+       "category": "geometry",
+       "ms": 0.035375
+      },
+      {
+       "path": "geometry/circles/arc-length.epher",
+       "category": "geometry",
+       "ms": 0.032583
+      },
+      {
+       "path": "geometry/circles/chord-length.epher",
+       "category": "geometry",
+       "ms": 0.0375
+      },
+      {
+       "path": "geometry/circles/circle-area.epher",
+       "category": "geometry",
+       "ms": 0.031417
+      },
+      {
+       "path": "geometry/circles/circle-circumference.epher",
+       "category": "geometry",
+       "ms": 0.028917
+      },
+      {
+       "path": "geometry/circles/radius-from-area.epher",
+       "category": "geometry",
+       "ms": 0.031958999999999994
+      },
+      {
+       "path": "geometry/circles/radius-from-circumference.epher",
+       "category": "geometry",
+       "ms": 0.031
+      },
+      {
+       "path": "geometry/circles/sector-area.epher",
+       "category": "geometry",
+       "ms": 0.03225
+      },
+      {
+       "path": "geometry/coordinates/centroid-of-triangle.epher",
+       "category": "geometry",
+       "ms": 0.034832999999999996
+      },
+      {
+       "path": "geometry/coordinates/circle-through-three-points.epher",
+       "category": "geometry",
+       "ms": 0.13054200000000002
+      },
+      {
+       "path": "geometry/coordinates/distance-between-points-2d.epher",
+       "category": "geometry",
+       "ms": 0.039875
+      },
+      {
+       "path": "geometry/coordinates/distance-between-points-3d.epher",
+       "category": "geometry",
+       "ms": 0.043042
+      },
+      {
+       "path": "geometry/coordinates/line-equation-two-points.epher",
+       "category": "geometry",
+       "ms": 0.049792
+      },
+      {
+       "path": "geometry/coordinates/midpoint-of-segment.epher",
+       "category": "geometry",
+       "ms": 0.043458000000000004
+      },
+      {
+       "path": "geometry/coordinates/point-to-line-distance.epher",
+       "category": "geometry",
+       "ms": 0.041999999999999996
+      },
+      {
+       "path": "geometry/coordinates/polygon-area-shoelace.epher",
+       "category": "geometry",
+       "ms": 0.059375
+      },
+      {
+       "path": "geometry/coordinates/slope-of-line.epher",
+       "category": "geometry",
+       "ms": 0.039667
+      },
+      {
+       "path": "geometry/polygons/diagonals-of-polygon.epher",
+       "category": "geometry",
+       "ms": 0.033417
+      },
+      {
+       "path": "geometry/polygons/exterior-angle-regular.epher",
+       "category": "geometry",
+       "ms": 0.031792
+      },
+      {
+       "path": "geometry/polygons/interior-angle-regular.epher",
+       "category": "geometry",
+       "ms": 0.032
+      },
+      {
+       "path": "geometry/polygons/interior-angle-sum.epher",
+       "category": "geometry",
+       "ms": 0.031625
+      },
+      {
+       "path": "geometry/polygons/kite-area.epher",
+       "category": "geometry",
+       "ms": 0.030125
+      },
+      {
+       "path": "geometry/polygons/parallelogram-area.epher",
+       "category": "geometry",
+       "ms": 0.02875
+      },
+      {
+       "path": "geometry/polygons/regular-polygon-area.epher",
+       "category": "geometry",
+       "ms": 0.038125
+      },
+      {
+       "path": "geometry/polygons/rhombus-area.epher",
+       "category": "geometry",
+       "ms": 0.036458000000000004
+      },
+      {
+       "path": "geometry/polygons/trapezoid-area.epher",
+       "category": "geometry",
+       "ms": 0.031542
+      },
+      {
+       "path": "geometry/solids/box-space-diagonal.epher",
+       "category": "geometry",
+       "ms": 0.040625
+      },
+      {
+       "path": "geometry/solids/box-volume-surface.epher",
+       "category": "geometry",
+       "ms": 0.035207999999999996
+      },
+      {
+       "path": "geometry/solids/cone-volume.epher",
+       "category": "geometry",
+       "ms": 0.033667
+      },
+      {
+       "path": "geometry/solids/cube-volume-surface.epher",
+       "category": "geometry",
+       "ms": 0.029833000000000002
+      },
+      {
+       "path": "geometry/solids/cylinder-surface-area.epher",
+       "category": "geometry",
+       "ms": 0.033417
+      },
+      {
+       "path": "geometry/solids/cylinder-volume.epher",
+       "category": "geometry",
+       "ms": 0.0295
+      },
+      {
+       "path": "geometry/solids/frustum-volume.epher",
+       "category": "geometry",
+       "ms": 0.039833
+      },
+      {
+       "path": "geometry/solids/sphere-surface-area.epher",
+       "category": "geometry",
+       "ms": 0.03175
+      },
+      {
+       "path": "geometry/solids/sphere-volume.epher",
+       "category": "geometry",
+       "ms": 0.030416000000000002
+      },
+      {
+       "path": "geometry/solids/square-pyramid-volume.epher",
+       "category": "geometry",
+       "ms": 0.029791
+      },
+      {
+       "path": "geometry/solids/tetrahedron-volume.epher",
+       "category": "geometry",
+       "ms": 0.031124999999999996
+      },
+      {
+       "path": "geometry/triangles/equilateral-area-height.epher",
+       "category": "geometry",
+       "ms": 0.033
+      },
+      {
+       "path": "geometry/triangles/heron-area.epher",
+       "category": "geometry",
+       "ms": 0.041958
+      },
+      {
+       "path": "geometry/triangles/pythagorean-hypotenuse.epher",
+       "category": "geometry",
+       "ms": 0.031124999999999996
+      },
+      {
+       "path": "geometry/triangles/pythagorean-leg.epher",
+       "category": "geometry",
+       "ms": 0.032875
+      },
+      {
+       "path": "geometry/triangles/right-triangle-angles.epher",
+       "category": "geometry",
+       "ms": 0.047709
+      },
+      {
+       "path": "geometry/triangles/special-triangle-ratios.epher",
+       "category": "geometry",
+       "ms": 0.049875
+      },
+      {
+       "path": "geometry/triangles/triangle-angle-sum-check.epher",
+       "category": "geometry",
+       "ms": 0.035790999999999996
+      },
+      {
+       "path": "geometry/triangles/triangle-area-base-height.epher",
+       "category": "geometry",
+       "ms": 0.029875000000000002
+      },
+      {
+       "path": "geometry/triangles/triangle-inequality.epher",
+       "category": "geometry",
+       "ms": 0.03175
+      },
+      {
+       "path": "number-theory/bases/arithmetic-across-bases.epher",
+       "category": "number-theory",
+       "ms": 0.043292
+      },
+      {
+       "path": "number-theory/bases/binary-to-decimal.epher",
+       "category": "number-theory",
+       "ms": 0.035708
+      },
+      {
+       "path": "number-theory/bases/bit-count.epher",
+       "category": "number-theory",
+       "ms": 0.082042
+      },
+      {
+       "path": "number-theory/bases/decimal-to-binary.epher",
+       "category": "number-theory",
+       "ms": 0.039875
+      },
+      {
+       "path": "number-theory/bases/decimal-to-hex.epher",
+       "category": "number-theory",
+       "ms": 0.040083999999999995
+      },
+      {
+       "path": "number-theory/bases/decimal-to-octal.epher",
+       "category": "number-theory",
+       "ms": 0.039542
+      },
+      {
+       "path": "number-theory/bases/hexadecimal-to-decimal.epher",
+       "category": "number-theory",
+       "ms": 0.035417000000000004
+      },
+      {
+       "path": "number-theory/bases/octal-to-decimal.epher",
+       "category": "number-theory",
+       "ms": 0.036334
+      },
+      {
+       "path": "number-theory/bases/power-of-two-check.epher",
+       "category": "number-theory",
+       "ms": 0.059208
+      },
+      {
+       "path": "number-theory/bases/roman-numerals.epher",
+       "category": "number-theory",
+       "ms": 0.127625
+      },
+      {
+       "path": "number-theory/divisors/amicable-pair-search.epher",
+       "category": "number-theory",
+       "ms": 12.104999999999999
+      },
+      {
+       "path": "number-theory/divisors/coprime-check.epher",
+       "category": "number-theory",
+       "ms": 0.102208
+      },
+      {
+       "path": "number-theory/divisors/divisor-count.epher",
+       "category": "number-theory",
+       "ms": 0.032332999999999994
+      },
+      {
+       "path": "number-theory/divisors/divisor-sum.epher",
+       "category": "number-theory",
+       "ms": 0.080917
+      },
+      {
+       "path": "number-theory/divisors/gcd-of-a-list.epher",
+       "category": "number-theory",
+       "ms": 0.035917000000000004
+      },
+      {
+       "path": "number-theory/divisors/gcd-of-two-numbers.epher",
+       "category": "number-theory",
+       "ms": 0.030417
+      },
+      {
+       "path": "number-theory/divisors/lcm-of-a-list.epher",
+       "category": "number-theory",
+       "ms": 0.035333
+      },
+      {
+       "path": "number-theory/divisors/lcm-of-two-numbers.epher",
+       "category": "number-theory",
+       "ms": 0.034709000000000004
+      },
+      {
+       "path": "number-theory/divisors/number-classification.epher",
+       "category": "number-theory",
+       "ms": 0.082834
+      },
+      {
+       "path": "number-theory/divisors/perfect-number-check.epher",
+       "category": "number-theory",
+       "ms": 0.076541
+      },
+      {
+       "path": "number-theory/divisors/proper-divisor-sum.epher",
+       "category": "number-theory",
+       "ms": 0.061583
+      },
+      {
+       "path": "number-theory/integer-sequences/abundant-numbers-below.epher",
+       "category": "number-theory",
+       "ms": 6.681416
+      },
+      {
+       "path": "number-theory/integer-sequences/collatz-peak.epher",
+       "category": "number-theory",
+       "ms": 0.144208
+      },
+      {
+       "path": "number-theory/integer-sequences/collatz-steps.epher",
+       "category": "number-theory",
+       "ms": 0.10258300000000001
+      },
+      {
+       "path": "number-theory/integer-sequences/digit-sum.epher",
+       "category": "number-theory",
+       "ms": 0.048
+      },
+      {
+       "path": "number-theory/integer-sequences/digital-root.epher",
+       "category": "number-theory",
+       "ms": 0.052791000000000005
+      },
+      {
+       "path": "number-theory/integer-sequences/happy-number-check.epher",
+       "category": "number-theory",
+       "ms": 0.077958
+      },
+      {
+       "path": "number-theory/integer-sequences/kaprekar-steps.epher",
+       "category": "number-theory",
+       "ms": 0.078292
+      },
+      {
+       "path": "number-theory/integer-sequences/narcissistic-number-check.epher",
+       "category": "number-theory",
+       "ms": 0.6667500000000001
+      },
+      {
+       "path": "number-theory/integer-sequences/palindrome-check.epher",
+       "category": "number-theory",
+       "ms": 1.639833
+      },
+      {
+       "path": "number-theory/integer-sequences/perfect-numbers-below.epher",
+       "category": "number-theory",
+       "ms": 0.132583
+      },
+      {
+       "path": "number-theory/integer-sequences/reverse-a-number.epher",
+       "category": "number-theory",
+       "ms": 0.052500000000000005
+      },
+      {
+       "path": "number-theory/primes/count-primes-below.epher",
+       "category": "number-theory",
+       "ms": 0.531916
+      },
+      {
+       "path": "number-theory/primes/goldbach-pair.epher",
+       "category": "number-theory",
+       "ms": 0.053708
+      },
+      {
+       "path": "number-theory/primes/is-prime-check.epher",
+       "category": "number-theory",
+       "ms": 0.042082999999999995
+      },
+      {
+       "path": "number-theory/primes/next-and-prev-prime.epher",
+       "category": "number-theory",
+       "ms": 0.04125
+      },
+      {
+       "path": "number-theory/primes/nth-prime.epher",
+       "category": "number-theory",
+       "ms": 0.303042
+      },
+      {
+       "path": "number-theory/primes/prime-factors-demo.epher",
+       "category": "number-theory",
+       "ms": 0.03875
+      },
+      {
+       "path": "number-theory/primes/sum-of-primes-below.epher",
+       "category": "number-theory",
+       "ms": 0.516583
+      },
+      {
+       "path": "number-theory/primes/twin-primes-below.epher",
+       "category": "number-theory",
+       "ms": 0.073167
+      },
+      {
+       "path": "probability/counting/birthday-problem.epher",
+       "category": "probability",
+       "ms": 0.06404199999999999
+      },
+      {
+       "path": "probability/counting/combinations.epher",
+       "category": "probability",
+       "ms": 0.048917
+      },
+      {
+       "path": "probability/counting/committee-selection.epher",
+       "category": "probability",
+       "ms": 0.040833
+      },
+      {
+       "path": "probability/counting/derangements.epher",
+       "category": "probability",
+       "ms": 0.086417
+      },
+      {
+       "path": "probability/counting/factorial.epher",
+       "category": "probability",
+       "ms": 0.039833
+      },
+      {
+       "path": "probability/counting/grid-paths.epher",
+       "category": "probability",
+       "ms": 0.044041000000000004
+      },
+      {
+       "path": "probability/counting/lottery-odds.epher",
+       "category": "probability",
+       "ms": 0.053541
+      },
+      {
+       "path": "probability/counting/permutations.epher",
+       "category": "probability",
+       "ms": 0.041208
+      },
+      {
+       "path": "probability/counting/poker-hand-counts.epher",
+       "category": "probability",
+       "ms": 0.045375
+      },
+      {
+       "path": "probability/counting/round-robin-games.epher",
+       "category": "probability",
+       "ms": 0.043292
+      },
+      {
+       "path": "probability/distributions/at-least-one-probability.epher",
+       "category": "probability",
+       "ms": 0.033958999999999996
+      },
+      {
+       "path": "probability/distributions/binomial-cdf.epher",
+       "category": "probability",
+       "ms": 0.041749999999999995
+      },
+      {
+       "path": "probability/distributions/binomial-mean-variance.epher",
+       "category": "probability",
+       "ms": 0.06483299999999999
+      },
+      {
+       "path": "probability/distributions/binomial-pmf.epher",
+       "category": "probability",
+       "ms": 0.057666
+      },
+      {
+       "path": "probability/distributions/expected-value-dice.epher",
+       "category": "probability",
+       "ms": 0.059917000000000005
+      },
+      {
+       "path": "probability/distributions/expected-value-lottery.epher",
+       "category": "probability",
+       "ms": 0.0425
+      },
+      {
+       "path": "probability/distributions/geometric-pmf.epher",
+       "category": "probability",
+       "ms": 0.048333
+      },
+      {
+       "path": "probability/distributions/hypergeometric-pmf.epher",
+       "category": "probability",
+       "ms": 0.048291
+      },
+      {
+       "path": "probability/distributions/poisson-cdf.epher",
+       "category": "probability",
+       "ms": 0.038
+      },
+      {
+       "path": "probability/distributions/poisson-pmf.epher",
+       "category": "probability",
+       "ms": 0.036708000000000005
+      },
+      {
+       "path": "probability/games/card-draw-probabilities.epher",
+       "category": "probability",
+       "ms": 0.0395
+      },
+      {
+       "path": "probability/games/coin-toss-game.epher",
+       "category": "probability",
+       "ms": 0.029084000000000002
+      },
+      {
+       "path": "probability/games/craps-first-roll.epher",
+       "category": "probability",
+       "ms": 0.033791999999999996
+      },
+      {
+       "path": "probability/games/fair-game-price.epher",
+       "category": "probability",
+       "ms": 0.032499999999999994
+      },
+      {
+       "path": "probability/games/roulette-expected-value.epher",
+       "category": "probability",
+       "ms": 0.031375
+      },
+      {
+       "path": "probability/games/two-dice-sums.epher",
+       "category": "probability",
+       "ms": 0.039916999999999994
+      },
+      {
+       "path": "probability/simulations/birthday-simulation.epher",
+       "category": "probability",
+       "ms": 22.018
+      },
+      {
+       "path": "probability/simulations/coin-streak.epher",
+       "category": "probability",
+       "ms": 0.44925
+      },
+      {
+       "path": "probability/simulations/dice-sum-simulation.epher",
+       "category": "probability",
+       "ms": 2.1069169999999997
+      },
+      {
+       "path": "probability/simulations/lottery-simulation.epher",
+       "category": "probability",
+       "ms": 231.27624999999998
+      },
+      {
+       "path": "probability/simulations/monte-carlo-pi.epher",
+       "category": "probability",
+       "ms": 1.982792
+      },
+      {
+       "path": "probability/simulations/monty-hall.epher",
+       "category": "probability",
+       "ms": 2.901875
+      },
+      {
+       "path": "probability/simulations/random-walk.epher",
+       "category": "probability",
+       "ms": 1.092875
+      },
+      {
+       "path": "probability/simulations/roulette-simulation.epher",
+       "category": "probability",
+       "ms": 3.138458
+      },
+      {
+       "path": "statistics/distributions/binomial-to-normal-approximation.epher",
+       "category": "statistics",
+       "ms": 0.045583
+      },
+      {
+       "path": "statistics/distributions/chi2-critical-values.epher",
+       "category": "statistics",
+       "ms": 0.039458
+      },
+      {
+       "path": "statistics/distributions/empirical-rule.epher",
+       "category": "statistics",
+       "ms": 0.038208
+      },
+      {
+       "path": "statistics/distributions/normal-areas.epher",
+       "category": "statistics",
+       "ms": 0.031541
+      },
+      {
+       "path": "statistics/distributions/normal-percentiles.epher",
+       "category": "statistics",
+       "ms": 0.036959000000000006
+      },
+      {
+       "path": "statistics/distributions/poisson-approximation.epher",
+       "category": "statistics",
+       "ms": 0.034125
+      },
+      {
+       "path": "statistics/distributions/t-critical-values.epher",
+       "category": "statistics",
+       "ms": 0.04475
+      },
+      {
+       "path": "statistics/regression/choosing-a-fit.epher",
+       "category": "statistics",
+       "ms": 0.194959
+      },
+      {
+       "path": "statistics/regression/exponential-regression.epher",
+       "category": "statistics",
+       "ms": 0.023125
+      },
+      {
+       "path": "statistics/regression/linear-regression-prediction.epher",
+       "category": "statistics",
+       "ms": 0.056332999999999994
+      },
+      {
+       "path": "statistics/regression/linear-regression.epher",
+       "category": "statistics",
+       "ms": 0.022625000000000003
+      },
+      {
+       "path": "statistics/regression/logarithmic-regression.epher",
+       "category": "statistics",
+       "ms": 0.022209
+      },
+      {
+       "path": "statistics/regression/pearson-correlation.epher",
+       "category": "statistics",
+       "ms": 0.050958
+      },
+      {
+       "path": "statistics/regression/power-regression.epher",
+       "category": "statistics",
+       "ms": 0.029292
+      },
+      {
+       "path": "statistics/regression/quadratic-regression.epher",
+       "category": "statistics",
+       "ms": 0.022542
+      },
+      {
+       "path": "statistics/summary/coefficient-of-variation.epher",
+       "category": "statistics",
+       "ms": 0.040833
+      },
+      {
+       "path": "statistics/summary/five-number-summary.epher",
+       "category": "statistics",
+       "ms": 0.03225
+      },
+      {
+       "path": "statistics/summary/geometric-mean.epher",
+       "category": "statistics",
+       "ms": 0.037833
+      },
+      {
+       "path": "statistics/summary/harmonic-mean.epher",
+       "category": "statistics",
+       "ms": 0.03325
+      },
+      {
+       "path": "statistics/summary/iqr-outlier-fences.epher",
+       "category": "statistics",
+       "ms": 0.06966699999999999
+      },
+      {
+       "path": "statistics/summary/mean-of-data.epher",
+       "category": "statistics",
+       "ms": 0.031
+      },
+      {
+       "path": "statistics/summary/median-of-data.epher",
+       "category": "statistics",
+       "ms": 0.03125
+      },
+      {
+       "path": "statistics/summary/mode-of-data.epher",
+       "category": "statistics",
+       "ms": 0.027208
+      },
+      {
+       "path": "statistics/summary/population-stdev.epher",
+       "category": "statistics",
+       "ms": 0.029667
+      },
+      {
+       "path": "statistics/summary/population-variance.epher",
+       "category": "statistics",
+       "ms": 0.034416999999999996
+      },
+      {
+       "path": "statistics/summary/range-of-data.epher",
+       "category": "statistics",
+       "ms": 0.029166
+      },
+      {
+       "path": "statistics/summary/sample-stdev.epher",
+       "category": "statistics",
+       "ms": 0.033167
+      },
+      {
+       "path": "statistics/summary/sample-variance.epher",
+       "category": "statistics",
+       "ms": 0.033417
+      },
+      {
+       "path": "statistics/summary/weighted-mean.epher",
+       "category": "statistics",
+       "ms": 0.035333
+      },
+      {
+       "path": "statistics/summary/z-scores.epher",
+       "category": "statistics",
+       "ms": 0.037792
+      },
+      {
+       "path": "statistics/tests/chi-square-goodness-of-fit.epher",
+       "category": "statistics",
+       "ms": 0.037125
+      },
+      {
+       "path": "statistics/tests/one-proportion-z-test.epher",
+       "category": "statistics",
+       "ms": 0.0405
+      },
+      {
+       "path": "statistics/tests/one-sample-t-test.epher",
+       "category": "statistics",
+       "ms": 0.039041
+      },
+      {
+       "path": "statistics/tests/one-way-anova.epher",
+       "category": "statistics",
+       "ms": 0.038542
+      },
+      {
+       "path": "statistics/tests/paired-t-test.epher",
+       "category": "statistics",
+       "ms": 0.049375
+      },
+      {
+       "path": "statistics/tests/t-confidence-interval.epher",
+       "category": "statistics",
+       "ms": 0.03975
+      },
+      {
+       "path": "statistics/tests/two-sample-t-test.epher",
+       "category": "statistics",
+       "ms": 0.076166
+      },
+      {
+       "path": "statistics/tests/z-confidence-interval.epher",
+       "category": "statistics",
+       "ms": 0.036167
+      },
+      {
+       "path": "statistics/tests/z-test-known-sigma.epher",
+       "category": "statistics",
+       "ms": 0.037792
+      },
+      {
+       "path": "trigonometry/angles/clock-angle.epher",
+       "category": "trigonometry",
+       "ms": 0.07162500000000001
+      },
+      {
+       "path": "trigonometry/angles/coterminal-angles.epher",
+       "category": "trigonometry",
+       "ms": 0.044958
+      },
+      {
+       "path": "trigonometry/angles/degrees-minutes-seconds.epher",
+       "category": "trigonometry",
+       "ms": 0.047917
+      },
+      {
+       "path": "trigonometry/angles/gradians-conversion.epher",
+       "category": "trigonometry",
+       "ms": 0.043791000000000004
+      },
+      {
+       "path": "trigonometry/angles/quadrant-of-angle.epher",
+       "category": "trigonometry",
+       "ms": 0.070917
+      },
+      {
+       "path": "trigonometry/angles/radians-degrees-conversion.epher",
+       "category": "trigonometry",
+       "ms": 0.065666
+      },
+      {
+       "path": "trigonometry/angles/reference-angle.epher",
+       "category": "trigonometry",
+       "ms": 0.045584
+      },
+      {
+       "path": "trigonometry/angles/small-angle-approximation.epher",
+       "category": "trigonometry",
+       "ms": 0.05775
+      },
+      {
+       "path": "trigonometry/identities/cofunction-identities.epher",
+       "category": "trigonometry",
+       "ms": 0.078375
+      },
+      {
+       "path": "trigonometry/identities/double-angle-cosine.epher",
+       "category": "trigonometry",
+       "ms": 0.058625000000000003
+      },
+      {
+       "path": "trigonometry/identities/double-angle-sine.epher",
+       "category": "trigonometry",
+       "ms": 0.044917
+      },
+      {
+       "path": "trigonometry/identities/even-odd-identities.epher",
+       "category": "trigonometry",
+       "ms": 0.069875
+      },
+      {
+       "path": "trigonometry/identities/pythagorean-identity.epher",
+       "category": "trigonometry",
+       "ms": 0.066791
+      },
+      {
+       "path": "trigonometry/identities/sum-of-angles-cosine.epher",
+       "category": "trigonometry",
+       "ms": 0.06145899999999999
+      },
+      {
+       "path": "trigonometry/identities/sum-of-angles-sine.epher",
+       "category": "trigonometry",
+       "ms": 0.060917
+      },
+      {
+       "path": "trigonometry/identities/tangent-identity.epher",
+       "category": "trigonometry",
+       "ms": 0.046833
+      },
+      {
+       "path": "trigonometry/triangles/law-of-cosines-angle.epher",
+       "category": "trigonometry",
+       "ms": 0.068291
+      },
+      {
+       "path": "trigonometry/triangles/law-of-cosines-side.epher",
+       "category": "trigonometry",
+       "ms": 0.055624999999999994
+      },
+      {
+       "path": "trigonometry/triangles/law-of-sines-ambiguous.epher",
+       "category": "trigonometry",
+       "ms": 0.067625
+      },
+      {
+       "path": "trigonometry/triangles/law-of-sines.epher",
+       "category": "trigonometry",
+       "ms": 0.056833999999999996
+      },
+      {
+       "path": "trigonometry/triangles/right-triangle-solver.epher",
+       "category": "trigonometry",
+       "ms": 0.054708
+      },
+      {
+       "path": "trigonometry/triangles/vector-components.epher",
+       "category": "trigonometry",
+       "ms": 0.073333
+      },
+      {
+       "path": "trigonometry/triangles/vector-resultant.epher",
+       "category": "trigonometry",
+       "ms": 0.072083
+      },
+      {
+       "path": "trigonometry/waves/beats-frequency.epher",
+       "category": "trigonometry",
+       "ms": 0.031333
+      },
+      {
+       "path": "trigonometry/waves/pendulum-period.epher",
+       "category": "trigonometry",
+       "ms": 0.039
+      },
+      {
+       "path": "trigonometry/waves/projectile-motion.epher",
+       "category": "trigonometry",
+       "ms": 0.061375
+      },
+      {
+       "path": "trigonometry/waves/simple-harmonic-motion.epher",
+       "category": "trigonometry",
+       "ms": 0.06579099999999999
+      },
+      {
+       "path": "trigonometry/waves/sinusoidal-value.epher",
+       "category": "trigonometry",
+       "ms": 0.044167
+      },
+      {
+       "path": "trigonometry/waves/sound-wavelength.epher",
+       "category": "trigonometry",
+       "ms": 0.038375
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

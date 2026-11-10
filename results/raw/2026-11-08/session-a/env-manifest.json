@@ -1,0 +1,34 @@
+{
+ "session": "a",
+ "timestamp": "2026-11-08T23:19:25.450Z",
+ "host": {
+  "model": "Mac18,5",
+  "cpu": "Apple M6",
+  "memory_bytes": "25769803776",
+  "macos": "27.2 (26B123)"
+ },
+ "power": "Now drawing from 'AC Power'",
+ "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+ "screen_lock": "unlocked (set never to lock: no screen saver, no password on wake)",
+ "top_cpu_processes": [
+  "24.7 node",
+  "16.8 node",
+  "0.9 ~/.cache/puppeteer/chrome/mac_arm-152.0.7977.54/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/152.0.7977.54/Helpers/Google Chrome for Testing Helper (Renderer).app/Contents/MacOS/Google Chrome for Testing Helper (Renderer)",
+  "0.2 ~/.cache/puppeteer/chrome/mac_arm-152.0.7977.54/chrome-mac-arm64/Google Chrome for Testing.app/Contents/Frameworks/Google Chrome for Testing Framework.framework/Versions/152.0.7977.54/Helpers/Google Chrome for Testing Helper.app/Contents/MacOS/Google Chrome for Testing Helper",
+  "0.1 /bin/bash",
+  "0.1 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer",
+  "0.1 ~/.local/bin/codebase-memory-mcp",
+  "0.0 /usr/sbin/cfprefsd"
+ ],
+ "versions": {
+  "git": "64bee5f57ad92f45900444ea9005af5187b318c2",
+  "octave": "GNU Octave (aarch64-apple-darwin27.0.0) version 11.3.0",
+  "speedcrunch": "1.1",
+  "browser": "not used in the stage 3 pilot (N tier only)"
+ },
+ "notes": [
+  "quiet-machine checklist: no other heavy processes expected; top_cpu_processes recorded for audit",
+  "thermal state recorded at session start; re-record at session end",
+  "user paths redacted to ~ before hashing"
+ ]
+}

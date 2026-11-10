@@ -1,0 +1,3 @@
+s = 0
+for i in 2 to 9999 do if isprime(i) then s = s + 1
+s
