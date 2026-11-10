@@ -335,16 +335,24 @@ with the workflow deploy).
 ### Preview Pages repo (upyesp/epher-preview)
 
 The preview site (ADR-0062) is a second Pages repo the `preview`
-workflow force-pushes to (`gh-pages` branch, "deploy from a branch").
-To recreate it:
+workflow force-pushes to (`gh-pages` branch). Deployment is
+Actions-based: the pushed tree carries `.github/workflows/deploy.yml`,
+written by the preview workflow itself, and that workflow serves the
+tree with `actions/deploy-pages` (the legacy "deploy from a branch"
+builder errored on every push from 2026-11-07 and is being retired by
+GitHub; the preview workflow's wait step polls the deploy run and fails
+loudly, where the old builder poll fell through and reported green).
+To recreate the preview repo:
 
-1. Create the repo, then enable Pages from `gh-pages`:
-   `gh api repos/upyesp/epher-preview/pages -X PUT -f source[branch]=gh-pages`
+1. Create the repo, then set Pages to build with Actions:
+   `gh api repos/upyesp/epher-preview/pages -X PUT -f build_type=workflow`
 2. Generate a deploy key and add the public half with write access:
    `gh api repos/upyesp/epher-preview/keys -f title=preview-push -f read_only=false -f key="$(cat key.pub)"`
 3. Store the private half as the `EPHER_PREVIEW_KEY` secret on the main
    repo (Actions → secrets):
    `gh secret set EPHER_PREVIEW_KEY --repo upyesp/epher < key`
-4. Push the `staging` branch; the preview workflow builds and deploys.
+4. Push the `staging` branch; the preview workflow builds, force-pushes
+   the tree, and the repo's own `deploy preview site` workflow deploys
+   it. If that deploy fails, the preview workflow fails with it.
 If the preview repo is deleted, the `preview` workflow fails loudly at
 the push step (missing secret or unknown repo), never silently.
