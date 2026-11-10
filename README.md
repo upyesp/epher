@@ -1,6 +1,6 @@
 # epher
 
-**A programmable, scriptable calculator**: one calculation engine, five ways to use it: command line, interactive REPL, full-screen TUI, desktop app, and an offline web app. Type expressions, save functions and scripts, graph results in 2D or 3D, animate constants, and keep history between sessions and user interfaces.
+**A programmable, scriptable calculator**, built for blind astronomers and open to everyone: one calculation engine, seven ways to use it: command line, interactive REPL, full-screen TUI, desktop app, offline web app in desktop and mobile views, and inside your IDE. Type expressions, save functions and scripts, graph results in 2D or 3D, animate constants, and keep history between sessions and user interfaces.
 
 [![GitHub stars](https://img.shields.io/github/stars/upyesp/epher?style=social)](https://github.com/upyesp/epher/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -24,11 +24,13 @@
 
 ## What It Does
 
-- **One download, five frontends**: every installer carries the unified `epher` binary: one-shot command, REPL, piped scripts, TUI, and desktop app, plus the web app in your browser
-- **A real language**: variables, functions with statement bodies and early `return`, loops with `break`/`continue`, destructuring, a string library, and saveable scripts; newlines and `;` separate statements
+- **One download, seven frontends**: every installer carries the unified `epher` binary: one-shot command, REPL, piped scripts, TUI, and desktop app, plus the web app in your browser and your editor via the `epher-lsp` language server
+- **A real language**: math as code (MaC): variables, recursive functions with statement bodies and early `return`, loops with `break`/`continue`, destructuring, a string library, and saveable scripts; newlines and `;` separate statements
+- **Serious math built in**: numeric equation solving (`solve x^2 == 5*x + 6`), matrices, calculus, probability distributions, hypothesis tests, curve fitting, units with conversion, and finance (TVM, NPV, IRR)
 - **Exact when it matters**: binary floats by default, with exact `frac`, `dec`, and `big` layers one call away
-- **Graphs in 2D and 3D**: curves and surfaces, trace, points of interest, animated constants with a play button, SVG export
-- **Private by design**: no accounts, no telemetry, no cloud; everything computes and stores on your device
+- **Graphs in 2D and 3D**: curves, surfaces, and implicit relations, trace, points of interest, animated constants with a play button, SVG export
+- **Share anything**: any history item shares as a link that carries the expression itself; pasted as plain text, it runs in every frontend, terminal ones included
+- **Private by design**: no accounts, no telemetry, no cloud; everything computes and stores on your device, the web app fully offline
 - **Eight languages**: English, Chinese, Hindi, Spanish, French, German, Portuguese, Arabic, with right-to-left support
 - **Accessible**: WCAG 2.2 AA throughout (keyboard-only use, visible focus, recorded contrast)
 
@@ -44,6 +46,10 @@ curl -fsSL https://raw.githubusercontent.com/upyesp/epher/main/install.sh | sh
 Or use Homebrew, for the desktop app (`brew install --cask upyesp/tap/epher`)
 or just the terminal command (`brew install upyesp/tap/epher`).
 
+Windows: `winget install epher`, or get epher from the Microsoft Store.
+Linux: the apt and dnf repositories, `sudo snap install epher`, a Flatpak
+bundle, or a direct .deb, .rpm, or AppImage download from the releases page.
+
 From source:
 
 ```bash
@@ -55,9 +61,9 @@ cargo run --release -- tui           # full-screen terminal UI
 cargo run --release -- gui           # desktop app
 ```
 
-Open [epher.org](https://epher.org) for the web app, the [user guide](https://epher.org/guide/en/), and copyable [examples](https://epher.org/examples.html). The command's own help pages everything: `epher --help`, `epher help`.
+Open [epher.org](https://epher.org) for the web app, the [user guide](https://epher.org/guide/en/), and copyable [examples](https://epher.org/examples.html). The command's own help documents everything: `epher --help`, `epher help`.
 
-Every installer ships the whole [script collection](https://epher.org/scripts.html) (433 ready-to-run scripts), installed beside the program. The same script, on each operating system:
+Every installer ships the whole [script collection](https://epher.org/scripts.html) (532 ready-to-run scripts in eleven categories), installed beside the program. The same script, on each operating system:
 
 ```sh
 # Debian, Ubuntu, Fedora (deb, rpm)
@@ -96,6 +102,8 @@ instructions are on [epher.org/ide](https://epher.org/ide.html#any-lsp).
 ## More Information
 
 - **[User guide](https://epher.org/guide/en/)**: the language, the frontends, and your data, in eight languages
+- **[Features](https://epher.org/features.html)**: the comparison chart against nine calculators, and where epher stands alone
+- **[Language reference](https://epher.org/reference/)**: every construct, function, and constant
 - **[Examples](https://epher.org/examples.html)**: copyable code for every frontend
 - **[Privacy](https://epher.org/privacy.html)**: what stays on your device (nothing leaves it)
 - **[Releases](https://github.com/upyesp/epher/releases)**: downloads and changelogs
