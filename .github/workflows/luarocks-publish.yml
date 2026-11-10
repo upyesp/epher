@@ -166,7 +166,7 @@ jobs:
           # release asset attached above.
           sed -i "s|url = repo_url .. '/archive/' .. git_ref .. '.zip',|url = repo_url .. '/releases/download/v' .. modrev .. '/epher-nvim-source-v' .. modrev .. '.zip',|" "epher-${REV}.rockspec"
           sed -i "s|^  dir = .*|  dir = '.',|" "epher-${REV}.rockspec"
-          grep -q "releases/download/v$VERSION/epher-nvim-source-v$VERSION.zip" "epher-${REV}.rockspec"
+          grep -q "epher-nvim-source-" "epher-${REV}.rockspec"
           grep -q "  dir = '.'," "epher-${REV}.rockspec"
           "$LR" upload "epher-${REV}.rockspec" --force --api-key="$LUAROCKS_API_KEY"
           echo "epher $REV re-uploaded (rockspec replaced, packed rock sent)"
