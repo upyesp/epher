@@ -154,7 +154,7 @@ jobs:
           export LUA_CPATH="$WORK/luarocks-3.11.1/src/?.so;;"
           "$LR" --version
           REV="${VERSION}-1"
-          curl -fsSL -o "epher-${REV}.rockspec" "https://luarocks.org/manifests/upyesp/epher-${REV}.rockspec"
+          curl -fsSL --retry 5 --retry-all-errors --connect-timeout 15 -o "epher-${REV}.rockspec" "https://luarocks.org/manifests/upyesp/epher-${REV}.rockspec"
           # Patch only the source block: the registered rockspec still
           # points at the whole-repo tag archive (whose packed rock the
           # server rejects), while the template now points at the
