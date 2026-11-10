@@ -264,14 +264,15 @@ The plugin is type-checked and linted on change by
 `pyproject.toml` here), so a breakage like the one #126 fixed is
 caught in this repo before the next train ships it to the channel.
 The pins in that workflow are exact and moved by hand: the `sublime`
-stubs are a published beta and a third-party release should never
-break the build by surprise.
+stubs wheel moves independently of this repo (its 1.4200.0b2 beta was
+once removed from PyPI entirely) and a third-party release should
+never break the build by surprise.
 
 To run both checks locally, install the same three packages into any
 Python 3.8+ environment and run from this directory (`pyproject.toml`
 carries the tool configuration):
 
-    pip install ruff==0.17.0 pyright==1.1.414 sublime-text-stubs==1.4200.0b2
+    pip install ruff==0.17.0 pyright==1.1.414 sublime-text-stubs==1.4200.0
     ruff check .
     pyright
 
@@ -282,4 +283,7 @@ stubs) also dismisses the `sublime` imports, and a call to a
 nonexistent API symbol passes. With the stubs installed, every
 `sublime.*` use is genuinely checked. When the stubs publish a new
 version, bump the pin in the workflow and here together, after both
-checks pass.
+checks pass. The `LSP` (sublimelsp) imports stay dismissed until
+stubs for the LSP plugin API publish; that work is tracked upstream
+at sublimelsp/LSP#3129, and #183 is this repo's tracker for the day
+it lands.

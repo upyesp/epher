@@ -15,7 +15,8 @@
 #     is the load-bearing step, not decoration.
 #   - `LSP` (sublimelsp) has no published stubs; reportMissingImports =
 #     "none" in clients/sublime/pyproject.toml keeps those imports
-#     resolvable-by-dismissal. Revisit when LSP stubs publish.
+#     resolvable-by-dismissal. Revisit when LSP stubs publish; that
+#     work is tracked upstream at sublimelsp/LSP#3129 and in #183.
 #
 # The toolchain is pinned exactly on purpose: the stubs are a beta and
 # ruff/pyright releases move, so a third-party release must never break
