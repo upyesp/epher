@@ -111,16 +111,27 @@ jobs:
           VERSION: ${{ steps.v.outputs.version }}
         run: |
           set -euo pipefail
-          sudo apt-get install -y --no-install-recommends luarocks >/dev/null
-          OUT="$(luarocks delete epher "$VERSION" --api-key="$LUAROCKS_API_KEY" 2>&1)" || {
+          # Ubuntu ships luarocks 3.8, which predates the `delete`
+          # command (added in 3.9); build the pinned upstream release
+          # instead of trusting the distro package.
+          sudo apt-get install -y --no-install-recommends liblua5.4-dev lua5.4 unzip wget >/dev/null
+          WORK="$(mktemp -d)"
+          wget -q -O "$WORK/luarocks.tar.gz" https://luarocks.org/releases/luarocks-3.11.1.tar.gz
+          tar -xzf "$WORK/luarocks.tar.gz" -C "$WORK"
+          cd "$WORK/luarocks-3.11.1"
+          ./configure --with-lua-include=/usr/include/lua5.4 >/dev/null
+          make -j2 >/dev/null
+          sudo make install >/dev/null
+          REV="${VERSION}-1"
+          OUT="$(luarocks delete epher "$REV" --api-key="$LUAROCKS_API_KEY" 2>&1)" || {
             if echo "$OUT" | grep -qiE "no results|not found|does not exist"; then
-              echo "::notice::epher $VERSION is not on the remote; nothing to delete"
+              echo "::notice::epher $REV is not on the remote; nothing to delete"
             else
               echo "::error::luarocks delete failed: $OUT"
               exit 1
             fi
           }
-          echo "epher $VERSION deleted (or absent); the upload below is a fresh, full one"
+          echo "epher $REV deleted (or absent); the upload below is a fresh, full one"
 
       - name: Upload the rock
         if: steps.gate.outputs.skip != 'true'
