@@ -37,7 +37,7 @@
 ## Quick Start
 
 Grab an installer from the badges above, or run straight from source.
-On a Mac there are three ways in (ADR-0076): one line with no Homebrew;
+On a Mac there are three ways in: one line with no Homebrew;
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/upyesp/epher/main/install.sh | sh
