@@ -1,0 +1,136 @@
+# Watch for the publication of LSP type stubs: the revisit trigger of #183.
+#
+# Issue #183 type-checks the sublime client's LSP.plugin imports only
+# once stubs for the LSP plugin API publish. That work is tracked
+# upstream at sublimelsp/LSP#3129 (opened 2026-11-03): the preparation
+# PRs are merged and sublime-text-stubs 4200.2 and 4213.1 shipped the
+# fixes LSP asked for, but the wheel still carries only the sublime,
+# sublime_plugin and sublime_types stubs.
+#
+# This workflow is the alarm for the trigger event. Once a week it
+#   1. probes a list of candidate PyPI package names for published LSP
+#      stubs (extend the list as upstream names the package), and
+#   2. inspects the newest sublime-text-stubs wheel for a top-level LSP
+#      package.
+# On a hit it comments once on #183 (marker-guarded, so schedule ticks
+# and reruns stay quiet until someone closes the loop). When #183
+# lands, delete this workflow together with the issue.
+name: sublime LSP stubs watch
+
+on:
+  schedule:
+    # Mondays 13:00 UTC.
+    - cron: "0 13 * * 1"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  check:
+    name: probe PyPI for LSP stubs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe PyPI
+        id: probe
+        env:
+          CANDIDATES: "sublime-lsp-stubs lsp-stubs sublimelsp-stubs lsp-stubs-pyi sublime-text-lsp-stubs"
+        run: |
+          python3 - <<'PY'
+          import io
+          import json
+          import os
+          import urllib.request
+          import zipfile
+
+          def get(url):
+              with urllib.request.urlopen(url, timeout=30) as r:
+                  return json.load(r)
+
+          found = []
+          detail = []
+          for name in os.environ["CANDIDATES"].split():
+              try:
+                  info = get(f"https://pypi.org/pypi/{name}/json")
+              except Exception:
+                  continue
+              version = info["info"]["version"]
+              found.append(f"{name}=={version}")
+              detail.append(f"PyPI package {name} {version}: "
+                            f"{info['info']['summary'] or '(no summary)'}")
+
+          try:
+              st = get("https://pypi.org/pypi/sublime-text-stubs/json")
+              version = st["info"]["version"]
+              files = st["releases"][version]
+              wheel = next((f["url"] for f in files
+                            if f["filename"].endswith(".whl")), None)
+              if wheel:
+                  with urllib.request.urlopen(wheel, timeout=120) as r:
+                      z = zipfile.ZipFile(io.BytesIO(r.read()))
+                  tops = {n.split("/")[0] for n in z.namelist()}
+                  lsp = sorted(t for t in tops
+                               if t.lower().startswith("lsp"))
+                  if lsp:
+                      found.append(f"sublime-text-stubs=={version} "
+                                   f"ships {', '.join(lsp)}")
+                      detail.append(f"sublime-text-stubs {version} wheel "
+                                    f"ships top-level: {', '.join(lsp)}")
+                  else:
+                      detail.append(f"sublime-text-stubs {version} wheel: "
+                                    f"no LSP stubs yet (top-level: "
+                                    f"{', '.join(sorted(tops))})")
+              else:
+                  detail.append(f"sublime-text-stubs {version}: no wheel "
+                                f"asset to inspect")
+          except Exception as e:
+              detail.append(f"sublime-text-stubs check error: {e}")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"found={'yes' if found else 'no'}\n")
+              out.write("detail<<EOF\n")
+              out.write("\n".join(detail or ["nothing found"]))
+              out.write("\nEOF\n")
+          PY
+
+      - name: Report
+        run: |
+          {
+            echo "### LSP stubs watch"
+            echo '```'
+            cat <<'EOF'
+          ${{ steps.probe.outputs.detail }}
+          EOF
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment once on #183
+        if: steps.probe.outputs.found == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MARKER: "<!-- sublime-lsp-stubs-watch -->"
+          DETAIL: ${{ steps.probe.outputs.detail }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/${GITHUB_REPOSITORY}/issues/183/comments" \
+             --paginate | grep -qF "sublime-lsp-stubs-watch"; then
+            echo "Already reported on #183; staying quiet."
+            exit 0
+          fi
+          {
+            echo "$MARKER"
+            echo "LSP stubs are now discoverable (weekly watch hit):"
+            echo
+            printf '%s\n' "$DETAIL" | sed 's/^/    /'
+            echo
+            echo "That trips the revisit condition written into #183 and"
+            echo "the sublime-lint.yml header: pin the stub package in the"
+            echo "workflow and clients/sublime/README.md together, drop"
+            echo 'reportMissingImports = "none" from'
+            echo "clients/sublime/pyproject.toml, fix the findings, record"
+            echo "the stubs source, and close the issue. Upstream tracker:"
+            echo "sublimelsp/LSP#3129."
+          } > /tmp/issue-183-body.md
+          gh issue comment 183 --repo "$GITHUB_REPOSITORY" \
+            --body-file /tmp/issue-183-body.md
