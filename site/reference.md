@@ -1,16 +1,13 @@
 # The epher language reference
 
-*This page is the formal, normative definition
-of the epher language: its lexical rules, grammar, types, operators,
-statements, built-in constants and functions, units, display rules,
-errors, and limits. Every name and every signature here is extracted
-from the evaluating engine itself (the `epher-core` crate), not from
-prose.*
+*This page is the formal, normative definition of the epher language:
+its lexical rules, grammar, types, operators, statements, built-in
+constants and functions, units, display rules, errors, and limits. All
+names and signatures here are extracted from the evaluating engine
+itself, the `epher-core` crate.*
 
-The [user guide](../guide/en/) teaches the language by example; this
-reference defines it exactly. Where the two appear to disagree, this
-page wins, and the disagreement is a bug worth
-[filing](https://github.com/upyesp/epher/issues).
+The [user guide](../guide/en/) teaches the language by example,
+where-as this reference defines it.
 
 ## 1. Notation
 

@@ -3,20 +3,19 @@
 -- this file are filled in by the action from the pushed tag and the
 -- workflow inputs; this is a template, not a local development rockspec.
 --
--- One thing here is not the action's generated default: source.dir. The
+-- One thing here is not the action's generated default: the source. The
 -- client lives at clients/nvim in the epher monorepo (ADR-0066: clients
 -- are version-locked to epher, not separate repositories), and the
--- action fetches the tag's GitHub archive and builds from the archive
--- root, where no lua/ or runtime directories exist. Pointing source.dir
--- at the subdirectory makes the standard Neovim plugin layout visible to
--- the action's defaults: lua/ is installed by the builtin convention and
--- build.copy_directories copies the runtime directories (the default
--- expands to Neovim's runtimepath names; only directories that exist are
--- copied).
---
--- The layout this expects (lua/, ftdetect/, ftplugin/, syntax/) is kept
--- in sync with clients/vim by clients/nvim/sync-runtime.py. The rock name
--- comes from the workflow (epher); the version comes from the pushed tag
+-- action would fetch the tag's whole-repo GitHub archive. The archive
+-- crossed luarocks.org's upload cap in the 0.9.7 train (the packed
+-- src.rock hit ~19 MB after the benchmark payloads landed under
+-- results/), so the rock now sources the nvim subtree only:
+-- luarocks-publish.yml attaches epher-nvim-source-<tag>.zip (the
+-- contents of clients/nvim at the tag) to the release before this
+-- upload, and the packed src.rock stays well under the cap. The layout
+-- this expects (lua/, ftdetect/, ftplugin/, syntax/) is kept in sync
+-- with clients/vim by clients/nvim/sync-runtime.py. The rock name comes
+-- from the workflow (epher); the version comes from the pushed tag
 -- (v0.5.57 becomes rock 0.5.57-1).
 
 local git_ref = '$git_ref'
@@ -42,8 +41,8 @@ dependencies = $dependencies
 test_dependencies = $test_dependencies
 
 source = {
-  url = repo_url .. '/archive/' .. git_ref .. '.zip',
-  dir = '$repo_name-' .. '$archive_dir_suffix' .. '/clients/nvim',
+  url = repo_url .. '/releases/download/v' .. modrev .. '/epher-nvim-source-v' .. modrev .. '.zip',
+  dir = '.',
 }
 
 build = {

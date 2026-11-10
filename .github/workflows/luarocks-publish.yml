@@ -27,13 +27,18 @@ on:
         description: the train to publish, e.g. 0.5.80 (a leading v is accepted)
         required: true
         type: string
+      force:
+        description: re-upload even if the version already exists (repair a broken upload with luarocks upload --force)
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   luarocks:
     name: publish the epher rock
     environment: stores
     permissions:
-      contents: read
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -92,6 +97,79 @@ jobs:
             echo "::notice::LUAROCKS_API_KEY is not set in the stores environment; the LuaRocks upload is skipped. Create a fresh key at https://luarocks.org/settings/api-keys (keys minted before 2026-09-26 were revoked by the September 2026 security incident) and add it as the secret."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Attach the nvim source zip to the release
+        # The rock's source.url (see clients/nvim/epher-scm-1.rockspec)
+        # points at this asset: the contents of clients/nvim at the tag,
+        # so the packed src.rock stays small instead of carrying the
+        # whole monorepo archive. Idempotent: --clobber replaces it on
+        # every dispatch, and the public release is where the wait step
+        # has already confirmed this train exists.
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.v.outputs.tag }}
+        run: |
+          set -euo pipefail
+          ASSET="epher-nvim-source-$TAG.zip"
+          (cd clients/nvim && zip -qr "$OLDPWD/$ASSET" .)
+          gh release upload "$TAG" "$ASSET" --repo upyesp/epher --clobber
+          echo "attached $ASSET"
+
+      - name: Re-upload the packed rock (forced)
+        # An upload mistake can leave a version half-published: the
+        # 0.9.7-1 train registered the rockspec but the packed src.rock
+        # never landed (server API failure), and the action's duplicate
+        # guard then skips every re-drive. Upstream luarocks has no
+        # remote-delete command, but `luarocks upload --force` is its
+        # documented tool for upload mistakes: it replaces the existing
+        # rockspec and sends the packed rock again. The rockspec re-used
+        # here is the server's registered copy, so the replacement is
+        # byte-identical. The source-built luarocks talks to luarocks.org
+        # through curl (its API client falls back to curl when LuaSec is
+        # absent), so HTTPS is real.
+        if: inputs.force == true && steps.gate.outputs.skip != 'true'
+        env:
+          LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Ubuntu ships luarocks 3.8; build the pinned upstream release
+          # instead of trusting the distro package. Errors stay visible:
+          # a silent fetch here cost a debug round-trip.
+          sudo apt-get install -y --no-install-recommends liblua5.4-dev lua5.4 unzip zip curl >/dev/null
+          WORK="$(mktemp -d)"
+          curl -fL --retry 3 -o "$WORK/luarocks.tar.gz" https://luarocks.org/releases/luarocks-3.11.1.tar.gz
+          tar -xzf "$WORK/luarocks.tar.gz" -C "$WORK"
+          cd "$WORK/luarocks-3.11.1"
+          ./configure --lua-version=5.4 --with-lua-bin=/usr/bin --with-lua-include=/usr/include/lua5.4 >/dev/null
+          make -j2 >/dev/null
+          # No `make install`: its lua-file loop dies silently on the
+          # runner. The make tree already yields a runnable CLI.
+          LR="$WORK/luarocks-3.11.1/build/luarocks"
+          chmod +x "$LR"
+          # The wrapper searches the install tree; without `make
+          # install`, point it at the source modules instead.
+          export LUA_PATH="$WORK/luarocks-3.11.1/src/?.lua;$WORK/luarocks-3.11.1/src/?/init.lua;;"
+          export LUA_CPATH="$WORK/luarocks-3.11.1/src/?.so;;"
+          "$LR" --version
+          REV="${VERSION}-1"
+          if ! curl -fL --retry 5 --retry-all-errors --connect-timeout 15 -o "epher-${REV}.rockspec" "https://luarocks.org/manifests/upyesp/epher-${REV}.rockspec"; then
+            echo "::error::registered-rockspec fetch failed (curl exit $?)"
+            exit 1
+          fi
+          ls -la "epher-${REV}.rockspec"
+          head -3 "epher-${REV}.rockspec"
+          # Patch only the source block: the registered rockspec still
+          # points at the whole-repo tag archive (whose packed rock the
+          # server rejects), while the template now points at the
+          # release asset attached above.
+          sed -i "s|url = repo_url .. '/archive/' .. git_ref .. '.zip',|url = repo_url .. '/releases/download/v' .. modrev .. '/epher-nvim-source-v' .. modrev .. '.zip',|" "epher-${REV}.rockspec"
+          sed -i "s|^  dir = .*|  dir = '.',|" "epher-${REV}.rockspec"
+          grep -q "epher-nvim-source-" "epher-${REV}.rockspec"
+          grep -q "  dir = '.'," "epher-${REV}.rockspec"
+          "$LR" upload "epher-${REV}.rockspec" --force --api-key="$LUAROCKS_API_KEY"
+          echo "epher $REV re-uploaded (rockspec replaced, packed rock sent)"
 
       - name: Upload the rock
         if: steps.gate.outputs.skip != 'true'
