@@ -147,6 +147,7 @@ jobs:
           # No `make install`: its lua-file loop dies silently on the
           # runner. The make tree already yields a runnable CLI.
           LR="$WORK/luarocks-3.11.1/build/luarocks"
+          chmod +x "$LR"
           "$LR" --version
           REV="${VERSION}-1"
           curl -fsSL -o "epher-${REV}.rockspec" "https://luarocks.org/manifests/upyesp/epher-${REV}.rockspec"
