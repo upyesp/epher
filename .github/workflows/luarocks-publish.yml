@@ -148,6 +148,10 @@ jobs:
           # runner. The make tree already yields a runnable CLI.
           LR="$WORK/luarocks-3.11.1/build/luarocks"
           chmod +x "$LR"
+          # The wrapper searches the install tree; without `make
+          # install`, point it at the source modules instead.
+          export LUA_PATH="$WORK/luarocks-3.11.1/src/?.lua;$WORK/luarocks-3.11.1/src/?/init.lua;;"
+          export LUA_CPATH="$WORK/luarocks-3.11.1/src/?.so;;"
           "$LR" --version
           REV="${VERSION}-1"
           curl -fsSL -o "epher-${REV}.rockspec" "https://luarocks.org/manifests/upyesp/epher-${REV}.rockspec"
