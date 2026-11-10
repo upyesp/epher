@@ -61,7 +61,7 @@ jobs:
           python -m pip install \
             "ruff==0.17.0" \
             "pyright==1.1.414" \
-            "sublime-text-stubs==1.4200.0b2"
+            "sublime-text-stubs==1.4200.0"
 
       - name: ruff check
         working-directory: clients/sublime
