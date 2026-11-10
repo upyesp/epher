@@ -97,10 +97,16 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0070 | Double-clicking a `.epher` file opens the desktop app and stages it (renumbered from 0069, which was double-allocated) | 2026-09-17 | accepted |
 | 0071 | The store manifest ships two visible applications | 2026-10-04 | accepted |
 | 0072 | macOS installs come from Homebrew | 2026-10-10 | accepted |
-| 0073 | The release is cut by CI from a verified tree and the channels follow it | 2026-10-10 | accepted |
+| 0073 | The release is cut by CI from a verified tree and the channels follow it | 2026-10-10 | accepted (amended by 0082) |
 | 0074 | The Windows CLI explains a bare run until the headless waiver | 2026-10-11 | accepted |
-| 0075 | The Apple-silicon gate reports without running when a pull request cannot change what it tests | 2026-10-19 | proposed |
+| 0075 | The Apple-silicon gate reports without running when a pull request cannot change what it tests | 2026-10-19 | superseded (0082) |
 | 0076 | macOS offers three install paths, and none of them needs an approval | 2026-10-20 | accepted |
+| 0077 | The apps open the bundled examples from a menu browser | 2026-10-26 | accepted |
+| 0078 | The result pane re-renders what it receives | 2026-10-28 | accepted |
+| 0079 | A failure is its own tier in the result pane | 2026-10-28 | accepted |
+| 0080 | A constant definition is silent | 2026-10-28 | accepted |
+| 0081 | No em-dashes anywhere in the project | 2026-11-02 | accepted |
+| 0082 | The macOS build runs when the Linux and Windows builds run | 2026-11-10 | accepted (supersedes 0075) |
 
 ## Decision chains
 

@@ -230,14 +230,15 @@ publishes from a bare tag push anymore:
 2. When a batch is ready to test, run the **staging build** workflow
    (Actions → staging build → Run workflow): ~45 minutes later a hidden
    draft release holds the installers for every platform. Test them.
-3. The go-ahead: merge the `staging → main` pull request (the
-   Apple-silicon check must pass), then push the version tag; the
-   `release` workflow builds and attaches everything:
+3. The go-ahead: merge the `staging → main` pull request, then run the
+   **release** workflow (Actions → release → Run workflow, version
+   `0.3.1`). It verifies the train, builds every installer, and cuts
+   the version tag itself (ADR-0073); a hand-pushed tag publishes
+   nothing.
 
-```
-git tag v0.3.1
-git push origin v0.3.1
-```
+The macOS Apple-silicon floor runs beside the Linux and Windows legs
+in both the staging build and the release (ADR-0082): every platform
+ships from one trigger, and the release tag waits for arm64 to pass.
 
 The draft is replaced by the real release; the apt/dnf repositories and
 the store bumps follow as before.

@@ -4,7 +4,9 @@ Date: 2026-10-10
 
 Status: Accepted (amends ADR-0062's "a tag push is the last act of a
 promotion"; extends ADR-0061's channel story with the process that
-keeps every channel honest).
+keeps every channel honest; amended 2026-11-10 by ADR-0082, which
+retires the per-PR Apple-silicon gate and moves arm64 verification to
+the release and staging builds).
 
 ## Context
 
@@ -162,3 +164,17 @@ so tag-triggered channel workflows never ran. The four channels are
 workflow_dispatch with a version input now (their tag-push triggers
 are gone); the release job dispatches them after publishing, and the
 verify job finds their runs in the dispatch window.
+
+## Amendment 2026-11-10: the promotion gate retires (ADR-0082)
+
+The required Apple-silicon check on main ("build and test on Apple
+silicon") is gone, and `macos-silicon.yml` no longer runs on pushes or
+pull requests. The verified-tree contract moves downstream: the
+release run now carries an arm64 silicon job pinned to the same sha as
+the installer build, and the release job waits for it before cutting
+the tag; the staging build runs the same floor beside its installer
+build. Pull requests merge without arm64 evidence; the compensating
+habit is the staging draft before every promotion, and the hard stop
+is the release's silicon job. Nothing else in this ADR changes: the
+tag is still cut by CI, versions are still locked, and the channels
+still follow the release.
