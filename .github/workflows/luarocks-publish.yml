@@ -27,8 +27,8 @@ on:
         description: the train to publish, e.g. 0.5.80 (a leading v is accepted)
         required: true
         type: string
-      force_delete:
-        description: delete the version on luarocks.org first (re-upload after a broken upload)
+      force:
+        description: re-upload even if the version already exists (repair a broken upload with luarocks upload --force)
         required: false
         type: boolean
         default: false
@@ -98,23 +98,27 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Delete the remote version (forced re-upload)
-        # A broken upload can leave a version half-published: the 0.9.7-1
-        # train registered the rockspec but the packed src.rock never
-        # landed (server API failure), and the action's duplicate guard
-        # then skips every re-drive. Deleting the version first makes
-        # the upload below a fresh, full one. The brief window with no
-        # version beats a permanently half-published one.
-        if: inputs.force_delete == true && steps.gate.outputs.skip != 'true'
+      - name: Re-upload the packed rock (forced)
+        # An upload mistake can leave a version half-published: the
+        # 0.9.7-1 train registered the rockspec but the packed src.rock
+        # never landed (server API failure), and the action's duplicate
+        # guard then skips every re-drive. Upstream luarocks has no
+        # remote-delete command, but `luarocks upload --force` is its
+        # documented tool for upload mistakes: it replaces the existing
+        # rockspec and sends the packed rock again. The rockspec re-used
+        # here is the server's registered copy, so the replacement is
+        # byte-identical. The source-built luarocks talks to luarocks.org
+        # through curl (its API client falls back to curl when LuaSec is
+        # absent), so HTTPS is real.
+        if: inputs.force == true && steps.gate.outputs.skip != 'true'
         env:
           LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
           VERSION: ${{ steps.v.outputs.version }}
         run: |
           set -euo pipefail
-          # Ubuntu ships luarocks 3.8, which predates the `delete`
-          # command (added in 3.9); build the pinned upstream release
+          # Ubuntu ships luarocks 3.8; build the pinned upstream release
           # instead of trusting the distro package.
-          sudo apt-get install -y --no-install-recommends liblua5.4-dev lua5.4 unzip wget >/dev/null
+          sudo apt-get install -y --no-install-recommends liblua5.4-dev lua5.4 unzip zip wget >/dev/null
           WORK="$(mktemp -d)"
           wget -q -O "$WORK/luarocks.tar.gz" https://luarocks.org/releases/luarocks-3.11.1.tar.gz
           tar -xzf "$WORK/luarocks.tar.gz" -C "$WORK"
@@ -123,15 +127,9 @@ jobs:
           make -j2 >/dev/null
           sudo make install >/dev/null
           REV="${VERSION}-1"
-          OUT="$(luarocks delete epher "$REV" --api-key="$LUAROCKS_API_KEY" 2>&1)" || {
-            if echo "$OUT" | grep -qiE "no results|not found|does not exist"; then
-              echo "::notice::epher $REV is not on the remote; nothing to delete"
-            else
-              echo "::error::luarocks delete failed: $OUT"
-              exit 1
-            fi
-          }
-          echo "epher $REV deleted (or absent); the upload below is a fresh, full one"
+          wget -q "https://luarocks.org/manifests/upyesp/epher-${REV}.rockspec"
+          luarocks upload "epher-${REV}.rockspec" --force --api-key="$LUAROCKS_API_KEY"
+          echo "epher $REV re-uploaded (rockspec replaced, packed rock sent)"
 
       - name: Upload the rock
         if: steps.gate.outputs.skip != 'true'
