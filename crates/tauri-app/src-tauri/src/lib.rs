@@ -579,7 +579,8 @@ impl StartupStderr {
                 restored: std::sync::atomic::AtomicBool::new(true),
             };
         }
-        let redirected = std::fs::File::create("/dev/null").ok()
+        let redirected = std::fs::File::create("/dev/null")
+            .ok()
             .is_some_and(|devnull| unsafe { libc::dup2(devnull.as_raw_fd(), 2) != -1 });
         if !redirected {
             unsafe { libc::close(saved) };
@@ -629,8 +630,18 @@ impl Drop for StartupStderr {
 /// directory, then one level up); if none exists it falls back to
 /// re-spawning itself with `EPHER_GUI_CHILD` set, the guard (and the
 /// `DETACHED_PROCESS` child having no console to begin with) stops the
-/// chain after one hop. On macOS/Linux the GUI runs in-process in the
-/// foreground, like any GUI binary run from a terminal.
+/// chain after one hop. macOS hands off the same way (ADR-0084): the
+/// fat-stack wrapper thread cannot host the window because tao panics
+/// unless the event loop runs on the process's main thread, so the
+/// wrapper build spawns the wrapper-free `epher-gui` sibling and exits,
+/// while every wrapper-free binary (the sibling itself, and the tauri
+/// build's renamed unified `epher`) reaches this code on the main
+/// thread and runs the window in-process, as shipped. Unlike Windows
+/// there is no self-respawn fallback: re-executing the wrapper build
+/// would only re-create the problem being handed off, so a wrapper
+/// build with no sibling explains itself and exits instead of panicking
+/// inside tao. Linux keeps the GUI in-process in the foreground, like
+/// any GUI binary run from a terminal.
 fn launch_gui(pending: Option<PathBuf>) {
     #[cfg(windows)]
     {
@@ -656,6 +667,42 @@ fn launch_gui(pending: Option<PathBuf>) {
                 }
                 // Spawn failed: try the next candidate, then run in-process.
             }
+        }
+    }
+    // macOS mirrors the Windows handoff for the fat-stack wrapper build
+    // (ADR-0084): tao panics unless the event loop runs on the process's
+    // main thread, and the wrapper thread (spawned unnamed) is not it.
+    // Wrapper builds spawn the wrapper-free sibling and exit;
+    // wrapper-free binaries (the sibling itself, the tauri build's
+    // renamed `epher`) are on the main thread and run the window
+    // in-process, exactly as shipped builds do today.
+    #[cfg(target_os = "macos")]
+    {
+        let on_wrapper_thread = std::thread::current().name() != Some("main");
+        let exe = std::env::current_exe().unwrap_or_default();
+        if on_wrapper_thread && std::env::var_os("EPHER_GUI_CHILD").is_none() {
+            for candidate in macos_gui_handoff_candidates(&exe) {
+                // The script path (when `epher gui plan.epher` handed one
+                // over) rides argv: the GUI build stages it in the entry.
+                let spawned = std::process::Command::new(&candidate)
+                    .args(pending.iter())
+                    .env("EPHER_GUI_CHILD", "1")
+                    .stdin(std::process::Stdio::null())
+                    .stdout(std::process::Stdio::null())
+                    .stderr(std::process::Stdio::null())
+                    .spawn();
+                if spawned.is_ok() {
+                    std::process::exit(0);
+                }
+                // Spawn failed: try the next candidate.
+            }
+            // No wrapper-free sibling: running in-process from the
+            // wrapper thread trips tao's main-thread assertion, so
+            // explain the requirement instead of panicking in tao.
+            epher_cli::term::error(
+                "error: the GUI needs a wrapper-free build (epher-gui) next to this binary; build with `cargo tauri build` or place target/release/epher-gui alongside it",
+            );
+            std::process::exit(1);
         }
     }
     #[cfg(not(windows))]
@@ -693,6 +740,24 @@ fn gui_launch_candidates(current_exe: &std::path::Path) -> Vec<std::path::PathBu
         candidates.push(parent.join("epher-gui.exe"));
     }
     candidates.push(current_exe.to_path_buf());
+    candidates
+}
+
+/// The macOS GUI-handoff candidates for the wrapper build at
+/// `current_exe`: the wrapper-free sibling `epher-gui` (same directory,
+/// then the parent directory). Unlike the Windows chain there is no
+/// self-respawn fallback: re-executing the wrapper build would only
+/// re-create the problem being handed off (ADR-0084). Pure path logic
+/// so it is testable on any host.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+fn macos_gui_handoff_candidates(current_exe: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let Some(dir) = current_exe.parent() else {
+        return Vec::new();
+    };
+    let mut candidates = vec![dir.join("epher-gui")];
+    if let Some(parent) = dir.parent() {
+        candidates.push(parent.join("epher-gui"));
+    }
     candidates
 }
 
@@ -769,8 +834,7 @@ fn wait_for_any_key() {
     let mut switched = false;
     unsafe {
         if GetConsoleMode(input, &mut mode) != 0 {
-            switched =
-                SetConsoleMode(input, mode & !(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT)) != 0;
+            switched = SetConsoleMode(input, mode & !(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT)) != 0;
         }
     }
     let mut byte = [0u8; 1];
@@ -916,11 +980,48 @@ mod tests {
     #[test]
     fn the_association_target_build_is_recognized_by_name() {
         use std::path::Path;
-        assert!(exe_is_gui_build(Path::new("C:/Program Files/epher/epher-gui.exe")));
+        assert!(exe_is_gui_build(Path::new(
+            "C:/Program Files/epher/epher-gui.exe"
+        )));
         assert!(exe_is_gui_build(Path::new("/usr/bin/epher-gui")));
         // the console unified binary and anything else are terminal
         // programs: their script arguments stay terminal output
         assert!(!exe_is_gui_build(Path::new("/usr/bin/epher")));
-        assert!(!exe_is_gui_build(Path::new("C:/Program Files/epher/epher.exe")));
+        assert!(!exe_is_gui_build(Path::new(
+            "C:/Program Files/epher/epher.exe"
+        )));
+    }
+
+    // --- macOS GUI hand-off candidates (ADR-0084) -----------------------
+
+    #[test]
+    fn macos_handoff_prefers_the_sibling_then_parent_and_never_respawns_itself() {
+        use std::path::{Path, PathBuf};
+        let exe = Path::new("/usr/local/bin/epher");
+        assert_eq!(
+            macos_gui_handoff_candidates(exe),
+            vec![
+                PathBuf::from("/usr/local/bin/epher-gui"),
+                PathBuf::from("/usr/local/epher-gui"),
+            ]
+        );
+    }
+
+    #[test]
+    fn macos_handoff_for_a_bare_name_tries_the_sibling_only() {
+        use std::path::{Path, PathBuf};
+        assert_eq!(
+            macos_gui_handoff_candidates(Path::new("epher")),
+            vec![PathBuf::from("epher-gui")]
+        );
+    }
+
+    #[test]
+    fn macos_handoff_without_a_parent_has_nothing_to_try() {
+        // `unwrap_or_default` on a failed `current_exe` lands here: an
+        // empty path has no parent, so there is nothing to spawn and the
+        // handoff explains itself instead of panicking in tao.
+        use std::path::Path;
+        assert!(macos_gui_handoff_candidates(Path::new("")).is_empty());
     }
 }
