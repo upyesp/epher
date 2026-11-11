@@ -7,10 +7,14 @@
 // users keep the console `epher.exe` on PATH for CLI/TUI output, waiting,
 // pipes, and exit codes.
 //
-// Bundled only on Windows (tauri.windows.conf.json sets mainBinaryName);
-// macOS and Linux keep the single unified binary; their OSes need no
-// subsystem split (an .app bundle and a Terminal=false desktop entry do
-// the same job). Debug builds stay console apps for dev output.
+// Bundled only on Windows (tauri.windows.conf.json sets mainBinaryName).
+// macOS and Linux keep the single unified binary on PATH: their OSes need
+// no subsystem split (an .app bundle and a Terminal=false desktop entry
+// do the same job). On macOS the fat-stack console build still hands GUI
+// launches to this sibling when one sits next to it (ADR-0084): tao
+// panics unless the event loop runs on the process's main thread, and
+// only the wrapper build pays the fat-stack price. Debug builds stay
+// console apps for dev output.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {

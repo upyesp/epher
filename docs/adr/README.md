@@ -108,6 +108,7 @@ Context, Decision, Consequences, Status. This directory is the record of
 | 0081 | No em-dashes anywhere in the project | 2026-11-02 | accepted |
 | 0082 | The macOS build runs when the Linux and Windows builds run | 2026-11-10 | accepted (supersedes 0075) |
 | 0083 | The landing hero is a real capture of all five surfaces | 2026-11-10 | accepted (supersedes the ADR-0030 hero on this point) |
+| 0084 | The macOS GUI hands off to the wrapper-free build | 2026-11-11 | accepted (amends 0011) |
 
 ## Decision chains
 
@@ -235,3 +236,8 @@ at the end of the chain.
   and 34px keypad tabs)**. → **0041 (tuning strips above
   the plot, the captioned keypad's own exact window)** → **0055 (strip
   icons reset their sliders)**.
+- **Unified binary and the platform split** - 0011 (one `epher` binary
+  hosts every frontend; the Windows GUI-subsystem sibling `epher-gui`
+  takes desktop launches) → 0074 (the Windows console build explains a
+  bare run until the headless waiver) → **0084 (the macOS GUI hands off
+  to the wrapper-free build; Linux keeps the in-process window)**.
