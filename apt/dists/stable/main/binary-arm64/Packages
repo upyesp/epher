@@ -1,16 +1,16 @@
 Package: epher
 Architecture: arm64
-Version: 0.9.7
+Version: 0.9.8
 Priority: optional
 Maintainer: upyesp
-Installed-Size: 21333
+Installed-Size: 21301
 Depends: libwebkit2gtk-4.1-0, libgtk-3-0
-Filename: pool/main/e/epher/epher_0.9.7_arm64.deb
-Size: 7835980
-MD5sum: 13380e3d3deb8d962ce369adbe3c6ad9
-SHA1: 7612529e6a14127fd6e9e813692be1dc20f30708
-SHA256: 767e91d0978c05587df70f65298521fff2ed88ec025dcb9936d2c9e2d3cb843f
-SHA512: 20876b29da84c1cb4310e3d7798ae3a68db03a7b7b667c09b0ab34aab2c50c47aa5719c268ebf9d435da3ac786245dedf36781b1bbce665052b45cc83e59ef8b
+Filename: pool/main/e/epher/epher_0.9.8_arm64.deb
+Size: 7834316
+MD5sum: 0838b40bc894f72debe609e6b6249358
+SHA1: 9e94635c9783360d5447ba0b76f355b9b57f0f48
+SHA256: e76888bfa861c9ada21dc0d8a660a81aeb9eb85e865b21510719773586ecace1
+SHA512: d20013dafc9ed680c6b6a1ed6c4f91e597d2fbbe7c2d996213d1af80932f481b1ea91834f66793b1ca4d058b25456135f4a2eeb4b9d44785c927ae85dea2e916
 Description: epher: a programmable, scriptable calculator, the unified desktop binary
  (none)
 
