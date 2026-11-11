@@ -52,7 +52,7 @@ from LSP.plugin import uri_from_view
 # is the current train, so a symlinked test folder resolves to today's
 # release, with the latest-release fallback covering assemblies that
 # run ahead of their tag.
-_SERVER_VERSION = "0.9.7"
+_SERVER_VERSION = "0.9.8"
 
 # The results view's wrap (ADR-0078 R2): rows pre-broken at the
 # wire's soft-break segments to this width, continuation rows indented
